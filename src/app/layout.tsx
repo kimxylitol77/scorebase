@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import LiveScoresBar from "@/components/LiveScoresBar";
 import SiteChromeHeader from "@/components/SiteChromeHeader";
 import SiteChromeFooter from "@/components/SiteChromeFooter";
+import EnHeader from "@/components/en/EnHeader";
+import EnFooter from "@/components/en/EnFooter";
 import PageViewTracker from "@/components/PageViewTracker";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site-url";
@@ -167,6 +169,7 @@ export default async function RootLayout({
             </>
           }
           scoreboard={<ScoreboardHeader />}
+          en={<EnHeader />}
         />
         <main className="flex-1 w-full">{children}</main>
         <SiteChromeFooter
@@ -186,6 +189,7 @@ export default async function RootLayout({
               가 제공하는 서비스입니다.
             </footer>
           }
+          en={<EnFooter />}
         />
         <Chatbot />
         <LivePipScore />

@@ -5,6 +5,7 @@ import ThemeToggle from "./ThemeToggle";
 import SearchInput from "./SearchInput";
 import AdminBadge from "./AdminBadge";
 import UserBadge from "./UserBadge";
+import LangSwitch from "./en/LangSwitch";
 import {
   SPORT_CATEGORIES,
   COMMUNITY_CATEGORY,
@@ -41,6 +42,7 @@ export default function Header() {
           <div className="ml-1 flex items-center gap-2">
             <UserBadge />
             <AdminBadge />
+            <LangSwitch target="en" />
             <ThemeToggle variant="icon" />
           </div>
         </nav>

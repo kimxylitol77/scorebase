@@ -26,6 +26,7 @@ import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { EN_PREDICTION_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
 import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
@@ -305,7 +306,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "AI 승부예측",
       "스코어베이스",
     ],
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      // 영어판(/en/predictions) 지원 리그만 hreflang 상호 연결
+      ...(EN_PREDICTION_LEAGUE_SET.has(upper)
+        ? { languages: koEnLanguages(`/predictions/${upper}`, `/en/predictions/${upper}`) }
+        : {}),
+    },
   };
 }
 

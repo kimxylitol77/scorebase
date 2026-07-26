@@ -28,7 +28,15 @@ export const metadata: Metadata = {
   title: "시즌 예측 — 우승 확률·플레이오프·리더보드",
   description:
     "시즌 우승·플레이오프·강등 확률과 득점·홈런·타율·ERA 리더보드를 Monte Carlo 5,000회 + Elo 레이팅으로 분석합니다. EPL·라리가·K리그·KBO·MLB·NPB·NBA·NHL·LCK — 전체 리그 순위는 순위 허브에서.",
-  alternates: { canonical: "/predictions" },
+  alternates: {
+    canonical: "/predictions",
+    // 영어판(/en/predictions) hreflang 상호 연결
+    languages: {
+      ko: "https://www.scorebase.kr/predictions",
+      en: "https://www.scorebase.kr/en/predictions",
+      "x-default": "https://www.scorebase.kr/predictions",
+    },
+  },
   keywords: [
     "시즌 예측", "우승 확률", "강등 확률", "플레이오프 확률",
     "Monte Carlo 시뮬레이션", "Elo 레이팅",

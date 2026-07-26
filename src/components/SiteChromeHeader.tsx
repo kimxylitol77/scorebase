@@ -10,9 +10,11 @@ const LANDING_HOSTS = ["스코어베이스.com", "xn--9k3b13iba842abwcsvs"];
 export default function SiteChromeHeader({
   main,
   scoreboard,
+  en,
 }: {
   main: React.ReactNode;
   scoreboard: React.ReactNode;
+  en?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [mode, setMode] = useState<"main" | "scoreboard" | "landing">("main");
@@ -30,5 +32,7 @@ export default function SiteChromeHeader({
   // 임베드(iframe) 라우트는 사이트 헤더 없이 위젯만 — 외부 블로그에 붙는 화면.
   if (pathname?.startsWith("/embed")) return null;
   if (mode === "landing") return null;
+  // 영어판(/en) — host 분기보다 우선 (영어 UI 는 경로 기반)
+  if (en && (pathname === "/en" || pathname?.startsWith("/en/"))) return <>{en}</>;
   return <>{mode === "scoreboard" ? scoreboard : main}</>;
 }

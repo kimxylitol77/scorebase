@@ -54,7 +54,15 @@ export const metadata: Metadata = {
     "KBO", "KBO 리그", "KBO 순위", "한국 프로야구",
     "FIFA 월드컵", "월드컵 2026", "북중미 월드컵", "대한민국 월드컵",
   ],
-  alternates: { canonical: CANONICAL },
+  alternates: {
+    canonical: CANONICAL,
+    // 영어판(/en) hreflang 상호 연결
+    languages: {
+      ko: CANONICAL,
+      en: `${CANONICAL}/en`,
+      "x-default": CANONICAL,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "ko_KR",

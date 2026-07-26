@@ -19,6 +19,7 @@ import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import { EN_STANDINGS_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
 import LolStandings from "@/components/LolStandings";
 import LolSimpleStandings from "@/components/LolSimpleStandings";
@@ -52,6 +53,12 @@ const VALID = new Set<string>([
   "EWC",
 ]);
 
+// 영어판(/en/standings) 지원 리그만 hreflang 상호 연결
+const enAlt = (upper: string) =>
+  EN_STANDINGS_LEAGUE_SET.has(upper)
+    ? { languages: koEnLanguages(`/standings/${upper}`, `/en/standings/${upper}`) }
+    : {};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
@@ -61,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "NHL 순위표 — 동·서부 컨퍼런스 전체 순위",
       description:
         "NHL 정규시즌 순위표. 동부·서부 컨퍼런스 32팀의 경기·승·패·연장패·승점 전체 순위를 NHL 공식 기록으로 매일 자동 갱신.",
-      alternates: { canonical: "https://www.scorebase.kr/standings/NHL" },
+      alternates: { canonical: "https://www.scorebase.kr/standings/NHL", ...enAlt(upper) },
     };
   }
   // KBO — 빙 검색어 "kbo 리그 팀 순위"(노출 561·5위)·"kbo순위"(98·6위) 정밀 매칭.
@@ -81,7 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         "야구 순위",
         "한국 프로야구 순위",
       ],
-      alternates: { canonical: "https://www.scorebase.kr/standings/KBO" },
+      alternates: { canonical: "https://www.scorebase.kr/standings/KBO", ...enAlt(upper) },
     };
   }
   if (upper === "EWC") {
@@ -105,7 +112,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${name} 순위표`,
     description: `${name} 시즌 순위표. 승점·승무패·골득실·득점·실점 한눈에. 매일 자동 갱신.`,
-    alternates: { canonical: `https://www.scorebase.kr/standings/${upper}` },
+    alternates: { canonical: `https://www.scorebase.kr/standings/${upper}`, ...enAlt(upper) },
   };
 }
 

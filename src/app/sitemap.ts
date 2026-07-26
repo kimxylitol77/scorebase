@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
 import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 
 // 자동 생성되는 sitemap.xml
@@ -70,6 +71,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/predictions/${lg}`,
       changeFrequency: "hourly" as const,
       priority: 0.85,
+    })),
+    // 영어판(/en) — 핵심 URL 만 등록 (thin 희석 방지: 허브 + 핵심 리그 상세만)
+    { url: `${base}/en`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${base}/en/standings`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/en/predictions`, changeFrequency: "daily", priority: 0.65 },
+    ...SITEMAP_LEAGUES.filter((lg) => EN_STANDINGS_LEAGUE_SET.has(lg)).map((lg) => ({
+      url: `${base}/en/standings/${lg}`,
+      changeFrequency: "daily" as const,
+      priority: 0.55,
+    })),
+    ...EN_PREDICTION_LEAGUES.map((lg) => ({
+      url: `${base}/en/predictions/${lg}`,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
     })),
     // 월드컵 허브 + 출전국 목록 (2026-06 신설 — 고아였던 national-teams/[id] 입구)
     { url: `${base}/world-cup`, changeFrequency: "hourly", priority: 0.95 },

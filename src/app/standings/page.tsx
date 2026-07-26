@@ -21,7 +21,15 @@ export const metadata: Metadata = {
   },
   description:
     "축구·야구·농구·하키·배구·e스포츠 종목별 리그 순위와 득점왕·도움왕 리더보드. EPL·라리가·MLB·NBA·KBO·NHL 등 시즌 순위를 Elo 레이팅·최근 폼과 함께 정리.",
-  alternates: { canonical: "https://www.scorebase.kr/standings" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/standings",
+    // 영어판(/en/standings) hreflang 상호 연결
+    languages: {
+      ko: "https://www.scorebase.kr/standings",
+      en: "https://www.scorebase.kr/en/standings",
+      "x-default": "https://www.scorebase.kr/standings",
+    },
+  },
 };
 
 interface LeagueCard {

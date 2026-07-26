@@ -21,6 +21,13 @@
     "group": "other"
   },
   {
+    "route": "/account/shop",
+    "desc": "포인트 상점 — 프로필 꾸미기(닉네임 색상·아바타 프레임) 구매·장착. 마이페이지 하위.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/ai-sports-prediction",
     "desc": "\"AI 스포츠 분석·예측 사이트\" 정체성 필러 페이지.  GSC에서 노출만 되고(56~99위) 클릭 0인 정체성 키워드 클러스터 정조준:  ai 승부예측 사이트 · 야구/MLB 분석 사이트 · 스포츠 예측 사이트 · 예측사이트.  고유자산(적중률 백테스트 · AI vs GPT 성적표 · 승리확률 계산기)을 근거로 인용성↑.",
     "inMenu": false,
@@ -72,9 +79,9 @@
   {
     "route": "/ballon",
     "desc": "발롱도르 순위 지수 계산기 페이지 — 서버에서 후보 데이터를 조립해 인터랙티브 계산기에 전달.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/baseball",
@@ -100,9 +107,9 @@
   {
     "route": "/blog",
     "desc": "블로그 목록 — 스포츠 데이터 분석 인사이트 글 모음.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/blog/[slug]",
@@ -142,9 +149,9 @@
   {
     "route": "/compare",
     "desc": "선수 비교 입구 — 종목 선택 + 선수 2명 검색. ?sport=종목, ?a={id} 로 한 명 프리필(선수페이지 \"비교하기\").",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/compare/[a]/[b]",
@@ -224,6 +231,41 @@
     "group": "other"
   },
   {
+    "route": "/en",
+    "desc": "/en 랜딩 — 영어권 진입점: 오늘의 AI 픽 + Standings/Predictions 허브 링크.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/predictions",
+    "desc": "영어판 예측 허브: 리그 카드 + 임박 Strong Pick 하이라이트.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/predictions/[league]",
+    "desc": "영어판 리그 예측: 임박 경기 확률·픽 + 최근 판정 결과(투명 공개).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/en/standings",
+    "desc": "영어판 순위 허브: 종목·국가별 리그 카드 + Top3 미리보기 (ko /standings 의 린 버전).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/standings/[league]",
+    "desc": "영어판 리그 순위표. getFullStandings 공용 데이터 + 영문 팀명(DB 원본). 야구는 승률(PCT)·게임차(GB) 컬럼, 그 외는 승점 테이블. e스포츠·배구 전용 포맷은 미지원.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/experts",
     "desc": "예측 전문가 순위 — 분석가·회원 적중률 랭킹(Wilson 점수 하한 정렬).",
     "inMenu": false,
@@ -236,6 +278,13 @@
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
+  },
+  {
+    "route": "/golf/korea",
+    "desc": "골프 한국 선수 시즌 성적 트래커 — PGA·LPGA 시즌 대회를 집계한 정적 JSON 렌더. ESPN 에 세계랭킹·선수통계가 없어(docs/golf-korea-tracker) 대회 리더보드를 자체 집계한 결과. 데이터 생성: scripts/build-golf-korea-season.ts → data/golf-korea-season.json",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
   },
   {
     "route": "/h2h/[pair]",
@@ -366,9 +415,9 @@
   {
     "route": "/notices",
     "desc": "공지/패치노트 목록 — 사이트 공지·변경 이력(CHANGELOG·NOTICE·MAINTENANCE).",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/notices/[slug]",
@@ -380,6 +429,13 @@
   {
     "route": "/odds",
     "desc": "배당 흐름 — 종목(축구/야구/농구)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/other",
+    "desc": "기타 종목 허브 — 하키·배구·e스포츠·테니스·골프·F1 진입점. 축구·야구·농구는 각자 허브(/soccer·/baseball·/basketball)가 있고, 나머지 종목은 개별 허브가 없거나(배구·테니스·골프·F1) 메뉴에서 빠져 있어 한 곳에 모은다. 각 카드 = 라이브 스코어 + 그 종목의 심화 콘텐츠(순위·랭킹·트래커) 링크.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -442,7 +498,7 @@
   },
   {
     "route": "/predictions/scorecard",
-    "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Grok·Gemini·Qwen)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.",
+    "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -483,6 +539,27 @@
     "group": "other"
   },
   {
+    "route": "/rankings/f1",
+    "desc": "F1 챔피언십 순위 — 드라이버·컨스트럭터. ESPN core standings + 한글명(위키/Haiku) + 팀 컬러. 배경·한계는 docs/f1-championship/context-notes.md",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/rankings/tennis",
+    "desc": "테니스 세계랭킹 — ATP·WTA top150. ESPN 랭킹 + 한글명 사전(위키+Haiku). 경쟁사(Flashscore 한국어) 대비 차별점 = 한글명. docs/tennis-rankings 참고.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/rankings/tennis/[id]",
+    "desc": "테니스 선수 상세 — ESPN core API 프로필 + 시즌 통계 + 현재 랭킹. 랭킹 페이지 행 클릭으로 진입. docs/tennis-rankings 참고.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/rankings/ufc",
     "desc": "UFC 체급별·파운드-포-파운드 랭킹 페이지 — MmaRanking(주간 UFC.com 스냅샷) 을 읽어 탭 뷰로 렌더.",
     "inMenu": false,
@@ -490,8 +567,29 @@
     "group": "other"
   },
   {
+    "route": "/rankings/value-clubs",
+    "desc": "가성비 구단 랭킹 — 스쿼드 몸값 1억€당 승점으로 빅5 구단을 줄 세운다. \"잘하는 팀\"이 아니라 \"쓴 돈 대비 뽑아낸 성적\" 순위다(바르사가 리그 1위여도 하위에 온다). 리그마다 몸값 수준이 달라(EPL 최저 290M vs 라리가 최저 55M) 리그 간 비교는 성립하지 않는다 → 리그별로만 정렬.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/salaries/f1",
+    "desc": "F1 드라이버 연봉 랭킹 (미디어 종합 추정치, USD + 한화 환산). 데이터: data/f1-salaries.json 큐레이션 → PlayerSalary(F1) (lib/sports/f1-salaries 헤더 참고). ⚠️ F1 은 연봉 공식 발표가 없어 \"추정\" 고지를 페이지에 반드시 유지할 것. 한글 드라이버명 = 시드 JSON(name→nameKo), 팀 한글명·컬러 = espn-f1 고정 매핑 재사용.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/salaries/golf",
+    "desc": "PGA 투어 시즌 상금 랭킹 (USD + 한화 환산, top 60). 데이터: ESPN 골프 통계 API → PlayerSalary(GOLF) (cron fetch-salaries 주간 replace). teamName 필드 = 국가(영문) — 골프는 소속 팀이 없다. 한글 국가명은 fifaCountryKo 재사용.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/salaries/kbo",
-    "desc": "KBO 국내 선수 연봉 랭킹 (원화, 상위 큐레이션). 데이터: KBO 공식 + 언론 교차검증 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로. ⚠️ KBO 연봉 전체 DB 무료 소스 없음(statiz 로그인 벽) → 국내 선수 TOP 10 큐레이션. 외국인은 달러 별도라 제외.",
+    "desc": "KBO 연봉 랭킹. 국내 선수(원화, 상위 100명) + 외국인 선수(달러, 전원) 두 표. 데이터: KBO 공식 선수 프로필 전수 수집 → 국내는 PlayerSalary(KBO), 외국인은 JSON 직접(DB 에 통화 구분 없음). ⚠️ 국내 선수의 선수ID·생년월일은 이름+구단으로 JSON 원본에서 조회한다    (DB 행에는 선수ID 컬럼이 없고, 동명이인이 44건이라 이름 단독 매칭은 엉뚱한 선수로 연결된다).",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -499,9 +597,9 @@
   {
     "route": "/salaries/mlb",
     "desc": "MLB 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: spotrac → PlayerSalary(MLB) (cron fetch-salaries). 선수 한글명 = 위키 사전(정본) > TheSportsPlayer > toKoreanPlayerName. ⚠️ MLB 선수 사진 소스가 없어 이니셜 fallback (NBA 는 ESPN headshot).",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/salaries/nba",
@@ -513,9 +611,16 @@
   {
     "route": "/salaries/nhl",
     "desc": "NHL 선수 연봉(cap hit) 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: CapWages → PlayerSalary(NHL) (cron fetch-salaries). 사진·선수 링크 = nhle 머그샷(URL 에 player id). 선수 한글명 = 위키 사전(정본) > haiku json > 영문. 팀·로고 = DB Team(NHL) 풀네임 매칭.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
+  },
+  {
+    "route": "/salaries/tennis",
+    "desc": "테니스 시즌 상금 랭킹 (ATP/WTA 탭, USD + 한화 환산, top 50). 데이터: ATP·WTA 공식 주간 PDF 큐레이션 → PlayerSalary(TENNIS_ATP/TENNIS_WTA) (lib/sports/tennis-prize-money 헤더 참고). 한글 선수명·국적 = ESPN 랭킹 top150 (fetchTennisRankings) 이름 매칭 재사용 — 복식 전문 선수 등 미매칭은 영문 fallback.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/scores",
@@ -562,6 +667,20 @@
   {
     "route": "/teams/[id]",
     "desc": "팀 페이지 — 클럽 정보·로스터·경기장·일정(종목별 분기).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/tennis/draw",
+    "desc": "테니스 드로우 허브 — 현재 진행/최근 ATP·WTA 대회를 나열해 각 대진표로 진입.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/tennis/draw/[tour]/[event]",
+    "desc": "테니스 대회 드로우(대진표) 페이지 — ESPN scoreboard 재구성, 표시 전용.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
@@ -616,11 +735,18 @@
     "group": "detail"
   },
   {
+    "route": "/ufc/fighters/[id]",
+    "desc": "UFC 파이터 상세 — MmaFighter(신체·전적·국적·전투이력) 바이오 + 최근 경기. id=Team(UFC).id(teamId).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/value-bets",
     "desc": "Elo 예측 vs 배당사 implied 비교 → value > +5% 매치 list. SSR — 1분 revalidate. 데이터 source: Match.predHome/predDraw/predAway + 최근 OddsSnapshot.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/widgets",
