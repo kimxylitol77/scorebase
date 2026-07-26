@@ -18,7 +18,8 @@ import { getExternalLinks } from "@/lib/external-links";
 import AdminEditLink from "@/components/AdminEditLink";
 import { SITE_URL } from "@/lib/site-url";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import WinProbBar from "@/components/WinProbBar";
 import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores/soccer/buildSoccerCacheTabs";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchOddsTable from "@/components/MatchOddsTable";
@@ -860,6 +861,36 @@ export default async function ArticlePage({ params }: Props) {
           </div>
         );
       })()}
+
+      {/* 야구 PREVIEW 상단 승률 바 — 당일 선발 반영 모델 승률(pred*)을 본문 진입 전에 한 줄 노출.
+          예측값은 아래 MatchInsight 와 동일하게 글(Article) 스냅샷 우선 (본문=위젯 일치 원칙). */}
+      {article.type === "PREVIEW" &&
+        article.match &&
+        BASEBALL_LEAGUES.has(article.league) &&
+        (() => {
+          const ph = article.predHome ?? article.match.predHome;
+          const pa = article.predAway ?? article.match.predAway;
+          if (ph == null || pa == null) return null;
+          return (
+            <div className="mb-8">
+              <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
+                <BarChart3 className="h-3.5 w-3.5" aria-hidden />
+                {/* 선발 반영 문구는 MLB 만 — KBO/NPB 는 선발 투수 데이터 미통합 (오표기 방지) */}
+                {article.league === "MLB"
+                  ? "AI 모델 승률 · 당일 선발 반영 · 경기 전 기준"
+                  : "AI 모델 승률 · 경기 전 기준"}
+              </div>
+              <WinProbBar
+                homeProb={ph}
+                drawProb={0}
+                awayProb={pa}
+                homeName={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+                awayName={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+                hideDraw
+              />
+            </div>
+          );
+        })()}
 
       {/* LoL RECAP 본문은 길게 풀어쓴 Markdown (사용자 선호 — 카드 UI 대신 본문에 모든 정보 통합).
           lolRecapCtx 가 있어도 본문 안에 5라인 매치업·시즌·MVP 가 다 들어있으므로 Markdown 만. */}
