@@ -146,6 +146,21 @@ export default async function F1DriverPage({
         </div>
       </header>
 
+      {/* 프로필 */}
+      {profile.length > 0 && (
+        <section className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
+          <h2 className="mb-3 text-sm font-bold tracking-tight">프로필</h2>
+          <dl className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            {profile.map((p) => (
+              <div key={p.label} className="flex items-center justify-between py-2 text-sm">
+                <dt className="text-neutral-500">{p.label}</dt>
+                <dd className="font-semibold text-neutral-800 dark:text-neutral-200">{p.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       {/* 시즌 요약 */}
       {seasonStats.length > 0 && (
         <section className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
@@ -212,21 +227,6 @@ export default async function F1DriverPage({
               </li>
             ))}
           </ul>
-        </section>
-      )}
-
-      {/* 프로필 */}
-      {profile.length > 0 && (
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
-          <h2 className="mb-3 text-sm font-bold tracking-tight">프로필</h2>
-          <dl className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {profile.map((p) => (
-              <div key={p.label} className="flex items-center justify-between py-2 text-sm">
-                <dt className="text-neutral-500">{p.label}</dt>
-                <dd className="font-semibold text-neutral-800 dark:text-neutral-200">{p.value}</dd>
-              </div>
-            ))}
-          </dl>
         </section>
       )}
 
