@@ -9,7 +9,8 @@ import type { Metadata } from "next";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
-import { F1_TEAM_KO, F1_TEAM_COLOR, fetchF1Championship } from "@/lib/sports/espn-f1";
+import TeamBadge from "@/components/TeamBadge";
+import { F1_TEAM_KO, F1_TEAM_COLOR, F1_TEAM_LOGO, fetchF1Championship } from "@/lib/sports/espn-f1";
 import { getF1Salaries, F1_SALARY_AS_OF, F1_SALARY_SOURCE, F1_SALARY_SOURCE_URL } from "@/lib/sports/f1-salaries";
 import { CircleDollarSign } from "lucide-react";
 
@@ -161,7 +162,12 @@ export default async function F1SalariesPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-2 py-2.5 text-neutral-500 hidden sm:table-cell">{teamKo}</td>
+                    <td className="px-2 py-2.5 text-neutral-500 hidden sm:table-cell">
+                      <span className="flex items-center gap-1.5">
+                        <TeamBadge logoUrl={F1_TEAM_LOGO[r.teamName] ?? null} size={18} />
+                        {teamKo}
+                      </span>
+                    </td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                       <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
                       <div className="lg:hidden text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>

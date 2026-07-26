@@ -23,6 +23,24 @@ export const F1_TEAM_KO: Record<string, string> = {
   Cadillac: "캐딜락",
 };
 
+// 팀 로고 — F1 공식 미디어 CDN (ESPN·DB 에 F1 팀 로고 없음, 11팀 전부 200 실측 2026-07).
+// 경로에 시즌(2026)이 박혀 있어 연 1회 갱신 필요. 컬러 버전이라 라이트·다크 공용.
+const f1Logo = (slug: string) =>
+  `https://media.formula1.com/image/upload/c_lfill,w_96/q_auto/v1740000001/common/f1/2026/${slug}/2026${slug}logo.webp`;
+export const F1_TEAM_LOGO: Record<string, string> = {
+  Mercedes: f1Logo("mercedes"),
+  Ferrari: f1Logo("ferrari"),
+  McLaren: f1Logo("mclaren"),
+  "Red Bull": f1Logo("redbullracing"),
+  Alpine: f1Logo("alpine"),
+  "Racing Bulls": f1Logo("racingbulls"),
+  Haas: f1Logo("haasf1team"),
+  Williams: f1Logo("williams"),
+  Audi: f1Logo("audi"),
+  "Aston Martin": f1Logo("astonmartin"),
+  Cadillac: f1Logo("cadillac"),
+};
+
 // 팀 컬러 — 순위표 가독성(팀 식별). Tailwind 클래스 대신 hex(동적 클래스 purge 회피).
 export const F1_TEAM_COLOR: Record<string, string> = {
   Mercedes: "#00D2BE",
