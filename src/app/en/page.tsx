@@ -39,7 +39,7 @@ const HUBS = [
   {
     href: "/en/standings",
     title: "League Standings",
-    desc: "Live tables for 40+ football leagues plus MLB, KBO and NPB baseball.",
+    desc: "Live tables for 40+ football leagues plus MLB, KBO, NPB and the NHL.",
   },
 ];
 

@@ -11,14 +11,15 @@ import {
   type TopThreeEntry,
 } from "@/lib/sports/standings-overview";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import { enLeagueName, toEnglishTeamName, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "League Standings — Football & Baseball Tables",
+  title: "League Standings — Football, Baseball & NHL Tables",
   description:
-    "Up-to-date league tables for the Premier League, LaLiga, Bundesliga, Serie A, MLS, K League, MLB, KBO, NPB and 40+ more competitions.",
+    "Up-to-date league tables for the Premier League, LaLiga, Bundesliga, Serie A, MLS, K League, MLB, KBO, NPB, NHL and 40+ more competitions.",
   alternates: {
     canonical: `${SITE_URL}/en/standings`,
     languages: {
@@ -57,6 +58,17 @@ async function fetchBaseballGroup(): Promise<CountryStandingsGroup> {
     }),
   );
   return { country: "⚾ Baseball", leagues };
+}
+
+// NHL — 공식 API 리그 전체 상위 3팀 미리보기 카드
+async function fetchNhlGroup(): Promise<CountryStandingsGroup | null> {
+  const std = await fetchNhlStandings().catch(() => null);
+  if (!std || std.rows.length === 0) return null;
+  const top3 = [...std.rows]
+    .sort((a, b) => b.points - a.points || b.regulationWins - a.regulationWins)
+    .slice(0, 3)
+    .map((r, i) => ({ position: i + 1, teamId: i, name: r.name, points: r.points }));
+  return { country: "🏒 Ice Hockey", leagues: [{ league: "NHL", leagueDisplay: "NHL", top3 }] };
 }
 
 function GroupSection({ group, pointsSuffix = "p" }: { group: CountryStandingsGroup; pointsSuffix?: string }) {
@@ -105,8 +117,9 @@ function GroupSection({ group, pointsSuffix = "p" }: { group: CountryStandingsGr
 }
 
 export default async function EnStandingsRoot() {
-  const [baseballGroup, soccerGroups] = await Promise.all([
+  const [baseballGroup, nhlGroup, soccerGroups] = await Promise.all([
     fetchBaseballGroup(),
+    fetchNhlGroup(),
     fetchSoccerCountryGroups("en"),
   ]);
 
@@ -121,13 +134,16 @@ export default async function EnStandingsRoot() {
           League standings
         </h1>
         <p className="text-sm leading-relaxed text-neutral-500">
-          Football and baseball season tables, updated throughout the day. Click any league for the
-          full table.
+          Football, baseball and NHL season tables, updated throughout the day. Click any league for
+          the full table.
         </p>
       </header>
 
       {/* 야구 — 승수(W) 표기 */}
       <GroupSection group={baseballGroup} pointsSuffix="W" />
+
+      {/* NHL — 승점(p) 표기 */}
+      {nhlGroup && <GroupSection group={nhlGroup} />}
 
       {/* 축구 — 국가별 */}
       <section className="space-y-6 border-t border-neutral-200 pt-6 dark:border-white/10">

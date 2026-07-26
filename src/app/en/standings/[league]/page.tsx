@@ -9,6 +9,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { SITE_URL } from "@/lib/site-url";
 import { getFullStandings, type StandingsRow } from "@/lib/sports/thesports/standings-helper";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { fetchNhlStandings, type NhlStandingRow } from "@/lib/sports/nhl-api";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import {
@@ -192,10 +193,89 @@ async function fetchBaseballRows(upper: string): Promise<StandingsRow[]> {
   }));
 }
 
+// NHL — 공식 API 컨퍼런스별 표 (승점 체계가 W/L/OTL 이라 일반 표와 분리 렌더)
+function NhlConferenceTable({ title, rows }: { title: string; rows: NhlStandingRow[] }) {
+  return (
+    <section className="space-y-2">
+      <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+      <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10">
+        <table className="w-full min-w-[560px] text-sm">
+          <thead>
+            <tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-400 dark:border-white/10">
+              <th className="px-3 py-2.5 w-10 text-center">#</th>
+              <th className="px-3 py-2.5">Team</th>
+              <th className="px-2 py-2.5 text-center">GP</th>
+              <th className="px-2 py-2.5 text-center">W</th>
+              <th className="px-2 py-2.5 text-center">L</th>
+              <th className="px-2 py-2.5 text-center">OTL</th>
+              <th className="px-2 py-2.5 text-center font-bold">PTS</th>
+              <th className="hidden px-2 py-2.5 text-center sm:table-cell">GF</th>
+              <th className="hidden px-2 py-2.5 text-center sm:table-cell">GA</th>
+              <th className="px-2 py-2.5 text-center">DIFF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r.abbrev} className="border-b border-neutral-100 last:border-0 dark:border-white/5">
+                <td className="px-3 py-2 text-center font-bold tabular-nums text-neutral-400">{i + 1}</td>
+                <td className="px-3 py-2 font-medium">{r.name}</td>
+                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{r.gamesPlayed}</td>
+                <td className="px-2 py-2 text-center tabular-nums">{r.wins}</td>
+                <td className="px-2 py-2 text-center tabular-nums">{r.losses}</td>
+                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{r.otLosses}</td>
+                <td className="px-2 py-2 text-center font-bold tabular-nums">{r.points}</td>
+                <td className="hidden px-2 py-2 text-center tabular-nums text-neutral-500 sm:table-cell">{r.goalFor}</td>
+                <td className="hidden px-2 py-2 text-center tabular-nums text-neutral-500 sm:table-cell">{r.goalAgainst}</td>
+                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">
+                  {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+async function NhlStandingsPage() {
+  const std = await fetchNhlStandings();
+  if (!std || std.rows.length === 0) notFound();
+  const sortRows = (conf: string) =>
+    std.rows
+      .filter((r) => r.conference === conf)
+      .sort((a, b) => b.points - a.points || b.regulationWins - a.regulationWins);
+  return (
+    <main className="relative mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
+      <AmbientGlow />
+      <header className="space-y-2">
+        <nav className="text-xs text-neutral-400">
+          <Link href="/en/standings" className="hover:underline">
+            Standings
+          </Link>{" "}
+          / NHL
+        </nav>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">NHL standings</h1>
+        <p className="text-sm text-neutral-500">
+          {std.season} season — official NHL records, updated daily.{" "}
+          <Link href="/en/predictions/NHL" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            NHL AI predictions
+          </Link>
+          .
+        </p>
+      </header>
+      <NhlConferenceTable title="Eastern Conference" rows={sortRows("Eastern")} />
+      <NhlConferenceTable title="Western Conference" rows={sortRows("Western")} />
+    </main>
+  );
+}
+
 export default async function EnStandingsLeague({ params }: Props) {
   const { league } = await params;
   const upper = league.toUpperCase();
   if (!VALID.has(upper)) notFound();
+
+  if (upper === "NHL") return NhlStandingsPage();
 
   const rows = BASEBALL_LEAGUES_EN.has(upper)
     ? await fetchBaseballRows(upper)

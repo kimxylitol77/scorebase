@@ -296,14 +296,15 @@ export const EN_PREDICTION_LEAGUE_SET = new Set<string>(EN_PREDICTION_LEAGUES);
 export const BASEBALL_LEAGUES_EN = new Set(["MLB", "KBO", "NPB", "CPBL"]);
 
 /** /en/standings/[league] 지원 리그 — ko standings generateMetadata 의 hreflang 판정과
- *  en 페이지 VALID 가 공유하는 단일 출처. 축구=getFullStandings, 야구=fetchBaseballTable→calc.
- *  NBA(소스 정비 중)·WNBA·NHL(전용 포맷)은 v1 제외 — 지원 시 여기에 추가. */
+ *  en 페이지 VALID 가 공유하는 단일 출처. 축구=getFullStandings, 야구=fetchBaseballTable→calc,
+ *  NHL=공식 API(fetchNhlStandings) 컨퍼런스 표. NBA(소스 정비 중)·WNBA 는 제외 — 지원 시 추가. */
 export const EN_STANDINGS_LEAGUE_SET = new Set<string>([
   ...SOCCER_LEAGUES,
   "MLB",
   "KBO",
   "NPB",
   "CPBL",
+  "NHL",
 ]);
 
 /** DB Team.name 이 한글로 저장된 리그(KBO·NPB)의 한→영 공식 팀명.

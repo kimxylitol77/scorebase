@@ -7,6 +7,7 @@ import { SITE_URL } from "@/lib/site-url";
 import { enLeagueName, EN_PREDICTION_LEAGUE_SET, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { fetchUpcomingPredicted, fetchRecentJudged } from "../../_data";
 import { MatchPredCard, JudgedRow } from "../../_components";
+import { runEnSeasonSim, EN_SIM_LEAGUES, type EnSimResult } from "../../_season-sim";
 
 export const revalidate = 600;
 
@@ -33,15 +34,68 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const simPct = (v: number) => (v >= 0.995 ? "99%+" : v < 0.005 ? "<1%" : `${Math.round(v * 100)}%`);
+
+function SeasonSimSection({ sim, name }: { sim: EnSimResult; name: string }) {
+  const top = sim.rows.slice(0, 10);
+  return (
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Season outlook</h2>
+        <span className="text-xs text-neutral-500">Monte Carlo × 5,000 runs</span>
+      </div>
+      <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10">
+        <table className="w-full min-w-[520px] text-sm">
+          <thead>
+            <tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-400 dark:border-white/10">
+              <th className="px-3 py-2.5 w-10 text-center">#</th>
+              <th className="px-3 py-2.5">Team</th>
+              <th className="px-2 py-2.5 text-center">1st place</th>
+              {sim.config.playoff && <th className="px-2 py-2.5 text-center">{sim.config.playoff.label}</th>}
+              {sim.config.relegationCount > 0 && <th className="px-2 py-2.5 text-center">Relegation</th>}
+              {!sim.config.hideXPts && <th className="px-2 py-2.5 text-center">xPts</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {top.map((r) => (
+              <tr key={r.team} className="border-b border-neutral-100 last:border-0 dark:border-white/5">
+                <td className="px-3 py-2 text-center font-bold tabular-nums text-neutral-400">{r.currentPosition}</td>
+                <td className="px-3 py-2 font-medium">{r.team}</td>
+                <td className="px-2 py-2 text-center tabular-nums font-semibold">{simPct(r.champion)}</td>
+                {sim.config.playoff && (
+                  <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{simPct(r.playoff ?? 0)}</td>
+                )}
+                {sim.config.relegationCount > 0 && (
+                  <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{simPct(r.relegation ?? 0)}</td>
+                )}
+                {!sim.config.hideXPts && (
+                  <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{r.expectedPoints.toFixed(0)}</td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs leading-relaxed text-neutral-400">
+        Probability of finishing 1st in the overall {name} table, from 5,000 Monte Carlo simulations
+        of the remaining schedule using Elo-based match probabilities. # is the current standings
+        position{sim.config.hideXPts ? "" : "; xPts is the average simulated final points"}. Top 10
+        shown.
+      </p>
+    </section>
+  );
+}
+
 export default async function EnPredictionsLeague({ params }: Props) {
   const { league } = await params;
   const upper = league.toUpperCase();
   if (!EN_PREDICTION_LEAGUE_SET.has(upper)) notFound();
 
   const name = enLeagueName(upper);
-  const [upcoming, judged] = await Promise.all([
+  const [upcoming, judged, sim] = await Promise.all([
     fetchUpcomingPredicted([upper], { withinHours: 24 * 7, limit: 30 }),
     fetchRecentJudged(upper, 12),
+    upper in EN_SIM_LEAGUES ? runEnSeasonSim(upper) : Promise.resolve(null),
   ]);
   const hits = judged.filter((m) => m.predCorrect).length;
 
@@ -88,6 +142,8 @@ export default async function EnPredictionsLeague({ params }: Props) {
           </div>
         )}
       </section>
+
+      {sim && <SeasonSimSection sim={sim} name={name} />}
 
       {judged.length > 0 && (
         <section className="space-y-3">
