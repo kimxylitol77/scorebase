@@ -30,3 +30,16 @@
 - [x] ShareCardButton (Web Share + 복사 + 카드 링크)
 - [x] tsc 통과 → 구자욱 페이지 + 카드 이미지 렌더 확인
 - [x] commit
+
+## 기능 1 후속 — KBO 투수 백분위 (v2)
+
+- [x] prisma BaseballPlayerSeasonStats 에 투수 컬럼 추가 (era/whip/ip/so/wins/losses/saves — 전부 nullable)
+- [x] prod DDL — 장기 트랜잭션 0건 확인 + lock_timeout 3s 절차로 ALTER 완료
+- [x] fetch-baseball-season-stats.ts KBO 에 PitcherBasic Basic1 팀별 수집 추가 (upsertPitcher 분리 — 타자 컬럼 불가침)
+- [x] KBO 투수 백필 실행 → 270명 적재 (era 유효 260)
+- [x] kbo-pitcher-percentile.ts (ERA/WHIP 백분위 반전, 규정 = 최다이닝 50% → 표본 43명)
+- [x] KboPercentileSection 데이터 타입 일반화 (타자/투수 겸용)
+- [x] KboPitcherView 개요 탭에 섹션 추가
+- [x] /api/og/kbo-percentile kind=pitcher 지원
+- [x] tsc + dev 렌더 (곽빈·구자욱) + 백분위-공식 ERA 순위 대조 일치
+- [ ] commit

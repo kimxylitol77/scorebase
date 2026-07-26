@@ -1,10 +1,11 @@
-// GET /api/og/kbo-percentile?name=오스틴&team=LG&pid=... — KBO 타자 리그 백분위 공유 카드(이미지).
+// GET /api/og/kbo-percentile?name=오스틴&team=LG&pid=...&kind=hitter|pitcher — KBO 리그 백분위 공유 카드(이미지).
 // 선수 페이지 백분위 섹션의 SNS 공유용. 데이터는 우리 DB 백분위 계산과 동일 소스 (숫자 100% 일치).
 // 1200×630. Higgsfield 배경 + 선수 사진 + 5개 스탯 백분위 바. 한글=Noto Sans KR, 숫자=Oswald.
 import { ImageResponse } from "next/og";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { getKboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
+import { getKboPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 
 export const runtime = "nodejs";
@@ -37,6 +38,7 @@ export async function GET(req: Request) {
   const name = sp.get("name") ?? "";
   const team = sp.get("team");
   const pid = sp.get("pid");
+  const kind = sp.get("kind") === "pitcher" ? "pitcher" : "hitter";
 
   const cwd = process.cwd();
   const [notoB, notoBlack, oswaldB] = await Promise.all([
@@ -50,7 +52,11 @@ export async function GET(req: Request) {
     { name: "Oswald", data: oswaldB, weight: 700 as const, style: "normal" as const },
   ];
 
-  const data = name ? await getKboHitterPercentiles(name, team).catch(() => null) : null;
+  const data = name
+    ? kind === "pitcher"
+      ? await getKboPitcherPercentiles(name, team).catch(() => null)
+      : await getKboHitterPercentiles(name, team).catch(() => null)
+    : null;
 
   const bgBuf = await readFile(join(cwd, "public/bg/kbo-percentile-card.png")).catch(() => null);
   const bg = bgBuf ? `data:image/png;base64,${bgBuf.toString("base64")}` : null;
@@ -156,7 +162,7 @@ export async function GET(req: Request) {
           {/* 푸터 */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
             <div style={{ display: "flex", fontSize: 20, color: "#94a3b8" }}>
-              규정 표본 {data.sample}명 · {data.minGames}경기 이상 · 백분위 90 = 상위 10%
+              규정 표본 {data.sample}명 · {"minGames" in data ? `${data.minGames}경기 이상` : `${data.minIp}이닝 이상`} · 백분위 90 = 상위 10%
             </div>
             <div style={{ display: "flex", fontSize: 26, fontWeight: 900, color: "#f5c542", letterSpacing: 3 }}>
               SCOREBASE.KR

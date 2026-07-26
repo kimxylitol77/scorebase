@@ -3,12 +3,13 @@
 //
 // 데이터 소스 (2026-06-02 실측 검증):
 //   - MLB: statsapi.mlb.com /teams/stats (팀) + /teams/{id}/roster hydrate (선수)
-//   - KBO: koreabaseball.com /Record/Team/* (팀) + /Record/Player/HitterBasic/* (선수)
+//   - KBO: koreabaseball.com /Record/Team/* (팀) + /Record/Player/{Hitter,Pitcher}Basic/* (선수)
 //   - NPB: npb.jp/bis/{Y}/stats/{tmb,tmp,bat}_{c,p}.html (팀 타격/투구 + 선수)
 //
 // 저장:
 //   - BaseballTeamSeasonStats  : (league, season, teamName) — avg/ops/hr/sb/runs/era/whip/W-L
 //   - BaseballPlayerSeasonStats: (league, season, teamName, playerName) — avg/hits/rbi/ops/hr
+//                                + KBO 투수 row: era/whip/ip/so/wins/losses/saves (타격 컬럼 null)
 // teamName = toKoreanTeamName 정규화 한글명 (매치 페이지가 같은 정규화로 join).
 //
 // 리그별 try/catch 격리 — 스크랩 실패(사이트 구조 변경 등)해도 다른 리그/기존 페이지 무영향.
@@ -20,6 +21,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import {
   fetchKboRecordTableForTeam,
+  ipToInnings,
   KBO_TEAM_CODES,
 } from "@/lib/sports/kbo-official";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -143,6 +145,55 @@ async function upsertPlayer(d: PlayerStatsInput) {
       ops: d.ops ?? null,
       homeRuns: d.homeRuns ?? null,
       games: d.games ?? null,
+    },
+  });
+}
+
+interface PitcherStatsInput {
+  league: string;
+  season: string;
+  teamName: string;
+  playerName: string;
+  externalId?: string;
+  era?: number | null;
+  whip?: number | null;
+  ip?: number | null;
+  so?: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  saves?: number | null;
+  games?: number | null;
+}
+
+// 타자와 같은 테이블(unique key 공유)이지만 투수 컬럼만 쓴다 — 타격 컬럼 불가침.
+async function upsertPitcher(d: PitcherStatsInput) {
+  const pitcherCols = {
+    externalId: d.externalId,
+    era: d.era ?? null,
+    whip: d.whip ?? null,
+    ip: d.ip ?? null,
+    so: d.so ?? null,
+    wins: d.wins ?? null,
+    losses: d.losses ?? null,
+    saves: d.saves ?? null,
+    games: d.games ?? null,
+  };
+  await prisma.baseballPlayerSeasonStats.upsert({
+    where: {
+      league_season_teamName_playerName: {
+        league: d.league,
+        season: d.season,
+        teamName: d.teamName,
+        playerName: d.playerName,
+      },
+    },
+    update: { ...pitcherCols, fetchedAt: new Date() },
+    create: {
+      league: d.league,
+      season: d.season,
+      teamName: d.teamName,
+      playerName: d.playerName,
+      ...pitcherCols,
     },
   });
 }
@@ -313,7 +364,7 @@ async function fetchKboTable(url: string): Promise<KboRow[]> {
 }
 
 async function runKbo(season: string) {
-  const summary = { teams: 0, players: 0 };
+  const summary = { teams: 0, players: 0, pitchers: 0 };
   const runStart = new Date();
 
   // --- 팀: 타자 Basic1(AVG/HR/R/G) + Basic2(OPS) + 투수 Basic1(ERA/W/L/WHIP) + 러너(SB)
@@ -407,6 +458,44 @@ async function runKbo(season: string) {
       homeRuns: int(row.cells["HR"]),
       games: int(row.cells["G"]),
     });    summary.players++;
+  }
+
+  // --- 투수: PitcherBasic Basic1 (ERA/G/W/L/SV/IP/SO/WHIP) — 타자와 동일한 팀별 POST 순회
+  let pPit: KboRow[] = [];
+  for (const code of KBO_TEAM_CODES) {
+    try {
+      pPit.push(
+        ...(await fetchKboRecordTableForTeam("/Record/Player/PitcherBasic/Basic1.aspx", code, season)),
+      );
+    } catch (e) {
+      console.warn(`[season-stats/KBO] team=${code} 투수 POST 실패:`, (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  if (pPit.length < 30) {
+    console.warn(`[season-stats/KBO] 투수 팀별 수집 ${pPit.length}명 — 단일 페이지 fallback`);
+    pPit = await fetchKboTable("https://www.koreabaseball.com/Record/Player/PitcherBasic/Basic1.aspx");
+  }
+  for (const row of pPit) {
+    const name = row.cells["선수명"];
+    const rawTeam = row.cells["팀명"];
+    if (!name || !rawTeam) continue;
+    const teamName = toKoreanTeamName(rawTeam) || rawTeam;
+    await upsertPitcher({
+      league: "KBO",
+      season,
+      teamName,
+      playerName: name,
+      externalId: row.playerId ?? undefined,
+      era: flt(row.cells["ERA"]),
+      whip: flt(row.cells["WHIP"]),
+      ip: ipToInnings(row.cells["IP"]) ?? null,
+      so: int(row.cells["SO"]),
+      wins: int(row.cells["W"]),
+      losses: int(row.cells["L"]),
+      saves: int(row.cells["SV"]),
+      games: int(row.cells["G"]),
+    });    summary.pitchers++;
   }
 
   await clearStaleByTime("KBO", season, runStart);

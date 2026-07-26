@@ -1,7 +1,8 @@
-// KBO 타자 리그 백분위 섹션 — Savant 비교 툴 스타일의 5개 핵심 스탯 백분위 막대.
+// KBO 타자·투수 리그 백분위 섹션 — Savant 비교 툴 스타일의 5개 핵심 스탯 백분위 막대.
 // 서버 컴포넌트. 데이터 없으면(규정 미달·표본 부족) 부모에서 렌더 자체를 생략한다.
 
 import type { KboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
+import type { KboPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
 import ShareCardButton from "@/components/ShareCardButton";
 
 // Savant 관례: 상위(높음)=빨강, 하위=파랑, 중간=회색
@@ -18,10 +19,13 @@ export default function KboPercentileSection({
   shareUrl,
   cardImageUrl,
 }: {
-  data: KboHitterPercentiles;
+  data: KboHitterPercentiles | KboPitcherPercentiles;
   shareUrl: string;
   cardImageUrl: string;
 }) {
+  // 규정 문구 — 타자는 출장 경기, 투수는 이닝 기준
+  const qualifier =
+    "minGames" in data ? `${data.minGames}경기 이상 출장` : `${data.minIp}이닝 이상 투구`;
   return (
     <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -36,7 +40,7 @@ export default function KboPercentileSection({
         />
       </div>
       <p className="mb-4 text-[11px] leading-relaxed text-neutral-500">
-        규정 표본 {data.sample}명({data.minGames}경기 이상 출장) 기준. 백분위 90 = 리그 상위 10%.
+        규정 표본 {data.sample}명({qualifier}) 기준. 백분위 90 = 리그 상위 10%.
       </p>
       <div className="space-y-3">
         {data.metrics.map((m) => (
