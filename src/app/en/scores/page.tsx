@@ -9,7 +9,12 @@ import LocalKickoff from "@/components/en/LocalKickoff";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
 import { SPORTS } from "@/lib/sports/sport-leagues";
-import { enLeagueName, toEnglishTeamName, SPORT_LABEL_EN } from "@/lib/i18n/en";
+import {
+  enLeagueName,
+  toEnglishTeamName,
+  SPORT_LABEL_EN,
+  EN_PREDICTION_LEAGUE_SET,
+} from "@/lib/i18n/en";
 
 export const metadata: Metadata = {
   title: "Live Scores — Football, Baseball, Basketball & More",
@@ -52,6 +57,9 @@ interface Row {
   awayScore: number | null;
   home: string;
   away: string;
+  predWinner: string | null;
+  predProb: number | null;
+  marketOdds: string | null;
 }
 
 function StatusCell({ m }: { m: Row }) {
@@ -77,24 +85,47 @@ function StatusCell({ m }: { m: Row }) {
 
 function MatchRow({ m }: { m: Row }) {
   const played = m.status === "LIVE" || m.status === "FINISHED";
+  const pickLabel =
+    m.status === "SCHEDULED" && m.predWinner && m.predProb != null
+      ? m.predWinner === "HOME"
+        ? m.home
+        : m.predWinner === "AWAY"
+          ? m.away
+          : "Draw"
+      : null;
   return (
-    <div className="grid grid-cols-[64px_1fr_auto_1fr] items-center gap-2 px-3 py-2 text-sm">
-      <StatusCell m={m} />
-      <span className={`truncate text-right ${played && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore ? "font-bold" : ""}`}>
-        {m.home}
-      </span>
-      <span className="min-w-[44px] text-center tabular-nums">
-        {played && m.homeScore != null ? (
-          <span className={`font-bold ${m.status === "LIVE" ? "text-rose-600 dark:text-rose-400" : ""}`}>
-            {m.homeScore} : {m.awayScore}
-          </span>
-        ) : (
-          <span className="text-neutral-400">vs</span>
-        )}
-      </span>
-      <span className={`truncate ${played && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore ? "font-bold" : ""}`}>
-        {m.away}
-      </span>
+    <div className="px-3 py-2">
+      <div className="grid grid-cols-[64px_1fr_auto_1fr] items-center gap-2 text-sm">
+        <StatusCell m={m} />
+        <span className={`truncate text-right ${played && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore ? "font-bold" : ""}`}>
+          {m.home}
+        </span>
+        <span className="min-w-[44px] text-center tabular-nums">
+          {played && m.homeScore != null ? (
+            <span className={`font-bold ${m.status === "LIVE" ? "text-rose-600 dark:text-rose-400" : ""}`}>
+              {m.homeScore} : {m.awayScore}
+            </span>
+          ) : (
+            <span className="text-neutral-400">vs</span>
+          )}
+        </span>
+        <span className={`truncate ${played && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore ? "font-bold" : ""}`}>
+          {m.away}
+        </span>
+      </div>
+      {(pickLabel || m.marketOdds) && (
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[11px] text-neutral-400">
+          {pickLabel && (
+            <span>
+              AI pick{" "}
+              <span className="font-semibold text-neutral-600 dark:text-neutral-300">
+                {pickLabel} {Math.round((m.predProb ?? 0) * 100)}%
+              </span>
+            </span>
+          )}
+          {m.marketOdds && <span className="tabular-nums">odds {m.marketOdds}</span>}
+        </div>
+      )}
     </div>
   );
 }
@@ -117,11 +148,25 @@ export default async function EnScores({ searchParams }: Props) {
       startTime: true,
       homeScore: true,
       awayScore: true,
+      predHome: true,
+      predDraw: true,
+      predAway: true,
+      predWinner: true,
+      marketHome: true,
+      marketDraw: true,
+      marketAway: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },
     orderBy: { startTime: "asc" },
   });
+
+  // 시장 implied 확률(마진 제거 평균) → 소수 배당 문자열 "2.10 / 3.40 / 3.60"
+  const toOdds = (h: number | null, d: number | null, a: number | null): string | null => {
+    if (!h || !a) return null;
+    const f = (p: number) => (1 / p).toFixed(2);
+    return d && d > 0.01 ? `${f(h)} / ${f(d)} / ${f(a)}` : `${f(h)} / ${f(a)}`;
+  };
 
   // 종목 → 리그 → 매치 그룹핑 (미지원 종목·미매핑 리그 제외)
   const bySport = new Map<string, Map<string, Row[]>>();
@@ -129,6 +174,8 @@ export default async function EnScores({ searchParams }: Props) {
   for (const m of matches) {
     const sport = LEAGUE_TO_SPORT.get(m.league);
     if (!sport) continue;
+    const predProb =
+      m.predWinner === "HOME" ? m.predHome : m.predWinner === "AWAY" ? m.predAway : m.predDraw;
     const row: Row = {
       id: m.id,
       league: m.league,
@@ -138,6 +185,9 @@ export default async function EnScores({ searchParams }: Props) {
       awayScore: m.awayScore,
       home: toEnglishTeamName(m.homeTeam.name),
       away: toEnglishTeamName(m.awayTeam.name),
+      predWinner: m.predWinner,
+      predProb: predProb ?? null,
+      marketOdds: m.status === "SCHEDULED" ? toOdds(m.marketHome, m.marketDraw, m.marketAway) : null,
     };
     if (m.status === "LIVE") liveCount++;
     if (!bySport.has(sport)) bySport.set(sport, new Map());
@@ -213,8 +263,16 @@ export default async function EnScores({ searchParams }: Props) {
               </h2>
               {Array.from(byLeague.entries()).map(([league, rows]) => (
                 <div key={league} className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10">
-                  <div className="border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">
-                    {enLeagueName(league)}
+                  <div className="flex items-center justify-between gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">
+                    <span>{enLeagueName(league)}</span>
+                    {EN_PREDICTION_LEAGUE_SET.has(league) && (
+                      <Link
+                        href={`/en/predictions/${league}`}
+                        className="font-semibold normal-case tracking-normal text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        Predictions →
+                      </Link>
+                    )}
                   </div>
                   <div className="divide-y divide-neutral-100 dark:divide-white/5">
                     {rows.map((m) => (

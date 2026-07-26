@@ -8,6 +8,7 @@ const NAV = [
   { href: "/en/scores", label: "Scores", live: true },
   { href: "/en/standings", label: "Standings" },
   { href: "/en/predictions", label: "Predictions" },
+  { href: "/en/injuries", label: "Injuries" },
 ];
 
 export default function EnHeader() {

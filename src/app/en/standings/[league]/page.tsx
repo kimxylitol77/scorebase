@@ -12,6 +12,9 @@ import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { fetchNhlStandings, type NhlStandingRow } from "@/lib/sports/nhl-api";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import { koTeamNameToEnglish } from "@/lib/team-names";
+import { LEADER_CATEGORY_EN } from "@/lib/i18n/en";
 import {
   enLeagueName,
   toEnglishTeamName,
@@ -193,6 +196,72 @@ async function fetchBaseballRows(upper: string): Promise<StandingsRow[]> {
   }));
 }
 
+// 시즌 리더보드 — leagueLeader 는 표시명이 한글 저장이라 playerNameEn(라틴 문자)만 노출.
+// KBO·NPB 는 영문 선수명이 없어 자동으로 섹션이 숨는다.
+interface EnLeaderRow {
+  rank: number;
+  player: string;
+  team: string | null;
+  value: number;
+  category: string;
+}
+
+async function fetchEnLeaders(league: string): Promise<{ season: string; groups: Map<string, EnLeaderRow[]> }> {
+  const { rowsByCategory, season } = await loadLeagueLeaderboard(league).catch(() => ({
+    rowsByCategory: {} as Record<string, { rank: number; playerName: string; playerNameEn: string | null; teamName: string; teamShort: string | null; value: number }[]>,
+    season: "",
+  }));
+  const groups = new Map<string, EnLeaderRow[]>();
+  for (const [category, rows] of Object.entries(rowsByCategory)) {
+    const usable = rows
+      .filter((r) => r.playerNameEn && /^[A-Za-z]/.test(r.playerNameEn))
+      .slice(0, 5)
+      .map((r) => {
+        const rawTeam = r.teamName ?? "";
+        const team = /[가-힣]/.test(rawTeam) ? koTeamNameToEnglish(rawTeam) : rawTeam || null;
+        return { rank: r.rank, player: r.playerNameEn!, team, value: r.value, category };
+      });
+    if (usable.length > 0) groups.set(category, usable);
+  }
+  return { season, groups };
+}
+
+const leaderValue = (category: string, v: number) =>
+  category === "BA" ? v.toFixed(3).replace(/^0/, "") : category === "ERA" ? v.toFixed(2) : category === "SAVE_PCT" ? v.toFixed(3) : `${v}`;
+
+function LeadersSection({ season, groups }: { season: string; groups: Map<string, EnLeaderRow[]> }) {
+  if (groups.size === 0) return null;
+  return (
+    <section className="space-y-4 border-t border-neutral-200 pt-6 dark:border-white/10">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Season leaders</h2>
+        {season && <span className="text-xs text-neutral-500">{season} season</span>}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from(groups.entries()).map(([category, rows]) => (
+          <div key={category} className="rounded-2xl border border-neutral-200 p-4 dark:border-white/10">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-400">
+              {LEADER_CATEGORY_EN[category] ?? category}
+            </h3>
+            <div className="mt-2 space-y-1.5">
+              {rows.map((r) => (
+                <div key={`${category}-${r.rank}-${r.player}`} className="flex items-center justify-between gap-2 text-sm">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="w-4 text-center text-xs font-bold tabular-nums text-neutral-400">{r.rank}</span>
+                    <span className="truncate font-medium">{r.player}</span>
+                    {r.team && <span className="hidden truncate text-xs text-neutral-400 sm:inline">{r.team}</span>}
+                  </div>
+                  <span className="shrink-0 font-bold tabular-nums">{leaderValue(category, r.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // NHL — 공식 API 컨퍼런스별 표 (승점 체계가 W/L/OTL 이라 일반 표와 분리 렌더)
 function NhlConferenceTable({ title, rows }: { title: string; rows: NhlStandingRow[] }) {
   return (
@@ -239,7 +308,7 @@ function NhlConferenceTable({ title, rows }: { title: string; rows: NhlStandingR
 }
 
 async function NhlStandingsPage() {
-  const std = await fetchNhlStandings();
+  const [std, leaders] = await Promise.all([fetchNhlStandings(), fetchEnLeaders("NHL")]);
   if (!std || std.rows.length === 0) notFound();
   const sortRows = (conf: string) =>
     std.rows
@@ -266,6 +335,7 @@ async function NhlStandingsPage() {
       </header>
       <NhlConferenceTable title="Eastern Conference" rows={sortRows("Eastern")} />
       <NhlConferenceTable title="Western Conference" rows={sortRows("Western")} />
+      <LeadersSection {...leaders} />
     </main>
   );
 }
@@ -277,9 +347,12 @@ export default async function EnStandingsLeague({ params }: Props) {
 
   if (upper === "NHL") return NhlStandingsPage();
 
-  const rows = BASEBALL_LEAGUES_EN.has(upper)
-    ? await fetchBaseballRows(upper)
-    : await getFullStandings(upper).catch(() => [] as StandingsRow[]);
+  const [rows, leaders] = await Promise.all([
+    BASEBALL_LEAGUES_EN.has(upper)
+      ? fetchBaseballRows(upper)
+      : getFullStandings(upper).catch(() => [] as StandingsRow[]),
+    fetchEnLeaders(upper),
+  ]);
   if (rows.length === 0) notFound();
 
   const teams = await prisma.team.findMany({
@@ -333,6 +406,8 @@ export default async function EnStandingsLeague({ params }: Props) {
           <StandingsTable rows={groupRows} nameById={nameById} isBaseball={isBaseball} />
         </section>
       ))}
+
+      <LeadersSection {...leaders} />
     </main>
   );
 }

@@ -3166,6 +3166,21 @@ const RAW_LOWER: Record<string, string> = Object.fromEntries(
 );
 
 /** 한글 팀명 부분일치 → 영문 원문 팀명 목록 (통합 검색의 역매핑용). */
+// 한글 표시명 → 대표 영문명 (영어판이 한글 저장 데이터를 되돌릴 때 사용).
+// RAW 는 영→한 다대일이라 역방향은 가장 짧은 영문 key 를 대표로 채택 ("Arsenal FC" 보다 "Arsenal").
+const KO_TO_EN: Map<string, string> = (() => {
+  const m = new Map<string, string>();
+  for (const [en, ko] of Object.entries(RAW)) {
+    const cur = m.get(ko);
+    if (!cur || en.length < cur.length) m.set(ko, en);
+  }
+  return m;
+})();
+
+export function koTeamNameToEnglish(ko: string): string | null {
+  return KO_TO_EN.get(ko) ?? null;
+}
+
 export function searchTeamNamesByKo(q: string, limit = 30): string[] {
   const out: string[] = [];
   for (const [en, ko] of Object.entries(RAW)) {

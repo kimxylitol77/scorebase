@@ -340,6 +340,42 @@ export function toEnglishTeamName(name: string): string {
   return TEAM_NAME_EN[name] ?? name;
 }
 
+/** /en/injuries/[league] 지원 리그 — 영문 원본 소스만 (축구=af, 미국리그=ESPN).
+ *  KBO·NPB 는 한국어 공시 소스라 제외. ko injuries hreflang 판정과 공유하는 단일 출처. */
+export const EN_INJURY_SOCCER = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "K_LEAGUE_1", "SAUDI_PL", "J1_LEAGUE",
+] as const;
+export const EN_INJURY_ESPN = ["NBA", "MLB", "NHL"] as const;
+export const EN_INJURY_LEAGUE_SET = new Set<string>([...EN_INJURY_SOCCER, ...EN_INJURY_ESPN]);
+
+/** 리더보드 카테고리 코드 → 영문 라벨 (leagueLeader.unit 이 한국어라 코드 기준 매핑) */
+export const LEADER_CATEGORY_EN: Record<string, string> = {
+  GOAL: "Goals",
+  ASSIST: "Assists",
+  YELLOW: "Yellow cards",
+  RED: "Red cards",
+  BA: "Batting average",
+  HR: "Home runs",
+  RBI: "RBIs",
+  K: "Strikeouts",
+  ERA: "ERA",
+  WIN: "Wins",
+  SAVE: "Saves",
+  SB: "Stolen bases",
+  PTS: "Points per game",
+  REB: "Rebounds",
+  AST: "Assists",
+  STL: "Steals",
+  BLK: "Blocks",
+  POINTS: "Points",
+  GOAL_NHL: "Goals",
+  ASSIST_NHL: "Assists",
+  SAVE_PCT: "Save %",
+  CS: "CS",
+  KDA: "KDA",
+  KILL: "Kills",
+};
+
 /** ko↔en hreflang alternates.languages — 지원 경로만 호출부에서 판정 후 사용. */
 export function koEnLanguages(koPath: string, enPath: string) {
   return {

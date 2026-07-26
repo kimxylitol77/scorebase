@@ -9,6 +9,7 @@ import LeagueBadge from "@/components/LeagueBadge";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Clock, CheckCircle2 } from "lucide-react";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { EN_INJURY_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { assertSportConsistency } from "@/lib/players/sanityCheck";
 import { calcStandings } from "@/lib/predict/standings";
@@ -448,7 +449,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `${seasonLabel} 부상자`,
       ...lm.starKeywords,
     ],
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      // 영어판(/en/injuries) 지원 리그만 hreflang 상호 연결
+      ...(EN_INJURY_LEAGUE_SET.has(upper)
+        ? { languages: koEnLanguages(`/injuries/${upper}`, `/en/injuries/${upper}`) }
+        : {}),
+    },
     openGraph: {
       type: "website",
       locale: "ko_KR",

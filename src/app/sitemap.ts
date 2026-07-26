@@ -78,6 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/en/standings`, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/en/predictions`, changeFrequency: "daily", priority: 0.65 },
     { url: `${base}/en/predictions/accuracy`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/en/injuries/EPL`, changeFrequency: "daily", priority: 0.55 },
     ...SITEMAP_LEAGUES.filter((lg) => EN_STANDINGS_LEAGUE_SET.has(lg)).map((lg) => ({
       url: `${base}/en/standings/${lg}`,
       changeFrequency: "daily" as const,
