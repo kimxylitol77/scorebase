@@ -182,3 +182,127 @@ export const fetchF1Championship = unstable_cache(
   ["espn-f1-championship"],
   { revalidate: 1800, tags: ["f1-championship"] },
 );
+
+// ── 드라이버 상세 (/rankings/f1/[id]) ──────────────────────────────
+// 통산 커리어 statistics 엔드포인트는 404 라 "이번 시즌" 중심: 프로필 + 시즌 eventlog(그랑프리별 레이스 결과).
+
+export interface F1DriverRace {
+  eventId: string;
+  round: number;
+  name: string; // 그랑프리명 (영문 — scoreboard 와 동일 표기)
+  date: string; // ISO
+  played: boolean;
+  place: number | null;
+  points: number | null;
+  /** 우승 시 완주시간, 그 외 "+격차" */
+  record: string | null;
+}
+
+export interface F1DriverDetail {
+  id: string;
+  name: string;
+  nameKo: string | null;
+  headshot: string | null;
+  flag: string | null;
+  countryEn: string | null;
+  countryKo: string | null;
+  birthDate: string | null; // ISO
+  team: string | null;
+  teamKo: string | null;
+  teamColor: string | null;
+  carNumber: string | null;
+  engine: string | null;
+  tire: string | null;
+  races: F1DriverRace[];
+}
+
+const isEmptyStat = (v?: string) => !v || v === "0" || v === "0.000" || v === ".000" || v === "+0.000";
+
+// 드라이버 1명 = athlete 1 + eventlog 1 + 이벤트당 (meta 1 + 결과 statistics 1) ≈ 최대 50 fetch, 병렬 + 30분 캐시.
+export const fetchF1DriverDetail = unstable_cache(
+  async (athleteId: string, year: string): Promise<F1DriverDetail | null> => {
+    const a = await getJson<{
+      id?: string;
+      displayName?: string;
+      dateOfBirth?: string;
+      headshot?: { href?: string };
+      flag?: { href?: string; alt?: string };
+      vehicles?: Array<{ team?: string; number?: string; engine?: string; tire?: string }>;
+    }>(`https://sports.core.api.espn.com/v2/sports/racing/athletes/${athleteId}`);
+    if (!a?.id || !a.displayName) return null;
+
+    const log = await getJson<{
+      events?: {
+        items?: Array<{
+          eventId?: string;
+          competitionId?: string;
+          played?: boolean;
+          statistics?: Ref;
+        }>;
+      };
+    }>(`https://sports.core.api.espn.com/v2/sports/racing/leagues/f1/seasons/${year}/athletes/${athleteId}/eventlog`);
+
+    const races: F1DriverRace[] = (
+      await Promise.all(
+        (log?.events?.items ?? []).map(async (item, i): Promise<F1DriverRace | null> => {
+          if (!item.eventId) return null;
+          const [ev, st] = await Promise.all([
+            getJson<{ name?: string; date?: string }>(
+              `https://sports.core.api.espn.com/v2/sports/racing/leagues/f1/events/${item.eventId}`,
+            ),
+            item.played && item.statistics?.$ref
+              ? getJson<{
+                  splits?: { categories?: Array<{ stats?: StatRow[] }> };
+                }>(item.statistics.$ref.replace(/^http:/, "https:"))
+              : null,
+          ]);
+          if (!ev?.name || !ev.date) return null;
+          const stats: Record<string, string> = {};
+          for (const cat of st?.splits?.categories ?? []) {
+            for (const s of cat.stats ?? []) {
+              if (s.name && s.displayValue) stats[s.name] = s.displayValue;
+            }
+          }
+          const place = Number(stats.place);
+          return {
+            eventId: item.eventId,
+            round: i + 1,
+            name: ev.name,
+            date: ev.date,
+            played: item.played === true,
+            place: Number.isFinite(place) && place > 0 ? place : null,
+            points: stats.championshipPts != null ? Number(stats.championshipPts) : null,
+            record: !isEmptyStat(stats.behindTime)
+              ? stats.behindTime
+              : !isEmptyStat(stats.totalTime)
+                ? stats.totalTime
+                : null,
+          };
+        }),
+      )
+    ).filter((r): r is F1DriverRace => r !== null);
+
+    const countryEn = a.flag?.alt ?? null;
+    const v = a.vehicles?.[0];
+    const team = v?.team ?? null;
+    return {
+      id: a.id,
+      name: a.displayName,
+      nameKo: NAMES[a.id] ?? null,
+      headshot: a.headshot?.href ?? `https://a.espncdn.com/i/headshots/rpm/players/full/${a.id}.png`,
+      flag: a.flag?.href ?? null,
+      countryEn,
+      countryKo: countryEn ? fifaCountryKo(countryEn) : null,
+      birthDate: a.dateOfBirth ?? null,
+      team,
+      teamKo: team ? (F1_TEAM_KO[team] ?? team) : null,
+      teamColor: team ? (F1_TEAM_COLOR[team] ?? null) : null,
+      carNumber: v?.number ?? null,
+      engine: v?.engine ?? null,
+      tire: v?.tire ?? null,
+      races,
+    };
+  },
+  ["espn-f1-driver-detail"],
+  { revalidate: 1800, tags: ["f1-championship"] },
+);

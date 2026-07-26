@@ -96,6 +96,7 @@ interface F1Session {
   state: "pre" | "in" | "post";
   results: Array<{
     rank: number;
+    athleteId: string | null;
     name: string;
     team: string | null;
     record: string | null; // 1위 랩타임/완주시간, 2위 이하 "+격차"
@@ -192,6 +193,7 @@ const fetchF1Cached = unstable_cache(
                       const core = did ? coreDrivers?.get(did) : undefined;
                       return {
                         rank: d.order ?? 0,
+                        athleteId: did ?? null,
                         name: (did && DRIVER_KO[did]) || en,
                         team: d.vehicle?.manufacturer ?? core?.team ?? null,
                         record: state !== "pre" && core?.statsRef ? await fetchDriverRecord(core.statsRef) : null,
@@ -277,9 +279,18 @@ export default async function F1Board() {
                           {r.rank}
                         </span>
                         <DriverAvatar photo={r.photo} flag={r.flag} country={r.country} name={r.name} />
-                        <span className={`truncate ${r.rank <= 3 ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}>
-                          {r.name}
-                        </span>
+                        {r.athleteId ? (
+                          <Link
+                            href={`/rankings/f1/${r.athleteId}`}
+                            className={`truncate hover:underline ${r.rank <= 3 ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}
+                          >
+                            {r.name}
+                          </Link>
+                        ) : (
+                          <span className={`truncate ${r.rank <= 3 ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}>
+                            {r.name}
+                          </span>
+                        )}
                         {r.team && (
                           <span className="flex min-w-0 shrink items-center gap-1 text-[11px] text-neutral-400">
                             <span

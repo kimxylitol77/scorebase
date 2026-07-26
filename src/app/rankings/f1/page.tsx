@@ -143,7 +143,11 @@ export default async function F1RankingsPage({
           </div>
           <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
             {drivers.map((d) => (
-              <li key={d.athleteId} className="grid grid-cols-[40px_1fr_52px_60px_72px] items-center gap-2 px-3 sm:px-4 py-3">
+              <li key={d.athleteId}>
+                <Link
+                  href={`/rankings/f1/${d.athleteId}`}
+                  className="grid grid-cols-[40px_1fr_52px_60px_72px] items-center gap-2 px-3 sm:px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
+                >
                 <span className={`text-center font-black tabular-nums ${d.rank <= 3 ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
                   {d.rank}
                 </span>
@@ -179,6 +183,7 @@ export default async function F1RankingsPage({
                 <span className="text-right text-sm font-black tabular-nums text-neutral-900 dark:text-white">
                   {d.points}
                 </span>
+                </Link>
               </li>
             ))}
           </ul>
