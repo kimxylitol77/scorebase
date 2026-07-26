@@ -38,7 +38,16 @@
 - [x] Season outlook — /en/predictions/[league] Monte Carlo 시즌 시뮬 (_season-sim.ts, 남은 일정 있는 시즌만·야구 xPts 숨김)
 - [x] NHL 순위 — /en/standings/NHL 공식 API 컨퍼런스 표 + 허브 Ice Hockey 카드
 
-## v4 후보
+## v4 — 데이터 완전판 (2026-07-26 배포 완료)
+- [x] 순위 상세 Season leaders (28825b6) — playerNameEn 라틴만, KBO/NPB 자동 숨김, koTeamNameToEnglish 역방향
+- [x] /en/scores 강화 (28825b6) — AI 픽 확률 + 시장 배당 칩, 리그 헤더 Predictions 링크
+- [x] /en/injuries/[league] (28825b6) — 축구 9리그(af) + NBA/MLB/NHL(ESPN), KBO/NPB 제외
+- [x] /en/players/[pid] (4b460e8) — MLB 타자/투수 + 축구(?league=), KBO/NPB/NBA/NHL/LOL 404
+- [x] /en/teams/[id] (4b460e8) — 전 리그, 성적+일정+로스터(축구 ts 스쿼드·MLB 링크·NHL·NBA)
+- [x] /en/transfers (ecb3d80) — 루머 스테이지·공식 피드·시장가치 Top 10, 이름 라틴 가드
+
+## v5 후보
 - NBA 순위 — ko 데이터 소스 정비 완료 후 (오염 데이터 노출 방지로 보류 중)
 - /en/scores e스포츠 (팀명 영문화 후)
-- /en 선수 페이지·이적시장 등 추가 섹션
+- /en 선수 페이지 NBA/NHL 뷰 이식, /en/transfers/[id] 선수 시장가치 상세
+- 새 글 한/영 동시 생성 (사용자 결정 대기 — AI 비용 2배)
