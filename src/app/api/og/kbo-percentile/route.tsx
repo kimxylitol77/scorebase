@@ -1,11 +1,12 @@
-// GET /api/og/kbo-percentile?name=오스틴&team=LG&pid=...&kind=hitter|pitcher — KBO 리그 백분위 공유 카드(이미지).
+// GET /api/og/kbo-percentile?name=오스틴&team=LG&pid=...&kind=hitter|pitcher&league=KBO|NPB — 리그 백분위 공유 카드(이미지).
+// 경로명은 kbo-percentile 이지만 NPB 도 서빙 (기존 공유 링크 호환 위해 경로 유지). NPB 는 선수 사진 없음.
 // 선수 페이지 백분위 섹션의 SNS 공유용. 데이터는 우리 DB 백분위 계산과 동일 소스 (숫자 100% 일치).
 // 1200×630. Higgsfield 배경 + 선수 사진 + 5개 스탯 백분위 바. 한글=Noto Sans KR, 숫자=Oswald.
 import { ImageResponse } from "next/og";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { getKboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
-import { getKboPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
+import { getKboHitterPercentiles, getNpbHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
+import { getKboPitcherPercentiles, getNpbPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 
 export const runtime = "nodejs";
@@ -39,6 +40,7 @@ export async function GET(req: Request) {
   const team = sp.get("team");
   const pid = sp.get("pid");
   const kind = sp.get("kind") === "pitcher" ? "pitcher" : "hitter";
+  const league = sp.get("league") === "NPB" ? "NPB" : "KBO";
 
   const cwd = process.cwd();
   const [notoB, notoBlack, oswaldB] = await Promise.all([
@@ -52,11 +54,11 @@ export async function GET(req: Request) {
     { name: "Oswald", data: oswaldB, weight: 700 as const, style: "normal" as const },
   ];
 
-  const data = name
-    ? kind === "pitcher"
-      ? await getKboPitcherPercentiles(name, team).catch(() => null)
-      : await getKboHitterPercentiles(name, team).catch(() => null)
-    : null;
+  const getter =
+    kind === "pitcher"
+      ? league === "NPB" ? getNpbPitcherPercentiles : getKboPitcherPercentiles
+      : league === "NPB" ? getNpbHitterPercentiles : getKboHitterPercentiles;
+  const data = name ? await getter(name, team).catch(() => null) : null;
 
   const bgBuf = await readFile(join(cwd, "public/bg/kbo-percentile-card.png")).catch(() => null);
   const bg = bgBuf ? `data:image/png;base64,${bgBuf.toString("base64")}` : null;
@@ -65,14 +67,15 @@ export async function GET(req: Request) {
     return new ImageResponse(
       (
         <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0f1e", color: "#fff", fontSize: 44, fontFamily: "Noto" }}>
-          KBO 리그 백분위 | Scorebase
+          {league} 리그 백분위 | Scorebase
         </div>
       ),
       { width: 1200, height: 630, fonts },
     );
   }
 
-  const photo = pid ? await toDataUri(kboPhotoUrl(pid)) : null;
+  // 선수 사진은 KBO 만 (NPB 는 kboPhotoUrl 이 무의미)
+  const photo = league === "KBO" && pid ? await toDataUri(kboPhotoUrl(pid)) : null;
 
   return new ImageResponse(
     (
@@ -98,7 +101,7 @@ export async function GET(req: Request) {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", fontSize: 24, color: "#93c5fd", letterSpacing: 4, fontWeight: 700 }}>
-                {data.season} KBO 리그 백분위
+                {data.season} {data.league} 리그 백분위
               </div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 20, marginTop: 4 }}>
                 <div style={{ display: "flex", fontSize: 58, fontWeight: 900, lineHeight: 1.1 }}>{data.playerName}</div>

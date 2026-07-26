@@ -154,6 +154,7 @@ interface PitcherStatsInput {
   season: string;
   teamName: string;
   playerName: string;
+  playerNameEn?: string;
   externalId?: string;
   era?: number | null;
   whip?: number | null;
@@ -168,6 +169,7 @@ interface PitcherStatsInput {
 // 타자와 같은 테이블(unique key 공유)이지만 투수 컬럼만 쓴다 — 타격 컬럼 불가침.
 async function upsertPitcher(d: PitcherStatsInput) {
   const pitcherCols = {
+    playerNameEn: d.playerNameEn,
     externalId: d.externalId,
     era: d.era ?? null,
     whip: d.whip ?? null,
@@ -568,7 +570,7 @@ const col = (headers: string[], ...names: string[]): number => {
 };
 
 async function runNpb(season: string) {
-  const summary = { teams: 0, players: 0 };
+  const summary = { teams: 0, players: 0, pitchers: 0 };
   const runStart = new Date();
 
   // --- 팀 타격 + 투구 (C/P 각각)
@@ -651,6 +653,47 @@ async function runNpb(season: string) {
         homeRuns: pi.hr >= 0 ? int(r[pi.hr]) : null,
         games: pi.g >= 0 ? int(r[pi.g]) : null,
       });      summary.players++;
+    }
+
+    // --- 선수 투구 (pit_{c,p}) — 이름 셀 "投手" 에 "이름(팀약자)" 형태. WHIP 는 (H+BB)/IP 계산.
+    const pitP = await fetchNpbTable(`https://npb.jp/bis/${season}/stats/pit_${lg}.html`);
+    const qi = {
+      name: col(pitP.headers, "投手"), era: col(pitP.headers, "防御率"),
+      g: col(pitP.headers, "登板"), w: col(pitP.headers, "勝利"),
+      l: col(pitP.headers, "敗北"), sv: col(pitP.headers, "セーブ"),
+      ip: col(pitP.headers, "投球回"), h: col(pitP.headers, "安打"),
+      bb: col(pitP.headers, "四球"), so: col(pitP.headers, "三振"),
+    };
+    for (const r of pitP.rows) {
+      if (qi.name < 0) break;
+      const raw = r[qi.name] ?? "";
+      const tm = raw.match(/^(.+?)[（(]([^）)]+)[）)]\s*$/);
+      const playerJp = (tm ? tm[1] : raw).trim();
+      if (!playerJp) continue;
+      const teamName = tm ? npbAbbrToKorean(tm[2]) : "";
+      if (!teamName) continue;
+      // NPB IP 는 dot 표기 ("111.1" = 111과 1/3) — 십진으로 변환
+      const ip = qi.ip >= 0 ? ipToInnings(r[qi.ip]) ?? null : null;
+      const h = qi.h >= 0 ? int(r[qi.h]) : null;
+      const bb = qi.bb >= 0 ? int(r[qi.bb]) : null;
+      const whip = ip && ip > 0 && h != null && bb != null
+        ? Number(((h + bb) / ip).toFixed(2)) : null;
+      const playerName = npbPlayerToKorean(playerJp) || playerJp;
+      await upsertPitcher({
+        league: "NPB",
+        season,
+        teamName,
+        playerName,
+        playerNameEn: playerJp,
+        era: qi.era >= 0 ? flt(r[qi.era]) : null,
+        whip,
+        ip,
+        so: qi.so >= 0 ? int(r[qi.so]) : null,
+        wins: qi.w >= 0 ? int(r[qi.w]) : null,
+        losses: qi.l >= 0 ? int(r[qi.l]) : null,
+        saves: qi.sv >= 0 ? int(r[qi.sv]) : null,
+        games: qi.g >= 0 ? int(r[qi.g]) : null,
+      });      summary.pitchers++;
     }
   }
 

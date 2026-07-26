@@ -55,7 +55,8 @@ import AmbientGlow from "@/components/AmbientGlow";
 import BaseballPlayerSeo from "@/components/players/BaseballPlayerSeo";
 import KboPercentileSection from "@/components/players/KboPercentileSection";
 import { getKboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
-import { getKboPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
+import { getKboPitcherPercentiles, getNpbPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
+import { getNpbHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
 import { ChevronLeft } from "lucide-react";
 
 /* ---------- 공통 헬퍼 ---------- */
@@ -916,6 +917,10 @@ async function NpbPitcherView({
     fetchNpbRecentFromDb(pid, teamKo),
   ]);
   const koName = profile.name ? npbDisplayName(profile.name, profile.kana) : "(이름 정보 없음)";
+  // 리그 백분위 — 일본어 원명으로 DB 매칭 (규정 이닝 미달·표본 부족이면 null → 섹션 생략)
+  const percentiles = profile.name
+    ? await getNpbPitcherPercentiles(profile.name, teamKo ?? null)
+    : null;
   const season = stats?.season ?? new Date().getUTCFullYear();
   const handBats = npbHandBats(profile);
   const birthdayKo = profile.birthday
@@ -945,6 +950,13 @@ async function NpbPitcherView({
             <Stat label="자책점" value={stats.er != null ? String(stats.er) : "—"} />
           </div>
         </section>
+      )}
+      {percentiles && (
+        <KboPercentileSection
+          data={percentiles}
+          shareUrl={`/players/${pid}?league=NPB`}
+          cardImageUrl={`/api/og/kbo-percentile?league=NPB&kind=pitcher&name=${encodeURIComponent(profile.name ?? "")}&team=${encodeURIComponent(percentiles.teamName)}`}
+        />
       )}
       <PitcherTrendChart rows={yearly.seasons} />
       {yearly.career && <PitcherCareerCard c={yearly.career} />}
@@ -1035,6 +1047,10 @@ async function NpbHitterView({
   const yearly = await getNpbHitterYearly(pid);
   const koName = profile.name ? npbDisplayName(profile.name, profile.kana) : "(이름 정보 없음)";
   const teamKo = npbTeamJpToKor(profile.team);
+  // 리그 백분위 — 일본어 원명으로 DB 매칭 (규정 미달·표본 부족이면 null → 섹션 생략)
+  const percentiles = profile.name
+    ? await getNpbHitterPercentiles(profile.name, teamKo ?? null)
+    : null;
   const batsLabel = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
   const ops = stats.obp != null && stats.slg != null ? (stats.obp + stats.slg).toFixed(3) : "—";
 
@@ -1059,6 +1075,13 @@ async function NpbHitterView({
           <Stat label="SO" value={stats.so != null ? String(stats.so) : "—"} />
         </div>
       </section>
+      {percentiles && (
+        <KboPercentileSection
+          data={percentiles}
+          shareUrl={`/players/${pid}?league=NPB`}
+          cardImageUrl={`/api/og/kbo-percentile?league=NPB&kind=hitter&name=${encodeURIComponent(profile.name ?? "")}&team=${encodeURIComponent(percentiles.teamName)}`}
+        />
+      )}
       <HitterTrendChart rows={yearly.seasons} />
       {yearly.career && <HitterCareerCard c={yearly.career} />}
     </>

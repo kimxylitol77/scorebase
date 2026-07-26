@@ -1,4 +1,4 @@
-// KBO 타자·투수 리그 백분위 섹션 — Savant 비교 툴 스타일의 5개 핵심 스탯 백분위 막대.
+// KBO·NPB 타자·투수 리그 백분위 섹션 — Savant 비교 툴 스타일의 5개 핵심 스탯 백분위 막대.
 // 서버 컴포넌트. 데이터 없으면(규정 미달·표본 부족) 부모에서 렌더 자체를 생략한다.
 
 import type { KboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
@@ -30,12 +30,12 @@ export default function KboPercentileSection({
     <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">
-          {data.season} KBO 리그 백분위
+          {data.season} {data.league} 리그 백분위
         </h2>
         <ShareCardButton
           url={shareUrl}
-          title={`${data.playerName} — ${data.season} KBO 리그 백분위 | Scorebase`}
-          text={`${data.playerName}의 KBO 리그 내 위치를 백분위로 확인해 보세요.`}
+          title={`${data.playerName} — ${data.season} ${data.league} 리그 백분위 | Scorebase`}
+          text={`${data.playerName}의 ${data.league} 리그 내 위치를 백분위로 확인해 보세요.`}
           cardImageUrl={cardImageUrl}
         />
       </div>

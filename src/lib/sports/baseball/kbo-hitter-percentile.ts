@@ -1,6 +1,7 @@
-// KBO 타자 시즌 스탯 리그 백분위 계산 — Baseball Savant 비교 툴의 KBO 한국어 대안.
-// 데이터 소스는 BaseballPlayerSeasonStats(주간 fetch-baseball-season-stats 적재, 타자 전용).
+// KBO·NPB 타자 시즌 스탯 리그 백분위 계산 — Baseball Savant 비교 툴의 한국어 대안.
+// 데이터 소스는 BaseballPlayerSeasonStats(daily fetch-baseball-season-stats 적재).
 // 규정 표본 = 시즌 최다 출장 경기수의 60% 이상 출장한 타자. 미달 선수는 null (섹션 숨김).
+// 이름 매칭: 한글 표시명 exact 우선, NPB 는 일본어 원명(playerNameEn) 공백 제거 비교 병행.
 
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
@@ -13,6 +14,7 @@ export type PercentileMetric = {
 };
 
 export type KboHitterPercentiles = {
+  league: string;
   playerName: string;
   teamName: string;
   season: string;
@@ -24,6 +26,7 @@ export type KboHitterPercentiles = {
 
 type Row = {
   playerName: string;
+  playerNameEn: string | null;
   teamName: string;
   games: number | null;
   avg: number | null;
@@ -40,19 +43,30 @@ function percentile(values: number[], v: number): number {
   return Math.round((below / (values.length - 1)) * 100);
 }
 
-async function compute(playerName: string, teamHint: string | null): Promise<KboHitterPercentiles | null> {
+// 全角/半角 공백 제거 — NPB 일본어 이름 비교용 ("村上　宗隆" == "村上 宗隆")
+const compact = (s: string | null | undefined) => (s ?? "").replace(/[\s　]+/g, "");
+
+function nameMatches(r: { playerName: string; playerNameEn: string | null }, input: string): boolean {
+  return r.playerName === input || (!!r.playerNameEn && compact(r.playerNameEn) === compact(input));
+}
+
+async function compute(
+  league: "KBO" | "NPB",
+  playerName: string,
+  teamHint: string | null,
+): Promise<KboHitterPercentiles | null> {
   // 최신 시즌 문자열 확보 (season 은 String 컬럼)
   const latest = await prisma.baseballPlayerSeasonStats.findFirst({
-    where: { league: "KBO" },
+    where: { league },
     orderBy: { season: "desc" },
     select: { season: true },
   });
   if (!latest) return null;
 
   const rows: Row[] = await prisma.baseballPlayerSeasonStats.findMany({
-    where: { league: "KBO", season: latest.season, avg: { not: null }, ops: { not: null } },
+    where: { league, season: latest.season, avg: { not: null }, ops: { not: null } },
     select: {
-      playerName: true, teamName: true, games: true,
+      playerName: true, playerNameEn: true, teamName: true, games: true,
       avg: true, ops: true, homeRuns: true, rbi: true, hits: true,
     },
   });
@@ -64,7 +78,7 @@ async function compute(playerName: string, teamHint: string | null): Promise<Kbo
   if (qualified.length < 20) return null;
 
   // 동명이인 대비: 팀 힌트가 있으면 팀 일치(축약형 'LG' ⊂ 'LG 트윈스' 양방향) 우선
-  const byName = qualified.filter((r) => r.playerName === playerName);
+  const byName = qualified.filter((r) => nameMatches(r, playerName));
   const me =
     byName.length <= 1
       ? byName[0]
@@ -83,6 +97,7 @@ async function compute(playerName: string, teamHint: string | null): Promise<Kbo
   ];
 
   return {
+    league,
     playerName: me.playerName,
     teamName: me.teamName,
     season: latest.season,
@@ -101,7 +116,15 @@ async function compute(playerName: string, teamHint: string | null): Promise<Kbo
   };
 }
 
-// 선수 페이지·OG 카드 양쪽에서 쓰므로 1시간 캐시 (원본이 주간 갱신이라 충분)
-export const getKboHitterPercentiles = unstable_cache(compute, ["kbo-hitter-percentile"], {
-  revalidate: 3600,
-});
+// 선수 페이지·OG 카드 양쪽에서 쓰므로 1시간 캐시 (원본이 daily 갱신이라 충분)
+export const getKboHitterPercentiles = unstable_cache(
+  (playerName: string, teamHint: string | null) => compute("KBO", playerName, teamHint),
+  ["kbo-hitter-percentile"],
+  { revalidate: 3600 },
+);
+
+export const getNpbHitterPercentiles = unstable_cache(
+  (playerName: string, teamHint: string | null) => compute("NPB", playerName, teamHint),
+  ["npb-hitter-percentile"],
+  { revalidate: 3600 },
+);
