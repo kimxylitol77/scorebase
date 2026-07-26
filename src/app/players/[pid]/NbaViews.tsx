@@ -22,6 +22,8 @@ import { ChevronLeft, ExternalLink } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
 import NbaSeasonOverview from "./NbaSeasonOverview";
+import KboPercentileSection from "@/components/players/KboPercentileSection";
+import { getNbaPercentiles } from "@/lib/sports/nba-percentile";
 import { NbaTrendChart } from "./NbaTrendChart";
 
 /* ---------- 공통 헬퍼 ---------- */
@@ -427,6 +429,9 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
     espnId ? fetchNbaEspnAwards(espnId) : Promise.resolve([]),
   ]);
 
+  // 리그 백분위 — espnId 정확 매칭 (규정 미충족·표본 부족이면 null → 섹션 생략)
+  const percentiles = espnId ? await getNbaPercentiles(espnId).catch(() => null) : null;
+
   // 부상이력 — PlayerEvent(playerId=espnId, id prefix "nba-"). collect-player-events cron 이 적재.
   const injuryRows = espnId
     ? await prisma.playerEvent.findMany({
@@ -455,6 +460,8 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
       ) : (
         <p className="text-sm text-neutral-500">{season} 시즌 통계가 없습니다.</p>
       )}
+
+      {percentiles && <KboPercentileSection data={percentiles} />}
 
       {career && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">

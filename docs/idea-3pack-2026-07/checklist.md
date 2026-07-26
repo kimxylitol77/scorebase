@@ -42,4 +42,12 @@
 - [x] KboPitcherView 개요 탭에 섹션 추가
 - [x] /api/og/kbo-percentile kind=pitcher 지원
 - [x] tsc + dev 렌더 (곽빈·구자욱) + 백분위-공식 ERA 순위 대조 일치
-- [ ] commit
+- [x] commit 6be3a5c · 배포 완료 (2026-07-26)
+
+## 백분위 다종목 확장 (2026-07-26)
+
+- [x] NPB 타자·투수 — pit_{c,p} 수집 + 라이브러리 league 파라미터화 + 뷰 + OG league=NPB (b6b1388)
+- [x] NHL 스케이터·골리 — stats REST 전체 1콜, playerId 매칭, DB 미영속 (e0cf5e6)
+- [x] NBA — ESPN byathlete seasontype=2, 최다출장 60% 자체 규정, espnId 매칭
+- [x] MLB 는 기존 Savant 퍼센타일 바로 커버 (작업 불필요), LOL 은 정적 데이터라 제외
+- [x] tsc + dev 렌더 검증 (무라카미·사토·맥데이비드·헬러벅·SGA)

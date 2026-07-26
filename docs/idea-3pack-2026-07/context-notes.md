@@ -23,3 +23,12 @@
 - **지표 5종 = ERA·WHIP·K/9·탈삼진·승리.** 세이브는 규정 표본이 선발 위주라 제외 (컬럼은 적재해 둠 — 불펜 전용 뷰 후속 가능).
 - **검증 실측.** 공식 ERA 순위(최민석 2.49 → pct 100, 올러, 곽빈)와 순서 일치. 곽빈 탈삼진 pct 100 = 리더보드 배지 "탈삼진 리그 1위" 와 정합. 백필 결과 투수 270명 (era null 제외 260).
 - **OG 카드는 kind=pitcher 파라미터** 로 동일 라우트 재사용. KboPercentileSection 은 타자/투수 유니언 타입 — 규정 문구만 `"minGames" in data` 분기.
+
+## 백분위 다종목 확장 (2026-07-26)
+
+- **범위 판정.** MLB 는 기존 Savant PercentileBars(타자·투수)가 이미 커버 → 작업 대상 아님. LOL 은 정적 json 데이터라 리그 표본이 없어 제외. 실작업 = NPB·NHL·NBA.
+- **NPB 는 공식 페이지가 규정 도달 선수만 노출** (타자 42·투수 24, KBO 같은 팀별 POST 우회 없음). 투수 최소 표본 가드를 15로 낮춰 대응 — 표본 자체가 규정 투수라 백분위는 공식 순위와 동일하게 유효.
+- **NPB 이름 매칭은 일본어 원명.** 화면명(카나 음역 npbDisplayName)과 DB명(사전 npbPlayerToKorean)이 다를 수 있어 playerNameEn(원명) 공백 제거 비교를 병행. 뷰에서 lib 호출 시 profile.name(일본어)을 넘긴다.
+- **NHL·NBA 는 DB 미영속.** 전체 선수 시즌 스탯이 API 1콜이라 unstable_cache(1h) 즉석 계산 — api.nhle.com summary(스케이터 940·골리 98, playerId 매칭), ESPN byathlete(espnId 매칭).
+- **ESPN byathlete 함정 2개.** (1) 시즌 종료 후 seasontype 생략 시 포스트시즌으로 해석 → `seasontype=2` 필수. (2) isqualified=true 가 정규시즌에선 실효 없음(GP 1 포함) → 최다출장 60% 자체 규정 적용.
+- **KboPercentileSection 은 구조 타입으로 일반화** (PercentileSectionData, minGames|minIp 유니언). 공유 버튼은 cardImageUrl 있을 때만 — NHL·NBA v1 은 공유 카드 없음 (배경이 야구장이라 부적합, 후속 분리).

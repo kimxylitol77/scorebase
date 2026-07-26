@@ -31,7 +31,7 @@ export default function KboPercentileSection({
   shareUrl?: string;
   cardImageUrl?: string;
 }) {
-  // 규정 문구 — 타자는 출장 경기, 투수는 이닝 기준
+  // 규정 문구 — 타자·스케이터는 출장 경기, 투수는 이닝 기준
   const qualifier =
     "minGames" in data ? `${data.minGames}경기 이상 출장` : `${data.minIp}이닝 이상 투구`;
   return (
