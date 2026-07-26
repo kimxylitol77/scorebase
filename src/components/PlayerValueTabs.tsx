@@ -2,7 +2,8 @@
 import Link from "next/link";
 
 const TABS = [
-  { href: "/transfers", label: "해외축구" },
+  { href: "/transfers", label: "축구 몸값" },
+  { href: "/salaries/soccer", label: "축구 연봉" },
   { href: "/salaries/kbo", label: "KBO" },
   { href: "/salaries/mlb", label: "MLB" },
   { href: "/salaries/nba", label: "NBA" },
