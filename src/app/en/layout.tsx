@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   },
   description:
     "AI-powered predictions, standings and data analysis for Premier League, LaLiga, Bundesliga, MLB, NBA, NHL, KBO and more — built on Elo ratings, market odds and Monte Carlo simulation.",
+  // root layout 의 한국어 keywords 상속 차단 — /en 은 영문으로 덮어씀
+  keywords: [
+    "sports predictions", "AI predictions", "win probability",
+    "Premier League predictions", "LaLiga", "Bundesliga", "Serie A", "Ligue 1",
+    "MLB predictions", "KBO League", "NPB", "NBA", "NHL",
+    "league standings", "Elo ratings", "Monte Carlo simulation",
+  ],
   openGraph: {
     type: "website",
     locale: "en_US",
