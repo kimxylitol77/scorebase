@@ -13,7 +13,7 @@
     "tsId": "z8yomo4hg66q0j6",
     "tsEn": "AFC Champions League Elite",
     "tsKo": "AFC 챔피언스리그",
-    "tsSeasonId": "p4jwq2gh83zm0ve"
+    "tsSeasonId": "jw2r09hl4zxrz84"
   },
   {
     "code": "AFC_CL_TWO",
@@ -21,7 +21,7 @@
     "tsId": "56ypq3nh7pdmd7o",
     "tsEn": "AFC Champions League Two",
     "tsKo": "AFC 챔피언스리그 2",
-    "tsSeasonId": "kdj2ryohwwwq1zp"
+    "tsSeasonId": "l7oqdehnyp0r510"
   },
   {
     "code": "AFC_U23",
@@ -36,7 +36,7 @@
     "tsId": "gx7lm7phxem2wdk",
     "tsEn": "Albanian Super league",
     "tsKo": "알바니아 슈퍼 리그",
-    "tsSeasonId": "8y39mp1h741mojx"
+    "tsSeasonId": "x7lm7phkkkdm2wd"
   },
   {
     "code": "ALLSVENSKAN",
@@ -52,7 +52,7 @@
     "tsId": "vl7oqdehx3r510j",
     "tsEn": "Armenian Premier League",
     "tsKo": "아르메니아 프리미어 리그",
-    "tsSeasonId": "yl5ergphg28r8k0"
+    "tsSeasonId": "318q66hooz4qo9j"
   },
   {
     "code": "AUSTRIA_BL",
@@ -60,7 +60,7 @@
     "tsId": "yl5ergphyvr8k0o",
     "tsEn": "Austrian Bundesliga",
     "tsKo": "오스트리아 분데스리가",
-    "tsSeasonId": "v2y8m4zhlg8ql07"
+    "tsSeasonId": "l5ergpho0z5r8k0"
   },
   {
     "code": "BOSNIA_PL",
@@ -68,7 +68,7 @@
     "tsId": "j1l4rjnhnvm7vx5",
     "tsEn": "Bosnia and Herzegovina Premier League",
     "tsKo": "보스니아 헤르체고비나 프리미어 리그",
-    "tsSeasonId": "gx7lm7ph4o7m2wd"
+    "tsSeasonId": "zp5rzghjjylq82w"
   },
   {
     "code": "BRASILEIRAO",
@@ -84,7 +84,7 @@
     "tsId": "kn54qllhn0qvy9d",
     "tsEn": "Bulgarian First League",
     "tsKo": "불가리아 제1 리그",
-    "tsSeasonId": "9vjxm8ghyjkr6od"
+    "tsSeasonId": "2y8m4zh30y1ql07"
   },
   {
     "code": "BUNDESLIGA",
@@ -100,7 +100,7 @@
     "tsId": "kn54qllhjzqvy9d",
     "tsEn": "German Bundesliga 2",
     "tsKo": "분데스리가 2부리그",
-    "tsSeasonId": "gx7lm7ph40vm2wd"
+    "tsSeasonId": "318q66hoz94qo9j"
   },
   {
     "code": "CANADA_PL",
@@ -116,7 +116,7 @@
     "tsId": "56ypq3nheemd7oj",
     "tsEn": "Switzerland Challenge League",
     "tsKo": "스위스 챌린지 리그",
-    "tsSeasonId": "yl5ergphgenr8k0"
+    "tsSeasonId": "l5ergpho013r8k0"
   },
   {
     "code": "CHAMPIONSHIP",
@@ -124,7 +124,7 @@
     "tsId": "l965mkyh32r1ge4",
     "tsEn": "English Football League Championship",
     "tsKo": "챔피언쉽",
-    "tsSeasonId": "56ypq3nhx51md7o"
+    "tsSeasonId": "pxwrxlhgpklryk0"
   },
   {
     "code": "CHILE_PB",
@@ -195,7 +195,7 @@
     "tsId": "j1l4rjnhl0m7vx5",
     "tsEn": "Czech Chance Liga",
     "tsKo": "체코 제1 리그",
-    "tsSeasonId": "kjw2r09h8llrz84"
+    "tsSeasonId": "965mkyh7lj7r1ge"
   },
   {
     "code": "DENMARK_SL",
@@ -203,7 +203,7 @@
     "tsId": "4zp5rzgh0eq82w1",
     "tsEn": "Danish Superliga",
     "tsKo": "덴마크 수페르리가",
-    "tsSeasonId": "jednm9whj1lryox"
+    "tsSeasonId": "jw2r09hl4yxrz84"
   },
   {
     "code": "ECUADOR_LP",
@@ -227,7 +227,7 @@
     "tsId": "vl7oqdeh3lr510j",
     "tsEn": "PKO Bank Polski EKSTRAKLASA",
     "tsKo": "폴란드 에크스트라클라사",
-    "tsSeasonId": "p4jwq2gh8l5m0ve"
+    "tsSeasonId": "ednm9whk8nyryox"
   },
   {
     "code": "ELITESERIEN",
@@ -243,7 +243,7 @@
     "tsId": "jednm9whz0ryox8",
     "tsEn": "English Premier League",
     "tsKo": "프리미어리그",
-    "tsSeasonId": "l965mkyhjpxr1ge"
+    "tsSeasonId": "zp5rzghjykdq82w"
   },
   {
     "code": "EREDIVISIE",
@@ -251,7 +251,7 @@
     "tsId": "vl7oqdeheyr510j",
     "tsEn": "Netherlands Eredivisie",
     "tsKo": "네덜란드 에레디비시",
-    "tsSeasonId": "yl5ergphgo0r8k0"
+    "tsSeasonId": "ednm9whk84yryox"
   },
   {
     "code": "ESTONIA_ML",
@@ -275,7 +275,7 @@
     "tsId": "e4wyrn4hoeq86pv",
     "tsEn": "Greek Super League",
     "tsKo": "그리스 슈퍼리그",
-    "tsSeasonId": "l965mkyhpzpr1ge"
+    "tsSeasonId": "y39mp1h335kmojx"
   },
   {
     "code": "HNL",
@@ -283,7 +283,7 @@
     "tsId": "gx7lm7pho13m2wd",
     "tsEn": "Croatian First Football League",
     "tsKo": "프르바 NL",
-    "tsSeasonId": "9k82rekhl9krepz"
+    "tsSeasonId": "zp5rzghjy8lq82w"
   },
   {
     "code": "HUNGARY_NB1",
@@ -291,7 +291,7 @@
     "tsId": "kn54qllh70qvy9d",
     "tsEn": "Hungary Fizz Liga",
     "tsKo": "헝가리 보르소디 리가",
-    "tsSeasonId": "kn54qllhv27qvy9"
+    "tsSeasonId": "vjxm8gh4vn7r6od"
   },
   {
     "code": "ICELAND_1L",
@@ -331,7 +331,7 @@
     "tsId": "kdj2ryoh7eq1zpg",
     "tsEn": "Israel Premier League",
     "tsKo": "이스라엘 프리미어 리그",
-    "tsSeasonId": "vl7oqdeh746r510"
+    "tsSeasonId": "6ypq3nh069gmd7o"
   },
   {
     "code": "J1_LEAGUE",
@@ -339,7 +339,7 @@
     "tsId": "z318q66hl1qo9jd",
     "tsEn": "Japanese J1 League",
     "tsKo": "일본 J1 리그",
-    "tsSeasonId": "4jwq2gh4o48m0ve"
+    "tsSeasonId": "vjxm8gh4vd5r6od"
   },
   {
     "code": "J2_LEAGUE",
@@ -354,7 +354,7 @@
     "tsId": "9vjxm8gh22r6odg",
     "tsEn": "Belgian Pro League",
     "tsKo": "쥬필러 리그",
-    "tsSeasonId": "jednm9wh1klryox"
+    "tsSeasonId": "1l4rjnh6y7pm7vx"
   },
   {
     "code": "K_LEAGUE_1",
@@ -378,7 +378,7 @@
     "tsId": "vl7oqdehlyr510j",
     "tsEn": "Spanish La Liga",
     "tsKo": "스페인 라리가",
-    "tsSeasonId": "56ypq3nhxw7md7o"
+    "tsSeasonId": "ednm9whk8j8ryox"
   },
   {
     "code": "LALIGA_2",
@@ -386,7 +386,7 @@
     "tsId": "kdj2ryohnkq1zpg",
     "tsEn": "Spanish Segunda Division",
     "tsKo": "라리가 2",
-    "tsSeasonId": "kdj2ryoh8n5q1zp"
+    "tsSeasonId": "2y8m4zh302wql07"
   },
   {
     "code": "LATVIA_VL",
@@ -402,7 +402,7 @@
     "tsId": "kdj2ryohe2q1zpg",
     "tsEn": "Romanian Super Liga",
     "tsKo": "루마니아 리가 1",
-    "tsSeasonId": "gpxwrxlhd92ryk0"
+    "tsSeasonId": "4wyrn4h8zj9q86p"
   },
   {
     "code": "LIGA_MX",
@@ -410,7 +410,7 @@
     "tsId": "9k82rekhp6repzj",
     "tsEn": "Mexico Liga MX",
     "tsKo": "멕시코 리가 MX",
-    "tsSeasonId": "d23xmvkhe76qg8n"
+    "tsSeasonId": "l7oqdehnyw0r510"
   },
   {
     "code": "LIGUE_1",
@@ -418,7 +418,7 @@
     "tsId": "yl5ergphnzr8k0o",
     "tsEn": "French Ligue 1",
     "tsKo": "리그 1",
-    "tsSeasonId": "9dn1m1gh645moep"
+    "tsSeasonId": "l7oqdehny97r510"
   },
   {
     "code": "LIGUE_2",
@@ -426,7 +426,7 @@
     "tsId": "kjw2r09hw8rz84o",
     "tsEn": "French Ligue 2",
     "tsKo": "프랑스 리그 2",
-    "tsSeasonId": "gx7lm7ph407m2wd"
+    "tsSeasonId": "dn1m1gh4vyvmoep"
   },
   {
     "code": "LITHUANIA_AL",
@@ -450,7 +450,7 @@
     "tsId": "e4wyrn4hw7q86pv",
     "tsEn": "Moldovan Super Liga",
     "tsKo": "몰도바 슈퍼 리그",
-    "tsSeasonId": "gpxwrxlhdp2ryk0"
+    "tsSeasonId": "318q66hozelqo9j"
   },
   {
     "code": "MOROCCO_BP",
@@ -482,7 +482,7 @@
     "tsId": "kdj2ryohx2q1zpg",
     "tsEn": "Poland Liga 1",
     "tsKo": "폴란드 리가 1",
-    "tsSeasonId": "yl5ergphgv0r8k0"
+    "tsSeasonId": "l5ergpho093r8k0"
   },
   {
     "code": "PRIMEIRA_LIGA",
@@ -490,7 +490,7 @@
     "tsId": "9vjxm8ghx2r6odg",
     "tsEn": "Portuguese Primera Liga",
     "tsKo": "포르투갈 프리메라 리가",
-    "tsSeasonId": "kjw2r09h811rz84"
+    "tsSeasonId": "ednm9whkk88ryox"
   },
   {
     "code": "QATAR_SL",
@@ -498,7 +498,7 @@
     "tsId": "e4wyrn4h8ejq86p",
     "tsEn": "Qatar Stars League",
     "tsKo": "QSL",
-    "tsSeasonId": "jednm9wh1vjryox"
+    "tsSeasonId": "318q66hoo02qo9j"
   },
   {
     "code": "SAUDI_PL",
@@ -506,7 +506,7 @@
     "tsId": "j1l4rjnh66nm7vx",
     "tsEn": "Saudi Professional League",
     "tsKo": "사우디 프로페셔널리그",
-    "tsSeasonId": "e4wyrn4hgxyq86p"
+    "tsSeasonId": "y0or5jhlle7qwzv"
   },
   {
     "code": "SERBIA_SL",
@@ -514,7 +514,7 @@
     "tsId": "yl5ergphk2r8k0o",
     "tsEn": "Serbian Mozzart Bet Superliga",
     "tsKo": "세르비아 슈퍼 리가",
-    "tsSeasonId": "j1l4rjnhvz7m7vx"
+    "tsSeasonId": "23xmvkh3v12qg8n"
   },
   {
     "code": "SERIE_A",
@@ -522,7 +522,7 @@
     "tsId": "4zp5rzghp5q82w1",
     "tsEn": "Italian Serie A",
     "tsKo": "세리에 A",
-    "tsSeasonId": "4zp5rzghn83q82w"
+    "tsSeasonId": "ednm9whk8p5ryox"
   },
   {
     "code": "SERIE_B",
@@ -530,7 +530,7 @@
     "tsId": "j1l4rjnhx9m7vx5",
     "tsEn": "Italian Serie B",
     "tsKo": "세리에 B",
-    "tsSeasonId": "kdj2ryoh8xlq1zp"
+    "tsSeasonId": "965mkyh773zr1ge"
   },
   {
     "code": "SINGAPORE_PL",
@@ -546,7 +546,7 @@
     "tsId": "p3glrw7h33qdyjv",
     "tsEn": "Slovak Nike liga",
     "tsKo": "스로바키아 니케 리가",
-    "tsSeasonId": "gy0or5jh7ezqwzv"
+    "tsSeasonId": "4jwq2gh4o2jm0ve"
   },
   {
     "code": "SLOVENIA_SNL",
@@ -554,7 +554,7 @@
     "tsId": "p4jwq2ghgom0veo",
     "tsEn": "Slovenia 1.Liga",
     "tsKo": "슬로베니아 리가1",
-    "tsSeasonId": "4zp5rzgh8zvq82w"
+    "tsSeasonId": "dj2ryohkvznq1zp"
   },
   {
     "code": "SOUTHAFRICA_PSL",
@@ -562,7 +562,7 @@
     "tsId": "p4jwq2gh472m0ve",
     "tsEn": "South Africa Premier Soccer League",
     "tsKo": "대한민국 프리미어 리그",
-    "tsSeasonId": "z318q66hl67qo9j"
+    "tsSeasonId": "dn1m1gh44n0moep"
   },
   {
     "code": "SPL",
@@ -570,7 +570,7 @@
     "tsId": "p4jwq2gh1gm0veo",
     "tsEn": "Scottish Premiership",
     "tsKo": "스코틀랜드 프리미어십",
-    "tsSeasonId": "p4jwq2ghlv3m0ve"
+    "tsSeasonId": "y0or5jhlxp8qwzv"
   },
   {
     "code": "SUPER_LIG",
@@ -578,7 +578,7 @@
     "tsId": "8y39mp1h6jmojxg",
     "tsEn": "Turkish Super League",
     "tsKo": "쉬페르리그",
-    "tsSeasonId": "4zp5rzgh8xvq82w"
+    "tsSeasonId": "4jwq2gh44olm0ve"
   },
   {
     "code": "SUPERETTAN",
@@ -594,7 +594,7 @@
     "tsId": "z8yomo4hx9q0j6l",
     "tsEn": "Switzerland Super League",
     "tsKo": "스위스 슈퍼리그",
-    "tsSeasonId": "9dn1m1gh63nmoep"
+    "tsSeasonId": "4wyrn4h8z38q86p"
   },
   {
     "code": "UAE_PL",
@@ -610,7 +610,7 @@
     "tsId": "z8yomo4h7wq0j6l",
     "tsEn": "UEFA Champions League",
     "tsKo": "챔피언스리그",
-    "tsSeasonId": "z8yomo4hn70q0j6"
+    "tsSeasonId": "k82rekhvzp5repz"
   },
   {
     "code": "UECL",
@@ -618,7 +618,7 @@
     "tsId": "p4jwq2gh754m0ve",
     "tsEn": "UEFA Europa Conference League",
     "tsKo": "UEFA 유로파 컨퍼런스 리그",
-    "tsSeasonId": "kdj2ryoh8kjq1zp"
+    "tsSeasonId": "318q66hozylqo9j"
   },
   {
     "code": "UEL",
@@ -626,7 +626,7 @@
     "tsId": "56ypq3nh0xmd7oj",
     "tsEn": "UEFA Europa League",
     "tsKo": "유로파리그",
-    "tsSeasonId": "v2y8m4zhl38ql07"
+    "tsSeasonId": "y39mp1h3vg2mojx"
   },
   {
     "code": "UKRAINE_PL",
@@ -634,7 +634,7 @@
     "tsId": "gx7lm7ph7jm2wdk",
     "tsEn": "Ukrainian Premier League",
     "tsKo": "우크라이나 프리미어 리그",
-    "tsSeasonId": "v2y8m4zhlzxql07"
+    "tsSeasonId": "zp5rzghjyllq82w"
   },
   {
     "code": "URVALSDEILD",
@@ -698,7 +698,7 @@
     "tsId": "8y39mp1hjzmojxg",
     "tsEn": "EFL League One",
     "tsKo": "잉글랜드 리그 원",
-    "tsSeasonId": "gpxwrxlhd12ryk0"
+    "tsSeasonId": "x7lm7phkg1zm2wd"
   },
   {
     "code": "LEAGUE_TWO",
@@ -706,7 +706,7 @@
     "tsId": "9k82rekhygrepzj",
     "tsEn": "EFL League Two",
     "tsKo": "잉글랜드 리그 투",
-    "tsSeasonId": "p3glrw7hd10qdyj"
+    "tsSeasonId": "y0or5jhlx28qwzv"
   },
   {
     "code": "NATIONAL_LEAGUE",
@@ -714,7 +714,7 @@
     "tsId": "z318q66hv8qo9jd",
     "tsEn": "National League",
     "tsKo": "잉글랜드 내셔널리그",
-    "tsSeasonId": "gy0or5jh71wqwzv"
+    "tsSeasonId": "965mkyh7777r1ge"
   },
   {
     "code": "SCOT_CHAMPIONSHIP",
@@ -722,7 +722,7 @@
     "tsId": "jednm9wheoryox8",
     "tsEn": "Scottish Championship",
     "tsKo": "스코티시 챔피언십",
-    "tsSeasonId": "z318q66hl40qo9j"
+    "tsSeasonId": "vjxm8gh4v15r6od"
   },
   {
     "code": "SCOT_LEAGUE_ONE",
@@ -730,7 +730,7 @@
     "tsId": "8y39mp1h98mojxg",
     "tsEn": "Scottish League One",
     "tsKo": "스코티시 리그 원",
-    "tsSeasonId": "z8yomo4hn20q0j6"
+    "tsSeasonId": "x7lm7phkg6zm2wd"
   },
   {
     "code": "SCOT_LEAGUE_TWO",
@@ -738,7 +738,7 @@
     "tsId": "l965mkyhz0r1ge4",
     "tsEn": "Scottish League Two",
     "tsKo": "스코티시 리그 투",
-    "tsSeasonId": "p3glrw7hdj0qdyj"
+    "tsSeasonId": "23xmvkh3v52qg8n"
   },
   {
     "code": "RPL",
@@ -746,7 +746,7 @@
     "tsId": "8y39mp1hwxmojxg",
     "tsEn": "Russian Premier League",
     "tsKo": "러시아 프리미어리그",
-    "tsSeasonId": "jednm9wh1zjryox"
+    "tsSeasonId": "3glrw7hwkv9qdyj"
   },
   {
     "code": "ALGERIA_L1",
@@ -852,7 +852,7 @@
     "tsId": "gx7lm7ph5nm2wdk",
     "tsEn": "Belgian Challenger Pro League",
     "tsKo": "벨기에 챌린저 프로",
-    "tsSeasonId": "9k82rekhl1vrepz"
+    "tsSeasonId": "2y8m4zh30k1ql07"
   },
   {
     "code": "TURKEY_2",
@@ -860,7 +860,7 @@
     "tsId": "9k82rekhgorepzj",
     "tsEn": "Turkish First League",
     "tsKo": "튀르키예 1.리그",
-    "tsSeasonId": "v2y8m4zhl1xql07"
+    "tsSeasonId": "k82rekhvvvyrepz"
   },
   {
     "code": "BOLIVIA_PD",
@@ -900,7 +900,7 @@
     "tsId": "9k82rekho4repzj",
     "tsEn": "Coppa Italia",
     "tsKo": "코파 이탈리아",
-    "tsSeasonId": "p3glrw7hdynqdyj"
+    "tsSeasonId": "x7lm7phkg1dm2wd"
   },
   {
     "code": "COUPE_DE_FRANCE",
@@ -916,7 +916,7 @@
     "tsId": "l965mkyhn0r1ge4",
     "tsEn": "DFB Pokal",
     "tsKo": "DFB 포칼",
-    "tsSeasonId": "p3glrw7hdw0qdyj"
+    "tsSeasonId": "l5ergpho079r8k0"
   },
   {
     "code": "EMPEROR_CUP",
@@ -996,7 +996,7 @@
     "tsId": "4zp5rzgh72q82w1",
     "tsEn": "UEFA Women's Champions League",
     "tsKo": "여자 챔피언스리그",
-    "tsSeasonId": "l965mkyhpepr1ge"
+    "tsSeasonId": "1l4rjnh661zm7vx"
   },
   {
     "code": "AZERBAIJAN_PL",
@@ -1004,7 +1004,7 @@
     "tsId": "9k82rekhjorepzj",
     "tsEn": "Azerbaijan Premier League",
     "tsKo": "아제르바이잔 프리미어",
-    "tsSeasonId": "kn54qllhv1lqvy9"
+    "tsSeasonId": "k82rekhvvynrepz"
   },
   {
     "code": "EREDIVISIE_2",
@@ -1012,7 +1012,7 @@
     "tsId": "kdj2ryohdkq1zpg",
     "tsEn": "Netherlands Eerste Divisie",
     "tsKo": "네덜란드 에르스터 디비시",
-    "tsSeasonId": "v2y8m4zhlj8ql07"
+    "tsSeasonId": "4jwq2gh4ojjm0ve"
   },
   {
     "code": "J3_LEAGUE",
@@ -1020,7 +1020,7 @@
     "tsId": "vl7oqdeh7pr510j",
     "tsEn": "Japanese J3 League",
     "tsKo": "J3 리그",
-    "tsSeasonId": "vl7oqdehv31r510"
+    "tsSeasonId": "n54qllh25g4qvy9"
   },
   {
     "code": "KAZAKHSTAN_PL",
@@ -1036,7 +1036,7 @@
     "tsId": "gx7lm7phpnm2wdk",
     "tsEn": "Liga Portugal 2",
     "tsKo": "리가 포르투갈 2",
-    "tsSeasonId": "z318q66hlk0qo9j"
+    "tsSeasonId": "4jwq2gh4ollm0ve"
   },
   {
     "code": "FA_CUP",
@@ -1092,7 +1092,7 @@
     "tsId": "gx7lm7phw0m2wdk",
     "tsEn": "English Football League Cup",
     "tsKo": "EFL컵 / 카라바오컵",
-    "tsSeasonId": "l965mkyhp7xr1ge"
+    "tsSeasonId": "4wyrn4h8z53q86p"
   },
   {
     "code": "SCO_LEAGUE_CUP",
@@ -1107,7 +1107,7 @@
     "tsId": "p3glrw7h63qdyjv",
     "tsEn": "Switzerland Cup",
     "tsKo": "스위스 컵",
-    "tsSeasonId": "gy0or5jh73wqwzv"
+    "tsSeasonId": "1l4rjnh6yv8m7vx"
   },
   {
     "code": "INTL_FRIENDLY",
