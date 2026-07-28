@@ -328,10 +328,14 @@ model PageView {
   /// 랜딩 URL 의 utm_source — referrer 를 안 남기는 앱(카톡 등) 유입 식별용.
   /// SNS 프로필 링크에 ?utm_source=instagram 식으로 붙이면 채널 분류에 referrer 보다 우선.
   utmSource String?
+  /// 로그인 회원 User.id — 회원별 접속·페이지 이력(admin/users) 용. 비로그인=null.
+  /// 기존 row 는 null. 2026-07-28 추가분부터 채워짐.
+  userId    String?
 
   @@index([ts])
   @@index([path])
   @@index([sessionId])
+  @@index([userId])
 }
 
 // 공지사항 / 패치노트 / 메인터넌스 안내

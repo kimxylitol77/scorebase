@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { isInternalReferrerHost } from "@/lib/referrer-channel";
+import { getCurrentUserId } from "@/lib/current-user";
 
 // 클라이언트가 페이지 진입 시 호출. /admin 영역은 트래킹 제외.
 
@@ -50,6 +51,8 @@ export async function POST(req: Request) {
         : null;
 
     const h = await headers();
+    // 로그인 회원이면 userId 기록 — 세션 쿠키 서명 검증만(DB 조회 없음). 비로그인=null.
+    const userId = await getCurrentUserId().catch(() => null);
     await prisma.pageView.create({
       data: {
         path: path.slice(0, MAX_PATH),
@@ -62,6 +65,7 @@ export async function POST(req: Request) {
         // 도메인으로 오므로 Host 헤더에 그대로 잡힘(스코어보드.kr 은 punycode).
         host: h.get("host")?.slice(0, MAX_HEADER) ?? null,
         sessionId,
+        userId,
       },
     });
     return NextResponse.json({ ok: true });
