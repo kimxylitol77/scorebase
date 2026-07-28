@@ -1,0 +1,1216 @@
+{
+  "updatedAt": "2026-07-28T01:38:17.015Z",
+  "season": "2025-26",
+  "players": [
+    {
+      "afId": 2909,
+      "tsId": null,
+      "nameKo": "백승호",
+      "nameEn": "Paik Seung-Ho",
+      "age": 28,
+      "birth": "1997-03-17",
+      "photo": "https://media.api-sports.io/football/players/2909.png",
+      "height": "177",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "CHAMPIONSHIP",
+      "leagueLabel": "챔피언십",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 54,
+        "name": "Birmingham",
+        "logo": "https://media.api-sports.io/football/teams/54.png"
+      },
+      "totals": {
+        "apps": 43,
+        "starts": 38,
+        "minutes": 3374,
+        "goals": 4,
+        "assists": 1,
+        "rating": 6.96,
+        "yellow": 6,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 357286,
+      "tsId": null,
+      "nameKo": "배준호",
+      "nameEn": "Bae Jun-Ho",
+      "age": 22,
+      "birth": "2003-08-21",
+      "photo": "https://media.api-sports.io/football/players/357286.png",
+      "height": "178",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "CHAMPIONSHIP",
+      "leagueLabel": "챔피언십",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 75,
+        "name": "Stoke City",
+        "logo": "https://media.api-sports.io/football/teams/75.png"
+      },
+      "totals": {
+        "apps": 42,
+        "starts": 32,
+        "minutes": 2943,
+        "goals": 2,
+        "assists": 3,
+        "rating": 6.67,
+        "yellow": 1,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 197985,
+      "tsId": null,
+      "nameKo": "Seol Young-Woo",
+      "nameEn": "Seol Young-Woo",
+      "age": 27,
+      "birth": "1998-12-05",
+      "photo": "https://media.api-sports.io/football/players/197985.png",
+      "height": "182",
+      "injured": false,
+      "pos": "Defender",
+      "league": "SERBIA_SL",
+      "leagueLabel": "수페르리가",
+      "country": "세르비아",
+      "team": {
+        "afId": 598,
+        "name": "FK Crvena Zvezda",
+        "logo": "https://media.api-sports.io/football/teams/598.png"
+      },
+      "totals": {
+        "apps": 31,
+        "starts": 30,
+        "minutes": 2675,
+        "goals": 2,
+        "assists": 5,
+        "rating": 7.16,
+        "yellow": 1,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 237220,
+      "tsId": null,
+      "nameKo": "이태석",
+      "nameEn": "Lee Tae-Seok",
+      "age": 23,
+      "birth": "2002-07-28",
+      "photo": "https://media.api-sports.io/football/players/237220.png",
+      "height": "177",
+      "injured": false,
+      "pos": "Defender",
+      "league": "AUSTRIA_BL",
+      "leagueLabel": "분데스리가",
+      "country": "오스트리아",
+      "team": {
+        "afId": 601,
+        "name": "Austria Vienna",
+        "logo": "https://media.api-sports.io/football/teams/601.png"
+      },
+      "totals": {
+        "apps": 30,
+        "starts": 29,
+        "minutes": 2577,
+        "goals": 3,
+        "assists": 4,
+        "rating": 7.05,
+        "yellow": 6,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 2910,
+      "tsId": null,
+      "nameKo": "황의조",
+      "nameEn": "Hwang Ui-Jo",
+      "age": 33,
+      "birth": "1992-08-28",
+      "photo": "https://media.api-sports.io/football/players/2910.png",
+      "height": "185",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "SUPER_LIG",
+      "leagueLabel": "쉬페르리그",
+      "country": "튀르키예",
+      "team": {
+        "afId": 996,
+        "name": "Alanyaspor",
+        "logo": "https://media.api-sports.io/football/teams/996.png"
+      },
+      "totals": {
+        "apps": 33,
+        "starts": 30,
+        "minutes": 2472,
+        "goals": 4,
+        "assists": 6,
+        "rating": 6.68,
+        "yellow": 2,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 237050,
+      "tsId": null,
+      "nameKo": "엄지성",
+      "nameEn": "Eom Ji-Sung",
+      "age": 23,
+      "birth": "2002-05-09",
+      "photo": "https://media.api-sports.io/football/players/237050.png",
+      "height": "178",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "CHAMPIONSHIP",
+      "leagueLabel": "챔피언십",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 76,
+        "name": "Swansea",
+        "logo": "https://media.api-sports.io/football/teams/76.png"
+      },
+      "totals": {
+        "apps": 44,
+        "starts": 31,
+        "minutes": 2457,
+        "goals": 2,
+        "assists": 2,
+        "rating": 6.8,
+        "yellow": 3,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 237218,
+      "tsId": null,
+      "nameKo": "이한범",
+      "nameEn": "Lee Han-Beom",
+      "age": 23,
+      "birth": "2002-06-17",
+      "photo": "https://media.api-sports.io/football/players/237218.png",
+      "height": "190",
+      "injured": false,
+      "pos": "Defender",
+      "league": "DENMARK_SL",
+      "leagueLabel": "수페르리가",
+      "country": "덴마크",
+      "team": {
+        "afId": 397,
+        "name": "FC Midtjylland",
+        "logo": "https://media.api-sports.io/football/teams/397.png"
+      },
+      "totals": {
+        "apps": 29,
+        "starts": 25,
+        "minutes": 2347,
+        "goals": 0,
+        "assists": 1,
+        "rating": 6.99,
+        "yellow": 3,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 34710,
+      "tsId": null,
+      "nameKo": "오현규",
+      "nameEn": "Oh Hyeon-Gyu",
+      "age": 24,
+      "birth": "2001-04-12",
+      "photo": "https://media.api-sports.io/football/players/34710.png",
+      "height": "185",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "JUPILER_PL",
+      "leagueLabel": "주필러 프로리그",
+      "country": "벨기에",
+      "team": {
+        "afId": 742,
+        "name": "Genk",
+        "logo": "https://media.api-sports.io/football/teams/742.png"
+      },
+      "totals": {
+        "apps": 33,
+        "starts": 25,
+        "minutes": 2202,
+        "goals": 12,
+        "assists": 4,
+        "rating": 6.93,
+        "yellow": 4,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": [
+        {
+          "league": "JUPILER_PL",
+          "leagueLabel": "주필러 프로리그",
+          "country": "벨기에",
+          "team": {
+            "afId": 742,
+            "name": "Genk",
+            "logo": "https://media.api-sports.io/football/teams/742.png"
+          },
+          "stats": {
+            "apps": 20,
+            "starts": 13,
+            "minutes": 1116,
+            "goals": 6,
+            "assists": 3,
+            "rating": 6.75,
+            "shots": 38,
+            "sot": 24,
+            "yellow": 2,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        },
+        {
+          "league": "SUPER_LIG",
+          "leagueLabel": "쉬페르리그",
+          "country": "튀르키예",
+          "team": {
+            "afId": 549,
+            "name": "Beşiktaş",
+            "logo": "https://media.api-sports.io/football/teams/549.png"
+          },
+          "stats": {
+            "apps": 13,
+            "starts": 12,
+            "minutes": 1086,
+            "goals": 6,
+            "assists": 1,
+            "rating": 7.11,
+            "shots": 21,
+            "sot": 13,
+            "yellow": 2,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        }
+      ]
+    },
+    {
+      "afId": 2906,
+      "tsId": "2y8m4zhgkonql07",
+      "nameKo": "이재성",
+      "nameEn": "Lee Jae-Sung",
+      "age": 33,
+      "birth": "1992-08-10",
+      "photo": "https://media.api-sports.io/football/players/2906.png",
+      "height": "180",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "BUNDESLIGA",
+      "leagueLabel": "분데스리가",
+      "country": "독일",
+      "team": {
+        "afId": 164,
+        "name": "FSV Mainz 05",
+        "logo": "https://media.api-sports.io/football/teams/164.png"
+      },
+      "totals": {
+        "apps": 28,
+        "starts": 26,
+        "minutes": 2198,
+        "goals": 4,
+        "assists": 2,
+        "rating": 6.68,
+        "yellow": 4,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 304958,
+      "tsId": null,
+      "nameKo": "양현준",
+      "nameEn": "Yang Hyun-Jun",
+      "age": 23,
+      "birth": "2002-05-25",
+      "photo": "https://media.api-sports.io/football/players/304958.png",
+      "height": "179",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "SPL",
+      "leagueLabel": "스코티시 프리미어십",
+      "country": "스코틀랜드",
+      "team": {
+        "afId": 247,
+        "name": "Celtic",
+        "logo": "https://media.api-sports.io/football/teams/247.png"
+      },
+      "totals": {
+        "apps": 31,
+        "starts": 28,
+        "minutes": 2078,
+        "goals": 8,
+        "assists": 1,
+        "rating": 6.92,
+        "yellow": 1,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 355171,
+      "tsId": null,
+      "nameKo": "이주현",
+      "nameEn": "Lee Hyun-Ju",
+      "age": 22,
+      "birth": "2003-02-07",
+      "photo": "https://media.api-sports.io/football/players/355171.png",
+      "height": "171",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "PRIMEIRA_LIGA",
+      "leagueLabel": "프리메이라 리가",
+      "country": "포르투갈",
+      "team": {
+        "afId": 240,
+        "name": "Arouca",
+        "logo": "https://media.api-sports.io/football/teams/240.png"
+      },
+      "totals": {
+        "apps": 30,
+        "starts": 24,
+        "minutes": 2068,
+        "goals": 7,
+        "assists": 3,
+        "rating": 6.65,
+        "yellow": 7,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 2897,
+      "tsId": "4wyrn4h7evnq86p",
+      "nameKo": "김민재",
+      "nameEn": "Kim Min-Jae",
+      "age": 29,
+      "birth": "1996-11-15",
+      "photo": "https://media.api-sports.io/football/players/2897.png",
+      "height": "190",
+      "injured": false,
+      "pos": "Defender",
+      "league": "BUNDESLIGA",
+      "leagueLabel": "분데스리가",
+      "country": "독일",
+      "team": {
+        "afId": 157,
+        "name": "Bayern München",
+        "logo": "https://media.api-sports.io/football/teams/157.png"
+      },
+      "totals": {
+        "apps": 25,
+        "starts": 19,
+        "minutes": 1621,
+        "goals": 1,
+        "assists": 1,
+        "rating": 7.23,
+        "yellow": 1,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 927,
+      "tsId": "l7oqdehed20r510",
+      "nameKo": "이강인",
+      "nameEn": "Lee Kang-In",
+      "age": 24,
+      "birth": "2001-02-19",
+      "photo": "https://media.api-sports.io/football/players/927.png",
+      "height": "173",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "LIGUE_1",
+      "leagueLabel": "리그 1",
+      "country": "프랑스",
+      "team": {
+        "afId": 85,
+        "name": "Paris Saint Germain",
+        "logo": "https://media.api-sports.io/football/teams/85.png"
+      },
+      "totals": {
+        "apps": 27,
+        "starts": 18,
+        "minutes": 1522,
+        "goals": 3,
+        "assists": 4,
+        "rating": 7.04,
+        "yellow": 3,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 224669,
+      "tsId": null,
+      "nameKo": "Lee Kang-Hee",
+      "nameEn": "Lee Kang-Hee",
+      "age": 24,
+      "birth": "2001-08-24",
+      "photo": "https://media.api-sports.io/football/players/224669.png",
+      "height": "188",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "AUSTRIA_BL",
+      "leagueLabel": "분데스리가",
+      "country": "오스트리아",
+      "team": {
+        "afId": 601,
+        "name": "Austria Vienna",
+        "logo": "https://media.api-sports.io/football/teams/601.png"
+      },
+      "totals": {
+        "apps": 22,
+        "starts": 17,
+        "minutes": 1478,
+        "goals": 0,
+        "assists": 0,
+        "rating": 6.59,
+        "yellow": 4,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 24888,
+      "tsId": "y0or5jh3gwyqwzv",
+      "nameKo": "황희찬",
+      "nameEn": "Hwang Hee-Chan",
+      "age": 29,
+      "birth": "1996-01-26",
+      "photo": "https://media.api-sports.io/football/players/24888.png",
+      "height": "177",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "EPL",
+      "leagueLabel": "프리미어리그",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 39,
+        "name": "Wolves",
+        "logo": "https://media.api-sports.io/football/teams/39.png"
+      },
+      "totals": {
+        "apps": 26,
+        "starts": 18,
+        "minutes": 1461,
+        "goals": 2,
+        "assists": 2,
+        "rating": 6.61,
+        "yellow": 5,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 34211,
+      "tsId": null,
+      "nameKo": "조규성",
+      "nameEn": "Cho Gue-Sung",
+      "age": 28,
+      "birth": "1998-01-25",
+      "photo": "https://media.api-sports.io/football/players/34211.png",
+      "height": "189",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "DENMARK_SL",
+      "leagueLabel": "수페르리가",
+      "country": "덴마크",
+      "team": {
+        "afId": 397,
+        "name": "FC Midtjylland",
+        "logo": "https://media.api-sports.io/football/teams/397.png"
+      },
+      "totals": {
+        "apps": 26,
+        "starts": 15,
+        "minutes": 1351,
+        "goals": 3,
+        "assists": 1,
+        "rating": 6.43,
+        "yellow": 4,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 186,
+      "tsId": "y39mp1h5yjwmojx",
+      "nameKo": "손흥민",
+      "nameEn": "Son Heung-Min",
+      "age": 33,
+      "birth": "1992-07-08",
+      "photo": "https://media.api-sports.io/football/players/186.png",
+      "height": "183",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "MLS",
+      "leagueLabel": "MLS",
+      "country": "미국",
+      "team": {
+        "afId": 1616,
+        "name": "Los Angeles FC",
+        "logo": "https://media.api-sports.io/football/teams/1616.png"
+      },
+      "totals": {
+        "apps": 16,
+        "starts": 15,
+        "minutes": 1278,
+        "goals": 3,
+        "assists": 8,
+        "rating": 7.28,
+        "yellow": 1,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 356237,
+      "tsId": null,
+      "nameKo": "Kim Ji-Soo",
+      "nameEn": "Kim Ji-Soo",
+      "age": 21,
+      "birth": "2004-12-24",
+      "photo": "https://media.api-sports.io/football/players/356237.png",
+      "height": "192",
+      "injured": false,
+      "pos": "Defender",
+      "league": "BUNDESLIGA_2",
+      "leagueLabel": "2. 분데스리가",
+      "country": "독일",
+      "team": {
+        "afId": 745,
+        "name": "1. FC Kaiserslautern",
+        "logo": "https://media.api-sports.io/football/teams/745.png"
+      },
+      "totals": {
+        "apps": 17,
+        "starts": 13,
+        "minutes": 1238,
+        "goals": 0,
+        "assists": 0,
+        "rating": 6.71,
+        "yellow": 2,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 512,
+      "tsId": "3glrw7h0ye4qdyj",
+      "nameKo": "정우영",
+      "nameEn": "Jeong Woo-Yeong",
+      "age": 26,
+      "birth": "1999-09-20",
+      "photo": "https://media.api-sports.io/football/players/512.png",
+      "height": "179",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "BUNDESLIGA",
+      "leagueLabel": "분데스리가",
+      "country": "독일",
+      "team": {
+        "afId": 182,
+        "name": "Union Berlin",
+        "logo": "https://media.api-sports.io/football/teams/182.png"
+      },
+      "totals": {
+        "apps": 28,
+        "starts": 13,
+        "minutes": 1206,
+        "goals": 4,
+        "assists": 1,
+        "rating": 6.75,
+        "yellow": 0,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 423709,
+      "tsId": null,
+      "nameKo": "Yoon Do-Yong",
+      "nameEn": "Yoon Do-Yong",
+      "age": 19,
+      "birth": "2006-10-28",
+      "photo": "https://media.api-sports.io/football/players/423709.png",
+      "height": "172",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "EREDIVISIE_2",
+      "leagueLabel": "에이르스터 디비시",
+      "country": "네덜란드",
+      "team": {
+        "afId": 409,
+        "name": "Dordrecht",
+        "logo": "https://media.api-sports.io/football/teams/409.png"
+      },
+      "totals": {
+        "apps": 21,
+        "starts": 14,
+        "minutes": 1202,
+        "goals": 2,
+        "assists": 3,
+        "rating": 6.66,
+        "yellow": 6,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": [
+        {
+          "league": "EREDIVISIE_2",
+          "leagueLabel": "에이르스터 디비시",
+          "country": "네덜란드",
+          "team": {
+            "afId": 409,
+            "name": "Dordrecht",
+            "logo": "https://media.api-sports.io/football/teams/409.png"
+          },
+          "stats": {
+            "apps": 15,
+            "starts": 14,
+            "minutes": 1101,
+            "goals": 1,
+            "assists": 3,
+            "rating": 6.68,
+            "shots": 15,
+            "sot": 9,
+            "yellow": 5,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        },
+        {
+          "league": "EREDIVISIE",
+          "leagueLabel": "에레디비시",
+          "country": "네덜란드",
+          "team": {
+            "afId": 196,
+            "name": "Excelsior",
+            "logo": "https://media.api-sports.io/football/teams/196.png"
+          },
+          "stats": {
+            "apps": 6,
+            "starts": 0,
+            "minutes": 101,
+            "goals": 1,
+            "assists": 0,
+            "rating": 6.47,
+            "shots": 4,
+            "sot": 2,
+            "yellow": 1,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        }
+      ]
+    },
+    {
+      "afId": 26519,
+      "tsId": "23xmvkh4lz10qg8",
+      "nameKo": "홍현석",
+      "nameEn": "Hong Hyun-Seok",
+      "age": 26,
+      "birth": "1999-06-16",
+      "photo": "https://media.api-sports.io/football/players/26519.png",
+      "height": "175",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "JUPILER_PL",
+      "leagueLabel": "주필러 프로리그",
+      "country": "벨기에",
+      "team": {
+        "afId": 631,
+        "name": "Gent",
+        "logo": "https://media.api-sports.io/football/teams/631.png"
+      },
+      "totals": {
+        "apps": 25,
+        "starts": 16,
+        "minutes": 1196,
+        "goals": 1,
+        "assists": 0,
+        "rating": 6.69,
+        "yellow": 0,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": [
+        {
+          "league": "JUPILER_PL",
+          "leagueLabel": "주필러 프로리그",
+          "country": "벨기에",
+          "team": {
+            "afId": 631,
+            "name": "Gent",
+            "logo": "https://media.api-sports.io/football/teams/631.png"
+          },
+          "stats": {
+            "apps": 19,
+            "starts": 13,
+            "minutes": 912,
+            "goals": 1,
+            "assists": 0,
+            "rating": 6.72,
+            "shots": 4,
+            "sot": 4,
+            "yellow": 0,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        },
+        {
+          "league": "LIGUE_1",
+          "leagueLabel": "리그 1",
+          "country": "프랑스",
+          "team": {
+            "afId": 83,
+            "name": "Nantes",
+            "logo": "https://media.api-sports.io/football/teams/83.png"
+          },
+          "stats": {
+            "apps": 6,
+            "starts": 3,
+            "minutes": 284,
+            "goals": 0,
+            "assists": 0,
+            "rating": 6.6,
+            "shots": 3,
+            "sot": 2,
+            "yellow": 0,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        },
+        {
+          "league": "BUNDESLIGA",
+          "leagueLabel": "분데스리가",
+          "country": "독일",
+          "team": {
+            "afId": 164,
+            "name": "FSV Mainz 05",
+            "logo": "https://media.api-sports.io/football/teams/164.png"
+          },
+          "stats": {
+            "apps": 0,
+            "starts": 0,
+            "minutes": 0,
+            "goals": 0,
+            "assists": 0,
+            "rating": null,
+            "shots": null,
+            "sot": null,
+            "yellow": 0,
+            "red": 0,
+            "saves": null,
+            "conceded": null
+          }
+        }
+      ]
+    },
+    {
+      "afId": 137296,
+      "tsId": "4wyrn4hdwjx4q86",
+      "nameKo": "권혁규",
+      "nameEn": "Kwon Hyeok-Kyu",
+      "age": 24,
+      "birth": "2001-03-13",
+      "photo": "https://media.api-sports.io/football/players/137296.png",
+      "height": "190",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "LIGUE_1",
+      "leagueLabel": "리그 1",
+      "country": "프랑스",
+      "team": {
+        "afId": 83,
+        "name": "Nantes",
+        "logo": "https://media.api-sports.io/football/teams/83.png"
+      },
+      "totals": {
+        "apps": 20,
+        "starts": 14,
+        "minutes": 1136,
+        "goals": 0,
+        "assists": 0,
+        "rating": 6.73,
+        "yellow": 5,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": [
+        {
+          "league": "LIGUE_1",
+          "leagueLabel": "리그 1",
+          "country": "프랑스",
+          "team": {
+            "afId": 83,
+            "name": "Nantes",
+            "logo": "https://media.api-sports.io/football/teams/83.png"
+          },
+          "stats": {
+            "apps": 12,
+            "starts": 9,
+            "minutes": 764,
+            "goals": 0,
+            "assists": 0,
+            "rating": 6.79,
+            "shots": 1,
+            "sot": null,
+            "yellow": 2,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        },
+        {
+          "league": "BUNDESLIGA_2",
+          "leagueLabel": "2. 분데스리가",
+          "country": "독일",
+          "team": {
+            "afId": 785,
+            "name": "Karlsruher SC",
+            "logo": "https://media.api-sports.io/football/teams/785.png"
+          },
+          "stats": {
+            "apps": 8,
+            "starts": 5,
+            "minutes": 372,
+            "goals": 0,
+            "assists": 0,
+            "rating": 6.6,
+            "shots": 1,
+            "sot": null,
+            "yellow": 3,
+            "red": 0,
+            "saves": null,
+            "conceded": 0
+          }
+        }
+      ]
+    },
+    {
+      "afId": 364597,
+      "tsId": null,
+      "nameKo": "조진호",
+      "nameEn": "Jo Jin-Ho",
+      "age": 22,
+      "birth": "2003-07-10",
+      "photo": "https://media.api-sports.io/football/players/364597.png",
+      "height": "172",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "SUPER_LIG",
+      "leagueLabel": "쉬페르리그",
+      "country": "튀르키예",
+      "team": {
+        "afId": 607,
+        "name": "Konyaspor",
+        "logo": "https://media.api-sports.io/football/teams/607.png"
+      },
+      "totals": {
+        "apps": 20,
+        "starts": 12,
+        "minutes": 1106,
+        "goals": 1,
+        "assists": 1,
+        "rating": 6.75,
+        "yellow": 5,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 2901,
+      "tsId": null,
+      "nameKo": "황인범",
+      "nameEn": "Hwang In-Beom",
+      "age": 29,
+      "birth": "1996-09-20",
+      "photo": "https://media.api-sports.io/football/players/2901.png",
+      "height": "177",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "EREDIVISIE",
+      "leagueLabel": "에레디비시",
+      "country": "네덜란드",
+      "team": {
+        "afId": 209,
+        "name": "Feyenoord",
+        "logo": "https://media.api-sports.io/football/teams/209.png"
+      },
+      "totals": {
+        "apps": 17,
+        "starts": 12,
+        "minutes": 991,
+        "goals": 1,
+        "assists": 3,
+        "rating": 6.91,
+        "yellow": 2,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 423708,
+      "tsId": "4jwq2ghxy1p4m0v",
+      "nameKo": "Yang Min-Hyeok",
+      "nameEn": "Yang Min-Hyeok",
+      "age": 19,
+      "birth": "2006-04-16",
+      "photo": "https://media.api-sports.io/football/players/423708.png",
+      "height": "172",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "CHAMPIONSHIP",
+      "leagueLabel": "챔피언십",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 1355,
+        "name": "Portsmouth",
+        "logo": "https://media.api-sports.io/football/teams/1355.png"
+      },
+      "totals": {
+        "apps": 15,
+        "starts": 9,
+        "minutes": 691,
+        "goals": 3,
+        "assists": 1,
+        "rating": 6.62,
+        "yellow": 2,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 308648,
+      "tsId": null,
+      "nameKo": "이용준",
+      "nameEn": "Lee Young-Jun",
+      "age": 22,
+      "birth": "2003-05-23",
+      "photo": "https://media.api-sports.io/football/players/308648.png",
+      "height": "192",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "SWISS_SL",
+      "leagueLabel": "슈퍼리그",
+      "country": "스위스",
+      "team": {
+        "afId": 1013,
+        "name": "Grasshoppers",
+        "logo": "https://media.api-sports.io/football/teams/1013.png"
+      },
+      "totals": {
+        "apps": 16,
+        "starts": 6,
+        "minutes": 593,
+        "goals": 3,
+        "assists": 1,
+        "rating": 6.65,
+        "yellow": 2,
+        "red": 1,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 237047,
+      "tsId": null,
+      "nameKo": "Jeong Sang-Bin",
+      "nameEn": "Jeong Sang-Bin",
+      "age": 23,
+      "birth": "2002-04-01",
+      "photo": "https://media.api-sports.io/football/players/237047.png",
+      "height": "175",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "MLS",
+      "leagueLabel": "MLS",
+      "country": "미국",
+      "team": {
+        "afId": 20787,
+        "name": "St. Louis City",
+        "logo": "https://media.api-sports.io/football/teams/20787.png"
+      },
+      "totals": {
+        "apps": 11,
+        "starts": 7,
+        "minutes": 465,
+        "goals": 2,
+        "assists": 1,
+        "rating": 6.97,
+        "yellow": 0,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 34708,
+      "tsId": null,
+      "nameKo": "Jeon Jin-Woo",
+      "nameEn": "Jeon Jin-Woo",
+      "age": 26,
+      "birth": "1999-09-09",
+      "photo": "https://media.api-sports.io/football/players/34708.png",
+      "height": "181",
+      "injured": false,
+      "pos": "Midfielder",
+      "league": "CHAMPIONSHIP",
+      "leagueLabel": "챔피언십",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 1338,
+        "name": "Oxford United",
+        "logo": "https://media.api-sports.io/football/teams/1338.png"
+      },
+      "totals": {
+        "apps": 7,
+        "starts": 2,
+        "minutes": 227,
+        "goals": 0,
+        "assists": 0,
+        "rating": 6.6,
+        "yellow": 0,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 51103,
+      "tsId": null,
+      "nameKo": "Kim Kee-Hee",
+      "nameEn": "Kim Kee-Hee",
+      "age": 36,
+      "birth": "1989-07-13",
+      "photo": "https://media.api-sports.io/football/players/51103.png",
+      "height": "188",
+      "injured": false,
+      "pos": "Defender",
+      "league": "MLS",
+      "leagueLabel": "MLS",
+      "country": "미국",
+      "team": {
+        "afId": 1595,
+        "name": "Seattle Sounders",
+        "logo": "https://media.api-sports.io/football/teams/1595.png"
+      },
+      "totals": {
+        "apps": 1,
+        "starts": 1,
+        "minutes": 63,
+        "goals": 0,
+        "assists": 0,
+        "rating": 7,
+        "yellow": 0,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    },
+    {
+      "afId": 423714,
+      "tsId": null,
+      "nameKo": "Park Seung-Soo",
+      "nameEn": "Park Seung-Soo",
+      "age": 18,
+      "birth": "2007-03-17",
+      "photo": "https://media.api-sports.io/football/players/423714.png",
+      "height": "183",
+      "injured": false,
+      "pos": "Attacker",
+      "league": "EPL",
+      "leagueLabel": "프리미어리그",
+      "country": "잉글랜드",
+      "team": {
+        "afId": 34,
+        "name": "Newcastle",
+        "logo": "https://media.api-sports.io/football/teams/34.png"
+      },
+      "totals": {
+        "apps": 0,
+        "starts": 0,
+        "minutes": 0,
+        "goals": 0,
+        "assists": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0,
+        "saves": null,
+        "conceded": null
+      },
+      "spells": null
+    }
+  ]
+}

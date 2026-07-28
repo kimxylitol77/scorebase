@@ -238,6 +238,27 @@
     "group": "other"
   },
   {
+    "route": "/en/injuries",
+    "desc": "기본 리그(EPL)로 redirect (ko /injuries 와 동일 패턴)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/injuries/[league]",
+    "desc": "영어판 부상자 명단. 소스가 영문 원본이라 변환 없이 노출 — 축구=api-football 시즌 부상(+현 스쿼드 필터), NBA/MLB/NHL=ESPN. KBO/NPB 는 한국어 소스(공식 등록·말소 공시)라 v1 제외. ko 페이지의 TheSports 1순위 오버레이는 미사용(린 버전).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/en/players/[pid]",
+    "desc": "영어판 선수 상세 (린). MLB(기본)=MLB Stats API 타자/투수, ?league=축구코드=api-football 프로필. 소스가 영문 원본이라 변환 없이 노출. KBO/NPB(한국어 스크랩)·NBA/NHL/LOL(전용 뷰 미이식)은 v1 미지원 → 404.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/en/predictions",
     "desc": "영어판 예측 허브: 리그 카드 + 임박 Strong Pick 하이라이트.",
     "inMenu": false,
@@ -252,6 +273,27 @@
     "group": "detail"
   },
   {
+    "route": "/en/predictions/accuracy",
+    "desc": "AI 예측 적중률 영어판. 집계는 ko 와 공용(lib/predict/accuracy-stats) 이라 두 언어 페이지가 항상 같은 숫자를 보여준다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/predictions/scorecard",
+    "desc": "멀티 AI 승부예측 리더보드 영어판 (린). 데이터·채점은 ko 와 동일(AiPrediction, published 만) + GPT 버전 통합 규칙 공유(isGptScorecardModel). ko 의 시장 탭·경기별 히스토리·컨센서스 게이트는 미이식 — 리더보드·시장별 성적·다가오는 원탁만.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/scores",
+    "desc": "영어판 라이브 스코어. DB Match 가 폴러로 실시간 갱신되는 단일 소스라 ko /scores 의 ESPN 오버레이 없이 DB 직조회 린 버전으로 구성. LIVE 있으면 60초 자동 새로고침. 날짜는 UTC 달력일 기준(?date=YYYY-MM-DD) — 글로벌 방문자 대상이라 KST 를 강제하지 않는다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/en/standings",
     "desc": "영어판 순위 허브: 종목·국가별 리그 카드 + Top3 미리보기 (ko /standings 의 린 버전).",
     "inMenu": false,
@@ -260,10 +302,24 @@
   },
   {
     "route": "/en/standings/[league]",
-    "desc": "영어판 리그 순위표. getFullStandings 공용 데이터 + 영문 팀명(DB 원본). 야구는 승률(PCT)·게임차(GB) 컬럼, 그 외는 승점 테이블. e스포츠·배구 전용 포맷은 미지원.",
+    "desc": "영어판 리그 순위표. 소스는 ko 와 동일 체계 — 축구=getFullStandings(ts/af), 야구=fetchBaseballTable(공식)→calcStandings(DB 매치) 폴백. 야구는 승률(PCT)·게임차(GB) 컬럼, 그 외는 승점 테이블. 팀명은 영문(DB 원본 + 한→영 매핑).",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
+  },
+  {
+    "route": "/en/teams/[id]",
+    "desc": "영어판 팀 상세 (린). 헤더 + 시즌 성적 + 최근/예정 매치 + 로스터. 로스터: 축구=ts 공식 스쿼드(team-squads.json, 영문명), MLB=Stats API(선수페이지 링크), NHL=공식 API, NBA=정적 인덱스. KBO/NPB 로스터는 한글명이라 v1 미노출(팀 페이지 자체는 지원).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/en/transfers",
+    "desc": "영어판 이적시장 (린). 루머 트래커(스테이지 배지) + 공식 이적 피드(ts) + 시장가치 Top 10. 데이터가 전부 영문 원본(선수·팀명·피)이라 변환 없이 노출. ko 의 aiBrief·summaryKo(한국어 생성문)와 스쿼드/베스트XI 뷰는 미사용.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/experts",
@@ -546,6 +602,13 @@
     "group": "menu"
   },
   {
+    "route": "/rankings/f1/[id]",
+    "desc": "F1 드라이버 상세 — ESPN core 프로필 + 챔피언십 시즌 요약 + 그랑프리별 레이스 결과. 통산 커리어 스탯은 ESPN 미제공(404)이라 이번 시즌 중심. 순위표·/scores F1 카드 이름 클릭으로 진입.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/rankings/tennis",
     "desc": "테니스 세계랭킹 — ATP·WTA top150. ESPN 랭킹 + 한글명 사전(위키+Haiku). 경쟁사(Flashscore 한국어) 대비 차별점 = 한글명. docs/tennis-rankings 참고.",
     "inMenu": true,
@@ -616,6 +679,13 @@
     "group": "other"
   },
   {
+    "route": "/salaries/soccer",
+    "desc": "축구 빅5 리그 연봉 랭킹 (미디어 종합 추정치, EUR + 한화 환산). 데이터: data/soccer-salaries.json 큐레이션 (lib/sports/soccer-salaries 헤더 참고). DB·cron 미경유. ⚠️ 클럽은 연봉을 공식 발표하지 않아 \"추정\" 고지를 페이지에 반드시 유지할 것 (F1 과 동일 규칙). 팀 로고 = DB Team(빅5) 이름 매칭 — 미스는 로고 없이 표시 (scorebase-team-logo 스킬 B 경로).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/salaries/tennis",
     "desc": "테니스 시즌 상금 랭킹 (ATP/WTA 탭, USD + 한화 환산, top 50). 데이터: ATP·WTA 공식 주간 PDF 큐레이션 → PlayerSalary(TENNIS_ATP/TENNIS_WTA) (lib/sports/tennis-prize-money 헤더 참고). 한글 선수명·국적 = ESPN 랭킹 top150 (fetchTennisRankings) 이름 매칭 재사용 — 복식 전문 선수 등 미매칭은 영문 fallback.",
     "inMenu": false,
@@ -649,6 +719,13 @@
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
+  },
+  {
+    "route": "/soccer/korea",
+    "desc": "해외파 한국 선수 허브 — 유럽·MLS·J리그에서 뛰는 한국 선수 시즌 성적 + 다음/최근 경기. 명단·시즌 성적: scripts/build-korea-abroad.ts → data/korea-abroad.json (af 국적 스캔) 다음·최근 경기: 우리 Match 테이블 (af 팀 id → TeamSourceId → Team) — 챔피언십·SPL·덴마크까지 커버된다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/standings",

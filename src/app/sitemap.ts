@@ -50,6 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/injuries/EPL`, changeFrequency: "daily", priority: 0.7 }, // /injuries 는 redirect 페이지 — 실대상 등록
     { url: `${base}/injuries/NATIONAL`, changeFrequency: "daily", priority: 0.65 }, // 국가대표(월드컵·예선·친선) 통합 부상자
     { url: `${base}/transfers`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/soccer/korea`, changeFrequency: "daily", priority: 0.85 }, // 해외파 한국 선수 — "손흥민 기록" 류 검색 수요
     { url: `${base}/rankings/ufc`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/rankings/value-clubs`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
