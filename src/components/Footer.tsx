@@ -1,5 +1,6 @@
 // 사이트 공통 푸터 — 홈 애플 카드 톤(라이트/다크 반응형) + 종목별 리그·바로가기·커뮤니티 사이트맵.
 import Link from "next/link";
+import Image from "next/image";
 import { Mark } from "./Logo";
 
 // 카테고리 = 헤더 메뉴 방향(종목 그룹)에 맞춤. 리그 직링크는 내부링크·SEO 가치라 칩으로 보존.
@@ -95,24 +96,40 @@ export default function Footer() {
               EPL · 라리가 · 분데스 · 세리에 A · 리그 1 · UCL · MLS · KBO · NPB ·
               MLB · NBA · NHL · LCK
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href="/app"
-                className="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+            {/* 앱 설치 배너 — 앱 아이콘 이미지로 눈에 띄게 (클릭 시 /app 설치 안내) */}
+            <Link
+              href="/app"
+              className="mt-4 flex items-center gap-3 rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-3 transition hover:from-blue-500/15 hover:to-purple-500/15"
+            >
+              <Image
+                src="/icon-192.png"
+                alt="스코어베이스 앱 아이콘"
+                width={44}
+                height={44}
+                className="rounded-xl shadow-sm"
+              />
+              <span className="flex min-w-0 flex-col">
+                <span className="text-[13px] font-bold text-zinc-950 dark:text-white">
+                  스코어베이스 앱 설치
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-white/50">
+                  홈 화면에 추가 — 전체 화면·빠른 실행·무료
+                </span>
+              </span>
+              <span className="ml-auto text-neutral-400 dark:text-white/40" aria-hidden>
+                →
+              </span>
+            </Link>
+            {TELEGRAM_CHANNEL_URL && (
+              <a
+                href={TELEGRAM_CHANNEL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2.5 inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
               >
-                앱 설치
-              </Link>
-              {TELEGRAM_CHANNEL_URL && (
-                <a
-                  href={TELEGRAM_CHANNEL_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
-                >
-                  텔레그램 채널 구독
-                </a>
-              )}
-            </div>
+                텔레그램 채널 구독
+              </a>
+            )}
           </div>
 
           {/* 카드 2 — 카테고리(종목별 리그) */}
