@@ -17,6 +17,7 @@ const LOAN_QID = "Q2914547"; // P1642(취득 거래) 값이 이것이면 임대
 
 const arg = (k: string) => process.argv.find((a) => a.startsWith(`--${k}=`))?.split("=")[1];
 const LEAGUE = arg("league") || "";
+const IDS = (arg("ids") || "").split(",").map((v) => v.trim()).filter(Boolean);
 const LIMIT = Number(arg("limit") || "0"); // 리그별 상한 (0 = 전부)
 const FORCE = process.argv.includes("--force"); // 이미 career 있는 선수도 재조회
 const DRY = process.argv.includes("--dry"); // Wikidata ko vs DB nameKo 차이만 출력(적용·저장 X)
@@ -194,8 +195,12 @@ function loadOverrides(): Record<string, Override> {
   return fs.existsSync(PATH) ? JSON.parse(fs.readFileSync(PATH, "utf8")) : {};
 }
 
-async function enrichLeague(league: string, flagOf: (en: string | null) => string | null, squadEn: Map<string, string>) {
-  let rows = await prisma.playerMarketValue.findMany({
+async function enrichLeague(league: string, flagOf: (en: string | null) => string | null, squadEn: Map<string, string>, idList?: string[]) {
+  // idList 주입 시 PlayerMarketValue 유니버스를 건너뛴다 — 해외 하위리그 선수는 몸값 데이터가 없어
+  //   리그 기준으론 안 잡힌다(해외파 허브 25명 중 PMV 8명, 2026-07-28 실측).
+  let rows = idList
+    ? idList.map((id) => ({ id }))
+    : await prisma.playerMarketValue.findMany({
     where: { league, currentValue: { not: null } },
     orderBy: { currentValue: "desc" }, select: { id: true },
   });
@@ -318,7 +323,12 @@ async function main() {
   }
   console.log(`squad 영문명 ${squadEn.size}`);
 
-  for (const lg of LEAGUES) await enrichLeague(lg, flagOf, squadEn);
+  if (IDS.length) {
+    console.log(`--ids 지정 — ${IDS.length}명 대상 (리그 유니버스 무시)`);
+    await enrichLeague("IDS", flagOf, squadEn, IDS);
+  } else {
+    for (const lg of LEAGUES) await enrichLeague(lg, flagOf, squadEn);
+  }
 
   // 수동 이름 큐레이션 강제 적용 (enrich 결과를 덮어씀, 재실행에도 보존)
   if (!DRY) {

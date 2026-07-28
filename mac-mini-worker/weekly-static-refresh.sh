@@ -41,6 +41,7 @@ npx tsx --env-file=.env.local scripts/build-ts-af-player-map.ts 2>&1 | tail -3 |
 log "⑧-b 해외파 한국 선수 로스터 (af 국적 스캔 23개 리그 — /soccer/korea 동력, ~800콜)"
 npx tsx --env-file=.env.local scripts/build-korea-abroad.ts 2>&1 | tail -3 || true
 npx tsx --env-file=.env.local scripts/link-korea-abroad-players.ts 2>&1 | tail -3 || true
+npx tsx --env-file=.env.local scripts/apply-korea-abroad-stats.ts 2>&1 | tail -2 || true
 
 log "⑨ NBA 부상자 한글명 (Haiku, BDL+ESPN union — 비스타 선수 보강)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-player-names-haiku.ts' 2>&1 | tail -2 || true

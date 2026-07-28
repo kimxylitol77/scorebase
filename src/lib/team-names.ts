@@ -3156,6 +3156,7 @@ const RAW: Record<string, string> = {
   "Midtjylland": "미트윌란",
   "SV Wehen Wiesbaden": "SV 베헨 비스바덴",
   "FK Crvena Zvezda": "츠르베나 즈베즈다",
+  "Crvena Zvezda": "츠르베나 즈베즈다",
   "Hradec Králové": "흐라데츠 크랄로베",
   "Ludogorets": "루도고레츠",
   "Plzen": "플젠",

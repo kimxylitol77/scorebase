@@ -588,7 +588,14 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // DB 미커버(비빅5 출신팀)는 정적 수집분으로 보강 — 피드와 동일 fallback
   for (const tid of histTeamIds) if (!tsLogo[tid] && TEAM_LOGOS[tid]) tsLogo[tid] = TEAM_LOGOS[tid];
 
-  // mv 없는 라이트 프로필 — 현 소속을 최신 이적(도착)에서 유도
+  // mv 없는 라이트 프로필 — 현 시즌 스탯의 소속이 1순위.
+  //  이적 이력은 유럽 진출 이전(K리그 시절)에서 끊겨 있는 경우가 많아 옛 팀이 현 소속으로 뜬다
+  //  (오현규 "수원 삼성"·이영준 "수원 FC" 실측). 현 시즌 출전 기록이 있으면 그게 가장 확실한 소속.
+  if (teamName === "—" && season?.team) {
+    teamName = toKoreanTeamName(season.team) || season.team;
+  }
+
+  // 그래도 없으면 최신 이적(도착)에서 유도
   if (teamName === "—" && transfers.length) {
     const cur = transfers.find((t) => t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO));
     if (cur?.toTeamName) {
@@ -606,7 +613,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     const latest = transfers.find(
       (t) => t.transferTime && t.transferTime <= nowSec && t.toTeamId && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
     );
-    if (latest?.toTeamId && latest.transferType !== 1 && latest.toTeamId !== mv?.teamId) {
+    // mv 가 있을 때만 보정한다 — 이 블록의 목적이 "몸값 피드가 이적 발효를 늦게 반영하는 것" 교정이라,
+    //  mv 자체가 없는 선수(해외 하위리그)에 적용하면 오래된 이적 이력이 현 시즌 소속을 덮어쓴다.
+    if (mv?.teamId && latest?.toTeamId && latest.transferType !== 1 && latest.toTeamId !== mv.teamId) {
       teamName = koTeam(latest.toTeamName!);
       teamLogo = tsLogo[latest.toTeamId] ?? teamLogo;
       ourTeamId = tsOurId[latest.toTeamId] ?? null;
@@ -878,7 +887,15 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   }));
 
   // ── 위키형 SEO — 소개 문단 + JSON-LD(Person·Breadcrumb) ──
-  const roleKo = tsp?.position ? POS_KO[tsp.position] ?? null : null;
+  // 소개문 대분류 — 세부 포지션(라인업 좌표 기반)이 있으면 그걸 우선한다.
+  //   ts position 은 부정확한 경우가 있어 헤더(RB 라이트백)와 소개문(미드필더)이 어긋났다(설영우 실측).
+  const DETAIL_COARSE: Record<string, string> = {
+    GK: "G", CB: "D", LB: "D", RB: "D", LWB: "D", RWB: "D",
+    CDM: "M", CM: "M", CAM: "M", LM: "M", RM: "M",
+    LW: "F", RW: "F", ST: "F",
+  };
+  const coarse = DETAIL_POS[id]?.primary ? DETAIL_COARSE[DETAIL_POS[id].primary] : null;
+  const roleKo = coarse ? POS_KO[coarse] ?? null : tsp?.position ? POS_KO[tsp.position] ?? null : null;
   const aboutText = buildAbout({
     name, country: ov?.country ?? null, role: roleKo, teamName: teamName ?? null,
     apps: careerTotals?.apps ?? 0, goals: careerTotals?.goals ?? 0, assists: careerTotals?.assists ?? 0,

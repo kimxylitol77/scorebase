@@ -10,6 +10,7 @@ const WD = "https://www.wikidata.org/w/api.php";
 const WP = "https://en.wikipedia.org/w/api.php";
 const arg = (k: string) => process.argv.find((a) => a.startsWith(`--${k}=`))?.split("=")[1];
 const LEAGUE = arg("league") || "";
+const IDS = (arg("ids") || "").split(",").map((v) => v.trim()).filter(Boolean);
 const LIMIT = Number(arg("limit") || "0");
 const FORCE = process.argv.includes("--force");
 const LEAGUES = LEAGUE ? [LEAGUE] : ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
@@ -76,8 +77,11 @@ async function main() {
   for (const s of squad) if (s.id && s.name && isEnglish(s.name)) squadEn.set(s.id, s.name);
   const prev: Record<string, SeasonRow[]> = fs.existsSync(PATH) ? JSON.parse(fs.readFileSync(PATH, "utf8")) : {};
 
-  for (const league of LEAGUES) {
-    let rows = await prisma.playerMarketValue.findMany({ where: { league, currentValue: { not: null } }, orderBy: { currentValue: "desc" }, select: { id: true } });
+  for (const league of IDS.length ? ["IDS"] : LEAGUES) {
+    // --ids 주입 시 몸값 유니버스를 건너뛴다 — 해외 하위리그 선수는 PlayerMarketValue 가 없다.
+    let rows = IDS.length
+      ? IDS.map((id) => ({ id }))
+      : await prisma.playerMarketValue.findMany({ where: { league, currentValue: { not: null } }, orderBy: { currentValue: "desc" }, select: { id: true } });
     if (LIMIT) rows = rows.slice(0, LIMIT);
     const tsp = await prisma.theSportsPlayer.findMany({ where: { id: { in: rows.map((r) => r.id) } }, select: { id: true, name: true } });
     const tspMap = new Map(tsp.map((p) => [p.id, p]));

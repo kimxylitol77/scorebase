@@ -26,7 +26,7 @@ const MANUAL = path.join(__dirname, "..", "data", "korea-abroad-names.json");
 
 // 대상 = 한국 선수가 뛰는(뛸 수 있는) 해외 리그. K리그는 해외파 정의상 제외.
 // season: 유럽 시즌제 = 2025(25-26) / 캘린더제(MLS·J리그) = 2026
-const LEAGUES: Array<{ code: string; afId: number; season: number; label: string; country: string }> = [
+const LEAGUES: Array<{ code: string; afId: number; season: number; label: string; country: string; calendarSeason?: string }> = [
   { code: "EPL", afId: 39, season: 2025, label: "프리미어리그", country: "잉글랜드" },
   { code: "CHAMPIONSHIP", afId: 40, season: 2025, label: "챔피언십", country: "잉글랜드" },
   { code: "LEAGUE_ONE", afId: 41, season: 2025, label: "리그 원", country: "잉글랜드" },
@@ -48,7 +48,7 @@ const LEAGUES: Array<{ code: string; afId: number; season: number; label: string
   { code: "AUSTRIA_BL", afId: 218, season: 2025, label: "오스트리아 분데스리가", country: "오스트리아" },
   { code: "SWISS_SL", afId: 207, season: 2025, label: "스위스 슈퍼리그", country: "스위스" },
   { code: "JUPILER_PL", afId: 144, season: 2025, label: "주필러 프로리그", country: "벨기에" },
-  { code: "MLS", afId: 253, season: 2026, label: "MLS", country: "미국" },
+  { code: "MLS", afId: 253, season: 2026, label: "MLS", country: "미국", calendarSeason: "2026" },
   { code: "SAUDI_PL", afId: 307, season: 2025, label: "사우디 프로리그", country: "사우디아라비아" },
   // J리그는 제외(2026-07-28 사용자 결정 — "해외파"를 유럽·MLS 축으로 본다). 되살리려면 아래 한 줄 주석 해제.
   // { code: "J1_LEAGUE", afId: 98, season: 2026, label: "J1리그", country: "일본" },
@@ -107,7 +107,29 @@ export interface KoreaAbroadPlayer {
     saves: number | null;
     conceded: number | null;
   };
+  /** 선수 페이지(/transfers/[id]) 가 쓰는 SeasonStat 원형 — apply-korea-abroad-stats 가 병합한다. */
+  seasonStat: SeasonStat;
 }
+
+/** data/player-season-stats.json 의 항목 형태. 레이더 7축·90분당·상세 스탯·백분위가 전부 이걸 먹는다. */
+export interface SeasonStat {
+  lg: string;
+  season: string;
+  team: string;
+  pos: string | null;
+  matches: number; starts: number; goals: number; assists: number; minutes: number;
+  shots: number | null; sot: number | null; keyPasses: number | null; passAcc: number | null;
+  tackles: number | null; interceptions: number | null; blocks: number | null;
+  dribbles: number | null; dribbleAtt: number | null; dribbledPast: number | null;
+  duelsWon: number | null; duelsTotal: number | null;
+  foulsDrawn: number | null; foulsCommitted: number | null;
+  penScored: number | null; penWon: number | null; penMissed: number | null;
+  rating: number | null; yellow: number; red: number;
+  saves: number | null; cleanSheets: number | null; conceded: number | null;
+}
+
+// af games.position → 기존 시즌스탯의 coarse 1글자 표기
+const POS_CODE: Record<string, string> = { Goalkeeper: "G", Defender: "D", Midfielder: "M", Attacker: "A" };
 
 function toks(name: string): string[] {
   return name
@@ -272,6 +294,40 @@ async function main() {
             saves: numOrNull(st.goals?.saves),
             conceded: numOrNull(st.goals?.conceded),
           },
+          seasonStat: {
+            lg: lg.code,
+            season: lg.calendarSeason ?? "2025-26",
+            team: st.team?.name ?? "",
+            pos: POS_CODE[st.games?.position ?? ""] ?? null,
+            matches: num(st.games?.appearences),
+            starts: num(st.games?.lineups),
+            goals: num(st.goals?.total),
+            assists: num(st.goals?.assists),
+            minutes: num(st.games?.minutes),
+            shots: numOrNull(st.shots?.total),
+            sot: numOrNull(st.shots?.on),
+            keyPasses: numOrNull(st.passes?.key),
+            passAcc: numOrNull(st.passes?.accuracy),
+            tackles: numOrNull(st.tackles?.total),
+            interceptions: numOrNull(st.tackles?.interceptions),
+            blocks: numOrNull(st.tackles?.blocks),
+            dribbles: numOrNull(st.dribbles?.success),
+            dribbleAtt: numOrNull(st.dribbles?.attempts),
+            dribbledPast: numOrNull(st.dribbles?.past),
+            duelsWon: numOrNull(st.duels?.won),
+            duelsTotal: numOrNull(st.duels?.total),
+            foulsDrawn: numOrNull(st.fouls?.drawn),
+            foulsCommitted: numOrNull(st.fouls?.committed),
+            penScored: numOrNull(st.penalty?.scored),
+            penWon: numOrNull(st.penalty?.won),
+            penMissed: numOrNull(st.penalty?.missed),
+            rating: st.games?.rating ? Number(Number(st.games.rating).toFixed(2)) : null,
+            yellow: num(st.cards?.yellow),
+            red: num(st.cards?.red),
+            saves: numOrNull(st.goals?.saves),
+            cleanSheets: null,
+            conceded: numOrNull(st.goals?.conceded),
+          },
         });
         hits++;
       }
@@ -311,6 +367,7 @@ async function main() {
       leagueLabel: m.leagueLabel,
       country: m.country,
       team: m.team,
+      seasonStat: m.seasonStat,
       totals: {
         apps: sum((s) => s.stats.apps),
         starts: sum((s) => s.stats.starts),
