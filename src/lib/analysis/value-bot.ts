@@ -48,8 +48,7 @@ const VALUE_SYSTEM = `당신은 "라인사냥꾼" — 시장 배당과 자체 �
 3) 결론 한 문장. 픽과 근거를 다시 못박는다.
 
 [출력] 반드시 아래 JSON 하나만. 앞뒤 설명·코드블록 금지:
-{"title":"제목","analysis":"본문"}
-- title: "[홈팀 vs 원정팀] 픽 라벨" 형태 + 짧은 근거, 40자 이내.
+{"analysis":"본문"}
 - 픽은 이미 확정돼 데이터로 제공된다 — 다른 픽을 제안하지 말 것.`;
 
 interface Edge {
@@ -139,9 +138,11 @@ async function writePick(
   const raw = await generate(data, { system: VALUE_SYSTEM, maxTokens: 700, temperature: 0.8 });
   const json = parsePickJson(raw);
   if (!json) return null;
-  const title = String(json.title ?? "").trim().slice(0, 120);
   const analysis = String(json.analysis ?? "").trim();
-  if (!title || analysis.length < 10) return null;
+  if (analysis.length < 10) return null;
+  // 제목은 코드가 확정 — GPT 가 형식을 벗어나 픽과 다른 라벨을 쓰면 오해를 만든다
+  // (실측: "[신시내티 vs 클리블랜드 승]" 처럼 픽 반대로 읽히는 제목 발생).
+  const title = `[${home} vs ${away}] ${e.label}, 갭 +${(e.edge * 100).toFixed(1)}%p`;
   return { title, analysis };
 }
 
