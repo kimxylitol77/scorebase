@@ -27,6 +27,20 @@ export default function Markdown({ children, disableAutoLink, selfHref }: Props)
             if (s.startsWith("/api/file/") && s.includes("v=1")) {
               return <video src={s} controls playsInline preload="metadata" className="w-full rounded-xl" />;
             }
+            // 경기 데이터 카드(AI 승률·배당 짤) — 처음 보는 독자가 "이건 어디서 만드나"를 알도록
+            // 사용법 캡션을 자동으로 붙인다. span 사용 = ReactMarkdown 이 img 를 <p> 안에 두므로
+            // figure/div 를 쓰면 hydration 경고(p 안의 block)가 난다.
+            if (s.startsWith("/api/og/match-card")) {
+              return (
+                <span className="block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s} alt={alt ?? "경기 데이터 카드"} loading="lazy" className="rounded-xl !my-0" />
+                  <span className="mt-1.5 block text-center text-xs text-neutral-400">
+                    AI 승률·배당 카드 — 글쓰기에서 예측 경기를 고르면 &ldquo;경기 데이터 카드 첨부&rdquo;로 자동 생성됩니다
+                  </span>
+                </span>
+              );
+            }
             // eslint-disable-next-line @next/next/no-img-element
             return <img src={s} alt={alt ?? ""} loading="lazy" className="rounded-xl" />;
           },
