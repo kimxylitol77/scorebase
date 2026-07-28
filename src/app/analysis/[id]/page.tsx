@@ -17,6 +17,7 @@ import TeamBadge from "@/components/TeamBadge";
 import { Target } from "lucide-react";
 import FollowButton from "@/components/experts/FollowButton";
 import LikeButton from "./LikeButton";
+import ShareButton from "./ShareButton";
 import CommentForm from "./CommentForm";
 import { DeletePostButton, DeleteCommentButton, AdminDeletePostButton } from "./DeleteButtons";
 
@@ -366,13 +367,14 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
           <Markdown disableAutoLink>{post.content}</Markdown>
         </div>
 
-        {/* 추천 */}
-        <div className="mt-8 flex justify-center">
+        {/* 추천 · 공유 */}
+        <div className="mt-8 flex justify-center gap-2">
           <LikeButton
             postId={post.id}
             likes={post.likes}
             disabled={!userId || isAuthor}
           />
+          <ShareButton title={post.title} />
         </div>
       </article>
 
