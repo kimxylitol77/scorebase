@@ -25,6 +25,8 @@ const FAV_KEY = "scorebase:fav-matches";
 
 interface LiveMatch {
   id: string;
+  /** 같은 경기의 DB Match.id 별칭 — 별표가 저장하는 id 는 이쪽. */
+  dbId?: string;
   league: string;
   homeName: string;
   awayName: string;
@@ -187,7 +189,12 @@ export default function LivePipScore() {
   if (!mounted || !on) return null;
 
   // 표시 행 병합 — 라이브 API(실시간) 우선, 없으면 즐겨찾기 스냅샷(예정·종료).
-  const liveById = new Map(matches.map((m) => [m.id, m]));
+  // 별표는 DB 매치 id 를 저장하므로 소스 id(id)와 DB 별칭(dbId) 양쪽 키로 색인.
+  const liveById = new Map<string, LiveMatch>();
+  for (const m of matches) {
+    liveById.set(m.id, m);
+    if (m.dbId) liveById.set(m.dbId, m);
+  }
   const rows: PipRow[] = [...favIds]
     .map((id): PipRow | null => {
       const live = liveById.get(id);

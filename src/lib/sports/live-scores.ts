@@ -16,7 +16,14 @@ import { API_FOOTBALL_LEAGUE_ID, afGoalsExcludingShootout } from "./api-football
 import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { LEAGUE_DISPLAY, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import {
+  LEAGUE_DISPLAY,
+  SOCCER_LEAGUES,
+  BASEBALL_LEAGUES,
+  BASKETBALL_LEAGUES,
+  HOCKEY_LEAGUES,
+  LOL_LEAGUES,
+} from "@/lib/sports/sport-leagues";
 import { isNationalTeamName } from "@/lib/sports/fifa-rankings";
 
 const AF_BASE = "https://v3.football.api-sports.io";
@@ -48,6 +55,12 @@ async function getJson<T>(
 export interface LiveMatch {
   /** 고유 id (소스 prefix + 외부 id). */
   id: string;
+  /**
+   * 같은 경기의 DB Match.id(cuid) 별칭. 즐겨찾기 별표는 /scores 카드의 DB id 를
+   * 저장하므로, PiP·상단바가 라이브 행을 찾을 때 id 와 함께 이 키로도 조회한다.
+   * DB 미적재(orphan)·매핑 실패 시 없음.
+   */
+  dbId?: string;
   /** 우리 League 코드 (EPL, KBO, NBA 등). */
   league: string;
   /** 헤더 라벨용 짧은 한글. */
@@ -2183,7 +2196,55 @@ export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
       startTime: m.startTime,
     }));
   const all = [...soccerMerged, ...orphanLive, ...baseball, ...nba, ...nhl, ...lol];
+  await attachDbIds(all);
   // 정렬 — 가장 최근 시작 매치 우선
   all.sort((a, b) => b.startTime.localeCompare(a.startTime));
   return all;
+}
+
+// dbId 별칭 매핑 키에 섞는 종목 그룹 — 소스가 다른 숫자 id(af fixture ↔ api-baseball
+// game 등)가 우연히 같아 다른 종목 경기로 오매핑되는 것을 막는다.
+function sportKeyOf(league: string): string {
+  if (SOCCER_LEAGUES.has(league)) return "soccer";
+  if (BASEBALL_LEAGUES.has(league)) return "baseball";
+  if (BASKETBALL_LEAGUES.has(league)) return "basketball";
+  if (HOCKEY_LEAGUES.has(league)) return "hockey";
+  if (LOL_LEAGUES.has(league)) return "esports";
+  return "other";
+}
+
+/**
+ * 라이브 매치에 DB Match.id(cuid) 별칭(dbId)을 붙인다.
+ * 즐겨찾기 별표는 /scores 카드의 DB id 를 저장하는데 여기 id 는 소스 prefix
+ * (af-/ab-/mlb-/bdl*-) 기반이라 프론트(PiP·상단바)가 라이브 행을 못 찾았다
+ * — PiP 가 라이브 중 경기를 스냅샷 "종료 0-0" 으로 표시하던 버그의 원인.
+ * DB LIVE 매치의 externalId·apiFixtureId 를 역매핑해 연결한다.
+ */
+async function attachDbIds(all: LiveMatch[]): Promise<void> {
+  if (all.length === 0) return;
+  try {
+    const { prisma } = await import("@/lib/db");
+    const rows = await prisma.match.findMany({
+      where: { status: "LIVE" },
+      select: { id: true, league: true, externalId: true, apiFixtureId: true },
+      take: 500,
+    });
+    const dbIdByKey = new Map<string, string>();
+    for (const r of rows) {
+      const sp = sportKeyOf(r.league);
+      // 별표는 /scores 카드의 String(m.id) 를 저장 — 동일하게 문자열로 통일.
+      dbIdByKey.set(`${sp}|${r.externalId}`, String(r.id));
+      if (r.apiFixtureId != null)
+        dbIdByKey.set(`${sp}|${r.apiFixtureId}`, String(r.id));
+    }
+    for (const m of all) {
+      const dbId = dbIdByKey.get(
+        `${sportKeyOf(m.league)}|${m.id.replace(/^[a-z]+-/i, "")}`,
+      );
+      if (dbId) m.dbId = dbId;
+    }
+  } catch (e) {
+    // DB 조회 실패 시 별칭 없이 기존 동작 유지 (라이브 스코어 자체는 정상 반환)
+    console.warn("[live-scores/db-alias]", (e as Error).message);
+  }
 }

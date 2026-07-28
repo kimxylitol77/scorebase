@@ -18,6 +18,8 @@ import {
 
 interface LiveMatch {
   id: string;
+  /** 같은 경기의 DB Match.id 별칭 — 즐겨찾기 별표가 저장하는 id 는 이쪽. */
+  dbId?: string;
   league: string;
   leagueLabel: string;
   homeName: string;
@@ -168,7 +170,11 @@ export default function LiveScoresBar() {
       const prev = prevScoresRef.current.get(m.id);
       if (prev && prev !== key) {
         anyChanged = true;
-        if (favIdsRef.current.has(m.id)) favChanged = true;
+        if (
+          favIdsRef.current.has(m.id) ||
+          (m.dbId != null && favIdsRef.current.has(m.dbId))
+        )
+          favChanged = true;
       }
     }
     const isFirstLoad = prevScoresRef.current.size === 0;
