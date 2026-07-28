@@ -5,7 +5,7 @@
 // 게시판 업로드 상한(4MB)에 맞춰 초과분은 ffmpeg 재인코딩(720p, 길이 기반 비트레이트 계산).
 import { PrismaClient } from "@prisma/client";
 import { execSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -45,10 +45,28 @@ async function main() {
     process.exit(1);
   }
 
-  const meta = JSON.parse(readFileSync(`${SHORTS_DATA}/${topic}.json`, "utf-8")) as {
-    text: { youtube: { title: string; description: string } };
-  };
-  const title = `[쇼츠] ${meta.text.youtube.title}`;
+  // 메타 소스 — 1순위 topic JSON, 없으면(수동 주제) mp4 옆 "<이름>-유튜브.txt" 의 [제목]/[설명] 파싱
+  let ytTitle: string;
+  let ytDesc: string;
+  const jsonPath = `${SHORTS_DATA}/${topic}.json`;
+  const txtPath = mp4.replace(/\.mp4$/, "-유튜브.txt");
+  if (existsSync(jsonPath)) {
+    const meta = JSON.parse(readFileSync(jsonPath, "utf-8")) as {
+      text: { youtube: { title: string; description: string } };
+    };
+    ytTitle = meta.text.youtube.title;
+    ytDesc = meta.text.youtube.description;
+  } else if (existsSync(txtPath)) {
+    const raw = readFileSync(txtPath, "utf-8");
+    const sect = (name: string) =>
+      (raw.split(`[${name}]`)[1] ?? "").split(/\n\[/)[0].trim();
+    ytTitle = sect("제목");
+    ytDesc = sect("설명");
+    if (!ytTitle || !ytDesc) throw new Error(`유튜브 txt 파싱 실패: ${txtPath}`);
+  } else {
+    throw new Error(`메타 없음 — ${jsonPath} 도 ${txtPath} 도 없음`);
+  }
+  const title = `[쇼츠] ${ytTitle}`;
 
   const manager = await prisma.user.findFirst({
     where: { email: MANAGER_EMAIL },
@@ -77,7 +95,7 @@ async function main() {
   const content =
     `오늘의 스코어베이스 쇼츠입니다. 순위·기록은 발행 시점 DB 실측값입니다.\n\n` +
     `![쇼츠](VIDEO_URL)\n\n` +
-    meta.text.youtube.description +
+    ytDesc +
     `\n\n마음에 들면 글 하단의 공유 버튼으로 퍼가세요.`;
 
   if (process.env.DRY === "1") {
