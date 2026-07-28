@@ -6,9 +6,11 @@
 import { PrismaClient } from "@prisma/client";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import rawPhotos from "/Users/kimss/scorebase/data/player-photos.json";
-import rawTeamLogos from "/Users/kimss/scorebase/data/team-logos.json";
-import rawOv from "/Users/kimss/scorebase/data/player-overrides.json";
+// ⚠️ 절대경로(/Users/...) import 금지 — Vercel 빌드가 scripts/ 까지 타입체크해서
+// 로컬에만 있는 경로면 배포가 통째로 깨진다 (2026-07-28 실사고). repo 상대경로만 쓸 것.
+import rawPhotos from "../../data/player-photos.json";
+import rawTeamLogos from "../../data/team-logos.json";
+import rawOv from "../../data/player-overrides.json";
 import { toKoreanTeamName } from "../../src/lib/team-names";
 
 const PHOTOS = rawPhotos as Record<string, string>;
