@@ -110,8 +110,25 @@ async function main() {
   const careers = await p.footballTransfer.findMany({
     where: { playerId: { in: ids } },
     orderBy: { transferTime: "asc" },
-    select: { playerId: true, fromTeamName: true, toTeamName: true, transferFee: true, transferTime: true, transferType: true },
+    select: {
+      playerId: true, fromTeamName: true, toTeamName: true, fromTeamId: true, toTeamId: true,
+      transferFee: true, transferTime: true, transferType: true,
+    },
   });
+
+  // 커리어 이적의 양쪽 팀 로고도 필요 — 그래프 이적점에 "어디서 어디로" 를 마크로 보여준다.
+  // 유스·하위 리그 팀은 TeamSourceId 매핑이 없을 수 있어(폴백 없으면 팀명 텍스트만 나간다) 실패를 허용한다.
+  const careerTeamIds = [...new Set(careers.flatMap((c) => [c.fromTeamId, c.toTeamId]).filter(Boolean) as string[])];
+  const careerSrc = await p.teamSourceId.findMany({
+    where: { source: "thesports", externalId: { in: careerTeamIds } },
+    select: { teamId: true, externalId: true },
+  });
+  const careerTeams = await p.team.findMany({ where: { id: { in: careerSrc.map((s) => s.teamId) } }, select: { id: true, logoUrl: true } });
+  const careerLogoByTeamId = new Map(careerTeams.map((t) => [t.id, t.logoUrl]));
+  for (const s of careerSrc) {
+    const u = careerLogoByTeamId.get(s.teamId);
+    if (u && !logoByTsId.has(s.externalId)) logoByTsId.set(s.externalId, u);
+  }
 
   const build = async (r: (typeof targets)[number], rank: number | null) => {
     const tp = pMap.get(r.playerId);
@@ -136,14 +153,20 @@ async function main() {
       }));
 
     // 커리어 유료 이적만 점으로 (임대·자유이적 제외)
-    const deals = careers
-      .filter((c) => c.playerId === r.playerId && (c.transferFee || 0) > 0)
-      .map((c) => ({
+    const dealRows = careers.filter((c) => c.playerId === r.playerId && (c.transferFee || 0) > 0);
+    const deals = [];
+    for (const c of dealRows) {
+      const fl = resolveLogo(c.fromTeamId);
+      const tl = resolveLogo(c.toTeamId);
+      deals.push({
         d: new Date((c.transferTime || 0) * 1000).toISOString().slice(0, 7),
         fee: Math.round(((c.transferFee || 0) / 1e6) * 10) / 10,
-        from: c.fromTeamName || "",
-        to: c.toTeamName || "",
-      }));
+        from: (c.fromTeamName && toKoreanTeamName(c.fromTeamName)) || c.fromTeamName || "",
+        to: (c.toTeamName && toKoreanTeamName(c.toTeamName)) || c.toTeamName || "",
+        fromLogo: fl ? await download(fl, `lf-t-${c.fromTeamId}.png`) : "",
+        toLogo: tl ? await download(tl, `lf-t-${c.toTeamId}.png`) : "",
+      });
+    }
 
     return {
       rank,
