@@ -14,7 +14,11 @@ import AmbientGlow from "@/components/AmbientGlow";
 const SCOREBASE_COM_URL = "https://www.xn--9k3b13iba842abwcsvs.com";
 
 export const metadata: Metadata = {
-  title: "라이브스코어·리그 순위·스포츠 분석",
+  // 한글 브랜드를 맨 앞에 — layout 의 default title 과 같은 원칙(GEO Brand 병목 대응).
+  // absolute 를 쓰는 이유: template("%s | Scorebase")이 붙으면 브랜드가 뒤에 영문으로만
+  // 남아 "스코어베이스" 검색 신호가 약해지고 "| Scorebase" 가 중복된다.
+  // 이 도메인의 존재 이유가 브랜드 검색 노출이라 title 이 가장 중요한 신호다.
+  title: { absolute: "스코어베이스 (Scorebase) — 라이브스코어·리그 순위·AI 스포츠 분석" },
   description:
     "EPL·라리가·분데스리가·K리그·KBO·NBA·MLB·NHL 라이브스코어와 리그 순위를 실시간으로. AI 스포츠 분석·승부예측과 적중률, FIFA 랭킹·부상자 명단·이적시장까지 한 곳에서 보는 스포츠 데이터 미디어, 스코어베이스(Scorebase).",
   keywords: [
@@ -37,7 +41,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     url: SCOREBASE_COM_URL,
     siteName: "스코어베이스",
-    title: "라이브스코어·리그 순위·스포츠 분석",
+    title: "스코어베이스 (Scorebase) — 라이브스코어·리그 순위·AI 스포츠 분석",
     description:
       "EPL·라리가·KBO·NBA 라이브스코어와 리그 순위를 실시간으로. AI 스포츠 분석·승부예측·적중률까지 한 곳에서.",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "스코어베이스 — 라이브스코어·리그 순위·스포츠 분석" }],
