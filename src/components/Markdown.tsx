@@ -25,7 +25,16 @@ export default function Markdown({ children, disableAutoLink, selfHref }: Props)
           img: ({ src, alt }) => {
             const s = typeof src === "string" ? src : "";
             if (s.startsWith("/api/file/") && s.includes("v=1")) {
-              return <video src={s} controls playsInline preload="metadata" className="w-full rounded-xl" />;
+              // 세로 쇼츠가 본문 폭을 꽉 채우면 과대 — 높이 제한 + 가운데 정렬 (가로 영상은 max-w 로 자연 제한)
+              return (
+                <video
+                  src={s}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="mx-auto w-auto max-w-full max-h-[560px] rounded-xl"
+                />
+              );
             }
             // 경기 데이터 카드(AI 승률·배당 짤) — 처음 보는 독자가 "이건 어디서 만드나"를 알도록
             // 사용법 캡션을 자동으로 붙인다. span 사용 = ReactMarkdown 이 img 를 <p> 안에 두므로
