@@ -165,8 +165,11 @@ export default function LivePipScore() {
         if (res.status === 304 || !res.ok) return;
         const etag = res.headers.get("etag");
         if (etag) lastEtag = etag;
-        const json: ApiResp = await res.json();
+        const json: ApiResp & { error?: string } = await res.json();
         if (!alive) return;
+        // 업스트림 실패 응답({matches:[], error}) 은 무시 — 빈 목록으로 반영하면
+        // 라이브 즐겨찾기가 스냅샷 "종료" 로 잠깐 퇴행한다. 직전 상태 유지 후 재시도.
+        if (json.error) return;
         setMatches(json.matches ?? []);
       } catch {
         // 다음 polling 에서 재시도
@@ -504,9 +507,13 @@ export default function LivePipScore() {
           {rows.map((m) => (
             <li
               key={m.id}
-              className={`grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-1.5 rounded-lg px-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 ${size === "lg" ? "py-2.5 text-sm" : "py-1.5 text-[12px]"} ${m.state === "done" ? "opacity-60" : ""}`}
+              // 좌(리그)·우(상태) 칸을 같은 고정폭으로 — 리그명이 길어도 가운데
+              // 점수 축이 모든 행에서 세로 정렬되게 (auto 폭이면 긴 뱃지가 축을 밀어냄).
+              className={`grid grid-cols-[3.25rem_1fr_auto_1fr_3.25rem] items-center gap-1.5 rounded-lg px-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 ${size === "lg" ? "py-2.5 text-sm" : "py-1.5 text-[12px]"} ${m.state === "done" ? "opacity-60" : ""}`}
             >
-              <LeagueBadge league={m.league} size="sm" />
+              <span className="flex min-w-0 justify-start overflow-hidden">
+                <LeagueBadge league={m.league} size="sm" />
+              </span>
               <span className="truncate text-right font-medium text-neutral-800 dark:text-neutral-200">
                 {m.home}
               </span>
@@ -525,7 +532,7 @@ export default function LivePipScore() {
                 {m.away}
               </span>
               <span
-                className={`whitespace-nowrap text-[10px] font-semibold tabular-nums ${
+                className={`whitespace-nowrap text-right text-[10px] font-semibold tabular-nums ${
                   m.state === "live"
                     ? "text-rose-600 dark:text-rose-400"
                     : "text-neutral-400"

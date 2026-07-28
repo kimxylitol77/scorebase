@@ -76,8 +76,10 @@ export default function LiveScoresBar() {
         if (!res.ok) return;
         const etag = res.headers.get("etag");
         if (etag) lastEtag = etag;
-        const json: ApiResp = await res.json();
+        const json: ApiResp & { error?: string } = await res.json();
         if (!alive) return;
+        // 업스트림 실패 응답({matches:[], error}) 은 무시 — 빈 목록 반영 시 바가 깜빡 사라짐.
+        if (json.error) return;
         setMatches(json.matches ?? []);
         setLoaded(true);
       } catch {

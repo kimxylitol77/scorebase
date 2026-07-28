@@ -21,6 +21,8 @@ const LABELS: Record<string, string> = {
   UEL: "유로파",
   UECL: "유로파", // 사용자 요청 — "유로파 컨퍼런스" 가 좁은 뱃지(PiP 등)에서 팀명을 밀어냄
   CLUB_FRIENDLY: "친선",
+  ASEAN_CHAMP: "아세안", // "ASEAN 챔피언십" 이 좁은 뱃지(PiP 등)에서 점수 정렬을 밀어냄
+  INTL_FRIENDLY: "A매치",
   WORLD_CUP: "월드컵",
   NATIONAL: "국가대표",
   LOL: "LCK",
