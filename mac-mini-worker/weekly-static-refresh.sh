@@ -43,6 +43,9 @@ npx tsx --env-file=.env.local scripts/build-korea-abroad.ts 2>&1 | tail -3 || tr
 npx tsx --env-file=.env.local scripts/link-korea-abroad-players.ts 2>&1 | tail -3 || true
 npx tsx --env-file=.env.local scripts/apply-korea-abroad-stats.ts 2>&1 | tail -2 || true
 npx tsx --env-file=.env.local scripts/collect-korea-abroad-match-logs.ts --days=10 2>&1 | tail -2 || true
+npx tsx --env-file=.env.local scripts/collect-korea-abroad-positions.ts --recent=20 2>&1 | tail -3 || true
+# 해외파 grid 가 afgrid 에 병합된 뒤라 detail 을 다시 도출한다(⑦-b 는 해외파 수집 전에 돈다)
+npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
 
 log "⑨ NBA 부상자 한글명 (Haiku, BDL+ESPN union — 비스타 선수 보강)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-player-names-haiku.ts' 2>&1 | tail -2 || true
