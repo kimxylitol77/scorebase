@@ -2,7 +2,6 @@ import Link from "next/link";
 import Logo from "./Logo";
 import MobileMenu from "./MobileMenu";
 import ThemeToggle from "./ThemeToggle";
-import SearchInput from "./SearchInput";
 import AdminBadge from "./AdminBadge";
 import UserBadge from "./UserBadge";
 import LangSwitch from "./en/LangSwitch";
@@ -35,10 +34,18 @@ export default function Header() {
           ))}
           <CategoryDropdown {...COMMUNITY_CATEGORY} />
 
-          {/* 검색 + 다크모드 (데스크탑) */}
-          <div className="hidden md:block ml-2">
-            <SearchInput variant="compact" />
-          </div>
+          {/* 검색 — 아이콘만, 클릭 시 /search (입력창이 헤더 폭을 밀어 배지가 세로로 꺾이던 문제) */}
+          <Link
+            href="/search"
+            aria-label="검색"
+            title="검색"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M20 20L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </Link>
           <div className="ml-1 flex items-center gap-2">
             <UserBadge />
             <AdminBadge />
