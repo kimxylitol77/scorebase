@@ -26,7 +26,7 @@ const MANUAL = path.join(__dirname, "..", "data", "korea-abroad-names.json");
 
 // 대상 = 한국 선수가 뛰는(뛸 수 있는) 해외 리그. K리그는 해외파 정의상 제외.
 // season: 유럽 시즌제 = 2025(25-26) / 캘린더제(MLS·J리그) = 2026
-const LEAGUES: Array<{ code: string; afId: number; season: number; label: string; country: string; calendarSeason?: string }> = [
+export const LEAGUES: Array<{ code: string; afId: number; season: number; label: string; country: string; calendarSeason?: string }> = [
   { code: "EPL", afId: 39, season: 2025, label: "프리미어리그", country: "잉글랜드" },
   { code: "CHAMPIONSHIP", afId: 40, season: 2025, label: "챔피언십", country: "잉글랜드" },
   { code: "LEAGUE_ONE", afId: 41, season: 2025, label: "리그 원", country: "잉글랜드" },
@@ -403,9 +403,13 @@ async function main() {
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// 다른 스크립트가 LEAGUES 만 import 할 수 있게 직접 실행일 때만 돈다
+//  (가드 없으면 import 만으로 af 800여 콜이 도는 사고가 난다)
+if (require.main === module) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}
