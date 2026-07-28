@@ -73,6 +73,17 @@ async function findCrossSourceTwin(
 }
 
 /**
+ * 흡수를 막지 않는 종속 테이블. 사람 판단이 필요한 종속(글·투표 등)과 달리 여기 있는 것은
+ * "같은 경기"라는 사실만으로 기계적으로 처리할 수 있다.
+ *
+ * OddsSnapshot — 시장 배당 시계열. twin 이 이미 갖고 있으면 stale 쪽은 열등한 부분집합이라
+ * 버려도 손실이 없고, 없으면 통째로 넘기면 된다. 이걸 차단 사유로 두면 흡수가 영영 안 되고
+ * cron 이 2h 마다 같은 알림을 낸다 (2026-07-28 SUPERETTAN #309246: 스냅샷 2건이 흡수를 막아
+ * 7/27 04시부터 12회 이상 동일 알림 반복. twin 은 같은 경기 배당을 이미 73건 보유).
+ */
+const ABSORB_IGNORED_TABLES = new Set(["OddsSnapshot"]);
+
+/**
  * 중복이 확정된 stale row 를 쌍둥이로 흡수한다. 종속 데이터가 하나라도 있으면
  * 삭제하지 않고 false — cron 이 사람 판단 없이 파괴적으로 지우지 않게 한다
  * (data-sanity 의 크로스소스 중복 알림이 남아 사람이 처리).
@@ -90,6 +101,7 @@ async function absorbIntoTwin(
       ON t.table_name = c.table_name AND t.table_schema = c.table_schema
     WHERE c.table_schema = 'public' AND c.column_name = 'matchId' AND t.table_type = 'BASE TABLE'`;
   for (const { table_name, data_type } of cols) {
+    if (ABSORB_IGNORED_TABLES.has(table_name)) continue;
     const isText = data_type === "text" || data_type === "character varying";
     const rows = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
       `SELECT COUNT(*)::int AS n FROM "${table_name}" WHERE "matchId" = $1`,
@@ -112,6 +124,14 @@ async function absorbIntoTwin(
           marketAway: stale.marketAway,
           marketBookmakers: stale.marketBookmakers,
         },
+      });
+    }
+    // 배당 시계열도 twin 이 비었을 때만 넘긴다. 양쪽에 있으면 섞지 않고 stale 쪽을
+    // Cascade 로 버린다 — 두 소스의 평균이 한 차트에 겹치면 그래프가 지그재그가 된다.
+    if ((await tx.oddsSnapshot.count({ where: { matchId: twin.id } })) === 0) {
+      await tx.oddsSnapshot.updateMany({
+        where: { matchId: staleId },
+        data: { matchId: twin.id },
       });
     }
     await tx.match.delete({ where: { id: staleId } });
