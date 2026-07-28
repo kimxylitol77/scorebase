@@ -109,15 +109,12 @@ export default function Footer() {
                 className="rounded-xl shadow-sm"
               />
               <span className="flex min-w-0 flex-col">
-                <span className="text-[13px] font-bold text-zinc-950 dark:text-white">
+                <span className="whitespace-nowrap text-[13px] font-bold text-zinc-950 dark:text-white">
                   스코어베이스 앱 설치
                 </span>
-                <span className="text-[11px] text-neutral-500 dark:text-white/50">
-                  홈 화면에 추가 — 전체 화면·빠른 실행·무료
+                <span className="whitespace-nowrap text-[11px] text-neutral-500 dark:text-white/50">
+                  홈 화면에 추가 · 무료
                 </span>
-              </span>
-              <span className="ml-auto text-neutral-400 dark:text-white/40" aria-hidden>
-                →
               </span>
             </Link>
             {TELEGRAM_CHANNEL_URL && (
