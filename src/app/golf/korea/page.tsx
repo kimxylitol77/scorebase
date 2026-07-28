@@ -5,6 +5,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import DriverAvatar from "@/components/scores/f1/DriverAvatar";
 import GolfWorldRanking from "@/components/golf/GolfWorldRanking";
 import { golfEventKo } from "@/lib/sports/golf-events-ko";
 import { SITE_URL } from "@/lib/site-url";
@@ -124,6 +125,21 @@ export default async function GolfKoreaPage({
         })}
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/scores?sport=golf"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          ⛳ 골프 라이브 리더보드
+        </Link>
+        <Link
+          href="/salaries/golf"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          PGA 상금 랭킹
+        </Link>
+      </div>
+
       {view === "world" && <GolfWorldRanking />}
 
       {/* 투어 탭 */}
@@ -179,18 +195,26 @@ export default async function GolfKoreaPage({
             {players.map((p) => (
               <li key={`${p.tour}-${p.name}`} className="px-3 sm:px-4 py-3">
                 <div className="grid grid-cols-[1fr_44px_44px_52px] sm:grid-cols-[1fr_64px_64px_72px] items-center gap-2">
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
-                      {p.nameKo ?? p.name}
-                      {p.wins > 0 && (
-                        <span className="ml-1.5 align-middle text-[10px] font-bold text-amber-500">
-                          🏆 {p.wins}승
-                        </span>
-                      )}
-                    </span>
-                    <span className="block truncate text-[11px] text-neutral-400">
-                      {p.name}
-                      {p.best != null && ` · 최고 ${p.best}위`}
+                  <span className="flex items-center gap-2 min-w-0">
+                    <DriverAvatar
+                      photo={p.id ? `https://a.espncdn.com/i/headshots/golf/players/full/${p.id}.png` : null}
+                      flag="https://a.espncdn.com/i/teamlogos/countries/500/kor.png"
+                      country="대한민국"
+                      name={p.nameKo ?? p.name}
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
+                        {p.nameKo ?? p.name}
+                        {p.wins > 0 && (
+                          <span className="ml-1.5 align-middle text-[10px] font-bold text-amber-500">
+                            🏆 {p.wins}승
+                          </span>
+                        )}
+                      </span>
+                      <span className="block truncate text-[11px] text-neutral-400">
+                        {p.name}
+                        {p.best != null && ` · 최고 ${p.best}위`}
+                      </span>
                     </span>
                   </span>
                   <span className="text-center text-sm tabular-nums text-neutral-600 dark:text-neutral-400">{p.starts}</span>
@@ -223,21 +247,6 @@ export default async function GolfKoreaPage({
       )}
       </>
       )}
-
-      <div className="flex flex-wrap gap-2 pt-1">
-        <Link
-          href="/scores?sport=golf"
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          ⛳ 골프 라이브 리더보드
-        </Link>
-        <Link
-          href="/salaries/golf"
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          PGA 상금 랭킹
-        </Link>
-      </div>
 
       {view !== "world" && (
         <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
