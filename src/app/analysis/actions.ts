@@ -119,7 +119,7 @@ export async function createPostAction(
   // 서버에서 붙여서 경기 재선택·본문 수정과 어긋날 일이 없다 (matchId 는 위에서 검증됨).
   const finalContent =
     predData && String(formData.get("attachMatchCard") ?? "") === "on"
-      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${predData.matchId})`
+      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${predData.matchId}&mkt=${predData.market})`
       : content;
 
   const post = await prisma.post.create({

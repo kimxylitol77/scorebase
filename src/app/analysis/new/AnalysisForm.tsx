@@ -336,7 +336,7 @@ export default function AnalysisForm({ matchesBySport }: Props) {
             {attachCard && (
               <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/og/match-card?m=${matchId}`} alt="첨부될 경기 데이터 카드 미리보기" className="w-full" loading="lazy" />
+                <img src={`/api/og/match-card?m=${matchId}&mkt=${market}`} alt="첨부될 경기 데이터 카드 미리보기" className="w-full" loading="lazy" />
               </div>
             )}
           </div>

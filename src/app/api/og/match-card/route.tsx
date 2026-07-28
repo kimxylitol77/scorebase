@@ -1,5 +1,7 @@
-// GET /api/og/match-card?m={matchId} — 매치 1건 스탯카드 짤 (게시판 봇 글 첨부용).
+// GET /api/og/match-card?m={matchId}&mkt={1X2|OU|HANDICAP} — 매치 1건 스탯카드 짤 (게시판 글 첨부용).
 // AI 승률 바 + 배당 + (MLB) 선발 매치업. 커뮤니티 리서치(2026-07-05) 승자 포맷 "캡처 1장" 대응.
+// mkt = 글쓴이 픽의 마켓 — OU 픽 글에 승무패 카드가 붙으면 픽과 데이터가 어긋난다(2026-07-28 제보).
+// OU 면 오버 확률 바 + 오버/언더 배당, HANDICAP 이면 핸디캡 라인·배당으로 바꿔 그린다.
 // 디자인·폰트 처리(자동 CJK 글리프)는 /api/og/daily 와 동일 컨셉.
 
 import { ImageResponse } from "next/og";
@@ -36,6 +38,8 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const matchId = Number(url.searchParams.get("m"));
+  const mktRaw = url.searchParams.get("mkt");
+  const mkt = mktRaw === "OU" || mktRaw === "HANDICAP" ? mktRaw : "1X2";
 
   const size = { width: 1200, height: 630 };
 
@@ -54,6 +58,13 @@ export async function GET(req: Request) {
           oddsHome: true,
           oddsDraw: true,
           oddsAway: true,
+          predOverProb: true,
+          oddsTotalLine: true,
+          oddsOver: true,
+          oddsUnder: true,
+          oddsHcLine: true,
+          oddsHcHome: true,
+          oddsHcAway: true,
           homeStarter: true,
           awayStarter: true,
           homeTeam: { select: { name: true } },
@@ -90,16 +101,31 @@ export async function GET(req: Request) {
   const leagueLabel = LEAGUE_DISPLAY[match.league] ?? match.league;
   const finished = match.status === "FINISHED";
 
-  // AI 승률 스택 바 — 무승부 예측 없는 종목은 홈/원정 2분할
-  const hasPred = match.predHome != null && match.predAway != null;
+  // 확률 스택 바 — 픽 마켓에 맞는 축으로.
+  //   OU: 오버/언더 확률 (predOverProb). 1X2·HANDICAP: 승률 (무승부 없는 종목은 2분할).
+  const isOu = mkt === "OU";
+  const ouLine = match.oddsTotalLine;
+  const hasPred = isOu
+    ? match.predOverProb != null
+    : match.predHome != null && match.predAway != null;
   const draw = match.predDraw ?? 0;
-  const segs = hasPred
-    ? [
-        { label: home, v: match.predHome!, color: "#34d399" },
-        ...(draw > 0.001 ? [{ label: "무", v: draw, color: "#64748b" }] : []),
-        { label: away, v: match.predAway!, color: "#60a5fa" },
-      ]
-    : [];
+  const segs = !hasPred
+    ? []
+    : isOu
+      ? [
+          { label: "오버", v: match.predOverProb!, color: "#34d399" },
+          { label: "언더", v: 1 - match.predOverProb!, color: "#60a5fa" },
+        ]
+      : [
+          { label: home, v: match.predHome!, color: "#34d399" },
+          ...(draw > 0.001 ? [{ label: "무", v: draw, color: "#64748b" }] : []),
+          { label: away, v: match.predAway!, color: "#60a5fa" },
+        ];
+  const barTitle = isOu
+    ? `AI 오버 확률${ouLine != null ? ` (기준 ${ouLine})` : ""}`
+    : "AI 모델 승률";
+  const barLeft = isOu ? "오버" : home;
+  const barRight = isOu ? "언더" : away;
 
   const hs = parseStarter(match.homeStarter);
   const as = parseStarter(match.awayStarter);
@@ -108,14 +134,29 @@ export async function GET(req: Request) {
       ? `선발 ${hs.name}${hs.era != null ? ` (ERA ${hs.era.toFixed(2)})` : ""} vs ${as.name}${as.era != null ? ` (ERA ${as.era.toFixed(2)})` : ""}`
       : null;
 
-  const oddsCells =
-    match.oddsHome != null
-      ? [
-          { k: "홈", v: match.oddsHome },
-          ...(match.oddsDraw != null ? [{ k: "무", v: match.oddsDraw }] : []),
-          { k: "원정", v: match.oddsAway },
-        ].filter((c): c is { k: string; v: number } => c.v != null)
-      : [];
+  // 배당 셀 — 마켓별. 해당 마켓 배당이 없으면 1X2 로 폴백 (빈 카드 방지).
+  const fmtHc = (line: number, side: "H" | "A") => {
+    const v = side === "H" ? line : -line;
+    return v > 0 ? `+${v}` : `${v}`;
+  };
+  let oddsCells: { k: string; v: number }[] = [];
+  if (mkt === "OU" && match.oddsOver != null && match.oddsUnder != null) {
+    oddsCells = [
+      { k: `오버 ${ouLine ?? ""}`.trim(), v: match.oddsOver },
+      { k: `언더 ${ouLine ?? ""}`.trim(), v: match.oddsUnder },
+    ];
+  } else if (mkt === "HANDICAP" && match.oddsHcLine != null && match.oddsHcHome != null && match.oddsHcAway != null) {
+    oddsCells = [
+      { k: `홈 ${fmtHc(match.oddsHcLine, "H")}`, v: match.oddsHcHome },
+      { k: `원정 ${fmtHc(match.oddsHcLine, "A")}`, v: match.oddsHcAway },
+    ];
+  } else if (match.oddsHome != null) {
+    oddsCells = [
+      { k: "홈", v: match.oddsHome },
+      ...(match.oddsDraw != null ? [{ k: "무", v: match.oddsDraw }] : []),
+      { k: "원정", v: match.oddsAway },
+    ].filter((c): c is { k: string; v: number } => c.v != null);
+  }
 
   return new ImageResponse(
     (
@@ -161,10 +202,10 @@ export async function GET(req: Request) {
           </div>
         ) : null}
 
-        {/* AI 승률 바 */}
+        {/* AI 확률 바 — 마켓별 (1X2 승률 / OU 오버 확률) */}
         {hasPred ? (
           <div style={{ display: "flex", flexDirection: "column", marginTop: "52px", gap: "12px" }}>
-            <div style={{ display: "flex", fontSize: "20px", fontWeight: 700, color: "#94a3b8" }}>AI 모델 승률</div>
+            <div style={{ display: "flex", fontSize: "20px", fontWeight: 700, color: "#94a3b8" }}>{barTitle}</div>
             <div style={{ display: "flex", width: "100%", height: "56px", borderRadius: "14px", overflow: "hidden" }}>
               {segs.map((s, i) => (
                 <div
@@ -185,8 +226,8 @@ export async function GET(req: Request) {
               ))}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "20px", fontWeight: 700, color: "#cbd5e1" }}>
-              <span>{home}</span>
-              <span>{away}</span>
+              <span>{barLeft}</span>
+              <span>{barRight}</span>
             </div>
           </div>
         ) : null}
