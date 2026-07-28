@@ -161,6 +161,10 @@
       "schedule": "25 11,20 * * *"
     },
     {
+      "path": "/api/cron/value-picks",
+      "schedule": "40 9,22 * * *"
+    },
+    {
       "path": "/api/cron/cleanup-ghost",
       "schedule": "30 19 * * *"
     },

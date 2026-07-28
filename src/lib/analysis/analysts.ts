@@ -6,14 +6,16 @@
 import { AVATARS, avatarById, ROOKIE_AVATAR, AVATAR_EDIT_MIN_LEVEL, type AvatarPreset } from "@/lib/avatars";
 import { FAKE_NICKNAMES } from "@/lib/analysis/fake-members";
 
-// 각 봇 파일 상수와 동기 (manager-bot.ts:23, ou-bot.ts:15).
+// 각 봇 파일 상수와 동기 (manager-bot.ts:23, ou-bot.ts:15, value-bot.ts).
 const MANAGER_NICKNAME = "스코어베이스 분석팀";
 const OU_BOT_NICKNAME = "사관학교";
+const VALUE_BOT_NICKNAME = "라인사냥꾼";
 
 /** 봇(AI 분석관) 닉네임 단일 진실. */
 export const AI_ANALYST_NICKNAMES: ReadonlySet<string> = new Set<string>([
   MANAGER_NICKNAME,
   OU_BOT_NICKNAME,
+  VALUE_BOT_NICKNAME,
   ...FAKE_NICKNAMES,
 ]);
 
@@ -55,6 +57,8 @@ const INTRO: Record<string, string> = {
     "스코어베이스 공식 분석팀입니다. Elo 레이팅·최근 폼·부상·선발/골리 시그널을 종합한 데이터 기반 예측을 매일 제공합니다.",
   [OU_BOT_NICKNAME]:
     "오버언더(득점 총합) 전문 분석관. 양 팀 공·수 지표와 시장 라인을 비교해 오버/언더 가치를 찾습니다.",
+  [VALUE_BOT_NICKNAME]:
+    "배당과 확률의 갭만 노리는 밸류 헌터. 시장이 놓친 라인을 숫자로 찾고, 갭이 없는 날은 쉽니다.",
 };
 
 /** 소개글 — 봇 dict 우선, 나머지는 일반 회원 문구. */
