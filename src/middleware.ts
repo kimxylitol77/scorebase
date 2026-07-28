@@ -140,8 +140,12 @@ export function middleware(req: NextRequest) {
     res = NextResponse.next({ request: { headers: reqHeaders } });
   }
 
-  if (isScoreboard) {
-    // 중복 색인 방지(noindex). X-Frame-Options 는 안 붙여 iframe 위젯 임베드 허용(어디서나).
+  if (isScoreboard || isScoreBaseCom) {
+    // 중복 색인 방지(noindex). 두 도메인 모두 scorebase.kr 와 같은 앱을 서빙해 전 경로가
+    // 그대로 열린다(스코어베이스.com/predictions 등) — canonical 만으로는 힌트일 뿐이라
+    // 크롤 예산 분산·색인 희석이 남는다. 헤더로 확실히 막는다 (2026-07-28 누락 발견).
+    // robots.txt 로 Disallow 하면 크롤 자체가 막혀 이 noindex 를 못 읽으니 Allow 는 유지.
+    // X-Frame-Options 는 안 붙여 iframe 위젯 임베드 허용(어디서나).
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
   } else if (!path.startsWith("/embed")) {
     // scorebase.kr — 클릭재킹 방지 (next.config 전역 대신 host별로 여기서 부여).
