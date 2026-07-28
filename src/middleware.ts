@@ -32,7 +32,15 @@ export function middleware(req: NextRequest) {
   // GEO(ChatGPT·Perplexity·Claude 등 AI 답변 인용) 색인 보호. 인덱싱 버스트가 429 로 막히면 인용 손실.
   // AI 학습봇(GPTBot·CCBot 등)은 robots 차단 + 여기서도 미면제(robots 무시 시 rate limit).
   const bot = detectBot(req.headers.get("user-agent"));
+  // Next.js 링크 prefetch — App Router 는 뷰포트에 보이는 링크를 전부 미리 받는다.
+  // /scores 처럼 매치 카드 수십 개가 깔린 페이지는 한 번 열 때마다 수십 요청이 나가서,
+  // 탭 몇 개 + 새로고침이면 정상 사용자도 분당 200 을 넘겨 429 잠금(2026-07-28 실사용 발생).
+  // 스크래퍼는 이 헤더를 안 보내므로 카운트 제외해도 방어력 손실 없음 (UA 스푸핑으로 이미 우회 가능한 수준).
+  const isPrefetch =
+    req.headers.get("next-router-prefetch") === "1" ||
+    (req.headers.get("purpose") || req.headers.get("sec-purpose") || "").includes("prefetch");
   const exemptFromLimit =
+    isPrefetch ||
     // 라인업 캡처용 이미지 프록시는 정적 성격(한 보드에 11~22장) — rate limit 면제.
     path.startsWith("/api/lineup/img") ||
     (bot.isBot &&
@@ -47,11 +55,15 @@ export function middleware(req: NextRequest) {
       "unknown";
     if (!RATE_LIMIT_EXEMPT_IPS.has(ip)) {
       const { allowed, retryAfterSec } = rateLimit(`scrape:${ip}`, {
-        max: 200, // 60초당 200요청 — 정상 브라우징+prefetch 여유, 스크래퍼만 초과
+        max: 200, // 60초당 200요청 (prefetch 제외) — 정상 브라우징 여유, 스크래퍼만 초과
         windowMs: 60_000,
         lockMs: 60_000, // 초과 시 1분 차단
       });
       if (!allowed) {
+        // 누가 걸렸는지 Vercel 로그로 진단 가능하게 — 사람 오탐이면 IP 면제·임계 조정 근거가 된다.
+        console.warn(
+          `[rate-limit] 429 ip=${ip} path=${path} ua=${(req.headers.get("user-agent") || "-").slice(0, 90)}`,
+        );
         return new NextResponse("Too Many Requests", {
           status: 429,
           headers: { "Retry-After": String(retryAfterSec) },
