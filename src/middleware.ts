@@ -55,9 +55,13 @@ export function middleware(req: NextRequest) {
       "unknown";
     if (!RATE_LIMIT_EXEMPT_IPS.has(ip)) {
       const { allowed, retryAfterSec } = rateLimit(`scrape:${ip}`, {
-        max: 200, // 60초당 200요청 (prefetch 제외) — 정상 브라우징 여유, 스크래퍼만 초과
+        // 통신사 NAT — 모바일은 공인 IP 하나를 다수 사용자가 공유한다. 라이브 시청자는
+        // 10초 새로고침 + PiP 5초 폴링로 1인당 분당 ~20요청이라, 같은 IP 뒤 시청자
+        // 열몇 명이면 200 을 합산 초과 → 전원 잠금 (2026-07-28 실사용 이탈 발생).
+        // 스크래퍼(sitemap 전수·수집기)는 분당 수천 요청이라 600 으로도 충분히 걸린다.
+        max: 600, // 60초당 600요청 (prefetch 제외)
         windowMs: 60_000,
-        lockMs: 60_000, // 초과 시 1분 차단
+        lockMs: 30_000, // 초과 시 30초 차단 — 오탐이어도 라이브 시청 흐름이 끊기지 않게
       });
       if (!allowed) {
         // 누가 걸렸는지 Vercel 로그로 진단 가능하게 — 사람 오탐이면 IP 면제·임계 조정 근거가 된다.
