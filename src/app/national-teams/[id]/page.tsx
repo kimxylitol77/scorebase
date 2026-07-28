@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   // 빙 검색어 패턴("{국가} 축구 팀" / "{국가} 축구 국가대표팀")을 타이틀·키워드에 정확 매칭 —
   // 빙은 exact-match 키워드와 meta 를 구글보다 직접 반영한다.
   const title = `${ko} 축구 국가대표팀 — 스쿼드·감독·일정·FIFA 랭킹`;
-  const description = `${ko} 축구 국가대표팀(${ko} 축구 팀) 정보 — 최신 소집 명단(스쿼드), 감독, 최근 경기 결과와 다음 일정, FIFA 랭킹을 한눈에. 2026 북중미 월드컵 대비 스코어베이스.`;
+  const description = `${ko} 축구 국가대표팀(${ko} 축구 팀) 정보 — 최신 소집 명단(스쿼드), 감독, 최근 경기 결과와 다음 일정, FIFA 랭킹을 한눈에. 2026 북중미 월드컵 경기 결과·기록 포함, 스코어베이스.`;
   const keywords = [
     `${ko} 축구 팀`,
     `${ko} 축구 국가대표팀`,
