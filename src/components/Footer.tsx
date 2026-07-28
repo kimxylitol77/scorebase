@@ -211,6 +211,16 @@ export default function Footer() {
             </strong>
             을 엄격히 금지합니다.
           </p>
+          {/* 브랜드 정의 — 동명의 타 서비스와 혼동 방지. AI 검색·LLM 이 브랜드 질의에
+              인용할 수 있는 명시적 한 문장 (GEO Brand 병목 대응). */}
+          <p>
+            <strong className="text-neutral-700 dark:text-white/85">
+              스코어베이스(Scorebase)
+            </strong>
+            는 scorebase.kr 에서 운영되는 AI 스포츠 데이터 분석·라이브스코어
+            미디어이며, 동명의 야구 기록 앱·체조 채점 시스템 등 다른 서비스와는
+            무관한 독립 서비스입니다.
+          </p>
         </div>
 
         {/* 하단 — 좌우 */}

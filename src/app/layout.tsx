@@ -26,11 +26,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Scorebase — EPL · NBA · NHL · MLB 데이터 분석 스포츠 미디어",
+    // 한글 브랜드를 타이틀 맨 앞에 — "스코어베이스" 검색·AI 답변에서 정체성 신호 (GEO Brand 병목 대응)
+    default: "스코어베이스 (Scorebase) — EPL · NBA · MLB 라이브스코어·AI 데이터 분석 미디어",
     template: "%s | Scorebase",
   },
   description:
-    "EPL · NBA · NHL · MLB 의 경기 결과·프리뷰·분석. 시즌 순위, Elo 레이팅, 공격·수비 랭킹, 홈/원정 강도, 최근 흐름과 H2H 상대 전적까지 데이터 기반으로 정리.",
+    "스코어베이스(Scorebase)는 EPL · NBA · NHL · MLB 등 글로벌 스포츠의 라이브스코어와 AI 경기 예측을 제공하는 데이터 분석 미디어입니다. 시즌 순위, Elo 레이팅, 공격·수비 랭킹, 최근 흐름과 H2H 상대 전적까지 데이터 기반으로 정리.",
   metadataBase: new URL(SITE_URL),
   // ⚠️ 여기에 사이트 공통 alternates.canonical 을 두면 안 된다 — Next metadata 상속으로
   // 자체 canonical 없는 모든 페이지가 "홈의 중복"을 선언하게 돼 색인에서 제외된다
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "Scorebase",
     url: SITE_URL,
-    title: "Scorebase — 데이터로 보는 글로벌 스포츠",
+    title: "스코어베이스 (Scorebase) — 데이터로 보는 글로벌 스포츠",
     description:
       "EPL · NBA · NHL · MLB 의 경기 결과·프리뷰·시즌 시뮬레이션. Elo 레이팅과 통계 기반 인사이트.",
     images: [
@@ -60,6 +61,7 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   keywords: [
+    "스코어베이스", "Scorebase",
     "EPL", "프리미어리그", "라리가", "분데스리가", "세리에 A", "리그 1", "MLS",
     "챔피언스리그", "NBA", "MLB", "NHL",
     "스포츠 분석", "경기 결과", "경기 프리뷰",
