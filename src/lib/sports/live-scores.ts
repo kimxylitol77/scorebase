@@ -2237,11 +2237,36 @@ async function attachDbIds(all: LiveMatch[]): Promise<void> {
       if (r.apiFixtureId != null)
         dbIdByKey.set(`${sp}|${r.apiFixtureId}`, String(r.id));
     }
+    const unmatched: LiveMatch[] = [];
     for (const m of all) {
       const dbId = dbIdByKey.get(
         `${sportKeyOf(m.league)}|${m.id.replace(/^[a-z]+-/i, "")}`,
       );
       if (dbId) m.dbId = dbId;
+      else unmatched.push(m);
+    }
+    // 2차 보강 — af 소스 전용 리그(ASEAN_CHAMP 등)는 ts 워커가 상태를 안 올려
+    // 라이브 중에도 DB status 가 SCHEDULED 로 남는다 → 1차(LIVE 만)에 안 잡힘.
+    // (league, externalId) 정확 쌍으로 조회 (unique 인덱스 사용, 상태 무관).
+    if (unmatched.length > 0) {
+      const pairs = unmatched.map((m) => ({
+        league: m.league,
+        externalId: m.id.replace(/^[a-z]+-/i, ""),
+      }));
+      const rows2 = await prisma.match.findMany({
+        where: { OR: pairs },
+        select: { id: true, league: true, externalId: true },
+        take: 200,
+      });
+      const byLeagueExt = new Map(
+        rows2.map((r) => [`${r.league}|${r.externalId}`, String(r.id)]),
+      );
+      for (const m of unmatched) {
+        const dbId = byLeagueExt.get(
+          `${m.league}|${m.id.replace(/^[a-z]+-/i, "")}`,
+        );
+        if (dbId) m.dbId = dbId;
+      }
     }
   } catch (e) {
     // DB 조회 실패 시 별칭 없이 기존 동작 유지 (라이브 스코어 자체는 정상 반환)
