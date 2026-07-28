@@ -20,8 +20,21 @@
 - [ ] 검증 — 봇 연결 → 팀 ⭐ → 경기로 알림 수신 (연결 회원 1명 존재하나 팀 팔로우 0·발송 로그 0 — 실제 알림 수신 e2e 는 팀 ⭐ 후 경기 시점에 확인)
 
 ## Phase 2 — 실시간 골 (후속)
-- [ ] 라이브 score diff 훅(MQTT/cron) → GOAL 알림 fan-out
-- [ ] 알림 종류별 on/off 설정
+- [x] 라이브 score diff 훅(MQTT/cron) → GOAL 알림 fan-out
+- [ ] 알림 종류별 on/off 설정 (배당 변동만 방향별 토글 완료 — 킥오프·종료·골은 아직 일괄)
+
+## Phase 2.5 — 즐겨찾기 "경기" 알림 + 배당 변동 (2026-07-28)
+> 발단 = 사용자 제보 "연결됐다는데 알림이 안 온다". 진단 결과 버그가 아니라 설계 갭 —
+> 알림 대상이 팀 팔로우뿐인데 사용자가 별표한 건 경기(localStorage, 서버 미동기화)였다.
+- [x] 스키마 — `UserMatchFollow` 신규 + `User.alertOddsDrop/alertOddsRise`(기본 false)
+- [x] `docs/telegram-alerts/migration.sql` 에 additive SQL 추가 (섹션 4·5)
+- [ ] **DB 프로덕션 적용** — Neon SQL 에디터에서 migration.sql 4·5 실행 (권한상 에이전트 실행 불가)
+- [x] `/api/favorites/matches` GET/PUT — 경기 ⭐ 서버 미러링 (teams 라우트 동일 패턴, 숫자 id 만·상한 50)
+- [x] `/api/telegram/settings` GET/PUT — 배당 알림 방향 옵트인
+- [x] `TelegramConnectCard` — 경기 동기화 + 하락/상승 체크박스 + 즐겨찾기 0개 경고 문구
+- [x] 디스패처 — 팔로우 경기를 KICKOFF/FINAL/GOAL 대상에 포함 (`recipientsOf` 병합)
+- [x] 디스패처 — `dispatchOddsMoves` 신설. 윈도우 150분·임계 8%, 옵트인 0명이면 쿼리 skip
+- [ ] 검증 — 마이그레이션 후 경기 ⭐ → KICKOFF 수신 e2e
 
 ## Phase 3 — 확장 (후속)
 - [ ] 이적/부상/근황 이벤트 알림 (이적시장·PlayerEvent·부상자 재활용)

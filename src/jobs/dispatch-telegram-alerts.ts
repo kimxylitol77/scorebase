@@ -1,5 +1,5 @@
 // 텔레그램 경기 알림 디스패처 (docs/telegram-alerts).
-// 연결 회원의 즐겨찾기(UserTeamFollow) 팀 경기를 조회해 KICKOFF(임박·AI픽)·FINAL(결과) 발송.
+// 연결 회원의 즐겨찾기 팀(UserTeamFollow)·경기(UserMatchFollow)를 조회해 KICKOFF(임박·AI픽)·FINAL(결과) 발송.
 // 중복 방지 = TelegramAlertLog (userId, matchId, kind) 유일. LLM 0 (픽은 결정론 predictionEngine).
 import { prisma } from "@/lib/db";
 import { sendTelegramTo } from "@/lib/notify/telegram";
@@ -40,23 +40,38 @@ function pickLine(pred: PredictionResult | null, homeName: string, awayName: str
 export async function dispatchTelegramAlerts() {
   if (!process.env.USER_BOT_TOKEN) return { skipped: "no USER_BOT_TOKEN" };
 
-  // 1. 연결 회원 + 팔로우 팀
+  // 1. 연결 회원 + 팔로우 팀·경기
   const users = await prisma.user.findMany({
     where: { telegramChatId: { not: null } },
-    select: { id: true, telegramChatId: true, teamFollows: { select: { teamId: true } } },
+    select: {
+      id: true,
+      telegramChatId: true,
+      alertOddsDrop: true,
+      alertOddsRise: true,
+      teamFollows: { select: { teamId: true } },
+      matchFollows: { select: { matchId: true } },
+    },
   });
   if (users.length === 0) return { users: 0, sent: 0 };
 
   // 팀(String id) → 팔로워 [{userId, chatId}]
   const followersByTeam = new Map<string, Array<{ userId: string; chatId: string }>>();
+  // 경기(Match.id) → 팔로워 — 팀은 안 팔로우해도 그 경기만 챙기는 회원.
+  const followersByMatch = new Map<number, Array<{ userId: string; chatId: string }>>();
   for (const u of users) {
     for (const f of u.teamFollows) {
       const arr = followersByTeam.get(f.teamId) ?? [];
       arr.push({ userId: u.id, chatId: u.telegramChatId! });
       followersByTeam.set(f.teamId, arr);
     }
+    for (const f of u.matchFollows) {
+      const arr = followersByMatch.get(f.matchId) ?? [];
+      arr.push({ userId: u.id, chatId: u.telegramChatId! });
+      followersByMatch.set(f.matchId, arr);
+    }
   }
   const teamIds = [...followersByTeam.keys()].map(Number).filter((n) => Number.isInteger(n));
+  const followedMatchIds = [...followersByMatch.keys()];
 
   const now = new Date();
   let sent = 0;
@@ -65,18 +80,26 @@ export async function dispatchTelegramAlerts() {
   // 여러 개 있어서, 뒤에 두면 즐겨찾기가 없거나 대상 경기가 없는 날 통째로 건너뛴다.
   const followPickSent = await dispatchFollowPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
   const botDigestSent = await dispatchMyBotPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
-  const indep = { followPick: followPickSent, botDigest: botDigestSent };
+  const oddsSent = await dispatchOddsMoves(now, users, followersByTeam, followersByMatch, () => sent < MAX_SENDS, (n) => { sent += n; });
+  const indep = { followPick: followPickSent, botDigest: botDigestSent, oddsMove: oddsSent };
 
-  if (teamIds.length === 0) return { users: users.length, follows: 0, ...indep, sent };
+  if (teamIds.length === 0 && followedMatchIds.length === 0) {
+    return { users: users.length, follows: 0, ...indep, sent };
+  }
 
-  // 2. 대상 경기 (팔로우 팀이 홈/원정)
+  // 2. 대상 경기 (팔로우 팀이 홈/원정 이거나, 경기 자체를 팔로우)
   const MATCH_SELECT = { id: true, league: true, externalId: true, homeTeamId: true, awayTeamId: true, startTime: true, homeScore: true, awayScore: true } as const;
+  const FOLLOWED = [
+    { homeTeamId: { in: teamIds } },
+    { awayTeamId: { in: teamIds } },
+    { id: { in: followedMatchIds } },
+  ];
   const [kickoff, finals, live] = await Promise.all([
     prisma.match.findMany({
       where: {
         status: "SCHEDULED",
         startTime: { gte: now, lte: new Date(now.getTime() + KICKOFF_WINDOW_MIN * 60000) },
-        OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
+        OR: FOLLOWED,
       },
       select: MATCH_SELECT,
     }),
@@ -86,7 +109,7 @@ export async function dispatchTelegramAlerts() {
         startTime: { gte: new Date(now.getTime() - FINAL_LOOKBACK_H * 3600000) },
         homeScore: { not: null },
         awayScore: { not: null },
-        OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
+        OR: FOLLOWED,
       },
       select: MATCH_SELECT,
     }),
@@ -97,7 +120,7 @@ export async function dispatchTelegramAlerts() {
         league: { in: [...SOCCER_LEAGUES] },
         homeScore: { not: null },
         awayScore: { not: null },
-        OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
+        OR: FOLLOWED,
       },
       select: MATCH_SELECT,
     }),
@@ -130,6 +153,7 @@ export async function dispatchTelegramAlerts() {
     for (const tid of [m.homeTeamId, m.awayTeamId]) {
       for (const f of followersByTeam.get(String(tid)) ?? []) r.set(f.userId, f.chatId);
     }
+    for (const f of followersByMatch.get(m.id) ?? []) r.set(f.userId, f.chatId);
     return r;
   };
 
@@ -230,8 +254,147 @@ export async function dispatchTelegramAlerts() {
     }
   }
 
-  // FOLLOW_PICK·BOT_DIGEST 는 팀 즐겨찾기와 무관하므로 이 함수 앞부분에서 이미 처리했다.
+  // FOLLOW_PICK·BOT_DIGEST·ODDS_MOVE 는 위 팀 기반 로직의 early return 에 걸리지 않도록 앞부분에서 이미 처리했다.
   return { users: users.length, kickoff: kickoff.length, finals: finals.length, live: live.length, ...indep, sent };
+}
+
+// 배당 변동 알림 — 운영 채널용 odds-mover-alert 와 동일 기준(윈도우 150분·임계 8%).
+// fetch-odds cron 이 2h 주기라 윈도우가 짧으면 스냅샷이 1개뿐이라 감지가 안 된다.
+const ODDS_WINDOW_MIN = 150;
+const ODDS_DELTA_PCT = 8;
+
+/**
+ * ODDS_MOVE — 즐겨찾기 팀·경기의 프리매치 배당이 크게 움직이면 발송.
+ * 방향(하락 ▼ / 상승 ▲)은 회원이 마이페이지에서 각각 옵트인(User.alertOddsDrop/Rise, 기본 OFF).
+ * 중복 방지 = TelegramAlertLog(kind="ODDS:{DROP|RISE}:{도달 배당}") — 같은 값까지의 이동은 1회,
+ * 계속 움직이면 새 값이라 다시 발송.
+ */
+async function dispatchOddsMoves(
+  now: Date,
+  users: Array<{ id: string; telegramChatId: string | null; alertOddsDrop: boolean; alertOddsRise: boolean }>,
+  followersByTeam: Map<string, Array<{ userId: string; chatId: string }>>,
+  followersByMatch: Map<number, Array<{ userId: string; chatId: string }>>,
+  canSend: () => boolean,
+  addSent: (n: number) => void,
+): Promise<number> {
+  const optedIn = users.filter((u) => u.alertOddsDrop || u.alertOddsRise);
+  if (optedIn.length === 0) return 0; // 아무도 안 켜면 쿼리조차 하지 않는다
+  const prefOf = new Map(optedIn.map((u) => [u.id, u]));
+
+  // 옵트인 회원이 팔로우한 팀·경기만 대상 — 전 경기 스캔은 스팸이자 낭비.
+  const teamIds: number[] = [];
+  for (const [tid, fs] of followersByTeam) {
+    if (fs.some((f) => prefOf.has(f.userId))) {
+      const n = Number(tid);
+      if (Number.isInteger(n)) teamIds.push(n);
+    }
+  }
+  const matchIds: number[] = [];
+  for (const [mid, fs] of followersByMatch) {
+    if (fs.some((f) => prefOf.has(f.userId))) matchIds.push(mid);
+  }
+  if (teamIds.length === 0 && matchIds.length === 0) return 0;
+
+  const snaps = await prisma.oddsSnapshot.findMany({
+    where: {
+      fetchedAt: { gte: new Date(now.getTime() - ODDS_WINDOW_MIN * 60_000) },
+      match: {
+        startTime: { gt: now }, // 프리매치만 — 인플레이 변동은 스코어 반응이라 의미가 다르다
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } },
+          { id: { in: matchIds } },
+        ],
+      },
+    },
+    orderBy: { fetchedAt: "asc" },
+    select: {
+      matchId: true,
+      homeOdds: true,
+      drawOdds: true,
+      awayOdds: true,
+      match: {
+        select: {
+          id: true,
+          league: true,
+          externalId: true,
+          startTime: true,
+          homeTeamId: true,
+          awayTeamId: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      },
+    },
+  });
+  if (snaps.length === 0) return 0;
+
+  type Snap = (typeof snaps)[number];
+  const byMatch = new Map<number, { first: Snap; last: Snap }>();
+  for (const s of snaps) {
+    const acc = byMatch.get(s.matchId);
+    if (!acc) byMatch.set(s.matchId, { first: s, last: s });
+    else acc.last = s;
+  }
+
+  let sent = 0;
+  for (const [, { first, last }] of byMatch) {
+    if (first === last) continue;
+    const m = last.match;
+    const home = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
+    const away = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
+
+    // 경기당 1건 — |변동| 최대 side 가 그 경기의 스토리.
+    const sides: Array<[string, number | null, number | null]> = [
+      [home, first.homeOdds, last.homeOdds],
+      ["무승부", first.drawOdds, last.drawOdds],
+      [away, first.awayOdds, last.awayOdds],
+    ];
+    let top: { label: string; o: number; c: number; d: number } | null = null;
+    for (const [label, o, c] of sides) {
+      if (o == null || c == null || o <= 0) continue;
+      const d = ((c - o) / o) * 100;
+      if (Math.abs(d) < ODDS_DELTA_PCT) continue;
+      if (!top || Math.abs(d) > Math.abs(top.d)) top = { label, o, c, d };
+    }
+    if (!top) continue;
+
+    const dir: "DROP" | "RISE" = top.d < 0 ? "DROP" : "RISE";
+    const arrow = dir === "DROP" ? "▼" : "▲";
+    const meaning = dir === "DROP" ? "돈이 몰리는 중" : "기대가 낮아지는 중";
+    const text =
+      `📈 <b>배당 ${dir === "DROP" ? "하락" : "상승"}</b> · ${esc(home)} vs ${esc(away)}\n` +
+      `${esc(top.label)} ${top.o.toFixed(2)} → ${top.c.toFixed(2)} (${arrow}${Math.abs(top.d).toFixed(0)}%, ${ODDS_WINDOW_MIN}분 내 · ${meaning})\n` +
+      `킥오프 ${kstTime(m.startTime)}\n` +
+      `▶ ${matchUrl(m.league, m.externalId)}`;
+    const kind = `ODDS:${dir}:${top.c.toFixed(2)}`;
+
+    // 수신자 = 이 경기의 팀·경기 팔로워 중 해당 방향을 켠 회원
+    const recips = new Map<string, string>();
+    for (const tid of [m.homeTeamId, m.awayTeamId]) {
+      for (const f of followersByTeam.get(String(tid)) ?? []) recips.set(f.userId, f.chatId);
+    }
+    for (const f of followersByMatch.get(m.id) ?? []) recips.set(f.userId, f.chatId);
+
+    for (const [userId, chatId] of recips) {
+      const pref = prefOf.get(userId);
+      if (!pref) continue;
+      if (dir === "DROP" ? !pref.alertOddsDrop : !pref.alertOddsRise) continue;
+      if (!canSend()) return sent;
+      const exists = await prisma.telegramAlertLog.findUnique({
+        where: { userId_matchId_kind: { userId, matchId: String(m.id), kind } },
+      });
+      if (exists) continue;
+      if (await sendTelegramTo(chatId, text)) {
+        await prisma.telegramAlertLog.create({
+          data: { userId, matchId: String(m.id), kind },
+        });
+        sent++;
+        addSent(1);
+      }
+    }
+  }
+  return sent;
 }
 
 const FOLLOW_PICK_LOOKBACK_MIN = 40; // 크론 */5 대비 넉넉한 스캔 창 (중복은 로그로 차단)

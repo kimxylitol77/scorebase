@@ -831,6 +831,10 @@ model User {
   telegramChatId    String? @unique // 텔레그램 chat_id (발송 대상)
   telegramLinkToken String? @unique // 딥링크 /start 토큰 (연결 후 null 화)
 
+  // 배당 변동 알림 옵트인 — 즐겨찾기 경기·팀 한정. 방향별로 따로 켠다(기본 OFF).
+  alertOddsDrop Boolean @default(false) // 배당 하락(=승률 상승) 알림
+  alertOddsRise Boolean @default(false) // 배당 상승(=승률 하락) 알림
+
   // 예측 적중 통계 (분석 게시판 자동채점 시 누적) — 작성자 신뢰도 표시용
   predTotal  Int @default(0) // 채점 완료된 예측 수
   predHit    Int @default(0) // 적중 수 (적중률 = predHit/predTotal)
@@ -844,10 +848,10 @@ model User {
   cosmetics UserCosmetic[]
   dreamTeams DreamTeam[]
   teamFollows UserTeamFollow[]
+  matchFollows UserMatchFollow[]
   analystFollows   UserAnalystFollow[] @relation("AnalystFollower") // 내가 팔로우한 분석가
   analystFollowers UserAnalystFollow[] @relation("AnalystFollowee") // 나를 팔로우한 회원
 
-  // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
 }
 
@@ -861,6 +865,19 @@ model UserTeamFollow {
 
   @@unique([userId, teamId])
   @@index([teamId])
+}
+
+/// 회원 즐겨찾기 경기 — /scores 의 ⭐(localStorage)를 서버로 미러링해 텔레그램 알림 대상에 포함.
+/// 팀 팔로우(UserTeamFollow)와 별개 축 — 팀은 안 봐도 특정 경기만 챙기는 사용 패턴이 흔하다.
+model UserMatchFollow {
+  id        String   @id @default(cuid())
+  matchId   Int // Match.id
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
 }
 
 /// 분석가 팔로우 — 회원이 다른 회원(봇 패널 포함)을 팔로우. 팔로우한 분석가가

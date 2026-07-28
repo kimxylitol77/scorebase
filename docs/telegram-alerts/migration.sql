@@ -31,3 +31,25 @@ CREATE TABLE IF NOT EXISTS "TelegramAlertLog" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "TelegramAlertLog_userId_matchId_kind_key" ON "TelegramAlertLog"("userId","matchId","kind");
 CREATE INDEX IF NOT EXISTS "TelegramAlertLog_sentAt_idx" ON "TelegramAlertLog"("sentAt");
+
+-- ─────────────────────────────────────────────────────────────
+-- 2026-07-28 추가 — 즐겨찾기 "경기" 알림 + 배당 변동 알림 옵트인.
+-- 모두 additive (DEFAULT 있는 컬럼 + 신규 테이블). ALTER 전 장기 트랜잭션 확인 + lock_timeout 권장.
+-- SET lock_timeout = '3s';
+
+-- 4) 배당 변동 알림 방향별 옵트인 (기본 OFF — 기존 회원 영향 없음)
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "alertOddsDrop" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "alertOddsRise" BOOLEAN NOT NULL DEFAULT false;
+
+-- 5) 즐겨찾기 경기 (⭐ 서버 미러링)
+CREATE TABLE IF NOT EXISTS "UserMatchFollow" (
+  "id" TEXT NOT NULL,
+  "matchId" INTEGER NOT NULL,
+  "userId" TEXT NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "UserMatchFollow_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "UserMatchFollow_userId_matchId_key" ON "UserMatchFollow"("userId","matchId");
+CREATE INDEX IF NOT EXISTS "UserMatchFollow_matchId_idx" ON "UserMatchFollow"("matchId");
+ALTER TABLE "UserMatchFollow" ADD CONSTRAINT "UserMatchFollow_userId_fkey"
+  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
