@@ -54,15 +54,21 @@ function buildBotShareText(bot: {
   };
 }
 
-export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string; bot?: string }> }) {
+export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string; bot?: string; stitle?: string; spath?: string }> }) {
   // 전술판 "게시판에 올리기" 진입 — ?lineup={d코드} 를 폼에 미리 채움 (로그인 리다이렉트에도 보존)
-  const { lineup, bot } = await searchParams;
+  const { lineup, bot, stitle, spath } = await searchParams;
   const lineupCode = lineup && /^[A-Za-z0-9_\-~.%]+$/.test(lineup) && lineup.length <= 4000 ? lineup : null;
   // /lab "게시판에 공유" 진입 — ?bot={id} (cuid) 소유 봇만 프리필
   const botId = bot && /^[A-Za-z0-9]{10,40}$/.test(bot) ? bot : null;
+  // 페이지 "공유 → 자유게시판" 진입 (ShareCardButton) — 사이트 내 경로만 허용 (외부 링크 주입 차단)
+  const shareTitle = stitle && stitle.trim().length >= 2 ? stitle.trim().slice(0, 90) : null;
+  const sharePath =
+    spath && /^\/[^\s]*$/.test(spath) && !spath.startsWith("//") && spath.length <= 300 ? spath : null;
   const qs = new URLSearchParams();
   if (lineupCode) qs.set("lineup", lineupCode);
   if (botId) qs.set("bot", botId);
+  if (shareTitle) qs.set("stitle", shareTitle);
+  if (sharePath) qs.set("spath", sharePath);
   const qsStr = qs.toString();
   const backTo = `/community/new${qsStr ? `?${qsStr}` : ""}`;
   const user = await getCurrentUser();
@@ -76,6 +82,15 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
     });
     if (myBot) botPrefill = buildBotShareText(myBot);
   }
+
+  // 페이지 공유 프리필 — 제목 + 본문에 사이트 내 링크 (봇 프리필이 있으면 그쪽 우선)
+  const sharePrefill =
+    !botPrefill && (shareTitle || sharePath)
+      ? {
+          title: shareTitle ? `[공유] ${shareTitle}` : "",
+          content: sharePath ? `https://www.scorebase.kr${sharePath}\n\n` : "",
+        }
+      : null;
 
   // 내 드림팀 — 있으면 첨부 체크박스에 팀명 노출
   const team = user
@@ -106,8 +121,8 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
         <BoardForm
           myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null}
           defaultLineup={lineupCode}
-          defaultTitle={botPrefill?.title}
-          defaultContent={botPrefill?.content}
+          defaultTitle={botPrefill?.title ?? sharePrefill?.title}
+          defaultContent={botPrefill?.content ?? sharePrefill?.content}
         />
       ) : (
         <SignupGateCard from={backTo} />
