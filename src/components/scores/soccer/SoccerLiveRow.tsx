@@ -519,13 +519,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           {rowContent}
         </a>
       ) : (
-        <Link
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          prefetch={false}
-          className="block"
-        >
+        // 내부 링크는 같은 탭 — 다른 종목 카드와 통일. 새 탭(target=_blank)이면 PWA 설치 크롬이
+        // "지원되는 링크 열기" 설정 시 앱 창으로 가로채 브라우저/앱 혼선을 만든다 (2026-07-28 제보).
+        <Link href={href} prefetch={false} className="block">
           {rowContent}
         </Link>
       )}
