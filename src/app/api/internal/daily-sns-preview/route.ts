@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { SITE_URL } from "@/lib/site-url";
+import { SITE_URL, snsLink } from "@/lib/site-url";
 import { leaguesForSport, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { kstDayWindow, kstHHmm } from "@/lib/threads/kst";
@@ -74,7 +74,9 @@ export async function GET(req: NextRequest) {
     liveCount: matches.filter((m) => m.status === "LIVE").length,
     caption: buildDailyCaption(lines, {
       dateLabel: label,
-      url: `${SITE_URL}/board`,
+      // 캡션은 스레드·인스타에 수동 게시되지만 링크가 실제로 눌리는 곳은 스레드다
+      // (인스타 피드·릴스 캡션은 URL 을 링크로 만들지 않는다).
+      url: snsLink("/board", "threads"),
       totalCount: matches.length,
       title: wc ? `🏆 ${tomorrow ? "내일" : "오늘"}의 월드컵 경기` : undefined,
       hashtags: wc ? "#스코어베이스 #월드컵 #2026월드컵 #축구 #국가대표" : undefined,

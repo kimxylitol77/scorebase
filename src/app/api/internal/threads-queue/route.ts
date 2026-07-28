@@ -13,7 +13,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { SITE_URL } from "@/lib/site-url";
+import { SITE_URL, snsLink } from "@/lib/site-url";
 import { kstDayWindow, kstHour } from "@/lib/threads/kst";
 import { buildFeatureCaption } from "@/lib/threads/caption";
 import { featureForDate } from "@/lib/threads/features";
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
       items.push({
         kind: "FEATURE",
         refKey,
-        text: buildFeatureCaption(f, { url: `${SITE_URL}${f.path}` }),
+        text: buildFeatureCaption(f, { url: snsLink(f.path, "threads") }),
         imageUrl: `${SITE_URL}/api/og/feature?key=${f.key}&d=${dateKey}`,
       });
     }

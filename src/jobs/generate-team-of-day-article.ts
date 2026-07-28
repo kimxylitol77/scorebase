@@ -18,7 +18,7 @@ import {
 } from "@/prompts/team-of-day-analysis";
 import { buildTeamOfDayCaption } from "@/lib/threads/caption";
 import { sendTelegramPhoto } from "@/lib/notify/telegram";
-import { SITE_URL } from "@/lib/site-url";
+import { SITE_URL, snsLink } from "@/lib/site-url";
 
 type RawStatRow = TodRawStats & { player_id: string; rating?: number };
 
@@ -151,7 +151,7 @@ export async function runTeamOfDayArticle() {
     const mvp = xi[0];
     const caption = buildTeamOfDayCaption({
       dateLabel: dateKo,
-      url: `${SITE_URL}/articles/${slug}`,
+      url: snsLink(`/articles/${slug}`, "threads"),
       mvpName: mvp.name,
       mvpCountry: mvp.countryKo,
       mvpRating: mvp.rating,

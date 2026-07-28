@@ -14,7 +14,7 @@ import {
 } from "@/lib/sports/thesports/wc-star-report";
 import { buildStarReportPrompt } from "@/prompts/wc-star-report";
 import { sendTelegramPhoto } from "@/lib/notify/telegram";
-import { SITE_URL } from "@/lib/site-url";
+import { snsLink } from "@/lib/site-url";
 
 function extractTitle(md: string): string {
   const m = md.match(/^#\s+(.+)$/m);
@@ -114,7 +114,7 @@ export async function runWcStarReport(opts: RunOpts = {}) {
     // SNS 카드 — 선수 사진 + 캡션을 텔레그램으로 (수동 게시용). 사진 없으면 skip.
     if (d.photo) {
       try {
-        await sendTelegramPhoto(d.photo, buildStarCaption(d, `${SITE_URL}/articles/${slug}`));
+        await sendTelegramPhoto(d.photo, buildStarCaption(d, snsLink(`/articles/${slug}`, "threads")));
         console.log(`[wc-star] 텔레그램 카드 전송 — ${d.name}`);
       } catch (e) {
         console.warn(`[wc-star] 텔레그램 전송 실패(${d.name}):`, (e as Error).message);
