@@ -124,6 +124,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: { canonical: "https://www.scorebase.kr/standings/KBO", ...enAlt(upper) },
     };
   }
+  // EPL — 8월 개막 수요 선점 (빙 색인 리드타임 감안해 미리 정밀 매칭)
+  if (upper === "EPL") {
+    return {
+      title: "프리미어리그 순위 — 2026-27 EPL 팀 순위표·일정",
+      description:
+        "잉글랜드 프리미어리그(EPL) 팀 순위표. 2026-27 새 시즌 개막 후 승점·승무패·골득실 실시간 자동 갱신, 개막 전에는 참가 20팀 명단 제공. 시즌 우승 확률 시뮬레이션 함께 제공.",
+      keywords: [
+        "프리미어리그 순위",
+        "EPL 순위",
+        "EPL 순위표",
+        "프리미어리그 순위표",
+        "잉글랜드 프리미어리그",
+        "EPL 개막",
+        "프리미어리그 일정",
+      ],
+      alternates: { canonical: "https://www.scorebase.kr/standings/EPL", ...enAlt(upper) },
+    };
+  }
   if (upper === "EWC") {
     return {
       title: "이스포츠 월드컵 LoL 순위 — 그룹 스테이지 결과·일정",
