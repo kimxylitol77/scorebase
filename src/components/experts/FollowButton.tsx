@@ -11,6 +11,8 @@ interface Props {
   from: string;
   /** compact = 글 상세 작성자 줄용 작은 버튼 */
   variant?: "default" | "compact";
+  /** 아직 팔로우 안 한 사람에게 혜택을 한 줄로 — 버튼만 있으면 왜 눌러야 하는지 모른다 */
+  hint?: boolean;
 }
 
 export default function FollowButton({
@@ -18,9 +20,10 @@ export default function FollowButton({
   following,
   from,
   variant = "default",
+  hint = false,
 }: Props) {
   const compact = variant === "compact";
-  return (
+  const form = (
     <form action={toggleAnalystFollowAction} className="inline-flex">
       <input type="hidden" name="analystId" value={analystId} />
       <input type="hidden" name="from" value={from} />
@@ -45,5 +48,17 @@ export default function FollowButton({
         )}
       </button>
     </form>
+  );
+
+  // 이미 팔로우 중이면 혜택 설명이 필요 없다.
+  if (!hint || following) return form;
+
+  return (
+    <span className="inline-flex flex-col items-start gap-1">
+      {form}
+      <span className="text-[11px] leading-tight text-neutral-400 break-keep">
+        팔로우하면 새 픽을 텔레그램으로 알려드려요
+      </span>
+    </span>
   );
 }

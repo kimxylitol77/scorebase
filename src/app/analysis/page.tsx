@@ -11,6 +11,7 @@ import { Trophy, SquarePen, Target, Flame, X } from "lucide-react";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import { shopItemById } from "@/lib/shop";
 import BoardTabs from "@/components/BoardTabs";
+import FollowCta from "@/components/experts/FollowCta";
 import UserName from "@/components/UserName";
 import TeamBadge from "@/components/TeamBadge";
 
@@ -421,6 +422,9 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         </details>
         )}
       </header>
+
+      {/* 팔로우 유도 + 적중률 근거 — 분석 보드에서만 (자유·브리핑은 픽이 없어 무의미) */}
+      {!isFreeBoard && !isBriefing && <FollowCta />}
 
       {/* 종목·말머리 필터 탭 — 브리핑 보드는 전부 축구라 탭 없음 */}
       {!isBriefing && (

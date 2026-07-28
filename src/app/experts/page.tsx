@@ -9,6 +9,9 @@ import { Trophy, Target } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+// 팔로우 관계가 이 수 이상 쌓이면 "팔로우 랭킹" 탭을 노출한다.
+const FOLLOW_TAB_MIN = 10;
+
 export const metadata: Metadata = {
   title: "예측 전문가 순위",
   description:
@@ -22,18 +25,25 @@ interface Props {
 export default async function ExpertsPage({ searchParams }: Props) {
   const { tab } = await searchParams;
   const monthly = tab === "monthly";
-  const followTab = tab === "follow";
-  const rows: RankRow[] = followTab
-    ? await getFollowRanking(100)
-    : monthly
-      ? await getMonthlyRanking(100)
-      : await getOverallRanking(100);
+
   // 팔로워 수 — 보조 지표 (0이면 행에서 숨김). 주 랭킹은 Wilson 적중률 유지.
   const followCounts = await prisma.userAnalystFollow.groupBy({
     by: ["analystId"],
     _count: true,
   });
   const followerMap = new Map(followCounts.map((f) => [f.analystId, f._count]));
+
+  // 팔로우가 거의 없는 동안 "팔로우 랭킹"을 띄우면 텅 빈 순위표가 되어 오히려
+  // 아무도 안 쓰는 사이트처럼 보인다. 실제로 쌓이면 탭이 저절로 다시 나타난다.
+  const totalFollows = followCounts.reduce((s, f) => s + f._count, 0);
+  const showFollowTab = totalFollows >= FOLLOW_TAB_MIN;
+  const followTab = tab === "follow" && showFollowTab;
+
+  const rows: RankRow[] = followTab
+    ? await getFollowRanking(100)
+    : monthly
+      ? await getMonthlyRanking(100)
+      : await getOverallRanking(100);
 
   return (
     <main className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
@@ -107,16 +117,18 @@ export default async function ExpertsPage({ searchParams }: Props) {
         >
           월간 랭킹
         </Link>
-        <Link
-          href="/experts?tab=follow"
-          className={`flex-1 text-center py-2.5 rounded-full text-sm font-bold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            followTab
-              ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
-              : "bg-white/60 text-neutral-500 ring-black/10 hover:bg-white dark:bg-white/5 dark:ring-white/15 dark:hover:bg-white/10"
-          }`}
-        >
-          팔로우 랭킹
-        </Link>
+        {showFollowTab && (
+          <Link
+            href="/experts?tab=follow"
+            className={`flex-1 text-center py-2.5 rounded-full text-sm font-bold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              followTab
+                ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
+                : "bg-white/60 text-neutral-500 ring-black/10 hover:bg-white dark:bg-white/5 dark:ring-white/15 dark:hover:bg-white/10"
+            }`}
+          >
+            팔로우 랭킹
+          </Link>
+        )}
       </div>
 
       {rows.length === 0 ? (

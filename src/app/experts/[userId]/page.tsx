@@ -84,11 +84,12 @@ export default async function ExpertProfilePage({ params, searchParams }: Props)
         </div>
         {/* 팔로우 — 팔로우하면 이 분석가의 새 픽을 텔레그램으로 받아본다 */}
         {!isSelf && (
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex items-start gap-3">
             <FollowButton
               analystId={userId}
               following={!!myFollow}
               from={`/experts/${userId}`}
+              hint
             />
             {followerCount > 0 && (
               <span className="text-sm text-neutral-500 tabular-nums">
