@@ -70,6 +70,13 @@
     "group": "other"
   },
   {
+    "route": "/app",
+    "desc": "앱 설치 안내 페이지 — PWA(홈 화면에 추가) 설치 방법을 기기별로 안내. 푸터 \"앱 설치\" 진입점.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/articles/[slug]",
     "desc": "PREVIEW/RECAP/ANALYSIS 글 상세 — 본문 + AiDisclosure + ExternalSources + JSON-LD.",
     "inMenu": false,

@@ -51,6 +51,7 @@ const TOOLS: Array<{ href: string; label: string }> = [
 
 // 탐색 · 커뮤니티 — 허브·콘텐츠·회사 정보 (신규 페이지 포함)
 const COMMUNITY: Array<{ href: string; label: string }> = [
+  { href: "/app", label: "앱 설치 (홈 화면에 추가)" },
   { href: "/ai-sports-prediction", label: "AI 스포츠 분석·예측" },
   { href: "/compare/live-score-apps", label: "라이브스코어 앱 비교" },
   { href: "/baseball", label: "야구 허브" },
@@ -94,16 +95,24 @@ export default function Footer() {
               EPL · 라리가 · 분데스 · 세리에 A · 리그 1 · UCL · MLS · KBO · NPB ·
               MLB · NBA · NHL · LCK
             </p>
-            {TELEGRAM_CHANNEL_URL && (
-              <a
-                href={TELEGRAM_CHANNEL_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/app"
+                className="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
               >
-                텔레그램 채널 구독
-              </a>
-            )}
+                앱 설치
+              </Link>
+              {TELEGRAM_CHANNEL_URL && (
+                <a
+                  href={TELEGRAM_CHANNEL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  텔레그램 채널 구독
+                </a>
+              )}
+            </div>
           </div>
 
           {/* 카드 2 — 카테고리(종목별 리그) */}
