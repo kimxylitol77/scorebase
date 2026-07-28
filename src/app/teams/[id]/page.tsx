@@ -12,7 +12,6 @@ import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
-import TeamFollowButton from "@/components/teams/TeamFollowButton";
 import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -509,9 +508,6 @@ export default async function TeamPage({ params }: Props) {
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 break-keep">
                 {toKoreanTeamName(team.name, team.league)} {teamIntentKeywords(team.league)} 정보를 실시간 데이터로 정리했습니다. 현재 순위·다음 경기 일정·로스터·AI 승부예측을 아래에서 확인하세요.
               </p>
-              <div className="mt-3">
-                <TeamFollowButton teamId={team.id} />
-              </div>
               {coach && (() => {
                 const inner = (
                   <>

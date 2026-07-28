@@ -19,6 +19,7 @@ import DeleteAccountButton from "./DeleteAccountButton";
 import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
+import MyFavoriteTeams from "./MyFavoriteTeams";
 import FavoriteSummary from "./FavoriteSummary";
 import TelegramConnectCard from "./TelegramConnectCard";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -245,6 +246,9 @@ export default async function AccountPage({ searchParams }: Props) {
               />
             </div>
           </section>
+
+          {/* 즐겨찾기 팀 — 목록·해제 (client island) */}
+          <MyFavoriteTeams />
 
           {/* 즐겨찾기 경기 (client island) */}
           <FavoriteSummary />
