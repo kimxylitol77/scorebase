@@ -4,7 +4,7 @@
   "players": [
     {
       "afId": 2909,
-      "tsId": null,
+      "tsId": "l7oqdeh1575r510",
       "nameKo": "백승호",
       "nameEn": "Paik Seung-Ho",
       "age": 28,
@@ -37,7 +37,7 @@
     },
     {
       "afId": 357286,
-      "tsId": null,
+      "tsId": "pxwrxlhj01zvryk",
       "nameKo": "배준호",
       "nameEn": "Bae Jun-Ho",
       "age": 22,
@@ -70,8 +70,8 @@
     },
     {
       "afId": 197985,
-      "tsId": null,
-      "nameKo": "Seol Young-Woo",
+      "tsId": "y39mp1hjo87dmoj",
+      "nameKo": "설영우",
       "nameEn": "Seol Young-Woo",
       "age": 27,
       "birth": "1998-12-05",
@@ -103,7 +103,7 @@
     },
     {
       "afId": 237220,
-      "tsId": null,
+      "tsId": "8yomo4h2121pq0j",
       "nameKo": "이태석",
       "nameEn": "Lee Tae-Seok",
       "age": 23,
@@ -136,7 +136,7 @@
     },
     {
       "afId": 2910,
-      "tsId": null,
+      "tsId": "2y8m4zh8n17ql07",
       "nameKo": "황의조",
       "nameEn": "Hwang Ui-Jo",
       "age": 33,
@@ -169,7 +169,7 @@
     },
     {
       "afId": 237050,
-      "tsId": null,
+      "tsId": "4jwq2ghvnv5em0v",
       "nameKo": "엄지성",
       "nameEn": "Eom Ji-Sung",
       "age": 23,
@@ -202,7 +202,7 @@
     },
     {
       "afId": 237218,
-      "tsId": null,
+      "tsId": "2y8m4zhg5g5yql0",
       "nameKo": "이한범",
       "nameEn": "Lee Han-Beom",
       "age": 23,
@@ -235,7 +235,7 @@
     },
     {
       "afId": 34710,
-      "tsId": null,
+      "tsId": "3glrw7hj4nydqdy",
       "nameKo": "오현규",
       "nameEn": "Oh Hyeon-Gyu",
       "age": 24,
@@ -350,7 +350,7 @@
     },
     {
       "afId": 304958,
-      "tsId": null,
+      "tsId": "4wyrn4h49374q86",
       "nameKo": "양현준",
       "nameEn": "Yang Hyun-Jun",
       "age": 23,
@@ -383,8 +383,8 @@
     },
     {
       "afId": 355171,
-      "tsId": null,
-      "nameKo": "이주현",
+      "tsId": "4jwq2ghx3dnzm0v",
+      "nameKo": "이현주",
       "nameEn": "Lee Hyun-Ju",
       "age": 22,
       "birth": "2003-02-07",
@@ -483,7 +483,7 @@
     {
       "afId": 224669,
       "tsId": null,
-      "nameKo": "Lee Kang-Hee",
+      "nameKo": "이강희",
       "nameEn": "Lee Kang-Hee",
       "age": 24,
       "birth": "2001-08-24",
@@ -548,7 +548,7 @@
     },
     {
       "afId": 34211,
-      "tsId": null,
+      "tsId": "zp5rzghzg9dzq82",
       "nameKo": "조규성",
       "nameEn": "Cho Gue-Sung",
       "age": 28,
@@ -614,8 +614,8 @@
     },
     {
       "afId": 356237,
-      "tsId": null,
-      "nameKo": "Kim Ji-Soo",
+      "tsId": "pxwrxlhjyzgdryk",
+      "nameKo": "김지수",
       "nameEn": "Kim Ji-Soo",
       "age": 21,
       "birth": "2004-12-24",
@@ -681,7 +681,7 @@
     {
       "afId": 423709,
       "tsId": null,
-      "nameKo": "Yoon Do-Yong",
+      "nameKo": "윤도영",
       "nameEn": "Yoon Do-Yong",
       "age": 19,
       "birth": "2006-10-28",
@@ -950,7 +950,7 @@
     },
     {
       "afId": 364597,
-      "tsId": null,
+      "tsId": "3glrw7hzw4yjqdy",
       "nameKo": "조진호",
       "nameEn": "Jo Jin-Ho",
       "age": 22,
@@ -983,7 +983,7 @@
     },
     {
       "afId": 2901,
-      "tsId": null,
+      "tsId": "1l4rjnhz2lw3m7v",
       "nameKo": "황인범",
       "nameEn": "Hwang In-Beom",
       "age": 29,
@@ -1017,7 +1017,7 @@
     {
       "afId": 423708,
       "tsId": "4jwq2ghxy1p4m0v",
-      "nameKo": "Yang Min-Hyeok",
+      "nameKo": "양민혁",
       "nameEn": "Yang Min-Hyeok",
       "age": 19,
       "birth": "2006-04-16",
@@ -1049,7 +1049,7 @@
     },
     {
       "afId": 308648,
-      "tsId": null,
+      "tsId": "ednm9whvvyn0ryo",
       "nameKo": "이용준",
       "nameEn": "Lee Young-Jun",
       "age": 22,
@@ -1082,8 +1082,8 @@
     },
     {
       "afId": 237047,
-      "tsId": null,
-      "nameKo": "Jeong Sang-Bin",
+      "tsId": "x7lm7ph0jpwwm2w",
+      "nameKo": "정상빈",
       "nameEn": "Jeong Sang-Bin",
       "age": 23,
       "birth": "2002-04-01",
@@ -1116,7 +1116,7 @@
     {
       "afId": 34708,
       "tsId": null,
-      "nameKo": "Jeon Jin-Woo",
+      "nameKo": "전진우",
       "nameEn": "Jeon Jin-Woo",
       "age": 26,
       "birth": "1999-09-09",
@@ -1149,7 +1149,7 @@
     {
       "afId": 51103,
       "tsId": null,
-      "nameKo": "Kim Kee-Hee",
+      "nameKo": "김기희",
       "nameEn": "Kim Kee-Hee",
       "age": 36,
       "birth": "1989-07-13",
@@ -1182,7 +1182,7 @@
     {
       "afId": 423714,
       "tsId": null,
-      "nameKo": "Park Seung-Soo",
+      "nameKo": "박승수",
       "nameEn": "Park Seung-Soo",
       "age": 18,
       "birth": "2007-03-17",

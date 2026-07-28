@@ -175,6 +175,7 @@ async function resolveKoreanNames(items: Array<{ nameEn: string; tsId: string | 
   }
 
   const manual: Record<string, string> = fs.existsSync(MANUAL) ? JSON.parse(fs.readFileSync(MANUAL, "utf8")) : {};
+  delete manual._note; // 파일 상단 설명 키 — 선수명이 아니다
   const unresolved: string[] = [];
   for (const f of items) {
     const fixed = manual[f.nameEn];

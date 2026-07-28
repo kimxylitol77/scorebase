@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
+import TeamBadge from "@/components/TeamBadge";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, COUNTRY_FLAG } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
@@ -110,10 +111,24 @@ export default async function KoreaAbroadPage() {
   ];
   const srcRows = await prisma.teamSourceId.findMany({
     where: { source: "api-football", externalId: { in: afTeamIds } },
-    select: { externalId: true, teamId: true },
+    select: { externalId: true, teamId: true, team: { select: { logoUrl: true } } },
   });
   const ourTeamIds = [...new Set(srcRows.map((r) => r.teamId))];
   const afToOur = new Map(srcRows.map((r) => [r.externalId, r.teamId]));
+  const logoByAf = new Map(srcRows.map((r) => [r.externalId, r.team.logoUrl]));
+  const teamLogo = (afId: number) => logoByAf.get(String(afId)) ?? null;
+
+  // 선수 페이지 링크 — ts id 가 있어도 DB 에 그 선수가 없으면 404 라 링크하지 않는다.
+  //   (af↔ts 자동 매핑에 실물 없는 id 가 섞여 있다 — 홍현석·양민혁 실측)
+  const tsIds = players.map((p) => p.tsId).filter((v): v is string => Boolean(v));
+  const [tspRows, mvRows] = tsIds.length
+    ? await Promise.all([
+        prisma.theSportsPlayer.findMany({ where: { id: { in: tsIds } }, select: { id: true } }),
+        prisma.playerMarketValue.findMany({ where: { id: { in: tsIds } }, select: { id: true } }),
+      ])
+    : [[], []];
+  const linkable = new Set([...tspRows.map((r) => r.id), ...mvRows.map((r) => r.id)]);
+  const playerHref = (p: Player) => (p.tsId && linkable.has(p.tsId) ? `/transfers/${p.tsId}` : null);
 
   // 팀별 다음 경기 1개 + 최근 종료 경기 1개
   const now = new Date();
@@ -133,8 +148,8 @@ export default async function KoreaAbroadPage() {
             startTime: true,
             homeTeamId: true,
             awayTeamId: true,
-            homeTeam: { select: { name: true, nameKo: true } },
-            awayTeam: { select: { name: true, nameKo: true } },
+            homeTeam: { select: { name: true, nameKo: true, logoUrl: true } },
+            awayTeam: { select: { name: true, nameKo: true, logoUrl: true } },
           },
         }),
         prisma.match.findMany({
@@ -153,8 +168,8 @@ export default async function KoreaAbroadPage() {
             awayTeamId: true,
             homeScore: true,
             awayScore: true,
-            homeTeam: { select: { name: true, nameKo: true } },
-            awayTeam: { select: { name: true, nameKo: true } },
+            homeTeam: { select: { name: true, nameKo: true, logoUrl: true } },
+            awayTeam: { select: { name: true, nameKo: true, logoUrl: true } },
           },
         }),
       ])
@@ -171,7 +186,7 @@ export default async function KoreaAbroadPage() {
     for (const tid of [m.homeTeamId, m.awayTeamId]) if (!lastByTeam.has(tid)) lastByTeam.set(tid, m);
   }
 
-  const teamKo = (t: { name: string; nameKo: string | null } | null) =>
+  const teamKo = (t: { name: string; nameKo: string | null } | null | undefined) =>
     t ? toKoreanTeamName(t.name) || t.nameKo || t.name : "";
 
   const nextOf = (p: Player) => {
@@ -292,6 +307,7 @@ export default async function KoreaAbroadPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {featured.map((p) => {
             const m = nextOf(p);
+            const href = playerHref(p);
             return (
               <div
                 key={p.afId}
@@ -311,15 +327,24 @@ export default async function KoreaAbroadPage() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-base font-bold text-neutral-900 dark:text-white">
-                      {p.nameKo}
+                      {href ? (
+                        <Link href={href} className="hover:underline underline-offset-4">
+                          {p.nameKo}
+                        </Link>
+                      ) : (
+                        p.nameKo
+                      )}
                       {p.pos && (
                         <span className="ml-1.5 align-middle text-[10px] font-bold text-neutral-400">
                           {POS_KO[p.pos] ?? p.pos}
                         </span>
                       )}
                     </p>
-                    <p className="truncate text-xs text-neutral-500">
-                      {toKoreanTeamName(p.team.name) || p.team.name} · {p.leagueLabel}
+                    <p className="flex items-center gap-1.5 truncate text-xs text-neutral-500">
+                      <TeamBadge logoUrl={teamLogo(p.team.afId)} size={16} />
+                      <span className="truncate">
+                        {toKoreanTeamName(p.team.name) || p.team.name} · {p.leagueLabel}
+                      </span>
                     </p>
                   </div>
                   {p.totals.rating != null && (
@@ -374,7 +399,16 @@ export default async function KoreaAbroadPage() {
               {players.map((p) => (
                 <tr key={p.afId}>
                   <td className="px-3 py-2.5">
-                    <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
+                    {playerHref(p) ? (
+                      <Link
+                        href={playerHref(p)!}
+                        className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
+                      >
+                        {p.nameKo}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
+                    )}
                     {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
                     {p.spells && (
                       <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
@@ -383,7 +417,10 @@ export default async function KoreaAbroadPage() {
                     )}
                   </td>
                   <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
-                    <span className="block truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
+                    <span className="flex items-center gap-1.5">
+                      <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
+                      <span className="truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
+                    </span>
                     <span className="block truncate text-[11px] text-neutral-400">{p.leagueLabel}</span>
                   </td>
                   <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.apps}</td>
@@ -410,14 +447,22 @@ export default async function KoreaAbroadPage() {
             {recentRows.slice(0, 8).map(({ p, m }) => (
               <li key={m.id} className="flex items-center gap-3 px-3 py-2.5 text-sm">
                 <span className="w-16 shrink-0 truncate text-xs font-semibold text-sky-600 dark:text-sky-400">
-                  {p.nameKo}
+                  {playerHref(p) ? (
+                    <Link href={playerHref(p)!} className="hover:underline underline-offset-4">
+                      {p.nameKo}
+                    </Link>
+                  ) : (
+                    p.nameKo
+                  )}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-neutral-700 dark:text-neutral-300">
-                  {teamKo(m.homeTeam)}{" "}
-                  <span className="font-black tabular-nums text-neutral-900 dark:text-white">
+                <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-neutral-700 dark:text-neutral-300">
+                  <span className="truncate">{teamKo(m.homeTeam)}</span>
+                  <TeamBadge logoUrl={m.homeTeam.logoUrl} size={16} />
+                  <span className="shrink-0 font-black tabular-nums text-neutral-900 dark:text-white">
                     {m.homeScore ?? "-"}-{m.awayScore ?? "-"}
-                  </span>{" "}
-                  {teamKo(m.awayTeam)}
+                  </span>
+                  <TeamBadge logoUrl={m.awayTeam.logoUrl} size={16} />
+                  <span className="truncate">{teamKo(m.awayTeam)}</span>
                 </span>
                 <span className="shrink-0 text-[11px] text-neutral-400">
                   {LEAGUE_DISPLAY[m.league] ?? m.league} · {fmtKST(m.startTime)}

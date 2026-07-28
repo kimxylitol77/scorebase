@@ -1,1 +1,13 @@
-{}
+{
+  "_note": "자동 매칭이 못 풀거나 ts 사전 값이 틀린 선수의 한글명 확정치. 근거 = 한국어 위키백과 표제어(en 문서 langlink 추적, 2026-07-28 확인). ts nameKo 는 어순이 깨진 값이 있어(이주현/기희 김) 여기가 우선한다.",
+  "Seol Young-Woo": "설영우",
+  "Lee Kang-Hee": "이강희",
+  "Kim Ji-Soo": "김지수",
+  "Yoon Do-Yong": "윤도영",
+  "Yang Min-Hyeok": "양민혁",
+  "Jeong Sang-Bin": "정상빈",
+  "Jeon Jin-Woo": "전진우",
+  "Kim Kee-Hee": "김기희",
+  "Park Seung-Soo": "박승수",
+  "Lee Hyun-Ju": "이현주"
+}

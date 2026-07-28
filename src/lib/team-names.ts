@@ -277,6 +277,7 @@ const RAW: Record<string, string> = {
   "Seattle Sounders FC": "시애틀 사운더스",
   "Sporting Kansas City": "스포팅 캔자스시티",
   "St. Louis City SC": "세인트루이스 시티",
+  "St. Louis City": "세인트루이스 시티",
   "Toronto FC": "토론토 FC",
   "Vancouver Whitecaps FC": "밴쿠버 화이트캡스",
 
@@ -3152,6 +3153,8 @@ const RAW: Record<string, string> = {
   "Žilina": "질리나",
   "BSC Young Boys": "영 보이스",
   "FC Midtjylland": "미트윌란",
+  "Midtjylland": "미트윌란",
+  "SV Wehen Wiesbaden": "SV 베헨 비스바덴",
   "FK Crvena Zvezda": "츠르베나 즈베즈다",
   "Hradec Králové": "흐라데츠 크랄로베",
   "Ludogorets": "루도고레츠",
