@@ -28,6 +28,7 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import ShareCardButton from "@/components/ShareCardButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 600;
@@ -268,6 +269,7 @@ async function renderSoccerPlayerView(pid: string, league: string) {
                 </span>
               )}
               {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
+              <ShareCardButton />
             </div>
             <div className="text-sm text-neutral-500">
               {teamKo ? `${teamKo} · ` : ""}

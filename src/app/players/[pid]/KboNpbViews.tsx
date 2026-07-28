@@ -4,6 +4,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import ShareCardButton from "@/components/ShareCardButton";
 import {
   fetchKboPitcherDetail,
   fetchKboPitcherDaily,
@@ -127,6 +128,7 @@ function Header({
           <div className="flex items-baseline gap-3 flex-wrap">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name}</h1>
             {badges}
+            <ShareCardButton />
           </div>
           <div className="text-sm text-neutral-500">{sub}</div>
           {extra}

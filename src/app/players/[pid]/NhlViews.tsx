@@ -18,6 +18,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import ShareCardButton from "@/components/ShareCardButton";
 import PlayerTabs from "./PlayerTabs";
 import NhlSeasonOverview from "./NhlSeasonOverview";
 import KboPercentileSection from "@/components/players/KboPercentileSection";
@@ -393,6 +394,7 @@ export async function NhlPlayerView({ pid }: { pid: string }) {
                 </span>
               )}
               {profile.jerseyNumber != null && <span className="text-sm text-neutral-500">#{profile.jerseyNumber}</span>}
+              <ShareCardButton />
             </div>
             <div className="text-sm text-neutral-500">
               {teamKo ? `${teamKo} · ` : ""}

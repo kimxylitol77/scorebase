@@ -43,6 +43,7 @@ import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
 import { SPECIAL_TEAM_KO, koTeam } from "../transfer-display";
+import ShareCardButton from "@/components/ShareCardButton";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string; qid?: string }>;
@@ -961,6 +962,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 <Star className="h-3 w-3" aria-hidden /> 종합 {ability}
               </span>
             )}
+            <ShareCardButton />
           </div>
         </div>
       </header>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
 import { prisma } from "@/lib/db";
+import ShareCardButton from "@/components/ShareCardButton";
 
 // 최근 경기 → 우리 매치 상세(/live/mlb) 링크 — statsapi↔우리 externalId 체계가 달라
 // 날짜(±2일)+상대팀명으로 매칭. 커버 경기만 링크 (축구 출전기록과 동일 패턴).
@@ -211,6 +212,7 @@ function PlayerHeader({
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name}</h1>
             {number && <span className="text-xl font-bold text-neutral-400">#{number}</span>}
             {badges}
+            <ShareCardButton />
           </div>
           <div className="text-sm text-neutral-500">{sub}</div>
           {bio}

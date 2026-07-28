@@ -18,6 +18,7 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { lookupNbaPlayer, lookupNbaPlayerByBdlId } from "@/lib/sports/nba-players";
+import ShareCardButton from "@/components/ShareCardButton";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
@@ -548,6 +549,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
               )}
               {jersey && <span className="text-sm text-neutral-500">#{jersey}</span>}
               {age != null && <span className="text-sm text-neutral-500">{age}세</span>}
+              <ShareCardButton />
             </div>
             <div className="text-sm text-neutral-500">
               {teamKo ? (

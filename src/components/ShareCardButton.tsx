@@ -5,8 +5,10 @@ import { useState } from "react";
 import { Share2, ImageIcon } from "lucide-react";
 
 type Props = {
-  url: string; // 공유할 페이지 URL (절대/상대 모두 허용 — 상대면 현재 origin 붙임)
-  title: string;
+  /** 공유할 페이지 URL (절대/상대 모두 허용 — 상대면 현재 origin 붙임). 생략 시 현재 페이지. */
+  url?: string;
+  /** 생략 시 클릭 시점의 document.title 사용 (선수 페이지처럼 부모가 이름을 모를 때). */
+  title?: string;
   text?: string;
   cardImageUrl?: string; // OG 공유 카드 이미지 경로 (새 탭으로 열어 저장/업로드)
 };
@@ -15,10 +17,15 @@ export default function ShareCardButton({ url, title, text, cardImageUrl }: Prop
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const abs = url.startsWith("http") ? url : `${window.location.origin}${url}`;
+    const abs = url
+      ? url.startsWith("http")
+        ? url
+        : `${window.location.origin}${url}`
+      : window.location.href;
+    const shareTitle = title ?? document.title;
     try {
       if (navigator.share) {
-        await navigator.share({ title, text, url: abs });
+        await navigator.share({ title: shareTitle, text, url: abs });
         return;
       }
     } catch {

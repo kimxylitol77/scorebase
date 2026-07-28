@@ -14,6 +14,7 @@ import PlayerTabs from "./PlayerTabs";
 import LolSeasonOverview from "./LolSeasonOverview";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ChevronLeft } from "lucide-react";
+import ShareCardButton from "@/components/ShareCardButton";
 
 const POSITION_KO: Record<number, string> = { 1: "원딜", 2: "미드", 3: "탑", 4: "정글", 5: "서폿" };
 
@@ -177,6 +178,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
                 </span>
               )}
               {age != null && <span className="text-sm text-neutral-500">{age}세</span>}
+              <ShareCardButton />
             </div>
             {profile?.realName && <div className="text-sm text-neutral-500">{profile.realName}</div>}
             <div className="text-sm text-neutral-500">LCK · {games}세트 출전</div>
