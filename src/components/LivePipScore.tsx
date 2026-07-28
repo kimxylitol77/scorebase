@@ -20,6 +20,9 @@ import {
 const PIP_ON_KEY = "scorebase:pip-on";
 const PIP_POS_KEY = "scorebase:pip-pos";
 const PIP_SIZE_KEY = "scorebase:pip-size";
+// 새로고침 직전에 Document PiP 분리 상태를 남기는 sessionStorage 플래그 —
+// 브라우저가 opener unload 때 분리 창을 강제로 닫으므로, 다음 로드의 첫 클릭에서 재분리.
+const PIP_DOC_RESTORE_KEY = "scorebase:pip-doc-restore";
 export const PIP_CHANGE_EVENT = "scorebase:pip-changed";
 const FAV_KEY = "scorebase:fav-matches";
 
@@ -38,6 +41,18 @@ interface LiveMatch {
 }
 interface ApiResp {
   matches?: LiveMatch[];
+}
+
+// /api/matches/by-ids 응답 한 건 — 종료·예정 DB 매치의 현재 점수·상태 (스냅샷 고착 방지).
+interface BriefMatch {
+  id: number;
+  league: string;
+  status: string; // "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED"
+  startTime: string;
+  homeName: string;
+  awayName: string;
+  homeScore: number | null;
+  awayScore: number | null;
 }
 
 // 표시용 행 — 라이브 API(실시간) 또는 fav-meta 스냅샷에서 만든다.
@@ -84,6 +99,8 @@ export default function LivePipScore() {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [favIds, setFavIds] = useState<Set<string>>(new Set());
   const [favMeta, setFavMeta] = useState<Record<string, FavMeta>>({});
+  // DB 매치(숫자 id) 현재 상태 — 라이브 API 에 없는 종료·예정 경기의 점수·상태 최신화.
+  const [brief, setBrief] = useState<Record<string, BriefMatch>>({});
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [size, setSize] = useState<"sm" | "lg">("sm"); // 기본 작게
   const [mounted, setMounted] = useState(false);
@@ -186,6 +203,82 @@ export default function LivePipScore() {
     };
   }, [docWin]);
 
+  // 종료·예정 즐겨찾기의 현재 점수·상태 — 라이브 API 는 진행 중 경기만 주므로,
+  // DB 매치(숫자 id)는 /api/matches/by-ids 로 최신값을 받아 스냅샷(별표 시점 값,
+  // 예: 0-0) 고착을 막는다. 라이브는 5초 폴링이 담당하니 60초면 충분.
+  useEffect(() => {
+    if (!on) return;
+    const numericIds = [...favIds].filter((id) => /^\d+$/.test(id));
+    if (numericIds.length === 0) {
+      setBrief({});
+      return;
+    }
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/matches/by-ids?ids=${numericIds.join(",")}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const json: { matches?: BriefMatch[] } = await res.json();
+        if (!alive) return;
+        const map: Record<string, BriefMatch> = {};
+        for (const b of json.matches ?? []) map[String(b.id)] = b;
+        setBrief(map);
+      } catch {
+        // 다음 주기 재시도
+      }
+    };
+    load();
+    const t = setInterval(load, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [on, favIds]);
+
+  // 새로고침 시 Document PiP 복원 — opener 가 unload 되면 브라우저가 분리 창을 강제로
+  // 닫는다. unload 직전(pagehide)에 플래그를 남기고, 다음 로드에서는 첫 클릭 때 재분리
+  // (user gesture 없이 requestWindow 를 부르면 NotAllowedError — 자동 재오픈 불가).
+  useEffect(() => {
+    if (!docWin) return;
+    const onPageHide = () => {
+      try {
+        sessionStorage.setItem(PIP_DOC_RESTORE_KEY, "1");
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, [docWin]);
+
+  const openDocPipRef = useRef<(opts?: { silent?: boolean }) => void>(() => {});
+  openDocPipRef.current = openDocPip; // 함수 선언 호이스팅 — 최신 state(size) 클로저 유지
+
+  useEffect(() => {
+    if (!mounted || !on || !docPipSupported) return;
+    let flagged = false;
+    try {
+      flagged = sessionStorage.getItem(PIP_DOC_RESTORE_KEY) === "1";
+    } catch {
+      // ignore
+    }
+    if (!flagged) return;
+    // 플래그 소비는 클릭 시점에 — arm 시점에 지우면 StrictMode 이중 실행(arm→정리→재실행)
+    // 에서 두 번째 실행이 플래그를 못 보고 리스너가 안 남는다.
+    const restore = () => {
+      try {
+        sessionStorage.removeItem(PIP_DOC_RESTORE_KEY);
+      } catch {
+        // ignore
+      }
+      openDocPipRef.current({ silent: true });
+    };
+    window.addEventListener("click", restore, { once: true, capture: true });
+    return () => window.removeEventListener("click", restore, { capture: true });
+  }, [mounted, on, docPipSupported]);
+
   if (!mounted || !on) return null;
 
   // 표시 행 병합 — 라이브 API(실시간) 우선, 없으면 즐겨찾기 스냅샷(예정·종료).
@@ -211,6 +304,35 @@ export default function LivePipScore() {
         };
       }
       const meta = favMeta[id];
+      const b = brief[id];
+      // DB 최신값(by-ids) — 종료·예정 경기의 점수·상태를 스냅샷 대신 실제 값으로.
+      if (b) {
+        const state: PipRow["state"] =
+          b.status === "LIVE" ? "live" : b.status === "SCHEDULED" ? "scheduled" : "done";
+        const kickoff = new Date(b.startTime).toLocaleTimeString("ko-KR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Asia/Seoul",
+        });
+        return {
+          id,
+          league: b.league,
+          home: meta?.homeShort || b.homeName,
+          away: meta?.awayShort || b.awayName,
+          homeScore: state === "scheduled" ? null : b.homeScore,
+          awayScore: state === "scheduled" ? null : b.awayScore,
+          statusLabel:
+            b.status === "POSTPONED"
+              ? "연기"
+              : state === "done"
+                ? "종료"
+                : state === "live"
+                  ? "LIVE" // 라이브 API 커버 밖(af 미추적 등) — DB 점수로라도 표시
+                  : kickoff,
+          state,
+        };
+      }
       if (!meta) return null; // 스냅샷 없는 옛 즐겨찾기 — 라이브일 때만 표시(기존 동작)
       const state: PipRow["state"] =
         meta.status === "live"
@@ -258,7 +380,7 @@ export default function LivePipScore() {
   // Document PiP — 브라우저 창 밖 always-on-top 분리 창 (Chrome·Edge).
   // user gesture(버튼 클릭) 안에서 호출해야 한다. 페이지 스타일시트를 복사해
   // Tailwind 클래스가 분리 창에서도 그대로 적용되게 함.
-  async function openDocPip() {
+  async function openDocPip(opts?: { silent?: boolean }) {
     const api = (window as DocPipWindow).documentPictureInPicture;
     if (!api) return;
     try {
@@ -292,6 +414,8 @@ export default function LivePipScore() {
       win.addEventListener("pagehide", () => setDocWin(null));
       setDocWin(win);
     } catch (e) {
+      // 자동 복원(새로고침 후 첫 클릭) 실패는 조용히 인페이지 카드 유지 — 클릭 방해 금지.
+      if (opts?.silent) return;
       // 실패를 침묵하면 "버튼 눌러도 안 됨" 으로 보임 — 원인을 사용자에게 알려준다.
       alert(
         "브라우저 밖 분리에 실패했어요.\n" +
@@ -400,7 +524,7 @@ export default function LivePipScore() {
         {!isDocMode && docPipSupported && (
           <button
             type="button"
-            onClick={openDocPip}
+            onClick={() => openDocPip()}
             aria-label="브라우저 밖으로 분리"
             title="브라우저 밖 항상-위 미니 창으로 분리"
             className="mr-0.5 inline-flex items-center gap-1 rounded-md bg-rose-50 px-1.5 py-1 text-[10px] font-bold text-rose-600 transition hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"

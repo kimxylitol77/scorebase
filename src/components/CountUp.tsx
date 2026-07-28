@@ -39,7 +39,14 @@ export default function CountUp({ value, durationMs = 500, className }: Props) {
       }
     };
     rafRef.current = requestAnimationFrame(step);
+    // rAF 는 숨김 탭에서 완전히 정지한다 — Document PiP 분리 창을 띄우고 본 탭을
+    // 백그라운드로 두면 점수가 이전 값에 얼어붙는 버그. 타이머로 최종값 반영을 보장.
+    const fallback = setTimeout(() => {
+      prevRef.current = to;
+      setDisplay(to);
+    }, durationMs + 100);
     return () => {
+      clearTimeout(fallback);
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
