@@ -117,9 +117,12 @@ export async function createPostAction(
 
   // 경기 데이터 카드 첨부 — 예측 경기를 고른 글에서 체크 시 스탯카드 짤을 본문 끝에 삽입.
   // 서버에서 붙여서 경기 재선택·본문 수정과 어긋날 일이 없다 (matchId 는 위에서 검증됨).
+  // 카드 종류는 글쓴이 선택(cardMkt) — 픽 마켓과 다른 카드도 허용. 값 검증 후 픽 마켓 폴백.
+  const cardMktRaw = String(formData.get("cardMkt") ?? "");
+  const cardMkt = ["1X2", "OU", "HANDICAP"].includes(cardMktRaw) ? cardMktRaw : predData?.market;
   const finalContent =
     predData && String(formData.get("attachMatchCard") ?? "") === "on"
-      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${predData.matchId}&mkt=${predData.market})`
+      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${predData.matchId}&mkt=${cardMkt})`
       : content;
 
   const post = await prisma.post.create({

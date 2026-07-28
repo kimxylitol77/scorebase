@@ -92,6 +92,8 @@ export default function AnalysisForm({ matchesBySport }: Props) {
   const [title, setTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
   const [attachCard, setAttachCard] = useState(false); // 경기 데이터 카드 첨부 (스탯카드 짤)
+  // 첨부 카드 종류 — 기본은 픽 마켓을 따라가되(아래 chooseMarket) 글쓴이가 다른 카드로 바꿀 수 있다.
+  const [cardMkt, setCardMkt] = useState("1X2");
 
   const sportMatches = matchesBySport[sport] ?? [];
 
@@ -147,10 +149,12 @@ export default function AnalysisForm({ matchesBySport }: Props) {
   const chooseMatch = (id: string) => {
     setMatchId(id);
     setMarket("1X2");
+    setCardMkt("1X2");
     setPick("");
   };
   const chooseMarket = (mk: string) => {
     setMarket(mk);
+    setCardMkt(mk); // 카드 종류는 픽 마켓을 기본으로 따라간다 — 이후 글쓴이가 바꾸면 그 값 유지
     setPick("");
   };
 
@@ -317,7 +321,8 @@ export default function AnalysisForm({ matchesBySport }: Props) {
           </>
         )}
 
-        {/* 경기 데이터 카드 첨부 — 봇 글과 같은 스탯카드 짤(AI 승률·배당)을 본문 끝에 자동 삽입 */}
+        {/* 경기 데이터 카드 첨부 — 봇 글과 같은 스탯카드 짤(AI 승률·배당)을 본문 끝에 자동 삽입.
+            카드 종류는 글쓴이가 선택 (기본 = 내 픽 마켓). 체크 안 하면 안 붙는다. */}
         {predReady && selected && (
           <div className="mt-3">
             <label className="flex cursor-pointer items-center gap-2.5 text-sm">
@@ -334,11 +339,36 @@ export default function AnalysisForm({ matchesBySport }: Props) {
               </span>
             </label>
             {attachCard && (
-              <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/og/match-card?m=${matchId}&mkt=${market}`} alt="첨부될 경기 데이터 카드 미리보기" className="w-full" loading="lazy" />
-              </div>
+              <>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(
+                    [
+                      ["1X2", "승무패"],
+                      ...(selected.ouLine != null ? [["OU", `오버언더 ${selected.ouLine}`]] : []),
+                      ...(selected.hcLine != null ? [["HANDICAP", `핸디캡 ${selected.hcLine}`]] : []),
+                    ] as [string, string][]
+                  ).map(([k, label]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setCardMkt(k)}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 transition ${
+                        cardMkt === k
+                          ? "bg-rose-600 text-white ring-rose-600"
+                          : "bg-white text-neutral-600 ring-black/10 hover:bg-neutral-50 dark:bg-white/[0.06] dark:text-neutral-300 dark:ring-white/15"
+                      }`}
+                    >
+                      {label} 카드
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/og/match-card?m=${matchId}&mkt=${cardMkt}`} alt="첨부될 경기 데이터 카드 미리보기" className="w-full" loading="lazy" />
+                </div>
+              </>
             )}
+            <input type="hidden" name="cardMkt" value={attachCard ? cardMkt : ""} />
           </div>
         )}
 
