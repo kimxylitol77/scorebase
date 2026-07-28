@@ -28,7 +28,7 @@
 > 알림 대상이 팀 팔로우뿐인데 사용자가 별표한 건 경기(localStorage, 서버 미동기화)였다.
 - [x] 스키마 — `UserMatchFollow` 신규 + `User.alertOddsDrop/alertOddsRise`(기본 false)
 - [x] `docs/telegram-alerts/migration.sql` 에 additive SQL 추가 (섹션 4·5)
-- [ ] **DB 프로덕션 적용** — Neon SQL 에디터에서 migration.sql 4·5 실행 (권한상 에이전트 실행 불가)
+- [x] **DB 프로덕션 적용** (2026-07-28) — `scripts/apply-telegram-alerts-migration.ts`. 컬럼 2개·테이블·인덱스 3종·FK 검증 완료, 장기 트랜잭션 0건 상태에서 lock_timeout 3s 로 적용
 - [x] `/api/favorites/matches` GET/PUT — 경기 ⭐ 서버 미러링 (teams 라우트 동일 패턴, 숫자 id 만·상한 50)
 - [x] `/api/telegram/settings` GET/PUT — 배당 알림 방향 옵트인
 - [x] `TelegramConnectCard` — 경기 동기화 + 하락/상승 체크박스 + 즐겨찾기 0개 경고 문구
