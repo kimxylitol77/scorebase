@@ -107,6 +107,8 @@ export default function LivePipScore() {
   // Document PiP 분리 창 — null 이면 인페이지 플로팅 카드로 렌더.
   const [docWin, setDocWin] = useState<Window | null>(null);
   const [docPipSupported, setDocPipSupported] = useState(false);
+  // 새로고침 전에 분리 중이었음 — 다음 클릭에서 재분리 대기 (안내 문구 표시용).
+  const [restoreArmed, setRestoreArmed] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // mount: on 상태·위치·크기·즐겨찾기 로드 + 이벤트 동기화
@@ -238,22 +240,35 @@ export default function LivePipScore() {
   }, [on, favIds]);
 
   // 새로고침 시 Document PiP 복원 — opener 가 unload 되면 브라우저가 분리 창을 강제로
-  // 닫는다. unload 직전(pagehide)에 플래그를 남기고, 다음 로드에서는 첫 클릭 때 재분리
-  // (user gesture 없이 requestWindow 를 부르면 NotAllowedError — 자동 재오픈 불가).
+  // 닫는다. unload 직전(pagehide)에 "분리 중이었는지" 를 기록하고, 다음 로드에서는
+  // 첫 클릭 때 재분리한다 (user gesture 없이 requestWindow 를 부르면 NotAllowedError —
+  // 완전 자동 재오픈은 브라우저 보안 제약상 불가).
+  const docWinRef = useRef<Window | null>(null);
+  docWinRef.current = docWin;
   useEffect(() => {
-    if (!docWin) return;
     const onPageHide = () => {
       try {
-        sessionStorage.setItem(PIP_DOC_RESTORE_KEY, "1");
+        // 분리 중이었으면 기록, 아니면 제거 — 수동으로 닫은 뒤 새로고침엔 복원 안 함.
+        // ⚠️ .closed 검사 금지: unload 때 브라우저가 분리 창을 먼저 닫으면 closed=true 라
+        // 플래그가 지워진다(순서 비보장). 수동 닫기는 child pagehide → setDocWin(null) →
+        // 재렌더로 ref 가 null 이 되므로 ref 존재 여부만으로 구분 가능(unload 중엔 재렌더
+        // 가 없어 ref 가 살아있음).
+        if (docWinRef.current) {
+          sessionStorage.setItem(PIP_DOC_RESTORE_KEY, "1");
+        } else {
+          sessionStorage.removeItem(PIP_DOC_RESTORE_KEY);
+        }
       } catch {
         // ignore
       }
     };
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
-  }, [docWin]);
+  }, []);
 
-  const openDocPipRef = useRef<(opts?: { silent?: boolean }) => void>(() => {});
+  const openDocPipRef = useRef<(opts?: { silent?: boolean }) => Promise<boolean>>(
+    async () => false,
+  );
   openDocPipRef.current = openDocPip; // 함수 선언 호이스팅 — 최신 state(size) 클로저 유지
 
   useEffect(() => {
@@ -265,18 +280,33 @@ export default function LivePipScore() {
       // ignore
     }
     if (!flagged) return;
-    // 플래그 소비는 클릭 시점에 — arm 시점에 지우면 StrictMode 이중 실행(arm→정리→재실행)
-    // 에서 두 번째 실행이 플래그를 못 보고 리스너가 안 남는다.
-    const restore = () => {
-      try {
-        sessionStorage.removeItem(PIP_DOC_RESTORE_KEY);
-      } catch {
-        // ignore
-      }
-      openDocPipRef.current({ silent: true });
+    setRestoreArmed(true);
+    // 성공할 때까지 클릭마다 재시도 — 플래그는 pagehide 가 관리하므로 여기선 안 지운다.
+    let busy = false;
+    let removed = false;
+    const off = () => {
+      if (removed) return;
+      removed = true;
+      window.removeEventListener("click", restore, { capture: true });
     };
-    window.addEventListener("click", restore, { once: true, capture: true });
-    return () => window.removeEventListener("click", restore, { capture: true });
+    const restore = async (e: Event) => {
+      // PiP 카드 내부 클릭(밖으로/닫기 버튼 등)은 그 버튼의 의도를 존중 — 복원 트리거 제외.
+      const t = e.target as Node | null;
+      if (t && cardRef.current?.contains(t)) return;
+      if (busy) return;
+      busy = true;
+      const ok = await openDocPipRef.current({ silent: true });
+      busy = false;
+      if (ok) {
+        setRestoreArmed(false);
+        off();
+      }
+    };
+    window.addEventListener("click", restore, { capture: true });
+    return () => {
+      setRestoreArmed(false);
+      off();
+    };
   }, [mounted, on, docPipSupported]);
 
   if (!mounted || !on) return null;
@@ -380,9 +410,9 @@ export default function LivePipScore() {
   // Document PiP — 브라우저 창 밖 always-on-top 분리 창 (Chrome·Edge).
   // user gesture(버튼 클릭) 안에서 호출해야 한다. 페이지 스타일시트를 복사해
   // Tailwind 클래스가 분리 창에서도 그대로 적용되게 함.
-  async function openDocPip(opts?: { silent?: boolean }) {
+  async function openDocPip(opts?: { silent?: boolean }): Promise<boolean> {
     const api = (window as DocPipWindow).documentPictureInPicture;
-    if (!api) return;
+    if (!api) return false;
     try {
       const win = await api.requestWindow({
         width: size === "lg" ? 340 : 280,
@@ -413,9 +443,10 @@ export default function LivePipScore() {
       win.document.title = "스코어베이스 내 경기";
       win.addEventListener("pagehide", () => setDocWin(null));
       setDocWin(win);
+      return true;
     } catch (e) {
       // 자동 복원(새로고침 후 첫 클릭) 실패는 조용히 인페이지 카드 유지 — 클릭 방해 금지.
-      if (opts?.silent) return;
+      if (opts?.silent) return false;
       // 실패를 침묵하면 "버튼 눌러도 안 됨" 으로 보임 — 원인을 사용자에게 알려준다.
       alert(
         "브라우저 밖 분리에 실패했어요.\n" +
@@ -423,6 +454,7 @@ export default function LivePipScore() {
           (e instanceof Error ? e.message : String(e)) +
           ")",
       );
+      return false;
     }
   }
 
@@ -600,6 +632,11 @@ export default function LivePipScore() {
       aria-label="즐겨찾기 라이브 스코어 PiP"
     >
       {header(false)}
+      {restoreArmed && (
+        <p className="border-b border-rose-100 bg-rose-50/60 px-3 py-1.5 text-[10px] font-semibold text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400">
+          화면 아무 곳이나 클릭하면 미니 창이 다시 밖으로 빠집니다
+        </p>
+      )}
       {body}
     </div>
   );
