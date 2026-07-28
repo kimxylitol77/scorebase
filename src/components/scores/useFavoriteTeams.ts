@@ -5,6 +5,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { scheduleFavServerSync } from "./fav-server-sync";
 
 export interface FavTeam {
   id: number;
@@ -82,6 +83,7 @@ export function useFavoriteTeams() {
       : [...cur, team];
     writeTeams(next);
     setTeams(next);
+    scheduleFavServerSync(); // 로그인 회원이면 서버 팔로우도 즉시 갱신 (텔레그램 알림 대상)
   }, []);
 
   /** id 만으로 제거 — 마이페이지 목록처럼 팀 메타를 다시 만들 필요가 없는 곳에서 쓴다. */
@@ -89,11 +91,13 @@ export function useFavoriteTeams() {
     const next = readTeams().filter((t) => t.id !== id);
     writeTeams(next);
     setTeams(next);
+    scheduleFavServerSync();
   }, []);
 
   const clear = useCallback(() => {
     writeTeams([]);
     setTeams([]);
+    scheduleFavServerSync();
   }, []);
 
   /**

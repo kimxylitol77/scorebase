@@ -6,6 +6,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { scheduleFavServerSync } from "./fav-server-sync";
 
 const STORAGE_KEY = "scorebase:fav-matches";
 const META_KEY = "scorebase:fav-meta";
@@ -98,12 +99,14 @@ export function useFavorites() {
     writeMeta(metaAll);
     writeIds(cur);
     setIds(new Set(cur));
+    scheduleFavServerSync(); // 로그인 회원이면 서버 팔로우도 즉시 갱신 (텔레그램 알림 대상)
   }, []);
 
   const clear = useCallback(() => {
     writeMeta({});
     writeIds(new Set());
     setIds(new Set());
+    scheduleFavServerSync();
   }, []);
 
   const isFav = useCallback((id: string) => ids.has(id), [ids]);
