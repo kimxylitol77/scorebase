@@ -23,6 +23,7 @@ export interface TennisRank {
   countryEn: string | null;
   countryKo: string | null;
   flag: string | null;
+  headshot: string | null;
   age: number | null;
 }
 
@@ -69,8 +70,10 @@ interface RankingsResp {
       athlete?: {
         id?: string;
         displayName?: string;
-        flag?: { href?: string; alt?: string };
+        /** 랭킹 API 는 문자열 URL, 일부 응답은 {href} 객체 — 둘 다 처리 */
+        flag?: string | { href?: string; alt?: string };
         flagAltText?: string;
+        headshot?: string;
         age?: number;
       };
     }>;
@@ -92,7 +95,9 @@ export const fetchTennisRankings = unstable_cache(
         const prev = r.previous ?? null;
         // previous=0 은 신규 진입 — 등락 계산 제외
         const delta = prev && prev > 0 && cur > 0 ? prev - cur : null;
-        const countryEn = r.athlete?.flagAltText ?? r.athlete?.flag?.alt ?? null;
+        const flagRaw = r.athlete?.flag;
+        const countryEn =
+          r.athlete?.flagAltText ?? (typeof flagRaw === "object" ? flagRaw?.alt ?? null : null);
         return {
           rank: cur,
           previous: prev,
@@ -103,7 +108,8 @@ export const fetchTennisRankings = unstable_cache(
           nameKo: tennisNameKo(r.athlete!.id!),
           countryEn,
           countryKo: countryEn ? fifaCountryKo(countryEn) : null,
-          flag: r.athlete?.flag?.href ?? null,
+          flag: typeof flagRaw === "string" ? flagRaw : flagRaw?.href ?? null,
+          headshot: r.athlete?.headshot ?? null,
           age: r.athlete?.age ?? null,
         };
       });

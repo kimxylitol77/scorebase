@@ -4,6 +4,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import DriverAvatar from "@/components/scores/f1/DriverAvatar";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -74,6 +75,27 @@ export default async function TennisRankingsPage({
         })}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href="/scores?sport=tennis"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          🎾 테니스 라이브 스코어
+        </Link>
+        <Link
+          href="/tennis/draw"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          대진표
+        </Link>
+        <Link
+          href={tour === "WTA" ? "/salaries/tennis?tour=wta" : "/salaries/tennis"}
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          시즌 상금 랭킹
+        </Link>
+      </div>
+
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center text-sm text-neutral-500">
           랭킹 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
@@ -106,14 +128,22 @@ export default async function TennisRankingsPage({
                     )}
                   </span>
 
-                  {/* 선수명 (한글 우선) */}
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
-                      {r.nameKo ?? r.name}
+                  {/* 선수 사진(국기 배지) + 선수명 (한글 우선) */}
+                  <span className="flex items-center gap-2 min-w-0">
+                    <DriverAvatar
+                      photo={r.headshot}
+                      flag={r.flag}
+                      country={r.countryEn}
+                      name={r.nameKo ?? r.name}
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
+                        {r.nameKo ?? r.name}
+                      </span>
+                      {r.nameKo && (
+                        <span className="block truncate text-[11px] text-neutral-400">{r.name}</span>
+                      )}
                     </span>
-                    {r.nameKo && (
-                      <span className="block truncate text-[11px] text-neutral-400">{r.name}</span>
-                    )}
                   </span>
 
                   {/* 국적 */}
@@ -137,27 +167,6 @@ export default async function TennisRankingsPage({
           </ul>
         </div>
       )}
-
-      <div className="flex flex-wrap items-center gap-2 pt-1">
-        <Link
-          href="/scores?sport=tennis"
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          🎾 테니스 라이브 스코어
-        </Link>
-        <Link
-          href="/tennis/draw"
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          대진표
-        </Link>
-        <Link
-          href={tour === "WTA" ? "/salaries/tennis?tour=wta" : "/salaries/tennis"}
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          시즌 상금 랭킹
-        </Link>
-      </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         랭킹은 매주 갱신됩니다(ATP·WTA 공식 발표 기준). 선수 이름은 한국어 위키백과와 외래어표기법을 기준으로 표기하며,
