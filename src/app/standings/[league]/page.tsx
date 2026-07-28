@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { getRecentForm } from "@/lib/predict/recent-form";
+import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -385,6 +386,23 @@ export default async function StandingsPage({ params }: Props) {
     return gb <= 0 ? "-" : gb.toFixed(1);
   };
 
+  // 가을야구(포스트시즌 5강) 진출 확률 — KBO 만. 상위 5팀 진출이라 몬테카를로 top5 와 정확히 일치한다.
+  // NPB(센트럴·퍼시픽 각 3위)·MLB(지구 + 와일드카드)는 구조가 달라 같은 값을 쓰면 안 된다.
+  // null = 데이터 부족이거나 시즌 종료(잔여 경기 0) → 컬럼 자체를 숨김.
+  const poOdds = upper === "KBO" ? await getKboPostseasonOdds() : null;
+  // 몬테카를로가 확률을 0.999 로 캡하므로 100% 는 나오지 않는다(monte-carlo.ts:221).
+  // 0.1% 미만도 "탈락"이라 단정하지 않는다 — 시뮬 표본 추정이라 매직넘버 탈락 확정과 다르다.
+  const poLabel = (p: number | undefined) =>
+    p === undefined ? "-" : p < 0.001 ? "<0.1%" : `${(p * 100).toFixed(1)}%`;
+  const poTone = (p: number | undefined) =>
+    p !== undefined && p >= 0.9
+      ? "text-emerald-600 dark:text-emerald-400"
+      : p !== undefined && p >= 0.5
+        ? "text-neutral-800 dark:text-neutral-200"
+        : p !== undefined && p >= 0.1
+          ? "text-neutral-500"
+          : "text-neutral-400";
+
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -432,7 +450,8 @@ export default async function StandingsPage({ params }: Props) {
                 <>
                   {showGb && <th className="text-center py-2 px-2 font-semibold w-14">게임차</th>}
                   <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">최근 5</th>
-                  <th className="text-right py-2 pr-3 pl-2 font-semibold w-14">승률</th>
+                  <th className={`text-right py-2 pl-2 font-semibold w-14 ${poOdds ? "pr-2" : "pr-3"}`}>승률</th>
+                  {poOdds && <th className="text-right py-2 pr-3 pl-2 font-semibold w-[4.5rem]">가을야구</th>}
                 </>
               ) : (
                 <>
@@ -491,7 +510,12 @@ export default async function StandingsPage({ params }: Props) {
                       <td className="text-center py-2 px-2 hidden sm:table-cell">
                         <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
                       </td>
-                      <td className="text-right py-2 pr-3 pl-2 tabular-nums font-black text-base">{winPct(r)}</td>
+                      <td className={`text-right py-2 pl-2 tabular-nums font-black text-base ${poOdds ? "pr-2" : "pr-3"}`}>{winPct(r)}</td>
+                      {poOdds && (
+                        <td className={`text-right py-2 pr-3 pl-2 tabular-nums font-semibold ${poTone(poOdds.get(r.teamId))}`}>
+                          {poLabel(poOdds.get(r.teamId))}
+                        </td>
+                      )}
                     </>
                   ) : (
                     <>
@@ -517,6 +541,16 @@ export default async function StandingsPage({ params }: Props) {
       <div className="text-[11px] text-neutral-400 text-center pt-2">
         ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외.
       </div>
+
+      {poOdds && (
+        <p className="text-[11px] text-neutral-400 text-center leading-relaxed break-keep">
+          가을야구 = 정규시즌 상위 5팀 진출 확률. 잔여 경기를 Elo 기반 몬테카를로로 5,000회 시뮬레이션해
+          매일 갱신합니다.{" "}
+          <Link href="/predictions/KBO" className="underline hover:text-neutral-600 dark:hover:text-neutral-300">
+            우승·순위 예측 자세히 보기
+          </Link>
+        </p>
+      )}
 
       {xgTable && (
         <section className="space-y-3 pt-4">

@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
+import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -431,6 +432,10 @@ export default async function LeaguePredictions({ params }: Props) {
   if (canSimulate) {
     if (isWorldCup) {
       wc = simulateWorldCup(teamNameById, 5000);
+    } else if (upper === "KBO") {
+      // KBO 는 /standings/KBO 순위표에도 같은 가을야구 확률이 나간다. 몬테카를로는 시드가 없어
+      // 각자 돌리면 페이지마다 ±1%p 다르게 보이므로 공용 캐시 시뮬을 함께 쓴다.
+      mc = (await getKboSeasonSim()).rows;
     } else {
       mc = runMonteCarlo(matches, upper, {
         iterations: 5000,
