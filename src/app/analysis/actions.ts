@@ -224,7 +224,8 @@ export async function toggleAnalystFollowAction(formData: FormData): Promise<voi
   revalidatePath(`/experts/${analystId}`);
   revalidatePath("/experts");
   const from = String(formData.get("from") || "");
-  if (from.startsWith("/analysis/")) revalidatePath(from);
+  // 마이페이지의 팔로우 목록도 해제 즉시 반영돼야 한다 (force-dynamic 이라도 액션 후 갱신 보장).
+  if (from.startsWith("/analysis/") || from === "/account") revalidatePath(from);
 }
 
 /** 댓글 작성 (회원 전용). 댓글당 경험치 +50 (rate limit 으로 도배 방지). */

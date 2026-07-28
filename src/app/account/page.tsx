@@ -20,6 +20,7 @@ import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
 import MyFavoriteTeams from "./MyFavoriteTeams";
+import MyAnalystFollows from "./MyAnalystFollows";
 import FavoriteSummary from "./FavoriteSummary";
 import TelegramConnectCard from "./TelegramConnectCard";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -249,6 +250,9 @@ export default async function AccountPage({ searchParams }: Props) {
 
           {/* 즐겨찾기 팀 — 목록·해제 (client island) */}
           <MyFavoriteTeams />
+
+          {/* 팔로우한 분석가 — 목록·해제 (서버 조회) */}
+          <MyAnalystFollows userId={session.userId} />
 
           {/* 즐겨찾기 경기 (client island) */}
           <FavoriteSummary />
