@@ -1,6 +1,7 @@
 // 골프 세계랭킹(남자 OWGR) 표 — data/golf-world-rankings.json 정적 서빙.
 // 여자(Rolex) 는 서버 접근 가능한 안정 소스 미확보로 "준비 중" 안내만.
 
+import DriverAvatar from "@/components/scores/f1/DriverAvatar";
 import worldData from "../../../data/golf-world-rankings.json";
 
 interface WorldPlayer {
@@ -12,6 +13,7 @@ interface WorldPlayer {
   code2: string;
   lastWeekRank: number | null;
   pointsAverage: number | null;
+  espnId?: string | null;
 }
 const DATA = worldData as { updatedAt: string; source: string; men: WorldPlayer[] };
 
@@ -121,7 +123,14 @@ export default function GolfWorldRanking() {
                   )}
                 </span>
 
-                <span className="min-w-0">
+                <span className="flex items-center gap-2 min-w-0">
+                  <DriverAvatar
+                    photo={p.espnId ? `https://a.espncdn.com/i/headshots/golf/players/full/${p.espnId}.png` : null}
+                    flag={null}
+                    country={p.country}
+                    name={p.nameKo ?? p.name}
+                  />
+                  <span className="min-w-0">
                   <span className="flex items-center gap-1.5">
                     <span className="text-base leading-none" aria-hidden>
                       {flagEmoji(p.code2, p.country)}
@@ -144,6 +153,7 @@ export default function GolfWorldRanking() {
                   <span className="block truncate text-[11px] text-neutral-400">
                     {p.nameKo ? `${p.name} · ` : ""}
                     {COUNTRY_KO[p.country] ?? p.country}
+                  </span>
                   </span>
                 </span>
 

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-28T00:00:14.825Z",
+  "updatedAt": "2026-07-28T01:55:43.491Z",
   "source": "OWGR",
   "men": [
     {
@@ -10,7 +10,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 1,
-      "pointsAverage": 16.34
+      "pointsAverage": 16.34,
+      "espnId": "9478"
     },
     {
       "rank": 2,
@@ -20,7 +21,8 @@
       "country": "Northern Ireland",
       "code2": "",
       "lastWeekRank": 2,
-      "pointsAverage": 9.08
+      "pointsAverage": 9.08,
+      "espnId": "3470"
     },
     {
       "rank": 3,
@@ -30,7 +32,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 3,
-      "pointsAverage": 8.25
+      "pointsAverage": 8.25,
+      "espnId": "4425906"
     },
     {
       "rank": 4,
@@ -40,7 +43,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 4,
-      "pointsAverage": 7.12
+      "pointsAverage": 7.12,
+      "espnId": "9037"
     },
     {
       "rank": 5,
@@ -50,7 +54,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 5,
-      "pointsAverage": 5.69
+      "pointsAverage": 5.69,
+      "espnId": "5409"
     },
     {
       "rank": 6,
@@ -60,7 +65,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 6,
-      "pointsAverage": 5.54
+      "pointsAverage": 5.54,
+      "espnId": "5539"
     },
     {
       "rank": 7,
@@ -70,7 +76,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 7,
-      "pointsAverage": 5.45
+      "pointsAverage": 5.45,
+      "espnId": "4690755"
     },
     {
       "rank": 8,
@@ -80,7 +87,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 8,
-      "pointsAverage": 5.29
+      "pointsAverage": 5.29,
+      "espnId": "10592"
     },
     {
       "rank": 9,
@@ -90,7 +98,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 9,
-      "pointsAverage": 5.22
+      "pointsAverage": 5.22,
+      "espnId": "11119"
     },
     {
       "rank": 10,
@@ -100,7 +109,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 11,
-      "pointsAverage": 5.11
+      "pointsAverage": 5.11,
+      "espnId": "9938"
     },
     {
       "rank": 11,
@@ -110,7 +120,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 10,
-      "pointsAverage": 4.98
+      "pointsAverage": 4.98,
+      "espnId": "569"
     },
     {
       "rank": 12,
@@ -120,7 +131,8 @@
       "country": "Spain",
       "code2": "ES",
       "lastWeekRank": 12,
-      "pointsAverage": 4.8
+      "pointsAverage": 4.8,
+      "espnId": "9780"
     },
     {
       "rank": 13,
@@ -130,7 +142,8 @@
       "country": "Norway",
       "code2": "NO",
       "lastWeekRank": 13,
-      "pointsAverage": 4.66
+      "pointsAverage": 4.66,
+      "espnId": "4364873"
     },
     {
       "rank": 14,
@@ -140,7 +153,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 14,
-      "pointsAverage": 4.64
+      "pointsAverage": 4.64,
+      "espnId": "10166"
     },
     {
       "rank": 15,
@@ -150,7 +164,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 15,
-      "pointsAverage": 4.47
+      "pointsAverage": 4.47,
+      "espnId": "10140"
     },
     {
       "rank": 16,
@@ -160,7 +175,8 @@
       "country": "Sweden",
       "code2": "SE",
       "lastWeekRank": 16,
-      "pointsAverage": 4.29
+      "pointsAverage": 4.29,
+      "espnId": "4375972"
     },
     {
       "rank": 17,
@@ -170,7 +186,8 @@
       "country": "Scotland",
       "code2": "",
       "lastWeekRank": 17,
-      "pointsAverage": 4.29
+      "pointsAverage": 4.29,
+      "espnId": "11378"
     },
     {
       "rank": 18,
@@ -180,7 +197,8 @@
       "country": "South Korea",
       "code2": "KR",
       "lastWeekRank": 18,
-      "pointsAverage": 4.22
+      "pointsAverage": 4.22,
+      "espnId": "7081"
     },
     {
       "rank": 19,
@@ -190,7 +208,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 19,
-      "pointsAverage": 4.19
+      "pointsAverage": 4.19,
+      "espnId": "4404992"
     },
     {
       "rank": 20,
@@ -200,7 +219,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 20,
-      "pointsAverage": 4.19
+      "pointsAverage": 4.19,
+      "espnId": "10906"
     },
     {
       "rank": 21,
@@ -210,7 +230,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 23,
-      "pointsAverage": 4.12
+      "pointsAverage": 4.12,
+      "espnId": "5553"
     },
     {
       "rank": 22,
@@ -220,7 +241,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 21,
-      "pointsAverage": 4.09
+      "pointsAverage": 4.09,
+      "espnId": "4848"
     },
     {
       "rank": 23,
@@ -230,7 +252,8 @@
       "country": "New Zealand",
       "code2": "NZ",
       "lastWeekRank": 22,
-      "pointsAverage": 3.88
+      "pointsAverage": 3.88,
+      "espnId": "4251"
     },
     {
       "rank": 24,
@@ -240,7 +263,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 24,
-      "pointsAverage": 3.57
+      "pointsAverage": 3.57,
+      "espnId": "5076021"
     },
     {
       "rank": 25,
@@ -250,7 +274,8 @@
       "country": "Japan",
       "code2": "JP",
       "lastWeekRank": 30,
-      "pointsAverage": 3.53
+      "pointsAverage": 3.53,
+      "espnId": "5860"
     },
     {
       "rank": 26,
@@ -260,7 +285,8 @@
       "country": "Austria",
       "code2": "AT",
       "lastWeekRank": 25,
-      "pointsAverage": 3.53
+      "pointsAverage": 3.53,
+      "espnId": "8961"
     },
     {
       "rank": 27,
@@ -270,7 +296,8 @@
       "country": "Sweden",
       "code2": "SE",
       "lastWeekRank": 26,
-      "pointsAverage": 3.52
+      "pointsAverage": 3.52,
+      "espnId": "3832"
     },
     {
       "rank": 28,
@@ -280,7 +307,8 @@
       "country": "Norway",
       "code2": "NO",
       "lastWeekRank": 27,
-      "pointsAverage": 3.48
+      "pointsAverage": 3.48,
+      "espnId": "4348470"
     },
     {
       "rank": 29,
@@ -290,7 +318,8 @@
       "country": "Australia",
       "code2": "AU",
       "lastWeekRank": 28,
-      "pointsAverage": 3.44
+      "pointsAverage": 3.44,
+      "espnId": "4410932"
     },
     {
       "rank": 30,
@@ -300,7 +329,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 29,
-      "pointsAverage": 3.39
+      "pointsAverage": 3.39,
+      "espnId": "5579"
     },
     {
       "rank": 31,
@@ -310,7 +340,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 31,
-      "pointsAverage": 3.37
+      "pointsAverage": 3.37,
+      "espnId": "5054388"
     },
     {
       "rank": 32,
@@ -320,7 +351,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 32,
-      "pointsAverage": 3.37
+      "pointsAverage": 3.37,
+      "espnId": "4419142"
     },
     {
       "rank": 33,
@@ -330,7 +362,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 36,
-      "pointsAverage": 3.19
+      "pointsAverage": 3.19,
+      "espnId": "10046"
     },
     {
       "rank": 34,
@@ -340,7 +373,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 33,
-      "pointsAverage": 3.16
+      "pointsAverage": 3.16,
+      "espnId": "5408"
     },
     {
       "rank": 35,
@@ -350,7 +384,8 @@
       "country": "South Korea",
       "code2": "KR",
       "lastWeekRank": 34,
-      "pointsAverage": 3.15
+      "pointsAverage": 3.15,
+      "espnId": "4602673"
     },
     {
       "rank": 36,
@@ -360,7 +395,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 35,
-      "pointsAverage": 3.13
+      "pointsAverage": 3.13,
+      "espnId": "10505"
     },
     {
       "rank": 37,
@@ -370,7 +406,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 37,
-      "pointsAverage": 3
+      "pointsAverage": 3,
+      "espnId": "10364"
     },
     {
       "rank": 38,
@@ -380,7 +417,8 @@
       "country": "Denmark",
       "code2": "DK",
       "lastWeekRank": 38,
-      "pointsAverage": 2.9
+      "pointsAverage": 2.9,
+      "espnId": "11250"
     },
     {
       "rank": 39,
@@ -390,7 +428,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 39,
-      "pointsAverage": 2.83
+      "pointsAverage": 2.83,
+      "espnId": "6007"
     },
     {
       "rank": 40,
@@ -400,7 +439,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 40,
-      "pointsAverage": 2.77
+      "pointsAverage": 2.77,
+      "espnId": "5338"
     },
     {
       "rank": 41,
@@ -410,7 +450,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 41,
-      "pointsAverage": 2.69
+      "pointsAverage": 2.69,
+      "espnId": "3702"
     },
     {
       "rank": 42,
@@ -420,7 +461,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 42,
-      "pointsAverage": 2.65
+      "pointsAverage": 2.65,
+      "espnId": "9530"
     },
     {
       "rank": 43,
@@ -430,7 +472,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 44,
-      "pointsAverage": 2.64
+      "pointsAverage": 2.64,
+      "espnId": "3550"
     },
     {
       "rank": 44,
@@ -440,7 +483,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 43,
-      "pointsAverage": 2.6
+      "pointsAverage": 2.6,
+      "espnId": "4513"
     },
     {
       "rank": 45,
@@ -450,7 +494,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 45,
-      "pointsAverage": 2.52
+      "pointsAverage": 2.52,
+      "espnId": "9484"
     },
     {
       "rank": 46,
@@ -460,7 +505,8 @@
       "country": "Australia",
       "code2": "AU",
       "lastWeekRank": 69,
-      "pointsAverage": 2.44
+      "pointsAverage": 2.44,
+      "espnId": "10343"
     },
     {
       "rank": 47,
@@ -470,7 +516,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 46,
-      "pointsAverage": 2.44
+      "pointsAverage": 2.44,
+      "espnId": "9843"
     },
     {
       "rank": 48,
@@ -480,7 +527,8 @@
       "country": "Ireland",
       "code2": "IE",
       "lastWeekRank": 47,
-      "pointsAverage": 2.31
+      "pointsAverage": 2.31,
+      "espnId": "4587"
     },
     {
       "rank": 49,
@@ -490,7 +538,8 @@
       "country": "Australia",
       "code2": "AU",
       "lastWeekRank": 49,
-      "pointsAverage": 2.22
+      "pointsAverage": 2.22,
+      "espnId": "388"
     },
     {
       "rank": 50,
@@ -500,7 +549,8 @@
       "country": "Canada",
       "code2": "CA",
       "lastWeekRank": 48,
-      "pointsAverage": 2.22
+      "pointsAverage": 2.22,
+      "espnId": "9126"
     },
     {
       "rank": 51,
@@ -510,7 +560,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 50,
-      "pointsAverage": 2.21
+      "pointsAverage": 2.21,
+      "espnId": "4585549"
     },
     {
       "rank": 52,
@@ -520,7 +571,8 @@
       "country": "Chile",
       "code2": "CL",
       "lastWeekRank": 51,
-      "pointsAverage": 2.14
+      "pointsAverage": 2.14,
+      "espnId": "11099"
     },
     {
       "rank": 53,
@@ -530,7 +582,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 52,
-      "pointsAverage": 2.14
+      "pointsAverage": 2.14,
+      "espnId": "4426181"
     },
     {
       "rank": 54,
@@ -540,7 +593,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 53,
-      "pointsAverage": 2.13
+      "pointsAverage": 2.13,
+      "espnId": "9025"
     },
     {
       "rank": 55,
@@ -550,7 +604,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 57,
-      "pointsAverage": 2.12
+      "pointsAverage": 2.12,
+      "espnId": "8974"
     },
     {
       "rank": 56,
@@ -560,7 +615,8 @@
       "country": "Colombia",
       "code2": "CO",
       "lastWeekRank": 54,
-      "pointsAverage": 2.07
+      "pointsAverage": 2.07,
+      "espnId": "4408316"
     },
     {
       "rank": 57,
@@ -570,7 +626,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 55,
-      "pointsAverage": 2.06
+      "pointsAverage": 2.06,
+      "espnId": "5467"
     },
     {
       "rank": 58,
@@ -580,7 +637,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 66,
-      "pointsAverage": 2.03
+      "pointsAverage": 2.03,
+      "espnId": "1225"
     },
     {
       "rank": 59,
@@ -590,7 +648,8 @@
       "country": "Australia",
       "code2": "AU",
       "lastWeekRank": 56,
-      "pointsAverage": 2.02
+      "pointsAverage": 2.02,
+      "espnId": "1680"
     },
     {
       "rank": 60,
@@ -600,7 +659,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 61,
-      "pointsAverage": 1.96
+      "pointsAverage": 1.96,
+      "espnId": "4921329"
     },
     {
       "rank": 61,
@@ -610,7 +670,8 @@
       "country": "Spain",
       "code2": "ES",
       "lastWeekRank": 59,
-      "pointsAverage": 1.94
+      "pointsAverage": 1.94,
+      "espnId": "4565467"
     },
     {
       "rank": 62,
@@ -620,7 +681,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 58,
-      "pointsAverage": 1.94
+      "pointsAverage": 1.94,
+      "espnId": "4837368"
     },
     {
       "rank": 63,
@@ -630,7 +692,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 60,
-      "pointsAverage": 1.91
+      "pointsAverage": 1.91,
+      "espnId": "5217048"
     },
     {
       "rank": 64,
@@ -640,7 +703,8 @@
       "country": "South Africa",
       "code2": "ZA",
       "lastWeekRank": 63,
-      "pointsAverage": 1.9
+      "pointsAverage": 1.9,
+      "espnId": "4610056"
     },
     {
       "rank": 65,
@@ -650,7 +714,8 @@
       "country": "Japan",
       "code2": "JP",
       "lastWeekRank": 62,
-      "pointsAverage": 1.9
+      "pointsAverage": 1.9,
+      "espnId": "4858572"
     },
     {
       "rank": 66,
@@ -660,7 +725,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 65,
-      "pointsAverage": 1.86
+      "pointsAverage": 1.86,
+      "espnId": "4364865"
     },
     {
       "rank": 67,
@@ -670,7 +736,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 64,
-      "pointsAverage": 1.85
+      "pointsAverage": 1.85,
+      "espnId": "4901368"
     },
     {
       "rank": 68,
@@ -680,7 +747,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 68,
-      "pointsAverage": 1.83
+      "pointsAverage": 1.83,
+      "espnId": "4425904"
     },
     {
       "rank": 69,
@@ -690,7 +758,8 @@
       "country": "Spain",
       "code2": "ES",
       "lastWeekRank": 67,
-      "pointsAverage": 1.8
+      "pointsAverage": 1.8,
+      "espnId": "4895429"
     },
     {
       "rank": 70,
@@ -700,7 +769,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 71,
-      "pointsAverage": 1.77
+      "pointsAverage": 1.77,
+      "espnId": "10522"
     },
     {
       "rank": 71,
@@ -710,7 +780,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 73,
-      "pointsAverage": 1.76
+      "pointsAverage": 1.76,
+      "espnId": "8906"
     },
     {
       "rank": 72,
@@ -720,7 +791,8 @@
       "country": "Canada",
       "code2": "CA",
       "lastWeekRank": 70,
-      "pointsAverage": 1.76
+      "pointsAverage": 1.76,
+      "espnId": "3792"
     },
     {
       "rank": 73,
@@ -730,7 +802,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 206,
-      "pointsAverage": 1.75
+      "pointsAverage": 1.75,
+      "espnId": "5215013"
     },
     {
       "rank": 74,
@@ -740,7 +813,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 72,
-      "pointsAverage": 1.75
+      "pointsAverage": 1.75,
+      "espnId": "10548"
     },
     {
       "rank": 75,
@@ -750,7 +824,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 74,
-      "pointsAverage": 1.71
+      "pointsAverage": 1.71,
+      "espnId": "11332"
     },
     {
       "rank": 76,
@@ -760,7 +835,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 76,
-      "pointsAverage": 1.7
+      "pointsAverage": 1.7,
+      "espnId": "9506"
     },
     {
       "rank": 77,
@@ -770,7 +846,8 @@
       "country": "Denmark",
       "code2": "DK",
       "lastWeekRank": 79,
-      "pointsAverage": 1.68
+      "pointsAverage": 1.68,
+      "espnId": "4858859"
     },
     {
       "rank": 78,
@@ -780,7 +857,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 75,
-      "pointsAverage": 1.67
+      "pointsAverage": 1.67,
+      "espnId": "8973"
     },
     {
       "rank": 79,
@@ -790,7 +868,8 @@
       "country": "South Korea",
       "code2": "KR",
       "lastWeekRank": 77,
-      "pointsAverage": 1.66
+      "pointsAverage": 1.66,
+      "espnId": "11382"
     },
     {
       "rank": 80,
@@ -800,7 +879,8 @@
       "country": "Finland",
       "code2": "FI",
       "lastWeekRank": 78,
-      "pointsAverage": 1.63
+      "pointsAverage": 1.63,
+      "espnId": "4585548"
     },
     {
       "rank": 81,
@@ -810,7 +890,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 82,
-      "pointsAverage": 1.61
+      "pointsAverage": 1.61,
+      "espnId": "10980"
     },
     {
       "rank": 82,
@@ -820,7 +901,8 @@
       "country": "Belgium",
       "code2": "BE",
       "lastWeekRank": 80,
-      "pointsAverage": 1.59
+      "pointsAverage": 1.59,
+      "espnId": "4837"
     },
     {
       "rank": 83,
@@ -830,7 +912,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 85,
-      "pointsAverage": 1.58
+      "pointsAverage": 1.58,
+      "espnId": "11101"
     },
     {
       "rank": 84,
@@ -840,7 +923,8 @@
       "country": "Germany",
       "code2": "DE",
       "lastWeekRank": 81,
-      "pointsAverage": 1.58
+      "pointsAverage": 1.58,
+      "espnId": "4566443"
     },
     {
       "rank": 85,
@@ -850,7 +934,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 84,
-      "pointsAverage": 1.58
+      "pointsAverage": 1.58,
+      "espnId": "4426182"
     },
     {
       "rank": 86,
@@ -860,7 +945,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 83,
-      "pointsAverage": 1.58
+      "pointsAverage": 1.58,
+      "espnId": "4589438"
     },
     {
       "rank": 87,
@@ -870,7 +956,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 86,
-      "pointsAverage": 1.56
+      "pointsAverage": 1.56,
+      "espnId": null
     },
     {
       "rank": 88,
@@ -880,7 +967,8 @@
       "country": "South Africa",
       "code2": "ZA",
       "lastWeekRank": 87,
-      "pointsAverage": 1.55
+      "pointsAverage": 1.55,
+      "espnId": "5080439"
     },
     {
       "rank": 89,
@@ -890,7 +978,8 @@
       "country": "South Africa",
       "code2": "ZA",
       "lastWeekRank": 88,
-      "pointsAverage": 1.52
+      "pointsAverage": 1.52,
+      "espnId": "4604053"
     },
     {
       "rank": 90,
@@ -900,7 +989,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 103,
-      "pointsAverage": 1.5
+      "pointsAverage": 1.5,
+      "espnId": "10054"
     },
     {
       "rank": 91,
@@ -910,7 +1000,8 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 92,
-      "pointsAverage": 1.47
+      "pointsAverage": 1.47,
+      "espnId": "4671"
     },
     {
       "rank": 92,
@@ -920,7 +1011,8 @@
       "country": "Canada",
       "code2": "CA",
       "lastWeekRank": 89,
-      "pointsAverage": 1.47
+      "pointsAverage": 1.47,
+      "espnId": "9658"
     },
     {
       "rank": 93,
@@ -930,7 +1022,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 90,
-      "pointsAverage": 1.44
+      "pointsAverage": 1.44,
+      "espnId": "676"
     },
     {
       "rank": 94,
@@ -940,7 +1033,8 @@
       "country": "South Africa",
       "code2": "ZA",
       "lastWeekRank": 93,
-      "pointsAverage": 1.42
+      "pointsAverage": 1.42,
+      "espnId": "5057"
     },
     {
       "rank": 95,
@@ -950,7 +1044,8 @@
       "country": "Denmark",
       "code2": "DK",
       "lastWeekRank": 91,
-      "pointsAverage": 1.41
+      "pointsAverage": 1.41,
+      "espnId": "11253"
     },
     {
       "rank": 96,
@@ -960,7 +1055,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 96,
-      "pointsAverage": 1.39
+      "pointsAverage": 1.39,
+      "espnId": "5502"
     },
     {
       "rank": 97,
@@ -970,7 +1066,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 95,
-      "pointsAverage": 1.39
+      "pointsAverage": 1.39,
+      "espnId": "6825"
     },
     {
       "rank": 98,
@@ -980,7 +1077,8 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 97,
-      "pointsAverage": 1.39
+      "pointsAverage": 1.39,
+      "espnId": "5211425"
     },
     {
       "rank": 99,
@@ -990,7 +1088,8 @@
       "country": "South Africa",
       "code2": "ZA",
       "lastWeekRank": 98,
-      "pointsAverage": 1.38
+      "pointsAverage": 1.38,
+      "espnId": "9243"
     },
     {
       "rank": 100,
@@ -1000,7 +1099,8 @@
       "country": "Japan",
       "code2": "JP",
       "lastWeekRank": 94,
-      "pointsAverage": 1.38
+      "pointsAverage": 1.38,
+      "espnId": "4699418"
     }
   ]
 }
