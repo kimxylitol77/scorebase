@@ -89,6 +89,21 @@ export default async function F1RankingsPage({
         })}
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/scores?sport=f1"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          🏎️ F1 그랑프리 일정·결과
+        </Link>
+        <Link
+          href="/salaries/f1"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          드라이버 연봉 랭킹
+        </Link>
+      </div>
+
       {(isTeam ? constructors.length : drivers.length) === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center text-sm text-neutral-500">
           챔피언십 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
@@ -194,21 +209,6 @@ export default async function F1RankingsPage({
           </ul>
         </div>
       )}
-
-      <div className="flex flex-wrap gap-2 pt-1">
-        <Link
-          href="/scores?sport=f1"
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          🏎️ F1 그랑프리 일정·결과
-        </Link>
-        <Link
-          href="/salaries/f1"
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
-        >
-          드라이버 연봉 랭킹
-        </Link>
-      </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         레이스 종료 후 공식 결과가 반영되기까지 시간이 걸릴 수 있습니다. 격차는 선두와의 포인트 차이,
