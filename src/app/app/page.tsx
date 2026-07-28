@@ -82,6 +82,12 @@ export default function AppInstallPage() {
         이미 설치한 아이콘의 모양이 예전 것이라면, 홈 화면에서 삭제 후 다시 추가하면 새
         아이콘으로 바뀝니다. 앱을 지워도 계정·즐겨찾기는 사라지지 않습니다.
       </p>
+      <p className="mt-2 text-xs leading-relaxed text-neutral-400">
+        크롬으로 볼 때 자꾸 앱이 대신 열린다면 크롬의 링크 넘기기 설정이 켜진 것입니다.
+        PC 크롬은 주소창에 chrome://app-settings 입력 → 스코어베이스 → &ldquo;지원되는 링크
+        열기&rdquo;를 끄고, Android 는 앱 아이콘 길게 눌러 앱 정보 → &ldquo;기본으로
+        열기&rdquo;에서 해제하면 브라우저는 브라우저대로, 앱은 앱대로 열립니다.
+      </p>
     </main>
   );
 }
