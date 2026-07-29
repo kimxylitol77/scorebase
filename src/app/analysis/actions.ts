@@ -377,6 +377,34 @@ export async function deletePostAdminAction(formData: FormData): Promise<void> {
   redirect(listPath);
 }
 
+/** 댓글 수정 (본인만). 내용만 갱신 — 경험치·commentCount 는 변동 없음. */
+export async function updateCommentAction(
+  _prev: PostFormState,
+  formData: FormData,
+): Promise<PostFormState> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "로그인이 필요합니다." };
+
+  const commentId = Number(formData.get("commentId"));
+  const content = String(formData.get("content") ?? "").trim();
+  if (!Number.isInteger(commentId)) return { ok: false, error: "잘못된 댓글입니다." };
+  if (content.length < 1 || content.length > 1000) {
+    return { ok: false, error: "댓글은 1~1000자로 입력해주세요." };
+  }
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { authorId: true, postId: true },
+  });
+  if (!comment) return { ok: false, error: "존재하지 않는 댓글입니다." };
+  if (comment.authorId !== userId) return { ok: false, error: "본인 댓글만 수정할 수 있습니다." };
+
+  await prisma.comment.update({ where: { id: commentId }, data: { content } });
+
+  revalidatePath(`/analysis/${comment.postId}`);
+  return { ok: true };
+}
+
 /** 댓글 삭제 (본인만). 댓글 경험치 회수 + commentCount 감소. */
 export async function deleteCommentAction(formData: FormData): Promise<void> {
   const userId = await getCurrentUserId();

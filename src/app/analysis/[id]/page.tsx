@@ -19,7 +19,8 @@ import FollowButton from "@/components/experts/FollowButton";
 import LikeButton from "./LikeButton";
 import ShareButton from "./ShareButton";
 import CommentForm from "./CommentForm";
-import { DeletePostButton, DeleteCommentButton, AdminDeletePostButton } from "./DeleteButtons";
+import { DeletePostButton, AdminDeletePostButton } from "./DeleteButtons";
+import CommentItem from "./CommentItem";
 
 export const dynamic = "force-dynamic";
 
@@ -387,26 +388,16 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
 
         {post.comments.length > 0 && (
           <ul className="space-y-4 mb-5">
-            {post.comments.map((c) => {
-              const cg = displayGrade(c.author.level, c.author.badge);
-              return (
-                <li key={c.id} className="text-sm">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="font-semibold text-neutral-700 dark:text-neutral-300"
-                      title={cg.name}
-                    >
-                      {cg.emoji} <UserName name={c.author.nickname} nameColor={c.author.nameColor} title={c.author.title} />
-                    </span>
-                    <span className="text-xs text-neutral-400">{listTime(c.createdAt)}</span>
-                    {userId === c.authorId && <DeleteCommentButton commentId={c.id} />}
-                  </div>
-                  <p className="whitespace-pre-wrap text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                    {c.content}
-                  </p>
-                </li>
-              );
-            })}
+            {post.comments.map((c) => (
+              <CommentItem
+                key={c.id}
+                id={c.id}
+                content={c.content}
+                createdAt={c.createdAt}
+                author={c.author}
+                isMine={userId === c.authorId}
+              />
+            ))}
           </ul>
         )}
 
