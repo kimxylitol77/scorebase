@@ -61,12 +61,10 @@ function ymd(d: string | Date) {
   return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
-export async function fetchEspnMlbByDate(
-  date: string,
-): Promise<NormalizedMatch[]> {
+async function fetchScoreboard(dates: string): Promise<NormalizedMatch[]> {
   const { data } = await axios.get<{ events?: EspnEvent[] }>(
     `${BASE_URL}/scoreboard`,
-    { params: { dates: ymd(date) }, timeout: 15000 },
+    { params: { dates, limit: 1000 }, timeout: 20000 },
   );
 
   const events = data?.events ?? [];
@@ -103,6 +101,24 @@ export async function fetchEspnMlbByDate(
       raw: e,
     };
   });
+}
+
+export async function fetchEspnMlbByDate(
+  date: string,
+): Promise<NormalizedMatch[]> {
+  return fetchScoreboard(ymd(date));
+}
+
+/**
+ * 날짜 범위를 한 번에 조회 (ESPN scoreboard 는 dates=YYYYMMDD-YYYYMMDD 지원).
+ * 시즌 잔여 일정 선적재용 — collect cron 의 +7일 창 밖 매치를 월 1회 호출로 채운다.
+ * 범위 응답이 per-date 합과 동일한 것은 실측 확인 (2026-08-01~07, 94건 id 집합 일치).
+ */
+export async function fetchEspnMlbRange(
+  from: string,
+  to: string,
+): Promise<NormalizedMatch[]> {
+  return fetchScoreboard(`${ymd(from)}-${ymd(to)}`);
 }
 
 export const mlbCollectorEspn: MatchCollector = {
