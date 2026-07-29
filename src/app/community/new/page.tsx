@@ -9,6 +9,7 @@ import { clampKnobs, type BotKnobs } from "@/lib/predict/member-bot";
 import { KNOB_METAS } from "@/app/lab/knobs-meta";
 import SignupGateCard from "@/components/SignupGateCard";
 import BoardForm from "./BoardForm";
+import { buildStarterShareText } from "@/lib/predict/starter-card-share";
 
 export const dynamic = "force-dynamic";
 
@@ -54,9 +55,9 @@ function buildBotShareText(bot: {
   };
 }
 
-export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string; bot?: string; stitle?: string; spath?: string }> }) {
+export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string; bot?: string; starter?: string; stitle?: string; spath?: string }> }) {
   // 전술판 "게시판에 올리기" 진입 — ?lineup={d코드} 를 폼에 미리 채움 (로그인 리다이렉트에도 보존)
-  const { lineup, bot, stitle, spath } = await searchParams;
+  const { lineup, bot, starter, stitle, spath } = await searchParams;
   const lineupCode = lineup && /^[A-Za-z0-9_\-~.%]+$/.test(lineup) && lineup.length <= 4000 ? lineup : null;
   // /lab "게시판에 공유" 진입 — ?bot={id} (cuid) 소유 봇만 프리필
   const botId = bot && /^[A-Za-z0-9]{10,40}$/.test(bot) ? bot : null;
@@ -64,9 +65,15 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
   const shareTitle = stitle && stitle.trim().length >= 2 ? stitle.trim().slice(0, 90) : null;
   const sharePath =
     spath && /^\/[^\s]*$/.test(spath) && !spath.startsWith("//") && spath.length <= 300 ? spath : null;
+  // /predictions/starters "게시판에 올리기" 진입 — ?starter={matchId}.
+  // 카드 페이지를 범용 공유(spath)로 올려도 같은 리치 프리필이 나오게 경로에서도 뽑는다.
+  const starterId = starter && /^\d{1,10}$/.test(starter)
+    ? Number(starter)
+    : Number(sharePath?.match(/^\/predictions\/starters\/(\d{1,10})(?:[?#]|$)/)?.[1]) || null;
   const qs = new URLSearchParams();
   if (lineupCode) qs.set("lineup", lineupCode);
   if (botId) qs.set("bot", botId);
+  if (starter && starterId) qs.set("starter", String(starterId));
   if (shareTitle) qs.set("stitle", shareTitle);
   if (sharePath) qs.set("spath", sharePath);
   const qsStr = qs.toString();
@@ -83,9 +90,12 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
     if (myBot) botPrefill = buildBotShareText(myBot);
   }
 
-  // 페이지 공유 프리필 — 제목 + 본문에 사이트 내 링크 (봇 프리필이 있으면 그쪽 우선)
+  // 선발 매치업 카드 프리필 — matchId 로 DB 재조회 (수치는 전부 DB 실측)
+  const starterPrefill = !botPrefill && starterId ? await buildStarterShareText(starterId) : null;
+
+  // 페이지 공유 프리필 — 제목 + 본문에 사이트 내 링크 (봇·선발 카드 프리필이 있으면 그쪽 우선)
   const sharePrefill =
-    !botPrefill && (shareTitle || sharePath)
+    !botPrefill && !starterPrefill && (shareTitle || sharePath)
       ? {
           title: shareTitle ? `[공유] ${shareTitle}` : "",
           content: sharePath ? `https://www.scorebase.kr${sharePath}\n\n` : "",
@@ -121,8 +131,8 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
         <BoardForm
           myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null}
           defaultLineup={lineupCode}
-          defaultTitle={botPrefill?.title ?? sharePrefill?.title}
-          defaultContent={botPrefill?.content ?? sharePrefill?.content}
+          defaultTitle={botPrefill?.title ?? starterPrefill?.title ?? sharePrefill?.title}
+          defaultContent={botPrefill?.content ?? starterPrefill?.content ?? sharePrefill?.content}
         />
       ) : (
         <SignupGateCard from={backTo} />
