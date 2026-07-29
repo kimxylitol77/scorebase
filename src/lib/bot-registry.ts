@@ -133,6 +133,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "ts 이중저장 Match 중복(종료·참조0) SAFE 자동 삭제 — collect 가드 사각 보완 (매일 10:30)",
   },
+  "mac-mini-weekly-baseball-verify": {
+    ko: "야구 POSTPONED 교차 대조",
+    intervalMs: 7 * DAY,
+    role: "TheSports 대조로 미래 POSTPONED 오분류 정정 — Vercel 데일리 cron 이 단일 소스라 못 잡는 건 담당 (월 08:30)",
+  },
   "mac-mini-weekly-static-refresh": {
     ko: "정적 데이터 주간 갱신",
     intervalMs: 7 * DAY,

@@ -1,0 +1,47 @@
+#!/bin/zsh
+# heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
+source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
+hb_trap mac-mini-weekly-baseball-verify /tmp/weekly-baseball-postponed-verify.log
+# 매주 월 08:30 KST — 야구 미래 POSTPONED 오분류를 TheSports 교차 대조로 정정.
+#
+# Vercel 데일리 cron(verify-baseball-postponed)은 api-baseball 한 소스만 보고 게이트가
+# "소스 현재 status=NS" 라, 소스가 계속 CANC 를 주는 오분류는 구조적으로 못 잡는다
+# (2026-07-29 NPB 9월 71건). TheSports 는 IP whitelist 라 Vercel 에서 호출이 안 되므로
+# whitelist 등록된 이 맥미니가 그 구멍을 맡는다.
+#
+# 안전선: ts 가 Not Started(status_id 0·1) 로 주는 건만 SCHEDULED 로 되돌린다. 날짜(±1일)
+#   + 팀쌍 완전일치로 대조하고, 대조 못한 건은 손대지 않고 경고만 남긴다.
+set -e
+set -o pipefail
+cd ~/dev/scorebase
+export PATH="/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:$PATH"
+
+LOGF=/tmp/weekly-baseball-postponed-verify.out
+log() { echo "[baseball-verify $(date '+%F %T')] $1"; }
+log "▶ 시작"
+
+# repo 최신화 — 검증 스크립트 최신 기준
+git fetch origin main -q && git reset --hard origin/main -q
+
+npx tsx scripts/verify-baseball-postponed-ts.ts --apply 2>&1 | tee "$LOGF" | tail -20
+
+# 실제로 데이터를 바꿨을 때만 알린다 (0건이면 조용히).
+FIXED=$(grep -o 'SCHEDULED 정정 [0-9]* 건 적용\|SCHEDULED 정정 [0-9]*건 적용' "$LOGF" \
+  | grep -o '[0-9]*' | awk '{s+=$1} END {print s+0}')
+if [ "${FIXED:-0}" -gt 0 ]; then
+  set -a; . .env.local; set +a
+  BODY=$(grep -E '^===|ts Not Started|정정' "$LOGF" | head -20)
+  curl -sS -m 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+    --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+    --data-urlencode "parse_mode=HTML" \
+    --data-urlencode "text=⚾ <b>야구 미래 POSTPONED ${FIXED}건 → SCHEDULED 정정</b>
+📍 <b>무엇</b>: TheSports 교차 대조로 오분류 확정 (api-baseball 이 CANC 로 주지만 ts 는 Not Started)
+💥 <b>영향</b>: monte-carlo 는 SCHEDULED 만 시뮬 — 방치 시 /predictions 잔여 일정 과소 계산
+➡️ <b>확인</b>: /predictions/NPB · /predictions/KBO
+
+<code>$(printf '%s' "$BODY")</code>" >/dev/null || true
+  log "✓ 텔레그램 알림 발송 (${FIXED}건)"
+else
+  log "정정 0건 — 알림 생략"
+fi
+log "✓ 종료"
