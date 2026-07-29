@@ -252,22 +252,25 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
           {isAuthor && (
             <>
               <span>·</span>
+              <Link
+                href={`/analysis/${post.id}/edit`}
+                className="text-neutral-400 transition hover:text-rose-500"
+              >
+                수정
+              </Link>
+              <span>·</span>
               <DeletePostButton postId={post.id} />
             </>
           )}
-          {isAdmin && (
+          {/* 본인 글이면 위 수정·삭제가 이미 있으므로 관리자 버튼 중복 노출 방지 */}
+          {isAdmin && !isAuthor && (
             <>
               <span>·</span>
               <Link href={`/analysis/${post.id}/edit`} className="font-semibold text-rose-500 hover:underline">
                 수정
               </Link>
-              {/* 본인 글이면 위 DeletePostButton 이 이미 있으므로 중복 노출 방지 */}
-              {!isAuthor && (
-                <>
-                  <span>·</span>
-                  <AdminDeletePostButton postId={post.id} />
-                </>
-              )}
+              <span>·</span>
+              <AdminDeletePostButton postId={post.id} />
             </>
           )}
         </div>

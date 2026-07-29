@@ -292,6 +292,39 @@ export async function deletePostAction(formData: FormData): Promise<void> {
   redirect(listPath);
 }
 
+/** 글 수정 (본인만) — 제목·본문·전술판 코드. 예측 픽은 수정 불가 (적중률 조작 방지). */
+export async function updatePostAction(formData: FormData): Promise<void> {
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+  const postId = Number(formData.get("postId"));
+  if (!Number.isInteger(postId)) return;
+
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { authorId: true },
+  });
+  if (!post || post.authorId !== userId) return; // 본인만
+
+  const title = String(formData.get("title") ?? "").trim();
+  const content = String(formData.get("content") ?? "").trim();
+  if (title.length < 2 || title.length > 120) return;
+  if (content.length < 5) return;
+
+  // 전술판 — 공유 URL(/lineup?d=...) 을 통째로 붙여넣어도 코드만 추출.
+  let lineupCode = String(formData.get("lineupCode") ?? "").trim();
+  const dm = lineupCode.match(/[?&]d=([^&\s]+)/);
+  if (dm) lineupCode = dm[1];
+  if (lineupCode && (!/^[A-Za-z0-9_\-~.%]+$/.test(lineupCode) || lineupCode.length > 4000)) return;
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: { title, content, lineupCode: lineupCode || null },
+  });
+  revalidatePath(`/analysis/${postId}`);
+  revalidatePath("/analysis");
+  redirect(`/analysis/${postId}`);
+}
+
 /** 글 수정 (관리자 전용) — 게시판 모든 글의 제목·본문·전술판 코드 수정. */
 export async function updatePostAdminAction(formData: FormData): Promise<void> {
   const c = await cookies();
