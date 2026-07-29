@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { kstHHmm } from "@/lib/threads/kst";
-import { parseStarter, pitcherPhoto, fmtStat } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, hasStats } from "@/lib/predict/starter-card";
 
 export const runtime = "nodejs";
 
@@ -180,17 +180,37 @@ export async function GET(req: Request) {
           </div>
         </div>
 
-        {/* 지표 타일 */}
-        <div style={{ display: "flex", gap: 16, marginTop: 30 }}>
-          <Tile label="ERA" value={fmtStat(s.era)} />
-          <Tile label="WHIP" value={fmtStat(s.whip)} />
-          <Tile label="K/9" value={fmtStat(s.k9, 1)} />
-          <Tile
-            label="최근 3등판"
-            value={fmtStat(s.recentEra)}
-            hint={s.recentIp != null ? `평균 ${fmtStat(s.recentIp, 1)}이닝` : undefined}
-          />
-        </div>
+        {/* 지표 타일 — 지표가 전무하면 빈 타일 대신 사유를 적는다 */}
+        {hasStats(s) ? (
+          <div style={{ display: "flex", gap: 16, marginTop: 30 }}>
+            <Tile label="ERA" value={fmtStat(s.era)} />
+            <Tile label="WHIP" value={fmtStat(s.whip)} />
+            <Tile label="K/9" value={fmtStat(s.k9, 1)} />
+            <Tile
+              label="최근 3등판"
+              value={fmtStat(s.recentEra)}
+              hint={s.recentIp != null ? `평균 ${fmtStat(s.recentIp, 1)}이닝` : undefined}
+            />
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 30,
+              padding: "28px 0",
+              borderRadius: 18,
+              background: "rgba(255,255,255,0.05)",
+            }}
+          >
+            <span style={{ display: "flex", fontSize: 30, fontWeight: 800, color: "#cbd5e1" }}>시즌 기록 미집계</span>
+            <span style={{ display: "flex", marginTop: 6, fontSize: 20, fontWeight: 600, color: "#64748b" }}>
+              리그 공식 기록이 들어오면 자동으로 채워집니다
+            </span>
+          </div>
+        )}
 
         {/* 푸터 */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "auto", fontSize: 18, color: "#64748b", fontWeight: 600 }}>

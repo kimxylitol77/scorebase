@@ -121,6 +121,8 @@ export async function buildPitcherShareText(
   }
   if (statRows.length > 0) {
     lines.push("| 지표 | 기록 |", "| --- | --- |", ...statRows, "");
+  } else {
+    lines.push("시즌 기록 미집계 — 리그 공식 기록이 들어오면 자동으로 채워집니다.", "");
   }
   lines.push(
     "통계 모델 기반 참고용 정보이며, 과거 성적이 미래 결과를 보장하지 않습니다.",

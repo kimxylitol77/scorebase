@@ -4,7 +4,7 @@ import Link from "next/link";
 import { toKoreanTeamName } from "@/lib/team-names";
 import PitcherAvatar from "@/components/predictions/PitcherAvatar";
 import ShareCardButton from "@/components/ShareCardButton";
-import { parseStarter, pitcherPhoto, fmtStat, type StarterJson } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, hasStats, type StarterJson } from "@/lib/predict/starter-card";
 import { PenSquare } from "lucide-react";
 
 export type StarterSide = "home" | "away";
@@ -78,22 +78,33 @@ export default function PitcherSoloCard({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Tile label="ERA" value={fmtStat(s.era)} hint={s.ip ? `${s.ip}이닝` : undefined} />
-        <Tile label="WHIP" value={fmtStat(s.whip)} />
-        <Tile label="K/9" value={fmtStat(s.k9, 1)} />
-        <Tile
-          label="최근 3등판"
-          value={fmtStat(s.recentEra)}
-          hint={s.recentIp != null ? `평균 ${fmtStat(s.recentIp, 1)}이닝` : undefined}
-        />
-      </div>
+      {hasStats(s) ? (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Tile label="ERA" value={fmtStat(s.era)} hint={s.ip ? `${s.ip}이닝` : undefined} />
+          <Tile label="WHIP" value={fmtStat(s.whip)} />
+          <Tile label="K/9" value={fmtStat(s.k9, 1)} />
+          <Tile
+            label="최근 3등판"
+            value={fmtStat(s.recentEra)}
+            hint={s.recentIp != null ? `평균 ${fmtStat(s.recentIp, 1)}이닝` : undefined}
+          />
+        </div>
+      ) : (
+        <div className="mt-4 rounded-xl border border-dashed border-neutral-300 px-4 py-5 text-center dark:border-neutral-700">
+          <div className="text-sm font-semibold text-neutral-500">시즌 기록 미집계</div>
+          <div className="mt-1 text-xs text-neutral-400">리그 공식 기록이 들어오면 자동으로 채워집니다.</div>
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-black/5 pt-3 dark:border-white/10">
         <ShareCardButton
           url={shareUrl}
           title={shareTitle}
-          text={`${s.name} (${team}) — ERA ${fmtStat(s.era)} · WHIP ${fmtStat(s.whip)} · K/9 ${fmtStat(s.k9, 1)}`}
+          text={
+            hasStats(s)
+              ? `${s.name} (${team}) — ERA ${fmtStat(s.era)} · WHIP ${fmtStat(s.whip)} · K/9 ${fmtStat(s.k9, 1)}`
+              : `${s.name} (${team}) — ${m.league} 선발 카드`
+          }
           cardImageUrl={`/api/og/pitcher-card?m=${m.id}&s=${side}`}
         />
         <Link

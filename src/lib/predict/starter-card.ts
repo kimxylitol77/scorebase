@@ -38,3 +38,8 @@ export function pitcherPhoto(league: string, s: StarterJson | null): string | nu
 
 export const fmtStat = (v: number | undefined, d = 2) =>
   v == null || Number.isNaN(v) ? "—" : v.toFixed(d);
+
+/** 보여줄 지표가 하나라도 있나 — 전무하면 빈 타일 대신 "시즌 기록 미집계" 를 띄운다.
+ *  (예: 올 시즌 첫 등판 예정 투수는 소스에 시즌 성적이 아예 없다) */
+export const hasStats = (s: StarterJson | null | undefined) =>
+  s != null && (s.era != null || s.whip != null || s.k9 != null || s.recentEra != null);
