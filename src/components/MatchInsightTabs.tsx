@@ -34,6 +34,10 @@ export default function MatchInsightTabs({
   const visibleTabs = tabs.filter((t) => t.enabled);
   const initialKey = visibleTabs[0]?.key ?? "";
   const [active, setActive] = useState<string>(initialKey);
+  // 비활성 탭은 display:none 상태로 마운트되는데, 그 안의 recharts 차트는 0×0 에서
+  // 마운트되면 ResizeObserver 가 붙지 않아 탭을 열어도 영영 빈칸으로 남는다.
+  // 탭이 처음 열리는 순간 key 를 바꿔 "보이는 상태"에서 다시 마운트시킨다.
+  const [opened, setOpened] = useState<string[]>(() => (initialKey ? [initialKey] : []));
   const pathname = usePathname();
   // 탭 클릭 PV — 어떤 탭이 실제로 소비되는지 측정 (`{path}?tab={key}` 로 기록).
   // 초기 활성 탭(자동 노출)은 제외, mount 당 탭별 1회만. sessionId 는 PageViewTracker 가 발급한 값 재사용.
@@ -91,6 +95,7 @@ export default function MatchInsightTabs({
               key={t.key}
               onClick={() => {
                 setActive(t.key);
+                setOpened((prev) => (prev.includes(t.key) ? prev : [...prev, t.key]));
                 trackTabClick(t.key);
               }}
               className={`px-2.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
@@ -110,7 +115,10 @@ export default function MatchInsightTabs({
       {/* 탭 콘텐츠 — 모든 탭 SSR, active 만 보이게 */}
       <div className="p-5 sm:p-6 space-y-6">
         {visibleTabs.map((t) => (
-          <div key={t.key} className={activeKey === t.key ? "" : "hidden"}>
+          <div
+            key={`${t.key}:${opened.includes(t.key)}`}
+            className={activeKey === t.key ? "" : "hidden"}
+          >
             {t.content}
           </div>
         ))}
