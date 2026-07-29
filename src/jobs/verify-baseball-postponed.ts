@@ -8,6 +8,12 @@
 //
 // 게이트 3중 — (1) DB status=POSTPONED (2) 킥오프가 미래 (3) 소스 현재 status=NS.
 // 실제 연기·취소(POST/CANC/ABD)는 소스가 그대로 주므로 건드리지 않는다.
+//
+// ⚠️ 한계: 게이트 (3) 때문에 **소스가 계속 CANC 를 주는** 오분류는 여기서 영원히 못 잡는다.
+// 2026-07-29 NPB 9월 71건이 그 케이스였다(TheSports 는 71건 전부 Not Started, 과거 680경기
+// 중 실제 취소 0건). 그런 건은 1순위 소스 교차 대조가 필요 —
+// scripts/verify-baseball-postponed-ts.ts. TheSports 는 IP whitelist 라 Vercel 에서 못 돌리므로
+// 이 cron 이 아니라 맥미니·맥북에서 수동 실행한다.
 import { prisma } from "@/lib/db";
 
 // api-sports baseball 리그 ID — src/lib/sports/{kbo,npb,mlb}.ts 의 상수와 동일
