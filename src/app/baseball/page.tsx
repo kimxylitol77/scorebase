@@ -7,7 +7,7 @@ import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { safeFetchTop3 } from "@/lib/sports/standings-overview";
+import { safeFetchTop3, type TopThreeEntry } from "@/lib/sports/standings-overview";
 import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, GitCompare, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 
@@ -410,7 +410,7 @@ function LeagueBlock({
   links,
 }: {
   name: string;
-  top3: { teamId: number; position: number; name: string; points: number }[];
+  top3: TopThreeEntry[];
   links: { label: string; href: string }[];
 }) {
   return (
@@ -430,7 +430,11 @@ function LeagueBlock({
                   <span className="inline-block w-5 text-neutral-400 font-bold tabular-nums">{t.position}</span>
                   {t.name}
                 </span>
-                <span className="text-neutral-500 tabular-nums text-xs">{t.points}승</span>
+                {/* 야구 순위는 승률(무 제외) 정렬이라 승수만 쓰면 2위(52승)가 3위(54승)보다
+                    적어 보인다 — 승-패를 함께 적어 정렬 근거를 드러낸다. */}
+                <span className="text-neutral-500 tabular-nums text-xs whitespace-nowrap">
+                  {t.loss != null ? `${t.won ?? t.points}승 ${t.loss}패` : `${t.points}승`}
+                </span>
               </li>
             ))}
           </ul>

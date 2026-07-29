@@ -16,6 +16,9 @@ export interface TopThreeEntry {
   teamId: number;
   name: string;
   points: number;
+  /** 승·패 — 야구는 승률 정렬이라 승수만 보면 역전이 어색해 보여 카드에서 승-패로 표기 */
+  won?: number;
+  loss?: number;
 }
 
 export interface CountryStandingsGroup {
@@ -44,6 +47,8 @@ export async function safeFetchTop3(league: string, locale: StandingsLocale = "k
         teamId: r.teamId,
         name: locale === "en" ? toEnglishTeamName(raw) : toKoreanTeamName(raw, league),
         points: r.points,
+        won: r.won,
+        loss: r.loss,
       };
     });
   } catch (e) {
