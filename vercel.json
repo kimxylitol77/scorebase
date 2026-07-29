@@ -285,6 +285,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/cron/verify-baseball-postponed",
+      "schedule": "0 21 * * *"
+    },
+    {
       "path": "/api/cron/league-sim-snapshot",
       "schedule": "0 22 * * *"
     },
