@@ -30,7 +30,9 @@ async function todayRows(): Promise<{ rows: ThreadRow[]; total: number; byLeague
     where: {
       league: { in: leagues },
       startTime: { gte: start, lt: end },
-      status: { in: ["SCHEDULED", "LIVE"] },
+      // FINISHED 포함 — 오전 갱신 때 이미 끝난 새벽 MLB 행이 표에서 사라지면
+      // 아침에 본 사람과 낮에 본 사람이 다른 슬레이트를 보게 된다. 하루치 슬레이트는 고정.
+      status: { in: ["SCHEDULED", "LIVE", "FINISHED"] },
     },
     select: {
       id: true,
@@ -98,9 +100,24 @@ function buildContent(rows: ThreadRow[], total: number, dateKey: string, label: 
   ].join("\n\n");
 }
 
-/** 오늘의 픽 스레드 발행. 같은 날 중복 발행 방지. dry=true 면 생성 없이 미리보기 반환. */
-export async function runDailyPickThread(dry = false): Promise<{
+// 갱신 표시 — 본문 끝 한 줄. 비교 시에는 떼고 비교해야 매번 다르다고 판정되지 않는다.
+const REFRESH_NOTE = /\n\n_픽 갱신 · [^\n]*_$/;
+const refreshNote = () =>
+  `\n\n_픽 갱신 · ${kstHHmm(new Date())} KST — 오전에 확정되는 KBO 선발 등 늦게 채워지는 픽을 반영했습니다._`;
+
+/**
+ * 오늘의 픽 스레드 발행. 같은 날 중복 발행 방지.
+ *
+ * KBO 프리뷰는 경기 당일에만 생성되는데(generate-previews.ts 의 kstNow !== kstMatch 게이트)
+ * KBO 선발이 baseball-starters(KST 10:30~)로 들어와야 채워진다. 아침 07:00 발행 시점엔
+ * KBO 픽이 물리적으로 존재할 수 없어 표가 "-" 로 나갔다. refresh=true 면 이미 발행된 글의
+ * 본문만 다시 만들어 덮는다 — 제목은 그대로 둔다(이미 본 사람에게 다른 글로 보이면 안 됨).
+ *
+ * dry=true 면 생성 없이 미리보기 반환.
+ */
+export async function runDailyPickThread(dry = false, refresh = false): Promise<{
   created: boolean;
+  updated?: boolean;
   reason?: string;
   title?: string;
   preview?: string;
@@ -132,13 +149,28 @@ export async function runDailyPickThread(dry = false): Promise<{
       title: { startsWith: "오늘의 픽 스레드" },
       createdAt: { gte: start, lt: end },
     },
-    select: { id: true },
+    select: { id: true, content: true, title: true },
   });
-  if (dup) return { created: false, reason: `이미 발행됨 (post ${dup.id})` };
 
   const content = buildContent(rows, total, dateKey, label);
+
+  if (dup) {
+    if (!refresh) return { created: false, reason: `이미 발행됨 (post ${dup.id})` };
+    // 표가 그대로면 손대지 않는다 — 댓글 달린 글을 의미 없이 건드리지 않기 위해.
+    if (dup.content.replace(REFRESH_NOTE, "") === content) {
+      return { created: false, reason: `갱신할 변경 없음 (post ${dup.id})`, title: dup.title };
+    }
+    if (dry) return { created: false, reason: "dry(refresh)", title: dup.title, preview: content };
+    await prisma.post.update({
+      where: { id: dup.id },
+      data: { content: content + refreshNote() },
+    });
+    return { created: false, updated: true, reason: `본문 갱신 (post ${dup.id})`, title: dup.title };
+  }
+
   if (dry) return { created: false, reason: "dry", title, preview: content };
 
+  // refresh 실행인데 글이 없으면 = 아침 발행이 실패한 날. 여기서 만들어 하루를 건너뛰지 않는다.
   await prisma.post.create({
     data: { authorId: managerId, title, content, category: "ANALYSIS" },
   });

@@ -157,6 +157,14 @@
       "schedule": "0 22 * * *"
     },
     {
+      "path": "/api/cron/daily-thread?refresh=1",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/daily-thread?refresh=1",
+      "schedule": "0 4 * * *"
+    },
+    {
       "path": "/api/cron/ou-picks",
       "schedule": "25 11,20 * * *"
     },
