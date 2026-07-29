@@ -105,7 +105,9 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
   const bases = baseballCtx?.bases ?? null;
   const outs = (baseballCtx?.outs ?? null) as 0 | 1 | 2 | 3 | null;
 
-  const hasScore = home.score != null && away.score != null;
+  // 시작 전 경기는 점수를 안 그린다 — 일부 소스(ESPN)가 예정 경기를 0-0 으로 실어 보내
+  // null 검사만 하면 킥오프 전에 "0 : 0" 이 뜬다(2026-07-29 MLB 실측). 축구 행과 같은 게이트.
+  const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   const homeScore = home.score ?? 0;
   const awayScore = away.score ?? 0;
   const homeWin = isFinished && homeScore > awayScore;

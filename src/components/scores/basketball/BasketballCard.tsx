@@ -74,7 +74,8 @@ export default function BasketballCard(props: BasketballCardProps) {
   const { quarter, clock } = parseQuarter(liveStatusLabel);
   const quarterText = quarter ? `${quarter}쿼터` : null;
 
-  const hasScore = home.score != null && away.score != null;
+  // 시작 전 경기는 점수를 안 그린다 — 일부 소스가 예정 경기를 0-0 으로 실어 보낸다.
+  const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   const homeScore = home.score ?? 0;
   const awayScore = away.score ?? 0;
   const homeWin = isFinished && homeScore > awayScore;

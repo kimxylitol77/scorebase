@@ -76,8 +76,10 @@ async function fetchScoreboard(dates: string): Promise<NormalizedMatch[]> {
     const homeScore = homeC?.score ? Number(homeC.score) : undefined;
     const awayScore = awayC?.score ? Number(awayC.score) : undefined;
     const status = mapStatus(e.status?.type);
-    // 연기/취소는 ESPN 이 0-0 score 를 주지만 무의미 → score 미기록(undefined → upsert 시 null).
-    const scored = status !== "POSTPONED";
+    // ESPN 은 시작 전·연기·취소 경기에도 score "0" 을 실어 보낸다 → 무의미하므로 미기록
+    // (undefined → upsert 시 null). 시작 전까지 포함하지 않으면 예정 카드가 0-0 으로 뜬다
+    // (2026-07-29 실측 — MLB 예정 819경기가 DB 에 0-0 으로 저장돼 /scores 에 노출).
+    const scored = status === "LIVE" || status === "FINISHED";
 
     return {
       league: "MLB",

@@ -227,7 +227,8 @@ export default function MatchCard(props: MatchCardProps) {
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
-  const hasScore = home.score != null && away.score != null;
+  // 시작 전 경기는 점수를 안 그린다 — 일부 소스가 예정 경기를 0-0 으로 실어 보낸다.
+  const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   // 골 임팩트(축구) = 점수 기반 flashSide(6초). 긴 incident 윈도우(recentGoalSide, ~3분
   // 잔존) 제거 — "너무 오래 떠 있음" 해소 (2026-06-14). hook 은 baseball early-return 전이라
   // Rules of Hooks 충족.

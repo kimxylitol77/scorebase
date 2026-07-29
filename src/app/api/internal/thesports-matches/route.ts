@@ -399,8 +399,15 @@ export async function POST(req: NextRequest) {
               const allow = m.status === "POSTPONED" ||
                 RANK[m.status] >= (RANK[cur.status as keyof typeof RANK] ?? 0);
               if (allow && m.status !== cur.status) upd.status = m.status;
-              if (typeof m.homeScore === "number" && m.homeScore !== cur.homeScore) upd.homeScore = m.homeScore;
-              if (typeof m.awayScore === "number" && m.awayScore !== cur.awayScore) upd.awayScore = m.awayScore;
+              // 시작 전이면 score 를 쓰지 않고, 남아 있던 값은 지운다 (위 upsert 경로와 동일 이유).
+              const syncedStatus = allow ? m.status : cur.status;
+              if (syncedStatus === "SCHEDULED") {
+                if (cur.homeScore != null) upd.homeScore = null;
+                if (cur.awayScore != null) upd.awayScore = null;
+              } else {
+                if (typeof m.homeScore === "number" && m.homeScore !== cur.homeScore) upd.homeScore = m.homeScore;
+                if (typeof m.awayScore === "number" && m.awayScore !== cur.awayScore) upd.awayScore = m.awayScore;
+              }
               // 플레이오프 라벨 — NBA 매치는 api-sports owner 라 dedup 경로로 흐름. 여기서 라벨 부착.
               if (m.playoffRound && m.playoffRound !== cur.playoffRound) upd.playoffRound = m.playoffRound;
               if (m.playoffConference !== undefined && m.playoffConference !== cur.playoffConference) upd.playoffConference = m.playoffConference;
@@ -473,8 +480,20 @@ export async function POST(req: NextRequest) {
         startTime: new Date(m.startTime),
       };
       if (allowStatus) updateData.status = m.status;
-      if (typeof m.homeScore === "number") updateData.homeScore = m.homeScore;
-      if (typeof m.awayScore === "number") updateData.awayScore = m.awayScore;
+      // 시작 전 경기의 score 는 버린다 — 일부 소스가 예정 경기를 0-0 으로 실어 보내고,
+      // 이 라우트는 숫자만 update 하므로 한번 들어온 0 이 영영 남아 카드에 "0 : 0" 이 뜬다
+      // (2026-07-29 실측 CLUB_FRIENDLY 154건). 이미 남아 있는 값도 여기서 되돌린다.
+      const finalStatus = allowStatus ? m.status : (existing?.status ?? m.status);
+      const preGame = finalStatus === "SCHEDULED";
+      if (preGame) {
+        if (existing && (existing.homeScore != null || existing.awayScore != null)) {
+          updateData.homeScore = null;
+          updateData.awayScore = null;
+        }
+      } else {
+        if (typeof m.homeScore === "number") updateData.homeScore = m.homeScore;
+        if (typeof m.awayScore === "number") updateData.awayScore = m.awayScore;
+      }
       if (m.playoffRound) updateData.playoffRound = m.playoffRound;
       if (m.playoffConference !== undefined) updateData.playoffConference = m.playoffConference;
       if (m.playoffStageId) updateData.playoffStageId = m.playoffStageId;

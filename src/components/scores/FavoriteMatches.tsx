@@ -355,7 +355,9 @@ function CompactRow({ match }: { match: MatchEntry }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
   const isPostponed = match.status === "postponed";
-  const hasScore = match.home.score != null && match.away.score != null;
+  // 시작 전 경기는 점수를 안 그린다 — 일부 소스가 예정 경기를 0-0 으로 실어 보낸다.
+  const hasScore =
+    (isLive || isFinished) && match.home.score != null && match.away.score != null;
   const statusText = isLive
     ? match.liveStatusLabel ?? "LIVE"
     : isFinished

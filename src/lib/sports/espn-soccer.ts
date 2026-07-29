@@ -83,6 +83,12 @@ export async function fetchEspnSoccerByDate(
     const awayC = competitors.find((c) => c.homeAway === "away");
     const homeScore = homeC?.score ? Number(homeC.score) : undefined;
     const awayScore = awayC?.score ? Number(awayC.score) : undefined;
+    const status = mapStatus(
+      e.status?.type?.state,
+      Boolean(e.status?.type?.completed),
+    );
+    // ESPN 은 시작 전 경기에도 score "0" 을 준다 → 시작 전이면 미기록(예정 카드 0-0 방지).
+    const scored = status === "LIVE" || status === "FINISHED";
 
     return {
       league,
@@ -99,12 +105,9 @@ export async function fetchEspnSoccerByDate(
         shortName: awayC?.team.abbreviation,
         logoUrl: awayC?.team.logo,
       },
-      homeScore: Number.isFinite(homeScore) ? homeScore : undefined,
-      awayScore: Number.isFinite(awayScore) ? awayScore : undefined,
-      status: mapStatus(
-        e.status?.type?.state,
-        Boolean(e.status?.type?.completed),
-      ),
+      homeScore: scored && Number.isFinite(homeScore) ? homeScore : undefined,
+      awayScore: scored && Number.isFinite(awayScore) ? awayScore : undefined,
+      status,
       startTime: new Date(e.date),
       raw: e,
     };
