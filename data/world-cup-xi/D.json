@@ -18,7 +18,7 @@
       "flag": "🇹🇷"
     }
   ],
-  "teamRating": 3.2,
+  "teamRating": 3.1,
   "xi": [
     {
       "id": "n54qllhx7x3gqvy",
@@ -32,8 +32,8 @@
       "score": 9.7,
       "star": 4,
       "recentRating": 8.3,
-      "avgRating": 8.52,
-      "games": 3,
+      "avgRating": 9,
+      "games": 2,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 7.9,
       "star": 3,
       "recentRating": 6.49,
-      "avgRating": 6.92,
-      "games": 3,
+      "avgRating": 7.2,
+      "games": 2,
       "x": 16,
       "y": 70
     },
@@ -100,27 +100,10 @@
       "score": 7.57,
       "star": 3,
       "recentRating": 6.49,
-      "avgRating": 6.7,
-      "games": 3,
+      "avgRating": 7.03,
+      "games": 2,
       "x": 84,
       "y": 70
-    },
-    {
-      "id": "y39mp1hjo6vnmoj",
-      "name": "Sebastian Berhalter",
-      "nameKo": "세바스찬 베르할터",
-      "hasMv": false,
-      "pos": "M",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/dea145c5f225b6a8d6657887625bf5d7.png",
-      "score": 8.7,
-      "star": 4,
-      "recentRating": 6.9,
-      "avgRating": 7.5,
-      "games": 3,
-      "x": 22,
-      "y": 32
     },
     {
       "id": "23xmvkhd083jqg8",
@@ -134,9 +117,9 @@
       "score": 7.99,
       "star": 3,
       "recentRating": 6.95,
-      "avgRating": 6.92,
-      "games": 3,
-      "x": 50,
+      "avgRating": 7.53,
+      "games": 2,
+      "x": 22,
       "y": 32
     },
     {
@@ -151,10 +134,44 @@
       "score": 7.7,
       "star": 3,
       "recentRating": 6.53,
-      "avgRating": 7.02,
-      "games": 3,
+      "avgRating": 7.12,
+      "games": 2,
+      "x": 50,
+      "y": 32
+    },
+    {
+      "id": "6ypq3nhzen58md7",
+      "name": "Brenden Aaronson",
+      "nameKo": "브렌든 에런슨",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/2f84a801fcdd41c696d8f99c26ddc006.png",
+      "score": 7.68,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 78,
       "y": 32
+    },
+    {
+      "id": "318q66h7k57qo9j",
+      "name": "Timothy Weah",
+      "nameKo": "티머시 웨아",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/8fe7bb29de4afad8e5cd8a844a5a3087.png",
+      "score": 7.62,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
+      "x": 35,
+      "y": 52
     },
     {
       "id": "y0or5jh1v1wqwzv",
@@ -168,24 +185,7 @@
       "score": 7.59,
       "star": 3,
       "recentRating": 5.27,
-      "avgRating": 6.34,
-      "games": 3,
-      "x": 35,
-      "y": 52
-    },
-    {
-      "id": "dj2ryohg7z1q1zp",
-      "name": "Tyler Adams",
-      "nameKo": "타일러 애덤스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/5d51378d691a67d82e7cb7f1d1f4b327.png",
-      "score": 7.28,
-      "star": 3,
-      "recentRating": 6.6,
-      "avgRating": 6.7,
+      "avgRating": 6.29,
       "games": 2,
       "x": 65,
       "y": 52
@@ -202,8 +202,8 @@
       "score": 7.88,
       "star": 3,
       "recentRating": 6.22,
-      "avgRating": 6.81,
-      "games": 3,
+      "avgRating": 7.11,
+      "games": 2,
       "x": 50,
       "y": 14
     }
@@ -221,8 +221,8 @@
       "score": 7.47,
       "star": 3,
       "recentRating": 5.58,
-      "avgRating": 6.34,
-      "games": 3
+      "avgRating": 6.49,
+      "games": 2
     },
     {
       "id": "965mkyhn3gjr1ge",
@@ -236,8 +236,23 @@
       "score": 7.39,
       "star": 3,
       "recentRating": 6.14,
-      "avgRating": 6.25,
-      "games": 3
+      "avgRating": 6.42,
+      "games": 2
+    },
+    {
+      "id": "dj2ryohg7z1q1zp",
+      "name": "Tyler Adams",
+      "nameKo": "타일러 애덤스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/5d51378d691a67d82e7cb7f1d1f4b327.png",
+      "score": 7.28,
+      "star": 3,
+      "recentRating": 6.6,
+      "avgRating": 6.7,
+      "games": 2
     },
     {
       "id": "pxwrxlh9577pryk",
@@ -266,8 +281,8 @@
       "score": 7.2,
       "star": 3,
       "recentRating": 6.44,
-      "avgRating": 6.43,
-      "games": 3
+      "avgRating": 6.47,
+      "games": 2
     },
     {
       "id": "vjxm8gh8lgkdr6o",
@@ -281,23 +296,8 @@
       "score": 7.19,
       "star": 3,
       "recentRating": 7.1,
-      "avgRating": 6.92,
-      "games": 2
-    },
-    {
-      "id": "3glrw7hj6dyjqdy",
-      "name": "Matthew Freese",
-      "nameKo": "매튜 프리스",
-      "hasMv": false,
-      "pos": "G",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/98bf1d227ed26160d0f7596db179d142.png",
-      "score": 7.17,
-      "star": 3,
-      "recentRating": 5.83,
-      "avgRating": 6.5,
-      "games": 2
+      "avgRating": 7.1,
+      "games": 1
     }
   ],
   "complete": true
