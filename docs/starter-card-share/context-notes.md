@@ -33,6 +33,19 @@
 - 사진 — KBO 네이버 CDN(`kboPhotoUrl`), MLB 공식(`mlbHeadshotUrl`), NPB 는 JSON 의 `photoUrl`.
 - AI 승률 — `Match.predHome/predAway` (선발 능력치 반영 모델).
 
+## 선수 사진 잘림 (2026-07-29 수정)
+
+MLB 헤드샷은 213×320 세로 사진이라 원형에 `cover` 로 꽉 채우면 위아래가 잘린다.
+가운데 정렬이면 모자가, 위 정렬이면 턱이 잘려 어느 쪽으로도 머리 전체가 안 들어온다
+(원형 창 213px < 머리 높이 약 240px).
+
+→ **`contain` + 아래 기준 정렬**로 통일. 사진을 원 지름보다 작게 넣어 머리 전체를 담고,
+남는 좌우는 사진 배경(흰·연회색)과 비슷한 `slate-200`(#e2e8f0) 으로 채운다.
+카드(`PitcherAvatar`)와 OG 이미지 양쪽 같은 규칙. KBO(94×118)·NPB 처럼 덜 긴 사진도 그대로 통한다.
+
+satori 참고. `objectPosition` 은 먹지만 `overflow:hidden` 은 borderRadius 를 따라 자르지 않아
+(자식이 사각형으로 남는다) 원형 마스크는 `img` 자체의 borderRadius 로 해야 한다.
+
 ## 함정
 
 - 선발 미정(hs/as 가 null)인 경기가 흔하다. 이름·지표 모두 없을 수 있어 전부 optional 처리.

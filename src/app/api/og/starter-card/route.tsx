@@ -48,7 +48,9 @@ function Fallback() {
   );
 }
 
-/** 투수 얼굴 — 사진 없으면 이니셜 원형(페이지의 PitcherAvatar 와 같은 규칙). */
+/** 투수 얼굴 — 사진 없으면 이니셜 원형(페이지의 PitcherAvatar 와 같은 규칙).
+ *  MLB 헤드샷은 세로가 길어(213×320) 원형에 꽉 채우면 모자나 턱이 잘린다.
+ *  원 지름보다 조금 작게(88%) contain 으로 넣고 위 기준 정렬 — 머리 전체가 들어온다. */
 function Face({ src, name, accent }: { src: string | null; name: string; accent: string }) {
   const s = 140;
   return src ? (
@@ -56,7 +58,15 @@ function Face({ src, name, accent }: { src: string | null; name: string; accent:
       src={src}
       width={s}
       height={s}
-      style={{ width: s, height: s, borderRadius: 999, objectFit: "cover", border: `5px solid ${accent}` }}
+      style={{
+        width: s,
+        height: s,
+        borderRadius: 999,
+        objectFit: "contain",
+        objectPosition: "50% 100%",
+        background: "#e2e8f0",
+        border: `5px solid ${accent}`,
+      }}
     />
   ) : (
     <div

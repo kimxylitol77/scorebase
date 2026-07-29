@@ -33,7 +33,9 @@ export default function PitcherAvatar({
       width={size}
       height={size}
       onError={() => setErr(true)}
-      className="rounded-full object-cover object-top bg-neutral-100 dark:bg-neutral-800 ring-2 ring-white dark:ring-neutral-900 shadow"
+      // MLB 헤드샷(213×320)은 cover 로 채우면 모자·턱이 잘린다 → contain 으로 머리 전체를 담고
+      // 아래 기준 정렬. 남는 좌우는 사진 배경(흰·연회색)과 맞춘 slate-200 으로 채운다.
+      className="rounded-full object-contain object-bottom bg-slate-200 ring-2 ring-white dark:ring-neutral-900 shadow"
       style={{ width: size, height: size }}
     />
   );
