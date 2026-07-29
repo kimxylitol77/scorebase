@@ -8,6 +8,7 @@ import {
   BASKETBALL_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
+import NoVigCalculator from "@/components/odds/NoVigCalculator";
 import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
 
 export const dynamic = "force-dynamic";
@@ -230,6 +231,7 @@ export default async function OddsPage({
   return (
     <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
       <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} />
+      <NoVigCalculator defaultMode={cfg.hasDraw ? "three" : "two"} />
     </div>
   );
 }
