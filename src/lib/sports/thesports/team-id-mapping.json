@@ -14541,5 +14541,35 @@
     "tsName": "Alloa Athletic",
     "tsKo": "앨로아 애슬레틱",
     "matchType": "fixture-join"
+  },
+  {
+    "ourId": 598197,
+    "ourName": "Coventry",
+    "ourLeague": "EPL",
+    "ourExternalId": "1346",
+    "tsId": "kdj2ryoh30zq1zp",
+    "tsName": "Coventry City",
+    "tsKo": "코번트리 시티",
+    "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 610604,
+    "ourName": "Hull City",
+    "ourLeague": "EPL",
+    "ourExternalId": "322",
+    "tsId": "jednm9wh4d9ryox",
+    "tsName": "Hull City",
+    "tsKo": "헐 시티",
+    "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 610605,
+    "ourName": "Ipswich",
+    "ourLeague": "EPL",
+    "ourExternalId": "349",
+    "tsId": "j1l4rjnhpo5m7vx",
+    "tsName": "Ipswich Town",
+    "tsKo": "입스위치 타운",
+    "matchType": "manual-promoted-2026-27"
   }
 ]
