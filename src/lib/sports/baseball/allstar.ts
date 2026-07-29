@@ -1,7 +1,7 @@
-// 야구 올스타(이벤트) 팀·매치 판정 — 정규 리그 집계·표시에서 제외한다.
-// 소스가 올스타전을 정규 리그(KBO/MLB/NPB)로 내려주는 탓에 파워랭킹·순위표에
-// "Dream/Nanum"(KBO), "American/National All-Stars"(MLB), "Central/Pacific league"(NPB)
-// 같은 가짜 팀이 섞였다. 수집 단계에서 거르고, 표시 단계에서도 한 번 더 막는다.
+// 야구 올스타(이벤트) 팀 판정 — 순위표·파워랭킹·시즌 시뮬에서만 제외한다.
+// 소스가 올스타전을 정규 리그(KBO/MLB/NPB)로 내려줘 "Dream/Nanum"(KBO),
+// "American/National All-Stars"(MLB), "Central/Pacific league"(NPB) 가 정규팀처럼 섞였다.
+// 수집·라이브 스코어·일정에는 그대로 둔다 (실제로 열리는 경기라 스코어는 봐야 함).
 
 /** 소스가 주는 올스타 팀명 (정확 일치, 소문자 비교) */
 const ALLSTAR_TEAM_NAMES = new Set([
@@ -18,17 +18,8 @@ export function isBaseballAllStarTeam(name: string | null | undefined): boolean 
   return ALLSTAR_TEAM_NAMES.has(n) || /all[-\s]?stars?\b/.test(n) || n.includes("올스타");
 }
 
-/** 양팀 중 하나라도 올스타 팀이면 올스타 매치 */
-export function isBaseballAllStarMatch(m: {
-  homeTeam?: { name?: string | null };
-  awayTeam?: { name?: string | null };
-}): boolean {
-  return isBaseballAllStarTeam(m.homeTeam?.name) || isBaseballAllStarTeam(m.awayTeam?.name);
-}
-
 /**
- * 수집 차단 이전에 DB 에 만들어진 올스타 팀의 Team.id.
- * 이제 수집에서 걸러지므로 더 늘지 않는 고정 집합 — 기존 매치를 지우지 않고 표시에서만 제외한다.
+ * 올스타 팀의 Team.id. 소스 팀 id 가 매년 같아 우리 Team row 도 재사용되므로 고정 집합.
  * 610804/610805 = KBO 드림·나눔, 609698/609699 = MLB National·American All-Stars,
  * 611095/611096 = NPB 센트럴·퍼시픽.
  */
@@ -38,7 +29,7 @@ export const BASEBALL_ALLSTAR_TEAM_ID_LIST: readonly number[] = [
 
 export const BASEBALL_ALLSTAR_TEAM_IDS: ReadonlySet<number> = new Set(BASEBALL_ALLSTAR_TEAM_ID_LIST);
 
-/** 매치 한 건이 올스타전인가 (팀 id 기준 — 매치 목록 필터용) */
+/** 매치 한 건이 올스타전인가 (팀 id 기준 — 순위·전력 집계에서 빼는 용도) */
 export function isAllStarMatchRow(m: { homeTeamId: number; awayTeamId: number }): boolean {
   return BASEBALL_ALLSTAR_TEAM_IDS.has(m.homeTeamId) || BASEBALL_ALLSTAR_TEAM_IDS.has(m.awayTeamId);
 }

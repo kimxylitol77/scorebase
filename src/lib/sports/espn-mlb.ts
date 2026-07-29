@@ -6,7 +6,6 @@ import type {
   MatchStatus,
   NormalizedMatch,
 } from "./types";
-import { isBaseballAllStarMatch } from "./baseball/allstar";
 
 const BASE_URL = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb";
 
@@ -71,7 +70,7 @@ export async function fetchEspnMlbByDate(
   );
 
   const events = data?.events ?? [];
-  const normalized = events.map((e): NormalizedMatch => {
+  return events.map((e): NormalizedMatch => {
     const comp = e.competitions?.[0];
     const competitors = comp?.competitors ?? [];
     const homeC = competitors.find((c) => c.homeAway === "home");
@@ -104,8 +103,6 @@ export async function fetchEspnMlbByDate(
       raw: e,
     };
   });
-  // 올스타전(American vs National All-Stars)은 정규 리그 팀이 아니라 파워랭킹·순위를 오염시킨다 → 제외
-  return normalized.filter((m) => !isBaseballAllStarMatch(m));
 }
 
 export const mlbCollectorEspn: MatchCollector = {

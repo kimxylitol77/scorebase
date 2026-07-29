@@ -443,18 +443,16 @@ export default async function LeaguePredictions({ params }: Props) {
   const now = new Date();
   const horizonDays = isWorldCup ? 14 : 7;
   const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
-  const upcoming = (
-    await prisma.match.findMany({
-      where: {
-        league: upper,
-        status: "SCHEDULED",
-        startTime: { gte: now, lte: horizon },
-      },
-      include: { homeTeam: true, awayTeam: true },
-      orderBy: { startTime: "asc" },
-      take: 12,
-    })
-  ).filter((m) => !isAllStarMatchRow(m));
+  const upcoming = await prisma.match.findMany({
+    where: {
+      league: upper,
+      status: "SCHEDULED",
+      startTime: { gte: now, lte: horizon },
+    },
+    include: { homeTeam: true, awayTeam: true },
+    orderBy: { startTime: "asc" },
+    take: 12,
+  });
 
   // 최근 5경기 폼 (W/D/L) — 각 팀별. FINISHED 매치만, 최신 → 과거 정렬 후 5건 cut.
   // 표시는 과거 → 최신 (좌→우) 순으로 reverse.

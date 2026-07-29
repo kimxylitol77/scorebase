@@ -14,7 +14,6 @@ import {
   isApiBaseballEnabled,
   type ApiBaseballGame,
 } from "./api-baseball";
-import { isBaseballAllStarMatch } from "./baseball/allstar";
 
 const NPB_API_BASEBALL_ID = 2;
 
@@ -116,7 +115,6 @@ export const npbCollector: MatchCollector = {
       season,
       date,
     });
-    // 올스타전(센트럴 vs 퍼시픽)은 정규 리그 팀이 아니라 파워랭킹·순위를 오염시킨다 → 제외
-    return games.map(normalize).filter((m) => !isBaseballAllStarMatch(m));
+    return games.map(normalize);
   },
 };
