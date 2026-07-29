@@ -73,6 +73,7 @@ export default async function StartersPage() {
       <p className="mt-3 text-sm text-neutral-600 leading-relaxed break-keep dark:text-neutral-400">
         KBO · MLB · NPB 선발 맞대결 — <strong>ERA · WHIP · K/9</strong> 와 최근 3등판 폼, AI 승률까지 한눈에.
         선발 발표 시 자동 갱신됩니다. <span className="text-emerald-600 dark:text-emerald-400 font-semibold">초록</span> = 해당 지표 우위.
+        투수를 누르면 개인 카드로, 지표를 누르면 경기 상세로 이동합니다.
       </p>
 
       {days.map(({ date, label }) => {

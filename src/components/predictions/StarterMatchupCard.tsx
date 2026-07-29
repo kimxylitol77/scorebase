@@ -4,7 +4,7 @@ import Link from "next/link";
 import { toKoreanTeamName } from "@/lib/team-names";
 import PitcherAvatar from "@/components/predictions/PitcherAvatar";
 import ShareCardButton from "@/components/ShareCardButton";
-import { parseStarter, pitcherPhoto, fmtStat } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, type StarterJson } from "@/lib/predict/starter-card";
 import { PenSquare } from "lucide-react";
 
 export interface StarterMatch {
@@ -79,6 +79,44 @@ export function starterCardTitle(m: StarterMatch) {
   return `${left} vs ${right} — ${m.league} 선발 매치업`;
 }
 
+/** 투수 한 명 블록 — 이름이 있으면 개인 카드로 가는 링크, 선발 미정이면 그냥 표시. */
+function PitcherBlock({
+  matchId,
+  side,
+  league,
+  s,
+  teamName,
+}: {
+  matchId: number;
+  side: "home" | "away";
+  league: string;
+  s: StarterJson | null;
+  teamName: string;
+}) {
+  const body = (
+    <>
+      <PitcherAvatar src={pitcherPhoto(league, s)} name={s?.name ?? "?"} size={64} />
+      <div className="mt-1.5 w-full truncate text-[13px] font-bold leading-tight">{s?.name ?? "선발 미정"}</div>
+      <div className="w-full truncate text-[11px] text-neutral-500">
+        {teamName}{s?.wins != null ? ` · ${s.wins}승${s.losses ?? 0}패` : ""}
+      </div>
+    </>
+  );
+  if (!s?.name) {
+    return <div className="flex w-[42%] flex-col items-center text-center">{body}</div>;
+  }
+  return (
+    <Link
+      href={`/predictions/starters/${matchId}/${side}`}
+      prefetch={false}
+      className="flex w-[42%] flex-col items-center rounded-xl px-1 py-1 text-center transition-colors hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+    >
+      {body}
+      <span className="mt-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">개인 카드 ›</span>
+    </Link>
+  );
+}
+
 export default function StarterMatchupCard({ m }: { m: StarterMatch }) {
   const lg = m.league;
   const hs = parseStarter(m.homeStarter);
@@ -88,7 +126,7 @@ export default function StarterMatchupCard({ m }: { m: StarterMatch }) {
   const ph = m.predHome != null ? Math.round(m.predHome * 100) : null;
   const pa = m.predAway != null ? Math.round(m.predAway * 100) : null;
 
-  const inner = (
+  const statusBadge = (
     <>
       {/* 상태 뱃지 */}
       <div className="text-center mb-2.5">
@@ -106,26 +144,22 @@ export default function StarterMatchupCard({ m }: { m: StarterMatch }) {
           </span>
         )}
       </div>
-      {/* 투수 대면 헤더 — 사진 + 이름 + 승패 */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex flex-col items-center w-[42%] text-center">
-          <PitcherAvatar src={pitcherPhoto(lg, hs)} name={hs?.name ?? "?"} size={64} />
-          <div className="mt-1.5 text-[13px] font-bold leading-tight truncate w-full">{hs?.name ?? "선발 미정"}</div>
-          <div className="text-[11px] text-neutral-500 truncate w-full">
-            {hName}{hs?.wins != null ? ` · ${hs.wins}승${hs.losses ?? 0}패` : ""}
-          </div>
-        </div>
-        <div className="flex flex-col items-center pt-4 shrink-0">
-          <span className="text-base font-black text-neutral-300 dark:text-neutral-600">VS</span>
-        </div>
-        <div className="flex flex-col items-center w-[42%] text-center">
-          <PitcherAvatar src={pitcherPhoto(lg, as)} name={as?.name ?? "?"} size={64} />
-          <div className="mt-1.5 text-[13px] font-bold leading-tight truncate w-full">{as?.name ?? "선발 미정"}</div>
-          <div className="text-[11px] text-neutral-500 truncate w-full">
-            {aName}{as?.wins != null ? ` · ${as.wins}승${as.losses ?? 0}패` : ""}
-          </div>
-        </div>
+    </>
+  );
+
+  // 투수 대면 헤더 — 각 투수는 개인 카드 링크 (앵커 중첩 방지로 매치 링크 바깥)
+  const pitchers = (
+    <div className="mb-3 flex items-start justify-between">
+      <PitcherBlock matchId={m.id} side="home" league={lg} s={hs} teamName={hName} />
+      <div className="flex shrink-0 flex-col items-center pt-4">
+        <span className="text-base font-black text-neutral-300 dark:text-neutral-600">VS</span>
       </div>
+      <PitcherBlock matchId={m.id} side="away" league={lg} s={as} teamName={aName} />
+    </div>
+  );
+
+  const matchBody = (
+    <>
       {/* AI 승률 게이지 */}
       {ph != null && pa != null && (
         <div className="mb-2.5">
@@ -159,12 +193,14 @@ export default function StarterMatchupCard({ m }: { m: StarterMatch }) {
 
   return (
     <div className="group rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] p-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-emerald-400/50 hover:shadow-[0_28px_70px_-30px_rgba(15,23,30,0.28)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06] dark:hover:ring-emerald-500/40">
+      {statusBadge}
+      {pitchers}
       {m.externalId ? (
         <Link href={`/live/${lg}/${m.externalId}`} prefetch={false} className="block">
-          {inner}
+          {matchBody}
         </Link>
       ) : (
-        inner
+        matchBody
       )}
       {/* 공유 액션 — 링크 바깥(앵커 중첩 금지) */}
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-black/5 pt-3 dark:border-white/10">
