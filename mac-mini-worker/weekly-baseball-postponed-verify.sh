@@ -26,8 +26,13 @@ git fetch origin main -q && git reset --hard origin/main -q
 npx tsx scripts/verify-baseball-postponed-ts.ts --apply 2>&1 | tee "$LOGF" | tail -20
 
 # 실제로 데이터를 바꿨을 때만 알린다 (0건이면 조용히).
-FIXED=$(grep -o 'SCHEDULED 정정 [0-9]* 건 적용\|SCHEDULED 정정 [0-9]*건 적용' "$LOGF" \
-  | grep -o '[0-9]*' | awk '{s+=$1} END {print s+0}')
+# ⚠️ grep 파이프로 세지 말 것 — 정정 0건(평상시)이면 grep 이 exit 1 을 내고
+#    set -e + pipefail 이 그걸 잡아 스크립트가 죽는다. 매주 실패로 기록되고
+#    heartbeat 가 ok:false 를 쏜다 (2026-07-29 첫 실행에서 실측, exit 1).
+#    awk 는 매치가 없어도 exit 0 이라 안전하다.
+FIXED=$(awk 'match($0, /SCHEDULED 정정 [0-9]+건 적용/) {
+    n=$0; sub(/.*SCHEDULED 정정 /,"",n); sub(/건 적용.*/,"",n); s+=n
+  } END { print s+0 }' "$LOGF")
 if [ "${FIXED:-0}" -gt 0 ]; then
   set -a; . .env.local; set +a
   BODY=$(grep -E '^===|ts Not Started|정정' "$LOGF" | head -20)
