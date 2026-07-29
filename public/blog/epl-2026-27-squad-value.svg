@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif">
+  <defs>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0891b2"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="700" fill="#0b1220"/>
+  <text x="60" y="72" fill="#ffffff" font-size="38" font-weight="800">2026-27 EPL 스쿼드 시장가치 TOP 10</text>
+  <text x="60" y="110" fill="#94a3b8" font-size="20">단위 백만 유로(€M) · 스코어베이스 선수 시장가치 DB 합산 (2026년 7월 기준)</text>
+  <line x1="60" y1="132" x2="1140" y2="132" stroke="#1f3350" stroke-width="2"/>
+
+  <g font-size="21">
+    <g transform="translate(0,168)">
+      <text x="60" y="20" fill="#e2e8f0" font-weight="700">맨체스터 시티</text>
+      <rect x="330" y="0" width="700" height="28" rx="6" fill="url(#bar)"/>
+      <text x="1046" y="21" fill="#22d3ee" font-weight="700">1,327</text>
+    </g>
+    <g transform="translate(0,216)">
+      <text x="60" y="20" fill="#e2e8f0" font-weight="700">아스널</text>
+      <rect x="330" y="0" width="690" height="28" rx="6" fill="url(#bar)"/>
+      <text x="1036" y="21" fill="#22d3ee" font-weight="700">1,308</text>
+    </g>
+    <g transform="translate(0,264)">
+      <text x="60" y="20" fill="#e2e8f0" font-weight="700">첼시</text>
+      <rect x="330" y="0" width="597" height="28" rx="6" fill="url(#bar)"/>
+      <text x="943" y="21" fill="#22d3ee" font-weight="700">1,132</text>
+    </g>
+    <g transform="translate(0,312)">
+      <text x="60" y="20" fill="#e2e8f0" font-weight="700">리버풀</text>
+      <rect x="330" y="0" width="527" height="28" rx="6" fill="url(#bar)"/>
+      <text x="873" y="21" fill="#22d3ee" font-weight="700">1,000</text>
+    </g>
+    <g transform="translate(0,360)">
+      <text x="60" y="20" fill="#cbd5e1">맨체스터 유나이티드</text>
+      <rect x="330" y="0" width="453" height="28" rx="6" fill="#155e75"/>
+      <text x="799" y="21" fill="#67e8f9">860</text>
+    </g>
+    <g transform="translate(0,408)">
+      <text x="60" y="20" fill="#cbd5e1">뉴캐슬 유나이티드</text>
+      <rect x="330" y="0" width="425" height="28" rx="6" fill="#155e75"/>
+      <text x="771" y="21" fill="#67e8f9">807</text>
+    </g>
+    <g transform="translate(0,456)">
+      <text x="60" y="20" fill="#cbd5e1">토트넘 홋스퍼</text>
+      <rect x="330" y="0" width="370" height="28" rx="6" fill="#155e75"/>
+      <text x="716" y="21" fill="#67e8f9">701</text>
+    </g>
+    <g transform="translate(0,504)">
+      <text x="60" y="20" fill="#cbd5e1">브라이턴</text>
+      <rect x="330" y="0" width="325" height="28" rx="6" fill="#155e75"/>
+      <text x="671" y="21" fill="#67e8f9">617</text>
+    </g>
+    <g transform="translate(0,552)">
+      <text x="60" y="20" fill="#cbd5e1">노팅엄 포레스트</text>
+      <rect x="330" y="0" width="311" height="28" rx="6" fill="#155e75"/>
+      <text x="657" y="21" fill="#67e8f9">590</text>
+    </g>
+    <g transform="translate(0,600)">
+      <text x="60" y="20" fill="#cbd5e1">크리스털 팰리스</text>
+      <rect x="330" y="0" width="308" height="28" rx="6" fill="#155e75"/>
+      <text x="654" y="21" fill="#67e8f9">584</text>
+    </g>
+  </g>
+  <text x="60" y="672" fill="#64748b" font-size="18">승격 3팀(코번트리·헐 시티·입스위치)은 시장가치 집계 대상에 아직 포함되지 않았습니다.</text>
+</svg>

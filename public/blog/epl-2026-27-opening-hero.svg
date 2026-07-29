@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#111c31"/>
+    </linearGradient>
+    <linearGradient id="cy" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g opacity="0.10" stroke="#22d3ee" stroke-width="2" fill="none">
+    <rect x="60" y="90" width="1080" height="450" rx="8"/>
+    <line x1="600" y1="90" x2="600" y2="540"/>
+    <circle cx="600" cy="315" r="86"/>
+    <rect x="60" y="205" width="120" height="220"/>
+    <rect x="1020" y="205" width="120" height="220"/>
+  </g>
+
+  <text x="600" y="118" text-anchor="middle" fill="#22d3ee" font-size="26" font-weight="700" letter-spacing="6">2026-27 PREMIER LEAGUE</text>
+  <text x="600" y="186" text-anchor="middle" fill="#ffffff" font-size="60" font-weight="800">EPL 개막 가이드</text>
+
+  <rect x="330" y="216" width="540" height="46" rx="23" fill="url(#cy)" opacity="0.16"/>
+  <text x="600" y="248" text-anchor="middle" fill="#67e8f9" font-size="25" font-weight="700">현지 8월 21일(금) · 한국시간 8월 22일 새벽 4시</text>
+
+  <g>
+    <rect x="120" y="308" width="420" height="150" rx="16" fill="#0f1b2e" stroke="#1f3350"/>
+    <text x="330" y="352" text-anchor="middle" fill="#94a3b8" font-size="19">개막전 홈</text>
+    <text x="330" y="404" text-anchor="middle" fill="#ffffff" font-size="42" font-weight="800">아스널</text>
+    <text x="330" y="436" text-anchor="middle" fill="#64748b" font-size="17">에미레이츠 스타디움</text>
+  </g>
+  <text x="600" y="398" text-anchor="middle" fill="#22d3ee" font-size="40" font-weight="800">VS</text>
+  <g>
+    <rect x="660" y="308" width="420" height="150" rx="16" fill="#0f1b2e" stroke="#1f3350"/>
+    <text x="870" y="352" text-anchor="middle" fill="#94a3b8" font-size="19">승격팀 · 25년 만의 복귀</text>
+    <text x="870" y="404" text-anchor="middle" fill="#ffffff" font-size="42" font-weight="800">코번트리 시티</text>
+    <text x="870" y="436" text-anchor="middle" fill="#64748b" font-size="17">2026-27 챔피언십 우승</text>
+  </g>
+
+  <g fill="#94a3b8" font-size="21">
+    <text x="180" y="512">380경기</text>
+    <text x="470" y="512">20팀</text>
+    <text x="700" y="512">최종전 2027-05-30</text>
+    <text x="1020" y="512" fill="#22d3ee" font-weight="700">scorebase.kr</text>
+  </g>
+  <line x1="120" y1="486" x2="1080" y2="486" stroke="#1f3350" stroke-width="2"/>
+</svg>
