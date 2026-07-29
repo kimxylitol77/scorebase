@@ -1,6 +1,7 @@
 // KBO 팀 간 상대전적 매트릭스 — DB Match(FINISHED) 직접 집계.
 // KBO 는 연장 12회 무승부 제도 → 승-무-패 3값. 시즌 범위는 3/1~ (시범경기는 collect 미수집 전제).
 import { prisma } from "@/lib/db";
+import { BASEBALL_ALLSTAR_TEAM_ID_LIST } from "@/lib/sports/baseball/allstar";
 
 export interface H2HCell {
   w: number;
@@ -22,6 +23,9 @@ export async function getBaseballH2H(league = "KBO", seasonStart = "2026-03-01")
       league: league as never,
       status: "FINISHED",
       startTime: { gte: new Date(`${seasonStart}T00:00:00+09:00`) },
+      // 올스타전은 정규 맞대결이 아니라 매트릭스에 행·열을 만들면 안 됨
+      homeTeamId: { notIn: [...BASEBALL_ALLSTAR_TEAM_ID_LIST] },
+      awayTeamId: { notIn: [...BASEBALL_ALLSTAR_TEAM_ID_LIST] },
     },
     select: {
       homeScore: true,

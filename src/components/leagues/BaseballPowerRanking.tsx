@@ -8,6 +8,7 @@ import { calcEloTable, STARTING_ELO } from "@/lib/predict/elo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { isAllStarMatchRow, isBaseballAllStarTeam } from "@/lib/sports/baseball/allstar";
 import TeamBadge from "@/components/TeamBadge";
 
 const matchSelect = {
@@ -69,7 +70,8 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
       select: matchSelect,
     });
   }
-  const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
+  // 올스타전은 정규 전력이 아니라 Elo·전적을 오염시킨다 → 집계 자체에서 제외
+  const matches: PredictMatch[] = dbMatches.filter((m) => !isAllStarMatchRow(m)).map((m) => ({ ...m }));
 
   const elo = calcEloTable(matches);
   if (elo.ratings.size < 2) {
@@ -128,8 +130,8 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
         form: (a?.form ?? []).slice(-5).map((f) => f.r),
       };
     })
-    // 정규팀만 — 올스타/친선 제외
-    .filter((r) => r.played > 0 && !/all.?star|올스타/i.test(nameById.get(r.teamId) ?? ""))
+    // 정규팀만 — 올스타/친선 제외 (수집에서 걸러도 과거 데이터 방어용으로 유지)
+    .filter((r) => r.played > 0 && !isBaseballAllStarTeam(nameById.get(r.teamId)))
     .sort((a, b) => b.elo - a.elo)
     .map((r, i) => ({ ...r, rank: i + 1 }));
 

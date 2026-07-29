@@ -11,6 +11,7 @@ import { getFullStandings, type StandingsRow } from "@/lib/sports/thesports/stan
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { fetchNhlStandings, type NhlStandingRow } from "@/lib/sports/nhl-api";
 import { calcStandings } from "@/lib/predict/standings";
+import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { koTeamNameToEnglish } from "@/lib/team-names";
@@ -167,19 +168,21 @@ async function fetchBaseballRows(upper: string): Promise<StandingsRow[]> {
   }
   const cached = await getFullStandings(upper).catch(() => [] as StandingsRow[]);
   if (cached.length > 0) return cached;
-  const allMatches = await prisma.match.findMany({
-    where: { league: upper },
-    select: {
-      id: true,
-      league: true,
-      status: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-    },
-  });
+  const allMatches = (
+    await prisma.match.findMany({
+      where: { league: upper },
+      select: {
+        id: true,
+        league: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+      },
+    })
+  ).filter((m) => !isAllStarMatchRow(m)); // 올스타전 제외
   const seasonStart = currentSeasonStart(upper);
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
   if (seasonStart && matches.filter((m) => m.status === "FINISHED").length < 10) {

@@ -12,6 +12,7 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
 import UclBracket from "@/components/UclBracket";
@@ -365,6 +366,8 @@ export default async function LeaguePredictions({ params }: Props) {
       select: matchSelect,
     });
   }
+  // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽)은 정규 팀이 아니라 시뮬·순위를 오염시킨다
+  dbMatches = dbMatches.filter((m) => !isAllStarMatchRow(m));
   // NBA — 정규 30팀만 화이트리스트 (DB 에 친선·올스타·국제 팀 9개 섞여 있어 시뮬 노이즈 제거)
   const NBA_REGULAR_30 = new Set([
     "TOR","MIA","NY","CHI","BKN","IND","BOS","HOU","PHI","GS",
@@ -440,16 +443,18 @@ export default async function LeaguePredictions({ params }: Props) {
   const now = new Date();
   const horizonDays = isWorldCup ? 14 : 7;
   const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
-  const upcoming = await prisma.match.findMany({
-    where: {
-      league: upper,
-      status: "SCHEDULED",
-      startTime: { gte: now, lte: horizon },
-    },
-    include: { homeTeam: true, awayTeam: true },
-    orderBy: { startTime: "asc" },
-    take: 12,
-  });
+  const upcoming = (
+    await prisma.match.findMany({
+      where: {
+        league: upper,
+        status: "SCHEDULED",
+        startTime: { gte: now, lte: horizon },
+      },
+      include: { homeTeam: true, awayTeam: true },
+      orderBy: { startTime: "asc" },
+      take: 12,
+    })
+  ).filter((m) => !isAllStarMatchRow(m));
 
   // 최근 5경기 폼 (W/D/L) — 각 팀별. FINISHED 매치만, 최신 → 과거 정렬 후 5건 cut.
   // 표시는 과거 → 최신 (좌→우) 순으로 reverse.

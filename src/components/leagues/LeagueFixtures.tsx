@@ -5,6 +5,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import { SOCCER_LEAGUES, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
 import TeamBadge from "@/components/TeamBadge";
+import { BASEBALL_ALLSTAR_TEAM_ID_LIST } from "@/lib/sports/baseball/allstar";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -30,10 +31,15 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     homeTeam: { select: { name: true, logoUrl: true } },
     awayTeam: { select: { name: true, logoUrl: true } },
   } as const;
+  // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽)은 정규 일정이 아니라 제외
+  const notAllStar = {
+    homeTeamId: { notIn: [...BASEBALL_ALLSTAR_TEAM_ID_LIST] },
+    awayTeamId: { notIn: [...BASEBALL_ALLSTAR_TEAM_ID_LIST] },
+  };
   const [recent, upcoming] = await Promise.all([
-    prisma.match.findMany({ where: { league, status: "FINISHED" }, orderBy: { startTime: "desc" }, take: 18, select: sel }),
+    prisma.match.findMany({ where: { league, status: "FINISHED", ...notAllStar }, orderBy: { startTime: "desc" }, take: 18, select: sel }),
     prisma.match.findMany({
-      where: { league, status: { in: ["SCHEDULED", "LIVE"] }, startTime: { gte: new Date(now.getTime() - 86400_000) } },
+      where: { league, status: { in: ["SCHEDULED", "LIVE"] }, startTime: { gte: new Date(now.getTime() - 86400_000) }, ...notAllStar },
       orderBy: { startTime: "asc" },
       take: 18,
       select: sel,

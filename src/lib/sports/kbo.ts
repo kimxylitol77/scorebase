@@ -18,6 +18,7 @@ import {
   type ApiBaseballGame,
 } from "./api-baseball";
 import { fetchSeasonEvents, type TheSportsDBEvent } from "./thesportsdb";
+import { isBaseballAllStarMatch } from "./baseball/allstar";
 
 // api-sports baseball KBO 리그 ID — 실제 응답으로 확인 (id=5).
 // (id=55 는 "KBO Futures League" 2군 리그라 별도)
@@ -160,13 +161,15 @@ export const kboCollector: MatchCollector = {
         season,
         date,
       });
-      return games.map(normalizeFromApiBaseball);
+      // 올스타전(드림 vs 나눔)은 정규 리그 팀이 아니라 파워랭킹·순위를 오염시킨다 → 제외
+      return games.map(normalizeFromApiBaseball).filter((m) => !isBaseballAllStarMatch(m));
     }
 
     // 폴백: TheSportsDB (무료, 데이터 한정적)
     const all = await fetchSeasonEvents(KBO_THESPORTSDB_ID, String(season));
     return all
       .filter((e) => e.dateEvent === date)
-      .map(normalizeFromTheSportsDB);
+      .map(normalizeFromTheSportsDB)
+      .filter((m) => !isBaseballAllStarMatch(m));
   },
 };

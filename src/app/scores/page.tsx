@@ -27,6 +27,7 @@ import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { calcStandings } from "@/lib/predict/standings";
+import { BASEBALL_ALLSTAR_TEAM_ID_LIST } from "@/lib/sports/baseball/allstar";
 import { currentSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
@@ -564,6 +565,9 @@ export default async function ScoresPage({ searchParams }: Props) {
           {
             NOT: { status: "FINISHED", startTime: { lt: day } },
           },
+          // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽) — 정규 팀이 아니라 제외
+          { homeTeamId: { notIn: [...BASEBALL_ALLSTAR_TEAM_ID_LIST] } },
+          { awayTeamId: { notIn: [...BASEBALL_ALLSTAR_TEAM_ID_LIST] } },
         ],
         // 축구 + 하키는 ±1일 윈도우(soccerWindow), 그 외 종목은 선택 일자만(dayWindow).
         // 하키(IIHF_WC 등)는 KST 자정 직전(23:20) 시작해 자정을 넘겨 진행하는 경기가

@@ -14,6 +14,7 @@ import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import { getTeamGroup } from "@/lib/predict/world-cup-elos";
 import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
@@ -250,19 +251,21 @@ export default async function StandingsPage({ params }: Props) {
   // 시즌 매치 (recent form dots 용 + fallback 계산용) — 현재 시즌만.
   // 지난 시즌을 접어 롤오버 자동화 + 중복/구시즌 매치가 순위에 합산되는 것 방지
   // (NBA 는 시즌 필드가 없어 startTime 경계로만 구분. season-window 는 리그별 자동).
-  const allMatches = await prisma.match.findMany({
-    where: { league: upper },
-    select: {
-      id: true,
-      league: true,
-      status: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-    },
-  });
+  const allMatches = (
+    await prisma.match.findMany({
+      where: { league: upper },
+      select: {
+        id: true,
+        league: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+      },
+    })
+  ).filter((m) => !isAllStarMatchRow(m)); // 야구 올스타전은 정규 순위에 섞이면 안 됨
   const seasonStart = currentSeasonStart(upper);
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
   // 오프시즌 등으로 현재 시즌 완료 매치가 너무 적으면 직전 시즌 창으로 폴백 (predictions 와 동일).
