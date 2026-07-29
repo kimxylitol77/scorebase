@@ -859,26 +859,6 @@ export async function runPreview(opts?: {
         }
       }
 
-      const prompt =
-        m.league === "LOL"
-          ? buildLolPreviewPrompt({ match: normalized, context })
-          : buildPreviewPrompt({ match: normalized, context });
-      const content = await generateWithMinLength(prompt, {
-        system: SYSTEM_PROMPT,
-        maxTokens: 4096,
-        temperature: 0.6,
-        label: `preview ${m.league}#${m.id}`,
-      });
-      if (!content) continue; // 길이 미달 — DB INSERT 스킵
-
-      const rawTitle = extractTitle(content);
-      const prefix = titleDatePrefixKST(m.startTime);
-      // [M/D] 패턴 prefix 가 이미 있으면 OK, 그 외 [...] 형태로 시작해도 prefix 강제 추가.
-      const title = /^\[\d{1,2}\/\d{1,2}\]/.test(rawTitle)
-        ? rawTitle
-        : `${prefix} ${rawTitle}`;
-      const slug = buildSlug(m.league, m.id);
-
       // 적중률 추적용 — 글 작성 시점의 추정 승률을 그대로 저장.
       // 풀엔진(predictMatchById) 성공 시 그 값이 이미 context.winProb 에 반영됨 (선발
       // 보정 포함). 엔진 실패 fallback 에서만 기존 선발 수동 보정 적용.
@@ -905,6 +885,49 @@ export async function runPreview(opts?: {
             ? "AWAY"
             : "DRAW"
         : null;
+
+      // 픽 저장을 글 생성보다 먼저 한다 (2026-07-29). 예전엔 본문 생성 뒤에 있어서, 본문이
+      // 최소 길이에 못 미쳐 글을 버리면(generateWithMinLength → null) 예측까지 같이 날아갔다.
+      // 그 결과 /scores 매치 카드·오늘의 픽 스레드·적중률에 픽이 "-" 로 남았다 (MLB 실측:
+      // 7/29 탬파베이·세인트루이스·에인절스·다저스 4경기). 글 품질 게이트가 예측 데이터까지
+      // 떨어뜨리면 안 된다 — 글은 못 내도 픽은 남긴다.
+      // Match.predHome/Draw/Away 는 /value-bets, /scores 등 SSR 이 직접 참조한다.
+      if (wp) {
+        await prisma.match
+          .update({
+            where: { id: m.id },
+            data: {
+              predHome: wp.home,
+              predDraw: wp.draw,
+              predAway: wp.away,
+              predWinner: predictedWinner,
+            },
+          })
+          .catch((e) => {
+            console.warn(`[preview] Match predict update fail m#${m.id}: ${(e as Error).message}`);
+          });
+      }
+
+      const prompt =
+        m.league === "LOL"
+          ? buildLolPreviewPrompt({ match: normalized, context })
+          : buildPreviewPrompt({ match: normalized, context });
+      const content = await generateWithMinLength(prompt, {
+        system: SYSTEM_PROMPT,
+        maxTokens: 4096,
+        temperature: 0.6,
+        label: `preview ${m.league}#${m.id}`,
+      });
+      // 길이 미달 — 글만 스킵. 픽은 위에서 이미 저장돼 남는다.
+      if (!content) continue;
+
+      const rawTitle = extractTitle(content);
+      const prefix = titleDatePrefixKST(m.startTime);
+      // [M/D] 패턴 prefix 가 이미 있으면 OK, 그 외 [...] 형태로 시작해도 prefix 강제 추가.
+      const title = /^\[\d{1,2}\/\d{1,2}\]/.test(rawTitle)
+        ? rawTitle
+        : `${prefix} ${rawTitle}`;
+      const slug = buildSlug(m.league, m.id);
 
       // 야구(KBO/MLB/NPB) — InningScoreChart 렌더용 JSON 컨텍스트
       const baseballCtx =
@@ -938,26 +961,6 @@ export async function runPreview(opts?: {
           baseballContext: baseballCtx ? JSON.stringify(baseballCtx) : null,
         },
       });
-
-      // Match 의 predHome/Draw/Away 도 같이 update — /value-bets, /scores 등
-      // SSR 페이지가 Match.predHome 직접 참조 (Article 안 join 비용 X).
-      // 사용자 진단 (NPB 12554): Article PUBLISHED 였지만 Match.predHome=null
-      // → value-bets/Elo 비교 카드 안 보이는 원인.
-      if (wp) {
-        await prisma.match
-          .update({
-            where: { id: m.id },
-            data: {
-              predHome: wp.home,
-              predDraw: wp.draw,
-              predAway: wp.away,
-              predWinner: predictedWinner,
-            },
-          })
-          .catch((e) => {
-            console.warn(`[preview] Match predict update fail m#${m.id}: ${(e as Error).message}`);
-          });
-      }
 
       console.log(
         `[preview] ✅ #${article.id} ${m.league} ${m.homeTeam.name} vs ${m.awayTeam.name}: ${title}`,
