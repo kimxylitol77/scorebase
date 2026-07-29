@@ -14,6 +14,7 @@ import {
   isApiBaseballEnabled,
   type ApiBaseballGame,
 } from "./api-baseball";
+import { isFutureSourceCancel } from "./baseball-source-cancel";
 
 const NPB_API_BASEBALL_ID = 2;
 
@@ -72,9 +73,11 @@ function parseScore(v: number | string | null | undefined): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-function mapStatus(short: string): MatchStatus {
+// startTime 을 주면 미래 경기의 CANC 를 취소로 보지 않는다. (kbo.ts 와 동일)
+function mapStatus(short: string, startTime?: Date): MatchStatus {
   const s = (short ?? "").toUpperCase();
   if (s === "FT" || s === "AOT" || s === "CANC_FT") return "FINISHED";
+  if (isFutureSourceCancel(s, startTime)) return "SCHEDULED";
   // ABD(Abandoned)·SUSP(Suspended) 도 미성립/중단 경기 — POSTPONED 로. (kbo.ts 와 동일)
   if (s === "POST" || s === "CANC" || s === "ABD" || s === "SUSP") return "POSTPONED";
   if (s.startsWith("IN") || s === "LIVE" || s === "INPL" || s === "ITC") return "LIVE";
@@ -99,7 +102,7 @@ function normalize(g: ApiBaseballGame): NormalizedMatch {
     },
     homeScore,
     awayScore,
-    status: mapStatus(g.status.short),
+    status: mapStatus(g.status.short, new Date(g.date)),
     startTime: new Date(g.date),
     raw: g,
   };

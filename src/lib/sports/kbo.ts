@@ -18,6 +18,7 @@ import {
   type ApiBaseballGame,
 } from "./api-baseball";
 import { fetchSeasonEvents, type TheSportsDBEvent } from "./thesportsdb";
+import { isFutureSourceCancel } from "./baseball-source-cancel";
 
 // api-sports baseball KBO 리그 ID — 실제 응답으로 확인 (id=5).
 // (id=55 는 "KBO Futures League" 2군 리그라 별도)
@@ -60,9 +61,11 @@ function parseScore(v: number | string | null | undefined): number | undefined {
 }
 
 // === api-sports baseball status → 정규화 ===
-function mapApiBaseballStatus(short: string): MatchStatus {
+// startTime 을 주면 미래 경기의 CANC 를 취소로 보지 않는다 (아래 isFutureSourceCancel 참고).
+function mapApiBaseballStatus(short: string, startTime?: Date): MatchStatus {
   const s = (short ?? "").toUpperCase();
   if (s === "FT" || s === "AOT" || s === "CANC_FT") return "FINISHED";
+  if (isFutureSourceCancel(s, startTime)) return "SCHEDULED";
   // ABD(Abandoned)·SUSP(Suspended) 도 미성립/중단 경기 — 축구 collector 와 동일하게 POSTPONED.
   // 누락 시 fallback SCHEDULED 로 떨어져 진행 중 점수가 "예정" 으로 오표시됨.
   if (s === "POST" || s === "CANC" || s === "ABD" || s === "SUSP") return "POSTPONED";
@@ -110,7 +113,7 @@ function normalizeFromApiBaseball(g: ApiBaseballGame): NormalizedMatch {
     },
     homeScore,
     awayScore,
-    status: mapApiBaseballStatus(g.status.short),
+    status: mapApiBaseballStatus(g.status.short, new Date(g.date)),
     startTime: new Date(g.date),
     raw: g,
   };

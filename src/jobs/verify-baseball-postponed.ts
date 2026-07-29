@@ -6,15 +6,18 @@
 // 창 밖 미래 매치는 소스가 NS 로 정정돼도 몇 달간 갱신되지 않고 고착한다.
 // 그 결과 monte-carlo(SCHEDULED 만 시뮬)가 잔여 일정을 과소 계산해 순위 확률이 왜곡된다.
 //
-// 게이트 3중 — (1) DB status=POSTPONED (2) 킥오프가 미래 (3) 소스 현재 status=NS.
-// 실제 연기·취소(POST/CANC/ABD)는 소스가 그대로 주므로 건드리지 않는다.
+// 게이트 3중 — (1) DB status=POSTPONED (2) 킥오프가 미래 (3) 소스가 NS 이거나 CANC.
+// 미래 CANC 를 정정 대상에 넣는 근거는 baseball-source-cancel.ts 참고. 실제 연기 신호인
+// POST·ABD·SUSP 는 그대로 존중한다.
 //
-// ⚠️ 한계: 게이트 (3) 때문에 **소스가 계속 CANC 를 주는** 오분류는 여기서 영원히 못 잡는다.
-// 2026-07-29 NPB 9월 71건이 그 케이스였다(TheSports 는 71건 전부 Not Started, 과거 680경기
-// 중 실제 취소 0건). 그런 건은 1순위 소스 교차 대조가 필요 —
-// scripts/verify-baseball-postponed-ts.ts. TheSports 는 IP whitelist 라 Vercel 에서 못 돌리므로
-// 이 cron 이 아니라 맥미니·맥북에서 수동 실행한다.
+// 게이트 (3) 이 원래는 NS 만 봐서 **소스가 계속 CANC 를 주는** 오분류를 못 잡았다.
+// 2026-07-29 NPB 9월 71건이 그 케이스였고, 두 갈래로 각각 확인해 소스 오류로 확정했다 —
+// TheSports 교차 대조(71건 전부 Not Started·과거 680경기 중 실제 취소 0건)와 NPB 공식
+// 일정 대조(경기 수·팀·개시 시각 일치). 그래서 미래 CANC 를 게이트에 넣었다.
+// 1순위 소스로 한 번 더 확인하려면 scripts/verify-baseball-postponed-ts.ts — TheSports 는
+// IP whitelist 라 Vercel 에서 못 돌리므로 맥미니·맥북에서 실행한다.
 import { prisma } from "@/lib/db";
+import { isFutureSourceCancel } from "@/lib/sports/baseball-source-cancel";
 
 // api-sports baseball 리그 ID — src/lib/sports/{kbo,npb,mlb}.ts 의 상수와 동일
 const LEAGUE_ID: Record<string, number> = { KBO: 5, NPB: 2, MLB: 1 };
@@ -83,8 +86,10 @@ export async function runVerifyBaseballPostponed(opts?: {
     const kept: Record<string, number> = {};
     for (const m of postponed) {
       const src = byId.get(m.externalId);
-      if (src?.status.short === "NS") fixable.push(m.id);
-      else {
+      const short = src?.status.short;
+      if (short === "NS" || isFutureSourceCancel(short, m.startTime, now)) {
+        fixable.push(m.id);
+      } else {
         const k = src?.status.short ?? "(소스에 없음)";
         kept[k] = (kept[k] ?? 0) + 1;
       }
