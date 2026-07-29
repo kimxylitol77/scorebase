@@ -581,6 +581,13 @@
     "group": "detail"
   },
   {
+    "route": "/predictions/starters/[matchId]/[side]",
+    "desc": "선발 투수 1명 개인 카드 공유 페이지. 매치업 카드(../)의 투수 단위 버전. 카드별 og:image 로 카톡·스레드 미리보기가 그 투수 카드로 뜬다. 오늘·내일 한정 임시 카드라 색인은 막고(noindex) 공유 착지 페이지로만 쓴다.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/predictions/title-race",
     "desc": "전 리그 우승 경쟁 trackerboard. 각 리그의 1~3위 + 격차 + 잔여 경기 + Elo 예측 우승 확률 횡단 표시.",
     "inMenu": false,

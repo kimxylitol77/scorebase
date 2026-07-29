@@ -11,3 +11,12 @@
   - 단일: /predictions/starters/2470 (양창섭 vs 시라카와) 렌더 + og:image 절대 URL
   - OG: 2470 정상 · 선발 미정(2472) 이니셜 fallback · 없는 id 는 Scorebase fallback
   - 프리필: 본문 수치가 DB 실측과 일치 (ERA 3.73/5.77 · WHIP 1.31/1.66 · K/9 7.1/7.3 · 최근 1.62/9.28)
+
+## 2차 — 투수 개인 카드
+
+- [x] OG 이미지 `/api/og/pitcher-card?m={matchId}&s=home|away`
+- [x] 개인 카드 페이지 `/predictions/starters/[matchId]/[side]` (noindex, 카드별 og:image)
+- [x] 카드 컴포넌트 `components/predictions/PitcherSoloCard.tsx` (공유·게시판 액션 포함)
+- [x] 게시판 프리필 `?starter={id}&side=home|away` + 범용 공유(spath) 경로 인식
+- [x] 매치업 카드 페이지에서 투수별 개인 카드 링크
+- [x] 검증 — KBO·MLB OG 렌더, 잘못된 side 404, 선발 미정 404, 프리필 수치 DB 일치, tsc·eslint

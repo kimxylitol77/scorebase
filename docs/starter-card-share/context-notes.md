@@ -46,6 +46,17 @@ MLB 헤드샷은 213×320 세로 사진이라 원형에 `cover` 로 꽉 채우�
 satori 참고. `objectPosition` 은 먹지만 `overflow:hidden` 은 borderRadius 를 따라 자르지 않아
 (자식이 사각형으로 남는다) 원형 마스크는 `img` 자체의 borderRadius 로 해야 한다.
 
+## 투수 개인 카드 (2026-07-29 추가)
+
+- 라우트는 매치업 카드 아래에 `/{home|away}` 를 붙인 형태. 별도 선수 DB 없이
+  같은 `Match.homeStarter/awayStarter` JSON 을 쓰므로 수집 파이프라인 변경이 없다.
+- `side` 는 home/away 만 허용하고, 선발 미정(이름 없음)이면 404. 얇은 카드 페이지가
+  빈 상태로 색인되는 걸 막는다.
+- 게시판 프리필은 `?starter={id}&side={side}`. 범용 공유(spath)로 들어와도 경로에서
+  `(\d+)/(home|away)` 를 뽑아 같은 프리필이 나온다.
+- 목록 카드에는 개인 카드 버튼을 넣지 않았다 — 카드당 액션이 5개가 되어 번잡해진다.
+  진입은 매치업 카드 페이지의 "투수 개인 카드" 링크.
+
 ## 함정
 
 - 선발 미정(hs/as 가 null)인 경기가 흔하다. 이름·지표 모두 없을 수 있어 전부 optional 처리.

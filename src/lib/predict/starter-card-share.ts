@@ -69,3 +69,64 @@ export async function buildStarterShareText(
 
   return { title: `[선발 매치업] ${hName} vs ${aName}`, content: lines.join("\n") };
 }
+
+/** 투수 개인 카드 "게시판에 올리기" 프리필 — 카드 이미지 + 지표 표 + 카드 링크. */
+export async function buildPitcherShareText(
+  matchId: number,
+  side: "home" | "away",
+): Promise<{ title: string; content: string } | null> {
+  const m = await prisma.match
+    .findUnique({
+      where: { id: matchId },
+      select: {
+        id: true,
+        league: true,
+        startTime: true,
+        homeStarter: true,
+        awayStarter: true,
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } },
+      },
+    })
+    .catch(() => null);
+  if (!m) return null;
+
+  const s = parseStarter(side === "home" ? m.homeStarter : m.awayStarter);
+  if (!s?.name) return null;
+
+  const homeTeam = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
+  const awayTeam = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
+  const team = side === "home" ? homeTeam : awayTeam;
+  const opponent = side === "home" ? awayTeam : homeTeam;
+
+  const k = new Date(m.startTime.getTime() + 9 * 3600_000);
+  const when = `${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일 ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
+
+  const rows: Array<[string, number | undefined, number]> = [
+    ["ERA", s.era, 2],
+    ["WHIP", s.whip, 2],
+    ["K/9", s.k9, 1],
+    ["최근 3등판 ERA", s.recentEra, 2],
+  ];
+  const statRows = rows.filter(([, v]) => v != null).map(([label, v, d]) => `| ${label} | ${fmtStat(v, d)} |`);
+
+  const lines: string[] = [
+    `![${s.name} 선발 카드](/api/og/pitcher-card?m=${m.id}&s=${side})`,
+    "",
+    `**${m.league} · ${team} 선발 ${s.name}** — ${when} KST vs ${opponent}`,
+    "",
+  ];
+  if (s.wins != null) {
+    lines.push(`시즌 ${s.wins}승 ${s.losses ?? 0}패${s.ip ? ` · ${s.ip}이닝` : ""}`, "");
+  }
+  if (statRows.length > 0) {
+    lines.push("| 지표 | 기록 |", "| --- | --- |", ...statRows, "");
+  }
+  lines.push(
+    "통계 모델 기반 참고용 정보이며, 과거 성적이 미래 결과를 보장하지 않습니다.",
+    "",
+    `카드 원본 → https://www.scorebase.kr/predictions/starters/${m.id}/${side}`,
+  );
+
+  return { title: `[선발 카드] ${s.name} (${team})`, content: lines.join("\n") };
+}
