@@ -1,10 +1,16 @@
-// 리그 일정·결과 — 리그 페이지 "일정" 탭 콘텐츠. 최근 10일 + 향후 14일 매치를 날짜별로.
+// 리그 일정·결과 — 리그 페이지 "일정" 탭 콘텐츠.
+// 라운드를 읽을 수 있는 리그(빅5 등)는 시즌 전체를 라운드별로 보여주고(LeagueFixturesView),
+// 라운드 정보가 없는 리그(MLS·컵 등)는 기존대로 최근 결과 + 다음 일정 목록으로 보여준다.
+// 어느 경로든 크로스소스 중복 매치는 dedupeFixtures 로 접어 카드가 두 장 뜨는 것을 막는다.
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import { SOCCER_LEAGUES, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
+import { currentSeasonStart } from "@/lib/predict/season-window";
+import { parseRound, dedupeFixtures, hasUsableRounds } from "@/lib/sports/fixture-rounds";
 import TeamBadge from "@/components/TeamBadge";
+import LeagueFixturesView, { FRIENDLY_KEY, type FixtureRow } from "./LeagueFixturesView";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -17,61 +23,170 @@ function kstParts(d: Date) {
   };
 }
 
+const sel = {
+  id: true,
+  externalId: true,
+  startTime: true,
+  status: true,
+  homeScore: true,
+  awayScore: true,
+  homeTeamId: true,
+  awayTeamId: true,
+  raw: true,
+  homeTeam: { select: { name: true, logoUrl: true } },
+  awayTeam: { select: { name: true, logoUrl: true } },
+} as const;
+
+type MatchRow = {
+  id: number;
+  externalId: string;
+  startTime: Date;
+  status: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  homeTeamId: number;
+  awayTeamId: number;
+  raw: string | null;
+  homeTeam: { name: string; logoUrl: string | null };
+  awayTeam: { name: string; logoUrl: string | null };
+};
+
+type Prepared = MatchRow & { round: number | null; isApiFootball: boolean; isFriendly: boolean };
+
+/** raw 파싱 + 친선 표시를 붙인다. dedupeFixtures 입력 형태. */
+function prepare(rows: MatchRow[], isFriendly: boolean): Prepared[] {
+  return rows.map((m) => ({
+    ...m,
+    round: isFriendly ? null : parseRound(m.raw),
+    // af 원본은 최상위가 {"fixture":{...}} — 다른 소스 raw 안에 우연히 섞인 "fixture" 를
+    // 잡지 않도록 시작 위치로 판별한다(fd 는 {"area":…}, ESPN 은 {"id":"4018…"}).
+    isApiFootball: !!m.raw && /^\s*\{\s*"fixture"\s*:/.test(m.raw),
+    isFriendly,
+  }));
+}
+
 export default async function LeagueFixtures({ league }: { league: string }) {
   const now = new Date();
-  // 타이트한 날짜창 대신 "최근 결과 + 다음 일정" — 시즌 사이·휴식기에도 유용하게.
-  const sel = {
-    id: true,
-    externalId: true,
-    startTime: true,
-    status: true,
-    homeScore: true,
-    awayScore: true,
-    homeTeam: { select: { name: true, logoUrl: true } },
-    awayTeam: { select: { name: true, logoUrl: true } },
-  } as const;
-  const [recent, upcoming] = await Promise.all([
-    prisma.match.findMany({ where: { league, status: "FINISHED" }, orderBy: { startTime: "desc" }, take: 18, select: sel }),
-    prisma.match.findMany({
-      where: { league, status: { in: ["SCHEDULED", "LIVE"] }, startTime: { gte: new Date(now.getTime() - 86400_000) } },
-      orderBy: { startTime: "asc" },
-      take: 18,
-      select: sel,
-    }),
-  ]);
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
-
   // 프리시즌 클럽 친선 — 이 리그 소속 팀이 뛰는 CLUB_FRIENDLY 매치(친선은 팀이 도메스틱 리그 행 유지 →
   // 팀 id 조인). 클럽 소프트리그에만 노출(국가대항·친선 리그 자체 제외).
   const isClubSoccer =
     SOCCER_LEAGUES.has(league) && !NATIONAL_TEAM_LEAGUES.has(league) && league !== "CLUB_FRIENDLY";
-  let friendlies: typeof recent = [];
-  if (isClubSoccer) {
+
+  const loadFriendlies = async (since: Date) => {
+    if (!isClubSoccer) return [];
     const teamIds = (
       await prisma.team.findMany({ where: { league }, select: { id: true } })
     ).map((t) => t.id);
-    if (teamIds.length) {
-      friendlies = await prisma.match.findMany({
-        where: {
-          league: "CLUB_FRIENDLY",
-          startTime: { gte: new Date(now.getTime() - 3 * 86400_000) },
-          OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
-        },
+    if (!teamIds.length) return [];
+    return prisma.match.findMany({
+      where: {
+        league: "CLUB_FRIENDLY",
+        startTime: { gte: since },
+        OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
+      },
+      orderBy: { startTime: "asc" },
+      select: sel,
+    });
+  };
+
+  // ── 라운드 경로 — 시즌 전체를 한 번에 읽어 라운드별로 나눈다.
+  const seasonStart = currentSeasonStart(league);
+  if (seasonStart) {
+    const [seasonMatches, friendlyMatches] = await Promise.all([
+      prisma.match.findMany({
+        where: { league, startTime: { gte: seasonStart } },
         orderBy: { startTime: "asc" },
-        take: 12,
         select: sel,
+      }),
+      loadFriendlies(seasonStart),
+    ]);
+    const regular = dedupeFixtures(prepare(seasonMatches, false));
+    if (hasUsableRounds(regular)) {
+      const friendlies = dedupeFixtures(prepare(friendlyMatches, true));
+      const all = [...friendlies, ...regular].sort(
+        (a, b) => a.startTime.getTime() - b.startTime.getTime(),
+      );
+      const rows: FixtureRow[] = all.map((m) => {
+        const h = toKoreanTeamName(m.homeTeam.name, league);
+        const a = toKoreanTeamName(m.awayTeam.name, league);
+        return {
+          id: m.id,
+          externalId: m.externalId,
+          startTime: m.startTime.toISOString(),
+          status: m.status,
+          homeScore: m.homeScore,
+          awayScore: m.awayScore,
+          round: m.isFriendly ? FRIENDLY_KEY : m.round,
+          homeTeamId: m.homeTeamId,
+          awayTeamId: m.awayTeamId,
+          homeName: h,
+          awayName: a,
+          homeFlag: showFlag ? fifaFlag(m.homeTeam.name, h) : "",
+          awayFlag: showFlag ? fifaFlag(m.awayTeam.name, a) : "",
+          homeLogo: showFlag ? null : m.homeTeam.logoUrl,
+          awayLogo: showFlag ? null : m.awayTeam.logoUrl,
+          isFriendly: m.isFriendly,
+        };
       });
+
+      const rounds = [...new Set(rows.map((r) => r.round ?? FRIENDLY_KEY))].sort((x, y) => x - y);
+      // 기본 선택 = 아직 안 끝난 가장 이른 "정규" 경기의 라운드. 프리시즌 친선은 명시적으로 골라야
+      // 보이게 둔다 — 개막 직전에 일정 탭을 열면 보고 싶은 건 개막 라운드다.
+      const next = regular.find((m) => m.status !== "FINISHED" && m.startTime >= now);
+      const lastRegular = rounds.filter((r) => r !== FRIENDLY_KEY).pop();
+      const initialRound = next?.round ?? lastRegular ?? FRIENDLY_KEY;
+
+      // 팀 필터 목록 — 이 시즌 정규 일정에 실제로 등장하는 팀만.
+      const teamMap = new Map<number, string>();
+      for (const m of regular) {
+        teamMap.set(m.homeTeamId, toKoreanTeamName(m.homeTeam.name, league));
+        teamMap.set(m.awayTeamId, toKoreanTeamName(m.awayTeam.name, league));
+      }
+      const teams = [...teamMap.entries()]
+        .map(([id, name]) => ({ id, name }))
+        .sort((x, y) => x.name.localeCompare(y.name, "ko"));
+
+      return (
+        <LeagueFixturesView
+          league={league}
+          rows={rows}
+          rounds={rounds}
+          initialRound={initialRound}
+          teams={teams}
+        />
+      );
     }
   }
 
-  // 다가오는 경기(이번 시즌 정규 일정 + 프리시즌 친선) = 메인, 가까운 순. 친선은 isFriendly 로 배지.
-  type Row = (typeof recent)[number] & { isFriendly: boolean };
-  const upcomingRows: Row[] = [
-    ...upcoming.map((m) => ({ ...m, isFriendly: false })),
-    ...friendlies.map((m) => ({ ...m, isFriendly: true })),
-  ].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  // ── 폴백 경로 — 라운드를 못 읽는 리그(MLS·컵 등). 최근 결과 + 다음 일정.
+  const [recent, upcoming, friendlyRows] = await Promise.all([
+    prisma.match.findMany({
+      where: { league, status: "FINISHED" },
+      orderBy: { startTime: "desc" },
+      take: 18,
+      select: sel,
+    }),
+    prisma.match.findMany({
+      where: {
+        league,
+        status: { in: ["SCHEDULED", "LIVE"] },
+        startTime: { gte: new Date(now.getTime() - 86400_000) },
+      },
+      orderBy: { startTime: "asc" },
+      take: 18,
+      select: sel,
+    }),
+    loadFriendlies(new Date(now.getTime() - 3 * 86400_000)),
+  ]);
+
+  type Row = Prepared;
+  const upcomingRows: Row[] = dedupeFixtures([
+    ...prepare(upcoming, false),
+    ...prepare(friendlyRows.slice(0, 12), true),
+  ]);
   // 지난 경기 결과 = 기본 접힘(<details>), 최신순.
-  const pastRows: Row[] = recent.map((m) => ({ ...m, isFriendly: false }));
+  const pastRows: Row[] = dedupeFixtures(prepare(recent, false)).reverse();
 
   if (upcomingRows.length === 0 && pastRows.length === 0) {
     return (
@@ -174,7 +289,7 @@ export default async function LeagueFixtures({ league }: { league: string }) {
           <div className="space-y-5 px-2 pb-3">{pastGroups.map(renderGroup)}</div>
         </details>
       )}
-      <p className="text-[11px] text-neutral-400">한국시간 · 다가오는 일정{friendlies.length > 0 ? " · 프리시즌 친선 포함" : ""}</p>
+      <p className="text-[11px] text-neutral-400">한국시간 · 다가오는 일정{friendlyRows.length > 0 ? " · 프리시즌 친선 포함" : ""}</p>
     </div>
   );
 }
