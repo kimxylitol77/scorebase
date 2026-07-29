@@ -9,6 +9,7 @@
 
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
+import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import { runMonteCarlo, type MonteCarloRow } from "./monte-carlo";
 import { currentSeasonStart, previousSeasonStart } from "./season-window";
 import type { PredictMatch } from "./types";
@@ -46,7 +47,11 @@ async function loadKboSeasonSim(): Promise<KboSeasonSim> {
     });
   }
 
-  const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
+  // 올스타전 제외 — 소스가 KBO 올스타(드림·나눔)를 정규 리그로 내려줘 정규팀처럼 섞인다.
+  // /predictions/[league] 와 같은 필터를 써야 두 페이지 값이 실제로 같아진다.
+  const matches: PredictMatch[] = dbMatches
+    .filter((m) => !isAllStarMatchRow(m))
+    .map((m) => ({ ...m }));
   const finished = matches.filter((m) => m.status === "FINISHED").length;
   const scheduled = matches.filter((m) => m.status === "SCHEDULED").length;
   if (finished < 20) return { rows: [], finished, scheduled };
