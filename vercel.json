@@ -317,6 +317,10 @@
       "schedule": "0 2 * * 1"
     },
     {
+      "path": "/api/cron/baseball-season-backfill",
+      "schedule": "45 2 * * 1"
+    },
+    {
       "path": "/api/cron/mlb-weekly-players",
       "schedule": "0 3 * * 1"
     },

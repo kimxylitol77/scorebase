@@ -33,6 +33,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "fetch-salaries", label: "선수 연봉", maxAgeH: 180 },
   { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
+  { name: "baseball-season-backfill", label: "야구 시즌 일정 백필", maxAgeH: 180 },
   { name: "indexnow", label: "IndexNow 색인", maxAgeH: 28 },
 ];
 
