@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { computeLastSeasonStandings } from "@/lib/sports/last-season-standings";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 // 리그별 진출권·강등 구역 (순위 1-indexed). 표준 시즌 기준 — 매 시즌 UEFA 계수 미세변동은 단순화.
@@ -160,12 +161,19 @@ export default async function LeagueStandingsTable({ league }: { league: string 
   }
 
   // 라이브(현재/지난 시즌) 표 rows.
-  const teamIds = [...new Set(live.map((r) => r.teamId))];
+  // 전환기에 외부 standings 캐시가 새 시즌으로 리셋되면 지난 시즌 승·무·패·승점이 전부 0 으로
+  // 날아간다(2026-07 EPL·라리가·세리에A·리그1 실측). 그 경우 DB 완료 매치로 최종 순위를 복원.
+  let base = live;
+  if (inTransition && live.every((r) => r.won + r.draw + r.loss === 0)) {
+    const restored = await computeLastSeasonStandings(league);
+    if (restored.length > 0) base = restored;
+  }
+  const teamIds = [...new Set(base.map((r) => r.teamId))];
   const teams = teamIds.length
     ? await prisma.team.findMany({ where: { id: { in: teamIds } }, select: { id: true, name: true, logoUrl: true } })
     : [];
   const teamMap = new Map(teams.map((t) => [t.id, t]));
-  const liveRows: DisplayRow[] = live
+  const liveRows: DisplayRow[] = base
     .map((r) => {
       const team = teamMap.get(r.teamId);
       const en = team?.name ?? `Team #${r.teamId}`;
