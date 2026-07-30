@@ -695,18 +695,26 @@ export default async function TransfersPage({
       };
   const transferTotal = isBigdeals || latestAll ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
   // ── 임박·루머 피드 (view=rumors) — TransferRumor 최근 7일 ──
-  const rumorRows = isRumors
-    ? await prisma.transferRumor.findMany({
-        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
-        // eslint-disable-next-line react-hooks/purity
-        where: { hidden: false, publishedAt: { gte: new Date(Date.now() - 7 * 86400 * 1000) } },
-        orderBy: { publishedAt: "desc" },
-        take: 100,
-      })
-    : [];
-  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : isRumors ? rumorRows.length : enriched.length;
+  // 전체 건수를 먼저 세고(페이지 수 확정) 해당 페이지만 조회한다. 최근 7일이 80건을 넘어
+  // 예전처럼 100건을 통째로 내리면 한 화면에 다 쏟아졌다.
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
+  const rumorSince = new Date(Date.now() - 7 * 86400 * 1000);
+  const rumorWhere = { hidden: false, publishedAt: { gte: rumorSince } };
+  const rumorTotal = isRumors ? await prisma.transferRumor.count({ where: rumorWhere }) : 0;
+  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : isRumors ? rumorTotal : enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const safePage = Math.min(page, totalPages);
+  const rumorRows = isRumors
+    ? await prisma.transferRumor.findMany({
+        where: rumorWhere,
+        // id 타이브레이커 필수 — 같은 publishedAt 행이 실제로 있어(수집 배치 동시각),
+        // 시각만으로 정렬하면 skip/take 경계에서 행이 두 페이지에 겹치거나 빠질 수 있다.
+        orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+        skip: (safePage - 1) * PER,
+        take: PER,
+      })
+    : [];
   inoutData = inoutData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
   squadsData = squadsData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
   const data = isFeed || isInout || isSquads ? [] : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
@@ -1621,7 +1629,7 @@ export default async function TransfersPage({
       )}
 
       {/* 페이지네이션 */}
-      {!isRumors && totalPages > 1 && (
+      {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
           {safePage > 1 && (
             <Link href={pageUrl(safePage - 1)} className="px-3.5 py-1.5 rounded-full text-sm ring-1 ring-black/10 dark:ring-white/15 text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10">‹</Link>
@@ -1648,7 +1656,7 @@ export default async function TransfersPage({
           )}
         </div>
       )}
-      <p className="mt-4 text-xs text-neutral-400 text-center">{safePage}/{totalPages} 페이지 · 스코어베이스 {isFeed || isInout ? "이적시장" : "선수 몸값"} 데이터</p>
+      <p className="mt-4 text-xs text-neutral-400 text-center">{safePage}/{totalPages} 페이지 · 스코어베이스 {isRumors ? "임박·루머" : isFeed || isInout ? "이적시장" : "선수 몸값"} 데이터</p>
     </main>
   );
 }
