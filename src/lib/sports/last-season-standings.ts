@@ -9,6 +9,14 @@ import type { StandingsRow } from "@/lib/sports/thesports/standings-helper";
 // 330일이면 한 시즌은 온전히 담고 그 전 시즌(365일+ 전 종료)은 들어오지 않는다.
 const SEASON_SPAN_DAYS = 330;
 
+/** 마지막 완료 경기 기준 직전 시즌 창 [from, to). 리그별 시즌 경계 정의 없이도 한 시즌을 집는다. */
+export function lastSeasonWindow(lastFinishedAt: Date): { from: Date; to: Date } {
+  return {
+    from: new Date(lastFinishedAt.getTime() - SEASON_SPAN_DAYS * 86400_000),
+    to: new Date(lastFinishedAt.getTime() + 86400_000),
+  };
+}
+
 /**
  * 리그의 직전 시즌 최종 순위 — 마지막 FINISHED 매치 기준 330일 창의 완료 경기 집계.
  * 축구가 아니거나 완료 매치가 없으면 빈 배열.
@@ -23,8 +31,7 @@ export async function computeLastSeasonStandings(league: string): Promise<Standi
   });
   if (!lastFinished) return [];
 
-  const to = new Date(lastFinished.startTime.getTime() + 86400_000);
-  const from = new Date(lastFinished.startTime.getTime() - SEASON_SPAN_DAYS * 86400_000);
+  const { from, to } = lastSeasonWindow(lastFinished.startTime);
   const matches = await prisma.match.findMany({
     where: {
       league,

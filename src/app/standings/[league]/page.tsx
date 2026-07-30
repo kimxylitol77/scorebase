@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { lastSeasonWindow } from "@/lib/sports/last-season-standings";
 import { getRecentForm } from "@/lib/predict/recent-form";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import RecentFormDots from "@/components/scores/RecentFormDots";
@@ -268,12 +269,29 @@ export default async function StandingsPage({ params }: Props) {
       },
     })
   ).filter((m) => !isAllStarMatchRow(m)); // 야구 올스타전은 정규 순위에 섞이면 안 됨
+  // 시즌 전환기 — ts 표가 새 시즌으로 갱신되면서 승·무·패·승점이 전부 0 이 된 상태
+  // (2026-07 EPL·라리가·세리에A·리그1 실측). 순번만 남은 빈 표 대신 지난 시즌 최종 기록을 보여준다.
+  const tsAllZero =
+    !!tsStandings &&
+    tsStandings.tables.length > 0 &&
+    tsStandings.tables[0].rows.length > 0 &&
+    tsStandings.tables[0].rows.every((r) => r.total === 0);
+
   const seasonStart = currentSeasonStart(upper);
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
   // 오프시즌 등으로 현재 시즌 완료 매치가 너무 적으면 직전 시즌 창으로 폴백 (predictions 와 동일).
   if (seasonStart && matches.filter((m) => m.status === "FINISHED").length < 10) {
     const prev = previousSeasonStart(seasonStart);
     matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+  }
+  // 전환기 폴백은 시즌 경계가 정의된 리그만 위 분기로 커버된다. 마지막 완료 경기 기준 창으로
+  // 잡으면 경계 미정의 리그(챔피언십·에레디비시 등)에서도 두 시즌 합산 없이 한 시즌만 집힌다.
+  const lastFinishedAt = allMatches
+    .filter((m) => m.status === "FINISHED")
+    .reduce<Date | null>((mx, m) => (!mx || m.startTime > mx ? m.startTime : mx), null);
+  if (tsAllZero && lastFinishedAt) {
+    const w = lastSeasonWindow(lastFinishedAt);
+    matches = allMatches.filter((m) => m.startTime >= w.from && m.startTime < w.to);
   }
 
   // 데이터 source 분기
@@ -293,7 +311,7 @@ export default async function StandingsPage({ params }: Props) {
   }>;
   let source: "ts" | "calc" = "calc";
 
-  if (tsStandings && tsStandings.tables.length > 0) {
+  if (tsStandings && tsStandings.tables.length > 0 && !tsAllZero) {
     // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
     const promoMap = new Map(tsStandings.promotions.map((p) => [p.id, p]));
     const tsRows = tsStandings.tables[0].rows
@@ -357,6 +375,14 @@ export default async function StandingsPage({ params }: Props) {
     const calc = calcStandings(matches);
     rows = calc.rows.map((r) => ({ ...r, promotionColor: undefined, promotionName: undefined }));
   }
+
+  // 표시 중인 표가 지난 시즌인지 — ts 가 리셋됐거나, 계산 경로가 현재 시즌 완료 매치 부족으로
+  // 직전 시즌 창을 쓴 경우. 오프시즌에 "시즌 진행 중" 으로 표기되던 것을 실제 상태로 바꾼다.
+  const showingLastSeason =
+    tsAllZero ||
+    (source === "calc" &&
+      seasonStart != null &&
+      !matches.some((m) => m.status === "FINISHED" && m.startTime >= seasonStart));
 
   // xG 심화(기대 승점) — 축구 리그 중 xG 커버리지 90%+ 만 노출 (부분 커버는 xPTS 누계 왜곡).
   const xgTable = isSoccerLeague ? await buildXgTable(matches) : null;
@@ -425,7 +451,8 @@ export default async function StandingsPage({ params }: Props) {
         </span>
         <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
         <p className="text-sm text-neutral-500 mt-2 break-keep">
-          {rows!.length}팀 · 시즌 진행 중 · {source === "ts" ? "TheSports 실시간 갱신" : "FINISHED 매치 기반 계산"}
+          {rows!.length}팀 · {showingLastSeason ? "지난 시즌 최종 순위" : "시즌 진행 중"} ·{" "}
+          {source === "ts" ? "TheSports 실시간 갱신" : "FINISHED 매치 기반 계산"}
         </p>
         {isBaseball && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
