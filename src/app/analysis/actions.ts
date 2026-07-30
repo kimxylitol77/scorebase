@@ -9,6 +9,7 @@ import { getCurrentUserId } from "@/lib/current-user";
 import { awardExp } from "@/lib/user-exp";
 import { EXP_REWARDS, POINT_REWARDS } from "@/lib/user-level";
 import { sportHasDraw } from "@/lib/analysis/scoring";
+import { MOVE_TARGETS, canMovePost } from "@/lib/analysis/board-move";
 import { rateLimit } from "@/lib/rate-limit";
 
 export interface PostFormState {
@@ -301,7 +302,7 @@ export async function updatePostAction(formData: FormData): Promise<void> {
 
   const post = await prisma.post.findUnique({
     where: { id: postId },
-    select: { authorId: true },
+    select: { authorId: true, category: true, pick: true },
   });
   if (!post || post.authorId !== userId) return; // 본인만
 
@@ -316,9 +317,12 @@ export async function updatePostAction(formData: FormData): Promise<void> {
   if (dm) lineupCode = dm[1];
   if (lineupCode && (!/^[A-Za-z0-9_\-~.%]+$/.test(lineupCode) || lineupCode.length > 4000)) return;
 
+  // 게시판 이동 — 자유게시판 말머리 3종 + 스포츠 분석 사이. canMovePost 가 아니면 무시.
+  const target = canMovePost(post) ? MOVE_TARGETS[String(formData.get("board") ?? "")] : undefined;
+
   await prisma.post.update({
     where: { id: postId },
-    data: { title, content, lineupCode: lineupCode || null },
+    data: { title, content, lineupCode: lineupCode || null, ...(target?.data ?? {}) },
   });
   revalidatePath(`/analysis/${postId}`);
   revalidatePath("/analysis");
