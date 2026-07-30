@@ -147,3 +147,12 @@ export function readFavIds(): Set<string> {
 export function readFavMeta(): Record<string, FavMeta> {
   return readMeta();
 }
+
+/**
+ * 계정 전환 동기화(fav-account-sync)용 — 즐겨찾기 경기 집합·메타를 통째로 교체.
+ * 서버 PUT 은 하지 않는다(서버에서 내려받은 값을 로컬에 쓰는 방향이므로).
+ */
+export function replaceFavMatches(ids: string[], meta: Record<string, FavMeta>): void {
+  writeMeta(meta);
+  writeIds(new Set(ids)); // custom event 발행 → store 구독자 전원 재렌더
+}

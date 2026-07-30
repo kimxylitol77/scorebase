@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFavoriteTeams } from "@/components/scores/useFavoriteTeams";
 import { useFavorites } from "@/components/scores/useFavorites";
+import { canPushFavorites } from "@/components/scores/fav-account-sync";
 
 export default function TelegramConnectCard() {
   const { teams, mounted } = useFavoriteTeams();
@@ -17,6 +18,8 @@ export default function TelegramConnectCard() {
 
   // 서버에 현재 즐겨찾기 팀·경기 동기화 (연결된 회원만 의미 있음)
   const syncFavorites = useCallback(async () => {
+    // 로컬이 현재 계정 소유일 때만 — 계정 전환 pull 완료 전 레이스로 서버를 덮지 않게.
+    if (!canPushFavorites()) return;
     const put = (url: string, body: unknown) =>
       fetch(url, {
         method: "PUT",

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import TeamBadge from "@/components/TeamBadge";
 import { useFavoriteTeams } from "@/components/scores/useFavoriteTeams";
+import { canPushFavorites } from "@/components/scores/fav-account-sync";
 
 interface TeamInfo {
   id: number;
@@ -40,8 +41,9 @@ export default function MyFavoriteTeams() {
     };
   }, [mounted, idKey, healTeams]);
 
-  // 서버 팔로우 동기화 — 비로그인은 401 이라 조용히 무시된다.
+  // 서버 팔로우 동기화 — 로컬이 현재 계정 소유일 때만 (비로그인·계정 전환 직후 차단).
   const syncServer = useCallback((nextIds: number[]) => {
+    if (!canPushFavorites()) return;
     fetch("/api/favorites/teams", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

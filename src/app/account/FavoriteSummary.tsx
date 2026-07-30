@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useFavorites, readFavMeta } from "@/components/scores/useFavorites";
+import { canPushFavorites } from "@/components/scores/fav-account-sync";
 
 interface MatchInfo {
   id: number;
@@ -53,8 +54,9 @@ export default function FavoriteSummary() {
     };
   }, [mounted, idKey]);
 
-  // 서버 팔로우 동기화 — 비로그인은 401 이라 조용히 무시된다.
+  // 서버 팔로우 동기화 — 로컬이 현재 계정 소유일 때만 (비로그인·계정 전환 직후 차단).
   const syncServer = useCallback((nextIds: string[]) => {
+    if (!canPushFavorites()) return;
     fetch("/api/favorites/matches", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

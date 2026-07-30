@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { syncFavoritesToAccount } from "./scores/fav-account-sync";
 
 export interface Me {
   nickname: string | null;
@@ -44,6 +45,9 @@ function commit(m: Me | null): void {
     // localStorage 불가(시크릿 등) — 메모리 상태만으로 동작
   }
   notify();
+  // 즐겨찾기 계정 스코프 동기화 — 로그인/로그아웃/계정전환 확정 시 localStorage 를
+  // 그 계정의 서버 팔로우로 초기화·복원 (같은 계정이면 즉시 반환).
+  syncFavoritesToAccount(m?.nickname ?? null);
 }
 
 function fetchMe(path: string): Promise<Me> {
