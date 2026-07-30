@@ -4,32 +4,30 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import { playChime, unlockAudio } from "@/lib/sound/chime";
+import { useClientValue, subscribeToStorage } from "@/lib/use-client-value";
 
 const STORAGE_KEY = "scorebase-live-sound";
 const CHANGE_EVENT = "scorebase-sound-change";
 
-export default function LiveSoundToggle() {
-  const [soundOn, setSoundOn] = useState(false);
+function readSoundOn(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    // localStorage 비활성 환경 — OFF 로 본다
+    return false;
+  }
+}
 
-  useEffect(() => {
-    try {
-      setSoundOn(localStorage.getItem(STORAGE_KEY) === "1");
-    } catch {
-      // SSR / localStorage 비활성 환경 — ignore
-    }
-    // 다른 페이지/탭에서 토글 변경 시 동기화 (예: 동시 두 탭 열린 경우)
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) setSoundOn(e.newValue === "1");
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+// 상태의 원본은 localStorage 다. 다른 탭(storage)·같은 페이지(custom event) 변경을
+// 모두 구독하므로 setState 로 따로 복제할 필요가 없다.
+const subscribe = subscribeToStorage(CHANGE_EVENT);
+
+export default function LiveSoundToggle() {
+  const soundOn = useClientValue(readSoundOn, false, subscribe);
 
   function toggle() {
     const next = !soundOn;
-    setSoundOn(next);
     try {
       localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
       // 같은 페이지의 다른 컴포넌트 (LiveScoresBar 등) 도 즉시 반영하도록 custom event

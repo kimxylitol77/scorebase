@@ -96,6 +96,8 @@ export default function LiveCommentaryBox({
   // stale 자동 숨김 — Mac mini 다운/Wi-Fi 끊김 시 fault tolerance
   if (summaryAt) {
     const at = typeof summaryAt === "string" ? new Date(summaryAt) : summaryAt;
+    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+    // eslint-disable-next-line react-hooks/purity
     if (Date.now() - at.getTime() > STALE_MS) return null;
   }
 

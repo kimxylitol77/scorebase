@@ -71,7 +71,10 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
   const router = useRouter();
   const [open, setOpen] = useState<null | "team" | "country">(null);
   const [q, setQ] = useState("");
-  const [searchText, setSearchText] = useState(search);
+  const [typed, setTyped] = useState<{ forSearch: string; value: string }>({
+    forSearch: search,
+    value: search,
+  });
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // ── 검색 자동완성 ──
@@ -83,8 +86,10 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
   const debRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // 뒤로가기 등 라우트 변경 시 검색창 동기화
-  useEffect(() => { setSearchText(search); }, [search]);
+  // 뒤로가기 등 라우트 변경 시 검색창 동기화.
+  // effect + setState 대신 "어느 search prop 기준으로 입력했는지" 를 함께 들고 파생한다.
+  const searchText = typed.forSearch === search ? typed.value : search;
+  const setSearchText = (value: string) => setTyped({ forSearch: search, value });
 
   // 바깥 클릭 시 드롭다운 닫기
   useEffect(() => {

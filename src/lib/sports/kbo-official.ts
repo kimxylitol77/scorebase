@@ -856,9 +856,8 @@ export const fetchKboPitcherName = fetchKboPitcherProfile;
  * 타자 (Hitter) — /Record/Player/HitterDetail/Basic.aspx
  * ==========================================================*/
 
-export interface KboHitterProfile extends KboPitcherProfile {
-  // 같은 .player_basic 구조 — KBO 페이지가 hitter/pitcher 동일 layout
-}
+// 같은 .player_basic 구조 — KBO 페이지가 hitter/pitcher 동일 layout
+export type KboHitterProfile = KboPitcherProfile;
 
 export interface KboHitterStats {
   team?: string;

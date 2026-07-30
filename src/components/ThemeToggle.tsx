@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useClientValue } from "@/lib/use-client-value";
 
 type Theme = "light" | "dark";
 
@@ -10,14 +11,17 @@ interface Props {
 }
 
 export default function ThemeToggle({ variant = "icon" }: Props) {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setTheme(isDark ? "dark" : "light");
-    setMounted(true);
-  }, []);
+  // 초기 테마는 layout.tsx 인라인 스크립트가 이미 <html> 에 칠해 둔 값을 읽는다.
+  // 마운트 전엔 null → placeholder 를 그려 FOUC 를 막는다(기존 mounted 게이트와 동일).
+  const domTheme = useClientValue<Theme | null>(
+    () => (document.documentElement.classList.contains("dark") ? "dark" : "light"),
+    null,
+  );
+  // 사용자가 이 버튼으로 바꾼 값이 있으면 그게 우선.
+  const [override, setOverride] = useState<Theme | null>(null);
+  const mounted = domTheme !== null;
+  const theme: Theme = override ?? domTheme ?? "light";
+  const setTheme = setOverride;
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";

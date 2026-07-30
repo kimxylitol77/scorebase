@@ -63,6 +63,8 @@ export default async function TeamPowerRanking({ league, leagueName }: { league:
     );
   }
 
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const priorRank = rankMap(calcEloTable(matches.filter((m) => m.startTime <= cutoff)).ratings);
   const currRank = rankMap(elo.ratings);

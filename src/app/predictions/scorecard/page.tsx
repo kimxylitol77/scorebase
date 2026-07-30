@@ -243,6 +243,8 @@ export default async function ScorecardPage() {
 
   // 어제(KST) 시작 경기의 채점 성적 — 채점 cron 이 자정 1회라 "어제"가 항상 완결 상태.
   const DAY_MS = 86400000, KST_MS = 9 * 3600000;
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const todayStartKst = new Date(Math.floor((Date.now() + KST_MS) / DAY_MS) * DAY_MS - KST_MS);
   const ydayStartKst = new Date(todayStartKst.getTime() - DAY_MS);
   const ydayTallyOf = (model: string) =>

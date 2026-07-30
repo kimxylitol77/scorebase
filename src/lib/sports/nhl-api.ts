@@ -140,6 +140,52 @@ function statToGoalie(s: GoalieSeasonStat, isBest: boolean): NhlGoalie {
   };
 }
 
+
+// === NHL 공식 API 원시 응답 shape ===
+// 공식 타입 패키지가 없어 우리가 읽는 필드만 옵셔널로 적는다.
+interface NhlLocalized { default?: string }
+interface NhlGameLanding {
+  matchup?: {
+    goalieComparison?: {
+      homeTeam?: { leaders?: unknown[] };
+      awayTeam?: { leaders?: unknown[] };
+    };
+  };
+}
+interface NhlPlayerSeasonStats {
+  goalsAgainstAvg?: number;
+  savePctg?: number;
+  wins?: number;
+  losses?: number;
+  otLosses?: number;
+  gamesPlayed?: number;
+  shutouts?: number;
+}
+interface NhlGoalieLandingRaw {
+  playerId?: number;
+  firstName?: NhlLocalized;
+  lastName?: NhlLocalized;
+  fullTeamName?: NhlLocalized;
+  shootsCatches?: string;
+  birthCity?: NhlLocalized;
+  birthCountry?: string;
+  featuredStats?: {
+    regularSeason?: { subSeason?: NhlPlayerSeasonStats };
+    season?: { subSeason?: NhlPlayerSeasonStats };
+  };
+}
+interface NhlGameLogRow {
+  gameDate?: string;
+  homeRoadFlag?: string;
+  opponentAbbrev?: string;
+  toi?: string;
+  shotsAgainst?: number;
+  goalsAgainst?: number;
+  savePctg?: number;
+  decision?: string;
+}
+interface NhlGameLogResponse { gameLog?: NhlGameLogRow[] }
+
 /**
  * 한 매치의 양 팀 시즌 best goalie 조회.
  * NHL 은 매일 등판 골리가 매치 1~2시간 전 발표라 — leaders[0] 를
@@ -148,7 +194,7 @@ function statToGoalie(s: GoalieSeasonStat, isBest: boolean): NhlGoalie {
 export async function fetchGameGoalies(
   gamePk: number,
 ): Promise<{ home?: NhlGoalie; away?: NhlGoalie } | null> {
-  let data: any;
+  let data: NhlGameLanding | undefined;
   try {
     const r = await client.get(`/gamecenter/${gamePk}/landing`);
     data = r.data;
@@ -173,7 +219,7 @@ export async function fetchGoalieProfile(pid: number): Promise<NhlGoalie & {
   birthCity?: string;
   birthCountry?: string;
 } | null> {
-  let data: any;
+  let data: NhlGoalieLandingRaw | undefined;
   try {
     const r = await client.get(`/player/${pid}/landing`);
     data = r.data;
@@ -219,7 +265,7 @@ export async function fetchGoalieGameLog(
   /** 2 = regular, 3 = playoffs. now=현재 시즌 추정 */
   gameType: number = 2,
 ): Promise<NhlGoalieGameLog[]> {
-  let data: any;
+  let data: NhlGameLogResponse | undefined;
   try {
     const r = await client.get(`/player/${pid}/game-log/${season}/${gameType}`);
     data = r.data;
@@ -227,7 +273,8 @@ export async function fetchGoalieGameLog(
     return [];
   }
   const games = data?.gameLog ?? [];
-  return games.map((g: any) => ({
+  // 날짜 없는 행은 그래프에 못 올리므로 버린다.
+  return games.flatMap((g: NhlGameLogRow) => (g.gameDate ? [{
     date: g.gameDate,
     isHome: !!g.homeRoadFlag && g.homeRoadFlag === "H",
     opponent: g.opponentAbbrev ?? "?",
@@ -237,7 +284,7 @@ export async function fetchGoalieGameLog(
     saves: (g.shotsAgainst ?? 0) - (g.goalsAgainst ?? 0),
     savePctg: g.savePctg,
     decision: g.decision,
-  }));
+  }] : []));
 }
 
 // ===== NHL 선수 페이지 (/players/[id]?league=NHL) =====

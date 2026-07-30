@@ -92,6 +92,37 @@ function timeLabel(ev: SoccerEvent): string {
 
 type FilterKind = "all" | "card" | "subst" | "var";
 
+// 렌더 중 컴포넌트를 새로 만들면 매 렌더마다 버튼 DOM 이 재생성된다(react-hooks/static-components).
+// 모듈 최상위로 올리고 필요한 값만 prop 으로 받는다.
+function FilterButton({
+  kind,
+  label,
+  count,
+  active,
+  onSelect,
+}: {
+  kind: FilterKind;
+  label: string;
+  count: number;
+  active: boolean;
+  onSelect: (kind: FilterKind) => void;
+}) {
+  if (count === 0 && kind !== "all") return null;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(kind)}
+      className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
+        active
+          ? "bg-blue-500 text-white"
+          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+      }`}
+    >
+      {label} {count > 0 && <span className="opacity-70">{count}</span>}
+    </button>
+  );
+}
+
 export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, playerLogoById }: Props) {
   // 정렬: chrono(시간 오름차순) / latest(시간 내림차순 — 기본)
   const [chrono, setChrono] = useState(false);
@@ -113,23 +144,6 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
     var: events.filter((e) => e.type === "var").length,
   };
 
-  const FilterButton = ({ kind, label }: { kind: FilterKind; label: string }) => {
-    const count = counts[kind];
-    if (count === 0 && kind !== "all") return null;
-    return (
-      <button
-        type="button"
-        onClick={() => setFilter(kind)}
-        className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
-          filter === kind
-            ? "bg-blue-500 text-white"
-            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-        }`}
-      >
-        {label} {count > 0 && <span className="opacity-70">{count}</span>}
-      </button>
-    );
-  };
 
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-3">
@@ -160,10 +174,21 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
 
       {/* 필터 칩 */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <FilterButton kind="all" label="전체" />
-        <FilterButton kind="card" label="카드" />
-        <FilterButton kind="subst" label="교체" />
-        <FilterButton kind="var" label="VAR" />
+        {([
+          ["all", "전체"],
+          ["card", "카드"],
+          ["subst", "교체"],
+          ["var", "VAR"],
+        ] as const).map(([kind, label]) => (
+          <FilterButton
+            key={kind}
+            kind={kind}
+            label={label}
+            count={counts[kind]}
+            active={filter === kind}
+            onSelect={setFilter}
+          />
+        ))}
       </div>
 
       {/* home 좌측 / away 우측 — 사이트 전반 home 좌측 통일 규칙 */}

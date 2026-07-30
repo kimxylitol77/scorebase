@@ -89,7 +89,7 @@ export default function AnalysisForm({ matchesBySport }: Props) {
   const [matchId, setMatchId] = useState("");
   const [market, setMarket] = useState("1X2");
   const [pick, setPick] = useState("");
-  const [title, setTitle] = useState("");
+  const [typedTitle, setTypedTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
   const [attachCard, setAttachCard] = useState(false); // 경기 데이터 카드 첨부 (스탯카드 짤)
   // 첨부 카드 종류 — 기본은 픽 마켓을 따라가되(아래 chooseMarket) 글쓴이가 다른 카드로 바꿀 수 있다.
@@ -120,12 +120,13 @@ export default function AnalysisForm({ matchesBySport }: Props) {
   ];
   const predReady = !!selected && !!market && !!pick;
 
-  // 제목 자동 생성 (사용자가 직접 건드리기 전까지)
-  useEffect(() => {
-    if (titleTouched) return;
-    if (selected && market && pick) setTitle(autoTitle(selected, market, pick));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchId, market, pick]);
+  // 제목 자동 생성 (사용자가 직접 건드리기 전까지) — 선택값에서 파생한다.
+  // effect + setTitle 이면 선택을 바꿀 때마다 한 프레임 옛 제목이 남는다.
+  const title = titleTouched
+    ? typedTitle
+    : selected && market && pick
+      ? autoTitle(selected, market, pick)
+      : "";
 
   const chooseSport = (s: string) => {
     setSport(s);
@@ -386,7 +387,7 @@ export default function AnalysisForm({ matchesBySport }: Props) {
           name="title"
           value={title}
           onChange={(e) => {
-            setTitle(e.target.value);
+            setTypedTitle(e.target.value);
             setTitleTouched(true);
           }}
           placeholder="제목 (예측을 선택하면 자동으로 채워집니다)"

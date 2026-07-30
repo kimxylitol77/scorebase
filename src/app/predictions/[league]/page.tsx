@@ -552,6 +552,8 @@ export default async function LeaguePredictions({ params }: Props) {
     const recentMatches = await prisma.match.findMany({
       where: {
         league: upper,
+        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+        // eslint-disable-next-line react-hooks/purity
         startTime: { gte: new Date(Date.now() - 60 * 24 * 3600 * 1000) }, // 최근 60일
       },
       include: { homeTeam: true, awayTeam: true },

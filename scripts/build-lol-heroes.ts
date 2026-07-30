@@ -3,9 +3,10 @@
 import "@/lib/env";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import fs from "fs";
+import type { TsListResponse, TsNamedRow } from "./_external-api-types";
 
 (async () => {
-  const r: any = await thesportsGet("/v1/lol/hero/list", { page: 1 });
+  const r = (await thesportsGet("/v1/lol/hero/list", { page: 1 })) as TsListResponse<TsNamedRow>;
   const heroes: Record<string, string> = {};
   for (const h of r.results || []) if (h.name && h.logo) heroes[h.name] = h.logo;
   fs.writeFileSync(

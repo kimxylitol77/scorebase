@@ -597,6 +597,8 @@ function OddsPopup({
   }, [pos, onClose]);
   // 렌더 후 높이 실측 → 하단 넘치면 위로 클램프(플립).
   useLayoutEffect(() => {
+    // 렌더된 박스 높이를 실측해 화면 안으로 클램프. DOM 측정은 렌더 후에만 가능해 파생으로 대체할 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!pos) { setTop(null); return; }
     const el = boxRef.current;
     if (!el) return;
@@ -714,6 +716,8 @@ function GoalsTooltip({
   const boxRef = useRef<HTMLDivElement>(null);
   const [topAdj, setTopAdj] = useState<number | null>(null);
   useLayoutEffect(() => {
+    // 렌더된 박스 높이를 실측해 화면 안으로 클램프. DOM 측정은 렌더 후에만 가능해 파생으로 대체할 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!pos) { setTopAdj(null); return; }
     const el = boxRef.current;
     if (!el) return;

@@ -320,6 +320,8 @@ export default async function TeamPage({ params }: Props) {
     if (official) {
       members = official.map((m) => ({ id: m.id, coarse: m.position, number: m.number }));
     } else {
+      // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+      // eslint-disable-next-line react-hooks/purity
       const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400;
       members = pmvAll
         .filter((p) => { const h = (p.history as { market_time?: number }[]) || []; return (h[h.length - 1]?.market_time ?? 0) >= cutoff; })

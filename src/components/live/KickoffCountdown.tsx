@@ -24,11 +24,20 @@ function fmt(ms: number): string {
 
 export default function KickoffCountdown({ kickoffIso }: Props) {
   const kickoff = new Date(kickoffIso).getTime();
-  const [remaining, setRemaining] = useState(kickoff - Date.now());
+  // 남은 시간은 마운트 후에만 계산한다. 렌더 중 Date.now() 는 순수하지 않고(react-hooks/purity),
+  // 서버가 그린 초와 클라이언트가 그리는 초가 달라 하이드레이션도 어긋난다.
+  // 첫 값은 다음 프레임에 채워져 눈에 띄는 공백이 없다.
+  const [remaining, setRemaining] = useState<number | null>(null);
   useEffect(() => {
-    const t = setInterval(() => setRemaining(kickoff - Date.now()), 1000);
-    return () => clearInterval(t);
+    const tick = () => setRemaining(kickoff - Date.now());
+    const raf = requestAnimationFrame(tick);
+    const t = setInterval(tick, 1000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(t);
+    };
   }, [kickoff]);
+  if (remaining === null) return null; // 마운트 전 (SSR 포함)
   if (remaining <= -60 * 60 * 1000) return null; // 1시간 지났는데 status 안 바뀌면 표시 안 함
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-medium">

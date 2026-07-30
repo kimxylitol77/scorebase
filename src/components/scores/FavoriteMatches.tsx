@@ -24,6 +24,7 @@ import {
   FAV_SOUND_STORAGE_KEY,
   FAV_SOUND_CHANGE_EVENT,
 } from "@/lib/sound/fav-sound";
+import { useClientValue, subscribeToStorage } from "@/lib/use-client-value";
 
 interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
   id: string;
@@ -70,37 +71,49 @@ const SPORT_META: Record<string, { label: string; emoji: string }> = {
 const VIEW_STORAGE_KEY = "scorebase-fav-view"; // "compact" | "large"
 
 type ViewMode = "compact" | "large";
+const VIEW_CHANGE_EVENT = "scorebase-fav-view-change";
+
+function readView(): ViewMode {
+  try {
+    const v = localStorage.getItem(VIEW_STORAGE_KEY);
+    return v === "compact" || v === "large" ? v : "large";
+  } catch {
+    return "large";
+  }
+}
+
+function readFavSound(): boolean {
+  try {
+    return localStorage.getItem(FAV_SOUND_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function readIsScoreboard(): boolean {
+  return /xn--hy1bm7m1yevrd8pq|스코어보드/.test(window.location.host);
+}
+
+const subscribeView = subscribeToStorage(VIEW_CHANGE_EVENT);
+const subscribeFavSound = subscribeToStorage(FAV_SOUND_CHANGE_EVENT);
 
 export default function FavoriteMatches({ matches }: Props) {
   const { ids, mounted, clear } = useFavorites();
-  const [view, setView] = useState<ViewMode>("large");
-  const [favSound, setFavSound] = useState(false);
+  // 브라우저 전용 값 3개. 원본이 localStorage·host 라 setState 로 복제하지 않는다.
+  const view = useClientValue<ViewMode>(readView, "large", subscribeView);
+  const favSound = useClientValue(readFavSound, false, subscribeFavSound);
   // 스코어보드.kr 에서는 메인 라이브 테이블과 동일 행(SoccerLiveRow)으로 정렬 통일
   // 위해 즐겨찾기 섹션도 항상 compact 강제 → 점수 중앙·별 우측이 메인 섹션과 세로 일치.
-  const [isScoreboard, setIsScoreboard] = useState(false);
-
-  // localStorage init
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(VIEW_STORAGE_KEY);
-      if (v === "compact" || v === "large") setView(v);
-      setFavSound(localStorage.getItem(FAV_SOUND_STORAGE_KEY) === "1");
-    } catch {
-      // ignore
-    }
-    setIsScoreboard(
-      /xn--hy1bm7m1yevrd8pq|스코어보드/.test(window.location.host),
-    );
-  }, []);
+  const isScoreboard = useClientValue(readIsScoreboard, false);
 
   // 스코어보드.kr → compact 강제, 그 외 → 사용자 설정(view)
   const effectiveView: ViewMode = isScoreboard ? "compact" : view;
 
   function toggleView() {
     const next: ViewMode = view === "large" ? "compact" : "large";
-    setView(next);
     try {
       localStorage.setItem(VIEW_STORAGE_KEY, next);
+      window.dispatchEvent(new CustomEvent(VIEW_CHANGE_EVENT));
     } catch {
       // ignore
     }
@@ -108,7 +121,6 @@ export default function FavoriteMatches({ matches }: Props) {
 
   function toggleFavSound() {
     const next = !favSound;
-    setFavSound(next);
     try {
       localStorage.setItem(FAV_SOUND_STORAGE_KEY, next ? "1" : "0");
       window.dispatchEvent(

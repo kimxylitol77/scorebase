@@ -9,6 +9,9 @@ import { useEffect, useRef } from "react";
 interface Props {
   /** 선택된 일자 yyyy-mm-dd */
   selectedDate: string;
+  /** 오늘 일자 yyyy-mm-dd (KST). 서버가 계산해 내려준다 —
+   *  client 에서 Date.now() 를 쓰면 자정 근처에 SSR/CSR 결과가 어긋난다. */
+  todayKst: string;
   /** 현재 종목 (URL 유지) */
   sport: string;
   /** 추가 쿼리 (league 등) — querystring */
@@ -23,6 +26,7 @@ function dateQuery(d: Date): string {
 
 export default function DateSlider({
   selectedDate,
+  todayKst,
   sport,
   extraQuery = "",
 }: Props) {
@@ -37,15 +41,8 @@ export default function DateSlider({
     });
   }, [selectedDate]);
 
-  const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
-  const todayMidUtc = new Date(
-    Date.UTC(
-      nowKst.getUTCFullYear(),
-      nowKst.getUTCMonth(),
-      nowKst.getUTCDate(),
-      -9,
-    ),
-  );
+  // "2026-07-29"(KST) → 그날 KST 자정의 UTC 시각. prop 만 쓰므로 렌더가 순수하다.
+  const todayMidUtc = new Date(`${todayKst}T00:00:00+09:00`);
 
   return (
     <nav

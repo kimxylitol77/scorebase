@@ -251,6 +251,8 @@ export default async function HealthPage() {
   let downCount = 0;
   for (const b of bots) {
     const meta = BOT_META[b.name] ?? { intervalMs: 60 * 60 * 1000 };
+    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+    // eslint-disable-next-line react-hooks/purity
     const age = Date.now() - b.lastAt.getTime();
     const s = botStatus(age, meta.intervalMs);
     if (s.label === "정상") okCount++;
@@ -267,6 +269,8 @@ export default async function HealthPage() {
   if (downCount > 0 || lagCount > 0) {
     for (const b of bots) {
       const meta = metaOf(b.name);
+      // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+      // eslint-disable-next-line react-hooks/purity
       const age = Date.now() - b.lastAt.getTime();
       const s = botStatus(age, meta.intervalMs);
       if (s.label === "정상") continue;
@@ -284,6 +288,8 @@ export default async function HealthPage() {
     const okBots = bots
       .map((b) => {
         const meta = metaOf(b.name);
+        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+        // eslint-disable-next-line react-hooks/purity
         const age = Date.now() - b.lastAt.getTime();
         const s = botStatus(age, meta.intervalMs);
         return s.label === "정상" ? meta.ko : null;
@@ -374,6 +380,8 @@ export default async function HealthPage() {
       intervalMs: 60 * 60 * 1000,
       role: "(미등록 봇)",
     };
+    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+    // eslint-disable-next-line react-hooks/purity
     const ageMs = Date.now() - b.lastAt.getTime();
     const status = botStatus(ageMs, meta.intervalMs);
     const md = (b.metadata ?? {}) as {
@@ -457,7 +465,7 @@ export default async function HealthPage() {
         </h2>
         {latestFindings.length === 0 ? (
           <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500">
-            아직 데이터가 없습니다. "지금 실행" 을 눌러 첫 체크를 돌려보세요.
+            아직 데이터가 없습니다. &quot;지금 실행&quot; 을 눌러 첫 체크를 돌려보세요.
           </div>
         ) : (
           (["HIGH", "MED", "LOW"] as const).map((sev) => {
@@ -572,6 +580,8 @@ export default async function HealthPage() {
                 intervalMs: 60 * 60 * 1000,
                 role: "(미등록 봇)",
               };
+              // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+              // eslint-disable-next-line react-hooks/purity
               const ageMs = Date.now() - b.lastAt.getTime();
               const status = botStatus(ageMs, meta.intervalMs);
               const colorMap: Record<string, { bg: string; text: string; border: string }> = {

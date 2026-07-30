@@ -57,7 +57,11 @@ export default function LolLiveDetail({
   const [live, setLive] = useState<LolLive | null>(initial ?? null);
   const [loaded, setLoaded] = useState(false);
   const statusRef = useRef<LolLive["status"]>("PRE");
-  if (live) statusRef.current = live.status;
+  // 폴링 간격(LIVE/IDLE) 판단용. 렌더 중 ref 를 쓰면 안 되므로(react-hooks/refs)
+  // effect 로 동기화한다. 읽는 쪽은 setTimeout 콜백이라 항상 이 effect 다음이다.
+  useEffect(() => {
+    if (live) statusRef.current = live.status;
+  }, [live]);
 
   useEffect(() => {
     let alive = true;

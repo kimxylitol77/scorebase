@@ -11,13 +11,15 @@ import { ALL_CATEGORIES } from "./nav-config";
 const GROUPS = ALL_CATEGORIES;
 
 export default function MobileMenu({ account }: { account?: ReactNode }) {
-  const [open, setOpen] = useState(false);
   const path = usePathname();
-
-  // 페이지 이동 시 자동 닫기
-  useEffect(() => {
-    setOpen(false);
-  }, [path]);
+  // "어느 경로에서 열었는지" 를 담아 두면 페이지 이동 시 open 이 저절로 false 가 된다.
+  // effect 로 setOpen(false) 하면 한 프레임 열린 채로 렌더된다(react-hooks/set-state-in-effect).
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const open = openedAt !== null && openedAt === path;
+  const setOpen = (next: boolean | ((v: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(open) : next;
+    setOpenedAt(value ? path : null);
+  };
 
   // 열릴 때 body scroll 잠금
   useEffect(() => {

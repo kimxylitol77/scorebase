@@ -138,6 +138,8 @@ export async function LolPlayerView({ pid }: { pid: string }) {
   const games = agg?.games ?? 0;
   const pos = profile?.position != null ? POSITION_KO[profile.position] : undefined;
   const birth = profile?.birthday ? new Date(profile.birthday * 1000) : null;
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
 
   const overview = agg ? (

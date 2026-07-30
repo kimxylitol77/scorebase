@@ -32,10 +32,17 @@ export default function SearchInput({
 }: Props) {
   const router = useRouter();
   const [value, setValue] = useState(defaultValue);
-  const [items, setItems] = useState<Suggestion[]>([]);
-  const [open, setOpen] = useState(false);
+  // 결과를 "어떤 질의의 결과인지" 와 함께 담는다. 질의가 바뀌면 파생값이 저절로 비어
+  // 옛 자동완성이 잠깐 남는 일도, effect 안에서 setState 하는 일도 없다.
+  const [suggest, setSuggest] = useState<{ q: string; items: Suggestion[] }>({ q: "", items: [] });
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const [hi, setHi] = useState(-1); // 키보드 하이라이트 (-1 = 없음, items.length = "기사에서도 검색" 행)
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  const query = value.trim();
+  const items = suggest.q === query ? suggest.items : [];
+  const open = query.length > 0 && items.length > 0 && dismissedFor !== query;
+  const setOpen = (next: boolean) => setDismissedFor(next ? null : query);
 
   // 외부 클릭 닫기
   useEffect(() => {
@@ -46,15 +53,11 @@ export default function SearchInput({
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // debounce 자동완성 fetch — 한 글자(초성 포함)부터
+  // debounce 자동완성 fetch — 한 글자(초성 포함)부터.
+  // 질의가 비면 아무것도 하지 않는다(비우기는 위 파생값이 담당).
   useEffect(() => {
     const q = value.trim();
-    if (q.length < 1) {
-      setItems([]);
-      setOpen(false);
-      setHi(-1);
-      return;
-    }
+    if (q.length < 1) return;
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
       try {
@@ -63,8 +66,7 @@ export default function SearchInput({
         });
         if (!r.ok) return;
         const j = (await r.json()) as { items?: Suggestion[] };
-        setItems(j.items ?? []);
-        setOpen(true);
+        setSuggest({ q, items: j.items ?? [] });
         setHi(-1);
       } catch {
         // ignore

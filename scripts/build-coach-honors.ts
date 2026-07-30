@@ -8,6 +8,7 @@
 //   npx tsx --env-file=.env.local scripts/build-coach-honors.ts
 import fs from "node:fs";
 import path from "node:path";
+import type { WikiApiResponse, WbSearchEntity } from "./_external-api-types";
 
 const COACHES_PATH = path.join(__dirname, "..", "data", "team-coaches.json");
 const OUT = path.join(__dirname, "..", "data", "coach-honors.json");
@@ -71,7 +72,7 @@ const COMP_KO: Record<string, string> = {
 
 interface HonorRow { club: string; comp: string; compKo: string | null; seasons: string[] }
 
-async function getJSON(url: string): Promise<any> {
+async function getJSON(url: string): Promise<WikiApiResponse | null> {
   for (let i = 0; i < 4; i++) {
     try {
       const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(20000) });
@@ -90,9 +91,9 @@ async function searchQid(name: string): Promise<string | null> {
   const arr = d?.search || [];
   // "X head coach" 표기 + 라벨 정확 일치 폴백 (build-coach-careers 와 동일 fix)
   return (
-    arr.find((s: any) => /football (manager|coach)|head coach/i.test(s.description || ""))?.id ||
-    arr.find((s: any) => /footballer|football player/i.test(s.description || ""))?.id ||
-    arr.find((s: any) => (s.label || "").toLowerCase() === name.toLowerCase())?.id ||
+    arr.find((s: WbSearchEntity) => /football (manager|coach)|head coach/i.test(s.description || ""))?.id ||
+    arr.find((s: WbSearchEntity) => /footballer|football player/i.test(s.description || ""))?.id ||
+    arr.find((s: WbSearchEntity) => (s.label || "").toLowerCase() === name.toLowerCase())?.id ||
     null
   );
 }
@@ -119,7 +120,8 @@ async function parseHonours(title: string): Promise<HonorRow[]> {
   const d = await getJSON(
     `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=wikitext&format=json&formatversion=2&redirects=1`,
   );
-  const wt: string | undefined = d?.parse?.wikitext;
+  const raw = d?.parse?.wikitext;
+  const wt: string | undefined = typeof raw === "string" ? raw : raw?.["*"];
   if (!wt) return [];
   const hon = wt.match(/==\s*Honours\s*==([\s\S]*?)(?=\n==[^=]|\s*$)/);
   if (!hon) return [];

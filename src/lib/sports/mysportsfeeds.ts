@@ -56,7 +56,13 @@ export const nbaCollector: MatchCollector = {
       },
     );
 
-    const games = (data?.games ?? []) as any[];
+    // MSF 응답 — 우리가 읽는 필드만 옵셔널로 적는다(공식 타입 패키지 없음).
+    interface MsfTeam { id?: number | string; city?: string; name?: string; abbreviation?: string }
+    interface MsfGame {
+      schedule: { id: number | string; homeTeam: MsfTeam; awayTeam: MsfTeam; playedStatus: string; startTime: string };
+      score?: { homeScoreTotal?: number | null; awayScoreTotal?: number | null };
+    }
+    const games = (data?.games ?? []) as MsfGame[];
 
     return games.map((g): NormalizedMatch => {
       const home = g.schedule.homeTeam;

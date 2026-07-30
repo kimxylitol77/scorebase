@@ -39,6 +39,8 @@ export default async function AiConsensusWidget() {
     if (!e.cells.some((c) => c.model === norm)) e.cells.push({ model: norm, pick: r.pick, prob: r.prob, correct: r.correct });
   }
 
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const upcoming: { league: string; externalId: string; startTime: Date; home: string; away: string; avg: number; n: number }[] = [];
   let graded = 0, wins = 0;

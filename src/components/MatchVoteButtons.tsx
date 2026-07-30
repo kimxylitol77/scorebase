@@ -1,6 +1,7 @@
 "use client";
 // 승부예측 투표 버튼 — 원클릭 투표 후 분포·AI 비교로 전환 (익명은 localStorage sessionId)
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useClientValue } from "@/lib/use-client-value";
 
 const SESSION_KEY = "scorebase-sid"; // PageViewTracker 와 동일 — 방문자 식별 재사용
 const PICK_KEY = (m: number) => `sb-vote-${m}`; // 익명 내 픽 로컬 기억 (SSR 로는 알 수 없음)
@@ -35,20 +36,26 @@ export interface VoteInit {
 const LABEL: Record<string, string> = { home: "홈 승", draw: "무", away: "원정 승" };
 
 export default function MatchVoteButtons(init: VoteInit) {
-  const [myPick, setMyPick] = useState<string | null>(init.myPick);
   const [dist, setDist] = useState(init.dist);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // 익명 사용자의 기존 픽 복원 (SSR 은 sessionId 를 모름)
-  useEffect(() => {
-    if (!init.myPick) {
-      try {
-        const saved = localStorage.getItem(PICK_KEY(init.matchId));
-        if (saved) setMyPick(saved);
-      } catch { /* private mode 무시 */ }
+  // 익명 사용자의 기존 픽 복원 (SSR 은 sessionId 를 모름).
+  // 렌더 중엔 읽을 수 없고 effect 에서 setState 하면 한 프레임 어긋나므로
+  // 마운트 후 값을 그대로 읽어 쓴다.
+  const readSaved = useCallback(() => {
+    if (init.myPick) return init.myPick;
+    try {
+      return localStorage.getItem(PICK_KEY(init.matchId));
+    } catch {
+      return null; // private mode 무시
     }
   }, [init.matchId, init.myPick]);
+  const savedPick = useClientValue<string | null>(readSaved, init.myPick);
+  // 이번 세션에서 투표한 값이 있으면 그게 우선.
+  const [votedPick, setVotedPick] = useState<string | null>(null);
+  const myPick = votedPick ?? savedPick;
+  const setMyPick = setVotedPick;
 
   const vote = async (pick: string) => {
     if (busy || init.closed) return;

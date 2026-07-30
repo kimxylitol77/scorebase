@@ -49,7 +49,7 @@ async function resolveSeasonId(tsTeamIds: Set<string>): Promise<string | null> {
     const tsp = Math.floor(Date.now() / 1000) + offsetDays * 86400;
     let rows: TsMatch[] = [];
     try {
-      const r = await thesportsGet<any>("/v1/baseball/match/diary", { tsp });
+      const r = await thesportsGet<{ code: number; results?: TsMatch[] }>("/v1/baseball/match/diary", { tsp });
       rows = (r.results ?? []) as TsMatch[];
     } catch {
       continue;
@@ -94,7 +94,7 @@ async function main() {
       console.log(`  ts 시즌 역추적 실패 (오프시즌이거나 diary 미커버) — skip`);
       continue;
     }
-    const ms = await thesportsGet<any>("/v1/baseball/match/season", { uuid: seasonId });
+    const ms = await thesportsGet<{ code: number; results?: TsMatch[] }>("/v1/baseball/match/season", { uuid: seasonId });
     const tsRows = (ms.results ?? []) as TsMatch[];
     const tsIndex = new Map<string, TsMatch>();
     for (const m of tsRows) {

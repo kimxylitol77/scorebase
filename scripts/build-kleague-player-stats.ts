@@ -8,6 +8,7 @@ import "../src/lib/env";
 import * as fs from "fs";
 import { PrismaClient } from "@prisma/client";
 import { fetchFootballSeasonPlayerStat } from "../src/lib/sports/thesports/football-collector";
+import type { TsSeasonPlayerRow } from "./_external-api-types";
 
 const prisma = new PrismaClient();
 
@@ -21,9 +22,9 @@ const LEAGUES: { code: string; seasonId: string; season: string }[] = [
 
 // TheSports season player row → SeasonStat (data/player-season-stats.json 스키마).
 // passes_accuracy 는 '정확한 패스 개수'(퍼센트 아님) → passes 로 나눠 백분율화.
-function toSeasonStat(code: string, season: string, r: any) {
+function toSeasonStat(code: string, season: string, r: TsSeasonPlayerRow) {
   const passes = r.passes ?? 0;
-  const passAcc = passes > 0 ? Math.round((r.passes_accuracy / passes) * 100) : null;
+  const passAcc = passes > 0 ? Math.round(((r.passes_accuracy ?? 0) / passes) * 100) : null;
   return {
     lg: code,
     season,
@@ -49,15 +50,15 @@ function toSeasonStat(code: string, season: string, r: any) {
 }
 
 async function main() {
-  const stats: Record<string, any> = JSON.parse(fs.readFileSync("data/player-season-stats.json", "utf8"));
+  const stats: Record<string, ReturnType<typeof toSeasonStat>> = JSON.parse(fs.readFileSync("data/player-season-stats.json", "utf8"));
   const photos: Record<string, string> = JSON.parse(fs.readFileSync("data/player-photos.json", "utf8"));
 
   let statAdded = 0, statUpdated = 0, photoAdded = 0, skipped = 0;
   for (const { code, seasonId, season } of LEAGUES) {
-    const res: any = await fetchFootballSeasonPlayerStat(seasonId);
-    const rows: any[] = res?.results ?? [];
+    const res = (await fetchFootballSeasonPlayerStat(seasonId)) as { results?: TsSeasonPlayerRow[] } | null;
+    const rows = res?.results ?? [];
     // /transfers/{id} 페이지는 TheSportsPlayer(또는 PlayerMarketValue) 있어야 렌더 → 미존재 선수 스탯은 도달 불가라 skip.
-    const ids = rows.map((r) => r.player?.id).filter(Boolean);
+    const ids = rows.flatMap((r) => (r.player?.id ? [r.player.id] : []));
     const exist = new Set((await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true } })).map((p) => p.id));
     console.log(`${code}: TheSports ${rows.length}명 (렌더가능 ${exist.size})`);
     for (const r of rows) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 interface Props {
   action: (formData: FormData) => Promise<void>;
@@ -134,12 +135,12 @@ export default function BlogForm({ action, initial, submitLabel }: Props) {
         >
           {submitLabel}
         </button>
-        <a
+        <Link
           href="/admin/blog"
           className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
         >
           취소
-        </a>
+        </Link>
       </div>
     </form>
   );

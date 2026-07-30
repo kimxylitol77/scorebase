@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { scheduleFavServerSync } from "./fav-server-sync";
 
 export interface FavTeam {
@@ -59,44 +59,66 @@ function writeTeams(teams: FavTeam[]): void {
   }
 }
 
-export function useFavoriteTeams() {
-  const [teams, setTeams] = useState<FavTeam[]>([]);
-  // SSR hydration mismatch 방지 — mount 후에만 실제 localStorage 값 set
-  const [mounted, setMounted] = useState(false);
+// === useSyncExternalStore 용 store ===
+// localStorage 가 원본이므로 setState 로 복제하지 않는다. effect 안에서 setState 하면
+// 첫 렌더가 빈 목록으로 한 번 나갔다가 다시 그려진다(react-hooks/set-state-in-effect).
+// 원문 문자열이 그대로면 직전 배열을 재사용해야 스냅샷 참조가 안정된다.
+const EMPTY_TEAMS: FavTeam[] = [];
+let cachedRaw: string | null = null;
+let cachedTeams: FavTeam[] = EMPTY_TEAMS;
 
-  useEffect(() => {
-    setTeams(readTeams());
-    setMounted(true);
-    const sync = () => setTeams(readTeams());
-    window.addEventListener(EVENT_NAME, sync);
-    window.addEventListener("storage", sync); // 탭 간 동기화
-    return () => {
-      window.removeEventListener(EVENT_NAME, sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
+function getTeamsSnapshot(): FavTeam[] {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    raw = null;
+  }
+  if (raw === cachedRaw) return cachedTeams;
+  cachedRaw = raw;
+  cachedTeams = readTeams();
+  return cachedTeams;
+}
+
+function getServerTeamsSnapshot(): FavTeam[] {
+  return EMPTY_TEAMS;
+}
+
+function subscribeFavTeams(onChange: () => void) {
+  window.addEventListener(EVENT_NAME, onChange);
+  window.addEventListener("storage", onChange); // 탭 간 동기화
+  return () => {
+    window.removeEventListener(EVENT_NAME, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+const alwaysTrue = () => true;
+const alwaysFalse = () => false;
+
+export function useFavoriteTeams() {
+  const teams = useSyncExternalStore(subscribeFavTeams, getTeamsSnapshot, getServerTeamsSnapshot);
+  // SSR·하이드레이션 시점엔 false — 소비자가 별표를 그리기 전에 기다릴 수 있게 한다.
+  const mounted = useSyncExternalStore(subscribeFavTeams, alwaysTrue, alwaysFalse);
 
   const toggle = useCallback((team: FavTeam) => {
     const cur = readTeams();
     const next = cur.some((t) => t.id === team.id)
       ? cur.filter((t) => t.id !== team.id)
       : [...cur, team];
-    writeTeams(next);
-    setTeams(next);
+    writeTeams(next); // custom event 발행 → store 구독자 전원 재렌더
     scheduleFavServerSync(); // 로그인 회원이면 서버 팔로우도 즉시 갱신 (텔레그램 알림 대상)
   }, []);
 
   /** id 만으로 제거 — 마이페이지 목록처럼 팀 메타를 다시 만들 필요가 없는 곳에서 쓴다. */
   const remove = useCallback((id: number) => {
     const next = readTeams().filter((t) => t.id !== id);
-    writeTeams(next);
-    setTeams(next);
+    writeTeams(next); // custom event 발행 → store 구독자 전원 재렌더
     scheduleFavServerSync();
   }, []);
 
   const clear = useCallback(() => {
     writeTeams([]);
-    setTeams([]);
     scheduleFavServerSync();
   }, []);
 
@@ -117,7 +139,6 @@ export function useFavoriteTeams() {
     });
     if (!changed) return;
     writeTeams(next);
-    setTeams(next);
   }, []);
 
   const isFav = useCallback(

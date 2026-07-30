@@ -55,7 +55,10 @@ export default function LiveScoresBar() {
   const prevScoresRef = useRef<Map<string, string>>(new Map());
   // schedule() 안에서 항상 최신 matches.length 참조 위해 ref 동기화
   const countRef = useRef(0);
-  countRef.current = matches.length;
+  // 렌더 중 ref 쓰기 금지(react-hooks/refs). 읽는 쪽은 setTimeout 콜백이라 순서 안전.
+  useEffect(() => {
+    countRef.current = matches.length;
+  }, [matches.length]);
 
   useEffect(() => {
     let alive = true;

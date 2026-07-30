@@ -104,6 +104,8 @@ export default async function HomeAiScorecardShowcase() {
 
   // 카드 — 다가오는 경기 우선, 없으면 최근 채점 경기. 리그 다양하게 최대 3개.
   // 두 AI 픽이 "갈린" 경기를 먼저 (정면 대결이 핵심 볼거리).
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const disagrees = (r: Row) => r.sb!.pick !== r.gpt!.pick;
   const upcoming = all

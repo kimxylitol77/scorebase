@@ -95,6 +95,8 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
       homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
     },
   });
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const past = matches.filter((m) => m.status === "FINISHED");
   const upcoming = matches.filter((m) => m.startTime.getTime() > now).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());

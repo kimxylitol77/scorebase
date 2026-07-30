@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 interface LineupPlayer { id?: string; position?: string; logo?: string }
 
 function collectPlayers(lu: unknown, out: Map<string, string>) {
-  const root = lu as Record<string, any> | null;
+  const root = lu as Record<string, unknown> | null;
   if (!root) return;
-  const lineup = root.lineup ?? root;
+  const lineup = (root.lineup ?? root) as Record<string, unknown>;
   for (const sideKey of ["home", "away"]) {
-    const side = lineup?.[sideKey];
-    const players: LineupPlayer[] = Array.isArray(side) ? side : side?.players ?? side?.lineup ?? [];
+    const side = lineup?.[sideKey] as { players?: unknown; lineup?: unknown } | unknown[] | undefined;
+    const players = (Array.isArray(side) ? side : (side?.players ?? side?.lineup ?? [])) as LineupPlayer[];
     if (!Array.isArray(players)) continue;
     for (const p of players) {
       if (p?.id && p?.position && ["G", "D", "M", "F"].includes(p.position)) {

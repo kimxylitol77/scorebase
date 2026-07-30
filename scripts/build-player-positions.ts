@@ -37,7 +37,10 @@ async function main() {
 
   for (const [lg, season] of SOURCES) {
     const fj = await af("/fixtures", { league: lg, season });
-    const fixtures = (fj.response ?? []).filter((f: any) => f.fixture?.status?.short === "FT").map((f: any) => f.fixture.id);
+    interface AfFixtureLite { fixture?: { id?: number; status?: { short?: string } } }
+    const fixtures = ((fj.response ?? []) as AfFixtureLite[])
+      .filter((f) => f.fixture?.status?.short === "FT")
+      .flatMap((f) => (f.fixture?.id != null ? [f.fixture.id] : []));
     console.log(`[league ${lg}/${season}] FT: ${fixtures.length}`);
     let n = 0;
     for (const fid of fixtures) {

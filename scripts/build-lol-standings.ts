@@ -8,6 +8,7 @@ import { thesportsGet } from "@/lib/sports/thesports/client";
 import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { prisma } from "@/lib/db";
 import fs from "fs";
+import type { TsListResponse, TsTableRow, TsTeamRow, TsPlayerRow } from "./_external-api-types";
 
 const LCK = "l7oqd9kb6y6m510"; // LCK 2026 본선 tournament
 
@@ -63,35 +64,36 @@ const FOREIGN_KO: Record<string, string> = {
   "4wyrnxyt8p60m86": "디그니타스",
 };
 
-async function g(path: string, params: Record<string, string | number>): Promise<any> {
+async function g<T>(path: string, params: Record<string, string | number>): Promise<TsListResponse<T>> {
   try {
-    return await thesportsGet(path, params);
+    return (await thesportsGet(path, params)) as TsListResponse<T>;
   } catch (e) {
     return { err: (e as Error).message };
   }
 }
 
 // tournament/table/list 순회 → 특정 tournament 행 수집
-async function fetchTableRows(tid: string): Promise<any[]> {
-  const rows: any[] = [];
+async function fetchTableRows(tid: string): Promise<TsTableRow[]> {
+  const rows: TsTableRow[] = [];
   for (let pg = 1; pg <= 12; pg++) {
-    const r: any = await g("/v1/lol/tournament/table/list", { page: pg });
-    const rs: any[] = r.results ?? [];
+    const r = await g<TsTableRow>("/v1/lol/tournament/table/list", { page: pg });
+    const rs = r.results ?? [];
     if (!rs.length) break;
-    rows.push(...rs.filter((x: any) => x.tournament_id === tid));
+    rows.push(...rs.filter((x) => x.tournament_id === tid));
   }
   return rows;
 }
 
 // stage 별 그룹 → 정규시즌(팀 최다·경기 최다) stage 선택 후 팀별 1행
-function pickStandings(rows: any[]): any[] {
-  const byStage = new Map<string, any[]>();
+function pickStandings(rows: TsTableRow[]): TsTableRow[] {
+  const byStage = new Map<string, TsTableRow[]>();
   for (const r of rows) {
-    const arr = byStage.get(r.stage_id) ?? [];
+    const key = r.stage_id ?? "";
+    const arr = byStage.get(key) ?? [];
     arr.push(r);
-    byStage.set(r.stage_id, arr);
+    byStage.set(key, arr);
   }
-  let best: { rows: any[]; teams: number; played: number } | null = null;
+  let best: { rows: TsTableRow[]; teams: number; played: number } | null = null;
   for (const [, srows] of byStage) {
     const teams = new Set(srows.map((r) => r.team_id)).size;
     const played = srows.reduce((s, r) => s + (Number(r.win) || 0) + (Number(r.lose) || 0), 0);
@@ -103,8 +105,9 @@ function pickStandings(rows: any[]): any[] {
   const seen = new Set<string>();
   return best.rows
     .filter((r) => {
-      if (seen.has(r.team_id)) return false;
-      seen.add(r.team_id);
+      const id = r.team_id ?? "";
+      if (seen.has(id)) return false;
+      seen.add(id);
       return true;
     })
     .sort((a, b) => (Number(a.position) || 99) - (Number(b.position) || 99));
@@ -120,11 +123,11 @@ async function buildLck() {
     return;
   }
   const standings = ranked.map((r, i) => {
-    const t = TS_LOL_TEAMS[r.team_id];
+    const t = TS_LOL_TEAMS[r.team_id ?? ""];
     return {
       rank: Number(r.position) || i + 1,
-      teamId: r.team_id,
-      name: t?.name ?? r.team_id,
+      teamId: r.team_id ?? "",
+      name: t?.name ?? r.team_id ?? "",
       short: t?.short ?? "?",
       logo: t?.logo ?? "",
       win: Number(r.win) || 0,
@@ -146,14 +149,21 @@ async function buildLck() {
 }
 
 // player/list 전체 순회 → 타겟 팀 team_id 별 로스터 (사진·포지션·본명)
-async function fetchRosters(teamIds: Set<string>): Promise<Map<string, any[]>> {
-  const byTeam = new Map<string, any[]>();
+interface RosterEntry {
+  playerId?: string;
+  name?: string;
+  realName: string;
+  photo: string;
+  position: string | null;
+}
+async function fetchRosters(teamIds: Set<string>): Promise<Map<string, RosterEntry[]>> {
+  const byTeam = new Map<string, RosterEntry[]>();
   for (let pg = 1; pg <= 15; pg++) {
-    const r: any = await g("/v1/lol/player/list", { page: pg });
-    const rs: any[] = r.results ?? [];
+    const r = await g<TsPlayerRow>("/v1/lol/player/list", { page: pg });
+    const rs = r.results ?? [];
     if (!rs.length) break;
     for (const p of rs) {
-      if (teamIds.has(p.team_id)) {
+      if (p.team_id && teamIds.has(p.team_id)) {
         const arr = byTeam.get(p.team_id) ?? [];
         arr.push({
           playerId: p.id,
@@ -167,9 +177,9 @@ async function fetchRosters(teamIds: Set<string>): Promise<Map<string, any[]>> {
     }
   }
   // 포지션 순(탑3·정글4·미드2·원딜1·서폿5)
-  const order: Record<number, number> = { 3: 0, 4: 1, 2: 2, 1: 3, 5: 4 };
+  const order: Record<string, number> = { 3: 0, 4: 1, 2: 2, 1: 3, 5: 4 };
   for (const arr of byTeam.values()) {
-    arr.sort((a, b) => (order[a.position] ?? 9) - (order[b.position] ?? 9));
+    arr.sort((a, b) => (order[a.position ?? ""] ?? 9) - (order[b.position ?? ""] ?? 9));
   }
   return byTeam;
 }
@@ -185,27 +195,27 @@ async function buildForeign(league: string) {
   console.log(`${league} 순위 행: ${ranked.length}`);
   if (!ranked.length) return;
 
-  const teamIds = new Set<string>(ranked.map((r) => r.team_id));
+  const teamIds = new Set<string>(ranked.flatMap((r) => (r.team_id ? [r.team_id] : [])));
   const rosters = await fetchRosters(teamIds);
 
   // 팀 메타 (team/list?uuid) — 영문명·로고
-  const teamMeta = new Map<string, any>();
+  const teamMeta = new Map<string, TsTeamRow | null>();
   for (const id of teamIds) {
-    const r: any = await g("/v1/lol/team/list", { uuid: id });
+    const r = await g<TsTeamRow>("/v1/lol/team/list", { uuid: id });
     teamMeta.set(id, r.results?.[0] ?? null);
   }
 
   const standings = ranked.map((r, i) => {
-    const t = teamMeta.get(r.team_id);
+    const t = teamMeta.get(r.team_id ?? "");
     return {
       rank: Number(r.position) || i + 1,
-      teamId: r.team_id,
-      name: FOREIGN_KO[r.team_id] ?? t?.name ?? r.team_id,
+      teamId: r.team_id ?? "",
+      name: FOREIGN_KO[r.team_id ?? ""] ?? t?.name ?? r.team_id ?? "",
       short: t?.abbr || "",
       logo: t?.logo ?? "",
       win: Number(r.win) || 0,
       lose: Number(r.lose) || 0,
-      roster: rosters.get(r.team_id) ?? [],
+      roster: rosters.get(r.team_id ?? "") ?? [],
     };
   });
 
@@ -219,13 +229,13 @@ async function buildForeign(league: string) {
 }
 
 // 특정 tournament 의 table 행만 (그룹/part_stage 보존). 해외 fetchTableRows 와 동일하나 stage 필터 안 함.
-async function fetchTournamentRows(tid: string): Promise<any[]> {
-  const rows: any[] = [];
+async function fetchTournamentRows(tid: string): Promise<TsTableRow[]> {
+  const rows: TsTableRow[] = [];
   for (let pg = 1; pg <= 15; pg++) {
-    const r: any = await g("/v1/lol/tournament/table/list", { page: pg });
-    const rs: any[] = r.results ?? [];
+    const r = await g<TsTableRow>("/v1/lol/tournament/table/list", { page: pg });
+    const rs = r.results ?? [];
     if (!rs.length) break;
-    rows.push(...rs.filter((x: any) => x.tournament_id === tid));
+    rows.push(...rs.filter((x) => x.tournament_id === tid));
   }
   return rows;
 }
@@ -237,18 +247,19 @@ async function buildLpl() {
   if (!rows.length) return;
 
   // part_stage 별 그룹화 (등장 순서 유지)
-  const byPart = new Map<string, any[]>();
+  const byPart = new Map<string, TsTableRow[]>();
   for (const r of rows) {
-    const arr = byPart.get(r.part_stage_id) ?? [];
+    const key = r.part_stage_id ?? "";
+    const arr = byPart.get(key) ?? [];
     arr.push(r);
-    byPart.set(r.part_stage_id, arr);
+    byPart.set(key, arr);
   }
 
-  const teamIds = new Set<string>(rows.map((r) => r.team_id));
+  const teamIds = new Set<string>(rows.flatMap((r) => (r.team_id ? [r.team_id] : [])));
   const rosters = await fetchRosters(teamIds);
-  const teamMeta = new Map<string, any>();
+  const teamMeta = new Map<string, TsTeamRow | null>();
   for (const id of teamIds) {
-    const r: any = await g("/v1/lol/team/list", { uuid: id });
+    const r = await g<TsTeamRow>("/v1/lol/team/list", { uuid: id });
     teamMeta.set(id, r.results?.[0] ?? null);
   }
 
@@ -258,17 +269,17 @@ async function buildLpl() {
     const standings = prows
       .sort((a, b) => (Number(a.position) || 99) - (Number(b.position) || 99))
       .map((r, i) => {
-        const t = teamMeta.get(r.team_id);
+        const t = teamMeta.get(r.team_id ?? "");
         const abbr = t?.abbr || "";
         return {
           rank: Number(r.position) || i + 1,
-          teamId: r.team_id,
+          teamId: r.team_id ?? "",
           name: LPL_KO[abbr] ?? t?.name ?? r.team_id,
           short: abbr || "?",
           logo: t?.logo ?? "",
           win: Number(r.win) || 0,
           lose: Number(r.lose) || 0,
-          roster: rosters.get(r.team_id) ?? [],
+          roster: rosters.get(r.team_id ?? "") ?? [],
         };
       });
     return { name: `그룹 ${String.fromCharCode(65 + gi)}`, standings };

@@ -86,7 +86,16 @@ interface SeriesInfoFromRaw {
 
 function parseRawSeries(rawJson: string | null): SeriesInfoFromRaw | null {
   if (!rawJson) return null;
-  let raw: any;
+  // ESPN scoreboard 원시 JSON — 읽는 필드만 명시.
+  interface EspnCompetitor { id?: string | number; wins?: number | string }
+  interface EspnSeries {
+    type?: string; competitors?: EspnCompetitor[]; completed?: boolean;
+    totalCompetitions?: number | string; summary?: string;
+  }
+  interface EspnRaw {
+    competitions?: Array<{ series?: EspnSeries; notes?: Array<{ headline?: string }> }>;
+  }
+  let raw: EspnRaw | null;
   try { raw = JSON.parse(rawJson); } catch { return null; }
   const comp = raw?.competitions?.[0];
   if (!comp) return null;

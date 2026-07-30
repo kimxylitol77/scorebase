@@ -44,16 +44,15 @@ const POLL_MS = 30_000;
 
 export default function LiveEventsPanel({ matchId }: Props) {
   const [events, setEvents] = useState<FixtureEvent[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // af-prefix 매치만 fixture events 가능 (API-Football)
   const fixtureId = matchId.startsWith("af-") ? matchId.slice(3) : null;
+  // 미지원은 props 만 보면 알 수 있다 — effect 로 setState 할 이유가 없다.
+  const error = fixtureId ? fetchError : "이 종목은 events 미지원";
 
   useEffect(() => {
-    if (!fixtureId) {
-      setError("이 종목은 events 미지원");
-      return;
-    }
+    if (!fixtureId) return;
     let alive = true;
     const fetchOnce = async () => {
       try {
@@ -63,10 +62,10 @@ export default function LiveEventsPanel({ matchId }: Props) {
         if (!res.ok) return;
         const json: { events?: FixtureEvent[]; error?: string } = await res.json();
         if (!alive) return;
-        if (json.error) setError(json.error);
+        if (json.error) setFetchError(json.error);
         else setEvents(json.events ?? []);
       } catch (e) {
-        if (alive) setError((e as Error).message);
+        if (alive) setFetchError((e as Error).message);
       }
     };
     fetchOnce();
@@ -107,7 +106,7 @@ export default function LiveEventsPanel({ matchId }: Props) {
           className="flex items-center gap-2"
         >
           <span className="tabular-nums text-neutral-400 w-8 shrink-0 text-right">
-            {e.minute}'
+            {e.minute}&apos;
           </span>
           <span aria-hidden>{eventEmoji(e.type)}</span>
           <span className="font-medium truncate">{e.playerName || "—"}</span>

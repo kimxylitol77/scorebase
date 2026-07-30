@@ -4,10 +4,11 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import fs from "fs";
+import type { TsListResponse, TsPlayerRow } from "./_external-api-types";
 
-async function g(path: string, params: Record<string, string | number>): Promise<any> {
+async function g<T = TsPlayerRow>(path: string, params: Record<string, string | number>): Promise<TsListResponse<T>> {
   try {
-    return await thesportsGet(path, params);
+    return (await thesportsGet(path, params)) as TsListResponse<T>;
   } catch (e) {
     return { err: (e as Error).message };
   }
@@ -51,7 +52,10 @@ async function g(path: string, params: Record<string, string | number>): Promise
   );
   console.log(`저장 ${ok}/${pids.size}명 → data/lol-players.json`);
   const sample = Object.entries(players).slice(0, 5);
-  for (const [pid, p] of sample) console.log(`  ${(p as any).name} (${(p as any).realName}) pos=${(p as any).position}`);
+  for (const [pid, p] of sample) {
+    const v = p as { name?: string; realName?: string; position?: unknown };
+    console.log(`  ${v.name} (${v.realName}) pos=${v.position}`);
+  }
   await prisma.$disconnect();
 })().catch((e) => {
   console.error(e);

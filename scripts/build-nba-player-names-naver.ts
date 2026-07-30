@@ -180,7 +180,7 @@ async function main() {
   );
 
   const outPath = resolve(OUT);
-  let existing: Record<string, string> = {};
+  const existing: Record<string, string> = {};
   if (existsSync(outPath)) {
     const m = readFileSync(outPath, "utf8").matchAll(/"([^"]+)":\s*"([^"]+)"/g);
     for (const x of m) existing[x[1]] = x[2];

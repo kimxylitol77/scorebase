@@ -91,7 +91,7 @@ export default function SubstitutionImpactCard({ events, homeNameKo, awayNameKo,
           >
             <div className="flex items-center justify-between text-[11px] text-neutral-500 mb-1.5">
               <span>{imp.sub.side === "home" ? homeNameKo : awayNameKo}</span>
-              <span className="tabular-nums">{imp.sub.minute}{imp.sub.extra > 0 ? `+${imp.sub.extra}` : ""}'</span>
+              <span className="tabular-nums">{imp.sub.minute}{imp.sub.extra > 0 ? `+${imp.sub.extra}` : ""}&apos;</span>
             </div>
             {/* 교체 라인 */}
             <div className="flex items-center gap-2 text-sm">
@@ -106,7 +106,7 @@ export default function SubstitutionImpactCard({ events, homeNameKo, awayNameKo,
               {imp.relatedGoals.map((g, j) => (
                 <li key={j} className="text-xs text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
                   <span className="text-emerald-600">⚽</span>
-                  <span className="tabular-nums text-neutral-500">{g.minute}{g.extra > 0 ? `+${g.extra}` : ""}'</span>
+                  <span className="tabular-nums text-neutral-500">{g.minute}{g.extra > 0 ? `+${g.extra}` : ""}&apos;</span>
                   <span className="font-medium">{localize(g.playerName)}</span>
                   {g.assistName && (
                     <span className="text-neutral-400">· 어시 {localize(g.assistName)}</span>

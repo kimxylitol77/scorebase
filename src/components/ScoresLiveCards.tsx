@@ -12,6 +12,7 @@ import LeagueBadge from "./LeagueBadge";
 import CountUp from "./CountUp";
 import LiveEventsPanel from "./LiveEventsPanel";
 import { playChime, unlockAudio, armAudioUnlock } from "@/lib/sound/chime";
+import { useClientValue, subscribeToStorage } from "@/lib/use-client-value";
 
 interface LiveMatch {
   id: string;
@@ -32,20 +33,39 @@ const POLL_LIVE_MS = 15_000;
 const POLL_IDLE_MS = 180_000;
 
 const SOUND_STORAGE_KEY = "scorebase-live-sound";
+const SOUND_CHANGE_EVENT = "scorebase-sound-change";
+
+function readSoundOn(): boolean {
+  try {
+    return localStorage.getItem(SOUND_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+const subscribeSound = subscribeToStorage(SOUND_CHANGE_EVENT);
 
 export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
   // 어느 카드를 펼쳤는지 (events panel) — 한 번에 한 카드만 expand
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  // 점수 변화 사운드 ON/OFF (localStorage 저장)
-  const [soundOn, setSoundOn] = useState(false);
+  // 점수 변화 사운드 ON/OFF — 원본은 localStorage. LiveSoundToggle 과 같은 키·이벤트를
+  // 구독하므로 다른 컴포넌트에서 켜도 여기 즉시 반영된다.
+  const soundOn = useClientValue(readSoundOn, false, subscribeSound);
   const soundOnRef = useRef(false);
-  soundOnRef.current = soundOn;
   // 직전 cycle 의 점수 snapshot — 변화 감지용
   const prevScoresRef = useRef<Map<string, string>>(new Map());
   const countRef = useRef(0);
-  countRef.current = matches.length;
+
+  // 폴링 콜백이 최신 값을 보게 하는 동기화. 렌더 중 ref 쓰기 금지(react-hooks/refs)라
+  // effect 로 옮겼다. 읽는 쪽은 setTimeout·이벤트 콜백이라 항상 이 effect 다음이다.
+  useEffect(() => {
+    soundOnRef.current = soundOn;
+  }, [soundOn]);
+  useEffect(() => {
+    countRef.current = matches.length;
+  }, [matches.length]);
 
   useEffect(() => {
     let alive = true;
@@ -104,18 +124,11 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
     };
   }, []);
 
-  // 사운드 설정 init (localStorage)
+  // 이미 ON 상태로 로드된 경우 — 첫 user gesture 에 AudioContext unlock 예약
+  // (자동재생 정책상 새로고침 후엔 클릭 한 번 있어야 소리가 남)
   useEffect(() => {
-    try {
-      const on = localStorage.getItem(SOUND_STORAGE_KEY) === "1";
-      setSoundOn(on);
-      // 이미 ON 상태로 로드된 경우 — 첫 user gesture 에 AudioContext unlock 예약
-      // (자동재생 정책상 새로고침 후엔 클릭 한 번 있어야 소리가 남)
-      if (on) armAudioUnlock();
-    } catch {
-      // SSR 또는 localStorage 비활성 환경 — ignore
-    }
-  }, []);
+    if (soundOn) armAudioUnlock();
+  }, [soundOn]);
 
   // 점수 변화 감지 → chime
   // - 첫 로드 시점에는 prev 가 비어있어 chime 안 울림 (= 페이지 진입 시 점수 발표 X)
@@ -141,9 +154,10 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
 
   function toggleSound() {
     const next = !soundOn;
-    setSoundOn(next);
     try {
       localStorage.setItem(SOUND_STORAGE_KEY, next ? "1" : "0");
+      // 같은 페이지의 LiveSoundToggle·LiveScoresBar 도 즉시 반영
+      window.dispatchEvent(new CustomEvent(SOUND_CHANGE_EVENT, { detail: { soundOn: next } }));
     } catch {
       // ignore
     }

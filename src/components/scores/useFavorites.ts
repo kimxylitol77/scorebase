@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { scheduleFavServerSync } from "./fav-server-sync";
 
 const STORAGE_KEY = "scorebase:fav-matches";
@@ -68,22 +68,46 @@ function writeMeta(all: Record<string, FavMeta>): void {
   }
 }
 
-export function useFavorites() {
-  const [ids, setIds] = useState<Set<string>>(() => new Set());
-  // SSR hydration mismatch 방지 — mount 후에만 실제 localStorage 값 set
-  const [mounted, setMounted] = useState(false);
+// === useSyncExternalStore 용 store ===
+// localStorage 가 원본이라 setState 로 복제하지 않는다. 원문 문자열이 그대로면
+// 직전 Set 을 재사용해야 스냅샷 참조가 안정된다(매번 새 Set 이면 무한 렌더로 본다).
+const EMPTY_IDS: ReadonlySet<string> = new Set<string>();
+let cachedRaw: string | null = null;
+let cachedIds: Set<string> = new Set();
 
-  useEffect(() => {
-    setIds(readIds());
-    setMounted(true);
-    const sync = () => setIds(readIds());
-    window.addEventListener(EVENT_NAME, sync);
-    window.addEventListener("storage", sync); // 탭 간 동기화
-    return () => {
-      window.removeEventListener(EVENT_NAME, sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
+function getIdsSnapshot(): Set<string> {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    raw = null;
+  }
+  if (raw === cachedRaw) return cachedIds;
+  cachedRaw = raw;
+  cachedIds = readIds();
+  return cachedIds;
+}
+
+function getServerIdsSnapshot(): Set<string> {
+  return EMPTY_IDS as Set<string>;
+}
+
+function subscribeFav(onChange: () => void) {
+  window.addEventListener(EVENT_NAME, onChange);
+  window.addEventListener("storage", onChange); // 탭 간 동기화
+  return () => {
+    window.removeEventListener(EVENT_NAME, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+const alwaysTrue = () => true;
+const alwaysFalse = () => false;
+
+export function useFavorites() {
+  const ids = useSyncExternalStore(subscribeFav, getIdsSnapshot, getServerIdsSnapshot);
+  // SSR·하이드레이션 시점엔 false — 소비자가 별표를 그리기 전에 기다릴 수 있게 한다.
+  const mounted = useSyncExternalStore(subscribeFav, alwaysTrue, alwaysFalse);
 
   // meta 는 별표가 알고 있는 경기 정보(팀·리그·상태 등)를 함께 저장 — 해제 시 같이 제거.
   const toggle = useCallback((id: string, meta?: FavMeta) => {
@@ -97,15 +121,13 @@ export function useFavorites() {
       if (meta) metaAll[id] = meta;
     }
     writeMeta(metaAll);
-    writeIds(cur);
-    setIds(new Set(cur));
+    writeIds(cur); // custom event 발행 → store 구독자 전원 재렌더
     scheduleFavServerSync(); // 로그인 회원이면 서버 팔로우도 즉시 갱신 (텔레그램 알림 대상)
   }, []);
 
   const clear = useCallback(() => {
     writeMeta({});
     writeIds(new Set());
-    setIds(new Set());
     scheduleFavServerSync();
   }, []);
 

@@ -85,6 +85,8 @@ export default async function LeaguePowerRanking({
   }
 
   // 최근 7일 순위 변동 — 7일 전 시점까지의 매치만으로 Elo 를 다시 계산해 순위 비교.
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const priorElo = calcEloTable(matches.filter((m) => m.startTime <= cutoff));
   const currRank = rankMap(elo.ratings);

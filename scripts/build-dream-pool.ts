@@ -16,16 +16,31 @@ const p90 = (v: number, min: number) => (min > 0 ? (v || 0) / (min / 90) : 0);
 const ax = (v: number, cap: number) => Math.min(100, (v / cap) * 100);
 const grpOf = (p: string) => (p === "G" ? "GK" : p === "D" ? "DF" : p === "M" ? "MF" : "FW");
 
-function statRaw(s: any, grp: string): number {
+// data/player-season-stats.json 한 행 — 이 스크립트가 읽는 필드만.
+interface SeasonStatRow {
+  lg: string; team: string; pos: string;
+  minutes?: number | null; goals?: number | null; assists?: number | null;
+  shots?: number | null; sot?: number | null; keyPasses?: number | null;
+  passAcc?: number | null; tackles?: number | null; interceptions?: number | null;
+  saves?: number | null; cleanSheets?: number | null; matches?: number | null;
+}
+interface DreamPoolEntry {
+  name: string; pos: string; rawPos: string; ovr: number; potential: number;
+  value: number; age: number | null; team: string; league: string;
+  photo: string | null; radar: unknown; saves: number;
+  cleanSheets: number | null; matches: number;
+}
+
+function statRaw(s: SeasonStatRow, grp: string): number {
   const min = s.minutes || 0;
   const a: Record<string, number> = {
-    goals: ax(p90(s.goals, min), CAP.goals),
-    assists: ax(p90(s.assists, min), CAP.assists),
-    keyPasses: ax(p90(s.keyPasses, min), CAP.keyPasses),
-    tackles: ax(p90(s.tackles, min), CAP.tackles),
-    interceptions: ax(p90(s.interceptions, min), CAP.interceptions),
-    shots: ax(p90(s.shots, min), CAP.shots),
-    sot: ax(p90(s.sot, min), CAP.sot),
+    goals: ax(p90(s.goals ?? 0, min), CAP.goals),
+    assists: ax(p90(s.assists ?? 0, min), CAP.assists),
+    keyPasses: ax(p90(s.keyPasses ?? 0, min), CAP.keyPasses),
+    tackles: ax(p90(s.tackles ?? 0, min), CAP.tackles),
+    interceptions: ax(p90(s.interceptions ?? 0, min), CAP.interceptions),
+    shots: ax(p90(s.shots ?? 0, min), CAP.shots),
+    sot: ax(p90(s.sot ?? 0, min), CAP.sot),
     passAcc: s.passAcc || 0,
   };
   const w = W[grp];
@@ -44,7 +59,7 @@ function growthCap(age: number | null | undefined): number {
 }
 
 async function main() {
-  const stats = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data/player-season-stats.json"), "utf8")) as Record<string, any>;
+  const stats = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data/player-season-stats.json"), "utf8")) as Record<string, SeasonStatRow>;
   const mvs = await prisma.playerMarketValue.findMany({ where: { league: { in: BIG5 } }, select: { id: true, currentValue: true, age: true } });
   const mvMap = new Map(mvs.map((m) => [m.id, m]));
 
@@ -99,7 +114,7 @@ async function main() {
   const players = await prisma.theSportsPlayer.findMany({ where: { id: { in: pool } }, select: { id: true, nameKo: true, name: true, photoUrl: true } });
   const pm = new Map(players.map((p) => [p.id, p]));
 
-  const out: Record<string, any> = {};
+  const out: Record<string, DreamPoolEntry> = {};
   for (const id of pool) {
     const s = stats[id];
     const mv = mvMap.get(id)!;
@@ -116,7 +131,7 @@ async function main() {
       team: s.team,
       league: s.lg,
       photo: p?.photoUrl || null,
-      radar: toRadarAxes({ minutes: s.minutes, goals: s.goals, assists: s.assists, shots: s.shots, sot: s.sot, keyPasses: s.keyPasses, passAcc: s.passAcc, tackles: s.tackles, interceptions: s.interceptions }),
+      radar: toRadarAxes({ minutes: s.minutes ?? null, goals: s.goals ?? null, assists: s.assists ?? null, shots: s.shots ?? null, sot: s.sot ?? null, keyPasses: s.keyPasses ?? null, passAcc: s.passAcc ?? null, tackles: s.tackles ?? null, interceptions: s.interceptions ?? null }),
       saves: s.saves ?? 0,
       cleanSheets: s.cleanSheets ?? null,
       matches: s.matches ?? 0,
@@ -131,7 +146,7 @@ async function main() {
   for (const id in out) posCount[out[id].pos] = (posCount[out[id].pos] || 0) + 1;
   console.log(`\n드림풀 빌드 완료: ${Object.keys(out).length}명 → data/dream-pool.json`);
   console.log("포지션 분포:", JSON.stringify(posCount));
-  const prospects = (Object.values(out) as any[]).filter((v) => v.age && v.age <= 21).sort((a, b) => b.potential - a.potential).slice(0, 8);
+  const prospects = Object.values(out).filter((v) => v.age && v.age <= 21).sort((a, b) => b.potential - a.potential).slice(0, 8);
   console.log("\n유망주 샘플 (성장 여지 큰 순):");
   for (const v of prospects) console.log(`   ${String(v.name).padEnd(16)} ${v.pos} ${v.age}세  OVR ${v.ovr}→${v.potential}  €${v.value}M`);
 }

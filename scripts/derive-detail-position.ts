@@ -42,13 +42,14 @@ function classifyDetail(pos: string, x: number, y: number): string | null {
 // 출장 경기마다 push — 단일 경기 좌표는 임시 포지션(백3 좌CB·임시 LB 등) 노이즈가 커서
 // 전 경기 분류 후 최빈값을 채택한다 (예: 반 데 벤이 마지막 경기 좌표로 FB 오분류되던 버그).
 function collectCache(lu: unknown, m: Map<string, Array<{ pos: string; x: number; y: number }>>) {
-  const root = lu as Record<string, any> | null;
-  const lineup = root?.lineup ?? root;
+  const root = lu as Record<string, unknown> | null;
+  const lineup = (root?.lineup ?? root) as Record<string, unknown> | null;
   for (const k of ["home", "away"]) {
-    const side = lineup?.[k];
-    const players = Array.isArray(side) ? side : side?.players ?? [];
+    const side = lineup?.[k] as { players?: unknown } | unknown[] | undefined;
+    interface LineupSlot { id?: string; position?: string; x?: number; y?: number }
+    const players = (Array.isArray(side) ? side : (side?.players ?? [])) as LineupSlot[];
     if (Array.isArray(players)) for (const p of players) {
-      if (p?.id && ["G", "D", "M", "F"].includes(p.position) && typeof p.x === "number" && p.x > 0) {
+      if (p?.id && p.position && ["G", "D", "M", "F"].includes(p.position) && typeof p.x === "number" && p.x > 0) {
         const arr = m.get(p.id) ?? [];
         arr.push({ pos: p.position, x: p.x, y: typeof p.y === "number" ? p.y : 50 });
         m.set(p.id, arr);

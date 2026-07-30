@@ -56,6 +56,8 @@ export default async function MatchVoteCard({ matchId }: { matchId: number }) {
     result = match.homeScore > match.awayScore ? "home" : match.homeScore < match.awayScore ? "away" : "draw";
   }
 
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const closed = match.status !== "SCHEDULED" || match.startTime.getTime() <= Date.now();
   const lg = match.league ?? "";
   const homeName = toKoreanTeamName(match.homeTeam.name, lg) || match.homeTeam.name;

@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import rawCountries from "../src/lib/sports/thesports/country-list.json";
+import type { WikiApiResponse, WbSearchEntity, WbClaim, WbSnakValue } from "./_external-api-types";
 
 const COACHES_PATH = path.join(__dirname, "..", "data", "team-coaches.json");
 const OUT = path.join(__dirname, "..", "data", "coach-careers.json");
@@ -18,7 +19,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 interface CareerRow { club: string; start: number | null; end: number | null }
 interface Out { nameKo: string | null; country: string | null; flag: string | null; coachCareer: CareerRow[]; playerCareer: CareerRow[] }
 
-async function getJSON(url: string): Promise<any> {
+async function getJSON(url: string): Promise<WikiApiResponse | null> {
   for (let i = 0; i < 4; i++) {
     try {
       const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(20000) });
@@ -44,21 +45,24 @@ async function searchQid(name: string): Promise<string | null> {
   // "Liverpool head coach"처럼 클럽명+head coach 표기도 잡아야 함 (이라올라 실측 누락 fix).
   // 마지막 폴백: 라벨 정확 일치 — phase 2 의 P6087/P106 감독 가드가 동명이인을 거름.
   return (
-    arr.find((s: any) => /football (manager|coach)|head coach/i.test(s.description || ""))?.id ||
-    arr.find((s: any) => /footballer|football player/i.test(s.description || ""))?.id ||
-    arr.find((s: any) => (s.label || "").toLowerCase() === name.toLowerCase())?.id ||
+    arr.find((s: WbSearchEntity) => /football (manager|coach)|head coach/i.test(s.description || ""))?.id ||
+    arr.find((s: WbSearchEntity) => /footballer|football player/i.test(s.description || ""))?.id ||
+    arr.find((s: WbSearchEntity) => (s.label || "").toLowerCase() === name.toLowerCase())?.id ||
     null
   );
 }
 
-function parseCareerClaims(claims: any[]): Array<{ qid: string; start: number | null; end: number | null }> {
+function parseCareerClaims(claims: WbClaim[]): Array<{ qid: string; start: number | null; end: number | null }> {
   return (claims || [])
-    .map((c: any) => ({
-      qid: c.mainsnak?.datavalue?.value?.id,
-      start: yr(c.qualifiers?.P580?.[0]?.datavalue?.value?.time) ?? yr(c.qualifiers?.P585?.[0]?.datavalue?.value?.time),
-      end: yr(c.qualifiers?.P582?.[0]?.datavalue?.value?.time),
-    }))
-    .filter((c) => c.qid);
+    .flatMap((c: WbClaim) => {
+      const qid = c.mainsnak?.datavalue?.value?.id;
+      if (!qid) return [];
+      return [{
+        qid,
+        start: yr(c.qualifiers?.P580?.[0]?.datavalue?.value?.time) ?? yr(c.qualifiers?.P585?.[0]?.datavalue?.value?.time),
+        end: yr(c.qualifiers?.P582?.[0]?.datavalue?.value?.time),
+      }];
+    });
 }
 
 async function main() {
@@ -96,14 +100,14 @@ async function main() {
     for (const q of batch) {
       const e = d?.entities?.[q];
       if (!e) continue;
-      const coach = parseCareerClaims(e.claims?.P6087);
-      const isManager = (e.claims?.P106 || []).some((c: any) => c.mainsnak?.datavalue?.value?.id === "Q628099");
+      const coach = parseCareerClaims(e.claims?.P6087 ?? []);
+      const isManager = (e.claims?.P106 || []).some((c: WbClaim) => (c.mainsnak?.datavalue?.value as WbSnakValue | undefined)?.id === "Q628099");
       if (!coach.length && !isManager) continue; // 동명이인 가드
       ents.set(q, {
         ko: e.labels?.ko?.value || null,
         countryQid: e.claims?.P1532?.[0]?.mainsnak?.datavalue?.value?.id || e.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id || null,
         coach,
-        play: parseCareerClaims(e.claims?.P54),
+        play: parseCareerClaims(e.claims?.P54 ?? []),
       });
     }
     await sleep(200);

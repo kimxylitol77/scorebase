@@ -42,7 +42,7 @@ async function main() {
     idx.get(k)!.push(p);
   }
 
-  let applied = 0, same = 0, ambiguous = 0, notfound = 0, locked = 0;
+  let same = 0, ambiguous = 0, notfound = 0, locked = 0;
   const changes: { id: string; en: string; from: string | null; to: string }[] = [];
   for (const pr of pairs) {
     const ko = pr.ko.trim();

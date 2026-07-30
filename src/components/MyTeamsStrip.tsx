@@ -8,13 +8,16 @@ import { useFavoriteTeams } from "./scores/useFavoriteTeams";
 
 export default function MyTeamsStrip() {
   const { teams, mounted } = useFavoriteTeams();
-  if (!mounted || teams.length === 0) return null;
+  // 이름이 빈 항목은 구버전 형식(id 만 저장)이라 chip 에 쓸 표시명이 없다.
+  // 그 팀 페이지를 한 번 열면 메타가 채워져 여기 나타난다.
+  const named = teams.filter((t) => t.name);
+  if (!mounted || named.length === 0) return null;
   return (
     <div className="mb-4 flex items-center gap-2 overflow-x-auto py-1" aria-label="내 팀 바로가기">
       <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500">
         <Star className="h-3 w-3" fill="currentColor" aria-hidden /> 내 팀
       </span>
-      {teams.map((t) => (
+      {named.map((t) => (
         <Link
           key={t.id}
           href={`/teams/${t.id}`}

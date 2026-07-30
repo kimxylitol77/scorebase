@@ -452,8 +452,9 @@ export default async function AccuracyPage() {
             득실점은 1X2 확률 계산에 직접 들어가지 않는 참고 지표입니다.
           </li>
           <li>
-            <strong>DC (Double Chance)</strong>: "홈 승 또는 무" / "원정 승 또는
-            무" / "홈 승 또는 원정 승" 중 가장 높은 합 선택. 무승부 변수가 큰
+            <strong>DC (Double Chance)</strong>: &quot;홈 승 또는 무&quot; /
+            &quot;원정 승 또는 무&quot; / &quot;홈 승 또는 원정 승&quot; 중 가장
+            높은 합 선택. 무승부 변수가 큰
             축구에서 정확도가 크게 올라갑니다.
           </li>
           <li>

@@ -65,6 +65,8 @@ export default function BallonCalculator({ candidates }: { candidates: BallonCan
         if (Number.isFinite(n)) next[k] = Math.min(2, Math.max(0, Math.round(n * 10) / 10));
       }
     });
+    // URL 쿼리로 들어온 가중치 1회 복원. 이후엔 슬라이더가 소유하는 값이라 파생으로 바꿀 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setW(next);
     ready.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps

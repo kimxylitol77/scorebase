@@ -1,5 +1,5 @@
 import axios from "axios";
-import { afGoalsExcludingShootout } from "./api-football-pro";
+import { afGoalsExcludingShootout, type AfScoreBreakdown } from "./api-football-pro";
 import type {
   MatchCollector,
   MatchStatus,
@@ -49,7 +49,15 @@ export const eplCollector: MatchCollector = {
       },
     });
 
-    const fixtures = (data?.response ?? []) as any[];
+    // api-football fixtures 응답 — 읽는 필드만 명시.
+    interface AfTeamRef { id: number | string; name: string; logo?: string }
+    interface AfFixtureItem {
+      fixture: { id: number | string; date: string; status?: { short?: string } };
+      teams: { home: AfTeamRef; away: AfTeamRef };
+      goals?: { home?: number | null; away?: number | null } | null;
+      score?: AfScoreBreakdown | null;
+    }
+    const fixtures = (data?.response ?? []) as AfFixtureItem[];
 
     return fixtures.map((f): NormalizedMatch => {
       const g = afGoalsExcludingShootout(f.fixture?.status?.short, f.goals, f.score);

@@ -43,14 +43,14 @@ export type BackfilledLineup = {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // 키가 Vultr 프로덕션 수집기와 공유 — rateLimit 은 던지지 말고 65초 백오프 후 재시도.
-async function afGet(path: string, attempt = 0): Promise<any[]> {
+async function afGet<T = unknown>(path: string, attempt = 0): Promise<T[]> {
   const res = await fetch(`${AF}${path}`, { headers });
   const j = await res.json();
   if (j.errors && Object.keys(j.errors).length) {
     if (j.errors.rateLimit && attempt < 5) {
       console.log(`  rateLimit — 65초 대기 (${attempt + 1}/5)`);
       await sleep(65_000);
-      return afGet(path, attempt + 1);
+      return afGet<T>(path, attempt + 1);
     }
     throw new Error(`af 에러 ${path}: ${JSON.stringify(j.errors)}`);
   }
@@ -82,12 +82,16 @@ async function main() {
   console.log(`우리 ${league} 25/26 FINISHED: ${ours.length}경기`);
 
   // 2) af 시즌 전체 fixtures → 쌍 매핑
-  const fixtures = await afGet(`/fixtures?league=${afLeague}&season=${SEASON}`);
+  interface AfFixtureItem {
+    fixture: { id: number; date: string; status?: { short?: string } };
+    teams: { home: { name: string }; away: { name: string } };
+  }
+  const fixtures = await afGet<AfFixtureItem>(`/fixtures?league=${afLeague}&season=${SEASON}`);
   const done = new Set(["FT", "AET", "PEN"]);
   const mapped: { afId: number; matchId: number; date: string; pair: string }[] = [];
   const unmatched: string[] = [];
   for (const f of fixtures) {
-    if (!done.has(f.fixture?.status?.short)) continue;
+    if (!done.has(f.fixture?.status?.short ?? "")) continue;
     const pair = `${norm(f.teams.home.name)}|${norm(f.teams.away.name)}`;
     const our = byPair.get(pair);
     if (!our) { unmatched.push(`${f.fixture.id} ${f.teams.home.name} vs ${f.teams.away.name}`); continue; }

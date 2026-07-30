@@ -86,6 +86,8 @@ const HOCKEY = ["NHL", "IIHF_WC"];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default async function HockeyHub() {
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const kstNow = new Date(Date.now() + 9 * 3600_000);
   const midnightUtcMs =
     Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600_000;

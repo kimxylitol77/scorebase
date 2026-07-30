@@ -65,7 +65,7 @@ export default function AppInstallPage() {
             <p>1. Chrome 으로 scorebase.kr 을 엽니다.</p>
             <p>2. 오른쪽 위 점 3개 메뉴를 누릅니다.</p>
             <p>3. <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 선택합니다.</p>
-            <p className="text-neutral-400">위의 "지금 바로 설치하기" 버튼이 보이면 그걸 눌러도 됩니다.</p>
+            <p className="text-neutral-400">위의 &quot;지금 바로 설치하기&quot; 버튼이 보이면 그걸 눌러도 됩니다.</p>
           </div>
         </section>
 

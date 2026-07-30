@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import BlogForm from "../BlogForm";
 import { updateBlog } from "../actions";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,12 @@ export default async function EditBlogPage({ params }: Props) {
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
       <div className="mb-6">
-        <a
+        <Link
           href="/admin/blog"
           className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
         >
           ← 목록
-        </a>
+        </Link>
       </div>
       <h1 className="text-2xl font-bold tracking-tight mb-2">블로그 글 편집</h1>
       <p className="text-sm text-neutral-500 mb-6">

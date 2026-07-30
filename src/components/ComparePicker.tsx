@@ -28,18 +28,22 @@ function Slot({
   onClear: () => void;
 }) {
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<PickPlayer[]>([]);
-  const [open, setOpen] = useState(false);
+  // 결과를 질의와 함께 담는다 — 질의가 바뀌면 파생값이 저절로 비어서
+  // effect 안에서 비우는 setState 가 필요 없다(react-hooks/set-state-in-effect).
+  const [found, setFound] = useState<{ q: string; results: PickPlayer[] }>({ q: "", results: [] });
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ring = side === "A" ? "focus:ring-rose-400/50" : "focus:ring-cyan-400/50";
   const dot = side === "A" ? "bg-rose-500" : "bg-cyan-500";
 
+  const query = q.trim();
+  const results = found.q === query ? found.results : [];
+  const open = query.length > 0 && results.length > 0 && dismissedFor !== query;
+  const setOpen = (next: boolean) => setDismissedFor(next ? null : query);
+
   useEffect(() => {
-    if (!q.trim()) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
+    const query = q.trim();
+    if (!query) return;
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       try {
@@ -50,10 +54,12 @@ function Slot({
         const r = await fetch(url);
         const d = await r.json();
         const raw: Array<{ id: string; name: string; team?: string; sub?: string; photo: string | null; value?: string; type?: string }> = Array.isArray(d.players) ? d.players : [];
-        setResults(raw.map((p) => ({ id: p.id, name: p.name, team: p.team ?? p.sub ?? "", photo: p.photo ?? null, value: p.value ?? "", type: p.type })));
-        setOpen(true);
+        setFound({
+          q: query,
+          results: raw.map((p) => ({ id: p.id, name: p.name, team: p.team ?? p.sub ?? "", photo: p.photo ?? null, value: p.value ?? "", type: p.type })),
+        });
       } catch {
-        setResults([]);
+        setFound({ q: query, results: [] });
       }
     }, 220);
     return () => {
@@ -102,9 +108,8 @@ function Slot({
               <button
                 onClick={() => {
                   onPick(p);
-                  setQ("");
-                  setResults([]);
-                  setOpen(false);
+                  setQ(""); // 질의가 비면 results 파생값도 함께 비워진다
+                  setDismissedFor(null);
                 }}
                 className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-neutral-50 dark:hover:bg-white/[0.05]"
               >

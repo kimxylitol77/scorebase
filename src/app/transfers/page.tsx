@@ -408,6 +408,8 @@ export default async function TransfersPage({
   const country = sp.country || "";
   const qSearch = (sp.q || "").trim().slice(0, 40);
   const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400; // 18개월 활성
   const win = transferWindow();
 
@@ -695,6 +697,8 @@ export default async function TransfersPage({
   // ── 임박·루머 피드 (view=rumors) — TransferRumor 최근 7일 ──
   const rumorRows = isRumors
     ? await prisma.transferRumor.findMany({
+        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+        // eslint-disable-next-line react-hooks/purity
         where: { hidden: false, publishedAt: { gte: new Date(Date.now() - 7 * 86400 * 1000) } },
         orderBy: { publishedAt: "desc" },
         take: 100,

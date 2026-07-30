@@ -610,6 +610,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   //  (예: 첼시→맨유 이적 발효됐는데 몸값 피드는 아직 첼시로 남아 헤더가 첼시 표시)
   //  ⚠ 최신 이적이 임대면 보정 안 함 — 임대 중엔 몸값 피드(임대 클럽)를 그대로 신뢰(본팀 오표시 방지).
   {
+    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+    // eslint-disable-next-line react-hooks/purity
     const nowSec = Math.floor(Date.now() / 1000);
     const latest = transfers.find(
       (t) => t.transferTime && t.transferTime <= nowSec && t.toTeamId && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
@@ -644,6 +646,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   //  ③ 완전이적은 기존 진행중(end=null) 행을 이적연도로 캡, 임대(type 7)는 본클럽 유지
   let careerView = career;
   if (career.length && mv?.teamId) {
+    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+    // eslint-disable-next-line react-hooks/purity
     const nowSec = Math.floor(Date.now() / 1000);
     const arrival = transfers.find(
       (t) => t.toTeamId === mv.teamId && t.transferTime && t.transferTime <= nowSec && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),

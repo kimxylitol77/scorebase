@@ -24,6 +24,8 @@ export default async function ChatLogsPage({
   const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
   const skip = (page - 1) * PAGE_SIZE;
 
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const [total, recent24h, topQuestions, logs] = await Promise.all([

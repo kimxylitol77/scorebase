@@ -61,7 +61,33 @@ const KOREA = new Set(["Korea Republic", "South Korea", "South-Korea", "Korea, R
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // af 호출 — 일시적 네트워크 에러는 백오프 재시도. 800콜 중 1회 끊김에 전체가 죽으면 안 된다.
-async function af(pathname: string, retry = 3): Promise<any> {
+interface AfKoreaStat {
+  league?: { id?: number };
+  team?: { id?: number; name?: string; logo?: string | null };
+  games?: { position?: string; appearences?: number | null; lineups?: number | null; minutes?: number | null; rating?: string | number | null };
+  goals?: { total?: number | null; assists?: number | null; saves?: number | null; conceded?: number | null };
+  shots?: { total?: number | null; on?: number | null };
+  passes?: { total?: number | null; key?: number | null; accuracy?: number | null };
+  tackles?: { total?: number | null; interceptions?: number | null; blocks?: number | null };
+  duels?: { total?: number | null; won?: number | null };
+  dribbles?: { attempts?: number | null; success?: number | null; past?: number | null };
+  fouls?: { drawn?: number | null; committed?: number | null };
+  penalty?: { scored?: number | null; missed?: number | null; won?: number | null; saved?: number | null };
+  cards?: { yellow?: number | null; red?: number | null };
+}
+interface AfKoreaRow {
+  player?: {
+    id?: number; nationality?: string; name?: string; firstname?: string; lastname?: string;
+    photo?: string; age?: number; height?: string | null; injured?: boolean;
+    birth?: { date?: string | null };
+  };
+  statistics?: AfKoreaStat[];
+}
+interface AfKoreaResponse {
+  response?: AfKoreaRow[];
+  paging?: { current?: number; total?: number };
+}
+async function af(pathname: string, retry = 3): Promise<AfKoreaResponse> {
   for (let i = 0; ; i++) {
     try {
       const res = await fetch(`https://v3.football.api-sports.io${pathname}`, {
@@ -255,20 +281,20 @@ async function main() {
       const res = await af(`/players?league=${lg.afId}&season=${lg.season}&page=${page}`);
       calls++;
       total = res?.paging?.total ?? 1;
-      const rows: any[] = res?.response ?? [];
+      const rows = res?.response ?? [];
       if (rows.length === 0 && page === 1) break;
       for (const row of rows) {
         const p = row.player;
         if (!p?.nationality || !KOREA.has(p.nationality)) continue;
         // 해당 리그 통계행만 (컵대회·대표팀 행 제외)
-        const st = (row.statistics ?? []).find((s: any) => s?.league?.id === lg.afId) ?? row.statistics?.[0];
+        const st = (row.statistics ?? []).find((s) => s?.league?.id === lg.afId) ?? row.statistics?.[0];
         if (!st) continue;
         const tsId = afToTs[String(p.id)] ?? null;
         found.push({
-          afId: p.id,
+          afId: p.id ?? 0,
           tsId,
           nameKo: "", // 아래에서 채움
-          nameEn: p.name,
+          nameEn: p.name ?? "",
           fullName: [p.firstname, p.lastname].filter(Boolean).join(" ") || null,
           age: numOrNull(p.age),
           birth: p.birth?.date ?? null,
@@ -279,7 +305,7 @@ async function main() {
           leagueLabel: lg.label,
           country: lg.country,
           pos: st.games?.position ?? null,
-          team: { afId: st.team?.id, name: st.team?.name, logo: st.team?.logo ?? null },
+          team: { afId: st.team?.id ?? 0, name: st.team?.name ?? "", logo: st.team?.logo ?? null },
           stats: {
             apps: num(st.games?.appearences),
             starts: num(st.games?.lineups),

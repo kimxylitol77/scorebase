@@ -10,7 +10,7 @@ export const AF_LEAGUE_ID: Record<string, number> = { EPL: 39 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function afGet(path: string, attempt = 0): Promise<any[]> {
+async function afGet<T = unknown>(path: string, attempt = 0): Promise<T[]> {
   const res = await fetch(`${AF}${path}`, {
     headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY ?? "" },
   });
@@ -18,7 +18,7 @@ async function afGet(path: string, attempt = 0): Promise<any[]> {
   if (j.errors && Object.keys(j.errors).length) {
     if (j.errors.rateLimit && attempt < 5) {
       await sleep(65_000);
-      return afGet(path, attempt + 1);
+      return afGet<T>(path, attempt + 1);
     }
     throw new Error(`af 에러 ${path}: ${JSON.stringify(j.errors)}`);
   }
@@ -61,10 +61,14 @@ export async function fetchAfLineupsForRange(league: string, from: Date, to: Dat
   const seasons = [...new Set([afSeason(from), afSeason(to)])];
   const targets: { afId: number; matchId: number; date: string }[] = [];
   for (const season of seasons) {
-    const fixtures = await afGet(`/fixtures?league=${afLeague}&season=${season}`);
+    interface AfFixtureItem {
+      fixture: { id: number; date: string; status?: { short?: string } };
+      teams: { home: { name: string }; away: { name: string } };
+    }
+    const fixtures = await afGet<AfFixtureItem>(`/fixtures?league=${afLeague}&season=${season}`);
     for (const f of fixtures) {
       const d = new Date(f.fixture.date);
-      if (d < from || d > to || !done.has(f.fixture?.status?.short)) continue;
+      if (d < from || d > to || !done.has(f.fixture?.status?.short ?? "")) continue;
       const matchId = byPair.get(`${normTeam(f.teams.home.name)}|${normTeam(f.teams.away.name)}`);
       if (!matchId) {
         console.warn(`[af-lineup] 팀 쌍 미매칭 — 제외: ${f.teams.home.name} vs ${f.teams.away.name}`);

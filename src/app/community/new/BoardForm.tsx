@@ -114,7 +114,7 @@ export default function BoardForm({
           ) : (
             <p className="mt-1 text-[11px] text-neutral-400">
               <Link href="/lineup" className="underline" target="_blank">전술판</Link>
-              에서 포메이션을 짠 뒤 "게시판에 올리기" 버튼을 누르거나, 공유 링크를 붙여넣으면 글에 이미지로 첨부됩니다.
+              에서 포메이션을 짠 뒤 &quot;게시판에 올리기&quot; 버튼을 누르거나, 공유 링크를 붙여넣으면 글에 이미지로 첨부됩니다.
             </p>
           )}
         </div>

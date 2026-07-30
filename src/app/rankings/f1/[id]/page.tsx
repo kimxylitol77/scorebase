@@ -221,6 +221,8 @@ export default async function F1DriverPage({
                 ) : (
                   // 지난 라운드인데 결과가 없으면(ESPN 데이터 갭) 단정 없이 "—" 표시
                   <span className="col-span-2 sm:col-span-3 text-center text-[11px] text-neutral-400">
+                    {/* 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 순수성 규칙 대상이 아니다. */}
+                    {/* eslint-disable-next-line react-hooks/purity */}
                     {new Date(r.date).getTime() < Date.now() ? "—" : "예정"}
                   </span>
                 )}

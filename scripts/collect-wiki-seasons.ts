@@ -4,6 +4,7 @@
 //   npx tsx --env-file=.env.local scripts/collect-wiki-seasons.ts [--league=EPL] [--limit=N] [--force]
 import { PrismaClient } from "@prisma/client";
 import * as fs from "fs";
+import type { WikiApiResponse, WbSearchEntity, WbClaim, WbSnak, WbEntity } from "./_external-api-types";
 const prisma = new PrismaClient();
 const UA = { "User-Agent": "scorebase/1.0 (https://xn--299a8nv7d.kr; player season stats; kimxylitol77@gmail.com)" };
 const WD = "https://www.wikidata.org/w/api.php";
@@ -18,7 +19,7 @@ const PATH = "data/player-wiki-seasons.json";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const isEnglish = (s: string) => /^[\p{Script=Latin}][\p{Script=Latin}'.\-\s]+$/u.test(s);
 
-async function getJSON(url: string, tries = 4): Promise<any> {
+async function getJSON(url: string, tries = 4): Promise<WikiApiResponse | null> {
   for (let i = 0; i < tries; i++) {
     try {
       const r = await fetch(url, { headers: UA });
@@ -32,7 +33,7 @@ async function getJSON(url: string, tries = 4): Promise<any> {
 async function searchQid(name: string): Promise<string | null> {
   const d = await getJSON(`${WD}?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&format=json&type=item&limit=5`);
   const a = d?.search || [];
-  return (a.find((s: any) => /footballer|soccer|football/i.test(s.description || "")) || a[0])?.id || null;
+  return (a.find((s: WbSearchEntity) => /footballer|soccer|football/i.test(s.description || "")) || a[0])?.id || null;
 }
 const clean = (s: string) => s.replace(/<sup[\s\S]*?<\/sup>/g, "").replace(/<[^>]+>/g, "")
   .replace(/&#91;[\s\S]*?&#93;/g, "").replace(/&#0?160;|&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
@@ -64,7 +65,7 @@ function parseCareer(html: string): SeasonRow[] {
 async function fetchSeasons(title: string): Promise<SeasonRow[]> {
   const sec = await getJSON(`${WP}?action=parse&page=${encodeURIComponent(title)}&prop=sections&format=json`);
   const sections = sec?.parse?.sections || [];
-  const cs = sections.find((s: any) => /^career statistics$/i.test(s.line)) || sections.find((s: any) => /statistics/i.test(s.line));
+  const cs = sections.find((s: { line?: string }) => /^career statistics$/i.test(s.line ?? "")) || sections.find((s: { line?: string }) => /statistics/i.test(s.line ?? ""));
   if (!cs) return [];
   const d = await getJSON(`${WP}?action=parse&page=${encodeURIComponent(title)}&section=${cs.index}&prop=text&format=json`);
   return parseCareer(d?.parse?.text?.["*"] || "");
@@ -72,7 +73,7 @@ async function fetchSeasons(title: string): Promise<SeasonRow[]> {
 
 async function main() {
   console.log(`wiki seasons → ${LEAGUES.join(",")} ${LIMIT ? `limit=${LIMIT}/리그` : "(전부)"} ${FORCE ? "force" : ""}`);
-  const squad = fs.existsSync("/tmp/squad-big.json") ? (JSON.parse(fs.readFileSync("/tmp/squad-big.json", "utf8")) as any[]) : [];
+  const squad = fs.existsSync("/tmp/squad-big.json") ? (JSON.parse(fs.readFileSync("/tmp/squad-big.json", "utf8")) as Array<{ id?: string; name?: string }>) : [];
   const squadEn = new Map<string, string>();
   for (const s of squad) if (s.id && s.name && isEnglish(s.name)) squadEn.set(s.id, s.name);
   const prev: Record<string, SeasonRow[]> = fs.existsSync(PATH) ? JSON.parse(fs.readFileSync(PATH, "utf8")) : {};

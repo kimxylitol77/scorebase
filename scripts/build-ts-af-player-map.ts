@@ -60,7 +60,21 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // af 호출 — 일시적 네트워크 에러(ECONNRESET 등)는 백오프 재시도.
 //  1,100콜 중 1회 끊김에 전체가 죽으면 JSON 미저장(끝에 1회 write)이라 전부 날아감.
-async function af(path: string, retry = 3): Promise<any> {
+/**
+ * af 응답 한 행 — /teams · /players 등 엔드포인트마다 모양이 달라 공통 최소만 적고
+ * 나머지는 unknown 으로 둔다. 쓰는 쪽에서 좁혀 쓴다.
+ */
+interface AfApiRow {
+  team?: { id?: number; name?: string };
+  player?: { id?: number; name?: string; photo?: string | null; firstname?: string; lastname?: string };
+  statistics?: AfStatisticsRow[];
+  [key: string]: unknown;
+}
+interface AfPagedResponse {
+  response?: AfApiRow[];
+  paging?: { current?: number; total?: number };
+}
+async function af(path: string, retry = 3): Promise<AfPagedResponse> {
   for (let i = 0; ; i++) {
     try {
       const res = await fetch(`https://v3.football.api-sports.io${path}`, {
@@ -120,16 +134,31 @@ function teamKeys(name: string): string[] {
   return [...keys];
 }
 
+/** api-football /players 응답의 statistics 한 행 — 우리가 읽는 필드만. */
+interface AfStatisticsRow {
+  league?: { id?: number };
+  games?: { position?: string; appearences?: number | null; lineups?: number | null; minutes?: number | null; rating?: string | number | null };
+  goals?: { total?: number | null; assists?: number | null; saves?: number | null; conceded?: number | null };
+  shots?: { total?: number | null; on?: number | null };
+  passes?: { key?: number | null; accuracy?: number | null };
+  tackles?: { total?: number | null; interceptions?: number | null; blocks?: number | null };
+  dribbles?: { success?: number | null; attempts?: number | null; past?: number | null };
+  duels?: { won?: number | null; total?: number | null };
+  fouls?: { drawn?: number | null; committed?: number | null };
+  penalty?: { scored?: number | null; won?: number | null; missed?: number | null };
+  cards?: { yellow?: number | null; red?: number | null };
+}
+
 interface AfPlayerRow {
   id: number; name: string; photo: string | null;
   teamName: string; // af 소속 팀명 — 리그풀 폴백 매칭 시 시즌스탯 팀명용
   apps: number; goals: number; assists: number; minutes: number;
   fullTok: Set<string>; // firstname+lastname+name 토큰 — 부분집합 폴백용
-  st: any; // 해당 리그 statistics row (SeasonStat 생성용)
+  st: AfStatisticsRow | undefined; // 해당 리그 statistics row (SeasonStat 생성용)
 }
 
 function toSeasonStat(lg: string, seasonLabel: string, teamName: string, p: AfPlayerRow) {
-  const st = p.st ?? {};
+  const st: AfStatisticsRow = p.st ?? {};
   return {
     lg,
     season: seasonLabel,
@@ -248,17 +277,19 @@ async function main() {
       newSeasons[tsId] = toSeasonStat(lg, seasonLabel, p.teamName, p);
     };
     for (const t of teams.response ?? []) {
+      if (!t.team?.name) continue; // 팀명 없는 행은 매핑 불가
       // af 로스터 + 시즌스탯 (페이지네이션) — 팀매칭 성패와 무관하게 항상 수집해 리그
       //  전체 풀에 누적(팀 매핑 누락 팀[사우디 알나스르 등]의 로스터도 폴백에 쓰기 위함).
       const afPlayers: AfPlayerRow[] = [];
       for (let page = 1; page <= 6; page++) {
-        const d = await af(`/players?team=${t.team.id}&season=${season}&page=${page}`);
+        const d = await af(`/players?team=${t.team?.id}&season=${season}&page=${page}`);
         for (const r of d.response ?? []) {
-          const st = (r.statistics ?? []).find((x: any) => x.league?.id === afId) ?? r.statistics?.[0];
-          if (!st) continue;
+          const st = (r.statistics ?? []).find((x) => x.league?.id === afId) ?? r.statistics?.[0];
+          // id·name 없는 행은 매핑 키를 만들 수 없어 버린다.
+          if (!st || r.player?.id == null || !r.player.name) continue;
           afPlayers.push({
             id: r.player.id, name: r.player.name, photo: r.player.photo ?? null,
-            teamName: t.team.name,
+            teamName: t.team?.name ?? "",
             apps: st.games?.appearences ?? 0, goals: st.goals?.total ?? 0,
             assists: st.goals?.assists ?? 0, minutes: st.games?.minutes ?? 0,
             fullTok: tokset(`${r.player.firstname ?? ""} ${r.player.lastname ?? ""} ${r.player.name}`),

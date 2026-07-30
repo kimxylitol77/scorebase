@@ -2,28 +2,32 @@
 // 관심팀 미등록자 유도 배너 — 팀 즐겨찾기 시 재방문에 상단 고정됨을 안내. 등록/닫음 시 미노출.
 
 import { Star, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFavoriteTeams } from "./useFavoriteTeams";
+import { useClientValue } from "@/lib/use-client-value";
 
 const DISMISS_KEY = "scorebase:onboard-favteam-dismissed";
 
+function readDismissed(): boolean {
+  try {
+    return localStorage.getItem(DISMISS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export default function FavTeamOnboarding() {
   const { teams, mounted } = useFavoriteTeams();
-  const [dismissed, setDismissed] = useState(true);
-
-  useEffect(() => {
-    try {
-      setDismissed(localStorage.getItem(DISMISS_KEY) === "1");
-    } catch {
-      setDismissed(false);
-    }
-  }, []);
+  // SSR 기본값은 "닫힘" — 하이드레이션 직후 배너가 번쩍이지 않는다.
+  const storedDismissed = useClientValue(readDismissed, true);
+  const [closedNow, setClosedNow] = useState(false);
+  const dismissed = storedDismissed || closedNow;
 
   // 미마운트(hydration) · 닫음 · 이미 등록(MyTeamsStrip 이 대신 노출) 이면 미표시
   if (!mounted || dismissed || teams.length > 0) return null;
 
   const close = () => {
-    setDismissed(true);
+    setClosedNow(true);
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {

@@ -3,6 +3,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useClientValue } from "@/lib/use-client-value";
 
 const DISMISS_KEY = "scorebase:onboard-pwa-dismissed";
 
@@ -11,43 +12,50 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+function readDismissed(): boolean {
+  try {
+    return localStorage.getItem(DISMISS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** 이미 설치돼 홈 화면에서 실행 중이면 배너를 띄울 이유가 없다. */
+function readStandalone(): boolean {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
+}
+
+function readIsIOS(): boolean {
+  const ua = navigator.userAgent;
+  return /iphone|ipad|ipod/i.test(ua) && !/MSStream/i.test(ua);
+}
+
 export default function AppInstallBanner() {
+  // 브라우저 전용 판정값 3개. SSR 기본값은 "숨김" 쪽으로 잡아 깜빡임을 막는다.
+  const dismissed = useClientValue(readDismissed, true);
+  const standalone = useClientValue(readStandalone, true);
+  const isIOS = useClientValue(readIsIOS, false);
+
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [show, setShow] = useState(false);
+  const [closed, setClosed] = useState(false);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
-    } catch {
-      // 무시하고 계속
-    }
-    // 이미 설치(standalone 실행)면 미노출
-    const nav = navigator as Navigator & { standalone?: boolean };
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
-    if (standalone) return;
-
-    const ua = navigator.userAgent;
-    const ios = /iphone|ipad|ipod/i.test(ua) && !/MSStream/i.test(ua);
-    if (ios) {
-      setIsIOS(true);
-      setShow(true);
-      return;
-    }
+    if (dismissed || standalone || isIOS) return;
     const onPrompt = (e: Event) => {
       e.preventDefault(); // 브라우저 기본 미니바 억제, 커스텀 배너로 유도
       setDeferred(e as BeforeInstallPromptEvent);
-      setShow(true);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
-  }, []);
+  }, [dismissed, standalone, isIOS]);
 
+  // iOS 는 beforeinstallprompt 가 없어 공유 안내로 바로 노출, 그 외는 프롬프트를 받은 뒤 노출.
+  const show = !closed && !dismissed && !standalone && (isIOS || deferred !== null);
   if (!show) return null;
 
   const close = () => {
-    setShow(false);
+    setClosed(true);
     try {
       localStorage.setItem(DISMISS_KEY, "1");
     } catch {

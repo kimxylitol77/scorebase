@@ -44,7 +44,7 @@ export default function SoccerMiniBoard({ ctx }: Props) {
         <span className="font-semibold text-neutral-700 dark:text-neutral-300 tabular-nums">
           {minute != null ? `${minute}'` : ""} {half}
         </span>
-        <span className="text-neutral-400">90'</span>
+        <span className="text-neutral-400">90&apos;</span>
       </div>
       <div className="h-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
         <div

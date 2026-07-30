@@ -1944,7 +1944,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
 
       {/* 일자 슬라이더 */}
-      <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
+      <DateSlider selectedDate={dateStr} todayKst={todayKstStr} sport={sport} extraQuery={extraQuery} />
 
       {/* UFC 랭킹 진입 배너 — MMA 뷰에서만. 체급별·P4P 랭킹 페이지로 유도. */}
       {sport === "mma" && (

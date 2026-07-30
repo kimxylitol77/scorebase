@@ -98,6 +98,8 @@ export default function MenuFlowDiagram() {
         ),
       )}
 
+      {/* SVG <a> 라 next/link 로 바꿀 수 없다 (Link 는 SVG 자식으로 못 들어감). */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/">
         <rect x={HX} y={homeY} width={HW} height={PH} rx={5} fill="#6B7280" />
         <text x={HX + HW / 2} y={cy(homeY) + 4} textAnchor="middle" fill="#fff" {...boxStyle}>홈 (메인)</text>

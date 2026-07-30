@@ -10,6 +10,7 @@
 //   npx tsx --env-file=.env.local scripts/enrich-players-wikidata.ts [--league=EPL] [--limit=N] [--pace=150] [--force]
 import { PrismaClient } from "@prisma/client";
 import * as fs from "fs";
+import type { WikiApiResponse, WbSearchEntity, WbClaim, WbSnak, WbEntity } from "./_external-api-types";
 const prisma = new PrismaClient();
 // Wikimedia UA 정책: 연락처(이메일/URL) 필수 — 누락 시 더 공격적 throttle.
 const UA = { "User-Agent": "scorebase/1.0 (https://xn--299a8nv7d.kr; player enrichment; kimxylitol77@gmail.com)" };
@@ -123,7 +124,7 @@ const COUNTRY_ALIAS: Record<string, string> = {
 };
 
 // status-aware fetch + JSON. 429 → Retry-After 존중 + pace 자동 증가. !ok → backoff.
-async function getJSON(url: string, tries = 5): Promise<any> {
+async function getJSON(url: string, tries = 5): Promise<WikiApiResponse | null> {
   for (let i = 0; i < tries; i++) {
     try {
       const r = await fetch(url, { headers: UA });
@@ -144,36 +145,39 @@ async function getJSON(url: string, tries = 5): Promise<any> {
 async function searchQid(name: string): Promise<string | null> {
   const d = await getJSON(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&format=json&type=item&limit=5`);
   const arr = d?.search || [];
-  return (arr.find((s: any) => /footballer|soccer|football player/i.test(s.description || "")) || arr[0])?.id || null;
+  return (arr.find((s: WbSearchEntity) => /footballer|soccer|football player/i.test(s.description || "")) || arr[0])?.id || null;
 }
 
 // 엔티티 → ko라벨 + 국가Qid + P54(원시 클럽Qid·연도·통계·임대)
 interface RawCareer { clubQid: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean }
 interface Entity { ko: string | null; countryQid: string | null; p54: RawCareer[]; p413: string[] }
-function parseEntity(e: any): Entity | null {
-  const p54: RawCareer[] = (e.claims?.P54 || []).map((c: any) => {
+function parseEntity(e: WbEntity): Entity | null {
+  const p54: RawCareer[] = (e.claims?.P54 || []).flatMap((c: WbClaim) => {
     const clubQid = c.mainsnak?.datavalue?.value?.id;
+    if (!clubQid) return [];
     const q = c.qualifiers || {};
-    return {
+    return [{
       clubQid,
       start: yr(q.P580?.[0]?.datavalue?.value?.time) ?? yr(q.P585?.[0]?.datavalue?.value?.time),
       end: yr(q.P582?.[0]?.datavalue?.value?.time),
       apps: num(q.P1350?.[0]?.datavalue?.value?.amount),
       goals: num(q.P1351?.[0]?.datavalue?.value?.amount),
-      loan: (q.P1642 || []).some((x: any) => x.datavalue?.value?.id === LOAN_QID),
-    };
-  }).filter((c: RawCareer) => c.clubQid);
+      loan: (q.P1642 || []).some((x: WbSnak) => x.datavalue?.value?.id === LOAN_QID),
+    }];
+  });
   // 정밀도 가드: 커리어(P54) 또는 축구선수 직업(P106=Q937857) 중 하나는 있어야 채택(동명이인 오매칭 방지).
   //  P54 없는 어린 선수(예: 도르구 2004년생)도 footballer 직업이면 국적/이름은 채움(커리어만 빔).
-  const isFootballer = (e.claims?.P106 || []).some((c: any) => c.mainsnak?.datavalue?.value?.id === "Q937857");
+  const isFootballer = (e.claims?.P106 || []).some((c: WbClaim) => c.mainsnak?.datavalue?.value?.id === "Q937857");
   if (!p54.length && !isFootballer) return null;
   const ko = e.labels?.ko?.value || null;
   const countryQid = e.claims?.P1532?.[0]?.mainsnak?.datavalue?.value?.id || e.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id || null;
   // P413 주 포지션 — rank preferred 우선, 없으면 선언 순서 (첫 매핑 가능 라벨 채택)
-  const p413raw = (e.claims?.P413 || []) as any[];
+  const p413raw = (e.claims?.P413 || []) as WbClaim[];
   const p413 = [...p413raw.filter((c) => c.rank === "preferred"), ...p413raw.filter((c) => c.rank !== "preferred")]
-    .map((c) => c.mainsnak?.datavalue?.value?.id)
-    .filter(Boolean);
+    .flatMap((c) => {
+      const id = c.mainsnak?.datavalue?.value?.id;
+      return id ? [id] : [];
+    });
   return { ko, countryQid, p54, p413 };
 }
 
@@ -317,7 +321,7 @@ async function main() {
   // 영문명 맵: squad
   const squadEn = new Map<string, string>();
   if (fs.existsSync("/tmp/squad-big.json")) {
-    for (const s of JSON.parse(fs.readFileSync("/tmp/squad-big.json", "utf8")) as any[]) {
+    for (const s of JSON.parse(fs.readFileSync("/tmp/squad-big.json", "utf8")) as Array<{ id?: string; name?: string }>) {
       if (s.id && s.name && isEnglish(s.name)) squadEn.set(s.id, s.name);
     }
   }

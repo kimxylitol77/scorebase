@@ -7,6 +7,26 @@ import { PrismaClient } from "@prisma/client";
 import rawOv from "../data/player-overrides.json";
 import * as fs from "fs";
 
+// TheSports 응답 shape — 읽는 필드만.
+interface TsDiaryResponse {
+  code: number;
+  results?: Array<{ id?: string; competition_id?: string; home_team_id?: string; away_team_id?: string }>;
+  results_extra?: { team?: Array<{ id?: string; name?: string }> };
+}
+interface TsLineupSlot {
+  id?: string; name?: string; position?: string; rating?: string | number; logo?: string | null;
+}
+interface TsLineupDetailResponse {
+  code: number;
+  results?: { lineup?: Record<string, TsLineupSlot[]> };
+}
+interface PoolEntry {
+  id: string; name: string; nameKo: string; hasMv: boolean; pos: string;
+  country: string; flag: string; logo: string | null; score: number; star: number;
+  recentRating: number; avgRating: number; games: number;
+}
+
+
 const INTL = "jednm9whk0ryox8"; // INTL_FRIENDLY competition_id
 const WC = "kp3glrw7hwqdyjv"; // FIFA World Cup competition_id (2026-06-12 KST diary 개막전 멕시코-남아공 실측)
 const COMPS = new Set([INTL, WC]);
@@ -70,10 +90,10 @@ async function main() {
   for (let t = Date.parse("2026-06-01T00:00:00Z"); t <= endMs; t += 86400000) {
     const date = new Date(t).toISOString().slice(0, 10);
     const tsp = Math.floor((new Date(`${date}T00:00:00Z`).getTime() - 9 * 3600000) / 1000);
-    let diary: any;
-    try { diary = await thesportsGet<any>("/v1/football/match/diary", { tsp }); } catch { continue; }
-    const tm = new Map((diary.results_extra?.team ?? []).map((t: any) => [t.id, t.name]));
-    for (const m of (diary.results ?? []).filter((x: any) => COMPS.has(x.competition_id))) {
+    let diary: TsDiaryResponse;
+    try { diary = await thesportsGet<TsDiaryResponse>("/v1/football/match/diary", { tsp }); } catch { continue; }
+    const tm = new Map((diary.results_extra?.team ?? []).map((t) => [t.id, t.name]));
+    for (const m of (diary.results ?? []).filter((x) => x.id && COMPS.has(x.competition_id ?? ""))) {
       // 본선 진출국이 속한 side 만 수집 — 라인업은 매치당 1회 호출(양 side 동일 응답)
       const sides: ["home" | "away", string][] = [];
       for (const [side, tid] of [["home", m.home_team_id], ["away", m.away_team_id]] as const) {
@@ -83,16 +103,17 @@ async function main() {
         if (country) sides.push([side, country]);
       }
       if (!sides.length) continue;
-      let lu: any;
-      try { lu = await thesportsGet<any>("/v1/football/match/lineup/detail", { uuid: m.id }); calls++; } catch { continue; }
+      let lu: TsLineupDetailResponse;
+      try { lu = await thesportsGet<TsLineupDetailResponse>("/v1/football/match/lineup/detail", { uuid: m.id! }); calls++; } catch { continue; }
       for (const [side, country] of sides) {
         byCountry[country] ??= new Map();
         for (const pl of (lu.results?.lineup?.[side] ?? [])) {
-          const rating = parseFloat(pl.rating) || 0;
+          if (!pl.id) continue;
+          const rating = parseFloat(String(pl.rating ?? "")) || 0;
           const prev = byCountry[country].get(pl.id);
           const ratings = prev?.ratings ?? [];
           if (rating > 0) ratings.push({ d: date, r: rating });
-          byCountry[country].set(pl.id, { id: pl.id, name: pl.name, pos: pl.position, rating: Math.max(prev?.rating ?? 0, rating), logo: pl.logo || prev?.logo || null, ratings });
+          byCountry[country].set(pl.id, { id: pl.id, name: pl.name ?? "", pos: pl.position ?? "", rating: Math.max(prev?.rating ?? 0, rating), logo: pl.logo || prev?.logo || null, ratings });
         }
       }
     }
@@ -114,7 +135,7 @@ async function main() {
   fs.mkdirSync("data/world-cup-xi", { recursive: true });
   const summary: { group: string; xi: number; pool: number }[] = [];
   for (const [group, countries] of Object.entries(WORLD_CUP_GROUPS)) {
-    const pool: any[] = [];
+    const pool: PoolEntry[] = [];
     for (const country of countries) {
       const mp = byCountry[country];
       if (!mp) continue;

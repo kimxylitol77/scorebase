@@ -6,25 +6,26 @@ import { thesportsGet } from "@/lib/sports/thesports/client";
 import { TS_LOL_TOURNAMENTS, TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { buildLolGames } from "@/lib/sports/lol-ingame";
 import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import type { TsListResponse, TsNamedRow, TsPlayerRow, TsAnyRow } from "./_external-api-types";
 
 // LEC Spring(3/28~)·LCS Spring(4/3~)·LCK 본선(4/1~) 커버. 시즌 전체 인게임 백필.
 const SINCE = Math.floor(new Date("2026-03-20T00:00:00Z").getTime() / 1000);
 
-async function g(path: string, params: Record<string, string | number>): Promise<any> {
+async function g<T = TsAnyRow>(path: string, params: Record<string, string | number>): Promise<TsListResponse<T>> {
   try {
-    return await thesportsGet(path, params);
+    return (await thesportsGet(path, params)) as TsListResponse<T>;
   } catch (e) {
     return { err: (e as Error).message };
   }
 }
 
 // time 증분 슬라이딩 — 1000건 초과 시 마지막 updated_at 으로 다음 윈도우. dedup by id.
-async function fetchAllSince(path: string, since: number): Promise<any[]> {
-  const out: any[] = [];
+async function fetchAllSince(path: string, since: number): Promise<TsAnyRow[]> {
+  const out: TsAnyRow[] = [];
   let t = since;
   for (let i = 0; i < 40; i++) {
     const r = await g(path, { time: t });
-    const rs: any[] = r.results ?? [];
+    const rs = r.results ?? [];
     if (!rs.length) break;
     out.push(...rs);
     if (rs.length < 1000) break;
@@ -33,7 +34,7 @@ async function fetchAllSince(path: string, since: number): Promise<any[]> {
     t = maxU;
   }
   const seen = new Set<string>();
-  const dedup: any[] = [];
+  const dedup: TsAnyRow[] = [];
   for (const x of out) {
     const id = String(x.id);
     if (!seen.has(id)) {
@@ -46,11 +47,12 @@ async function fetchAllSince(path: string, since: number): Promise<any[]> {
 
 (async () => {
   // 1. LCK 계열 ts 매치 (mlive=1, SINCE 이후)
-  const tsMatches: any[] = [];
+  const tsMatches: TsAnyRow[] = [];
   for (const uuid of Object.keys(TS_LOL_TOURNAMENTS)) {
     const r = await g("/v1/lol/match/tournament", { uuid });
     for (const m of r.results ?? []) {
-      if ((Number(m.match_time) || 0) >= SINCE && m.coverage?.mlive === 1) tsMatches.push(m);
+      const coverage = m.coverage as { mlive?: number } | undefined;
+      if ((Number(m.match_time) || 0) >= SINCE && coverage?.mlive === 1) tsMatches.push(m);
     }
   }
   console.log(`LCK mlive=1 매치(${new Date(SINCE * 1000).toISOString().slice(0, 10)}~): ${tsMatches.length}`);
@@ -68,18 +70,18 @@ async function fetchAllSince(path: string, since: number): Promise<any[]> {
   console.log(`LCK 세트 ${lckSets.length} / 선수 ${lckPlayers.length}`);
 
   // 4. 사전 + 선수명
-  const heroR = await g("/v1/lol/hero/list", { page: 1 });
+  const heroR = await g<TsNamedRow>("/v1/lol/hero/list", { page: 1 });
   const heroMap = new Map<string, { name: string; logo: string }>(
-    (heroR.results ?? []).map((h: any) => [String(h.id), { name: h.name, logo: h.logo }]),
+    (heroR.results ?? []).map((h) => [String(h.id), { name: String(h.name ?? ""), logo: String(h.logo ?? "") }] as const),
   );
-  const eqR = await g("/v1/lol/equipment/list", { page: 1 });
+  const eqR = await g<TsNamedRow>("/v1/lol/equipment/list", { page: 1 });
   const eqMap = new Map<string, { name: string; logo: string }>(
-    (eqR.results ?? []).map((e: any) => [String(e.id), { name: e.name, logo: e.logo }]),
+    (eqR.results ?? []).map((e) => [String(e.id), { name: String(e.name ?? ""), logo: String(e.logo ?? "") }] as const),
   );
   const pids = [...new Set(lckPlayers.map((p) => String(p.player_id)))];
   const nameMap = new Map<string, string>();
   for (const pid of pids) {
-    const r = await g("/v1/lol/player/list", { uuid: pid });
+    const r = await g<TsPlayerRow>("/v1/lol/player/list", { uuid: pid });
     const x = r.results?.[0];
     if (x?.name) nameMap.set(pid, x.name);
   }

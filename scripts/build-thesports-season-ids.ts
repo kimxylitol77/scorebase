@@ -86,7 +86,7 @@ async function main() {
 
   // 3. league-id-mapping.json 업데이트
   let updated = 0;
-  let unresolved: string[] = [];
+  const unresolved: string[] = [];
   for (const l of leagues) {
     const sid = competitionToSeason.get(l.tsId);
     if (sid) {

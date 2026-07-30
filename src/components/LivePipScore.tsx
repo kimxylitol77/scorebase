@@ -113,6 +113,8 @@ export default function LivePipScore() {
 
   // mount: on 상태·위치·크기·즐겨찾기 로드 + 이벤트 동기화
   useEffect(() => {
+    // 마운트 1회 복원 / 조건부 리셋 — 이후엔 사용자가 옮기는 PiP 창 상태라 파생으로 대체할 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setDocPipSupported(
       typeof window !== "undefined" &&
@@ -215,6 +217,8 @@ export default function LivePipScore() {
     if (!on) return;
     const numericIds = [...favIds].filter((id) => /^\d+$/.test(id));
     if (numericIds.length === 0) {
+      // 마운트 1회 복원 / 조건부 리셋 — 이후엔 사용자가 옮기는 PiP 창 상태라 파생으로 대체할 수 없다.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBrief({});
       return;
     }
@@ -247,7 +251,10 @@ export default function LivePipScore() {
   // 첫 클릭 때 재분리한다 (user gesture 없이 requestWindow 를 부르면 NotAllowedError —
   // 완전 자동 재오픈은 브라우저 보안 제약상 불가).
   const docWinRef = useRef<Window | null>(null);
-  docWinRef.current = docWin;
+  // 렌더 중 ref 쓰기 금지(react-hooks/refs). 읽는 쪽은 pagehide·클릭 콜백이라 순서 안전.
+  useEffect(() => {
+    docWinRef.current = docWin;
+  }, [docWin]);
   useEffect(() => {
     const onPageHide = () => {
       try {
@@ -272,7 +279,11 @@ export default function LivePipScore() {
   const openDocPipRef = useRef<(opts?: { silent?: boolean }) => Promise<boolean>>(
     async () => false,
   );
-  openDocPipRef.current = openDocPip; // 함수 선언 호이스팅 — 최신 state(size) 클로저 유지
+  // 최신 state(size) 클로저 유지. 렌더 중 ref 쓰기 금지라 effect 로 옮겼다 —
+  // 읽는 쪽은 아래 effect 의 클릭 핸들러라 이 effect 다음에 실행된다.
+  useEffect(() => {
+    openDocPipRef.current = openDocPip;
+  }, [openDocPip]);
 
   useEffect(() => {
     if (!mounted || !on || !docPipSupported) return;
@@ -283,6 +294,8 @@ export default function LivePipScore() {
       // ignore
     }
     if (!flagged) return;
+    // 마운트 1회 복원 / 조건부 리셋 — 이후엔 사용자가 옮기는 PiP 창 상태라 파생으로 대체할 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRestoreArmed(true);
     // 성공할 때까지 클릭마다 재시도 — 플래그는 pagehide 가 관리하므로 여기선 안 지운다.
     let busy = false;

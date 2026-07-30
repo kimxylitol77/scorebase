@@ -146,6 +146,8 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         }
       } catch { /* 무시 */ }
     }
+    // sessionStorage 에 저장된 전술판 1회 복원. 이후엔 드래그·그리기가 소유하는 상태라 파생 불가.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true); // 복원이 끝난 뒤에야 보드를 그린다 → F5 시 세로→가로 깜빡임 제거
     // 마운트 1회만 복원.
     // eslint-disable-next-line react-hooks/exhaustive-deps

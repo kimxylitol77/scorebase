@@ -48,6 +48,8 @@ export default function TelegramConnectCard() {
   // 최초: 연결 상태 확인 → 연결됐으면 즐겨찾기 동기화 + 알림 설정 로드
   useEffect(() => {
     if (!mounted) return;
+    // 마운트 시 서버 연결 상태 조회. setState 는 await fetch 이후라 실제로 동기 호출이 아니다(룰이 async 경계를 못 따라감).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshStatus();
   }, [mounted, refreshStatus]);
 

@@ -7,21 +7,32 @@ interface Props {
   size?: number;
 }
 
+// 빈 베이스 — light/dark 양쪽에서 보이도록 currentColor 기반 utility class.
+const emptyClass =
+  "border bg-neutral-200/70 border-neutral-300 dark:bg-white/[.06] dark:border-white/20";
+// 차있는 베이스 — cyan glow.
+const occupiedStyle: React.CSSProperties = {
+  background: "#06b6d4",
+  border: "1px solid #67e8f9",
+  boxShadow: "0 0 14px rgba(6,182,212,.7)",
+};
+
+// 렌더 중 컴포넌트를 새로 만들면 매 렌더마다 DOM 이 재생성된다(react-hooks/static-components).
+// 모듈 최상위로 올려 참조를 고정한다.
+function Base({ on, style }: { on: boolean; style: React.CSSProperties }) {
+  return (
+    <div
+      className={on ? "" : emptyClass}
+      style={on ? { ...style, ...occupiedStyle } : style}
+    />
+  );
+}
+
 export default function BaseDiamond({ bases, size = 84 }: Props) {
   const b1 = !!bases?.[0];
   const b2 = !!bases?.[1];
   const b3 = !!bases?.[2];
   const baseSize = Math.round(size * 0.22);
-
-  // 빈 베이스 — light/dark 양쪽에서 보이도록 currentColor 기반 utility class.
-  const emptyClass =
-    "border bg-neutral-200/70 border-neutral-300 dark:bg-white/[.06] dark:border-white/20";
-  // 차있는 베이스 — cyan glow.
-  const occupiedStyle: React.CSSProperties = {
-    background: "#06b6d4",
-    border: "1px solid #67e8f9",
-    boxShadow: "0 0 14px rgba(6,182,212,.7)",
-  };
 
   const positionStyle = (extra: React.CSSProperties): React.CSSProperties => ({
     position: "absolute",
@@ -31,13 +42,6 @@ export default function BaseDiamond({ bases, size = 84 }: Props) {
     transition: "background .25s, box-shadow .25s",
     ...extra,
   });
-
-  const Base = ({ on, style }: { on: boolean; style: React.CSSProperties }) => (
-    <div
-      className={on ? "" : emptyClass}
-      style={on ? { ...style, ...occupiedStyle } : style}
-    />
-  );
 
   return (
     <div

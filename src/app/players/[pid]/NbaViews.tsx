@@ -449,6 +449,8 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   const currentTeam = teamName ? teamMap.get(normTeam(teamName)) : undefined;
 
   const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
   const birthStr = birth
     ? `${birth.getUTCFullYear()}.${String(birth.getUTCMonth() + 1).padStart(2, "0")}.${String(birth.getUTCDate()).padStart(2, "0")}`

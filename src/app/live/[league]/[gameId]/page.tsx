@@ -329,6 +329,8 @@ export default async function GenericLivePage({ params }: Props) {
   // 새 시즌 backfill 미래 fixture(D+7 밖 7.5k 페이지)를 대량 순회하며 af 일 한도(75k)를
   // 매일 소진시키는 주범이라 지혈. 예측·배당·시즌통계·라운드는 킥오프 임박에만 의미 있는
   // 부가 정보라 생략해도 본문(스코어·이벤트·리포트)은 그대로 유지된다.
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
   const msFromKickoff = Date.now() - match.startTime.getTime();
   const afRecent =
     match.status === "LIVE" ||
@@ -493,6 +495,8 @@ export default async function GenericLivePage({ params }: Props) {
       const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
       const trendStale =
         match.status === "LIVE" &&
+        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+        // eslint-disable-next-line react-hooks/purity
         cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
       const trend = trendStale
         ? null

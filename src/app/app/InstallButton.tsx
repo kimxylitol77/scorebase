@@ -3,28 +3,33 @@
 // iOS 사파리는 이벤트 미지원 → 페이지의 수동 안내(공유 → 홈 화면에 추가)가 대신한다.
 
 import { useEffect, useState } from "react";
+import { useClientValue } from "@/lib/use-client-value";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+/** 이미 앱(standalone)으로 열려 있는지 — 서버는 알 수 없어 마운트 후에만 읽는다. */
+function readStandalone(): boolean {
+  return window.matchMedia("(display-mode: standalone)").matches;
+}
+
 export default function InstallButton() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(false);
+  const standalone = useClientValue(readStandalone, false);
+  // appinstalled 이벤트로 설치가 확인된 경우 (이벤트 핸들러라 effect setState 아님)
+  const [justInstalled, setJustInstalled] = useState(false);
+  const installed = standalone || justInstalled;
 
   useEffect(() => {
-    // 이미 앱(standalone)으로 열려 있으면 설치 완료 상태
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setInstalled(true);
-      return;
-    }
+    if (standalone) return;
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     };
     const onInstalled = () => {
-      setInstalled(true);
+      setJustInstalled(true);
       setDeferred(null);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
@@ -33,7 +38,7 @@ export default function InstallButton() {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
-  }, []);
+  }, [standalone]);
 
   if (installed) {
     return (

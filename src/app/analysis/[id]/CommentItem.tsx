@@ -1,7 +1,7 @@
 // 댓글 한 줄 — 본인 댓글이면 인라인 수정 토글(수정·삭제), 남의 댓글은 읽기 전용.
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { updateCommentAction, type PostFormState } from "../actions";
 import { displayGrade } from "@/lib/user-level";
 import { listTime } from "@/lib/analysis/format";
@@ -25,14 +25,16 @@ interface Props {
 }
 
 export default function CommentItem({ id, content, createdAt, author, isMine }: Props) {
-  const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState(updateCommentAction, initial);
   const g = displayGrade(author.level, author.badge);
 
-  // 저장 성공하면 편집창 닫기 (실패면 에러를 띄운 채 열어둔다)
-  useEffect(() => {
-    if (state.ok && !state.error) setEditing(false);
-  }, [state]);
+  // 저장 성공하면 편집창 닫기 (실패면 에러를 띄운 채 열어둔다).
+  // effect + setEditing 대신 "어느 state 에서 열었는지" 를 담아 파생한다 —
+  // 그러면 저장 성공으로 state 가 바뀌는 순간 같은 렌더에서 닫힌다.
+  const saved = state.ok && !state.error;
+  const [openedFor, setOpenedFor] = useState<object | null>(null);
+  const editing = openedFor !== null && !(saved && openedFor !== state);
+  const setEditing = (next: boolean) => setOpenedFor(next ? state : null);
 
   return (
     <li className="text-sm">

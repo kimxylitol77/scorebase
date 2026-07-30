@@ -177,6 +177,53 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // 진짜 2부는 TheSports(9vjxm8ghonr6odg)로 수집 (2026-05-29).
 };
 
+// === api-football 원시 응답 shape ===
+// 공식 스키마 타입이 제공되지 않아, 우리가 실제로 읽는 필드만 옵셔널로 적는다.
+// any 로 두면 오타(r.team.nmae)를 컴파일러가 못 잡는다.
+interface AfRef {
+  id?: number;
+  name?: string;
+  photo?: string;
+}
+interface AfInjuryRow {
+  player?: AfRef & { reason?: string; type?: string };
+  team?: AfRef;
+  fixture?: { date?: string };
+}
+interface AfSquadPlayer {
+  id?: unknown;
+}
+interface AfTopScorerRow {
+  player?: AfRef;
+  statistics?: Array<{
+    team?: AfRef;
+    goals?: { total?: number | null; assists?: number | null };
+    games?: { appearences?: number | null };
+  }>;
+}
+interface AfFixtureRow {
+  fixture?: { id?: number; date?: string };
+  teams?: { home?: AfRef; away?: AfRef };
+}
+interface AfLineupRow {
+  team?: AfRef;
+  formation?: string;
+  startXI?: Array<{ player?: { name?: string } }>;
+  coach?: { name?: string };
+}
+interface AfEventRow {
+  time?: { elapsed?: number | null };
+  type?: string;
+  detail?: string;
+  team?: AfRef;
+  player?: { name?: string };
+  assist?: { name?: string };
+}
+interface AfStatRow {
+  team?: AfRef;
+  statistics?: Array<{ type?: string; value?: number | string | null }>;
+}
+
 interface CacheEntry<T> {
   fetchedAt: number;
   data: T;
@@ -261,7 +308,7 @@ export async function fetchSeasonInjuries(
     const { data } = await client().get("/injuries", {
       params: { league: lid, season },
     });
-    const arr: InjuryEntry[] = (data?.response ?? []).map((r: any) => ({
+    const arr: InjuryEntry[] = (data?.response ?? []).map((r: AfInjuryRow) => ({
       playerId: r.player?.id,
       playerName: r.player?.name ?? "",
       reason: r.player?.reason ?? "",
@@ -326,7 +373,7 @@ export async function fetchSquadPlayerIds(teamId: number): Promise<Set<number>> 
     const { data } = await client().get("/players/squads", { params: { team: teamId } });
     const players = data?.response?.[0]?.players ?? [];
     const ids = new Set<number>(
-      players.map((p: any) => p.id).filter((x: any): x is number => typeof x === "number"),
+      players.map((p: AfSquadPlayer) => p.id).filter((x: unknown): x is number => typeof x === "number"),
     );
     // 빈 응답은 캐시하지 않음 (일시적 실패로 전 선수 제거되는 사고 방지)
     if (ids.size > 0) squadCache.set(teamId, { fetchedAt: Date.now(), data: ids });
@@ -388,7 +435,7 @@ export async function fetchSeasonTopScorers(
     const { data } = await client().get("/players/topscorers", {
       params: { league: lid, season },
     });
-    const arr: TopScorerEntry[] = (data?.response ?? []).map((r: any) => {
+    const arr: TopScorerEntry[] = (data?.response ?? []).map((r: AfTopScorerRow) => {
       const stat = r.statistics?.[0] ?? {};
       return {
         playerId: r.player?.id,
@@ -793,12 +840,15 @@ export async function findFixtureByDateAndTeams(
     const { data } = await client().get("/fixtures", {
       params: { league: lid, season, date: ymd },
     });
-    const list: FixtureMatchInfo[] = (data?.response ?? []).map((r: any) => ({
-      fixtureId: r.fixture.id,
-      date: r.fixture.date,
-      homeTeamName: r.teams.home.name,
-      awayTeamName: r.teams.away.name,
-    }));
+    // 필드가 빠진 행은 버린다 — 예전엔 가드 없이 접근해 응답이 불완전하면 throw 됐다.
+    const list: FixtureMatchInfo[] = (data?.response ?? []).flatMap((r: AfFixtureRow) => {
+      const fixtureId = r.fixture?.id;
+      const date = r.fixture?.date;
+      const homeTeamName = r.teams?.home?.name;
+      const awayTeamName = r.teams?.away?.name;
+      if (fixtureId == null || !date || !homeTeamName || !awayTeamName) return [];
+      return [{ fixtureId, date, homeTeamName, awayTeamName }];
+    });
 
     const found = list.find(
       (m) =>
@@ -834,12 +884,12 @@ export async function fetchFixtureLineups(
     const { data } = await client().get("/fixtures/lineups", {
       params: { fixture: fixtureId },
     });
-    return (data?.response ?? []).map((r: any) => ({
+    return (data?.response ?? []).map((r: AfLineupRow) => ({
       teamId: r.team?.id,
       teamName: r.team?.name ?? "",
       formation: r.formation,
       startXI: (r.startXI ?? [])
-        .map((p: any) => p.player?.name)
+        .map((p) => p.player?.name)
         .filter(Boolean),
       coach: r.coach?.name,
     }));
@@ -855,7 +905,7 @@ export async function fetchFixtureEvents(
     const { data } = await client().get("/fixtures/events", {
       params: { fixture: fixtureId },
     });
-    return (data?.response ?? []).map((r: any) => ({
+    return (data?.response ?? []).map((r: AfEventRow) => ({
       minute: r.time?.elapsed ?? 0,
       type: r.type ?? "",
       detail: r.detail ?? "",
@@ -909,10 +959,12 @@ export async function fetchFixtureStatistics(
     const { data } = await client().get("/fixtures/statistics", {
       params: { fixture: fixtureId },
     });
-    return (data?.response ?? []).map((r: any) => {
+    return (data?.response ?? []).flatMap((r: AfStatRow) => {
+      // teamId 없는 행은 우리 팀에 붙일 수 없어 버린다.
+      if (r.team?.id == null) return [];
       const out: FixtureStat = {
-        teamId: r.team?.id,
-        teamName: r.team?.name ?? "",
+        teamId: r.team.id,
+        teamName: r.team.name ?? "",
       };
       for (const s of r.statistics ?? []) {
         const key = STAT_KEY[s.type as string];
@@ -923,9 +975,10 @@ export async function fetchFixtureStatistics(
           const num = Number(s.value.replace("%", ""));
           v = Number.isFinite(num) ? num : undefined;
         }
-        if (v != null) (out as any)[key] = v;
+        // key 는 STAT_KEY 값이라 FixtureStat 의 숫자 필드명이 보장된다.
+        if (v != null) (out as unknown as Record<string, number>)[key] = v;
       }
-      return out;
+      return [out];
     });
   } catch {
     return [];
@@ -951,11 +1004,11 @@ export async function fetchSeasonFixtures(
       params: { league: lid, season },
     });
     return (data?.response ?? [])
-      .map((r: any) => ({
-        id: r.fixture?.id as number,
-        dateMs: new Date(r.fixture?.date).getTime(),
-        homeName: (r.teams?.home?.name ?? "") as string,
-        awayName: (r.teams?.away?.name ?? "") as string,
+      .map((r: AfFixtureRow) => ({
+        id: r.fixture?.id ?? 0,
+        dateMs: r.fixture?.date ? new Date(r.fixture.date).getTime() : NaN,
+        homeName: r.teams?.home?.name ?? "",
+        awayName: r.teams?.away?.name ?? "",
       }))
       .filter((f: AfSeasonFixture) => f.id && f.homeName && f.awayName && Number.isFinite(f.dateMs));
   } catch {
@@ -1193,13 +1246,13 @@ export async function fetchUpcomingFixtures(
         to: toDate.toISOString().slice(0, 10),
       },
     });
-    return (data?.response ?? []).map((r: any) => ({
+    return (data?.response ?? []).map((r: Required<AfFixtureRow>) => ({
       fixtureId: r.fixture.id,
       date: r.fixture.date,
-      homeTeamName: r.teams.home.name,
-      awayTeamName: r.teams.away.name,
-      homeTeamId: r.teams.home.id,
-      awayTeamId: r.teams.away.id,
+      homeTeamName: r.teams.home?.name,
+      awayTeamName: r.teams.away?.name,
+      homeTeamId: r.teams.home?.id,
+      awayTeamId: r.teams.away?.id,
     }));
   } catch {
     return [];
