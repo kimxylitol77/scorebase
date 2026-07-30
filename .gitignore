@@ -57,6 +57,10 @@ src/lib/chatbot/run-brief.ts
 # 로컬 dev 도구 (preview 등)
 .claude/
 
+# git worktree 체크아웃 (저장소 전체 사본 — 추적하면 lint·검색이 중복 히트)
+# 과거 커밋된 .worktrees/agents-chat 스냅샷은 태그 archive/agents-chat-snapshot 에 보존.
+.worktrees/
+
 # TheSports 일회성 dump 데이터 (크기 큼, 재실행 가능)
 /data/thesports-translations/
 
