@@ -7,6 +7,7 @@ import type { WeTable } from "@/lib/predict/win-expectancy";
 
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 interface LeagueCfg {
   label: string; // "KBO" | "MLB" | "NPB"
@@ -88,7 +89,7 @@ export default function BaseballWinProbabilityPage({ slug, table }: { slug: stri
   return (
     <main className="relative mx-auto max-w-3xl px-4 sm:px-6 py-10">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <nav className="mb-3 flex items-center gap-1.5 text-xs text-zinc-500 dark:text-white/40">
         <Link href="/baseball" className="hover:underline" prefetch={false}>야구</Link>

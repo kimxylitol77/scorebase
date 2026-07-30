@@ -18,6 +18,7 @@ import {
   FIFA_RANKING_DATE,
 } from "@/lib/sports/fifa-rankings";
 import rawClubRankings from "../../../data/club-rankings.json";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 // 세계 클럽 랭킹 top5 — 대시보드 FIFA 랭킹 옆 카드용 (정적 JSON)
 const CLUB_RANKINGS = rawClubRankings as { rank: number; name: string; logo: string | null }[];
@@ -153,7 +154,7 @@ export default async function PredictionsRoot() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(PREDICTIONS_JSONLD) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(PREDICTIONS_JSONLD) }}
       />
       <AmbientGlow />
       <PredictionsView

@@ -8,6 +8,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { prisma } from "@/lib/db";
 import rawClubs from "../../../../data/club-rankings.json";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 interface ClubRank { id: string; rank: number; name: string; logo: string | null; countryLogo: string | null; points: number; prev: number; change: number }
 const CLUBS = rawClubs as ClubRank[];
@@ -66,7 +67,7 @@ export default async function ClubRankingPage() {
   return (
     <div className="relative min-h-screen">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(JSONLD) }} />
       <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-14">
         <Link
           href="/predictions"

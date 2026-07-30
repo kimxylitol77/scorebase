@@ -93,7 +93,19 @@ export function athleteLd(opts: {
   };
 }
 
-/** JSON-LD <script> 한 줄 — 서버 컴포넌트에서 `{jsonLdScript(obj)}` 로 삽입. */
+/**
+ * JSON-LD <script> 한 줄 — 서버 컴포넌트에서
+ * `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(obj) }} />` 로 삽입.
+ *
+ * DB·외부 API 에서 온 문자열(팀명·선수명·글 제목)이 그대로 들어오므로 `</script>` 로 태그를 탈출당할 수 있다.
+ * `<`·`>`·`&` 를 \uXXXX 로 바꾸면 JSON 값은 그대로면서 HTML 파서가 태그 끝으로 읽지 못한다.
+ * U+2028/U+2029 는 JSON 에선 합법이지만 JS 문자열 리터럴에선 줄바꿈이라 함께 막는다.
+ */
 export function jsonLdScript(data: unknown): string {
-  return JSON.stringify(data);
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }

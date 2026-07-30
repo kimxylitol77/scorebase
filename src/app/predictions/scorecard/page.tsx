@@ -15,6 +15,7 @@ import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어�
 import { ogPageImage } from "@/lib/seo/og";
 import { isGptScorecardModel } from "@/lib/predict/gpt-scorecard-model";
 import { koEnLanguages } from "@/lib/i18n/en";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 1800; // 30분 ISR
 
@@ -479,7 +480,7 @@ export default async function ScorecardPage() {
   return (
     <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <header className="mb-10">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">

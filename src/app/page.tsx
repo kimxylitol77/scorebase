@@ -30,6 +30,7 @@ import HomeRankingShowcase from "@/components/HomeRankingShowcase";
 import SectionHeading from "@/components/SectionHeading";
 import SeasonInsight from "@/components/SeasonInsight";
 import SeasonInsightCard from "@/components/SeasonInsightCard";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 // 1시간마다 ISR 재생성 — Monte Carlo 시뮬레이션 비용 흡수 + SEO 친화
 export const revalidate = 3600;
@@ -184,15 +185,15 @@ export default async function Home() {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
       />
 
       <HeroSection />

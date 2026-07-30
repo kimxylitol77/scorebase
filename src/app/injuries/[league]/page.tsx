@@ -44,6 +44,7 @@ import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
 import { getTheSportsInjuriesByTeam, type TSInjuryRaw } from "@/lib/sports/thesports/injuries";
 import { NATIONAL_TEAM_LEAGUES, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { translateReason, classifySeverity, SEVERITY_META, type Severity } from "@/lib/sports/injury-format";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 function classifyKboDuration(
   duration: string,
@@ -882,11 +883,11 @@ export default async function InjuriesByLeague({
       <AmbientGlow />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListJsonLd) }}
       />
 
       {/* 헤더 */}

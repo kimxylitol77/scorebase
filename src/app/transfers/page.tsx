@@ -21,7 +21,7 @@ import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
-import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
+import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
 import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap, Newspaper, Gem, Award } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -859,7 +859,7 @@ export default async function TransfersPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
+          __html: jsonLdScript([
             breadcrumbLd([
               { name: "홈", path: "/" },
               { name: "이적시장", path: "/transfers" },

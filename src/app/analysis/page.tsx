@@ -14,6 +14,7 @@ import BoardTabs from "@/components/BoardTabs";
 import FollowCta from "@/components/experts/FollowCta";
 import UserName from "@/components/UserName";
 import TeamBadge from "@/components/TeamBadge";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -335,7 +336,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           <script
             key={i}
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: jsonLdScript(schema) }}
           />
         ))}
       {/* 앰비언트 배경 — 상단에 은은한 메시 글로우 */}

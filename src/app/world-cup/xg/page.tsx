@@ -10,6 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { parseFixtureXg, xgFairnessPct } from "@/lib/xg/outcome";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 600; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -172,7 +173,7 @@ export default async function WorldCupXgPage() {
       <AmbientGlow />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(XG_JSONLD) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(XG_JSONLD) }}
       />
       <header className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-neutral-500">

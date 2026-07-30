@@ -10,7 +10,7 @@ import TeamBadge from "@/components/TeamBadge";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, COUNTRY_FLAG } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
-import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
+import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
 import raw from "../../../../data/korea-abroad.json";
 
 export const revalidate = 3600;
@@ -224,7 +224,7 @@ export default async function KoreaAbroadPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
+          __html: jsonLdScript(
             breadcrumbLd([
               { name: "홈", path: "/" },
               { name: "축구", path: "/soccer" },
@@ -236,7 +236,7 @@ export default async function KoreaAbroadPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
+          __html: jsonLdScript(
             datasetLd({
               name: "해외파 한국 선수 시즌 성적",
               description: `유럽·MLS 소속 한국 선수 ${players.length}명의 ${DATA.season} 시즌 출전·골·도움·평점 집계.`,

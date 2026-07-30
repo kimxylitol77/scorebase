@@ -208,6 +208,7 @@ const MATCH_DURATION_MIN: Record<string, number> = {
 
 // 리그별 country/city 매핑 + location 빌더는 공통 helper 로 이동.
 import { LEAGUE_COUNTRY, buildSportsEventLocation } from "@/lib/seo/sports-event-location";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 interface MatchForEvent {
   homeTeam: { name: string };
@@ -650,22 +651,22 @@ export default async function ArticlePage({ params }: Props) {
       <AmbientGlow />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       {eventJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(eventJsonLd) }}
         />
       )}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       {personJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(personJsonLd) }}
         />
       )}
 

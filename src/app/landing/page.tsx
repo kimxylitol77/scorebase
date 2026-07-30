@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Zap, ListOrdered, Target, BarChart3, Banknote, Bandage, type LucideIcon } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 // 스코어베이스.com (브랜드 랜딩 전용 도메인) 자기참조 canonical/OG.
 // 과거엔 canonical 이 scorebase.kr/landing 이라 구글이 .com 을 scorebase.kr 로 흡수 →
@@ -108,7 +109,7 @@ export default function LandingPage() {
   return (
     <main className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(JSONLD) }} />
 
       {/* Hero */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 pt-16 sm:pt-24 pb-12 text-center">

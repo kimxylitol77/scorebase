@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
 import AmbientGlow from "@/components/AmbientGlow";
 import BoardTabs from "@/components/BoardTabs";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 export const revalidate = 600; // 10분
@@ -60,7 +61,7 @@ export default async function BlogPage() {
     <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(blogLd) }}
       />
       <AmbientGlow />
       <header className="mb-10">

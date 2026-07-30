@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 const PATH = "/compare/live-score-apps";
@@ -120,9 +121,9 @@ export default function CompareLiveScoreAppsPage() {
   return (
     <main className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 break-keep">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(webPageJsonLd) }} />
 
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 앱 비교

@@ -31,6 +31,7 @@ import NhlStandingsTable from "@/components/NhlStandingsTable";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 600; // ISR — 순위는 경기 종료 후 poller 가 갱신, 10분 캐시로 충분
 
@@ -649,7 +650,7 @@ export default async function StandingsPage({ params }: Props) {
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
+              __html: jsonLdScript({
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
                 mainEntity: KBO_FAQ.map((f) => ({

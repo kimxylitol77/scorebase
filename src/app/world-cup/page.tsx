@@ -16,7 +16,7 @@ import { buildWcBracket, parseKnockoutRound, knockoutRoundFromDate, type WcKnock
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup-standings";
-import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 
@@ -189,7 +189,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
+          __html: jsonLdScript([
             breadcrumbLd([
               { name: "홈", path: "/" },
               { name: "2026 월드컵", path: "/world-cup" },

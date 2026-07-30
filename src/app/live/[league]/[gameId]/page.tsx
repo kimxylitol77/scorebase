@@ -85,6 +85,7 @@ import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
 import UpcomingFixturesCard, { type UpcomingFixture } from "@/components/live/UpcomingFixturesCard";
 import KickoffCountdown from "@/components/live/KickoffCountdown";
 import MatchHighlightCard from "@/components/live/MatchHighlightCard";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -894,7 +895,7 @@ export default async function GenericLivePage({ params }: Props) {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(sportsEventLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(sportsEventLd) }}
       />
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />

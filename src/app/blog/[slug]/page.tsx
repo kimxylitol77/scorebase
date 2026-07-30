@@ -10,6 +10,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import sanitizeHtml from "sanitize-html";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 600;
 
@@ -43,8 +44,8 @@ function prepareBlogContent(content: string): { body: string; ldJsons: string[] 
     /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
   )) {
     try {
-      // 임의 JS 차단(파싱돼야 통과) + "<" escape 로 </script> breakout 방지
-      ldJsons.push(JSON.stringify(JSON.parse(m[1])).replace(/</g, "\\u003c"));
+      // 임의 JS 차단(파싱돼야 통과) + 공용 jsonLdScript 로 </script> breakout 방지
+      ldJsons.push(jsonLdScript(JSON.parse(m[1])));
     } catch {
       // 파싱 실패한 블록은 버린다
     }
@@ -132,7 +133,7 @@ export default async function BlogDetailPage({ params }: Props) {
       <AmbientGlow />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       <div className="mb-6">
         <Link

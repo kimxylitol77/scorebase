@@ -9,6 +9,7 @@ import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 60; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -181,7 +182,7 @@ export default async function ValueBetsPage() {
       <AmbientGlow />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(VALUE_BETS_JSONLD) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(VALUE_BETS_JSONLD) }}
       />
       <header className="space-y-3">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">

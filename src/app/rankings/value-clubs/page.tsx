@@ -11,6 +11,7 @@ import { Coins, TrendingDown } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import { teamDisplayKo } from "@/lib/team-names";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 3600;
 
@@ -161,7 +162,7 @@ export default async function ValueClubsPage() {
   return (
     <main className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <header className="mb-8">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">

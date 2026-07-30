@@ -8,7 +8,7 @@ import { Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
-import { breadcrumbLd, itemListLd } from "@/lib/seo/jsonld";
+import { breadcrumbLd, itemListLd, jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 3600;
 
@@ -39,7 +39,7 @@ export default async function NationalTeamsIndex() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
+          __html: jsonLdScript([
             breadcrumbLd([
               { name: "홈", path: "/" },
               { name: "2026 월드컵", path: "/world-cup" },

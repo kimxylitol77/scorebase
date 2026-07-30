@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ArrowRight } from "lucide-react";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 
@@ -40,7 +41,7 @@ export default function AboutPage() {
       <AmbientGlow />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(orgJsonLd) }}
       />
 
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">

@@ -91,6 +91,7 @@ import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescor
 import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
 import type { EsportsContext } from "@/components/scores/EsportsMiniBoard";
 import LiveSoundToggle from "@/components/LiveSoundToggle";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
@@ -1889,12 +1890,12 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }}
       />
       {normalized.length > 0 && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListLd) }}
         />
       )}
 

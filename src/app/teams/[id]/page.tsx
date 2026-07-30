@@ -54,6 +54,7 @@ import {
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
 import FormDots from "@/components/FormDots";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 // ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
 export const revalidate = 300;
@@ -419,7 +420,7 @@ export default async function TeamPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdScript({
             "@context": "https://schema.org",
             "@type": "SportsTeam",
             name: toKoreanTeamName(team.name, team.league),

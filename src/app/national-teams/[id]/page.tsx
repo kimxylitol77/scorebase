@@ -16,6 +16,7 @@ import { Trophy, Goal } from "lucide-react";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 // ISR — 스쿼드·일정·조별 순위 5분 캐시(WC 라이브 결과는 /world-cup·/standings 가 정본).
@@ -247,8 +248,8 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
 
   return (
     <main className="relative max-w-3xl mx-auto px-4 py-6">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(teamJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(teamJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }} />
       <AmbientGlow />
       {/* 브레드크럼 — 허브·48개국 목록으로 연결 (고아 페이지 방지) */}
       <nav className="mb-3 text-xs text-neutral-500 flex items-center gap-1.5">

@@ -13,6 +13,7 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 // 한국 순위(동적) + 상위국 — metadata·본문·FAQ·JSON-LD 공용. 하드코딩 금지.
 const KOREA_RANK = FIFA_RANKINGS.find((r) => r.name === "Korea Republic")?.rank ?? null;
@@ -109,7 +110,7 @@ export default async function FifaRankingPage() {
   return (
     <div className="relative min-h-screen">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(JSONLD) }} />
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
         <Link
           href="/predictions"

@@ -15,6 +15,7 @@ import { SITE_URL } from "@/lib/site-url";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -346,7 +347,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(schema) }}
         />
       ))}
 
