@@ -27,6 +27,17 @@ export const maxDuration = 60;
 
 const STALE_HOURS = 6;
 
+/** 알림에 싣는 목록의 최대 줄 수. */
+const SAMPLE_LIMIT = 8;
+
+/**
+ * 잘린 목록 뒤에 "…외 N건" 을 붙인다.
+ * 표기가 없으면 헤더 건수(예: "정정 11건")와 실제 줄 수(8줄)가 어긋나 누락처럼 읽힌다.
+ */
+function withOverflow(lines: string, total: number): string {
+  return total > SAMPLE_LIMIT ? `${lines}\n  …외 ${total - SAMPLE_LIMIT}건` : lines;
+}
+
 // 연기 추종으로 startTime 을 옮길 때, 옮겨갈 시각에 이미 반대 소스의 같은 경기 row 가
 // 있는지 확인하는 창. collect 의 dedup 가드와 같은 폭(축구 150분).
 const TWIN_WINDOW_MS = 150 * 60 * 1000;
@@ -557,17 +568,22 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b[1] - a[1])
     .map(([l, n]) => `  ${l}: ${n}건 (source: ${SOURCE_HINT[l] ?? "unknown"})`)
     .join("\n");
-  const sampleLines = toPostpone
-    .slice(0, 8)
+  const sampleLines = withOverflow(
+    toPostpone
+    .slice(0, SAMPLE_LIMIT)
     .map(
       (m) =>
         `  ${m.startTime.toISOString().slice(5, 16)} | ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name}`,
     )
-    .join("\n");
+    .join("\n"),
+    toPostpone.length,
+  );
 
   // verify 로 정정된 매치 sample (false positive 차단 실적)
-  const correctedLines = [...verifiedFinished, ...verifiedLive]
-    .slice(0, 8)
+  const corrected = [...verifiedFinished, ...verifiedLive];
+  const correctedLines = withOverflow(
+    corrected
+    .slice(0, SAMPLE_LIMIT)
     .map((m) => {
       const v = verifyMap.get(m.externalId);
       const tag = verifiedFinished.includes(m) ? "FT" : "LIVE";
@@ -578,28 +594,36 @@ export async function GET(req: NextRequest) {
           : `api-football ${v?.short ?? "?"}`;
       return `  [${tag}] ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} (${src})`;
     })
-    .join("\n");
+    .join("\n"),
+    corrected.length,
+  );
 
   // RESCHEDULED (af date 추종으로 startTime 미래 갱신) sample — 오탐 자가치유 실적.
-  const rescheduledLines = rescheduled
-    .slice(0, 8)
+  const rescheduledLines = withOverflow(
+    rescheduled
+    .slice(0, SAMPLE_LIMIT)
     .map((m) => {
       const v = verifyMap.get(m.externalId);
       const to = v?.date ? new Date(v.date).toISOString().slice(5, 16) : "?";
       return `  ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} → ${to}`;
     })
-    .join("\n");
+    .join("\n"),
+    rescheduled.length,
+  );
 
   // KEPT (상태 변경 없이 SCHEDULED 유지) sample. verify 불가 리그(ESPN/TheSports/esports)
   // 거나 외부 status 가 NS/TBD 라 안전하게 둔 매치. 같은 매치가 매 run 반복되면
   // = 영구 stuck → source/collector 점검 필요하므로 알림에 실제 목록을 노출한다.
-  const keptLines = verifyKept
-    .slice(0, 8)
+  const keptLines = withOverflow(
+    verifyKept
+    .slice(0, SAMPLE_LIMIT)
     .map((m) => {
       const hrs = Math.round((Date.now() - m.startTime.getTime()) / 3600000);
       return `  ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} (${hrs}h, ${SOURCE_HINT[m.league] ?? "unknown"})`;
     })
-    .join("\n");
+    .join("\n"),
+    verifyKept.length,
+  );
 
   // Haiku 진단 — POSTPONED 처리된 매치가 있을 때만.
   // KEPT-only (전부 api-football verify 로 SCHEDULED 유지) 면 진단 프롬프트의
@@ -671,10 +695,14 @@ export async function GET(req: NextRequest) {
 
   // 텔레그램 알림 — 진단 포함
   try {
+    // 중복흡수·충돌도 stale.length 를 구성하는 처리 결과다. HealthCheck message 에는 넣고
+    // 여기서만 빠뜨려서, 헤더 "20건 처리" 와 내역 합(18)이 어긋나 2건이 사라진 것처럼 읽혔다.
     const summary =
       `POSTPONED ${toPostpone.length} / FINISHED ${verifiedFinished.length} / LIVE ${verifiedLive.length}` +
       (rescheduled.length > 0 ? ` / RESCHEDULED ${rescheduled.length}` : "") +
-      (verifyKept.length > 0 ? ` / KEPT ${verifyKept.length}` : "");
+      (verifyKept.length > 0 ? ` / KEPT ${verifyKept.length}` : "") +
+      (dupAbsorbed.length > 0 ? ` / 중복흡수 ${dupAbsorbed.length}` : "") +
+      (dupConflict.length > 0 ? ` / 중복충돌 ${dupConflict.length}` : "");
     await sendTelegram(
       `🧹 <b>stale SCHEDULED ${stale.length}건 처리</b> (${summary})\n\n` +
         `📍 <b>무엇</b>: 시작 + ${STALE_HOURS}h+ 지났는데 SCHEDULED 상태\n` +
