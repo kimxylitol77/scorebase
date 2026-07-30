@@ -17,7 +17,30 @@ const GREETING: Message = {
     "안녕하세요! Scorebase 챗봇이에요.\n궁금한 점이나 버그·오류 제보를 남겨주세요. 운영자에게 전달해 드립니다.",
 };
 
-// 메시지 안의 마크다운 링크 [텍스트](url) 와 생 URL 을 클릭 가능한 링크로 렌더. 나머지는 평문.
+/**
+ * `**굵게**` 를 <strong> 으로. 모델이 리그명·팀명을 굵게 쓰는데 예전엔 별표가
+ * 화면에 그대로 나왔다("**UCL**"). 짝이 안 맞는 별표는 건드리지 않고 평문으로 둔다.
+ */
+function renderBold(text: string, keyPrefix: string): ReactNode[] {
+  const re = /\*\*([^*\n]+)\*\*/g;
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    nodes.push(
+      <strong key={`${keyPrefix}b${key++}`} className="font-semibold">
+        {m[1]}
+      </strong>,
+    );
+    last = re.lastIndex;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
+
+// 메시지 안의 마크다운 링크 [텍스트](url)·생 URL 은 클릭 가능한 링크로, `**굵게**` 는 굵게 렌더.
 function renderContent(text: string): ReactNode {
   const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
   const nodes: ReactNode[] = [];
@@ -25,7 +48,7 @@ function renderContent(text: string): ReactNode {
   let key = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
-    if (m.index > last) nodes.push(text.slice(last, m.index));
+    if (m.index > last) nodes.push(...renderBold(text.slice(last, m.index), `t${key}`));
     const label = m[1] ?? m[3];
     const url = m[2] ?? m[3];
     nodes.push(
@@ -36,12 +59,13 @@ function renderContent(text: string): ReactNode {
         rel="noopener noreferrer"
         className="underline text-cyan-600 dark:text-cyan-400"
       >
-        {label}
+        {/* 링크 라벨 안의 굵게도 살린다 — [**경기 상세**](url) 형태 대응 */}
+        {renderBold(label, `l${key}`)}
       </a>,
     );
     last = re.lastIndex;
   }
-  if (last < text.length) nodes.push(text.slice(last));
+  if (last < text.length) nodes.push(...renderBold(text.slice(last), `t${key}`));
   return nodes;
 }
 
