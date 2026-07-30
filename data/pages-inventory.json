@@ -50,7 +50,7 @@
   },
   {
     "route": "/analysis/[id]/edit",
-    "desc": "게시판 글 수정 (관리자 전용) — admin_session 없으면 글로 되돌림. 모든 글 수정 가능.",
+    "desc": "게시판 글 수정 — 작성자 본인 또는 관리자만. 그 외에는 글로 되돌림.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"

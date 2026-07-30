@@ -1,6 +1,11 @@
 // 모든 공개 page.tsx 의 헤더 주석을 추출해 페이지 인벤토리 JSON 생성.
 // /admin/structure 의 "페이지 인벤토리" 섹션이 이 JSON 을 렌더한다.
 // predev·prebuild hook 으로 dev 시작·배포 시 자동 실행 (package.json). 수동 재실행: npx tsx scripts/build-pages-inventory.ts
+//
+// 정책 — data/pages-inventory.json 은 "생성물이지만 커밋한다" 한 가지로 통일한다.
+//   이유. /admin/structure 가 이 JSON 을 정적 import 하므로 파일이 없으면 tsc·lint 가 깨진다.
+//   부수효과가 아니라 기능. 페이지를 추가/삭제했는데 커밋하지 않으면 git diff 에 그대로 드러난다.
+//   → 페이지를 건드렸으면 이 스크립트를 돌리고 결과 JSON 도 같은 커밋에 넣는다.
 import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { join } from "path";
 import { SPORT_CATEGORIES, COMMUNITY_CATEGORY } from "../src/components/nav-config";

@@ -667,9 +667,10 @@ export default async function MatchInsight({
     </>
   ) : null;
 
-  const matchupSubsections: React.ReactNode[] = [];
-  if (homeRow && awayRow) {
-    matchupSubsections.push(
+  // 팀 전력 탭 = 맞대결 + 시즌 폼 + 공격 vs 수비. 조건부 항목을 push 로 쌓지 않고
+  // 최종 배열을 한 번에 만든다(렌더 중 배열 변형 금지 — react-hooks/immutability).
+  const matchupSubsections: React.ReactNode[] = [
+    homeRow && awayRow ? (
       <TeamMatchup
         key="tm"
         showDraw={!hideDraw}
@@ -733,20 +734,9 @@ export default async function MatchInsight({
           cleanSheetsLast5: awayStreak.cleanSheetsLast5,
           failedToScoreLast5: awayStreak.failedToScoreLast5,
         }}
-      />,
-    );
-  }
-
-  // matchup 탭에 시즌 폼 + 공격 vs 수비 도 같이
-  const matchupContent = matchupSubsections.length > 0 ? (
-    <div className="space-y-6">{matchupSubsections}</div>
-  ) : null;
-
-  // 옛 sequential return 부터 시작 — 아래 markup 은 더 이상 렌더되지 않지만
-  // 변수 capture 와 인덱싱이 같은 scope 이므로 그대로 유지하면 비효율. 통째 교체.
-  // === 시즌 폼 + 공격 vs 수비 — 팀 전력 탭에 함께 묶기 ===
-  if (homeSeasonForm.length > 0 || awaySeasonForm.length > 0) {
-    matchupSubsections.push(
+      />
+    ) : null,
+    homeSeasonForm.length > 0 || awaySeasonForm.length > 0 ? (
       <Section key="form" title="시즌 폼">
         <div className="space-y-4">
           {homeSeasonForm.length > 0 && (
@@ -762,11 +752,9 @@ export default async function MatchInsight({
             />
           )}
         </div>
-      </Section>,
-    );
-  }
-  if (scatterPoints.length >= 5) {
-    matchupSubsections.push(
+      </Section>
+    ) : null,
+    scatterPoints.length >= 5 ? (
       <Section key="scatter" title="공격 vs 수비 (시즌 평균)">
         <GoalScatter
           points={scatterPoints}
@@ -785,9 +773,10 @@ export default async function MatchInsight({
             {toKoreanTeamName(match.awayTeam.name)}
           </span>
         </div>
-      </Section>,
-    );
-  }
+      </Section>
+    ) : null,
+  ].filter(Boolean);
+
   const matchupContentFinal =
     matchupSubsections.length > 0 ? (
       <div className="space-y-6">{matchupSubsections}</div>
