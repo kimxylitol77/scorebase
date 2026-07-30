@@ -9,6 +9,7 @@ import { recordCronRun } from "@/lib/cron-registry";
 import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
 // Phase 4 (2026-05-25): TheSports standings-poller 가 cover 하는 리그는
@@ -17,9 +18,14 @@ import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 // 가 ts 우선 사용 (commit 091c42d). api-football quota 큰 절약.
 // ⚠ TheSports = 데이터 1순위 원칙: ts cover 리그는 af 로 보강하지 않음. ts 순위가
 //   안 뜨면(팀매핑 누락) af 가 아니라 ts 팀매핑을 추가해 해결한다(예: BELARUS_PL stat-bridge).
+//
+// 단, GROUPED_STANDINGS_LEAGUES(J1/J2 — ts stage_id 가 opaque 라 그룹 분리 불가)는
+// getFullStandings 가 af 를 우선 사용하므로 여기서도 af 를 계속 갱신해야 한다.
+// J1_LEAGUE 가 tsSeasonId 를 가진 채로 이 skip 대상에 들어가 af 캐시가 66일간
+// 동결(2026-05-25→07-30, 19경기 누락)됐던 사고 — 이 조건 빠뜨리면 재발한다.
 const TS_STANDINGS_COVERED = new Set(
   (tsLeagueMap as Array<{ code: string; tsSeasonId?: string }>)
-    .filter((e) => e.tsSeasonId)
+    .filter((e) => e.tsSeasonId && !GROUPED_STANDINGS_LEAGUES.has(e.code))
     .map((e) => e.code),
 );
 

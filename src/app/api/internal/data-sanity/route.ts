@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { BASEBALL_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
+import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
 export const runtime = "nodejs";
@@ -647,7 +648,11 @@ export async function GET(req: NextRequest) {
     //       → 검사 league(UEL) vs 매핑 ourLeague(LIGUE_1) 다르면 skip.
     //   (b) 같은 팀이 우리 Team 테이블에 source 별로 중복 row (예: LALIGA Barcelona 4개)
     //       → ourId 가 달라도 이름 같으면 동일 팀으로 판정.
-    if (ts && af) {
+    //   (c) GROUPED_STANDINGS_LEAGUES(J1/J2) — ts stage_id 가 opaque 라 tables[0] 만 보는
+    //       이 비교 자체가 무의미 + ts 표가 전 팀 0경기 placeholder 로 고정된 리그도 있음
+    //       (2026-07-30 J1 확인). 실제 렌더는 af 우선(standings-helper GROUPED 분기)이라
+    //       ts 와의 mismatch 는 site 에 영향 없음 — skip.
+    if (ts && af && !GROUPED_STANDINGS_LEAGUES.has(league)) {
       const tsPayload = ts.payload as unknown as {
         tables?: Array<{ rows?: Array<{ position?: number; team_id?: string }> }>;
       };
