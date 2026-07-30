@@ -1,4 +1,5 @@
 import { load } from "cheerio";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { currentSeasonStart } from "@/lib/predict/season-window";
 
@@ -21,6 +22,16 @@ export interface BasketballStandingRow {
 export interface BasketballStandings {
   rows: BasketballStandingRow[];
   updatedAt: Date;
+  /** true = 외부 소스가 실패해 마지막 정상 캐시를 돌려준 것. */
+  stale?: boolean;
+}
+
+/** 리그별 정상 응답 팀 수 — 이보다 적으면 부분 응답으로 보고 캐시에 저장하지 않는다. */
+const EXPECTED_TEAMS: Record<string, number> = { NBA: 30 };
+
+export function isCompleteStandings(league: string, rows: BasketballStandingRow[]): boolean {
+  const expected = EXPECTED_TEAMS[league];
+  return expected == null ? rows.length > 0 : rows.length === expected;
 }
 
 const KBL_TEAM_IDS: Record<string, number> = {
@@ -137,23 +148,80 @@ export function parseEspnNbaStandings(payload: unknown): BasketballStandingRow[]
   });
 }
 
-async function fetchNbaStandings(): Promise<BasketballStandings | null> {
+/** 마지막 정상 스냅샷 저장소 — 테스트에서 갈아끼울 수 있게 분리한다. */
+export interface StandingsCacheStore {
+  read(league: string): Promise<{ rows: BasketballStandingRow[]; fetchedAt: Date } | null>;
+  write(league: string, rows: BasketballStandingRow[]): Promise<void>;
+}
+
+const prismaStandingsCache: StandingsCacheStore = {
+  async read(league) {
+    const hit = await prisma.basketballStandingsCache.findUnique({ where: { league } });
+    if (!hit) return null;
+    const rows = hit.rows as unknown as BasketballStandingRow[];
+    return Array.isArray(rows) && rows.length > 0 ? { rows, fetchedAt: hit.fetchedAt } : null;
+  },
+  async write(league, rows) {
+    await prisma.basketballStandingsCache.upsert({
+      where: { league },
+      create: { league, rows: rows as unknown as Prisma.InputJsonValue, fetchedAt: new Date() },
+      update: { rows: rows as unknown as Prisma.InputJsonValue, fetchedAt: new Date() },
+    });
+  },
+};
+
+/**
+ * 외부 소스 → 캐시 폴백 결정 로직. I/O 를 전부 주입받아 순수하게 테스트 가능하다.
+ * - 정상(팀 수 충족): 캐시에 저장하고 그대로 반환
+ * - 실패 / 부분 응답(예: 29개 팀): 저장하지 않고 마지막 정상 캐시 반환(stale=true)
+ * - 캐시도 없음: null → 호출부가 빈 200 대신 503 을 낸다
+ */
+export async function resolveStandingsWithCache(
+  league: string,
+  fetchRows: () => Promise<BasketballStandingRow[] | null>,
+  cache: StandingsCacheStore = prismaStandingsCache,
+): Promise<BasketballStandings | null> {
+  let rows: BasketballStandingRow[] | null = null;
   try {
-    const season = nbaSeasonYear();
-    const response = await fetch(
-      `https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?season=${season}`,
-      {
-        headers: { accept: "application/json" },
-        next: { revalidate: 600 },
-        signal: AbortSignal.timeout(10_000),
-      },
-    );
-    if (!response.ok) return null;
-    const rows = parseEspnNbaStandings(await response.json());
-    return rows.length === 30 ? { rows, updatedAt: new Date() } : null;
+    rows = await fetchRows();
   } catch {
-    return null;
+    rows = null;
   }
+
+  if (rows && isCompleteStandings(league, rows)) {
+    try {
+      await cache.write(league, rows);
+    } catch {
+      // 캐시 저장 실패는 응답을 막지 않는다
+    }
+    return { rows, updatedAt: new Date(), stale: false };
+  }
+
+  try {
+    const cached = await cache.read(league);
+    if (cached) return { rows: cached.rows, updatedAt: cached.fetchedAt, stale: true };
+  } catch {
+    // 캐시 조회 실패 → 아래 null
+  }
+  return null;
+}
+
+async function fetchEspnNbaRows(): Promise<BasketballStandingRow[] | null> {
+  const season = nbaSeasonYear();
+  const response = await fetch(
+    `https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?season=${season}`,
+    {
+      headers: { accept: "application/json" },
+      next: { revalidate: 600 },
+      signal: AbortSignal.timeout(10_000),
+    },
+  );
+  if (!response.ok) return null;
+  return parseEspnNbaStandings(await response.json());
+}
+
+async function fetchNbaStandings(): Promise<BasketballStandings | null> {
+  return resolveStandingsWithCache("NBA", fetchEspnNbaRows);
 }
 
 async function fetchWnbaStandings(): Promise<BasketballStandings | null> {

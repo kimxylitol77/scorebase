@@ -71,11 +71,25 @@ export async function GET(request: NextRequest) {
 
   let standings: StandingInput[] = [];
   let directUpdatedAt: Date | null = null;
+  let stale = false;
 
   if (sport === "basketball") {
     const basketball = await fetchBasketballStandings(league);
-    directUpdatedAt = basketball?.updatedAt ?? null;
-    standings = (basketball?.rows ?? []).map((row) => ({
+    // 외부 소스 실패 + 마지막 정상 캐시도 없음 → 빈 200 으로 "순위 없음" 처럼 보이면 안 된다.
+    if (!basketball) {
+      return NextResponse.json(
+        {
+          status: "unavailable",
+          error: "순위 소스 응답 없음 — 마지막 정상 캐시도 비어 있습니다.",
+          league,
+          sport,
+        },
+        { status: 503, headers: { "cache-control": "no-store" } },
+      );
+    }
+    directUpdatedAt = basketball.updatedAt;
+    stale = basketball.stale ?? false;
+    standings = basketball.rows.map((row) => ({
       teamId: row.ourTeamId,
       position: row.position,
       points: row.wins,
@@ -241,6 +255,8 @@ export async function GET(request: NextRequest) {
     {
       generatedAt: new Date().toISOString(),
       sourceUpdatedAt: sourceUpdatedAt?.toISOString() ?? null,
+      // ok = 소스 정상, stale = 소스 실패로 마지막 정상 캐시를 돌려준 상태
+      status: stale ? "stale" : "ok",
       league,
       leagueLabel: LEAGUE_DISPLAY[league] ?? league.replaceAll("_", " "),
       sport,
@@ -249,7 +265,10 @@ export async function GET(request: NextRequest) {
     },
     {
       headers: {
-        "cache-control": "public, max-age=60, s-maxage=600, stale-while-revalidate=1800",
+        // stale 응답을 CDN 에 오래 물리면 소스 복구 후에도 옛 순위가 계속 나간다.
+        "cache-control": stale
+          ? "public, max-age=30, s-maxage=60"
+          : "public, max-age=60, s-maxage=600, stale-while-revalidate=1800",
       },
     },
   );

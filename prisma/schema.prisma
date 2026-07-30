@@ -514,6 +514,28 @@ model ApiFootballStandingsCache {
   updatedAt DateTime @updatedAt
 }
 
+/// 분산 rate limit 카운터 — serverless 인스턴스 간 공유가 목적.
+/// in-memory Map 은 인스턴스가 새로 뜰 때마다 0 이라 공개 챗봇 과금 방어가 안 된다.
+/// key 예: "chat:burst:1.2.3.4" · "chat:ip:1.2.3.4" · "chat:global"
+/// windowStart 가 창을 벗어나면 다음 증가에서 1 로 리셋된다(롤링 창).
+model RateLimitCounter {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
+/// 농구 순위 마지막 정상 스냅샷 — 외부 소스(ESPN NBA 등)가 죽었을 때 빈 응답 대신 이걸 돌려준다.
+/// "정상" = 리그 팀 수가 전부 채워진 응답만 저장한다(29/30 같은 부분 응답은 저장하지 않는다).
+model BasketballStandingsCache {
+  league    String   @id // NBA | WNBA | KBL | WKBL
+  rows      Json     @default("[]") // BasketballStandingRow[]
+  fetchedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 /// 야구 팀 시즌 누적 성적 — 경기 전 "팀 시즌 성적 비교" 섹션(좌우 막대)용.
 /// cron(fetch-baseball-season-stats) 이 매일 1회 upsert:
 ///   MLB = statsapi.mlb.com /teams/stats, KBO = koreabaseball.com, NPB = npb.jp 스크랩.
