@@ -106,8 +106,9 @@ def make_team() -> tuple[RoundRobinGroupChat, dict[str, dict[str, str]]]:
     if extras:
         ordered.extend(extras)
 
-    # 정확히 N 메시지 (= 참가자 수) 후 종료
-    termination = MaxMessageTermination(len(ordered))
+    # 참가자 전원 발언 후 종료. +1 = 최초 task(user) 메시지도 카운트에 포함되기 때문
+    # (기존 len(ordered)는 마지막 순서인 pm 이 발언 전에 잘리는 off-by-one — 2026-07-19 교정)
+    termination = MaxMessageTermination(len(ordered) + 1)
     team = RoundRobinGroupChat(
         participants=ordered,
         termination_condition=termination,
