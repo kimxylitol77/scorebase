@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import type Anthropic from "@anthropic-ai/sdk";
 import { claude, CLAUDE_MODEL } from "@/lib/ai/claude";
 import { TOOL_DEFS, executeTool } from "@/lib/chatbot/tools";
-import { rateLimit } from "@/lib/rate-limit";
+import { consumeChatQuota, limitMessage } from "@/lib/rate-limit-distributed";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -75,11 +75,12 @@ function getClientIp(h: Headers): string {
 export async function POST(req: Request) {
   const h = await headers();
   const ip = getClientIp(h);
-  const limit = rateLimit(`chat:${ip}`, { max: 15, windowMs: 5 * 60 * 1000 });
+  // IP 버스트 + IP 일일 + 전체 일일 3단 한도. 저장소 장애 시 fail-closed.
+  const limit = await consumeChatQuota(ip);
   if (!limit.allowed) {
     return NextResponse.json(
-      { error: `요청이 너무 많습니다. ${limit.retryAfterSec}초 후 다시 시도하세요.` },
-      { status: 429 },
+      { error: limitMessage(limit) },
+      { status: 429, headers: { "retry-after": String(limit.retryAfterSec) } },
     );
   }
 
