@@ -60,6 +60,9 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   LIGUE_1: { overLine: 2.5, totalStd: 1.6, marginStd: 1.5, handicapLine: 0.5, homeBoost: 1.1 },
   MLS: { overLine: 2.5, totalStd: 1.7, marginStd: 1.6, handicapLine: 0.5, homeBoost: 1.1 },
   UCL: { overLine: 2.5, totalStd: 1.7, marginStd: 1.6, handicapLine: 0.5, homeBoost: 1.1 },
+  // UEL — DB 289경기 실측: 평균 2.64골(std 1.63)·평균마진 0.31(std 1.82)·O2.5 52.6%.
+  // 득점은 EPL 수준이고 마진 분산만 조금 크다(전력 격차 큰 예선 포함).
+  UEL: { overLine: 2.5, totalStd: 1.6, marginStd: 1.8, handicapLine: 0.5, homeBoost: 1.1 },
   // 농구 — NBA 평균 222점/매치, std 약 18, margin std 약 14
   NBA: { overLine: 220.5, totalStd: 18, marginStd: 14, handicapLine: 5.5, homeBoost: 1.025 },
   // 아이스하키 — NHL 평균 6.0골, std 2.5, margin std 2.4
@@ -139,6 +142,28 @@ function skellamProbGreaterThan(
 
 export function getSportProfile(league: string): SportProfile | null {
   return SPORT_PROFILE[league] ?? null;
+}
+
+/** 표본이 적은 축구 팀의 득실 평균을 리그 기준선으로 당긴다(shrinkage).
+ *  UEFA 대회 예선이나 개막 직후에는 팀당 1경기뿐이라, 0-5 한 판이 그대로 평균이 되어
+ *  "핸디 99%·BTTS 100%" 같은 거짓 확신이 나온다. 사전표본 K=2 를 섞어 이를 눌러준다.
+ *  표본이 쌓인 팀(20경기면 가중치 0.91)은 사실상 원래 값 그대로다. */
+const SHRINK_PRIOR_GAMES = 2;
+/** 이만큼 쌓인 팀은 자기 평균을 그대로 쓴다 — 백테스트상 이 선을 넘겨 보정하면
+ *  EPL·세리에A 핸디 적중률이 1%p 안팎 떨어져서, 표본 부족 구간에만 적용한다. */
+const SHRINK_MAX_SAMPLE = 5;
+function shrinkGoalAverages(
+  avg: { scoredPerGame: number; concededPerGame: number; sample: number },
+  profile: SportProfile,
+): { scoredPerGame: number; concededPerGame: number; sample: number } {
+  if (avg.sample >= SHRINK_MAX_SAMPLE) return avg;
+  const baseline = profile.overLine / 2; // 팀당 기대 득점 (축구 2.5 라인 → 1.25)
+  const w = avg.sample / (avg.sample + SHRINK_PRIOR_GAMES);
+  return {
+    scoredPerGame: w * avg.scoredPerGame + (1 - w) * baseline,
+    concededPerGame: w * avg.concededPerGame + (1 - w) * baseline,
+    sample: avg.sample,
+  };
 }
 
 // erf approximation (Abramowitz & Stegun 7.1.26)
@@ -340,16 +365,19 @@ export function predictTotalMarket(
     }
   }
 
-  const home = teamGoalAverages(matches, homeTeamId, asOf, {
+  const rawHome = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
   });
-  const away = teamGoalAverages(matches, awayTeamId, asOf, {
+  const rawAway = teamGoalAverages(matches, awayTeamId, asOf, {
     venue: isBaseball ? "away" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
   });
-  const sample = Math.min(home.sample, away.sample);
+  const sample = Math.min(rawHome.sample, rawAway.sample);
   if (sample === 0) return null;
+  const isSoccer = SOCCER_LEAGUES_FOR_MARKETS.has(league);
+  const home = isSoccer ? shrinkGoalAverages(rawHome, profile) : rawHome;
+  const away = isSoccer ? shrinkGoalAverages(rawAway, profile) : rawAway;
 
   const expectedHome =
     ((home.scoredPerGame + away.concededPerGame) / 2) * profile.homeBoost;
@@ -385,15 +413,18 @@ export function predictHandicapMarket(
   const profile = getSportProfile(league);
   if (!profile) return null;
   const isBaseball = league === "KBO" || league === "MLB" || league === "NPB";
-  const home = teamGoalAverages(matches, homeTeamId, asOf, {
+  const rawHome = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
   });
-  const away = teamGoalAverages(matches, awayTeamId, asOf, {
+  const rawAway = teamGoalAverages(matches, awayTeamId, asOf, {
     venue: isBaseball ? "away" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
   });
-  if (Math.min(home.sample, away.sample) === 0) return null;
+  if (Math.min(rawHome.sample, rawAway.sample) === 0) return null;
+  const isSoccerMkt = SOCCER_LEAGUES_FOR_MARKETS.has(league);
+  const home = isSoccerMkt ? shrinkGoalAverages(rawHome, profile) : rawHome;
+  const away = isSoccerMkt ? shrinkGoalAverages(rawAway, profile) : rawAway;
 
   const expectedHome =
     ((home.scoredPerGame + away.concededPerGame) / 2) * profile.homeBoost;
@@ -474,9 +505,11 @@ export function predictBttsMarket(
   const profile = getSportProfile(league);
   if (!profile) return null;
   if (!SOCCER_LEAGUES_FOR_MARKETS.has(league)) return null;
-  const home = teamGoalAverages(matches, homeTeamId, asOf);
-  const away = teamGoalAverages(matches, awayTeamId, asOf);
-  if (Math.min(home.sample, away.sample) === 0) return null;
+  const rawHome = teamGoalAverages(matches, homeTeamId, asOf);
+  const rawAway = teamGoalAverages(matches, awayTeamId, asOf);
+  if (Math.min(rawHome.sample, rawAway.sample) === 0) return null;
+  const home = shrinkGoalAverages(rawHome, profile);
+  const away = shrinkGoalAverages(rawAway, profile);
   const lambdaHome =
     ((home.scoredPerGame + away.concededPerGame) / 2) * profile.homeBoost;
   const lambdaAway = (away.scoredPerGame + home.concededPerGame) / 2;
@@ -537,4 +570,5 @@ export const SOCCER_LEAGUES_FOR_MARKETS = new Set([
   "LIGUE_1",
   "MLS",
   "UCL",
+  "UEL", // 2026-07-30 — UCL 급 승격 (BTTS/DC·Skellam·연장 정규화 동일 적용)
 ]);
