@@ -14571,5 +14571,65 @@
     "tsName": "Ipswich Town",
     "tsKo": "입스위치 타운",
     "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 103,
+    "ourName": "1. FC Köln",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "192",
+    "tsId": "yl5ergphj74r8k0",
+    "tsName": "FC Köln",
+    "tsKo": "쾰른",
+    "matchType": "manual+diary-2026"
+  },
+  {
+    "ourId": 598165,
+    "ourName": "Frosinone",
+    "ourLeague": "SERIE_A",
+    "ourExternalId": "512",
+    "tsId": "56ypq3nho80md7o",
+    "tsName": "Frosinone",
+    "tsKo": "프로시노네",
+    "matchType": "manual+diary-2026"
+  },
+  {
+    "ourId": 598163,
+    "ourName": "Venezia",
+    "ourLeague": "SERIE_A",
+    "ourExternalId": "517",
+    "tsId": "56ypq3nhjjymd7o",
+    "tsName": "Venezia",
+    "tsKo": "베네치아",
+    "matchType": "manual+diary-2026"
+  },
+  {
+    "ourId": 598175,
+    "ourName": "Estac Troyes",
+    "ourLeague": "LIGUE_1",
+    "ourExternalId": "110",
+    "tsId": "gpxwrxlh47jryk0",
+    "tsName": "Troyes",
+    "tsKo": "트루아",
+    "matchType": "manual+diary-2026"
+  },
+  {
+    "ourId": 272,
+    "ourName": "Le Havre",
+    "ourLeague": "LIGUE_1",
+    "ourExternalId": "111",
+    "tsId": "8y39mp1hnj7mojx",
+    "tsName": "Havre Athletic Club",
+    "tsKo": "르아브르",
+    "matchType": "manual+diary-2026"
+  },
+  {
+    "ourId": 598172,
+    "ourName": "Le Mans",
+    "ourLeague": "LIGUE_1",
+    "ourExternalId": "1298",
+    "tsId": "j1l4rjnho4jm7vx",
+    "tsName": "Le Mans",
+    "tsKo": "르망",
+    "matchType": "manual+diary-2026"
   }
 ]
