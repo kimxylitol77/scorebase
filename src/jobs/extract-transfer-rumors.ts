@@ -19,7 +19,9 @@ export interface RumorInput {
 }
 
 const STAGE_RANK: Record<string, number> = { TALKS: 1, MEDICAL: 2, HERE_WE_GO: 3, OFFICIAL: 4 };
-const KEEP_DAYS = 21;
+// 보존 기간. /transfers?view=rumors 의 RUMOR_DAYS(30) 와 맞춰야 한다 —
+// 여기가 더 짧으면 화면은 "최근 30일" 이라 쓰면서 데이터는 그만큼 없는 상태가 된다.
+const KEEP_DAYS = 30;
 
 interface Extracted {
   i: number;

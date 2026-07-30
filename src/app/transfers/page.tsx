@@ -188,6 +188,12 @@ function posCodeOf(id: string, coarse: string | null | undefined): string | null
   return coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null;
 }
 const PER = 20;
+/**
+ * 임박·루머 피드가 거슬러 올라가는 기간. 표시 문구도 이 값을 쓴다(따로 적으면 어긋난다).
+ * 수집 잡의 보존 기간(src/jobs/extract-transfer-rumors.ts KEEP_DAYS)과 같아야 한다 —
+ * 저쪽이 더 짧으면 여기서 아무리 길게 잡아도 데이터가 없다.
+ */
+const RUMOR_DAYS = 30;
 
 // 이적창 윈도우 — 6~9월 = 그해 여름창(6/1~), 12~2월 = 겨울창(12/1~), 그 외 = 최근 90일.
 // to = 창 종료 상한: 여름 이적은 7/1 발효(시즌 전환일)로 기록되는 행이 다수라 미래 발효도
@@ -694,12 +700,11 @@ export default async function TransfersPage({
         ...(tFilter === "loan" ? { transferType: { in: [1, 2] } } : {}),
       };
   const transferTotal = isBigdeals || latestAll ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
-  // ── 임박·루머 피드 (view=rumors) — TransferRumor 최근 7일 ──
-  // 전체 건수를 먼저 세고(페이지 수 확정) 해당 페이지만 조회한다. 최근 7일이 80건을 넘어
-  // 예전처럼 100건을 통째로 내리면 한 화면에 다 쏟아졌다.
+  // ── 임박·루머 피드 (view=rumors) — TransferRumor 최근 RUMOR_DAYS 일 ──
+  // 전체 건수를 먼저 세고(페이지 수 확정) 해당 페이지만 조회한다.
   // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
   // eslint-disable-next-line react-hooks/purity
-  const rumorSince = new Date(Date.now() - 7 * 86400 * 1000);
+  const rumorSince = new Date(Date.now() - RUMOR_DAYS * 86400 * 1000);
   const rumorWhere = { hidden: false, publishedAt: { gte: rumorSince } };
   const rumorTotal = isRumors ? await prisma.transferRumor.count({ where: rumorWhere }) : 0;
   const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : isRumors ? rumorTotal : enriched.length;
@@ -911,7 +916,7 @@ export default async function TransfersPage({
             <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">주요 이적</strong> · 이름·이적료 확인분 · {totalCount.toLocaleString()}건.</>
           )
         ) : isRumors ? (
-          <>공식 발표 전 <strong className="text-neutral-700 dark:text-neutral-300">합의(히위고)·메디컬·협상</strong> 단계 보도 · BBC·Sky·로마노 등 공신력 소스만 · 최근 7일 · {totalCount}건.</>
+          <>공식 발표 전 <strong className="text-neutral-700 dark:text-neutral-300">합의(히위고)·메디컬·협상</strong> 단계 보도 · BBC·Sky·로마노 등 공신력 소스만 · 최근 {RUMOR_DAYS}일 · {totalCount}건.</>
         ) : (
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
         )}
@@ -1148,7 +1153,7 @@ export default async function TransfersPage({
             <span className="ml-auto text-[12px] text-neutral-400 shrink-0">브리핑 보러가기 →</span>
           </Link>
           {rumorRows.length === 0 ? (
-            <p className="text-sm text-neutral-500 py-20 text-center">최근 7일 내 수집된 임박·루머 소식이 없습니다.</p>
+            <p className="text-sm text-neutral-500 py-20 text-center">최근 {RUMOR_DAYS}일 내 수집된 임박·루머 소식이 없습니다.</p>
           ) : (
             <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
               {rumorRows.map((r, ri) => {
