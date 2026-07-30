@@ -1,4 +1,4 @@
-// AI 예측 적중률 보드 — 14개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
+// AI 예측 적중률 보드 — 15개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Sparkles, Star } from "lucide-react";
@@ -26,7 +26,7 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 export const revalidate = 3600; // 1시간 ISR
 
 const LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL",
   "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
 ] as const;
 
@@ -39,6 +39,7 @@ const LEAGUE_NAME: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔피언스리그",
   UEL: "유로파리그",
+  UECL: "유로파 컨퍼런스리그",
   NBA: "NBA",
   NHL: "NHL",
   MLB: "MLB",

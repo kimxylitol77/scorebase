@@ -40,3 +40,15 @@
 - `lib/i18n/en.ts` EN_PREDICTION_LEAGUES — 영어판은 별도 확장 결정 영역.
 - `jobs/backfill.ts` — 수동 실행 스크립트, 자동 운영 아님.
 - `lib/chatbot/*` — 사용자 본인 작업 영역, 수정 금지.
+
+---
+
+## UECL 후속 (같은 날)
+
+UEL 과 동일한 19곳 + SPORT_PROFILE 에 UECL 추가.
+
+- [x] markets SOCCER_LEAGUES_FOR_MARKETS + SPORT_PROFILE (484경기 실측 → totalStd 1.7 · marginStd 2.0)
+- [x] build-context · types(PREVIEW_LEAGUES) · generate-analysis · generate-tactical
+- [x] accuracy-stats(14→15) · accuracy 페이지 · backfill-corners · fetch-gpt-predictions
+- [x] soccer-live-stats · picks(3곳) · picks/me · Footer("컨퍼런스리그") · live-scores · LeagueLeaderBoard · free-board-bot · lab · post-daily-topic
+- [x] tsc 통과 · UECL 마켓 5/5 산출 · 기존 4개 리그 백테스트 수치 불변 확인 · 실렌더 확인

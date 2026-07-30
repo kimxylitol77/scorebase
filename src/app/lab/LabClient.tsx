@@ -69,7 +69,7 @@ const MAX_BOTS = 3;
 
 const LEAGUE_KO: Record<string, string> = {
   EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A",
-  LIGUE_1: "리그 1", MLS: "MLS", UCL: "UCL", UEL: "UEL", WORLD_CUP: "월드컵",
+  LIGUE_1: "리그 1", MLS: "MLS", UCL: "UCL", UEL: "UEL", UECL: "UECL", WORLD_CUP: "월드컵",
   K_LEAGUE_1: "K리그1", CLUB_WORLD_CUP: "클럽 월드컵",
   KBO: "KBO", MLB: "MLB", NPB: "NPB", NBA: "NBA", NHL: "NHL",
 };

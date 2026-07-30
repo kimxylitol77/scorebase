@@ -380,7 +380,7 @@ export const ARTICLE_LEAGUES: readonly League[] = [
  * 검색 회복 — 자동:양질 비율 개선 + crawl budget 회복을 위해 핵심 빅리그만 PREVIEW 발행.
  * 2026-06-03 사용자 결정: 8개 핵심. 되돌리려면 generate-previews 가 다시 ARTICLE_LEAGUES 를 쓰게. */
 export const PREVIEW_LEAGUES: readonly League[] = [
-  "EPL", "LALIGA", "UCL", "UEL", // 축구 빅 (UEL 2026-07-30 추가 — 7·8월 예선은 isUefaQualifierMatch 로 계속 제외)
+  "EPL", "LALIGA", "UCL", "UEL", "UECL", // 축구 빅 (UEL 2026-07-30 추가 — 7·8월 예선은 isUefaQualifierMatch 로 계속 제외)
   "KBO", "MLB", // 야구
   "NBA", // 농구
   "K_LEAGUE_1", // 한국 축구

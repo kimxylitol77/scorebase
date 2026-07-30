@@ -14,12 +14,12 @@ async function getManagerId(): Promise<string> {
 }
 
 // 떡밥 우선순위 — 한국 수요 순. 상위 리그에 오늘 경기가 있으면 그 리그에서 고른다.
-const LEAGUE_PRIORITY = ["WORLD_CUP", "KBO", "EPL", "UCL", "UEL", "CLUB_WORLD_CUP", "LALIGA", "MLB", "NPB", "K_LEAGUE_1"];
+const LEAGUE_PRIORITY = ["WORLD_CUP", "KBO", "EPL", "UCL", "UEL", "UECL", "CLUB_WORLD_CUP", "LALIGA", "MLB", "NPB", "K_LEAGUE_1"];
 const LEAGUE_KO: Record<string, string> = {
-  WORLD_CUP: "월드컵", KBO: "KBO", EPL: "EPL", UCL: "UCL", UEL: "유로파리그", CLUB_WORLD_CUP: "클럽 월드컵",
+  WORLD_CUP: "월드컵", KBO: "KBO", EPL: "EPL", UCL: "UCL", UEL: "유로파리그", UECL: "유로파 컨퍼런스리그", CLUB_WORLD_CUP: "클럽 월드컵",
   LALIGA: "라리가", MLB: "MLB", NPB: "NPB", K_LEAGUE_1: "K리그1",
 };
-const SOCCER = new Set(["WORLD_CUP", "EPL", "UCL", "UEL", "CLUB_WORLD_CUP", "LALIGA", "K_LEAGUE_1"]);
+const SOCCER = new Set(["WORLD_CUP", "EPL", "UCL", "UEL", "UECL", "CLUB_WORLD_CUP", "LALIGA", "K_LEAGUE_1"]);
 
 function kstClock(d: Date): string {
   const k = new Date(d.getTime() + 9 * 3600 * 1000);

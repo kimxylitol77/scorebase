@@ -94,7 +94,7 @@ async function activeLeagueSet(): Promise<Set<string>> {
 // ── 선수 리더 소재 (커뮤니티 최대 소재: "이 선수 이 기록 실화") ──────────────
 // 인기 리그 + 간판 스탯만. 카드·경고 카테고리(YELLOW/RED)나 군소 리그는 제외.
 const POPULAR_LEADER_LEAGUES = new Set([
-  "EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL", "UEL", "WORLD_CUP",
+  "EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL", "UEL", "UECL", "WORLD_CUP",
   "MLB", "KBO", "NPB", "NBA", "NHL", "LOL",
 ]);
 // 간판 카테고리만 — SAVE 는 KBO/NPB 에서 선발이 0으로 1위 잡히는 유령행이 있어 제외.
