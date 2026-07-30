@@ -83,11 +83,38 @@ export default async function EditPostPage({ params }: Props) {
           <label className="mb-1.5 block text-xs font-semibold text-neutral-500">본문 (Markdown)</label>
           <textarea name="content" required rows={18} defaultValue={post.content} className={inputCls} />
         </div>
+        {/* 전술판 첨부 — 코드는 사람이 손으로 고칠 수 없는 base64 라 미리보기 + 전술판 왕복 편집으로 다룬다. */}
         <div>
-          <label className="mb-1.5 block text-xs font-semibold text-neutral-500">
-            전술판 코드 (선택 — /lineup 공유 URL 또는 코드 붙여넣기, 비우면 첨부 제거)
-          </label>
-          <input name="lineupCode" defaultValue={post.lineupCode ?? ""} className={inputCls} />
+          <label className="mb-1.5 block text-xs font-semibold text-neutral-500">전술판 첨부 (선택)</label>
+          {post.lineupCode && (
+            <div className="mb-2 overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/og/lineup?d=${post.lineupCode}`}
+                alt="현재 첨부된 전술판"
+                className="w-full"
+              />
+            </div>
+          )}
+          <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <a
+              href={post.lineupCode ? `/lineup?d=${post.lineupCode}` : "/lineup"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"
+            >
+              {post.lineupCode ? "이 전술판 편집하기 →" : "전술판에서 새로 만들기 →"}
+            </a>
+            <span className="text-xs text-neutral-400">
+              새 탭에서 열립니다. 고친 뒤 전술판의 &ldquo;공유&rdquo; 로 링크를 복사해 아래 칸에 붙여넣고 저장하세요.
+            </span>
+          </div>
+          <input
+            name="lineupCode"
+            defaultValue={post.lineupCode ?? ""}
+            placeholder="/lineup?d=... 공유 링크 붙여넣기 (비우면 첨부 제거)"
+            className={inputCls}
+          />
         </div>
         <div className="flex items-center gap-3">
           <button
