@@ -1,4 +1,4 @@
-// AI 예측 적중률 보드 — 13개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
+// AI 예측 적중률 보드 — 14개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Sparkles, Star } from "lucide-react";
@@ -26,7 +26,7 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 export const revalidate = 3600; // 1시간 ISR
 
 const LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL",
   "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
 ] as const;
 
@@ -38,6 +38,7 @@ const LEAGUE_NAME: Record<string, string> = {
   LIGUE_1: "리그 1",
   MLS: "MLS",
   UCL: "챔피언스리그",
+  UEL: "유로파리그",
   NBA: "NBA",
   NHL: "NHL",
   MLB: "MLB",
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
     title: "AI 스포츠 예측 적중률 — Scorebase",
     description: "리그별·시장별 AI 매치 예측 적중률을 표본 수와 함께 데이터로 투명 공개.",
     url: `${SITE_URL}/predictions/accuracy`,
-    images: ogPageImage({ title: "AI 스포츠 예측 적중률", subtitle: "13개 리그·시장별 적중률을 표본 수와 함께 공개", tag: "적중률" }),
+    images: ogPageImage({ title: "AI 스포츠 예측 적중률", subtitle: `${LEAGUES.length}개 리그·시장별 적중률을 표본 수와 함께 공개`, tag: "적중률" }),
   },
 };
 
@@ -277,7 +278,7 @@ export default async function AccuracyPage() {
     month: "long",
     day: "numeric",
   });
-  const citation = `Scorebase AI 스포츠 예측 적중률 — 13개 리그 ${totalEvaluated.toLocaleString()}경기 1X2 적중률 ${(overallRate * 100).toFixed(1)}% (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`;
+  const citation = `Scorebase AI 스포츠 예측 적중률 — ${LEAGUES.length}개 리그 ${totalEvaluated.toLocaleString()}경기 1X2 적중률 ${(overallRate * 100).toFixed(1)}% (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`;
 
   // 구조화 데이터 (Dataset) — Google 이 "검증된 고유 데이터셋"으로 인식하게.
   // 실제 적중률 수치를 schema 에 담아 E-E-A-T 신호 강화.
@@ -285,7 +286,7 @@ export default async function AccuracyPage() {
     "@context": "https://schema.org",
     "@type": "Dataset",
     name: "스코어베이스 AI 스포츠 예측 적중률",
-    description: `Elo 레이팅 기반 AI 매치 예측의 실제 적중률. 13개 리그 ${totalEvaluated.toLocaleString()}경기를 종료 후 시점 기준으로 백테스트하여 1X2 적중률 ${(overallRate * 100).toFixed(1)}% 등 시장별·리그별 정확도를 공개합니다.`,
+    description: `Elo 레이팅 기반 AI 매치 예측의 실제 적중률. ${LEAGUES.length}개 리그 ${totalEvaluated.toLocaleString()}경기를 종료 후 시점 기준으로 백테스트하여 1X2 적중률 ${(overallRate * 100).toFixed(1)}% 등 시장별·리그별 정확도를 공개합니다.`,
     url: `${SITE_URL}/predictions/accuracy`,
     keywords: ["AI 예측 적중률", "스포츠 승부예측 정확도", "Elo 레이팅 예측"],
     creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },

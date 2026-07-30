@@ -40,7 +40,7 @@ import { shouldPublishPick, type MatchOddsCtx } from "@/lib/predict/publish-gate
 // (백테스트 2026-07-11: LCK 70.0%·LPL 65.1%·LEC 58.3% — 2군 LCK_CL·LCS 는 미검증이라 제외).
 // 배구·LoL 은 SPORT_PROFILE 없음 → 핸디/OU 없이 1X2(승패)만.
 export const MAJOR_LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL",
   "WORLD_CUP", "NBA", "NHL", "MLB", "KBO", "NPB",
   "K_LEAGUE_1", "K_LEAGUE_2",
   "VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W",

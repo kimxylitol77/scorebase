@@ -31,7 +31,7 @@ function currentSeason(league: string, dateKst: string): number {
   const year = parseInt(dateKst.slice(0, 4));
   const month = parseInt(dateKst.slice(5, 7));
   // 유럽 캘린더 (Aug~May) — 7월 이전이면 전년도 시즌
-  const european = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL"];
+  const european = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL"];
   if (european.includes(league)) return month >= 7 ? year : year - 1;
   if (league === "WORLD_CUP") return 2026;
   return year; // MLS, J1, AFC_CL — 달력 연도

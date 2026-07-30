@@ -22,6 +22,7 @@ const SOCCER_LEAGUES = new Set([
   "LIGUE_1",
   "MLS",
   "UCL",
+  "UEL",
   "WORLD_CUP",
 ]);
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";

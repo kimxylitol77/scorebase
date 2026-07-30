@@ -89,6 +89,7 @@ export async function runAnalysis() {
     "LIGUE_1",
     "MLS",
     "UCL",
+    "UEL",
     "K_LEAGUE_1",
     "J1_LEAGUE",
     "AFC_CL",

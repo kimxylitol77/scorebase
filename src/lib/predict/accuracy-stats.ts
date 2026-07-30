@@ -4,12 +4,12 @@ import { prisma } from "@/lib/db";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 
 export const ACCURACY_LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL",
   "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
 ] as const;
 
 export const ACCURACY_SOCCER = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL",
 ]);
 
 export interface MarketRate {

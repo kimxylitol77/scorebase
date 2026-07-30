@@ -540,7 +540,7 @@
   },
   {
     "route": "/predictions/accuracy",
-    "desc": "AI 예측 적중률 보드 — 13개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).",
+    "desc": "AI 예측 적중률 보드 — 14개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).",
     "inMenu": false,
     "dynamic": false,
     "group": "predictions-deep"

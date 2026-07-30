@@ -7,9 +7,9 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-// /players/[pid] 페이지가 view 를 가진 리그 — 14개 모두 지원.
+// /players/[pid] 페이지가 view 를 가진 리그 — 15개 모두 지원.
 const PLAYER_PAGE_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "WORLD_CUP",
   "KBO", "NPB", "MLB", "NBA", "NHL", "LOL",
 ]);
 

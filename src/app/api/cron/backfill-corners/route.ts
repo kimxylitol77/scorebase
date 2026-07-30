@@ -11,7 +11,7 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MAJOR = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL"];
+const MAJOR = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL", "UEL"];
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
