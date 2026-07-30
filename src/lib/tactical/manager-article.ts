@@ -1,7 +1,5 @@
 // 감독 전술 아티클 공용 조각 — 시즌 결산(generate-manager-review)·월간(generate-manager-month) 공유.
 // 데이터 브리프(숫자 사전 포맷 — LLM 재계산 금지)·렌더 보강(사진·감독사진·전술판 코드).
-import { readFileSync, existsSync } from "fs";
-import path from "path";
 import { prisma } from "@/lib/db";
 import { encodeBoard, newUid, type BoardState, type Placed } from "@/lib/lineup/lineup-state";
 import type { Pos } from "@/lib/lineup/formations";
@@ -45,11 +43,8 @@ export async function enrichForRender(ctx: TacticalManagerContext): Promise<void
       .map((p) => [p.afId, p.tsPid ? tsRows.find((r) => r.id === p.tsPid)?.photoUrl : null] as const)
       .filter((e): e is [number, string] => !!e[1]),
   );
-  const coachesPath = path.join(process.cwd(), "data/team-coaches.json");
-  const coaches: Record<string, { name: string; logo?: string | null }> = existsSync(coachesPath)
-    ? JSON.parse(readFileSync(coachesPath, "utf8"))
-    : {};
-  ctx.coachPhoto = (ctx.team.tsId ? coaches[ctx.team.tsId]?.logo : null) ?? null;
+  // 팀 tsId 로 조회하면 감독 교체 후 후임 감독 사진이 붙는다 — 이름 매칭된 coachProfile(ctx.coach.logo) 사용.
+  ctx.coachPhoto = ctx.coach.logo ?? null;
   ctx.lineupCode = buildLineupCode(ctx, knownPids);
 }
 

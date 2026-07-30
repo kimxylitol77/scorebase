@@ -149,7 +149,7 @@ export interface ManagerSeasonAggregate {
   league: string;
   seasonLabel: string;
   team: { id: number; name: string; nameKo: string; tsId: string | null };
-  coach: { name: string; nameKo: string; preferredFormation: string | null };
+  coach: { name: string; nameKo: string; preferredFormation: string | null; logo: string | null };
   record: { played: number; w: number; d: number; l: number; gf: number; ga: number; points: number; rank: number };
   coachStints: CoachStint[];
   formations: FormationUsage[];
@@ -271,7 +271,7 @@ export async function aggregateTeamSeason(opts: {
   rec.rank = await computeRank(league, from, to, teamId);
 
   // 3) 감독 재임 구간 (연속 그룹핑 — 중도 경질 감지)
-  const coaches: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null }> = existsSync(dataPath("team-coaches.json"))
+  const coaches: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null; logo?: string | null }> = existsSync(dataPath("team-coaches.json"))
     ? JSON.parse(readFileSync(dataPath("team-coaches.json"), "utf8"))
     : {};
   const coachKo = (name: string | null): string => {
@@ -507,7 +507,7 @@ export async function aggregateTeamSeason(opts: {
   return {
     league, seasonLabel,
     team: { id: team.id, name: team.name, nameKo: teamKo, tsId },
-    coach: { name: mainStint.coach, nameKo: mainStint.coachKo, preferredFormation: coachProfile?.preferredFormation ?? null },
+    coach: { name: mainStint.coach, nameKo: mainStint.coachKo, preferredFormation: coachProfile?.preferredFormation ?? null, logo: coachProfile?.logo ?? null },
     record: rec,
     coachStints: stints,
     formations,
