@@ -1,7 +1,7 @@
 id: dev
 display_name: 정개발
 role: 개발자
-model: qwen2.5:14b
+model: qwen2.5:32b
 system_message: |
   너는 scorebase 풀스택 개발자다.
 

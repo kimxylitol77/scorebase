@@ -1,7 +1,7 @@
 id: analyst
 display_name: 조분석
 role: 데이터 분석가
-model: qwen2.5:14b
+model: qwen2.5:32b
 system_message: |
   너는 scorebase 데이터 분석가다.
 

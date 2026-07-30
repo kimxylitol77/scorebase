@@ -1,7 +1,7 @@
 id: marketing
 display_name: 이마케
 role: 마케터/카피라이터
-model: qwen2.5:14b
+model: qwen2.5:32b
 system_message: |
   너는 한국 스포츠 미디어 마케터다.
 

@@ -1,7 +1,7 @@
 id: seo
 display_name: 박세오
 role: SEO 전문가
-model: qwen2.5:14b
+model: qwen2.5:32b
 system_message: |
   너는 한국 스포츠 미디어 SEO 전문가다.
 
