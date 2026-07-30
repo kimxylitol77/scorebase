@@ -41,8 +41,8 @@
 
 - [x] `npx tsc --noEmit` 통과 (에러 0)
 - [x] 임시 스크립트(`scripts/_*-tmp.mjs`) 정리
-- [ ] 커밋 (한국어, footer 없음) → `git push origin main`
-- [ ] production 확인
+- [x] 커밋 (한국어, footer 없음) → `git push origin main` — 9cb1def
+- [x] production 확인 — 3리그 모두 카드 렌더 (KBO 49.8% · MLB 57.8% · NPB 64.9%)
 
 ## 범위에서 뺀 것
 
