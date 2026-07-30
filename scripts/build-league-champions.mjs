@@ -5,6 +5,14 @@
 // ⚠️ NBA 는 별도 경로로 json 에만 존재(LEAGUE_WD 부재) → 머지 로직이 보존. 전체 재빌드 시 유실 주의.
 import { readFileSync, writeFileSync } from "node:fs";
 
+// 위키데이터가 아직 반영하지 않은 우승 기록을 손으로 고정해 둔다.
+// SPARQL 결과로 리그를 통째로 덮어쓰기 때문에, 여기에 없으면 재빌드 때 조용히 사라진다.
+// 우승 판정은 반드시 우리 DB(Match 결승 결과)로 확인한 뒤 넣을 것 — 짐작 금지.
+const MANUAL_CHAMPIONS = {
+  // 2026-07-19 결승 스페인 1:0 아르헨티나 (DB Match 확인, 2026-07-30)
+  WORLD_CUP: [{ season: "2026", ko: "스페인", en: "Spain men's national football team" }],
+};
+
 const DRY = process.argv.includes("--dry");
 const ONLY = (process.argv.find((a) => a.startsWith("--only=")) || "")
   .split("=")[1]
@@ -106,7 +114,20 @@ for (const [code, qid] of Object.entries(LEAGUE_WD)) {
       const ko = cleanKo(b.winnerKo?.value) ?? en;
       bySeason.set(s.key, { season: s.key, start: s.start, ko, en });
     }
-    const champions = [...bySeason.values()].sort((a, b) => b.start - a.start).map(({ start, ...x }) => x);
+    let champions = [...bySeason.values()].sort((a, b) => b.start - a.start).map(({ start, ...x }) => x);
+    // 손으로 고정한 우승 기록 병합 — 위키데이터에 이미 있으면 그쪽을 신뢰(중복 방지).
+    for (const m of MANUAL_CHAMPIONS[code] ?? []) {
+      if (!champions.some((c) => c.season === m.season)) champions.unshift(m);
+    }
+    // 결산글 링크(article)는 SPARQL 이 모르는 손수 붙인 값 — 기존 json 에서 되살린다.
+    const prevArticles = new Map(
+      (out[code]?.champions ?? []).filter((c) => c.article).map((c) => [c.season, c.article]),
+    );
+    if (prevArticles.size > 0) {
+      champions = champions.map((c) =>
+        prevArticles.has(c.season) ? { ...c, article: prevArticles.get(c.season) } : c,
+      );
+    }
     out[code] = { champions };
     const latest = champions[0];
     console.log(`${code.padEnd(14)} ${String(champions.length).padStart(3)}시즌  최근: ${latest ? latest.season + " " + latest.ko : "없음"}`);
