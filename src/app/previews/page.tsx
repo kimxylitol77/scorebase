@@ -152,9 +152,14 @@ export async function generateMetadata({
   return {
     title: bleague ? `${bleague.trim()} 프리뷰 — 선발 매치업 분석` : seo.title,
     description: seo.description,
-    // sport 탭까지만 canonical 변형 — 야구 하위 리그 탭은 sport 페이지로 정규화
+    // 야구 하위 리그 탭은 리그 전용 경로(/previews/NPB)가 정본 — 같은 목록을 쿼리스트링과
+    // 경로 두 벌로 색인시키지 않는다. 그 외는 sport 탭까지만 canonical 변형.
     alternates: {
-      canonical: sport.key === "ALL" ? "/previews" : `/previews?sport=${sport.key}`,
+      canonical: bleague
+        ? `/previews/${bleague.trim()}`
+        : sport.key === "ALL"
+          ? "/previews"
+          : `/previews?sport=${sport.key}`,
     },
   };
 }

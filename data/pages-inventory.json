@@ -609,6 +609,13 @@
     "group": "menu"
   },
   {
+    "route": "/previews/[league]",
+    "desc": "야구 리그별 경기 분석 랜딩 — /previews/NPB · /previews/KBO · /previews/MLB.  왜 별도 경로인가. 기존 /previews?sport=BASEBALL&league=NPB 는 canonical 이 /previews?sport=BASEBALL(3리그 혼합)로 정규화돼 \"NPB 경기 분석\" 을 찾는 검색에 매칭될 URL 이 없었다 (2026-07 빙 실측: 해당 검색어 296노출이 홈·리그허브로 흩어져 클릭 0). 리그 단위 경로 + 리그 전용 H1·리드·내부링크로 의도를 정확히 받는다.  개별 PREVIEW 글은 noindex 유지(2026-05 scaled content 디톡스) — 여기서 링크로만 잇는다.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/privacy",
     "desc": "개인정보처리방침 — 개인정보보호법 제30조 필수 기재사항을 담은 정적 고지 페이지.",
     "inMenu": false,

@@ -63,6 +63,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
+    // 야구 리그별 경기 분석 랜딩 — "npb경기분석" 류 리그 단위 검색의 착지점.
+    ...["KBO", "MLB", "NPB"].map((lg) => ({
+      url: `${base}/previews/${lg}`,
+      changeFrequency: "hourly" as const,
+      priority: 0.85,
+    })),
     ...SITEMAP_LEAGUES.map((lg) => ({
       url: `${base}/leagues/${lg}`,
       changeFrequency: "daily" as const,
