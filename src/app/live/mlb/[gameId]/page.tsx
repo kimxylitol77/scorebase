@@ -37,6 +37,8 @@ import {
   getBaseballRecentGames,
 } from "@/lib/live/baseball-season-analysis";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
+import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
+import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
 import {
   fetchMlbFullBoxscore,
   findMlbGamePk,
@@ -170,13 +172,14 @@ export default async function MlbLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames] =
+  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames, openingSimilar] =
     await Promise.all([
       fetchMatchExtras(match),
       loadBaseballOdds(match.id),
       fetchInitialMlbBoxscore(match),
       getBaseballSeasonAnalysis(match),
       getBaseballRecentGames(match),
+      getOpeningSimilarStats(match),
     ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
 
@@ -334,6 +337,18 @@ export default async function MlbLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
+        extraTabs={
+          openingSimilar
+            ? [
+                {
+                  key: "opening-similar",
+                  label: "오프닝 배당 비교",
+                  enabled: true,
+                  content: <OpeningOddsSimilarCard stats={openingSimilar} />,
+                },
+              ]
+            : undefined
+        }
         teamStatsContent={
           <MlbTeamStatsLive
             gameId={gameId}

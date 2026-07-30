@@ -24,6 +24,8 @@ import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
+import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
+import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
 import BaseballBatterStats from "@/components/live/BaseballBatterStats";
@@ -104,11 +106,12 @@ export default async function KboLivePage({ params }: Props) {
 
   const detailLivePlayers =
     (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
-  const [extras, baseballOdds, playerNameById, playerPhotoById] = await Promise.all([
+  const [extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
     buildPlayerNameMap(detailLivePlayers),
     buildPlayerPhotoMap(detailLivePlayers),
+    getOpeningSimilarStats(match),
   ]);
 
   const detailLive = match.theSportsCache?.detailLive as
@@ -279,6 +282,18 @@ export default async function KboLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
+        extraTabs={
+          openingSimilar
+            ? [
+                {
+                  key: "opening-similar",
+                  label: "오프닝 배당 비교",
+                  enabled: true,
+                  content: <OpeningOddsSimilarCard stats={openingSimilar} />,
+                },
+              ]
+            : undefined
+        }
         teamStatsContent={
           detailLive?.stats ? (
             <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">
