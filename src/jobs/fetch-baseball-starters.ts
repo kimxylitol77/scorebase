@@ -62,6 +62,33 @@ interface StarterJson {
   recentIp?: number;
 }
 
+// 외부 소스(npb.jp roster·stats) 가 일시적으로 실패하면 pid·사진·성적이 빠진 채로
+// 저장되고, 그 순간 화면에서 투수 사진과 ERA·WHIP 이 통째로 사라진다. 같은 투수면
+// 이전에 채워둔 값을 유지한다 — 이름이 다르면 선발 교체이므로 그대로 덮어쓴다.
+const ENRICHED_KEYS = [
+  "pid", "photoUrl", "era", "whip", "k9", "fip", "lobPct",
+  "wins", "losses", "ip", "recentEra", "recentIp",
+] as const;
+
+function keepEnriched(prev: string | null, next: string): string {
+  if (!prev) return next;
+  try {
+    const p = JSON.parse(prev) as Record<string, unknown>;
+    const n = JSON.parse(next) as Record<string, unknown>;
+    if (!p.name || p.name !== n.name) return next;
+    let filled = false;
+    for (const k of ENRICHED_KEYS) {
+      if (n[k] == null && p[k] != null) {
+        n[k] = p[k];
+        filled = true;
+      }
+    }
+    return filled ? JSON.stringify(n) : next;
+  } catch {
+    return next;
+  }
+}
+
 function jsonEq(a: string | null, b: string | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
@@ -205,6 +232,8 @@ export async function runFetchBaseballStarters(opts?: {
     }
 
     if (!newHomeJson || !newAwayJson) continue;
+    newHomeJson = keepEnriched(m.homeStarter, newHomeJson);
+    newAwayJson = keepEnriched(m.awayStarter, newAwayJson);
     // 변경 감지 (forceRegen 이면 항상 changed = true)
     const changed =
       forceRegen ||
