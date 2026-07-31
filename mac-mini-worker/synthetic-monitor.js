@@ -14,7 +14,26 @@ const SITE = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const UA = { "User-Agent": "scorebase-synthetic/1.0 (mac-mini internal monitor)" };
 
-// [경로, 필수 마커들, 최소 바이트] — 마커는 SSR 본문에 항상 있어야 하는 텍스트
+// 원문 노출 검사 — 한국어 화면에 일본어(가나·한자)가 그대로 나가는 것.
+// 마커 검사는 "있어야 할 게 있나"만 보므로 이 유형은 원천적으로 못 잡았다
+// (2026-07-31: 선발 투수·로스터·라이브 타자 표의 한자 이름을 사람이 먼저 발견).
+//
+// 원어 병기가 정상인 페이지(/players 의 "일본어 이름: 井上 温大")는 대상에서 뺀다.
+// 검사는 script·style 제거 후 본문 텍스트에만 적용 — JSON-LD 원문은 화면이 아니다.
+// 값이 안 채워진 채 렌더된 흔적. 정상 한국어 본문에는 나올 수 없는 문자열만 골랐다
+// ("null"·"NaN" 은 영어 본문·팀명에 섞일 수 있어 제외).
+const BROKEN_MARKERS = ["undefined", "[object Object]", "Invalid Date"];
+
+function visibleText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+// [경로, 필수 마커들, 최소 바이트, 옵션]
+//   opts.noJapanese — 본문에 가나·한자가 하나라도 보이면 실패
 const CHECKS = [
   ["/", ["숫자로 보는 경기", "라이브"], 30000],
   ["/scores", ["라이브 스코어"], 20000],
@@ -22,9 +41,14 @@ const CHECKS = [
   ["/transfers?view=team&team=1539", ["시장가치 Best XI", "감독"], 30000],
   ["/coaches/e4wyrn4h25dq86p", ["감독 경력", "선호 포메이션"], 15000],
   ["/leagues/KBO", ["KBO"], 15000],
+  // 일본 선수명이 흐르는 경로 — 전부 한글이어야 한다
+  ["/predictions/starters", ["선발"], 15000, { noJapanese: true }],
+  ["/previews/NPB", ["NPB 경기 분석"], 10000, { noJapanese: true }],
+  ["/teams/23335", ["로스터"], 10000, { noJapanese: true }], // 라쿠텐
+  ["/teams/23331", ["로스터"], 10000, { noJapanese: true }], // 요미우리
 ];
 
-async function checkOne([p, markers, minBytes]) {
+async function checkOne([p, markers, minBytes, opts]) {
   try {
     const r = await axios.get(`${SITE}${p}`, { timeout: 25_000, headers: UA, validateStatus: () => true });
     if (r.status !== 200) return `${p} → HTTP ${r.status}`;
@@ -32,6 +56,16 @@ async function checkOne([p, markers, minBytes]) {
     if (html.length < minBytes) return `${p} → 본문 ${html.length}B < ${minBytes}B (빈 화면 의심)`;
     for (const m of markers) {
       if (!html.includes(m)) return `${p} → 마커 "${m}" 소실`;
+    }
+    const text = visibleText(html);
+    // 렌더 사고 — 값이 안 채워진 채 화면에 나간 흔적. 전 페이지 공통.
+    const broken = BROKEN_MARKERS.filter((m) => text.includes(m));
+    if (broken.length) return `${p} → 깨진 값 노출: ${broken.join(", ")}`;
+    if (opts?.noJapanese) {
+      const hits = [...new Set(text.match(/[぀-ヿ㐀-鿿]+/g) ?? [])];
+      if (hits.length) {
+        return `${p} → 일본어 원문 노출 ${hits.length}건: ${hits.slice(0, 5).join(", ")}`;
+      }
     }
     return null;
   } catch (e) {
