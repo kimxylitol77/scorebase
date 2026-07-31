@@ -6,7 +6,6 @@ import { prisma } from "@/lib/db";
 import { sendTelegramTo } from "@/lib/notify/telegram";
 import { predictMatchById, type PredictionResult } from "@/lib/predictionEngine";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { toKoreanPlayerName } from "@/lib/player-names";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -42,28 +41,6 @@ function kstTime(d: Date): string {
 
 function matchUrl(league: string, externalId: string): string {
   return `${SITE_URL}/live/${league}/${externalId}`;
-}
-
-/**
- * 라인업 JSON({teamName, formation?, startXI: string[]}) 을 알림 한 덩어리로 만든다.
- * 선발 명단은 포지션 순으로 저장돼 있어(GK→DF→MF→FW) 그대로 나열하면 읽힌다.
- * formation 은 없는 소스가 있고, 이름은 한글 사전에 없으면 원문 그대로 나간다.
- */
-function lineupBlock(raw: string | null, teamName: string): string | null {
-  if (!raw) return null;
-  try {
-    const v = JSON.parse(raw) as { formation?: unknown; startXI?: unknown };
-    const xi = Array.isArray(v.startXI)
-      ? v.startXI.filter((n): n is string => typeof n === "string" && !!n)
-      : [];
-    const formation =
-      typeof v.formation === "string" && v.formation ? ` ${esc(v.formation)}` : "";
-    const head = `<b>${esc(teamName)}</b>${formation}`;
-    if (xi.length === 0) return head;
-    return `${head}\n${esc(xi.map((n) => toKoreanPlayerName(n) || n).join(", "))}`;
-  } catch {
-    return null;
-  }
 }
 
 /** AI 픽 한 줄. 보류(NO_PICK)면 접전 표기. */
@@ -160,7 +137,7 @@ export async function dispatchTelegramAlerts() {
         lineupAway: { not: null },
         OR: FOLLOWED,
       },
-      select: { ...MATCH_SELECT, lineupHome: true, lineupAway: true },
+      select: MATCH_SELECT,
     }),
     prisma.match.findMany({
       where: {
@@ -271,13 +248,10 @@ export async function dispatchTelegramAlerts() {
   for (const m of lineups) {
     const home = nameOf(m.homeTeamId, m.league);
     const away = nameOf(m.awayTeamId, m.league);
-    const blocks = [
-      lineupBlock(m.lineupHome, home),
-      lineupBlock(m.lineupAway, away),
-    ].filter((b): b is string => !!b);
+    // 선발 명단은 싣지 않는다 — 축구 선수 한글 사전이 얇아 영문 22줄이 그대로 나간다.
+    // 알림은 "떴다"만 알리고 명단은 매치 페이지에서 본다.
     const text =
-      `📋 <b>선발 라인업</b> (${kstTime(m.startTime)}) · ${esc(home)} vs ${esc(away)}\n\n` +
-      (blocks.length ? `${blocks.join("\n\n")}\n\n` : "") +
+      `📋 <b>라인업 등록 완료</b> (${kstTime(m.startTime)}) · ${esc(home)} vs ${esc(away)}\n` +
       `▶ ${matchUrl(m.league, m.externalId)}`;
     await fanOut(m, "LINEUP", text, (p) => p.alertLineup);
   }

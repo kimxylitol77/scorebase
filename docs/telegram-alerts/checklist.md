@@ -47,7 +47,8 @@
 - [x] `TelegramConnectCard` — 종류별 토글 + 한 줄 설명 + 켠 항목의 실제 발송 문구 미리보기
 - [x] 디스패처 — `fanOut(m, kind, text, wants)` 게이트. KICKOFF·FINAL·GOAL·FOLLOW_PICK 각각 설정 확인.
       골은 끈 회원도 상태(GOAL:h-a)를 기록해 나중에 켤 때 지난 골이 몰아 오지 않게 한다
-- [x] 디스패처 — LINEUP 신설. 축구·SCHEDULED·확정 XI 보유·킥오프 180분 내, 포메이션 한 줄
+- [x] 디스패처 — LINEUP 신설. 축구·SCHEDULED·확정 XI 보유·킥오프 180분 내. 명단은 싣지 않고
+      "라인업 등록 완료" 한 줄 + 매치 링크 (축구 선수 한글 사전이 얇아 영문 22줄이 나가서)
 - [x] 디스패처 — `dispatchOddsDigest`(ODDS_ALL). 즐겨찾기 무관 전 경기 급변 상위 5개를 KST 21시에 하루 1건
 - [ ] 검증 — 실제 수신 e2e (라인업은 EPL 개막 후, 배당 다이제스트는 옵트인 후 첫 21시)
 
