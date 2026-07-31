@@ -59,7 +59,7 @@ export interface NpbStarter {
  * 매핑 없으면 원어 한자/가타카나 그대로 (모델이 본문에서 음역 시도).
  * 한국 미디어 관행 표기 우선.
  */
-const PITCHER_NAME_KO: Record<string, string> = {
+export const PITCHER_NAME_KO: Record<string, string> = {
   // 5/12, 5/13 현재 등판 선수
   "松本晴": "마쓰모토 하루",
   "渡邉": "와타나베",
