@@ -72,6 +72,15 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 4 * HOUR,
     role: "TheSports ts- SCHEDULED 매치 diary verify (4시간 주기, 고정 IP)",
   },
+  // ⚠ 이름의 lightsail- 접두사는 2026-07-02 Vultr 이전 전에 붙은 것으로, 아래 lightsail-* 봇들은
+  //   전부 같은 Vultr Seoul 박스에서 돈다. 신규 등록은 실제 호스트로 이름 짓는다.
+  "vultr-standings-poller": {
+    ko: "축구 순위 폴러",
+    intervalMs: 10 * MIN,
+    // 2026-07-31 heartbeat 추가 — 이전엔 10분마다 도는데 생사 신호가 없어 폴러가 죽어도
+    // "캐시가 좀 오래됐네" 로만 보였다(UCL·분데스리가 72일 동결을 두 달 넘게 못 잡음).
+    role: "TheSports 시즌 순위표 → TheSportsStandingsCache (10분 주기, Vultr)",
+  },
   "lightsail-football-transfers": {
     ko: "이적시장 증분 수집",
     intervalMs: 6 * HOUR,

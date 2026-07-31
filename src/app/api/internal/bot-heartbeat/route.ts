@@ -62,9 +62,13 @@ export async function POST(req: NextRequest) {
   const prevMeta = (prev?.metadata ?? {}) as Record<string, unknown>;
   const failed = body.ok === false;
   const errText = (body.error || "").slice(0, 400);
+  // 연속 실패 횟수 — 한 번 삐끗한 것과 계속 죽어 있는 것을 구분한다(감시 cron 이 판정에 사용).
+  const prevStreak = typeof prevMeta.consecutiveFailures === "number" ? prevMeta.consecutiveFailures : 0;
+  const streak = body.ok === undefined ? prevStreak : failed ? prevStreak + 1 : 0;
   const meta: Record<string, unknown> = {
     ...(body.metadata ?? {}),
     ...(body.ok !== undefined ? { ok: body.ok } : {}),
+    consecutiveFailures: streak,
     ...(failed ? { lastError: errText, lastErrorAt: now.toISOString() } : {}),
     ...(typeof body.durationMs === "number" ? { durationMs: Math.round(body.durationMs) } : {}),
     ...(prevMeta.lastErrNotifiedAt ? { lastErrNotifiedAt: prevMeta.lastErrNotifiedAt } : {}),

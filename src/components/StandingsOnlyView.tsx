@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { getStandingsState } from "@/lib/sports/thesports/standings-helper";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -20,7 +20,8 @@ const POPULAR_LEAGUES: Array<{ code: string; label: string }> = [
 ];
 
 export default async function StandingsOnlyView({ league, embedded = false }: Props) {
-  const standings = await getFullStandings(league);
+  // 개막 전에는 지난 시즌 표를 대신 보여주지 않고 "시즌 개막 전"으로 안내한다.
+  const { rows: standings, state, firstFixtureAt } = await getStandingsState(league);
   const displayName = LEAGUE_DISPLAY[league] ?? league.replace(/_/g, " ");
 
   const teamIds = [...new Set(standings.map((r) => r.teamId))];
@@ -71,8 +72,20 @@ export default async function StandingsOnlyView({ league, embedded = false }: Pr
       )}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500">
-          순위 데이터를 수집 중입니다. 잠시 후 다시 확인해주세요.
+        <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500 space-y-1">
+          {state === "PRESEASON" ? (
+            <>
+              <div className="font-semibold text-neutral-600 dark:text-neutral-300">시즌 개막 전</div>
+              <p>
+                새 시즌 순위표는 개막 후 표시됩니다
+                {firstFixtureAt
+                  ? ` · 첫 경기 ${firstFixtureAt.toISOString().slice(0, 10)}`
+                  : ""}
+              </p>
+            </>
+          ) : (
+            <p>순위 데이터를 수집 중입니다. 잠시 후 다시 확인해주세요.</p>
+          )}
         </div>
       ) : (
         <div className="space-y-5">

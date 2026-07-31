@@ -1,13 +1,25 @@
-// standings-poller.js — TheSports season/recent/table/detail → Scorebase API push
-// 1시간 주기. 78개 축구 리그 (league-id-mapping.json 의 tsSeasonId 보유 리그)
+// standings-poller.js — TheSports season/table/detail → Scorebase API push
+// 10분 주기.
+//
+// ⚠ 실행 위치는 Vultr Seoul(64.176.230.240) `/home/ubuntu/scorebase-worker/src/` 다.
+//   (2026-07-02 Lightsail → Vultr 이전 완료. 이 디렉토리 이름만 옛 이름으로 남아 있다.)
+//   배포: 로컬에서 `src/` 하위로 rsync → `systemctl restart scorebase-standings-poller.service`
 //
 // 흐름:
-//   1) league-id-mapping.json 로드 (tsSeasonId 있는 리그만)
+//   1) GET {SITE_URL}/api/internal/football-seasons (Bearer) — 폴링할 시즌 목록
+//      ↳ 실패하면 마지막 성공 응답 캐시(디스크) → 그것도 없으면 동봉된 league-id-mapping.json
 //   2) 각 리그마다 season/recent/table/detail?uuid={tsSeasonId} fetch
 //   3) POST {SITE_URL}/api/internal/thesports-standings (Bearer auth)
+//   4) heartbeat POST — 전체 결과 + 리그별 실패 집계
 //
-// Rate limit: 120 req/min — 78리그 * 1 호출 = 78req → 1분 안에 끝남, 안전.
-// 호출 간 250ms sleep 으로 burst 회피.
+// 2026-07-31 개편: 시즌 목록의 단일 진실을 서버로 옮겼다.
+//   이전엔 워커 디렉토리에 사람이 복사해 둔 league-id-mapping.json 이 정본이라,
+//   새 시즌에 저장소만 고치고 서버 사본을 못 고치면 지난 시즌 uuid 로 계속 조회했다.
+//   → 빈 응답 → 캐시가 작년 순위표에 동결 (2026-07 UCL·분데스리가 72일 동결의 직접 원인).
+//
+// 안전장치:
+//   - 인증 실패·timeout·빈 목록이면 기존 캐시를 절대 지우지 않고 마지막 성공 목록으로 계속 돈다.
+//   - 외부 API timeout 은 그대로 유지 (30s).
 //
 // 환경변수 (/home/ubuntu/.env):
 //   THESPORTS_USER, THESPORTS_SECRET, SITE_URL, INTERNAL_API_TOKEN
@@ -29,28 +41,104 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 // 유지로 burst 방지.
 const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const CALL_GAP_MS = 250;
+const HEARTBEAT_NAME = "vultr-standings-poller";
+// TheSports 가 "이 대회는 순위표를 제공하지 않는다"고 답하는 코드.
+// 컵·유스 대회 40여 개가 매 회차 이걸 돌려준다 — 정상 baseline 이지 실패가 아니다.
+// (2026-07-02 Vultr 전환 검증에서도 ok=86 / code=405 44건이 평상 상태였다.)
+const TS_CODE_NO_TABLE = 405;
 
-if (!TS_USER || !TS_SECRET) {
-  console.error("❌ THESPORTS_USER / THESPORTS_SECRET missing");
-  process.exit(1);
-}
-if (!TOKEN) {
-  console.error("❌ INTERNAL_API_TOKEN missing");
-  process.exit(1);
+// 환경변수 검사는 실제 실행일 때만 — 테스트가 이 모듈을 require 해도 프로세스가 죽지 않게.
+if (require.main === module) {
+  if (!TS_USER || !TS_SECRET) {
+    console.error("❌ THESPORTS_USER / THESPORTS_SECRET missing");
+    process.exit(1);
+  }
+  if (!TOKEN) {
+    console.error("❌ INTERNAL_API_TOKEN missing");
+    process.exit(1);
+  }
 }
 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 
-// league-id-mapping.json (worker 디렉토리에 copy 되어 있어야)
-const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
+// 서버에서 받은 마지막 정상 시즌 목록 (프로세스 재시작에도 살아남게 디스크 보관).
+const SEASON_CACHE_FILE = path.join(__dirname, ".seasons-cache.json");
+// 최후 폴백 — 저장소에서 복사돼 있으면 사용 (없어도 동작한다).
+const LEGACY_MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
+/**
+ * 어느 목록을 쓸지 결정하는 순수 함수 (테스트 대상).
+ * 서버 응답이 비었거나(=서버 상태 이상) 실패해도 마지막 정상 목록으로 계속 돈다 —
+ * "빈 응답 = 폴링 중단"이 되면 캐시가 통째로 굶어 죽는다.
+ *
+ * @returns { seasons, source } source ∈ api | disk-cache | legacy-file | none
+ */
+function pickSeasonList({ apiSeasons, diskSeasons, legacySeasons }) {
+  const valid = (arr) =>
+    Array.isArray(arr) ? arr.filter((s) => s && s.league && s.tsSeasonId) : [];
+  const api = valid(apiSeasons);
+  if (api.length > 0) return { seasons: api, source: "api" };
+  const disk = valid(diskSeasons);
+  if (disk.length > 0) return { seasons: disk, source: "disk-cache" };
+  const legacy = valid(legacySeasons);
+  if (legacy.length > 0) return { seasons: legacy, source: "legacy-file" };
+  return { seasons: [], source: "none" };
+}
+
+/**
+ * 폴링할 시즌 목록. [{ league, tsSeasonId }]
+ * 서버 → 디스크 캐시 → 동봉 JSON 순. 어느 단계도 기존 캐시를 지우지 않는다.
+ */
+async function loadSeasons() {
+  let apiSeasons = [];
+  try {
+    const { data } = await axios.get(`${SITE_URL}/api/internal/football-seasons`, {
+      headers: SITE_HEADERS,
+      timeout: 20_000,
+    });
+    apiSeasons = data && Array.isArray(data.seasons) ? data.seasons : [];
+    if (apiSeasons.length === 0) {
+      // 빈 목록은 "폴링 중단"이 아니라 "서버 상태 이상"으로 본다 — 마지막 정상 목록 유지.
+      console.warn("  ⚠ 서버 시즌 목록이 비어 있음 — 마지막 정상 목록 사용");
+    }
+  } catch (e) {
+    // 인증 실패(401)·timeout 모두 여기로 — 기존 캐시를 지우지 않는다.
+    const status = e.response?.status;
+    console.warn(`  ⚠ 시즌 목록 API 실패${status ? ` (HTTP ${status})` : ""}: ${e.message}`);
+  }
+
+  let diskSeasons = [];
+  try {
+    diskSeasons = JSON.parse(fs.readFileSync(SEASON_CACHE_FILE, "utf-8"));
+  } catch { /* 캐시 없음 — 다음 폴백 */ }
+
+  let legacySeasons = [];
+  try {
+    legacySeasons = JSON.parse(fs.readFileSync(LEGACY_MAP_FILE, "utf-8"))
+      .filter((l) => l.tsSeasonId)
+      .map((l) => ({ league: l.code, tsSeasonId: l.tsSeasonId }));
+  } catch { /* 파일 없음 */ }
+
+  const picked = pickSeasonList({ apiSeasons, diskSeasons, legacySeasons });
+  if (picked.source === "api") {
+    try {
+      fs.writeFileSync(SEASON_CACHE_FILE, JSON.stringify(picked.seasons), "utf-8");
+    } catch (e) {
+      console.warn(`  ⚠ 시즌 캐시 저장 실패: ${e.message}`);
+    }
+  }
+  return picked;
+}
+
+/** @returns results 객체 | null(=순위표 미제공, 실패 아님). 진짜 오류만 throw. */
 async function fetchTsStandings(seasonId) {
   const { data } = await axios.get(`${TS_BASE}/v1/football/season/recent/table/detail`, {
     params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
     timeout: 30_000,
   });
+  if (data.code === TS_CODE_NO_TABLE) return null; // 컵·유스 — 평상 상태
   if (data.code !== 0) throw new Error(`ts code=${data.code} err=${data.err ?? ""}`);
   return data.results;
 }
@@ -102,33 +190,57 @@ async function postCache(league, tsSeasonId, payload) {
   }
 }
 
-async function poll() {
-  const ts = new Date().toISOString();
-  let leagues;
+async function heartbeat(body) {
   try {
-    leagues = JSON.parse(fs.readFileSync(MAP_FILE, "utf-8"));
-  } catch (e) {
-    console.error(`[${ts}] ❌ map file load fail: ${e.message}`);
+    await axios.post(
+      `${SITE_URL}/api/internal/bot-heartbeat`,
+      { name: HEARTBEAT_NAME, ...body },
+      { headers: SITE_HEADERS, timeout: 10_000 },
+    );
+  } catch {
+    // silent — heartbeat 실패가 폴링을 막지 않는다. 단발 타임아웃 로그로 진짜 탐지를 덮지 않기
+    // 위한 것으로, mac-mini-worker/hb-log.js 와 같은 방침이다. 끊긴 사실은 서버가 lastAt 으로
+    // 판정해 알리므로(football-season-watch) 워커가 조용해도 감시 공백은 없다.
+  }
+}
+
+async function poll() {
+  const startedAt = Date.now();
+  const ts = new Date().toISOString();
+
+  const { seasons, source } = await loadSeasons();
+  if (seasons.length === 0) {
+    console.error(`[${ts}] ❌ 폴링할 시즌 목록이 없다 (api/disk/legacy 전부 실패) — 이번 회차 skip`);
+    await heartbeat({
+      ok: false,
+      durationMs: Date.now() - startedAt,
+      error: "season list unavailable (api+disk+legacy all failed)",
+      metadata: { seasonSource: "none" },
+    });
     return;
   }
-  const targets = leagues.filter((l) => l.tsSeasonId);
-  console.log(`[${ts}] 🏆 standings-poller start — ${targets.length} leagues`);
+  console.log(`[${ts}] 🏆 standings-poller start — ${seasons.length} leagues (source=${source})`);
 
   let ok = 0;
   let err = 0;
-  for (const l of targets) {
+  let empty = 0;
+  const failed = [];
+
+  for (const l of seasons) {
     try {
       const payload = await fetchTsStandings(l.tsSeasonId);
       if (!payload || !Array.isArray(payload.tables)) {
-        console.warn(`  skip ${l.code} — empty payload`);
+        // 순위표 미제공(컵·유스 code=405) 또는 개막 전 빈 표 — 둘 다 정상. 실패로 세지 않는다.
+        empty++;
         continue;
       }
-      await postCache(l.code, l.tsSeasonId, payload);
+      await postCache(l.league, l.tsSeasonId, payload);
       ok++;
     } catch (e) {
       err++;
       const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
-      console.error(`  ✗ ${l.code} (${l.tsSeasonId}): ${msg}`);
+      failed.push(`${l.league}:${String(msg).slice(0, 60)}`);
+      console.error(`  ✗ ${l.league} (${l.tsSeasonId}): ${msg}`);
     }
     await sleep(CALL_GAP_MS);
   }
@@ -138,6 +250,7 @@ async function poll() {
     try {
       const payload = await fetchVolleyballStandings(v.seasonId);
       if (!payload || !Array.isArray(payload.tables)) {
+        empty++;
         console.warn(`  skip ${v.code} — empty payload`);
         continue;
       }
@@ -146,6 +259,7 @@ async function poll() {
     } catch (e) {
       err++;
       const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      failed.push(`${v.code}:${String(msg).slice(0, 60)}`);
       console.error(`  ✗ ${v.code} (${v.seasonId}): ${msg}`);
     }
     await sleep(CALL_GAP_MS);
@@ -156,6 +270,7 @@ async function poll() {
     try {
       const payload = await fetchBaseballStandings(b.seasonId);
       if (!payload || !Array.isArray(payload.tables)) {
+        empty++;
         console.warn(`  skip ${b.code} — empty payload`);
         continue;
       }
@@ -164,14 +279,36 @@ async function poll() {
     } catch (e) {
       err++;
       const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      failed.push(`${b.code}:${String(msg).slice(0, 60)}`);
       console.error(`  ✗ ${b.code} (${b.seasonId}): ${msg}`);
     }
     await sleep(CALL_GAP_MS);
   }
 
-  console.log(`[${new Date().toISOString()}] summary: ok=${ok} err=${err}`);
+  const durationMs = Date.now() - startedAt;
+  console.log(
+    `[${new Date().toISOString()}] summary: ok=${ok} empty=${empty} err=${err} (${Math.round(durationMs / 1000)}s, source=${source})`,
+  );
+  await heartbeat({
+    ok: err === 0,
+    durationMs,
+    ...(err > 0 ? { error: `${err} leagues failed: ${failed.slice(0, 5).join(", ")}` } : {}),
+    metadata: {
+      seasonSource: source,
+      leagues: seasons.length,
+      ok,
+      empty,
+      err,
+      failedLeagues: failed.slice(0, 20),
+    },
+  });
 }
 
-console.log(`🚀 standings-poller started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);
-poll();
-setInterval(poll, POLL_INTERVAL_MS);
+// 직접 실행할 때만 폴링 시작 — 테스트에서 require 해도 루프가 안 돌게.
+if (require.main === module) {
+  console.log(`🚀 standings-poller started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);
+  poll();
+  setInterval(poll, POLL_INTERVAL_MS);
+}
+
+module.exports = { pickSeasonList };

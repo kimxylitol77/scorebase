@@ -522,6 +522,49 @@ model TheSportsStandingsCache {
   updatedAt   DateTime @updatedAt
 }
 
+/// 리그별 "현재 시즌"의 단일 진실 — 리그의 고정 정보(tournament id)와 매년 바뀌는 시즌 정보를 분리한다.
+///
+/// 배경: TheSports season uuid 를 저장소 JSON 과 Lightsail 워커 복사본 두 곳에서 손으로 관리해
+/// 새 시즌마다 사람이 양쪽을 고쳐야 했다. 놓치면 poller 가 지난 시즌 uuid 로 조회 → 빈 응답 →
+/// 캐시가 작년 순위표에 동결되고 새 시즌 경기에 작년 순위가 붙었다(2026-07 UCL·분데스리가 72일).
+///
+/// 상태: DISCOVERED(자동 발견) → VERIFIED(검증 통과) → ACTIVE(운영 사용) → ARCHIVED(종료)
+/// 자동 발견만으로 ACTIVE 가 되지 않는다. 전환 사유·검증 결과는 metadata 에 남는다.
+///
+/// 테이블은 raw SQL 로 생성(db push 금지 패턴) — prisma/sql/create-competition-season.sql.
+///
+/// ⚠ "같은 league/provider 에 ACTIVE 는 하나" 불변식은 부분 unique index 로 강제한다.
+///   Prisma schema 로는 부분 index 를 못 만들어 위 SQL 에서 raw 로 생성한다:
+///     CREATE UNIQUE INDEX "CompetitionSeason_active_unique"
+///       ON "CompetitionSeason"(league, provider) WHERE status = 'ACTIVE';
+///   activateSeason() 도 트랜잭션으로 같은 불변식을 지킨다(이중 방어).
+model CompetitionSeason {
+  id               Int       @id @default(autoincrement())
+  league           String // 우리 league code (EPL, LALIGA, ...)
+  provider         String // "thesports" | "api-football"
+  providerLeagueId String // ts competition_id / af league id — 시즌과 무관한 고정 값
+  providerSeasonId String // ts season uuid / af season 표기 — 매년 바뀌는 값
+  seasonLabel      String // "2026-27" (유럽형) | "2026" (달력·단발)
+  seasonYear       Int // api-football season 파라미터와 같은 표기 (유럽형 = 시작 연도)
+  startsAt         DateTime? // 시즌 시작 (첫 경기 또는 provider 표기)
+  endsAt           DateTime?
+  status           String    @default("DISCOVERED") // DISCOVERED | VERIFIED | ACTIVE | ARCHIVED
+  discoveredAt     DateTime  @default(now())
+  verifiedAt       DateTime?
+  activatedAt      DateTime?
+  lastCheckedAt    DateTime?
+  teamCount        Int? // 이 시즌 참가팀 수 (검증용)
+  mappedTeamCount  Int? // 그중 team-id-mapping 으로 우리 Team 에 연결되는 수
+  metadata         Json? // {verification, activationReason, sampleMatchIds, ...}
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  @@unique([league, provider, providerSeasonId])
+  @@index([league, status])
+  @@index([provider, status])
+  @@index([status, seasonYear])
+}
+
 /// api-football /standings 응답을 normalized 저장.
 /// row.teamExternalId = api-football team id = 우리 Team.externalId (api-football 기반 리그).
 /// 매핑 dictionary 없이 바로 Team.externalId 로 join 가능 — TheSports mapping 누락 회피.

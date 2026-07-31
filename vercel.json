@@ -193,6 +193,10 @@
       "schedule": "0 20 * * *"
     },
     {
+      "path": "/api/cron/football-season-watch",
+      "schedule": "10 */6 * * *"
+    },
+    {
       "path": "/api/cron/baseball-standings",
       "schedule": "30 20 * * *"
     },

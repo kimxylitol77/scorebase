@@ -11,6 +11,15 @@
 
 import { prisma } from "@/lib/db";
 import teamIdMapping from "./team-id-mapping.json";
+import { PROVIDER_AF, PROVIDER_TS, getActiveSeason, resolveSeasonYear } from "../season-registry";
+import {
+  afCacheUsable,
+  tsCacheUsable,
+  isSeasonGated,
+  hideStageStandings,
+  standingsState,
+  type StandingsState,
+} from "./standings-gate";
 
 interface TeamIdEntry {
   ourId: number;
@@ -52,6 +61,38 @@ interface CachedPositions {
 const cache = new Map<string, CachedPositions>();
 
 /**
+ * 시즌 게이트 — 이 리그의 ACTIVE 시즌과 같은 시즌의 캐시만 쓰게 한다.
+ * 레지스트리에 ACTIVE 가 없으면(도입 전 리그) 두 캐시 다 그대로 통과 = 기존 동작.
+ *
+ * 실패해도 화면을 죽이지 않는다 — 게이트 조회가 throw 하면 기존 동작으로 폴백한다.
+ */
+async function seasonGate(league: string): Promise<{
+  tsOk: (cacheSeasonId: string | null) => boolean;
+  afOk: (cacheSeason: number | null) => boolean;
+}> {
+  if (!isSeasonGated(league)) return { tsOk: () => true, afOk: () => true };
+  try {
+    const [activeTs, activeAf, seasonYear] = await Promise.all([
+      getActiveSeason(league, PROVIDER_TS),
+      getActiveSeason(league, PROVIDER_AF),
+      resolveSeasonYear(league),
+    ]);
+    const activeSeasonId = activeTs?.providerSeasonId ?? null;
+    // ACTIVE 레지스트리가 아예 없는 리그는 af 쪽도 기존 동작 유지 — 계산값만으로
+    // 지금 화면에 나가는 캐시를 끊으면 도입 자체가 회귀가 된다.
+    const hasRegistry = activeTs != null || activeAf != null;
+    return {
+      tsOk: (cacheSeasonId) => tsCacheUsable(league, activeSeasonId, cacheSeasonId).usable,
+      afOk: (cacheSeason) =>
+        hasRegistry ? afCacheUsable(league, seasonYear, cacheSeason).usable : true,
+    };
+  } catch (e) {
+    console.warn(`[standings-helper] season gate 조회 실패 league=${league}:`, (e as Error).message);
+    return { tsOk: () => true, afOk: () => true };
+  }
+}
+
+/**
  * 리그 코드 (EPL/LALIGA/SERIE_A/...) 의 standings 에서 팀별 순위 추출.
  * 우선순위:
  *   1) TheSports standings — Lightsail standings-poller 1h 주기로 fresh
@@ -80,27 +121,24 @@ export async function getStandingsPositions(
     return null;
   }
 
+  const gate = await seasonGate(league);
+
   // 1) TheSports 우선 — ts team_id → ourId 변환
-  const ts = await prisma.theSportsStandingsCache.findUnique({
+  const tsRow = await prisma.theSportsStandingsCache.findUnique({
     where: { league },
-    select: { payload: true },
+    select: { payload: true, tsSeasonId: true },
   });
+  // 이전 시즌 캐시는 새 시즌 경기에 붙이지 않는다 (개막 전이면 "순위 없음"이 정답).
+  const ts = tsRow && gate.tsOk(tsRow.tsSeasonId) ? tsRow : null;
   if (ts) {
     const payload = ts.payload as unknown as StandingsPayload;
     // 녹아웃 가드 — UCL/UEL/UECL 은 리그페이즈(스위스 8경기) 완료 후 토너먼트 단계.
     // 녹아웃 매치(16강~결승)에 리그페이즈 순위([11] 등) 표기는 무의미·혼란이라 숨김.
     // 리그페이즈 진행 중(최다 소화 경기 < 8)엔 순위 표기 유지. (2026-05-29 UCL 결승 PSG[11])
-    const CONTINENTAL_KNOCKOUT = new Set(["UCL", "UEL", "UECL"]);
-    if (CONTINENTAL_KNOCKOUT.has(league)) {
-      const allRows = (payload?.tables ?? []).flatMap((t) => t.rows ?? []);
-      const maxPlayed = allRows.reduce(
-        (mx, r) => Math.max(mx, (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0)),
-        0,
-      );
-      if (maxPlayed >= 8) {
-        cache.set(league, { fetchedAt: now, positionByOurTeamId });
-        return null;
-      }
+    // 판정은 standings-gate.hideStageStandings 로 옮겨 단위 테스트가 가능하게 했다.
+    if (hideStageStandings(league, (payload?.tables ?? []).flatMap((t) => t.rows ?? []))) {
+      cache.set(league, { fetchedAt: now, positionByOurTeamId });
+      return null;
     }
     const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
     for (const t of payload?.tables ?? []) {
@@ -117,10 +155,12 @@ export async function getStandingsPositions(
   // 전체 try-catch — 2026-05-27 production /predictions 500 사고 (DB row 가 어떤
   // path 에서 throw, local 정상). 한 league fail 해도 다른 league 정상 + 페이지 살림.
   try {
-    const af = await prisma.apiFootballStandingsCache.findUnique({
+    const afRow = await prisma.apiFootballStandingsCache.findUnique({
       where: { league },
-      select: { rows: true },
+      select: { rows: true, season: true },
     });
+    // 서로 다른 시즌의 두 순위표를 섞지 않는다 — 시즌 안 맞는 af 캐시는 병합하지 않는다.
+    const af = afRow && gate.afOk(afRow.season) ? afRow : null;
     if (af) {
       const rows = (af.rows as unknown as Array<{
         teamExternalId: string;
@@ -193,15 +233,17 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
 
   const out: StandingsRow[] = [];
   const seen = new Set<number>();
+  const gate = await seasonGate(league);
 
   // 0) J1/J2 2026 그룹 포맷 — af(깨끗한 group 필드 + 전팀 매핑) 우선. ts 는 stage_id 가
   //    opaque 라 East/West 라벨 불가 + flatten 시 1~N위 중복. af 로 그룹별 표 구성.
   if (GROUPED_STANDINGS_LEAGUES.has(league)) {
     try {
-      const afG = await prisma.apiFootballStandingsCache.findUnique({
+      const afGRow = await prisma.apiFootballStandingsCache.findUnique({
         where: { league },
-        select: { rows: true },
+        select: { rows: true, season: true },
       });
+      const afG = afGRow && gate.afOk(afGRow.season) ? afGRow : null;
       const gr =
         (afG?.rows as unknown as Array<{
           teamExternalId: string;
@@ -255,10 +297,12 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
   // 1) TheSports 우선 — Lightsail standings-poller 1시간 주기로 fresh.
   //    (이전: api-football 우선이었으나 1일 1회 cron 이라 19h+ stale 자주 발생,
   //     2026-05-25 사용자 EPL 순위 틀림 보고로 swap.)
-  const ts = await prisma.theSportsStandingsCache.findUnique({
+  const tsRowFull = await prisma.theSportsStandingsCache.findUnique({
     where: { league },
-    select: { payload: true },
+    select: { payload: true, tsSeasonId: true },
   });
+  // 시즌 게이트 — ACTIVE 시즌과 다른 시즌 캐시면 표를 만들지 않는다(작년 순위 노출 차단).
+  const ts = tsRowFull && gate.tsOk(tsRowFull.tsSeasonId) ? tsRowFull : null;
   let tsTableCount = 0; // ts payload 의 table(=stage) 수. 2+ 면 다단계(J1/J2) — af 병합 제외용.
   if (ts) {
     interface TsRow {
@@ -304,10 +348,12 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
   // af 병합 시 중복만 늘어 제외(out 비었을 때만). getStandingsPositions 는 칩이라 영향 적어 항상 병합.
   if (out.length === 0 || tsTableCount <= 1) {
     try {
-      const af = await prisma.apiFootballStandingsCache.findUnique({
+      const afRowFull = await prisma.apiFootballStandingsCache.findUnique({
         where: { league },
-        select: { rows: true },
+        select: { rows: true, season: true },
       });
+      // 서로 다른 시즌의 두 표를 병합하지 않는다.
+      const af = afRowFull && gate.afOk(afRowFull.season) ? afRowFull : null;
       if (af) {
         interface AfRow {
           teamExternalId: string;
@@ -362,6 +408,31 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
   out.sort((a, b) => a.position - b.position);
   fullCache.set(league, { fetchedAt: now, rows: out });
   return out;
+}
+
+/**
+ * 순위표가 비었을 때 "개막 전"과 "순위 소스 없음"을 구분한다.
+ * 개막 전이면 지난 시즌 표를 대신 보여주지 말고 이 상태를 그대로 노출하면 된다.
+ */
+export async function getStandingsState(league: string): Promise<{
+  state: StandingsState;
+  rows: StandingsRow[];
+  firstFixtureAt: Date | null;
+}> {
+  const rows = await getFullStandings(league).catch(() => [] as StandingsRow[]);
+  const next = await prisma.match
+    .findFirst({
+      where: { league, status: "SCHEDULED", startTime: { gte: new Date() } },
+      orderBy: { startTime: "asc" },
+      select: { startTime: true },
+    })
+    .catch(() => null);
+  const firstFixtureAt = next?.startTime ?? null;
+  return {
+    state: standingsState(league, rows.length > 0, firstFixtureAt),
+    rows,
+    firstFixtureAt,
+  };
 }
 
 /**
