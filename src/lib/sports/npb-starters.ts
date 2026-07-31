@@ -239,8 +239,10 @@ export function jpPitcherToKorean(name: string): string {
       if (ko) return ko;
     }
   }
-  // 카타카나/히라가나만 있으면 자동 음역 (외국인 선수)
-  if (/^[぀-ゟ゠-ヿー・\s]+$/.test(trimmed)) {
+  // 한자가 없고 가나가 있으면 자동 음역 (외국인 선수).
+  // 라틴 이니셜 접두("E.ラミレス") 도 통과시킨다 — 순수 가나만 받던 탓에 등록명에 이니셜이
+  // 붙은 외국인이 가타카나 그대로 새어나갔다 (2026-07-20 E.ラミレス 실측).
+  if (!/[㐀-鿿]/.test(trimmed) && /[぀-ゟ゠-ヿ]/.test(trimmed)) {
     const ko = kanaToKorean(trimmed);
     if (ko && ko !== trimmed) return ko;
   }
