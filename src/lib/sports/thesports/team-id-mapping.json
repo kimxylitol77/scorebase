@@ -14631,5 +14631,931 @@
     "tsName": "Le Mans",
     "tsKo": "르망",
     "matchType": "manual+diary-2026"
+  },
+  {
+    "ourId": 607834,
+    "ourName": "Al Karma",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-2y8m4zhzo1nql07",
+    "tsId": "2y8m4zhzo1nql07",
+    "tsName": "Al Karma",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607837,
+    "ourName": "Al Gharraf",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-dj2ryoh2ddxq1zp",
+    "tsId": "dj2ryoh2ddxq1zp",
+    "tsName": "Al Gharraf",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607844,
+    "ourName": "Mosul FC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-ednm9whee94ryox",
+    "tsId": "ednm9whee94ryox",
+    "tsName": "Mosul FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607847,
+    "ourName": "Diala",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-318q66ho5dpqo9j",
+    "tsId": "318q66ho5dpqo9j",
+    "tsName": "Diala",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607935,
+    "ourName": "Szentlorinc SE",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-2y8m4zh3n77ql07",
+    "tsId": "2y8m4zh3n77ql07",
+    "tsName": "Szentlorinc SE",
+    "tsKo": "젠틀러린스 SE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607885,
+    "ourName": "Club Jaiba Brava",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-2y8m4zh3zzwql07",
+    "tsId": "2y8m4zh3zzwql07",
+    "tsName": "Club Jaiba Brava",
+    "tsKo": "탐피코 마데로",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607936,
+    "ourName": "Videoton FC Fehérvár",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-z8yomo4ho4lq0j6",
+    "tsId": "z8yomo4ho4lq0j6",
+    "tsName": "Videoton FC Fehérvár",
+    "tsKo": "페허바 비데오톤",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607938,
+    "ourName": "Kozarmisleny SE",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-l7oqdehne5or510",
+    "tsId": "l7oqdehne5or510",
+    "tsName": "Kozarmisleny SE",
+    "tsKo": "코자미슬레니 SE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607940,
+    "ourName": "Soroksar",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-jw2r09hlojprz84",
+    "tsId": "jw2r09hlojprz84",
+    "tsName": "Soroksar",
+    "tsKo": "소로크사르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607926,
+    "ourName": "Vasas FC",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-4jwq2gh4xd6m0ve",
+    "tsId": "4jwq2gh4xd6m0ve",
+    "tsName": "Vasas FC",
+    "tsKo": "바사스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607828,
+    "ourName": "Duhok SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-4jwq2gh479xm0ve",
+    "tsId": "4jwq2gh479xm0ve",
+    "tsName": "Duhok SC",
+    "tsKo": "두훅",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607829,
+    "ourName": "Al Qasim SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-ednm9whz372ryox",
+    "tsId": "ednm9whz372ryox",
+    "tsName": "Al Qasim SC",
+    "tsKo": "알 카심 스포츠 클럽",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607830,
+    "ourName": "Al-Mina'a SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-k82rekhv8z3repz",
+    "tsId": "k82rekhv8z3repz",
+    "tsName": "Al-Mina'a SC",
+    "tsKo": "AL 미나아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607831,
+    "ourName": "Al Zawraa",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-965mkyh7zngr1ge",
+    "tsId": "965mkyh7zngr1ge",
+    "tsName": "Al Zawraa",
+    "tsKo": "알 자우라",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607832,
+    "ourName": "Naft Missan",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-vjxm8gh4zx1r6od",
+    "tsId": "vjxm8gh4zx1r6od",
+    "tsName": "Naft Missan",
+    "tsKo": "나프트 미산",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607833,
+    "ourName": "Al-Naft SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-pxwrxlhgp8eryk0",
+    "tsId": "pxwrxlhgp8eryk0",
+    "tsName": "Al-Naft SC",
+    "tsKo": "알 나프트",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607835,
+    "ourName": "Al Quwa Al Jawiya",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-pxwrxlhgpjoryk0",
+    "tsId": "pxwrxlhgpjoryk0",
+    "tsName": "Al Quwa Al Jawiya",
+    "tsKo": "알 쿠와 알 자위야",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607836,
+    "ourName": "Al Shorta",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-9dn1m1gh67kmoep",
+    "tsId": "9dn1m1gh67kmoep",
+    "tsName": "Al Shorta",
+    "tsKo": "알 쇼르타",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607838,
+    "ourName": "Al-Kahraba Club",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-8yomo4hk7k7q0j6",
+    "tsId": "8yomo4hk7k7q0j6",
+    "tsName": "Al-Kahraba Club",
+    "tsKo": "알 카라바",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608015,
+    "ourName": "SV Austria Salzburg",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-y39mp1h3veemojx",
+    "tsId": "y39mp1h3veemojx",
+    "tsName": "SV Austria Salzburg",
+    "tsKo": "SV 오스트리아 잘츠부르크",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607839,
+    "ourName": "Newroz SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-23xmvkhk6o5qg8n",
+    "tsId": "23xmvkhk6o5qg8n",
+    "tsName": "Newroz SC",
+    "tsKo": "뉴로즈 SC (IRQ)",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607840,
+    "ourName": "Al Karkh",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-965mkyh7nj6r1ge",
+    "tsId": "965mkyh7nj6r1ge",
+    "tsName": "Al Karkh",
+    "tsKo": "알 카르크흐",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607841,
+    "ourName": "Amanat Baghdad",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-4jwq2ghko30m0ve",
+    "tsId": "4jwq2ghko30m0ve",
+    "tsName": "Amanat Baghdad",
+    "tsKo": "바그다드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607842,
+    "ourName": "Al-Najaf",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-1l4rjnh6yd4m7vx",
+    "tsId": "1l4rjnh6yd4m7vx",
+    "tsName": "Al-Najaf",
+    "tsKo": "알 나자프",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607843,
+    "ourName": "Erbil SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-y0or5jhlejwqwzv",
+    "tsId": "y0or5jhlejwqwzv",
+    "tsName": "Erbil SC",
+    "tsKo": "에르빌",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607845,
+    "ourName": "Al Talaba",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-zp5rzghjy41q82w",
+    "tsId": "zp5rzghjy41q82w",
+    "tsName": "Al Talaba",
+    "tsKo": "알 탈라바",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607846,
+    "ourName": "Zakho SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-y39mp1h31xxmojx",
+    "tsId": "y39mp1h31xxmojx",
+    "tsName": "Zakho SC",
+    "tsKo": "자코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607903,
+    "ourName": "Athlone Town",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-d23xmvkh5l5qg8n",
+    "tsId": "d23xmvkh5l5qg8n",
+    "tsName": "Athlone Town",
+    "tsKo": "애슬론",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608001,
+    "ourName": "Banik Ostrava B",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-x7lm7phkvo8m2wd",
+    "tsId": "x7lm7phkvo8m2wd",
+    "tsName": "Banik Ostrava B",
+    "tsKo": "오스트라바 B",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608010,
+    "ourName": "FK Pribram",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-d23xmvkhz78qg8n",
+    "tsId": "d23xmvkhz78qg8n",
+    "tsName": "FK Pribram",
+    "tsKo": "FK 프리브람",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607886,
+    "ourName": "Tepatitlan FC",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-k82rekh94wwrepz",
+    "tsId": "k82rekh94wwrepz",
+    "tsName": "Tepatitlan FC",
+    "tsKo": "테파티틀란 데 모렐로스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607939,
+    "ourName": "Csakvari TK",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-n54qllhe8kkqvy9",
+    "tsId": "n54qllhe8kkqvy9",
+    "tsName": "Csakvari TK",
+    "tsKo": "차크바리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607937,
+    "ourName": "Bekescsaba",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-gx7lm7phyvpm2wd",
+    "tsId": "gx7lm7phyvpm2wd",
+    "tsName": "Bekescsaba",
+    "tsKo": "베케슈처버",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607925,
+    "ourName": "Budapest Honved FC",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-gx7lm7phy7km2wd",
+    "tsId": "gx7lm7phy7km2wd",
+    "tsName": "Budapest Honved FC",
+    "tsKo": "부다페스트 혼베드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607904,
+    "ourName": "Treaty United",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-965mkyhe1xvr1ge",
+    "tsId": "965mkyhe1xvr1ge",
+    "tsName": "Treaty United",
+    "tsKo": "트리티 유나이티드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607905,
+    "ourName": "Bray Wanderers",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-z8yomo4hllzq0j6",
+    "tsId": "z8yomo4hllzq0j6",
+    "tsName": "Bray Wanderers",
+    "tsKo": "브레이",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607906,
+    "ourName": "Cobh Ramblers",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-d23xmvkh10kqg8n",
+    "tsId": "d23xmvkh10kqg8n",
+    "tsName": "Cobh Ramblers",
+    "tsKo": "콥 램블러스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607907,
+    "ourName": "Cork City",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-j1l4rjnh0xom7vx",
+    "tsId": "j1l4rjnh0xom7vx",
+    "tsName": "Cork City",
+    "tsKo": "코크 시티",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607908,
+    "ourName": "UC Dublin",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-4zp5rzghvwxq82w",
+    "tsId": "4zp5rzghvwxq82w",
+    "tsName": "UC Dublin",
+    "tsKo": "UC 더블린",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607917,
+    "ourName": "Hvidovre IF",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-l965mkyhdeer1ge",
+    "tsId": "l965mkyhdeer1ge",
+    "tsName": "Hvidovre IF",
+    "tsKo": "히보드레 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607913,
+    "ourName": "Hobro",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-3glrw7hwkw4qdyj",
+    "tsId": "3glrw7hwkw4qdyj",
+    "tsName": "Hobro",
+    "tsKo": "호브로",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607914,
+    "ourName": "Boldklubben af 1893",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-p3glrw7h296qdyj",
+    "tsId": "p3glrw7h296qdyj",
+    "tsName": "Boldklubben af 1893",
+    "tsKo": "볼드클럽벤 아프 1893",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607915,
+    "ourName": "Aalborg",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-e4wyrn4h1x7q86p",
+    "tsId": "e4wyrn4h1x7q86p",
+    "tsName": "Aalborg",
+    "tsKo": "올보르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607909,
+    "ourName": "Finn Harps",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-e4wyrn4hnynq86p",
+    "tsId": "e4wyrn4hnynq86p",
+    "tsName": "Finn Harps",
+    "tsKo": "핀 하프스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607910,
+    "ourName": "Kerry FC",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-pxwrxlhz775ryk0",
+    "tsId": "pxwrxlhz775ryk0",
+    "tsName": "Kerry FC",
+    "tsKo": "케리 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607911,
+    "ourName": "Wexford",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-x7lm7phkg02m2wd",
+    "tsId": "x7lm7phkg02m2wd",
+    "tsName": "Wexford",
+    "tsKo": "웩스퍼드 (유스)",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607912,
+    "ourName": "Longford Town",
+    "ourLeague": "IRELAND_2",
+    "ourExternalId": "ts-gy0or5jhdnyqwzv",
+    "tsId": "gy0or5jhdnyqwzv",
+    "tsName": "Longford Town",
+    "tsKo": "롱포드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607916,
+    "ourName": "Middelfart Boldklub",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-kdj2ryohw11q1zp",
+    "tsId": "kdj2ryohw11q1zp",
+    "tsName": "Middelfart Boldklub",
+    "tsKo": "미들파르트",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607918,
+    "ourName": "Lyngby",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-gx7lm7ph685m2wd",
+    "tsId": "gx7lm7ph685m2wd",
+    "tsName": "Lyngby",
+    "tsKo": "륑비",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607919,
+    "ourName": "Aarhus Fremad",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-p4jwq2ghyxkm0ve",
+    "tsId": "p4jwq2ghyxkm0ve",
+    "tsName": "Aarhus Fremad",
+    "tsKo": "아루스 프레마드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607921,
+    "ourName": "AC Horsens",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-gx7lm7phy3pm2wd",
+    "tsId": "gx7lm7phy3pm2wd",
+    "tsName": "AC Horsens",
+    "tsKo": "호르센스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607920,
+    "ourName": "Herfolge Boldklub Koge",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-kn54qllhyp0qvy9",
+    "tsId": "kn54qllhyp0qvy9",
+    "tsName": "Herfolge Boldklub Koge",
+    "tsKo": "허폴지 볼드클럽 코게",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607928,
+    "ourName": "Szeged Csanad",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-y0or5jhlwg2qwzv",
+    "tsId": "y0or5jhlwg2qwzv",
+    "tsName": "Szeged Csanad",
+    "tsKo": "세게디 AK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607931,
+    "ourName": "Karcagi SE",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-x7lm7phk327m2wd",
+    "tsId": "x7lm7phk327m2wd",
+    "tsName": "Karcagi SE",
+    "tsKo": "카르카지 SE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607932,
+    "ourName": "Duna-Tisza",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-x7lm7ph0ov2m2wd",
+    "tsId": "x7lm7ph0ov2m2wd",
+    "tsName": "Duna-Tisza",
+    "tsKo": "두나-티사",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607924,
+    "ourName": "Kolding FC",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-9k82rekhpo1repz",
+    "tsId": "9k82rekhpo1repz",
+    "tsName": "Kolding FC",
+    "tsKo": "콜딩 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607929,
+    "ourName": "Budafoki MTE",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-k82rekh9d7jrepz",
+    "tsId": "k82rekh9d7jrepz",
+    "tsName": "Budafoki MTE",
+    "tsKo": "부다포키",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607933,
+    "ourName": "Kecskemeti TE",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-3glrw7hw47gqdyj",
+    "tsId": "3glrw7hw47gqdyj",
+    "tsName": "Kecskemeti TE",
+    "tsKo": "케크스케메티 TE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607930,
+    "ourName": "BVSC Zuglo",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-vjxm8ghgkg1r6od",
+    "tsId": "vjxm8ghgkg1r6od",
+    "tsName": "BVSC Zuglo",
+    "tsKo": "BVSC 주글로",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607923,
+    "ourName": "Esbjerg",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-9vjxm8gho5or6od",
+    "tsId": "9vjxm8gho5or6od",
+    "tsName": "Esbjerg",
+    "tsKo": "에스비에르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607927,
+    "ourName": "FC Ajka",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-318q66how7dqo9j",
+    "tsId": "318q66how7dqo9j",
+    "tsName": "FC Ajka",
+    "tsKo": "FC 어이커",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607922,
+    "ourName": "Hillerod Fodbold",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-l7oqdeh64ylr510",
+    "tsId": "l7oqdeh64ylr510",
+    "tsName": "Hillerod Fodbold",
+    "tsKo": "힐러로드 포드볼드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607934,
+    "ourName": "Mezokovesd Zsory FC",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-x7lm7phkxv4m2wd",
+    "tsId": "x7lm7phkxv4m2wd",
+    "tsName": "Mezokovesd Zsory FC",
+    "tsKo": "메조코베스드-즈조리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607996,
+    "ourName": "Dynamo Ceske Budejovice",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-kn54qllhyvpqvy9",
+    "tsId": "kn54qllhyvpqvy9",
+    "tsName": "Dynamo Ceske Budejovice",
+    "tsKo": "다이나모 세스케 부데요비체",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607997,
+    "ourName": "Slavia Praha B",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-jw2r09hlkjerz84",
+    "tsId": "jw2r09hlkjerz84",
+    "tsName": "Slavia Praha B",
+    "tsKo": "슬라비아 프라하 B",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607995,
+    "ourName": "SK Prostejov",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-23xmvkh3809qg8n",
+    "tsId": "23xmvkh3809qg8n",
+    "tsName": "SK Prostejov",
+    "tsKo": "SK 프로스테요프",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607999,
+    "ourName": "Viktoria Zizkov",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-j1l4rjnhvwdm7vx",
+    "tsId": "j1l4rjnhvwdm7vx",
+    "tsName": "Viktoria Zizkov",
+    "tsKo": "FK 빅토리아 지즈코프",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608002,
+    "ourName": "FK Viagem Usti nad Labem",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-23xmvkh3v60qg8n",
+    "tsId": "23xmvkh3v60qg8n",
+    "tsName": "FK Viagem Usti nad Labem",
+    "tsKo": "FK 비아검 우스티 나드 라벰",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608000,
+    "ourName": "Sparta Praha B",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-jw2r09hlne3rz84",
+    "tsId": "jw2r09hlne3rz84",
+    "tsName": "Sparta Praha B",
+    "tsKo": "스파르타 프라하 B",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 607998,
+    "ourName": "FK MAS Taborsko",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-y39mp1h533omojx",
+    "tsId": "y39mp1h533omojx",
+    "tsName": "FK MAS Taborsko",
+    "tsKo": "마스 타보르스코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608009,
+    "ourName": "Chrudim",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-x7lm7phk4z8m2wd",
+    "tsId": "x7lm7phk4z8m2wd",
+    "tsName": "Chrudim",
+    "tsKo": "흐루딤",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608014,
+    "ourName": "SK Austria Klagenfurt",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-965mkyh70ger1ge",
+    "tsId": "965mkyh70ger1ge",
+    "tsName": "SK Austria Klagenfurt",
+    "tsKo": "오스트리아 클라겐푸르트",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608020,
+    "ourName": "SV Stripfing",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-6ypq3nh5v94md7o",
+    "tsId": "6ypq3nh5v94md7o",
+    "tsName": "SV Stripfing",
+    "tsKo": "SV 스트립핑 웨이든",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608024,
+    "ourName": "SKN St.Polten",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-1l4rjnh6e6vm7vx",
+    "tsId": "1l4rjnh6e6vm7vx",
+    "tsName": "SKN St.Polten",
+    "tsKo": "장크트픨텐",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608027,
+    "ourName": "SK Rapid II",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-4zp5rzghkdlq82w",
+    "tsId": "4zp5rzghkdlq82w",
+    "tsName": "SK Rapid II",
+    "tsKo": "라피드 빈나 유스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608025,
+    "ourName": "FC Liefering",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-y0or5jhlkvxqwzv",
+    "tsId": "y0or5jhlkvxqwzv",
+    "tsName": "FC Liefering",
+    "tsKo": "FC 라이퍼링",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608028,
+    "ourName": "First Vienna FC 1894",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-vjxm8gh48e1r6od",
+    "tsId": "vjxm8gh48e1r6od",
+    "tsName": "First Vienna FC 1894",
+    "tsKo": "퍼스트 빈 1894",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608012,
+    "ourName": "Synot Slovacko",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-l965mkyhd0dr1ge",
+    "tsId": "l965mkyhd0dr1ge",
+    "tsName": "Synot Slovacko",
+    "tsKo": "시노트 슬로바코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608003,
+    "ourName": "Brno",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-gy0or5jhd7oqwzv",
+    "tsId": "gy0or5jhd7oqwzv",
+    "tsName": "Brno",
+    "tsKo": "FC 즈브로요프카 브르노",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608004,
+    "ourName": "FK Graffin Vlasim",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-3glrw7hwlxdqdyj",
+    "tsId": "3glrw7hwlxdqdyj",
+    "tsName": "FK Graffin Vlasim",
+    "tsKo": "FK 그라핀 블라심",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608021,
+    "ourName": "FC HOGO Hertha Wels",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-zp5rzghz4v4q82w",
+    "tsId": "zp5rzghz4v4q82w",
+    "tsName": "FC HOGO Hertha Wels",
+    "tsKo": "벨스 헤르타 호고 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608026,
+    "ourName": "Admira Wacker",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-p4jwq2ghdg7m0ve",
+    "tsId": "p4jwq2ghdg7m0ve",
+    "tsName": "Admira Wacker",
+    "tsKo": "아드미라 바커 뫼들링",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608023,
+    "ourName": "Kapfenberg SV 1919",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-gpxwrxlhogvryk0",
+    "tsId": "gpxwrxlhogvryk0",
+    "tsName": "Kapfenberg SV 1919",
+    "tsKo": "카프펜베르크",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608016,
+    "ourName": "SC Austria Lustenau",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-jw2r09hlljkrz84",
+    "tsId": "jw2r09hlljkrz84",
+    "tsName": "SC Austria Lustenau",
+    "tsKo": "오스트리아 루스테나우",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608013,
+    "ourName": "SKU Ertl Glas Amstetten",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-965mkyh7527r1ge",
+    "tsId": "965mkyh7527r1ge",
+    "tsName": "SKU Ertl Glas Amstetten",
+    "tsKo": "SKU 암슈테텐",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608008,
+    "ourName": "SK Artis Brno",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-6ypq3nh56z0md7o",
+    "tsId": "6ypq3nh56z0md7o",
+    "tsName": "SK Artis Brno",
+    "tsKo": "리센",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608022,
+    "ourName": "SK Sturm Graz II",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-l5ergphov0xr8k0",
+    "tsId": "l5ergphov0xr8k0",
+    "tsName": "SK Sturm Graz II",
+    "tsKo": "슈투름 그라츠 유스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608018,
+    "ourName": "Young Violets Austria Wien",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-6ypq3nh005omd7o",
+    "tsId": "6ypq3nh005omd7o",
+    "tsName": "Young Violets Austria Wien",
+    "tsKo": "오스트리아 빈 유스 바이올릿",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608019,
+    "ourName": "FAC WIEN",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-jw2r09hlpegrz84",
+    "tsId": "jw2r09hlpegrz84",
+    "tsName": "FAC WIEN",
+    "tsKo": "FAC 팀 털 위엔",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608005,
+    "ourName": "Vysocina Jihlava",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-y0or5jhll03qwzv",
+    "tsId": "y0or5jhll03qwzv",
+    "tsName": "Vysocina Jihlava",
+    "tsKo": "비소치나 이흘라바",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608007,
+    "ourName": "Opava",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-8yomo4h7e56q0j6",
+    "tsId": "8yomo4h7e56q0j6",
+    "tsName": "Opava",
+    "tsKo": "오파바",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608006,
+    "ourName": "Kromeriz",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-23xmvkh3ky4qg8n",
+    "tsId": "23xmvkh3ky4qg8n",
+    "tsName": "Kromeriz",
+    "tsKo": "크로메리즈",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608017,
+    "ourName": "Schwarz-Weiss Bregenz",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-gx7lm7phdnem2wd",
+    "tsId": "gx7lm7phdnem2wd",
+    "tsName": "Schwarz-Weiss Bregenz",
+    "tsKo": "SC 브레겐츠",
+    "matchType": "ts-external-id"
   }
 ]
