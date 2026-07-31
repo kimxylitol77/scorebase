@@ -919,9 +919,20 @@ model User {
   telegramChatId    String? @unique // 텔레그램 chat_id (발송 대상)
   telegramLinkToken String? @unique // 딥링크 /start 토큰 (연결 후 null 화)
 
+  // 알림 종류별 수신 설정 (마이페이지에서 개별 ON/OFF). 기존 회원이 갑자기 못 받는 일이
+  // 없도록 이미 발송 중이던 4종은 기본 ON, 새로 여는 것은 기본 OFF.
+  alertKickoff    Boolean @default(true) // 곧 시작 + AI 픽
+  alertLineup     Boolean @default(true) // 선발 라인업 발표 (축구)
+  alertGoal       Boolean @default(true) // 골 실시간 (축구)
+  alertFinal      Boolean @default(true) // 경기 종료 결과
+  alertFollowPick Boolean @default(true) // 팔로우한 분석가의 새 픽
+
   // 배당 변동 알림 옵트인 — 즐겨찾기 경기·팀 한정. 방향별로 따로 켠다(기본 OFF).
   alertOddsDrop Boolean @default(false) // 배당 하락(=승률 상승) 알림
   alertOddsRise Boolean @default(false) // 배당 상승(=승률 하락) 알림
+  // 즐겨찾기와 무관하게 전 경기 급변을 하루 1회 묶어 받는다. 즐겨찾기 리그에 배당이
+  // 안 들어오는 기간(예 EPL 비시즌)에도 알림이 오게 하는 축.
+  alertOddsAll Boolean @default(false)
 
   // 예측 적중 통계 (분석 게시판 자동채점 시 누적) — 작성자 신뢰도 표시용
   predTotal  Int @default(0) // 채점 완료된 예측 수
