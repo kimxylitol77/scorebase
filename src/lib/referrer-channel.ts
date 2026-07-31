@@ -18,6 +18,8 @@ export type TrafficChannel =
   | "facebook"
   | "kakao"
   | "youtube"
+  | "telegram"
+  | "ai_chat"
   | "search_other"
   | "referral"
   | "direct";
@@ -34,6 +36,8 @@ export const CHANNEL_META: Record<TrafficChannel, { label: string; emoji: string
   facebook: { label: "페이스북", emoji: "🔵" },
   kakao: { label: "카카오톡 (utm)", emoji: "💬" },
   youtube: { label: "유튜브", emoji: "▶️" },
+  telegram: { label: "텔레그램", emoji: "📨" },
+  ai_chat: { label: "AI 검색 (ChatGPT·Perplexity 등)", emoji: "🤖" },
   search_other: { label: "기타 검색엔진", emoji: "🔍" },
   referral: { label: "기타 사이트", emoji: "🔗" },
 };
@@ -51,6 +55,8 @@ export const CHANNEL_ORDER: TrafficChannel[] = [
   "facebook",
   "kakao",
   "youtube",
+  "telegram",
+  "ai_chat",
   "search_other",
   "referral",
 ];
@@ -70,8 +76,19 @@ const UTM_SOURCE_CHANNEL: Record<string, TrafficChannel> = {
   kakaotalk: "kakao",
   katalk: "kakao",
   youtube: "youtube",
+  telegram: "telegram",
+  tg: "telegram",
   naver: "naver",
   google: "google",
+  "chatgpt.com": "ai_chat",
+  chatgpt: "ai_chat",
+  openai: "ai_chat",
+  perplexity: "ai_chat",
+  "perplexity.ai": "ai_chat",
+  "claude.ai": "ai_chat",
+  claude: "ai_chat",
+  copilot: "ai_chat",
+  "copilot.com": "ai_chat",
 };
 
 /** 우리 서비스 도메인 — referrer 가 이들이면 내부 이동(유입 아님). */
@@ -88,6 +105,12 @@ export function isInternalReferrerHost(hostname: string): boolean {
 }
 
 const matchers: Array<{ channel: TrafficChannel; re: RegExp }> = [
+  // AI 챗 — 검색엔진보다 먼저 판정해야 한다. gemini.google.com 은 아래 google 정규식에
+  // 걸리고, copilot.microsoft.com 도 MS 검색 계열로 오분류될 여지가 있다.
+  {
+    channel: "ai_chat",
+    re: /^(chatgpt\.com|chat\.openai\.com|perplexity\.ai|claude\.ai|copilot\.microsoft\.com|gemini\.google\.com)$/,
+  },
   // 검색
   { channel: "google", re: /(^|\.)google\.[a-z.]+$/ },
   { channel: "naver", re: /(^|\.)naver\.(com|me)$/ },
