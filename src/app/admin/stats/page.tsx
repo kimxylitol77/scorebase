@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { DailyArea, HourlyBar } from "@/components/charts/StatsChart";
+import LivePresencePanel from "@/components/admin/LivePresencePanel";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
 import { detectDevice, DEVICE_LABEL, type DeviceType } from "@/lib/device-detect";
 import {
@@ -501,11 +502,13 @@ export default async function StatsPage({ searchParams }: Props) {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">접속자 통계</h1>
         <p className="mt-1 text-sm text-neutral-500">
-          페이지뷰(PV) 기준. 관리자 영역(/admin) 은 트래킹 제외. 봇과 사람을
-          User-Agent 로 분리해서 표시합니다.
+          실시간은 heartbeat 기준, 기간 통계는 페이지뷰(PV) 기준입니다. 관리자
+          영역(/admin)은 제외하고 봇과 사람을 User-Agent로 분리합니다.
         </p>
         <RangeSelector active={range} />
       </header>
+
+      <LivePresencePanel />
 
       {/* === 사람 트래픽 === */}
       <section className="space-y-6">
@@ -536,8 +539,8 @@ export default async function StatsPage({ searchParams }: Props) {
         </div>
 
         <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label={`${rangeLabel} 평균 체류`} value={avgSessionLabel} accent sub="30분 무활동=새 세션" />
-          <KpiCard label="이탈률" value={bounceRate} suffix="%" sub={`1페이지짜리 세션 비율 · 의심 봇 ${suspiciousSids.size.toLocaleString()}세션 제외`} />
+          <KpiCard label={`${rangeLabel} 평균 체류`} value={avgSessionLabel} accent sub="페이지 이동으로 관측된 시간만" />
+          <KpiCard label="이탈률" value={bounceRate} suffix="%" sub={`1페이지 세션 · 열린 탭 체류 미반영 · 의심 봇 ${suspiciousSids.size.toLocaleString()}세션 제외`} />
           <KpiCard label="세션 수" value={sessionCount} sub={`방문자 ${humanRangeUnique.toLocaleString()}명 기준`} />
           <KpiCard label="세션당 PV" value={sessionCount ? (humanRangePV / sessionCount).toFixed(1) : "0"} sub="페이지 깊이" />
         </div>

@@ -338,6 +338,25 @@ model PageView {
   @@index([userId])
 }
 
+/// 현재 접속 상태 — PageView와 분리된 탭 heartbeat.
+/// 한 사용자가 여러 탭을 열 수 있으므로 tabId를 PK로 두고, 관리자 집계에서는
+/// sessionId로 중복 제거한다. 오래된 row는 lastSeenAt 윈도우 밖이면 자동 제외된다.
+model ActivePresence {
+  tabId       String   @id
+  sessionId   String
+  path        String
+  visibility  String   // visible | hidden
+  section     String   // scores | live | other
+  host        String?
+  userAgent   String?
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  @@index([lastSeenAt])
+  @@index([sessionId, lastSeenAt])
+  @@index([section, lastSeenAt])
+}
+
 // 공지사항 / 패치노트 / 메인터넌스 안내
 model Notice {
   id          Int      @id @default(autoincrement())

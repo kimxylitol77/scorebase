@@ -6,6 +6,9 @@
 import { useEffect, useState } from "react";
 
 interface Stat {
+  activeNow: number;
+  backgroundNow: number;
+  openNow: number;
   active5m: number;
   active1m: number;
   pv5m: number;
@@ -71,16 +74,18 @@ export default function ActiveUsersBadge() {
     <span
       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-emerald-100/70 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium cursor-help"
       title={`최근 5분: ${stat.active5m}명 · ${stat.pv5m} PV
-최근 1분: ${stat.active1m}명 · ${stat.pv1m} PV`}
+현재 화면 시청: ${stat.activeNow}명
+백그라운드: ${stat.backgroundNow}명
+최근 5분 PV: ${stat.pv5m} · 최근 1분 PV: ${stat.pv1m}`}
     >
       <span className="relative inline-flex w-1.5 h-1.5">
         <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
       </span>
-      <span className="font-bold tabular-nums">{stat.active5m}</span>
+      <span className="font-bold tabular-nums">{stat.activeNow}</span>
       <span className="opacity-70">접속 중</span>
       <span className="opacity-50 text-[10px] tabular-nums ml-0.5">
-        (1m: {stat.active1m})
+        (열림: {stat.openNow})
       </span>
     </span>
   );

@@ -6,6 +6,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { getOrCreateSessionId } from "@/lib/client-session-id";
 
 // /scores 종목 탭 구분 기록용 화이트리스트 — 임의 쿼리 오염 방지.
 // 종목 탭 전환은 pathname 이 같아 기존엔 PV 자체가 안 찍혔음 (2026-07-23).
@@ -13,27 +14,6 @@ const SCORES_SPORTS = new Set([
   "all", "soccer", "baseball", "basketball", "volleyball",
   "hockey", "esports", "mma", "tennis", "golf", "f1",
 ]);
-
-const SESSION_KEY = "scorebase-sid";
-
-function getSessionId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    let sid = localStorage.getItem(SESSION_KEY);
-    if (!sid) {
-      // crypto.randomUUID 있으면 사용, 없으면 fallback
-      sid =
-        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-      localStorage.setItem(SESSION_KEY, sid);
-    }
-    return sid;
-  } catch {
-    // private mode / quota 등 — 무시
-    return null;
-  }
-}
 
 // 유입(랜딩) 판정 — 탭 sessionStorage 1회 + KST 날짜 바뀌면 재랜딩 취급 (GA 세션 유사).
 // 랜딩 PV 에만 document.referrer 를 보냄: SPA 내부 이동 PV 까지 같은 외부 referrer 가
@@ -74,7 +54,7 @@ export default function PageViewTracker() {
     if (lastPath.current === trackPath) return;
     lastPath.current = trackPath;
 
-    const sessionId = getSessionId();
+    const sessionId = getOrCreateSessionId();
     const isLanding = isLandingNow();
     // 랜딩일 때만 유입 출처 전송 — 직접 진입(즐겨찾기·주소창)은 빈 문자열.
     const referrer = isLanding ? document.referrer || null : null;
