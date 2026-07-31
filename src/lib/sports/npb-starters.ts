@@ -23,6 +23,7 @@ import {
   type NpbPlayerIndexEntry,
 } from "./npb-official";
 import { kanaToKorean } from "./kana-to-korean";
+import { NPB_PLAYER_KO } from "./npb-name-dict";
 import { calcFip, calcLobPct } from "./baseball-saber";
 
 export interface NpbStarterPitcher {
@@ -217,21 +218,24 @@ function transliterateFromKana(kana: string, nameJp: string): string | null {
 
 /**
  * 일본어 선발 투수명 → 한글 음역.
- *   1) PITCHER_NAME_KO 직접 매핑 (한자 성 우선)
+ *   1) PITCHER_NAME_KO + 공용 사전(npb-name-dict) 직접 매핑 (한자 성 우선)
  *   2) 카타카나만 있는 외국인은 kanaToKorean 자동 음역
  *   3) 그래도 일본어 잔존하면 원어 그대로 (UI 에서 fallback 표시용)
  *      → enrichNpbStartersWithStats 단계에서 npb.jp 가나 음역으로 추가 보강.
+ *
+ * 공용 사전을 함께 보는 이유. 리더보드 쪽에만 등록된 이름(才木 등)이 선발 표시에서
+ * 한자로 새어나갔다 (2026-07-31). 두 경로가 같은 사전을 본다.
  */
 export function jpPitcherToKorean(name: string): string {
   const trimmed = name.trim();
-  const direct = PITCHER_NAME_KO[trimmed];
+  const direct = PITCHER_NAME_KO[trimmed] ?? NPB_PLAYER_KO[trimmed];
   if (direct) return direct;
   // 한자 풀네임 (예: "髙橋宏") 매핑 실패 시 성(앞 2-3자) prefix 매핑 시도
   const surnameMatch = trimmed.match(/^([㐀-鿿]{2,3})/);
   if (surnameMatch) {
     for (let len = surnameMatch[1].length; len >= 2; len--) {
       const sn = trimmed.slice(0, len);
-      const ko = PITCHER_NAME_KO[sn];
+      const ko = PITCHER_NAME_KO[sn] ?? NPB_PLAYER_KO[sn];
       if (ko) return ko;
     }
   }
