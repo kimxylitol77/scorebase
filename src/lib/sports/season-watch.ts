@@ -44,6 +44,7 @@ export type IssueCode =
   | "low-mapping"
   | "no-standings-source"
   | "no-season-before-open"
+  | "season-blocked"
   | "active-without-cache";
 
 export type Severity = "HIGH" | "MED" | "LOW";
@@ -215,7 +216,7 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
       ? Promise.resolve([] as SeasonRecord[])
       : prisma.competitionSeason
       .findMany({
-        where: { league: { in: targets }, status: { in: ["ACTIVE", "VERIFIED"] } },
+        where: { league: { in: targets }, status: { in: ["ACTIVE", "VERIFIED", "DISCOVERED"] } },
         select: {
           id: true, league: true, provider: true, providerLeagueId: true,
           providerSeasonId: true, seasonLabel: true, seasonYear: true,
@@ -245,10 +246,12 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
   const afBy = new Map(afCaches.map((c) => [c.league, c]));
   const activeBy = new Map<string, SeasonRecord>();
   const verifiedBy = new Map<string, SeasonRecord>();
+  const discoveredBy = new Map<string, SeasonRecord>();
   for (const r of registryRows as SeasonRecord[]) {
     if (r.provider !== PROVIDER_TS && r.provider !== PROVIDER_AF) continue;
     if (r.status === "ACTIVE" && r.provider === PROVIDER_TS) activeBy.set(r.league, r);
     if (r.status === "VERIFIED") verifiedBy.set(r.league, r);
+    if (r.status === "DISCOVERED") discoveredBy.set(r.league, r);
   }
 
   // ── poller heartbeat ─────────────────────────────
@@ -357,8 +360,14 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
         });
       }
 
-      // 개막 14일 이내인데 검증된 시즌이 없다.
+      // 개막 14일 이내인데 쓸 시즌이 없다.
       // 레지스트리 자체가 아직 없으면(migration 미적용) 전 리그가 걸려 알림이 무의미하므로 건너뛴다.
+      //
+      // ⚠ "시즌을 못 찾았다"와 "찾았는데 전환이 막혔다"를 구분한다.
+      //   후보(DISCOVERED)가 이미 있으면 발견은 끝난 것이고 남은 건 차단 사유(대개 팀 매핑률)다.
+      //   그건 low-mapping 으로 따로 보고되므로 같은 리그를 HIGH 로 두 번 울리지 않는다.
+      //   구분 없이 올렸더니 개막철에 19개 리그가 한꺼번에 HIGH 로 떴다 — 1인 운영자가
+      //   못 읽는 알림은 없는 알림과 같다.
       if (
         registryReady &&
         awaitingOpen &&
@@ -367,11 +376,24 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
         !active &&
         !verifiedBy.get(league)
       ) {
-        issues.push({
-          code: "no-season-before-open",
-          severity: urgent ? "HIGH" : "MED",
-          detail: `개막까지 ${daysToFirst.toFixed(1)}일인데 VERIFIED/ACTIVE 시즌이 없다`,
-        });
+        const cand = discoveredBy.get(league);
+        if (!cand) {
+          issues.push({
+            code: "no-season-before-open",
+            severity: urgent ? "HIGH" : "MED",
+            detail: `개막까지 ${daysToFirst.toFixed(1)}일인데 시즌 후보조차 없다 — discover 필요`,
+          });
+        } else {
+          const meta = (cand.metadata ?? {}) as { verification?: { blockers?: string[] } };
+          const blockers = meta.verification?.blockers ?? [];
+          issues.push({
+            code: "season-blocked",
+            severity: "LOW",
+            detail:
+              `후보 ${cand.seasonLabel}(${cand.providerSeasonId}) 는 찾았으나 전환 미완` +
+              (blockers.length ? ` — 차단: ${blockers.join(", ")}` : ""),
+          });
+        }
       }
     }
 
