@@ -76,52 +76,60 @@ export function legacyTsSeasonId(league: string): string | null {
 // ── 레지스트리 가용성 ──────────────────────────────────────────
 // 운영 migration 적용 전에는 테이블이 없다. 매 조회마다 예외를 내고 삼키면 Prisma 가
 // error 로그를 쏟아내므로, 프로세스당 한 번만 존재 여부를 확인하고 이후엔 건너뛴다.
-let registryAvailable: boolean | null = null;
+//
+// ⚠ 완료된 값만 캐싱하면 안 된다. 캐시가 비어 있는 동안 들어온 동시 호출이 전부 캐시를 놓쳐
+//   각자 쿼리를 날린다(thundering herd). 빌드 프리렌더는 페이지를 동시에 그리므로 이게
+//   Neon 커넥션 풀(5)을 순식간에 말려 배포가 통째로 실패했다 (2026-07-31 dpl_4bkRyS9g).
+//   그래서 "진행 중인 Promise" 자체를 캐싱한다 — 동시 호출은 같은 쿼리 하나를 나눠 쓴다.
+let registryAvailable: Promise<boolean> | null = null;
 
 export async function isRegistryAvailable(): Promise<boolean> {
-  if (registryAvailable !== null) return registryAvailable;
-  try {
-    const rows = await prisma.$queryRaw<Array<{ exists: boolean }>>`
-      SELECT to_regclass('public."CompetitionSeason"') IS NOT NULL AS exists
-    `;
-    registryAvailable = rows[0]?.exists === true;
-  } catch {
-    registryAvailable = false;
-  }
+  if (registryAvailable) return registryAvailable;
+  registryAvailable = (async () => {
+    try {
+      const rows = await prisma.$queryRaw<Array<{ exists: boolean }>>`
+        SELECT to_regclass('public."CompetitionSeason"') IS NOT NULL AS exists
+      `;
+      return rows[0]?.exists === true;
+    } catch {
+      return false;
+    }
+  })();
   return registryAvailable;
 }
 
-// ── ACTIVE 캐시 (in-process 60s) ───────────────────────────────
+// ── ACTIVE 캐시 (in-process 60s, single-flight) ────────────────
 const ACTIVE_TTL_MS = 60 * 1000;
-let activeCache: { at: number; byKey: Map<string, SeasonRecord> } | null = null;
+let activeCache: { at: number; byKey: Promise<Map<string, SeasonRecord>> } | null = null;
 
 function key(league: string, provider: string) {
   return `${provider}:${league}`;
 }
 
 /** 레지스트리 테이블 자체가 없거나 접근 불가일 때는 "행 없음"으로 간주해 기존 동작을 유지한다. */
-async function loadActive(): Promise<Map<string, SeasonRecord>> {
+function loadActive(): Promise<Map<string, SeasonRecord>> {
   const now = Date.now();
   if (activeCache && now - activeCache.at < ACTIVE_TTL_MS) return activeCache.byKey;
-  const byKey = new Map<string, SeasonRecord>();
-  if (!(await isRegistryAvailable())) {
-    activeCache = { at: now, byKey };
-    return byKey;
-  }
-  try {
-    const rows = await prisma.competitionSeason.findMany({
-      where: { status: "ACTIVE" },
-      select: SELECT,
-    });
-    for (const r of rows) byKey.set(key(r.league, r.provider), r as SeasonRecord);
-  } catch (e) {
-    // migration 미적용(P2021) 등 — 호환 경로로 조용히 폴백.
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[season-registry] ACTIVE 조회 실패 — 정적 매핑으로 폴백:", (e as Error).message);
+  const p = (async () => {
+    const byKey = new Map<string, SeasonRecord>();
+    if (!(await isRegistryAvailable())) return byKey;
+    try {
+      const rows = await prisma.competitionSeason.findMany({
+        where: { status: "ACTIVE" },
+        select: SELECT,
+      });
+      for (const r of rows) byKey.set(key(r.league, r.provider), r as SeasonRecord);
+    } catch (e) {
+      // migration 미적용(P2021)·풀 고갈 등 — 호환 경로로 조용히 폴백.
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[season-registry] ACTIVE 조회 실패 — 정적 매핑으로 폴백:", (e as Error).message);
+      }
     }
-  }
-  activeCache = { at: now, byKey };
-  return byKey;
+    return byKey;
+  })();
+  // 실패해도 캐시에 남겨 재시도 폭주를 막는다 (다음 TTL 창에서 자연히 재시도된다).
+  activeCache = { at: now, byKey: p };
+  return p;
 }
 
 /** 테스트·CLI 에서 캐시 무효화. */
