@@ -137,6 +137,13 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "PGA·LPGA 시즌 리더보드 → 한국 선수 우승·톱10 재집계 + data push (매일 09:00)",
   },
+  "mac-mini-daily-ts-team-mapping": {
+    ko: "ts 팀 매핑 일일 백필",
+    intervalMs: 1 * DAY,
+    // 새 시즌 승격팀은 경기가 수집돼야 Team row 가 생긴다. 그때까지 매핑률이 95% 를 못 넘어
+    // 시즌 전환이 막히므로, 개막 직후 며칠을 커버하려면 주간이 아니라 일간이어야 한다.
+    role: "externalId=ts-* 팀 → team-id-mapping.json 백필 + 자동 push (매일 06:20)",
+  },
   "mac-mini-daily-dup-cleanup": {
     ko: "중복 매치 일일 정리",
     intervalMs: 1 * DAY,

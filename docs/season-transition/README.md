@@ -81,7 +81,16 @@ npm run discover:football-seasons -- --league EPL --write
 npm run verify:football-season -- --league EPL
 npm run verify:football-season -- --league EPL --write
 npm run verify:football-season -- --league EPL --write --activate
+
+# 팀 매핑 백필 (외부 API 미호출 — DB 읽기 + json 쓰기, 기본 dry-run)
+npm run backfill:ts-team-mapping
+npm run backfill:ts-team-mapping -- --write
 ```
+
+**팀 매핑 백필은 매일 자동으로 돈다** — `mac-mini-worker/daily-ts-team-mapping.sh` (06:20 KST).
+새 시즌 승격팀은 그 팀 경기가 수집돼야 Team row 가 생기고, 그때까지 매핑률이 95% 를 못 넘어
+시즌 전환이 막힌다. 개막 직후 며칠에 걸쳐 하나씩 들어오므로 주간으로는 늦다.
+잡은 이 json 한 개만 commit 하고, 항목 수가 줄면 push 를 중단한다(백필은 추가 전용).
 
 `--write` 없이는 어떤 스크립트도 DB 를 건드리지 않는다. `--activate` 는 `--write` 와 함께여야 한다.
 
@@ -96,6 +105,10 @@ npm run verify:football-season -- --league EPL --write --activate
 
 ## 알려진 한계
 
+- **팀 매핑 부족이 시즌 전환의 실질 병목이다.** 2026-07-31 실측: 시즌 번호를 다 찾아도
+  CZECH_2·DENMARK_2·AUSTRIA_2·HUNGARY_2·BUNDESLIGA 가 누락 3~5팀 때문에 67~83% 에서 막혔다.
+  누락분은 전부 "새 시즌 첫 등장 팀이라 아직 Team row 가 없는" 경우였고, 경기가 수집되면
+  자동으로 채워진다. 그래서 백필을 일간 잡으로 돌린다.
 - **팀 매핑률 95% 기준은 현재 대부분의 리그가 못 넘는다.** 2026-07-31 실측 127개 ts 캐시 중 95% 이상은 22개뿐이다.
   그래서 매핑률은 **시즌 자동 전환의 차단 조건**으로만 쓴다.
   - 화면 노출을 막는 데 쓰지 않는다 — 막았다면 지금 잘 나오는 리그 다수가 빈 표가 된다.
