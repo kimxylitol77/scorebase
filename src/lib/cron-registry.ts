@@ -38,6 +38,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
   { name: "baseball-season-backfill", label: "야구 시즌 일정 백필", maxAgeH: 180 },
   { name: "indexnow", label: "IndexNow 색인", maxAgeH: 28 },
+  { name: "presence-cleanup", label: "실시간 접속 만료 정리", maxAgeH: 28 },
 ];
 
 /**

@@ -125,7 +125,7 @@ export default function LivePresencePanel() {
             <PresenceCard
               label="스코어 화면"
               value={stat.scoresNow}
-              sub="/ 또는 /scores"
+              sub="/scores · 스코어보드 도메인 홈"
             />
             <PresenceCard
               label="경기 상세"

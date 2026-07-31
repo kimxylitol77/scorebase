@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { detectBot } from "@/lib/bot-detect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,12 @@ const VALID_SECTION = new Set(["scores", "live", "other"]);
 export async function POST(req: Request) {
   try {
     const h = await headers();
+    // 렌더링 봇(AhrefsBot·Baiduspider-render 등)이 JS 를 실행해 heartbeat 를 그대로 보낸다.
+    // 조회 시점에도 걸러지지만, 저장까지 하면 write 의 대부분이 버려질 행이 된다
+    // (실측 2026-07-31: 전체 148행 중 119행이 봇). 저장 자체를 막는다.
+    if (detectBot(h.get("user-agent")).isBot) {
+      return NextResponse.json({ ok: true, skipped: true });
+    }
     const ip =
       h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       h.get("x-real-ip") ||
