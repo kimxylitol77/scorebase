@@ -25,6 +25,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
+const { hbFail } = require("./hb-log");
 const os = require("os");
 const fs = require("fs");
 
@@ -117,7 +118,7 @@ async function sendHeartbeat() {
       { headers, timeout: 10000 },
     );
   } catch (e) {
-    console.warn(`${tsKst()} ⚠️ heartbeat fail: ${e.message}`);
+    hbFail(e.message);
   }
 }
 

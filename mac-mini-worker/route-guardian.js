@@ -22,6 +22,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
+const { hbFail } = require("./hb-log");
 const os = require("os");
 
 const SITE = process.env.SITE_URL || "https://www.scorebase.kr";
@@ -53,10 +54,10 @@ async function sendHeartbeat() {
     await axios.post(
       `${SITE}/api/internal/bot-heartbeat`,
       { name: WORKER_NAME, metadata: { host: os.hostname() } },
-      { headers, timeout: 10_000 },
+      { headers, timeout: 20_000 },
     );
   } catch (e) {
-    console.warn(`⚠️ heartbeat fail: ${e.message}`);
+    hbFail(e.message);
   }
 }
 

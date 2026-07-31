@@ -14,6 +14,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
+const { hbFail } = require("./hb-log");
 const os = require("os");
 
 const SITE = process.env.SITE_URL || "https://www.scorebase.kr";
@@ -37,8 +38,8 @@ async function sendHeartbeat() {
   try {
     await axios.post(`${SITE}/api/internal/bot-heartbeat`,
       { name: WORKER_NAME, metadata: { host: os.hostname() } },
-      { headers, timeout: 10_000 });
-  } catch (e) { console.warn(`⚠️ heartbeat: ${e.message}`); }
+      { headers, timeout: 20_000 });
+  } catch (e) { hbFail(e.message); }
 }
 
 async function notify(payload) {
@@ -115,9 +116,46 @@ async function poll() {
     console.log(`  ⚠️ TBD 팀명: ${tbdTeams.length}건`);
   }
 
-  if (liveNoScore.length === 0 && tbdTeams.length === 0) {
+  const contentIssues = await checkContentQuality();
+
+  if (liveNoScore.length === 0 && tbdTeams.length === 0 && contentIssues === 0) {
     console.log("  ✓ 데이터 품질 양호");
   }
+}
+
+// 표시 품질 — "잘못된 값이 화면에 나간다" 유형. 라이브 상태 점검만으로는 안 걸린다
+// (2026-07-31 일본어 잔존·선발 지표 누락을 감시봇 전체가 놓친 뒤 추가).
+async function checkContentQuality() {
+  let data;
+  try {
+    const r = await axios.get(`${SITE}/api/internal/content-quality`, { headers, timeout: 30_000 });
+    data = r.data;
+  } catch (e) {
+    console.warn(`  content-quality fetch fail: ${e.message}`);
+    return 0;
+  }
+  const issues = Array.isArray(data?.issues) ? data.issues : [];
+  for (const it of issues) {
+    await notify({
+      severity: it.severity === "high" ? "HIGH" : "WARN",
+      title: it.kind === "foreign_text_leak"
+        ? `${it.league} 화면에 일본어 원문 노출`
+        : `${it.league} 선발 지표 누락`,
+      what: `${it.detail} — ${(it.samples ?? []).join(", ")}`,
+      when: "현재",
+      impact: it.kind === "foreign_text_leak"
+        ? "한국어 사이트에 읽을 수 없는 한자·가나가 그대로 보임"
+        : "선발 카드의 ERA·WHIP·사진이 '—' 로 비어 보임",
+      cause: it.kind === "foreign_text_leak"
+        ? "음역 사전 미등록 또는 pid 카나 사전 miss"
+        : "npb.jp·MLB 소스 보강 실패 (일시 타임아웃 가능)",
+      action: it.kind === "foreign_text_leak"
+        ? "npb-name-dict.ts 에 등록 후 DB 정정 (표기 근거는 npb.jp 카나)"
+        : "다음 회차 자동 보강 대기, 반복되면 소스 응답 확인",
+    });
+    console.log(`  ⚠️ ${it.kind}: ${it.detail}`);
+  }
+  return issues.length;
 }
 
 async function main() {

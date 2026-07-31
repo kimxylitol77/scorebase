@@ -29,6 +29,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
+const { hbFail } = require("./hb-log");
 const os = require("os");
 
 // ── config ────────────────────────────────────────────────────
@@ -84,10 +85,10 @@ async function sendHeartbeat() {
           leagues: LEAGUES,
         },
       },
-      { headers, timeout: 10_000 },
+      { headers, timeout: 20_000 },
     );
   } catch (e) {
-    console.warn(`${logPrefix()} ⚠️ heartbeat 실패:`, e.message);
+    hbFail(e.message);
   }
 }
 

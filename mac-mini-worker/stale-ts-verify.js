@@ -20,6 +20,7 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 const axios = require("axios");
+const { hbFail } = require("./hb-log");
 const os = require("os");
 
 const TS_BASE = "https://api.thesports.com";
@@ -90,10 +91,10 @@ async function sendHeartbeat() {
     await axios.post(
       `${SITE_URL}/api/internal/bot-heartbeat`,
       { name: WORKER_NAME, metadata: { host: os.hostname() } },
-      { headers: SITE_HEADERS, timeout: 10_000 },
+      { headers: SITE_HEADERS, timeout: 20_000 },
     );
   } catch (e) {
-    console.warn(`⚠️ heartbeat fail: ${e.message}`);
+    hbFail(e.message);
   }
 }
 

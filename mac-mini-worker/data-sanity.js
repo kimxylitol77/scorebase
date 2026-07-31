@@ -16,6 +16,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
+const { hbFail } = require("./hb-log");
 // 내부 모니터 UA — 미들웨어 rate limit 면제(bot-detect "scorebase-monitor" 매칭).
 // 기본 axios UA 는 맥미니 IP 공용 예산(200/분)에 걸려 429 자충이 났다 (2026-07-18).
 axios.defaults.headers.common["User-Agent"] = "scorebase-monitor/1.0 (data-sanity)";
@@ -36,8 +37,8 @@ async function sendHeartbeat() {
   try {
     await axios.post(`${SITE}/api/internal/bot-heartbeat`,
       { name: WORKER_NAME, metadata: { host: os.hostname() } },
-      { headers, timeout: 10_000 });
-  } catch (e) { console.warn(`⚠️ heartbeat: ${e.message}`); }
+      { headers, timeout: 20_000 });
+  } catch (e) { hbFail(e.message); }
 }
 
 async function notify(payload) {
