@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { sendTelegramTo } from "@/lib/notify/telegram";
 import { predictMatchById, type PredictionResult } from "@/lib/predictionEngine";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -44,14 +45,22 @@ function matchUrl(league: string, externalId: string): string {
 }
 
 /**
- * 라인업 JSON 에서 포메이션만 꺼낸다. 저장 형식은 소스마다 조금 달라(af FixtureLineup /
- * TheSports 변환) 없으면 null — 문구에서 그 줄만 빠진다.
+ * 라인업 JSON({teamName, formation?, startXI: string[]}) 을 알림 한 덩어리로 만든다.
+ * 선발 명단은 포지션 순으로 저장돼 있어(GK→DF→MF→FW) 그대로 나열하면 읽힌다.
+ * formation 은 없는 소스가 있고, 이름은 한글 사전에 없으면 원문 그대로 나간다.
  */
-function formationOf(raw: string | null): string | null {
+function lineupBlock(raw: string | null, teamName: string): string | null {
   if (!raw) return null;
   try {
-    const v = JSON.parse(raw) as { formation?: unknown };
-    return typeof v.formation === "string" && v.formation ? esc(v.formation) : null;
+    const v = JSON.parse(raw) as { formation?: unknown; startXI?: unknown };
+    const xi = Array.isArray(v.startXI)
+      ? v.startXI.filter((n): n is string => typeof n === "string" && !!n)
+      : [];
+    const formation =
+      typeof v.formation === "string" && v.formation ? ` ${esc(v.formation)}` : "";
+    const head = `<b>${esc(teamName)}</b>${formation}`;
+    if (xi.length === 0) return head;
+    return `${head}\n${esc(xi.map((n) => toKoreanPlayerName(n) || n).join(", "))}`;
   } catch {
     return null;
   }
@@ -262,15 +271,13 @@ export async function dispatchTelegramAlerts() {
   for (const m of lineups) {
     const home = nameOf(m.homeTeamId, m.league);
     const away = nameOf(m.awayTeamId, m.league);
-    const fHome = formationOf(m.lineupHome);
-    const fAway = formationOf(m.lineupAway);
-    const formationLine =
-      fHome || fAway
-        ? `${esc(home)} ${fHome ?? "-"} · ${esc(away)} ${fAway ?? "-"}\n`
-        : "";
+    const blocks = [
+      lineupBlock(m.lineupHome, home),
+      lineupBlock(m.lineupAway, away),
+    ].filter((b): b is string => !!b);
     const text =
-      `📋 <b>선발 라인업</b> (${kstTime(m.startTime)}) · ${esc(home)} vs ${esc(away)}\n` +
-      formationLine +
+      `📋 <b>선발 라인업</b> (${kstTime(m.startTime)}) · ${esc(home)} vs ${esc(away)}\n\n` +
+      (blocks.length ? `${blocks.join("\n\n")}\n\n` : "") +
       `▶ ${matchUrl(m.league, m.externalId)}`;
     await fanOut(m, "LINEUP", text, (p) => p.alertLineup);
   }
