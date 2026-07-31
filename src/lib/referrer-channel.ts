@@ -37,7 +37,7 @@ export const CHANNEL_META: Record<TrafficChannel, { label: string; emoji: string
   kakao: { label: "카카오톡 (utm)", emoji: "💬" },
   youtube: { label: "유튜브", emoji: "▶️" },
   telegram: { label: "텔레그램", emoji: "📨" },
-  ai_chat: { label: "AI 검색 (ChatGPT·Perplexity 등)", emoji: "🤖" },
+  ai_chat: { label: "AI 검색 (ChatGPT 등)", emoji: "🤖" },
   search_other: { label: "기타 검색엔진", emoji: "🔍" },
   referral: { label: "기타 사이트", emoji: "🔗" },
 };
