@@ -48,12 +48,12 @@ export const MAJOR_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL",
   "WORLD_CUP", "NBA", "NHL", "MLB", "KBO", "NPB",
   "K_LEAGUE_1", "K_LEAGUE_2",
-  "VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W", "V_LEAGUE", "V_LEAGUE_W",
+  "VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W", "V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W",
   "LOL", "LPL", "LEC",
 ];
 
 // predHome 앵커를 쓰는 배구 리그 (volleyball-predict cron 이 매시간 채움).
-const VB_ANCHOR_LEAGUES = new Set(["VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W", "V_LEAGUE", "V_LEAGUE_W"]);
+const VB_ANCHOR_LEAGUES = new Set(["VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W", "V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W"]);
 
 const LEAGUE_NAME: Record<string, string> = {
   EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가",

@@ -47,6 +47,9 @@ const UTID_TO_LEAGUE = {
   // 2026-08-01 V-리그(한국) — 10월 개막. TheSports 명칭은 "Volleyball League (Women)"
   "kn54qldhe9nrvy9": "V_LEAGUE",
   "d23xmvzhowyqg8n": "V_LEAGUE_W",
+  // KOVO컵 (프리시즌, 통상 8~9월 — 2026-08-01 시점 일정 미공개, 공개 시 diary 로 자동 유입)
+  "4zp5rzdh70oq82w": "KOVO_CUP",
+  "j1l4rjdh12dr7vx": "KOVO_CUP_W",
 };
 
 // src/lib/sports/thesports/status-codes.ts 의 mapVolleyballStatus 와 단일 진실.
