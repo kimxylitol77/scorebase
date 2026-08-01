@@ -196,7 +196,31 @@ export type League =
   | "CZECH_2" // 체코 2부 (FNL)
   | "AUSTRIA_2" // 오스트리아 2.리가 (2부)
   | "BELGIUM_2" // 벨기에 챌린저 프로리그 (2부)
-  | "TURKEY_2"; // 튀르키예 1.리그 (2부) — TheSports 전용
+  | "TURKEY_2" // 튀르키예 1.리그 (2부) — TheSports 전용
+  // 2026-08-01~02 — 7m 커버리지 대조 확장 23개 (컵·2부·3부·1부 잔여)
+  | "COPA_DO_BRASIL"
+  | "PORTUGAL_SUPER_CUP"
+  | "RUSSIA_FNL"
+  | "ETTAN_NORRA"
+  | "ETTAN_SODRA"
+  | "NORWAY_2D_G1"
+  | "NORWAY_2D_G2"
+  | "KAKKONEN_A"
+  | "KAKKONEN_B"
+  | "KAKKONEN_C"
+  | "ROMANIA_L2"
+  | "CHINA_3"
+  | "COSTA_RICA_PD"
+  | "GUATEMALA_LN"
+  | "HONDURAS_LN"
+  | "UZBEKISTAN_SL"
+  | "WALES_PL"
+  | "MONTENEGRO_1L"
+  | "LUXEMBOURG_ND"
+  | "FAROE_PL"
+  | "PANAMA_LPF"
+  | "ELSALVADOR_PD"
+  | "NICARAGUA_PD";
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -361,6 +385,14 @@ export const SOCCER_LEAGUES = [
   "AUSTRIA_2",
   "BELGIUM_2",
   "TURKEY_2",
+  // 2026-08-01~02 — 7m 커버리지 대조 확장 23개
+  "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "RUSSIA_FNL",
+  "ETTAN_NORRA", "ETTAN_SODRA", "NORWAY_2D_G1", "NORWAY_2D_G2",
+  "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
+  "ROMANIA_L2", "CHINA_3",
+  "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "UZBEKISTAN_SL",
+  "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "FAROE_PL",
+  "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 발행 화이트리스트 — 명시한 리그만 글 생성.

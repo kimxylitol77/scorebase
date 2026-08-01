@@ -798,10 +798,11 @@
   },
   {
     "code": "MEXICO_2",
-    "ourLabel": "멕시코 아센소 MX",
+    "ourLabel": "멕시코 리가 엑스판시온",
     "tsId": "z318q66hygqo9jd",
     "tsEn": "Mexico Ascenso MX",
-    "tsKo": "멕시코 아센소 MX"
+    "tsKo": "멕시코 리가 엑스판시온",
+    "tsSeasonId": "k82rekhvvzyrepz"
   },
   {
     "code": "CHINA_2",
@@ -1139,5 +1140,133 @@
     "tsId": "gpxwrxlhgpryk0j",
     "tsEn": "Club Friendlies",
     "tsKo": "클럽 친선"
+  },
+  {
+    "code": "WALES_PL",
+    "ourLabel": "웨일스 컴리 프리미어",
+    "tsId": "gpxwrxlh5nryk0j",
+    "tsEn": "Welsh Premier League",
+    "tsKo": "웨일스 컴리 프리미어",
+    "tsSeasonId": "k82rekhvzlyrepz"
+  },
+  {
+    "code": "MONTENEGRO_1L",
+    "ourLabel": "몬테네그로 1부",
+    "tsId": "z8yomo4h81q0j6l",
+    "tsEn": "Montenegro First League",
+    "tsKo": "몬테네그로 1부",
+    "tsSeasonId": "y39mp1h3vl2mojx"
+  },
+  {
+    "code": "LUXEMBOURG_ND",
+    "ourLabel": "룩셈부르크 내셔널 디비전",
+    "tsId": "d23xmvkh2nqg8ny",
+    "tsEn": "Luxembourg National Division",
+    "tsKo": "룩셈부르크 내셔널 디비전",
+    "tsSeasonId": "n54qllh2285qvy9"
+  },
+  {
+    "code": "FAROE_PL",
+    "ourLabel": "페로 제도 프리미어",
+    "tsId": "j1l4rjnhgvm7vx5",
+    "tsEn": "Faroe Islands Premier League",
+    "tsKo": "페로 제도 프리미어",
+    "tsSeasonId": "6ypq3nh06z3md7o"
+  },
+  {
+    "code": "PANAMA_LPF",
+    "ourLabel": "파나마 LPF",
+    "tsId": "p4jwq2ghk3dm0ve",
+    "tsEn": "Panamanian Liga de Futbol",
+    "tsKo": "파나마 LPF",
+    "tsSeasonId": "vjxm8gh4vj0r6od"
+  },
+  {
+    "code": "ELSALVADOR_PD",
+    "ourLabel": "엘살바도르 프리메라",
+    "tsId": "9k82rekhk6repzj",
+    "tsEn": "El Salvador Primera Division",
+    "tsKo": "엘살바도르 프리메라",
+    "tsSeasonId": "pxwrxlhgg18ryk0"
+  },
+  {
+    "code": "NICARAGUA_PD",
+    "ourLabel": "니카라과 프리메라",
+    "tsId": "p3glrw7hjk4qdyj",
+    "tsEn": "Nicaragua Liga Primera",
+    "tsKo": "니카라과 프리메라",
+    "tsSeasonId": "y39mp1h3vj3mojx"
+  },
+  {
+    "code": "COPA_DO_BRASIL",
+    "ourLabel": "코파 두 브라질",
+    "tsId": "z8yomo4hooq0j6l",
+    "tsEn": "Brazilian Cup",
+    "tsKo": "코파 두 브라질",
+    "tsSeasonId": "318q66hozknqo9j"
+  },
+  {
+    "code": "PORTUGAL_SUPER_CUP",
+    "ourLabel": "포르투갈 수페르컵",
+    "tsId": "j1l4rjnhe9m7vx5",
+    "tsEn": "Portuguese Super Cup",
+    "tsKo": "포르투갈 수페르컵",
+    "tsSeasonId": "jw2r09hl4e7rz84"
+  },
+  {
+    "code": "RUSSIA_FNL",
+    "ourLabel": "러시아 FNL",
+    "tsId": "9k82rekh6lrepzj",
+    "tsEn": "Russian First League",
+    "tsKo": "러시아 FNL",
+    "tsSeasonId": "n54qllh25ogqvy9"
+  },
+  {
+    "code": "ROMANIA_L2",
+    "ourLabel": "루마니아 리가 II",
+    "tsId": "v2y8m4zhw4ql074",
+    "tsEn": "Romanian Liga II",
+    "tsKo": "루마니아 리가 II",
+    "tsSeasonId": "vjxm8gh44jzr6od"
+  },
+  {
+    "code": "COSTA_RICA_PD",
+    "ourLabel": "코스타리카 프리메라",
+    "tsId": "jednm9whneryox8",
+    "tsEn": "Costa Rica Primera Division",
+    "tsKo": "코스타리카 프리메라",
+    "tsSeasonId": "dj2ryohkv6nq1zp"
+  },
+  {
+    "code": "GUATEMALA_LN",
+    "ourLabel": "과테말라 리가 나시오날",
+    "tsId": "8y39mp1hlpmojxg",
+    "tsEn": "Guatemala Liga Nacional",
+    "tsKo": "과테말라 리가 나시오날",
+    "tsSeasonId": "4wyrn4h8zg9q86p"
+  },
+  {
+    "code": "HONDURAS_LN",
+    "ourLabel": "온두라스 리가 나시오날",
+    "tsId": "4zp5rzghkzq82w1",
+    "tsEn": "Honduras Primera Division",
+    "tsKo": "온두라스 리가 나시오날",
+    "tsSeasonId": "zp5rzghjj77q82w"
+  },
+  {
+    "code": "UZBEKISTAN_SL",
+    "ourLabel": "우즈베키스탄 슈퍼리가",
+    "tsId": "kdj2ryohkgyq1zp",
+    "tsEn": "Uzbekistan Super League",
+    "tsKo": "우즈베키스탄 슈퍼리가",
+    "tsSeasonId": "1l4rjnh6ye1m7vx"
+  },
+  {
+    "code": "CHINA_3",
+    "ourLabel": "중국 리그투",
+    "tsId": "9dn1m1gh5gmoepl",
+    "tsEn": "Chinese Football League 2",
+    "tsKo": "중국 리그투",
+    "tsSeasonId": "2y8m4zh30xoql07"
   }
 ]
