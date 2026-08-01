@@ -8,15 +8,17 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { SITE_URL } from "@/lib/site-url";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import {
-  fetchHitterProfile,
-  fetchHitterRecent,
-  fetchPitcherProfile,
-  fetchPitcherRecent,
   type HitterProfile,
   type PitcherProfile,
   type HitterRecentGame,
   type PitcherRecentGame,
 } from "@/lib/sports/mlb-stats-api";
+import {
+  fetchHitterProfileCached as fetchHitterProfile,
+  fetchHitterRecentCached as fetchHitterRecent,
+  fetchPitcherProfileCached as fetchPitcherProfile,
+  fetchPitcherRecentCached as fetchPitcherRecent,
+} from "@/lib/sports/mlb-cache";
 import { fetchSoccerPlayerProfile } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { enLeagueName } from "@/lib/i18n/en";

@@ -8,11 +8,11 @@ import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  fetchPitcherProfile,
-  fetchPitcherRecent,
-  fetchHitterProfile,
-  fetchHitterRecent,
-} from "@/lib/sports/mlb-stats-api";
+  fetchPitcherProfileCached as fetchPitcherProfile,
+  fetchPitcherRecentCached as fetchPitcherRecent,
+  fetchHitterProfileCached as fetchHitterProfile,
+  fetchHitterRecentCached as fetchHitterRecent,
+} from "@/lib/sports/mlb-cache";
 import { MlbHitterView, MlbPitcherView } from "./MlbViews";
 import PlayerRelatedArticles from "@/components/players/PlayerRelatedArticles";
 import { fetchKboPitcherProfile } from "@/lib/sports/kbo-official";
@@ -30,8 +30,10 @@ import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import ShareCardButton from "@/components/ShareCardButton";
 
+// ?league= 를 읽으므로 페이지 자체는 항상 동적이다. 여기에 revalidate 를 걸어도
+// force-dynamic 이 이겨 무시되므로(과거 revalidate=600 이 그렇게 죽어 있었다),
+// 캐시는 외부 API 호출 단위(mlb-cache·npb-cache)로 건다.
 export const dynamic = "force-dynamic";
-export const revalidate = 600;
 
 interface Props {
   params: Promise<{ pid: string }>;
