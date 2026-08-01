@@ -86,7 +86,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, gsc, bing] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
@@ -120,6 +120,15 @@ export default async function StatsPage({ searchParams }: Props) {
       take: 50000,
       orderBy: { ts: "desc" },
     }),
+    // 회원 이탈 분석용 — 로그인 상태 PV 전체 (userId 는 2026-07-28 이후 수집분만 존재).
+    // range 와 무관하게 전체 기간 — 잠수 판정은 "마지막 접속이 언제냐" 라 절대 시점 기준.
+    prisma.pageView.findMany({
+      where: { userId: { not: null } },
+      select: { userId: true, path: true, ts: true },
+      orderBy: { ts: "desc" },
+      take: 50000,
+    }),
+    prisma.user.findMany({ select: { id: true, createdAt: true } }),
     getGscOverview(),
     getBingOverview(),
   ]);
@@ -314,6 +323,100 @@ export default async function StatsPage({ searchParams }: Props) {
   const topHumanPaths = Array.from(humanPathCount.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
+
+  // === 이탈 페이지 — 세션의 마지막 PV 가 어느 path 였는지 (사람만, 선택 기간) ===
+  // 세션 정의는 위 체류·이탈률 블록과 동일 (같은 sessionId, 30분 공백 = 새 세션).
+  // 이탈률 = 그 페이지를 본 세션 중 그 페이지가 마지막이었던 비율. path 는 쿼리 제거해 묶는다.
+  const exitCountByPath = new Map<string, number>();
+  const seenSessionsByPath = new Map<string, number>();
+  {
+    const rowsBySid = new Map<string, Array<{ t: number; path: string }>>();
+    for (const r of humansClean) {
+      if (!r.sessionId) continue;
+      const row = { t: r.ts.getTime(), path: r.path.split("?")[0] };
+      const arr = rowsBySid.get(r.sessionId);
+      if (arr) arr.push(row);
+      else rowsBySid.set(r.sessionId, [row]);
+    }
+    const closeSession = (pages: string[]) => {
+      const exit = pages[pages.length - 1];
+      exitCountByPath.set(exit, (exitCountByPath.get(exit) ?? 0) + 1);
+      for (const p of new Set(pages)) {
+        seenSessionsByPath.set(p, (seenSessionsByPath.get(p) ?? 0) + 1);
+      }
+    };
+    for (const rows of rowsBySid.values()) {
+      rows.sort((a, b) => a.t - b.t);
+      let pages: string[] = [rows[0].path];
+      let prev = rows[0].t;
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i].t - prev > SESSION_GAP_MS) {
+          closeSession(pages);
+          pages = [rows[i].path];
+        } else {
+          pages.push(rows[i].path);
+        }
+        prev = rows[i].t;
+      }
+      closeSession(pages);
+    }
+  }
+  const topExitPaths = Array.from(exitCountByPath.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([path, exits]) => {
+      const seen = seenSessionsByPath.get(path) ?? exits;
+      return { path, exits, seen, rate: Math.round((exits / seen) * 100) };
+    });
+
+  // === 회원 이탈(잠수) — 로그인 PV 기준, range 무관 전체 ===
+  // userId 는 2026-07-28 배포 이후에만 채워짐 — 그 전 접속은 "기록 없음" 으로 잡힌다.
+  const MEMBER_PV_START = new Date("2026-07-28T00:00:00+09:00");
+  const CHURN_DAYS = 7;
+  const churnCutoff = new Date(now.getTime() - CHURN_DAYS * 24 * 60 * 60 * 1000);
+  // memberPvRaw 는 ts desc — userId 첫 등장 행이 곧 마지막 접속
+  const lastSeenByUser = new Map<string, { ts: Date; path: string }>();
+  for (const r of memberPvRaw) {
+    if (!r.userId || lastSeenByUser.has(r.userId)) continue;
+    lastSeenByUser.set(r.userId, { ts: r.ts, path: r.path.split("?")[0] });
+  }
+  const totalUsers = allUsers.length;
+  const createdAtByUser = new Map(allUsers.map((u) => [u.id, u.createdAt]));
+  let activeMembers = 0; // 최근 7일 접속
+  const dormantUsers: Array<{ id: string; ts: Date; path: string }> = [];
+  for (const [id, last] of lastSeenByUser) {
+    if (last.ts >= churnCutoff) activeMembers++;
+    else dormantUsers.push({ id, ts: last.ts, path: last.path });
+  }
+  const noRecordMembers = totalUsers - lastSeenByUser.size;
+  // 잠수 회원이 마지막으로 본 페이지 TOP
+  const dormantLastPathAgg = new Map<string, number>();
+  for (const u of dormantUsers) {
+    dormantLastPathAgg.set(u.path, (dormantLastPathAgg.get(u.path) ?? 0) + 1);
+  }
+  const topDormantLastPaths = Array.from(dormantLastPathAgg.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+  // 가입 → 마지막 접속 간격 (잠수 회원 중 로그인 PV 수집 시작 이후 가입자만 — 그 전
+  // 가입자는 초기 활동이 기록에 없어 간격이 왜곡된다)
+  const churnGapBuckets: Array<{ label: string; maxDays: number; count: number }> = [
+    { label: "가입 당일", maxDays: 1, count: 0 },
+    { label: "1~3일", maxDays: 4, count: 0 },
+    { label: "4~7일", maxDays: 8, count: 0 },
+    { label: "1~2주", maxDays: 15, count: 0 },
+    { label: "2주 이상", maxDays: Infinity, count: 0 },
+  ];
+  let churnGapTotal = 0;
+  for (const u of dormantUsers) {
+    const created = createdAtByUser.get(u.id);
+    if (!created || created < MEMBER_PV_START) continue;
+    const days = (u.ts.getTime() - created.getTime()) / (24 * 60 * 60 * 1000);
+    const bucket = churnGapBuckets.find((b) => days < b.maxDays);
+    if (bucket) {
+      bucket.count++;
+      churnGapTotal++;
+    }
+  }
 
   // 도메인별 (사람만, 선택 기간) — scorebase.kr vs 스코어보드.kr 분리.
   const hostAgg = new Map<string, { pv: number; ids: Set<string> }>();
@@ -635,6 +738,163 @@ export default async function StatsPage({ searchParams }: Props) {
             </ul>
           )}
         </SectionCard>
+      </section>
+
+      {/* === 이탈 분석 (이탈 페이지 + 회원 잠수) === */}
+      <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">📉</span>
+          <h2 className="text-lg font-bold tracking-tight">이탈 분석</h2>
+          <span className="text-xs text-neutral-500">
+            어느 페이지에서 나가고, 어떤 회원이 발길을 끊는지
+          </span>
+        </div>
+
+        <SectionCard
+          title="이탈 페이지 TOP 10"
+          subtitle={`${rangeLabel} · 세션의 마지막 페이지 기준 · 의심 봇 제외`}
+        >
+          {topExitPaths.length === 0 ? (
+            <EmptyHint />
+          ) : (
+            <>
+              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {topExitPaths.map((e, i) => {
+                  const max = topExitPaths[0].exits;
+                  const pct = (e.exits / max) * 100;
+                  return (
+                    <li key={e.path} className="py-2.5 flex items-center gap-3 text-sm">
+                      <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
+                        {i + 1}
+                      </span>
+                      <a
+                        href={e.path}
+                        target="_blank"
+                        rel="noopener"
+                        className="font-medium hover:underline truncate max-w-[36%]"
+                      >
+                        {e.path}
+                      </a>
+                      <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                        <div className="h-full bg-rose-500" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="tabular-nums text-neutral-500 font-semibold w-16 text-right">
+                        {e.exits.toLocaleString()}
+                      </span>
+                      <span
+                        className="tabular-nums w-24 text-right text-xs text-neutral-500"
+                        title="그 페이지를 본 세션 중 그 페이지가 마지막이었던 비율"
+                      >
+                        이탈률 {e.rate}%
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-3 text-[11px] text-neutral-500 leading-relaxed">
+                이탈률 = 그 페이지를 본 세션 중 그 페이지에서 방문이 끝난 비율.
+                많이 보이는 페이지일수록 이탈 세션 수도 자연히 크니, 순위(절대 수)와
+                이탈률(비율)을 같이 보세요.
+              </p>
+            </>
+          )}
+        </SectionCard>
+
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-sm">회원 잠수 현황</h3>
+          <span className="text-xs text-neutral-500">
+            로그인 PV 기준 · 기간 선택과 무관 · 수집 시작 2026-07-28
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <KpiCard label="전체 회원" value={totalUsers} />
+          <KpiCard
+            label={`최근 ${CHURN_DAYS}일 접속`}
+            value={activeMembers}
+            accent
+            sub="로그인 상태 PV 있음"
+          />
+          <KpiCard
+            label={`잠수 회원 (${CHURN_DAYS}일+ 무접속)`}
+            value={dormantUsers.length}
+            sub="접속 기록 있는 회원 중"
+          />
+          <KpiCard
+            label="접속 기록 없음"
+            value={noRecordMembers}
+            sub="7-28 이후 로그인 PV 0건"
+          />
+        </div>
+
+        <SectionCard
+          title="잠수 회원이 마지막으로 본 페이지 TOP 10"
+          subtitle={`${CHURN_DAYS}일 이상 무접속 회원 ${dormantUsers.length.toLocaleString()}명`}
+        >
+          {topDormantLastPaths.length === 0 ? (
+            <EmptyHint message="아직 잠수 판정 가능한 회원이 없습니다. 로그인 PV 수집이 2026-07-28 시작이라 8월 초부터 채워집니다." />
+          ) : (
+            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {topDormantLastPaths.map(([path, count], i) => {
+                const max = topDormantLastPaths[0][1];
+                const pct = (count / max) * 100;
+                return (
+                  <li key={path} className="py-2.5 flex items-center gap-3 text-sm">
+                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
+                      {i + 1}
+                    </span>
+                    <a
+                      href={path}
+                      target="_blank"
+                      rel="noopener"
+                      className="font-medium hover:underline truncate max-w-[40%]"
+                    >
+                      {path}
+                    </a>
+                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                      <div className="h-full bg-rose-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="tabular-nums text-neutral-500 font-semibold w-12 text-right">
+                      {count}명
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="가입 후 며칠 만에 잠수하나"
+          subtitle={`7-28 이후 가입한 잠수 회원 ${churnGapTotal.toLocaleString()}명 · 가입일 → 마지막 접속 간격`}
+        >
+          {churnGapTotal === 0 ? (
+            <EmptyHint message="아직 표본이 없습니다. 로그인 PV 수집 시작(7-28) 이후 가입한 회원이 잠수로 판정되면 채워집니다." />
+          ) : (
+            <ul className="space-y-2">
+              {churnGapBuckets.map((b) => {
+                const pct = Math.round((b.count / churnGapTotal) * 100);
+                return (
+                  <li key={b.label} className="flex items-center gap-3 text-sm">
+                    <span className="w-20 text-neutral-500 font-medium">{b.label}</span>
+                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                      <div className="h-full bg-rose-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="tabular-nums text-neutral-500 font-semibold w-20 text-right">
+                      {b.count}명 ({pct}%)
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </SectionCard>
+
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ 잠수 판정은 로그인 상태 PV(2026-07-28 수집 시작) 기준이라, 그 전에만
+          활동한 회원은 &quot;접속 기록 없음&quot; 으로 잡힙니다. 수집 {CHURN_DAYS}일
+          경과 전까지는 잠수 회원이 0으로 보이는 게 정상입니다.
+        </p>
       </section>
 
       {/* === 유입 채널 === */}
