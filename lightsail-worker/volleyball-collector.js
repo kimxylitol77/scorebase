@@ -44,6 +44,9 @@ const UTID_TO_LEAGUE = {
   "yl5ergdh3wpr8k0": "VNL_W", // 여자 발리볼 네이션스리그 (2026-07-11 추가)
   "y0or58hld26rwzv": "AVC_NATIONS_W",
   "jednm9vh901qyox": "EGL_W",
+  // 2026-08-01 V-리그(한국) — 10월 개막. TheSports 명칭은 "Volleyball League (Women)"
+  "kn54qldhe9nrvy9": "V_LEAGUE",
+  "d23xmvzhowyqg8n": "V_LEAGUE_W",
 };
 
 // src/lib/sports/thesports/status-codes.ts 의 mapVolleyballStatus 와 단일 진실.

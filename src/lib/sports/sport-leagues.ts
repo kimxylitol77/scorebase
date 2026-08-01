@@ -53,6 +53,8 @@ export const ALL_LEAGUES = [
   "ATP", "WTA", "PGA", "LPGA", "F1",
   // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남/여 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
   "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W",
+  // 2026-08-01 V-리그(한국 남녀) — 10월 개막 대비 선등록 (ts utid 남 kn54qldhe9nrvy9 / 여 d23xmvzhowyqg8n)
+  "V_LEAGUE", "V_LEAGUE_W",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -146,7 +148,8 @@ export const SPORTS: SportMeta[] = [
     label: "배구",
     emoji: "🏐",
     // 2026-06-12 신설 — TheSports 배구. V-리그는 10월 개막 시 추가 예정([[feedback_thesports_volleyball_shapes]]).
-    leagues: ["VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W"],
+    // 2026-08-01 V-리그 남녀 추가 — 10월 개막 대비 선등록 (수집·라이브·배당은 리그 코드만으로 자동)
+    leagues: ["V_LEAGUE", "V_LEAGUE_W", "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W"],
   },
   {
     code: "hockey",
@@ -402,6 +405,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   IIHF_WC: "세계선수권",
   KBL: "KBL",
   WKBL: "WKBL",
+  V_LEAGUE: "V-리그 (남)",
+  V_LEAGUE_W: "V-리그 (여)",
   VNL: "발리볼 네이션스리그 (남)",
   VNL_W: "발리볼 네이션스리그 (여)",
   AVC_NATIONS_W: "AVC 네이션스컵 (여)",
@@ -601,6 +606,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   IIHF_WC: 22,
   KBL: 23,
   WKBL: 24,
+  V_LEAGUE: 24.5, // 한국 프로배구 남자부 — KBL/WKBL 급 국내 수요
+  V_LEAGUE_W: 24.6, // 한국 프로배구 여자부 — 여자부 인기가 남자부와 대등
   VNL: 25, // 배구 — 국대 한국전 수요 (AVC 에 한국 여자 출전)
   VNL_W: 25.05, // 여자 발리볼 네이션스리그 — 세계 최상위 대회 (한국 미출전)
   AVC_NATIONS_W: 25.1,

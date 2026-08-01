@@ -153,6 +153,9 @@ const BASEBALL_SEASONS = [
 
 // 배구 (VNL/AVC/유럽리그) — volleyball season/table/detail. season_id 는 시즌마다 변경:
 // 시즌 초 diary sweep 매치의 season_id 로 갱신 (utid: VNL e4wyrn3hexvm86p / AVC y0or58hld26rwzv / EGL jednm9vh901qyox)
+// ⚠ V-리그(한국)는 10월 개막 시 여기에 추가할 것 — utid 남 kn54qldhe9nrvy9 / 여 d23xmvzhowyqg8n.
+//   지금 cur_season 표는 경기수가 들쭉날쭉한 어중간한 스냅샷이라(작년 순위 노출 위험) 넣지 않는다.
+//   개막 후 diary 매치의 season_id 로: { code: "V_LEAGUE", seasonId: "..." }, { code: "V_LEAGUE_W", seasonId: "..." }
 const VOLLEYBALL_SEASONS = [
   { code: "VNL", seasonId: "23xmvzhkkv2qg8n" },
   { code: "VNL_W", seasonId: "zp5rzdhppydq82w" }, // 여자 발리볼 네이션스리그 (2026-07-11 추가, utid yl5ergdh3wpr8k0)

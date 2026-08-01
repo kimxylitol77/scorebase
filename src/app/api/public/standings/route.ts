@@ -52,6 +52,8 @@ const LEAGUES = new Map<string, Sport>([
   ["WNBA", "basketball"],
   ["KBL", "basketball"],
   ["WKBL", "basketball"],
+  ["V_LEAGUE", "volleyball"],
+  ["V_LEAGUE_W", "volleyball"],
   ["VNL", "volleyball"],
   ["VNL_W", "volleyball"],
   ["NHL", "hockey"],

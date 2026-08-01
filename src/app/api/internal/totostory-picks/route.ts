@@ -45,6 +45,8 @@ const LEAGUE_LABELS: Record<string, string> = {
   NBA: "NBA",
   WNBA: "WNBA",
   NHL: "NHL",
+  V_LEAGUE: "V-리그 남자부",
+  V_LEAGUE_W: "V-리그 여자부",
   VNL_M: "VNL 남자부",
   VNL_W: "VNL 여자부",
   VNL: "VNL",
