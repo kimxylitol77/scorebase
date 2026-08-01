@@ -17,6 +17,15 @@ const AI_TRAINING_BOTS = [
   "Meta-ExternalAgent", // Meta(Llama) AI 학습
 ];
 
+// SEO 업체용 크롤러 — 백링크·경쟁사 분석 데이터 수집기라 검색 유입 기여 0.
+// 2026-08-01 AhrefsBot 이 /live/* 를 일 13k PV 크롤해 차단 (robots.txt 준수 봇들).
+const SEO_TOOL_BOTS = [
+  "AhrefsBot", // Ahrefs 백링크 수집
+  "SemrushBot", // Semrush
+  "MJ12bot", // Majestic
+  "DotBot", // Moz
+];
+
 export default function robots(): MetadataRoute.Robots {
   const base = SITE_URL;
   return {
@@ -29,6 +38,8 @@ export default function robots(): MetadataRoute.Robots {
       },
       // AI 학습 크롤러 — 전 경로 차단 (개별 그룹으로 펼쳐 파서 호환성 확보).
       ...AI_TRAINING_BOTS.map((ua) => ({ userAgent: ua, disallow: "/" })),
+      // SEO 툴 크롤러 — 전 경로 차단.
+      ...SEO_TOOL_BOTS.map((ua) => ({ userAgent: ua, disallow: "/" })),
     ],
     sitemap: `${base}/sitemap.xml`,
     host: base,
