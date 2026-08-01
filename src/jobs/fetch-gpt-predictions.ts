@@ -33,7 +33,12 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 import { activePanelists, PANELISTS, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
 import { capturePredictionContext } from "@/jobs/prediction-postmortems";
-import { shouldPublishPick, type MatchOddsCtx } from "@/lib/predict/publish-gate";
+import {
+  OU_SHADOW_WINDOW_DAYS,
+  shouldPublishPick,
+  type MatchOddsCtx,
+  type OuShadowStat,
+} from "@/lib/predict/publish-gate";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 // 배구는 predHome(검증된 배구 Elo+시장 블렌드) 앵커, LoL 은 일반 Elo 파이프라인
@@ -250,6 +255,45 @@ async function loadOddsCtx(matchId: number): Promise<MatchOddsCtx | null> {
   });
 }
 
+// ── OU 그림자 실측 로더 — 게이트 ③(실측 통과제)의 데이터 공급 ──
+// 미발행 픽도 채점되므로(runEvaluateAiPredictions 는 전 행 대상) 최근 창의 성적이 곧
+// out-of-sample 실측이다. 잡 프로세스당 사실상 1회 조회 — 10분 캐시.
+// 조회 실패 시 null 반환 → 게이트가 fail-closed(기존 일괄 차단)로 동작한다.
+const OU_STATS_TTL_MS = 10 * 60 * 1000;
+let ouStatsCache: { at: number; map: Map<string, OuShadowStat> | null } | null = null;
+
+async function loadOuShadowStats(): Promise<Map<string, OuShadowStat> | null> {
+  const now = Date.now();
+  if (ouStatsCache && now - ouStatsCache.at < OU_STATS_TTL_MS) return ouStatsCache.map;
+  let map: Map<string, OuShadowStat> | null = null;
+  try {
+    const since = new Date(now - OU_SHADOW_WINDOW_DAYS * 86400_000);
+    const [tot, hit] = await Promise.all([
+      prisma.aiPrediction.groupBy({
+        by: ["model"],
+        where: { market: "OU", correct: { not: null }, predictedAt: { gte: since } },
+        _count: { _all: true },
+      }),
+      prisma.aiPrediction.groupBy({
+        by: ["model"],
+        where: { market: "OU", correct: true, predictedAt: { gte: since } },
+        _count: { _all: true },
+      }),
+    ]);
+    const hitBy = new Map(hit.map((r) => [r.model, r._count._all]));
+    map = new Map(
+      tot.map((r) => [
+        r.model,
+        { n: r._count._all, acc: r._count._all > 0 ? (hitBy.get(r.model) ?? 0) / r._count._all : 0 },
+      ]),
+    );
+  } catch (e) {
+    console.warn(`[gate] OU 실측 조회 실패 — 일괄 차단으로 폴백: ${(e as Error).message}`);
+  }
+  ouStatsCache = { at: now, map };
+  return map;
+}
+
 /**
  * AiPrediction 한 행 upsert — 모든 패널·scorebase 공용. 발행 게이트 차단 픽도
  * published=false 로 저장한다(재호출 방지 + 채점 유지로 게이트 유효성 계속 측정).
@@ -267,7 +311,9 @@ async function gatedUpsert(
 ): Promise<boolean> {
   let published = true;
   if (ctx) {
-    const gate = shouldPublishPick(model, market, pick, prob, line, ctx);
+    // OU 만 실측이 필요 — 다른 시장에서 불필요한 조회를 만들지 않는다(캐시가 있어도 첫 호출은 쿼리).
+    const ouStats = market === "OU" ? await loadOuShadowStats() : null;
+    const gate = shouldPublishPick(model, market, pick, prob, line, ctx, ouStats);
     if (!gate.ok) {
       published = false;
       if (gate.reason !== "OU_WEAK_MODEL") {
@@ -751,6 +797,10 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
 
   let stored = 0, storedMarkets = 0, skipped = 0, failed = 0;
   let deadlineHit = 0;
+  // 좌석별 성패 집계 — "특정 패널만 조용히 굶는" 상태(gpt-5.6 07-21~25 닷새 0건, 사후에야
+  // 발견)를 다음번엔 당일 cron 로그에서 바로 보이게 한다. ok=0 & fail>0 이면 그 좌석이 죽은 것.
+  const okByPanel = new Map<string, number>(panels.map((p) => [p.key, 0]));
+  const failByPanel = new Map<string, number>(panels.map((p) => [p.key, 0]));
   // 시간 예산 가드 (2026-07-17) — cron 라우트 maxDuration=300s. 매치당 패널 4개를 순차
   // 호출해 ~15~20s 씩 걸리므로 cap(기본 40)이면 480s+ 로 **구조적으로 완주 불가**.
   // 타임아웃은 JS 예외가 아니라 catch 도 안 타서 recordCronRun 이 아예 안 불렸고, 그 결과
@@ -759,7 +809,9 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
   //   안 함" 가드 덕에 다음 실행이 이어받는다. 완주 신호(recordCronRun)를 되찾는 게 핵심.
   const JOB_DEADLINE_MS = Number(process.env.GPT_PREDICT_DEADLINE_MS ?? 230_000);
   const startedAt = Date.now();
+  let matchIdx = -1;
   for (const m of targets) {
+    matchIdx++;
     if (Date.now() - startedAt > JOB_DEADLINE_MS) {
       deadlineHit = targets.length - stored - skipped - failed;
       console.warn(
@@ -789,7 +841,11 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     await storeAnchor(m.id, ours, oursHcOu);
     let matchStored = false;
 
-    for (const p of panels) {
+    // 좌석 회전 — 순서가 고정이면 킥오프 가드(아래 break)·시간 예산이 항상 뒤쪽 좌석부터
+    // 자른다. 매치마다 시작 좌석을 한 칸씩 돌려 잘림이 전 좌석에 고르게 분배되게 한다.
+    const rotation = panels.length > 0 ? matchIdx % panels.length : 0;
+    const seatOrder = [...panels.slice(rotation), ...panels.slice(0, rotation)];
+    for (const p of seatOrder) {
       if (doneByPanel.get(p.key)!.has(m.id)) continue; // 이미 픽함 → 재호출 안 함
       if (m.startTime.getTime() <= Date.now()) break; // 패널 순회 중 킥오프 지나면 잔여 패널 중단
       let res: GptMarketPick | null = null;
@@ -803,21 +859,38 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
       }
       if (!res) {
         failed++; // 이 패널만 스킵 — 다른 패널·scorebase 는 그대로 저장(독립)
+        failByPanel.set(p.key, (failByPanel.get(p.key) ?? 0) + 1);
         continue;
       }
       const n = await storePanel(m.id, p.key, { hc: oursHcOu.hc?.line ?? null, ou: oursHcOu.ou?.line ?? null }, res);
       storedMarkets += n;
       matchStored = true;
+      okByPanel.set(p.key, (okByPanel.get(p.key) ?? 0) + 1);
       await new Promise((r) => setTimeout(r, 50));
     }
     if (matchStored) stored++;
   }
 
+  // 좌석별 성패 — ok=0 & fail>0 인 좌석은 죽은 것(키 만료·모델명 변경 등). 로그에서 즉시 식별.
+  const seatSummary = panels
+    .map((p) => `${p.key} ${okByPanel.get(p.key) ?? 0}/${failByPanel.get(p.key) ?? 0}`)
+    .join(", ");
   console.log(
-    `[llm-pred] 완료 — 패널 ${panels.map((p) => p.key).join(",")} / 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / 야구 선발대기 ${awaitingStarter} / 패널실패 ${failed}`,
+    `[llm-pred] 완료 — 패널 ${panels.map((p) => p.key).join(",")} / 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / 야구 선발대기 ${awaitingStarter} / 패널실패 ${failed} / 좌석별 ok/fail: ${seatSummary}`,
   );
   // deferred > 0 = 시간 예산에 걸려 다음 실행으로 이월된 건수 (완주 자체는 정상).
-  return { targeted: targets.length, stored, storedMarkets, skipped, failed, deferred: deadlineHit };
+  return {
+    targeted: targets.length,
+    stored,
+    storedMarkets,
+    skipped,
+    failed,
+    deferred: deadlineHit,
+    // cron 응답에서도 좌석 생사가 보이게 — {panel: [ok, fail]}
+    seats: Object.fromEntries(
+      panels.map((p) => [p.key, [okByPanel.get(p.key) ?? 0, failByPanel.get(p.key) ?? 0]]),
+    ),
+  };
 }
 
 /** scorebase 정량 앵커 저장 — 1X2 는 항상, 핸디/OU 는 라인이 있을 때. 패널과 독립. */

@@ -1,7 +1,26 @@
 // AI 픽 발행 게이트 — 백테스트로 확인된 "승률 깎아먹는 픽 유형"을 저장 전 차단 (docs/prediction-gates).
-// 규칙 3종: ① 1X2 시장 역행+저확신 ② 야구 핸디 HOME(-1.5 커버) ③ scorebase 외 모델의 OU.
+// 규칙 3종: ① 1X2 시장 역행+저확신 ② 야구 핸디 HOME(-1.5 커버) ③ OU 그림자 실측 통과제.
 // 판단 불가(배당 없음)면 통과 — 픽 개수 과도 감소 방지. env PREDICTION_PUBLISH_GATES=off 로 전체 해제.
+//
+// ③ 은 원래 "scorebase 외 전 모델 차단"(07-19 백테스트: 타 모델 44~48%)이었으나, 미발행 픽도
+// 계속 채점하는 설계 덕에 out-of-sample 재검증이 가능했고 그 근거가 기각됐다 (2026-08-01,
+// 가동 후 표본 1,305건: 전 모델 50.7~58.5% — gpt-5.6 58.5% 는 scorebase 54.5% 보다 높았다).
+// 고정 명단은 이렇게 낡는다 → 최근 그림자 성적이 기준을 넘는 모델만 발행하는 실측 통과제로 교체.
+// 표본이 모자라거나 실측을 못 읽으면 기존처럼 차단(fail-closed) — 신규 좌석은 표본이 쌓이면
+// (채점은 발행 여부와 무관하게 전 행 대상) 자동으로 통과권을 얻는다.
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+
+/** OU 실측 통과 기준 — 최근 창에서 이만큼 채점됐고 코인토스 아래가 아니어야 발행. */
+export const OU_SHADOW_MIN_N = 120;
+export const OU_SHADOW_MIN_ACC = 0.5;
+/** 실측 집계 창(일) — 시즌·로스터가 바뀌므로 오래된 성적은 버린다. */
+export const OU_SHADOW_WINDOW_DAYS = 60;
+
+/** 모델별 OU 그림자 성적 (채점 완료분, 발행 여부 무관). */
+export interface OuShadowStat {
+  n: number;
+  acc: number;
+}
 
 export interface MatchOddsCtx {
   league: string;
@@ -45,6 +64,8 @@ export function shouldPublishPick(
   prob: number,
   line: number | null,
   ctx: MatchOddsCtx,
+  /** OU 그림자 실측 (모델 → 성적). 미제공(null/undefined)이면 ③ 은 기존처럼 차단 — fail-closed. */
+  ouStats?: ReadonlyMap<string, OuShadowStat> | null,
 ): GateResult {
   if (process.env.PREDICTION_PUBLISH_GATES === "off") return { ok: true };
 
@@ -65,12 +86,16 @@ export function shouldPublishPick(
     return { ok: true };
   }
 
-  // ③ OU — scorebase(59%) 외 모델은 코인토스 이하(44~48%)
+  // ③ OU — 그림자 실측 통과제. scorebase 는 앵커(채점 라인의 출처)라 항상 발행.
+  //   타 모델은 최근 창 실측이 n>=120 && acc>=50% 일 때만 발행. 실측이 없으면(표본 부족·
+  //   조회 실패·호출부가 stats 미전달) 기존 일괄 차단과 동일하게 동작한다 — 안전한 기본값.
   if (market === "OU") {
-    if (model !== "scorebase") {
-      return { ok: false, reason: "OU_WEAK_MODEL" };
+    if (model === "scorebase") return { ok: true };
+    const s = ouStats?.get(model);
+    if (s && s.n >= OU_SHADOW_MIN_N && s.acc >= OU_SHADOW_MIN_ACC) {
+      return { ok: true };
     }
-    return { ok: true };
+    return { ok: false, reason: "OU_WEAK_MODEL" };
   }
 
   return { ok: true };
