@@ -8,6 +8,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { prisma } from "@/lib/db";
 import rawClubs from "../../../../data/club-rankings.json";
+import clubMeta from "../../../../data/club-rankings-meta.json";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 
 interface ClubRank { id: string; rank: number; name: string; logo: string | null; countryLogo: string | null; points: number; prev: number; change: number }
@@ -84,7 +85,7 @@ export default async function ClubRankingPage() {
             세계 클럽 랭킹
           </h1>
           <span className="shrink-0 text-xs sm:text-sm tabular-nums text-zinc-400 dark:text-white/40">
-            TOP {CLUBS.length}
+            TOP {CLUBS.length} · {(clubMeta as { updatedDate: string }).updatedDate} 기준 · 매일 자동 갱신
           </span>
         </div>
         <p className="mt-3 text-sm text-zinc-500 break-keep dark:text-white/50">

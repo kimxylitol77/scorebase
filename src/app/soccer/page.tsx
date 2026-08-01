@@ -15,6 +15,15 @@ import {
   Award,
   Coins,
   Activity,
+  Globe,
+  Flag,
+  Radio,
+  HeartPulse,
+  Newspaper,
+  Users,
+  Swords,
+  Banknote,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -74,7 +83,7 @@ export default async function SoccerHub() {
             </svg>
             축구
           </h1>
-          <span className="text-sm text-neutral-400">빅5 · K리그 · UCL · 월드컵</span>
+          <span className="text-sm text-neutral-400">빅5 · K리그 · 유럽 대항전 · 월드컵 · 랭킹</span>
         </div>
         <p className="text-sm text-neutral-500 break-keep">
           리그를 선택해 순위·일정·AI 예측을 확인하세요. 이적시장·선수 비교도 한 곳에서.
@@ -134,21 +143,62 @@ export default async function SoccerHub() {
           </Card>
         ))}
 
-        {/* 챔피언스리그 */}
+        {/* 유럽 대항전 — UCL·UEL·UECL */}
         <Card
-          title="챔피언스리그"
+          title="유럽 대항전"
           Icon={Trophy}
+          badge="UCL · UEL · UECL"
           href="/leagues/UCL"
-          hrefLabel="UCL 상세"
+          hrefLabel="챔피언스리그"
           links={[
-            { label: "대진·예측", href: "/predictions/UCL" },
-            { label: "순위", href: "/leagues/UCL" },
-            { label: "역사", href: "/leagues/UCL?view=history" },
+            { label: "UCL 대진·예측", href: "/predictions/UCL" },
+            { label: "유로파리그", href: "/leagues/UEL" },
+            { label: "컨퍼런스리그", href: "/leagues/UECL" },
+            { label: "UCL 역사", href: "/leagues/UCL?view=history" },
             { label: "글·분석", href: "/leagues/UCL?view=articles" },
           ]}
         >
           <p className="text-sm text-neutral-500 break-keep">
-            유럽 최강 클럽 토너먼트 · 대진·일정·AI 예측.
+            챔피언스리그·유로파리그·컨퍼런스리그 · 대진·일정·AI 예측.
+          </p>
+        </Card>
+
+        {/* 축구 랭킹 모음 — FIFA 남녀·클럽·가성비·발롱도르 */}
+        <Card
+          title="축구 랭킹"
+          Icon={Globe}
+          badge="국가 · 클럽"
+          href="/predictions/fifa-ranking"
+          hrefLabel="FIFA 국가 랭킹"
+          links={[
+            { label: "FIFA 랭킹 (남)", href: "/predictions/fifa-ranking" },
+            { label: "FIFA 랭킹 (여)", href: "/predictions/fifa-ranking-women" },
+            { label: "세계 클럽 랭킹", href: "/predictions/club-ranking" },
+            { label: "가성비 구단", href: "/rankings/value-clubs" },
+            { label: "발롱도르 지수", href: "/ballon" },
+          ]}
+        >
+          <p className="text-sm text-neutral-500 break-keep">
+            FIFA 국가 랭킹(남·여)·세계 클럽 랭킹 — 매일 자동 갱신.
+          </p>
+        </Card>
+
+        {/* 한국 축구 — 해외파·K리그 */}
+        <Card
+          title="한국 축구"
+          Icon={Flag}
+          badge="해외파 · K리그"
+          href="/soccer/korea"
+          hrefLabel="해외파 한국 선수"
+          links={[
+            { label: "해외파 기록실", href: "/soccer/korea" },
+            { label: "K리그1", href: "/leagues/K_LEAGUE_1" },
+            { label: "K리그2", href: "/leagues/K_LEAGUE_2" },
+            { label: "K리그 카드 데이터", href: "/k-league-cards" },
+          ]}
+        >
+          <p className="text-sm text-neutral-500 break-keep">
+            해외파 한국 선수 시즌 기록 · K리그1·2 순위·예측.
           </p>
         </Card>
 
@@ -160,15 +210,23 @@ export default async function SoccerHub() {
         </Card>
       </div>
 
-      {/* 기능 바로가기 */}
+      {/* 기능 바로가기 — 축구 관련 전체 진입로 */}
       <div className="flex flex-wrap gap-2 pt-1">
+        <FnChip href="/scores?sport=soccer" Icon={Radio} label="라이브 스코어" />
+        <FnChip href="/standings" Icon={ListOrdered} label="전체 순위표" />
+        <FnChip href="/previews" Icon={Newspaper} label="AI 매치 프리뷰" />
         <FnChip href="/transfers" Icon={ArrowLeftRight} label="이적시장 · 몸값 랭킹" />
+        <FnChip href="/injuries" Icon={HeartPulse} label="부상자 명단" />
+        <FnChip href="/salaries/soccer" Icon={Banknote} label="축구 연봉 랭킹" />
         <FnChip href="/rankings/value-clubs" Icon={Gem} label="가성비 구단 랭킹" />
         <FnChip href="/compare?sport=SOCCER" Icon={GitCompare} label="선수 비교" />
         <FnChip href="/ballon" Icon={Award} label="발롱도르 순위 지수" />
         <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
+        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
         <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
         <FnChip href="/odds?sport=soccer" Icon={Activity} label="배당 흐름" />
+        <FnChip href="/dream-team" Icon={Users} label="드림팀 게임" />
+        <FnChip href="/lineup" Icon={ClipboardList} label="라인업 전술판" />
         <FnChip href="/k-league-cards" Icon={IdCard} label="K리그 카드 선수 데이터" />
       </div>
 

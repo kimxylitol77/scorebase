@@ -1,4 +1,4 @@
-// FIFA 남녀 랭킹 자동 갱신 — TheSports ranking/fifa/{men,women} → src/lib/sports/fifa-rankings*.json.
+// FIFA 남녀 + 세계 클럽 랭킹 자동 갱신 — TheSports ranking/* → 정적 JSON.
 //
 //   npm run refresh:fifa-rankings              # dry-run (기본)
 //   npm run refresh:fifa-rankings -- --write   # 파일 기록
@@ -137,6 +137,62 @@ async function refreshDataset(d0: (typeof DATASETS)[number], knownNames: Set<str
   console.log(`  갱신 완료 — ${d0.jsonFile}`);
 }
 
+// ── 세계 클럽 랭킹 — 국가 랭킹과 응답 구조가 다르다(배열, pub_time 없음) ──
+const CLUB_JSON = path.join(process.cwd(), "data/club-rankings.json");
+const CLUB_META = path.join(process.cwd(), "data/club-rankings-meta.json");
+const CLUB_TOP_N = 150; // 페이지·팀 배지가 쓰는 범위 — 전체 2,700+ 를 다 실을 이유 없음
+
+async function refreshClubRankings() {
+  const user = process.env.THESPORTS_USER!;
+  const secret = process.env.THESPORTS_SECRET!;
+  const u = new URL("https://api.thesports.com/v1/football/ranking/club");
+  u.searchParams.set("user", user);
+  u.searchParams.set("secret", secret);
+  const d = (await (await fetch(u, { signal: AbortSignal.timeout(20000) })).json()) as {
+    code: number;
+    results?: Array<{
+      team?: { id?: string; name?: string; logo?: string; country_logo?: string };
+      ranking: number;
+      points: number;
+      previous_points?: number;
+      position_changed?: number;
+    }>;
+  };
+  if (d.code !== 0) throw new Error(`[클럽] ts code=${d.code}`);
+  const items = d.results ?? [];
+  // pub_time 이 없어 발표일 역행 가드 대신 규모·내용 가드를 쓴다.
+  if (items.length < 1000) throw new Error(`[클럽] 전체 규모 비정상 ${items.length} — 중단`);
+
+  const next = items
+    .filter((i) => i.team?.id && i.team?.name && i.ranking > 0)
+    .sort((a, b) => a.ranking - b.ranking)
+    .slice(0, CLUB_TOP_N)
+    .map((i) => ({
+      id: i.team!.id!,
+      rank: i.ranking,
+      name: i.team!.name!,
+      logo: i.team!.logo ?? null,
+      countryLogo: i.team!.country_logo ?? null,
+      points: i.points,
+      prev: i.previous_points ?? i.points,
+      change: i.position_changed ?? 0,
+    }));
+  if (next.length < 100 || next[0].points < 1000)
+    throw new Error(`[클럽] 상위 데이터 비정상 (n=${next.length}, top=${next[0]?.points}) — 중단`);
+
+  const cur = JSON.parse(readFileSync(CLUB_JSON, "utf-8"));
+  const same = JSON.stringify(cur) === JSON.stringify(next);
+  console.log(`[클럽] ${next.length}개 (전체 ${items.length}) · 1위 ${next[0].name} ${next[0].points}점 · ${same ? "변경 없음" : "변경 있음"}`);
+  if (same) return;
+  if (!write) {
+    console.log("  DRY-RUN — 기록하려면 --write");
+    return;
+  }
+  writeFileSync(CLUB_JSON, JSON.stringify(next, null, 2) + "\n", "utf-8");
+  writeFileSync(CLUB_META, JSON.stringify({ updatedDate: new Date().toISOString().slice(0, 10) }, null, 2) + "\n", "utf-8");
+  console.log(`  갱신 완료 — ${CLUB_JSON}`);
+}
+
 async function main() {
   // 국가명 사전(국기·한글명)의 키 = 남자 랭킹 JSON 의 표기. 남녀 모두 이 표기로 정규화한다.
   const knownNames = new Set(
@@ -145,6 +201,7 @@ async function main() {
   for (const d0 of DATASETS) {
     await refreshDataset(d0, knownNames);
   }
+  await refreshClubRankings();
 }
 
 main().catch((e) => {
