@@ -15,6 +15,7 @@ import SoccerGoalsCard from "./live/SoccerGoalsCard";
 import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
 import MatchEventTabs from "./live/MatchEventTabs";
 import LiveTickerFeed from "./live/LiveTickerFeed";
+import MatchWeather from "./live/MatchWeather";
 import { soccerTickerLines } from "@/lib/live/ticker";
 
 // 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
@@ -157,6 +158,9 @@ interface Props {
   oddsHistory?: Array<{ fetchedAt: number; home: number; draw: number | null; away: number }>;
   /** TheSports player id → photo URL (lineup cache 에서 page.tsx 가 추출). 이벤트 타임라인 아바타용. */
   playerLogoById?: Record<string, string>;
+  /** 경기장 도시 (TheSports venue) — 헤더 우측 현재 날씨 배지용. 없으면 미표시. */
+  venueCity?: string | null;
+  venueCountry?: string | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -185,6 +189,8 @@ export default function SportLiveDetail({
   eloPrediction,
   oddsHistory,
   playerLogoById,
+  venueCity,
+  venueCountry,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -350,9 +356,14 @@ export default function SportLiveDetail({
               </span>
             )}
           </div>
-          {isLive && (
-            <span className="text-[10px] text-neutral-500">20초 자동 갱신</span>
-          )}
+          <div className="flex items-center gap-2">
+            {venueCity && (
+              <MatchWeather city={venueCity} country={venueCountry} />
+            )}
+            {isLive && (
+              <span className="text-[10px] text-neutral-500">20초 자동 갱신</span>
+            )}
+          </div>
         </div>
 
         {/* 양팀 + 점수 — home 좌측 / away 우측 (한국 축구·야구 미디어 관행) */}
