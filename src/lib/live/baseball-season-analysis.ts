@@ -9,6 +9,8 @@
 
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export interface BaseballTeamSeason {
   teamName: string;
@@ -149,6 +151,8 @@ export interface BaseballGameRow {
   homeScore: number | null;
   awayScore: number | null;
   winner: "HOME" | "AWAY" | "DRAW" | null;
+  /** 현재 보는 대회와 다른 대회의 경기일 때만 대회명 라벨 (A매치 크로스 대회 표시). */
+  leagueLabel?: string;
 }
 
 export interface BaseballRecentGames {
@@ -159,6 +163,7 @@ export interface BaseballRecentGames {
 }
 
 interface RawGame {
+  league: string;
   startTime: Date;
   homeScore: number | null;
   awayScore: number | null;
@@ -167,6 +172,7 @@ interface RawGame {
 }
 
 const GAME_SELECT = {
+  league: true,
   startTime: true,
   homeScore: true,
   awayScore: true,
@@ -189,11 +195,14 @@ function toGameRow(m: RawGame, league: string): BaseballGameRow {
   if (hs != null && as != null) winner = hs > as ? "HOME" : hs < as ? "AWAY" : "DRAW";
   return {
     date: kstYYMMDD(m.startTime),
-    homeName: toKoreanTeamName(m.homeTeam.name, league) || m.homeTeam.name,
-    awayName: toKoreanTeamName(m.awayTeam.name, league) || m.awayTeam.name,
+    homeName: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
+    awayName: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
     homeScore: hs,
     awayScore: as,
     winner,
+    ...(m.league !== league
+      ? { leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league }
+      : {}),
   };
 }
 
@@ -210,8 +219,14 @@ export async function getBaseballRecentGames(match: {
   // 전 종목 공통 (Match 기반) — 야구 게이트 없음. 무승부는 toGameRow 가 처리. 에러 시 null.
   try {
     const before = match.startTime;
+    // A매치(시니어 국가대항)는 같은 팀이 여러 대회를 오가므로 현재 대회로 좁히면 폼이 안 잡힌다
+    // (ASEAN_CHAMP 만 보면 친선·예선 경기 누락). 국가대항 대회 전체로 확장 — teamId 기준
+    // 조회라 다른 나라·연령대 경기가 섞일 일은 없다. 클럽 리그는 기존대로 현재 리그만.
+    const leagueFilter = NATIONAL_TEAM_LEAGUES.has(match.league)
+      ? { league: { in: [...NATIONAL_TEAM_LEAGUES] } }
+      : { league: match.league };
     const base = {
-      league: match.league,
+      ...leagueFilter,
       status: "FINISHED",
       startTime: { lt: before },
     };

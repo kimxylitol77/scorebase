@@ -118,6 +118,11 @@ function GameRow({ g }: { g: BaseballGameRow }) {
     <tr>
       <td className="text-left py-2.5 px-2 sm:px-3 tabular-nums text-neutral-500">
         {g.date}
+        {g.leagueLabel && (
+          <span className="block text-[10px] leading-tight text-neutral-400 dark:text-neutral-500 truncate max-w-[18vw]">
+            {g.leagueLabel}
+          </span>
+        )}
       </td>
       <td className="text-right py-2.5 px-1 truncate max-w-[22vw]">
         {g.homeName}
