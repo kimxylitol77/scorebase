@@ -14,6 +14,7 @@ import LiveCommentaryBox, {
 } from "./live/LiveCommentaryBox";
 import LiveTickerFeed from "./live/LiveTickerFeed";
 import { baseballTickerLines } from "@/lib/live/ticker";
+import MatchWeather from "./live/MatchWeather";
 import dynamic from "next/dynamic";
 
 // 라이브 승리확률 패널 — KBO 한정·51K 테이블 import 라 dynamic 으로 필요시에만 로드.
@@ -87,6 +88,10 @@ interface Props {
   awayTeamId?: number;
   /** Ollama (Mac mini) 생성 라이브 코멘터리 — 데이터 없으면 미표시 */
   liveCommentary?: LiveCommentaryData | null;
+  /** 홈 구장 도시 (baseball-city 매핑) — 헤더 우측 현재 날씨 배지. 없으면 미표시 */
+  venueCity?: string | null;
+  venueCountry?: string | null;
+  venueLabel?: string | null;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -145,6 +150,9 @@ export default function BaseballLiveDetail({
   homeTeamId,
   awayTeamId,
   liveCommentary = null,
+  venueCity,
+  venueCountry,
+  venueLabel,
 }: Props) {
   const [live, setLive] = useState<BaseballLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -317,9 +325,18 @@ export default function BaseballLiveDetail({
               </span>
             )}
           </div>
-          {isLive && (
-            <span className="text-[10px] text-neutral-500">라이브 자동 갱신</span>
-          )}
+          <div className="flex items-center gap-2">
+            {venueCity && (
+              <MatchWeather
+                city={venueCity}
+                country={venueCountry}
+                label={venueLabel}
+              />
+            )}
+            {isLive && (
+              <span className="text-[10px] text-neutral-500">라이브 자동 갱신</span>
+            )}
+          </div>
         </div>
 
         {/* 양팀 + 점수 */}

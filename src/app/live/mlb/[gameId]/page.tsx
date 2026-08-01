@@ -44,6 +44,7 @@ import {
   findMlbGamePk,
   type MlbFullBoxscore,
 } from "@/lib/sports/mlb-stats-api";
+import { getBaseballCity } from "@/lib/baseball-city";
 
 function parseStarterFull(json: string | null): StarterInfo | null {
   if (!json) return null;
@@ -237,6 +238,9 @@ export default async function MlbLivePage({ params }: Props) {
     });
   }
 
+  // 홈 구장 도시 — 스코어보드 헤더 날씨 배지용
+  const venueCity = getBaseballCity("MLB", match.homeTeam.name);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -295,6 +299,9 @@ export default async function MlbLivePage({ params }: Props) {
         gameId={gameId}
         homeNameKo={homeKo}
         awayNameKo={awayKo}
+        venueCity={venueCity?.city ?? null}
+        venueCountry={venueCity?.country ?? null}
+        venueLabel={venueCity?.label ?? null}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}

@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
+import MatchWeather from "./live/MatchWeather";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
 } from "./live/LiveCommentaryBox";
@@ -169,6 +170,10 @@ interface Props {
   awayLogoUrl?: string | null;
   /** Ollama (Mac mini) 생성 라이브 코멘터리 — 데이터 없으면 미표시 */
   liveCommentary?: LiveCommentaryData | null;
+  /** 홈 구장 도시 (baseball-city 매핑) — 헤더 우측 현재 날씨 배지. 없으면 미표시 */
+  venueCity?: string | null;
+  venueCountry?: string | null;
+  venueLabel?: string | null;
 }
 
 const POLL_LIVE_MS = 2_000;
@@ -183,6 +188,9 @@ export default function MlbLiveDetail({
   homeLogoUrl,
   awayLogoUrl,
   liveCommentary = null,
+  venueCity,
+  venueCountry,
+  venueLabel,
 }: Props) {
   const [live, setLive] = useState<MlbLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -336,9 +344,18 @@ export default function MlbLiveDetail({
               </span>
             )}
           </div>
-          {isLive && (
-            <span className="text-[10px] text-neutral-500">10초 자동 갱신</span>
-          )}
+          <div className="flex items-center gap-2">
+            {venueCity && (
+              <MatchWeather
+                city={venueCity}
+                country={venueCountry}
+                label={venueLabel}
+              />
+            )}
+            {isLive && (
+              <span className="text-[10px] text-neutral-500">10초 자동 갱신</span>
+            )}
+          </div>
         </div>
 
         {/* 양팀 + 점수 */}

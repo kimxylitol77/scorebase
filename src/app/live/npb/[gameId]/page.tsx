@@ -39,6 +39,7 @@ import {
   getBaseballSeasonAnalysis,
   getBaseballRecentGames,
 } from "@/lib/live/baseball-season-analysis";
+import { getBaseballCity } from "@/lib/baseball-city";
 
 export const dynamic = "force-dynamic";
 
@@ -184,6 +185,9 @@ export default async function NpbLivePage({ params }: Props) {
     });
   }
 
+  // 홈 구장 도시 — 스코어보드 헤더 날씨 배지용
+  const venueCity = getBaseballCity("NPB", match.homeTeam.name);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -242,6 +246,9 @@ export default async function NpbLivePage({ params }: Props) {
         league="NPB"
         homeNameKo={homeKo}
         awayNameKo={awayKo}
+        venueCity={venueCity?.city ?? null}
+        venueCountry={venueCity?.country ?? null}
+        venueLabel={venueCity?.label ?? null}
         homeAbbr={match.homeTeam.shortName ?? null}
         awayAbbr={match.awayTeam.shortName ?? null}
         homeLogo={match.homeTeam.logoUrl ?? null}

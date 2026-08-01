@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 interface Props {
   city: string;
   country?: string | null;
+  /** 배지 표시용 도시명 (한글 등) — 미지정 시 geocoding 결과 영문명 */
+  label?: string | null;
 }
 
 interface WeatherData {
@@ -15,7 +17,7 @@ interface WeatherData {
   city: string;
 }
 
-export default function MatchWeather({ city, country }: Props) {
+export default function MatchWeather({ city, country, label }: Props) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
 
   useEffect(() => {
@@ -38,9 +40,9 @@ export default function MatchWeather({ city, country }: Props) {
   return (
     <span
       className="text-[10px] text-neutral-500 whitespace-nowrap"
-      title={`${weather.city} 현재 날씨`}
+      title={`${label ?? weather.city} 현재 날씨`}
     >
-      {weather.city} {Math.round(weather.tempC)}°C · {weather.label}
+      {label ?? weather.city} {Math.round(weather.tempC)}°C · {weather.label}
     </span>
   );
 }
