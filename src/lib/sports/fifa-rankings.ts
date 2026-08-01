@@ -14,9 +14,15 @@
 
 import rankingsData from "./fifa-rankings.json";
 import rankingsMeta from "./fifa-rankings-meta.json";
+import rankingsWomenData from "./fifa-rankings-women.json";
+import rankingsWomenMeta from "./fifa-rankings-women-meta.json";
 
 /** 랭킹 발표 일자 (UI 툴팁/주석용) — refresh-fifa-rankings 가 json 과 함께 자동 갱신. */
 export const FIFA_RANKING_DATE: string = (rankingsMeta as { pubDate: string }).pubDate;
+
+/** FIFA 여자 랭킹 (남자와 같은 표기로 정규화 — 국기·한글명 사전 공용). 자동 갱신 동일. */
+export const FIFA_RANKINGS_WOMEN = rankingsWomenData as { rank: number; name: string }[];
+export const FIFA_RANKING_DATE_WOMEN: string = (rankingsWomenMeta as { pubDate: string }).pubDate;
 
 /**
  * FIFA 랭킹을 표시할 국가대항 시니어 대회 리그 코드.

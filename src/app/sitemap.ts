@@ -54,6 +54,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/rankings/ufc`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/rankings/value-clubs`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/predictions/fifa-ranking`, changeFrequency: "weekly", priority: 0.75 }, // "FIFA 랭킹" 검색 수요
+    { url: `${base}/predictions/fifa-ranking-women`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/mlb-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/npb-win-probability`, changeFrequency: "monthly", priority: 0.75 },

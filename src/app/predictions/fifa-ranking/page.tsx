@@ -133,7 +133,10 @@ export default async function FifaRankingPage() {
           </span>
         </div>
         <p className="mt-3 text-sm text-zinc-500 break-keep dark:text-white/50">
-          국제축구연맹(FIFA) 공식 남자 국가대표 랭킹. 국가대항 매치(친선·예선)의 순위 표시 기준입니다.
+          국제축구연맹(FIFA) 공식 남자 국가대표 랭킹. 국가대항 매치(친선·예선)의 순위 표시 기준입니다.{" "}
+          <Link href="/predictions/fifa-ranking-women" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            여자 랭킹 보기 →
+          </Link>
         </p>
 
         {/* 대한민국 순위 강조 — "대한민국 FIFA 순위" 검색 의도 직답 */}
@@ -197,6 +200,8 @@ export default async function FifaRankingPage() {
             스코어베이스는 국가대항 매치(친선·예선·본선)의 순위 표시 기준으로 이 FIFA 랭킹을 사용합니다.
             리그별 시즌 우승 확률은{" "}
             <Link href="/predictions" className="font-medium text-blue-600 hover:underline dark:text-blue-400">예측 대시보드</Link>,
+            여자 국가대표 순위는{" "}
+            <Link href="/predictions/fifa-ranking-women" className="font-medium text-blue-600 hover:underline dark:text-blue-400">FIFA 여자 랭킹</Link>,
             세계 클럽 순위는{" "}
             <Link href="/predictions/club-ranking" className="font-medium text-blue-600 hover:underline dark:text-blue-400">세계 클럽 랭킹</Link>에서
             확인할 수 있습니다.

@@ -1,4 +1,4 @@
-// FIFA 남자 랭킹 자동 갱신 — TheSports ranking/fifa/men → src/lib/sports/fifa-rankings.json.
+// FIFA 남녀 랭킹 자동 갱신 — TheSports ranking/fifa/{men,women} → src/lib/sports/fifa-rankings*.json.
 //
 //   npm run refresh:fifa-rankings              # dry-run (기본)
 //   npm run refresh:fifa-rankings -- --write   # 파일 기록
@@ -17,8 +17,22 @@
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
 
-const JSON_FILE = path.join(process.cwd(), "src/lib/sports/fifa-rankings.json");
-const META_FILE = path.join(process.cwd(), "src/lib/sports/fifa-rankings-meta.json");
+const DATASETS = [
+  {
+    label: "남자",
+    api: "men",
+    jsonFile: path.join(process.cwd(), "src/lib/sports/fifa-rankings.json"),
+    metaFile: path.join(process.cwd(), "src/lib/sports/fifa-rankings-meta.json"),
+    minCount: 200,
+  },
+  {
+    label: "여자",
+    api: "women",
+    jsonFile: path.join(process.cwd(), "src/lib/sports/fifa-rankings-women.json"),
+    metaFile: path.join(process.cwd(), "src/lib/sports/fifa-rankings-women-meta.json"),
+    minCount: 180, // 여자 랭킹은 197개국 (2026-08-01 실측)
+  },
+] as const;
 
 // TheSports 국가명 → 기존 FIFA 공식 표기 (fifaCountryKo/fifaFlag 사전 키와 일치시킨다).
 // 2026-08-01 실측 211개국 중 19개 불일치 전수 대조로 확정.
@@ -43,67 +57,94 @@ const NAME_ALIASES: Record<string, string> = {
   "Sao Tome and Principe": "São Tomé and Príncipe",
   "Timor Leste": "Timor-Leste",
   "Guam Island": "Guam",
+  // ── 여자 랭킹에서만 나오는 변형 (2026-08-01 실측 — 접미사 제거 후 기준) ──
+  "Iran": "IR Iran",
+  "China Hong Kong": "Hong Kong, China",
+  "DR Congo": "Congo DR",
+  "Syrian": "Syria",
+  "Macao China": "Macau",
+  "Solomon Islands Soccer": "Solomon Islands",
 };
+
+/**
+ * TheSports 팀명 정규화 — 여자 랭킹은 접미사·괄호·후행 공백이 제각각이다.
+ * "Spain Women" / "PakistanWomen" / "Bahrain (w)" / "Solomon Islands (w) Soccer" / "Cabo Verde " 실측.
+ */
+function normalizeName(raw: string): string {
+  let n = raw.trim();
+  n = n.replace(/\s*\(w\)/i, "");      // "(w)" 마커 제거
+  n = n.replace(/\s*Women$/i, "");      // 접미사 (공백 없이 붙은 "PakistanWomen" 도 커버)
+  n = n.replace(/\s{2,}/g, " ").trim();
+  return NAME_ALIASES[n] ?? n;
+}
 
 const write = process.argv.includes("--write");
 
-async function main() {
+async function refreshDataset(d0: (typeof DATASETS)[number], knownNames: Set<string>) {
   const user = process.env.THESPORTS_USER;
   const secret = process.env.THESPORTS_SECRET;
   if (!user || !secret) throw new Error("THESPORTS_USER / THESPORTS_SECRET 미설정");
 
-  const u = new URL("https://api.thesports.com/v1/football/ranking/fifa/men");
+  const u = new URL(`https://api.thesports.com/v1/football/ranking/fifa/${d0.api}`);
   u.searchParams.set("user", user);
   u.searchParams.set("secret", secret);
   const d = (await (await fetch(u, { signal: AbortSignal.timeout(20000) })).json()) as {
     code: number;
     results?: { pub_time?: number; items?: Array<{ ranking: number; team?: { name?: string } }> };
   };
-  if (d.code !== 0) throw new Error(`ts code=${d.code}`);
+  if (d.code !== 0) throw new Error(`[${d0.label}] ts code=${d.code}`);
   const items = d.results?.items ?? [];
   const pubDate = d.results?.pub_time
     ? new Date(d.results.pub_time * 1000).toISOString().slice(0, 10)
     : null;
-  if (!pubDate) throw new Error("pub_time 없음");
+  if (!pubDate) throw new Error(`[${d0.label}] pub_time 없음`);
 
-  const current = JSON.parse(readFileSync(JSON_FILE, "utf-8")) as Array<{ rank: number; name: string }>;
-  const knownNames = new Set(current.map((r) => r.name));
   let curDate = "0000-00-00";
   try {
-    curDate = (JSON.parse(readFileSync(META_FILE, "utf-8")) as { pubDate: string }).pubDate;
+    curDate = (JSON.parse(readFileSync(d0.metaFile, "utf-8")) as { pubDate: string }).pubDate;
   } catch { /* meta 파일 도입 전 — 첫 실행 */ }
 
   const next = items
-    .map((i) => ({ rank: i.ranking, name: NAME_ALIASES[i.team?.name ?? ""] ?? i.team?.name ?? "" }))
+    .map((i) => ({ rank: i.ranking, name: normalizeName(i.team?.name ?? "") }))
     .filter((r) => r.name && r.rank > 0)
     .sort((a, b) => a.rank - b.rank);
 
   const unknown = next.filter((r) => !knownNames.has(r.name)).map((r) => r.name);
-  console.log(`발표 ${pubDate} (현재 파일 ${curDate}) · ${next.length}개국 · 미확인 표기 ${unknown.length}건`);
+  console.log(`[${d0.label}] 발표 ${pubDate} (현재 파일 ${curDate}) · ${next.length}개국 · 미확인 표기 ${unknown.length}건`);
   if (unknown.length > 0) console.log("  미확인:", unknown.slice(0, 10).join(", "));
 
   // ── 가드 ──
-  if (next.length < 200) throw new Error(`국가 수 비정상 ${next.length} — 중단`);
+  if (next.length < d0.minCount) throw new Error(`[${d0.label}] 국가 수 비정상 ${next.length} — 중단`);
   if (unknown.length > next.length * 0.05)
-    throw new Error(`미확인 표기 ${unknown.length}건(5% 초과) — 별칭 사전 보강 필요, 중단`);
-  if (pubDate < curDate) throw new Error(`발표일 역행 ${curDate} → ${pubDate} — 중단`);
+    throw new Error(`[${d0.label}] 미확인 표기 ${unknown.length}건(5% 초과) — 별칭 사전 보강 필요, 중단`);
+  if (pubDate < curDate) throw new Error(`[${d0.label}] 발표일 역행 ${curDate} → ${pubDate} — 중단`);
   if (pubDate === curDate) {
-    console.log("발표일 동일 — 갱신할 것 없음");
+    console.log(`[${d0.label}] 발표일 동일 — 갱신할 것 없음`);
     return;
   }
 
   const korea = next.find((r) => r.name === "Korea Republic");
   console.log(
-    `1위 ${next[0]?.name} · 대한민국 ${korea?.rank ?? "?"}위 · ${curDate} → ${pubDate}`,
+    `[${d0.label}] 1위 ${next[0]?.name} · 대한민국 ${korea?.rank ?? "?"}위 · ${curDate} → ${pubDate}`,
   );
 
   if (!write) {
-    console.log("\nDRY-RUN — 기록하려면 --write");
+    console.log("  DRY-RUN — 기록하려면 --write");
     return;
   }
-  writeFileSync(JSON_FILE, JSON.stringify(next, null, 2) + "\n", "utf-8");
-  writeFileSync(META_FILE, JSON.stringify({ pubDate }, null, 2) + "\n", "utf-8");
-  console.log(`갱신 완료 — ${JSON_FILE}`);
+  writeFileSync(d0.jsonFile, JSON.stringify(next, null, 2) + "\n", "utf-8");
+  writeFileSync(d0.metaFile, JSON.stringify({ pubDate }, null, 2) + "\n", "utf-8");
+  console.log(`  갱신 완료 — ${d0.jsonFile}`);
+}
+
+async function main() {
+  // 국가명 사전(국기·한글명)의 키 = 남자 랭킹 JSON 의 표기. 남녀 모두 이 표기로 정규화한다.
+  const knownNames = new Set(
+    (JSON.parse(readFileSync(DATASETS[0].jsonFile, "utf-8")) as Array<{ name: string }>).map((r) => r.name),
+  );
+  for (const d0 of DATASETS) {
+    await refreshDataset(d0, knownNames);
+  }
 }
 
 main().catch((e) => {

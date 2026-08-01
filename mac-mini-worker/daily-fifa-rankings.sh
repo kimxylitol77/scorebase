@@ -2,7 +2,7 @@
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
 hb_trap mac-mini-daily-fifa-rankings /tmp/daily-fifa-rankings.log
-# 매일 06:40 KST — FIFA 남자 랭킹을 TheSports 에서 받아 정적 JSON 자동 갱신 + push.
+# 매일 06:40 KST — FIFA 남녀 랭킹을 TheSports 에서 받아 정적 JSON 자동 갱신 + push.
 #
 # 왜 필요한가. /predictions/fifa-ranking 과 매치 카드 [FIFA N위] 칩이 수동 교체되는
 # 정적 JSON 을 읽는데, 2026-04-01 이후 방치돼 월드컵 이후 발표(7/19, 스페인 1위)가
@@ -24,7 +24,7 @@ git fetch origin main -q && git reset --hard origin/main -q
 
 npx tsx --env-file=.env.local scripts/refresh-fifa-rankings.ts --write 2>&1 | tail -6
 
-FILES="src/lib/sports/fifa-rankings.json src/lib/sports/fifa-rankings-meta.json"
+FILES="src/lib/sports/fifa-rankings.json src/lib/sports/fifa-rankings-meta.json src/lib/sports/fifa-rankings-women.json src/lib/sports/fifa-rankings-women-meta.json"
 if git diff --quiet -- $FILES; then
   log "변경 없음 — push 생략"
 else

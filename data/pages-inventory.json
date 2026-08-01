@@ -560,6 +560,13 @@
     "group": "predictions-deep"
   },
   {
+    "route": "/predictions/fifa-ranking-women",
+    "desc": "FIFA 여자 국가 랭킹 전체. 남자 페이지(fifa-ranking)의 자매 페이지.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "predictions-deep"
+  },
+  {
     "route": "/predictions/scorecard",
     "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.",
     "inMenu": true,
