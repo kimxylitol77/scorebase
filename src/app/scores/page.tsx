@@ -1786,8 +1786,11 @@ export default async function ScoresPage({ searchParams }: Props) {
   }
 
   // 빈 상태 → 가까운 가용 일자 lookup (±7일 내)
+  // orphan(DB 미적재 라이브-온리 리그: WK리그·친선 등) 카드만 있는 날도 "경기 있음" —
+  // 헤더 카운트는 orphan 포함인데 목록만 EmptyState 로 갈라지던 버그 방지 (2026-08-01).
+  const hasAnyMatch = normalized.length > 0 || orphanCards.length > 0;
   let nextAvailable: { date: string; label: string } | null = null;
-  if (normalized.length === 0) {
+  if (!hasAnyMatch) {
     const rangeStart = new Date(day.getTime() - 7 * 24 * 3600 * 1000);
     const rangeEnd = new Date(day.getTime() + 7 * 24 * 3600 * 1000);
     const nearby = await prisma.match.findFirst({
@@ -2076,8 +2079,8 @@ export default async function ScoresPage({ searchParams }: Props) {
               </div>
             </div>
 
-            {/* 매치 list */}
-            {normalized.length === 0 ? (
+            {/* 매치 list — orphan 카드만 있는 날(라이브-온리 리그)도 목록 렌더 */}
+            {!hasAnyMatch ? (
               <EmptyState sport={sport} nextAvailable={nextAvailable} />
             ) : visibleCount === 0 ? (
               <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-5 py-10 text-center text-sm text-neutral-500">
@@ -2164,8 +2167,8 @@ export default async function ScoresPage({ searchParams }: Props) {
               />
             ))}
 
-          {/* 매치 list */}
-          {normalized.length === 0 ? (
+          {/* 매치 list — sport=all 은 축구 orphan 카드만 있는 날도 목록 렌더 */}
+          {!hasAnyMatch ? (
             <EmptyState sport={sport} nextAvailable={nextAvailable} />
           ) : (
             <div className="space-y-6">
