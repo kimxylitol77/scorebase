@@ -41,15 +41,16 @@ export default function SoccerStatusTabs({ active, counts, date, league, sort }:
   ];
 
   return (
+    // 모바일도 가로 스크롤 chips (grid 5열 → flex) — 정렬 토글과 한 줄을 나눠 쓰기 위해 flex-1 min-w-0 (2026-08-01 세로 압축)
     <nav
-      className="grid grid-cols-5 gap-1.5 sm:flex sm:gap-2 sm:overflow-x-auto sm:[&::-webkit-scrollbar]:hidden"
+      className="min-w-0 flex-1 flex gap-1.5 sm:gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden"
       aria-label="경기 상태 필터"
     >
       {items.map((item) => {
         const isActive = active === item.key;
         const isLive = item.key === "live";
         const baseClass =
-          "flex sm:inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2.5 sm:px-4 sm:py-2 rounded-md text-[13px] sm:text-sm font-semibold whitespace-nowrap transition-colors";
+          "inline-flex shrink-0 items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-[13px] sm:text-sm font-semibold whitespace-nowrap transition-colors";
         const stateClass = isActive
           ? isLive
             ? "bg-rose-600 text-white shadow-sm"

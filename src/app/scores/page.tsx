@@ -1886,7 +1886,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     liveList.length + scheduledList.length + finishedList.length + postponedList.length;
 
   return (
-    <div data-scores-root className={`${containerMaxW} mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4`}>
+    <div data-scores-root className={`${containerMaxW} mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-3 sm:space-y-4`}>
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
@@ -1901,16 +1901,12 @@ export default async function ScoresPage({ searchParams }: Props) {
 
       {/* 내 팀 바로가기 — 즐겨찾기 팀(localStorage) chips, 비어 있으면 미렌더 */}
       <MyTeamsStrip />
-      {/* 재방문 유도 — 관심팀 미등록자 온보딩 + PWA 홈화면 추가 (각자 조건부·닫기 가능) */}
-      <FavTeamOnboarding />
-      <AppInstallBanner />
-      {/* 광고 배너 — 관리자(/admin/ad)에서 켜면 표시 */}
-      <AdBanner />
+      {/* 온보딩·설치·광고·SEO 문장은 목록 아래로 (2026-08-01 첫 경기 도달 압축 — 모바일 734px → 목표 430px) */}
 
-      {/* 헤더 */}
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+      {/* 헤더 — 모바일은 제목·카운트 한 줄 (세로 압축) */}
+      <header className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <h1 className="text-xl sm:text-3xl font-black tracking-tight">
             라이브 스코어
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 flex flex-wrap items-center gap-x-2 gap-y-1.5">
@@ -1928,17 +1924,6 @@ export default async function ScoresPage({ searchParams }: Props) {
         </div>
         <LiveRefresher liveCount={liveList.length} />
       </header>
-
-      {/* SEO 친화 보조 텍스트 (H1 직후) — 검색 키워드 자연 포함 */}
-      <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-        {dateKo} {sportKo} 라이브 스코어·경기 일정·종료 결과를 한곳에서 확인하세요.
-        {" "}{leagueBlurb} 통합, Elo 모델 승률 추정, 라이브 푸시 평균 2-3초 갱신.
-        {normalized.length === 0 && sport !== "tennis" && sport !== "golf" && sport !== "f1" && (
-          <span className="block mt-1 text-neutral-500">
-            해당 일자에 경기가 없습니다. 인접한 일자를 확인해 보세요.
-          </span>
-        )}
-      </p>
 
       {/* 종목 탭 */}
       <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
@@ -2061,33 +2046,34 @@ export default async function ScoresPage({ searchParams }: Props) {
                 </Link>
               )}
 
-            {/* 상태 탭 — 전체/라이브/예정/종료 */}
-            <SoccerStatusTabs
-              active={statusFilter}
-              counts={{
-                // orphanCards(DB 미적재 경기)를 포함하는 리스트 합과 일치시킴 — "전체(9)·종료(10)" 모순 방지
-                all: liveList.length + scheduledList.length + finishedList.length + postponedList.length,
-                live: liveList.length,
-                scheduled: scheduledList.length,
-                finished: finishedList.length,
-                postponed: postponedList.length,
-              }}
-              date={dateStr}
-              league={leagueFilter}
-              sort={sortMode === "time" ? "time" : null}
-            />
-
-            {/* 보기 방식 토글 — 리그별 그룹(기본) / 시간순 평면. 명시 선택은 쿠키로 기억 */}
-            <SortPrefWriter
-              explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
-            />
-            <div className="flex justify-end">
-              <SoccerSortToggle
-                active={sortMode}
+            {/* 상태 탭 + 보기 방식 토글 — 한 줄 (모바일 세로 압축, 상태 탭은 가로 스크롤) */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <SoccerStatusTabs
+                active={statusFilter}
+                counts={{
+                  // orphanCards(DB 미적재 경기)를 포함하는 리스트 합과 일치시킴 — "전체(9)·종료(10)" 모순 방지
+                  all: liveList.length + scheduledList.length + finishedList.length + postponedList.length,
+                  live: liveList.length,
+                  scheduled: scheduledList.length,
+                  finished: finishedList.length,
+                  postponed: postponedList.length,
+                }}
                 date={dateStr}
                 league={leagueFilter}
-                status={statusFilter}
+                sort={sortMode === "time" ? "time" : null}
               />
+              {/* 명시 선택은 쿠키로 기억 */}
+              <SortPrefWriter
+                explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
+              />
+              <div className="shrink-0">
+                <SoccerSortToggle
+                  active={sortMode}
+                  date={dateStr}
+                  league={leagueFilter}
+                  status={statusFilter}
+                />
+              </div>
             </div>
 
             {/* 매치 list */}
@@ -2244,6 +2230,17 @@ export default async function ScoresPage({ searchParams }: Props) {
           )}
         </>
       )}
+
+      {/* 상단에서 내린 블록 (2026-08-01) — 재방문 유도 온보딩 + PWA 설치 + 광고. 점수보다 아래 */}
+      <FavTeamOnboarding />
+      <AppInstallBanner />
+      <AdBanner />
+
+      {/* SEO 친화 보조 텍스트 — 검색 키워드 자연 포함 (크롤러용, 상단에서 이동) */}
+      <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed pt-2">
+        {dateKo} {sportKo} 라이브 스코어·경기 일정·종료 결과를 한곳에서 확인하세요.
+        {" "}{leagueBlurb} 통합, Elo 모델 승률 추정, 라이브 푸시 평균 2-3초 갱신.
+      </p>
 
       <p className="text-[11px] text-neutral-500 leading-relaxed pt-2">
         ⓘ 라이브 점수는 TheSports 라이브 푸시로 평균 2-3초 반영됩니다 (매치 상세는 KBO·NPB·MLB 베이스 상황·볼카운트까지 실시간).
