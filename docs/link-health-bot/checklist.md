@@ -44,11 +44,17 @@
   이번엔 리더보드 판정만 뺐다(감시가 화면과 같은 판정을 써야 해서 필수였음)
 - af 폴백 실제 HTTP 404 표본 검사 — `route-guardian` 이 이미 404 를 돌고 있어 중복
 
-## 남은 백로그 (이 감시가 찾아낸 것)
+## 6. 백로그 18개 리그 처리 (완료)
 
-리더보드 선수 행이 통째로 안 눌리는 리그 18개. af 매핑이 없어 갈 곳 자체가 없다.
-ts 매핑을 채우면(`build-ts-af-player-map` 재실행) 상당수가 살아난다.
+- [x] 진단 — 원인은 af 매핑 부재가 아니라 (1) 링크 화이트리스트가 좁음 (2) 시즌 폴백 없음
+- [x] `src/lib/players/soccer-player-page.ts` 신설 — 축구 지원 리그 목록 단일화
+      (페이지 metadata·페이지 본문·링크 판정 세 군데 복붙 제거)
+- [x] 축구 선수 페이지에 직전 시즌 폴백 추가
+- [x] 리더보드 화이트리스트를 페이지 지원 목록에 맞춤
+- [x] 검증: 같은 표본 72건 재측정 → 47/72(65%) → **72/72(100%)**
+- [x] 검증: link-health 재실행 → 18건 → **0건**
+- [x] 검증: 회귀 없음 (K리그·EPL 은 /transfers, KBO·NHL 은 /players 그대로,
+      J1 0 → 35개 · CSL 0 → 37개 링크 신설)
+- [x] api-football 추가 비용 없음 — 폴백은 첫 시즌이 빌 때만 2차 호출
 
-`AFC_CL_TWO · A_LEAGUE · BUNDESLIGA_2 · CHAMPIONSHIP · CLUB_WORLD_CUP · COPA_LIB ·
-COPA_SUD · CSL · EREDIVISIE · GREEK_SL · J1_LEAGUE · J2_LEAGUE · JUPILER_PL ·
-LIGA_MX · LIGUE_2 · PRIMEIRA_LIGA · SERIE_B · SPL`
+> `build-ts-af-player-map` 재실행(~1,100콜)은 **하지 않았다.** 원인이 매핑이 아니었다.

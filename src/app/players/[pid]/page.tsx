@@ -25,6 +25,11 @@ import { NhlPlayerView } from "./NhlViews";
 import { LolPlayerView } from "./LolViews";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import {
+  SOCCER_PLAYER_PAGE_LEAGUES,
+  SOCCER_PLAYER_PAGE_LEAGUE_SET,
+  soccerProfileSeasons,
+} from "@/lib/players/soccer-player-page";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -79,7 +84,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
   // 축구/NBA/NHL/LOL 등은 metadata 단에서는 generic title 만 반환 (본문에서 별도 fetch).
   // MLB API 로 잘못 fetch 해 404 → 페이지 전체 500 으로 떨어지던 버그 fix.
-  const SOCCER_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL", "UEL", "UECL", "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL", "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE", "CLUB_WORLD_CUP"];
+  const SOCCER_LEAGUES = SOCCER_PLAYER_PAGE_LEAGUES;
   if (league && (SOCCER_LEAGUES.includes(league) || ["NBA", "NHL", "LOL"].includes(league))) {
     return {
       title: `선수 — ${league}`,
@@ -144,10 +149,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
   if (league === "LOL") return <LolPlayerView pid={pid} />;
   // 축구 8개 리그
-  if (
-    league &&
-    ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL", "UEL", "UECL", "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL", "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE", "CLUB_WORLD_CUP"].includes(league)
-  ) {
+  if (league && SOCCER_PLAYER_PAGE_LEAGUE_SET.has(league)) {
     // 축구 선수 페이지 단일화 (2026-06-10) — ts 매핑 있으면 /transfers 선수 페이지로
     // 영구 이동 (시장가치·커리어·대회별 스탯 통합본). 매핑 없는 선수는 기존 af 뷰 유지.
     const tsId = afPlayerToTs(pid);
@@ -229,10 +231,15 @@ function fmtNum(n: number | undefined, dp: number): string {
 async function renderSoccerPlayerView(pid: string, league: string) {
   const id = Number(pid);
   if (!Number.isFinite(id)) notFound();
-  const now = new Date();
-  const m = now.getUTCMonth() + 1;
-  const season = m >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-  const profile = await fetchSoccerPlayerProfile(id, season);
+  // 시즌 폴백 — 새 시즌이 아직 데이터를 못 채운 경계 구간에서 통째로 404 나던 것 방지.
+  // 상세 근거는 soccerProfileSeasons 주석.
+  const seasons = soccerProfileSeasons(new Date());
+  let profile: SoccerPlayerProfile | null = null;
+  let season = seasons[0];
+  for (const s of seasons) {
+    profile = await fetchSoccerPlayerProfile(id, s);
+    if (profile) { season = s; break; }
+  }
   if (!profile) notFound();
 
   const nameKo = toKoreanPlayerName(profile.name) || profile.name;

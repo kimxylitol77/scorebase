@@ -4,9 +4,13 @@
 // 감시가 externalId 유무만 보던 때는 2026-08-01 K리그 사건(= id 는 있는데 링크가
 // 안 걸림)을 재현 테스트에서 못 잡았다. 판정이 두 곳에 있으면 감시가 화면을 못 따라간다.
 
-// /players/[pid] 페이지가 view 를 가진 리그 — 15개 모두 지원.
+import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page";
+
+// /players/[pid] 페이지가 view 를 가진 리그.
+// 축구는 페이지가 지원하는 목록을 그대로 쓴다 — 여기만 좁으면 갈 데가 있는데도 링크가 안 걸린다
+// (2026-08-01: 축구 26개 리그가 이 게이트에서만 빠져 리더보드가 통째로 죽어 있었다).
 const PLAYER_PAGE_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "WORLD_CUP",
+  ...SOCCER_PLAYER_PAGE_LEAGUE_SET,
   "KBO", "NPB", "MLB", "NBA", "NHL", "LOL",
 ]);
 
