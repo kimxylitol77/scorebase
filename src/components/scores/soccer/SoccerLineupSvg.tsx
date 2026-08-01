@@ -200,6 +200,63 @@ function TeamHalf({
   );
 }
 
+const POS_RANK: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
+
+/** 선발 y좌표로 라인 구성 유도 ("4-2-3-1"). GK 제외, y 간격 6 초과면 새 라인. 애매하면 빈 문자열. */
+function deriveFormation(starters: Player[]): string {
+  const outfield = starters
+    .filter((p) => p.position !== "G" && ((p.x ?? 0) > 0 || (p.y ?? 0) > 0))
+    .sort((a, b) => (a.y ?? 0) - (b.y ?? 0));
+  if (outfield.length !== 10) return "";
+  const lines: number[] = [];
+  let prev = -99;
+  let n = 0;
+  for (const p of outfield) {
+    const y = p.y ?? 0;
+    if (y - prev > 6) {
+      if (n) lines.push(n);
+      n = 1;
+    } else n++;
+    prev = y;
+  }
+  if (n) lines.push(n);
+  return lines.join("-");
+}
+
+/** 선발의 포지션 분포(D / M 합 / F)가 formation 라벨과 맞는지 — 라벨 신뢰 판정용. */
+function matchesLabel(starters: Player[], formation?: string): boolean {
+  const lines = (formation ?? "").split("-").map((n) => parseInt(n, 10)).filter((n) => n > 0);
+  if (lines.length < 3) return false;
+  const cnt = (pos: string) => starters.filter((p) => p.position === pos).length;
+  return (
+    lines[0] === cnt("D") &&
+    lines[lines.length - 1] === cnt("F") &&
+    lines.slice(1, -1).reduce((s, n) => s + n, 0) === cnt("M")
+  );
+}
+
+/** formation 라벨대로 좌표 재부여. 라인 배정은 포지션→원본 y 순, 라인 내 좌우는 원본 x 순서 유지. */
+function relayout(starters: Player[], formation: string): Player[] {
+  const lines = formation.split("-").map((n) => parseInt(n, 10)).filter((n) => n > 0);
+  const outfield = starters
+    .filter((p) => p.position !== "G")
+    .sort(
+      (a, b) =>
+        (POS_RANK[a.position ?? ""] ?? 9) - (POS_RANK[b.position ?? ""] ?? 9) ||
+        (a.y ?? 0) - (b.y ?? 0) ||
+        (a.x ?? 0) - (b.x ?? 0),
+    );
+  if (lines.reduce((s, n) => s + n, 0) !== outfield.length) return starters;
+  const out: Player[] = starters.filter((p) => p.position === "G").map((p) => ({ ...p, x: 50, y: 4 }));
+  let i = 0;
+  for (const [li, count] of lines.entries()) {
+    const row = outfield.slice(i, i + count).sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
+    row.forEach((p, j) => out.push({ ...p, x: ((j + 1) / (count + 1)) * 100, y: 20 + li * 16 }));
+    i += count;
+  }
+  return out;
+}
+
 export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
@@ -227,6 +284,20 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
       </section>
     );
   }
+
+  // TheSports 가 x/y 를 상대 팀 포메이션 격자로 찍어 보내는 경기가 있다(2026-08-01 아틀레티코 vs 맨유:
+  // 맨유는 4-2-3-1 인데 4-4-2 격자에 얹혀 미드필더 도르구가 최전방에 찍혔다). 양 팀 포지션 분포가
+  // 각자 라벨과 맞고 좌표에서 유도한 라인만 정확히 서로 뒤바뀐 경우에만 라벨 기준으로 좌표를 다시 만든다.
+  const gridSwapped =
+    !!data.home_formation &&
+    !!data.away_formation &&
+    data.home_formation !== data.away_formation &&
+    matchesLabel(homeStarters, data.home_formation) &&
+    matchesLabel(awayStarters, data.away_formation) &&
+    deriveFormation(homeStarters) === data.away_formation &&
+    deriveFormation(awayStarters) === data.home_formation;
+  const homeXi = gridSwapped ? relayout(homeStarters, data.home_formation!) : homeStarters;
+  const awayXi = gridSwapped ? relayout(awayStarters, data.away_formation!) : awayStarters;
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
@@ -299,8 +370,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         </svg>
 
         {/* 선수 */}
-        <TeamHalf players={homeStarters} side="home" nameById={nameById} injuredIds={injuredIds} />
-        <TeamHalf players={awayStarters} side="away" nameById={nameById} injuredIds={injuredIds} />
+        <TeamHalf players={homeXi} side="home" nameById={nameById} injuredIds={injuredIds} />
+        <TeamHalf players={awayXi} side="away" nameById={nameById} injuredIds={injuredIds} />
       </div>
 
       {/* 평점 색 범례 */}
