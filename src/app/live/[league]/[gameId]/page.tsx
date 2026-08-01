@@ -993,6 +993,9 @@ export default async function GenericLivePage({ params }: Props) {
         playerLogoById={playerLogoById}
         venueCity={venue?.city ?? null}
         venueCountry={venue?.country ?? null}
+        venueWeatherAt={
+          match.status === "FINISHED" ? match.startTime.toISOString() : null
+        }
       />
 
       {/* 종료 경기에서는 라이브 기록을 기본 본문에 보존. 매치 한눈에와 팀 통계 탭 중복은 제외. */}

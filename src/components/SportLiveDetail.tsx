@@ -161,6 +161,8 @@ interface Props {
   /** 경기장 도시 (TheSports venue) — 헤더 우측 현재 날씨 배지용. 없으면 미표시. */
   venueCity?: string | null;
   venueCountry?: string | null;
+  /** 종료 경기의 킥오프 ISO — 날씨를 경기 당시로 고정. null 이면 현재 날씨 */
+  venueWeatherAt?: string | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -191,6 +193,7 @@ export default function SportLiveDetail({
   playerLogoById,
   venueCity,
   venueCountry,
+  venueWeatherAt,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -358,7 +361,11 @@ export default function SportLiveDetail({
           </div>
           <div className="flex items-center gap-2">
             {venueCity && (
-              <MatchWeather city={venueCity} country={venueCountry} />
+              <MatchWeather
+                city={venueCity}
+                country={venueCountry}
+                at={venueWeatherAt}
+              />
             )}
             {isLive && (
               <span className="text-[10px] text-neutral-500">20초 자동 갱신</span>

@@ -174,6 +174,8 @@ interface Props {
   venueCity?: string | null;
   venueCountry?: string | null;
   venueLabel?: string | null;
+  /** 종료 경기의 킥오프 ISO — 날씨를 경기 당시로 고정. null 이면 현재 날씨 */
+  venueWeatherAt?: string | null;
 }
 
 const POLL_LIVE_MS = 2_000;
@@ -191,6 +193,7 @@ export default function MlbLiveDetail({
   venueCity,
   venueCountry,
   venueLabel,
+  venueWeatherAt,
 }: Props) {
   const [live, setLive] = useState<MlbLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -350,6 +353,7 @@ export default function MlbLiveDetail({
                 city={venueCity}
                 country={venueCountry}
                 label={venueLabel}
+                at={venueWeatherAt}
               />
             )}
             {isLive && (

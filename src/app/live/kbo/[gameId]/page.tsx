@@ -243,6 +243,9 @@ export default async function KboLivePage({ params }: Props) {
         venueCity={venueCity?.city ?? null}
         venueCountry={venueCity?.country ?? null}
         venueLabel={venueCity?.label ?? null}
+        venueWeatherAt={
+          match.status === "FINISHED" ? match.startTime.toISOString() : null
+        }
         homeAbbr={match.homeTeam.shortName ?? null}
         awayAbbr={match.awayTeam.shortName ?? null}
         homeLogo={match.homeTeam.logoUrl ?? null}

@@ -302,6 +302,9 @@ export default async function MlbLivePage({ params }: Props) {
         venueCity={venueCity?.city ?? null}
         venueCountry={venueCity?.country ?? null}
         venueLabel={venueCity?.label ?? null}
+        venueWeatherAt={
+          match.status === "FINISHED" ? match.startTime.toISOString() : null
+        }
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}

@@ -92,6 +92,8 @@ interface Props {
   venueCity?: string | null;
   venueCountry?: string | null;
   venueLabel?: string | null;
+  /** 종료 경기의 킥오프 ISO — 날씨를 경기 당시로 고정. null 이면 현재 날씨 */
+  venueWeatherAt?: string | null;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -153,6 +155,7 @@ export default function BaseballLiveDetail({
   venueCity,
   venueCountry,
   venueLabel,
+  venueWeatherAt,
 }: Props) {
   const [live, setLive] = useState<BaseballLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -331,6 +334,7 @@ export default function BaseballLiveDetail({
                 city={venueCity}
                 country={venueCountry}
                 label={venueLabel}
+                at={venueWeatherAt}
               />
             )}
             {isLive && (
