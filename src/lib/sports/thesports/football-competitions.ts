@@ -87,6 +87,10 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   ALGERIA_L1: "kdj2ryohk2dq1zp",
   SVENSKA_CUPEN: "z318q66h7yqo9jd",
   GHANA_PL: "z318q66howkqo9j",
+  // 2026-08-01 — ASEAN 챔피언십(시니어 A매치, 옛 AFF 미쓰비시컵) ts 승격.
+  // af 전용이라 골/카드 incidents·라인업 좌표가 전무하던 원인 (competition/additional/list 실측:
+  // lineup confirmed 23명·팀 stats 제공 확인). cur_season_id = jw2r09hl43erz84.
+  ASEAN_CHAMP: "v2y8m4zhodql074",
   // 2026-05-25 추가 (남미 3개 + NWSL) — ts diary discovery 로 확정
   // ARG_PRIMERA_NACIONAL 은 이전에 p3glrw7hevqdyjv 로 잘못 매핑돼 있었음 (실제는 1부 = ARGENTINA_PL).
   // ARG_PRIMERA_NACIONAL 진짜 ID 는 별도 발굴 필요.

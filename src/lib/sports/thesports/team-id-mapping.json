@@ -17483,5 +17483,86 @@
     "tsId": "318q66hk7g2qo9j",
     "tsName": "Wuhan Three Towns B",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599531,
+    "ourName": "Singapore",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1546",
+    "tsId": "3glrw7hwk9zqdyj",
+    "tsName": "Singapore",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 611372,
+    "ourName": "Laos",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1558",
+    "tsId": "gy0or5jh7pnqwzv",
+    "tsName": "Laos",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 599809,
+    "ourName": "Cambodia",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1543",
+    "tsId": "z318q66hekxqo9j",
+    "tsName": "Cambodia",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 611371,
+    "ourName": "Malaysia",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1538",
+    "tsId": "8y39mp1h298mojx",
+    "tsName": "Malaysia",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 599649,
+    "ourName": "Vietnam",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1542",
+    "tsId": "yl5ergph93jr8k0",
+    "tsName": "Vietnam",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 599819,
+    "ourName": "Indonesia",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1571",
+    "tsId": "jednm9whywwryox",
+    "tsName": "Indonesia",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 599797,
+    "ourName": "Philippines",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1555",
+    "tsId": "gx7lm7ph18nm2wd",
+    "tsName": "Philippines",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 599817,
+    "ourName": "Thailand",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1564",
+    "tsId": "gy0or5jhyg2qwzv",
+    "tsName": "Thailand",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 599823,
+    "ourName": "Myanmar",
+    "ourLeague": "ASEAN_CHAMP",
+    "ourExternalId": "1556",
+    "tsId": "9dn1m1gh6llmoep",
+    "tsName": "Myanmar",
+    "matchType": "exact+comp"
   }
 ]

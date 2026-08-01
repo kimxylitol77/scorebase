@@ -1,5 +1,13 @@
 [
   {
+    "code": "ASEAN_CHAMP",
+    "ourLabel": "ASEAN 챔피언십",
+    "tsId": "v2y8m4zhodql074",
+    "tsEn": "ASEAN Championship",
+    "tsKo": "ASEAN 챔피언십",
+    "tsSeasonId": "jw2r09hl43erz84"
+  },
+  {
     "code": "A_LEAGUE",
     "ourLabel": "A-리그",
     "tsId": "9k82rekhvz2repz",
