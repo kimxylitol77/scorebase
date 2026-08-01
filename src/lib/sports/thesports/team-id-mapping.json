@@ -15557,5 +15557,1931 @@
     "tsName": "Schwarz-Weiss Bregenz",
     "tsKo": "SC 브레겐츠",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 611574,
+    "ourName": "Colwyn Bay",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-1l4rjnh6948m7vx",
+    "tsId": "1l4rjnh6948m7vx",
+    "tsName": "Colwyn Bay",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611575,
+    "ourName": "Llandudno",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-n54qllhe2o1qvy9",
+    "tsId": "n54qllhe2o1qvy9",
+    "tsName": "Llandudno",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611576,
+    "ourName": "Barry Town United",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-jw2r09hlo0drz84",
+    "tsId": "jw2r09hlo0drz84",
+    "tsName": "Barry Town United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611577,
+    "ourName": "Briton Ferry Athletic",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-gy0or5jh784qwzv",
+    "tsId": "gy0or5jh784qwzv",
+    "tsName": "Briton Ferry Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611578,
+    "ourName": "Holywell",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-zp5rzgh7pnyq82w",
+    "tsId": "zp5rzgh7pnyq82w",
+    "tsName": "Holywell",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611579,
+    "ourName": "UWIC Inter Cardiff",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-56ypq3nhxd5md7o",
+    "tsId": "56ypq3nhxd5md7o",
+    "tsName": "UWIC Inter Cardiff",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611580,
+    "ourName": "Caernarfon",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-gx7lm7phe9ym2wd",
+    "tsId": "gx7lm7phe9ym2wd",
+    "tsName": "Caernarfon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611581,
+    "ourName": "Connahs Quay Nomads FC",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-p3glrw7h256qdyj",
+    "tsId": "p3glrw7h256qdyj",
+    "tsName": "Connahs Quay Nomads FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611582,
+    "ourName": "Airbus UK Broughton",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-kjw2r09hyj6rz84",
+    "tsId": "kjw2r09hyj6rz84",
+    "tsName": "Airbus UK Broughton",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611583,
+    "ourName": "Pen-y-Bont FC",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-318q66h0jvdqo9j",
+    "tsId": "318q66h0jvdqo9j",
+    "tsName": "Pen-y-Bont FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611584,
+    "ourName": "Haverfordwest County",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-kn54qllh6joqvy9",
+    "tsId": "kn54qllh6joqvy9",
+    "tsName": "Haverfordwest County",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611585,
+    "ourName": "The New Saints",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-e4wyrn4h34wq86p",
+    "tsId": "e4wyrn4h34wq86p",
+    "tsName": "The New Saints",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611586,
+    "ourName": "Flint Town",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-y0or5jhl969qwzv",
+    "tsId": "y0or5jhl969qwzv",
+    "tsName": "Flint Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611587,
+    "ourName": "Cambrian Clydach",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-k82rekhvljzrepz",
+    "tsId": "k82rekhvljzrepz",
+    "tsName": "Cambrian Clydach",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611588,
+    "ourName": "Ammanford",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-2y8m4zhj0l0ql07",
+    "tsId": "2y8m4zhj0l0ql07",
+    "tsName": "Ammanford",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611589,
+    "ourName": "Trefelin BGC",
+    "ourLeague": "WALES_PL",
+    "ourExternalId": "ts-3glrw7hy47lqdyj",
+    "tsId": "3glrw7hy47lqdyj",
+    "tsName": "Trefelin BGC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611590,
+    "ourName": "FK Sutjeska Niksic",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-kdj2ryoh0jdq1zp",
+    "tsId": "kdj2ryoh0jdq1zp",
+    "tsName": "FK Sutjeska Niksic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611591,
+    "ourName": "Mornar",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-dj2ryohko55q1zp",
+    "tsId": "dj2ryohko55q1zp",
+    "tsName": "Mornar",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611592,
+    "ourName": "OFK Petrovac",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-pxwrxlhge9eryk0",
+    "tsId": "pxwrxlhge9eryk0",
+    "tsName": "OFK Petrovac",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611593,
+    "ourName": "Decic Tuzi",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-4jwq2gh4gnom0ve",
+    "tsId": "4jwq2gh4gnom0ve",
+    "tsName": "Decic Tuzi",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611594,
+    "ourName": "FK Buducnost Podgorica",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-kn54qllhg79qvy9",
+    "tsId": "kn54qllhg79qvy9",
+    "tsName": "FK Buducnost Podgorica",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611595,
+    "ourName": "FK Mladost DG",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-4wyrn4hd3y5q86p",
+    "tsId": "4wyrn4hd3y5q86p",
+    "tsName": "FK Mladost DG",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611596,
+    "ourName": "Arsenal Tivat",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-dn1m1ghengwmoep",
+    "tsId": "dn1m1ghengwmoep",
+    "tsName": "Arsenal Tivat",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611597,
+    "ourName": "Jezero Plav",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-y0or5jhlz4pqwzv",
+    "tsId": "y0or5jhlz4pqwzv",
+    "tsName": "Jezero Plav",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611598,
+    "ourName": "Bokelj Kotor",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-vjxm8gh4w8lr6od",
+    "tsId": "vjxm8gh4w8lr6od",
+    "tsName": "Bokelj Kotor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611599,
+    "ourName": "Otrant",
+    "ourLeague": "MONTENEGRO_1L",
+    "ourExternalId": "ts-vjxm8ghg8v6r6od",
+    "tsId": "vjxm8ghg8v6r6od",
+    "tsName": "Otrant",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611600,
+    "ourName": "Atert Bissen",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-zp5rzgh740wq82w",
+    "tsId": "zp5rzgh740wq82w",
+    "tsName": "Atert Bissen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611601,
+    "ourName": "FC Differdange 03",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-x7lm7phk5n9m2wd",
+    "tsId": "x7lm7phk5n9m2wd",
+    "tsName": "FC Differdange 03",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611602,
+    "ourName": "US Mondorf-les-Bains",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-vjxm8ghg242r6od",
+    "tsId": "vjxm8ghg242r6od",
+    "tsName": "US Mondorf-les-Bains",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611603,
+    "ourName": "UNA Strassen",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-6ypq3nh5noomd7o",
+    "tsId": "6ypq3nh5noomd7o",
+    "tsName": "UNA Strassen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611604,
+    "ourName": "F91 Dudelange",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-z318q66hdy1qo9j",
+    "tsId": "z318q66hdy1qo9j",
+    "tsName": "F91 Dudelange",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611605,
+    "ourName": "Jeunesse Esch",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-4jwq2gh40k1m0ve",
+    "tsId": "4jwq2gh40k1m0ve",
+    "tsName": "Jeunesse Esch",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611606,
+    "ourName": "Racing Union Luxemburg",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-l5ergphodz0r8k0",
+    "tsId": "l5ergphodz0r8k0",
+    "tsName": "Racing Union Luxemburg",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611607,
+    "ourName": "UN Kaerjeng 97",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-6ypq3nh0dpgmd7o",
+    "tsId": "6ypq3nh0dpgmd7o",
+    "tsName": "UN Kaerjeng 97",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611608,
+    "ourName": "Hostert",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-pxwrxlh12lgryk0",
+    "tsId": "pxwrxlh12lgryk0",
+    "tsName": "Hostert",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611609,
+    "ourName": "Victoria Rosport",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-l7oqdehn465r510",
+    "tsId": "l7oqdehn465r510",
+    "tsName": "Victoria Rosport",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611610,
+    "ourName": "Progres Niedercorn",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-ednm9whkwo8ryox",
+    "tsId": "ednm9whkwo8ryox",
+    "tsName": "Progres Niedercorn",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611611,
+    "ourName": "Swift Hesperange",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-l5ergpho5l0r8k0",
+    "tsId": "l5ergpho5l0r8k0",
+    "tsName": "Swift Hesperange",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611612,
+    "ourName": "Etzella Ettelbruck",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-l965mkyh9p9r1ge",
+    "tsId": "l965mkyh9p9r1ge",
+    "tsName": "Etzella Ettelbruck",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611613,
+    "ourName": "FC Wiltz 71",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-3glrw7hwl0jqdyj",
+    "tsId": "3glrw7hwl0jqdyj",
+    "tsName": "FC Wiltz 71",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611614,
+    "ourName": "US Rumelange",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-23xmvkh31d8qg8n",
+    "tsId": "23xmvkh31d8qg8n",
+    "tsName": "US Rumelange",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611615,
+    "ourName": "Walferdange",
+    "ourLeague": "LUXEMBOURG_ND",
+    "ourExternalId": "ts-zp5rzghxd54q82w",
+    "tsId": "zp5rzghxd54q82w",
+    "tsName": "Walferdange",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611616,
+    "ourName": "NSI Runavik",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-6ypq3nh56kpmd7o",
+    "tsId": "6ypq3nh56kpmd7o",
+    "tsName": "NSI Runavik",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611617,
+    "ourName": "KI Klaksvik",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-965mkyh7j77r1ge",
+    "tsId": "965mkyh7j77r1ge",
+    "tsName": "KI Klaksvik",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611618,
+    "ourName": "B36 Torshavn",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-4zp5rzghnl4q82w",
+    "tsId": "4zp5rzghnl4q82w",
+    "tsName": "B36 Torshavn",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611619,
+    "ourName": "Víkingur Gøta",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-6ypq3nh0vgzmd7o",
+    "tsId": "6ypq3nh0vgzmd7o",
+    "tsName": "Víkingur Gøta",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611620,
+    "ourName": "HB Torshavn",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-v2y8m4zhlj8ql07",
+    "tsId": "v2y8m4zhlj8ql07",
+    "tsName": "HB Torshavn",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611621,
+    "ourName": "AB Argir",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-2y8m4zh35p1ql07",
+    "tsId": "2y8m4zh35p1ql07",
+    "tsName": "AB Argir",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611622,
+    "ourName": "EB Streymur",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-2y8m4zh3x5eql07",
+    "tsId": "2y8m4zh3x5eql07",
+    "tsName": "EB Streymur",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611623,
+    "ourName": "Skala Itrottarfelag",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-vl7oqdehpx0r510",
+    "tsId": "vl7oqdehpx0r510",
+    "tsName": "Skala Itrottarfelag",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611624,
+    "ourName": "07 Vestur Sorvagur",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-4jwq2ghk1wxm0ve",
+    "tsId": "4jwq2ghk1wxm0ve",
+    "tsName": "07 Vestur Sorvagur",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611625,
+    "ourName": "Toftir B68",
+    "ourLeague": "FAROE_PL",
+    "ourExternalId": "ts-l5ergpho8xgr8k0",
+    "tsId": "l5ergpho8xgr8k0",
+    "tsName": "Toftir B68",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611626,
+    "ourName": "Plaza Amador",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-4jwq2ghkwvpm0ve",
+    "tsId": "4jwq2ghkwvpm0ve",
+    "tsName": "Plaza Amador",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611627,
+    "ourName": "Alianza FC (PAN)",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-6ypq3nh5d51md7o",
+    "tsId": "6ypq3nh5d51md7o",
+    "tsName": "Alianza FC (PAN)",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611628,
+    "ourName": "UMECIT",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-3glrw7hy03kqdyj",
+    "tsId": "3glrw7hy03kqdyj",
+    "tsName": "UMECIT",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611629,
+    "ourName": "Tauro FC",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-n54qllh2nd1qvy9",
+    "tsId": "n54qllh2nd1qvy9",
+    "tsName": "Tauro FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611630,
+    "ourName": "CD Arabe Unido",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-23xmvkh3ny0qg8n",
+    "tsId": "23xmvkh3ny0qg8n",
+    "tsName": "CD Arabe Unido",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611631,
+    "ourName": "Sporting San Miguelito",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-dn1m1gh46epmoep",
+    "tsId": "dn1m1gh46epmoep",
+    "tsName": "Sporting San Miguelito",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611632,
+    "ourName": "Veraguas FC",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-x7lm7ph01yxm2wd",
+    "tsId": "x7lm7ph01yxm2wd",
+    "tsName": "Veraguas FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611633,
+    "ourName": "Union Cocle",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-dn1m1gh3k9ymoep",
+    "tsId": "dn1m1gh3k9ymoep",
+    "tsName": "Union Cocle",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611634,
+    "ourName": "CA Independente",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-y0or5jh4566qwzv",
+    "tsId": "y0or5jh4566qwzv",
+    "tsName": "CA Independente",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611635,
+    "ourName": "San Francisco FC",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-23xmvkh36x0qg8n",
+    "tsId": "23xmvkh36x0qg8n",
+    "tsName": "San Francisco FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611636,
+    "ourName": "CD Universitario",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-4jwq2ghv91km0ve",
+    "tsId": "4jwq2ghv91km0ve",
+    "tsName": "CD Universitario",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611637,
+    "ourName": "Herrera FC",
+    "ourLeague": "PANAMA_LPF",
+    "ourExternalId": "ts-1l4rjnhx3wdm7vx",
+    "tsId": "1l4rjnhx3wdm7vx",
+    "tsName": "Herrera FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611638,
+    "ourName": "A.D. Isidro Metapan",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-4jwq2gh4nglm0ve",
+    "tsId": "4jwq2gh4nglm0ve",
+    "tsName": "A.D. Isidro Metapan",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611639,
+    "ourName": "Luis Angel Firpo",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-vl7oqdehwezr510",
+    "tsId": "vl7oqdehwezr510",
+    "tsName": "Luis Angel Firpo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611640,
+    "ourName": "Alianza San Salvador",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-8yomo4h759eq0j6",
+    "tsId": "8yomo4h759eq0j6",
+    "tsName": "Alianza San Salvador",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611641,
+    "ourName": "CD Cacahuatique",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-6ypq3nhzvglmd7o",
+    "tsId": "6ypq3nhzvglmd7o",
+    "tsName": "CD Cacahuatique",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611642,
+    "ourName": "CD FAS",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-6ypq3nh04g0md7o",
+    "tsId": "6ypq3nh04g0md7o",
+    "tsName": "CD FAS",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611643,
+    "ourName": "Municipal Limeno",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-23xmvkh3dy7qg8n",
+    "tsId": "23xmvkh3dy7qg8n",
+    "tsName": "Municipal Limeno",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611644,
+    "ourName": "Aguila",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-6ypq3nh0j72md7o",
+    "tsId": "6ypq3nh0j72md7o",
+    "tsName": "Aguila",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611645,
+    "ourName": "Inter F.A",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-l5ergphp8e1r8k0",
+    "tsId": "l5ergphp8e1r8k0",
+    "tsName": "Inter F.A",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611646,
+    "ourName": "CD Platense Municipal Zacatecoluca",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-ednm9whzwj7ryox",
+    "tsId": "ednm9whzwj7ryox",
+    "tsName": "CD Platense Municipal Zacatecoluca",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611647,
+    "ourName": "Atletico Balboa",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-318q66ho339qo9j",
+    "tsId": "318q66ho339qo9j",
+    "tsName": "Atletico Balboa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611648,
+    "ourName": "Fuerte San Francisco",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-8yomo4h2yw7q0j6",
+    "tsId": "8yomo4h2yw7q0j6",
+    "tsName": "Fuerte San Francisco",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611649,
+    "ourName": "CD INCA-Aruba",
+    "ourLeague": "ELSALVADOR_PD",
+    "ourExternalId": "ts-4jwq2gh12eym0ve",
+    "tsId": "4jwq2gh12eym0ve",
+    "tsName": "CD INCA-Aruba",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611650,
+    "ourName": "Diriangen",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-jw2r09hn378rz84",
+    "tsId": "jw2r09hn378rz84",
+    "tsName": "Diriangen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611651,
+    "ourName": "Real Esteli",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-n54qllhex1dqvy9",
+    "tsId": "n54qllhex1dqvy9",
+    "tsName": "Real Esteli",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611652,
+    "ourName": "Jalapa",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-vl7oqdehke8r510",
+    "tsId": "vl7oqdehke8r510",
+    "tsName": "Jalapa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611653,
+    "ourName": "Managua FC",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-l7oqdeh6x2yr510",
+    "tsId": "l7oqdeh6x2yr510",
+    "tsName": "Managua FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611654,
+    "ourName": "Matagalpa FC",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-vjxm8gh89v0r6od",
+    "tsId": "vjxm8gh89v0r6od",
+    "tsName": "Matagalpa FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611655,
+    "ourName": "Walter Ferretti",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-4wyrn4h8px0q86p",
+    "tsId": "4wyrn4h8px0q86p",
+    "tsName": "Walter Ferretti",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611656,
+    "ourName": "HYH Export Sebaco FC",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-8yomo4hv558q0j6",
+    "tsId": "8yomo4hv558q0j6",
+    "tsName": "HYH Export Sebaco FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611657,
+    "ourName": "UNAN Managua",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-l5ergph3d5zr8k0",
+    "tsId": "l5ergph3d5zr8k0",
+    "tsName": "UNAN Managua",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611658,
+    "ourName": "Rancho Santana FC",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-jw2r09hj18lrz84",
+    "tsId": "jw2r09hj18lrz84",
+    "tsName": "Rancho Santana FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611659,
+    "ourName": "Real Madriz FC",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-4jwq2ghk5p2m0ve",
+    "tsId": "4jwq2ghk5p2m0ve",
+    "tsName": "Real Madriz FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611660,
+    "ourName": "FC Pari Nizhniy Novgorod",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-k82rekh9nkvrepz",
+    "tsId": "k82rekh9nkvrepz",
+    "tsName": "FC Pari Nizhniy Novgorod",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611661,
+    "ourName": "FC Ufa",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-kjw2r09hyzprz84",
+    "tsId": "kjw2r09hyzprz84",
+    "tsName": "FC Ufa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611662,
+    "ourName": "Spartak Kostroma",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-vjxm8gh4jp3r6od",
+    "tsId": "vjxm8gh4jp3r6od",
+    "tsName": "Spartak Kostroma",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611663,
+    "ourName": "Torpedo Moscow",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-9vjxm8gh6ger6od",
+    "tsId": "9vjxm8gh6ger6od",
+    "tsName": "Torpedo Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611664,
+    "ourName": "Yenisey Krasnoyarsk",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-pxwrxlhg81gryk0",
+    "tsId": "pxwrxlhg81gryk0",
+    "tsName": "Yenisey Krasnoyarsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611665,
+    "ourName": "Rotor Volgograd",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-gx7lm7phe8ym2wd",
+    "tsId": "gx7lm7phe8ym2wd",
+    "tsName": "Rotor Volgograd",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611666,
+    "ourName": "Veles Moscow",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-zp5rzgh753pq82w",
+    "tsId": "zp5rzgh753pq82w",
+    "tsName": "Veles Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611667,
+    "ourName": "Shinnik Yaroslavl",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-gx7lm7phe7gm2wd",
+    "tsId": "gx7lm7phe7gm2wd",
+    "tsName": "Shinnik Yaroslavl",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611668,
+    "ourName": "FC Sochi",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-ednm9whk686ryox",
+    "tsId": "ednm9whk686ryox",
+    "tsName": "FC Sochi",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611669,
+    "ourName": "Ural Yekaterinburg",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-4zp5rzgh9gpq82w",
+    "tsId": "4zp5rzgh9gpq82w",
+    "tsName": "Ural Yekaterinburg",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611670,
+    "ourName": "FK Chelyabinsk",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-6ypq3nh0j53md7o",
+    "tsId": "6ypq3nh0j53md7o",
+    "tsName": "FK Chelyabinsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611671,
+    "ourName": "Volga Ulyanovsk",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-vjxm8ghg430r6od",
+    "tsId": "vjxm8ghg430r6od",
+    "tsName": "Volga Ulyanovsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611672,
+    "ourName": "Neftekhimik Nizhnekamsk",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-ednm9whkn4wryox",
+    "tsId": "ednm9whkn4wryox",
+    "tsName": "Neftekhimik Nizhnekamsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611673,
+    "ourName": "Arsenal Tula",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-4wyrn4hel19q86p",
+    "tsId": "4wyrn4hel19q86p",
+    "tsName": "Arsenal Tula",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611674,
+    "ourName": "Tekstilshchik Ivanovo",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-pxwrxlhgen8ryk0",
+    "tsId": "pxwrxlhgen8ryk0",
+    "tsName": "Tekstilshchik Ivanovo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611675,
+    "ourName": "FC Leningradets",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-2y8m4zhgxv9ql07",
+    "tsId": "2y8m4zhgxv9ql07",
+    "tsName": "FC Leningradets",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611676,
+    "ourName": "SKA Khabarovsk",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-kjw2r09heg3rz84",
+    "tsId": "kjw2r09heg3rz84",
+    "tsName": "SKA Khabarovsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611677,
+    "ourName": "KAMAZ Naberezhnye Chelny",
+    "ourLeague": "RUSSIA_FNL",
+    "ourExternalId": "ts-yl5ergphz7kr8k0",
+    "tsId": "yl5ergphz7kr8k0",
+    "tsName": "KAMAZ Naberezhnye Chelny",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611678,
+    "ourName": "FC Bacau",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-1l4rjnhk4n7m7vx",
+    "tsId": "1l4rjnhk4n7m7vx",
+    "tsName": "FC Bacau",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611679,
+    "ourName": "Concordia Chiajna",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-zp5rzghj7npq82w",
+    "tsId": "zp5rzghj7npq82w",
+    "tsName": "Concordia Chiajna",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611680,
+    "ourName": "A.C.F. Gloria Bistrita",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-z8yomo4hjnvq0j6",
+    "tsId": "z8yomo4hjnvq0j6",
+    "tsName": "A.C.F. Gloria Bistrita",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611681,
+    "ourName": "Scolar Resita",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-vjxm8ghg20jr6od",
+    "tsId": "vjxm8ghg20jr6od",
+    "tsName": "Scolar Resita",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611682,
+    "ourName": "Afumati",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-965mkyh4e8pr1ge",
+    "tsId": "965mkyh4e8pr1ge",
+    "tsName": "Afumati",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611683,
+    "ourName": "Gloria Popesti-Leordeni",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-x7lm7phkyegm2wd",
+    "tsId": "x7lm7phkyegm2wd",
+    "tsName": "Gloria Popesti-Leordeni",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611684,
+    "ourName": "FC Unirea 2004 Slobozia",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-2y8m4zh3p6dql07",
+    "tsId": "2y8m4zh3p6dql07",
+    "tsName": "FC Unirea 2004 Slobozia",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611685,
+    "ourName": "CSM Ramnicu Valcea",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-y0or5jhl6p6qwzv",
+    "tsId": "y0or5jhl6p6qwzv",
+    "tsName": "CSM Ramnicu Valcea",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611686,
+    "ourName": "FC Bihor Oradea",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-8yomo4h79j6q0j6",
+    "tsId": "8yomo4h79j6q0j6",
+    "tsName": "FC Bihor Oradea",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611687,
+    "ourName": "AFC Metalul Buzau",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-vjxm8ghjgxpr6od",
+    "tsId": "vjxm8ghjgxpr6od",
+    "tsName": "AFC Metalul Buzau",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611688,
+    "ourName": "Metaloglobus",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-2y8m4zh3l12ql07",
+    "tsId": "2y8m4zh3l12ql07",
+    "tsName": "Metaloglobus",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611689,
+    "ourName": "CSM Satu Mare",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-6ypq3nhwl26md7o",
+    "tsId": "6ypq3nhwl26md7o",
+    "tsName": "CSM Satu Mare",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611690,
+    "ourName": "CSM Slatina",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-vjxm8gh85ldr6od",
+    "tsId": "vjxm8gh85ldr6od",
+    "tsName": "CSM Slatina",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611691,
+    "ourName": "ACS Dumbravita",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-6ypq3nhz78zmd7o",
+    "tsId": "6ypq3nhz78zmd7o",
+    "tsName": "ACS Dumbravita",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611692,
+    "ourName": "CSA Steaua Bucuresti",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-zp5rzghzv6kq82w",
+    "tsId": "zp5rzghzv6kq82w",
+    "tsName": "CSA Steaua Bucuresti",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611693,
+    "ourName": "FC Politehnica Timisoara",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-gpxwrxlho70ryk0",
+    "tsId": "gpxwrxlho70ryk0",
+    "tsName": "FC Politehnica Timisoara",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611694,
+    "ourName": "Chindia Targoviste",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-23xmvkhow3zqg8n",
+    "tsId": "23xmvkhow3zqg8n",
+    "tsName": "Chindia Targoviste",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611695,
+    "ourName": "FCM Targu Mures",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-l7oqdehngykr510",
+    "tsId": "l7oqdehngykr510",
+    "tsName": "FCM Targu Mures",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611696,
+    "ourName": "Selimbar",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-k82rekhykxnrepz",
+    "tsId": "k82rekhykxnrepz",
+    "tsName": "Selimbar",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611697,
+    "ourName": "CS Dinamo Bucuresti",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-dn1m1gh3571moep",
+    "tsId": "dn1m1gh3571moep",
+    "tsName": "CS Dinamo Bucuresti",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611698,
+    "ourName": "Cetate Suceava",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-dj2ryohkn1oq1zp",
+    "tsId": "dj2ryohkn1oq1zp",
+    "tsName": "Cetate Suceava",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611699,
+    "ourName": "Lindab Stefanesti",
+    "ourLeague": "ROMANIA_L2",
+    "ourExternalId": "ts-pxwrxlh110pryk0",
+    "tsId": "pxwrxlh110pryk0",
+    "tsName": "Lindab Stefanesti",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611700,
+    "ourName": "Deportivo Saprissa",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-2y8m4zh3823ql07",
+    "tsId": "2y8m4zh3823ql07",
+    "tsName": "Deportivo Saprissa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611701,
+    "ourName": "Escorpiones Belen",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-l7oqdeh0o04r510",
+    "tsId": "l7oqdeh0o04r510",
+    "tsName": "Escorpiones Belen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611702,
+    "ourName": "CS Cartagines",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-1l4rjnh692pm7vx",
+    "tsId": "1l4rjnh692pm7vx",
+    "tsName": "CS Cartagines",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611703,
+    "ourName": "CS Herediano",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-23xmvkh3p1jqg8n",
+    "tsId": "23xmvkh3p1jqg8n",
+    "tsName": "CS Herediano",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611704,
+    "ourName": "Puntarenas FC",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-x7lm7phkd8om2wd",
+    "tsId": "x7lm7phkd8om2wd",
+    "tsName": "Puntarenas FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611705,
+    "ourName": "Sporting FC",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-4wyrn4he536q86p",
+    "tsId": "4wyrn4he536q86p",
+    "tsName": "Sporting FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611706,
+    "ourName": "LD Alajuelense",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-l7oqdehn232r510",
+    "tsId": "l7oqdehn232r510",
+    "tsName": "LD Alajuelense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611707,
+    "ourName": "International San Carlos",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-l7oqdeh14y2r510",
+    "tsId": "l7oqdeh14y2r510",
+    "tsName": "International San Carlos",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611708,
+    "ourName": "AD San Carlos",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-pxwrxlhg603ryk0",
+    "tsId": "pxwrxlhg603ryk0",
+    "tsName": "AD San Carlos",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611709,
+    "ourName": "Municipal Pérez Zeledón",
+    "ourLeague": "COSTA_RICA_PD",
+    "ourExternalId": "ts-zp5rzghjg0dq82w",
+    "tsId": "zp5rzghjg0dq82w",
+    "tsName": "Municipal Pérez Zeledón",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611710,
+    "ourName": "Antigua GFC",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-jw2r09hnj31rz84",
+    "tsId": "jw2r09hnj31rz84",
+    "tsName": "Antigua GFC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611711,
+    "ourName": "CSD Municipal",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-y39mp1h3ew4mojx",
+    "tsId": "y39mp1h3ew4mojx",
+    "tsName": "CSD Municipal",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611712,
+    "ourName": "Guastatoya",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-l7oqdehn7v9r510",
+    "tsId": "l7oqdehn7v9r510",
+    "tsName": "Guastatoya",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611713,
+    "ourName": "Deportivo San Pedro",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-4jwq2ghkw87m0ve",
+    "tsId": "4jwq2ghkw87m0ve",
+    "tsName": "Deportivo San Pedro",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611714,
+    "ourName": "Malacateco",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-l5ergpho7ldr8k0",
+    "tsId": "l5ergpho7ldr8k0",
+    "tsName": "Malacateco",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611715,
+    "ourName": "Coban Imperial",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-4wyrn4he8lvq86p",
+    "tsId": "4wyrn4he8lvq86p",
+    "tsName": "Coban Imperial",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611716,
+    "ourName": "Suchitepequez",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-kjw2r09ho0jrz84",
+    "tsId": "kjw2r09ho0jrz84",
+    "tsName": "Suchitepequez",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611717,
+    "ourName": "C.S.D. Comunicaciones",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-k82rekhvj60repz",
+    "tsId": "k82rekhvj60repz",
+    "tsName": "C.S.D. Comunicaciones",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611718,
+    "ourName": "Aurora F.C.",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-pxwrxlh163yryk0",
+    "tsId": "pxwrxlh163yryk0",
+    "tsName": "Aurora F.C.",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611719,
+    "ourName": "Xelaju MC",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-zp5rzghj7wgq82w",
+    "tsId": "zp5rzghj7wgq82w",
+    "tsName": "Xelaju MC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611720,
+    "ourName": "Marquense",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-vl7oqdeh53lr510",
+    "tsId": "vl7oqdeh53lr510",
+    "tsName": "Marquense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611721,
+    "ourName": "Deportivo Mixco",
+    "ourLeague": "GUATEMALA_LN",
+    "ourExternalId": "ts-l5ergph3dyzr8k0",
+    "tsId": "l5ergph3dyzr8k0",
+    "tsName": "Deportivo Mixco",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611722,
+    "ourName": "Real Espana",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-965mkyh47ndr1ge",
+    "tsId": "965mkyh47ndr1ge",
+    "tsName": "Real Espana",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611723,
+    "ourName": "CD Olimpia",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-3glrw7hwo01qdyj",
+    "tsId": "3glrw7hwo01qdyj",
+    "tsName": "CD Olimpia",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611724,
+    "ourName": "Estrella Roja",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-23xmvkh3pz6qg8n",
+    "tsId": "23xmvkh3pz6qg8n",
+    "tsName": "Estrella Roja",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611725,
+    "ourName": "Marathon",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-pxwrxlhgngvryk0",
+    "tsId": "pxwrxlhgngvryk0",
+    "tsName": "Marathon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611726,
+    "ourName": "CD Motagua",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-jw2r09hlg6grz84",
+    "tsId": "jw2r09hlg6grz84",
+    "tsName": "CD Motagua",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611727,
+    "ourName": "Atletico Choloma",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-ednm9wh9d2eryox",
+    "tsId": "ednm9wh9d2eryox",
+    "tsName": "Atletico Choloma",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611728,
+    "ourName": "Juticalpa",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-ednm9whk02eryox",
+    "tsId": "ednm9whk02eryox",
+    "tsName": "Juticalpa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611729,
+    "ourName": "Lobos UPNFM",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-318q66hvzg1qo9j",
+    "tsId": "318q66hvzg1qo9j",
+    "tsName": "Lobos UPNFM",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611730,
+    "ourName": "Olancho FC",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-dn1m1gh3ko7moep",
+    "tsId": "dn1m1gh3ko7moep",
+    "tsName": "Olancho FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611731,
+    "ourName": "Génesis Policía Nacional",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-pxwrxlhz552ryk0",
+    "tsId": "pxwrxlhz552ryk0",
+    "tsName": "Génesis Policía Nacional",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611732,
+    "ourName": "Atletico Independiente",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-jw2r09h1z3jrz84",
+    "tsId": "jw2r09h1z3jrz84",
+    "tsName": "Atletico Independiente",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611733,
+    "ourName": "Platense",
+    "ourLeague": "HONDURAS_LN",
+    "ourExternalId": "ts-2y8m4zhj048ql07",
+    "tsId": "2y8m4zhj048ql07",
+    "tsName": "Platense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611734,
+    "ourName": "Neftchi Fergana",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-4wyrn4h8w3gq86p",
+    "tsId": "4wyrn4h8w3gq86p",
+    "tsName": "Neftchi Fergana",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611735,
+    "ourName": "Pakhtakor",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-dj2ryohk27yq1zp",
+    "tsId": "dj2ryohk27yq1zp",
+    "tsName": "Pakhtakor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611736,
+    "ourName": "FC OKMK Olmaliq",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-kn54qllhlweqvy9",
+    "tsId": "kn54qllhlweqvy9",
+    "tsName": "FC OKMK Olmaliq",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611737,
+    "ourName": "Buxoro FK",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-l5ergphov50r8k0",
+    "tsId": "l5ergphov50r8k0",
+    "tsName": "Buxoro FK",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611738,
+    "ourName": "Navbahor Namangan",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-zp5rzghjvl4q82w",
+    "tsId": "zp5rzghjvl4q82w",
+    "tsName": "Navbahor Namangan",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611739,
+    "ourName": "Lokomotiv Tashkent",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-y0or5jhl2k8qwzv",
+    "tsId": "y0or5jhl2k8qwzv",
+    "tsName": "Lokomotiv Tashkent",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611740,
+    "ourName": "Nasaf Qarshi",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-gx7lm7phl2gm2wd",
+    "tsId": "gx7lm7phl2gm2wd",
+    "tsName": "Nasaf Qarshi",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611741,
+    "ourName": "FK Andijon",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-l5ergpho4v7r8k0",
+    "tsId": "l5ergpho4v7r8k0",
+    "tsName": "FK Andijon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611742,
+    "ourName": "Dinamo Samarqand",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-9vjxm8ghn0yr6od",
+    "tsId": "9vjxm8ghn0yr6od",
+    "tsName": "Dinamo Samarqand",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611743,
+    "ourName": "Bunyodkor",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-4wyrn4h8669q86p",
+    "tsId": "4wyrn4h8669q86p",
+    "tsName": "Bunyodkor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611744,
+    "ourName": "Xorazm Urganch",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-x7lm7phkwz1m2wd",
+    "tsId": "x7lm7phkwz1m2wd",
+    "tsName": "Xorazm Urganch",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611745,
+    "ourName": "Termez Surkhon",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-965mkyh798vr1ge",
+    "tsId": "965mkyh798vr1ge",
+    "tsName": "Termez Surkhon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611746,
+    "ourName": "Qizilqum Zarafshon",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-gy0or5jhvwlqwzv",
+    "tsId": "gy0or5jhvwlqwzv",
+    "tsName": "Qizilqum Zarafshon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611747,
+    "ourName": "Sogdiana Jizak",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-4wyrn4h86dwq86p",
+    "tsId": "4wyrn4h86dwq86p",
+    "tsName": "Sogdiana Jizak",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611748,
+    "ourName": "FK Kokand 1912",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-d23xmvkheldqg8n",
+    "tsId": "d23xmvkheldqg8n",
+    "tsName": "FK Kokand 1912",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611749,
+    "ourName": "Mashal Muborak",
+    "ourLeague": "UZBEKISTAN_SL",
+    "ourExternalId": "ts-y0or5jhle24qwzv",
+    "tsId": "y0or5jhle24qwzv",
+    "tsName": "Mashal Muborak",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611750,
+    "ourName": "Alacranes de Durango",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-pxwrxlhg467ryk0",
+    "tsId": "pxwrxlhg467ryk0",
+    "tsName": "Alacranes de Durango",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611751,
+    "ourName": "Correcaminos de la U.A.T.",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-4wyrn4h8j4oq86p",
+    "tsId": "4wyrn4h8j4oq86p",
+    "tsName": "Correcaminos de la U.A.T.",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611752,
+    "ourName": "Mineros de Zacatecas",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-4jwq2gh4dylm0ve",
+    "tsId": "4jwq2gh4dylm0ve",
+    "tsName": "Mineros de Zacatecas",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611753,
+    "ourName": "Venados FC Yucatán",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-x7lm7phk20vm2wd",
+    "tsId": "x7lm7phk20vm2wd",
+    "tsName": "Venados FC Yucatán",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611754,
+    "ourName": "Leones Negros de la U. de G.",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-ednm9whkwj0ryox",
+    "tsId": "ednm9whkwj0ryox",
+    "tsName": "Leones Negros de la U. de G.",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611755,
+    "ourName": "Club Atlético Morelia",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-pxwrxlhjjvdryk0",
+    "tsId": "pxwrxlhjjvdryk0",
+    "tsName": "Club Atlético Morelia",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611756,
+    "ourName": "Club Deportivo Dorados de Sinaloa",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-k82rekhvwz1repz",
+    "tsId": "k82rekhvwz1repz",
+    "tsName": "Club Deportivo Dorados de Sinaloa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611757,
+    "ourName": "Piratas FC",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-y0or5jh1pz6qwzv",
+    "tsId": "y0or5jh1pz6qwzv",
+    "tsName": "Piratas FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611758,
+    "ourName": "Cruz Azul Hidalgo",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-2y8m4zh3xnwql07",
+    "tsId": "2y8m4zh3xnwql07",
+    "tsName": "Cruz Azul Hidalgo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611759,
+    "ourName": "Club Deportivo Tapatío",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-4jwq2gh4x3nm0ve",
+    "tsId": "4jwq2gh4x3nm0ve",
+    "tsName": "Club Deportivo Tapatío",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611760,
+    "ourName": "Cancun FC",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-y39mp1h58pvmojx",
+    "tsId": "y39mp1h58pvmojx",
+    "tsName": "Cancun FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611761,
+    "ourName": "Club Atletico La Paz",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-l7oqdehl4w5r510",
+    "tsId": "l7oqdehl4w5r510",
+    "tsName": "Club Atletico La Paz",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611762,
+    "ourName": "Tlaxcala FC",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-pxwrxlh1n44ryk0",
+    "tsId": "pxwrxlh1n44ryk0",
+    "tsName": "Tlaxcala FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611763,
+    "ourName": "Alebrijes de Oaxaca",
+    "ourLeague": "MEXICO_2",
+    "ourExternalId": "ts-dn1m1gh4ngkmoep",
+    "tsId": "dn1m1gh4ngkmoep",
+    "tsName": "Alebrijes de Oaxaca",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611764,
+    "ourName": "Shanghai Port B",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-k82rekh3xwgrepz",
+    "tsId": "k82rekh3xwgrepz",
+    "tsName": "Shanghai Port B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611765,
+    "ourName": "Shandong Taishan B",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-k82rekh3ydxrepz",
+    "tsId": "k82rekh3ydxrepz",
+    "tsName": "Shandong Taishan B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611766,
+    "ourName": "Shanxi Chongde Ronghai",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-dn1m1gh8eojmoep",
+    "tsId": "dn1m1gh8eojmoep",
+    "tsName": "Shanxi Chongde Ronghai",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611767,
+    "ourName": "Dalian Kewei",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-8yomo4hz9e9q0j6",
+    "tsId": "8yomo4hz9e9q0j6",
+    "tsName": "Dalian Kewei",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611768,
+    "ourName": "Tai'an Tiankuang",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-dj2ryohnjzwq1zp",
+    "tsId": "dj2ryohnjzwq1zp",
+    "tsName": "Tai'an Tiankuang",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611769,
+    "ourName": "Qingdao Red Lions",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-2y8m4zhgwlwql07",
+    "tsId": "2y8m4zhgwlwql07",
+    "tsName": "Qingdao Red Lions",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611770,
+    "ourName": "Dalian Yingbo B",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-vjxm8ghx0j4r6od",
+    "tsId": "vjxm8ghx0j4r6od",
+    "tsName": "Dalian Yingbo B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611771,
+    "ourName": "Haimen Codion",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-965mkyhn7owr1ge",
+    "tsId": "965mkyhn7owr1ge",
+    "tsName": "Haimen Codion",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611772,
+    "ourName": "Lanzhou Longyuan Athletic",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-6ypq3nhl5gwmd7o",
+    "tsId": "6ypq3nhl5gwmd7o",
+    "tsName": "Lanzhou Longyuan Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611773,
+    "ourName": "Changchun Xidu",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-3glrw7hz10oqdyj",
+    "tsId": "3glrw7hz10oqdyj",
+    "tsName": "Changchun Xidu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611774,
+    "ourName": "Shanghai Second",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-l5ergphnyx9r8k0",
+    "tsId": "l5ergphnyx9r8k0",
+    "tsName": "Shanghai Second",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611775,
+    "ourName": "Beijing IT",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-x7lm7phk5dvm2wd",
+    "tsId": "x7lm7phk5dvm2wd",
+    "tsName": "Beijing IT",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611776,
+    "ourName": "Guizhou Guiyang Athletic",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-vjxm8ghpn5xr6od",
+    "tsId": "vjxm8ghpn5xr6od",
+    "tsName": "Guizhou Guiyang Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611777,
+    "ourName": "Shenzhen 2028",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-2y8m4zhzl0eql07",
+    "tsId": "2y8m4zhzl0eql07",
+    "tsName": "Shenzhen 2028",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611778,
+    "ourName": "Hubei Istar",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-23xmvkhon6jqg8n",
+    "tsId": "23xmvkhon6jqg8n",
+    "tsName": "Hubei Istar",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611779,
+    "ourName": "Ganzhou Ruishi",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-8yomo4h02weq0j6",
+    "tsId": "8yomo4h02weq0j6",
+    "tsName": "Ganzhou Ruishi",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611780,
+    "ourName": "Jiangxi Lushan",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-gy0or5jhv9pqwzv",
+    "tsId": "gy0or5jhv9pqwzv",
+    "tsName": "Jiangxi Lushan",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611781,
+    "ourName": "Hangzhou Linping Wuyue",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-6ypq3nhle9zmd7o",
+    "tsId": "6ypq3nhle9zmd7o",
+    "tsName": "Hangzhou Linping Wuyue",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611782,
+    "ourName": "Xiamen Feilu",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-pxwrxlhze4jryk0",
+    "tsId": "pxwrxlhze4jryk0",
+    "tsName": "Xiamen Feilu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611783,
+    "ourName": "Guangdong Mingtu",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-6ypq3nhl27zmd7o",
+    "tsId": "6ypq3nhl27zmd7o",
+    "tsName": "Guangdong Mingtu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611784,
+    "ourName": "Guangzhou Dandelion Alpha",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-pxwrxlhzk07ryk0",
+    "tsId": "pxwrxlhzk07ryk0",
+    "tsName": "Guangzhou Dandelion Alpha",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611785,
+    "ourName": "Wenzhou Professional Football Club",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-2y8m4zh8xv4ql07",
+    "tsId": "2y8m4zh8xv4ql07",
+    "tsName": "Wenzhou Professional Football Club",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611786,
+    "ourName": "Chengdu Rongcheng B",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-dn1m1gh1o00moep",
+    "tsId": "dn1m1gh1o00moep",
+    "tsName": "Chengdu Rongcheng B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611787,
+    "ourName": "Wuhan Three Towns B",
+    "ourLeague": "CHINA_3",
+    "ourExternalId": "ts-318q66hk7g2qo9j",
+    "tsId": "318q66hk7g2qo9j",
+    "tsName": "Wuhan Three Towns B",
+    "matchType": "stat-bridge"
   }
 ]
