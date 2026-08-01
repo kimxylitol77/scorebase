@@ -76,6 +76,9 @@ export const ALL_LEAGUES = [
   "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
   "ROMANIA_L2", "CHINA_3",
   "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "UZBEKISTAN_SL",
+  // 2026-08-02 추가 — 잔여 성인 남자 1부 7개 (af orphan 표시 전용)
+  "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "FAROE_PL",
+  "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
 ];
 
 export const SPORTS: SportMeta[] = [
@@ -139,6 +142,9 @@ export const SPORTS: SportMeta[] = [
       "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
       "ROMANIA_L2", "CHINA_3",
       "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "UZBEKISTAN_SL",
+      // 2026-08-02 추가 — 잔여 성인 남자 1부 7개 (af orphan 표시 전용)
+      "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "FAROE_PL",
+      "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
     ],
   },
   {
@@ -486,6 +492,14 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   GUATEMALA_LN: "과테말라 리가 나시오날",
   HONDURAS_LN: "온두라스 리가 나시오날",
   UZBEKISTAN_SL: "우즈베키스탄 슈퍼리가",
+  // 2026-08-02 추가 — 잔여 성인 남자 1부 7개
+  WALES_PL: "웨일스 컴리 프리미어",
+  MONTENEGRO_1L: "몬테네그로 1부",
+  LUXEMBOURG_ND: "룩셈부르크 내셔널 디비전",
+  FAROE_PL: "페로 제도 프리미어",
+  PANAMA_LPF: "파나마 LPF",
+  ELSALVADOR_PD: "엘살바도르 프리메라",
+  NICARAGUA_PD: "니카라과 프리메라",
 };
 
 /** 정렬 우선순위 (낮을수록 위) — KBO/NPB 한국 시청자 우선 */
@@ -644,6 +658,12 @@ export const LEAGUE_ORDER: Record<string, number> = {
   COPA_DO_BRASIL: 16.21, // BRASILEIRAO(16.2) 다음
   UZBEKISTAN_SL: 16.67, // KAZAKHSTAN_PL(16.66) 다음
   CHINA_3: 17.65, // CHINA_2(17.6) 다음
+  // 2026-08-02 추가 — 잔여 성인 남자 1부 7개
+  WALES_PL: 10.94, // SCOT_LEAGUE_TWO(10.93) 다음 — 영국권
+  LUXEMBOURG_ND: 15.68, // PORTUGAL_SUPER_CUP(15.67) 다음 — 서유럽
+  FAROE_PL: 15.9365, // 북유럽 그룹 끝 (KAKKONEN_C 15.9363 다음)
+  MONTENEGRO_1L: 15.997, // 동유럽 그룹 (RUSSIA_FNL 15.995 다음)
+  PANAMA_LPF: 16.15, ELSALVADOR_PD: 16.16, NICARAGUA_PD: 16.17, // 중미 (HONDURAS_LN 16.14 다음)
   NBA: 20,
   NBA_SL: 20.5,
   NHL: 21,
@@ -899,6 +919,14 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   GUATEMALA_LN: "과테말라",
   HONDURAS_LN: "온두라스",
   UZBEKISTAN_SL: "우즈베키스탄",
+  // 2026-08-02 추가 — 잔여 성인 남자 1부 7개
+  WALES_PL: "웨일스",
+  MONTENEGRO_1L: "몬테네그로",
+  LUXEMBOURG_ND: "룩셈부르크",
+  FAROE_PL: "페로 제도",
+  PANAMA_LPF: "파나마",
+  ELSALVADOR_PD: "엘살바도르",
+  NICARAGUA_PD: "니카라과",
 };
 
 /** 국가명 → 국기 유니코드 이모지. "국제"는 지구본. */
@@ -988,6 +1016,14 @@ export const COUNTRY_FLAG: Record<string, string> = {
   과테말라: "🇬🇹",
   온두라스: "🇭🇳",
   우즈베키스탄: "🇺🇿",
+  // 2026-08-02 추가
+  웨일스: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+  몬테네그로: "🇲🇪",
+  룩셈부르크: "🇱🇺",
+  "페로 제도": "🇫🇴",
+  파나마: "🇵🇦",
+  엘살바도르: "🇸🇻",
+  니카라과: "🇳🇮",
 };
 
 /** 리그 코드 → 국기 emoji (없으면 빈 문자열). UI 라벨 옆 표시용. */
@@ -1011,7 +1047,9 @@ export const COUNTRY_ORDER: string[] = [
   "포르투갈",
   "튀르키예",
   "벨기에",
+  "룩셈부르크",
   "스코틀랜드",
+  "웨일스",
   "그리스",
   "폴란드",
   "불가리아",
@@ -1026,6 +1064,7 @@ export const COUNTRY_ORDER: string[] = [
   "세르비아",
   "슬로바키아",
   "슬로베니아",
+  "몬테네그로",
   "키프로스",
   "덴마크",
   "아일랜드",
@@ -1043,12 +1082,16 @@ export const COUNTRY_ORDER: string[] = [
   "스웨덴",
   "핀란드",
   "아이슬란드",
+  "페로 제도",
   "미국",
   "캐나다",
   "멕시코",
   "코스타리카",
   "과테말라",
   "온두라스",
+  "파나마",
+  "엘살바도르",
+  "니카라과",
   "브라질",
   "칠레",
   "에콰도르",

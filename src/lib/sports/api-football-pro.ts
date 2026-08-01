@@ -195,6 +195,15 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   GUATEMALA_LN: 339, // 과테말라 리가 나시오날
   HONDURAS_LN: 234, // 온두라스 리가 나시오날
   UZBEKISTAN_SL: 369, // 우즈베키스탄 슈퍼리가
+  // ───── 2026-08-02 추가 (7개) — 7m 내일자 대조 잔여 "성인 남자 1부" 갭. af /leagues current=2026 실측 ─────
+  // 동일하게 orphan 표시 전용 (DB 수집·라인업·마켓 X).
+  WALES_PL: 110, // 웨일스 컴리 프리미어
+  MONTENEGRO_1L: 355, // 몬테네그로 1부 (First League)
+  LUXEMBOURG_ND: 261, // 룩셈부르크 내셔널 디비전
+  FAROE_PL: 367, // 페로 제도 프리미어 (Meistaradeildin)
+  PANAMA_LPF: 304, // 파나마 LPF
+  ELSALVADOR_PD: 370, // 엘살바도르 프리메라
+  NICARAGUA_PD: 396, // 니카라과 프리메라
 };
 
 // === api-football 원시 응답 shape ===
