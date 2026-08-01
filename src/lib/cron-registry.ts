@@ -25,6 +25,8 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "football-season-watch", label: "축구 시즌 전환 감시", maxAgeH: 10 },
   // 2h 주기 — 기대 2h + 유예 4h = 6h
   { name: "news-briefing", label: "해외 브리핑", maxAgeH: 6 },
+  // 10분 주기 — 구독 0이어도 실행 기록은 남음. 유예 넉넉히
+  { name: "push-alerts", label: "웹 푸시 킥오프 알림", maxAgeH: 2 },
   // 1h 주기 — env 미설정 no-op 도 실행 기록을 남기므로 오탐 없음 (broadcast-channel route)
   { name: "broadcast-channel", label: "텔레그램 채널 방송", maxAgeH: 6 },
   // 6h 주기 — 기대 6h + 유예 4h = 10h

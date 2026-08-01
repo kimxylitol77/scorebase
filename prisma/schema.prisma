@@ -1005,6 +1005,34 @@ model TelegramAlertLog {
   @@index([sentAt])
 }
 
+/// 웹 푸시 구독 — 비회원 포함, 브라우저 단위. 별표(즐겨찾기) 경기 킥오프 알림용 (2026-08-01).
+model PushSubscription {
+  id         String   @id @default(cuid())
+  endpoint   String   @unique // 푸시 서비스 URL — 브라우저가 발급, 만료 시 410 Gone
+  p256dh     String // 클라이언트 공개키 (payload 암호화용)
+  auth       String // 인증 시크릿
+  failCount  Int      @default(0) // 5xx 일시 오류 누적 — 3회면 삭제 (410 은 즉시 삭제)
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now()) // 마지막 동기화 — 장기 미접속 구독 정리 기준
+
+  alerts PushMatchAlert[]
+}
+
+/// 구독별 경기 알림 대기열 — 별표한 예정 경기. sentAt 채워지면 발송 완료.
+model PushMatchAlert {
+  id             String    @id @default(cuid())
+  subscriptionId String
+  matchId        Int
+  kind           String    @default("KICKOFF")
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  subscription PushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, matchId, kind])
+  @@index([sentAt, matchId])
+}
+
 /// 회원 작성 스포츠 분석 게시판 글. 예측(승/무/패)을 선택적으로 포함 → 경기 종료 시 자동 채점.
 /// 권한 차등 없음: 로그인 회원이면 누구나 작성. 등급(level)은 표시용 명예.
 model Post {

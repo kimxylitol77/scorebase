@@ -355,6 +355,10 @@
     {
       "path": "/api/cron/presence-cleanup",
       "schedule": "50 18 * * *"
+    },
+    {
+      "schedule": "*/10 * * * *",
+      "path": "/api/cron/push-alerts"
     }
   ]
 }

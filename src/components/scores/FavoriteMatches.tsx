@@ -16,6 +16,7 @@ import MatchCard, { type MatchCardProps } from "./MatchCard";
 import SoccerLiveRow from "./soccer/SoccerLiveRow";
 import LeagueBadge from "../LeagueBadge";
 import FavoriteStar from "./FavoriteStar";
+import PushAlertToggle from "./PushAlertToggle";
 import { useFavorites } from "./useFavorites";
 import { setPipOn } from "../LivePipScore";
 import { useScoreFlash } from "./useScoreFlash";
@@ -211,6 +212,8 @@ export default function FavoriteMatches({ matches }: Props) {
           {fav.length}경기 · {sportOrder.length}종목
         </span>
         <div className="ml-auto flex items-center gap-1.5">
+          {/* 킥오프 푸시 알림 — 비회원 OK, 미지원 브라우저에선 자동 숨김 */}
+          <PushAlertToggle />
           <button
             type="button"
             onClick={() => setPipOn(true)}
