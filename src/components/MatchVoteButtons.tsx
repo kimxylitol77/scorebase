@@ -1,6 +1,6 @@
 "use client";
 // 승부예측 투표 버튼 — 원클릭 투표 후 분포·AI 비교로 전환 (익명은 localStorage sessionId)
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useClientValue } from "@/lib/use-client-value";
 
 const SESSION_KEY = "scorebase-sid"; // PageViewTracker 와 동일 — 방문자 식별 재사용
@@ -26,8 +26,11 @@ export interface VoteInit {
   hasDraw: boolean; // 축구·KBO 등 무승부 가능 종목만 무 버튼
   closed: boolean; // 킥오프 이후 — 투표 불가, 분포만
   dist: Record<string, number>;
-  myPick: string | null; // 로그인 회원의 기존 픽 (익명은 null → localStorage 폴백)
-  loggedIn: boolean;
+  // 내 픽·로그인 여부는 기본적으로 prop 이 아니다 — 서버에서 cookies() 를 읽으면 그 페이지가
+  // 동적 강등돼 ISR 이 죽는다(2026-08-01). 생략하면 마운트 후 GET /api/vote 로 받아온다.
+  // 이미 force-dynamic 인 개인 페이지(/picks)만 서버 값을 넘겨 요청을 아낀다.
+  myPick?: string | null;
+  loggedIn?: boolean;
   aiPick: string | null; // AI 최고확률 픽 ("home"|"draw"|"away")
   aiProb: number | null; // 그 픽의 확률 0~1
   result: string | null; // FINISHED 시 실제 결과 pick 값
@@ -44,17 +47,39 @@ export default function MatchVoteButtons(init: VoteInit) {
   // 렌더 중엔 읽을 수 없고 effect 에서 setState 하면 한 프레임 어긋나므로
   // 마운트 후 값을 그대로 읽어 쓴다.
   const readSaved = useCallback(() => {
-    if (init.myPick) return init.myPick;
     try {
       return localStorage.getItem(PICK_KEY(init.matchId));
     } catch {
       return null; // private mode 무시
     }
-  }, [init.matchId, init.myPick]);
-  const savedPick = useClientValue<string | null>(readSaved, init.myPick);
+  }, [init.matchId]);
+  const savedPick = useClientValue<string | null>(readSaved, null);
+
+  // 로그인 회원의 서버 픽 — 페이지를 동적으로 만들지 않으려고 여기서 따로 받는다.
+  // 비로그인이면 {myPick:null, loggedIn:false} 라 localStorage 폴백이 그대로 살아 있다.
+  const [serverPick, setServerPick] = useState<string | null>(init.myPick ?? null);
+  const [loggedIn, setLoggedIn] = useState(!!init.loggedIn);
+  // 서버가 개인화를 넘겨준 페이지(/picks)는 다시 물을 필요가 없다.
+  const askServer = init.myPick === undefined;
+  useEffect(() => {
+    if (!askServer) return;
+    let alive = true;
+    fetch(`/api/vote?matchId=${init.matchId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { myPick?: string | null; loggedIn?: boolean } | null) => {
+        if (!alive || !d) return;
+        if (d.myPick) setServerPick(d.myPick);
+        setLoggedIn(!!d.loggedIn);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [init.matchId, askServer]);
+
   // 이번 세션에서 투표한 값이 있으면 그게 우선.
   const [votedPick, setVotedPick] = useState<string | null>(null);
-  const myPick = votedPick ?? savedPick;
+  const myPick = votedPick ?? serverPick ?? savedPick;
   const setMyPick = setVotedPick;
 
   const vote = async (pick: string) => {
@@ -74,6 +99,8 @@ export default function MatchVoteButtons(init: VoteInit) {
       }
       setMyPick(pick);
       setDist(data.dist);
+      // 투표 응답이 로그인 여부를 알려준다 — GET 이 늦게 와도 안내 문구가 어긋나지 않게.
+      if (typeof data.loggedIn === "boolean") setLoggedIn(data.loggedIn);
       try {
         localStorage.setItem(PICK_KEY(init.matchId), pick);
       } catch { /* 무시 */ }
@@ -150,7 +177,7 @@ export default function MatchVoteButtons(init: VoteInit) {
             {myPick === init.result ? "적중!" : "빗나감"}
           </span>
         )}
-        {voted && !init.loggedIn && !init.result && (
+        {voted && !loggedIn && !init.result && (
           <a href="/login" className="font-medium text-rose-600 hover:underline dark:text-rose-400">
             로그인하면 적중률·랭킹에 기록돼요 →
           </a>

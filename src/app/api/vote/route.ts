@@ -1,4 +1,6 @@
 // POST /api/vote — 승부예측 원클릭 투표 (비로그인 sessionId / 로그인 userId, 킥오프 전만)
+// GET  /api/vote?matchId=N — 로그인 회원의 기존 픽. 카드가 서버에서 cookies() 를 읽으면
+//   그 페이지가 통째로 동적 강등돼 ISR 이 죽으므로(2026-08-01), 개인화는 이 라우트로 격리한다.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/current-user";
@@ -7,6 +9,23 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const PICKS = new Set(["home", "draw", "away"]);
+
+export async function GET(req: NextRequest) {
+  const matchId = Number(req.nextUrl.searchParams.get("matchId"));
+  if (!Number.isInteger(matchId)) {
+    return NextResponse.json({ error: "matchId 필요" }, { status: 400 });
+  }
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    // 비로그인은 서버에 픽이 없다 — 클라이언트가 localStorage 폴백을 쓴다.
+    return NextResponse.json({ myPick: null, loggedIn: false });
+  }
+  const mine = await prisma.matchVote.findUnique({
+    where: { matchId_userId: { matchId, userId } },
+    select: { pick: true },
+  });
+  return NextResponse.json({ myPick: mine?.pick ?? null, loggedIn: true });
+}
 
 export async function POST(req: NextRequest) {
   let body: { matchId?: number; pick?: string; sessionId?: string };

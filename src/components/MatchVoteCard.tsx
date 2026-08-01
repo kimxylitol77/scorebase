@@ -1,7 +1,10 @@
-// 승부예측 투표 카드 (서버) — 매치 조회 + 분포/내 픽/AI 픽 로드 후 클라 버튼 위임.
+// 승부예측 투표 카드 (서버) — 매치 조회 + 분포/AI 픽 로드 후 클라 버튼 위임.
 // 매치 상세·프리뷰 어디든 <MatchVoteCard matchId={id} /> 한 줄로 삽입.
+//
+// ⚠️ 여기서 cookies()(getCurrentUserId)를 읽으면 이 카드를 쓰는 페이지가 통째로 동적
+// 강등돼 ISR 이 죽는다 — /articles/[slug] 가 그래서 매 요청 렌더됐다(2026-08-01 실측).
+// "내 픽"은 개인화라 캐시에 담기면 안 되기도 해서, 클라이언트가 GET /api/vote 로 따로 받는다.
 import { prisma } from "@/lib/db";
-import { getCurrentUserId } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MatchVoteButtons from "./MatchVoteButtons";
 
@@ -26,13 +29,13 @@ export default async function MatchVoteCard({ matchId }: { matchId: number }) {
   });
   if (!match) return null;
 
-  const userId = await getCurrentUserId();
-  const [rows, mine] = await Promise.all([
-    prisma.matchVote.groupBy({ by: ["pick"], where: { matchId }, _count: { _all: true } }),
-    userId
-      ? prisma.matchVote.findUnique({ where: { matchId_userId: { matchId, userId } }, select: { pick: true } })
-      : Promise.resolve(null),
-  ]);
+  // 분포는 개인화가 아니라 캐시에 담아도 된다. 투표한 본인은 POST 응답의 dist 로 즉시 갱신되고,
+  // 남의 표는 revalidate 주기만큼 늦게 반영된다.
+  const rows = await prisma.matchVote.groupBy({
+    by: ["pick"],
+    where: { matchId },
+    _count: { _all: true },
+  });
   const dist: Record<string, number> = { home: 0, draw: 0, away: 0 };
   for (const r of rows) dist[r.pick] = r._count._all;
 
@@ -82,8 +85,6 @@ export default async function MatchVoteCard({ matchId }: { matchId: number }) {
         hasDraw={DRAW_LEAGUES.has(lg)}
         closed={closed}
         dist={dist}
-        myPick={mine?.pick ?? null}
-        loggedIn={!!userId}
         aiPick={aiPick}
         aiProb={aiProb}
         result={result}
