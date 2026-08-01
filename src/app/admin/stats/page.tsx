@@ -87,15 +87,20 @@ export default async function StatsPage({ searchParams }: Props) {
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
   const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing] = await Promise.all([
+    // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
+    // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
+    // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전 (잘림은 30일 차트의 옛날쪽 며칠).
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
-      take: 100000,
+      take: 150000,
+      orderBy: { ts: "desc" },
     }),
     prisma.pageView.findMany({
       where: { ts: { gte: last24h } },
       select: { ts: true, userAgent: true, sessionId: true },
-      take: 20000,
+      take: 40000,
+      orderBy: { ts: "desc" },
     }),
     prisma.pageView.findMany({
       where: rangeWhere,
