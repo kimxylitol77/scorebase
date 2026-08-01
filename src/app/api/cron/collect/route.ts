@@ -44,9 +44,14 @@ const TS_COVERED = new Set(
 // ECUADOR_LP (2026-07-09): 동일 패턴. stale-cleanup 알림 8경기가 startTime 동결
 // (07-05→07-10~12 연기 누락)로 발견 — ts 부분커버(29/251)라 ts 미생성 매치는 af skip 으로
 // 갱신 경로 없음. api-football verify 결과 전부 NS(미래) = false positive 였으나 근본 = af 재개.
+// SLOVAKIA_SL·MOLDOVA_SL·SLOVENIA_SNL·SERBIA_SL·PARAGUAY_PD (2026-08-01): 시즌 롤오버 후
+// ts collector 가 새 시즌 매치를 안 만들어 수집 정지/부실 (슬로바키아 5/16·몰도바 5/27 이후 0건,
+// 슬로베니아·파라과이 3주간 1건, 세르비아 5건). af 엔 새 시즌 fixture 전부 있음(7/15~8/10 실측
+// 16~20경기) — 7m 대조 감사에서 발견. af 수집 재개.
 const TS_COVERED_EXCEPTIONS = new Set<League>([
   "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
   "ECUADOR_LP",
+  "SLOVAKIA_SL", "MOLDOVA_SL", "SLOVENIA_SNL", "SERBIA_SL", "PARAGUAY_PD",
 ]);
 
 const ALL_LEAGUES: League[] = [
@@ -122,6 +127,7 @@ const ALL_LEAGUES: League[] = [
   "COLOMBIA_PA",
   "PERU_PD",
   "VENEZUELA_PD",
+  "PARAGUAY_PD", // 2026-08-01 — ts 롤오버 정지로 af 수집 재개 (클라우수라 id 는 collector 가 월별 분기)
   "EGYPT_PL",
   "ISRAEL_PL",
   "INDIA_ISL",

@@ -143,9 +143,13 @@ export function buildApiFootballCollector(league: League): MatchCollector {
       if (!leagueId) {
         throw new Error(`api-football league id 미등록: ${league}`);
       }
+      // 파라과이는 af 가 전·후기를 별개 리그 id 로 제공 — 250=아페르투라(1~6월), 252=클라우수라(7~12월).
+      // 250 고정이던 탓에 클라우수라 개막 후 수집 0건이던 문제 (2026-08-01).
+      const effectiveId =
+        league === "PARAGUAY_PD" && parseInt(date.slice(5, 7)) >= 7 ? 252 : leagueId;
       const season = seasonFor(league, date);
       const { data } = await client().get("/fixtures", {
-        params: { league: leagueId, season, date },
+        params: { league: effectiveId, season, date },
       });
       const arr = (data?.response ?? []) as ApiFixture[];
       return arr.map((f) => toNormalized(league, f));

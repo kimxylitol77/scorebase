@@ -128,9 +128,13 @@ function leagueLabelOf(code: string): string {
 }
 
 // API-Football fixture league_id → 우리 코드 (역매핑)
-const AF_ID_TO_CODE: Record<number, string> = Object.fromEntries(
-  Object.entries(API_FOOTBALL_LEAGUE_ID).map(([k, v]) => [v, k]),
-);
+const AF_ID_TO_CODE: Record<number, string> = {
+  ...Object.fromEntries(
+    Object.entries(API_FOOTBALL_LEAGUE_ID).map(([k, v]) => [v, k]),
+  ),
+  // 한 리그가 af 에서 복수 id 인 경우의 보조 역매핑 (정방향 맵은 1:1 유지).
+  252: "PARAGUAY_PD", // 클라우수라 (정방향 250=아페르투라)
+};
 
 // af 국가대표 친선(id 10)에는 국대가 클럽팀과 붙는 프리시즌 스파링(예: Antigua 대표팀 vs
 // 폴란드 4부 Podlasie)도 섞여 들어온다. 양쪽 다 국가대표일 때만 "국가대표 친선"으로 남기고,
