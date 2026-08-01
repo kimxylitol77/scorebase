@@ -8,7 +8,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { safeFetchTop3, type TopThreeEntry } from "@/lib/sports/standings-overview";
-import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, GitCompare, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, GitCompare, Trophy, Activity, Award, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 300;
@@ -152,6 +152,7 @@ export default async function BaseballHub() {
         { label: "AI 예측", href: "/predictions/KBO" },
         { label: "글·분석", href: "/leagues/KBO" },
         { label: "역사", href: "/leagues/KBO?view=history" },
+        { label: "경기 분석", href: "/previews/KBO" },
         { label: "부상자", href: "/injuries/KBO" },
         { label: "연봉", href: "/salaries/kbo" },
       ],
@@ -166,6 +167,7 @@ export default async function BaseballHub() {
         { label: "AI 예측", href: "/predictions/MLB" },
         { label: "글·분석", href: "/leagues/MLB" },
         { label: "역사", href: "/leagues/MLB?view=history" },
+        { label: "경기 분석", href: "/previews/MLB" },
         { label: "부상자", href: "/injuries/MLB" },
         { label: "Statcast", href: "/baseball/statcast" },
         { label: "연봉", href: "/salaries/mlb" },
@@ -181,6 +183,7 @@ export default async function BaseballHub() {
         { label: "AI 예측", href: "/predictions/NPB" },
         { label: "글·분석", href: "/leagues/NPB" },
         { label: "역사", href: "/leagues/NPB?view=history" },
+        { label: "경기 분석", href: "/previews/NPB" },
         { label: "부상자", href: "/injuries/NPB" },
       ],
     },
@@ -398,6 +401,15 @@ export default async function BaseballHub() {
         </Card>
       </div>
 
+      {/* 기능 바로가기 — 야구 관련 전체 진입로 */}
+      <div className="flex flex-wrap gap-2 pt-1">
+        <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표 · 7모델 정면비교" />
+        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
+        <FnChip href="/odds?sport=baseball" Icon={Activity} label="배당 흐름" />
+        <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
+        <FnChip href="/predictions/accuracy" Icon={Trophy} label="적중률 리포트" />
+      </div>
+
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         오늘 경기·예측은 5분마다 갱신됩니다. 각 카드의 링크에서 전체 데이터를 볼 수 있습니다. 데이터 출처 KBO 공식·MLB Stats API·api-baseball.
       </footer>
@@ -494,4 +506,16 @@ function Card({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-neutral-400 py-2">{children}</p>;
+}
+
+function FnChip({ href, Icon, label }: { href: string; Icon: LucideIcon; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-white/10 px-3.5 py-2 text-[13px] font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-400"
+    >
+      <Icon className="w-4 h-4" aria-hidden />
+      {label}
+    </Link>
+  );
 }

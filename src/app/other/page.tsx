@@ -1,4 +1,4 @@
-// 기타 종목 허브 — 하키·배구·e스포츠·테니스·골프·F1 진입점.
+// 기타 종목 허브 — 하키·배구·e스포츠·테니스·골프·F1·UFC 진입점.
 // 축구·야구·농구는 각자 허브(/soccer·/baseball·/basketball)가 있고, 나머지 종목은
 // 개별 허브가 없거나(배구·테니스·골프·F1) 메뉴에서 빠져 있어 한 곳에 모은다.
 // 각 카드 = 라이브 스코어 + 그 종목의 심화 콘텐츠(순위·랭킹·트래커) 링크.
@@ -11,13 +11,13 @@ import { SITE_URL } from "@/lib/site-url";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "기타 종목 — 하키·배구·e스포츠·테니스·골프·F1",
+  title: "기타 종목 — 하키·배구·e스포츠·테니스·골프·F1·UFC",
   description:
-    "NHL 하키, 배구(VNL), LCK e스포츠, 테니스 ATP·WTA, 골프 PGA·LPGA, F1 포뮬러 1까지. 라이브 스코어와 순위·랭킹·한국 선수 성적을 한국어로 한 곳에서 — 스코어베이스.",
+    "NHL 하키, 배구(VNL·V리그), LCK e스포츠, 테니스 ATP·WTA, 골프 PGA·LPGA, F1, UFC 까지. 라이브 스코어와 순위·랭킹·한국 선수 성적을 한국어로 한 곳에서 — 스코어베이스.",
   keywords: [
     "하키 라이브스코어", "NHL 순위", "배구 라이브스코어", "VNL",
     "LCK 순위", "테니스 세계랭킹", "ATP 랭킹", "골프 한국 선수", "LPGA",
-    "F1 순위", "포뮬러1 챔피언십",
+    "F1 순위", "포뮬러1 챔피언십", "UFC 랭킹", "UFC 대회 일정",
   ],
   alternates: { canonical: `${SITE_URL}/other` },
 };
@@ -52,11 +52,12 @@ const SPORTS: SportCard[] = [
   {
     emoji: "🏐",
     title: "배구",
-    sub: "VNL 발리볼 네이션스리그 · 국가대항 — 세트 스코어",
+    sub: "VNL 국가대항 · 10월 V-리그(KOVO) 개막 — 세트 스코어",
     href: "/scores?sport=volleyball",
     hrefLabel: "배구 라이브 스코어",
     links: [
       { label: "VNL 순위", href: "/standings/VNL" },
+      { label: "VNL 여자 순위", href: "/standings/VNL_W" },
       { label: "전체 순위표", href: "/standings" },
     ],
     accent: "from-amber-500 to-orange-600",
@@ -83,6 +84,7 @@ const SPORTS: SportCard[] = [
       { label: "라이브 스코어", href: "/scores?sport=tennis" },
       { label: "대진표", href: "/tennis/draw" },
       { label: "WTA 랭킹", href: "/rankings/tennis?tour=wta" },
+      { label: "연봉 랭킹", href: "/salaries/tennis" },
     ],
     accent: "from-emerald-500 to-teal-600",
   },
@@ -95,6 +97,7 @@ const SPORTS: SportCard[] = [
     links: [
       { label: "라이브 리더보드", href: "/scores?sport=golf" },
       { label: "PGA 한국 선수", href: "/golf/korea?tour=pga" },
+      { label: "상금 랭킹", href: "/salaries/golf" },
     ],
     accent: "from-lime-500 to-green-600",
   },
@@ -107,8 +110,21 @@ const SPORTS: SportCard[] = [
     links: [
       { label: "그랑프리 일정", href: "/scores?sport=f1" },
       { label: "컨스트럭터 순위", href: "/rankings/f1?view=team" },
+      { label: "연봉 랭킹", href: "/salaries/f1" },
     ],
     accent: "from-red-600 to-orange-500",
+  },
+  {
+    emoji: "🥊",
+    title: "UFC",
+    sub: "종합격투기 — 체급별 랭킹·파이터 프로필·이벤트 결과",
+    href: "/rankings/ufc",
+    hrefLabel: "UFC 랭킹",
+    links: [
+      { label: "이벤트 일정·결과", href: "/scores?sport=mma" },
+      { label: "체급별 랭킹", href: "/rankings/ufc" },
+    ],
+    accent: "from-zinc-600 to-red-700",
   },
 ];
 
@@ -122,7 +138,7 @@ export default function OtherSportsPage() {
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 기타 종목
         </span>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight break-keep">
-          하키 · 배구 · e스포츠 · 테니스 · 골프 · F1
+          하키 · 배구 · e스포츠 · 테니스 · 골프 · F1 · UFC
         </h1>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 break-keep">
           축구·야구·농구 외 종목의 라이브 스코어와 순위·랭킹을 한 곳에서. 선수 이름과 팀명을 한국어로 봅니다.

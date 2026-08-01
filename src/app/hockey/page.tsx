@@ -9,7 +9,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
-import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, Award, Swords, Activity, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import TeamBadge from "@/components/TeamBadge";
 
@@ -329,6 +329,9 @@ export default async function HockeyHub() {
         <FnChip href="/injuries/NHL" Icon={HeartPulse} label="NHL 부상자 명단" />
         <FnChip href="/compare?sport=NHL" Icon={GitCompare} label="선수 비교" />
         <FnChip href="/predictions/NHL" Icon={Users} label="NHL 플레이오프 브래킷" />
+        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
+        <FnChip href="/odds?sport=hockey" Icon={Activity} label="배당 흐름" />
+        <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표" />
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
