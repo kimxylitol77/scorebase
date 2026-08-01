@@ -1,5 +1,5 @@
 // 데일리 health-check cron — Vercel 06:30 KST 호출.
-// 17개 체크 함수 직렬 실행 → HealthCheck DB row insert → HIGH 발견 시 텔레그램 발송.
+// 19개 체크 함수 직렬 실행 → HealthCheck DB row insert → HIGH 발견 시 텔레그램 발송.
 
 import { NextResponse } from "next/server";
 import { isCronAuthorized } from "@/lib/cron-auth";
@@ -9,7 +9,7 @@ import { runAiReview } from "@/lib/health-checks/ai-review";
 import { sendTelegram } from "@/lib/notify/telegram";
 
 export const dynamic = "force-dynamic";
-// 17개 rule 체크 + (월요일) AI 페이지 5개 검토 (OpenAI 5회 호출 ~10초) — 90초로 늘림.
+// 19개 rule 체크 + (월요일) AI 페이지 5개 검토 (OpenAI 5회 호출 ~10초) — 90초로 늘림.
 export const maxDuration = 90;
 
 const SEVERITY_EMOJI: Record<string, string> = {
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
         severity: "OK",
         category: "health-check",
         key: "summary",
-        message: `정상 — 17개 체크 모두 통과`,
+        message: `정상 — 19개 체크 모두 통과`,
       },
     });
   }

@@ -6,6 +6,7 @@ import type { HealthFinding } from "./types";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
+import { checkLinkHealth } from "./link-health";
 
 // ──────────────────────────────────────────────────────────────
 // 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
@@ -961,6 +962,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "nhl-goalie-coverage", fn: checkNhlGoalieCoverage },
   { name: "evaluation-gap", fn: checkEvaluationGap },
   { name: "duplicate-match", fn: checkDuplicateMatches },
+  { name: "link-health", fn: checkLinkHealth },
 ];
 
 export async function runHealthChecks(): Promise<HealthFinding[]> {

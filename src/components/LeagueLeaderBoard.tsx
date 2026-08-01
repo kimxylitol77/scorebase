@@ -7,28 +7,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
-
-// /players/[pid] 페이지가 view 를 가진 리그 — 15개 모두 지원.
-const PLAYER_PAGE_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "WORLD_CUP",
-  "KBO", "NPB", "MLB", "NBA", "NHL", "LOL",
-]);
-
-// 빅5 리더보드는 TheSports 시즌통계(ts player id)로 교체됨 → /transfers 상세로 링크. (SERIE_A 는 기존 api-football)
-// WORLD_CUP 도 ts player id 기반 (cache playerStats 실시간 집계) — 시장가치 보유 선수만 externalId 가 채워짐.
-const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_1", "WORLD_CUP"]);
-// 확장 축구 리그(K리그1·K리그2 등)는 af 매핑이 없어 externalId 가 TheSports player id(비숫자)로
-// 저장된다. ts id 의 정본 페이지는 /transfers 통합 선수 페이지 → 리그 화이트리스트가 아니라
-// id 모양으로 판정해야 리그를 늘릴 때마다 링크가 조용히 끊기지 않는다.
-const isTsPlayerId = (id: string) => !/^\d+$/.test(id);
-function playerHref(league: string, externalId: string | null): string | null {
-  if (!externalId) return null;
-  if (TRANSFERS_LEADER_LEAGUES.has(league)) return `/transfers/${externalId}`;
-  if (SOCCER_LEAGUES.has(league) && isTsPlayerId(externalId)) return `/transfers/${externalId}`;
-  if (!PLAYER_PAGE_LEAGUES.has(league)) return null;
-  if (league === "MLB") return `/players/${externalId}`;
-  return `/players/${externalId}?league=${league}`;
-}
+import { leaderPlayerHref } from "@/lib/links/leaderboard-link";
 
 export interface LeaderRow {
   rank: number;
@@ -169,7 +148,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
       {/* 표 */}
       <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
         {rows.map((r) => {
-          const href = playerHref(league, r.externalId);
+          const href = leaderPlayerHref(league, r.externalId, SOCCER_LEAGUES.has(league));
           // 1·2·3위 시상대 배경 강조 (금·은·동)
           const rankBg =
             r.rank === 1
