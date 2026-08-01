@@ -70,6 +70,12 @@ export const ALL_LEAGUES = [
   "IRAQ_SL",
   "MEXICO_2", "CHINA_2", "IRELAND_2", "DENMARK_2", "HUNGARY_2",
   "CZECH_2", "AUSTRIA_2", "BELGIUM_2", "TURKEY_2",
+  // 2026-08-01 추가 — 7m 커버리지 대조 16개 (af orphan 표시 전용, DB 수집 X)
+  "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "RUSSIA_FNL",
+  "ETTAN_NORRA", "ETTAN_SODRA", "NORWAY_2D_G1", "NORWAY_2D_G2",
+  "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
+  "ROMANIA_L2", "CHINA_3",
+  "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "UZBEKISTAN_SL",
 ];
 
 export const SPORTS: SportMeta[] = [
@@ -127,6 +133,12 @@ export const SPORTS: SportMeta[] = [
       "IRAQ_SL",
       "MEXICO_2", "CHINA_2", "IRELAND_2", "DENMARK_2", "HUNGARY_2",
       "CZECH_2", "AUSTRIA_2", "BELGIUM_2", "TURKEY_2",
+      // 2026-08-01 추가 — 7m 커버리지 대조 16개 (af orphan 표시 전용)
+      "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "RUSSIA_FNL",
+      "ETTAN_NORRA", "ETTAN_SODRA", "NORWAY_2D_G1", "NORWAY_2D_G2",
+      "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
+      "ROMANIA_L2", "CHINA_3",
+      "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "UZBEKISTAN_SL",
     ],
   },
   {
@@ -448,7 +460,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   GHANA_PL: "가나 프리미어리그",
   ARG_PRIMERA_NACIONAL: "아르헨티나 프리메라 나시오날",
   IRAQ_SL: "이라크 스타스 리그",
-  MEXICO_2: "멕시코 아센소 MX",
+  MEXICO_2: "멕시코 리가 엑스판시온", // 2026-08-01 개칭 반영 (구 아센소 MX)
   CHINA_2: "중국 리그원",
   IRELAND_2: "아일랜드 1부 디비전",
   DENMARK_2: "덴마크 1.디비전",
@@ -457,6 +469,23 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   AUSTRIA_2: "오스트리아 2.리가",
   BELGIUM_2: "벨기에 챌린저 프로",
   TURKEY_2: "튀르키예 1.리그",
+  // 2026-08-01 추가 — 7m 커버리지 대조 16개
+  COPA_DO_BRASIL: "코파 두 브라질",
+  PORTUGAL_SUPER_CUP: "포르투갈 수페르컵",
+  RUSSIA_FNL: "러시아 FNL",
+  ETTAN_NORRA: "스웨덴 에탄 노라",
+  ETTAN_SODRA: "스웨덴 에탄 쇠드라",
+  NORWAY_2D_G1: "노르웨이 2.디비션 1조",
+  NORWAY_2D_G2: "노르웨이 2.디비션 2조",
+  KAKKONEN_A: "핀란드 카코넨 A",
+  KAKKONEN_B: "핀란드 카코넨 B",
+  KAKKONEN_C: "핀란드 카코넨 C",
+  ROMANIA_L2: "루마니아 리가 II",
+  CHINA_3: "중국 리그투",
+  COSTA_RICA_PD: "코스타리카 프리메라",
+  GUATEMALA_LN: "과테말라 리가 나시오날",
+  HONDURAS_LN: "온두라스 리가 나시오날",
+  UZBEKISTAN_SL: "우즈베키스탄 슈퍼리가",
 };
 
 /** 정렬 우선순위 (낮을수록 위) — KBO/NPB 한국 시청자 우선 */
@@ -604,6 +633,17 @@ export const LEAGUE_ORDER: Record<string, number> = {
   IRAQ_SL: 17.5, // 이라크 — 아시아 1부
   MEXICO_2: 16.6, CHINA_2: 17.6, IRELAND_2: 15.5, DENMARK_2: 16.3,
   HUNGARY_2: 16.4, CZECH_2: 16.35, AUSTRIA_2: 16.25, BELGIUM_2: 16.2, TURKEY_2: 16.55,
+  // 2026-08-01 추가 — 각 상위 리그 바로 다음 소수점
+  PORTUGAL_SUPER_CUP: 15.67, // PRIMEIRA_LIGA_2(15.66) 다음
+  ROMANIA_L2: 15.885, // LIGA_I(15.88) 다음
+  RUSSIA_FNL: 15.995, // RPL(15.99) 다음
+  NORWAY_2D_G1: 15.9341, NORWAY_2D_G2: 15.9342, // NORWAY_1L(15.934) 다음
+  ETTAN_NORRA: 15.9351, ETTAN_SODRA: 15.9352, // SUPERETTAN(15.935) 다음
+  KAKKONEN_A: 15.9361, KAKKONEN_B: 15.9362, KAKKONEN_C: 15.9363, // YKKONEN(15.936) 다음
+  COSTA_RICA_PD: 16.12, GUATEMALA_LN: 16.13, HONDURAS_LN: 16.14, // LIGA_MX(16.1) 다음 중미
+  COPA_DO_BRASIL: 16.21, // BRASILEIRAO(16.2) 다음
+  UZBEKISTAN_SL: 16.67, // KAZAKHSTAN_PL(16.66) 다음
+  CHINA_3: 17.65, // CHINA_2(17.6) 다음
   NBA: 20,
   NBA_SL: 20.5,
   NHL: 21,
@@ -842,6 +882,23 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   AUSTRIA_2: "오스트리아",
   BELGIUM_2: "벨기에",
   TURKEY_2: "튀르키예",
+  // 2026-08-01 추가 — 7m 커버리지 대조 16개
+  COPA_DO_BRASIL: "브라질",
+  PORTUGAL_SUPER_CUP: "포르투갈",
+  RUSSIA_FNL: "러시아",
+  ETTAN_NORRA: "스웨덴",
+  ETTAN_SODRA: "스웨덴",
+  NORWAY_2D_G1: "노르웨이",
+  NORWAY_2D_G2: "노르웨이",
+  KAKKONEN_A: "핀란드",
+  KAKKONEN_B: "핀란드",
+  KAKKONEN_C: "핀란드",
+  ROMANIA_L2: "루마니아",
+  CHINA_3: "중국",
+  COSTA_RICA_PD: "코스타리카",
+  GUATEMALA_LN: "과테말라",
+  HONDURAS_LN: "온두라스",
+  UZBEKISTAN_SL: "우즈베키스탄",
 };
 
 /** 국가명 → 국기 유니코드 이모지. "국제"는 지구본. */
@@ -926,6 +983,11 @@ export const COUNTRY_FLAG: Record<string, string> = {
   러시아: "🇷🇺",
   알제리: "🇩🇿",
   가나: "🇬🇭",
+  // 2026-08-01 추가
+  코스타리카: "🇨🇷",
+  과테말라: "🇬🇹",
+  온두라스: "🇭🇳",
+  우즈베키스탄: "🇺🇿",
 };
 
 /** 리그 코드 → 국기 emoji (없으면 빈 문자열). UI 라벨 옆 표시용. */
@@ -984,6 +1046,9 @@ export const COUNTRY_ORDER: string[] = [
   "미국",
   "캐나다",
   "멕시코",
+  "코스타리카",
+  "과테말라",
+  "온두라스",
   "브라질",
   "칠레",
   "에콰도르",
@@ -1007,5 +1072,6 @@ export const COUNTRY_ORDER: string[] = [
   "중국",
   "대만",
   "카자흐스탄",
+  "우즈베키스탄",
   "호주",
 ];

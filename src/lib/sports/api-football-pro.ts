@@ -173,8 +173,28 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   ALGERIA_L1: 186, // 알제리 리그 프로페시오넬 1 (8~5월)
   SVENSKA_CUPEN: 115, // 스벤스카 컵 (스웨덴 컵, 2~6월) — 달력연도 (2026-06-10 id 교정: 109=폴란드 2부였음)
   GHANA_PL: 570, // 가나 프리미어리그 (9~5월) (2026-06-10 id 교정: 240=콜롬비아 2부였음)
-  // ARG_PRIMERA_NACIONAL 제거 — api-football 131 은 실제 Primera B Metropolitana(3부) 오매핑.
-  // 진짜 2부는 TheSports(9vjxm8ghonr6odg)로 수집 (2026-05-29).
+  // ARG_PRIMERA_NACIONAL: 과거 131 은 Primera B Metropolitana(3부) 오매핑이라 제거했었음(2026-05-29).
+  // 2026-08-01 오늘자 af 피드 실측으로 진짜 id=129(Primera Nacional, 당일 8경기) 확인 후 재등록.
+  // ───── 2026-08-01 추가 (7m 커버리지 대조, 18개) — 전부 당일 af 피드/leagues 실측으로 id 확정 ─────
+  // orphan 표시 전용 (DB 수집·라인업·마켓 X) — fetchSoccerByDate 일자 피드에서 걸러 /scores 에만 노출.
+  COPA_DO_BRASIL: 73, // 코파 두 브라질 (컵)
+  PORTUGAL_SUPER_CUP: 550, // 포르투갈 수페르컵
+  RUSSIA_FNL: 236, // 러시아 FNL (2부, First League)
+  ARG_PRIMERA_NACIONAL: 129, // 아르헨티나 프리메라 나시오날 (2부)
+  MEXICO_2: 263, // 리가 데 엑스판시온 MX (2부)
+  ETTAN_NORRA: 563, // 스웨덴 에탄 노라 (3부)
+  ETTAN_SODRA: 564, // 스웨덴 에탄 쇠드라 (3부)
+  NORWAY_2D_G1: 473, // 노르웨이 2. 디비션 1조 (3부)
+  NORWAY_2D_G2: 474, // 노르웨이 2. 디비션 2조 (3부)
+  KAKKONEN_A: 247, // 핀란드 카코넨 A조 (3부)
+  KAKKONEN_B: 248, // 핀란드 카코넨 B조
+  KAKKONEN_C: 249, // 핀란드 카코넨 C조
+  ROMANIA_L2: 284, // 루마니아 리가 II (2부) — 과거 PARAGUAY_PD 가 이 id 로 오매핑됐던 이력 있음
+  CHINA_3: 929, // 중국 리그투 (3부, 中乙)
+  COSTA_RICA_PD: 162, // 코스타리카 프리메라
+  GUATEMALA_LN: 339, // 과테말라 리가 나시오날
+  HONDURAS_LN: 234, // 온두라스 리가 나시오날
+  UZBEKISTAN_SL: 369, // 우즈베키스탄 슈퍼리가
 };
 
 // === api-football 원시 응답 shape ===
