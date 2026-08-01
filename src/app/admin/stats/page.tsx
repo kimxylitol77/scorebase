@@ -77,12 +77,13 @@ export default async function StatsPage({ searchParams }: Props) {
   const yesterday00KST = new Date(today00KST.getTime() - 24 * 60 * 60 * 1000);
 
   // 기간 선택용 — 인기 페이지/봇 TOP/디바이스 분포 / KPI 의 main range
-  // 7d → 30000 take 한도. 30d → 100000. all → 200000 (DB 부담 회피)
+  // take 한도는 실측 행수(2026-08-01: 7d 49k · 30d 107k · all 153k) 대비 2배 여유.
+  // 초과하면 desc 정렬이라 옛쪽부터 잘린다 — 라벨 기간보다 짧게 집계되므로 주기 점검.
   const rangeWhere =
     range === "all"
       ? {}
       : { ts: { gte: range === "30d" ? last30 : last7 } };
-  const rangeTake = range === "all" ? 200000 : range === "30d" ? 100000 : 30000;
+  const rangeTake = range === "all" ? 300000 : range === "30d" ? 200000 : 100000;
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
@@ -114,7 +115,7 @@ export default async function StatsPage({ searchParams }: Props) {
     prisma.pageView.findMany({
       where: { ...rangeWhere, isLanding: true },
       select: { referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
-      take: 50000,
+      take: 100000,
       orderBy: { ts: "desc" },
     }),
     // 유입 채널 주간 비교용 — range 와 무관하게 14일 고정(이번 주 7일 + 지난주 7일).
@@ -122,7 +123,7 @@ export default async function StatsPage({ searchParams }: Props) {
     prisma.pageView.findMany({
       where: { isLanding: true, ts: { gte: last14 } },
       select: { ts: true, referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
-      take: 50000,
+      take: 100000,
       orderBy: { ts: "desc" },
     }),
     // 회원 이탈 분석용 — 로그인 상태 PV 전체 (userId 는 2026-07-28 이후 수집분만 존재).
