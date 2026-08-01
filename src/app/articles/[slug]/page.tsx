@@ -41,6 +41,18 @@ import { BarChart3, CalendarDays, Activity, Star, Swords } from "lucide-react";
 // ISR — 발행된 글 본문은 거의 불변. 10분 캐시로 페이지 이동 가속(새 글 첫 방문은 즉시 생성).
 export const revalidate = 600;
 
+// 이 선언이 있어야 라우트가 ISR 대상이 된다. revalidate 만 두면 동적 세그먼트는
+// 캐시 없이 매 요청 렌더된다 (2026-08-01 실측 — 응답이 no-store, 3연속 호출 모두 재렌더).
+// 빈 배열이라 빌드 프리렌더는 0건이고(빌드 시간·Neon 부하 그대로), 요청이 들어온
+// 경로만 그때 생성해 revalidate 동안 캐시한다.
+//
+// ⚠️ 단 이 페이지는 아직 캐시가 붙지 않는다 — MatchVoteCard 가 "내 픽"을 그리려고
+// getCurrentUserId()(=cookies())를 읽어 페이지 전체가 동적으로 강등된다.
+// 투표 부분을 클라이언트 조회로 분리해야 풀린다. 그때 이 선언이 그대로 효력을 갖는다.
+export function generateStaticParams() {
+  return [] as { slug: string }[];
+}
+
 interface Props {
   params: Promise<{ slug: string }>;
 }

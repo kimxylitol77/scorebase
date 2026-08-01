@@ -59,6 +59,12 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 // ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
 export const revalidate = 300;
 
+// ISR 활성화 — 이 선언이 없으면 revalidate 가 있어도 매 요청 렌더된다 (2026-08-01 실측).
+// 빈 배열 = 빌드 프리렌더 0건, 요청 온 경로만 생성 후 캐시.
+export function generateStaticParams() {
+  return [] as { id: string }[];
+}
+
 // TheSports 선수단(이적시장 데이터) — 이름 → /transfers/{ts id} 링크용
 const T_OVERRIDES = rawTOverrides as Record<string, { nameKo?: string; flag?: string }>;
 const T_PHOTOS = rawTPhotos as Record<string, string>;

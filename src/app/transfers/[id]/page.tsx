@@ -148,6 +148,12 @@ for (const t of Object.values(rawWcSquads as Record<string, { tsId: string; squa
 // ISR — 몸값·이적·시즌 기록은 분 단위로 바뀌지 않음. 서울 엣지 캐시로 페이지 이동 가속(5분 재생성).
 export const revalidate = 300;
 
+// ISR 활성화 — 이 선언이 없으면 revalidate 가 있어도 매 요청 렌더된다 (2026-08-01 실측).
+// 빈 배열 = 빌드 프리렌더 0건, 요청 온 경로만 생성 후 캐시.
+export function generateStaticParams() {
+  return [] as { id: string }[];
+}
+
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "EPL",
   LALIGA: "라리가",

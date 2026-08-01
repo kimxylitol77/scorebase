@@ -14,6 +14,12 @@ import { Swords } from "lucide-react";
 
 export const revalidate = 3600;
 
+// ISR 활성화 — 이 선언이 없으면 revalidate 가 있어도 매 요청 렌더된다 (2026-08-01 실측).
+// 빈 배열 = 빌드 프리렌더 0건, 요청 온 경로만 생성 후 캐시.
+export function generateStaticParams() {
+  return [] as { pair: string }[];
+}
+
 interface Props {
   params: Promise<{ pair: string }>;
 }
