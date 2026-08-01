@@ -48,10 +48,13 @@ const TS_COVERED = new Set(
 // ts collector 가 새 시즌 매치를 안 만들어 수집 정지/부실 (슬로바키아 5/16·몰도바 5/27 이후 0건,
 // 슬로베니아·파라과이 3주간 1건, 세르비아 5건). af 엔 새 시즌 fixture 전부 있음(7/15~8/10 실측
 // 16~20경기) — 7m 대조 감사에서 발견. af 수집 재개.
+// VEIKKAUSLIIGA (2026-08-02): 30일 매치 24건 전부 af 생성·ts 0건 — 2부 YKKONEN 은 예외
+// 등록돼 있었는데 1부가 빠져 af skip → 오울루전 등 stale SCHEDULED 반복. af 수집 재개.
 const TS_COVERED_EXCEPTIONS = new Set<League>([
   "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
   "ECUADOR_LP",
   "SLOVAKIA_SL", "MOLDOVA_SL", "SLOVENIA_SNL", "SERBIA_SL", "PARAGUAY_PD",
+  "VEIKKAUSLIIGA",
 ]);
 
 const ALL_LEAGUES: League[] = [

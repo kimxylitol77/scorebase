@@ -564,6 +564,30 @@ export async function GET(req: NextRequest) {
   // 리그별 카운트 (POSTPONED 처리된 매치만) + sample + source hint
   const byLeague: Record<string, number> = {};
   for (const m of toPostpone) byLeague[m.league] = (byLeague[m.league] ?? 0) + 1;
+
+  // TS_COVERED 인데 ts 실커버리지 0 인 리그 자동 탐지 — stale 의 반복 원인 1위
+  // (YKKONEN→BELARUS→ECUADOR→VEIKKAUSLIIGA 로 매번 사람이 사후 발견하던 패턴).
+  // stale 발생 리그의 최근 30일 매치 중 ts- 생성이 0 이면 TS_COVERED_EXCEPTIONS
+  // 등록 후보로 알림에 명시해 다음 리그부터는 첫 알림에서 바로 조치하게 한다.
+  let tsGapLines = "";
+  try {
+    const { default: tsLeagueMap } = (await import(
+      "@/lib/sports/thesports/league-id-mapping.json"
+    )) as { default: Array<{ code: string; tsSeasonId?: string }> };
+    const tsCovered = new Set(tsLeagueMap.filter((e) => e.tsSeasonId).map((e) => e.code));
+    const staleLeagues = [...new Set(stale.map((m) => m.league))].filter((l) => tsCovered.has(l));
+    const gaps: string[] = [];
+    for (const lg of staleLeagues) {
+      const [total, tsMade] = await Promise.all([
+        prisma.match.count({ where: { league: lg, startTime: { gte: new Date(Date.now() - 30 * 864e5) } } }),
+        prisma.match.count({ where: { league: lg, startTime: { gte: new Date(Date.now() - 30 * 864e5) }, externalId: { startsWith: "ts-" } } }),
+      ]);
+      if (total >= 5 && tsMade === 0) gaps.push(`  ${lg}: 30일 ${total}매치 중 ts 생성 0 — af 수집 skip 중`);
+    }
+    if (gaps.length) tsGapLines = gaps.join("\n");
+  } catch {
+    /* 진단 실패는 알림 본문만 축소 — cleanup 자체엔 영향 없음 */
+  }
   const leagueLines = Object.entries(byLeague)
     .sort((a, b) => b[1] - a[1])
     .map(([l, n]) => `  ${l}: ${n}건 (source: ${SOURCE_HINT[l] ?? "unknown"})`)
@@ -726,6 +750,9 @@ export async function GET(req: NextRequest) {
           ? diagnosis
             ? `🤖 <b>Haiku 진단</b>:\n${diagnosis}\n\n`
             : `<i>(ANTHROPIC_API_KEY 미설정 — Vercel env 등록 시 AI 진단 활성)</i>\n\n`
+          : "") +
+        (tsGapLines
+          ? `⚠️ <b>TS_COVERED 인데 ts 실커버리지 0 — TS_COVERED_EXCEPTIONS 등록 후보</b>:\n<code>${tsGapLines}</code>\n(collect/route.ts 예외 리스트에 추가하면 af 수집 재개)\n\n`
           : "") +
         `➡️ <b>확인</b>: scorebase.kr/admin/health (category=stale-cleanup)\n\n` +
         `<code>[안내] cron-cleanup-stale-scheduled</code>`,

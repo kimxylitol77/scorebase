@@ -1764,8 +1764,13 @@ export default async function ScoresPage({ searchParams }: Props) {
     ...normalized.filter((m) => m.status === "LIVE"),
     ...orphanCards.filter((m) => m.status === "LIVE"),
   ];
+  // 킥오프 +2h 지난 SCHEDULED 는 예정 섹션에서 제외 — 수집 갭으로 결과 갱신이 늦는 매치
+  // (ts 연결 실패 리그 등)가 자정 넘어서도 "예정"으로 남던 문제. cleanup-stale-scheduled(4h)가
+  // 결과를 채우면 종료 섹션으로 정상 복귀하므로 숨김은 일시적이다.
+  const notStalePast = (m: { startTime: Date }) =>
+    Date.now() - m.startTime.getTime() < 2 * 3600 * 1000;
   const scheduledList = [
-    ...normalized.filter((m) => m.status === "SCHEDULED"),
+    ...normalized.filter((m) => m.status === "SCHEDULED" && notStalePast(m)),
     ...orphanCards.filter((m) => m.status === "SCHEDULED"),
   ];
   // 종료 섹션 — effStatus=FINISHED 이면서 startTime 이 선택 일자(KST 자정) 이후인 매치만.
