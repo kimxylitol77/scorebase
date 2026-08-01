@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { useClientValue } from "@/lib/use-client-value";
 
 interface BookmakerEntry {
   key: string;
@@ -108,6 +109,10 @@ export default function LiveOddsCard({
 }: Props) {
   const { h2h, totals, spread, bookmakers, bookmakerList, fetchedAt } = odds;
   const [expanded, setExpanded] = useState(false);
+  // 경과시간("n초 전")은 SSR 시각과 하이드레이션 시각이 달라 텍스트가 어긋난다.
+  // React 19 는 mismatch 시 루트 전체를 재렌더해 테마(html.dark)까지 되돌리므로
+  // 마운트 후에만 표시한다.
+  const mounted = useClientValue(() => true, false);
 
   if (!h2h && !totals && !spread) return null;
 
@@ -173,11 +178,11 @@ export default function LiveOddsCard({
             <span className="rounded-full bg-neutral-200/70 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:text-neutral-400">
               경기 전 최종
             </span>
-          ) : (
+          ) : mounted ? (
             <span className={`font-medium ${fresh.cls}`}>
               {fresh.dot} {fresh.text}
             </span>
-          )}
+          ) : null}
         </div>
       </div>
 

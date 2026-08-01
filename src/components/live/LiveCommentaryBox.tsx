@@ -8,7 +8,10 @@
 // 데이터 source: prisma.LiveCommentary (matchId PK).
 // 갱신 주기: Mac mini match-narrator worker (~5분).
 
+"use client";
+
 import type { ReactElement } from "react";
+import { useClientValue } from "@/lib/use-client-value";
 
 export interface LiveCommentaryData {
   matchSummary: string | null;
@@ -88,15 +91,21 @@ export default function LiveCommentaryBox({
   sport,
   variant = "default",
 }: Props): ReactElement | null {
+  // Date.now() 의존 렌더(stale 숨김·"n분 전")는 SSR 과 하이드레이션 시각이 달라
+  // mismatch → React 19 루트 재렌더 → 테마(html.dark) 리셋 사고가 났다.
+  // 마운트 후에만 시간 의존 분기를 적용한다 (SSR·하이드레이션은 항상 동일 출력).
+  const mounted = useClientValue(() => true, false);
+
   if (!matchSummary?.trim()) return null;
 
   // 중국어 혼입 차단 — Qwen 출력이 한자로 나오는 경우 무조건 숨김
   if (hasChineseContamination(matchSummary)) return null;
 
-  // stale 자동 숨김 — Mac mini 다운/Wi-Fi 끊김 시 fault tolerance
-  if (summaryAt) {
+  // stale 자동 숨김 — Mac mini 다운/Wi-Fi 끊김 시 fault tolerance.
+  // 마운트 후에만 판정 — SSR/하이드레이션 사이 10분 경계를 넘으면 mismatch 가 나므로
+  // SSR 은 항상 렌더하고, 마운트 직후 stale 이면 사라진다 (깜빡임 최대 1프레임).
+  if (mounted && summaryAt) {
     const at = typeof summaryAt === "string" ? new Date(summaryAt) : summaryAt;
-    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
     // eslint-disable-next-line react-hooks/purity
     if (Date.now() - at.getTime() > STALE_MS) return null;
   }
@@ -133,7 +142,9 @@ export default function LiveCommentaryBox({
       {scoreSnapshot && <span className="text-neutral-600">· {scoreSnapshot}</span>}
       {predChip}
       {summaryAt && (
-        <span className="text-neutral-600 ml-auto">{timeAgoKo(summaryAt)}</span>
+        <span className="text-neutral-600 ml-auto">
+          {mounted ? timeAgoKo(summaryAt) : ""}
+        </span>
       )}
     </div>
   );
