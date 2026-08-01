@@ -30,8 +30,11 @@ for (let i = 0; i < names.length; i += 50) {
   for (const p of Object.values(q.pages || {})) { const ko = p.langlinks?.[0]?.["*"]; if (p.title && ko) titleToKo.set(p.title, ko.replace(/\s*\(.*\)\s*$/, "").trim()); }
   await sleep(250);
 }
+// 사용자 확정 표기(player-ko-locks.json)는 위키 표제어보다 우선 — 되돌리지 않는다.
+const LOCKS = JSON.parse(readFileSync("data/player-ko-locks.json", "utf8"));
 const fixes = [];
 for (const p of players) {
+  if (LOCKS[p.id]) continue;
   const wk = titleToKo.get(resolveMap.get(p.name) || p.name);
   if (wk && (p.nameKo || "").replace(/\s/g, "") !== wk.replace(/\s/g, "")) fixes.push({ id: p.id, from: p.nameKo || "", to: wk });
 }
