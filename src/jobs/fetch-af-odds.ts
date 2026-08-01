@@ -1,0 +1,211 @@
+// api-football odds 로 The Odds API 미커버 리그(7m 확장 리그)의 1X2 배당을 Match 에 저장.
+// The Odds API 파이프(fetch-odds)와 동일 관례: 평균 implied(vig 제거)·in-play 가드·오프닝 1회 저장.
+// v1 은 1X2(bet=1)만 — market blend 가 소비하는 필드. OU/핸디 등 부가 마켓은 승격 시 확장.
+
+import "@/lib/env";
+import { prisma } from "@/lib/db";
+import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
+
+// 대상 리그 — The Odds API 축구 67종에 없는 확장 리그만 (2026-08-02 전수 실측).
+// RUSSIA_FNL 은 af 에도 부킹 0(제재) 실측이라 제외. The Odds API 커버 리그는 절대 넣지 말 것
+// (이중 소스 → marketHome 덮어쓰기 경합).
+const AF_ODDS_LEAGUES: string[] = [
+  "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "FAROE_PL",
+  "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
+  "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP",
+  "ROMANIA_L2", "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
+  "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3",
+];
+
+// 8~5월 시즌 리그 — af season 라벨이 시작 연도 (api-football-collector seasonFor 와 동일 규칙).
+const AUG_MAY = new Set(["WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "ROMANIA_L2", "PORTUGAL_SUPER_CUP"]);
+function seasonFor(league: string, d: Date): number {
+  const y = d.getFullYear();
+  if (AUG_MAY.has(league)) return d.getMonth() + 1 >= 7 ? y : y - 1;
+  return y;
+}
+
+const AF_BASE = "https://v3.football.api-sports.io";
+
+interface AfOddsValue { value?: string; odd?: string }
+interface AfOddsResp {
+  paging?: { current?: number; total?: number };
+  response?: Array<{
+    fixture?: { id?: number; date?: string };
+    bookmakers?: Array<{ name?: string; bets?: Array<{ id?: number; values?: AfOddsValue[] }> }>;
+  }>;
+}
+interface AfFixturesResp {
+  response?: Array<{
+    fixture?: { id?: number; date?: string };
+    teams?: { home?: { name?: string }; away?: { name?: string } };
+  }>;
+}
+
+async function afGet<T>(path: string): Promise<T> {
+  const r = await fetch(`${AF_BASE}${path}`, {
+    headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY ?? "" },
+  });
+  if (!r.ok) throw new Error(`af ${path.split("?")[0]} HTTP ${r.status}`);
+  return (await r.json()) as T;
+}
+
+// 팀명 정규화 — ts(DB) 이름과 af 이름 표기 차이 흡수용 (소문자·영숫자만).
+function norm(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+// 약한 유사 판정: 한쪽이 다른쪽 포함 또는 4자 이상 공통 토큰 존재.
+function similar(a: string, b: string): boolean {
+  const na = norm(a);
+  const nb = norm(b);
+  if (!na || !nb) return false;
+  if (na.includes(nb) || nb.includes(na)) return true;
+  const ta = a.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4);
+  const tb = new Set(b.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4));
+  return ta.some((t) => tb.has(t));
+}
+
+/** bookmaker 별 1X2 → 평균 implied (vig 제거) + 평균 raw decimal. */
+function impliedFromAfBookmakers(
+  bookmakers: NonNullable<AfOddsResp["response"]>[number]["bookmakers"],
+): {
+  home: number; draw: number; away: number; consensus: number;
+  rawHome: number; rawDraw: number; rawAway: number;
+} | null {
+  let hSum = 0, dSum = 0, aSum = 0, rh = 0, rd = 0, ra = 0, n = 0;
+  for (const b of bookmakers ?? []) {
+    const bet = (b.bets ?? []).find((x) => x.id === 1); // Match Winner
+    if (!bet) continue;
+    let h: number | null = null, d: number | null = null, a: number | null = null;
+    for (const v of bet.values ?? []) {
+      const odd = Number(v.odd);
+      if (!Number.isFinite(odd) || odd <= 1) continue;
+      if (v.value === "Home") h = odd;
+      else if (v.value === "Draw") d = odd;
+      else if (v.value === "Away") a = odd;
+    }
+    if (h == null || a == null || d == null) continue;
+    const ih = 1 / h, id = 1 / d, ia = 1 / a;
+    const sum = ih + id + ia;
+    hSum += ih / sum; dSum += id / sum; aSum += ia / sum;
+    rh += h; rd += d; ra += a;
+    n++;
+  }
+  if (n === 0) return null;
+  return {
+    home: hSum / n, draw: dSum / n, away: aSum / n, consensus: n,
+    rawHome: rh / n, rawDraw: rd / n, rawAway: ra / n,
+  };
+}
+
+export async function runFetchAfOdds(opts?: { leagues?: string[] }) {
+  const leagues = opts?.leagues ?? AF_ODDS_LEAGUES;
+  const now = new Date();
+  const tally: Record<string, number> = {};
+  console.log(`[af-odds] 시작 — leagues=${leagues.length}`);
+
+  for (const league of leagues) {
+    const afId = API_FOOTBALL_LEAGUE_ID[league];
+    if (!afId) continue;
+    const season = seasonFor(league, now);
+    try {
+      // 1) odds (bet=1) — 페이지 순회
+      const oddsByFixture = new Map<number, NonNullable<AfOddsResp["response"]>[number]>();
+      for (let page = 1; page <= 5; page++) {
+        const j = await afGet<AfOddsResp>(`/odds?league=${afId}&season=${season}&bet=1&page=${page}`);
+        for (const row of j.response ?? []) {
+          if (row.fixture?.id != null) oddsByFixture.set(row.fixture.id, row);
+        }
+        if (!j.paging?.total || page >= j.paging.total) break;
+      }
+      if (oddsByFixture.size === 0) { tally[league] = 0; continue; }
+
+      // 2) 향후 10일 fixture 팀명 (af fixture id → 이름·시각)
+      const from = now.toISOString().slice(0, 10);
+      const to = new Date(now.getTime() + 10 * 86400_000).toISOString().slice(0, 10);
+      const fx = await afGet<AfFixturesResp>(`/fixtures?league=${afId}&season=${season}&from=${from}&to=${to}`);
+      const fixtures = (fx.response ?? [])
+        .filter((f) => f.fixture?.id != null && f.fixture.date && oddsByFixture.has(f.fixture.id!))
+        .map((f) => ({
+          id: f.fixture!.id!,
+          time: new Date(f.fixture!.date!).getTime(),
+          home: f.teams?.home?.name ?? "",
+          away: f.teams?.away?.name ?? "",
+        }));
+
+      // 3) DB SCHEDULED 매치 매칭 — 킥오프 시각 우선(±30분), 동시 킥오프는 팀명 유사로 판별
+      const dbMatches = await prisma.match.findMany({
+        where: {
+          league,
+          status: "SCHEDULED",
+          startTime: { gte: now, lte: new Date(now.getTime() + 10 * 86400_000) },
+        },
+        include: { homeTeam: true, awayTeam: true },
+      });
+
+      let matched = 0;
+      for (const m of dbMatches) {
+        const t = m.startTime.getTime();
+        const window = fixtures.filter((f) => Math.abs(f.time - t) <= 30 * 60_000);
+        let pick: (typeof fixtures)[number] | null = null;
+        if (window.length === 1 && Math.abs(window[0].time - t) <= 5 * 60_000) {
+          // 단독 후보 + 킥오프 일치 — ts/af 팀명 표기가 아예 달라도 수용
+          pick = window[0];
+        }
+        if (!pick) {
+          // 복수 후보(라운드 동시 킥오프) — 팀명 유사 필수, 홈·원정 양쪽 신호로 단일화
+          const named = window.filter(
+            (f) => similar(f.home, m.homeTeam.name) && similar(f.away, m.awayTeam.name),
+          );
+          if (named.length === 1) pick = named[0];
+        }
+        if (!pick) continue;
+
+        const implied = impliedFromAfBookmakers(oddsByFixture.get(pick.id)?.bookmakers);
+        if (!implied) continue;
+        // in-play/정지 마켓 가드 — fetch-odds 와 동일 (정상 프리게임 최대 ~0.90)
+        if (Math.max(implied.home, implied.away) > 0.97) continue;
+
+        const openingPatch =
+          m.openingMarketHome == null
+            ? {
+                openingMarketHome: implied.home,
+                openingMarketDraw: implied.draw,
+                openingMarketAway: implied.away,
+                openingCapturedAt: new Date(),
+              }
+            : {};
+        await prisma.match.update({
+          where: { id: m.id },
+          data: {
+            marketHome: implied.home,
+            marketDraw: implied.draw,
+            marketAway: implied.away,
+            marketBookmakers: implied.consensus,
+            marketUpdatedAt: new Date(),
+            oddsHome: implied.rawHome,
+            oddsDraw: implied.rawDraw,
+            oddsAway: implied.rawAway,
+            ...openingPatch,
+          },
+        });
+        matched++;
+      }
+      tally[league] = matched;
+      console.log(`[af-odds/${league}] odds ${oddsByFixture.size}건 → 매칭 ${matched}/${dbMatches.length}`);
+    } catch (e) {
+      console.error(`[af-odds/${league}] 실패:`, (e as Error).message);
+    }
+  }
+  console.log(`[af-odds] 완료 —`, JSON.stringify(tally));
+  return tally;
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runFetchAfOdds()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

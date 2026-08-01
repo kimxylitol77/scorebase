@@ -85,6 +85,10 @@
       "schedule": "0 15 * * *"
     },
     {
+      "path": "/api/cron/af-odds",
+      "schedule": "20 */6 * * *"
+    },
+    {
       "path": "/api/cron/odds-mover-alert",
       "schedule": "10 */2 * * *"
     },

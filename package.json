@@ -22,6 +22,7 @@
     "job:transfer-xi": "tsx --env-file=.env.local src/jobs/generate-transfer-xi.ts",
     "data:football-wages": "tsx --env-file=.env.local scripts/fetch-football-wages.ts",
     "job:news-briefing": "tsx --env-file=.env.local src/jobs/fetch-news-briefing.ts",
+    "job:af-odds": "tsx src/jobs/fetch-af-odds.ts",
     "job:backfill": "tsx src/jobs/backfill.ts",
     "job:generate": "tsx src/jobs/generate-articles.ts",
     "job:preview": "tsx src/jobs/generate-previews.ts",

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] = [
   // 데일리 — 기대 24h + 유예 4h = 28h
   { name: "odds", label: "베팅 배당", maxAgeH: 28 },
+  { name: "af-odds", label: "확장 리그 배당 (api-football)", maxAgeH: 28 },
   { name: "closing-odds", label: "북메이커 클로징 아카이브", maxAgeH: 28 },
   { name: "standings-collect", label: "축구 순위", maxAgeH: 28 },
   { name: "baseball-standings", label: "야구 순위", maxAgeH: 28 },
