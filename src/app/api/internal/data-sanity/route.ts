@@ -14,7 +14,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { BASEBALL_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, MMA_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { fetchSoccerLive } from "@/lib/sports/live-scores";
 import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
@@ -170,6 +171,7 @@ export async function GET(req: NextRequest) {
       id: true,
       league: true,
       externalId: true,
+      apiFixtureId: true,
       status: true,
       homeScore: true,
       awayScore: true,
@@ -198,6 +200,16 @@ export async function GET(req: NextRequest) {
   const issues: Issue[] = [];
   // MLB schedule 응답 per-request 캐시 — 같은 날짜 다중 경보여도 fetch 1회
   const mlbSched = new Map<string, Promise<MlbGame[]>>();
+
+  // af live=all 의 fixture id set — stale 의심 축구가 나올 때만 lazy 1회.
+  // fetchSoccerLive 는 30초 unstable_cache 공유라 추가 af 콜이 거의 없다.
+  let afLiveIdsPromise: Promise<Set<string>> | null = null;
+  const getAfLiveFixtureIds = () => {
+    afLiveIdsPromise ??= fetchSoccerLive()
+      .then((list) => new Set(list.map((l) => l.id.replace(/^af-/, ""))))
+      .catch(() => new Set<string>());
+    return afLiveIdsPromise;
+  };
 
   for (const m of matches) {
     const matchInfo = {
@@ -236,6 +248,16 @@ export async function GET(req: NextRequest) {
           : m.updatedAt;
       const ageMs = now - lastUpdate.getTime();
       if (ageMs > STALE_LIVE_MS) {
+        // af 소스 축구(ts cache 없음)는 DB 가 collect 주기로만 갱신되는 게 정상 동작 —
+        // 표시 계층은 af live=all(30초 캐시) 병합으로 실시간이다. af 라이브 피드에 이
+        // fixture 가 살아 있으면 fresh 판정 (2026-08-02 VEIKKAUSLIIGA #309444 HT false
+        // positive: af 재개 직후 첫 라이브에서 Match.updatedAt 33분 정체 오탐).
+        // af 피드에서도 사라졌는데 LIVE 잔류면 진짜 stuck — 알림 유지.
+        if (!cacheUpdatedAt && SOCCER_LEAGUES.has(m.league)) {
+          const afLiveIds = await getAfLiveFixtureIds();
+          const fid = m.apiFixtureId != null ? String(m.apiFixtureId) : m.externalId;
+          if (afLiveIds.has(fid)) continue;
+        }
         issues.push({
           ...matchInfo,
           kind: "stale_live",
