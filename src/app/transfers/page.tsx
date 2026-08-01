@@ -690,8 +690,33 @@ export default async function TransfersPage({
   }
 
   const feedScope = league ? [league] : FEED_LEAGUES;
+  // 빅딜 뷰 — 이름 없는 선수("선수 / — / —" 폴백) 행 제외. latest 주요 뷰(아래 filter)와 동일 정책.
+  // 이름이 별도 테이블(TheSportsPlayer)이라 SQL join 으로 못 거르므로, 창 내 playerId(수백 규모)를
+  // 먼저 뽑아 익명 id 만 notIn 으로 뺀다 — count 도 같은 where 를 써서 페이지 수가 정확하다.
+  // 시즌 개막 후 라인업 등장 → player-names cron 이 이름을 채우면 자동 재노출.
+  let bigdealsAnonPids: string[] = [];
+  if (isBigdeals) {
+    const winRows = await prisma.footballTransfer.findMany({
+      where: { league: { in: feedScope }, transferTime: { gte: win.from }, transferFee: { gt: 0 } },
+      select: { playerId: true },
+      distinct: ["playerId"],
+    });
+    // toCard 의 이름 결정(ov.nameKo → tsp.nameKo → tsp.name)과 동일 기준으로 익명 판정
+    const pids = winRows.map((r) => r.playerId).filter((p) => !OVERRIDES[p]?.nameKo);
+    const tsRows = await prisma.theSportsPlayer.findMany({
+      where: { id: { in: pids } },
+      select: { id: true, name: true, nameKo: true },
+    });
+    const namedSet = new Set(tsRows.filter((p) => p.nameKo || p.name).map((p) => p.id));
+    bigdealsAnonPids = pids.filter((p) => !namedSet.has(p));
+  }
   const feedWhere = isBigdeals
-    ? { league: { in: feedScope }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
+    ? {
+        league: { in: feedScope },
+        transferTime: { gte: win.from },
+        transferFee: { gt: 0 },
+        ...(bigdealsAnonPids.length ? { playerId: { notIn: bigdealsAnonPids } } : {}),
+      }
     : {
         league: { in: feedScope },
         // 전체 이력(latest mode=all)도 창 종료 이후의 미래 발효 예정 행은 제외
