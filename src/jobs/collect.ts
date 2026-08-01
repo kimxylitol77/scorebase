@@ -151,10 +151,18 @@ function parseArgs(): { leagues: League[]; date: string } {
 // POSTPONED 는 어디서나 탈출 가능 — api-sports 가 PST 잘못 응답 후 곧바로 Scheduled
 // 로 복귀하는 케이스 자동 복구 (2026-05-25, 2026-05-27 NBA/WNBA stale POSTPONED 사고
 // 패턴: 진단/수동 fix 스크립트 불필요).
+// 점수 없는 FINISHED 는 확정 결과가 아니다 — 우천 연기 경기가 한 번 FINISHED 로 잘못
+// 찍히면 이후 소스가 계속 POST(연기) 를 줘도 이 가드에 막혀 영영 "종료 -:-" 로 남았다
+// (2026-08-01 KBO #2485 롯데-삼성: raw 는 POST 로 갱신되는데 status 만 FINISHED 고착).
+// 점수가 있는 FINISHED 는 종전대로 강력 보호 — 역행 차단 목적 그대로.
 function mergeStatus(
   existing: MatchStatus | null | undefined,
   incoming: MatchStatus,
+  existingHasScore = true,
 ): MatchStatus {
+  if (existing === "FINISHED" && incoming === "POSTPONED" && !existingHasScore) {
+    return "POSTPONED";
+  }
   if (existing === "FINISHED") return "FINISHED";
   return incoming;
 }
@@ -242,7 +250,7 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
         { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
       ],
     },
-    select: { id: true, externalId: true, homeTeamId: true, status: true },
+    select: { id: true, externalId: true, homeTeamId: true, status: true, homeScore: true, awayScore: true },
   });
   let dedupSameDirection = existing ? existing.homeTeamId === homeTeam.id : true;
 
@@ -274,6 +282,8 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
           externalId: true,
           homeTeamId: true,
           status: true,
+          homeScore: true,
+          awayScore: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -281,12 +291,12 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
       // 완전일치만 — 어느 clause 로 매치됐는지로 방향 판정 (더비 substring 오판 차단).
       for (const c of candidates) {
         if (eqTeamNameLoose(c.homeTeam.name, m.homeTeam.name) && eqTeamNameLoose(c.awayTeam.name, m.awayTeam.name)) {
-          existing = { id: c.id, externalId: c.externalId, homeTeamId: c.homeTeamId, status: c.status };
+          existing = { id: c.id, externalId: c.externalId, homeTeamId: c.homeTeamId, status: c.status, homeScore: c.homeScore, awayScore: c.awayScore };
           dedupSameDirection = true;
           break;
         }
         if (eqTeamNameLoose(c.homeTeam.name, m.awayTeam.name) && eqTeamNameLoose(c.awayTeam.name, m.homeTeam.name)) {
-          existing = { id: c.id, externalId: c.externalId, homeTeamId: c.homeTeamId, status: c.status };
+          existing = { id: c.id, externalId: c.externalId, homeTeamId: c.homeTeamId, status: c.status, homeScore: c.homeScore, awayScore: c.awayScore };
           dedupSameDirection = false;
           break;
         }
@@ -317,7 +327,15 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
       data: {
         homeScore: sameDirection ? (m.homeScore ?? undefined) : (m.awayScore ?? undefined),
         awayScore: sameDirection ? (m.awayScore ?? undefined) : (m.homeScore ?? undefined),
-        ...(allowStatusUpdate ? { status: mergeStatus(exStatus, m.status) } : {}),
+        ...(allowStatusUpdate
+          ? {
+              status: mergeStatus(
+                exStatus,
+                m.status,
+                existing.homeScore != null || existing.awayScore != null,
+              ),
+            }
+          : {}),
         startTime: m.startTime,
         ...(sameDirection ? { raw: JSON.stringify(m.raw) } : {}),
       },
@@ -329,9 +347,13 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
   // 새 응답이 LIVE/SCHEDULED 라도 status 유지. POSTPONED 는 incoming 으로 자유 갱신.
   const current = await prisma.match.findUnique({
     where: { league_externalId: { league: m.league, externalId: m.externalId } },
-    select: { status: true },
+    select: { status: true, homeScore: true, awayScore: true },
   });
-  const mergedStatus = mergeStatus(current?.status as MatchStatus | undefined, m.status);
+  const mergedStatus = mergeStatus(
+    current?.status as MatchStatus | undefined,
+    m.status,
+    current != null && (current.homeScore != null || current.awayScore != null),
+  );
 
   await prisma.match.upsert({
     where: {
