@@ -257,6 +257,42 @@ function relayout(starters: Player[], formation: string): Player[] {
   return out;
 }
 
+/** 좌표가 없는 확정 라인업의 배치 합성 — 하위리그·친선은 TheSports 가 x/y·formation 을 안 준다
+ *  (af 도 grid 미제공 실측, 2026-08-01). formation 라벨이 포지션 분포와 맞으면 라벨대로,
+ *  없으면 포지션(D/M/F) 라인으로 배치. 6명 이상 라인은 두 줄로 쪼개 겹침 방지. */
+function synthesize(starters: Player[], formation?: string): Player[] {
+  if (formation && matchesLabel(starters, formation)) return relayout(starters, formation);
+  const cnt = (pos: string) => starters.filter((p) => p.position === pos).length;
+  const lines: number[] = [];
+  for (const n of [cnt("D"), cnt("M"), cnt("F")]) {
+    if (n <= 0) continue;
+    if (n >= 6) { lines.push(Math.ceil(n / 2), Math.floor(n / 2)); } else lines.push(n);
+  }
+  if (!lines.length) return starters;
+  const outfield = starters
+    .filter((p) => p.position !== "G")
+    .sort((a, b) => (POS_RANK[a.position ?? ""] ?? 9) - (POS_RANK[b.position ?? ""] ?? 9));
+  const out: Player[] = starters.filter((p) => p.position === "G").map((p) => ({ ...p, x: 50, y: 4 }));
+  const step = Math.min(16, 68 / Math.max(1, lines.length - 1 || 1));
+  let i = 0;
+  for (const [li, count] of lines.entries()) {
+    const row = outfield.slice(i, i + count);
+    row.forEach((p, j) => out.push({ ...p, x: ((j + 1) / (count + 1)) * 100, y: 18 + li * step }));
+    i += count;
+  }
+  // 포지션 미상 등 잔여 선수는 최전방 라인에 얹음 (누락 방지)
+  for (; i < outfield.length; i++) out.push({ ...outfield[i], x: 50, y: 86 });
+  return out;
+}
+
+/** formation 라벨이 없을 때 헤더에 쓸 포지션 분포 문자열 ("4-4-2"). 선발 11명 미만이면 빈 값. */
+function posFormation(starters: Player[]): string {
+  if (starters.length !== 11) return "";
+  const cnt = (pos: string) => starters.filter((p) => p.position === pos).length;
+  const shape = [cnt("D"), cnt("M"), cnt("F")].filter((n) => n > 0);
+  return shape.reduce((s, n) => s + n, 0) === 10 ? shape.join("-") : "";
+}
+
 export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
@@ -264,11 +300,14 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
   const awayStarters = (lu.away ?? []).filter((p) => p.first === 1);
   if (homeStarters.length === 0 && awayStarters.length === 0) return null;
 
-  // 친선 등에서 라인업이 점진적으로 들어오는 중이면 안내 문구로 대체(경기 임박 시 자동 완성).
-  // 선발 수뿐 아니라 x/y 좌표가 유효(0,0 아님)한 선수 기준으로 판정 — 좌표 미도착 시
-  // 선수들이 피치 좌상단(0,0)에 겹쳐 1~2명처럼 깨져 보이는 것 방지.
+  // 좌표(x/y)가 안 온 팀은 포지션 기반 배치를 합성한다 — 하위리그·친선 508경기(전체 16%)가
+  // 명단은 완비된 채 좌표만 없어 "확정 대기"로 버려지던 문제(2026-08-01 전수 진단).
+  // 일부만 찍힌 팀도 통째로 합성 — 실좌표·합성 혼재 시 0,0 뭉침으로 깨져 보이는 것 방지.
   const placed = (arr: Player[]) => arr.filter((p) => (p.x ?? 0) > 0 || (p.y ?? 0) > 0);
-  const ready = placed(homeStarters).length >= 7 && placed(awayStarters).length >= 7;
+  const homePlaced = placed(homeStarters).length >= 7;
+  const awayPlaced = placed(awayStarters).length >= 7;
+  // 명단 자체가 7명 미만이면 합성해도 라인업이라 부를 수 없음 — 기존 안내 유지.
+  const ready = homeStarters.length >= 7 && awayStarters.length >= 7;
   if (!ready) {
     return (
       <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
@@ -289,6 +328,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
   // 맨유는 4-2-3-1 인데 4-4-2 격자에 얹혀 미드필더 도르구가 최전방에 찍혔다). 양 팀 포지션 분포가
   // 각자 라벨과 맞고 좌표에서 유도한 라인만 정확히 서로 뒤바뀐 경우에만 라벨 기준으로 좌표를 다시 만든다.
   const gridSwapped =
+    homePlaced &&
+    awayPlaced &&
     !!data.home_formation &&
     !!data.away_formation &&
     data.home_formation !== data.away_formation &&
@@ -296,8 +337,16 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
     matchesLabel(awayStarters, data.away_formation) &&
     deriveFormation(homeStarters) === data.away_formation &&
     deriveFormation(awayStarters) === data.home_formation;
-  const homeXi = gridSwapped ? relayout(homeStarters, data.home_formation!) : homeStarters;
-  const awayXi = gridSwapped ? relayout(awayStarters, data.away_formation!) : awayStarters;
+  const homeXi = !homePlaced
+    ? synthesize(homeStarters, data.home_formation)
+    : gridSwapped
+      ? relayout(homeStarters, data.home_formation!)
+      : homeStarters;
+  const awayXi = !awayPlaced
+    ? synthesize(awayStarters, data.away_formation)
+    : gridSwapped
+      ? relayout(awayStarters, data.away_formation!)
+      : awayStarters;
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
@@ -317,13 +366,13 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         <div className="rounded-md bg-rose-50 dark:bg-rose-500/10 py-1.5">
           <div className="text-neutral-500 truncate px-1 text-[11px]">{homeNameKo}</div>
           <div className="text-rose-600 dark:text-rose-400 font-bold tabular-nums">
-            {data.home_formation || "-"}
+            {data.home_formation || posFormation(homeStarters) || "-"}
           </div>
         </div>
         <div className="rounded-md bg-blue-50 dark:bg-blue-500/10 py-1.5">
           <div className="text-neutral-500 truncate px-1 text-[11px]">{awayNameKo}</div>
           <div className="text-blue-600 dark:text-blue-400 font-bold tabular-nums">
-            {data.away_formation || "-"}
+            {data.away_formation || posFormation(awayStarters) || "-"}
           </div>
         </div>
       </div>
