@@ -1742,7 +1742,11 @@ export default async function ScoresPage({ searchParams }: Props) {
         !isYouthOrWomenFriendly(dm) &&
         !dbExtIds.has(dm.id.replace(/^[a-z]+-/i, "")) &&
         !orphanDedup.isCovered(dm) &&
-        !matchedLiveIds.has(dm.id),
+        !matchedLiveIds.has(dm.id) &&
+        // af 가 라이브 추적 안 하는 하위 친선·군소 리그는 경기가 끝나도 영영 NS 로 방치
+        // (2026-08-01 포텐차 친선: 킥오프 24h 후에도 af NS). 킥오프 +2h 지난 "예정" orphan 은
+        // 거짓 예정이므로 숨김 — 결과도 영영 안 오는 경기라 종료 전환 대신 제거가 맞다.
+        !(dm.status === "SCHEDULED" && Date.now() - new Date(dm.startTime).getTime() > 2 * 3600 * 1000),
     )
     .map((dm) => orphanCard(dm));
 
