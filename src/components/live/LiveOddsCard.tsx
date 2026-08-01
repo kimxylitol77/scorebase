@@ -479,10 +479,13 @@ function Sparklines({
       .filter(Boolean)
       .join(" ");
 
+  // KST 고정 표기 — 로컬 시간대(getHours 등)를 쓰면 Vercel(UTC) SSR 과 브라우저(KST)
+  // 출력이 달라져 hydration mismatch → React 가 루트 재렌더하며 테마(html.dark)까지
+  // 되돌리는 사고가 났다 (라이트 모드가 새로고침마다 다크로 뒤집힘).
   const fmtTime = (ms: number) => {
-    const d = new Date(ms);
+    const d = new Date(ms + 9 * 3600 * 1000); // UTC+9
     const p2 = (x: number) => String(x).padStart(2, "0");
-    return `${d.getMonth() + 1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+    return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`;
   };
 
   return (
