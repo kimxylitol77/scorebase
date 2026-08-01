@@ -30,7 +30,9 @@ const PATTERNS: Array<{
   { re: /AdsBot-Google/i, category: "search", name: "Google AdsBot" },
   { re: /Mediapartners-Google/i, category: "search", name: "Google AdSense" },
   { re: /bingbot/i, category: "search", name: "Bingbot" },
-  { re: /Yandex(Bot|Images)/i, category: "search", name: "YandexBot" },
+  // YandexRenderResourcesBot 등 변형이 많아 Yandex 전체 매칭 (2026-08-01 실측:
+  // 렌더봇이 사람으로 집계돼 의심 세션의 36% 차지 — 좁은 패턴이 놓치고 있었다)
+  { re: /Yandex/i, category: "search", name: "YandexBot" },
   { re: /DuckDuckBot/i, category: "search", name: "DuckDuckBot" },
   { re: /Baiduspider/i, category: "search", name: "Baiduspider" },
   { re: /NaverBot|Yeti/i, category: "search", name: "NaverBot" },

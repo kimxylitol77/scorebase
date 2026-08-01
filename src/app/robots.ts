@@ -24,6 +24,10 @@ const SEO_TOOL_BOTS = [
   "SemrushBot", // Semrush
   "MJ12bot", // Majestic
   "DotBot", // Moz
+  // Yandex — 검색엔진이지만 러시아향이라 한국 사이트 유입 기여 0.
+  // 렌더봇(YandexRenderResourcesBot)이 JS 까지 실행하며 크롤해 비용만 발생 (2026-08-01 실측).
+  // "Yandex" 한 단어가 Yandex 계열 봇 전체에 적용된다 (Yandex robots 규격).
+  "Yandex",
 ];
 
 export default function robots(): MetadataRoute.Robots {
