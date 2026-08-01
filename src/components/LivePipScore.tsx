@@ -70,6 +70,18 @@ interface PipRow {
 
 const POLL_LIVE_MS = 5_000;
 
+// 오늘(KST) 이전에 시작한 경기인지 — /scores "내 경기"(오늘 데이터 ∩ 즐겨찾기)와
+// 목록을 맞추기 위해 지난 종료 경기는 PiP 에서 숨긴다. 시작시각 미상도 숨김(내 경기에 없음).
+function startedBeforeTodayKst(iso?: string | null): boolean {
+  if (!iso) return true;
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return true;
+  const DAY = 86_400_000;
+  const KST = 9 * 3_600_000;
+  const kstMidnightUtc = Math.floor((Date.now() + KST) / DAY) * DAY - KST;
+  return t < kstMidnightUtc;
+}
+
 // Document PiP 지원 브라우저(Chrome·Edge)의 window 확장 타입.
 interface DocPipWindow extends Window {
   documentPictureInPicture?: {
@@ -355,6 +367,8 @@ export default function LivePipScore() {
       if (b) {
         const state: PipRow["state"] =
           b.status === "LIVE" ? "live" : b.status === "SCHEDULED" ? "scheduled" : "done";
+        // 지난 종료 경기 — "내 경기" 목록과 불일치 방지 (오늘 종료 경기는 유지)
+        if (state === "done" && startedBeforeTodayKst(b.startTime)) return null;
         const kickoff = new Date(b.startTime).toLocaleTimeString("ko-KR", {
           hour: "2-digit",
           minute: "2-digit",
@@ -386,6 +400,8 @@ export default function LivePipScore() {
           : meta.status === "scheduled"
             ? "scheduled"
             : "done";
+      // 지난 종료 경기 — "내 경기" 목록과 불일치 방지 (오늘 종료 경기는 유지)
+      if (state === "done" && startedBeforeTodayKst(meta.startTime)) return null;
       return {
         id,
         league: meta.league,
