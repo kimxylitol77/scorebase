@@ -57,8 +57,12 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   LEAGUE_TWO: "9k82rekhygrepzj",
   NATIONAL_LEAGUE: "z318q66hv8qo9jd",
   SCOT_CHAMPIONSHIP: "jednm9wheoryox8",
-  SCOT_LEAGUE_ONE: "8y39mp1h98mojxg",
-  SCOT_LEAGUE_TWO: "l965mkyhz0r1ge4",
+  // 2026-08-01 스왑: ts 가 두 대회의 소속 클럽을 뒤바꿔 제공 — 8y39... 에 실제 리그투 클럽
+  // (Annan·Clyde·Stirling 등), l965... 에 실제 리그원 클럽(Ross County·Alloa·Peterhead 등)이
+  // 들어있음(위키 2026-27 League One 대조·af/7m 과 일치). 우리 쪽에서 보정 스왑.
+  // ⚠️ ts 가 업스트림을 고치면 다시 뒤집힘 — standings_mismatch 알림 뜨면 이 줄 1순위 확인.
+  SCOT_LEAGUE_ONE: "l965mkyhz0r1ge4",
+  SCOT_LEAGUE_TWO: "8y39mp1h98mojxg",
   RPL: "8y39mp1hwxmojxg",
   ALGERIA_L1: "kdj2ryohk2dq1zp",
   SVENSKA_CUPEN: "z318q66h7yqo9jd",

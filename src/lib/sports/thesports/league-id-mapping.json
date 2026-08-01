@@ -727,18 +727,18 @@
   {
     "code": "SCOT_LEAGUE_ONE",
     "ourLabel": "스코티시 리그 원",
-    "tsId": "8y39mp1h98mojxg",
+    "tsId": "l965mkyhz0r1ge4",
     "tsEn": "Scottish League One",
     "tsKo": "스코티시 리그 원",
-    "tsSeasonId": "x7lm7phkg6zm2wd"
+    "tsSeasonId": "23xmvkh3v52qg8n"
   },
   {
     "code": "SCOT_LEAGUE_TWO",
     "ourLabel": "스코티시 리그 투",
-    "tsId": "l965mkyhz0r1ge4",
+    "tsId": "8y39mp1h98mojxg",
     "tsEn": "Scottish League Two",
     "tsKo": "스코티시 리그 투",
-    "tsSeasonId": "23xmvkh3v52qg8n"
+    "tsSeasonId": "x7lm7phkg6zm2wd"
   },
   {
     "code": "RPL",
