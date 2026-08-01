@@ -200,27 +200,6 @@ function TeamHalf({
   );
 }
 
-/** 선발 y좌표로 라인 구성 유도 ("4-2-3-1"). GK 제외, y 간격 6 초과면 새 라인. 애매하면 빈 문자열. */
-function deriveFormation(starters: Player[]): string {
-  const outfield = starters
-    .filter((p) => p.position !== "G" && ((p.x ?? 0) > 0 || (p.y ?? 0) > 0))
-    .sort((a, b) => (a.y ?? 0) - (b.y ?? 0));
-  if (outfield.length !== 10) return "";
-  const lines: number[] = [];
-  let prev = -99;
-  let n = 0;
-  for (const p of outfield) {
-    const y = p.y ?? 0;
-    if (y - prev > 6) {
-      if (n) lines.push(n);
-      n = 1;
-    } else n++;
-    prev = y;
-  }
-  if (n) lines.push(n);
-  return lines.join("-");
-}
-
 export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
@@ -249,16 +228,6 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
     );
   }
 
-  // TheSports 가 home/away 포메이션 라벨을 뒤바꿔 주는 경우가 있다(2026-08-01 아틀레티코 vs 맨유).
-  // 좌표로 유도한 배치가 정확히 서로의 라벨과 맞아떨어질 때만 교환 — 애매하면 원본 그대로 둔다.
-  const swapped =
-    !!data.home_formation &&
-    !!data.away_formation &&
-    deriveFormation(homeStarters) === data.away_formation &&
-    deriveFormation(awayStarters) === data.home_formation;
-  const homeFormation = swapped ? data.away_formation : data.home_formation;
-  const awayFormation = swapped ? data.home_formation : data.away_formation;
-
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
       <header className="flex items-center justify-between mb-1">
@@ -277,13 +246,13 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         <div className="rounded-md bg-rose-50 dark:bg-rose-500/10 py-1.5">
           <div className="text-neutral-500 truncate px-1 text-[11px]">{homeNameKo}</div>
           <div className="text-rose-600 dark:text-rose-400 font-bold tabular-nums">
-            {homeFormation || "-"}
+            {data.home_formation || "-"}
           </div>
         </div>
         <div className="rounded-md bg-blue-50 dark:bg-blue-500/10 py-1.5">
           <div className="text-neutral-500 truncate px-1 text-[11px]">{awayNameKo}</div>
           <div className="text-blue-600 dark:text-blue-400 font-bold tabular-nums">
-            {awayFormation || "-"}
+            {data.away_formation || "-"}
           </div>
         </div>
       </div>
