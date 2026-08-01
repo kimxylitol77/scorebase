@@ -3051,8 +3051,9 @@ const RAW: Record<string, string> = {
   // WK리그 (한국 여자축구, 2026-06-17) — af(api-football id 660) 영문명 → 2026 공식 한글명.
   // 팀명이 고유("Xxx W")해 글로벌 RAW 에 둠 — league 인자 없는 매치상세(MatchInsight)도 변환.
   // 상무·스포츠토토는 af 가 옛 연고(보은/구미)를 표기 중이라 실제 2026 연고(문경/세종)로 매핑.
+  // 창녕도 af 가 옛 연고를 표기 — 2026 강진 이전 후 공식명 "강진 스완스 WFC" 로 매핑 (2026-08-01).
   "Incheon Red Angels W": "인천 현대제철 레드엔젤스",
-  "Changnyeong W": "창녕 WFC",
+  "Changnyeong W": "강진 스완스 WFC",
   "Gyeongju W": "경주 한국수력원자력",
   "Hwacheon KSPO W": "화천 KSPO",
   "Seoul W": "서울시청",
