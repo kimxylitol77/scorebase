@@ -5,16 +5,18 @@
 //   - TheSports.com API 에는 FIFA 랭킹 endpoint 가 없음 (client.ts 의 match/standings/
 //     stats 만 제공, Pro season endpoint 401 — memory feedback_ts_pro_replace_audit).
 //   - FIFA 랭킹은 분기 1회(연 4~6회) 갱신이라 정적 JSON 으로 관리해도 충분.
-//   - 갱신: 새 랭킹 발표 시 fifa-rankings.json 만 교체 (다음 발표 2026-06-09).
+//   - 갱신: mac-mini daily-fifa-rankings(매일 06:40)가 TheSports ranking/fifa/men 으로
+//     fifa-rankings.json + meta 를 자동 교체 (scripts/refresh-fifa-rankings.ts).
 //
 // 클럽 리그(EPL/이라크 스타스 리그 등)는 절대 건드리지 않음 — 기존 리그 standings 순위 유지.
 // 여기서 다루는 건 "국가대항 시니어 대회" 뿐. (청소년 U17/U20/U21·올림픽 U23 은 시니어
 // FIFA 랭킹이 무의미·오해 소지 → 제외.)
 
 import rankingsData from "./fifa-rankings.json";
+import rankingsMeta from "./fifa-rankings-meta.json";
 
-/** 랭킹 발표 일자 (UI 툴팁/주석용). */
-export const FIFA_RANKING_DATE = "2026-04-01";
+/** 랭킹 발표 일자 (UI 툴팁/주석용) — refresh-fifa-rankings 가 json 과 함께 자동 갱신. */
+export const FIFA_RANKING_DATE: string = (rankingsMeta as { pubDate: string }).pubDate;
 
 /**
  * FIFA 랭킹을 표시할 국가대항 시니어 대회 리그 코드.

@@ -144,6 +144,12 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     // 시즌 전환이 막히므로, 개막 직후 며칠을 커버하려면 주간이 아니라 일간이어야 한다.
     role: "externalId=ts-* 팀 → team-id-mapping.json 백필 + 자동 push (매일 06:20)",
   },
+  "mac-mini-daily-fifa-rankings": {
+    ko: "FIFA 랭킹 일일 갱신",
+    intervalMs: 1 * DAY,
+    // FIFA 발표는 연 6회 안팎 — 대부분의 날은 no-op. 4개월 방치 사고(4/1→7/19 미반영) 재발 방지.
+    role: "TheSports ranking/fifa/men → fifa-rankings.json 자동 갱신 + push (매일 06:40)",
+  },
   "mac-mini-daily-dup-cleanup": {
     ko: "중복 매치 일일 정리",
     intervalMs: 1 * DAY,

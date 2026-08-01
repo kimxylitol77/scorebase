@@ -129,7 +129,7 @@ export default async function FifaRankingPage() {
             </h1>
           </div>
           <span className="shrink-0 text-xs sm:text-sm tabular-nums text-zinc-400 dark:text-white/40">
-            {FIFA_RANKING_DATE} 기준 · {ranking.length}개국
+            {FIFA_RANKING_DATE} FIFA 발표 기준 · {ranking.length}개국 · 매일 자동 갱신
           </span>
         </div>
         <p className="mt-3 text-sm text-zinc-500 break-keep dark:text-white/50">
