@@ -19,6 +19,7 @@ import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup
 import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
+import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 
 export const revalidate = 600;
 
@@ -93,6 +94,9 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
   const allWcRows = view === "players" ? buildWcLeaderRows(await getWorldCupPlayerStats()) : null;
   const wcCoreRows = allWcRows ? pickCats(allWcRows, WC_CORE_CATS) : null;
   const wcFunRows = allWcRows ? pickCats(allWcRows, WC_FUN_CATS) : null;
+  // PC 중앙 컬럼용 국기 부착 (WORLD_CUP = 국가대항)
+  if (wcCoreRows) await attachLeaderTeamLogos("WORLD_CUP", wcCoreRows);
+  if (wcFunRows) await attachLeaderTeamLogos("WORLD_CUP", wcFunRows);
 
   // 조별리그 실제 순위 — 조별 탭만 (DB Match FINISHED 집계: 승무패·득실·승점)
   const groupStandings = view === "groups" ? await getWcGroupStandings() : null;

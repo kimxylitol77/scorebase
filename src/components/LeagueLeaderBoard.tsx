@@ -19,6 +19,10 @@ export interface LeaderRow {
   unit: string | null;
   appearances: number | null;
   photoUrl: string | null;
+  /** 팀 로고 URL (클럽 리그, attachLeaderTeamLogos 가 채움) — PC 중앙 컬럼용. */
+  teamLogo?: string | null;
+  /** 국기 이모지 (국가대항, attachLeaderTeamLogos 가 채움). */
+  teamFlag?: string | null;
   externalId: string | null;
 }
 
@@ -198,12 +202,26 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 >
                   {r.playerName}
                 </div>
-                <div className="text-[11px] text-neutral-500 truncate">
+                {/* 모바일: 팀·경기수는 이름 아래 서브라인 (현행 유지) */}
+                <div className="sm:hidden text-[11px] text-neutral-500 truncate">
                   {r.teamName}
                   {r.appearances != null && r.appearances > 0
                     ? ` · ${r.appearances}경기`
                     : ""}
                 </div>
+              </div>
+              {/* PC: 이름 옆 빈 공간에 팀 로고·팀명·경기수 — 한 줄이 넓어 서브라인 대신 중앙 컬럼 */}
+              <div className="hidden sm:flex items-center gap-1.5 min-w-0 flex-1 text-xs text-neutral-500">
+                {r.teamFlag ? (
+                  <span className="text-sm leading-none shrink-0">{r.teamFlag}</span>
+                ) : r.teamLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={r.teamLogo} alt="" width={18} height={18} loading="lazy" className="object-contain shrink-0" style={{ width: 18, height: 18 }} />
+                ) : null}
+                <span className="truncate">{r.teamName}</span>
+                {r.appearances != null && r.appearances > 0 && (
+                  <span className="shrink-0 text-neutral-400">· {r.appearances}경기</span>
+                )}
               </div>
               {/* 단위 라벨은 활성 탭이 이미 말해주므로 생략 — 값 숫자만 우측 정렬.
                   › 는 링크 없는 행에도 invisible 로 자리를 차지시켜 숫자 세로 정렬 유지. */}

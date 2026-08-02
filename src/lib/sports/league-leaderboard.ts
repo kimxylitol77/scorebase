@@ -7,6 +7,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { LeaderRow } from "@/components/LeagueLeaderBoard";
+import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 
 // LeagueLeaderBoard 가 리그 이름만 보고 /transfers/{id} 로 링크하는 리그.
 // leagueLeader 테이블의 externalId 는 api-football player id 인데 /transfers 페이지는 TheSports
@@ -73,5 +74,7 @@ export async function loadLeagueLeaderboard(
       externalId: resolveExternalId(r.externalId),
     });
   }
+  // PC 중앙 컬럼용 팀 로고/국기 — 이름 매칭이라 미스는 로고 없이(정상), 실패해도 rows 원본 유지.
+  await attachLeaderTeamLogos(league, rowsByCategory);
   return { rowsByCategory, season };
 }

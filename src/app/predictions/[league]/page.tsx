@@ -27,6 +27,7 @@ import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { EN_PREDICTION_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
@@ -632,6 +633,8 @@ export default async function LeaguePredictions({ params }: Props) {
     leaderSeason = "2025-26";
     hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
   }
+  // PC 중앙 컬럼용 팀 로고/국기 — 이 페이지는 자체 조립이라 공용 로더 밖에서 직접 부착.
+  await attachLeaderTeamLogos(upper, leaderRowsByCategory);
 
   // 우승 확률 추이 — 일일 시뮬 스냅샷(2개 이상부터 차트 노출). WC·KBO 공용 변환.
   type ChampionTrend = { data: WcTrendPoint[]; teams: { name: string; color: string }[] };
