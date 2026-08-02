@@ -2118,7 +2118,9 @@ const RAW: Record<string, string> = {
   "Dacia-Buiucani": "다치아-부이우카니",
   "Sheriff Tiraspol": "셰리프 티라스폴",
   // ─── MOROCCO_BP (TheSports 보강 1) ───
-  "FUS Rabat": "유니언 투아르가 스포츠 라바트",
+  // FUS = Fath Union Sport. ts 한국어 미러가 UTS(Union Touarga Sport) 이름을 물려줘
+  // 순위표에서 UTS 라바트와 같은 이름 두 줄로 보였다 (2026-08-02).
+  "FUS Rabat": "FUS 라바트",
   // ─── NORWAY_1L (TheSports 보강 8) ───
   "Bryne": "브뤼네",
   "Haugesund": "헤우게순",
