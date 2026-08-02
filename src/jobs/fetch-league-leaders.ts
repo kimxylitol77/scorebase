@@ -17,6 +17,7 @@ import path from "path";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import {
   fetchSeasonTopScorers,
   fetchTopAssists,
@@ -57,8 +58,9 @@ interface UpsertInput {
   season: string;
 }
 
-async function upsertLeader(d: UpsertInput) {
-  await prisma.leagueLeader.upsert({
+/** upsert 쿼리만 만들고 await 하지 않는다 — $transaction 으로 묶어 왕복을 줄이는 경로용. */
+function leaderUpsertOp(d: UpsertInput) {
+  return prisma.leagueLeader.upsert({
     where: {
       league_category_rank_season: {
         league: d.league,
@@ -81,6 +83,10 @@ async function upsertLeader(d: UpsertInput) {
     },
     create: d,
   });
+}
+
+async function upsertLeader(d: UpsertInput) {
+  await leaderUpsertOp(d);
 }
 
 async function clearOldRanks(
@@ -133,6 +139,20 @@ const SOCCER_LEAGUES = [
   "RUSSIA_FNL", "ROMANIA_L2",
   "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
   "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3", "COPA_DO_BRASIL",
+  // 2026-08-02 2차 — 리더보드 미보유 59개 (TS_PLAYER_STAT_LEAGUES 와 동일 목록)
+  "ARMENIA_PL", "AUSTRIA_BL", "BULGARIA_PL", "CHALLENGE_LEAGUE", "CZECH_L",
+  "DENMARK_SL", "EGYPT_PL", "EKSTRAKLASA", "HUNGARY_NB1", "INDIA_ISL",
+  "INDONESIA_L1", "LIGA_I", "MOLDOVA_SL", "MOROCCO_BP", "POLAND_1L",
+  "SERBIA_SL", "SLOVAKIA_SL", "SLOVENIA_SNL", "SOUTHAFRICA_PSL", "SWISS_SL",
+  "UKRAINE_PL", "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
+  "RPL", "ALGERIA_L1", "GHANA_PL",
+  "ALLSVENSKAN", "CANADA_PL", "CHILE_PB", "CHILE_PD", "COLOMBIA_PA",
+  "ECUADOR_LP", "ELITESERIEN", "ESTONIA_ML", "GEORGIA_EL", "ICELAND_1L",
+  "IRELAND_PD", "LATVIA_VL", "LITHUANIA_AL", "NORWAY_1L", "PERU_PD",
+  "SUPERETTAN", "URVALSDEILD", "USA_USL_CH", "VEIKKAUSLIIGA", "VENEZUELA_PD",
+  "VIETNAM_VL1", "YKKONEN", "ARGENTINA_PL", "ARG_PRIMERA_NACIONAL", "CHINA_2",
+  "BOLIVIA_PD", "URUGUAY_PD", "NWSL", "KAZAKHSTAN_PL", "BELARUS_PL", "PARAGUAY_PD",
+  "BRASILEIRAO_2",
 ];
 
 // season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
@@ -158,6 +178,22 @@ const TS_PLAYER_STAT_LEAGUES = new Set([
   "RUSSIA_FNL", "ROMANIA_L2",
   "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
   "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3", "COPA_DO_BRASIL",
+  // 2026-08-02 2차 — 리더보드가 아예 없던 리그 59개 (사용자 지적: /predictions/SWISS_SL 빈 화면).
+  // ts 시즌 선수통계 전수 실측(득점자 5명 이상)으로 선별. 컵 대회는 시즌 라벨 체계가 리그와
+  // 달라 오적재 위험이 있어 이번 배치에서 제외(FA컵·코파 델 레이 등).
+  "ARMENIA_PL", "AUSTRIA_BL", "BULGARIA_PL", "CHALLENGE_LEAGUE", "CZECH_L",
+  "DENMARK_SL", "EGYPT_PL", "EKSTRAKLASA", "HUNGARY_NB1", "INDIA_ISL",
+  "INDONESIA_L1", "LIGA_I", "MOLDOVA_SL", "MOROCCO_BP", "POLAND_1L",
+  "SERBIA_SL", "SLOVAKIA_SL", "SLOVENIA_SNL", "SOUTHAFRICA_PSL", "SWISS_SL",
+  "UKRAINE_PL", "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
+  "RPL", "ALGERIA_L1", "GHANA_PL",
+  "ALLSVENSKAN", "CANADA_PL", "CHILE_PB", "CHILE_PD", "COLOMBIA_PA",
+  "ECUADOR_LP", "ELITESERIEN", "ESTONIA_ML", "GEORGIA_EL", "ICELAND_1L",
+  "IRELAND_PD", "LATVIA_VL", "LITHUANIA_AL", "NORWAY_1L", "PERU_PD",
+  "SUPERETTAN", "URVALSDEILD", "USA_USL_CH", "VEIKKAUSLIIGA", "VENEZUELA_PD",
+  "VIETNAM_VL1", "YKKONEN", "ARGENTINA_PL", "ARG_PRIMERA_NACIONAL", "CHINA_2",
+  "BOLIVIA_PD", "URUGUAY_PD", "NWSL", "KAZAKHSTAN_PL", "BELARUS_PL", "PARAGUAY_PD",
+  "BRASILEIRAO_2",
 ]);
 
 /** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌. */
@@ -173,6 +209,15 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
     "FAROE_PL", "PANAMA_LPF", "UZBEKISTAN_SL", "CHINA_3", "COPA_DO_BRASIL",
     "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "ELSALVADOR_PD", "NICARAGUA_PD",
     "MEXICO_2",
+    // 2026-08-02 2차 — 봄~가을·달력연도 리그. 8~5월 리그를 여기 넣으면 라벨이 "2026" 이 돼
+    // 기존 "2026-27" 행이 season desc 정렬에서 이겨 새 데이터가 안 보인다(분류 주의).
+    "ALLSVENSKAN", "CANADA_PL", "CHILE_PB", "CHILE_PD", "COLOMBIA_PA",
+    "ECUADOR_LP", "ELITESERIEN", "ESTONIA_ML", "GEORGIA_EL", "ICELAND_1L",
+    "IRELAND_PD", "LATVIA_VL", "LITHUANIA_AL", "NORWAY_1L", "PERU_PD",
+    "SUPERETTAN", "URVALSDEILD", "USA_USL_CH", "VEIKKAUSLIIGA", "VENEZUELA_PD",
+    "VIETNAM_VL1", "YKKONEN", "ARGENTINA_PL", "ARG_PRIMERA_NACIONAL", "CHINA_2",
+    "BOLIVIA_PD", "URUGUAY_PD", "NWSL", "KAZAKHSTAN_PL", "BELARUS_PL", "PARAGUAY_PD",
+    "BRASILEIRAO_2",
   ];
   if (league === "CLUB_WORLD_CUP") return { season: 2025, label: "2025" };
   if (league === "AFC_U23") return { season: 2025, label: "2025" };
@@ -377,6 +422,9 @@ async function syncLeagueFromTsPlayerStat(
   const nm = new Map(known.map((p) => [p.id, p]));
   const ov = playerOverrides();
 
+  // 리그당 1회 트랜잭션으로 묶는다 — 카테고리별로 낱개 await 하면 리그당 44 왕복이라
+  // 리그 수가 늘자 cron maxDuration(300s)을 넘겼다 (2026-08-02 확장 시 실측 10분 초과).
+  const ops: Prisma.PrismaPromise<unknown>[] = [];
   for (const c of cats) {
     // rating 은 x100 누적이라 court(출전)로 나눠야 평균 — tiebreak 에만 쓰므로 비율만 맞으면 된다.
     const top = rows
@@ -395,24 +443,31 @@ async function syncLeagueFromTsPlayerStat(
       const pid = r.player?.id ?? "";
       const af = pid ? tsPlayerToAf(pid) : null;
       const koName = ov[pid]?.nameKo || nm.get(pid)?.nameKo || r.player?.name || "(미상)";
-      await upsertLeader({
-        league,
-        category: c.cat,
-        rank: i + 1,
-        playerName: koName,
-        playerNameEn: r.player?.name ?? undefined,
-        externalId: af ? String(af) : pid,
-        teamName: toKoreanTeamName(r.team?.name ?? "", league) || r.team?.name || "",
-        value: c.val(r),
-        unit: c.unit,
-        appearances: r.matches ?? undefined,
-        photoUrl: r.player?.logo || undefined,
-        season: seasonLabel,
-      });
+      ops.push(
+        leaderUpsertOp({
+          league,
+          category: c.cat,
+          rank: i + 1,
+          playerName: koName,
+          playerNameEn: r.player?.name ?? undefined,
+          externalId: af ? String(af) : pid,
+          teamName: toKoreanTeamName(r.team?.name ?? "", league) || r.team?.name || "",
+          value: c.val(r),
+          unit: c.unit,
+          appearances: r.matches ?? undefined,
+          photoUrl: r.player?.logo || undefined,
+          season: seasonLabel,
+        }),
+      );
     }
-    await clearOldRanks(league, c.cat, seasonLabel, top.length);
+    ops.push(
+      prisma.leagueLeader.deleteMany({
+        where: { league, category: c.cat, season: seasonLabel, rank: { gt: top.length } },
+      }),
+    );
     out[c.cat] = top.length;
   }
+  if (ops.length > 0) await prisma.$transaction(ops);
   return out;
 }
 
@@ -457,36 +512,47 @@ async function syncWorldCupFromTheSports(seasonLabel: string): Promise<Record<st
   return out;
 }
 
+// 리그 동시 처리 수. 순차로 돌면 리그당 ~11초(ts 응답 + 트랜잭션)라 110개에 20분이 걸려
+// cron maxDuration(300s)을 넘긴다 (2026-08-02 실측). 리그끼리 의존이 없어 안전하게 겹칠 수 있다.
+// ts/af rate limit 여유를 감안해 보수적으로 6.
+const LEAGUE_CONCURRENCY = 6;
+
 async function runSoccer() {
   const result: Record<string, Record<string, number>> = {};
-  for (const lg of SOCCER_LEAGUES) {
-    result[lg] = {};
-    try {
-      // 월드컵 = TheSports 집계 (api-football 미제공 → /ballon 월드컵 소실 방지).
-      if (lg === "WORLD_CUP") {
-        result[lg] = await syncWorldCupFromTheSports(currentSoccerSeason(lg).label);
-        continue;
+  const queue = [...SOCCER_LEAGUES];
+  const worker = async () => {
+    for (;;) {
+      const lg = queue.shift();
+      if (!lg) return;
+      result[lg] = {};
+      try {
+        // 월드컵 = TheSports 집계 (api-football 미제공 → /ballon 월드컵 소실 방지).
+        if (lg === "WORLD_CUP") {
+          result[lg] = await syncWorldCupFromTheSports(currentSoccerSeason(lg).label);
+          continue;
+        }
+        // TheSports 시즌통계 커버 리그 = ts 우선 (데이터 소스 1순위 원칙).
+        if (SEASON_STATS_LEAGUES.has(lg)) {
+          result[lg] = await syncClubLeagueFromSeasonStats(lg);
+          continue;
+        }
+        // ts 시즌 선수통계 직접 호출 리그 — af 로 내려가지 않는다(이중 소스 금지).
+        if (TS_PLAYER_STAT_LEAGUES.has(lg)) {
+          result[lg] = await syncLeagueFromTsPlayerStat(lg, currentSoccerSeason(lg).label);
+          continue;
+        }
+        // 나머지(UCL·UEL·컵·에레디비시 등) = api-football fallback. ts 시즌통계 미커버라 이게 유일 소스.
+        const { season, label } = currentSoccerSeason(lg);
+        result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
+        result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
+        result[lg].YELLOW = await syncSoccerCategory(lg, "YELLOW", season, label, fetchTopYellowCards, "옐로");
+        result[lg].RED = await syncSoccerCategory(lg, "RED", season, label, fetchTopRedCards, "레드");
+      } catch (e) {
+        console.warn(`[league-leaders/${lg}]`, (e as Error).message);
       }
-      // TheSports 시즌통계 커버 리그 = ts 우선 (데이터 소스 1순위 원칙).
-      if (SEASON_STATS_LEAGUES.has(lg)) {
-        result[lg] = await syncClubLeagueFromSeasonStats(lg);
-        continue;
-      }
-      // ts 시즌 선수통계 직접 호출 리그 — af 로 내려가지 않는다(이중 소스 금지).
-      if (TS_PLAYER_STAT_LEAGUES.has(lg)) {
-        result[lg] = await syncLeagueFromTsPlayerStat(lg, currentSoccerSeason(lg).label);
-        continue;
-      }
-      // 나머지(UCL·UEL·컵·에레디비시 등) = api-football fallback. ts 시즌통계 미커버라 이게 유일 소스.
-      const { season, label } = currentSoccerSeason(lg);
-      result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
-      result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
-      result[lg].YELLOW = await syncSoccerCategory(lg, "YELLOW", season, label, fetchTopYellowCards, "옐로");
-      result[lg].RED = await syncSoccerCategory(lg, "RED", season, label, fetchTopRedCards, "레드");
-    } catch (e) {
-      console.warn(`[league-leaders/${lg}]`, (e as Error).message);
     }
-  }
+  };
+  await Promise.all(Array.from({ length: LEAGUE_CONCURRENCY }, () => worker()));
   return { result };
 }
 
