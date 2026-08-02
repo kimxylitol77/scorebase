@@ -1,7 +1,7 @@
 // 리그별 시즌 시뮬레이션 — Monte Carlo 우승·강등·순위 확률.
 import { prisma } from "@/lib/db";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { fifaFlag } from "@/lib/sports/fifa-rankings";
 import type { Metadata } from "next";
@@ -28,6 +28,7 @@ import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
+import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { EN_PREDICTION_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
@@ -328,8 +329,11 @@ export default async function LeaguePredictions({ params }: Props) {
     return <StandingsOnlyView league={upper} />;
   }
   if (!VALID.includes(upper as ValidLeague)) {
-    // ALL_LEAGUES 안에 있으면 순위표만 보여주는 fallback (Elo/예측 데이터 준비 전)
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
+      // 시뮬 미지원 리그의 순위표는 /standings/[league] 가 정본 — 같은 내용의 두 URL
+      // (여기 fallback + standings, 2026-08-02 감사 176개 리그)을 redirect 로 통합.
+      if (STANDINGS_VALID.has(upper)) permanentRedirect(`/standings/${upper}`);
+      // standings 미지원 종목(테니스·골프 등)만 기존 fallback 유지
       return <StandingsOnlyView league={upper} />;
     }
     notFound();

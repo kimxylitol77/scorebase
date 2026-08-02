@@ -12,6 +12,7 @@ import { getRecentForm } from "@/lib/predict/recent-form";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
@@ -40,22 +41,7 @@ interface Props {
   params: Promise<{ league: string }>;
 }
 
-const VALID = new Set<string>([
-  ...SOCCER_LEAGUES,
-  ...VOLLEYBALL_LEAGUES,
-  "NBA",
-  "WNBA",
-  "NHL",
-  "KBO",
-  "NPB",
-  "MLB",
-  "CPBL",
-  "LOL",
-  "LEC",
-  "LCS",
-  "LPL",
-  "EWC",
-]);
+const VALID = STANDINGS_VALID;
 
 // 영어판(/en/standings) 지원 리그만 hreflang 상호 연결
 const enAlt = (upper: string) =>
