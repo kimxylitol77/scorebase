@@ -14,6 +14,7 @@ export default function OpeningOddsSimilarCard({ stats }: { stats: OpeningSimila
     awayWins,
     draws,
     actualHomeWinRate,
+    decisiveSample,
     marketAvgImplied,
     gapPoints,
   } = stats;
@@ -48,7 +49,11 @@ export default function OpeningOddsSimilarCard({ stats }: { stats: OpeningSimila
 
       <div className="space-y-3">
         <Bar label="시장이 본 홈 승리 확률" value={marketAvgImplied} tone="market" />
-        <Bar label="실제 홈 승리 비율" value={actualHomeWinRate} tone="actual" />
+        <Bar
+          label={draws > 0 ? "실제 홈 승리 비율 (무승부 제외)" : "실제 홈 승리 비율"}
+          value={actualHomeWinRate}
+          tone="actual"
+        />
       </div>
 
       <div className="flex items-center gap-2 text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300">
@@ -78,7 +83,10 @@ export default function OpeningOddsSimilarCard({ stats }: { stats: OpeningSimila
       </div>
 
       <p className="text-[10px] leading-relaxed text-neutral-400 dark:text-neutral-500">
-        과거 표본의 경향이며 이 경기의 결과를 보장하지 않는다. 표본 {sampleSize}경기 기준.
+        과거 표본의 경향이며 이 경기의 결과를 보장하지 않는다.{" "}
+        {draws > 0
+          ? `표본 ${sampleSize}경기 기준, 승률은 무승부 ${draws}경기를 뺀 ${decisiveSample}경기 기준(오프닝 배당이 무승부 없는 2-way 라 기준을 맞췄다).`
+          : `표본 ${sampleSize}경기 기준.`}
       </p>
     </div>
   );

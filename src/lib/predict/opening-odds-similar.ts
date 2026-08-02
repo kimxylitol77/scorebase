@@ -40,8 +40,14 @@ export interface OpeningSimilarStats {
   awayWins: number;
   /** KBO·NPB 는 연장 후 무승부가 있다 (MLB 는 0건) */
   draws: number;
-  /** 표본의 실제 홈승률 — 무승부를 분모에 포함 */
+  /**
+   * 표본의 실제 홈승률 — 무승부를 분모에서 제외한 승부가 난 경기 기준.
+   * 야구 오프닝 배당은 무승부 없는 2-way(홈+원정=1, 실측 openingMarketDraw 전건 0)라
+   * 무승부를 분모에 넣으면 시장값과 기준이 달라져 홈승률이 구조적으로 낮게 나온다.
+   */
   actualHomeWinRate: number;
+  /** actualHomeWinRate 의 분모 — 무승부를 뺀 표본 수 */
+  decisiveSample: number;
   /** 표본의 평균 오프닝 홈 implied — 시장이 본 값 */
   marketAvgImplied: number;
   /** 실제 - 시장 (%p). 양수면 시장이 홈을 과소평가했다는 뜻 */
@@ -96,7 +102,10 @@ export async function getOpeningSimilarStats(match: {
       impliedSum += r.openingMarketHome as number;
     }
 
-    const actualHomeWinRate = homeWins / rows.length;
+    // 시장값이 2-way 라 실제 홈승률도 무승부를 뺀 분모로 맞춘다 (기준 통일).
+    const decisiveSample = homeWins + awayWins;
+    if (decisiveSample === 0) continue;
+    const actualHomeWinRate = homeWins / decisiveSample;
     const marketAvgImplied = impliedSum / rows.length;
     return {
       targetImplied: target,
@@ -106,6 +115,7 @@ export async function getOpeningSimilarStats(match: {
       awayWins,
       draws,
       actualHomeWinRate,
+      decisiveSample,
       marketAvgImplied,
       gapPoints: (actualHomeWinRate - marketAvgImplied) * 100,
     };
