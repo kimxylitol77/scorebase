@@ -159,9 +159,14 @@ export async function GET(
   ctx: { params: Promise<{ gameId: string }> },
 ) {
   const { gameId } = await ctx.params;
-  if (!/^\d+$/.test(gameId)) {
+  // gameId = Match.externalId. api-sports 매치는 숫자지만 TheSports 로만 수집된 매치는
+  //   "ts-{uuid}" 라 숫자 가드에 걸려 400 이 났다 (2026-08-02 NPB 2건 실측). 1차 경로는
+  //   externalId 로 캐시를 찾으므로 ts- 도 그대로 동작한다 — 형식은 경로 안전성만 본다.
+  if (!/^[\w-]{1,64}$/.test(gameId)) {
     return NextResponse.json({ error: "invalid game id" }, { status: 400 });
   }
+  // api-sports fallback 은 숫자 id 만 조회 가능 — ts- 는 캐시가 유일한 소스다.
+  const abLookup = /^\d+$/.test(gameId);
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT);
   try {
@@ -214,6 +219,10 @@ export async function GET(
     }
 
     // === 2차: api-sports fallback (cache miss 또는 변환 실패 시) ===
+    if (!live && !abLookup) {
+      // ts- id 는 api-sports 에 없다 — 헛호출로 일일 한도를 깎지 않고 바로 404.
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
     if (!live) {
       const key = process.env.API_BASEBALL_KEY;
       if (!key) {
