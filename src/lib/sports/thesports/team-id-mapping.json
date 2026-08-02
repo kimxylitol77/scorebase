@@ -21058,19 +21058,19 @@
     "matchType": "stat-bridge"
   },
   {
-    "ourId": 611802,
-    "ourName": "West Ham United",
+    "ourId": 1536,
+    "ourName": "West Ham",
     "ourLeague": "CHAMPIONSHIP",
-    "ourExternalId": "ts-gy0or5jhdwxqwzv",
+    "ourExternalId": "563",
     "tsId": "gy0or5jhdwxqwzv",
     "tsName": "West Ham United",
     "matchType": "stat-bridge"
   },
   {
-    "ourId": 611803,
-    "ourName": "Bolton Wanderers",
+    "ourId": 600036,
+    "ourName": "Bolton",
     "ourLeague": "CHAMPIONSHIP",
-    "ourExternalId": "ts-j1l4rjnhp2vm7vx",
+    "ourExternalId": "68",
     "tsId": "j1l4rjnhp2vm7vx",
     "tsName": "Bolton Wanderers",
     "matchType": "stat-bridge"
@@ -21109,6 +21109,294 @@
     "ourExternalId": "301",
     "tsId": "9k82rekhd0orepz",
     "tsName": "JEF United Ichihara Chiba",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600037,
+    "ourName": "Rīgas FS",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "4160",
+    "tsId": "n54qllhe5xkqvy9",
+    "tsName": "Rigas Futbola Skola",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600042,
+    "ourName": "Riga",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "10124",
+    "tsId": "k82rekh96w7repz",
+    "tsName": "Riga FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600045,
+    "ourName": "Auda",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "4135",
+    "tsId": "3glrw7hwdvxqdyj",
+    "tsName": "FK Auda Riga",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600039,
+    "ourName": "BFC Daugavpils",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "4149",
+    "tsId": "1l4rjnh67pjm7vx",
+    "tsName": "BFC Daugavpils",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600041,
+    "ourName": "FK Liepaja",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "661",
+    "tsId": "kn54qllhy6dqvy9",
+    "tsName": "FK Liepaja",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600046,
+    "ourName": "Super Nova",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "4143",
+    "tsId": "n54qllh2l2gqvy9",
+    "tsName": "Super Nova",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600043,
+    "ourName": "FS Jelgava",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "18834",
+    "tsId": "jw2r09hlw8jrz84",
+    "tsName": "Jelgava",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600040,
+    "ourName": "Grobiņa",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "4138",
+    "tsId": "4wyrn4hezy2q86p",
+    "tsName": "Grobina",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600044,
+    "ourName": "Tukums",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "4144",
+    "tsId": "zp5rzgh7pzpq82w",
+    "tsName": "Tukums-2000",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600038,
+    "ourName": "Ogre United",
+    "ourLeague": "LATVIA_VL",
+    "ourExternalId": "18936",
+    "tsId": "1l4rjnhklo0m7vx",
+    "tsName": "Ogre United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600082,
+    "ourName": "Kauno Žalgiris",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "3872",
+    "tsId": "jw2r09hlvz5rz84",
+    "tsName": "Kauno Zalgiris",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600073,
+    "ourName": "FK Zalgiris Vilnius",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "586",
+    "tsId": "v2y8m4zho71ql07",
+    "tsName": "FK Zalgiris Vilnius",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600076,
+    "ourName": "Suduva Marijampole",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "612",
+    "tsId": "3glrw7hwwlwqdyj",
+    "tsName": "Suduva",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600074,
+    "ourName": "Džiugas Telšiai",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "3860",
+    "tsId": "23xmvkh3j33qg8n",
+    "tsName": "Dziugas Telsiai",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600079,
+    "ourName": "TransINVEST Vilnius",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "18878",
+    "tsId": "dj2ryohnk7nq1zp",
+    "tsName": "Transinvest",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600078,
+    "ourName": "Banga",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "3858",
+    "tsId": "y0or5jhlkx7qwzv",
+    "tsName": "Banga Gargzdai",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600077,
+    "ourName": "Hegelmann Litauen",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "3861",
+    "tsId": "jw2r09hnj9zrz84",
+    "tsName": "Hegelmann",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600075,
+    "ourName": "Panevėžys",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "3874",
+    "tsId": "pxwrxlhglv3ryk0",
+    "tsName": "FK Panevezys",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600080,
+    "ourName": "Šiauliai",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "3870",
+    "tsId": "23xmvkh3x68qg8n",
+    "tsName": "Siauliai",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600081,
+    "ourName": "FK Trakai",
+    "ourLeague": "LITHUANIA_AL",
+    "ourExternalId": "638",
+    "tsId": "y0or5jhl76oqwzv",
+    "tsName": "FK Riteriai",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 119260,
+    "ourName": "Olimpia",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1182",
+    "tsId": "vjxm8gh421dr6od",
+    "tsName": "Olimpia Asuncion",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598741,
+    "ourName": "Nacional Asuncion",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1175",
+    "tsId": "l7oqdehn4l6r510",
+    "tsName": "FC Nacional Asuncion",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 119233,
+    "ourName": "Cerro Porteno",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1176",
+    "tsId": "v2y8m4zhk64ql07",
+    "tsName": "Cerro Porteno",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611572,
+    "ourName": "Sportivo Ameliano",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "10487",
+    "tsId": "k82rekhyk95repz",
+    "tsName": "Sportivo Ameliano",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598735,
+    "ourName": "Sportivo Trinidense",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1187",
+    "tsId": "8yomo4h744oq0j6",
+    "tsName": "Club Sportivo Trinidense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 119229,
+    "ourName": "Libertad Asuncion",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1179",
+    "tsId": "kn54qllhoejqvy9",
+    "tsName": "Club Libertad Asunción",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598689,
+    "ourName": "Club Guarani",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1174",
+    "tsId": "23xmvkh3k24qg8n",
+    "tsName": "Club Guaraní",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 119257,
+    "ourName": "Deportivo Recoleta",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "10476",
+    "tsId": "y39mp1hy0wvmojx",
+    "tsName": "Deportivo Recoleta",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611570,
+    "ourName": "Rubio NU",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1185",
+    "tsId": "1l4rjnh6ogym7vx",
+    "tsName": "Rubio nu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598674,
+    "ourName": "2 de Mayo",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "2140",
+    "tsId": "l5ergpho28or8k0",
+    "tsName": "Club Sportivo 2 de Mayo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611573,
+    "ourName": "Sportivo Luqueno",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "1183",
+    "tsId": "gy0or5jhpdkqwzv",
+    "tsName": "Sportivo Luqueno",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611571,
+    "ourName": "Club Sp. San Lorenzo",
+    "ourLeague": "PARAGUAY_PD",
+    "ourExternalId": "2125",
+    "tsId": "3glrw7hw7e4qdyj",
+    "tsName": "Sportivo San Lorenzo",
     "matchType": "stat-bridge"
   }
 ]
