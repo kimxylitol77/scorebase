@@ -4,6 +4,8 @@ import { getStandingsState } from "@/lib/sports/thesports/standings-helper";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LeagueBadge from "@/components/LeagueBadge";
+import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 
 interface Props {
   league: string;
@@ -23,6 +25,12 @@ export default async function StandingsOnlyView({ league, embedded = false }: Pr
   // 개막 전에는 지난 시즌 표를 대신 보여주지 않고 "시즌 개막 전"으로 안내한다.
   const { rows: standings, state, firstFixtureAt } = await getStandingsState(league);
   const displayName = LEAGUE_DISPLAY[league] ?? league.replace(/_/g, " ");
+  // 시즌 리더보드 — 시뮬 미지원 리그는 /predictions 가 이 뷰로 빠지는데, 여기에만 리더보드가
+  // 없어 득점왕이 적재돼도 화면에 안 나왔다 (2026-08-02 사용자 지적: /predictions/SWISS_SL).
+  // 데이터 있으면 노출 — 리그 화이트리스트는 두지 않는다.
+  const { rowsByCategory: leaderRows, season: leaderSeason } = embedded
+    ? { rowsByCategory: {}, season: "" }
+    : await loadLeagueLeaderboard(league);
 
   const teamIds = [...new Set(standings.map((r) => r.teamId))];
   const teams = teamIds.length
@@ -161,6 +169,15 @@ export default async function StandingsOnlyView({ league, embedded = false }: Pr
             </div>
           ))}
         </div>
+      )}
+
+      {Object.keys(leaderRows).length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight">
+            {displayName} 시즌 리더보드
+          </h2>
+          <LeagueLeaderBoard league={league} season={leaderSeason} rowsByCategory={leaderRows} />
+        </section>
       )}
 
       {!embedded && (
