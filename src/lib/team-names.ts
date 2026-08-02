@@ -3459,6 +3459,22 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Bravos de Leon": "브라보스 데 레온",
     "Bravos de León": "브라보스 데 레온",
   },
+  // 코스타리카 Sporting FC(산호세) — 접미사 제거 후 글로벌 "Sporting": "스포르팅 CP"(포르투갈)
+  // 에 걸려 /scores·리더보드에 포르투갈 팀명이 나왔다 (2026-08-02 실측). league scope 로 차단.
+  COSTA_RICA_PD: {
+    "Sporting FC": "스포르팅 FC",
+    "Sporting": "스포르팅 FC",
+  },
+  // 브라질 Athletic Club(미나스제라이스, 상주앙델레이) — 글로벌 "Athletic Club": "아틀레틱 빌바오"
+  // (스페인)에 걸려 코파 두 브라질 득점 2위가 빌바오로 표시됐다 (2026-08-02 실측).
+  // 한국 미디어 표기 관례가 없어 한글명을 지어내지 않고 원문 유지 — 같은 표의 다른 브라질
+  // 클럽들(Portuguesa Desportos 등)도 영문 표기라 일관된다.
+  COPA_DO_BRASIL: {
+    "Athletic Club": "Athletic Club",
+  },
+  BRASILEIRAO_2: {
+    "Athletic Club": "Athletic Club",
+  },
   // NPB — 한글 풀네임 → 약자 (요미우리 자이언츠 → 요미우리). npb-team-names.ts 단일 출처 재사용.
   NPB: NPB_TEAM_SHORT_NAMES,
 };
