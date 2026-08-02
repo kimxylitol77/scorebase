@@ -66,6 +66,8 @@ import MatchSimulator from "./MatchSimulator";
 import MatchWhatIf from "./MatchWhatIf";
 import MatchScoreWhatIf from "./MatchScoreWhatIf";
 import { simSupportedLeague } from "@/lib/predict/match-sim";
+import MarketDetailTabs from "./insight/MarketDetailTabs";
+import { OverUnderDetail, BttsDetail, type RecentRow } from "./insight/MarketDetailViews";
 
 interface Props {
   match: {
@@ -443,6 +445,35 @@ export default async function MatchInsight({
     seasonStats.has(t.id),
   );
   const teamNameById = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name)]));
+
+  // 마켓 심화 탭용 — 팀별 최근 5경기 (킥오프 이전 종료 매치). 상대명은 리그 팀명 map,
+  // map 에 없으면(승격팀 초반 등) id 라벨 대신 생략형.
+  const recentRowsOf = (teamId: number): RecentRow[] =>
+    matches
+      .filter(
+        (m) =>
+          m.status === "FINISHED" &&
+          m.homeScore != null &&
+          m.awayScore != null &&
+          m.startTime < referenceTime &&
+          (m.homeTeamId === teamId || m.awayTeamId === teamId),
+      )
+      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
+      .slice(0, 5)
+      .map((m) => {
+        const wasHome = m.homeTeamId === teamId;
+        const oppId = wasHome ? m.awayTeamId : m.homeTeamId;
+        const k = new Date(m.startTime.getTime() + 9 * 3600 * 1000);
+        return {
+          date: `${String(k.getUTCMonth() + 1).padStart(2, "0")}.${String(k.getUTCDate()).padStart(2, "0")}`,
+          opp: teamNameById.get(oppId) ?? "상대",
+          homeScore: m.homeScore!,
+          awayScore: m.awayScore!,
+          wasHome,
+        };
+      });
+  const homeRecentRows = recentRowsOf(match.homeTeamId);
+  const awayRecentRows = recentRowsOf(match.awayTeamId);
 
   const scatterPoints = Array.from(seasonStats.values())
     .filter((s) => s.played >= 5)
@@ -874,6 +905,13 @@ export default async function MatchInsight({
         </Section>
       )}
       <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
+        <MarketDetailTabs
+          tabs={[
+            {
+              key: "all",
+              label: "종합",
+              content: (
+                <>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MarketCard
             label={hideDraw ? "승패 예측" : "결과 (1X2)"}
@@ -953,6 +991,78 @@ export default async function MatchInsight({
               `기대 마진 ${hc.expectedMargin >= 0 ? "+" : ""}${hc.expectedMargin.toFixed(1)}`}
           </p>
         )}
+                </>
+              ),
+            },
+            ...(total && ovPick
+              ? [
+                  {
+                    key: "ou",
+                    label: "오버언더",
+                    content: (
+                      <OverUnderDetail
+                        line={total.line}
+                        pOver={total.pOver}
+                        expectedTotal={total.expectedTotal}
+                        homeName={toKoreanTeamName(match.homeTeam.name)}
+                        awayName={toKoreanTeamName(match.awayTeam.name)}
+                        homeRows={homeRecentRows}
+                        awayRows={awayRecentRows}
+                        oddsOver={match.oddsTotalLine === total.line ? match.oddsOver : null}
+                        oddsUnder={match.oddsTotalLine === total.line ? match.oddsUnder : null}
+                        dcProbOver25={isSoccer && dcPred ? dcPred.probOver25 : null}
+                        resultNote={
+                          isFinished ? (
+                            <p className="text-xs font-bold">
+                              실제 총득점 {match.homeScore! + match.awayScore!} —{" "}
+                              {ovOk ? (
+                                <span className="text-emerald-600 dark:text-emerald-400">예측 적중</span>
+                              ) : (
+                                <span className="text-rose-500">예측 빗나감</span>
+                              )}
+                            </p>
+                          ) : undefined
+                        }
+                      />
+                    ),
+                  },
+                ]
+              : []),
+            ...(btts && btPick
+              ? [
+                  {
+                    key: "btts",
+                    label: "양팀득점",
+                    content: (
+                      <BttsDetail
+                        pBtts={btts.pBtts}
+                        homeName={toKoreanTeamName(match.homeTeam.name)}
+                        awayName={toKoreanTeamName(match.awayTeam.name)}
+                        homeRows={homeRecentRows}
+                        awayRows={awayRecentRows}
+                        oddsBttsYes={match.oddsBttsYes}
+                        oddsBttsNo={match.oddsBttsNo}
+                        dcProbBttsYes={dcPred ? dcPred.probBttsYes : null}
+                        resultNote={
+                          isFinished ? (
+                            <p className="text-xs font-bold">
+                              실제 양 팀 득점{" "}
+                              {bttsActual(match.homeScore!, match.awayScore!) === "YES" ? "YES" : "NO"} —{" "}
+                              {btOk ? (
+                                <span className="text-emerald-600 dark:text-emerald-400">예측 적중</span>
+                              ) : (
+                                <span className="text-rose-500">예측 빗나감</span>
+                              )}
+                            </p>
+                          ) : undefined
+                        }
+                      />
+                    ),
+                  },
+                ]
+              : []),
+          ]}
+        />
       </Section>
       {scoreSim && (
         <Section title="점수 시뮬레이터">
