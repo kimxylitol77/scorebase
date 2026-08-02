@@ -21398,5 +21398,2183 @@
     "tsId": "3glrw7hw7e4qdyj",
     "tsName": "Sportivo San Lorenzo",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 284927,
+    "ourName": "Winterthur",
+    "ourLeague": "CHALLENGE_LEAGUE",
+    "ourExternalId": "2180",
+    "tsId": "z318q66hegpqo9j",
+    "tsName": "Winterthur",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598959,
+    "ourName": "Partizani",
+    "ourLeague": "ALBANIA_SL",
+    "ourExternalId": "708",
+    "tsId": "23xmvkh38dkqg8n",
+    "tsName": "Partizani Tirana",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600119,
+    "ourName": "Qarabag",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "556",
+    "tsId": "56ypq3nhjnemd7o",
+    "tsName": "Qarabag",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600113,
+    "ourName": "FC Neftci Baku",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "2270",
+    "tsId": "d23xmvkhn0lqg8n",
+    "tsName": "FC Neftci Baku",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600112,
+    "ourName": "Turan",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "5499",
+    "tsId": "1l4rjnh6gkom7vx",
+    "tsName": "Turan Tovuz",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600111,
+    "ourName": "Imisli FK",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "5570",
+    "tsId": "6ypq3nhz4gzmd7o",
+    "tsName": "İmişli FK",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600116,
+    "ourName": "Kapaz",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "5490",
+    "tsId": "dn1m1gh49wgmoep",
+    "tsName": "FK Kapaz Ganca",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 288188,
+    "ourName": "Leiknir R.",
+    "ourLeague": "ICELAND_1L",
+    "ourExternalId": "2114",
+    "tsId": "y0or5jhl3enqwzv",
+    "tsName": "Leiknir Reykjavik",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610785,
+    "ourName": "Elgin City",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6767",
+    "tsId": "kjw2r09h88nrz84",
+    "tsName": "Elgin City",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610794,
+    "ourName": "Spartans",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6781",
+    "tsId": "l7oqdehnoyor510",
+    "tsName": "Spartans",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610801,
+    "ourName": "Clyde",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6762",
+    "tsId": "p3glrw7hvevqdyj",
+    "tsName": "Clyde",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610799,
+    "ourName": "Stirling Albion",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "4669",
+    "tsId": "gy0or5jhplvqwzv",
+    "tsName": "Stirling Albion",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610796,
+    "ourName": "Forfar Athletic",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "4250",
+    "tsId": "kdj2ryoh03wq1zp",
+    "tsName": "Forfar Athletic FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610783,
+    "ourName": "Kelty Hearts",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6773",
+    "tsId": "pxwrxlhg7noryk0",
+    "tsName": "Kelty Hearts",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610786,
+    "ourName": "Annan Athletic",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6757",
+    "tsId": "3glrw7hw0p6qdyj",
+    "tsName": "Annan Athletic FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610797,
+    "ourName": "Stranraer",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6785",
+    "tsId": "vjxm8gh48p0r6od",
+    "tsName": "Stranraer",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610779,
+    "ourName": "Dumbarton",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "1382",
+    "tsId": "d23xmvkh5ovqg8n",
+    "tsName": "Dumbarton",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610789,
+    "ourName": "Edinburgh City",
+    "ourLeague": "SCOT_LEAGUE_TWO",
+    "ourExternalId": "6766",
+    "tsId": "x7lm7phkpz8m2wd",
+    "tsName": "Edinburgh City",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 607925,
+    "ourName": "Budapest Honved FC",
+    "ourLeague": "HUNGARY_NB1",
+    "ourExternalId": "ts-gx7lm7phy7km2wd",
+    "tsId": "gx7lm7phy7km2wd",
+    "tsName": "Budapest Honved FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 284432,
+    "ourName": "Slask Wroclaw",
+    "ourLeague": "EKSTRAKLASA",
+    "ourExternalId": "337",
+    "tsId": "9dn1m1ghz1omoep",
+    "tsName": "Slask Wroclaw",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 608030,
+    "ourName": "KVSK Lommel",
+    "ourLeague": "JUPILER_PL",
+    "ourExternalId": "ts-y0or5jhlegzqwzv",
+    "tsId": "y0or5jhlegzqwzv",
+    "tsName": "KVSK Lommel",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 285698,
+    "ourName": "Vukovar",
+    "ourLeague": "HNL",
+    "ourExternalId": "5730",
+    "tsId": "1l4rjnh63elm7vx",
+    "tsName": "HNK Vukovar 1991",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610791,
+    "ourName": "Hamilton Academical",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "248",
+    "tsId": "gy0or5jh2l3qwzv",
+    "tsName": "Hamilton Academical",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610788,
+    "ourName": "East Kilbride",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "6765",
+    "tsId": "jw2r09hn9jgrz84",
+    "tsName": "East Kilbride",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610787,
+    "ourName": "Ross County",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "902",
+    "tsId": "p3glrw7hv0oqdyj",
+    "tsName": "Ross County",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610775,
+    "ourName": "Airdrie United",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "4668",
+    "tsId": "gpxwrxlhkw4ryk0",
+    "tsName": "Airdrie United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610803,
+    "ourName": "Alloa Athletic",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "1391",
+    "tsId": "kdj2ryohzgoq1zp",
+    "tsName": "Alloa Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610802,
+    "ourName": "Cove Rangers",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "6763",
+    "tsId": "y0or5jhlx1vqwzv",
+    "tsName": "Cove Rangers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610778,
+    "ourName": "East Fife",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "6764",
+    "tsId": "9dn1m1ghzy5moep",
+    "tsName": "East Fife",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610790,
+    "ourName": "Peterhead",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "6777",
+    "tsId": "z8yomo4hdvwq0j6",
+    "tsName": "Peterhead",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610800,
+    "ourName": "Montrose",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "4251",
+    "tsId": "kn54qllhvdyqvy9",
+    "tsName": "Montrose",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 268,
+    "ourName": "Nantes",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "165",
+    "tsId": "56ypq3nhynjmd7o",
+    "tsName": "FC Nantes",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 266,
+    "ourName": "Metz",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "177",
+    "tsId": "vl7oqdehwner510",
+    "tsName": "Metz",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598178,
+    "ourName": "Saint Etienne",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "1063",
+    "tsId": "gx7lm7phynkm2wd",
+    "tsName": "AS Saint-Étienne",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598174,
+    "ourName": "RED Star FC 93",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "104",
+    "tsId": "x7lm7phk686m2wd",
+    "tsName": "Red Star FC 93",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598181,
+    "ourName": "Rodez",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "1301",
+    "tsId": "4zp5rzghnopq82w",
+    "tsName": "Rodez Aveyron",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598186,
+    "ourName": "Reims",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "93",
+    "tsId": "965mkyh7oygr1ge",
+    "tsName": "Stade DE Reims",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598180,
+    "ourName": "Annecy",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "3012",
+    "tsId": "l5ergphondzr8k0",
+    "tsName": "Annecy",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598173,
+    "ourName": "Montpellier",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "82",
+    "tsId": "d23xmvkhjejqg8n",
+    "tsName": "Montpellier Hérault SC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598183,
+    "ourName": "Dunkerque",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "1304",
+    "tsId": "kjw2r09hzwdrz84",
+    "tsName": "USL Dunkerque",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598171,
+    "ourName": "Guingamp",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "90",
+    "tsId": "e4wyrn4h1gjq86p",
+    "tsName": "Guingamp",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598176,
+    "ourName": "Grenoble",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "101",
+    "tsId": "4zp5rzghe3zq82w",
+    "tsName": "Grenoble",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598184,
+    "ourName": "Clermont Foot",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "99",
+    "tsId": "e4wyrn4hno6q86p",
+    "tsName": "Clermont",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598182,
+    "ourName": "Nancy",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "102",
+    "tsId": "9dn1m1ghzp2moep",
+    "tsName": "Nancy",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598187,
+    "ourName": "Boulogne",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "1299",
+    "tsId": "4zp5rzghkodq82w",
+    "tsName": "Boulogne",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610706,
+    "ourName": "Dijon",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "89",
+    "tsId": "jednm9wh48pryox",
+    "tsName": "Dijon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610707,
+    "ourName": "Sochaux",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "115",
+    "tsId": "gy0or5jhk45qwzv",
+    "tsName": "Sochaux",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598372,
+    "ourName": "Strasbourg",
+    "ourLeague": "UECL",
+    "ourExternalId": "95",
+    "tsId": "v2y8m4zhd66ql07",
+    "tsName": "RC Strasbourg Alsace",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598332,
+    "ourName": "AEK Athens FC",
+    "ourLeague": "UECL",
+    "ourExternalId": "575",
+    "tsId": "v2y8m4zh9y8ql07",
+    "tsName": "AEK Athens",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598313,
+    "ourName": "Sparta Praha",
+    "ourLeague": "UECL",
+    "ourExternalId": "628",
+    "tsId": "kdj2ryoh0zjq1zp",
+    "tsName": "AC Sparta Praha",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 384685,
+    "ourName": "Rayo Vallecano",
+    "ourLeague": "UECL",
+    "ourExternalId": "728",
+    "tsId": "gy0or5jhp88qwzv",
+    "tsName": "Rayo Vallecano",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598375,
+    "ourName": "Shakhtar Donetsk",
+    "ourLeague": "UECL",
+    "ourExternalId": "550",
+    "tsId": "e4wyrn4h1p1q86p",
+    "tsName": "FC Shakhtar Donetsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598366,
+    "ourName": "FSV Mainz 05",
+    "ourLeague": "UECL",
+    "ourExternalId": "164",
+    "tsId": "jednm9whl2kryox",
+    "tsName": "1. FSV Mainz 05",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598394,
+    "ourName": "AEK Larnaca",
+    "ourLeague": "UECL",
+    "ourExternalId": "614",
+    "tsId": "ednm9whk8lyryox",
+    "tsName": "AEK Larnaca",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598340,
+    "ourName": "Lausanne",
+    "ourLeague": "UECL",
+    "ourExternalId": "1014",
+    "tsId": "l5ergpho5okr8k0",
+    "tsName": "Lausanne Sports",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 384684,
+    "ourName": "Crystal Palace",
+    "ourLeague": "UECL",
+    "ourExternalId": "52",
+    "tsId": "vl7oqdehzkpr510",
+    "tsName": "Crystal Palace",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598384,
+    "ourName": "Lech Poznan",
+    "ourLeague": "UECL",
+    "ourExternalId": "347",
+    "tsId": "p4jwq2ghj25m0ve",
+    "tsName": "Lech Poznan",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598392,
+    "ourName": "Samsunspor",
+    "ourLeague": "UECL",
+    "ourExternalId": "3603",
+    "tsId": "z318q66hlxwqo9j",
+    "tsName": "Samsunspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598363,
+    "ourName": "Celje",
+    "ourLeague": "UECL",
+    "ourExternalId": "4360",
+    "tsId": "p4jwq2ghdlwm0ve",
+    "tsName": "NK Publikum Celje",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598304,
+    "ourName": "AZ Alkmaar",
+    "ourLeague": "UECL",
+    "ourExternalId": "201",
+    "tsId": "kjw2r09hv3zrz84",
+    "tsName": "AZ Alkmaar",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598378,
+    "ourName": "Fiorentina",
+    "ourLeague": "UECL",
+    "ourExternalId": "502",
+    "tsId": "8y39mp1h80jmojx",
+    "tsName": "Fiorentina",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598390,
+    "ourName": "HNK Rijeka",
+    "ourLeague": "UECL",
+    "ourExternalId": "561",
+    "tsId": "k82rekhvyzerepz",
+    "tsName": "Rijeka",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598323,
+    "ourName": "Jagiellonia",
+    "ourLeague": "UECL",
+    "ourExternalId": "336",
+    "tsId": "8y39mp1h8l6mojx",
+    "tsName": "Jagiellonia Bialystok",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598324,
+    "ourName": "Omonia Nicosia",
+    "ourLeague": "UECL",
+    "ourExternalId": "3402",
+    "tsId": "kjw2r09hy41rz84",
+    "tsName": "Omonia Nicosia FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598379,
+    "ourName": "Drita",
+    "ourLeague": "UECL",
+    "ourExternalId": "14281",
+    "tsId": "dj2ryohjkn3q1zp",
+    "tsName": "FC Drita",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598389,
+    "ourName": "KuPS",
+    "ourLeague": "UECL",
+    "ourExternalId": "1165",
+    "tsId": "z318q66hp13qo9j",
+    "tsName": "KuPs",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598388,
+    "ourName": "Shkendija",
+    "ourLeague": "UECL",
+    "ourExternalId": "609",
+    "tsId": "l7oqdehn4pzr510",
+    "tsName": "Shkendija Tetovo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598386,
+    "ourName": "Zrinjski",
+    "ourLeague": "UECL",
+    "ourExternalId": "588",
+    "tsId": "1l4rjnh6632m7vx",
+    "tsName": "HSK Zrinjski Mostar",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598393,
+    "ourName": "Sigma Olomouc",
+    "ourLeague": "UECL",
+    "ourExternalId": "2250",
+    "tsId": "8y39mp1hgelmojx",
+    "tsName": "SK Sigma Olomouc",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598351,
+    "ourName": "Universitatea Craiova",
+    "ourLeague": "UECL",
+    "ourExternalId": "632",
+    "tsId": "zp5rzghjeodq82w",
+    "tsName": "CS Universitatea Craiova",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598387,
+    "ourName": "Lincoln Red Imps FC",
+    "ourLeague": "UECL",
+    "ourExternalId": "667",
+    "tsId": "y39mp1h5kzpmojx",
+    "tsName": "Lincoln Red Imps FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598383,
+    "ourName": "Legia Warszawa",
+    "ourLeague": "UECL",
+    "ourExternalId": "339",
+    "tsId": "jednm9whln2ryox",
+    "tsName": "Legia Warszawa",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598395,
+    "ourName": "Slovan Bratislava",
+    "ourLeague": "UECL",
+    "ourExternalId": "656",
+    "tsId": "56ypq3nhyy4md7o",
+    "tsName": "Slovan Bratislava",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598373,
+    "ourName": "Breidablik",
+    "ourLeague": "UECL",
+    "ourExternalId": "276",
+    "tsId": "6ypq3nh0w05md7o",
+    "tsName": "Breidablik",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598301,
+    "ourName": "Shamrock Rovers",
+    "ourLeague": "UECL",
+    "ourExternalId": "652",
+    "tsId": "4zp5rzghengq82w",
+    "tsName": "Shamrock Rovers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598367,
+    "ourName": "BK Hacken",
+    "ourLeague": "UECL",
+    "ourExternalId": "367",
+    "tsId": "j1l4rjnhoy7m7vx",
+    "tsName": "Hacken",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598370,
+    "ourName": "Hamrun Spartans",
+    "ourLeague": "UECL",
+    "ourExternalId": "4626",
+    "tsId": "l7oqdehngl7r510",
+    "tsName": "Hamrun Spartans",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598391,
+    "ourName": "Aberdeen",
+    "ourLeague": "UECL",
+    "ourExternalId": "252",
+    "tsId": "z318q66hd2jqo9j",
+    "tsName": "Aberdeen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609902,
+    "ourName": "Rapid Wien",
+    "ourLeague": "UECL",
+    "ourExternalId": "jednm9whl5eryox",
+    "tsId": "jednm9whl5eryox",
+    "tsName": "Rapid Wien",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600035,
+    "ourName": "Stockport County",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "4686",
+    "tsId": "jednm9wh44lryox",
+    "tsName": "Stockport County",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600025,
+    "ourName": "Bradford",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1343",
+    "tsId": "9vjxm8gholnr6od",
+    "tsName": "Bradford City",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600030,
+    "ourName": "Stevenage",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1368",
+    "tsId": "4zp5rzgh9k3q82w",
+    "tsName": "Stevenage Borough",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600013,
+    "ourName": "Luton",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1359",
+    "tsId": "56ypq3nh9vgmd7o",
+    "tsName": "Luton Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600031,
+    "ourName": "Plymouth",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1357",
+    "tsId": "4zp5rzghev0q82w",
+    "tsName": "Plymouth Argyle",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600017,
+    "ourName": "Huddersfield",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "37",
+    "tsId": "z318q66hdxgqo9j",
+    "tsName": "Huddersfield Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600024,
+    "ourName": "Mansfield Town",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1374",
+    "tsId": "kjw2r09hv70rz84",
+    "tsName": "Mansfield Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600026,
+    "ourName": "Wycombe",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1358",
+    "tsId": "kn54qllhgkxqvy9",
+    "tsName": "Wycombe Wanderers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600034,
+    "ourName": "Reading",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "53",
+    "tsId": "kn54qllhyw2qvy9",
+    "tsName": "Reading",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600029,
+    "ourName": "Blackpool",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1356",
+    "tsId": "gy0or5jhd9xqwzv",
+    "tsName": "Blackpool",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600027,
+    "ourName": "Doncaster",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1354",
+    "tsId": "kn54qllh6doqvy9",
+    "tsName": "Doncaster Rovers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600032,
+    "ourName": "Barnsley",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "747",
+    "tsId": "kn54qllhy42qvy9",
+    "tsName": "Barnsley",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600019,
+    "ourName": "Wigan",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "61",
+    "tsId": "56ypq3nhdy6md7o",
+    "tsName": "Wigan Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600023,
+    "ourName": "Burton Albion",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "748",
+    "tsId": "gy0or5jhyynqwzv",
+    "tsName": "Burton",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600016,
+    "ourName": "Peterborough",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1350",
+    "tsId": "gx7lm7phdj4m2wd",
+    "tsName": "Peterborough United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600014,
+    "ourName": "AFC Wimbledon",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1333",
+    "tsId": "9vjxm8gh1e5r6od",
+    "tsName": "AFC Wimbledon",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600018,
+    "ourName": "Leyton Orient",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "1373",
+    "tsId": "j1l4rjnhwdvm7vx",
+    "tsName": "Leyton Orient",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116613,
+    "ourName": "Roasso Kumamoto",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "314",
+    "tsId": "8yomo4h7jy5q0j6",
+    "tsName": "Roasso Kumamoto",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116621,
+    "ourName": "Ehime FC",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "318",
+    "tsId": "1l4rjnh66zzm7vx",
+    "tsName": "Ehime FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116619,
+    "ourName": "Matsumoto Yamaga",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "304",
+    "tsId": "kjw2r09hv90rz84",
+    "tsName": "Matsumoto Yamaga FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 115436,
+    "ourName": "Fukushima United",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "4318",
+    "tsId": "23xmvkh310zqg8n",
+    "tsName": "Fukushima United FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116629,
+    "ourName": "Gainare Tottori",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "4319",
+    "tsId": "vjxm8ghgxp5r6od",
+    "tsName": "Gainare Tottori",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116625,
+    "ourName": "Kamatamare Sanuki",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "317",
+    "tsId": "965mkyh4l65r1ge",
+    "tsName": "Kamatamare Sanuki",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 115435,
+    "ourName": "Nara Club",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "7135",
+    "tsId": "pxwrxlhgdg4ryk0",
+    "tsName": "Nara Club",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 115438,
+    "ourName": "Sagamihara",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "4324",
+    "tsId": "l7oqdeh60y8r510",
+    "tsName": "SC Sagamihara",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116622,
+    "ourName": "Osaka",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "7138",
+    "tsId": "23xmvkhog0oqg8n",
+    "tsName": "FC Osaka",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116620,
+    "ourName": "Kochi United",
+    "ourLeague": "J3_LEAGUE",
+    "ourExternalId": "7129",
+    "tsId": "6ypq3nh5p88md7o",
+    "tsName": "Kochi United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600157,
+    "ourName": "Academico Viseu",
+    "ourLeague": "PRIMEIRA_LIGA",
+    "ourExternalId": "238",
+    "tsId": "3glrw7hwy16qdyj",
+    "tsName": "Viseu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599423,
+    "ourName": "Buriram United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2780",
+    "tsId": "3glrw7hwjvyqdyj",
+    "tsName": "Buriram United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599428,
+    "ourName": "Port FC",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2789",
+    "tsId": "965mkyh7ykdr1ge",
+    "tsName": "Port FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599416,
+    "ourName": "Ratchaburi",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2776",
+    "tsId": "x7lm7phoo5lm2wd",
+    "tsName": "Ratchaburi FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599419,
+    "ourName": "BG Pathum United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2769",
+    "tsId": "k82rekhvp7erepz",
+    "tsName": "BG Pathum United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599430,
+    "ourName": "Bangkok United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2770",
+    "tsId": "8yomo4h7vpkq0j6",
+    "tsName": "Bangkok United FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599418,
+    "ourName": "Prachuap",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2791",
+    "tsId": "zp5rzgh714lq82w",
+    "tsName": "PT Prachuap FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599427,
+    "ourName": "Chiangrai United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2771",
+    "tsId": "y0or5jh433lqwzv",
+    "tsName": "Chiangrai United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599421,
+    "ourName": "Chonburi FC",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2772",
+    "tsId": "1l4rjnh61z5m7vx",
+    "tsName": "Chonburi FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599431,
+    "ourName": "Rayong FC",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2797",
+    "tsId": "l5ergph3eoyr8k0",
+    "tsName": "Rayong FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599426,
+    "ourName": "Uthai Thani",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "10088",
+    "tsId": "ednm9wh9gnxryox",
+    "tsName": "Uthai Thani Forest",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599422,
+    "ourName": "Lamphun Warrior",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "6572",
+    "tsId": "1l4rjnh1y0em7vx",
+    "tsName": "Lamphun Warriors",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599425,
+    "ourName": "Sukhothai FC",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2783",
+    "tsId": "3glrw7h108nqdyj",
+    "tsName": "Sukhothai",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599424,
+    "ourName": "Muangthong United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2786",
+    "tsId": "dj2ryohkzznq1zp",
+    "tsName": "Muangthong United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 599417,
+    "ourName": "Kanchanaburi",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "18051",
+    "tsId": "x7lm7phw9vem2wd",
+    "tsName": "Kanchanaburi Power FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 101,
+    "ourName": "FC St. Pauli",
+    "ourLeague": "BUNDESLIGA_2",
+    "ourExternalId": "270",
+    "tsId": "gy0or5jhkvwqwzv",
+    "tsName": "FC St. Pauli",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 2,
+    "ourName": "Girona",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "9812",
+    "tsId": "p3glrw7h550qdyj",
+    "tsName": "Girona FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 13,
+    "ourName": "Mallorca",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "84",
+    "tsId": "gpxwrxlhw6vryk0",
+    "tsName": "RCD Mallorca",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600028,
+    "ourName": "Exeter City",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "1364",
+    "tsId": "e4wyrn4hp1zq86p",
+    "tsName": "Exeter City",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600022,
+    "ourName": "Port Vale",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "1351",
+    "tsId": "e4wyrn4hpgvq86p",
+    "tsName": "Port Vale",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610428,
+    "ourName": "Rotherham United",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "p3glrw7he9vqdyj",
+    "tsId": "p3glrw7he9vqdyj",
+    "tsName": "Rotherham United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610507,
+    "ourName": "Northampton Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "9dn1m1ghyj3moep",
+    "tsId": "9dn1m1ghyj3moep",
+    "tsName": "Northampton Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610537,
+    "ourName": "Grimsby Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "d23xmvkh1gkqg8n",
+    "tsId": "d23xmvkh1gkqg8n",
+    "tsName": "Grimsby Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610078,
+    "ourName": "Barnet",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "9vjxm8ghd2vr6od",
+    "tsId": "9vjxm8ghd2vr6od",
+    "tsName": "Barnet",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610550,
+    "ourName": "Colchester United",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "j1l4rjnh03ym7vx",
+    "tsId": "j1l4rjnh03ym7vx",
+    "tsName": "Colchester United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610043,
+    "ourName": "Bristol Rovers",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "gy0or5jhy04qwzv",
+    "tsId": "gy0or5jhy04qwzv",
+    "tsName": "Bristol Rovers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610496,
+    "ourName": "Fleetwood Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "4zp5rzghkvlq82w",
+    "tsId": "4zp5rzghkvlq82w",
+    "tsName": "Fleetwood Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610351,
+    "ourName": "Newport County",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "e4wyrn4hp3vq86p",
+    "tsId": "e4wyrn4hp3vq86p",
+    "tsName": "Newport County",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609958,
+    "ourName": "Dynamo Makhachkala",
+    "ourLeague": "RPL",
+    "ourExternalId": "zp5rzghz9dyq82w",
+    "tsId": "zp5rzghz9dyq82w",
+    "tsName": "Dynamo Makhachkala",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609926,
+    "ourName": "Zenit St. Petersburg",
+    "ourLeague": "RPL",
+    "ourExternalId": "j1l4rjnhpnxm7vx",
+    "tsId": "j1l4rjnhpnxm7vx",
+    "tsName": "Zenit St. Petersburg",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610297,
+    "ourName": "Spartak Moscow",
+    "ourLeague": "RPL",
+    "ourExternalId": "kn54qllh6neqvy9",
+    "tsId": "kn54qllh6neqvy9",
+    "tsName": "Spartak Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609975,
+    "ourName": "FK Rostov",
+    "ourLeague": "RPL",
+    "ourExternalId": "e4wyrn4h1yxq86p",
+    "tsId": "e4wyrn4h1yxq86p",
+    "tsName": "FK Rostov",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609983,
+    "ourName": "Baltika Kaliningrad",
+    "ourLeague": "RPL",
+    "ourExternalId": "vjxm8gh484pr6od",
+    "tsId": "vjxm8gh484pr6od",
+    "tsName": "Baltika Kaliningrad",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610298,
+    "ourName": "Rubin Kazan",
+    "ourLeague": "RPL",
+    "ourExternalId": "gx7lm7phd24m2wd",
+    "tsId": "gx7lm7phd24m2wd",
+    "tsName": "Rubin Kazan",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610446,
+    "ourName": "Krylya Sovetov",
+    "ourLeague": "RPL",
+    "ourExternalId": "jednm9wh42dryox",
+    "tsId": "jednm9wh42dryox",
+    "tsName": "Krylya Sovetov",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610448,
+    "ourName": "Lokomotiv Moscow",
+    "ourLeague": "RPL",
+    "ourExternalId": "d23xmvkhj6dqg8n",
+    "tsId": "d23xmvkhj6dqg8n",
+    "tsName": "Lokomotiv Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609963,
+    "ourName": "Dynamo Moscow",
+    "ourLeague": "RPL",
+    "ourExternalId": "vl7oqdehk89r510",
+    "tsId": "vl7oqdehk89r510",
+    "tsName": "Dynamo Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609974,
+    "ourName": "Fakel Voronezh",
+    "ourLeague": "RPL",
+    "ourExternalId": "9k82rekhk4yrepz",
+    "tsId": "9k82rekhk4yrepz",
+    "tsName": "Fakel Voronezh",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609937,
+    "ourName": "Akron Togliatti",
+    "ourLeague": "RPL",
+    "ourExternalId": "965mkyh3x0er1ge",
+    "tsId": "965mkyh3x0er1ge",
+    "tsName": "Akron Togliatti",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610041,
+    "ourName": "Scunthorpe United",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "yl5ergphxgpr8k0",
+    "tsId": "yl5ergphxgpr8k0",
+    "tsName": "Scunthorpe United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610060,
+    "ourName": "Forest Green Rovers",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "gy0or5jhk51qwzv",
+    "tsId": "gy0or5jhk51qwzv",
+    "tsName": "Forest Green Rovers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610512,
+    "ourName": "Halifax Town",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "gx7lm7phev9m2wd",
+    "tsId": "gx7lm7phev9m2wd",
+    "tsName": "Halifax Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610434,
+    "ourName": "Eastleigh",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "2y8m4zh3800ql07",
+    "tsId": "2y8m4zh3800ql07",
+    "tsName": "Eastleigh",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610055,
+    "ourName": "Gateshead",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "x7lm7phknj2m2wd",
+    "tsId": "x7lm7phknj2m2wd",
+    "tsName": "Gateshead",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610070,
+    "ourName": "Aldershot Town",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "gy0or5jhppkqwzv",
+    "tsId": "gy0or5jhppkqwzv",
+    "tsName": "Aldershot Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610079,
+    "ourName": "Hornchurch",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "gpxwrxlhkgpryk0",
+    "tsId": "gpxwrxlhkgpryk0",
+    "tsName": "Hornchurch",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 610388,
+    "ourName": "Worthing",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "l965mkyhjdkr1ge",
+    "tsId": "l965mkyhjdkr1ge",
+    "tsName": "Worthing",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611804,
+    "ourName": "Medeama SC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-6ypq3nh5eo3md7o",
+    "tsId": "6ypq3nh5eo3md7o",
+    "tsName": "Medeama SC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611805,
+    "ourName": "Bibiani Gold Stars",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-318q66h49wjqo9j",
+    "tsId": "318q66h49wjqo9j",
+    "tsName": "Bibiani Gold Stars",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611806,
+    "ourName": "Accra Hearts of Oak",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-x7lm7phkkolm2wd",
+    "tsId": "x7lm7phkkolm2wd",
+    "tsName": "Accra Hearts of Oak",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611807,
+    "ourName": "Ghana Dream FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-6ypq3nh57oymd7o",
+    "tsId": "6ypq3nh57oymd7o",
+    "tsName": "Ghana Dream FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611808,
+    "ourName": "Aduana Stars",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-2y8m4zhj4z4ql07",
+    "tsId": "2y8m4zhj4z4ql07",
+    "tsName": "Aduana Stars",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611809,
+    "ourName": "Samartex",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-y39mp1h52n1mojx",
+    "tsId": "y39mp1h52n1mojx",
+    "tsName": "Samartex",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611810,
+    "ourName": "Karela United FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-3glrw7hjd22qdyj",
+    "tsId": "3glrw7hjd22qdyj",
+    "tsName": "Karela United FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611811,
+    "ourName": "Berekum Chelsea",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-n54qllhekj0qvy9",
+    "tsId": "n54qllhekj0qvy9",
+    "tsName": "Berekum Chelsea",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611812,
+    "ourName": "Vision FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-l5ergph3968r8k0",
+    "tsId": "l5ergph3968r8k0",
+    "tsName": "Vision FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611813,
+    "ourName": "Asante Kotoko FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-23xmvkh33v5qg8n",
+    "tsId": "23xmvkh33v5qg8n",
+    "tsName": "Asante Kotoko FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611814,
+    "ourName": "Basake Holy Stars FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-l5ergphn2d8r8k0",
+    "tsId": "l5ergphn2d8r8k0",
+    "tsName": "Basake Holy Stars FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611815,
+    "ourName": "Swedru All Blacks",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-y39mp1hypdemojx",
+    "tsId": "y39mp1hypdemojx",
+    "tsName": "Swedru All Blacks",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611816,
+    "ourName": "Nations FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-k82rekh38y2repz",
+    "tsId": "k82rekh38y2repz",
+    "tsName": "Nations FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611817,
+    "ourName": "Bechem United",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-4jwq2ghk0d9m0ve",
+    "tsId": "4jwq2ghk0d9m0ve",
+    "tsName": "Bechem United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611818,
+    "ourName": "Heart of Lions",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-4wyrn4he08dq86p",
+    "tsId": "4wyrn4he08dq86p",
+    "tsName": "Heart of Lions",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611819,
+    "ourName": "Young Apostles",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-vjxm8ghpxw2r6od",
+    "tsId": "vjxm8ghpxw2r6od",
+    "tsName": "Young Apostles",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611820,
+    "ourName": "Hohoe United FC",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-8yomo4h06w4q0j6",
+    "tsId": "8yomo4h06w4q0j6",
+    "tsName": "Hohoe United FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611821,
+    "ourName": " Eleven Wonders",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-pxwrxlh1xo4ryk0",
+    "tsId": "pxwrxlh1xo4ryk0",
+    "tsName": " Eleven Wonders",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611822,
+    "ourName": "Salford City",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-y39mp1h3gv6mojx",
+    "tsId": "y39mp1h3gv6mojx",
+    "tsName": "Salford City",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611823,
+    "ourName": "Chesterfield",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-gx7lm7phdz4m2wd",
+    "tsId": "gx7lm7phdz4m2wd",
+    "tsName": "Chesterfield",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611824,
+    "ourName": "Swindon Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-4zp5rzgh918q82w",
+    "tsId": "4zp5rzgh918q82w",
+    "tsName": "Swindon Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611825,
+    "ourName": "Oldham Athletic",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-z8yomo4ho0xq0j6",
+    "tsId": "z8yomo4ho0xq0j6",
+    "tsName": "Oldham Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611826,
+    "ourName": "Crewe Alexandra",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-d23xmvkhzloqg8n",
+    "tsId": "d23xmvkhzloqg8n",
+    "tsName": "Crewe Alexandra",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611827,
+    "ourName": "Walsall",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-yl5ergph189r8k0",
+    "tsId": "yl5ergph189r8k0",
+    "tsName": "Walsall",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611828,
+    "ourName": "Accrington Stanley",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-d23xmvkhj56qg8n",
+    "tsId": "d23xmvkhj56qg8n",
+    "tsName": "Accrington Stanley",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611829,
+    "ourName": "Gillingham",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-gpxwrxlhwogryk0",
+    "tsId": "gpxwrxlhwogryk0",
+    "tsName": "Gillingham",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611830,
+    "ourName": "Cheltenham Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-9k82rekhkz8repz",
+    "tsId": "9k82rekhkz8repz",
+    "tsName": "Cheltenham Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611831,
+    "ourName": "Shrewsbury Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-4zp5rzghv2xq82w",
+    "tsId": "4zp5rzghv2xq82w",
+    "tsName": "Shrewsbury Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611832,
+    "ourName": "Tranmere Rovers",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-4zp5rzghvooq82w",
+    "tsId": "4zp5rzghvooq82w",
+    "tsName": "Tranmere Rovers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611833,
+    "ourName": "Crawley Town",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-p3glrw7h8npqdyj",
+    "tsId": "p3glrw7h8npqdyj",
+    "tsName": "Crawley Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611834,
+    "ourName": "York City",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-p4jwq2ghy00m0ve",
+    "tsId": "p4jwq2ghy00m0ve",
+    "tsName": "York City",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611835,
+    "ourName": "Rochdale",
+    "ourLeague": "LEAGUE_TWO",
+    "ourExternalId": "ts-z318q66heznqo9j",
+    "tsId": "z318q66heznqo9j",
+    "tsName": "Rochdale",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611836,
+    "ourName": "CSKA Moscow",
+    "ourLeague": "RPL",
+    "ourExternalId": "ts-l965mkyhx21r1ge",
+    "tsId": "l965mkyhx21r1ge",
+    "tsName": "CSKA Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611837,
+    "ourName": "FK Krasnodar",
+    "ourLeague": "RPL",
+    "ourExternalId": "ts-e4wyrn4hn20q86p",
+    "tsId": "e4wyrn4hn20q86p",
+    "tsName": "FK Krasnodar",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611838,
+    "ourName": "FC Orenburg",
+    "ourLeague": "RPL",
+    "ourExternalId": "ts-y39mp1h3wj2mojx",
+    "tsId": "y39mp1h3wj2mojx",
+    "tsName": "FC Orenburg",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611839,
+    "ourName": "Akhmat Grozny",
+    "ourLeague": "RPL",
+    "ourExternalId": "ts-9dn1m1ghd6wmoep",
+    "tsId": "9dn1m1ghd6wmoep",
+    "tsName": "Akhmat Grozny",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611840,
+    "ourName": "Rodina Moscow",
+    "ourLeague": "RPL",
+    "ourExternalId": "ts-4jwq2ghvj5km0ve",
+    "tsId": "4jwq2ghvj5km0ve",
+    "tsName": "Rodina Moscow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611841,
+    "ourName": "Criciuma",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-gy0or5jhkw1qwzv",
+    "tsId": "gy0or5jhkw1qwzv",
+    "tsName": "Criciuma",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611842,
+    "ourName": "Esporte Clube Juventude",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-gpxwrxlhoe0ryk0",
+    "tsId": "gpxwrxlhoe0ryk0",
+    "tsName": "Esporte Clube Juventude",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611843,
+    "ourName": "Operario Ferroviario PR",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-y39mp1h32z0mojx",
+    "tsId": "y39mp1h32z0mojx",
+    "tsName": "Operario Ferroviario PR",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611844,
+    "ourName": "Fortaleza",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-v2y8m4zhy70ql07",
+    "tsId": "v2y8m4zhy70ql07",
+    "tsName": "Fortaleza",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611845,
+    "ourName": "Vila Nova",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-l5ergphon1vr8k0",
+    "tsId": "l5ergphon1vr8k0",
+    "tsName": "Vila Nova",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611846,
+    "ourName": "Gremio Novorizontino",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-vjxm8gh41xkr6od",
+    "tsId": "vjxm8gh41xkr6od",
+    "tsName": "Gremio Novorizontino",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611847,
+    "ourName": "Atletico Clube Goianiense",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-ednm9whkdzdryox",
+    "tsId": "ednm9whkdzdryox",
+    "tsName": "Atletico Clube Goianiense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611848,
+    "ourName": "CRB AL",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-4wyrn4h8d1yq86p",
+    "tsId": "4wyrn4h8d1yq86p",
+    "tsName": "CRB AL",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611849,
+    "ourName": "Goias Esporte Clube",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-j1l4rjnhpp5m7vx",
+    "tsId": "j1l4rjnhpp5m7vx",
+    "tsName": "Goias Esporte Clube",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611850,
+    "ourName": "Sport Club do Recife",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-j1l4rjnh00gm7vx",
+    "tsId": "j1l4rjnh00gm7vx",
+    "tsName": "Sport Club do Recife",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611851,
+    "ourName": "Athletic Club",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-pxwrxlh9lo6ryk0",
+    "tsId": "pxwrxlh9lo6ryk0",
+    "tsName": "Athletic Club",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611852,
+    "ourName": "Sao Bernardo",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-1l4rjnh1kyem7vx",
+    "tsId": "1l4rjnh1kyem7vx",
+    "tsName": "Sao Bernardo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611853,
+    "ourName": "Nautico (PE)",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-1l4rjnh66d0m7vx",
+    "tsId": "1l4rjnh66d0m7vx",
+    "tsName": "Nautico (PE)",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611854,
+    "ourName": "Cuiaba",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-p4jwq2gh3kpm0ve",
+    "tsId": "p4jwq2gh3kpm0ve",
+    "tsName": "Cuiaba",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611855,
+    "ourName": "Botafogo SP",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-318q66ho166qo9j",
+    "tsId": "318q66ho166qo9j",
+    "tsName": "Botafogo SP",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611856,
+    "ourName": "Ceara",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-2y8m4zh3jpgql07",
+    "tsId": "2y8m4zh3jpgql07",
+    "tsName": "Ceara",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611857,
+    "ourName": "Londrina PR",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-p4jwq2ghlpkm0ve",
+    "tsId": "p4jwq2ghlpkm0ve",
+    "tsName": "Londrina PR",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611858,
+    "ourName": "Avaí FC",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-gy0or5jhy80qwzv",
+    "tsId": "gy0or5jhy80qwzv",
+    "tsName": "Avaí FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611859,
+    "ourName": "America MG",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-y0or5jh44x8qwzv",
+    "tsId": "y0or5jh44x8qwzv",
+    "tsName": "America MG",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611860,
+    "ourName": "Ponte Preta",
+    "ourLeague": "BRASILEIRAO_2",
+    "ourExternalId": "ts-kn54qllh667qvy9",
+    "tsId": "kn54qllh667qvy9",
+    "tsName": "Ponte Preta",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611861,
+    "ourName": "MC Alger",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-4wyrn4h885eq86p",
+    "tsId": "4wyrn4h885eq86p",
+    "tsName": "MC Alger",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611862,
+    "ourName": "JS Saoura",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-l7oqdehnln0r510",
+    "tsId": "l7oqdehnln0r510",
+    "tsName": "JS Saoura",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611863,
+    "ourName": "CR Belouizdad",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-e4wyrn4hkoeq86p",
+    "tsId": "e4wyrn4hkoeq86p",
+    "tsName": "CR Belouizdad",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611864,
+    "ourName": "MC Oran",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-6ypq3nh0wxgmd7o",
+    "tsId": "6ypq3nh0wxgmd7o",
+    "tsName": "MC Oran",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611865,
+    "ourName": "JS kabylie",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-965mkyh7777r1ge",
+    "tsId": "965mkyh7777r1ge",
+    "tsName": "JS kabylie",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611866,
+    "ourName": "Olympique Akbou",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-8yomo4h2y7eq0j6",
+    "tsId": "8yomo4h2y7eq0j6",
+    "tsName": "Olympique Akbou",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611867,
+    "ourName": "USM Khenchela",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-318q66h0ywyqo9j",
+    "tsId": "318q66h0ywyqo9j",
+    "tsName": "USM Khenchela",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611868,
+    "ourName": "CS Constantine",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-y0or5jhlgv9qwzv",
+    "tsId": "y0or5jhlgv9qwzv",
+    "tsName": "CS Constantine",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611869,
+    "ourName": "ES Ben Aknoun",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-jw2r09hlz71rz84",
+    "tsId": "jw2r09hlz71rz84",
+    "tsName": "ES Ben Aknoun",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611870,
+    "ourName": "USM Alger",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-yl5ergph9lvr8k0",
+    "tsId": "yl5ergph9lvr8k0",
+    "tsName": "USM Alger",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611871,
+    "ourName": "ES Setif",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-p3glrw7h27yqdyj",
+    "tsId": "p3glrw7h27yqdyj",
+    "tsName": "ES Setif",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611872,
+    "ourName": "Rouisset",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-x7lm7phogjvm2wd",
+    "tsId": "x7lm7phogjvm2wd",
+    "tsName": "Rouisset",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611873,
+    "ourName": "ASO Chlef",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-4zp5rzgh8xvq82w",
+    "tsId": "4zp5rzgh8xvq82w",
+    "tsName": "ASO Chlef",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611874,
+    "ourName": "Paradou AC",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-318q66hovldqo9j",
+    "tsId": "318q66hovldqo9j",
+    "tsName": "Paradou AC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611875,
+    "ourName": "ES Mostaganem",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-vjxm8ghgv88r6od",
+    "tsId": "vjxm8ghgv88r6od",
+    "tsName": "ES Mostaganem",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611876,
+    "ourName": "El Bayadh",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-23xmvkh35kjqg8n",
+    "tsId": "23xmvkh35kjqg8n",
+    "tsName": "El Bayadh",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611877,
+    "ourName": "Carlisle United",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-kdj2ryoho7nq1zp",
+    "tsId": "kdj2ryoho7nq1zp",
+    "tsName": "Carlisle United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611878,
+    "ourName": "Boreham Wood",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-l5ergpho3p6r8k0",
+    "tsId": "l5ergpho3p6r8k0",
+    "tsName": "Boreham Wood",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611879,
+    "ourName": "Southend United",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-e4wyrn4h3zlq86p",
+    "tsId": "e4wyrn4h3zlq86p",
+    "tsName": "Southend United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611880,
+    "ourName": "Hartlepool United",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-p4jwq2ghj04m0ve",
+    "tsId": "p4jwq2ghj04m0ve",
+    "tsName": "Hartlepool United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611881,
+    "ourName": "Woking",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-l7oqdehn057r510",
+    "tsId": "l7oqdehn057r510",
+    "tsName": "Woking",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611882,
+    "ourName": "Tamworth",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-gpxwrxlh448ryk0",
+    "tsId": "gpxwrxlh448ryk0",
+    "tsName": "Tamworth",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611883,
+    "ourName": "Boston United",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-gx7lm7phy5km2wd",
+    "tsId": "gx7lm7phy5km2wd",
+    "tsName": "Boston United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611884,
+    "ourName": "Altrincham",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-v2y8m4zh2w5ql07",
+    "tsId": "v2y8m4zh2w5ql07",
+    "tsName": "Altrincham",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611885,
+    "ourName": "Solihull Moors",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-23xmvkh317wqg8n",
+    "tsId": "23xmvkh317wqg8n",
+    "tsName": "Solihull Moors",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611886,
+    "ourName": "Wealdstone FC",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-x7lm7phkn1om2wd",
+    "tsId": "x7lm7phkn1om2wd",
+    "tsName": "Wealdstone FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611887,
+    "ourName": "Yeovil Town",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-gpxwrxlh4yeryk0",
+    "tsId": "gpxwrxlh4yeryk0",
+    "tsName": "Yeovil Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611888,
+    "ourName": "Sutton United",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-56ypq3nhx61md7o",
+    "tsId": "56ypq3nhx61md7o",
+    "tsName": "Sutton United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611889,
+    "ourName": "AFC Fylde",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-x7lm7phkyxym2wd",
+    "tsId": "x7lm7phkyxym2wd",
+    "tsName": "AFC Fylde",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611890,
+    "ourName": "Barrow",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-v2y8m4zho9wql07",
+    "tsId": "v2y8m4zho9wql07",
+    "tsName": "Barrow",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611891,
+    "ourName": "Harrogate Town",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-jw2r09hlx01rz84",
+    "tsId": "jw2r09hlx01rz84",
+    "tsName": "Harrogate Town",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611892,
+    "ourName": "Kidderminster Harriers",
+    "ourLeague": "NATIONAL_LEAGUE",
+    "ourExternalId": "ts-8y39mp1hlv9mojx",
+    "tsId": "8y39mp1hlv9mojx",
+    "tsName": "Kidderminster Harriers",
+    "matchType": "stat-bridge"
   }
 ]
