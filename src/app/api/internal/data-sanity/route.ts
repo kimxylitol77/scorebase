@@ -705,13 +705,20 @@ export async function GET(req: NextRequest) {
     //       ts 와의 mismatch 는 site 에 영향 없음 — skip.
     if (ts && af && !GROUPED_STANDINGS_LEAGUES.has(league)) {
       const tsPayload = ts.payload as unknown as {
-        tables?: Array<{ rows?: Array<{ position?: number; team_id?: string }> }>;
+        tables?: Array<{ rows?: Array<{ position?: number; team_id?: string; total?: number }> }>;
       };
       const afRows = af.rows as unknown as Array<{
         position: number;
         teamExternalId: string;
       }>;
-      const tsTop = tsPayload?.tables?.[0]?.rows?.find((r) => r.position === 1);
+      const tsRows = tsPayload?.tables?.[0]?.rows ?? [];
+      // 개막 전 — ts 는 새 시즌 표를 전 팀 0경기 placeholder 로 미리 내려주고 그 순서는
+      // 시드/알파벳이라 "1위"에 의미가 없다. 반면 af 는 지난 시즌 최종표를 그대로 들고 있어
+      // (Phase 4 이후 ts cover 리그는 af cron 이 skip) 둘의 1위는 반드시 어긋난다.
+      // 2026-08-02 CHAMPIONSHIP 오탐 — 같은 조건이 유럽 5대 리그에 동시 성립해 개막까지
+      // 리그마다 반복될 참이었다. 진짜 stale 은 개막 후(경기수>0) 검사로 충분히 잡힌다.
+      if (tsRows.length > 0 && tsRows.every((r) => (r.total ?? 0) === 0)) continue;
+      const tsTop = tsRows.find((r) => r.position === 1);
       const afTop = afRows?.find?.((r) => r.position === 1);
       if (tsTop?.team_id && afTop?.teamExternalId) {
         // TeamSourceId 로 ts 1위 / af 1위 의 canonical teamId 를 각각 조회.
