@@ -87,6 +87,11 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   ALGERIA_L1: "kdj2ryohk2dq1zp",
   SVENSKA_CUPEN: "z318q66h7yqo9jd",
   GHANA_PL: "z318q66howkqo9j",
+  // 2026-08-02 — 스위스 1·2부 백스톱 등록. 워커 diary push 는 이미 SWISS_SL ts- 매치를
+  // 만들고 있었으나(7월 11/11) collect 백스톱 매핑이 빠져 주석의 "미매핑 56개" 목록에
+  // 남아 있었다. league-id-mapping 의 확정 tsId 그대로 — 등록만으로 추가 af 콜 없음.
+  SWISS_SL: "z8yomo4hx9q0j6l",
+  CHALLENGE_LEAGUE: "56ypq3nheemd7oj",
   // 2026-08-01 — ASEAN 챔피언십(시니어 A매치, 옛 AFF 미쓰비시컵) ts 승격.
   // af 전용이라 골/카드 incidents·라인업 좌표가 전무하던 원인 (competition/additional/list 실측:
   // lineup confirmed 23명·팀 stats 제공 확인). cur_season_id = jw2r09hl43erz84.
