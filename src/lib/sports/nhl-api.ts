@@ -563,11 +563,16 @@ export interface NhlRosterPlayer {
 }
 
 // roster/current 는 비시즌(여름) 빈 응답 → 시즌 명시. 현재 시즌 빈이면 직전 시즌 fallback.
+//
+// ⚠️ no-store 금지 — 이 함수는 SSG 인 /teams/[id] 에서 불린다. static 렌더 중 no-store fetch 는
+//   Next 가 "Page changed from static to dynamic at runtime" 로 던져 페이지가 통째로 500 이 된다
+//   (2026-08-01 ISR 전환 후 NHL 32팀 전체 장애, 8-02 발견). 로스터는 실시간 데이터가 아니라
+//   팀 페이지 revalidate(300s)와 같은 주기면 충분하다.
 export async function fetchNhlRoster(abbr: string, season: string): Promise<NhlRosterPlayer[]> {
   const prev = `${Number(season.slice(0, 4)) - 1}${Number(season.slice(4)) - 1}`;
   for (const s of [season, prev]) {
     try {
-      const r = await fetch(`${BASE_URL}/roster/${abbr}/${s}`, { cache: "no-store", signal: AbortSignal.timeout(10000) });
+      const r = await fetch(`${BASE_URL}/roster/${abbr}/${s}`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(10000) });
       if (!r.ok) continue;
       const d = (await r.json()) as Record<string, Array<{ id: number; firstName?: { default?: string }; lastName?: { default?: string }; positionCode?: string; sweaterNumber?: number; headshot?: string }>>;
       const out: NhlRosterPlayer[] = [];
