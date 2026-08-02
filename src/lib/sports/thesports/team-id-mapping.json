@@ -21038,5 +21038,77 @@
     "tsId": "l7oqdehn42er510",
     "tsName": "Monza",
     "matchType": "audit-auto"
+  },
+  {
+    "ourId": 610697,
+    "ourName": "Wolves",
+    "ourLeague": "CHAMPIONSHIP",
+    "ourExternalId": "39",
+    "tsId": "p3glrw7he51qdyj",
+    "tsName": "Wolverhampton Wanderers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598210,
+    "ourName": "Sheffield Utd",
+    "ourLeague": "CHAMPIONSHIP",
+    "ourExternalId": "62",
+    "tsId": "z8yomo4hjx1q0j6",
+    "tsName": "Sheffield United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611802,
+    "ourName": "West Ham United",
+    "ourLeague": "CHAMPIONSHIP",
+    "ourExternalId": "ts-gy0or5jhdwxqwzv",
+    "tsId": "gy0or5jhdwxqwzv",
+    "tsName": "West Ham United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 611803,
+    "ourName": "Bolton Wanderers",
+    "ourLeague": "CHAMPIONSHIP",
+    "ourExternalId": "ts-j1l4rjnhp2vm7vx",
+    "tsId": "j1l4rjnhp2vm7vx",
+    "tsName": "Bolton Wanderers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 11173,
+    "ourName": "Ajax Amsterdam",
+    "ourLeague": "UCL",
+    "ourExternalId": "139",
+    "tsId": "jednm9whl7kryox",
+    "tsName": "AFC Ajax",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 598144,
+    "ourName": "Celta Vigo",
+    "ourLeague": "UEL",
+    "ourExternalId": "538",
+    "tsId": "v2y8m4zh90gql07",
+    "tsName": "RC Celta",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 346,
+    "ourName": "Red Bull New York",
+    "ourLeague": "MLS",
+    "ourExternalId": "190",
+    "tsId": "jednm9whlweryox",
+    "tsName": "New York Red Bulls",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 176425,
+    "ourName": "JEF United Chiba",
+    "ourLeague": "J1_LEAGUE",
+    "ourExternalId": "301",
+    "tsId": "9k82rekhd0orepz",
+    "tsName": "JEF United Ichihara Chiba",
+    "matchType": "stat-bridge"
   }
 ]
