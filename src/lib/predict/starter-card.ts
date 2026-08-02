@@ -1,6 +1,7 @@
 // 선발 매치업 카드 공용 헬퍼 — 카드 컴포넌트(/predictions/starters)와 OG 이미지가 같은 규칙을 쓰도록.
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 export interface StarterJson {
   name?: string;
@@ -34,6 +35,13 @@ export function pitcherPhoto(league: string, s: StarterJson | null): string | nu
   if (league === "KBO") return kboPhotoUrl(s.pid);
   if (league === "MLB") return mlbHeadshotUrl(Number(s.pid));
   return null;
+}
+
+/** 선발 표시명 — MLB 만 소스가 영문이라 사전 변환. KBO·NPB 는 수집 시점부터 DB 가 한글이라 그대로. */
+export function starterName(league: string, s: StarterJson | null | undefined): string {
+  const raw = s?.name?.trim();
+  if (!raw) return "";
+  return league === "MLB" ? toKoreanPlayerName(raw) : raw;
 }
 
 export const fmtStat = (v: number | undefined, d = 2) =>

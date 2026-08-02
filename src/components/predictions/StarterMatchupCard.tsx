@@ -4,7 +4,7 @@ import Link from "next/link";
 import { toKoreanTeamName } from "@/lib/team-names";
 import PitcherAvatar from "@/components/predictions/PitcherAvatar";
 import ShareCardButton from "@/components/ShareCardButton";
-import { parseStarter, pitcherPhoto, fmtStat, type StarterJson } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, starterName, type StarterJson } from "@/lib/predict/starter-card";
 import { PenSquare } from "lucide-react";
 
 export interface StarterMatch {
@@ -74,8 +74,8 @@ export function starterCardTitle(m: StarterMatch) {
   const as = parseStarter(m.awayStarter);
   const hName = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
   const aName = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
-  const left = hs?.name || hName;
-  const right = as?.name || aName;
+  const left = starterName(m.league, hs) || hName;
+  const right = starterName(m.league, as) || aName;
   return `${left} vs ${right} — ${m.league} 선발 매치업`;
 }
 
@@ -93,10 +93,11 @@ function PitcherBlock({
   s: StarterJson | null;
   teamName: string;
 }) {
+  const koName = starterName(league, s);
   const body = (
     <>
-      <PitcherAvatar src={pitcherPhoto(league, s)} name={s?.name ?? "?"} size={64} />
-      <div className="mt-1.5 w-full truncate text-[13px] font-bold leading-tight">{s?.name ?? "선발 미정"}</div>
+      <PitcherAvatar src={pitcherPhoto(league, s)} name={koName || "?"} size={64} />
+      <div className="mt-1.5 w-full truncate text-[13px] font-bold leading-tight">{koName || "선발 미정"}</div>
       <div className="w-full truncate text-[11px] text-neutral-500">
         {teamName}{s?.wins != null ? ` · ${s.wins}승${s.losses ?? 0}패` : ""}
       </div>

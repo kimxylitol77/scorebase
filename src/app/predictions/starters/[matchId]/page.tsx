@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import StarterMatchupCard, { starterCardTitle, type StarterMatch } from "@/components/predictions/StarterMatchupCard";
-import { parseStarter, type StarterJson } from "@/lib/predict/starter-card";
+import { parseStarter, starterName, type StarterJson } from "@/lib/predict/starter-card";
 import { ChevronLeft, User } from "lucide-react";
 
 export const revalidate = 600;
@@ -91,7 +91,7 @@ export default async function StarterCardPage({ params }: { params: Promise<{ ma
                   className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-2 text-xs font-semibold ring-1 ring-black/10 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:ring-white/15 dark:hover:bg-white/10"
                 >
                   <User className="h-3.5 w-3.5 text-neutral-400" aria-hidden />
-                  {s!.name}
+                  {starterName(m.league, s)}
                 </Link>
               ))}
             </div>

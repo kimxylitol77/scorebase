@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { kstHHmm } from "@/lib/threads/kst";
-import { parseStarter, pitcherPhoto, fmtStat, hasStats } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, hasStats, starterName } from "@/lib/predict/starter-card";
 
 export const runtime = "nodejs";
 
@@ -101,6 +101,7 @@ export async function GET(req: Request) {
   const away = toKoreanTeamName(match.awayTeam.name, match.league) || match.awayTeam.name;
   const team = side === "home" ? home : away;
   const opponent = side === "home" ? away : home;
+  const name = starterName(match.league, s);
   const face = await toDataUri(pitcherPhoto(match.league, s));
   const photoSize = 300;
 
@@ -167,11 +168,11 @@ export async function GET(req: Request) {
                 color: "#e2e8f0",
               }}
             >
-              {s.name.slice(0, 1)}
+              {name.slice(0, 1)}
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <span style={{ display: "flex", fontSize: 68, fontWeight: 900, letterSpacing: "-0.03em" }}>{s.name}</span>
+            <span style={{ display: "flex", fontSize: 68, fontWeight: 900, letterSpacing: "-0.03em" }}>{name}</span>
             <span style={{ display: "flex", fontSize: 28, fontWeight: 700, color: "#cbd5e1" }}>
               {team}
               {s.wins != null ? ` · ${s.wins}승 ${s.losses ?? 0}패` : ""}

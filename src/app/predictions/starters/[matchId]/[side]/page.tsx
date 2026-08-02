@@ -42,8 +42,8 @@ export async function generateMetadata({
   const d = await load(matchId, side);
   if (!d) return { title: "선발 투수 카드 | Scorebase", robots: { index: false, follow: true } };
 
-  const title = `${d.s.name} — ${d.m.league} 선발 카드`;
-  const description = `${d.s.name} (${d.team}) 선발 기록 — ERA · WHIP · K/9 와 최근 3등판 폼을 한 장으로.`;
+  const title = `${d.name} — ${d.m.league} 선발 카드`;
+  const description = `${d.name} (${d.team}) 선발 기록 — ERA · WHIP · K/9 와 최근 3등판 폼을 한 장으로.`;
   const image = `/api/og/pitcher-card?m=${d.m.id}&s=${d.side}`;
   return {
     title: `${title} | Scorebase`,
@@ -74,9 +74,9 @@ export default async function PitcherCardPage({
           {d.team} vs {d.opponent}
         </Link>
       </nav>
-      <h1 className="mb-1 text-2xl font-bold tracking-tight break-keep sm:text-3xl">{d.s.name} 선발 카드</h1>
+      <h1 className="mb-1 text-2xl font-bold tracking-tight break-keep sm:text-3xl">{d.name} 선발 카드</h1>
       <p className="mb-5 text-sm text-neutral-600 break-keep dark:text-neutral-400">
-        {d.team} 선발 {d.s.name} — 시즌 기록과 최근 3등판 폼. 아래 버튼으로 공유하거나 게시판에 올릴 수 있습니다.
+        {d.team} 선발 {d.name} — 시즌 기록과 최근 3등판 폼. 아래 버튼으로 공유하거나 게시판에 올릴 수 있습니다.
       </p>
 
       <PitcherSoloCard m={d.m} side={d.side} s={d.s} team={d.team} opponent={d.opponent} />

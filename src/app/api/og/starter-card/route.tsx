@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { kstHHmm } from "@/lib/threads/kst";
-import { parseStarter, pitcherPhoto, fmtStat, type StarterJson } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, starterName, type StarterJson } from "@/lib/predict/starter-card";
 
 export const runtime = "nodejs";
 
@@ -143,17 +143,19 @@ function StatLine({
 function Side({
   face,
   s,
+  league,
   team,
   accent,
   align,
 }: {
   face: string | null;
   s: StarterJson | null;
+  league: string;
   team: string;
   accent: string;
   align: "flex-start" | "flex-end";
 }) {
-  const name = s?.name ?? "선발 미정";
+  const name = starterName(league, s) || "선발 미정";
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: align === "flex-start" ? "flex-start" : "flex-end", gap: 8, width: 340 }}>
       <Face src={face} name={name} accent={accent} />
@@ -247,9 +249,9 @@ export async function GET(req: Request) {
 
         {/* 투수 대면 */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginTop: 18 }}>
-          <Side face={hFace} s={hs} team={home} accent="#34d399" align="flex-start" />
+          <Side face={hFace} s={hs} league={match.league} team={home} accent="#34d399" align="flex-start" />
           <span style={{ display: "flex", fontSize: 34, fontWeight: 900, color: "#475569", paddingBottom: 50 }}>VS</span>
-          <Side face={aFace} s={as} team={away} accent="#60a5fa" align="flex-end" />
+          <Side face={aFace} s={as} league={match.league} team={away} accent="#60a5fa" align="flex-end" />
         </div>
 
         {/* AI 승률 */}

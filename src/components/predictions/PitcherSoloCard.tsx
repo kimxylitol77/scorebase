@@ -4,7 +4,7 @@ import Link from "next/link";
 import { toKoreanTeamName } from "@/lib/team-names";
 import PitcherAvatar from "@/components/predictions/PitcherAvatar";
 import ShareCardButton from "@/components/ShareCardButton";
-import { parseStarter, pitcherPhoto, fmtStat, hasStats, type StarterJson } from "@/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto, fmtStat, hasStats, starterName, type StarterJson } from "@/lib/predict/starter-card";
 import { PenSquare } from "lucide-react";
 
 export type StarterSide = "home" | "away";
@@ -19,9 +19,11 @@ export interface PitcherMatch {
   awayTeam: { name: string };
 }
 
-/** 카드에 쓸 투수·팀·상대팀 — 선발 미정이면 null (페이지에서 404 처리). */
+/** 카드에 쓸 투수·팀·상대팀 — 선발 미정이면 null (페이지에서 404 처리).
+ *  name 은 표시용 한글명(MLB 는 사전 변환, KBO·NPB 는 원본). */
 export function pitcherOf(m: PitcherMatch, side: StarterSide): {
   s: StarterJson;
+  name: string;
   team: string;
   opponent: string;
 } | null {
@@ -29,7 +31,12 @@ export function pitcherOf(m: PitcherMatch, side: StarterSide): {
   if (!s?.name) return null;
   const home = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
   const away = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
-  return { s, team: side === "home" ? home : away, opponent: side === "home" ? away : home };
+  return {
+    s,
+    name: starterName(m.league, s),
+    team: side === "home" ? home : away,
+    opponent: side === "home" ? away : home,
+  };
 }
 
 function Tile({ label, value, hint }: { label: string; value: string; hint?: string }) {
@@ -58,15 +65,16 @@ export default function PitcherSoloCard({
   const k = new Date(m.startTime.getTime() + 9 * 3600_000);
   const when = `${k.getUTCMonth() + 1}/${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
   const shareUrl = `/predictions/starters/${m.id}/${side}`;
-  const shareTitle = `${s.name} — ${m.league} 선발 카드`;
+  const koName = starterName(m.league, s);
+  const shareTitle = `${koName} — ${m.league} 선발 카드`;
 
   return (
     <div className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="flex items-center gap-4">
-        <PitcherAvatar src={pitcherPhoto(m.league, s)} name={s.name ?? "?"} size={88} />
+        <PitcherAvatar src={pitcherPhoto(m.league, s)} name={koName || "?"} size={88} />
         <div className="min-w-0">
           <div className="text-[11px] font-bold tracking-widest text-neutral-400">{m.league} 선발</div>
-          <div className="truncate text-2xl font-bold leading-tight">{s.name}</div>
+          <div className="truncate text-2xl font-bold leading-tight">{koName}</div>
           <div className="mt-0.5 truncate text-sm text-neutral-500">
             {team}
             {s.wins != null ? ` · ${s.wins}승 ${s.losses ?? 0}패` : ""}
@@ -102,8 +110,8 @@ export default function PitcherSoloCard({
           title={shareTitle}
           text={
             hasStats(s)
-              ? `${s.name} (${team}) — ERA ${fmtStat(s.era)} · WHIP ${fmtStat(s.whip)} · K/9 ${fmtStat(s.k9, 1)}`
-              : `${s.name} (${team}) — ${m.league} 선발 카드`
+              ? `${koName} (${team}) — ERA ${fmtStat(s.era)} · WHIP ${fmtStat(s.whip)} · K/9 ${fmtStat(s.k9, 1)}`
+              : `${koName} (${team}) — ${m.league} 선발 카드`
           }
           cardImageUrl={`/api/og/pitcher-card?m=${m.id}&s=${side}`}
         />

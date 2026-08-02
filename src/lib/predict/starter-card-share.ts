@@ -2,7 +2,7 @@
 // 수치는 클라이언트가 보낸 값이 아니라 matchId 로 DB 재조회한 실측만 쓴다.
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { parseStarter, fmtStat } from "@/lib/predict/starter-card";
+import { parseStarter, fmtStat, starterName } from "@/lib/predict/starter-card";
 
 /** /predictions/starters "게시판에 올리기" 프리필 — 카드 이미지 + 지표 표 + AI 승률 + 카드 링크. */
 export async function buildStarterShareText(
@@ -30,8 +30,8 @@ export async function buildStarterShareText(
   const as = parseStarter(m.awayStarter);
   const homeTeam = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
   const awayTeam = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
-  const hName = hs?.name || homeTeam;
-  const aName = as?.name || awayTeam;
+  const hName = starterName(m.league, hs) || homeTeam;
+  const aName = starterName(m.league, as) || awayTeam;
 
   const k = new Date(m.startTime.getTime() + 9 * 3600_000);
   const when = `${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일 ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
@@ -93,6 +93,7 @@ export async function buildPitcherShareText(
 
   const s = parseStarter(side === "home" ? m.homeStarter : m.awayStarter);
   if (!s?.name) return null;
+  const name = starterName(m.league, s);
 
   const homeTeam = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
   const awayTeam = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
@@ -111,9 +112,9 @@ export async function buildPitcherShareText(
   const statRows = rows.filter(([, v]) => v != null).map(([label, v, d]) => `| ${label} | ${fmtStat(v, d)} |`);
 
   const lines: string[] = [
-    `![${s.name} 선발 카드](/api/og/pitcher-card?m=${m.id}&s=${side})`,
+    `![${name} 선발 카드](/api/og/pitcher-card?m=${m.id}&s=${side})`,
     "",
-    `**${m.league} · ${team} 선발 ${s.name}** — ${when} KST vs ${opponent}`,
+    `**${m.league} · ${team} 선발 ${name}** — ${when} KST vs ${opponent}`,
     "",
   ];
   if (s.wins != null) {
@@ -130,5 +131,5 @@ export async function buildPitcherShareText(
     `카드 원본 → https://www.scorebase.kr/predictions/starters/${m.id}/${side}`,
   );
 
-  return { title: `[선발 카드] ${s.name} (${team})`, content: lines.join("\n") };
+  return { title: `[선발 카드] ${name} (${team})`, content: lines.join("\n") };
 }
