@@ -6,6 +6,7 @@ import InningScoreChart from "@/components/InningScoreChart";
 import type { InningProb } from "@/lib/predict/baseball-poisson";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
+import StarterArsenal from "@/components/StarterArsenal";
 import MatchVoteCard from "@/components/MatchVoteCard";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
 import RelatedArticles from "@/components/RelatedArticles";
@@ -953,6 +954,18 @@ export default async function ArticlePage({ params }: Props) {
             awaySeasonPoints: article.awaySeasonPoints,
           }}
           extraTabs={soccerTabs}
+        />
+      )}
+
+      {/* MLB 선발 구종 비교 — MatchInsight 의 StarterCard(ERA·WHIP) 바로 뒤에 붙여 선발 정보를
+          한 덩어리로 유지. 이미 수집 중인 구종 데이터를 글 페이지에 유통만 하는 것. */}
+      {article.league === "MLB" && article.type === "PREVIEW" && article.match && (
+        <StarterArsenal
+          homeStarter={article.match.homeStarter}
+          awayStarter={article.match.awayStarter}
+          homeTeam={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+          awayTeam={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+          season={new Date(article.match.startTime).getFullYear()}
         />
       )}
 

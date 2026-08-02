@@ -20,12 +20,19 @@ const PITCH_COLOR: Record<string, string> = {
   KN: "bg-emerald-500",
 };
 
-export default function PitchArsenal({ pitches }: { pitches: ArsenalPitch[] }) {
+export default function PitchArsenal({
+  pitches,
+  title = "구종 구성",
+}: {
+  pitches: ArsenalPitch[];
+  /** 한 화면에 투수 둘을 나란히 놓을 때(PREVIEW 글) 누구 것인지 구분하려면 이름을 넘긴다. */
+  title?: string;
+}) {
   if (pitches.length === 0) return null;
   return (
     <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="flex items-baseline justify-between mb-3.5 flex-wrap gap-x-2">
-        <h2 className="text-base font-bold tracking-tight">구종 구성</h2>
+        <h2 className="text-base font-bold tracking-tight">{title}</h2>
         <span className="text-xs text-neutral-400">구사율 · 평균 구속</span>
       </div>
       <div className="space-y-2.5">
