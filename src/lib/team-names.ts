@@ -3459,6 +3459,11 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Bravos de Leon": "브라보스 데 레온",
     "Bravos de León": "브라보스 데 레온",
   },
+  // 칠레 San Luis(데 키요타) — 글로벌 "San Luis": "아틀레티코 산 루이스"(멕시코)에 걸려
+  // /scores 칠레 프리메라 B 에 멕시코 클럽명이 표시됐다 (2026-08-02 전수 감사에서 발견).
+  // 원문 그대로의 음역만 적용 — 다른 클럽을 지칭하는 "아틀레티코" 수식을 붙이지 않는다.
+  CHILE_PB: { "San Luis": "산 루이스" },
+  CHILE_PD: { "San Luis": "산 루이스" },
   // 코스타리카 Sporting FC(산호세) — 접미사 제거 후 글로벌 "Sporting": "스포르팅 CP"(포르투갈)
   // 에 걸려 /scores·리더보드에 포르투갈 팀명이 나왔다 (2026-08-02 실측). league scope 로 차단.
   COSTA_RICA_PD: {
