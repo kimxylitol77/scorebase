@@ -18,6 +18,7 @@ import { BASEBALL_LEAGUES, MMA_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/spor
 import { fetchSoccerLive } from "@/lib/sports/live-scores";
 import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
+import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,6 +51,7 @@ type IssueKind =
   | "future_live"
   | "standings_stale"
   | "standings_mismatch"
+  | "standings_unmapped"
   | "friendly_dup"
   | "cross_source_dup"
   | "teamsourceid_contamination";
@@ -125,6 +127,11 @@ async function mlbGameState(
     return null;
   }
 }
+
+// standings_unmapped 판정용 — (ourLeague|tsId) 매핑 존재 집합. 모듈 로드 시 1회 구성.
+const TS_TEAM_MAPPED = new Set(
+  (tsTeamMap as Array<{ ourLeague: string; tsId: string }>).map((e) => `${e.ourLeague}|${e.tsId}`),
+);
 
 // 팀 이름 normalize 비교 — Team 테이블 중복 row(같은 팀이 source 별 2~4 row) 때문에
 // standings_mismatch 비교에서 ourId 직접 비교 못 함. 영문/한글 외 모든 문자 제거 +
@@ -641,6 +648,28 @@ export async function GET(req: NextRequest) {
           severity: ageMs > 6 * 3600 * 1000 ? "HIGH" : "WARN",
           detail: `TheSports standings cache ${Math.round(ageMs / 60000)}분 stale (poller 1h 주기인데 죽음 의심)`,
         });
+      }
+
+      // 5a-2. standings_unmapped — ts 순위표 팀 중 team-id-mapping 누락 (SWISS_SL 사고 클래스).
+      // 부분 누락(매핑률 50%+)만 경보: 누락 팀은 표에서 결번이 되고, 그 빈자리를 af 폴백이
+      // 지난 시즌 캐시로 메꿔 "로잔 33경기" 류 오염이 생긴다. 시즌 롤오버 승격팀에서 반복되므로
+      // 사용자 신고 대신 봇이 먼저 잡는다. 매핑률 <50% 는 미온보딩 대회(표 자체 미노출) — 제외.
+      const tsRows = (
+        (ts.payload as unknown as { tables?: Array<{ rows?: Array<{ team_id?: string; position?: number }> }> })
+          ?.tables ?? []
+      ).flatMap((t) => t.rows ?? []).filter((r) => r.team_id && r.position != null);
+      const uniqueTsIds = [...new Set(tsRows.map((r) => r.team_id as string))];
+      if (uniqueTsIds.length >= 4) {
+        const mapped = uniqueTsIds.filter((id) => TS_TEAM_MAPPED.has(`${league}|${id}`)).length;
+        const missing = uniqueTsIds.length - mapped;
+        if (missing > 0 && mapped / uniqueTsIds.length >= 0.5) {
+          issues.push({
+            ...placeholderInfo(league),
+            kind: "standings_unmapped",
+            severity: "WARN",
+            detail: `ts 순위표 ${uniqueTsIds.length}팀 중 ${missing}팀 매핑 누락 — 결번·stale af 병합 오염 위험. team-id-mapping.json 보강 필요 (승격팀이면 Team row 생성 대기)`,
+          });
+        }
       }
     }
 

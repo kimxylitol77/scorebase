@@ -68,6 +68,7 @@ const KIND_LABEL = {
   future_live: "⏭ 미래 매치 LIVE stuck",
   standings_stale: "🏆 순위 cache stale",
   standings_mismatch: "⚠️ 순위 source 불일치",
+  standings_unmapped: "🧩 순위표 팀 매핑 누락",
   friendly_dup: "👥 친선 매치 소스 중복",
   cross_source_dup: "👥 크로스소스 매치 중복",
 };
@@ -82,6 +83,7 @@ const KIND_CAUSE = {
   future_live: "status_id 매핑 오류 또는 status update path 가 미래 매치 가드 누락",
   standings_stale: "Lightsail standings-poller 죽음 또는 Vercel standings-collect cron 실패",
   standings_mismatch: "두 source 중 하나가 stale — fresh source 우선순위 확인",
+  standings_unmapped: "시즌 롤오버 승격팀·신규팀의 ts 팀 id 가 team-id-mapping.json 에 없음 — 결번 + stale af 병합 오염(SWISS_SL 8/2 사고)",
   friendly_dup: "옛 collect-friendlies(prefix 없는 externalId) 재실행 또는 과거 raw 매치의 연기 재편성",
   cross_source_dup: "이중수집 리그(af+ts)에서 dedup 가드 뚫림 — diary 시각 오기 또는 팀 resolve 상이",
 };
@@ -96,6 +98,7 @@ const KIND_ACTION = {
   future_live: "Match.status=SCHEDULED + score null 로 즉시 롤백. status updater 의 status_id 매핑 검증",
   standings_stale: "Lightsail: sudo systemctl status scorebase-standings-poller / Vercel cron: /api/cron/standings-collect 로그",
   standings_mismatch: "src/lib/sports/thesports/standings-helper.ts 의 source 우선순위 확인",
+  standings_unmapped: "ts 순위 캐시의 미매핑 team_id 를 팀명 조회 후 team-id-mapping.json 에 추가 (메모리 asean-champ-ts-promotion·kleague-standings-mapping-gap 절차)",
   friendly_dup: "raw row(prefix 없는 externalId) 삭제 — ts- row 가 canonical (2026-07-09 보카전 참고)",
   cross_source_dup: "두 row 병합/정리 — 데이터 풍부한 쪽 keeper, 상대는 dep 확인 후 삭제/POSTPONED (2026-07-11 BELARUS 참고)",
 };
@@ -125,7 +128,9 @@ async function poll() {
   // 종류별 그룹화 + dedup
   const byKind = new Map();
   for (const issue of issues) {
-    const key = `${issue.kind}:${issue.matchId}`;
+    // standings 계열은 matchId=0 placeholder — league 를 키에 넣어 리그별로 dedup
+    // (없으면 여러 리그 이슈가 한 키로 뭉개져 첫 리그만 알림됨).
+    const key = `${issue.kind}:${issue.league}:${issue.matchId}`;
     if (!shouldNotify(key)) continue;
     const arr = byKind.get(issue.kind) ?? [];
     arr.push(issue);
