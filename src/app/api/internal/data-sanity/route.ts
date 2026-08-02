@@ -324,6 +324,34 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // 1c. 종료 경기 최종 점수 대조 — 아래 cache_db_mismatch(3번)는 LIVE 만 봐서
+    // 종료 뒤에 굳어버린 오류를 놓쳤다 (2026-08-02 NPB #1248071: DB 7-4 인데 실제 7-6,
+    // npb.jp 공식으로 확인). 종료 점수 오류는 적중률·기사·팀 성적에 영구히 남고,
+    // 라이브 상세는 stale 가드에 걸려 아예 안 뜬다.
+    // 종료 직후 sync lag 를 피해 +2시간 지난 경기만 본다.
+    if (m.status === "FINISHED" && m.homeScore != null && m.awayScore != null) {
+      const finishedLongAgo = now - m.startTime.getTime() > 2 * 60 * 60 * 1000;
+      const dlF = cacheByMatchId.get(m.id)?.detailLive as
+        | { score?: [string, number, number, { ft?: [string, string] }] }
+        | null;
+      const ftF = dlF?.score?.[3]?.ft;
+      if (finishedLongAgo && Array.isArray(ftF) && ftF.length === 2) {
+        const fh = parseInt(ftF[0], 10);
+        const fa = parseInt(ftF[1], 10);
+        // 옛 [away, home] 인덱싱 호환 — 뒤집어서 맞으면 정합으로 본다 (3번과 같은 기준).
+        const okHA = fh === m.homeScore && fa === m.awayScore;
+        const okAH = fh === m.awayScore && fa === m.homeScore;
+        if (Number.isFinite(fh) && Number.isFinite(fa) && !okHA && !okAH) {
+          issues.push({
+            ...matchInfo,
+            kind: "cache_db_mismatch",
+            severity: "HIGH",
+            detail: `종료 경기 최종점수 불일치 — DB ${m.homeScore}:${m.awayScore} vs cache ft=[${fh},${fa}] (적중률·기사에 영구 반영됨, 공식 기록으로 확인 후 DB 정정 필요)`,
+          });
+        }
+      }
+    }
+
     if (m.status !== "LIVE") continue;
 
     const cache = cacheByMatchId.get(m.id);
