@@ -18,7 +18,7 @@
       "flag": "🇳🇿"
     }
   ],
-  "teamRating": 3.2,
+  "teamRating": 3.1,
   "xi": [
     {
       "id": "318q66h4w4yyqo9",
@@ -55,6 +55,23 @@
       "y": 70
     },
     {
+      "id": "x7lm7ph03n08m2w",
+      "name": "Arthur Theate",
+      "nameKo": "아르튀르 테아트",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/19e272f324a74eb18ef8d99607f823d7.png",
+      "score": 7.51,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
+      "x": 39,
+      "y": 70
+    },
+    {
       "id": "3glrw7hyoy8zqdy",
       "name": "Nathan Ngoy",
       "nameKo": "나탕 응고이",
@@ -68,7 +85,7 @@
       "recentRating": 7,
       "avgRating": 6.71,
       "games": 2,
-      "x": 39,
+      "x": 61,
       "y": 70
     },
     {
@@ -83,44 +100,10 @@
       "score": 7.23,
       "star": 3,
       "recentRating": 6.12,
-      "avgRating": 6.4,
-      "games": 3,
-      "x": 61,
-      "y": 70
-    },
-    {
-      "id": "2y8m4zhgpzxql07",
-      "name": "Ramy Rabia",
-      "nameKo": "라미 라비아",
-      "hasMv": false,
-      "pos": "D",
-      "country": "Egypt",
-      "flag": "🇪🇬",
-      "logo": "https://img.thesports.com/football/player/d3506b1471ed60e9417979dc2e317f9b.png",
-      "score": 7.2,
-      "star": 3,
-      "recentRating": 6.81,
-      "avgRating": 7,
+      "avgRating": 6.45,
       "games": 2,
       "x": 84,
       "y": 70
-    },
-    {
-      "id": "n54qllhx4e7qvy9",
-      "name": "Youri Tielemans",
-      "nameKo": "유리 틸레만스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/f04b09e715f9f617e4bcecb04d5eb698.png",
-      "score": 8.19,
-      "star": 4,
-      "recentRating": 6.31,
-      "avgRating": 7.4,
-      "games": 2,
-      "x": 22,
-      "y": 32
     },
     {
       "id": "l7oqdeh428dvr51",
@@ -136,6 +119,23 @@
       "recentRating": 5.9,
       "avgRating": 6.85,
       "games": 2,
+      "x": 22,
+      "y": 32
+    },
+    {
+      "id": "dn1m1gh3p4llmoe",
+      "name": "Diego Moreira",
+      "nameKo": "디에구 모레이라",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/045fccd37ef1de0a6fbda050c478cafa.png",
+      "score": 7.76,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 50,
       "y": 32
     },
@@ -168,8 +168,8 @@
       "score": 7.61,
       "star": 3,
       "recentRating": 6.4,
-      "avgRating": 6.73,
-      "games": 3,
+      "avgRating": 7.01,
+      "games": 2,
       "x": 35,
       "y": 52
     },
@@ -202,8 +202,8 @@
       "score": 8.85,
       "star": 4,
       "recentRating": 7.4,
-      "avgRating": 7.83,
-      "games": 3,
+      "avgRating": 8.61,
+      "games": 2,
       "x": 50,
       "y": 14
     }
@@ -236,23 +236,8 @@
       "score": 7.72,
       "star": 3,
       "recentRating": 7.9,
-      "avgRating": 6.96,
-      "games": 3
-    },
-    {
-      "id": "x7lm7pho79om2wd",
-      "name": "Leandro Trossard",
-      "nameKo": "레안드로 트로사르",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/eeba5051d4ae8a973db752c1f2ef60b6.png",
-      "score": 7.62,
-      "star": 3,
-      "recentRating": 6.1,
-      "avgRating": 7.03,
-      "games": 3
+      "avgRating": 7.06,
+      "games": 2
     },
     {
       "id": "l5ergph2yx5r8k0",
@@ -266,23 +251,23 @@
       "score": 7.6,
       "star": 3,
       "recentRating": 6.31,
-      "avgRating": 6.53,
-      "games": 3
+      "avgRating": 6.5,
+      "games": 2
     },
     {
-      "id": "8yomo4h7dp5q0j6",
-      "name": "Romelu Lukaku",
-      "nameKo": "로멜루 루카쿠",
+      "id": "x7lm7pho79om2wd",
+      "name": "Leandro Trossard",
+      "nameKo": "레안드로 트로사르",
       "hasMv": true,
       "pos": "F",
       "country": "Belgium",
       "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/084ae340451b5e11e349d211ca16554f.png",
-      "score": 7.48,
+      "logo": "https://img.thesports.com/football/player/eeba5051d4ae8a973db752c1f2ef60b6.png",
+      "score": 7.42,
       "star": 3,
-      "recentRating": 6.5,
-      "avgRating": 7.37,
-      "games": 3
+      "recentRating": 6.1,
+      "avgRating": 6.7,
+      "games": 2
     },
     {
       "id": "2y8m4zh8yl0nql0",
@@ -297,6 +282,21 @@
       "star": 3,
       "recentRating": 7.39,
       "avgRating": 6.9,
+      "games": 2
+    },
+    {
+      "id": "l7oqdehen58r510",
+      "name": "Nicolas Raskin",
+      "nameKo": "니콜라 라스킨",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/4437361376d0a7b9690e5756f5e65628.png",
+      "score": 7.32,
+      "star": 3,
+      "recentRating": 6.5,
+      "avgRating": 6.91,
       "games": 2
     }
   ],

@@ -72,23 +72,6 @@
       "y": 70
     },
     {
-      "id": "6ypq3nh5dj2gmd7",
-      "name": "Rayan Aït-Nouri",
-      "nameKo": "라얀 아이트누리",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Algeria",
-      "flag": "🇩🇿",
-      "logo": "https://img.thesports.com/football/player/7b0d0ec61220a4f0697ddb569777ee53.png",
-      "score": 7.34,
-      "star": 3,
-      "recentRating": 6.6,
-      "avgRating": 6.6,
-      "games": 1,
-      "x": 61,
-      "y": 70
-    },
-    {
       "id": "x7lm7phpnwem2wd",
       "name": "Facundo Medina",
       "nameKo": "파쿤도 메디나",
@@ -102,6 +85,23 @@
       "recentRating": 6.59,
       "avgRating": 6.56,
       "games": 3,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "l5ergphn42or8k0",
+      "name": "Nahuel Molina",
+      "nameKo": "나우엘 몰리나",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
+      "score": 7.15,
+      "star": 3,
+      "recentRating": 5.91,
+      "avgRating": 6.58,
+      "games": 5,
       "x": 84,
       "y": 70
     },
@@ -285,19 +285,19 @@
       "games": 5
     },
     {
-      "id": "1l4rjnhzj8dwm7v",
-      "name": "Patrick Wimmer",
-      "nameKo": "파트리크 비머",
+      "id": "318q66hvngxvqo9",
+      "name": "Thiago Almada",
+      "nameKo": "티아고 알마다",
       "hasMv": true,
       "pos": "F",
-      "country": "Austria",
-      "flag": "🇦🇹",
-      "logo": "https://img.thesports.com/football/player/64e0915061588010e824733f3c910143.png",
-      "score": 7.28,
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/4df09287e77cf62f5963b474e71f6ad0.png",
+      "score": 7.19,
       "star": 3,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "recentRating": 6.76,
+      "avgRating": 6.58,
+      "games": 2
     }
   ],
   "complete": true

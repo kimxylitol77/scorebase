@@ -18,7 +18,7 @@
       "flag": "🇨🇩"
     }
   ],
-  "teamRating": 3.3,
+  "teamRating": 3.2,
   "xi": [
     {
       "id": "dn1m1gh8jl2moep",
@@ -29,11 +29,11 @@
       "country": "Portugal",
       "flag": "🇵🇹",
       "logo": "https://img.thesports.com/football/player/e89df9dff6cb817d57e19e2dae84e909.png",
-      "score": 7.62,
+      "score": 7.57,
       "star": 3,
       "recentRating": 7.57,
-      "avgRating": 7.6,
-      "games": 2,
+      "avgRating": 7.57,
+      "games": 1,
       "x": 50,
       "y": 90
     },
@@ -55,23 +55,6 @@
       "y": 70
     },
     {
-      "id": "l5ergphvlzwor8k",
-      "name": "Nuno Mendes",
-      "nameKo": "누누 멘데스",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/0abd6ad13204c4d55e054e90efb58a3b.png",
-      "score": 8.16,
-      "star": 4,
-      "recentRating": 7.2,
-      "avgRating": 7.48,
-      "games": 2,
-      "x": 39,
-      "y": 70
-    },
-    {
       "id": "y0or5jhge5lqwzv",
       "name": "Jhon Lucumi",
       "nameKo": "혼 루쿠미",
@@ -85,6 +68,23 @@
       "recentRating": 6.52,
       "avgRating": 7.39,
       "games": 2,
+      "x": 39,
+      "y": 70
+    },
+    {
+      "id": "l5ergphvlzwor8k",
+      "name": "Nuno Mendes",
+      "nameKo": "누누 멘데스",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/0abd6ad13204c4d55e054e90efb58a3b.png",
+      "score": 7.88,
+      "star": 3,
+      "recentRating": 7.2,
+      "avgRating": 7.2,
+      "games": 1,
       "x": 61,
       "y": 70
     },
@@ -106,23 +106,6 @@
       "y": 70
     },
     {
-      "id": "l5ergphv839er8k",
-      "name": "Vitinha",
-      "nameKo": "비티냐",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/b3025d04e1f4ae5cc6c17b2168f475a6.png",
-      "score": 7.94,
-      "star": 3,
-      "recentRating": 6.53,
-      "avgRating": 6.74,
-      "games": 2,
-      "x": 22,
-      "y": 32
-    },
-    {
       "id": "1l4rjnhxj6gem7v",
       "name": "João Neves",
       "nameKo": "주앙 네베스",
@@ -134,9 +117,43 @@
       "score": 7.93,
       "star": 3,
       "recentRating": 6.93,
-      "avgRating": 6.73,
-      "games": 2,
+      "avgRating": 6.93,
+      "games": 1,
+      "x": 22,
+      "y": 32
+    },
+    {
+      "id": "3glrw7hj003qdyj",
+      "name": "Rúben Neves",
+      "nameKo": "후벵 네베스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/970a6d3411ed6882a758efbbc80d53ac.png",
+      "score": 7.76,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 50,
+      "y": 32
+    },
+    {
+      "id": "l5ergphv839er8k",
+      "name": "Vitinha",
+      "nameKo": "비티냐",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/b3025d04e1f4ae5cc6c17b2168f475a6.png",
+      "score": 7.73,
+      "star": 3,
+      "recentRating": 6.53,
+      "avgRating": 6.53,
+      "games": 1,
+      "x": 78,
       "y": 32
     },
     {
@@ -153,8 +170,8 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 78,
-      "y": 32
+      "x": 35,
+      "y": 52
     },
     {
       "id": "3glrw7hy6587qdy",
@@ -169,23 +186,6 @@
       "star": 3,
       "recentRating": 6.61,
       "avgRating": 7.26,
-      "games": 2,
-      "x": 35,
-      "y": 52
-    },
-    {
-      "id": "n54qllhx11oqvy9",
-      "name": "Bruno Fernandes",
-      "nameKo": "브루누 페르난드스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/b80beaf7a7e00ee1740eb5526bf00547.png",
-      "score": 7.26,
-      "star": 3,
-      "recentRating": 6.4,
-      "avgRating": 6.46,
       "games": 2,
       "x": 65,
       "y": 52
@@ -218,26 +218,11 @@
       "country": "Portugal",
       "flag": "🇵🇹",
       "logo": "https://img.thesports.com/football/player/9b6eda4cf9583c1d398e373f4ce10c23.png",
-      "score": 8.04,
-      "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 8.2,
-      "games": 1
-    },
-    {
-      "id": "j1l4rjnhpgxm7vx",
-      "name": "Cristiano Ronaldo",
-      "nameKo": "크리스티아누 호날두",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/52dd0122ddfcb5bfecaa55830f8a6fe1.png",
-      "score": 7.83,
+      "score": 7.89,
       "star": 3,
-      "recentRating": 6.41,
-      "avgRating": 7.46,
-      "games": 2
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
     },
     {
       "id": "8yomo4h290z0q0j",
@@ -285,19 +270,34 @@
       "games": 2
     },
     {
-      "id": "n54qllhx733qvy9",
-      "name": "Rúben Dias",
-      "nameKo": "후벵 디아스",
+      "id": "6ypq3nh19kemd7o",
+      "name": "Pedro Neto",
+      "nameKo": "페드루 네투",
       "hasMv": true,
-      "pos": "D",
+      "pos": "F",
       "country": "Portugal",
       "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/a21308e3048cc08658dea7a25b3de02c.png",
-      "score": 7.6,
+      "logo": "https://img.thesports.com/football/player/2585a5614ef6e4605f826aaf58670ddf.png",
+      "score": 7.41,
       "star": 3,
-      "recentRating": 6.18,
-      "avgRating": 6.54,
-      "games": 2
+      "recentRating": 6.46,
+      "avgRating": 6.46,
+      "games": 1
+    },
+    {
+      "id": "vjxm8ghxj52r6od",
+      "name": "Rafael Leão",
+      "nameKo": "하파엘 레앙",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/88b802e3745245eda8a03aec3d17ea7f.png",
+      "score": 7.4,
+      "star": 3,
+      "recentRating": 6.56,
+      "avgRating": 6.56,
+      "games": 1
     }
   ],
   "complete": true

@@ -18,7 +18,7 @@
       "flag": "🇵🇦"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.5,
   "xi": [
     {
       "id": "y0or5jh3jldqwzv",
@@ -38,23 +38,6 @@
       "y": 90
     },
     {
-      "id": "y0or5jh3k58jqwz",
-      "name": "Luka Vuskovic",
-      "nameKo": "루카 부슈코비치",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Croatia",
-      "flag": "🇭🇷",
-      "logo": "https://img.thesports.com/football/player/fe49b1847eb77fe50710c36cf1ef8acc.png",
-      "score": 8.36,
-      "star": 4,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0,
-      "x": 16,
-      "y": 70
-    },
-    {
       "id": "y39mp1hywejomoj",
       "name": "Nico O'Reilly",
       "nameKo": "니코 오라일리",
@@ -66,9 +49,9 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.41,
-      "avgRating": 6.57,
-      "games": 4,
-      "x": 39,
+      "avgRating": 6.6,
+      "games": 3,
+      "x": 16,
       "y": 70
     },
     {
@@ -83,9 +66,9 @@
       "score": 7.74,
       "star": 3,
       "recentRating": 6.42,
-      "avgRating": 6.67,
-      "games": 5,
-      "x": 61,
+      "avgRating": 6.77,
+      "games": 4,
+      "x": 39,
       "y": 70
     },
     {
@@ -100,8 +83,25 @@
       "score": 7.72,
       "star": 3,
       "recentRating": 7.35,
-      "avgRating": 6.78,
-      "games": 5,
+      "avgRating": 6.8,
+      "games": 4,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "23xmvkhx1y2qg8n",
+      "name": "Marc Guehi",
+      "nameKo": "마크 게히",
+      "hasMv": true,
+      "pos": "D",
+      "country": "England",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      "logo": "https://img.thesports.com/football/player/0deb5bb79ce10fb6f18c57511f0b9849.png",
+      "score": 7.68,
+      "star": 3,
+      "recentRating": 6.9,
+      "avgRating": 6.52,
+      "games": 4,
       "x": 84,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.97,
       "star": 4,
       "recentRating": 7.8,
-      "avgRating": 7.66,
-      "games": 5,
+      "avgRating": 7.99,
+      "games": 4,
       "x": 22,
       "y": 32
     },
@@ -135,7 +135,7 @@
       "star": 4,
       "recentRating": 9,
       "avgRating": 7.19,
-      "games": 5,
+      "games": 4,
       "x": 50,
       "y": 32
     },
@@ -168,8 +168,8 @@
       "score": 8.01,
       "star": 4,
       "recentRating": 7.61,
-      "avgRating": 6.73,
-      "games": 3,
+      "avgRating": 6.95,
+      "games": 2,
       "x": 35,
       "y": 52
     },
@@ -202,8 +202,8 @@
       "score": 9.34,
       "star": 4,
       "recentRating": 9.9,
-      "avgRating": 7.67,
-      "games": 4,
+      "avgRating": 8.04,
+      "games": 3,
       "x": 50,
       "y": 14
     }
@@ -218,11 +218,11 @@
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
       "logo": "https://img.thesports.com/football/player/44937ab4346f4d9fa0b7c4daf2124773.png",
-      "score": 8.6,
+      "score": 8.03,
       "star": 4,
       "recentRating": 6.4,
-      "avgRating": 7.37,
-      "games": 4
+      "avgRating": 6.87,
+      "games": 3
     },
     {
       "id": "l7oqdehepw7r510",
@@ -233,11 +233,11 @@
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
       "logo": "https://img.thesports.com/football/player/f353ac6f35da2eb28e6e1d1e798c96b5.png",
-      "score": 8.11,
-      "star": 4,
+      "score": 7.86,
+      "star": 3,
       "recentRating": 7.3,
-      "avgRating": 7.38,
-      "games": 4
+      "avgRating": 7.24,
+      "games": 3
     },
     {
       "id": "pxwrxlh92k9wryk",
@@ -251,8 +251,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.4,
-      "avgRating": 6.6,
-      "games": 5
+      "avgRating": 6.59,
+      "games": 4
     },
     {
       "id": "4jwq2ghv9ee0m0v",
@@ -270,33 +270,33 @@
       "games": 0
     },
     {
-      "id": "23xmvkhx1y2qg8n",
-      "name": "Marc Guehi",
-      "nameKo": "마크 게히",
+      "id": "jw2r09hp46vrz84",
+      "name": "Reece James",
+      "nameKo": "리스 제임스",
       "hasMv": true,
       "pos": "D",
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/0deb5bb79ce10fb6f18c57511f0b9849.png",
+      "logo": "https://img.thesports.com/football/player/bdcb920a11de9e2f5223deec4b7485d1.png",
       "score": 7.68,
       "star": 3,
-      "recentRating": 6.9,
-      "avgRating": 6.59,
-      "games": 5
+      "recentRating": 6.03,
+      "avgRating": 6.67,
+      "games": 3
     },
     {
-      "id": "k82rekhyx2n4rep",
-      "name": "Noni Madueke",
-      "nameKo": "노니 마두에케",
+      "id": "jw2r09hwlgxrz84",
+      "name": "Marcus Rashford",
+      "nameKo": "마커스 래시퍼드",
       "hasMv": true,
       "pos": "F",
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/b6b51b7afcdfefc1588976294e59c441.png",
-      "score": 7.68,
+      "logo": "https://img.thesports.com/football/player/80303d8e2493a695d4402199d0a2580e.png",
+      "score": 7.59,
       "star": 3,
-      "recentRating": 6.58,
-      "avgRating": 6.85,
+      "recentRating": 7.1,
+      "avgRating": 6.7,
       "games": 2
     }
   ],

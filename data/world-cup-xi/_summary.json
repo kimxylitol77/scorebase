@@ -9,7 +9,7 @@
     {
       "group": "B",
       "xi": 11,
-      "pool": 51
+      "pool": 50
     },
     {
       "group": "C",
@@ -44,12 +44,12 @@
     {
       "group": "I",
       "xi": 11,
-      "pool": 77
+      "pool": 52
     },
     {
       "group": "J",
       "xi": 11,
-      "pool": 76
+      "pool": 26
     },
     {
       "group": "K",
@@ -59,7 +59,7 @@
     {
       "group": "L",
       "xi": 11,
-      "pool": 78
+      "pool": 52
     }
   ]
 }

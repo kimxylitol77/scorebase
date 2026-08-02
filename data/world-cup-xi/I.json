@@ -89,38 +89,21 @@
       "y": 70
     },
     {
-      "id": "8yomo4hv8p45q0j",
-      "name": "Mamadou Sarr",
-      "nameKo": "마마두 사르",
+      "id": "k82rekhydk3repz",
+      "name": "Lucas Hernández",
+      "nameKo": "루카스 에르난데스",
       "hasMv": true,
       "pos": "D",
-      "country": "Senegal",
-      "flag": "🇸🇳",
-      "logo": "https://img.thesports.com/football/player/5e3d7a0d21dd6c52245dfb172f3495c1.png",
-      "score": 7.68,
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/1e060d52b207a82fdec9729f231ea330.png",
+      "score": 7.55,
       "star": 3,
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
       "x": 84,
       "y": 70
-    },
-    {
-      "id": "jw2r09hj788drz8",
-      "name": "Habib Diarra",
-      "nameKo": "하비브 디아라",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Senegal",
-      "flag": "🇸🇳",
-      "logo": "https://img.thesports.com/football/player/43380e5d3e6fa5a6210dbb6f36a1a8db.png",
-      "score": 7.97,
-      "star": 3,
-      "recentRating": 7.95,
-      "avgRating": 7.95,
-      "games": 1,
-      "x": 22,
-      "y": 32
     },
     {
       "id": "23xmvkhkdp0zqg8",
@@ -136,7 +119,7 @@
       "recentRating": 7.9,
       "avgRating": 7.66,
       "games": 2,
-      "x": 50,
+      "x": 22,
       "y": 32
     },
     {
@@ -153,7 +136,7 @@
       "recentRating": 7.2,
       "avgRating": 7.21,
       "games": 2,
-      "x": 78,
+      "x": 50,
       "y": 32
     },
     {
@@ -170,8 +153,8 @@
       "recentRating": 6.22,
       "avgRating": 6.4,
       "games": 3,
-      "x": 35,
-      "y": 52
+      "x": 78,
+      "y": 32
     },
     {
       "id": "zp5rzghz03woq82",
@@ -187,6 +170,23 @@
       "recentRating": 6.13,
       "avgRating": 6.81,
       "games": 3,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "dn1m1gh30vw3moe",
+      "name": "Warren Zaire-Emery",
+      "nameKo": "와렌 자이르에므리",
+      "hasMv": true,
+      "pos": "M",
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/aa1e5ca5121770e66607522b3b39523b.png",
+      "score": 7.67,
+      "star": 3,
+      "recentRating": 6.49,
+      "avgRating": 6.64,
+      "games": 2,
       "x": 65,
       "y": 52
     },
