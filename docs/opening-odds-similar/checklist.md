@@ -44,6 +44,18 @@
 - [x] 커밋 (한국어, footer 없음) → `git push origin main` — 9cb1def
 - [x] production 확인 — 3리그 모두 카드 렌더 (KBO 49.8% · MLB 57.8% · NPB 64.9%)
 
+## 5. 사후 수정 — 무승부 분모 교정 (2026-08-02)
+
+- [x] 결함 확인 — 시장값은 무승부 없는 2-way(실측 `openingMarketDraw` 전건 0,
+      홈+원정 implied 합 = 1.0)인데 실제 홈승률만 무승부를 분모에 포함
+- [x] `actualHomeWinRate` 분모를 `homeWins + awayWins` 로 교정, `decisiveSample` 노출
+- [x] 카드 라벨·각주에 기준 명시 (무승부 있는 리그만)
+- [x] 전수 스윕 — 렌더 N=1,540, 결론 문구 뒤집힘 KBO 27건(9.5%)·NPB 60건(18.8%),
+      MLB 0건(무승부 0이라 무변화)
+- [x] `npx tsc --noEmit` 통과 · eslint 0 problems
+- [x] QA 조건부 PASS — 지적받은 각주 용어("2-way") 한국어 풀이로 교체
+- [ ] `git push` — kimss 승인 대기
+
 ## 범위에서 뺀 것
 
 - 축구 — 표본 미달(빅5 리그당 8~20건 < MIN_SAMPLE 20). **8월 개막 후 재검토**

@@ -85,7 +85,7 @@ export default function OpeningOddsSimilarCard({ stats }: { stats: OpeningSimila
       <p className="text-[10px] leading-relaxed text-neutral-400 dark:text-neutral-500">
         과거 표본의 경향이며 이 경기의 결과를 보장하지 않는다.{" "}
         {draws > 0
-          ? `표본 ${sampleSize}경기 기준, 승률은 무승부 ${draws}경기를 뺀 ${decisiveSample}경기 기준(오프닝 배당이 무승부 없는 2-way 라 기준을 맞췄다).`
+          ? `표본 ${sampleSize}경기 기준, 승률은 무승부 ${draws}경기를 뺀 ${decisiveSample}경기 기준(오프닝 배당은 무승부에 걸 수 없어 홈·원정 둘로만 나뉘므로 기준을 맞췄다).`
           : `표본 ${sampleSize}경기 기준.`}
       </p>
     </div>
