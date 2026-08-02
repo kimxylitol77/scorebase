@@ -17564,5 +17564,41 @@
     "tsId": "9dn1m1gh6llmoep",
     "tsName": "Myanmar",
     "matchType": "exact+comp"
+  },
+  {
+    "ourId": 284933,
+    "ourName": "BSC Young Boys",
+    "ourLeague": "SWISS_SL",
+    "ourExternalId": "565",
+    "tsId": "gy0or5jhddxqwzv",
+    "tsName": "Young Boys",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 284928,
+    "ourName": "Lausanne",
+    "ourLeague": "SWISS_SL",
+    "ourExternalId": "1014",
+    "tsId": "l5ergpho5okr8k0",
+    "tsName": "Lausanne Sports",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 284926,
+    "ourName": "Grasshoppers",
+    "ourLeague": "SWISS_SL",
+    "ourExternalId": "1013",
+    "tsId": "p3glrw7h56xqdyj",
+    "tsName": "Grasshopper",
+    "matchType": "exact+comp"
+  },
+  {
+    "ourId": 285064,
+    "ourName": "Vaduz",
+    "ourLeague": "SWISS_SL",
+    "ourExternalId": "660",
+    "tsId": "gx7lm7ph675m2wd",
+    "tsName": "Vaduz",
+    "matchType": "exact+comp"
   }
 ]
