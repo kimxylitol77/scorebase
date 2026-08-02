@@ -36,6 +36,8 @@ import {
 } from "@/lib/sports/npb-official";
 import { getWorldCupPlayerStats } from "@/lib/sports/thesports/world-cup-player-stats";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
+import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
+import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
 const TOP_N = 10;
 
@@ -124,6 +126,13 @@ const SOCCER_LEAGUES = [
   "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD",
   "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
+  // 2026-08-02 확장 리그 — 소스는 전부 ts(TS_PLAYER_STAT_LEAGUES). 표본 얕은 리그는
+  // MIN_LEADERS 게이트가 알아서 skip 하므로 개막 직후에도 빈 카테고리가 나가지 않는다.
+  "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
+  "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
+  "RUSSIA_FNL", "ROMANIA_L2",
+  "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
+  "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3", "COPA_DO_BRASIL",
 ];
 
 // season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
@@ -134,6 +143,23 @@ const SEASON_STATS_LEAGUES = new Set([
   "BRASILEIRAO", "SERIE_B", "BUNDESLIGA_2", "SUPER_LIG",
 ]);
 
+// ts 시즌 선수통계를 리그 1콜로 직접 받는 확장 리그 (2026-08-02).
+// 위 SEASON_STATS_LEAGUES 는 정적 JSON(data/player-season-stats.json)을 읽는 경로라
+// 새 리그는 빌더 재실행·커밋이 필요해 stale 해진다. 이쪽은 season/recent/player/stat 을
+// cron 이 매번 호출하므로 항상 최신이다.
+//
+// ⚠️ 같은 리그를 ts·af 두 소스로 채우면 값이 어긋난다(팀순위 이중소스 사고와 같은 원인).
+// 여기 등록한 리그는 af fallback 을 절대 타지 않는다 — runSoccer 분기가 단일 소스를 보장.
+// 등록 기준: ts season/recent/player/stat 실측으로 행이 존재하는 리그. LUXEMBOURG_ND 는
+// ts 0행이라 제외(= af 로 메우는 갭), PORTUGAL_SUPER_CUP 은 단일 경기라 리더보드 무의미.
+const TS_PLAYER_STAT_LEAGUES = new Set([
+  "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
+  "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
+  "RUSSIA_FNL", "ROMANIA_L2",
+  "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
+  "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3", "COPA_DO_BRASIL",
+]);
+
 /** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌. */
 function currentSoccerSeason(league: string): { season: number; label: string } {
   const now = new Date();
@@ -142,6 +168,11 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   const calendarYearLeagues = [
     "MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP",
     "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
+    // 2026-08-02 확장 리그 중 달력연도 시즌 (af /leagues 의 현시즌 start~end 실측 분류).
+    // 중미 아페르투라(7~11월)·페로/중국/우즈벡(봄~가을)·파나마·코파 두 브라질이 여기 해당.
+    "FAROE_PL", "PANAMA_LPF", "UZBEKISTAN_SL", "CHINA_3", "COPA_DO_BRASIL",
+    "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "ELSALVADOR_PD", "NICARAGUA_PD",
+    "MEXICO_2",
   ];
   if (league === "CLUB_WORLD_CUP") return { season: 2025, label: "2025" };
   if (league === "AFC_U23") return { season: 2025, label: "2025" };
@@ -296,6 +327,95 @@ async function syncClubLeagueFromSeasonStats(league: string): Promise<Record<str
   return out;
 }
 
+// 확장 리그 리더 = ts season/recent/player/stat 직접 호출 (리그당 1콜).
+// 정적 JSON 경로(syncClubLeagueFromSeasonStats)와 달리 빌더 재실행이 필요 없어 stale 하지 않다.
+// 한글 선수명은 TheSportsPlayer DB 에 있으면 쓰고, 없으면 ts 영문명 그대로 (하부리그는 미등재 다수).
+async function syncLeagueFromTsPlayerStat(
+  league: string,
+  seasonLabel: string,
+): Promise<Record<string, number>> {
+  const out: Record<string, number> = {};
+  const entry = (tsLeagueMap as Array<{ code: string; tsSeasonId?: string }>).find(
+    (e) => e.code === league,
+  );
+  if (!entry?.tsSeasonId) return out;
+
+  const res = await fetchFootballSeasonPlayerStat(entry.tsSeasonId);
+  const rows = res.results ?? [];
+  if (rows.length === 0) return out;
+
+  const cats: Array<{
+    cat: "GOAL" | "ASSIST" | "YELLOW" | "RED";
+    unit: string;
+    val: (r: (typeof rows)[number]) => number;
+  }> = [
+    { cat: "GOAL", unit: "골", val: (r) => r.goals ?? 0 },
+    { cat: "ASSIST", unit: "도움", val: (r) => r.assists ?? 0 },
+    { cat: "YELLOW", unit: "장", val: (r) => r.yellow_cards ?? 0 },
+    { cat: "RED", unit: "장", val: (r) => r.red_cards ?? 0 },
+  ];
+
+  // 상위 후보의 한글명만 배치 조회 (전 리그 선수 전체를 조회하면 하부리그에서 수백 건이 된다).
+  const candidateIds = [
+    ...new Set(
+      cats.flatMap((c) =>
+        rows
+          .filter((r) => c.val(r) > 0)
+          .sort((a, b) => c.val(b) - c.val(a))
+          .slice(0, TOP_N)
+          .map((r) => r.player?.id)
+          .filter(Boolean) as string[],
+      ),
+    ),
+  ];
+  const known = candidateIds.length
+    ? await prisma.theSportsPlayer.findMany({
+        where: { id: { in: candidateIds } },
+        select: { id: true, name: true, nameKo: true },
+      })
+    : [];
+  const nm = new Map(known.map((p) => [p.id, p]));
+  const ov = playerOverrides();
+
+  for (const c of cats) {
+    // rating 은 x100 누적이라 court(출전)로 나눠야 평균 — tiebreak 에만 쓰므로 비율만 맞으면 된다.
+    const top = rows
+      .filter((r) => c.val(r) > 0)
+      .sort(
+        (a, b) =>
+          c.val(b) - c.val(a) ||
+          (b.rating ?? 0) / Math.max(b.court ?? 1, 1) - (a.rating ?? 0) / Math.max(a.court ?? 1, 1),
+      )
+      .slice(0, TOP_N);
+    // 커버리지 부족 → 기존 데이터 보존 (개막 직후 1~2골짜리 표가 지난 시즌을 밀어내지 않게).
+    if (top.length < MIN_LEADERS) continue;
+
+    for (let i = 0; i < top.length; i++) {
+      const r = top[i];
+      const pid = r.player?.id ?? "";
+      const af = pid ? tsPlayerToAf(pid) : null;
+      const koName = ov[pid]?.nameKo || nm.get(pid)?.nameKo || r.player?.name || "(미상)";
+      await upsertLeader({
+        league,
+        category: c.cat,
+        rank: i + 1,
+        playerName: koName,
+        playerNameEn: r.player?.name ?? undefined,
+        externalId: af ? String(af) : pid,
+        teamName: toKoreanTeamName(r.team?.name ?? "", league) || r.team?.name || "",
+        value: c.val(r),
+        unit: c.unit,
+        appearances: r.matches ?? undefined,
+        photoUrl: r.player?.logo || undefined,
+        season: seasonLabel,
+      });
+    }
+    await clearOldRanks(league, c.cat, seasonLabel, top.length);
+    out[c.cat] = top.length;
+  }
+  return out;
+}
+
 // 월드컵 리더 = TheSports 집계(getWorldCupPlayerStats) 소스. api-football 은 월드컵 시즌 미제공/키
 // 의존이라 사라짐(/ballon 월드컵 반복 소실 원인) → 이미 보유한 TheSports 데이터로 직접 적재.
 // externalId 는 af id 우선(클럽 리그 리더와 병합·ballon 평점 조회 위해), 매핑 없으면 ts id.
@@ -350,6 +470,11 @@ async function runSoccer() {
       // TheSports 시즌통계 커버 리그 = ts 우선 (데이터 소스 1순위 원칙).
       if (SEASON_STATS_LEAGUES.has(lg)) {
         result[lg] = await syncClubLeagueFromSeasonStats(lg);
+        continue;
+      }
+      // ts 시즌 선수통계 직접 호출 리그 — af 로 내려가지 않는다(이중 소스 금지).
+      if (TS_PLAYER_STAT_LEAGUES.has(lg)) {
+        result[lg] = await syncLeagueFromTsPlayerStat(lg, currentSoccerSeason(lg).label);
         continue;
       }
       // 나머지(UCL·UEL·컵·에레디비시 등) = api-football fallback. ts 시즌통계 미커버라 이게 유일 소스.
