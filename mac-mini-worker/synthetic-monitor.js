@@ -44,8 +44,9 @@ const CHECKS = [
   // 일본 선수명이 흐르는 경로 — 전부 한글이어야 한다
   ["/predictions/starters", ["선발"], 15000, { noJapanese: true }],
   ["/previews/NPB", ["NPB 경기 분석"], 10000, { noJapanese: true }],
-  ["/teams/23335", ["로스터"], 10000, { noJapanese: true }], // 라쿠텐
-  ["/teams/23331", ["로스터"], 10000, { noJapanese: true }], // 요미우리
+  // NPB 12팀 전부 — 표본 2팀만 보던 때 나머지 10팀의 한자 노출을 놓쳤다
+  //  (2026-08-02: 요미우리 1명만 잡혔는데 실제로는 7개 팀 14명. 1군 승격 선수가 팀별로 흩어진다).
+  ...Array.from({ length: 12 }, (_, i) => [`/teams/${23329 + i}`, ["로스터"], 10000, { noJapanese: true }]),
 ];
 
 async function checkOne([p, markers, minBytes, opts]) {

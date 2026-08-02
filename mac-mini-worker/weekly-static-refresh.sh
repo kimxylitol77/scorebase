@@ -57,6 +57,15 @@ log "⑫ NHL 부상자 한글명 (Haiku, ESPN injuries — /injuries/NHL)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-injury-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑬ KBO·NPB 로스터 (koreabaseball·npb scrape — 支配下 1군)"
 npx tsx --env-file=.env.local scripts/build-baseball-rosters.ts 2>&1 | tail -2 || true
+# ⑬-b~d 는 ⑬ 이 새로 넣은 선수를 한글·사진으로 채운다. 로스터만 갱신되고 이 셋이 빠져 있어
+#   1군 승격 선수가 팀 페이지에 한자 원문으로 나갔다 (2026-08-02 NPB 14명 실측). 순서 고정 —
+#   카나 수집이 외국인 원명(⑬-c)의 입력이다.
+log "⑬-b NPB 카나 사전 (npb.jp 상세 — 로스터 한자→한글 음역의 원천)"
+npx tsx --env-file=.env.local scripts/build-npb-player-link.ts 2>&1 | tail -2 || true
+log "⑬-c NPB 외국인 선수 한글명 (Haiku, 카나 병기 영문 원명)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-npb-foreign-names-haiku.ts' 2>&1 | tail -2 || true
+log "⑬-d NPB 로스터 사진 (npb.jp 상세 — pid 로 URL 조립 불가라 사전 필수)"
+npx tsx --env-file=.env.local scripts/build-npb-roster-photos.ts 2>&1 | tail -2 || true
 log "⑭ NBA 선수 인덱스·로스터 (ESPN 30팀 로스터 → nba-players.json — 팀페이지 로스터·트랜잭션 한글명·사진. ⑨ 이름사전 뒤 실행 필수)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-players.ts' 2>&1 | tail -2 || true
 log "⑮ 테니스 선수 한글명 (ATP·WTA top150 — 위키 ko → 미확보분 Haiku. /rankings/tennis)"
