@@ -1724,10 +1724,10 @@
     "matchType": "override"
   },
   {
-    "ourId": 11172,
+    "ourId": 287843,
     "ourName": "Bodo/Glimt",
     "ourLeague": "UCL",
-    "ourExternalId": "2980",
+    "ourExternalId": "327",
     "tsId": "l965mkyh9xyr1ge",
     "tsName": "Bodo Glimt",
     "tsKo": "보되/글림트",
@@ -4784,7 +4784,7 @@
     "tsVenueId": "318q66hov5dqo9j"
   },
   {
-    "ourId": 195828,
+    "ourId": 116429,
     "ourName": "Ulsan Hyundai FC",
     "ourLeague": "AFC_CL",
     "ourExternalId": "2767",
@@ -23576,5 +23576,959 @@
     "tsId": "8y39mp1hlv9mojx",
     "tsName": "Kidderminster Harriers",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 195812,
+    "ourName": "Al-Ahli Jeddah",
+    "ourLeague": "AFC_CL",
+    "ourExternalId": "2929",
+    "tsId": "yl5ergphgy8r8k0",
+    "tsName": "Al Ahli SC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 195811,
+    "ourName": "Al-Ittihad FC",
+    "ourLeague": "AFC_CL",
+    "ourExternalId": "2938",
+    "tsId": "9vjxm8ghyv3r6od",
+    "tsName": "Al Ittihad",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 195810,
+    "ourName": "Al Wahda FC",
+    "ourLeague": "AFC_CL",
+    "ourExternalId": "2875",
+    "tsId": "4jwq2gh4152m0ve",
+    "tsName": "Al Wahda(UAE)",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 195806,
+    "ourName": "Al-Duhail SC",
+    "ourLeague": "AFC_CL",
+    "ourExternalId": "2904",
+    "tsId": "dj2ryohk0o9q1zp",
+    "tsName": "Al Duhail",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 195814,
+    "ourName": "Al Shorta",
+    "ourLeague": "AFC_CL",
+    "ourExternalId": "5242",
+    "tsId": "9dn1m1gh67kmoep",
+    "tsName": "Al Shorta",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598492,
+    "ourName": "Al Wihdat",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "4537",
+    "tsId": "8yomo4h2z17q0j6",
+    "tsName": "Al Wehdat",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598488,
+    "ourName": "Khalidiya",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "17666",
+    "tsId": "dj2ryohg20wq1zp",
+    "tsName": "Al Khaldiya",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598470,
+    "ourName": "ATK Mohun Bagan",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "15516",
+    "tsId": "2y8m4zh34zlql07",
+    "tsName": "Mohun Bagan Super Giant",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598490,
+    "ourName": "Istiqlol",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "8012",
+    "tsId": "318q66ho58pqo9j",
+    "tsName": "FC Istiklol Dushanbe",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598500,
+    "ourName": "Công An Nhân Dân",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "16400",
+    "tsId": "23xmvkho9w9qg8n",
+    "tsName": "Cong An Ha Noi FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598501,
+    "ourName": "Home United",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "4204",
+    "tsId": "yl5ergph9nzr8k0",
+    "tsName": "Lion City Sailors",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287313,
+    "ourName": "AF Elbasani",
+    "ourLeague": "ALBANIA_SL",
+    "ourExternalId": "20406",
+    "tsId": "dj2ryohkje5q1zp",
+    "tsName": "KS Elbasani",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287312,
+    "ourName": "Dinamo Tirana",
+    "ourLeague": "ALBANIA_SL",
+    "ourExternalId": "3326",
+    "tsId": "9dn1m1ghz6nmoep",
+    "tsName": "FC Dinamo City",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287964,
+    "ourName": "AIK Stockholm",
+    "ourLeague": "ALLSVENSKAN",
+    "ourExternalId": "377",
+    "tsId": "9vjxm8gh6nkr6od",
+    "tsName": "AIK",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 285239,
+    "ourName": "Ararat",
+    "ourLeague": "ARMENIA_PL",
+    "ourExternalId": "3682",
+    "tsId": "ednm9whkdojryox",
+    "tsName": "Ararat Yerevan",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 285203,
+    "ourName": "Van",
+    "ourLeague": "ARMENIA_PL",
+    "ourExternalId": "6286",
+    "tsId": "23xmvkhd114qg8n",
+    "tsName": "FK Van Charentsavan",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287283,
+    "ourName": "Velež",
+    "ourLeague": "BOSNIA_PL",
+    "ourExternalId": "3381",
+    "tsId": "3glrw7hwj00qdyj",
+    "tsName": "FK Velez Mostar",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 284730,
+    "ourName": "Arda Kardzhali",
+    "ourLeague": "BULGARIA_PL",
+    "ourExternalId": "1430",
+    "tsId": "y39mp1hjw6wmojx",
+    "tsName": "Arda",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288770,
+    "ourName": "Deportes Copiapo",
+    "ourLeague": "CHILE_PB",
+    "ourExternalId": "2343",
+    "tsId": "965mkyh706lr1ge",
+    "tsName": "CD Copiapo S.A.",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288780,
+    "ourName": "Deportes Iquique",
+    "ourLeague": "CHILE_PB",
+    "ourExternalId": "2319",
+    "tsId": "vl7oqdehp5jr510",
+    "tsName": "Municipal Iquique",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288726,
+    "ourName": "U. Catolica",
+    "ourLeague": "CHILE_PD",
+    "ourExternalId": "2994",
+    "tsId": "l965mkyh694r1ge",
+    "tsName": "Univ Catolica",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288722,
+    "ourName": "A. Italiano",
+    "ourLeague": "CHILE_PD",
+    "ourExternalId": "2329",
+    "tsId": "p4jwq2gh2x6m0ve",
+    "tsName": "Audax Italiano",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288720,
+    "ourName": "D. La Serena",
+    "ourLeague": "CHILE_PD",
+    "ourExternalId": "2341",
+    "tsId": "9vjxm8gh19xr6od",
+    "tsName": "Deportes La Serena",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288733,
+    "ourName": "Concepción",
+    "ourLeague": "CHILE_PD",
+    "ourExternalId": "5635",
+    "tsId": "gx7lm7ph1jem2wd",
+    "tsName": "D. Concepcion",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288865,
+    "ourName": "Santa Fe",
+    "ourLeague": "COLOMBIA_PA",
+    "ourExternalId": "1139",
+    "tsId": "jednm9wh30nryox",
+    "tsName": "Independiente Santa Fe",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599147,
+    "ourName": "Alianza Valledupar",
+    "ourLeague": "COLOMBIA_PA",
+    "ourExternalId": "1141",
+    "tsId": "3glrw7hw3njqdyj",
+    "tsName": "Alianza Fútbol Club",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119230,
+    "ourName": "Club Nacional",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "2356",
+    "tsId": "k82rekhv9xprepz",
+    "tsName": "Nacional Montevideo",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119231,
+    "ourName": "Universitario",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "2540",
+    "tsId": "2y8m4zh33xkql07",
+    "tsName": "Universitario De Deportes",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119246,
+    "ourName": "U. Catolica",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "2994",
+    "tsId": "l965mkyh694r1ge",
+    "tsName": "Univ Catolica",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119247,
+    "ourName": "Barcelona SC",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "1152",
+    "tsId": "vjxm8gh4gvnr6od",
+    "tsName": "Barcelona SC(ECU)",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119223,
+    "ourName": "Platense",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "1064",
+    "tsId": "318q66howpvqo9j",
+    "tsName": "CA Platense",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119222,
+    "ourName": "Santa Fe",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "1139",
+    "tsId": "jednm9wh30nryox",
+    "tsName": "Independiente Santa Fe",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119244,
+    "ourName": "Penarol",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "2348",
+    "tsId": "l7oqdehnnoyr510",
+    "tsName": "CA Penarol",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119238,
+    "ourName": "Junior",
+    "ourLeague": "COPA_LIB",
+    "ourExternalId": "1135",
+    "tsId": "gpxwrxlh887ryk0",
+    "tsName": "Atletico Junior Barranquilla",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119270,
+    "ourName": "Atletico-MG",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "1062",
+    "tsId": "gx7lm7phe29m2wd",
+    "tsName": "Atlético Mineiro - MG",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119273,
+    "ourName": "Juventud",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "2353",
+    "tsId": "x7lm7phkpnwm2wd",
+    "tsName": "CA Juventud",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119275,
+    "ourName": "Caracas FC",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "2808",
+    "tsId": "ednm9whkzl6ryox",
+    "tsName": "Caracas FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119250,
+    "ourName": "Atletico Torque",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "2365",
+    "tsId": "y0or5jh4njpqwzv",
+    "tsName": "Montevideo City Torque",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119260,
+    "ourName": "Olimpia",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "1182",
+    "tsId": "vjxm8gh421dr6od",
+    "tsName": "Olimpia Asuncion",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119261,
+    "ourName": "Vasco DA Gama",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "133",
+    "tsId": "jednm9whll2ryox",
+    "tsName": "Vasco da Gama Saf - RJ",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119248,
+    "ourName": "A. Italiano",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "2329",
+    "tsId": "p4jwq2gh2x6m0ve",
+    "tsName": "Audax Italiano",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119269,
+    "ourName": "RB Bragantino",
+    "ourLeague": "COPA_SUD",
+    "ourExternalId": "794",
+    "tsId": "pxwrxlhg975ryk0",
+    "tsName": "Red Bull Bragantino",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 286753,
+    "ourName": "AEL",
+    "ourLeague": "CYPRUS_1D",
+    "ourExternalId": "3396",
+    "tsId": "8y39mp1h78omojx",
+    "tsName": "AEL Limassol",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 286742,
+    "ourName": "Krasava Ypsonas",
+    "ourLeague": "CYPRUS_1D",
+    "ourExternalId": "3424",
+    "tsId": "y0or5jhe29gqwzv",
+    "tsName": "Krasava ENY Ypsonas FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 289960,
+    "ourName": "El Geish",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "1039",
+    "tsId": "vjxm8gh4830r6od",
+    "tsName": "Tala'ea El Gaish",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 289959,
+    "ourName": "Al Ittihad",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "1572",
+    "tsId": "dn1m1gh44d4moep",
+    "tsName": "Ittihad Alexandria SC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 289958,
+    "ourName": "Ghazl El Mehalla",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "13819",
+    "tsId": "vl7oqdehvw5r510",
+    "tsName": "Ghazl El Mahallah",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 283845,
+    "ourName": "Jagiellonia",
+    "ourLeague": "EKSTRAKLASA",
+    "ourExternalId": "336",
+    "tsId": "8y39mp1h8l6mojx",
+    "tsName": "Jagiellonia Bialystok",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 600070,
+    "ourName": "Rustavi",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "3501",
+    "tsId": "23xmvkh3xzzqg8n",
+    "tsName": "FC Metalurgi Rustavi",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119168,
+    "ourName": "OFI",
+    "ourLeague": "GREEK_SL",
+    "ourExternalId": "1124",
+    "tsId": "p3glrw7hegvqdyj",
+    "tsName": "OFI Crete",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119169,
+    "ourName": "Volos NFC",
+    "ourLeague": "GREEK_SL",
+    "ourExternalId": "2110",
+    "tsId": "3glrw7hjjg8qdyj",
+    "tsName": "Volos NPS",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288181,
+    "ourName": "Ægir",
+    "ourLeague": "ICELAND_1L",
+    "ourExternalId": "4167",
+    "tsId": "l5ergphog04r8k0",
+    "tsName": "KFR Aegir",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290109,
+    "ourName": "ATK Mohun Bagan",
+    "ourLeague": "INDIA_ISL",
+    "ourExternalId": "15516",
+    "tsId": "2y8m4zh34zlql07",
+    "tsName": "Mohun Bagan Super Giant",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290142,
+    "ourName": "Persija",
+    "ourLeague": "INDONESIA_L1",
+    "ourExternalId": "10134",
+    "tsId": "l5ergpho7p8r8k0",
+    "tsName": "Persatuan Sepakbola Indonesia Jakarta",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290153,
+    "ourName": "Persijap",
+    "ourLeague": "INDONESIA_L1",
+    "ourExternalId": "11132",
+    "tsId": "jw2r09hldwdrz84",
+    "tsName": "Persatuan Sepakbola Indonesia Jepara",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287245,
+    "ourName": "Waterford",
+    "ourLeague": "IRELAND_PD",
+    "ourExternalId": "3845",
+    "tsId": "gpxwrxlhw5nryk0",
+    "tsName": "Waterford United",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 115931,
+    "ourName": "Gent",
+    "ourLeague": "JUPILER_PL",
+    "ourExternalId": "631",
+    "tsId": "l965mkyh99yr1ge",
+    "tsName": "KAA Gent",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 610701,
+    "ourName": "Celta de Vigo II",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "9571",
+    "tsId": "y39mp1h3335mojx",
+    "tsName": "Celta Vigo B",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 284898,
+    "ourName": "Arges Pitesti",
+    "ourLeague": "LIGA_I",
+    "ourExternalId": "2592",
+    "tsId": "zp5rzghjv9pq82w",
+    "tsName": "Arges",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 284885,
+    "ourName": "Rapid",
+    "ourLeague": "LIGA_I",
+    "ourExternalId": "6231",
+    "tsId": "gy0or5jhyo4qwzv",
+    "tsName": "FC Rapid 1923",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598179,
+    "ourName": "PAU",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "1297",
+    "tsId": "l965mkyhdxdr1ge",
+    "tsName": "Pau FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119055,
+    "ourName": "Laval",
+    "ourLeague": "LIGUE_2",
+    "ourExternalId": "433",
+    "tsId": "gpxwrxlhw54ryk0",
+    "tsName": "Stade Lavallois MFC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598971,
+    "ourName": "Politehnica UTM",
+    "ourLeague": "MOLDOVA_SL",
+    "ourExternalId": "26115",
+    "tsId": "x7lm7phk0n7m2wd",
+    "tsName": "FC Politehnica Chisinau",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287327,
+    "ourName": "Sireți",
+    "ourLeague": "MOLDOVA_SL",
+    "ourExternalId": "5379",
+    "tsId": "dn1m1gh1l9dmoep",
+    "tsName": "Real Sireti",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599326,
+    "ourName": "Maghreb Fès",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "3453",
+    "tsId": "zp5rzghj5zxq82w",
+    "tsName": "Maghreb Fez",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599317,
+    "ourName": "Renaissance Berkane",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "962",
+    "tsId": "vjxm8gh4nynr6od",
+    "tsName": "Renaissance de Berkane",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599321,
+    "ourName": "Raja Casablanca",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "976",
+    "tsId": "kdj2ryohw93q1zp",
+    "tsName": "Raja Club Athletic",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599324,
+    "ourName": "Difaa EL Jadida",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "964",
+    "tsId": "jw2r09hl4w2rz84",
+    "tsName": "DHJ Difaa Hassani Jadidi",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599312,
+    "ourName": "Ittihad Tanger",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "974",
+    "tsId": "3glrw7hwzj9qdyj",
+    "tsName": "Ittihad Riadi Tanger",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290014,
+    "ourName": "Kawkab Marrakech",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "971",
+    "tsId": "zp5rzghj17nq82w",
+    "tsName": "KACM Marrakech",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290015,
+    "ourName": "CR Khemis Zemamra",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "3449",
+    "tsId": "1l4rjnh6998m7vx",
+    "tsName": "Renaissance Zmamra",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599315,
+    "ourName": "UTS Rabat",
+    "ourLeague": "MOROCCO_BP",
+    "ourExternalId": "14806",
+    "tsId": "y0or5jh4x6zqwzv",
+    "tsName": "UTS Union Touarga Sport Rabat",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287886,
+    "ourName": "ODD Ballklubb",
+    "ourLeague": "NORWAY_1L",
+    "ourExternalId": "330",
+    "tsId": "e4wyrn4hnvdq86p",
+    "tsName": "Odd Grenland",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 287901,
+    "ourName": "Lyn",
+    "ourLeague": "NORWAY_1L",
+    "ourExternalId": "7006",
+    "tsId": "p3glrw7hvzwqdyj",
+    "tsName": "Lyn Oslo",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288882,
+    "ourName": "Universitario",
+    "ourLeague": "PERU_PD",
+    "ourExternalId": "2540",
+    "tsId": "2y8m4zh33xkql07",
+    "tsName": "Universitario De Deportes",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288895,
+    "ourName": "ADT",
+    "ourLeague": "PERU_PD",
+    "ourExternalId": "10492",
+    "tsId": "318q66hv9w5qo9j",
+    "tsName": "AD Tarma",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 115904,
+    "ourName": "Nacional",
+    "ourLeague": "PRIMEIRA_LIGA",
+    "ourExternalId": "225",
+    "tsId": "gy0or5jhydnqwzv",
+    "tsName": "Nacional da Madeira",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 115903,
+    "ourName": "Estrela",
+    "ourLeague": "PRIMEIRA_LIGA",
+    "ourExternalId": "15130",
+    "tsId": "p4jwq2gh2ovm0ve",
+    "tsName": "CF Estrela Amadora SAD",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 291309,
+    "ourName": "Al-Rayyan SC",
+    "ourLeague": "QATAR_SL",
+    "ourExternalId": "2897",
+    "tsId": "y39mp1h391pmojx",
+    "tsName": "Al Rayyan",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 291318,
+    "ourName": "Al-Duhail SC",
+    "ourLeague": "QATAR_SL",
+    "ourExternalId": "2904",
+    "tsId": "dj2ryohk0o9q1zp",
+    "tsName": "Al Duhail",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 291313,
+    "ourName": "Al Wakrah",
+    "ourLeague": "QATAR_SL",
+    "ourExternalId": "2900",
+    "tsId": "dj2ryohkl6pq1zp",
+    "tsName": "Al-Wakrah SC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 116696,
+    "ourName": "Al-Qadisiyah FC",
+    "ourLeague": "SAUDI_PL",
+    "ourExternalId": "2933",
+    "tsId": "d23xmvkh5p0qg8n",
+    "tsName": "Al Qadsiah",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 116699,
+    "ourName": "Al-Ittihad FC",
+    "ourLeague": "SAUDI_PL",
+    "ourExternalId": "2938",
+    "tsId": "9vjxm8ghyv3r6od",
+    "tsName": "Al Ittihad",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 115448,
+    "ourName": "Al Taawon",
+    "ourLeague": "SAUDI_PL",
+    "ourExternalId": "2936",
+    "tsId": "zp5rzghj93nq82w",
+    "tsName": "Al Taawoun",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 116697,
+    "ourName": "Al-Hazm",
+    "ourLeague": "SAUDI_PL",
+    "ourExternalId": "2945",
+    "tsId": "jw2r09hlx8orz84",
+    "tsName": "Al Hazem",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 611490,
+    "ourName": "Al Diriyah",
+    "ourLeague": "SAUDI_PL",
+    "ourExternalId": "26738",
+    "tsId": "318q66ho8e1qo9j",
+    "tsName": "Al Diraiyah",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 610782,
+    "ourName": "Queen of the South",
+    "ourLeague": "SCOT_LEAGUE_ONE",
+    "ourExternalId": "1384",
+    "tsId": "vl7oqdehkz5r510",
+    "tsName": "Queen of South",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 286057,
+    "ourName": "Železničar Pančevo",
+    "ourLeague": "SERBIA_SL",
+    "ourExternalId": "12360",
+    "tsId": "23xmvkhdvz8qg8n",
+    "tsName": "FK Zeleznicar Pancevo",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290541,
+    "ourName": "Home United",
+    "ourLeague": "SINGAPORE_PL",
+    "ourExternalId": "4204",
+    "tsId": "yl5ergph9nzr8k0",
+    "tsName": "Lion City Sailors",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290539,
+    "ourName": "Geylang International",
+    "ourLeague": "SINGAPORE_PL",
+    "ourExternalId": "4203",
+    "tsId": "56ypq3nhy85md7o",
+    "tsName": "Geylang United FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288010,
+    "ourName": "United Nordic",
+    "ourLeague": "SUPERETTAN",
+    "ourExternalId": "16601",
+    "tsId": "23xmvkhk38oqg8n",
+    "tsName": "Nordic United FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 119106,
+    "ourName": "Kasımpaşa",
+    "ourLeague": "SUPER_LIG",
+    "ourExternalId": "1004",
+    "tsId": "gpxwrxlh81wryk0",
+    "tsName": "Kasimpasa",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599429,
+    "ourName": "Ayutthaya FC",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2803",
+    "tsId": "23xmvkhopzoqg8n",
+    "tsName": "Ayutthaya United",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 599420,
+    "ourName": "Nakhon Ratchasima FC",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "2773",
+    "tsId": "y39mp1h5905mojx",
+    "tsName": "Nakhon Ratchasima Mazda FC",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290022,
+    "ourName": "Al Wahda FC",
+    "ourLeague": "UAE_PL",
+    "ourExternalId": "2875",
+    "tsId": "4jwq2gh4152m0ve",
+    "tsName": "Al Wahda(UAE)",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290030,
+    "ourName": "Dibba Al-Fujairah",
+    "ourLeague": "UAE_PL",
+    "ourExternalId": "2867",
+    "tsId": "dj2ryohkddwq1zp",
+    "tsName": "Dabba Al-Fujairah",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598352,
+    "ourName": "Raków Częstochowa",
+    "ourLeague": "UECL",
+    "ourExternalId": "3491",
+    "tsId": "3glrw7hw8ynqdyj",
+    "tsName": "Rakow Czestochowa",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598377,
+    "ourName": "FC Noah",
+    "ourLeague": "UECL",
+    "ourExternalId": "3684",
+    "tsId": "318q66hvpp7qo9j",
+    "tsName": "FC Noah",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598385,
+    "ourName": "Dynamo Kyiv",
+    "ourLeague": "UECL",
+    "ourExternalId": "572",
+    "tsId": "d23xmvkh1o7qg8n",
+    "tsName": "Dynamo Kyiv",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 598380,
+    "ourName": "Shelbourne",
+    "ourLeague": "UECL",
+    "ourExternalId": "3854",
+    "tsId": "l965mkyh9kgr1ge",
+    "tsName": "Shelbourne",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 285846,
+    "ourName": "Veres Rivne",
+    "ourLeague": "UKRAINE_PL",
+    "ourExternalId": "6501",
+    "tsId": "8yomo4h780xq0j6",
+    "tsName": "Veres",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288080,
+    "ourName": "VPS",
+    "ourLeague": "VEIKKAUSLIIGA",
+    "ourExternalId": "650",
+    "tsId": "e4wyrn4hp84q86p",
+    "tsName": "Vaasa VPS",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288076,
+    "ourName": "Turku PS",
+    "ourLeague": "VEIKKAUSLIIGA",
+    "ourExternalId": "1168",
+    "tsId": "p3glrw7hv8vqdyj",
+    "tsName": "TPS Turku",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288073,
+    "ourName": "SJK",
+    "ourLeague": "VEIKKAUSLIIGA",
+    "ourExternalId": "689",
+    "tsId": "jednm9wh493ryox",
+    "tsName": "SJK Seinajoen",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 288939,
+    "ourName": "UCV",
+    "ourLeague": "VENEZUELA_PD",
+    "ourExternalId": "2840",
+    "tsId": "jw2r09hly30rz84",
+    "tsName": "Universidad Central de Venezuela",
+    "matchType": "manual-review"
+  },
+  {
+    "ourId": 290178,
+    "ourName": "Phu Dong",
+    "ourLeague": "VIETNAM_VL1",
+    "ourExternalId": "9167",
+    "tsId": "jw2r09hny0vrz84",
+    "tsName": "Ninh Binh FC",
+    "matchType": "manual-review"
   }
 ]
