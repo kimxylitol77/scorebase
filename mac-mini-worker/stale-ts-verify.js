@@ -116,6 +116,27 @@ async function fetchDiaryIdMap(sport, tsp) {
   return new Map(results.map((r) => [r.id, r]));
 }
 
+// diary 에 없을 때의 2차 확인 — uuid 로 그 매치 1건만 조회해 현재 match_time 을 본다.
+//   diary 는 "그 날짜에 있는 경기" 목록이라, 경기가 다른 날로 옮겨가면 부재로만 보이고
+//   연기인지 일정이동인지 구분이 안 된다. 그대로 POSTPONED 로 굳히면 실제로는 열릴 경기가
+//   "연기" 로 남는다 (2026-08-02 GUATEMALA_LN #3931545 — 8/2 → 8/19 이동인데 KEPT/연기 후보).
+//   ⚠️ recent/list 는 football 만 인가됨 (baseball 은 "URL is not authorized") → 축구 전용.
+async function fetchRescheduledTs(sport, tsMatchId) {
+  if (sport !== "football") return null;
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/recent/list`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
+      timeout: 30_000,
+    });
+    if (data.code !== 0) return null;
+    const r = Array.isArray(data.results) ? data.results[0] : null;
+    if (!r || r.id !== tsMatchId) return null;
+    return { matchTime: numOrNull(r.match_time), statusId: numOrNull(r.status_id) };
+  } catch {
+    return null;
+  }
+}
+
 async function postResults(results) {
   const { data } = await axios.post(
     `${SITE_URL}/api/internal/stale-ts-verify`,
@@ -165,9 +186,15 @@ async function runOnce() {
     }
     const hit = idMap.get(m.tsMatchId);
     if (!hit) {
-      // diary 에 없음 = 취소/일정변경 → 서버가 POSTPONED 처리.
-      results.push({ matchId: m.matchId, found: false });
-      console.log(`    · ${m.league} ${m.tsMatchId} → diary 부재 (POSTPONED 예정)`);
+      // diary 에 없음 — 연기인지 일정이동인지 uuid 조회로 가른다(축구만 인가).
+      const re = await fetchRescheduledTs(m.sport, m.tsMatchId);
+      const movedTo = re && re.matchTime != null && re.matchTime * 1000 !== m.startTimeMs ? re.matchTime : null;
+      results.push({ matchId: m.matchId, found: false, rescheduledTo: movedTo, statusId: re ? re.statusId : null });
+      console.log(
+        movedTo
+          ? `    · ${m.league} ${m.tsMatchId} → diary 부재, 일정이동 ${new Date(movedTo * 1000).toISOString()} (startTime 갱신 예정)`
+          : `    · ${m.league} ${m.tsMatchId} → diary 부재 (POSTPONED 예정)`,
+      );
       continue;
     }
     const { homeScore, awayScore } = extractScore(m.sport, hit);
@@ -190,7 +217,7 @@ async function runOnce() {
   try {
     const resp = await postResults(results);
     console.log(
-      `[${t}] ✅ 적용: FINISHED ${resp.finished} / POSTPONED ${resp.postponed} / KEPT ${resp.kept} / skipped ${resp.skipped}`,
+      `[${t}] ✅ 적용: FINISHED ${resp.finished} / POSTPONED ${resp.postponed} / RESCHEDULED ${resp.rescheduled ?? 0} / KEPT ${resp.kept} / skipped ${resp.skipped}`,
     );
   } catch (e) {
     console.error(`[${t}] ❌ 결과 POST fail: ${e.message}`);

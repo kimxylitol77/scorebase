@@ -137,9 +137,28 @@ interface VerifyResult {
   statusId?: number | null;
   homeScore?: number | null;
   awayScore?: number | null;
+  /** diary 부재이지만 uuid 조회로 확인된 새 킥오프(unix sec) — 연기가 아니라 일정 이동 */
+  rescheduledTo?: number | null;
 }
 interface PostBody {
   results: VerifyResult[];
+}
+
+/**
+ * worker 가 보낸 새 킥오프(unix sec)를 적용 가능한 Date 로 — 아니면 null.
+ *
+ * ts 의 match_time 글리치로 엉뚱한 시각이 들어오면 일정이 통째로 망가지므로 좁게 받는다.
+ * 과거로 되돌리는 값(이미 지난 시각)은 stale 해소가 아니라 재발이라 거부하고,
+ * 1년을 넘는 이동은 시즌 자체가 다른 값이라 거부한다.
+ */
+function toRescheduledDate(sec: number | null | undefined, current: Date): Date | null {
+  if (typeof sec !== "number" || !Number.isFinite(sec)) return null;
+  const ms = sec * 1000;
+  if (ms === current.getTime()) return null;
+  const now = Date.now();
+  if (ms <= now) return null;
+  if (ms - now > 365 * 86400_000) return null;
+  return new Date(ms);
 }
 
 export async function POST(req: NextRequest) {
@@ -172,6 +191,7 @@ export async function POST(req: NextRequest) {
   type Row = (typeof rows)[number];
   const finished: Row[] = [];
   const postponed: Row[] = [];
+  const rescheduled: Row[] = [];
   const kept: Row[] = [];
   let skipped = 0; // 매치 없음 또는 이미 SCHEDULED 아님 (race)
 
@@ -200,6 +220,16 @@ export async function POST(req: NextRequest) {
     if (!r.found) {
       if (m.status === "LIVE") {
         kept.push(m);
+        continue;
+      }
+      // diary 부재라도 uuid 조회로 새 킥오프가 확인되면 연기가 아니라 일정 이동이다.
+      //   POSTPONED 로 굳히면 실제로 열릴 경기가 "연기" 로 남는다
+      //   (2026-08-02 GUATEMALA_LN #3931545 — 8/2 → 8/19 이동). startTime 만 옮기고
+      //   SCHEDULED 를 유지해 이후 정상 수집 경로를 타게 한다.
+      const moved = toRescheduledDate(r.rescheduledTo, m.startTime);
+      if (moved) {
+        await prisma.match.update({ where: { id: m.id }, data: { startTime: moved } });
+        rescheduled.push(m);
         continue;
       }
       await prisma.match.update({ where: { id: m.id }, data: { status: "POSTPONED" } });
@@ -233,7 +263,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const changed = finished.length + postponed.length;
+  const changed = finished.length + postponed.length + rescheduled.length;
 
   // POSTPONED 된 매치의 PUBLISHED PREVIEW 글을 REJECTED 로 내림 (사이트 노출 차단).
   const rejectedPreviews = await rejectPreviewsForPostponed(postponed.map((m) => m.id));
@@ -246,19 +276,20 @@ export async function POST(req: NextRequest) {
       key: "summary",
       message:
         changed > 0
-          ? `ts- stale verify — FINISHED ${finished.length}, POSTPONED ${postponed.length}, KEPT ${kept.length}`
+          ? `ts- stale verify — FINISHED ${finished.length}, POSTPONED ${postponed.length}, RESCHEDULED ${rescheduled.length}, KEPT ${kept.length}`
           : `ts- stale verify — 변경 없음 (KEPT ${kept.length}, skipped ${skipped})`,
       metadata: {
         finished: finished.length,
         postponed: postponed.length,
+        rescheduled: rescheduled.length,
         kept: kept.length,
         skipped,
-        sample: [...finished, ...postponed].slice(0, 10).map((m) => ({
+        sample: [...finished, ...postponed, ...rescheduled].slice(0, 10).map((m) => ({
           id: m.id,
           league: m.league,
           teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`,
           startTime: m.startTime.toISOString(),
-          result: finished.includes(m) ? "FINISHED" : "POSTPONED",
+          result: finished.includes(m) ? "FINISHED" : postponed.includes(m) ? "POSTPONED" : "RESCHEDULED",
         })),
       },
     },
@@ -266,16 +297,16 @@ export async function POST(req: NextRequest) {
 
   // 변경 있을 때만 텔레그램 알림.
   if (changed > 0) {
-    const lines = [...finished, ...postponed]
+    const lines = [...finished, ...postponed, ...rescheduled]
       .slice(0, 10)
       .map((m) => {
-        const tag = finished.includes(m) ? "FT" : "PST";
+        const tag = finished.includes(m) ? "FT" : postponed.includes(m) ? "PST" : "RSC";
         return `  [${tag}] ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name}`;
       })
       .join("\n");
     try {
       await sendTelegram(
-        `🛰️ <b>ts- stale verify ${changed}건 정리</b> (FINISHED ${finished.length} / POSTPONED ${postponed.length})\n\n` +
+        `🛰️ <b>ts- stale verify ${changed}건 정리</b> (FINISHED ${finished.length} / POSTPONED ${postponed.length} / RESCHEDULED ${rescheduled.length})\n\n` +
           `📍 <b>무엇</b>: TheSports(ts-) stale SCHEDULED/LIVE 매치 diary 검증\n` +
           `💥 <b>영향</b>: Vercel cron 이 IP 화이트리스트로 못 보던 ts- 매치 자동 정정\n` +
           `🔍 <b>출처</b>: mac-mini worker (고정 IP) → baseball/football diary\n\n` +
@@ -292,6 +323,7 @@ export async function POST(req: NextRequest) {
     ok: true,
     finished: finished.length,
     postponed: postponed.length,
+    rescheduled: rescheduled.length,
     kept: kept.length,
     skipped,
     rejectedPreviews,
