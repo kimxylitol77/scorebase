@@ -33,9 +33,15 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 // 이 worker 는 analysis/lineup 등 느린 데이터만 5분 cycle 로 갱신.
 const POLL_INTERVAL_MS = 5 * 60_000;
 const MAX_MATCHES_PER_POLL = 20;
-// 비-LIVE 매치 순회 커서 — 매 cycle 앞에서부터 자르면 상한 밖 매치가 영영 처리되지 않는다.
+// 순회 커서 — 매 cycle 앞에서부터 자르면 상한 밖 매치가 영영 처리되지 않는다.
 // 프로세스 재시작 시 0 으로 돌아가지만, 회전 자체가 목적이라 영속화 불필요.
 let restCursor = 0;
+// LIVE 도 같은 이유로 회전이 필요하다 (2026-08-03). 유럽 저녁엔 동시 진행이 20건을
+// 훌쩍 넘는데(실측 최대 88건) 평면 절단이라 뒤쪽 LIVE 매치는 매 cycle 같은 이유로 밀려
+// 종료될 때까지 한 번도 순번을 못 받았다 → halfTeamStats·teamStats 가 통째로 비었다.
+// 여기서 긁는 건 analysis/lineup/trend/team_stats 로 초 단위 민감도가 없다
+// (score·incidents 는 football-fast-poller 가 2초 cycle 로 따로 담당).
+let liveCursor = 0;
 
 if (!TS_USER || !TS_SECRET) {
   console.error("❌ THESPORTS_USER / THESPORTS_SECRET missing");
@@ -352,13 +358,18 @@ async function poll() {
       console.log(`    delta cached: teamStats=${teamStatsPushed} playerStats=${playerStatsPushed} halfTeamStats=${halfStatsPushed}`);
     }
 
-    // 2. LIVE 는 매 cycle 처리(timing 민감), 남은 슬롯은 비-LIVE 를 커서로 회전.
-    //    기존엔 LIVE 우선 정렬 후 앞에서 20개만 잘라 매 cycle 같은 구간만 봤다.
-    //    그래서 상한 밖 예정 매치는 순번을 못 받고 lineup(=부상자 명단) 이 안 쌓였다.
+    // 2. LIVE 를 먼저 채우고 남은 슬롯을 비-LIVE 로 채운다. 양쪽 다 커서로 회전.
+    //    앞에서 20개만 자르면 상한 밖 매치가 매 cycle 같은 이유로 밀려 영영 처리되지 않는다.
     //    호출량은 그대로 — 보는 구간만 매번 바뀐다.
     const liveList = pairs.filter((p) => isLiveStatus(p.ts.status_id));
     const restList = pairs.filter((p) => !isLiveStatus(p.ts.status_id));
-    const slice = liveList.slice(0, MAX_MATCHES_PER_POLL);
+    const slice = [];
+    if (liveList.length > 0) {
+      const liveTaken = Math.min(MAX_MATCHES_PER_POLL, liveList.length);
+      const start = liveCursor % liveList.length;
+      for (let i = 0; i < liveTaken; i++) slice.push(liveList[(start + i) % liveList.length]);
+      liveCursor = start + liveTaken; // 다음 cycle 은 이어지는 구간부터
+    }
     let restTaken = 0;
     if (restList.length > 0 && slice.length < MAX_MATCHES_PER_POLL) {
       restTaken = Math.min(MAX_MATCHES_PER_POLL - slice.length, restList.length);
