@@ -47,17 +47,33 @@ interface SalaryTableRow {
   birthday?: string;
 }
 
-export default async function KboSalariesPage() {
-  // 전체는 900명대(퓨처스 포함)라 하위는 최저연봉 동률만 이어진다 → 상위 100명만 노출.
-  const rows = await prisma.playerSalary.findMany({
+export default async function KboSalariesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ team?: string }>;
+}) {
+  const { team: teamParam } = await searchParams;
+  // 구단 필터 pill — DB 실측 distinct (JSON·DB 동일한 10개 약칭: KIA·KT·LG·NC·SSG·두산·롯데·삼성·키움·한화)
+  const teamRows = await prisma.playerSalary.findMany({
     where: { league: "KBO" },
+    distinct: ["teamName"],
+    select: { teamName: true },
+    orderBy: { teamName: "asc" },
+  });
+  const teams = teamRows.map((t) => t.teamName);
+  const team = teamParam && teams.includes(teamParam) ? teamParam : null;
+
+  // 전체는 900명대(퓨처스 포함)라 하위는 최저연봉 동률만 이어진다 → 상위 100명만 노출.
+  // 구단 필터 시에도 rank 는 전체 기준 유지 (재계산 안 함).
+  const rows = await prisma.playerSalary.findMany({
+    where: { league: "KBO", ...(team ? { teamName: team } : {}) },
     orderBy: { rank: "asc" },
     take: 100,
   });
   const season = rows[0]?.season ?? "2026";
 
   // 외국인은 달러 공시라 DB(통화 구분 없음)를 거치지 않고 JSON 을 직접 읽는다.
-  const foreignAll = getKboForeignSalaries();
+  const foreignAll = getKboForeignSalaries().filter((r) => !team || r.teamName === team);
 
   const domestic: SalaryTableRow[] = rows.map((r) => {
     const official = lookupKboSalaryPlayer(r.playerName, r.teamName);
@@ -118,7 +134,9 @@ export default async function KboSalariesPage() {
           <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> KBO 연봉 랭킹
         </h1>
         <p className="text-sm text-neutral-500 leading-relaxed break-keep">
-          {season} 시즌 국내 선수 연봉 순위 상위 {rows.length}명. 10개 구단 전 선수를 KBO 공식 프로필에서 집계했습니다.
+          {team
+            ? `${season} 시즌 ${team} 국내 선수 연봉 상위 ${rows.length}명 (순위는 전체 기준).`
+            : `${season} 시즌 국내 선수 연봉 순위 상위 ${rows.length}명. 10개 구단 전 선수를 KBO 공식 프로필에서 집계했습니다.`}
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link href="/leagues/KBO" className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
@@ -126,6 +144,14 @@ export default async function KboSalariesPage() {
           </Link>
         </div>
       </header>
+
+      {/* 구단별 필터 — MLB/NBA/NHL 뷰 토글과 동일 pill 스타일 */}
+      <div className="flex flex-wrap items-center gap-2">
+        <TeamPill href="/salaries/kbo" on={!team} label="전체" />
+        {teams.map((t) => (
+          <TeamPill key={t} href={`/salaries/kbo?team=${encodeURIComponent(t)}`} on={team === t} label={t} />
+        ))}
+      </div>
 
       {rows.length === 0 ? (
         <p className="py-16 text-center text-sm text-neutral-400">연봉 데이터를 불러오는 중입니다.</p>
@@ -151,6 +177,22 @@ export default async function KboSalariesPage() {
         {" 공식·언론 종합."}
       </footer>
     </main>
+  );
+}
+
+/** 구단 필터 pill — MLB/NBA/NHL ViewToggle 과 동일 스타일. */
+function TeamPill({ href, on, label }: { href: string; on: boolean; label: string }) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        on
+          ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+          : "text-neutral-600 dark:text-neutral-300 ring-1 ring-black/10 dark:ring-white/15 hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }
 

@@ -12,6 +12,7 @@ import PlayerPhoto from "@/components/PlayerPhoto";
 import TeamBadge from "@/components/TeamBadge";
 import {
   getSoccerSalaries,
+  type SoccerBigLeague,
   SOCCER_LEAGUE_KO,
   SOCCER_SALARY_AS_OF,
   SOCCER_SALARY_SEASON,
@@ -167,9 +168,26 @@ async function buildPlayerMatcher(): Promise<
   }
 }
 
-export default async function SoccerSalariesPage() {
+export default async function SoccerSalariesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ league?: string }>;
+}) {
+  const { league: leagueParam } = await searchParams;
+  const leagueFilter = (BIG5 as readonly string[]).includes(leagueParam ?? "")
+    ? (leagueParam as SoccerBigLeague)
+    : null;
   const [rate, logoOf, matchPlayer] = await Promise.all([fetchEurKrw(), buildLogoMap(), buildPlayerMatcher()]);
-  const rows = getSoccerSalaries();
+  const allRows = getSoccerSalaries();
+  // 리그 필터 시에도 순위는 전체 기준 유지 (rank 재계산 안 함)
+  const rows = leagueFilter ? allRows.filter((r) => r.league === leagueFilter) : allRows;
+
+  const pill = (on: boolean) =>
+    `rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      on
+        ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+        : "text-neutral-600 dark:text-neutral-300 ring-1 ring-black/10 dark:ring-white/15 hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10"
+    }`;
 
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
@@ -189,8 +207,8 @@ export default async function SoccerSalariesPage() {
           <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> 축구 선수 연봉
         </h1>
         <p className="text-sm text-neutral-500 leading-relaxed break-keep">
-          {SOCCER_SALARY_SEASON} 시즌 유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 최고 연봉 {rows.length}명의
-          세전 연봉 추정치(보너스 제외, 유로·원화) 순위.
+          {SOCCER_SALARY_SEASON} 시즌 유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 최고 연봉 {allRows.length}명의
+          세전 연봉 추정치(보너스 제외, 유로·원화) 순위{leagueFilter ? ` — ${SOCCER_LEAGUE_KO[leagueFilter]} ${rows.length}명` : ""}.
         </p>
       </header>
 
@@ -207,6 +225,16 @@ export default async function SoccerSalariesPage() {
         </Link>
         .
       </p>
+
+      {/* 리그별 필터 — MLB/NBA/NHL 뷰 토글과 동일 pill 스타일 (순위는 전체 기준 유지) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Link href="/salaries/soccer" className={pill(!leagueFilter)}>전체</Link>
+        {BIG5.map((lg) => (
+          <Link key={lg} href={`/salaries/soccer?league=${lg}`} className={pill(leagueFilter === lg)}>
+            {SOCCER_LEAGUE_KO[lg]}
+          </Link>
+        ))}
+      </div>
 
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
         <table className="w-full text-sm">
