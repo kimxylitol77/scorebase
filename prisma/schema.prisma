@@ -1171,26 +1171,34 @@ model InjurySnapshot {
   id         Int      @id @default(autoincrement())
   capturedAt DateTime @default(now()) // 스냅샷 시각
   capturedOn String // "2026-08-03" — 같은 날 재수집 시 멱등 키
+  sport      String // soccer | baseball
   league     String
   teamName   String
   teamId     Int? // 우리 Team.id (매칭되면)
-  playerAfId Int // api-football player id
+  /// 종목마다 선수 식별자가 달라 통합 키를 쓴다. "af:12345" · "kbo:김재웅" · "npb:1234" · "mlb:5116851"
+  playerKey  String
+  playerAfId Int? // api-football player id (축구만)
   playerTsId String? // TheSports player id (스탯 join 용)
   playerName String
-  reason     String? // "Knee Injury" 등 원문 사유
-  type       String? // "Missing Fixture" | "Questionable" 등
+  reason     String? // "Knee Injury" · "부상자 명단" 등 원문 사유
+  type       String? // "Missing Fixture" | "60-Day-IL" | "demote" 등
 
   // ── 그 시점의 주전 지표 (백테스트의 핵심) ──
-  starts           Int? // 시즌 선발 출전 수
-  matches          Int? // 시즌 출전 경기 수
-  minutes          Int? // 시즌 출전 시간
-  /// 팀 내 출전시간 비중 (0~1). 후보 ~0.01 vs 주전 ~0.09 로 갈린다.
-  teamMinutesShare Float?
-  marketValue      Float? // 보조 가중치 (€)
+  starts  Int? // 축구: 선발 출전 수
+  matches Int? // 출전 경기 수 (축구·야구 공통)
+  minutes Int? // 축구: 출전 시간
+  innings Float? // 야구 투수: 이닝
+  /// 팀 내 기여 비중 (0~1). 축구=출전시간 / 야구 투수=이닝 / 야구 타자=출장경기.
+  /// 후보 ~0.01 vs 주전 ~0.09. **부상자 수를 세지 않기 위한 핵심 컬럼**이다.
+  teamShare Float?
+  /// teamShare 가 무엇을 기준으로 나온 값인지 — 나중에 종목별로 다르게 해석해야 한다
+  shareBasis  String? // minutes | innings | games
+  marketValue Float? // 보조 가중치 (€)
 
-  @@unique([capturedOn, league, playerAfId])
+  @@unique([capturedOn, league, playerKey])
   @@index([league, capturedAt])
-  @@index([playerAfId])
+  @@index([sport, capturedAt])
+  @@index([playerKey])
 }
 
 /// TheSports 선수 시장가치(몸값) — player/market/list 수집. id = ts player id.

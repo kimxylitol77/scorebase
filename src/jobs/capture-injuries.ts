@@ -13,6 +13,11 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { fetchSeasonInjuries } from "@/lib/sports/api-football-pro";
 import { starterShareByAfId } from "@/lib/predict/starter-share";
+import { buildBaseballShareIndex, baseballShareByName } from "@/lib/predict/baseball-share";
+import { fetchKboInjuries } from "@/lib/sports/kbo-injuries";
+import { fetchNpbInjuries, activeNpbInjuries } from "@/lib/sports/npb-injuries";
+import { fetchEspnInjuries } from "@/lib/sports/espn-injuries";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 
 /** 부상자 데이터가 실제로 오고, 시즌스탯으로 주전도까지 붙는 리그 (/injuries 페이지와 동일 집합) */
 const LEAGUES = [
@@ -71,35 +76,117 @@ export async function runCaptureInjuries(opts?: {
       else res.withoutShare++;
 
       if (!apply) continue;
-      await prisma.injurySnapshot
-        .upsert({
-          where: { capturedOn_league_playerAfId: { capturedOn, league, playerAfId: r.playerId } },
-          create: {
-            capturedOn, league,
-            teamName: r.teamName ?? "",
-            playerAfId: r.playerId,
-            playerTsId: share?.tsId ?? null,
-            playerName: r.playerName ?? "",
-            reason: r.reason || null,
-            type: r.type || null,
-            starts: share?.starts ?? null,
-            matches: share?.matches ?? null,
-            minutes: share?.minutes ?? null,
-            teamMinutesShare: share?.teamMinutesShare ?? null,
-          },
-          update: {
-            reason: r.reason || null,
-            type: r.type || null,
-            teamMinutesShare: share?.teamMinutesShare ?? null,
-          },
-        })
-        .then(() => { res.saved++; })
-        .catch((e) => {
-          console.warn(`[capture-injuries] ${league} af#${r.playerId} 저장 실패: ${(e as Error).message}`);
-        });
+      await save(res, {
+        capturedOn, sport: "soccer", league,
+        teamName: r.teamName ?? "",
+        playerKey: `af:${r.playerId}`,
+        playerAfId: r.playerId,
+        playerTsId: share?.tsId ?? null,
+        playerName: r.playerName ?? "",
+        reason: r.reason || null,
+        type: r.type || null,
+        starts: share?.starts ?? null,
+        matches: share?.matches ?? null,
+        minutes: share?.minutes ?? null,
+        teamShare: share?.teamMinutesShare ?? null,
+        shareBasis: share?.teamMinutesShare != null ? "minutes" : null,
+      });
     }
   }
+
+  await captureBaseball(res, capturedOn, apply);
   return res;
+}
+
+interface SnapshotRow {
+  capturedOn: string; sport: string; league: string; teamName: string;
+  playerKey: string; playerAfId?: number | null; playerTsId?: string | null;
+  playerName: string; reason: string | null; type: string | null;
+  starts?: number | null; matches?: number | null; minutes?: number | null;
+  innings?: number | null; teamShare: number | null; shareBasis: string | null;
+}
+
+async function save(res: CaptureInjuriesResult, row: SnapshotRow) {
+  await prisma.injurySnapshot
+    .upsert({
+      where: {
+        capturedOn_league_playerKey: {
+          capturedOn: row.capturedOn, league: row.league, playerKey: row.playerKey,
+        },
+      },
+      create: row,
+      update: { reason: row.reason, type: row.type, teamShare: row.teamShare, shareBasis: row.shareBasis },
+    })
+    .then(() => { res.saved++; })
+    .catch((e) => {
+      console.warn(`[capture-injuries] ${row.league} ${row.playerKey} 저장 실패: ${(e as Error).message}`);
+    });
+}
+
+/**
+ * 야구 — 소스가 리그마다 다르다(KBO 스크랩·NPB 1군 말소·MLB ESPN IL).
+ *   선수 id 체계도 제각각이라 **이름으로 붙인다**. 실측 매칭률 KBO 94%.
+ *   NPB 부상자는 일본어 원문이라 npbPlayerToKorean 을 거쳐야 한글 스탯과 만난다.
+ */
+async function captureBaseball(res: CaptureInjuriesResult, capturedOn: string, apply: boolean) {
+  for (const league of ["KBO", "NPB", "MLB"]) {
+    const idx = await buildBaseballShareIndex(league);
+    interface Item { name: string; team: string; key: string; reason: string | null; type: string | null }
+    let items: Item[] = [];
+    try {
+      if (league === "KBO") {
+        items = (await fetchKboInjuries()).map((i) => ({
+          name: i.playerName, team: i.teamFullName ?? "", key: `kbo:${i.playerName}`,
+          reason: i.type ?? null, type: i.duration ?? null,
+        }));
+      } else if (league === "NPB") {
+        items = activeNpbInjuries(await fetchNpbInjuries(30)).map((i) => {
+          const raw = (i as { playerName?: string }).playerName ?? "";
+          const pid = (i as { pid?: string }).pid ?? "";
+          return {
+            // 스탯은 한글명이라 원문을 음역해 맞춘다
+            name: npbPlayerToKorean(raw), team: (i as { teamKor?: string }).teamKor ?? "",
+            key: `npb:${pid || raw}`,
+            reason: (i as { positionKo?: string }).positionKo ?? null,
+            type: (i as { kind?: string }).kind ?? null,
+          };
+        });
+      } else {
+        items = (await fetchEspnInjuries("MLB")).map((i) => ({
+          name: i.playerName, team: i.teamName ?? "",
+          key: `mlb:${(i as { playerId?: number }).playerId ?? i.playerName}`,
+          reason: i.reason ?? null, type: (i as { status?: string }).status ?? null,
+        }));
+      }
+    } catch (e) {
+      console.warn(`[capture-injuries] ${league} fetch 실패: ${(e as Error).message}`);
+      continue;
+    }
+
+    const seen = new Set<string>();
+    for (const it of items) {
+      if (!it.name || seen.has(it.key)) continue;
+      seen.add(it.key);
+      res.scanned++;
+      res.byLeague[league] = (res.byLeague[league] ?? 0) + 1;
+      const sh = baseballShareByName(idx, it.name);
+      if (sh?.teamShare != null) res.withShare++;
+      else res.withoutShare++;
+      if (!apply) continue;
+      await save(res, {
+        capturedOn, sport: "baseball", league,
+        teamName: sh?.teamName || it.team,
+        playerKey: it.key,
+        playerName: it.name,
+        reason: it.reason,
+        type: it.type,
+        matches: sh?.matches ?? null,
+        innings: sh?.innings ?? null,
+        teamShare: sh?.teamShare ?? null,
+        shareBasis: sh?.shareBasis ?? null,
+      });
+    }
+  }
 }
 
 if (require.main === module) {
