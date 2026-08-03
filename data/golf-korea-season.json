@@ -1,16 +1,22 @@
 {
   "year": "2026",
-  "updatedAt": "2026-08-02T00:00:09.462Z",
+  "updatedAt": "2026-08-03T00:00:12.516Z",
   "players": [
     {
       "tour": "LPGA",
       "name": "Haeran Ryu",
       "id": "10620",
-      "starts": 12,
+      "starts": 13,
       "wins": 2,
       "top10": 6,
       "best": 1,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 11,
+          "score": "-1"
+        },
         {
           "event": "The Amundi Evian Championship",
           "date": "2026-07-09",
@@ -34,12 +40,6 @@
           "date": "2026-05-07",
           "order": 16,
           "score": "-3"
-        },
-        {
-          "event": "The Chevron Championship",
-          "date": "2026-04-23",
-          "order": 12,
-          "score": "-4"
         }
       ],
       "nameKo": "유해란"
@@ -48,11 +48,17 @@
       "tour": "LPGA",
       "name": "Hyo Joo Kim",
       "id": "7913",
-      "starts": 11,
+      "starts": 12,
       "wins": 2,
       "top10": 4,
       "best": 1,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 16,
+          "score": "+1"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -76,12 +82,6 @@
           "date": "2026-06-04",
           "order": 122,
           "score": "+9"
-        },
-        {
-          "event": "The Chevron Championship",
-          "date": "2026-04-23",
-          "order": 6,
-          "score": "-7"
         }
       ],
       "nameKo": "김효주"
@@ -132,11 +132,17 @@
       "tour": "LPGA",
       "name": "Jenny Shin",
       "id": "8543",
-      "starts": 13,
+      "starts": 14,
       "wins": 1,
       "top10": 2,
       "best": 1,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 51,
+          "score": "+8"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -160,12 +166,6 @@
           "date": "2026-06-18",
           "order": 76,
           "score": "-1"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 144,
-          "score": "E"
         }
       ],
       "nameKo": "신지은"
@@ -174,11 +174,17 @@
       "tour": "LPGA",
       "name": "Mi Hyang Lee",
       "id": "8032",
-      "starts": 12,
+      "starts": 13,
       "wins": 1,
       "top10": 1,
       "best": 1,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 65,
+          "score": "+13"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -202,12 +208,6 @@
           "date": "2026-06-18",
           "order": 56,
           "score": "-3"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 118,
-          "score": "+9"
         }
       ],
       "nameKo": "이미향"
@@ -216,11 +216,17 @@
       "tour": "PGA",
       "name": "Si Woo Kim",
       "id": "7081",
-      "starts": 20,
+      "starts": 21,
       "wins": 0,
       "top10": 10,
       "best": 2,
       "recent": [
+        {
+          "event": "Rocket Classic",
+          "date": "2026-07-30",
+          "order": 44,
+          "score": "-6"
+        },
         {
           "event": "The Open",
           "date": "2026-07-16",
@@ -244,12 +250,6 @@
           "date": "2026-06-18",
           "order": 86,
           "score": "+6"
-        },
-        {
-          "event": "the Memorial Tournament pres. by Workday",
-          "date": "2026-06-04",
-          "order": 10,
-          "score": "-5"
         }
       ],
       "nameKo": "김시우"
@@ -258,11 +258,17 @@
       "tour": "LPGA",
       "name": "Somi Lee",
       "id": "4939782",
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 5,
       "best": 4,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 88,
+          "score": "+6"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -286,12 +292,6 @@
           "date": "2026-06-18",
           "order": 10,
           "score": "-11"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 40,
-          "score": "+5"
         }
       ],
       "nameKo": "이소미"
@@ -300,11 +300,17 @@
       "tour": "LPGA",
       "name": "Ina Yoon",
       "id": "5259423",
-      "starts": 13,
+      "starts": 14,
       "wins": 0,
       "top10": 4,
       "best": 2,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 87,
+          "score": "+6"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -328,12 +334,6 @@
           "date": "2026-06-04",
           "order": 80,
           "score": "+5"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 14,
-          "score": "-4"
         }
       ],
       "nameKo": "윤이나"
@@ -342,11 +342,17 @@
       "tour": "LPGA",
       "name": "Sei Young Kim",
       "id": "9212",
-      "starts": 13,
+      "starts": 14,
       "wins": 0,
       "top10": 4,
       "best": 3,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 34,
+          "score": "+4"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -370,12 +376,6 @@
           "date": "2026-06-04",
           "order": 5,
           "score": "-5"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 42,
-          "score": "+1"
         }
       ],
       "nameKo": "김세영"
@@ -384,11 +384,17 @@
       "tour": "LPGA",
       "name": "A Lim Kim",
       "id": "4396037",
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 3,
       "best": 2,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 95,
+          "score": "+7"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -412,12 +418,6 @@
           "date": "2026-06-04",
           "order": 19,
           "score": "+1"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 32,
-          "score": "-1"
         }
       ],
       "nameKo": "김아림"
@@ -426,11 +426,17 @@
       "tour": "LPGA",
       "name": "Jin Hee Im",
       "id": "4612982",
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 3,
       "best": 2,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 18,
+          "score": "+1"
+        },
         {
           "event": "The Amundi Evian Championship",
           "date": "2026-07-09",
@@ -454,12 +460,6 @@
           "date": "2026-06-04",
           "order": 20,
           "score": "+1"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 56,
-          "score": "+3"
         }
       ],
       "nameKo": "임진희"
@@ -468,11 +468,17 @@
       "tour": "LPGA",
       "name": "Hye-Jin Choi",
       "id": "9945",
-      "starts": 15,
+      "starts": 16,
       "wins": 0,
       "top10": 3,
       "best": 6,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 112,
+          "score": "+8"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -496,12 +502,6 @@
           "date": "2026-06-04",
           "order": 51,
           "score": "+7"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 143,
-          "score": "-4"
         }
       ],
       "nameKo": "최혜진"
@@ -510,11 +510,17 @@
       "tour": "LPGA",
       "name": "In Gee Chun",
       "id": "9208",
-      "starts": 11,
+      "starts": 12,
       "wins": 0,
       "top10": 2,
       "best": 4,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 114,
+          "score": "+9"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -538,12 +544,6 @@
           "date": "2026-06-04",
           "order": 4,
           "score": "-6"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 31,
-          "score": "-1"
         }
       ],
       "nameKo": "전인지"
@@ -552,11 +552,17 @@
       "tour": "LPGA",
       "name": "Minji Kang",
       "id": "5195963",
-      "starts": 13,
+      "starts": 14,
       "wins": 0,
       "top10": 2,
       "best": 5,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 67,
+          "score": "+13"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -580,12 +586,6 @@
           "date": "2026-06-18",
           "order": 5,
           "score": "-14"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 21,
-          "score": "+1"
         }
       ],
       "nameKo": "강민지"
@@ -594,11 +594,17 @@
       "tour": "PGA",
       "name": "Sungjae Im",
       "id": "11382",
-      "starts": 18,
+      "starts": 19,
       "wins": 0,
       "top10": 2,
       "best": 6,
       "recent": [
+        {
+          "event": "Rocket Classic",
+          "date": "2026-07-30",
+          "order": 15,
+          "score": "-11"
+        },
         {
           "event": "3M Open",
           "date": "2026-07-23",
@@ -622,12 +628,6 @@
           "date": "2026-07-02",
           "order": 73,
           "score": "-3"
-        },
-        {
-          "event": "Travelers Championship",
-          "date": "2026-06-25",
-          "order": 34,
-          "score": "-11"
         }
       ],
       "nameKo": "임성재"
@@ -636,11 +636,17 @@
       "tour": "LPGA",
       "name": "Soo Bin Joo",
       "id": "5138914",
-      "starts": 12,
+      "starts": 13,
       "wins": 0,
       "top10": 2,
       "best": 7,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 21,
+          "score": "+2"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -664,12 +670,6 @@
           "date": "2026-06-18",
           "order": 106,
           "score": "+1"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 7,
-          "score": "-6"
         }
       ],
       "nameKo": "주수빈"
@@ -678,11 +678,17 @@
       "tour": "LPGA",
       "name": "Amy Yang",
       "id": "8807",
-      "starts": 12,
+      "starts": 13,
       "wins": 0,
       "top10": 1,
       "best": 2,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 50,
+          "score": "+8"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -706,12 +712,6 @@
           "date": "2026-06-18",
           "order": 39,
           "score": "-6"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 43,
-          "score": "+5"
         }
       ],
       "nameKo": "양희영"
@@ -720,11 +720,17 @@
       "tour": "LPGA",
       "name": "Jin Young Ko",
       "id": "9758",
-      "starts": 12,
+      "starts": 13,
       "wins": 0,
       "top10": 1,
       "best": 5,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 47,
+          "score": "+8"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -748,12 +754,6 @@
           "date": "2026-06-18",
           "order": 52,
           "score": "-4"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 141,
-          "score": "+12"
         }
       ],
       "nameKo": "고진영"
@@ -762,11 +762,17 @@
       "tour": "LPGA",
       "name": "Youmin Hwang",
       "id": "5141008",
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 1,
       "best": 6,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 140,
+          "score": "+13"
+        },
         {
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
@@ -790,12 +796,6 @@
           "date": "2026-06-18",
           "order": 27,
           "score": "-7"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 85,
-          "score": "+6"
         }
       ],
       "nameKo": "황유민"
@@ -1176,11 +1176,17 @@
       "tour": "LPGA",
       "name": "Jiyai Shin",
       "id": "8544",
-      "starts": 1,
+      "starts": 2,
       "wins": 0,
       "top10": 0,
       "best": 35,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 78,
+          "score": "+5"
+        },
         {
           "event": "U.S. Women's Open pres. by Ally",
           "date": "2026-06-04",
@@ -1296,11 +1302,17 @@
       "tour": "LPGA",
       "name": "Yunseo Yang",
       "id": "5343626",
-      "starts": 2,
+      "starts": 3,
       "wins": 0,
       "top10": 0,
       "best": 43,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 55,
+          "score": "+9"
+        },
         {
           "event": "The Amundi Evian Championship",
           "date": "2026-07-09",
@@ -1374,11 +1386,17 @@
       "tour": "LPGA",
       "name": "Minsol Kim",
       "id": "5075180",
-      "starts": 1,
+      "starts": 2,
       "wins": 0,
       "top10": 0,
       "best": 55,
       "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 97,
+          "score": "+7"
+        },
         {
           "event": "U.S. Women's Open pres. by Ally",
           "date": "2026-06-04",
@@ -1564,6 +1582,24 @@
     },
     {
       "tour": "LPGA",
+      "name": "Minsun7 Kim",
+      "id": "5383624",
+      "starts": 1,
+      "wins": 0,
+      "top10": 0,
+      "best": 101,
+      "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 101,
+          "score": "+7"
+        }
+      ],
+      "nameKo": "김민선"
+    },
+    {
+      "tour": "LPGA",
       "name": "Jungmin Hong",
       "id": "4421859",
       "starts": 2,
@@ -1603,6 +1639,24 @@
         }
       ],
       "nameKo": "이정환"
+    },
+    {
+      "tour": "LPGA",
+      "name": "In Kyung Kim",
+      "id": "7915",
+      "starts": 1,
+      "wins": 0,
+      "top10": 0,
+      "best": 125,
+      "recent": [
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 125,
+          "score": "+10"
+        }
+      ],
+      "nameKo": "김인경"
     },
     {
       "tour": "PGA",
