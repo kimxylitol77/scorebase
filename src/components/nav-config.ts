@@ -83,6 +83,7 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     // 게시판 통합(BoardTabs) — 분석·자유·브리핑·블로그·공지가 한 탭 바로 묶여 메뉴도 1개
     { href: "/analysis", label: "게시판", desc: "분석·자유·브리핑·블로그·공지 한 곳에" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
+    { href: "/picks/strong", label: "고확신 픽", desc: "AI가 자신 있어 하는 경기만 · 회원 공개" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.6 적중률 대결" },
     { href: "/lab", label: "커스텀 봇", desc: "손잡이 5개로 나만의 예측 봇 · 즉석 백테스트" },
