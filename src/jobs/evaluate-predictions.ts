@@ -195,18 +195,8 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
   );
   if (pending.length === 0) return { evaluated: 0, byLeague: {} };
 
-  // PREVIEW 글이 있는 매치 — predHome/predWinner 는 글 생성 시점 값을 보존(덮어쓰기 X).
+  // 저장된 예측(PREVIEW 글 시점이든 predict-upcoming 이든)은 아래에서 그대로 채점한다.
   // 본문(Article.predHome) = Match.predHome = 위젯 단일 소스 유지. evaluate 는 채점만.
-  // (글 없는 매치는 아래에서 기존대로 재계산 — 적중률 백테스트 표본 확보)
-  const previewArticles = await prisma.article.findMany({
-    where: {
-      type: "PREVIEW",
-      predWinner: { not: null },
-      matchId: { in: pending.map((m) => m.id) },
-    },
-    select: { matchId: true },
-  });
-  const hasPreview = new Set(previewArticles.map((a) => a.matchId));
 
   // 리그별 전체 매치 한 번씩만 가져오기 (in-memory 캐시)
   const leagues = Array.from(new Set(pending.map((m) => m.league)));
@@ -311,9 +301,16 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
           : "DRAW";
     const actualW = actualWinnerOf(gs.home, gs.away);
 
-    // PREVIEW 글이 있으면 글 생성 시점 예측(Match.predWinner)을 그대로 채점 — 덮어쓰기 X.
-    // 글 없으면 방금 재계산한 값으로 평가 (적중률 백테스트).
-    const useStored = hasPreview.has(m.id) && m.predWinner != null;
+    // 경기 전에 저장된 예측이 있으면 그걸 그대로 채점한다 — 덮어쓰기 X.
+    //
+    // 예전엔 PREVIEW 글이 있는 경기만 저장값을 썼고, 나머지는 채점 시점에 재계산한 값으로
+    //   predHome/predWinner 를 덮어썼다. 그 결과 채점 11,611건 중 9,449건(81%)이 "사후에
+    //   다시 계산한 픽"이었다(2026-08-03 실측). 사용자에게 미리 보여준 픽과 적중률의 근거가
+    //   달라지는 구조라, 예측을 사전에 채우는 predict-upcoming 잡을 들이면서 바로잡는다.
+    //   predWinner 는 우리 모델이 채운 값이므로 출처가 PREVIEW 든 predict-upcoming 이든 같다.
+    //
+    // ⚠️ 이 조건을 되돌리면 "보여준 픽"과 "채점한 픽"이 다시 어긋난다.
+    const useStored = m.predWinner != null;
     const winner = useStored ? (m.predWinner as "HOME" | "DRAW" | "AWAY") : recalcWinner;
     const correct = winner === actualW;
 

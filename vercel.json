@@ -221,6 +221,10 @@
       "schedule": "30 21 * * *"
     },
     {
+      "path": "/api/cron/predict-upcoming",
+      "schedule": "0 3,13 * * *"
+    },
+    {
       "path": "/api/cron/baseball-starters",
       "schedule": "30 1 * * *"
     },
