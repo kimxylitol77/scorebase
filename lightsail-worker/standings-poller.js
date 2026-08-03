@@ -207,6 +207,12 @@ async function heartbeat(body) {
   }
 }
 
+// 리그별 연속 실패 횟수 — 일시 오류와 "그 리그만 계속 죽는" 상태를 가른다.
+//   프로세스 재시작 시 리셋되지만, 재시작 자체가 드물고 리셋돼도 다시 쌓이므로 충분하다.
+const leagueFailStreak = new Map();
+const ERR_TOLERANCE = 2; // 한 회차에 이만큼까지는 일시 오류로 본다
+const LEAGUE_FAIL_STREAK_ALERT = 3; // 같은 리그가 이만큼 연속 실패하면 알린다
+
 async function poll() {
   const startedAt = Date.now();
   const ts = new Date().toISOString();
@@ -239,11 +245,14 @@ async function poll() {
       }
       await postCache(l.league, l.tsSeasonId, payload);
       ok++;
+      leagueFailStreak.delete(l.league);
     } catch (e) {
       err++;
+      leagueFailStreak.set(l.league, (leagueFailStreak.get(l.league) ?? 0) + 1);
       const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      const streak = leagueFailStreak.get(l.league);
       failed.push(`${l.league}:${String(msg).slice(0, 60)}`);
-      console.error(`  ✗ ${l.league} (${l.tsSeasonId}): ${msg}`);
+      console.error(`  ✗ ${l.league} (${l.tsSeasonId}): ${msg}${streak > 1 ? ` [연속 ${streak}회]` : ""}`);
     }
     await sleep(CALL_GAP_MS);
   }
@@ -292,10 +301,23 @@ async function poll() {
   console.log(
     `[${new Date().toISOString()}] summary: ok=${ok} empty=${empty} err=${err} (${Math.round(durationMs / 1000)}s, source=${source})`,
   );
+  // 151개 리그 중 한둘이 삐끗한 것과 폴러가 죽은 것은 다르다. 1건 실패에도 ok:false 를 보내면
+  //   서버가 즉시 텔레그램을 쏘는데, 다음 회차에 그냥 복구되는 경우가 대부분이다
+  //   (2026-08-03 CHINA_3 일시 500 — 다음 회차 err:0, 같은 요청 재현 시 200).
+  //
+  // ⚠️ 그렇다고 그냥 눈감으면 안 된다. data-sanity 의 standings_stale 은 12개 리그
+  //   (STANDINGS_CHECK_LEAGUES)만 보므로 나머지 130여 개는 캐시가 굳어도 아무도 모른다.
+  //   그래서 여기서 리그별 연속 실패를 세어, 같은 리그가 계속 실패하면 그때 알린다.
+  const persistent = [...leagueFailStreak.entries()].filter(([, n]) => n >= LEAGUE_FAIL_STREAK_ALERT);
+  const tooMany = err > ERR_TOLERANCE;
+  const shouldAlert = tooMany || persistent.length > 0;
+  const reason = tooMany
+    ? `${err} leagues failed: ${failed.slice(0, 5).join(", ")}`
+    : `연속 실패 리그: ${persistent.map(([lg, n]) => `${lg}(${n}회)`).join(", ")}`;
   await heartbeat({
-    ok: err === 0,
+    ok: !shouldAlert,
     durationMs,
-    ...(err > 0 ? { error: `${err} leagues failed: ${failed.slice(0, 5).join(", ")}` } : {}),
+    ...(shouldAlert ? { error: reason } : {}),
     metadata: {
       seasonSource: source,
       leagues: seasons.length,
@@ -303,6 +325,8 @@ async function poll() {
       empty,
       err,
       failedLeagues: failed.slice(0, 20),
+      // 연속 실패 중인 리그 — 알림이 안 나가도 admin/health 에서 추적할 수 있게 항상 싣는다
+      failStreaks: Object.fromEntries([...leagueFailStreak.entries()].slice(0, 20)),
     },
   });
 }
