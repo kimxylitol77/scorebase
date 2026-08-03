@@ -1,0 +1,13 @@
+[Unit]
+Description=Scorebase Half Backfill — 종료 매치 halfTeamStats 를 uuid detail 로 보강
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+Environment=HALF_BACKFILL_DAYS=3
+Environment=HALF_BACKFILL_LIMIT=400
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/half-backfill.js
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/half-backfill.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/half-backfill.err

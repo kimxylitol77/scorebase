@@ -1,0 +1,10 @@
+[Unit]
+Description=Scorebase Half Backfill — 2시간마다 (종료 매치 전반통계 구멍 메우기)
+
+[Timer]
+OnCalendar=*-*-* 00/2:20:00
+Persistent=true
+Unit=scorebase-half-backfill.service
+
+[Install]
+WantedBy=timers.target
