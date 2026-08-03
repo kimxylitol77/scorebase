@@ -1158,6 +1158,41 @@ model UserCosmetic {
   @@index([userId])
 }
 
+/// 부상자 일일 스냅샷 — 결장이 경기 결과에 주는 영향을 나중에 백테스트하기 위한 원장.
+///
+/// 왜 스냅샷인가. 부상자는 api-football /injuries 를 그때그때 호출해 in-memory 로만 쓰고 있어
+/// **과거 시점 명단이 남지 않는다.** 그래서 "그날 누가 빠졌나 → 결과가 어땠나"를 검증할 수 없다.
+///
+/// ⚠️ starts·minutes·teamMinutesShare 를 **함께 박아두는 게 이 테이블의 존재 이유**다.
+/// 시즌스탯은 계속 갱신되므로 나중에 조회하면 "지금" 값이지 "그때" 값이 아니다.
+/// 그리고 부상자 **수**를 세면 안 된다 — 후보 1명과 주전 에이스가 같을 수 없다(사용자 지시).
+/// teamMinutesShare(팀 내 출전시간 비중)가 그 구분을 담당한다.
+model InjurySnapshot {
+  id         Int      @id @default(autoincrement())
+  capturedAt DateTime @default(now()) // 스냅샷 시각
+  capturedOn String // "2026-08-03" — 같은 날 재수집 시 멱등 키
+  league     String
+  teamName   String
+  teamId     Int? // 우리 Team.id (매칭되면)
+  playerAfId Int // api-football player id
+  playerTsId String? // TheSports player id (스탯 join 용)
+  playerName String
+  reason     String? // "Knee Injury" 등 원문 사유
+  type       String? // "Missing Fixture" | "Questionable" 등
+
+  // ── 그 시점의 주전 지표 (백테스트의 핵심) ──
+  starts           Int? // 시즌 선발 출전 수
+  matches          Int? // 시즌 출전 경기 수
+  minutes          Int? // 시즌 출전 시간
+  /// 팀 내 출전시간 비중 (0~1). 후보 ~0.01 vs 주전 ~0.09 로 갈린다.
+  teamMinutesShare Float?
+  marketValue      Float? // 보조 가중치 (€)
+
+  @@unique([capturedOn, league, playerAfId])
+  @@index([league, capturedAt])
+  @@index([playerAfId])
+}
+
 /// TheSports 선수 시장가치(몸값) — player/market/list 수집. id = ts player id.
 /// 우리 TheSportsPlayer(nameKo)·TeamSourceId(thesports)·player ability 와 join.
 model PlayerMarketValue {

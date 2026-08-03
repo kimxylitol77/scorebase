@@ -225,6 +225,10 @@
       "schedule": "0 3,13 * * *"
     },
     {
+      "path": "/api/cron/capture-injuries",
+      "schedule": "30 2 * * *"
+    },
+    {
       "path": "/api/cron/baseball-starters",
       "schedule": "30 1 * * *"
     },
