@@ -135,6 +135,16 @@ function teamKeys(name: string): string[] {
 }
 
 /** api-football /players 응답의 statistics 한 행 — 우리가 읽는 필드만. */
+/** af 키 시즌스탯에 담는 최소 필드 — 부상자 주전도 판정에 쓰는 것만 (번들 크기 방어) */
+interface AfSlimStat {
+  lg: string;
+  season: string;
+  team: string;
+  matches: number | null;
+  starts: number | null;
+  minutes: number | null;
+}
+
 interface AfStatisticsRow {
   league?: { id?: number };
   games?: { position?: string; appearences?: number | null; lineups?: number | null; minutes?: number | null; rating?: string | number | null };
@@ -203,6 +213,14 @@ async function main() {
   const tsToAf: Record<string, number> = { ...(prevMap.tsToAf ?? {}) };
   const afName: Record<number, string> = {};
   const newSeasons: Record<string, ReturnType<typeof toSeasonStat>> = {};
+  // af id 를 키로 한 시즌스탯 — ts 매칭 성패와 무관하게 **수집한 선수를 전부** 담는다.
+  //   player-season-stats.json 은 키가 ts id 라 ts 와 매칭된 선수만 남는다. 그래서 ts 쪽
+  //   선수 데이터가 얕은 리그는 통째로 비어 보였다(MLS 92명, 부상자 주전도 산출률 1%).
+  //   부상자는 af id 로 조회하므로 이 파일이 있으면 매칭을 거치지 않고 바로 붙는다.
+  //
+  // ⚠️ 필드를 최소로 유지할 것. 이 파일은 서버 번들에 import 되므로 전체 스탯을 담으면
+  //   6MB 가 된다(실측). 주전도 판정에 쓰는 6개만 남겨 1MB 대로 줄였다.
+  const afSeasons: Record<number, AfSlimStat> = {};
   let byName = 0, byTok = 0, byLeague = 0, exact = 0, loose = 0, conflict = 0, noTeam = 0;
 
   // 인자로 리그 코드 주면 해당 리그만 재실행 (af quota 절약): ... MLS SAUDI_PL
@@ -297,6 +315,14 @@ async function main() {
           });
         }
         if ((d.paging?.current ?? 1) >= (d.paging?.total ?? 1)) break;
+      }
+      // ts 매칭과 무관하게 af id 키로 먼저 담는다 — 아래 recordMatch 는 매칭된 선수만 남긴다
+      for (const p of afPlayers) {
+        const full = toSeasonStat(lg, seasonLabel, p.teamName, p);
+        afSeasons[p.id] = {
+          lg: full.lg, season: full.season, team: full.team,
+          matches: full.matches, starts: full.starts, minutes: full.minutes,
+        };
       }
       allAfPlayers.push(...afPlayers);
 
@@ -403,6 +429,13 @@ async function main() {
   // 시즌스탯 병합 — 새 af 수집분이 기존(과거 스냅샷)을 덮어씀
   const mergedSeasons = { ...TS, ...newSeasons };
   fs.writeFileSync("data/player-season-stats.json", JSON.stringify(mergedSeasons, null, 0));
+
+  // af id 키 시즌스탯 — 부상자 주전도가 ts 매칭 없이 붙게 한다 (리그 단위 재실행이면 병합)
+  let prevAf: Record<number, unknown> = {};
+  try { prevAf = JSON.parse(fs.readFileSync("data/af-player-season-stats.json", "utf8")); } catch {}
+  const mergedAf = { ...prevAf, ...afSeasons };
+  fs.writeFileSync("data/af-player-season-stats.json", JSON.stringify(mergedAf, null, 0));
+  console.log(`af키 시즌스탯: 기존 ${Object.keys(prevAf).length} + 신규 ${Object.keys(afSeasons).length} = ${Object.keys(mergedAf).length}`);
 
   console.log(
     `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 토큰 ${byTok} · 리그풀 ${byLeague} · 지문 ${exact} · 완화 ${loose} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,

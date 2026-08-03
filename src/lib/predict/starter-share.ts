@@ -10,6 +10,7 @@
 //   반면 player-season-stats 는 starts·minutes 를 4,367명(95%) 보유하고 빅5 가 촘촘하다.
 //   실제 기용을 반영하므로 시장가치(잠재력·명성이 섞인다)보다 "주전인가"에 가깝다.
 import seasonStats from "../../../data/player-season-stats.json";
+import afSeasonStats from "../../../data/af-player-season-stats.json";
 import tsAfMap from "../../../data/ts-af-player-map.json";
 
 interface SeasonStat {
@@ -23,6 +24,8 @@ interface SeasonStat {
 }
 
 const STATS = seasonStats as unknown as Record<string, SeasonStat>;
+/** af id 키 스탯 — ts 매칭을 거치지 않아 커버리지가 넓다. 있으면 이쪽을 먼저 본다. */
+const AF_STATS = afSeasonStats as unknown as Record<string, SeasonStat>;
 const TS_TO_AF = (tsAfMap as { tsToAf?: Record<string, number> }).tsToAf ?? {};
 
 /**
@@ -57,8 +60,23 @@ const MIN_SQUAD_FOR_SHARE = 10;
 
 const TEAM_MINUTES: Map<string, { minutes: number; players: number }> = (() => {
   const m = new Map<string, { minutes: number; players: number }>();
+  // 두 출처를 합쳐 분모를 만든다. af 키 스탯이 더 넓으므로 같은 선수가 양쪽에 있으면
+  //   팀 합이 중복될 수 있다 — 그래서 af 를 먼저 넣고 ts 쪽은 af 에 없는 선수만 더한다.
+  const seen = new Set<string>();
+  for (const [afId, s] of Object.entries(AF_STATS)) {
+    if (!s.minutes) continue;
+    seen.add(`${s.lg}|${s.season}|${s.team}|${s.minutes}|${s.starts ?? ""}`);
+    void afId;
+    const k = `${s.lg}|${s.season}|${s.team}`;
+    const cur = m.get(k) ?? { minutes: 0, players: 0 };
+    cur.minutes += s.minutes;
+    cur.players++;
+    m.set(k, cur);
+  }
   for (const s of Object.values(STATS)) {
     if (!s.minutes) continue;
+    // af 쪽에 같은 (팀·출전시간·선발) 조합이 있으면 동일 선수로 보고 건너뛴다
+    if (seen.has(`${s.lg}|${s.season}|${s.team}|${s.minutes}|${s.starts ?? ""}`)) continue;
     const k = `${s.lg}|${s.season}|${s.team}`;
     const cur = m.get(k) ?? { minutes: 0, players: 0 };
     cur.minutes += s.minutes;
@@ -84,9 +102,9 @@ export interface StarterShare {
  * 0 으로 채우면 "후보였다"로 오해돼 나중 백테스트가 오염된다.
  */
 export function starterShareByAfId(afId: number): StarterShare | null {
-  const tsId = AF_TO_TS[afId];
-  if (!tsId) return null;
-  const s = STATS[tsId];
+  // af 키 스탯이 1순위 — ts 매칭을 못 한 선수도 여기엔 있다
+  const tsId = AF_TO_TS[afId] ?? "";
+  const s = AF_STATS[String(afId)] ?? (tsId ? STATS[tsId] : null);
   if (!s) return null;
   const denom = TEAM_MINUTES.get(`${s.lg}|${s.season}|${s.team}`);
   // 표본이 얕은 팀은 share 를 내지 않는다 — 100% 같은 헛값보다 "모른다"가 낫다
