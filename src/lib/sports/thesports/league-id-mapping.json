@@ -767,10 +767,10 @@
   {
     "code": "SVENSKA_CUPEN",
     "ourLabel": "스벤스카 컵",
-    "tsId": "z318q66h7yqo9jd",
-    "tsEn": "Svenska Cupen",
+    "tsId": "vl7oqdehdyr510j",
+    "tsEn": "Sweden Cup",
     "tsKo": "스벤스카 컵",
-    "tsSeasonId": "dj2ryohkvg4q1zp"
+    "tsSeasonId": "23xmvkh3v20qg8n"
   },
   {
     "code": "GHANA_PL",
@@ -978,23 +978,23 @@
   {
     "code": "UEFA_U21",
     "ourLabel": "UEFA U21 챔피언십",
-    "tsId": "kn54qllhejqvy9d",
+    "tsId": "gy0or5jh43qwzv3",
     "tsEn": "UEFA European U21 Football Championship",
     "tsKo": "UEFA U21 챔피언십",
-    "tsSeasonId": "l5ergpho0l7r8k0"
+    "tsSeasonId": "dn1m1gh4vgymoep"
   },
   {
     "code": "UEFA_U19",
     "ourLabel": "UEFA U19 챔피언십",
-    "tsId": "d23xmvkhoxqg8ny",
+    "tsId": "kn54qllhejqvy9d",
     "tsEn": "UEFA European U19 Football Championship",
     "tsKo": "UEFA U19 챔피언십",
-    "tsSeasonId": "kdj2ryoh8elq1zp"
+    "tsSeasonId": "kjw2r09h8vorz84"
   },
   {
     "code": "UEFA_U17",
     "ourLabel": "UEFA U17 챔피언십",
-    "tsId": "j1l4rjnh12m7vx5",
+    "tsId": "d23xmvkhoxqg8ny",
     "tsEn": "UEFA European U17 Football Championship",
     "tsKo": "UEFA U17 챔피언십",
     "tsSeasonId": ""

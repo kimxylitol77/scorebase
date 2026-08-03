@@ -85,7 +85,8 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   MEXICO_2: "z318q66hygqo9jd",
   CHINA_3: "9dn1m1gh5gmoepl",
   ALGERIA_L1: "kdj2ryohk2dq1zp",
-  SVENSKA_CUPEN: "z318q66h7yqo9jd",
+  // z318q66h7yqo9jd 는 Sweden Division 2 였음 — 실제 스벤스카 컵은 ts "Sweden Cup" (2026-08-03 교정).
+  SVENSKA_CUPEN: "vl7oqdehdyr510j",
   GHANA_PL: "z318q66howkqo9j",
   // 2026-08-02 — 스위스 1·2부 백스톱 등록. 워커 diary push 는 이미 SWISS_SL ts- 매치를
   // 만들고 있었으나(7월 11/11) collect 백스톱 매핑이 빠져 주석의 "미매핑 56개" 목록에
