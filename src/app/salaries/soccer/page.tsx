@@ -18,7 +18,10 @@ import {
   SOCCER_SALARY_SOURCE,
   SOCCER_SALARY_SOURCE_URL,
 } from "@/lib/sports/soccer-salaries";
+import rawPhotos from "../../../../data/player-photos.json";
 import { CircleDollarSign } from "lucide-react";
+
+const PHOTOS = rawPhotos as Record<string, string>;
 
 export const revalidate = 3600;
 
@@ -111,8 +114,61 @@ async function buildLogoMap(): Promise<(team: string) => string | null> {
   }
 }
 
+// 선수 매칭 — JSON 영문명 vs TheSportsPlayer(빅5 시장가치 풀). 매칭 시 /transfers/{tsId} 링크 + 사진.
+// 등록명이 달라 자동 매칭 불가한 선수만 검증된 ts id 수동 오버라이드 (JSON 연 1회 갱신 시 재확인).
+const TS_ID_OVERRIDES: Record<string, string> = {
+  Casemiro: "dj2ryohy2lpq1zp", // ts 등록명 Carlos Henrique Casimiro
+  Marquinhos: "3glrw7h1ew0qdyj", // ts 등록명 Marcos Aoás Corrêa (PSG — 동명 4명 중 풀네임 검증)
+};
+
+function normName(s: string): string[] {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+async function buildPlayerMatcher(): Promise<
+  (name: string, nameKo: string) => { href: string; photo: string | null } | null
+> {
+  try {
+    const mv = await prisma.playerMarketValue.findMany({
+      where: { league: { in: [...BIG5] } },
+      select: { id: true, currentValue: true },
+    });
+    const players = await prisma.theSportsPlayer.findMany({
+      where: { id: { in: [...mv.map((m) => m.id), ...Object.values(TS_ID_OVERRIDES)] } },
+      select: { id: true, name: true, nameKo: true, photoUrl: true },
+    });
+    const val = new Map(mv.map((m) => [m.id, m.currentValue ?? 0]));
+    const idx = players.map((p) => ({ ...p, toks: new Set(normName(p.name)), exact: normName(p.name).join(" ") }));
+    const byId = new Map(players.map((p) => [p.id, p]));
+    return (name, nameKo) => {
+      const ovId = TS_ID_OVERRIDES[name];
+      let hit = ovId ? (byId.get(ovId) ?? null) : null;
+      if (!hit) {
+        const q = normName(name);
+        const qs = q.join(" ");
+        let cands = idx.filter((p) => p.exact === qs);
+        if (cands.length === 0) cands = idx.filter((p) => q.every((t) => p.toks.has(t)));
+        if (cands.length === 0) cands = idx.filter((p) => p.nameKo === nameKo);
+        // 동명이인(사비냐/살리바 등)은 시장가치 최고가 연봉 랭커 본인
+        if (cands.length > 1) cands.sort((a, b) => (val.get(b.id) ?? 0) - (val.get(a.id) ?? 0));
+        hit = cands[0] ?? null;
+      }
+      if (!hit) return null;
+      return { href: `/transfers/${hit.id}`, photo: PHOTOS[hit.id] || hit.photoUrl || null };
+    };
+  } catch {
+    return () => null;
+  }
+}
+
 export default async function SoccerSalariesPage() {
-  const [rate, logoOf] = await Promise.all([fetchEurKrw(), buildLogoMap()]);
+  const [rate, logoOf, matchPlayer] = await Promise.all([fetchEurKrw(), buildLogoMap(), buildPlayerMatcher()]);
   const rows = getSoccerSalaries();
 
   return (
@@ -167,6 +223,20 @@ export default async function SoccerSalariesPage() {
           <tbody>
             {rows.map((r) => {
               const top3 = r.rank <= 3;
+              const pl = matchPlayer(r.name, r.nameKo);
+              const playerCell = (
+                <>
+                  <PlayerPhoto photo={pl?.photo ?? null} name={r.nameKo} />
+                  <span className="min-w-0">
+                    <span
+                      className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${pl ? "group-hover:underline" : ""}`}
+                    >
+                      {r.nameKo}
+                    </span>
+                    <span className="block truncate text-[11px] font-normal text-neutral-400">{r.name}</span>
+                  </span>
+                </>
+              );
               return (
                 <tr
                   key={`${r.name}-${r.team}`}
@@ -174,15 +244,13 @@ export default async function SoccerSalariesPage() {
                 >
                   <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                   <td className="px-2 py-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <PlayerPhoto photo={null} name={r.nameKo} />
-                      <span className="min-w-0">
-                        <span className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
-                          {r.nameKo}
-                        </span>
-                        <span className="block truncate text-[11px] font-normal text-neutral-400">{r.name}</span>
-                      </span>
-                    </div>
+                    {pl ? (
+                      <Link href={pl.href} className="group flex items-center gap-2.5" aria-label={`${r.nameKo} 선수 페이지`}>
+                        {playerCell}
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2.5">{playerCell}</div>
+                    )}
                   </td>
                   <td className="px-2 py-2.5 text-neutral-500 hidden sm:table-cell">
                     <span className="flex items-center gap-1.5">
