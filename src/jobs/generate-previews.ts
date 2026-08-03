@@ -894,13 +894,13 @@ export async function runPreview(opts?: {
       // 떨어뜨리면 안 된다 — 글은 못 내도 픽은 남긴다.
       // Match.predHome/Draw/Away 는 /value-bets, /scores 등 SSR 이 직접 참조한다.
       //
-      // 단 **야구는 선발 확정 전엔 픽을 내지 않는다**(2026-08-03 원칙). 선발이 승률을 크게
-      // 흔드는데 픽은 한 번 내면 고정이라, 선발 전에 박으면 그 신호를 영영 못 싣는다.
-      // 여기서 미룬 경기는 선발 발표 뒤 predict-upcoming 이 채운다. 판정은 pickReadiness 단일 기준.
+      // 단 **야구는 선발, 하키는 골리가 확정되기 전엔 픽을 내지 않는다**(2026-08-03 원칙).
+      // 그 신호가 승률을 크게 흔드는데 픽은 한 번 내면 고정이라, 확정 전에 박으면 영영 못 싣는다.
+      // 여기서 미룬 경기는 발표 뒤 predict-upcoming 이 채운다. 판정은 pickReadiness 단일 기준.
       //
       // MLB·KBO·NPB 는 위쪽에서 이미 글 발행 자체를 막으므로 여기 도달하지 않는다(2026-06-01).
-      // 이 가드는 그 밖의 야구 리그(CPBL·LMB 등)를 덮는 보완이다.
-      const ready = pickReadiness(m, new Date(), { baseballOnly: true });
+      // 이 가드는 그 밖의 야구 리그(CPBL·LMB 등)와 NHL 을 덮는 보완이다.
+      const ready = pickReadiness(m, new Date(), { startersOnly: true });
       if (!ready.ready) {
         console.log(`  [preview] 픽 보류 m#${m.id} ${m.league} — ${ready.reason}`);
       }
