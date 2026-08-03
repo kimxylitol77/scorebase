@@ -280,11 +280,18 @@ async function runMlb(season: string) {
     });    summary.teams++;
   }
 
-  // 2) 팀별 로스터 + 선수 시즌 타격 (30콜)
+  // 2) 팀별 로스터 + 선수 시즌 타격·투구 (30콜)
+  //
+  // 예전엔 group=hitting 만 물어보고 `atBats <= 0` 이면 건너뛰어 **투수가 통째로 빠졌다**
+  // (실측 391행 = 30팀×13명, 타자만). hitting,pitching 을 함께 받아 투수는 이닝·ERA 로 남긴다.
+  //
+  // ⚠️ rosterType 도 active → fullSeason 이다. **부상자는 IL 로 빠져 active 로스터에 없다** —
+  //   부상자 주전도를 재려는데 정작 부상자가 스탯에 없는 모순이었다(실측 산출률 MLB 2%).
+  //   fullSeason 은 시즌 중 등록된 선수를 다 준다(26명 → 45명).
   for (const [tid, teamName] of teamNameById) {
     try {
       const r = await fetch(
-        `https://statsapi.mlb.com/api/v1/teams/${tid}/roster?rosterType=active&hydrate=person(stats(type=season,sportId=1,season=${season},group=hitting))`,
+        `https://statsapi.mlb.com/api/v1/teams/${tid}/roster?rosterType=fullSeason&season=${season}&hydrate=person(stats(type=season,sportId=1,season=${season},group=[hitting,pitching]))`,
         { cache: "no-store" },
       );
       if (!r.ok) continue;
@@ -293,16 +300,24 @@ async function runMlb(season: string) {
           person?: {
             id?: number;
             fullName?: string;
-            stats?: Array<{ splits?: Array<{ stat?: Record<string, unknown> }> }>;
+            stats?: Array<{
+              group?: { displayName?: string };
+              splits?: Array<{ stat?: Record<string, unknown> }>;
+            }>;
           };
         }>;
       };
       for (const e of data.roster ?? []) {
         const person = e.person;
-        const st = person?.stats?.[0]?.splits?.[0]?.stat;
-        if (!person?.fullName || !st) continue;
-        const ab = int(st.atBats) ?? 0;
-        if (ab <= 0) continue; // 타석 없는 선수(투수 등) 제외
+        if (!person?.fullName) continue;
+        const pick = (g: string) =>
+          person.stats?.find((s) => s.group?.displayName === g)?.splits?.[0]?.stat;
+        const h = pick("hitting");
+        const p = pick("pitching");
+        const ab = int(h?.atBats) ?? 0;
+        const ip = flt(p?.inningsPitched as string | number | undefined);
+        // 타석도 이닝도 없으면 이번 시즌 기록이 없는 선수 — 넣어봐야 분모만 흐린다
+        if (ab <= 0 && !(ip && ip > 0)) continue;
         const nameKo = toKoreanPlayerName(person.fullName) || person.fullName;
         await upsertPlayer({
           league: "MLB",
@@ -311,12 +326,29 @@ async function runMlb(season: string) {
           playerName: nameKo,
           playerNameEn: person.fullName,
           externalId: person.id ? String(person.id) : undefined,
-          avg: flt(st.avg),
-          hits: int(st.hits),
-          rbi: int(st.rbi),
-          ops: flt(st.ops),
-          homeRuns: int(st.homeRuns),
-          games: int(st.gamesPlayed),
+          // 타자 지표 — 타석 있는 선수만
+          ...(ab > 0
+            ? {
+                avg: flt(h?.avg),
+                hits: int(h?.hits),
+                rbi: int(h?.rbi),
+                ops: flt(h?.ops),
+                homeRuns: int(h?.homeRuns),
+              }
+            : {}),
+          // 투수 지표 — 이닝 있는 선수만
+          ...(ip && ip > 0
+            ? {
+                ip,
+                era: flt(p?.era),
+                whip: flt(p?.whip),
+                so: int(p?.strikeOuts),
+                wins: int(p?.wins),
+                losses: int(p?.losses),
+                saves: int(p?.saves),
+              }
+            : {}),
+          games: int(h?.gamesPlayed ?? p?.gamesPlayed),
         });        summary.players++;
       }
     } catch (err) {
@@ -569,6 +601,13 @@ const col = (headers: string[], ...names: string[]): number => {
   return -1;
 };
 
+/** npb.jp 팀별 개인성적 페이지 코드 → 우리 한글 팀명 (idb1_/idp1_ 순회용) */
+const NPB_TEAM_PAGE: Array<[string, string]> = [
+  ["g", "요미우리"], ["t", "한신"], ["db", "요코하마"], ["c", "히로시마"],
+  ["d", "주니치"], ["s", "야쿠르트"], ["h", "소프트뱅크"], ["m", "롯데"],
+  ["l", "세이부"], ["e", "라쿠텐"], ["f", "닛폰햄"], ["b", "오릭스"],
+];
+
 async function runNpb(season: string) {
   const summary = { teams: 0, players: 0, pitchers: 0 };
   const runStart = new Date();
@@ -695,6 +734,79 @@ async function runNpb(season: string) {
         games: qi.g >= 0 ? int(r[qi.g]) : null,
       });      summary.pitchers++;
     }
+  }
+
+  // --- 팀별 개인성적 (idb1_/idp1_) — 로스터 전체 커버
+  //
+  // 위 bat_/pit_ 은 **리그 순위표라 규정타석·규정이닝 충족자만** 나온다(실측 61명).
+  // 그래서 부상자 주전도 산출률이 NPB 0% 였다. 팀별 페이지는 1군 등록 선수를 다 담아
+  // 12팀 합계 1,028행(타자 680·투수 348)이 된다. 같은 선수는 upsert 키가 같아 병합된다.
+  for (const [code, teamName] of NPB_TEAM_PAGE) {
+    // 타격
+    try {
+      const b = await fetchNpbTable(`https://npb.jp/bis/${season}/stats/idb1_${code}.html`);
+      const bi2 = {
+        name: col(b.headers, "選手"), avg: col(b.headers, "打率"),
+        h: col(b.headers, "安打"), hr: col(b.headers, "本塁打"),
+        rbi: col(b.headers, "打点"), g: col(b.headers, "試合"),
+        slg: col(b.headers, "長打率"), obp: col(b.headers, "出塁率"),
+      };
+      for (const r of b.rows) {
+        if (bi2.name < 0) break;
+        const playerJp = (r[bi2.name] ?? "").trim();
+        if (!playerJp) continue;
+        const slg = bi2.slg >= 0 ? flt(r[bi2.slg]) : null;
+        const obp = bi2.obp >= 0 ? flt(r[bi2.obp]) : null;
+        await upsertPlayer({
+          league: "NPB", season, teamName,
+          playerName: npbPlayerToKorean(playerJp) || playerJp,
+          playerNameEn: playerJp,
+          avg: bi2.avg >= 0 ? flt(r[bi2.avg]) : null,
+          hits: bi2.h >= 0 ? int(r[bi2.h]) : null,
+          rbi: bi2.rbi >= 0 ? int(r[bi2.rbi]) : null,
+          ops: slg != null && obp != null ? Number((slg + obp).toFixed(3)) : null,
+          homeRuns: bi2.hr >= 0 ? int(r[bi2.hr]) : null,
+          games: bi2.g >= 0 ? int(r[bi2.g]) : null,
+        });        summary.players++;
+      }
+    } catch (e) {
+      console.warn(`[bb-season/npb] idb1_${code}`, (e as Error).message);
+    }
+    // 투구
+    try {
+      const p = await fetchNpbTable(`https://npb.jp/bis/${season}/stats/idp1_${code}.html`);
+      const qi2 = {
+        name: col(p.headers, "選手"), era: col(p.headers, "防御率"),
+        g: col(p.headers, "登板"), w: col(p.headers, "勝利"),
+        l: col(p.headers, "敗北"), sv: col(p.headers, "セーブ"),
+        ip: col(p.headers, "投球回"), h: col(p.headers, "安打"),
+        bb: col(p.headers, "四球"), so: col(p.headers, "三振", "奪三振"),
+      };
+      for (const r of p.rows) {
+        if (qi2.name < 0) break;
+        const playerJp = (r[qi2.name] ?? "").trim();
+        if (!playerJp) continue;
+        const ip = qi2.ip >= 0 ? ipToInnings(r[qi2.ip]) ?? null : null;
+        const h = qi2.h >= 0 ? int(r[qi2.h]) : null;
+        const bb = qi2.bb >= 0 ? int(r[qi2.bb]) : null;
+        await upsertPitcher({
+          league: "NPB", season, teamName,
+          playerName: npbPlayerToKorean(playerJp) || playerJp,
+          playerNameEn: playerJp,
+          era: qi2.era >= 0 ? flt(r[qi2.era]) : null,
+          whip: ip && ip > 0 && h != null && bb != null ? Number(((h + bb) / ip).toFixed(2)) : null,
+          ip,
+          so: qi2.so >= 0 ? int(r[qi2.so]) : null,
+          wins: qi2.w >= 0 ? int(r[qi2.w]) : null,
+          losses: qi2.l >= 0 ? int(r[qi2.l]) : null,
+          saves: qi2.sv >= 0 ? int(r[qi2.sv]) : null,
+          games: qi2.g >= 0 ? int(r[qi2.g]) : null,
+        });        summary.pitchers++;
+      }
+    } catch (e) {
+      console.warn(`[bb-season/npb] idp1_${code}`, (e as Error).message);
+    }
+    await new Promise((res) => setTimeout(res, 300)); // npb.jp burst 회피
   }
 
   await clearStaleByTime("NPB", season, runStart);
