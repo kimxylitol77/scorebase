@@ -75,7 +75,11 @@ const KANA_BY_KANJI: Record<string, string> = (() => {
  *   4) 그래도 미매핑이면 원어 그대로
  */
 export function npbPlayerToKorean(jpName: string): string {
-  const trimmed = jpName.trim();
+  // npb.jp 성적표는 이름 앞에 좌완/스위치 마커(*, +)를 붙여 준다. 이게 붙은 채로 오면
+  //   사전 키가 전부 빗나가 한자 원문이 그대로 화면에 나간다 (2026-08-03 시즌스탯 293건).
+  //   카나 판정 정규식도 깨져서 외국인 선수는 엉뚱하게 잘린 음역이 나왔다
+  //   (*デュプランティエ → "*데"). 표시용 이름에 마커는 의미가 없으니 입구에서 떼낸다.
+  const trimmed = jpName.trim().replace(/^[*+＊＋]+\s*/, "").trim();
   if (!trimmed) return trimmed;
   // 全角/半角 공백 제거 (PITCHER_NAME_KO 는 공백 없는 형식 위주)
   const compact = trimmed.replace(/[\s　]+/g, "");
