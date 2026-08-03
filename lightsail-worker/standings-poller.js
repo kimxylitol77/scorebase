@@ -213,6 +213,12 @@ const leagueFailStreak = new Map();
 const ERR_TOLERANCE = 2; // 한 회차에 이만큼까지는 일시 오류로 본다
 const LEAGUE_FAIL_STREAK_ALERT = 3; // 같은 리그가 이만큼 연속 실패하면 알린다
 
+// 한 회차에 150여 리그를 70초 안에 밀어넣다 보니 우리 endpoint 가 간헐적으로 500 을 뱉는다.
+//   2026-08-03 실측: 203 회차 32,000여 요청 중 10건 실패, 실패 리그가 매번 달랐다(재현 0).
+//   같은 요청을 곧바로 다시 보내면 통과하므로 회차 안에서 한 번만 되쏜다. 실패한 리그가
+//   10분짜리 갱신 한 번을 통째로 건너뛰던 것도 같이 없어진다.
+const RETRY_DELAY_MS = 3000;
+
 async function poll() {
   const startedAt = Date.now();
   const ts = new Date().toISOString();
@@ -235,27 +241,41 @@ async function poll() {
   let empty = 0;
   const failed = [];
 
+  let retried = 0;
   for (const l of seasons) {
-    try {
-      const payload = await fetchTsStandings(l.tsSeasonId);
-      if (!payload || !Array.isArray(payload.tables)) {
-        // 순위표 미제공(컵·유스 code=405) 또는 개막 전 빈 표 — 둘 다 정상. 실패로 세지 않는다.
-        empty++;
-        continue;
+    // 1회 재시도 포함. empty(순위표 미제공)는 재시도 대상이 아니다 — 정상 상태다.
+    let lastErr = null;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const payload = await fetchTsStandings(l.tsSeasonId);
+        if (!payload || !Array.isArray(payload.tables)) {
+          // 순위표 미제공(컵·유스 code=405) 또는 개막 전 빈 표 — 둘 다 정상. 실패로 세지 않는다.
+          lastErr = null;
+          empty++;
+          break;
+        }
+        await postCache(l.league, l.tsSeasonId, payload);
+        lastErr = null;
+        ok++;
+        if (attempt === 2) retried++;
+        leagueFailStreak.delete(l.league);
+        break;
+      } catch (e) {
+        lastErr = e;
+        if (attempt === 1) await sleep(RETRY_DELAY_MS);
       }
-      await postCache(l.league, l.tsSeasonId, payload);
-      ok++;
-      leagueFailStreak.delete(l.league);
-    } catch (e) {
+    }
+    if (lastErr) {
       err++;
       leagueFailStreak.set(l.league, (leagueFailStreak.get(l.league) ?? 0) + 1);
-      const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      const msg = lastErr.response?.data?.error ?? lastErr.response?.data?.err ?? lastErr.message;
       const streak = leagueFailStreak.get(l.league);
       failed.push(`${l.league}:${String(msg).slice(0, 60)}`);
-      console.error(`  ✗ ${l.league} (${l.tsSeasonId}): ${msg}${streak > 1 ? ` [연속 ${streak}회]` : ""}`);
+      console.error(`  ✗ ${l.league} (${l.tsSeasonId}): ${msg} [재시도 후]${streak > 1 ? ` [연속 ${streak}회]` : ""}`);
     }
     await sleep(CALL_GAP_MS);
   }
+  if (retried > 0) console.log(`    재시도로 복구 ${retried}건`);
 
   // 배구 (VNL/AVC/유럽리그) — volleyball season/table/detail → 같은 postCache
   for (const v of VOLLEYBALL_SEASONS) {
@@ -324,6 +344,8 @@ async function poll() {
       ok,
       empty,
       err,
+      // 1회 재시도로 살아난 건수 — 0 이 아니면 endpoint 가 간헐적으로 흔들린다는 신호다
+      retried,
       failedLeagues: failed.slice(0, 20),
       // 연속 실패 중인 리그 — 알림이 안 나가도 admin/health 에서 추적할 수 있게 항상 싣는다
       failStreaks: Object.fromEntries([...leagueFailStreak.entries()].slice(0, 20)),
