@@ -7,12 +7,44 @@ import { NPB_PLAYER_KO } from "./npb-name-dict";
 import { kanaToKorean } from "./kana-to-korean";
 import rosters from "../../../data/baseball-rosters.json";
 import kanaDict from "../../../data/npb-player-kana.json";
+import foreignDict from "../../../data/npb-foreign-names.json";
 
 // 한자 풀네임 → 카나. 이 경로(시즌스탯·스코어)는 pid 없이 한자 이름만 들고 오는데,
 //   카나 사전은 pid 키라 그대로는 못 쓴다. 로스터(pid ↔ 한자)를 다리로 역인덱스를 만든다.
 //   수동 사전은 165명뿐이라 나머지 480명이 한자 원문으로 새어 나갔다
 //   (2026-08-03 武内　夏暉 실측 — 로스터 경로는 이미 "타케우치 나츠키" 로 맞게 나왔다).
 //   동명이인은 어느 pid 인지 못 가리므로 넣지 않는다 — 틀린 한글보다 원문이 낫다.
+// 외국인 등록명(가타카나) → 한글. 카나 자동 음역은 일본어 발음을 거쳐 원명과 멀어진다
+//   (ウォルターズ → "워루타즈", 실제는 "내시 월터스"). 로스터 경로는 pid 로 foreign 사전을
+//   1순위로 쓰는데 이 경로는 pid 가 없어 그 혜택을 못 받았다 — 실측 78명 중 70명 오표기.
+//   같은 등록명이 2명이면(オスナ·マルティネス·ロドリゲス) 누구인지 못 가리므로 풀네임 대신
+//   **성이 모두 같을 때만 성**을 쓴다(호세/로베르토 오수나 → "오수나"). 성마저 갈리면 뺀다.
+const FOREIGN_BY_NAME: Record<string, string> = (() => {
+  const F = foreignDict as Record<string, string>;
+  const byName = new Map<string, string[]>();
+  for (const [teamId, players] of Object.entries(rosters as Record<string, { id: string; name: string }[]>)) {
+    if (Number(teamId) < 23329) continue;
+    for (const p of players) {
+      const ko = F[p.id];
+      if (!ko) continue;
+      const key = p.name.replace(/[\s　]+/g, "");
+      if (!key) continue;
+      byName.set(key, [...(byName.get(key) ?? []), ko]);
+    }
+  }
+  const out: Record<string, string> = {};
+  for (const [key, kos] of byName) {
+    const uniq = [...new Set(kos)];
+    if (uniq.length === 1) {
+      out[key] = uniq[0];
+      continue;
+    }
+    const surnames = [...new Set(uniq.map((s) => s.trim().split(/\s+/).pop() ?? ""))];
+    if (surnames.length === 1 && surnames[0]) out[key] = surnames[0];
+  }
+  return out;
+})();
+
 const KANA_BY_KANJI: Record<string, string> = (() => {
   const K = kanaDict as Record<string, string>;
   const seen: Record<string, string | null> = {};
@@ -49,6 +81,9 @@ export function npbPlayerToKorean(jpName: string): string {
   const compact = trimmed.replace(/[\s　]+/g, "");
   const direct = NPB_PLAYER_KO[compact];
   if (direct) return direct;
+  // 외국인 등록명 — 카나 자동 음역보다 먼저. 음역이 가로채면 원명과 멀어진다.
+  const fo = FOREIGN_BY_NAME[compact];
+  if (fo) return fo;
   // 카타카나/히라가나만 — 자동 음역
   if (/^[぀-ゟ゠-ヿー・\s]+$/.test(compact)) {
     const ko = kanaToKorean(compact);
