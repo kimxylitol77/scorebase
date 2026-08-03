@@ -9,6 +9,7 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
 import { parseKnockoutRound } from "@/lib/predict/wc-bracket";
+import { pickReadiness } from "@/lib/predict/pick-readiness";
 import {
   fetchCurrentLolPatch,
   calcLckStandings,
@@ -892,7 +893,18 @@ export async function runPreview(opts?: {
       // 7/29 탬파베이·세인트루이스·에인절스·다저스 4경기). 글 품질 게이트가 예측 데이터까지
       // 떨어뜨리면 안 된다 — 글은 못 내도 픽은 남긴다.
       // Match.predHome/Draw/Away 는 /value-bets, /scores 등 SSR 이 직접 참조한다.
-      if (wp) {
+      //
+      // 단 **야구는 선발 확정 전엔 픽을 내지 않는다**(2026-08-03 원칙). 선발이 승률을 크게
+      // 흔드는데 픽은 한 번 내면 고정이라, 선발 전에 박으면 그 신호를 영영 못 싣는다.
+      // 여기서 미룬 경기는 선발 발표 뒤 predict-upcoming 이 채운다. 판정은 pickReadiness 단일 기준.
+      //
+      // MLB·KBO·NPB 는 위쪽에서 이미 글 발행 자체를 막으므로 여기 도달하지 않는다(2026-06-01).
+      // 이 가드는 그 밖의 야구 리그(CPBL·LMB 등)를 덮는 보완이다.
+      const ready = pickReadiness(m, new Date(), { baseballOnly: true });
+      if (!ready.ready) {
+        console.log(`  [preview] 픽 보류 m#${m.id} ${m.league} — ${ready.reason}`);
+      }
+      if (wp && ready.ready) {
         await prisma.match
           .update({
             where: { id: m.id },
@@ -949,10 +961,11 @@ export async function runPreview(opts?: {
           content,
           status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
           publishedAt: autoPublish ? new Date() : null,
-          predHome: wp?.home ?? null,
-          predDraw: wp?.draw ?? null,
-          predAway: wp?.away ?? null,
-          predWinner: predictedWinner,
+          // 글에 실리는 픽도 같은 원칙 — 야구는 선발 확정 전이면 비워 둔다(위 pickReadiness).
+          predHome: ready.ready ? (wp?.home ?? null) : null,
+          predDraw: ready.ready ? (wp?.draw ?? null) : null,
+          predAway: ready.ready ? (wp?.away ?? null) : null,
+          predWinner: ready.ready ? predictedWinner : null,
           // 본문=위젯 단일 소스 — Elo·시즌 승점도 글 시점 값 고정 (predHome 과 동일).
           eloHome: context.elo?.home ?? null,
           eloAway: context.elo?.away ?? null,

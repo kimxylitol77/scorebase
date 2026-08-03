@@ -12,6 +12,7 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { computePrediction, type PredictionInput } from "@/lib/predict/compute-prediction";
 import type { PredictMatch } from "@/lib/predict/types";
+import { pickReadiness } from "@/lib/predict/pick-readiness";
 
 export interface PredictUpcomingResult {
   scanned: number;
@@ -19,6 +20,8 @@ export interface PredictUpcomingResult {
   saved: number;
   skippedHasPred: number;
   skippedNoData: number;
+  /** 아직 낼 때가 아니라 미룬 것 — 야구 선발 미확정 · 축구 하루 이상 남음 */
+  skippedNotReady: Record<string, number>;
   byLeague: Record<string, number>;
 }
 
@@ -49,7 +52,7 @@ export async function runPredictUpcoming(opts?: {
 
   const res: PredictUpcomingResult = {
     scanned: pending.length, computed: 0, saved: 0,
-    skippedHasPred: 0, skippedNoData: 0, byLeague: {},
+    skippedHasPred: 0, skippedNoData: 0, skippedNotReady: {}, byLeague: {},
   };
   if (!pending.length) return res;
 
@@ -74,6 +77,13 @@ export async function runPredictUpcoming(opts?: {
     }
     if (m.homeTeamId == null || m.awayTeamId == null) {
       res.skippedNoData++;
+      continue;
+    }
+    // 야구는 선발 확정 전, 축구는 하루 이상 남았으면 아직 낼 때가 아니다 — 다음 회차에 다시 본다
+    const ready = pickReadiness(m, now);
+    if (!ready.ready) {
+      const k = ready.reason ?? "미상";
+      res.skippedNotReady[k] = (res.skippedNotReady[k] ?? 0) + 1;
       continue;
     }
     const out = computePrediction(m as PredictionInput, cache.get(m.league)!);
@@ -115,6 +125,8 @@ if (require.main === module) {
       console.log(`[predict-upcoming] ${apply ? "적용" : "dry-run"} · 창 ${hours}h`);
       console.log(`  대상 ${r.scanned} · 계산 ${r.computed} · 저장 ${r.saved}`);
       console.log(`  skip — 이미 픽 있음 ${r.skippedHasPred} · 데이터 부족 ${r.skippedNoData}`);
+      const nr = Object.entries(r.skippedNotReady);
+      if (nr.length) console.log(`  대기 — ${nr.map(([k, n]) => `${k} ${n}`).join(" · ")}`);
       const top = Object.entries(r.byLeague).sort((a, b) => b[1] - a[1]).slice(0, 15);
       if (top.length) console.log("  리그별: " + top.map(([l, n]) => `${l} ${n}`).join(" · "));
       if (!apply) console.log("  (반영하려면 --apply)");
