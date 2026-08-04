@@ -341,11 +341,19 @@ export async function POST(req: NextRequest) {
           NOT: { externalId: { startsWith: "ts-" } },
         },
         // startTime 도 받는다 — ts 가 정본이라 af 의 미확정 시각을 교정해야 한다
-        select: { id: true, externalId: true, startTime: true },
+        select: { id: true, externalId: true, startTime: true, homeTeamId: true, awayTeamId: true },
+      });
+      // 방향 가드 — 창을 넓힌 구간에서는 홈/원정이 같은 것만 인정한다. 소스 간 홈·원정
+      // 표기가 뒤바뀌는 건 킥오프가 거의 같을 때 얘기고, 며칠 떨어진 역방향은 홈앤어웨이
+      // 2차전일 수 있어 같은 경기로 묶으면 안 된다(data-sanity 탐지기와 같은 기준, 2357f75).
+      const NEAR_MS = 150 * 60 * 1000;
+      const usable = nonTsCandidates.filter((c) => {
+        if (Math.abs(c.startTime.getTime() - startMs) <= NEAR_MS) return true;
+        return c.homeTeamId === homeId && c.awayTeamId === awayId;
       });
       let existingNonTs: { id: number; externalId: string; startTime?: Date } | null =
-        nonTsCandidates.length
-          ? nonTsCandidates.reduce((best, c) =>
+        usable.length
+          ? usable.reduce((best, c) =>
               Math.abs(c.startTime.getTime() - startMs) < Math.abs(best.startTime.getTime() - startMs)
                 ? c
                 : best,
