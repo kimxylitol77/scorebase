@@ -1450,6 +1450,8 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         if (r.ourTeamId === match.awayTeam.id) awayPosition = r.position;
       }
   } catch { /* cache miss — 순위 없이 렌더 */ }
+  // 공용 최근경기 카드 데이터 — 다른 종목과 같은 경로(팀당 최대 30경기, 5개씩 더보기).
+  const volleyRecentGames = await getBaseballRecentGames(match);
   const recentMatches = await prisma.match.findMany({
     where: {
       league: lg,
@@ -1535,6 +1537,22 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         awayKo={awayKo}
         league={lg}
       />
+
+      {/* 위 VolleyballRecentForm 은 세트 스코어 요약이라 5경기 고정이다. 그 이전을 보려면
+          다른 종목과 같은 공용 카드가 필요하다 — 탭(홈·원정·맞대결) + 5경기씩 더보기. */}
+      {volleyRecentGames?.hasData && (
+        <CollapsibleSection
+          title="최근 경기 · 상대전적"
+          hint="양 팀 최근 경기 + 맞대결"
+          defaultOpen={match.status === "SCHEDULED"}
+        >
+          <RecentGamesCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            data={volleyRecentGames}
+          />
+        </CollapsibleSection>
+      )}
 
       <VolleyballOddsCard
         odds={oddsRow}
