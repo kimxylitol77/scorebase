@@ -45,6 +45,36 @@ const FOREIGN_BY_NAME: Record<string, string> = (() => {
   return out;
 })();
 
+// 한자 성 → 한글 성. **소스가 성만 주는 경우**를 위한 사전이다
+//   (2026-08-03 선발 예고 "尾形" — 풀네임 사전이 전부 빗나가 한자가 그대로 화면에 나갔다).
+//   로스터 카나에서 성 부분만 모아 만든다. 한자 성 631종 중 613종(97%)은 한글 성이 유일하고
+//   갈리는 18종은 넣지 않는다 — 틀린 한글보다 원문이 낫다는 이 파일의 원칙 그대로.
+//   ⚠️ 풀네임을 성으로 잘라 쓰는 게 아니다. 입력 자체가 성뿐일 때만 쓴다(아래 길이 가드).
+const SURNAME_KO: Record<string, string> = (() => {
+  const K = kanaDict as Record<string, string>;
+  const cand = new Map<string, Set<string>>();
+  for (const [teamId, players] of Object.entries(rosters as Record<string, { id: string; name: string }[]>)) {
+    if (Number(teamId) < 23329) continue;
+    for (const p of players) {
+      const kn = K[p.id];
+      if (!kn) continue;
+      const ko = kanaToKorean(kn).replace(/\s*[（(].*$/, "").trim();
+      const koSur = ko.split(/\s+/)[0];
+      if (!koSur || !/^[가-힣]+$/.test(koSur)) continue;
+      // 한자 이름의 성 부분 — 공백이 있으면 그 앞, 없으면 앞 2자(일본 성 대부분)
+      const raw = p.name.trim();
+      const sur = /[\s　]/.test(raw) ? raw.split(/[\s　]+/)[0] : raw.slice(0, 2);
+      if (!sur) continue;
+      const set = cand.get(sur) ?? new Set<string>();
+      set.add(koSur);
+      cand.set(sur, set);
+    }
+  }
+  const out: Record<string, string> = {};
+  for (const [sur, set] of cand) if (set.size === 1) out[sur] = [...set][0];
+  return out;
+})();
+
 const KANA_BY_KANJI: Record<string, string> = (() => {
   const K = kanaDict as Record<string, string>;
   const seen: Record<string, string | null> = {};
@@ -100,6 +130,13 @@ export function npbPlayerToKorean(jpName: string): string {
     // 로마자 병기("ホセ・キハダ　(JOSE QUIJADA)") 는 괄호 이하 제거 후 음역
     const ko = kanaToKorean(kana).replace(/\s*[（(].*$/, "").trim();
     if (ko && /[가-힣]/.test(ko) && !/[぀-ヿ㐀-鿿]/.test(ko)) return ko;
+  }
+  // 소스가 성만 준 경우 — 성 그대로라도 한글로 낸다("尾形" → "오가타").
+  //   ⚠️ 길이 가드가 핵심이다. 풀네임(4자 이상)을 여기로 흘리면 이름이 잘려 나간다.
+  //   일본 성은 1~3자이므로 그 이하일 때만 성 사전을 본다.
+  if (compact.length <= 3) {
+    const sur = SURNAME_KO[compact];
+    if (sur) return sur;
   }
   // 한자 성만 알면 — 성+이름 토큰 분리 시도
   // 일본 한자 이름은 보통 성 2자 + 이름 2~3자. 첫 2자/1자 순으로 성 매핑.
