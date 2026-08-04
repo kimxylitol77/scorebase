@@ -85,7 +85,11 @@ function sameFixture(a: Row, b: Row): boolean {
 // (유령 SCHEDULED 그룹이 SAFE 로 내려올 때 실제 결과를 가진 FINISHED 를 남기기 위함.)
 function pickKeep(rows: Row[]): Row {
   const rank = (s: string) => (s === "FINISHED" ? 0 : 1);
+  // ESPN 은 예정 경기에 0-0 을 실어 보낸다(pregame-score-zero-guard). 그 row 를 남기면
+  // 화면에 가짜 스코어가 그대로 남으므로, 예정인데 점수를 든 row 는 뒤로 민다.
+  const fake = (r: Row) => (r.status === "SCHEDULED" && r.hasScore ? 1 : 0);
   return [...rows].sort((a, b) => {
+    if (fake(a) !== fake(b)) return fake(a) - fake(b);
     if (b.protectedRefs !== a.protectedRefs) return b.protectedRefs - a.protectedRefs;
     if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
     const aCanon = a.externalId.replace(/^ts-/, "") === a.tsMatchId ? 1 : 0;
@@ -327,8 +331,16 @@ async function main() {
     const stalest = Math.min(...rows.map((r) => r.updatedAt.getTime()));
     const xsFrozen = isXs && Date.now() - stalest >= 3 * 86400_000;
 
+    // 킥오프가 초 단위까지 같고 전부 예정이면 같은 경기임이 명백하다 — 어느 쪽도 결과를
+    // 들고 있지 않으므로 종료를 기다릴 이유가 없고, 기다리는 동안 화면에는 계속 두 장으로
+    // 보인다. 2026-08-04: EPL·SERIE_A 새 시즌 일정이 af/ESPN 두 소스로 들어와 37쌍이
+    // 이 상태로 쌓여 있었는데 전부 PENDING 으로 미뤄져 아무도 정리하지 않았다.
+    const sameKickoff = new Set(rows.map((r) => r.startTime.getTime())).size === 1;
+    const allScheduled = rows.every((r) => r.status === "SCHEDULED");
+    const identicalFuture = sameKickoff && allScheduled;
+
     const scheduledRows = rows.filter((r) => r.status === "SCHEDULED");
-    if (scheduledRows.length > 0 && !xsFrozen) {
+    if (scheduledRows.length > 0 && !xsFrozen && !identicalFuture) {
       const ghostCutoff = Date.now() - 6 * 3600 * 1000;
       const twinFinished = rows.some((r) => r.status === "FINISHED");
       const allGhost = scheduledRows.every((r) => r.startTime.getTime() < ghostCutoff);
