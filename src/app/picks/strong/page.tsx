@@ -1,12 +1,21 @@
 // /picks/strong — 모델이 자신 있어 하는 픽만 모아 보는 회원 전용 화면.
 // 비회원은 기준·성적과 오늘 몇 건인지까지 보고, 실제 픽은 가입 후 (/lab 과 같은 방침).
+// 지난 날짜의 픽과 그 채점 결과도 회원에게만 공개한다(2026-08-04 사용자 확정).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Lock, Target, TrendingUp } from "lucide-react";
 import { getCurrentUserId } from "@/lib/current-user";
 import AmbientGlow from "@/components/AmbientGlow";
 import { MARKET_LABEL, STRONG_THRESHOLD, type StrongMarket } from "@/lib/predict/strong-picks";
-import { loadStrongPicks, loadStrongAccuracy, type StrongPickMatch } from "./_data";
+import {
+  loadStrongPicks,
+  loadStrongAccuracy,
+  loadDailySummary,
+  todayKst,
+  type StrongAccuracy,
+  type StrongPickMatch,
+} from "./_data";
+import { DailyNavChart, PickCard } from "./_components";
 
 export const dynamic = "force-dynamic"; // 회원 여부에 따라 갈리는 화면
 
@@ -17,17 +26,24 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.scorebase.kr/picks/strong" },
 };
 
-const kst = (d: Date) =>
-  new Intl.DateTimeFormat("ko-KR", {
-    month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
-    timeZone: "Asia/Seoul",
-  }).format(d);
+const isDate = (v: string | undefined): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
-export default async function StrongPicksPage() {
-  const [userId, matches, acc] = await Promise.all([
-    getCurrentUserId(),
-    loadStrongPicks(),
+export default async function StrongPicksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ d?: string }>;
+}) {
+  const sp = await searchParams;
+  const today = todayKst();
+  // 미래 날짜를 넘겨 결과를 넘겨짚지 않도록 오늘까지만 받는다
+  const date = isDate(sp.d) && sp.d <= today ? sp.d : null;
+
+  // 날짜별 성적은 회원 화면에서만 쓰므로 비회원일 땐 쿼리를 아낀다
+  const userId = await getCurrentUserId();
+  const [matches, acc, daily] = await Promise.all([
+    loadStrongPicks(date ?? undefined),
     loadStrongAccuracy(),
+    userId ? loadDailySummary() : Promise.resolve([]),
   ]);
   const pickCount = matches.reduce((s, m) => s + m.picks.length, 0);
 
@@ -48,34 +64,14 @@ export default async function StrongPicksPage() {
         </p>
       </header>
 
-      {/* 기준과 성적 — 회원·비회원 모두 공개. 신뢰의 근거라 가리지 않는다. */}
-      <section className="mt-6 rounded-2xl border border-black/5 bg-white/60 p-5 dark:border-white/10 dark:bg-white/[0.04]">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <TrendingUp className="h-4 w-4 text-emerald-500" aria-hidden />
-          <span className="text-2xl font-bold tabular-nums">{acc.rate.toFixed(1)}%</span>
-          <span className="text-xs text-neutral-500">
-            이 기준으로 낸 {acc.total.toLocaleString()}픽의 실제 적중률
-          </span>
-        </div>
-        <dl className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-          {(Object.keys(STRONG_THRESHOLD) as StrongMarket[]).map((mk) => (
-            <div key={mk} className="rounded-xl bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
-              <dt className="text-neutral-500">{MARKET_LABEL[mk]}</dt>
-              <dd className="font-semibold tabular-nums">
-                {(STRONG_THRESHOLD[mk] * 100).toFixed(0)}% 이상일 때만
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-3 text-[11px] leading-relaxed text-neutral-500 break-keep">
-          양팀득점은 뺐습니다 — 실측에서 확신도를 올릴수록 오히려 적중률이 떨어져(65%+ 55.2% →
-          80%+ 42.9%) 신뢰 신호로 쓸 수 없었습니다.
-        </p>
-      </section>
+      <Standard acc={acc} />
 
       <div className="mt-6">
         {userId ? (
-          <PickList matches={matches} />
+          <div className="space-y-4">
+            <DailyNavChart days={daily} active={date} />
+            <PickList matches={matches} acc={acc} date={date} />
+          </div>
         ) : (
           <GuestGate matchCount={matches.length} pickCount={pickCount} />
         )}
@@ -94,12 +90,65 @@ export default async function StrongPicksPage() {
   );
 }
 
+// ── 기준과 성적 — 회원·비회원 모두 공개. 신뢰의 근거라 가리지 않는다 ──
+function Standard({ acc }: { acc: StrongAccuracy }) {
+  return (
+    <section className="mt-6 rounded-2xl border border-black/5 bg-white/60 p-5 dark:border-white/10 dark:bg-white/[0.04]">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <TrendingUp className="h-4 w-4 text-emerald-500" aria-hidden />
+        <span className="text-2xl font-bold tabular-nums">{acc.rate.toFixed(1)}%</span>
+        <span className="text-xs text-neutral-500">
+          이 기준으로 낸 {acc.total.toLocaleString()}픽의 실제 적중률
+        </span>
+      </div>
+
+      <dl className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+        {(Object.keys(STRONG_THRESHOLD) as StrongMarket[]).map((mk) => {
+          const m = acc.byMarket[mk];
+          return (
+            <div key={mk} className="rounded-xl bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
+              <dt className="text-neutral-500">{MARKET_LABEL[mk]}</dt>
+              <dd className="font-semibold tabular-nums">
+                {(STRONG_THRESHOLD[mk] * 100).toFixed(0)}% 이상일 때만
+              </dd>
+              {/* 임계 옆에 그 임계의 실제 성적을 붙인다 — 기준의 근거가 곧 성적이라서 */}
+              <dd className="mt-1.5">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-black/[0.07] dark:bg-white/10">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${m.rate}%` }} />
+                </div>
+                <span className="mt-1 block text-[10px] tabular-nums text-neutral-500">
+                  실측 {m.rate.toFixed(1)}% · {m.total.toLocaleString()}픽
+                </span>
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+
+      <p className="mt-3 text-[11px] leading-relaxed text-neutral-500 break-keep">
+        양팀득점은 뺐습니다 — 실측에서 확신도를 올릴수록 오히려 적중률이 떨어져(65%+ 55.2% →
+        80%+ 42.9%) 신뢰 신호로 쓸 수 없었습니다.
+      </p>
+    </section>
+  );
+}
+
 // ── 회원 — 실제 픽 목록 ──
-function PickList({ matches }: { matches: StrongPickMatch[] }) {
+function PickList({
+  matches,
+  acc,
+  date,
+}: {
+  matches: StrongPickMatch[];
+  acc: StrongAccuracy;
+  date: string | null;
+}) {
   if (!matches.length) {
     return (
       <div className="rounded-2xl border border-dashed border-black/10 p-8 text-center dark:border-white/15">
-        <p className="text-sm font-medium">지금은 기준을 넘는 픽이 없습니다.</p>
+        <p className="text-sm font-medium">
+          {date ? `${date} 에는 기준을 넘는 픽이 없었습니다.` : "지금은 기준을 넘는 픽이 없습니다."}
+        </p>
         <p className="mt-2 text-xs leading-relaxed text-neutral-500 break-keep">
           없는 날은 없는 대로 둡니다 — 기준을 낮춰 억지로 채우면 적중률이 떨어지기 때문입니다.
           농구·아이스하키가 시즌에 들어가면 픽이 크게 늘어납니다.
@@ -107,46 +156,33 @@ function PickList({ matches }: { matches: StrongPickMatch[] }) {
       </div>
     );
   }
+
+  const hits = matches.flatMap((m) => m.picks).filter((p) => p.correct === true).length;
+  const graded = matches.flatMap((m) => m.picks).filter((p) => p.correct != null).length;
+
   return (
-    <ul className="space-y-3">
-      {matches.map((m) => (
-        <li
-          key={m.matchId}
-          className="rounded-2xl border border-black/5 bg-white/60 p-4 dark:border-white/10 dark:bg-white/[0.04]"
-        >
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
-            <span className="rounded-md bg-black/[0.04] px-1.5 py-0.5 font-medium dark:bg-white/10">
-              {m.league}
-            </span>
-            <span className="tabular-nums">{kst(m.startTime)}</span>
-          </div>
-          <p className="mt-1.5 text-sm font-semibold break-keep">
-            {m.home} <span className="text-neutral-400">vs</span> {m.away}
-          </p>
-          <ul className="mt-3 space-y-1.5">
-            {m.picks.map((p) => (
-              <li
-                key={p.market}
-                className="flex items-center justify-between gap-3 rounded-xl bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]"
-              >
-                <span className="min-w-0 text-sm break-keep">
-                  <span className="mr-2 text-[11px] font-medium text-neutral-500">
-                    {MARKET_LABEL[p.market]}
-                  </span>
-                  <span className="font-medium">{p.pick}</span>
-                  {p.detail ? (
-                    <span className="ml-1.5 text-[11px] text-neutral-500">{p.detail}</span>
-                  ) : null}
-                </span>
-                <span className="shrink-0 text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {(p.prob * 100).toFixed(0)}%
-                </span>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold">
+          {date ? `${date} 픽` : "앞으로 72시간"}
+          <span className="ml-2 text-xs font-normal text-neutral-500">
+            {matches.length}경기 {matches.reduce((s, m) => s + m.picks.length, 0)}건
+          </span>
+        </h2>
+        {graded > 0 ? (
+          <span className="text-xs tabular-nums text-neutral-500">
+            이날 적중 <strong className="text-emerald-600 dark:text-emerald-400">{hits}</strong>/{graded}
+            {" · "}
+            {((hits / graded) * 100).toFixed(0)}%
+          </span>
+        ) : null}
+      </div>
+      <ul className="space-y-3">
+        {matches.map((m) => (
+          <PickCard key={m.matchId} m={m} byMarket={acc.byMarket} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -161,7 +197,8 @@ function GuestGate({ matchCount, pickCount }: { matchCount: number; pickCount: n
           : "지금은 기준을 넘는 픽이 없습니다"}
       </p>
       <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-neutral-500 break-keep">
-        어떤 경기의 어떤 픽인지는 회원에게만 공개합니다. 가입은 무료이고, 로그인하면 바로 보입니다.
+        어떤 경기의 어떤 픽인지, 그리고 지난 픽이 실제로 맞았는지는 회원에게만 공개합니다.
+        가입은 무료이고, 로그인하면 바로 보입니다.
       </p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         <Link
