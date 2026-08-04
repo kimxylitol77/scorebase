@@ -10,6 +10,8 @@ export type League =
   | "WKBL" // 한국여자프로농구 (TheSports basketball)
   | "NHL"
   | "IIHF_WC" // IIHF 아이스하키 세계선수권 (국가대표, TheSports ice_hockey)
+  | "AIHL" // 호주 아이스하키 리그 (TheSports ice_hockey, 4~9월 = 남반구 겨울)
+  | "NZIHL" // 뉴질랜드 아이스하키 리그 (TheSports ice_hockey, 5~8월)
   | "MLB"
   | "LALIGA"
   | "BUNDESLIGA"

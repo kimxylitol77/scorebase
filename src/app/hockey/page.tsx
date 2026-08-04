@@ -76,13 +76,13 @@ async function standingsTop3(league: string): Promise<Top3Row[]> {
 }
 
 export const metadata: Metadata = {
-  title: "하키 — NHL·세계선수권 오늘 경기·순위·선수·AI 예측 한눈에",
+  title: "하키 — NHL·세계선수권·호주·뉴질랜드 오늘 경기·순위·선수·AI 예측",
   description:
-    "NHL·IIHF 세계선수권 오늘 경기, 리그 순위, 선수 기록, AI 승부 예측, 부상자 명단을 한 페이지에서. 스코어베이스 하키 허브.",
+    "NHL·IIHF 세계선수권·호주 AIHL·뉴질랜드 NZIHL 오늘 경기, 리그 순위, 선수 기록, AI 승부 예측, 부상자 명단을 한 페이지에서. 스코어베이스 하키 허브.",
   alternates: { canonical: "https://www.scorebase.kr/hockey" },
 };
 
-const HOCKEY = ["NHL", "IIHF_WC"];
+const HOCKEY = ["NHL", "IIHF_WC", "AIHL", "NZIHL"];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default async function HockeyHub() {
@@ -189,6 +189,23 @@ export default async function HockeyHub() {
       top3: iihfTop3,
       links: [{ label: "경기 일정", href: "/scores" }],
     },
+    // 남반구 리그 — NHL 오프시즌(6~9월)에 하키 탭을 채운다.
+    // ⚠️ top3 는 비운다. TheSports 하키는 season/table 구독 권한이 없고 diary 도 최근 30일만
+    //    열려 시즌 전체 결과를 못 채운다 — 부분 집계를 "순위"로 내보내면 사실을 왜곡한다.
+    {
+      code: "AIHL",
+      name: "호주 아이스하키",
+      note: "AIHL · 4~9월 시즌 · 경기·스코어 커버",
+      top3: [],
+      links: [{ label: "경기 일정", href: "/scores" }],
+    },
+    {
+      code: "NZIHL",
+      name: "뉴질랜드 아이스하키",
+      note: "NZIHL · 5~8월 시즌 · 경기·스코어 커버",
+      top3: [],
+      links: [{ label: "경기 일정", href: "/scores" }],
+    },
   ];
 
   return (
@@ -206,7 +223,7 @@ export default async function HockeyHub() {
             </svg>
             하키
           </h1>
-          <span className="text-sm text-neutral-400">NHL · 세계선수권</span>
+          <span className="text-sm text-neutral-400">NHL · 세계선수권 · 호주 · 뉴질랜드</span>
         </div>
         <p className="text-sm text-neutral-500 break-keep">
           오늘 경기부터 리그 순위·선수 기록·AI 예측·부상자 명단까지 한 페이지에서.
@@ -335,7 +352,7 @@ export default async function HockeyHub() {
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
-        오늘 경기·예측은 5분마다 갱신됩니다. NHL 은 정규시즌 10월~4월, 세계선수권은 5월에 열립니다. 데이터 출처 NHL 공식·ESPN·TheSports.
+        오늘 경기·예측은 5분마다 갱신됩니다. NHL 은 정규시즌 10월~4월, 세계선수권은 5월, 남반구 리그(호주 AIHL·뉴질랜드 NZIHL)는 4~9월에 열립니다. 데이터 출처 NHL 공식·ESPN·TheSports.
       </footer>
     </main>
   );

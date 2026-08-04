@@ -49,6 +49,8 @@ export const ALL_LEAGUES = [
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
   "NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
+  // 2026-08-04 오세아니아 하키 — NHL 오프시즌(6~9월) 하키 탭을 채우는 남반구 정규시즌
+  "AIHL", "NZIHL",
   // 2026-07-23 테니스·골프·F1 — ESPN 직접 fetch 표시 전용 (DB 수집 없음, docs/tennis-golf-scores)
   "ATP", "WTA", "PGA", "LPGA", "F1",
   // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남/여 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
@@ -175,7 +177,8 @@ export const SPORTS: SportMeta[] = [
     code: "hockey",
     label: "하키",
     emoji: "🏒",
-    leagues: ["NHL", "IIHF_WC"],
+    // 2026-08-04 AIHL·NZIHL 추가 — NHL 이 6~9월 오프시즌이라 하키 탭이 비는 구간을 남반구 리그가 메운다
+    leagues: ["NHL", "IIHF_WC", "AIHL", "NZIHL"],
   },
   {
     code: "esports",
@@ -423,6 +426,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   NBA_SL: "NBA 서머리그",
   NHL: "NHL",
   IIHF_WC: "세계선수권",
+  AIHL: "호주 아이스하키",
+  NZIHL: "뉴질랜드 아이스하키",
   KBL: "KBL",
   WKBL: "WKBL",
   V_LEAGUE: "V-리그 (남)",
@@ -668,6 +673,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   NBA_SL: 20.5,
   NHL: 21,
   IIHF_WC: 22,
+  AIHL: 22.3, // NHL·세계선수권 다음 — 국내 수요는 낮지만 하키 안에서는 정규시즌
+  NZIHL: 22.6,
   KBL: 23,
   WKBL: 24,
   V_LEAGUE: 24.5, // 한국 프로배구 남자부 — KBL/WKBL 급 국내 수요
@@ -829,6 +836,8 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   NBA_SL: "미국",
   NHL: "미국",
   IIHF_WC: "국제",
+  AIHL: "호주",
+  NZIHL: "뉴질랜드",
   KBL: "대한민국",
   WKBL: "대한민국",
   LOL: "대한민국",
@@ -992,6 +1001,7 @@ export const COUNTRY_FLAG: Record<string, string> = {
   유럽: "🇪🇺",
   대만: "🇹🇼",
   호주: "🇦🇺",
+  뉴질랜드: "🇳🇿",
   // 신규
   아르헨티나: "🇦🇷",
   우루과이: "🇺🇾",
@@ -1117,4 +1127,5 @@ export const COUNTRY_ORDER: string[] = [
   "카자흐스탄",
   "우즈베키스탄",
   "호주",
+  "뉴질랜드",
 ];

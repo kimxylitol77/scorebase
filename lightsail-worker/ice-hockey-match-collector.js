@@ -34,6 +34,10 @@ const TEAM_MAP_FILE = path.join(__dirname, "ice-hockey-team-id-mapping.json");
 const COMP_TO_LEAGUE = {
   "gx7lm78b45nq2wd": "NHL",
   "56ypq3vbxgerd7o": "IIHF_WC", // IIHF 세계선수권 (국가대표)
+  // 2026-08-04 남반구 리그 — NHL 오프시즌(6~9월)에 하키 탭을 채운다.
+  // ⚠️ AIHL utid 는 IIHF_WC 와 한 글자만 다르다 (x7e vs xge). 복사 시 반드시 대조할 것.
+  "56ypq3vbx7erd7o": "AIHL", // 호주 (4~9월)
+  "gpxwrx0bdx3ryk0": "NZIHL", // 뉴질랜드 (5~8월)
 };
 
 // TheSports ice_hockey status_id — src/lib/sports/thesports/status-codes.ts 의

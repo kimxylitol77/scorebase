@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES, HOCKEY_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
@@ -802,7 +802,7 @@ export default async function GenericLivePage({ params }: Props) {
     description: `${homeKo} 대 ${awayKo} ${label} ${fixtureRound ? `· ${fixtureRound} ` : ""}라이브 스코어 + 골 이벤트 + 라인업.`,
     startDate: match.startTime.toISOString(),
     eventStatus: eventStatusByMatch,
-    sport: isSoccer ? "Soccer" : lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? "Basketball" : lg === "NHL" || lg === "IIHF_WC" ? "Ice Hockey" : "Sports",
+    sport: isSoccer ? "Soccer" : lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? "Basketball" : HOCKEY_LEAGUES.has(lg) ? "Ice Hockey" : "Sports",
     homeTeam: {
       "@type": "SportsTeam",
       name: homeKo,
@@ -1098,7 +1098,7 @@ export default async function GenericLivePage({ params }: Props) {
       )}
 
       {/* NHL/하키 골 타임라인 + 선수 박스스코어 — cache detailLive.incidents/players (player_id→한글) */}
-      {(lg === "NHL" || lg === "IIHF_WC") &&
+      {HOCKEY_LEAGUES.has(lg) &&
         match.theSportsCache?.detailLive &&
         (() => {
           const dl = match.theSportsCache.detailLive as {
@@ -1146,7 +1146,7 @@ export default async function GenericLivePage({ params }: Props) {
               homeNameKo={homeKo}
               awayNameKo={awayKo}
             />
-          ) : (lg === "NHL" || lg === "IIHF_WC") &&
+          ) : HOCKEY_LEAGUES.has(lg) &&
             match.theSportsCache?.detailLive ? (
             (() => {
               // 하키 cache.detailLive.stats = [[periodIdx, [[statId,home,away],...]], ...].

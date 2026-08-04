@@ -1,291 +1,93 @@
 [
   {
-    "ourId": 747,
-    "ourName": "Boston Bruins",
-    "ourLeague": "NHL",
-    "ourExternalId": "1",
-    "tsId": "4jwq2lbz8o3r0ve",
-    "tsName": "Boston Bruins",
-    "matchType": "name"
+    "ourId": 611938,
+    "ourName": "Adelaide Adrenaline",
+    "ourLeague": "AIHL",
+    "ourExternalId": "zp5rzyb5yweq82w",
+    "tsId": "zp5rzyb5yweq82w",
+    "tsName": "Adelaide Adrenaline",
+    "matchType": "diary"
   },
   {
-    "ourId": 725,
-    "ourName": "Ottawa Senators",
-    "ourLeague": "NHL",
-    "ourExternalId": "14",
-    "tsId": "dn1m15bp5enqoep",
-    "tsName": "Ottawa Senators",
-    "matchType": "name"
+    "ourId": 611931,
+    "ourName": "Brisbane Lightning",
+    "ourLeague": "AIHL",
+    "ourExternalId": "vjxm87bd64nr6od",
+    "tsId": "vjxm87bd64nr6od",
+    "tsName": "Brisbane Lightning",
+    "matchType": "diary"
   },
   {
-    "ourId": 730,
-    "ourName": "Pittsburgh Penguins",
-    "ourLeague": "NHL",
-    "ourExternalId": "16",
-    "tsId": "ednm95bnxn8ryox",
-    "tsName": "Pittsburgh Penguins",
-    "matchType": "name"
+    "ourId": 611927,
+    "ourName": "Canberra Brave",
+    "ourLeague": "AIHL",
+    "ourExternalId": "4jwq2lbeo9yr0ve",
+    "tsId": "4jwq2lbeo9yr0ve",
+    "tsName": "Canberra Brave",
+    "matchType": "diary"
   },
   {
-    "ourId": 752,
-    "ourName": "Washington Capitals",
-    "ourLeague": "NHL",
-    "ourExternalId": "23",
-    "tsId": "1l4rj1bj867r7vx",
-    "tsName": "Washington Capitals",
-    "matchType": "name"
+    "ourId": 611940,
+    "ourName": "Central Coast Rhinos",
+    "ourLeague": "AIHL",
+    "ourExternalId": "3glrwdb25wvqdyj",
+    "tsId": "3glrwdb25wvqdyj",
+    "tsName": "Central Coast Rhinos",
+    "matchType": "diary"
   },
   {
-    "ourId": 723,
-    "ourName": "Montreal Canadiens",
-    "ourLeague": "NHL",
-    "ourExternalId": "10",
-    "tsId": "zp5rzyb6njvq82w",
-    "tsName": "Montreal Canadiens",
-    "matchType": "name"
+    "ourId": 611939,
+    "ourName": "Melbourne Ice",
+    "ourLeague": "AIHL",
+    "ourExternalId": "23xmv0b8vxxrg8n",
+    "tsId": "23xmv0b8vxxrg8n",
+    "tsName": "Melbourne Ice",
+    "matchType": "diary"
   },
   {
-    "ourId": 726,
-    "ourName": "Florida Panthers",
-    "ourLeague": "NHL",
-    "ourExternalId": "26",
-    "tsId": "y0or5xbzvlwmwzv",
-    "tsName": "Florida Panthers",
-    "matchType": "name"
+    "ourId": 611934,
+    "ourName": "Melbourne Mustangs",
+    "ourLeague": "AIHL",
+    "ourExternalId": "965mknbylz2m1ge",
+    "tsId": "965mknbylz2m1ge",
+    "tsName": "Melbourne Mustangs",
+    "matchType": "diary"
   },
   {
-    "ourId": 762,
-    "ourName": "New York Rangers",
-    "ourLeague": "NHL",
-    "ourExternalId": "13",
-    "tsId": "4jwq2lb2pylr0ve",
-    "tsName": "New York Rangers",
-    "matchType": "name"
+    "ourId": 611937,
+    "ourName": "Newcastle North Stars",
+    "ourLeague": "AIHL",
+    "ourExternalId": "ednm95b78e0ryox",
+    "tsId": "ednm95b78e0ryox",
+    "tsName": "Newcastle North Stars",
+    "matchType": "diary"
   },
   {
-    "ourId": 721,
-    "ourName": "Buffalo Sabres",
-    "ourLeague": "NHL",
-    "ourExternalId": "2",
-    "tsId": "ednm95b2j8jryox",
-    "tsName": "Buffalo Sabres",
-    "matchType": "name"
+    "ourId": 611932,
+    "ourName": "Perth Thunder",
+    "ourLeague": "AIHL",
+    "ourExternalId": "4jwq2lbeo1pr0ve",
+    "tsId": "4jwq2lbeo1pr0ve",
+    "tsName": "Perth Thunder",
+    "matchType": "diary"
   },
   {
-    "ourId": 727,
-    "ourName": "Detroit Red Wings",
-    "ourLeague": "NHL",
-    "ourExternalId": "5",
-    "tsId": "vjxm87b5n4kr6od",
-    "tsName": "Detroit Red Wings",
-    "matchType": "name"
+    "ourId": 611928,
+    "ourName": "Sydney Bears",
+    "ourLeague": "AIHL",
+    "ourExternalId": "1l4rj1b4ye2r7vx",
+    "tsId": "1l4rj1b4ye2r7vx",
+    "tsName": "Sydney Bears",
+    "matchType": "diary"
   },
   {
-    "ourId": 744,
-    "ourName": "Vegas Golden Knights",
-    "ourLeague": "NHL",
-    "ourExternalId": "37",
-    "tsId": "4jwq2lbz3y5r0ve",
-    "tsName": "Vegas Golden Knights",
-    "matchType": "name"
-  },
-  {
-    "ourId": 745,
-    "ourName": "Los Angeles Kings",
-    "ourLeague": "NHL",
-    "ourExternalId": "8",
-    "tsId": "n54ql0bpl2yqvy9",
-    "tsName": "Los Angeles Kings",
-    "matchType": "name"
-  },
-  {
-    "ourId": 741,
-    "ourName": "Anaheim Ducks",
-    "ourLeague": "NHL",
-    "ourExternalId": "25",
-    "tsId": "zp5rzyb6nyvq82w",
-    "tsName": "Anaheim Ducks",
-    "matchType": "name"
-  },
-  {
-    "ourId": 754,
-    "ourName": "Edmonton Oilers",
-    "ourLeague": "NHL",
-    "ourExternalId": "6",
-    "tsId": "x7lm78b3lkvq2wd",
-    "tsName": "Edmonton Oilers",
-    "matchType": "name"
-  },
-  {
-    "ourId": 740,
-    "ourName": "Nashville Predators",
-    "ourLeague": "NHL",
-    "ourExternalId": "27",
-    "tsId": "2y8m43bw2jxrl07",
-    "tsName": "Nashville Predators",
-    "matchType": "name"
-  },
-  {
-    "ourId": 735,
-    "ourName": "Dallas Stars",
-    "ourLeague": "NHL",
-    "ourExternalId": "9",
-    "tsId": "3glrwdb3xwnqdyj",
-    "tsName": "Dallas Stars",
-    "matchType": "name"
-  },
-  {
-    "ourId": 736,
-    "ourName": "Minnesota Wild",
-    "ourLeague": "NHL",
-    "ourExternalId": "30",
-    "tsId": "23xmv0bpe3jrg8n",
-    "tsName": "Minnesota Wild",
-    "matchType": "name"
-  },
-  {
-    "ourId": 739,
-    "ourName": "Utah Mammoth",
-    "ourLeague": "NHL",
-    "ourExternalId": "129764",
-    "tsId": "6ypq3vb0030ord7",
-    "tsName": "Utah Mammoth",
-    "matchType": "name"
-  },
-  {
-    "ourId": 724,
-    "ourName": "Tampa Bay Lightning",
-    "ourLeague": "NHL",
-    "ourExternalId": "20",
-    "tsId": "965mknb2j7pm1ge",
-    "tsName": "Tampa Bay Lightning",
-    "matchType": "name"
-  },
-  {
-    "ourId": 746,
-    "ourName": "Vancouver Canucks",
-    "ourLeague": "NHL",
-    "ourExternalId": "22",
-    "tsId": "4jwq2lbz843r0ve",
-    "tsName": "Vancouver Canucks",
-    "matchType": "name"
-  },
-  {
-    "ourId": 722,
-    "ourName": "Columbus Blue Jackets",
-    "ourLeague": "NHL",
-    "ourExternalId": "29",
-    "tsId": "pxwrx0bx6g5ryk0",
-    "tsName": "Columbus Blue Jackets",
-    "matchType": "name"
-  },
-  {
-    "ourId": 737,
-    "ourName": "Colorado Avalanche",
-    "ourLeague": "NHL",
-    "ourExternalId": "17",
-    "tsId": "6ypq3vb7207rd7o",
-    "tsName": "Colorado Avalanche",
-    "matchType": "name"
-  },
-  {
-    "ourId": 742,
-    "ourName": "San Jose Sharks",
-    "ourLeague": "NHL",
-    "ourExternalId": "18",
-    "tsId": "k82reeb059vrepz",
-    "tsName": "San Jose Sharks",
-    "matchType": "name"
-  },
-  {
-    "ourId": 719,
-    "ourName": "New York Islanders",
-    "ourLeague": "NHL",
-    "ourExternalId": "12",
-    "tsId": "l7oqd2b8v6er510",
-    "tsName": "New York Islanders",
-    "matchType": "name"
-  },
-  {
-    "ourId": 728,
-    "ourName": "Philadelphia Flyers",
-    "ourLeague": "NHL",
-    "ourExternalId": "15",
-    "tsId": "318q6wb6900mo9j",
-    "tsName": "Philadelphia Flyers",
-    "matchType": "name"
-  },
-  {
-    "ourId": 738,
-    "ourName": "Calgary Flames",
-    "ourLeague": "NHL",
-    "ourExternalId": "3",
-    "tsId": "dj2ry0bewk5q1zp",
-    "tsName": "Calgary Flames",
-    "matchType": "name"
-  },
-  {
-    "ourId": 729,
-    "ourName": "New Jersey Devils",
-    "ourLeague": "NHL",
-    "ourExternalId": "11",
-    "tsId": "dj2ry0bewy5q1zp",
-    "tsName": "New Jersey Devils",
-    "matchType": "name"
-  },
-  {
-    "ourId": 743,
-    "ourName": "Seattle Kraken",
-    "ourLeague": "NHL",
-    "ourExternalId": "124292",
-    "tsId": "4wyrn9by50jm86p",
-    "tsName": "Seattle Kraken",
-    "matchType": "name"
-  },
-  {
-    "ourId": 731,
-    "ourName": "St. Louis Blues",
-    "ourLeague": "NHL",
-    "ourExternalId": "19",
-    "tsId": "y39mp9b0x5vrojx",
-    "tsName": "St. Louis Blues",
-    "matchType": "name"
-  },
-  {
-    "ourId": 720,
-    "ourName": "Toronto Maple Leafs",
-    "ourLeague": "NHL",
-    "ourExternalId": "21",
-    "tsId": "ednm95b2jkjryox",
-    "tsName": "Toronto Maple Leafs",
-    "matchType": "name"
-  },
-  {
-    "ourId": 734,
-    "ourName": "Carolina Hurricanes",
-    "ourLeague": "NHL",
-    "ourExternalId": "7",
-    "tsId": "2y8m43bw23xrl07",
-    "tsName": "Carolina Hurricanes",
-    "matchType": "name"
-  },
-  {
-    "ourId": 732,
-    "ourName": "Winnipeg Jets",
-    "ourLeague": "NHL",
-    "ourExternalId": "28",
-    "tsId": "1l4rj1bj8y7r7vx",
-    "tsName": "Winnipeg Jets",
-    "matchType": "name"
-  },
-  {
-    "ourId": 733,
-    "ourName": "Chicago Blackhawks",
-    "ourLeague": "NHL",
-    "ourExternalId": "4",
-    "tsId": "8yomodbgw74q0j6",
-    "tsName": "Chicago Blackhawks",
-    "matchType": "name"
+    "ourId": 611933,
+    "ourName": "Sydney Ice Dogs",
+    "ourLeague": "AIHL",
+    "ourExternalId": "zp5rzyb5y12q82w",
+    "tsId": "zp5rzyb5y12q82w",
+    "tsName": "Sydney Ice Dogs",
+    "matchType": "diary"
   },
   {
     "ourId": 607759,
@@ -297,57 +99,12 @@
     "matchType": "national"
   },
   {
-    "ourId": 607760,
-    "ourName": "Great Britain",
+    "ourId": 607770,
+    "ourName": "Canada",
     "ourLeague": "IIHF_WC",
-    "ourExternalId": "8yomodbgw87q0j6",
-    "tsId": "8yomodbgw87q0j6",
-    "tsName": "Great Britain",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607761,
-    "ourName": "USA",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "3glrwdb7kloqdyj",
-    "tsId": "3glrwdb7kloqdyj",
-    "tsName": "USA",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607762,
-    "ourName": "Sweden",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "zp5rzyb5yx2q82w",
-    "tsId": "zp5rzyb5yx2q82w",
-    "tsName": "Sweden",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607763,
-    "ourName": "Denmark",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "23xmv0b8vgprg8n",
-    "tsId": "23xmv0b8vgprg8n",
-    "tsName": "Denmark",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607764,
-    "ourName": "Switzerland",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "965mknb2jy5m1ge",
-    "tsId": "965mknb2jy5m1ge",
-    "tsName": "Switzerland",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607765,
-    "ourName": "Germany",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "ednm95b2j76ryox",
-    "tsId": "ednm95b2j76ryox",
-    "tsName": "Germany",
+    "ourExternalId": "6ypq3vb364wrd7o",
+    "tsId": "6ypq3vb364wrd7o",
+    "tsName": "Canada",
     "matchType": "national"
   },
   {
@@ -360,12 +117,57 @@
     "matchType": "national"
   },
   {
+    "ourId": 607763,
+    "ourName": "Denmark",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "23xmv0b8vgprg8n",
+    "tsId": "23xmv0b8vgprg8n",
+    "tsName": "Denmark",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607772,
+    "ourName": "Finland",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "23xmv0b8v4xrg8n",
+    "tsId": "23xmv0b8v4xrg8n",
+    "tsName": "Finland",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607765,
+    "ourName": "Germany",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "ednm95b2j76ryox",
+    "tsId": "ednm95b2j76ryox",
+    "tsName": "Germany",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607760,
+    "ourName": "Great Britain",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "8yomodbgw87q0j6",
+    "tsId": "8yomodbgw87q0j6",
+    "tsName": "Great Britain",
+    "matchType": "national"
+  },
+  {
     "ourId": 607767,
     "ourName": "Hungary",
     "ourLeague": "IIHF_WC",
     "ourExternalId": "ednm95b78doryox",
     "tsId": "ednm95b78doryox",
     "tsName": "Hungary",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607773,
+    "ourName": "Italy",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "pxwrx0b5p2zryk0",
+    "tsId": "pxwrx0b5p2zryk0",
+    "tsName": "Italy",
     "matchType": "national"
   },
   {
@@ -387,39 +189,12 @@
     "matchType": "national"
   },
   {
-    "ourId": 607770,
-    "ourName": "Canada",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "6ypq3vb364wrd7o",
-    "tsId": "6ypq3vb364wrd7o",
-    "tsName": "Canada",
-    "matchType": "national"
-  },
-  {
     "ourId": 607771,
     "ourName": "Slovakia",
     "ourLeague": "IIHF_WC",
     "ourExternalId": "4jwq2lbz8eer0ve",
     "tsId": "4jwq2lbz8eer0ve",
     "tsName": "Slovakia",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607772,
-    "ourName": "Finland",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "23xmv0b8v4xrg8n",
-    "tsId": "23xmv0b8v4xrg8n",
-    "tsName": "Finland",
-    "matchType": "national"
-  },
-  {
-    "ourId": 607773,
-    "ourName": "Italy",
-    "ourLeague": "IIHF_WC",
-    "ourExternalId": "pxwrx0b5p2zryk0",
-    "tsId": "pxwrx0b5p2zryk0",
-    "tsName": "Italy",
     "matchType": "national"
   },
   {
@@ -430,5 +205,365 @@
     "tsId": "n54ql0b75kzqvy9",
     "tsName": "Slovenia",
     "matchType": "national"
+  },
+  {
+    "ourId": 607762,
+    "ourName": "Sweden",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "zp5rzyb5yx2q82w",
+    "tsId": "zp5rzyb5yx2q82w",
+    "tsName": "Sweden",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607764,
+    "ourName": "Switzerland",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "965mknb2jy5m1ge",
+    "tsId": "965mknb2jy5m1ge",
+    "tsName": "Switzerland",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607761,
+    "ourName": "USA",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "3glrwdb7kloqdyj",
+    "tsId": "3glrwdb7kloqdyj",
+    "tsName": "USA",
+    "matchType": "national"
+  },
+  {
+    "ourId": 741,
+    "ourName": "Anaheim Ducks",
+    "ourLeague": "NHL",
+    "ourExternalId": "25",
+    "tsId": "zp5rzyb6nyvq82w",
+    "tsName": "Anaheim Ducks",
+    "matchType": "name"
+  },
+  {
+    "ourId": 747,
+    "ourName": "Boston Bruins",
+    "ourLeague": "NHL",
+    "ourExternalId": "1",
+    "tsId": "4jwq2lbz8o3r0ve",
+    "tsName": "Boston Bruins",
+    "matchType": "name"
+  },
+  {
+    "ourId": 721,
+    "ourName": "Buffalo Sabres",
+    "ourLeague": "NHL",
+    "ourExternalId": "2",
+    "tsId": "ednm95b2j8jryox",
+    "tsName": "Buffalo Sabres",
+    "matchType": "name"
+  },
+  {
+    "ourId": 738,
+    "ourName": "Calgary Flames",
+    "ourLeague": "NHL",
+    "ourExternalId": "3",
+    "tsId": "dj2ry0bewk5q1zp",
+    "tsName": "Calgary Flames",
+    "matchType": "name"
+  },
+  {
+    "ourId": 734,
+    "ourName": "Carolina Hurricanes",
+    "ourLeague": "NHL",
+    "ourExternalId": "7",
+    "tsId": "2y8m43bw23xrl07",
+    "tsName": "Carolina Hurricanes",
+    "matchType": "name"
+  },
+  {
+    "ourId": 733,
+    "ourName": "Chicago Blackhawks",
+    "ourLeague": "NHL",
+    "ourExternalId": "4",
+    "tsId": "8yomodbgw74q0j6",
+    "tsName": "Chicago Blackhawks",
+    "matchType": "name"
+  },
+  {
+    "ourId": 737,
+    "ourName": "Colorado Avalanche",
+    "ourLeague": "NHL",
+    "ourExternalId": "17",
+    "tsId": "6ypq3vb7207rd7o",
+    "tsName": "Colorado Avalanche",
+    "matchType": "name"
+  },
+  {
+    "ourId": 722,
+    "ourName": "Columbus Blue Jackets",
+    "ourLeague": "NHL",
+    "ourExternalId": "29",
+    "tsId": "pxwrx0bx6g5ryk0",
+    "tsName": "Columbus Blue Jackets",
+    "matchType": "name"
+  },
+  {
+    "ourId": 735,
+    "ourName": "Dallas Stars",
+    "ourLeague": "NHL",
+    "ourExternalId": "9",
+    "tsId": "3glrwdb3xwnqdyj",
+    "tsName": "Dallas Stars",
+    "matchType": "name"
+  },
+  {
+    "ourId": 727,
+    "ourName": "Detroit Red Wings",
+    "ourLeague": "NHL",
+    "ourExternalId": "5",
+    "tsId": "vjxm87b5n4kr6od",
+    "tsName": "Detroit Red Wings",
+    "matchType": "name"
+  },
+  {
+    "ourId": 754,
+    "ourName": "Edmonton Oilers",
+    "ourLeague": "NHL",
+    "ourExternalId": "6",
+    "tsId": "x7lm78b3lkvq2wd",
+    "tsName": "Edmonton Oilers",
+    "matchType": "name"
+  },
+  {
+    "ourId": 726,
+    "ourName": "Florida Panthers",
+    "ourLeague": "NHL",
+    "ourExternalId": "26",
+    "tsId": "y0or5xbzvlwmwzv",
+    "tsName": "Florida Panthers",
+    "matchType": "name"
+  },
+  {
+    "ourId": 745,
+    "ourName": "Los Angeles Kings",
+    "ourLeague": "NHL",
+    "ourExternalId": "8",
+    "tsId": "n54ql0bpl2yqvy9",
+    "tsName": "Los Angeles Kings",
+    "matchType": "name"
+  },
+  {
+    "ourId": 736,
+    "ourName": "Minnesota Wild",
+    "ourLeague": "NHL",
+    "ourExternalId": "30",
+    "tsId": "23xmv0bpe3jrg8n",
+    "tsName": "Minnesota Wild",
+    "matchType": "name"
+  },
+  {
+    "ourId": 723,
+    "ourName": "Montreal Canadiens",
+    "ourLeague": "NHL",
+    "ourExternalId": "10",
+    "tsId": "zp5rzyb6njvq82w",
+    "tsName": "Montreal Canadiens",
+    "matchType": "name"
+  },
+  {
+    "ourId": 740,
+    "ourName": "Nashville Predators",
+    "ourLeague": "NHL",
+    "ourExternalId": "27",
+    "tsId": "2y8m43bw2jxrl07",
+    "tsName": "Nashville Predators",
+    "matchType": "name"
+  },
+  {
+    "ourId": 729,
+    "ourName": "New Jersey Devils",
+    "ourLeague": "NHL",
+    "ourExternalId": "11",
+    "tsId": "dj2ry0bewy5q1zp",
+    "tsName": "New Jersey Devils",
+    "matchType": "name"
+  },
+  {
+    "ourId": 719,
+    "ourName": "New York Islanders",
+    "ourLeague": "NHL",
+    "ourExternalId": "12",
+    "tsId": "l7oqd2b8v6er510",
+    "tsName": "New York Islanders",
+    "matchType": "name"
+  },
+  {
+    "ourId": 762,
+    "ourName": "New York Rangers",
+    "ourLeague": "NHL",
+    "ourExternalId": "13",
+    "tsId": "4jwq2lb2pylr0ve",
+    "tsName": "New York Rangers",
+    "matchType": "name"
+  },
+  {
+    "ourId": 725,
+    "ourName": "Ottawa Senators",
+    "ourLeague": "NHL",
+    "ourExternalId": "14",
+    "tsId": "dn1m15bp5enqoep",
+    "tsName": "Ottawa Senators",
+    "matchType": "name"
+  },
+  {
+    "ourId": 728,
+    "ourName": "Philadelphia Flyers",
+    "ourLeague": "NHL",
+    "ourExternalId": "15",
+    "tsId": "318q6wb6900mo9j",
+    "tsName": "Philadelphia Flyers",
+    "matchType": "name"
+  },
+  {
+    "ourId": 730,
+    "ourName": "Pittsburgh Penguins",
+    "ourLeague": "NHL",
+    "ourExternalId": "16",
+    "tsId": "ednm95bnxn8ryox",
+    "tsName": "Pittsburgh Penguins",
+    "matchType": "name"
+  },
+  {
+    "ourId": 742,
+    "ourName": "San Jose Sharks",
+    "ourLeague": "NHL",
+    "ourExternalId": "18",
+    "tsId": "k82reeb059vrepz",
+    "tsName": "San Jose Sharks",
+    "matchType": "name"
+  },
+  {
+    "ourId": 743,
+    "ourName": "Seattle Kraken",
+    "ourLeague": "NHL",
+    "ourExternalId": "124292",
+    "tsId": "4wyrn9by50jm86p",
+    "tsName": "Seattle Kraken",
+    "matchType": "name"
+  },
+  {
+    "ourId": 731,
+    "ourName": "St. Louis Blues",
+    "ourLeague": "NHL",
+    "ourExternalId": "19",
+    "tsId": "y39mp9b0x5vrojx",
+    "tsName": "St. Louis Blues",
+    "matchType": "name"
+  },
+  {
+    "ourId": 724,
+    "ourName": "Tampa Bay Lightning",
+    "ourLeague": "NHL",
+    "ourExternalId": "20",
+    "tsId": "965mknb2j7pm1ge",
+    "tsName": "Tampa Bay Lightning",
+    "matchType": "name"
+  },
+  {
+    "ourId": 720,
+    "ourName": "Toronto Maple Leafs",
+    "ourLeague": "NHL",
+    "ourExternalId": "21",
+    "tsId": "ednm95b2jkjryox",
+    "tsName": "Toronto Maple Leafs",
+    "matchType": "name"
+  },
+  {
+    "ourId": 739,
+    "ourName": "Utah Mammoth",
+    "ourLeague": "NHL",
+    "ourExternalId": "129764",
+    "tsId": "6ypq3vb0030ord7",
+    "tsName": "Utah Mammoth",
+    "matchType": "name"
+  },
+  {
+    "ourId": 746,
+    "ourName": "Vancouver Canucks",
+    "ourLeague": "NHL",
+    "ourExternalId": "22",
+    "tsId": "4jwq2lbz843r0ve",
+    "tsName": "Vancouver Canucks",
+    "matchType": "name"
+  },
+  {
+    "ourId": 744,
+    "ourName": "Vegas Golden Knights",
+    "ourLeague": "NHL",
+    "ourExternalId": "37",
+    "tsId": "4jwq2lbz3y5r0ve",
+    "tsName": "Vegas Golden Knights",
+    "matchType": "name"
+  },
+  {
+    "ourId": 752,
+    "ourName": "Washington Capitals",
+    "ourLeague": "NHL",
+    "ourExternalId": "23",
+    "tsId": "1l4rj1bj867r7vx",
+    "tsName": "Washington Capitals",
+    "matchType": "name"
+  },
+  {
+    "ourId": 732,
+    "ourName": "Winnipeg Jets",
+    "ourLeague": "NHL",
+    "ourExternalId": "28",
+    "tsId": "1l4rj1bj8y7r7vx",
+    "tsName": "Winnipeg Jets",
+    "matchType": "name"
+  },
+  {
+    "ourId": 611929,
+    "ourName": "Botany Swarm",
+    "ourLeague": "NZIHL",
+    "ourExternalId": "x7lm78b34poq2wd",
+    "tsId": "x7lm78b34poq2wd",
+    "tsName": "Botany Swarm",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 611941,
+    "ourName": "Canterbury Red Devils",
+    "ourLeague": "NZIHL",
+    "ourExternalId": "l5erg6blgw9q8k0",
+    "tsId": "l5erg6blgw9q8k0",
+    "tsName": "Canterbury Red Devils",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 611936,
+    "ourName": "Dunedin Thunder",
+    "ourLeague": "NZIHL",
+    "ourExternalId": "l5erg6blgj3q8k0",
+    "tsId": "l5erg6blgj3q8k0",
+    "tsName": "Dunedin Thunder",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 611930,
+    "ourName": "Skycity Stampede",
+    "ourLeague": "NZIHL",
+    "ourExternalId": "8yomodbgn1kq0j6",
+    "tsId": "8yomodbgn1kq0j6",
+    "tsName": "Skycity Stampede",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 611935,
+    "ourName": "West Auckland Admirals",
+    "ourLeague": "NZIHL",
+    "ourExternalId": "y0or5xbz71emwzv",
+    "tsId": "y0or5xbz71emwzv",
+    "tsName": "West Auckland Admirals",
+    "matchType": "diary"
   }
 ]

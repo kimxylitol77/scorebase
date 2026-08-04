@@ -36,8 +36,10 @@ export const collectors: Record<League, MatchCollector> = {
   EPL: eplCollector,
   NBA: nbaCollector,
   NHL: nhlCollectorEspn,
-  // IIHF_WC / KBL / WKBL: 매치 소스는 Lightsail TheSports worker (Vercel collect 안 함) — 타입 충족용 no-op.
+  // IIHF_WC / AIHL / NZIHL / KBL / WKBL: 매치 소스는 Lightsail TheSports worker (Vercel collect 안 함) — 타입 충족용 no-op.
   IIHF_WC: { league: "IIHF_WC", async fetchByDate() { return []; } },
+  AIHL: { league: "AIHL", async fetchByDate() { return []; } },
+  NZIHL: { league: "NZIHL", async fetchByDate() { return []; } },
   KBL: { league: "KBL", async fetchByDate() { return []; } },
   WKBL: { league: "WKBL", async fetchByDate() { return []; } },
   MLB: mlbCollectorEspn,
@@ -300,6 +302,7 @@ export function getPrimarySource(league: League): string {
   if (league === "CLUB_FRIENDLY") return "thesports";
   if (league === "NBA") return "thesports";
   if (league === "NHL") return "thesports";
+  if (league === "AIHL" || league === "NZIHL") return "thesports";
   if (league === "MLB") return "espn";
   if (league === "WNBA") return "thesports";
   if (league === "KBL" || league === "WKBL") return "thesports";

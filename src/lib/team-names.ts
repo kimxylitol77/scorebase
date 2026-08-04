@@ -377,6 +377,25 @@ const RAW: Record<string, string> = {
   "Al-Qadisiyah FC": "알 카디시야",
   "NEOM": "네옴 SC",
 
+  // ─── AIHL (호주) ───
+  "Adelaide Adrenaline": "애들레이드 애드레널린",
+  "Brisbane Lightning": "브리즈번 라이트닝",
+  "Canberra Brave": "캔버라 브레이브",
+  "Central Coast Rhinos": "센트럴코스트 라이노스",
+  "Melbourne Ice": "멜버른 아이스",
+  "Melbourne Mustangs": "멜버른 머스탱스",
+  "Newcastle North Stars": "뉴캐슬 노스스타스",
+  "Perth Thunder": "퍼스 선더",
+  "Sydney Bears": "시드니 베어스",
+  "Sydney Ice Dogs": "시드니 아이스독스",
+
+  // ─── NZIHL (뉴질랜드) ───
+  "Botany Swarm": "보타니 스웜",
+  "Canterbury Red Devils": "캔터베리 레드데블스",
+  "Dunedin Thunder": "더니든 선더",
+  "Skycity Stampede": "스카이시티 스탬피드",
+  "West Auckland Admirals": "웨스트오클랜드 애드미럴스",
+
   // ─── NHL ───
   "Anaheim Ducks": "애너하임 덕스",
   "Boston Bruins": "보스턴 브루인스",

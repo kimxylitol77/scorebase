@@ -36,6 +36,9 @@ const SEASON_BOUNDARY: Record<string, { month: number; day: number }> = {
   // 가을 개막 겨울 리그 (10월 개막 · 이듬해 6월 종료)
   NBA: { month: 8, day: 1 },
   NHL: { month: 8, day: 1 },
+  // 남반구 겨울 리그 — 달력연도 안에서 끝난다 (AIHL 4~9월 · NZIHL 5~8월)
+  AIHL: { month: 3, day: 1 },
+  NZIHL: { month: 4, day: 1 },
   // LCK (1월 개막 · 9월 종료)
   LOL: { month: 12, day: 1 },
 };
