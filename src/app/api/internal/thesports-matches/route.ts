@@ -539,8 +539,17 @@ export async function POST(req: NextRequest) {
       const updateData: Record<string, unknown> = {
         homeTeamId: homeId,
         awayTeamId: awayId,
-        startTime: new Date(m.startTime),
       };
+      // 진행/종료된 매치의 킥오프를 **미래로** 미는 갱신은 무시한다. TheSports 는 diary(일정)와
+      // detail_live(라이브)가 서로 다른 킥오프를 줄 때가 있는데(2026-08-04 CLUB_FRIENDLY
+      // Bournemouth vs Genoa: diary 15:00 · live 13:00), 라이브로 먼저 전환된 뒤 diary 가
+      // startTime 을 덮으면 "미래인데 LIVE" 로 고착돼 data-sanity 가 매번 알린다.
+      // 이미 시작한 경기의 킥오프가 미래일 수는 없으므로 진행 중인 값을 정본으로 둔다.
+      const incomingStart = new Date(m.startTime);
+      const liveOrDone = existing?.status === "LIVE" || existing?.status === "FINISHED";
+      if (!(liveOrDone && incomingStart.getTime() > Date.now())) {
+        updateData.startTime = incomingStart;
+      }
       if (allowStatus) updateData.status = m.status;
       // 시작 전 경기의 score 는 버린다 — 일부 소스가 예정 경기를 0-0 으로 실어 보내고,
       // 이 라우트는 숫자만 update 하므로 한번 들어온 0 이 영영 남아 카드에 "0 : 0" 이 뜬다
