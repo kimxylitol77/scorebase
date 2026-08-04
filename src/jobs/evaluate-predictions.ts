@@ -80,6 +80,18 @@ function actualWinnerOf(home: number, away: number): "HOME" | "DRAW" | "AWAY" {
   return "DRAW";
 }
 
+/**
+ * 채점 최소 표본 — 양 팀 모두 같은 대회에서 이만큼 치른 뒤의 매치만 평가한다.
+ * Elo 기본값이 1500 이라 그 전 매치는 픽이 사실상 50/50 이고, 적중률에 넣으면 노이즈다.
+ *
+ * ⚠️ 이 가드는 컵·친선·단기 토너먼트를 사실상 영구 제외한다 — 그 대회 안에서 5경기를
+ *    못 채우기 때문이다. 2026-08-03 실측 492건: CLUB_FRIENDLY 124·SCO_LEAGUE_CUP 41·
+ *    EGL_W 40·ARG_PRIMERA_NACIONAL 34·CHINA_2 33·VNL 29·UCL 19 …
+ *    의도된 제외이지 cron 누락이 아니다. health-check 가 같은 기준으로 분모를 세도록
+ *    export 한다 (안 그러면 매일 evaluation-gap HIGH 오탐이 뜬다).
+ */
+export const MIN_PRIOR = 5;
+
 export async function runEvaluate(opts?: { limit?: number }) {
   const limit = opts?.limit ?? 500;
   console.log("[evaluate] 시작");
@@ -245,7 +257,8 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         p.status === "FINISHED" &&
         p.startTime.getTime() < m.startTime.getTime(),
     ).length;
-    const MIN_PRIOR = 5; // 양 팀 모두 5경기 이상 학습 후
+    // MIN_PRIOR 은 모듈 상수 — health-check 가 같은 기준으로 "채점 대상"을 세야
+    //   제외분을 cron 누락으로 오해하지 않는다 (2026-08-03).
     // 월드컵은 외부 시드 Elo(eloratings.net) 라 prior 0 이어도 1500 random 이 아님 → 가드 면제.
     // (이 가드가 본선 경기를 전부 걸러 predCorrect 가 안 채워지던 문제, 2026-06-17.)
     if (m.league !== "WORLD_CUP" && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;

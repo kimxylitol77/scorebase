@@ -7,6 +7,8 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { checkLinkHealth } from "./link-health";
+// 채점 제외 기준은 evaluate 잡이 단일 출처 — 여기서 따로 정의하면 두 벌이 어긋난다.
+import { MIN_PRIOR } from "@/jobs/evaluate-predictions";
 
 // ──────────────────────────────────────────────────────────────
 // 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
@@ -874,25 +876,61 @@ async function checkNhlGoalieCoverage(now: Date): Promise<HealthFinding[]> {
 async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-  const total = await prisma.match.count({
-    where: { status: "FINISHED", startTime: { gte: since, lte: now }, NOT: { predHome: null } },
+  // evaluate cron 은 하루 1회(00:00 KST)다. 직전 24시간 매치는 아직 채점 차례가 안 왔을 뿐이라
+  //   분모에 넣으면 7일 창에서 항상 1/7 이 미평가로 잡혀 정상 상태에서도 경고가 뜬다.
+  const until = new Date(now.getTime() - 24 * 3600 * 1000);
+  const candidates = await prisma.match.findMany({
+    where: { status: "FINISHED", startTime: { gte: since, lte: until }, NOT: { predHome: null } },
+    select: { league: true, homeTeamId: true, awayTeamId: true, predCorrect: true },
   });
+  if (candidates.length === 0) return out;
+
+  // evaluate 는 MIN_PRIOR 가드로 "같은 대회 출전 5경기 미만" 매치를 건너뛴다. 컵·친선·
+  //   단기 토너먼트는 그 안에서 5경기를 못 채워 사실상 영구 제외인데, 예전엔 이걸 분모에
+  //   그대로 넣어 매일 "69% — cron 누락 의심" HIGH 가 떴다 (2026-08-03, 실제 cron 은 정상).
+  //   그래서 evaluate 와 같은 기준으로 채점 대상만 센다.
+  //   출전수는 전 기간 합계로 근사한다(매치 시점 이전만 세는 정확한 계산은 질의가 너무 많다).
+  //   근사 방향은 "대상에 더 넣는" 쪽이라 진짜 누락을 놓치지 않는다.
+  const leagues = [...new Set(candidates.map((c) => c.league))];
+  const [homeApp, awayApp] = await Promise.all([
+    prisma.match.groupBy({
+      by: ["league", "homeTeamId"],
+      where: { league: { in: leagues }, status: "FINISHED" },
+      _count: { _all: true },
+    }),
+    prisma.match.groupBy({
+      by: ["league", "awayTeamId"],
+      where: { league: { in: leagues }, status: "FINISHED" },
+      _count: { _all: true },
+    }),
+  ]);
+  const apps = new Map<string, number>();
+  const bump = (lg: string, team: number, n: number) => {
+    const k = `${lg}|${team}`;
+    apps.set(k, (apps.get(k) ?? 0) + n);
+  };
+  for (const r of homeApp) bump(r.league, r.homeTeamId, r._count._all);
+  for (const r of awayApp) bump(r.league, r.awayTeamId, r._count._all);
+
+  const gradable = candidates.filter((c) => {
+    if (c.league === "WORLD_CUP") return true; // 외부 시드 Elo — evaluate 도 가드 면제
+    const h = apps.get(`${c.league}|${c.homeTeamId}`) ?? 0;
+    const a = apps.get(`${c.league}|${c.awayTeamId}`) ?? 0;
+    return Math.min(h, a) >= MIN_PRIOR;
+  });
+  const total = gradable.length;
   if (total < 20) return out;
-  const evaluated = await prisma.match.count({
-    where: {
-      status: "FINISHED",
-      startTime: { gte: since, lte: now },
-      NOT: [{ predHome: null }, { predCorrect: null }],
-    },
-  });
+  const evaluated = gradable.filter((c) => c.predCorrect !== null).length;
+  const excluded = candidates.length - total;
+
   const rate = evaluated / total;
   if (rate < 0.9) {
     out.push({
       category: "evaluation-gap",
       key: "predCorrect",
       severity: rate < 0.7 ? "HIGH" : "MED",
-      message: `최근 7일 FINISHED 매치 ${total}건 중 평가 ${evaluated}건 (${(rate * 100).toFixed(0)}%) — evaluate cron 누락 의심`,
-      metadata: { total, evaluated, rate },
+      message: `최근 7일 채점 대상 ${total}건 중 평가 ${evaluated}건 (${(rate * 100).toFixed(0)}%) — evaluate cron 누락 의심 (표본 부족 제외 ${excluded}건은 분모에서 뺌)`,
+      metadata: { total, evaluated, rate, excluded, minPrior: MIN_PRIOR },
     });
   }
   return out;
