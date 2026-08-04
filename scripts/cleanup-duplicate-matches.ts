@@ -22,12 +22,15 @@
 //   - 비-cascade 파생 MatchStats 는 삭제 전 명시적으로 제거(파생이라 안전).
 import "@/lib/env";
 import { prisma } from "@/lib/db";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 
 const APPLY = process.argv.includes("--apply");
 const MERGE = process.argv.includes("--merge"); // MANUAL(양쪽 참조) 그룹을 병합 처리
 const leagueArg = process.argv.find((a) => a.startsWith("--league="))?.split("=")[1];
 const idsArg = process.argv.find((a) => a.startsWith("--ids="))?.split("=")[1];
 const idFilter = idsArg ? new Set(idsArg.split(",").map((s) => Number(s.trim())).filter(Boolean)) : null;
+// 탐지기 3 의 스캔 범위(오늘 기준 ±N일). 재고 정리는 넓게, 정기 실행은 좁게 쓴다.
+const daysArg = Number(process.argv.find((a) => a.startsWith("--days="))?.split("=")[1]) || 60;
 
 type Row = {
   id: number;
@@ -38,6 +41,8 @@ type Row = {
   homeTeamId: number;
   awayTeamId: number;
   createdAt: Date;
+  updatedAt: Date;
+  hasScore: boolean;
   tsMatchId: string | null;
   protectedRefs: number; // Article + Post + MatchVote
 };
@@ -62,6 +67,8 @@ async function loadRow(id: number): Promise<Row | null> {
     homeTeamId: m.homeTeamId,
     awayTeamId: m.awayTeamId,
     createdAt: m.createdAt,
+    updatedAt: m.updatedAt,
+    hasScore: m.homeScore != null && m.awayScore != null,
     tsMatchId: m.theSportsCache?.tsMatchId ?? null,
     protectedRefs: art + post + vote,
   };
@@ -85,6 +92,23 @@ function pickKeep(rows: Row[]): Row {
     const bCanon = b.externalId.replace(/^ts-/, "") === b.tsMatchId ? 1 : 0;
     if (bCanon !== aCanon) return bCanon - aCanon;
     return a.createdAt.getTime() - b.createdAt.getTime();
+  })[0];
+}
+
+// 크로스소스 쌍(탐지기 3)의 KEEP.
+//   ① 점수를 가진 row 최우선 — 끝난 경기의 결과를 잃지 않는 게 제일 중요하다.
+//   ② 그다음 FINISHED.
+//   ③ 마지막이 updatedAt 최신 — 미래 경기라 양쪽 다 점수가 없을 때, 갱신이 살아있는 쪽을
+//      남긴다. 얼어붙은 placeholder 를 남기면 킥오프 시각이 틀린 카드가 대신 살아남는다.
+// 어느 소스가 정본인지는 리그마다 다르다(대부분 ts, TS_COVERED_EXCEPTIONS 는 af) — 소스
+// 이름 대신 "결과를 들고 있는가 / 갱신되고 있는가" 로 판정해야 양쪽을 다 맞춘다.
+// 삭제 대상에 참조가 걸린 경우는 아래 blocked 검사가 MANUAL 로 돌리므로 여기선 안 따진다.
+function pickKeepXs(rows: Row[]): Row {
+  const rank = (s: string) => (s === "FINISHED" ? 0 : 1);
+  return [...rows].sort((a, b) => {
+    if (a.hasScore !== b.hasScore) return a.hasScore ? -1 : 1;
+    if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
   })[0];
 }
 
@@ -196,6 +220,67 @@ async function main() {
   `);
   for (const g of byTs) addGroup(g.ids);
 
+  // 탐지기 3: 크로스소스 중복 — 같은 리그·같은 팀페어인데 ts- row 와 숫자(af) row 의 킥오프가
+  // 며칠씩 벌어진 쌍. 탐지기 1 은 startTime 완전일치만 보므로 원리상 못 잡는다.
+  // 2026-08-04 SLOVENIA_SNL: 한쪽 소스가 라운드 전체를 같은 시각 placeholder 로 실어 26시간씩
+  // 어긋난 중복이 생겼고, 시각 기준 탐지가 전부 놓쳤다.
+  // 축구 한정 — 야구 더블헤더, 하키·농구 플레이오프는 같은 팀페어가 며칠 안에 다시 붙는 게
+  // 정상이라 같은 기준을 쓰면 멀쩡한 경기를 중복으로 지운다. CLUB_FRIENDLY 도 스플릿 스쿼드
+  // 당일 2연전이 있어 제외(같은 ts id 중복은 data-sanity 의 friendly_dup 담당).
+  const XS_WINDOW_MS = 4 * 86400_000;
+  const xsIds = new Set<number>();
+  {
+    const nowMs = Date.now();
+    const soccer = [...SOCCER_LEAGUES].filter(
+      (l) => l !== "CLUB_FRIENDLY" && (!leagueArg || l === leagueArg),
+    );
+    const xsRows = await prisma.match.findMany({
+      where: {
+        league: { in: soccer },
+        startTime: {
+          gte: new Date(nowMs - daysArg * 86400_000),
+          lte: new Date(nowMs + daysArg * 86400_000),
+        },
+      },
+      select: { id: true, league: true, externalId: true, startTime: true, homeTeamId: true, awayTeamId: true },
+    });
+    const byPair = new Map<string, typeof xsRows>();
+    for (const m of xsRows) {
+      const k = `${m.league}:${[m.homeTeamId, m.awayTeamId].sort((a, b) => a - b).join("-")}`;
+      if (!byPair.has(k)) byPair.set(k, []);
+      byPair.get(k)!.push(m);
+    }
+    for (const g of byPair.values()) {
+      const tsRows = g.filter((r) => r.externalId.startsWith("ts-"));
+      const numRows = g.filter((r) => !r.externalId.startsWith("ts-"));
+      if (!tsRows.length || !numRows.length) continue;
+      const cands: { t: (typeof xsRows)[number]; n: (typeof xsRows)[number]; d: number }[] = [];
+      for (const t of tsRows) {
+        for (const n of numRows) {
+          // 홈/원정이 뒤집힌 쌍은 제외 — 2차전(홈앤어웨이)이 정확히 그 모양이라 오탐이 된다
+          // (실측: UCL 예선 Hearts↔Sturm Graz 가 정확히 7일 간격 역방향).
+          // 시각이 거의 같은 중립구장 뒤바뀜은 collect 의 생성 시점 가드가 이미 막는다.
+          if (t.homeTeamId !== n.homeTeamId) continue;
+          const d = Math.abs(t.startTime.getTime() - n.startTime.getTime());
+          if (d > XS_WINDOW_MS) continue;
+          cands.push({ t, n, d });
+        }
+      }
+      // 가장 가까운 시각끼리 1:1 로만 묶는다 — ts 2건·af 2건 그룹이 4쌍으로 번지지 않게.
+      cands.sort((a, b) => a.d - b.d);
+      const usedT = new Set<number>();
+      const usedN = new Set<number>();
+      for (const c of cands) {
+        if (usedT.has(c.t.id) || usedN.has(c.n.id)) continue;
+        usedT.add(c.t.id);
+        usedN.add(c.n.id);
+        addGroup([c.t.id, c.n.id]);
+        xsIds.add(c.t.id);
+        xsIds.add(c.n.id);
+      }
+    }
+  }
+
   const groupsById = new Map<number, Set<number>>(); // root → matchId set
   for (const id of parent.keys()) {
     const r = find(id);
@@ -203,7 +288,7 @@ async function main() {
     groupsById.get(r)!.add(id);
   }
 
-  const buckets = { SAFE: [] as string[], MANUAL: [] as string[], LIVE: [] as string[], PENDING: [] as string[], ANOMALY: [] as string[] };
+  const buckets = { SAFE: [] as string[], MANUAL: [] as string[], LIVE: [] as string[], PENDING: [] as string[], REVIEW: [] as string[], ANOMALY: [] as string[] };
   let deleted = 0;
   let mergedGroups = 0;
 
@@ -231,8 +316,19 @@ async function main() {
     // SCHEDULED(아직 안 끝난 매치) 는 startTime 이 또 이동할 수 있어 정리 보류 — 종료 후 처리.
     // 예외: 쌍둥이가 이미 FINISHED 이고 SCHEDULED 쪽 시작시각이 6h+ 지났으면 경기는 실제로 끝난 것 —
     // startTime 이 더 움직일 일 없는 유령 row 이므로 정리 대상에 포함한다(stale-scheduled 알림 반복 차단).
+    // 탐지기 3 이 잡은 크로스소스 쌍 중 "삭제될 쪽이 이미 얼어붙은" 경우는 위 보류에서 뺀다.
+    // 근거. 이 유형은 한쪽 소스의 수집이 끊겨 placeholder 시각 그대로 남은 row 라 startTime 이
+    // 더 움직이지 않는다(실측: 해당 리그 af 신규 생성 30일간 0건). 그리고 킥오프 전부터 이미
+    // 카드 두 장으로 보이므로 종료를 기다릴 이유도 없다.
+    const isXs =
+      rows.length === 2 &&
+      rows.some((r) => xsIds.has(r.id)) &&
+      rows.filter((r) => r.externalId.startsWith("ts-")).length === 1;
+    const stalest = Math.min(...rows.map((r) => r.updatedAt.getTime()));
+    const xsFrozen = isXs && Date.now() - stalest >= 3 * 86400_000;
+
     const scheduledRows = rows.filter((r) => r.status === "SCHEDULED");
-    if (scheduledRows.length > 0) {
+    if (scheduledRows.length > 0 && !xsFrozen) {
       const ghostCutoff = Date.now() - 6 * 3600 * 1000;
       const twinFinished = rows.some((r) => r.status === "FINISHED");
       const allGhost = scheduledRows.every((r) => r.startTime.getTime() < ghostCutoff);
@@ -242,10 +338,41 @@ async function main() {
       }
     }
 
-    const keep = pickKeep(rows);
+    const keep = isXs ? pickKeepXs(rows) : pickKeep(rows);
     const dels = rows.filter((r) => r.id !== keep.id);
     const blocked = dels.filter((r) => r.protectedRefs > 0);
-    const desc = `${base.league} ${base.startTime.toISOString()} KEEP #${keep.id}(${keep.externalId},refs=${keep.protectedRefs}) DEL ${dels.map((r) => `#${r.id}(${r.externalId},refs=${r.protectedRefs},${r.status})`).join(",")}`;
+    // 점수 소실 가드 — 지울 쪽만 점수를 들고 있으면 어떤 정렬 규칙이 그렇게 뽑았든 손대지
+    // 않는다. 순서 규칙은 앞으로 바뀔 수 있지만 "결과를 지우지 않는다" 는 바뀌면 안 된다.
+    if (dels.some((r) => r.hasScore) && !keep.hasScore) {
+      buckets.ANOMALY.push(
+        `[SCORE-GUARD] ${base.league} ${base.startTime.toISOString()} 삭제대상만 점수 보유 — 미처리. ` +
+          rows.map((r) => `#${r.id}(${r.externalId},${r.status},score=${r.hasScore})`).join(" | "),
+      );
+      continue;
+    }
+
+    // XS 는 두 row 의 킥오프가 다른 게 핵심이라 각 row 의 시각을 같이 찍는다.
+    const at = (r: Row) => r.startTime.toISOString().slice(5, 16);
+
+    // XS 킥오프 시각 가드. 남길 row 가 "갱신이 끊긴 쪽"이면 결과는 지켜도 킥오프 시각이
+    // placeholder 로 굳어 경기가 엉뚱한 날짜에 표시된다(af 가 라운드를 한 시각에 몰아넣는
+    // 패턴). 결과 보존과 시각 정확성이 충돌하는 경우라 자동 삭제하지 않고 사람이 본다.
+    if (isXs) {
+      const live = [...rows].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+      if (keep.id !== live.id && keep.startTime.getTime() !== live.startTime.getTime()) {
+        buckets.REVIEW.push(
+          `[REVIEW] ${base.league} 결과 보유 row 와 갱신 살아있는 row 가 다름 — ` +
+            rows
+              .map(
+                (r) =>
+                  `#${r.id}(${r.externalId},${at(r)},${r.status},score=${r.hasScore},upd=${r.updatedAt.toISOString().slice(5, 16)})`,
+              )
+              .join(" | "),
+        );
+        continue;
+      }
+    }
+    const desc = `${isXs ? "XS " : ""}${base.league} ${base.startTime.toISOString()} KEEP #${keep.id}(${keep.externalId},${at(keep)},refs=${keep.protectedRefs},${keep.status}${keep.hasScore ? ",score" : ""}) DEL ${dels.map((r) => `#${r.id}(${r.externalId},${at(r)},refs=${r.protectedRefs},${r.status}${r.hasScore ? ",score" : ""})`).join(",")}`;
 
     if (blocked.length > 0) {
       if (MERGE) {
@@ -293,10 +420,11 @@ async function main() {
   out("SAFE (자동 삭제 가능)", buckets.SAFE);
   out(MERGE ? "MANUAL 병합" : "MANUAL (보호참조 — --merge 로 병합)", buckets.MANUAL);
   out("PENDING (미종료 — 종료 후 재판정)", buckets.PENDING);
+  out("REVIEW (결과 row 와 갱신 row 불일치 — 사람 판단)", buckets.REVIEW);
   out("LIVE-SKIP (라이브 — 미처리)", buckets.LIVE);
   out("ANOMALY (팀페어 불일치 오링크)", buckets.ANOMALY);
   console.log(
-    `\n요약. SAFE=${buckets.SAFE.length} MANUAL=${buckets.MANUAL.length} PENDING=${buckets.PENDING.length} LIVE=${buckets.LIVE.length} ANOMALY=${buckets.ANOMALY.length}` +
+    `\n요약. SAFE=${buckets.SAFE.length} MANUAL=${buckets.MANUAL.length} PENDING=${buckets.PENDING.length} REVIEW=${buckets.REVIEW.length} LIVE=${buckets.LIVE.length} ANOMALY=${buckets.ANOMALY.length}` +
       (APPLY ? ` / SAFE삭제 ${deleted}건${MERGE ? ` / 병합 ${mergedGroups}그룹` : ""}` : " / dry-run (삭제 안 함, --apply 로 실행)"),
   );
 
