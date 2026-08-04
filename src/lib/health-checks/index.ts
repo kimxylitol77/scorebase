@@ -70,17 +70,36 @@ async function checkSeasonLabels(now: Date): Promise<HealthFinding[]> {
     const prev = byLeague.get(row.league);
     if (!prev || row.season.localeCompare(prev) > 0) byLeague.set(row.league, row.season);
   }
+  // 시즌 전환기 오탐 방지 — 달력이 새 시즌 월로 넘어가도 리그가 실제로 개막하기 전에는
+  //   리더보드가 지난 시즌을 보여주는 게 맞다. 유럽 빅리그는 8/8~8/29 로 흩어져 개막하는데
+  //   expectedSeasonForLeague 는 8월 1일부터 새 시즌을 요구해, 개막 전까지 최대 4주간
+  //   매일 HIGH 7건을 띄웠다 (2026-08-03 실측 — 7개 리그 모두 신시즌 종료 경기 0건이었다).
+  //   그래서 "최근에 끝난 경기가 있는가" 를 함께 본다. 경기가 없으면 리더보드가 지난 시즌인
+  //   게 정상이고, 경기가 있는데도 라벨이 안 넘어갔으면 그건 진짜 문제라 그대로 잡힌다.
+  const recentlyPlayed = new Set(
+    (
+      await prisma.match.groupBy({
+        by: ["league"],
+        where: {
+          status: "FINISHED",
+          startTime: { gte: new Date(now.getTime() - 30 * 24 * 3600 * 1000), lte: now },
+        },
+        _count: { _all: true },
+      })
+    ).map((r) => r.league),
+  );
+
   for (const [league, season] of byLeague) {
     const expected = expectedSeasonForLeague(league, now);
-    if (!expected.includes(season)) {
-      out.push({
-        category: "season-label",
-        key: league,
-        severity: "HIGH",
-        message: `${league} 리더보드 시즌 = "${season}" — 예상 ${expected.join(" / ")}`,
-        metadata: { actual: season, expected },
-      });
-    }
+    if (expected.includes(season)) continue;
+    if (!recentlyPlayed.has(league)) continue; // 개막 전·비시즌 — 지난 시즌 표기가 정상
+    out.push({
+      category: "season-label",
+      key: league,
+      severity: "HIGH",
+      message: `${league} 리더보드 시즌 = "${season}" — 예상 ${expected.join(" / ")}`,
+      metadata: { actual: season, expected },
+    });
   }
   return out;
 }
