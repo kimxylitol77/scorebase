@@ -1800,21 +1800,32 @@ export default async function ScoresPage({ searchParams }: Props) {
   const hasAnyMatch = normalized.length > 0 || orphanCards.length > 0;
   let nextAvailable: { date: string; label: string } | null = null;
   if (!hasAnyMatch) {
-    const rangeStart = new Date(day.getTime() - 7 * 24 * 3600 * 1000);
-    const rangeEnd = new Date(day.getTime() + 7 * 24 * 3600 * 1000);
-    const nearby = await prisma.match.findFirst({
-      where: {
-        league: { in: leagues },
-        startTime: { gte: rangeStart, lt: rangeEnd, not: day },
-      },
-      orderBy: { startTime: "asc" },
-      select: { startTime: true },
-    });
+    // 앞으로 열릴 경기를 먼저 찾는다. ±7일을 한 번에 asc 로 뒤지면 언제나 과거가 먼저
+    // 잡혀 "다음 경기"라며 지난 날짜를 안내한다(비시즌 종목에서 특히 티난다).
+    const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
+    const nearby =
+      (await prisma.match.findFirst({
+        where: {
+          league: { in: leagues },
+          startTime: { gte: dayEnd, lt: new Date(day.getTime() + 8 * 24 * 3600 * 1000) },
+        },
+        orderBy: { startTime: "asc" },
+        select: { startTime: true },
+      })) ??
+      (await prisma.match.findFirst({
+        where: {
+          league: { in: leagues },
+          startTime: { gte: new Date(day.getTime() - 7 * 24 * 3600 * 1000), lt: day },
+        },
+        orderBy: { startTime: "desc" },
+        select: { startTime: true },
+      }));
     if (nearby) {
-      const nd = new Date(nearby.startTime);
+      // 링크 날짜도 라벨과 같은 KST 기준으로 — UTC 자정으로 내림하면 KST 오전 경기에서
+      // 라벨(9일)과 링크(8일)가 하루 어긋난다.
       nextAvailable = {
-        date: dateQuery(new Date(nd.getTime() - (nd.getTime() % (24 * 3600 * 1000)))),
-        label: kstDateLabel(nd),
+        date: dateQuery(nearby.startTime),
+        label: kstDateLabel(nearby.startTime),
       };
     }
   }
