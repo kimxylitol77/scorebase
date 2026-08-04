@@ -91,72 +91,87 @@ interface Body {
   matches: MatchPayload[];
 }
 
-interface TeamMapEntry { ourId: number; tsId: string }
+interface TeamMapEntry { ourId: number; tsId: string; ourLeague?: string }
 
-// JSON fallback — DB TeamSourceId 미커버 ts entry 보완용.
-let cachedFootballJsonMap: Map<string, number> | null = null;
-let cachedBaseballJsonMap: Map<string, number> | null = null;
-let cachedIceHockeyJsonMap: Map<string, number> | null = null;
-let cachedBasketballJsonMap: Map<string, number> | null = null;
-let cachedVolleyballJsonMap: Map<string, number> | null = null;
+/**
+ * ts 팀 id → 우리 팀 id. **리그를 함께 봐야 한다.**
+ * 같은 ts uuid 가 여러 리그에 매핑돼 있는 항목이 축구만 317건이다(유럽 대항전 참가 팀 —
+ * Barcelona = LALIGA·UCL·COPA_LIB 등). tsId 만 키로 쓰면 Map 특성상 마지막 항목이 이겨
+ * 엉뚱한 리그의 팀 row 를 물고, 그러면 같은 경기가 두 row 로 갈린다
+ * (2026-08-04 SLOVENIA_SNL Celje 가 UECL Celje 로 붙어 크로스소스 중복 발생).
+ */
+interface TsTeamJsonMap {
+  /** `${ourLeague}|${tsId}` — 리그가 맞는 매핑 */
+  byLeague: Map<string, number>;
+  /** tsId — 그 tsId 가 한 리그에만 있을 때만. 모호하면 담지 않는다 */
+  unambiguous: Map<string, number>;
+}
 
-function loadFootballJsonReverse(): Map<string, number> {
-  if (cachedFootballJsonMap) return cachedFootballJsonMap;
-  const file = path.join(process.cwd(), "src/lib/sports/thesports/team-id-mapping.json");
+function buildTsTeamJsonMap(file: string): TsTeamJsonMap {
+  const byLeague = new Map<string, number>();
+  const seen = new Map<string, Set<number>>();
   try {
     const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
-    cachedFootballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
+    for (const t of arr) {
+      if (!t?.tsId || typeof t.ourId !== "number") continue;
+      if (t.ourLeague) byLeague.set(`${t.ourLeague}|${t.tsId}`, t.ourId);
+      if (!seen.has(t.tsId)) seen.set(t.tsId, new Set());
+      seen.get(t.tsId)!.add(t.ourId);
+    }
   } catch {
-    cachedFootballJsonMap = new Map();
+    /* 파일 없음 — 빈 맵으로 두고 DB lookup 에만 의존 */
   }
+  const unambiguous = new Map<string, number>();
+  for (const [tsId, ids] of seen) {
+    if (ids.size === 1) unambiguous.set(tsId, [...ids][0]);
+  }
+  return { byLeague, unambiguous };
+}
+
+// JSON fallback — DB TeamSourceId 미커버 ts entry 보완용.
+let cachedFootballJsonMap: TsTeamJsonMap | null = null;
+let cachedBaseballJsonMap: TsTeamJsonMap | null = null;
+let cachedIceHockeyJsonMap: TsTeamJsonMap | null = null;
+let cachedBasketballJsonMap: TsTeamJsonMap | null = null;
+let cachedVolleyballJsonMap: TsTeamJsonMap | null = null;
+
+function loadFootballJsonReverse(): TsTeamJsonMap {
+  if (cachedFootballJsonMap) return cachedFootballJsonMap;
+  cachedFootballJsonMap = buildTsTeamJsonMap(
+    path.join(process.cwd(), "src/lib/sports/thesports/team-id-mapping.json"),
+  );
   return cachedFootballJsonMap;
 }
 
-function loadBaseballJsonReverse(): Map<string, number> {
+function loadBaseballJsonReverse(): TsTeamJsonMap {
   if (cachedBaseballJsonMap) return cachedBaseballJsonMap;
-  const file = path.join(process.cwd(), "src/lib/sports/thesports/baseball-team-id-mapping.json");
-  try {
-    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
-    cachedBaseballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
-  } catch {
-    cachedBaseballJsonMap = new Map();
-  }
+  cachedBaseballJsonMap = buildTsTeamJsonMap(
+    path.join(process.cwd(), "src/lib/sports/thesports/baseball-team-id-mapping.json"),
+  );
   return cachedBaseballJsonMap;
 }
 
-function loadIceHockeyJsonReverse(): Map<string, number> {
+function loadIceHockeyJsonReverse(): TsTeamJsonMap {
   if (cachedIceHockeyJsonMap) return cachedIceHockeyJsonMap;
-  const file = path.join(process.cwd(), "src/lib/sports/thesports/ice-hockey-team-id-mapping.json");
-  try {
-    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
-    cachedIceHockeyJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
-  } catch {
-    cachedIceHockeyJsonMap = new Map();
-  }
+  cachedIceHockeyJsonMap = buildTsTeamJsonMap(
+    path.join(process.cwd(), "src/lib/sports/thesports/ice-hockey-team-id-mapping.json"),
+  );
   return cachedIceHockeyJsonMap;
 }
 
-function loadBasketballJsonReverse(): Map<string, number> {
+function loadBasketballJsonReverse(): TsTeamJsonMap {
   if (cachedBasketballJsonMap) return cachedBasketballJsonMap;
-  const file = path.join(process.cwd(), "src/lib/sports/thesports/basketball-team-id-mapping.json");
-  try {
-    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
-    cachedBasketballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
-  } catch {
-    cachedBasketballJsonMap = new Map();
-  }
+  cachedBasketballJsonMap = buildTsTeamJsonMap(
+    path.join(process.cwd(), "src/lib/sports/thesports/basketball-team-id-mapping.json"),
+  );
   return cachedBasketballJsonMap;
 }
 
-function loadVolleyballJsonReverse(): Map<string, number> {
+function loadVolleyballJsonReverse(): TsTeamJsonMap {
   if (cachedVolleyballJsonMap) return cachedVolleyballJsonMap;
-  const file = path.join(process.cwd(), "src/lib/sports/thesports/volleyball-team-id-mapping.json");
-  try {
-    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
-    cachedVolleyballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
-  } catch {
-    cachedVolleyballJsonMap = new Map();
-  }
+  cachedVolleyballJsonMap = buildTsTeamJsonMap(
+    path.join(process.cwd(), "src/lib/sports/thesports/volleyball-team-id-mapping.json"),
+  );
   return cachedVolleyballJsonMap;
 }
 
@@ -225,8 +240,15 @@ export async function POST(req: NextRequest) {
             ? loadVolleyballJsonReverse()
             : loadBasketballJsonReverse();
 
+  // 순서: DB(리그 일치) → JSON(리그 일치) → JSON(그 tsId 가 한 리그뿐일 때만).
+  // 여러 리그에 걸친 tsId 인데 요청 리그 매핑이 없으면 포기한다 — 아무 리그나 물면
+  // 같은 경기가 두 row 로 갈린다.
   function resolveTsTeamId(league: string, tsTeamId: string): number | undefined {
-    return dbMap.get(`${league}|${tsTeamId}`) ?? jsonMap.get(tsTeamId);
+    return (
+      dbMap.get(`${league}|${tsTeamId}`) ??
+      jsonMap.byLeague.get(`${league}|${tsTeamId}`) ??
+      jsonMap.unambiguous.get(tsTeamId)
+    );
   }
 
   let upserted = 0;
