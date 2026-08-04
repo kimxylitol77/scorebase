@@ -254,6 +254,7 @@ export async function POST(req: NextRequest) {
   let upserted = 0;
   let skippedNoTeam = 0;
   let skippedDuplicate = 0;
+  let startTimeFixed = 0;
 
   for (const m of body.matches) {
     const homeId = resolveTsTeamId(m.league, m.tsHomeTeamId);
@@ -311,12 +312,22 @@ export async function POST(req: NextRequest) {
       // 중복 ts- row 가 생겼음 (#316314/#851442). 정규 축구는 같은 두 팀이 150분 내 두
       // 경기를 치를 수 없어 안전. 야구(더블헤더 단축 시 150분 내 2경기 가능 — isTsSoleSource
       // score 동기가 1차전 row 오염) + CLUB_FRIENDLY(스플릿 스쿼드 당일 2연전)는 90분 유지.
+      // 2026-08-04: 축구 150분 → 72h. af 는 시즌 개막 전 전체 일정을 넣으면서 킥오프
+      // 미확정 경기를 리그별 기본 시각으로 채운다(실측: 미래 af 966건 중 PRIMEIRA_LIGA 는
+      // 16:00 에 171건이 몰려 있다). 그 리그가 TS_COVERED 라 af 수집이 꺼지면 그 시각은
+      // 영영 갱신되지 않는데, ts 가 확정 시각으로 보내면 오차가 150분을 넘어(16:00 vs
+      // 19:15 = 195분) dedup 이 못 찾고 새 row 를 만들어 같은 경기가 2장이 됐다.
+      // 같은 리그에서 같은 두 팀이 사흘 안에 다시 붙지는 않으므로 창을 넓혀도 안전하다.
+      // 야구(더블헤더)·클럽친선(당일 2연전)은 90분 유지.
       const DEDUP_WINDOW_MS =
         SOCCER_LEAGUES.has(m.league) && m.league !== "CLUB_FRIENDLY"
-          ? 150 * 60 * 1000
+          ? 72 * 3600 * 1000
           : 90 * 60 * 1000;
       const startMs = new Date(m.startTime).getTime();
-      let existingNonTs = await prisma.match.findFirst({
+      // 창이 넓어지면 후보가 둘 이상일 수 있다(같은 두 팀의 리그 경기와 컵 경기가 사흘 안에
+      // 들어오는 등). findFirst 로 아무거나 잡으면 엉뚱한 경기에 병합되므로 **시각이 가장
+      // 가까운 것**을 고른다.
+      const nonTsCandidates = await prisma.match.findMany({
         where: {
           league: m.league,
           startTime: {
@@ -329,8 +340,17 @@ export async function POST(req: NextRequest) {
           ],
           NOT: { externalId: { startsWith: "ts-" } },
         },
-        select: { id: true, externalId: true },
+        // startTime 도 받는다 — ts 가 정본이라 af 의 미확정 시각을 교정해야 한다
+        select: { id: true, externalId: true, startTime: true },
       });
+      let existingNonTs: { id: number; externalId: string; startTime?: Date } | null =
+        nonTsCandidates.length
+          ? nonTsCandidates.reduce((best, c) =>
+              Math.abs(c.startTime.getTime() - startMs) < Math.abs(best.startTime.getTime() - startMs)
+                ? c
+                : best,
+            )
+          : null;
 
       // fallback: team-id 매칭 실패 시 이름 normalize 매칭. Team 중복 row 케이스
       // (LALIGA Barcelona 4 row, EPL Team.externalId 시스템 mismatch) 잡음. 2026-05-25.
@@ -352,6 +372,7 @@ export async function POST(req: NextRequest) {
             select: {
               id: true,
               externalId: true,
+              startTime: true,
               homeTeam: { select: { name: true } },
               awayTeam: { select: { name: true } },
             },
@@ -377,7 +398,7 @@ export async function POST(req: NextRequest) {
             match: { league: m.league, NOT: { externalId: { startsWith: "ts-" } } },
           },
           select: {
-            match: { select: { id: true, externalId: true, homeTeamId: true, awayTeamId: true } },
+            match: { select: { id: true, externalId: true, startTime: true, homeTeamId: true, awayTeamId: true } },
           },
         });
         if (cacheLink) {
@@ -385,12 +406,23 @@ export async function POST(req: NextRequest) {
           const teamsMatch =
             (lm.homeTeamId === homeId && lm.awayTeamId === awayId) ||
             (lm.homeTeamId === awayId && lm.awayTeamId === homeId);
-          if (teamsMatch) existingNonTs = { id: lm.id, externalId: lm.externalId };
+          if (teamsMatch) existingNonTs = { id: lm.id, externalId: lm.externalId, startTime: lm.startTime };
         }
       }
 
       if (existingNonTs) {
         skippedDuplicate++;
+        // ts 가 정본이다(사용자 확정 2026-08-04). af 가 개막 전에 넣은 미확정 시각이
+        // 그대로 굳어 화면에 틀린 킥오프가 나가므로, 차이가 크면 ts 확정값으로 교정한다.
+        // 30분 이하 차이는 소스 간 흔한 반올림이라 건드리지 않는다(무의미한 쓰기 방지).
+        const existingMs = existingNonTs.startTime?.getTime();
+        if (existingMs != null && Math.abs(existingMs - startMs) > 30 * 60 * 1000) {
+          await prisma.match.update({
+            where: { id: existingNonTs.id },
+            data: { startTime: new Date(startMs) },
+          });
+          startTimeFixed++;
+        }
         // SKIP_LEAGUES (api-football 이 매치 row 만드는 리그) 매치도 fast-poller 가
         // detail_live 의 incidents/score 채울 수 있게 ts cache row 만 만든다.
         // 매치 row 는 api-football 것 유지 — 중복 안 만듦.
@@ -548,6 +580,7 @@ export async function POST(req: NextRequest) {
     upserted,
     skippedNoTeam,
     skippedDuplicate,
+    startTimeFixed,
     received: body.matches.length,
   });
 }
