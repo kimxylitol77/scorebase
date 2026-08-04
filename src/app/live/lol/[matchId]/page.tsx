@@ -13,6 +13,9 @@ import type { LolLive } from "@/components/LolLiveDetail";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
+import CollapsibleSection from "@/components/live/CollapsibleSection";
+import RecentGamesCard from "@/components/live/BaseballRecentGames";
+import { getBaseballRecentGames } from "@/lib/live/baseball-season-analysis";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import { LOL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import ConclusionCards, {
@@ -73,7 +76,12 @@ export default async function LolLivePage({ params }: Props) {
   const awayShort = match.awayTeam.shortName || awayKo;
   const date = kstDate(match.startTime);
 
-  const extras = await fetchMatchExtras(match);
+  // 최근 경기 + 상대전적 — 축구·야구와 같은 공용 경로(Match 기반, 팀당 최대 30경기).
+  //   MatchHeadToHead 의 승패 dot 은 5경기 고정이라 그 이전을 볼 방법이 없었다.
+  const [extras, recentGames] = await Promise.all([
+    fetchMatchExtras(match),
+    getBaseballRecentGames(match),
+  ]);
   const lolGames = match.lolGames
     ? (JSON.parse(match.lolGames) as LolGamesData)
     : null;
@@ -217,6 +225,19 @@ export default async function LolLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
         scoreLabel={{ for: "평균 게임 승", against: "평균 게임 패" }}
       />
+      {recentGames?.hasData && (
+        <CollapsibleSection
+          title="최근 경기 · 상대전적"
+          hint="양 팀 최근 경기 + 맞대결"
+          defaultOpen={match.status === "SCHEDULED"}
+        >
+          <RecentGamesCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            data={recentGames}
+          />
+        </CollapsibleSection>
+      )}
       <MatchInsight match={match} />
     </div>
   );
