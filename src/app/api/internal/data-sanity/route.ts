@@ -581,6 +581,8 @@ export async function GET(req: NextRequest) {
     const na = normalizeTeamName(m.awayTeam.name);
     if (nh && na) addXs(`${m.league}:nm:${[nh, na].sort().join("|")}`, m);
   }
+  // 확대 창 안에서도 "3h 초과"는 방향 검사를 붙인다 — 아래 sameDir 가드 참고.
+  const XS_NEAR_MS = 3 * 3600_000;
   const seenXsPairs = new Set<string>();
   for (const rows of xsGroups.values()) {
     if (rows.length < 2) continue;
@@ -591,16 +593,29 @@ export async function GET(req: NextRequest) {
     // 붙는 일은 없으므로 오탐 위험은 없다(전수 확인: 63건 모두 진짜 중복).
     // 야구는 더블헤더(같은 팀 3h 간격 2경기 정상)라 40분 유지. 그 밖 종목은 크로스소스
     // 자체가 드물어 기존 3h 유지 — 하키·농구 연전을 잘못 묶지 않기 위함.
+    // CLUB_FRIENDLY 는 축구지만 스플릿 스쿼드가 같은 날 두 경기를 뛰는 게 정상이라 확대
+    // 대상에서 뺀다 (같은 ts id 중복은 friendly_dup 담당).
     const league = rows[0].league;
+    const widened = SOCCER_LEAGUES.has(league) && league !== "CLUB_FRIENDLY";
     const windowMs = BASEBALL_LEAGUES.has(league)
       ? 40 * 60_000
-      : SOCCER_LEAGUES.has(league)
+      : widened
         ? 72 * 3600_000
         : 3 * 3600_000;
     for (let i = 0; i < rows.length; i++) {
       for (let j = i + 1; j < rows.length; j++) {
         const a = rows[i], b = rows[j];
-        if (Math.abs(a.startTime.getTime() - b.startTime.getTime()) > windowMs) continue;
+        const dt = Math.abs(a.startTime.getTime() - b.startTime.getTime());
+        if (dt > windowMs) continue;
+        // 3h 를 넘는 확대 구간은 홈/원정이 같은 쌍만 인정한다. 2차전(홈앤어웨이)이 "역방향 +
+        // 며칠 간격" 모양이라 방향을 안 보면 컵 예선이 오탐이 된다 (실측: UCL 예선
+        // Hearts ↔ Sturm Graz Δ168.5h 역방향 — 창을 더 넓히면 바로 걸린다).
+        // 3h 안쪽은 중립구장 홈/원정 뒤바뀜을 잡아야 하므로 지금처럼 양방향을 유지한다.
+        if (
+          dt > XS_NEAR_MS &&
+          !(a.homeTeamId === b.homeTeamId || sameTeamName(a.homeTeam.name, b.homeTeam.name))
+        )
+          continue;
         const aTs = a.externalId.startsWith("ts-");
         const bTs = b.externalId.startsWith("ts-");
         if (aTs === bTs) continue; // 같은 소스끼리는 대상 아님
@@ -621,7 +636,8 @@ export async function GET(req: NextRequest) {
           league: numericRow.league,
           home: numericRow.homeTeam.name,
           away: numericRow.awayTeam.name,
-          detail: `크로스소스 중복 — #${a.id}(${a.externalId}, ${a.status} ${a.startTime.toISOString().slice(11, 16)}) + #${b.id}(${b.externalId}, ${b.status} ${b.startTime.toISOString().slice(11, 16)}). 병합/정리 필요`,
+          // 시각차가 며칠까지 벌어질 수 있어 날짜까지 찍는다 — 시:분만 보면 같은 날 두 경기로 읽힌다.
+          detail: `크로스소스 중복 — #${a.id}(${a.externalId}, ${a.status} ${a.startTime.toISOString().slice(5, 16)}) + #${b.id}(${b.externalId}, ${b.status} ${b.startTime.toISOString().slice(5, 16)}), 차 ${(dt / 3600_000).toFixed(1)}h. 병합/정리 필요`,
         });
       }
     }

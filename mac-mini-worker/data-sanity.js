@@ -85,7 +85,7 @@ const KIND_CAUSE = {
   standings_mismatch: "두 source 중 하나가 stale — fresh source 우선순위 확인",
   standings_unmapped: "시즌 롤오버 승격팀·신규팀의 ts 팀 id 가 team-id-mapping.json 에 없음 — 결번 + stale af 병합 오염(SWISS_SL 8/2 사고)",
   friendly_dup: "옛 collect-friendlies(prefix 없는 externalId) 재실행 또는 과거 raw 매치의 연기 재편성",
-  cross_source_dup: "이중수집 리그(af+ts)에서 dedup 가드 뚫림 — diary 시각 오기 또는 팀 resolve 상이",
+  cross_source_dup: "이중수집 리그(af+ts)에서 dedup 가드 뚫림 — 한쪽 소스가 라운드를 같은 시각 placeholder 로 싣거나(며칠 어긋남), diary 시각 오기, 또는 팀 resolve 상이",
 };
 
 const KIND_ACTION = {
@@ -100,7 +100,7 @@ const KIND_ACTION = {
   standings_mismatch: "src/lib/sports/thesports/standings-helper.ts 의 source 우선순위 확인",
   standings_unmapped: "ts 순위 캐시의 미매핑 team_id 를 팀명 조회 후 team-id-mapping.json 에 추가 (메모리 asean-champ-ts-promotion·kleague-standings-mapping-gap 절차)",
   friendly_dup: "raw row(prefix 없는 externalId) 삭제 — ts- row 가 canonical (2026-07-09 보카전 참고)",
-  cross_source_dup: "두 row 병합/정리 — 데이터 풍부한 쪽 keeper, 상대는 dep 확인 후 삭제/POSTPONED (2026-07-11 BELARUS 참고)",
+  cross_source_dup: "scripts/cleanup-duplicate-matches.ts 로 dry-run 후 --apply (탐지기 3 = 크로스소스). 결과 보유 row 를 남기고 갱신 끊긴 쪽을 지운다 (2026-07-11 BELARUS·2026-08-04 SLOVENIA 참고)",
 };
 
 async function poll() {
