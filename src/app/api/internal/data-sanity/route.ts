@@ -584,7 +584,19 @@ export async function GET(req: NextRequest) {
   const seenXsPairs = new Set<string>();
   for (const rows of xsGroups.values()) {
     if (rows.length < 2) continue;
-    const windowMs = BASEBALL_LEAGUES.has(rows[0].league) ? 40 * 60_000 : 3 * 3600_000;
+    // 축구는 72h — 두 소스가 **날짜까지** 어긋나기 때문이다. 시각 미확정 라운드를 한쪽이
+    // 일괄 기본값으로 채우는데(2026-08-04 실측: SLOVENIA_SNL 은 ts 가 16:00 일괄,
+    // PRIMEIRA_LIGA 는 af 가 15:00 일괄) 3h 창으로는 이 유형이 통째로 빠져나간다.
+    // 실측 63건 중 3h 로 잡힌 건 0건이었다. 같은 리그에서 같은 두 팀이 사흘 안에 다시
+    // 붙는 일은 없으므로 오탐 위험은 없다(전수 확인: 63건 모두 진짜 중복).
+    // 야구는 더블헤더(같은 팀 3h 간격 2경기 정상)라 40분 유지. 그 밖 종목은 크로스소스
+    // 자체가 드물어 기존 3h 유지 — 하키·농구 연전을 잘못 묶지 않기 위함.
+    const league = rows[0].league;
+    const windowMs = BASEBALL_LEAGUES.has(league)
+      ? 40 * 60_000
+      : SOCCER_LEAGUES.has(league)
+        ? 72 * 3600_000
+        : 3 * 3600_000;
     for (let i = 0; i < rows.length; i++) {
       for (let j = i + 1; j < rows.length; j++) {
         const a = rows[i], b = rows[j];
