@@ -120,6 +120,8 @@ function normalizeFootballMatch(
     awayScore,
     status: mapFootballStatus(m.status_id, new Date(m.match_time * 1000)),
     startTime: new Date(m.match_time * 1000),
+    // 그 경기의 실제 구장 — 홈팀 기본 구장 추정과 달리 중립 경기장도 맞는다.
+    venueId: m.venue_id || undefined,
     raw: m,
   };
 }

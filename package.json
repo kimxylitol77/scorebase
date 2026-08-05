@@ -55,7 +55,8 @@
     "preview:mlb": "tsx --env-file=.env.local scripts/preview-now.ts MLB",
     "preview:baseball": "tsx --env-file=.env.local scripts/preview-now.ts ALL",
     "assistant:index": "tsx --env-file=.env.local assistant/index.ts",
-    "assistant": "tsx --env-file=.env.local assistant/server.ts"
+    "assistant": "tsx --env-file=.env.local assistant/server.ts",
+    "backfill:match-venue": "tsx --env-file=.env.local scripts/backfill-match-venue-id.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",

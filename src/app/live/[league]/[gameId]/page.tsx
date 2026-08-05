@@ -77,7 +77,7 @@ import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/ba
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
-import { getVenueByOurTeamId } from "@/lib/sports/thesports/venues";
+import { getVenueByOurTeamId, getVenueByTsId } from "@/lib/sports/thesports/venues";
 import { fetchMatchPrediction, fetchTeamSeasonStats, fetchFixtureRound } from "@/lib/sports/api-football-extras";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
@@ -399,8 +399,13 @@ export default async function GenericLivePage({ params }: Props) {
     homeName: m.homeTeam.name, awayName: m.awayTeam.name,
     perspective: m.homeTeamId === match.awayTeam.id ? "home" : "away",
   }));
-  // 홈팀 구장 — TheSports venue mapping. 매핑 없으면 null (카드 hide).
-  const venue = isSoccer ? getVenueByOurTeamId(match.homeTeam.id, match.homeTeam.name, lg) : null;
+  // 경기 구장 — 그 경기에 실제로 잡힌 venue 를 먼저 쓰고, 없을 때만 홈팀 기본 구장으로 떨어진다.
+  // 중립 경기장(UCL 결승·제재 경기 등)에서 홈팀 구장을 쓰면 구장도 날씨 도시도 틀린다.
+  // 둘 다 없으면 null (카드 hide).
+  const venue = isSoccer
+    ? (getVenueByTsId(match.venueId) ??
+      getVenueByOurTeamId(match.homeTeam.id, match.homeTeam.name, lg))
+    : null;
   const scoreLabel = isSoccer
     ? { for: "평균득점", against: "평균실점" }
     : lg === "NHL"

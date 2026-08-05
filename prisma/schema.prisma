@@ -86,6 +86,9 @@ model Match {
   highlightYoutubeId String?
   // 주심 이름 (축구만) — af fixture.referee / football-data referees[] / ESPN 6리그는 fetch-api-football 보강.
   referee            String?
+  // 그 경기가 실제로 열리는 구장의 TheSports venue id (축구만).
+  // 홈팀 기본 구장으로 추정하면 중립 경기장(UCL 결승·제재 경기 등)에서 틀린 구장·틀린 도시 날씨가 나온다.
+  venueId            String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

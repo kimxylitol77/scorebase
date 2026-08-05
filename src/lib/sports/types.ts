@@ -600,6 +600,7 @@ export interface NormalizedMatch {
   status: MatchStatus;
   startTime: Date;
   referee?: string; // 주심 이름 (축구 collector 가 채움, 없으면 미설정)
+  venueId?: string; // 경기가 열리는 구장의 TheSports venue id (ts 축구 collector 만 채움)
   raw: unknown; // 원본 응답 (디버깅/추가 정보 추출용)
 }
 
