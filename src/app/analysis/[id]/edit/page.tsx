@@ -6,7 +6,9 @@ import { prisma } from "@/lib/db";
 import { COOKIE_NAME as ADMIN_COOKIE, readSessionCookie } from "@/lib/auth";
 import { getCurrentUserId } from "@/lib/current-user";
 import { MOVE_TARGETS, canMovePost, currentBoardKey } from "@/lib/analysis/board-move";
+import { loadMatchOptionsBySport } from "@/lib/analysis/match-options";
 import { updatePostAction, updatePostAdminAction } from "../../actions";
+import MatchCardField from "./MatchCardField";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,11 @@ export default async function EditPostPage({ params }: Props) {
 
   // 게시판 이동 — 작성자 본인만. 예측 픽이 붙은 글·브리핑 보드는 목적지 선택을 감춘다.
   const canMove = isAuthor && canMovePost(post);
+
+  // 본문에 이미 붙은 경기 데이터 카드 감지 — 서버 액션 applyMatchCard 와 같은 포맷을 본다
+  const cardMatch = post.content.match(/!\[경기 데이터 카드\]\(\/api\/og\/match-card\?m=(\d+)&mkt=([A-Z0-9]+)\)/);
+  const initialCard = cardMatch ? { matchId: Number(cardMatch[1]), mkt: cardMatch[2] } : null;
+  const matchesBySport = await loadMatchOptionsBySport();
 
   const inputCls =
     "w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-400 dark:border-neutral-700 dark:bg-white/[0.04]";
@@ -83,6 +90,7 @@ export default async function EditPostPage({ params }: Props) {
           <label className="mb-1.5 block text-xs font-semibold text-neutral-500">본문 (Markdown)</label>
           <textarea name="content" required rows={18} defaultValue={post.content} className={inputCls} />
         </div>
+        <MatchCardField matchesBySport={matchesBySport} initialCard={initialCard} />
         {/* 전술판 첨부 — 코드는 사람이 손으로 고칠 수 없는 base64 라 미리보기 + 전술판 왕복 편집으로 다룬다. */}
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-neutral-500">전술판 첨부 (선택)</label>

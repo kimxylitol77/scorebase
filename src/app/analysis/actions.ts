@@ -120,10 +120,20 @@ export async function createPostAction(
   // 서버에서 붙여서 경기 재선택·본문 수정과 어긋날 일이 없다 (matchId 는 위에서 검증됨).
   // 카드 종류는 글쓴이 선택(cardMkt) — 픽 마켓과 다른 카드도 허용. 값 검증 후 픽 마켓 폴백.
   const cardMktRaw = String(formData.get("cardMkt") ?? "");
-  const cardMkt = ["1X2", "OU", "HANDICAP"].includes(cardMktRaw) ? cardMktRaw : predData?.market;
+  const cardMkt = ["1X2", "OU", "HANDICAP"].includes(cardMktRaw) ? cardMktRaw : (predData?.market ?? "1X2");
+  // 픽 없이도 첨부 가능 (2026-08-05) — 픽이 있으면 그 경기(검증 완료), 없으면 cardMatchId 를
+  // 별도 검증해 쓴다. 예측과 카드 첨부는 독립 기능이다.
+  let cardMatchId: number | null = predData?.matchId ?? null;
+  if (!cardMatchId) {
+    const raw = Number(formData.get("cardMatchId"));
+    if (Number.isInteger(raw) && raw > 0) {
+      const exists = await prisma.match.findUnique({ where: { id: raw }, select: { id: true } });
+      if (exists) cardMatchId = raw;
+    }
+  }
   const finalContent =
-    predData && String(formData.get("attachMatchCard") ?? "") === "on"
-      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${predData.matchId}&mkt=${cardMkt})`
+    cardMatchId && String(formData.get("attachMatchCard") ?? "") === "on"
+      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${cardMatchId}&mkt=${cardMkt})`
       : content;
 
   const post = await prisma.post.create({
@@ -294,6 +304,29 @@ export async function deletePostAction(formData: FormData): Promise<void> {
 }
 
 /** 글 수정 (본인만) — 제목·본문·전술판 코드. 예측 픽은 수정 불가 (적중률 조작 방지). */
+/** 본문에 삽입되는 경기 데이터 카드 마크다운 — 삽입·감지·제거가 전부 이 포맷 하나를 본다 */
+const MATCH_CARD_RE = /\n*!\[경기 데이터 카드\]\(\/api\/og\/match-card\?m=\d+&mkt=[A-Z0-9]+\)/g;
+
+/**
+ * 수정 화면의 카드 조작(matchCardOp: keep|remove|set)을 본문에 반영한다.
+ * keep 은 본문을 건드리지 않는다 — 사용자가 본문 텍스트만 고친 경우까지 안전.
+ * set 은 기존 카드를 제거하고 끝에 새로 붙인다(글당 카드 1장 유지).
+ */
+async function applyMatchCard(content: string, formData: FormData): Promise<string> {
+  const op = String(formData.get("matchCardOp") ?? "keep");
+  if (op !== "remove" && op !== "set") return content;
+  const stripped = content.replace(MATCH_CARD_RE, "").trimEnd();
+  if (op === "remove") return stripped;
+  const matchId = Number(formData.get("cardMatchId"));
+  const mktRaw = String(formData.get("cardMkt") ?? "");
+  const mkt = ["1X2", "OU", "HANDICAP"].includes(mktRaw) ? mktRaw : "1X2";
+  if (!Number.isInteger(matchId) || matchId <= 0) return stripped;
+  // 폼이 준 id 를 그대로 믿지 않는다 — 존재하는 경기만
+  const exists = await prisma.match.findUnique({ where: { id: matchId }, select: { id: true } });
+  if (!exists) return stripped;
+  return `${stripped}\n\n![경기 데이터 카드](/api/og/match-card?m=${matchId}&mkt=${mkt})`;
+}
+
 export async function updatePostAction(formData: FormData): Promise<void> {
   const userId = await getCurrentUserId();
   if (!userId) return;
@@ -320,9 +353,10 @@ export async function updatePostAction(formData: FormData): Promise<void> {
   // 게시판 이동 — 자유게시판 말머리 3종 + 스포츠 분석 사이. canMovePost 가 아니면 무시.
   const target = canMovePost(post) ? MOVE_TARGETS[String(formData.get("board") ?? "")] : undefined;
 
+  const finalContent = await applyMatchCard(content, formData);
   await prisma.post.update({
     where: { id: postId },
-    data: { title, content, lineupCode: lineupCode || null, ...(target?.data ?? {}) },
+    data: { title, content: finalContent, lineupCode: lineupCode || null, ...(target?.data ?? {}) },
   });
   revalidatePath(`/analysis/${postId}`);
   revalidatePath("/analysis");
@@ -346,9 +380,10 @@ export async function updatePostAdminAction(formData: FormData): Promise<void> {
 
   const exists = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
   if (!exists) return;
+  const finalContent = await applyMatchCard(content, formData);
   await prisma.post.update({
     where: { id: postId },
-    data: { title, content, lineupCode: lineupCode || null },
+    data: { title, content: finalContent, lineupCode: lineupCode || null },
   });
   revalidatePath(`/analysis/${postId}`);
   revalidatePath("/analysis");

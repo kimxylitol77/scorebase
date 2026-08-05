@@ -5,25 +5,8 @@ import { createPostAction, type PostFormState } from "../actions";
 import { EXP_REWARDS } from "@/lib/user-level";
 import MediaUpload from "@/components/board/MediaUpload";
 
-export interface MatchOption {
-  id: number;
-  league: string;
-  leagueLabel: string;
-  home: string;
-  away: string;
-  dateKey: string;
-  dateLabel: string;
-  timeLabel: string;
-  hcLine: number | null;
-  ouLine: number | null;
-  oddsHome: number | null;
-  oddsDraw: number | null;
-  oddsAway: number | null;
-  oddsHcHome: number | null;
-  oddsHcAway: number | null;
-  oddsOver: number | null;
-  oddsUnder: number | null;
-}
+export type { MatchOption } from "@/lib/analysis/match-options";
+import type { MatchOption } from "@/lib/analysis/match-options";
 
 interface Props {
   matchesBySport: Record<string, MatchOption[]>;
@@ -323,8 +306,9 @@ export default function AnalysisForm({ matchesBySport }: Props) {
         )}
 
         {/* 경기 데이터 카드 첨부 — 봇 글과 같은 스탯카드 짤(AI 승률·배당)을 본문 끝에 자동 삽입.
-            카드 종류는 글쓴이가 선택 (기본 = 내 픽 마켓). 체크 안 하면 안 붙는다. */}
-        {predReady && selected && (
+            카드 종류는 글쓴이가 선택 (기본 = 내 픽 마켓). 체크 안 하면 안 붙는다.
+            픽 없이도 붙는다 — 경기만 고르면 충분 (2026-08-05, 사용자 요청). */}
+        {selected && (
           <div className="mt-3">
             <label className="flex cursor-pointer items-center gap-2.5 text-sm">
               <input
@@ -370,6 +354,7 @@ export default function AnalysisForm({ matchesBySport }: Props) {
               </>
             )}
             <input type="hidden" name="cardMkt" value={attachCard ? cardMkt : ""} />
+            <input type="hidden" name="cardMatchId" value={attachCard ? matchId : ""} />
           </div>
         )}
 
