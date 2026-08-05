@@ -60,9 +60,9 @@ function CoachRow({ home, away }: { home?: string | null; away?: string | null }
   if (!h && !a) return null;
   return (
     <div className="mt-3 flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
-      <span className="min-w-0 flex-1 truncate text-[12px] font-medium">{h || "-"}</span>
+      <span className="min-w-0 flex-1 truncate text-[12px] sm:text-[13px] font-medium">{h || "-"}</span>
       <span className="shrink-0 text-[10px] font-semibold text-neutral-500">감독</span>
-      <span className="min-w-0 flex-1 truncate text-right text-[12px] font-medium">{a || "-"}</span>
+      <span className="min-w-0 flex-1 truncate text-right text-[12px] sm:text-[13px] font-medium">{a || "-"}</span>
     </div>
   );
 }
@@ -169,7 +169,7 @@ function PlayerDot({
       className={`absolute flex flex-col items-center ${injured ? "opacity-60" : ""}`}
       style={{ top: `${top}%`, left: `${left}%`, transform: "translate(-50%, -50%)" }}
     >
-      <div className={`relative w-8 h-8 sm:w-10 sm:h-10 aspect-square shrink-0 ${injured ? "rounded-full ring-2 ring-red-500" : ""}`}>
+      <div className={`relative w-[34px] h-[34px] sm:w-[52px] sm:h-[52px] aspect-square shrink-0 ${injured ? "rounded-full ring-2 ring-red-500" : ""}`}>
         {/* 윈도우 타원 깨짐 다중 방어: (1) aspect-square 로 높이 계산이 어긋나도 1:1 강제,
             (2) img 자체에 rounded-full → overflow-hidden 클립이 transform 조상 아래서 실패해도 self-clip,
             (3) wrapper overflow-hidden 으로 이중 클립. */}
@@ -194,13 +194,13 @@ function PlayerDot({
         </div>
         {/* 우상단 — 부상이면 OUT, 아니면 평점 배지 */}
         {injured ? (
-          <span className="absolute -top-1 -right-1.5 px-0.5 rounded-sm text-[7px] sm:text-[9px] font-extrabold text-white leading-[1.3] shadow bg-red-600">
+          <span className="absolute -top-1 -right-1.5 px-0.5 rounded-sm text-[7px] sm:text-[10px] font-extrabold text-white leading-[1.3] shadow bg-red-600">
             OUT
           </span>
         ) : (
           rating > 0 && (
             <span
-              className="absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[9px] font-extrabold text-white leading-[1.3] shadow"
+              className="absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[10px] font-extrabold text-white leading-[1.3] shadow"
               style={{ background: ratingColor(rating) }}
             >
               {rating.toFixed(1)}
@@ -208,31 +208,31 @@ function PlayerDot({
           )
         )}
         {/* 등번호 — 사진 좌하단 작은 원 */}
-        <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-neutral-900/85 text-white text-[7px] sm:text-[8px] font-bold flex items-center justify-center tabular-nums leading-none">
+        <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-neutral-900/85 text-white text-[7px] sm:text-[10px] font-bold flex items-center justify-center tabular-nums leading-none">
           {num}
         </span>
         {/* 카드 — 좌상단. 평점(우상단)·등번호(좌하단)·주장(우하단)이 이미 차 있어 남은 자리다. */}
         {(event?.red || event?.yellow) && (
           <span
-            className={`absolute -top-1 -left-1 w-1.5 h-3 sm:w-2 sm:h-3.5 rounded-[1px] shadow ${event.red ? "bg-red-600" : "bg-yellow-400"}`}
+            className={`absolute -top-1 -left-1 w-1.5 h-3 sm:w-2.5 sm:h-4 rounded-[1px] shadow ${event.red ? "bg-red-600" : "bg-yellow-400"}`}
             aria-label={event.red ? "퇴장" : "경고"}
           />
         )}
         {/* 교체 아웃 — 사진 위. 몇 분에 나갔는지가 라인업에서 가장 자주 찾는 정보다. */}
         {event?.outMin != null && (
-          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-rose-600/90 px-1 text-[7px] sm:text-[8px] font-bold text-white leading-[1.4] shadow tabular-nums">
+          <span className="absolute -top-1 sm:-top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-rose-600/90 px-1 text-[7px] sm:text-[10px] font-bold text-white leading-[1.4] shadow tabular-nums">
             ↓{event.outMin}&apos;
           </span>
         )}
         {/* 주장 마크 — 사진 우하단 */}
         {captain && (
-          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-400 text-[7px] sm:text-[8px] font-extrabold text-black flex items-center justify-center leading-none shadow">
+          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-amber-400 text-[7px] sm:text-[10px] font-extrabold text-black flex items-center justify-center leading-none shadow">
             C
           </span>
         )}
       </div>
       {/* 이름 — 등번호·주장 배지(사진 아래로 4px 돌출)와 명확히 떨어지게 mt 확보 + truncate 로 옆 선수와 가로 겹침 차단 */}
-      <span className="mt-3 inline-flex max-w-[4rem] sm:max-w-[5rem] items-center gap-0.5 px-1 py-px rounded text-[9px] sm:text-[10px] font-bold text-white bg-black/60 leading-tight">
+      <span className="mt-1.5 sm:mt-3 inline-flex max-w-[3.25rem] sm:max-w-[6.5rem] items-center gap-0.5 px-1 py-px rounded text-[10px] sm:text-[12px] font-bold text-white bg-black/60 leading-tight">
         <span className="truncate">{name}</span>
         {/* 득점 — 개수만큼 점. 자책골은 붉게 구분한다(같은 골이라도 의미가 반대다). */}
         {Array.from({ length: Math.min(event?.goals ?? 0, 3) }).map((_, i) => (
@@ -269,7 +269,7 @@ function BenchRow({
       </div>
       <span className="w-5 shrink-0 text-[11px] tabular-nums text-neutral-400 text-right">{player.shirt_number ?? ""}</span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[12px] font-medium leading-tight">{name}</span>
+        <span className="block truncate text-[12px] sm:text-[13px] font-medium leading-tight">{name}</span>
         <span className="block text-[10px] text-neutral-500 leading-tight">{POS_KO[player.position ?? ""] ?? ""}</span>
       </span>
       {(event?.red || event?.yellow) && (
@@ -339,7 +339,7 @@ function BenchList({
 /**
  * 선수를 y값(자기 골 기준 0~90)으로 라인(GK/DF/MF/FW…)에 그룹핑 후
  * 라인을 세로 균등 배치 → 원좌표 간격이 좁아도 겹침 구조적 차단 (네이버/SofaScore 방식).
- * 라인 내 가로 위치는 x 원좌표 유지(좌우 의미 보존).
+ * 라인 내 가로 위치는 x 정렬 순서만 보존하고 균등 배치(겹침 구조적 차단).
  */
 function TeamHalf({
   players,
@@ -372,11 +372,14 @@ function TeamHalf({
         // home: 위 절반(top 3~47%), away: 아래 절반(거울).
         const frac = (li + 0.5) / n; // 0~1, 0=골문쪽
         const half = 3 + frac * 46; // 3~46% — 줄 간격 넓혀 이름이 아랫줄 선수와 안 겹치게 (센터서클은 장식 SVG라 spread 와 무관)
-        // 라인 내 가로 — x 원좌표 정렬 유지 (home 그대로 / away 거울)
+        // 라인 내 순서 — x 원좌표로 정렬 (home 그대로 / away 거울)
         const byX = [...line].sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
         return byX.map((p, pi) => {
           const top = side === "home" ? half : 100 - half;
-          const x = p.x ?? 50;
+          // 라인 내 가로는 **균등 배치** — 원좌표를 그대로 쓰면 소스가 몰아 찍은 라인
+          // (5백 등)에서 이름 라벨이 겹친다(2026-08-05 모바일 실측 9쌍). 순서는 x 정렬로
+          // 이미 보존되므로 좌우 의미는 유지된다(fotmob·SofaScore 도 균등 배치).
+          const x = ((pi + 1) / (byX.length + 1)) * 100;
           const left = side === "home" ? x : 100 - x;
           return (
             <PlayerDot
@@ -575,9 +578,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
 
       {/* 피치 — 세로, home 위 / away 아래. 모바일 풀폭, 데스크탑 max-w 제한. */}
       <div
-        className="relative w-full mx-auto rounded-lg overflow-hidden border border-emerald-800/40 max-w-[460px]"
+        className="relative -mx-3 w-[calc(100%+1.5rem)] sm:mx-auto sm:w-full rounded-none sm:rounded-lg overflow-hidden border-y sm:border border-emerald-800/40 max-w-none sm:max-w-[620px] aspect-[0.5] sm:aspect-[0.56]"
         style={{
-          aspectRatio: "0.56",
           backgroundColor: "#1f8a4c",
           backgroundImage:
             "repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 9.09%, rgba(0,0,0,0.05) 9.09%, rgba(0,0,0,0.05) 18.18%)",
