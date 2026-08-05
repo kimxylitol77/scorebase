@@ -41,6 +41,67 @@ interface Props {
   subtitle?: string;
   /** 현재 부상·결장 중인 ts player id — 피치 위에서 반투명 + OUT 배지 처리. */
   injuredIds?: Set<string>;
+  /**
+   * detailLive.incidents — 교체·카드·득점 배지와 교체명단 투입 시각에 쓴다.
+   * 없으면 선발 11명만 그리던 기존 동작 그대로(호출부 5곳 중 넘기는 곳만 풍부해진다).
+   */
+  incidents?: unknown;
+}
+
+/** 한 선수에게 일어난 일 — incidents 를 player_id 로 접어 넣은 것 */
+interface PlayerEvent {
+  /** 교체 아웃된 분 */
+  outMin?: number;
+  /** 교체 투입된 분 */
+  inMin?: number;
+  yellow?: boolean;
+  red?: boolean;
+  goals: number;
+  ownGoals: number;
+}
+
+/**
+ * incidents → player_id 별 이벤트.
+ * 타입 규칙은 live-scores.ts 의 tsIncidentsToGoals/Cards 와 같은 기준을 쓴다 —
+ * 3 옐로 · 4 레드 · 9 교체(in/out) · 득점은 home_score|away_score 가 실린 incident.
+ * 한쪽만 고치면 타임라인과 라인업이 서로 다른 사실을 말하게 된다.
+ */
+function buildPlayerEvents(incidents: unknown): Map<string, PlayerEvent> {
+  const map = new Map<string, PlayerEvent>();
+  if (!Array.isArray(incidents)) return map;
+  const touch = (id: unknown): PlayerEvent | null => {
+    if (typeof id !== "string" || !id) return null;
+    if (!map.has(id)) map.set(id, { goals: 0, ownGoals: 0 });
+    return map.get(id)!;
+  };
+  for (const raw of incidents) {
+    const i = raw as Record<string, unknown>;
+    const minute = typeof i.time === "number" ? i.time : undefined;
+    if (i.type === 9) {
+      const inE = touch(i.in_player_id);
+      if (inE && minute != null) inE.inMin = minute;
+      const outE = touch(i.out_player_id);
+      if (outE && minute != null) outE.outMin = minute;
+      continue;
+    }
+    if (i.type === 3 || i.type === 4) {
+      const e = touch(i.player_id);
+      if (e) {
+        if (i.type === 3) e.yellow = true;
+        else e.red = true;
+      }
+      continue;
+    }
+    // 득점 — 점수가 실린 incident 만(경고·교체엔 score 필드가 없다)
+    if (typeof i.home_score === "number" || typeof i.away_score === "number") {
+      const e = touch(i.player_id);
+      if (e) {
+        if (i.type === 17) e.ownGoals += 1;
+        else e.goals += 1;
+      }
+    }
+  }
+  return map;
 }
 
 /** 표시 이름: nameKo(DB) 우선 → 영문 last name. */
@@ -69,12 +130,14 @@ function PlayerDot({
   left,
   nameById,
   injured,
+  event,
 }: {
   player: Player;
   top: number;
   left: number;
   nameById?: Record<string, string>;
   injured?: boolean;
+  event?: PlayerEvent;
 }) {
   const name = displayName(player, nameById);
   const num = player.shirt_number ?? "";
@@ -129,6 +192,19 @@ function PlayerDot({
         <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-neutral-900/85 text-white text-[7px] sm:text-[8px] font-bold flex items-center justify-center tabular-nums leading-none">
           {num}
         </span>
+        {/* 카드 — 좌상단. 평점(우상단)·등번호(좌하단)·주장(우하단)이 이미 차 있어 남은 자리다. */}
+        {(event?.red || event?.yellow) && (
+          <span
+            className={`absolute -top-1 -left-1 w-1.5 h-3 sm:w-2 sm:h-3.5 rounded-[1px] shadow ${event.red ? "bg-red-600" : "bg-yellow-400"}`}
+            aria-label={event.red ? "퇴장" : "경고"}
+          />
+        )}
+        {/* 교체 아웃 — 사진 위. 몇 분에 나갔는지가 라인업에서 가장 자주 찾는 정보다. */}
+        {event?.outMin != null && (
+          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-rose-600/90 px-1 text-[7px] sm:text-[8px] font-bold text-white leading-[1.4] shadow tabular-nums">
+            ↓{event.outMin}&apos;
+          </span>
+        )}
         {/* 주장 마크 — 사진 우하단 */}
         {captain && (
           <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-400 text-[7px] sm:text-[8px] font-extrabold text-black flex items-center justify-center leading-none shadow">
@@ -137,9 +213,106 @@ function PlayerDot({
         )}
       </div>
       {/* 이름 — 등번호·주장 배지(사진 아래로 4px 돌출)와 명확히 떨어지게 mt 확보 + truncate 로 옆 선수와 가로 겹침 차단 */}
-      <span className="mt-3 inline-block max-w-[3.5rem] sm:max-w-[4.5rem] truncate px-1 py-px rounded text-[9px] sm:text-[10px] font-bold text-white bg-black/60 leading-tight text-center">
-        {name}
+      <span className="mt-3 inline-flex max-w-[4rem] sm:max-w-[5rem] items-center gap-0.5 px-1 py-px rounded text-[9px] sm:text-[10px] font-bold text-white bg-black/60 leading-tight">
+        <span className="truncate">{name}</span>
+        {/* 득점 — 개수만큼 점. 자책골은 붉게 구분한다(같은 골이라도 의미가 반대다). */}
+        {Array.from({ length: Math.min(event?.goals ?? 0, 3) }).map((_, i) => (
+          <span key={`g${i}`} className="inline-block w-1.5 h-1.5 rounded-full bg-white shrink-0" aria-label="득점" />
+        ))}
+        {Array.from({ length: Math.min(event?.ownGoals ?? 0, 2) }).map((_, i) => (
+          <span key={`og${i}`} className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" aria-label="자책골" />
+        ))}
       </span>
+    </div>
+  );
+}
+
+const POS_KO: Record<string, string> = { G: "골키퍼", D: "수비수", M: "미드필더", F: "공격수" };
+
+/** 교체명단 한 줄 — 사진·번호·이름·포지션 + 투입 시각/카드 */
+function BenchRow({
+  player,
+  nameById,
+  event,
+}: {
+  player: Player;
+  nameById?: Record<string, string>;
+  event?: PlayerEvent;
+}) {
+  const name = displayName(player, nameById);
+  return (
+    <li className="flex items-center gap-2 py-1.5">
+      <div className="w-7 h-7 shrink-0 rounded-full overflow-hidden bg-neutral-200 dark:bg-white/10" style={{ aspectRatio: "1 / 1" }}>
+        {player.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={player.logo} alt="" className="block w-full h-full object-cover rounded-full" loading="lazy" />
+        ) : null}
+      </div>
+      <span className="w-5 shrink-0 text-[11px] tabular-nums text-neutral-400 text-right">{player.shirt_number ?? ""}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[12px] font-medium leading-tight">{name}</span>
+        <span className="block text-[10px] text-neutral-500 leading-tight">{POS_KO[player.position ?? ""] ?? ""}</span>
+      </span>
+      {(event?.red || event?.yellow) && (
+        <span
+          className={`w-1.5 h-3 rounded-[1px] shrink-0 ${event.red ? "bg-red-600" : "bg-yellow-400"}`}
+          aria-label={event.red ? "퇴장" : "경고"}
+        />
+      )}
+      {event?.inMin != null && (
+        <span className="shrink-0 text-[11px] font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+          ↑{event.inMin}&apos;
+        </span>
+      )}
+    </li>
+  );
+}
+
+/** 교체명단 — 양 팀 좌우 분할. 투입된 선수를 위로 올려 "누가 들어갔나"가 먼저 보이게 한다. */
+function BenchList({
+  home,
+  away,
+  homeNameKo,
+  awayNameKo,
+  nameById,
+  events,
+}: {
+  home: Player[];
+  away: Player[];
+  homeNameKo: string;
+  awayNameKo: string;
+  nameById?: Record<string, string>;
+  events?: Map<string, PlayerEvent>;
+}) {
+  if (!home.length && !away.length) return null;
+  const sortBench = (arr: Player[]) =>
+    [...arr].sort((a, b) => {
+      const ai = a.id ? events?.get(a.id)?.inMin : undefined;
+      const bi = b.id ? events?.get(b.id)?.inMin : undefined;
+      if ((ai != null) !== (bi != null)) return ai != null ? -1 : 1;
+      if (ai != null && bi != null) return ai - bi;
+      return (a.shirt_number ?? 99) - (b.shirt_number ?? 99);
+    });
+  return (
+    <div className="mt-4">
+      <h3 className="text-center text-[12px] font-bold text-neutral-500 mb-1">교체명단</h3>
+      {/* 모바일은 1열 — 2열로 쪼개면 이름 칸이 45px 로 좁아져 한글 이름이 "산티아..." 로
+          잘린다(실측 390px 에서 31px 부족). 세로가 길어져도 이름이 온전한 쪽을 택한다. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 sm:gap-x-6">
+        {[
+          { list: sortBench(home), label: homeNameKo },
+          { list: sortBench(away), label: awayNameKo },
+        ].map((col, ci) => (
+          <div key={ci} className="min-w-0">
+            <div className="truncate text-[10px] font-semibold text-neutral-400 mb-0.5 mt-2 sm:mt-0">{col.label}</div>
+            <ul className="divide-y divide-black/5 dark:divide-white/5">
+              {col.list.map((p, i) => (
+                <BenchRow key={p.id ?? `${ci}-${i}`} player={p} nameById={nameById} event={p.id ? events?.get(p.id) : undefined} />
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -154,11 +327,13 @@ function TeamHalf({
   side,
   nameById,
   injuredIds,
+  events,
 }: {
   players: Player[];
   side: "home" | "away";
   nameById?: Record<string, string>;
   injuredIds?: Set<string>;
+  events?: Map<string, PlayerEvent>;
 }) {
   // 1) y 오름차순 정렬 후 인접 y 차이 8 이내면 같은 라인으로 묶음
   const sorted = [...players].sort((a, b) => (a.y ?? 50) - (b.y ?? 50));
@@ -192,6 +367,7 @@ function TeamHalf({
               left={left}
               nameById={nameById}
               injured={p.id ? injuredIds?.has(p.id) : false}
+              event={p.id ? events?.get(p.id) : undefined}
             />
           );
         });
@@ -293,9 +469,10 @@ function posFormation(starters: Player[]): string {
   return shape.reduce((s, n) => s + n, 0) === 10 ? shape.join("-") : "";
 }
 
-export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds }: Props) {
+export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds, incidents }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
+  const events = buildPlayerEvents(incidents);
   const homeStarters = (lu.home ?? []).filter((p) => p.first === 1);
   const awayStarters = (lu.away ?? []).filter((p) => p.first === 1);
   if (homeStarters.length === 0 && awayStarters.length === 0) return null;
@@ -419,9 +596,18 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         </svg>
 
         {/* 선수 */}
-        <TeamHalf players={homeXi} side="home" nameById={nameById} injuredIds={injuredIds} />
-        <TeamHalf players={awayXi} side="away" nameById={nameById} injuredIds={injuredIds} />
+        <TeamHalf players={homeXi} side="home" nameById={nameById} injuredIds={injuredIds} events={events} />
+        <TeamHalf players={awayXi} side="away" nameById={nameById} injuredIds={injuredIds} events={events} />
       </div>
+
+      <BenchList
+        home={(lu.home ?? []).filter((p) => p.first !== 1)}
+        away={(lu.away ?? []).filter((p) => p.first !== 1)}
+        homeNameKo={homeNameKo}
+        awayNameKo={awayNameKo}
+        nameById={nameById}
+        events={events}
+      />
 
       {/* 평점 색 범례 */}
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-3 text-[10px] text-neutral-500">

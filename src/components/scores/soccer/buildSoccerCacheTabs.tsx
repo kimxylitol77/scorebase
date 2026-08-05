@@ -119,7 +119,13 @@ export async function buildSoccerCacheTabs(opts: {
 
   const lineupNode =
     lineupRaw && lineupRaw.confirmed === 1 && lineupRaw.lineup ? (
-      <SoccerLineupSvg data={lineupRaw} homeNameKo={homeKo} awayNameKo={awayKo} nameById={lineupNameById} />
+      <SoccerLineupSvg
+        data={lineupRaw}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        nameById={lineupNameById}
+        incidents={detailLive?.incidents}
+      />
     ) : null;
 
   const goalDistNode =
