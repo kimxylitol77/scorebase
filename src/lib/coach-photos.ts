@@ -5,6 +5,8 @@ import raw from "../../data/coach-photos.json";
 interface CoachPhoto {
   name: string;
   logo: string | null;
+  /** translate-coach-names 가 채운 한국어 표기 — 표시부는 이걸 우선 쓴다 */
+  nameKo?: string;
 }
 
 const MAP = raw as Record<string, CoachPhoto>;

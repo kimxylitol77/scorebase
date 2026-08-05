@@ -86,8 +86,9 @@ function CoachRow({
   // 미등록이면 Team.coach 폴백 — 어느 쪽이든 한글 사전을 통과시킨다.
   const hp = coachById(coachIds?.home);
   const ap = coachById(coachIds?.away);
-  const h = toKoreanCoachName(hp?.name ?? home);
-  const a = toKoreanCoachName(ap?.name ?? away);
+  // 표기 우선순위: json 의 nameKo(일괄 번역) → 8리그 사전 → 원문
+  const h = hp?.nameKo ?? toKoreanCoachName(hp?.name ?? home);
+  const a = ap?.nameKo ?? toKoreanCoachName(ap?.name ?? away);
   if (!h && !a) return null;
   return (
     <div className="mt-3 flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
