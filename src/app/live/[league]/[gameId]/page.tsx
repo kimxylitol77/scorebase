@@ -400,7 +400,7 @@ export default async function GenericLivePage({ params }: Props) {
     perspective: m.homeTeamId === match.awayTeam.id ? "home" : "away",
   }));
   // 홈팀 구장 — TheSports venue mapping. 매핑 없으면 null (카드 hide).
-  const venue = isSoccer ? getVenueByOurTeamId(match.homeTeam.id) : null;
+  const venue = isSoccer ? getVenueByOurTeamId(match.homeTeam.id, match.homeTeam.name, lg) : null;
   const scoreLabel = isSoccer
     ? { for: "평균득점", against: "평균실점" }
     : lg === "NHL"
