@@ -49,3 +49,14 @@
 - **모바일은 1열**. 2열이면 이름 칸이 45px 로 좁아져 한글이 잘린다(실측 31px 부족) → 1열에서 201px 확보, 잘림 0
 - 실측 검증(UCL 스파르타 vs 리옹): 교체 7 · 경고 2 · 득점 3 이 incidents 원본과 일치, 배지 잘림 0, 가로 넘침 0
 - incidents 없는 경기(USA_USL_CH POSTPONED)에서 에러 없이 기존 렌더 유지
+
+## fotmob 격차 4종 (2026-08-05 2차)
+
+- 감독 사진 — `coach/list` 의 `logo` 를 `data/coach-photos.json`(감독 ts id 키)으로 떨궈
+  `lineup.coach_id` 로 직접 lookup. Team.coach 는 이름 폴백.
+- 득점 표시 — 이름 칩의 점 → ⚽ 글리프(2골 ⚽2, 자책골 색반전 + title). 교체명단에도 동일 마크.
+- 어시스트 — 골 incident 의 `assist1_id`/`assist2_id` → 이름 칩에 노란 `A` 칩.
+- 선수 클릭 → `/transfers/{tsId}`. **TheSportsPlayer 등록 선수만** 링크(미등록 6/45 는 404 방지).
+  호출부의 nameKo 조회에서 필터만 빼 등록 집합을 같이 얻는다(추가 쿼리 0).
+
+검증(UCL 스파르타-리옹): 득점 3·자책 1·어시스트 2·링크 39개(등록 39명과 일치), 링크 1건 실접속 200.

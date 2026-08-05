@@ -420,6 +420,7 @@ export default async function GenericLivePage({ params }: Props) {
   // 라인업 선수 한글 이름 — TheSportsPlayer.nameKo (build-football-player-names-haiku 가 적재).
   // DB miss 시 영문 fallback (SoccerLineupSvg 내부 lastName).
   const lineupNameById: Record<string, string> = {};
+  const lineupLinkableIds = new Set<string>();
   if (isSoccer && match.theSportsCache) {
     const lu = (match.theSportsCache.lineup as { lineup?: { home?: Record<string, { id?: string; logo?: string }>; away?: Record<string, { id?: string; logo?: string }> } } | null)?.lineup;
     const ids = new Set<string>();
@@ -452,11 +453,15 @@ export default async function GenericLivePage({ params }: Props) {
       }
     }
     if (ids.size > 0) {
+      // nameKo 필터를 빼고 전부 받는다 — 등록 여부가 곧 선수 페이지 링크 가능 여부다.
       const rows = await prisma.theSportsPlayer.findMany({
-        where: { id: { in: Array.from(ids) }, nameKo: { not: null } },
+        where: { id: { in: Array.from(ids) } },
         select: { id: true, nameKo: true },
       });
-      for (const r of rows) if (r.nameKo) lineupNameById[r.id] = r.nameKo;
+      for (const r of rows) {
+        lineupLinkableIds.add(r.id);
+        if (r.nameKo) lineupNameById[r.id] = r.nameKo;
+      }
     }
   }
 
@@ -614,6 +619,7 @@ export default async function GenericLivePage({ params }: Props) {
             incidents={detailLive?.incidents}
             homeCoach={match.homeTeam.coach}
             awayCoach={match.awayTeam.coach}
+            linkableIds={lineupLinkableIds}
           />
         ) : null;
       goalDistNode =

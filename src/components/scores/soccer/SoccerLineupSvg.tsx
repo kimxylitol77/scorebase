@@ -8,7 +8,9 @@
 //     home top% = y*0.5  (위 절반 0~45%),  left% = x
 //     away top% = 100 - y*0.5 (아래 절반 55~100%, 거울),  left% = 100 - x
 
+import Link from "next/link";
 import { toKoreanCoachName } from "@/lib/coach-names";
+import { coachById } from "@/lib/coach-photos";
 
 interface Player {
   id?: string;
@@ -27,6 +29,8 @@ interface LineupData {
   confirmed?: number;
   home_formation?: string;
   away_formation?: string;
+  /** ts 감독 id — data/coach-photos.json lookup 키 */
+  coach_id?: { home?: string; away?: string };
   lineup?: {
     home?: Player[];
     away?: Player[];
@@ -51,18 +55,47 @@ interface Props {
   /** 감독 이름 (Team.coach). 한쪽만 있어도 그 쪽만 표시한다. */
   homeCoach?: string | null;
   awayCoach?: string | null;
+  /**
+   * /transfers/{id} 선수 페이지가 존재하는 ts 선수 id 집합 — 이 집합에 있어야만 링크를 건다.
+   * 무조건 걸면 미등록 선수(샘플 45명 중 6명)가 404 로 떨어진다.
+   */
+  linkableIds?: Set<string>;
 }
 
 /** 감독 줄 — 양 팀을 한 줄에 좌우로. 이름이 없는 쪽은 빈칸으로 두고 줄 자체는 유지한다. */
-function CoachRow({ home, away }: { home?: string | null; away?: string | null }) {
-  const h = toKoreanCoachName(home);
-  const a = toKoreanCoachName(away);
+function CoachFace({ logo }: { logo?: string | null }) {
+  if (!logo) return null;
+  return (
+    <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-neutral-200 dark:bg-white/10" style={{ aspectRatio: "1 / 1" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logo} alt="" className="block h-full w-full rounded-full object-cover" loading="lazy" />
+    </span>
+  );
+}
+
+function CoachRow({
+  home,
+  away,
+  coachIds,
+}: {
+  home?: string | null;
+  away?: string | null;
+  coachIds?: { home?: string; away?: string };
+}) {
+  // 사진은 lineup.coach_id → coach-photos.json. 이름은 그쪽이 더 정확하지만
+  // 미등록이면 Team.coach 폴백 — 어느 쪽이든 한글 사전을 통과시킨다.
+  const hp = coachById(coachIds?.home);
+  const ap = coachById(coachIds?.away);
+  const h = toKoreanCoachName(hp?.name ?? home);
+  const a = toKoreanCoachName(ap?.name ?? away);
   if (!h && !a) return null;
   return (
     <div className="mt-3 flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
+      <CoachFace logo={hp?.logo} />
       <span className="min-w-0 flex-1 truncate text-[12px] sm:text-[13px] font-medium">{h || "-"}</span>
       <span className="shrink-0 text-[10px] font-semibold text-neutral-500">감독</span>
       <span className="min-w-0 flex-1 truncate text-right text-[12px] sm:text-[13px] font-medium">{a || "-"}</span>
+      <CoachFace logo={ap?.logo} />
     </div>
   );
 }
@@ -77,6 +110,7 @@ interface PlayerEvent {
   red?: boolean;
   goals: number;
   ownGoals: number;
+  assists: number;
 }
 
 /**
@@ -90,7 +124,7 @@ function buildPlayerEvents(incidents: unknown): Map<string, PlayerEvent> {
   if (!Array.isArray(incidents)) return map;
   const touch = (id: unknown): PlayerEvent | null => {
     if (typeof id !== "string" || !id) return null;
-    if (!map.has(id)) map.set(id, { goals: 0, ownGoals: 0 });
+    if (!map.has(id)) map.set(id, { goals: 0, ownGoals: 0, assists: 0 });
     return map.get(id)!;
   };
   for (const raw of incidents) {
@@ -118,6 +152,13 @@ function buildPlayerEvents(incidents: unknown): Map<string, PlayerEvent> {
         if (i.type === 17) e.ownGoals += 1;
         else e.goals += 1;
       }
+      // 어시스트 — 골 incident 의 assist1/2. 자책골엔 어시스트가 없다.
+      if (i.type !== 17) {
+        for (const key of ["assist1_id", "assist2_id"]) {
+          const a = touch(i[key]);
+          if (a) a.assists += 1;
+        }
+      }
     }
   }
   return map;
@@ -143,6 +184,41 @@ function ratingColor(r: number): string {
   return "#ef4444";
 }
 
+/** href 있으면 Link, 없으면 div — 선수 마커/벤치 행 공용 래퍼 */
+function MaybeLink({ href, className, children }: { href?: string | null; className: string; children: React.ReactNode }) {
+  return href ? (
+    <Link href={href} prefetch={false} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <div className={className}>{children}</div>
+  );
+}
+
+/** 득점 ⚽(2골이면 ⚽2)·자책골(붉게)·어시스트 A — 이름 칩과 교체명단이 같은 표기를 쓴다 */
+function EventMarks({ event }: { event?: PlayerEvent }) {
+  if (!event) return null;
+  return (
+    <>
+      {event.goals > 0 && (
+        <span className="shrink-0 text-[9px] sm:text-[11px] leading-none" aria-label="득점">
+          ⚽{event.goals > 1 ? <span className="text-[8px] sm:text-[10px] font-bold">{event.goals}</span> : null}
+        </span>
+      )}
+      {event.ownGoals > 0 && (
+        <span className="shrink-0 text-[9px] sm:text-[11px] leading-none opacity-90" style={{ filter: "hue-rotate(140deg) saturate(4)" }} aria-label="자책골" title="자책골">
+          ⚽
+        </span>
+      )}
+      {event.assists > 0 && (
+        <span className="shrink-0 rounded-sm bg-amber-400/90 px-0.5 text-[8px] sm:text-[9px] font-extrabold leading-[1.4] text-black" aria-label="어시스트">
+          A{event.assists > 1 ? event.assists : ""}
+        </span>
+      )}
+    </>
+  );
+}
+
 function PlayerDot({
   player,
   top,
@@ -150,6 +226,7 @@ function PlayerDot({
   nameById,
   injured,
   event,
+  href,
 }: {
   player: Player;
   top: number;
@@ -157,6 +234,7 @@ function PlayerDot({
   nameById?: Record<string, string>;
   injured?: boolean;
   event?: PlayerEvent;
+  href?: string | null;
 }) {
   const name = displayName(player, nameById);
   const num = player.shirt_number ?? "";
@@ -166,9 +244,10 @@ function PlayerDot({
 
   return (
     <div
-      className={`absolute flex flex-col items-center ${injured ? "opacity-60" : ""}`}
+      className={`absolute ${injured ? "opacity-60" : ""}`}
       style={{ top: `${top}%`, left: `${left}%`, transform: "translate(-50%, -50%)" }}
     >
+    <MaybeLink href={href} className="flex flex-col items-center">
       <div className={`relative w-[34px] h-[34px] sm:w-[52px] sm:h-[52px] aspect-square shrink-0 ${injured ? "rounded-full ring-2 ring-red-500" : ""}`}>
         {/* 윈도우 타원 깨짐 다중 방어: (1) aspect-square 로 높이 계산이 어긋나도 1:1 강제,
             (2) img 자체에 rounded-full → overflow-hidden 클립이 transform 조상 아래서 실패해도 self-clip,
@@ -234,14 +313,9 @@ function PlayerDot({
       {/* 이름 — 등번호·주장 배지(사진 아래로 4px 돌출)와 명확히 떨어지게 mt 확보 + truncate 로 옆 선수와 가로 겹침 차단 */}
       <span className="mt-1.5 sm:mt-3 inline-flex max-w-[3.25rem] sm:max-w-[6.5rem] items-center gap-0.5 px-1 py-px rounded text-[10px] sm:text-[12px] font-bold text-white bg-black/60 leading-tight">
         <span className="truncate">{name}</span>
-        {/* 득점 — 개수만큼 점. 자책골은 붉게 구분한다(같은 골이라도 의미가 반대다). */}
-        {Array.from({ length: Math.min(event?.goals ?? 0, 3) }).map((_, i) => (
-          <span key={`g${i}`} className="inline-block w-1.5 h-1.5 rounded-full bg-white shrink-0" aria-label="득점" />
-        ))}
-        {Array.from({ length: Math.min(event?.ownGoals ?? 0, 2) }).map((_, i) => (
-          <span key={`og${i}`} className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" aria-label="자책골" />
-        ))}
+        <EventMarks event={event} />
       </span>
+    </MaybeLink>
     </div>
   );
 }
@@ -253,14 +327,17 @@ function BenchRow({
   player,
   nameById,
   event,
+  href,
 }: {
   player: Player;
   nameById?: Record<string, string>;
   event?: PlayerEvent;
+  href?: string | null;
 }) {
   const name = displayName(player, nameById);
   return (
-    <li className="flex items-center gap-2 py-1.5">
+    <li>
+    <MaybeLink href={href} className="flex items-center gap-2 py-1.5">
       <div className="w-7 h-7 shrink-0 rounded-full overflow-hidden bg-neutral-200 dark:bg-white/10" style={{ aspectRatio: "1 / 1" }}>
         {player.logo ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -278,11 +355,13 @@ function BenchRow({
           aria-label={event.red ? "퇴장" : "경고"}
         />
       )}
+      <EventMarks event={event} />
       {event?.inMin != null && (
         <span className="shrink-0 text-[11px] font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
           ↑{event.inMin}&apos;
         </span>
       )}
+    </MaybeLink>
     </li>
   );
 }
@@ -295,6 +374,7 @@ function BenchList({
   awayNameKo,
   nameById,
   events,
+  linkableIds,
 }: {
   home: Player[];
   away: Player[];
@@ -302,6 +382,7 @@ function BenchList({
   awayNameKo: string;
   nameById?: Record<string, string>;
   events?: Map<string, PlayerEvent>;
+  linkableIds?: Set<string>;
 }) {
   if (!home.length && !away.length) return null;
   const sortBench = (arr: Player[]) =>
@@ -326,7 +407,7 @@ function BenchList({
             <div className="truncate text-[10px] font-semibold text-neutral-400 mb-0.5 mt-2 sm:mt-0">{col.label}</div>
             <ul className="divide-y divide-black/5 dark:divide-white/5">
               {col.list.map((p, i) => (
-                <BenchRow key={p.id ?? `${ci}-${i}`} player={p} nameById={nameById} event={p.id ? events?.get(p.id) : undefined} />
+                <BenchRow key={p.id ?? `${ci}-${i}`} player={p} nameById={nameById} event={p.id ? events?.get(p.id) : undefined} href={p.id && linkableIds?.has(p.id) ? `/transfers/${p.id}` : null} />
               ))}
             </ul>
           </div>
@@ -347,12 +428,14 @@ function TeamHalf({
   nameById,
   injuredIds,
   events,
+  linkableIds,
 }: {
   players: Player[];
   side: "home" | "away";
   nameById?: Record<string, string>;
   injuredIds?: Set<string>;
   events?: Map<string, PlayerEvent>;
+  linkableIds?: Set<string>;
 }) {
   // 1) y 오름차순 정렬 후 인접 y 차이 8 이내면 같은 라인으로 묶음
   const sorted = [...players].sort((a, b) => (a.y ?? 50) - (b.y ?? 50));
@@ -390,6 +473,7 @@ function TeamHalf({
               nameById={nameById}
               injured={p.id ? injuredIds?.has(p.id) : false}
               event={p.id ? events?.get(p.id) : undefined}
+              href={p.id && linkableIds?.has(p.id) ? `/transfers/${p.id}` : null}
             />
           );
         });
@@ -491,7 +575,7 @@ function posFormation(starters: Player[]): string {
   return shape.reduce((s, n) => s + n, 0) === 10 ? shape.join("-") : "";
 }
 
-export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds, incidents, homeCoach, awayCoach }: Props) {
+export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds, incidents, homeCoach, awayCoach, linkableIds }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
   const events = buildPlayerEvents(incidents);
@@ -617,11 +701,11 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         </svg>
 
         {/* 선수 */}
-        <TeamHalf players={homeXi} side="home" nameById={nameById} injuredIds={injuredIds} events={events} />
-        <TeamHalf players={awayXi} side="away" nameById={nameById} injuredIds={injuredIds} events={events} />
+        <TeamHalf players={homeXi} side="home" nameById={nameById} injuredIds={injuredIds} events={events} linkableIds={linkableIds} />
+        <TeamHalf players={awayXi} side="away" nameById={nameById} injuredIds={injuredIds} events={events} linkableIds={linkableIds} />
       </div>
 
-      <CoachRow home={homeCoach} away={awayCoach} />
+      <CoachRow home={homeCoach} away={awayCoach} coachIds={data.coach_id} />
 
       <BenchList
         home={(lu.home ?? []).filter((p) => p.first !== 1)}
@@ -630,6 +714,7 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         awayNameKo={awayNameKo}
         nameById={nameById}
         events={events}
+        linkableIds={linkableIds}
       />
 
       {/* 평점 색 범례 */}

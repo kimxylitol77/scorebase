@@ -9,6 +9,7 @@
 // 한글 이름은 여기서 만들지 않는다. 표시 시점에 data/team-coaches.json 의 nameKo 를 우선
 //   쓰고 없으면 원문을 그대로 보여준다 — 수천 명을 LLM 으로 번역하는 비용을 지금 치를 이유가
 //   없고, 원문이라도 "감독 없음" 보다 낫다.
+import { writeFileSync } from "fs";
 import { prisma } from "@/lib/db";
 
 const DRY = process.argv.includes("--dry");
@@ -19,6 +20,7 @@ interface CoachRow {
   id: string;
   team_id?: string;
   name?: string;
+  logo?: string;
   /** 1 = 현직으로 관측됨. ts 가 과거 감독도 같이 내려주므로 최신 갱신분을 우선한다 */
   type?: number;
   updated_at?: number;
@@ -77,6 +79,21 @@ async function main() {
     }
     if (!DRY) await prisma.team.update({ where: { id: link.teamId }, data: { coach: c.name } });
     updated++;
+  }
+
+  // 라인업 감독 사진·이름 lookup 용 — lineup.coach_id(ts 감독 id)가 키.
+  // Team.coach 는 이름 문자열뿐이라 사진을 못 싣고, 스키마 변경 없이 json 이 가장 싸다.
+  const photoMap: Record<string, { name: string; logo: string | null }> = {};
+  const linkedTeamIds = new Set(links.map((l) => l.externalId));
+  for (const c of coaches) {
+    if (!c.team_id || !c.name || !linkedTeamIds.has(c.team_id)) continue;
+    const prev = latestByTeam.get(c.team_id);
+    if (prev?.id !== c.id) continue; // 팀별 최신 감독만
+    photoMap[c.id] = { name: c.name, logo: c.logo || null };
+  }
+  if (!DRY) {
+    writeFileSync("data/coach-photos.json", JSON.stringify(photoMap, null, 1));
+    console.log(`coach-photos.json — ${Object.keys(photoMap).length}명`);
   }
 
   const filled = await prisma.team.count({ where: { coach: { not: null } } });

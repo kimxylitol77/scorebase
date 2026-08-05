@@ -49,6 +49,7 @@ export async function buildSoccerCacheTabs(opts: {
 
   // 라인업 선수 한글명 — TheSportsPlayer.nameKo (DB miss 시 SoccerLineupSvg 가 영문 fallback)
   const lineupNameById: Record<string, string> = {};
+  const linkableIds = new Set<string>();
   const lineupRaw = cache.lineup as Parameters<typeof SoccerLineupSvg>[0]["data"] | null;
   if (lineupRaw?.lineup) {
     const lu = (lineupRaw as {
@@ -62,11 +63,15 @@ export async function buildSoccerCacheTabs(opts: {
       }
     }
     if (ids.size > 0) {
+      // nameKo 필터를 빼고 전부 받는다 — 등록 여부가 곧 선수 페이지 링크 가능 여부다.
       const rows = await prisma.theSportsPlayer.findMany({
-        where: { id: { in: Array.from(ids) }, nameKo: { not: null } },
+        where: { id: { in: Array.from(ids) } },
         select: { id: true, nameKo: true },
       });
-      for (const r of rows) if (r.nameKo) lineupNameById[r.id] = r.nameKo;
+      for (const r of rows) {
+        linkableIds.add(r.id);
+        if (r.nameKo) lineupNameById[r.id] = r.nameKo;
+      }
     }
   }
 
@@ -130,6 +135,7 @@ export async function buildSoccerCacheTabs(opts: {
         incidents={detailLive?.incidents}
         homeCoach={homeCoach}
         awayCoach={awayCoach}
+        linkableIds={linkableIds}
       />
     ) : null;
 
