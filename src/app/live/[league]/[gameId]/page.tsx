@@ -612,6 +612,8 @@ export default async function GenericLivePage({ params }: Props) {
             awayNameKo={awayKo}
             nameById={lineupNameById}
             incidents={detailLive?.incidents}
+            homeCoach={match.homeTeam.coach}
+            awayCoach={match.awayTeam.coach}
           />
         ) : null;
       goalDistNode =

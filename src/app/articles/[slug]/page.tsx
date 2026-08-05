@@ -561,6 +561,8 @@ export default async function ArticlePage({ params }: Props) {
       awayTsId: TEAM_ID_MAP.get(m.awayTeam.id) ?? null,
       homeScore: m.homeScore,
       awayScore: m.awayScore,
+      homeCoach: m.homeTeam.coach,
+      awayCoach: m.awayTeam.coach,
     });
   }
 

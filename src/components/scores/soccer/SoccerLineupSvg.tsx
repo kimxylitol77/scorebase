@@ -8,6 +8,8 @@
 //     home top% = y*0.5  (위 절반 0~45%),  left% = x
 //     away top% = 100 - y*0.5 (아래 절반 55~100%, 거울),  left% = 100 - x
 
+import { toKoreanCoachName } from "@/lib/coach-names";
+
 interface Player {
   id?: string;
   first?: number;
@@ -46,6 +48,23 @@ interface Props {
    * 없으면 선발 11명만 그리던 기존 동작 그대로(호출부 5곳 중 넘기는 곳만 풍부해진다).
    */
   incidents?: unknown;
+  /** 감독 이름 (Team.coach). 한쪽만 있어도 그 쪽만 표시한다. */
+  homeCoach?: string | null;
+  awayCoach?: string | null;
+}
+
+/** 감독 줄 — 양 팀을 한 줄에 좌우로. 이름이 없는 쪽은 빈칸으로 두고 줄 자체는 유지한다. */
+function CoachRow({ home, away }: { home?: string | null; away?: string | null }) {
+  const h = toKoreanCoachName(home);
+  const a = toKoreanCoachName(away);
+  if (!h && !a) return null;
+  return (
+    <div className="mt-3 flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
+      <span className="min-w-0 flex-1 truncate text-[12px] font-medium">{h || "-"}</span>
+      <span className="shrink-0 text-[10px] font-semibold text-neutral-500">감독</span>
+      <span className="min-w-0 flex-1 truncate text-right text-[12px] font-medium">{a || "-"}</span>
+    </div>
+  );
 }
 
 /** 한 선수에게 일어난 일 — incidents 를 player_id 로 접어 넣은 것 */
@@ -469,7 +488,7 @@ function posFormation(starters: Player[]): string {
   return shape.reduce((s, n) => s + n, 0) === 10 ? shape.join("-") : "";
 }
 
-export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds, incidents }: Props) {
+export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds, incidents, homeCoach, awayCoach }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
   const events = buildPlayerEvents(incidents);
@@ -599,6 +618,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         <TeamHalf players={homeXi} side="home" nameById={nameById} injuredIds={injuredIds} events={events} />
         <TeamHalf players={awayXi} side="away" nameById={nameById} injuredIds={injuredIds} events={events} />
       </div>
+
+      <CoachRow home={homeCoach} away={awayCoach} />
 
       <BenchList
         home={(lu.home ?? []).filter((p) => p.first !== 1)}

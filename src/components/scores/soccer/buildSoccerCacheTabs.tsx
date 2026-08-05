@@ -35,13 +35,16 @@ export async function buildSoccerCacheTabs(opts: {
   cache: SoccerCacheLike | null;
   status: string;
   homeKo: string;
+  /** 감독 이름(Team.coach) — 없으면 감독 줄이 뜨지 않는다 */
+  homeCoach?: string | null;
+  awayCoach?: string | null;
   awayKo: string;
   homeTsId: string | null;
   awayTsId: string | null;
   homeScore: number | null;
   awayScore: number | null;
 }): Promise<SoccerInsightTab[]> {
-  const { cache, status, homeKo, awayKo, homeTsId, awayTsId, homeScore, awayScore } = opts;
+  const { cache, status, homeKo, awayKo, homeTsId, awayTsId, homeScore, awayScore, homeCoach, awayCoach } = opts;
   if (!cache) return [];
 
   // 라인업 선수 한글명 — TheSportsPlayer.nameKo (DB miss 시 SoccerLineupSvg 가 영문 fallback)
@@ -125,6 +128,8 @@ export async function buildSoccerCacheTabs(opts: {
         awayNameKo={awayKo}
         nameById={lineupNameById}
         incidents={detailLive?.incidents}
+        homeCoach={homeCoach}
+        awayCoach={awayCoach}
       />
     ) : null;
 

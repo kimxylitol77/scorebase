@@ -24,7 +24,19 @@
 
 - [x] 피치 위 선수 배지 — 교체 아웃(`63' ←`) · 카드 · 골 아이콘
 - [x] 교체 명단(벤치) 섹션 — 좌우 분할, 사진·번호·포지션·투입 시각·카드
-- [~] 감독 표시 — **보류**. `Team.coach` 필드는 있으나 4,581개 팀 **전부 비어 있고**(EPL·LALIGA·SERIE_A 0/23·0/23·0/20), ts `coach_id` 를 이름으로 바꿀 경로가 없다. 감독 수집 파이프라인이 선행돼야 한다.
+- [x] 감독 표시 — 수집부터 만들어 해결 (2026-08-05 후속)
+
+## 감독 수집 (후속)
+
+처음엔 "데이터 없음" 으로 뺐으나 사용자 요청으로 수집부터 만들었다.
+
+- 기존 `data/team-coaches.json` 은 **8리그 193팀**뿐 — 라인업 `coach_id` 매칭률을 재보니
+  최근 60경기 115건 중 **8건(7%)**. 하위 리그가 통째로 빠진다.
+- `scripts/collect-all-team-coaches.ts` 신설 — 같은 `coach/list` 를 리그 필터 없이 받아
+  `TeamSourceId(thesports)` 로 우리 Team 에 매칭, `Team.coach` 에 저장(스키마 변경 0).
+- ts 가 전임 감독도 함께 내려주므로 `team_id` 별 `updated_at` 최신 1명만 남긴다.
+- 한글명은 `src/lib/coach-names.ts` — `team-coaches.json` 의 `nameKo` 를 사전으로 재사용하고
+  없으면 원문. 수천 명을 LLM 으로 번역할 이유가 없고 원문이라도 "감독 없음" 보다 낫다.
 - [x] 한글 이름 적용 (기존 `nameById` + `toKoreanPlayerName` 재사용)
 - [x] 데이터 없는 경기(벤치·incidents 부재)에서 깨지지 않는지
 - [x] tsc + 로컬 실렌더(라이브·종료 각 1건)
