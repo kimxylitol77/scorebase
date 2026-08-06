@@ -298,6 +298,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "찾을 수 없음" };
   }
   const info = LEAGUE_INFO[upper as ValidLeague];
+  // NPB·MLB — 빙 검색어는 "예측"이 아니라 "분석"("npb경기분석" 330·5.8위, "mlb분석" 157·5.4위,
+  // 둘 다 CTR 0%대). 순위는 이미 1페이지인데 title 에 분석 단어가 없어 exact-match 에서 밀렸다.
+  // KBO 순위 페이지(67491a5)와 같은 방식으로 검색어를 앞세우고 날짜를 동적 삽입한다.
+  if (upper === "NPB" || upper === "MLB") {
+    const kst = new Date(Date.now() + 9 * 3600_000);
+    const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+    const koName = upper === "NPB" ? "일본프로야구" : "메이저리그";
+    const headKw = upper === "NPB" ? "경기분석" : "분석"; // 각 리그의 실제 검색어에 맞춤
+    return {
+      title: `${upper} ${headKw} (${dateLabel}) — 오늘 ${koName} 승부예측·승률`,
+      description:
+        `오늘의 ${upper} 경기분석 (${dateLabel}) — ${koName} 경기별 승률과 선발 맞대결, ` +
+        `시즌 우승 확률을 Elo+시장 배당 모델로 매일 자동 갱신. 승부예측 적중률도 함께 공개합니다.`,
+      keywords: [
+        `${upper} 분석`,
+        `${upper} 경기분석`,
+        `${koName} 분석`,
+        `${koName} 경기분석`,
+        `${upper} 예측`,
+        `${upper} 승부예측`,
+        `오늘 ${upper}`,
+        `${upper} 승률`,
+        "야구 분석",
+        "야구 분석 사이트",
+        "AI 승부예측",
+        "스코어베이스",
+      ],
+      alternates: {
+        canonical,
+        ...(EN_PREDICTION_LEAGUE_SET.has(upper)
+          ? { languages: koEnLanguages(`/predictions/${upper}`, `/en/predictions/${upper}`) }
+          : {}),
+      },
+    };
+  }
   return {
     title: `${info.name} 예측 — 오늘 경기 승률·우승 확률 시뮬레이션`,
     description: `${info.subtitle}. 매일 갱신하는 ${info.name} 경기별 승률(Elo+시장 배당 모델), Monte Carlo 시즌 시뮬레이션, 우승·플레이오프 확률까지 데이터로 제공.`,
