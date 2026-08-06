@@ -12,7 +12,14 @@ export async function GET(req: Request) {
     return new Response("too many requests", { status: 429 });
   }
   const u = new URL(req.url).searchParams.get("u");
-  if (!u || !u.startsWith("https://img.thesports.com/")) {
+  // 허용 도메인 — 전술판 후보 풀의 사진 소스만(오픈 프록시 방지: 정확한 프리픽스).
+  // thesports = 축구 / espncdn = NBA / mlbstatic = MLB. 종목 확장 때 소스를 늘리면 여기도 함께.
+  const ALLOWED = [
+    "https://img.thesports.com/",
+    "https://a.espncdn.com/i/headshots/",
+    "https://midfield.mlbstatic.com/v1/people/",
+  ];
+  if (!u || !ALLOWED.some((p) => u.startsWith(p))) {
     return new Response("bad request", { status: 400 });
   }
   try {
