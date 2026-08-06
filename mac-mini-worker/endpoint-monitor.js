@@ -51,6 +51,23 @@ function tsKst() {
   return new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
 }
 
+// 맥미니 자체 인터넷이 끊겼는지 확인 (사이트 장애 오인 방지).
+// Wi-Fi 가 끊기면 모든 endpoint 가 동시에 ENOTFOUND/timeout → "사이트 전면 장애" 로 오인해
+// 긴급 알림이 나갔던 사고가 2회(2026-07-17, 08-06). 우리 도메인과 무관한 외부 두 곳을 찔러
+// 둘 다 실패하면 = 내 네트워크 문제이므로 이번 poll 은 통째로 skip 한다.
+async function isInternetUp() {
+  const probes = ["https://dns.google/resolve?name=example.com", "https://cloudflare.com/cdn-cgi/trace"];
+  for (const url of probes) {
+    try {
+      await axios.get(url, { timeout: 8_000, validateStatus: () => true });
+      return true; // 한 곳이라도 응답하면 인터넷 정상
+    } catch {
+      /* 다음 probe 시도 */
+    }
+  }
+  return false;
+}
+
 async function sendHeartbeat() {
   try {
     await axios.post(
@@ -106,6 +123,13 @@ async function checkEndpoint(ep) {
 
 async function poll() {
   console.log(`\n[${tsKst()}] ▶ poll start`);
+
+  // 네트워크 가드 — 내 인터넷이 죽었으면 사이트 판정 자체가 무의미. 알림 없이 skip.
+  if (!(await isInternetUp())) {
+    console.log(`  ⏸ 맥미니 인터넷 끊김 — 이번 poll skip (사이트 장애 아님)`);
+    return;
+  }
+
   await sendHeartbeat();
 
   for (const ep of ENDPOINTS) {
