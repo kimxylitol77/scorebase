@@ -124,22 +124,81 @@ export async function enrichMlbSalaries(out: NormalizedSalary[]): Promise<Normal
       if (m.id) r.photoUrl = `https://midfield.mlbstatic.com/v1/people/${m.id}/spots/120`;
     }
   }
-  // 미매칭(IL·방출 등 active 명단 밖 — Rendon·Burnes·Bryant) 보강 — people/search 배치(40명씩)
-  const unmatched = out.filter((r) => !r.photoUrl);
-  for (let i = 0; i < unmatched.length; i += 40) {
-    const chunk = unmatched.slice(i, i + 40);
-    try {
-      const url = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(chunk.map((r) => r.playerName).join(","))}&hydrate=currentTeam`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-      const data = (await res.json()) as { people?: Array<{ id: number; fullName: string; currentTeam?: { name?: string } }> };
-      const byNorm = new Map((data.people ?? []).map((p) => [norm(p.fullName), p]));
-      for (const r of chunk) {
-        const p = byNorm.get(norm(r.playerName));
-        if (!p) continue;
-        if (p.currentTeam?.name) r.teamName = p.currentTeam.name;
-        r.photoUrl = `https://midfield.mlbstatic.com/v1/people/${p.id}/spots/120`;
+  // 미매칭(IL·방출 등 active 명단 밖 — Rendon·Burnes·Bryant) 보강 — people/search 배치.
+  // ⚠️ 팀이 빈 선수도 대상이다. photoUrl 만 보면 1차에서 사진만 얻고 팀을 못 얻은 선수가
+  //    빠진다(2026-08-06 실측: 빈 팀 153명 중 116명이 search 로 채워지는데 안 타고 있었다).
+  const unmatched = out.filter((r) => !r.photoUrl || !r.teamName);
+  // 20명 배치 — 40명 콤마 URL 이 timeout 나면 catch 로 40명이 통째로 조용히 사라진다.
+  // 실패 시 10명 반쪽으로 1회 재시도해 배치 하나의 실패가 전멸이 되지 않게 한다.
+  const searchChunk = async (
+    chunk: NormalizedSalary[],
+    queryName: (r: NormalizedSalary) => string = (r) => r.playerName,
+  ): Promise<void> => {
+    const url = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(chunk.map(queryName).join(","))}&hydrate=currentTeam`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    const data = (await res.json()) as { people?: Array<{ id: number; fullName: string; currentTeam?: { name?: string } }> };
+    // 표기 변형을 양쪽에 적용 — 공식 fullName 이 더 긴 경우("Lance McCullers Jr.")와
+    // spotrac 이 더 긴 경우("Josh H. Smith") 둘 다 있어서, 결과 쪽 키도 변형으로 펼쳐 둔다.
+    const byNorm = new Map<string, NonNullable<typeof data.people>[number]>();
+    for (const p of data.people ?? []) {
+      for (const k of nameVariants(p.fullName)) {
+        const prev = byNorm.get(k);
+        // 동명이인(McCullers Jr/Sr)이 한 키로 충돌하면 현 소속 있는 쪽을 남긴다 —
+        // Sr 는 은퇴자라 currentTeam 이 없거나 마이너다.
+        if (!prev || (!prev.currentTeam?.name && p.currentTeam?.name)) byNorm.set(k, p);
       }
-    } catch { /* 배치 실패 시 skip */ }
+    }
+    for (const r of chunk) {
+      let p: NonNullable<typeof data.people>[number] | undefined;
+      for (const k of nameVariants(r.playerName)) {
+        p = byNorm.get(k);
+        if (p) break;
+      }
+      if (!p) continue;
+      if (p.currentTeam?.name && !r.teamName) r.teamName = p.currentTeam.name;
+      if (!r.photoUrl) r.photoUrl = `https://midfield.mlbstatic.com/v1/people/${p.id}/spots/120`;
+    }
+  };
+  const runBatches = async (
+    rows: NormalizedSalary[],
+    queryName?: (r: NormalizedSalary) => string,
+  ): Promise<void> => {
+    for (let i = 0; i < rows.length; i += 20) {
+      const chunk = rows.slice(i, i + 20);
+      try {
+        await searchChunk(chunk, queryName);
+      } catch {
+        for (const half of [chunk.slice(0, 10), chunk.slice(10)]) {
+          if (!half.length) continue;
+          try {
+            await searchChunk(half, queryName);
+          } catch { /* 반쪽도 실패 — 이 묶음만 포기 */ }
+        }
+      }
+    }
+  };
+  await runBatches(unmatched);
+  // 2차 — 원본 표기로 못 찾은 선수를 변형 표기로 재검색. search 는 저장된 표기와 정확히
+  // 맞아야 하는 게 아니라 표기 자체가 다르면 아예 안 나온다("T.J. Friedl" 0건, "TJ Friedl" 1건).
+  const still = unmatched.filter((r) => !r.teamName || !r.photoUrl);
+  if (still.length) {
+    await runBatches(still, (r) => {
+      const v = nameVariants(r.playerName);
+      return v[v.length - 1] === norm(r.playerName) ? r.playerName : v[v.length - 1];
+    });
   }
   return out;
+}
+
+/**
+ * 검색 결과 대조용 이름 키 변형 — 원형 → Jr/Sr/III 제거 → 이니셜 점 제거 → 미들 이니셜 제거.
+ * byNorm 의 키(공식 fullName)와 spotrac 표기 어느 쪽이 서픽스를 갖든 맞도록 양방향이 아니라
+ * "관대한 후보 나열" 방식을 쓴다.
+ */
+function nameVariants(name: string): string[] {
+  const base = norm(name);
+  const noSuffix = norm(name.replace(/\s+(jr\.?|sr\.?|ii|iii|iv)$/i, ""));
+  const noDots = base.replace(/\./g, "");
+  const noMiddleInitial = norm(name.replace(/\s+[a-z]\.\s+/i, " "));
+  return [...new Set([base, noSuffix, noDots, noMiddleInitial])];
 }
