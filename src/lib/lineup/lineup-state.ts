@@ -52,6 +52,8 @@ export interface Side {
 export type DisplayMode = "photo" | "ovr" | "name"; // 선수 표시: 사진 / 능력치 / 이름만
 export type Orientation = "portrait" | "landscape"; // 피치 방향: 세로 / 가로
 export interface BoardState {
+  /** 종목 — 생략 = soccer (기존 호출부·저장물 하위호환) */
+  sport?: "soccer" | "basketball" | "baseball";
   mode: "single" | "versus";
   displayMode: DisplayMode;
   orientation: Orientation;
@@ -71,7 +73,8 @@ export interface BenchEntry {
   name: string | null;
 }
 
-const POS_CODES: Pos[] = ["GK", "DF", "MF", "FW"];
+// ⚠️ append-only — 인덱스가 공유 URL 에 박힌다. 순서 변경·삭제 금지.
+const POS_CODES: Pos[] = ["GK", "DF", "MF", "FW", "G", "F", "C", "P", "B"];
 const posToCode = (p: Pos): number => Math.max(0, POS_CODES.indexOf(p));
 const codeToPos = (c: number): Pos => POS_CODES[c] ?? "MF";
 
@@ -89,6 +92,8 @@ interface WireSide {
 }
 interface WireBoard {
   v: 1;
+  /** 종목 — 생략 = soccer (기존 공유 코드 하위호환) */
+  sp?: "bk" | "bs";
   m: "s" | "v";
   dm?: "o" | "n"; // displayMode (생략=photo)
   o?: "l"; // orientation (생략=portrait)
@@ -134,6 +139,7 @@ export function encodeBoard(b: BoardState): string {
   const w: WireBoard = {
     v: 1,
     m: b.mode === "versus" ? "v" : "s",
+    ...(b.sport === "basketball" ? { sp: "bk" as const } : b.sport === "baseball" ? { sp: "bs" as const } : {}),
     t: b.title.slice(0, 30),
     s: b.subtitle.slice(0, 40),
     kit: b.kit,
@@ -154,6 +160,7 @@ export function decodeBoard(code: string): BoardState | null {
     const obj = JSON.parse(b64urlDecode(code));
     if (obj?.v === 1) {
       return {
+        sport: obj.sp === "bk" ? "basketball" : obj.sp === "bs" ? "baseball" : "soccer",
         mode: obj.m === "v" ? "versus" : "single",
         displayMode: obj.dm === "o" ? "ovr" : obj.dm === "n" ? "name" : "photo",
         orientation: obj.o === "l" ? "landscape" : "portrait",
@@ -172,6 +179,7 @@ export function decodeBoard(code: string): BoardState | null {
     }
     if (obj && typeof obj.f === "string" && Array.isArray(obj.p)) {
       return {
+        sport: "soccer",
         mode: "single",
         displayMode: "photo",
         orientation: "portrait",

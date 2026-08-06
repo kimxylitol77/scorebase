@@ -1,7 +1,8 @@
 // 라인업 전술판 포메이션 정의 — 슬롯 위치(x,y %)·포지션. 빌더 피치와 OG 카드가 공용.
 // 좌표계: 세로 피치 기준 x(좌 0 ~ 우 100), y(위/공격 0 ~ 아래/GK 100).
 
-export type Pos = "GK" | "DF" | "MF" | "FW";
+// 농구 G/F/C·야구 P(투수)/B(야수)를 같은 타입으로 — 좌표·와이어 포맷을 종목 무관 공유하기 위함.
+export type Pos = "GK" | "DF" | "MF" | "FW" | "G" | "F" | "C" | "P" | "B";
 
 export interface Slot {
   id: string;
@@ -120,5 +121,8 @@ export const KITS: Kit[] = [
   { key: "rose", label: "로즈", from: "#4c0519", to: "#881337" },
   { key: "royal", label: "로열", from: "#172554", to: "#1e3a8a" },
   { key: "mono", label: "모노", from: "#27272a", to: "#09090b" },
+  // 종목 기본 배경 — 농구 하드우드 / 야구 필드
+  { key: "court", label: "코트", from: "#7c4a1e", to: "#5b3413" },
+  { key: "diamond", label: "다이아몬드", from: "#166534", to: "#14532d" },
 ];
 export const KIT_BY_KEY: Record<string, Kit> = Object.fromEntries(KITS.map((k) => [k.key, k]));

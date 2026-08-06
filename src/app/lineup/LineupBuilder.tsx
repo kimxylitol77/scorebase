@@ -8,7 +8,8 @@ import CandidatePanel from "./CandidatePanel";
 import DrawLayer from "./DrawLayer";
 import { useHistory } from "./useHistory";
 import type { PoolPlayer, ClubMeta } from "./types";
-import { FORMATIONS, FORMATION_OPTIONS, FREE_FORMATION, KITS, KIT_BY_KEY, type Pos } from "@/lib/lineup/formations";
+import { FORMATIONS, FORMATION_OPTIONS, FREE_FORMATION, KITS, KIT_BY_KEY, type Pos, type Slot } from "@/lib/lineup/formations";
+import { SPORT_SETS, SPORT_DEFAULT_KIT, type LineupSport } from "@/lib/lineup/sports";
 import { encodeBoard, newUid, type BoardState, type Side, type Placed, type DisplayMode, type Orientation } from "@/lib/lineup/lineup-state";
 import { STROKE_COLORS, STROKE_COLOR_KEYS, type Tool, type StrokeColor, type Stroke } from "@/lib/lineup/drawing";
 
@@ -16,9 +17,10 @@ interface Props {
   pool: PoolPlayer[];
   clubs: ClubMeta[];
   initial: BoardState | null;
+  sport?: LineupSport; // 생략 = soccer
 }
 
-const POS_LABEL: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
+const POS_LABEL: Partial<Record<Pos, string>> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수", G: "가드", F: "포워드", C: "센터", P: "투수", B: "야수" };
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1",
   WORLD_CUP: "월드컵 대표팀", K_LEAGUE_1: "K리그1", K_LEAGUE_2: "K리그2", MLS: "MLS", SAUDI_PL: "사우디 프로리그",
@@ -44,18 +46,18 @@ function placeY(rawY: number, side: "home" | "away", versus: boolean): number {
   if (!versus) return rawY;
   return side === "away" ? Math.round(50 - rawY * 0.46) : Math.round(50 + rawY * 0.46);
 }
-function emptySlots(fname: string, side: "home" | "away", versus: boolean): Placed[] {
-  const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
+function emptySlots(fname: string, side: "home" | "away", versus: boolean, sets: Record<string, Slot[]> = FORMATIONS, fallback = "4-3-3"): Placed[] {
+  const slots = sets[fname] ?? sets[fallback] ?? Object.values(sets)[0];
   return slots.map((s) => ({ uid: newUid(), pid: null, name: null, pos: s.pos, x: s.x, y: placeY(s.y, side, versus) }));
 }
 // 포메이션 변경 시 기존 선수 보존 — 현재 좌표와 가장 가까운 슬롯에 매칭(그리디, 같은 포지션 +가중).
 // 빈 보드(채워진 선수 0)면 빈 슬롯만 반환. 이게 없으면 포메이션을 바꿀 때마다 배치한 선수가 전부 사라진다.
 // 이전의 "포지션 그룹 순서 채우기"는 마지막 경기 선발처럼 구성이 프리셋과 다르면(미드 6명 등)
 // 남는 선수가 빈 슬롯에 순서대로 꽂혀 공격수가 중미로 가는 식의 랜덤처럼 보이는 재배치가 났다.
-function reflowSlots(prev: Placed[], fname: string, side: "home" | "away", versus: boolean): Placed[] {
-  const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
+function reflowSlots(prev: Placed[], fname: string, side: "home" | "away", versus: boolean, sets: Record<string, Slot[]> = FORMATIONS, fallback = "4-3-3"): Placed[] {
+  const slots = sets[fname] ?? sets[fallback] ?? Object.values(sets)[0];
   const filled = prev.filter((p) => p.pid || p.name);
-  if (filled.length === 0) return emptySlots(fname, side, versus);
+  if (filled.length === 0) return emptySlots(fname, side, versus, sets, fallback);
   const assigned: (Placed | null)[] = new Array(slots.length).fill(null);
   const used = new Set<number>();
   // GK는 GK 슬롯 고정 — 좌표가 어긋나 있어도 필드 슬롯으로 끌려나오지 않게
@@ -107,13 +109,29 @@ function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([arr], { type: mime });
 }
 
-function initBoard(initial: BoardState | null): BoardState {
+function initBoard(initial: BoardState | null, sport: LineupSport = "soccer"): BoardState {
   if (initial) return { ...initial, strokes: initial.strokes ?? [] };
-  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", grid: false, bench: [], strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
+  if (sport !== "soccer") {
+    const sets = SPORT_SETS[sport];
+    const first = Object.keys(sets)[0];
+    return {
+      sport,
+      mode: "single", displayMode: "photo", orientation: "portrait",
+      title: sport === "basketball" ? "나의 베스트 5" : "나의 베스트 나인",
+      subtitle: "", kit: SPORT_DEFAULT_KIT[sport], grid: false, bench: [], strokes: [],
+      home: { club: null, formation: first, players: emptySlots(first, "home", false, sets, first) },
+    };
+  }
+  return { sport: "soccer", mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", grid: false, bench: [], strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
 }
 
-export default function LineupBuilder({ pool, clubs, initial }: Props) {
-  const init0 = useMemo(() => initBoard(initial), [initial]);
+export default function LineupBuilder({ pool, clubs, initial, sport = "soccer" }: Props) {
+  // 공유 코드가 있으면 코드의 종목이 진실 — ?sport 와 어긋나도 코드를 따른다.
+  const effSport: LineupSport = initial?.sport ?? sport;
+  const sets = effSport === "soccer" ? FORMATIONS : SPORT_SETS[effSport];
+  const setFallback = effSport === "soccer" ? "4-3-3" : Object.keys(sets)[0];
+  const presetOptions = effSport === "soccer" ? FORMATION_OPTIONS : [...Object.keys(sets), FREE_FORMATION];
+  const init0 = useMemo(() => initBoard(initial, effSport), [initial, effSport]);
   const { state: board, commit, setTransient, checkpoint, undo, redo, reset, canUndo, canRedo } = useHistory<BoardState>(init0);
   const [activeSide, setActiveSide] = useState<"home" | "away">("home");
   const [activeUid, setActiveUid] = useState<string | null>(null);
@@ -131,12 +149,12 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const savedOnce = useRef(false);
   useEffect(() => {
     if (!savedOnce.current) { savedOnce.current = true; return; }
-    try { sessionStorage.setItem("lineup-board", JSON.stringify(board)); } catch { /* 무시 */ }
+    try { sessionStorage.setItem(`lineup-board:${effSport}`, JSON.stringify(board)); } catch { /* 무시 */ }
   }, [board]);
   useEffect(() => {
     if (!initial) {
       try {
-        const saved = sessionStorage.getItem("lineup-board");
+        const saved = sessionStorage.getItem(`lineup-board:${effSport}`);
         if (saved) {
           // 구버전 세션 저장분엔 bench/strokes 가 없음 — 누락 필드 정규화 (m.bench is not iterable 재발 방지)
           const parsed = JSON.parse(saved) as BoardState;
@@ -199,7 +217,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     commit((b) => {
       const versus = b.mode === "versus";
       if (fname === FREE_FORMATION) return updateSideIn(b, side, (s) => ({ ...s, formation: null, players: s.players.filter((p) => p.pid || p.name) }));
-      return updateSideIn(b, side, (s) => ({ ...s, formation: fname, players: reflowSlots(s.players, fname, side, versus) }));
+      return updateSideIn(b, side, (s) => ({ ...s, formation: fname, players: reflowSlots(s.players, fname, side, versus, sets, setFallback) }));
     });
     setActiveUid(null);
   }
@@ -209,7 +227,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     const f = (side === "away" ? board.away?.formation : board.home.formation) ?? FREE_FORMATION;
     return (
       <select value={f} onChange={(e) => applyFormation(e.target.value, side)} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-500">
-        {FORMATION_OPTIONS.map((ff) => (<option key={ff}>{ff}</option>))}
+        {presetOptions.map((ff) => (<option key={ff}>{ff}</option>))}
       </select>
     );
   };
@@ -217,20 +235,42 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   function loadClub(clubKey: string, side: "home" | "away" = activeSide) {
     if (!clubKey) return;
     const club = clubs.find((c) => c.key === clubKey);
-    const byPos: Record<Pos, PoolPlayer[]> = { GK: [], DF: [], MF: [], FW: [] };
-    for (const p of pool) if (p.clubKey === clubKey) byPos[p.pos].push(p);
-    (Object.keys(byPos) as Pos[]).forEach((k) => byPos[k].sort((a, b) => b.ovr - a.ovr));
+    // 농구·야구 — 프리셋 슬롯에 포지션 매칭으로 채운다(축구의 lastXI·감독 경로는 축구 데이터 전용).
+    if (effSport !== "soccer") {
+      const byPosNb: Partial<Record<Pos, PoolPlayer[]>> = {};
+      for (const p of pool) if (p.clubKey === clubKey) (byPosNb[p.pos] ??= []).push(p);
+      (Object.keys(byPosNb) as Pos[]).forEach((k) => byPosNb[k]!.sort((a, b) => b.ovr - a.ovr));
+      commit((b) => {
+        const versus = b.mode === "versus";
+        const cur = side === "away" ? b.away : b.home;
+        const fname = cur?.formation && sets[cur.formation] ? cur.formation : setFallback;
+        const cursor: Partial<Record<Pos, number>> = {};
+        const players: Placed[] = (sets[fname] ?? []).map((slot) => {
+          // 야구 P 슬롯엔 투수만, 그 외엔 포지션 매칭 → 부족하면 아무나(농구 G/F/C 유연 로스터 대응)
+          const list = byPosNb[slot.pos] ?? [];
+          const idx = (cursor[slot.pos] = (cursor[slot.pos] ?? 0) + 1) - 1;
+          const cand = list[idx] ?? null;
+          return { uid: newUid(), pid: cand ? cand.id : null, name: null, pos: slot.pos, x: slot.x, y: placeY(slot.y, side, versus) };
+        });
+        return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
+      });
+      setActiveSide(side);
+      return;
+    }
+    const byPos: Partial<Record<Pos, PoolPlayer[]>> = { GK: [], DF: [], MF: [], FW: [] };
+    for (const p of pool) if (p.clubKey === clubKey) (byPos[p.pos] ??= []).push(p);
+    (Object.keys(byPos) as Pos[]).forEach((k) => byPos[k]!.sort((a, b) => b.ovr - a.ovr));
     commit((b) => {
       const versus = b.mode === "versus";
       if (clubKey.startsWith("wc-")) {
         // 월드컵 국가 = 예상 XI 11명을 포지션 줄(GK·DF·MF·FW)로 자동 배치 — formation 프리셋 없이(WC formation 10종 대응).
-        const ROWS: Record<Pos, number> = { GK: 92, DF: 70, MF: 46, FW: 18 };
+        const ROWS: Partial<Record<Pos, number>> = { GK: 92, DF: 70, MF: 46, FW: 18 };
         const players: Placed[] = [];
         (["FW", "MF", "DF", "GK"] as Pos[]).forEach((g) => {
-          const arr = byPos[g];
+          const arr = byPos[g] ?? [];
           arr.forEach((p, i) => {
             const x = arr.length === 1 ? 50 : Math.round(12 + (76 * i) / (arr.length - 1));
-            players.push({ uid: newUid(), pid: p.id, name: null, pos: g, x, y: placeY(ROWS[g], side, versus) });
+            players.push({ uid: newUid(), pid: p.id, name: null, pos: g, x, y: placeY(ROWS[g] ?? 50, side, versus) });
           });
         });
         return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: FREE_FORMATION, players }));
@@ -251,9 +291,9 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
       const coachF = club?.coachFormation && FORMATIONS[club.coachFormation] ? club.coachFormation : null;
       const cur = side === "away" ? b.away : b.home;
       const fname = coachF ?? (cur?.formation && cur.formation !== FREE_FORMATION && FORMATIONS[cur.formation] ? cur.formation : "4-3-3");
-      const cursor: Record<Pos, number> = { GK: 0, DF: 0, MF: 0, FW: 0 };
+      const cursor: Partial<Record<Pos, number>> = { GK: 0, DF: 0, MF: 0, FW: 0 };
       const players: Placed[] = FORMATIONS[fname].map((slot) => {
-        const cand = byPos[slot.pos][cursor[slot.pos]++];
+        const cand = byPos[slot.pos]?.[(cursor[slot.pos] = (cursor[slot.pos] ?? 0) + 1) - 1];
         return { uid: newUid(), pid: cand ? cand.id : null, name: null, pos: slot.pos, x: slot.x, y: placeY(slot.y, side, versus) };
       });
       const next = updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
@@ -376,14 +416,14 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
 
   function resetAll() {
     // 내용만 초기화 — 보기 설정(방향·표시모드·키트)은 유지해서 가로로 보던 사람이 세로로 튕기지 않게.
-    reset({ ...initBoard(null), orientation: board.orientation, displayMode: board.displayMode, kit: board.kit });
+    reset({ ...initBoard(null, effSport), orientation: board.orientation, displayMode: board.displayMode, kit: board.kit });
     setActiveUid(null);
     setActiveSide("home");
     setTool("select");
   }
 
   // --- 공유 ---
-  const code = useMemo(() => encodeBoard(board), [board]);
+  const code = useMemo(() => encodeBoard({ ...board, sport: board.sport ?? effSport }), [board, effSport]);
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/lineup?d=${code}` : `/lineup?d=${code}`;
 
   async function onCapture() {
@@ -551,7 +591,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
       <div className="mt-4">
         <div className={board.orientation === "landscape" ? "w-full" : "max-w-2xl"}>
           <div ref={captureRef} className="relative">
-            <Pitch home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} grid={board.grid} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
+            <Pitch sport={effSport} home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} grid={board.grid} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
             <DrawLayer strokes={board.strokes} tool={tool} color={color} onCommitStroke={commitStroke} onErase={eraseStroke} />
             <div className="pointer-events-none absolute bottom-1.5 right-2.5 text-[11px] font-semibold text-white/70" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}>scorebase.kr</div>
             {(board.bench ?? []).length > 0 && (

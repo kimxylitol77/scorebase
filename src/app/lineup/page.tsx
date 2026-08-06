@@ -11,6 +11,8 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LineupBuilder from "./LineupBuilder";
 import { normSearch, type ClubMeta, type PoolPlayer } from "./types";
+import Link from "next/link";
+import { parseLineupSport, SPORT_LABEL, type LineupSport } from "@/lib/lineup/sports";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const metadata: Metadata = {
@@ -305,9 +307,140 @@ const getClubData = unstable_cache(
   { revalidate: 3 * 3600 },
 );
 
-export default async function LineupPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
-  const { d } = await searchParams;
+// ── 농구(NBA) 후보 풀 — data/nba-players.json (545명, 한글명·ESPN 사진·팀·등번호). 정적이라 캐시 불필요.
+function getNbaData(): { pool: PoolPlayer[]; clubs: ClubMeta[] } {
+  const raw: Record<string, { name: string; ko?: string; photo?: string; espnId?: string; pos?: string; team?: string; number?: number | null; salary?: number }> = JSON.parse(
+    readFileSync(path.join(process.cwd(), "data/nba-players.json"), "utf-8"),
+  );
+  const pool: PoolPlayer[] = [];
+  const byTeam = new Map<string, number>();
+  for (const p of Object.values(raw)) {
+    if (!p.team || !p.espnId) continue;
+    const teamKo = toKoreanTeamName(p.team, "NBA");
+    const clubKey = "nba-" + p.team.toLowerCase().replace(/[^a-z]/g, "");
+    byTeam.set(clubKey, (byTeam.get(clubKey) ?? 0) + 1);
+    const nm = p.ko || p.name;
+    pool.push({
+      id: "nb_" + p.espnId,
+      name: nm,
+      pos: p.pos === "G" || p.pos === "C" ? p.pos : "F",
+      // ovr 는 정렬용 — 연봉을 0~99 로 눌러 쓴다(스타가 위로 오게)
+      ovr: Math.min(99, Math.round(Math.sqrt(p.salary ?? 1_000_000) / 75)),
+      team: teamKo,
+      photo: p.photo || null,
+      number: p.number ?? null,
+      clubKey,
+      searchKey: normSearch(`${nm} ${p.name} ${teamKo} ${p.team}`),
+    });
+  }
+  const clubs: ClubMeta[] = [...byTeam.entries()].map(([key, count]) => {
+    const anyP = pool.find((x) => x.clubKey === key)!;
+    return { key, label: anyP.team, league: "NBA", count, canBest11: count >= 5 };
+  });
+  clubs.sort((a, b) => a.label.localeCompare(b.label, "ko"));
+  return { pool, clubs };
+}
+
+// ── 야구(KBO·NPB·MLB) 후보 풀 — 로스터 json(Team.id 키) + MLB 시즌스탯(사진 보유). 3h 캐시(DB 조회 포함).
+const getBaseballData = unstable_cache(
+  async (): Promise<{ pool: PoolPlayer[]; clubs: ClubMeta[] }> => {
+    const pool: PoolPlayer[] = [];
+    const clubs: ClubMeta[] = [];
+
+    // KBO·NPB — data/baseball-rosters.json (key = 우리 Team.id, group P/B)
+    const rosters: Record<string, Array<{ id: string; name: string; group: "P" | "B" }>> = JSON.parse(
+      readFileSync(path.join(process.cwd(), "data/baseball-rosters.json"), "utf-8"),
+    );
+    const teamIds = Object.keys(rosters).map(Number).filter(Number.isFinite);
+    const teams = await prisma.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true, name: true, league: true },
+    });
+    const teamById = new Map(teams.map((t) => [t.id, t]));
+    for (const [tid, players] of Object.entries(rosters)) {
+      const t = teamById.get(Number(tid));
+      if (!t) continue;
+      const label = toKoreanTeamName(t.name, t.league);
+      const key = `bb-${tid}`;
+      clubs.push({ key, label, league: t.league, count: players.length, canBest11: players.length >= 9 });
+      for (const p of players) {
+        pool.push({
+          id: `bb_${t.league.toLowerCase()}_${p.id}`,
+          name: p.name,
+          pos: p.group === "P" ? "P" : "B",
+          ovr: 50,
+          team: label,
+          photo: null,
+          number: null,
+          clubKey: key,
+          searchKey: normSearch(`${p.name} ${label}`),
+        });
+      }
+    }
+
+    // MLB — 시즌스탯 로스터(최신 시즌, externalId → 공식 headshot)
+    const season = String(new Date().getUTCFullYear());
+    const mlbRows = await prisma.baseballPlayerSeasonStats.findMany({
+      where: { league: "MLB", season },
+      select: { playerName: true, teamName: true, externalId: true, era: true },
+    });
+    const mlbByTeam = new Map<string, number>();
+    for (const r of mlbRows) {
+      if (!r.teamName) continue;
+      const key = "mlb-" + r.teamName.replace(/[^가-힣a-zA-Z]/g, "");
+      mlbByTeam.set(key, (mlbByTeam.get(key) ?? 0) + 1);
+      pool.push({
+        id: `bb_mlb_${r.externalId ?? r.playerName}`,
+        name: r.playerName,
+        pos: r.era != null ? "P" : "B",
+        ovr: 50,
+        team: r.teamName,
+        photo: r.externalId ? `https://midfield.mlbstatic.com/v1/people/${r.externalId}/spots/120` : null,
+        number: null,
+        clubKey: key,
+        searchKey: normSearch(`${r.playerName} ${r.teamName}`),
+      });
+    }
+    for (const [key, count] of mlbByTeam) {
+      const anyP = pool.find((x) => x.clubKey === key)!;
+      clubs.push({ key, label: anyP.team, league: "MLB", count, canBest11: count >= 9 });
+    }
+    clubs.sort((a, b) => a.league.localeCompare(b.league) || a.label.localeCompare(b.label, "ko"));
+    return { pool, clubs };
+  },
+  ["lineup-baseball-data-v1"],
+  { revalidate: 3 * 3600 },
+);
+
+export default async function LineupPage({ searchParams }: { searchParams: Promise<{ d?: string; sport?: string }> }) {
+  const { d, sport: sportParam } = await searchParams;
   const initial = d ? decodeBoard(d) : null;
+  // 공유 코드가 종목을 품고 있으면 그것이 진실 — 잘못된 ?sport 로 열어도 코드대로 렌더.
+  const sport: LineupSport = initial?.sport ?? parseLineupSport(sportParam);
+
+  if (sport !== "soccer") {
+    const { pool, clubs } = sport === "basketball" ? getNbaData() : await getBaseballData();
+    return (
+      <main className="relative mx-auto max-w-6xl px-4 py-10">
+        <AmbientGlow />
+        <div className="relative">
+          <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">
+            전술판
+          </span>
+          <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">
+            {SPORT_LABEL[sport]} 전술판
+          </h1>
+          <p className="mt-1.5 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
+            {sport === "basketball"
+              ? "NBA 30개 팀 로스터를 불러와 베스트 5 와 세트 플레이를 그려 공유하세요."
+              : "KBO·NPB·MLB 로스터를 불러와 수비 시프트와 베스트 나인을 그려 공유하세요."}
+          </p>
+          <SportTabs active={sport} />
+          <LineupBuilder pool={pool} clubs={clubs} initial={initial} sport={sport} />
+        </div>
+      </main>
+    );
+  }
 
   const { pool, clubs } = await getClubData();
 
@@ -350,8 +483,31 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
         <p className="mt-1.5 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
           클럽을 불러오면 공식 스쿼드 전원(이번 여름 이적 반영)이 후보로 뜨고, 마지막 경기 선발 라인업 그대로 자동 배치됩니다. 완성한 보드는 이미지 카드로 저장·공유하세요.
         </p>
-        <LineupBuilder pool={allPool} clubs={allClubs} initial={initial} />
+        <SportTabs active="soccer" />
+        <LineupBuilder pool={allPool} clubs={allClubs} initial={initial} sport="soccer" />
       </div>
     </main>
+  );
+}
+
+// 종목 전환 탭 — 서버에서 풀이 갈리므로 링크 전환(쿼리 유지 불필요, 보드는 종목별 세션 보존).
+function SportTabs({ active }: { active: LineupSport }) {
+  const tabs: LineupSport[] = ["soccer", "basketball", "baseball"];
+  return (
+    <div className="mt-4 flex gap-1.5">
+      {tabs.map((t) => (
+        <Link
+          key={t}
+          href={t === "soccer" ? "/lineup" : `/lineup?sport=${t}`}
+          className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ring-1 transition ${
+            active === t
+              ? "bg-rose-600 text-white ring-rose-600"
+              : "bg-white text-neutral-600 ring-black/10 hover:bg-neutral-50 dark:bg-white/[0.06] dark:text-neutral-300 dark:ring-white/15"
+          }`}
+        >
+          {SPORT_LABEL[t]}
+        </Link>
+      ))}
+    </div>
   );
 }

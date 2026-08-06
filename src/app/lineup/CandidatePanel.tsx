@@ -21,7 +21,7 @@ interface Props {
   onToggleAlt?: () => void; // 선발↔대체 토글 (filled 노드에서만 노출)
 }
 
-const POS_KO: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
+const POS_KO: Partial<Record<Pos, string>> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
 
 export default function CandidatePanel({ pool, pos, clubKey, label, filled, usedIds, onPick, onCustom, onDelete, onClose, benchMode, altOn, onToggleAlt }: Props) {
   const [search, setSearch] = useState("");

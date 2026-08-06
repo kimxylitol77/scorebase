@@ -4,12 +4,14 @@
 import { useRef, useCallback } from "react";
 import { Plus } from "lucide-react";
 import type { Side, DisplayMode, Orientation } from "@/lib/lineup/lineup-state";
+import type { LineupSport } from "@/lib/lineup/sports";
 import { SIDE_COLORS, toDisplayXY, fromDisplayXY } from "@/lib/lineup/formations";
 import type { PoolPlayer } from "./types";
 
 const DRAG_THRESHOLD = 6;
 
 interface Props {
+  sport?: LineupSport; // 생략 = soccer
   home: Side;
   away?: Side;
   mode: "single" | "versus";
@@ -25,7 +27,7 @@ interface Props {
   onDragStart?: () => void; // 드래그 첫 이동 시 1회 (undo 체크포인트용)
 }
 
-export default function Pitch({ home, away, mode, displayMode, orientation, grid, poolById, kitFrom, kitTo, activeUid, onNodeClick, onNodeMove, onDragStart }: Props) {
+export default function Pitch({ sport = "soccer", home, away, mode, displayMode, orientation, grid, poolById, kitFrom, kitTo, activeUid, onNodeClick, onNodeMove, onDragStart }: Props) {
   const pitchRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ uid: string; side: "home" | "away"; sx: number; sy: number; moved: boolean } | null>(null);
   const landscape = orientation === "landscape";
@@ -85,7 +87,13 @@ export default function Pitch({ home, away, mode, displayMode, orientation, grid
       className="relative w-full overflow-hidden rounded-2xl"
       style={{ aspectRatio: landscape ? "16 / 10" : "4 / 5", background: `linear-gradient(${landscape ? "to right" : "to bottom"}, ${kitFrom}, ${kitTo})` }}
     >
-      <PitchMarkings landscape={landscape} versus={mode === "versus"} />
+      {sport === "basketball" ? (
+        <CourtMarkings landscape={landscape} />
+      ) : sport === "baseball" ? (
+        <DiamondMarkings landscape={landscape} />
+      ) : (
+        <PitchMarkings landscape={landscape} versus={mode === "versus"} />
+      )}
       {grid && <GridOverlay landscape={landscape} />}
       {depthMode && (
         <div className="pointer-events-none absolute bottom-1.5 left-2.5 flex items-center gap-2.5 text-[10px] font-semibold text-white/85" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>
@@ -235,5 +243,71 @@ function PitchMarkings({ landscape, versus }: { landscape: boolean; versus: bool
         </>
       )}
     </>
+  );
+}
+
+// 농구 하프코트 — 바스켓(위)·페인트존·자유투 원·3점 아치. 세로 = 바스켓 위쪽.
+function CourtMarkings({ landscape }: { landscape: boolean }) {
+  const lc = "border-white/25";
+  const common = "pointer-events-none absolute border-2";
+  if (landscape) {
+    // 가로 = 바스켓 왼쪽 (세로 보드를 시계방향 회전한 배치와 동일 규칙)
+    return (
+      <>
+        <div className={`${common} inset-[3.5%] rounded-[3px] ${lc}`} />
+        {/* 페인트존 + 자유투 원 */}
+        <div className={`${common} left-[3.5%] top-1/2 h-[34%] w-[24%] -translate-y-1/2 border-l-0 ${lc}`} />
+        <div className={`pointer-events-none absolute left-[27.5%] top-1/2 h-[24%] w-[15%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 ${lc}`} />
+        {/* 3점 아치 — 타원 우반부 */}
+        <div className={`pointer-events-none absolute left-[-28%] top-1/2 h-[86%] w-[62%] -translate-y-1/2 rounded-full border-2 ${lc}`} style={{ clipPath: "inset(0 0 0 55%)" }} />
+        {/* 림 */}
+        <div className="pointer-events-none absolute left-[7.5%] top-1/2 h-[7%] w-[4.4%] -translate-y-1/2 rounded-full border-2 border-orange-300/70" />
+      </>
+    );
+  }
+  return (
+    <>
+      <div className={`${common} inset-[3.5%] rounded-[3px] ${lc}`} />
+      {/* 페인트존 (위 바스켓 기준) + 자유투 원 */}
+      <div className={`${common} left-1/2 top-[3.5%] h-[24%] w-[34%] -translate-x-1/2 border-t-0 ${lc}`} />
+      <div className={`pointer-events-none absolute left-1/2 top-[27.5%] h-[12%] w-[24%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 ${lc}`} />
+      {/* 3점 아치 — 타원 하반부 */}
+      <div className={`pointer-events-none absolute left-1/2 top-[-34%] h-[62%] w-[86%] -translate-x-1/2 rounded-full border-2 ${lc}`} style={{ clipPath: "inset(55% 0 0 0)" }} />
+      {/* 림 */}
+      <div className="pointer-events-none absolute left-1/2 top-[7.5%] h-[3.5%] w-[7%] -translate-x-1/2 rounded-full border-2 border-orange-300/70" />
+    </>
+  );
+}
+
+// 야구 다이아몬드 — 내야 사각(45도 회전)·베이스·마운드·홈. 세로 = 홈플레이트 아래쪽.
+// 파울라인은 홈에서 좌우 외야 코너로 뻗는 대각선.
+function DiamondMarkings({ landscape }: { landscape: boolean }) {
+  const line = "rgba(255,255,255,0.3)";
+  const dirt = "rgba(194,140,80,0.45)";
+  // 세로 기준 도형을 svg 로 — 가로 모드는 동일 svg 를 90도 회전(좌표 변환은 선수와 동일 규칙).
+  return (
+    <svg
+      className="pointer-events-none absolute inset-0 h-full w-full"
+      viewBox="0 0 100 125"
+      preserveAspectRatio="none"
+      style={landscape ? { transform: "rotate(-90deg) scaleY(1.25) scaleX(0.8)" } : undefined}
+      aria-hidden
+    >
+      {/* 파울 라인 — 홈(50,112) → 좌/우 담장 */}
+      <line x1="50" y1="112" x2="2" y2="30" stroke={line} strokeWidth="0.8" />
+      <line x1="50" y1="112" x2="98" y2="30" stroke={line} strokeWidth="0.8" />
+      {/* 내야 다이아몬드 (흙) */}
+      <path d="M50 112 L78 76 L50 48 L22 76 Z" fill={dirt} stroke={line} strokeWidth="0.8" />
+      {/* 마운드 + 투수판 */}
+      <circle cx="50" cy="80" r="6" fill={dirt} stroke={line} strokeWidth="0.6" />
+      {/* 베이스 */}
+      <rect x="76" y="74" width="4" height="4" fill="white" opacity="0.85" transform="rotate(45 78 76)" />
+      <rect x="48" y="46" width="4" height="4" fill="white" opacity="0.85" transform="rotate(45 50 48)" />
+      <rect x="20" y="74" width="4" height="4" fill="white" opacity="0.85" transform="rotate(45 22 76)" />
+      {/* 홈플레이트 */}
+      <path d="M47.5 109 h5 v3 l-2.5 2.5 l-2.5 -2.5 Z" fill="white" opacity="0.9" />
+      {/* 외야 워닝트랙 느낌의 아치 */}
+      <path d="M2 30 Q50 -8 98 30" fill="none" stroke={line} strokeWidth="0.8" />
+    </svg>
   );
 }
