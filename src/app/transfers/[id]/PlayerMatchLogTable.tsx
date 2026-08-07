@@ -1,5 +1,6 @@
 // 출전기록 표 — 경기별 평점·출전·골·카드·결과 (PlayerMatchLog). 최근 15경기 + 더보기.
 // 데이터는 collect-player-match-logs 잡이 API-Football /fixtures/players 에서 적재.
+// 국가대표 경기(월드컵·A매치, 우리 DB 캐시)도 page 가 같은 행 형식으로 변환해 날짜순 병합.
 // 커버 매치(Match.apiFixtureId 매칭)는 행 전체가 매치 상세로 링크된다 (buildup 벤치마크).
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
@@ -10,6 +11,7 @@ export interface MatchLogRow {
   href: string | null; // 우리 매치 상세(/live/...) — 미커버 경기는 null
   date: Date;
   leagueName: string;
+  compKo?: string | null; // 국가대표 경기 라벨 (월드컵·A매치) — 국기 대신 텍스트 표시
   leagueFlag: string | null;
   homeName: string;
   homeLogo: string | null;
@@ -38,6 +40,7 @@ function ratingCls(r: number): string {
   return "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300";
 }
 function resultOf(r: MatchLogRow): "W" | "D" | "L" | null {
+  if (r.playerSide !== "H" && r.playerSide !== "A") return null; // 홈/원정 미상 — 승무패 판정 불가
   if (r.homeScore == null || r.awayScore == null) return null;
   const my = r.playerSide === "H" ? r.homeScore : r.awayScore;
   const opp = r.playerSide === "H" ? r.awayScore : r.homeScore;
@@ -67,10 +70,12 @@ function Row({ r }: { r: MatchLogRow }) {
     <>
       <div className="flex flex-col items-center gap-0.5 w-12 shrink-0">
         <span className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(r.date)}</span>
-        {r.leagueFlag && (
+        {r.leagueFlag ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={r.leagueFlag} alt="" className="w-4 h-3 object-cover rounded-sm" />
-        )}
+        ) : r.compKo ? (
+          <span className={`text-[9px] font-bold ${r.compKo === "월드컵" ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-400"}`}>{r.compKo}</span>
+        ) : null}
       </div>
       <div className="min-w-0 flex-1 space-y-0.5 max-w-[220px]">
         {teamLine(r.homeName, r.homeLogo, r.homeScore, r.playerSide === "H")}
