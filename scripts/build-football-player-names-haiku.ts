@@ -11,6 +11,14 @@
 //    override:true 도 넣었지만 표준 패턴 따름. baseball-player-names backfill 메모리 참조.)
 // 환경변수: ANTHROPIC_API_KEY (필수, .env.local). THESPORTS 불필요 (API fetch 안 함).
 // LIMIT: 이번 실행 최대 신규 선수 수 (0/생략 = 무제한)
+//
+// --from-db: 라인업 대신 **DB 의 nameKo 빈칸**을 대상으로 삼는다(2026-08-07 추가).
+//   라인업 캐시만 보던 탓에 출전 기록이 없는 선수 3,885명이 구조적 사각지대였다 —
+//   대부분 몸값·이적 데이터가 있어 /transfers 에 영문 그대로 노출되던 선수들이다.
+//   이 모드에서는 name 을 건드리지 않고 nameKo 만 채운다.
+// --wiki: haiku 앞에 en위키 ko langlink 정본을 먼저 조회한다(--from-db 와 함께 쓴다).
+//
+//   전량: env -u ANTHROPIC_API_KEY npx tsx scripts/build-football-player-names-haiku.ts --from-db --wiki
 
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local", override: true });
@@ -20,7 +28,68 @@ import { PrismaClient } from "@prisma/client";
 const BATCH = 50;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
-const LIMIT = parseInt(process.argv[2] ?? "0", 10);
+const FROM_DB = process.argv.includes("--from-db");
+const DO_WIKI = process.argv.includes("--wiki");
+const LIMIT = parseInt(process.argv.find((a) => /^\d+$/.test(a)) ?? "0", 10);
+
+// UA 없는 요청은 Wikipedia 가 조용히 막는다(빈 응답 — 예외가 아니다).
+const WIKI_UA = "scorebase-bot/1.0 (+https://scorebase.kr)";
+
+/** ts 가 일부 이름을 중국식 가운뎃점으로 준다(`Khvicha·Kvaratskhelia`) — 음역·위키 조회 전에 편다. */
+const normalizeEn = (s: string) => s.replace(/·/g, " ").replace(/\s+/g, " ").trim();
+
+/**
+ * 음역 결과 정제. 통과 못 하면 null = 그 선수는 영문으로 표시된다(틀린 한글보다 낫다).
+ * 2026-08-07 강화 — 기존 검사는 "한글 한 글자라도 있으면 통과"라 아래가 전부 새어 들어왔다.
+ *   탭 혼입("후르칸\t조르바"), 가나 잔여("벤ヴェ누티"), 원문 잔여("니콜라 부야디노비치ć",
+ *   "레오 Ø스티가르드"), 끝 쉼표("셰일론,"), 영문 미변환("raffaele 루비노"), 1글자("홀"·"바").
+ */
+function sanitizeKo(raw: string): string | null {
+  let s = raw.replace(/[\t\n\r]+/g, " ").replace(/\s+/g, " ").trim();
+  s = s.replace(/[,.]+$/, "").trim();
+  if (!/[가-힣]/.test(s)) return null;
+  if (/[^가-힣 ·-]/.test(s)) return null; // 라틴·가나·한자 잔여 = 음역 실패
+  if (s.replace(/[ ·-]/g, "").length < 2) return null; // 성 한 글자만 남은 것
+  return s;
+}
+
+/** en위키 표제어 → ko langlink 정본. 무명 선수는 대개 문서가 없어 null 이 정상. */
+async function fetchWikiKo(enName: string): Promise<string | null> {
+  const url = new URL("https://en.wikipedia.org/w/api.php");
+  url.searchParams.set("action", "query");
+  url.searchParams.set("titles", enName);
+  url.searchParams.set("prop", "langlinks");
+  url.searchParams.set("lllang", "ko");
+  url.searchParams.set("redirects", "1");
+  url.searchParams.set("format", "json");
+  try {
+    const d = (await (
+      await fetch(url, { headers: { "User-Agent": WIKI_UA }, signal: AbortSignal.timeout(15000) })
+    ).json()) as { query?: { pages?: Record<string, { langlinks?: Array<{ "*": string }> }> } };
+    for (const page of Object.values(d.query?.pages ?? {})) {
+      const ko = page.langlinks?.[0]?.["*"];
+      // "무릴루 (2002년)" 같은 동음이의 꼬리는 떼고 쓴다.
+      if (ko) return ko.replace(/\s*\([^)]*\)\s*$/, "").trim();
+    }
+  } catch {
+    /* 조회 실패는 haiku 로 넘긴다 */
+  }
+  return null;
+}
+
+/** nameKo 가 빈 축구 선수 { id → 영문 name }. 라인업에 없어 기존 수집이 못 보던 대상. */
+async function collectFromDb(prisma: PrismaClient): Promise<Map<string, string>> {
+  const rows = await prisma.theSportsPlayer.findMany({
+    where: { sport: "FOOTBALL", nameKo: null },
+    select: { id: true, name: true },
+  });
+  const map = new Map<string, string>();
+  for (const r of rows) {
+    const en = normalizeEn(r.name ?? "");
+    if (en && /[A-Za-z]/.test(en)) map.set(r.id, en);
+  }
+  return map;
+}
 
 if (!ANTHROPIC_KEY) {
   console.error("❌ ANTHROPIC_API_KEY 미설정 (env -u ANTHROPIC_API_KEY 로 실행했는지 확인)");
@@ -106,12 +175,8 @@ async function haikuTranslate(
     const cleaned: Record<string, string> = {};
     for (const [en, ko] of Object.entries(obj)) {
       if (typeof ko !== "string") continue;
-      const koStr = ko.trim();
-      if (!koStr) continue;
-      if (!/[가-힣]/.test(koStr)) continue; // 한글 없으면 버림
-      const cjk = koStr.match(/[一-鿿]/g);
-      if (cjk && cjk.length >= 2) continue; // 중국어 혼입 방어
-      cleaned[en] = koStr;
+      const koStr = sanitizeKo(ko);
+      if (koStr) cleaned[en] = koStr;
     }
     return cleaned;
   } catch (e) {
@@ -122,8 +187,12 @@ async function haikuTranslate(
 
 async function main() {
   const prisma = new PrismaClient();
-  const all = await collectPlayers(prisma);
-  console.log(`▶ 축구 라인업 cache 수집: unique player ${all.size}명`);
+  const all = FROM_DB ? await collectFromDb(prisma) : await collectPlayers(prisma);
+  console.log(
+    FROM_DB
+      ? `▶ DB nameKo 빈칸 수집: ${all.size}명`
+      : `▶ 축구 라인업 cache 수집: unique player ${all.size}명`,
+  );
 
   const existing = await prisma.theSportsPlayer.findMany({
     where: { id: { in: Array.from(all.keys()) }, nameKo: { not: null } },
@@ -144,6 +213,26 @@ async function main() {
     return;
   }
 
+  // 위키 정본 우선 — haiku 음역보다 확실하다. 문서가 없는 무명 선수는 그대로 haiku 로 넘어간다.
+  let wikiHit = 0;
+  if (DO_WIKI) {
+    console.log(`▶ 위키 정본 조회 ${todo.length}건 (약 ${Math.ceil((todo.length * 0.2) / 60)}분)`);
+    const rest: typeof todo = [];
+    for (const [i, t] of todo.entries()) {
+      const ko = await fetchWikiKo(t.en);
+      if (ko && /[가-힣]/.test(ko)) {
+        await prisma.theSportsPlayer
+          .update({ where: { id: t.id }, data: { nameKo: ko } })
+          .then(() => wikiHit++)
+          .catch(() => rest.push(t));
+      } else rest.push(t);
+      if ((i + 1) % 250 === 0) console.log(`  위키 ${i + 1}/${todo.length} (정본 ${wikiHit})`);
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    console.log(`▶ 위키 정본 ${wikiHit}건 적용 · haiku 로 넘길 ${rest.length}건`);
+    todo = rest;
+  }
+
   let upserted = 0;
   const totalBatch = Math.ceil(todo.length / BATCH);
   for (let i = 0; i < todo.length; i += BATCH) {
@@ -155,11 +244,14 @@ async function main() {
       const ko = enToKo[en];
       if (!ko) continue;
       try {
-        await prisma.theSportsPlayer.upsert({
-          where: { id },
-          update: { name: en, nameKo: ko },
-          create: { id, name: en, nameKo: ko, sport: "FOOTBALL" },
-        });
+        // --from-db 는 이미 있는 행의 빈칸만 채운다 — name 은 정규화 전 원본을 그대로 둔다.
+        if (FROM_DB) await prisma.theSportsPlayer.update({ where: { id }, data: { nameKo: ko } });
+        else
+          await prisma.theSportsPlayer.upsert({
+            where: { id },
+            update: { name: en, nameKo: ko },
+            create: { id, name: en, nameKo: ko, sport: "FOOTBALL" },
+          });
         batchUp++;
         upserted++;
       } catch (e) {
@@ -170,8 +262,15 @@ async function main() {
     await new Promise((r) => setTimeout(r, 500));
   }
 
+  const left = FROM_DB
+    ? await prisma.theSportsPlayer.count({ where: { sport: "FOOTBALL", nameKo: null } })
+    : null;
   await prisma.$disconnect();
-  console.log(`\n✓ 완료 — DB upsert ${upserted}/${todo.length}`);
+  console.log(
+    `\n✓ 완료 — haiku ${upserted}/${todo.length}` +
+      (DO_WIKI ? ` · 위키 정본 ${wikiHit}` : "") +
+      (left !== null ? ` · 남은 빈칸 ${left}` : ""),
+  );
 }
 
 main().catch((e) => {
