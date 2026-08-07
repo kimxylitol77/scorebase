@@ -4,8 +4,10 @@ import Link from "next/link";
 import { Sparkles, Star } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
-import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
+import AccuracyLeagueBoard, {
+  type AccuracyLeagueRow,
+} from "@/components/predictions/AccuracyLeagueBoard";
 import CumulativeAccuracyChart, {
   type AccSeriesPoint,
   type AccLeagueMeta,
@@ -266,10 +268,13 @@ export default async function AccuracyPage() {
   const rolling14 = sumRolling("rolling14");
   const rolling30 = sumRolling("rolling30");
 
-  // 정렬 — DC 적중률 높은 순 (축구 우선)
-  const sorted = [...stats]
-    .filter((s) => s.oneXTwo.evaluated > 0)
-    .sort((a, b) => b.oneXTwo.rate - a.oneXTwo.rate);
+  // 리그별 보드 — 기간별 집계는 이미 statForLeague 가 다 만들어 뒀고, 정렬·필터는 클라이언트에서.
+  const boardRows: AccuracyLeagueRow[] = stats.map((s) => ({
+    league: s.league,
+    name: LEAGUE_NAME[s.league] ?? s.league,
+    isSoccer: s.isSoccer,
+    windows: s.windows,
+  }));
 
   // 인용 자석 — 블로거·기자가 출처 표기해 가져가기 쉽게 (백링크 유도)
   const citeUrl = `${SITE_URL}/predictions/accuracy`;
@@ -424,19 +429,14 @@ export default async function AccuracyPage() {
         </section>
       )}
 
-      {/* 리그별 카드 */}
+      {/* 리그별 카드 — 기간 × 시장 교차 필터 */}
       <section className="mb-10">
-        <h2 className="text-lg font-semibold mb-4">리그별 적중률</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sorted.map((s) => (
-            <LeagueCard key={s.league} stat={s} />
-          ))}
-        </div>
-        {stats.some((s) => s.oneXTwo.evaluated === 0) && (
-          <p className="mt-4 text-xs text-neutral-500">
-            데이터 부족 리그는 표시 생략됨 (백테스트 평가 매치 0건).
-          </p>
-        )}
+        <h2 className="text-lg font-semibold mb-1">리그별 · 시장별 적중률</h2>
+        <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+          기간을 좁혀 리그별 시장 적중률을 볼 수 있습니다. 총합 하나보다 &ldquo;이
+          리그의 이 시장이 최근에 어떤가&rdquo;가 모델 상태를 더 정확히 보여줍니다.
+        </p>
+        <AccuracyLeagueBoard leagues={boardRows} minSample={ROLLING_MIN_SAMPLE} />
       </section>
 
       {/* 방법론 박스 */}
@@ -478,13 +478,17 @@ export default async function AccuracyPage() {
             적중률.
           </li>
           <li>
-            <strong>최근 10경기</strong> = 가장 최근에 끝난 10경기 1X2 적중률.
-            모델이 현재 시즌 흐름을 잘 따라가고 있는지 가늠.
+            <strong>최근 7·14·30일 롤링</strong> = 경기 시작 시간이 해당 기간에
+            드는 채점 완료 경기 기준 (당일 경기는 채점 전이라 제외될 수 있음).
+            전 리그 합산 카드는 1X2 기준이며, 표본 {ROLLING_MIN_SAMPLE}건 미만은
+            표본 부족으로 표시합니다.
           </li>
           <li>
-            <strong>최근 7·14·30일 롤링</strong> = 경기 시작 시간이 해당 기간에
-            드는 채점 완료 경기 기준 1X2 적중률 (당일 경기는 채점 전이라 제외될 수
-            있음). 표본 {ROLLING_MIN_SAMPLE}건 미만은 표본 부족으로 표시합니다.
+            <strong>리그별·시장별 기간 필터</strong> = 리그 카드 위 기간 탭을
+            바꾸면 1X2뿐 아니라 DC·OVER·핸디·BTTS·Strong 이 모두 그 기간 경기만으로
+            다시 계산됩니다. 기간을 좁힐수록 표본이 줄어 수치가 흔들리므로,
+            모든 칸에 적중/표본을 함께 적고 {ROLLING_MIN_SAMPLE}건 미만 리그에는
+            경고를 답니다.
           </li>
         </ul>
       </section>
@@ -675,95 +679,6 @@ function SummaryCard({
   );
 }
 
-function LeagueCard({ stat }: { stat: LeagueStat }) {
-  const pct = Math.round(stat.oneXTwo.rate * 100);
-  return (
-    <Link
-      href={`/leagues/${stat.league}`}
-      className="block rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] p-5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <LeagueBadge league={stat.league} />
-          <span className="text-sm font-semibold">
-            {LEAGUE_NAME[stat.league] ?? stat.league}
-          </span>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold tabular-nums">
-            {pct}
-            <span className="text-sm text-neutral-500">%</span>
-          </div>
-          <div className="text-[10px] text-neutral-400">1X2</div>
-        </div>
-      </div>
-
-      {/* 1X2 메인 막대 */}
-      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
-        <div
-          className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-
-      {/* 시장별 chip — 축구는 4개, 그 외는 OVER + 핸디캡만 */}
-      {stat.isSoccer ? (
-        <div className="grid grid-cols-4 gap-1.5 text-[11px]">
-          <MarketChip label="DC" rate={stat.dc} />
-          <MarketChip label="OVER" rate={stat.over} />
-          <MarketChip label="HC" rate={stat.hc} />
-          <MarketChip label="BTTS" rate={stat.btts} />
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-2 text-[11px]">
-          <MarketChip label="OVER" rate={stat.over} />
-          <MarketChip label="HC" rate={stat.hc} />
-          <div>
-            <div className="text-neutral-400">최근 10</div>
-            <div className="font-mono text-neutral-700 dark:text-neutral-300 text-sm font-bold">
-              {stat.recent10.evaluated > 0
-                ? `${Math.round(stat.recent10.rate * 100)}%`
-                : "—"}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 최근 7·14·30일 롤링 칩 — 표본 수 병기, 0건은 "—", 10건 미만은 표본 부족 */}
-      <div className="mt-3 grid grid-cols-3 gap-1.5 text-[11px]">
-        <RollingChip label="최근 7일" rate={stat.rolling7} />
-        <RollingChip label="최근 14일" rate={stat.rolling14} />
-        <RollingChip label="최근 30일" rate={stat.rolling30} />
-      </div>
-    </Link>
-  );
-}
-
-// 리그 카드용 롤링 칩 — 표본 0건 "—", ROLLING_MIN_SAMPLE 미만 "표본 부족", 이상이면 적중률+표본
-function RollingChip({ label, rate }: { label: string; rate: MarketRate }) {
-  return (
-    <div className="rounded-lg bg-neutral-100 dark:bg-white/[0.06] px-2 py-1.5">
-      <div className="text-[10px] text-neutral-500">{label}</div>
-      {rate.evaluated === 0 ? (
-        <div className="font-bold text-neutral-400 text-sm">—</div>
-      ) : rate.evaluated < ROLLING_MIN_SAMPLE ? (
-        <div className="text-[10px] font-semibold leading-5 text-neutral-400">
-          표본 부족 ({rate.evaluated}건)
-        </div>
-      ) : (
-        <div className="flex flex-wrap items-baseline gap-x-1">
-          <span className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
-            {Math.round(rate.rate * 100)}%
-          </span>
-          <span className="text-[10px] text-neutral-400 tabular-nums">
-            {rate.correct}/{rate.evaluated}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // 롤링 윈도 카드 — 표본 ROLLING_MIN_SAMPLE 미만이면 수치 대신 "표본 부족" (소표본 왜곡 방지)
 function RollingCard({ label, rate }: { label: string; rate: MarketRate }) {
   const pct = Math.round(rate.rate * 100);
@@ -800,15 +715,3 @@ function RollingCard({ label, rate }: { label: string; rate: MarketRate }) {
   );
 }
 
-function MarketChip({ label, rate }: { label: string; rate: MarketRate }) {
-  if (rate.evaluated === 0) return <div />;
-  const pct = Math.round(rate.rate * 100);
-  return (
-    <div className="rounded-lg bg-neutral-100 dark:bg-white/[0.06] px-2 py-1.5">
-      <div className="text-[10px] text-neutral-500">{label}</div>
-      <div className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
-        {pct}%
-      </div>
-    </div>
-  );
-}
