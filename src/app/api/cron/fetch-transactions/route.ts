@@ -25,6 +25,9 @@ export async function GET(req: NextRequest) {
     await recordCronRun("fetch-transactions");
     return NextResponse.json({ ok: true, summary });
   } catch (e) {
+    // 실패도 실행 기록으로 남긴다 — 안 남기면 cron-freshness 가 "30h째 미실행"으로
+    // 오보한다(2026-08-07 실측: ESPN 일시 오류 → 500 → 기록 없음 → 미실행 알림).
+    await recordCronRun("fetch-transactions", { ok: false, error: (e as Error).message });
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
 }

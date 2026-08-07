@@ -102,7 +102,18 @@ async function fetchStandings(
   }
 }
 
+// 예외도 실행 기록으로 남긴다 — 안 남기면 cron-freshness 가 "N시간째 미실행"으로
+// 오보한다(2026-08-07 fetch-transactions 실측과 동일 구조).
 export async function GET(req: NextRequest) {
+  try {
+    return await handle(req);
+  } catch (e) {
+    await recordCronRun("standings-collect", { ok: false, error: (e as Error).message });
+    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  }
+}
+
+async function handle(req: NextRequest) {
   if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
