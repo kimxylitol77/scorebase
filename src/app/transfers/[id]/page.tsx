@@ -347,7 +347,7 @@ function RecentTimeline({ events, logos = {} }: { events: PlayerEventRow[]; logo
   return (
     <section>
       <h2 className="text-lg font-semibold mb-1">근황</h2>
-      <p className="text-xs text-neutral-500 mb-3">이적·몸값·부상 등 최근 기록. 매주 자동 갱신.</p>
+      <p className="text-xs text-neutral-500 mb-3">이적·몸값·부상 등 최근 기록. 매일 자동 갱신.</p>
       <div className="relative border-l border-black/10 dark:border-white/10 ml-1.5">
         {head.map(row)}
         {rest.length > 0 && (
@@ -616,6 +616,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   //  가장 최근 "완료된" 이적이 완전이적(임대 type 1 제외)이고 도착팀이 mv.teamId 와 다르면 그쪽이 진짜 현 소속.
   //  (예: 첼시→맨유 이적 발효됐는데 몸값 피드는 아직 첼시로 남아 헤더가 첼시 표시)
   //  ⚠ 최신 이적이 임대면 보정 안 함 — 임대 중엔 몸값 피드(임대 클럽)를 그대로 신뢰(본팀 오표시 방지).
+  //  보정된 "실질 현 소속" ts id 는 커리어 stale 보정도 같은 기준을 쓰도록 effTeamId 로 넘긴다
+  //  (몸값 피드가 아직 옛 팀인 동안 커리어 타임라인만 새 팀을 못 그리던 것 — 디오망데 레알행 실측).
+  let effTeamId: string | null = mv?.teamId ?? null;
   {
     // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
     // eslint-disable-next-line react-hooks/purity
@@ -629,6 +632,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       teamName = koTeam(latest.toTeamName!);
       teamLogo = tsLogo[latest.toTeamId] ?? teamLogo;
       ourTeamId = tsOurId[latest.toTeamId] ?? null;
+      effTeamId = latest.toTeamId;
     }
   }
 
@@ -652,16 +656,16 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   //  ② 클럽명 후보(우리 DB 한글명·이적기록 팀명 변환)가 career 에 이미 있으면 보정 불필요
   //  ③ 완전이적은 기존 진행중(end=null) 행을 이적연도로 캡, 임대(type 7)는 본클럽 유지
   let careerView = career;
-  if (career.length && mv?.teamId) {
+  if (career.length && effTeamId) {
     // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
     // eslint-disable-next-line react-hooks/purity
     const nowSec = Math.floor(Date.now() / 1000);
     const arrival = transfers.find(
-      (t) => t.toTeamId === mv.teamId && t.transferTime && t.transferTime <= nowSec && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
+      (t) => t.toTeamId === effTeamId && t.transferTime && t.transferTime <= nowSec && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
     );
     if (arrival?.transferTime) {
       const trYear = new Date(arrival.transferTime * 1000).getUTCFullYear();
-      const curNames = [tsTeamName[mv.teamId], koTeam(arrival.toTeamName)].filter(Boolean).map((n) => normClub(n!));
+      const curNames = [tsTeamName[effTeamId], koTeam(arrival.toTeamName)].filter(Boolean).map((n) => normClub(n!));
       // 이름 비교는 부분 포함까지 허용 — "OGC 니스"↔"니스", "보루시아 묀헨글라트바흐"↔"묀헨글라트바흐"
       //  같은 접두 수식어 차이로 같은 클럽을 못 알아보고 중복 행을 합성하는 것 방지 (보수적 = 보정 스킵 쪽).
       const sameClub = (cn: string, n: string) => matchClub(cn, n) || (n.length >= 2 && cn.includes(n)) || (cn.length >= 2 && n.includes(cn));
@@ -676,7 +680,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         const isLoan = arrival.transferType === 1;
         careerView = career.map((c) => (!c.nt && c.end == null && !isLoan ? { ...c, end: trYear } : c));
         careerView.push({
-          club: tsTeamName[mv.teamId] || koTeam(arrival.toTeamName),
+          club: tsTeamName[effTeamId] || koTeam(arrival.toTeamName),
           start: trYear,
           end: null,
           apps: null,

@@ -34,7 +34,7 @@
     },
     {
       "path": "/api/cron/player-events",
-      "schedule": "0 16 * * 1"
+      "schedule": "0 16 * * *"
     },
     {
       "path": "/api/cron/player-match-logs",
