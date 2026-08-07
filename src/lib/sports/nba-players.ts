@@ -21,6 +21,9 @@ interface PlayerEntry {
   salary?: number; // 연봉 USD (슈퍼스타만 채워짐)
   drafted?: string; // "1997:Rd 1,Pk 11"
   school?: string;
+  heightCm?: number;
+  weightKg?: number;
+  tsPos?: string; // 세부 포지션 (SG/PF 등)
 }
 
 const INDEX = rawIndex as Record<string, PlayerEntry>;
@@ -52,6 +55,9 @@ export interface NbaPlayerInfo {
   salary?: number;
   drafted?: string;
   school?: string;
+  heightCm?: number;
+  weightKg?: number;
+  tsPos?: string;
 }
 
 /** 영문 선수명 → {한글명·사진·bdlId}. 매칭 실패 시 null. */
@@ -62,6 +68,7 @@ export function lookupNbaPlayer(name: string | null | undefined): NbaPlayerInfo 
   return {
     ko: e.ko || name, photo: e.photo, espnId: e.espnId, pos: e.pos, bdlId: e.bdlId,
     birthday: e.birthday, city: e.city, careerAge: e.careerAge, salary: e.salary, drafted: e.drafted, school: e.school,
+    heightCm: e.heightCm, weightKg: e.weightKg, tsPos: e.tsPos,
   };
 }
 

@@ -414,11 +414,12 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   const nameKo = toKoreanPlayerName(fullName) || fullName;
   const teamName = profile?.team?.fullName ?? local?.team ?? null;
   const teamKo = teamName ? toKoreanTeamName(teamName) || teamName : "";
-  const position = profile?.position || local?.pos || null;
+  const tsp = lookupNbaPlayer(fullName); // ESPN headshot + TheSports 프로필
+  // ts 세부 포지션(SG/PF) 우선 — BDL/ESPN 은 G/F 코스만
+  const position = tsp?.tsPos || profile?.position || local?.pos || null;
   const jersey = profile?.jerseyNumber ?? (local?.number != null ? String(local.number) : null);
   const nameParts = fullName.split(/\s+/).filter(Boolean);
   const initials = `${nameParts[0]?.[0] ?? ""}${nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : ""}`;
-  const tsp = lookupNbaPlayer(fullName); // ESPN headshot + TheSports 프로필
   const photo = tsp?.photo;
   const espnId = tsp?.espnId;
 
@@ -566,8 +567,9 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
                   {" · "}
                 </>
               ) : ""}
-              {profile?.height ? `${profile.height} · ` : ""}
-              {profile?.weight ? `${profile.weight} lbs` : ""}
+              {tsp?.heightCm
+                ? `${tsp.heightCm}cm${tsp.weightKg ? ` · ${tsp.weightKg}kg` : ""}`
+                : `${profile?.height ? `${profile.height}` : ""}${profile?.weight ? ` · ${profile.weight} lbs` : ""}`}
               {profile?.country ? ` · ${profile.country}` : ""}
               {tsp?.city ? ` · 출생 ${tsp.city}` : ""}
             </div>

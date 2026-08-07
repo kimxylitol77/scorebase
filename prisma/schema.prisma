@@ -826,6 +826,7 @@ model TheSportsPlayer {
   teamId    String?                   // ts team_id — 팀 변경 시 갱신
   sport     String                    // "KBO" | "NPB" | "MLB"
   position  String?                   // ts position (P/C/1B/...)
+  shirtNumber Int?                    // 등번호 — 야구 ts team/squad/list 주간 sync (sync-baseball-squads)
   /** 선수 사진 URL. KBO: KBO_IMAGE/person/middle/{year}/{P_ID}.jpg, NPB: npb.jp/players_photo, MLB: mlbstatic headshot */
   photoUrl  String?
   updatedAt DateTime @updatedAt

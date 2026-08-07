@@ -34,6 +34,10 @@ interface TsPlayer {
   drafted?: string;
   league_career_age?: number;
   salary?: number;
+  height?: number; // cm
+  weight?: number; // kg
+  position?: string; // 세부 포지션 (SG/PF 등 — ESPN pos 는 G/F 코스)
+  shirt_number?: number;
 }
 
 /** player/list 전체 page 순회 → normKey(name) → ts 선수. results < 1000 이면 마지막 page. */
@@ -81,6 +85,10 @@ async function collectTsPlayers(): Promise<Map<string, TsPlayer>> {
     if (p.salary) { index[key].salary = p.salary; withSalary++; }
     if (p.drafted) index[key].drafted = p.drafted;
     if (p.school) index[key].school = p.school;
+    if (p.height) index[key].heightCm = p.height;
+    if (p.weight) index[key].weightKg = p.weight;
+    if (p.position) index[key].tsPos = p.position; // SG/PF 등 세부 — ESPN pos(G/F) 보다 구체적
+    if (index[key].number == null && p.shirt_number) index[key].number = p.shirt_number;
     matched++;
   }
   writeFileSync(OUT, JSON.stringify(index));

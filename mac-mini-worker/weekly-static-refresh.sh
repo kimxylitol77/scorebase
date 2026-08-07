@@ -66,8 +66,12 @@ log "⑬-c NPB 외국인 선수 한글명 (Haiku, 카나 병기 영문 원명)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-npb-foreign-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑬-d NPB 로스터 사진 (npb.jp 상세 — pid 로 URL 조립 불가라 사전 필수)"
 npx tsx --env-file=.env.local scripts/build-npb-roster-photos.ts 2>&1 | tail -2 || true
+log "⑬-e 야구 스쿼드 포지션·등번호 (ts squad/list — KBO·NPB position 결손 채움, DB 직갱신)"
+npx tsx --env-file=.env.local scripts/sync-baseball-squads.ts 2>&1 | tail -2 || true
 log "⑭ NBA 선수 인덱스·로스터 (ESPN 30팀 로스터 → nba-players.json — 팀페이지 로스터·트랜잭션 한글명·사진. ⑨ 이름사전 뒤 실행 필수)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-players.ts' 2>&1 | tail -2 || true
+log "⑭-b NBA TheSports 프로필 보강 (연봉·생일·키·몸무게·세부포지션 — ⑭ 재빌드 뒤 재병합 필수)"
+npx tsx --env-file=.env.local scripts/enrich-nba-players-thesports.ts 2>&1 | tail -2 || true
 log "⑮ 테니스 선수 한글명 (ATP·WTA top150 — 위키 ko → 미확보분 Haiku. /rankings/tennis)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-tennis-player-names.ts' 2>&1 | tail -2 || true
 log "⑯ F1 드라이버 한글명 (시즌 22명 — 위키 ko → 미확보분 Haiku. /rankings/f1)"
