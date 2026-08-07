@@ -315,10 +315,17 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
       goals?: [number, number] | { for?: number; against?: number };
       goal_diff?: number;
     }
-    const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[] }> };
+    const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[]; group?: number | string | null }> };
     tsTableCount = (payload?.tables ?? []).length;
     const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
     for (const t of payload?.tables ?? []) {
+      // 조별 대회(ASEAN 챔피언십 등) — tables 2+ 이고 group 번호가 있으면 "A조/B조" 라벨.
+      //  flatten 하면 조별 1~N위가 섞여 순위가 중복돼 보이던 것 해소 (표시층은 group 지원 기존재).
+      const gNum = Number(t.group);
+      const groupLabel =
+        tsTableCount >= 2 && Number.isInteger(gNum) && gNum >= 1 && gNum <= 26
+          ? `${String.fromCharCode(64 + gNum)}조`
+          : null;
       for (const r of t.rows ?? []) {
         if (!r.team_id || r.position == null) continue;
         const ourId = leagueMap?.get(r.team_id);
@@ -336,6 +343,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
           goalsFor: gf,
           goalsAgainst: ga,
           goalDiff: r.goal_diff,
+          group: groupLabel,
         });
       }
     }
@@ -405,7 +413,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     }
   }
 
-  out.sort((a, b) => a.position - b.position);
+  out.sort((a, b) => (a.group ?? "").localeCompare(b.group ?? "") || a.position - b.position);
   fullCache.set(league, { fetchedAt: now, rows: out });
   return out;
 }

@@ -99,7 +99,9 @@ export default async function StandingsOnlyView({ league, embedded = false }: Pr
         <div className="space-y-5">
           {isGrouped && (
             <p className="text-xs text-neutral-500">
-              ※ 2026 J리그 100년 비전 리그 — 지역 그룹별 순위
+              {league === "J1_LEAGUE" || league === "J2_LEAGUE"
+                ? "※ 2026 J리그 100년 비전 리그 — 지역 그룹별 순위"
+                : "※ 조별 순위 — 그룹 단계 진행 중"}
             </p>
           )}
           {sections.map((sec) => (
