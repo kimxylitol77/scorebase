@@ -13,6 +13,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
+import rawCoachPhotos from "../../../../data/coach-photos.json";
 import TacticalManagerSection from "@/components/TacticalManagerSection";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 import { formatDateKo } from "@/lib/format";
@@ -36,6 +37,8 @@ const COACHES = rawCoaches as Record<string, CoachSnap>;
 const CAREERS = rawCareers as Record<string, CoachCareer>;
 // 우승 기록 — 영문 위키 Honours(Manager) 파싱. 생성: scripts/build-coach-honors.ts
 const HONORS = rawHonors as Record<string, HonorRow[]>;
+// 라인업 감독 사전 — team-coaches nameKo 누락분 한글명 폴백 (키 = 감독 id)
+const COACH_PHOTOS = rawCoachPhotos as Record<string, { nameKo?: string }>;
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1",
   K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS", WORLD_CUP: "FIFA 월드컵 2026",
@@ -63,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const c = coachOf(id);
   if (!c) return { title: "감독 미발견" };
   const career = CAREERS[id];
-  const name = career?.nameKo || c.snap.nameKo || c.snap.name;
+  const name = career?.nameKo || c.snap.nameKo || COACH_PHOTOS[id]?.nameKo || c.snap.name;
   const title = `${name} 감독 프로필 · 경력`;
   const description = `${name} 감독의 커리어 — 역임 클럽 타임라인, 선호 포메이션, 부임·계약 정보${career?.playerCareer?.length ? "와 선수 시절" : ""}. 스코어베이스.`;
   return {
@@ -82,7 +85,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
   if (!found) notFound();
   const { snap, teamTsId } = found;
   const career = CAREERS[id] ?? null;
-  const name = career?.nameKo || snap.nameKo || snap.name;
+  const name = career?.nameKo || snap.nameKo || COACH_PHOTOS[id]?.nameKo || snap.name;
 
   // 현 소속팀 resolve (ts → 우리 Team) — 로고·리그·팀 페이지 링크
   let teamName: string | null = null, teamLogo: string | null = null, ourTeamId: number | null = null, teamLeague: string | null = null;

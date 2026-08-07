@@ -17,6 +17,7 @@ import rawPhotos from "../../../data/player-photos.json";
 import rawTeamLogos from "../../../data/team-logos.json";
 import rawSquads from "../../../data/team-squads.json";
 import rawCoaches from "../../../data/team-coaches.json";
+import rawCoachPhotos from "../../../data/coach-photos.json";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -179,7 +180,10 @@ const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
 // 공식 스쿼드 (ts team/squad/list — 등번호·공식 coarse 포지션). 생성: scripts/build-team-squads.ts
 const SQUADS = rawSquads as Record<string, { updatedAt: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>;
 // 감독 (ts coach/list — 선호 포메이션·부임·계약). 생성: scripts/build-team-coaches.ts
+// 라인업 감독 사전 — team-coaches nameKo 누락분 한글명 폴백 (키 = 감독 id)
 const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
+const COACH_PHOTOS_KO = rawCoachPhotos as Record<string, { nameKo?: string }>;
+const coachKoName = (c: { id?: string; name: string; nameKo: string | null }) => c.nameKo || (c.id && COACH_PHOTOS_KO[c.id]?.nameKo) || c.name;
 const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 // 포지션 우선순위: Wikidata P413(검증된 주 포지션) > 라인업 x/y 추정 > ts coarse
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
@@ -1021,7 +1025,7 @@ export default async function TransfersPage({
                 <div className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
                   {coach.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={coach.logo} alt={coach.nameKo || coach.name} className="w-full h-full object-cover" />
+                    <img src={coach.logo} alt={coachKoName(coach)} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-lg">🧑‍💼</span>
                   )}
@@ -1029,7 +1033,7 @@ export default async function TransfersPage({
                 <div className="min-w-0">
                   <div className="text-[11px] text-neutral-400">감독</div>
                   <div className="font-bold truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition">
-                    {coach.nameKo || coach.name}
+                    {coachKoName(coach)}
                     {coach.age ? <span className="font-normal text-sm text-neutral-500"> · {coach.age}세</span> : null}
                     {coach.nationality ? <span className="font-normal text-sm text-neutral-500"> · {coach.nationality}</span> : null}
                   </div>
