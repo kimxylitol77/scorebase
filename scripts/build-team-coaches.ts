@@ -70,11 +70,22 @@ async function haikuTranslate(names: string[]): Promise<Record<string, string>> 
     const obj = JSON.parse(m[0]) as Record<string, string>;
     const out: Record<string, string> = {};
     for (const [en, ko] of Object.entries(obj)) {
-      if (typeof ko === "string" && /[가-힣]/.test(ko.trim())) out[en] = ko.trim();
+      // 라틴 문자가 섞이면 버린다 — Haiku 가 간혹 절반만 변환한다("Xabi Alonso"→"샤비 알onso").
+      // 원문 그대로 나가는 게 깨진 혼합 표기보다 낫다.
+      const t = typeof ko === "string" ? ko.trim() : "";
+      if (/[가-힣]/.test(t) && !/[A-Za-z]/.test(t)) out[en] = t;
     }
     return out;
   } catch { return {}; }
 }
+
+// Haiku 가 실행마다 흔들리거나 틀리는 표기를 고정한다 (한국 언론 관용 표기 기준).
+const MANUAL_KO: Record<string, string> = {
+  "Xabi Alonso": "사비 알론소",
+  "Dino Toppmöller": "디노 토프묄러",
+  "Frank Lampard": "프랭크 램파드",
+  "Fabian Hürzeler": "파비안 휘르첼러",
+};
 
 interface TablesResp { code: number; results?: { tables?: Array<{ rows?: Array<{ team_id?: string }> }> } }
 
@@ -201,6 +212,7 @@ async function main() {
     Object.assign(enToKo, await haikuTranslate(names.slice(i, i + 50)));
     await new Promise((r) => setTimeout(r, 500));
   }
+  Object.assign(enToKo, MANUAL_KO);
   console.log(`한글명 ${Object.keys(enToKo).length}/${names.length}`);
 
   const out: Record<string, unknown> = {};
