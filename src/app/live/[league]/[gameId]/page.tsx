@@ -70,7 +70,7 @@ import ConclusionCards, {
   type ConclusionPred,
   type KeyFactor,
 } from "@/components/live/BaseballConclusionCards";
-import RecentGamesCard from "@/components/live/BaseballRecentGames";
+import RecentGamesCard, { type UpcomingRow } from "@/components/live/BaseballRecentGames";
 import CollapsibleSection from "@/components/live/CollapsibleSection";
 import { getBaseballRecentGames } from "@/lib/live/baseball-season-analysis";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
@@ -82,7 +82,6 @@ import { fetchMatchPrediction, fetchTeamSeasonStats, fetchFixtureRound } from "@
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
 import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
-import UpcomingFixturesCard, { type UpcomingFixture } from "@/components/live/UpcomingFixturesCard";
 import KickoffCountdown from "@/components/live/KickoffCountdown";
 import MatchHighlightCard from "@/components/live/MatchHighlightCard";
 import { jsonLdScript } from "@/lib/seo/jsonld";
@@ -352,7 +351,7 @@ export default async function GenericLivePage({ params }: Props) {
       ])
     : [null, null, null, null];
 
-  // 양 팀 다음 경기 — 우리 DB 의 SCHEDULED 매치 가까운 2개씩.
+  // 양 팀 다음 경기 — 우리 DB 의 SCHEDULED 매치 가까운 5개씩 (최근 경기 카드의 경기 일정 탭).
   // 같은 리그 외 컵·국가대표 매치도 cover 위해 league filter 없이 query.
   const upcomingNow = match.startTime;
   const [homeUpcoming, awayUpcoming] = isSoccer
@@ -370,7 +369,7 @@ export default async function GenericLivePage({ params }: Props) {
             homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
           },
           orderBy: { startTime: "asc" },
-          take: 2,
+          take: 5,
         }),
         prisma.match.findMany({
           where: {
@@ -385,20 +384,29 @@ export default async function GenericLivePage({ params }: Props) {
             homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
           },
           orderBy: { startTime: "asc" },
-          take: 2,
+          take: 5,
         }),
       ])
     : [[], []];
-  const homeUpcomingF: UpcomingFixture[] = homeUpcoming.map((m) => ({
-    matchId: m.id, league: m.league, externalId: m.externalId, startTime: m.startTime,
-    homeName: m.homeTeam.name, awayName: m.awayTeam.name,
-    perspective: m.homeTeamId === match.homeTeam.id ? "home" : "away",
-  }));
-  const awayUpcomingF: UpcomingFixture[] = awayUpcoming.map((m) => ({
-    matchId: m.id, league: m.league, externalId: m.externalId, startTime: m.startTime,
-    homeName: m.homeTeam.name, awayName: m.awayTeam.name,
-    perspective: m.homeTeamId === match.awayTeam.id ? "home" : "away",
-  }));
+  // 최근 경기 카드의 "경기 일정" 탭 — 양 팀 예정 경기 병합(중복 제거·시간순).
+  //  축구 전용: 카드의 상대전적 탭을 "맞대결 히스토리(H2H)" 카드와 중복이라 빼고 이걸 넣는다.
+  const upcomingRows: UpcomingRow[] = (() => {
+    const seenIds = new Set<number>();
+    const merged = [...homeUpcoming, ...awayUpcoming]
+      .filter((m) => (seenIds.has(m.id) ? false : (seenIds.add(m.id), true)))
+      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    return merged.map((m) => {
+      const k = new Date(m.startTime.getTime() + 9 * 3600e3);
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return {
+        date: `${String(k.getUTCFullYear() % 100).padStart(2, "0")}.${pad(k.getUTCMonth() + 1)}.${pad(k.getUTCDate())}`,
+        time: `${pad(k.getUTCHours())}:${pad(k.getUTCMinutes())}`,
+        homeName: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
+        awayName: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+        ...(m.league !== match.league ? { leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league } : {}),
+      };
+    });
+  })();
   // 경기 구장 — 그 경기에 실제로 잡힌 venue 를 먼저 쓰고, 없을 때만 홈팀 기본 구장으로 떨어진다.
   // 중립 경기장(UCL 결승·제재 경기 등)에서 홈팀 구장을 쓰면 구장도 날씨 도시도 틀린다.
   // 둘 다 없으면 null (카드 hide).
@@ -739,15 +747,7 @@ export default async function GenericLivePage({ params }: Props) {
       homeAfStats || awayAfStats ? (
         <TeamSeasonStatsCard home={homeAfStats} away={awayAfStats} homeNameKo={homeKo} awayNameKo={awayKo} />
       ) : null;
-    const upcomingNode =
-      homeUpcomingF.length > 0 || awayUpcomingF.length > 0 ? (
-        <UpcomingFixturesCard
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          homeUpcoming={homeUpcomingF}
-          awayUpcoming={awayUpcomingF}
-        />
-      ) : null;
+    // 다음 경기 일정은 최근 경기 카드의 "경기 일정" 탭으로 이동 (중복 제거, 2026-08-08)
 
     const statsTab =
       match.status === "FINISHED"
@@ -760,8 +760,8 @@ export default async function GenericLivePage({ params }: Props) {
         <div className="space-y-4">{h2hNode}{goalDistNode}</div>
       ) : null;
     const infoTab =
-      predictionNode || seasonNode || venueNode || upcomingNode ? (
-        <div className="space-y-4">{predictionNode}{seasonNode}{venueNode}{upcomingNode}</div>
+      predictionNode || seasonNode || venueNode ? (
+        <div className="space-y-4">{predictionNode}{seasonNode}{venueNode}</div>
       ) : null;
 
     // 배당 — 라이브 배당(The Odds API 폴링, 농구 패턴과 동일 일원화 2026-06-10)
@@ -1094,14 +1094,16 @@ export default async function GenericLivePage({ params }: Props) {
 
       {recentGames?.hasData && (
         <CollapsibleSection
-          title="최근 경기 · 상대전적"
-          hint="양 팀 최근 경기 + 맞대결"
+          title={isSoccer ? "최근 경기 · 일정" : "최근 경기 · 상대전적"}
+          hint={isSoccer ? "양 팀 최근 경기 + 다음 일정" : "양 팀 최근 경기 + 맞대결"}
           defaultOpen={isSoccer && match.status === "SCHEDULED"}
         >
           <RecentGamesCard
             homeNameKo={homeKo}
             awayNameKo={awayKo}
             data={recentGames}
+            showH2h={!isSoccer}
+            upcoming={isSoccer ? upcomingRows : undefined}
           />
         </CollapsibleSection>
       )}

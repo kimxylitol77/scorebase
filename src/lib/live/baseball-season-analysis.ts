@@ -153,6 +153,10 @@ export interface BaseballGameRow {
   winner: "HOME" | "AWAY" | "DRAW" | null;
   /** 현재 보는 대회와 다른 대회의 경기일 때만 대회명 라벨 (A매치 크로스 대회 표시). */
   leagueLabel?: string;
+  /** 탭 주인공 팀 기준 결과 (홈/원정 탭 전용) — 플래시스코어식 승·무·패 배지용. */
+  subjectResult?: "W" | "D" | "L" | null;
+  /** 탭 주인공 팀이 이 경기에서 홈/원정 어느 쪽이었나 — 팀명 강조용. */
+  subjectSide?: "home" | "away";
 }
 
 export interface BaseballRecentGames {
@@ -167,6 +171,8 @@ interface RawGame {
   startTime: Date;
   homeScore: number | null;
   awayScore: number | null;
+  homeTeamId?: number;
+  awayTeamId?: number;
   homeTeam: { name: string };
   awayTeam: { name: string };
 }
@@ -176,6 +182,8 @@ const GAME_SELECT = {
   startTime: true,
   homeScore: true,
   awayScore: true,
+  homeTeamId: true,
+  awayTeamId: true,
   homeTeam: { select: { name: true } },
   awayTeam: { select: { name: true } },
 };
@@ -188,11 +196,19 @@ function kstYYMMDD(d: Date): string {
   return `${yy}.${mm}.${dd}`;
 }
 
-function toGameRow(m: RawGame, league: string): BaseballGameRow {
+function toGameRow(m: RawGame, league: string, subjectTeamId?: number): BaseballGameRow {
   const hs = m.homeScore;
   const as = m.awayScore;
   let winner: BaseballGameRow["winner"] = null;
   if (hs != null && as != null) winner = hs > as ? "HOME" : hs < as ? "AWAY" : "DRAW";
+  // 탭 주인공 팀 기준 승·무·패 — 홈승/원정승 배지는 "누가 이겼나"를 한 번 더 해석해야 해서
+  // 팀 탭에서는 그 팀 기준으로 바로 보여준다 (플래시스코어 대비 사용자 지적, 2026-08-08).
+  const subjectSide = subjectTeamId == null ? undefined
+    : m.homeTeamId === subjectTeamId ? ("home" as const)
+    : m.awayTeamId === subjectTeamId ? ("away" as const) : undefined;
+  const subjectResult = !subjectSide || !winner ? undefined
+    : winner === "DRAW" ? ("D" as const)
+    : (winner === "HOME") === (subjectSide === "home") ? ("W" as const) : ("L" as const);
   return {
     date: kstYYMMDD(m.startTime),
     homeName: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
@@ -203,6 +219,8 @@ function toGameRow(m: RawGame, league: string): BaseballGameRow {
     ...(m.league !== league
       ? { leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league }
       : {}),
+    ...(subjectSide ? { subjectSide } : {}),
+    ...(subjectResult ? { subjectResult } : {}),
   };
 }
 
@@ -256,8 +274,8 @@ export async function getBaseballRecentGames(match: {
         select: GAME_SELECT,
       }),
     ]);
-    const home = homeRows.map((m) => toGameRow(m, match.league));
-    const away = awayRows.map((m) => toGameRow(m, match.league));
+    const home = homeRows.map((m) => toGameRow(m, match.league, match.homeTeam.id));
+    const away = awayRows.map((m) => toGameRow(m, match.league, match.awayTeam.id));
     const h2h = h2hRows.map((m) => toGameRow(m, match.league));
     if (!home.length && !away.length && !h2h.length) return null;
     return { home, away, h2h, hasData: true };
