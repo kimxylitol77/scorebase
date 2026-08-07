@@ -654,24 +654,47 @@ export default async function MatchInsight({
   // Strong Pick / Value Bet 판정
   const topConfidence = Math.max(winProb.home, winProb.away, winProb.draw);
   const isStrongPick = topConfidence >= strongPickThreshold(match.league);
-  const isValueBet =
+  // Value Bet — 픽한 쪽에서 모델 확률이 시장 implied 보다 몇 %p 위인지. 판정 기준은
+  // evaluate-predictions.ts(DB valueGap) 와 동일하게 맞춘다: 베팅사 3개 미만은 시장 합의가
+  // 약해 평가 자체를 하지 않고, 해당 side 의 시장 확률이 없으면(무승부 배당 미제공) 비교 불가.
+  const pickModelProb =
+    oneXTwoPick === "HOME"
+      ? winProb.home
+      : oneXTwoPick === "AWAY"
+        ? winProb.away
+        : winProb.draw;
+  const pickMarketProb =
     match.marketHome != null &&
     match.marketAway != null &&
-    (() => {
-      const ourTopProb =
-        oneXTwoPick === "HOME"
-          ? winProb.home
-          : oneXTwoPick === "AWAY"
-            ? winProb.away
-            : winProb.draw;
-      const marketTopProb =
-        oneXTwoPick === "HOME"
-          ? match.marketHome
-          : oneXTwoPick === "AWAY"
-            ? match.marketAway
-            : (match.marketDraw ?? 0);
-      return ourTopProb - (marketTopProb ?? 0) >= 0.05;
-    })();
+    (match.marketBookmakers ?? 0) >= 3
+      ? oneXTwoPick === "HOME"
+        ? match.marketHome
+        : oneXTwoPick === "AWAY"
+          ? match.marketAway
+          : match.marketDraw
+      : null;
+  const valueEdge = pickMarketProb != null ? pickModelProb - pickMarketProb : null;
+  const isValueBet = valueEdge != null && valueEdge >= 0.05;
+
+  // 예측 근거에 "모델 vs 시장" 한 줄 — 베팅사이트가 매긴 확률과 얼마나 갈리는지 그대로 보여준다.
+  if (valueEdge != null && pickMarketProb != null) {
+    const pickLabel =
+      oneXTwoPick === "HOME"
+        ? toKoreanTeamName(match.homeTeam.name)
+        : oneXTwoPick === "AWAY"
+          ? toKoreanTeamName(match.awayTeam.name)
+          : "무승부";
+    const verdict =
+      valueEdge >= 0.05
+        ? "모델이 더 자신 있음 (Value)"
+        : valueEdge >= 0
+          ? "시장과 거의 같음"
+          : "시장이 더 자신 있음";
+    predBasis.push({
+      label: "시장 대비",
+      detail: `${pickLabel} — 모델 ${Math.round(pickModelProb * 100)}% vs 시장 ${Math.round(pickMarketProb * 100)}% · ${fmtShift(valueEdge)} ${verdict}`,
+    });
+  }
 
   // === 통합 탭 카드 (네이버 스타일) 용 sections 변수화 ===
   const startersContent = (hasStarters || hasGoalies) ? (
@@ -1194,8 +1217,15 @@ export default async function MatchInsight({
         </span>
       )}
       {isValueBet && (
-        <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-300/30">
+        <span
+          className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-300/30"
+          title="모델 확률이 베팅사이트 평균 implied 확률보다 이만큼 높습니다"
+        >
           Value Bet
+          {/* normal-case — 배지의 uppercase 가 "%p"(퍼센트포인트)를 "%P" 로 바꾸는 것 방지 */}
+          <span className="normal-case tabular-nums">
+            +{(valueEdge! * 100).toFixed(1)}%p
+          </span>
         </span>
       )}
       {marketBlended && (
