@@ -58,6 +58,12 @@ const COMP_KO: Record<string, string> = {
   "Friendlies Clubs": "클럽 친선",
   "Club World Cup": "클럽 월드컵",
   "World Cup": "월드컵",
+  "UEFA World Cup Qualifiers": "월드컵 유럽 예선",
+  "World Cup - Qualification Europe": "월드컵 유럽 예선",
+  "World Cup - Qualification South America": "월드컵 남미 예선",
+  "World Cup - Qualification Africa": "월드컵 아프리카 예선",
+  "World Cup - Qualification Asia": "월드컵 아시아 예선",
+  "World Cup - Qualification CONCACAF": "월드컵 북중미 예선",
   Friendlies: "A매치 친선",
 };
 
@@ -90,7 +96,9 @@ export default async function CompetitionStatsSection({
       rating: s.rating ? parseFloat(s.rating) : null,
     }));
   // 월드컵 등 extraRows 를 앞에, af 클럽 대회를 뒤에.
-  const rows = [...extraRows, ...afRows];
+  // af 도 같은 대회(World Cup)를 주면 중복 2줄이 되므로 extraRows(우리 DB 집계)가 우선 — af 쪽 제외.
+  const extraNames = new Set(extraRows.map((r) => r.leagueName));
+  const rows = [...extraRows, ...afRows.filter((r) => !extraNames.has(r.leagueName))];
   if (rows.length === 0) return null;
 
   return (
