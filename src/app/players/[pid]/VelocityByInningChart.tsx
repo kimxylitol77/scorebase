@@ -26,9 +26,11 @@ export default function VelocityByInningChart({
     pitches: r.pitches,
   }));
   const speeds = trend.byInning.map((r) => r.mph);
-  // y축은 데이터 범위에 딱 붙이면 노이즈가 절벽처럼 보이므로 위아래 1mph 여유.
-  const lo = Math.floor(Math.min(...speeds) - 1);
-  const hi = Math.ceil(Math.max(...speeds) + 1);
+  // y축 여유 0.5mph 를 0.5 단위로 올림/내림. 1mph 씩 잡으면 축이 4mph 로 벌어져
+  // 1mph 안팎인 실제 낙폭이 평평한 직선으로 보인다(축 눈금은 실제 값 그대로라 과장 아님).
+  const half = (v: number, fn: (x: number) => number) => fn(v * 2) / 2;
+  const lo = half(Math.min(...speeds) - 0.5, Math.floor);
+  const hi = half(Math.max(...speeds) + 0.5, Math.ceil);
   const total = trend.byInning.reduce((s, r) => s + r.pitches, 0);
 
   return (
@@ -69,6 +71,9 @@ export default function VelocityByInningChart({
                 trend.pitchLabel,
               ]}
             />
+            {/* 애니메이션 끔 — 이 차트는 Suspense 로 늦게 마운트돼서, 탭이 백그라운드면
+                recharts 의 draw-in 이 첫 프레임을 못 받고 stroke-dasharray 0 에서 굳는다
+                (실측: 선이 통째로 안 보임). 7점짜리 정적 선이라 애니메이션 이득도 없다. */}
             <Line
               type="monotone"
               dataKey="mph"
@@ -76,6 +81,7 @@ export default function VelocityByInningChart({
               strokeWidth={2.5}
               dot={{ r: 3.5 }}
               activeDot={{ r: 5 }}
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>
