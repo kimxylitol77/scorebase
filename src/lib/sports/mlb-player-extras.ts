@@ -604,3 +604,120 @@ async function fetchPitchLocationsRaw(personId: number, season: number): Promise
 export const getPitchLocations = unstable_cache(fetchPitchLocationsRaw, ["mlb-pitch-loc-v2"], {
   revalidate: 21600,
 });
+
+/* ============================================================
+ * 이닝별 구속 (피로 지수 대리 지표) — Statcast release_speed × inning
+ * ==========================================================*/
+
+// 속구 계열. 이닝별 구속은 이 중 최다 구종 하나만으로 본다 — 전 구종 평균을 쓰면
+// 후반에 변화구 비중이 올라갈 때 "구속이 떨어졌다"는 착시가 생긴다(실측: 그린 5→6회가
+// 전 구종으로는 92.5→93.0 으로 올라가지만, 포심만 보면 97.7→98.0 로 흐름이 다르다).
+const FASTBALL_CODES = ["FF", "SI", "FC", "FT"];
+
+// 이닝 표본 하한 — 이보다 적으면 버린다. 휠러 8회 2구(94.0mph)처럼 표본 두세 개짜리
+// "구속 상승"이 피로 곡선을 뒤집는 것을 막는다.
+const MIN_PITCHES_PER_INNING = 15;
+
+// 최소 이닝 수 — 3이닝은 나와야 추세라고 부를 수 있다.
+const MIN_INNINGS = 3;
+
+export interface InningVelocity {
+  inning: number;
+  mph: number;
+  /** 그 이닝 표본 구수 */
+  pitches: number;
+}
+
+export interface PitcherVelocityTrend {
+  /** 집계 기준 구종 코드 — 속구가 없으면 null (전 구종 평균으로 폴백) */
+  pitchCode: string | null;
+  pitchLabel: string;
+  byInning: InningVelocity[];
+  /** 1회 대비 가장 크게 떨어진 이닝의 낙폭 (mph, 양수 = 느려짐) */
+  drop: number;
+  dropInning: number;
+}
+
+// 한 투수의 시즌 이닝별 평균 구속 — pitcher lookup CSV 재사용(로케이션과 같은 원본).
+async function fetchVelocityByInningRaw(
+  personId: number,
+  season: number,
+): Promise<PitcherVelocityTrend | null> {
+  try {
+    const { data } = await axios.get<string>(
+      `https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfSea=${season}%7C&player_type=pitcher&pitchers_lookup[]=${personId}&type=details`,
+      { timeout: 25000, responseType: "text" },
+    );
+    const lines = data.split("\n");
+    if (lines.length < 2) return null;
+    const header = parseCsvLine(lines[0].replace(/^﻿/, "")).map((h) => h.replace(/^"|"$/g, ""));
+    const iType = header.indexOf("pitch_type");
+    const iSpeed = header.indexOf("release_speed");
+    const iInning = header.indexOf("inning");
+    if (iType < 0 || iSpeed < 0 || iInning < 0) return null;
+
+    const pitches: { code: string; mph: number; inning: number }[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const c = parseCsvLine(lines[i]).map((s) => s.replace(/^"|"$/g, ""));
+      const mph = Number(c[iSpeed]);
+      const inning = Number(c[iInning]);
+      const code = c[iType] ?? "";
+      if (!code || !Number.isFinite(mph) || mph <= 0 || !Number.isInteger(inning)) continue;
+      pitches.push({ code, mph, inning });
+    }
+    if (pitches.length === 0) return null;
+
+    // 주무기 속구 고르기 — 속구 계열 중 가장 많이 던진 구종.
+    const counts = new Map<string, number>();
+    for (const p of pitches) counts.set(p.code, (counts.get(p.code) ?? 0) + 1);
+    let pitchCode: string | null = null;
+    let best = 0;
+    for (const code of FASTBALL_CODES) {
+      const n = counts.get(code) ?? 0;
+      if (n > best) {
+        best = n;
+        pitchCode = code;
+      }
+    }
+    const selected = pitchCode ? pitches.filter((p) => p.code === pitchCode) : pitches;
+
+    const sums = new Map<number, { sum: number; n: number }>();
+    for (const p of selected) {
+      const cur = sums.get(p.inning) ?? { sum: 0, n: 0 };
+      cur.sum += p.mph;
+      cur.n++;
+      sums.set(p.inning, cur);
+    }
+    const byInning: InningVelocity[] = [...sums.entries()]
+      .filter(([, v]) => v.n >= MIN_PITCHES_PER_INNING)
+      .map(([inning, v]) => ({
+        inning,
+        mph: Number((v.sum / v.n).toFixed(1)),
+        pitches: v.n,
+      }))
+      .sort((a, b) => a.inning - b.inning);
+    if (byInning.length < MIN_INNINGS) return null;
+
+    // 낙폭 — 1회(=첫 집계 이닝) 대비 가장 느려진 이닝.
+    const first = byInning[0];
+    let slowest = first;
+    for (const r of byInning) if (r.mph < slowest.mph) slowest = r;
+
+    return {
+      pitchCode,
+      pitchLabel: pitchCode ? (PITCH_KO[pitchCode] ?? pitchCode) : "전 구종",
+      byInning,
+      drop: Number((first.mph - slowest.mph).toFixed(1)),
+      dropInning: slowest.inning,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export const getVelocityByInning = unstable_cache(
+  fetchVelocityByInningRaw,
+  ["mlb-velo-by-inning-v1"],
+  { revalidate: 21600 },
+);

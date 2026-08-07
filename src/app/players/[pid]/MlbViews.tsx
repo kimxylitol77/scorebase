@@ -77,6 +77,7 @@ import {
   getPitchArsenal,
   getBattedBalls,
   getPitchLocations,
+  getVelocityByInning,
 } from "@/lib/sports/mlb-player-extras";
 import PlayerTabs from "./PlayerTabs";
 import PercentileBars from "./PercentileBars";
@@ -86,6 +87,7 @@ import SplitsView from "./SplitsView";
 import PitchArsenal from "./PitchArsenal";
 import SprayChart from "./SprayChart";
 import PitchZoneChart from "./PitchZoneChart";
+import VelocityByInningChart from "./VelocityByInningChart";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ChevronLeft } from "lucide-react";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -254,6 +256,12 @@ async function SprayLoader({ pid, season }: { pid: number; season: number }) {
 async function PitchZoneLoader({ pid, season }: { pid: number; season: number }) {
   const locs = await getPitchLocations(pid, season);
   return <PitchZoneChart pitches={locs} season={season} />;
+}
+
+async function VelocityLoader({ pid, season }: { pid: number; season: number }) {
+  const trend = await getVelocityByInning(pid, season);
+  // 불펜·소화 이닝이 적은 투수는 이닝 3개를 못 채워 null — 카드 자체를 내지 않는다.
+  return trend ? <VelocityByInningChart trend={trend} season={season} /> : null;
 }
 
 /* ============================================================
@@ -563,6 +571,9 @@ export async function MlbPitcherView({
       )}
       <PitcherTrendChart rows={career} />
       {arsenal.length > 0 && <PitchArsenal pitches={arsenal} />}
+      <Suspense fallback={<ChartSkeleton label="이닝별 구속" />}>
+        <VelocityLoader pid={pid} season={season} />
+      </Suspense>
       <Suspense fallback={<ChartSkeleton label="투구 로케이션" />}>
         <PitchZoneLoader pid={pid} season={season} />
       </Suspense>
