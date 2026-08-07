@@ -120,7 +120,23 @@ async function main() {
     ...wcRows.map((r) => r.externalId),
     ...wcSeasonIds,
   ]);
-  console.log(`대상: 빅5 ${big5Rows.length} + 확장 ${Object.keys(EXPANSION).length} + WC ${new Set([...wcRows.map((r) => r.externalId), ...wcSeasonIds]).size}`);
+  // 국가대표 전체 — WC 48개국 밖 국대(ASEAN 챔피언십 베트남 등)도 /national-teams 페이지가 있다.
+  //  teamSourceId 미등록 팀이 많아 순위표용 team-id-mapping.json 에서 국대 리그 ts id 를 보충.
+  const NATL_LEAGUES = new Set([
+    "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON",
+    "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL", "ASEAN_CHAMP",
+  ]);
+  const natlMapping = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "..", "src", "lib", "sports", "thesports", "team-id-mapping.json"), "utf8"),
+  ) as Array<{ tsId?: string; ourLeague?: string }>;
+  let natlAdded = 0;
+  for (const e of natlMapping) {
+    if (e.tsId && e.ourLeague && NATL_LEAGUES.has(e.ourLeague) && !ourTeams.has(e.tsId)) {
+      ourTeams.add(e.tsId);
+      natlAdded++;
+    }
+  }
+  console.log(`대상: 빅5 ${big5Rows.length} + 확장 ${Object.keys(EXPANSION).length} + WC ${new Set([...wcRows.map((r) => r.externalId), ...wcSeasonIds]).size} + 국대매핑 ${natlAdded}`);
 
   // ts→af 팀 매핑 — ts coach_id 공백 팀(감독 교체기 데이터 공백)의 api-football 폴백용
   const allMaps = await prisma.teamSourceId.findMany({

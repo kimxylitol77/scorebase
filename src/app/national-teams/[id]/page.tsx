@@ -15,6 +15,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, Goal } from "lucide-react";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
+import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
@@ -121,10 +122,17 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
   }
   // 공식 26인 스쿼드(data/wc-national-squads.json) 우선 — 라인업은 출전자만이라 후보가 빠짐.
   // 공식 명단에 라인업 사진·출전수를 병합(미출전자는 등번호 표시). 미수집국은 라인업 fallback.
-  const tsRow = await prisma.teamSourceId.findFirst({
-    where: { teamId, source: "thesports" },
-    select: { externalId: true },
-  });
+  // ts id 해석 — teamSourceId(통합 팀 셋 전체) → 없으면 team-id-mapping.json(ASEAN 국대처럼
+  //  teamSourceId 미등록·순위표 매핑만 있는 팀 커버, 베트남 실측). 감독·스쿼드·선수기여의 열쇠.
+  const tsRow =
+    (await prisma.teamSourceId.findFirst({
+      where: { teamId: { in: teamIds }, source: "thesports" },
+      select: { externalId: true },
+    })) ??
+    (() => {
+      const hit = (teamIdMapping as Array<{ ourId: number; tsId: string }>).find((e) => teamIdSet.has(e.ourId));
+      return hit ? { externalId: hit.tsId } : null;
+    })();
   const officialSquad = tsRow ? WC_SQUAD_BY_TSID.get(tsRow.externalId) : null;
   const squad: SquadPlayer[] = officialSquad
     ? officialSquad.map((s) => {
@@ -180,7 +188,12 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     .slice(0, 5);
 
   // 감독 — 정적 json (키: ts team id). tsRow 는 위 스쿼드 결정에서 재사용.
-  const coach = (tsRow && COACHES[tsRow.externalId]) || null;
+  //  스냅샷에 없으면 라인업 coach_id + 한글명 사전으로 최소 표시 (ASEAN 등 미수집국 폴백).
+  const coach =
+    (tsRow && COACHES[tsRow.externalId]) ||
+    (coachId && COACH_KO[coachId]
+      ? { id: coachId, name: COACH_KO[coachId], nameKo: COACH_KO[coachId], logo: null, age: null, nationality: null, preferredFormation: null, joined: null, contractUntil: null }
+      : null);
   const koCountry = toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name;
   const flag = fifaFlag(team.name);
   const fifaRank = getFifaRank(team.name, koCountry);
