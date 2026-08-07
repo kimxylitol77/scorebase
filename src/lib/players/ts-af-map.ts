@@ -30,3 +30,8 @@ export function tsPlayerToAf(tsId: string): number | null {
 export function afPlayerToTs(afId: number | string): string | null {
   return load()?.afToTs[String(afId)] ?? null;
 }
+
+/** 매핑 전체 [tsId, afId][] — 전 선수 순회 잡(트로피 수집 등)용. */
+export function tsAfEntries(): [string, number][] {
+  return Object.entries(load()?.tsToAf ?? {});
+}

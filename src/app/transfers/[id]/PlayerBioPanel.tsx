@@ -52,15 +52,19 @@ function MiniPitch({ primary, others }: { primary: PosCode; others: PosCode[] })
   );
 }
 
+const FOOT_KO: Record<string, string> = { L: "왼발", R: "오른발", B: "양발" };
+
 export default function PlayerBioPanel({
-  age, birthDate, height, weight, country, flag, natlHref,
+  age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
   teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur,
-  positions, posCode,
+  positions, posCode, foot,
 }: {
   age: number | null;
   birthDate: string | null;
   height: string | null;
   weight: string | null;
+  birthPlace?: string | null; // af 프로필 출생지 (도시)
+  valueRank?: { leagueLabel: string; rank: number; total: number; posLabel: string | null; posRank: number | null } | null; // 몸값 리그 내 순위
   country: string | null;
   flag: string | null;
   natlHref: string | null;
@@ -74,6 +78,7 @@ export default function PlayerBioPanel({
   recentChg: number | null;
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
   posCode: string | null; // coarse G/D/M/F 폴백
+  foot?: string | null; // 주발 (Wikidata P8006) — "L"|"R"|"B"
 }) {
   // 구체 포지션 우선, 없으면 coarse 폴백
   const coarse = posCode ? COARSE[posCode] : null;
@@ -99,6 +104,7 @@ export default function PlayerBioPanel({
                 <img src={flag} alt="" className="w-5 h-3.5 object-cover rounded-[1px]" />
               )}
               {natlHref ? <Link href={natlHref} prefetch={false} className="hover:underline">{country}</Link> : country}
+              {birthPlace && <span className="text-xs font-normal text-neutral-400 truncate">{birthPlace} 출생</span>}
             </span>
           </InfoCell>
         )}
@@ -123,6 +129,15 @@ export default function PlayerBioPanel({
                 </span>
               )}
             </div>
+            {valueRank && (
+              <div className="mt-1 text-xs text-neutral-500 tabular-nums">
+                {valueRank.leagueLabel} 몸값 <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.rank}위</span>
+                <span className="text-neutral-400"> / {valueRank.total}명</span>
+                {valueRank.posRank != null && valueRank.posLabel && (
+                  <span> · {valueRank.posLabel} <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.posRank}위</span></span>
+                )}
+              </div>
+            )}
           </div>
         )}
         {wageEur != null && (
@@ -161,6 +176,12 @@ export default function PlayerBioPanel({
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+            {foot && FOOT_KO[foot] && (
+              <div>
+                <div className="text-xs text-neutral-400">주발</div>
+                <div className="text-sm font-bold">{FOOT_KO[foot]}</div>
               </div>
             )}
           </div>

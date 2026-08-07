@@ -389,6 +389,59 @@ export function getTeamInjuries(
   return Array.from(byPlayer.values());
 }
 
+// ===== 스쿼드 등번호·리그 팀 목록·수상 경력 (선수 페이지 부가 데이터) =====
+
+export interface AfSquadMember { id: number; number: number | null; position: string | null }
+/** 팀 현재 로스터 — 등번호·af 포지션 포함 (collect-squad-numbers 잡용, 캐시 없음). */
+export async function fetchTeamSquadMembers(teamId: number): Promise<AfSquadMember[]> {
+  try {
+    const { data } = await client().get("/players/squads", { params: { team: teamId } });
+    const players = (data?.response?.[0]?.players ?? []) as Array<Record<string, unknown>>;
+    return players
+      .filter((p) => typeof p.id === "number")
+      .map((p) => ({
+        id: p.id as number,
+        number: typeof p.number === "number" ? p.number : null,
+        position: typeof p.position === "string" ? p.position : null,
+      }));
+  } catch (e) {
+    console.warn("[api-football-pro] fetchTeamSquadMembers 실패:", (e as Error).message);
+    return [];
+  }
+}
+
+/** 리그 소속 af team id 목록 (시즌 기준). */
+export async function fetchLeagueTeamIds(leagueId: number, season: number): Promise<number[]> {
+  try {
+    const { data } = await client().get("/teams", { params: { league: leagueId, season } });
+    return ((data?.response ?? []) as Array<{ team?: { id?: number } }>)
+      .map((r) => r?.team?.id)
+      .filter((x): x is number => typeof x === "number");
+  } catch (e) {
+    console.warn("[api-football-pro] fetchLeagueTeamIds 실패:", (e as Error).message);
+    return [];
+  }
+}
+
+export interface AfTrophy { league: string; country: string | null; season: string; place: string }
+/** 선수 수상 경력 (/trophies). Winner·2nd Place 등 place 문자열 그대로 반환. */
+export async function fetchPlayerTrophies(playerId: number): Promise<AfTrophy[]> {
+  try {
+    const { data } = await client().get("/trophies", { params: { player: playerId } });
+    return ((data?.response ?? []) as Array<Record<string, unknown>>)
+      .filter((r) => typeof r.league === "string" && typeof r.season === "string" && typeof r.place === "string")
+      .map((r) => ({
+        league: r.league as string,
+        country: typeof r.country === "string" ? r.country : null,
+        season: r.season as string,
+        place: r.place as string,
+      }));
+  } catch (e) {
+    console.warn("[api-football-pro] fetchPlayerTrophies 실패:", (e as Error).message);
+    return [];
+  }
+}
+
 // ===== 현재 스쿼드 필터 (이적/방출 선수 제거) =====
 // 시즌 부상 목록(/injuries?season=Y)은 그 시즌 부상 이력이라 여름·1월에 팀을 떠난 선수도 남는다.
 // /players/squads 의 현재 로스터 player.id 와 대조해 스쿼드에 없는 선수를 제거 (이름 표기차 무관, id 기반).

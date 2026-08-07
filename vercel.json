@@ -37,6 +37,14 @@
       "schedule": "0 16 * * *"
     },
     {
+      "path": "/api/cron/squad-numbers",
+      "schedule": "15 16 * * 2"
+    },
+    {
+      "path": "/api/cron/player-trophies",
+      "schedule": "45 17 * * *"
+    },
+    {
       "path": "/api/cron/player-match-logs",
       "schedule": "30 16 * * 1"
     },

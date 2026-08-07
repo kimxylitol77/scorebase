@@ -1219,6 +1219,33 @@ model PlayerMarketValue {
   @@index([league, currentValue])
 }
 
+/// af /players/squads 주간 sync — 선수 등번호·af 세부 포지션 (collect-squad-numbers cron)
+model PlayerSquadInfo {
+  id        String   @id // ts player id
+  number    Int? // 등번호 (0/null = 미배정)
+  position  String? // af position (Goalkeeper|Defender|Midfielder|Attacker)
+  afTeamId  Int // af team id (소속 확인용)
+  updatedAt DateTime @updatedAt
+}
+
+/// af /trophies — 선수 수상 경력 (collect-player-trophies cron, Winner·2nd Place 만)
+model PlayerTrophy {
+  id       String @id // {playerId}:{league}:{season}:{place}
+  playerId String // ts player id
+  league   String // 대회명 (af 원문)
+  country  String?
+  season   String
+  place    String // "Winner" | "2nd Place"
+
+  @@index([playerId])
+}
+
+/// 트로피 sync 커서 — 선수별 마지막 동기 시각 (오래된 순으로 daily 250명 순환)
+model PlayerTrophySync {
+  playerId String   @id // ts player id
+  syncedAt DateTime @default(now())
+}
+
 /// TheSports 이적 — transfer/list 수집(글로벌 전량 → 우리 팀 필터). id = ts transfer id.
 model FootballTransfer {
   id           String   @id // ts transfer id

@@ -22,6 +22,7 @@ import rawTeamLogos from "../../../../data/team-logos.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
 import rawPlayerBlogLinks from "../../../../data/player-blog-links.json";
 import rawPlayerHeatmaps from "../../../../data/player-heatmap-analysis.json";
+import rawFoot from "../../../../data/player-foot.json";
 import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
@@ -38,6 +39,7 @@ import CareerTrendChart, { type TrendPoint } from "./CareerTrendChart";
 import CareerSeasonSummary from "./CareerSeasonSummary";
 import { getPlayerCareerByTs } from "./career-data";
 import PlayerInjuryHistory from "./PlayerInjuryHistory";
+import PlayerTrophies from "./PlayerTrophies";
 import { getPlayerInjuriesByTs } from "./injury-data";
 import PlayerMatchLogTable, { type MatchLogRow } from "./PlayerMatchLogTable";
 import PlayerTabs from "./PlayerTabs";
@@ -135,6 +137,7 @@ const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
 const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 // 주급/연봉 (Capology 5대리그, fetch-football-wages.ts) — 세전 연봉 EUR.
 const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
+const FOOT = rawFoot as Record<string, string>; // 주발 (Wikidata P8006) — "L"|"R"|"B"
 // 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
 const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
@@ -533,6 +536,30 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // af 선수 프로필(생년월일·키·몸무게) — 헤더 신체 + 대회별 스탯 공유 캐시. ts→af 매핑 없으면 null
   const afProfile = await getSoccerPlayerBio(id, league);
 
+  // 등번호(스쿼드 sync)·수상 경력 — collect-squad-numbers / collect-player-trophies cron 적재분
+  const [squadInfo, trophyRows] = await Promise.all([
+    prisma.playerSquadInfo.findUnique({ where: { id }, select: { number: true } }),
+    prisma.playerTrophy.findMany({ where: { playerId: id }, select: { league: true, country: true, season: true, place: true } }),
+  ]);
+  // 몸값 리그 내 순위 (+ 같은 코스 포지션 내) — [league, currentValue] 색인 카운트
+  let valueRank: { leagueLabel: string; rank: number; total: number; posLabel: string | null; posRank: number | null } | null = null;
+  if (mv?.currentValue && league) {
+    const [above, totalInLeague] = await Promise.all([
+      prisma.playerMarketValue.count({ where: { league, currentValue: { gt: mv.currentValue } } }),
+      prisma.playerMarketValue.count({ where: { league, currentValue: { gt: 0 } } }),
+    ]);
+    let posRank: number | null = null;
+    const coarsePos = tsp?.position && POS_KO[tsp.position] ? tsp.position : null;
+    if (coarsePos) {
+      const rows = await prisma.$queryRaw<Array<{ n: bigint }>>`
+        SELECT COUNT(*)::bigint AS n FROM "PlayerMarketValue" v
+        JOIN "TheSportsPlayer" t ON t.id = v.id
+        WHERE v.league = ${league} AND v."currentValue" > ${mv.currentValue} AND t.position = ${coarsePos}`;
+      posRank = Number(rows[0]?.n ?? 0) + 1;
+    }
+    valueRank = { leagueLabel: LEAGUE_LABEL[league], rank: above + 1, total: totalInLeague, posLabel: coarsePos ? POS_KO[coarsePos] : null, posRank };
+  }
+
   // 팀 resolve (ts → 우리 Team). 한 ts 가 여러 Team 에 매핑되면 해당 리그 Team 우선(동명 클럽 방지).
   let teamName = "—", teamLogo: string | null = null, ourTeamId: number | null = null;
   if (mv?.teamId) {
@@ -633,6 +660,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       teamLogo = tsLogo[latest.toTeamId] ?? teamLogo;
       ourTeamId = tsOurId[latest.toTeamId] ?? null;
       effTeamId = latest.toTeamId;
+      // 이적 발효 후 몸값 피드 갱신 전 — 옛 리그 기준 몸값 순위는 오해 소지라 숨김
+      valueRank = null;
     }
   }
 
@@ -963,6 +992,11 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {DETAIL_POS[id]?.primary || ov?.pos || POS_LABEL[tsp!.position!]}
               </span>
             )}
+            {squadInfo?.number != null && squadInfo.number > 0 && (
+              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 tabular-nums" title="등번호">
+                No.{squadInfo.number}
+              </span>
+            )}
             {ability != null && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" title="종합 능력치">
                 <Star className="h-3 w-3" aria-hidden /> 종합 {ability}
@@ -979,6 +1013,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         birthDate={afProfile?.birthDate ?? null}
         height={afProfile?.height ?? null}
         weight={afProfile?.weight ?? null}
+        birthPlace={afProfile?.birthPlace ?? null}
+        valueRank={valueRank}
         country={ov?.country ?? null}
         flag={ov?.flag ?? null}
         natlHref={natlTeamIds.length > 0 ? `/national-teams/${natlTeamIds[0]}` : null}
@@ -992,6 +1028,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         wageEur={WAGES[id]?.eur ?? null}
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
+        foot={FOOT[id] ?? null}
       />
 
       {/* 통산 요약 (클럽 대회 합산) — 한눈 커리어 4칸 */}
@@ -1048,6 +1085,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 )}
                 {/* 현 시즌 대회별 스탯 (af). ts→af 매핑 없으면 자동 미표시 */}
                 <CompetitionStatsSection tsId={id} league={mv?.league ?? null} extraRows={wcCompRow ? [wcCompRow] : []} />
+                {/* 수상 경력 — PlayerTrophy 수집분 (없으면 미표시) */}
+                <PlayerTrophies rows={trophyRows} />
                 {/* 몸값 추이 차트 */}
                 {points.length >= 2 && (
                   <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
