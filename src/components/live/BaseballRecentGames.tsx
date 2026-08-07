@@ -75,7 +75,16 @@ export default function BaseballRecentGames({
       ) : (
         <>
           <div className="overflow-hidden rounded-xl border border-neutral-200/70 dark:border-neutral-800/70">
-            <table className="w-full text-xs sm:text-sm">
+            {/* table-fixed + 홈/원정 대칭 폭 — 자동 배치는 팀명 길이에 따라 점수 열이
+                좌우로 쏠려 헤더와 값이 어긋나 보인다(가운데 정렬 요청, 2026-08-08). */}
+            <table className="w-full table-fixed text-xs sm:text-sm">
+              <colgroup>
+                <col className="w-[72px] sm:w-[110px]" />
+                <col />
+                <col className="w-[56px] sm:w-[76px]" />
+                <col />
+                <col className="w-[64px] sm:w-[84px]" />
+              </colgroup>
               <thead>
                 <tr className="bg-neutral-50 dark:bg-neutral-900/60 text-[11px] uppercase tracking-wider text-neutral-500">
                   <th className="text-left font-medium py-2.5 px-2 sm:px-3">경기일</th>
@@ -145,19 +154,19 @@ function GameRow({ g }: { g: BaseballGameRow }) {
 function ResultBadge({ winner }: { winner: BaseballGameRow["winner"] }) {
   if (winner === "HOME")
     return (
-      <span className="inline-block rounded-full border border-rose-400 text-rose-600 dark:border-rose-500/60 dark:text-rose-400 text-[11px] font-bold px-2 py-0.5">
+      <span className="inline-block whitespace-nowrap rounded-full border border-rose-400 text-rose-600 dark:border-rose-500/60 dark:text-rose-400 text-[11px] font-bold px-2 py-0.5">
         홈승
       </span>
     );
   if (winner === "AWAY")
     return (
-      <span className="inline-block rounded-full border border-blue-400 text-blue-600 dark:border-blue-500/60 dark:text-blue-400 text-[11px] font-bold px-2 py-0.5">
+      <span className="inline-block whitespace-nowrap rounded-full border border-blue-400 text-blue-600 dark:border-blue-500/60 dark:text-blue-400 text-[11px] font-bold px-2 py-0.5">
         원정승
       </span>
     );
   if (winner === "DRAW")
     return (
-      <span className="inline-block rounded-full border border-neutral-300 text-neutral-500 dark:border-neutral-700 text-[11px] font-bold px-2 py-0.5">
+      <span className="inline-block whitespace-nowrap rounded-full border border-neutral-300 text-neutral-500 dark:border-neutral-700 text-[11px] font-bold px-2 py-0.5">
         무
       </span>
     );
