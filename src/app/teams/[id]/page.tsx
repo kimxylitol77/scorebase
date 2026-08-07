@@ -39,6 +39,8 @@ import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } fro
 import { parseFixtureXg } from "@/lib/xg/outcome";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCoachNames from "../../../../data/coach-names.json";
+import rawCoachPhotos from "../../../../data/coach-photos.json";
+import { venueKo, cityKo } from "@/lib/venue-ko";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
@@ -86,6 +88,8 @@ const T_HISTORY = rawTeamHistory as Record<string, TeamHistoryData>;
 // 감독 스냅샷 (ts coach/list + af 폴백, 키=ts team id) — 생성: scripts/build-team-coaches.ts
 const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
 const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
+// 라인업 감독 사전(수집·번역 범위가 가장 넓음) — team-coaches nameKo 누락분 폴백 (박태하 실측)
+const COACH_PHOTOS = rawCoachPhotos as Record<string, { nameKo?: string }>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -297,7 +301,7 @@ export default async function TeamPage({ params }: Props) {
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
   // 현 감독 — ts coach id 있으면 /coaches/{id} 프로필 링크, 없으면(af 폴백 팀) 표시만.
   const coach = tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ?? null;
-  const coachName = coach ? coach.nameKo || (coach.id && COACH_KO[coach.id]) || coach.name : null;
+  const coachName = coach ? coach.nameKo || (coach.id && (COACH_KO[coach.id] || COACH_PHOTOS[coach.id]?.nameKo)) || coach.name : null;
 
   // TeamAbout(SEO 소개 문단)용 — 이미 계산된 값 재사용, 시즌 라벨·종목명만 파생.
   const aboutSeasonLabel = (() => {
@@ -347,6 +351,11 @@ export default async function TeamPage({ params }: Props) {
       // 시장가치순, 동가면 등번호순
       .sort((a, b) => b.value - a.value || (a.number ?? 99) - (b.number ?? 99));
   }
+
+  // 스쿼드 가치 — ts team/additional 의 marketValue 는 몸값 커버가 얕은 리그(K리그 등)에서
+  // 신뢰할 수 없어 쓰지 않는다. 우리 몸값 데이터(PMV)가 스쿼드를 실질 커버(15명+)할 때만 합산 표시.
+  const squadValued = squad.filter((p) => p.value > 0);
+  const squadValueM = squadValued.length >= 15 ? squadValued.reduce((s, p) => s + p.value, 0) : null;
 
 
   // NHL 로스터 (NHL 공식 API, id=nhlId) — 팀 페이지 선수 명단 → 선수 상세(/players/{id}?league=NHL) 연결.
@@ -580,14 +589,14 @@ export default async function TeamPage({ params }: Props) {
             <SectionH title="클럽 정보" icon={<Landmark className="h-5 w-5" aria-hidden />} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {teamVenue.venueName && (
-                <Stat label="홈구장" value={teamVenue.venueName} subtle={[teamVenue.capacity ? `${teamVenue.capacity.toLocaleString()}석` : "", teamVenue.city ?? ""].filter(Boolean).join(" · ")} />
+                <Stat label="홈구장" value={venueKo(teamVenue.venueName)!} subtle={[teamVenue.capacity ? `${teamVenue.capacity.toLocaleString()}석` : "", cityKo(teamVenue.city) ?? ""].filter(Boolean).join(" · ")} />
               )}
               {teamVenue.foundation ? <Stat label="창단" value={`${teamVenue.foundation}년`} /> : null}
               {teamVenue.totalPlayers ? (
                 <Stat label="선수단" value={`${teamVenue.totalPlayers}명`} subtle={teamVenue.foreignPlayers != null ? `외국인 ${teamVenue.foreignPlayers}명` : undefined} />
               ) : null}
-              {teamVenue.marketValue ? (
-                <Stat label="스쿼드 가치" value={`${teamVenue.currency ?? "€"}${(teamVenue.marketValue / 1e6).toFixed(0)}M`} />
+              {squadValueM != null ? (
+                <Stat label="스쿼드 가치" value={`€${squadValueM}M`} />
               ) : null}
             </div>
             {teamVenue.website && (

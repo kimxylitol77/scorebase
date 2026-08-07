@@ -1,5 +1,6 @@
 // 경기 정보 카드 — 구장(venue) + 날씨(TheSportsMatchCache.environment). 둘 중 있는 것만 표시.
 import type { VenueMeta } from "@/lib/sports/thesports/venues";
+import { venueKo, cityKo } from "@/lib/venue-ko";
 
 export interface MatchWeather {
   temperature?: string; // "27°C"
@@ -14,7 +15,7 @@ interface Props {
 
 export default function SoccerVenueCard({ venue, weather }: Props) {
   const meta: string[] = [];
-  if (venue?.city) meta.push(venue.city);
+  if (venue?.city) meta.push(cityKo(venue.city)!);
   if (venue?.country) meta.push(venue.country);
   if (venue?.capacity) meta.push(`${venue.capacity.toLocaleString()}석`);
 
@@ -37,7 +38,7 @@ export default function SoccerVenueCard({ venue, weather }: Props) {
         {venue && (
           <>
             <div className="text-base font-bold text-neutral-900 dark:text-neutral-100">
-              {venue.name}
+              {venueKo(venue.name)}
             </div>
             {meta.length > 0 && (
               <div className="text-xs text-neutral-500 dark:text-neutral-400">

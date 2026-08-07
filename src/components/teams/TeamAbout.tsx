@@ -2,6 +2,8 @@
 // 자연어 한국어 문단으로 조립. 검색엔진이 색인할 텍스트가 팀 페이지에 없던 것을 보완.
 // 새 쿼리 없음: page.tsx 가 이미 가진 값을 props 로 받아 문장만 생성 (전 팀 자동).
 
+import { venueKo } from "@/lib/venue-ko";
+
 interface TeamAboutProps {
   name: string;
   enName: string; // 영문명 (한글과 다르면 괄호 병기, 같으면 "")
@@ -49,9 +51,9 @@ export default function TeamAbout({
   // 1) 정체성 + 홈구장 + 창단
   let intro = `${name}${enName ? `(${enName})` : ""}${eunneun(name)} ${leagueLabel}에서 활동하는 ${sportLabel} 구단입니다.`;
   if (venue?.venueName) {
-    // 도시명(venue.city)은 영문이라 한국어 문단에 섞이면 어색 — 생략. 구장명은 고유명사라 유지.
+    // 도시명(venue.city)은 영문이라 한국어 문단에 섞이면 어색 — 생략. 구장명은 한글 사전 통과(미등록은 원문).
     const cap = venue.capacity ? `(${venue.capacity.toLocaleString()}석)` : "";
-    intro += ` 홈 경기는 ${venue.venueName}${cap}에서 열립니다.`;
+    intro += ` 홈 경기는 ${venueKo(venue.venueName)}${cap}에서 열립니다.`;
   }
   if (venue?.foundation) intro += ` ${venue.foundation}년에 창단했습니다.`;
   sentences.push(intro);
