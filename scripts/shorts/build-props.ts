@@ -6,11 +6,12 @@
 import { PrismaClient } from "@prisma/client";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import rawOv from "/Users/kimss/scorebase/data/player-overrides.json";
-import { toKoreanPlayerName } from "/Users/kimss/scorebase/src/lib/player-names";
-import { toKoreanTeamName } from "/Users/kimss/scorebase/src/lib/team-names";
+// ⚠️ 절대경로(/Users/...) import 금지 — Vercel 빌드가 scripts/ 까지 타입체크해서 배포가 깨진다
+import rawOv from "../../data/player-overrides.json";
+import { toKoreanPlayerName } from "../../src/lib/player-names";
+import { toKoreanTeamName } from "../../src/lib/team-names";
 // 선발 JSON 파싱·사진 URL 은 사이트(/predictions/starters)와 같은 헬퍼를 쓴다
-import { parseStarter, pitcherPhoto } from "/Users/kimss/scorebase/src/lib/predict/starter-card";
+import { parseStarter, pitcherPhoto } from "../../src/lib/predict/starter-card";
 
 const OV = rawOv as Record<string, { nameKo?: string }>;
 const SHORTS = "/Users/kimss/scorebase-shorts";
