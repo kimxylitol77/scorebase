@@ -27,7 +27,7 @@ interface Props {
   data: BaseballRecentGames;
   /** 맞대결 탭 표시 여부 — 별도 H2H 카드가 있는 축구는 false 로 중복 제거. */
   showH2h?: boolean;
-  /** 양 팀 예정 경기(시간순) — 있으면 "경기 일정" 탭 추가. */
+  /** 양 팀 예정 경기(시간순) — undefined 가 아니면 "경기 일정" 탭 표시(빈 배열은 빈 상태 문구). */
   upcoming?: UpcomingRow[];
 }
 
@@ -50,12 +50,12 @@ export default function BaseballRecentGames({
   });
   if (!data.hasData) return null;
 
-  const hasFixtures = (upcoming?.length ?? 0) > 0;
+  const hasFixturesTab = upcoming !== undefined;
   const tabs: { key: Tab; label: string }[] = [
     { key: "home", label: `${homeNameKo} (홈)` },
     { key: "away", label: `${awayNameKo} (원정)` },
     ...(showH2h ? [{ key: "h2h" as const, label: "상대전적" }] : []),
-    ...(hasFixtures ? [{ key: "fixtures" as const, label: "경기 일정" }] : []),
+    ...(hasFixturesTab ? [{ key: "fixtures" as const, label: "경기 일정" }] : []),
   ];
 
   const allRows =
@@ -66,7 +66,7 @@ export default function BaseballRecentGames({
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
       <h2 className="text-base sm:text-lg font-black tracking-tight mb-3">
-        최근 경기{hasFixtures ? " · 일정" : showH2h ? " · 상대전적" : ""}
+        최근 경기{hasFixturesTab ? " · 일정" : showH2h ? " · 상대전적" : ""}
       </h2>
 
       <div className={`grid ${tabs.length === 4 ? "grid-cols-4" : "grid-cols-3"} rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-3 text-xs sm:text-sm font-bold`}>
@@ -87,7 +87,13 @@ export default function BaseballRecentGames({
       </div>
 
       {tab === "fixtures" ? (
-        <FixturesTable rows={upcoming!} />
+        (upcoming?.length ?? 0) > 0 ? (
+          <FixturesTable rows={upcoming!} />
+        ) : (
+          <p className="text-center text-sm text-neutral-500 py-6">
+            예정된 경기가 아직 없습니다.
+          </p>
+        )
       ) : rows.length === 0 ? (
         <p className="text-center text-sm text-neutral-500 py-6">
           {tab === "h2h" ? "최근 맞대결 기록이 없습니다." : "최근 경기 기록이 없습니다."}

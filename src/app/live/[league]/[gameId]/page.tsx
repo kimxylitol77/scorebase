@@ -755,13 +755,12 @@ export default async function GenericLivePage({ params }: Props) {
         : teamStatsNode || halfTimeNode
           ? <div className="space-y-4">{teamStatsNode}{halfTimeNode}</div>
           : null;
-    const h2hTab =
-      h2hNode || goalDistNode ? (
-        <div className="space-y-4">{h2hNode}{goalDistNode}</div>
-      ) : null;
+    const h2hTab = h2hNode ? <div className="space-y-4">{h2hNode}</div> : null;
+    // 시간대별 득점 분포는 맞대결(H2H)이 아니라 양 팀 시즌 통계 성격 — 경기 정보 탭의
+    // 시즌 통계 옆으로 이동 (2026-08-08 사용자 지적).
     const infoTab =
-      predictionNode || seasonNode || venueNode ? (
-        <div className="space-y-4">{predictionNode}{seasonNode}{venueNode}</div>
+      predictionNode || seasonNode || goalDistNode || venueNode ? (
+        <div className="space-y-4">{predictionNode}{seasonNode}{goalDistNode}{venueNode}</div>
       ) : null;
 
     // 배당 — 라이브 배당(The Odds API 폴링, 농구 패턴과 동일 일원화 2026-06-10)
