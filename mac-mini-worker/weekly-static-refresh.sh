@@ -26,6 +26,10 @@ log "② 공식 스쿼드·등번호"
 npx tsx --env-file=.env.local scripts/build-team-squads.ts 2>&1 | tail -2 || true
 log "③ 감독 스냅샷 (Haiku 한글명)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-team-coaches.ts' 2>&1 | tail -2 || true
+log "③-b 전 리그 감독 (Team.coach + coach-photos.json — 라인업 감독 줄. 라인업 등장 감독은 팀 매핑 없어도 포함)"
+npx tsx --env-file=.env.local scripts/collect-all-team-coaches.ts 2>&1 | tail -2 || true
+log "③-c 감독 한글명 (Haiku, 멱등 — 신규분만)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/translate-coach-names.ts' 2>&1 | tail -1 || true
 log "④ 감독 경력 (Wikidata)"
 npx tsx --env-file=.env.local scripts/build-coach-careers.ts 2>&1 | tail -1 || true
 log "⑤ 감독 트로피 (위키 Honours)"
