@@ -7,6 +7,7 @@
 import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "fs";
 import { deReverseKoreanName } from "../src/lib/korean-name-order";
+import { resolveEnNames } from "../src/lib/players/en-name-source";
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes("--apply");
@@ -72,16 +73,20 @@ async function main() {
   // (TheSportsPlayer 는 라인업 출전 선수 기반 → 몸값 데이터의 비출전 선수는 /transfers 에서 "선수" placeholder 로 떴음)
   const ourIds = new Set(ours.map((p) => p.id));
   const marketRows = await prisma.playerMarketValue.findMany({ select: { id: true } });
-  const toAdd: Array<{ id: string; ko: string }> = [];
+  // name 은 영문 풀네임 칸이다. 한글밖에 모른 채 넣으면 오염되므로(2026-06 배치 3,349행 유실)
+  // 무료 소스에서 영문을 먼저 찾고, 못 찾은 행만 한글로 대체한 뒤 backfill-ts-player-en-name 이 나중에 채운다.
+  const enNames = await resolveEnNames(prisma);
+  const toAdd: Array<{ id: string; ko: string; en: string | null }> = [];
   for (const m of marketRows) {
     if (ourIds.has(m.id)) continue;
     const raw = langMap.get(m.id);
     if (!raw) continue;
     const ko = normalize(raw);
     if (!ko) continue;
-    toAdd.push({ id: m.id, ko });
+    toAdd.push({ id: m.id, ko, en: enNames.get(m.id) ?? null });
   }
-  console.log(`market 보강 대상(TheSportsPlayer 신규)=${toAdd.length}`);
+  const withEn = toAdd.filter((t) => t.en).length;
+  console.log(`market 보강 대상(TheSportsPlayer 신규)=${toAdd.length} (영문 확보 ${withEn} · 한글 대체 ${toAdd.length - withEn})`);
 
   if (!APPLY) { console.log("[DRY-RUN] --apply 로 적용"); await prisma.$disconnect(); return; }
 
@@ -95,7 +100,7 @@ async function main() {
   // createMany 일괄 insert (개별 upsert 루프는 Neon 연결 소진 유발). market 보강은 신규 전용 = skipDuplicates.
   if (toAdd.length) {
     const res = await prisma.theSportsPlayer.createMany({
-      data: toAdd.map((t) => ({ id: t.id, name: t.ko, nameKo: t.ko, sport: "FOOTBALL" })),
+      data: toAdd.map((t) => ({ id: t.id, name: t.en ?? t.ko, nameKo: t.ko, sport: "FOOTBALL" })),
       skipDuplicates: true,
     });
     console.log("market 보강 createMany 추가:", res.count);

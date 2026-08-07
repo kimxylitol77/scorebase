@@ -12,6 +12,7 @@
 //
 // 확장법: STARS 에 { "ts player id": "한국어명" } 추가 후 재실행. createMany(skipDuplicates) 라 멱등.
 import { PrismaClient } from "@prisma/client";
+import { resolveEnNames } from "../src/lib/players/en-name-source";
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes("--apply");
@@ -70,8 +71,12 @@ async function main() {
   const existing = await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } });
   const existSet = new Set(existing.map((e) => e.id));
 
+  // name 은 영문 풀네임 칸이다. 한글밖에 모른 채 넣으면 오염되므로(2026-06 배치 3,349행 유실)
+  // 무료 소스에서 영문을 먼저 찾고, 못 찾은 행만 한글로 대체한 뒤 backfill-ts-player-en-name 이 나중에 채운다.
+  const enNames = await resolveEnNames(prisma);
+
   console.log("=== 큐레이션 검수 ===");
-  const toAdd: Array<{ id: string; ko: string }> = [];
+  const toAdd: Array<{ id: string; ko: string; en: string | null }> = [];
   for (const [id, ko] of Object.entries(STARS)) {
     const mv = mvMap.get(id);
     const tr = trMap.get(id);
@@ -83,7 +88,7 @@ async function main() {
         : "-";
     const mark = !mv && !tr ? "❌ market·transfer 모두 없음(오타?)" : dup ? "⏭ 이미 TheSportsPlayer 존재" : mv ? "✅ 추가대상" : "✅ 추가대상(transfer 검증)";
     console.log(`  ${ko.padEnd(14)} ${id}  ${info}  ${mark}`);
-    if ((mv || tr) && !dup) toAdd.push({ id, ko });
+    if ((mv || tr) && !dup) toAdd.push({ id, ko, en: enNames.get(id) ?? null });
   }
   console.log(`\n추가 대상 ${toAdd.length} / 사전 ${ids.length}`);
 
@@ -92,7 +97,7 @@ async function main() {
   if (toAdd.length) {
     // createMany(skipDuplicates) 단일 쿼리 — 개별 upsert 루프는 Neon 연결 소진 유발(메모리 참조).
     const res = await prisma.theSportsPlayer.createMany({
-      data: toAdd.map((t) => ({ id: t.id, name: t.ko, nameKo: t.ko, sport: "FOOTBALL" })),
+      data: toAdd.map((t) => ({ id: t.id, name: t.en ?? t.ko, nameKo: t.ko, sport: "FOOTBALL" })),
       skipDuplicates: true,
     });
     console.log("createMany 추가:", res.count);
