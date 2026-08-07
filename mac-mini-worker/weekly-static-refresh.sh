@@ -36,6 +36,8 @@ log "⑦ api-football 그리드 포지션 (빅5·UCL·WC — 스타 포괄 커�
 npx tsx --env-file=.env.local scripts/build-player-positions.ts 2>&1 | tail -2 || true
 log "⑦-b 세부 포지션 (라인업 x/y 최빈 + af그리드 우선 병합)"
 npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
+log "⑦-c 주발 (Wikidata P8006 — overrides qid 기반, 위키 등재가 늘면 자동 반영)"
+npx tsx scripts/collect-player-foot.ts 2>&1 | tail -2 || true
 log "⑧ 선수 ts↔af 매핑 + af 시즌스탯 (17개 리그 — 대회별·시즌별 스탯 섹션 동력)"
 npx tsx --env-file=.env.local scripts/build-ts-af-player-map.ts 2>&1 | tail -3 || true
 log "⑧-b 해외파 한국 선수 로스터 (af 국적 스캔 23개 리그 — /soccer/korea 동력, ~800콜)"
