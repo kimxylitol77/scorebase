@@ -498,6 +498,9 @@ model TheSportsMatchCache {
   /// 전반 점수 (p1 의 goals stat_type_id) + 전반 슛/점유 등 표시 용도.
   /// 2026-05-21 추가, worker v3+ 1분 주기 push.
   halfTeamStats Json?
+  /// 경기 환경(날씨) — match/diary 의 environment {weather, temperature, humidity, wind, pressure}.
+  /// football-match-collector(1h) 가 thesports-matches route 경유로 채움. 라이브 상세 날씨 표시용.
+  environment Json?
   /// Match momentum trend — /v1/football/match/trend/detail 응답.
   /// 구조: { count, per, data: [[전반 분당 값], [후반 분당 값]] }
   /// 값 -100~+100 (home 양수, away 음수, 1분 단위 momentum).

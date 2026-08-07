@@ -25,6 +25,7 @@
 import { readFileSync } from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import {
   HOCKEY_LEAGUES,
@@ -85,6 +86,8 @@ interface MatchPayload {
   playoffRound?: string;
   playoffConference?: string | null;
   playoffStageId?: string;
+  // 경기 환경(날씨) — diary 의 environment {weather, temperature, humidity, wind, pressure}. 있으면 cache 에 저장.
+  environment?: unknown;
 }
 interface Body {
   sport: "football" | "baseball" | "ice_hockey" | "basketball" | "volleyball";
@@ -437,11 +440,15 @@ export async function POST(req: NextRequest) {
         try {
           await prisma.theSportsMatchCache.upsert({
             where: { matchId: existingNonTs.id },
-            update: { tsMatchId: m.tsMatchId },
+            update: {
+              tsMatchId: m.tsMatchId,
+              ...(m.environment !== undefined ? { environment: m.environment as Prisma.InputJsonValue } : {}),
+            },
             create: {
               matchId: existingNonTs.id,
               tsMatchId: m.tsMatchId,
               detailLive: {},
+              ...(m.environment !== undefined ? { environment: m.environment as Prisma.InputJsonValue } : {}),
             },
           });
           // TS 단일소스 리그(NBA/NHL/MLB/KBO/NPB 등 — ESPN/api-sports 는 백스톱)는 기존 매치
@@ -569,7 +576,7 @@ export async function POST(req: NextRequest) {
       if (m.playoffConference !== undefined) updateData.playoffConference = m.playoffConference;
       if (m.playoffStageId) updateData.playoffStageId = m.playoffStageId;
 
-      await prisma.match.upsert({
+      const savedMatch = await prisma.match.upsert({
         where: { league_externalId: { league: m.league, externalId } },
         update: updateData,
         create: {
@@ -585,7 +592,16 @@ export async function POST(req: NextRequest) {
           playoffConference: m.playoffConference ?? null,
           playoffStageId: m.playoffStageId ?? null,
         },
+        select: { id: true },
       });
+      // 날씨 — diary 가 실어오면 cache 에 저장 (poller 의 다른 필드 push 는 건드리지 않음)
+      if (m.environment !== undefined) {
+        await prisma.theSportsMatchCache.upsert({
+          where: { matchId: savedMatch.id },
+          update: { environment: m.environment as Prisma.InputJsonValue },
+          create: { matchId: savedMatch.id, tsMatchId: m.tsMatchId, detailLive: {}, environment: m.environment as Prisma.InputJsonValue },
+        });
+      }
       upserted++;
     } catch (e) {
       console.warn(`[ts-matches] upsert fail ${m.league}/${m.tsMatchId}: ${(e as Error).message}`);

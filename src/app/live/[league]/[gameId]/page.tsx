@@ -729,7 +729,9 @@ export default async function GenericLivePage({ params }: Props) {
       />
     );
 
-    const venueNode = venue ? <SoccerVenueCard venue={venue} /> : null;
+    // 날씨 — 매치 수집기(diary environment)가 cache 에 채움. 온도·습도·바람만 표시(코드 해석은 안 함).
+    const env = (match.theSportsCache?.environment ?? null) as { temperature?: string; humidity?: string; wind?: string } | null;
+    const venueNode = venue || env ? <SoccerVenueCard venue={venue} weather={env} /> : null;
     const predictionNode = matchPrediction ? (
       <MatchPredictionsCard prediction={matchPrediction} homeNameKo={homeKo} awayNameKo={awayKo} />
     ) : null;

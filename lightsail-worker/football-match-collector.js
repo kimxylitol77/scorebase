@@ -140,6 +140,8 @@ async function poll() {
         status: mapStatus(m.status_id),
         homeScore: finalScore(m.home_scores),
         awayScore: finalScore(m.away_scores),
+        // 날씨 — diary environment {weather, temperature, humidity, wind, pressure}. 라이브 상세 표시용.
+        ...(m.environment && typeof m.environment === "object" ? { environment: m.environment } : {}),
       });
     }
   }
