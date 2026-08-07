@@ -312,7 +312,9 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
       won?: number;
       draw?: number;
       loss?: number;
-      goals?: [number, number] | { for?: number; against?: number };
+      /** ts 실측: 축구는 단일 숫자(득점) + goals_against 별도. 배열/객체 형태 방어 유지. */
+      goals?: number | [number, number] | { for?: number; against?: number };
+      goals_against?: number;
       goal_diff?: number;
     }
     const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[]; group?: number | string | null }> };
@@ -331,8 +333,10 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
         const ourId = leagueMap?.get(r.team_id);
         if (ourId == null || seen.has(ourId)) continue;
         seen.add(ourId);
-        const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
-        const ga = Array.isArray(r.goals) ? r.goals[1] : r.goals?.against;
+        const gf = Array.isArray(r.goals) ? r.goals[0]
+          : typeof r.goals === "number" ? r.goals : r.goals?.for;
+        const ga = Array.isArray(r.goals) ? r.goals[1]
+          : typeof r.goals === "number" ? r.goals_against : r.goals?.against;
         out.push({
           teamId: ourId,
           position: r.position,

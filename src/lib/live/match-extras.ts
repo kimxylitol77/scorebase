@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/db";
 import { calcStandings, type StandingSummary } from "@/lib/predict/standings";
+import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { calcForm, type TeamForm } from "@/lib/predict/form";
 import type { PredictMatch, FormResult } from "@/lib/predict/types";
 
@@ -234,12 +235,46 @@ async function fetchMatchExtrasInner(match: {
     };
   }
 
+  // 리그순위·시즌성적 — 공식 순위표(ts/af, getFullStandings)가 있으면 그걸 우선.
+  //  calcStandings 는 우리가 수집한 경기만 집계라 커버 시작 이후 부분 성적이고,
+  //  A/B 조 리그(아르헨 2부 등)를 한 표로 합쳐 순위표 페이지와 순위가 어긋난다
+  //  (2026-08-08 사용자 신고: 카드 14위 vs 순위표 조별 순위). 조가 있으면 조 내 순위·팀수.
+  let officialHome: StandingLite | null = null;
+  let officialAway: StandingLite | null = null;
+  let officialTotal = 0;
+  try {
+    const rows = await getFullStandings(match.league);
+    const hRow = rows.find((r) => r.teamId === match.homeTeam.id);
+    const aRow = rows.find((r) => r.teamId === match.awayTeam.id);
+    const toLite = (r: typeof hRow): StandingLite | null =>
+      r && r.goalsFor != null && r.goalsAgainst != null
+        ? {
+            played: r.won + r.draw + r.loss,
+            wins: r.won,
+            draws: r.draw,
+            losses: r.loss,
+            goalsFor: r.goalsFor,
+            goalsAgainst: r.goalsAgainst,
+            position: r.position,
+          }
+        : null;
+    officialHome = toLite(hRow);
+    officialAway = toLite(aRow);
+    // 총 팀수 — 조별 리그면 홈팀이 속한 조의 팀수 (순위 분모가 조 기준이라야 맞다)
+    officialTotal = hRow?.group
+      ? rows.filter((r) => r.group === hRow.group).length
+      : rows.length;
+  } catch {
+    /* 공식 순위 실패 — 아래 자체 계산 폴백 */
+  }
+  const useOfficial = !!(officialHome && officialAway);
+
   return {
     homeForm,
     awayForm,
-    homeStanding: lite(standings.byTeam.get(match.homeTeam.id)),
-    awayStanding: lite(standings.byTeam.get(match.awayTeam.id)),
-    totalTeams: standings.rows.length,
+    homeStanding: useOfficial ? officialHome : lite(standings.byTeam.get(match.homeTeam.id)),
+    awayStanding: useOfficial ? officialAway : lite(standings.byTeam.get(match.awayTeam.id)),
+    totalTeams: useOfficial ? officialTotal : standings.rows.length,
     h2hHome,
     previewSlug,
     recapSlug,

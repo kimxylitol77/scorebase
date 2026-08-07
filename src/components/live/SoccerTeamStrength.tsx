@@ -9,6 +9,7 @@ import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
 import { calcSeasonStats, calcSeasonForm } from "@/lib/predict/season-stats";
 import { calcStandings } from "@/lib/predict/standings";
+import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcRecentTrend } from "@/lib/predict/recent-trend";
@@ -59,6 +60,26 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const awayRow = standings.byTeam.get(match.awayTeam.id);
   if (!homeRow || !awayRow) return null;
 
+  // 리그순위·시즌성적·승점·득실 — 공식 순위표(getFullStandings)가 있으면 우선.
+  //  calcStandings 는 우리 수집 경기만의 부분 집계인 데다 A/B 조 리그(아르헨 2부 등)를
+  //  한 표로 합쳐 순위표 페이지와 어긋난다 (2026-08-08 사용자 신고: 카드 14위 vs 조별 순위).
+  const official = await getFullStandings(match.league).catch(() => []);
+  const oH = official.find((r) => r.teamId === match.homeTeam.id);
+  const oA = official.find((r) => r.teamId === match.awayTeam.id);
+  const useOfficial = !!(oH && oA && oH.goalsFor != null && oA.goalsFor != null);
+  const toStand = (r: NonNullable<typeof oH>) => ({
+    position: r.position,
+    points: r.points,
+    played: r.won + r.draw + r.loss,
+    wins: r.won,
+    draws: r.draw,
+    losses: r.loss,
+    goalsFor: r.goalsFor!,
+    goalsAgainst: r.goalsAgainst!,
+  });
+  const homeStand = useOfficial ? toStand(oH!) : homeRow;
+  const awayStand = useOfficial ? toStand(oA!) : awayRow;
+
   // 국가대항(월드컵·친선)은 클럽 히스토리가 없어 시드 Elo fallback (MatchInsight 동일)
   const isNationalLeague =
     match.league === "WORLD_CUP" || match.league === "INTL_FRIENDLY";
@@ -75,7 +96,10 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
-  const totalTeams = standings.rows.length;
+  // 조별 리그면 순위 분모는 그 조의 팀수 (홈팀 기준 조)
+  const totalTeams = useOfficial
+    ? (oH!.group ? official.filter((r) => r.group === oH!.group).length : official.length)
+    : standings.rows.length;
   const showDraw = leagueHasDraw(match.league);
 
   const homeForm = calcForm(matches, match.homeTeam.id, referenceTime, 5);
@@ -116,15 +140,15 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const homeSide: TeamSide = {
     name: homeKo,
     form: homeForm.results,
-    position: homeRow.position,
-    seasonPoints: match.homeSeasonPoints ?? homeRow.points,
+    position: homeStand.position,
+    seasonPoints: match.homeSeasonPoints ?? homeStand.points,
     totalTeams,
-    played: homeRow.played,
-    wins: homeRow.wins,
-    draws: homeRow.draws,
-    losses: homeRow.losses,
-    goalsFor: homeRow.goalsFor,
-    goalsAgainst: homeRow.goalsAgainst,
+    played: homeStand.played,
+    wins: homeStand.wins,
+    draws: homeStand.draws,
+    losses: homeStand.losses,
+    goalsFor: homeStand.goalsFor,
+    goalsAgainst: homeStand.goalsAgainst,
     attackRank: standings.attackRank.get(match.homeTeam.id),
     defenseRank: standings.defenseRank.get(match.homeTeam.id),
     splitLabel: "홈",
@@ -146,15 +170,15 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const awaySide: TeamSide = {
     name: awayKo,
     form: awayForm.results,
-    position: awayRow.position,
-    seasonPoints: match.awaySeasonPoints ?? awayRow.points,
+    position: awayStand.position,
+    seasonPoints: match.awaySeasonPoints ?? awayStand.points,
     totalTeams,
-    played: awayRow.played,
-    wins: awayRow.wins,
-    draws: awayRow.draws,
-    losses: awayRow.losses,
-    goalsFor: awayRow.goalsFor,
-    goalsAgainst: awayRow.goalsAgainst,
+    played: awayStand.played,
+    wins: awayStand.wins,
+    draws: awayStand.draws,
+    losses: awayStand.losses,
+    goalsFor: awayStand.goalsFor,
+    goalsAgainst: awayStand.goalsAgainst,
     attackRank: standings.attackRank.get(match.awayTeam.id),
     defenseRank: standings.defenseRank.get(match.awayTeam.id),
     splitLabel: "원정",
