@@ -134,7 +134,6 @@ export type League =
   // 한국 + 일본 하부
   | "K3_LEAGUE" // K3 리그
   | "K4_LEAGUE" // K4 리그
-  | "J3_LEAGUE" // J3 리그
   // 동남아
   | "THAI_L1" // 태국 1부
   | "VIETNAM_VL2" // 베트남 V.League 2
@@ -325,7 +324,6 @@ export const SOCCER_LEAGUES = [
   // 신규 23개 (2026-05-22)
   "K3_LEAGUE",
   "K4_LEAGUE",
-  "J3_LEAGUE",
   "THAI_L1",
   "VIETNAM_VL2",
   "ARGENTINA_PL",
@@ -549,10 +547,9 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "UEFA_U21_Q",
   "U20_WC",
   "U17_WC",
-  // 아시아 하위 5
+  // 아시아 하위 4 (J3 는 2026-08-08 리그 자체 제외)
   "K3_LEAGUE",
   "K4_LEAGUE",
-  "J3_LEAGUE",
   "THAI_L1",
   "VIETNAM_VL2",
   // 남미 1·2부 5

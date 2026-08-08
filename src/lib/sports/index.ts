@@ -167,7 +167,7 @@ export const collectors: Record<League, MatchCollector> = {
   // ── 축구 23개 신규 (2026-05-22) — 모두 api-football 통합 ──
   K3_LEAGUE: buildApiFootballCollector("K3_LEAGUE"),
   K4_LEAGUE: buildApiFootballCollector("K4_LEAGUE"),
-  J3_LEAGUE: buildApiFootballCollector("J3_LEAGUE"),
+  // J3_LEAGUE 제거 — 리그를 내려서 af id 매핑도 뺐다(2026-08-08).
   THAI_L1: buildApiFootballCollector("THAI_L1"),
   VIETNAM_VL2: buildApiFootballCollector("VIETNAM_VL2"),
   // 2026-08-01~02 — 7m 대조 확장 23개. 등록만으로는 af 콜 없음 (수집 여부는 collect 리스트가 결정).

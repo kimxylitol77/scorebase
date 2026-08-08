@@ -116,9 +116,10 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // ───── 신규 추가 (2026-05-22, 23개) ─────
   // ID 일부는 api-football 공식 docs 기반 추정 — 실 검증 후 확정 (collector
   // 첫 호출 시 매치 0건이면 id 보정 필요).
-  // 한국 하부 + 일본 J3 + 동남아 추가
+  // 한국 하부 + 동남아 추가
+  // J3_LEAGUE(af id 100) 제거 — 2026-08-08 리그 자체를 내렸다. 여기 남겨두면 fetchSoccerByDate
+  // 일자 피드에 걸려 /scores 에 orphan 카드로 계속 떴다(8/8 실측: 5경기 중 2경기가 이 경로).
   K3_LEAGUE: 295, // K3 리그 (2026-06-10 id 교정: 766=China Cup 이었음)
-  J3_LEAGUE: 100, // J3 리그
   THAI_L1: 296, // Thai League 1
   VIETNAM_VL2: 637, // V.League 2 (2026-06-10 id 교정: 341=베트남컵이었음)
   // 남미 추가

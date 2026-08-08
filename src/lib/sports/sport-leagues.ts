@@ -14,7 +14,9 @@ interface SportMeta {
 export const ALL_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
   "K_LEAGUE_1", "K_LEAGUE_2", "K3_LEAGUE", "K4_LEAGUE",
-  "J1_LEAGUE", "J2_LEAGUE", "J3_LEAGUE",
+  // J3 제외 (2026-08-08 사용자 결정) — 3부라 한국 독자 관심이 낮은데, ts 수집이 붙다 말아
+  // 라운드의 절반만 DB 에 들어오고 나머지는 af orphan 카드로만 뜨는 반쪽 상태였다.
+  "J1_LEAGUE", "J2_LEAGUE",
   "AFC_CL", "AFC_CL_TWO", "AFC_U23", "ASEAN_CHAMP", "SAUDI_PL",
   "UEL", "UECL",
   "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
@@ -91,7 +93,7 @@ export const SPORTS: SportMeta[] = [
     leagues: [
       "K_LEAGUE_1", "K_LEAGUE_2", "K3_LEAGUE", "K4_LEAGUE",
       "AFC_CL", "AFC_CL_TWO", "AFC_U23", "ASEAN_CHAMP",
-      "J1_LEAGUE", "J2_LEAGUE", "J3_LEAGUE",
+      "J1_LEAGUE", "J2_LEAGUE", // J3 제외 — ALL_LEAGUES 주석 참고
       "UCL", "UEL", "UECL",
       "EPL", "CHAMPIONSHIP",
       "LALIGA", "LALIGA_2",
