@@ -265,8 +265,9 @@ export default async function StandingsPage({ params }: Props) {
 
   const seasonStart = currentSeasonStart(upper);
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
-  // 오프시즌 등으로 현재 시즌 완료 매치가 너무 적으면 직전 시즌 창으로 폴백 (predictions 와 동일).
-  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length < 10) {
+  // 오프시즌(새 시즌 완료 매치 0)일 때만 직전 시즌 창으로 폴백. 임계 10 이던 것을 0 으로 —
+  // 개막 후 몇 라운드 동안 지난 시즌 최근폼·순위가 새 시즌인 척 표시되던 원인(2026-08 분데스2 실측).
+  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
     const prev = previousSeasonStart(seasonStart);
     matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
   }

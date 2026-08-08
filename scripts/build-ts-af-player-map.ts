@@ -21,26 +21,30 @@ import { toKoreanTeamName } from "../src/lib/team-names";
 const prisma = new PrismaClient();
 
 const KEY = process.env.API_FOOTBALL_KEY!;
-// season: 유럽 시즌제 = 2025(25-26) / 캘린더제(MLS·K·J·브라질) = 2026
+// season 자동 계산 — 하드코딩(2025)이 시즌 롤오버 때 안 올라가 리더보드가 지난 시즌에
+// 동결되던 원인(2026-08 분데스2 실측). 유럽형은 7월부터 새 시즌 연도, 달력형은 그 해.
+const NOW = new Date();
+const EURO_SEASON = NOW.getUTCMonth() + 1 >= 7 ? NOW.getUTCFullYear() : NOW.getUTCFullYear() - 1;
+const CAL_SEASON = NOW.getUTCFullYear();
 const LEAGUES: Record<string, { afId: number; season: number; calendar?: boolean }> = {
-  EPL: { afId: 39, season: 2025 },
-  LALIGA: { afId: 140, season: 2025 },
-  BUNDESLIGA: { afId: 78, season: 2025 },
-  LIGUE_1: { afId: 61, season: 2025 },
-  SERIE_A: { afId: 135, season: 2025 },
-  CHAMPIONSHIP: { afId: 40, season: 2025 },
-  LALIGA_2: { afId: 141, season: 2025 },
-  BUNDESLIGA_2: { afId: 79, season: 2025 },
-  SERIE_B: { afId: 136, season: 2025 },
-  LIGUE_2: { afId: 62, season: 2025 },
-  EREDIVISIE: { afId: 88, season: 2025 },
-  PRIMEIRA_LIGA: { afId: 94, season: 2025 },
-  SUPER_LIG: { afId: 203, season: 2025 },
-  SAUDI_PL: { afId: 307, season: 2025 },
-  MLS: { afId: 253, season: 2026, calendar: true },
-  K_LEAGUE_1: { afId: 292, season: 2026, calendar: true },
-  J1_LEAGUE: { afId: 98, season: 2026, calendar: true },
-  BRASILEIRAO: { afId: 71, season: 2026, calendar: true },
+  EPL: { afId: 39, season: EURO_SEASON },
+  LALIGA: { afId: 140, season: EURO_SEASON },
+  BUNDESLIGA: { afId: 78, season: EURO_SEASON },
+  LIGUE_1: { afId: 61, season: EURO_SEASON },
+  SERIE_A: { afId: 135, season: EURO_SEASON },
+  CHAMPIONSHIP: { afId: 40, season: EURO_SEASON },
+  LALIGA_2: { afId: 141, season: EURO_SEASON },
+  BUNDESLIGA_2: { afId: 79, season: EURO_SEASON },
+  SERIE_B: { afId: 136, season: EURO_SEASON },
+  LIGUE_2: { afId: 62, season: EURO_SEASON },
+  EREDIVISIE: { afId: 88, season: EURO_SEASON },
+  PRIMEIRA_LIGA: { afId: 94, season: EURO_SEASON },
+  SUPER_LIG: { afId: 203, season: EURO_SEASON },
+  SAUDI_PL: { afId: 307, season: EURO_SEASON },
+  MLS: { afId: 253, season: CAL_SEASON, calendar: true },
+  K_LEAGUE_1: { afId: 292, season: CAL_SEASON, calendar: true },
+  J1_LEAGUE: { afId: 98, season: CAL_SEASON, calendar: true },
+  BRASILEIRAO: { afId: 71, season: CAL_SEASON, calendar: true },
 };
 interface TsStat {
   lg: string; team: string | null; pos: string | null;

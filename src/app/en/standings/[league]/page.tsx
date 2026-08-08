@@ -185,7 +185,8 @@ async function fetchBaseballRows(upper: string): Promise<StandingsRow[]> {
   ).filter((m) => !isAllStarMatchRow(m)); // 올스타전 제외
   const seasonStart = currentSeasonStart(upper);
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
-  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length < 10) {
+  // 오프시즌(완료 0)일 때만 지난 시즌 폴백 — ko 판과 동일 기준 (임계 10 → 0).
+  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
     const prev = previousSeasonStart(seasonStart);
     matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
   }
