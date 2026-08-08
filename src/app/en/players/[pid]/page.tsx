@@ -19,11 +19,25 @@ import {
   fetchPitcherProfileCached as fetchPitcherProfile,
   fetchPitcherRecentCached as fetchPitcherRecent,
 } from "@/lib/sports/mlb-cache";
-import { fetchSoccerPlayerProfile } from "@/lib/sports/api-football-pro";
+import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { enLeagueName } from "@/lib/i18n/en";
+import { cache } from "react";
 
 export const dynamic = "force-dynamic";
+
+// 요청 스코프 dedupe — generateMetadata 와 본문이 같은 (id, season) 호출을 공유해
+// af 실제 콜 수는 기존(요청당 1콜) 유지. 한국어판(/players fc81896)과 같은 패턴.
+const fetchSoccerProfileCached = cache(
+  (id: number, season: number) => fetchSoccerPlayerProfile(id, season),
+);
+// 시즌 산식 — 메타·본문이 같은 캐시 키를 쓰도록 단일화 (7월 경계 기존 산식 그대로)
+function soccerSeason(now: Date): number {
+  return now.getUTCMonth() + 1 >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
+const POS_EN: Record<string, string> = {
+  Attacker: "Forward", Midfielder: "Midfielder", Defender: "Defender", Goalkeeper: "Goalkeeper",
+};
 
 interface Props {
   params: Promise<{ pid: string }>;
@@ -43,6 +57,30 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     languages: { ko: koUrl, en: canonical, "x-default": koUrl },
   };
   if (league && SOCCER_SET.has(league)) {
+    // 제네릭 "Player Profile — EPL" 탈피 — 한국어판 fc81896 과 동일 패턴(검색어 선행+동적 데이터).
+    // 본문과 같은 (id, season) cached fetch 라 af 콜 증가 0.
+    try {
+      const id = Number(pid);
+      let profile: SoccerPlayerProfile | null = null;
+      if (Number.isFinite(id)) profile = await fetchSoccerProfileCached(id, soccerSeason(new Date()));
+      if (profile) {
+        const main = profile.stats[0];
+        const pos = profile.position ? POS_EN[profile.position] ?? profile.position : "";
+        const who = [main?.teamName, pos].filter(Boolean).join(" ");
+        const g = main?.goals ?? 0;
+        const a = main?.assists ?? 0;
+        const statBit = g > 0 || a > 0 ? ` · ${g} Goal${g === 1 ? "" : "s"}, ${a} Assist${a === 1 ? "" : "s"}` : "";
+        return {
+          title: `${profile.name} — ${who || enLeagueName(league)}${statBit} · Profile & Stats`,
+          description:
+            `${who ? `${who} ` : ""}${profile.name} profile — season appearances, goals, assists ` +
+            `and rating, with per-competition breakdown. Scorebase.`,
+          alternates,
+        };
+      }
+    } catch {
+      // af 실패 시 아래 제네릭 폴백
+    }
     return {
       title: `Player Profile — ${enLeagueName(league)}`,
       description: `${enLeagueName(league)} player profile, season statistics and per-competition breakdown.`,
@@ -56,11 +94,17 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const profile = await fetchHitterProfile(id, yr);
     if (!profile) return { title: "Player not found", robots: GOOGLE_NOINDEX };
     const isPitcher = profile.position === "P";
+    // 타자는 시즌 스탯을 title 에 숫자로 — 한국어판 b0a454f 와 동일 패턴, profile.season 재사용이라 비용 0.
+    const st = profile.season;
+    const hitterTitle =
+      !isPitcher && st?.avg
+        ? `${profile.name} Batting Average ${st.avg}${st.hr != null ? `, ${st.hr} HR` : ""}${st.ops ? `, ${st.ops} OPS` : ""} — MLB ${yr} Stats`
+        : `${profile.name} — MLB Hitter Stats`;
     return {
-      title: `${profile.name} — MLB ${isPitcher ? "Pitcher" : "Hitter"} Stats`,
+      title: isPitcher ? `${profile.name} — MLB Pitcher Stats` : hitterTitle,
       description: isPitcher
         ? `${profile.team ?? "MLB"} — ${profile.name}'s ${yr} ERA, WHIP, K/9 and recent starts.`
-        : `${profile.team ?? "MLB"} — ${profile.name}'s ${yr} batting average, home runs, RBIs, OPS and recent games.`,
+        : `${profile.team ?? "MLB"} — ${profile.name}'s ${yr} batting average${st?.avg ? ` ${st.avg}` : ""}, home runs${st?.hr != null ? ` ${st.hr}` : ""}, RBIs, OPS and recent games.`,
       alternates,
     };
   } catch {
@@ -253,9 +297,8 @@ function MlbPitcherEn({ profile, recent, season }: { profile: PitcherProfile; re
 async function SoccerPlayerEn({ pid, league }: { pid: string; league: string }) {
   const id = Number(pid);
   if (!Number.isFinite(id)) notFound();
-  const now = new Date();
-  const season = now.getUTCMonth() + 1 >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-  const profile = await fetchSoccerPlayerProfile(id, season);
+  const season = soccerSeason(new Date());
+  const profile = await fetchSoccerProfileCached(id, season);
   if (!profile) notFound();
   const main = profile.stats[0];
   return (
