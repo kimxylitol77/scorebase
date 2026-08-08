@@ -18,7 +18,7 @@
       "flag": "🇳🇴"
     }
   ],
-  "teamRating": 3.3,
+  "teamRating": 3.2,
   "xi": [
     {
       "id": "1l4rjnhxp286m7v",
@@ -38,23 +38,6 @@
       "y": 90
     },
     {
-      "id": "jw2r09hjk38rz84",
-      "name": "Dayot Upamecano",
-      "nameKo": "다요 우파메카노",
-      "hasMv": true,
-      "pos": "D",
-      "country": "France",
-      "flag": "🇫🇷",
-      "logo": "https://img.thesports.com/football/player/546d0ffa773888eaffeff73205d268c4.png",
-      "score": 8.1,
-      "star": 4,
-      "recentRating": 7,
-      "avgRating": 7.14,
-      "games": 4,
-      "x": 16,
-      "y": 70
-    },
-    {
       "id": "pxwrxlh9e758ryk",
       "name": "William Saliba",
       "nameKo": "윌리암 살리바",
@@ -66,9 +49,9 @@
       "score": 8.08,
       "star": 4,
       "recentRating": 6.02,
-      "avgRating": 6.95,
-      "games": 3,
-      "x": 39,
+      "avgRating": 6.74,
+      "games": 2,
+      "x": 16,
       "y": 70
     },
     {
@@ -83,8 +66,25 @@
       "score": 7.97,
       "star": 3,
       "recentRating": 6,
-      "avgRating": 6.79,
-      "games": 4,
+      "avgRating": 6.55,
+      "games": 3,
+      "x": 39,
+      "y": 70
+    },
+    {
+      "id": "jw2r09hjk38rz84",
+      "name": "Dayot Upamecano",
+      "nameKo": "다요 우파메카노",
+      "hasMv": true,
+      "pos": "D",
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/546d0ffa773888eaffeff73205d268c4.png",
+      "score": 7.92,
+      "star": 3,
+      "recentRating": 7,
+      "avgRating": 6.94,
+      "games": 3,
       "x": 61,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 7.9,
       "star": 3,
       "recentRating": 7.9,
-      "avgRating": 7.66,
-      "games": 2,
+      "avgRating": 7.9,
+      "games": 1,
       "x": 22,
       "y": 32
     },
@@ -131,47 +131,13 @@
       "country": "Norway",
       "flag": "🇳🇴",
       "logo": "https://img.thesports.com/football/player/5826b588824cc39b40467cbad4cc0e62.png",
-      "score": 7.84,
+      "score": 7.83,
       "star": 3,
       "recentRating": 7.2,
-      "avgRating": 7.21,
-      "games": 2,
+      "avgRating": 7.2,
+      "games": 1,
       "x": 50,
       "y": 32
-    },
-    {
-      "id": "6ypq3nhze775md7",
-      "name": "Rayan Cherki",
-      "nameKo": "라얀 셰르키",
-      "hasMv": true,
-      "pos": "M",
-      "country": "France",
-      "flag": "🇫🇷",
-      "logo": "https://img.thesports.com/football/player/34018051c90149739b987a414f80e616.png",
-      "score": 7.73,
-      "star": 3,
-      "recentRating": 6.22,
-      "avgRating": 6.4,
-      "games": 3,
-      "x": 78,
-      "y": 32
-    },
-    {
-      "id": "zp5rzghz03woq82",
-      "name": "Manu Koné",
-      "nameKo": "콰디오 코네",
-      "hasMv": true,
-      "pos": "M",
-      "country": "France",
-      "flag": "🇫🇷",
-      "logo": "https://img.thesports.com/football/player/3da1f7280a8921171ab7ecd02c0007a0.png",
-      "score": 7.72,
-      "star": 3,
-      "recentRating": 6.13,
-      "avgRating": 6.81,
-      "games": 3,
-      "x": 35,
-      "y": 52
     },
     {
       "id": "dn1m1gh30vw3moe",
@@ -187,6 +153,40 @@
       "recentRating": 6.49,
       "avgRating": 6.64,
       "games": 2,
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "zp5rzghz03woq82",
+      "name": "Manu Koné",
+      "nameKo": "마누 코네",
+      "hasMv": true,
+      "pos": "M",
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/3da1f7280a8921171ab7ecd02c0007a0.png",
+      "score": 7.66,
+      "star": 3,
+      "recentRating": 6.13,
+      "avgRating": 6.61,
+      "games": 2,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "pxwrxlhv2peryk0",
+      "name": "Aurelien Tchouameni",
+      "nameKo": "오렐리앵 추아메니",
+      "hasMv": true,
+      "pos": "M",
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/14426cc461d2748f83d117ff5f90868c.png",
+      "score": 7.49,
+      "star": 3,
+      "recentRating": 6.47,
+      "avgRating": 6.47,
+      "games": 1,
       "x": 65,
       "y": 52
     },
@@ -202,28 +202,13 @@
       "score": 9.34,
       "star": 4,
       "recentRating": 9.5,
-      "avgRating": 8.13,
-      "games": 4,
+      "avgRating": 8.17,
+      "games": 3,
       "x": 50,
       "y": 14
     }
   ],
   "bench": [
-    {
-      "id": "2y8m4zhzd27ql07",
-      "name": "Erling Haaland",
-      "nameKo": "엘링 홀란",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Norway",
-      "flag": "🇳🇴",
-      "logo": "https://img.thesports.com/football/player/e579eba3fa3579885c1c69b1efb96d67.png",
-      "score": 9.19,
-      "star": 4,
-      "recentRating": 6.77,
-      "avgRating": 7.98,
-      "games": 2
-    },
     {
       "id": "318q66hjv6kqo9j",
       "name": "Ousmane Dembélé",
@@ -236,23 +221,8 @@
       "score": 8.45,
       "star": 4,
       "recentRating": 7.92,
-      "avgRating": 7.23,
-      "games": 4
-    },
-    {
-      "id": "pxwrxlh9d32gryk",
-      "name": "Maghnes Akliouche",
-      "nameKo": "마그네스 아클리우슈",
-      "hasMv": true,
-      "pos": "F",
-      "country": "France",
-      "flag": "🇫🇷",
-      "logo": "https://img.thesports.com/football/player/721fe2bcd3cef5e603da838657bf6ee0.png",
-      "score": 8.23,
-      "star": 4,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "avgRating": 7.5,
+      "games": 3
     },
     {
       "id": "k82rekhon2drepz",
@@ -263,6 +233,21 @@
       "country": "France",
       "flag": "🇫🇷",
       "logo": "https://img.thesports.com/football/player/3d6f4db2ff5e951777fd7530f06824f8.png",
+      "score": 8.23,
+      "star": 4,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
+    },
+    {
+      "id": "pxwrxlh9d32gryk",
+      "name": "Maghnes Akliouche",
+      "nameKo": "마그네스 아클리우슈",
+      "hasMv": true,
+      "pos": "F",
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/721fe2bcd3cef5e603da838657bf6ee0.png",
       "score": 8.23,
       "star": 4,
       "recentRating": 0,
@@ -281,13 +266,13 @@
       "score": 8.22,
       "star": 4,
       "recentRating": 5.9,
-      "avgRating": 6.92,
-      "games": 4
+      "avgRating": 6.82,
+      "games": 3
     },
     {
       "id": "y0or5jhe6zx2qwz",
       "name": "Michael Olise",
-      "nameKo": "미카엘 올리세",
+      "nameKo": "마이클 올리스",
       "hasMv": true,
       "pos": "F",
       "country": "France",
@@ -296,8 +281,23 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 7.42,
-      "avgRating": 6.9,
-      "games": 4
+      "avgRating": 7.06,
+      "games": 3
+    },
+    {
+      "id": "2y8m4zhzd27ql07",
+      "name": "Erling Haaland",
+      "nameKo": "엘링 홀란",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Norway",
+      "flag": "🇳🇴",
+      "logo": "https://img.thesports.com/football/player/e579eba3fa3579885c1c69b1efb96d67.png",
+      "score": 7.98,
+      "star": 3,
+      "recentRating": 6.77,
+      "avgRating": 6.77,
+      "games": 1
     }
   ],
   "complete": true

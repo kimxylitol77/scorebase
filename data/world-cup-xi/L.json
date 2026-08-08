@@ -21,19 +21,19 @@
   "teamRating": 3.5,
   "xi": [
     {
-      "id": "y0or5jh3jldqwzv",
-      "name": "Lawrence Ati-Zigi",
-      "nameKo": "로런스 아티지기",
-      "hasMv": false,
+      "id": "4jwq2ghv9ee0m0v",
+      "name": "James Trafford",
+      "nameKo": "제임스 트래퍼드",
+      "hasMv": true,
       "pos": "G",
-      "country": "Ghana",
-      "flag": "🇬🇭",
-      "logo": "https://img.thesports.com/football/player/fba16db606f8a570ecf9aad7ae3d300e.png",
-      "score": 8.05,
-      "star": 4,
-      "recentRating": 8.05,
-      "avgRating": 8.05,
-      "games": 1,
+      "country": "England",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      "logo": "https://img.thesports.com/football/player/406930655e898904d559c4fc5f9940c0.png",
+      "score": 7.76,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.41,
-      "avgRating": 6.6,
-      "games": 3,
+      "avgRating": 6.8,
+      "games": 2,
       "x": 16,
       "y": 70
     },
@@ -66,8 +66,8 @@
       "score": 7.74,
       "star": 3,
       "recentRating": 6.42,
-      "avgRating": 6.77,
-      "games": 4,
+      "avgRating": 6.97,
+      "games": 3,
       "x": 39,
       "y": 70
     },
@@ -83,8 +83,8 @@
       "score": 7.72,
       "star": 3,
       "recentRating": 7.35,
-      "avgRating": 6.8,
-      "games": 4,
+      "avgRating": 6.9,
+      "games": 3,
       "x": 61,
       "y": 70
     },
@@ -100,8 +100,8 @@
       "score": 7.68,
       "star": 3,
       "recentRating": 6.9,
-      "avgRating": 6.52,
-      "games": 4,
+      "avgRating": 6.71,
+      "games": 3,
       "x": 84,
       "y": 70
     },
@@ -114,11 +114,11 @@
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
       "logo": "https://img.thesports.com/football/player/ab4d657b819116eaa27a199adb7d3037.png",
-      "score": 8.97,
+      "score": 8.93,
       "star": 4,
       "recentRating": 7.8,
-      "avgRating": 7.99,
-      "games": 4,
+      "avgRating": 7.65,
+      "games": 3,
       "x": 22,
       "y": 32
     },
@@ -134,8 +134,8 @@
       "score": 8.92,
       "star": 4,
       "recentRating": 9,
-      "avgRating": 7.19,
-      "games": 4,
+      "avgRating": 7.55,
+      "games": 3,
       "x": 50,
       "y": 32
     },
@@ -185,8 +185,8 @@
       "score": 7.87,
       "star": 3,
       "recentRating": 6.56,
-      "avgRating": 6.5,
-      "games": 4,
+      "avgRating": 6.68,
+      "games": 3,
       "x": 65,
       "y": 52
     },
@@ -202,28 +202,13 @@
       "score": 9.34,
       "star": 4,
       "recentRating": 9.9,
-      "avgRating": 8.04,
-      "games": 3,
+      "avgRating": 8.37,
+      "games": 2,
       "x": 50,
       "y": 14
     }
   ],
   "bench": [
-    {
-      "id": "ednm9wh9z22ryox",
-      "name": "Harry Kane",
-      "nameKo": "해리 케인",
-      "hasMv": true,
-      "pos": "F",
-      "country": "England",
-      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/44937ab4346f4d9fa0b7c4daf2124773.png",
-      "score": 8.03,
-      "star": 4,
-      "recentRating": 6.4,
-      "avgRating": 6.87,
-      "games": 3
-    },
     {
       "id": "l7oqdehepw7r510",
       "name": "Anthony Gordon",
@@ -236,8 +221,8 @@
       "score": 7.86,
       "star": 3,
       "recentRating": 7.3,
-      "avgRating": 7.24,
-      "games": 3
+      "avgRating": 7.21,
+      "games": 2
     },
     {
       "id": "pxwrxlh92k9wryk",
@@ -251,23 +236,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.4,
-      "avgRating": 6.59,
-      "games": 4
-    },
-    {
-      "id": "4jwq2ghv9ee0m0v",
-      "name": "James Trafford",
-      "nameKo": "제임스 트래퍼드",
-      "hasMv": true,
-      "pos": "G",
-      "country": "England",
-      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/406930655e898904d559c4fc5f9940c0.png",
-      "score": 7.76,
-      "star": 3,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "avgRating": 6.67,
+      "games": 3
     },
     {
       "id": "jw2r09hp46vrz84",
@@ -298,6 +268,36 @@
       "recentRating": 7.1,
       "avgRating": 6.7,
       "games": 2
+    },
+    {
+      "id": "ednm9wh9z22ryox",
+      "name": "Harry Kane",
+      "nameKo": "해리 케인",
+      "hasMv": true,
+      "pos": "F",
+      "country": "England",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      "logo": "https://img.thesports.com/football/player/44937ab4346f4d9fa0b7c4daf2124773.png",
+      "score": 7.43,
+      "star": 3,
+      "recentRating": 6.4,
+      "avgRating": 6.46,
+      "games": 2
+    },
+    {
+      "id": "k82rekhyx2n4rep",
+      "name": "Noni Madueke",
+      "nameKo": "노니 마두에케",
+      "hasMv": true,
+      "pos": "F",
+      "country": "England",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      "logo": "https://img.thesports.com/football/player/b6b51b7afcdfefc1588976294e59c441.png",
+      "score": 7.41,
+      "star": 3,
+      "recentRating": 6.58,
+      "avgRating": 6.58,
+      "games": 1
     }
   ],
   "complete": true

@@ -3,23 +3,23 @@
   "groups": [
     {
       "group": "A",
-      "xi": 11,
-      "pool": 26
+      "xi": 0,
+      "pool": 0
     },
     {
       "group": "B",
       "xi": 11,
-      "pool": 50
+      "pool": 25
     },
     {
       "group": "C",
       "xi": 11,
-      "pool": 51
+      "pool": 26
     },
     {
       "group": "D",
-      "xi": 11,
-      "pool": 75
+      "xi": 0,
+      "pool": 0
     },
     {
       "group": "E",
@@ -34,7 +34,7 @@
     {
       "group": "G",
       "xi": 11,
-      "pool": 50
+      "pool": 23
     },
     {
       "group": "H",
@@ -53,13 +53,13 @@
     },
     {
       "group": "K",
-      "xi": 11,
-      "pool": 52
+      "xi": 0,
+      "pool": 0
     },
     {
       "group": "L",
       "xi": 11,
-      "pool": 52
+      "pool": 26
     }
   ]
 }

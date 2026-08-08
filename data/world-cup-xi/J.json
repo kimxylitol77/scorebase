@@ -18,7 +18,7 @@
       "flag": "🇯🇴"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.5,
   "xi": [
     {
       "id": "318q66h0d5dqo9j",
@@ -32,27 +32,10 @@
       "score": 8.54,
       "star": 4,
       "recentRating": 9.8,
-      "avgRating": 7.28,
-      "games": 5,
+      "avgRating": 7.79,
+      "games": 3,
       "x": 50,
       "y": 90
-    },
-    {
-      "id": "x7lm7ph5xxgm2wd",
-      "name": "Lisandro Martínez",
-      "nameKo": "리산드로 마르티네스",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/b9a20695ed2dbf375ea29de28aab1887.png",
-      "score": 8.21,
-      "star": 4,
-      "recentRating": 6.24,
-      "avgRating": 7.01,
-      "games": 5,
-      "x": 16,
-      "y": 70
     },
     {
       "id": "k82rekh3wyxrepz",
@@ -63,29 +46,29 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/de016e81e8bce428a0dc8d7454e6e3bb.png",
-      "score": 7.88,
+      "score": 7.65,
       "star": 3,
       "recentRating": 6.84,
-      "avgRating": 7.19,
-      "games": 5,
-      "x": 39,
+      "avgRating": 6.95,
+      "games": 3,
+      "x": 16,
       "y": 70
     },
     {
-      "id": "x7lm7phpnwem2wd",
-      "name": "Facundo Medina",
-      "nameKo": "파쿤도 메디나",
+      "id": "x7lm7ph5xxgm2wd",
+      "name": "Lisandro Martínez",
+      "nameKo": "리산드로 마르티네스",
       "hasMv": true,
       "pos": "D",
       "country": "Argentina",
       "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/9bf588df36bacebab9098a52f3f1df3d.png",
-      "score": 7.26,
+      "logo": "https://img.thesports.com/football/player/b9a20695ed2dbf375ea29de28aab1887.png",
+      "score": 7.63,
       "star": 3,
-      "recentRating": 6.59,
-      "avgRating": 6.56,
+      "recentRating": 6.24,
+      "avgRating": 6.6,
       "games": 3,
-      "x": 61,
+      "x": 39,
       "y": 70
     },
     {
@@ -100,8 +83,25 @@
       "score": 7.15,
       "star": 3,
       "recentRating": 5.91,
-      "avgRating": 6.58,
-      "games": 5,
+      "avgRating": 6.43,
+      "games": 3,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "x7lm7phpnwem2wd",
+      "name": "Facundo Medina",
+      "nameKo": "파쿤도 메디나",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/9bf588df36bacebab9098a52f3f1df3d.png",
+      "score": 7.07,
+      "star": 3,
+      "recentRating": 6.59,
+      "avgRating": 6.59,
+      "games": 1,
       "x": 84,
       "y": 70
     },
@@ -134,8 +134,8 @@
       "score": 8.42,
       "star": 4,
       "recentRating": 6.15,
-      "avgRating": 7.31,
-      "games": 5,
+      "avgRating": 7.04,
+      "games": 3,
       "x": 50,
       "y": 32
     },
@@ -151,8 +151,8 @@
       "score": 8.33,
       "star": 4,
       "recentRating": 6.46,
-      "avgRating": 7.13,
-      "games": 5,
+      "avgRating": 7.22,
+      "games": 3,
       "x": 78,
       "y": 32
     },
@@ -202,8 +202,8 @@
       "score": 8.57,
       "star": 4,
       "recentRating": 6.35,
-      "avgRating": 6.93,
-      "games": 5,
+      "avgRating": 7.15,
+      "games": 3,
       "x": 50,
       "y": 14
     }
@@ -221,8 +221,8 @@
       "score": 8.34,
       "star": 4,
       "recentRating": 8.09,
-      "avgRating": 7.08,
-      "games": 4
+      "avgRating": 7.55,
+      "games": 2
     },
     {
       "id": "p3glrw7hv73qdyj",
@@ -233,11 +233,11 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/8d59474051c1faa84e7437a1c694d3da.png",
-      "score": 8.21,
+      "score": 8.11,
       "star": 4,
       "recentRating": 6.8,
-      "avgRating": 8.28,
-      "games": 5
+      "avgRating": 7.87,
+      "games": 3
     },
     {
       "id": "2y8m4zhjdljdql0",
@@ -251,8 +251,8 @@
       "score": 7.42,
       "star": 3,
       "recentRating": 6.45,
-      "avgRating": 6.85,
-      "games": 5
+      "avgRating": 6.8,
+      "games": 3
     },
     {
       "id": "4jwq2ghx0l8ym0v",
@@ -281,8 +281,8 @@
       "score": 7.28,
       "star": 3,
       "recentRating": 6.4,
-      "avgRating": 6.71,
-      "games": 5
+      "avgRating": 6.64,
+      "games": 3
     },
     {
       "id": "318q66hvngxvqo9",
@@ -296,8 +296,8 @@
       "score": 7.19,
       "star": 3,
       "recentRating": 6.76,
-      "avgRating": 6.58,
-      "games": 2
+      "avgRating": 6.76,
+      "games": 1
     }
   ],
   "complete": true
