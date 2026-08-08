@@ -20,6 +20,13 @@ import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchNpbPitcherProfileCached as fetchNpbPitcherProfile } from "@/lib/sports/npb-cache";
 import { KboPlayerView, NpbPlayerView, npbDisplayName } from "./KboNpbViews";
 import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
+import { cache } from "react";
+
+// 요청 스코프 dedupe — generateMetadata 와 본문이 같은 (id, season) 호출을 공유해
+// af 쿼터 소모가 기존(요청당 1콜)과 동일하게 유지된다. af 일 한도 소진 사고(3ea74b7) 재발 방지.
+const fetchSoccerProfileCached = cache(
+  (id: number, season: number) => fetchSoccerPlayerProfile(id, season),
+);
 import { NbaPlayerView } from "./NbaViews";
 import { NhlPlayerView } from "./NhlViews";
 import { LolPlayerView } from "./LolViews";
@@ -86,17 +93,62 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   // 축구/NBA/NHL/LOL 등은 metadata 단에서는 generic title 만 반환 (본문에서 별도 fetch).
   // MLB API 로 잘못 fetch 해 404 → 페이지 전체 500 으로 떨어지던 버그 fix.
   const SOCCER_LEAGUES = SOCCER_PLAYER_PAGE_LEAGUES;
-  if (league && (SOCCER_LEAGUES.includes(league) || ["NBA", "NHL", "LOL"].includes(league))) {
+  if (league && SOCCER_LEAGUES.includes(league)) {
+    // 축구 — 기존엔 "선수 — EPL" 제네릭이라 선수명 검색(빙 실측 파레데스 109노출 등)에
+    // 제목이 아예 안 실렸다. 본문과 같은 시즌 폴백 순서로 cached fetch 를 호출하므로
+    // React cache dedupe 로 af 실제 콜 수는 기존과 동일(요청당 1회).
+    const alternates = {
+      canonical,
+      languages: koEnLanguages(canonical, `/en/players/${pid}?league=${league}`),
+    };
+    try {
+      const id = Number(pid);
+      let profile: SoccerPlayerProfile | null = null;
+      if (Number.isFinite(id)) {
+        for (const s of soccerProfileSeasons(new Date())) {
+          profile = await fetchSoccerProfileCached(id, s);
+          if (profile) break;
+        }
+      }
+      if (profile) {
+        const nameKo = toKoreanPlayerName(profile.name) || profile.name;
+        const main = profile.stats[0];
+        const teamKo = main ? (toKoreanTeamName(main.teamName) || main.teamName) : "";
+        const POS_KO: Record<string, string> = {
+          Attacker: "공격수", Midfielder: "미드필더", Defender: "수비수", Goalkeeper: "골키퍼",
+        };
+        const posKo = main?.position ? POS_KO[main.position] ?? "" : "";
+        const g = main?.goals ?? 0;
+        const a = main?.assists ?? 0;
+        const statBit = main && (g > 0 || a > 0) ? ` · 시즌 ${g}골 ${a}도움` : "";
+        const who = [teamKo, posKo].filter(Boolean).join(" ");
+        return {
+          title: `${nameKo} — ${who || "축구 선수"}${statBit} · 프로필·기록·이적`,
+          description:
+            `${who ? `${who} ` : ""}${nameKo} 프로필 — 시즌 경기·골·도움·평점 통계, ` +
+            `이적 기록과 시장가치(몸값)까지 실시간 데이터로 정리. 스코어베이스.`,
+          alternates,
+          openGraph: {
+            title: `${nameKo} — ${who || "축구 선수"} 프로필`,
+            images: ogPageImage({ title: nameKo, subtitle: `${who} 시즌 통계·이적·몸값`, tag: league }),
+          },
+        };
+      }
+    } catch {
+      // af 실패 시 아래 제네릭 폴백
+    }
     return {
       title: `선수 — ${league}`,
       description: `${league} 선수 프로필 · 통계 · 최근 경기.`,
-      alternates: {
-        canonical,
-        // 영어판(/en/players)은 축구만 지원 — NBA/NHL/LOL 은 hreflang 미연결
-        ...(SOCCER_LEAGUES.includes(league)
-          ? { languages: koEnLanguages(canonical, `/en/players/${pid}?league=${league}`) }
-          : {}),
-      },
+      alternates,
+    };
+  }
+  if (league && ["NBA", "NHL", "LOL"].includes(league)) {
+    return {
+      title: `선수 — ${league}`,
+      description: `${league} 선수 프로필 · 통계 · 최근 경기.`,
+      // NBA/NHL/LOL 은 영어판 미지원 — hreflang 미연결
+      alternates: { canonical },
     };
   }
   const id = Number(pid);
@@ -243,7 +295,7 @@ async function renderSoccerPlayerView(pid: string, league: string) {
   let profile: SoccerPlayerProfile | null = null;
   let season = seasons[0];
   for (const s of seasons) {
-    profile = await fetchSoccerPlayerProfile(id, s);
+    profile = await fetchSoccerProfileCached(id, s);
     if (profile) { season = s; break; }
   }
   if (!profile) notFound();
