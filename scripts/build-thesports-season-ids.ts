@@ -35,11 +35,18 @@ interface FootballMatch {
 }
 
 async function tsGet<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
-  const url = new URL(TS_BASE + path);
-  url.searchParams.set("user", user);
-  url.searchParams.set("secret", secret);
+  // 비화이트리스트 망에서도 실행 가능하게 — ts-proxy(Vultr) 경유 지원 (client.ts 와 같은 규약)
+  const proxy = env.THESPORTS_PROXY_URL;
+  const base = proxy || TS_BASE;
+  const url = new URL(base + path);
+  if (!proxy) {
+    url.searchParams.set("user", user);
+    url.searchParams.set("secret", secret);
+  }
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
-  const res = await fetch(url.toString());
+  const res = await fetch(url.toString(), {
+    headers: proxy ? { "x-ts-proxy-token": env.THESPORTS_PROXY_TOKEN ?? "" } : undefined,
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }

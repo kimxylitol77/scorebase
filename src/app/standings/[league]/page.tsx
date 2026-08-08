@@ -298,7 +298,12 @@ export default async function StandingsPage({ params }: Props) {
   }>;
   let source: "ts" | "calc" = "calc";
 
-  if (tsStandings && tsStandings.tables.length > 0 && !tsAllZero) {
+  // 개막 직전/직후 placeholder 허용 — ts 표가 전부 0 이어도, 이 리그에 지난 시즌 데이터가
+  // 아예 없으면(신규 온보딩 리그) 빈 화면 대신 0전적 개막판을 그대로 보여준다
+  // (2026-08-08 내셔널리그 개막일 "데이터 미수집" 빈 화면 실측).
+  const tsPlaceholderOk = tsAllZero && !lastFinishedAt;
+
+  if (tsStandings && tsStandings.tables.length > 0 && (!tsAllZero || tsPlaceholderOk)) {
     // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
     const promoMap = new Map(tsStandings.promotions.map((p) => [p.id, p]));
     const tsRows = tsStandings.tables[0].rows
@@ -366,7 +371,7 @@ export default async function StandingsPage({ params }: Props) {
   // 표시 중인 표가 지난 시즌인지 — ts 가 리셋됐거나, 계산 경로가 현재 시즌 완료 매치 부족으로
   // 직전 시즌 창을 쓴 경우. 오프시즌에 "시즌 진행 중" 으로 표기되던 것을 실제 상태로 바꾼다.
   const showingLastSeason =
-    tsAllZero ||
+    (tsAllZero && !tsPlaceholderOk) || // placeholder 0전적 표는 새 시즌이지 지난 시즌이 아님
     (source === "calc" &&
       seasonStart != null &&
       !matches.some((m) => m.status === "FINISHED" && m.startTime >= seasonStart));

@@ -55,6 +55,9 @@ const TS_COVERED_EXCEPTIONS = new Set<League>([
   "ECUADOR_LP",
   "SLOVAKIA_SL", "MOLDOVA_SL", "SLOVENIA_SNL", "SERBIA_SL", "PARAGUAY_PD",
   "VEIKKAUSLIIGA",
+  // 2026-08-08 시즌 id 재발굴로 tsSeasonId 가 새로 붙은 2부·컵 — 매치는 지금까지 전부
+  // af 생성이라 ts 로 소스를 옮기지 않는다(K리그1 사고와 같은 공백 방지). id 는 순위표 전용.
+  "AUSTRIA_2", "CZECH_2", "DENMARK_2", "HUNGARY_2", "IRELAND_2", "SCO_LEAGUE_CUP",
 ]);
 
 const ALL_LEAGUES: League[] = [

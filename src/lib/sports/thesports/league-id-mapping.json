@@ -465,8 +465,7 @@
     "ourLabel": "모로코 보톨라 프로",
     "tsId": "z318q66hokoqo9j",
     "tsEn": "The Botola Pro",
-    "tsKo": "모로코 보톨라 리그",
-    "tsSeasonId": "gpxwrxlhdewryk0"
+    "tsKo": "모로코 보톨라 리그"
   },
   {
     "code": "NORWAY_1L",
@@ -610,7 +609,7 @@
     "tsId": "v2y8m4zh3jgql07",
     "tsEn": "United Arab Emirates Adnoc Pro-League",
     "tsKo": "아랍 에미리트 연합 프로 리그",
-    "tsSeasonId": "9vjxm8ghylvr6od"
+    "tsSeasonId": "y0or5jhll47qwzv"
   },
   {
     "code": "UCL",
@@ -825,35 +824,40 @@
     "ourLabel": "아일랜드 1부 디비전",
     "tsId": "gx7lm7ph8jm2wdk",
     "tsEn": "Ireland First Division",
-    "tsKo": "아일랜드 1부 디비전"
+    "tsKo": "아일랜드 1부 디비전",
+    "tsSeasonId": "3glrw7hwko2qdyj"
   },
   {
     "code": "DENMARK_2",
     "ourLabel": "덴마크 1.디비전",
     "tsId": "j1l4rjnh20m7vx5",
     "tsEn": "Danish 1st Division",
-    "tsKo": "덴마크 1.디비전"
+    "tsKo": "덴마크 1.디비전",
+    "tsSeasonId": "4wyrn4h8zp8q86p"
   },
   {
     "code": "HUNGARY_2",
     "ourLabel": "헝가리 NB II",
     "tsId": "d23xmvkh8nqg8ny",
     "tsEn": "Merkantil Bank Liga",
-    "tsKo": "헝가리 NB II"
+    "tsKo": "헝가리 NB II",
+    "tsSeasonId": "965mkyh7lp7r1ge"
   },
   {
     "code": "CZECH_2",
     "ourLabel": "체코 2부",
     "tsId": "p4jwq2gh9ym0veo",
     "tsEn": "Chance Narodni Liga",
-    "tsKo": "체코 2부"
+    "tsKo": "체코 2부",
+    "tsSeasonId": "y39mp1h3vx5mojx"
   },
   {
     "code": "AUSTRIA_2",
     "ourLabel": "오스트리아 2.리가",
     "tsId": "kjw2r09h9jrz84o",
     "tsEn": "Austrian 2.Liga",
-    "tsKo": "오스트리아 2.리가"
+    "tsKo": "오스트리아 2.리가",
+    "tsSeasonId": "6ypq3nh062vmd7o"
   },
   {
     "code": "BELGIUM_2",
@@ -1045,7 +1049,7 @@
     "tsId": "9vjxm8gh8gr6odg",
     "tsEn": "FA Cup",
     "tsKo": "FA컵",
-    "tsSeasonId": "l965mkyhp2er1ge"
+    "tsSeasonId": "8yomo4h770jq0j6"
   },
   {
     "code": "AFCON",
@@ -1100,7 +1104,8 @@
     "ourLabel": "스코틀랜드 리그컵",
     "tsId": "yl5ergphpzr8k0o",
     "tsEn": "Scottish League Cup",
-    "tsKo": "스코틀랜드 리그컵"
+    "tsKo": "스코틀랜드 리그컵",
+    "tsSeasonId": "jw2r09hl4gerz84"
   },
   {
     "code": "SUI_CUP",
