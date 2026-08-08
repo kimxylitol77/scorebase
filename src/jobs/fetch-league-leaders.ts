@@ -157,10 +157,13 @@ const SOCCER_LEAGUES = [
 
 // season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
 // 리그는 "리그 득점왕"이 부정확할 수 있어 제외 → api-football fallback 이 담당.
+// BUNDESLIGA_2 는 2026-08-08 ts 라이브 경로로 이동 — 정적 JSON 은 빌더 재실행·커밋 전까지
+// 지난 시즌에 동결돼, 새 시즌 개막 후에도 2025-26 리더보드가 그대로 보였다(사용자 신고).
+// ts season/recent/player/stat 실측: 새 시즌 200행·득점자 20명 → 라이브 경로 기준 충족.
 const SEASON_STATS_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
   "K_LEAGUE_1", "K_LEAGUE_2", "LALIGA_2", "MLS", "SAUDI_PL",
-  "BRASILEIRAO", "SERIE_B", "BUNDESLIGA_2", "SUPER_LIG",
+  "BRASILEIRAO", "SERIE_B", "SUPER_LIG",
 ]);
 
 // ts 시즌 선수통계를 리그 1콜로 직접 받는 확장 리그 (2026-08-02).
@@ -173,6 +176,7 @@ const SEASON_STATS_LEAGUES = new Set([
 // 등록 기준: ts season/recent/player/stat 실측으로 행이 존재하는 리그. LUXEMBOURG_ND 는
 // ts 0행이라 제외(= af 로 메우는 갭), PORTUGAL_SUPER_CUP 은 단일 경기라 리더보드 무의미.
 const TS_PLAYER_STAT_LEAGUES = new Set([
+  "BUNDESLIGA_2", // 2026-08-08 정적 JSON 에서 이동 — 위 SEASON_STATS_LEAGUES 주석 참고
   "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
   "RUSSIA_FNL", "ROMANIA_L2",
