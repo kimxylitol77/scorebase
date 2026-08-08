@@ -31,6 +31,11 @@ export default function VelocityByInningChart({
   const half = (v: number, fn: (x: number) => number) => fn(v * 2) / 2;
   const lo = half(Math.min(...speeds) - 0.5, Math.floor);
   const hi = half(Math.max(...speeds) + 0.5, Math.ceil);
+  // 눈금은 직접 만든다 — recharts 자동 분할은 96.15·97.45 같은 값을 내고, 그 5자리 라벨이
+  // 모바일(폭 342px)에서 y축 밖으로 잘려나갔다. 폭이 넓어지면 간격을 키워 눈금 수를 묶는다.
+  const step = hi - lo <= 3 ? 0.5 : hi - lo <= 6 ? 1 : 2;
+  const ticks: number[] = [];
+  for (let v = lo; v <= hi + 1e-9; v += step) ticks.push(Number(v.toFixed(1)));
   const total = trend.byInning.reduce((s, r) => s + r.pitches, 0);
 
   return (
@@ -48,15 +53,16 @@ export default function VelocityByInningChart({
       </div>
       <div className="h-[240px] px-2 pb-3">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 12, right: 18, bottom: 8, left: -12 }}>
+          <LineChart data={data} margin={{ top: 12, right: 18, bottom: 8, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-neutral-200 dark:text-white/10" />
             <XAxis dataKey="inning" tick={{ fontSize: 11 }} stroke="currentColor" className="text-neutral-400" />
             <YAxis
               domain={[lo, hi]}
+              ticks={ticks}
               tick={{ fontSize: 11 }}
               stroke="currentColor"
               className="text-neutral-400"
-              width={44}
+              width={40}
               tickFormatter={(v: number) => `${v}`}
             />
             <Tooltip
