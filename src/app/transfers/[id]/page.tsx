@@ -171,6 +171,18 @@ const LEAGUE_LABEL: Record<string, string> = {
 const POS_LABEL: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 // 대분류 포지션 한글 — 소개 문단·JSON-LD jobTitle 용 (표시용 세부 포지션과 별개)
 const POS_KO: Record<string, string> = { G: "골키퍼", D: "수비수", M: "미드필더", F: "공격수" };
+// 세부 포지션(라인업 좌표 기반) → 대분류 — ts position 이 부정확한 경우가 있어 세부를 우선(설영우 실측).
+// generateMetadata(title)와 본문 소개문이 공유.
+const DETAIL_COARSE: Record<string, string> = {
+  GK: "G", CB: "D", LB: "D", RB: "D", LWB: "D", RWB: "D",
+  CDM: "M", CM: "M", CAM: "M", LM: "M", RM: "M",
+  LW: "F", RW: "F", ST: "F",
+};
+// 대분류 포지션 한글 해석 — 세부 포지션 우선, 없으면 ts position.
+function resolveRoleKo(id: string, tspPos: string | null | undefined): string | null {
+  const coarse = DETAIL_POS[id]?.primary ? DETAIL_COARSE[DETAIL_POS[id].primary] : null;
+  return coarse ? POS_KO[coarse] ?? null : tspPos ? POS_KO[tspPos] ?? null : null;
+}
 
 // 받침 유무로 조사 선택 (한글 음절만 판정; 그 외는 모음형 반환)
 function josa(w: string, batchim: string, none: string): string {
@@ -232,17 +244,25 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const name = OVERRIDES[id]?.nameKo || p.tsp?.nameKo || p.tsp?.name || "선수";
   const val = p.mv?.currentValue ? Math.round(p.mv.currentValue / 1e6) : null;
   const photo = PHOTOS[id] || p.tsp?.photoUrl || null;
-  // mv(시장가치) 없는 라이트 프로필은 몸값 문구 대신 프로필·이적 기록 중심 타이틀
-  const title = p.mv
-    ? `${name} 시장가치${val ? ` €${val}M` : ""} · 몸값 추이`
-    : `${name} 프로필 · 이적 기록`;
+  // 빙 실측 — 기존 "몸값 추이" 제목은 "{선수} 프로필/성적/골" 검색을 못 물었다(선수명 12종 검색
+  // 대비 랜딩 노출 2). 검색어 선행+동적 데이터 패턴(fc81896 계열) 적용. 데이터는 전부
+  // 모듈 정적 JSON(SEASON·DETAIL_POS)+기존 loadPlayer 재사용 — 추가 DB·API 호출 0.
+  const season = SEASON[id];
+  const teamKo = season?.team ? toKoreanTeamName(season.team) || season.team : null;
+  const posKo = resolveRoleKo(id, p.tsp?.position);
+  const who = [teamKo, posKo].filter(Boolean).join(" ");
+  const g = season?.goals ?? 0;
+  const a = season?.assists ?? 0;
+  const statBit = g > 0 || a > 0 ? ` · 시즌 ${g}골 ${a}도움` : "";
+  // mv(시장가치) 없는 라이트 프로필은 몸값 조각만 제외한 동일 패턴
+  const title = `${name} 프로필 — ${who || "축구 선수"}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : ""} · 이적 기록`;
   const description = p.mv
-    ? `${name} 선수의 시장가치(몸값) 변동 추이와 이적 기록, 시즌별 성적·커리어. 스코어베이스 이적시장에서 ${name} 몸값을 한눈에.`
-    : `${name} 선수의 프로필과 이적 기록, 시즌별 성적·커리어 — 스코어베이스 이적시장.`;
+    ? `${who ? `${who} ` : ""}${name} 프로필 — ${g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움, ` : ""}시장가치(몸값)${val ? ` €${val}M` : ""} 변동 추이·이적 기록·시즌별 성적을 실시간 데이터로. 스코어베이스.`
+    : `${who ? `${who} ` : ""}${name} 프로필 — 이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;
   return {
     title,
     description,
-    keywords: [name, `${name} 몸값`, `${name} 시장가치`, "이적시장", "선수 몸값", "스코어베이스"],
+    keywords: [name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`, "이적시장", "스코어베이스"],
     openGraph: { title, description, type: "profile", ...(photo ? { images: [{ url: photo }] } : {}) },
     alternates: { canonical: `/transfers/${id}` },
     // 시장가치 데이터 없는 라이트 프로필은 thin → 구글 색인 제외(빙 등은 유지).
@@ -923,15 +943,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const allMatchLogs = [...matchLogs, ...natlLogRows].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   // ── 위키형 SEO — 소개 문단 + JSON-LD(Person·Breadcrumb) ──
-  // 소개문 대분류 — 세부 포지션(라인업 좌표 기반)이 있으면 그걸 우선한다.
-  //   ts position 은 부정확한 경우가 있어 헤더(RB 라이트백)와 소개문(미드필더)이 어긋났다(설영우 실측).
-  const DETAIL_COARSE: Record<string, string> = {
-    GK: "G", CB: "D", LB: "D", RB: "D", LWB: "D", RWB: "D",
-    CDM: "M", CM: "M", CAM: "M", LM: "M", RM: "M",
-    LW: "F", RW: "F", ST: "F",
-  };
-  const coarse = DETAIL_POS[id]?.primary ? DETAIL_COARSE[DETAIL_POS[id].primary] : null;
-  const roleKo = coarse ? POS_KO[coarse] ?? null : tsp?.position ? POS_KO[tsp.position] ?? null : null;
+  // 소개문 대분류 — 세부 포지션 우선 (모듈 스코프 resolveRoleKo, generateMetadata 와 공유)
+  const roleKo = resolveRoleKo(id, tsp?.position);
   const aboutText = buildAbout({
     name, country: ov?.country ?? null, role: roleKo, teamName: teamName ?? null,
     apps: careerTotals?.apps ?? 0, goals: careerTotals?.goals ?? 0, assists: careerTotals?.assists ?? 0,
