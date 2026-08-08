@@ -11,7 +11,8 @@ import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
-import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -180,8 +181,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ko = toKoreanTeamName(team.name, team.league);
   const intent = teamIntentKeywords(team.league);
   const enName = ko === team.name ? "" : `(${team.name})`;
-  const title = `${ko} ${intent}`;
-  const description = `${team.league} ${ko}${enName} ${intent} 정보. 현재 순위와 최근 폼, 다음 경기 일정, 주요 선수와 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
+  let title = `${ko} ${intent}`;
+  let description = `${team.league} ${ko}${enName} ${intent} 정보. 현재 순위와 최근 폼, 다음 경기 일정, 주요 선수와 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
+  // 야구(KBO/NPB) — 빙 "{구단} 팀 순위 야구" 패턴이 노출 1,256에 클릭 2 (2026-08-08 실측).
+  // 순위표 페이지(67491a5)에서 먹힌 방식 그대로: 검색어를 앞세우고 현재 순위·날짜를 동적 삽입해
+  // SERP 에서 "지금 몇 위인지 바로 보이는" 제목으로 클릭 유인. 캐시 stale 이면 정적 제목 유지.
+  if (BASEBALL_LEAGUES.has(team.league)) {
+    try {
+      const rows = await fetchBaseballTable(team.league);
+      const idx = rows.findIndex((r) => r.ourTeamId === team.id);
+      if (idx >= 0) {
+        const r = rows[idx];
+        const kst = new Date(Date.now() + 9 * 3600_000);
+        const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+        const pct = (r.wins / Math.max(r.wins + r.losses, 1)).toFixed(3);
+        title = `${ko} 팀 순위 (${dateLabel}) — ${team.league} ${idx + 1}위 · 야구 일정·로스터·통계`;
+        description =
+          `오늘의 ${ko} 팀 순위 (${dateLabel}): ${team.league} ${idx + 1}위, ${r.wins}승 ${r.losses}패 승률 ${pct}. ` +
+          `일정·로스터·선수 통계와 AI 승부예측을 실시간 갱신합니다.`;
+      }
+    } catch {
+      // 순위 캐시 불가 시 정적 폴백 유지
+    }
+  }
   return {
     title,
     description,
