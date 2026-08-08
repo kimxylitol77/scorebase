@@ -20,7 +20,7 @@ import {
 import type { SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
-import { BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { extractBasketballFromCache } from "@/lib/sports/thesports/basketball-live";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
@@ -57,44 +57,9 @@ const SOCCER_STATS = [
 // 캐시 활성화하여 클라이언트 polling 함수 호출 ~90% 감소.
 export const runtime = "nodejs";
 
-const SOCCER_LEAGUES = new Set([
-  "EPL",
-  "LALIGA",
-  "BUNDESLIGA",
-  "SERIE_A",
-  "LIGUE_1",
-  "MLS",
-  "UCL",
-  "WORLD_CUP",
-  "K_LEAGUE_1",
-  "K_LEAGUE_2",
-  "J1_LEAGUE",
-  "J2_LEAGUE",
-  "AFC_CL",
-  "AFC_CL_TWO",
-  "AFC_U23",
-  "SAUDI_PL",
-  "UEL",
-  "UECL",
-  "CHAMPIONSHIP",
-  "LALIGA_2",
-  "BUNDESLIGA_2",
-  "SERIE_B",
-  "LIGUE_2",
-  "EREDIVISIE",
-  "PRIMEIRA_LIGA",
-  "SUPER_LIG",
-  "JUPILER_PL",
-  "SPL",
-  "GREEK_SL",
-  "BRASILEIRAO",
-  "LIGA_MX",
-  "COPA_LIB",
-  "COPA_SUD",
-  "CSL",
-  "A_LEAGUE",
-  "CLUB_WORLD_CUP",
-]);
+// 축구 리그 판별 — sport-leagues 의 전역 SOCCER_LEAGUES 단일 정의 사용.
+//  로컬 하드코딩 사본은 신규 리그(CLUB_FRIENDLY·ASEAN_CHAMP 등)가 빠져 400 을 내
+//  모멘텀 라이브 폴링이 조용히 실패했다 (2026-08-08 첼시-밀란 실측).
 
 interface MatchLive {
   /** "LIVE" | "FINAL" | "PRE" — fetchAllLiveScores 가 LIVE 반환 시만 라이브로 간주 */
