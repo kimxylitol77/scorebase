@@ -7,5 +7,5 @@
 - [x] B. sitemap 축구 선수 확대 — 빅5 상위 600 → 리그 판명 + 몸값 보유 전원(~4,094명, MLS·사우디·K리그1 포함). dev 실측: /transfers/ 4,094건 + 손흥민 포함
 - [x] C. IndexNow cron 에 몸값 갱신 선수 URL 추가 (26h 내 updatedAt, 실측 일 0~7건 수준). dev 실행: ok=true, players=0(26h 변동 0건과 일치)
 - [x] typecheck 통과
-- [ ] 커밋 3건(A/B/C) + push
-- [ ] production 실측 (제목·sitemap 손흥민 포함)
+- [x] 커밋 3건(A/B/C) + push — a876777 · 0d55e0b · d68eb0b
+- [x] production 실측 — 제목 `손흥민 프로필 — LAFC 공격수 · 시즌 4골 8도움 · 몸값 €15M · 이적 기록` + sitemap 손흥민 포함 확인 (08-08)
