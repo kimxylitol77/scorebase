@@ -58,8 +58,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const info = await fetchKboPitcherProfile(pid);
     if (!info.name) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     return {
-      title: `${info.name} — KBO 선발 투수 통계`,
-      description: `${info.team ?? "KBO"} ${info.name} 의 시즌 ERA·WHIP·IP·W-L·최근 등판 결과.`,
+      // 빙 검색 형태 "{선수} 성적/방어율" 커버 — 팀명을 title 로 승격
+      title: `${info.name} 성적 — ${info.team ?? "KBO"} 투수 ERA·최근 등판 (KBO)`,
+      description: `${info.team ?? "KBO"} ${info.name} 의 시즌 ERA(평균자책)·WHIP·IP·W-L·최근 등판 결과.`,
       alternates: { canonical },
       openGraph: {
         title: `${info.name} — KBO 선발 투수 통계`,
@@ -73,8 +74,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const koName = npbDisplayName(info.name, info.kana);
     const teamKo = npbTeamJpToKor(info.team) ?? info.team ?? "NPB";
     return {
-      title: `${koName} — NPB 선발 투수 통계`,
-      description: `${teamKo} ${koName} 의 시즌 ERA·WHIP·IP·승패·최근 등판.`,
+      title: `${koName} 성적 — ${teamKo} 투수 ERA·최근 등판 (NPB)`,
+      description: `${teamKo} ${koName} 의 시즌 ERA(평균자책)·WHIP·IP·승패·최근 등판.`,
       alternates: { canonical },
       openGraph: {
         title: `${koName} — NPB 선발 투수 통계`,
@@ -107,13 +108,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     if (!profile) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     const isPitcher = profile.position === "P";
     const koName = toKoreanPlayerName(profile.name) || profile.name;
+    // 빙 실측 "{선수} 타율"(이정후 타율 노출 11·클릭 0) — 시즌 스탯을 title 에 숫자로 박아
+    // SERP 에서 즉답이 보이게. 스탯은 이미 fetch 한 profile.season 재사용이라 추가 비용 0.
+    const s = profile.season;
+    const hitterTitle =
+      !isPitcher && s?.avg
+        ? `${koName} 타율 ${s.avg}${s.hr != null ? ` 홈런 ${s.hr}` : ""}${s.ops ? ` OPS ${s.ops}` : ""} — MLB ${yr} 성적`
+        : `${koName} — MLB 타자 성적·통계`;
     return {
-      title: isPitcher
-        ? `${koName} — MLB 선발 투수 통계`
-        : `${koName} — MLB 타자 통계`,
+      title: isPitcher ? `${koName} — MLB 선발 투수 성적·통계` : hitterTitle,
       description: isPitcher
         ? `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
-        : `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
+        : `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 타율${s?.avg ? ` ${s.avg}` : ""}·홈런${s?.hr != null ? ` ${s.hr}개` : ""}·타점·OPS·최근 경기 기록.`,
       alternates: {
         canonical,
         // 영어판(/en/players) hreflang — MLB 는 bare 경로가 정본
