@@ -1,0 +1,17 @@
+# 맥미니 이전 감시봇 (2026-08-08) — 원본 launchd com.scorebase.football-incidents-backfill
+[Unit]
+Description=Scorebase Bot: football-incidents-backfill (migrated from mac mini)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-bots/mac-mini-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-bots/mac-mini-worker/football-incidents-backfill.js
+Restart=always
+RestartSec=30
+StandardOutput=append:/home/ubuntu/scorebase-bots/logs/football-incidents-backfill.log
+StandardError=append:/home/ubuntu/scorebase-bots/logs/football-incidents-backfill.log
+
+[Install]
+WantedBy=multi-user.target

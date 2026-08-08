@@ -1,0 +1,12 @@
+# 맥미니 이전 감시봇 (2026-08-08) — 원본 launchd com.scorebase.synthetic-monitor (oneshot)
+[Unit]
+Description=Scorebase Bot: synthetic-monitor (migrated from mac mini)
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-bots/mac-mini-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-bots/mac-mini-worker/synthetic-monitor.js
+StandardOutput=append:/home/ubuntu/scorebase-bots/logs/synthetic-monitor.log
+StandardError=append:/home/ubuntu/scorebase-bots/logs/synthetic-monitor.log

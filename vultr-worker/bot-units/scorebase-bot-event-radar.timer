@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Bot Timer: event-radar
+
+[Timer]
+OnCalendar=*-*-* 23:10:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

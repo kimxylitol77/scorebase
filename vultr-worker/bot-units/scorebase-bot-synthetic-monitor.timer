@@ -1,0 +1,10 @@
+[Unit]
+Description=Scorebase Bot Timer: synthetic-monitor
+
+[Timer]
+OnUnitActiveSec=1h
+OnBootSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
