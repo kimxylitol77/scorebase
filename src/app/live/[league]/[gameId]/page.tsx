@@ -511,11 +511,14 @@ export default async function GenericLivePage({ params }: Props) {
       } | null;
       const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
       const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
+      // ⚠ fetchedAt 은 행 생성 시각에 고정(push 가 갱신 안 함) — 매치 수집기가 행을 며칠 전에
+      //  만들어 두면 라이브 내내 stale 판정돼 모멘텀이 종료 후에만 보였다(2026-08-08 첼시-밀란 실측).
+      //  실제 push 마다 갱신되는 updatedAt 이 신선도의 정답.
       const trendStale =
         match.status === "LIVE" &&
         // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
         // eslint-disable-next-line react-hooks/purity
-        cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
+        cache.updatedAt.getTime() < Date.now() - 10 * 60 * 1000;
       const trend = trendStale
         ? null
         : (cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null);

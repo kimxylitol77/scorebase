@@ -21,7 +21,8 @@ interface SoccerCacheLike {
   analysis?: unknown;
   detailLive?: unknown;
   goalLine?: unknown;
-  fetchedAt: Date;
+  /** push 마다 갱신 — 신선도 판정용 (fetchedAt 은 생성 시각 고정이라 부적합) */
+  updatedAt: Date;
 }
 
 export interface SoccerInsightTab {
@@ -87,7 +88,7 @@ export async function buildSoccerCacheTabs(opts: {
   } | null;
 
   // LIVE 인데 캐시가 10분 이상 묵으면 모멘텀 숨김(stale 방지). 종료 경기는 항상 표시.
-  const trendStale = status === "LIVE" && cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
+  const trendStale = status === "LIVE" && cache.updatedAt.getTime() < Date.now() - 10 * 60 * 1000;
   const trend = trendStale ? null : (cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null);
   const gd = analysis?.goal_distribution;
   const h2h = analysis?.history?.vs ?? [];

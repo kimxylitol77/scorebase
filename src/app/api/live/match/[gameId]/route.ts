@@ -236,13 +236,13 @@ export async function GET(
         if (ourMatch.referee) out.referee = ourMatch.referee;
         const cache = await db.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
-          select: { detailLive: true, trend: true, fetchedAt: true },
+          select: { detailLive: true, trend: true, updatedAt: true },
         });
         // 모멘텀 탭 라이브 갱신용 trend — LIVE 인데 10분 stale 이면 숨김 (live 페이지와 동일 가드)
         const trendStale =
           ourMatch.status === "LIVE" &&
           cache != null &&
-          cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
+          cache.updatedAt.getTime() < Date.now() - 10 * 60 * 1000;
         if (cache?.trend && !trendStale) {
           out.trend = cache.trend as MatchLive["trend"];
         }
