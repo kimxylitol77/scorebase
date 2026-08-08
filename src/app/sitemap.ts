@@ -259,11 +259,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  // 선수 몸값 상세 — 가치 상위 600명(스타 = 콘텐츠 풍부 + 검색 수요). thin 회피로 상위만.
+  // 선수 몸값 상세 — 리그 판명 + 몸값 보유 선수 전원(~4,100명, MLS·사우디·K리그1 포함).
+  // 기존 빅5 상위 600 한정은 손흥민(MLS) 등 검색 수요 최상위가 sitemap 에 0건이던 원인(2026-08-08 실측).
+  // league null(약 1만 명)은 페이지 데이터 빈약(thin) 위험으로 계속 제외. take 는 안전 상한.
   const topPlayers = await prisma.playerMarketValue.findMany({
-    where: { league: { in: ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] }, currentValue: { not: null } },
+    where: { league: { not: null }, currentValue: { not: null } },
     orderBy: { currentValue: "desc" },
-    take: 600,
+    take: 5000,
     select: { id: true, updatedAt: true },
   });
   const playerPages: MetadataRoute.Sitemap = topPlayers.map((p) => ({
