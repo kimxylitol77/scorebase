@@ -314,6 +314,37 @@ function shortLabel(shortName: string | null, koName: string): string {
   if (tokens.length >= 2 && tokens[0].length <= 4) return tokens[0];
   return koName.slice(0, 4);
 }
+// ts detailLive.score → "전반 38'" 류 진행분 라벨. status_id: 2=전반 3=HT 4=후반 5/6=연장
+// 7=승부차기 (football-collector mapFootballStatus 와 동일 코드표). phaseStartTs 는 현재
+// 페이즈 시작 시각이라 후반이면 45 + 경과분으로 합산 표기가 된다.
+function tsFootballLiveLabel(
+  statusId: number,
+  phaseStartTs: number,
+  nowMs: number,
+): string | null {
+  // HT(3)·승부차기(7)는 경과분이 필요 없는 정적 라벨 — 이때 ts 는 phase ts 를 0 으로 준다
+  // (맨유-PSG HT 실측). 시각 검사를 여기서 하지 않으면 하프타임 내내 라벨이 사라진다.
+  if (statusId === 3) return "HT";
+  if (statusId === 7) return "승부차기";
+  if (!(phaseStartTs > 0)) return null;
+  const elapsed = Math.max(0, Math.floor((nowMs / 1000 - phaseStartTs) / 60)) + 1;
+  switch (statusId) {
+    case 2:
+      return `전반 ${Math.min(elapsed, 45)}${elapsed > 45 ? "+" : ""}'`;
+    case 4: {
+      const total = 45 + elapsed;
+      return `후반 ${Math.min(total, 90)}${total > 90 ? "+" : ""}'`;
+    }
+    case 5:
+    case 6: {
+      const total = 90 + elapsed;
+      return `연장 ${Math.min(total, 120)}${total > 120 ? "+" : ""}'`;
+    }
+    default:
+      return null;
+  }
+}
+
 // "전반 38'", "후반 67'", "HT" 등에서 minute / half short 추출
 function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
   if (!statusLabel) return null;
@@ -719,6 +750,11 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 축구 라인업(cache.lineup) 실제 존재 매치 — L 배지용 (리그 whitelist 대신 실제 유무).
   const lineupMatchIdSet = new Set<number>();
   const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
+  // 축구 진행분 라벨 — af/ESPN 라이브 피드가 없는 ts 전용 경기(친선·카라바오·내셔널 등)가
+  // 분 표시 없이 맨숭맨숭한 "LIVE" 로만 뜨던 것의 폴백 (2026-08-08 사용자 신고).
+  // ts detailLive.score: [id, status_id, home[], away[], phase_start_ts] — score[4]는 "현재
+  // 페이즈 시작 시각"이다 (실측: 전반 경기=킥오프 시각, 후반 경기=하프타임 후 재개 시각).
+  const soccerTsLiveLabelByMatchId = new Map<number, string>();
   // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
   const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
   // 하키 진행 피리어드 라벨 (IIHF 등 live statusLabel 없을 때 cache status_id 로 생성)
@@ -856,6 +892,16 @@ export default async function ScoresPage({ searchParams }: Props) {
       if (soccerIdSet.has(c.matchId)) {
         const fs = parseTsFootballScore(dl);
         if (fs) footballScoreByMatchId.set(c.matchId, fs);
+        // 진행분 라벨 폴백 — score[1]=status_id, score[4]=페이즈 시작 ts (위 tsFootballLiveLabel)
+        {
+          const sc = dl.score as unknown as unknown[] | undefined;
+          const sid = Number(sc?.[1]);
+          const pts = Number(sc?.[4]);
+          if (Number.isFinite(sid)) {
+            const label = tsFootballLiveLabel(sid, Number.isFinite(pts) ? pts : 0, Date.now());
+            if (label) soccerTsLiveLabelByMatchId.set(c.matchId, label);
+          }
+        }
         if (dl.incidents) {
           const goals = tsIncidentsToGoals(dl.incidents, incidentNameById);
           const cards = tsIncidentsToCards(dl.incidents, incidentNameById);
@@ -1444,7 +1490,9 @@ export default async function ScoresPage({ searchParams }: Props) {
             : live?.statusLabel ??
               (sport_ === "hockey"
                 ? hockeyStatusLabelByMatchId.get(m.id) ?? null
-                : null),
+                : sport_ === "soccer"
+                  ? soccerTsLiveLabelByMatchId.get(m.id) ?? null // ts 전용 경기 진행분 폴백
+                  : null),
       homeStarter: isBaseball
         ? localizeStarter(parseStarter(m.homeStarter), m.league)
         : null,
@@ -1452,7 +1500,11 @@ export default async function ScoresPage({ searchParams }: Props) {
         ? localizeStarter(parseStarter(m.awayStarter), m.league)
         : null,
       soccerCtx:
-        sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
+        sport_ === "soccer"
+          ? parseSoccerStatus(
+              live?.statusLabel ?? soccerTsLiveLabelByMatchId.get(m.id) ?? null,
+            )
+          : null,
       // TheSports cache 의 incidents 에서 추출 — match.id 직접 키.
       soccerGoals: sport_ === "soccer" ? soccerGoalsByMatchId.get(m.id) ?? null : null,
       soccerCards: sport_ === "soccer" ? soccerCardsByMatchId.get(m.id) ?? null : null,
