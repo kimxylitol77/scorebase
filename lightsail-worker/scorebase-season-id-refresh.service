@@ -1,0 +1,10 @@
+# 시즌 id 주간 재발굴 (root — repo push + poller 재시작 권한)
+[Unit]
+Description=Scorebase TheSports Season-ID Weekly Refresh
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/ubuntu/scorebase-worker/src/season-id-refresh.sh
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/season-id-refresh.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/season-id-refresh.log

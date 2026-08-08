@@ -7,15 +7,25 @@ import path from "path";
 
 const TS_BASE = "https://api.thesports.com";
 
-// .env.local 수동 파싱
-const env: Record<string, string> = {};
-for (const line of readFileSync("/Users/kimss/scorebase/.env.local", "utf-8").split("\n")) {
-  const m = line.match(/^([A-Z_]+)=(.+)$/);
-  if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+// env — repo 루트 .env.local 이 있으면 파싱, 없으면(서버 자동 실행) process.env 사용.
+// 절대경로 하드코딩이던 것을 제거 — Vultr 주간 자동 실행(season-id-refresh)에서도 돌게.
+const env: Record<string, string> = { ...(process.env as Record<string, string>) };
+try {
+  for (const line of readFileSync(path.join(process.cwd(), ".env.local"), "utf-8").split("\n")) {
+    const m = line.match(/^([A-Z_]+)=(.+)$/);
+    if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+} catch {
+  /* .env.local 없음 — process.env 만 사용 */
 }
 const user = env.THESPORTS_USER;
 const secret = env.THESPORTS_SECRET;
-if (!user || !secret) throw new Error("THESPORTS env missing");
+if ((!user || !secret) && !env.THESPORTS_PROXY_URL) throw new Error("THESPORTS env missing");
+
+// 시즌 id 를 절대 채우지 않는 리그 — 자동 실행이 사람 결정을 되돌리지 못하게 스크립트에 박음.
+// J2_LEAGUE: tsSeasonId 가 붙으면 TS_COVERED 로 af 수집이 꺼짐(2026-08-08 결정, af 가 매치 소스).
+// CLUB_FRIENDLY: 친선은 시즌·순위 개념이 없음.
+const NO_SEASON_ID = new Set(["J2_LEAGUE", "CLUB_FRIENDLY"]);
 
 interface LeagueMapping {
   code: string;
@@ -95,6 +105,14 @@ async function main() {
   let updated = 0;
   const unresolved: string[] = [];
   for (const l of leagues) {
+    if (NO_SEASON_ID.has(l.code)) {
+      // 자동 채움 금지 리그 — 남아 있던 값도 제거해 상태를 강제
+      if (l.tsSeasonId) {
+        delete l.tsSeasonId;
+        updated++;
+      }
+      continue;
+    }
     const sid = competitionToSeason.get(l.tsId);
     if (sid) {
       if (l.tsSeasonId !== sid) {

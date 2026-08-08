@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Season-ID Refresh — 주 1회 (일 18:30 UTC = 월 03:30 KST, 주말 라운드 직후)
+
+[Timer]
+OnCalendar=Sun *-*-* 18:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
