@@ -1,7 +1,9 @@
 // TheSports API HTTP client (REST only — WebSocket은 별도 worker에서).
 // user/secret 환경변수: THESPORTS_USER, THESPORTS_SECRET.
-// IP whitelist 필수 (https://www.thesports.com/user/ips) — Vercel serverless 동적 IP 사용 불가.
-// Production은 고정 IP 워커 서버 (Hetzner 등) 에서 호출.
+// IP whitelist 필수 (https://www.thesports.com/user/ips) — Vercel serverless 동적 IP 는 직접
+// 호출 불가. THESPORTS_PROXY_URL 이 설정되면 화이트리스트 고정 IP(Vultr)의 ts-proxy 를
+// 경유한다 — user/secret 은 프록시가 자기 env 에서 주입하므로 앱은 토큰만 보낸다.
+// (2026-08-08 신설 — "Vercel cron 에서 ts 리그가 조용히 실패" 클래스의 근본 해결.)
 
 import axios, { AxiosInstance } from "axios";
 
@@ -11,6 +13,18 @@ let cachedClient: AxiosInstance | null = null;
 
 function buildClient(): AxiosInstance {
   if (cachedClient) return cachedClient;
+  const proxyUrl = process.env.THESPORTS_PROXY_URL;
+  if (proxyUrl) {
+    cachedClient = axios.create({
+      baseURL: proxyUrl,
+      timeout: 30_000, // 프록시 홉 + ts 응답 — 직접 호출보다 여유
+      headers: {
+        Accept: "application/json",
+        "x-ts-proxy-token": process.env.THESPORTS_PROXY_TOKEN ?? "",
+      },
+    });
+    return cachedClient;
+  }
   const user = process.env.THESPORTS_USER;
   const secret = process.env.THESPORTS_SECRET;
   if (!user || !secret) {
@@ -41,7 +55,11 @@ export async function thesportsGet<T extends { code: number }>(
   const client = buildClient();
   const { data } = await client.get<T>(path, { params });
   if (data.code !== 0) {
-    throw new Error(`TheSports ${path} returned code=${data.code}`);
+    // 화이트리스트 밖 IP 는 code 없이 {err: "IP is not authorized..."} 만 온다 — 원인이 보이게.
+    const err = (data as { err?: string }).err;
+    throw new Error(
+      `TheSports ${path} returned code=${data.code}${err ? ` (${err})` : ""}`,
+    );
   }
   return data;
 }

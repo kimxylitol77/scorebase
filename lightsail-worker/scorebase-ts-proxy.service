@@ -1,0 +1,17 @@
+# TheSports API 프록시 — Vercel 이 ts IP 화이트리스트를 넘도록 고정 IP 로 대리 호출 (포트 8788)
+[Unit]
+Description=Scorebase TheSports API Proxy (fixed-IP relay for Vercel)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/ts-proxy.js
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/ts-proxy.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/ts-proxy.err
+
+[Install]
+WantedBy=multi-user.target
