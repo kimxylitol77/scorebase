@@ -401,10 +401,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const leagueQ = sp.league ? `&league=${sp.league}` : "";
   const url = `${SITE_URL}/scores?sport=${sportCode}&date=${dateStr}${leagueQ}`;
 
-  const title = `${dateKo} ${sportKo} 라이브 스코어 · 일정 · 결과`;
+  // "라이브스코어"(붙임형)가 실제 검색 형태(월 183만) — 빙 키워드 리포트(8/8)에 이 계열
+  // 노출 0 = 헤드 키워드 미진입. keywords 배열에만 있고 title 에 없으면 exact-match 에서
+  // 지는 패턴(NPB/MLB f16f915 와 동일)이라 검색어를 제목 맨 앞으로 올린다.
+  const title = `${sportKo} 라이브스코어 — ${dateKo} 실시간 점수 · 일정 · 결과`;
   const description =
-    `${dateKo} ${sportKo} 경기 일정·라이브 스코어·종료 결과. ` +
-    `${leagueBlurb} 통합. Elo 모델 승률 추정·Value Bet·라이브 푸시 평균 2-3초 갱신. 스코어베이스.`;
+    `${sportKo} 라이브스코어 — ${dateKo} 경기 일정·실시간 점수·종료 결과. ` +
+    `${leagueBlurb} 통합 라이브 스코어. Elo 모델 승률 추정·Value Bet·평균 2-3초 갱신. 스코어베이스.`;
 
   const keywords = [
     `${dateKo} ${sportKo}`,
