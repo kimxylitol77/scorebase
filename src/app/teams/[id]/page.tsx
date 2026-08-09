@@ -1163,6 +1163,14 @@ export default async function TeamPage({ params }: Props) {
                         >
                           {result ?? "-"}
                         </td>
+                        <td className="px-3 py-3 text-right text-xs w-20">
+                          <Link
+                            href={`/teams/${teamId}/vs/${opp.id}`}
+                            className="text-rose-600 dark:text-rose-400 hover:underline whitespace-nowrap"
+                          >
+                            상대전적
+                          </Link>
+                        </td>
                       </tr>
                     );
                   })}

@@ -56,6 +56,27 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
     // 아카이브 조회 실패는 역사 탭을 죽이지 않는다 — 우승 연표만 표시
   }
 
+  // 시즌별 득점왕·도움왕 — LeagueLeader (rank 1). 축구형 카테고리만 (야구·농구는 카테고리 체계가 달라 제외).
+  // 과거 시즌은 backfill-league-leaders 소급 + 롤오버 보존(clearFutureSeasons 교정)으로 쌓인다.
+  let leaderSeasons: { season: string; goal?: { name: string; value: number }; assist?: { name: string; value: number } }[] = [];
+  try {
+    const rows = await prisma.leagueLeader.findMany({
+      where: { league, rank: 1, category: { in: ["GOAL", "ASSIST"] } },
+      select: { season: true, category: true, playerName: true, value: true },
+    });
+    const bySeason = new Map<string, { season: string; goal?: { name: string; value: number }; assist?: { name: string; value: number } }>();
+    for (const r of rows) {
+      let e = bySeason.get(r.season);
+      if (!e) { e = { season: r.season }; bySeason.set(r.season, e); }
+      const v = { name: r.playerName, value: r.value };
+      if (r.category === "GOAL") e.goal = v;
+      else e.assist = v;
+    }
+    leaderSeasons = [...bySeason.values()].sort((a, b) => b.season.localeCompare(a.season));
+  } catch {
+    // 조회 실패는 역사 탭을 죽이지 않는다
+  }
+
   if (champions.length === 0 && archivedSeasons.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center space-y-2">
@@ -284,8 +305,55 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
         </section>
       )}
 
+      {/* 시즌별 득점왕·도움왕 — LeagueLeader rank 1 (시즌별 보존·소급 백필로 축적) */}
+      {leaderSeasons.length > 0 && (
+        <section className="space-y-2.5">
+          <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider">
+            시즌별 득점왕·도움왕 <span className="text-neutral-400 font-normal">({leaderSeasons.length}시즌)</span>
+          </h2>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[11px] text-neutral-400">
+                  <th className="px-3.5 py-2 text-left font-medium w-20">시즌</th>
+                  <th className="px-2 py-2 text-left font-medium">득점왕</th>
+                  <th className="px-3.5 py-2 text-left font-medium">도움왕</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderSeasons.map((s) => (
+                  <tr key={s.season} className="border-t border-neutral-100 dark:border-neutral-800/60">
+                    <td className="px-3.5 py-2 text-xs tabular-nums text-neutral-400">{s.season}</td>
+                    <td className="px-2 py-2">
+                      {s.goal ? (
+                        <>
+                          <span className="font-medium">{s.goal.name}</span>{" "}
+                          <span className="text-xs text-neutral-500 tabular-nums">{s.goal.value}골</span>
+                        </>
+                      ) : (
+                        <span className="text-neutral-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-3.5 py-2">
+                      {s.assist ? (
+                        <>
+                          <span className="font-medium">{s.assist.name}</span>{" "}
+                          <span className="text-xs text-neutral-500 tabular-nums">{s.assist.value}도움</span>
+                        </>
+                      ) : (
+                        <span className="text-neutral-400">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <p className="text-[11px] text-neutral-400">
-        출처: 우승 연표는 위키데이터, 시즌별 최종 순위는 자체 아카이브 · 일부 리그·최근 시즌은 데이터 공백이 있을 수 있습니다.
+        출처: 우승 연표는 위키데이터, 시즌별 최종 순위·득점왕은 자체 아카이브 · 일부 리그·최근 시즌은 데이터 공백이 있을 수 있습니다.
       </p>
     </div>
   );

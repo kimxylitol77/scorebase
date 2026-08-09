@@ -52,6 +52,10 @@ const SPLIT_YEAR_LEAGUES = [
   "RPL", "ALGERIA_L1", "GHANA_PL",
   // 2026-07-31 시즌 레지스트리 도입 시 추가 — 유럽 2부 (순위 소스 없음으로 보고된 리그들)
   "CZECH_2", "DENMARK_2", "AUSTRIA_2", "HUNGARY_2", "TURKEY_2", "BELGIUM_2",
+  // 2026-08-09 실측 추가 — af season=2025 응답이 25-26 풀시즌(32·36·30경기)이고 8월에 새 시즌
+  //  개막(played 1~2) 확인. 달력형 오분류로 라벨이 "2025" 로 찍히던 것 교정 (아카이브 relabel 완료).
+  //  SEASON_BOUNDARY 도 셋 다 6/15 여름 경계라 팀 페이지 시즌 창과 정합.
+  "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND",
 ] as const;
 
 /**
