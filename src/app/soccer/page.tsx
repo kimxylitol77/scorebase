@@ -27,6 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import championsData from "../../../data/league-champions.json";
 
 export const revalidate = 300;
 
@@ -44,6 +45,30 @@ const LEAGUES = [
   { code: "SERIE_A", name: "세리에 A", sub: "이탈리아" },
   { code: "LIGUE_1", name: "리그 1", sub: "프랑스" },
   { code: "K_LEAGUE_1", name: "K리그1", sub: "대한민국" },
+];
+
+// 컵 대회 진입로 — 리그와 달리 순위표가 없어 허브에서는 "직전 우승"을 미리보기로 쓴다.
+const CHAMPS = championsData as Record<string, { champions: { season: string; ko: string }[] }>;
+const lastChampion = (code: string) => CHAMPS[code]?.champions?.[0] ?? null;
+
+const CUP_EUROPE = [
+  { code: "FA_CUP", name: "FA컵" },
+  { code: "EFL_CUP", name: "카라바오 컵" },
+  { code: "COPA_DEL_REY", name: "코파 델 레이" },
+  { code: "DFB_POKAL", name: "DFB-포칼" },
+  { code: "COPPA_ITALIA", name: "코파 이탈리아" },
+  { code: "COUPE_DE_FRANCE", name: "쿠프 드 프랑스" },
+  { code: "SCO_LEAGUE_CUP", name: "스코틀랜드 리그컵" },
+  { code: "SUI_CUP", name: "스위스컵" },
+  { code: "SVENSKA_CUPEN", name: "스벤스카 컵" },
+];
+const CUP_WORLD = [
+  { code: "KFA_CUP", name: "KFA컵" },
+  { code: "EMPEROR_CUP", name: "천황배" },
+  { code: "LEVAIN_CUP", name: "르베인 컵" },
+  { code: "COPA_DO_BRASIL", name: "코파 두 브라질" },
+  { code: "CONCACAF_CCUP", name: "CONCACAF 챔피언스컵" },
+  { code: "AFC_CUP", name: "AFC컵" },
 ];
 
 export default async function SoccerHub() {
@@ -161,6 +186,30 @@ export default async function SoccerHub() {
           <p className="text-sm text-neutral-500 break-keep">
             챔피언스리그·유로파리그·컨퍼런스리그 · 대진·일정·AI 예측.
           </p>
+        </Card>
+
+        {/* 유럽 국내 컵 — 녹아웃이라 순위가 없다. 미리보기는 직전 우승 */}
+        <Card
+          title="유럽 국내 컵"
+          Icon={Trophy}
+          badge="FA컵 · 코파 · 포칼"
+          href="/leagues/FA_CUP"
+          hrefLabel="FA컵 일정·역사"
+          links={CUP_EUROPE.map((c) => ({ label: c.name, href: `/leagues/${c.code}` }))}
+        >
+          <ChampionPreview codes={["FA_CUP", "COPA_DEL_REY", "DFB_POKAL"]} />
+        </Card>
+
+        {/* 아시아·아메리카 컵 */}
+        <Card
+          title="아시아 · 아메리카 컵"
+          Icon={Trophy}
+          badge="KFA · 천황배 · 코파"
+          href="/leagues/KFA_CUP"
+          hrefLabel="KFA컵 일정·역사"
+          links={CUP_WORLD.map((c) => ({ label: c.name, href: `/leagues/${c.code}` }))}
+        >
+          <ChampionPreview codes={["KFA_CUP", "EMPEROR_CUP", "COPA_DO_BRASIL"]} />
         </Card>
 
         {/* 축구 랭킹 모음 — FIFA 남녀·클럽·가성비·발롱도르 */}
@@ -298,6 +347,31 @@ function FnChip({ href, Icon, label }: { href: string; Icon: LucideIcon; label: 
     </Link>
   );
 }
+
+// 컵 카드 미리보기 — 순위표 자리에 직전 우승팀을 넣는다(기록 없으면 그 줄만 빠짐).
+function ChampionPreview({ codes }: { codes: string[] }) {
+  const rows = codes
+    .map((code) => ({ code, name: LEAGUE_KO[code] ?? code, champ: lastChampion(code) }))
+    .filter((r) => r.champ);
+  if (rows.length === 0) return <Empty>역대 우승 기록을 수집 중입니다.</Empty>;
+  return (
+    <ul className="space-y-1.5">
+      {rows.map((r) => (
+        <li key={r.code} className="flex items-center justify-between text-sm gap-2">
+          <span className="text-neutral-500 shrink-0">{r.name}</span>
+          <span className="truncate">
+            <span className="text-neutral-400 text-xs tabular-nums mr-1.5">{r.champ!.season}</span>
+            {r.champ!.ko}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const LEAGUE_KO: Record<string, string> = Object.fromEntries(
+  [...CUP_EUROPE, ...CUP_WORLD].map((c) => [c.code, c.name]),
+);
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-neutral-400 py-2">{children}</p>;

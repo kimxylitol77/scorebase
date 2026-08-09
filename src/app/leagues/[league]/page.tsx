@@ -89,6 +89,11 @@ const VALID_LEAGUES = [
   "EMPEROR_CUP",
   "CONCACAF_CCUP",
   "AFC_CUP",
+  // 컵 4개 추가 (2026-08-09) — ALL_LEAGUES 폴백으로 넘어가면 컵에 없는 순위표만 그려 빈 화면이 된다.
+  "LEVAIN_CUP",
+  "SUI_CUP",
+  "SVENSKA_CUPEN",
+  "COPA_DO_BRASIL",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -336,6 +341,7 @@ const VIEW_LABEL: Record<ViewKey, string> = {
 const CUP_LEAGUES = new Set<string>([
   "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
