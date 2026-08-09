@@ -9,6 +9,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "closing-odds", label: "북메이커 클로징 아카이브", maxAgeH: 28 },
   { name: "standings-collect", label: "축구 순위", maxAgeH: 28 },
   { name: "baseball-standings", label: "야구 순위", maxAgeH: 28 },
+  { name: "archive-standings", label: "시즌 순위 아카이브", maxAgeH: 28 },
   { name: "baseball-season-stats", label: "야구 시즌스탯", maxAgeH: 28 },
   { name: "verify-baseball-postponed", label: "야구 미래 POSTPONED 재대조", maxAgeH: 28 },
   { name: "fetch-transactions", label: "이적 거래", maxAgeH: 28 },

@@ -571,6 +571,25 @@ model CompetitionSeason {
   @@index([status, seasonYear])
 }
 
+/// 시즌별 순위 영구 아카이브 — 순위 캐시 3종(ts·af·농구)이 리그당 1행이라 시즌 롤오버 때
+/// 최종 순위가 덮어써지는 것을 막는다. 매일 (league, seasonLabel) upsert — 롤오버로 라벨이
+/// 바뀌면 이전 시즌 행이 자연히 동결돼 최종 순위가 된다(시즌 종료 감지 불필요).
+/// rows 는 팀명·한글명·로고까지 비정규화 — 팀 병합·삭제에도 아카이브는 자립.
+/// raw SQL 생성 — db push 금지 (prisma/sql/create-season-standings-archive.sql).
+/// 수집: src/jobs/archive-standings.ts (일 1회 cron) · 백필: scripts/backfill-standings-archive.ts
+model SeasonStandingsArchive {
+  id          Int      @id @default(autoincrement())
+  league      String // 우리 league code (EPL, LALIGA, KBO, NHL, ...)
+  seasonLabel String // "2025-26" (유럽형) | "2026" (달력형)
+  source      String // "site"(getFullStandings) | "baseball-table" | "af-cache" | "nhl-official" | "espn-nba" | "af-backfill"
+  rows        Json     @default("[]") // [{teamId?, name, ko?, logo?, position, played, won, draw?, loss, gf?, ga?, points?, group?}]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([league, seasonLabel])
+  @@index([league])
+}
+
 /// api-football /standings 응답을 normalized 저장.
 /// row.teamExternalId = api-football team id = 우리 Team.externalId (api-football 기반 리그).
 /// 매핑 dictionary 없이 바로 Team.externalId 로 join 가능 — TheSports mapping 누락 회피.

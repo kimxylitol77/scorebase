@@ -213,6 +213,10 @@
       "schedule": "30 20 * * *"
     },
     {
+      "path": "/api/cron/archive-standings",
+      "schedule": "15 21 * * *"
+    },
+    {
       "path": "/api/cron/baseball-season-stats",
       "schedule": "30 19 * * *"
     },
