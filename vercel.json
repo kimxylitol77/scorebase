@@ -225,6 +225,10 @@
       "schedule": "30 20 * * *"
     },
     {
+      "path": "/api/cron/npb-player-logs",
+      "schedule": "40 20 * * *"
+    },
+    {
       "path": "/api/cron/mlb-starters",
       "schedule": "0 12 * * *"
     },

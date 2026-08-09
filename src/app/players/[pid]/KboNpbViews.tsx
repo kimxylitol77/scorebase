@@ -881,6 +881,150 @@ export function npbDisplayName(jpFullName: string, kana?: string): string {
   return tokens.length > 1 ? `${surnameKo} ${tokens.slice(1).join(" ")}` : surnameKo;
 }
 
+/**
+ * 경기별 로그 — NpbPlayerGameLog 아카이브 (수집: src/jobs/collect-npb-player-logs.ts, npb.jp 박스스코어).
+ * KBO 와 달리 선수 중심 라이브 소스가 없어 현 시즌·과거 시즌 모두 DB 가 정본이다.
+ */
+async function fetchNpbGameLogs(pid: string, role: "P" | "B") {
+  try {
+    const rows = await prisma.npbPlayerGameLog.findMany({
+      where: { npbId: pid, role },
+      orderBy: [{ season: "desc" }, { date: "asc" }, { seq: "asc" }],
+    });
+    const bySeason = new Map<number, typeof rows>();
+    for (const r of rows) {
+      const list = bySeason.get(r.season) ?? [];
+      list.push(r);
+      bySeason.set(r.season, list);
+    }
+    return [...bySeason.entries()].map(([season, list]) => ({ season, rows: list }));
+  } catch {
+    return [];
+  }
+}
+type NpbSeasonLogs = Awaited<ReturnType<typeof fetchNpbGameLogs>>;
+
+/** 투수 경기별 로그 표 — 최신 경기가 위. npb.jp 박스스코어에는 누적 ERA 가 없어 KBO 표와 컬럼이 다르다. */
+function NpbPitcherGameTable({ rows }: { rows: NpbSeasonLogs[number]["rows"] }) {
+  const list = [...rows].reverse();
+  return (
+    <div className="rounded-xl bg-white ring-1 ring-black/5 overflow-x-auto max-h-[560px] overflow-y-auto dark:bg-white/[0.04] dark:ring-white/10">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+          <tr>
+            <th className="text-left px-3 py-2 font-medium">날짜</th>
+            <th className="text-left px-3 py-2 font-medium">상대</th>
+            <th className="text-left px-2 py-2 font-medium">구분</th>
+            <th className="text-right px-2 py-2 font-medium">IP</th>
+            <th className="text-right px-2 py-2 font-medium">ER</th>
+            <th className="text-right px-2 py-2 font-medium">K</th>
+            <th className="text-right px-2 py-2 font-medium">BB</th>
+            <th className="text-right px-2 py-2 font-medium">H</th>
+            <th className="text-right px-2 py-2 font-medium">HR</th>
+            <th className="text-right px-3 py-2 font-medium whitespace-nowrap">투구수</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+          {list.map((g) => {
+            const r = g.result ? KBO_RESULT_KO[g.result] : undefined;
+            return (
+              <tr key={g.id}>
+                <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums whitespace-nowrap">
+                  {archiveDateLabel(g.date)}
+                  {r && (
+                    <span className={`ml-1.5 inline-block w-5 text-center text-[10px] font-bold rounded ${r.cls}`}>
+                      {r.label}
+                    </span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-xs font-medium">{g.opponent}</td>
+                <td className="px-2 py-2 text-xs text-neutral-500">{g.roleDetail ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums">{g.ip ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.er ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums">{g.so ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.bb ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.h ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.hr ?? "—"}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">{g.pitches ?? "—"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** 타자 경기별 로그 표 — 최신 경기가 위. 2B/3B/HR/BB/SO 는 박스스코어 이닝 셀 파생값. */
+function NpbHitterGameTable({ rows }: { rows: NpbSeasonLogs[number]["rows"] }) {
+  const list = [...rows].reverse();
+  return (
+    <div className="rounded-xl bg-white ring-1 ring-black/5 overflow-x-auto max-h-[560px] overflow-y-auto dark:bg-white/[0.04] dark:ring-white/10">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+          <tr>
+            <th className="text-left px-3 py-2 font-medium">날짜</th>
+            <th className="text-left px-3 py-2 font-medium">상대</th>
+            <th className="text-right px-2 py-2 font-medium">타수</th>
+            <th className="text-right px-2 py-2 font-medium">안타</th>
+            <th className="text-right px-2 py-2 font-medium">2B</th>
+            <th className="text-right px-2 py-2 font-medium">HR</th>
+            <th className="text-right px-2 py-2 font-medium">타점</th>
+            <th className="text-right px-2 py-2 font-medium">득점</th>
+            <th className="text-right px-2 py-2 font-medium">도루</th>
+            <th className="text-right px-2 py-2 font-medium">BB</th>
+            <th className="text-right px-3 py-2 font-medium">SO</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+          {list.map((g) => (
+            <tr key={g.id}>
+              <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums whitespace-nowrap">
+                {archiveDateLabel(g.date)}
+              </td>
+              <td className="px-3 py-2 text-xs font-medium">{g.opponent}</td>
+              <td className="px-2 py-2 text-right tabular-nums">{g.ab ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.h ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.d2b ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums">{g.hr ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums">{g.rbi ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.r ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.sb ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.bb ?? "—"}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-neutral-500">{g.so ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** 시즌별 블록 — 최신 시즌은 펼치고 과거 시즌은 <details> 접기 (KBO 과거 시즌 블록과 동일 패턴). */
+function NpbGameLogBlocks({ blocks, kind }: { blocks: NpbSeasonLogs; kind: "P" | "B" }) {
+  return (
+    <div className="space-y-4">
+      {blocks.map((b, i) => (
+        <details
+          key={b.season}
+          open={i === 0}
+          className="rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10"
+        >
+          <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-neutral-600 dark:text-neutral-300">
+            {b.season} 시즌 경기별 기록{" "}
+            <span className="text-xs font-normal text-neutral-400">
+              {b.rows.length}경기{b.rows[b.rows.length - 1]?.team ? ` · ${b.rows[b.rows.length - 1].team}` : ""}
+            </span>
+          </summary>
+          <div className="px-2 pb-2">
+            {kind === "P" ? <NpbPitcherGameTable rows={b.rows} /> : <NpbHitterGameTable rows={b.rows} />}
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
 interface NpbDbGame {
   date: string;
   opponent: string;
@@ -1017,9 +1161,10 @@ async function NpbPitcherView({
   photo?: string;
 }) {
   const teamKo = npbTeamJpToKor(profile.team);
-  const [yearly, recent] = await Promise.all([
+  const [yearly, recent, gameLogs] = await Promise.all([
     getNpbPitcherYearly(pid),
     fetchNpbRecentFromDb(pid, teamKo),
+    fetchNpbGameLogs(pid, "P"),
   ]);
   const koName = profile.name ? npbDisplayName(profile.name, profile.kana) : "(이름 정보 없음)";
   // 리그 백분위 — 일본어 원명으로 DB 매칭 (규정 이닝 미달·표본 부족이면 null → 섹션 생략)
@@ -1129,11 +1274,16 @@ async function NpbPitcherView({
           {
             key: "games",
             label: "경기",
-            content: <NpbRecentGames games={recent} />,
+            content:
+              gameLogs.length > 0 ? (
+                <NpbGameLogBlocks blocks={gameLogs} kind="P" />
+              ) : (
+                <NpbRecentGames games={recent} />
+              ),
           },
         ])}
       />
-      <Footer source="NPB 공식 (npb.jp) · 최근 등판은 scorebase 매치 DB" />
+      <Footer source="NPB 공식 (npb.jp) · 경기별 기록은 박스스코어 아카이브" />
     </article>
   );
 }
@@ -1149,7 +1299,10 @@ async function NpbHitterView({
   stats: NpbHitterStats;
   photo?: string;
 }) {
-  const yearly = await getNpbHitterYearly(pid);
+  const [yearly, gameLogs] = await Promise.all([
+    getNpbHitterYearly(pid),
+    fetchNpbGameLogs(pid, "B"),
+  ]);
   const koName = profile.name ? npbDisplayName(profile.name, profile.kana) : "(이름 정보 없음)";
   const teamKo = npbTeamJpToKor(profile.team);
   // 리그 백분위 — 일본어 원명으로 DB 매칭 (규정 미달·표본 부족이면 null → 섹션 생략)
@@ -1246,9 +1399,14 @@ async function NpbHitterView({
             label: "시즌기록",
             content: <HitterSeasonTable rows={yearly.seasons} />,
           },
+          gameLogs.length > 0 && {
+            key: "games",
+            label: "경기",
+            content: <NpbGameLogBlocks blocks={gameLogs} kind="B" />,
+          },
         ])}
       />
-      <Footer source="NPB 공식 (npb.jp)" />
+      <Footer source="NPB 공식 (npb.jp) · 경기별 기록은 박스스코어 아카이브" />
     </article>
   );
 }

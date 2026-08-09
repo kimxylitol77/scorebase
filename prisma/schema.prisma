@@ -1452,6 +1452,44 @@ model KboPlayerGameLog {
   @@index([kboId, season])
 }
 
+/// NPB 경기별 선수 로그 아카이브 — npb.jp 박스스코어 스크래핑 축적 (KboPlayerGameLog 와 동일 패턴).
+/// 일정 페이지(/games/{Y}/schedule_{MM}_detail.html) → 경기별 box.html 파싱. 소급 2016~.
+/// id = "npb:{role}:{npbId}:{season}:{MM.DD}:{seq}"(멱등, seq=같은 날짜 더블헤더 순번).
+/// h·hr·bb·so·r 은 role 에 따라 의미가 다름(P=피안타·피홈런·실점 / B=안타·홈런·득점).
+/// 타자 2B/3B/HR/BB/SO/HBP 는 이닝별 타석결과 한자 표기에서 파생. 누적 ERA/타율은 소스 미제공.
+/// raw SQL 생성 — db push 금지. 수집: src/jobs/collect-npb-player-logs.ts (일일 cron + 시즌 백필).
+model NpbPlayerGameLog {
+  id         String   @id // "npb:{role}:{npbId}:{season}:{MM.DD}:{seq}"
+  npbId      String // npb.jp 8자리 pid (= /players/[pid]?league=NPB 의 pid)
+  role       String // "P"(투수) | "B"(타자)
+  season     Int
+  date       DateTime @db.Date
+  seq        Int      @default(0) // 같은 날짜 내 등장 순번 (더블헤더)
+  name       String? // 박스스코어 표기 스냅샷 (성 위주 단축명, 일본어)
+  team       String? // 한국어 팀 약칭 (요미우리·한신 등)
+  opponent   String // 한국어 팀 약칭
+  roleDetail String? // 투수: "선발" | "구원"
+  result     String? // 투수: W | L | S | H
+  ip         String? // 투수: "5 2/3" 식
+  pitches    Int? // 투수: 투구수
+  tbf        Int? // 투수: 상대 타자 수
+  er         Int? // 투수: 자책점
+  hbp        Int? // 死球 — 투수: 몸에맞는공 허용 / 타자: 파생
+  ab         Int? // 타자
+  d2b        Int? // 타자: 2루타 (이닝 셀 파생)
+  d3b        Int? // 타자: 3루타 (이닝 셀 파생)
+  rbi        Int? // 타자
+  sb         Int? // 타자
+  h          Int?
+  hr         Int?
+  bb         Int?
+  so         Int?
+  r          Int?
+  createdAt  DateTime @default(now())
+
+  @@index([npbId, season])
+}
+
 /// 해외 축구 브리핑 — Tier1 소스(BBC·Sky·Athletic·구단 공식) RSS 항목의 수집·검증·발행 상태.
 /// RSS 에서 본 모든 항목을 기록해 dedup (id = sha1(sourceUrl)). raw SQL 생성 — db push 금지.
 /// 발행물은 Post(category=BRIEFING) 로 나가고 postId 로 연결. 파이프라인: fetch-news-briefing.ts

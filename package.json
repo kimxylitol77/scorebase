@@ -38,6 +38,7 @@
     "job:mlb-weekly-players": "tsx src/jobs/generate-mlb-weekly-players.ts",
     "job:blog-weekly": "tsx src/jobs/generate-blog-weekly.ts",
     "job:kbo-player-logs": "tsx src/jobs/collect-kbo-player-logs.ts",
+    "job:npb-player-logs": "tsx src/jobs/collect-npb-player-logs.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",
     "job:transactions": "tsx --env-file=.env.local src/jobs/fetch-transactions.ts",
