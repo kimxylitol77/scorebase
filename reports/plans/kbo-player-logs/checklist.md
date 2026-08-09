@@ -22,12 +22,13 @@
 - [x] 소스 실측 A: koreabaseball 인덱스·Daily 비용/구조 → 검증: 프로브 실행 로그
 - [x] 소스 실측 B: TheSportsMatchCache KBO players 커버리지 → 검증: 265/796
 - [x] 소스 실측 C: Daily.aspx ddlYear POST 과거 시즌 → 검증: 2025 67행 파싱
-- [ ] prisma/sql/create-kbo-player-game-log.sql 작성 → 검증: prod 에 실행, 컬럼 확인
-- [ ] schema.prisma 에 KboPlayerGameLog 모델 추가 → 검증: prisma generate 통과
-- [ ] kbo-official.ts 에 시즌 지정 Daily fetcher(POST ddlYear) 추가 → 검증: 2025 샘플 파싱
-- [ ] src/jobs/collect-kbo-player-logs.ts 수집 잡 → 검증: 2026 시즌 실행, 행 수 확인
-- [ ] cron 라우트 + vercel.json + CRON_REGISTRY + package.json script → 검증: tsc 통과
-- [ ] 과거 시즌 백필 2021~2025 → 검증: 시즌별 행 수 리포트
-- [ ] 선수 페이지 경기 탭 — 지난 시즌 섹션 → 검증: 로컬 렌더 확인
-- [ ] npm test + tsc → 검증: 통과
-- [ ] 임시 프로브 스크립트 삭제, 커밋 분리(파이프라인 / 표면) → git push
+- [x] prisma/sql/create-kbo-player-game-log.sql 작성 → 검증: prod 에 실행, 30컬럼 확인
+- [x] schema.prisma 에 KboPlayerGameLog 모델 추가 → 검증: prisma generate 통과
+- [x] kbo-official.ts 에 시즌 지정 Daily fetcher(POST ddlYear) 추가 → 검증: 2025 샘플 67행 파싱
+- [x] src/jobs/collect-kbo-player-logs.ts 수집 잡 → 검증: 2026 시즌 17,554행 적재
+- [x] cron 라우트 + vercel.json + CRON_REGISTRY + package.json script → 검증: tsc 통과
+- [x] 과거 시즌 백필 2021~2025 → 검증: 총 143,174행(시즌당 24,567~25,532), 이정후 2022
+      142경기·23HR·113RBI·193H 공식 기록 일치, 양의지 더블헤더 seq 0/1 분리
+- [x] 선수 페이지 경기 탭 — 지난 시즌 섹션 → 검증: 문보경·박세웅 로컬 실렌더
+- [x] npm test + tsc → 검증: 96건 전부 통과
+- [x] 임시 프로브 스크립트 삭제, 커밋 분리(파이프라인 ca4d12b / 표면 32b3745) → git push

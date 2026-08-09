@@ -95,7 +95,7 @@
 - [x] 비축구 과거 시즌 순위 소급: MLB 2021-2025(statsapi, 디비전 그룹) · NHL 2020-21~2024-25(공식, 정규시즌 마지막 날 날짜 지정) · KBO/NPB 2021-2025(ts season/list→table/detail) — 각 리그 6시즌 확보, 우승팀 실역사 대조 통과
 - [x] 축구 af 과거 5시즌(2020-2024) — af 일한도 소진으로 즉시 실행 불가, 쿼터 리셋 직후(8/10 07:20 로컬) 1회성 예약 작업 등록(football-standings-past-backfill)
 - [x] 야구 선수 시즌 스탯 — BaseballPlayerSeasonStats 가 이미 (league, season) 축적 중(2026: KBO 536·MLB 1,494·NPB 686) 확인, 추가 작업 불필요
-- [ ] KBO 경기별 선수 로그 파이프라인 — 공식 API 부재(스크래핑 필요), 별도 세션 칩 발행
+- [x] KBO 경기별 선수 로그 파이프라인 — koreabaseball Daily 스크래핑 축적(ca4d12b), 2021~2026 6시즌 백필 + 일일 cron. 상세: reports/plans/kbo-player-logs/
 - 스킵(근거): MLB/NHL 선수 경기 로그는 공식 API 가 전 히스토리를 영구 제공(선수 페이지가 이미 라이브 조회) — 자체 축적 불필요. NBA 도 ESPN 프로필 동일. 소멸 위험이 없는 데이터는 아카이브 대상이 아니다(1단계 원칙).
 
 ## 함정 기록
