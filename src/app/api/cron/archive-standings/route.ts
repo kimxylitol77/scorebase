@@ -7,6 +7,7 @@ import { recordCronRun } from "@/lib/cron-registry";
 import { runArchiveStandings } from "@/jobs/archive-standings";
 import { runArchiveTeamStats } from "@/jobs/archive-team-stats";
 import { runArchiveCoaches } from "@/jobs/archive-coaches";
+import { runArchivePlayerStats } from "@/jobs/archive-player-stats";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ async function handle(req: NextRequest) {
   const result = await runArchiveStandings();
   const teamStats = await runArchiveTeamStats();
   const coaches = await runArchiveCoaches();
+  const playerStats = await runArchivePlayerStats();
   await recordCronRun("archive-standings", { count: result.counts.saved ?? 0 });
-  return NextResponse.json({ success: true, ...result, teamStats, coaches });
+  return NextResponse.json({ success: true, ...result, teamStats, coaches, playerStats });
 }

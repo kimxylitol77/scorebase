@@ -143,3 +143,12 @@
   - 감독 교체 시 팀별 재임 이력이 어디에도 안 남음 → CoachTenureArchive 신설(일일 diff, endedAt null=현직), 289/290팀 시드(TeamSourceId + team-id-mapping 폴백)
 - [x] archive-standings cron 에 동승 (순위·팀통계·감독 3종이 한 cron)
 - 범위 밖: 야구·농구 감독(소스 자체가 축구 ts/af 뿐) · 감독 교체가 쌓인 뒤 팀 페이지 "역대 감독" 표면(데이터 2건+ 시점에)
+
+---
+
+# 선수 축 점검 (2026-08-09 밤, "선수 데이터도 체크해줘")
+
+- [x] 새는 곳 1개 발견·수리 — 선수 시즌통계 JSON 2종(ts 4,631명·af 12,804건)이 선수당 현재 시즌 1행 스냅샷 → 주간 리빌드(바로 내일 일요일 05:00!)가 시즌 넘기면 25-26 최종 스탯(슈팅·키패스·태클 등 로그 재계산 불가 지표) 소멸 → PlayerSeasonStatArchive 신설 + 17,435행 시드 + cron 동승 (아카이브 4종: 순위·팀통계·감독·선수)
+- [x] 건강 확인(이미 축적형): PlayerMatchLog(축구 경기 로그 10만+, 주간) · KBO 선수 경기 로그(14만, 병렬 세션) · PlayerEvent(15만) · PlayerMarketValue history(1.3만) · PlayerTrophy(2만) · BaseballPlayerSeasonStats(시즌 키) · InjurySnapshot(8/3~ 축적) · LeagueLeader(시즌 보존 교정 완료)
+- 범위 밖/비대상: MLB·NHL·NBA 선수 스탯(공식·ESPN 이 영구 히스토리 제공) · 등번호 시즌 이력(마이너) · NPB 경기 로그(별도 세션 진행 중)
+- 표면 후보(추후): 선수 페이지 시즌별 기록 표에 아카이브 스탯(슈팅·키패스) 열 보강 — 시즌 2개 쌓인 뒤
