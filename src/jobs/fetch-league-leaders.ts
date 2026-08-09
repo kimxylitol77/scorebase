@@ -100,13 +100,17 @@ async function clearOldRanks(
   });
 }
 
-/** 다른 시즌 레이블로 저장된 잔존 행 제거 (NHL "2026-27" 같은 stale 시즌). */
-async function clearStaleSeasons(league: string, currentSeason: string) {
+/** 미래 라벨로 잘못 저장된 잔존 행만 제거 (NHL "2026-27" 조기 오라벨 같은 것).
+ *  과거 시즌 행은 보존한다 — 위키형 축적: 시즌별 득점왕이 역사로 남는다.
+ *  (이전에는 현재 시즌 외 전부 삭제 — 롤오버 때 지난 시즌 리더가 통째로 사라지는 새는 곳이었다.
+ *   표시층은 전부 최신 시즌 필터/정렬 확인: predictions=latestSeason 필터·autocomplete=이름 dedup·
+ *   free-board-bot=season desc 정렬. 라벨 형식이 리그 안에서 균일해 문자열 비교로 미래 판정 가능.) */
+async function clearFutureSeasons(league: string, currentSeason: string) {
   const res = await prisma.leagueLeader.deleteMany({
-    where: { league, season: { not: currentSeason } },
+    where: { league, season: { gt: currentSeason } },
   });
   if (res.count > 0) {
-    console.log(`[leaders/${league}] removed ${res.count} stale rows (season !== ${currentSeason})`);
+    console.log(`[leaders/${league}] removed ${res.count} future-labeled rows (season > ${currentSeason})`);
   }
 }
 
@@ -117,7 +121,7 @@ async function clearStaleSeasons(league: string, currentSeason: string) {
  * predictions/[league] 가 이미 빅5 리더보드에 쓰는 것과 동일 소스·동일 이름 규칙.
  * - externalId 는 af id 우선(tsPlayerToAf) — 매핑 없으면 ts id. ballon 병합·평점 조회 위해.
  * - 저장 시즌 라벨은 데이터 자체의 s.season 사용 → 8월 2026-27 전환 시 자동 정합.
- *   (2025-26 최종 데이터는 clearStaleSeasons 미호출로 프리즈 → ballon 심사창 보존.)
+ *   (2025-26 최종 데이터는 시즌별 보존 — 과거 시즌 삭제 없음, ballon 심사창·위키 축적 겸용.)
  * - 커버리지가 충분한 리그만(allowlist), 그중 카테고리당 리더 <5 면 skip → 기존 데이터 보존.
  * - season-stats 미커버 리그(UCL/UEL/컵 등)는 순회 대상이 아니므로 기존 행 그대로 유지.
  * ==========================================================*/
@@ -646,7 +650,7 @@ export async function runNba(seasonStartYear: number) {
   }
   // 오프시즌 빈 응답이면 삭제 없이 skip — 데이터 확보 시에만 stale 시즌 정리
   if (Object.values(summary).some((n) => n > 0)) {
-    await clearStaleSeasons("NBA", seasonLabel);
+    await clearFutureSeasons("NBA", seasonLabel);
   }
   return { season: seasonLabel, result: summary };
 }
@@ -721,7 +725,7 @@ async function runNhl(seasonLabel: string) {
   await fetchOne("goalie", NHL_GOALIE_CATS);
   // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
   if (Object.values(summary).some((n) => n > 0)) {
-    await clearStaleSeasons("NHL", seasonLabel);
+    await clearFutureSeasons("NHL", seasonLabel);
   }
   return { season: seasonLabel, result: summary };
 }
@@ -1261,7 +1265,7 @@ async function runLol(season: number) {
   await writeCat("KILL", "킬/경기", "killsAvg", 1);
   // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
   if (Object.values(summary).some((n) => n > 0)) {
-    await clearStaleSeasons("LOL", String(season));
+    await clearFutureSeasons("LOL", String(season));
   }
   return { season: String(season), result: summary };
 }

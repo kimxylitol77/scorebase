@@ -242,14 +242,23 @@ async function archiveBasketball(counts: Record<string, number>, failures: strin
     try {
       const std = await fetchBasketballStandings(league);
       if (!std || std.rows.length === 0) continue;
-      const resolve = await teamResolver(std.rows.map((r) => r.ourTeamId), league);
+      // ⚠ BasketballStandingRow.ourTeamId 는 합성 네임스페이스(9000008 등) — 실제 Team.id 아님.
+      //   teamName 정규화 매칭으로 진짜 Team 을 잇는다 (실측 2026-08-09: 가짜 id 저장 사고 수정).
+      const teams = await prisma.team.findMany({
+        where: { league },
+        select: { id: true, name: true, logoUrl: true },
+      });
+      const normBb = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+      const byName = new Map(teams.map((t) => [normBb(t.name), t]));
       const rows: ArchiveRow[] = std.rows.map((r) => {
-        const base = resolve(r.ourTeamId);
+        const name = r.teamName ?? "?";
+        const hit = byName.get(normBb(name));
+        const ko = toKoreanTeamName(name, league);
         return {
-          teamId: r.ourTeamId,
-          name: r.teamName ?? base.name,
-          ko: base.ko,
-          logo: r.logoUrl ?? base.logo,
+          teamId: hit?.id ?? null,
+          name,
+          ko: ko !== name ? ko : undefined,
+          logo: r.logoUrl ?? hit?.logoUrl ?? null,
           position: r.position,
           played: r.played,
           won: r.wins,

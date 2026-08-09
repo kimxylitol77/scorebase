@@ -234,11 +234,63 @@ async function backfillTsBaseball(out: string[]) {
   }
 }
 
+// ── NBA — api-sports basketball 과거 시즌 (ESPN 은 과거 미제공, 같은 API 키·별도 쿼터) ──
+const NBA_SEASONS = ["2020-2021", "2021-2022", "2022-2023", "2023-2024", "2024-2025"];
+const CONF_KO: Record<string, string> = { "Western Conference": "서부", "Eastern Conference": "동부" };
+
+async function backfillNbaApiSports(out: string[]) {
+  const apiKey = process.env.API_FOOTBALL_KEY;
+  if (!apiKey) { out.push("NBA: API 키 없음"); return; }
+  const match = await nameMatcher("NBA");
+  for (const season of NBA_SEASONS) {
+    const label = `${season.slice(0, 4)}-${season.slice(7)}`; // "2024-2025" → "2024-25"
+    if (await exists("NBA", label)) { out.push(`NBA ${label}: 이미 있음`); continue; }
+    try {
+      const d = await fetch(`https://v1.basketball.api-sports.io/standings?league=12&season=${season}`, {
+        headers: { "x-apisports-key": apiKey },
+        signal: AbortSignal.timeout(12000),
+      }).then((r) => r.json());
+      interface NbaRow {
+        position: number;
+        group?: { name?: string };
+        team?: { name?: string; logo?: string };
+        games?: { played?: number; win?: { total?: number }; lose?: { total?: number } };
+      }
+      const raw: NbaRow[] = (d.response?.[0] ?? []).filter(
+        (r: NbaRow) => r.group?.name && CONF_KO[r.group.name],
+      );
+      if (raw.length < 28) { out.push(`NBA ${label}: 행 부족(${raw.length}) — skip`); continue; }
+      const rows: ArchiveRow[] = raw.map((r) => {
+        const name = r.team?.name ?? "?";
+        const hit = match(name);
+        const ko = toKoreanTeamName(name, "NBA");
+        return {
+          teamId: hit?.id ?? null,
+          name,
+          ko: ko !== name ? ko : undefined,
+          logo: hit?.logoUrl ?? r.team?.logo ?? null,
+          position: r.position,
+          played: r.games?.played ?? 0,
+          won: r.games?.win?.total ?? 0,
+          loss: r.games?.lose?.total ?? 0,
+          group: CONF_KO[r.group!.name!],
+        };
+      });
+      const res = await upsertArchive("NBA", label, "api-sports-basketball-backfill", rows);
+      out.push(`NBA ${label}: ${res} (${rows.length}팀, teamId ${rows.filter((r) => r.teamId).length})`);
+      await new Promise((r) => setTimeout(r, 6500)); // free tier 분당 10콜 안전
+    } catch (e) {
+      out.push(`NBA ${label}: 실패 ${(e as Error).message.slice(0, 60)}`);
+    }
+  }
+}
+
 async function main() {
   const out: string[] = [];
   await backfillMlb(out);
   await backfillNhl(out);
   await backfillTsBaseball(out);
+  await backfillNbaApiSports(out);
   console.log(out.join("\n"));
   const total = await prisma.seasonStandingsArchive.count();
   console.log(`총 아카이브 행: ${total}`);

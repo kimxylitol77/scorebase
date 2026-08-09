@@ -102,3 +102,15 @@
 
 - statsapi /standings 의 team.name 은 짧은 이름("Orioles") — /teams?season 으로 풀네임 해석 후 매칭
 - NHL /standings/{date} 는 시즌 범위 밖 날짜에 빈 배열 — 정규시즌 마지막 날을 정확히 지정해야 함
+
+---
+
+# 후속 정리 라운드 (2026-08-09 저녁, "1번부터 순서대로")
+
+- [x] 1. 우승 연표 보강 — 위키데이터가 낡아 재수집 무효, MANUAL_CHAMPIONS 로 실측분만 4건(KBO 2025 LG=한국시리즈 DB 실측·NHL 25-26 캐롤라이나=결승 6경기 실측·쉬페르리그/라리가2 25-26=아카이브 1위). NHL 24-25·NPB 2025·스위스컵·코파두브라질은 검증 불가로 공백 유지
+- [x] 2. 득점왕 축적 — fetch-league-leaders 의 NBA/NHL/LOL 과거 시즌 전삭제를 미래 오라벨만 삭제로 교정(표시층 3곳 최신시즌 필터 확인). 과거 백필 스크립트(backfill-league-leaders.ts, 13리그×2020-24) 작성 — 실행은 내일 아침 예약에 합류
+- [x] 3. NBA 과거 순위 — api-sports basketball(같은 키·별도 쿼터)로 22-23~24-25 3시즌 확보(20-21·21-22 는 플랜 밖). 부수 발견: 일일 농구 어댑터가 합성 id(9000008)를 teamId 로 저장하던 사고 → 이름 매칭으로 교정 + 재생성(ko 30/30)
+- [x] 4. 10월 개막 리마인더 예약(winter-season-archive-onboard) — KBL/WKBL 편입 + NBA/NHL 26-27 확인
+- [x] 5. 역사 탭 한글명 렌더 폴백(r.ko 없으면 사전 변환)
+- [x] KBO 경기별 선수 로그 — 병렬 세션 완료(2021~2026 6시즌 14만행+일일 cron, 메모리 kbo-player-game-logs)
+- [ ] team-history.json 20팀 확장 — 콘텐츠 큐레이션 작업이라 별도 칩

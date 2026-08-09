@@ -225,7 +225,7 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
                       <span className="ml-auto flex items-center gap-1.5 text-xs text-neutral-500">
                         <span aria-hidden>🏆</span>
                         <TeamBadge logoUrl={champ.logo ?? null} size={16} className="bg-white rounded-sm" />
-                        <span className="font-semibold">{champ.ko ?? champ.name}</span>
+                        <span className="font-semibold">{champ.ko ?? toKoreanTeamName(champ.name, league)}</span>
                       </span>
                     ) : null;
                   })()}
@@ -254,12 +254,12 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
                             {r.teamId ? (
                               <Link href={`/teams/${r.teamId}`} className="flex items-center gap-2 min-w-0 hover:text-blue-600 dark:hover:text-blue-400 transition">
                                 <TeamBadge logoUrl={r.logo ?? null} size={18} className="bg-white rounded-sm shrink-0" />
-                                <span className="truncate font-medium">{r.ko ?? r.name}</span>
+                                <span className="truncate font-medium">{r.ko ?? toKoreanTeamName(r.name, league)}</span>
                               </Link>
                             ) : (
                               <span className="flex items-center gap-2 min-w-0">
                                 <TeamBadge logoUrl={r.logo ?? null} size={18} className="bg-white rounded-sm shrink-0" />
-                                <span className="truncate font-medium">{r.ko ?? r.name}</span>
+                                <span className="truncate font-medium">{r.ko ?? toKoreanTeamName(r.name, league)}</span>
                               </span>
                             )}
                           </td>
