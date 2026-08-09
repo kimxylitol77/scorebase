@@ -48,3 +48,32 @@
 - 열람 페이지 (리그 히스토리 시즌 선택·팀 시즌별 성적 탭·H2H) — 2단계
 - NBA 25-26 과거 백필 (ESPN 과거 순위 미제공), 야구 과거 시즌, 농구·하키 선수 로그 — 3단계
 - team-history.json 20팀 → 확장 — 별도 작업
+
+---
+
+# 2단계 — 팀 페이지 시즌 접기 (같은 페이지, 시즌 차원 추가)
+
+> 사용자 지시(8/9). /teams/[id] 의 "시즌 통계·팀 시즌 통계·xG 추이"를 시즌 단위로 접고
+> 26-27 데이터가 쌓이게. 따로 페이지를 만들지 않는다.
+
+## A. ts 팀 시즌 통계 아카이브 (유일한 재계산 불가 소스)
+
+- [x] `TeamSeasonStatArchive` 테이블 (teamId+seasonLabel unique, raw SQL) + prod 적용
+- [x] `src/jobs/archive-team-stats.ts` — ts `/v1/football/season/recent/team/stat` 리그당 1콜, TeamSourceId 로 팀 매핑, 경기수 퇴행 가드
+- [x] 기존 archive-standings cron 라우트에서 함께 실행 (cron 추가 없음)
+- [x] 백필: data/team-season-stats.json (76팀, 25-26 동결분) → label 2025-26
+
+## B. 페이지 시즌 접기
+
+- [x] 서버: 시즌 창 슬라이스 계산 (SEASON_BOUNDARY 창 역순회, 종료 10경기 이상 시즌만, 최대 3)
+- [x] 시즌별: calcStandings 순위·승점·득실·공수랭크 + xG(시즌 창 전체 평균 + 최근 10 차트) + ts 통계(아카이브)
+- [x] 클라이언트 `TeamSeasonPanel` — 시즌 칩 토글, 현재 시즌 기본, 과거 시즌 접힘
+- [x] 기존 세 섹션을 패널로 교체 (Elo 는 현재 시즌만 표시)
+- [x] 폼·스트릭·홈원정·로스터 등 다른 섹션은 불변
+
+## C. 검증
+
+- [x] tsc + 테스트
+- [x] 잡 실행 → 아카이브 행 확인 (K리그 등 진행 시즌)
+- [x] dev 실렌더: /teams/1554 (아스널) — 25-26 접힘 + 26-27 기본
+- [x] 배포

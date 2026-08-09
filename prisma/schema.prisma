@@ -590,6 +590,25 @@ model SeasonStandingsArchive {
   @@index([league])
 }
 
+/// 팀 시즌 통계(ts season/recent/team/stat 집계 — 점유율·슈팅·패스성공 등)의 시즌별 영구 아카이브.
+/// data/team-season-stats.json 이 단일 스냅샷이라 시즌 롤오버 때 지난 시즌 집계가 소멸하는 것을 막는다.
+/// 매일 (teamId, seasonLabel) upsert — 라벨이 바뀌면 이전 시즌 행이 자연 동결 (SeasonStandingsArchive 와 동일 설계).
+/// stat Json = TeamStat 형태 {matches, goals, against, poss, shots, sot, passAcc, dribbleSucc, tackles, corners, fouls, yellow, red}.
+/// raw SQL 생성 — db push 금지 (prisma/sql/create-team-season-stat-archive.sql).
+/// 수집: src/jobs/archive-team-stats.ts (archive-standings cron 이 함께 실행)
+model TeamSeasonStatArchive {
+  id          Int      @id @default(autoincrement())
+  teamId      Int // 우리 Team.id
+  league      String
+  seasonLabel String // "2025-26" | "2026"
+  stat        Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([teamId, seasonLabel])
+  @@index([league, seasonLabel])
+}
+
 /// api-football /standings 응답을 normalized 저장.
 /// row.teamExternalId = api-football team id = 우리 Team.externalId (api-football 기반 리그).
 /// 매핑 dictionary 없이 바로 Team.externalId 로 join 가능 — TheSports mapping 누락 회피.

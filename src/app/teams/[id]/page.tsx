@@ -26,7 +26,6 @@ import rawTOverrides from "../../../../data/player-overrides.json";
 import rawTPhotos from "../../../../data/player-photos.json";
 import rawTPos from "../../../../data/player-positions.json";
 import rawClubRank from "../../../../data/club-rank-by-team.json";
-import rawTeamStats from "../../../../data/team-season-stats.json";
 import rawTSquads from "../../../../data/team-squads.json";
 import rawTeamVenues from "../../../../data/team-venues.json";
 import rawBaseballRosters from "../../../../data/baseball-rosters.json";
@@ -36,7 +35,9 @@ import rawTeamHistory from "../../../../data/team-history.json";
 import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistory";
 import LolTeamRoster from "@/components/LolTeamRoster";
 import AmbientGlow from "@/components/AmbientGlow";
-import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } from "lucide-react";
+import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse } from "lucide-react";
+import TeamSeasonPanel, { type SeasonSlice, type PanelTeamStat, type PanelXgItem } from "@/components/teams/TeamSeasonPanel";
+import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { parseFixtureXg } from "@/lib/xg/outcome";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCoachNames from "../../../../data/coach-names.json";
@@ -74,9 +75,8 @@ const T_PHOTOS = rawTPhotos as Record<string, string>;
 const T_POS = rawTPos as Record<string, string>;
 // 세계 클럽 랭킹 (ts team id → 순위, 2729팀). 팀 헤더 배지용. [[club-ranking]]
 const CLUB_RANK = rawClubRank as Record<string, number>;
-// 팀 시즌 통계 (ts team id → 집계). TheSports season/recent/team/stat.
-interface TeamStat { lg: string; name: string; matches: number | null; goals: number | null; against: number | null; poss: number | null; shots: number | null; sot: number | null; passAcc: number | null; dribbleSucc: number | null; tackles: number | null; corners: number | null; fouls: number | null; yellow: number | null; red: number | null }
-const TEAM_STATS = rawTeamStats as Record<string, TeamStat>;
+// 팀 시즌 통계 — TeamSeasonStatArchive(시즌별 영구 아카이브, archive-team-stats 잡)로 이관.
+// 이전의 data/team-season-stats.json 단일 스냅샷은 25-26 분으로 백필됨.
 // 공식 스쿼드 (ts team/squad/list — 등번호·공식 coarse 포지션, 154팀). 생성: scripts/build-team-squads.ts [[transfers-league-expansion]]
 const T_SQUADS = rawTSquads as Record<string, { updatedAt: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>;
 // 축구 팀 홈구장+메타 (build-team-venues.ts — TheSports team/additional+venue)
@@ -319,7 +319,6 @@ export default async function TeamPage({ params }: Props) {
   // TheSports 선수단 (PlayerMarketValue, ts player id) — 이름 클릭 → /transfers 상세.
   // tsTeamRows 는 위 Promise.all 에서 미리 로드됨.
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
-  const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
   // 현 감독 — ts coach id 있으면 /coaches/{id} 프로필 링크, 없으면(af 폴백 팀) 표시만.
   const coach = tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ?? null;
@@ -401,7 +400,10 @@ export default async function TeamPage({ params }: Props) {
   const nbaRoster: NbaRosterPlayer[] =
     team.league === "NBA" ? getNbaRoster(team.name) : [];
 
-  // xG 추이 (최근 10경기) — fixtureStats 의 expectedGoals 보유 축구 경기만. 5경기 미만이면 섹션 미노출.
+  // ── 시즌 데이터 패널 (시즌 통계·팀 시즌 통계·xG 추이) — 시즌 칩으로 접는 슬라이스 ──
+  // 현재 시즌 = 라이브 계산(매치). 과거 시즌 순위 = SeasonStandingsArchive 정본(1단계 아카이브 —
+  // 수집 개시 이전 부분 시즌을 매치로 재계산하면 틀리므로 재계산하지 않는다).
+  // 과거 팀 시즌 통계 = TeamSeasonStatArchive. xG = 매치 원자료를 시즌 창으로 분할.
   interface XgTrendItem {
     matchId: number;
     startTime: Date;
@@ -412,7 +414,7 @@ export default async function TeamPage({ params }: Props) {
     xgFor: number;
     xgAgainst: number;
   }
-  let xgTrend: XgTrendItem[] = [];
+  const xgAll: XgTrendItem[] = [];
   if (sport === "soccer") {
     const withStats = await prisma.match.findMany({
       where: {
@@ -422,7 +424,7 @@ export default async function TeamPage({ params }: Props) {
         OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
       },
       orderBy: { startTime: "desc" },
-      take: 10,
+      take: 120, // 시즌 3개 커버
       select: {
         id: true, startTime: true, homeTeamId: true, homeScore: true, awayScore: true, fixtureStats: true,
         homeTeam: { select: { name: true } },
@@ -435,7 +437,7 @@ export default async function TeamPage({ params }: Props) {
       const isHome = m.homeTeamId === teamId;
       const gf = isHome ? m.homeScore : m.awayScore;
       const ga = isHome ? m.awayScore : m.homeScore;
-      xgTrend.push({
+      xgAll.push({
         matchId: m.id,
         startTime: m.startTime,
         opp: toKoreanTeamName(isHome ? m.awayTeam.name : m.homeTeam.name, team.league),
@@ -446,13 +448,109 @@ export default async function TeamPage({ params }: Props) {
         xgAgainst: isHome ? away : home,
       });
     }
-    if (xgTrend.length < 5) xgTrend = [];
-    else xgTrend.reverse(); // 시간순 왼→오
   }
-  const xgTrendMax = Math.max(1, ...xgTrend.flatMap((x) => [x.xgFor, x.xgAgainst]));
-  const xgForAvg = xgTrend.length ? xgTrend.reduce((s, x) => s + x.xgFor, 0) / xgTrend.length : 0;
-  const xgAgainstAvg = xgTrend.length ? xgTrend.reduce((s, x) => s + x.xgAgainst, 0) / xgTrend.length : 0;
-  const goalsAvg = xgTrend.length ? xgTrend.reduce((s, x) => s + x.gf, 0) / xgTrend.length : 0;
+  const buildXg = (items: XgTrendItem[]): SeasonSlice["xg"] => {
+    if (items.length < 5) return null; // 기존 규칙 유지 — 표본 5경기 미만 미노출
+    const asc = [...items].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    const avg = (f: (x: XgTrendItem) => number) => asc.reduce((s, x) => s + f(x), 0) / asc.length;
+    const toItem = (x: XgTrendItem): PanelXgItem => ({
+      matchId: x.matchId, date: x.startTime.toISOString(), opp: x.opp, result: x.result,
+      gf: x.gf, ga: x.ga, xgFor: x.xgFor, xgAgainst: x.xgAgainst,
+    });
+    return {
+      count: asc.length,
+      xgForAvg: avg((x) => x.xgFor),
+      xgAgainstAvg: avg((x) => x.xgAgainst),
+      goalsAvg: avg((x) => x.gf),
+      items: asc.slice(-10).map(toItem),
+    };
+  };
+
+  const seasonSlices: SeasonSlice[] = [];
+  {
+    // 이 팀의 시즌별 ts 집계 + 리그의 시즌별 최종 순위 아카이브
+    const tsStatRows = await prisma.teamSeasonStatArchive.findMany({
+      where: { teamId },
+      select: { seasonLabel: true, stat: true },
+    });
+    const tsStatByLabel = new Map(tsStatRows.map((r) => [r.seasonLabel, r.stat as unknown as PanelTeamStat]));
+
+    if (seasonStart) {
+      const starts = [seasonStart, previousSeasonStart(seasonStart), previousSeasonStart(previousSeasonStart(seasonStart))];
+      const labels = starts.map((s) => seasonLabelFor(team.league, s.getUTCFullYear()));
+      const archived = await prisma.seasonStandingsArchive.findMany({
+        where: { league: team.league, seasonLabel: { in: labels.slice(1) } },
+        select: { seasonLabel: true, rows: true },
+      });
+      interface ArchRow { teamId: number | null; position: number; played: number; won: number; draw?: number; loss: number; gf?: number; ga?: number; points?: number }
+      const archByLabel = new Map(archived.map((a) => [a.seasonLabel, (a.rows as unknown as ArchRow[]) ?? []]));
+
+      for (let i = 0; i < starts.length; i++) {
+        const start = starts[i];
+        const end = i === 0 ? null : starts[i - 1];
+        const label = labels[i];
+        const xg = buildXg(xgAll.filter((x) => x.startTime >= start && (!end || x.startTime < end)));
+        if (i === 0) {
+          // 현재 시즌 — 매치 라이브 계산 (개막 전이면 stats null → "쌓이는 중" 표시)
+          const windowMatches = matches.filter((m) => m.startTime >= start);
+          const st = calcStandings(windowMatches);
+          const r = st.byTeam.get(teamId);
+          seasonSlices.push({
+            label, isCurrent: true,
+            stats: r
+              ? {
+                  position: r.position, teams: st.rows.length, points: r.points,
+                  wins: r.wins, draws: r.draws, losses: r.losses,
+                  goalsFor: r.goalsFor, goalsAgainst: r.goalsAgainst, goalDiff: r.goalDiff,
+                  attackRank: st.attackRank.get(teamId) ?? null,
+                  defenseRank: st.defenseRank.get(teamId) ?? null,
+                }
+              : null,
+            elo, tsStat: tsStatByLabel.get(label) ?? null, xg,
+          });
+        } else {
+          const rows = archByLabel.get(label) ?? [];
+          const me = rows.find((r) => r.teamId === teamId);
+          const tsStat = tsStatByLabel.get(label) ?? null;
+          if (!me && !tsStat && !xg) continue; // 그 시즌 데이터가 전혀 없으면 칩 생략
+          const byGf = rows.filter((r) => r.gf != null).sort((a, b) => (b.gf ?? 0) - (a.gf ?? 0));
+          const byGa = rows.filter((r) => r.ga != null).sort((a, b) => (a.ga ?? 0) - (b.ga ?? 0));
+          seasonSlices.push({
+            label, isCurrent: false,
+            stats: me
+              ? {
+                  position: me.position, teams: rows.length,
+                  points: me.points ?? me.won * 3 + (me.draw ?? 0),
+                  wins: me.won, draws: me.draw ?? 0, losses: me.loss,
+                  goalsFor: me.gf ?? 0, goalsAgainst: me.ga ?? 0,
+                  goalDiff: (me.gf ?? 0) - (me.ga ?? 0),
+                  attackRank: me.gf != null ? byGf.findIndex((r) => r.teamId === teamId) + 1 || null : null,
+                  defenseRank: me.ga != null ? byGa.findIndex((r) => r.teamId === teamId) + 1 || null : null,
+                }
+              : null,
+            elo: null, tsStat, xg,
+          });
+        }
+      }
+    } else {
+      // 시즌 경계 없는 대회(월드컵·컵) — 단일 슬라이스, 기존 동작 유지
+      const st = calcStandings(seasonMatches);
+      const r = st.byTeam.get(teamId);
+      seasonSlices.push({
+        label: null, isCurrent: true,
+        stats: r
+          ? {
+              position: r.position, teams: st.rows.length, points: r.points,
+              wins: r.wins, draws: r.draws, losses: r.losses,
+              goalsFor: r.goalsFor, goalsAgainst: r.goalsAgainst, goalDiff: r.goalDiff,
+              attackRank: st.attackRank.get(teamId) ?? null,
+              defenseRank: st.defenseRank.get(teamId) ?? null,
+            }
+          : null,
+        elo, tsStat: null, xg: buildXg(xgAll),
+      });
+    }
+  }
 
   return (
     <div className="relative">
@@ -629,30 +727,8 @@ export default async function TeamPage({ params }: Props) {
           </section>
         )}
 
-        {/* 시즌 통계 */}
-        {row && (
-          <section>
-            <SectionH title="시즌 통계" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Stat label="순위" value={`${row.position}위`} subtle={`/ ${standings.rows.length}팀`} />
-              <Stat
-                label="승점"
-                value={`${row.points}점`}
-                subtle={`${row.wins}승 ${row.draws}무 ${row.losses}패`}
-              />
-              <Stat
-                label="골득실"
-                value={`${row.goalDiff > 0 ? "+" : ""}${row.goalDiff}`}
-                subtle={`${row.goalsFor} - ${row.goalsAgainst}`}
-              />
-              <Stat
-                label="Elo"
-                value={Math.round(elo).toString()}
-                subtle={`공격 ${attackRank ?? "-"}위 / 수비 ${defenseRank ?? "-"}위`}
-              />
-            </div>
-          </section>
-        )}
+        {/* 시즌 통계 + 팀 시즌 통계 + xG 추이 — 시즌 칩으로 접는 패널 (현재 시즌 기본, 과거 시즌 아카이브) */}
+        <TeamSeasonPanel seasons={seasonSlices} />
 
         {/* 폼 + Streak + 홈/원정 */}
         <section className="grid sm:grid-cols-3 gap-4">
@@ -685,110 +761,8 @@ export default async function TeamPage({ params }: Props) {
           </Card>
         </section>
 
-        {/* 팀 시즌 통계 (TheSports season/recent/team/stat) */}
-        {teamStat && (
-          <section>
-            <SectionH title="팀 시즌 통계" subtitle={teamStat.matches ? `${teamStat.matches}경기 · 리그 집계` : "리그 집계"} icon={<BarChart3 className="h-5 w-5" aria-hidden />} />
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-              {([
-                { label: "득점", v: teamStat.goals },
-                { label: "실점", v: teamStat.against },
-                { label: "점유율", v: teamStat.poss, suf: "%" },
-                { label: "슈팅", v: teamStat.shots },
-                { label: "유효슈팅", v: teamStat.sot },
-                { label: "패스성공", v: teamStat.passAcc, suf: "%" },
-                { label: "드리블성공", v: teamStat.dribbleSucc },
-                { label: "태클", v: teamStat.tackles },
-                { label: "코너", v: teamStat.corners },
-                { label: "파울", v: teamStat.fouls },
-                { label: "경고", v: teamStat.yellow },
-                { label: "퇴장", v: teamStat.red },
-              ] as { label: string; v: number | null; suf?: string }[])
-                .filter((t) => t.v != null)
-                .map((t) => (
-                  <div key={t.label} className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 text-center">
-                    <div className="text-xl font-black tabular-nums">{t.v}{t.suf || ""}</div>
-                    <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
-                  </div>
-                ))}
-            </div>
-          </section>
-        )}
+        {/* 팀 시즌 통계·xG 추이 — 위 TeamSeasonPanel 로 이동 (시즌별 아카이브 열람) */}
 
-        {/* xG 추이 — 최근 경기 기대득점 생성 vs 허용 (af expectedGoals, 5경기 미만이면 미노출) */}
-        {xgTrend.length > 0 && (
-          <section>
-            <SectionH
-              title="xG 추이"
-              subtitle={`최근 ${xgTrend.length}경기 · 기대득점 생성 vs 허용`}
-              icon={<Target className="h-5 w-5" aria-hidden />}
-            />
-            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {([
-                  { label: "경기당 만든 xG", v: xgForAvg },
-                  { label: "경기당 허용 xG", v: xgAgainstAvg },
-                  { label: "경기당 실제 득점", v: goalsAvg },
-                ] as { label: string; v: number }[]).map((t) => (
-                  <div key={t.label} className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 text-center">
-                    <div className="text-xl font-black tabular-nums">{t.v.toFixed(2)}</div>
-                    <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-4 mb-2 text-[11px] text-neutral-500">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-[2px] bg-emerald-500 dark:bg-emerald-600" aria-hidden /> 만든 xG
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-[2px] bg-rose-500" aria-hidden /> 허용 xG
-                </span>
-              </div>
-              <div className="flex items-end gap-1.5">
-                {xgTrend.map((x, i) => {
-                  const last = i === xgTrend.length - 1;
-                  return (
-                    <div
-                      key={x.matchId}
-                      className="flex-1 min-w-0 flex flex-col items-center gap-1"
-                      title={`vs ${x.opp} · ${x.gf}-${x.ga} ${x.result === "W" ? "승" : x.result === "D" ? "무" : "패"} · xG ${x.xgFor.toFixed(2)} - ${x.xgAgainst.toFixed(2)}`}
-                    >
-                      <div className="flex items-end justify-center gap-0.5 w-full h-24">
-                        <div className="w-3 max-w-[45%] flex flex-col items-center justify-end h-full">
-                          {last && (
-                            <span className="text-[9px] tabular-nums text-neutral-500 mb-0.5">{x.xgFor.toFixed(1)}</span>
-                          )}
-                          <div
-                            className="w-full rounded-t bg-emerald-500 dark:bg-emerald-600"
-                            style={{ height: `${Math.max(3, (x.xgFor / xgTrendMax) * 100)}%` }}
-                          />
-                        </div>
-                        <div className="w-3 max-w-[45%] flex flex-col items-center justify-end h-full">
-                          {last && (
-                            <span className="text-[9px] tabular-nums text-neutral-500 mb-0.5">{x.xgAgainst.toFixed(1)}</span>
-                          )}
-                          <div
-                            className="w-full rounded-t bg-rose-500"
-                            style={{ height: `${Math.max(3, (x.xgAgainst / xgTrendMax) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                      <span
-                        className={`text-[10px] font-bold ${x.result === "W" ? "text-emerald-600 dark:text-emerald-400" : x.result === "L" ? "text-rose-500" : "text-neutral-400"}`}
-                      >
-                        {x.result === "W" ? "승" : x.result === "D" ? "무" : "패"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="mt-3 text-[11px] text-neutral-400 break-keep">
-                막대에 마우스를 올리면 상대·스코어·xG 를 볼 수 있습니다. 만든 xG 가 허용 xG 보다 꾸준히 높은데
-                결과가 안 따르면 불운 또는 결정력 문제, 반대면 내용 대비 초과 성과입니다.
-              </p>
-            </div>
-          </section>
-        )}
 
         {/* TheSports 선수단 — 이름 클릭 → 이적시장 상세(/transfers) */}
         {squad.length > 0 && (
