@@ -1372,6 +1372,46 @@ model PlayerMatchLog {
   @@index([playerId, date])
 }
 
+/// KBO 경기별 선수 로그 아카이브 — koreabaseball.com Daily.aspx 스크래핑 축적(공식 API 부재).
+/// 시즌이 끝나면 Daily 페이지가 새 시즌으로 넘어가 소멸하는 데이터라 자체 축적한다(위키 3단계).
+/// id = "kbo:{role}:{kboId}:{season}:{MM.DD}:{seq}"(멱등, seq=같은 날짜 더블헤더 순번).
+/// h·hr·bb·so·r 은 role 에 따라 의미가 다름(P=피안타·피홈런·실점 / B=안타·홈런·득점).
+/// raw SQL 생성 — db push 금지. 수집: src/jobs/collect-kbo-player-logs.ts (일일 cron + 시즌 백필).
+model KboPlayerGameLog {
+  id         String   @id // "kbo:{role}:{kboId}:{season}:{MM.DD}:{seq}"
+  kboId      String // koreabaseball.com playerId (= /players/[pid]?league=KBO 의 pid)
+  role       String // "P"(투수) | "B"(타자)
+  season     Int
+  date       DateTime @db.Date
+  seq        Int      @default(0) // 같은 날짜 내 등장 순번 (더블헤더)
+  name       String? // 인덱스 스냅샷 (그 시즌 등록명)
+  team       String? // 그 시즌 소속팀
+  opponent   String
+  roleDetail String? // 투수: "선발" | "구원"
+  result     String? // 투수: W | L | S | H
+  ip         String? // 투수: "5 2/3" 식
+  tbf        Int? // 투수: 상대 타자 수
+  er         Int? // 투수: 자책점
+  gameEra    Float? // 투수: 그 경기 ERA
+  cumEra     Float? // 투수: 그 시점 누적 ERA
+  pa         Int? // 타자
+  ab         Int? // 타자
+  d2b        Int? // 타자: 2루타
+  d3b        Int? // 타자: 3루타
+  rbi        Int? // 타자
+  sb         Int? // 타자
+  gameAvg    Float? // 타자: 그 경기 타율
+  cumAvg     Float? // 타자: 그 시점 누적 타율
+  h          Int?
+  hr         Int?
+  bb         Int?
+  so         Int?
+  r          Int?
+  createdAt  DateTime @default(now())
+
+  @@index([kboId, season])
+}
+
 /// 해외 축구 브리핑 — Tier1 소스(BBC·Sky·Athletic·구단 공식) RSS 항목의 수집·검증·발행 상태.
 /// RSS 에서 본 모든 항목을 기록해 dedup (id = sha1(sourceUrl)). raw SQL 생성 — db push 금지.
 /// 발행물은 Post(category=BRIEFING) 로 나가고 postId 로 연결. 파이프라인: fetch-news-briefing.ts

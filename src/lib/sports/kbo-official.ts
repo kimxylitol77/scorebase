@@ -81,6 +81,66 @@ function parseKboPitcherTable(html: string): KboPitcherIndexEntry[] {
   return result;
 }
 
+// ASP.NET 컨트롤 prefix — Record/Player/* 기록 페이지 공통.
+const KBO_CTL_PREFIX = "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$";
+
+/** 기록 페이지 dropdown 변경 이벤트 POST — 응답 HTML 반환. */
+async function postKboDropdown(
+  url: string,
+  cookie: string,
+  hidden: ReturnType<typeof extractHidden>,
+  eventTarget: string,
+  fields: Record<string, string>,
+): Promise<string> {
+  const body = new URLSearchParams({
+    __EVENTTARGET: eventTarget,
+    __EVENTARGUMENT: "",
+    __LASTFOCUS: "",
+    __VIEWSTATE: hidden.viewState,
+    __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
+    __EVENTVALIDATION: hidden.eventValidation,
+    ...fields,
+  });
+  const res = await axios.post<string>(url, body.toString(), {
+    headers: {
+      ...HEADERS,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Referer: url,
+      Origin: BASE,
+      Cookie: cookie,
+    },
+    timeout: 15000,
+    responseType: "text",
+  });
+  return res.data;
+}
+
+/**
+ * 팀 필터 결과의 2페이지 이후 수집 — ucPager LinkButton(__doPostBack) 순회.
+ * 대부분 1페이지(30행 이하)로 끝나지만, 투수를 많이 쓴 시즌·팀은 2페이지가 생겨
+ * 조용히 잘린다 → 페이저 버튼이 있는 동안 이어 받는다 (안전 상한 5페이지).
+ */
+async function fetchKboIndexRestPages(
+  url: string,
+  cookie: string,
+  firstHtml: string,
+  fields: Record<string, string>,
+): Promise<string[]> {
+  const pages: string[] = [];
+  let html = firstHtml;
+  for (let n = 2; n <= 5; n++) {
+    const $ = cheerio.load(html);
+    if (!$(`[id$="ucPager_btnNo${n}"]`).length) break;
+    const hidden = extractHidden(html);
+    html = await postKboDropdown(url, cookie, hidden, `${KBO_CTL_PREFIX}ucPager$btnNo${n}`, {
+      ...fields,
+      [`${KBO_CTL_PREFIX}hfPage`]: String(n),
+    });
+    pages.push(html);
+  }
+  return pages;
+}
+
 /** 한 팀의 등재 투수 — ASP.NET POST + ddlTeam 변경 이벤트로 규정이닝 무관 전체 추출 */
 async function fetchKboPitcherIndexForTeam(
   team: string,
@@ -98,45 +158,31 @@ async function fetchKboPitcherIndexForTeam(
     .split(/,\s*(?=[^;]+=)/)
     .map((c) => c.split(";")[0])
     .join("; ");
-  const hidden = extractHidden(getRes.data);
+  let hidden = extractHidden(getRes.data);
 
-  // 2) POST — ddlTeam 변경 이벤트 시뮬레이션
-  const body = new URLSearchParams({
-    __EVENTTARGET:
-      "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlTeam$ddlTeam",
-    __EVENTARGUMENT: "",
-    __LASTFOCUS: "",
-    __VIEWSTATE: hidden.viewState,
-    __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
-    __EVENTVALIDATION: hidden.eventValidation,
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSeason$ddlSeason":
-      season,
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSeries$ddlSeries":
-      "0",
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlTeam$ddlTeam":
-      team,
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSituation$ddlSituation":
-      "",
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSituationDetail$ddlSituationDetail":
-      "",
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$hfPage": "1",
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$hfOrderByCol":
-      "ERA_RT",
-    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$hfOrderBy": "ASC",
+  const P = KBO_CTL_PREFIX;
+  const fields = (t: string): Record<string, string> => ({
+    [`${P}ddlSeason$ddlSeason`]: season,
+    [`${P}ddlSeries$ddlSeries`]: "0",
+    [`${P}ddlTeam$ddlTeam`]: t,
+    [`${P}ddlSituation$ddlSituation`]: "",
+    [`${P}ddlSituationDetail$ddlSituationDetail`]: "",
+    [`${P}hfPage`]: "1",
+    [`${P}hfOrderByCol`]: "ERA_RT",
+    [`${P}hfOrderBy`]: "ASC",
   });
 
-  const postRes = await axios.post<string>(url, body.toString(), {
-    headers: {
-      ...HEADERS,
-      "Content-Type": "application/x-www-form-urlencoded",
-      Referer: url,
-      Origin: BASE,
-      Cookie: cookie,
-    },
-    timeout: 15000,
-    responseType: "text",
-  });
-  return parseKboPitcherTable(postRes.data);
+  // 2) 과거 시즌은 시즌 변경 이벤트를 먼저 보내야 팀 필터가 그 시즌에 적용된다.
+  //    (건너뛰면 리그 규정 상위 30 페이지가 그대로 돌아옴 — 2026-08-09 실측)
+  if (season !== SEASON_DEFAULT) {
+    const seasonHtml = await postKboDropdown(url, cookie, hidden, `${P}ddlSeason$ddlSeason`, fields(""));
+    hidden = extractHidden(seasonHtml);
+  }
+
+  // 3) POST — ddlTeam 변경 이벤트 시뮬레이션 (+ 2페이지 이후 병합)
+  const html = await postKboDropdown(url, cookie, hidden, `${P}ddlTeam$ddlTeam`, fields(team));
+  const rest = await fetchKboIndexRestPages(url, cookie, html, fields(team));
+  return [html, ...rest].flatMap((h) => parseKboPitcherTable(h));
 }
 
 export interface KboRecordRow {
@@ -280,20 +326,14 @@ async function fetchKboHitterIndexForTeam(
     .split(/,\s*(?=[^;]+=)/)
     .map((c) => c.split(";")[0])
     .join("; ");
-  const hidden = extractHidden(getRes.data);
+  let hidden = extractHidden(getRes.data);
 
   // 타자 페이지는 투수와 동일 prefix + ddlPos 추가. 정렬만 HRA_RT/DESC (명단엔 무관).
-  const P = "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$";
-  const body = new URLSearchParams({
-    __EVENTTARGET: `${P}ddlTeam$ddlTeam`,
-    __EVENTARGUMENT: "",
-    __LASTFOCUS: "",
-    __VIEWSTATE: hidden.viewState,
-    __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
-    __EVENTVALIDATION: hidden.eventValidation,
+  const P = KBO_CTL_PREFIX;
+  const fields = (t: string): Record<string, string> => ({
     [`${P}ddlSeason$ddlSeason`]: season,
     [`${P}ddlSeries$ddlSeries`]: "0",
-    [`${P}ddlTeam$ddlTeam`]: team,
+    [`${P}ddlTeam$ddlTeam`]: t,
     [`${P}ddlPos$ddlPos`]: "", // 전체 포지션 (타자 페이지 추가 필드)
     [`${P}ddlSituation$ddlSituation`]: "",
     [`${P}ddlSituationDetail$ddlSituationDetail`]: "",
@@ -302,19 +342,16 @@ async function fetchKboHitterIndexForTeam(
     [`${P}hfOrderBy`]: "DESC",
   });
 
-  const postRes = await axios.post<string>(url, body.toString(), {
-    headers: {
-      ...HEADERS,
-      "Content-Type": "application/x-www-form-urlencoded",
-      Referer: url,
-      Origin: BASE,
-      Cookie: cookie,
-    },
-    timeout: 15000,
-    responseType: "text",
-  });
+  // 과거 시즌은 시즌 변경 이벤트 선행 (투수 인덱스와 동일한 이유).
+  if (season !== SEASON_DEFAULT) {
+    const seasonHtml = await postKboDropdown(url, cookie, hidden, `${P}ddlSeason$ddlSeason`, fields(""));
+    hidden = extractHidden(seasonHtml);
+  }
+
+  const html = await postKboDropdown(url, cookie, hidden, `${P}ddlTeam$ddlTeam`, fields(team));
+  const rest = await fetchKboIndexRestPages(url, cookie, html, fields(team));
   // 선수명/팀명 헤더가 투수 테이블과 동일 → parseKboPitcherTable 재사용.
-  return parseKboPitcherTable(postRes.data);
+  return [html, ...rest].flatMap((h) => parseKboPitcherTable(h));
 }
 
 /** 시즌 등재 타자 전체 인덱스 — 10팀 순회 (fetchKboPitcherIndex 와 동일 구조). */
@@ -655,6 +692,10 @@ export async function fetchKboPitcherDaily(kboId: string): Promise<KboPitcherDai
   } catch {
     return [];
   }
+  return parsePitcherDailyHtml(html);
+}
+
+function parsePitcherDailyHtml(html: string): KboPitcherDailyGame[] {
   const $ = cheerio.load(html);
   const games: KboPitcherDailyGame[] = [];
   const resultMap: Record<string, "W" | "L" | "S" | "H"> = { 승: "W", 패: "L", 세: "S", 홀: "H" };
@@ -717,6 +758,10 @@ export async function fetchKboHitterDaily(kboId: string): Promise<KboHitterDaily
   } catch {
     return [];
   }
+  return parseHitterDailyHtml(html);
+}
+
+function parseHitterDailyHtml(html: string): KboHitterDailyGame[] {
   const $ = cheerio.load(html);
   const games: KboHitterDailyGame[] = [];
   $("table").each((_, t) => {
@@ -745,6 +790,72 @@ export async function fetchKboHitterDaily(kboId: string): Promise<KboHitterDaily
     });
   });
   return games;
+}
+
+/**
+ * 시즌 지정 Daily HTML — 현재 시즌은 단순 GET, 과거 시즌은 ddlYear 변경 이벤트 POST.
+ * (Daily.aspx 는 ddlYear 드롭다운으로 과거 시즌 로그를 그대로 제공 — 2026-08-09 실측)
+ */
+async function fetchKboDailyHtmlForSeason(
+  kind: "Pitcher" | "Hitter",
+  kboId: string,
+  season: string,
+): Promise<string | null> {
+  const url = `${BASE}/Record/Player/${kind}Detail/Daily.aspx?playerId=${kboId}`;
+  try {
+    const getRes = await axios.get<string>(url, { headers: HEADERS, timeout: 15000, responseType: "text" });
+    if (season === SEASON_DEFAULT) return getRes.data;
+    const setCookie = (getRes.headers["set-cookie"] ?? []).join("; ");
+    const cookie = setCookie
+      .split(/,\s*(?=[^;]+=)/)
+      .map((c) => c.split(";")[0])
+      .join("; ");
+    const hidden = extractHidden(getRes.data);
+    // Daily.aspx 의 연도 드롭다운은 인덱스 페이지들과 달리 "ddlYear" 단일 이름 (중첩 없음).
+    const P = "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$";
+    const body = new URLSearchParams({
+      __EVENTTARGET: `${P}ddlYear`,
+      __EVENTARGUMENT: "",
+      __LASTFOCUS: "",
+      __VIEWSTATE: hidden.viewState,
+      __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
+      __EVENTVALIDATION: hidden.eventValidation,
+      [`${P}ddlYear`]: season,
+      [`${P}ddlSeries`]: "0",
+    });
+    const postRes = await axios.post<string>(url, body.toString(), {
+      headers: {
+        ...HEADERS,
+        "Content-Type": "application/x-www-form-urlencoded",
+        Referer: url,
+        Origin: BASE,
+        Cookie: cookie,
+      },
+      timeout: 15000,
+      responseType: "text",
+    });
+    return postRes.data;
+  } catch {
+    return null;
+  }
+}
+
+/** 시즌 지정 투수 Daily — 과거 시즌 백필용 (season 이 현재 연도면 GET 과 동일). */
+export async function fetchKboPitcherDailySeason(
+  kboId: string,
+  season = SEASON_DEFAULT,
+): Promise<KboPitcherDailyGame[]> {
+  const html = await fetchKboDailyHtmlForSeason("Pitcher", kboId, season);
+  return html ? parsePitcherDailyHtml(html) : [];
+}
+
+/** 시즌 지정 타자 Daily — 과거 시즌 백필용. */
+export async function fetchKboHitterDailySeason(
+  kboId: string,
+  season = SEASON_DEFAULT,
+): Promise<KboHitterDailyGame[]> {
+  const html = await fetchKboDailyHtmlForSeason("Hitter", kboId, season);
+  return html ? parseHitterDailyHtml(html) : [];
 }
 
 export interface KboPitcherProfile {
