@@ -1,8 +1,5 @@
 import { eplCollector as eplCollectorApiFootball } from "./api-football";
 import { eplCollectorViaFootballData } from "./football-data";
-import { nbaCollector as nbaCollectorMSF } from "./mysportsfeeds";
-import { nbaCollectorEspn } from "./espn-nba";
-import { nbaCollectorApiSports } from "./api-nba-collector";
 import { nhlCollectorEspn } from "./espn-nhl";
 import { mlbCollectorEspn } from "./espn-mlb";
 import { buildSoccerCollector } from "./espn-soccer";
@@ -18,23 +15,12 @@ const eplCollector: MatchCollector = process.env.FOOTBALL_DATA_KEY
   ? eplCollectorViaFootballData
   : eplCollectorApiFootball;
 
-// NBA collector 우선순위:
-//   1) API-Sports NBA (API_FOOTBALL_KEY 활성) — 정식 30팀만, TBD placeholder 없음, 풍부한 metadata
-//      ⚠️ 2026-06-16 Ultra 만료 → Free 100/일. /games?date 일 ~16콜이라 Free 안에서 동작하지만
-//      실제 일정·점수 주 소스는 TheSports collector(Vultr, NBA/NBA_SL) — 여긴 백업 겸 이중수집.
-//      10월 정규시즌 전 제거 vs 재구독 결정 예정 (라이브 boxscore 호출은 2026-07-19 제거됨).
-//   2) MySportsFeeds (legacy, USER 환경변수 활성 시)
-//   3) ESPN free fallback (TBD placeholder 등 edge case 존재)
-const nbaCollector: MatchCollector = process.env.API_FOOTBALL_KEY
-  ? nbaCollectorApiSports
-  : process.env.MYSPORTSFEEDS_USER &&
-      process.env.MYSPORTSFEEDS_USER !== "your_username"
-    ? nbaCollectorMSF
-    : nbaCollectorEspn;
-
+// NBA — TheSports basketball worker(Vultr, 30분 collector + 1분 라이브 폴러) 단일 소스 (2026-08-09 확정).
+// api-sports·ESPN 이중수집은 숫자 팀 id 가 기존 ext 와 충돌해 이름 오매핑 3행을 만든 근본원인이라
+// 폐기 — 7a25451 정리 이력. 사이트(Vercel)는 NBA 매치를 쓰지 않는다(no-op).
 export const collectors: Record<League, MatchCollector> = {
   EPL: eplCollector,
-  NBA: nbaCollector,
+  NBA: { league: "NBA", async fetchByDate() { return []; } },
   NHL: nhlCollectorEspn,
   // IIHF_WC / AIHL / NZIHL / KBL / WKBL: 매치 소스는 Lightsail TheSports worker (Vercel collect 안 함) — 타입 충족용 no-op.
   IIHF_WC: { league: "IIHF_WC", async fetchByDate() { return []; } },
@@ -270,7 +256,6 @@ export const API_FOOTBALL_LEAGUES: ReadonlySet<League> = new Set(
 
 export {
   eplCollector,
-  nbaCollector,
   nhlCollectorEspn as nhlCollector,
   mlbCollectorEspn as mlbCollector,
   kboCollector,

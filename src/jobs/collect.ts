@@ -403,7 +403,7 @@ export async function runCollect(opts?: {
   const pastDays = opts?.pastDays ?? 0;
   const { leagues, date } = argLeagues || argDate
     ? {
-        leagues: argLeagues ?? (["KBO", "EPL", "NBA"] as League[]),
+        leagues: argLeagues ?? (["KBO", "EPL"] as League[]),
         date: argDate ?? todayKST(),
       }
     : parseArgs();

@@ -174,7 +174,8 @@ const ALL_LEAGUES: League[] = [
   "AZERBAIJAN_PL",
   "EREDIVISIE_2",
   "PRIMEIRA_LIGA_2",
-  "NBA",
+  // NBA 제거 (2026-08-09) — TheSports basketball worker 단일 소스. af/ESPN 이중수집이
+  // 팀 id 충돌로 이름 오매핑 3행을 만든 근본원인 (collectors.NBA 도 no-op 처리).
   "NHL",
   "MLB",
   "KBO",
