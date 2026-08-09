@@ -15,6 +15,7 @@ import LeagueFixtures from "@/components/leagues/LeagueFixtures";
 import BasketballFixtures from "@/components/leagues/BasketballFixtures";
 import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
+import NbaStandingsTable from "@/components/NbaStandingsTable";
 import LolStandings from "@/components/LolStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
@@ -517,8 +518,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "power", "fixtures", "stats", "history", "articles"],
     LOL: ["standings", "power", "fixtures", "history", "articles"],
-    // NBA — 일정 탭(이번 시즌 서머리그 + 지난 시즌 접기). 순위는 중복 팀 정비 전이라 아직 제외.
-    NBA: ["fixtures", "history", "articles"],
+    // NBA — 순위(ESPN 공식, 2026-08 중복 팀 정리 후 개방) + 일정(서머리그 + 지난 시즌 접기).
+    NBA: ["standings", "fixtures", "history", "articles"],
     // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
     KBL: ["standings", "fixtures", "articles"],
     WKBL: ["standings", "fixtures", "articles"],
@@ -706,12 +707,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <NhlStandingsTable />
         </div>
       )}
+      {!isSoccer && view === "standings" && upper === "NBA" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <NbaStandingsTable />
+        </div>
+      )}
       {!isSoccer && view === "standings" && upper === "LOL" && (
         <div className="py-8">
           <LolStandings name={info.name} />
         </div>
       )}
-      {!isSoccer && view === "standings" && isBasketball && (
+      {!isSoccer && view === "standings" && isBasketball && upper !== "NBA" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <StandingsOnlyView league={upper} embedded />
         </div>

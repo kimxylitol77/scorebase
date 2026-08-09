@@ -30,6 +30,7 @@ import LolSimpleStandings from "@/components/LolSimpleStandings";
 import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
+import NbaStandingsTable from "@/components/NbaStandingsTable";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
@@ -207,27 +208,9 @@ export default async function StandingsPage({ params }: Props) {
   // EWC(이스포츠 월드컵) — 녹아웃 토너먼트라 TheSports 순위표 없음 → DB 매치로 그룹 순위 계산.
   if (upper === "EWC") return <EwcStandings name={name} />;
 
-  // NBA — 데이터 소스 정비 중. ESPN↔TheSports 팀 id 충돌로 2025-26 매치가 오염돼(같은 팀 2행)
-  // calcStandings 가 중복 팀·왜곡 승패를 내므로, TheSports 재수집 전까지 순위표를 막고 안내.
-  // 정확한 시즌 기록은 역대 챔피언 + 결산글로 유도.
-  if (upper === "NBA") {
-    return (
-      <div className="relative max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center space-y-5">
-        <AmbientGlow />
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight break-keep">{name} 순위표</h1>
-        <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed break-keep">
-          NBA 순위 데이터는 현재 소스 정비 중입니다. 정확한 시즌 기록은 아래에서 확인하세요.
-        </p>
-        <div className="flex flex-wrap justify-center gap-2 pt-1">
-          <Link href="/leagues/NBA?view=history" className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 dark:bg-white dark:text-neutral-900">역대 챔피언</Link>
-          <Link href="/leagues/NBA?view=articles" className="rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:ring-white/15">시즌 결산·분석</Link>
-        </div>
-      </div>
-    );
-  }
+  // NBA — ESPN 공식 standings 렌더 (2026-08 중복 팀 행 정리 후 가드 해제).
+  // 자체 계산은 프리시즌·NBA컵 결승·플레이오프가 정규 승패에 섞여 부정확 — 공식 기록 전용.
+  if (upper === "NBA") return <NbaStandings name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
@@ -1046,6 +1029,52 @@ function formatNhlSeason(s: string): string {
   // "20252026" → "2025-26"
   if (/^\d{8}$/.test(s)) return `${s.slice(0, 4)}-${s.slice(6, 8)}`;
   return s;
+}
+
+// NBA — ESPN 공식 순위 래퍼 (브레드크럼·헤더 + 컨퍼런스 표. 표 본문은 NbaStandingsTable 공용)
+function NbaStandings({ name }: { name: string }) {
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=basketball" className="hover:underline">
+          라이브 스코어
+        </Link>
+        <span>›</span>
+        <Link href="/leagues/NBA" className="hover:underline">
+          {name}
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">순위표</span>
+      </nav>
+
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+          </span>
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NBA 순위표</h1>
+          <p className="text-sm text-neutral-500 mt-2 break-keep">동부·서부 컨퍼런스 · 30팀 · NBA 공식 기록</p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Link
+            href="/predictions/NBA"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline"
+          >
+            <Trophy className="h-4 w-4" aria-hidden /> AI 예측 →
+          </Link>
+          <Link
+            href="/injuries/NBA"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            <HeartPulse className="h-4 w-4" aria-hidden /> 부상자 →
+          </Link>
+        </div>
+      </header>
+
+      <NbaStandingsTable />
+    </div>
+  );
 }
 
 async function NhlStandings({ name }: { name: string }) {
