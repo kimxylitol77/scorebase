@@ -177,6 +177,10 @@ const SEASON_STATS_LEAGUES = new Set([
 // ts 0행이라 제외(= af 로 메우는 갭), PORTUGAL_SUPER_CUP 은 단일 경기라 리더보드 무의미.
 const TS_PLAYER_STAT_LEAGUES = new Set([
   "BUNDESLIGA_2", // 2026-08-08 정적 JSON 에서 이동 — 위 SEASON_STATS_LEAGUES 주석 참고
+  // 2026-08-09 af fallback 에서 이동 — af 리더 엔드포인트가 6월 말부터 죽어(fetched 945h)
+  // 개막 후에도 2025-26 리더보드가 그대로였다(사용자 신고: 에레디비시). 6개 전부
+  // ts season/recent/player/stat 실측 통과(득점자 8~61명).
+  "EREDIVISIE", "PRIMEIRA_LIGA", "JUPILER_PL", "LIGUE_2", "SPL", "LIGA_MX",
   "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
   "RUSSIA_FNL", "ROMANIA_L2",
