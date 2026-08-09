@@ -415,6 +415,97 @@ function KboHitterDailyGames({ games }: { games: KboHitterDailyGame[] }) {
   );
 }
 
+/**
+ * 지난 시즌 경기별 로그 — KboPlayerGameLog 아카이브 (수집: src/jobs/collect-kbo-player-logs.ts).
+ * 현 시즌은 koreabaseball 라이브 스크래핑(가장 신선)을 그대로 쓰고, 과거 시즌만 DB 에서 읽는다.
+ */
+async function fetchKboPastGameLogs(pid: string, role: "P" | "B") {
+  try {
+    const rows = await prisma.kboPlayerGameLog.findMany({
+      where: { kboId: pid, role, season: { lt: new Date().getUTCFullYear() } },
+      orderBy: [{ season: "desc" }, { date: "asc" }, { seq: "asc" }],
+    });
+    const bySeason = new Map<number, typeof rows>();
+    for (const r of rows) {
+      const list = bySeason.get(r.season) ?? [];
+      list.push(r);
+      bySeason.set(r.season, list);
+    }
+    return [...bySeason.entries()].map(([season, list]) => ({ season, rows: list }));
+  } catch {
+    return [];
+  }
+}
+type KboPastSeasonLogs = Awaited<ReturnType<typeof fetchKboPastGameLogs>>;
+
+function archiveDateLabel(d: Date): string {
+  return `${String(d.getUTCMonth() + 1).padStart(2, "0")}.${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
+/** 지난 시즌 블록 — 시즌당 <details> 접기 (주전 타자는 시즌당 140경기라 기본 접음). */
+function KboPastSeasonBlocks({ past, kind }: { past: KboPastSeasonLogs; kind: "P" | "B" }) {
+  if (past.length === 0) return null;
+  return (
+    <>
+      {past.map((b) => (
+        <details
+          key={b.season}
+          className="rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10"
+        >
+          <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-neutral-600 dark:text-neutral-300">
+            {b.season} 시즌 경기별 기록{" "}
+            <span className="text-xs font-normal text-neutral-400">
+              {b.rows.length}경기{b.rows[0]?.team ? ` · ${b.rows[0].team}` : ""}
+            </span>
+          </summary>
+          <div className="px-2 pb-2">
+            {kind === "P" ? (
+              <KboDailyGames
+                games={b.rows.map((r) => ({
+                  date: archiveDateLabel(r.date),
+                  opponent: r.opponent,
+                  role: r.roleDetail ?? undefined,
+                  result: (r.result ?? undefined) as KboPitcherDailyGame["result"],
+                  gameEra: r.gameEra ?? undefined,
+                  tbf: r.tbf ?? undefined,
+                  ip: r.ip ?? undefined,
+                  h: r.h ?? undefined,
+                  hr: r.hr ?? undefined,
+                  bb: r.bb ?? undefined,
+                  so: r.so ?? undefined,
+                  r: r.r ?? undefined,
+                  er: r.er ?? undefined,
+                  cumEra: r.cumEra ?? undefined,
+                }))}
+              />
+            ) : (
+              <KboHitterDailyGames
+                games={b.rows.map((r) => ({
+                  date: archiveDateLabel(r.date),
+                  opponent: r.opponent,
+                  gameAvg: r.gameAvg ?? undefined,
+                  cumAvg: r.cumAvg ?? undefined,
+                  pa: r.pa ?? undefined,
+                  ab: r.ab ?? undefined,
+                  r: r.r ?? undefined,
+                  h: r.h ?? undefined,
+                  d2b: r.d2b ?? undefined,
+                  d3b: r.d3b ?? undefined,
+                  hr: r.hr ?? undefined,
+                  rbi: r.rbi ?? undefined,
+                  sb: r.sb ?? undefined,
+                  bb: r.bb ?? undefined,
+                  so: r.so ?? undefined,
+                }))}
+              />
+            )}
+          </div>
+        </details>
+      ))}
+    </>
+  );
+}
+
 function kboHandBats(profile: { hand?: "L" | "R"; bats?: "L" | "R" }): string {
   const h = profile.hand === "L" ? "좌투" : profile.hand === "R" ? "우투" : "";
   const b = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
@@ -432,11 +523,12 @@ async function KboPitcherView({
   stats: Awaited<ReturnType<typeof fetchKboPitcherDetail>>["stats"];
   recent: KboPitcherRecentGame[];
 }) {
-  const [yearly, splits, leaderRanks, daily] = await Promise.all([
+  const [yearly, splits, leaderRanks, daily, pastLogs] = await Promise.all([
     getKboPitcherYearly(pid),
     getKboSplits(pid, "pitching"),
     fetchLeaderRanks("KBO", pid),
     fetchKboPitcherDaily(pid),
+    fetchKboPastGameLogs(pid, "P"),
   ]);
   const teamHref = await fetchTeamHref("KBO", profile.team ?? stats?.team);
   const name = profile.name ?? "(이름 정보 없음)";
@@ -559,18 +651,23 @@ async function KboPitcherView({
             content: <PitcherSeasonTable rows={yearly.seasons} />,
           },
           // 시즌 전체 로그(Daily)가 잡히면 차트와 함께, 실패하면 Basic 의 최근 10경기로 폴백.
-          (daily.length > 0 || recent.length > 0) && {
+          // 지난 시즌은 KboPlayerGameLog 아카이브에서 시즌별 접기로 이어 붙인다.
+          (daily.length > 0 || recent.length > 0 || pastLogs.length > 0) && {
             key: "games",
             label: "경기",
-            content:
-              daily.length > 0 ? (
-                <div className="space-y-4">
-                  <KboPitcherGameLogChart games={daily} />
-                  <KboDailyGames games={daily} />
-                </div>
-              ) : (
-                <KboRecentGames games={recent} />
-              ),
+            content: (
+              <div className="space-y-4">
+                {daily.length > 0 ? (
+                  <>
+                    <KboPitcherGameLogChart games={daily} />
+                    <KboDailyGames games={daily} />
+                  </>
+                ) : recent.length > 0 ? (
+                  <KboRecentGames games={recent} />
+                ) : null}
+                <KboPastSeasonBlocks past={pastLogs} kind="P" />
+              </div>
+            ),
           },
           hasSplits(splits) && {
             key: "splits",
@@ -593,11 +690,12 @@ async function KboHitterView({
   profile: KboHitterProfile;
   stats: KboHitterStats;
 }) {
-  const [yearly, splits, leaderRanks, daily] = await Promise.all([
+  const [yearly, splits, leaderRanks, daily, pastLogs] = await Promise.all([
     getKboHitterYearly(pid),
     getKboSplits(pid, "hitting"),
     fetchLeaderRanks("KBO", pid),
     fetchKboHitterDaily(pid),
+    fetchKboPastGameLogs(pid, "B"),
   ]);
   const teamHref = await fetchTeamHref("KBO", profile.team ?? stats.team);
   const name = profile.name ?? "(이름 정보 없음)";
@@ -723,13 +821,18 @@ async function KboHitterView({
             label: "시즌기록",
             content: <HitterSeasonTable rows={yearly.seasons} />,
           },
-          daily.length > 0 && {
+          (daily.length > 0 || pastLogs.length > 0) && {
             key: "games",
             label: "경기",
             content: (
               <div className="space-y-4">
-                <KboHitterGameLogChart games={daily} />
-                <KboHitterDailyGames games={daily} />
+                {daily.length > 0 && (
+                  <>
+                    <KboHitterGameLogChart games={daily} />
+                    <KboHitterDailyGames games={daily} />
+                  </>
+                )}
+                <KboPastSeasonBlocks past={pastLogs} kind="B" />
               </div>
             ),
           },
