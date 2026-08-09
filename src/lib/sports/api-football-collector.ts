@@ -3,6 +3,7 @@
 // API_FOOTBALL_LEAGUE_ID 에 등록된 리그면 빌더로 즉시 collector 생성.
 
 import axios from "axios";
+import { attachAfTracking } from "@/lib/sports/af-track";
 import { API_FOOTBALL_LEAGUE_ID, afGoalsExcludingShootout } from "./api-football-pro";
 import type {
   League,
@@ -17,11 +18,11 @@ function client() {
   if (!process.env.API_FOOTBALL_KEY) {
     throw new Error("API_FOOTBALL_KEY 가 설정되지 않았습니다.");
   }
-  return axios.create({
+  return attachAfTracking(axios.create({
     baseURL: BASE,
     timeout: 20_000,
     headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY },
-  });
+  }), "af-collector");
 }
 
 function mapStatus(short: string): MatchStatus {

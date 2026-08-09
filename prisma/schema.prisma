@@ -722,6 +722,20 @@ model BotHeartbeat {
 /// 각 배치 cron(odds·standings·transactions 등)이 끝날 때 recordCronRun() 으로 1 row upsert.
 /// /api/cron/cron-freshness 가 기대주기+유예 지나도 갱신 없으면 텔레그램 알림.
 /// 데이터 나이가 아니라 "cron 실행 여부"를 직접 봐서 시즌종료·비수기 오탐을 피한다.
+/// api-football 호출 계측 — 어느 경로가 일일 쿼터를 쓰는지 태그별·시간별로 집계한다.
+/// 2026-08-09 한도 소진 사고 때 소비처를 코드만으로 특정하지 못해 신설.
+/// 호출마다 row 를 쌓지 않고 (tag, hour) 버킷에 누적 upsert 한다.
+model AfUsageStat {
+  tag          String   // 호출 지점 태그 (예: "live-all", "cron:collect", "page:teams")
+  hour         DateTime // UTC 시간 버킷 (정시로 내림)
+  calls        Int      @default(0)
+  minRemaining Int?     // 그 버킷에서 관측한 최소 잔량 (응답 헤더 기준)
+  updatedAt    DateTime @updatedAt
+
+  @@id([tag, hour])
+  @@index([hour])
+}
+
 model CronRun {
   name       String    @id              // cron 식별자 (vercel path 기준)
   lastRunAt  DateTime  @default(now())  // 마지막 실행 시각 (성공·실패 무관 — 실행되면 갱신)

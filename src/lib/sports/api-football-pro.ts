@@ -5,6 +5,7 @@
 // 호출 절약: 시즌·리그 단위 캐시. 만료 6시간.
 
 import axios from "axios";
+import { attachAfTracking } from "@/lib/sports/af-track";
 
 const BASE_URL = "https://v3.football.api-sports.io";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
@@ -299,11 +300,11 @@ export function teamsMatch(a: string, b: string): boolean {
 function client() {
   const k = process.env.API_FOOTBALL_KEY;
   if (!k) throw new Error("API_FOOTBALL_KEY 가 없습니다 (Pro 가입 필요).");
-  return axios.create({
+  return attachAfTracking(axios.create({
     baseURL: BASE_URL,
     timeout: 20000,
     headers: { "x-apisports-key": k },
-  });
+  }), "af-pro");
 }
 
 // ===== 부상자 =====

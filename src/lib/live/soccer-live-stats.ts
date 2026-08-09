@@ -7,6 +7,7 @@
 // 캐시: fixtureId 5분, statistics 30초 (라이브 동안 1분 폴링이라 충분).
 
 import axios from "axios";
+import { attachAfTracking } from "@/lib/sports/af-track";
 import { teamsMatch } from "@/lib/sports/api-football-pro";
 import type { MatchTeamStat } from "@/lib/sports/live-scores";
 
@@ -40,11 +41,11 @@ function currentSeason(league: string, dateKst: string): number {
 function client() {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
-  return axios.create({
+  return attachAfTracking(axios.create({
     baseURL: BASE,
     timeout: 8_000,
     headers: { "x-apisports-key": key },
-  });
+  }), "af-live-stats");
 }
 
 // ───── fixture id 캐시 ─────

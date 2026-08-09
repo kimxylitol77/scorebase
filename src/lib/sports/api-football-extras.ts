@@ -1,3 +1,4 @@
+import { afFetch } from "@/lib/sports/af-track";
 // api-football 의 /predictions + /teams/statistics endpoint wrapper.
 // /live/[league]/[gameId] 의 라이브 매치 카드 보강용. INTL_FRIENDLY 처럼
 // 리그 standings 가 없는 매치에서 특히 의미 큼.
@@ -6,6 +7,7 @@
 //       자주 갱신될 필요 없고 stale 5~10분 무방.
 
 const BASE_URL = "https://v3.football.api-sports.io";
+const EXTRAS_TAG = "af-extras";
 
 /**
  * api-football /fixtures?id=X — fixture 메타 (round 등) 만 추출.
@@ -15,7 +17,7 @@ export async function fetchFixtureRound(fixtureId: string | number): Promise<str
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
   try {
-    const res = await fetch(`${BASE_URL}/fixtures?id=${fixtureId}`, {
+    const res = await afFetch(EXTRAS_TAG, `${BASE_URL}/fixtures?id=${fixtureId}`, {
       headers: { "x-apisports-key": key },
       next: { revalidate: 3600 },
     });
@@ -80,7 +82,7 @@ export async function fetchMatchPrediction(
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
   try {
-    const res = await fetch(
+    const res = await afFetch(EXTRAS_TAG, 
       `${BASE_URL}/predictions?fixture=${fixtureId}`,
       {
         headers: { "x-apisports-key": key },
@@ -157,7 +159,7 @@ export async function fetchTeamSeasonStats(
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
   try {
-    const res = await fetch(
+    const res = await afFetch(EXTRAS_TAG, 
       `${BASE_URL}/teams/statistics?team=${teamId}&league=${leagueId}&season=${season}`,
       {
         headers: { "x-apisports-key": key },

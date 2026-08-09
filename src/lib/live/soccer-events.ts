@@ -2,6 +2,7 @@
 // 라이브 중엔 30초 캐시 (1분 폴링이지만 새 이벤트 빠르게 반영).
 
 import axios from "axios";
+import { attachAfTracking } from "@/lib/sports/af-track";
 import { resolveFixture, type FixtureInfo } from "@/lib/live/soccer-live-stats";
 
 const BASE = "https://v3.football.api-sports.io";
@@ -31,11 +32,11 @@ export interface SoccerEvent {
 function client() {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
-  return axios.create({
+  return attachAfTracking(axios.create({
     baseURL: BASE,
     timeout: 8_000,
     headers: { "x-apisports-key": key },
-  });
+  }), "af-live-events");
 }
 
 interface RawEvent {

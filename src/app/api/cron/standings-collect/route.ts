@@ -27,6 +27,7 @@ import { PROVIDER_TS, getActiveSeason, resolveSeasonYear } from "@/lib/sports/se
 import { tsCacheUsable } from "@/lib/sports/thesports/standings-gate";
 import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import { afQuotaOk } from "@/lib/sports/af-quota";
+import { afFetch } from "@/lib/sports/af-track";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -77,7 +78,8 @@ async function fetchStandings(
   season: number,
 ): Promise<RowOut[] | null> {
   try {
-    const res = await fetch(
+    const res = await afFetch(
+      "cron:standings-collect",
       `${AF_BASE}/standings?league=${leagueId}&season=${season}`,
       {
         headers: { "x-apisports-key": apiKey },

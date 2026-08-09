@@ -32,6 +32,12 @@ const BDL_BASE = "https://api.balldontlie.io";
 
 const TIMEOUT = 8000;
 
+/** af URL → 계측 태그. 경로만 남겨 쿼리(리그·날짜)는 버린다. */
+function afTagForUrl(url: string): string {
+  const path = url.slice(AF_BASE.length).split("?")[0].replace(/^\//, "");
+  return `af-live:${path || "root"}`;
+}
+
 // axios 대체 — AbortController 로 timeout 구현.
 async function getJson<T>(
   url: string,
@@ -46,6 +52,11 @@ async function getJson<T>(
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // af 호출만 계측 — 같은 헬퍼를 baseball/ESPN 도 쓴다(2026-08-09 쿼터 추적).
+    if (url.startsWith(AF_BASE)) {
+      const { afTrack, afRemainingFromHeaders } = await import("@/lib/sports/af-track");
+      await afTrack(afTagForUrl(url), afRemainingFromHeaders(res.headers));
+    }
     return (await res.json()) as T;
   } finally {
     clearTimeout(t);
