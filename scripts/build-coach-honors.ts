@@ -180,8 +180,12 @@ async function main() {
     if (done % 25 === 0) console.log(`  ${done}/${list.length} | 우승기록 ${withHonors}`);
     await sleep(200);
   }
-  fs.writeFileSync(OUT, JSON.stringify(out));
-  console.log(`✓ coach-honors.json — ${withHonors}/${list.length}명 우승 기록`);
+  // merge 보존 — 경질된 감독의 우승 기록이 전체 갱신에서 사라지지 않게 기존 항목 유지 (careers 와 동일 원칙)
+  let prev: typeof out = {};
+  try { prev = JSON.parse(fs.readFileSync(OUT, "utf-8")); } catch { /* 최초 실행 */ }
+  const merged = { ...prev, ...out };
+  fs.writeFileSync(OUT, JSON.stringify(merged));
+  console.log(`✓ coach-honors.json — 총 ${Object.keys(merged).length}명 (이번 갱신 ${withHonors}/${list.length})`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

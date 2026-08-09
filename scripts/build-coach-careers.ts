@@ -162,9 +162,14 @@ async function main() {
       playerCareer: toRows(e.play, true),
     };
   }
-  fs.writeFileSync(OUT, JSON.stringify(out));
-  const withCareer = Object.values(out).filter((o) => o.coachCareer.length).length;
-  console.log(`✓ coach-careers.json — ${Object.keys(out).length}명 (감독경력 보유 ${withCareer})`);
+  // merge 보존 — 전체 갱신 대상은 "현직 감독" 세트라, 덮어쓰면 경질된 감독의 경력이
+  // JSON 에서 사라져 /coaches 프로필이 소멸한다 (위키 축적 원칙: 기존 항목 유지, 신규만 갱신).
+  let prev: typeof out = {};
+  try { prev = JSON.parse(fs.readFileSync(OUT, "utf-8")); } catch { /* 최초 실행 */ }
+  const merged = { ...prev, ...out };
+  fs.writeFileSync(OUT, JSON.stringify(merged));
+  const withCareer = Object.values(merged).filter((o) => o.coachCareer.length).length;
+  console.log(`✓ coach-careers.json — ${Object.keys(merged).length}명 (이번 갱신 ${Object.keys(out).length} · 감독경력 보유 ${withCareer})`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

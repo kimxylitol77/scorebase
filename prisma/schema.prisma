@@ -609,6 +609,26 @@ model TeamSeasonStatArchive {
   @@index([league, seasonLabel])
 }
 
+/// 팀별 감독 재임 이력 영구 아카이브 — data/team-coaches.json 은 "현 감독" 스냅샷이라
+/// 교체되면 이전 감독의 재임 기록이 소멸한다. 일일 diff(archive-coaches 잡)로 부임·이임 축적.
+/// endedAt null = 현직 (팀당 현직 1행 유지). joinedAt = ts 가 주는 실제 부임일(있으면).
+/// raw SQL 생성 — db push 금지 (prisma/sql/create-coach-tenure-archive.sql).
+model CoachTenureArchive {
+  id          Int       @id @default(autoincrement())
+  teamId      Int // 우리 Team.id
+  league      String
+  coachId     String? // ts coach id (af 폴백 감독은 null)
+  name        String
+  nameKo      String?
+  joinedAt    DateTime? // 실제 부임일 (소스 제공 시)
+  firstSeenAt DateTime  @default(now()) // 우리 관측 시작
+  endedAt     DateTime? // 교체 관측 시각 — null = 현직
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([teamId, endedAt])
+}
+
 /// api-football /standings 응답을 normalized 저장.
 /// row.teamExternalId = api-football team id = 우리 Team.externalId (api-football 기반 리그).
 /// 매핑 dictionary 없이 바로 Team.externalId 로 join 가능 — TheSports mapping 누락 회피.
