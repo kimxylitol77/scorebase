@@ -39,6 +39,9 @@ export interface VerifyLeagueResult {
   /** 정정하지 않고 유지한 건 — 소스 status 별 집계 */
   kept: Record<string, number>;
   fixedIds: number[];
+  /** POSTPONED 인데 스코어가 남아 있던 건 — 연기 경기는 스코어가 없어야 정상 (2026-08-09 KBO #2499 0-0 사고).
+   *  apply 시 스코어를 null 로 정리. 유입 경로는 db.ts 의 [postponed-score-write] 로그로 특정. */
+  scoreCleaned: Array<{ id: number; externalId: string; score: string; updatedAt: string }>;
 }
 
 async function fetchSeason(leagueId: number, season: number): Promise<SourceGame[]> {
@@ -101,9 +104,31 @@ export async function runVerifyBaseballPostponed(opts?: {
         data: { status: "SCHEDULED" },
       });
     }
+
+    // POSTPONED + 스코어 잔존 스캔 — 과거·미래 무관 전 시즌. status 정정과 별개로,
+    // 어떤 경로가 연기 매치에 스코어를 쓰면 (표시층은 status 게이트로 안 새지만) 데이터가
+    // 더러워지고 적중률 채점 오염 위험이 있다. 발견 시 스코어만 null 로 정리하고 알림.
+    const scoreStuck = await prisma.match.findMany({
+      where: {
+        league,
+        status: "POSTPONED",
+        // 방금 SCHEDULED 로 정정한 건 제외
+        id: { notIn: fixable },
+        OR: [{ homeScore: { not: null } }, { awayScore: { not: null } }],
+      },
+      select: { id: true, externalId: true, homeScore: true, awayScore: true, updatedAt: true },
+    });
+    if (apply && scoreStuck.length > 0) {
+      await prisma.match.updateMany({
+        where: { id: { in: scoreStuck.map((m) => m.id) } },
+        data: { homeScore: null, awayScore: null },
+      });
+    }
+
     console.log(
       `[verify-baseball-postponed] ${league} 미래 POSTPONED ${postponed.length}건 — ` +
-        `${apply ? "정정" : "정정대상"} ${fixable.length} / 유지 ${JSON.stringify(kept)}`,
+        `${apply ? "정정" : "정정대상"} ${fixable.length} / 유지 ${JSON.stringify(kept)}` +
+        (scoreStuck.length > 0 ? ` / 스코어 잔존 ${scoreStuck.length}건 ${apply ? "정리" : "발견"}` : ""),
     );
     results.push({
       league,
@@ -111,6 +136,12 @@ export async function runVerifyBaseballPostponed(opts?: {
       fixed: fixable.length,
       kept,
       fixedIds: fixable,
+      scoreCleaned: scoreStuck.map((m) => ({
+        id: m.id,
+        externalId: m.externalId,
+        score: `${m.homeScore}-${m.awayScore}`,
+        updatedAt: m.updatedAt.toISOString(),
+      })),
     });
   }
   return results;

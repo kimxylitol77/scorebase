@@ -39,6 +39,22 @@ export async function GET(req: Request) {
         { parseMode: "HTML" },
       );
     }
+    // POSTPONED + 스코어 잔존 정리 알림 — 유입 경로는 [postponed-score-write] 로그로 특정.
+    const cleaned = results.flatMap((r) =>
+      r.scoreCleaned.map((c) => ({ league: r.league, ...c })),
+    );
+    if (cleaned.length > 0) {
+      const lines = cleaned
+        .map((c) => `${c.league} #${c.id} ext=${c.externalId} ${c.score} (upd ${c.updatedAt.slice(0, 16)}Z)`)
+        .join("\n");
+      await sendTelegram(
+        `⚾ <b>POSTPONED 매치 스코어 잔존 ${cleaned.length}건 → null 정리</b>\n\n` +
+          `📍 <b>무엇</b>: 연기 매치에 스코어가 남아 있어 정리 (연기 경기는 스코어가 없어야 정상)\n` +
+          `🔍 <b>유입 경로</b>: Vercel 로그에서 <code>postponed-score-write</code> 태그 검색 — 쓴 시점의 호출 스택이 남는다\n\n` +
+          `<code>${lines}</code>`,
+        { parseMode: "HTML" },
+      );
+    }
     return NextResponse.json({ ok: true, total, results });
   } catch (e) {
     // 기록 실패가 응답까지 죽이지 않게 — prisma 가 죽은 상황이면 recordCronRun 도 던지는데,
