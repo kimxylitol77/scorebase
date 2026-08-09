@@ -5,7 +5,6 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { runVerifyBaseballPostponed } from "@/jobs/verify-baseball-postponed";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 // api-baseball 시즌 전량 조회 3회(KBO·NPB·MLB) + updateMany
@@ -42,15 +41,22 @@ export async function GET(req: Request) {
     }
     return NextResponse.json({ ok: true, total, results });
   } catch (e) {
-    await recordCronRun("verify-baseball-postponed", {
-      ok: false,
-      error: (e as Error).message,
-    });
+    // 기록 실패가 응답까지 죽이지 않게 — prisma 가 죽은 상황이면 recordCronRun 도 던지는데,
+    // 그러면 빈 500 만 남아 원인 추적이 불가능했다 (2026-08-09 실사고).
+    try {
+      await recordCronRun("verify-baseball-postponed", {
+        ok: false,
+        error: (e as Error).message,
+      });
+    } catch {
+      /* 기록 실패 무시 — 아래 응답으로 에러는 전달됨 */
+    }
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
+  // finally 의 prisma.$disconnect() 제거 (2026-08-09) — lib/db 는 서버리스 공유 싱글턴이라
+  // 한 호출이 끊으면 같은 웜 인스턴스의 다음 호출이 "Engine is not yet connected" 로 죽는다.
+  // cron 라우트 전체에서 이 라우트만 disconnect 를 했고, 8/8 21:00 부터 빈 500 연속의 원인.
 }
