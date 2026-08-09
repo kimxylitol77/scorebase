@@ -152,3 +152,11 @@
 - [x] 건강 확인(이미 축적형): PlayerMatchLog(축구 경기 로그 10만+, 주간) · KBO 선수 경기 로그(14만, 병렬 세션) · PlayerEvent(15만) · PlayerMarketValue history(1.3만) · PlayerTrophy(2만) · BaseballPlayerSeasonStats(시즌 키) · InjurySnapshot(8/3~ 축적) · LeagueLeader(시즌 보존 교정 완료)
 - 범위 밖/비대상: MLB·NHL·NBA 선수 스탯(공식·ESPN 이 영구 히스토리 제공) · 등번호 시즌 이력(마이너) · NPB 경기 로그(별도 세션 진행 중)
 - 표면 후보(추후): 선수 페이지 시즌별 기록 표에 아카이브 스탯(슈팅·키패스) 열 보강 — 시즌 2개 쌓인 뒤
+
+---
+
+# 구장 축 점검 (2026-08-10 새벽, "경기장 데이터도")
+
+- [x] 구조 확인 — 구장 마스터 venue-list.json 1.6만(재수집 가능 저위험) · 팀 홈구장 team-venues 1,147팀 · 매치별 Match.venueId · 날씨 TheSportsMatchCache.environment(747건, 8/7~ 축적·삭제 경로 없음)
+- [x] 구멍 발견·수리 — Match.venueId 가 30건뿐(수집기 직접 채움은 8월 초 시작, 과거분은 raw 부재로 기존 백필 스크립트 무력). ts match/season/recent(venue_id 포함, 리그당 1~2콜)로 신규 소급 스크립트 작성 → 1,957건 기록, ts 매치 41% 커버(잔여는 구시즌 uuid 밖 — 전향 수집이 메움)
+- 후보(추후): 심판(referee_id)·중립구장(neutral) 필드도 같은 응답에 있음 · 구장별 위키 페이지(/venues — 구장 정보+경기 이력)는 데이터 쌓인 뒤
