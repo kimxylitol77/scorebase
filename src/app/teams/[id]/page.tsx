@@ -1094,9 +1094,15 @@ export default async function TeamPage({ params }: Props) {
                             <span className="truncate">{toKoreanTeamName(opp.name, m.league)}</span>
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-right text-xs">
+                        <td className="px-4 py-3 text-right text-xs whitespace-nowrap">
                           <span className="text-neutral-500">승률 추정 </span>
                           <strong>{Math.round(myProb * 100)}%</strong>
+                          <Link
+                            href={`/teams/${teamId}/vs/${opp.id}`}
+                            className="ml-3 text-rose-600 dark:text-rose-400 hover:underline"
+                          >
+                            상대전적
+                          </Link>
                         </td>
                       </tr>
                     );

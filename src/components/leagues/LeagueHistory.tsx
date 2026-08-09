@@ -1,10 +1,14 @@
-// 리그 역대 우승 — 리그 페이지 "역사" 탭. data/league-champions.json (위키데이터 P3450→P1346 수집).
+// 리그 역대 우승 + 시즌별 최종 순위 아카이브 — 리그 페이지 "역사" 탭.
+// 우승 연표: data/league-champions.json (위키데이터 P3450→P1346 수집).
+// 시즌별 최종 순위: SeasonStandingsArchive (archive-standings 잡이 매일 굳힘 — 완료 시즌만 노출).
 import Link from "next/link";
 import championsData from "../../../data/league-champions.json";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import TeamBadge from "@/components/TeamBadge";
+import { seasonLabelFor } from "@/lib/sports/season-calendar";
+import { resolveSeasonYear } from "@/lib/sports/season-registry";
 
 // article: 그 시즌 우승 기록(결산글) slug — 있으면 "우승 기록" 링크 노출.
 type Champ = { season: string; ko: string; en: string; article?: string };
@@ -32,7 +36,27 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
   const champions = DATA[league]?.champions ?? [];
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
 
-  if (champions.length === 0) {
+  // 시즌별 최종 순위 아카이브 — 완료 시즌만 (현재 시즌은 순위 탭이 담당).
+  // 라벨 문자열 내림차순 = 최신 시즌 먼저 ("2026-27" > "2025-26", "2026" > "2025").
+  interface ArchRow { teamId: number | null; name: string; ko?: string; logo?: string | null; position: number; played: number; won: number; draw?: number; loss: number; gf?: number; ga?: number; points?: number; group?: string | null }
+  let archivedSeasons: { seasonLabel: string; rows: ArchRow[] }[] = [];
+  try {
+    const currentLabel = seasonLabelFor(league, await resolveSeasonYear(league));
+    const arch = await prisma.seasonStandingsArchive.findMany({
+      where: { league, seasonLabel: { not: currentLabel } },
+      orderBy: { seasonLabel: "desc" },
+      select: { seasonLabel: true, rows: true },
+    });
+    archivedSeasons = arch.map((a) => {
+      const rows = ((a.rows as unknown as ArchRow[]) ?? []).slice();
+      rows.sort((x, y) => (x.group ?? "").localeCompare(y.group ?? "") || x.position - y.position);
+      return { seasonLabel: a.seasonLabel, rows };
+    }).filter((a) => a.rows.length > 0);
+  } catch {
+    // 아카이브 조회 실패는 역사 탭을 죽이지 않는다 — 우승 연표만 표시
+  }
+
+  if (champions.length === 0 && archivedSeasons.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center space-y-2">
         <div className="text-3xl">🏆</div>
@@ -88,6 +112,8 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
 
   return (
     <div className="space-y-6">
+      {champions.length > 0 && (
+      <>
       <section className="space-y-2.5">
         <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider">최다 우승</h2>
         <div className="flex flex-wrap gap-2">
@@ -174,7 +200,93 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
         </div>
       </section>
 
-      <p className="text-[11px] text-neutral-400">출처: 위키데이터 · 일부 리그·최근 시즌은 데이터 공백이 있을 수 있습니다.</p>
+      </>
+      )}
+
+      {/* 시즌별 최종 순위 — SeasonStandingsArchive (완료 시즌, 최신 먼저·접힘) */}
+      {archivedSeasons.length > 0 && (
+        <section className="space-y-2.5">
+          <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider">
+            시즌별 최종 순위 <span className="text-neutral-400 font-normal">({archivedSeasons.length}시즌)</span>
+          </h2>
+          {archivedSeasons.map((s) => {
+            const hasGroup = s.rows.some((r) => r.group);
+            const hasGoals = s.rows.some((r) => r.gf != null);
+            const hasPoints = s.rows.some((r) => r.points != null);
+            const hasDraw = s.rows.some((r) => (r.draw ?? 0) > 0) || hasPoints; // 야구(무 거의 0·승점 없음)는 무 열 생략
+            return (
+              <details key={s.seasonLabel} className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10">
+                <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer select-none list-none marker:hidden hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
+                  <span className="font-bold text-sm">{s.seasonLabel} 시즌</span>
+                  <span className="text-xs text-neutral-400">{s.rows.length}팀 · 펼치기</span>
+                  {(() => {
+                    const champ = s.rows.find((r) => r.position === 1 && !r.group);
+                    return champ ? (
+                      <span className="ml-auto flex items-center gap-1.5 text-xs text-neutral-500">
+                        <span aria-hidden>🏆</span>
+                        <TeamBadge logoUrl={champ.logo ?? null} size={16} className="bg-white rounded-sm" />
+                        <span className="font-semibold">{champ.ko ?? champ.name}</span>
+                      </span>
+                    ) : null;
+                  })()}
+                </summary>
+                <div className="overflow-x-auto border-t border-neutral-100 dark:border-neutral-800/60">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-[11px] text-neutral-400">
+                        <th className="px-3 py-2 text-left font-medium w-10">#</th>
+                        {hasGroup && <th className="px-2 py-2 text-left font-medium">조</th>}
+                        <th className="px-2 py-2 text-left font-medium">팀</th>
+                        <th className="px-2 py-2 text-right font-medium">경기</th>
+                        <th className="px-2 py-2 text-right font-medium">승</th>
+                        {hasDraw && <th className="px-2 py-2 text-right font-medium">무</th>}
+                        <th className="px-2 py-2 text-right font-medium">패</th>
+                        {hasGoals && <th className="px-2 py-2 text-right font-medium hidden sm:table-cell">득실</th>}
+                        {hasPoints && <th className="px-3 py-2 text-right font-medium">승점</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {s.rows.map((r, i) => (
+                        <tr key={`${r.position}-${r.group ?? ""}-${i}`} className="border-t border-neutral-100 dark:border-neutral-800/60">
+                          <td className="px-3 py-1.5 tabular-nums text-neutral-500">{r.position}</td>
+                          {hasGroup && <td className="px-2 py-1.5 text-xs text-neutral-400">{r.group ?? ""}</td>}
+                          <td className="px-2 py-1.5">
+                            {r.teamId ? (
+                              <Link href={`/teams/${r.teamId}`} className="flex items-center gap-2 min-w-0 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                                <TeamBadge logoUrl={r.logo ?? null} size={18} className="bg-white rounded-sm shrink-0" />
+                                <span className="truncate font-medium">{r.ko ?? r.name}</span>
+                              </Link>
+                            ) : (
+                              <span className="flex items-center gap-2 min-w-0">
+                                <TeamBadge logoUrl={r.logo ?? null} size={18} className="bg-white rounded-sm shrink-0" />
+                                <span className="truncate font-medium">{r.ko ?? r.name}</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2 py-1.5 text-right tabular-nums text-neutral-500">{r.played}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{r.won}</td>
+                          {hasDraw && <td className="px-2 py-1.5 text-right tabular-nums text-neutral-500">{r.draw ?? 0}</td>}
+                          <td className="px-2 py-1.5 text-right tabular-nums text-neutral-500">{r.loss}</td>
+                          {hasGoals && (
+                            <td className="px-2 py-1.5 text-right tabular-nums text-neutral-500 hidden sm:table-cell">
+                              {r.gf != null && r.ga != null ? `${r.gf}-${r.ga}` : "-"}
+                            </td>
+                          )}
+                          {hasPoints && <td className="px-3 py-1.5 text-right tabular-nums font-bold">{r.points ?? "-"}</td>}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            );
+          })}
+        </section>
+      )}
+
+      <p className="text-[11px] text-neutral-400">
+        출처: 우승 연표는 위키데이터, 시즌별 최종 순위는 자체 아카이브 · 일부 리그·최근 시즌은 데이터 공백이 있을 수 있습니다.
+      </p>
     </div>
   );
 }

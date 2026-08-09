@@ -791,6 +791,13 @@
     "group": "detail"
   },
   {
+    "route": "/teams/[id]/vs/[oppId]",
+    "desc": "두 팀 상대전적(H2H) 페이지 — 축적된 Match 데이터의 역대 맞대결 열람 (위키형 데이터 축적 2단계). 리그·컵 구분 없이 두 팀이 맞붙은 모든 경기를 집계한다. 진입: 팀 페이지 \"다가오는 경기\" 상대전적 링크.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/tennis/draw",
     "desc": "테니스 드로우 허브 — 현재 진행/최근 ATP·WTA 대회를 나열해 각 대진표로 진입.",
     "inMenu": false,

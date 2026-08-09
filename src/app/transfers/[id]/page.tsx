@@ -41,7 +41,7 @@ import { getPlayerCareerByTs } from "./career-data";
 import PlayerInjuryHistory from "./PlayerInjuryHistory";
 import PlayerTrophies from "./PlayerTrophies";
 import { getPlayerInjuriesByTs } from "./injury-data";
-import PlayerMatchLogTable, { type MatchLogRow } from "./PlayerMatchLogTable";
+import PlayerMatchLogTable, { type MatchLogRow, type SeasonAggRow } from "./PlayerMatchLogTable";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
@@ -902,7 +902,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const rawMatchLogs = await prisma.playerMatchLog.findMany({
     where: { playerId: { in: logPlayerIds } },
     orderBy: { date: "desc" },
-    take: 60,
+    take: 500, // 시즌별 집계용 커리어 전체 (표시 목록은 아래에서 60경기로 자름)
     select: {
       id: true, fixtureId: true, date: true, leagueName: true, leagueFlag: true,
       homeName: true, homeLogo: true, awayName: true, awayLogo: true,
@@ -940,7 +940,40 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     minutes: g.minutes, goals: g.goals, assists: g.assists, yellow: g.yellow, red: g.red,
     started: g.minutes > 0,
   }));
-  const allMatchLogs = [...matchLogs, ...natlLogRows].sort((a, b) => b.date.getTime() - a.date.getTime());
+  // 시즌별 집계 (클럽 경기 기준, 전체 로그) — 위키형 커리어 축적. 시즌 경계: 유럽형 7월 분할,
+  // 달력형 리그(MLS·K리그·J1·브라질)는 연도 그대로. 브라질 세리에A 는 이탈리아와 이름이 같아 국기로 구분.
+  const CAL_LOG_LEAGUES = new Set(["Major League Soccer", "K League 1", "J1 League"]);
+  const isCalendarLog = (m: { leagueName: string; leagueFlag: string | null }) =>
+    CAL_LOG_LEAGUES.has(m.leagueName) || (m.leagueName === "Serie A" && (m.leagueFlag ?? "").includes("/br"));
+  const logSeasonLabel = (m: { date: Date; leagueName: string; leagueFlag: string | null }) => {
+    const y = m.date.getUTCFullYear();
+    if (isCalendarLog(m)) return String(y);
+    const sy = m.date.getUTCMonth() + 1 >= 7 ? y : y - 1;
+    return `${sy}-${String((sy + 1) % 100).padStart(2, "0")}`;
+  };
+  const aggByLabel = new Map<string, SeasonAggRow>();
+  for (const m of matchLogs) {
+    const label = logSeasonLabel(m);
+    let a = aggByLabel.get(label);
+    if (!a) {
+      a = { label, apps: 0, starts: 0, minutes: 0, goals: 0, assists: 0, ratingSum: 0, ratingN: 0, yellow: 0, red: 0 };
+      aggByLabel.set(label, a);
+    }
+    const played = (m.minutes ?? 0) > 0 || m.rating != null;
+    if (!played) continue; // 벤치(미출전)는 집계 제외
+    a.apps++;
+    if (m.started) a.starts++;
+    a.minutes += m.minutes ?? 0;
+    a.goals += m.goals;
+    a.assists += m.assists;
+    a.yellow += m.yellow;
+    a.red += m.red;
+    if (m.rating != null) { a.ratingSum += m.rating; a.ratingN++; }
+  }
+  const seasonAgg = [...aggByLabel.values()].filter((a) => a.apps > 0).sort((a, b) => b.label.localeCompare(a.label));
+
+  // 표시 목록은 기존과 같이 최근 60경기(클럽) + 국가대표 병합 — 500행 전부 넣으면 HTML 이 비대해진다.
+  const allMatchLogs = [...matchLogs.slice(0, 60), ...natlLogRows].sort((a, b) => b.date.getTime() - a.date.getTime());
 
   // ── 위키형 SEO — 소개 문단 + JSON-LD(Person·Breadcrumb) ──
   // 소개문 대분류 — 세부 포지션 우선 (모듈 스코프 resolveRoleKo, generateMetadata 와 공유)
@@ -1162,7 +1195,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
             : []),
           ...(allMatchLogs.length > 0
-            ? [{ key: "matchlog", label: "출전기록", content: <PlayerMatchLogTable rows={allMatchLogs} /> }]
+            ? [{ key: "matchlog", label: "출전기록", content: <PlayerMatchLogTable rows={allMatchLogs} seasonAgg={seasonAgg} /> }]
             : []),
           ...(injurySpells.length > 0
             ? [{ key: "injury", label: "부상", content: <PlayerInjuryHistory spells={injurySpells} /> }]
