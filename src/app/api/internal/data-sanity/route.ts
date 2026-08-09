@@ -755,10 +755,8 @@ export async function GET(req: NextRequest) {
     //       → 검사 league(UEL) vs 매핑 ourLeague(LIGUE_1) 다르면 skip.
     //   (b) 같은 팀이 우리 Team 테이블에 source 별로 중복 row (예: LALIGA Barcelona 4개)
     //       → ourId 가 달라도 이름 같으면 동일 팀으로 판정.
-    //   (c) GROUPED_STANDINGS_LEAGUES(J1/J2) — ts stage_id 가 opaque 라 tables[0] 만 보는
-    //       이 비교 자체가 무의미 + ts 표가 전 팀 0경기 placeholder 로 고정된 리그도 있음
-    //       (2026-07-30 J1 확인). 실제 렌더는 af 우선(standings-helper GROUPED 분기)이라
-    //       ts 와의 mismatch 는 site 에 영향 없음 — skip.
+    //   (c) GROUPED_STANDINGS_LEAGUES — 그룹제라 af 를 주 소스로 쓰는 리그. 현재 비어 있다
+    //       (2026-08-09 J1/J2 가 단일 표로 복귀). 다시 등록되면 이 비교는 무의미하니 skip.
     if (ts && af && !GROUPED_STANDINGS_LEAGUES.has(league)) {
       const tsPayload = ts.payload as unknown as {
         tables?: Array<{ rows?: Array<{ position?: number; team_id?: string; total?: number }> }>;
@@ -766,6 +764,9 @@ export async function GET(req: NextRequest) {
       const afRows = af.rows as unknown as Array<{
         position: number;
         teamExternalId: string;
+        won?: number;
+        draw?: number;
+        loss?: number;
       }>;
       const tsRows = tsPayload?.tables?.[0]?.rows ?? [];
       // 개막 전 — ts 는 새 시즌 표를 전 팀 0경기 placeholder 로 미리 내려주고 그 순서는
@@ -774,6 +775,20 @@ export async function GET(req: NextRequest) {
       // 2026-08-02 CHAMPIONSHIP 오탐 — 같은 조건이 유럽 5대 리그에 동시 성립해 개막까지
       // 리그마다 반복될 참이었다. 진짜 stale 은 개막 후(경기수>0) 검사로 충분히 잡힌다.
       if (tsRows.length > 0 && tsRows.every((r) => (r.total ?? 0) === 0)) continue;
+      // 시즌 전환기 — 한쪽은 막 개막한 새 시즌, 다른 쪽은 아직 지난 시즌 최종표를 들고 있으면
+      // 1위가 다른 게 당연하다. 2026-08-09 J1: ts 는 새 시즌 1경기, af 는 이행기 시즌 18경기
+      // (af 가 새 시즌을 아직 반영 못 함). 렌더는 fresh 한 쪽을 쓰므로 알림 가치가 없다.
+      //
+      // "차이가 크면 skip" 이 아니라 "한쪽이 개막 직후일 때만 skip" 인 이유. 단순 격차로 재면
+      // 한 소스가 여러 라운드 밀린 진짜 stale 까지 삼킨다(K리그 ts 22 vs af 15 실측).
+      const tsPlayed = Math.max(0, ...tsRows.map((r) => r.total ?? 0));
+      const afPlayed = Math.max(
+        0,
+        ...(afRows ?? []).map((r) => (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0)),
+      );
+      const earlier = Math.min(tsPlayed, afPlayed);
+      const later = Math.max(tsPlayed, afPlayed);
+      if (earlier > 0 && earlier <= 3 && later >= 10) continue;
       const tsTop = tsRows.find((r) => r.position === 1);
       const afTop = afRows?.find?.((r) => r.position === 1);
       if (tsTop?.team_id && afTop?.teamExternalId) {
