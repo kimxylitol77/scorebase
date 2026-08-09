@@ -68,6 +68,10 @@ const TS_COVERED_EXCEPTIONS = new Set<League>([
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE",
   "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN",
   "COPA_DO_BRASIL",
+  // J2_LEAGUE (2026-08-09): 새 시즌 순위를 살리려고 tsSeasonId 를 붙였는데, 그러면
+  // TS_COVERED 로 분류돼 af 매치 수집이 끊긴다. J2 매치는 지금까지 전부 af 생성(종료 350건)
+  // 이라 소스를 옮기면 공백이 생긴다 — 위 2부·컵과 같이 id 는 순위표 전용으로만 쓴다.
+  "J2_LEAGUE",
 ]);
 
 const ALL_LEAGUES: League[] = [

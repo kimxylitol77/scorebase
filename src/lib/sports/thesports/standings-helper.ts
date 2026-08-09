@@ -217,7 +217,16 @@ export interface StandingsRow {
 // J1: East 10 / West 10, J2: East A·B / West A·B 4그룹. ts payload 는 stage_id 가 opaque 라
 // 그룹 라벨을 못 주므로 af(깨끗한 group 필드 + 전팀 매핑) 를 우선 source 로 사용한다.
 // 2026-27 정상 단일표 복귀 시 이 set 비우면 됨.
-export const GROUPED_STANDINGS_LEAGUES = new Set(["J1_LEAGUE", "J2_LEAGUE"]);
+/**
+ * 그룹(East/West 등)으로 나뉘어 ts stage_id 로는 표를 못 가르는 리그 — af 를 주 소스로 쓴다.
+ *
+ * 2026-08-09 비움. J1/J2 의 2026 이행기 시즌이 East/West 그룹제라 넣었던 것인데, 새 시즌이
+ * 7월에 개막하면서 단일 표로 돌아왔다(ts payload tables=1·group=0·cur_round=1 실측).
+ * 전제가 끝났는데 분기가 남아 있어, af 가 아직 못 따라온 옛 표를 계속 보여주고 있었다
+ * — J1 은 이행기 18경기 East 표, J2 는 전 항목 0 인 개막 전 placeholder.
+ * 다시 그룹제로 가는 대회가 생기면 여기에 코드를 넣으면 된다.
+ */
+export const GROUPED_STANDINGS_LEAGUES = new Set<string>([]);
 
 const fullCache = new Map<string, { fetchedAt: number; rows: StandingsRow[] }>();
 
