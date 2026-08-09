@@ -23,6 +23,7 @@ import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
+import championsData from "../../../../data/league-champions.json";
 
 export const dynamic = "force-dynamic";
 
@@ -261,7 +262,8 @@ function buildLeagueInfo(code: string): { name: string; subtitle: string; gradie
   const explicit = LEAGUE_INFO[code as ValidLeague];
   if (explicit) return explicit;
   // dynamic import 대신 LEAGUE_DISPLAY 직접 require (server component 이므로 OK)
-  const name = LEAGUE_DISPLAY_FALLBACK[code] ?? code;
+  // 로컬 맵에 없으면 sport-leagues 의 정본 한글명으로 — 없으면 컵 대회처럼 코드가 그대로 노출됐다.
+  const name = LEAGUE_DISPLAY_FALLBACK[code] ?? LEAGUE_DISPLAY[code] ?? code;
   return {
     name,
     subtitle: name,
@@ -327,6 +329,14 @@ const VIEW_LABEL: Record<ViewKey, string> = {
   history: "역사",
   articles: "글",
 };
+
+// 컵 대회 — 1라운드부터 녹아웃이라 순위표·득점왕 집계·파워랭킹이 성립하지 않는다.
+// isSoccer 리스트에 없어 데이터 탭이 통째로 빠지고 글 0개면 빈 페이지가 되던 것(2026-08-09)
+// → 일정 탭만 준다. 역사(역대 우승)는 league-champions.json 에 기록이 쌓인 대회만 노출.
+const CUP_LEAGUES = new Set<string>([
+  "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
 const BRACKET_CTA_LABEL: Record<string, string> = {
@@ -508,7 +518,18 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     NPB: ["power", "fixtures", "history", "articles"],
   };
   const isBasketball = ["NBA", "KBL", "WKBL", "WNBA"].includes(upper);
-  const dataViews: ViewKey[] = isSoccer ? [...VIEW_KEYS] : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
+  const cupViews: ViewKey[] = [
+    "fixtures",
+    ...(((championsData as Record<string, { champions: unknown[] }>)[upper]?.champions?.length ?? 0) > 0
+      ? (["history"] as ViewKey[])
+      : []),
+    "articles",
+  ];
+  const dataViews: ViewKey[] = isSoccer
+    ? [...VIEW_KEYS]
+    : CUP_LEAGUES.has(upper)
+      ? cupViews
+      : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
   const hasDataTabs = dataViews.some((v) => v !== "articles");
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
