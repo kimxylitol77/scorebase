@@ -37,7 +37,15 @@ export async function afRemaining(): Promise<number | null> {
     if (!r.ok) return null;
     const j = (await r.json()) as {
       response?: { requests?: { current?: number; limit_day?: number } };
+      errors?: unknown;
     };
+    // 한도를 다 쓰면 af 는 response 를 비우고 errors.requests 에 limit 메시지를 넣는다.
+    // 이걸 "잔량 불명"으로 흘려보내면 가드가 정확히 필요한 순간에 통과시킨다(2026-08-09 실측).
+    const errs = j.errors;
+    if (errs && typeof errs === "object" && !Array.isArray(errs) && "requests" in errs) {
+      cache = { at: now, remaining: 0 };
+      return 0;
+    }
     const cur = j.response?.requests?.current;
     const lim = j.response?.requests?.limit_day;
     if (typeof cur !== "number" || typeof lim !== "number") return null;
