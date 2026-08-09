@@ -11,6 +11,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 const MANUAL_CHAMPIONS = {
   // 2026-07-19 결승 스페인 1:0 아르헨티나 (DB Match 확인, 2026-07-30)
   WORLD_CUP: [{ season: "2026", ko: "스페인", en: "Spain men's national football team" }],
+  // 2025-10-31 한국시리즈 최종전 LG 4:1 한화 — 시리즈 LG 우세 (DB Match 실측, 2026-08-09)
+  KBO: [{ season: "2025", ko: "LG 트윈스", en: "LG Twins" }],
+  // 2026-06 스탠리컵 결승 캐롤라이나 4승 2패 vs 베가스 (DB Match 6경기 실측, 2026-08-09)
+  // ⚠ 2024-25(플로리다 추정)는 DB 수집 이전 + 위키데이터 공백 — 짐작 금지 원칙으로 비워둠
+  NHL: [{ season: "2025-26", ko: "캐롤라이나 허리케인스", en: "Carolina Hurricanes" }],
+  // SeasonStandingsArchive 25-26 최종표 1위 (af 백필 정본, 34경기 77점 — 2026-08-09)
+  SUPER_LIG: [{ season: "2025-26", ko: "갈라타사라이 SK", en: "Galatasaray S.K." }],
+  // SeasonStandingsArchive 25-26 최종표 1위 (42경기 82점 — 2026-08-09)
+  LALIGA_2: [{ season: "2025-26", ko: "라싱 산탄데르", en: "Racing de Santander" }],
 };
 
 const DRY = process.argv.includes("--dry");
