@@ -61,6 +61,13 @@ const TS_COVERED_EXCEPTIONS = new Set<League>([
   // 2026-08-08 시즌 id 재발굴로 tsSeasonId 가 새로 붙은 2부·컵 — 매치는 지금까지 전부
   // af 생성이라 ts 로 소스를 옮기지 않는다(K리그1 사고와 같은 공백 방지). id 는 순위표 전용.
   "AUSTRIA_2", "CZECH_2", "DENMARK_2", "HUNGARY_2", "IRELAND_2", "SCO_LEAGUE_CUP",
+  // 컵 대회 (2026-08-09) — 대진표에 필요한 라운드가 af 에만 있다. af 는 fixture.league.round 로
+  // "Round of 16"·"Quarter-finals" 를 주지만, ts 는 컵에 round_num=0 만 주고 그 stage_id 가
+  // stage/list 4만 건 사전에도 없어 라운드를 특정할 수 없다(실측). 이미 예외였던
+  // SCO_LEAGUE_CUP 만 라운드가 채워지고 있던 것이 근거.
+  "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE",
+  "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN",
+  "COPA_DO_BRASIL",
 ]);
 
 const ALL_LEAGUES: League[] = [

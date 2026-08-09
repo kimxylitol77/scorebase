@@ -24,6 +24,8 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
+import CupBracket from "@/components/leagues/CupBracket";
+import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 
 export const dynamic = "force-dynamic";
 
@@ -325,7 +327,8 @@ interface Props {
 
 // buildup식 데이터 탭 (축구 리그) — 순위·파워랭킹·일정·통계·역사·글
 const VIEW_KEYS = ["standings", "power", "fixtures", "stats", "history", "articles"] as const;
-type ViewKey = (typeof VIEW_KEYS)[number];
+// bracket 은 컵 전용이라 VIEW_KEYS(축구 리그 기본 탭)에 넣지 않는다.
+type ViewKey = (typeof VIEW_KEYS)[number] | "bracket";
 const VIEW_LABEL: Record<ViewKey, string> = {
   standings: "순위",
   power: "파워랭킹",
@@ -333,6 +336,7 @@ const VIEW_LABEL: Record<ViewKey, string> = {
   stats: "통계",
   history: "역사",
   articles: "글",
+  bracket: "대진표",
 };
 
 // 컵 대회 — 1라운드부터 녹아웃이라 순위표·득점왕 집계·파워랭킹이 성립하지 않는다.
@@ -524,7 +528,21 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     NPB: ["power", "fixtures", "history", "articles"],
   };
   const isBasketball = ["NBA", "KBL", "WKBL", "WNBA"].includes(upper);
+  // 컵 대진표 — 라운드를 읽을 수 있는 매치가 하나라도 있어야 탭을 연다(빈 탭 방지).
+  // 컵은 매치 수가 리그보다 훨씬 적어 페이지 진입마다 계산해도 부담이 작다.
+  const cupRounds = CUP_LEAGUES.has(upper)
+    ? buildCupBracket(
+        cupSeasonSlice(
+          await prisma.match.findMany({
+            where: { league: upper },
+            include: { homeTeam: true, awayTeam: true },
+            orderBy: { startTime: "asc" },
+          }),
+        ),
+      )
+    : [];
   const cupViews: ViewKey[] = [
+    ...(cupRounds.length > 0 ? (["bracket"] as ViewKey[]) : []),
     "fixtures",
     ...(((championsData as Record<string, { champions: unknown[] }>)[upper]?.champions?.length ?? 0) > 0
       ? (["history"] as ViewKey[])
@@ -696,6 +714,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {!isSoccer && view === "standings" && isBasketball && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <StandingsOnlyView league={upper} embedded />
+        </div>
+      )}
+      {view === "bracket" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <CupBracket rounds={cupRounds} league={upper} />
         </div>
       )}
       {view === "fixtures" && (
