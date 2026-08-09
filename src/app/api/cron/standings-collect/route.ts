@@ -26,6 +26,7 @@ import { NO_STANDINGS_LEAGUES } from "@/lib/sports/season-calendar";
 import { PROVIDER_TS, getActiveSeason, resolveSeasonYear } from "@/lib/sports/season-registry";
 import { tsCacheUsable } from "@/lib/sports/thesports/standings-gate";
 import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
+import { afQuotaOk } from "@/lib/sports/af-quota";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -152,6 +153,9 @@ async function handle(req: NextRequest) {
   });
   const tsByLeague = new Map(tsCaches.map((c) => [c.league, c]));
 
+  // 폴백 보충은 급하지 않다 — 쿼터가 빠듯하면 이번 회차는 ts 부재·stale 만 처리한다.
+  const fallbackBackfillOk = await afQuotaOk("normal");
+
   // af 캐시 나이 — 대상 판정(폴백 신선도)과 동순위 정렬에 함께 쓴다.
   const afAges = new Map(
     (
@@ -190,8 +194,9 @@ async function handle(req: NextRequest) {
       const ageMs = now.getTime() - cache.fetchedAt.getTime();
       if (!gate.usable) reason = "ts-season-mismatch";
       else if (ageMs > TS_STALE_MS) reason = "ts-stale";
-      else {
+      else if (fallbackBackfillOk) {
         // ts 는 멀쩡하지만 af 폴백이 너무 낡았으면 보충한다(위 AF_FALLBACK_STALE_MS 주석 참고).
+        // 단 이건 급하지 않은 보충이라 쿼터가 빠듯하면 건너뛴다.
         const afAt = afAges.get(league);
         if (afAt === undefined || now.getTime() - afAt > AF_FALLBACK_STALE_MS) {
           reason = "af-fallback-stale";
