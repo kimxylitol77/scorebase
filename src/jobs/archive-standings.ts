@@ -15,6 +15,7 @@ import { resolveSeasonYear } from "@/lib/sports/season-registry";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import { fetchBasketballStandings } from "@/lib/sports/basketball-standings";
+import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 /** 아카이브 행 — 팀명·한글명·로고를 아카이브 시점에 굳힌다(팀 병합·삭제에도 자립). */
@@ -81,8 +82,17 @@ async function teamResolver(teamIds: number[], league: string) {
   };
 }
 
+/** 순위 캐시를 채우는 폴러는 축구·야구·배구뿐 — 축구 외 리그(전용 어댑터가 처리)만 명시 제외. */
+const NON_SOCCER_CACHE_LEAGUES = new Set(["KBO", "NPB", "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W"]);
+
 async function archiveFootball(counts: Record<string, number>, failures: string[]) {
-  for (const league of SOCCER_LEAGUES as readonly string[]) {
+  // SOCCER_LEAGUES 에 없는 축구 리그(J3 실측)도 ts 캐시가 있으면 아카이브.
+  const targets = new Set<string>(SOCCER_LEAGUES as readonly string[]);
+  const caches = await prisma.theSportsStandingsCache.findMany({ select: { league: true } });
+  for (const c of caches) {
+    if (!NON_SOCCER_CACHE_LEAGUES.has(c.league)) targets.add(c.league);
+  }
+  for (const league of targets) {
     if (NO_STANDINGS_LEAGUES.has(league)) continue;
     try {
       const std = await getFullStandings(league);
@@ -280,6 +290,37 @@ async function archiveBasketball(counts: Record<string, number>, failures: strin
   }
 }
 
+// 배구 (VNL·AVC·유럽 골든리그 — ts 캐시 + volleyball-table 매핑 재사용). 연 단위 대회 = 달력 라벨.
+async function archiveVolleyball(counts: Record<string, number>, failures: string[]) {
+  for (const league of ["VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W"]) {
+    try {
+      const groups = await fetchVolleyballTable(league);
+      const flat = groups.flatMap((g) =>
+        (g.rows ?? []).map((r) => ({ ...r, group: groups.length > 1 ? g.name : undefined })),
+      );
+      if (flat.length === 0) continue;
+      const resolve = await teamResolver(flat.map((r) => r.ourTeamId), league);
+      const rows: ArchiveRow[] = flat.map((r) => ({
+        teamId: r.ourTeamId,
+        ...resolve(r.ourTeamId),
+        position: r.position,
+        played: r.played,
+        won: r.wins,
+        loss: r.losses,
+        gf: r.setsWin,
+        ga: r.setsLoss,
+        points: r.points,
+        group: r.group,
+      }));
+      const label = seasonLabelFor(league, await resolveSeasonYear(league));
+      const res = await upsertArchive(league, label, "volleyball-table", rows);
+      counts[res] = (counts[res] ?? 0) + 1;
+    } catch (e) {
+      failures.push(`${league}: ${(e as Error).message.slice(0, 60)}`);
+    }
+  }
+}
+
 export async function runArchiveStandings() {
   const counts: Record<string, number> = {};
   const failures: string[] = [];
@@ -287,6 +328,7 @@ export async function runArchiveStandings() {
   await archiveBaseball(counts, failures);
   await archiveNhl(counts, failures);
   await archiveBasketball(counts, failures);
+  await archiveVolleyball(counts, failures);
   const total = await prisma.seasonStandingsArchive.count();
   return { counts, failures, totalArchived: total };
 }

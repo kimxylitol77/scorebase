@@ -12,7 +12,9 @@ import { toKoreanTeamName } from "../src/lib/team-names";
 import { upsertArchive, type ArchiveRow } from "../src/jobs/archive-standings";
 import rawBaseballMapping from "../src/lib/sports/thesports/baseball-team-id-mapping.json";
 
-const YEARS = [2021, 2022, 2023, 2024, 2025];
+// 2026-08-09 심화: 공식 API(MLB·NHL)는 더 깊은 과거도 무료 제공 — 10시즌으로 확장.
+// ts 야구(KBO/NPB)는 season/list 가 주는 만큼만 (없는 해는 자동 skip).
+const YEARS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 
 async function exists(league: string, label: string): Promise<boolean> {
   const row = await prisma.seasonStandingsArchive.findUnique({
@@ -98,7 +100,11 @@ async function backfillMlb(out: string[]) {
 }
 
 // ── NHL — api-web 과거 시즌 (정규시즌 마지막 날 — 시즌 범위 밖 날짜는 빈 배열을 준다) ──
-const NHL_DATES = ["2025-04-17", "2024-04-18", "2023-04-14", "2022-04-29", "2021-05-19"];
+// 19-20 은 코로나 중단(3/12) — 중단 시점 표가 공식 최종(승점% 기준 플레이오프 진출 판정).
+const NHL_DATES = [
+  "2025-04-17", "2024-04-18", "2023-04-14", "2022-04-29", "2021-05-19",
+  "2020-03-11", "2019-04-06", "2018-04-08", "2017-04-09", "2016-04-10",
+];
 
 async function backfillNhl(out: string[]) {
   const match = await nameMatcher("NHL");
