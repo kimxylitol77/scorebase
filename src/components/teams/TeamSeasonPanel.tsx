@@ -89,8 +89,9 @@ export default function TeamSeasonPanel({ seasons }: { seasons: SeasonSlice[] })
   return (
     <div className="space-y-10">
       {/* 시즌 칩 — 현재 시즌 기본, 과거 시즌은 여기 접힘 */}
+      {/* ⚠ Tailwind 4 의 space-y 는 자식 margin-bottom 구현 — 칩 행에 음수 mb 를 주면 간격을 덮어써 다음 섹션과 겹친다 */}
       {showChips && (
-        <div className="flex items-center gap-2 -mb-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {seasons.map((x, i) => (
             <button
               key={x.label}
