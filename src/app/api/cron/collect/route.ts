@@ -36,6 +36,10 @@ const TS_COVERED = new Set(
 // (최근 30일 cache 연결 4%·48%) → af 수집까지 skip 되면 결과 갱신 경로가 전무, 매 경기일
 // stale SCHEDULED → cleanup verify 가 6h 후 뒷수습하는 패턴 반복 (6/12~13 알림 5건).
 // 같은 증상 후보: ESTONIA_ML·LITHUANIA_AL·GEORGIA_EL·SINGAPORE_PL — 알림 재발 시 추가.
+// ESTONIA_ML·GEORGIA_EL (2026-08-09): 위 후보 중 둘이 재발 확정. 5/24 에 af 로 받아온 시즌
+// 일정(각 177·176건)이 마지막이고 이후 ts- 매치는 0건 — af skip 이라 연기가 나도 startTime 을
+// 못 따라가 매 경기일 stale SCHEDULED → cleanup 이 6h 뒤 뒷수습하던 것. af 수집 재개.
+// (LITHUANIA_AL 은 ts- 28/28 로 실커버리지 정상, SINGAPORE_PL 은 매치 자체가 0 → 제외.)
 //
 // BELARUS_PL·KAZAKHSTAN_PL (2026-06-14): 같은 패턴 재발. cleanup-stale-scheduled 알림에서
 // 3경기(#316277·#316278·#316807)가 startTime 동결(6/13→6/14 연기 누락)로 발견 — 매치의
@@ -54,7 +58,7 @@ const TS_COVERED_EXCEPTIONS = new Set<League>([
   "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
   "ECUADOR_LP",
   "SLOVAKIA_SL", "MOLDOVA_SL", "SLOVENIA_SNL", "SERBIA_SL", "PARAGUAY_PD",
-  "VEIKKAUSLIIGA",
+  "VEIKKAUSLIIGA", "ESTONIA_ML", "GEORGIA_EL",
   // 2026-08-08 시즌 id 재발굴로 tsSeasonId 가 새로 붙은 2부·컵 — 매치는 지금까지 전부
   // af 생성이라 ts 로 소스를 옮기지 않는다(K리그1 사고와 같은 공백 방지). id 는 순위표 전용.
   "AUSTRIA_2", "CZECH_2", "DENMARK_2", "HUNGARY_2", "IRELAND_2", "SCO_LEAGUE_CUP",
