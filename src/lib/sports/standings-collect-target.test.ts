@@ -53,17 +53,25 @@ test("ts 에 지금 쓸 수 있는 표가 없을 때만 af 를 부른다", () =>
   );
 });
 
-test("J1/J2 는 af 가 주 소스라 ts 가 신선해도 항상 갱신한다", () => {
-  // d55ef03 회귀 방지 — J1 af 캐시가 66일 동결돼 19경기가 누락된 사고
-  for (const lg of ["J1_LEAGUE", "J2_LEAGUE"]) {
+test("그룹 순위 리그는 af 가 주 소스라 ts 가 신선해도 항상 갱신한다", () => {
+  // d55ef03 회귀 방지 — J1 af 캐시가 66일 동결돼 19경기가 누락된 사고.
+  // 세트가 비어 있으면 검증 대상이 없을 뿐, 규칙 자체는 멤버가 생기는 즉시 다시 물린다.
+  for (const lg of GROUPED_STANDINGS_LEAGUES) {
     assert.equal(
       afTargetReason({ ...healthy, league: lg }),
       "af-primary",
       `${lg} 는 ts 가 멀쩡해도 af 를 갱신해야 한다`,
     );
   }
+  // 세트 밖 리그는 ts 가 멀쩡하면 af 를 부르지 않는다 — 예외 해제된 J1 포함
+  for (const lg of ["EPL", "J1_LEAGUE"].filter((l) => !GROUPED_STANDINGS_LEAGUES.has(l))) {
+    assert.equal(afTargetReason({ ...healthy, league: lg }), null, `${lg} 는 af 대상이 아니다`);
+  }
 });
 
 test("그룹 순위 리그 목록이 바뀌면 이 규칙도 같이 봐야 한다", () => {
-  assert.deepEqual([...GROUPED_STANDINGS_LEAGUES].sort(), ["J1_LEAGUE", "J2_LEAGUE"]);
+  // d957798 에서 비움 — J1/J2 의 2026 이행기 그룹제(East/West)가 끝나고 단일표로 복귀.
+  // 이 assert 가 깨졌다면 누군가 세트를 다시 채운 것 — standings-collect 의 af-primary
+  // 규칙과 getFullStandings 의 af 우선 분기가 새 리그에 맞는지 확인하고 기대값을 갱신하라.
+  assert.deepEqual([...GROUPED_STANDINGS_LEAGUES].sort(), []);
 });

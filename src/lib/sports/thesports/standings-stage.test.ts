@@ -1,4 +1,4 @@
-// 유럽 대항전 단계 가드 + J1/J2 그룹 순위 예외 보존.
+// 유럽 대항전 단계 가드 + 그룹 순위 예외 세트 상태 고정.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { hideStageStandings } from "./standings-gate";
@@ -27,8 +27,8 @@ test("일반 리그는 이 가드의 영향을 받지 않는다", () => {
   assert.equal(hideStageStandings("J1_LEAGUE", [played(20)]), false);
 });
 
-test("J1/J2 그룹 순위 예외는 그대로 유지된다", () => {
-  assert.ok(GROUPED_STANDINGS_LEAGUES.has("J1_LEAGUE"));
-  assert.ok(GROUPED_STANDINGS_LEAGUES.has("J2_LEAGUE"));
-  assert.equal(GROUPED_STANDINGS_LEAGUES.size, 2);
+test("그룹 순위 예외 세트는 현재 비어 있다 — 2026-27 단일표 복귀", () => {
+  // d957798 에서 J1/J2 예외 해제. 세트를 다시 채우면 이 assert 가 깨진다 —
+  // 그때는 새 그룹제 대회에 맞는지 관련 규칙을 점검하고 기대값을 갱신하라.
+  assert.equal(GROUPED_STANDINGS_LEAGUES.size, 0);
 });
