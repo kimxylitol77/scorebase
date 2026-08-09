@@ -35,6 +35,11 @@ const AF_BASE = "https://v3.football.api-sports.io";
 
 /** ts 캐시가 이보다 오래되면 "신선하지 않다" — poller 는 10분 주기라 24h 는 충분히 관대하다. */
 const TS_STALE_MS = 24 * 3600 * 1000;
+// af 폴백 신선도 상한. ts 가 계속 fresh 한 리그는 af 갱신이 영영 skip 돼 폴백이 무의미해진다
+// — 2026-08-09 실측으로 af 캐시 106건 중 89건이 76일 동결, 최대 14라운드 누락이었다.
+// 표시는 ts 우선이라 화면엔 영향이 없지만, ts 장애나 시즌 mismatch 때 낡은 표가 그대로 나온다.
+// 우선순위는 가장 낮게 둬서 급한 사유(ts 부재·stale)를 밀어내지 않는다.
+const AF_FALLBACK_STALE_MS = 14 * 24 * 3600 * 1000;
 /** 일정 창 — 이 안에 경기가 있는 리그만 af 를 부른다 (quota 보호). */
 const FIXTURE_WINDOW_PAST_MS = 7 * 86400_000;
 const FIXTURE_WINDOW_FUTURE_MS = 45 * 86400_000;
@@ -147,6 +152,13 @@ async function handle(req: NextRequest) {
   });
   const tsByLeague = new Map(tsCaches.map((c) => [c.league, c]));
 
+  // af 캐시 나이 — 대상 판정(폴백 신선도)과 동순위 정렬에 함께 쓴다.
+  const afAges = new Map(
+    (
+      await prisma.apiFootballStandingsCache.findMany({ select: { league: true, fetchedAt: true } })
+    ).map((r) => [r.league, r.fetchedAt.getTime()]),
+  );
+
   const out: {
     ok: number;
     skip: number;
@@ -178,6 +190,13 @@ async function handle(req: NextRequest) {
       const ageMs = now.getTime() - cache.fetchedAt.getTime();
       if (!gate.usable) reason = "ts-season-mismatch";
       else if (ageMs > TS_STALE_MS) reason = "ts-stale";
+      else {
+        // ts 는 멀쩡하지만 af 폴백이 너무 낡았으면 보충한다(위 AF_FALLBACK_STALE_MS 주석 참고).
+        const afAt = afAges.get(league);
+        if (afAt === undefined || now.getTime() - afAt > AF_FALLBACK_STALE_MS) {
+          reason = "af-fallback-stale";
+        }
+      }
       // ⚠ 매핑률 미달은 여기 없다 — af 로 메우면 TheSports 1순위 원칙을 깬다.
       //   해결은 ts 팀매핑 추가이고, 그 알림은 football-season-watch 가 낸다.
     }
@@ -197,12 +216,8 @@ async function handle(req: NextRequest) {
     "ts-season-mismatch": 1,
     "ts-cache-none": 2,
     "ts-stale": 3,
+    "af-fallback-stale": 4, // 폴백 보충 — 급한 사유를 밀어내지 않게 맨 뒤
   };
-  const afAges = new Map(
-    (
-      await prisma.apiFootballStandingsCache.findMany({ select: { league: true, fetchedAt: true } })
-    ).map((r) => [r.league, r.fetchedAt.getTime()]),
-  );
   targets.sort(
     (a, b) =>
       (PRIORITY[a.reason] ?? 9) - (PRIORITY[b.reason] ?? 9) ||
