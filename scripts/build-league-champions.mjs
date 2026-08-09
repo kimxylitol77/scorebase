@@ -48,6 +48,27 @@ const LEAGUE_WD = {
   LALIGA_2: "Q35615",
   BUNDESLIGA_2: "Q152665",
   LIGUE_2: "Q217374",
+  // 컵 대회 (2026-08-09 검증 — 후보 QID 별 P3450 시즌 수를 실측해 축구 대회만 채택.
+  // 동명이의 종목 컵이 많다: Copa del Rey 는 농구 Q1130925·배구, Coppa Italia 는 럭비 Q1088927 등)
+  FA_CUP: "Q11151", // 145시즌
+  EFL_CUP: "Q11152", // 66
+  SCO_LEAGUE_CUP: "Q864672", // 112
+  COPA_DEL_REY: "Q483794", // 124
+  COPPA_ITALIA: "Q169918", // 77
+  DFB_POKAL: "Q150880", // 81
+  COUPE_DE_FRANCE: "Q212412", // 108
+  KFA_CUP: "Q484571", // 22 (1996~2017, 이후 위키데이터 공백)
+  EMPEROR_CUP: "Q609289", // 74
+  CONCACAF_CCUP: "Q83335", // 54
+  LEVAIN_CUP: "Q601333", // 31
+  SUI_CUP: "Q658806", // 28
+  SVENSKA_CUPEN: "Q750585", // 70 (남자 — 여자 Q505318 과 구분)
+  COPA_DO_BRASIL: "Q843989", // 32
+  // AFC컵은 2024 개편으로 위키데이터가 AFC 챔피언스리그 2 와 같은 엔티티를 쓴다.
+  // 개편 후 시즌(2024-25 ACL2)이 AFC컵 우승으로 섞이므로 시즌 라벨로 걷어낸다.
+  AFC_CUP: { qid: "Q291808", excludeSeason: /Champions League 2/i },
+  // 제외: PORTUGAL_SUPER_CUP(Q1127062) — 위키데이터 P3450 연결이 1979·1980 두 건뿐이라
+  // 실제 40여 회 중 2건만 노출돼 오히려 사실을 왜곡한다. 데이터가 채워지면 추가할 것.
 };
 
 const UA = { "User-Agent": "scorebase/1.0 (kimxylitol77@gmail.com)", Accept: "application/sparql-results+json" };
@@ -101,12 +122,16 @@ let out = {};
 try {
   out = JSON.parse(readFileSync("data/league-champions.json", "utf8"));
 } catch {}
-for (const [code, qid] of Object.entries(LEAGUE_WD)) {
+for (const [code, wd] of Object.entries(LEAGUE_WD)) {
   if (ONLY && !ONLY.includes(code)) continue;
+  // 값은 QID 문자열, 또는 걸러낼 시즌 라벨 패턴을 함께 가진 객체.
+  const qid = typeof wd === "string" ? wd : wd.qid;
+  const excludeSeason = typeof wd === "string" ? null : wd.excludeSeason;
   try {
     const rows = await sparql(qid);
     const bySeason = new Map();
     for (const b of rows) {
+      if (excludeSeason?.test(b.seasonLabel?.value ?? "")) continue;
       const s = parseSeason(b.seasonLabel?.value);
       if (!s) continue;
       if (bySeason.has(s.key)) continue;
