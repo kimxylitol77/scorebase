@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runCollectPlayerMatchLogs } from "@/jobs/collect-player-match-logs";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -20,7 +19,5 @@ export async function GET(req: Request) {
   } catch (e) {
     await recordCronRun("player-match-logs", { ok: false, error: (e as Error).message });
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

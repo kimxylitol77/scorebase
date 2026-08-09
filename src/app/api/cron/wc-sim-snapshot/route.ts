@@ -56,7 +56,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, date, teams: data.length, top: `${top.team} ${(top.champion * 100).toFixed(1)}%` });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

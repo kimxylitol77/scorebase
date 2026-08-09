@@ -6,7 +6,6 @@ import { runEvaluateAiPredictions } from "@/jobs/fetch-gpt-predictions";
 import { runPredictionPostmortems } from "@/jobs/prediction-postmortems";
 import { runScoreMatchVotes } from "@/jobs/score-match-votes";
 import { runScoreMemberBotPicks } from "@/jobs/score-member-bot-picks";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 // take 200→400 (desc 백로그 배수)로 처리량 늘어 60s 부족 가능 → 180s.
@@ -49,7 +48,5 @@ export async function GET(req: Request) {
       { ok: false, error: (e as Error).message },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { recordCronRun } from "@/lib/cron-registry";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { runNewsBriefing } from "@/jobs/fetch-news-briefing";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -19,7 +18,5 @@ export async function GET(req: Request) {
   } catch (e) {
     await recordCronRun("news-briefing", { ok: false, error: (e as Error).message });
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -11,7 +11,6 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runCollect } from "@/jobs/collect";
 import { runRecap } from "@/jobs/generate-articles";
-import { prisma } from "@/lib/db";
 import type { League } from "@/lib/sports/types";
 
 export const dynamic = "force-dynamic";
@@ -94,7 +93,5 @@ export async function GET(req: Request) {
       },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

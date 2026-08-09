@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runTeamOfDayArticle } from "@/jobs/generate-team-of-day-article";
 import { runWcStarReport } from "@/jobs/generate-wc-star-report";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120; // 베스트11 1글 + STAR 최대 2글(haiku) 여유
@@ -32,7 +31,5 @@ export async function GET(req: Request) {
       { ok: false, error: (e as Error).message },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

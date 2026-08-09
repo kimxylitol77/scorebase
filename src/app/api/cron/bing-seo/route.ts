@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runBingSeoCheck } from "@/jobs/bing-seo-check";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -18,7 +17,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ dryRun, ...r });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

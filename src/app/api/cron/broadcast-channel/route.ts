@@ -8,7 +8,6 @@ import {
   broadcastKickoffPicks,
   broadcastBaseballSlates,
 } from "@/jobs/broadcast-channel";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -31,7 +30,5 @@ export async function GET(req: Request) {
   } catch (e) {
     await recordCronRun("broadcast-channel", { ok: false, error: (e as Error).message });
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

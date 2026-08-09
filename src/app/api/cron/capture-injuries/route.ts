@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runCaptureInjuries } from "@/jobs/capture-injuries";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 // 리그별 /injuries 순차 호출 — 리그 수만큼 여유를 둔다
@@ -20,7 +19,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, ...res });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

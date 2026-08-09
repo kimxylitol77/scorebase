@@ -5,7 +5,6 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runTactical } from "@/jobs/generate-tactical";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 다중 아티클 Claude 생성 여유 (recap/preview 와 동일)
@@ -31,7 +30,5 @@ export async function GET(req: Request) {
       { ok: false, error: (e as Error).message },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

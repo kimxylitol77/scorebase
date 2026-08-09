@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runPredictUpcoming } from "@/jobs/predict-upcoming";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 // 리그별 전체 매치를 in-memory 로 올려 계산 — 리그 수가 많아 여유를 둔다
@@ -20,7 +19,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, ...res });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

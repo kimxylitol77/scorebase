@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runCollect } from "@/jobs/collect";
-import { prisma } from "@/lib/db";
 import type { League } from "@/lib/sports/types";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
@@ -205,7 +204,5 @@ export async function GET(req: Request) {
       { ok: false, error: (e as Error).message },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

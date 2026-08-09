@@ -7,7 +7,6 @@ import {
   todayKST,
   addDays,
 } from "@/jobs/backfill-baseball-season";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 // 정상 상태에서는 변경분만 upsert 해 수초에 끝난다. 시즌 일정이 처음 발표된 주에는
@@ -30,7 +29,5 @@ export async function GET(req: Request) {
     const error = (e as Error).message;
     await recordCronRun("baseball-season-backfill", { ok: false, error });
     return NextResponse.json({ ok: false, error }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -6,7 +6,6 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runFakeMemberPicks } from "@/lib/analysis/fake-members";
 import { runBotComments, runHitCongrats } from "@/lib/analysis/bot-comments";
 import { runFreeBoardPost } from "@/lib/analysis/free-board-bot";
-import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -31,7 +30,5 @@ export async function GET(req: Request) {
       { ok: false, error: (e as Error).message },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
