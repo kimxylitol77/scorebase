@@ -1,6 +1,6 @@
 {
   "year": "2026",
-  "updatedAt": "2026-08-09T00:00:08.326Z",
+  "updatedAt": "2026-08-10T00:00:07.317Z",
   "players": [
     {
       "tour": "LPGA",
@@ -90,11 +90,17 @@
       "tour": "PGA",
       "name": "Tom Kim",
       "id": "4602673",
-      "starts": 18,
+      "starts": 19,
       "wins": 1,
-      "top10": 3,
+      "top10": 4,
       "best": 1,
       "recent": [
+        {
+          "event": "Wyndham Championship",
+          "date": "2026-08-06",
+          "order": 6,
+          "score": "-15"
+        },
         {
           "event": "3M Open",
           "date": "2026-07-23",
@@ -118,12 +124,6 @@
           "date": "2026-07-02",
           "order": 50,
           "score": "-9"
-        },
-        {
-          "event": "U.S. Open",
-          "date": "2026-06-18",
-          "order": 3,
-          "score": "-1"
         }
       ],
       "nameKo": "김주형"
@@ -594,11 +594,17 @@
       "tour": "PGA",
       "name": "Sungjae Im",
       "id": "11382",
-      "starts": 19,
+      "starts": 20,
       "wins": 0,
       "top10": 2,
       "best": 6,
       "recent": [
+        {
+          "event": "Wyndham Championship",
+          "date": "2026-08-06",
+          "order": 15,
+          "score": "-12"
+        },
         {
           "event": "Rocket Classic",
           "date": "2026-07-30",
@@ -622,12 +628,6 @@
           "date": "2026-07-09",
           "order": 136,
           "score": "+5"
-        },
-        {
-          "event": "John Deere Classic",
-          "date": "2026-07-02",
-          "order": 73,
-          "score": "-3"
         }
       ],
       "nameKo": "임성재"
