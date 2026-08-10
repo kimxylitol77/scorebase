@@ -29,6 +29,13 @@ export interface MonteCarloOptions {
   /** Top N 진출권 (기본 [4, 6] — 챔스/유로파) */
   topCutoffs?: number[];
   /** 시드 (재현성 X — Math.random) */
+  /**
+   * Elo 시드 전용 매치 (프리시즌 전망용). 지정하면 Elo 는 이 매치들로만 계산하고
+   * standings 누적은 matches 의 FINISHED 만 쓴다 — 지난 시즌 승점이 새 시즌에 섞이지 않게.
+   */
+  eloSeedMatches?: PredictMatch[];
+  /** Elo 시드에 없는 팀(승격팀 등)에 줄 Elo — 기본 STARTING_ELO(1500). 리그 최하위권 시드용. */
+  promotedElo?: number;
 }
 
 export interface MonteCarloRow {
@@ -80,7 +87,11 @@ export function runMonteCarlo(
   }
 
   // 2) SCHEDULED 매치 + Elo 기반 winProb 미리 계산
-  const eloTable = calcEloTable(matches);
+  const eloTable = calcEloTable(options.eloSeedMatches ?? matches);
+  const lookupElo = (teamId: number): number =>
+    options.promotedElo != null && !eloTable.ratings.has(teamId)
+      ? options.promotedElo
+      : getElo(eloTable, teamId);
   const scheduled = matches.filter(
     (m) => m.status === "SCHEDULED" && m.league === league,
   );
@@ -97,8 +108,8 @@ export function runMonteCarlo(
   }
 
   const pending: PendingMatch[] = scheduled.map((m) => {
-    const homeElo = getElo(eloTable, m.homeTeamId);
-    const awayElo = getElo(eloTable, m.awayTeamId);
+    const homeElo = lookupElo(m.homeTeamId);
+    const awayElo = lookupElo(m.awayTeamId);
     const wp = calcWinProbability(homeElo, awayElo, league);
     // 단순 골 추정 (Elo 차이 기반 변형, 평균 1.5골 가정)
     const baseGoals = 1.5;
@@ -212,9 +223,14 @@ export function runMonteCarlo(
     });
   }
 
-  // 5) 결과 정리
+  // 5) 결과 정리 — FINISHED 없는 팀(프리시즌·개막 직후 미출전)도 pending 에 있으면 포함.
+  const allTeamIds = new Set<number>(fixedByTeam.keys());
+  for (const p of pending) {
+    allTeamIds.add(p.homeTeamId);
+    allTeamIds.add(p.awayTeamId);
+  }
   const result: MonteCarloRow[] = [];
-  for (const teamId of fixedByTeam.keys()) {
+  for (const teamId of allTeamIds) {
     const currentRow = fixed.byTeam.get(teamId);
     result.push({
       teamId,
