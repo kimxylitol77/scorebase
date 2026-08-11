@@ -23,6 +23,17 @@ const SKIP_LEAGUES = new Set([
   "UFC", "LCK", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "NBA_SL",
 ]);
 
+// 의도적 라틴 유지 — ko 위키 문서·한국 표기 관행이 없어 라틴이 결정 표기인 팀 (2026-08-11 정리).
+// 매 스캔마다 미한글화로 재출현하는 노이즈를 끊는다. 새 항목은 위키 실측 후 추가할 것.
+const LATIN_OK = new Set([
+  "ABB",  // 볼리비아 Academia del Balompié Boliviano — ko 문서 없음
+  "ADT",  // 페루 Asociación Deportiva Tarma — ko 문서 없음
+  "AVS",  // 포르투갈 AVS Futebol SAD — ko 문서 없음
+  "OLS",  // 핀란드 Oulun Luistinseura — ko 문서 없음
+  "DRX", "T1",  // e스포츠 공식 브랜드
+  "TBD",  // NBA placeholder — 실팀 아님
+]);
+
 interface WikiHit {
   ko: string;
   shortdesc?: string; // Wikidata 짧은 설명 (예: "Finnish association football club")
@@ -104,6 +115,7 @@ function guardReason(name: string, hit: WikiHit): string | null {
   for (const m of rows) {
     if (!onlyLeague && SKIP_LEAGUES.has(m.league)) continue;
     for (const t of [m.homeTeam, m.awayTeam]) {
+      if (LATIN_OK.has(t.name)) continue;
       if (/[가-힣]/.test(toKoreanTeamName(t.name, m.league))) continue;
       if (!missByName.has(t.name)) missByName.set(t.name, new Set());
       missByName.get(t.name)!.add(m.league);
