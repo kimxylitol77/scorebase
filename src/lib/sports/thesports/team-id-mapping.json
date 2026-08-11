@@ -24530,5 +24530,77 @@
   "tsId": "jw2r09hny0vrz84",
   "tsName": "Ninh Binh FC",
   "matchType": "manual-review"
+ },
+ {
+  "ourId": 288112,
+  "ourName": "OLS",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "9195",
+  "tsId": "n54qllh2jwzqvy9",
+  "tsName": "OLS",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288121,
+  "ourName": "VJS",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "6075",
+  "tsId": "y0or5jhl7dpqwzv",
+  "tsName": "VJS",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288116,
+  "ourName": "SalPa",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "9189",
+  "tsId": "318q66honk9qo9j",
+  "tsName": "SalPa",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288128,
+  "ourName": "PKKU",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "9203",
+  "tsId": "dj2ryohk164q1zp",
+  "tsName": "PKKU",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288109,
+  "ourName": "FC jazz",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "2074",
+  "tsId": "jednm9wh3eoryox",
+  "tsName": "FC jazz",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288115,
+  "ourName": "JJK",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "1171",
+  "tsId": "l5ergphongvr8k0",
+  "tsName": "JJK",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288113,
+  "ourName": "KPV-j",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "10199",
+  "tsId": "ednm9wh9657ryox",
+  "tsName": "KPV",
+  "matchType": "record-join"
+ },
+ {
+  "ourId": 288118,
+  "ourName": "KuPS Akatemia",
+  "ourLeague": "YKKONEN",
+  "ourExternalId": "18758",
+  "tsId": "n54qllh22kjqvy9",
+  "tsName": "KuPS Akatemia",
+  "matchType": "record-join"
  }
 ]
