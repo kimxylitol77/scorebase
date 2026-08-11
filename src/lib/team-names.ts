@@ -2651,6 +2651,9 @@ const RAW: Record<string, string> = {
   "Dila": "딜라",
   "Dinamo Batumi": "디나모 바투미",
   "Dinamo Tbilisi": "디나모 트빌리시",
+  "FC Iberia 1999 Tbilisi": "FC 이베리아 1999", // 구 Saburtalo — 2023 개명, ko위키 문서명
+  "FC Iberia 1999": "FC 이베리아 1999",
+  "Iberia 1999": "FC 이베리아 1999",
   "Gagra": "가그라",
   "Meshakhte": "메샤흐테",
   "Rustavi": "루스타비",
