@@ -80,7 +80,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   ALLSVENSKAN: 113, // 스웨덴 1부 (3~11월)
   SUPERETTAN: 114, // 스웨덴 2부
   VEIKKAUSLIIGA: 244, // 핀란드 1부 (4~10월)
-  YKKONEN: 245, // 핀란드 2부
+  YKKONEN: 245, // 핀란드 위쾨넨 (2024 개편 후 3부 — 2부는 신설 Ykkösliiga)
   URVALSDEILD: 164, // 아이슬란드 1부 (5~9월)
   ICELAND_1L: 165, // 아이슬란드 2부
   // 남미 추가 (달력 연도 시즌)

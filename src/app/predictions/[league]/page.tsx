@@ -581,6 +581,15 @@ export default async function LeaguePredictions({ params }: Props) {
     });
     uclBracket = buildUclBracket(knockoutMatches);
   }
+  // 새 시즌(7/1 경계) knockout 이 아직 없으면 브래킷 전체가 지난 시즌 결과 — 예선이
+  // 진행 중인 여름에 구시즌 브래킷이 페이지 상단을 차지하지 않게 접힌 아카이브로 강등.
+  const uclBracketPrevSeason =
+    uclBracket.length > 0 &&
+    seasonStart != null &&
+    uclBracket.every((s) => s.legs.every((l) => l.startTime < seasonStart));
+  const uclPrevSeasonLabel = seasonStart
+    ? `${seasonStart.getUTCFullYear() - 1}-${String(seasonStart.getUTCFullYear()).slice(2)}`
+    : "";
 
   // NBA/NHL — 플레이오프 브라켓 (raw 의 series.type='playoff' 매치만)
   const isNba = upper === "NBA";
@@ -915,8 +924,18 @@ export default async function LeaguePredictions({ params }: Props) {
           </>
         )}
 
-        {/* UCL — knockout 브래킷 */}
-        {isUcl && (
+        {/* UCL — knockout 브래킷. 구시즌 결과뿐이면 접힌 아카이브로 (새 시즌 예선이 먼저 보이게) */}
+        {isUcl && uclBracketPrevSeason && (
+          <details className="rounded-xl border border-neutral-200 dark:border-white/10 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-bold text-neutral-600 dark:text-neutral-300">
+              지난 시즌 ({uclPrevSeasonLabel}) 토너먼트 브래킷 보기
+            </summary>
+            <div className="mt-3">
+              <UclBracket series={uclBracket} />
+            </div>
+          </details>
+        )}
+        {isUcl && !uclBracketPrevSeason && (
           <section>
             <Heading
               title="UCL 토너먼트 브래킷"
