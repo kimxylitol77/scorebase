@@ -7,8 +7,9 @@
 // 각 칸은 data-scell="league|time|status|home|score|away|half|star|info|odds" 로 식별
 // (home/away 는 레이아웃 슬롯 명칭 — awayFirst 면 실제 팀은 좌우 스왑됨).
 //
-// client component — 행 전체가 <a>/<Link> 라서 내부 클릭 동작(리그배지/순위/예측/L/R)은
-// anchor 대신 button + window.open 으로 처리한다 (nested anchor invalid HTML + hydration 회피).
+// client component — 매치 상세 링크는 팀명 텍스트에만 건다 (7m 방식, 2026-08-11 요청).
+// 행의 빈칸은 화살표 커서 + 클릭 무동작 + 텍스트 선택 자유. 리그배지/순위/예측/L/R 은
+// 기존대로 button + window.open (행 링크 시절의 nested anchor 회피 구조 유지 — 무해).
 
 "use client";
 
@@ -132,8 +133,6 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     insetX,
   } = props;
 
-  // 행 전체가 <a>/<Link> 라 내부 링크를 anchor 로 두면 nested anchor (invalid HTML +
-  // hydration mismatch) 가 된다. 내부 클릭 동작은 모두 button + window.open 으로 우회.
   const openInNewTab = (url: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -147,14 +146,36 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`,
     );
 
-  // 팀 셀의 빈 공간(플렉스 여백) 클릭은 행 링크 이동을 막는다 — 7m 처럼 팀명 앞 공백을
-  // 더블클릭하면 팀명이 텍스트 선택(복사)되게 하기 위함. 팀명·로고·순위 클릭은 기존 그대로.
-  // e.target===currentTarget 인 클릭만 = 셀 div 자체(여백)를 짚은 경우.
-  const blockRowNavOnBlank = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  const isExternal = href != null && /^https?:\/\//i.test(href);
+
+  // 팀명 텍스트만 매치 상세 링크 — 빈칸·시간·상태는 링크 아님 (화살표 커서, 클릭 무동작).
+  // 7m 사용 습관 (팀명 복사·검색) 대응.
+  const teamNameLink = (name: string, extraClass: string) => {
+    if (!href) return <span data-teamname className={extraClass}>{name}</span>;
+    const cls = `${extraClass} hover:underline underline-offset-2`;
+    return isExternal ? (
+      <a data-teamname href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+        {name}
+      </a>
+    ) : (
+      <Link data-teamname href={href} prefetch={false} className={cls}>
+        {name}
+      </Link>
+    );
+  };
+
+  // 팀 셀의 빈 여백 더블클릭 → 팀명 전체를 텍스트 선택. 플렉스 여백은 팀명과 다른 텍스트
+  // 노드라 브라우저 기본 단어 선택이 개행만 잡는다 — 7m(테이블 셀 단일 텍스트 흐름)과 같은
+  // 결과를 내려면 직접 선택해줘야 한다.
+  const selectTeamNameOnBlankDblClick = (e: React.MouseEvent) => {
+    if (e.target !== e.currentTarget) return; // 팀명·버튼 위 더블클릭은 기본 동작 유지
+    const el = (e.currentTarget as HTMLElement).querySelector("[data-teamname]");
+    const sel = window.getSelection();
+    if (!el || !sel) return;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    sel.removeAllRanges();
+    sel.addRange(range);
   };
 
   const badge = getLeagueBadge(league);
@@ -246,7 +267,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         return (
           <div
             data-scell="home"
-            onClick={blockRowNavOnBlank}
+            onDoubleClick={selectTeamNameOnBlankDblClick}
             className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
               isFlash
                 ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
@@ -269,15 +290,14 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                 ⚽ GOAL
               </span>
             )}
-            <span
-              className={`truncate text-right text-[13px] min-w-0 ${
+            {teamNameLink(
+              team.name,
+              `truncate text-right text-[13px] min-w-0 ${
                 isFlash
                   ? "text-emerald-800 dark:text-emerald-200 font-bold"
                   : "text-neutral-800 dark:text-neutral-200"
-              }`}
-            >
-              {team.name}
-            </span>
+              }`,
+            )}
             {position != null ? (
               <button
                 type="button"
@@ -399,7 +419,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         return (
           <div
             data-scell="away"
-            onClick={blockRowNavOnBlank}
+            onDoubleClick={selectTeamNameOnBlankDblClick}
             className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
               isFlash
                 ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
@@ -412,15 +432,14 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                 홈
               </span>
             )}
-            <span
-              className={`truncate text-[13px] min-w-0 ${
+            {teamNameLink(
+              team.name,
+              `truncate text-[13px] min-w-0 ${
                 isFlash
                   ? "text-emerald-800 dark:text-emerald-200 font-bold"
                   : "text-neutral-800 dark:text-neutral-200"
-              }`}
-            >
-              {team.name}
-            </span>
+              }`,
+            )}
             {position != null ? (
               <button
                 type="button"
@@ -523,21 +542,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   if (!href) return rowContent;
 
-  const isExternal = /^https?:\/\//i.test(href);
+  // 행 전체 링크 제거 (7m 방식) — 매치 상세 진입은 팀명(teamNameLink)·예측/L/R 버튼으로.
   return (
-    <div className="border-b border-neutral-200 dark:border-white/5">
-      {isExternal ? (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="block">
-          {rowContent}
-        </a>
-      ) : (
-        // 내부 링크는 같은 탭 — 다른 종목 카드와 통일. 새 탭(target=_blank)이면 PWA 설치 크롬이
-        // "지원되는 링크 열기" 설정 시 앱 창으로 가로채 브라우저/앱 혼선을 만든다 (2026-07-28 제보).
-        <Link href={href} prefetch={false} className="block">
-          {rowContent}
-        </Link>
-      )}
-    </div>
+    <div className="border-b border-neutral-200 dark:border-white/5">{rowContent}</div>
   );
 }
 
