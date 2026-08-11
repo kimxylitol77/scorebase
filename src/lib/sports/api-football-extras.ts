@@ -4,8 +4,8 @@ import { afQuotaOk } from "@/lib/sports/af-quota";
 // /live/[league]/[gameId] 의 라이브 매치 카드 보강용. INTL_FRIENDLY 처럼
 // 리그 standings 가 없는 매치에서 특히 의미 큼.
 //
-// 캐싱: Next.js fetch native cache (revalidate=600s) — 매치 시작 직전엔
-//       자주 갱신될 필요 없고 stale 5~10분 무방.
+// 캐싱: Next.js fetch native cache (revalidate 1800~3600s) — 매치 시작 직전엔
+//       자주 갱신될 필요 없고 stale 수십 분 무방.
 //
 // 쿼터 가드: 이 경로는 페이지 렌더에 비례해 af 를 소비한다(봇 크롤 포함) — 2026-08-11
 // 하루 한도 75,000 을 이 태그가 소진한 사고. 실패 응답은 Next 캐시에 안 남아 한도 소진
@@ -81,7 +81,7 @@ function pct(s: string): number {
 
 /**
  * api-football /predictions — 매치별 winner 예측 + 확률 + 팀 비교 메트릭.
- * cache: 600s. 응답 없거나 키 미설정 시 null.
+ * cache: 1800s (600→1800, 8/11 쿼터 절감 — 예측치는 라이브 중 크게 안 변함). 응답 없거나 키 미설정 시 null.
  */
 export async function fetchMatchPrediction(
   fixtureId: string | number,
@@ -94,7 +94,7 @@ export async function fetchMatchPrediction(
       `${BASE_URL}/predictions?fixture=${fixtureId}`,
       {
         headers: { "x-apisports-key": key },
-        next: { revalidate: 600 },
+        next: { revalidate: 1800 },
       },
     );
     if (!res.ok) return null;

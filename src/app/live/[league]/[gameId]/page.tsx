@@ -79,6 +79,8 @@ import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 import { getVenueByOurTeamId, getVenueByTsId } from "@/lib/sports/thesports/venues";
 import { fetchMatchPrediction, fetchTeamSeasonStats, fetchFixtureRound } from "@/lib/sports/api-football-extras";
+import { headers } from "next/headers";
+import { detectBot } from "@/lib/bot-detect";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
 import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
@@ -101,6 +103,17 @@ function parseGoalie(json: string | null): GoalieInfo | null {
 }
 
 export const dynamic = "force-dynamic";
+
+// 봇 요청이면 af extras(예측·팀통계·라운드)를 건너뛴다 — af 쿼터가 봇 크롤에 비례해
+// 소진된 8/9~11 사고의 소비 절감 레버. 본문(스코어·이벤트)은 봇에게도 그대로 나간다.
+async function isBotRequest(): Promise<boolean> {
+  try {
+    const h = await headers();
+    return detectBot(h.get("user-agent")).isBot;
+  } catch {
+    return false;
+  }
+}
 
 // 지원 리그 — 모든 축구 + NBA/WNBA/NHL + 모든 야구 (KBO/NPB/MLB/LOL 은 자체 라우트 우선)
 const SUPPORTED = new Set([
@@ -170,7 +183,9 @@ async function renderOrphanSoccerLive(live: LiveMatch, lg: string, gameId: strin
   const awayKo = toKoreanTeamName(live.awayName, lg);
   const label = LEAGUE_DISPLAY[lg] ?? lg;
   const flag = getLeagueFlag(lg);
-  const prediction = await fetchMatchPrediction(gameId).catch(() => null);
+  const prediction = (await isBotRequest())
+    ? null
+    : await fetchMatchPrediction(gameId).catch(() => null);
   const teamCol = (name: string, logo?: string | null) => (
     <div className="flex flex-col items-center gap-2 min-w-0">
       {logo ? (
@@ -338,7 +353,7 @@ export default async function GenericLivePage({ params }: Props) {
   const afSeason = match.startTime.getUTCFullYear();
   const homeAfExtId = isSoccer ? match.homeTeam.externalId : null;
   const awayAfExtId = isSoccer ? match.awayTeam.externalId : null;
-  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer && afRecent
+  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer && afRecent && !(await isBotRequest())
     ? await Promise.all([
         fetchMatchPrediction(gameId).catch(() => null),
         afLeagueId && homeAfExtId
