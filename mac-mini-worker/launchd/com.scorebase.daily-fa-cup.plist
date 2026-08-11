@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.scorebase.daily-fa-cup</string>
+  <key>ProgramArguments</key><array><string>/bin/zsh</string><string>/Users/kkulkkul/dev/scorebase/mac-mini-worker/daily-fa-cup.sh</string></array>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>40</integer></dict>
+  <key>StandardOutPath</key><string>/tmp/daily-fa-cup.log</string>
+  <key>StandardErrorPath</key><string>/tmp/daily-fa-cup.log</string>
+  <key>RunAtLoad</key><false/>
+</dict></plist>

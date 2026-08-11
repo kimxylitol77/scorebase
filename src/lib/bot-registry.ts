@@ -155,6 +155,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "ts 이중저장 Match 중복(종료·참조0) SAFE 자동 삭제 — collect 가드 사각 보완 (매일 10:30)",
   },
+  "mac-mini-daily-fa-cup": {
+    ko: "FA컵 일일 수집",
+    intervalMs: 1 * DAY,
+    role: "FA컵(예선 포함) TheSports 수집 — 비리그 팀 자동 생성, push 경로 skippedNoTeam 사각 담당 (매일 09:40)",
+  },
   "mac-mini-weekly-baseball-verify": {
     ko: "야구 POSTPONED 교차 대조",
     intervalMs: 7 * DAY,

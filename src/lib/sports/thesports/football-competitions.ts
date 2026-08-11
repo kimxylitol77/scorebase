@@ -116,6 +116,9 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   LEAGUES_CUP: "56ypq3nhlp8md7o",
   WK_LEAGUE: "p4jwq2gh4o9m0ve",
   CANADA_CHAMP: "p4jwq2gh27m0veo",
+  // 2026-08-11 — FA컵 예선 포함 수집(사용자 결정). 예선은 비리그 팀이라 push 경로(팀 미생성)로는
+  // 전량 skippedNoTeam — 팀을 자동 생성하는 collect-fa-cup 잡(collect-friendlies 패턴)이 담당.
+  FA_CUP: "9vjxm8gh8gr6odg",
 };
 
 /**
