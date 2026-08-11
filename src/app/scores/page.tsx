@@ -543,9 +543,14 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dateStr = sp.date ?? dateQuery(day);
 
   // 축구는 KST 자정 boundary 매치 (UCL/EPL 새벽 매치) 만 추가 cover —
-  // -1h ~ +25h 윈도우로 전날 21시 매치 등은 정확히 제외 (2026-05-24 사용자 보고).
+  // -1h 로 전날 21시 매치 등은 정확히 제외 (2026-05-24 사용자 보고).
+  // +30h (익일 06:00 KST): 유럽 대항전 새벽 1~4시 킥오프를 당일 저녁 탭에 노출
+  // (2026-08-11 사용자 요청 — UCL 예선이 "내일" 탭에만 있었음). 축구 뷰 전용 —
+  // 다른 종목/전체 탭은 아래 normalized 필터에서 종전 +25h 로 자름 (예정 섹션이
+  // 날짜 헤더 그룹이 아니라 평면이라 "01:00" 표기가 오늘 새벽으로 오독됨).
   const soccerRangeStart = new Date(day.getTime() - 1 * 3600 * 1000);
-  const soccerRangeEnd = new Date(day.getTime() + 25 * 3600 * 1000);
+  const soccerRangeEnd = new Date(day.getTime() + 30 * 3600 * 1000);
+  const nonSoccerViewCutoff = new Date(day.getTime() + 25 * 3600 * 1000);
   const soccerWindow = { gte: soccerRangeStart, lt: soccerRangeEnd };
   const dayWindow = { gte: day, lt: dayEnd };
 
@@ -1732,8 +1737,15 @@ export default async function ScoresPage({ searchParams }: Props) {
 
   // normalizedAll = 모든 종목 매치 (FavoriteMatches 용 — sport tab 무관 fav 표시).
   // normalized = 현재 sport 의 리그만 — 메인 그리드 / 상태 섹션 / 헤더 카운트 용.
+  // 새벽 확장분(+25h~+30h)은 축구 뷰에서만 표시 — 예정 섹션이 날짜 헤더로 그룹핑되는
+  // 축구 레이아웃과 달리, 전체/하키 뷰는 평면 리스트라 익일 새벽 경기가 오독됨.
   const sportLeagueSet = new Set(leaguesForSport(sport));
-  const normalized = normalizedAll.filter((m) => sportLeagueSet.has(m.league) && !m.hidden);
+  const normalized = normalizedAll.filter(
+    (m) =>
+      sportLeagueSet.has(m.league) &&
+      !m.hidden &&
+      (sport === "soccer" || m.startTime < nonSoccerViewCutoff),
+  );
 
   // orphan — DB Match row 가 없는 그날 우리 축구 리그 경기(예정/라이브/종료)를 date 조회로 보강.
   // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) live=all 만 쓰면 종료 후
