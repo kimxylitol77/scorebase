@@ -1138,7 +1138,7 @@ const RAW: Record<string, string> = {
   "Wuhan Three Towns FC": "우한 싼전",
   "Tianjin Jinmen Tiger FC": "톈진 진먼후",
   "Tianjin Jinmenhu": "톈진 진먼후",
-  "Qingdao Hainiu FC": "칭다오 시윤",
+  "Qingdao Hainiu FC": "칭다오 하이뉴",
   "Qingdao West Coast FC": "칭다오 시윤",
 
   // ─── 호주 A-리그 (A_LEAGUE) 보강 ───
@@ -2045,7 +2045,7 @@ const RAW: Record<string, string> = {
   "Motor Lublin": "루블린",
   "Piast Gliwice": "피아스트 글리비체",
   "Pogon Szczecin": "포곤 슈체친",
-  "Radomiak Radom": "파도미악 라돔",
+  "Radomiak Radom": "라도미아크 라돔",
   "Wisla Plock": "비스와 프워츠크",
   "Zaglebie Lubin": "자그웽비에 루빈",
   // ─── ELITESERIEN (TheSports 보강 10) ───
@@ -2082,7 +2082,8 @@ const RAW: Record<string, string> = {
   // ─── INDIA_ISL (TheSports 보강 3) ───
   "Bengaluru": "벵갈루루",
   "Minerva Punjab": "미네르바 펀자브",
-  "SC Delhi": "하이데라바드",
+  // 2025-06 하이데라바드 FC 가 스포르팅 클럽 델리로 개명 — 새 이름 표기 (개명 클럽은 새 이름 관례)
+  "SC Delhi": "SC 델리",
   // ─── INDONESIA_L1 (TheSports 보강 5) ───
   "Arema FC": "아레마 FC",
   "Persebaya Surabaya": "페르세바야",
@@ -3080,7 +3081,7 @@ const RAW: Record<string, string> = {
   "Hwacheon KSPO W": "화천 KSPO",
   "Seoul W": "서울시청",
   "Suwon FMC W": "수원 FC 위민",
-  "Boeun Sangmu W": "문경 상무",
+  "Boeun Sangmu W": "보은 상무",
   "Gumi Sportstoto W": "세종 스포츠토토",
 
   // ─── UEFA 컨퍼런스리그(UECL)·유로파리그(UEL) 무명 클럽 (2026-07-25) ───
@@ -3401,7 +3402,7 @@ const RAW: Record<string, string> = {
   "Criciuma": "크리시우마",
   "Cruz Azul Hidalgo": "크루스 아술 이달고",
   "Crvena zvezda W": "츠르베나 즈베즈다 위민",
-  "Csikszereda": "미에르쿠레아치우크",
+  "Csikszereda": "칙세레다",
   "Cucuta": "쿠쿠타",
   "Cuiaba": "쿠이아바",
   "Cukaricki": "FK 추카리치키",
@@ -4440,6 +4441,10 @@ const RAW: Record<string, string> = {
   "Zwettl SC": "츠베틀",
   "Zwickau  FC": "츠비카우",
 
+  // ─── 2026-08-11 음운 전수 스캔 교정 — ts nameKo 오염 노출 차단분 ───
+  "Rilski sportist": "릴스키 스포르티스트",
+  "Eleven Wonders": "일레븐 원더스",
+
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
@@ -4522,13 +4527,13 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Vasas": "바샤시", "Kisvarda FC": "키스바르다", "FK Jablonec": "FK 야블로네츠", "Pafos": "파포스",
     "SV Babelsberg 03": "SV 바벨스베르크 03", "Hamburger SV II": "함부르거 SV II", "Cigand SE": "시강드", "Polonia Środa": "폴로니아 슈로다",
     "Tychy 71": "티히 71", "Sparta Katowice": "스파르타 카토비체", "Oleksandria": "올렉산드리아", "Inhulets": "인후레츠",
-    "Zorya Luhansk": "조리아 루한스크", "Celje": "셀레", "Nesebar": "네세바르", "Kolding IF": "콜딩 IF",
+    "Zorya Luhansk": "조리아 루한스크", "Celje": "첼레", "Nesebar": "네세바르", "Kolding IF": "콜딩 IF",
     "Vendsyssel FF": "벤드시셀 FF", "Górnik Łęczna": "구르니크 웬츠나", "Hetman Zamosc": "헤트만 자모시", "Rilski Sportist": "릴스키 스포르티스트",
     "Hannover 96 II": "하노버 96 II", "BSG Chemie Leipzig": "BSG 케미 라이프치히", "Świt Skolwin": "스비트 스콜빈", "Kluczevia Stargard": "클루체비아 스타르가르드",
     "Zawisza Bydgoszcz": "자비샤 비드고슈치", "Lechia Zielona Góra": "레히아 지엘로나 구라", "FC Gutersloh": "FC 구터슬로", "Zbrojovka Brno": "즈브로요프카 브르노",
     "Boulogne": "불로뉴", "Versailles": "베르사유", "Unie Hlubina": "우니에 흘루비나", "Paks": "팍스",
     "Komárno": "코마르노", "Lokomotíva Zvolen": "로코모티바 즈볼렌", "Žilina II": "질리나 II", "Třinec": "트르지네츠",
-    "Lipany": "리파니", "Humenné": "후메네", "NK Slaven Belupo": "NK 슬라벤 벨루포", "Csikszereda": "치크세레다",
+    "Lipany": "리파니", "Humenné": "후메네", "NK Slaven Belupo": "NK 슬라벤 벨루포", "Csikszereda": "칙세레다",
     "FSV Zwickau": "FSV 츠비카우", "Greuther Fürth II": "그로이터 푸르트 II", "FK Košice": "FK 코시체", "Słowianin": "스워비아닌",
     "Karkonosze Jelenia Góra": "카르코노셰 옐레니아 구라", "Neftchi": "네프치", "FC Lok Stendal": "FC 로크 슈텐달", "1. FC Lok Stendal": "FC 로크 슈텐달", "BFC Dynamo": "BFC 디나모",
     "Eltersdorf": "엘터스도르프", "Germania Ober-Roden": "게르마니아 오버로덴", "Kickers Offenbach": "키커스 오펜바흐", "Siedenbollentin": "지덴볼렌틴",
@@ -4594,7 +4599,7 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Pogoń Siedlce": "포곤 시에들체", "Bissingen": "비싱겐", "Ruch Chorzów": "루흐 호르주프", "Livyi Bereh": "리비 베레흐",
     "Kudrivka": "쿠드리브카", "Bihor Oradea": "비호르 오라데아", "Barycz Sułów": "바리츠 술루프", "Vanløse": "반뢰세",
     "Nykobing FC": "뉘쾨빙 FC", "Kladno": "클라드노", "Quick Boys": "퀵 보이스", "Normannia Gmünd": "노르만니아 그뮌트", "1 FC Normannia Gmund": "노르만니아 그뮌트",
-    "VfR Aalen": "VfR 알렌", "Widzew II": "비제프 II", "Colchester": "콜체스터", "Wrexham": "렉섐",
+    "VfR Aalen": "VfR 알렌", "Widzew II": "비제프 II", "Colchester": "콜체스터", "Wrexham": "렉섬",
     "Brondby": "브뢴뵈", "Odense": "오덴세", "F91 Dudelange": "F91 두델랑주", "Excelsior Virton": "엑셀시오르 비르통",
     "Progres Niederkorn": "프로그레스 니더코른", "Thionville Lusitanos": "티옹빌 루시타노스", "Neuchatel Xamax FC": "뇌샤텔 자맥스 FC", "Kozakken Boys": "코자켄 보이스",
     "De Treffers": "더 트레퍼스", "Atlas Delmenhorst": "아틀라스 델멘호르스트", "Havelse": "하펠세", "Alfreton Town": "알프레톤 타운",
