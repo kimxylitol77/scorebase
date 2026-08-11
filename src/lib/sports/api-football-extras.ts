@@ -1,10 +1,16 @@
 import { afFetch } from "@/lib/sports/af-track";
+import { afQuotaOk } from "@/lib/sports/af-quota";
 // api-football 의 /predictions + /teams/statistics endpoint wrapper.
 // /live/[league]/[gameId] 의 라이브 매치 카드 보강용. INTL_FRIENDLY 처럼
 // 리그 standings 가 없는 매치에서 특히 의미 큼.
 //
 // 캐싱: Next.js fetch native cache (revalidate=600s) — 매치 시작 직전엔
 //       자주 갱신될 필요 없고 stale 5~10분 무방.
+//
+// 쿼터 가드: 이 경로는 페이지 렌더에 비례해 af 를 소비한다(봇 크롤 포함) — 2026-08-11
+// 하루 한도 75,000 을 이 태그가 소진한 사고. 실패 응답은 Next 캐시에 안 남아 한도 소진
+// 후엔 렌더마다 재시도 폭주까지 겹친다. 장식성 데이터이므로 optional 티어로 가장 먼저
+// 양보한다(afQuotaOk 는 무료 /status + 5분 캐시라 비용 없음).
 
 const BASE_URL = "https://v3.football.api-sports.io";
 const EXTRAS_TAG = "af-extras";
@@ -16,6 +22,7 @@ const EXTRAS_TAG = "af-extras";
 export async function fetchFixtureRound(fixtureId: string | number): Promise<string | null> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
+  if (!(await afQuotaOk("optional"))) return null;
   try {
     const res = await afFetch(EXTRAS_TAG, `${BASE_URL}/fixtures?id=${fixtureId}`, {
       headers: { "x-apisports-key": key },
@@ -81,6 +88,7 @@ export async function fetchMatchPrediction(
 ): Promise<MatchPrediction | null> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
+  if (!(await afQuotaOk("optional"))) return null;
   try {
     const res = await afFetch(EXTRAS_TAG, 
       `${BASE_URL}/predictions?fixture=${fixtureId}`,
@@ -158,6 +166,7 @@ export async function fetchTeamSeasonStats(
 ): Promise<TeamSeasonStats | null> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
+  if (!(await afQuotaOk("optional"))) return null;
   try {
     const res = await afFetch(EXTRAS_TAG, 
       `${BASE_URL}/teams/statistics?team=${teamId}&league=${leagueId}&season=${season}`,
