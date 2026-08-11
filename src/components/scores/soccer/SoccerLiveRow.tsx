@@ -147,6 +147,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`,
     );
 
+  // 팀 셀의 빈 공간(플렉스 여백) 클릭은 행 링크 이동을 막는다 — 7m 처럼 팀명 앞 공백을
+  // 더블클릭하면 팀명이 텍스트 선택(복사)되게 하기 위함. 팀명·로고·순위 클릭은 기존 그대로.
+  // e.target===currentTarget 인 클릭만 = 셀 div 자체(여백)를 짚은 경우.
+  const blockRowNavOnBlank = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   const badge = getLeagueBadge(league);
   const flag = getLeagueFlag(league);
   const isLive = status === "live";
@@ -236,6 +246,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         return (
           <div
             data-scell="home"
+            onClick={blockRowNavOnBlank}
             className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
               isFlash
                 ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
@@ -388,6 +399,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         return (
           <div
             data-scell="away"
+            onClick={blockRowNavOnBlank}
             className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
               isFlash
                 ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
