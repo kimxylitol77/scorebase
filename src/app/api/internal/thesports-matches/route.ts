@@ -526,6 +526,39 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // ── 미래 SCHEDULED ts-vs-ts 중복 차단 (2026-08-11): TheSports 가 미래 fixture 를
+      // 두 ts id 로 동시 서빙하는 변종 (AZERBAIJAN_PL Sabah-Kapaz 8/15 — recent/list 로
+      // 두 uuid 모두 alive 확인). 위 유령 가드는 "시작시각 경과 + FINISHED 쌍둥이" 만 봐서
+      // 이 케이스는 통과 → daily dup-cleanup 이 지워도 diary push 가 재생성하는 루프.
+      // 킥오프가 초 단위까지 같고 같은 방향 팀페어인 SCHEDULED ts- 쌍둥이가 이미 있으면
+      // 신규 생성만 skip (기존 row 업데이트는 통과). 정규 리그에서 같은 두 팀이 같은 시각에
+      // 두 경기를 치를 수 없어 안전 — 스플릿스쿼드 친선(당일 2연전)도 킥오프는 다르다.
+      // 킥오프가 지나면 이 가드는 비활성 — 살아있는 uuid 가 늦게라도 row 를 만들 수 있게.
+      if (m.status === "SCHEDULED" && startMs >= Date.now()) {
+        const ownRow = await prisma.match.findUnique({
+          where: { league_externalId: { league: m.league, externalId } },
+          select: { id: true },
+        });
+        if (!ownRow) {
+          const schedTwin = await prisma.match.findFirst({
+            where: {
+              league: m.league,
+              externalId: { startsWith: "ts-", not: externalId },
+              status: "SCHEDULED",
+              startTime: new Date(startMs),
+              homeTeamId: homeId,
+              awayTeamId: awayId,
+            },
+            select: { id: true },
+          });
+          if (schedTwin) {
+            skippedDuplicate++;
+            console.log(`[ts-matches] sched-twin skip ${m.league}/${m.tsMatchId} — SCHEDULED ts twin #${schedTwin.id}`);
+            continue;
+          }
+        }
+      }
+
       // 단조 progression 가드 — 30분 주기 collector 가 detail_live 의 stale/wrong
       // status (e.g. baseball 100 = FINISHED 인데 구버전 mapper 가 SCHEDULED 로 잘못
       // 매핑한 케이스) 로 fresh FINISHED 매치를 SCHEDULED 로 revert + score null
