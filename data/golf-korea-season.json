@@ -1,11 +1,11 @@
 {
   "year": "2026",
-  "updatedAt": "2026-08-10T00:00:07.317Z",
+  "updatedAt": "2026-08-11T00:00:08.977Z",
   "players": [
     {
       "tour": "LPGA",
       "name": "Haeran Ryu",
-      "id": "10620",
+      "id": null,
       "starts": 13,
       "wins": 2,
       "top10": 6,
@@ -47,7 +47,7 @@
     {
       "tour": "LPGA",
       "name": "Hyo Joo Kim",
-      "id": "7913",
+      "id": null,
       "starts": 12,
       "wins": 2,
       "top10": 4,
@@ -89,7 +89,7 @@
     {
       "tour": "PGA",
       "name": "Tom Kim",
-      "id": "4602673",
+      "id": null,
       "starts": 19,
       "wins": 1,
       "top10": 4,
@@ -131,7 +131,7 @@
     {
       "tour": "LPGA",
       "name": "Jenny Shin",
-      "id": "8543",
+      "id": null,
       "starts": 14,
       "wins": 1,
       "top10": 2,
@@ -173,7 +173,7 @@
     {
       "tour": "LPGA",
       "name": "Mi Hyang Lee",
-      "id": "8032",
+      "id": null,
       "starts": 13,
       "wins": 1,
       "top10": 1,
@@ -215,7 +215,7 @@
     {
       "tour": "PGA",
       "name": "Si Woo Kim",
-      "id": "7081",
+      "id": null,
       "starts": 21,
       "wins": 0,
       "top10": 10,
@@ -257,7 +257,7 @@
     {
       "tour": "LPGA",
       "name": "Somi Lee",
-      "id": "4939782",
+      "id": null,
       "starts": 15,
       "wins": 0,
       "top10": 5,
@@ -299,7 +299,7 @@
     {
       "tour": "LPGA",
       "name": "Ina Yoon",
-      "id": "5259423",
+      "id": null,
       "starts": 14,
       "wins": 0,
       "top10": 4,
@@ -341,7 +341,7 @@
     {
       "tour": "LPGA",
       "name": "Sei Young Kim",
-      "id": "9212",
+      "id": null,
       "starts": 14,
       "wins": 0,
       "top10": 4,
@@ -383,7 +383,7 @@
     {
       "tour": "LPGA",
       "name": "A Lim Kim",
-      "id": "4396037",
+      "id": null,
       "starts": 15,
       "wins": 0,
       "top10": 3,
@@ -425,7 +425,7 @@
     {
       "tour": "LPGA",
       "name": "Jin Hee Im",
-      "id": "4612982",
+      "id": null,
       "starts": 15,
       "wins": 0,
       "top10": 3,
@@ -467,7 +467,7 @@
     {
       "tour": "LPGA",
       "name": "Hye-Jin Choi",
-      "id": "9945",
+      "id": null,
       "starts": 16,
       "wins": 0,
       "top10": 3,
@@ -509,7 +509,7 @@
     {
       "tour": "LPGA",
       "name": "In Gee Chun",
-      "id": "9208",
+      "id": null,
       "starts": 12,
       "wins": 0,
       "top10": 2,
@@ -551,7 +551,7 @@
     {
       "tour": "LPGA",
       "name": "Minji Kang",
-      "id": "5195963",
+      "id": null,
       "starts": 14,
       "wins": 0,
       "top10": 2,
@@ -593,7 +593,7 @@
     {
       "tour": "PGA",
       "name": "Sungjae Im",
-      "id": "11382",
+      "id": null,
       "starts": 20,
       "wins": 0,
       "top10": 2,
@@ -635,7 +635,7 @@
     {
       "tour": "LPGA",
       "name": "Soo Bin Joo",
-      "id": "5138914",
+      "id": null,
       "starts": 13,
       "wins": 0,
       "top10": 2,
@@ -677,7 +677,7 @@
     {
       "tour": "LPGA",
       "name": "Amy Yang",
-      "id": "8807",
+      "id": null,
       "starts": 13,
       "wins": 0,
       "top10": 1,
@@ -719,7 +719,7 @@
     {
       "tour": "LPGA",
       "name": "Jin Young Ko",
-      "id": "9758",
+      "id": null,
       "starts": 13,
       "wins": 0,
       "top10": 1,
@@ -761,7 +761,7 @@
     {
       "tour": "LPGA",
       "name": "Youmin Hwang",
-      "id": "5141008",
+      "id": null,
       "starts": 15,
       "wins": 0,
       "top10": 1,
@@ -803,7 +803,7 @@
     {
       "tour": "LPGA",
       "name": "Jiwon Jeon",
-      "id": "4425566",
+      "id": null,
       "starts": 8,
       "wins": 0,
       "top10": 1,
@@ -845,7 +845,7 @@
     {
       "tour": "PGA",
       "name": "S.H. Kim",
-      "id": "4698579",
+      "id": null,
       "starts": 10,
       "wins": 0,
       "top10": 1,
@@ -887,7 +887,7 @@
     {
       "tour": "LPGA",
       "name": "Ilhee Lee",
-      "id": "8019",
+      "id": null,
       "starts": 5,
       "wins": 0,
       "top10": 0,
@@ -929,7 +929,7 @@
     {
       "tour": "PGA",
       "name": "S.Y. Noh",
-      "id": "4267",
+      "id": null,
       "starts": 4,
       "wins": 0,
       "top10": 0,
@@ -965,7 +965,7 @@
     {
       "tour": "LPGA",
       "name": "Dongeun Lee",
-      "id": "5295637",
+      "id": null,
       "starts": 9,
       "wins": 0,
       "top10": 0,
@@ -1007,7 +1007,7 @@
     {
       "tour": "LPGA",
       "name": "Chella Choi",
-      "id": "7408",
+      "id": null,
       "starts": 11,
       "wins": 0,
       "top10": 0,
@@ -1049,7 +1049,7 @@
     {
       "tour": "LPGA",
       "name": "Narin An",
-      "id": "4708891",
+      "id": null,
       "starts": 9,
       "wins": 0,
       "top10": 0,
@@ -1091,7 +1091,7 @@
     {
       "tour": "LPGA",
       "name": "Jeongeun Lee6",
-      "id": "11167",
+      "id": null,
       "starts": 7,
       "wins": 0,
       "top10": 0,
@@ -1133,7 +1133,7 @@
     {
       "tour": "LPGA",
       "name": "Kumkang Park",
-      "id": "4421539",
+      "id": null,
       "starts": 8,
       "wins": 0,
       "top10": 0,
@@ -1175,7 +1175,7 @@
     {
       "tour": "LPGA",
       "name": "Jiyai Shin",
-      "id": "8544",
+      "id": null,
       "starts": 2,
       "wins": 0,
       "top10": 0,
@@ -1199,7 +1199,7 @@
     {
       "tour": "LPGA",
       "name": "Jeongeun Lee5",
-      "id": "8024",
+      "id": null,
       "starts": 9,
       "wins": 0,
       "top10": 0,
@@ -1241,7 +1241,7 @@
     {
       "tour": "LPGA",
       "name": "Hyunjo Yoo",
-      "id": "5108374",
+      "id": null,
       "starts": 2,
       "wins": 0,
       "top10": 0,
@@ -1265,7 +1265,7 @@
     {
       "tour": "LPGA",
       "name": "Sung Hyun Park",
-      "id": "10301",
+      "id": null,
       "starts": 4,
       "wins": 0,
       "top10": 0,
@@ -1301,7 +1301,7 @@
     {
       "tour": "LPGA",
       "name": "Yunseo Yang",
-      "id": "5343626",
+      "id": null,
       "starts": 3,
       "wins": 0,
       "top10": 0,
@@ -1331,7 +1331,7 @@
     {
       "tour": "PGA",
       "name": "S.T. Lee",
-      "id": "4877953",
+      "id": null,
       "starts": 4,
       "wins": 0,
       "top10": 0,
@@ -1367,7 +1367,7 @@
     {
       "tour": "LPGA",
       "name": "Da Yeon Lee",
-      "id": "4396038",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1385,7 +1385,7 @@
     {
       "tour": "LPGA",
       "name": "Minsol Kim",
-      "id": "5075180",
+      "id": null,
       "starts": 2,
       "wins": 0,
       "top10": 0,
@@ -1409,7 +1409,7 @@
     {
       "tour": "LPGA",
       "name": "Juniper Jang",
-      "id": "5141006",
+      "id": null,
       "starts": 6,
       "wins": 0,
       "top10": 0,
@@ -1451,7 +1451,7 @@
     {
       "tour": "PGA",
       "name": "Yongjun Bae",
-      "id": "4592200",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1469,7 +1469,7 @@
     {
       "tour": "LPGA",
       "name": "Kyorim Seo",
-      "id": "5369394",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1487,7 +1487,7 @@
     {
       "tour": "LPGA",
       "name": "Haeji Kang",
-      "id": "7859",
+      "id": null,
       "starts": 7,
       "wins": 0,
       "top10": 0,
@@ -1529,7 +1529,7 @@
     {
       "tour": "LPGA",
       "name": "Soomin Oh",
-      "id": "5178145",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1547,7 +1547,7 @@
     {
       "tour": "PGA",
       "name": "K.H. Lee",
-      "id": "7083",
+      "id": null,
       "starts": 4,
       "wins": 0,
       "top10": 0,
@@ -1583,7 +1583,7 @@
     {
       "tour": "LPGA",
       "name": "Minsun7 Kim",
-      "id": "5383624",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1601,7 +1601,7 @@
     {
       "tour": "LPGA",
       "name": "Jungmin Hong",
-      "id": "4421859",
+      "id": null,
       "starts": 2,
       "wins": 0,
       "top10": 0,
@@ -1625,7 +1625,7 @@
     {
       "tour": "PGA",
       "name": "Junghwan Lee",
-      "id": "11312",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1643,7 +1643,7 @@
     {
       "tour": "LPGA",
       "name": "In Kyung Kim",
-      "id": "7915",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1661,7 +1661,7 @@
     {
       "tour": "PGA",
       "name": "Y.E. Yang",
-      "id": "1350",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1679,7 +1679,7 @@
     {
       "tour": "PGA",
       "name": "Seungbin Choi",
-      "id": "5147034",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1697,7 +1697,7 @@
     {
       "tour": "PGA",
       "name": "Jiho Yang",
-      "id": "5143177",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1715,7 +1715,7 @@
     {
       "tour": "PGA",
       "name": "Sangmoon Bae",
-      "id": "4015",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1733,7 +1733,7 @@
     {
       "tour": "PGA",
       "name": "Jeong-Woo Ham",
-      "id": "4592199",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1751,7 +1751,7 @@
     {
       "tour": "LPGA",
       "name": "Amy Seung Hyun Lee",
-      "id": "5353521",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1769,7 +1769,7 @@
     {
       "tour": "PGA",
       "name": "T.K. Kim",
-      "id": "4567001",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1787,7 +1787,7 @@
     {
       "tour": "PGA",
       "name": "Baekjun Kim",
-      "id": "5243999",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1805,7 +1805,7 @@
     {
       "tour": "LPGA",
       "name": "Jiwon Ko",
-      "id": "5353497",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
@@ -1823,7 +1823,7 @@
     {
       "tour": "PGA",
       "name": "Taehoon Ok",
-      "id": "4868795",
+      "id": null,
       "starts": 1,
       "wins": 0,
       "top10": 0,
