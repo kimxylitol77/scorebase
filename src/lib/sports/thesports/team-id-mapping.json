@@ -24602,5 +24602,419 @@
   "tsId": "n54qllh22kjqvy9",
   "tsName": "KuPS Akatemia",
   "matchType": "record-join"
+ },
+ {
+  "ourId": 362,
+  "ourName": "Orlando City SC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "12011",
+  "tsId": "kjw2r09hoxvrz84",
+  "tsName": "Orlando City SC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 345,
+  "ourName": "Inter Miami CF",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "20232",
+  "tsId": "vjxm8ghjyd1r6od",
+  "tsName": "Inter Miami CF",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 353,
+  "ourName": "FC Dallas",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "185",
+  "tsId": "gx7lm7phdzem2wd",
+  "tsName": "FC Dallas",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 387,
+  "ourName": "Real Salt Lake",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "4771",
+  "tsId": "gy0or5jhkk1qwzv",
+  "tsName": "Real Salt Lake",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 342,
+  "ourName": "LAFC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "18966",
+  "tsId": "l5ergphvp5dr8k0",
+  "tsName": "LAFC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 389,
+  "ourName": "Seattle Sounders FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "9726",
+  "tsId": "l5ergphol4xr8k0",
+  "tsName": "Seattle Sounders FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 350,
+  "ourName": "New York City FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "17606",
+  "tsId": "gpxwrxlhoo2ryk0",
+  "tsName": "New York City FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 340,
+  "ourName": "Philadelphia Union",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "10739",
+  "tsId": "z318q66hyj7qo9j",
+  "tsName": "Philadelphia Union",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 344,
+  "ourName": "Nashville SC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "18986",
+  "tsId": "jw2r09hlo87rz84",
+  "tsName": "Nashville SC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 351,
+  "ourName": "Chicago Fire FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "182",
+  "tsId": "9vjxm8gholor6od",
+  "tsName": "Chicago Fire FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 337,
+  "ourName": "Austin FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "20906",
+  "tsId": "jw2r09hj73erz84",
+  "tsName": "Austin FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 359,
+  "ourName": "San Diego FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "22529",
+  "tsId": "23xmvkhxgd5qg8n",
+  "tsName": "San Diego FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 341,
+  "ourName": "Portland Timbers",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "9723",
+  "tsId": "yl5ergphxn8r8k0",
+  "tsName": "Portland Timbers",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 343,
+  "ourName": "Charlotte FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "21300",
+  "tsId": "n54qllh847pqvy9",
+  "tsName": "Charlotte FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 361,
+  "ourName": "Columbus Crew",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "183",
+  "tsId": "8y39mp1h86pmojx",
+  "tsName": "Columbus Crew",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 336,
+  "ourName": "FC Cincinnati",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "18267",
+  "tsId": "x7lm7pho3jem2wd",
+  "tsName": "FC Cincinnati",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 360,
+  "ourName": "Minnesota United FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "17362",
+  "tsId": "y39mp1h3188mojx",
+  "tsName": "Minnesota United FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 349,
+  "ourName": "Vancouver Whitecaps",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "9727",
+  "tsId": "e4wyrn4hpv2q86p",
+  "tsName": "Vancouver Whitecaps",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598668,
+  "ourName": "Leon",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2289",
+  "tsId": "zp5rzghjkxvq82w",
+  "tsName": "Leon",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598667,
+  "ourName": "Monterrey",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2282",
+  "tsId": "gpxwrxlh60kryk0",
+  "tsName": "Monterrey",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 119209,
+  "ourName": "Guadalajara Chivas",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2278",
+  "tsId": "yl5ergph1e7r8k0",
+  "tsName": "Guadalajara Chivas",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 609868,
+  "ourName": "Atlante FC",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "kdj2ryoh07wq1zp",
+  "tsId": "kdj2ryoh07wq1zp",
+  "tsName": "Atlante FC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598660,
+  "ourName": "Toluca",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2281",
+  "tsId": "z318q66h9p6qo9j",
+  "tsName": "Toluca",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598659,
+  "ourName": "Club Queretaro",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2290",
+  "tsId": "9vjxm8ghd6wr6od",
+  "tsName": "Club Queretaro",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 119208,
+  "ourName": "Cruz Azul",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2295",
+  "tsId": "kjw2r09hojvrz84",
+  "tsName": "Cruz Azul",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598661,
+  "ourName": "Necaxa",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2288",
+  "tsId": "4wyrn4h8d52q86p",
+  "tsName": "Necaxa",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598669,
+  "ourName": "Atletico San Luis",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2314",
+  "tsId": "1l4rjnh6x41m7vx",
+  "tsName": "Atletico San Luis",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598662,
+  "ourName": "Santos Laguna",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2285",
+  "tsId": "l7oqdehn63nr510",
+  "tsName": "Santos Laguna",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598654,
+  "ourName": "Puebla",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2291",
+  "tsId": "kdj2ryoh66gq1zp",
+  "tsName": "Puebla",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598658,
+  "ourName": "Club Tijuana",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2280",
+  "tsId": "pxwrxlhg9j2ryk0",
+  "tsName": "Club Tijuana",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598657,
+  "ourName": "Club America",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2287",
+  "tsId": "d23xmvkh189qg8n",
+  "tsName": "Club America",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 115952,
+  "ourName": "CF Pachuca",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2292",
+  "tsId": "z8yomo4hpy5q0j6",
+  "tsName": "CF Pachuca",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 115953,
+  "ourName": "U.N.A.M. - Pumas",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2286",
+  "tsId": "e4wyrn4hjknq86p",
+  "tsName": "U.N.A.M. - Pumas",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598655,
+  "ourName": "Atlas",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2283",
+  "tsId": "l7oqdehn6dnr510",
+  "tsName": "Atlas",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598656,
+  "ourName": "FC Juarez",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2298",
+  "tsId": "23xmvkh386yqg8n",
+  "tsName": "FC Juarez",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 598670,
+  "ourName": "Tigres UANL",
+  "ourLeague": "LEAGUES_CUP",
+  "ourExternalId": "2279",
+  "tsId": "ednm9whk9g2ryox",
+  "tsName": "Tigres UANL",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612265,
+  "ourName": "Hwacheon KSPO WFC",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-zp5rzgh7jk6q82w",
+  "tsId": "zp5rzgh7jk6q82w",
+  "tsName": "Hwacheon KSPO WFC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612266,
+  "ourName": "Incheon Hyundai Steel Red Angels Women",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-2y8m4zh3lwgql07",
+  "tsId": "2y8m4zh3lwgql07",
+  "tsName": "Incheon Hyundai Steel Red Angels Women",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612267,
+  "ourName": "Seoul Amazones Women",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-k82rekhvd25repz",
+  "tsId": "k82rekhvd25repz",
+  "tsName": "Seoul Amazones Women",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612268,
+  "ourName": "Gyeongju Korea Hydro & Nuclear Power WFC",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-jw2r09hne4orz84",
+  "tsId": "jw2r09hne4orz84",
+  "tsName": "Gyeongju Korea Hydro & Nuclear Power WFC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612269,
+  "ourName": "Suwon FC Women",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-2y8m4zh3d4oql07",
+  "tsId": "2y8m4zh3d4oql07",
+  "tsName": "Suwon FC Women",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612270,
+  "ourName": "Mungyeong Sangmu WFC",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-965mkyh76nlr1ge",
+  "tsId": "965mkyh76nlr1ge",
+  "tsName": "Mungyeong Sangmu WFC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612271,
+  "ourName": "Gangjin Swans Women",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-965mkyh3g5wr1ge",
+  "tsId": "965mkyh3g5wr1ge",
+  "tsName": "Gangjin Swans Women",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 612272,
+  "ourName": "Sejong Sportstoto WFC",
+  "ourLeague": "WK_LEAGUE",
+  "ourExternalId": "ts-23xmvkho350qg8n",
+  "tsId": "23xmvkho350qg8n",
+  "tsName": "Sejong Sportstoto WFC",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 290267,
+  "ourName": "Atlético Ottawa",
+  "ourLeague": "CANADA_CHAMP",
+  "ourExternalId": "10169",
+  "tsId": "3glrw7hy1yeqdyj",
+  "tsName": "Atlético Ottawa",
+  "matchType": "manual-onboard"
+ },
+ {
+  "ourId": 290266,
+  "ourName": "Supra du Quebec",
+  "ourLeague": "CANADA_CHAMP",
+  "ourExternalId": "27461",
+  "tsId": "y0or5jh1d8lqwzv",
+  "tsName": "Supra du Quebec",
+  "matchType": "manual-onboard"
  }
 ]

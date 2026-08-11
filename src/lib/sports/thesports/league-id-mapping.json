@@ -1273,5 +1273,29 @@
     "tsEn": "Chinese Football League 2",
     "tsKo": "중국 리그투",
     "tsSeasonId": "2y8m4zh30xoql07"
+  },
+  {
+    "code": "LEAGUES_CUP",
+    "ourLabel": "리그스컵",
+    "tsId": "56ypq3nhlp8md7o",
+    "tsEn": "Leagues Cup",
+    "tsKo": "리그스컵",
+    "tsSeasonId": "1l4rjnh6yl3m7vx"
+  },
+  {
+    "code": "WK_LEAGUE",
+    "ourLabel": "WK리그",
+    "tsId": "p4jwq2gh4o9m0ve",
+    "tsEn": "Korean WK League",
+    "tsKo": "WK리그",
+    "tsSeasonId": "x7lm7phkg7om2wd"
+  },
+  {
+    "code": "CANADA_CHAMP",
+    "ourLabel": "캐나다 챔피언십",
+    "tsId": "p4jwq2gh27m0veo",
+    "tsEn": "Canadian Championship",
+    "tsKo": "캐나다 챔피언십",
+    "tsSeasonId": "1l4rjnh6yn4m7vx"
   }
 ]

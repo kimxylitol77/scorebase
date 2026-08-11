@@ -179,6 +179,9 @@ export const collectors: Record<League, MatchCollector> = {
   LUXEMBOURG_ND: buildApiFootballCollector("LUXEMBOURG_ND"),
   FAROE_PL: buildApiFootballCollector("FAROE_PL"),
   PANAMA_LPF: buildApiFootballCollector("PANAMA_LPF"),
+  // 2026-08-11 — 7m 재대조 확장 (ts 전용, af id 미등록 → collector 는 graceful no-op 백스톱)
+  LEAGUES_CUP: buildApiFootballCollector("LEAGUES_CUP"),
+  CANADA_CHAMP: buildApiFootballCollector("CANADA_CHAMP"),
   ELSALVADOR_PD: buildApiFootballCollector("ELSALVADOR_PD"),
   NICARAGUA_PD: buildApiFootballCollector("NICARAGUA_PD"),
   ARGENTINA_PL: buildApiFootballCollector("ARGENTINA_PL"),

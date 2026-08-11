@@ -221,7 +221,10 @@ export type League =
   | "FAROE_PL"
   | "PANAMA_LPF"
   | "ELSALVADOR_PD"
-  | "NICARAGUA_PD";
+  | "NICARAGUA_PD"
+  // 2026-08-11 — 7m 재대조 확장 (회원 이탈 신고 대응)
+  | "LEAGUES_CUP" // 리그스컵 (MLS×리가 MX) — TheSports 전용
+  | "CANADA_CHAMP"; // 캐나다 챔피언십 (컵) — TheSports 전용
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -393,6 +396,8 @@ export const SOCCER_LEAGUES = [
   "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN", "UZBEKISTAN_SL",
   "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
+  // 2026-08-11 — 7m 재대조 확장
+  "LEAGUES_CUP", "CANADA_CHAMP",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 발행 화이트리스트 — 명시한 리그만 글 생성.
@@ -572,6 +577,9 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "SCOT_LEAGUE_ONE",
   "SCOT_LEAGUE_TWO",
   "RPL",
+  "LEAGUES_CUP",
+  "WK_LEAGUE",
+  "CANADA_CHAMP",
 ];
 
 export type MatchStatus =

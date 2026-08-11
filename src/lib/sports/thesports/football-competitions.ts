@@ -111,6 +111,11 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   BELGIUM_2: "gx7lm7ph5nm2wdk",
   // 클럽 친선 (프리시즌 등) — 전 세계 클럽 친선이 이 한 comp 에 모임. 워커(collect-friendlies)에서 TheSports 수집.
   CLUB_FRIENDLY: "gpxwrxlhgpryk0j",
+  // 2026-08-11 — 7m 재대조 확장 (competition/additional/list 실측). WK_LEAGUE 는 af 660
+  // 등록만 있고 매치가 전무했던 리그 — ts 승격으로 실수집 개시.
+  LEAGUES_CUP: "56ypq3nhlp8md7o",
+  WK_LEAGUE: "p4jwq2gh4o9m0ve",
+  CANADA_CHAMP: "p4jwq2gh27m0veo",
 };
 
 /**

@@ -34,6 +34,7 @@ export const ALL_LEAGUES = [
   "INDONESIA_L1", "SINGAPORE_PL", "THAI_L1",
   "UAE_PL", "QATAR_SL", "MOROCCO_BP", "SOUTHAFRICA_PSL",
   "USA_USL_CH", "CANADA_PL",
+  "LEAGUES_CUP", "CANADA_CHAMP", // 2026-08-11 — 7m 재대조 확장
   "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
   // 국가대표 토너 / 예선 / 친선
@@ -114,6 +115,7 @@ export const SPORTS: SportMeta[] = [
       "VIETNAM_VL1", "VIETNAM_VL2", "INDONESIA_L1", "SINGAPORE_PL", "THAI_L1",
       "UAE_PL", "QATAR_SL", "MOROCCO_BP", "SOUTHAFRICA_PSL",
       "USA_USL_CH", "CANADA_PL",
+      "LEAGUES_CUP", "CANADA_CHAMP", // 2026-08-11 — 7m 재대조 확장
       "CSL", "A_LEAGUE", "SAUDI_PL",
       "CLUB_WORLD_CUP", "WORLD_CUP",
       // 국가대표 토너 / 예선 / 친선
@@ -366,6 +368,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   SOUTHAFRICA_PSL: "남아공 PSL",
   USA_USL_CH: "USL 챔피언십",
   CANADA_PL: "캐나다 프리미어 리그",
+  LEAGUES_CUP: "리그스컵",
+  CANADA_CHAMP: "캐나다 챔피언십",
   BRASILEIRAO: "브라질 세리에 A",
   LIGA_MX: "리가 MX",
   COPA_LIB: "코파 리베르타도레스",
@@ -587,6 +591,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   CHILE_PB: 16.26,
   USA_USL_CH: 16.51,
   CANADA_PL: 16.52,
+  CANADA_CHAMP: 16.53,
+  LEAGUES_CUP: 16.15,
   EGYPT_PL: 16.6,
   MOROCCO_BP: 16.61,
   SOUTHAFRICA_PSL: 16.62,
@@ -772,6 +778,8 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   MLS: "미국",
   USA_USL_CH: "미국",
   CANADA_PL: "캐나다",
+  CANADA_CHAMP: "캐나다",
+  LEAGUES_CUP: "국제",
   LIGA_MX: "멕시코",
   // 남미
   BRASILEIRAO: "브라질",

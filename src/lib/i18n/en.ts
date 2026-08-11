@@ -69,6 +69,8 @@ export const LEAGUE_DISPLAY_EN: Record<string, string> = {
   BRASILEIRAO: "Brasileirão Série A",
   USA_USL_CH: "USL Championship",
   CANADA_PL: "Canadian Premier League",
+  CANADA_CHAMP: "Canadian Championship",
+  LEAGUES_CUP: "Leagues Cup",
   CHILE_PD: "Chilean Primera División",
   CHILE_PB: "Chilean Primera B",
   ECUADOR_LP: "Ecuadorian Liga Pro",
