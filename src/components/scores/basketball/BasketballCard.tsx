@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PeriodLinescore as PeriodData } from "@/lib/sports/live-scores";
 import FavoriteStar from "../FavoriteStar";
+import TeamNameCell from "../TeamNameCell";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 export interface BasketballCardProps {
@@ -189,17 +190,17 @@ export default function BasketballCard(props: BasketballCardProps) {
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
-        <div className="min-w-0 flex items-center gap-2">
+        <TeamNameCell className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
           <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
-            {away.name}
+            <span data-teamname>{away.name}</span>
             {away.position != null && (
               <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
                 [{away.position}]
               </span>
             )}
           </div>
-        </div>
+        </TeamNameCell>
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
           {hasScore ? (
             <>
@@ -227,9 +228,9 @@ export default function BasketballCard(props: BasketballCardProps) {
             <span className="text-base font-bold text-neutral-500">VS</span>
           )}
         </div>
-        <div className="min-w-0 flex items-center gap-2 justify-end text-right">
+        <TeamNameCell className="min-w-0 flex items-center gap-2 justify-end text-right">
           <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
-            {home.name}
+            <span data-teamname>{home.name}</span>
             {home.position != null && (
               <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
                 [{home.position}]
@@ -237,7 +238,7 @@ export default function BasketballCard(props: BasketballCardProps) {
             )}
           </div>
           <Logo url={home.logo} name={home.name} />
-        </div>
+        </TeamNameCell>
       </div>
 
       {/* 컨텍스트 — LIVE 만. 클럭 있으면 쿼터+클럭, 없으면 라벨(하프타임/연장 등) */}

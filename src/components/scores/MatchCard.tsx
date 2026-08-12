@@ -27,6 +27,7 @@ import type {
   SoccerCard,
 } from "@/lib/sports/live-scores";
 import FavoriteStar from "./FavoriteStar";
+import TeamNameCell from "./TeamNameCell";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { useScoreFlash } from "./useScoreFlash";
 
@@ -416,10 +417,10 @@ export default function MatchCard(props: MatchCardProps) {
       {/* 본문: 홈-점수-원정 (한국 컨벤션 + SoccerLiveRow/리스트와 통일) */}
       <div className="px-3.5 sm:px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
         {/* 홈 */}
-        <div className="min-w-0 flex flex-col items-center gap-1 text-center">
+        <TeamNameCell className="min-w-0 flex flex-col items-center gap-1 text-center">
           <Logo url={home.logo} name={home.name} big={sport === "mma"} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
-            {home.name}
+            <span data-teamname>{home.name}</span>
             {home.position != null && (
               <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
                 [{home.position}]
@@ -436,7 +437,7 @@ export default function MatchCard(props: MatchCardProps) {
               &lsquo;{mma.home.nickname}&rsquo;
             </div>
           )}
-        </div>
+        </TeamNameCell>
         {/* 점수 — 라이브 최근 골 시 앰버 ring + pulse. 승부차기는 점수 아래 (4) (3) 좌우 정렬. */}
         <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] px-2 py-1 rounded-md ${scoreColor} ${
           goalFlashSide ? "ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
@@ -464,10 +465,10 @@ export default function MatchCard(props: MatchCardProps) {
           )}
         </div>
         {/* 원정 */}
-        <div className="min-w-0 flex flex-col items-center gap-1 text-center">
+        <TeamNameCell className="min-w-0 flex flex-col items-center gap-1 text-center">
           <Logo url={away.logo} name={away.name} big={sport === "mma"} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
-            {away.name}
+            <span data-teamname>{away.name}</span>
             {away.position != null && (
               <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
                 [{away.position}]
@@ -484,7 +485,7 @@ export default function MatchCard(props: MatchCardProps) {
               &lsquo;{mma.away.nickname}&rsquo;
             </div>
           )}
-        </div>
+        </TeamNameCell>
       </div>
 
       {/* UFC 승리 방법 — 종료 시 점수 아래 (예: "1R · KO/TKO", "판정 (만장)") */}

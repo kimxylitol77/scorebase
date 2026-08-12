@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PeriodLinescore as PeriodData } from "@/lib/sports/live-scores";
 import FavoriteStar from "../FavoriteStar";
+import TeamNameCell from "../TeamNameCell";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 export interface HockeyCardProps {
@@ -174,10 +175,12 @@ export default function HockeyCard(props: HockeyCardProps) {
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
-        <div className="min-w-0 flex items-center gap-2">
+        <TeamNameCell className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
-          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">{away.name}</div>
-        </div>
+          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
+            <span data-teamname>{away.name}</span>
+          </div>
+        </TeamNameCell>
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
           {hasScore ? (
             <>
@@ -205,10 +208,12 @@ export default function HockeyCard(props: HockeyCardProps) {
             <span className="text-base font-bold text-neutral-500">VS</span>
           )}
         </div>
-        <div className="min-w-0 flex items-center gap-2 justify-end text-right">
-          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">{home.name}</div>
+        <TeamNameCell className="min-w-0 flex items-center gap-2 justify-end text-right">
+          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
+            <span data-teamname>{home.name}</span>
+          </div>
           <Logo url={home.logo} name={home.name} />
-        </div>
+        </TeamNameCell>
       </div>
 
       {/* 진행 상태 — 피리어드/경과 시간이 있을 때만. 빈 막대(—) 박스 노출 방지. */}

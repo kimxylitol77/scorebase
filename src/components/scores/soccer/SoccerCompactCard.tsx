@@ -7,6 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
+import TeamNameCell from "../TeamNameCell";
 import { teamColor } from "@/lib/team-colors";
 import { useScoreFlash } from "../useScoreFlash";
 import { getLeagueBadge } from "./leagueBadge";
@@ -158,7 +159,7 @@ export default function SoccerCompactCard(props: Props) {
 
       {/* 팀 2줄 — 최근 골 측 row flash (7m 스타일) */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div
+        <TeamNameCell
           className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
             goalFlashSide === "home"
               ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
@@ -180,15 +181,15 @@ export default function SoccerCompactCard(props: Props) {
                 : teamNameClass(hasScore && !homeWin && !isLive)
             }
           >
-            {home.name}
+            <span data-teamname>{home.name}</span>
           </span>
           {goalFlashSide === "home" && (
             <span className="ml-auto text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
               ⚽
             </span>
           )}
-        </div>
-        <div
+        </TeamNameCell>
+        <TeamNameCell
           className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
             goalFlashSide === "away"
               ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
@@ -210,14 +211,14 @@ export default function SoccerCompactCard(props: Props) {
                 : teamNameClass(hasScore && !awayWin && !isLive)
             }
           >
-            {away.name}
+            <span data-teamname>{away.name}</span>
           </span>
           {goalFlashSide === "away" && (
             <span className="ml-auto text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
               ⚽
             </span>
           )}
-        </div>
+        </TeamNameCell>
       </div>
 
       {/* 점수 2줄 — 골 강조는 팀 칸에만. 승부차기는 점수 우측에 작게 (홈줄 (4) / 원정줄 (3)) */}

@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import type { BaseballLinescoreData } from "../BaseballLinescore";
 import type { BaseballContext } from "../BaseballMiniBoard";
 import FavoriteStar from "../FavoriteStar";
+import TeamNameCell from "../TeamNameCell";
 import BaseDiamond from "./BaseDiamond";
 import OutCount from "./OutCount";
 import BaseballScore from "./BaseballScore";
@@ -220,11 +221,11 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
 
       {/* 팀 + 점수 */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
-        <div className="min-w-0 flex items-center gap-2">
+        <TeamNameCell className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
           <div className="min-w-0">
             <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
-              {away.name}
+              <span data-teamname>{away.name}</span>
               {away.position != null && (
                 <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
                   [{away.position}]
@@ -237,7 +238,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
               </div>
             )}
           </div>
-        </div>
+        </TeamNameCell>
 
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
           {hasScore ? (
@@ -255,13 +256,13 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
           )}
         </div>
 
-        <div className="min-w-0 flex items-center gap-2 justify-end text-right">
+        <TeamNameCell className="min-w-0 flex items-center gap-2 justify-end text-right">
           <div className="min-w-0">
             <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
               <span className="inline-block rounded bg-neutral-200 text-neutral-700 dark:bg-zinc-700 dark:text-zinc-200 text-xs px-1.5 py-0.5 mr-1">
                 홈
               </span>
-              {home.name}
+              <span data-teamname>{home.name}</span>
               {home.position != null && (
                 <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
                   [{home.position}]
@@ -275,7 +276,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
             )}
           </div>
           <Logo url={home.logo} name={home.name} />
-        </div>
+        </TeamNameCell>
       </div>
 
       {/* 상황 박스 (LIVE 만) — 다이아몬드 + 주자/아웃 + 우측 빈 공간엔 AI 코멘터리 */}
