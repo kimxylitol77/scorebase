@@ -20,6 +20,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import AmbientGlow from "@/components/AmbientGlow";
 import NextUpCard from "@/components/live/NextUpCard";
+import MatchChat from "@/components/live/MatchChat";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
 import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
 import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
@@ -1270,6 +1271,9 @@ export default async function GenericLivePage({ params }: Props) {
         awayKo={awayKo}
       />
     </div>
+    {/* 경기 AI 챗봇 (2026-08-12 실험) — 이 경기 브리핑을 미리 주입해 답한다.
+        회원에게만 보이고, 뜨는 동안에는 전역 플로팅 챗봇이 자리를 비켜준다. */}
+    <MatchChat matchId={match.id} homeName={homeKo} awayName={awayKo} />
     </>
   );
 }

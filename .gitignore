@@ -51,7 +51,8 @@ prisma/migrations/
 *.log
 
 # chatbot 로컬 전용 파일만 배포 제외 (챗봇 본체는 2026-07-09 배포, AI 는 CHATBOT_AI_ENABLED 로 게이트)
-src/lib/chatbot/match-brief.ts
+# 2026-08-12: match-brief 는 경기 챗봇(/api/match-chat)이 import 하므로 제외를 풀었다 —
+#   빼두면 배포 빌드가 모듈 미해결로 깨진다. run-brief 는 로컬 러너라 제외 유지.
 src/lib/chatbot/run-brief.ts
 
 # 로컬 dev 도구 (preview 등)

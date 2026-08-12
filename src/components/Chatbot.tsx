@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { useMatchChatMounted } from "@/components/live/match-chat-presence";
 
 interface Message {
   role: "user" | "assistant";
@@ -86,6 +87,9 @@ export default function Chatbot() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  // 경기 상세의 경기 전용 챗봇과 우하단 자리가 겹친다 — 그쪽이 떠 있으면 이 챗봇은 비켜준다.
+  // 그 페이지에선 경기 데이터를 미리 주입한 전용 챗봇이 더 정확하게 답한다.
+  const matchChatMounted = useMatchChatMounted();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -132,6 +136,8 @@ export default function Chatbot() {
       send();
     }
   }
+
+  if (matchChatMounted) return null;
 
   if (!open) {
     return (
