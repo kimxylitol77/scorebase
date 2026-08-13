@@ -128,7 +128,7 @@ async function main() {
 
   const title = `역대 최고 이적료 순위 TOP 50 — ${top.ko} ${eokStr(top.fee)}억 1위, ${lost.length}건은 본전을 잃었다`;
   const excerpt =
-    `역대 최고 이적료 순위 TOP 50을 2026년 여름 이적까지 반영해 정리했습니다. ${top.ko}가 €${(top.fee / 1e6).toFixed(0)}M(약 ${eokStr(top.fee)}억 원)으로 ${new Date().getFullYear() - top.year}년째 1위이며, 지불한 이적료를 현재 시장가치로 회수한 건 ${recovered.length}건뿐입니다.`;
+    `역대 최고 이적료 순위 TOP 50을 2026년 여름 이적까지 반영해 정리했습니다. ${top.ko}가 €${(top.fee / 1e6).toFixed(0)}M(약 ${eokStr(top.fee)}억 원)으로 ${new Date().getFullYear() - top.year}년째 1위이며, 지불한 이적료를 현재 시장가치로 회수한 건 ${withMv.length}건 중 ${recovered.length}건뿐입니다. 한국 선수 최고액인 김민재 896억 원까지 함께 정리했습니다.`;
   const tags =
     "역대 최고 이적료, 이적료 순위, 축구 이적료 TOP 50, 네이마르 이적료, 음바페 이적료, 호날두 이적료, 벨링엄 이적료, 김민재 이적료, 손흥민 이적료, 축구 이적시장, 선수 몸값, 스코어베이스";
   const thumbnailUrl = `${SITE}/blog/transfer-fee-ranking-hero.png`;
