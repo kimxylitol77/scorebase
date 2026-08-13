@@ -204,6 +204,7 @@ export const NO_SEASON_BOUNDARY: ReadonlySet<string> = new Set([
   "AFC_CUP",
   "AFC_U23",
   "ASEAN_CHAMP",
+  "CANADA_CHAMP", // 캐나다 국내 녹아웃 컵 — 연 1회 단판 토너먼트
   "CLUB_FRIENDLY",
   "CLUB_WORLD_CUP",
   "CONCACAF_CCUP",
@@ -219,6 +220,7 @@ export const NO_SEASON_BOUNDARY: ReadonlySet<string> = new Set([
   "FA_CUP",
   "INTL_FRIENDLY",
   "KFA_CUP",
+  "LEAGUES_CUP", // MLS × 리가 MX 여름 초청 대회 — 8월 한 달 단일 대회
   "LEVAIN_CUP",
   "OLYMPICS_FOOTBALL",
   "PORTUGAL_SUPER_CUP",
