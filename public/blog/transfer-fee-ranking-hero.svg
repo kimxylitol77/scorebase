@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b1220"/>
+  <g>
+    <rect x="80" y="66" width="8" height="30" rx="2" fill="#06b6d4"/>
+    <rect x="94" y="76" width="8" height="20" rx="2" fill="#06b6d4" opacity="0.75"/>
+    <rect x="108" y="60" width="8" height="36" rx="2" fill="#06b6d4" opacity="0.55"/>
+    <rect x="122" y="82" width="8" height="14" rx="2" fill="#06b6d4" opacity="0.4"/>
+    <text x="146" y="94" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="26" font-weight="800" fill="#f8fafc">스코어베이스</text>
+  </g>
+  <text x="80" y="180" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="58" font-weight="800" fill="#f8fafc">역대 최고 이적료 TOP 50</text>
+  <text x="80" y="224" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="25" fill="#94a3b8">2026년 여름 이적까지 반영 · 옵션 포함 집계 기준</text>
+    <rect x="330" y="250" width="590" height="38" rx="6" fill="#06b6d4"/>
+    <text x="314" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">네이마르 <tspan fill="#94a3b8" font-size="16">2017</tspan></text>
+    <text x="930" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#06b6d4">€222M · 3,977억</text>
+    <rect x="330" y="316" width="478" height="38" rx="6" fill="#164e63"/>
+    <text x="314" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">킬리안 음바페 <tspan fill="#94a3b8" font-size="16">2018</tspan></text>
+    <text x="818" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€180M · 3,225억</text>
+    <rect x="330" y="382" width="393" height="38" rx="6" fill="#164e63"/>
+    <text x="314" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">우스만 뎀벨레 <tspan fill="#94a3b8" font-size="16">2017</tspan></text>
+    <text x="733" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€148M · 2,651억</text>
+    <rect x="330" y="448" width="385" height="38" rx="6" fill="#164e63"/>
+    <text x="314" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">알렉산데르 이사크 <tspan fill="#94a3b8" font-size="16">2025</tspan></text>
+    <text x="725" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€145M · 2,598억</text>
+    <rect x="330" y="514" width="367" height="38" rx="6" fill="#164e63"/>
+    <text x="314" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">모건 로저스 <tspan fill="#94a3b8" font-size="16">2026</tspan></text>
+    <text x="707" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€138M · 2,472억</text>
+  <text x="80" y="592" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" fill="#94a3b8">scorebase.kr · 이적료 확인 23,435건에서 집계</text>
+</svg>
