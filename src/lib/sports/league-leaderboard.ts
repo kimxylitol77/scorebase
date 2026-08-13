@@ -6,6 +6,7 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import type { LeaderRow } from "@/components/LeagueLeaderBoard";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 
@@ -17,9 +18,28 @@ const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_
 
 const isAfId = (id: string) => /^\d+$/.test(id);
 
+/**
+ * 새 시즌 개막 대기 상태 판정 — ts 순위표가 0전적이면 이번 시즌 기록이 존재할 수 없다.
+ * 그대로 두면 0-0 순위표 밑에 지난 시즌 득점왕이 붙는다(2026-08-14 챔피언십 실측).
+ *
+ * 시즌 라벨 비교(seasonLabelFor)로 판정하면 안 된다 — NBA·NHL·ROMANIA_L2 등에서 기대
+ * 라벨과 저장 라벨이 어긋나(기대 2026 vs 저장 2026-27) 멀쩡한 리더보드까지 지운다.
+ * "현재 시즌 완료매치 0" 으로 판정해도 EGYPT_PL·GHANA_PL 등 7개가 휩쓸린다(실측).
+ * ts 0전적 + 매핑 90% 는 순위표가 0전적 표를 그리는 조건과 같아 판정이 정확히 일치한다.
+ */
+async function isPreSeasonZeroTable(league: string): Promise<boolean> {
+  if (!SOCCER_LEAGUES.has(league)) return false;
+  const ts = await fetchStandingsForLeague(league);
+  const t0 = ts?.tables?.[0];
+  if (!t0 || t0.rows.length === 0) return false;
+  if (!t0.rows.every((r) => r.total === 0)) return false;
+  const mapped = t0.rows.filter((r) => r.ourTeamId != null).length / t0.rows.length;
+  return mapped >= 0.9;
+}
+
 export async function loadLeagueLeaderboard(
   league: string,
-): Promise<{ rowsByCategory: Record<string, LeaderRow[]>; season: string }> {
+): Promise<{ rowsByCategory: Record<string, LeaderRow[]>; season: string; preSeason: boolean }> {
   // 한 리그에 여러 시즌이 누적될 수 있어 최신 시즌만 노출 (중복 방지).
   const allRows = await prisma.leagueLeader.findMany({
     where: { league },
@@ -27,6 +47,9 @@ export async function loadLeagueLeaderboard(
     take: 400,
   });
   const season = allRows[0]?.season ?? "";
+  if (allRows.length > 0 && (await isPreSeasonZeroTable(league))) {
+    return { rowsByCategory: {}, season, preSeason: true };
+  }
   const rows = allRows.filter((r) => r.season === season);
   const useTransfers = TRANSFERS_LEADER_LEAGUES.has(league);
 
@@ -76,5 +99,5 @@ export async function loadLeagueLeaderboard(
   }
   // PC 중앙 컬럼용 팀 로고/국기 — 이름 매칭이라 미스는 로고 없이(정상), 실패해도 rows 원본 유지.
   await attachLeaderTeamLogos(league, rowsByCategory);
-  return { rowsByCategory, season };
+  return { rowsByCategory, season, preSeason: false };
 }

@@ -383,8 +383,13 @@ export default async function StandingsPage({ params }: Props) {
   const teamMap = new Map(teams.map((t) => [t.id, t]));
 
   // 시즌 리더보드 (득점왕·도움왕 등) — DB cron 이 매일 채움. 데이터 있는 리그만 노출.
-  const { rowsByCategory: leaderRows, season: leaderSeason } = await loadLeagueLeaderboard(upper);
-  const hasLeaders = Object.keys(leaderRows).length > 0;
+  const {
+    rowsByCategory: leaderRows,
+    season: leaderSeason,
+    preSeason: leadersPreSeason,
+  } = await loadLeagueLeaderboard(upper);
+  // preSeason 이면 rowsByCategory 가 비어 오므로 "개막 후 집계" 안내를 대신 띄운다.
+  const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPreSeason;
 
   // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
@@ -639,7 +644,13 @@ export default async function StandingsPage({ params }: Props) {
       {hasLeaders && (
         <section className="space-y-3 pt-4">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
-          <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
+          {leadersPreSeason ? (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
+              새 시즌 개막 후 집계됩니다.
+            </p>
+          ) : (
+            <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
+          )}
         </section>
       )}
 
