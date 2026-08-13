@@ -9,6 +9,7 @@ import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { formatChampionPct } from "@/lib/format";
+import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
 // 정규시즌 1위 ≠ 최종 우승(플레이오프) 인 리그 — "1위" 를 "정규시즌 1위" 로 구분 표기.
 const PLAYOFF_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL", "KBO", "MLB", "NPB", "CPBL", "LMB", "MLS"]);
@@ -58,7 +59,8 @@ export default async function SeasonInsightCard({ league }: Props) {
       startTime: true,
     },
   });
-  const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
+  // 올스타전 제외 — MLB All-Stars 가 순위표에 정규팀처럼 끼어든다
+  const matches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
 
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;

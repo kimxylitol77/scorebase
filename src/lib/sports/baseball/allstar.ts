@@ -33,3 +33,13 @@ export const BASEBALL_ALLSTAR_TEAM_IDS: ReadonlySet<number> = new Set(BASEBALL_A
 export function isAllStarMatchRow(m: { homeTeamId: number; awayTeamId: number }): boolean {
   return BASEBALL_ALLSTAR_TEAM_IDS.has(m.homeTeamId) || BASEBALL_ALLSTAR_TEAM_IDS.has(m.awayTeamId);
 }
+
+/**
+ * 매치 목록에서 올스타전을 걷어낸다. 야구 id 고정 집합이라 축구·농구 리그에는 no-op.
+ * 호출부마다 filter 를 손으로 붙이다 빠뜨리는 일이 반복돼(시즌 시뮬 5곳) 공용 헬퍼로 뺐다.
+ */
+export function stripBaseballAllStarMatches<T extends { homeTeamId: number; awayTeamId: number }>(
+  rows: readonly T[],
+): T[] {
+  return rows.filter((m) => !isAllStarMatchRow(m));
+}

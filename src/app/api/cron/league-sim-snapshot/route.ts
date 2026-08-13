@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import { currentSeasonStart } from "@/lib/predict/season-window";
 import { recordCronRun } from "@/lib/cron-registry";
+import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 import type { PredictMatch } from "@/lib/predict/types";
 
 export const dynamic = "force-dynamic";
@@ -36,16 +37,19 @@ export async function GET(req: Request) {
       // (실제 2026 만 보면 KT 1위·삼성 2위, 승차 2.5). predictions/[league] 는 2026-07-02 감사
       // 때 같은 버그를 고쳤는데 이 cron 만 누락돼 스냅샷 이력 전체가 오염됐다.
       const seasonStart = currentSeasonStart(league);
-      const dbMatches = await prisma.match.findMany({
-        where: {
-          league: league as never,
-          ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
-        },
-        select: {
-          id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
-          homeScore: true, awayScore: true, startTime: true,
-        },
-      });
+      // 올스타전 제외 — 3리그 전부 올스타전이 정규 리그로 내려와 스냅샷 표를 12팀으로 부풀린다
+      const dbMatches = stripBaseballAllStarMatches(
+        await prisma.match.findMany({
+          where: {
+            league: league as never,
+            ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
+          },
+          select: {
+            id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
+            homeScore: true, awayScore: true, startTime: true,
+          },
+        }),
+      );
       const finished = dbMatches.filter((m) => m.status === "FINISHED").length;
       if (finished < 20) {
         results[league] = `skipped (finished ${finished} < 20)`;

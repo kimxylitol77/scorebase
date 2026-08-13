@@ -6,6 +6,7 @@ import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toEnglishTeamName } from "@/lib/i18n/en";
+import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
 interface SimConfig {
   relegationCount: number;
@@ -74,7 +75,8 @@ export async function runEnSeasonSim(league: string): Promise<EnSimResult | null
       select: matchSelect,
     });
   }
-  const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
+  // 올스타전 제외 — 표시되는 finished/scheduled 카운트까지 정규 경기 기준으로 맞춘다
+  const matches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;
   if (finishedCount < 20 || scheduledCount < 1) return null;
