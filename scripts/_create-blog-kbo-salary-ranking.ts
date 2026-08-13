@@ -18,6 +18,13 @@ const eokNum = (manwon: number) => manwon / 10000;
 interface Salary { kboId: string; playerName: string; teamName: string; position: string; birthday: string; salary: number; signingBonus?: number }
 interface Stat { playerName: string; teamName: string; avg: number | null; homeRuns: number | null; ops: number | null; hits: number | null; rbi: number | null; games: number | null; era: number | null; ip: number | null; so: number | null; wins: number | null; saves: number | null }
 
+/** 한글 받침 판정 조사 — 동적 생성 문장의 "최정가/양의지은" 같은 오류 방지. */
+function josa(word: string, withBatchim: string, without: string): string {
+  const c = word.charCodeAt(word.length - 1);
+  if (c < 0xac00 || c > 0xd7a3) return without; // 한글 음절이 아니면 기본형
+  return (c - 0xac00) % 28 ? withBatchim : without;
+}
+
 function ageOf(birthday: string): number {
   const d = new Date(birthday), n = new Date();
   let a = n.getFullYear() - d.getFullYear();
@@ -104,7 +111,11 @@ async function main() {
   const tableRows = top.map((d, i) => {
     const zebra = i % 2 === 1 ? "background:#fafafa;" : "";
     const line = statLine(statOf(d), d.position);
-    return `      <tr style="border-bottom:1px solid #eee;${zebra}"><td style="padding:8px;">${i + 1}</td><td style="padding:8px;font-weight:600;">${d.playerName}</td><td style="padding:8px;">${d.teamName}</td><td style="padding:8px;">${d.position}</td><td style="padding:8px;">${ageOf(d.birthday)}</td><td style="padding:8px;font-weight:700;">${eok(d.salary)}</td><td style="padding:8px;font-size:13px;">${line ?? "—"}</td></tr>`;
+    // 선수명 → 야구 선수 페이지(/players/{kboId}?league=KBO). kboId = BaseballPlayerSeasonStats.externalId 와 동일 체계.
+    const nameCell = d.kboId
+      ? `<a href="${SITE}/players/${d.kboId}?league=KBO" style="color:#0a6ec0;text-decoration:none;font-weight:600;">${d.playerName}</a>`
+      : `<span style="font-weight:600;">${d.playerName}</span>`;
+    return `      <tr style="border-bottom:1px solid #eee;${zebra}"><td style="padding:8px;">${i + 1}</td><td style="padding:8px;">${nameCell}</td><td style="padding:8px;">${d.teamName}</td><td style="padding:8px;">${d.position}</td><td style="padding:8px;">${ageOf(d.birthday)}</td><td style="padding:8px;font-weight:700;">${eok(d.salary)}</td><td style="padding:8px;font-size:13px;">${line ?? "—"}</td></tr>`;
   }).join("\n");
 
   const table = `  <div style="overflow-x:auto;">
@@ -149,7 +160,10 @@ ${teamRank.map(([t, v], i) => `      <tr style="border-bottom:1px solid #eee;${i
     <tbody>
 ${fxSorted.slice(0, 10).map((f, i) => {
   const line = statLine(statOf(f), f.position);
-  return `      <tr style="border-bottom:1px solid #eee;${i % 2 === 1 ? "background:#fafafa;" : ""}"><td style="padding:8px;">${i + 1}</td><td style="padding:8px;font-weight:600;">${f.playerName}</td><td style="padding:8px;">${f.teamName}</td><td style="padding:8px;">${f.position}</td><td style="padding:8px;font-weight:700;">$${f.salary.toLocaleString()}</td><td style="padding:8px;font-size:13px;">${line ?? "—"}</td></tr>`;
+  const nameCell = f.kboId
+    ? `<a href="${SITE}/players/${f.kboId}?league=KBO" style="color:#0a6ec0;text-decoration:none;font-weight:600;">${f.playerName}</a>`
+    : `<span style="font-weight:600;">${f.playerName}</span>`;
+  return `      <tr style="border-bottom:1px solid #eee;${i % 2 === 1 ? "background:#fafafa;" : ""}"><td style="padding:8px;">${i + 1}</td><td style="padding:8px;">${nameCell}</td><td style="padding:8px;">${f.teamName}</td><td style="padding:8px;">${f.position}</td><td style="padding:8px;font-weight:700;">$${f.salary.toLocaleString()}</td><td style="padding:8px;font-size:13px;">${line ?? "—"}</td></tr>`;
 }).join("\n")}
     </tbody>
   </table>
@@ -157,7 +171,7 @@ ${fxSorted.slice(0, 10).map((f, i) => {
 
   const title = `KBO 연봉 순위 2026 TOP 30 — ${t1.playerName} ${eok(t1.salary)} 1위, 팀별 총액까지`;
   const excerpt =
-    `KBO 연봉 순위 2026 TOP 30을 구단별 총액과 당시즌 성적까지 함께 정리했습니다. ${t1.playerName}가 ${eok(t1.salary)}으로 1위, ${t2.playerName}가 ${eok(t2.salary)}으로 뒤를 잇습니다. 국내 ${dom.length}명 연봉 총액 ${eokNum(totalSum).toFixed(0)}억 원 가운데 상위 30명이 ${((top30Sum / totalSum) * 100).toFixed(0)}%를 가져갑니다.`;
+    `KBO 연봉 순위 2026 TOP 30을 구단별 총액과 당시즌 성적까지 함께 정리했습니다. ${t1.playerName}${josa(t1.playerName, "이", "가")} ${eok(t1.salary)}으로 1위, ${t2.playerName}${josa(t2.playerName, "이", "가")} ${eok(t2.salary)}으로 뒤를 잇습니다. 국내 ${dom.length}명 연봉 총액 ${eokNum(totalSum).toFixed(0)}억 원 가운데 상위 30명이 ${((top30Sum / totalSum) * 100).toFixed(0)}%를 가져갑니다.`;
   const tags =
     "KBO 연봉 순위, KBO 선수 연봉, 프로야구 연봉 순위, 2026 KBO 연봉, 양의지 연봉, 류현진 연봉, 최정 연봉, 고영표 연봉, KBO 구단 연봉 총액, KBO 외국인 선수 연봉, KBO 샐러리캡, 스코어베이스";
   const thumbnailUrl = `${SITE}/blog/kbo-salary-ranking-2026-hero.png`;
@@ -203,7 +217,7 @@ ${fxSorted.slice(0, 10).map((f, i) => {
   <p>
     <strong>${SEASON}년 KBO 최고 연봉 선수는 ${t1.teamName}의 ${t1.playerName}입니다. 연봉 ${eok(t1.salary)} 원으로,
     2위 ${t2.teamName} ${t2.playerName}(${eok(t2.salary)})와 ${eokNum(t1.salary - t2.salary).toFixed(0)}억 원 차이가 납니다.</strong>
-    ${t1.playerName}는 직전 시즌 16억 원에서 26억 원이 올라 KBO 역대 최고 연봉 상승액을 기록했습니다.
+    ${t1.playerName}${josa(t1.playerName, "은", "는")} 직전 시즌 16억 원에서 26억 원이 올라 KBO 역대 최고 연봉 상승액을 기록했습니다.
   </p>
 
   <p>
@@ -255,12 +269,12 @@ ${table}
     <strong>고액 연봉과 성적이 항상 같이 가지는 않습니다.</strong>
     ${(() => {
       const s1 = statLine(statOf(t1), t1.position);
-      return s1 ? `${t1.playerName}는 ${SEASON} 시즌 ${s1}을 기록 중입니다.` : `${t1.playerName}의 ${SEASON} 시즌 기록은 표를 참고하시면 됩니다.`;
+      return s1 ? `${t1.playerName}${josa(t1.playerName, "은", "는")} ${SEASON} 시즌 ${s1}을 기록 중입니다.` : `${t1.playerName}의 ${SEASON} 시즌 기록은 표를 참고하시면 됩니다.`;
     })()}
     ${(() => {
       const p = top.filter((d) => d.position === "투수" && statLine(statOf(d), "투수"));
       const best = p.map((d) => ({ d, s: statOf(d)! })).filter((x) => x.s.era !== null).sort((a, b) => (a.s.era ?? 99) - (b.s.era ?? 99))[0];
-      return best ? `TOP 30 투수 가운데 평균자책점이 가장 낮은 선수는 ${best.d.playerName}(${best.d.teamName})으로 ERA ${best.s.era}, ${best.s.ip?.toFixed(1)}이닝을 던지고 있습니다.` : "";
+      return best ? `TOP 30 투수 가운데 평균자책점이 가장 낮은 선수는 ${best.d.playerName}(${best.d.teamName})입니다. ERA ${best.s.era}에 ${best.s.ip?.toFixed(1)}이닝을 던지고 있습니다.` : "";
     })()}
   </p>
   <p>
@@ -268,7 +282,7 @@ ${table}
       const b = top.map((d) => ({ d, s: statOf(d) })).filter((x) => x.d.position !== "투수" && x.s?.ops != null && (x.s.games ?? 0) >= 20).sort((a, b2) => (b2.s!.ops ?? 0) - (a.s!.ops ?? 0));
       if (!b.length) return "";
       const bb = b[0];
-      return `타자 쪽에서는 ${bb.d.playerName}(${bb.d.teamName}, 연봉 ${eok(bb.d.salary)})가 OPS ${bb.s!.ops}로 TOP 30 내 최고입니다. ${bb.s!.games}경기에서 ${bb.s!.homeRuns}홈런 ${bb.s!.rbi}타점을 기록했습니다.`;
+      return `타자 쪽에서 TOP 30 내 최고 OPS는 ${bb.d.playerName}(${bb.d.teamName}, 연봉 ${eok(bb.d.salary)})의 ${bb.s!.ops}입니다. ${bb.s!.games}경기에서 ${bb.s!.homeRuns}홈런 ${bb.s!.rbi}타점을 기록했습니다.`;
     })()}
     다만 연봉은 그해 성적이 아니라 <strong>직전까지의 누적 성과와 FA 계약 조건으로 정해집니다.</strong>
     올해 성적이 부진하다고 해서 계약이 잘못됐다고 보기는 어렵고, 반대로 올해 잘한다고 연봉이 즉시 오르지도 않습니다.
