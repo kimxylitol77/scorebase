@@ -4,6 +4,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { hasStandingsTable } from "@/lib/sports/standings-valid";
 import { getLeagueBadge } from "./soccer/leagueBadge";
 
 export default function LeagueGroupCard({
@@ -24,6 +25,23 @@ export default function LeagueGroupCard({
 }) {
   const badge = getLeagueBadge(league);
   const flag = getLeagueFlag(league);
+  // 리그명 클릭 → 해당 리그 순위표. 순위표가 없는 대회(녹아웃 컵·친선·미지원)는 링크 없이 텍스트.
+  const standingsHref = hasStandingsTable(league) ? `/standings/${league}` : null;
+  const nameNode = (
+    <>
+      <span className="shrink-0 text-[13px] leading-none" aria-hidden>
+        {flag || "🏆"}
+      </span>
+      <span className="text-[12.5px] font-extrabold tracking-tight truncate">
+        {badge.label}
+      </span>
+      {count != null && (
+        <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 shrink-0">
+          {count}
+        </span>
+      )}
+    </>
+  );
   return (
     <section
       className={`rounded-2xl border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-28px_rgba(15,23,42,0.20)] overflow-hidden dark:bg-white/[0.045] dark:shadow-none ${
@@ -33,16 +51,17 @@ export default function LeagueGroupCard({
       }`}
     >
       <div className="flex items-center gap-2 px-3.5 sm:px-4 py-2.5 border-b border-neutral-200/70 dark:border-white/10">
-        <span className="shrink-0 text-[13px] leading-none" aria-hidden>
-          {flag || "🏆"}
-        </span>
-        <span className="text-[12.5px] font-extrabold tracking-tight truncate">
-          {badge.label}
-        </span>
-        {count != null && (
-          <span className="text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 shrink-0">
-            {count}
-          </span>
+        {standingsHref ? (
+          <Link
+            href={standingsHref}
+            prefetch={false}
+            aria-label={`${badge.label} 순위표`}
+            className="flex items-center gap-2 min-w-0 -mx-1 px-1 py-0.5 rounded-md hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
+          >
+            {nameNode}
+          </Link>
+        ) : (
+          nameNode
         )}
         {href && (
           <Link

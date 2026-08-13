@@ -10,6 +10,7 @@ import {
   COUNTRY_ORDER,
 } from "@/lib/sports/sport-leagues";
 import { enLeagueName, enCountryName, SPORT_LABEL_EN, toEnglishTeamName } from "@/lib/i18n/en";
+import { NO_TABLE_LEAGUES } from "@/lib/sports/standings-valid";
 
 export interface TopThreeEntry {
   position: number;
@@ -61,11 +62,7 @@ export async function safeFetchTop3(league: string, locale: StandingsLocale = "k
 export async function fetchSoccerCountryGroups(locale: StandingsLocale = "ko"): Promise<CountryStandingsGroup[]> {
   const soccer = SPORTS.find((s) => s.code === "soccer");
   if (!soccer) return [];
-  const skipCups = new Set([
-    "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-    "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
-  ]);
-  const leagues = soccer.leagues.filter((l) => !skipCups.has(l));
+  const leagues = soccer.leagues.filter((l) => !NO_TABLE_LEAGUES.has(l));
 
   const fetched = await Promise.all(
     leagues.map(async (league) => ({ league, top3: await safeFetchTop3(league, locale) })),
