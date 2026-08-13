@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b1220"/>
+  <g>
+    <rect x="80" y="66" width="8" height="30" rx="2" fill="#06b6d4"/>
+    <rect x="94" y="76" width="8" height="20" rx="2" fill="#06b6d4" opacity="0.75"/>
+    <rect x="108" y="60" width="8" height="36" rx="2" fill="#06b6d4" opacity="0.55"/>
+    <rect x="122" y="82" width="8" height="14" rx="2" fill="#06b6d4" opacity="0.4"/>
+    <text x="146" y="94" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="26" font-weight="800" fill="#f8fafc">스코어베이스</text>
+  </g>
+  <text x="80" y="180" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="60" font-weight="800" fill="#f8fafc">축구선수 연봉 순위 TOP 30</text>
+  <text x="80" y="224" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="25" fill="#94a3b8">유럽 빅5 리그 구단 급여 기준 · 광고 수입 제외 · 2026</text>
+    <rect x="300" y="250" width="620" height="38" rx="6" fill="#06b6d4"/>
+    <text x="284" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">엘링 홀란</text>
+    <text x="930" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#06b6d4">€32.0M · 574억</text>
+    <rect x="300" y="316" width="605" height="38" rx="6" fill="#164e63"/>
+    <text x="284" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">킬리안 음바페</text>
+    <text x="915" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€31.3M · 560억</text>
+    <rect x="300" y="382" width="484" height="38" rx="6" fill="#164e63"/>
+    <text x="284" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">비니시우스</text>
+    <text x="794" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€25.0M · 448억</text>
+    <rect x="300" y="448" width="484" height="38" rx="6" fill="#164e63"/>
+    <text x="284" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">해리 케인</text>
+    <text x="794" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€25.0M · 448억</text>
+    <rect x="300" y="514" width="442" height="38" rx="6" fill="#164e63"/>
+    <text x="284" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">자말 무시알라</text>
+    <text x="752" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€22.8M · 409억</text>
+  <text x="80" y="592" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" fill="#94a3b8">scorebase.kr · 빅5 리그 1,980명 급여 데이터에서 집계</text>
+</svg>
