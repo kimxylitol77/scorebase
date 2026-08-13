@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#0b1220"/>
+  <text x="60" y="76" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="42" font-weight="800" fill="#f8fafc">KBO 구단별 연봉 총액 2026</text>
+  <text x="60" y="118" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" fill="#94a3b8">국내 선수 공시 연봉 단순 합계 · 외국인·FA 계약금·옵션 제외</text>
+  <line x1="945" y1="176" x2="945" y2="710" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="945" y="168" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="17" font-weight="700" fill="#fbbf24" text-anchor="middle">경쟁균형세 상한 144.0억</text>
+    <text x="184" y="250" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">SSG</text>
+    <rect x="200" y="230" width="686" height="30" rx="5" fill="#06b6d4"/>
+    <text x="898" y="252" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#06b6d4">132.5억</text>
+    <text x="184" y="298" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">LG</text>
+    <rect x="200" y="278" width="622" height="30" rx="5" fill="#155e75"/>
+    <text x="834" y="300" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">120.2억</text>
+    <text x="184" y="346" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">두산</text>
+    <rect x="200" y="326" width="594" height="30" rx="5" fill="#155e75"/>
+    <text x="806" y="348" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">114.7억</text>
+    <text x="184" y="394" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">KT</text>
+    <rect x="200" y="374" width="585" height="30" rx="5" fill="#155e75"/>
+    <text x="797" y="396" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">113.1억</text>
+    <text x="184" y="442" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">삼성</text>
+    <rect x="200" y="422" width="582" height="30" rx="5" fill="#155e75"/>
+    <text x="794" y="444" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">112.5억</text>
+    <text x="184" y="490" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">한화</text>
+    <rect x="200" y="470" width="555" height="30" rx="5" fill="#155e75"/>
+    <text x="767" y="492" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">107.2억</text>
+    <text x="184" y="538" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">KIA</text>
+    <rect x="200" y="518" width="507" height="30" rx="5" fill="#155e75"/>
+    <text x="719" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">97.9억</text>
+    <text x="184" y="586" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">롯데</text>
+    <rect x="200" y="566" width="491" height="30" rx="5" fill="#155e75"/>
+    <text x="703" y="588" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">94.9억</text>
+    <text x="184" y="634" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">NC</text>
+    <rect x="200" y="614" width="415" height="30" rx="5" fill="#155e75"/>
+    <text x="627" y="636" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">80.3억</text>
+    <text x="184" y="682" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="end">키움</text>
+    <rect x="200" y="662" width="330" height="30" rx="5" fill="#155e75"/>
+    <text x="542" y="684" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="800" fill="#94a3b8">63.8억</text>
+  <text x="60" y="734" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="17" fill="#94a3b8">데이터: 스코어베이스 · 경쟁균형세 산정액은 FA 계약금 분할분과 옵션이 더해져 이 막대보다 큽니다</text>
+</svg>

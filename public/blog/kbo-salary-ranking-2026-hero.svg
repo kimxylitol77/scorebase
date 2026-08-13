@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b1220"/>
+  <g>
+    <rect x="80" y="66" width="8" height="30" rx="2" fill="#06b6d4"/>
+    <rect x="94" y="76" width="8" height="20" rx="2" fill="#06b6d4" opacity="0.75"/>
+    <rect x="108" y="60" width="8" height="36" rx="2" fill="#06b6d4" opacity="0.55"/>
+    <rect x="122" y="82" width="8" height="14" rx="2" fill="#06b6d4" opacity="0.4"/>
+    <text x="146" y="94" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="26" font-weight="800" fill="#f8fafc">스코어베이스</text>
+  </g>
+  <text x="80" y="180" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="60" font-weight="800" fill="#f8fafc">KBO 연봉 순위 2026 TOP 30</text>
+  <text x="80" y="224" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="25" fill="#94a3b8">국내 선수 908명 공시 연봉 기준 · 외국인 제외</text>
+    <rect x="320" y="250" width="600" height="38" rx="6" fill="#06b6d4"/>
+    <text x="304" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">양의지 <tspan fill="#94a3b8" font-size="16">두산</tspan></text>
+    <text x="930" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#06b6d4">42억</text>
+    <rect x="320" y="316" width="371" height="38" rx="6" fill="#164e63"/>
+    <text x="304" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">고영표 <tspan fill="#94a3b8" font-size="16">KT</tspan></text>
+    <text x="701" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#94a3b8">26억</text>
+    <rect x="320" y="382" width="314" height="38" rx="6" fill="#164e63"/>
+    <text x="304" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">최정 <tspan fill="#94a3b8" font-size="16">SSG</tspan></text>
+    <text x="644" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#94a3b8">22억</text>
+    <rect x="320" y="448" width="300" height="38" rx="6" fill="#164e63"/>
+    <text x="304" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">류현진 <tspan fill="#94a3b8" font-size="16">한화</tspan></text>
+    <text x="630" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#94a3b8">21억</text>
+    <rect x="320" y="514" width="300" height="38" rx="6" fill="#164e63"/>
+    <text x="304" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">박세웅 <tspan fill="#94a3b8" font-size="16">롯데</tspan></text>
+    <text x="630" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#94a3b8">21억</text>
+  <text x="80" y="592" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" fill="#94a3b8">scorebase.kr · 연봉 총액 1037억 원 중 상위 30명이 35%</text>
+</svg>
