@@ -17,10 +17,12 @@
     "sports-news-brief": "node sports-news-brief.js",
     "competitor-watch": "node competitor-watch.js",
     "competitor-scout": "node competitor-scout.js",
-    "competitor-backlog": "node competitor-backlog.js"
+    "competitor-backlog": "node competitor-backlog.js",
+    "hermes-slack": "node hermes-slack-bot.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
+    "@slack/bolt": "^4.7.3",
     "axios": "^1.7.0",
     "dotenv": "^16.4.0"
   }
