@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { boundaryShare } from "@/lib/transfers/transfer-date";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import { ogPageImage } from "@/lib/seo/og";
@@ -529,6 +530,7 @@ export default async function TransfersPage({
   interface InOutRow { teamId: number; name: string; logo: string | null; league: string; inCnt: number; inFee: number; outCnt: number; outFee: number; rank: number }
   let inoutData: InOutRow[] = [];
   let inoutTotal = 0;
+  let inoutBoundary: ReturnType<typeof boundaryShare> | null = null;
   if (isInout) {
     const big5Teams = await prisma.team.findMany({ where: { league: { in: FIVE } }, select: { id: true, name: true, logoUrl: true, league: true } });
     const tsRows = await prisma.teamSourceId.findMany({
@@ -537,10 +539,13 @@ export default async function TransfersPage({
     });
     const extToOur = new Map(tsRows.map((t) => [t.externalId, t.teamId]));
     const extIds = tsRows.map((t) => t.externalId);
+    // 상한(win.to) 필수 — 다른 뷰와 동일 기준. 없으면 내년 6/30 발효 "임대 복귀 예정" 행이 섞인다.
     const trs = await prisma.footballTransfer.findMany({
-      where: { transferTime: { gte: win.from }, OR: [{ toTeamId: { in: extIds } }, { fromTeamId: { in: extIds } }] },
-      select: { toTeamId: true, fromTeamId: true, transferFee: true },
+      where: { transferTime: { gte: win.from, lte: win.to }, OR: [{ toTeamId: { in: extIds } }, { fromTeamId: { in: extIds } }] },
+      select: { toTeamId: true, fromTeamId: true, transferFee: true, transferTime: true },
     });
+    // 이 집계에서 시즌 전환일 일괄 기록분이 얼마인지 — 표 아래 기준 문구로 노출
+    inoutBoundary = boundaryShare(trs);
     const agg = new Map<number, { inCnt: number; inFee: number; outCnt: number; outFee: number }>();
     const bump = (ourId: number | undefined, dir: "in" | "out", fee: number) => {
       if (ourId == null) return;
@@ -1460,6 +1465,14 @@ export default async function TransfersPage({
                 </Link>
               );
             })}
+            {inoutBoundary && inoutBoundary.count > 0 && (
+              <p className="px-3 sm:px-4 py-3 text-[11px] leading-relaxed text-neutral-500">
+                집계 기준. 이적일은 소스가 주는 <strong className="font-semibold">발효일</strong>이라 시즌 전환일(6/30·7/1)에
+                일괄 기록되는 건이 있습니다. 이 집계에서는 {inoutBoundary.count.toLocaleString()}건
+                {inoutBoundary.fee > 0 && ` · €${Math.round(inoutBoundary.fee / 1e6).toLocaleString()}M(이적료의 ${Math.round(inoutBoundary.feePct)}%)`}
+                이 해당합니다. 창 안에서 성사된 이적이라 합계에는 포함하되, 일자별 분포로는 읽지 마세요.
+              </p>
+            )}
           </div>
         )
       ) : isSquads ? (
