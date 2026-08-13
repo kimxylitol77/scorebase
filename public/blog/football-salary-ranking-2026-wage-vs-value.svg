@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="1200" height="675" fill="#0b1220"/>
+  <text x="60" y="76" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="42" font-weight="800" fill="#f8fafc">연봉 대비 몸값, 누가 남는 계약인가</text>
+  <text x="60" y="118" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" fill="#94a3b8">시장가치 ÷ 연봉 — 숫자가 클수록 받는 돈에 비해 자산 가치가 높습니다</text>
+  <line x1="600" y1="170" x2="600" y2="640" stroke="#1e293b" stroke-width="2"/>
+  <text x="60" y="200" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="24" font-weight="800" fill="#06b6d4">가장 남는 계약 TOP 5</text>
+  <text x="640" y="200" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="24" font-weight="800" fill="#f87171">가장 부담스러운 계약 TOP 5</text>
+    <rect x="60" y="250" width="330" height="34" rx="5" fill="#06b6d4"/>
+    <text x="60" y="242" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">라민 야말 <tspan fill="#94a3b8" font-size="16" font-weight="400">18세</tspan></text>
+    <text x="402" y="274" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#06b6d4">9.6배</text>
+    <rect x="60" y="320" width="294" height="34" rx="5" fill="#06b6d4"/>
+    <text x="60" y="312" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">흐비차 크바라츠헬리아 <tspan fill="#94a3b8" font-size="16" font-weight="400">25세</tspan></text>
+    <text x="366" y="344" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#06b6d4">8.6배</text>
+    <rect x="60" y="390" width="247" height="34" rx="5" fill="#06b6d4"/>
+    <text x="60" y="382" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">페데리코 발베르데 <tspan fill="#94a3b8" font-size="16" font-weight="400">27세</tspan></text>
+    <text x="319" y="414" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#06b6d4">7.2배</text>
+    <rect x="60" y="460" width="231" height="34" rx="5" fill="#06b6d4"/>
+    <text x="60" y="452" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">주드 벨링엄 <tspan fill="#94a3b8" font-size="16" font-weight="400">22세</tspan></text>
+    <text x="303" y="484" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#06b6d4">6.7배</text>
+    <rect x="60" y="530" width="220" height="34" rx="5" fill="#06b6d4"/>
+    <text x="60" y="522" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">킬리안 음바페 <tspan fill="#94a3b8" font-size="16" font-weight="400">26세</tspan></text>
+    <text x="292" y="554" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#06b6d4">6.4배</text>
+    <rect x="640" y="250" width="8" height="34" rx="5" fill="#f87171"/>
+    <text x="640" y="242" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">마르크안드레 테어 슈테겐 <tspan fill="#94a3b8" font-size="16" font-weight="400">33세</tspan></text>
+    <text x="660" y="274" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#f87171">0.2배</text>
+    <rect x="640" y="320" width="24" height="34" rx="5" fill="#f87171"/>
+    <text x="640" y="312" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">버질 판 데이크 <tspan fill="#94a3b8" font-size="16" font-weight="400">34세</tspan></text>
+    <text x="676" y="344" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#f87171">0.7배</text>
+    <rect x="640" y="390" width="28" height="34" rx="5" fill="#f87171"/>
+    <text x="640" y="382" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">얀 오블라크 <tspan fill="#94a3b8" font-size="16" font-weight="400">32세</tspan></text>
+    <text x="680" y="414" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#f87171">0.8배</text>
+    <rect x="640" y="460" width="36" height="34" rx="5" fill="#f87171"/>
+    <text x="640" y="452" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">가브리엘 제주스 <tspan fill="#94a3b8" font-size="16" font-weight="400">29세</tspan></text>
+    <text x="688" y="484" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#f87171">1.1배</text>
+    <rect x="640" y="530" width="38" height="34" rx="5" fill="#f87171"/>
+    <text x="640" y="522" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#f8fafc" text-anchor="start">잭 그릴리시 <tspan fill="#94a3b8" font-size="16" font-weight="400">30세</tspan></text>
+    <text x="690" y="554" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="800" fill="#f87171">1.1배</text>
+  <text x="60" y="655" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="17" fill="#94a3b8">데이터: 스코어베이스 · 빅5 리그 연봉 TOP 30 중 시장가치 확인 가능한 선수 기준</text>
+</svg>
