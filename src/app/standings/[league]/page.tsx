@@ -259,18 +259,11 @@ export default async function StandingsPage({ params }: Props) {
   const lastFinishedAt = allMatches
     .filter((m) => m.status === "FINISHED")
     .reduce<Date | null>((mx, m) => (!mx || m.startTime > mx ? m.startTime : mx), null);
-  // 새 시즌 개막 여부 — 시즌 창 안 첫 경기의 킥오프 시각이 지났으면 개막으로 본다.
-  // 일정만 확정된 오프시즌(6~7월)에는 지난 시즌 최종 순위를 그대로 유지한다.
-  const newSeasonKickedOff =
-    seasonStart != null &&
-    allMatches.some((m) => m.startTime >= seasonStart && m.startTime <= new Date());
-
-  // 개막 직전/직후 placeholder 허용 — ts 표가 전부 0 이어도 새 시즌 표로 쓴다.
-  //  (1) 지난 시즌 데이터가 아예 없는 신규 온보딩 리그 (2026-08-08 내셔널리그 개막일 빈 화면 실측)
-  //  (2) 이미 개막한 리그 — 승격·강등으로 참가팀이 바뀌었는데 지난 시즌 표가 남아 있으면
-  //      새로 올라온 팀이 순위표에 아예 없다 (2026-08-14 챔피언십 울버햄튼·라리가2 실측).
-  const tsPlaceholderOk =
-    tsAllZero && (!lastFinishedAt || (newSeasonKickedOff && tsMappedRatio >= 0.9));
+  // ts 표가 0전적이면 ts 가 새 시즌으로 롤오버했다는 뜻 — 개막 전이어도 그게 현재 시즌 표다.
+  // ESPN 등 주요 사이트도 개막 전 0-0 표를 노출한다(2026-08-13 챔피언십 2026-27 표 실측).
+  // 지난 시즌 표를 남겨두면 승격·강등팀이 순위표에 아예 없다(울버햄튼·소시에다드 B 실측).
+  // 단 매핑률 미달이면 이빨 빠진 표가 되므로 지난 시즌을 유지한다(AFC_CL 16행 중 7행 실측).
+  const tsPlaceholderOk = tsAllZero && (!lastFinishedAt || tsMappedRatio >= 0.9);
 
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
   // 새 시즌 표를 쓰는 경우엔 지난 시즌으로 되돌리지 않는다 — 최근폼·xG 도 새 시즌 기준.
