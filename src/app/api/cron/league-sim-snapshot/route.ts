@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
+import { currentSeasonStart } from "@/lib/predict/season-window";
 import { recordCronRun } from "@/lib/cron-registry";
 import type { PredictMatch } from "@/lib/predict/types";
 
@@ -30,8 +31,16 @@ export async function GET(req: Request) {
     const results: Record<string, string> = {};
 
     for (const league of leagues) {
+      // 시즌 창으로 자른다 — 없으면 지난 시즌 경기까지 standings 에 누적돼 선두에게 가짜 확신이
+      // 붙는다. 2026-08-13 실측: KBO 가 2025+2026 합산 승점으로 계산돼 삼성 99.84%·LG 0.02%
+      // (실제 2026 만 보면 KT 1위·삼성 2위, 승차 2.5). predictions/[league] 는 2026-07-02 감사
+      // 때 같은 버그를 고쳤는데 이 cron 만 누락돼 스냅샷 이력 전체가 오염됐다.
+      const seasonStart = currentSeasonStart(league);
       const dbMatches = await prisma.match.findMany({
-        where: { league: league as never },
+        where: {
+          league: league as never,
+          ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
+        },
         select: {
           id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
           homeScore: true, awayScore: true, startTime: true,
