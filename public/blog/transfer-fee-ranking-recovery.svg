@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="730" viewBox="0 0 1200 730">
+  <rect width="1200" height="730" fill="#0b1220"/>
+  <text x="60" y="76" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="42" font-weight="800" fill="#f8fafc">지불한 이적료, 지금도 그 값을 하나</text>
+  <text x="60" y="118" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" fill="#94a3b8">역대 이적료 TOP 10 — 현재 시장가치가 당시 이적료보다 몇 % 높은지 · 낮은지</text>
+  <line x1="760" y1="180" x2="760" y2="680" stroke="#334155" stroke-width="2"/>
+  <text x="760" y="172" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="16" fill="#94a3b8" text-anchor="middle">이적료와 같음 (0%)</text>
+    <text x="60" y="232" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">네이마르 <tspan fill="#94a3b8" font-size="15" font-weight="400">2017 · €222M</tspan></text>
+    <rect x="471" y="216" width="289" height="22" rx="4" fill="#f87171"/>
+    <text x="461" y="233" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-96%</text>
+    <text x="60" y="278" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">킬리안 음바페 <tspan fill="#94a3b8" font-size="15" font-weight="400">2018 · €180M</tspan></text>
+    <rect x="760" y="262" width="33" height="22" rx="4" fill="#34d399"/>
+    <text x="803" y="279" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#34d399" text-anchor="start">+11%</text>
+    <text x="60" y="324" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">우스만 뎀벨레 <tspan fill="#94a3b8" font-size="15" font-weight="400">2017 · €148M</tspan></text>
+    <rect x="663" y="308" width="97" height="22" rx="4" fill="#f87171"/>
+    <text x="653" y="325" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-32%</text>
+    <text x="60" y="370" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">알렉산데르 이사크 <tspan fill="#94a3b8" font-size="15" font-weight="400">2025 · €145M</tspan></text>
+    <rect x="636" y="354" width="124" height="22" rx="4" fill="#f87171"/>
+    <text x="626" y="371" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-41%</text>
+    <text x="60" y="416" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">모건 로저스 <tspan fill="#94a3b8" font-size="15" font-weight="400">2026 · €138M</tspan></text>
+    <rect x="656" y="400" width="104" height="22" rx="4" fill="#f87171"/>
+    <text x="646" y="417" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-35%</text>
+    <text x="60" y="462" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">엘리엇 앤더슨 <tspan fill="#94a3b8" font-size="15" font-weight="400">2026 · €135M</tspan></text>
+    <rect x="627" y="446" width="133" height="22" rx="4" fill="#f87171"/>
+    <text x="617" y="463" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-44%</text>
+    <text x="60" y="508" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">필리피 코치뉴 <tspan fill="#94a3b8" font-size="15" font-weight="400">2018 · €135M</tspan></text>
+    <rect x="468" y="492" width="292" height="22" rx="4" fill="#f87171"/>
+    <text x="458" y="509" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-97%</text>
+    <text x="60" y="554" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">주앙 펠릭스 <tspan fill="#94a3b8" font-size="15" font-weight="400">2019 · €127M</tspan></text>
+    <rect x="526" y="538" width="234" height="22" rx="4" fill="#f87171"/>
+    <text x="516" y="555" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-78%</text>
+    <text x="60" y="600" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">주드 벨링엄 <tspan fill="#94a3b8" font-size="15" font-weight="400">2023 · €127M</tspan></text>
+    <rect x="760" y="584" width="31" height="22" rx="4" fill="#34d399"/>
+    <text x="801" y="601" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#34d399" text-anchor="start">+10%</text>
+    <text x="60" y="646" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#f8fafc">플로리안 비르츠 <tspan fill="#94a3b8" font-size="15" font-weight="400">2025 · €125M</tspan></text>
+    <rect x="700" y="630" width="60" height="22" rx="4" fill="#f87171"/>
+    <text x="690" y="647" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="18" font-weight="800" fill="#f87171" text-anchor="end">-20%</text>
+  <text x="60" y="700" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="17" fill="#94a3b8">데이터: 스코어베이스 · 시장가치는 나이·계약 잔여 기간이 반영된 추정치입니다</text>
+</svg>
