@@ -25026,5 +25026,35 @@
     "tsName": "Kruger United",
     "tsKo": "크루거 유나이티드",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 118742,
+    "ourName": "FC Schalke 04",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "174",
+    "tsId": "gpxwrxlhwkvryk0",
+    "tsName": "Schalke 04",
+    "tsKo": "샬케 04",
+    "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 118756,
+    "ourName": "SV Elversberg",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "1660",
+    "tsId": "z8yomo4hop0q0j6",
+    "tsName": "SV Elversberg",
+    "tsKo": "SV 엘버스베르크",
+    "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 118749,
+    "ourName": "SC Paderborn 07",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "185",
+    "tsId": "kn54qllh6lyqvy9",
+    "tsName": "SC Paderborn 07",
+    "tsKo": "SC 파더본 07",
+    "matchType": "manual-promoted-2026-27"
   }
 ]
