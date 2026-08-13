@@ -245,23 +245,46 @@ export default async function StandingsPage({ params }: Props) {
     tsStandings.tables.length > 0 &&
     tsStandings.tables[0].rows.length > 0 &&
     tsStandings.tables[0].rows.every((r) => r.total === 0);
+  // ts 표의 팀 매핑 완결도 — 미매핑 행은 렌더에서 버려지므로, 갈라진 표로 갈아타면
+  // 지난 시즌 전체 표보다 못하다 (AFC_CL 16행 중 7행만 매핑 실측). 0전적 표 채택 조건에 쓴다.
+  const tsMappedRatio =
+    tsStandings && tsStandings.tables.length > 0 && tsStandings.tables[0].rows.length > 0
+      ? tsStandings.tables[0].rows.filter((r) => r.ourTeamId != null).length /
+        tsStandings.tables[0].rows.length
+      : 0;
 
   const seasonStart = currentSeasonStart(upper);
-  let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
-  // 오프시즌(새 시즌 완료 매치 0)일 때만 직전 시즌 창으로 폴백. 임계 10 이던 것을 0 으로 —
-  // 개막 후 몇 라운드 동안 지난 시즌 최근폼·순위가 새 시즌인 척 표시되던 원인(2026-08 분데스2 실측).
-  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
-    const prev = previousSeasonStart(seasonStart);
-    matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
-  }
-  // 전환기 폴백은 시즌 경계가 정의된 리그만 위 분기로 커버된다. 마지막 완료 경기 기준 창으로
+  // 전환기 폴백은 시즌 경계가 정의된 리그만 아래 분기로 커버된다. 마지막 완료 경기 기준 창으로
   // 잡으면 경계 미정의 리그(챔피언십·에레디비시 등)에서도 두 시즌 합산 없이 한 시즌만 집힌다.
   const lastFinishedAt = allMatches
     .filter((m) => m.status === "FINISHED")
     .reduce<Date | null>((mx, m) => (!mx || m.startTime > mx ? m.startTime : mx), null);
-  if (tsAllZero && lastFinishedAt) {
-    const w = lastSeasonWindow(lastFinishedAt);
-    matches = allMatches.filter((m) => m.startTime >= w.from && m.startTime < w.to);
+  // 새 시즌 개막 여부 — 시즌 창 안 첫 경기의 킥오프 시각이 지났으면 개막으로 본다.
+  // 일정만 확정된 오프시즌(6~7월)에는 지난 시즌 최종 순위를 그대로 유지한다.
+  const newSeasonKickedOff =
+    seasonStart != null &&
+    allMatches.some((m) => m.startTime >= seasonStart && m.startTime <= new Date());
+
+  // 개막 직전/직후 placeholder 허용 — ts 표가 전부 0 이어도 새 시즌 표로 쓴다.
+  //  (1) 지난 시즌 데이터가 아예 없는 신규 온보딩 리그 (2026-08-08 내셔널리그 개막일 빈 화면 실측)
+  //  (2) 이미 개막한 리그 — 승격·강등으로 참가팀이 바뀌었는데 지난 시즌 표가 남아 있으면
+  //      새로 올라온 팀이 순위표에 아예 없다 (2026-08-14 챔피언십 울버햄튼·라리가2 실측).
+  const tsPlaceholderOk =
+    tsAllZero && (!lastFinishedAt || (newSeasonKickedOff && tsMappedRatio >= 0.9));
+
+  let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
+  // 새 시즌 표를 쓰는 경우엔 지난 시즌으로 되돌리지 않는다 — 최근폼·xG 도 새 시즌 기준.
+  if (!tsPlaceholderOk) {
+    // 오프시즌(새 시즌 완료 매치 0)일 때만 직전 시즌 창으로 폴백. 임계 10 이던 것을 0 으로 —
+    // 개막 후 몇 라운드 동안 지난 시즌 최근폼·순위가 새 시즌인 척 표시되던 원인(2026-08 분데스2 실측).
+    if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
+      const prev = previousSeasonStart(seasonStart);
+      matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+    }
+    if (tsAllZero && lastFinishedAt) {
+      const w = lastSeasonWindow(lastFinishedAt);
+      matches = allMatches.filter((m) => m.startTime >= w.from && m.startTime < w.to);
+    }
   }
 
   // 데이터 source 분기
@@ -280,11 +303,6 @@ export default async function StandingsPage({ params }: Props) {
     promotionName?: string;
   }>;
   let source: "ts" | "calc" = "calc";
-
-  // 개막 직전/직후 placeholder 허용 — ts 표가 전부 0 이어도, 이 리그에 지난 시즌 데이터가
-  // 아예 없으면(신규 온보딩 리그) 빈 화면 대신 0전적 개막판을 그대로 보여준다
-  // (2026-08-08 내셔널리그 개막일 "데이터 미수집" 빈 화면 실측).
-  const tsPlaceholderOk = tsAllZero && !lastFinishedAt;
 
   if (tsStandings && tsStandings.tables.length > 0 && (!tsAllZero || tsPlaceholderOk)) {
     // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
