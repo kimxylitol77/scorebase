@@ -342,8 +342,6 @@ export default async function TeamPage({ params }: Props) {
       where: { teamId: { in: extIds }, currentValue: { not: null } },
       orderBy: { currentValue: "desc" }, select: { id: true, currentValue: true, history: true },
     });
-    const valueOf = new Map(pmvAll.map((p) => [p.id, Math.round((p.currentValue || 0) / 1e6)]));
-
     // 공식 스쿼드(team/squad/list — 등번호 포함 정본) 우선. 없는 팀(154팀 외)은 PMV 18개월 컷오프 fallback.
     // PlayerMarketValue.teamId 는 "마지막 소속팀" 이라 은퇴 선수(칸·라암 등)가 영구 잔류 → 컷오프로만 거른다.
     const official = tsTeamRows.map((t) => T_SQUADS[t.externalId]?.squad).find((s) => Array.isArray(s) && s.length > 0);
@@ -358,6 +356,16 @@ export default async function TeamPage({ params }: Props) {
         .filter((p) => { const h = (p.history as { market_time?: number }[]) || []; return (h[h.length - 1]?.market_time ?? 0) >= cutoff; })
         .map((p) => ({ id: p.id, coarse: null, number: null }));
     }
+
+    // 몸값은 명단 id 로 다시 조회 — PMV.teamId 는 시장가치 스냅샷 시점 소속이라
+    // 이적창에 새로 온 선수는 아직 옛 팀에 걸려 있어 teamId 로만 찾으면 € 0 으로 뜬다.
+    const valueRows = official
+      ? await prisma.playerMarketValue.findMany({
+          where: { id: { in: members.map((m) => m.id) }, currentValue: { not: null } },
+          select: { id: true, currentValue: true },
+        })
+      : pmvAll;
+    const valueOf = new Map(valueRows.map((p) => [p.id, Math.round((p.currentValue || 0) / 1e6)]));
 
     const sp = await prisma.theSportsPlayer.findMany({ where: { id: { in: members.map((m) => m.id) } }, select: { id: true, name: true, nameKo: true, photoUrl: true, position: true } });
     const spMap = new Map(sp.map((p) => [p.id, p]));

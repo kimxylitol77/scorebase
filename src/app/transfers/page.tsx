@@ -19,6 +19,7 @@ import rawTeamLogos from "../../../data/team-logos.json";
 import rawSquads from "../../../data/team-squads.json";
 import rawCoaches from "../../../data/team-coaches.json";
 import rawCoachPhotos from "../../../data/coach-photos.json";
+import { currentTsTeamId, squadPlayerIds } from "@/lib/transfers/current-team";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -124,15 +125,37 @@ const FIVE = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
 // Map 은 직렬화 불가 → entries 배열로 반환, 호출부에서 재구성.
 const getTransferTeamIndex = unstable_cache(
   async () => {
-    const teamGroups = await prisma.playerMarketValue.groupBy({
-      by: ["teamId"],
+    // 소속은 공식 스쿼드 기준(currentTsTeamId) — PMV.teamId 만 보면 이적한 선수가 옛 팀에 남는다.
+    const pmvRows = await prisma.playerMarketValue.findMany({
       where: { league: { in: FIVE }, currentValue: { not: null }, teamId: { not: null } },
-      _count: { _all: true },
+      select: { id: true, teamId: true },
     });
-    const allTsTeamIds = teamGroups.map((g) => g.teamId).filter((x): x is string => !!x);
+    // 매핑 대상 ts 팀 = PMV 소속 ∪ 공식 스쿼드가 지목한 소속 ∪ 빅5 전 팀(신승격·명단만 있는 팀)
+    const big5Ts = await prisma.teamSourceId.findMany({
+      where: { source: "thesports", team: { league: { in: FIVE } } },
+      select: { externalId: true, teamId: true },
+    });
+    const allTsTeamIds = [
+      ...new Set([
+        ...pmvRows.map((r) => r.teamId!),
+        ...pmvRows.map((r) => currentTsTeamId(r.id, r.teamId)).filter((x): x is string => !!x),
+        ...big5Ts.map((t) => t.externalId),
+      ]),
+    ];
     const tsT = await prisma.teamSourceId.findMany({
       where: { source: "thesports", externalId: { in: allTsTeamIds } },
       select: { externalId: true, teamId: true },
+    });
+    // 빅5 공식 스쿼드에 있는데 PMV.league 라벨은 아직 비빅5(이적 후 미갱신·미채움)인 선수 —
+    // league 조건만으로는 후보에서 빠지므로 id 로 따로 끌어올 목록을 여기서 만들어 캐시한다.
+    // notIn 은 NULL 을 걸러내므로(대부분이 league=null) OR 로 명시한다.
+    const outsideLabelRows = await prisma.playerMarketValue.findMany({
+      where: {
+        id: { in: squadPlayerIds(big5Ts.map((t) => t.externalId)) },
+        currentValue: { not: null },
+        OR: [{ league: null }, { league: { notIn: FIVE } }],
+      },
+      select: { id: true, teamId: true },
     });
     // 한 ts팀 id 가 여러 Team 에 매핑된 경우 빅5 리그 Team 우선(엉뚱한 동명 클럽 방지).
     const candByTs = new Map<string, number[]>();
@@ -149,9 +172,12 @@ const getTransferTeamIndex = unstable_cache(
       tsToOur.set(ext, big5 ?? idsArr[0]);
     }
     const teamCount = new Map<number, number>();
-    for (const g of teamGroups) {
-      const our = g.teamId ? tsToOur.get(g.teamId) : undefined;
-      if (our != null) teamCount.set(our, (teamCount.get(our) || 0) + g._count._all);
+    for (const r of [...pmvRows, ...outsideLabelRows]) {
+      const ts = currentTsTeamId(r.id, r.teamId);
+      const our = ts ? tsToOur.get(ts) : undefined;
+      if (our != null && FIVE_SET.has(teamMeta.get(our)?.league || "")) {
+        teamCount.set(our, (teamCount.get(our) || 0) + 1);
+      }
     }
     const teamOptions = [...teamCount.entries()]
       .map(([id, count]) => ({ id, name: toKoreanTeamName(teamMeta.get(id)?.name) || teamMeta.get(id)?.name || "", count }))
@@ -161,6 +187,7 @@ const getTransferTeamIndex = unstable_cache(
       teamOptions,
       teamMetaEntries: [...teamMeta.entries()],
       tsToOurEntries: [...tsToOur.entries()],
+      outsideLabelIds: outsideLabelRows.map((r) => r.id),
     };
   },
   ["transfers-team-index"],
@@ -425,7 +452,7 @@ export default async function TransfersPage({
   const win = transferWindow();
 
   // ── 팀 옵션 + 팀 메타/매핑 (빅5 전체 groupBy — 30분 캐시, 위 getTransferTeamIndex) ──
-  const { teamOptions, teamMetaEntries, tsToOurEntries } = await getTransferTeamIndex();
+  const { teamOptions, teamMetaEntries, tsToOurEntries, outsideLabelIds } = await getTransferTeamIndex();
   const teamMeta = new Map(teamMetaEntries);
   const tsToOur = new Map(tsToOurEntries);
 
@@ -443,15 +470,30 @@ export default async function TransfersPage({
     .sort((a, b) => b.count - a.count);
 
   // ── 후보 집합 where (view 별) ──
-  let where: Record<string, unknown> = { league: { in: FIVE }, currentValue: { not: null } };
+  // PMV 의 teamId·league 는 시장가치 스냅샷 시점 값이라 이적창 이동이 빠져 있다 →
+  // 공식 스쿼드 명단 선수를 OR 로 함께 끌어오고, 실제 소속 판정은 아래 enrich 에서 한다.
+  let where: Record<string, unknown> = {
+    currentValue: { not: null },
+    OR: [{ league: { in: FIVE } }, { id: { in: outsideLabelIds } }],
+  };
   if (view === "team" && team) {
     const tsForTeam = await prisma.teamSourceId.findMany({
       where: { source: "thesports", teamId: Number(team) },
       select: { externalId: true },
     });
-    where = { league: { in: FIVE }, currentValue: { not: null }, teamId: { in: tsForTeam.map((t) => t.externalId) } };
+    const extIds = tsForTeam.map((t) => t.externalId);
+    where = {
+      currentValue: { not: null },
+      OR: [{ teamId: { in: extIds } }, { id: { in: squadPlayerIds(extIds) } }],
+    };
   } else if ((view === "league" || view === "squads") && league) {
-    where = { league, currentValue: { not: null } };
+    const extOfLeague = [...tsToOur.entries()]
+      .filter(([, ourId]) => teamMeta.get(ourId)?.league === league)
+      .map(([ext]) => ext);
+    where = {
+      currentValue: { not: null },
+      OR: [{ league }, { id: { in: squadPlayerIds(extOfLeague) } }],
+    };
   }
 
   const raw = isFeed || isInout || isRumors ? [] : await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
@@ -465,7 +507,8 @@ export default async function TransfersPage({
   // enrich + 18개월 활성 필터
   let enriched = raw
     .map((r) => {
-      const ourId = r.teamId ? tsToOur.get(r.teamId) : undefined;
+      const tsTeam = currentTsTeamId(r.id, r.teamId); // 공식 스쿼드 우선 — null = 커버 리그 이탈
+      const ourId = tsTeam ? tsToOur.get(tsTeam) : undefined;
       const tm = ourId != null ? teamMeta.get(ourId) : undefined;
       const tsp = pMap.get(r.id);
       const ov = OVERRIDES[r.id];
@@ -479,8 +522,8 @@ export default async function TransfersPage({
         age: r.age,
         ourTeamId: ourId ?? null,
         posCode: posCodeOf(r.id, tsp?.position),
-        number: (r.teamId && SQUADS[r.teamId]?.squad.find((s) => s.id === r.id)?.number) || null,
-        league: r.league,
+        number: (tsTeam && SQUADS[tsTeam]?.squad.find((s) => s.id === r.id)?.number) || null,
+        league: tm?.league || r.league,
         country: ov?.country || null,
         countryFlag: ov?.flag || null,
         teamName: toKoreanTeamName(tm?.name) || tm?.name || "—",
@@ -490,7 +533,14 @@ export default async function TransfersPage({
         hist: hist.map((h) => (h?.market_value || 0) / 1e6).filter((v) => v > 0),
       };
     })
-    .filter((e) => e.lastTime >= cutoff);
+    .filter((e) => e.lastTime >= cutoff)
+    // 소속 미해석(= 공식 명단에서 빠짐 → 방출·비커버 리그 이적) 제외. 옛 팀에 남는 걸 막는다.
+    .filter((e) => e.ourTeamId != null);
+
+  // OR 로 넓게 끌어온 후보를 실제 소속 기준으로 되좁힌다 (PMV 의 낡은 teamId·league 대신).
+  if (view === "team" && team) enriched = enriched.filter((e) => e.ourTeamId === Number(team));
+  else if ((view === "league" || view === "squads") && league) enriched = enriched.filter((e) => e.league === league);
+  else enriched = enriched.filter((e) => FIVE.includes(e.league || ""));
 
   // 동일 선수 중복 제거 (TheSports 가 한 선수에 복수 id 부여 — 예: "파트리크 도르구"·"패트릭 도르구").
   // 표시명이 음역차로 달라도 영문명 정규화(발음기호·대소문자·공백 무시)로 같은 선수를 잡는다.
