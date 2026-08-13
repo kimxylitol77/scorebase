@@ -1879,11 +1879,11 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
         }
       }
 
-      // statusLabel — 이닝 + half (score[2] 1=초, 2=말)
+      // statusLabel — 이닝 + half (score[2] 1=홈 타석/말, 2=원정 타석/초 — 2026-08-13 실측 확정)
       // 매치 시작 직후 (cache 에 이닝 데이터 아직 push 안 옴) 에도 "LIVE" 대신
       // 이닝 표기로 통일 — half 정보 있으면 그대로, 없으면 "1회 초" 로 추정 (시작 직후 가정).
       const halfTopBot = Array.isArray(scoreArr) ? scoreArr[2] : null;
-      const halfKo = halfTopBot === 2 ? "말" : halfTopBot === 1 ? "초" : "";
+      const halfKo = halfTopBot === 2 ? "초" : halfTopBot === 1 ? "말" : "";
       const statusLabel =
         maxInning > 0
           ? `${maxInning}회 ${halfKo}`.trim()
