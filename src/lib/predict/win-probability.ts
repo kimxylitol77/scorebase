@@ -1,13 +1,29 @@
 // Elo 기반 승률 추정.
 // 단순 휴리스틱이지만 직관적인 결과를 낸다.
 //
-// - 두 팀 Elo 차이 + 홈 어드밴티지(100점) 로 기댓값 계산
+// - 두 팀 Elo 차이 + 홈 어드밴티지(리그별 0~100, homeAdvantageFor) 로 기댓값 계산
 // - 무승부 확률은 두 팀 실력이 비슷할수록 커지는 형태로 보정
 // - 야구·농구는 정규시간 무승부가 거의 없으므로 drawWeight 0 으로
 
-import { LOL_LEAGUES, leagueHasDraw } from "@/lib/sports/sport-leagues";
+import {
+  LOL_LEAGUES,
+  BASEBALL_LEAGUES,
+  BASKETBALL_LEAGUES,
+  HOCKEY_LEAGUES,
+  leagueHasDraw,
+} from "@/lib/sports/sport-leagues";
+import { hasHomeCalibration } from "./home-calibration";
 
-const HOME_ADVANTAGE_ELO = 100; // 야구·농구·하키 (정규시간 무승부 없는 종목)
+const HOME_ADVANTAGE_ELO = 100; // Platt 보유 야구·하키 + 미측정 종목
+// 홈 어드밴티지 재보정 (2026-08-13 walk-forward 백테스트, docs/home-advantage-calibration).
+// 100 은 동급 팀 홈승률 64% 를 함의하는데 실측은 MLB 53.1 · NHL 52.2 · KBO 49.1 · NPB 53.1 ·
+// NBA 55.5 · WNBA 58.5 · LMB 55.7% 다. 그런데 **낮추는 게 항상 이득은 아니다** —
+// MLB/NHL/KBO/NPB 는 파이프라인 맨 끝 Platt(home-calibration.ts)이 HA 100 을 전제로 적합돼
+// 있어 여기서 또 깎으면 이중보정이다(실측: 4리그 모두 HA 를 낮출수록 Brier·logloss·적중률
+// 전부 악화). Platt 을 재적합하면 HA 를 뭘 쓰든 성능이 평평해 바꿀 이유도 없다.
+// → Platt 이 없어 홈 100 이 날것으로 노출되는 리그만 실측 홈승률에 맞춘다.
+const HOME_ADVANTAGE_BASKETBALL = 40; // 40 = 55.8% (NBA Brier 0.4237→0.4172, Strong 78.8→81.6%)
+const HOME_ADVANTAGE_NO_CALIBRATION = 20; // LMB Brier 0.4991→0.4877 · CPBL 0.5599→0.5251
 // 축구 — calibration 백테스트(2026-06-13, 빅5+UCL+MLS 1828건·홀드아웃 +0.71%):
 // 홈 +100 은 원정승을 과소예측(평균 0.249 vs 실제 0.301)했음 → 70 으로 낮춰 원정 확률 정합.
 const HOME_ADVANTAGE_SOCCER = 70;
@@ -28,8 +44,16 @@ export function homeAdvantageFor(league: string, homeTeamName?: string): number 
     const norm = homeTeamName.toLowerCase().replace(/[\s.&-]/g, "");
     return WC_HOST_NATIONS.has(norm) ? HOME_ADVANTAGE_SOCCER : 0;
   }
-  // 축구(무승부 존재 종목)는 calibration 적용한 70, 야구·농구는 100
+  // 축구(무승부 존재 종목)는 calibration 적용한 70
   if (leagueHasDraw(league)) return HOME_ADVANTAGE_SOCCER;
+  if (BASKETBALL_LEAGUES.has(league)) return HOME_ADVANTAGE_BASKETBALL;
+  if (
+    (BASEBALL_LEAGUES.has(league) || HOCKEY_LEAGUES.has(league)) &&
+    !hasHomeCalibration(league)
+  ) {
+    return HOME_ADVANTAGE_NO_CALIBRATION;
+  }
+  // Platt 보유 야구·하키(MLB·NHL·KBO·NPB) + 미측정 종목(배구·MMA) 은 그대로 100
   return HOME_ADVANTAGE_ELO;
 }
 
