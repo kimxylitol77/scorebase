@@ -238,15 +238,17 @@ interface HistPt { market_time?: number; market_value?: number; team_id?: string
 async function loadPlayer(id: string) {
   // mv(시장가치) 없어도 TheSportsPlayer 만 있으면 라이트 프로필 렌더 —
   // 확장 리그(K리그1·사우디·MLS)는 대부분 mv 미보유라 mv 필수면 피드 클릭이 404.
-  const [mv, tsp] = await Promise.all([
+  const [mv, tsp, squadInfo] = await Promise.all([
     prisma.playerMarketValue.findUnique({ where: { id } }),
     prisma.theSportsPlayer.findUnique({
       where: { id },
       select: { nameKo: true, name: true, photoUrl: true, position: true },
     }),
+    // 등번호 — 본문 배지와 generateMetadata title 이 함께 쓴다(여기로 올려 조회 1회로 합침).
+    prisma.playerSquadInfo.findUnique({ where: { id }, select: { number: true } }),
   ]);
   if (!mv && !tsp) return null;
-  return { mv, tsp };
+  return { mv, tsp, squadInfo };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -266,15 +268,37 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const g = season?.goals ?? 0;
   const a = season?.assists ?? 0;
   const statBit = g > 0 || a > 0 ? ` · 시즌 ${g}골 ${a}도움` : "";
+  // 이름 검색은 AI 요약에 안 뺏기는 자리라 CTR 이 높다(2026-08-14 빙 실측 "올란도 길" 31%).
+  // 경쟁 상대(나무위키·트랜스퍼마르크트)가 잘 안 주는 계약 만료·주발을 description 에 얹어
+  // 클릭 이유를 만든다. 둘 다 모듈 정적 JSON 이라 DB·API 추가 호출은 없다.
+  const contractSec = CONTRACT[id];
+  const contractBit =
+    contractSec && contractSec * 1000 > Date.now()
+      ? `계약 ${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(contractSec * 1000))}까지, `
+      : "";
+  const footBit = { L: "왼발잡이", R: "오른발잡이", B: "양발잡이" }[FOOT[id] ?? ""] ?? null;
   // mv(시장가치) 없는 라이트 프로필은 몸값 조각만 제외한 동일 패턴
-  const title = `${name} 프로필 — ${who || "축구 선수"}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : ""} · 이적 기록`;
+  const no = p.squadInfo?.number;
+  const noBit = no != null && no > 0 ? ` 등번호 ${no}번` : "";
+  const title = `${name} 프로필 — ${who || "축구 선수"}${noBit}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : ""}`;
+  const facts = [
+    g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움` : null,
+    val ? `몸값 €${val}M` : null,
+    no != null && no > 0 ? `등번호 ${no}번` : null,
+    footBit,
+  ].filter(Boolean).join(", ");
   const description = p.mv
-    ? `${who ? `${who} ` : ""}${name} 프로필 — ${g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움, ` : ""}시장가치(몸값)${val ? ` €${val}M` : ""} 변동 추이·이적 기록·시즌별 성적을 실시간 데이터로. 스코어베이스.`
-    : `${who ? `${who} ` : ""}${name} 프로필 — 이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;
+    ? `${who ? `${who} ` : ""}${name} 프로필 — ${facts ? `${facts}. ` : ""}${contractBit}몸값 변동 추이·이적 기록·시즌별 성적까지 한 페이지에.`
+    : `${who ? `${who} ` : ""}${name} 프로필 — ${facts ? `${facts}. ` : ""}${contractBit}이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;
   return {
     title,
     description,
-    keywords: [name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`, "이적시장", "스코어베이스"],
+    keywords: [
+      name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`,
+      ...(no != null && no > 0 ? [`${name} 등번호`] : []),
+      ...(contractBit ? [`${name} 계약`, `${name} 계약 만료`] : []),
+      "이적시장", "스코어베이스",
+    ],
     openGraph: { title, description, type: "profile", ...(photo ? { images: [{ url: photo }] } : {}) },
     alternates: { canonical: `/transfers/${id}` },
     // 시장가치 데이터 없는 라이트 프로필은 thin → 구글 색인 제외(빙 등은 유지).
@@ -570,11 +594,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // af 선수 프로필(생년월일·키·몸무게) — 헤더 신체 + 대회별 스탯 공유 캐시. ts→af 매핑 없으면 null
   const afProfile = await getSoccerPlayerBio(id, league);
 
-  // 등번호(스쿼드 sync)·수상 경력 — collect-squad-numbers / collect-player-trophies cron 적재분
-  const [squadInfo, trophyRows] = await Promise.all([
-    prisma.playerSquadInfo.findUnique({ where: { id }, select: { number: true } }),
-    prisma.playerTrophy.findMany({ where: { playerId: id }, select: { league: true, country: true, season: true, place: true } }),
-  ]);
+  // 등번호는 loadPlayer 에서 함께 읽어온다(메타와 공유). 수상 경력은 collect-player-trophies cron 적재분.
+  const squadInfo = p.squadInfo;
+  const trophyRows = await prisma.playerTrophy.findMany({
+    where: { playerId: id },
+    select: { league: true, country: true, season: true, place: true },
+  });
   // 몸값 리그 내 순위 (+ 같은 코스 포지션 내) — [league, currentValue] 색인 카운트
   let valueRank: { leagueLabel: string; rank: number; total: number; posLabel: string | null; posRank: number | null } | null = null;
   if (mv?.currentValue && league) {
