@@ -151,34 +151,53 @@ export async function getTheSportsInjuriesByTeam(
   if (teamIds.length === 0) return out;
   const tset = new Set(teamIds);
 
-  // 1. 각 팀의 최신 매치 + side (home/away)
+  // 1. 각 팀의 최근 매치 후보 (최신 1건만 보면 안 된다)
+  //  시즌 중에는 팀의 "최신" 매치가 아직 안 열린 다음 경기라 lineup 캐시가 없다. 그것만 보고
+  //  포기하면 리그 전체가 부상자 0명이 된다 — 2026-08 실측: K리그1 최근 60일 종료매치 41건
+  //  전부 lineup 이 있고 부상 13건이 담겨 있는데 화면엔 0팀이었다(J1 61건·사우디 13건 동일).
+  //  그래서 팀마다 최근 매치를 여러 건 모아 두고, 아래에서 캐시가 실제로 있는 최신 것을 고른다.
+  const CANDIDATES_PER_TEAM = 6;
+  const now = Date.now();
   const matches = await prisma.match.findMany({
-    where: { OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }] },
+    where: { OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }], startTime: { lte: new Date(now) } },
     select: { id: true, homeTeamId: true, awayTeamId: true, startTime: true },
     orderBy: { startTime: "desc" },
     take: 5000,
   });
-  const latest = new Map<number, { matchId: number; side: "home" | "away"; at: Date }>();
+  type Cand = { matchId: number; side: "home" | "away"; at: Date };
+  const cands = new Map<number, Cand[]>();
   for (const m of matches) {
-    if (m.homeTeamId != null && tset.has(m.homeTeamId) && !latest.has(m.homeTeamId)) latest.set(m.homeTeamId, { matchId: m.id, side: "home", at: m.startTime });
-    if (m.awayTeamId != null && tset.has(m.awayTeamId) && !latest.has(m.awayTeamId)) latest.set(m.awayTeamId, { matchId: m.id, side: "away", at: m.startTime });
+    for (const [tid, side] of [[m.homeTeamId, "home"], [m.awayTeamId, "away"]] as const) {
+      if (tid == null || !tset.has(tid)) continue;
+      const arr = cands.get(tid) ?? [];
+      if (arr.length < CANDIDATES_PER_TEAM) {
+        arr.push({ matchId: m.id, side, at: m.startTime });
+        cands.set(tid, arr);
+      }
+    }
   }
-  // 최신 매치가 한참 지난 팀은 그 라인업을 "현재 부상자" 로 쓰면 안 된다 — 비시즌엔 석 달 전
-  //  명단이 그대로 노출된다 (2026-08 실측: 아스톤 빌라 최신 매치가 5/20 이라 7/7 십자인대
-  //  파열한 오나나가 안 나옴). 오래된 팀은 아래 PlayerEvent 보강으로 넘긴다.
+
+  // 2. 후보들의 lineup 캐시를 한 번에 조회
+  const matchIds = [...new Set([...cands.values()].flat().map((v) => v.matchId))];
+  const caches = matchIds.length
+    ? await prisma.theSportsMatchCache.findMany({
+        where: { matchId: { in: matchIds } }, // lineup null 은 후처리에서 skip (Prisma Json not-null 필터 타입 회피)
+        select: { matchId: true, lineup: true },
+      })
+    : [];
+  const cacheByMatch = new Map(caches.map((c) => [c.matchId, c.lineup as Record<string, unknown>]));
+
+  // 2b. 팀별로 lineup 캐시가 실제로 있는 최신 매치를 고른다.
+  //  또 그 매치가 한참 지났으면 "현재 부상자" 로 쓰지 않는다 — 비시즌엔 석 달 전 명단이
+  //  그대로 노출된다 (아스톤 빌라 최신 매치가 5/20 이라 7/7 십자인대 파열한 오나나가 빠졌다).
+  //  오래된 팀은 아래 6단계 PlayerEvent 보강으로 넘긴다.
   const STALE_MS = 30 * 86400_000;
-  for (const [teamId, v] of latest) {
-    if (Date.now() - v.at.getTime() > STALE_MS) latest.delete(teamId);
+  const latest = new Map<number, Cand>();
+  for (const [teamId, arr] of cands) {
+    const hit = arr.find((c) => cacheByMatch.get(c.matchId)); // arr 은 이미 최신순
+    if (hit && now - hit.at.getTime() <= STALE_MS) latest.set(teamId, hit);
   }
   // latest 가 비어도 아래로 진행한다 — 6단계 PlayerEvent 보강이 전 팀을 맡는다.
-
-  // 2. 최신 매치들의 lineup 캐시
-  const matchIds = [...new Set([...latest.values()].map((v) => v.matchId))];
-  const caches = await prisma.theSportsMatchCache.findMany({
-    where: { matchId: { in: matchIds } }, // lineup null 은 후처리에서 skip (Prisma Json not-null 필터 타입 회피)
-    select: { matchId: true, lineup: true },
-  });
-  const cacheByMatch = new Map(caches.map((c) => [c.matchId, c.lineup as Record<string, unknown>]));
 
   // 3. 팀별 active injury entry 수집 + ts player id 모으기
   const teamEntries = new Map<number, TSInjEntry[]>();
