@@ -1,6 +1,13 @@
-// 선수 부상 이력 데이터 — API-Football /injuries(경기별 플래그)를 부상 스펠로 묶음.
-// 출전정지(경고 누적 등 비부상) 제외. ts→af 매핑 없으면 빈 배열 → 페이지가 탭 미표시.
+// 선수 부상 이력 데이터 — 두 소스 합집합.
+//   ① TheSports(PlayerEvent INJURY/RETURN) — 사유·시작일·결장수가 완결된 레코드. 정확하지만
+//      매치 라인업 잔존분만이라 과거가 얕다. "근황" 타임라인과 같은 소스.
+//   ② API-Football /injuries — 경기별 결장 플래그를 45일 규칙으로 묶은 추정. 5시즌까지 깊지만
+//      개막 전 시즌은 coverage.injuries=false 로 0건이 되는 구멍이 있다.
+// ①을 우선하고 기간이 겹치지 않는 ②만 덧붙인다. 둘이 따로 놀아 근황엔 있는 부상이 이력엔
+//   없던 것이 원인 (2026-08 우가르테 십자인대 실측).
+// 출전정지(경고 누적 등 비부상) 제외.
 import { unstable_cache } from "next/cache";
+import { prisma } from "@/lib/db";
 import { fetchPlayerInjuries, getApiFootballSeason, type InjuryFlag } from "@/lib/sports/api-football-pro";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 
@@ -17,6 +24,7 @@ export interface InjurySpell {
   to: string;
   games: number; // 결장/의심 경기 수
   ongoing: boolean; // 최근 30일 내 마지막 플래그면 진행중 표시
+  source: "ts" | "af"; // 출처 — ts 는 완결 레코드, af 는 플래그 추정
 }
 
 // 비부상(정지·행정) 사유 제외
@@ -35,8 +43,59 @@ function reasonKo(raw: string): string {
   return raw;
 }
 
-// ts player id → 부상 스펠 (최신순). 매핑 없으면 빈 배열.
+const DAY_MS = 86400_000;
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+/** TheSports 부상 이벤트 → 스펠. INJURY 의 짝 RETURN 이 있으면 종료일이 된다. */
+async function tsSpells(tsId: string): Promise<InjurySpell[]> {
+  const rows = await prisma.playerEvent
+    .findMany({
+      where: { playerId: tsId, type: { in: ["INJURY", "RETURN"] }, id: { startsWith: "injury:" } },
+      select: { id: true, type: true, occurredAt: true, detail: true },
+    })
+    .catch(() => []);
+  // RETURN 은 id 가 "return:{pid}:{start}" 라 startsWith 로는 안 잡힌다 — 따로 조회해 start 키로 짝짓는다.
+  const returns = await prisma.playerEvent
+    .findMany({ where: { playerId: tsId, type: "RETURN" }, select: { id: true, occurredAt: true } })
+    .catch(() => []);
+  const endByStart = new Map(returns.map((r) => [r.id.replace(/^return:/, ""), r.occurredAt]));
+
+  const now = Date.now();
+  return rows
+    .filter((r) => r.type === "INJURY")
+    .map((r) => {
+      const d = (r.detail ?? {}) as { reason?: string; missedMatches?: number | null; lastSeenAt?: string };
+      const key = r.id.replace(/^injury:/, "");
+      const end = endByStart.get(key) ?? null;
+      // ts 는 end_time 을 거의 안 준다 → 마지막으로 라인업에 실려 있던 경기(lastSeenAt)가
+      //  45일 이내면 아직 결장 중으로 본다. 복귀 이벤트가 있으면 그쪽이 우선.
+      //  45일은 /injuries 목록(thesports/injuries.ts)의 판정과 같은 값 — 두 화면이 같은
+      //  부상을 두고 "진행중" 여부가 갈리면 안 된다 (실측: 오나나 십자인대 파열 35일 경과).
+      const lastSeen = d.lastSeenAt ? new Date(d.lastSeenAt).getTime() : r.occurredAt.getTime();
+      return {
+        reason: d.reason || "부상",
+        from: iso(r.occurredAt),
+        to: end ? iso(end) : iso(r.occurredAt),
+        games: d.missedMatches ?? 0,
+        ongoing: !end && now - lastSeen <= 45 * DAY_MS,
+        source: "ts" as const,
+      };
+    })
+    .sort((a, b) => (a.from < b.from ? 1 : -1));
+}
+
+// ts player id → 부상 스펠 (최신순). ts 우선 + af 보완.
 export async function getPlayerInjuriesByTs(tsId: string): Promise<InjurySpell[]> {
+  const ts = await tsSpells(tsId);
+  const af = await afSpells(tsId);
+  // 같은 부상이 양쪽에 잡히면 ts 를 남긴다 — 기간이 겹치면 중복으로 본다(사유 표기가 달라
+  //  사유 일치로는 못 거른다: ts "십자인대 부상" vs af "무릎 부상").
+  const overlaps = (a: InjurySpell, b: InjurySpell) => a.from <= b.to && b.from <= a.to;
+  const merged = [...ts, ...af.filter((x) => !ts.some((t) => overlaps(t, x)))];
+  return merged.sort((a, b) => (a.from < b.from ? 1 : -1));
+}
+
+async function afSpells(tsId: string): Promise<InjurySpell[]> {
   const afId = tsPlayerToAf(tsId);
   if (!afId) return [];
   const cur = getApiFootballSeason(new Date(), "EPL");
@@ -71,6 +130,7 @@ export async function getPlayerInjuriesByTs(tsId: string): Promise<InjurySpell[]
       to: s.to,
       games: s.games,
       ongoing: now - new Date(s.to).getTime() <= 30 * DAY,
+      source: "af" as const,
     }))
     .reverse(); // 최신순
 }

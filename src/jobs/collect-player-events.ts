@@ -88,8 +88,9 @@ export async function runCollectPlayerEvents({ backfill = false }: { backfill?: 
   const injSinceSec = backfill ? nowSec - INJURY_BACKFILL_DAYS * 86400 : sinceSec;
   const recentMatches = await prisma.match.findMany({
     where: { startTime: { gte: new Date(injSinceSec * 1000) } },
-    select: { id: true },
+    select: { id: true, startTime: true },
   });
+  const startTimeById = new Map(recentMatches.map((m) => [m.id, m.startTime]));
   const mIds = recentMatches.map((m) => m.id);
   for (let i = 0; i < mIds.length; i += 500) {
     const caches = await prisma.theSportsMatchCache.findMany({
@@ -112,7 +113,15 @@ export async function runCollectPlayerEvents({ backfill = false }: { backfill?: 
             type: "INJURY",
             occurredAt: new Date(x.start_time * 1000),
             title: `부상 — ${reasonKo}`,
-            detail: { reason: reasonKo, missedMatches: x.missed_matches ?? null },
+            // lastSeenAt = 이 부상이 마지막으로 라인업에 실려 있던 경기 시각. 부상 이력 탭이
+            //  "진행중" 을 판정하는 근거다 — ts 는 end_time 을 거의 안 준다(실측 3,080건 중 195건).
+            //  missedMatches 는 부상이 길어질수록 늘어나므로 아래 upsert 로 계속 갱신한다.
+            detail: {
+              reason: reasonKo,
+              reasonRaw: x.reason ?? null, // 심각도 판정(tsInjurySeverity)이 영문 원문을 본다
+              missedMatches: x.missed_matches ?? null,
+              lastSeenAt: (startTimeById.get(c.matchId) ?? new Date()).toISOString(),
+            },
             matchId: c.matchId,
           });
           if (x.end_time && x.end_time > 0) {
@@ -181,16 +190,26 @@ export async function runCollectPlayerEvents({ backfill = false }: { backfill?: 
     console.warn("[player-events] NBA 부상 수집 실패:", (err as Error).message);
   }
 
-  // 메모리 dedup (같은 부상이 여러 매치에 등장) → id 유일화
+  // 메모리 dedup (같은 부상이 여러 매치에 등장) → id 유일화.
+  //  부상은 뒤에 온 매치일수록 결장수·마지막 관측이 최신이라 더 늦은 쪽을 남긴다.
+  const lastSeenOf = (e: PEvent) => (e.detail as { lastSeenAt?: string } | undefined)?.lastSeenAt ?? "";
   const byId = new Map<string, PEvent>();
-  for (const e of events) if (!byId.has(e.id)) byId.set(e.id, e);
+  for (const e of events) {
+    const prev = byId.get(e.id);
+    if (!prev || (e.type === "INJURY" && lastSeenOf(e) > lastSeenOf(prev))) byId.set(e.id, e);
+  }
   const unique = [...byId.values()];
 
-  // 멱등 적재 — id = dedupeKey, createMany skipDuplicates. 이벤트는 불변 사실이라 update 불요.
+  // 이적·몸값은 불변 사실이라 createMany skipDuplicates 로 신규만 넣는다.
+  // 부상은 진행형이라 예외 — 결장수가 늘고 마지막 관측이 갱신되므로 upsert 로 덮어쓴다.
+  //  (그전엔 첫 관측값이 굳어 십자인대 부상이 "0경기 결장" 으로 남았다 — 2026-08 우가르테 실측)
+  const injuries = unique.filter((e) => e.type === "INJURY" && e.id.startsWith("injury:"));
+  const rest = unique.filter((e) => !(e.type === "INJURY" && e.id.startsWith("injury:")));
+
   let created = 0;
-  for (let i = 0; i < unique.length; i += 1000) {
+  for (let i = 0; i < rest.length; i += 1000) {
     const r = await prisma.playerEvent.createMany({
-      data: unique.slice(i, i + 1000).map((e) => ({
+      data: rest.slice(i, i + 1000).map((e) => ({
         id: e.id, playerId: e.playerId, type: e.type, occurredAt: e.occurredAt,
         title: e.title, detail: (e.detail ?? undefined) as never, matchId: e.matchId ?? null,
       })),
@@ -198,5 +217,14 @@ export async function runCollectPlayerEvents({ backfill = false }: { backfill?: 
     });
     created += r.count;
   }
-  return { scanned: unique.length, created };
+  let updated = 0;
+  for (const e of injuries) {
+    const row = {
+      id: e.id, playerId: e.playerId, type: e.type, occurredAt: e.occurredAt,
+      title: e.title, detail: (e.detail ?? undefined) as never, matchId: e.matchId ?? null,
+    };
+    await prisma.playerEvent.upsert({ where: { id: e.id }, create: row, update: { title: row.title, detail: row.detail } });
+    updated++;
+  }
+  return { scanned: unique.length, created, injuriesUpserted: updated };
 }

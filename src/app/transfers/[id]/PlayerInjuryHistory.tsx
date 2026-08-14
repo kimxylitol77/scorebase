@@ -1,4 +1,4 @@
-// 부상 이력 표 — API-Football 부상 플래그를 스펠로 묶은 결과(injury-data.ts). 사유·기간·결장수.
+// 부상 이력 표 — TheSports 부상 기록 + API-Football 플래그 합집합(injury-data.ts). 사유·기간·결장수.
 import type { InjurySpell } from "./injury-data";
 
 function fmt(d: string): string {
@@ -11,7 +11,7 @@ export default function PlayerInjuryHistory({ spells }: { spells: InjurySpell[] 
     <section className="rounded-xl bg-white ring-1 ring-black/5 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10">
       <div className="px-4 pt-3.5 pb-2 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">부상 이력</h2>
-        <span className="text-[11px] text-neutral-500">최근 5시즌 · {spells.length}건</span>
+        <span className="text-[11px] text-neutral-500">{spells.length}건</span>
       </div>
       <table className="w-full text-sm">
         <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
@@ -39,7 +39,9 @@ export default function PlayerInjuryHistory({ spells }: { spells: InjurySpell[] 
           ))}
         </tbody>
       </table>
-      <p className="px-4 py-2 text-[11px] text-neutral-400">API-Football 결장·의심 기록 기반. 정지(경고 누적)는 제외.</p>
+      <p className="px-4 py-2 text-[11px] text-neutral-400">
+        TheSports 부상 기록 + API-Football 결장·의심 기록. 정지(경고 누적)는 제외.
+      </p>
     </section>
   );
 }
