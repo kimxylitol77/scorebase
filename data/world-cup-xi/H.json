@@ -18,7 +18,7 @@
       "flag": "🇺🇾"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.5,
   "xi": [
     {
       "id": "965mkyh3j5x1r1g",
@@ -49,26 +49,9 @@
       "score": 8.28,
       "star": 4,
       "recentRating": 8,
-      "avgRating": 7.73,
-      "games": 2,
+      "avgRating": 8,
+      "games": 1,
       "x": 16,
-      "y": 70
-    },
-    {
-      "id": "23xmvkhojvpjqg8",
-      "name": "Pedro Porro",
-      "nameKo": "페드로 포로",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/1fbe68500a159068567e72f366b8a245.png",
-      "score": 8.05,
-      "star": 4,
-      "recentRating": 6.98,
-      "avgRating": 7.54,
-      "games": 2,
-      "x": 39,
       "y": 70
     },
     {
@@ -85,23 +68,40 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 61,
+      "x": 39,
       "y": 70
     },
     {
-      "id": "3glrw7hyp9eqdyj",
-      "name": "Marc Cucurella",
-      "nameKo": "마르크 쿠쿠렐라",
+      "id": "y39mp1hjn3wmojx",
+      "name": "Marcos Llorente",
+      "nameKo": "마르코스 요렌테",
       "hasMv": true,
       "pos": "D",
       "country": "Spain",
       "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/853a723cd296c0cb524cb0ed9a3acb24.png",
-      "score": 7.67,
+      "logo": "https://img.thesports.com/football/player/3960b1acdad84b4a3a9db2c2f1723bdf.png",
+      "score": 7.68,
       "star": 3,
-      "recentRating": 6.84,
-      "avgRating": 6.97,
-      "games": 2,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "2y8m4zhjodnql07",
+      "name": "Alejandro Grimaldo",
+      "nameKo": "알렉스 그리말도",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "logo": "https://img.thesports.com/football/player/3a2808b228c5f2fd4044243d627037d1.png",
+      "score": 7.62,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 84,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.22,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.9,
-      "games": 2,
+      "avgRating": 8.2,
+      "games": 1,
       "x": 22,
       "y": 32
     },
@@ -134,26 +134,9 @@
       "score": 8.09,
       "star": 4,
       "recentRating": 7.2,
-      "avgRating": 7,
-      "games": 2,
+      "avgRating": 7.2,
+      "games": 1,
       "x": 50,
-      "y": 32
-    },
-    {
-      "id": "4jwq2ghx151m0ve",
-      "name": "Daniel Olmo Carvajal",
-      "nameKo": "다니 올모",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/2d4bff6de58e537824bcd01d56ae5ca2.png",
-      "score": 8.03,
-      "star": 4,
-      "recentRating": 6.67,
-      "avgRating": 7.19,
-      "games": 2,
-      "x": 78,
       "y": 32
     },
     {
@@ -170,8 +153,8 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 35,
-      "y": 52
+      "x": 78,
+      "y": 32
     },
     {
       "id": "l5ergphv83e2r8k",
@@ -186,6 +169,23 @@
       "star": 3,
       "recentRating": 6.6,
       "avgRating": 6.6,
+      "games": 1,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "4jwq2ghx151m0ve",
+      "name": "Daniel Olmo Carvajal",
+      "nameKo": "다니 올모",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "logo": "https://img.thesports.com/football/player/2d4bff6de58e537824bcd01d56ae5ca2.png",
+      "score": 7.51,
+      "star": 3,
+      "recentRating": 6.67,
+      "avgRating": 6.67,
       "games": 1,
       "x": 65,
       "y": 52
@@ -202,8 +202,8 @@
       "score": 8.24,
       "star": 4,
       "recentRating": 7.3,
-      "avgRating": 6.95,
-      "games": 2,
+      "avgRating": 7.3,
+      "games": 1,
       "x": 50,
       "y": 14
     }
@@ -221,23 +221,8 @@
       "score": 7.97,
       "star": 3,
       "recentRating": 7.7,
-      "avgRating": 7.23,
-      "games": 2
-    },
-    {
-      "id": "4jwq2ghv8pd1m0v",
-      "name": "Yeremy Pino",
-      "nameKo": "예레미 피노",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/1432be79eb646e6e4d1def22c9426bdf.png",
-      "score": 7.89,
-      "star": 3,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "avgRating": 7.7,
+      "games": 1
     },
     {
       "id": "pxwrxlhjg9zryk0",
@@ -248,6 +233,21 @@
       "country": "Spain",
       "flag": "🇪🇸",
       "logo": "https://img.thesports.com/football/player/d2bdef11e4ddb35f1c931507b4e34d1a.png",
+      "score": 7.89,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
+    },
+    {
+      "id": "4jwq2ghv8pd1m0v",
+      "name": "Yeremy Pino",
+      "nameKo": "예레미 피노",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "logo": "https://img.thesports.com/football/player/1432be79eb646e6e4d1def22c9426bdf.png",
       "score": 7.89,
       "star": 3,
       "recentRating": 0,
@@ -266,23 +266,8 @@
       "score": 7.75,
       "star": 3,
       "recentRating": 7.27,
-      "avgRating": 6.95,
-      "games": 2
-    },
-    {
-      "id": "2y8m4zhjodnql07",
-      "name": "Alejandro Grimaldo",
-      "nameKo": "알렉스 그리말도",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/3a2808b228c5f2fd4044243d627037d1.png",
-      "score": 7.62,
-      "star": 3,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "avgRating": 7.27,
+      "games": 1
     },
     {
       "id": "6ypq3nhl53y2md7",
@@ -298,6 +283,21 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0
+    },
+    {
+      "id": "3glrw7hyp9eqdyj",
+      "name": "Marc Cucurella",
+      "nameKo": "마르크 쿠쿠렐라",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "logo": "https://img.thesports.com/football/player/853a723cd296c0cb524cb0ed9a3acb24.png",
+      "score": 7.54,
+      "star": 3,
+      "recentRating": 6.84,
+      "avgRating": 6.84,
+      "games": 1
     }
   ],
   "complete": true

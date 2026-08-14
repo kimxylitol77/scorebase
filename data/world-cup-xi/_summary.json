@@ -8,8 +8,8 @@
     },
     {
       "group": "B",
-      "xi": 11,
-      "pool": 25
+      "xi": 0,
+      "pool": 0
     },
     {
       "group": "C",
@@ -44,7 +44,7 @@
     {
       "group": "I",
       "xi": 11,
-      "pool": 52
+      "pool": 26
     },
     {
       "group": "J",
