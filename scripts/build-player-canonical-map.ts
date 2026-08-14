@@ -29,6 +29,16 @@ const prisma = new PrismaClient();
 const normEn = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]/g, " ").replace(/\s+/g, " ").trim();
 
+// 이름 토큰 집합 — 완전일치가 못 잡는 표기차(미들네임 유무·어순 뒤바뀜·발음기호)용.
+//  "Vítor Ferreira"(유령) ↔ "Vitor Machado Ferreira"(현역) 은 normEn 키가 갈린다.
+const FOLD: Record<string, string> = { "ø": "o", "å": "a", "ł": "l", "ß": "ss", "æ": "ae", "ð": "d", "þ": "th", "đ": "d", "ı": "i", "ŧ": "t", "ħ": "h" };
+const TOK_STOP = new Set(["de", "da", "do", "dos", "del", "la", "le", "van", "von", "di", "el", "al", "bin", "ben", "the", "jr"]);
+const tokset = (s: string) =>
+  new Set(
+    s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[øåłßæðþđıŧħ]/g, (c) => FOLD[c] || c)
+      .split(/[\s·.\-']+/).map((t) => t.replace(/[^a-z0-9]/g, "")).filter((t) => t.length >= 2 && !TOK_STOP.has(t)),
+  );
+
 interface Row {
   id: string;
   name: string;
@@ -38,6 +48,7 @@ interface Row {
   last: number;        // 마지막 몸값 갱신 unix 초
   born: number | null; // 추정 생년
   af: number | null;
+  tok: Set<string>;
 }
 
 async function main() {
@@ -71,6 +82,7 @@ async function main() {
       last,
       born: last && ageThen ? new Date(last * 1000).getUTCFullYear() - ageThen : null,
       af: tsPlayerToAf(m.id),
+      tok: tokset(p.name),
     });
   }
 
@@ -109,9 +121,31 @@ async function main() {
     if (merged) groups++;
   }
 
+  const exactCount = Object.keys(map).length;
+
+  // 2단계 — 이름 표기가 달라 위 그룹에 못 든 유령. 같은 추정 생년 안에서만 찾고,
+  //  한쪽 토큰이 다른 쪽의 부분집합이며 후보가 유일할 때만 묶는다. 생년으로 먼저 좁히므로
+  //  흔한 이름의 동명이인이 섞일 여지가 작다 (실측: 후보 다중 0건).
+  {
+    const liveByBorn = new Map<number, Row[]>();
+    for (const r of rows) {
+      if (r.last >= cutoff && r.born != null) liveByBorn.set(r.born, [...(liveByBorn.get(r.born) ?? []), r]);
+    }
+    for (const d of rows) {
+      if (d.last >= cutoff || map[d.id]) continue;
+      if (d.born == null || d.tok.size < 2) continue;
+      const cands = (liveByBorn.get(d.born) ?? []).filter(
+        (l) => l.tok.size >= 2 && ([...d.tok].every((t) => l.tok.has(t)) || [...l.tok].every((t) => d.tok.has(t))),
+      );
+      if (cands.length !== 1) continue;
+      map[d.id] = cands[0].id;
+      if (!cands[0].af && d.af && !inherit[cands[0].id]) inherit[cands[0].id] = d.af;
+    }
+  }
+
   fs.writeFileSync("data/player-canonical-redirects.json", JSON.stringify(map, null, 0));
   console.log(
-    `유령 → 정본 ${Object.keys(map).length}건 (그룹 ${groups}) · 동명이인 제외 ${skippedDiffBorn} · 생년불명 제외 ${skippedNoBorn}`,
+    `유령 → 정본 ${Object.keys(map).length}건 (이름일치 ${exactCount} + 표기차 ${Object.keys(map).length - exactCount}, 그룹 ${groups}) · 동명이인 제외 ${skippedDiffBorn} · 생년불명 제외 ${skippedNoBorn}`,
   );
 
   // af 매핑 상속 — 유령이 갖고 있던 af id 를 정본에 붙인다 (afToTs 도 정본을 가리키게 재생성)
