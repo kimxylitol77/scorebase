@@ -49,6 +49,7 @@ import type { PredictMatch } from "@/lib/predict/types";
 
 interface StarterJson {
   name: string;
+  nameJp?: string; // NPB 원어 표기 — 회차 간 같은 투수 판정용 (표기는 흔들려도 이건 고정)
   pid?: number;
   era?: number;
   whip?: number;
@@ -70,13 +71,29 @@ const ENRICHED_KEYS = [
   "wins", "losses", "ip", "recentEra", "recentIp",
 ] as const;
 
+// 한국어 화면에 그대로 나가면 안 되는 원문 (가나·한자).
+const JP_TEXT = /[぀-ヿ㐀-鿿]/;
+
 function keepEnriched(prev: string | null, next: string): string {
   if (!prev) return next;
   try {
     const p = JSON.parse(prev) as Record<string, unknown>;
     const n = JSON.parse(next) as Record<string, unknown>;
-    if (!p.name || p.name !== n.name) return next;
+    // 같은 투수 판정. NPB 는 원어명이 안정적인 신원 키다 — 표기(name)는 사전 miss 시
+    // 한자로 폴백해 회차마다 흔들리므로 이름으로만 보면 같은 사람을 놓친다.
+    const same = p.nameJp && n.nameJp
+      ? p.nameJp === n.nameJp
+      : Boolean(p.name) && p.name === n.name;
+    if (!same) return next;
     let filled = false;
+    // npb.jp 로스터·성적 fetch 가 실패하면 가나 음역을 못 해 한자 원문이 표기로 들어온다.
+    // 한 번 한글로 풀렸던 표기가 있으면 그걸 지킨다 — 안 그러면 다음 성공 회차까지
+    // 화면에 한자가 고착된다 (2026-08-14 大津 알림).
+    if (typeof n.name === "string" && JP_TEXT.test(n.name) &&
+        typeof p.name === "string" && !JP_TEXT.test(p.name)) {
+      n.name = p.name;
+      filled = true;
+    }
     for (const k of ENRICHED_KEYS) {
       if (n[k] == null && p[k] != null) {
         n[k] = p[k];
@@ -216,6 +233,7 @@ export async function runFetchBaseballStarters(opts?: {
       if (!p) continue;
       const buildNpb = (side: typeof p.home) => ({
         name: side.name,
+        nameJp: side.nameJp,
         pid: side.pid ? Number(side.pid) : undefined,
         photoUrl: side.photoUrl,
         era: side.stats?.era,
