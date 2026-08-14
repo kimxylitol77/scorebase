@@ -123,7 +123,6 @@ export default function PlayerBioPanel({
             {teamHref ? <Link href={teamHref} className="hover:underline truncate">{teamName}</Link> : <span className="truncate">{teamName}</span>}
           </span>
         </InfoCell>
-        {contractUntil != null && <InfoCell label="계약 만료">{contractLabel(contractUntil)}</InfoCell>}
         {valueEur != null && (
           <div className={`${wageEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
             <div className="text-xs text-neutral-400 mb-0.5">현재 시장가치</div>
@@ -147,15 +146,28 @@ export default function PlayerBioPanel({
             )}
           </div>
         )}
-        {wageEur != null && (
+        {/* 주급 + 계약 만료 한 블록 — 시장가치 블록이 몸값 순위를 보조줄로 다는 것과 대칭.
+            주급은 Capology 5대리그만이라, 주급이 없으면 계약 만료가 이 자리의 주 정보가 된다. */}
+        {(wageEur != null || contractUntil != null) && (
           <div className={`${valueEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
-            <div className="text-xs text-neutral-400 mb-0.5">주급 (세전)</div>
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                €{Math.round(wageEur / 52 / 1000)}k
-              </span>
-              <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
-            </div>
+            <div className="text-xs text-neutral-400 mb-0.5">{wageEur != null ? "주급 (세전)" : "계약 만료"}</div>
+            {wageEur != null ? (
+              <>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    €{Math.round(wageEur / 52 / 1000)}k
+                  </span>
+                  <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
+                </div>
+                {contractUntil != null && (
+                  <div className="mt-1 text-xs text-neutral-500">
+                    계약 <span className="font-bold text-neutral-700 dark:text-neutral-200">{contractLabel(contractUntil)}</span>까지
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-2xl font-black tabular-nums">{contractLabel(contractUntil!)}</div>
+            )}
           </div>
         )}
       </div>
