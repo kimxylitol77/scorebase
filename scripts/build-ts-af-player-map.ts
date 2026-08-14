@@ -65,7 +65,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  */
 interface AfApiRow {
   team?: { id?: number; name?: string };
-  player?: { id?: number; name?: string; photo?: string | null; firstname?: string; lastname?: string };
+  player?: { id?: number; name?: string; photo?: string | null; firstname?: string; lastname?: string; age?: number | null };
   statistics?: AfStatisticsRow[];
   [key: string]: unknown;
 }
@@ -97,6 +97,42 @@ async function resolveSeason(afId: number): Promise<number | null> {
   const row = d.response?.[0] as { seasons?: { year: number; coverage?: { players?: boolean } }[] } | undefined;
   const covered = (row?.seasons ?? []).filter((s) => s.coverage?.players).map((s) => s.year);
   return covered.length ? Math.max(...covered) : null;
+}
+
+/** af 선수 프로필 (/players/profiles) — 소속팀이 없고 나이·이름만 온다. */
+interface AfProfile { id: number; name: string; firstname?: string; lastname?: string; age?: number | null }
+const profileCache = new Map<string, AfProfile[]>();
+/** 성으로 af 전체 선수 검색. 같은 성은 캐시 재사용 (검색어당 1~3콜). */
+async function searchProfiles(surname: string): Promise<AfProfile[]> {
+  const key = surname.toLowerCase();
+  const hit = profileCache.get(key);
+  if (hit) return hit;
+  const out: AfProfile[] = [];
+  for (let page = 1; page <= 3; page++) {
+    const d = await af(`/players/profiles?search=${encodeURIComponent(key)}&page=${page}`);
+    for (const r of d.response ?? []) {
+      const p = r.player;
+      if (p?.id != null && p.name) out.push({ id: p.id, name: p.name, firstname: p.firstname, lastname: p.lastname, age: p.age });
+    }
+    if ((d.paging?.current ?? 1) >= (d.paging?.total ?? 1)) break;
+  }
+  profileCache.set(key, out);
+  return out;
+}
+
+/** DB 이름의 첫 토큰과 af 프로필의 첫 토큰이 같은가 (af 축약 "G. Guerra" 는 이니셜로 인정). */
+function firstNameMatches(dbName: string, p: AfProfile): boolean {
+  const first = (s: string) => [...tokset(s)][0] ?? "";
+  const db = first(dbName);
+  if (!db) return false;
+  for (const cand of [p.firstname, p.name]) {
+    if (!cand) continue;
+    const raw = cand.trim().split(/[\s·]+/)[0] ?? "";
+    const af = first(raw);
+    if (af && af === db) return true;
+    if (/^[A-Za-z]\.$/.test(raw) && raw[0].toLowerCase() === db[0]) return true; // "G." ↔ Gage
+  }
+  return false;
 }
 
 // af "L. Yamal" 축약·풀네임 모두 대응 — 성(마지막 토큰) + 첫 이니셜
@@ -432,6 +468,63 @@ async function main() {
     }
     console.log(`${lg}: 누적 매칭 ${Object.keys(tsToAf).length} · 시즌스탯 신규 ${Object.keys(newSeasons).length}`);
   }
+
+  // === 이름 검색 폴백 ===
+  // 팀 스쿼드를 아무리 훑어도 안 잡히는 선수가 남는다 — 장기 부상·시즌 중 이적으로 af 가
+  //  어느 팀 로스터에도 안 넣어주는 경우(2026-08 실측: 쿨루셰프스키는 af 선수 등록[30435]
+  //  자체는 있는데 토트넘 스쿼드 응답엔 없어 스쿼드만 훑는 위 단계로는 영영 못 찾는다).
+  //  /players/profiles?search={성} 으로 직접 찾아 보완한다.
+  //  이 응답엔 소속팀이 없어 동명이인 오매칭 위험이 크므로 나이(±2)와 이름 토큰이 모두
+  //  맞고 후보가 유일할 때만 채택한다 — 애매하면 매칭하지 않는다.
+  //  대상은 LEAGUES 소속 + 18개월 내 몸값 갱신분 (= /transfers 노출 대상)만. 은퇴·과거
+  //  선수가 몸값 테이블의 30% 를 차지해 전수 검색은 낭비다.
+  let bySearch = 0, searchAmbiguous = 0;
+  {
+    const lgSet = new Set(Object.keys(LEAGUES));
+    const targetIds = allMv
+      .filter((p) => {
+        if (tsToAf[p.id]) return false;
+        const lg = p.league ?? (p.teamId ? teamInfoByTs.get(p.teamId)?.league : null);
+        return lg != null && lgSet.has(lg);
+      })
+      .map((p) => p.id);
+    const rows = await prisma.playerMarketValue.findMany({
+      where: { id: { in: targetIds } },
+      select: { id: true, age: true, history: true },
+    });
+    const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400; // /transfers 활성 기준과 동일
+    const taken = new Set(Object.values(tsToAf));
+    let scanned = 0;
+    for (const r of rows) {
+      const hist = r.history as { market_time?: number }[] | null;
+      const last = Array.isArray(hist) ? hist[hist.length - 1] : null;
+      if ((last?.market_time ?? 0) < cutoff) continue; // 은퇴·과거 선수 — 검색해도 못 찾는다
+      const en = tsEnName.get(r.id);
+      if (!en) continue;
+      const dbTok = tokset(en);
+      if (dbTok.size === 0) continue;
+      const surname = (en.trim().split(/[\s·]+/).pop() ?? "").replace(/[^A-Za-z]/g, "");
+      if (surname.length < 4) continue; // af search 는 4자 이상만 받는다
+      scanned++;
+      const fit = (await searchProfiles(surname)).filter((h) => {
+        if (taken.has(h.id)) return false;
+        const afTok = tokset(`${h.firstname ?? ""} ${h.lastname ?? ""} ${h.name}`);
+        if (![...dbTok].every((t) => afTok.has(t))) return false;
+        // 첫 이름 대조 — 토큰 부분집합만 보면 아랍식처럼 토큰이 짧게 남는 이름이 남의
+        //  긴 풀네임에 통째로 들어가 오매칭된다(실측: "Hussain Al Issa" ↔ 수단인
+        //  "Ahmed Issa Hussain Gomah" — "Al" 이 불용어라 {hussain,issa} 만 남았다).
+        //  af 가 "G. Guerra" 처럼 축약해 오는 경우가 있어 이니셜 일치도 인정한다.
+        if (dbTok.size >= 2 && !firstNameMatches(en, h)) return false;
+        if (r.age == null || h.age == null) return dbTok.size >= 2; // 나이 대조 불가 — 복수토큰만 허용
+        // 단일토큰 등록명(브라질·포르투갈식)은 판별력이 약해 나이를 좁게 본다
+        return Math.abs(h.age - r.age) <= (dbTok.size >= 2 ? 2 : 1);
+      });
+      if (fit.length === 1) { tsToAf[r.id] = fit[0].id; afName[fit[0].id] = fit[0].name; taken.add(fit[0].id); bySearch++; }
+      else if (fit.length > 1) searchAmbiguous++;
+    }
+    console.log(`이름 검색 폴백: 대상 ${scanned}명 (검색어 ${profileCache.size}종) — 신규 ${bySearch} · 후보 다중 skip ${searchAmbiguous}`);
+  }
+
   await prisma.$disconnect();
 
   const afToTs: Record<number, string> = {};
@@ -450,7 +543,7 @@ async function main() {
   console.log(`af키 시즌스탯: 기존 ${Object.keys(prevAf).length} + 신규 ${Object.keys(afSeasons).length} = ${Object.keys(mergedAf).length}`);
 
   console.log(
-    `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 토큰 ${byTok} · 리그풀 ${byLeague} · 지문 ${exact} · 완화 ${loose} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,
+    `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 토큰 ${byTok} · 리그풀 ${byLeague} · 지문 ${exact} · 완화 ${loose} · 이름검색 ${bySearch} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,
   );
   console.log(`시즌스탯: 기존 ${Object.keys(TS).length} + 신규/갱신 ${Object.keys(newSeasons).length} = ${Object.keys(mergedSeasons).length}`);
   console.log("손흥민 검증:", tsToAf["y39mp1h5yjwmojx"] ?? "미매칭", "| 야말:", tsToAf["4jwq2ghxjzkvm0v"] ?? "미매칭");
