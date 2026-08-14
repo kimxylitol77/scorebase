@@ -56,7 +56,12 @@ export async function runCaptureInjuries(opts?: {
 
   for (const league of opts?.leagues ?? LEAGUES) {
     const rows = await fetchSeasonInjuries(league, season);
-    if (!rows.length) continue;
+    // af 는 개막 전 새 시즌에 coverage.injuries=false 라 에러 없이 0건을 준다 (2026-08 실측:
+    //  8/21 개막 EPL 이 season=2026 에서 0건, 2025 는 3,417건). 개막 전엔 부상 데이터가
+    //  실제로 없는 게 맞으므로 직전 시즌을 끌어오지 않는다 — 시즌 말 부상자를 오늘 현황으로
+    //  저장하면 스냅샷이 오염된다. 다만 개막 후에도 0건이 계속되면 커버가 안 켜진 것이니
+    //  조용히 지나가지 않게 남긴다.
+    if (!rows.length) { console.log(`[capture-injuries] ${league} season=${season} 부상 0건 — af 미커버 가능`); continue; }
 
     // af 는 시즌 전체 부상 이력을 준다 — 같은 선수가 여러 fixture 로 중복된다.
     // 오늘 시점의 "현재 상태"만 남기려 선수당 가장 최근 fixture 1건으로 접는다.
