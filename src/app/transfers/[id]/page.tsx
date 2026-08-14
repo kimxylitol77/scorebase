@@ -23,6 +23,7 @@ import rawWcSquads from "../../../../data/wc-national-squads.json";
 import rawPlayerBlogLinks from "../../../../data/player-blog-links.json";
 import rawPlayerHeatmaps from "../../../../data/player-heatmap-analysis.json";
 import rawFoot from "../../../../data/player-foot.json";
+import rawContract from "../../../../data/player-contract.json";
 import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
@@ -137,7 +138,10 @@ const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
 const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 // 주급/연봉 (Capology 5대리그, fetch-football-wages.ts) — 세전 연봉 EUR.
 const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
-const FOOT = rawFoot as Record<string, string>; // 주발 (Wikidata P8006) — "L"|"R"|"B"
+const FOOT = rawFoot as Record<string, string>; // 주발 (ts preferred_foot) — "L"|"R"|"B" ("?" = ts 도 모름, 미표시)
+// 계약 만료 (ts contract_until, unix sec). 8% 가 이미 지난 날짜라 표시 전에 걸러야 한다 —
+// ts 가 이적 후에도 옛 계약을 남겨두는 경우가 있어서, 지난 값은 사실이 아니라 잔재로 본다.
+const CONTRACT = rawContract as Record<string, number>;
 // 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
 const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
@@ -1075,6 +1079,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
         foot={FOOT[id] ?? null}
+        contractUntil={CONTRACT[id] && CONTRACT[id] * 1000 > Date.now() ? CONTRACT[id] : null}
       />
 
       {/* 통산 요약 (클럽 대회 합산) — 한눈 커리어 4칸 */}

@@ -54,10 +54,15 @@ function MiniPitch({ primary, others }: { primary: PosCode; others: PosCode[] })
 
 const FOOT_KO: Record<string, string> = { L: "왼발", R: "오른발", B: "양발" };
 
+// ts contract_until 은 UTC+8 자정 기준 unix sec (전체의 99.9% 가 UTC 16:00). KST 로 읽어야
+// 만료월이 맞는다 — UTC 로 읽으면 6/30 계약이 6/29 로 하루 밀린다. 지난 계약 필터는 page 쪽.
+const contractLabel = (sec: number) =>
+  new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(sec * 1000));
+
 export default function PlayerBioPanel({
   age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
   teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur,
-  positions, posCode, foot,
+  positions, posCode, foot, contractUntil,
 }: {
   age: number | null;
   birthDate: string | null;
@@ -78,7 +83,8 @@ export default function PlayerBioPanel({
   recentChg: number | null;
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
   posCode: string | null; // coarse G/D/M/F 폴백
-  foot?: string | null; // 주발 (Wikidata P8006) — "L"|"R"|"B"
+  foot?: string | null; // 주발 (ts preferred_foot) — "L"|"R"|"B"
+  contractUntil?: number | null; // 계약 만료 (ts contract_until, unix sec) — 이미 지난 값은 page 에서 걸러 온다
 }) {
   // 구체 포지션 우선, 없으면 coarse 폴백
   const coarse = posCode ? COARSE[posCode] : null;
@@ -117,6 +123,7 @@ export default function PlayerBioPanel({
             {teamHref ? <Link href={teamHref} className="hover:underline truncate">{teamName}</Link> : <span className="truncate">{teamName}</span>}
           </span>
         </InfoCell>
+        {contractUntil != null && <InfoCell label="계약 만료">{contractLabel(contractUntil)}</InfoCell>}
         {valueEur != null && (
           <div className={`${wageEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
             <div className="text-xs text-neutral-400 mb-0.5">현재 시장가치</div>
