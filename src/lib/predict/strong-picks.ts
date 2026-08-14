@@ -52,6 +52,8 @@ export interface StrongPick {
   pick: string;
   /** 그 픽의 확신도 (0~1) */
   prob: number;
+  /** 모델이 고른 쪽의 원본 코드 — AI 패널 픽과 방향을 대조할 때 쓴다(화면 표기는 pick) */
+  side: string;
   /** 핸디캡 라인 등 부가 정보 */
   detail?: string;
 }
@@ -75,7 +77,7 @@ export function selectStrongPicks(
 
   const p1 = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
   if (m.predWinner && p1 >= STRONG_THRESHOLD["1X2"]) {
-    out.push({ market: "1X2", pick: winnerLabel(m.predWinner, homeName, awayName), prob: p1 });
+    out.push({ market: "1X2", pick: winnerLabel(m.predWinner, homeName, awayName), prob: p1, side: m.predWinner });
   }
 
   if (m.predHcPick && m.predHcProb != null && m.predHcProb >= STRONG_THRESHOLD.HANDICAP) {
@@ -85,6 +87,7 @@ export function selectStrongPicks(
       market: "HANDICAP",
       pick: `${side} 핸디캡`,
       prob: m.predHcProb,
+      side: m.predHcPick,
       detail: line != null ? `기준 ${line > 0 ? "+" : ""}${line}` : undefined,
     });
   }
@@ -97,6 +100,7 @@ export function selectStrongPicks(
         market: "OVER_UNDER",
         pick: m.predOverPick === "OVER" ? "오버" : "언더",
         prob,
+        side: m.predOverPick,
       });
     }
   }
@@ -106,6 +110,7 @@ export function selectStrongPicks(
       market: "DOUBLE_CHANCE",
       pick: dcLabel(m.predDcPick, homeName, awayName),
       prob: m.predDcProb,
+      side: m.predDcPick,
     });
   }
 
