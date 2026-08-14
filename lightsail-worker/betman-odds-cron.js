@@ -37,16 +37,31 @@ const BETMAN_HEADERS = {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function betmanPost(path, params) {
-  const { data } = await axios.post(
-    `${BETMAN_BASE}${path}`,
-    { ...params, ...SBM },
-    { headers: BETMAN_HEADERS, timeout: 120_000, maxContentLength: 50 * 1024 * 1024 },
-  );
-  if (typeof data !== "object" || data === null) {
-    // 파라미터가 틀리면 JSON 대신 에러 HTML 페이지가 온다 — 조용히 넘어가지 않게.
-    throw new Error(`betman ${path} 가 JSON 이 아닌 응답을 반환`);
+  // ⚠️ 베트맨은 **매 실행의 첫 요청**을 끊는다 (ECONNRESET). 실측 2026-08-14: 수동·정기
+  // 두 번 다 첫 시도 실패 → 30초 뒤 성공, 예외 없이 재현. 실행 전체를 다시 도는 자가치유에
+  // 맡기면 매번 30초를 버리고 회차를 통째로 다시 받는다 → 요청 단위로 짧게 재시도한다.
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const { data } = await axios.post(
+        `${BETMAN_BASE}${path}`,
+        { ...params, ...SBM },
+        { headers: BETMAN_HEADERS, timeout: 120_000, maxContentLength: 50 * 1024 * 1024 },
+      );
+      if (typeof data !== "object" || data === null) {
+        // 파라미터가 틀리면 JSON 대신 에러 HTML 페이지가 온다 — 조용히 넘어가지 않게.
+        throw new Error(`betman ${path} 가 JSON 이 아닌 응답을 반환`);
+      }
+      if (attempt > 0) console.log(`  (${path} ${attempt + 1}번째 시도에 성공)`);
+      return data;
+    } catch (e) {
+      lastErr = e;
+      // 응답이 왔는데 형식이 틀린 것(파라미터 오류)은 재시도해도 같다 — 바로 던진다.
+      if (String(e.message || "").includes("JSON 이 아닌")) throw e;
+      if (attempt < 2) await sleep(2000 * (attempt + 1));
+    }
   }
-  return data;
+  throw lastErr;
 }
 
 /** 수집 대상 회차 — 발매중(SaleProgress) 전부 + 직전 PREV_ROUNDS 개. */
