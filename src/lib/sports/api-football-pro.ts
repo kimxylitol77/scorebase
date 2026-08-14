@@ -5,7 +5,7 @@
 // 호출 절약: 시즌·리그 단위 캐시. 만료 6시간.
 
 import axios from "axios";
-import { attachAfTracking } from "@/lib/sports/af-track";
+import { attachAfTracking, rethrowApiSports } from "@/lib/sports/af-track";
 
 const BASE_URL = "https://v3.football.api-sports.io";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
@@ -352,6 +352,7 @@ export async function fetchSeasonInjuries(
     injuriesCache.set(key, { fetchedAt: Date.now(), data: arr });
     return arr;
   } catch (e) {
+    rethrowApiSports(e); // 캐시 뒤(15분) — 한도 오류를 "부상자 없음"으로 굳히지 않는다
     console.warn(
       "[api-football-pro] fetchSeasonInjuries 실패:",
       (e as Error).message,
@@ -675,6 +676,7 @@ export async function fetchSoccerPlayerProfile(
       stats,
     };
   } catch (e) {
+    rethrowApiSports(e); // 캐시 뒤(1시간) — 한도 오류를 "프로필 없음"으로 굳히지 않는다
     console.warn(
       "[api-football-pro] fetchSoccerPlayerProfile 실패:",
       (e as Error).message,
@@ -761,33 +763,30 @@ export interface InjuryFlag {
 }
 
 // 선수 부상/결장 플래그 — /injuries?player=&season=. 경기별 플래그라 소비처에서 스펠로 묶음.
+// 경력표와 같은 구조 — 시즌별 실패를 삼키면 부상 이력이 통째로 빈 채 12시간 캐시된다.
+// 동시 3개씩, 한 시즌이라도 못 받으면 부분 결과 대신 throw.
 export async function fetchPlayerInjuries(playerId: number, seasons: number[]): Promise<InjuryFlag[]> {
-  try {
-    const perSeason = await Promise.all(
-      seasons.map(async (season) => {
-        try {
-          const { data } = await client().get("/injuries", { params: { player: playerId, season } });
-          return ((data?.response ?? []) as Record<string, unknown>[]).map((r) => {
-            const fx = (r.fixture as Record<string, unknown>) ?? {};
-            const lg = (r.league as Record<string, unknown>) ?? {};
-            const pl = (r.player as Record<string, unknown>) ?? {};
-            return {
-              date: ((fx.date as string) ?? "").slice(0, 10),
-              leagueName: (lg.name as string) ?? "",
-              type: (pl.type as string) ?? "",
-              reason: (pl.reason as string) ?? "",
-            } as InjuryFlag;
-          });
-        } catch {
-          return [] as InjuryFlag[];
-        }
+  const flags: InjuryFlag[] = [];
+  for (let i = 0; i < seasons.length; i += 3) {
+    const part = await Promise.all(
+      seasons.slice(i, i + 3).map(async (season) => {
+        const { data } = await client().get("/injuries", { params: { player: playerId, season } });
+        return ((data?.response ?? []) as Record<string, unknown>[]).map((r) => {
+          const fx = (r.fixture as Record<string, unknown>) ?? {};
+          const lg = (r.league as Record<string, unknown>) ?? {};
+          const pl = (r.player as Record<string, unknown>) ?? {};
+          return {
+            date: ((fx.date as string) ?? "").slice(0, 10),
+            leagueName: (lg.name as string) ?? "",
+            type: (pl.type as string) ?? "",
+            reason: (pl.reason as string) ?? "",
+          } as InjuryFlag;
+        });
       }),
     );
-    return perSeason.flat().filter((f) => f.date);
-  } catch (e) {
-    console.warn("[api-football-pro] fetchPlayerInjuries 실패:", (e as Error).message);
-    return [];
+    flags.push(...part.flat());
   }
+  return flags.filter((f) => f.date);
 }
 
 // ===== 시즌 리그 리더보드 (LeagueLeaderBoard 용) =====

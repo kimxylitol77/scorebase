@@ -4,7 +4,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import http from "node:http";
 import axios from "axios";
-import { apiSportsError, ApiSportsError, attachAfTracking } from "./af-track";
+import { apiSportsError, ApiSportsError, attachAfTracking, rethrowApiSports } from "./af-track";
+
+test("rethrowApiSports — 한도·키 오류만 올리고 일반 오류는 통과시킨다", () => {
+  assert.throws(() => rethrowApiSports(new ApiSportsError("t", "rateLimit", "x")), /rateLimit/);
+  assert.doesNotThrow(() => rethrowApiSports(new Error("ECONNRESET")));
+  assert.doesNotThrow(() => rethrowApiSports(undefined));
+});
 
 test("errors 가 빈 배열이면 정상 — 객체면 오류", () => {
   assert.equal(apiSportsError({ errors: [], response: [1] }), null);

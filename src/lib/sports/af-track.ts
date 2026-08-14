@@ -121,6 +121,17 @@ export class ApiSportsError extends Error {
   }
 }
 
+/**
+ * catch 안에서 부른다 — api-sports 가 명시한 오류는 삼키지 말고 올린다.
+ *
+ * 네트워크 일시 오류는 빈 결과로 넘겨도 다음 호출에서 회복되지만, 한도·키 오류를 빈 결과로
+ * 넘기면 그게 캐시에 굳어 며칠씩 오답을 서빙한다(2026-08-14 경력표). 캐시 뒤에 있는
+ * 함수의 catch 는 반드시 이걸 통과시킨다.
+ */
+export function rethrowApiSports(e: unknown): void {
+  if (e instanceof ApiSportsError) throw e;
+}
+
 /** 분당 한도만 재시도 가치가 있다(일일 소진·키 오류는 기다려도 안 풀린다). */
 const DEFAULT_RETRY_WAITS_MS = [1500, 5000];
 

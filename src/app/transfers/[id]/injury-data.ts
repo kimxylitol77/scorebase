@@ -6,7 +6,8 @@ import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 
 const getCachedInjuries = unstable_cache(
   async (afId: number, seasons: number[]) => fetchPlayerInjuries(afId, seasons),
-  ["player-injuries-v1"],
+  ["player-injuries-v2"], // v1 = 한도 오류로 시즌 누락된 부분 결과가 굳어 있어 폐기
+
   { revalidate: 43200 }, // 12h — 현 부상 상태 반영
 );
 
