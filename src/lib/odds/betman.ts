@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import rawTeamMap from "../../../data/betman-team-map.json";
 
 /** 한 베팅 라인 (승무패·핸디캡·언더오버·홀짝 각각 한 줄) */
 export interface BetmanLine {
@@ -54,20 +55,26 @@ function koKey(name: string, league: string): string | null {
 }
 
 /**
+ * 베트맨 팀명 → 우리 Team.id 사전 (scripts/build-betman-team-map.ts 생성).
+ * 킥오프 시각으로 우리 경기와 대조해 만든 것이라 이름 표기 차이("한신 타이거즈" vs
+ * "타이거스")에 영향받지 않는다. 새 리그가 발매에 들어오면 스크립트를 재실행한다.
+ */
+const TEAM_MAP = rawTeamMap as Record<string, number>;
+
+/**
  * 베트맨 한글 팀명 → 우리 Team.logoUrl.
  *
- * 베트맨도 팀 id 를 주지만 우리 매핑 테이블엔 없다. 이름으로 붙이는데 표기가 갈린다 —
- * "한신 타이거즈"(베트맨) vs "한신 타이거스"(우리). 게다가 야구는 Team.name 에 한글이,
- * 축구는 nameKo 에 한글이 들어 있다. 그래서 nameKo·name·한글 사전(toKoreanTeamName)
- * 세 갈래를 후보로 두고 **로고가 유일하게 결정될 때만** 채택한다. "시카고" 처럼 컵스·
- * 화이트삭스 둘 다에 걸리는 이름은 버린다 — 틀린 로고보다 이니셜 폴백이 낫다.
- * 실측 커버리지 약 69% (2026-08-14, 고유 팀명 202개 기준).
+ * ① 사전(TEAM_MAP) 우선 — 경기 대조로 만든 정본.
+ * ② 사전에 없는 새 팀은 이름 유사 매칭으로 임시 처리하되, **로고가 유일하게 결정될 때만**
+ *    채택한다. "시카고" 처럼 컵스·화이트삭스 둘 다에 걸리는 이름은 버린다 —
+ *    틀린 로고보다 이니셜 폴백이 낫다.
  */
 async function buildLogoLookup(): Promise<(name: string) => string | null> {
   const teams = await prisma.team.findMany({
     where: { logoUrl: { not: null } },
-    select: { name: true, nameKo: true, logoUrl: true, league: true },
+    select: { id: true, name: true, nameKo: true, logoUrl: true, league: true },
   });
+  const byId = new Map(teams.map((t) => [t.id, t.logoUrl!]));
   const byKey = new Map<string, Set<string>>();
   const add = (k: string | null | undefined, logo: string) => {
     if (!k) return;
@@ -85,6 +92,11 @@ async function buildLogoLookup(): Promise<(name: string) => string | null> {
   const entries = [...byKey.entries()];
 
   return (name: string) => {
+    const mapped = TEAM_MAP[name];
+    if (mapped != null) {
+      const logo = byId.get(mapped);
+      if (logo) return logo;
+    }
     const k = norm(name);
     const exact = byKey.get(k);
     if (exact) return exact.size === 1 ? [...exact][0] : null;

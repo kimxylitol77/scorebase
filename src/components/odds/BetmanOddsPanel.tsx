@@ -13,6 +13,9 @@ const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "�
 
 const fmtOdds = (v: number | null) => (v != null && v > 0 ? v.toFixed(2) : "-");
 
+/** 베트맨 원본에 "일본_여자" 처럼 언더스코어가 섞여 온다 — 표시할 때만 공백으로 편다. */
+const teamLabel = (s: string) => s.replace(/_/g, " ");
+
 /** 배당 → 마진 제거한 내재확률(합=1). 투표 비율과 같은 축에서 비교하기 위함. */
 function impliedPct(w: number | null, d: number | null, l: number | null) {
   const iw = w && w > 0 ? 1 / w : 0;
@@ -199,7 +202,7 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
                   <div className="flex min-w-0 items-center gap-2 sm:flex-row-reverse sm:justify-start">
                     <TeamLogo url={m.homeLogo} name={m.homeName} />
                     <span className="truncate text-[14px] text-neutral-800 dark:text-neutral-100 sm:text-right">
-                      {m.homeName}
+                      {teamLabel(m.homeName)}
                     </span>
                   </div>
                   <div className="flex items-center justify-center gap-1.5 tabular-nums sm:gap-2.5">
@@ -223,7 +226,7 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
                   <div className="flex min-w-0 items-center gap-2">
                     <TeamLogo url={m.awayLogo} name={m.awayName} />
                     <span className="truncate text-[14px] text-neutral-800 dark:text-neutral-100">
-                      {m.awayName}
+                      {teamLabel(m.awayName)}
                     </span>
                   </div>
                 </div>
