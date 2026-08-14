@@ -7,6 +7,7 @@
 // 접힘/펼침은 <details>/<summary> — 상태가 하나뿐이라 client 컴포넌트로 만들 이유가 없다.
 // 펼치면 같은 경기의 핸디캡·언더오버·홀짝·승N패 라인이 나온다.
 
+import { ChevronDown } from "lucide-react";
 import type { BetmanMatch, BetmanLine } from "@/lib/odds/betman";
 
 const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구" };
@@ -187,9 +188,12 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
                   </span>
                   <span className="truncate">{m.leagueName}</span>
                   {m.lines.length > 0 && (
-                    <span className="ml-auto whitespace-nowrap text-[10px] text-neutral-400">
-                      배당 {m.lines.length}종 더
-                      <span className="ml-1 inline-block transition group-open:rotate-180">▾</span>
+                    // 펼칠 수 있다는 걸 알아볼 수 있어야 한다 — 회색 10px 로는 안 보인다.
+                    // 색 있는 알약 + 닫힘/열림 문구 교체(CSS group-open, JS 불필요).
+                    <span className="ml-auto inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-indigo-50 px-2.5 py-1 text-[12px] font-bold text-indigo-600 ring-1 ring-indigo-200 transition group-hover:bg-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-500/30 dark:group-hover:bg-indigo-500/25">
+                      <span className="group-open:hidden">핸디·오버언더 {m.lines.length}종</span>
+                      <span className="hidden group-open:inline">접기</span>
+                      <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" aria-hidden="true" />
                     </span>
                   )}
                 </div>
