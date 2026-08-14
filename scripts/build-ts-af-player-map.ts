@@ -21,30 +21,25 @@ import { toKoreanTeamName } from "../src/lib/team-names";
 const prisma = new PrismaClient();
 
 const KEY = process.env.API_FOOTBALL_KEY!;
-// season 자동 계산 — 하드코딩(2025)이 시즌 롤오버 때 안 올라가 리더보드가 지난 시즌에
-// 동결되던 원인(2026-08 분데스2 실측). 유럽형은 7월부터 새 시즌 연도, 달력형은 그 해.
-const NOW = new Date();
-const EURO_SEASON = NOW.getUTCMonth() + 1 >= 7 ? NOW.getUTCFullYear() : NOW.getUTCFullYear() - 1;
-const CAL_SEASON = NOW.getUTCFullYear();
-const LEAGUES: Record<string, { afId: number; season: number; calendar?: boolean }> = {
-  EPL: { afId: 39, season: EURO_SEASON },
-  LALIGA: { afId: 140, season: EURO_SEASON },
-  BUNDESLIGA: { afId: 78, season: EURO_SEASON },
-  LIGUE_1: { afId: 61, season: EURO_SEASON },
-  SERIE_A: { afId: 135, season: EURO_SEASON },
-  CHAMPIONSHIP: { afId: 40, season: EURO_SEASON },
-  LALIGA_2: { afId: 141, season: EURO_SEASON },
-  BUNDESLIGA_2: { afId: 79, season: EURO_SEASON },
-  SERIE_B: { afId: 136, season: EURO_SEASON },
-  LIGUE_2: { afId: 62, season: EURO_SEASON },
-  EREDIVISIE: { afId: 88, season: EURO_SEASON },
-  PRIMEIRA_LIGA: { afId: 94, season: EURO_SEASON },
-  SUPER_LIG: { afId: 203, season: EURO_SEASON },
-  SAUDI_PL: { afId: 307, season: EURO_SEASON },
-  MLS: { afId: 253, season: CAL_SEASON, calendar: true },
-  K_LEAGUE_1: { afId: 292, season: CAL_SEASON, calendar: true },
-  J1_LEAGUE: { afId: 98, season: CAL_SEASON, calendar: true },
-  BRASILEIRAO: { afId: 71, season: CAL_SEASON, calendar: true },
+const LEAGUES: Record<string, { afId: number; calendar?: boolean }> = {
+  EPL: { afId: 39 },
+  LALIGA: { afId: 140 },
+  BUNDESLIGA: { afId: 78 },
+  LIGUE_1: { afId: 61 },
+  SERIE_A: { afId: 135 },
+  CHAMPIONSHIP: { afId: 40 },
+  LALIGA_2: { afId: 141 },
+  BUNDESLIGA_2: { afId: 79 },
+  SERIE_B: { afId: 136 },
+  LIGUE_2: { afId: 62 },
+  EREDIVISIE: { afId: 88 },
+  PRIMEIRA_LIGA: { afId: 94 },
+  SUPER_LIG: { afId: 203 },
+  SAUDI_PL: { afId: 307 },
+  MLS: { afId: 253, calendar: true },
+  K_LEAGUE_1: { afId: 292, calendar: true },
+  J1_LEAGUE: { afId: 98, calendar: true },
+  BRASILEIRAO: { afId: 71, calendar: true },
 };
 interface TsStat {
   lg: string; team: string | null; pos: string | null;
@@ -91,6 +86,17 @@ async function af(path: string, retry = 3): Promise<AfPagedResponse> {
       await sleep(2000 * (i + 1));
     }
   }
+}
+
+// af 시즌 자동 해석 — 하드코딩(2025)은 롤오버 때 안 올라가고, 날짜 자동계산은 반대로
+//  개막 전 새 시즌을 집어 /players 가 전부 0을 반환한다(2026-08 실측: 빅5 current=2026
+//  이지만 coverage.players=false → 매핑이 조용히 한 건도 안 늘어남). 선수 커버가 켜진
+//  최신 시즌을 쓴다 — 개막 전이면 직전 시즌, 개막 후엔 자동으로 새 시즌.
+async function resolveSeason(afId: number): Promise<number | null> {
+  const d = await af(`/leagues?id=${afId}`);
+  const row = d.response?.[0] as { seasons?: { year: number; coverage?: { players?: boolean } }[] } | undefined;
+  const covered = (row?.seasons ?? []).filter((s) => s.coverage?.players).map((s) => s.year);
+  return covered.length ? Math.max(...covered) : null;
 }
 
 // af "L. Yamal" 축약·풀네임 모두 대응 — 성(마지막 토큰) + 첫 이니셜
@@ -253,8 +259,10 @@ async function main() {
   // 영문명 (한글 잔존자는 이름 매칭 제외 — 지문 폴백만)
   const tsEnName = new Map(nameRowsAll.filter((t) => !/[가-힣]/.test(t.name)).map((t) => [t.id, t.name]));
 
-  for (const [lg, { afId, season, calendar }] of Object.entries(LEAGUES)) {
+  for (const [lg, { afId, calendar }] of Object.entries(LEAGUES)) {
     if (ONLY.size && !ONLY.has(lg)) continue;
+    const season = await resolveSeason(afId);
+    if (season == null) { console.log(`${lg}: af 선수 커버 시즌 없음 — 스킵`); continue; }
     const seasonLabel = calendar ? String(season) : `${season}-${String((season + 1) % 100).padStart(2, "0")}`;
 
     // === ts 후보 유니버스: mv.league = lg ∪ 팀 리그 = lg (league null 선수 구제) ===
