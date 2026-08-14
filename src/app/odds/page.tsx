@@ -12,7 +12,7 @@ import NoVigCalculator from "@/components/odds/NoVigCalculator";
 import BetmanOddsPanel from "@/components/odds/BetmanOddsPanel";
 import OddsSportTabs from "@/components/odds/OddsSportTabs";
 import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
-import { getBetmanRows } from "@/lib/odds/betman";
+import { getBetmanMatches } from "@/lib/odds/betman";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -238,15 +238,15 @@ export default async function OddsPage({
   if (sp?.sport === "betman") {
     // 하루 2회 적재라 10분 캐시로 충분. 종목 구분 없이 시각순 한 목록.
     const rows = await unstable_cache(
-      () => getBetmanRows("all", 60),
-      ["odds-betman", "all"],
+      () => getBetmanMatches(60),
+      ["odds-betman-matches", "all"],
       { revalidate: 600 },
     )();
     return (
       <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
         <h1 className="text-2xl font-medium">베트맨 배당</h1>
         <OddsSportTabs sport="betman" />
-        <BetmanOddsPanel rows={rows} />
+        <BetmanOddsPanel matches={rows} />
       </div>
     );
   }
