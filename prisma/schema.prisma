@@ -14,7 +14,7 @@ datasource db {
 
 // 팀 정보
 model Team {
-  id         Int      @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   league     String // KBO | EPL | NBA | NHL | MLB | LALIGA | BUNDESLIGA | SERIE_A | LIGUE_1 | MLS | UCL | WORLD_CUP
   externalId String // 외부 API 의 팀 ID
   name       String
@@ -23,23 +23,23 @@ model Team {
   logoUrl    String?
 
   // 예측 시스템 — Elo 레이팅 (FiveThirtyEight 방식, 신규 팀 1500 시드)
-  eloRating  Float   @default(1500)
+  eloRating Float @default(1500)
 
   // 메타 정보 (cron 으로 점진 백필 — 모두 nullable)
-  country    String?  // "England" | "South Korea" | "United States" ...
-  city       String?  // "Manchester" | "Seoul" | "New York"
-  venue      String?  // 홈 구장 이름 (예: "Old Trafford")
-  founded    Int?     // 창단 연도
-  coach      String?  // 현 감독/매니저 이름
+  country String? // "England" | "South Korea" | "United States" ...
+  city    String? // "Manchester" | "Seoul" | "New York"
+  venue   String? // 홈 구장 이름 (예: "Old Trafford")
+  founded Int? // 창단 연도
+  coach   String? // 현 감독/매니저 이름
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-  homeMatches Match[] @relation("HomeTeam")
-  awayMatches Match[] @relation("AwayTeam")
+  homeMatches Match[]        @relation("HomeTeam")
+  awayMatches Match[]        @relation("AwayTeam")
   sourceIds   TeamSourceId[]
-  mmaFighter  MmaFighter?   // UFC 파이터 프로필 (league="UFC" 일 때만 1:1)
-  fans        User[]        @relation("UserFavoriteTeam") // 이 팀을 대표팀으로 고른 회원
+  mmaFighter  MmaFighter? // UFC 파이터 프로필 (league="UFC" 일 때만 1:1)
+  fans        User[]         @relation("UserFavoriteTeam") // 이 팀을 대표팀으로 고른 회원
 
   @@unique([league, externalId])
   @@index([league, eloRating])
@@ -67,20 +67,20 @@ model TeamSourceId {
 
 // 경기 정보
 model Match {
-  id         Int      @id @default(autoincrement())
-  league     String // KBO | EPL | NBA
-  externalId String // 외부 API 의 경기 ID
-  homeTeamId Int
-  awayTeamId Int
-  homeScore  Int?
-  awayScore  Int?
-  status     String // SCHEDULED | LIVE | FINISHED | POSTPONED
-  startTime  DateTime
-  raw        String? // 원본 JSON (디버깅/재가공용)
+  id                 Int      @id @default(autoincrement())
+  league             String // KBO | EPL | NBA
+  externalId         String // 외부 API 의 경기 ID
+  homeTeamId         Int
+  awayTeamId         Int
+  homeScore          Int?
+  awayScore          Int?
+  status             String // SCHEDULED | LIVE | FINISHED | POSTPONED
+  startTime          DateTime
+  raw                String? // 원본 JSON (디버깅/재가공용)
   // MMA(UFC) 결과 상세 — ESPN athlete result. 종료 시 enrich-mma-espn 이 채움. 타 종목 null.
-  resultMethod String? // "KO/TKO" | "Submission" | "Decision - Unanimous" 등 (세부 서브미션 종류는 ESPN 미제공)
-  resultRound  Int?    // 종료 라운드 (period)
-  resultClock  String? // 종료 시각 "1:34"
+  resultMethod       String? // "KO/TKO" | "Submission" | "Decision - Unanimous" 등 (세부 서브미션 종류는 ESPN 미제공)
+  resultRound        Int? // 종료 라운드 (period)
+  resultClock        String? // 종료 시각 "1:34"
   // 공식 유튜브 하이라이트 영상 ID — 경기 종료 후 fetch-youtube-highlights cron 이 적재.
   // 공식 채널 "풀 하이라이트" 재생목록에서만 매칭 (재업로드 차단). null = 카드 숨김.
   highlightYoutubeId String?
@@ -89,24 +89,24 @@ model Match {
   // 그 경기가 실제로 열리는 구장의 TheSports venue id (축구만).
   // 홈팀 기본 구장으로 추정하면 중립 경기장(UCL 결승·제재 경기 등)에서 틀린 구장·틀린 도시 날씨가 나온다.
   venueId            String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // 적중률 백테스트 — 매치 시점 기준 추정 (PREVIEW 글 유무와 무관하게 모든 매치 대상)
   // 1X2 (Money Line / 1X2)
-  predHome   Float?
-  predDraw   Float?
-  predAway   Float?
-  predWinner String? // "HOME" | "DRAW" | "AWAY"
+  predHome    Float?
+  predDraw    Float?
+  predAway    Float?
+  predWinner  String? // "HOME" | "DRAW" | "AWAY"
   predCorrect Boolean? // 매치 종료 후 actual 과 일치 여부
 
   // Double Chance (축구 전용 — 무승부 흡수형 시장)
-  predDcPick    String?  // "1X" | "X2" | "12"
+  predDcPick    String? // "1X" | "X2" | "12"
   predDcProb    Float?
   predDcCorrect Boolean?
 
   // OVER/UNDER 2.5 골 (축구 전용 — Poisson 모델 기반)
-  predOverProb    Float?  // OVER 2.5 확률
+  predOverProb    Float? // OVER 2.5 확률
   predOverPick    String? // "OVER" | "UNDER"
   predOverCorrect Boolean?
 
@@ -117,98 +117,98 @@ model Match {
 
   // 핸디캡 (Asian Handicap / Spread) — 종목별 line 다름
   // 축구 -0.5 / NBA -5.5 / NHL -1.5 / MLB -1.5
-  predHcLine     Float?
-  predHcPick     String?  // "HOME" | "AWAY" — 핸디캡 받는 쪽
-  predHcProb     Float?
-  predHcCorrect  Boolean?
+  predHcLine    Float?
+  predHcPick    String? // "HOME" | "AWAY" — 핸디캡 받는 쪽
+  predHcProb    Float?
+  predHcCorrect Boolean?
 
   // The Odds API 시장 odds (1X2, vig 제거된 implied probability)
-  marketHome      Float?
-  marketDraw      Float?
-  marketAway      Float?
-  marketUpdatedAt DateTime?
-  marketBookmakers Int?  // odds 통합한 bookmaker 수
+  marketHome        Float?
+  marketDraw        Float?
+  marketAway        Float?
+  marketUpdatedAt   DateTime?
+  marketBookmakers  Int? // odds 통합한 bookmaker 수
   // 오프닝 odds — odds cron 이 매치 첫 fetch 시 한 번만 저장. 라인 움직임 추적용.
   openingMarketHome Float?
   openingMarketDraw Float?
   openingMarketAway Float?
   openingCapturedAt DateTime?
   // Value Bet — 우리 모델 prob > 시장 prob + 5%p
-  valueGap        Float?  // model_pred - market_pred (양수 = 모델이 시장보다 자신감 큼)
-  isValueBet      Boolean? // 5%p 이상 차이 + 모델 pick 와 같은 outcome
+  valueGap          Float? // model_pred - market_pred (양수 = 모델이 시장보다 자신감 큼)
+  isValueBet        Boolean? // 5%p 이상 차이 + 모델 pick 와 같은 outcome
 
   // Raw decimal odds (베팅사이트 평균, vig 미제거 — 표시용)
-  oddsHome        Float?  // 1X2 home 배당
-  oddsDraw        Float?  // 1X2 draw
-  oddsAway        Float?  // 1X2 away
-  oddsTotalLine   Float?  // OVER/UNDER 기준선 (예: 2.5)
-  oddsOver        Float?  // OVER 배당
-  oddsUnder       Float?  // UNDER 배당
-  oddsHcLine      Float?  // 시장 핸디캡 line (강팀 -line)
-  oddsHcHome      Float?  // 핸디캡 home 배당
-  oddsHcAway      Float?  // 핸디캡 away 배당
-  oddsBttsYes     Float?  // BTTS YES 배당 (축구)
-  oddsBttsNo      Float?  // BTTS NO 배당
-  oddsDc1X        Float?  // 더블 찬스 홈승 OR 무
-  oddsDc12        Float?  // 더블 찬스 홈승 OR 원정승 (무 제외)
-  oddsDcX2        Float?  // 더블 찬스 무 OR 원정승
+  oddsHome       Float? // 1X2 home 배당
+  oddsDraw       Float? // 1X2 draw
+  oddsAway       Float? // 1X2 away
+  oddsTotalLine  Float? // OVER/UNDER 기준선 (예: 2.5)
+  oddsOver       Float? // OVER 배당
+  oddsUnder      Float? // UNDER 배당
+  oddsHcLine     Float? // 시장 핸디캡 line (강팀 -line)
+  oddsHcHome     Float? // 핸디캡 home 배당
+  oddsHcAway     Float? // 핸디캡 away 배당
+  oddsBttsYes    Float? // BTTS YES 배당 (축구)
+  oddsBttsNo     Float? // BTTS NO 배당
+  oddsDc1X       Float? // 더블 찬스 홈승 OR 무
+  oddsDc12       Float? // 더블 찬스 홈승 OR 원정승 (무 제외)
+  oddsDcX2       Float? // 더블 찬스 무 OR 원정승
   // 배당업체별 배당 (oddsportal 스타일 드롭다운용). fetch-odds 가 The Odds events 의 bookmakers 를 그대로 저장.
   // 구조: { updatedAt: number, books: [{ nm, h, d, a, tl?, ov?, un?, hl?, hh?, ha? }] } — nm=업체명, h/d/a=1X2, tl/ov/un=오버언더, hl/hh/ha=핸디캡.
-  oddsBookmakers  Json?
+  oddsBookmakers Json?
 
   // API-Football Pro 통합 (축구만)
-  apiFixtureId    Int?     // api-football fixture ID — 한 번 매칭 후 재사용
-  lineupHome      String?  // 라인업 JSON (formation, startXI, coach)
+  apiFixtureId    Int? // api-football fixture ID — 한 번 매칭 후 재사용
+  lineupHome      String? // 라인업 JSON (formation, startXI, coach)
   lineupAway      String?
   lineupUpdatedAt DateTime?
-  fixtureStats    String?  // 슛/패스/점유율 등 JSON ([{teamId, ...}, ...])
+  fixtureStats    String? // 슛/패스/점유율 등 JSON ([{teamId, ...}, ...])
   // API-Football 자체 예측 (third opinion)
   apiPredHome     Float?
   apiPredDraw     Float?
   apiPredAway     Float?
-  apiPredWinner   String?  // "HOME" | "DRAW" | "AWAY"
-  apiPredAdvice   String?  // raw advice text (예: "Combo : Tottenham or draw and -2.5 goals")
+  apiPredWinner   String? // "HOME" | "DRAW" | "AWAY"
+  apiPredAdvice   String? // raw advice text (예: "Combo : Tottenham or draw and -2.5 goals")
   apiPredCorrect  Boolean?
 
   // MLB Stats API — 선발 투수 (MLB 만, 매치 직전 publish)
   // 한 줄 JSON 으로 저장 — { name, pid, era, whip, k9, wins, losses, gs, ip, hand,
   //                       recentEra, recentIp, recentPitches(최근 3등판 폼) }
-  homeStarter        String?
-  awayStarter        String?
-  startersUpdatedAt  DateTime?
+  homeStarter       String?
+  awayStarter       String?
+  startersUpdatedAt DateTime?
 
   // MLB 불펜 피로도 — 팀별 최근 3일 불펜(선발 제외) 투구수 집계 (MLB 만)
   // JSON: { pitches3d, appearances3d, games3d, asOf }
-  homeBullpen        String?
-  awayBullpen        String?
+  homeBullpen String?
+  awayBullpen String?
 
   // NHL 공식 API — 시작 골리 (NHL 만)
   // JSON: { pid, name, gaa, savePctg, wins, losses, otLosses, gamesPlayed, shutouts }
-  homeGoalie         String?
-  awayGoalie         String?
-  goaliesUpdatedAt   DateTime?
+  homeGoalie       String?
+  awayGoalie       String?
+  goaliesUpdatedAt DateTime?
 
   // 플레이오프 라운드 메타 (NBA — TheSports stage 라벨). 브라켓 그룹화 키.
   // round: FIRST_ROUND | CONF_SEMIS | CONF_FINALS | FINALS, conference: EAST | WEST | null
-  playoffRound       String?
-  playoffConference  String?
-  playoffStageId     String?  // TheSports stage_id (시리즈 그룹 안정 키)
+  playoffRound      String?
+  playoffConference String?
+  playoffStageId    String? // TheSports stage_id (시리즈 그룹 안정 키)
 
   // LoL 인게임 (TheSports) — 세트별 스코어보드·골드추이. externalId=BDL id 라 ts 매치 id 별도 저장해 매칭.
-  lolGames      String?   // JSON: 세트별 선수보드·economy_lines·이벤트 (이름·로고 임베드)
-  lolTsMatchId  String?   // TheSports lol match uuid (인게임 조회·매칭 키)
+  lolGames     String? // JSON: 세트별 선수보드·economy_lines·이벤트 (이름·로고 임베드)
+  lolTsMatchId String? // TheSports lol match uuid (인게임 조회·매칭 키)
 
-  homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  articles Article[]
-  posts    Post[]
-  theSportsCache TheSportsMatchCache?
-  oddsSnapshots  OddsSnapshot[]
-  oddsBookSnapshots OddsBookSnapshot[]
-  tsBaseballOdds TsBaseballOddsHistory[]
-  liveCommentary LiveCommentary?
-  matchStats     MatchStats?
-  aiPredictions  AiPrediction[]
+  homeTeam                   Team                        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam                   Team                        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  articles                   Article[]
+  posts                      Post[]
+  theSportsCache             TheSportsMatchCache?
+  oddsSnapshots              OddsSnapshot[]
+  oddsBookSnapshots          OddsBookSnapshot[]
+  tsBaseballOdds             TsBaseballOddsHistory[]
+  liveCommentary             LiveCommentary?
+  matchStats                 MatchStats?
+  aiPredictions              AiPrediction[]
   predictionContextSnapshots PredictionContextSnapshot[]
   predictionPostmortems      PredictionPostmortem[]
 
@@ -223,17 +223,17 @@ model Match {
 model AiPrediction {
   id          Int      @id @default(autoincrement())
   matchId     Int
-  model       String   // "scorebase"(우리 통계모델) | GPT 모델 버전(예: "gpt-5.6")
-  market      String   // "1X2" | "HANDICAP" | "OU"
-  pick        String   // 1X2:"HOME"|"DRAW"|"AWAY" · HANDICAP:"HOME"|"AWAY" · OU:"OVER"|"UNDER"
-  prob        Float    // 픽 확률 0~1
-  line        Float?   // HANDICAP/OU 채점 기준선 (홈 핸디 또는 총점 라인) — 양 모델 동일 라인으로 채점
-  reason      String?  // GPT 한줄 근거 (있으면)
+  model       String // "scorebase"(우리 통계모델) | GPT 모델 버전(예: "gpt-5.6")
+  market      String // "1X2" | "HANDICAP" | "OU"
+  pick        String // 1X2:"HOME"|"DRAW"|"AWAY" · HANDICAP:"HOME"|"AWAY" · OU:"OVER"|"UNDER"
+  prob        Float // 픽 확률 0~1
+  line        Float? // HANDICAP/OU 채점 기준선 (홈 핸디 또는 총점 라인) — 양 모델 동일 라인으로 채점
+  reason      String? // GPT 한줄 근거 (있으면)
   correct     Boolean? // 경기 종료 후 actual 과 일치 여부 (null = 미채점)
   published   Boolean  @default(true) // false = 발행 게이트 차단(publish-gate.ts). 저장·채점은 유지, 회원 노출·성적표만 제외
   predictedAt DateTime @default(now())
 
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  match      Match                 @relation(fields: [matchId], references: [id], onDelete: Cascade)
   postmortem PredictionPostmortem?
 
   @@unique([matchId, model, market])
@@ -244,12 +244,12 @@ model AiPrediction {
 /// AI 픽이 생성된 순간의 경기 전 정보. 경기 종료 후 값으로 덮어쓰지 않는 내부 감사 로그.
 /// 같은 경기·모델의 1X2/HANDICAP/OU 는 동일한 컨텍스트를 공유한다.
 model PredictionContextSnapshot {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   matchId    Int
   model      String
-  stage      String   @default("PREDICTION") // 현재는 PREDICTION, 향후 LINEUP/KICKOFF 확장 가능
+  stage      String    @default("PREDICTION") // 현재는 PREDICTION, 향후 LINEUP/KICKOFF 확장 가능
   context    Json
-  capturedAt DateTime @default(now())
+  capturedAt DateTime  @default(now())
   reviewedAt DateTime?
 
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
@@ -263,20 +263,20 @@ model PredictionContextSnapshot {
 /// 종료 경기의 예측 품질·오답 원인 분석. 관리자 화면과 모델 개선 검증에만 사용한다.
 /// 정답 행도 위험 신호를 함께 저장해야 PASS 필터가 버릴 정답 수까지 백테스트할 수 있다.
 model PredictionPostmortem {
-  id             Int      @id @default(autoincrement())
-  predictionId   Int      @unique
-  matchId        Int
-  model          String
-  market         String
-  correct        Boolean
-  primaryCause   String
-  actionable     Boolean  @default(false)
-  severity       String   @default("INFO")
-  dataQuality    Int
-  marketMovePp   Float?
-  ruleVersion    String   @default("v1")
-  evidence       Json
-  analyzedAt     DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  predictionId Int      @unique
+  matchId      Int
+  model        String
+  market       String
+  correct      Boolean
+  primaryCause String
+  actionable   Boolean  @default(false)
+  severity     String   @default("INFO")
+  dataQuality  Int
+  marketMovePp Float?
+  ruleVersion  String   @default("v1")
+  evidence     Json
+  analyzedAt   DateTime @default(now())
 
   prediction AiPrediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
   match      Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
@@ -348,8 +348,8 @@ model ActivePresence {
   tabId       String   @id
   sessionId   String
   path        String
-  visibility  String   // visible | hidden
-  section     String   // scores | live | other
+  visibility  String // visible | hidden
+  section     String // scores | live | other
   host        String?
   userAgent   String?
   firstSeenAt DateTime @default(now())
@@ -363,7 +363,7 @@ model ActivePresence {
 // 공지사항 / 패치노트 / 메인터넌스 안내
 model Notice {
   id          Int      @id @default(autoincrement())
-  type        String   // "CHANGELOG" | "NOTICE" | "MAINTENANCE"
+  type        String // "CHANGELOG" | "NOTICE" | "MAINTENANCE"
   title       String
   slug        String   @unique
   content     String // Markdown
@@ -379,10 +379,10 @@ model Blog {
   id           Int      @id @default(autoincrement())
   title        String
   slug         String   @unique
-  excerpt      String?  // meta description / 목록 한 줄 소개
-  content      String   // Markdown 본문
-  tags         String?  // 쉼표 구분 키워드 (SEO meta keywords)
-  thumbnailUrl String?  // OG image / 목록 썸네일
+  excerpt      String? // meta description / 목록 한 줄 소개
+  content      String // Markdown 본문
+  tags         String? // 쉼표 구분 키워드 (SEO meta keywords)
+  thumbnailUrl String? // OG image / 목록 썸네일
   publishedAt  DateTime @default(now())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -395,10 +395,10 @@ model Blog {
 // /api/internal/threads-queue 가 이 테이블을 보고 "아직 안 올린 것"만 큐에 넣는다.
 model ThreadsPost {
   id             Int      @id @default(autoincrement())
-  kind           String   // "DAILY_MATCHES" | "BLOG"
-  refKey         String   // dedup 키: 오늘경기 = "YYYY-MM-DD"(KST), 블로그 = "blog-{id}"
-  threadsMediaId String?  // 발행된 Threads media id (감사 / 퍼머링크용)
-  text           String?  // 실제 올린 caption (감사용)
+  kind           String // "DAILY_MATCHES" | "BLOG"
+  refKey         String // dedup 키: 오늘경기 = "YYYY-MM-DD"(KST), 블로그 = "blog-{id}"
+  threadsMediaId String? // 발행된 Threads media id (감사 / 퍼머링크용)
+  text           String? // 실제 올린 caption (감사용)
   postedAt       DateTime @default(now())
 
   @@unique([kind, refKey]) // ← 같은 콘텐츠 재발행 차단
@@ -421,24 +421,24 @@ model Article {
 
   // PREVIEW 한정: 글 작성 시점에 추정한 승률 + 가장 높은 확률의 결과
   // (적중률 통계용 — match 종료 후 evaluate 잡이 actualWinner/correct 채움)
-  predHome    Float?    // 0~1
-  predDraw    Float?    // 0~1
-  predAway    Float?    // 0~1
-  predWinner  String?   // "HOME" | "DRAW" | "AWAY"
+  predHome    Float? // 0~1
+  predDraw    Float? // 0~1
+  predAway    Float? // 0~1
+  predWinner  String? // "HOME" | "DRAW" | "AWAY"
   evaluatedAt DateTime?
-  correct     Boolean?  // null = 미평가, true/false = 평가됨
+  correct     Boolean? // null = 미평가, true/false = 평가됨
 
   // 본문=위젯 단일 소스 — 글 작성 시점 Elo·시즌 승점 스냅샷 (predHome 과 동일 취지).
   // 위젯(MatchInsight EloMeter·TeamMatchup)이 이 값 우선 사용해 본문과 100% 일치.
   // 없으면(기존 글) 렌더 시점 실시간 재계산 fallback. 신규 글부터 채워짐.
   eloHome          Float? // 글 시점 홈 Elo
   eloAway          Float? // 글 시점 원정 Elo
-  homeSeasonPoints Int?   // 글 시점 홈 시즌 누적 승점
-  awaySeasonPoints Int?   // 글 시점 원정 시즌 누적 승점
+  homeSeasonPoints Int? // 글 시점 홈 시즌 누적 승점
+  awaySeasonPoints Int? // 글 시점 원정 시즌 누적 승점
 
   // LoL RECAP 전용 — 게임별 MVP/LVP·타임라인·시즌·다음 매치·Quote 카드 데이터.
   // 페이지에서 JSON.parse 후 카드 컴포넌트에 prop 으로 전달.
-  lolContext  String?   // JSON serialized LolRecapContext
+  lolContext String? // JSON serialized LolRecapContext
 
   // 야구(KBO/MLB/NPB) PREVIEW/RECAP — 이닝별 득점 확률 + 총 예상 득점 + 모델
   // 승률 (Poisson + Skellam). 페이지에서 JSON.parse 후 InningScoreChart 렌더.
@@ -458,19 +458,19 @@ model Article {
 // ERA·홈런·타율 (야구) 등. cron 이 매일 fetch 해서 upsert.
 model LeagueLeader {
   id           Int      @id @default(autoincrement())
-  league       String   // EPL · LALIGA · NBA · KBO · NPB · MLB · NHL · LOL ...
-  category     String   // GOAL · ASSIST · YELLOW · RED · PTS · AST · REB · ERA · BA · HR · K · SAVE · KDA · CS ...
-  rank         Int      // 1 시작
-  playerName   String   // 표시용 (한글 변환 시도)
-  playerNameEn String?  // 원문 (영문)
-  externalId   String?  // 외부 API 의 player id (선수 페이지 link 용)
-  teamName     String   // 표시용
+  league       String // EPL · LALIGA · NBA · KBO · NPB · MLB · NHL · LOL ...
+  category     String // GOAL · ASSIST · YELLOW · RED · PTS · AST · REB · ERA · BA · HR · K · SAVE · KDA · CS ...
+  rank         Int // 1 시작
+  playerName   String // 표시용 (한글 변환 시도)
+  playerNameEn String? // 원문 (영문)
+  externalId   String? // 외부 API 의 player id (선수 페이지 link 용)
+  teamName     String // 표시용
   teamShort    String?
-  value        Float    // 골수 · 도움 · 카드 · ERA · 타율 등
-  unit         String?  // "득점" · "도움" · "ERA" 등 짧은 라벨 (UI 표시용)
-  appearances  Int?     // 출장수 (축구) / 경기수 (야구 등)
-  photoUrl     String?  // 선수 사진 (외부 API 제공 시)
-  season       String   // "2025-26" (축구) · "2026" (야구 등)
+  value        Float // 골수 · 도움 · 카드 · ERA · 타율 등
+  unit         String? // "득점" · "도움" · "ERA" 등 짧은 라벨 (UI 표시용)
+  appearances  Int? // 출장수 (축구) / 경기수 (야구 등)
+  photoUrl     String? // 선수 사진 (외부 API 제공 시)
+  season       String // "2025-26" (축구) · "2026" (야구 등)
   fetchedAt    DateTime @default(now())
 
   @@unique([league, category, rank, season])
@@ -481,18 +481,18 @@ model LeagueLeader {
 // TheSports.com football match cache — Lightsail worker 가 1분 주기 fetch.
 // detail_live (stats·incidents·tlive), lineup/detail (formation·선수 list), analysis (h2h·goal_distribution) 셋을 JSON 으로 저장.
 model TheSportsMatchCache {
-  id          Int      @id @default(autoincrement())
-  matchId     Int      @unique
-  tsMatchId   String
-  detailLive  Json?
-  lineup      Json?
-  analysis    Json?
+  id            Int      @id @default(autoincrement())
+  matchId       Int      @unique
+  tsMatchId     String
+  detailLive    Json?
+  lineup        Json?
+  analysis      Json?
   /// Match team statistics — /v1/football/match/team_stats/list 의 stats[] (home + away named fields).
   /// 2026-05-20 추가, worker v3 1분 주기 push.
-  teamStats   Json?
+  teamStats     Json?
   /// Match player statistics — /v1/football/match/player_stats/list 의 player_stats[].
   /// 선수별 boxscore (goals/shots/passes/...).
-  playerStats Json?
+  playerStats   Json?
   /// Match team half-time statistics — /v1/football/match/half/team_stats/list 응답.
   /// 구조: { p1: { stat_type_id: [home, away] }, p2: { ... } }
   /// 전반 점수 (p1 의 goals stat_type_id) + 전반 슛/점유 등 표시 용도.
@@ -500,19 +500,19 @@ model TheSportsMatchCache {
   halfTeamStats Json?
   /// 경기 환경(날씨) — match/diary 의 environment {weather, temperature, humidity, wind, pressure}.
   /// football-match-collector(1h) 가 thesports-matches route 경유로 채움. 라이브 상세 날씨 표시용.
-  environment Json?
+  environment   Json?
   /// Match momentum trend — /v1/football/match/trend/detail 응답.
   /// 구조: { count, per, data: [[전반 분당 값], [후반 분당 값]] }
   /// 값 -100~+100 (home 양수, away 음수, 1분 단위 momentum).
   /// 2026-05-25 추가, Lightsail football-poller v3+ 5분 cycle 갱신.
-  trend       Json?
+  trend         Json?
   /// 골 장면 — /v1/football/match/goal/line/detail 응답 results.
   /// 골별 [{number, time, goal_x, goal_y, own_goal, pass:[{belong,x,y,shooter,assist,player_id,shirt_number}], goalkeeper}].
   /// 슈터/어시 full-field 좌표(0~100)+빌드업 패스 시퀀스. football-incidents-backfill worker 가 incidents 와 함께 채움.
-  goalLine    Json?
-  fetchedAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  goalLine      Json?
+  fetchedAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([tsMatchId])
 }
@@ -521,11 +521,11 @@ model TheSportsMatchCache {
 /// Lightsail worker 가 1시간 주기로 POST /api/internal/thesports-standings 로 갱신.
 /// Vercel serverless IP 가 ts whitelist 미포함이라 page server-side fetch 불가 → DB 우회.
 model TheSportsStandingsCache {
-  league      String   @id              // 우리 league code (EPL, LALIGA, ...)
-  tsSeasonId  String                    // ts season uuid
-  payload     Json                      // {promotions, tables} — TSFootballSeasonStandingsResponse.results
-  fetchedAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  league     String   @id // 우리 league code (EPL, LALIGA, ...)
+  tsSeasonId String // ts season uuid
+  payload    Json // {promotions, tables} — TSFootballSeasonStandingsResponse.results
+  fetchedAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 /// 리그별 "현재 시즌"의 단일 진실 — 리그의 고정 정보(tournament id)와 매년 바뀌는 시즌 정보를 분리한다.
@@ -689,23 +689,23 @@ model BasketballStandingsCache {
 /// 승패·득실은 기존 Match(calcStandings)로도 계산되므로 여기선 레이트 스탯(ERA/OPS/AVG/...)이 핵심.
 model BaseballTeamSeasonStats {
   id          Int      @id @default(autoincrement())
-  league      String   // MLB | KBO | NPB
-  season      String   // "2026"
-  teamName    String   // 정규화된 한글 팀명 (join key)
+  league      String // MLB | KBO | NPB
+  season      String // "2026"
+  teamName    String // 정규화된 한글 팀명 (join key)
   teamNameEn  String?
-  externalId  String?  // 소스 native team id (있으면)
+  externalId  String? // 소스 native team id (있으면)
   games       Int      @default(0)
   wins        Int      @default(0)
   losses      Int      @default(0)
   draws       Int      @default(0)
   // 타격
-  avg         Float?   // 팀 타율
+  avg         Float? // 팀 타율
   ops         Float?
-  homeRuns    Int?     // 홈런
-  stolenBases Int?     // 도루
-  runs        Int?     // 득점
+  homeRuns    Int? // 홈런
+  stolenBases Int? // 도루
+  runs        Int? // 득점
   // 투구
-  era         Float?   // 평균자책점
+  era         Float? // 평균자책점
   whip        Float?
   fetchedAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -718,24 +718,24 @@ model BaseballTeamSeasonStats {
 /// cron 이 팀별 로스터(또는 규정타석 충족 타자) upsert. 선수명/사진은 player 페이지 link.
 model BaseballPlayerSeasonStats {
   id           Int      @id @default(autoincrement())
-  league       String   // MLB | KBO | NPB
+  league       String // MLB | KBO | NPB
   season       String
-  teamName     String   // 정규화 한글 팀명 (match 팀과 join)
-  playerName   String   // 한글 표시명
+  teamName     String // 정규화 한글 팀명 (match 팀과 join)
+  playerName   String // 한글 표시명
   playerNameEn String?
-  externalId   String?  // player id (사진/선수페이지 link)
+  externalId   String? // player id (사진/선수페이지 link)
   // 타격
-  avg          Float?   // 타율
-  hits         Int?     // 안타
-  rbi          Int?     // 타점
+  avg          Float? // 타율
+  hits         Int? // 안타
+  rbi          Int? // 타점
   ops          Float?
   homeRuns     Int?
-  games        Int?     // 출장
+  games        Int? // 출장
   // 투구 (KBO 투수 백분위용 — 투수 row 는 타격 컬럼 null)
   era          Float?
   whip         Float?
-  ip           Float?   // 이닝 (십진 변환: "104 1/3" → 104.333)
-  so           Int?     // 탈삼진
+  ip           Float? // 이닝 (십진 변환: "104 1/3" → 104.333)
+  so           Int? // 탈삼진
   wins         Int?
   losses       Int?
   saves        Int?
@@ -749,10 +749,10 @@ model BaseballPlayerSeasonStats {
 /// Vercel cron 이 매 10분 lastAt 체크 — 30분+ 무응답 시 텔레그램 알림.
 /// 다중 워커 식별 위해 name 을 PK 로 사용 (ex: "mac-mini-match-narrator").
 model BotHeartbeat {
-  name       String    @id              // 워커 식별자
-  lastAt     DateTime  @default(now())  // 마지막 ping
-  metadata   Json?                      // 호스트명, 버전, 부가 정보
-  notifiedAt DateTime?                  // 마지막 down 알림 발송 시각 (중복 알림 방지)
+  name       String    @id // 워커 식별자
+  lastAt     DateTime  @default(now()) // 마지막 ping
+  metadata   Json? // 호스트명, 버전, 부가 정보
+  notifiedAt DateTime? // 마지막 down 알림 발송 시각 (중복 알림 방지)
   createdAt  DateTime  @default(now())
 
   @@index([lastAt])
@@ -766,10 +766,10 @@ model BotHeartbeat {
 /// 2026-08-09 한도 소진 사고 때 소비처를 코드만으로 특정하지 못해 신설.
 /// 호출마다 row 를 쌓지 않고 (tag, hour) 버킷에 누적 upsert 한다.
 model AfUsageStat {
-  tag          String   // 호출 지점 태그 (예: "live-all", "cron:collect", "page:teams")
+  tag          String // 호출 지점 태그 (예: "live-all", "cron:collect", "page:teams")
   hour         DateTime // UTC 시간 버킷 (정시로 내림)
   calls        Int      @default(0)
-  minRemaining Int?     // 그 버킷에서 관측한 최소 잔량 (응답 헤더 기준)
+  minRemaining Int? // 그 버킷에서 관측한 최소 잔량 (응답 헤더 기준)
   updatedAt    DateTime @updatedAt
 
   @@id([tag, hour])
@@ -777,12 +777,12 @@ model AfUsageStat {
 }
 
 model CronRun {
-  name       String    @id              // cron 식별자 (vercel path 기준)
-  lastRunAt  DateTime  @default(now())  // 마지막 실행 시각 (성공·실패 무관 — 실행되면 갱신)
-  lastOk     Boolean   @default(true)   // 마지막 실행 성공 여부
-  lastCount  Int?                       // 처리 건수 (0 이어도 실행은 됨 — 비수기 구분용)
-  lastError  String?                    // 실패 시 메시지
-  notifiedAt DateTime?                  // 마지막 stale/실패 알림 시각 (중복 알림 방지)
+  name       String    @id // cron 식별자 (vercel path 기준)
+  lastRunAt  DateTime  @default(now()) // 마지막 실행 시각 (성공·실패 무관 — 실행되면 갱신)
+  lastOk     Boolean   @default(true) // 마지막 실행 성공 여부
+  lastCount  Int? // 처리 건수 (0 이어도 실행은 됨 — 비수기 구분용)
+  lastError  String? // 실패 시 메시지
+  notifiedAt DateTime? // 마지막 stale/실패 알림 시각 (중복 알림 방지)
   createdAt  DateTime  @default(now())
 }
 
@@ -791,8 +791,8 @@ model CronRun {
 /// 후보 2 — matchSummary: 매치 진행 상황 박스 (3-4문장, ~5분 주기 갱신).
 /// 매치당 1 row, Mac mini worker 가 POST /api/internal/live-commentary 로 upsert.
 model LiveCommentary {
-  matchId       Int      @id
-  league        String                              // index — 리그별 dashboard 필터
+  matchId       Int       @id
+  league        String // index — 리그별 dashboard 필터
   /// 이벤트별 1줄 (JSON array): [{key, comment, at}, ...]
   /// key = 이벤트 고유 해시 (예: "goal-78-rashford-home")
   eventComments Json?
@@ -803,10 +803,10 @@ model LiveCommentary {
   /// 마지막 요약 생성 시점 컨텍스트 ("2:1 78'" 등) — UI 표시 + stale 판단용
   scoreSnapshot String?
   /// 생성 모델 (변경 시 추적). ex) "ollama-qwen2.5-14b" / "claude-sonnet-4-5"
-  model         String   @default("ollama-qwen2.5-14b")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  model         String    @default("ollama-qwen2.5-14b")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  match         Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([league, updatedAt])
 }
@@ -814,13 +814,13 @@ model LiveCommentary {
 /// 데일리 health-check 봇 결과. 매일 06:30 KST cron 이 약 15개 체크 함수 실행 → row insert.
 /// severity HIGH 발견 시 텔레그램 알림. /admin/health 페이지에서 시각화.
 model HealthCheck {
-  id        Int      @id @default(autoincrement())
-  runAt     DateTime @default(now())          // 체크 실행 시각
-  severity  String                              // "HIGH" | "MED" | "LOW" | "OK"
-  category  String                              // 체크 카테고리 (season-label · match-count · accuracy 등)
-  key       String                              // 세부 키 (예: "NHL" / "MLB" / "EPL")
-  message   String                              // 사람이 읽을 메시지 (예: "NHL 리더보드 시즌 = 2026-27 (미래 시즌)")
-  metadata  Json?                               // 자유 데이터 (실제 값 · 기대 값 · 카운트 등)
+  id       Int      @id @default(autoincrement())
+  runAt    DateTime @default(now()) // 체크 실행 시각
+  severity String // "HIGH" | "MED" | "LOW" | "OK"
+  category String // 체크 카테고리 (season-label · match-count · accuracy 등)
+  key      String // 세부 키 (예: "NHL" / "MLB" / "EPL")
+  message  String // 사람이 읽을 메시지 (예: "NHL 리더보드 시즌 = 2026-27 (미래 시즌)")
+  metadata Json? // 자유 데이터 (실제 값 · 기대 값 · 카운트 등)
 
   @@index([runAt])
   @@index([severity, runAt])
@@ -831,14 +831,14 @@ model HealthCheck {
 /// /api/live/* route 가 fetchLiveOdds 후 자동 upsert (1분 1 row, 같은 분 중복 skip).
 /// 사용처: 매치 디테일 페이지 sparkline + /value-bets 페이지 + line movement 분석.
 model OddsSnapshot {
-  id          Int      @id @default(autoincrement())
-  matchId     Int                                  // 우리 Match.id
-  fetchedAt   DateTime @default(now())             // snapshot 시각 (분 단위 unique)
-  homeOdds    Float                                // h2h home decimal odds (평균)
-  drawOdds    Float?                               // h2h draw (축구만, 야구/농구는 null)
-  awayOdds    Float
-  bookmakers  Int                                  // 평균에 들어간 북메이커 수
-  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  matchId    Int // 우리 Match.id
+  fetchedAt  DateTime @default(now()) // snapshot 시각 (분 단위 unique)
+  homeOdds   Float // h2h home decimal odds (평균)
+  drawOdds   Float? // h2h draw (축구만, 야구/농구는 null)
+  awayOdds   Float
+  bookmakers Int // 평균에 들어간 북메이커 수
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([matchId, fetchedAt])
   @@index([fetchedAt])
@@ -894,12 +894,12 @@ model BookClosingOdds {
 model TsBaseballOddsHistory {
   id        BigInt   @id @default(autoincrement())
   matchId   Int
-  companyId String           // 예: "2" (Bet365). source 분리 위해 raw 보존.
-  kind      String           // "eu" | "asia" | "bs"
-  ts        Int              // unix sec — TheSports 응답의 첫 컬럼
-  v1        Float            // eu: home / asia: home / bs: over
-  mid       Float?           // eu: draw (야구는 0) / asia: handicap line / bs: total line
-  v2        Float            // eu: away / asia: away / bs: under
+  companyId String // 예: "2" (Bet365). source 분리 위해 raw 보존.
+  kind      String // "eu" | "asia" | "bs"
+  ts        Int // unix sec — TheSports 응답의 첫 컬럼
+  v1        Float // eu: home / asia: home / bs: over
+  mid       Float? // eu: draw (야구는 0) / asia: handicap line / bs: total line
+  v2        Float // eu: away / asia: away / bs: under
   status    Int      @default(0)
   createdAt DateTime @default(now())
   match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
@@ -914,18 +914,20 @@ model TsBaseballOddsHistory {
 /// Lightsail worker (ts-baseball-players-cron) 가 매일 1회 team 별 player/list iterate 후 upsert.
 /// nameKo 는 적재 시점에 toKoreanPlayerName 으로 한 번 계산 (dictionary 매칭 안 되면 영문).
 model TheSportsPlayer {
-  id        String   @id              // ts player id (해시)
-  name      String                    // 영문 풀네임 (ts player.name)
-  nameKo    String?                   // toKoreanPlayerName 결과, dictionary miss 시 null
-  shortName String?                   // ts player.short_name (lastname only 일 때 많음)
-  teamId    String?                   // ts team_id — 팀 변경 시 갱신
-  sport     String                    // "KBO" | "NPB" | "MLB"
-  position  String?                   // ts position (P/C/1B/...)
-  shirtNumber Int?                    // 등번호 — 야구 ts team/squad/list 주간 sync (sync-baseball-squads)
-  /** 선수 사진 URL. KBO: KBO_IMAGE/person/middle/{year}/{P_ID}.jpg, NPB: npb.jp/players_photo, MLB: mlbstatic headshot */
-  photoUrl  String?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  id          String   @id // ts player id (해시)
+  name        String // 영문 풀네임 (ts player.name)
+  nameKo      String? // toKoreanPlayerName 결과, dictionary miss 시 null
+  shortName   String? // ts player.short_name (lastname only 일 때 많음)
+  teamId      String? // ts team_id — 팀 변경 시 갱신
+  sport       String // "KBO" | "NPB" | "MLB"
+  position    String? // ts position (P/C/1B/...)
+  shirtNumber Int? // 등번호 — 야구 ts team/squad/list 주간 sync (sync-baseball-squads)
+  /**
+   * 선수 사진 URL. KBO: KBO_IMAGE/person/middle/{year}/{P_ID}.jpg, NPB: npb.jp/players_photo, MLB: mlbstatic headshot
+   */
+  photoUrl    String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 
   @@index([sport, teamId])
 }
@@ -935,49 +937,49 @@ model TheSportsPlayer {
 ///   - 전적(W-L-D) 은 api-sports /fighters 응답에 없음 → 미수집 (후속 별도 소스).
 /// nameKo 는 build-ufc-fighter-names-haiku.ts 가 Claude haiku 로 음역 후 채움 (miss 시 null).
 model MmaFighter {
-  id          Int      @id @default(autoincrement())
-  teamId      Int      @unique          // Team(league="UFC").id 와 1:1
-  apiSportsId Int?                       // api-sports MMA fighter id
-  name        String                     // 영문 풀네임 (Team.name 미러)
-  nameKo      String?                    // haiku 음역 결과, dictionary miss 시 null
-  nickname    String?                    // 별명 (예: "The Eagle")
-  gender      String?                    // "M" | "F"
-  category    String?                    // 체급 (예: "Welterweight")
-  height      String?                    // 신장 (예: "5' 10")
-  weight      String?                    // 체중 (예: "170 lbs")
-  reach       String?                    // 리치 (예: "70.5")
-  stance      String?                    // 스탠스 (예: "Southpaw" | "Orthodox")
-  gym         String?                    // 소속 짐 (예: "Eagles MMA")
-  photo       String?                    // api-sports 파이터 사진 URL (일부 깨짐 → headshot 우선)
+  id           Int      @id @default(autoincrement())
+  teamId       Int      @unique // Team(league="UFC").id 와 1:1
+  apiSportsId  Int? // api-sports MMA fighter id
+  name         String // 영문 풀네임 (Team.name 미러)
+  nameKo       String? // haiku 음역 결과, dictionary miss 시 null
+  nickname     String? // 별명 (예: "The Eagle")
+  gender       String? // "M" | "F"
+  category     String? // 체급 (예: "Welterweight")
+  height       String? // 신장 (예: "5' 10")
+  weight       String? // 체중 (예: "170 lbs")
+  reach        String? // 리치 (예: "70.5")
+  stance       String? // 스탠스 (예: "Southpaw" | "Orthodox")
+  gym          String? // 소속 짐 (예: "Eagles MMA")
+  photo        String? // api-sports 파이터 사진 URL (일부 깨짐 → headshot 우선)
   // ESPN MMA 보강 (scoreboard competitor) — 이벤트 1콜로 전적/국기/헤드샷 수집
-  record      String?                    // 전적 "15-4-0" (W-L-D) — api-sports 미제공분
-  espnId      String?                    // ESPN athlete id
-  headshot    String?                    // ESPN 헤드샷 URL (a.espncdn.com/i/headshots/mma/players/full/{espnId}.png)
-  flagUrl     String?                    // ESPN 국기 이미지 URL
+  record       String? // 전적 "15-4-0" (W-L-D) — api-sports 미제공분
+  espnId       String? // ESPN athlete id
+  headshot     String? // ESPN 헤드샷 URL (a.espncdn.com/i/headshots/mma/players/full/{espnId}.png)
+  flagUrl      String? // ESPN 국기 이미지 URL
   // ESPN athlete API 풀데이터 (espnId 로 개별 호출) — 신체는 athlete 가 api-sports 보다 일관·무제한
-  age         Int?                       // ESPN 나이
-  citizenship String?                    // ESPN 국적 (예: "Brazil")
-  koRecord    String?                    // (T)KO 승-패 (예: "4-1")
-  subRecord   String?                    // 서브미션 승-패 (예: "13-0")
-  fightHistory String?                   // ESPN 최근 경기 이력 JSON: [{d,r,o,m,rd,c}] (날짜·결과·상대·방법·라운드·종료시각)
-  fetchedAt   DateTime @default(now())   // 마지막 api-sports 수집 시각 (점진 백필 기준)
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
+  age          Int? // ESPN 나이
+  citizenship  String? // ESPN 국적 (예: "Brazil")
+  koRecord     String? // (T)KO 승-패 (예: "4-1")
+  subRecord    String? // 서브미션 승-패 (예: "13-0")
+  fightHistory String? // ESPN 최근 경기 이력 JSON: [{d,r,o,m,rd,c}] (날짜·결과·상대·방법·라운드·종료시각)
+  fetchedAt    DateTime @default(now()) // 마지막 api-sports 수집 시각 (점진 백필 기준)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
 
-  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 /// UFC 체급별·파운드-포-파운드 랭킹 스냅샷 — ESPN core API 를 주간 cron 으로 갱신, /rankings/ufc 렌더용.
 /// 파이터 상세는 MmaFighter.espnId 매칭으로 채우고(한글명·사진·전적), 미스는 영문 fallback.
 model MmaRanking {
   id          Int      @id @default(autoincrement())
-  slug        String   @unique  // ESPN 카테고리 slug (예: "heavyweight", "pound-for-pound")
-  displayName String            // 한글 표시명 (예: "헤비급")
-  gender      String            // "M" | "F"
-  isP4p       Boolean  @default(false)  // 파운드-포-파운드 여부 (챔피언 없음)
-  sortOrder   Int               // 페이지 표시 순서 (경량→중량, P4P 최상단)
-  champion    String?           // 챔피언 JSON {espnId,name,nameKo,record,headshot,defenses} — P4P/공석이면 null
-  ranks       String            // 컨텐더 JSON 배열 [{rank,trend,espnId,name,nameKo,record,headshot}]
+  slug        String   @unique // ESPN 카테고리 slug (예: "heavyweight", "pound-for-pound")
+  displayName String // 한글 표시명 (예: "헤비급")
+  gender      String // "M" | "F"
+  isP4p       Boolean  @default(false) // 파운드-포-파운드 여부 (챔피언 없음)
+  sortOrder   Int // 페이지 표시 순서 (경량→중량, P4P 최상단)
+  champion    String? // 챔피언 JSON {espnId,name,nameKo,record,headshot,defenses} — P4P/공석이면 null
+  ranks       String // 컨텐더 JSON 배열 [{rank,trend,espnId,name,nameKo,record,headshot}]
   updatedAt   DateTime @updatedAt
 }
 
@@ -987,7 +989,7 @@ model User {
   id            String    @id @default(cuid()) // 세션 payload 노출용 → Int 대신 cuid
   email         String    @unique // 소문자 정규화 저장. 중복 race 최종 방어
   passwordHash  String? // bcryptjs $2a$... (구글 OAuth 전용 계정은 null)
-  googleId      String? @unique // 구글 OAuth sub(고유 id). null=이메일 가입 계정
+  googleId      String?   @unique // 구글 OAuth sub(고유 id). null=이메일 가입 계정
   nickname      String // 헤더 표시
   emailVerified DateTime? // MVP: null. 후속 이메일 인증용
   createdAt     DateTime  @default(now())
@@ -996,12 +998,12 @@ model User {
   // 회원 등급 시스템 (축구 디비전 12단계). exp→level 계산·등급표는 src/lib/user-level.ts.
   // 권한 차등 아님(가입하면 댓글·글쓰기 모두 가능) → 순수 활동·적중 명예 용도.
   // ⚠️ 이 컬럼들 + Post/PostLike 는 반드시 함께 db push — schema 에만 두고 push 안 하면 가입 깨짐(검증됨).
-  exp    Int @default(0) // 누적 경험치 (등급 산출 기준)
-  points Int @default(0) // 소비용 포인트 (등급과 분리)
+  exp    Int     @default(0) // 누적 경험치 (등급 산출 기준)
+  points Int     @default(0) // 소비용 포인트 (등급과 분리)
   level  Int     @default(1) // 캐시된 등급 (exp 변동 시 expToLevel 로 재계산)
   badge  String? // 특별 등급 마커 — "OFFICIAL"=공식 분석관(레전드 위, 매니저 전용). null=exp 기반 일반 등급
 
-  avatarUrl        String?   // 아바타: 프리셋 id(src/lib/avatars.ts) 또는 업로드 사진(data URL, 160px webp). null=기본
+  avatarUrl        String? // 아바타: 프리셋 id(src/lib/avatars.ts) 또는 업로드 사진(data URL, 160px webp). null=기본
   lastAttendanceAt DateTime? // 출석 경험치 마지막 적립 시각 (KST 하루 1회 제한)
 
   // 프로필 꾸미기 (포인트 상점에서 구매·장착). 카탈로그·해석은 src/lib/shop.ts.
@@ -1031,7 +1033,7 @@ model User {
   alertOddsRise Boolean @default(false) // 배당 상승(=승률 하락) 알림
   // 즐겨찾기와 무관하게 전 경기 급변을 하루 1회 묶어 받는다. 즐겨찾기 리그에 배당이
   // 안 들어오는 기간(예 EPL 비시즌)에도 알림이 오게 하는 축.
-  alertOddsAll Boolean @default(false)
+  alertOddsAll  Boolean @default(false)
 
   // 예측 적중 통계 (분석 게시판 자동채점 시 누적) — 작성자 신뢰도 표시용
   predTotal  Int @default(0) // 채점 완료된 예측 수
@@ -1039,14 +1041,14 @@ model User {
   predStreak Int @default(0) // 현재 연속 적중 (미적중 시 0)
   predBest   Int @default(0) // 최고 연속 적중 기록
 
-  posts     Post[]
-  postLikes PostLike[]
-  comments  Comment[]
-  expLogs   ExpLog[]
-  cosmetics UserCosmetic[]
-  dreamTeams DreamTeam[]
-  teamFollows UserTeamFollow[]
-  matchFollows UserMatchFollow[]
+  posts            Post[]
+  postLikes        PostLike[]
+  comments         Comment[]
+  expLogs          ExpLog[]
+  cosmetics        UserCosmetic[]
+  dreamTeams       DreamTeam[]
+  teamFollows      UserTeamFollow[]
+  matchFollows     UserMatchFollow[]
   analystFollows   UserAnalystFollow[] @relation("AnalystFollower") // 내가 팔로우한 분석가
   analystFollowers UserAnalystFollow[] @relation("AnalystFollowee") // 나를 팔로우한 회원
 
@@ -1135,26 +1137,26 @@ model PushMatchAlert {
 /// 회원 작성 스포츠 분석 게시판 글. 예측(승/무/패)을 선택적으로 포함 → 경기 종료 시 자동 채점.
 /// 권한 차등 없음: 로그인 회원이면 누구나 작성. 등급(level)은 표시용 명예.
 model Post {
-  id       Int    @id @default(autoincrement())
-  authorId String // User.id (cuid)
-  category String @default("ANALYSIS") // 분류 라벨 — 현재 ANALYSIS, 확장 대비
-  title    String
-  content  String // 본문 (Markdown/Plain text)
-  views    Int    @default(0)
-  likes        Int @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
-  commentCount Int @default(0) // Comment 수 캐시 (목록 표시용)
+  id           Int    @id @default(autoincrement())
+  authorId     String // User.id (cuid)
+  category     String @default("ANALYSIS") // 분류 라벨 — 현재 ANALYSIS, 확장 대비
+  title        String
+  content      String // 본문 (Markdown/Plain text)
+  views        Int    @default(0)
+  likes        Int    @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
+  commentCount Int    @default(0) // Comment 수 캐시 (목록 표시용)
 
   // 첨부 (선택, 자유게시판) — 드림팀 자랑·전술판 공유. raw SQL ALTER 로 추가된 컬럼.
   dreamTeamId String? // 내 DreamTeam.id cuid (관계 없이 manual join — 삭제된 팀은 렌더 생략)
   lineupCode  String? // /lineup?d={code} 의 공유 코드
 
   // 예측 (선택) — 특정 예정 경기에 대한 픽. 경기 종료 후 자동 채점.
-  sport     String?   // soccer | baseball | basketball | hockey (예측 있을 때만)
-  matchId   Int?      // 대상 경기 (Match.id)
-  market    String?   // "1X2"(승무패) | "HANDICAP"(핸디캡) | "OU"(오버언더)
-  line      Float?    // 핸디캡/오버언더 기준선 (1X2 면 null). 서버에서 경기 배당으로 확정 저장
-  pick      String?   // 1X2: HOME|DRAW|AWAY · HANDICAP: HOME|AWAY · OU: OVER|UNDER
-  isCorrect Boolean?  // null=미정산, 경기 FINISHED 후 채점됨
+  sport     String? // soccer | baseball | basketball | hockey (예측 있을 때만)
+  matchId   Int? // 대상 경기 (Match.id)
+  market    String? // "1X2"(승무패) | "HANDICAP"(핸디캡) | "OU"(오버언더)
+  line      Float? // 핸디캡/오버언더 기준선 (1X2 면 null). 서버에서 경기 배당으로 확정 저장
+  pick      String? // 1X2: HOME|DRAW|AWAY · HANDICAP: HOME|AWAY · OU: OVER|UNDER
+  isCorrect Boolean? // null=미정산, 경기 FINISHED 후 채점됨
   settledAt DateTime? // 채점 시각
 
   createdAt DateTime @default(now())
@@ -1283,13 +1285,13 @@ model InjurySnapshot {
   type       String? // "Missing Fixture" | "60-Day-IL" | "demote" 등
 
   // ── 그 시점의 주전 지표 (백테스트의 핵심) ──
-  starts  Int? // 축구: 선발 출전 수
-  matches Int? // 출전 경기 수 (축구·야구 공통)
-  minutes Int? // 축구: 출전 시간
-  innings Float? // 야구 투수: 이닝
+  starts      Int? // 축구: 선발 출전 수
+  matches     Int? // 출전 경기 수 (축구·야구 공통)
+  minutes     Int? // 축구: 출전 시간
+  innings     Float? // 야구 투수: 이닝
   /// 팀 내 기여 비중 (0~1). 축구=출전시간 / 야구 투수=이닝 / 야구 타자=출장경기.
   /// 후보 ~0.01 vs 주전 ~0.09. **부상자 수를 세지 않기 위한 핵심 컬럼**이다.
-  teamShare Float?
+  teamShare   Float?
   /// teamShare 가 무엇을 기준으로 나온 값인지 — 나중에 종목별로 다르게 해석해야 한다
   shareBasis  String? // minutes | innings | games
   marketValue Float? // 보조 가중치 (€)
@@ -1326,7 +1328,7 @@ model PlayerSquadInfo {
 
 /// af /trophies — 선수 수상 경력 (collect-player-trophies cron, Winner·2nd Place 만)
 model PlayerTrophy {
-  id       String @id // {playerId}:{league}:{season}:{place}
+  id       String  @id // {playerId}:{league}:{season}:{place}
   playerId String // ts player id
   league   String // 대회명 (af 원문)
   country  String?
@@ -1547,19 +1549,19 @@ model TransferRumor {
 /// ESPN 응답엔 안정적 고유 id 가 없어 id = `${league}:${date}:${desc 해시}` 합성 (멱등 upsert).
 /// 축구 FootballTransfer(이적료·시장가치 중심)와 분리 — 북미는 이적료 시장이 아니라 트랜잭션 피드.
 model SportsTransaction {
-  id          String   @id // 합성: "{league}:{yyyy-mm-dd}:{hash}"
-  league      String // "NBA" | "MLB" | "NHL"
-  date        DateTime // 트랜잭션 발생일
-  teamId      String? // ESPN team id
-  teamName    String? // ESPN 팀 표시명 (영문)
-  teamAbbr    String? // 약어 (NO, LAL ...)
-  teamLogo    String? // ESPN 로고 URL
-  description String // 원문 설명 (영문) — "Signed G Nick Smith Jr. to a contract."
+  id            String   @id // 합성: "{league}:{yyyy-mm-dd}:{hash}"
+  league        String // "NBA" | "MLB" | "NHL"
+  date          DateTime // 트랜잭션 발생일
+  teamId        String? // ESPN team id
+  teamName      String? // ESPN 팀 표시명 (영문)
+  teamAbbr      String? // 약어 (NO, LAL ...)
+  teamLogo      String? // ESPN 로고 URL
+  description   String // 원문 설명 (영문) — "Signed G Nick Smith Jr. to a contract."
   descriptionKo String? // Haiku 한글 번역 (job 수집 시 1회 캐시, 멱등). null=미번역→영문 fallback
-  category    String // 분류: trade | signing | waive | short_term | staff | other
-  playerName  String? // 설명에서 best-effort 파싱 (표시용, player page 연결 X)
-  position    String? // G | F | C 등 (파싱)
-  createdAt   DateTime @default(now())
+  category      String // 분류: trade | signing | waive | short_term | staff | other
+  playerName    String? // 설명에서 best-effort 파싱 (표시용, player page 연결 X)
+  position      String? // G | F | C 등 (파싱)
+  createdAt     DateTime @default(now())
 
   @@index([league, date])
   @@index([league, category, date])
@@ -1628,27 +1630,27 @@ model LeagueSimSnapshot {
 /// 드림팀 게임 — 회원이 구성한 가상 스쿼드(빅5 현역, dream-pool.json 의 11명).
 /// 시장가치=예산 / OVR=전력 분리. 티어 승급·포인트(이적자금) 경제·선수 육성(나이 잠재력).
 model DreamTeam {
-  id        String   @id @default(cuid())
-  userId    String // User.id
-  name      String // 팀 이름
-  formation String   @default("4-3-3") // 4-3-3 | 4-4-2 | 4-2-3-1 | 3-5-2
-  mentality String   @default("balanced") // 전술 멘탈리티(게임 전용): ultra_attack|attack|balanced|defend|ultra_defend
-  players   Json     @default("[]") // (구) 11명 [{playerId, slot, xp, role}] — squad/lineup 으로 이전, 롤백용 유지
-  funds     Int      @default(0) // 이적 자금(€M) — 경기 보상·시즌 보너스↑, 영입 소비, 방출 회수
-  squad     Json     @default("[]") // 보유 선수 [{playerId, xp, role}] (11명 이상 = 벤치 포함)
-  lineup    Json     @default("[]") // 선발 11명 [{slot, playerId}] (squad 중 선택)
-  tier      String   @default("amateur") // amateur|local|youth|semipro|pro|worldclass
-  points    Int      @default(0) // 이적 자금 (경기 보상 → 영입·승급 소비, User.points 와 분리)
-  rating    Int      @default(1000) // 대전 Elo 레이팅 (리더보드)
-  wins      Int      @default(0)
-  draws     Int      @default(0)
-  losses    Int      @default(0)
-  matchLog  Json     @default("[]") // 최근 경기 기록 [{opp, my, op, outcome, ts}] 최신순
-  seasonNo      Int  @default(1) // 현재 시즌 번호
-  seasonGames   Json @default("[]") // 이번 시즌 내 경기 [{botId, home, my, op, outcome, ts}]
-  seasonHistory Json @default("[]") // 지난 시즌 요약 [{seasonNo, rank, total, champion, w, d, l}]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String // User.id
+  name          String // 팀 이름
+  formation     String   @default("4-3-3") // 4-3-3 | 4-4-2 | 4-2-3-1 | 3-5-2
+  mentality     String   @default("balanced") // 전술 멘탈리티(게임 전용): ultra_attack|attack|balanced|defend|ultra_defend
+  players       Json     @default("[]") // (구) 11명 [{playerId, slot, xp, role}] — squad/lineup 으로 이전, 롤백용 유지
+  funds         Int      @default(0) // 이적 자금(€M) — 경기 보상·시즌 보너스↑, 영입 소비, 방출 회수
+  squad         Json     @default("[]") // 보유 선수 [{playerId, xp, role}] (11명 이상 = 벤치 포함)
+  lineup        Json     @default("[]") // 선발 11명 [{slot, playerId}] (squad 중 선택)
+  tier          String   @default("amateur") // amateur|local|youth|semipro|pro|worldclass
+  points        Int      @default(0) // 이적 자금 (경기 보상 → 영입·승급 소비, User.points 와 분리)
+  rating        Int      @default(1000) // 대전 Elo 레이팅 (리더보드)
+  wins          Int      @default(0)
+  draws         Int      @default(0)
+  losses        Int      @default(0)
+  matchLog      Json     @default("[]") // 최근 경기 기록 [{opp, my, op, outcome, ts}] 최신순
+  seasonNo      Int      @default(1) // 현재 시즌 번호
+  seasonGames   Json     @default("[]") // 이번 시즌 내 경기 [{botId, home, my, op, outcome, ts}]
+  seasonHistory Json     @default("[]") // 지난 시즌 요약 [{seasonNo, rank, total, champion, w, d, l}]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1671,18 +1673,18 @@ model ChatLog {
 /// 테이블은 raw SQL 로 생성(scripts/create-member-bot-tables.mjs — db push 금지 패턴).
 /// User 관계 없이 userId 만 기록(manual join — MatchVote 전례, 기존 모델 무변경).
 model MemberBot {
-  id            String   @id @default(cuid())
-  userId        String // User.id (cuid) — FK 없이 manual join
-  name          String
-  league        String   @default("ALL") // "ALL" 또는 리그 코드 (백테스트 기본 범위)
-  knobs         Json // { elo, form, home, market, underdog } 각 0~2 (member-bot.ts BotKnobs)
-  backtestCache Json? // 저장 시점 백테스트 요약 { n, hits, acc, brier, vsModel }
-  isActive      Boolean  @default(true) // false = 매일 픽 생성 제외
+  id             String   @id @default(cuid())
+  userId         String // User.id (cuid) — FK 없이 manual join
+  name           String
+  league         String   @default("ALL") // "ALL" 또는 리그 코드 (백테스트 기본 범위)
+  knobs          Json // { elo, form, home, market, underdog } 각 0~2 (member-bot.ts BotKnobs)
+  backtestCache  Json? // 저장 시점 백테스트 요약 { n, hits, acc, brier, vsModel }
+  isActive       Boolean  @default(true) // false = 매일 픽 생성 제외
   /// 이 봇의 하루 픽 요약을 텔레그램으로 받을지. 기본 false — 기존 회원이
   /// 갑자기 알림을 받지 않도록 봇별 옵트인. User.telegramChatId 연결이 선행 조건.
-  notifyTelegram Boolean @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  notifyTelegram Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   picks MemberBotPick[]
 
@@ -1719,4 +1721,53 @@ model AdBanner {
   height    Int      @default(0) // px, 0 이면 auto
   enabled   Boolean  @default(false) // 표시 여부
   updatedAt DateTime @updatedAt
+}
+
+/// 베트맨(스포츠토토) 프로토 승부식 배당 — betman-odds-cron 이 회차 단위로 적재.
+/// 한 경기가 베팅 유형(승패·승N패·핸디캡)마다 다른 matchSeq 로 오므로 자연키는 경기가 아니라
+/// {gmTs}-{matchSeq} 다. 전 종목·전 유형을 그대로 쌓고 노출 시점에 필터한다.
+/// 상세·함정은 reports/plans/betman-odds/context-notes.md.
+model BetmanOdds {
+  id       String @id // "{gmTs}-{matchSeq}"
+  gmTs     Int // 회차 (예 260096)
+  matchSeq Int // 회차 내 경기 번호
+
+  gameDate   DateTime // 경기 시각 (원본은 epoch ms)
+  itemCode   String? // 종목 코드 (BS 야구 / SC 축구 ...)
+  leagueCode String? // 베트맨 리그 코드 (예 BS004)
+  leagueName String // 베트맨 한글 리그명 (예 NPB)
+  homeId     String? // 베트맨 팀 id — 나중 Match 매핑 키
+  awayId     String?
+  homeName   String // 이미 한글로 온다
+  awayName   String
+  stadium    String?
+
+  betId     String? // 베팅 종목 id
+  betNm     String? // "야구 승패" 등
+  betTypId  String? // 유형 id
+  betTypNm  String? // "일반 소수핸디캡" 등
+  handi     Int? // 핸디 구분 코드 (0 = 승무패)
+  winHandi  Float? // 실제 핸디 라인 (+2.5)
+  loseHandi Float?
+
+  winAllot  Float? // 승 배당
+  drawAllot Float? // 무 배당 — 승패형은 원본 0.0 이라 null 로 정규화
+  loseAllot Float? // 패 배당
+
+  // 국내 투표 분포 (voteStatus — 승/무/패 구매 건수). 집계 없는 행은 null.
+  winVotes  Int?
+  drawVotes Int?
+  loseVotes Int?
+
+  protoStatus String? // 발매 상태
+  gameResult  String? // 결과 (확정 전 null)
+  matchId     Int? // 우리 Match 연결 — 매핑 붙이기 전까지 null
+
+  fetchedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gmTs])
+  @@index([gameDate])
+  @@index([leagueName, gameDate])
+  @@index([matchId])
 }

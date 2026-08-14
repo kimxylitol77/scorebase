@@ -1,0 +1,11 @@
+[Unit]
+Description=Scorebase Betman Odds — 프로토 승부식 배당·투표분포 수집 → API push
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/betman-odds-cron.js
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/betman-odds.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/betman-odds.err
