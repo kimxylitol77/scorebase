@@ -246,6 +246,8 @@ export default async function KboLivePage({ params }: Props) {
         venueWeatherAt={
           match.status === "FINISHED" ? match.startTime.toISOString() : null
         }
+        favMatchId={match.id}
+        favHref={`/live/kbo/${gameId}`}
         homeAbbr={match.homeTeam.shortName ?? null}
         awayAbbr={match.awayTeam.shortName ?? null}
         homeLogo={match.homeTeam.logoUrl ?? null}

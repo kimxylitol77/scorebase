@@ -252,6 +252,8 @@ export default async function NpbLivePage({ params }: Props) {
         venueWeatherAt={
           match.status === "FINISHED" ? match.startTime.toISOString() : null
         }
+        favMatchId={match.id}
+        favHref={`/live/npb/${gameId}`}
         homeAbbr={match.homeTeam.shortName ?? null}
         awayAbbr={match.awayTeam.shortName ?? null}
         homeLogo={match.homeTeam.logoUrl ?? null}

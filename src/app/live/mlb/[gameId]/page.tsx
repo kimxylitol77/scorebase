@@ -305,6 +305,8 @@ export default async function MlbLivePage({ params }: Props) {
         venueWeatherAt={
           match.status === "FINISHED" ? match.startTime.toISOString() : null
         }
+        favMatchId={match.id}
+        favHref={`/live/mlb/${gameId}`}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}

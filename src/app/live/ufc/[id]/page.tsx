@@ -8,6 +8,7 @@ import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toUfcFighterKo } from "@/lib/sports/ufc-fighter-names";
+import FavoriteStar from "@/components/scores/FavoriteStar";
 
 export const dynamic = "force-dynamic";
 
@@ -278,7 +279,25 @@ export default async function UfcMatchPage({ params }: { params: Promise<{ id: s
       </Link>
 
       {/* 대결 헤더 */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-5">
+      <div className="relative rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-5">
+        {/* 관심경기 — /scores 별표와 같은 저장소(DB Match.id 키) */}
+        <div className="absolute right-2 top-2">
+          <FavoriteStar
+            matchId={String(m.id)}
+            showLabel
+            meta={{
+              id: String(m.id),
+              sport: "mma",
+              league: m.league,
+              homeName: home.ko,
+              awayName: away.ko,
+              homeScore: m.homeScore,
+              awayScore: m.awayScore,
+              status: isFinished ? "finished" : "scheduled",
+              href: `/live/ufc/${m.id}`,
+            }}
+          />
+        </div>
         <div className="text-center mb-4">
           {catKo && (
             <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
