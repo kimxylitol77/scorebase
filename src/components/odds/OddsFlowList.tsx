@@ -3,6 +3,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
+import OddsSportTabs from "./OddsSportTabs";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, LineChart, Table2 } from "lucide-react";
 import TeamBadge from "@/components/TeamBadge";
 import { LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
@@ -959,12 +960,6 @@ function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw:
   );
 }
 
-const SPORT_TABS: [string, string][] = [
-  ["soccer", "축구"],
-  ["baseball", "야구"],
-  ["basketball", "농구"],
-];
-
 type MovementFilter = "drop" | "all" | "rise";
 type DisplayMode = "table" | "chart";
 
@@ -1021,27 +1016,6 @@ function DisplayModeSwitch({ value, onChange }: { value: DisplayMode; onChange: 
   );
 }
 
-function SportTabs({ sport }: { sport: string }) {
-  return (
-    <div className="mt-4 flex gap-2">
-      {SPORT_TABS.map(([s, label]) => (
-        // 풀 리로드(<a>)면 <head> 테마 스크립트가 재실행돼 쿠키 미저장/OS 라이트 환경에서
-        // 다크→라이트로 튄다. Link 클라 라우팅은 리로드가 없어 테마(html.dark)가 유지된다.
-        <Link
-          key={s}
-          href={`/odds?sport=${s}`}
-          className={`rounded-lg px-4 py-1.5 text-[14px] ${
-            s === sport
-              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-              : "border border-neutral-200 text-neutral-500 dark:border-neutral-700"
-          }`}
-        >
-          {label}
-        </Link>
-      ))}
-    </div>
-  );
-}
 
 export default function OddsFlowList({
   matches,
@@ -1073,7 +1047,7 @@ export default function OddsFlowList({
     return (
       <div>
         <h1 className="text-2xl font-medium">배당 흐름</h1>
-        <SportTabs sport={sport} />
+        <OddsSportTabs sport={sport} />
         <div className="py-16 text-center text-[15px] text-neutral-400">
           아직 배당 흐름을 모으는 중이에요. 잠시 후 다시 확인해 주세요.
         </div>
@@ -1088,7 +1062,7 @@ export default function OddsFlowList({
   return (
     <div>
       <h1 className="text-2xl font-medium">배당 흐름</h1>
-      <SportTabs sport={sport} />
+      <OddsSportTabs sport={sport} />
       {hitrate && <FlowStats hr={hitrate} />}
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

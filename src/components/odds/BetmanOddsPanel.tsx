@@ -35,14 +35,16 @@ function VoteBar({ w, d, l }: { w: number; d: number; l: number }) {
   );
 }
 
-export default function BetmanOddsPanel({
-  rows,
-  hasDraw,
-}: {
-  rows: BetmanRow[];
-  hasDraw: boolean;
-}) {
-  if (rows.length === 0) return null;
+const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구" };
+
+export default function BetmanOddsPanel({ rows }: { rows: BetmanRow[] }) {
+  if (rows.length === 0) {
+    return (
+      <p className="mt-6 rounded-xl border border-neutral-200 px-4 py-8 text-center text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+        표시할 발매 경기가 없습니다. 베트맨 배당은 하루 두 번(09:00·21:00) 갱신됩니다.
+      </p>
+    );
+  }
 
   const kst = (iso: string) => {
     const d = new Date(iso);
@@ -54,27 +56,23 @@ export default function BetmanOddsPanel({
   };
 
   return (
-    <section className="mt-8">
-      <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <h2 className="text-2xl font-medium">베트맨 프로토 배당</h2>
-        <span className="text-[11px] text-neutral-400">
-          국내 배당 · 구매자 투표 분포 {rows[0]?.gmTs ? `· ${rows[0].gmTs} 회차` : ""}
-        </span>
-      </div>
+    <section className="mt-4">
       <p className="mb-3 text-[12px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-        해외 북메이커 배당(위 흐름)과 달리, 국내 구매자들이 실제로 어느 쪽에 걸었는지가 함께
-        나옵니다. 각 경기의 <strong className="font-semibold">투표</strong> 비율과 배당을 확률로
-        바꾼 <strong className="font-semibold">배당</strong> 값을 나란히 뒀습니다 — 둘이 벌어진
-        경기가 여론과 시장이 다르게 보는 경기입니다. 출처는 베트맨(스포츠토토).
+        프로토 승부식 배당과 <strong className="font-semibold">국내 구매자 투표 분포</strong>입니다
+        {rows[0]?.gmTs ? ` (${rows[0].gmTs} 회차 기준)` : ""}. 해외 북메이커 배당(축구·야구·농구
+        탭의 흐름)에는 없는 값입니다 — 각 경기의 <strong className="font-semibold">투표</strong>
+        비율과 배당을 확률로 바꾼 <strong className="font-semibold">배당</strong> 값을 나란히 뒀으니,
+        둘이 벌어진 경기가 여론과 시장이 다르게 보는 경기입니다. 출처는 베트맨(스포츠토토).
       </p>
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
-        <div className="hidden grid-cols-[86px_112px_1fr_56px_56px_56px_180px] items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-[11px] text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900/50 sm:grid">
+        <div className="hidden grid-cols-[86px_40px_120px_1fr_56px_56px_56px_180px] items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-[11px] text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900/50 sm:grid">
           <div>경기 시각</div>
+          <div>종목</div>
           <div>리그</div>
           <div>경기</div>
           <div className="text-center">승</div>
-          <div className="text-center">{hasDraw ? "무" : "-"}</div>
+          <div className="text-center">무</div>
           <div className="text-center">패</div>
           <div>국내 투표 분포</div>
         </div>
@@ -92,10 +90,13 @@ export default function BetmanOddsPanel({
           return (
             <div
               key={r.id}
-              className="grid grid-cols-2 gap-x-2 gap-y-1 border-b border-neutral-100 px-3 py-2.5 text-[13px] last:border-b-0 dark:border-neutral-800 sm:grid-cols-[86px_112px_1fr_56px_56px_56px_180px] sm:items-center sm:gap-2"
+              className="grid grid-cols-2 gap-x-2 gap-y-1 border-b border-neutral-100 px-3 py-2.5 text-[13px] last:border-b-0 dark:border-neutral-800 sm:grid-cols-[86px_40px_120px_1fr_56px_56px_56px_180px] sm:items-center sm:gap-2"
             >
               <div className="text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">
                 {kst(r.gameDate)}
+              </div>
+              <div className="text-[10px] text-neutral-400">
+                {SPORT_LABEL[r.itemCode ?? ""] ?? ""}
               </div>
               <div className="truncate text-[11px] text-neutral-500 dark:text-neutral-400">
                 {r.leagueName}
@@ -113,7 +114,7 @@ export default function BetmanOddsPanel({
               </div>
               <div className="tabular-nums text-neutral-500 dark:text-neutral-400 sm:text-center">
                 <span className="mr-1 text-[10px] font-normal text-neutral-400 sm:hidden">무</span>
-                {hasDraw ? fmtOdds(r.drawAllot) : "-"}
+                {fmtOdds(r.drawAllot)}
               </div>
               <div className="tabular-nums font-semibold text-blue-600 dark:text-blue-400 sm:text-center">
                 <span className="mr-1 text-[10px] font-normal text-neutral-400 sm:hidden">패</span>
@@ -130,13 +131,13 @@ export default function BetmanOddsPanel({
                     <div className="flex gap-2 text-[10px] tabular-nums leading-tight text-neutral-400">
                       <span className="w-7 shrink-0">투표</span>
                       <span className="text-rose-500">{Math.round(pct.w)}</span>
-                      {hasDraw && <span>{Math.round(pct.d)}</span>}
+                      {r.drawAllot != null && <span>{Math.round(pct.d)}</span>}
                       <span className="text-blue-500">{Math.round(pct.l)}</span>
                       {imp && (
                         <>
                           <span className="ml-2 w-7 shrink-0">배당</span>
                           <span>{Math.round(imp.w)}</span>
-                          {hasDraw && <span>{Math.round(imp.d)}</span>}
+                          {r.drawAllot != null && <span>{Math.round(imp.d)}</span>}
                           <span>{Math.round(imp.l)}</span>
                         </>
                       )}

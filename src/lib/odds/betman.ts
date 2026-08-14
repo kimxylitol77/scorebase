@@ -8,6 +8,8 @@ export interface BetmanRow {
   /** ISO 문자열 — 호출부가 unstable_cache 로 감싸면 Date 가 JSON 직렬화되며 문자열이 된다.
       타입만 Date 로 두면 렌더에서 "Invalid time value" 로 터진다(실측). 경계를 명시한다. */
   gameDate: string;
+  /** SC 축구 / BS 야구 / BK 농구 — 베트맨 전용 탭에서 종목 배지로 쓴다. */
+  itemCode: string | null;
   leagueName: string;
   homeName: string;
   awayName: string;
@@ -27,20 +29,23 @@ const ITEM_CODE: Record<string, string> = { soccer: "SC", baseball: "BS", basket
  * 축구 = "승무패"(3-way), 야구·농구 = "일반 승패"(2-way).
  * 같은 경기가 유형마다 다른 행으로 오므로 이 필터가 없으면 한 경기가 5줄이 된다.
  */
+const ALL_BET_TYPES = ["승무패", "일반 승패"];
 const BET_TYPE: Record<string, string[]> = {
   soccer: ["승무패"],
   baseball: ["일반 승패"],
   basketball: ["일반 승패"],
 };
 
+/** sport="all" — 베트맨 전용 탭. 종목 구분 없이 시각순으로 한 목록에 담는다. */
 export async function getBetmanRows(sport: string, take = 40): Promise<BetmanRow[]> {
-  const itemCode = ITEM_CODE[sport];
-  const betTypNm = BET_TYPE[sport];
-  if (!itemCode || !betTypNm) return [];
+  const all = sport === "all";
+  const itemCode = all ? undefined : ITEM_CODE[sport];
+  const betTypNm = all ? ALL_BET_TYPES : BET_TYPE[sport];
+  if (!betTypNm || (!all && !itemCode)) return [];
 
   const rows = await prisma.betmanOdds.findMany({
     where: {
-      itemCode,
+      ...(itemCode ? { itemCode } : { itemCode: { in: Object.values(ITEM_CODE) } }),
       betTypNm: { in: betTypNm },
       // 배당이 아직 안 매겨진 행(미래 회차 편성분)은 보여줄 게 없다.
       winAllot: { not: null },
@@ -51,7 +56,7 @@ export async function getBetmanRows(sport: string, take = 40): Promise<BetmanRow
     orderBy: [{ gameDate: "asc" }, { gmTs: "desc" }],
     take: take * 3,
     select: {
-      id: true, gmTs: true, gameDate: true, leagueName: true,
+      id: true, gmTs: true, gameDate: true, itemCode: true, leagueName: true,
       homeName: true, awayName: true,
       winAllot: true, drawAllot: true, loseAllot: true,
       winVotes: true, drawVotes: true, loseVotes: true,
