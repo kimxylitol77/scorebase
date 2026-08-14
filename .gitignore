@@ -84,3 +84,4 @@ scripts/_diag-*
 
 # 북유럽 이름 audit 조회 캐시 (일회성)
 data/_nordic-audit-cache.json
+data/.player-foot-progress.json
