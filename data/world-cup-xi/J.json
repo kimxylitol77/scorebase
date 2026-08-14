@@ -32,8 +32,8 @@
       "score": 8.54,
       "star": 4,
       "recentRating": 9.8,
-      "avgRating": 7.79,
-      "games": 3,
+      "avgRating": 8.19,
+      "games": 2,
       "x": 50,
       "y": 90
     },
@@ -46,11 +46,11 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/de016e81e8bce428a0dc8d7454e6e3bb.png",
-      "score": 7.65,
+      "score": 7.52,
       "star": 3,
       "recentRating": 6.84,
-      "avgRating": 6.95,
-      "games": 3,
+      "avgRating": 6.86,
+      "games": 2,
       "x": 16,
       "y": 70
     },
@@ -63,29 +63,12 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/b9a20695ed2dbf375ea29de28aab1887.png",
-      "score": 7.63,
+      "score": 7.24,
       "star": 3,
       "recentRating": 6.24,
-      "avgRating": 6.6,
-      "games": 3,
+      "avgRating": 6.32,
+      "games": 2,
       "x": 39,
-      "y": 70
-    },
-    {
-      "id": "l5ergphn42or8k0",
-      "name": "Nahuel Molina",
-      "nameKo": "나우엘 몰리나",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
-      "score": 7.15,
-      "star": 3,
-      "recentRating": 5.91,
-      "avgRating": 6.43,
-      "games": 3,
-      "x": 61,
       "y": 70
     },
     {
@@ -102,6 +85,23 @@
       "recentRating": 6.59,
       "avgRating": 6.59,
       "games": 1,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "l5ergphn42or8k0",
+      "name": "Nahuel Molina",
+      "nameKo": "나우엘 몰리나",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
+      "score": 6.96,
+      "star": 3,
+      "recentRating": 5.91,
+      "avgRating": 6.21,
+      "games": 2,
       "x": 84,
       "y": 70
     },
@@ -134,26 +134,9 @@
       "score": 8.42,
       "star": 4,
       "recentRating": 6.15,
-      "avgRating": 7.04,
-      "games": 3,
+      "avgRating": 7.17,
+      "games": 2,
       "x": 50,
-      "y": 32
-    },
-    {
-      "id": "1l4rjnh3p29m7vx",
-      "name": "Alexis Mac Allister",
-      "nameKo": "알렉시스 마크 알리스테르",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/5e827e5e98fc422e96cf06e794be7701.png",
-      "score": 8.33,
-      "star": 4,
-      "recentRating": 6.46,
-      "avgRating": 7.22,
-      "games": 3,
-      "x": 78,
       "y": 32
     },
     {
@@ -170,8 +153,8 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 35,
-      "y": 52
+      "x": 78,
+      "y": 32
     },
     {
       "id": "y0or5jhg199qwzv",
@@ -187,28 +170,26 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 65,
+      "x": 35,
       "y": 52
     },
     {
-      "id": "318q66hvngwvqo9",
-      "name": "Julián Álvarez",
-      "nameKo": "훌리안 알바레스",
+      "id": "1l4rjnh3p29m7vx",
+      "name": "Alexis Mac Allister",
+      "nameKo": "알렉시스 마크 알리스테르",
       "hasMv": true,
-      "pos": "F",
+      "pos": "M",
       "country": "Argentina",
       "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/fea74a781033404f91f74f36447037c7.png",
-      "score": 8.57,
-      "star": 4,
-      "recentRating": 6.35,
-      "avgRating": 7.15,
-      "games": 3,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
+      "logo": "https://img.thesports.com/football/player/5e827e5e98fc422e96cf06e794be7701.png",
+      "score": 7.73,
+      "star": 3,
+      "recentRating": 6.46,
+      "avgRating": 6.73,
+      "games": 2,
+      "x": 65,
+      "y": 52
+    },
     {
       "id": "4wyrn4hv7ydq86p",
       "name": "Lautaro Martínez",
@@ -221,9 +202,13 @@
       "score": 8.34,
       "star": 4,
       "recentRating": 8.09,
-      "avgRating": 7.55,
-      "games": 2
-    },
+      "avgRating": 8.09,
+      "games": 1,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "p3glrw7hv73qdyj",
       "name": "Lionel Messi",
@@ -236,23 +221,38 @@
       "score": 8.11,
       "star": 4,
       "recentRating": 6.8,
-      "avgRating": 7.87,
-      "games": 3
+      "avgRating": 7.8,
+      "games": 2
     },
     {
-      "id": "2y8m4zhjdljdql0",
-      "name": "Nicolás Iván Gonzalez",
-      "nameKo": "니콜라스 곤살레스",
+      "id": "318q66hvngwvqo9",
+      "name": "Julián Álvarez",
+      "nameKo": "훌리안 알바레스",
       "hasMv": true,
       "pos": "F",
       "country": "Argentina",
       "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/70f04e1ed0e2246fffba5b9f5b8273cd.png",
-      "score": 7.42,
+      "logo": "https://img.thesports.com/football/player/fea74a781033404f91f74f36447037c7.png",
+      "score": 7.62,
       "star": 3,
-      "recentRating": 6.45,
-      "avgRating": 6.8,
-      "games": 3
+      "recentRating": 6.35,
+      "avgRating": 6.47,
+      "games": 2
+    },
+    {
+      "id": "318q66hvngxvqo9",
+      "name": "Thiago Almada",
+      "nameKo": "티아고 알마다",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/4df09287e77cf62f5963b474e71f6ad0.png",
+      "score": 7.62,
+      "star": 3,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
     },
     {
       "id": "4jwq2ghx0l8ym0v",
@@ -270,6 +270,21 @@
       "games": 2
     },
     {
+      "id": "2y8m4zhjdljdql0",
+      "name": "Nicolás Iván Gonzalez",
+      "nameKo": "니콜라스 곤살레스",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/70f04e1ed0e2246fffba5b9f5b8273cd.png",
+      "score": 7.29,
+      "star": 3,
+      "recentRating": 6.45,
+      "avgRating": 6.65,
+      "games": 2
+    },
+    {
       "id": "2y8m4zhg82gql07",
       "name": "Rodrigo De Paul",
       "nameKo": "로드리고 데 폴",
@@ -281,23 +296,8 @@
       "score": 7.28,
       "star": 3,
       "recentRating": 6.4,
-      "avgRating": 6.64,
-      "games": 3
-    },
-    {
-      "id": "318q66hvngxvqo9",
-      "name": "Thiago Almada",
-      "nameKo": "티아고 알마다",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/4df09287e77cf62f5963b474e71f6ad0.png",
-      "score": 7.19,
-      "star": 3,
-      "recentRating": 6.76,
-      "avgRating": 6.76,
-      "games": 1
+      "avgRating": 6.79,
+      "games": 2
     }
   ],
   "complete": true
