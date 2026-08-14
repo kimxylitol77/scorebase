@@ -6,6 +6,7 @@
 // - 팀 탭 결과 배지는 그 팀 기준 승·무·패 (subjectResult — 플래시스코어식, 2026-08-08).
 // - 축구는 showH2h=false — 맞대결 탭이 "맞대결 히스토리(H2H)" 카드와 중복이라 제거하고
 //   대신 upcoming(경기 일정) 탭을 받는다. 야구·배구는 기존 그대로.
+// - 경기 일정 탭은 두 팀 일정이 섞여 보이던 걸 팀별 하위 토글로 분리 (2026-08-14).
 
 import { useState } from "react";
 import type {
@@ -19,6 +20,8 @@ export interface UpcomingRow {
   homeName: string;
   awayName: string;
   leagueLabel?: string;
+  /** 이 일정의 주인공 팀이 홈인지 원정인지 — 해당 팀명을 굵게. */
+  subjectSide?: "home" | "away";
 }
 
 interface Props {
@@ -27,8 +30,10 @@ interface Props {
   data: BaseballRecentGames;
   /** 맞대결 탭 표시 여부 — 별도 H2H 카드가 있는 축구는 false 로 중복 제거. */
   showH2h?: boolean;
-  /** 양 팀 예정 경기(시간순) — undefined 가 아니면 "경기 일정" 탭 표시(빈 배열은 빈 상태 문구). */
-  upcoming?: UpcomingRow[];
+  /** 홈팀 예정 경기(시간순) — undefined 가 아니면 "경기 일정" 탭 표시(빈 배열은 빈 상태 문구). */
+  upcomingHome?: UpcomingRow[];
+  /** 원정팀 예정 경기(시간순). */
+  upcomingAway?: UpcomingRow[];
 }
 
 type Tab = "home" | "away" | "h2h" | "fixtures";
@@ -40,9 +45,11 @@ export default function BaseballRecentGames({
   awayNameKo,
   data,
   showH2h = true,
-  upcoming,
+  upcomingHome,
+  upcomingAway,
 }: Props) {
   const [tab, setTab] = useState<Tab>("home");
+  const [fixturesSide, setFixturesSide] = useState<"home" | "away">("home");
   const [visibleByTab, setVisibleByTab] = useState<Record<string, number>>({
     home: STEP,
     away: STEP,
@@ -50,7 +57,8 @@ export default function BaseballRecentGames({
   });
   if (!data.hasData) return null;
 
-  const hasFixturesTab = upcoming !== undefined;
+  const hasFixturesTab = upcomingHome !== undefined || upcomingAway !== undefined;
+  const fixtureRows = (fixturesSide === "home" ? upcomingHome : upcomingAway) ?? [];
   const tabs: { key: Tab; label: string }[] = [
     { key: "home", label: `${homeNameKo} (홈)` },
     { key: "away", label: `${awayNameKo} (원정)` },
@@ -87,13 +95,32 @@ export default function BaseballRecentGames({
       </div>
 
       {tab === "fixtures" ? (
-        (upcoming?.length ?? 0) > 0 ? (
-          <FixturesTable rows={upcoming!} />
-        ) : (
-          <p className="text-center text-sm text-neutral-500 py-6">
-            예정된 경기가 아직 없습니다.
-          </p>
-        )
+        <>
+          {/* 팀별 일정 분리 — 두 팀 일정이 한 표에 섞여 나오던 걸 토글로 나눔. */}
+          <div className="grid grid-cols-2 gap-1.5 mb-3">
+            {(["home", "away"] as const).map((side) => (
+              <button
+                key={side}
+                type="button"
+                onClick={() => setFixturesSide(side)}
+                className={`py-2 px-1 truncate rounded-lg border text-xs sm:text-sm font-bold transition ${
+                  fixturesSide === side
+                    ? "border-neutral-700 bg-neutral-100 text-neutral-900 dark:border-neutral-300 dark:bg-neutral-800 dark:text-white"
+                    : "border-neutral-200 text-neutral-500 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900"
+                }`}
+              >
+                {side === "home" ? homeNameKo : awayNameKo} 일정
+              </button>
+            ))}
+          </div>
+          {fixtureRows.length > 0 ? (
+            <FixturesTable rows={fixtureRows} />
+          ) : (
+            <p className="text-center text-sm text-neutral-500 py-6">
+              {fixturesSide === "home" ? homeNameKo : awayNameKo} 의 예정된 경기가 아직 없습니다.
+            </p>
+          )}
+        </>
       ) : rows.length === 0 ? (
         <p className="text-center text-sm text-neutral-500 py-6">
           {tab === "h2h" ? "최근 맞대결 기록이 없습니다." : "최근 경기 기록이 없습니다."}
@@ -175,9 +202,21 @@ function FixturesTable({ rows }: { rows: UpcomingRow[] }) {
                   </span>
                 )}
               </td>
-              <td className="text-right py-2.5 px-1 truncate">{f.homeName}</td>
+              <td
+                className={`text-right py-2.5 px-1 truncate ${
+                  f.subjectSide === "home" ? "font-bold" : f.subjectSide ? "text-neutral-500" : ""
+                }`}
+              >
+                {f.homeName}
+              </td>
               <td className="text-center py-2.5 px-2 tabular-nums text-neutral-500">{f.time}</td>
-              <td className="text-left py-2.5 px-1 truncate">{f.awayName}</td>
+              <td
+                className={`text-left py-2.5 px-1 truncate ${
+                  f.subjectSide === "away" ? "font-bold" : f.subjectSide ? "text-neutral-500" : ""
+                }`}
+              >
+                {f.awayName}
+              </td>
               <td className="text-center py-2.5 px-2 sm:px-3">
                 <span className="inline-block whitespace-nowrap rounded-full border border-neutral-300 text-neutral-500 dark:border-neutral-700 text-[11px] font-bold px-2 py-0.5">
                   예정
