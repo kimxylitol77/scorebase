@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/site-url";
 import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
+import rawCanonical from "../../data/player-canonical-redirects.json";
 
 // 자동 생성되는 sitemap.xml
 // 검색 엔진(Google, 네이버 등)에 사이트 구조를 알려준다.
@@ -262,13 +263,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 선수 몸값 상세 — 리그 판명 + 몸값 보유 선수 전원(~4,100명, MLS·사우디·K리그1 포함).
   // 기존 빅5 상위 600 한정은 손흥민(MLS) 등 검색 수요 최상위가 sitemap 에 0건이던 원인(2026-08-08 실측).
   // league null(약 1만 명)은 페이지 데이터 빈약(thin) 위험으로 계속 제외. take 는 안전 상한.
+  // 유령(중복) id 는 정본으로 308 이동하므로 sitemap 에서 뺀다 — 넣으면 "리디렉션이 포함된
+  //  페이지" 가 된다. 다만 그냥 빼면 정본이 league null 이라 원래 조건에 안 걸리는 선수가
+  //  통째로 사라진다(실측 32명, 22명은 경력표 보유라 thin 아님) → 정본은 league 무관하게 포함.
+  const CANONICAL = rawCanonical as Record<string, string>;
+  const GHOST_IDS = new Set(Object.keys(CANONICAL));
+  const CANON_IDS = [...new Set(Object.values(CANONICAL))];
   const topPlayers = await prisma.playerMarketValue.findMany({
-    where: { league: { not: null }, currentValue: { not: null } },
+    where: {
+      currentValue: { not: null },
+      OR: [{ league: { not: null } }, { id: { in: CANON_IDS } }],
+    },
     orderBy: { currentValue: "desc" },
-    take: 5000,
+    take: 5300, // 정본 보충분(최대 ~230)만큼 상한 여유
     select: { id: true, updatedAt: true },
   });
-  const playerPages: MetadataRoute.Sitemap = topPlayers.map((p) => ({
+  const playerPages: MetadataRoute.Sitemap = topPlayers.filter((p) => !GHOST_IDS.has(p.id)).map((p) => ({
     url: `${base}/transfers/${p.id}`,
     lastModified: p.updatedAt, // 몸값 갱신 시점
     changeFrequency: "weekly",
