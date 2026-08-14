@@ -56,6 +56,43 @@ function bingSiteUrl(): string {
 export const BING_OPP_MIN_IMPRESSIONS = OPP_MIN_IMPRESSIONS;
 export const BING_OPP_MIN_POSITION = OPP_MIN_POSITION;
 
+/** 경로 접두사별 노출 커버리지 — "노출이 붙은 페이지가 몇 개인가".
+ *  ⚠️ GetPageStats 는 노출이 발생한 페이지만 돌려준다. 색인 수가 아니라 "검색에 뜬 페이지 수"다
+ *  (2026-08-14: /transfers/ 는 sitemap 5,206개 중 17개만 노출). 색인 총량은 GetCrawlStats.InIndex. */
+export async function fetchBingPathCoverage(
+  prefixes: string[],
+): Promise<Record<string, { pages: number; impressions: number; clicks: number }>> {
+  const key = process.env.BING_WEBMASTER_API_KEY!;
+  const site = bingSiteUrl();
+  const url = `${API_BASE}/GetPageStats?siteUrl=${encodeURIComponent(site)}&apikey=${encodeURIComponent(key)}`;
+  // 페이지 통계는 응답이 커서 UI용 8초로는 못 받는다(실측 8초 초과). 주간 job 전용이라 넉넉히.
+  const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(25_000) });
+  if (!res.ok) throw new Error(`Bing GetPageStats ${res.status}`);
+  const data = (await res.json()) as { d?: Array<{ Query?: string; Url?: string; Clicks?: number; Impressions?: number }> };
+  // 같은 URL 이 날짜별로 여러 행 — URL 기준으로 먼저 합산해야 페이지 수가 부풀지 않는다.
+  const byUrl = new Map<string, { i: number; c: number }>();
+  for (const r of data.d ?? []) {
+    const u = r.Query ?? r.Url ?? "";
+    if (!u) continue;
+    const e = byUrl.get(u) ?? { i: 0, c: 0 };
+    e.i += r.Impressions ?? 0;
+    e.c += r.Clicks ?? 0;
+    byUrl.set(u, e);
+  }
+  const out: Record<string, { pages: number; impressions: number; clicks: number }> = {};
+  for (const p of prefixes) out[p] = { pages: 0, impressions: 0, clicks: 0 };
+  for (const [u, e] of byUrl) {
+    for (const p of prefixes) {
+      if (!u.includes(p)) continue;
+      out[p].pages++;
+      out[p].impressions += e.i;
+      out[p].clicks += e.c;
+      break; // 접두사는 서로 겹치지 않게 넘긴다 — 한 URL 이 두 그룹에 세어지면 합계가 틀어진다
+    }
+  }
+  return out;
+}
+
 /** 빙 전체 검색어(검색어별 집계, 노출순). 캐시 없음 — 호출부(UI 캐시·주간 job)에서 관리.
  *  GetQueryStats 행은 검색어×날짜라 검색어 기준 합산(position 은 노출 가중 평균). */
 export async function fetchAllBingQueries(): Promise<BingQueryRow[]> {
