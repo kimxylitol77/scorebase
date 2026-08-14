@@ -407,6 +407,17 @@ export function predictHandicapMarket(
   homeTeamId: number,
   awayTeamId: number,
   asOf: Date,
+  /**
+   * 야구 선발 반영 — 넘기지 않거나 starterWeight 가 0이면 기존 동작과 완전히 같다.
+   *
+   * ⚠️ **운영은 0 이다(미채택).** 1X2·오버언더는 선발을 쓰는데 핸디캡만 안 써서 같은 팀 3연전이면
+   * 선발이 누구든 확률이 같았고, 사후 분류로는 픽 방향이 선발 우위와 같을 때 67.0% / 반대일 때
+   * 58.6% 라 개선 여지가 커 보였다. 그러나 백테스트(2026-08-14, MLB 1,535경기 4분할)에서
+   * **최근 구간만 일관되게 악화**했다 — 63.1% → 62.3%(w=0.2) → 60.8%(0.3) → 59.5%(0.5).
+   * 선발 우위는 팀 평균 득실에 이미 녹아 있어서 마진에 또 더하면 이중 계상이 된다.
+   * 손잡이만 남긴 이유는 재검증 때문이다 — scripts/backtest-handicap-starter.ts
+   */
+  opts?: { homeStarterEra?: number | null; awayStarterEra?: number | null; starterWeight?: number },
 ): {
   pick: "HOME" | "AWAY";
   line: number;
@@ -432,7 +443,16 @@ export function predictHandicapMarket(
   const expectedHome =
     ((home.scoredPerGame + away.concededPerGame) / 2) * profile.homeBoost;
   const expectedAway = (away.scoredPerGame + home.concededPerGame) / 2;
-  const expectedMargin = expectedHome - expectedAway;
+  let expectedMargin = expectedHome - expectedAway;
+
+  // 선발 우위를 기대 마진에 더한다. ERA 는 낮을수록 좋으므로 (원정 - 홈) 이 양수면 홈 우위.
+  const hEra = opts?.homeStarterEra, aEra = opts?.awayStarterEra;
+  const w = opts?.starterWeight ?? 0;
+  if (w !== 0 && hEra != null && aEra != null && Number.isFinite(hEra) && Number.isFinite(aEra)) {
+    // 극단값(부상 복귀 직후 ERA 12 등)이 마진을 지배하지 않도록 자른다
+    const gap = Math.max(-3, Math.min(3, aEra - hEra));
+    expectedMargin += w * gap;
+  }
 
   // 양쪽 cover 확률을 다 계산 후 더 높은 쪽을 픽한다.
   // 핵심: 야구처럼 점수 폭 작은 종목은 1점 차 게임 빈도가 높아서
