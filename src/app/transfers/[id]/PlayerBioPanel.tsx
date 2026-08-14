@@ -62,7 +62,7 @@ const contractLabel = (sec: number) =>
 export default function PlayerBioPanel({
   age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
   teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur,
-  positions, posCode, foot, contractUntil,
+  positions, posCode, foot, contractUntil, contractPast,
 }: {
   age: number | null;
   birthDate: string | null;
@@ -84,7 +84,8 @@ export default function PlayerBioPanel({
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
   posCode: string | null; // coarse G/D/M/F 폴백
   foot?: string | null; // 주발 (ts preferred_foot) — "L"|"R"|"B"
-  contractUntil?: number | null; // 계약 만료 (ts contract_until, unix sec) — 이미 지난 값은 page 에서 걸러 온다
+  contractUntil?: number | null; // 계약 만료 (ts contract_until, unix sec)
+  contractPast?: boolean; // 만료일이 이미 지났는지 (page 에서 판정) — "직전 계약" 으로 표기가 갈린다
 }) {
   // 구체 포지션 우선, 없으면 coarse 폴백
   const coarse = posCode ? COARSE[posCode] : null;
@@ -150,7 +151,9 @@ export default function PlayerBioPanel({
             주급은 Capology 5대리그만이라, 주급이 없으면 계약 만료가 이 자리의 주 정보가 된다. */}
         {(wageEur != null || contractUntil != null) && (
           <div className={`${valueEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
-            <div className="text-xs text-neutral-400 mb-0.5">{wageEur != null ? "주급 (세전)" : "계약 만료"}</div>
+            <div className="text-xs text-neutral-400 mb-0.5">
+              {wageEur != null ? "주급 (세전)" : contractPast ? "직전 계약" : "계약 만료"}
+            </div>
             {wageEur != null ? (
               <>
                 <div className="flex items-baseline gap-2 flex-wrap">
@@ -161,12 +164,17 @@ export default function PlayerBioPanel({
                 </div>
                 {contractUntil != null && (
                   <div className="mt-1 text-xs text-neutral-500">
-                    계약 <span className="font-bold text-neutral-700 dark:text-neutral-200">{contractLabel(contractUntil)}</span>까지
+                    {contractPast ? "직전 계약 " : "계약 "}
+                    <span className="font-bold text-neutral-700 dark:text-neutral-200">{contractLabel(contractUntil)}</span>
+                    {contractPast ? " 만료" : "까지"}
                   </div>
                 )}
               </>
             ) : (
-              <div className="text-2xl font-black tabular-nums">{contractLabel(contractUntil!)}</div>
+              <div className="text-2xl font-black tabular-nums">
+                {contractLabel(contractUntil!)}
+                {contractPast && <span className="ml-1 text-sm font-normal text-neutral-400">만료</span>}
+              </div>
             )}
           </div>
         )}

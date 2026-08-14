@@ -140,8 +140,9 @@ const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 // 주급/연봉 (Capology 5대리그, fetch-football-wages.ts) — 세전 연봉 EUR.
 const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
 const FOOT = rawFoot as Record<string, string>; // 주발 (ts preferred_foot) — "L"|"R"|"B" ("?" = ts 도 모름, 미표시)
-// 계약 만료 (ts contract_until, unix sec). 8% 가 이미 지난 날짜라 표시 전에 걸러야 한다 —
-// ts 가 이적 후에도 옛 계약을 남겨두는 경우가 있어서, 지난 값은 사실이 아니라 잔재로 본다.
+// 계약 만료 (ts contract_until, unix sec). 8% 는 이미 지난 날짜 — ts 가 이적 후에도 옛 계약을
+// 남겨두기 때문. 숨기지 않고 "직전 계약"으로 맥락을 붙여 노출한다(가진 데이터는 다 보여주되,
+// 지난 것을 현재 계약처럼 읽히게 두지는 않는다). 지난 여부 판정은 서버에서 — hydration 방어.
 const CONTRACT = rawContract as Record<string, number>;
 // 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
 const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
@@ -1088,7 +1089,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
         foot={FOOT[id] ?? null}
-        contractUntil={CONTRACT[id] && CONTRACT[id] * 1000 > Date.now() ? CONTRACT[id] : null}
+        contractUntil={CONTRACT[id] ?? null}
+        contractPast={CONTRACT[id] != null && CONTRACT[id] * 1000 <= Date.now()}
       />
 
       {/* 통산 요약 (클럽 대회 합산) — 한눈 커리어 4칸 */}
