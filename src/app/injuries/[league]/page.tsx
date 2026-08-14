@@ -552,50 +552,73 @@ export default async function InjuriesByLeague({
   let allBdl: Awaited<ReturnType<typeof fetchBalldontlieInjuries>> = [];
   let allKbo: KboInjury[] = [];
   let allNpb: NpbInjuryEntry[] = [];
+  // 조회 실패를 삼키면 빈 명단이 "부상자 없음" 으로 그려진다. 사용자에겐 사이트가 고장난
+  //  것으로 보이는데 새로고침하면 정상이라 로그에도 안 남는다 (2026-08 /injuries/EPL 실측:
+  //  16팀이 1팀으로 보였다가 재요청에 복구). 이 페이지는 force-dynamic 이라 렌더마다 DB 를
+  //  치므로 커넥션 지연 한 번이 그대로 화면이 된다 — 한 번 더 시도해 흡수하고, 그래도
+  //  실패하면 빈 명단을 사실인 양 그리지 않고 화면에 밝힌다.
+  const loadFailures: string[] = [];
+  const loadOrReport = async <T,>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await fn();
+      } catch (e) {
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 400));
+          continue;
+        }
+        console.warn(`[injuries/${upper}] ${label} 실패:`, (e as Error).message);
+        loadFailures.push(label);
+      }
+    }
+    return fallback;
+  };
+
   // 축구 부상자: TheSports lineup.injury 1순위 (cache 추적 중인 팀은 부상자 0명도 신뢰).
   let tsInjByTeam = new Map<number, TSInjuryRaw[]>();
   if (isSoccer) {
-    try { tsInjByTeam = await getTheSportsInjuriesByTeam(teams.map((t) => t.id)); } catch {}
+    tsInjByTeam = await loadOrReport(
+      "TheSports 부상자",
+      () => getTheSportsInjuriesByTeam(teams.map((t) => t.id)),
+      new Map<number, TSInjuryRaw[]>(),
+    );
   }
   // cache 없는 팀(오프시즌 등)이 있을 때만 api-football 보강 — 전부 cover 면 호출 skip(rate-limit 절약).
   // NATIONAL 처럼 api-football 리그 id 가 없는 경우는 애초에 보강 대상 아님(라벨도 "TheSports" 로).
   const needAf = isSoccer && !!API_FOOTBALL_LEAGUE_ID[upper] && teams.some((t) => !tsInjByTeam.has(t.id));
   const hasKey = isSoccer ? tsInjByTeam.size > 0 || !!process.env.API_FOOTBALL_KEY : true;
   if (isSoccer && needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
-    try {
-      const season = getApiFootballSeason(new Date(), upper);
-      allInjuries = await fetchSeasonInjuriesCached(upper, season);
-      // 시즌 부상 목록에서 현재 스쿼드에 없는(이적/방출) 선수 제거 — 비시즌·시즌중 이적 잔존 방지.
-      allInjuries = await filterInjuriesToCurrentSquad(allInjuries);
-    } catch {}
+    allInjuries = await loadOrReport(
+      "api-football 부상자",
+      async () => {
+        const season = getApiFootballSeason(new Date(), upper);
+        const rows = await fetchSeasonInjuriesCached(upper, season);
+        // 시즌 부상 목록에서 현재 스쿼드에 없는(이적/방출) 선수 제거 — 비시즌·시즌중 이적 잔존 방지.
+        return filterInjuriesToCurrentSquad(rows);
+      },
+      [],
+    );
   } else if (isEspn && process.env.BALLDONTLIE_KEY) {
-    try {
-      allBdl = await fetchBalldontlieInjuries(upper as "NBA" | "MLB" | "NHL");
-    } catch {}
-    // BALLDONTLIE 실패하면 ESPN fallback
+    allBdl = await loadOrReport("BALLDONTLIE 부상자", () => fetchBalldontlieInjuries(upper as "NBA" | "MLB" | "NHL"), []);
+    // BALLDONTLIE 실패하면 ESPN fallback — 폴백이 성공하면 앞선 실패는 화면에 알리지 않는다.
     if (allBdl.length === 0) {
-      try {
-        allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
-      } catch {}
+      allEspn = await loadOrReport("ESPN 부상자", () => fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL"), []);
+      if (allEspn.length > 0) loadFailures.length = 0;
     }
   } else if (isEspn) {
-    try {
-      allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
-    } catch {}
+    allEspn = await loadOrReport("ESPN 부상자", () => fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL"), []);
   } else if (upper === "KBO") {
-    try {
-      allKbo = await fetchKboInjuries();
-    } catch (e) {
-      console.warn("[injuries/KBO] fetch 실패:", (e as Error).message);
-    }
+    allKbo = await loadOrReport("KBO 부상자", () => fetchKboInjuries(), []);
   } else if (upper === "NPB") {
-    try {
-      const active = await fetchActiveNpbInjuriesCached(30);
-      // 활성 부상자 한자 → 한글 음역 보강 (pid 별 unstable_cache 1d)
-      allNpb = await enrichNpbInjuriesWithKoreanCached(active);
-    } catch (e) {
-      console.warn("[injuries/NPB] fetch 실패:", (e as Error).message);
-    }
+    allNpb = await loadOrReport(
+      "NPB 부상자",
+      async () => {
+        const active = await fetchActiveNpbInjuriesCached(30);
+        // 활성 부상자 한자 → 한글 음역 보강 (pid 별 unstable_cache 1d)
+        return enrichNpbInjuriesWithKoreanCached(active);
+      },
+      [],
+    );
   }
 
   const seasonLabel =
@@ -955,6 +978,16 @@ export default async function InjuriesByLeague({
           </div>
         )}
 
+        {/* 조회 실패를 침묵하지 않는다 — 빈 명단을 "부상자 없음" 으로 보여주면 오해가 된다. */}
+        {loadFailures.length > 0 && (
+          <div className="rounded-xl border border-red-400/40 bg-red-50 p-4 text-sm dark:bg-red-900/20">
+            <p className="font-semibold text-red-700 dark:text-red-300">부상자 데이터를 불러오지 못했습니다</p>
+            <p className="mt-1 text-neutral-600 dark:text-neutral-300">
+              {loadFailures.join(" · ")} 조회에 실패해 아래 명단이 실제와 다를 수 있습니다. 잠시 후 새로고침해 주세요.
+            </p>
+          </div>
+        )}
+
         {/* 요약 대시보드 — 4개 카드 */}
         {totalInjuries > 0 && (
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1046,8 +1079,9 @@ export default async function InjuriesByLeague({
           </section>
         )}
 
-        {/* 풀스쿼드 별도 섹션 — 상단에서 강조 */}
-        {fullSquadTeams.length > 0 && severityFilter === "ALL" && !query && (
+        {/* 풀스쿼드 별도 섹션 — 상단에서 강조.
+            조회가 실패했으면 "부상자 없음" 은 사실이 아니라 조회 결과가 빈 것뿐이라 숨긴다. */}
+        {fullSquadTeams.length > 0 && loadFailures.length === 0 && severityFilter === "ALL" && !query && (
           <section>
             <h2 className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4" aria-hidden /> 풀스쿼드 유지 {fullSquadTeams.length}팀
