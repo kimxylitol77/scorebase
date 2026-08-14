@@ -333,6 +333,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   }
+  // KBO — 순위 검색어는 /standings/KBO 담당(빙 Copilot 이 순위표를 요약해버려 클릭이 안 나는 구간).
+  // 여기는 요약이 못 주는 "확률" 을 전담해 검색어를 나눈다 — 두 페이지가 같은 말을 하면 서로 깎는다.
+  if (upper === "KBO") {
+    const kst = new Date(Date.now() + 9 * 3600_000);
+    const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+    return {
+      title: `KBO 가을야구 확률 (${dateLabel}) — 포스트시즌 진출·우승 확률 시뮬레이션`,
+      description:
+        `${dateLabel} 기준 KBO 가을야구(정규시즌 5위 이내) 진출 확률과 우승 확률. ` +
+        `잔여 경기를 Elo 기반 몬테카를로로 5,000회 돌려 매일 갱신합니다. 오늘 경기 승률·선발 맞대결도 함께.`,
+      keywords: [
+        "KBO 가을야구 확률",
+        "가을야구 확률",
+        "KBO 포스트시즌 진출 확률",
+        "KBO 우승 확률",
+        "프로야구 우승 확률",
+        "KBO 예측",
+        "프로야구 예측",
+        "KBO 시즌 시뮬레이션",
+        "AI 승부예측",
+        "스코어베이스",
+      ],
+      alternates: {
+        canonical,
+        ...(EN_PREDICTION_LEAGUE_SET.has(upper)
+          ? { languages: koEnLanguages(`/predictions/${upper}`, `/en/predictions/${upper}`) }
+          : {}),
+      },
+    };
+  }
   return {
     title: `${info.name} 예측 — 오늘 경기 승률·우승 확률 시뮬레이션`,
     description: `${info.subtitle}. 매일 갱신하는 ${info.name} 경기별 승률(Elo+시장 배당 모델), Monte Carlo 시즌 시뮬레이션, 우승·플레이오프 확률까지 데이터로 제공.`,

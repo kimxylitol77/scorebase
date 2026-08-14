@@ -62,8 +62,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: { canonical: "https://www.scorebase.kr/standings/NHL", ...enAlt(upper) },
     };
   }
-  // KBO — 빙 검색어 정밀 매칭("프로야구순위" 1,833·8위, "kbo 리그 팀 순위" 587·4위인데 CTR 0%).
-  // 날짜·1위 팀을 title/description 에 동적 삽입해 SERP 클릭 유인 — ISR 600s 라 매일 자동 갱신.
+  // KBO — 빙 최대 노출 페이지인데 CTR 0.33% (2026-08-14 실측: 노출 16,787·클릭 55).
+  // 원인은 순위가 아니라 빙 Copilot 이 우리 순위표를 그대로 요약해 답하는 것(zero-click) —
+  // "순위표"만 약속하면 클릭할 이유가 없다. 그래서 요약이 못 주는 가을야구 확률을 앞세운다.
+  // 특히 확률이 갈린 팀(5~95%)이 검색자의 실제 관심사라 그 경쟁 구간을 description 머리에 둔다.
   if (upper === "KBO") {
     let title = "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차";
     let description =
@@ -72,10 +74,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const rows = await fetchBaseballTable("KBO");
       if (rows.length >= 3) {
         const top3 = rows.slice(0, 3);
-        const teams = await prisma.team.findMany({
-          where: { id: { in: top3.map((r) => r.ourTeamId) } },
-          select: { id: true, name: true, nameKo: true },
-        });
+        // 경쟁 구간 문구에 하위권 팀 이름도 필요해 전체 조회 (10팀이라 비용 무시 가능)
+        const [teams, poOdds] = await Promise.all([
+          prisma.team.findMany({
+            where: { id: { in: rows.map((r) => r.ourTeamId) } },
+            select: { id: true, name: true, nameKo: true },
+          }),
+          getKboPostseasonOdds(),
+        ]);
         const nameOf = (id: number) => {
           const t = teams.find((x) => x.id === id);
           return t ? t.nameKo || toKoreanTeamName(t.name, "KBO") || t.name : "";
@@ -88,11 +94,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           const pct1 = (t1.wins / Math.max(t1.wins + t1.losses, 1)).toFixed(3);
           // 본문 gamesBehind 와 동일 공식 (leader=t1 기준)
           const gb2 = ((t1.wins - t2.wins + (t2.losses - t1.losses)) / 2).toFixed(1).replace(/\.0$/, "");
-          title = `프로야구 순위 (${dateLabel}) — 1위 ${n1} · KBO 리그 팀 순위표`;
+          // 확률이 갈린 팀만 = 아직 결판 안 난 가을야구 티켓 싸움. 상위권이 다 굳은 시즌 말에는
+          // 비어서 자동으로 기존(순위 위주) 문구로 돌아간다.
+          const contenders = rows
+            .map((r) => ({ name: nameOf(r.ourTeamId), p: poOdds?.get(r.ourTeamId) }))
+            .filter((x): x is { name: string; p: number } => !!x.name && x.p != null && x.p >= 0.05 && x.p <= 0.95)
+            .sort((a, b) => b.p - a.p)
+            .slice(0, 3);
+          // "티켓 경쟁" 같은 해석은 붙이지 않는다 — 94% 팀과 13% 팀을 한 묶음으로 부르면 사실이 뒤틀린다.
+          const race =
+            contenders.length >= 2
+              ? `가을야구 진출 확률 ${contenders.map((c) => `${c.name} ${(c.p * 100).toFixed(1)}%`).join(" · ")} — ` +
+                `잔여 경기 5,000회 시뮬레이션. `
+              : "";
+          title = race
+            ? `프로야구 순위 (${dateLabel}) 1위 ${n1} — KBO 팀 순위표·가을야구 확률`
+            : `프로야구 순위 (${dateLabel}) — 1위 ${n1} · KBO 리그 팀 순위표`;
           description =
-            `오늘의 KBO 리그 팀 순위 (${dateLabel}): 1위 ${n1} 승률 ${pct1} · ` +
+            race +
+            `${dateLabel} KBO 팀 순위: 1위 ${n1} 승률 ${pct1} · ` +
             `2위 ${nameOf(t2.ourTeamId)} ${gb2}게임차 · 3위 ${nameOf(t3.ourTeamId)}. ` +
-            `10개 구단 승·패·무·승률·게임차 실시간 자동 갱신.`;
+            `10개 구단 승·패·무·승률·게임차 자동 갱신.`;
         }
       }
     } catch {
