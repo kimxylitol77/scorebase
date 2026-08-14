@@ -45,7 +45,7 @@ function client() {
     baseURL: BASE,
     timeout: 8_000,
     headers: { "x-apisports-key": key },
-  }), "af-live-stats");
+  }), "af-live-stats", { retryWaitsMs: [800] }); // 라이브 — 한도 재시도는 짧게 1회만
 }
 
 // ───── fixture id 캐시 ─────

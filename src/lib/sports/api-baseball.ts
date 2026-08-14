@@ -7,16 +7,22 @@
 // /games endpoint 를 사용한다.
 
 import axios from "axios";
+import { attachAfTracking } from "@/lib/sports/af-track";
 
 const BASE_URL = "https://v1.baseball.api-sports.io";
 
-const client = axios.create({
-  baseURL: BASE_URL,
-  timeout: 15000,
-  headers: {
-    "x-apisports-key": process.env.API_BASEBALL_KEY ?? "",
-  },
-});
+// 축구와 같은 api-sports 라 분당 한도도 HTTP 200 + errors 객체로 온다 — 래퍼가 재시도·예외화한다.
+const client = attachAfTracking(
+  axios.create({
+    baseURL: BASE_URL,
+    timeout: 15000,
+    headers: {
+      "x-apisports-key": process.env.API_BASEBALL_KEY ?? "",
+    },
+  }),
+  "api-baseball",
+  { retryWaitsMs: [1000, 3000] },
+);
 
 export interface ApiBaseballGame {
   id: number;

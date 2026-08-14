@@ -702,52 +702,53 @@ export interface CareerCompRow {
   red: number;
 }
 
-// 선수 전 시즌 대회별 스탯. /players/seasons(1콜) + 시즌당 /players(병렬). 최근 12시즌 한정(유스 잡음·quota).
+function parseCareerSeason(season: number, data: unknown): CareerCompRow[] {
+  const stx: Record<string, unknown>[] = (data as { response?: { statistics?: Record<string, unknown>[] }[] })?.response?.[0]?.statistics ?? [];
+  return stx.map((s) => {
+    const g = (s.games as Record<string, unknown>) ?? {};
+    const go = (s.goals as Record<string, unknown>) ?? {};
+    const c = (s.cards as Record<string, unknown>) ?? {};
+    const lg = (s.league as Record<string, unknown>) ?? {};
+    const tm = (s.team as Record<string, unknown>) ?? {};
+    const r = g.rating as string | undefined;
+    return {
+      season,
+      leagueName: (lg.name as string) ?? "",
+      leagueCountry: lg.country as string | undefined,
+      leagueFlag: lg.flag as string | undefined,
+      leagueType: lg.type as string | undefined,
+      teamName: (tm.name as string) ?? "",
+      teamLogo: tm.logo as string | undefined,
+      appearances: (g.appearences as number) ?? 0,
+      minutes: (g.minutes as number) ?? 0,
+      rating: r ? parseFloat(r) : null,
+      goals: (go.total as number) ?? 0,
+      assists: (go.assists as number) ?? 0,
+      yellow: (c.yellow as number) ?? 0,
+      red: (c.red as number) ?? 0,
+    } as CareerCompRow;
+  });
+}
+
+// 선수 전 시즌 대회별 스탯. /players/seasons(1콜) + 시즌당 /players. 최근 12시즌 한정(유스 잡음·quota).
+// 동시 3개씩만 — 12개 동시는 분당 한도에 걸려 시즌이 조용히 누락됐다(2026-08 실측).
+// 한 시즌이라도 못 받으면 throw. 부분 결과를 반환하면 그게 그대로 캐시에 굳는다.
 export async function fetchPlayerCareer(playerId: number): Promise<CareerCompRow[]> {
-  try {
-    const { data } = await client().get("/players/seasons", { params: { player: playerId } });
-    const seasons: number[] = (data?.response ?? []).filter((s: unknown) => typeof s === "number");
-    if (!seasons.length) return [];
-    const recent = [...seasons].sort((a, b) => b - a).slice(0, 12);
-    const perSeason = await Promise.all(
-      recent.map(async (season) => {
-        try {
-          const { data: d } = await client().get("/players", { params: { id: playerId, season } });
-          const stx: Record<string, unknown>[] = d?.response?.[0]?.statistics ?? [];
-          return stx.map((s) => {
-            const g = (s.games as Record<string, unknown>) ?? {};
-            const go = (s.goals as Record<string, unknown>) ?? {};
-            const c = (s.cards as Record<string, unknown>) ?? {};
-            const lg = (s.league as Record<string, unknown>) ?? {};
-            const tm = (s.team as Record<string, unknown>) ?? {};
-            const r = g.rating as string | undefined;
-            return {
-              season,
-              leagueName: (lg.name as string) ?? "",
-              leagueCountry: lg.country as string | undefined,
-              leagueFlag: lg.flag as string | undefined,
-              leagueType: lg.type as string | undefined,
-              teamName: (tm.name as string) ?? "",
-              teamLogo: tm.logo as string | undefined,
-              appearances: (g.appearences as number) ?? 0,
-              minutes: (g.minutes as number) ?? 0,
-              rating: r ? parseFloat(r) : null,
-              goals: (go.total as number) ?? 0,
-              assists: (go.assists as number) ?? 0,
-              yellow: (c.yellow as number) ?? 0,
-              red: (c.red as number) ?? 0,
-            } as CareerCompRow;
-          });
-        } catch {
-          return [] as CareerCompRow[];
-        }
+  const { data } = await client().get("/players/seasons", { params: { player: playerId } });
+  const seasons: number[] = (data?.response ?? []).filter((s: unknown) => typeof s === "number");
+  if (!seasons.length) return [];
+  const recent = [...seasons].sort((a, b) => b - a).slice(0, 12);
+  const rows: CareerCompRow[] = [];
+  for (let i = 0; i < recent.length; i += 3) {
+    const part = await Promise.all(
+      recent.slice(i, i + 3).map(async (season) => {
+        const { data: d } = await client().get("/players", { params: { id: playerId, season } });
+        return parseCareerSeason(season, d);
       }),
     );
-    return perSeason.flat().filter((r) => r.appearances > 0 || r.minutes > 0);
-  } catch (e) {
-    console.warn("[api-football-pro] fetchPlayerCareer 실패:", (e as Error).message);
-    return [];
+    rows.push(...part.flat());
   }
+  return rows.filter((r) => r.appearances > 0 || r.minutes > 0);
 }
 
 // ===== 선수 부상 이력 =====
