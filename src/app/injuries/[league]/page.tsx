@@ -348,6 +348,24 @@ async function getInjuryTeams(upper: Lg) {
       return true;
     });
   }
+  // Team.league 라벨은 승격·강등을 늦게 따라온다 — 그대로 쓰면 강등팀 부상자가 이 리그
+  //  명단에 남는다 (2026-08 실측: EPL 23팀 중 울버햄프턴·번리·웨스트햄이 다음 시즌
+  //  챔피언십, 분데스 23팀 중 8팀 잔존, J2 40팀 중 20팀은 J3). 라벨 대신 이번 시즌
+  //  일정에 실제로 편성된 팀을 쓴다 — 승격팀도 라벨이 아직 안 붙었어도 자동으로 잡힌다.
+  const upcoming = await prisma.match.findMany({
+    where: { league: upper, startTime: { gte: new Date() } },
+    select: { homeTeamId: true, awayTeamId: true },
+    take: 600,
+  });
+  const scheduled = new Set<number>();
+  for (const m of upcoming) {
+    if (m.homeTeamId != null) scheduled.add(m.homeTeamId);
+    if (m.awayTeamId != null) scheduled.add(m.awayTeamId);
+  }
+  // 일정이 아직 안 들어온 대회(컵·비시즌)는 판단 근거가 없으니 라벨로 폴백한다.
+  if (scheduled.size >= 8) {
+    return prisma.team.findMany({ where: { id: { in: [...scheduled] } }, orderBy: { name: "asc" } });
+  }
   return prisma.team.findMany({ where: { league: upper }, orderBy: { name: "asc" } });
 }
 
