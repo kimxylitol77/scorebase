@@ -2,7 +2,7 @@
 //   id = TheSports player id. PlayerMarketValue / TheSportsPlayer / FootballTransfer 만 사용 (api-football 안 씀).
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { athleteLd, breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
@@ -25,6 +25,7 @@ import rawPlayerHeatmaps from "../../../../data/player-heatmap-analysis.json";
 import rawFoot from "../../../../data/player-foot.json";
 import rawContract from "../../../../data/player-contract.json";
 import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
+import rawCanonical from "../../../../data/player-canonical-redirects.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
@@ -152,6 +153,12 @@ const PLAYER_TO_NATL_TSID = new Map<string, string>();
 for (const t of Object.values(rawWcSquads as Record<string, { tsId: string; squad: Array<{ id: string }> }>)) {
   for (const s of t.squad) PLAYER_TO_NATL_TSID.set(s.id, t.tsId);
 }
+
+// 유령(중복) 선수 id → 정본 id. TheSports 가 한 선수에 id 를 여러 개 부여해 이적 때 갈아타면
+//  옛 id 의 몸값이 그 시점에 멈춘 채 페이지만 남는다 (크바라츠헬리아 = 현역 PSG + 유령 나폴리).
+//  목록은 dedup 되지만 개별 URL·sitemap 은 안 걸러져 중복 색인된다 → 정본으로 영구 이동.
+//  산출: scripts/build-player-canonical-map.ts (이름+추정생년 일치분만, 동명이인 제외).
+const CANONICAL = rawCanonical as Record<string, string>;
 
 // ISR — 몸값·이적·시즌 기록은 분 단위로 바뀌지 않음. 서울 엣지 캐시로 페이지 이동 가속(5분 재생성).
 export const revalidate = 300;
@@ -530,6 +537,8 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, tsOurId = {}, club
 
 export default async function PlayerTransferPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const canonical = CANONICAL[id];
+  if (canonical && canonical !== id) permanentRedirect(`/transfers/${canonical}`);
   const p = await loadPlayer(id);
   if (!p) notFound();
   const { mv, tsp } = p;
