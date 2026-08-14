@@ -84,6 +84,31 @@ export function buildBlogCaption(opts: {
   return `${header}${excerpt}${footer}`;
 }
 
+// 경기 프리뷰 수치카드 caption (매일 1건). preview-card.ts 의 PreviewCard 를 그대로 받는다.
+// 카드 이미지가 수치를 이미 보여주므로 텍스트는 반복하지 않고 "왜 볼 만한가"만 남긴다.
+export function buildPreviewCaption(
+  c: {
+    leagueLabel: string;
+    home: string;
+    away: string;
+    kickoffKst: string;
+    stats: { label: string; value: string; note: string; hot?: boolean }[];
+    verdict: string;
+  },
+  opts: { url: string },
+): string {
+  const hot = c.stats.find((s) => s.hot);
+  const header = `${hot ? "🔥" : "📊"} ${c.home} vs ${c.away} — ${c.verdict}`;
+  const meta = `${c.leagueLabel} · ${c.kickoffKst} KST`;
+  const lines = c.stats.map((s) => `${s.hot ? "🔥" : "·"} ${s.label} ${s.value} — ${s.note}`).join("\n");
+  const tail = "숫자는 매일 자동 갱신되고, 틀린 픽도 그대로 남습니다.";
+  const hashtags = "#스코어베이스 #승부예측 #AI예측 #스포츠분석 #오늘의경기";
+  const footer = `\n\n👉 ${opts.url}\n\n${hashtags}`;
+  const fixed = `${header}\n${meta}\n\n`;
+  const budget = THREADS_TEXT_LIMIT - fixed.length - footer.length - tail.length - 2;
+  return `${fixed}${truncate(lines, budget)}\n\n${tail}${footer}`;
+}
+
 // scorebase 기능 소개 caption (매일 1개 로테이션). features.ts 데이터 사용.
 export function buildFeatureCaption(f: ThreadsFeature, opts: { url: string }): string {
   const header = `${f.emoji} ${f.hook}`;
