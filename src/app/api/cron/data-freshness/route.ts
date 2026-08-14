@@ -19,6 +19,7 @@ import { sendTelegram } from "@/lib/notify/telegram";
 import { recordCronRun } from "@/lib/cron-registry";
 import { getPlayerCareerByTs } from "@/app/transfers/[id]/career-data";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
+import { getTheSportsInjuriesByTeam } from "@/lib/sports/thesports/injuries";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -185,6 +186,44 @@ async function checkStandings(now: Date, findings: Finding[]) {
   return { stale: stale.length };
 }
 
+/**
+ * 부상자 명단 — /injuries 가 통째로 비는 걸 사람 대신 잡는다.
+ *
+ * 왜. 2026-08 사용자가 /injuries/EPL 에서 "부상자가 한 팀만 나온다"를 눈으로 찾았다.
+ * 페이지가 force-dynamic 이라 렌더마다 DB 를 치는데 실패를 catch{} 로 삼켜 빈 명단이
+ * 그대로 그려진다 — 새로고침하면 정상이라 로그에도 안 남는다. 한 달에 한 번꼴로 반복됐다.
+ *
+ * 대상은 소스가 확실히 있는 리그만. K리그·J리그·사우디는 af 가 현 시즌 injuries 를
+ * 아예 커버하지 않아(2026-08 실측 coverage.injuries=false) 늘 0이고, 넣으면 매일 울려서
+ * 아무도 안 보게 된다. 그 리그들의 "데이터 미제공" 은 화면에서 밝히는 게 맞는 처리다.
+ *
+ * 임계는 실측 위에 — 같은 날 EPL 16 · 라리가 18 · 분데스 14 · 세리에A 12 · 리그1 16 · MLS 30팀.
+ * 최저가 12팀이라 2팀 이하는 정상 변동으로 설명되지 않는다.
+ */
+const INJURY_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS"];
+const INJURY_MIN_TEAMS = 2;
+
+async function checkInjuries(findings: Finding[]) {
+  const empty: string[] = [];
+  const counts: Record<string, number> = {};
+  for (const lg of INJURY_LEAGUES) {
+    const teams = await prisma.team.findMany({ where: { league: lg }, select: { id: true } });
+    if (!teams.length) continue; // 팀 자체가 없으면 이 리그는 미온보딩 — 판정 대상 아님
+    const byTeam = await getTheSportsInjuriesByTeam(teams.map((t) => t.id));
+    const withInjury = [...byTeam.values()].filter((v) => v.length > 0).length;
+    counts[lg] = withInjury;
+    if (withInjury <= INJURY_MIN_TEAMS) empty.push(`${lg} ${withInjury}팀`);
+  }
+  if (empty.length) {
+    findings.push({
+      kind: "injuries_empty",
+      detail: `부상자 명단이 비었습니다 — 소스가 있는 리그인데 부상자 있는 팀이 ${INJURY_MIN_TEAMS}팀 이하`,
+      samples: empty,
+    });
+  }
+  return counts;
+}
+
 export async function GET(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
@@ -209,6 +248,7 @@ export async function GET(req: Request) {
     predictions: await run("predictions", () => checkPredictions(now, findings)),
     marketValues: await run("marketValues", () => checkMarketValues(now, findings)),
     standings: await run("standings", () => checkStandings(now, findings)),
+    injuries: await run("injuries", () => checkInjuries(findings)),
   };
 
   if (findings.length > 0) {
