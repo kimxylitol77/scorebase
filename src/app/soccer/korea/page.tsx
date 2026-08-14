@@ -11,6 +11,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, COUNTRY_FLAG } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
 import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
+import CountryFilter from "./CountryFilter";
 import raw from "../../../../data/korea-abroad.json";
 
 export const revalidate = 3600;
@@ -34,6 +35,9 @@ interface Player {
   leagueLabel: string;
   country: string;
   team: { afId: number; name: string; logo: string | null };
+  /** 이적으로 team 이 바뀐 경우, 시즌 성적을 쌓은 옛 소속 */
+  seasonTeam?: { afId: number; name: string; logo: string | null } | null;
+  transferredAt?: string | null;
   totals: {
     apps: number;
     starts: number;
@@ -199,6 +203,58 @@ export default async function KoreaAbroadPage() {
   for (const p of players) byCountry.set(p.country, (byCountry.get(p.country) ?? 0) + 1);
   const countries = [...byCountry.entries()].sort((a, b) => b[1] - a[1]);
 
+  // 시즌 성적 표의 행 — 나라 필터(클라이언트)가 그대로 받아 쓴다
+  const seasonRows = players.map((p) => ({
+    country: p.country,
+    node: (
+      <tr key={p.afId}>
+        <td className="px-3 py-2.5">
+          {playerHref(p) ? (
+            <Link
+              href={playerHref(p)!}
+              className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
+            >
+              {p.nameKo}
+            </Link>
+          ) : (
+            <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
+          )}
+          {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
+          {p.spells && (
+            <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
+              {p.spells.length}개 리그 합산
+            </span>
+          )}
+        </td>
+        <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
+          <span className="flex items-center gap-1.5">
+            <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
+            <span className="truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
+            {p.seasonTeam && (
+              <span className="shrink-0 rounded bg-sky-500/10 px-1 py-0.5 text-[10px] font-semibold text-sky-600 dark:text-sky-400">
+                이적
+              </span>
+            )}
+          </span>
+          <span className="block truncate text-[11px] text-neutral-400">
+            {p.leagueLabel}
+            {/* 성적은 옛 소속에서 쌓은 것 — 팀과 숫자가 안 맞아 보이지 않도록 밝힌다 */}
+            {p.seasonTeam && ` · ${DATA.season} ${toKoreanTeamName(p.seasonTeam.name) || p.seasonTeam.name}`}
+          </span>
+        </td>
+        <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.apps}</td>
+        <td className="px-2 py-2.5 text-center font-bold tabular-nums text-neutral-900 dark:text-white">
+          {p.totals.goals}
+        </td>
+        <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.assists}</td>
+        <td className="px-2 py-2.5 text-center tabular-nums text-neutral-500">{p.totals.minutes}</td>
+        <td className="px-2 py-2.5 text-center tabular-nums">
+          {p.totals.rating != null ? p.totals.rating.toFixed(2) : "-"}
+        </td>
+      </tr>
+    ),
+  }));
+
   const totalGoals = players.reduce((s, p) => s + p.totals.goals, 0);
   const totalAssists = players.reduce((s, p) => s + p.totals.assists, 0);
 
@@ -282,24 +338,12 @@ export default async function KoreaAbroadPage() {
         ))}
       </div>
 
-      {/* 국가별 분포 */}
-      <section className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
-        <h2 className="text-sm font-bold text-neutral-900 dark:text-white">나라별 인원</h2>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {countries.map(([c, n]) => (
-            <li
-              key={c}
-              className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1 text-xs dark:border-neutral-800"
-            >
-              <span className="text-neutral-700 dark:text-neutral-300">
-                {COUNTRY_FLAG[c] ? `${COUNTRY_FLAG[c]} ` : ""}
-                {c}
-              </span>
-              <span className="font-black tabular-nums text-sky-600 dark:text-sky-400">{n}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* 국가별 분포 + 시즌 성적 — 칩을 누르면 표가 그 나라만 남는다(클라이언트 필터, ISR 유지) */}
+      <CountryFilter
+        countries={countries}
+        flags={Object.fromEntries(countries.map(([c]) => [c, COUNTRY_FLAG[c] ?? ""]))}
+        rows={seasonRows}
+      />
 
       {/* 주요 선수 */}
       <section className="space-y-3">
@@ -376,66 +420,6 @@ export default async function KoreaAbroadPage() {
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* 시즌 성적 */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-bold text-neutral-900 dark:text-white">시즌 성적</h2>
-        <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-neutral-100 text-[11px] font-bold uppercase tracking-wider text-neutral-400 dark:border-neutral-800">
-                <th className="px-3 py-2 text-left">선수</th>
-                <th className="px-2 py-2 text-left">소속</th>
-                <th className="px-2 py-2 text-center">출전</th>
-                <th className="px-2 py-2 text-center">골</th>
-                <th className="px-2 py-2 text-center">도움</th>
-                <th className="px-2 py-2 text-center">분</th>
-                <th className="px-2 py-2 text-center">평점</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-              {players.map((p) => (
-                <tr key={p.afId}>
-                  <td className="px-3 py-2.5">
-                    {playerHref(p) ? (
-                      <Link
-                        href={playerHref(p)!}
-                        className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
-                      >
-                        {p.nameKo}
-                      </Link>
-                    ) : (
-                      <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
-                    )}
-                    {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
-                    {p.spells && (
-                      <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
-                        {p.spells.length}개 리그 합산
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
-                    <span className="flex items-center gap-1.5">
-                      <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
-                      <span className="truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
-                    </span>
-                    <span className="block truncate text-[11px] text-neutral-400">{p.leagueLabel}</span>
-                  </td>
-                  <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.apps}</td>
-                  <td className="px-2 py-2.5 text-center font-bold tabular-nums text-neutral-900 dark:text-white">
-                    {p.totals.goals}
-                  </td>
-                  <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.assists}</td>
-                  <td className="px-2 py-2.5 text-center tabular-nums text-neutral-500">{p.totals.minutes}</td>
-                  <td className="px-2 py-2.5 text-center tabular-nums">
-                    {p.totals.rating != null ? p.totals.rating.toFixed(2) : "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
 

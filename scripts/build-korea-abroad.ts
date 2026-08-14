@@ -14,6 +14,7 @@ import { PrismaClient } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
 import { toKoreanPlayerName } from "../src/lib/player-names";
+import { fifaCountryKo } from "../src/lib/sports/fifa-rankings";
 import rawOverrides from "../data/player-overrides.json";
 
 const OVERRIDES = rawOverrides as Record<string, { country?: string }>;
@@ -95,10 +96,47 @@ async function af(pathname: string, retry = 3): Promise<AfKoreaResponse> {
       });
       const json = await res.json();
       await sleep(280);
+      // af 는 분당 한도를 HTTP 200 + errors 객체로 답한다(정상 응답의 errors 는 빈 배열).
+      // 검사 없이 넘기면 "선수 0명"으로 읽혀 명단이 통째로 비거나 조용히 줄어든다.
+      const errs = (json as { errors?: unknown }).errors;
+      if (errs && typeof errs === "object" && !Array.isArray(errs) && Object.keys(errs).length > 0) {
+        const kind = Object.keys(errs)[0];
+        if (kind === "rateLimit" && i < retry) {
+          await sleep(3000 * (i + 1));
+          continue;
+        }
+        throw new Error(`af ${kind}: ${String((errs as Record<string, unknown>)[kind])} (${pathname})`);
+      }
       return json;
     } catch (e) {
       if (i >= retry) throw e;
       await sleep(2000 * (i + 1));
+    }
+  }
+}
+
+/**
+ * 리그별 실제 조회 가능 시즌으로 교체 — LEAGUES 의 season 은 기본값일 뿐이다.
+ *
+ * af 는 개막 전 새 시즌이 current=true 여도 coverage.players=false 라 /players 가 조용히 0건을 준다.
+ * 반대로 하드코딩만 믿으면 개막 후에도 지난 시즌에 머문다(2026-08 실측 — 이 파일이 8/2 이후
+ * 안 바뀐 이유). coverage.players=true 인 최신 시즌을 골라 개막 전엔 직전 시즌, 개막 후엔
+ * 자동 승격되게 한다. 리그당 1콜.
+ */
+async function resolveSeasons(targets: typeof LEAGUES): Promise<void> {
+  for (const lg of targets) {
+    try {
+      const res = await af(`/leagues?id=${lg.afId}`);
+      const seasons = (res?.response?.[0] as { seasons?: Array<{ year: number; coverage?: { players?: boolean } }> } | undefined)?.seasons ?? [];
+      const covered = seasons.filter((s) => s.coverage?.players).map((s) => s.year);
+      if (!covered.length) continue;
+      const best = Math.max(...covered);
+      if (best !== lg.season) {
+        console.log(`  · ${lg.code} 시즌 ${lg.season} → ${best} (coverage 기준)`);
+        lg.season = best;
+      }
+    } catch (e) {
+      console.warn(`  · ${lg.code} 시즌 확인 실패 — 기본값 ${lg.season} 유지: ${(e as Error).message}`);
     }
   }
 }
@@ -270,6 +308,9 @@ async function main() {
   const rawMap = JSON.parse(fs.readFileSync(MAP, "utf8")) as { afToTs?: Record<string, string> };
   const afToTs = rawMap.afToTs ?? {};
 
+  console.log("리그별 조회 가능 시즌 확인 (coverage.players)");
+  await resolveSeasons(targets);
+
   const found: KoreaAbroadPlayer[] = [];
   let calls = 0;
 
@@ -393,6 +434,9 @@ async function main() {
       leagueLabel: m.leagueLabel,
       country: m.country,
       team: m.team,
+      // 이적으로 team 이 교체되면 성적을 쌓은 팀을 여기 보존한다(표에서 "25-26: 옛팀" 표기용)
+      seasonTeam: null as { afId: number; name: string; logo: string | null } | null,
+      transferredAt: null as string | null,
       seasonStat: m.seasonStat,
       totals: {
         apps: sum((s) => s.stats.apps),
@@ -414,6 +458,14 @@ async function main() {
   });
   players.sort((a, b) => b.totals.minutes - a.totals.minutes);
 
+  if (!only) {
+    await applyTransfers(players);
+    // 리그 스캔만으로는 여름에 리그를 옮긴 선수가 명단에서 사라진다 — 기존 명단에서 살린다
+    const prev = fs.existsSync(OUT) ? (JSON.parse(fs.readFileSync(OUT, "utf8")).players as Array<Record<string, unknown>>) : [];
+    await carryOverMissing(players as unknown as Array<Record<string, unknown>>, prev);
+    players.sort((a, b) => b.totals.minutes - a.totals.minutes);
+  }
+
   const out = {
     updatedAt: new Date().toISOString(),
     season: "2025-26",
@@ -427,6 +479,171 @@ async function main() {
     fs.writeFileSync(OUT, JSON.stringify(out, null, 2));
     console.log(`\n저장 ${OUT} — ${players.length}명(리그행 ${found.length}), af 호출 ${calls}회, 한글명 미해결 ${dictMiss}명`);
   }
+}
+
+/** 시즌 통계 기준 소속은 그 시즌 것이라 여름 이적이 안 잡힌다 — af 이적 기록으로 현 소속을 덮는다. */
+// 직전 시즌 개막 이후의 최신 이적까지 본다. 여름 이적만 보면 겨울 이적자가 옛 소속으로 남는다
+// (2026-08 실측 — 권혁규 2026-02-01 낭트→카를스루어가 안 잡혔다). 성적을 쌓은 팀은 seasonTeam 에
+// 따로 남으므로 "소속" 열은 현재 소속을 보여주는 게 맞다.
+const TRANSFER_SINCE = "2025-07-01";
+
+/**
+ * af 팀 id → 우리 대상 리그. 이적처 리그를 모른 채 옛 리그 라벨을 남기면 틀린 정보가 된다
+ * (2026-08 실측 — 이강인이 아틀레티코로 갔는데 "리그 1"로 표시됐다). 팀당 1콜.
+ */
+interface TeamContext {
+  /** 우리 대상 리그면 그 정의 — 없으면 대상 밖(2부·비커버 리그) */
+  target: (typeof LEAGUES)[number] | null;
+  /** 표시용 리그명·나라. 대상 밖이어도 af 가 준 실제 값을 쓴다(옛 라벨을 남기면 틀린 정보) */
+  label: string;
+  country: string;
+  /** 국내 복귀 — 해외파 명단에서 뺄 유일한 사유 */
+  isKorea: boolean;
+}
+const teamCtxCache = new Map<number, TeamContext | null>();
+async function resolveTeamContext(afTeamId: number): Promise<TeamContext | null> {
+  const hit = teamCtxCache.get(afTeamId);
+  if (hit !== undefined) return hit;
+  let ctx: TeamContext | null = null;
+  try {
+    const res = await af(`/leagues?team=${afTeamId}&current=true`);
+    const rows = (res?.response ?? []) as Array<{ league?: { id?: number; name?: string; type?: string }; country?: { name?: string } }>;
+    // 컵대회가 섞여 오므로 리그(League) 우선
+    const primary = rows.find((r) => r.league?.type === "League") ?? rows[0];
+    if (primary?.league?.id) {
+      const ids = rows.map((r) => r.league?.id).filter(Boolean) as number[];
+      const countryEn = primary.country?.name ?? "";
+      ctx = {
+        target: LEAGUES.find((l) => ids.includes(l.afId)) ?? null,
+        label: primary.league.name ?? "",
+        // 영문 그대로 두면 나라별 집계가 "튀르키예"와 "Turkey" 로 갈라진다(2026-08 실측)
+        country: fifaCountryKo(countryEn) ?? countryEn,
+        isKorea: /Korea/i.test(countryEn),
+      };
+    }
+  } catch (e) {
+    console.warn(`  · 팀 ${afTeamId} 리그 조회 실패: ${(e as Error).message}`);
+  }
+  teamCtxCache.set(afTeamId, ctx);
+  return ctx;
+}
+
+/** af 팀 → 표시할 리그 코드·라벨·나라. 대상 리그면 우리 라벨, 아니면 af 가 준 실제 라벨. */
+function applyTeamContext(p: { league: string; leagueLabel: string; country: string }, ctx: TeamContext): void {
+  if (ctx.target) {
+    p.league = ctx.target.code;
+    p.leagueLabel = ctx.target.label;
+    p.country = ctx.target.country;
+  } else {
+    p.leagueLabel = ctx.label;
+    p.country = ctx.country || p.country;
+  }
+}
+
+/**
+ * 이번 스캔에 안 잡힌 기존 명단 선수를 이월한다.
+ *
+ * 리그 스캔은 "그 시즌 그 리그에서 뛴 기록"으로만 사람을 찾는다. 그래서 여름에 다른 리그로
+ * 옮기면 새 리그에는 아직 기록이 없고 옛 리그에는 더 이상 없어서 명단에서 통째로 사라진다
+ * (2026-08 실측 — 김지수 카이저슬라우테른→브렌트퍼드, 윤도영, 이영준 3명 소실).
+ * 해외파 명단은 누적이어야 한다. 이적 기록으로 현 소속을 확인해 살리고, 국내 복귀만 뺀다.
+ */
+async function carryOverMissing(
+  players: Array<Record<string, unknown>>,
+  prev: Array<Record<string, unknown>>,
+): Promise<void> {
+  const have = new Set(players.map((p) => p.afId as number));
+  const missing = prev.filter((p) => !have.has(p.afId as number));
+  if (!missing.length) return;
+  console.log(`\n기존 명단 이월 검토 — 이번 스캔에 없는 ${missing.length}명`);
+
+  for (const p of missing) {
+    const afId = p.afId as number;
+    const name = (p.nameKo as string) || (p.nameEn as string);
+    const team = p.team as { afId: number; name: string; logo: string | null };
+    try {
+      const res = await af(`/transfers?player=${afId}`);
+      const rows = (res?.response?.[0] as { transfers?: Array<{ date?: string; teams?: { in?: { id?: number; name?: string; logo?: string } } }> } | undefined)?.transfers ?? [];
+      const latest = rows.filter((t) => t.date && t.teams?.in?.id).sort((a, b) => (a.date! < b.date! ? 1 : -1))[0];
+      const curAf = latest?.teams?.in?.id ?? team.afId;
+      const ctx = await resolveTeamContext(curAf);
+      // 빼는 건 국내 복귀뿐이다. 2부·비커버 리그도 해외파는 해외파다.
+      if (ctx?.isKorea) {
+        console.log(`  − ${name} 제외 — 국내 복귀(${latest?.teams?.in?.name ?? team.name})`);
+        continue;
+      }
+      if (latest && curAf !== team.afId && latest.date! >= TRANSFER_SINCE) {
+        p.seasonTeam = team;
+        p.transferredAt = latest.date;
+        p.team = { afId: curAf, name: latest.teams!.in!.name ?? "", logo: latest.teams!.in!.logo ?? null };
+      }
+      if (ctx) applyTeamContext(p as unknown as { league: string; leagueLabel: string; country: string }, ctx);
+      players.push(p);
+      console.log(`  ✓ ${name} 이월 — ${(p.team as { name: string }).name} · ${p.leagueLabel}`);
+    } catch (e) {
+      players.push(p); // 조회 실패는 기존 값 그대로 살린다(명단에서 사라지는 게 더 나쁘다)
+      console.warn(`  ? ${name} 이적 조회 실패 — 기존 값으로 이월: ${(e as Error).message}`);
+    }
+  }
+}
+
+async function applyTransfers(
+  players: Array<{
+    afId: number;
+    nameKo: string;
+    league: string;
+    leagueLabel: string;
+    country: string;
+    team: { afId: number; name: string; logo: string | null };
+    seasonTeam: { afId: number; name: string; logo: string | null } | null;
+    transferredAt: string | null;
+  }>,
+): Promise<void> {
+  console.log(`\n이적 반영 — ${TRANSFER_SINCE} 이후 (선수당 1콜)`);
+  const moved: Array<{ p: (typeof players)[number]; toAf: number; toName: string; toLogo: string | null; date: string }> = [];
+
+  for (const p of players) {
+    try {
+      const res = await af(`/transfers?player=${p.afId}`);
+      const rows = (res?.response?.[0] as { transfers?: Array<{ date?: string; teams?: { in?: { id?: number; name?: string; logo?: string }; out?: { name?: string } } }> } | undefined)?.transfers ?? [];
+      const recent = rows
+        .filter((t) => t.date && t.date >= TRANSFER_SINCE && t.teams?.in?.id)
+        .sort((a, b) => (a.date! < b.date! ? 1 : -1))[0];
+      if (!recent) continue;
+      const toAf = recent.teams!.in!.id!;
+      if (toAf === p.team.afId) continue; // 이미 최신
+      moved.push({ p, toAf, toName: recent.teams!.in!.name ?? "", toLogo: recent.teams!.in!.logo ?? null, date: recent.date! });
+    } catch (e) {
+      console.warn(`  · ${p.nameKo} 이적 조회 실패 — 기존 소속 유지: ${(e as Error).message}`);
+    }
+  }
+  if (!moved.length) {
+    console.log("  이적자 없음");
+    return;
+  }
+
+  // 새 팀의 리그는 우리 Team 에서 읽는다 — af transfers 는 팀만 주고 리그를 안 준다.
+  const srcRows = await prisma.teamSourceId.findMany({
+    where: { source: "api-football", externalId: { in: moved.map((m) => String(m.toAf)) } },
+    select: { externalId: true, team: { select: { league: true } } },
+  });
+  const leagueByAf = new Map(srcRows.map((r) => [r.externalId, r.team.league]));
+
+  for (const m of moved) {
+    const { p } = m;
+    p.seasonTeam = p.team; // 성적을 쌓은 팀 보존
+    p.transferredAt = m.date;
+    p.team = { afId: m.toAf, name: m.toName, logo: m.toLogo };
+    // 우리 Team 에 매핑이 없으면 af 에 직접 묻는다 — 옛 리그 라벨을 남기면 틀린 정보가 된다
+    const code = leagueByAf.get(String(m.toAf));
+    const target = code ? LEAGUES.find((l) => l.code === code) : undefined;
+    const ctx = target
+      ? { target, label: target.label, country: target.country, isKorea: false }
+      : await resolveTeamContext(m.toAf);
+    if (ctx) applyTeamContext(p, ctx);
+    console.log(`  ✓ ${p.nameKo}: ${p.seasonTeam.name} → ${m.toName} (${m.date}) · ${ctx ? p.leagueLabel : "리그 미상"}`);
+  }
+  console.log(`  이적 반영 ${moved.length}명`);
 }
 
 // 다른 스크립트가 LEAGUES 만 import 할 수 있게 직접 실행일 때만 돈다
