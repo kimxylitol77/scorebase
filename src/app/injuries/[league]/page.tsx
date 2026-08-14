@@ -627,21 +627,6 @@ export default async function InjuriesByLeague({
       : isAsianBb || upper === "MLB"
         ? `${new Date().getUTCFullYear()} 시즌`
         : "2025-26 시즌";
-  const sourceLabel =
-    upper === "KBO"
-      ? "KBO 공식 (koreabaseball.com)"
-      : upper === "NPB"
-        ? "NPB 공식 (npb.jp)"
-        : isSoccer
-          ? tsInjByTeam.size > 0
-            ? needAf
-              ? "TheSports + api-football"
-              : "TheSports"
-            : "api-football Pro"
-          : isEspn
-            ? "ESPN"
-            : "api-football Pro";
-
   // 검색·필터·정렬 파라미터
   const query = (sp.q ?? "").trim().toLowerCase();
   const severityFilter = (sp.severity ?? "ALL") as
@@ -661,20 +646,32 @@ export default async function InjuriesByLeague({
     overrideKo?: string;
     overrideSev?: Severity;
   };
+  // 축구 부상자 소스 규칙 (2026-08 확정 — 그때그때 다르게 판단하지 말 것).
+  //  ① TheSports 가 정본. 경기 출전명단에 딸린 부상자 목록이라 사유·시작일·결장 경기수가
+  //     확정값이다. api-football 은 경기별 결장 플래그를 묶은 추정이라 정확도가 낮다.
+  //  ② 판정은 팀 단위. 그 팀의 최근 경기 명단을 읽었으면 ts 결과를 쓴다 — 부상자 0명도
+  //     "이 팀은 결장자가 없다" 는 확정 정보다.
+  //  ③ 명단을 못 읽은 팀만 api-football 로 보강한다.
+  //  ④ 둘 다 없으면 0명이 아니라 "확인 불가" 다. af 는 리그·시즌별로 coverage.injuries 가
+  //     꺼져 있으면 통째로 0건을 준다(2026-08 실측: 빅5·K리그·J리그 2026 = off, MLS = on).
+  //     이걸 "부상자 없음" 으로 그리면 사용자는 사이트가 고장난 줄 안다.
+  const teamSource = new Map<number, "ts" | "af" | "unknown">();
   const rawByTeam: Array<{ team: typeof teams[number]; raw: RawInjury[] }> = teams.map((t) => {
     let raw: RawInjury[] = [];
     if (isSoccer) {
       const tsRaw = tsInjByTeam.get(t.id);
       if (tsRaw) {
         raw = tsRaw; // TheSports lineup.injury (한글 사유 override 포함)
+        teamSource.set(t.id, "ts");
       } else {
-        // cache 없는 팀 → api-football 보강
+        // 명단을 못 읽은 팀 → api-football 보강. af 응답 자체가 비었으면 보강이 아니라 결손이다.
         raw = getTeamInjuries(allInjuries, t.name, undefined, 30).map((i) => ({
           playerId: i.playerId,
           playerName: i.playerName,
           reason: i.reason,
           fixtureDate: i.fixtureDate,
         }));
+        teamSource.set(t.id, allInjuries.length > 0 ? "af" : "unknown");
       }
     } else if (isEspn && allBdl.length > 0) {
       raw = getTeamEspnInjuries(allBdl, t.name, undefined, 30).map((i) => ({
@@ -740,6 +737,28 @@ export default async function InjuriesByLeague({
   }
 
   // 모든 선수 ID 모아서 Supabase batch 조회 (한 번에)
+  // 출처 라벨 — 실제로 무엇이 화면을 채웠는지로 적는다. 옛 라벨은 "af 를 호출했나" 로
+  //  판단해 af 응답이 0건이어도 "TheSports + api-football" 이라고 적었다.
+  const tsTeams = [...teamSource.values()].filter((s) => s === "ts").length;
+  const afTeams = [...teamSource.values()].filter((s) => s === "af").length;
+  const unknownTeams = teams.filter((t) => teamSource.get(t.id) === "unknown");
+  const sourceLabel =
+    upper === "KBO"
+      ? "KBO 공식 (koreabaseball.com)"
+      : upper === "NPB"
+        ? "NPB 공식 (npb.jp)"
+        : isSoccer
+          ? tsTeams > 0 && afTeams > 0
+            ? "TheSports + api-football"
+            : tsTeams > 0
+              ? "TheSports"
+              : afTeams > 0
+                ? "api-football Pro"
+                : "출처 없음"
+          : isEspn
+            ? "ESPN"
+            : "api-football Pro";
+
   const allPlayers = rawByTeam.flatMap((x) =>
     x.raw.map((i) => ({
       apiFootballId: i.playerId,
@@ -801,7 +820,11 @@ export default async function InjuriesByLeague({
   const displayTeams = upper === "NATIONAL" ? byTeam.filter((x) => x.all.length > 0) : byTeam;
 
   // 풀스쿼드 vs 부상자 있는 팀
-  const fullSquadTeams = displayTeams.filter((x) => x.all.length === 0);
+  // "풀스쿼드" 는 확인된 사실일 때만. 어느 소스도 그 팀 명단을 못 준 경우(unknown)는
+  //  부상자가 없는 게 아니라 알 수 없는 것이라 따로 뺀다.
+  const unknownTeamIds = new Set(unknownTeams.map((t) => t.id));
+  const fullSquadTeams = displayTeams.filter((x) => x.all.length === 0 && !unknownTeamIds.has(x.team.id));
+  const unconfirmedTeams = displayTeams.filter((x) => x.all.length === 0 && unknownTeamIds.has(x.team.id));
   const injuredTeams = displayTeams.filter((x) => x.all.length > 0);
 
   const totalInjuries = displayTeams.reduce((s, x) => s + x.all.length, 0);
@@ -1120,6 +1143,29 @@ export default async function InjuriesByLeague({
           </section>
         )}
 
+        {/* 확인 불가 — 어느 소스도 이 팀들의 부상 명단을 주지 않았다. 0명이 아니라 모르는 것이다. */}
+        {unconfirmedTeams.length > 0 && loadFailures.length === 0 && severityFilter === "ALL" && !query && (
+          <section>
+            <h2 className="mb-2 text-sm font-bold uppercase tracking-wider text-neutral-500">
+              부상 정보 미제공 {unconfirmedTeams.length}팀
+            </h2>
+            <p className="mb-2 text-xs text-neutral-500">
+              데이터 제공처가 이 팀들의 결장자 명단을 주지 않습니다. 부상자가 없다는 뜻이 아닙니다.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {unconfirmedTeams.map((x) => (
+                <Link
+                  key={x.team.id}
+                  href={`/teams/${x.team.id}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-neutral-400/30 bg-neutral-100 px-3 py-1.5 text-sm text-neutral-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-neutral-400/60 dark:bg-white/[0.06] dark:text-neutral-300"
+                >
+                  {toKoreanTeamName(x.team.name, upper)}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* 컨트롤 바 — 검색 + 필터 + 정렬 (URL query 기반, 서버 컴포넌트) */}
         <ControlsBar
           league={upper}
@@ -1167,7 +1213,9 @@ export default async function InjuriesByLeague({
             ? upper === "KBO"
               ? " (시즌 부상자 명단 + 치료·재활명단). 사유는 KBO 가 공개하지 않으며 기간으로 심각도 분류."
               : " (지난 30일간 1군 엔트리에서 빠진 누적 명단, 재등록된 선수는 자동 제외). 일본 NPB 는 별도 부상자 명단 제도가 없어 1군 엔트리 제외 = 결장으로 간주."
-            : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
+            : isSoccer
+              ? " — TheSports 는 각 팀 최근 경기 출전명단의 결장자, api-football 은 시즌 누적 결장 기록입니다. 사유 한글 번역은 의학용어 매핑 기반."
+              : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
           {" "}본 명단은 참고용으로 실제 매치 라인업과 다를 수 있습니다.
         </p>
 
