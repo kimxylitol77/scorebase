@@ -9,7 +9,9 @@ import {
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
 import NoVigCalculator from "@/components/odds/NoVigCalculator";
+import BetmanOddsPanel from "@/components/odds/BetmanOddsPanel";
 import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
+import { getBetmanRows } from "@/lib/odds/betman";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -219,6 +221,12 @@ export default async function OddsPage({
   const cfg = SPORT_CFG[sport];
 
   const matches = await getFlowMatchesCached(sport);
+  // 베트맨 배당은 하루 2회 적재라 10분 캐시로 충분 (흐름 데이터와 별도 캐시 키).
+  const betman = await unstable_cache(
+    () => getBetmanRows(sport),
+    ["odds-betman", sport],
+    { revalidate: 600 },
+  )();
 
   // 흐름 통계(배당 하락 경기의 실제 승률) — 야구(2-way) + 축구(3-way, 무승부=미적중).
   const hitrate =
@@ -231,6 +239,7 @@ export default async function OddsPage({
   return (
     <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
       <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} />
+      <BetmanOddsPanel rows={betman} hasDraw={cfg.hasDraw} />
       <NoVigCalculator defaultMode={cfg.hasDraw ? "three" : "two"} />
     </div>
   );
