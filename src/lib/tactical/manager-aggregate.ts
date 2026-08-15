@@ -298,7 +298,14 @@ export async function aggregateTeamSeason(opts: {
     const ta = personTokens(a), tb = personTokens(b);
     if (!ta.length || !tb.length) return a === b;
     const [sub, sup] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
-    return sub.every((t) => sup.includes(t));
+    if (sub.every((t) => sup.includes(t))) return true;
+    // 애칭+복성 조합 — "Xabi Alonso" vs "Xabier Alonso Olano"(레알 실측)는 포함관계가 안 된다.
+    // 이름(첫 토큰)이 3자 이상 접두로 같고, 성 후보(둘 다에서 첫 토큰이 아닌 공유 토큰)가 있으면 동일인.
+    // 성 후보를 "둘 다 비-첫 토큰"으로 제한해 "Frank Lampard"/"Frank Sinclair" 같은 이름만 겹침을 배제.
+    const firstA = ta[0], firstB = tb[0];
+    const prefixOk = firstA.slice(0, 3) === firstB.slice(0, 3);
+    const sharedSurname = ta.slice(1).some((t) => t.length >= 4 && tb.slice(1).includes(t));
+    return prefixOk && sharedSurname;
   };
   const stints: CoachStint[] = [];
   for (const { row } of enriched) {
@@ -310,6 +317,10 @@ export async function aggregateTeamSeason(opts: {
       stints.push({ coach: name, coachKo: coachKo(row.coach), from: row.date, to: row.date, played: 0, w: 0, d: 0, l: 0, ppg: 0 });
     }
     const s = stints[stints.length - 1];
+    // 첫 등장 표기가 한글 미해석("Xabier Alonso Olano")이어도 뒤에 해석되는 표기("Xabi Alonso"→사비
+    // 알론소)가 오면 표시명을 승격 — 스틴트 표에 원어가 남지 않게.
+    const ko = coachKo(row.coach);
+    if (!/[가-힣]/.test(s.coachKo) && /[가-힣]/.test(ko)) { s.coachKo = ko; s.coach = row.coach ?? s.coach; }
     s.to = row.date; s.played++;
     if (row.result === "W") s.w++; else if (row.result === "D") s.d++; else s.l++;
   }
