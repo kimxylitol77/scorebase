@@ -85,13 +85,34 @@ const VALID = [
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
   // 국가대표 통합 — NATIONAL_TEAM_LEAGUES(월드컵·예선·네이션스리그·친선 등) 팀 부상자 집계
   "NATIONAL",
+  // 2026-08 추가 — ts lineup.injury 가 이미 들어오는데 페이지가 없어 못 보던 리그.
+  //  최근 60일 부상 기록 실측: 프랑스2부 121 · 독일2부 66 · 네덜란드 55 · 스코틀랜드 78.
+  //  챔피언십·포르투갈·터키는 시즌 초라 표본이 작지만 경기가 쌓이면 채워진다.
+  "CHAMPIONSHIP", "LIGUE_2", "BUNDESLIGA_2", "EREDIVISIE", "SPL", "PRIMEIRA_LIGA", "SUPER_LIG",
 ] as const;
 type Lg = (typeof VALID)[number];
 const SOCCER: Lg[] = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
   "NATIONAL",
+  "CHAMPIONSHIP", "LIGUE_2", "BUNDESLIGA_2", "EREDIVISIE", "SPL", "PRIMEIRA_LIGA", "SUPER_LIG",
 ];
+// 리그 탭 그룹 — 종목 먼저, 그 안에서 규모·관심도 순. 축구는 빅5 → 유럽 2·중견 → 아시아 → 국대.
+const SPORT_GROUPS: { label: string; leagues: Lg[] }[] = [
+  {
+    label: "축구",
+    leagues: [
+      "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
+      "CHAMPIONSHIP", "BUNDESLIGA_2", "LIGUE_2", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "SPL",
+      "MLS", "SAUDI_PL", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL",
+      "NATIONAL",
+    ],
+  },
+  { label: "야구", leagues: ["MLB", "KBO", "NPB"] },
+  { label: "농구", leagues: ["NBA"] },
+  { label: "하키", leagues: ["NHL"] },
+];
+
 const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
@@ -301,11 +322,73 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
   },
   SAUDI_PL: {
     krFull: "사우디 프로 리그",
-    krShort: "SPL",
+    // "SPL" 은 스코틀랜드 리그 코드와 겹친다 — 탭에 SPL 이 둘 보여 헷갈린다.
+    krShort: "사우디",
     enFull: "Saudi Pro League",
     starKeywords: [
       "사우디 프로 리그 부상자", "호날두 부상", "벤제마 부상", "네이마르 부상",
       "알 나스르 부상자", "알 힐랄 부상자", "알 이티하드 부상자",
+    ],
+  },
+  // 2026-08 추가분. 한국 선수 키워드는 짐작이 아니라 korea-abroad.json 실측 소속이다.
+  CHAMPIONSHIP: {
+    krFull: "잉글랜드 챔피언십",
+    krShort: "챔피언십",
+    enFull: "EFL Championship",
+    starKeywords: [
+      "챔피언십 부상자", "잉글랜드 2부 부상자",
+      "백승호 부상", "배준호 부상", "엄지성 부상", "전진우 부상",
+    ],
+  },
+  LIGUE_2: {
+    krFull: "리그 2",
+    krShort: "리그2",
+    enFull: "French Ligue 2",
+    starKeywords: ["리그2 부상자", "프랑스 2부 부상자"],
+  },
+  BUNDESLIGA_2: {
+    krFull: "분데스리가 2",
+    krShort: "분데스2",
+    enFull: "German 2. Bundesliga",
+    starKeywords: [
+      "분데스리가 2 부상자", "독일 2부 부상자",
+      "윤도영 부상", "권혁규 부상", "이호재 부상",
+    ],
+  },
+  EREDIVISIE: {
+    krFull: "에레디비시",
+    krShort: "에레디비시",
+    enFull: "Dutch Eredivisie",
+    starKeywords: [
+      "에레디비시 부상자", "네덜란드 리그 부상자",
+      "아약스 부상자", "PSV 부상자", "페예노르트 부상자",
+    ],
+  },
+  SPL: {
+    krFull: "스코티시 프리미어십",
+    krShort: "스코틀랜드",
+    enFull: "Scottish Premiership",
+    starKeywords: [
+      "스코틀랜드 리그 부상자", "셀틱 부상자", "레인저스 부상자", "양현준 부상",
+    ],
+  },
+  PRIMEIRA_LIGA: {
+    krFull: "프리메이라리가",
+    krShort: "포르투갈",
+    enFull: "Portuguese Primeira Liga",
+    starKeywords: [
+      "프리메이라리가 부상자", "포르투갈 리그 부상자",
+      "벤피카 부상자", "포르투 부상자", "스포르팅 부상자",
+      "황인범 부상", "이현주 부상",
+    ],
+  },
+  SUPER_LIG: {
+    krFull: "쉬페르리그",
+    krShort: "터키",
+    enFull: "Turkish Süper Lig",
+    starKeywords: [
+      "터키 리그 부상자", "갈라타사라이 부상자", "페네르바체 부상자",
+      "오현규 부상", "황의조 부상", "조진호 부상",
     ],
   },
 };
@@ -992,22 +1075,38 @@ export default async function InjuriesByLeague({
         </div>
       </section>
 
-      {/* 리그 탭 */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center gap-2">
-        {VALID.map((l) => {
-          const active = l === upper;
+      {/* 리그 탭 — 종목으로 먼저 묶는다. 리그가 25개라 한 줄로 늘어놓으면 찾을 수가 없다. */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-2.5">
+        {SPORT_GROUPS.map((g) => {
+          const inGroup = g.leagues.filter((l) => VALID.includes(l));
+          if (!inGroup.length) return null;
+          const groupActive = inGroup.includes(upper);
           return (
-            <Link
-              key={l}
-              href={`/injuries/${l}${tabSuffix}`}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                active
-                  ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
-                  : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
-              }`}
-            >
-              {LEAGUE_META[l].krFull}
-            </Link>
+            <div key={g.label} className="flex flex-wrap items-center gap-2">
+              <span
+                className={`w-12 shrink-0 text-[11px] font-bold ${
+                  groupActive ? "text-neutral-900 dark:text-white" : "text-neutral-400 dark:text-neutral-500"
+                }`}
+              >
+                {g.label}
+              </span>
+              {inGroup.map((l) => {
+                const active = l === upper;
+                return (
+                  <Link
+                    key={l}
+                    href={`/injuries/${l}${tabSuffix}`}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      active
+                        ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
+                        : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
+                    }`}
+                  >
+                    {LEAGUE_META[l].krShort}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </div>
