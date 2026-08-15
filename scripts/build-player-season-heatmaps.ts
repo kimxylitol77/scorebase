@@ -15,7 +15,19 @@ const REFRESH = process.argv.includes("--refresh");
 
 async function api(path: string): Promise<unknown | null> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${KEY}` } });
+    // 네트워크 오류(EHOSTUNREACH 등)도 재시도한다 — 감싸지 않으면 fetch 의 throw 가 이 루프를
+    // 뚫고 나가 스크립트가 통째로 죽는다 (2026-08-15 맥미니 IPv6 경로 끊김으로 발굴 321건 소실).
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}${path}`, {
+        headers: { Authorization: `Bearer ${KEY}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (e) {
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, 5_000 * (attempt + 1)));
+      continue;
+    }
     if (res.status === 429) { await new Promise((r) => setTimeout(r, 20_000 * (attempt + 1))); continue; }
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`${res.status} ${path}`);

@@ -40,7 +40,19 @@ function norm(s: string): string {
 
 async function api(path: string): Promise<unknown | null> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${KEY}` } });
+    // 네트워크 오류(EHOSTUNREACH 등)도 재시도한다 — 감싸지 않으면 fetch 의 throw 가 이 루프를
+    // 뚫고 나가 스크립트가 통째로 죽는다 (2026-08-15 맥미니 IPv6 경로 끊김으로 발굴 321건 소실).
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}${path}`, {
+        headers: { Authorization: `Bearer ${KEY}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (e) {
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, 5_000 * (attempt + 1)));
+      continue;
+    }
     if (res.status === 429) { await new Promise((r) => setTimeout(r, 20_000 * (attempt + 1))); continue; }
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`${res.status} ${path}`);
@@ -90,7 +102,14 @@ async function main() {
   for (const r of rows) {
     const prev = out[r.id];
     if (prev?.seasonId === COMP.seasonId) { console.log(`  = ${r.name} (기존 매핑)`); continue; }
-    if (prev) { out[r.id] = { ...prev, ...COMP }; reseasoned++; console.log(`  ↻ ${r.name} — 시즌 교체 ${COMP.seasonLabel}`); continue; }
+    if (prev) {
+      out[r.id] = { ...prev, ...COMP };
+      reseasoned++;
+      console.log(`  ↻ ${r.name} — 시즌 교체 ${COMP.seasonLabel}`);
+      // 교체는 콜 없이 루프 앞쪽에서 몰아 끝난다 — 뒤이은 첫 API 콜에서 죽으면 통째로 날아가니 함께 저장.
+      if (reseasoned % 10 === 0) writeFileSync(OUT, JSON.stringify(out, null, 1));
+      continue;
+    }
     const token = norm(r.name).split(" ").pop()!; // 검색어도 악센트 제거 (Fernández → fernandez)
     const res = (await api(`/football/players?search=${encodeURIComponent(token)}&per_page=50`)) as { data: ApiPlayer[] } | null;
     await new Promise((s) => setTimeout(s, 6000)); // trial 분당 12회
@@ -118,6 +137,9 @@ async function main() {
     out[r.id] = { statsId: c.id, teamId: team.id, teamName: team.name, name: r.name, ...COMP };
     mapped++;
     console.log(`  ✓ ${r.name} → ${c.id} (${team.name})`);
+    // 10명마다 저장 — 마지막에만 쓰면 중간에 죽을 때 전부 날아간다
+    // (2026-08-15 맥미니: EHOSTUNREACH 로 죽으면서 발굴 321건이 통째로 소실).
+    if (mapped % 10 === 0) writeFileSync(OUT, JSON.stringify(out, null, 1));
   }
   writeFileSync(OUT, JSON.stringify(out, null, 1));
   console.log(`매핑 ${mapped} 신규 / 시즌교체 ${reseasoned} / 스킵 ${skipped} / 총 ${Object.keys(out).length} → ${OUT}`);
