@@ -97,6 +97,42 @@ const MANUAL_KO: Record<string, string> = {
   "Hyun-jun Son": "손현준",      // 김해
   "Gerard Nus": "제라드 누스",   // 파주
   "Rui Quinta": "루이 퀸타",     // 청주
+  // 2026-08-15 표기 흔들림 34건 일괄 고정 — 재빌드 diff 로 확인된 Haiku 비결정 표기.
+  // 기준=발행본 유지, 단 황선홍(황순홍 오표기)·안첼로티(앙첼로티)는 교정.
+  "Greg Vanney": "그레그 배니",
+  "Carlo Ancelotti": "카를로 안첼로티",
+  "Ståle Solbakken": "스톨레 솔박켄",
+  "Dick Advocaat": "딕 애드보카트",
+  "Massimiliano Allegri": "막시밀리아노 알레그리",
+  "Carlos Queiroz": "카를로스 케이로즈",
+  "Adi Hütter": "아디 휫터",
+  "Maurizio Sarri": "마우리지오 사리",
+  "Olivier Pantaloni": "올리비에 팡탈로니",
+  "Veljko Paunovic": "벨리코 파우노비치",
+  "Gerardo Martino": "제라르도 마르티노",
+  "Bruno Génésio": "브루노 제네지오",
+  "Beñat San José": "베냐트 산호세",
+  "Thomas Dooley": "토머스 둘리",
+  "Fábio Carille": "파비우 카릴리",
+  "Benni McCarthy": "베니 맥카시",
+  "Thomas Letsch": "토마스 렛슈",
+  "Khalid Jamil": "칼리드 자밀",
+  "Moïn Chaabani": "모인 샤아바니",
+  "Pellegrino Matarazzo": "펠레그리노 마타라조",
+  "Sun-hong Hwang": "황선홍",
+  "Sebastian Hoeneß": "세바스티안 회네스",
+  "Edin Terzic": "에딘 테르지치",
+  "Eusebio Di Francesco": "유세비오 디 프란체스코",
+  "Matthias Jaissle": "마티아스 야이슬레",
+  "Jim Crawford": "짐 크로포드",
+  "Brian Riemer": "브라이언 리머",
+  "José Gomes": "조제 고메스",
+  "Koji Gyotoku": "교토쿠 고지",
+  "Cameron Knowles": "캐머론 놀스",
+  "Bostjan Cesar": "보슈찬 체사르",
+  "Emilio De Leo": "에밀리오 데 레오",
+  "Oswaldo Vizcarrondo": "오스왈도 비즈카론도",
+  "Bruno Lage": "브루노 라주",
 };
 
 interface TablesResp { code: number; results?: { tables?: Array<{ rows?: Array<{ team_id?: string }> }> } }
@@ -247,16 +283,16 @@ async function main() {
     ? JSON.parse(fs.readFileSync(OUT, "utf8"))
     : {};
   const out: Record<string, unknown> = { ...prev };
-  // 같은 감독이면 기존 한글명을 물려준다 — Haiku 는 실행마다 일부를 못 옮기는데(실측 87명),
-  // 그때마다 nameKo 가 null 로 돌아가면 어렵게 확보한 표기가 주간 갱신마다 날아간다.
-  // 감독이 바뀐 팀은 이름이 달라지므로 물려받지 않는다.
+  // 같은 감독이면 기존 한글명을 물려준다 — Haiku 는 실행마다 일부를 못 옮기고(실측 87명),
+  // 옮긴 것도 표기가 흔들린다(주제↔조제 무리뉴 — 재실행 diff 실측 30건대).
+  // 우선순위: MANUAL_KO(교정) > 기존값(안정) > Haiku(신규 감독만). 감독이 바뀐 팀은 물려받지 않는다.
   const keepKo = (tid: string, name: string) =>
     prev[tid]?.name === name ? prev[tid]?.nameKo ?? null : null;
   for (const [tid, c] of byTeam) {
     out[tid] = {
       id: c.id,
       name: c.name,
-      nameKo: enToKo[c.name!] ?? keepKo(tid, c.name!),
+      nameKo: MANUAL_KO[c.name!] ?? keepKo(tid, c.name!) ?? enToKo[c.name!] ?? null,
       logo: c.logo || null,
       age: c.age || null,
       nationality: c.nationality || null,
@@ -270,7 +306,7 @@ async function main() {
     if (out[tid]) continue;
     out[tid] = {
       name: c.name,
-      nameKo: enToKo[c.name] ?? keepKo(tid, c.name),
+      nameKo: MANUAL_KO[c.name] ?? keepKo(tid, c.name) ?? enToKo[c.name] ?? null,
       logo: c.logo,
       age: c.age,
       nationality: c.nationality,
