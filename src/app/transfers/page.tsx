@@ -673,8 +673,6 @@ export default async function TransfersPage({
           };
         })()
       : null;
-  const bestXI = squadSummary ? pickBestXI(enriched) : null;
-
   // ── 감독 + 최근 5경기 실제 포메이션 (view=team) ──
   let coach: (typeof COACHES)[string] | null = null;
   const recentFormations: string[] = [];
@@ -700,13 +698,19 @@ export default async function TransfersPage({
       if (recentFormations.length >= 5) break;
     }
   }
-  // 포메이션 분포 — 최빈 순 "4-3-3 ×3" 형식
-  const formationSummary = (() => {
-    if (!recentFormations.length) return null;
+  // 포메이션 분포 — 최빈 순. ranked[0] 이 Best XI 배치에 쓰는 실제 포메이션.
+  const formationRanked = (() => {
     const cnt = new Map<string, number>();
     for (const f of recentFormations) cnt.set(f, (cnt.get(f) || 0) + 1);
-    return [...cnt.entries()].sort((a, b) => b[1] - a[1]).map(([f, c]) => (c > 1 ? `${f} ×${c}` : f)).join(" · ");
+    return [...cnt.entries()].sort((a, b) => b[1] - a[1]);
   })();
+  // "4-3-3 ×3" 형식
+  const formationSummary = formationRanked.length
+    ? formationRanked.map(([f, c]) => (c > 1 ? `${f} ×${c}` : f)).join(" · ")
+    : null;
+  // 최근 실제 포메이션 우선, 없으면 감독 선호. 둘 다 없으면 SquadBestXI 기본값.
+  const xiFormation = formationRanked[0]?.[0] || coach?.preferredFormation || null;
+  const bestXI = squadSummary ? pickBestXI(enriched, xiFormation) : null;
   const fmtYm = (ts: number | null) => (ts ? `${new Date(ts * 1000).getUTCFullYear()}.${new Date(ts * 1000).getUTCMonth() + 1}` : null);
 
   // ── 최신 이적 "주요" 모드 — 이적창 윈도우 전체 fetch → 이름·이적료 필터 → 메모리 페이지네이션 ──
@@ -1118,7 +1122,7 @@ export default async function TransfersPage({
               </div>
             </div>
           )}
-          {bestXI && <SquadBestXI slots={bestXI} teamName={squadSummary.name} />}
+          {bestXI && <SquadBestXI slots={bestXI} teamName={squadSummary.name} formation={xiFormation} />}
         </>
       )}
 
