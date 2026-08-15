@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 const AF = "https://v3.football.api-sports.io";
 const headers = { "x-apisports-key": process.env.API_FOOTBALL_KEY ?? "" };
-const AF_LEAGUE_ID: Record<string, number> = { EPL: 39, CHAMPIONSHIP: 40 };
+const AF_LEAGUE_ID: Record<string, number> = { EPL: 39, CHAMPIONSHIP: 40, LALIGA: 140 };
 const SEASON = 2025;
 
 // af 팀명 → 우리 Team.name 별칭 (정규화 후에도 다른 것만)
@@ -17,6 +17,7 @@ const ALIAS: Record<string, string> = {
   leedsunited: "leeds",
   westhamunited: "westham",
   tottenhamhotspur: "tottenham",
+  oviedo: "realoviedo", // af "Oviedo" vs 우리 "Real Oviedo" (LALIGA)
 };
 const norm = (s: string) => {
   const n = s.toLowerCase().replace(/[^a-z]/g, "");

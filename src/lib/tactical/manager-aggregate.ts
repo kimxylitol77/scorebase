@@ -304,7 +304,9 @@ export async function aggregateTeamSeason(opts: {
   for (const { row } of enriched) {
     const name = row.coach ?? "?";
     const last = stints[stints.length - 1];
-    if (!last || !samePerson(last.coach, name)) {
+    // 토큰 포함으로 못 잡는 별칭 변형("Hansi Flick"/"Hans-Dieter Flick", 바르사 실측)은
+    // 해석된 한글명이 같으면 동일 인물로 본다 — 같은 팀 연속 재임에서 동명이인 확률은 무시 가능.
+    if (!last || !(samePerson(last.coach, name) || coachKo(row.coach) === last.coachKo)) {
       stints.push({ coach: name, coachKo: coachKo(row.coach), from: row.date, to: row.date, played: 0, w: 0, d: 0, l: 0, ppg: 0 });
     }
     const s = stints[stints.length - 1];

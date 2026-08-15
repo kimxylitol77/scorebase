@@ -16,7 +16,16 @@ import {
 } from "@/lib/tactical/manager-aggregate";
 import { dataBrief, enrichForRender, teamSlug } from "@/lib/tactical/manager-article";
 
-const LEAGUE = "EPL";
+// --league=LALIGA 로 리그 선택 (기본 EPL). 라벨은 프롬프트·리서치 문구용.
+const LEAGUE = process.argv.find((a) => a.startsWith("--league="))?.split("=")[1]?.toUpperCase() ?? "EPL";
+const LEAGUE_LABEL: Record<string, { short: string; research: string }> = {
+  EPL: { short: "EPL", research: "잉글랜드 프리미어리그" },
+  LALIGA: { short: "라리가", research: "스페인 라리가" },
+  BUNDESLIGA: { short: "분데스리가", research: "독일 분데스리가" },
+  SERIE_A: { short: "세리에 A", research: "이탈리아 세리에 A" },
+  LIGUE_1: { short: "리그 앙", research: "프랑스 리그 1" },
+};
+if (!LEAGUE_LABEL[LEAGUE]) throw new Error(`미지원 리그: ${LEAGUE} (${Object.keys(LEAGUE_LABEL).join(", ")})`);
 const SEASON_FROM = new Date("2025-08-01");
 const SEASON_TO = new Date("2026-06-15");
 const SEASON_LABEL = "2025-26";
@@ -35,7 +44,7 @@ const SYSTEM_PROMPT = `너는 축구 전술 분석 전문 필자다. 데이터 �
 - "웹 리서치 노트", "제공된 데이터" 같은 내부 자료 명칭을 본문에 노출하지 않는다. 필요하면 "시즌 중 보도에 따르면" 정도로 자연스럽게 녹인다.`;
 
 function buildPrompt(ctx: TacticalManagerContext, researchNotes: string, promoted: boolean): string {
-  const leagueLabel = promoted ? "EFL 챔피언십" : "EPL";
+  const leagueLabel = promoted ? "EFL 챔피언십" : LEAGUE_LABEL[LEAGUE].short;
   const promotedNote = promoted
     ? `\n이 팀은 이 시즌을 마치고 프리미어리그로 승격했다. 글의 관점은 "승격을 만든 전술"이고, 마지막 섹션은 이 전술이 EPL 에서 통할 지점과 리스크를 다룬다.\n`
     : "";
@@ -116,7 +125,7 @@ async function main() {
 
     // 1) 웹 리서치 (sonnet + web search)
     const researchNotes = await generateWithWebSearch(
-      `${ctx.coach.name} 감독의 ${ctx.team.name} 2025-26 시즌(${promoted ? "잉글랜드 챔피언십, 프리미어리그 승격" : "잉글랜드 프리미어리그"}) 전술을 조사하라. ` +
+      `${ctx.coach.name} 감독의 ${ctx.team.name} 2025-26 시즌(${promoted ? "잉글랜드 챔피언십, 프리미어리그 승격" : LEAGUE_LABEL[LEAGUE].research}) 전술을 조사하라. ` +
       `시즌 중 전술 변화, 빌드업 구조 특징, 핵심 선수의 역할, 감독의 전술 관련 발언 요지, 부상·영입이 전술에 준 영향을 ` +
       `한국어 불릿 6~10개로 정리하라. 각 불릿은 사실 위주 1~2문장. 웹에서 확인 안 되는 내용은 쓰지 말 것.`,
       { model: MODEL, maxUses: 3, maxTokens: 1500, temperature: 0.3 },
