@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#0b1220"/>
+  <text x="80" y="86" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="42" font-weight="800" fill="#f8fafc">큰돈은 리그 밖으로 나가지 않았다</text>
+  <text x="80" y="128" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" fill="#94a3b8">2026 여름 EPL 이적료 TOP 20 합계 €1343.8M 을 직전 소속 기준으로 나눈 결과</text>
+
+  <rect x="80" y="250" width="686" height="86" rx="8" fill="#06b6d4"/>
+  <rect x="766" y="250" width="354" height="86" rx="8" fill="#334155"/>
+  <text x="104" y="286" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="23" font-weight="800" fill="#062c33">잉글랜드 1부 출신</text>
+  <text x="104" y="318" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="27" font-weight="800" fill="#062c33">66% · €886.2M</text>
+  <text x="790" y="286" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="23" font-weight="800" fill="#f8fafc">해외</text>
+  <text x="790" y="318" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="27" font-weight="800" fill="#94a3b8">34% · €457.6M</text>
+
+  <text x="80" y="390" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="22" font-weight="700" fill="#fbbf24">11건 / 20건이 지난 시즌 프리미어리그 구단에서 온 선수</text>
+  <text x="80" y="442" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" fill="#94a3b8">리그 안에서 오간 상위 거래</text>
+    <text x="80" y="484" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" fill="#f8fafc">아스톤 빌라 <tspan fill="#94a3b8">→</tspan> 첼시</text>
+    <text x="1120" y="484" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#06b6d4" text-anchor="end">€138M</text>
+    <text x="80" y="524" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" fill="#f8fafc">노팅엄 포리스트 <tspan fill="#94a3b8">→</tspan> 맨체스터 시티</text>
+    <text x="1120" y="524" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#06b6d4" text-anchor="end">€135M</text>
+    <text x="80" y="564" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" fill="#f8fafc">뉴캐슬 <tspan fill="#94a3b8">→</tspan> 토트넘</text>
+    <text x="1120" y="564" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#06b6d4" text-anchor="end">€108M</text>
+    <text x="80" y="604" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" fill="#f8fafc">웨스트햄 <tspan fill="#94a3b8">→</tspan> 토트넘</text>
+    <text x="1120" y="604" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#06b6d4" text-anchor="end">€99M</text>
+    <text x="80" y="644" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" fill="#f8fafc">뉴캐슬 <tspan fill="#94a3b8">→</tspan> 아스널</text>
+    <text x="1120" y="644" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="20" font-weight="700" fill="#06b6d4" text-anchor="end">€88M</text>
+  <text x="80" y="696" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="17" fill="#94a3b8">데이터: 스코어베이스 · 강등 3팀(웨스트햄·번리·울버햄프턴)도 지난 시즌 1부 소속으로 포함</text>
+</svg>

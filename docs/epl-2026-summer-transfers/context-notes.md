@@ -61,6 +61,16 @@
 - `src/lib/team-names.ts` — `Bayer 04 Leverkusen` 별칭 추가. ts 이적 피드가 쓰는 표기라
   기존 `Bayer Leverkusen` 키로는 안 잡혔다.
 
+## 발행 중 확인된 사실 정정
+
+**손흥민은 2025년 8월 5일 토트넘 → LAFC(€22M).** 따라서 2026-27은 "손흥민 없는 첫 시즌"이
+아니라 **두 번째 시즌**이다. 롱폼 제목안을 그에 맞게 고칠 것.
+
+**선수 한글명의 진짜 소스는 `TheSportsPlayer` 다.** 스키마 주석은 야구 전용처럼 읽히지만
+실제로는 `sport="FOOTBALL"` 41,926행이 `nameKo` 와 함께 들어 있다. 다만 자동 음역이라
+품질이 들쭉날쭉하다(얀 폴 반 헤케 / 조안 망장비 / 빅터 무노스). **수동 사전(`toKoreanPlayerName`)
+우선, TheSportsPlayer 폴백** 순서로 쓸 것. 이 글의 두 스크립트가 그 패턴을 쓴다.
+
 ## 기존 실패 (본 작업과 무관)
 
 `npm test` 에서 `src/lib/predict/season-window.test.ts` 1건 실패. `LEAGUES_CUP`,

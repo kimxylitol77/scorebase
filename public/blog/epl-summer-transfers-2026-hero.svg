@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b1220"/>
+  <g>
+    <rect x="80" y="66" width="8" height="30" rx="2" fill="#06b6d4"/>
+    <rect x="94" y="76" width="8" height="20" rx="2" fill="#06b6d4" opacity="0.75"/>
+    <rect x="108" y="60" width="8" height="36" rx="2" fill="#06b6d4" opacity="0.55"/>
+    <rect x="122" y="82" width="8" height="14" rx="2" fill="#06b6d4" opacity="0.4"/>
+    <text x="146" y="94" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="26" font-weight="800" fill="#f8fafc">스코어베이스</text>
+  </g>
+  <text x="80" y="180" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="56" font-weight="800" fill="#f8fafc">2026 여름 EPL 이적료 TOP 5</text>
+  <text x="80" y="224" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="25" fill="#94a3b8">6월 1일 ~ 8월 15일 · 프리미어리그 20개 구단 영입 · 옵션 포함 집계 기준</text>
+    <rect x="420" y="250" width="500" height="38" rx="6" fill="#06b6d4"/>
+    <text x="404" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">모건 로저스 <tspan fill="#94a3b8" font-size="15">첼시</tspan></text>
+    <text x="930" y="276" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#06b6d4">€138M · 2,472억</text>
+    <rect x="420" y="316" width="489" height="38" rx="6" fill="#164e63"/>
+    <text x="404" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">엘리엇 앤더슨 <tspan fill="#94a3b8" font-size="15">맨체스터 시티</tspan></text>
+    <text x="919" y="342" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€135M · 2,419억</text>
+    <rect x="420" y="382" width="391" height="38" rx="6" fill="#164e63"/>
+    <text x="404" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">산드로 토날리 <tspan fill="#94a3b8" font-size="15">토트넘</tspan></text>
+    <text x="821" y="408" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€108M · 1,935억</text>
+    <rect x="420" y="448" width="359" height="38" rx="6" fill="#164e63"/>
+    <text x="404" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">마테우스 페르난드스 <tspan fill="#94a3b8" font-size="15">토트넘</tspan></text>
+    <text x="789" y="474" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€99M · 1,774억</text>
+    <rect x="420" y="514" width="317" height="38" rx="6" fill="#164e63"/>
+    <text x="404" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="21" font-weight="700" fill="#f8fafc" text-anchor="end">브루누 기마랑이스 <tspan fill="#94a3b8" font-size="15">아스널</tspan></text>
+    <text x="747" y="540" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" font-weight="700" fill="#94a3b8">€88M · 1,568억</text>
+  <text x="80" y="592" font-family="'Apple SD Gothic Neo','Noto Sans KR','Helvetica Neue',sans-serif" font-size="19" fill="#94a3b8">scorebase.kr · 이적료가 확인되는 영입에서 집계</text>
+</svg>
