@@ -243,13 +243,20 @@ async function main() {
   Object.assign(enToKo, MANUAL_KO);
   console.log(`한글명 ${Object.keys(enToKo).length}/${names.length}`);
 
-  const prev: Record<string, unknown> = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : {};
+  const prev: Record<string, { name?: string; nameKo?: string | null }> = fs.existsSync(OUT)
+    ? JSON.parse(fs.readFileSync(OUT, "utf8"))
+    : {};
   const out: Record<string, unknown> = { ...prev };
+  // 같은 감독이면 기존 한글명을 물려준다 — Haiku 는 실행마다 일부를 못 옮기는데(실측 87명),
+  // 그때마다 nameKo 가 null 로 돌아가면 어렵게 확보한 표기가 주간 갱신마다 날아간다.
+  // 감독이 바뀐 팀은 이름이 달라지므로 물려받지 않는다.
+  const keepKo = (tid: string, name: string) =>
+    prev[tid]?.name === name ? prev[tid]?.nameKo ?? null : null;
   for (const [tid, c] of byTeam) {
     out[tid] = {
       id: c.id,
       name: c.name,
-      nameKo: enToKo[c.name!] ?? null,
+      nameKo: enToKo[c.name!] ?? keepKo(tid, c.name!),
       logo: c.logo || null,
       age: c.age || null,
       nationality: c.nationality || null,
@@ -263,7 +270,7 @@ async function main() {
     if (out[tid]) continue;
     out[tid] = {
       name: c.name,
-      nameKo: enToKo[c.name] ?? null,
+      nameKo: enToKo[c.name] ?? keepKo(tid, c.name),
       logo: c.logo,
       age: c.age,
       nationality: c.nationality,
