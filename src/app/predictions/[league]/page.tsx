@@ -27,7 +27,10 @@ import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import {
   loadPlayoffBracket,
   isPlayoffSeasonDone,
+  playoffSeasonLabel,
 } from "@/lib/predict/playoff-bracket-loader";
+import { rateOf, type MarketRate } from "@/lib/predict/accuracy-stats";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
@@ -620,6 +623,14 @@ export default async function LeaguePredictions({ params }: Props) {
   let playoffBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
   let playoffWinProbs: ReturnType<typeof simulatePlayoff> = [];
   let playoffSeasonDone = false;
+  // 지난 시즌 AI 예측 성적 (비시즌 아카이브 — 채점 완료 매치 실측)
+  let lastSeasonPred: {
+    label: string;
+    oneXTwo: MarketRate;
+    over: MarketRate;
+    hc: MarketRate;
+    strong: MarketRate;
+  } | null = null;
   if (isUsPlayoff) {
     playoffBracket = await loadPlayoffBracket(isNhl ? "NHL" : "NBA");
     // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo.
@@ -631,6 +642,44 @@ export default async function LeaguePredictions({ params }: Props) {
       playoffWinProbs = simulatePlayoff(playoffBracket, eloMap, {
         iterations: 5000,
       });
+    }
+    // 비시즌 — 직전 시즌 채점 완료 매치로 AI 예측 성적 실측 (accuracy 페이지와 같은 채점 필드).
+    if (playoffSeasonDone) {
+      const label = playoffSeasonLabel(playoffBracket);
+      const endYear = Number(label.slice(0, 4)) + 1;
+      const rows = await prisma.match.findMany({
+        where: {
+          league: upper,
+          predCorrect: { not: null },
+          startTime: { gte: new Date(Date.UTC(endYear - 1, 8, 1)) }, // 시즌 개막 전 9/1 경계
+        },
+        select: {
+          predCorrect: true,
+          predOverCorrect: true,
+          predHcCorrect: true,
+          predHome: true,
+          predDraw: true,
+          predAway: true,
+        },
+      });
+      if (rows.length > 0) {
+        const threshold = strongPickThreshold(upper);
+        lastSeasonPred = {
+          label,
+          oneXTwo: rateOf(rows.map((m) => ({ ok: m.predCorrect }))),
+          over: rateOf(rows.map((m) => ({ ok: m.predOverCorrect }))),
+          hc: rateOf(rows.map((m) => ({ ok: m.predHcCorrect }))),
+          strong: rateOf(
+            rows
+              .filter(
+                (m) =>
+                  Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0) >=
+                  threshold,
+              )
+              .map((m) => ({ ok: m.predCorrect })),
+          ),
+        };
+      }
     }
   }
 
@@ -955,16 +1004,60 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
         {isUsPlayoff && playoffSeasonDone && (
-          <p className="text-sm text-neutral-500">
-            지난 시즌 플레이오프 브라켓은{" "}
-            <Link
-              href={`/standings/${upper}`}
-              className="font-bold text-amber-600 dark:text-amber-400 hover:underline"
-            >
-              {upper} 순위 페이지
-            </Link>
-            에서 볼 수 있습니다.
-          </p>
+          <>
+            {/* 지난 시즌 AI 예측 성적 — 채점 완료 매치 실측 (accuracy 페이지와 같은 채점 필드) */}
+            {lastSeasonPred && (
+              <section>
+                <Heading
+                  title={`${lastSeasonPred.label} 시즌 AI 예측 성적`}
+                  subtitle={`채점 완료 ${lastSeasonPred.oneXTwo.evaluated.toLocaleString()}경기 실측 — 다음 시즌도 같은 모델로 예측합니다`}
+                />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { name: "승패 (1X2)", stat: lastSeasonPred.oneXTwo },
+                    { name: "오버/언더", stat: lastSeasonPred.over },
+                    { name: "핸디캡", stat: lastSeasonPred.hc },
+                    { name: "Strong Pick", stat: lastSeasonPred.strong },
+                  ].map((m) => (
+                    <div
+                      key={m.name}
+                      className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] p-4"
+                    >
+                      <div className="text-[11px] text-neutral-500">{m.name}</div>
+                      <div className="mt-1 text-2xl font-bold tabular-nums">
+                        {m.stat.evaluated > 0
+                          ? `${(m.stat.rate * 100).toFixed(1)}%`
+                          : "—"}
+                      </div>
+                      <div className="text-[11px] text-neutral-500 mt-0.5">
+                        {m.stat.correct.toLocaleString()}/{m.stat.evaluated.toLocaleString()}경기 적중
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-neutral-500">
+                  전체 리그·기간별 적중률은{" "}
+                  <Link
+                    href="/predictions/accuracy"
+                    className="font-bold text-amber-600 dark:text-amber-400 hover:underline"
+                  >
+                    AI 적중률 페이지
+                  </Link>
+                  에서 확인할 수 있습니다.
+                </p>
+              </section>
+            )}
+            <p className="text-sm text-neutral-500">
+              지난 시즌 플레이오프 브라켓은{" "}
+              <Link
+                href={`/standings/${upper}`}
+                className="font-bold text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                {upper} 순위 페이지
+              </Link>
+              에서 볼 수 있습니다.
+            </p>
+          </>
         )}
 
         {/* NBA/NHL — 플레이오프 우승 시뮬레이션 (Monte Carlo 5000회) */}
