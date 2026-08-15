@@ -109,6 +109,7 @@ const RAW: Record<string, string> = {
   "Augsburg": "아우크스부르크",
   "FC Augsburg": "아우크스부르크",
   "Bayer Leverkusen": "레버쿠젠",
+  "Bayer 04 Leverkusen": "레버쿠젠", // ts 이적 피드 표기
   "Leverkusen": "레버쿠젠",
   "Bayern Munich": "바이에른 뮌헨",
   "Bayern München": "바이에른 뮌헨",

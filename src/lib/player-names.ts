@@ -1922,6 +1922,35 @@ const RAW: Record<string, string> = {
   // 동명이인이라, af 가 이 선수에게만 쓰는 축약형 "L. Suárez" 를 키로 둔다.
   "L. Suárez": "루이스 수아레스",
   "Luis Javier Suárez": "루이스 수아레스",
+
+  // ─── 2026 여름 EPL 영입 보강 (2026-08-15) ───
+  // 이적료 상위 25건 중 17명이 영문으로 노출되던 건을 메움. 기존 사전이 25/26 스쿼드
+  // 기준이라 이번 여름 신규 영입이 통째로 빠져 있었다. ts 스쿼드 표기를 키로 등록하고,
+  // 분음부호 있는 이름은 무부호 별칭도 함께 둔다(af·ESPN 표기 차이 대응).
+  "Elliot Anderson": "엘리엇 앤더슨",
+  "Mateus Fernandes": "마테우스 페르난드스",
+  "Jérémy Jacquet": "제레미 자케",
+  "Jeremy Jacquet": "제레미 자케",
+  "Maxence Lacroix": "막상스 라크루아",
+  "Jan Paul van Hecke": "얀 파울 판 헤케",
+  "Johan Manzambi": "요한 만잠비",
+  "Marco Palestra": "마르코 팔레스트라",
+  "Andrey Santos": "안드레이 산투스",
+  "Luka Vuskovic": "루카 부슈코비치",
+  "Luka Vušković": "루카 부슈코비치",
+  "Geovany Quenda": "제오바니 켄다",
+  "Bazoumana Touré": "바주마나 투레",
+  "Bazoumana Toure": "바주마나 투레",
+  "Mamadou Sangare": "마마두 상가레",
+  "Mamadou Sangaré": "마마두 상가레",
+  "João Gomes": "주앙 고메스",
+  "Joao Gomes": "주앙 고메스",
+  "Valentin Barco": "발렌틴 바르코",
+  "Gonzalo García": "곤살로 가르시아",
+  "Gonzalo Garcia": "곤살로 가르시아",
+  "Tarik Muharemovic": "타리크 무하레모비치",
+  "Tarik Muharemović": "타리크 무하레모비치",
+  "Aladji Bamba": "알라지 밤바",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(
@@ -2008,6 +2037,10 @@ const AMBIGUOUS_LAST_NAMES = new Set<string>();
     "evans",
     "robinson",
     "carter",
+    // 서아프리카 흔한 성 — 2026 여름 영입 보강으로 각 1명씩만 등록돼 약식 표기 오매핑 위험
+    "toure",
+    "bamba",
+    "sangare",
   ]) {
     AMBIGUOUS_LAST_NAMES.add(s);
   }
