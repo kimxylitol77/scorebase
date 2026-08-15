@@ -127,7 +127,8 @@ async function main() {
     const researchNotes = await generateWithWebSearch(
       `${ctx.coach.name} 감독의 ${ctx.team.name} 2025-26 시즌(${promoted ? "잉글랜드 챔피언십, 프리미어리그 승격" : LEAGUE_LABEL[LEAGUE].research}) 전술을 조사하라. ` +
       `시즌 중 전술 변화, 빌드업 구조 특징, 핵심 선수의 역할, 감독의 전술 관련 발언 요지, 부상·영입이 전술에 준 영향을 ` +
-      `한국어 불릿 6~10개로 정리하라. 각 불릿은 사실 위주 1~2문장. 웹에서 확인 안 되는 내용은 쓰지 말 것.`,
+      `한국어 불릿 6~10개로 정리하라. 시즌 종료 후 2026 여름 이적시장의 확정 영입·방출이 있으면 다음 시즌 전술 관점 1~2불릿을 더하라. ` +
+      `각 불릿은 사실 위주 1~2문장. 웹에서 확인 안 되는 내용은 쓰지 말 것.`,
       { model: MODEL, maxUses: 3, maxTokens: 1500, temperature: 0.3 },
     );
 
