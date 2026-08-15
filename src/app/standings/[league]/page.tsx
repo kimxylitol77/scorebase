@@ -670,7 +670,8 @@ export default async function StandingsPage({ params }: Props) {
       )}
 
       {hasLeaders && (
-        <section className="space-y-3 pt-4">
+        // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점
+        <section id="leaderboard" className="space-y-3 pt-4 scroll-mt-20">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
           {leadersPreSeason ? (
             <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
@@ -1103,7 +1104,10 @@ async function PlayoffBracketSection({ league }: { league: "NBA" | "NHL" }) {
 }
 
 // NBA — ESPN 공식 순위 래퍼 (브레드크럼·헤더 + 컨퍼런스 표. 표 본문은 NbaStandingsTable 공용)
-function NbaStandings({ name }: { name: string }) {
+async function NbaStandings({ name }: { name: string }) {
+  // 시즌 리더보드 — predictions 요약 카드의 "전체 보기" 착지점 (2026-08-15 역할 분리)
+  const { rowsByCategory: nbaLeaders, season: nbaLeaderSeason } = await loadLeagueLeaderboard("NBA");
+  const hasNbaLeaders = Object.keys(nbaLeaders).length > 0;
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -1146,6 +1150,13 @@ function NbaStandings({ name }: { name: string }) {
       <NbaStandingsTable />
 
       <PlayoffBracketSection league="NBA" />
+
+      {hasNbaLeaders && (
+        <section id="leaderboard" className="space-y-3 pt-4 scroll-mt-20">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight">NBA 시즌 리더보드</h2>
+          <LeagueLeaderBoard league="NBA" season={nbaLeaderSeason} rowsByCategory={nbaLeaders} />
+        </section>
+      )}
     </div>
   );
 }
@@ -1218,7 +1229,7 @@ async function NhlStandings({ name }: { name: string }) {
       <PlayoffBracketSection league="NHL" />
 
       {hasNhlLeaders && (
-        <section className="space-y-3 pt-4">
+        <section id="leaderboard" className="space-y-3 pt-4 scroll-mt-20">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight">NHL 시즌 리더보드</h2>
           <LeagueLeaderBoard league="NHL" season={nhlLeaderSeason} rowsByCategory={nhlLeaders} />
         </section>

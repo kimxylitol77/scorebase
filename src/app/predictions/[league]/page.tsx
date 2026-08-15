@@ -34,7 +34,8 @@ import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { EN_PREDICTION_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
-import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import { CATEGORIES_BY_LEAGUE, LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
 import TeamFormBadges from "@/components/predictions/TeamFormBadges";
@@ -668,6 +669,12 @@ export default async function LeaguePredictions({ params }: Props) {
   // 리그(J1·SERBIA_SL 등)까지 가로채 신선한 DB 리더보드를 지난 시즌 라벨로 바꿔치기했다.
   // PC 중앙 컬럼용 팀 로고/국기 — 이 페이지는 자체 조립이라 공용 로더 밖에서 직접 부착.
   await attachLeaderTeamLogos(upper, leaderRowsByCategory);
+  // 부문별 1위 요약 (최대 4부문) — 풀 TOP 10 리더보드는 /standings/[league] 가 정본.
+  const leaderCatDefs = CATEGORIES_BY_LEAGUE[LEAGUE_TO_SPORT[upper] ?? "SOCCER"] ?? [];
+  const leaderTops = leaderCatDefs
+    .filter((c) => (leaderRowsByCategory[c.key]?.length ?? 0) > 0)
+    .slice(0, 4)
+    .map((c) => ({ cat: c, row: leaderRowsByCategory[c.key][0] }));
 
   // 우승 확률 추이 — 일일 시뮬 스냅샷(2개 이상부터 차트 노출). WC·KBO 공용 변환.
   type ChampionTrend = { data: WcTrendPoint[]; teams: { name: string; color: string }[] };
@@ -1389,19 +1396,43 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 시즌 리더보드 — 득점/도움/카드 (축구). LeagueLeader cron 이 매일 적재.
+        {/* 시즌 리더보드 요약 — 부문별 1위만. 풀 리더보드(TOP 10)는 /standings/[league] 가
+            정본 (2026-08-15 역할 분리: predictions=확률 전용, standings=순위·기록 정본).
             WORLD_CUP 은 상단 실시간 선수 랭킹으로 대체 (중복 노출 방지) */}
-        {!isWorldCup && leaderRowsRaw.length > 0 && (
+        {!isWorldCup && leaderTops.length > 0 && (
           <section>
             <Heading
               title="시즌 리더보드"
-              subtitle={`${leaderSeason} 시즌 · TOP 10 (매일 자동 갱신)`}
+              subtitle={`${leaderSeason} 시즌 · 부문별 1위`}
             />
-            <LeagueLeaderBoard
-              league={upper}
-              season={leaderSeason}
-              rowsByCategory={leaderRowsByCategory}
-            />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {leaderTops.map(({ cat, row }) => (
+                <div
+                  key={cat.key}
+                  className="rounded-xl bg-white ring-1 ring-black/5 px-3 py-2.5 dark:bg-white/[0.04] dark:ring-white/10"
+                >
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    {cat.emoji} {cat.label} 1위
+                  </div>
+                  <div className="mt-1 text-sm font-semibold truncate">{row.playerName}</div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-[11px] text-neutral-500 truncate">{row.teamName}</span>
+                    <span className="text-sm font-bold tabular-nums shrink-0">
+                      {row.value.toFixed(cat.decimals ?? 0)}
+                      {row.unit ? (
+                        <span className="ml-0.5 text-[10px] font-normal text-neutral-500">{row.unit}</span>
+                      ) : null}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link
+              href={`/standings/${upper}#leaderboard`}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              전체 리더보드 보기 (TOP 10) →
+            </Link>
           </section>
         )}
 
