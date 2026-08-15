@@ -31,6 +31,12 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
+import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
+import {
+  loadPlayoffBracket,
+  isPlayoffSeasonDone,
+  playoffSeasonLabel,
+} from "@/lib/predict/playoff-bracket-loader";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
@@ -1075,6 +1081,27 @@ function formatNhlSeason(s: string): string {
   return s;
 }
 
+// NBA/NHL — 플레이오프 브라켓 접이식 섹션 (진행 중이면 펼침, 끝난 시즌 아카이브면 접힘)
+async function PlayoffBracketSection({ league }: { league: "NBA" | "NHL" }) {
+  const bracket = await loadPlayoffBracket(league);
+  if (bracket.length === 0) return null;
+  const done = isPlayoffSeasonDone(bracket);
+  const season = playoffSeasonLabel(bracket);
+  return (
+    <details
+      open={!done}
+      className="rounded-xl border border-neutral-200 dark:border-white/10 px-4 py-3"
+    >
+      <summary className="cursor-pointer text-sm font-bold text-neutral-600 dark:text-neutral-300">
+        {season ? `${season} ` : ""}플레이오프 브라켓 {done ? "(시즌 최종 결과)" : "(진행 중)"}
+      </summary>
+      <div className="mt-3">
+        <NbaPlayoffBracket series={bracket} league={league} />
+      </div>
+    </details>
+  );
+}
+
 // NBA — ESPN 공식 순위 래퍼 (브레드크럼·헤더 + 컨퍼런스 표. 표 본문은 NbaStandingsTable 공용)
 function NbaStandings({ name }: { name: string }) {
   return (
@@ -1117,6 +1144,8 @@ function NbaStandings({ name }: { name: string }) {
       </header>
 
       <NbaStandingsTable />
+
+      <PlayoffBracketSection league="NBA" />
     </div>
   );
 }
@@ -1185,6 +1214,8 @@ async function NhlStandings({ name }: { name: string }) {
       </header>
 
       <NhlStandingsTable std={std} />
+
+      <PlayoffBracketSection league="NHL" />
 
       {hasNhlLeaders && (
         <section className="space-y-3 pt-4">

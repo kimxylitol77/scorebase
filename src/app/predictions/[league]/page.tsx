@@ -24,7 +24,10 @@ import {
 } from "@/lib/sports/thesports/standings-helper";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
-import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
+import {
+  loadPlayoffBracket,
+  isPlayoffSeasonDone,
+} from "@/lib/predict/playoff-bracket-loader";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
@@ -615,45 +618,13 @@ export default async function LeaguePredictions({ params }: Props) {
   const isUsPlayoff = isNba || isNhl;
   let playoffBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
   let playoffWinProbs: ReturnType<typeof simulatePlayoff> = [];
+  let playoffSeasonDone = false;
   if (isUsPlayoff) {
-    // 윈도우 앵커는 "지금"이 아니라 마지막 종료 매치 — 롤링 윈도우면 비시즌에
-    // 플레이오프 앞 라운드부터 하나씩 사라진다 (2026-08 NBA 실측). 시즌 중엔
-    // 마지막 종료 매치 ≈ 지금이라 기존과 동일하게 동작한다.
-    const latestFinished = await prisma.match.aggregate({
-      where: { league: upper, status: "FINISHED" },
-      _max: { startTime: true },
-    });
-    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
-    // eslint-disable-next-line react-hooks/purity
-    const nowMs = Date.now();
-    const anchorMs = Math.min(
-      latestFinished._max.startTime?.getTime() ?? nowMs,
-      nowMs,
-    );
-    const recentMatches = await prisma.match.findMany({
-      where: {
-        league: upper,
-        startTime: { gte: new Date(anchorMs - 75 * 24 * 3600 * 1000) }, // 앵커 기준 75일 — 1라운드~파이널 커버
-      },
-      include: { homeTeam: true, awayTeam: true },
-      orderBy: { startTime: "asc" },
-    });
-    if (isNba) {
-      // NBA 는 TheSports 가 stage(라운드) 메타데이터를 제공 — api-sports 수집엔 없음.
-      playoffBracket = await getTsNbaPlayoffBracket();
-      if (playoffBracket.length === 0) {
-        playoffBracket = getNbaPlayoffBracket(recentMatches); // ESPN raw fallback
-      }
-    } else {
-      // NHL — ESPN raw 의 series.type='playoff'
-      playoffBracket = getNbaPlayoffBracket(recentMatches);
-    }
+    playoffBracket = await loadPlayoffBracket(isNhl ? "NHL" : "NBA");
     // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo.
     // 파이널까지 끝난 시즌(비시즌 아카이브)엔 시뮬레이션할 잔여 경기가 없으므로 skip.
-    const playoffFinalsDone = playoffBracket.some(
-      (s) => s.round === "FINALS" && s.completed,
-    );
-    if (playoffBracket.length > 0 && !isWorldCup && !playoffFinalsDone) {
+    playoffSeasonDone = isPlayoffSeasonDone(playoffBracket);
+    if (playoffBracket.length > 0 && !isWorldCup && !playoffSeasonDone) {
       const eloMap: Record<number, number> = {};
       for (const [tid, rating] of elo.ratings) eloMap[tid] = rating;
       playoffWinProbs = simulatePlayoff(playoffBracket, eloMap, {
@@ -959,8 +930,8 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* NBA/NHL — 플레이오프 브라켓 */}
-        {isUsPlayoff && playoffBracket.length > 0 && (
+        {/* NBA/NHL — 플레이오프 브라켓 (진행 중일 때만 — 끝난 시즌 아카이브는 순위 페이지로) */}
+        {isUsPlayoff && playoffBracket.length > 0 && !playoffSeasonDone && (
           <section>
             <Heading
               title={isNhl ? "NHL 플레이오프 브라켓" : "NBA 플레이오프 브라켓"}
@@ -975,6 +946,18 @@ export default async function LeaguePredictions({ params }: Props) {
               league={isNhl ? "NHL" : "NBA"}
             />
           </section>
+        )}
+        {isUsPlayoff && playoffSeasonDone && (
+          <p className="text-sm text-neutral-500">
+            지난 시즌 플레이오프 브라켓은{" "}
+            <Link
+              href={`/standings/${upper}`}
+              className="font-bold text-amber-600 dark:text-amber-400 hover:underline"
+            >
+              {upper} 순위 페이지
+            </Link>
+            에서 볼 수 있습니다.
+          </p>
         )}
 
         {/* NBA/NHL — 플레이오프 우승 시뮬레이션 (Monte Carlo 5000회) */}
@@ -1046,10 +1029,13 @@ export default async function LeaguePredictions({ params }: Props) {
         )}
 
         {/* NBA — 예상 순위는 수집기 데이터(팀 중복/매치 누락) 정비 중이라 숨김.
-            브라켓·우승확률은 위에서 정상 제공. (api-sports NBA 팀 id 불일치 — 별도 수집기 fix 예정) */}
+            (api-sports NBA 팀 id 불일치 — 별도 수집기 fix 예정) */}
         {isNba && canSimulate && (
           <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-6 text-center text-sm text-neutral-500">
-            ⓘ NBA 예상 순위는 데이터 정비 중입니다. 플레이오프 브라켓·우승 확률은 위에서 정상 제공됩니다.
+            ⓘ NBA 예상 순위는 데이터 정비 중입니다.
+            {playoffSeasonDone
+              ? " 다음 시즌 플레이오프가 시작되면 브라켓·우승 확률이 여기에 표시됩니다."
+              : " 플레이오프 브라켓·우승 확률은 위에서 정상 제공됩니다."}
           </div>
         )}
 
