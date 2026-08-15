@@ -30,6 +30,8 @@ log "③-b 전 리그 감독 (Team.coach + coach-photos.json — 라인업 감�
 npx tsx --env-file=.env.local scripts/collect-all-team-coaches.ts 2>&1 | tail -2 || true
 log "③-c 감독 한글명 (Haiku, 멱등 — 신규분만)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/translate-coach-names.ts' 2>&1 | tail -1 || true
+log "③-d 비축구 감독 (MLB=Stats API·NBA/WNBA/NHL=ESPN 자동, KBO/NPB/KBL/WKBL=사전 — 사전 교체는 수동)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nonsoccer-coaches.ts' 2>&1 | tail -2 || true
 log "④ 감독 경력 (Wikidata)"
 npx tsx --env-file=.env.local scripts/build-coach-careers.ts 2>&1 | tail -1 || true
 log "⑤ 감독 트로피 (위키 Honours)"
@@ -89,7 +91,7 @@ env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx
 # 골프 한국 선수 집계는 daily-golf-korea.sh(매일 09:00)로 분리 — 대회가 KST 월요일 종료라 주간으론 최대 6일 지연.
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
-for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/af-player-season-stats.json data/baseball-rosters.json data/nba-players.json data/golf-korea-season.json data/korea-abroad.json data/player-foot.json data/player-contract.json; do
+for f in data/team-squads.json data/team-coaches.json data/nonsoccer-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/af-player-season-stats.json data/baseball-rosters.json data/nba-players.json data/golf-korea-season.json data/korea-abroad.json data/player-foot.json data/player-contract.json; do
   SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
   if [ "$SIZE" -lt 10000 ]; then
     echo "❌ $f 비정상 (${SIZE}B) — push 중단"
