@@ -89,6 +89,10 @@ const VALID = [
   //  최근 60일 부상 기록 실측: 프랑스2부 121 · 독일2부 66 · 네덜란드 55 · 스코틀랜드 78.
   //  챔피언십·포르투갈·터키는 시즌 초라 표본이 작지만 경기가 쌓이면 채워진다.
   "CHAMPIONSHIP", "LIGUE_2", "BUNDESLIGA_2", "EREDIVISIE", "SPL", "PRIMEIRA_LIGA", "SUPER_LIG",
+  // 야구·농구·하키는 ts lineup.injury 가 전혀 안 와서 전용 소스가 있어야 한다. 전수 확인 결과
+  //  추가 가능한 건 WNBA 뿐 — ESPN 이 13팀·44명을 준다. 대만 CPBL·멕시코 LMB·호주 AIHL·
+  //  뉴질랜드 NZIHL·WKBL 은 ESPN 경로가 없고(400) 다른 소스도 없다.
+  "WNBA",
 ] as const;
 type Lg = (typeof VALID)[number];
 const SOCCER: Lg[] = [
@@ -109,11 +113,11 @@ const SPORT_GROUPS: { label: string; leagues: Lg[] }[] = [
     ],
   },
   { label: "야구", leagues: ["MLB", "KBO", "NPB"] },
-  { label: "농구", leagues: ["NBA"] },
+  { label: "농구", leagues: ["NBA", "WNBA"] },
   { label: "하키", leagues: ["NHL"] },
 ];
 
-const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
+const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL", "WNBA"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
 const CANONICAL = "https://www.scorebase.kr";
@@ -382,6 +386,15 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
       "황인범 부상", "이현주 부상",
     ],
   },
+  WNBA: {
+    krFull: "WNBA",
+    krShort: "WNBA",
+    enFull: "Women's National Basketball Association",
+    starKeywords: [
+      "WNBA 부상자", "여자 농구 부상자",
+      "라스베이거스 에이시스 부상자", "뉴욕 리버티 부상자",
+    ],
+  },
   SUPER_LIG: {
     krFull: "쉬페르리그",
     krShort: "터키",
@@ -449,7 +462,31 @@ async function getInjuryTeams(upper: Lg) {
   if (scheduled.size >= 8) {
     return prisma.team.findMany({ where: { id: { in: [...scheduled] } }, orderBy: { name: "asc" } });
   }
-  return prisma.team.findMany({ where: { league: upper }, orderBy: { name: "asc" } });
+
+  // 라벨 폴백 경로 — 올스타·프리시즌 상대·플레이스홀더가 섞여 있다.
+  //  2026-08 실측: MLB 32팀에 "American/National All-Stars", NBA 39팀에 Team Stars·
+  //  Team Stripes·World(라이징스타)·TBD 2개·광저우·하포엘·멜버른 2개.
+  //  이름 목록으로 거르면 새 이벤트가 생길 때마다 놓치므로 정규 경기 수로 판정한다 —
+  //  정규팀은 그 리그에서 수십~수백 경기, 이벤트 팀은 1~2경기다.
+  const rows = await prisma.team.findMany({ where: { league: upper }, orderBy: { name: "asc" } });
+  if (rows.length < 8) return rows;
+  const counts = await prisma.match.groupBy({
+    by: ["homeTeamId"],
+    where: { league: upper, homeTeamId: { in: rows.map((t) => t.id) } },
+    _count: true,
+  });
+  const away = await prisma.match.groupBy({
+    by: ["awayTeamId"],
+    where: { league: upper, awayTeamId: { in: rows.map((t) => t.id) } },
+    _count: true,
+  });
+  const played = new Map<number, number>();
+  for (const c of counts) played.set(c.homeTeamId, (played.get(c.homeTeamId) ?? 0) + c._count);
+  for (const c of away) played.set(c.awayTeamId, (played.get(c.awayTeamId) ?? 0) + c._count);
+  const sorted = [...rows.map((t) => played.get(t.id) ?? 0)].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+  if (median < 10) return rows; // 표본이 얕은 리그는 판정하지 않는다
+  return rows.filter((t) => (played.get(t.id) ?? 0) >= median * 0.1);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -699,7 +736,7 @@ export default async function InjuriesByLeague({
       },
       [],
     );
-  } else if (isEspn && process.env.BALLDONTLIE_KEY) {
+  } else if (isEspn && upper !== "WNBA" && process.env.BALLDONTLIE_KEY) {
     allBdl = await loadOrReport("BALLDONTLIE 부상자", () => fetchBalldontlieInjuries(upper as "NBA" | "MLB" | "NHL"), []);
     // BALLDONTLIE 실패하면 ESPN fallback — 폴백이 성공하면 앞선 실패는 화면에 알리지 않는다.
     if (allBdl.length === 0) {
