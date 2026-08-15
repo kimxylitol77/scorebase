@@ -34,9 +34,6 @@ import { EN_PREDICTION_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
 import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
-import rawSeasonStats from "../../../../data/player-season-stats.json";
-import rawPlayerOverrides from "../../../../data/player-overrides.json";
-import rawPlayerPhotos from "../../../../data/player-photos.json";
 import TeamFormBadges from "@/components/predictions/TeamFormBadges";
 import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
@@ -46,19 +43,6 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { CircleDot, BookOpen } from "lucide-react";
 
 export const revalidate = 600; // ISR — 시즌 시뮬은 일 단위 데이터, 10분 캐시로 충분
-
-// TheSports 시즌 통계 기반 리그 리더보드 (빅5) — 기존 api-football LeagueLeader 대체.
-//  SERIE_A 는 시즌스탯이 2026-27 롤오버로 비어 제외 → 기존 LeagueLeader 유지.
-interface PSeasonStat { lg: string; team: string | null; goals: number | null; assists: number | null; yellow: number | null; red: number | null; matches: number | null }
-const SEASON_STATS = rawSeasonStats as Record<string, PSeasonStat>;
-const P_OVERRIDES = rawPlayerOverrides as Record<string, { nameKo?: string }>;
-const P_PHOTOS = rawPlayerPhotos as Record<string, string>;
-const TS_LEADER_CATS: { cat: string; key: "goals" | "assists" | "yellow" | "red"; unit: string }[] = [
-  { cat: "GOAL", key: "goals", unit: "골" },
-  { cat: "ASSIST", key: "assists", unit: "도움" },
-  { cat: "YELLOW", key: "yellow", unit: "장" },
-  { cat: "RED", key: "red", unit: "장" },
-];
 
 /**
  * NBA/NHL 플레이오프 미정 매치업 placeholder ("TBD", "TTBD", "Sabres/Canadiens" 등) 처리.
@@ -425,9 +409,13 @@ export default async function LeaguePredictions({ params }: Props) {
     },
     select: matchSelect,
   });
+  // 오프시즌 폴백 — 지난 시즌 표시는 "새 시즌 일정조차 없을 때"만. 새 시즌 fixture 가
+  // 이미 잡혀 있으면(개막 직전~직후) 지난 시즌으로 돌아가지 않고 새 시즌에 진입한다
+  // (2026-08-15: 빅5 개막 후에도 완료 <10 조건이 지난 시즌 380경기를 통째로 되살렸다).
   if (
     seasonStart &&
-    dbMatches.filter((m) => m.status === "FINISHED").length < 10
+    dbMatches.filter((m) => m.status === "FINISHED").length < 10 &&
+    !dbMatches.some((m) => m.status === "SCHEDULED")
   ) {
     dbMatches = await prisma.match.findMany({
       where: {
@@ -683,8 +671,7 @@ export default async function LeaguePredictions({ params }: Props) {
   });
   const latestSeason = allLeaderRows[0]?.season ?? "";
   const leaderRowsRaw = allLeaderRows.filter((r) => r.season === latestSeason);
-  let leaderSeason = latestSeason;
-  let hasTsLeader = false;
+  const leaderSeason = latestSeason;
   const leaderRowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of leaderRowsRaw) {
     if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
@@ -705,28 +692,9 @@ export default async function LeaguePredictions({ params }: Props) {
     });
   }
 
-  // 빅5 = TheSports 시즌 통계(player-season-stats)로 리더보드 교체. SERIE_A 는 시즌스탯 빈값 → 기존 유지.
-  const tsLeaderEntries = Object.entries(SEASON_STATS).filter(([, s]) => s.lg === upper);
-  if (tsLeaderEntries.length) {
-    const sortedByCat = TS_LEADER_CATS.map(({ cat, key, unit }) => ({
-      cat, key, unit,
-      top: tsLeaderEntries.filter(([, s]) => (s[key] ?? 0) > 0).sort((a, b) => (b[1][key] ?? 0) - (a[1][key] ?? 0)).slice(0, 10),
-    }));
-    const ids = [...new Set(sortedByCat.flatMap((c) => c.top.map(([id]) => id)))];
-    const lp = await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, nameKo: true } });
-    const nm = new Map(lp.map((p) => [p.id, p]));
-    const nameOf = (id: string) => P_OVERRIDES[id]?.nameKo || nm.get(id)?.nameKo || nm.get(id)?.name || "선수";
-    for (const k of Object.keys(leaderRowsByCategory)) delete leaderRowsByCategory[k];
-    for (const { cat, key, unit, top } of sortedByCat) {
-      leaderRowsByCategory[cat] = top.map(([id, s], i) => ({
-        rank: i + 1, playerName: nameOf(id), playerNameEn: nm.get(id)?.name ?? null,
-        teamName: toKoreanTeamName(s.team, upper) || s.team || "", teamShort: null,
-        value: s[key] ?? 0, unit, appearances: s.matches, photoUrl: P_PHOTOS[id] || null, externalId: id,
-      }));
-    }
-    leaderSeason = "2025-26";
-    hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
-  }
+  // (2026-08-15) 빅5 를 정적 JSON(player-season-stats)으로 덮어쓰던 override 제거 —
+  // 같은 JSON 을 leaders cron 이 매일 DB 에 적재하므로 중복이었고, JSON 에 행이 1~14개뿐인
+  // 리그(J1·SERBIA_SL 등)까지 가로채 신선한 DB 리더보드를 지난 시즌 라벨로 바꿔치기했다.
   // PC 중앙 컬럼용 팀 로고/국기 — 이 페이지는 자체 조립이라 공용 로더 밖에서 직접 부착.
   await attachLeaderTeamLogos(upper, leaderRowsByCategory);
 
@@ -1435,9 +1403,9 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 시즌 리더보드 — 득점/도움/카드 (축구). 빅5는 TheSports 시즌통계 기반.
+        {/* 시즌 리더보드 — 득점/도움/카드 (축구). LeagueLeader cron 이 매일 적재.
             WORLD_CUP 은 상단 실시간 선수 랭킹으로 대체 (중복 노출 방지) */}
-        {!isWorldCup && (leaderRowsRaw.length > 0 || hasTsLeader) && (
+        {!isWorldCup && leaderRowsRaw.length > 0 && (
           <section>
             <Heading
               title="시즌 리더보드"

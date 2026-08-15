@@ -181,6 +181,15 @@ const SEASON_STATS_LEAGUES = new Set([
 // ts 0행이라 제외(= af 로 메우는 갭), PORTUGAL_SUPER_CUP 은 단일 경기라 리더보드 무의미.
 const TS_PLAYER_STAT_LEAGUES = new Set([
   "BUNDESLIGA_2", // 2026-08-08 정적 JSON 에서 이동 — 위 SEASON_STATS_LEAGUES 주석 참고
+  // 2026-08-15 af fallback 잔존 리그 일괄 이전 — af 리더 엔드포인트 사망(6월 말~)으로
+  // J1 리더보드가 아예 비어 있었다(사용자 신고). ts season/recent/player/stat 전수 실측:
+  // J1 413행·득점자 37, UCL 1164행·167, UEL 1003행·111, UECL 3198행·443, CSL 510행·156,
+  // COPA_LIB 956행·153, COPA_SUD 1205행·188, AFC_CL 177행·9, AFC_CL_TWO 88행·8,
+  // CHAMPIONSHIP 40행·4(개막 직후 — MIN_LEADERS 가드가 채워질 때까지 보류),
+  // GREEK_SL·A_LEAGUE 0행(개막 전 — 개막하면 자동 적재). J2 는 tsSeasonId 미보유
+  // 정책(NO_SEASON_ID — af 가 매치 소스)이라 제외.
+  "J1_LEAGUE", "AFC_CL", "AFC_CL_TWO", "UCL", "UEL", "UECL",
+  "CHAMPIONSHIP", "GREEK_SL", "CSL", "COPA_LIB", "COPA_SUD", "A_LEAGUE",
   // 2026-08-09 af fallback 에서 이동 — af 리더 엔드포인트가 6월 말부터 죽어(fetched 945h)
   // 개막 후에도 2025-26 리더보드가 그대로였다(사용자 신고: 에레디비시). 6개 전부
   // ts season/recent/player/stat 실측 통과(득점자 8~61명).
@@ -213,8 +222,9 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
+  // J1·J2 는 2026-27 추춘제 전환, AFC_CL 엘리트는 2024-25 부터 8~5월 — 유럽형 라벨(2026-27).
   const calendarYearLeagues = [
-    "MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP",
+    "MLS", "K_LEAGUE_1", "K_LEAGUE_2", "WORLD_CUP",
     "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
     // 2026-08-02 확장 리그 중 달력연도 시즌 (af /leagues 의 현시즌 start~end 실측 분류).
     // 중미 아페르투라(7~11월)·페로/중국/우즈벡(봄~가을)·파나마·코파 두 브라질이 여기 해당.
@@ -236,12 +246,11 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   if (calendarYearLeagues.includes(league)) {
     return { season: y, label: String(y) };
   }
-  // UEFA 컨티넨탈 컵(UCL/UEL/UECL)은 본대회(리그 페이즈) 9월 개막. 7~8월 예선 득점자를
-  // 새 시즌으로 적재하면 완료된 직전 시즌 리더보드를 최다 2골짜리 예선 데이터가 밀어낸다
-  // (2026-07 UCL 리더보드가 예선 득점판으로 뒤바뀐 실측). 컵만 전환을 9월로 늦춘다.
-  const CONTINENTAL_CUPS = ["UCL", "UEL", "UECL"];
-  const seasonStartMonth = CONTINENTAL_CUPS.includes(league) ? 9 : 7;
-  const startYear = m >= seasonStartMonth ? y : y - 1;
+  // UEFA 컨티넨탈 컵도 7월 전환 (2026-08-15). 과거 9월 지연은 af 경로가 예선 득점자를
+  // "같은 시즌 라벨"로 덮어써 직전 시즌 최종판을 파괴했기 때문인데(2026-07 실측),
+  // ts 경로는 tsSeasonId 가 시즌을 확정하고 라벨이 시즌마다 달라 과거 행이 보존된다.
+  // 9월 지연을 유지하면 ts 예선 데이터(2026-27)가 직전 시즌 라벨(2025-26)로 오적재된다.
+  const startYear = m >= 7 ? y : y - 1;
   return { season: startYear, label: `${startYear}-${String(startYear + 1).slice(2)}` };
 }
 
@@ -256,11 +265,17 @@ async function syncSoccerCategory(
   unit: string,
 ): Promise<number> {
   const raw = await fetcher(league, season);
-  const top = raw.slice(0, TOP_N);
+  // 값 0 행 제외 + 커버리지 게이트 — af 는 개막 전에도 선수 목록을 0값으로 반환해
+  // (2026-08-15 J2 실측: 전원 0골 리더보드 적재) 그대로 쓰면 쓰레기 표가 나간다.
+  // ts 경로(MIN_LEADERS)와 같은 기준으로 부족하면 skip — 기존 데이터 보존.
+  const valOf = (p: PlayerLeaderEntry & { goals?: number }) =>
+    category === "GOAL" && "goals" in p ? p.goals ?? 0 : (p as PlayerLeaderEntry).value;
+  const nonZero = (raw as (PlayerLeaderEntry & { goals?: number })[]).filter((p) => valOf(p) > 0);
+  if (nonZero.length < MIN_LEADERS) return 0;
+  const top = nonZero.slice(0, TOP_N);
   for (let i = 0; i < top.length; i++) {
-    const p = top[i] as PlayerLeaderEntry & { goals?: number };
-    const value =
-      category === "GOAL" && "goals" in p ? p.goals ?? 0 : (p as PlayerLeaderEntry).value;
+    const p = top[i];
+    const value = valOf(p);
     await upsertLeader({
       league,
       category,
@@ -553,7 +568,7 @@ async function runSoccer() {
           result[lg] = await syncLeagueFromTsPlayerStat(lg, currentSoccerSeason(lg).label);
           continue;
         }
-        // 나머지(UCL·UEL·컵·에레디비시 등) = api-football fallback. ts 시즌통계 미커버라 이게 유일 소스.
+        // 나머지(J2·AFC_U23 등 ts 시즌통계 미커버) = api-football fallback.
         const { season, label } = currentSoccerSeason(lg);
         result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
         result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
