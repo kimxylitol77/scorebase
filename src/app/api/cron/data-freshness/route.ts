@@ -20,6 +20,8 @@ import { recordCronRun } from "@/lib/cron-registry";
 import { getPlayerCareerByTs } from "@/app/transfers/[id]/career-data";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 import { getTheSportsInjuriesByTeam } from "@/lib/sports/thesports/injuries";
+import rawCoaches from "../../../../../data/team-coaches.json";
+import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -40,6 +42,14 @@ const MV_STALE_H = 48; // 일일 증분 크론 — 이틀 멈추면 이상
 const STANDINGS_STALE_H = 72;
 const STANDINGS_HARD_H = 168; // 하나라도 7일 넘으면 개수와 무관하게 알린다
 const STANDINGS_ALERT_COUNT = 3;
+// 감독 — 2026-08-15 실측: 대상 174팀 전원 보유(결손 0) · 스냅샷 323팀 · 한글명 323/323.
+// 결손 5는 감독 교체기에 ts coach_id 가 잠깐 비는 폭(2026-06 실측 빅5 14팀은 af 폴백이 메운다)
+// 위로 잡되, 사고급 유실은 놓치지 않는 선. 하한 300 은 8/15 사고 당시 273 을 걸러낸다.
+const COACH_MISSING_ALERT = 5;
+const COACH_ENTRY_FLOOR = 300;
+const COACH_NO_KO_ALERT = 10;
+const COACHES = rawCoaches as Record<string, { name: string; nameKo: string | null }>;
+const TRANSFER_TEAMS = rawTransferTeams as Record<string, string>;
 
 interface Finding {
   kind: string;
@@ -224,6 +234,51 @@ async function checkInjuries(findings: Finding[]) {
   return counts;
 }
 
+/**
+ * 감독 스냅샷 — 주간 빌더(weekly-static-refresh 일요일 05:00)가 조용히 망가졌는지.
+ *
+ * 이 축이 필요한 이유. 2026-08-15 build-team-coaches 가 결과를 통째로 덮어쓰는 구조라
+ * 대상 집합에서 빠진 강등팀 17명이 소리 없이 사라졌다(웨스트햄·볼프스부르크 등 — ts 엔
+ * coach_id 가 그대로 있었으니 감독 교체가 아니라 순수 유실). 빌더는 병합으로 고쳤지만
+ * 같은 계열 사고를 사람 눈이 아니라 여기서 잡는다.
+ *
+ * 세 갈래로 본다. 대상 팀 결손은 "새로 안 채워진 것", 총 엔트리 급감은 "있던 게 없어진 것",
+ * 한글명 결손은 "로마자가 화면에 노출되는 것" — 원인이 달라서 하나로는 못 잡는다.
+ */
+async function checkCoaches(findings: Finding[]) {
+  const BIG5 = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+  const big5 = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", team: { league: { in: BIG5 } } },
+    select: { externalId: true },
+  });
+  const target = [...new Set([...big5.map((r) => r.externalId), ...Object.keys(TRANSFER_TEAMS)])];
+  const missing = target.filter((t) => !COACHES[t]);
+  const entries = Object.values(COACHES);
+  const noKo = entries.filter((c) => !c.nameKo);
+
+  if (missing.length >= COACH_MISSING_ALERT) {
+    findings.push({
+      kind: "coach_missing",
+      detail: `이적시장 대상 팀에 감독이 없습니다 — ${missing.length}/${target.length}팀 (실측 0)`,
+      samples: missing.slice(0, 8).map((t) => `${TRANSFER_TEAMS[t] ?? "BIG5"} ${t}`),
+    });
+  }
+  if (entries.length < COACH_ENTRY_FLOOR) {
+    findings.push({
+      kind: "coach_registry_shrink",
+      detail: `감독 스냅샷이 줄었습니다 — ${entries.length}팀 (하한 ${COACH_ENTRY_FLOOR}, 실측 323). 빌더가 기존 항목을 덮어썼는지 확인`,
+    });
+  }
+  if (noKo.length >= COACH_NO_KO_ALERT) {
+    findings.push({
+      kind: "coach_name_not_ko",
+      detail: `감독 한글명이 비었습니다 — ${noKo.length}/${entries.length}명이 로마자로 노출 (실측 0)`,
+      samples: noKo.slice(0, 8).map((c) => c.name),
+    });
+  }
+  return { target: target.length, missing: missing.length, entries: entries.length, noKo: noKo.length };
+}
+
 export async function GET(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
@@ -249,6 +304,7 @@ export async function GET(req: Request) {
     marketValues: await run("marketValues", () => checkMarketValues(now, findings)),
     standings: await run("standings", () => checkStandings(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
+    coaches: await run("coaches", () => checkCoaches(findings)),
   };
 
   if (findings.length > 0) {
