@@ -27,8 +27,20 @@ const ROUND_VALUES: ReadonlySet<string> = new Set([
 ]);
 
 async function buildBracket(): Promise<NbaPlayoffSeries[]> {
-  // 라벨 붙은 NBA 플레이오프 매치만 (최근 75일 — 1라운드~파이널 전체 커버).
-  const since = new Date(Date.now() - 75 * 86400 * 1000);
+  // 라벨 붙은 NBA 플레이오프 매치만 (마지막 플레이오프 매치 기준 75일 — 1라운드~파이널 전체 커버).
+  // 윈도우 앵커를 "지금"으로 잡으면 비시즌에 앞 라운드부터 하나씩 사라진다
+  // (2026-08 실측 — 브라켓에 파이널 한 시리즈만 남음). 새 시즌 플레이오프가 시작되면
+  // 앵커가 자동으로 새 매치를 따라가 직전 시즌 브라켓은 밀려난다.
+  const latest = await prisma.match.aggregate({
+    where: {
+      league: "NBA",
+      playoffRound: { not: null },
+      playoffStageId: { not: null },
+    },
+    _max: { startTime: true },
+  });
+  if (!latest._max.startTime) return [];
+  const since = new Date(latest._max.startTime.getTime() - 75 * 86400 * 1000);
   const matches = await prisma.match.findMany({
     where: {
       league: "NBA",

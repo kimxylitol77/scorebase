@@ -162,6 +162,7 @@ export function getNbaPlayoffBracket(
     info: SeriesInfoFromRaw;
     games: NbaSeriesGame[];
     teams: { id1: number; id2: number; t1ESPN: number; t2ESPN: number };
+    winsByEspnId: Map<string, number>;
   }>();
   // ESPN externalId 와 우리 Team.id 매핑 캐시
   const espnToOurTeam = new Map<string, Team>();
@@ -185,18 +186,31 @@ export function getNbaPlayoffBracket(
       awayScore: m.awayScore,
       status: m.status,
     };
-    if (existing) {
-      existing.games.push(game);
-      // 가장 최신 게임의 시리즈 정보로 갱신 (wins/summary/completed 업데이트)
-      if (m.startTime.getTime() > existing.info.gameNumber!) {
-        existing.info = info;
-      }
+    let acc = seriesMap.get(key);
+    if (acc) {
+      acc.games.push(game);
+      // matches 는 startTime asc — 마지막 대입이 곧 최신 게임의 시리즈 정보.
+      acc.info = info;
     } else {
-      seriesMap.set(key, {
+      acc = {
         info,
         games: [game],
         teams: { id1: 0, id2: 0, t1ESPN: info.team1Id, t2ESPN: info.team2Id },
-      });
+        winsByEspnId: new Map(),
+      };
+      seriesMap.set(key, acc);
+    }
+    // 승수는 raw 의 series.wins 를 믿지 않고 종료 게임을 직접 센다 — raw 는 경기 전
+    // 수집 시점 값이라 시리즈 마지막 게임 결과가 빠질 수 있다 (2026 NHL 파이널 3-2 고착 실측).
+    if (
+      m.status === "FINISHED" &&
+      m.homeScore != null &&
+      m.awayScore != null &&
+      m.homeScore !== m.awayScore
+    ) {
+      const winnerEspnId =
+        m.homeScore > m.awayScore ? m.homeTeam.externalId : m.awayTeam.externalId;
+      acc.winsByEspnId.set(winnerEspnId, (acc.winsByEspnId.get(winnerEspnId) ?? 0) + 1);
     }
   }
 
@@ -208,6 +222,29 @@ export function getNbaPlayoffBracket(
     if (!t1Team || !t2Team) continue;
     // game 시간순 정렬
     data.games.sort((a, b) => a.date.getTime() - b.date.getTime());
+    // 직접 카운트 ∨ ESPN raw 승수 중 큰 값 — 카운트는 raw 에 series 정보가 없는 게임을
+    // 놓치고, raw 승수는 마지막 게임 결과가 빠진다. 둘 다 실제보다 크게 잡히는 일은 없다.
+    const t1Wins = Math.max(
+      data.winsByEspnId.get(t1Team.externalId) ?? 0,
+      data.info.team1Wins,
+    );
+    const t2Wins = Math.max(
+      data.winsByEspnId.get(t2Team.externalId) ?? 0,
+      data.info.team2Wins,
+    );
+    const winsNeeded = Math.ceil(data.info.totalGames / 2);
+    const completed = t1Wins >= winsNeeded || t2Wins >= winsNeeded;
+    const hi = Math.max(t1Wins, t2Wins);
+    const lo = Math.min(t1Wins, t2Wins);
+    const lead = t1Wins === t2Wins ? null : t1Wins > t2Wins ? t1Team : t2Team;
+    const leadShort = lead?.shortName || lead?.name || "";
+    const summary = completed
+      ? `${leadShort} 시리즈 승리 ${hi}-${lo}`
+      : lead
+        ? `${leadShort} ${hi}-${lo} 리드`
+        : t1Wins > 0
+          ? `${t1Wins}-${t2Wins} 동률`
+          : "";
     result.push({
       round: data.info.round,
       conference: data.info.conference,
@@ -216,18 +253,18 @@ export function getNbaPlayoffBracket(
         name: t1Team.name,
         shortName: t1Team.shortName,
         logoUrl: t1Team.logoUrl,
-        wins: data.info.team1Wins,
+        wins: t1Wins,
       },
       team2: {
         id: t2Team.id,
         name: t2Team.name,
         shortName: t2Team.shortName,
         logoUrl: t2Team.logoUrl,
-        wins: data.info.team2Wins,
+        wins: t2Wins,
       },
-      completed: data.info.completed,
+      completed,
       totalGames: data.info.totalGames,
-      summary: data.info.summary,
+      summary,
       games: data.games,
     });
   }

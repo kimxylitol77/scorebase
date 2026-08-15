@@ -628,12 +628,24 @@ export default async function LeaguePredictions({ params }: Props) {
   let playoffBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
   let playoffWinProbs: ReturnType<typeof simulatePlayoff> = [];
   if (isUsPlayoff) {
+    // 윈도우 앵커는 "지금"이 아니라 마지막 종료 매치 — 롤링 윈도우면 비시즌에
+    // 플레이오프 앞 라운드부터 하나씩 사라진다 (2026-08 NBA 실측). 시즌 중엔
+    // 마지막 종료 매치 ≈ 지금이라 기존과 동일하게 동작한다.
+    const latestFinished = await prisma.match.aggregate({
+      where: { league: upper, status: "FINISHED" },
+      _max: { startTime: true },
+    });
+    // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+    // eslint-disable-next-line react-hooks/purity
+    const nowMs = Date.now();
+    const anchorMs = Math.min(
+      latestFinished._max.startTime?.getTime() ?? nowMs,
+      nowMs,
+    );
     const recentMatches = await prisma.match.findMany({
       where: {
         league: upper,
-        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
-        // eslint-disable-next-line react-hooks/purity
-        startTime: { gte: new Date(Date.now() - 60 * 24 * 3600 * 1000) }, // 최근 60일
+        startTime: { gte: new Date(anchorMs - 75 * 24 * 3600 * 1000) }, // 앵커 기준 75일 — 1라운드~파이널 커버
       },
       include: { homeTeam: true, awayTeam: true },
       orderBy: { startTime: "asc" },
@@ -648,8 +660,12 @@ export default async function LeaguePredictions({ params }: Props) {
       // NHL — ESPN raw 의 series.type='playoff'
       playoffBracket = getNbaPlayoffBracket(recentMatches);
     }
-    // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo
-    if (playoffBracket.length > 0 && !isWorldCup) {
+    // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo.
+    // 파이널까지 끝난 시즌(비시즌 아카이브)엔 시뮬레이션할 잔여 경기가 없으므로 skip.
+    const playoffFinalsDone = playoffBracket.some(
+      (s) => s.round === "FINALS" && s.completed,
+    );
+    if (playoffBracket.length > 0 && !isWorldCup && !playoffFinalsDone) {
       const eloMap: Record<number, number> = {};
       for (const [tid, rating] of elo.ratings) eloMap[tid] = rating;
       playoffWinProbs = simulatePlayoff(playoffBracket, eloMap, {
