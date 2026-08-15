@@ -162,7 +162,15 @@ async function parseHonours(title: string): Promise<HonorRow[]> {
 
 async function main() {
   const coaches = JSON.parse(fs.readFileSync(COACHES_PATH, "utf8")) as Record<string, { id?: string; name: string }>;
-  const list = Object.values(coaches).filter((c) => c.id && c.name);
+  // 레전드(비현직) 감독 병합 + --only=<id,id> 부분 실행 (careers 와 동일 규칙)
+  const legendsPath = path.join(__dirname, "..", "data", "coach-legends.json");
+  const legends = fs.existsSync(legendsPath)
+    ? (Object.values(JSON.parse(fs.readFileSync(legendsPath, "utf8"))) as Array<{ id?: string; name: string }>)
+    : [];
+  const only = process.argv.find((a) => a.startsWith("--only="))?.split("=")[1]?.split(",");
+  const list = [...Object.values(coaches), ...legends]
+    .filter((c) => c.id && c.name)
+    .filter((c) => !only || only.includes(c.id!));
   console.log(`감독 ${list.length}명 위키 우승 기록 수집`);
 
   const out: Record<string, HonorRow[]> = {};

@@ -15,6 +15,7 @@ import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
 import rawCoachPhotos from "../../../../data/coach-photos.json";
 import rawTacticalExtras from "../../../../data/coach-tactical-extras.json";
+import rawLegends from "../../../../data/coach-legends.json";
 import TacticalManagerSection from "@/components/TacticalManagerSection";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
@@ -55,16 +56,19 @@ const NATL = new Set(["WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "
 // coach id → 현 소속 ts team id (team-coaches.json 이 팀 키 구조라 역인덱스)
 const TEAM_BY_COACH: Record<string, string> = {};
 for (const [tid, c] of Object.entries(COACHES)) if (c.id) TEAM_BY_COACH[c.id] = tid;
+// 레전드(비현직) 감독 레지스트리 — 현 소속이 없어도 프로필·전술 아카이브 페이지를 연다 (펩 등).
+const LEGENDS = rawLegends as Record<string, CoachSnap>;
 
 const fmtYm = (ts: number | null) =>
   ts ? `${new Date(ts * 1000).getUTCFullYear()}.${new Date(ts * 1000).getUTCMonth() + 1}` : null;
 const yrRange = (s: number | null, e: number | null) =>
   `${s ?? "?"}–${e ?? "현재"}`;
 
-function coachOf(id: string): { snap: CoachSnap; teamTsId: string } | null {
+function coachOf(id: string): { snap: CoachSnap; teamTsId: string | null } | null {
   const teamTsId = TEAM_BY_COACH[id];
-  if (!teamTsId) return null;
-  return { snap: COACHES[teamTsId], teamTsId };
+  if (teamTsId) return { snap: COACHES[teamTsId], teamTsId };
+  if (LEGENDS[id]) return { snap: LEGENDS[id], teamTsId: null };
+  return null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -95,10 +99,12 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
 
   // 현 소속팀 resolve (ts → 우리 Team) — 로고·리그·팀 페이지 링크
   let teamName: string | null = null, teamLogo: string | null = null, ourTeamId: number | null = null, teamLeague: string | null = null;
-  const tss = await prisma.teamSourceId.findMany({
-    where: { source: "thesports", externalId: teamTsId },
-    select: { teamId: true },
-  }).catch(() => []);
+  const tss = teamTsId
+    ? await prisma.teamSourceId.findMany({
+        where: { source: "thesports", externalId: teamTsId },
+        select: { teamId: true },
+      }).catch(() => [])
+    : [];
   if (tss.length) {
     const teams = await prisma.team.findMany({
       where: { id: { in: tss.map((t) => t.teamId) } },
@@ -238,7 +244,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
   const curStintStart = (career?.coachCareer ?? []).find((r) => r.end == null)?.start ?? null;
   const joinedTs = snap.joined || (curStintStart ? Date.UTC(curStintStart, 6, 1) / 1000 : null);
   let signings: Array<{ playerId: string; name: string; fromTeam: string | null; fee: number; time: number }> = [];
-  if (joinedTs) {
+  if (joinedTs && teamTsId) {
     const rows = await prisma.footballTransfer.findMany({
       where: { toTeamId: teamTsId, transferTime: { gte: joinedTs }, transferFee: { gt: 0 } },
       orderBy: { transferFee: "desc" },
@@ -267,7 +273,9 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
 
   // 감독 경력 — Wikidata 가 현 부임을 아직 반영 못했으면 ts joined 로 현 팀 행 합성
   const norm = (s: string) => s.replace(/\s|FC|CF|AFC|SC/gi, "").toLowerCase();
-  let coachRows: CareerRow[] = career?.coachCareer ?? [];
+  // 연도가 양쪽 다 없는 행은 표시 정보가 없다 — "?–현재 Italy" 처럼 현직으로 오독되는
+  // Wikidata 결손 클레임(펩 실측)이라 걸러낸다.
+  let coachRows: CareerRow[] = (career?.coachCareer ?? []).filter((r) => r.start != null || r.end != null);
   if (teamName) {
     const joinedYr = snap.joined ? new Date(snap.joined * 1000).getUTCFullYear() : null;
     const covered = coachRows.some(
@@ -483,7 +491,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
                 <TacticalManagerSection ctx={x} />
               </div>
             ))}
-          {otherManagerArticles.length > 0 && (
+          {(otherManagerArticles.length > 0 || Object.keys(TACTICAL_EXTRAS).some((cid) => cid !== id)) && (
             <div className="mt-4">
               <div className="mb-2 text-xs font-medium text-neutral-400">다른 감독 전술 연구</div>
               <div className="flex flex-wrap gap-1.5">
@@ -497,6 +505,24 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
                     {a.coachKo} · {a.teamKo}
                   </Link>
                 ))}
+                {/* 아카이브 보유 감독 — 글 없이 과거 시즌 대시보드만 있는 감독(레전드 포함) 상호 링크 */}
+                {Object.entries(TACTICAL_EXTRAS)
+                  .filter(([cid]) => cid !== id)
+                  .map(([cid, list]) => {
+                    const snap = TEAM_BY_COACH[cid] ? COACHES[TEAM_BY_COACH[cid]] : LEGENDS[cid];
+                    const first = list[0];
+                    if (!snap || !first) return null;
+                    return (
+                      <Link
+                        key={cid}
+                        href={`/coaches/${cid}`}
+                        prefetch={false}
+                        className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 hover:border-blue-300 dark:border-neutral-800 dark:bg-white/[0.04] dark:text-neutral-300 dark:hover:border-blue-800"
+                      >
+                        {snap.nameKo || snap.name} · {first.team.nameKo} {first.seasonLabel}
+                      </Link>
+                    );
+                  })}
               </div>
             </div>
           )}
