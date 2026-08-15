@@ -48,6 +48,7 @@ const TEAM_ALIAS: Record<string, string> = {
   brightonhovealbion: "brighton",
   afcbournemouth: "bournemouth",
   burnleyfc: "burnley",
+  bayernmunich: "bayernmnchen", // af "Bayern Munich" vs 우리 "Bayern München"(ü 탈락) — 과거 시즌 아카이브 빌드
 };
 export function normTeam(s: string): string {
   const n = s.toLowerCase().replace(/[^a-z]/g, "");
@@ -241,12 +242,15 @@ export async function aggregateTeamSeason(opts: {
     const isHome = normTeam(l.home.team) === teamNorm;
     const side = isHome ? l.home : l.away;
     const oppSide = isHome ? l.away : l.home;
-    const db = dbById.get(l.matchId);
+    // 주입 스코어가 있으면 무조건 주입 우선 — 주입 모드의 matchId 는 af fixture id 라
+    // DB Match id 와 우연히 겹칠 수 있다 (2017 세리에A 실측: id 충돌로 엉뚱한 매치
+    // 점수가 조인돼 사리 나폴리가 19승 0무 19패로 집계). DB 조인은 백필 모드 전용.
     const inj = opts.scores?.[l.matchId];
+    const db = inj ? undefined : dbById.get(l.matchId);
     const hasDb = !!db && db.homeScore != null && db.awayScore != null;
     if (!hasDb && !inj) continue;
-    const hs = hasDb ? db!.homeScore! : inj!.home;
-    const as = hasDb ? db!.awayScore! : inj!.away;
+    const hs = inj ? inj.home : db!.homeScore!;
+    const as = inj ? inj.away : db!.awayScore!;
     const gf = isHome ? hs : as;
     const ga = isHome ? as : hs;
     const xg = hasDb ? parseXg(db!.fixtureStats) : { home: null, away: null };
