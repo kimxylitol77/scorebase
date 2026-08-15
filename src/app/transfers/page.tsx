@@ -658,8 +658,11 @@ export default async function TransfersPage({
 
   // ── 팀 스쿼드 요약 + 시장가치 Best XI (view=team) ──
   const teamIdNum = Number(team);
+  // 팀 뷰 진입 여부 — 몸값 커버리지와 무관. 감독·전술 카드는 이 조건만 본다
+  // (K리그1 46명·K리그2 4명뿐이라 squadSummary 에 묶어두면 감독이 통째로 안 뜬다).
+  const isTeamView = view === "team" && !!team && Number.isFinite(teamIdNum);
   const squadSummary =
-    view === "team" && team && Number.isFinite(teamIdNum) && enriched.length > 0
+    isTeamView && enriched.length > 0
       ? (() => {
           const tm = teamMeta.get(teamIdNum);
           const total = enriched.reduce((s, e) => s + e.value, 0);
@@ -677,7 +680,7 @@ export default async function TransfersPage({
   // ── 감독 + 최근 5경기 실제 포메이션 (view=team) ──
   let coach: (typeof COACHES)[string] | null = null;
   const recentFormations: string[] = [];
-  if (squadSummary) {
+  if (isTeamView) {
     const tsIds = await prisma.teamSourceId.findMany({
       where: { source: "thesports", teamId: teamIdNum },
       select: { externalId: true },
@@ -701,7 +704,7 @@ export default async function TransfersPage({
   }
   // 감독 전술 연구 글 — 이 팀 것이 발행돼 있으면 감독 카드에서 바로 연결 (역방향은 글 헤더의 스쿼드 링크)
   let tacticalArticle: { slug: string; title: string } | null = null;
-  if (squadSummary) {
+  if (isTeamView) {
     const tmName = teamMeta.get(teamIdNum)?.name;
     if (tmName) {
       const tSlug = tmName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); // manager-article.teamSlug 와 동일 규칙
@@ -1058,8 +1061,9 @@ export default async function TransfersPage({
       </div>
 
       {/* 팀 스쿼드 요약 + 시장가치 Best XI (view=team) */}
-      {squadSummary && (
+      {(squadSummary || coach) && (
         <>
+          {squadSummary && (
           <div className="rounded-2xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4 mt-4 flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
               {squadSummary.logo && (
@@ -1088,6 +1092,7 @@ export default async function TransfersPage({
               </Link>
             </div>
           </div>
+          )}
           {/* 감독 · 전술 카드 — ts coach/list(선호 포메이션) + 라인업 cache(최근 실제 포메이션) */}
           {coach && (
             <div className="rounded-2xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4 mt-3 flex items-center gap-3 flex-wrap">
@@ -1144,7 +1149,7 @@ export default async function TransfersPage({
               )}
             </div>
           )}
-          {bestXI && <SquadBestXI slots={bestXI} teamName={squadSummary.name} formation={xiFormation} />}
+          {bestXI && squadSummary && <SquadBestXI slots={bestXI} teamName={squadSummary.name} formation={xiFormation} />}
         </>
       )}
 
