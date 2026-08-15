@@ -32,6 +32,7 @@ import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
+import CollapseSection from "@/components/CollapseSection";
 import {
   loadPlayoffBracket,
   isPlayoffSeasonDone,
@@ -670,9 +671,8 @@ export default async function StandingsPage({ params }: Props) {
       )}
 
       {hasLeaders && (
-        // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점
-        <section id="leaderboard" className="space-y-3 pt-4 scroll-mt-20">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
+        // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점 (해시 진입 시 자동 펼침)
+        <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
           {leadersPreSeason ? (
             <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
               새 시즌 개막 후 집계됩니다.
@@ -680,7 +680,7 @@ export default async function StandingsPage({ params }: Props) {
           ) : (
             <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
           )}
-        </section>
+        </CollapseSection>
       )}
 
       {/* KBO 한정 FAQ — layout 의 BreadcrumbList·Dataset JSON-LD 와 별도 스크립트로 주입 */}
@@ -1089,17 +1089,13 @@ async function PlayoffBracketSection({ league }: { league: "NBA" | "NHL" }) {
   const done = isPlayoffSeasonDone(bracket);
   const season = playoffSeasonLabel(bracket);
   return (
-    <details
-      open={!done}
-      className="rounded-xl border border-neutral-200 dark:border-white/10 px-4 py-3"
+    <CollapseSection
+      title={`${season ? `${season} ` : ""}플레이오프 브라켓`}
+      meta={done ? "(시즌 최종 결과)" : "(진행 중)"}
+      defaultOpen={!done}
     >
-      <summary className="cursor-pointer text-sm font-bold text-neutral-600 dark:text-neutral-300">
-        {season ? `${season} ` : ""}플레이오프 브라켓 {done ? "(시즌 최종 결과)" : "(진행 중)"}
-      </summary>
-      <div className="mt-3">
-        <NbaPlayoffBracket series={bracket} league={league} />
-      </div>
-    </details>
+      <NbaPlayoffBracket series={bracket} league={league} />
+    </CollapseSection>
   );
 }
 
@@ -1152,10 +1148,9 @@ async function NbaStandings({ name }: { name: string }) {
       <PlayoffBracketSection league="NBA" />
 
       {hasNbaLeaders && (
-        <section id="leaderboard" className="space-y-3 pt-4 scroll-mt-20">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight">NBA 시즌 리더보드</h2>
+        <CollapseSection id="leaderboard" title="NBA 시즌 리더보드">
           <LeagueLeaderBoard league="NBA" season={nbaLeaderSeason} rowsByCategory={nbaLeaders} />
-        </section>
+        </CollapseSection>
       )}
     </div>
   );
@@ -1229,10 +1224,9 @@ async function NhlStandings({ name }: { name: string }) {
       <PlayoffBracketSection league="NHL" />
 
       {hasNhlLeaders && (
-        <section id="leaderboard" className="space-y-3 pt-4 scroll-mt-20">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight">NHL 시즌 리더보드</h2>
+        <CollapseSection id="leaderboard" title="NHL 시즌 리더보드">
           <LeagueLeaderBoard league="NHL" season={nhlLeaderSeason} rowsByCategory={nhlLeaders} />
-        </section>
+        </CollapseSection>
       )}
     </div>
   );
