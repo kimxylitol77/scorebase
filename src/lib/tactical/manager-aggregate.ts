@@ -6,6 +6,7 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { parseXg } from "./data-gate";
 
 // ============================================================
@@ -206,6 +207,11 @@ export async function aggregateTeamSeason(opts: {
   seasonLabel?: string;
   /** 라인업 소스 주입 — 미지정 시 백필 파일(25/26 결산). 월간 잡은 af 런타임 수집분을 넘긴다. */
   lineups?: BackfilledLineup[];
+  /** DB 매치가 없는 과거 시즌용 스코어 주입 (키 = lineups[].matchId, 홈/원정 원본 방향).
+   *  DB 행이 있으면 DB 가 우선. 주입 스코어 경기는 xG 없음으로 집계된다. */
+  scores?: Record<number, { home: number; away: number }>;
+  /** DB 로 리그 테이블을 못 만드는 과거 시즌용 최종 순위 (af standings 실측값). */
+  rankOverride?: number;
 }): Promise<ManagerSeasonAggregate> {
   const { league, teamId } = opts;
   const from = opts.from ?? new Date("2025-08-01");
@@ -236,10 +242,14 @@ export async function aggregateTeamSeason(opts: {
     const side = isHome ? l.home : l.away;
     const oppSide = isHome ? l.away : l.home;
     const db = dbById.get(l.matchId);
-    if (!db || db.homeScore == null || db.awayScore == null) continue;
-    const gf = isHome ? db.homeScore : db.awayScore;
-    const ga = isHome ? db.awayScore : db.homeScore;
-    const xg = parseXg(db.fixtureStats);
+    const inj = opts.scores?.[l.matchId];
+    const hasDb = !!db && db.homeScore != null && db.awayScore != null;
+    if (!hasDb && !inj) continue;
+    const hs = hasDb ? db!.homeScore! : inj!.home;
+    const as = hasDb ? db!.awayScore! : inj!.away;
+    const gf = isHome ? hs : as;
+    const ga = isHome ? as : hs;
+    const xg = hasDb ? parseXg(db!.fixtureStats) : { home: null, away: null };
     enriched.push({
       row: {
         matchId: l.matchId,
@@ -268,7 +278,7 @@ export async function aggregateTeamSeason(opts: {
     else if (row.result === "D") { rec.d++; rec.points += 1; }
     else rec.l++;
   }
-  rec.rank = await computeRank(league, from, to, teamId);
+  rec.rank = opts.rankOverride ?? (await computeRank(league, from, to, teamId));
 
   // 3) 감독 재임 구간 (연속 그룹핑 — 중도 경질 감지)
   const coaches: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null; logo?: string | null }> = existsSync(dataPath("team-coaches.json"))
@@ -383,8 +393,10 @@ export async function aggregateTeamSeason(opts: {
     const incl = squad.find((p) => { const pn = normName(p.name); return pn.includes(n) || n.includes(pn); });
     return incl?.id ?? null;
   };
+  // 정본 af→ts 매핑 우선 — 스쿼드 이름 매칭은 현재 스쿼드 기준이라 과거 시즌의
+  // 이적·은퇴 선수를 못 잡는다 (레버쿠젠 23-24 실측). 매핑 없을 때만 이름 매칭 폴백.
   const pids = new Map<number, string | null>();
-  for (const a of players.values()) pids.set(a.afId, pidOf(a.name));
+  for (const a of players.values()) pids.set(a.afId, afPlayerToTs(a.afId) ?? pidOf(a.name));
   const koRows = await prisma.theSportsPlayer.findMany({
     where: { id: { in: [...pids.values()].filter((v): v is string => !!v) } },
     select: { id: true, nameKo: true },

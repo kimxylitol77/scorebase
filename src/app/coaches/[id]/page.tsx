@@ -14,6 +14,7 @@ import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
 import rawCoachPhotos from "../../../../data/coach-photos.json";
+import rawTacticalExtras from "../../../../data/coach-tactical-extras.json";
 import TacticalManagerSection from "@/components/TacticalManagerSection";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
@@ -41,6 +42,9 @@ const CAREERS = rawCareers as Record<string, CoachCareer>;
 const HONORS = rawHonors as Record<string, HonorRow[]>;
 // 라인업 감독 사전 — team-coaches nameKo 누락분 한글명 폴백 (키 = 감독 id)
 const COACH_PHOTOS = rawCoachPhotos as Record<string, { nameKo?: string }>;
+// 과거 시즌 전술 대시보드 아카이브 (DB 에 없는 옛 시즌 — build-coach-tactical-extra 산출).
+// 전술 글이 없는 정점 시즌(레버쿠젠 알론소 23-24 등)을 감독 허브에 남기는 위키형 축적.
+const TACTICAL_EXTRAS = rawTacticalExtras as unknown as Record<string, TacticalManagerContext[]>;
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1",
   K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS", WORLD_CUP: "FIFA 월드컵 2026",
@@ -434,19 +438,19 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       {/* 전술 연구 — 시즌 집계 대시보드 + 글 아카이브 (감독 축 위키형 허브, 글이 늘수록 누적).
           부임 직후엔 최신 글이 전 소속팀 시즌 집계다 — 제목·안내로 "어느 팀 시절"인지 못박는다
           (첼시 알론소 페이지에 레알 대시보드가 무라벨로 떠 버그로 오인, 2026-08-15). */}
-      {tacticalCtx && (
+      {(tacticalCtx || (TACTICAL_EXTRAS[id] ?? []).length > 0) && (
         <section>
           <h2 className="text-lg font-semibold mb-1 break-keep">
             전술 연구
-            {tacticalCtx.team.tsId !== teamTsId ? ` — ${tacticalCtx.team.nameKo} 시절` : ""}
+            {tacticalCtx && tacticalCtx.team.tsId !== teamTsId ? ` — ${tacticalCtx.team.nameKo} 시절` : ""}
           </h2>
-          {tacticalCtx.team.tsId !== teamTsId && (
+          {tacticalCtx && tacticalCtx.team.tsId !== teamTsId && (
             <p className="mb-3 text-xs text-neutral-400 break-keep">
               현 소속({teamName ?? "현 팀"}) 부임 전 {tacticalCtx.team.nameKo} {tacticalCtx.seasonLabel} 시즌 전술 집계입니다.
               {teamName ? ` ${teamName} 전술 연구는 새 시즌 데이터가 쌓이면 발행됩니다.` : ""}
             </p>
           )}
-          <TacticalManagerSection ctx={tacticalCtx} />
+          {tacticalCtx && <TacticalManagerSection ctx={tacticalCtx} />}
           {tacticalArticles.length > 0 && (
             <ul className="mt-4 space-y-2">
               {tacticalArticles.map((a) => (
@@ -465,6 +469,20 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
               ))}
             </ul>
           )}
+          {/* 과거 시즌 아카이브 대시보드 — 전술 글 없는 옛 시즌 (최신 글 팀·시즌과 중복 제외) */}
+          {(TACTICAL_EXTRAS[id] ?? [])
+            .filter((x) => !(tacticalCtx && x.team.tsId === tacticalCtx.team.tsId && x.seasonLabel === tacticalCtx.seasonLabel))
+            .map((x) => (
+              <div key={`${x.team.tsId}-${x.seasonLabel}`} className="mt-6">
+                <h3 className="text-base font-semibold break-keep">
+                  {x.team.nameKo} 시절 — {x.seasonLabel}
+                </h3>
+                <p className="mt-1 text-xs text-neutral-400 break-keep">
+                  스코어베이스 과거 시즌 아카이브 집계입니다. 이 시즌 데이터에는 xG·슈팅 좌표가 없습니다.
+                </p>
+                <TacticalManagerSection ctx={x} />
+              </div>
+            ))}
           {otherManagerArticles.length > 0 && (
             <div className="mt-4">
               <div className="mb-2 text-xs font-medium text-neutral-400">다른 감독 전술 연구</div>

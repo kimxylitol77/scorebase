@@ -24,19 +24,29 @@ function StatTile({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** xG 신호 존재 여부 — 과거 시즌 아카이브(af 스코어만)는 전부 0 으로 집계돼,
+ *  0 을 사실처럼 그리면 오독된다 (dataBrief 의 hasXg 게이트와 같은 규칙). */
+function hasXgSignal(ctx: TacticalManagerContext): boolean {
+  return (
+    ctx.formations.some((f) => f.xgFor > 0 || f.xgAgainst > 0) ||
+    ctx.monthly.some((m) => m.xgFor > 0 || m.xgAgainst > 0)
+  );
+}
+
 /** 포메이션 사용 분포 — 단일 시리즈 가로 바 + W-D-L·xG 텍스트 라벨. */
 function FormationBars({ ctx }: { ctx: TacticalManagerContext }) {
   const max = Math.max(...ctx.formations.map((f) => f.count));
+  const xg = hasXgSignal(ctx);
   return (
     <div className={CARD}>
       <h3 className={H3}>포메이션 사용 분포</h3>
       <div className="mt-3 space-y-2.5">
         {ctx.formations.slice(0, 5).map((f) => (
-          <div key={f.formation} title={`${f.formation} — ${f.count}경기 ${f.w}승 ${f.d}무 ${f.l}패, 경기당 xG ${f.xgFor} / 실점 xG ${f.xgAgainst}`}>
+          <div key={f.formation} title={`${f.formation} — ${f.count}경기 ${f.w}승 ${f.d}무 ${f.l}패${xg ? `, 경기당 xG ${f.xgFor} / 실점 xG ${f.xgAgainst}` : ""}`}>
             <div className="flex items-baseline justify-between text-xs">
               <span className="font-bold text-zinc-800 dark:text-white/85">{f.formation}</span>
               <span className="tabular-nums text-zinc-500 dark:text-white/50">
-                {f.count}경기 · {f.w}승 {f.d}무 {f.l}패 · xG {f.xgFor}
+                {f.count}경기 · {f.w}승 {f.d}무 {f.l}패{xg ? ` · xG ${f.xgFor}` : ""}
               </span>
             </div>
             <div className="mt-1 h-2 w-full rounded-full bg-zinc-100 dark:bg-white/[0.06]">
@@ -45,7 +55,7 @@ function FormationBars({ ctx }: { ctx: TacticalManagerContext }) {
           </div>
         ))}
       </div>
-      <p className={CAPTION}>xG는 해당 포메이션 경기의 경기당 평균 기대득점.</p>
+      {xg && <p className={CAPTION}>xG는 해당 포메이션 경기의 경기당 평균 기대득점.</p>}
     </div>
   );
 }
@@ -133,6 +143,7 @@ function GoalShotmap({ ctx }: { ctx: TacticalManagerContext }) {
 
 /** 월별 xG 득실차 — 0 기준 다이버징 바 (양수 파랑 = 공격 우위). */
 function XgMonthly({ ctx }: { ctx: TacticalManagerContext }) {
+  if (!hasXgSignal(ctx)) return null;
   const rows = ctx.monthly.filter((m) => m.played > 0);
   if (rows.length < 2) return null;
   const diffs = rows.map((m) => m.xgFor - m.xgAgainst);
