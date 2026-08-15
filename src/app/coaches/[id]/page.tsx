@@ -16,6 +16,8 @@ import rawHonors from "../../../../data/coach-honors.json";
 import rawCoachPhotos from "../../../../data/coach-photos.json";
 import TacticalManagerSection from "@/components/TacticalManagerSection";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
+import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { formatDateKo } from "@/lib/format";
 
 // ISR — 감독 정보·경력은 거의 불변. 10분 캐시.
@@ -107,21 +109,66 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  // 최근 5경기 실제 포메이션 (현 팀)
+  // 최근 5경기 실제 포메이션 + 최근 선발 라인업 (현 팀).
+  // 라인업 피치는 전 소속 시절 "전술 연구"와 나란히 현 팀 전술을 보여주기 위한 것
+  // (부임 직후엔 전술 글이 전 소속팀 것뿐이라 현 팀 맥락이 통째로 비었다 — 2026-08-15 사용자 요청).
   const recentFormations: string[] = [];
+  let curLineup: { formation: string | null; xi: string[]; oppKo: string; dateLabel: string } | null = null;
   if (ourTeamId != null) {
     const recent = await prisma.match.findMany({
       where: { status: "FINISHED", OR: [{ homeTeamId: ourTeamId }, { awayTeamId: ourTeamId }] },
       orderBy: { startTime: "desc" },
       take: 10,
-      select: { homeTeamId: true, theSportsCache: { select: { lineup: true } } },
+      select: {
+        homeTeamId: true,
+        startTime: true,
+        lineupHome: true,
+        lineupAway: true,
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } },
+        theSportsCache: { select: { lineup: true } },
+      },
     }).catch(() => []);
     for (const m of recent) {
       const lu = m.theSportsCache?.lineup as { home_formation?: string; away_formation?: string } | null;
-      const f = m.homeTeamId === ourTeamId ? lu?.home_formation : lu?.away_formation;
-      if (f) recentFormations.push(f);
-      if (recentFormations.length >= 5) break;
+      const isHome = m.homeTeamId === ourTeamId;
+      const f = isHome ? lu?.home_formation : lu?.away_formation;
+      if (f && recentFormations.length < 5) recentFormations.push(f);
+      if (!curLineup) {
+        try {
+          const raw = isHome ? m.lineupHome : m.lineupAway;
+          const parsed = raw ? (JSON.parse(raw) as { formation?: string | null; startXI?: string[] }) : null;
+          if (Array.isArray(parsed?.startXI) && parsed.startXI.length >= 11) {
+            const opp = isHome ? m.awayTeam : m.homeTeam;
+            const kst = new Date(m.startTime.getTime() + 9 * 3600_000);
+            curLineup = {
+              formation: parsed.formation ?? null,
+              xi: parsed.startXI.slice(0, 11),
+              oppKo: toKoreanTeamName(opp.name) || opp.name,
+              dateLabel: `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`,
+            };
+          }
+        } catch {
+          // 파싱 안 되는 라인업은 없는 것으로
+        }
+      }
     }
+  }
+  // 선발 11명 한글명 — 팀 페이지와 동일 규칙 (DB nameKo 우선, 동명이인 충돌 시 미확정)
+  let curLineupPlayers: LineupPlayer[] = [];
+  if (curLineup) {
+    const koRows = await prisma.theSportsPlayer.findMany({
+      where: { name: { in: curLineup.xi } },
+      select: { name: true, nameKo: true },
+    }).catch(() => []);
+    const koMap = new Map<string, string | null>();
+    for (const r of koRows) {
+      koMap.set(r.name, koMap.has(r.name) && koMap.get(r.name) !== r.nameKo ? null : r.nameKo);
+    }
+    curLineupPlayers = curLineup.xi.map((n) => ({
+      name: n,
+      ko: koMap.get(n) ?? (toKoreanPlayerName(n) !== n ? toKoreanPlayerName(n) || null : null),
+    }));
   }
   // 전술 연구 — 이 감독을 다룬 TACTICAL 아티클 누적 (글=시점 스냅샷, 이 페이지=위키형 허브).
   // 매칭은 감독 이름 기준(팀 기준이면 전임 감독 시즌 글이 새 감독 페이지에 붙는 오류).
@@ -354,28 +401,51 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      {/* 전술 */}
-      {(snap.preferredFormation || formationSummary) && (
-        <section className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4 sm:p-5 flex items-center gap-8 flex-wrap">
-          {snap.preferredFormation && (
-            <div className="leading-tight">
-              <div className="text-[11px] text-neutral-400 mb-0.5">선호 포메이션</div>
-              <div className="text-xl font-black tabular-nums">{snap.preferredFormation}</div>
-            </div>
-          )}
-          {formationSummary && (
-            <div className="leading-tight">
-              <div className="text-[11px] text-neutral-400 mb-0.5">최근 {recentFormations.length}경기 실제 포메이션</div>
-              <div className="text-xl font-black tabular-nums">{formationSummary}</div>
+      {/* 현 소속팀 전술 — 포메이션 요약 + 최근 선발 라인업 피치 */}
+      {(snap.preferredFormation || formationSummary || curLineupPlayers.length === 11) && (
+        <section>
+          {teamName && <h2 className="text-lg font-semibold mb-3 break-keep">현재 전술 — {teamName}</h2>}
+          <div className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4 sm:p-5 flex items-center gap-8 flex-wrap">
+            {snap.preferredFormation && (
+              <div className="leading-tight">
+                <div className="text-[11px] text-neutral-400 mb-0.5">선호 포메이션</div>
+                <div className="text-xl font-black tabular-nums">{snap.preferredFormation}</div>
+              </div>
+            )}
+            {formationSummary && (
+              <div className="leading-tight">
+                <div className="text-[11px] text-neutral-400 mb-0.5">최근 {recentFormations.length}경기 실제 포메이션</div>
+                <div className="text-xl font-black tabular-nums">{formationSummary}</div>
+              </div>
+            )}
+          </div>
+          {curLineup && curLineupPlayers.length === 11 && (
+            <div className="mt-3">
+              <div className="mb-2 text-xs text-neutral-400">
+                최근 선발 라인업 · {curLineup.dateLabel} vs {curLineup.oppKo}
+                {curLineup.formation ? ` · ${curLineup.formation}` : ""}
+              </div>
+              <TeamRecentLineup formation={curLineup.formation} players={curLineupPlayers} />
             </div>
           )}
         </section>
       )}
 
-      {/* 전술 연구 — 시즌 집계 대시보드 + 글 아카이브 (감독 축 위키형 허브, 글이 늘수록 누적) */}
+      {/* 전술 연구 — 시즌 집계 대시보드 + 글 아카이브 (감독 축 위키형 허브, 글이 늘수록 누적).
+          부임 직후엔 최신 글이 전 소속팀 시즌 집계다 — 제목·안내로 "어느 팀 시절"인지 못박는다
+          (첼시 알론소 페이지에 레알 대시보드가 무라벨로 떠 버그로 오인, 2026-08-15). */}
       {tacticalCtx && (
         <section>
-          <h2 className="text-lg font-semibold mb-3 break-keep">전술 연구</h2>
+          <h2 className="text-lg font-semibold mb-1 break-keep">
+            전술 연구
+            {tacticalCtx.team.tsId !== teamTsId ? ` — ${tacticalCtx.team.nameKo} 시절` : ""}
+          </h2>
+          {tacticalCtx.team.tsId !== teamTsId && (
+            <p className="mb-3 text-xs text-neutral-400 break-keep">
+              현 소속({teamName ?? "현 팀"}) 부임 전 {tacticalCtx.team.nameKo} {tacticalCtx.seasonLabel} 시즌 전술 집계입니다.
+              {teamName ? ` ${teamName} 전술 연구는 새 시즌 데이터가 쌓이면 발행됩니다.` : ""}
+            </p>
+          )}
           <TacticalManagerSection ctx={tacticalCtx} />
           {tacticalArticles.length > 0 && (
             <ul className="mt-4 space-y-2">
