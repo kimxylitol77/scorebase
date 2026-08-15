@@ -22,6 +22,8 @@ import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 import { getTheSportsInjuriesByTeam } from "@/lib/sports/thesports/injuries";
 import rawCoaches from "../../../../../data/team-coaches.json";
 import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
+import rawNonSoccerCoaches from "../../../../../data/nonsoccer-coaches.json";
+import { SOCCER_LEAGUES } from "@/lib/sports/types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -50,6 +52,19 @@ const COACH_ENTRY_FLOOR = 300;
 const COACH_NO_KO_ALERT = 10;
 const COACHES = rawCoaches as Record<string, { name: string; nameKo: string | null }>;
 const TRANSFER_TEAMS = rawTransferTeams as Record<string, string>;
+// 전 리그 감독 — 2026-08-15 실측: 축구 75개 리그 합산 952/1072(88.8%), 30% 미만 4개
+// (WK_LEAGUE 0 · LIGA_MX 12 · ELSALVADOR_PD 17 · GUATEMALA_LN 17) · 비축구 8리그는 아래 실측.
+// 얇은 리그는 소스 사정이라 개별로는 안 울리고, 그 개수가 배로 늘 때만 본다.
+const COACH_LEAGUE_MIN_TEAMS = 8; // 표본이 작으면 비율이 요동친다
+const COACH_LEAGUE_THIN_PCT = 0.3;
+const COACH_ALL_RATIO = 0.7;
+const COACH_THIN_LEAGUE_ALERT = 8;
+// 비축구 실측 2026-08-15: 145/160 = 91% (미지원 4리그 제외 후).
+const COACH_NONSOCCER_RATIO = 0.7;
+// 비축구 감독 지원 리그 — build-nonsoccer-coaches 가 채우는 8개. CPBL·LMB·AIHL·NZIHL 은
+// 소스 부재로 명시 미지원이라 분모에 넣으면 영구 오탐이 된다.
+const NONSOCCER_COACH_LEAGUES = ["KBO", "MLB", "NPB", "NBA", "WNBA", "KBL", "WKBL", "NHL"];
+const NONSOCCER_COACHES = rawNonSoccerCoaches as Record<string, unknown>;
 
 interface Finding {
   kind: string;
@@ -279,6 +294,98 @@ async function checkCoaches(findings: Finding[]) {
   return { target: target.length, missing: missing.length, entries: entries.length, noKo: noKo.length };
 }
 
+/**
+ * 감독 — 8리그 스냅샷 밖 전체. 위 checkCoaches 가 보는 team-coaches.json 은 빅5+확장 174팀뿐이라
+ * 나머지 수백 리그가 통째로 비어도 안 걸린다.
+ *
+ * 소스가 둘로 나뉜다. 축구는 Team.coach(collect-all-team-coaches 가 ts coach/list 로 채움),
+ * 비축구 8리그(야구·농구·하키)는 data/nonsoccer-coaches.json. 파이프라인이 달라 따로 본다.
+ *
+ * 오탐 게이트가 핵심이다. 분모를 잘못 잡으면 정상이 사고로 보인다.
+ *  · 종목 — ts 축구 coach/list 가 소스라 배구·하키·야구 리그는 원래 0%다 (SOCCER_LEAGUES 로 거름).
+ *  · 컵 — 컵 네임스페이스 Team 은 감독을 안 채운다 (FA_CUP 0/98 실측).
+ *  · ts 매핑 — 매핑 없는 팀은 빌더가 손댈 수 없어 분모에서 뺀다.
+ *  · 비수기·소규모 — 최근 30일 종료매치 없는 리그와 8팀 미만은 판정 대상 아님.
+ *
+ * 판정은 개별 리그가 아니라 집단으로. 리그 하나가 얇은 건(LIGA_MX 12%) 소스 사정이고,
+ * 파이프라인이 고장나면 전체가 같이 떨어진다.
+ */
+async function checkAllLeagueCoaches(now: Date, findings: Finding[]) {
+  const soccer = new Set<string>(SOCCER_LEAGUES as readonly string[]);
+  const active = new Set(
+    (
+      await prisma.match.groupBy({
+        by: ["league"],
+        where: { status: "FINISHED", startTime: { gte: new Date(now.getTime() - 30 * 86400_000) } },
+        _count: true,
+      })
+    ).map((r) => r.league),
+  );
+  const mapped = new Set(
+    (await prisma.teamSourceId.findMany({ where: { source: "thesports" }, select: { teamId: true } })).map((m) => m.teamId),
+  );
+  const teams = await prisma.team.findMany({ select: { id: true, league: true, coach: true } });
+
+  // ── 축구 전 리그 ──
+  const byLg = new Map<string, { tot: number; has: number }>();
+  for (const t of teams) {
+    if (!soccer.has(t.league) || CUP_LEAGUE.test(t.league) || !active.has(t.league) || !mapped.has(t.id)) continue;
+    const e = byLg.get(t.league) ?? { tot: 0, has: 0 };
+    e.tot++;
+    if (t.coach) e.has++;
+    byLg.set(t.league, e);
+  }
+  const lgs = [...byLg.entries()]
+    .map(([lg, v]) => ({ lg, ...v, pct: v.has / v.tot }))
+    .filter((r) => r.tot >= COACH_LEAGUE_MIN_TEAMS);
+  const tot = lgs.reduce((s, r) => s + r.tot, 0);
+  const has = lgs.reduce((s, r) => s + r.has, 0);
+  const ratio = tot ? has / tot : 1;
+  const thin = lgs.filter((r) => r.pct < COACH_LEAGUE_THIN_PCT).sort((a, b) => a.pct - b.pct);
+
+  if (tot >= 200 && ratio < COACH_ALL_RATIO) {
+    findings.push({
+      kind: "coach_all_leagues_low",
+      detail: `축구 전 리그 감독 커버리지 급락 — ${has}/${tot} (${Math.round(ratio * 100)}%, 실측 89%). collect-all-team-coaches 확인`,
+      samples: thin.slice(0, 5).map((r) => `${r.lg} ${Math.round(r.pct * 100)}%`),
+    });
+  }
+  if (thin.length >= COACH_THIN_LEAGUE_ALERT) {
+    findings.push({
+      kind: "coach_league_empty",
+      detail: `감독이 거의 없는 축구 리그가 늘었습니다 — ${COACH_LEAGUE_THIN_PCT * 100}% 미만 ${thin.length}개 리그 (실측 4)`,
+      samples: thin.slice(0, 8).map((r) => `${r.lg} ${r.has}/${r.tot}`),
+    });
+  }
+
+  // ── 비축구 8리그 (파이프라인이 다름 — 축구 비율에 섞으면 서로를 가린다) ──
+  let bTot = 0, bHas = 0;
+  const bDetail: string[] = [];
+  for (const lg of NONSOCCER_COACH_LEAGUES) {
+    const t = teams.filter((x) => x.league === lg);
+    if (!t.length) continue;
+    const h = t.filter((x) => NONSOCCER_COACHES[String(x.id)]).length;
+    bTot += t.length;
+    bHas += h;
+    bDetail.push(`${lg} ${h}/${t.length}`);
+  }
+  const bRatio = bTot ? bHas / bTot : 1;
+  if (bTot >= 30 && bRatio < COACH_NONSOCCER_RATIO) {
+    findings.push({
+      kind: "coach_nonsoccer_low",
+      detail: `비축구 감독 커버리지 급락 — ${bHas}/${bTot} (${Math.round(bRatio * 100)}%)`,
+      samples: bDetail,
+    });
+  }
+
+  return {
+    soccerLeagues: lgs.length,
+    soccerRatio: Math.round(ratio * 100),
+    thinLeagues: thin.length,
+    nonSoccer: `${bHas}/${bTot}`,
+  };
+}
+
 export async function GET(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
@@ -305,6 +412,7 @@ export async function GET(req: Request) {
     standings: await run("standings", () => checkStandings(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
+    coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
   };
 
   if (findings.length > 0) {
