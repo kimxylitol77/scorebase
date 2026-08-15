@@ -14,6 +14,7 @@
 - [x] `market_value_stale` — 몸값 피드 최신 갱신 > 48h
 - [x] `standings_stale` — 시즌 중 정규리그 순위 정체 > 72h 가 3개 이상, 또는 하나라도 > 168h
 - [x] `injuries_empty` — 소스가 있는 축구 리그(빅5·MLS)에서 부상자 있는 팀이 2팀 이하
+- [x] `lol_leaders_stale` / `lol_leaders_shrink` — 시즌 중(최근 14일 LCK 종료매치 있음)인데 LeagueLeader LOL 갱신 > 60h, 또는 행 수 < 15 (2026-08-15 신설 — BDL 키 사망 두 달 동결 재발 방지)
 - [x] 축 하나가 예외로 죽어도 나머지 점검은 계속 (`*_check_failed` 로 보고)
 - [x] CRON_REGISTRY 등록 — 감시 자체가 멈추면 cron-freshness 가 잡는다
 
@@ -27,6 +28,7 @@
 | market value | 7h | — | 48h |
 | standings | 정체 1건(J3 142h) | — | 3건 또는 168h |
 | injuries | EPL 16·라리가 18·분데스 14·세리에A 12·리그1 16·MLS 29팀 | 사용자 실측 "한 팀만" | 2팀 이하 |
+| lol leaders | 0h·30행 (2026-08-15) | BDL 동결 시 ~1,500h | 60h 또는 15행 미만 (시즌 중만) |
 
 ## 축구 부상자 소스 규칙 (2026-08 확정 — 매번 다시 판단하지 말 것)
 
@@ -52,6 +54,7 @@
 - [x] 사고 재현 산술 검증 — career 42% 는 임계 25% 를 넘겨 발화
 - [x] injuries 축 dev 라우트 실행 — 실측값이 페이지 스캔과 일치, findings 0 (오탐 없음)
 - [x] injuries 축 발화 검증 — 임계를 20 으로 임시 상향해 5개 리그 발화 확인 후 2 로 원복
+- [x] lolLeaders 축 dev 라우트 실행 — ageH 0 · 30행 · 최근 14일 28경기, findings 0 (오탐 없음). 발화는 산술 검증(BDL 동결 재현 시 ageH ≈ 1,540h > 60h)
 - [ ] 배포 후 첫 실행(KST 10:00 또는 22:00) 결과 확인
 
 ## 임계를 바꿀 때

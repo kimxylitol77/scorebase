@@ -212,6 +212,46 @@ async function checkStandings(now: Date, findings: Finding[]) {
 }
 
 /**
+ * LOL 리더보드 — LeagueLeader LOL 행(KDA·CS·KILL)이 조용히 동결됐는지.
+ *
+ * 왜. BALLDONTLIE 키가 2026-06-12 죽었는데 잡이 빈 결과를 조용히 반환(safe 격리라
+ * 에러도 안 남음)해 두 달 동결을 사용자 눈으로 발견했다(8/15 lolGames 자체 집계로 교체).
+ * 소스를 바꿔도 사고 계열은 같다 — 잡은 돌고 에러도 없는데 데이터만 멈춘다.
+ *
+ * 오탐 게이트: 최근 14일 LCK 종료 매치가 있을 때만 판정. 비시즌·스플릿 휴지기의
+ * 정체는 정상이다. 리더 잡은 매일 1회라 60h(이틀+여유)면 두 번 연속 실패다.
+ */
+const LOL_LEADER_STALE_H = 60; // 8/15 실측 0h (매일 갱신)
+const LOL_LEADER_ROW_FLOOR = 15; // 정상 = KDA·CS·KILL 각 10 = 최신 시즌 30행
+
+async function checkLolLeaders(now: Date, findings: Finding[]) {
+  const recentFinished = await prisma.match.count({
+    where: { league: "LOL", status: "FINISHED", startTime: { gte: new Date(now.getTime() - 14 * 86400_000) } },
+  });
+  if (recentFinished === 0) return { skipped: "offseason" };
+
+  const agg = await prisma.leagueLeader.aggregate({
+    where: { league: "LOL" },
+    _max: { fetchedAt: true },
+    _count: true,
+  });
+  const last = agg._max.fetchedAt;
+  const ageH = last ? Math.round((now.getTime() - last.getTime()) / 3600_000) : null;
+  if (ageH == null || ageH > LOL_LEADER_STALE_H) {
+    findings.push({
+      kind: "lol_leaders_stale",
+      detail: `LOL 리더보드 동결 — 시즌 중인데 마지막 갱신이 ${ageH ?? "기록 없음"}시간 전입니다 (league-leaders 잡의 lolGames 집계 확인)`,
+    });
+  } else if (agg._count < LOL_LEADER_ROW_FLOOR) {
+    findings.push({
+      kind: "lol_leaders_shrink",
+      detail: `LOL 리더보드 행이 줄었습니다 — ${agg._count}행 (하한 ${LOL_LEADER_ROW_FLOOR}, 실측 30)`,
+    });
+  }
+  return { ageH, rows: agg._count, recentFinished };
+}
+
+/**
  * 부상자 명단 — /injuries 가 통째로 비는 걸 사람 대신 잡는다.
  *
  * 왜. 2026-08 사용자가 /injuries/EPL 에서 "부상자가 한 팀만 나온다"를 눈으로 찾았다.
@@ -410,6 +450,7 @@ export async function GET(req: Request) {
     predictions: await run("predictions", () => checkPredictions(now, findings)),
     marketValues: await run("marketValues", () => checkMarketValues(now, findings)),
     standings: await run("standings", () => checkStandings(now, findings)),
+    lolLeaders: await run("lolLeaders", () => checkLolLeaders(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
     coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
