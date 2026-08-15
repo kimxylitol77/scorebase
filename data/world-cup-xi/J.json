@@ -18,7 +18,7 @@
       "flag": "🇯🇴"
     }
   ],
-  "teamRating": 3.5,
+  "teamRating": 3.4,
   "xi": [
     {
       "id": "318q66h0d5dqo9j",
@@ -32,8 +32,8 @@
       "score": 8.54,
       "star": 4,
       "recentRating": 9.8,
-      "avgRating": 8.19,
-      "games": 2,
+      "avgRating": 9.8,
+      "games": 1,
       "x": 50,
       "y": 90
     },
@@ -46,11 +46,11 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/de016e81e8bce428a0dc8d7454e6e3bb.png",
-      "score": 7.52,
+      "score": 7.54,
       "star": 3,
       "recentRating": 6.84,
-      "avgRating": 6.86,
-      "games": 2,
+      "avgRating": 6.84,
+      "games": 1,
       "x": 16,
       "y": 70
     },
@@ -63,11 +63,11 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/b9a20695ed2dbf375ea29de28aab1887.png",
-      "score": 7.24,
+      "score": 7.2,
       "star": 3,
       "recentRating": 6.24,
-      "avgRating": 6.32,
-      "games": 2,
+      "avgRating": 6.24,
+      "games": 1,
       "x": 39,
       "y": 70
     },
@@ -89,19 +89,19 @@
       "y": 70
     },
     {
-      "id": "l5ergphn42or8k0",
-      "name": "Nahuel Molina",
-      "nameKo": "나우엘 몰리나",
+      "id": "dj2ryohn175q1zp",
+      "name": "Marcos Senesi",
+      "nameKo": "마르코스 세네시",
       "hasMv": true,
       "pos": "D",
       "country": "Argentina",
       "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
-      "score": 6.96,
+      "logo": "https://img.thesports.com/football/player/4f2a6f01c4a5f3e7eabebbf81a808812.png",
+      "score": 6.92,
       "star": 3,
-      "recentRating": 5.91,
-      "avgRating": 6.21,
-      "games": 2,
+      "recentRating": 6.07,
+      "avgRating": 6.07,
+      "games": 1,
       "x": 84,
       "y": 70
     },
@@ -123,23 +123,6 @@
       "y": 32
     },
     {
-      "id": "l7oqdeh4dx80r51",
-      "name": "Enzo Fernández",
-      "nameKo": "엔소 페르난데스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/4c76ff111431d8fcb4d661068d77e7c1.png",
-      "score": 8.42,
-      "star": 4,
-      "recentRating": 6.15,
-      "avgRating": 7.17,
-      "games": 2,
-      "x": 50,
-      "y": 32
-    },
-    {
       "id": "jw2r09hjpy58rz8",
       "name": "Valentin Barco",
       "nameKo": "발렌틴 바르코",
@@ -153,7 +136,7 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 78,
+      "x": 50,
       "y": 32
     },
     {
@@ -170,8 +153,8 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 35,
-      "y": 52
+      "x": 78,
+      "y": 32
     },
     {
       "id": "1l4rjnh3p29m7vx",
@@ -182,11 +165,28 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/5e827e5e98fc422e96cf06e794be7701.png",
-      "score": 7.73,
+      "score": 7.46,
       "star": 3,
       "recentRating": 6.46,
-      "avgRating": 6.73,
-      "games": 2,
+      "avgRating": 6.46,
+      "games": 1,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "l7oqdeh4dx80r51",
+      "name": "Enzo Fernández",
+      "nameKo": "엔소 페르난데스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/4c76ff111431d8fcb4d661068d77e7c1.png",
+      "score": 7.43,
+      "star": 3,
+      "recentRating": 6.15,
+      "avgRating": 6.15,
+      "games": 1,
       "x": 65,
       "y": 52
     },
@@ -199,46 +199,16 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/72bd55345c070ba5db9ca7146dbb1750.png",
-      "score": 8.34,
+      "score": 8.6,
       "star": 4,
-      "recentRating": 8.09,
-      "avgRating": 8.09,
-      "games": 1,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 50,
       "y": 14
     }
   ],
   "bench": [
-    {
-      "id": "p3glrw7hv73qdyj",
-      "name": "Lionel Messi",
-      "nameKo": "리오넬 메시",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/8d59474051c1faa84e7437a1c694d3da.png",
-      "score": 8.11,
-      "star": 4,
-      "recentRating": 6.8,
-      "avgRating": 7.8,
-      "games": 2
-    },
-    {
-      "id": "318q66hvngwvqo9",
-      "name": "Julián Álvarez",
-      "nameKo": "훌리안 알바레스",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/fea74a781033404f91f74f36447037c7.png",
-      "score": 7.62,
-      "star": 3,
-      "recentRating": 6.35,
-      "avgRating": 6.47,
-      "games": 2
-    },
     {
       "id": "318q66hvngxvqo9",
       "name": "Thiago Almada",
@@ -255,6 +225,21 @@
       "games": 0
     },
     {
+      "id": "318q66hvngwvqo9",
+      "name": "Julián Álvarez",
+      "nameKo": "훌리안 알바레스",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/fea74a781033404f91f74f36447037c7.png",
+      "score": 7.59,
+      "star": 3,
+      "recentRating": 6.35,
+      "avgRating": 6.35,
+      "games": 1
+    },
+    {
       "id": "4jwq2ghx0l8ym0v",
       "name": "Giuliano Simeone Baldini",
       "nameKo": "줄리아노 시메오네",
@@ -266,8 +251,23 @@
       "score": 7.38,
       "star": 3,
       "recentRating": 6.67,
-      "avgRating": 6.53,
-      "games": 2
+      "avgRating": 6.67,
+      "games": 1
+    },
+    {
+      "id": "p3glrw7hv73qdyj",
+      "name": "Lionel Messi",
+      "nameKo": "리오넬 메시",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/8d59474051c1faa84e7437a1c694d3da.png",
+      "score": 7.11,
+      "star": 3,
+      "recentRating": 6.8,
+      "avgRating": 6.8,
+      "games": 1
     },
     {
       "id": "2y8m4zhjdljdql0",
@@ -278,26 +278,26 @@
       "country": "Argentina",
       "flag": "🇦🇷",
       "logo": "https://img.thesports.com/football/player/70f04e1ed0e2246fffba5b9f5b8273cd.png",
-      "score": 7.29,
+      "score": 7.06,
       "star": 3,
       "recentRating": 6.45,
-      "avgRating": 6.65,
-      "games": 2
+      "avgRating": 6.45,
+      "games": 1
     },
     {
-      "id": "2y8m4zhg82gql07",
-      "name": "Rodrigo De Paul",
-      "nameKo": "로드리고 데 폴",
+      "id": "4wyrn4h46peq86p",
+      "name": "Giovani Lo Celso",
+      "nameKo": "조바니 로셀소",
       "hasMv": true,
       "pos": "M",
       "country": "Argentina",
       "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/16ecf7889998c6b51598b2e6b8596b6d.png",
-      "score": 7.28,
+      "logo": "https://img.thesports.com/football/player/e72c31e367f62808b39eb18bfbb7bd5d.png",
+      "score": 7.03,
       "star": 3,
-      "recentRating": 6.4,
-      "avgRating": 6.79,
-      "games": 2
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
     }
   ],
   "complete": true
