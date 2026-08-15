@@ -191,6 +191,17 @@ export default function TacticalManagerSection({ ctx }: { ctx: TacticalManagerCo
               {ctx.seasonLabel} 시즌{ctx.coach.preferredFormation ? ` · 선호 포메이션 ${ctx.coach.preferredFormation}` : ""}
             </div>
           </div>
+          {/* 팀 스쿼드(몸값·등번호)와 상호 연결 — 스쿼드 쪽 감독 카드에서도 이 글로 돌아온다 */}
+          {ctx.team.id ? (
+            <div className="ml-auto flex flex-col items-end gap-1 shrink-0 text-xs font-semibold">
+              <Link href={`/transfers?view=team&team=${ctx.team.id}`} className="text-cyan-600 dark:text-cyan-400 hover:underline">
+                팀 스쿼드·몸값 →
+              </Link>
+              <Link href={`/teams/${ctx.team.id}`} className="text-zinc-500 dark:text-white/50 hover:underline">
+                팀 페이지 →
+              </Link>
+            </div>
+          ) : null}
         </div>
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
           <StatTile label="순위" value={`${r.rank}위`} />

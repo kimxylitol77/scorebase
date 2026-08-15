@@ -53,14 +53,20 @@ export function dataBrief(ctx: TacticalManagerContext): string {
   const r = ctx.record;
   const f = ctx.formations;
   const sp = ctx.shotProfile;
+  // xG 소스(샷맵·DB)가 없는 리그(챔피언십 등)는 전부 0 으로 집계된다 — 0 을 사실처럼 브리핑하면
+  // LLM 이 "xG 0" 을 그대로 인용한다. xG 신호가 하나도 없으면 xG 조각을 통째로 뺀다.
+  const hasXg =
+    f.some((x) => x.xgFor > 0 || x.xgAgainst > 0) ||
+    ctx.monthly.some((m) => m.xgFor > 0 || m.xgAgainst > 0);
   const lines: string[] = [
     `팀: ${ctx.team.nameKo}(${ctx.team.name}) / 감독: ${ctx.coach.nameKo}(${ctx.coach.name})`,
     `성적: ${r.rank}위, ${r.played}경기 ${r.w}승 ${r.d}무 ${r.l}패 승점 ${r.points}, 득실 ${r.gf}-${r.ga}`,
-    `포메이션 사용: ${f.map((x) => `${x.formation} ${x.count}회(${x.w}승${x.d}무${x.l}패, 경기당 xG ${x.xgFor}/실점xG ${x.xgAgainst})`).join(", ")}`,
+    `포메이션 사용: ${f.map((x) => `${x.formation} ${x.count}회(${x.w}승${x.d}무${x.l}패${hasXg ? `, 경기당 xG ${x.xgFor}/실점xG ${x.xgAgainst}` : ""})`).join(", ")}`,
     `선발 로테이션: 경기당 평균 ${ctx.xiChanges.avgPerMatch}명 교체${ctx.xiChanges.everPresent.length ? `, 전 경기 선발 ${ctx.xiChanges.everPresent.join("·")}` : ""}`,
     `최다 선발(상위): ${ctx.topStarters.slice(0, 8).map((p) => `${p.nameKo} ${p.starts}회`).join(", ")}`,
-    `월별 흐름: ${ctx.monthly.map((m) => `${Number(m.month.slice(5))}월 ${m.w}승${m.d}무${m.l}패(xG ${m.xgFor}:${m.xgAgainst})`).join(" / ")}`,
+    `월별 흐름: ${ctx.monthly.map((m) => `${Number(m.month.slice(5))}월 ${m.w}승${m.d}무${m.l}패${hasXg ? `(xG ${m.xgFor}:${m.xgAgainst})` : ""}`).join(" / ")}`,
   ];
+  if (!hasXg) lines.push("주의: 이 시즌 데이터에 xG·슈팅 좌표는 없다. xG 를 본문에서 언급하지 말 것.");
   if (ctx.coachStints.length > 1) {
     lines.push(`감독 교체: ${ctx.coachStints.map((s) => `${s.coachKo} ${s.from}~${s.to} ${s.played}경기 승점/경기 ${s.ppg}`).join(" → ")}`);
   }

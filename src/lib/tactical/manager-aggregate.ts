@@ -288,11 +288,23 @@ export async function aggregateTeamSeason(opts: {
     const t = toKoreanPlayerName(name);
     return /[가-힣]/.test(t) ? t : name;
   };
+  // 동일 인물 판정 — af 가 같은 감독을 "F. Lampard"/"Frank James Lampard Junior" 처럼 경기마다
+  // 다르게 표기해 스틴트가 갈라진다(2026-08-15 코번트리 실측: 램파드 1명이 3개 스틴트 → "감독 교체"
+  // 오탐 → 프롬프트가 교체 전후 비교를 요구하는 연쇄). 접미사(jr 등) 제거 후 토큰 포함관계로 병합.
+  const personTokens = (s: string) =>
+    s.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/)
+      .filter((t) => t.length > 1 && !["jr", "junior", "sr", "senior"].includes(t));
+  const samePerson = (a: string, b: string) => {
+    const ta = personTokens(a), tb = personTokens(b);
+    if (!ta.length || !tb.length) return a === b;
+    const [sub, sup] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+    return sub.every((t) => sup.includes(t));
+  };
   const stints: CoachStint[] = [];
   for (const { row } of enriched) {
     const name = row.coach ?? "?";
     const last = stints[stints.length - 1];
-    if (!last || last.coach !== name) {
+    if (!last || !samePerson(last.coach, name)) {
       stints.push({ coach: name, coachKo: coachKo(row.coach), from: row.date, to: row.date, played: 0, w: 0, d: 0, l: 0, ppg: 0 });
     }
     const s = stints[stints.length - 1];

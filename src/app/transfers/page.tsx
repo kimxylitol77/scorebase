@@ -698,6 +698,19 @@ export default async function TransfersPage({
       if (recentFormations.length >= 5) break;
     }
   }
+  // 감독 전술 연구 글 — 이 팀 것이 발행돼 있으면 감독 카드에서 바로 연결 (역방향은 글 헤더의 스쿼드 링크)
+  let tacticalArticle: { slug: string; title: string } | null = null;
+  if (squadSummary) {
+    const tmName = teamMeta.get(teamIdNum)?.name;
+    if (tmName) {
+      const tSlug = tmName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); // manager-article.teamSlug 와 동일 규칙
+      tacticalArticle = await prisma.article.findFirst({
+        where: { type: "TACTICAL", status: "PUBLISHED", slug: { contains: `manager-${tSlug}-` } },
+        orderBy: { publishedAt: "desc" },
+        select: { slug: true, title: true },
+      });
+    }
+  }
   // 포메이션 분포 — 최빈 순. ranked[0] 이 Best XI 배치에 쓰는 실제 포메이션.
   const formationRanked = (() => {
     const cnt = new Map<string, number>();
@@ -1120,6 +1133,14 @@ export default async function TransfersPage({
                   </div>
                 )}
               </div>
+              {tacticalArticle && (
+                <Link
+                  href={`/articles/${tacticalArticle.slug}`}
+                  className="w-full mt-1 text-sm font-semibold text-cyan-600 dark:text-cyan-400 hover:underline truncate"
+                >
+                  전술 연구 — {tacticalArticle.title} →
+                </Link>
+              )}
             </div>
           )}
           {bestXI && <SquadBestXI slots={bestXI} teamName={squadSummary.name} formation={xiFormation} />}
