@@ -41,6 +41,7 @@ import TeamSeasonPanel, { type SeasonSlice, type PanelTeamStat, type PanelXgItem
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { parseFixtureXg } from "@/lib/xg/outcome";
 import rawCoaches from "../../../../data/team-coaches.json";
+import rawBaseballCoaches from "../../../../data/baseball-coaches.json";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoachPhotos from "../../../../data/coach-photos.json";
 import { venueKo, cityKo } from "@/lib/venue-ko";
@@ -90,6 +91,8 @@ const T_HISTORY = rawTeamHistory as Record<string, TeamHistoryData>;
 // 감독 스냅샷 (ts coach/list + af 폴백, 키=ts team id) — 생성: scripts/build-team-coaches.ts
 const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
 const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
+// 야구(KBO·MLB·NPB) 감독 (키=우리 Team.id) — 생성: scripts/build-baseball-coaches.ts
+const BASEBALL_COACHES = rawBaseballCoaches as Record<string, { nameKo: string; nameEn?: string; interim?: boolean; asOf: string }>;
 // 라인업 감독 사전(수집·번역 범위가 가장 넓음) — team-coaches nameKo 누락분 폴백 (박태하 실측)
 const COACH_PHOTOS = rawCoachPhotos as Record<string, { nameKo?: string }>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
@@ -372,7 +375,14 @@ export default async function TeamPage({ params }: Props) {
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
   // 현 감독 — ts coach id 있으면 /coaches/{id} 프로필 링크, 없으면(af 폴백 팀) 표시만.
-  const coach = tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ?? null;
+  // 야구 리그는 baseball-coaches.json 폴백 (프로필 링크 없음).
+  const bbCoach = BASEBALL_COACHES[String(team.id)] ?? null;
+  const coach =
+    tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ??
+    (bbCoach
+      ? { name: bbCoach.nameEn ?? bbCoach.nameKo, nameKo: bbCoach.nameKo, logo: null, age: null, nationality: null, preferredFormation: null, joined: null, contractUntil: null }
+      : null);
+  const coachRole = coach && !coach.id && bbCoach?.interim ? "감독대행" : "감독";
   const coachName = coach ? coach.nameKo || (coach.id && (COACH_KO[coach.id] || COACH_PHOTOS[coach.id]?.nameKo)) || coach.name : null;
 
   // TeamAbout(SEO 소개 문단)용 — 이미 계산된 값 재사용, 시즌 라벨·종목명만 파생.
@@ -715,7 +725,7 @@ export default async function TeamPage({ params }: Props) {
                       <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 grid place-items-center text-lg shrink-0">👔</div>
                     )}
                     <div className="min-w-0">
-                      <div className="text-[10px] uppercase tracking-wider text-neutral-400">감독</div>
+                      <div className="text-[10px] uppercase tracking-wider text-neutral-400">{coachRole}</div>
                       <div className="font-bold leading-tight truncate">{coachName}</div>
                       <div className="text-[11px] text-neutral-500 truncate">
                         {[coach.nationality, coach.age ? `${coach.age}세` : null, coach.preferredFormation ? `선호 ${coach.preferredFormation}` : null].filter(Boolean).join(" · ")}
