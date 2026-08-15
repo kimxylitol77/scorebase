@@ -1,0 +1,705 @@
+{
+  "515": {
+    "nameKo": "다르코 라야코비치",
+    "nameEn": "Darko Rajakovic",
+    "asOf": "2026-08-15"
+  },
+  "516": {
+    "nameKo": "에릭 스포엘스트라",
+    "nameEn": "Erik Spoelstra",
+    "asOf": "2026-08-15"
+  },
+  "517": {
+    "nameKo": "브라이언 키프",
+    "nameEn": "Brian Keefe",
+    "asOf": "2026-08-15"
+  },
+  "518": {
+    "nameKo": "티아고 스플리터",
+    "nameEn": "Tiago Splitter",
+    "asOf": "2026-08-15"
+  },
+  "519": {
+    "nameKo": "호르디 페르난데스",
+    "nameEn": "Jordi Fernandez",
+    "asOf": "2026-08-15"
+  },
+  "520": {
+    "nameKo": "릭 칼라일",
+    "nameEn": "Rick Carlisle",
+    "asOf": "2026-08-15"
+  },
+  "521": {
+    "nameKo": "마이크 브라운",
+    "nameEn": "Mike Brown",
+    "asOf": "2026-08-15"
+  },
+  "522": {
+    "nameKo": "조 매줄라",
+    "nameEn": "Joe Mazzulla",
+    "asOf": "2026-08-15"
+  },
+  "523": {
+    "nameKo": "J.B. 비커스태프",
+    "nameEn": "J.B. Bickerstaff",
+    "asOf": "2026-08-15"
+  },
+  "524": {
+    "nameKo": "닉 너스",
+    "nameEn": "Nick Nurse",
+    "asOf": "2026-08-15"
+  },
+  "525": {
+    "nameKo": "스티브 커",
+    "nameEn": "Steve Kerr",
+    "asOf": "2026-08-15"
+  },
+  "526": {
+    "nameKo": "JJ 레딕",
+    "nameEn": "JJ Redick",
+    "asOf": "2026-08-15"
+  },
+  "527": {
+    "nameKo": "찰스 리",
+    "nameEn": "Charles Lee",
+    "asOf": "2026-08-15"
+  },
+  "531": {
+    "nameKo": "퀸 스나이더",
+    "nameEn": "Quin Snyder",
+    "asOf": "2026-08-15"
+  },
+  "534": {
+    "nameKo": "자말 모슬리",
+    "nameEn": "Jamahl Mosley",
+    "asOf": "2026-08-15"
+  },
+  "540": {
+    "nameKo": "숀 스위니",
+    "nameEn": "Sean Sweeney",
+    "asOf": "2026-08-15"
+  },
+  "541": {
+    "nameKo": "테일러 젠킨스",
+    "nameEn": "Taylor Jenkins",
+    "asOf": "2026-08-15"
+  },
+  "544": {
+    "nameKo": "더스티 메이",
+    "nameEn": "Dusty May",
+    "asOf": "2026-08-15"
+  },
+  "545": {
+    "nameKo": "케니 앳킨슨",
+    "nameEn": "Kenny Atkinson",
+    "asOf": "2026-08-15"
+  },
+  "546": {
+    "nameKo": "마크 데이그놀트",
+    "nameEn": "Mark Daigneault",
+    "asOf": "2026-08-15"
+  },
+  "548": {
+    "nameKo": "크리스 핀치",
+    "nameEn": "Chris Finch",
+    "asOf": "2026-08-15"
+  },
+  "549": {
+    "nameKo": "윌 하디",
+    "nameEn": "Will Hardy",
+    "asOf": "2026-08-15"
+  },
+  "550": {
+    "nameKo": "투오마스 이살로",
+    "nameEn": "Tuomas Iisalo",
+    "asOf": "2026-08-15"
+  },
+  "551": {
+    "nameKo": "티아고 스플리터",
+    "nameEn": "Tiago Splitter",
+    "asOf": "2026-08-15"
+  },
+  "552": {
+    "nameKo": "타이론 루",
+    "nameEn": "Tyronn Lue",
+    "asOf": "2026-08-15"
+  },
+  "553": {
+    "nameKo": "더그 크리스티",
+    "nameEn": "Doug Christie",
+    "asOf": "2026-08-15"
+  },
+  "556": {
+    "nameKo": "조던 오트",
+    "nameEn": "Jordan Ott",
+    "asOf": "2026-08-15"
+  },
+  "719": {
+    "nameKo": "피트 드보어",
+    "nameEn": "Pete DeBoer",
+    "asOf": "2026-08-15"
+  },
+  "720": {
+    "nameKo": "짐 힐러",
+    "nameEn": "Jim Hiller",
+    "asOf": "2026-08-15"
+  },
+  "721": {
+    "nameKo": "린디 러프",
+    "nameEn": "Lindy Ruff",
+    "asOf": "2026-08-15"
+  },
+  "722": {
+    "nameKo": "릭 보우니스",
+    "nameEn": "Rick Bowness",
+    "asOf": "2026-08-15"
+  },
+  "723": {
+    "nameKo": "마틴 생루이",
+    "nameEn": "Martin St. Louis",
+    "asOf": "2026-08-15"
+  },
+  "724": {
+    "nameKo": "존 쿠퍼",
+    "nameEn": "Jon Cooper",
+    "asOf": "2026-08-15"
+  },
+  "725": {
+    "nameKo": "트래비스 그린",
+    "nameEn": "Travis Green",
+    "asOf": "2026-08-15"
+  },
+  "726": {
+    "nameKo": "폴 모리스",
+    "nameEn": "Paul Maurice",
+    "asOf": "2026-08-15"
+  },
+  "727": {
+    "nameKo": "토드 맥렐런",
+    "nameEn": "Todd McLellan",
+    "asOf": "2026-08-15"
+  },
+  "728": {
+    "nameKo": "릭 토켓",
+    "nameEn": "Rick Tocchet",
+    "asOf": "2026-08-15"
+  },
+  "729": {
+    "nameKo": "셸던 키프",
+    "nameEn": "Sheldon Keefe",
+    "asOf": "2026-08-15"
+  },
+  "730": {
+    "nameKo": "댄 뮤즈",
+    "nameEn": "Dan Muse",
+    "asOf": "2026-08-15"
+  },
+  "731": {
+    "nameKo": "짐 몬고메리",
+    "nameEn": "Jim Montgomery",
+    "asOf": "2026-08-15"
+  },
+  "732": {
+    "nameKo": "스콧 아르니엘",
+    "nameEn": "Scott Arniel",
+    "asOf": "2026-08-15"
+  },
+  "733": {
+    "nameKo": "제프 블래실",
+    "nameEn": "Jeff Blashill",
+    "asOf": "2026-08-15"
+  },
+  "734": {
+    "nameKo": "로드 브린다무어",
+    "nameEn": "Rod Brind'Amour",
+    "asOf": "2026-08-15"
+  },
+  "735": {
+    "nameKo": "글렌 굴루잔",
+    "nameEn": "Glen Gulutzan",
+    "asOf": "2026-08-15"
+  },
+  "736": {
+    "nameKo": "존 하인스",
+    "nameEn": "John Hynes",
+    "asOf": "2026-08-15"
+  },
+  "737": {
+    "nameKo": "재러드 베드나",
+    "nameEn": "Jared Bednar",
+    "asOf": "2026-08-15"
+  },
+  "738": {
+    "nameKo": "라이언 허스카",
+    "nameEn": "Ryan Huska",
+    "asOf": "2026-08-15"
+  },
+  "739": {
+    "nameKo": "앙드레 투리니",
+    "nameEn": "Andre Tourigny",
+    "asOf": "2026-08-15"
+  },
+  "740": {
+    "nameKo": "앤드루 브루넷",
+    "nameEn": "Andrew Brunette",
+    "asOf": "2026-08-15"
+  },
+  "741": {
+    "nameKo": "조엘 퀘네빌",
+    "nameEn": "Joel Quenneville",
+    "asOf": "2026-08-15"
+  },
+  "742": {
+    "nameKo": "라이언 워소프스키",
+    "nameEn": "Ryan Warsofsky",
+    "asOf": "2026-08-15"
+  },
+  "743": {
+    "nameKo": "레인 램버트",
+    "nameEn": "Lane Lambert",
+    "asOf": "2026-08-15"
+  },
+  "744": {
+    "nameKo": "라이언 크레이그",
+    "nameEn": "Ryan Craig",
+    "asOf": "2026-08-15"
+  },
+  "745": {
+    "nameKo": "피터 라비올레트",
+    "nameEn": "Peter Laviolette",
+    "asOf": "2026-08-15"
+  },
+  "746": {
+    "nameKo": "매니 말호트라",
+    "nameEn": "Manny Malhotra",
+    "asOf": "2026-08-15"
+  },
+  "747": {
+    "nameKo": "마르코 슈투름",
+    "nameEn": "Marco Sturm",
+    "asOf": "2026-08-15"
+  },
+  "752": {
+    "nameKo": "스펜서 카버리",
+    "nameEn": "Spencer Carbery",
+    "asOf": "2026-08-15"
+  },
+  "754": {
+    "nameKo": "마이크 밥콕",
+    "nameEn": "Mike Babcock",
+    "asOf": "2026-08-15"
+  },
+  "762": {
+    "nameKo": "마이크 설리번",
+    "nameEn": "Mike Sullivan",
+    "asOf": "2026-08-15"
+  },
+  "965": {
+    "nameKo": "클레이튼 맥컬러",
+    "nameEn": "Clayton McCullough",
+    "asOf": "2026-08-15"
+  },
+  "966": {
+    "nameKo": "테리 프랑코나",
+    "nameEn": "Terry Francona",
+    "asOf": "2026-08-15"
+  },
+  "967": {
+    "nameKo": "애런 분",
+    "nameEn": "Aaron Boone",
+    "asOf": "2026-08-15"
+  },
+  "968": {
+    "nameKo": "마크 코세이",
+    "nameEn": "Mark Kotsay",
+    "asOf": "2026-08-15"
+  },
+  "969": {
+    "nameKo": "데릭 셸턴",
+    "nameEn": "Derek Shelton",
+    "asOf": "2026-08-15"
+  },
+  "970": {
+    "nameKo": "에이제이 힌치",
+    "nameEn": "A.J. Hinch",
+    "asOf": "2026-08-15"
+  },
+  "971": {
+    "nameKo": "앤디 그린",
+    "nameEn": "Andy Green",
+    "interim": true,
+    "asOf": "2026-08-15"
+  },
+  "972": {
+    "nameKo": "토리 로벨로",
+    "nameEn": "Torey Lovullo",
+    "asOf": "2026-08-15"
+  },
+  "973": {
+    "nameKo": "매트 콰터로",
+    "nameEn": "Matt Quatraro",
+    "asOf": "2026-08-15"
+  },
+  "974": {
+    "nameKo": "윌 베너블",
+    "nameEn": "Will Venable",
+    "asOf": "2026-08-15"
+  },
+  "975": {
+    "nameKo": "크레이그 스태먼",
+    "nameEn": "Craig Stammen",
+    "asOf": "2026-08-15"
+  },
+  "976": {
+    "nameKo": "워런 셰이퍼",
+    "nameEn": "Warren Schaeffer",
+    "asOf": "2026-08-15"
+  },
+  "977": {
+    "nameKo": "크레이그 카운셀",
+    "nameEn": "Craig Counsell",
+    "asOf": "2026-08-15"
+  },
+  "978": {
+    "nameKo": "돈 켈리",
+    "nameEn": "Don Kelly",
+    "asOf": "2026-08-15"
+  },
+  "979": {
+    "nameKo": "돈 매팅리",
+    "nameEn": "Don Mattingly",
+    "interim": true,
+    "asOf": "2026-08-15"
+  },
+  "984": {
+    "nameKo": "커트 스즈키",
+    "nameEn": "Kurt Suzuki",
+    "asOf": "2026-08-15"
+  },
+  "985": {
+    "nameKo": "존 슈나이더",
+    "nameEn": "John Schneider",
+    "asOf": "2026-08-15"
+  },
+  "989": {
+    "nameKo": "케빈 캐시",
+    "nameEn": "Kevin Cash",
+    "asOf": "2026-08-15"
+  },
+  "991": {
+    "nameKo": "월트 와이스",
+    "nameEn": "Walt Weiss",
+    "asOf": "2026-08-15"
+  },
+  "992": {
+    "nameKo": "스티븐 보트",
+    "nameEn": "Stephen Vogt",
+    "asOf": "2026-08-15"
+  },
+  "993": {
+    "nameKo": "크레이그 앨버나즈",
+    "nameEn": "Craig Albernaz",
+    "asOf": "2026-08-15"
+  },
+  "994": {
+    "nameKo": "토니 비텔로",
+    "nameEn": "Tony Vitello",
+    "asOf": "2026-08-15"
+  },
+  "997": {
+    "nameKo": "팻 머피",
+    "nameEn": "Pat Murphy",
+    "asOf": "2026-08-15"
+  },
+  "998": {
+    "nameKo": "블레이크 부테라",
+    "nameEn": "Blake Butera",
+    "asOf": "2026-08-15"
+  },
+  "999": {
+    "nameKo": "올리버 마르몰",
+    "nameEn": "Oliver Marmol",
+    "asOf": "2026-08-15"
+  },
+  "1000": {
+    "nameKo": "채드 트레이시",
+    "nameEn": "Chad Tracy",
+    "interim": true,
+    "asOf": "2026-08-15"
+  },
+  "1003": {
+    "nameKo": "댄 윌슨",
+    "nameEn": "Dan Wilson",
+    "asOf": "2026-08-15"
+  },
+  "1004": {
+    "nameKo": "조 에스파다",
+    "nameEn": "Joe Espada",
+    "asOf": "2026-08-15"
+  },
+  "1005": {
+    "nameKo": "데이브 로버츠",
+    "nameEn": "Dave Roberts",
+    "asOf": "2026-08-15"
+  },
+  "1006": {
+    "nameKo": "스킵 슈메이커",
+    "nameEn": "Skip Schumaker",
+    "asOf": "2026-08-15"
+  },
+  "3813": {
+    "nameKo": "이호준",
+    "asOf": "2026-08-15"
+  },
+  "3814": {
+    "nameKo": "염경엽",
+    "asOf": "2026-08-15"
+  },
+  "3815": {
+    "nameKo": "김원형",
+    "asOf": "2026-08-15"
+  },
+  "3816": {
+    "nameKo": "설종진",
+    "asOf": "2026-08-15"
+  },
+  "3817": {
+    "nameKo": "김태형",
+    "asOf": "2026-08-15"
+  },
+  "3818": {
+    "nameKo": "이강철",
+    "asOf": "2026-08-15"
+  },
+  "3819": {
+    "nameKo": "김경문",
+    "asOf": "2026-08-15"
+  },
+  "3820": {
+    "nameKo": "박진만",
+    "asOf": "2026-08-15"
+  },
+  "3821": {
+    "nameKo": "이범호",
+    "asOf": "2026-08-15"
+  },
+  "3822": {
+    "nameKo": "이숭용",
+    "asOf": "2026-08-15"
+  },
+  "23329": {
+    "nameKo": "이케야마 다카히로",
+    "nameEn": "Takahiro Ikeyama",
+    "asOf": "2026-08-15"
+  },
+  "23330": {
+    "nameKo": "후지카와 규지",
+    "nameEn": "Kyuji Fujikawa",
+    "asOf": "2026-08-15"
+  },
+  "23331": {
+    "nameKo": "하시가미 히데키",
+    "nameEn": "Hideki Hashigami",
+    "interim": true,
+    "asOf": "2026-08-15"
+  },
+  "23332": {
+    "nameKo": "아라이 다카히로",
+    "nameEn": "Takahiro Arai",
+    "asOf": "2026-08-15"
+  },
+  "23333": {
+    "nameKo": "아이카와 료지",
+    "nameEn": "Ryoji Aikawa",
+    "asOf": "2026-08-15"
+  },
+  "23334": {
+    "nameKo": "이노우에 가즈키",
+    "nameEn": "Kazuki Inoue",
+    "asOf": "2026-08-15"
+  },
+  "23335": {
+    "nameKo": "요시이 마사토",
+    "nameEn": "Masato Yoshii",
+    "asOf": "2026-08-15"
+  },
+  "23336": {
+    "nameKo": "기시다 마모루",
+    "nameEn": "Mamoru Kishida",
+    "asOf": "2026-08-15"
+  },
+  "23337": {
+    "nameKo": "사부로",
+    "nameEn": "Saburo",
+    "asOf": "2026-08-15"
+  },
+  "23338": {
+    "nameKo": "신조 쓰요시",
+    "nameEn": "Tsuyoshi Shinjo",
+    "asOf": "2026-08-15"
+  },
+  "23339": {
+    "nameKo": "고쿠보 히로키",
+    "nameEn": "Hiroki Kokubo",
+    "asOf": "2026-08-15"
+  },
+  "23340": {
+    "nameKo": "니시구치 후미야",
+    "nameEn": "Fumiya Nishiguchi",
+    "asOf": "2026-08-15"
+  },
+  "394859": {
+    "nameKo": "미치 존슨",
+    "nameEn": "Mitch Johnson",
+    "asOf": "2026-08-15"
+  },
+  "482552": {
+    "nameKo": "크리스 디마코",
+    "nameEn": "Chris DeMarco",
+    "asOf": "2026-08-15"
+  },
+  "482553": {
+    "nameKo": "스테파니 화이트",
+    "nameEn": "Stephanie White",
+    "asOf": "2026-08-15"
+  },
+  "482554": {
+    "nameKo": "네이트 티베츠",
+    "nameEn": "Nate Tibbetts",
+    "asOf": "2026-08-15"
+  },
+  "482555": {
+    "nameKo": "타일러 마시",
+    "nameEn": "Tyler Marsh",
+    "asOf": "2026-08-15"
+  },
+  "482556": {
+    "nameKo": "시드니 존슨",
+    "nameEn": "Sydney Johnson",
+    "asOf": "2026-08-15"
+  },
+  "482557": {
+    "nameKo": "셰릴 리브",
+    "nameEn": "Cheryl Reeve",
+    "asOf": "2026-08-15"
+  },
+  "482558": {
+    "nameKo": "나탈리 나카세",
+    "nameEn": "Natalie Nakase",
+    "asOf": "2026-08-15"
+  },
+  "482559": {
+    "nameKo": "소니아 라만",
+    "nameEn": "Sonia Raman",
+    "asOf": "2026-08-15"
+  },
+  "482560": {
+    "nameKo": "샌디 브론델로",
+    "nameEn": "Sandy Brondello",
+    "asOf": "2026-08-15"
+  },
+  "482561": {
+    "nameKo": "라시드 메지안",
+    "nameEn": "Rachid Meziane",
+    "asOf": "2026-08-15"
+  },
+  "482563": {
+    "nameKo": "칼 스메스코",
+    "nameEn": "Karl Smesko",
+    "asOf": "2026-08-15"
+  },
+  "482565": {
+    "nameKo": "알렉스 사라마",
+    "nameEn": "Alex Sarama",
+    "asOf": "2026-08-15"
+  },
+  "482567": {
+    "nameKo": "호세 페르난데스",
+    "nameEn": "Jose Fernandez",
+    "asOf": "2026-08-15"
+  },
+  "482575": {
+    "nameKo": "베키 해먼",
+    "nameEn": "Becky Hammon",
+    "asOf": "2026-08-15"
+  },
+  "482577": {
+    "nameKo": "린 로버츠",
+    "nameEn": "Lynne Roberts",
+    "asOf": "2026-08-15"
+  },
+  "607732": {
+    "nameKo": "데이비드 아델만",
+    "nameEn": "David Adelman",
+    "asOf": "2026-08-15"
+  },
+  "607775": {
+    "nameKo": "김상식",
+    "asOf": "2026-08-15"
+  },
+  "607776": {
+    "nameKo": "이상민",
+    "asOf": "2026-08-15"
+  },
+  "607777": {
+    "nameKo": "조상현",
+    "asOf": "2026-08-15"
+  },
+  "607778": {
+    "nameKo": "전희철",
+    "asOf": "2026-08-15"
+  },
+  "607779": {
+    "nameKo": "양동근",
+    "asOf": "2026-08-15"
+  },
+  "607780": {
+    "nameKo": "이규섭",
+    "asOf": "2026-08-15"
+  },
+  "607781": {
+    "nameKo": "문경은",
+    "asOf": "2026-08-15"
+  },
+  "607782": {
+    "nameKo": "강혁",
+    "asOf": "2026-08-15"
+  },
+  "607783": {
+    "nameKo": "유도훈",
+    "asOf": "2026-08-15"
+  },
+  "607784": {
+    "nameKo": "손창환",
+    "asOf": "2026-08-15"
+  },
+  "607785": {
+    "nameKo": "박정은",
+    "asOf": "2026-08-15"
+  },
+  "607786": {
+    "nameKo": "최윤아",
+    "asOf": "2026-08-15"
+  },
+  "607787": {
+    "nameKo": "이상범",
+    "asOf": "2026-08-15"
+  },
+  "607788": {
+    "nameKo": "전주원",
+    "asOf": "2026-08-15"
+  },
+  "607789": {
+    "nameKo": "하상윤",
+    "asOf": "2026-08-15"
+  },
+  "607790": {
+    "nameKo": "김완수",
+    "asOf": "2026-08-15"
+  },
+  "607791": {
+    "nameKo": "아이메 우도카",
+    "nameEn": "Ime Udoka",
+    "asOf": "2026-08-15"
+  }
+}
