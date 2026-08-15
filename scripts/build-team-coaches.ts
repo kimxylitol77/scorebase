@@ -2,8 +2,12 @@
 // → data/team-coaches.json { tsTeamId: { name, nameKo, logo, age, nationality, countryKo,
 //   preferredFormation, joined, contractUntil } }
 //
-// /transfers view=team 감독 카드용. whitelisted IP 필요(맥북 OK). 멱등(전체 갱신).
+// /transfers view=team 감독 카드용. whitelisted IP 필요(맥북 OK).
 // 감독 교체기(시즌 중)엔 재실행으로 갱신.
+//
+// 병합 갱신 — 기존 파일 위에 이번 결과만 얹는다. 대상 집합이 Team.league 기준이라 강등팀은
+// 라벨이 바뀌는 순간 조용히 빠지는데, 통째로 덮어쓰면 그 팀 감독 카드가 사라진다
+// (2026-08-15 실측 17팀 — 웨스트햄·볼프스부르크 등 ts 엔 감독이 그대로 있는데 유실).
 //
 //   env -u ANTHROPIC_API_KEY npx tsx scripts/build-team-coaches.ts
 import dotenv from "dotenv";
@@ -231,7 +235,8 @@ async function main() {
   Object.assign(enToKo, MANUAL_KO);
   console.log(`한글명 ${Object.keys(enToKo).length}/${names.length}`);
 
-  const out: Record<string, unknown> = {};
+  const prev: Record<string, unknown> = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : {};
+  const out: Record<string, unknown> = { ...prev };
   for (const [tid, c] of byTeam) {
     out[tid] = {
       id: c.id,
@@ -260,7 +265,10 @@ async function main() {
     };
   }
   fs.writeFileSync(OUT, JSON.stringify(out));
+  const refreshed = new Set([...byTeam.keys(), ...afFallback.keys()]);
+  const carried = Object.keys(prev).filter((k) => !refreshed.has(k));
   console.log(`✓ wrote team-coaches.json — ${Object.keys(out).length}팀 (af 폴백 ${afFallback.size} 포함)`);
+  console.log(`  이번 갱신 ${refreshed.size}팀 · 기존 유지 ${carried.length}팀 (대상 집합 밖 — 강등 등)`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
