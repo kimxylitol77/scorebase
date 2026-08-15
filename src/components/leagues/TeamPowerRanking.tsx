@@ -9,6 +9,7 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { toKoreanTeamName } from "@/lib/team-names";
 import TeamBadge from "@/components/TeamBadge";
+import CollapseSection from "@/components/CollapseSection";
 
 const matchSelect = {
   id: true, league: true, status: true,
@@ -44,7 +45,10 @@ export default async function TeamPowerRanking({ league, leagueName }: { league:
     where: { league: upper, ...(seasonStart ? { startTime: { gte: seasonStart } } : {}) },
     select: matchSelect,
   });
+  // 전환기(완료 <10)엔 직전 시즌 폴백 — 문구는 지난 시즌 기준으로, 표는 접이식 아카이브.
+  let prevSeasonMode = false;
   if (seasonStart && dbMatches.filter((m) => m.status === "FINISHED").length < 10) {
+    prevSeasonMode = true;
     dbMatches = await prisma.match.findMany({
       where: { league: upper, startTime: { gte: previousSeasonStart(seasonStart), lt: seasonStart } },
       select: matchSelect,
@@ -65,7 +69,18 @@ export default async function TeamPowerRanking({ league, leagueName }: { league:
 
   // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
   // eslint-disable-next-line react-hooks/purity
-  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const nowMs = Date.now();
+  const cutoff = new Date(nowMs - 7 * 24 * 60 * 60 * 1000);
+  // 시즌 창이 아직 안 넘어갔어도 잔여 일정이 없고 마지막 경기가 30일 지났으면
+  // 오프시즌 — 지난 시즌 폴백과 동일하게 아카이브(접이식) 취급.
+  const lastFinishedMs = matches.reduce(
+    (mx, m) => (m.status === "FINISHED" ? Math.max(mx, m.startTime.getTime()) : mx),
+    0,
+  );
+  const hasUpcoming = matches.some((m) => m.startTime.getTime() > nowMs);
+  const archiveMode =
+    prevSeasonMode ||
+    (!hasUpcoming && lastFinishedMs > 0 && nowMs - lastFinishedMs > 30 * 24 * 60 * 60 * 1000);
   const priorRank = rankMap(calcEloTable(matches.filter((m) => m.startTime <= cutoff)).ratings);
   const currRank = rankMap(elo.ratings);
 
@@ -115,48 +130,14 @@ export default async function TeamPowerRanking({ league, leagueName }: { league:
 
   const top = rows[0];
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-rose-500" aria-hidden />
-          <h2 className="text-xl font-black tracking-tight">{leagueName} AI 파워랭킹</h2>
-        </div>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-2xl">
-          우리 AI 모델이 시즌 전 경기 결과로 계산한 <strong>Elo 레이팅</strong> 기준 팀 전력 순위입니다.
-          {cfg.againstLabel && <> 팀 <strong>{cfg.againstLabel}/경기</strong>도 함께 보여줍니다.</>} 매 경기 후 자동 갱신됩니다.
-        </p>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.04] p-4">
-          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-500">
-            <Info className="h-3.5 w-3.5" aria-hidden /> 어떻게 읽나요
-          </div>
-          <ul className="mt-2 space-y-1.5 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-            <li><strong className="text-neutral-900 dark:text-white">Elo</strong> — 현재 전력. 평균 {STARTING_ELO}, 강팀을 이기면 크게 오릅니다.</li>
-            {cfg.againstLabel && <li><strong className="text-neutral-900 dark:text-white">{cfg.againstLabel}/경기</strong> — 팀 수비력(낮을수록 강함).</li>}
-            <li><strong className="text-emerald-600 dark:text-emerald-400">▲</strong>/<strong className="text-rose-600 dark:text-rose-400">▼</strong> 최근 7일 순위 변동 · <strong>최근 5</strong> 마지막 5경기.</li>
-          </ul>
-        </div>
-        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.04] p-4">
-          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-500">
-            <Info className="h-3.5 w-3.5" aria-hidden /> 왜 순위표와 다른가요
-          </div>
-          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-            순위표는 <strong>승패</strong>만 셉니다. 파워랭킹은 <strong>상대의 강함</strong>까지 반영해 “지금 진짜 누가 센가”를 보여주며,{" "}
-            <Link href="/predictions/accuracy" className="text-rose-600 dark:text-rose-400 underline underline-offset-2 hover:opacity-80">
-              적중률로 검증된
-            </Link>{" "}
-            같은 모델이 산출합니다.
-          </p>
-        </div>
-      </div>
-
+  const rankingBody = (
+    <div className="space-y-4">
       {top && (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          현재 <strong className="text-neutral-900 dark:text-white">{top.name}</strong> 이(가) Elo{" "}
-          <strong className="text-rose-600 dark:text-rose-400 tabular-nums">{top.elo}</strong> 로 리그 최강 전력입니다.
+          {archiveMode ? "지난 시즌 최종 기준 " : "현재 "}
+          <strong className="text-neutral-900 dark:text-white">{top.name}</strong> 이(가) Elo{" "}
+          <strong className="text-rose-600 dark:text-rose-400 tabular-nums">{top.elo}</strong> 로 리그 최강
+          전력{archiveMode ? "이었습니다" : "입니다"}.
         </p>
       )}
 
@@ -223,6 +204,56 @@ export default async function TeamPowerRanking({ league, leagueName }: { league:
           </tbody>
         </table>
       </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-rose-500" aria-hidden />
+          <h2 className="text-xl font-black tracking-tight">{leagueName} AI 파워랭킹</h2>
+        </div>
+        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-2xl">
+          우리 AI 모델이 {archiveMode ? "지난 시즌" : "시즌"} 전 경기 결과로 계산한 <strong>Elo 레이팅</strong> 기준 팀 전력 순위입니다.
+          {cfg.againstLabel && <> 팀 <strong>{cfg.againstLabel}/경기</strong>도 함께 보여줍니다.</>}{" "}
+          {archiveMode ? "새 시즌 경기가 쌓이면 자동으로 실시간 랭킹으로 전환됩니다." : "매 경기 후 자동 갱신됩니다."}
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.04] p-4">
+          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-500">
+            <Info className="h-3.5 w-3.5" aria-hidden /> 어떻게 읽나요
+          </div>
+          <ul className="mt-2 space-y-1.5 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+            <li><strong className="text-neutral-900 dark:text-white">Elo</strong> — 현재 전력. 평균 {STARTING_ELO}, 강팀을 이기면 크게 오릅니다.</li>
+            {cfg.againstLabel && <li><strong className="text-neutral-900 dark:text-white">{cfg.againstLabel}/경기</strong> — 팀 수비력(낮을수록 강함).</li>}
+            <li><strong className="text-emerald-600 dark:text-emerald-400">▲</strong>/<strong className="text-rose-600 dark:text-rose-400">▼</strong> 최근 7일 순위 변동 · <strong>최근 5</strong> 마지막 5경기.</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.04] p-4">
+          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-500">
+            <Info className="h-3.5 w-3.5" aria-hidden /> 왜 순위표와 다른가요
+          </div>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+            순위표는 <strong>승패</strong>만 셉니다. 파워랭킹은 <strong>상대의 강함</strong>까지 반영해 “지금 진짜 누가 센가”를 보여주며,{" "}
+            <Link href="/predictions/accuracy" className="text-rose-600 dark:text-rose-400 underline underline-offset-2 hover:opacity-80">
+              적중률로 검증된
+            </Link>{" "}
+            같은 모델이 산출합니다.
+          </p>
+        </div>
+      </div>
+
+      {/* 랭킹 본문 — 전환기(지난 시즌 폴백)엔 접이식 아카이브 */}
+      {archiveMode ? (
+        <CollapseSection title="지난 시즌 최종 파워랭킹" meta="(새 시즌 개막 후 자동 갱신)">
+          {rankingBody}
+        </CollapseSection>
+      ) : (
+        rankingBody
+      )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <Link href={`/predictions/${upper}`} className="inline-flex items-center gap-1.5 font-semibold text-rose-600 dark:text-rose-400 hover:opacity-80 transition">
