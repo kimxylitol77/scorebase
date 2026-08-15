@@ -177,6 +177,7 @@ const LEAGUE_LABEL: Record<string, string> = {
   SERIE_A: "세리에 A",
   LIGUE_1: "리그 1",
   K_LEAGUE_1: "K리그1",
+  K_LEAGUE_2: "K리그2",
   SAUDI_PL: "사우디 프로리그",
   MLS: "MLS",
 };
