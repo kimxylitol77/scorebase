@@ -3,6 +3,7 @@
 // 일치시켜(preserveAspectRatio="xMidYMid meet") 화면비·창폭이 달라져도 절대 어긋나지 않는다.
 // 센터서클은 SVG <circle>(균일 스케일)로 그려 고정px div 방식의 타원·드리프트 버그를 원천 차단.
 import type { CSSProperties, ReactNode } from "react";
+import PitchSentinel from "./PitchSentinel";
 
 type Orientation = "vertical" | "horizontal";
 
@@ -24,6 +25,10 @@ interface PitchProps {
 }
 
 // 피치 위 % 좌표 마커 — left/top %(0~100, viewBox 좌표와 동일) + 중앙 정렬.
+// 중앙 정렬은 Tailwind -translate-x-1/2 대신 인라인 transform 으로 한다.
+// Tailwind 4 의 translate 유틸은 CSS `translate` 단독 속성으로 컴파일되는데
+// 구형 Chromium(<104, 웨일·웹뷰 잔존)이 이를 무시해 XI 전체가 우하향으로
+// 반 마커씩 쏠렸다(2026-08-15 윈도우 실사용 신고). transform 은 전 브라우저 지원.
 export function PitchMarker({
   x,
   y,
@@ -39,8 +44,9 @@ export function PitchMarker({
 }) {
   return (
     <div
-      className={`absolute -translate-x-1/2 -translate-y-1/2 ${className ?? ""}`}
-      style={{ left: `${x}%`, top: `${y}%`, ...style }}
+      data-pitch-marker
+      className={`absolute ${className ?? ""}`}
+      style={{ left: `${x}%`, top: `${y}%`, transform: "translate(-50%, -50%)", ...style }}
     >
       {children}
     </div>
@@ -95,6 +101,7 @@ export default function Pitch({
         <PitchMarkings vbW={vbW} vbH={vbH} vertical={vertical} markingColor={markingColor} markingOpacity={markingOpacity} />
       </svg>
       {children}
+      <PitchSentinel />
     </div>
   );
 }
