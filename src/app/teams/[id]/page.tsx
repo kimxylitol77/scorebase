@@ -35,7 +35,8 @@ import rawTeamHistory from "../../../../data/team-history.json";
 import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistory";
 import LolTeamRoster from "@/components/LolTeamRoster";
 import AmbientGlow from "@/components/AmbientGlow";
-import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse } from "lucide-react";
+import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse, Shirt } from "lucide-react";
+import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
 import TeamSeasonPanel, { type SeasonSlice, type PanelTeamStat, type PanelXgItem } from "@/components/teams/TeamSeasonPanel";
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { parseFixtureXg } from "@/lib/xg/outcome";
@@ -273,6 +274,56 @@ export default async function TeamPage({ params }: Props) {
     prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } }),
   ]);
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
+
+  // === 선발 라인업 (축구) — "아스날 라인업" 류 검색어 대응. title 이 라인업을 약속하는데
+  // 실제 섹션이 없던 것을 콘텐츠로 채운다. 이미 로드된 upcoming·recentMatches 행에서
+  // 이 팀 쪽 lineup JSON 이 있는 가장 최근 매치를 고른다(킥오프 전 도착분 = upcoming 우선).
+  let recentLineup: {
+    formation: string | null;
+    xi: string[];
+    oppKo: string;
+    dateLabel: string;
+    finished: boolean;
+  } | null = null;
+  if (SOCCER_LEAGUES.has(team.league)) {
+    for (const m of [...upcoming, ...recentMatches]) {
+      const isHome = m.homeTeamId === teamId;
+      const raw = isHome ? m.lineupHome : m.lineupAway;
+      if (!raw) continue;
+      try {
+        const lu = JSON.parse(raw) as { formation?: string | null; startXI?: string[] };
+        if (!Array.isArray(lu.startXI) || lu.startXI.length < 11) continue;
+        const opp = isHome ? m.awayTeam : m.homeTeam;
+        const kst = new Date(m.startTime.getTime() + 9 * 3600_000);
+        recentLineup = {
+          formation: lu.formation ?? null,
+          xi: lu.startXI.slice(0, 11),
+          oppKo: toKoreanTeamName(opp.name, team.league) || opp.name,
+          dateLabel: `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`,
+          finished: m.status === "FINISHED",
+        };
+        break;
+      } catch {
+        // 파싱 안 되는 라인업은 없는 것으로 — 다음 매치 시도
+      }
+    }
+  }
+  // 선발 11명 한글명 — DB nameKo 우선(축구 4.3만명 보유), 동명이인 충돌 시 확정하지 않음.
+  let lineupPlayers: LineupPlayer[] = [];
+  if (recentLineup) {
+    const koRows = await prisma.theSportsPlayer.findMany({
+      where: { name: { in: recentLineup.xi } },
+      select: { name: true, nameKo: true },
+    });
+    const koMap = new Map<string, string | null>();
+    for (const r of koRows) {
+      koMap.set(r.name, koMap.has(r.name) && koMap.get(r.name) !== r.nameKo ? null : r.nameKo);
+    }
+    lineupPlayers = recentLineup.xi.map((n) => ({
+      name: n,
+      ko: koMap.get(n) ?? (toKoreanPlayerName(n) !== n ? toKoreanPlayerName(n) || null : null),
+    }));
+  }
 
   // 순위·폼·스트릭·홈원정은 현재 시즌만 (지난 시즌 접기·롤오버 자동, 구시즌/중복 매치 합산 방지).
   // Elo 는 시즌을 넘어 누적돼야 하므로 전체 매치 유지 (윈도잉하면 시즌마다 레이팅 리셋되는 회귀).
@@ -1062,6 +1113,18 @@ export default async function TeamPage({ params }: Props) {
                 </div>
               </div>
             )}
+          </section>
+        )}
+
+        {/* 선발 라인업 — 이 팀 쪽 lineup 이 있는 가장 최근 매치 (경기 전 도착분 우선) */}
+        {recentLineup && lineupPlayers.length === 11 && (
+          <section>
+            <SectionH
+              title="선발 라인업"
+              subtitle={`${recentLineup.dateLabel} vs ${recentLineup.oppKo}${recentLineup.formation ? ` · ${recentLineup.formation}` : ""}${recentLineup.finished ? "" : " · 경기 전 발표"}`}
+              icon={<Shirt className="h-5 w-5" aria-hidden />}
+            />
+            <TeamRecentLineup formation={recentLineup.formation} players={lineupPlayers} />
           </section>
         )}
 
