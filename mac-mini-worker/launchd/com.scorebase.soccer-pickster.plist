@@ -10,10 +10,20 @@
     <string>/Users/kkulkkul/dev/scorebase/mac-mini-worker/soccer-pickster-crawler.js</string>
   </array>
   <key>StartCalendarInterval</key>
-  <dict>
-    <key>Hour</key><integer>11</integer>
-    <key>Minute</key><integer>30</integer>
-  </dict>
+  <array>
+    <dict>
+      <key>Hour</key><integer>11</integer>
+      <key>Minute</key><integer>30</integer>
+    </dict>
+    <dict>
+      <key>Hour</key><integer>15</integer>
+      <key>Minute</key><integer>30</integer>
+    </dict>
+    <dict>
+      <key>Hour</key><integer>19</integer>
+      <key>Minute</key><integer>30</integer>
+    </dict>
+  </array>
   <key>StandardOutPath</key>
   <string>/tmp/soccer-pickster.log</string>
   <key>StandardErrorPath</key>

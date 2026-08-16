@@ -19,8 +19,10 @@ const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 const LIST_URL = (page) => `https://www.olbg.com/betting-tips/Football/${page}`;
 const LIST_PAGES = 2; // 1페이지 ~22팁 — 2페이지면 커버 리그 충분
-const TARGET_PUBLISH = 3; // 발행 목표 경기 수 (SEO·도배 방지로 소량 선별)
-const PUBLISH_GAP_MS = 60 * 1000; // 글 사이 1분 간격 (분 단위 분산 발행)
+// 실행당 1건 발행 — 게시판에 한꺼번에 몰리지 않게 하루 3회 실행(launchd 11:30/15:30/19:30 KST)이
+// 각 1건씩 시간차 발행한다 (2026-08-16 사용자 요청). dedup 이 있어 같은 경기는 재발행 안 됨.
+const TARGET_PUBLISH = 1;
+const PUBLISH_GAP_MS = 60 * 1000; // 글 사이 간격 (TARGET_PUBLISH 를 다시 늘릴 때 대비)
 const MIN_TIPS_TOTAL = 10; // 팁 수 너무 적으면 컨센서스라 부르기 민망 → skip
 const HORIZON_MS = 72 * 3600e3; // 킥오프 72h 이내 경기만 (먼 경기는 다음 실행이 처리)
 
