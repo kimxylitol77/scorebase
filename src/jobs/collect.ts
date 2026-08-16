@@ -406,8 +406,12 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
     update: {
       homeTeamId: homeTeam.id,
       awayTeamId: awayTeam.id,
-      homeScore: m.homeScore ?? null,
-      awayScore: m.awayScore ?? null,
+      // 확정(FINISHED) 매치의 점수는 소스 null 로 지우지 않는다 — af 가 NS 로 고착된
+      // fixture 를 pastDays 재수집할 때 수동/타소스 확정 점수가 -:- 로 지워지는 사고 방지
+      // (2026-08-17 SUI_CUP #5801019, af 미갱신·실경기 0-4 종료). dedup 분기의
+      // "score 는 숫자로 들어올 때만 갱신" 과 같은 취지 — 미확정 매치는 종전대로 null 반영.
+      homeScore: m.homeScore ?? (mergedStatus === "FINISHED" ? undefined : null),
+      awayScore: m.awayScore ?? (mergedStatus === "FINISHED" ? undefined : null),
       status: mergedStatus,
       startTime: m.startTime,
       raw: JSON.stringify(m.raw),
