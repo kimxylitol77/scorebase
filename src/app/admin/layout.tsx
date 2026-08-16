@@ -121,6 +121,12 @@ function AdminBar({ username }: { username: string }) {
             AI 감사
           </Link>
           <Link
+            href="/admin/llm-usage"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            AI 비용
+          </Link>
+          <Link
             href="/admin/pick-drafts"
             className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
           >

@@ -93,6 +93,46 @@ export interface LlmUsageRow {
   costUsd: number | null; // 단가 미등록 모델은 null
 }
 
+export interface LlmDailyRow {
+  /** KST 기준 날짜 (YYYY-MM-DD) */
+  date: string;
+  calls: number;
+  inTokens: number;
+  outTokens: number;
+  costUsd: number;
+  /** 단가 미등록 모델이 섞여 costUsd 가 실제보다 작을 수 있음 */
+  hasUnpriced: boolean;
+}
+
+/**
+ * 최근 N일 사용량을 KST 날짜별로 합산. 추이 그래프용.
+ * hour 버킷은 UTC 라 DB 에서 날짜로 못 묶는다(9시간 밀림) — 행이 적으므로 JS 에서 묶는다.
+ */
+export async function llmUsageDaily(days: number): Promise<LlmDailyRow[]> {
+  const since = new Date(Date.now() - days * 86400_000);
+  const rows = await prisma.llmUsageStat.findMany({
+    where: { hour: { gte: since } },
+    select: { hour: true, model: true, calls: true, inTokens: true, outTokens: true },
+  });
+
+  const byDate = new Map<string, LlmDailyRow>();
+  for (const r of rows) {
+    // UTC+9 로 옮긴 뒤 UTC 날짜를 읽으면 KST 날짜가 된다
+    const date = new Date(r.hour.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
+    const cur =
+      byDate.get(date) ??
+      { date, calls: 0, inTokens: 0, outTokens: 0, costUsd: 0, hasUnpriced: false };
+    const cost = estimateCostUsd(r.model, r.inTokens, r.outTokens);
+    cur.calls += r.calls;
+    cur.inTokens += r.inTokens;
+    cur.outTokens += r.outTokens;
+    if (cost == null) cur.hasUnpriced = true;
+    else cur.costUsd += cost;
+    byDate.set(date, cur);
+  }
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 /** 최근 N시간 사용량을 (태그, 모델) 단위로 합산. 비용 계기판용. */
 export async function llmUsageSince(hours: number): Promise<LlmUsageRow[]> {
   const since = new Date(Date.now() - hours * 3600_000);
