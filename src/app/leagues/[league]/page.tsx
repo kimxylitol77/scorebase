@@ -704,12 +704,14 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {!isSoccer && view === "standings" && upper === "NHL" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <NhlStandingsTable />
+          {/* withLastLeaders — 리그 탭엔 별도 리더보드 섹션이 없어 개막 전 접기에 같이 넣는다.
+              (/standings/NHL 은 자체 "시즌 리더보드" 섹션이 있어 끈 상태가 맞다.) */}
+          <NhlStandingsTable withLastLeaders />
         </div>
       )}
       {!isSoccer && view === "standings" && upper === "NBA" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <NbaStandingsTable />
+          <NbaStandingsTable withLastLeaders />
         </div>
       )}
       {!isSoccer && view === "standings" && upper === "LOL" && (
