@@ -318,10 +318,43 @@ export async function GET(req: NextRequest) {
     },
     include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
   });
+  // af 커버 리그는 종료 확정 전에 af 최종 스코어로 검증 — ts cache 미커버(fast-poller 0회)
+  // 매치는 라이브 중간 스코어가 DB 에 남는데, 그대로 FINISHED 도장 찍으면 오답이 확정된다
+  // (2026-08-16 SUI_CUP #5801033: 승부차기 종료 3-3 을 연장 중 2-3 으로 확정할 뻔). 라이브
+  // 갱신 경로(ts 1순위)는 불변 — 이미 3.5h+ 고착된 매치의 마지막 도장만 af 로 교정한다.
+  // UCL 등 EXTRA 리그는 ESPN id 오조회 위험이 있어 여기선 af 콜렉터 리그만 (SCHEDULED 섹션과 달리 날짜 가드 생략).
+  const liveVerifyMap = await fetchApiFootballStatuses(
+    staleLive
+      .filter((m) => API_FOOTBALL_LEAGUES.has(m.league as League) && /^\d+$/.test(m.externalId))
+      .map((m) => m.externalId),
+  );
   let liveFinished = 0;
   let livePostponed = 0;
+  let liveKeptInPlay = 0;
   const livePostponedIds: number[] = [];
   for (const m of staleLive) {
+    const v = API_FOOTBALL_LEAGUES.has(m.league as League) ? liveVerifyMap.get(m.externalId) : undefined;
+    const action = v ? classifyApiFootballStatus(v.short, v.goalsHome, v.goalsAway) : null;
+    if (action?.kind === "LIVE") {
+      // af 가 아직 진행 중이라고 하면(악천후 중단 재개 등) 이번 run 은 확정하지 않는다.
+      liveKeptInPlay++;
+      continue;
+    }
+    if (action?.kind === "FINISHED" && action.homeScore != null && action.awayScore != null) {
+      await prisma.match.update({
+        where: { id: m.id },
+        data: { status: "FINISHED", homeScore: action.homeScore, awayScore: action.awayScore },
+      });
+      liveFinished++;
+      continue;
+    }
+    if (action?.kind === "POSTPONED") {
+      await prisma.match.update({ where: { id: m.id }, data: { status: "POSTPONED" } });
+      livePostponed++;
+      livePostponedIds.push(m.id);
+      continue;
+    }
+    // af 미커버·조회 실패·SKIP → 기존 로직 (점수 있으면 FINISHED, 없으면 POSTPONED)
     const hasScore = m.homeScore != null && m.awayScore != null;
     const newStatus: "FINISHED" | "POSTPONED" = hasScore ? "FINISHED" : "POSTPONED";
     await prisma.match.update({ where: { id: m.id }, data: { status: newStatus } });
@@ -546,9 +579,9 @@ export async function GET(req: NextRequest) {
         severity: liveFinished + livePostponed >= 5 ? "MED" : "LOW",
         category: "stale-cleanup",
         key: "live-summary",
-        message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed})`,
+        message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed} / af 진행중 유지 ${liveKeptInPlay})`,
         // sample 은 메인 경로(아래 summary)와 동일 스키마 유지 — /admin/health 가 startTime 으로 렌더
-        metadata: { liveFinished, livePostponed, rejectedPreviews, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
+        metadata: { liveFinished, livePostponed, liveKeptInPlay, rejectedPreviews, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
       },
     });
     return NextResponse.json({ ok: true, marked: 0, liveFinished, livePostponed, rejectedPreviews });
