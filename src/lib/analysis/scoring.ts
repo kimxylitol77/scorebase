@@ -87,6 +87,7 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
 }> {
   const pending = await prisma.post.findMany({
     where: {
+      category: "ANALYSIS",
       pick: { not: null },
       isCorrect: null,
       settledAt: null, // 무효 종결된 픽은 재조회 제외 (적특 1회 처리 후 정착)
@@ -173,6 +174,7 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
   const voidStaleCutoff = new Date(Date.now() - VOID_STALE_HOURS * 3600 * 1000);
   const voidResult = await prisma.post.updateMany({
     where: {
+      category: "ANALYSIS",
       pick: { not: null },
       isCorrect: null,
       settledAt: null,

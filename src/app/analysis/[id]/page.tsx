@@ -35,8 +35,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const postId = Number(id);
   if (!Number.isFinite(postId)) return { title: "글을 찾을 수 없습니다" };
-  const post = await prisma.post.findUnique({
-    where: { id: postId },
+  const post = await prisma.post.findFirst({
+    where: { id: postId, category: { in: ["ANALYSIS", "FREE", "BRIEFING"] } },
     select: { title: true },
   });
   if (!post) return { title: "글을 찾을 수 없습니다" };
@@ -56,8 +56,8 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
   const postId = Number(id);
   if (!Number.isInteger(postId)) notFound();
 
-  const post = await prisma.post.findUnique({
-    where: { id: postId },
+  const post = await prisma.post.findFirst({
+    where: { id: postId, category: { in: ["ANALYSIS", "FREE", "BRIEFING"] } },
     select: {
       id: true,
       title: true,

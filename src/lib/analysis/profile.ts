@@ -100,7 +100,7 @@ export interface LeagueAccuracy {
 /** 리그별 정확도 — 채점 완료된 예측만 match.league 로 묶음. wilson desc 정렬. */
 export async function getUserLeagueAccuracy(userId: string): Promise<LeagueAccuracy[]> {
   const rows = await prisma.post.findMany({
-    where: { authorId: userId, isCorrect: { not: null }, matchId: { not: null } },
+    where: { authorId: userId, category: "ANALYSIS", isCorrect: { not: null }, matchId: { not: null } },
     select: { isCorrect: true, match: { select: { league: true } } },
   });
   const map = new Map<string, { total: number; hit: number }>();
@@ -152,6 +152,7 @@ export async function getUserPredictions(
   const isPast = opts.tab === "past";
   const where: Prisma.PostWhereInput = {
     authorId: userId,
+    category: "ANALYSIS",
     matchId: { not: null },
     isCorrect: isPast ? { not: null } : null,
   };

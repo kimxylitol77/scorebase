@@ -28,6 +28,7 @@ async function pickTargetPost() {
   const since = new Date(Date.now() - TARGET_WINDOW_H * 3600 * 1000);
   const posts = await prisma.post.findMany({
     where: {
+      category: { in: ["ANALYSIS", "FREE", "BRIEFING"] },
       createdAt: { gte: since },
       commentCount: { lt: MAX_COMMENTS_PER_POST },
     },
@@ -108,7 +109,7 @@ export async function runHitCongrats(force = false): Promise<{ created: number; 
   try {
     const since = new Date(Date.now() - 24 * 3600 * 1000);
     const posts = await prisma.post.findMany({
-      where: { isCorrect: true, settledAt: { gte: since } },
+      where: { category: "ANALYSIS", isCorrect: true, settledAt: { gte: since } },
       orderBy: { settledAt: "desc" },
       take: 25,
       select: {
