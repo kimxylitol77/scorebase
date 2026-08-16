@@ -76,13 +76,17 @@ async function standingsTop3(league: string): Promise<Top3Row[]> {
 }
 
 export const metadata: Metadata = {
-  title: "하키 — NHL·세계선수권·호주·뉴질랜드 오늘 경기·순위·선수·AI 예측",
+  title: "하키 — NHL·KHL·유럽 리그 오늘 경기·순위·선수·AI 예측",
   description:
-    "NHL·IIHF 세계선수권·호주 AIHL·뉴질랜드 NZIHL 오늘 경기, 리그 순위, 선수 기록, AI 승부 예측, 부상자 명단을 한 페이지에서. 스코어베이스 하키 허브.",
+    "NHL·KHL·챔피언스 하키 리그·핀란드 리가·스위스 내셔널리그·IIHF 세계선수권 오늘 경기, 리그 순위, 선수 기록, AI 승부 예측, 부상자 명단을 한 페이지에서. 스코어베이스 하키 허브.",
   alternates: { canonical: "https://www.scorebase.kr/hockey" },
 };
 
-const HOCKEY = ["NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY"];
+const HOCKEY = [
+  "NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY",
+  "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",
+  "SLOVAK_EXTRALIGA", "DENMARK_METAL", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
+];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default async function HockeyHub() {
@@ -352,7 +356,7 @@ export default async function HockeyHub() {
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
-        오늘 경기·예측은 5분마다 갱신됩니다. NHL 은 정규시즌 10월~4월, 세계선수권은 5월, 남반구 리그(호주 AIHL·뉴질랜드 NZIHL)는 4~9월에 열립니다. 데이터 출처 NHL 공식·ESPN·TheSports.
+        오늘 경기·예측은 5분마다 갱신됩니다. NHL 은 정규시즌 10월~4월, 유럽 리그(KHL·챔피언스 하키 리그·핀란드 리가·스위스 내셔널리그·체코/슬로바키아 엑스트라리가·덴마크 메탈리가엔)는 9월~4월, 세계선수권은 5월, 남반구 리그(호주 AIHL·뉴질랜드 NZIHL)는 4~9월에 열립니다. 데이터 출처 NHL 공식·ESPN·TheSports.
       </footer>
     </main>
   );

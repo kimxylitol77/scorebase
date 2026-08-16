@@ -63,7 +63,22 @@ async function auditDate(date: string) {
     apiFixtureId: m.apiFixtureId,
     externalId: m.externalId,
   }));
-  const dedup = buildOrphanDedup(dbMatches, dated, afTeamIdMap);
+  // 인접일 팀 쌍 — af 가 킥오프를 하루 틀리게 싣는 경기 판정용. 페이지와 같은 폭(±2일)이어야
+  // 규칙이 갈리지 않는다.
+  const dayStartMs = new Date(`${date}T00:00:00+09:00`).getTime();
+  const nearby = await prisma.match.findMany({
+    where: {
+      startTime: {
+        gte: new Date(dayStartMs - 2 * 86400 * 1000),
+        lte: new Date(dayStartMs + 3 * 86400 * 1000),
+      },
+    },
+    select: { league: true, homeTeamId: true, awayTeamId: true },
+  });
+  const crossDayTeamPairs = new Set(
+    nearby.map((m) => `${m.league}|${m.homeTeamId}|${m.awayTeamId}`),
+  );
+  const dedup = buildOrphanDedup(dbMatches, dated, afTeamIdMap, crossDayTeamPairs);
 
   const covered: string[] = [];
   const suspects: string[] = [];
@@ -140,7 +155,14 @@ async function auditDate(date: string) {
   for (const [lg, v] of blind) {
     console.log(`  ${lg} | af ${v.af}건 · DB ${v.db}건 · 살아남은 orphan ${v.orphan}건`);
     for (const dm of dated.filter((d) => d.league === lg && !dedup.reasonOf(d))) {
-      console.log(`      af: ${dm.homeName} vs ${dm.awayName} (${dm.startTime})`);
+      // 양팀 af id 가 이미 우리 Team 에 물려 있는데도 남았다면 이름 문제가 아니다 — 두 소스가
+      // 그 경기를 **다른 날짜**로 싣고 있다는 신호(감사는 하루 단위라 짝이 범위 밖에 있다).
+      // 처방이 갈린다: 이름 유형은 팀 ID 매핑, 날짜 유형은 일정 정합성 확인. [[cross-source-dup-reschedule]]
+      const mapped =
+        (dm.homeTeamExtId ? afTeamIdMap.has(dm.homeTeamExtId) : false) &&
+        (dm.awayTeamExtId ? afTeamIdMap.has(dm.awayTeamExtId) : false);
+      const tag = mapped ? " ← 양팀 매핑 있음: 일정(날짜) 불일치 의심" : "";
+      console.log(`      af: ${dm.homeName} vs ${dm.awayName} (${dm.startTime})${tag}`);
     }
   }
 }

@@ -66,7 +66,11 @@ const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
 // 예측·적중률에서 제외하는 표시 전용 리그 (NBA 서머리그 = 유망주 리그, Elo 무의미).
 const DISPLAY_ONLY_LEAGUES = new Set(["NBA_SL"]);
-const HOCKEY_LEAGUES = new Set(["NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY"]);
+const HOCKEY_LEAGUES = new Set([
+  "NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY",
+  "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",
+  "SLOVAK_EXTRALIGA", "DENMARK_METAL", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
+]);
 const FOOTBALL_LEAGUES_DRAW = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
   "UCL", "UEL", "MLS", "K_LEAGUE_1", "K_LEAGUE_2",

@@ -1882,6 +1882,25 @@ export default async function ScoresPage({ searchParams }: Props) {
       afTeamIdMap.set(r.externalId, s);
     }
   }
+  // af 가 킥오프를 하루 틀리게 싣는 경기 대응 — 그 팀 쌍의 DB 매치가 인접일에 있으면 같은
+  // 경기다(2026-08-23 COLOMBIA_PA: af 8/23 01:15Z ↔ 우리 8/24 01:15Z, 현지 일정은 우리가 맞다).
+  // 페이지가 그날치 DB 만 들고 있어 판정이 하루에 갇히므로, 팀 쌍만 ±2일로 따로 조회한다.
+  const crossDayTeamPairs = new Set<string>();
+  const orphanLeagues = [...new Set(datedSoccer.map((d) => d.league))];
+  if (afTeamExtIds.length && orphanLeagues.length) {
+    const dayStartMs = new Date(`${dateStr}T00:00:00+09:00`).getTime();
+    const nearby = await prisma.match.findMany({
+      where: {
+        league: { in: orphanLeagues },
+        startTime: {
+          gte: new Date(dayStartMs - 2 * 86400_000),
+          lte: new Date(dayStartMs + 3 * 86400_000),
+        },
+      },
+      select: { league: true, homeTeamId: true, awayTeamId: true },
+    });
+    for (const m of nearby) crossDayTeamPairs.add(`${m.league}|${m.homeTeamId}|${m.awayTeamId}`);
+  }
   const orphanDedup = buildOrphanDedup(
     matches.map((m) => ({
       league: m.league,
@@ -1894,6 +1913,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     })),
     datedSoccer,
     afTeamIdMap,
+    crossDayTeamPairs,
   );
   // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
   // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
