@@ -37,6 +37,8 @@ interface SportCard {
   /** 부가 링크 — 심화 콘텐츠 */
   links: { label: string; href: string }[];
   accent: string;
+  /** DB 매치가 있는 종목 — 아래 "다가오는 일정" 섹션의 종목 앵커로 점프 링크를 단다 */
+  sport?: SportCode;
 }
 
 // 다가오는 일정 — 리그 페이지 "일정" 탭(LeagueFixtures 폴백 경로)과 같은 형식.
@@ -196,6 +198,7 @@ const SPORTS: SportCard[] = [
     emoji: "🏒",
     title: "하키",
     sub: "NHL · IIHF 세계선수권 — 순위·선수·플레이오프 예측",
+    sport: "hockey",
     href: "/hockey",
     hrefLabel: "하키 허브",
     links: [
@@ -210,6 +213,7 @@ const SPORTS: SportCard[] = [
     emoji: "🏐",
     title: "배구",
     sub: "VNL 국가대항 · 10월 V-리그(KOVO) 개막 — 세트 스코어",
+    sport: "volleyball",
     href: "/scores?sport=volleyball",
     hrefLabel: "배구 라이브 스코어",
     links: [
@@ -223,6 +227,7 @@ const SPORTS: SportCard[] = [
     emoji: "🎮",
     title: "e스포츠",
     sub: "LCK 리그 오브 레전드 · 국제 대회 — 세트 스코어·순위",
+    sport: "esports",
     href: "/scores?sport=esports",
     hrefLabel: "e스포츠 라이브 스코어",
     links: [
@@ -275,6 +280,7 @@ const SPORTS: SportCard[] = [
     emoji: "🥊",
     title: "UFC",
     sub: "종합격투기 — 체급별 랭킹·파이터 프로필·이벤트 결과",
+    sport: "mma",
     href: "/rankings/ufc",
     hrefLabel: "UFC 랭킹",
     links: [
@@ -320,6 +326,15 @@ export default async function OtherSportsPage() {
             </p>
 
             <div className="mt-3 flex flex-wrap gap-1.5">
+              {/* 다가오는 일정 앵커 — 아래 일정 섹션의 해당 종목으로 점프. 일정이 있을 때만. */}
+              {s.sport && (upcoming.get(s.sport)?.length ?? 0) > 0 && (
+                <a
+                  href={`#schedule-${s.sport}`}
+                  className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-rose-500/20 dark:text-rose-400"
+                >
+                  다가오는 일정 ↓
+                </a>
+              )}
               {s.links.map((l) => (
                 <Link
                   key={l.href}
@@ -343,13 +358,14 @@ export default async function OtherSportsPage() {
 
       {/* 다가오는 일정 — 종목별 · KST 날짜별 그룹. 리그 페이지 일정 탭과 같은 행 형식. */}
       {[...upcoming.values()].some((g) => g.length > 0) && (
-        <section className="space-y-6 pt-4">
+        <section id="schedule" className="space-y-6 pt-4 scroll-mt-20">
           <h2 className="text-xl font-bold tracking-tight">다가오는 일정</h2>
           {SCHEDULE_SPORTS.map((s) => {
             const groups = upcoming.get(s.code);
             if (!groups || groups.length === 0) return null;
             return (
-              <div key={s.code} className="space-y-3">
+              // scroll-mt — 카드의 앵커 점프 시 고정 헤더에 제목이 가리지 않게
+              <div key={s.code} id={`schedule-${s.code}`} className="space-y-3 scroll-mt-20">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500">{s.label}</h3>
                 {groups.map((g) => (
                   <div key={g.label}>
