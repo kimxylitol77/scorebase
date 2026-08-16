@@ -5,6 +5,9 @@ import { prisma } from "@/lib/db";
 import { buildMatchContext } from "@/lib/predict/build-context";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { statForLeague } from "@/lib/predict/accuracy";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import type { PredictMatch } from "@/lib/predict/types";
 
 const pct = (x: number) => Math.round(x * 100);
@@ -44,6 +47,8 @@ export async function buildMatchBrief(matchId: number): Promise<MatchBrief | nul
       marketHome: true,
       marketDraw: true,
       marketAway: true,
+      homeStarter: true,
+      awayStarter: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },
@@ -125,6 +130,30 @@ export async function buildMatchBrief(matchId: number): Promise<MatchBrief | nul
     );
   }
 
+  // 야구 선발 투수 — KBO/MLB/NPB 는 선발이 승부의 최대 변수라 브리핑에 필수.
+  // 이름은 리그별 음역 경로(NPB 한자·MLB 영문)를 태워 화면과 같은 표기로 준다.
+  if (BASEBALL_LEAGUES.has(match.league)) {
+    const starterLine = (raw: string | null, team: string): string | null => {
+      if (!raw) return null;
+      try {
+        const s = JSON.parse(raw) as { name?: string; era?: number | null; whip?: number | null };
+        if (!s?.name) return null;
+        const name =
+          match.league === "NPB" ? npbPlayerToKorean(s.name) : toKoreanPlayerName(s.name) || s.name;
+        const stats = [
+          s.era != null ? `ERA ${s.era}` : null,
+          s.whip != null ? `WHIP ${s.whip}` : null,
+        ].filter(Boolean);
+        return `${team} ${name}${stats.length ? ` (${stats.join(", ")})` : ""}`;
+      } catch {
+        return null;
+      }
+    };
+    const hs = starterLine(match.homeStarter, home);
+    const as = starterLine(match.awayStarter, away);
+    if (hs || as) lines.push(`선발 투수: ${[hs, as].filter(Boolean).join(" vs ")}`);
+  }
+
   if (ctx.elo) {
     lines.push(`Elo: ${home} ${Math.round(ctx.elo.home)} / ${away} ${Math.round(ctx.elo.away)}`);
   }
@@ -141,7 +170,9 @@ export async function buildMatchBrief(matchId: number): Promise<MatchBrief | nul
 
   // 파생 시장 — persist 값
   if (match.predOverPick && match.predOverProb != null) {
-    lines.push(`오버/언더 2.5: ${match.predOverPick} (${pct(match.predOverProb)}%)`);
+    // 2.5 는 축구 기준선 — 야구는 리그별 합계 기준선이 달라 숫자를 못 박으면 오정보가 된다.
+    const ouLabel = BASEBALL_LEAGUES.has(match.league) ? "오버/언더" : "오버/언더 2.5";
+    lines.push(`${ouLabel}: ${match.predOverPick} (${pct(match.predOverProb)}%)`);
   }
   if (match.predBttsPick && match.predBttsProb != null) {
     lines.push(`양팀 득점(BTTS): ${match.predBttsPick} (${pct(match.predBttsProb)}%)`);

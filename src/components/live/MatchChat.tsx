@@ -26,6 +26,8 @@ export default function MatchChat({
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  // 인라인 CTA(MatchChatCta)가 창을 열며 넘긴 질문 — 열림 렌더 후 전송해야 해서 상태로 받는다.
+  const [pending, setPending] = useState<string | null>(null);
 
   async function ask(raw: string) {
     const question = raw.trim();
@@ -61,6 +63,26 @@ export default function MatchChat({
     setMatchChatMounted(visible);
     return () => setMatchChatMounted(false);
   }, [visible]);
+
+  // 본문 인라인 프롬프트 박스(MatchChatCta, PREVIEW 글)가 쏘는 열기 신호.
+  // 질문이 실려 오면 창을 열고 바로 전송한다.
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      setOpen(true);
+      const q = (e as CustomEvent<{ question?: string }>).detail?.question?.trim();
+      if (q) setPending(q);
+    };
+    window.addEventListener("scorebase:match-chat-ask", onAsk);
+    return () => window.removeEventListener("scorebase:match-chat-ask", onAsk);
+  }, []);
+  useEffect(() => {
+    if (pending == null || loading) return;
+    const q = pending;
+    setPending(null);
+    void ask(q);
+    // ask 는 렌더마다 새 함수라 deps 에 넣으면 매 렌더 재실행 — pending 가드로 1회만 태운다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, loading]);
 
   // 회원 한정 노출 (2026-08-12) — 실험 단계 과금 노출면 축소. 서버(/api/match-chat)도
   // 같은 조건으로 401 을 내므로 여기는 표시 게이트일 뿐이다(방어는 서버가 한다).

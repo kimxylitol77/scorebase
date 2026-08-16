@@ -6,6 +6,8 @@ import InningScoreChart from "@/components/InningScoreChart";
 import type { InningProb } from "@/lib/predict/baseball-poisson";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
+import MatchChat from "@/components/live/MatchChat";
+import MatchChatCta from "@/components/live/MatchChatCta";
 import StarterArsenal from "@/components/StarterArsenal";
 import MatchVoteCard from "@/components/MatchVoteCard";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
@@ -928,6 +930,15 @@ export default async function ArticlePage({ params }: Props) {
 
       <Markdown>{article.content}</Markdown>
 
+      {/* 경기 자연어 질의(PREVIEW 한정) — 박스는 질문을 이벤트로 실어 보낼 뿐,
+          채팅·회원 게이트·요금 방어는 기존 MatchChat(/api/match-chat) 경로가 담당. */}
+      {article.type === "PREVIEW" && article.match && (
+        <MatchChatCta
+          homeName={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+          awayName={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+        />
+      )}
+
       {/* 데이터 출처 + 저작권 */}
       <AiDisclosure league={article.league} url={url} />
 
@@ -1097,6 +1108,15 @@ export default async function ArticlePage({ params }: Props) {
           {article.league} 더 보기 →
         </Link>
       </div>
+
+      {/* 플로팅 경기 챗 — 인라인 박스의 질문을 받아 여는 본체 (회원 한정, presence 로 전역 챗봇과 자리 조율) */}
+      {article.type === "PREVIEW" && article.match && (
+        <MatchChat
+          matchId={article.match.id}
+          homeName={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+          awayName={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+        />
+      )}
     </article>
   );
 }
