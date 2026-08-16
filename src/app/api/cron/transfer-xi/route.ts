@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runGenerateTransferXi } from "@/jobs/generate-transfer-xi";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, skipped: "disabled" });
   }
   try {
-    const result = await runGenerateTransferXi();
+    const result = await withLlmTag("transfer-xi", () => runGenerateTransferXi());
     await recordCronRun("transfer-xi");
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {

@@ -776,6 +776,21 @@ model AfUsageStat {
   @@index([hour])
 }
 
+/// LLM 호출 계측 — (태그, 모델, 시간) 버킷에 토큰을 누적. 비용은 저장하지 않고
+/// 단가표(src/lib/ai/usage-track.ts)로 조회 시점에 환산한다(단가 갱신·과거 재계산 용이).
+model LlmUsageStat {
+  tag       String // 호출 지점 태그 (예: "preview", "recap", "unknown")
+  model     String // 모델 id (예: "claude-haiku-4-5-20251001")
+  hour      DateTime // UTC 시간 버킷 (정시로 내림)
+  calls     Int      @default(0)
+  inTokens  Int      @default(0)
+  outTokens Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@id([tag, model, hour])
+  @@index([hour])
+}
+
 model CronRun {
   name       String    @id // cron 식별자 (vercel path 기준)
   lastRunAt  DateTime  @default(now()) // 마지막 실행 시각 (성공·실패 무관 — 실행되면 갱신)

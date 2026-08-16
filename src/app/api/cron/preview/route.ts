@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runPreview } from "@/jobs/generate-previews";
 import { recordCronRun } from "@/lib/cron-registry";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -21,7 +22,7 @@ export async function GET(req: Request) {
   // "미실행" 오탐이 났다 (2026-07-21 07:30 UTC 실행분). 시작 기록은 잘려도 남는다.
   await recordCronRun("preview");
   try {
-    await runPreview({ league, horizonDays, take });
+    await withLlmTag("preview", () => runPreview({ league, horizonDays, take }));
     // 완료 기록 — cron-freshness dead-man's switch 가 preview 미실행·실패(529 등)를 직접 감지.
     await recordCronRun("preview");
     return NextResponse.json({ ok: true, league, horizonDays, take });

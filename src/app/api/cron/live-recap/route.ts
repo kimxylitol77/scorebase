@@ -12,6 +12,7 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runCollect } from "@/jobs/collect";
 import { runRecap } from "@/jobs/generate-articles";
 import type { League } from "@/lib/sports/types";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -78,7 +79,7 @@ export async function GET(req: Request) {
     // 2. 그 자리에서 RECAP 발행 시도 (이미 RECAP 있는 매치는 자동 skip)
     // 자동 발행 일시 중단 (2026-05-27 SEO 진단) — collect 는 유지, runRecap 만 skip.
     if (process.env.GENERATE_DISABLED !== "1") {
-      await runRecap();
+      await withLlmTag("live-recap", () => runRecap());
     }
     return NextResponse.json({
       ok: true,

@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runBaseballWeeklyReview } from "@/jobs/generate-baseball-weekly-review";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, skipped: "GENERATE_DISABLED" });
   }
   try {
-    await runBaseballWeeklyReview();
+    await withLlmTag("baseball-weekly", () => runBaseballWeeklyReview());
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

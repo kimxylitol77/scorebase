@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runGenerateTransferBriefs } from "@/jobs/generate-transfer-briefs";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -12,7 +13,7 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
-    const result = await runGenerateTransferBriefs();
+    const result = await withLlmTag("transfer-briefs", () => runGenerateTransferBriefs());
     await recordCronRun("transfer-briefs", { count: result.generated });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {

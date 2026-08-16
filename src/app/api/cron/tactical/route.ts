@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runTactical } from "@/jobs/generate-tactical";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 다중 아티클 Claude 생성 여유 (recap/preview 와 동일)
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    await runTactical({ dryRun });
+    await withLlmTag("tactical", () => runTactical({ dryRun }));
     return NextResponse.json({ ok: true, dryRun });
   } catch (e) {
     return NextResponse.json(

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runTeamOfDayArticle } from "@/jobs/generate-team-of-day-article";
 import { runWcStarReport } from "@/jobs/generate-wc-star-report";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120; // 베스트11 1글 + STAR 최대 2글(haiku) 여유
@@ -18,10 +19,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, skipped: "GENERATE_DISABLED" });
   }
   try {
-    await runTeamOfDayArticle();
+    await withLlmTag("team-of-day", () => runTeamOfDayArticle());
     // STAR 리포트는 베스트11 에 피기백 — 실패해도 베스트11 발행은 유지되도록 격리.
     try {
-      await runWcStarReport();
+      await withLlmTag("team-of-day", () => runWcStarReport());
     } catch (e) {
       console.warn("[cron/team-of-day] STAR 리포트 실패:", (e as Error).message);
     }

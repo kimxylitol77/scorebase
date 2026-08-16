@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runGenerateLineupPost } from "@/jobs/generate-lineup-post";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, skipped: "disabled" });
   }
   try {
-    const result = await runGenerateLineupPost();
+    const result = await withLlmTag("lineup-post", () => runGenerateLineupPost());
     await recordCronRun("lineup-post");
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {

@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runBlogWeekly } from "@/jobs/generate-blog-weekly";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // claude.ts transient retry (최대 ~155s) 여유
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
   }
   try {
     const dryRun = url.searchParams.get("dry") === "1";
-    const r = await runBlogWeekly({ dryRun });
+    const r = await withLlmTag("blog-weekly", () => runBlogWeekly({ dryRun }));
     await recordCronRun("blog-weekly");
     // htmlPreview 는 응답 비대 방지 — 길이만 노출
     const { htmlPreview, ...meta } = r;

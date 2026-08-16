@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runRecap } from "@/jobs/generate-articles";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, skipped: "GENERATE_DISABLED" });
   }
   try {
-    await runRecap();
+    await withLlmTag("recap", () => runRecap());
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

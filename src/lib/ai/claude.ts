@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { generate as generateOpenAI } from "./openai";
+import { trackLlmUsage } from "./usage-track";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.warn(
@@ -108,6 +109,11 @@ async function callAnthropicOnce(
         { signal: ctrl.signal, timeout: ATTEMPT_TIMEOUT_MS },
       );
       const response = await stream.finalMessage();
+      await trackLlmUsage(
+        response.model,
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+      );
       const textBlocks = response.content
         .filter((b): b is Anthropic.TextBlock => b.type === "text")
         .map((b) => b.text);
@@ -189,6 +195,12 @@ export async function generateWithWebSearch(
           tools: [{ type: "web_search_20250305", name: "web_search", max_uses: opts.maxUses ?? 3 }],
         },
         { signal: ctrl.signal, timeout: 120_000 },
+      );
+      // 검색 왕복은 pause_turn 으로 여러 턴에 걸쳐 과금되므로 턴마다 기록한다.
+      await trackLlmUsage(
+        response.model,
+        response.usage.input_tokens,
+        response.usage.output_tokens,
       );
       if (response.stop_reason === "pause_turn") {
         messages.push({ role: "assistant", content: response.content });

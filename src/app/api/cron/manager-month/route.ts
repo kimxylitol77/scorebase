@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runManagerMonth } from "@/jobs/generate-manager-month";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // af 라인업 수집(2초 페이싱) + Claude 생성 여유
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    await runManagerMonth({ dryRun, month });
+    await withLlmTag("manager-month", () => runManagerMonth({ dryRun, month }));
     return NextResponse.json({ ok: true, dryRun });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
