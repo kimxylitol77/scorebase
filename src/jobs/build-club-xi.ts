@@ -61,6 +61,10 @@ interface InjurySnapRow { teamName: string; playerTsId: string | null; playerNam
 async function buildTeam(
   league: string,
   teamId: number,
+  /** 정본 + 유령 쌍둥이 row id — 친선 수집기가 같은 클럽을 별도 Team row 로 만들어
+   *  (카디프 실측: 매치는 af row 600015, 친선 라인업은 ts row 610511) 재료가 갈라진다.
+   *  sourceId 공유·정확 동명(CLUB_FRIENDLY 한정)으로 잇는다 — 8/17 실측 게이트 97팀 중 24팀 구제. */
+  idGroup: number[],
   ctx: {
     leagueSnaps: InjurySnapRow[];
     tsIdByTeam: Map<number, string>;
@@ -68,11 +72,11 @@ async function buildTeam(
     squadByTsTeam: Record<string, { squad?: { id: string }[] }>;
   },
 ): Promise<ClubXiTeamOut | null> {
-  // 최근 75일 확정 라인업 — 리그 무관(친선·컵·직전 시즌 타리그 포함) teamId 기준.
+  // 최근 75일 확정 라인업 — 리그 무관(친선·컵·직전 시즌 타리그 포함), 트윈 row 포함.
   const rows = await prisma.theSportsMatchCache.findMany({
     where: {
       match: {
-        OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+        OR: [{ homeTeamId: { in: idGroup } }, { awayTeamId: { in: idGroup } }],
         status: "FINISHED",
         startTime: { gte: new Date(Date.now() - 75 * 86400e3) },
       },
@@ -91,7 +95,7 @@ async function buildTeam(
   for (const r of rows) {
     const lu = r.lineup as TsLineup;
     if (!lu || lu.confirmed !== 1 || !lu.lineup) continue;
-    const side = r.match.homeTeamId === teamId ? "home" : "away";
+    const side = r.match.homeTeamId != null && idGroup.includes(r.match.homeTeamId) ? "home" : "away";
     const all = Object.values(lu.lineup[side] ?? {}).filter((p) => p?.id && p.name);
     for (const p of all) rosterRecent.add(p.id!);
     if (xis.length >= 5) continue;
@@ -119,7 +123,7 @@ async function buildTeam(
     const prevRows = await prisma.theSportsMatchCache.findMany({
       where: {
         match: {
-          OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+          OR: [{ homeTeamId: { in: idGroup } }, { awayTeamId: { in: idGroup } }],
           league,
           status: "FINISHED",
           startTime: { lt: new Date(Date.now() - 75 * 86400e3) },
@@ -133,7 +137,7 @@ async function buildTeam(
       if (prevXis.length >= 3) break;
       const lu = r.lineup as TsLineup;
       if (!lu || lu.confirmed !== 1 || !lu.lineup) continue;
-      const side = r.match.homeTeamId === teamId ? "home" : "away";
+      const side = r.match.homeTeamId != null && idGroup.includes(r.match.homeTeamId) ? "home" : "away";
       const starters = Object.values(lu.lineup[side] ?? {}).filter(
         (p) => p?.first === 1 && p.id && p.name && stillAtClub(p.id),
       );
@@ -285,16 +289,46 @@ export async function runBuildClubXi(): Promise<{ leagues: number; teams: number
         })
       : [];
 
-    const srcRows = await prisma.teamSourceId.findMany({
-      where: { teamId: { in: teamIds }, source: "thesports" },
-      select: { teamId: true, externalId: true },
+    const allSrc = await prisma.teamSourceId.findMany({
+      where: { teamId: { in: teamIds } },
+      select: { teamId: true, externalId: true, source: true },
     });
-    const tsIdByTeam = new Map(srcRows.map((r) => [r.teamId, r.externalId]));
+    const tsIdByTeam = new Map(
+      allSrc.filter((r) => r.source === "thesports").map((r) => [r.teamId, r.externalId]),
+    );
     const nameRows = await prisma.team.findMany({
       where: { id: { in: teamIds } },
       select: { id: true, name: true },
     });
     const nameByTeam = new Map(nameRows.map((r) => [r.id, r.name]));
+
+    // 유령 쌍둥이 브리지 — 같은 클럽이 별도 Team row 로 갈라진 경우 재료를 합친다.
+    // 다리 1: sourceId(af/ts id) 공유 row. 다리 2: 정확 동명 + CLUB_FRIENDLY row 한정
+    // (부분일치 금지 — "UWIC Inter Cardiff" 가 "Cardiff" 에 붙는 오염 방지).
+    const extByTeam = new Map<number, string[]>();
+    for (const r of allSrc) extByTeam.set(r.teamId, [...(extByTeam.get(r.teamId) ?? []), r.externalId]);
+    const allExt = [...new Set(allSrc.map((r) => r.externalId))];
+    const twinSrc = allExt.length
+      ? await prisma.teamSourceId.findMany({
+          where: { externalId: { in: allExt }, teamId: { notIn: teamIds } },
+          select: { teamId: true, externalId: true },
+        })
+      : [];
+    const twinsByExt = new Map<string, number[]>();
+    for (const r of twinSrc) twinsByExt.set(r.externalId, [...(twinsByExt.get(r.externalId) ?? []), r.teamId]);
+    const nameTwinRows = await prisma.team.findMany({
+      where: { name: { in: [...nameByTeam.values()] }, league: "CLUB_FRIENDLY", id: { notIn: teamIds } },
+      select: { id: true, name: true },
+    });
+    const twinsByName = new Map<string, number[]>();
+    for (const r of nameTwinRows) twinsByName.set(r.name, [...(twinsByName.get(r.name) ?? []), r.id]);
+    const groupOf = (id: number): number[] => [
+      ...new Set([
+        id,
+        ...(extByTeam.get(id) ?? []).flatMap((ext) => twinsByExt.get(ext) ?? []),
+        ...(twinsByName.get(nameByTeam.get(id) ?? "") ?? []),
+      ]),
+    ];
 
     const ctx = { leagueSnaps, tsIdByTeam, nameByTeam, squadByTsTeam };
     const leagueOut: Record<string, ClubXiTeamOut> = {};
@@ -302,7 +336,7 @@ export async function runBuildClubXi(): Promise<{ leagues: number; teams: number
     for (let i = 0; i < teamIds.length; i += TEAM_CONCURRENCY) {
       const batch = teamIds.slice(i, i + TEAM_CONCURRENCY);
       const results = await Promise.all(
-        batch.map((id) => buildTeam(league, id, ctx).catch(() => null)),
+        batch.map((id) => buildTeam(league, id, groupOf(id), ctx).catch(() => null)),
       );
       batch.forEach((id, j) => {
         if (results[j]) leagueOut[String(id)] = results[j]!;
