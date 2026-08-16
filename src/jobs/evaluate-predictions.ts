@@ -153,8 +153,12 @@ export async function runEvaluate(opts?: { limit?: number }) {
  * 시점 기반 buildMatchContext + Poisson 으로 1X2/DC/OVER/BTTS 모두 채움.
  * 리그별로 한 번씩 prisma.findMany 해서 in-memory 컨텍스트 재사용.
  */
-export async function runEvaluateMatches(opts?: { limit?: number }) {
+// leagues 필터: 큐가 최신순(desc)이라 오래된 매치는 영영 차례가 안 온다 — 특정 리그의
+// 과거 시즌을 일괄 채점할 때 쓴다 (2026-08-16 UEL·UECL 2025-26 시즌 통째 미채점 발견,
+// 적중률 페이지에 표본 2·4건으로 노출되던 원인. 9월 UCL/UEL/UECL 새 시즌 전환 때도 활용).
+export async function runEvaluateMatches(opts?: { limit?: number; leagues?: string[] }) {
   const limit = opts?.limit ?? 400;
+  const leagueFilter = opts?.leagues?.length ? { league: { in: opts.leagues } } : {};
   console.log("[evaluate/match] 시작");
 
   // 최신 매치 먼저 채점 (desc). asc 면 평가불가 컵/여자/마이너 리그 매치(양팀 prior<5 → 아래
@@ -173,6 +177,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       awayScore: { not: null },
       predCorrect: null,
       predHome: { not: null },
+      ...leagueFilter,
     },
     orderBy: { startTime: "desc" },
     take: limit,
@@ -191,6 +196,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
               homeScore: { not: null },
               awayScore: { not: null },
               predCorrect: null,
+              ...leagueFilter,
             },
             orderBy: { startTime: "desc" },
             take: limit,
