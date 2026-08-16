@@ -66,6 +66,10 @@ export async function GET(req: Request) {
       reason = `${ageH.toFixed(0)}h째 미실행 (기대 ${c.maxAgeH}h 내)`;
       stale = true;
     } else if (!r.lastOk) reason = `마지막 실행 실패 — ${r.lastError ?? "원인 미상"}`;
+    // 진전 없음 — 실행은 되는데 산출물이 계속 0건. 잡이 성공으로 보고하면서 아무것도
+    // 못 만들던 사고(맥미니 git reset 이 산출물을 지운 건)가 이 축에서만 잡힌다.
+    else if (c.zeroAlertAfter && r.zeroStreak >= c.zeroAlertAfter)
+      reason = `${r.zeroStreak}회 연속 0건 처리 (실행은 정상)`;
     if (!reason) continue;
     // 6h 내 이미 알린 건 skip (스팸 방지)
     if (r.notifiedAt && now - r.notifiedAt.getTime() < NOTIFY_DEDUP_MS) continue;
