@@ -2409,6 +2409,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                       ? null
                       : (lg) => `/scores?date=${dateStr}&league=${lg}${sortMode === "time" ? "&sort=time" : ""}`
                   }
+                  leagueViewHref={`/scores?date=${dateStr}&sort=league`}
                   liveList={visibleLive}
                   scheduledList={visibleScheduled}
                   finishedList={visibleFinished}
@@ -2597,6 +2598,7 @@ function SoccerRowLayout({
   lineupSet,
   sortByTime = false,
   collapseHrefFor,
+  leagueViewHref,
 }: {
   liveList: NormalizedMatch[];
   scheduledList: NormalizedMatch[];
@@ -2608,6 +2610,8 @@ function SoccerRowLayout({
   sortByTime?: boolean;
   /** 마이너 리그 접기 — null 이면 접지 않는다(단일 리그 보기 등). 반환값 = 펼쳐보기 링크 */
   collapseHrefFor?: ((league: string) => string) | null;
+  /** 시간순 평면 리스트에서 "리그별로 보기" 링크 (가려진 경기로 가는 길) */
+  leagueViewHref?: string | null;
 }) {
   // 마이너 리그 접기 — 헤더만 남기고 행은 서버에서 아예 그리지 않는다.
   // /scores HTML 이 5MB 였던 근본 원인은 하루 449경기를 전부 펼쳐 그린 것이다(2026-08-16).
@@ -2618,6 +2622,31 @@ function SoccerRowLayout({
   const isMajorLeague = (lg: string) => MAJOR_SOCCER_LEAGUES.has(lg);
   const shouldExpand = (lg: string, items: NormalizedMatch[]) =>
     !collapseHrefFor || isMajorLeague(lg) || items.some((m) => m.status === "LIVE");
+  // 시간순 평면 리스트용 — 리그 그룹이 없어 카드 단위로 접을 수 없다. 대신 리그별 보기와
+  // 노출 범위를 맞춘다: 주요 리그·라이브만 시간순으로 그리고, 가려진 경기는 하단 한 줄로 안내.
+  // (두 정렬이 서로 다른 경기 집합을 보여주면 "시간순으로 바꿨더니 경기가 늘었다"가 된다.)
+  const splitFlat = (items: NormalizedMatch[]) => {
+    if (!collapseHrefFor) return { shown: items, hiddenCount: 0 };
+    const shown: NormalizedMatch[] = [];
+    let hiddenCount = 0;
+    for (const m of items) {
+      if (isMajorLeague(m.league) || m.status === "LIVE") shown.push(m);
+      else hiddenCount++;
+    }
+    return { shown, hiddenCount };
+  };
+  const flatMoreRow = (hiddenCount: number) =>
+    hiddenCount > 0 ? (
+      <Link
+        href={leagueViewHref ?? "#"}
+        prefetch={false}
+        className="flex items-center justify-between gap-2 px-3.5 sm:px-4 py-2.5 text-[12.5px] text-neutral-500 transition hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-white/[0.03]"
+      >
+        <span>그 외 리그 {hiddenCount}경기</span>
+        <span className="font-semibold text-blue-600 dark:text-blue-400">리그별로 보기 →</span>
+      </Link>
+    ) : null;
+
   const collapsedBody = (lg: string, count: number) => (
     <Link
       href={collapseHrefFor!(lg)}
@@ -2842,11 +2871,17 @@ function SoccerRowLayout({
   // sortByTime 이면 그룹 없이 전 경기 시간순 평면 리스트(행에 리그 배지).
   const renderMobileList = (items: NormalizedMatch[]) =>
     sortByTime ? (
-      <section className={flatCardClass}>
-        <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-          {items.map((m) => mobileCardFor(m, true))}
-        </ul>
-      </section>
+      (() => {
+        const { shown, hiddenCount } = splitFlat(items);
+        return (
+          <section className={flatCardClass}>
+            <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {shown.map((m) => mobileCardFor(m, true))}
+            </ul>
+            {flatMoreRow(hiddenCount)}
+          </section>
+        );
+      })()
     ) : (
       <div className="space-y-2.5">
         {leagueGroupsOf(items).map((lg) => (
@@ -2865,12 +2900,18 @@ function SoccerRowLayout({
   // 데스크톱도 동일 그룹 카드 — 행은 SoccerLiveRow(hideLeague). 전역 테이블 헤더 대신 카드 헤더.
   const renderDesktopList = (items: NormalizedMatch[]) =>
     sortByTime ? (
-      <section className={flatCardClass}>
-        {/* data-srows: 행 접힘 컨테이너 쿼리 기준(globals.css) — 사이드바 유무와 무관하게 실폭 대응 */}
-        <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-          {items.map((m) => renderRow(m, true))}
-        </div>
-      </section>
+      (() => {
+        const { shown, hiddenCount } = splitFlat(items);
+        return (
+          <section className={flatCardClass}>
+            {/* data-srows: 행 접힘 컨테이너 쿼리 기준(globals.css) — 사이드바 유무와 무관하게 실폭 대응 */}
+            <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {shown.map((m) => renderRow(m, true))}
+            </div>
+            {flatMoreRow(hiddenCount)}
+          </section>
+        );
+      })()
     ) : (
       <div className="space-y-3">
         {leagueGroupsOf(items).map((lg) => (
