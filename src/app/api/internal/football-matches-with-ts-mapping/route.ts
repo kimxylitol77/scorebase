@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
       awayTeamId: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
+      lineupHome: true,
     },
     orderBy: { startTime: "asc" },
   });
@@ -88,6 +89,9 @@ export async function GET(req: NextRequest) {
     tsCompetitionId: leagueMap.get(m.league) ?? null,
     status: m.status,
     startTime: m.startTime.toISOString(),
+    // 라인업 이미 저장됨 — poller 의 킥오프 임박(pre-kickoff lineup) 티어가 이 매치를
+    // 건너뛰어 슬롯을 아직 못 받은 매치에 양보한다.
+    hasLineup: m.lineupHome != null,
     home: {
       name: m.homeTeam.name,
       tsTeamId: teamMap.get(m.homeTeamId) ?? null,

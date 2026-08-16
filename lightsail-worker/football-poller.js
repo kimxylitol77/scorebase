@@ -33,6 +33,14 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 // 이 worker 는 analysis/lineup 등 느린 데이터만 5분 cycle 로 갱신.
 const POLL_INTERVAL_MS = 5 * 60_000;
 const MAX_MATCHES_PER_POLL = 20;
+// 킥오프 임박 티어 — 라인업은 공식 발표가 킥오프 ~1시간 전인데, 예정 매치가 restList 회전만
+// 기다리면 그 창을 놓치고 LIVE 전환 후에야 긁힌다(2026-08-17 실측: 경기 전 도착 27%,
+// 저장 중앙값 킥오프 +5분). 킥오프 -75~+20분 예정 매치에 슬롯을 먼저 준다.
+// 상한 10 = 정시 킥오프 몰림(유럽 저녁) 때 LIVE 티어를 다 굶기지 않는 선. 초과분은 커서 회전.
+const IMMINENT_MAX = 10;
+const IMMINENT_BEFORE_MIN = 75;
+const IMMINENT_AFTER_MIN = 20; // 킥오프 지연·ts status 갱신 지연 흡수
+let imminentCursor = 0;
 // 순회 커서 — 매 cycle 앞에서부터 자르면 상한 밖 매치가 영영 처리되지 않는다.
 // 프로세스 재시작 시 0 으로 돌아가지만, 회전 자체가 목적이라 영속화 불필요.
 let restCursor = 0;
@@ -358,14 +366,30 @@ async function poll() {
       console.log(`    delta cached: teamStats=${teamStatsPushed} playerStats=${playerStatsPushed} halfTeamStats=${halfStatsPushed}`);
     }
 
-    // 2. LIVE 를 먼저 채우고 남은 슬롯을 비-LIVE 로 채운다. 양쪽 다 커서로 회전.
+    // 2. 킥오프 임박(라인업 창) → LIVE → 나머지 순으로 슬롯을 채운다. 전부 커서 회전.
     //    앞에서 20개만 자르면 상한 밖 매치가 매 cycle 같은 이유로 밀려 영영 처리되지 않는다.
-    //    호출량은 그대로 — 보는 구간만 매번 바뀐다.
+    //    호출량은 그대로 — 보는 순서만 바뀐다. 임박 매치는 status 1 이라 analysis+lineup
+    //    2콜뿐이어서 rate 예산도 오히려 가볍다.
+    const nowMs = Date.now();
+    const isImminent = (p) => {
+      if (p.ts.status_id !== 1) return false; // 예정만 — LIVE 는 아래 티어가 담당
+      if (p.our.hasLineup) return false; // 이미 저장됨 — 슬롯 양보 (endpoint hasLineup)
+      if (p.ts.coverage?.lineup !== 1) return false; // 라인업 미제공 매치는 창이 무의미
+      const mins = (new Date(p.our.startTime).getTime() - nowMs) / 60_000;
+      return mins <= IMMINENT_BEFORE_MIN && mins >= -IMMINENT_AFTER_MIN;
+    };
+    const imminentList = pairs.filter(isImminent);
     const liveList = pairs.filter((p) => isLiveStatus(p.ts.status_id));
-    const restList = pairs.filter((p) => !isLiveStatus(p.ts.status_id));
+    const restList = pairs.filter((p) => !isLiveStatus(p.ts.status_id) && !isImminent(p));
     const slice = [];
-    if (liveList.length > 0) {
-      const liveTaken = Math.min(MAX_MATCHES_PER_POLL, liveList.length);
+    if (imminentList.length > 0) {
+      const taken = Math.min(IMMINENT_MAX, imminentList.length);
+      const start = imminentCursor % imminentList.length;
+      for (let i = 0; i < taken; i++) slice.push(imminentList[(start + i) % imminentList.length]);
+      imminentCursor = start + taken;
+    }
+    if (liveList.length > 0 && slice.length < MAX_MATCHES_PER_POLL) {
+      const liveTaken = Math.min(MAX_MATCHES_PER_POLL - slice.length, liveList.length);
       const start = liveCursor % liveList.length;
       for (let i = 0; i < liveTaken; i++) slice.push(liveList[(start + i) % liveList.length]);
       liveCursor = start + liveTaken; // 다음 cycle 은 이어지는 구간부터
@@ -432,7 +456,7 @@ async function poll() {
 
     console.log(
       `    summary: cached=${cached}/${slice.length}, lineup=${lineupCount}, errors=${errors}` +
-        ` (live=${liveList.length} rest=${restTaken}/${restList.length} cursor=${restCursor})`,
+        ` (imminent=${imminentList.length} live=${liveList.length} rest=${restTaken}/${restList.length} cursor=${restCursor})`,
     );
   } catch (err) {
     console.error(`[${ts}] ❌ poll error: ${err.message}`);
