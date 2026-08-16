@@ -8,6 +8,7 @@ import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
 import MatchChat from "@/components/live/MatchChat";
 import MatchChatCta from "@/components/live/MatchChatCta";
+import PreviewPredictedLineup from "@/components/live/PreviewPredictedLineup";
 import StarterArsenal from "@/components/StarterArsenal";
 import MatchVoteCard from "@/components/MatchVoteCard";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
@@ -929,6 +930,20 @@ export default async function ArticlePage({ params }: Props) {
       })()}
 
       <Markdown>{article.content}</Markdown>
+
+      {/* 예상 선발 라인업(PREVIEW·축구) — 라이브 상세와 같은 피치.
+          확정 라인업은 킥오프 1시간 전에나 오므로, 경기 전 글에는 예상 XI 가 유일한 라인업이다. */}
+      {article.type === "PREVIEW" && article.match && article.match.status === "SCHEDULED" && (
+        <PreviewPredictedLineup
+          league={article.league}
+          homeTeamId={article.match.homeTeam.id}
+          awayTeamId={article.match.awayTeam.id}
+          homeName={article.match.homeTeam.name}
+          awayName={article.match.awayTeam.name}
+          homeNameKo={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+          awayNameKo={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+        />
+      )}
 
       {/* 경기 자연어 질의(PREVIEW 한정) — 박스는 질문을 이벤트로 실어 보낼 뿐,
           채팅·회원 게이트·요금 방어는 기존 MatchChat(/api/match-chat) 경로가 담당. */}

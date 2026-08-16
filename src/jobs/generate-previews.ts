@@ -114,14 +114,15 @@ function buildSlug(league: string, matchId: number): string {
 export async function runPreview(opts?: {
   autoPublish?: boolean;
   league?: string;
-  /** 기본 2일. 5/26 GSC 노출 99% 급락 진단 — sitemap URL 폭증 차단 위해 5 → 2 단축.
-   *  먼 미래 PREVIEW 는 라인업/폼 변동 커서 모델 신뢰도 낮음. 단축이 quality 향상. */
+  /** 기본 3일. 5/26 GSC 급락 대응으로 5 → 2 로 줄였다가, 색인 시간창(D-7~D+2)이 도입돼
+   *  동시 색인 규모를 대신 제어하게 되면서 3 으로 되돌림(2026-08-17 사용자 결정).
+   *  "먼 미래는 라인업을 모른다"던 약점은 예상 XI 블록이 메운다(PreviewPredictedLineup). */
   horizonDays?: number;
   take?: number;
 }) {
   const autoPublish = opts?.autoPublish ?? true;
   const onlyLeague = opts?.league;
-  const horizonDays = opts?.horizonDays ?? 2;
+  const horizonDays = opts?.horizonDays ?? 3;
   const take = opts?.take ?? 40;
   console.log(
     `[preview] 시작 — autoPublish=${autoPublish}, league=${onlyLeague ?? "ALL"}, horizon=${horizonDays}d, take=${take}`,
