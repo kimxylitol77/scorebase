@@ -1,7 +1,10 @@
 // API-Football Pro 데이터 통합 잡 — **af 고유 데이터만** (쿼터 절약, 2026-07 제한).
-// 라인업은 TheSports 가 primary(convertTsLineup·football-poller)라 여기서 안 받는다.
+// 라인업은 TheSports 가 primary(convertTsLineup·football-poller). 다만 ts 가 아예 안 주는
+// 경기가 상당수라 킥오프 근처 매치만 af 로 메운다(Phase 1.5) — 2026-08-17 실측: 축구 LIVE
+// 58경기 중 28경기가 라인업 없음, apiFixtureId 보유 10건을 af 에 물으니 6건은 af 에 있었다.
 // af 만 가진 것: ① 매치 예측 %(apiPred*) ② fixtureStats(xG·점유) ③ 주심.
 // 1) 향후 24h SCHEDULED: fixture ID 매칭 + 예측
+// 1.5) 킥오프 ±3h 인데 라인업 결손: af 라인업 폴백
 // 2) 최근 36h FINISHED (fixtureStats 미저장): 통계 fetch + 예측 적중 평가
 // 3) 주심 보강
 //
@@ -11,6 +14,7 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import {
   findFixtureByDateAndTeams,
+  fetchFixtureLineups,
   fetchFixtureStatistics,
   fetchFixturePredictions,
   fetchFixtureReferee,
@@ -75,6 +79,75 @@ export async function runApiFootball(opts?: { limit?: number }) {
     }
   }
   console.log(`[af/upcoming] predictions ${predCount}건`);
+
+  // ===== Phase 1.5: 킥오프 ±3h 인데 라인업이 없는 매치 — af 라인업 폴백 =====
+  // ts(football-poller)가 primary 지만 소스가 아예 안 주는 경기가 절반 가까이 된다.
+  // 대상을 킥오프 근처 + apiFixtureId 보유로 좁혀 쿼터 부담을 낮춘다(실측 10건 안팎/회).
+  // ⚠️ af 응답의 홈팀 순서는 보장되지 않는다 — 반드시 team.id 로 가른다(af-lineup-backfill-traps).
+  const LINEUP_WINDOW_MS = 3 * 3600 * 1000;
+  const needLineup = await prisma.match.findMany({
+    where: {
+      league: { in: SOCCER_LEAGUES },
+      lineupHome: null,
+      apiFixtureId: { not: null },
+      startTime: {
+        gte: new Date(Date.now() - LINEUP_WINDOW_MS),
+        lte: new Date(Date.now() + LINEUP_WINDOW_MS),
+      },
+    },
+    include: { homeTeam: true, awayTeam: true },
+    orderBy: { startTime: "asc" },
+    take: limit,
+  });
+  console.log(`[af/lineup] 대상: ${needLineup.length}`);
+  // Team.externalId 가 af id 라는 보장이 없다 — ESPN 소스 리그(빅5 다수)는 거기에 ESPN id 가
+  // 들어 있고 af id 는 TeamSourceId 에만 있다(라리가 비야레알 externalId=102·af=533 실측).
+  // externalId 만 믿으면 정작 노출 큰 리그에서 홈/원정을 못 갈라 통째로 건너뛴다.
+  const lineupTeamIds = [
+    ...new Set(needLineup.flatMap((m) => [m.homeTeam.id, m.awayTeam.id])),
+  ];
+  const afSources = lineupTeamIds.length
+    ? await prisma.teamSourceId.findMany({
+        where: { teamId: { in: lineupTeamIds }, source: "api-football" },
+        select: { teamId: true, externalId: true },
+      })
+    : [];
+  const afIdByTeam = new Map<number, string>();
+  for (const s of afSources) if (!afIdByTeam.has(s.teamId)) afIdByTeam.set(s.teamId, s.externalId);
+  const afIdOf = (t: { id: number; externalId: string | null }) =>
+    afIdByTeam.get(t.id) ?? t.externalId;
+
+  let lineupCount = 0;
+  for (const m of needLineup) {
+    const rows = await fetchFixtureLineups(m.apiFixtureId!);
+    if (rows.length < 2) continue;
+    const byAfId = (extId: string | null) =>
+      extId ? rows.find((r) => String(r.teamId) === extId) : undefined;
+    const home = byAfId(afIdOf(m.homeTeam));
+    const away = byAfId(afIdOf(m.awayTeam));
+    // id 로 못 가르면 버린다 — 이름 추측으로 홈/원정을 뒤집으면 라인업 자체가 오정보가 된다.
+    if (!home || !away || home === away) continue;
+    // ts 변환(convertTsLineup)과 같은 기준 — 선발 11명이 다 차야 저장.
+    if (home.startXI.length < 11 || away.startXI.length < 11) continue;
+    await prisma.match.update({
+      where: { id: m.id },
+      data: {
+        lineupHome: JSON.stringify({
+          teamName: home.teamName,
+          formation: home.formation,
+          startXI: home.startXI,
+        }),
+        lineupAway: JSON.stringify({
+          teamName: away.teamName,
+          formation: away.formation,
+          startXI: away.startXI,
+        }),
+        lineupUpdatedAt: new Date(),
+      },
+    });
+    lineupCount++;
+  }
+  console.log(`[af/lineup] ${lineupCount}건 보강`);
 
   // ===== Phase 2: 최근 36h FINISHED 매치 — fixture statistics(xG·점유, af 고유) + 예측 적중 평가 =====
   // 라인업 사후 보강은 TheSports(convertTsLineup)가 담당 → 여기서 제외.
