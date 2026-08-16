@@ -2404,11 +2404,6 @@ export default async function ScoresPage({ searchParams }: Props) {
                   }))}
                 />
                 <SoccerRowLayout
-                  collapseHrefFor={
-                    leagueFilter
-                      ? null
-                      : (lg) => `/scores?date=${dateStr}&league=${lg}${sortMode === "time" ? "&sort=time" : ""}`
-                  }
                   liveList={visibleLive}
                   scheduledList={visibleScheduled}
                   finishedList={visibleFinished}
@@ -2576,19 +2571,6 @@ function Section({
 }
 
 /** 축구 row layout — named.com 스타일 한 줄 매치 표. */
-// /scores 리그 그룹에서 기본 펼침으로 둘 축구 리그. 나머지는 헤더만 남기고 접는다
-// (행을 서버에서 아예 안 그려 HTML 을 줄인다 — 2026-08-16, 접기 전 5MB).
-// 한국 사용자 관심 기준: 국내·아시아 + 유럽 빅리그·컵 + 주요 대륙 리그 + 국가대표 대회.
-const MAJOR_SOCCER_LEAGUES = new Set([
-  "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "J1_LEAGUE", "J2_LEAGUE",
-  "EPL", "CHAMPIONSHIP", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "UCL", "UEL", "UECL",
-  "MLS", "SAUDI_PL", "BRASILEIRAO", "LIGA_MX", "EREDIVISIE", "PRIMEIRA_LIGA", "SPL", "SUPER_LIG",
-  "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "CONCACAF_GOLD", "INTL_FRIENDLY",
-  "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE",
-  "COPA_LIB", "COPA_SUD", "CLUB_WORLD_CUP", "CLUB_FRIENDLY",
-]);
-
 function SoccerRowLayout({
   liveList,
   scheduledList,
@@ -2596,7 +2578,6 @@ function SoccerRowLayout({
   postponedList,
   lineupSet,
   sortByTime = false,
-  collapseHrefFor,
 }: {
   liveList: NormalizedMatch[];
   scheduledList: NormalizedMatch[];
@@ -2606,29 +2587,7 @@ function SoccerRowLayout({
   lineupSet: Set<number>;
   /** ?sort=time — 리그 그룹 대신 전 경기 시간순 평면 리스트 (행에 리그 배지 표시) */
   sortByTime?: boolean;
-  /** 마이너 리그 접기 — null 이면 접지 않는다(단일 리그 보기 등). 반환값 = 펼쳐보기 링크 */
-  collapseHrefFor?: ((league: string) => string) | null;
 }) {
-  // 마이너 리그 접기 — 헤더만 남기고 행은 서버에서 아예 그리지 않는다.
-  // /scores HTML 이 5MB 였던 근본 원인은 하루 449경기를 전부 펼쳐 그린 것이다(2026-08-16).
-  // 라이브가 있는 리그는 라이브스코어의 본질이라 순위와 무관하게 항상 펼친다.
-  // 기본 펼침 리그(축구 한정 — 이 레이아웃이 축구 전용). LEAGUE_ORDER 는 종목 묶음
-  // 정렬이라 인기순이 아니다(NBA 20·LOL 30·브라질 16.2 vs 룩셈부르크 15.68) — 컷오프로
-  // 쓰면 브라질·리가MX 가 접히고 룩셈부르크가 펼쳐진다(실측). 그래서 명시 목록으로 둔다.
-  const isMajorLeague = (lg: string) => MAJOR_SOCCER_LEAGUES.has(lg);
-  const shouldExpand = (lg: string, items: NormalizedMatch[]) =>
-    !collapseHrefFor || isMajorLeague(lg) || items.some((m) => m.status === "LIVE");
-  const collapsedBody = (lg: string, count: number) => (
-    <Link
-      href={collapseHrefFor!(lg)}
-      prefetch={false}
-      className="flex items-center justify-between gap-2 px-3.5 sm:px-4 py-2.5 text-[12.5px] text-neutral-500 transition hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-white/[0.03]"
-    >
-      <span>{count}경기</span>
-      <span className="font-semibold text-blue-600 dark:text-blue-400">펼쳐보기 →</span>
-    </Link>
-  );
-
   const renderRow = (m: NormalizedMatch, showLeague = false) => {
     const statusKey: "scheduled" | "live" | "finished" | "postponed" =
       m.status === "LIVE"
@@ -2851,13 +2810,9 @@ function SoccerRowLayout({
       <div className="space-y-2.5">
         {leagueGroupsOf(items).map((lg) => (
           <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
-            {shouldExpand(lg.league, lg.items) ? (
-              <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-                {lg.items.map((m) => mobileCardFor(m))}
-              </ul>
-            ) : (
-              collapsedBody(lg.league, lg.items.length)
-            )}
+            <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {lg.items.map((m) => mobileCardFor(m))}
+            </ul>
           </LeagueGroupCard>
         ))}
       </div>
@@ -2875,13 +2830,9 @@ function SoccerRowLayout({
       <div className="space-y-3">
         {leagueGroupsOf(items).map((lg) => (
           <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
-            {shouldExpand(lg.league, lg.items) ? (
-              <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-                {lg.items.map((m) => renderRow(m))}
-              </div>
-            ) : (
-              collapsedBody(lg.league, lg.items.length)
-            )}
+            <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {lg.items.map((m) => renderRow(m))}
+            </div>
           </LeagueGroupCard>
         ))}
       </div>
