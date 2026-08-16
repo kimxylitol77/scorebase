@@ -36,6 +36,7 @@ import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import SoccerNowBlock, { type PredictedXiTeam, type InjuryLine } from "@/components/scores/soccer/SoccerNowBlock";
 import { fetchSeasonInjuries, getTeamInjuries } from "@/lib/sports/api-football-pro";
 import { translateReason, classifySeverity } from "@/lib/sports/injury-format";
+import { CLUB_XI_LEAGUES, teamNameMatches } from "@/lib/predict/club-xi-leagues";
 import WcMatchAnalysisCard from "@/components/live/WcMatchAnalysisCard";
 import { readFileSync } from "fs";
 import path from "path";
@@ -680,11 +681,12 @@ export default async function GenericLivePage({ params }: Props) {
       }
     }
 
-    // 월드컵 예상 라인업 — build-wc-predicted-xi (cron-wc-xi.sh 매일 갱신) 산출물.
-    // cache 유무와 무관하게 로드 (예정 매치는 cache 가 아예 없는 경우가 핵심 케이스).
-    // 확정 라인업(nowLineup) 도착 시 SoccerNowBlock 이 자동으로 예상 대신 확정 표시.
+    // 예상 라인업 — 월드컵은 build-wc-predicted-xi, 클럽 리그는 build-club-predicted-xi
+    // (둘 다 cron-wc-xi.sh 매일 갱신) 산출물. cache 유무와 무관하게 로드 (예정 매치는
+    // cache 가 아예 없는 경우가 핵심 케이스). 확정 라인업(nowLineup) 도착 시 자동 교체.
     let predictedHome: PredictedXiTeam | null = null;
     let predictedAway: PredictedXiTeam | null = null;
+    const isClubXiLeague = CLUB_XI_LEAGUES.has(lg);
     if (lg === "WORLD_CUP" && match.status === "SCHEDULED" && !nowLineup) {
       try {
         const raw = JSON.parse(
@@ -698,6 +700,17 @@ export default async function GenericLivePage({ params }: Props) {
       } catch {
         // 파일 없음 (빌드 전) — 미표시
       }
+    } else if (isClubXiLeague && match.status === "SCHEDULED" && !nowLineup) {
+      try {
+        const raw = JSON.parse(
+          readFileSync(path.join(process.cwd(), "data/club-predicted-xi.json"), "utf-8"),
+        ) as Record<string, Record<string, PredictedXiTeam>>;
+        const byTeamId = raw[lg] ?? {};
+        predictedHome = byTeamId[String(match.homeTeam.id)] ?? null;
+        predictedAway = byTeamId[String(match.awayTeam.id)] ?? null;
+      } catch {
+        // 파일 없음 (빌드 전) — 미표시
+      }
     }
 
     // 예상 라인업 표시 시 — 양 팀 현재 부상·결장 명단(api-football WORLD_CUP injuries).
@@ -706,7 +719,57 @@ export default async function GenericLivePage({ params }: Props) {
     let injuredXiIds: string[] | undefined;
     let injuriesHome: InjuryLine[] | undefined;
     let injuriesAway: InjuryLine[] | undefined;
-    if (predictedHome || predictedAway) {
+    if ((predictedHome || predictedAway) && isClubXiLeague) {
+      // 클럽 리그 — InjurySnapshot(일별 af 수집분, DB)만 사용. 렌더 타임 af 직접 호출은
+      // 쿼터 전소 전례(/live extras 사고)가 있어 금지. 3일 내 스냅샷 없으면 명단 생략.
+      try {
+        const latest = await prisma.injurySnapshot.findFirst({
+          where: { league: lg, capturedAt: { gte: new Date(Date.now() - 3 * 86400e3) } },
+          orderBy: { capturedAt: "desc" },
+          select: { capturedOn: true },
+        });
+        if (latest) {
+          // 스냅샷 teamId 는 전부 null (수집기 미채움) — teamName 정규화 매칭으로 양 팀 분리
+          const snaps = await prisma.injurySnapshot.findMany({
+            where: { league: lg, capturedOn: latest.capturedOn },
+            select: { teamName: true, playerTsId: true, playerName: true, reason: true },
+          });
+          // XI 매칭 — playerTsId 정확 매칭 1순위, 없으면 성+이니셜 (af "A. Gonzalez" 축약 대응)
+          const nameKey = (s: string) => {
+            const tokens = s.trim().split(/\s+/);
+            const n = (x: string) => x.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[\s.&·'-]/g, "");
+            return `${n(tokens[tokens.length - 1] ?? "")}|${n(tokens[0] ?? "")[0] ?? ""}`;
+          };
+          const injuredIds: string[] = [];
+          const toLines = (teamName: string, xi: PredictedXiTeam["xi"]): InjuryLine[] =>
+            snaps
+              .filter((s) => teamNameMatches(s.teamName, teamName))
+              .slice(0, 12)
+              .map((s) => {
+                const hit =
+                  (s.playerTsId && xi.find((p) => p.id === s.playerTsId)) ||
+                  xi.find((p) => nameKey(p.name) === nameKey(s.playerName));
+                if (hit?.id) injuredIds.push(hit.id);
+                return {
+                  name: hit?.nameKo || hit?.name || s.playerName,
+                  reason: translateReason(s.reason ?? ""),
+                  sev: classifySeverity(s.reason ?? ""),
+                  inXi: !!hit,
+                };
+              })
+              .sort((a, b) => {
+                if (a.inXi !== b.inXi) return a.inXi ? -1 : 1;
+                const rank = { long: 0, short: 1, returning: 2, non_injury: 3, unknown: 4 } as const;
+                return rank[a.sev] - rank[b.sev];
+              });
+          injuriesHome = toLines(match.homeTeam.name, predictedHome?.xi ?? []);
+          injuriesAway = toLines(match.awayTeam.name, predictedAway?.xi ?? []);
+          injuredXiIds = injuredIds;
+        }
+      } catch {
+        // 부상 조회 실패 — 명단 없이 예상 라인업만 표시
+      }
+    } else if (predictedHome || predictedAway) {
       try {
         const all = await fetchSeasonInjuries("WORLD_CUP", 2026);
         // 예상 XI afId → { tsId, nameKo } (부상 매칭 + 한글명 + 피치 배지)

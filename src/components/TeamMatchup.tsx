@@ -47,9 +47,11 @@ interface Props {
   /** 표시 범위 — overview=팀 헤더+시즌 전체만, detail=홈원정·최근·흐름만.
    *  팀 전력 섹션의 "여기까지 기본 노출 + 나머지 접기" 분할용. 기본 all. */
   sections?: "all" | "overview" | "detail";
+  /** 순위 개념이 없는 대회(친선 등)에서 "리그순위" 행을 뺀다. */
+  hideRank?: boolean;
 }
 
-export default function TeamMatchup({ home, away, showDraw = true, sections = "all" }: Props) {
+export default function TeamMatchup({ home, away, showDraw = true, sections = "all", hideRank = false }: Props) {
   const homeAvgFor = home.played > 0 ? home.goalsFor / home.played : 0;
   const awayAvgFor = away.played > 0 ? away.goalsFor / away.played : 0;
   const homeAvgAgainst = home.played > 0 ? home.goalsAgainst / home.played : 0;
@@ -95,6 +97,7 @@ export default function TeamMatchup({ home, away, showDraw = true, sections = "a
       {/* 그룹: 시즌 전체 */}
       {showOverview && (
       <Group label="시즌 전체">
+        {!hideRank && (
         <CompareRow
           label="리그순위"
           home={`${home.position}`}
@@ -108,6 +111,7 @@ export default function TeamMatchup({ home, away, showDraw = true, sections = "a
           }
           big
         />
+        )}
         <CompareRow
           label="리그성적"
           home={

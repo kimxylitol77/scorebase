@@ -13,6 +13,16 @@ export type League =
   | "AIHL" // 호주 아이스하키 리그 (TheSports ice_hockey, 4~9월 = 남반구 겨울)
   | "NZIHL" // 뉴질랜드 아이스하키 리그 (TheSports ice_hockey, 5~8월)
   | "HOCKEY_FRIENDLY" // 아이스하키 클럽 친선 (TheSports ice_hockey, 8월 프리시즌 — 축구 CLUB_FRIENDLY 와 별개)
+  // 2026-08-16 유럽 하키 9개 — 9월 개막. 팀은 클럽 친선 시드 재사용 (docs/hockey-europe-leagues)
+  | "KHL" // 콘티넨탈 하키 리그 (러시아)
+  | "CHL_HOCKEY" // 챔피언스 하키 리그 (유럽 클럽 대항전 — 축구 UCL 과 구분 위해 접미)
+  | "LIIGA" // 리가 (핀란드 1부)
+  | "SWISS_NL" // 내셔널리그 (스위스 1부 — 축구 SWISS_SL 과 별개)
+  | "CZECH_EXTRALIGA" // 엑스트라리가 (체코 1부)
+  | "SLOVAK_EXTRALIGA" // 티포스 엑스트라리가 (슬로바키아 1부)
+  | "DENMARK_METAL" // 메탈리가엔 (덴마크 1부)
+  | "KAZAKHSTAN_CUP" // 카자흐스탄컵
+  | "BELARUS_SALEI_CUP" // 살레이컵 (벨라루시)
   | "MLB"
   | "LALIGA"
   | "BUNDESLIGA"

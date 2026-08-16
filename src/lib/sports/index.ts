@@ -27,6 +27,16 @@ export const collectors: Record<League, MatchCollector> = {
   AIHL: { league: "AIHL", async fetchByDate() { return []; } },
   NZIHL: { league: "NZIHL", async fetchByDate() { return []; } },
   HOCKEY_FRIENDLY: { league: "HOCKEY_FRIENDLY", async fetchByDate() { return []; } },
+  // 2026-08-16 유럽 하키 9개 — 매치 소스는 Vultr TheSports worker
+  KHL: { league: "KHL", async fetchByDate() { return []; } },
+  CHL_HOCKEY: { league: "CHL_HOCKEY", async fetchByDate() { return []; } },
+  LIIGA: { league: "LIIGA", async fetchByDate() { return []; } },
+  SWISS_NL: { league: "SWISS_NL", async fetchByDate() { return []; } },
+  CZECH_EXTRALIGA: { league: "CZECH_EXTRALIGA", async fetchByDate() { return []; } },
+  SLOVAK_EXTRALIGA: { league: "SLOVAK_EXTRALIGA", async fetchByDate() { return []; } },
+  DENMARK_METAL: { league: "DENMARK_METAL", async fetchByDate() { return []; } },
+  KAZAKHSTAN_CUP: { league: "KAZAKHSTAN_CUP", async fetchByDate() { return []; } },
+  BELARUS_SALEI_CUP: { league: "BELARUS_SALEI_CUP", async fetchByDate() { return []; } },
   KBL: { league: "KBL", async fetchByDate() { return []; } },
   WKBL: { league: "WKBL", async fetchByDate() { return []; } },
   MLB: mlbCollectorEspn,
@@ -293,6 +303,8 @@ export function getPrimarySource(league: League): string {
   if (league === "NHL") return "thesports";
   if (league === "AIHL" || league === "NZIHL") return "thesports";
   if (league === "HOCKEY_FRIENDLY") return "thesports";
+  if (league === "KHL" || league === "CHL_HOCKEY" || league === "LIIGA" || league === "SWISS_NL" || league === "CZECH_EXTRALIGA" || league === "SLOVAK_EXTRALIGA" || league === "DENMARK_METAL" || league === "KAZAKHSTAN_CUP" || league === "BELARUS_SALEI_CUP")
+    return "thesports";
   if (league === "MLB") return "espn";
   if (league === "WNBA") return "thesports";
   if (league === "KBL" || league === "WKBL") return "thesports";

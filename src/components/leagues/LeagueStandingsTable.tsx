@@ -5,6 +5,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { computeLastSeasonStandings } from "@/lib/sports/last-season-standings";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 // 리그별 진출권·강등 구역 (순위 1-indexed). 표준 시즌 기준 — 매 시즌 UEFA 계수 미세변동은 단순화.
@@ -201,6 +203,10 @@ export default async function LeagueStandingsTable({ league }: { league: string 
           select: { playerName: true, teamName: true, value: true, photoUrl: true, externalId: true },
         })
       : null;
+    // 지난 시즌 리더보드 — 접기 안에서 최종 순위와 함께 본다. 개막 전엔 이번 시즌 기록이 0이라
+    // "통계" 탭이 비는데(preSeason 가드), 축적된 지난 시즌 득점왕·도움왕은 여기서 살려 노출한다.
+    const lastLeaders = labels ? await loadLeagueLeaderboard(league, labels.old) : null;
+    const hasLastLeaders = Object.keys(lastLeaders?.rowsByCategory ?? {}).length > 0;
     const factCards = [
       champion && {
         label: "디펜딩 챔피언",
@@ -264,13 +270,24 @@ export default async function LeagueStandingsTable({ league }: { league: string 
           </div>
         )}
         {renderStandingsTable(newRows, league, false)}
-        {liveRows.length > 0 && (
+        {(liveRows.length > 0 || hasLastLeaders) && (
           <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
             <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
               <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
-              지난 시즌 최종 순위 <span className="font-normal text-neutral-400">({labels?.old})</span>
+              지난 시즌 최종 순위{hasLastLeaders ? " · 기록" : ""}{" "}
+              <span className="font-normal text-neutral-400">({labels?.old})</span>
             </summary>
-            <div className="px-2 pb-3 pt-1">{renderStandingsTable(liveRows, league, true)}</div>
+            <div className="px-2 pb-3 pt-1 space-y-4">
+              {liveRows.length > 0 && renderStandingsTable(liveRows, league, true)}
+              {hasLastLeaders && (
+                <LeagueLeaderBoard
+                  league={league}
+                  season={labels!.old}
+                  rowsByCategory={lastLeaders!.rowsByCategory}
+                  footer={`${labels?.old} 시즌 최종 기록`}
+                />
+              )}
+            </div>
           </details>
         )}
         <p className="text-[11px] text-neutral-400">{labels?.neu} 시즌 개막 후 자동으로 실시간 순위로 전환됩니다.</p>
