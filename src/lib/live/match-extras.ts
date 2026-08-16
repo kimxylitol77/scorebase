@@ -7,6 +7,10 @@ import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { calcForm, type TeamForm } from "@/lib/predict/form";
 import type { PredictMatch, FormResult } from "@/lib/predict/types";
 
+// 순위 개념이 없는 대회 — 공식 순위표도, 자체 산출 폴백도 쓰면 안 된다.
+// 친선은 상대·경기 수가 제각각이라 자체 계산이 "90위 / 147팀" 같은 무의미한 서열을 만든다.
+const NO_STANDINGS_LEAGUES = new Set(["HOCKEY_FRIENDLY"]);
+
 export interface H2HResult {
   /** 직전 매치부터 과거 순. 'home' 관점 결과 (호출 시 perspectiveTeamId 기준) */
   results: FormResult[];
@@ -268,13 +272,14 @@ async function fetchMatchExtrasInner(match: {
     /* 공식 순위 실패 — 아래 자체 계산 폴백 */
   }
   const useOfficial = !!(officialHome && officialAway);
+  const noStandings = NO_STANDINGS_LEAGUES.has(match.league);
 
   return {
     homeForm,
     awayForm,
-    homeStanding: useOfficial ? officialHome : lite(standings.byTeam.get(match.homeTeam.id)),
-    awayStanding: useOfficial ? officialAway : lite(standings.byTeam.get(match.awayTeam.id)),
-    totalTeams: useOfficial ? officialTotal : standings.rows.length,
+    homeStanding: noStandings ? null : useOfficial ? officialHome : lite(standings.byTeam.get(match.homeTeam.id)),
+    awayStanding: noStandings ? null : useOfficial ? officialAway : lite(standings.byTeam.get(match.awayTeam.id)),
+    totalTeams: noStandings ? 0 : useOfficial ? officialTotal : standings.rows.length,
     h2hHome,
     previewSlug,
     recapSlug,
