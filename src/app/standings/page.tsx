@@ -51,6 +51,9 @@ const LEAGUES: LeagueCard[] = [
   { code: "KBO", sport: "baseball", name: "KBO 리그", subtitle: "한국 프로야구", flag: "🇰🇷", gradient: "from-blue-600 via-indigo-600 to-rose-500" },
   { code: "NPB", sport: "baseball", name: "NPB 리그", subtitle: "일본 프로야구", flag: "🇯🇵", gradient: "from-red-600 via-pink-500 to-rose-500" },
   { code: "NBA", sport: "basketball", name: "NBA", subtitle: "미국 프로농구", flag: "🏀", gradient: "from-orange-500 via-amber-500 to-yellow-500" },
+  // KBL/WKBL — 오프시즌엔 상세 페이지가 지난 시즌 최종 표를 라벨 붙여 서빙 (fetcher 자동 폴백)
+  { code: "KBL", sport: "basketball", name: "KBL", subtitle: "한국 프로농구", flag: "🇰🇷", gradient: "from-red-600 via-rose-600 to-orange-500" },
+  { code: "WKBL", sport: "basketball", name: "WKBL", subtitle: "한국 여자 프로농구", flag: "🇰🇷", gradient: "from-purple-600 via-violet-600 to-indigo-600" },
   { code: "NHL", sport: "hockey", name: "NHL", subtitle: "북미 아이스하키", flag: "🏒", gradient: "from-cyan-500 via-blue-600 to-indigo-700" },
   // V-리그 — 비시즌엔 지난 시즌(2025-26) 최종 순위를 라벨 붙여 노출. 10월 개막 후 subtitle 갱신.
   { code: "V_LEAGUE", sport: "volleyball", name: "V-리그 남자부", subtitle: "KOVO · 2025-26 최종 순위", flag: "🇰🇷", gradient: "from-sky-600 via-blue-600 to-indigo-600" },

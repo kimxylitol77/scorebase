@@ -31,6 +31,7 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
+import { fetchBasketballStandings } from "@/lib/sports/basketball-standings";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import CollapseSection from "@/components/CollapseSection";
 import {
@@ -240,6 +241,9 @@ export default async function StandingsPage({ params }: Props) {
   // NBA — ESPN 공식 standings 렌더 (2026-08 중복 팀 행 정리 후 가드 해제).
   // 자체 계산은 프리시즌·NBA컵 결승·플레이오프가 정규 승패에 섞여 부정확 — 공식 기록 전용.
   if (upper === "NBA") return <NbaStandings name={name} />;
+
+  // KBL/WKBL — 공식 사이트 순위(승률·승차 체계). 오프시즌엔 지난 시즌 최종 표를 라벨 붙여 노출.
+  if (upper === "KBL" || upper === "WKBL") return <KoreanBasketballStandings league={upper} name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
@@ -1161,6 +1165,100 @@ async function NbaStandings({ name }: { name: string }) {
           <LeagueLeaderBoard league="NBA" season={nbaLeaderSeason} rowsByCategory={nbaLeaders} />
         </CollapseSection>
       )}
+    </div>
+  );
+}
+
+// ── KBL/WKBL — 공식 사이트 기록 기반 (승률·승차 체계) ──
+// 오프시즌엔 fetcher 가 지난 시즌 최종 표로 폴백하고 seasonLabel/pastSeason 을 채워 준다.
+async function KoreanBasketballStandings({ league, name }: { league: string; name: string }) {
+  const std = await fetchBasketballStandings(league);
+  if (!std || std.rows.length === 0) {
+    return (
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <AmbientGlow />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <p className="mt-3 text-sm text-neutral-500 break-keep">
+          순위 데이터 수집 중입니다. 잠시 후 다시 확인해주세요.
+        </p>
+      </div>
+    );
+  }
+
+  const teams = await prisma.team.findMany({
+    where: { id: { in: std.rows.map((r) => r.ourTeamId) } },
+    select: { id: true, logoUrl: true },
+  });
+  const logoById = new Map(teams.map((t) => [t.id, t.logoUrl]));
+  // "2025-2026" → "2025-26" (사이트 시즌 표기 관행)
+  const label = std.seasonLabel?.replace(/-20(\d\d)$/, "-$1");
+  const subtitle = label
+    ? `${label} 시즌 정규리그${std.pastSeason ? " 최종" : ""} 순위 · ${league} 공식 기록${std.pastSeason ? " · 새 시즌 개막 후 자동 갱신" : ""}`
+    : `${league} 공식 기록 · 경기 결과 자동 반영`;
+
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=basketball" className="hover:underline">농구 라이브 스코어</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{name} 순위표</span>
+      </nav>
+
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <p className="text-sm text-neutral-500 mt-2 break-keep">{subtitle}</p>
+      </header>
+
+      <section className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden">
+        <table className="w-full text-sm border-separate border-spacing-0">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wider text-neutral-400">
+              <th className="text-right py-2 pl-3 pr-2 font-semibold w-8">#</th>
+              <th className="text-left py-2 px-2 font-semibold">팀</th>
+              <th className="text-center py-2 px-1 font-semibold w-10">경기</th>
+              <th className="text-center py-2 px-1 font-semibold w-8">승</th>
+              <th className="text-center py-2 px-1 font-semibold w-8">패</th>
+              <th className="text-center py-2 px-1 font-semibold w-14">승률</th>
+              <th className="text-right py-2 pr-3 pl-1 font-semibold w-12">승차</th>
+            </tr>
+          </thead>
+          <tbody>
+            {std.rows.map((r) => {
+              const logo = logoById.get(r.ourTeamId);
+              const rate = r.played > 0 ? (r.wins / r.played).toFixed(3).replace(/^0/, "") : "-";
+              return (
+                <tr key={r.ourTeamId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                  <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">{r.position}</td>
+                  <td className="py-2 px-2">
+                    <span className="flex items-center gap-2">
+                      {logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={logo} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                      ) : (
+                        <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                      )}
+                      <span className="font-semibold truncate max-w-[150px] sm:max-w-none">{r.teamName}</span>
+                    </span>
+                  </td>
+                  <td className="text-center py-2 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                  <td className="text-center py-2 px-1 tabular-nums text-emerald-600 dark:text-emerald-400">{r.wins}</td>
+                  <td className="text-center py-2 px-1 tabular-nums text-rose-500">{r.losses}</td>
+                  <td className="text-center py-2 px-1 tabular-nums font-semibold">{rate}</td>
+                  <td className="text-right py-2 pr-3 pl-1 tabular-nums font-black">{r.gamesBehind ?? "-"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+      <p className="text-[11px] text-neutral-400">ⓘ 승률 순 공식 순위 · 승차 = 1위와의 격차(경기 수) · 출처 {league === "KBL" ? "KBL(kbl.or.kr)" : "WKBL(wkbl.or.kr)"}.</p>
     </div>
   );
 }
