@@ -41,6 +41,16 @@ const COMP_TO_LEAGUE = {
   // 2026-08-16 클럽 친선 — 유럽 리그 프리시즌(8월). KHL·SHL·스위스NL·DEL 등 249팀.
   // ⚠️ 핀란드 2부 메스티스 utid 는 `j1l4rj1bv39r7vx` 로 한 글자만 다르다 (v30 vs v39).
   "j1l4rj1bv30r7vx": "HOCKEY_FRIENDLY",
+  // 2026-08-16 유럽 하키 9개 — 9월 개막. 대회명은 ts unique_tournament/list 공식값.
+  "9vjxm87bywlr6od": "KHL",               // Kontinental Hockey League
+  "d23xmv0b7wlrg8n": "CHL_HOCKEY",        // Champions Hockey League
+  "4zp5rzyb825q82w": "LIIGA",             // Liiga (핀란드 1부)
+  "l965mknbpg0m1ge": "SWISS_NL",          // National League (스위스 1부)
+  "jednm95b1doryox": "CZECH_EXTRALIGA",   // Extraliga (체코 1부)
+  "kdj2ry0b8x2q1zp": "SLOVAK_EXTRALIGA",  // Tipos Extraliga
+  "z8yomodbn49q0j6": "DENMARK_METAL",     // Metal Ligaen
+  "8yomodb7o17q0j6": "KAZAKHSTAN_CUP",    // Kazakhstan Cup
+  "p4jwq2lblzyr0ve": "BELARUS_SALEI_CUP", // Salei Cup (벨라루시)
 };
 
 // TheSports ice_hockey status_id — src/lib/sports/thesports/status-codes.ts 의

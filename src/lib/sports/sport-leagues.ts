@@ -56,6 +56,9 @@ export const ALL_LEAGUES = [
   "AIHL", "NZIHL",
   // 2026-08-16 하키 클럽 친선 — 유럽 리그 프리시즌(8월). 9월 정규시즌 팀 시드를 겸한다
   "HOCKEY_FRIENDLY",
+  // 2026-08-16 유럽 하키 9개 — 9월 개막 (친선 시드 팀 재사용)
+  "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",
+  "SLOVAK_EXTRALIGA", "DENMARK_METAL", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
   // 2026-07-23 테니스·골프·F1 — ESPN 직접 fetch 표시 전용 (DB 수집 없음, docs/tennis-golf-scores)
   "ATP", "WTA", "PGA", "LPGA", "F1",
   // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남/여 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
@@ -186,7 +189,11 @@ export const SPORTS: SportMeta[] = [
     label: "하키",
     emoji: "🏒",
     // 2026-08-04 AIHL·NZIHL 추가 — NHL 이 6~9월 오프시즌이라 하키 탭이 비는 구간을 남반구 리그가 메운다
-    leagues: ["NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY"],
+    leagues: [
+      "NHL", "KHL", "CHL_HOCKEY", "IIHF_WC", "LIIGA", "CZECH_EXTRALIGA", "SWISS_NL",
+      "SLOVAK_EXTRALIGA", "DENMARK_METAL", "AIHL", "NZIHL", "HOCKEY_FRIENDLY",
+      "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
+    ],
   },
   {
     code: "esports",
@@ -443,6 +450,15 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   AIHL: "호주 아이스하키",
   NZIHL: "뉴질랜드 아이스하키",
   HOCKEY_FRIENDLY: "아이스하키 클럽 친선",
+  KHL: "KHL",
+  CHL_HOCKEY: "챔피언스 하키 리그",
+  LIIGA: "핀란드 리가",
+  SWISS_NL: "스위스 내셔널리그",
+  CZECH_EXTRALIGA: "체코 엑스트라리가",
+  SLOVAK_EXTRALIGA: "슬로바키아 엑스트라리가",
+  DENMARK_METAL: "덴마크 메탈리가엔",
+  KAZAKHSTAN_CUP: "카자흐스탄컵",
+  BELARUS_SALEI_CUP: "벨라루시 살레이컵",
   KBL: "KBL",
   WKBL: "WKBL",
   V_LEAGUE: "V-리그 (남)",
@@ -691,10 +707,19 @@ export const LEAGUE_ORDER: Record<string, number> = {
   NBA: 20,
   NBA_SL: 20.5,
   NHL: 21,
+  KHL: 21.5, // NHL 다음가는 리그 — 세계선수권보다 앞
+  CHL_HOCKEY: 21.7,
   IIHF_WC: 22,
+  LIIGA: 22.1,
+  CZECH_EXTRALIGA: 22.12,
+  SWISS_NL: 22.14,
+  SLOVAK_EXTRALIGA: 22.16,
+  DENMARK_METAL: 22.18,
   AIHL: 22.3, // NHL·세계선수권 다음 — 국내 수요는 낮지만 하키 안에서는 정규시즌
   NZIHL: 22.6,
   HOCKEY_FRIENDLY: 22.8, // 프리시즌 친선 — 하키 정규시즌 리그들 뒤
+  KAZAKHSTAN_CUP: 22.85,
+  BELARUS_SALEI_CUP: 22.87,
   KBL: 23,
   WKBL: 24,
   V_LEAGUE: 24.5, // 한국 프로배구 남자부 — KBL/WKBL 급 국내 수요
@@ -863,6 +888,15 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   AIHL: "호주",
   NZIHL: "뉴질랜드",
   HOCKEY_FRIENDLY: "국제",
+  KHL: "러시아",
+  CHL_HOCKEY: "국제",
+  LIIGA: "핀란드",
+  SWISS_NL: "스위스",
+  CZECH_EXTRALIGA: "체코",
+  SLOVAK_EXTRALIGA: "슬로바키아",
+  DENMARK_METAL: "덴마크",
+  KAZAKHSTAN_CUP: "카자흐스탄",
+  BELARUS_SALEI_CUP: "벨라루스",
   KBL: "대한민국",
   WKBL: "대한민국",
   LOL: "대한민국",

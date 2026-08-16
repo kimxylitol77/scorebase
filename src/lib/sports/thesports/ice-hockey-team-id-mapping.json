@@ -2806,5 +2806,1193 @@
     "tsId": "zp5rzyb6l83q82w",
     "tsName": "Grenoble",
     "matchType": "diary"
+  },
+  {
+    "ourId": 612861,
+    "ourName": "Lokomotiv Yaroslavl",
+    "ourLeague": "KHL",
+    "ourExternalId": "n54ql0bplklqvy9",
+    "tsId": "n54ql0bplklqvy9",
+    "tsName": "Lokomotiv Yaroslavl",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612748,
+    "ourName": "Traktor Chelyabinsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "23xmv0bpey9rg8n",
+    "tsId": "23xmv0bpey9rg8n",
+    "tsName": "Traktor Chelyabinsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612933,
+    "ourName": "Avtomobilist Yekaterinburg",
+    "ourLeague": "KHL",
+    "ourExternalId": "965mknb2jlpm1ge",
+    "tsId": "965mknb2jlpm1ge",
+    "tsName": "Avtomobilist Yekaterinburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612806,
+    "ourName": "Dynamo Moscow",
+    "ourLeague": "KHL",
+    "ourExternalId": "6ypq3vb7267rd7o",
+    "tsId": "6ypq3vb7267rd7o",
+    "tsName": "Dynamo Moscow",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612842,
+    "ourName": "Spartak Moscow",
+    "ourLeague": "KHL",
+    "ourExternalId": "2y8m43bw24vrl07",
+    "tsId": "2y8m43bw24vrl07",
+    "tsName": "Spartak Moscow",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612934,
+    "ourName": "Torpedo Nizhny Novgorod",
+    "ourLeague": "KHL",
+    "ourExternalId": "6ypq3vb72p5rd7o",
+    "tsId": "6ypq3vb72p5rd7o",
+    "tsName": "Torpedo Nizhny Novgorod",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612910,
+    "ourName": "Severstal Cherepovets",
+    "ourLeague": "KHL",
+    "ourExternalId": "3glrwdb3xl5qdyj",
+    "tsId": "3glrwdb3xl5qdyj",
+    "tsName": "Severstal Cherepovets",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612697,
+    "ourName": "Salavat Yulaev Ufa",
+    "ourLeague": "KHL",
+    "ourExternalId": "vjxm87b5n2dr6od",
+    "tsId": "vjxm87b5n2dr6od",
+    "tsName": "Salavat Yulaev Ufa",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612800,
+    "ourName": "SKA Saint Petersburg",
+    "ourLeague": "KHL",
+    "ourExternalId": "pxwrx0bx62wryk0",
+    "tsId": "pxwrx0bx62wryk0",
+    "tsName": "SKA Saint Petersburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612696,
+    "ourName": "Lada Togliatti",
+    "ourLeague": "KHL",
+    "ourExternalId": "dj2ry0bewdlq1zp",
+    "tsId": "dj2ry0bewdlq1zp",
+    "tsName": "Lada Togliatti",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612699,
+    "ourName": "AK Bars Kazan",
+    "ourLeague": "KHL",
+    "ourExternalId": "jw2r0obo689rz84",
+    "tsId": "jw2r0obo689rz84",
+    "tsName": "AK Bars Kazan",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612831,
+    "ourName": "Sibir Novosibirsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "6ypq3vb724prd7o",
+    "tsId": "6ypq3vb724prd7o",
+    "tsName": "Sibir Novosibirsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612700,
+    "ourName": "Metallurg Magnitogorsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "8yomodbgw58q0j6",
+    "tsId": "8yomodbgw58q0j6",
+    "tsName": "Metallurg Magnitogorsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612695,
+    "ourName": "Amur Khabarovsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "zp5rzyb6n0yq82w",
+    "tsId": "zp5rzyb6n0yq82w",
+    "tsName": "Amur Khabarovsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612937,
+    "ourName": "Neftekhimik Nizhnekamsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "1l4rj1bj826r7vx",
+    "tsId": "1l4rj1bj826r7vx",
+    "tsName": "Neftekhimik Nizhnekamsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612778,
+    "ourName": "Shanghai Dragon",
+    "ourLeague": "KHL",
+    "ourExternalId": "dj2ry0bew78q1zp",
+    "tsId": "dj2ry0bew78q1zp",
+    "tsName": "Shanghai Dragon",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612777,
+    "ourName": "Dinamo Minsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "l7oqd2b85p6r510",
+    "tsId": "l7oqd2b85p6r510",
+    "tsName": "Dinamo Minsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612938,
+    "ourName": "Avangard Omsk",
+    "ourLeague": "KHL",
+    "ourExternalId": "6ypq3vb30wlrd7o",
+    "tsId": "6ypq3vb30wlrd7o",
+    "tsName": "Avangard Omsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612701,
+    "ourName": "Barys Astana",
+    "ourLeague": "KHL",
+    "ourExternalId": "2y8m43bwko8rl07",
+    "tsId": "2y8m43bwko8rl07",
+    "tsName": "Barys Astana",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612931,
+    "ourName": "CSKA Moscow",
+    "ourLeague": "KHL",
+    "ourExternalId": "x7lm78b3l56q2wd",
+    "tsId": "x7lm78b3l56q2wd",
+    "tsName": "CSKA Moscow",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612692,
+    "ourName": "Admiral Vladivostok",
+    "ourLeague": "KHL",
+    "ourExternalId": "k82reeb05x0repz",
+    "tsId": "k82reeb05x0repz",
+    "tsName": "Admiral Vladivostok",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612841,
+    "ourName": "HC Sochi",
+    "ourLeague": "KHL",
+    "ourExternalId": "1l4rj1bj8ler7vx",
+    "tsId": "1l4rj1bj8ler7vx",
+    "tsName": "HC Sochi",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612763,
+    "ourName": "Tappara Tampere",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "dj2ry0b1kgyq1zp",
+    "tsId": "dj2ry0b1kgyq1zp",
+    "tsName": "Tappara Tampere",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612763,
+    "ourName": "Tappara Tampere",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "dj2ry0b1kgyq1zp",
+    "tsId": "dj2ry0b1kgyq1zp",
+    "tsName": "Tappara Tampere",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612717,
+    "ourName": "Bili Tygri Liberec",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "6ypq3vb72lprd7o",
+    "tsId": "6ypq3vb72lprd7o",
+    "tsName": "Bili Tygri Liberec",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612717,
+    "ourName": "Bili Tygri Liberec",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "6ypq3vb72lprd7o",
+    "tsId": "6ypq3vb72lprd7o",
+    "tsName": "Bili Tygri Liberec",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612939,
+    "ourName": "HC Skoda Plzen",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "965mknb2jnem1ge",
+    "tsId": "965mknb2jnem1ge",
+    "tsName": "HC Skoda Plzen",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612939,
+    "ourName": "HC Skoda Plzen",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "965mknb2jnem1ge",
+    "tsId": "965mknb2jnem1ge",
+    "tsName": "HC Skoda Plzen",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612845,
+    "ourName": "Rogle BK",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "y0or5xbzvewmwzv",
+    "tsId": "y0or5xbzvewmwzv",
+    "tsName": "Rogle BK",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612867,
+    "ourName": "Dynamo Pardubice",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "l7oqd2b8vlor510",
+    "tsId": "l7oqd2b8vlor510",
+    "tsName": "Dynamo Pardubice",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612940,
+    "ourName": "GKS Tychy",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "1l4rj1bj82er7vx",
+    "tsId": "1l4rj1bj82er7vx",
+    "tsName": "GKS Tychy",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612787,
+    "ourName": "EC Graz 99Ers",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "zp5rzyb6n2yq82w",
+    "tsId": "zp5rzyb6n2yq82w",
+    "tsName": "EC Graz 99Ers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612899,
+    "ourName": "Fribourg Gotteron",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "965mknb2jzem1ge",
+    "tsId": "965mknb2jzem1ge",
+    "tsName": "Fribourg Gotteron",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612899,
+    "ourName": "Fribourg Gotteron",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "965mknb2jzem1ge",
+    "tsId": "965mknb2jzem1ge",
+    "tsName": "Fribourg Gotteron",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612794,
+    "ourName": "Klagenfurt",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "4jwq2lbz80kr0ve",
+    "tsId": "4jwq2lbz80kr0ve",
+    "tsName": "Klagenfurt",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612941,
+    "ourName": "Bordeaux",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "23xmv0bp7x4rg8n",
+    "tsId": "23xmv0bp7x4rg8n",
+    "tsName": "Bordeaux",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612770,
+    "ourName": "Red Bull Salzburg",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "8yomodbgwgpq0j6",
+    "tsId": "8yomodbgwgpq0j6",
+    "tsName": "Red Bull Salzburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612900,
+    "ourName": "Kolner Haie",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "2y8m43bw28vrl07",
+    "tsId": "2y8m43bw28vrl07",
+    "tsName": "Kolner Haie",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612834,
+    "ourName": "Nitra",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "1l4rj1bj84er7vx",
+    "tsId": "1l4rj1bj84er7vx",
+    "tsName": "Nitra",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612834,
+    "ourName": "Nitra",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "1l4rj1bj84er7vx",
+    "tsId": "1l4rj1bj84er7vx",
+    "tsName": "Nitra",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612791,
+    "ourName": "Skelleftea AIK",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "jw2r0ob6ex1rz84",
+    "tsId": "jw2r0ob6ex1rz84",
+    "tsName": "Skelleftea AIK",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612736,
+    "ourName": "Frolunda HC",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "k82reeb05yvrepz",
+    "tsId": "k82reeb05yvrepz",
+    "tsName": "Frolunda HC",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612884,
+    "ourName": "SaiPa Lappeenranta",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "l7oqd2bon0nr510",
+    "tsId": "l7oqd2bon0nr510",
+    "tsName": "SaiPa Lappeenranta",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612884,
+    "ourName": "SaiPa Lappeenranta",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "l7oqd2bon0nr510",
+    "tsId": "l7oqd2bon0nr510",
+    "tsName": "SaiPa Lappeenranta",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612942,
+    "ourName": "Herning Blue Fox",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "3glrwdb3xz5qdyj",
+    "tsId": "3glrwdb3xz5qdyj",
+    "tsName": "Herning Blue Fox",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612942,
+    "ourName": "Herning Blue Fox",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "3glrwdb3xz5qdyj",
+    "tsId": "3glrwdb3xz5qdyj",
+    "tsName": "Herning Blue Fox",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612943,
+    "ourName": "KooKoo",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "1l4rj1bj8x6r7vx",
+    "tsId": "1l4rj1bj8x6r7vx",
+    "tsName": "KooKoo",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612943,
+    "ourName": "KooKoo",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "1l4rj1bj8x6r7vx",
+    "tsId": "1l4rj1bj8x6r7vx",
+    "tsName": "KooKoo",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612911,
+    "ourName": "Adler Mannheim",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "3glrwdb3xy5qdyj",
+    "tsId": "3glrwdb3xy5qdyj",
+    "tsName": "Adler Mannheim",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612838,
+    "ourName": "Vaxjo Lakers",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "965mknb2j3pm1ge",
+    "tsId": "965mknb2j3pm1ge",
+    "tsName": "Vaxjo Lakers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612944,
+    "ourName": "Davos",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "y39mp9b0x91rojx",
+    "tsId": "y39mp9b0x91rojx",
+    "tsName": "Davos",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612944,
+    "ourName": "Davos",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "y39mp9b0x91rojx",
+    "tsId": "y39mp9b0x91rojx",
+    "tsName": "Davos",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612878,
+    "ourName": "Storhamar",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "vjxm87b5ngkr6od",
+    "tsId": "vjxm87b5ngkr6od",
+    "tsName": "Storhamar",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612945,
+    "ourName": "Geneva Servette",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "2y8m43bw21vrl07",
+    "tsId": "2y8m43bw21vrl07",
+    "tsName": "Geneva Servette",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612945,
+    "ourName": "Geneva Servette",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "2y8m43bw21vrl07",
+    "tsId": "2y8m43bw21vrl07",
+    "tsName": "Geneva Servette",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612946,
+    "ourName": "Eisbaren Berlin",
+    "ourLeague": "CHL_HOCKEY",
+    "ourExternalId": "x7lm78b3lw6q2wd",
+    "tsId": "x7lm78b3lw6q2wd",
+    "tsName": "Eisbaren Berlin",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612947,
+    "ourName": "Vitebsk",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "k82reeb0l25repz",
+    "tsId": "k82reeb0l25repz",
+    "tsName": "Vitebsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612856,
+    "ourName": "Mogilev",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "318q6wb6595mo9j",
+    "tsId": "318q6wb6595mo9j",
+    "tsName": "Mogilev",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612948,
+    "ourName": "Slavutych Smolensk",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "dn1m15b2vwpqoep",
+    "tsId": "dn1m15b2vwpqoep",
+    "tsName": "Slavutych Smolensk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612855,
+    "ourName": "Gomel",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "y0or5xbz7xdmwzv",
+    "tsId": "y0or5xbz7xdmwzv",
+    "tsName": "Gomel",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612949,
+    "ourName": "HC Lokomotiv Orsha",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "23xmv0bp7y2rg8n",
+    "tsId": "23xmv0bp7y2rg8n",
+    "tsName": "HC Lokomotiv Orsha",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612950,
+    "ourName": "Metallurg Zhlobin",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "n54ql0bpvevqvy9",
+    "tsId": "n54ql0bpvevqvy9",
+    "tsName": "Metallurg Zhlobin",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612858,
+    "ourName": "Brest",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "6ypq3vb7x9vrd7o",
+    "tsId": "6ypq3vb7x9vrd7o",
+    "tsName": "Brest",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612859,
+    "ourName": "Yunost",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "4wyrn9bojypm86p",
+    "tsId": "4wyrn9bojypm86p",
+    "tsName": "Yunost",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612857,
+    "ourName": "Aviator Baranovichi",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "n54ql0bpv56qvy9",
+    "tsId": "n54ql0bpv56qvy9",
+    "tsName": "Aviator Baranovichi",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612710,
+    "ourName": "Lida",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "k82reeb075krepz",
+    "tsId": "k82reeb075krepz",
+    "tsName": "Lida",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612750,
+    "ourName": "HC Shakhtyor Soligorsk",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "4wyrn9bojlym86p",
+    "tsId": "4wyrn9bojlym86p",
+    "tsName": "HC Shakhtyor Soligorsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612711,
+    "ourName": "Neman Grodno",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "jw2r0ob6e16rz84",
+    "tsId": "jw2r0ob6e16rz84",
+    "tsName": "Neman Grodno",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612951,
+    "ourName": "Khimik-Ska Novopolotsk ",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "y39mp9b02xgrojx",
+    "tsId": "y39mp9b02xgrojx",
+    "tsName": "Khimik-Ska Novopolotsk ",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612801,
+    "ourName": "HC Dinamo Molodechno",
+    "ourLeague": "BELARUS_SALEI_CUP",
+    "ourExternalId": "l5erg6blg3lq8k0",
+    "tsId": "l5erg6blg3lq8k0",
+    "tsName": "HC Dinamo Molodechno",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612814,
+    "ourName": "Jukurit",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "ednm95b2jvzryox",
+    "tsId": "ednm95b2jvzryox",
+    "tsName": "Jukurit",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612723,
+    "ourName": "HPK",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "4wyrn9bx8djm86p",
+    "tsId": "4wyrn9bx8djm86p",
+    "tsName": "HPK",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612783,
+    "ourName": "K-Espoo",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "x7lm78b3le3q2wd",
+    "tsId": "x7lm78b3le3q2wd",
+    "tsName": "K-Espoo",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612813,
+    "ourName": "KalPa Hockey",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "pxwrx0b5gjvryk0",
+    "tsId": "pxwrx0b5gjvryk0",
+    "tsName": "KalPa Hockey",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612722,
+    "ourName": "Lukko Rauma",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "jw2r0ob2lj4rz84",
+    "tsId": "jw2r0ob2lj4rz84",
+    "tsName": "Lukko Rauma",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612868,
+    "ourName": "Ilves Tampere",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "l5erg6blze8q8k0",
+    "tsId": "l5erg6blze8q8k0",
+    "tsName": "Ilves Tampere",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612759,
+    "ourName": "TPS Turku",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "dn1m15bp53kqoep",
+    "tsId": "dn1m15bp53kqoep",
+    "tsName": "TPS Turku",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612776,
+    "ourName": "Karpat Oulu",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "318q6wb6947mo9j",
+    "tsId": "318q6wb6947mo9j",
+    "tsName": "Karpat Oulu",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612760,
+    "ourName": "Assat",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "dj2ry0bewglq1zp",
+    "tsId": "dj2ry0bewglq1zp",
+    "tsName": "Assat",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612810,
+    "ourName": "Vaasan Sport",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "4jwq2lbz8xkr0ve",
+    "tsId": "4jwq2lbz8xkr0ve",
+    "tsName": "Vaasan Sport",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612761,
+    "ourName": "Jokerit Helsinki",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "4wyrn9boj42m86p",
+    "tsId": "4wyrn9boj42m86p",
+    "tsName": "Jokerit Helsinki",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612837,
+    "ourName": "Lahti Pelicans",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "l7oqd2b8v0or510",
+    "tsId": "l7oqd2b8v0or510",
+    "tsName": "Lahti Pelicans",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612811,
+    "ourName": "HIFK",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "l5erg6bwovgq8k0",
+    "tsId": "l5erg6bwovgq8k0",
+    "tsName": "HIFK",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612812,
+    "ourName": "JYP",
+    "ourLeague": "LIIGA",
+    "ourExternalId": "jw2r0ob6ej6rz84",
+    "tsId": "jw2r0ob6ej6rz84",
+    "tsName": "JYP",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612952,
+    "ourName": "Nomad Astana",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "8yomodbgdw0q0j6",
+    "tsId": "8yomodbgdw0q0j6",
+    "tsName": "Nomad Astana",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612820,
+    "ourName": "HC Aktobe",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "y0or5xbnx89mwzv",
+    "tsId": "y0or5xbnx89mwzv",
+    "tsName": "HC Aktobe",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612816,
+    "ourName": "HC Kulager Petropavlsk",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "2y8m43bwkk8rl07",
+    "tsId": "2y8m43bwkk8rl07",
+    "tsName": "HC Kulager Petropavlsk",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612953,
+    "ourName": "Gornyak Rudny",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "965mknb26jxm1ge",
+    "tsId": "965mknb26jxm1ge",
+    "tsName": "Gornyak Rudny",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612954,
+    "ourName": "Kazzinc-Torpedo",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "vjxm87bl489r6od",
+    "tsId": "vjxm87bl489r6od",
+    "tsName": "Kazzinc-Torpedo",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612955,
+    "ourName": "HK Arlan Kokschetau",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "23xmv0bpedjrg8n",
+    "tsId": "23xmv0bpedjrg8n",
+    "tsName": "HK Arlan Kokschetau",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612956,
+    "ourName": "Saryarka Karagandy",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "8yomodbgw17q0j6",
+    "tsId": "8yomodbgw17q0j6",
+    "tsName": "Saryarka Karagandy",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612957,
+    "ourName": "Yertis Pavlodar",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "pxwrx0bx6n9ryk0",
+    "tsId": "pxwrx0bx6n9ryk0",
+    "tsName": "Yertis Pavlodar",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612958,
+    "ourName": "HC Almaty",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "4wyrn9bog18m86p",
+    "tsId": "4wyrn9bog18m86p",
+    "tsName": "HC Almaty",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612959,
+    "ourName": "Beibarys Atyrau",
+    "ourLeague": "KAZAKHSTAN_CUP",
+    "ourExternalId": "1l4rj1bjvdpr7vx",
+    "tsId": "1l4rj1bjvdpr7vx",
+    "tsName": "Beibarys Atyrau",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612960,
+    "ourName": "Sonderjyske",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "x7lm78b3l96q2wd",
+    "tsId": "x7lm78b3l96q2wd",
+    "tsName": "Sonderjyske",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612961,
+    "ourName": "Odense",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "zp5rzyb6n1yq82w",
+    "tsId": "zp5rzyb6n1yq82w",
+    "tsName": "Odense",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612962,
+    "ourName": "Esbjerg",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "n54ql0bpljlqvy9",
+    "tsId": "n54ql0bpljlqvy9",
+    "tsName": "Esbjerg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612963,
+    "ourName": "Frederikshavn",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "1l4rj1bj8e6r7vx",
+    "tsId": "1l4rj1bj8e6r7vx",
+    "tsName": "Frederikshavn",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612964,
+    "ourName": "Aalborg Pirates",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "y0or5xbzvg2mwzv",
+    "tsId": "y0or5xbzvg2mwzv",
+    "tsName": "Aalborg Pirates",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612872,
+    "ourName": "Rungsted",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "l7oqd2b87z0r510",
+    "tsId": "l7oqd2b87z0r510",
+    "tsName": "Rungsted",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612902,
+    "ourName": "Rodovre",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "vjxm87b5npdr6od",
+    "tsId": "vjxm87b5npdr6od",
+    "tsName": "Rodovre",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612826,
+    "ourName": "Herlev",
+    "ourLeague": "DENMARK_METAL",
+    "ourExternalId": "23xmv0bpe47rg8n",
+    "tsId": "23xmv0bpe47rg8n",
+    "tsName": "Herlev",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612965,
+    "ourName": "Ajoie",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "3glrwdb3x3dqdyj",
+    "tsId": "3glrwdb3x3dqdyj",
+    "tsName": "Ajoie",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612897,
+    "ourName": "Ambri-Piotta",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "k82reeb0511repz",
+    "tsId": "k82reeb0511repz",
+    "tsName": "Ambri-Piotta",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612966,
+    "ourName": "EHC Biel-Bienne",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "6ypq3vb721prd7o",
+    "tsId": "6ypq3vb721prd7o",
+    "tsName": "EHC Biel-Bienne",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612840,
+    "ourName": "Rapperswil-Jona Lakers",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "318q6wb69k7mo9j",
+    "tsId": "318q6wb69k7mo9j",
+    "tsName": "Rapperswil-Jona Lakers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612839,
+    "ourName": "EHC Kloten",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "dn1m15bp51kqoep",
+    "tsId": "dn1m15bp51kqoep",
+    "tsName": "EHC Kloten",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612967,
+    "ourName": "HC Lugano",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "4jwq2lbz81kr0ve",
+    "tsId": "4jwq2lbz81kr0ve",
+    "tsName": "HC Lugano",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612877,
+    "ourName": "Tigers",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "l7oqd2b8v1or510",
+    "tsId": "l7oqd2b8v1or510",
+    "tsName": "Tigers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612968,
+    "ourName": "ZSC Lions",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "4wyrn9boj92m86p",
+    "tsId": "4wyrn9boj92m86p",
+    "tsName": "ZSC Lions",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612895,
+    "ourName": "Bern",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "dj2ry0bew2lq1zp",
+    "tsId": "dj2ry0bew2lq1zp",
+    "tsName": "Bern",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612898,
+    "ourName": "Lausanne",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "l5erg6blzp8q8k0",
+    "tsId": "l5erg6blzp8q8k0",
+    "tsName": "Lausanne",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612907,
+    "ourName": "Zug",
+    "ourLeague": "SWISS_NL",
+    "ourExternalId": "ednm95b2jezryox",
+    "tsId": "ednm95b2jezryox",
+    "tsName": "Zug",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612771,
+    "ourName": "HC Kosice",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "dn1m15bp5okqoep",
+    "tsId": "dn1m15bp5okqoep",
+    "tsName": "HC Kosice",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612827,
+    "ourName": "Presov 07",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "4wyrn9bxzkxm86p",
+    "tsId": "4wyrn9bxzkxm86p",
+    "tsName": "Presov 07",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612853,
+    "ourName": "HK Poprad",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "jw2r0ob6ep6rz84",
+    "tsId": "jw2r0ob6ep6rz84",
+    "tsName": "HK Poprad",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612888,
+    "ourName": "Spisska NV",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "l5erg6blz58q8k0",
+    "tsId": "l5erg6blz58q8k0",
+    "tsName": "Spisska NV",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612767,
+    "ourName": "Banska Bystrica",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "8yomodbgdp0q0j6",
+    "tsId": "8yomodbgdp0q0j6",
+    "tsName": "Banska Bystrica",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612729,
+    "ourName": "Zvolen",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "965mknb2jgem1ge",
+    "tsId": "965mknb2jgem1ge",
+    "tsName": "Zvolen",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612920,
+    "ourName": "Mhk 32 Liptovsky Mikulas",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "y39mp9b0xk1rojx",
+    "tsId": "y39mp9b0xk1rojx",
+    "tsName": "Mhk 32 Liptovsky Mikulas",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612921,
+    "ourName": "Michalovce",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "ednm95b23y7ryox",
+    "tsId": "ednm95b23y7ryox",
+    "tsName": "Michalovce",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612833,
+    "ourName": "Slovan Bratislava",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "k82reeb0581repz",
+    "tsId": "k82reeb0581repz",
+    "tsName": "Slovan Bratislava",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612762,
+    "ourName": "MSHK Zilina",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "318q6wb6977mo9j",
+    "tsId": "318q6wb6977mo9j",
+    "tsName": "MSHK Zilina",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612792,
+    "ourName": "HK Dukla Trencin",
+    "ourLeague": "SLOVAK_EXTRALIGA",
+    "ourExternalId": "l7oqd2b8veor510",
+    "tsId": "l7oqd2b8veor510",
+    "tsName": "HK Dukla Trencin",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612912,
+    "ourName": "HC Karlovy Vary",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "jw2r0ob6ew6rz84",
+    "tsId": "jw2r0ob6ew6rz84",
+    "tsName": "HC Karlovy Vary",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612766,
+    "ourName": "Ocelari Trinec",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "318q6wb69j7mo9j",
+    "tsId": "318q6wb69j7mo9j",
+    "tsName": "Ocelari Trinec",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612775,
+    "ourName": "HC Litvinov",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "4jwq2lbz87kr0ve",
+    "tsId": "4jwq2lbz87kr0ve",
+    "tsName": "HC Litvinov",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612882,
+    "ourName": "HC Kometa Brno",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "y0or5xbzvxwmwzv",
+    "tsId": "y0or5xbzvxwmwzv",
+    "tsName": "HC Kometa Brno",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612716,
+    "ourName": "Budejovice",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "3glrwdb3v80qdyj",
+    "tsId": "3glrwdb3v80qdyj",
+    "tsName": "Budejovice",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612718,
+    "ourName": "BK Mlada Boleslav",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "965mknb2jy8m1ge",
+    "tsId": "965mknb2jy8m1ge",
+    "tsName": "BK Mlada Boleslav",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612824,
+    "ourName": "Vitkovice Ridera",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "ednm95b2jgzryox",
+    "tsId": "ednm95b2jgzryox",
+    "tsName": "Vitkovice Ridera",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612879,
+    "ourName": "Rytiri Kladno",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "dn1m15bp58kqoep",
+    "tsId": "dn1m15bp58kqoep",
+    "tsName": "Rytiri Kladno",
+    "matchType": "diary"
   }
 ]

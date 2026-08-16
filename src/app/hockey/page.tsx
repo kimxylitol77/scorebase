@@ -82,7 +82,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.scorebase.kr/hockey" },
 };
 
-const HOCKEY = ["NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY"];
+const HOCKEY = [
+  "NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY",
+  "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",
+  "SLOVAK_EXTRALIGA", "DENMARK_METAL", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
+];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default async function HockeyHub() {
