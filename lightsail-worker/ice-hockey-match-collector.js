@@ -38,6 +38,9 @@ const COMP_TO_LEAGUE = {
   // ⚠️ AIHL utid 는 IIHF_WC 와 한 글자만 다르다 (x7e vs xge). 복사 시 반드시 대조할 것.
   "56ypq3vbx7erd7o": "AIHL", // 호주 (4~9월)
   "gpxwrx0bdx3ryk0": "NZIHL", // 뉴질랜드 (5~8월)
+  // 2026-08-16 클럽 친선 — 유럽 리그 프리시즌(8월). KHL·SHL·스위스NL·DEL 등 249팀.
+  // ⚠️ 핀란드 2부 메스티스 utid 는 `j1l4rj1bv39r7vx` 로 한 글자만 다르다 (v30 vs v39).
+  "j1l4rj1bv30r7vx": "HOCKEY_FRIENDLY",
 };
 
 // TheSports ice_hockey status_id — src/lib/sports/thesports/status-codes.ts 의
