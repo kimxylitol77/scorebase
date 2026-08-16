@@ -25056,5 +25056,59 @@
     "tsName": "SC Paderborn 07",
     "tsKo": "SC 파더본 07",
     "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 600118,
+    "ourName": "Araz",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "11238",
+    "tsId": "dj2ryohkpjdq1zp",
+    "tsName": "Araz Nakhchivan",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 600120,
+    "ourName": "Sabah FA",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "13976",
+    "tsId": "23xmvkhddk0qg8n",
+    "tsName": "Sabah Baku",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 600117,
+    "ourName": "Zira",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "648",
+    "tsId": "l5ergphokx6r8k0",
+    "tsName": "Zira FK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 600115,
+    "ourName": "Sumqayıt",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "5503",
+    "tsId": "gpxwrxlhk33ryk0",
+    "tsName": "Sumgayit FK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 600114,
+    "ourName": "Şamaxı FK",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "666",
+    "tsId": "n54qllh2z80qvy9",
+    "tsName": "Shamakhi FK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 600110,
+    "ourName": "Qabala",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "627",
+    "tsId": "y0or5jhlo3yqwzv",
+    "tsName": "FK Gilan Gabala",
+    "matchType": "ts-external-id"
   }
 ]
