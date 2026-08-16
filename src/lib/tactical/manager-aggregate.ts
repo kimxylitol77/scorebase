@@ -293,10 +293,32 @@ export async function aggregateTeamSeason(opts: {
     const n = normName(name);
     let hit = Object.values(coaches).find((c) => normName(c.name) === n);
     if (!hit) {
-      // af 표기 차이(Pep vs Josep 등) — 성 유일 일치 폴백
-      const last = n.split(" ").pop()!;
-      const byLast = Object.values(coaches).filter((c) => normName(c.name).split(" ").pop() === last);
-      if (byLast.length === 1) hit = byLast[0];
+      // 성 유일 일치 폴백 (af 표기 차이 흡수). 두 가지 방어가 반드시 같이 가야 한다 —
+      // 2026-08-16 오보: "Diego Pablo Simeone González"(시메오네 풀네임)의 **마지막 토큰이
+      // 모성(González)** 이라 에스파뇰의 "Manolo González" 를 유일 후보로 잡아, 아틀레티코
+      // 시즌 결산 글이 통째로 "마놀로 곤살레스"로 발행됐다.
+      //   ① 스페인식 복성 — 마지막 토큰뿐 아니라 끝에서 두 번째(부성)도 성 후보로 본다.
+      //   ② 이름 대조 — 후보의 이름(첫 토큰)이 입력에 없으면 동명이 아니므로 버린다.
+      //      확신이 없으면 한글을 짓지 않고 원문을 남기는 게 이 코드베이스의 원칙이다.
+      const tokens = n.split(" ").filter(Boolean);
+      const surnameCands = [tokens[tokens.length - 1], tokens[tokens.length - 2]].filter(Boolean);
+      for (const sur of surnameCands) {
+        const byLast = Object.values(coaches).filter((c) => {
+          const ct = normName(c.name).split(" ").filter(Boolean);
+          if (ct[ct.length - 1] !== sur) return false;
+          const first = ct[0];
+          if (!first) return true;
+          // 이름은 정확 일치까지 요구하면 애칭·축약이 죄다 탈락한다(Xabi↔Xabier, Hansi↔Hans).
+          // 3자 이상 접두 호환이면 같은 사람으로 본다 — Manolo↔Diego 같은 남은 무관 조합은 걸러진다.
+          return tokens.some(
+            (t) => t.length >= 3 && first.length >= 3 && (t.startsWith(first) || first.startsWith(t)),
+          );
+        });
+        if (byLast.length === 1) {
+          hit = byLast[0];
+          break;
+        }
+      }
     }
     if (hit?.nameKo) return hit.nameKo;
     const t = toKoreanPlayerName(name);
