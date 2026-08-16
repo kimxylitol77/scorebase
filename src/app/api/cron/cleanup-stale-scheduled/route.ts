@@ -20,6 +20,7 @@ import {
 } from "@/lib/sports/espn-basketball-verify";
 import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
+import { TS_COVERED_EXCEPTIONS } from "@/lib/sports/ts-covered-exceptions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -575,7 +576,11 @@ export async function GET(req: NextRequest) {
       "@/lib/sports/thesports/league-id-mapping.json"
     )) as { default: Array<{ code: string; tsSeasonId?: string }> };
     const tsCovered = new Set(tsLeagueMap.filter((e) => e.tsSeasonId).map((e) => e.code));
-    const staleLeagues = [...new Set(stale.map((m) => m.league))].filter((l) => tsCovered.has(l));
+    // 이미 예외 등록돼 af 수집이 살아있는 리그는 "등록 후보" 가 아니다 — SUI_CUP 처럼
+    // 등록 완료 리그가 stale 을 낼 때마다 같은 경고가 반복되던 오탐 차단 (2026-08-16).
+    const staleLeagues = [...new Set(stale.map((m) => m.league))].filter(
+      (l) => tsCovered.has(l) && !TS_COVERED_EXCEPTIONS.has(l as League),
+    );
     const gaps: string[] = [];
     for (const lg of staleLeagues) {
       const [total, tsMade] = await Promise.all([
