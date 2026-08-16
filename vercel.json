@@ -186,7 +186,7 @@
     },
     {
       "path": "/api/cron/gwak-drafts",
-      "schedule": "10 10,22 * * *"
+      "schedule": "10 4,10,22 * * *"
     },
     {
       "path": "/api/cron/cleanup-ghost",

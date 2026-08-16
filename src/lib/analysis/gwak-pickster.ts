@@ -308,8 +308,14 @@ async function writeDraft(candidate: DraftCandidate): Promise<{ title: string; c
   return { title, content };
 }
 
-/** 엄격 선별 → 곽씨 문체 초안 저장. 공개 발행은 관리자 승인 액션에서만 한다. */
-export async function runGwakDrafts(limit = 2): Promise<{ created: number; skipped: number; candidates: number; draftIds: number[] }> {
+interface CreateGwakPostsResult {
+  created: number;
+  skipped: number;
+  candidates: number;
+  postIds: number[];
+}
+
+async function createGwakPosts(limit: number, category: string): Promise<CreateGwakPostsResult> {
   const authorId = await ensureGwakPickster();
   const now = new Date();
   const todayCount = await prisma.post.count({
@@ -320,12 +326,12 @@ export async function runGwakDrafts(limit = 2): Promise<{ created: number; skipp
     },
   });
   const allowance = Math.max(0, Math.min(limit, DAILY_DRAFT_LIMIT - todayCount));
-  if (allowance === 0) return { created: 0, skipped: 0, candidates: 0, draftIds: [] };
+  if (allowance === 0) return { created: 0, skipped: 0, candidates: 0, postIds: [] };
 
   const candidates = await findCandidates(authorId, now);
   let created = 0;
   let skipped = 0;
-  const draftIds: number[] = [];
+  const postIds: number[] = [];
   for (const candidate of candidates.slice(0, allowance)) {
     try {
       const copy = await writeDraft(candidate);
@@ -336,7 +342,7 @@ export async function runGwakDrafts(limit = 2): Promise<{ created: number; skipp
       const post = await prisma.post.create({
         data: {
           authorId,
-          category: GWAK_DRAFT_CATEGORY,
+          category,
           title: copy.title,
           content: copy.content,
           sport: candidate.sport,
@@ -348,10 +354,65 @@ export async function runGwakDrafts(limit = 2): Promise<{ created: number; skipp
         select: { id: true },
       });
       created++;
-      draftIds.push(post.id);
+      postIds.push(post.id);
     } catch {
       skipped++;
     }
   }
-  return { created, skipped, candidates: candidates.length, draftIds };
+  return { created, skipped, candidates: candidates.length, postIds };
+}
+
+/** 관리자 수동 검수용 초안 생성. */
+export async function runGwakDrafts(limit = 2): Promise<{ created: number; skipped: number; candidates: number; draftIds: number[] }> {
+  const result = await createGwakPosts(limit, GWAK_DRAFT_CATEGORY);
+  return { ...result, draftIds: result.postIds };
+}
+
+/**
+ * 예약 자동 발행. 기존 검수 대기 초안이 있으면 그것부터 공개하고, 남는 수량만 새로 생성한다.
+ * cron 은 실행당 limit=1로 호출해 하루 세 번에 나눠 발행한다.
+ */
+export async function runGwakAutoPosts(limit = 1): Promise<{
+  published: number;
+  promoted: number;
+  created: number;
+  skipped: number;
+  candidates: number;
+  postIds: number[];
+}> {
+  const authorId = await ensureGwakPickster();
+  const now = new Date();
+  const readyDrafts = await prisma.post.findMany({
+    where: {
+      authorId,
+      category: GWAK_DRAFT_CATEGORY,
+      match: { is: { status: "SCHEDULED", startTime: { gt: now } } },
+    },
+    orderBy: { createdAt: "asc" },
+    take: limit,
+    select: { id: true },
+  });
+
+  const promotedIds: number[] = [];
+  for (const draft of readyDrafts) {
+    const promoted = await prisma.post.updateMany({
+      where: { id: draft.id, category: GWAK_DRAFT_CATEGORY },
+      data: { category: "ANALYSIS", createdAt: new Date() },
+    });
+    if (promoted.count === 1) promotedIds.push(draft.id);
+  }
+
+  const remaining = Math.max(0, limit - promotedIds.length);
+  const generated = remaining > 0
+    ? await createGwakPosts(remaining, "ANALYSIS")
+    : { created: 0, skipped: 0, candidates: 0, postIds: [] };
+  const postIds = [...promotedIds, ...generated.postIds];
+  return {
+    published: postIds.length,
+    promoted: promotedIds.length,
+    created: generated.created,
+    skipped: generated.skipped,
+    candidates: generated.candidates,
+    postIds,
+  };
 }
