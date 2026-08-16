@@ -2066,7 +2066,7 @@ const RAW: Record<string, string> = {
   "Dinamo Zagreb": "GNK 디나모 자그레브",
   "HNK Gorica": "고리차",
   "NK Lokomotiva Zagreb": "Lok. 자그레브",
-  "NK Osijek": "ZNK 오시예크",
+  "NK Osijek": "NK 오시예크",
   // ─── HUNGARY_NB1 (TheSports 보강 5) ───
   "Debreceni VSC": "데브레첸",
   "Ferencvarosi TC": "페렌츠바로시",
