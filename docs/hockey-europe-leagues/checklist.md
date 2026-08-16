@@ -29,10 +29,23 @@
 - [x] DB — Team 신규 32 · `Team.league` 라벨 갱신 68(HOCKEY_FRIENDLY → 정규리그) · TeamSourceId 132
 - [x] 매핑 JSON 두 사본 — 312 → 444행 (리그별 키라 (tsId, 리그) 쌍 중복 0)
 - [x] ice-hockey-match-collector.js — COMP_TO_LEAGUE 9건
-- [ ] tsc → commit → main push
-- [ ] Vultr — scp → chown → node --check → systemctl restart
-- [ ] 검증 — 워커 mapped teams 증가 · upserted > 0 · skippedNoTeam=0
-- [ ] 검증 — 실렌더로 /scores 하키 탭 + 상세 (순위·팀명 오적용 스캔 포함)
+- [x] tsc → commit(490af4a·490eeef) → main push
+- [x] Vultr — scp → chown → node --check → systemctl restart
+- [x] 검증 — 워커 `312 → 344 mapped teams`, 수집 172 → 212건, skippedNoTeam=0
+- [x] 검증 — /scores 하키 탭에 살레이컵·카자흐스탄컵 카드+칩 노출, 컵 상세 200 (리그순위·순위표 링크 없음)
+- [x] 검증 — 팀명 전수 스캔에서 오적용 2건 발견·수정 (오버라이드를 친선 한 리그에만 넣어 CHL·슬로바키아에서 재발)
+- [x] 후속 — Team.name 앞뒤 공백 1건 정리 (하키 344팀 전수 확인)
+- [x] 후속 — 하키 허브 메타·안내 문구를 새 리그 반영해 갱신
+
+## 지금 상태 (2026-08-16)
+
+매치가 들어오는 건 컵 2개(각 20건)뿐이고 정규리그 7개는 개막 전이라 0건이다.
+collector 가 ±5일 sweep 이라 **개막 5일 전부터 자동으로 채워진다** — 조치 불필요.
+
+- 리그 필터 칩은 매치 유무와 무관하게 전 리그를 나열하는 기존 동작이라, 9월까지 빈 칩이 보인다
+  (NHL·세계선수권도 비시즌에 같은 상태였다). 하키 칩이 14개로 길어진 건 그 결과.
+- 하키 허브의 리그 카드(LEAGUE_BLOCKS)에는 KHL 등을 아직 안 넣었다. 지금 넣으면
+  "순위 데이터 준비 중"만 뜬다 — 9월 데이터가 쌓인 뒤가 맞다.
 
 ## 제외 (의도)
 
