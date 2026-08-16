@@ -278,7 +278,11 @@ export const NATIONAL_TEAM_LEAGUES = new Set([
 
 // 순위 개념이 없는 대회 — 공식 순위표도, DB 자체 산출 폴백도 쓰면 안 된다.
 // 친선은 상대·경기 수가 제각각이라 자체 계산이 "90위 / 147팀" 같은 무의미한 서열을 만든다.
-export const NO_STANDINGS_LEAGUES = new Set(["HOCKEY_FRIENDLY"]);
+// 컵(녹아웃·조별)도 같다 — 자체 산출은 조 구분 없이 한 표로 합쳐 실제 대진과 어긋난다.
+// ⚠️ 정규리그는 넣지 않는다. 순위 개념은 있고 데이터가 아직 없을 뿐이라 시즌이 쌓이면 채워져야 한다.
+export const NO_STANDINGS_LEAGUES = new Set([
+  "HOCKEY_FRIENDLY", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
+]);
 
 // 축구 리그 집합 — SPORTS.soccer.leagues 단일 진실 (K리그·월드컵 등 전부 포함).
 export const SOCCER_LEAGUES = new Set(
