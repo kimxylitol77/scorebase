@@ -266,6 +266,104 @@
     "tsName": "Switzerland Women"
   },
   {
+    "ourId": 612675,
+    "ourName": "KB손해보험 스타즈",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "j1l4rjdhw6vr7vx",
+    "tsName": "KB손해보험 스타즈"
+  },
+  {
+    "ourId": 612678,
+    "ourName": "OK저축은행 읏맨",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "l965mkdhv5zr1ge",
+    "tsName": "OK저축은행 읏맨"
+  },
+  {
+    "ourId": 612673,
+    "ourName": "대한항공 점보스",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "gy0or58hyyerwzv",
+    "tsName": "대한항공 점보스"
+  },
+  {
+    "ourId": 612679,
+    "ourName": "삼성화재 블루팡스",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "gpxwrxdh4zlmyk0",
+    "tsName": "삼성화재 블루팡스"
+  },
+  {
+    "ourId": 612676,
+    "ourName": "우리카드 우리WON",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "l965mkdhjzkr1ge",
+    "tsName": "우리카드 우리WON"
+  },
+  {
+    "ourId": 612677,
+    "ourName": "한국전력 빅스톰",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "56ypq3xh9lvqd7o",
+    "tsName": "한국전력 빅스톰"
+  },
+  {
+    "ourId": 612674,
+    "ourName": "현대캐피탈 스카이워커스",
+    "ourLeague": "V_LEAGUE",
+    "tsId": "z318q67h9k3ro9j",
+    "tsName": "현대캐피탈 스카이워커스"
+  },
+  {
+    "ourId": 612682,
+    "ourName": "GS칼텍스 KIXX",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "kn54qldhgg8rvy9",
+    "tsName": "GS칼텍스 KIXX"
+  },
+  {
+    "ourId": 612684,
+    "ourName": "IBK기업은행 알토스",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "9k82redh51eqepz",
+    "tsName": "IBK기업은행 알토스"
+  },
+  {
+    "ourId": 612686,
+    "ourName": "정관장 레드스파크스",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "p3glrwjh8z9qdyj",
+    "tsName": "정관장 레드스파크스"
+  },
+  {
+    "ourId": 612685,
+    "ourName": "페퍼저축은행 AI페퍼스",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "n54qldh3k5orvy9",
+    "tsName": "페퍼저축은행 AI페퍼스"
+  },
+  {
+    "ourId": 612680,
+    "ourName": "한국도로공사 하이패스",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "e4wyrn3hj9nm86p",
+    "tsName": "한국도로공사 하이패스"
+  },
+  {
+    "ourId": 612681,
+    "ourName": "현대건설 힐스테이트",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "8y39mpwhx9dqojx",
+    "tsName": "현대건설 힐스테이트"
+  },
+  {
+    "ourId": 612683,
+    "ourName": "흥국생명 핑크스파이더스",
+    "ourLeague": "V_LEAGUE_W",
+    "tsId": "p3glrwjh808qdyj",
+    "tsName": "흥국생명 핑크스파이더스"
+  },
+  {
     "ourId": 608996,
     "ourName": "Argentina",
     "ourLeague": "VNL",

@@ -42,10 +42,19 @@ interface RawRow {
 
 export async function fetchVolleyballTable(league: string): Promise<VolleyballTableGroup[]> {
   const cache = await prisma.theSportsStandingsCache.findUnique({ where: { league } });
-  if (!cache) return fetchCalculatedTable(league);
-  if (Date.now() - cache.updatedAt.getTime() > STALE_AFTER_MS) return fetchCalculatedTable(league);
-  const payload = cache.payload as { tables?: Array<{ name?: string; rows?: RawRow[] }> } | null;
-  if (!payload || !Array.isArray(payload.tables)) return fetchCalculatedTable(league);
+  const cached = parseCachePayload(cache?.payload ?? null);
+  const fresh = cache != null && Date.now() - cache.updatedAt.getTime() <= STALE_AFTER_MS;
+  if (fresh && cached.length > 0) return cached;
+  const calc = await fetchCalculatedTable(league);
+  if (calc.length > 0) return calc;
+  // 시즌 종료 리그(V-리그 비시즌 등)는 poller 가 캐시를 안 돌려 stale 이지만,
+  // DB 매치도 없어 계산 폴백이 비면 마지막 공식 표를 그대로 유지한다.
+  return cached;
+}
+
+function parseCachePayload(raw: unknown): VolleyballTableGroup[] {
+  const payload = raw as { tables?: Array<{ name?: string; rows?: RawRow[] }> } | null;
+  if (!payload || !Array.isArray(payload.tables)) return [];
 
   const groups: VolleyballTableGroup[] = [];
   for (const t of payload.tables) {
@@ -69,7 +78,7 @@ export async function fetchVolleyballTable(league: string): Promise<VolleyballTa
       .sort((a, b) => a.position - b.position);
     if (rows.length > 0) groups.push({ name: t.name || "순위", rows });
   }
-  return groups.length > 0 ? groups : fetchCalculatedTable(league);
+  return groups;
 }
 
 async function fetchCalculatedTable(league: string): Promise<VolleyballTableGroup[]> {

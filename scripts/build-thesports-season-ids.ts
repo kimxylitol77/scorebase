@@ -23,9 +23,10 @@ const secret = env.THESPORTS_SECRET;
 if ((!user || !secret) && !env.THESPORTS_PROXY_URL) throw new Error("THESPORTS env missing");
 
 // 시즌 id 를 절대 채우지 않는 리그 — 자동 실행이 사람 결정을 되돌리지 못하게 스크립트에 박음.
-// J2_LEAGUE: tsSeasonId 가 붙으면 TS_COVERED 로 af 수집이 꺼짐(2026-08-08 결정, af 가 매치 소스).
 // CLUB_FRIENDLY: 친선은 시즌·순위 개념이 없음.
-const NO_SEASON_ID = new Set(["J2_LEAGUE", "CLUB_FRIENDLY"]);
+// J2_LEAGUE 는 2026-08-09 d957798 에서 TS_COVERED_EXCEPTIONS 등록으로 af 수집이 보호되면서
+// 여기서 제외 — 시즌 id 는 순위표·시즌 리더보드 전용이고 매치 소스는 여전히 af 다.
+const NO_SEASON_ID = new Set(["CLUB_FRIENDLY"]);
 
 interface LeagueMapping {
   code: string;
