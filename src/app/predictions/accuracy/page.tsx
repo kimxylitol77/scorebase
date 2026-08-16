@@ -22,6 +22,12 @@ import {
   type MarketRate,
   type LeagueStat,
 } from "@/lib/predict/accuracy-stats";
+import {
+  headToHeadStats,
+  flatUnitRoiStats,
+  type HeadToHeadStat,
+  type FlatUnitRoiStat,
+} from "@/lib/predict/model-vs-market";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 
@@ -221,11 +227,13 @@ async function reliabilitySeries(): Promise<{
 }
 
 export default async function AccuracyPage() {
-  const [stats, valueBet, accSeries, reliability] = await Promise.all([
+  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi] = await Promise.all([
     Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
     valueBetStats(),
     cumulativeAccuracySeries(),
     reliabilitySeries(),
+    headToHeadStats(),
+    flatUnitRoiStats(),
   ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
@@ -429,6 +437,14 @@ export default async function AccuracyPage() {
         </section>
       )}
 
+      {/* 모델 vs 시장 정면 비교 — 같은 표본에서 나란히 채점 */}
+      {headToHead && headToHead.evaluated >= 100 && (
+        <HeadToHeadSection data={headToHead} />
+      )}
+
+      {/* 플랫 유닛 ROI — 실배당(vig 포함) 후행 시뮬레이션 */}
+      {flatRoi && flatRoi.model.all.evaluated >= 100 && <FlatRoiSection data={flatRoi} />}
+
       {/* 리그별 카드 — 기간 × 시장 교차 필터 */}
       <section className="mb-10">
         <h2 className="text-lg font-semibold mb-1">리그별 · 시장별 적중률</h2>
@@ -478,6 +494,18 @@ export default async function AccuracyPage() {
             적중률.
           </li>
           <li>
+            <strong>모델 vs 시장 정면 비교</strong> = 모델 확률과 시장 implied
+            확률이 둘 다 저장된 경기에서, 각각 가장 높은 확률 쪽을 픽으로 보고
+            동일 표본을 나란히 채점. 시장 확률은 베팅사이트 평균 배당에서 마진을
+            제거한 값입니다.
+          </li>
+          <li>
+            <strong>플랫 유닛 수익률</strong> = 경기 시작 전 마지막 배당
+            스냅샷(북메이커 평균, 마진 포함)에 모델 픽으로 1유닛씩 건 후행
+            시뮬레이션. 이상 배당(1.01 미만·30 초과)은 표본에서 제외하며, 매 경기
+            최저 배당에 거는 시장 favorite 전략을 기준선으로 함께 계산합니다.
+          </li>
+          <li>
             <strong>최근 7·14·30일 롤링</strong> = 경기 시작 시간이 해당 기간에
             드는 채점 완료 경기 기준 (당일 경기는 채점 전이라 제외될 수 있음).
             전 리그 합산 카드는 1X2 기준이며, 표본 {ROLLING_MIN_SAMPLE}건 미만은
@@ -505,6 +533,173 @@ export default async function AccuracyPage() {
         </Link>
       </p>
     </main>
+  );
+}
+
+// 정면 비교 리그 행 최소 표본 — 미만은 노이즈라 표에서 제외
+const H2H_LEAGUE_MIN = 30;
+// ROI 리그 행 최소 표본
+const ROI_LEAGUE_MIN = 100;
+
+function HeadToHeadSection({ data }: { data: HeadToHeadStat }) {
+  const modelRate = data.modelCorrect / data.evaluated;
+  const marketRate = data.marketCorrect / data.evaluated;
+  const diff = modelRate - marketRate;
+  const rows = data.leagues.filter((l) => l.evaluated >= H2H_LEAGUE_MIN);
+  const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
+  const DiffBadge = ({ d }: { d: number }) => (
+    <span
+      className={`font-bold tabular-nums ${
+        d > 0.001
+          ? "text-emerald-600 dark:text-emerald-400"
+          : d < -0.001
+            ? "text-rose-600 dark:text-rose-400"
+            : "text-neutral-500"
+      }`}
+    >
+      {d > 0 ? "+" : ""}
+      {(d * 100).toFixed(1)}%p
+    </span>
+  );
+  return (
+    <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
+      <h2 className="text-lg font-semibold mb-1">모델 vs 베팅시장 — 같은 경기 정면 비교</h2>
+      <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+        베팅시장은 세계에서 가장 정확한 예측기입니다. 모델과 시장 확률이 둘 다 있는{" "}
+        {data.evaluated.toLocaleString()}경기에서 각각의 픽을 나란히 채점했습니다 —
+        시장이 이기는 리그도 숨기지 않고 그대로 공개합니다.
+      </p>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500 mb-1">스코어베이스 모델</p>
+          <div className="text-3xl font-bold tabular-nums bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            {pct(modelRate)}
+          </div>
+          <p className="text-[11px] text-neutral-500 tabular-nums mt-1">
+            {data.modelCorrect.toLocaleString()} / {data.evaluated.toLocaleString()} 적중
+          </p>
+        </div>
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500 mb-1">베팅시장 (implied favorite)</p>
+          <div className="text-3xl font-bold tabular-nums text-neutral-700 dark:text-neutral-200">
+            {pct(marketRate)}
+          </div>
+          <p className="text-[11px] text-neutral-500 tabular-nums mt-1">
+            {data.marketCorrect.toLocaleString()} / {data.evaluated.toLocaleString()} 적중 ·
+            모델 격차 <DiffBadge d={diff} />
+          </p>
+        </div>
+      </div>
+      {data.disagree >= H2H_LEAGUE_MIN && (
+        <p className="mb-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-200/60 dark:ring-amber-800/40 px-4 py-3 text-xs text-neutral-700 dark:text-neutral-300 break-keep">
+          모델이 시장과 <strong>다른 편에 선 {data.disagree.toLocaleString()}경기</strong>에선
+          모델 {(data.disagreeModelCorrect / data.disagree * 100).toFixed(1)}% vs 시장{" "}
+          {(data.disagreeMarketCorrect / data.disagree * 100).toFixed(1)}% 였습니다.
+          시장과 갈라설 때는 아직 시장이 더 자주 옳습니다 — 이 수치가 역전되는 리그부터
+          모델의 진짜 엣지입니다.
+        </p>
+      )}
+      {rows.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[11px] uppercase tracking-wider text-neutral-500">
+                <th className="py-2 pr-3 font-semibold">리그</th>
+                <th className="py-2 pr-3 font-semibold text-right">표본</th>
+                <th className="py-2 pr-3 font-semibold text-right">모델</th>
+                <th className="py-2 pr-3 font-semibold text-right">시장</th>
+                <th className="py-2 font-semibold text-right">격차</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {rows.map((l) => (
+                <tr key={l.league}>
+                  <td className="py-2 pr-3 font-medium">{LEAGUE_NAME[l.league] ?? l.league}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-neutral-500">
+                    {l.evaluated.toLocaleString()}
+                  </td>
+                  <td className="py-2 pr-3 text-right tabular-nums">
+                    {pct(l.modelCorrect / l.evaluated)}
+                  </td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-neutral-500">
+                    {pct(l.marketCorrect / l.evaluated)}
+                  </td>
+                  <td className="py-2 text-right">
+                    <DiffBadge d={l.modelCorrect / l.evaluated - l.marketCorrect / l.evaluated} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FlatRoiSection({ data }: { data: FlatUnitRoiStat }) {
+  const rows = data.leagues.filter((l) => l.evaluated >= ROI_LEAGUE_MIN);
+  const edge = data.model.all.roi - data.marketFav.all.roi;
+  const roiPct = (r: number) => `${r > 0 ? "+" : ""}${(r * 100).toFixed(1)}%`;
+  const unitsFmt = (u: number) => `${u > 0 ? "+" : ""}${u.toFixed(1)}u`;
+  const RoiCard = ({ label, sub, w }: { label: string; sub: string; w: { evaluated: number; wins: number; units: number; roi: number } }) => (
+    <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p className="text-[10px] text-neutral-400 mt-0.5 mb-2">{sub}</p>
+      <div
+        className={`text-2xl font-bold tabular-nums ${
+          w.roi >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"
+        }`}
+      >
+        {roiPct(w.roi)}
+      </div>
+      <p className="text-[11px] text-neutral-500 tabular-nums mt-1">
+        {unitsFmt(w.units)} · {w.wins.toLocaleString()}승 / {w.evaluated.toLocaleString()}경기
+      </p>
+    </div>
+  );
+  return (
+    <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
+      <h2 className="text-lg font-semibold mb-1">플랫 유닛 수익률 — 실배당 시뮬레이션</h2>
+      <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+        경기 시작 전 마지막 북메이커 평균 배당에 모델의 1X2 픽으로 매 경기 1유닛을
+        걸었다면 어땠을지를 후행 계산한 값입니다. 실제 배당에는 북메이커 마진(약 5%)이
+        포함되므로 <strong>장기 수익률은 마이너스가 정상 기대치</strong>이며, 비교
+        기준선(매 경기 시장 favorite 베팅) 대비 얼마나 덜 잃는지가 모델 신호의 크기입니다.
+        &ldquo;AI 픽으로 수익&rdquo;을 주장하는 서비스를 검증할 때 이 기준선을 쓰세요.
+      </p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+        <RoiCard label="모델 픽 · 전체" sub="1경기 1유닛" w={data.model.all} />
+        <RoiCard label="모델 픽 · 최근 30일" sub="1경기 1유닛" w={data.model.d30} />
+        <RoiCard label="시장 favorite · 전체" sub="기준선 (최저 배당 베팅)" w={data.marketFav.all} />
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500">모델 − 기준선</p>
+          <p className="text-[10px] text-neutral-400 mt-0.5 mb-2">덜 잃는 정도 = 신호 크기</p>
+          <div
+            className={`text-2xl font-bold tabular-nums ${
+              edge > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            {edge > 0 ? "+" : ""}
+            {(edge * 100).toFixed(1)}%p
+          </div>
+          <p className="text-[11px] text-neutral-500 mt-1">동일 표본 · 동일 배당 기준</p>
+        </div>
+      </div>
+      {rows.length > 0 && (
+        <p className="text-[11px] text-neutral-500 break-keep">
+          리그 구성 (표본 {ROI_LEAGUE_MIN}경기 이상):{" "}
+          {rows
+            .map(
+              (l) =>
+                `${LEAGUE_NAME[l.league] ?? l.league} ${l.evaluated.toLocaleString()}경기 ${roiPct(l.roi)}`,
+            )
+            .join(" · ")}
+          . 배당 수집이 야구 중심이라 표본이 야구에 치우쳐 있으며, 축구·농구 표본은
+          쌓이는 대로 함께 공개합니다.
+        </p>
+      )}
+    </section>
   );
 }
 
