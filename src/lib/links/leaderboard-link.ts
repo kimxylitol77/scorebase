@@ -28,6 +28,19 @@ export const isTsPlayerId = (id: string) => !/^\d+$/.test(id);
  * 저장된다. ts id 의 정본 페이지는 /transfers 통합 선수 페이지 → 리그 화이트리스트가 아니라
  * id 모양으로 판정해야 리그를 늘릴 때마다 링크가 조용히 끊기지 않는다.
  */
+/**
+ * 이 리그에 선수 상세 페이지가 존재하는가 — externalId 가 채워져 있어도 갈 곳이 없으면 false.
+ *
+ * KBL·WKBL·V-리그는 리더보드만 있고 선수 페이지가 없어(선수 DB 미수집) 어떤 id 를 넣어도
+ * 링크가 안 걸린다. 감시가 이걸 "링크 결손"으로 올리면 고칠 수 없는 알림이 매일 뜬다 —
+ * 결손이 아니라 미구현이므로 검사 대상에서 뺀다(선수 페이지가 생기면 자동으로 다시 대상).
+ */
+export function hasPlayerPage(league: string, isSoccerLeague: boolean): boolean {
+  if (TRANSFERS_LEADER_LEAGUES.has(league)) return true;
+  if (isSoccerLeague) return true; // ts id → /transfers, af id → /players 로 갈 수 있다
+  return PLAYER_PAGE_LEAGUES.has(league);
+}
+
 export function leaderPlayerHref(
   league: string,
   externalId: string | null,

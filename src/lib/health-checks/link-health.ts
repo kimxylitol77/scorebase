@@ -11,7 +11,7 @@
 import { prisma } from "@/lib/db";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
-import { leaderPlayerHref } from "@/lib/links/leaderboard-link";
+import { hasPlayerPage, leaderPlayerHref } from "@/lib/links/leaderboard-link";
 import type { HealthFinding } from "./types";
 
 // 표본이 얕은 리그에서 1건이 12.5% 로 튀어 매일 우는 걸 막는다 — 비율과 절대 건수를 동시에 넘겨야 알림.
@@ -89,6 +89,9 @@ async function checkPlayerLinks(): Promise<HealthFinding[]> {
     // 비시즌은 표가 통째로 빈다 — 정상이므로 검사 대상에서 뺀다.
     if (rows.length < MIN_ROWS) continue;
     const isSoccer = SOCCER_LEAGUES.has(league);
+    // 선수 페이지가 아예 없는 종목은 "끊긴" 게 아니라 만들지 않은 것 — 고칠 수 없는 알림이
+    // 매일 뜨면 알림 자체를 끄게 된다(bot-monitoring-gap). 페이지가 생기면 자동 복귀한다.
+    if (!hasPlayerPage(league, isSoccer)) continue;
 
     // 화면과 같은 판정 함수로 실제 href 를 계산한다. externalId 유무만 보면
     // "id 는 있는데 링크가 안 걸린" K리그 사건 유형을 그대로 놓친다(재현 테스트로 확인).

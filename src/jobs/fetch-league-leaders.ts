@@ -236,8 +236,10 @@ const TS_PLAYER_STAT_LEAGUES = new Set([
   "BRASILEIRAO_2",
 ]);
 
-/** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌. */
-function currentSoccerSeason(league: string): { season: number; label: string } {
+/** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌.
+ *  health-checks 의 season-label 검사가 이 함수를 정본으로 import 한다 — 분류를 여기서만
+ *  바꾸면 검사가 따라온다(두 벌로 두었더니 J리그 추춘제·UEFA 컵 7월 전환에서 어긋나 오탐). */
+export function currentSoccerSeason(league: string): { season: number; label: string } {
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;

@@ -9,6 +9,9 @@ import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { checkLinkHealth } from "./link-health";
 // 채점 제외 기준은 evaluate 잡이 단일 출처 — 여기서 따로 정의하면 두 벌이 어긋난다.
 import { MIN_PRIOR } from "@/jobs/evaluate-predictions";
+// 축구 리더보드의 시즌 라벨도 같은 이유로 적재 잡이 단일 출처.
+import { currentSoccerSeason } from "@/jobs/fetch-league-leaders";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 
 // ──────────────────────────────────────────────────────────────
 // 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
@@ -60,6 +63,21 @@ function expectedSeasonForLeague(league: string, now: Date): string[] {
   }
 }
 
+/**
+ * 검사가 인정하는 시즌 라벨 — 위 달력 공식에 **적재 잡의 분류**를 더한다.
+ *
+ * 라벨을 실제로 찍는 쪽은 fetch-league-leaders 다. 검사가 제 공식만 고집하면 잡이 시즌
+ * 분류를 바꿀 때마다 오탐이 뜬다 (2026-08-16 실측: J1·J2 추춘제 전환으로 "2026-27",
+ * UEFA 컵 전환월 9월→7월로 "2026-27" — 5건이 매일 HIGH 로 올라왔다. 둘 다 잡이 맞았다).
+ * 잡 기준을 후보에 더하는 방식이라, 어느 쪽으로도 설명되지 않는 라벨은 그대로 잡힌다.
+ */
+function expectedSeasons(league: string, now: Date): string[] {
+  const base = expectedSeasonForLeague(league, now);
+  if (!SOCCER_LEAGUES.has(league)) return base;
+  const fromJob = currentSoccerSeason(league).label;
+  return base.includes(fromJob) ? base : [...base, fromJob];
+}
+
 async function checkSeasonLabels(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const distinct = await prisma.leagueLeader.groupBy({
@@ -92,7 +110,7 @@ async function checkSeasonLabels(now: Date): Promise<HealthFinding[]> {
   );
 
   for (const [league, season] of byLeague) {
-    const expected = expectedSeasonForLeague(league, now);
+    const expected = expectedSeasons(league, now);
     if (expected.includes(season)) continue;
     if (!recentlyPlayed.has(league)) continue; // 개막 전·비시즌 — 지난 시즌 표기가 정상
     out.push({
@@ -310,7 +328,7 @@ function teamNameMatchesValid(name: string, validNames: Set<string>): boolean {
   return false;
 }
 
-async function checkLeaderboardLeagueConsistency(): Promise<HealthFinding[]> {
+async function checkLeaderboardLeagueConsistency(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const leaders = await prisma.leagueLeader.findMany({
     select: { league: true, teamName: true, playerName: true, rank: true, category: true, season: true },
@@ -340,6 +358,11 @@ async function checkLeaderboardLeagueConsistency(): Promise<HealthFinding[]> {
   for (const r of leaders) {
     if (CONTINENTAL_CUP_LEAGUES.has(r.league)) continue;
     if (r.season !== latestSeasonByLeague.get(r.league)) continue;
+    // 유효 팀 목록은 Team.league = **현재** 소속인데 리더보드는 시즌 기록이다. 지난 시즌 표를
+    // 현재 소속과 맞대면 승격·강등팀이 통째로 "외부 리그"로 잡힌다 (2026-08-16: 세리에A 표의
+    // 베로나·피사가 Team.league=SERIE_B 라 MED 로 올라왔다 — 강등됐을 뿐 기록은 맞다).
+    // 현 시즌 표만 검사한다. 현 시즌에 섞여 들어온 진짜 오적재는 그대로 잡힌다.
+    if (!expectedSeasons(r.league, now).includes(r.season)) continue;
     const validNames = byLeague.get(r.league);
     if (!validNames || validNames.size === 0) continue;
     // 양방향 시도: 원문 teamName + 한국어 변환
@@ -1004,7 +1027,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "season-labels", fn: checkSeasonLabels },
   { name: "match-counts", fn: checkMatchCounts },
   { name: "scheduled-freshness", fn: checkScheduledFreshness },
-  { name: "leaderboard-consistency", fn: async () => checkLeaderboardLeagueConsistency() },
+  { name: "leaderboard-consistency", fn: checkLeaderboardLeagueConsistency },
   { name: "player-name-missing", fn: checkPlayerNameMissingRate },
   { name: "team-name-missing", fn: checkTeamNameMissingRate },
   { name: "accuracy", fn: async () => checkAccuracy() },
