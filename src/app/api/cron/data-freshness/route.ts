@@ -24,6 +24,8 @@ import rawCoaches from "../../../../../data/team-coaches.json";
 import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
 import rawNonSoccerCoaches from "../../../../../data/nonsoccer-coaches.json";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { fetchSoccerByDate } from "@/lib/sports/live-scores";
+import { buildOrphanDedup } from "@/lib/sports/orphan-dedup";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -47,6 +49,11 @@ const STANDINGS_ALERT_COUNT = 3;
 // 감독 — 2026-08-15 실측: 대상 174팀 전원 보유(결손 0) · 스냅샷 323팀 · 한글명 323/323.
 // 결손 5는 감독 교체기에 ts coach_id 가 잠깐 비는 폭(2026-06 실측 빅5 14팀은 af 폴백이 메운다)
 // 위로 잡되, 사고급 유실은 놓치지 않는 선. 하한 300 은 8/15 사고 당시 273 을 걸러낸다.
+// orphan 카드 중복 — af 날짜조회가 부분 응답이면 리그가 통째로 빠져 "중복 없음"으로 보인다.
+// 2026-08-16 실측: 정상 300건대(8/16 312·8/22 300·8/23 299), 분당 한도에 걸린 응답은 167건.
+// 주말·평일 편차가 크므로(8/18 63·8/19 67) 하한은 낮게 잡아 평일을 죽이지 않되, 반토막 난
+// 부분 응답만 걸러낸다. 이 축은 "안 울리면 정상"이 아니라 "판정을 건너뛰었는지"를 함께 본다.
+const ORPHAN_MIN_AF = 40;
 const COACH_MISSING_ALERT = 5;
 const COACH_ENTRY_FLOOR = 300;
 const COACH_NO_KO_ALERT = 10;
@@ -224,6 +231,109 @@ async function checkStandings(now: Date, findings: Finding[]) {
  */
 const DUP_PAIR_GAP_MS = 12 * 3600 * 1000;
 const DUP_BASEBALL_EXEMPT = new Set(["KBO", "NPB", "MLB", "CPBL", "LMB", "KBO_FUTURES", "NPB_MINOR", "WBC", "CARIBBEAN_SERIES"]);
+
+/**
+ * /scores 카드 중복 사각지대 — af 날짜조회 orphan 이 DB 매치와 같은 경기인데 이름이 양쪽 다
+ * 어긋나 판정을 통과하는 유형. 화면엔 카드가 두 장 뜨는데 어디에도 에러가 없어 사람 눈에만 걸린다
+ * (2026-08-16 중국 리그투를 사용자가 발견 — 6경기가 8장으로).
+ *
+ * 판정은 이름을 보지 않는다 — af 경기 수가 DB 보다 많지 않은데 orphan 이 남는 리그를 수량으로
+ * 잡으므로 표기가 아무리 갈려도 걸린다. 그 리그의 af 경기는 원래 전부 DB 에 있어야 하기 때문.
+ * (af > DB 인 리그는 DB 미적재 군소·친선이 섞여 정상 orphan 이 많다 — 대상에서 뺀다.)
+ */
+async function checkOrphanCardDups(now: Date, findings: Finding[]) {
+  const dateStr = new Date(now.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
+  const dated = await fetchSoccerByDate(dateStr);
+  // af 총건수가 평소보다 급감했으면 분당 한도에 걸려 리그가 통째로 빠진 것 — 그 결과로 판정하면
+  // "중복 없음"으로 잘못 읽힌다(실측: 312건 → 167건). 판정을 건너뛰는 게 오탐보다 낫다.
+  if (dated.length < ORPHAN_MIN_AF) {
+    return { skipped: `af 응답 ${dated.length}건 — 부분 응답 의심, 판정 생략` };
+  }
+  const dayStartMs = new Date(`${dateStr}T00:00:00+09:00`).getTime();
+  const matches = await prisma.match.findMany({
+    where: {
+      startTime: { gte: new Date(dayStartMs), lt: new Date(dayStartMs + 86400_000) },
+    },
+    select: {
+      league: true, startTime: true, homeTeamId: true, awayTeamId: true, apiFixtureId: true,
+      homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+    },
+  });
+  const afExtIds = [
+    ...new Set(dated.flatMap((d) => [d.homeTeamExtId, d.awayTeamExtId]).filter(Boolean) as string[]),
+  ];
+  const afTeamIdMap = new Map<string, Set<number>>();
+  if (afExtIds.length) {
+    const rows = await prisma.teamSourceId.findMany({
+      where: { source: "api-football", externalId: { in: afExtIds } },
+      select: { externalId: true, teamId: true },
+    });
+    for (const r of rows) {
+      const s = afTeamIdMap.get(r.externalId) ?? new Set<number>();
+      s.add(r.teamId);
+      afTeamIdMap.set(r.externalId, s);
+    }
+  }
+  const nearby = await prisma.match.findMany({
+    where: {
+      startTime: { gte: new Date(dayStartMs - 2 * 86400_000), lte: new Date(dayStartMs + 3 * 86400_000) },
+    },
+    select: { league: true, homeTeamId: true, awayTeamId: true },
+  });
+  const dedup = buildOrphanDedup(
+    matches.map((m) => ({
+      league: m.league,
+      startTime: m.startTime,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      homeName: m.homeTeam.name,
+      awayName: m.awayTeam.name,
+      apiFixtureId: m.apiFixtureId,
+    })),
+    dated,
+    afTeamIdMap,
+    new Set(nearby.map((m) => `${m.league}|${m.homeTeamId}|${m.awayTeamId}`)),
+  );
+
+  const per = new Map<string, { af: number; db: number; orphan: number }>();
+  for (const d of dated) {
+    const e = per.get(d.league) ?? { af: 0, db: 0, orphan: 0 };
+    e.af++;
+    if (!dedup.isCovered(d)) e.orphan++;
+    per.set(d.league, e);
+  }
+  for (const m of matches) {
+    const e = per.get(m.league) ?? { af: 0, db: 0, orphan: 0 };
+    e.db++;
+    per.set(m.league, e);
+  }
+  const blind = [...per.entries()]
+    .filter(([, v]) => v.af > 0 && v.db > 0 && v.orphan > 0 && v.af <= v.db)
+    .sort((a, b) => b[1].orphan - a[1].orphan);
+
+  if (blind.length) {
+    // 양팀 af id 가 이미 우리 Team 에 물려 있으면 이름 문제가 아니다 — 처방이 갈리므로 구분해 알린다.
+    const mappedOnly = blind.every(([lg]) =>
+      dated
+        .filter((d) => d.league === lg && !dedup.isCovered(d))
+        .every(
+          (d) =>
+            (d.homeTeamExtId ? afTeamIdMap.has(d.homeTeamExtId) : false) &&
+            (d.awayTeamExtId ? afTeamIdMap.has(d.awayTeamExtId) : false),
+        ),
+    );
+    findings.push({
+      kind: "orphan_card_dup",
+      detail:
+        `/scores 카드 중복 의심 — ${blind.length}개 리그에서 af 경기가 DB 보다 많지 않은데 보강 카드가 남았습니다` +
+        (mappedOnly
+          ? " (양팀 af 매핑 있음 → 이름이 아니라 킥오프 날짜 불일치 의심)"
+          : " (팀 이름이 양쪽 다 어긋나는 유형 → af 팀 id 매핑 필요)"),
+      samples: blind.slice(0, 6).map(([lg, v]) => `${lg} af${v.af}/DB${v.db} 잔여${v.orphan}`),
+    });
+  }
+  return { checked: dated.length, blindLeagues: blind.length };
+}
 
 async function checkRescheduleDups(now: Date, findings: Finding[]) {
   const ms = await prisma.match.findMany({
@@ -506,6 +616,7 @@ export async function GET(req: Request) {
     standings: await run("standings", () => checkStandings(now, findings)),
     lolLeaders: await run("lolLeaders", () => checkLolLeaders(now, findings)),
     rescheduleDups: await run("rescheduleDups", () => checkRescheduleDups(now, findings)),
+    orphanCardDups: await run("orphanCardDups", () => checkOrphanCardDups(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
     coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
