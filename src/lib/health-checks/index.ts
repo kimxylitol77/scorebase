@@ -1045,6 +1045,17 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "link-health", fn: checkLinkHealth },
 ];
 
+/**
+ * 체크 1개만 재실행 — 자가치유(self-heal.ts)의 판정 단계 전용.
+ * 치유 액션 후 "같은 탐지기"를 다시 돌려 finding 소멸을 확인해야
+ * 판정 기준이 탐지와 항상 일치한다(별도 검증 로직을 두면 둘이 어긋난다).
+ */
+export async function runSingleHealthCheck(name: string): Promise<HealthFinding[]> {
+  const c = CHECKS.find((x) => x.name === name);
+  if (!c) throw new Error(`unknown health check: ${name}`);
+  return c.fn(new Date());
+}
+
 export async function runHealthChecks(): Promise<HealthFinding[]> {
   const now = new Date();
   const all: HealthFinding[] = [];

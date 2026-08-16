@@ -6,11 +6,12 @@ import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runHealthChecks } from "@/lib/health-checks";
 import { runAiReview } from "@/lib/health-checks/ai-review";
+import { runSelfHeal, healAnnotation, healKey } from "@/lib/health-checks/self-heal";
 import { sendTelegram } from "@/lib/notify/telegram";
 
 export const dynamic = "force-dynamic";
-// 19개 rule 체크 + (월요일) AI 페이지 5개 검토 (OpenAI 5회 호출 ~10초) — 90초로 늘림.
-export const maxDuration = 90;
+// 19개 rule 체크 + (월요일) AI 검토 + 자가치유(최대 2건 × 25s 액션 + 재검증) — 90→180초.
+export const maxDuration = 180;
 
 const SEVERITY_EMOJI: Record<string, string> = {
   HIGH: "🚨",
@@ -65,9 +66,16 @@ export async function GET(req: Request) {
     });
   }
 
-  // HIGH / MED 카운트
-  const high = findings.filter((f) => f.severity === "HIGH");
-  const med = findings.filter((f) => f.severity === "MED");
+  // ── 자가치유 루프 — 치유법이 등록된 HIGH/MED finding 은 멱등 cron 재실행으로 자동 치유
+  //    시도 후 같은 탐지기로 재검증한다. 실패·상한 도달분만 사람에게 간다 (self-heal.ts).
+  const healReport = await runSelfHeal(findings).catch(() => new Map());
+  const isHealed = (f: { category: string; key: string }) =>
+    healReport.get(healKey(f))?.kind === "healed";
+  const healedCount = [...healReport.values()].filter((o) => o.kind === "healed").length;
+
+  // HIGH / MED 카운트 — 치유 완료분은 알림 대상에서 제외 (DB 기록은 위에서 이미 남았다)
+  const high = findings.filter((f) => f.severity === "HIGH" && !isHealed(f));
+  const med = findings.filter((f) => f.severity === "MED" && !isHealed(f));
   const low = findings.filter((f) => f.severity === "LOW");
 
   // 텔레그램 발송 — HIGH 가 있으면 무조건, MED 만 있으면 매주 월요일에만, 둘 다 없으면 skip.
@@ -77,13 +85,16 @@ export async function GET(req: Request) {
   if (shouldNotify) {
     const lines: string[] = [];
     lines.push(`*Scorebase Health* — ${now.toISOString().slice(0, 10)}`);
-    lines.push(`🚨 HIGH ${high.length} · ⚠️ MED ${med.length} · ℹ️ LOW ${low.length}`);
+    lines.push(
+      `🚨 HIGH ${high.length} · ⚠️ MED ${med.length} · ℹ️ LOW ${low.length}` +
+        (healedCount > 0 ? ` · 🩹 자가치유 ${healedCount}` : ""),
+    );
     lines.push("");
     for (const f of [...high, ...med].slice(0, 15)) {
       const e = SEVERITY_EMOJI[f.severity] ?? "•";
       // Markdown 특수문자 가벼운 이스케이프 (`*` `_` 만)
       const msg = f.message.replace(/[*_`]/g, "\\$&");
-      lines.push(`${e} *${f.category}* / ${f.key}\n${msg}`);
+      lines.push(`${e} *${f.category}* / ${f.key}\n${msg}${healAnnotation(healReport.get(healKey(f)))}`);
     }
     if (high.length + med.length > 15) lines.push(`\n…외 ${high.length + med.length - 15}건. /admin/health 참조.`);
     await sendTelegram(lines.join("\n\n"), { parseMode: "Markdown" });
@@ -92,7 +103,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     durationMs: Date.now() - startedAt,
-    counts: { high: high.length, med: med.length, low: low.length },
+    counts: { high: high.length, med: med.length, low: low.length, healed: healedCount },
     notified: shouldNotify,
   });
 }
