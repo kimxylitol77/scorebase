@@ -27,3 +27,24 @@ collector 는 워커 로컬 JSON 의 tsId 집합에 없는 팀 매치를 skip (�
 - 순위표 — 친선은 standings 없음. [순위] 칩은 standings 캐시 부재 시 원래 안 뜸.
 - Elo 시드 — 팀 재사용이라 VNL 레이팅을 그대로 승계. VB_FRIENDLY 전용 시드 불필요.
 - 하키 클럽 친선 — 유럽 클럽 수십 팀 매핑이 선행돼야 해 별건 (ts utid `j1l4rj1bv30r7vx`, 커버리지 6~7할 실측).
+
+## 2차 — 대륙·연령별 선수권 (2026-08-16)
+
+### 대회명은 반드시 7m 날짜별 화면으로 확인
+
+ts 는 `competition/list`·`additional` 이 미인가라 대회 이름을 주지 않는다. utid 만으로는 정체를 알 수 없어 `team/list?uuid=` 로 참가팀을 풀고, 그 조합을 7m 의 해당 날짜 화면과 대조해 이름을 확정했다. 9개 중 7개가 이렇게 확인됐고, 확인 못 한 2개는 등록하지 않았다(아래).
+
+### 순위 폴백이 토너먼트에 리그 순위를 만든다
+
+`volleyball-table.ts` 는 캐시 miss/stale 시 **DB 종료 경기로 순위를 자체계산**한다. 신규 대회를 `standings-poller` 의 `VOLLEYBALL_SEASONS` 에 등록하기 전에는 카드 [순위]가 이 계산값이었다(U17 세계선수권 대한민국 [3] 등 — 조별 순위가 아닌 임의값). **리그 코드만 넣고 끝내면 조용히 틀린 순위가 노출된다.** season_id 는 diary row 의 `season_id` 로 얻고, 등록 전 `season/table/detail?uuid=` 가 code=0 인지 반드시 확인할 것(7개 모두 조별 2~8테이블 제공).
+
+### 정기 sweep 범위 밖은 backfill 로
+
+collector 는 -3~+5일만 돈다. 이미 진행 중이던 대회의 과거 경기와 +5일 밖 일정은 `node volleyball-collector.js --backfill=N` 일회 실행으로 채운다(이번엔 16일, 251건).
+
+### 미등록으로 남긴 3개
+
+이름을 확인하지 못해 제외했다. 등록하려면 7m 해당 날짜 화면 대조가 먼저.
+- `y39mpwh3zg2qojx` — 아메리카 여자 8팀, 8/3~8/7 종료, 10경기
+- `jw2r0nhlo1xqz84` — 동남아 여자 4팀, 8/8, 2경기
+- `jw2r0nhldw7qz84` — 필리핀 클럽 여자 4팀(PLDT·Creamline 등), 8/8·8/22

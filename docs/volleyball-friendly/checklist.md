@@ -15,3 +15,14 @@
 - [x] 검증 — 워커 첫 poll upserted=14 skippedNoTeam=0, prod 매치 14건 (오늘 3 + 지난주 11 — 미시드 팀도 JSON unambiguous 경로로 해석됨)
 - [x] 검증 — Vercel 배포 후 /scores 배구 탭 노출 확인 (오늘 카드 1건 + 리그 칩, 한글 팀명·로고 정상, 상세 페이지 200)
 - [x] 후속 — 친선 매치 상세의 "순위표 →" 링크 숨김 (친선은 standings 없음 → 소프트 404 방지)
+
+## 2차 — 대륙·연령별 선수권 7개 (2026-08-16, 1fed080 + 042e529)
+
+- [x] 리그 코드 7 — VB_U17_WC(남/여)·VB_EURO_W·VB_ASIAN_W·VB_NORCECA_W·VB_PANAM·VB_COPA_AM
+- [x] 대회명 7m 대조 확정 (짐작 금지 — 날짜별 화면 대조로 7개 전부 확인)
+- [x] 팀 110 시드 (신규 67 / 기존 43 재사용) + 매핑 JSON 두 사본 204건
+- [x] team-names 전역 국가명 6 + 리그별 사전 110
+- [x] collector UTID_TO_LEAGUE 7 → Vultr 배포·재시작 (수집 107건)
+- [x] backfill=16 일회 실행 — 과거분 포함 251건 upsert
+- [x] standings-poller VOLLEYBALL_SEASONS 7 등록 → 캐시 7/7 (ok 143→150)
+- [x] 검증 — DB 223건, 한국 대표팀 11건, /scores 배구 1→19경기, 순위표 조별 렌더
