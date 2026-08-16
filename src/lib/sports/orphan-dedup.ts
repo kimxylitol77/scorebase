@@ -44,6 +44,11 @@ export function romanizeTeamName(s: string): string {
     .replace(/þ/g, "th")
     .replace(/ß/g, "ss")
     .replace(/ı/g, "i")
+    // 슬라브 로마자 표기는 같은 팀을 i 로도 y 로도 적는다 — af "Krylia Sovetov vs Dinamo
+    // Makhachkala" ↔ ts "Krylya Sovetov vs Dynamo Makhachkala"(2026-08-16 RPL 실측, 양팀
+    // 모두 어긋나 카드 두 장). 한쪽으로 몰아 흡수. 전체 5002팀 스캔에서 이 치환으로 새로
+    // 겹치는 같은 리그 팀은 0건이었다(오매칭 위험 실측).
+    .replace(/y/g, "i")
     .replace(/[\s.·\-_/]/g, "");
 }
 
@@ -287,7 +292,21 @@ export function buildOrphanDedup(
   /** 감사용 — 짝으로 지목된 DB 매치(없으면 null). */
   const pairedDbMatch = (dm: DatedMatch) => {
     const dmMs = new Date(dm.startTime).getTime();
+    // 팀 ID 축을 먼저 본다 — 이름이 양쪽 다 다른 리그(af 가 구 팀명을 쓰는 CHINA_3)는 ID 로만
+    // 판정되므로, 이름으로 짝을 찾으면 감사 출력이 "짝 특정 실패"로 떠 눈으로 확인할 수 없다.
+    const hs = dm.homeTeamExtId ? afTeamIdMap.get(dm.homeTeamExtId) : undefined;
+    const as = dm.awayTeamExtId ? afTeamIdMap.get(dm.awayTeamExtId) : undefined;
+    const byTeamId =
+      hs?.size && as?.size
+        ? matches.find(
+            (m) =>
+              m.league === dm.league &&
+              ((hs.has(m.homeTeamId) && as.has(m.awayTeamId)) ||
+                (hs.has(m.awayTeamId) && as.has(m.homeTeamId))),
+          )
+        : undefined;
     return (
+      byTeamId ??
       matches.find(
         (m) =>
           m.league === dm.league &&
