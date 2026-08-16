@@ -6538,7 +6538,7 @@
     "ourExternalId": "616",
     "tsId": "ednm9whkk5nryox",
     "tsName": "NK Osijek",
-    "tsKo": "ZNK 오시예크",
+    "tsKo": "NK 오시예크",
     "matchType": "exact",
     "tsVenueId": "l965mkyh408r1ge"
   },
@@ -21596,6 +21596,56 @@
     "tsId": "1l4rjnh63elm7vx",
     "tsName": "HNK Vukovar 1991",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 285685,
+    "ourName": "Istra 1961",
+    "ourLeague": "HNL",
+    "ourExternalId": "1016",
+    "tsId": "dj2ryohkl0pq1zp",
+    "tsName": "NK Istra 1961",
+    "matchType": "manual-2026-08-16",
+    "tsVenueId": "9dn1m1ghe56moep"
+  },
+  {
+    "ourId": 285697,
+    "ourName": "HNK Rijeka",
+    "ourLeague": "HNL",
+    "ourExternalId": "561",
+    "tsId": "k82rekhvyzerepz",
+    "tsName": "Rijeka",
+    "matchType": "manual-2026-08-16",
+    "tsVenueId": "kdj2ryohd17q1zp"
+  },
+  {
+    "ourId": 285700,
+    "ourName": "HNK Hajduk Split",
+    "ourLeague": "HNL",
+    "ourExternalId": "608",
+    "tsId": "yl5ergph690r8k0",
+    "tsName": "Hajduk Split",
+    "matchType": "manual-2026-08-16",
+    "tsVenueId": "56ypq3nh5vjmd7o"
+  },
+  {
+    "ourId": 285686,
+    "ourName": "NK Slaven Belupo",
+    "ourLeague": "HNL",
+    "ourExternalId": "1018",
+    "tsId": "z8yomo4hp15q0j6",
+    "tsName": "Slaven Belupo",
+    "matchType": "manual-2026-08-16",
+    "tsVenueId": "gy0or5jhenjqwzv"
+  },
+  {
+    "ourId": 609929,
+    "ourName": "Rudes",
+    "ourLeague": "HNL",
+    "ourExternalId": "n54qllhej08qvy9",
+    "tsId": "n54qllhej08qvy9",
+    "tsName": "Rudes",
+    "matchType": "manual-2026-08-16-promoted",
+    "tsVenueId": "v2y8m4zhj5yql07"
   },
   {
     "ourId": 610791,

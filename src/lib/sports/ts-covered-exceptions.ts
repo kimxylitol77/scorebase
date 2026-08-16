@@ -34,11 +34,17 @@ import type { League } from "@/lib/sports/types";
 // 16~20경기) — 7m 대조 감사에서 발견. af 수집 재개.
 // VEIKKAUSLIIGA (2026-08-02): 30일 매치 24건 전부 af 생성·ts 0건 — 2부 YKKONEN 은 예외
 // 등록돼 있었는데 1부가 빠져 af skip → 오울루전 등 stale SCHEDULED 반복. af 수집 재개.
+// HNL (2026-08-16): 2026-27 개막(7/31) 후 매치 0건 — 순위표 전수 감사에서 발견. 원인은
+// TS_FOOTBALL_COMPETITION_ID 에 HNL 이 없어 ts collector 가 애초에 매치를 안 만드는데
+// tsSeasonId 만 있어 TS_COVERED 로 af 까지 skip 된 것(매치 180건 전부 af 생성·마지막 5/23).
+// af 엔 새 시즌 fixture 정상(7/31~9/1 실측 25경기). ⚠️ 함께 고친 것 — tsId/tsSeasonId 가
+// 2부(Prva NL, 16팀)를 가리켜 순위표도 2부 표였다. 1부(gx7lm7phjem2wdk)로 교체했으나
+// ts 매치 매핑은 여전히 없으므로 id 는 순위표 전용, 매치 소스는 af 를 계속 쓴다.
 export const TS_COVERED_EXCEPTIONS = new Set<League>([
   "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
   "ECUADOR_LP",
   "SLOVAKIA_SL", "MOLDOVA_SL", "SLOVENIA_SNL", "SERBIA_SL", "PARAGUAY_PD",
-  "VEIKKAUSLIIGA", "ESTONIA_ML", "GEORGIA_EL",
+  "VEIKKAUSLIIGA", "ESTONIA_ML", "GEORGIA_EL", "HNL",
   // 2026-08-08 시즌 id 재발굴로 tsSeasonId 가 새로 붙은 2부·컵 — 매치는 지금까지 전부
   // af 생성이라 ts 로 소스를 옮기지 않는다(K리그1 사고와 같은 공백 방지). id 는 순위표 전용.
   "AUSTRIA_2", "CZECH_2", "DENMARK_2", "HUNGARY_2", "IRELAND_2", "SCO_LEAGUE_CUP",
