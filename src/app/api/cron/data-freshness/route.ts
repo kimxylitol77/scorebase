@@ -24,11 +24,22 @@ import rawCoaches from "../../../../../data/team-coaches.json";
 import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
 import rawNonSoccerCoaches from "../../../../../data/nonsoccer-coaches.json";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { ALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchSoccerByDate } from "@/lib/sports/live-scores";
 import { buildOrphanDedup } from "@/lib/sports/orphan-dedup";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+
+/**
+ * 화면에 나오는 리그만 감시한다 — 목록에서 내려간 리그는 수집도 같이 멈추므로 "정체"가
+ * 당연한 결과이고, 사용자 눈에 닿지도 않아 고칠 대상이 아니다.
+ * 2026-08-08 J3 제외(사용자 결정) 이후 그 잔존 캐시가 `standings_stale` 을 매일 울렸다 —
+ * DB 에 남은 종료 매치 때문에 "활성 리그"로 잡히기 때문. 매일 울리는 경보가 하나 섞이면
+ * 알림 전체를 안 보게 되므로 오탐은 결손만큼 해롭다. [[health-check-false-positives]]
+ * 나중에 그 리그를 다시 올리면 ALL_LEAGUES 등록과 함께 감시도 자동 복귀한다.
+ */
+const SUPPORTED_LEAGUES = new Set<string>(ALL_LEAGUES as readonly string[]);
 
 /** 컵·대륙대회는 예선↔조별 전환 때 순위가 정상적으로 멈춘다 — 신선도 대상에서 뺀다. */
 const CUP_LEAGUE = /(CUP|COPA|COUPE|POKAL|UCL|UEL|UECL|AFC_CL|LIBERTADORES|SUDAMERICANA|SUPER|FRIENDLY|CLUB_WC|LEAGUES_CUP|CHAMPIONS)/i;
@@ -202,7 +213,7 @@ async function checkStandings(now: Date, findings: Finding[]) {
     if (!prev || r.updatedAt > prev) newest.set(r.league, r.updatedAt);
   }
   const stale = [...newest]
-    .filter(([lg]) => active.has(lg) && !CUP_LEAGUE.test(lg))
+    .filter(([lg]) => SUPPORTED_LEAGUES.has(lg) && active.has(lg) && !CUP_LEAGUE.test(lg))
     .map(([lg, at]) => ({ lg, ageH: Math.round((now.getTime() - at.getTime()) / 3600_000) }))
     .filter((s) => s.ageH > STANDINGS_STALE_H)
     .sort((a, b) => b.ageH - a.ageH);
