@@ -158,6 +158,334 @@ const fetchLineupReadyIdsCached = unstable_cache(
   { revalidate: 60, tags: ["live-scores"] },
 );
 
+/** 캐시 블랍 → 화면 파생값 (30초 캐시) — lineup 분리와 같은 수법의 2탄.
+ *  detailLive/teamStats/halfTeamStats 1.8MB(566행 실측)를 매 요청 당기던 것을, 블랍은 이
+ *  함수 안에서만 읽고 파생 결과(수십 KB)만 돌려준다. 라이브 정밀도는 fetchLiveCached(30초)와
+ *  동일 급. 축구 진행분 라벨만 Date.now() 의존이라 원료(sid·페이즈 시작 ts)를 돌려주고
+ *  렌더 쪽에서 계산한다(분 표시가 캐시 수명만큼 동결되는 것 방지).
+ *  인자 배열은 캐시 키로 해시되므로 호출부에서 정렬해 넘긴다. */
+interface ScoresCacheDerived {
+  soccerGoals: Record<number, SoccerGoal[]>;
+  soccerCards: Record<number, SoccerCard[]>;
+  soccerTeamStats: Record<number, SoccerTeamStat[]>;
+  soccerHalfStats: Record<number, SoccerTeamStat[]>;
+  soccerHalfScore: Record<number, { home: number; away: number }>;
+  footballScore: Record<number, TsFootballScoreParsed>;
+  /** 진행분 라벨 원료 — 렌더에서 tsFootballLiveLabel(sid, pts, Date.now()) 로 계산 */
+  soccerLiveState: Record<number, { sid: number; pts: number }>;
+  hockeyPeriod: Record<number, PeriodLinescoreData>;
+  hockeyStatusLabel: Record<number, string>;
+  basketballPeriod: Record<number, PeriodLinescoreData>;
+  basketballStatusLabel: Record<number, string>;
+  volleyballPeriod: Record<number, PeriodLinescoreData>;
+  volleyballStatusLabel: Record<number, string>;
+  baseballCtx: Record<string, {
+    bases: [boolean, boolean, boolean];
+    outs: number | null;
+    inning: number | null;
+    half: "top" | "bottom" | null;
+    awayInnings: (number | null)[];
+    homeInnings: (number | null)[];
+    awayHits: number | null;
+    homeHits: number | null;
+    awayErrors: number | null;
+    homeErrors: number | null;
+    isExtra: boolean;
+  }>;
+}
+
+const fetchCacheDerivedCached = unstable_cache(
+  async (input: {
+    soccerIds: number[];
+    /** [matchId, externalId] 쌍 — 야구 ctx 는 externalId 키라 매핑을 같이 받는다 */
+    baseball: [number, string][];
+    hockeyIds: number[];
+    basketballIds: number[];
+    basketballLabelIds: number[];
+    volleyballIds: number[];
+  }): Promise<ScoresCacheDerived> => {
+    const out: ScoresCacheDerived = {
+      soccerGoals: {}, soccerCards: {}, soccerTeamStats: {}, soccerHalfStats: {},
+      soccerHalfScore: {}, footballScore: {}, soccerLiveState: {},
+      hockeyPeriod: {}, hockeyStatusLabel: {},
+      basketballPeriod: {}, basketballStatusLabel: {},
+      volleyballPeriod: {}, volleyballStatusLabel: {},
+      baseballCtx: {},
+    };
+    const soccerIdSet = new Set(input.soccerIds);
+    const baseballIdSet = new Set(input.baseball.map(([id]) => id));
+    const hockeyIdSet = new Set(input.hockeyIds);
+    const basketballIdSet = new Set(input.basketballIds);
+    const basketballLabelIdSet = new Set(input.basketballLabelIds);
+    const volleyballIdSet = new Set(input.volleyballIds);
+    const idToExt = new Map(input.baseball);
+    const cacheIds = [...new Set([
+      ...input.soccerIds, ...baseballIdSet, ...input.hockeyIds,
+      ...input.basketballIds, ...input.basketballLabelIds, ...input.volleyballIds,
+    ])];
+    if (cacheIds.length === 0) return out;
+
+    const caches = await prisma.theSportsMatchCache.findMany({
+      where: { matchId: { in: cacheIds } },
+      select: { matchId: true, detailLive: true, teamStats: true, halfTeamStats: true },
+    });
+    // 골/카드 인시던트 선수 한글화 — 전 매치 incident player_id 수집 → nameKo 맵(1회 쿼리)
+    const incidentNameById: Record<string, string> = {};
+    {
+      const pids = new Set<string>();
+      for (const c of caches) {
+        if (!soccerIdSet.has(c.matchId)) continue;
+        const incs = (c.detailLive as { incidents?: unknown } | null)?.incidents;
+        if (!Array.isArray(incs)) continue;
+        for (const inc of incs) {
+          const v = (inc as Record<string, unknown>).player_id;
+          if (typeof v === "string" && v) pids.add(v);
+        }
+      }
+      if (pids.size > 0) {
+        const rows = await prisma.theSportsPlayer.findMany({
+          where: { id: { in: Array.from(pids) }, nameKo: { not: null } },
+          select: { id: true, nameKo: true },
+        });
+        for (const r of rows) if (r.nameKo) incidentNameById[r.id] = r.nameKo;
+      }
+    }
+    for (const c of caches) {
+      const dl = c.detailLive as
+        | {
+            incidents?: unknown;
+            extra?: { base?: string; out?: number };
+            score?: [string, number, number, Record<string, [string, string] | undefined>];
+          }
+        | null;
+      if (!dl) continue;
+      // 축구 골/카드 + 승부차기/연장 점수 (score 배열은 incidents 없어도 존재)
+      if (soccerIdSet.has(c.matchId)) {
+        const fs = parseTsFootballScore(dl);
+        if (fs) out.footballScore[c.matchId] = fs;
+        // 진행분 라벨 원료 — score[1]=status_id, score[4]=페이즈 시작 ts
+        {
+          const sc = dl.score as unknown as unknown[] | undefined;
+          const sid = Number(sc?.[1]);
+          const pts = Number(sc?.[4]);
+          if (Number.isFinite(sid)) {
+            out.soccerLiveState[c.matchId] = { sid, pts: Number.isFinite(pts) ? pts : 0 };
+          }
+        }
+        if (dl.incidents) {
+          const goals = tsIncidentsToGoals(dl.incidents, incidentNameById);
+          const cards = tsIncidentsToCards(dl.incidents, incidentNameById);
+          if (goals.length > 0) out.soccerGoals[c.matchId] = goals;
+          if (cards.length > 0) out.soccerCards[c.matchId] = cards;
+        }
+        // 팀 통계 (점유율·슈팅·코너·카드) — team_stats/list named fields
+        const tstats = tsTeamStatsToSoccerStats(c.teamStats);
+        if (tstats.length > 0) out.soccerTeamStats[c.matchId] = tstats;
+        // 전반전 통계 (half/team_stats/detail 의 p1)
+        const hstats = tsHalfStatsToSoccerStats(c.halfTeamStats, "p1");
+        if (hstats.length > 0) out.soccerHalfStats[c.matchId] = hstats;
+        // 전반 점수: halfTeamStats.p1 골(정확) 우선, 없으면 incidents 골 시각으로 자체계산
+        const hscore =
+          tsHalfTimeScore(c.halfTeamStats) ??
+          (dl.incidents ? tsHalfScoreFromGoals(tsIncidentsToGoals(dl.incidents)) : null);
+        if (hscore) out.soccerHalfScore[c.matchId] = hscore;
+      }
+      // 배구 세트 (VNL/AVC/유럽리그) — score[3] = {ft:[h세트,a세트], p1..p5:[h점,a점]}.
+      // ft 는 합계가 아니라 "세트 스코어" — 큰 점수 칸과 표의 T(세트) 에 그대로 사용.
+      if (volleyballIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        const sObj = dl.score[3] as Record<string, unknown>;
+        const vlabel = volleyballLiveLabel(Number(dl.score[1]), sObj);
+        if (vlabel) out.volleyballStatusLabel[c.matchId] = vlabel;
+        const homeSets: (number | null)[] = [];
+        const awaySets: (number | null)[] = [];
+        for (let i = 1; i <= 5; i++) {
+          const pv = sObj?.["p" + i];
+          if (!Array.isArray(pv) || pv.length < 2) continue;
+          const h = Number(pv[0]);
+          const a = Number(pv[1]);
+          homeSets.push(Number.isFinite(h) ? h : null);
+          awaySets.push(Number.isFinite(a) ? a : null);
+        }
+        const ft = sObj?.["ft"];
+        const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+        const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+        if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
+          out.volleyballPeriod[c.matchId] = {
+            homePeriods: homeSets,
+            awayPeriods: awaySets,
+            homeScore: ftH,
+            awayScore: ftA,
+          };
+        }
+      }
+      // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
+      // _swap 키 있으면 ts perspective 반대 → home/away 반전 (야구 패턴 동일).
+      if (hockeyIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        const plabel = iceHockeyLiveLabel(Number(dl.score[1]));
+        if (plabel) out.hockeyStatusLabel[c.matchId] = plabel;
+        const sObj = dl.score[3] as Record<string, unknown>;
+        const swap = (dl as { _swap?: boolean })?._swap === true;
+        const homePeriods: (number | null)[] = [];
+        const awayPeriods: (number | null)[] = [];
+        for (let i = 1; i <= 9; i++) {
+          const p = sObj?.["p" + i];
+          if (!Array.isArray(p) || p.length < 2) continue;
+          const h = Number(p[0]);
+          const a = Number(p[1]);
+          const hv = Number.isFinite(h) ? h : null;
+          const av = Number.isFinite(a) ? a : null;
+          homePeriods.push(swap ? av : hv);
+          awayPeriods.push(swap ? hv : av);
+        }
+        if (homePeriods.length > 0) {
+          const ft = sObj?.["ft"];
+          const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+          const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+          const sum = (arr: (number | null)[]) =>
+            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
+          const hScore = Number.isFinite(ftH) ? (swap ? Number(ftA) : ftH) : sum(homePeriods);
+          const aScore = Number.isFinite(ftA) ? (swap ? Number(ftH) : ftA) : sum(awayPeriods);
+          out.hockeyPeriod[c.matchId] = {
+            homePeriods,
+            awayPeriods,
+            homeScore: hScore,
+            awayScore: aScore,
+          };
+        }
+      }
+      // 농구 쿼터 (NBA/WNBA/KBL/WKBL) — cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열.
+      if (basketballIdSet.has(c.matchId)) {
+        const bScore = dl.score as unknown[] | undefined;
+        const homeArr = Array.isArray(bScore) ? bScore[3] : undefined;
+        const awayArr = Array.isArray(bScore) ? bScore[4] : undefined;
+        if (Array.isArray(homeArr) && Array.isArray(awayArr)) {
+          const toNum = (x: unknown): number | null => {
+            const n = Number(x);
+            return Number.isFinite(n) ? n : null;
+          };
+          const homePeriods = homeArr.map(toNum);
+          const awayPeriods = awayArr.map(toNum);
+          // 트레일링 OT 컬럼(정규 4쿼터 초과) 이 양 팀 모두 0 이면 제거 — NBA ESPN 렌더와 컬럼 수 맞춤.
+          let len = Math.max(homePeriods.length, awayPeriods.length);
+          while (len > 4 && (homePeriods[len - 1] ?? 0) === 0 && (awayPeriods[len - 1] ?? 0) === 0) {
+            len--;
+          }
+          const hp = homePeriods.slice(0, len);
+          const ap = awayPeriods.slice(0, len);
+          const sum = (arr: (number | null)[]) =>
+            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
+          if (hp.length > 0 || ap.length > 0) {
+            out.basketballPeriod[c.matchId] = {
+              homePeriods: hp,
+              awayPeriods: ap,
+              homeScore: sum(hp),
+              awayScore: sum(ap),
+            };
+          }
+        }
+      }
+      // 농구 진행 쿼터 라벨 (NBA 포함) — score[1]=status_id, timer[3]=쿼터 잔여초.
+      if (basketballLabelIdSet.has(c.matchId)) {
+        const bScore = dl.score as unknown[] | undefined;
+        const statusId = Array.isArray(bScore) ? Number(bScore[1]) : NaN;
+        const timerArr = (dl as { timer?: unknown[] }).timer;
+        const remaining = Array.isArray(timerArr) ? Number(timerArr[3]) : NaN;
+        if (Number.isFinite(statusId)) {
+          const label = basketballLiveLabel(statusId, Number.isFinite(remaining) ? remaining : null);
+          if (label) out.basketballStatusLabel[c.matchId] = label;
+        }
+      }
+      // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
+      // cache.detailLive.score[3] 의 p_i = [tsHome, tsAway] (commit f25de7a 정정).
+      // _swap=true 면 ts perspective 가 우리와 반대 → 우리 home/away 로 변환.
+      if (baseballIdSet.has(c.matchId)) {
+        const extraBase = dl.extra?.base;
+        const baseStr =
+          typeof extraBase === "string" && /^[01]{3}$/.test(extraBase) ? extraBase : "000";
+        const ext = idToExt.get(c.matchId);
+        const swap = (dl as { _swap?: boolean })?._swap === true;
+        let inning: number | null = null;
+        let half: "top" | "bottom" | null = null;
+        let isExtra = false;
+        const awayInnings: (number | null)[] = [];
+        const homeInnings: (number | null)[] = [];
+        let awayHits: number | null = null;
+        let homeHits: number | null = null;
+        let awayErrors: number | null = null;
+        let homeErrors: number | null = null;
+        if (Array.isArray(dl.score) && dl.score.length >= 4) {
+          const sObj = dl.score[3] as Record<string, [string, string] | undefined>;
+          for (let i = 1; i <= 12; i++) {
+            const p = sObj?.["p" + i];
+            if (!Array.isArray(p) || p.length < 2) continue;
+            inning = i;
+            const tsHome = parseInt(String(p[0]), 10);
+            const tsAway = parseInt(String(p[1]), 10);
+            if (swap) {
+              homeInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+              awayInnings.push(Number.isFinite(tsHome) ? tsHome : null);
+            } else {
+              homeInnings.push(Number.isFinite(tsHome) ? tsHome : null);
+              awayInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+            }
+          }
+          // 연장: TheSports 가 연장 이닝별(p10+) 미제공, score[3].ft(연장 포함 총점)만 줌.
+          const ftArr = sObj?.ft as [string, string] | undefined;
+          if (Array.isArray(ftArr) && ftArr.length >= 2 && homeInnings.length >= 9) {
+            const ftHome = parseInt(String(ftArr[swap ? 1 : 0]), 10);
+            const ftAway = parseInt(String(ftArr[swap ? 0 : 1]), 10);
+            let sumHome = 0;
+            let sumAway = 0;
+            for (const v of homeInnings) sumHome += v ?? 0;
+            for (const v of awayInnings) sumAway += v ?? 0;
+            if (Number.isFinite(ftHome) && Number.isFinite(ftAway) && (ftHome > sumHome || ftAway > sumAway)) {
+              homeInnings.push(ftHome - sumHome);
+              awayInnings.push(ftAway - sumAway);
+              isExtra = true;
+            }
+          }
+          // score[2] 1=홈 타석(말), 2=원정 타석(초) — 2026-08-13 라이브 실측 확정
+          const h = dl.score[2];
+          if (h === 1) half = "bottom";
+          else if (h === 2) half = "top";
+          const hits = sObj?.h;
+          if (Array.isArray(hits) && hits.length >= 2) {
+            const th = parseInt(String(hits[0]), 10);
+            const ta = parseInt(String(hits[1]), 10);
+            homeHits = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
+            awayHits = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
+          }
+          const errs = sObj?.e;
+          if (Array.isArray(errs) && errs.length >= 2) {
+            const th = parseInt(String(errs[0]), 10);
+            const ta = parseInt(String(errs[1]), 10);
+            homeErrors = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
+            awayErrors = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
+          }
+        }
+        if (ext) {
+          out.baseballCtx[ext] = {
+            bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
+            outs: typeof dl.extra?.out === "number" ? dl.extra.out : null,
+            inning,
+            half,
+            awayInnings,
+            homeInnings,
+            awayHits,
+            homeHits,
+            awayErrors,
+            homeErrors,
+            isExtra,
+          };
+        }
+      }
+    }
+    return out;
+  },
+  ["scores-page-cache-derived"],
+  { revalidate: 30, tags: ["live-scores"] },
+);
+
 export const dynamic = "force-dynamic";
 
 interface Props {
@@ -868,298 +1196,46 @@ export default async function ScoresPage({ searchParams }: Props) {
   );
 
   if (cacheIds.length > 0) {
-    // lineup 은 여기서 안 당긴다 — L 배지 판정은 위 fetchLineupReadyIdsCached(60초 캐시)가 담당.
-    // 블랍 쿼리 페이로드 5.3MB → 1.8MB (2026-08-16 실측, "/scores 전체 느림" 신고의 주범).
-    const [caches, lineupReadyIds] = await Promise.all([
-      prisma.theSportsMatchCache.findMany({
-        where: { matchId: { in: cacheIds } },
-        select: { matchId: true, detailLive: true, teamStats: true, halfTeamStats: true },
+    // 블랍(detailLive·teamStats·halfTeamStats)은 fetchCacheDerivedCached 안에서만 읽는다 —
+    // 매 요청 1.8MB 당기던 것을 파생값(수십 KB) 30초 캐시로 대체 (lineup 분리와 같은 수법 2탄).
+    const byNum = (a: number, b: number) => a - b;
+    const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
+    const [derived, lineupReadyIds] = await Promise.all([
+      fetchCacheDerivedCached({
+        soccerIds: [...soccerMatchIds].sort(byNum),
+        baseball: [...baseballLiveDbIds].sort(byNum).map((id) => [id, idToExt.get(id) ?? ""] as [number, string]),
+        hockeyIds: [...hockeyMatchIds].sort(byNum),
+        basketballIds: [...basketballMatchIds].sort(byNum),
+        basketballLabelIds: [...basketballLabelMatchIds].sort(byNum),
+        volleyballIds: [...volleyballMatchIds].sort(byNum),
       }),
-      fetchLineupReadyIdsCached([...soccerMatchIds].sort((a, b) => a - b)),
+      fetchLineupReadyIdsCached([...soccerMatchIds].sort(byNum)),
     ]);
     for (const id of lineupReadyIds) lineupMatchIdSet.add(id);
-    const soccerIdSet = new Set(soccerMatchIds);
-    const baseballIdSet = new Set(baseballLiveDbIds);
-    const hockeyIdSet = new Set(hockeyMatchIds);
-    const basketballIdSet = new Set(basketballMatchIds);
-    const basketballLabelIdSet = new Set(basketballLabelMatchIds);
-    const volleyballIdSet = new Set(volleyballMatchIds);
-    const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
-    // 골/카드 인시던트 선수 한글화 — 전 매치 incident player_id 수집 → nameKo 맵(1회 쿼리)
-    const incidentNameById: Record<string, string> = {};
-    {
-      const pids = new Set<string>();
-      for (const c of caches) {
-        if (!soccerIdSet.has(c.matchId)) continue;
-        const incs = (c.detailLive as { incidents?: unknown } | null)?.incidents;
-        if (!Array.isArray(incs)) continue;
-        for (const inc of incs) {
-          const v = (inc as Record<string, unknown>).player_id;
-          if (typeof v === "string" && v) pids.add(v);
-        }
-      }
-      if (pids.size > 0) {
-        const rows = await prisma.theSportsPlayer.findMany({
-          where: { id: { in: Array.from(pids) }, nameKo: { not: null } },
-          select: { id: true, nameKo: true },
-        });
-        for (const r of rows) if (r.nameKo) incidentNameById[r.id] = r.nameKo;
-      }
+    // 캐시 산출은 JSON 직렬화를 거쳐 키가 문자열 — 기존 소비 코드가 쓰는 Map 으로 복원한다.
+    const fill = <T,>(rec: Record<number, T>, map: Map<number, T>) => {
+      for (const [k, v] of Object.entries(rec)) map.set(Number(k), v as T);
+    };
+    fill(derived.soccerGoals, soccerGoalsByMatchId);
+    fill(derived.soccerCards, soccerCardsByMatchId);
+    fill(derived.soccerTeamStats, soccerTeamStatsByMatchId);
+    fill(derived.soccerHalfStats, soccerHalfStatsByMatchId);
+    fill(derived.soccerHalfScore, soccerHalfScoreByMatchId);
+    fill(derived.footballScore, footballScoreByMatchId);
+    fill(derived.hockeyPeriod, hockeyPeriodByMatchId);
+    fill(derived.hockeyStatusLabel, hockeyStatusLabelByMatchId);
+    fill(derived.basketballPeriod, basketballPeriodByMatchId);
+    fill(derived.basketballStatusLabel, basketballStatusLabelByMatchId);
+    fill(derived.volleyballPeriod, volleyballPeriodByMatchId);
+    fill(derived.volleyballStatusLabel, volleyballStatusLabelByMatchId);
+    // 축구 진행분 라벨 — 원료(sid·페이즈 시작 ts)에 현재 시각 적용 (분 표시가 캐시로 동결되지 않게)
+    for (const [k, st] of Object.entries(derived.soccerLiveState)) {
+      const label = tsFootballLiveLabel(st.sid, st.pts, Date.now());
+      if (label) soccerTsLiveLabelByMatchId.set(Number(k), label);
     }
-    for (const c of caches) {
-      const dl = c.detailLive as
-        | {
-            incidents?: unknown;
-            extra?: { base?: string; out?: number };
-            score?: [string, number, number, Record<string, [string, string] | undefined>];
-          }
-        | null;
-      if (!dl) continue;
-      // 축구 골/카드 + 승부차기/연장 점수 (score 배열은 incidents 없어도 존재)
-      if (soccerIdSet.has(c.matchId)) {
-        const fs = parseTsFootballScore(dl);
-        if (fs) footballScoreByMatchId.set(c.matchId, fs);
-        // 진행분 라벨 폴백 — score[1]=status_id, score[4]=페이즈 시작 ts (위 tsFootballLiveLabel)
-        {
-          const sc = dl.score as unknown as unknown[] | undefined;
-          const sid = Number(sc?.[1]);
-          const pts = Number(sc?.[4]);
-          if (Number.isFinite(sid)) {
-            const label = tsFootballLiveLabel(sid, Number.isFinite(pts) ? pts : 0, Date.now());
-            if (label) soccerTsLiveLabelByMatchId.set(c.matchId, label);
-          }
-        }
-        if (dl.incidents) {
-          const goals = tsIncidentsToGoals(dl.incidents, incidentNameById);
-          const cards = tsIncidentsToCards(dl.incidents, incidentNameById);
-          if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
-          if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
-        }
-        // 팀 통계 (점유율·슈팅·코너·카드) — team_stats/list named fields
-        const tstats = tsTeamStatsToSoccerStats(c.teamStats);
-        if (tstats.length > 0) soccerTeamStatsByMatchId.set(c.matchId, tstats);
-        // 전반전 통계 (half/team_stats/detail 의 p1)
-        const hstats = tsHalfStatsToSoccerStats(c.halfTeamStats, "p1");
-        if (hstats.length > 0) soccerHalfStatsByMatchId.set(c.matchId, hstats);
-        // 전반 점수: halfTeamStats.p1 골(정확) 우선, 없으면 incidents 골 시각으로 자체계산
-        const hscore =
-          tsHalfTimeScore(c.halfTeamStats) ??
-          (dl.incidents ? tsHalfScoreFromGoals(tsIncidentsToGoals(dl.incidents)) : null);
-        if (hscore) soccerHalfScoreByMatchId.set(c.matchId, hscore);
-      }
-      // 배구 세트 (VNL/AVC/유럽리그) — score[3] = {ft:[h세트,a세트], p1..p5:[h점,a점]}.
-      // ft 는 합계가 아니라 "세트 스코어" — 큰 점수 칸과 표의 T(세트) 에 그대로 사용.
-      if (volleyballIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
-        const sObj = dl.score[3] as Record<string, unknown>;
-        const vlabel = volleyballLiveLabel(Number(dl.score[1]), sObj);
-        if (vlabel) volleyballStatusLabelByMatchId.set(c.matchId, vlabel);
-        const homeSets: (number | null)[] = [];
-        const awaySets: (number | null)[] = [];
-        for (let i = 1; i <= 5; i++) {
-          const pv = sObj?.["p" + i];
-          if (!Array.isArray(pv) || pv.length < 2) continue;
-          const h = Number(pv[0]);
-          const a = Number(pv[1]);
-          homeSets.push(Number.isFinite(h) ? h : null);
-          awaySets.push(Number.isFinite(a) ? a : null);
-        }
-        const ft = sObj?.["ft"];
-        const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
-        const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
-        if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
-          volleyballPeriodByMatchId.set(c.matchId, {
-            homePeriods: homeSets,
-            awayPeriods: awaySets,
-            homeScore: ftH,
-            awayScore: ftA,
-          });
-        }
-      }
-            // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
-      // IIHF_WC 는 ESPN periodMap 없어 여기서 추출 (commit 검증: ft=[home,away] 우리 관점 일치).
-      // _swap 키 있으면 ts perspective 반대 → home/away 반전 (야구 패턴 동일).
-      if (hockeyIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
-        // status_id (score[1]) → 진행 피리어드 라벨 (IIHF live statusLabel 없을 때 대체)
-        const plabel = iceHockeyLiveLabel(Number(dl.score[1]));
-        if (plabel) hockeyStatusLabelByMatchId.set(c.matchId, plabel);
-        const sObj = dl.score[3] as Record<string, unknown>;
-        const swap = (dl as { _swap?: boolean })?._swap === true;
-        const homePeriods: (number | null)[] = [];
-        const awayPeriods: (number | null)[] = [];
-        for (let i = 1; i <= 9; i++) {
-          const p = sObj?.["p" + i];
-          if (!Array.isArray(p) || p.length < 2) continue;
-          const h = Number(p[0]);
-          const a = Number(p[1]);
-          const hv = Number.isFinite(h) ? h : null;
-          const av = Number.isFinite(a) ? a : null;
-          homePeriods.push(swap ? av : hv);
-          awayPeriods.push(swap ? hv : av);
-        }
-        if (homePeriods.length > 0) {
-          const ft = sObj?.["ft"];
-          const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
-          const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
-          const sum = (arr: (number | null)[]) =>
-            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
-          const hScore = Number.isFinite(ftH)
-            ? swap
-              ? Number(ftA)
-              : ftH
-            : sum(homePeriods);
-          const aScore = Number.isFinite(ftA)
-            ? swap
-              ? Number(ftH)
-              : ftA
-            : sum(awayPeriods);
-          hockeyPeriodByMatchId.set(c.matchId, {
-            homePeriods,
-            awayPeriods,
-            homeScore: hScore,
-            awayScore: aScore,
-          });
-        }
-      }
-      // 농구 쿼터 (NBA/WNBA/KBL/WKBL) — cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열
-      // (하키/야구의 score[3] 객체와 다름). 농구는 TheSports cache 가 우선 (1112줄).
-      // swap 없음 검증 완료 (production: 정렬 13 / swap 0 / _swap 플래그 0).
-      if (basketballIdSet.has(c.matchId)) {
-        const bScore = dl.score as unknown[] | undefined;
-        const homeArr = Array.isArray(bScore) ? bScore[3] : undefined;
-        const awayArr = Array.isArray(bScore) ? bScore[4] : undefined;
-        if (Array.isArray(homeArr) && Array.isArray(awayArr)) {
-          const toNum = (x: unknown): number | null => {
-            const n = Number(x);
-            return Number.isFinite(n) ? n : null;
-          };
-          const homePeriods = homeArr.map(toNum);
-          const awayPeriods = awayArr.map(toNum);
-          // 트레일링 OT 컬럼(정규 4쿼터 초과) 이 양 팀 모두 0 이면 제거 — NBA ESPN 렌더와 컬럼 수 맞춤.
-          let len = Math.max(homePeriods.length, awayPeriods.length);
-          while (
-            len > 4 &&
-            (homePeriods[len - 1] ?? 0) === 0 &&
-            (awayPeriods[len - 1] ?? 0) === 0
-          ) {
-            len--;
-          }
-          const hp = homePeriods.slice(0, len);
-          const ap = awayPeriods.slice(0, len);
-          const sum = (arr: (number | null)[]) =>
-            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
-          if (hp.length > 0 || ap.length > 0) {
-            basketballPeriodByMatchId.set(c.matchId, {
-              homePeriods: hp,
-              awayPeriods: ap,
-              homeScore: sum(hp),
-              awayScore: sum(ap),
-            });
-          }
-        }
-      }
-      // 농구 진행 쿼터 라벨 (NBA 포함) — score[1]=status_id, timer[3]=쿼터 잔여초.
-      if (basketballLabelIdSet.has(c.matchId)) {
-        const bScore = dl.score as unknown[] | undefined;
-        const statusId = Array.isArray(bScore) ? Number(bScore[1]) : NaN;
-        const timerArr = (dl as { timer?: unknown[] }).timer;
-        const remaining = Array.isArray(timerArr) ? Number(timerArr[3]) : NaN;
-        if (Number.isFinite(statusId)) {
-          const label = basketballLiveLabel(
-            statusId,
-            Number.isFinite(remaining) ? remaining : null,
-          );
-          if (label) basketballStatusLabelByMatchId.set(c.matchId, label);
-        }
-      }
-      // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
-      // cache.detailLive.score[3] 의 p_i = [tsHome, tsAway] (commit f25de7a 정정).
-      // _swap=true 면 ts perspective 가 우리와 반대 → 우리 home/away 로 변환.
-      if (baseballIdSet.has(c.matchId)) {
-        const extraBase = dl.extra?.base;
-        const baseStr =
-          typeof extraBase === "string" && /^[01]{3}$/.test(extraBase)
-            ? extraBase
-            : "000";
-        const ext = idToExt.get(c.matchId);
-        const swap = (dl as { _swap?: boolean })?._swap === true;
-        let inning: number | null = null;
-        let half: "top" | "bottom" | null = null;
-        let isExtra = false;
-        const awayInnings: (number | null)[] = [];
-        const homeInnings: (number | null)[] = [];
-        let awayHits: number | null = null;
-        let homeHits: number | null = null;
-        let awayErrors: number | null = null;
-        let homeErrors: number | null = null;
-        if (Array.isArray(dl.score) && dl.score.length >= 4) {
-          const sObj = dl.score[3] as Record<string, [string, string] | undefined>;
-          for (let i = 1; i <= 12; i++) {
-            const p = sObj?.["p" + i];
-            if (!Array.isArray(p) || p.length < 2) continue;
-            inning = i;
-            const tsHome = parseInt(String(p[0]), 10);
-            const tsAway = parseInt(String(p[1]), 10);
-            if (swap) {
-              homeInnings.push(Number.isFinite(tsAway) ? tsAway : null);
-              awayInnings.push(Number.isFinite(tsHome) ? tsHome : null);
-            } else {
-              homeInnings.push(Number.isFinite(tsHome) ? tsHome : null);
-              awayInnings.push(Number.isFinite(tsAway) ? tsAway : null);
-            }
-          }
-          // 연장: TheSports 가 연장 이닝별(p10+) 미제공, score[3].ft(연장 포함 총점)만 줌.
-          // ft - 9회합 > 0 이면 연장 점수 → "연장" 통합 칸 1개 추가 (10/11/12 이닝별은 소스 한계).
-          const ftArr = sObj?.ft as [string, string] | undefined;
-          if (Array.isArray(ftArr) && ftArr.length >= 2 && homeInnings.length >= 9) {
-            const ftHome = parseInt(String(ftArr[swap ? 1 : 0]), 10);
-            const ftAway = parseInt(String(ftArr[swap ? 0 : 1]), 10);
-            let sumHome = 0;
-            let sumAway = 0;
-            for (const v of homeInnings) sumHome += v ?? 0;
-            for (const v of awayInnings) sumAway += v ?? 0;
-            if (Number.isFinite(ftHome) && Number.isFinite(ftAway) && (ftHome > sumHome || ftAway > sumAway)) {
-              homeInnings.push(ftHome - sumHome);
-              awayInnings.push(ftAway - sumAway);
-              isExtra = true;
-            }
-          }
-          // score[2] 1=홈 타석(말), 2=원정 타석(초) — 2026-08-13 라이브 실측 확정
-          const h = dl.score[2];
-          if (h === 1) half = "bottom";
-          else if (h === 2) half = "top";
-          const hits = sObj?.h;
-          if (Array.isArray(hits) && hits.length >= 2) {
-            const th = parseInt(String(hits[0]), 10);
-            const ta = parseInt(String(hits[1]), 10);
-            homeHits = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
-            awayHits = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
-          }
-          const errs = sObj?.e;
-          if (Array.isArray(errs) && errs.length >= 2) {
-            const th = parseInt(String(errs[0]), 10);
-            const ta = parseInt(String(errs[1]), 10);
-            homeErrors = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
-            awayErrors = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
-          }
-        }
-        if (ext) {
-          baseballCacheCtx.set(ext, {
-            bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
-            outs: typeof dl.extra?.out === "number" ? dl.extra.out : null,
-            inning,
-            half,
-            awayInnings,
-            homeInnings,
-            awayHits,
-            homeHits,
-            awayErrors,
-            homeErrors,
-            isExtra,
-          });
-        }
-      }
-    }
+    for (const [ext, v] of Object.entries(derived.baseballCtx)) baseballCacheCtx.set(ext, v);
   }
+
   // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
   const baseballDetailsMap: Record<string, BaseballGameDetails> = {
     ...apiSportsDetails,
