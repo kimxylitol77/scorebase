@@ -181,7 +181,8 @@ export default async function LlmUsagePage({
             </div>
             <p className="mt-2 text-xs text-neutral-500">
               태그 <code>unknown</code> 은 cron 밖에서 돈 호출(스크립트 직접 실행 등)입니다.
-              OpenAI 폴백 경로는 계측되지 않습니다.
+              모델명 앞의 <code>openrouter:</code>·<code>ollama:</code> 는 멀티 AI 성적표 패널이
+              그 경유로 부른 것으로, 단가 체계가 달라 환산하지 않습니다(ollama 는 로컬이라 무료).
             </p>
           </section>
         </>

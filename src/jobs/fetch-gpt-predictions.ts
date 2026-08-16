@@ -32,6 +32,7 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 import { activePanelists, PANELISTS, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
+import { trackLlmUsage } from "@/lib/ai/usage-track";
 import { capturePredictionContext } from "@/jobs/prediction-postmortems";
 import {
   OU_SHADOW_WINDOW_DAYS,
@@ -231,6 +232,16 @@ function parseJson(s: string | null): any {
   } catch {
     return null;
   }
+}
+
+/**
+ * 계측에 쓸 모델 키. **runtime 접두사가 핵심이다** — 패널은 OpenAI 호환 SDK 로
+ * openrouter·ollama 도 부르므로, 모델명만 넘기면 openrouter 의 claude 가 Anthropic
+ * 직접 단가로, 무료인 로컬 ollama 가 유료로 환산되는 오적용이 난다.
+ * openai 런타임만 실제 서빙 모델명(스냅샷 포함)을 그대로 쓴다.
+ */
+function usageModelKey(runtime: PanelRuntime, modelId: string, resModel?: string): string {
+  return runtime === "openai" ? resModel || modelId : `${runtime}:${modelId}`;
 }
 
 // 패널 하나에 대한 OpenAI 호환 클라이언트. openai/openrouter/ollama 모두 같은 SDK.
@@ -501,6 +512,13 @@ export async function testPanel(
   else params.max_tokens = 3000;
   try {
     const res = await client.chat.completions.create(params);
+    if (res.usage) {
+      await trackLlmUsage(
+        usageModelKey(p.runtime, p.modelId, res.model),
+        res.usage.prompt_tokens,
+        res.usage.completion_tokens,
+      );
+    }
     const content = res.choices[0]?.message?.content ?? "";
     return { ok: true, model: p.modelId, content: content.slice(0, 300), parsed: parseMarketsResponse(content, "MLB", lines) };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -658,6 +676,13 @@ async function llmMarkets(
   if (runtime === "openai") params.max_completion_tokens = 3000;
   else params.max_tokens = 3000;
   const res = await client.chat.completions.create(params);
+  if (res.usage) {
+    await trackLlmUsage(
+      usageModelKey(runtime, modelId, res.model),
+      res.usage.prompt_tokens,
+      res.usage.completion_tokens,
+    );
+  }
   return parseMarketsResponse(res.choices[0]?.message?.content, league, lines);
 }
 

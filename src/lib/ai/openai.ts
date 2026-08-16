@@ -6,6 +6,7 @@
 // 호출이 실제로 일어나는 시점에 만든다.
 
 import OpenAI from "openai";
+import { trackLlmUsage } from "./usage-track";
 
 let _client: OpenAI | null = null;
 
@@ -52,6 +53,15 @@ export async function generate(
     max_tokens: opts.maxTokens ?? 4096,
     temperature: opts.temperature ?? 0.7,
   });
+
+  // 계측 — 실제 서빙 모델(res.model)은 스냅샷까지 알려주므로 단가 접두사 매칭이 정확해진다.
+  if (res.usage) {
+    await trackLlmUsage(
+      res.model || opts.model || OPENAI_MODEL,
+      res.usage.prompt_tokens,
+      res.usage.completion_tokens,
+    );
+  }
 
   const text = res.choices[0]?.message?.content?.trim();
   if (!text) {

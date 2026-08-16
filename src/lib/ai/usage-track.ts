@@ -61,16 +61,29 @@ export async function trackLlmUsage(
 }
 
 /**
- * 100만 토큰당 USD. 모델 id 접두사로 매칭한다(날짜 suffix 흡수).
- * 출처 — Anthropic 공식 가격표 (claude-api 스킬, 2026-06-24 기준).
- * sonnet-5 는 2026-08-31 까지 인트로 $2/$10 이나, 표는 정가 기준으로 둔다(상한 추정).
+ * 100만 토큰당 USD. 모델 id **접두사**로 매칭한다(날짜 suffix 흡수).
+ *
+ * ⚠️ 더 구체적인 접두사를 먼저 둘 것 — 앞에서부터 first-match 라
+ *    "gpt-4o" 가 "gpt-4o-mini" 보다 앞에 있으면 mini 가 4o 단가로 잡힌다.
+ * ⚠️ 캐시 입력 할인가는 반영하지 않는다(프롬프트 캐싱 미사용).
+ * 출처 — Anthropic 공식 가격표(claude-api 스킬, 2026-06-24) /
+ *        OpenAI developers.openai.com/api/docs/pricing (2026-08-17 조회).
  * 표에 없는 모델은 비용 null — 토큰은 그대로 남으므로 단가만 추가하면 소급 계산된다.
  */
 const PRICING: { prefix: string; in: number; out: number }[] = [
   { prefix: "claude-haiku-4-5", in: 1.0, out: 5.0 },
+  // sonnet-5 는 2026-08-31 까지 인트로 $2/$10 이나 정가로 둔다(상한 추정).
   { prefix: "claude-sonnet-5", in: 3.0, out: 15.0 },
   { prefix: "claude-sonnet-4-6", in: 3.0, out: 15.0 },
   { prefix: "claude-opus-5", in: 5.0, out: 25.0 },
+  { prefix: "gpt-4o-mini", in: 0.15, out: 0.6 }, // gpt-4o 보다 반드시 앞
+  { prefix: "gpt-4o", in: 2.5, out: 10.0 },
+  { prefix: "gpt-5.5", in: 5.0, out: 30.0 },
+  // gpt-5.6 은 변형별로 단가가 25배 차이(luna/terra/sol)라 **총칭 "gpt-5.6" 은 일부러
+  // 등록하지 않는다.** 응답의 실제 모델명(res.model)이 변형까지 알려주면 그때 매칭된다.
+  { prefix: "gpt-5.6-luna", in: 0.2, out: 1.2 },
+  { prefix: "gpt-5.6-terra", in: 2.0, out: 12.0 },
+  { prefix: "gpt-5.6-sol", in: 5.0, out: 30.0 },
 ];
 
 /** 토큰 → USD. 단가를 모르는 모델이면 null (모른다고 말하는 편이 0 보다 낫다). */
