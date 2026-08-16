@@ -57,6 +57,15 @@ export const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
     { key: "CS", label: "CS", emoji: "💰", decimals: 1 },
     { key: "KILL", label: "킬", emoji: "⚔️", decimals: 1 },
   ],
+  // 배구 (V-리그) — KOVO 공식 부문. 득점=시즌 총득점, 나머지는 성공률(%)·세트당 평균.
+  VOLLEYBALL: [
+    { key: "VB_POINTS", label: "득점", emoji: "🏐" },
+    { key: "VB_ATTACK", label: "공격", emoji: "💥", decimals: 2 },
+    { key: "VB_BLOCK", label: "블로킹", emoji: "🛡️", decimals: 2 },
+    { key: "VB_SERVE", label: "서브", emoji: "🚀", decimals: 2 },
+    { key: "VB_SET", label: "세트", emoji: "🎯", decimals: 2 },
+    { key: "VB_RECEIVE", label: "리시브", emoji: "🙌", decimals: 2 },
+  ],
 };
 
 export const LEAGUE_TO_SPORT: Record<string, keyof typeof CATEGORIES_BY_LEAGUE> = {
@@ -72,6 +81,11 @@ export const LEAGUE_TO_SPORT: Record<string, keyof typeof CATEGORIES_BY_LEAGUE> 
   NPB: "BASEBALL",
   MLB: "BASEBALL",
   NBA: "NBA",
+  // KBL/WKBL — NBA 와 같은 평균 스탯 카테고리(PTS/AST/REB/STL/BLK) 재사용
+  KBL: "NBA",
+  WKBL: "NBA",
   NHL: "NHL",
   LOL: "LOL",
+  V_LEAGUE: "VOLLEYBALL",
+  V_LEAGUE_W: "VOLLEYBALL",
 };

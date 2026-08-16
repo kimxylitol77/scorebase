@@ -40,11 +40,17 @@ import type { League } from "@/lib/sports/types";
 // af 엔 새 시즌 fixture 정상(7/31~9/1 실측 25경기). ⚠️ 함께 고친 것 — tsId/tsSeasonId 가
 // 2부(Prva NL, 16팀)를 가리켜 순위표도 2부 표였다. 1부(gx7lm7phjem2wdk)로 교체했으나
 // ts 매치 매핑은 여전히 없으므로 id 는 순위표 전용, 매치 소스는 af 를 계속 쓴다.
+// CYPRUS_1D (2026-08-16): 위 HNL 진단에서 같은 클래스를 전수 스캔해 발견 — TS_COVERED 인데
+// ts collector 매핑이 없는 리그 51개 중, af 에 새 시즌 fixture 가 있으면서 DB 30일 0건인 케이스.
+// 키프로스는 리그 id 자체는 정상(순위표 1부 14팀 확인)이고 8/29 개막이라 아직 안 죽어 보이지만,
+// af skip 이 유지되면 개막해도 HNL 과 똑같이 0건이 된다(af 실측 8/29~ 14경기). 선제 등록.
+// ⚠️ 같은 스캔에서 THAI_L1·UEFA_WCL 도 af 엔 fixture 가 있는데 DB 0건이었다(각 5·80경기).
+// 둘은 collect 의 ALL_LEAGUES 에 아예 없어 여기 넣어도 무효 — 수집 대상 등록이 선행돼야 한다.
 export const TS_COVERED_EXCEPTIONS = new Set<League>([
   "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
   "ECUADOR_LP",
   "SLOVAKIA_SL", "MOLDOVA_SL", "SLOVENIA_SNL", "SERBIA_SL", "PARAGUAY_PD",
-  "VEIKKAUSLIIGA", "ESTONIA_ML", "GEORGIA_EL", "HNL",
+  "VEIKKAUSLIIGA", "ESTONIA_ML", "GEORGIA_EL", "HNL", "CYPRUS_1D",
   // 2026-08-08 시즌 id 재발굴로 tsSeasonId 가 새로 붙은 2부·컵 — 매치는 지금까지 전부
   // af 생성이라 ts 로 소스를 옮기지 않는다(K리그1 사고와 같은 공백 방지). id 는 순위표 전용.
   "AUSTRIA_2", "CZECH_2", "DENMARK_2", "HUNGARY_2", "IRELAND_2", "SCO_LEAGUE_CUP",
