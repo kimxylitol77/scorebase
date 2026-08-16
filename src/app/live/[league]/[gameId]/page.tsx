@@ -1545,9 +1545,12 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
             {getLeagueFlag(lg) && <span className="mr-1">{getLeagueFlag(lg)}</span>}
             {label} · 라이브 스코어 · 세트별 점수 · 5초 자동 갱신
           </span>
-          <Link href={`/standings/${lg}`} className="font-bold text-amber-600 dark:text-amber-400 hover:underline">
-            순위표 →
-          </Link>
+          {/* 친선은 순위표가 없어 소프트 404 로 가는 링크를 숨긴다 */}
+          {lg !== "VB_FRIENDLY" && lg !== "VB_FRIENDLY_W" && (
+            <Link href={`/standings/${lg}`} className="font-bold text-amber-600 dark:text-amber-400 hover:underline">
+              순위표 →
+            </Link>
+          )}
         </p>
       </header>
 

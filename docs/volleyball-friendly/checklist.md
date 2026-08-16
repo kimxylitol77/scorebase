@@ -10,6 +10,8 @@
 - [x] DB — Netherlands(남) Team 신규 + TeamSourceId, 기존 5팀에 친선 리그 TeamSourceId 추가
 - [x] 매핑 JSON 두 사본 — 친선 리그 row 6건 (src 사본은 lightsail 과 동기화도 겸함)
 - [x] volleyball-collector.js — UTID_TO_LEAGUE 2건
-- [ ] tsc 통과 → commit → main push (Vercel)
-- [ ] Vultr — collector.js + mapping JSON scp → chown → node --check → systemctl restart
-- [ ] 검증 — 워커 로그 upserted 확인 + prod 매치 생성 확인 (네덜란드-벨기에 8/17 00:00 KST 등 3건)
+- [x] tsc 통과 → commit(37422df) → main push (7a03cdc — origin/main V-리그 팀 14건과 union 병합)
+- [x] Vultr — collector.js + mapping JSON scp → chown → node --check → systemctl restart
+- [x] 검증 — 워커 첫 poll upserted=14 skippedNoTeam=0, prod 매치 14건 (오늘 3 + 지난주 11 — 미시드 팀도 JSON unambiguous 경로로 해석됨)
+- [x] 검증 — Vercel 배포 후 /scores 배구 탭 노출 확인 (오늘 카드 1건 + 리그 칩, 한글 팀명·로고 정상, 상세 페이지 200)
+- [x] 후속 — 친선 매치 상세의 "순위표 →" 링크 숨김 (친선은 standings 없음 → 소프트 404 방지)
