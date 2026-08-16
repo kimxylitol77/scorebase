@@ -4637,6 +4637,12 @@ const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 // 동음이의 클럽 (Al Ittihad = 사우디 SAUDI_PL / 이집트 EGYPT_PL / ...)
 // league 인자가 주어지면 글로벌 RAW 보다 우선 적용.
 const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
+  // ── 아이스하키 클럽 친선 — 동명 축구 클럽의 한글명이 잘못 붙는 2건만 교정.
+  //    나머지 10건(디나모 민스크·스파르타크 모스크바 등)은 하키 구단명과도 일치해 글로벌 RAW 를 그대로 쓴다.
+  HOCKEY_FRIENDLY: {
+    "Red Bull Salzburg": "EC 레드불 잘츠부르크", // 축구는 FC —
+    "Slovan Bratislava": "HC 슬로반 브라티슬라바", // 축구는 SK —
+  },
   // ── 국제 클럽 친선 (프리시즌, af 667) — haiku 음역 자동 생성 (2026-07-06, 801팀). 스코어 피드 전용.
   CLUB_FRIENDLY: {
     "Cancún": "칸쿤", "Monarcas": "모나르카스", "CDS Tampico Madero": "CDS 탐피코 마데로", "Koper": "코페르",

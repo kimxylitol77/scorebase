@@ -21,10 +21,12 @@
 - [x] DB — Team 249건 + TeamSourceId(league=HOCKEY_FRIENDLY, source=thesports) 신규 생성
 - [x] 매핑 JSON 두 사본 — `src/lib/sports/thesports/` · `lightsail-worker/` 에 249행 추가
 - [x] ice-hockey-match-collector.js — COMP_TO_LEAGUE 에 utid 1건
-- [ ] tsc 통과 → commit → main push
-- [ ] Vultr — collector.js + mapping JSON scp → chown → node --check → systemctl restart
-- [ ] 검증 — 워커 poll 로그 `63 → 312 mapped teams`, upserted > 0, skippedNoTeam=0
-- [ ] 검증 — Vercel 배포 후 /scores 하키 탭 카드 노출 + 상세 200
+- [x] tsc 통과 → commit(c836541) → main push (d9abb23)
+- [x] Vultr — collector.js + mapping JSON scp → chown → node --check → systemctl restart
+- [x] 검증 — 워커 poll `63 → 312 mapped teams`, 수집 8건 → 172건, skippedNoTeam=0
+- [x] 검증 — /scores 하키 탭 리그 칩 + 카드 14건(LIVE 1·예정 6·종료 7) 노출, 상세 200 (골 타임라인·피리어드 정상)
+- [x] 후속 — 친선 매치 상세의 자체 산출 "리그순위 90위 / 147팀" 차단 (친선은 순위 개념 없음)
+- [x] 후속 — 동명 축구 클럽 한글명 오적용 2건 교정 (EC 잘츠부르크 · HC 슬로반)
 
 ## 안 한 것 (의도)
 

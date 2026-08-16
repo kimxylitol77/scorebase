@@ -415,11 +415,52 @@ export function valueGap(
   };
 }
 
-/** 정규화 후 문자열 별칭 — 소스가 아예 다른 이름을 쓰는 팀 (부분일치로 못 잇는 케이스).
- *  김천 상무: The Odds API 가 연고 이전 전 옛 이름 "Sangju Sangmu"(상주 상무)로 보낸다
- *  (2026-08-16 실측 — K리그 배당이 한 경기만 붙던 원인 중 하나). */
+/** 정규화 후 문자열 별칭 — 소스가 아예 다른 이름을 쓰거나 축약이 심해 부분일치로 못 잇는
+ *  케이스. 2026-08-16 전 지원 리그 스윕 실측으로 등재 (양쪽 표기를 한 canonical 로 수렴).
+ *  김천 상무: The Odds API 가 연고 이전 전 옛 이름 "Sangju Sangmu"(상주 상무)로 보낸다. */
 const NORMALIZED_TEAM_ALIAS: Record<string, string> = {
   sangjusangmu: "gimcheonsangmu",
+  // 아르헨티나 — 축약 표기(JRS·L.P.·Independ.)가 부분일치를 깬다
+  argentinosjrs: "argentinosjuniors",
+  independrivadavia: "independienterivadavia",
+  gimnasialp: "gimnasialaplata",
+  gimnasiam: "gimnasiamendoza",
+  // 칠레
+  aitaliano: "audaxitaliano",
+  ucatolica: "universidadcatolica",
+  universidadcatolicachi: "universidadcatolica",
+  // 브라질 — 주 약칭(MG·AL·PR)↔풀네임
+  atleticomg: "atleticomineiro",
+  americamg: "americamineiro",
+  crbal: "regatasbrasil",
+  operarioferroviariopr: "operariopr",
+  rbbragantino: "bragantino",
+  bragantinosp: "bragantino",
+  // 우루과이·포르투갈·중국·러시아 — 소스가 아예 다른 이름
+  atleticotorque: "montevideocitytorque",
+  sportingcp: "sportinglisbon",
+  tianjinteda: "tianjinjinmentiger",
+  qingdaoyouthisland: "qingdaowestcoast",
+  kryliyasovetov: "krylyasovetov",
+  // MLS — LA 두 팀은 "losangeles" 가 갤럭시의 부분문자열이라 LAFC 쪽을 canonical 로
+  // 수렴시켜 오염을 막는다 ("losangeles"→lafc, 갤럭시는 풀네임으로).
+  losangeles: "lafc",
+  lagalaxy: "losangelesgalaxy",
+  redbullnewyork: "newyorkredbulls",
+  // J리그 — 옛 명칭·어순 뒤집힘
+  kyotopurplesanga: "kyotosanga",
+  hiroshimasanfrecce: "sanfreccehiroshima",
+  // 영국 약칭
+  qpr: "queensparkrangers",
+  wolves: "wolverhampton",
+  // 오스트리아·아르헨티나
+  rbsalzburg: "redbullsalzburg",
+  austriawien: "austriavienna",
+  estudianteslp: "estudianteslaplata",
+  // 분데스리가 — 영문/독문 표기·연도/약칭 접두
+  bayernmunich: "bayernmunchen",
+  "1899hoffenheim": "hoffenheim",
+  tsghoffenheim: "hoffenheim",
 };
 
 /** 팀 이름 매칭용 — football-data/ESPN/Odds API 사이의 표기 차이 흡수.
@@ -434,7 +475,13 @@ export function normalizeOddsTeamName(name: string): string {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .normalize("NFC")
-    .replace(/\b(fc|afc|cf|club|hotspur|wanderers|the|hyundai)\b/g, "")
+    // NFD 로 분해 안 되는 특수 라틴 문자 음역 (Wisła·Bodø·Đà 류 — 삭제되면 영영 못 만남)
+    .replace(/ł/g, "l").replace(/ø/g, "o").replace(/đ/g, "d").replace(/ß/g, "ss").replace(/æ/g, "ae")
+    // 소스별 표기 변형 통일 (Dinamo↔Dynamo, Utd↔United)
+    .replace(/dinamo/g, "dynamo")
+    .replace(/\butd\b/g, "united")
+    // 클럽 접미·연결어 제거 — FF/IF(북유럽)·SK/FK/BB(동유럽·터키)·CA(남미)·de/do/da(스페인·포르투갈어)
+    .replace(/\b(fc|afc|cf|club|clube|hotspur|wanderers|the|hyundai|ff|if|sk|fk|bb|ca|de|do|da)\b/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
   return NORMALIZED_TEAM_ALIAS[n] ?? n;
 }
