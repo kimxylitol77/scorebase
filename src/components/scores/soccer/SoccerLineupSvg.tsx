@@ -23,6 +23,8 @@ interface Player {
   x?: number;
   y?: number;
   rating?: string | number;
+  /** 예상 XI 전용 — 선발 확률(0~1). 있으면 평점 대신 % 칩 표시. */
+  confidence?: number;
 }
 
 interface LineupData {
@@ -272,10 +274,19 @@ function PlayerDot({
             </div>
           )}
         </div>
-        {/* 우상단 — 부상이면 OUT, 아니면 평점 배지 */}
+        {/* 우상단 — 부상이면 OUT, 예상 XI 면 선발 확률 %, 확정이면 평점 배지 */}
         {injured ? (
           <span className="absolute -top-1 -right-1.5 px-0.5 rounded-sm text-[7px] sm:text-[10px] font-extrabold text-white leading-[1.3] shadow bg-red-600">
             OUT
+          </span>
+        ) : player.confidence != null ? (
+          <span
+            className={`absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[10px] font-extrabold text-white leading-[1.3] shadow tabular-nums ${
+              player.confidence >= 0.7 ? "bg-emerald-600" : player.confidence >= 0.45 ? "bg-sky-600" : "bg-neutral-500"
+            }`}
+            title={`선발 확률 ${Math.round(player.confidence * 100)}%`}
+          >
+            {Math.round(player.confidence * 100)}%
           </span>
         ) : (
           rating > 0 && (

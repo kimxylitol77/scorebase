@@ -204,7 +204,7 @@ export default function SoccerNowBlock({
           awayNameKo={awayNameKo}
           nameById={nameByIdKo}
           injuredIds={injured}
-          subtitle={`최근 국제경기 선발 가중 예상${basedOn ? ` · 최근 ${basedOn}경기 기반` : ""} · 공식 발표(킥오프 ~1시간 전) 시 확정 라인업으로 자동 교체`}
+          subtitle={`최근 경기 선발 가중 예상${basedOn ? ` · 최근 ${basedOn}경기 기반` : ""} · 공식 발표(킥오프 ~1시간 전) 시 확정 라인업으로 자동 교체`}
         />
         {hasInjuries && (
           <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-4 space-y-3">
