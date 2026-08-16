@@ -7,6 +7,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import { SITE_URL } from "@/lib/site-url";
+import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { LEAGUE_DISPLAY, leaguesForSport, type SportCode } from "@/lib/sports/sport-leagues";
 
 export const revalidate = 3600;
 
@@ -32,6 +35,74 @@ interface SportCard {
   /** 부가 링크 — 심화 콘텐츠 */
   links: { label: string; href: string }[];
   accent: string;
+  /** DB 매치가 있는 종목만 — 카드에 다가오는 일정을 붙인다 */
+  sport?: SportCode;
+}
+
+/** 카드에 뿌릴 다가오는 경기 한 줄 */
+interface UpcomingRow {
+  id: number;
+  when: string;
+  league: string;
+  home: string;
+  away: string;
+}
+
+// 종목별 다가오는 일정 — 향후 7일 SCHEDULED 만 (1h ISR 라 LIVE 표시는 안 붙인다).
+// 테니스·골프·F1 은 ESPN 표시 전용(DB 수집 없음)이라 대상에서 뺀다.
+const SCHEDULE_SPORTS: SportCode[] = ["hockey", "volleyball", "esports", "mma"];
+const PER_SPORT = 4;
+
+async function upcomingBySport(): Promise<Map<SportCode, UpcomingRow[]>> {
+  const leagueToSport = new Map<string, SportCode>();
+  for (const s of SCHEDULE_SPORTS)
+    for (const lg of leaguesForSport(s)) leagueToSport.set(lg, s);
+
+  const now = new Date();
+  const matches = await prisma.match.findMany({
+    where: {
+      league: { in: [...leagueToSport.keys()] },
+      status: "SCHEDULED",
+      startTime: { gte: now, lte: new Date(now.getTime() + 7 * 24 * 3600_000) },
+    },
+    orderBy: { startTime: "asc" },
+    select: {
+      id: true,
+      league: true,
+      startTime: true,
+      homeTeam: { select: { name: true, nameKo: true } },
+      awayTeam: { select: { name: true, nameKo: true } },
+    },
+    take: 400,
+  });
+
+  const fmt = new Intl.DateTimeFormat("ko-KR", {
+    month: "numeric", day: "numeric", weekday: "short",
+    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul",
+  });
+  // 표기 우선순위 — 교정 사전(매핑 있을 때만) > TheSports 공식 한글명 > 원본
+  const teamLabel = (t: { name: string; nameKo: string | null }, league: string) => {
+    const dict = toKoreanTeamName(t.name, league);
+    if (dict && dict !== t.name) return dict;
+    return t.nameKo || t.name;
+  };
+
+  const out = new Map<SportCode, UpcomingRow[]>();
+  for (const m of matches) {
+    const sport = leagueToSport.get(m.league);
+    if (!sport) continue;
+    const rows = out.get(sport) ?? [];
+    if (rows.length >= PER_SPORT) continue;
+    rows.push({
+      id: m.id,
+      when: fmt.format(m.startTime),
+      league: LEAGUE_DISPLAY[m.league] ?? m.league,
+      home: teamLabel(m.homeTeam, m.league),
+      away: teamLabel(m.awayTeam, m.league),
+    });
+    out.set(sport, rows);
+  }
+  return out;
 }
 
 const SPORTS: SportCard[] = [
@@ -39,6 +110,7 @@ const SPORTS: SportCard[] = [
     emoji: "🏒",
     title: "하키",
     sub: "NHL · IIHF 세계선수권 — 순위·선수·플레이오프 예측",
+    sport: "hockey",
     href: "/hockey",
     hrefLabel: "하키 허브",
     links: [
@@ -53,6 +125,7 @@ const SPORTS: SportCard[] = [
     emoji: "🏐",
     title: "배구",
     sub: "VNL 국가대항 · 10월 V-리그(KOVO) 개막 — 세트 스코어",
+    sport: "volleyball",
     href: "/scores?sport=volleyball",
     hrefLabel: "배구 라이브 스코어",
     links: [
@@ -66,6 +139,7 @@ const SPORTS: SportCard[] = [
     emoji: "🎮",
     title: "e스포츠",
     sub: "LCK 리그 오브 레전드 · 국제 대회 — 세트 스코어·순위",
+    sport: "esports",
     href: "/scores?sport=esports",
     hrefLabel: "e스포츠 라이브 스코어",
     links: [
@@ -118,6 +192,7 @@ const SPORTS: SportCard[] = [
     emoji: "🥊",
     title: "UFC",
     sub: "종합격투기 — 체급별 랭킹·파이터 프로필·이벤트 결과",
+    sport: "mma",
     href: "/rankings/ufc",
     hrefLabel: "UFC 랭킹",
     links: [
@@ -128,7 +203,8 @@ const SPORTS: SportCard[] = [
   },
 ];
 
-export default function OtherSportsPage() {
+export default async function OtherSportsPage() {
+  const upcoming = await upcomingBySport().catch(() => new Map<SportCode, UpcomingRow[]>());
   return (
     <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
@@ -141,7 +217,7 @@ export default function OtherSportsPage() {
           하키 · 배구 · e스포츠 · 테니스 · 골프 · F1 · UFC
         </h1>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 break-keep">
-          축구·야구·농구 외 종목의 라이브 스코어와 순위·랭킹을 한 곳에서. 선수 이름과 팀명을 한국어로 봅니다.
+          축구·야구·농구 외 종목의 다가오는 경기 일정과 라이브 스코어·순위·랭킹을 한 곳에서. 선수 이름과 팀명을 한국어로 봅니다.
         </p>
       </header>
 
@@ -160,6 +236,22 @@ export default function OtherSportsPage() {
             <p className="flex-1 text-[13px] leading-relaxed text-neutral-600 dark:text-white/60 break-keep">
               {s.sub}
             </p>
+
+            {/* 다가오는 일정 — DB 매치가 있는 종목(하키·배구·e스포츠·UFC)만.
+                행은 표시 전용이고 클릭 동선은 아래 라이브 스코어 링크가 담당한다. */}
+            {s.sport && (upcoming.get(s.sport)?.length ?? 0) > 0 && (
+              <ul className="mt-3 space-y-1 border-t border-neutral-100 pt-2.5 dark:border-white/5">
+                {upcoming.get(s.sport)!.map((r) => (
+                  <li key={r.id} className="flex items-baseline gap-2 text-[12px]">
+                    <span className="shrink-0 tabular-nums text-neutral-400">{r.when}</span>
+                    <span className="min-w-0 truncate text-neutral-700 dark:text-neutral-300">
+                      {r.home} <span className="text-neutral-400">vs</span> {r.away}
+                    </span>
+                    <span className="ml-auto shrink-0 text-[10px] text-neutral-400">{r.league}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
 
             <div className="mt-3 flex flex-wrap gap-1.5">
               {s.links.map((l) => (
