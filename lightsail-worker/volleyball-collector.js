@@ -53,6 +53,14 @@ const UTID_TO_LEAGUE = {
   // 2026-08-16 국가대표 친선 (남/여) — 매핑된 국대끼리의 친선만 수집 (미매핑 팀 매치는 tsIdSet 필터가 skip)
   "z8yomoxhk3gm0j6": "VB_FRIENDLY",
   "56ypq3xh533qd7o": "VB_FRIENDLY_W",
+  // 2026-08-16 대륙·연령별 선수권 (대회명 7m 대조 확인)
+  "dn1m1nh4xzkqoep": "VB_U17_WC",
+  "jw2r0nhl3d6qz84": "VB_U17_WC_W",
+  "gy0or58h4onrwzv": "VB_EURO_W",
+  "9k82redh967qepz": "VB_ASIAN_W",
+  "965mkdh73y8r1ge": "VB_NORCECA_W",
+  "p3glrwjh1n4qdyj": "VB_PANAM",
+  "vjxm8lh46vlq6od": "VB_COPA_AM",
 };
 
 // src/lib/sports/thesports/status-codes.ts 의 mapVolleyballStatus 와 단일 진실.
