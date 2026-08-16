@@ -1595,6 +1595,16 @@ model RankingCache {
   fetchedAt DateTime @default(now())
 }
 
+/// 클럽 예상 라인업 캐시 — /api/cron/club-xi 가 리그당 1 row upsert (하루 2회).
+/// payload: Record<teamId, { teamName, formation, basedOnGames, updatedAt, xi[] }>.
+/// 이전엔 맥북 크론이 data/club-predicted-xi.json 을 커밋했는데 sleep 결손·push 경합이
+/// 반복돼(2026-08 실측) git·재배포 루프를 떼고 DB 로 옮겼다. 라이브 페이지가 리그 row 를 읽는다.
+model PredictedXiCache {
+  league    String   @id
+  payload   Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
 /// 월드컵 Monte Carlo 시뮬 일일 스냅샷 — 우승·진출 확률 추이 그래프용.
 /// /api/cron/wc-sim-snapshot (KST 13:00) 이 5,000회 시뮬 후 upsert (date 당 1 row).
 /// payload: [{ team, groupPass, r16, qf, sf, final, champion }] — 48개국 전체.

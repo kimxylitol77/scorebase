@@ -249,6 +249,10 @@
       "schedule": "0 3,13 * * *"
     },
     {
+      "path": "/api/cron/club-xi",
+      "schedule": "0 10,22 * * *"
+    },
+    {
       "path": "/api/cron/capture-injuries",
       "schedule": "30 2 * * *"
     },

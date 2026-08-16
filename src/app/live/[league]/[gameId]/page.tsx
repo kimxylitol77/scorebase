@@ -37,6 +37,7 @@ import SoccerNowBlock, { type PredictedXiTeam, type InjuryLine } from "@/compone
 import { fetchSeasonInjuries, getTeamInjuries } from "@/lib/sports/api-football-pro";
 import { translateReason, classifySeverity } from "@/lib/sports/injury-format";
 import { CLUB_XI_LEAGUES, teamNameMatches } from "@/lib/predict/club-xi-leagues";
+import { getClubXiByLeague } from "@/lib/predict/club-xi-cache";
 import WcMatchAnalysisCard from "@/components/live/WcMatchAnalysisCard";
 import { readFileSync } from "fs";
 import path from "path";
@@ -701,16 +702,10 @@ export default async function GenericLivePage({ params }: Props) {
         // 파일 없음 (빌드 전) — 미표시
       }
     } else if (isClubXiLeague && match.status === "SCHEDULED" && !nowLineup) {
-      try {
-        const raw = JSON.parse(
-          readFileSync(path.join(process.cwd(), "data/club-predicted-xi.json"), "utf-8"),
-        ) as Record<string, Record<string, PredictedXiTeam>>;
-        const byTeamId = raw[lg] ?? {};
-        predictedHome = byTeamId[String(match.homeTeam.id)] ?? null;
-        predictedAway = byTeamId[String(match.awayTeam.id)] ?? null;
-      } catch {
-        // 파일 없음 (빌드 전) — 미표시
-      }
+      // DB(PredictedXiCache, cron club-xi 하루 2회) 우선 — 구 정적 JSON 폴백은 로더가 처리.
+      const byTeamId = (await getClubXiByLeague(lg)) as Record<string, PredictedXiTeam>;
+      predictedHome = byTeamId[String(match.homeTeam.id)] ?? null;
+      predictedAway = byTeamId[String(match.awayTeam.id)] ?? null;
     }
 
     // 예상 라인업 표시 시 — 양 팀 현재 부상·결장 명단(api-football WORLD_CUP injuries).
