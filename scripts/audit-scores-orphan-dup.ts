@@ -108,11 +108,41 @@ async function auditDate(date: string) {
     }
   }
 
+  // 사각지대 — [잔여의심] 은 "한쪽 팀이라도 이름이 겹칠 때"만 뜬다. 양팀 다 다른 이름으로
+  // 실리면(af 가 구 팀명을 유지하는 CHINA_3, 로마자가 갈리는 RPL) 레이더 밖이라 0건으로
+  // 통과한다(2026-08-16 실측: 중국 2건·러시아 1건이 이렇게 새어 화면에 카드 두 장).
+  // 리그 단위 수량으로 잡는다 — af 경기가 DB 경기보다 많지 않은데 orphan 이 남으면, 그 리그의
+  // af 경기는 원래 전부 DB 에 있어야 하므로 이름 규칙이 놓친 것이다.
+  const perLeague = new Map<string, { af: number; db: number; orphan: number }>();
+  for (const dm of dated) {
+    const e = perLeague.get(dm.league) ?? { af: 0, db: 0, orphan: 0 };
+    e.af++;
+    if (!dedup.reasonOf(dm)) e.orphan++;
+    perLeague.set(dm.league, e);
+  }
+  for (const m of dbMatches) {
+    const e = perLeague.get(m.league) ?? { af: 0, db: 0, orphan: 0 };
+    e.db++;
+    perLeague.set(m.league, e);
+  }
+  const blind = [...perLeague.entries()]
+    .filter(([, v]) => v.af > 0 && v.db > 0 && v.orphan > 0 && v.af <= v.db)
+    .sort((a, b) => b[1].orphan - a[1].orphan);
+
   console.log(`\n===== ${date} | af ${dated.length}건 · DB ${matches.length}건 =====`);
   console.log(`[중복제거] ${covered.length}건`);
   for (const l of covered) console.log(l);
   console.log(`[잔여의심] ${suspects.length}건 — 같은 경기면 규칙 보강 대상`);
   for (const l of suspects) console.log(l);
+  console.log(
+    `[사각지대] ${blind.length}개 리그 — af 경기가 DB 보다 많지 않은데 orphan 이 남음(양팀 이름이 모두 어긋나는 유형)`,
+  );
+  for (const [lg, v] of blind) {
+    console.log(`  ${lg} | af ${v.af}건 · DB ${v.db}건 · 살아남은 orphan ${v.orphan}건`);
+    for (const dm of dated.filter((d) => d.league === lg && !dedup.reasonOf(d))) {
+      console.log(`      af: ${dm.homeName} vs ${dm.awayName} (${dm.startTime})`);
+    }
+  }
 }
 
 (async () => {
