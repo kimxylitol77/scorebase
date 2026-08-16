@@ -50,6 +50,9 @@ const UTID_TO_LEAGUE = {
   // KOVO컵 (프리시즌, 통상 8~9월 — 2026-08-01 시점 일정 미공개, 공개 시 diary 로 자동 유입)
   "4zp5rzdh70oq82w": "KOVO_CUP",
   "j1l4rjdh12dr7vx": "KOVO_CUP_W",
+  // 2026-08-16 국가대표 친선 (남/여) — 매핑된 국대끼리의 친선만 수집 (미매핑 팀 매치는 tsIdSet 필터가 skip)
+  "z8yomoxhk3gm0j6": "VB_FRIENDLY",
+  "56ypq3xh533qd7o": "VB_FRIENDLY_W",
 };
 
 // src/lib/sports/thesports/status-codes.ts 의 mapVolleyballStatus 와 단일 진실.

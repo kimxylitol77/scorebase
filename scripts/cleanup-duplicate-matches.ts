@@ -43,8 +43,9 @@ type Row = {
   createdAt: Date;
   updatedAt: Date;
   hasScore: boolean;
+  hasMarket: boolean; // 시장 배당(marketHome) 보유 — 배당 파이프라인이 물고 있는 row
   tsMatchId: string | null;
-  protectedRefs: number; // Article + Post + MatchVote
+  protectedRefs: number; // Article + Post + MatchVote + MemberBotPick + UserMatchFollow
 };
 
 async function loadRow(id: number): Promise<Row | null> {
@@ -53,11 +54,17 @@ async function loadRow(id: number): Promise<Row | null> {
     include: { theSportsCache: { select: { tsMatchId: true } } },
   });
   if (!m) return null;
-  const [art, post, vote] = await Promise.all([
+  const [art, post, vote, pick, follow] = await Promise.all([
     prisma.article.count({ where: { matchId: id } }),
     prisma.post.count({ where: { matchId: id } }),
     prisma.matchVote.count({ where: { matchId: id } }),
+    // FK 없는 manual join — Match 삭제 시 고아로 남으므로 보호 참조로 취급 (--merge 가 이전).
+    prisma.memberBotPick.count({ where: { matchId: id } }),
+    prisma.userMatchFollow.count({ where: { matchId: id } }),
   ]);
+  // ESPN 은 예정 경기에도 0-0 을 실어 보낸다(pregame-score-zero-guard) — 가짜 0-0 은
+  // "점수 보유" 로 치지 않는다 (SCORE-GUARD 와 keeper 판정이 유령을 결과 보유로 오인 방지).
+  const fakeZero = m.status === "SCHEDULED" && m.homeScore === 0 && m.awayScore === 0;
   return {
     id: m.id,
     league: m.league,
@@ -68,9 +75,10 @@ async function loadRow(id: number): Promise<Row | null> {
     awayTeamId: m.awayTeamId,
     createdAt: m.createdAt,
     updatedAt: m.updatedAt,
-    hasScore: m.homeScore != null && m.awayScore != null,
+    hasScore: !fakeZero && m.homeScore != null && m.awayScore != null,
+    hasMarket: m.marketHome != null,
     tsMatchId: m.theSportsCache?.tsMatchId ?? null,
-    protectedRefs: art + post + vote,
+    protectedRefs: art + post + vote + pick + follow,
   };
 }
 
@@ -88,13 +96,18 @@ function pickKeep(rows: Row[]): Row {
   // ESPN 은 예정 경기에 0-0 을 실어 보낸다(pregame-score-zero-guard). 그 row 를 남기면
   // 화면에 가짜 스코어가 그대로 남으므로, 예정인데 점수를 든 row 는 뒤로 민다.
   const fake = (r: Row) => (r.status === "SCHEDULED" && r.hasScore ? 1 : 0);
+  // ESPN scoreboard 유령(^4\d{8}) 은 af API 로 일정 재검증이 불가능한 id 라 뒤로 민다
+  // — af fixture id row 는 cleanup-stale-scheduled 의 af verify 가 시각·상태를 계속 교정한다.
+  const espnStyle = (r: Row) => (/^4\d{8}$/.test(r.externalId) ? 1 : 0);
   return [...rows].sort((a, b) => {
     if (fake(a) !== fake(b)) return fake(a) - fake(b);
     if (b.protectedRefs !== a.protectedRefs) return b.protectedRefs - a.protectedRefs;
     if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+    if (a.hasMarket !== b.hasMarket) return a.hasMarket ? -1 : 1;
     const aCanon = a.externalId.replace(/^ts-/, "") === a.tsMatchId ? 1 : 0;
     const bCanon = b.externalId.replace(/^ts-/, "") === b.tsMatchId ? 1 : 0;
     if (bCanon !== aCanon) return bCanon - aCanon;
+    if (espnStyle(a) !== espnStyle(b)) return espnStyle(a) - espnStyle(b);
     return a.createdAt.getTime() - b.createdAt.getTime();
   })[0];
 }
@@ -120,12 +133,18 @@ function pickKeepXs(rows: Row[]): Row {
 // (POSTPONED row 를 남기면 종료된 경기가 사이트에서 '연기' 로 보이므로 FINISHED 를 최우선.)
 function pickSurvivor(rows: Row[]): Row {
   const rank = (s: string) => (s === "FINISHED" ? 0 : 1);
+  // pickKeep 과 같은 이유의 가드 2종 — 가짜 0-0 예정 row·ESPN 유령 id 는 뒤로.
+  const fake = (r: Row) => (r.status === "SCHEDULED" && r.hasScore ? 1 : 0);
+  const espnStyle = (r: Row) => (/^4\d{8}$/.test(r.externalId) ? 1 : 0);
   return [...rows].sort((a, b) => {
     if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+    if (fake(a) !== fake(b)) return fake(a) - fake(b);
+    if (a.hasMarket !== b.hasMarket) return a.hasMarket ? -1 : 1;
     if (b.protectedRefs !== a.protectedRefs) return b.protectedRefs - a.protectedRefs;
     const aCanon = a.externalId.replace(/^ts-/, "") === a.tsMatchId ? 1 : 0;
     const bCanon = b.externalId.replace(/^ts-/, "") === b.tsMatchId ? 1 : 0;
     if (bCanon !== aCanon) return bCanon - aCanon;
+    if (espnStyle(a) !== espnStyle(b)) return espnStyle(a) - espnStyle(b);
     return a.createdAt.getTime() - b.createdAt.getTime();
   })[0];
 }
@@ -134,6 +153,10 @@ function pickSurvivor(rows: Row[]): Row {
 //   Article: survivor 에 같은 type 기사 있으면 loser 중복기사 삭제, 없으면 이전.
 //   Post: 전부 survivor 로 이전(matchId unique 없음).
 //   MatchVote: survivor 와 (userId 또는 sessionId) 충돌하면 loser 표 삭제, 아니면 이전.
+//   MemberBotPick: (botId, market) 충돌하면 loser 픽 삭제(같은 봇의 중복 픽), 아니면 이전.
+//   UserMatchFollow: (userId) 충돌하면 loser 즐겨찾기 삭제, 아니면 이전.
+//   TheSportsMatchCache: survivor 가 없으면 loser 것을 이전(라이브 push 소유권 보존),
+//     있으면 loser 것 삭제(cascade 로도 지워지지만 명시).
 //   apply=false 면 계획만 반환.
 async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise<string[]> {
   const plan: string[] = [];
@@ -142,11 +165,18 @@ async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise
   const survVotes = await prisma.matchVote.findMany({ where: { matchId: survivor.id }, select: { userId: true, sessionId: true } });
   const survUsers = new Set(survVotes.map((v) => v.userId).filter(Boolean) as string[]);
   const survSessions = new Set(survVotes.map((v) => v.sessionId).filter(Boolean) as string[]);
+  const survPicks = await prisma.memberBotPick.findMany({ where: { matchId: survivor.id }, select: { botId: true, market: true } });
+  const survPickKeys = new Set(survPicks.map((p) => `${p.botId}|${p.market}`));
+  const survFollows = await prisma.userMatchFollow.findMany({ where: { matchId: survivor.id }, select: { userId: true } });
+  const survFollowUsers = new Set(survFollows.map((f) => f.userId));
+  let survHasCache = (await prisma.theSportsMatchCache.count({ where: { matchId: survivor.id } })) > 0;
 
   for (const L of losers) {
     const arts = await prisma.article.findMany({ where: { matchId: L.id }, select: { id: true, type: true, slug: true } });
     const posts = await prisma.post.findMany({ where: { matchId: L.id }, select: { id: true } });
     const votes = await prisma.matchVote.findMany({ where: { matchId: L.id }, select: { id: true, userId: true, sessionId: true } });
+    const picks = await prisma.memberBotPick.findMany({ where: { matchId: L.id }, select: { id: true, botId: true, market: true } });
+    const follows = await prisma.userMatchFollow.findMany({ where: { matchId: L.id }, select: { id: true, userId: true } });
 
     for (const a of arts) {
       if (survTypes.has(a.type)) {
@@ -173,6 +203,37 @@ async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise
         if (v.userId) survUsers.add(v.userId);
         if (v.sessionId) survSessions.add(v.sessionId);
       }
+    }
+    for (const p of picks) {
+      const key = `${p.botId}|${p.market}`;
+      if (survPickKeys.has(key)) {
+        plan.push(`PICK삭제 #${p.id}(${p.botId},${p.market}) — survivor 에 동일 봇 픽 존재`);
+        if (apply) await prisma.memberBotPick.delete({ where: { id: p.id } });
+      } else {
+        plan.push(`PICK이전 #${p.id}(${p.botId},${p.market}) → #${survivor.id}`);
+        if (apply) await prisma.memberBotPick.update({ where: { id: p.id }, data: { matchId: survivor.id } });
+        survPickKeys.add(key);
+      }
+    }
+    for (const f of follows) {
+      if (survFollowUsers.has(f.userId)) {
+        plan.push(`FOLLOW삭제 #${f.id} — survivor 에 동일 유저 즐겨찾기 존재`);
+        if (apply) await prisma.userMatchFollow.delete({ where: { id: f.id } });
+      } else {
+        plan.push(`FOLLOW이전 #${f.id} → #${survivor.id}`);
+        if (apply) await prisma.userMatchFollow.update({ where: { id: f.id }, data: { matchId: survivor.id } });
+        survFollowUsers.add(f.userId);
+      }
+    }
+    const loserCache = await prisma.theSportsMatchCache.findUnique({ where: { matchId: L.id }, select: { tsMatchId: true } });
+    if (loserCache && !survHasCache) {
+      plan.push(`TSCACHE이전 ts=${loserCache.tsMatchId} → #${survivor.id}`);
+      if (apply) {
+        await prisma.theSportsMatchCache.update({ where: { matchId: L.id }, data: { matchId: survivor.id } });
+      }
+      survHasCache = true; // dry-run 에서도 다음 loser 계획이 일관되게
+    } else if (loserCache) {
+      plan.push(`TSCACHE삭제 ts=${loserCache.tsMatchId} — survivor 에 캐시 존재 (cascade)`);
     }
     plan.push(`ROW삭제 #${L.id}(${L.externalId},${L.status})`);
     if (apply) {
@@ -233,6 +294,7 @@ async function main() {
   // 당일 2연전이 있어 제외(같은 ts id 중복은 data-sanity 의 friendly_dup 담당).
   const XS_WINDOW_MS = 4 * 86400_000;
   const xsIds = new Set<number>();
+  const nnIds = new Set<number>(); // 탐지기 4 (숫자↔숫자) 가 잡은 id
   {
     const nowMs = Date.now();
     const soccer = [...SOCCER_LEAGUES].filter(
@@ -257,30 +319,62 @@ async function main() {
     for (const g of byPair.values()) {
       const tsRows = g.filter((r) => r.externalId.startsWith("ts-"));
       const numRows = g.filter((r) => !r.externalId.startsWith("ts-"));
-      if (!tsRows.length || !numRows.length) continue;
-      const cands: { t: (typeof xsRows)[number]; n: (typeof xsRows)[number]; d: number }[] = [];
-      for (const t of tsRows) {
-        for (const n of numRows) {
-          // 홈/원정이 뒤집힌 쌍은 제외 — 2차전(홈앤어웨이)이 정확히 그 모양이라 오탐이 된다
-          // (실측: UCL 예선 Hearts↔Sturm Graz 가 정확히 7일 간격 역방향).
-          // 시각이 거의 같은 중립구장 뒤바뀜은 collect 의 생성 시점 가드가 이미 막는다.
-          if (t.homeTeamId !== n.homeTeamId) continue;
-          const d = Math.abs(t.startTime.getTime() - n.startTime.getTime());
-          if (d > XS_WINDOW_MS) continue;
-          cands.push({ t, n, d });
+      if (tsRows.length && numRows.length) {
+        const cands: { t: (typeof xsRows)[number]; n: (typeof xsRows)[number]; d: number }[] = [];
+        for (const t of tsRows) {
+          for (const n of numRows) {
+            // 홈/원정이 뒤집힌 쌍은 제외 — 2차전(홈앤어웨이)이 정확히 그 모양이라 오탐이 된다
+            // (실측: UCL 예선 Hearts↔Sturm Graz 가 정확히 7일 간격 역방향).
+            // 시각이 거의 같은 중립구장 뒤바뀜은 collect 의 생성 시점 가드가 이미 막는다.
+            if (t.homeTeamId !== n.homeTeamId) continue;
+            const d = Math.abs(t.startTime.getTime() - n.startTime.getTime());
+            if (d > XS_WINDOW_MS) continue;
+            cands.push({ t, n, d });
+          }
+        }
+        // 가장 가까운 시각끼리 1:1 로만 묶는다 — ts 2건·af 2건 그룹이 4쌍으로 번지지 않게.
+        cands.sort((a, b) => a.d - b.d);
+        const usedT = new Set<number>();
+        const usedN = new Set<number>();
+        for (const c of cands) {
+          if (usedT.has(c.t.id) || usedN.has(c.n.id)) continue;
+          usedT.add(c.t.id);
+          usedN.add(c.n.id);
+          addGroup([c.t.id, c.n.id]);
+          xsIds.add(c.t.id);
+          xsIds.add(c.n.id);
         }
       }
-      // 가장 가까운 시각끼리 1:1 로만 묶는다 — ts 2건·af 2건 그룹이 4쌍으로 번지지 않게.
-      cands.sort((a, b) => a.d - b.d);
-      const usedT = new Set<number>();
-      const usedN = new Set<number>();
-      for (const c of cands) {
-        if (usedT.has(c.t.id) || usedN.has(c.n.id)) continue;
-        usedT.add(c.t.id);
-        usedN.add(c.n.id);
-        addGroup([c.t.id, c.n.id]);
-        xsIds.add(c.t.id);
-        xsIds.add(c.n.id);
+
+      // 탐지기 4: 숫자↔숫자(ESPN↔af) 크로스소스 중복 — 동방향·±4일 (2026-08-16 신설).
+      // ESPN scoreboard 와 af 백필이 미래 라운드를 서로 다른 placeholder 시각으로 실어
+      // ±150분 생성 가드를 벗어난 쌍둥이 (LALIGA 66·BUNDESLIGA 35·LIGUE_1 42쌍 실측).
+      // 둘 다 숫자 id 라 탐지기 1(시각 완전일치)·3(ts↔숫자)·data-sanity(ts 제외) 전부의 사각.
+      // 같은 리그 동방향 팀쌍이 4일 내 두 번 붙을 수 없으므로 오탐 없음(역방향 2차전 제외).
+      // 단 국대 친선은 같은 팀쌍 동방향 2연전이 실재해 제외 (실측: 에티오피아 v 말라위
+      // 6/6·6/9 별개 A매치 — af fixture id 도 둘).
+      if (numRows.length >= 2 && g[0].league !== "INTL_FRIENDLY") {
+        const nnCands: { a: (typeof xsRows)[number]; b: (typeof xsRows)[number]; d: number }[] = [];
+        for (let i = 0; i < numRows.length; i++) {
+          for (let j = i + 1; j < numRows.length; j++) {
+            const a = numRows[i];
+            const b = numRows[j];
+            if (a.homeTeamId !== b.homeTeamId) continue; // 동방향만 (byPair 키가 양방향 팀쌍)
+            const d = Math.abs(a.startTime.getTime() - b.startTime.getTime());
+            if (d > XS_WINDOW_MS) continue;
+            nnCands.push({ a, b, d });
+          }
+        }
+        nnCands.sort((x, y) => x.d - y.d);
+        const used = new Set<number>();
+        for (const c of nnCands) {
+          if (used.has(c.a.id) || used.has(c.b.id)) continue;
+          used.add(c.a.id);
+          used.add(c.b.id);
+          addGroup([c.a.id, c.b.id]);
+          nnIds.add(c.a.id);
+          nnIds.add(c.b.id);
+        }
       }
     }
   }
@@ -339,8 +433,14 @@ async function main() {
     const allScheduled = rows.every((r) => r.status === "SCHEDULED");
     const identicalFuture = sameKickoff && allScheduled;
 
+    // 탐지기 4 쌍(숫자↔숫자 동방향 ±4일)은 킥오프가 달라도 같은 경기임이 확정이다 —
+    // placeholder 시각 격차가 바로 중복의 원인이라, 시각 수렴을 기다리면 영영 안 온다
+    // (한쪽 소스는 그 날짜를 더 안 서빙해 row 가 동결됨). 전부 예정이면 지금 정리한다.
+    const isNn = rows.length === 2 && rows.every((r) => nnIds.has(r.id));
+    const nnScheduled = isNn && allScheduled;
+
     const scheduledRows = rows.filter((r) => r.status === "SCHEDULED");
-    if (scheduledRows.length > 0 && !xsFrozen && !identicalFuture) {
+    if (scheduledRows.length > 0 && !xsFrozen && !identicalFuture && !nnScheduled) {
       const ghostCutoff = Date.now() - 6 * 3600 * 1000;
       const twinFinished = rows.some((r) => r.status === "FINISHED");
       const allGhost = scheduledRows.every((r) => r.startTime.getTime() < ghostCutoff);
@@ -384,7 +484,7 @@ async function main() {
         continue;
       }
     }
-    const desc = `${isXs ? "XS " : ""}${base.league} ${base.startTime.toISOString()} KEEP #${keep.id}(${keep.externalId},${at(keep)},refs=${keep.protectedRefs},${keep.status}${keep.hasScore ? ",score" : ""}) DEL ${dels.map((r) => `#${r.id}(${r.externalId},${at(r)},refs=${r.protectedRefs},${r.status}${r.hasScore ? ",score" : ""})`).join(",")}`;
+    const desc = `${isXs ? "XS " : isNn ? "NN " : ""}${base.league} ${base.startTime.toISOString()} KEEP #${keep.id}(${keep.externalId},${at(keep)},refs=${keep.protectedRefs},${keep.status}${keep.hasScore ? ",score" : ""}) DEL ${dels.map((r) => `#${r.id}(${r.externalId},${at(r)},refs=${r.protectedRefs},${r.status}${r.hasScore ? ",score" : ""})`).join(",")}`;
 
     if (blocked.length > 0) {
       if (MERGE) {

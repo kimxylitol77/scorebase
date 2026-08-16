@@ -1,8 +1,9 @@
 // 리그별 시즌 리더보드 fetch — 매일 1회 cron.
 //
 // 데이터 소스:
-//   - 축구 클럽리그(커버): data/player-season-stats.json (TheSports 시즌통계) — 소스 1순위 원칙
-//   - 축구 그 외(UCL·UEL·컵 등 season-stats 미커버): API-Football topscorers 등 fallback
+//   - 축구 대부분: ts season/recent/player/stat 라이브 (TS_PLAYER_STAT_LEAGUES) — 소스 1순위 원칙
+//   - 축구 달력연도 4종(K리그·MLS·브라질레이랑): data/player-season-stats.json (주간 정적 갱신)
+//   - 축구 잔여(AFC_U23 등): API-Football topscorers fallback — 2026-06 말부터 사망 상태
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
@@ -40,6 +41,7 @@ import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
 import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
+import { thesportsGet } from "@/lib/sports/thesports/client";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
 const TOP_N = 10;
@@ -160,6 +162,16 @@ const SOCCER_LEAGUES = [
   "VIETNAM_VL1", "YKKONEN", "ARGENTINA_PL", "ARG_PRIMERA_NACIONAL", "CHINA_2",
   "BOLIVIA_PD", "URUGUAY_PD", "NWSL", "KAZAKHSTAN_PL", "BELARUS_PL", "PARAGUAY_PD",
   "BRASILEIRAO_2",
+  // 2026-08-16 3차 — 리더보드 미보유 잔여 리그 전수 실측(ts cur_season_id 기준)으로 추가.
+  // 데이터 보유: 잉글랜드 3~5부·유럽 2부 8종·보스니아·UAE·리그스컵·룩셈부르크(재실측 197행).
+  // 개막 전 0행(개막하면 자동 적재): 알바니아·키프로스·크로아티아·이스라엘·카타르·태국·
+  // 아제르바이잔·싱가포르·이라크. WK리그는 시즌 중인데 0행 = ts 미커버라 제외.
+  "LEAGUE_ONE", "LEAGUE_TWO", "NATIONAL_LEAGUE",
+  "AUSTRIA_2", "BELGIUM_2", "CZECH_2", "DENMARK_2", "EREDIVISIE_2",
+  "HUNGARY_2", "IRELAND_2", "PRIMEIRA_LIGA_2", "TURKEY_2",
+  "BOSNIA_PL", "UAE_PL", "LEAGUES_CUP", "LUXEMBOURG_ND",
+  "ALBANIA_SL", "CYPRUS_1D", "HNL", "ISRAEL_PL", "QATAR_SL", "THAI_L1",
+  "AZERBAIJAN_PL", "SINGAPORE_PL", "IRAQ_SL",
 ];
 
 // season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
@@ -167,10 +179,11 @@ const SOCCER_LEAGUES = [
 // BUNDESLIGA_2 는 2026-08-08 ts 라이브 경로로 이동 — 정적 JSON 은 빌더 재실행·커밋 전까지
 // 지난 시즌에 동결돼, 새 시즌 개막 후에도 2025-26 리더보드가 그대로 보였다(사용자 신고).
 // ts season/recent/player/stat 실측: 새 시즌 200행·득점자 20명 → 라이브 경로 기준 충족.
+// 2026-08-16: 유럽 시즌제 9종(EPL·LALIGA·분데스·세리에A·리그1·라리가2·사우디·쉬페르리그·
+// 세리에B)도 같은 증상(2026-27 개막 후에도 2025-26 동결)으로 ts 라이브 경로로 이동.
+// 남은 4종은 달력연도 리그(시즌 중 라벨 정합) — 값이 주간 정적 갱신만큼 늦는 한계는 있다.
 const SEASON_STATS_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "K_LEAGUE_1", "K_LEAGUE_2", "LALIGA_2", "MLS", "SAUDI_PL",
-  "BRASILEIRAO", "SERIE_B", "SUPER_LIG",
+  "K_LEAGUE_1", "K_LEAGUE_2", "MLS", "BRASILEIRAO",
 ]);
 
 // ts 시즌 선수통계를 리그 1콜로 직접 받는 확장 리그 (2026-08-02).
@@ -199,6 +212,16 @@ const TS_PLAYER_STAT_LEAGUES = new Set([
   // 개막 후에도 2025-26 리더보드가 그대로였다(사용자 신고: 에레디비시). 6개 전부
   // ts season/recent/player/stat 실측 통과(득점자 8~61명).
   "EREDIVISIE", "PRIMEIRA_LIGA", "JUPILER_PL", "LIGUE_2", "SPL", "LIGA_MX",
+  // 2026-08-16 정적 JSON 에서 이동 — 2026-27 개막 후에도 지난 시즌 동결 (SEASON_STATS_LEAGUES 주석).
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
+  "LALIGA_2", "SAUDI_PL", "SUPER_LIG", "SERIE_B",
+  // 2026-08-16 3차 신규 (SOCCER_LEAGUES 주석 참고 — 실측 근거 동일)
+  "LEAGUE_ONE", "LEAGUE_TWO", "NATIONAL_LEAGUE",
+  "AUSTRIA_2", "BELGIUM_2", "CZECH_2", "DENMARK_2", "EREDIVISIE_2",
+  "HUNGARY_2", "IRELAND_2", "PRIMEIRA_LIGA_2", "TURKEY_2",
+  "BOSNIA_PL", "UAE_PL", "LEAGUES_CUP", "LUXEMBOURG_ND",
+  "ALBANIA_SL", "CYPRUS_1D", "HNL", "ISRAEL_PL", "QATAR_SL", "THAI_L1",
+  "AZERBAIJAN_PL", "SINGAPORE_PL", "IRAQ_SL",
   "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
   "RUSSIA_FNL", "ROMANIA_L2",
@@ -232,6 +255,7 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
     "MLS", "K_LEAGUE_1", "K_LEAGUE_2", "WORLD_CUP",
     "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
     "ASEAN_CHAMP", // ts 시즌 year "2026" 실측 — 단기 국대 토너먼트라 달력연도 라벨
+    "IRELAND_2", "LEAGUES_CUP", // 2026-08-16 3차 — ts year "2026" 실측 (ts 메타 라벨의 폴백용)
 
     // 2026-08-02 확장 리그 중 달력연도 시즌 (af /leagues 의 현시즌 start~end 실측 분류).
     // 중미 아페르투라(7~11월)·페로/중국/우즈벡(봄~가을)·파나마·코파 두 브라질이 여기 해당.
@@ -406,18 +430,41 @@ async function syncClubLeagueFromSeasonStats(league: string): Promise<Record<str
   return out;
 }
 
+/** ts 시즌 uuid 의 실제 연도로 시즌 라벨 도출 — "2026-2027" → "2026-27", "2026" → "2026".
+ *  달력 공식(currentSoccerSeason)으로 라벨을 매기면 매핑 시즌 id 가 구버전일 때 지난 시즌
+ *  데이터가 새 시즌 라벨로 오적재된다(2026-08-16 실측: 이집트·인니·알제리·모로코 4개 리그가
+ *  2025-26 데이터를 "2026-27" 로 저장). 데이터가 온 시즌의 라벨을 정본으로 쓰면 이 클래스가
+ *  원천 차단된다 — id 가 낡아도 지난 시즌 최종본이 제 라벨로 보존될 뿐이다. */
+async function tsSeasonLabelOf(seasonId: string): Promise<string | null> {
+  try {
+    const meta = await thesportsGet<{ code: number; results?: Array<{ year?: string }> }>(
+      "/v1/football/season/list",
+      { uuid: seasonId },
+    );
+    const y = meta.results?.[0]?.year;
+    if (!y) return null;
+    const m = y.match(/^(\d{4})-(\d{4})$/);
+    return m ? `${m[1]}-${m[2].slice(2)}` : y;
+  } catch {
+    return null;
+  }
+}
+
 // 확장 리그 리더 = ts season/recent/player/stat 직접 호출 (리그당 1콜).
 // 정적 JSON 경로(syncClubLeagueFromSeasonStats)와 달리 빌더 재실행이 필요 없어 stale 하지 않다.
 // 한글 선수명은 TheSportsPlayer DB 에 있으면 쓰고, 없으면 ts 영문명 그대로 (하부리그는 미등재 다수).
 async function syncLeagueFromTsPlayerStat(
   league: string,
-  seasonLabel: string,
+  fallbackSeasonLabel: string,
 ): Promise<Record<string, number>> {
   const out: Record<string, number> = {};
   const entry = (tsLeagueMap as Array<{ code: string; tsSeasonId?: string }>).find(
     (e) => e.code === league,
   );
   if (!entry?.tsSeasonId) return out;
+
+  // 라벨은 ts 시즌 메타의 연도가 정본 — 달력 공식은 메타 조회 실패 시 폴백.
+  const seasonLabel = (await tsSeasonLabelOf(entry.tsSeasonId)) ?? fallbackSeasonLabel;
 
   const res = await fetchFootballSeasonPlayerStat(entry.tsSeasonId);
   const rows = res.results ?? [];
@@ -691,6 +738,20 @@ const NHL_GOALIE_CATS = [
 ] as const;
 
 async function runNhl(seasonLabel: string) {
+  // 공식 API "current" 리더는 오프시즌엔 직전 시즌 최종값을 반환한다. 달력 공식(m>=7)
+  // 라벨을 그대로 쓰면 8월에 2025-26 데이터가 "2026-27" 로 오적재된다(2026-08-16 실측
+  // 40행 — 맥데이비드 90도움이 26-27 라벨). standings/now 의 seasonId(예 20252026)가
+  // 리더 데이터와 같은 시즌을 가리키므로 그걸 라벨 정본으로, 실패 시 달력 공식 폴백.
+  try {
+    const r = await fetch("https://api-web.nhle.com/v1/standings/now", { cache: "no-store" });
+    if (r.ok) {
+      const body = (await r.json()) as { standings?: Array<{ seasonId?: number }> };
+      const sid = String(body.standings?.[0]?.seasonId ?? "");
+      if (/^\d{8}$/.test(sid)) seasonLabel = `${sid.slice(0, 4)}-${sid.slice(6)}`;
+    }
+  } catch {
+    /* 폴백: 인자로 받은 달력 공식 라벨 */
+  }
   const summary: Record<string, number> = {};
   const fetchOne = async (
     base: "skater" | "goalie",

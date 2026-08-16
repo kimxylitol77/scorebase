@@ -62,6 +62,8 @@ export const ALL_LEAGUES = [
   "V_LEAGUE", "V_LEAGUE_W",
   // KOVO컵(프리시즌 컵, 통상 8~9월) — utid 남 4zp5rzdh70oq82w / 여 j1l4rjdh12dr7vx
   "KOVO_CUP", "KOVO_CUP_W",
+  // 2026-08-16 배구 국가대표 친선 — utid 남 z8yomoxhk3gm0j6 / 여 56ypq3xh533qd7o
+  "VB_FRIENDLY", "VB_FRIENDLY_W",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -175,7 +177,7 @@ export const SPORTS: SportMeta[] = [
     emoji: "🏐",
     // 2026-06-12 신설 — TheSports 배구. V-리그는 10월 개막 시 추가 예정([[feedback_thesports_volleyball_shapes]]).
     // 2026-08-01 V-리그 남녀 추가 — 10월 개막 대비 선등록 (수집·라이브·배당은 리그 코드만으로 자동)
-    leagues: ["V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W", "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W"],
+    leagues: ["V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W", "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W", "VB_FRIENDLY", "VB_FRIENDLY_W"],
   },
   {
     code: "hockey",
@@ -444,6 +446,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   VNL_W: "발리볼 네이션스리그 (여)",
   AVC_NATIONS_W: "AVC 네이션스컵 (여)",
   EGL_W: "유럽 발리볼리그 (여)", // CEV European League — 골든+실버 통합 utid (26팀 실측)
+  VB_FRIENDLY: "배구 국가대표 친선 (남)",
+  VB_FRIENDLY_W: "배구 국가대표 친선 (여)",
   LOL: "LCK",
   LCK_CL: "LCK CL",
   LPL: "LPL",
@@ -693,6 +697,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   VNL_W: 25.05, // 여자 발리볼 네이션스리그 — 세계 최상위 대회 (한국 미출전)
   AVC_NATIONS_W: 25.1,
   EGL_W: 25.2,
+  VB_FRIENDLY: 25.3, // 국가대표 친선 (남) — 정규 대회 뒤
+  VB_FRIENDLY_W: 25.35,
   LOL: 30,
   LCK_CL: 30.5,
   LPL: 30.6,
