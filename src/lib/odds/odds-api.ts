@@ -428,6 +428,12 @@ const NORMALIZED_TEAM_ALIAS: Record<string, string> = {
 export function normalizeOddsTeamName(name: string): string {
   const n = name
     .toLowerCase()
+    // 악센트는 삭제가 아니라 기본 라틴으로 — "Montréal" 이 é 삭제로 "montral" 이 되면
+    // 소스의 "Montreal" 과 영영 안 만난다 (2026-08-16 MLS 배당 결손 실측).
+    // NFC 재조합 필수 — 한글이 NFD 자모로 남으면 아래 [가-힣] 필터가 통째로 지운다(KBO 사망).
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .normalize("NFC")
     .replace(/\b(fc|afc|cf|club|hotspur|wanderers|the|hyundai)\b/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
   return NORMALIZED_TEAM_ALIAS[n] ?? n;
