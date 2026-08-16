@@ -269,6 +269,10 @@ export const NATIONAL_TEAM_LEAGUES = new Set([
   "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
 ]);
 
+// 순위 개념이 없는 대회 — 공식 순위표도, DB 자체 산출 폴백도 쓰면 안 된다.
+// 친선은 상대·경기 수가 제각각이라 자체 계산이 "90위 / 147팀" 같은 무의미한 서열을 만든다.
+export const NO_STANDINGS_LEAGUES = new Set(["HOCKEY_FRIENDLY"]);
+
 // 축구 리그 집합 — SPORTS.soccer.leagues 단일 진실 (K리그·월드컵 등 전부 포함).
 export const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],

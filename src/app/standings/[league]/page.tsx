@@ -975,6 +975,9 @@ const VB_PAST_SEASON_NOTE: Record<string, string> = {
 
 async function VolleyballStandings({ league, name }: { league: string; name: string }) {
   const groups = await fetchVolleyballTable(league);
+  // 선수 시즌 리더보드 — 현재 V-리그 남녀만 데이터 보유(KOVO 공식), 그 외 대회는 자동 숨김
+  const { rowsByCategory: leaders, season: leaderSeason } = await loadLeagueLeaderboard(league);
+  const hasLeaders = Object.keys(leaders).length > 0;
   const teamIds = groups.flatMap((g) => g.rows.map((r) => r.ourTeamId));
   const [teams, vbMatches] = await Promise.all([
     prisma.team.findMany({
@@ -1080,6 +1083,17 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
       <div className="text-[11px] text-neutral-400 text-center pt-2">
         ⓘ 세트 +/- = 세트 득실 (승:패). 순위 산정은 대회 규정(승점→승수→세트율) 기준.
       </div>
+
+      {hasLeaders && (
+        <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
+          <LeagueLeaderBoard
+            league={league}
+            season={leaderSeason}
+            rowsByCategory={leaders}
+            footer={`${leaderSeason} 시즌 정규리그 최종 기록 · 출처 KOVO 공식`}
+          />
+        </CollapseSection>
+      )}
     </div>
   );
 }
@@ -1173,6 +1187,8 @@ async function NbaStandings({ name }: { name: string }) {
 // 오프시즌엔 fetcher 가 지난 시즌 최종 표로 폴백하고 seasonLabel/pastSeason 을 채워 준다.
 async function KoreanBasketballStandings({ league, name }: { league: string; name: string }) {
   const std = await fetchBasketballStandings(league);
+  const { rowsByCategory: leaders, season: leaderSeason } = await loadLeagueLeaderboard(league);
+  const hasLeaders = Object.keys(leaders).length > 0;
   if (!std || std.rows.length === 0) {
     return (
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -1259,6 +1275,17 @@ async function KoreanBasketballStandings({ league, name }: { league: string; nam
         </table>
       </section>
       <p className="text-[11px] text-neutral-400">ⓘ 승률 순 공식 순위 · 승차 = 1위와의 격차(경기 수) · 출처 {league === "KBL" ? "KBL(kbl.or.kr)" : "WKBL(wkbl.or.kr)"}.</p>
+
+      {hasLeaders && (
+        <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
+          <LeagueLeaderBoard
+            league={league}
+            season={leaderSeason}
+            rowsByCategory={leaders}
+            footer={`${leaderSeason} 시즌 정규리그 최종 기록 · 출처 ${league} 공식`}
+          />
+        </CollapseSection>
+      )}
     </div>
   );
 }
