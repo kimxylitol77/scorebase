@@ -163,6 +163,15 @@ const VOLLEYBALL_SEASONS = [
   { code: "VNL_W", seasonId: "zp5rzdhppydq82w" }, // 여자 발리볼 네이션스리그 (2026-07-11 추가, utid yl5ergdh3wpr8k0)
   { code: "AVC_NATIONS_W", seasonId: "dj2rydhgn9yr1zp" },
   { code: "EGL_W", seasonId: "pxwrxdhjj28myk0" },
+  // 2026-08-16 대륙·연령별 선수권 — 조별 다중 테이블. 미등록 시 카드 [순위] 가
+  // DB 자체계산 폴백으로 채워져 토너먼트에 없는 리그 순위가 붙는다.
+  { code: "VB_U17_WC", seasonId: "x7lm75hwp59q2wd" },
+  { code: "VB_U17_WC_W", seasonId: "ednm9vhvgj9qyox" },
+  { code: "VB_EURO_W", seasonId: "x7lm75h0v10q2wd" },
+  { code: "VB_ASIAN_W", seasonId: "x7lm75hw553q2wd" },
+  { code: "VB_NORCECA_W", seasonId: "dj2rydhg2ejr1zp" },
+  { code: "VB_PANAM", seasonId: "zp5rzdhp2zwq82w" },
+  { code: "VB_COPA_AM", seasonId: "318q67h47vdro9j" },
 ];
 
 async function fetchVolleyballStandings(seasonId) {
