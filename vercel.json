@@ -58,35 +58,11 @@
     },
     {
       "path": "/api/cron/collect",
-      "schedule": "30 11 * * *"
+      "schedule": "30 11,12,13,14,15,16 * * *"
     },
     {
       "path": "/api/cron/collect",
-      "schedule": "30 12 * * *"
-    },
-    {
-      "path": "/api/cron/collect",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/cron/collect",
-      "schedule": "30 13 * * *"
-    },
-    {
-      "path": "/api/cron/collect",
-      "schedule": "0 22 * * *"
-    },
-    {
-      "path": "/api/cron/collect",
-      "schedule": "30 14 * * *"
-    },
-    {
-      "path": "/api/cron/collect",
-      "schedule": "30 15 * * *"
-    },
-    {
-      "path": "/api/cron/collect",
-      "schedule": "30 16 * * *"
+      "schedule": "0 13,22 * * *"
     },
     {
       "path": "/api/cron/odds",
@@ -122,11 +98,7 @@
     },
     {
       "path": "/api/cron/api-football",
-      "schedule": "30 15-23 * * *"
-    },
-    {
-      "path": "/api/cron/api-football",
-      "schedule": "30 0-3 * * *"
+      "schedule": "30 15-23,0-3 * * *"
     },
     {
       "path": "/api/cron/evaluate",
@@ -158,11 +130,7 @@
     },
     {
       "path": "/api/cron/manager-picks",
-      "schedule": "0 23 * * *"
-    },
-    {
-      "path": "/api/cron/manager-picks",
-      "schedule": "0 12 * * *"
+      "schedule": "0 23,12 * * *"
     },
     {
       "path": "/api/cron/fake-picks",
@@ -174,11 +142,7 @@
     },
     {
       "path": "/api/cron/daily-thread?refresh=1",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/daily-thread?refresh=1",
-      "schedule": "0 4 * * *"
+      "schedule": "0 2,4 * * *"
     },
     {
       "path": "/api/cron/ou-picks",
@@ -262,31 +226,11 @@
     },
     {
       "path": "/api/cron/baseball-starters",
-      "schedule": "30 1 * * *"
+      "schedule": "30 1,2,3 * * *"
     },
     {
       "path": "/api/cron/baseball-starters",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/baseball-starters",
-      "schedule": "30 2 * * *"
-    },
-    {
-      "path": "/api/cron/baseball-starters",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/baseball-starters",
-      "schedule": "30 3 * * *"
-    },
-    {
-      "path": "/api/cron/baseball-starters",
-      "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/cron/baseball-starters",
-      "schedule": "0 8 * * *"
+      "schedule": "0 2,3,5,8 * * *"
     },
     {
       "path": "/api/cron/kbo-featured-hitters",
@@ -314,19 +258,11 @@
     },
     {
       "path": "/api/cron/preview",
-      "schedule": "30 22 * * *"
+      "schedule": "30 22,8 * * *"
     },
     {
       "path": "/api/cron/preview",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/preview",
-      "schedule": "30 8 * * *"
-    },
-    {
-      "path": "/api/cron/preview",
-      "schedule": "0 14 * * *"
+      "schedule": "0 8,14 * * *"
     },
     {
       "path": "/api/cron/blog-weekly",
@@ -405,8 +341,8 @@
       "schedule": "50 18 * * *"
     },
     {
-      "schedule": "*/10 * * * *",
-      "path": "/api/cron/push-alerts"
+      "path": "/api/cron/push-alerts",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
