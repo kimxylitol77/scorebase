@@ -208,23 +208,42 @@ export default async function KoreaAbroadPage() {
     country: p.country,
     node: (
       <tr key={p.afId}>
+        {/* 선수 사진 — 카드(주요 선수 4명)에만 있고 전체 명단인 이 표엔 없었다(사용자 지적).
+            이름 왼쪽 아바타로 붙인다. 없는 선수는 같은 크기 회색 원으로 열 정렬 유지. */}
         <td className="px-3 py-2.5">
-          {playerHref(p) ? (
-            <Link
-              href={playerHref(p)!}
-              className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
-            >
-              {p.nameKo}
-            </Link>
-          ) : (
-            <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
-          )}
-          {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
-          {p.spells && (
-            <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
-              {p.spells.length}개 리그 합산
+          <span className="flex items-center gap-2">
+            {p.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={p.photo}
+                alt=""
+                width={28}
+                height={28}
+                loading="lazy"
+                className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
+              />
+            ) : (
+              <span className="h-7 w-7 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-900" />
+            )}
+            <span className="min-w-0">
+              {playerHref(p) ? (
+                <Link
+                  href={playerHref(p)!}
+                  className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
+                >
+                  {p.nameKo}
+                </Link>
+              ) : (
+                <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
+              )}
+              {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
+              {p.spells && (
+                <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
+                  {p.spells.length}개 리그 합산
+                </span>
+              )}
             </span>
-          )}
+          </span>
         </td>
         <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
           <span className="flex items-center gap-1.5">
