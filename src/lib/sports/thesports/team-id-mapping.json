@@ -10701,13 +10701,13 @@
     "tsVenueId": "9vjxm8ghdlpr6od"
   },
   {
-    "ourId": 599467,
-    "ourName": "Gimnasia M.",
+    "ourId": 599478,
+    "ourName": "Gimnasia L.P.",
     "ourLeague": "ARGENTINA_PL",
-    "ourExternalId": "1066",
+    "ourExternalId": "434",
     "tsId": "yl5ergphjd4r8k0",
     "tsName": "Gimnasia La Plata",
-    "matchType": "fuzzy",
+    "matchType": "manual",
     "tsVenueId": "z318q66hk45qo9j"
   },
   {
@@ -10811,13 +10811,13 @@
     "tsVenueId": "vl7oqdeh6eor510"
   },
   {
-    "ourId": 599478,
-    "ourName": "Gimnasia L.P.",
+    "ourId": 599467,
+    "ourName": "Gimnasia M.",
     "ourLeague": "ARGENTINA_PL",
-    "ourExternalId": "434",
+    "ourExternalId": "1066",
     "tsId": "jw2r09hlkldrz84",
     "tsName": "Gimnasia y Esgrima de Mendoza",
-    "matchType": "fuzzy",
+    "matchType": "manual",
     "tsVenueId": "gy0or5jhpjjqwzv"
   },
   {
@@ -17917,13 +17917,13 @@
     "matchType": "audit-auto"
   },
   {
-    "ourId": 610590,
-    "ourName": "Queens Park Rangers",
+    "ourId": 598204,
+    "ourName": "QPR",
     "ourLeague": "CHAMPIONSHIP",
-    "ourExternalId": "yl5ergphj16r8k0",
+    "ourExternalId": "72",
     "tsId": "yl5ergphj16r8k0",
     "tsName": "Queens Park Rangers",
-    "matchType": "audit-auto"
+    "matchType": "manual"
   },
   {
     "ourId": 598196,
@@ -19492,13 +19492,13 @@
     "matchType": "audit-auto"
   },
   {
-    "ourId": 610385,
-    "ourName": "FK IMT Belgrad",
+    "ourId": 286071,
+    "ourName": "IMT Novi Beograd",
     "ourLeague": "SERBIA_SL",
-    "ourExternalId": "vjxm8gh8jz0r6od",
+    "ourExternalId": "12316",
     "tsId": "vjxm8gh8jz0r6od",
     "tsName": "FK IMT Belgrad",
-    "matchType": "audit-auto"
+    "matchType": "manual"
   },
   {
     "ourId": 286053,

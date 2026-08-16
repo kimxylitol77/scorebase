@@ -118,6 +118,22 @@ const nextConfig: NextConfig = {
         destination: "/articles/j1_league-recap-88341",
         permanent: true,
       },
+      // 2026-08-16 크로스소스 중복 정리 — MLB 연기 원본 row 의 중복 PREVIEW 3편 삭제분.
+      {
+        source: "/articles/mlb-preview-2104931",
+        destination: "/articles/mlb-preview-3264818",
+        permanent: true,
+      },
+      {
+        source: "/articles/mlb-preview-527341",
+        destination: "/articles/mlb-preview-3361372",
+        permanent: true,
+      },
+      {
+        source: "/articles/mlb-preview-2217636",
+        destination: "/articles/mlb-preview-3335232",
+        permanent: true,
+      },
     ];
   },
 };
