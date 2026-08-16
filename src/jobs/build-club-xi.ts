@@ -58,7 +58,8 @@ type TsLineup = {
 
 interface InjurySnapRow { teamName: string; playerTsId: string | null; playerName: string }
 
-async function buildTeam(
+// export 는 단독 팀 진단용 (scripts 에서 직접 호출) — 운영 경로는 runBuildClubXi 뿐.
+export async function buildTeam(
   league: string,
   teamId: number,
   /** 정본 + 유령 쌍둥이 row id — 친선 수집기가 같은 클럽을 별도 Team row 로 만들어
@@ -201,11 +202,19 @@ async function buildTeam(
       const k = lastInitialKey(e.p.name!);
       keyCount.set(k, (keyCount.get(k) ?? 0) + 1);
     }
+    const excluded: typeof ranked = [];
     ranked = ranked.filter((e) => {
-      if (injured.tsIds.has(e.p.id!)) return false;
       const k = lastInitialKey(e.p.name!);
-      return !(injured.nameKeys.has(k) && keyCount.get(k) === 1);
+      const out = injured.tsIds.has(e.p.id!) || (injured.nameKeys.has(k) && keyCount.get(k) === 1);
+      if (out) excluded.push(e);
+      return !out;
     });
+    // 부상 제외가 XI 자체를 무너뜨리면 점수 높은 순으로 복귀 — af 계열 스냅샷은 "결장 의심"
+    // 까지 담아 한 팀에서 십수 명을 걷어낸다(필라델피아 실측 16행, 선발 풀 22명 중 11명+).
+    // 부상·결장 명단은 페이지가 따로 보여주므로 XI 를 비우는 것보다 채우는 게 정보량이 크다.
+    if (ranked.length < 11 && excluded.length) {
+      ranked = [...ranked, ...excluded.slice(0, 11 - ranked.length)].sort((a, b) => b.score - a.score);
+    }
   }
 
   // 포메이션 = 가장 최근 경기 (리그 경기 우선, 최근 경기 없으면 직전 시즌)
