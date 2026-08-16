@@ -959,8 +959,16 @@ async function WorldCupStandings({ name }: { name: string }) {
 }
 
 
-// ── 배구 순위 (VNL/AVC/유럽리그) — TheSports season/table/detail cache 기반 ──
+// ── 배구 순위 (VNL/AVC/유럽리그/V-리그) — TheSports season/table/detail cache 기반 ──
 // 승점·승패·세트 득실. AVC/유럽리그는 조별(Pool) 다중 테이블 그대로 렌더.
+
+// V-리그는 비시즌이라 지난 시즌 최종 표를 라벨 붙여 노출 (2026-08-16, 캐시 수동 적재).
+// ⚠️ 10월 새 시즌 개막·standings-poller VOLLEYBALL_SEASONS 편입 시 이 라벨을 제거할 것.
+const VB_PAST_SEASON_NOTE: Record<string, string> = {
+  V_LEAGUE: "2025-26 시즌 정규리그 최종 순위 · 새 시즌은 2026년 10월 개막 후 자동 갱신",
+  V_LEAGUE_W: "2025-26 시즌 정규리그 최종 순위 · 새 시즌은 2026년 10월 개막 후 자동 갱신",
+};
+
 async function VolleyballStandings({ league, name }: { league: string; name: string }) {
   const groups = await fetchVolleyballTable(league);
   const teamIds = groups.flatMap((g) => g.rows.map((r) => r.ourTeamId));
@@ -993,7 +1001,8 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
         </span>
         <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
         <p className="text-sm text-neutral-500 mt-2 break-keep">
-          승점 · 승패 · 세트 득실 — TheSports 공식 순위, 경기 종료 후 자동 갱신
+          {VB_PAST_SEASON_NOTE[league] ??
+            "승점 · 승패 · 세트 득실 — TheSports 공식 순위, 경기 종료 후 자동 갱신"}
         </p>
       </header>
 
