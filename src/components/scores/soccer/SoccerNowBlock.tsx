@@ -212,9 +212,14 @@ export default function SoccerNowBlock({
               <h3 className="text-sm font-bold tracking-tight">부상·결장 명단</h3>
               <span className="text-[10px] text-neutral-500">데이터 기반</span>
             </div>
-            <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
-              <InjuryList label={homeNameKo} tone="home" items={injuriesHome ?? []} />
-              <InjuryList label={awayNameKo} tone="away" items={injuriesAway ?? []} />
+            {/* grid 대신 flex 방향 전환 — 윈도우 display:grid 무력화 환경 방어 (windows-display-grid-dropout) */}
+            <div className="flex flex-col sm:flex-row gap-y-3 sm:gap-x-4">
+              <div className="min-w-0 sm:flex-1">
+                <InjuryList label={homeNameKo} tone="home" items={injuriesHome ?? []} />
+              </div>
+              <div className="min-w-0 sm:flex-1">
+                <InjuryList label={awayNameKo} tone="away" items={injuriesAway ?? []} />
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-neutral-500 pt-1 border-t border-neutral-100 dark:border-white/5">
               <span><span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1 align-middle" />장기</span>
