@@ -15,6 +15,7 @@ import NextUpCard from "@/components/live/NextUpCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
@@ -47,11 +48,15 @@ interface Props {
   params: Promise<{ gameId: string }>;
 }
 
+// DB starter JSON 은 npb.jp 원문(한자·성만)을 그대로 담는다 — 표시는 여기서 음역한다.
+// /scores 는 localizeStarter 로 같은 변환을 거치는데 이 상세 페이지만 원문을 흘려
+// 한자가 그대로 나갔다 (2026-08-16 data-quality 알림: 小笠原·伊原·片山·武内).
 function parseStarter(json: string | null): string | null {
   if (!json) return null;
   try {
     const obj = JSON.parse(json) as { name?: string };
-    return obj.name?.trim() || null;
+    const name = obj.name?.trim();
+    return name ? npbPlayerToKorean(name) : null;
   } catch {
     return null;
   }
@@ -60,7 +65,9 @@ function parseStarter(json: string | null): string | null {
 function parseStarterFull(json: string | null): StarterInfo | null {
   if (!json) return null;
   try {
-    return JSON.parse(json) as StarterInfo;
+    const o = JSON.parse(json) as StarterInfo;
+    if (o?.name) o.name = npbPlayerToKorean(o.name);
+    return o;
   } catch {
     return null;
   }
