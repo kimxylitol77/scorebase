@@ -4,12 +4,9 @@
 import { prisma } from "@/lib/db";
 import { calcStandings, type StandingSummary } from "@/lib/predict/standings";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
 import { calcForm, type TeamForm } from "@/lib/predict/form";
 import type { PredictMatch, FormResult } from "@/lib/predict/types";
-
-// 순위 개념이 없는 대회 — 공식 순위표도, 자체 산출 폴백도 쓰면 안 된다.
-// 친선은 상대·경기 수가 제각각이라 자체 계산이 "90위 / 147팀" 같은 무의미한 서열을 만든다.
-const NO_STANDINGS_LEAGUES = new Set(["HOCKEY_FRIENDLY"]);
 
 export interface H2HResult {
   /** 직전 매치부터 과거 순. 'home' 관점 결과 (호출 시 perspectiveTeamId 기준) */

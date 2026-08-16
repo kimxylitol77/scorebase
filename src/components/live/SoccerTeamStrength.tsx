@@ -4,7 +4,7 @@
 
 import { getLeagueMatches, getLeagueTeamNames } from "@/lib/predict/league-data";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { leagueHasDraw } from "@/lib/sports/sport-leagues";
+import { leagueHasDraw, NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
 import { calcSeasonStats, calcSeasonForm } from "@/lib/predict/season-stats";
@@ -94,13 +94,14 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
       ? nationalElo(match.awayTeam.name)
       : getElo(eloTable, match.awayTeam.id));
 
-  const homeKo = toKoreanTeamName(match.homeTeam.name);
-  const awayKo = toKoreanTeamName(match.awayTeam.name);
+  const homeKo = toKoreanTeamName(match.homeTeam.name, match.league);
+  const awayKo = toKoreanTeamName(match.awayTeam.name, match.league);
   // 조별 리그면 순위 분모는 그 조의 팀수 (홈팀 기준 조)
   const totalTeams = useOfficial
     ? (oH!.group ? official.filter((r) => r.group === oH!.group).length : official.length)
     : standings.rows.length;
   const showDraw = leagueHasDraw(match.league);
+  const hideRank = NO_STANDINGS_LEAGUES.has(match.league);
 
   const homeForm = calcForm(matches, match.homeTeam.id, referenceTime, 5);
   const awayForm = calcForm(matches, match.awayTeam.id, referenceTime, 5);
@@ -117,7 +118,7 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const seasonStats = calcSeasonStats(matches, referenceTime);
   const teams = await getLeagueTeamNames(match.league);
   const teamNameById = new Map(
-    teams.filter((t) => seasonStats.has(t.id)).map((t) => [t.id, toKoreanTeamName(t.name)]),
+    teams.filter((t) => seasonStats.has(t.id)).map((t) => [t.id, toKoreanTeamName(t.name, match.league)]),
   );
   const scatterPoints = Array.from(seasonStats.values())
     .filter((s) => s.played >= 5)
@@ -212,7 +213,7 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
       </div>
 
       {/* 기본 노출 — 팀명·최근 폼 + 시즌 전체 비교 */}
-      <TeamMatchup sections="overview" showDraw={showDraw} home={homeSide} away={awaySide} />
+      <TeamMatchup sections="overview" showDraw={showDraw} hideRank={hideRank} home={homeSide} away={awaySide} />
 
       {/* 나머지 지표는 접기 — 상대전적 · 홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포 */}
       <CollapsibleSection
