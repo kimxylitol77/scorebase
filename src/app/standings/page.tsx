@@ -52,6 +52,9 @@ const LEAGUES: LeagueCard[] = [
   { code: "NPB", sport: "baseball", name: "NPB 리그", subtitle: "일본 프로야구", flag: "🇯🇵", gradient: "from-red-600 via-pink-500 to-rose-500" },
   { code: "NBA", sport: "basketball", name: "NBA", subtitle: "미국 프로농구", flag: "🏀", gradient: "from-orange-500 via-amber-500 to-yellow-500" },
   { code: "NHL", sport: "hockey", name: "NHL", subtitle: "북미 아이스하키", flag: "🏒", gradient: "from-cyan-500 via-blue-600 to-indigo-700" },
+  // V-리그 — 비시즌엔 지난 시즌(2025-26) 최종 순위를 라벨 붙여 노출. 10월 개막 후 subtitle 갱신.
+  { code: "V_LEAGUE", sport: "volleyball", name: "V-리그 남자부", subtitle: "KOVO · 2025-26 최종 순위", flag: "🇰🇷", gradient: "from-sky-600 via-blue-600 to-indigo-600" },
+  { code: "V_LEAGUE_W", sport: "volleyball", name: "V-리그 여자부", subtitle: "KOVO · 2025-26 최종 순위", flag: "🇰🇷", gradient: "from-rose-500 via-pink-500 to-fuchsia-600" },
   { code: "VNL", sport: "volleyball", name: "발리볼 네이션스리그", subtitle: "VNL · 남자 국가대항", flag: "🏐", gradient: "from-amber-500 via-orange-500 to-red-500" },
   { code: "AVC_NATIONS_W", sport: "volleyball", name: "AVC 네이션스컵", subtitle: "배구 여자 · 한국 출전", flag: "🏐", gradient: "from-sky-500 via-blue-500 to-indigo-600" },
   { code: "EGL_W", sport: "volleyball", name: "유럽 발리볼리그", subtitle: "배구 여자 · CEV", flag: "🏐", gradient: "from-violet-500 via-purple-500 to-fuchsia-500" },
