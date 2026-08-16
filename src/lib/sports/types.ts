@@ -435,6 +435,11 @@ export const PREVIEW_LEAGUES: readonly League[] = [
   "LOL", // e스포츠 (LCK)
   "INTL_FRIENDLY", // 국가대표 친선 (월드컵 평가전 — 국가대표 Elo 기반 winProb)
   "WORLD_CUP", // 2026 본선 (6/11~7/19) — 6/3 화이트리스트 축소 때 평가전만 넣고 본선 누락됐던 것 복구
+  // 2026-08-17 사용자 결정 — 축구 커버 확대. 6/3 축소는 검색 붕괴 대응이었는데, 그 뒤
+  // 도입된 **색인 시간창(D-7~D+2, articles/[slug])** 이 "대량 자동생성" 신호를 대신 막는다.
+  // 실측 기준 하루 +10.7건(23.7 → 34.4). 빅5 중 빠져 있던 3개 + 검색 수요 있는 4개.
+  "BUNDESLIGA", "SERIE_A", "LIGUE_1", // 빅5 잔여
+  "CHAMPIONSHIP", "MLS", "EREDIVISIE", "J1_LEAGUE",
 ];
 
 // UEFA 클럽대회(UCL/UEL/UECL) 여름 예선 판별 — 7·8월 매치는 예선(소국 리그 클럽 위주, 검색 수요 낮음).
