@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { SITE_URL } from "@/lib/site-url";
 import {
   SPORTS,
@@ -123,6 +124,37 @@ const fetchSoccerByDateCached = unstable_cache(
 const fetchPeriodsByDateCached = unstable_cache(
   fetchEspnPeriodLinescores,
   ["scores-page-period-linescores"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+
+// L 배지(라인업 확정) matchId 목록 — lineup 블랍이 이 페이지 캐시 페이로드의 65%(실측 3.5MB/요청)인데
+// 소비는 "확정 여부" boolean 뿐이다. 매 요청 당기는 대신 60초 캐시로 분리한다 (확정 라인업은 분 단위로
+// 안 변함). 인자는 unstable_cache 가 해시해 키로 쓰므로 호출부에서 정렬해 넘긴다(순서 흔들림 = 캐시 미스).
+const fetchLineupReadyIdsCached = unstable_cache(
+  async (soccerMatchIds: number[]): Promise<number[]> => {
+    if (soccerMatchIds.length === 0) return [];
+    const rows = await prisma.theSportsMatchCache.findMany({
+      where: { matchId: { in: soccerMatchIds }, lineup: { not: Prisma.DbNull } },
+      select: { matchId: true, lineup: true },
+    });
+    // SoccerLineupSvg 의 ready 조건과 동일 — 양팀 선발(first=1) 중 좌표 배치(x>0||y>0) 7명+.
+    const placedStarters = (arr: unknown): number =>
+      Array.isArray(arr)
+        ? arr.filter((p) => {
+            const pp = p as { first?: number; x?: number; y?: number };
+            return pp.first === 1 && ((Number(pp.x) || 0) > 0 || (Number(pp.y) || 0) > 0);
+          }).length
+        : 0;
+    const out: number[] = [];
+    for (const c of rows) {
+      // DbNull 필터를 지나도 JSON null 행은 null 로 온다 (Json null 두 종류 함정) — 가드 필수.
+      if (!c.lineup || typeof c.lineup !== "object") continue;
+      const inner = (c.lineup as { lineup?: { home?: unknown[]; away?: unknown[] } }).lineup;
+      if (placedStarters(inner?.home) >= 7 && placedStarters(inner?.away) >= 7) out.push(c.matchId);
+    }
+    return out;
+  },
+  ["scores-page-lineup-ready"],
   { revalidate: 60, tags: ["live-scores"] },
 );
 
@@ -836,10 +868,16 @@ export default async function ScoresPage({ searchParams }: Props) {
   );
 
   if (cacheIds.length > 0) {
-    const caches = await prisma.theSportsMatchCache.findMany({
-      where: { matchId: { in: cacheIds } },
-      select: { matchId: true, detailLive: true, lineup: true, teamStats: true, halfTeamStats: true },
-    });
+    // lineup 은 여기서 안 당긴다 — L 배지 판정은 위 fetchLineupReadyIdsCached(60초 캐시)가 담당.
+    // 블랍 쿼리 페이로드 5.3MB → 1.8MB (2026-08-16 실측, "/scores 전체 느림" 신고의 주범).
+    const [caches, lineupReadyIds] = await Promise.all([
+      prisma.theSportsMatchCache.findMany({
+        where: { matchId: { in: cacheIds } },
+        select: { matchId: true, detailLive: true, teamStats: true, halfTeamStats: true },
+      }),
+      fetchLineupReadyIdsCached([...soccerMatchIds].sort((a, b) => a - b)),
+    ]);
+    for (const id of lineupReadyIds) lineupMatchIdSet.add(id);
     const soccerIdSet = new Set(soccerMatchIds);
     const baseballIdSet = new Set(baseballLiveDbIds);
     const hockeyIdSet = new Set(hockeyMatchIds);
@@ -869,22 +907,6 @@ export default async function ScoresPage({ searchParams }: Props) {
       }
     }
     for (const c of caches) {
-      // 축구 라인업 L 배지 — SoccerLineupSvg 의 ready 조건과 동일하게: 양팀 선발(first=1) 중
-      // 좌표 배치된(x>0||y>0) 선수 7명+ 일 때만. squad 명단만(좌표 0,0·선발 0)인 "확정 대기"
-      // 상태는 미표시 (2026-06-05 #314645 China:Singapore confirmed=1 이나 선발 0 → L 오표시 수정).
-      if (soccerIdSet.has(c.matchId) && c.lineup && typeof c.lineup === "object") {
-        const inner = (c.lineup as { lineup?: { home?: unknown[]; away?: unknown[] } }).lineup;
-        const placedStarters = (arr: unknown): number =>
-          Array.isArray(arr)
-            ? arr.filter((p) => {
-                const pp = p as { first?: number; x?: number; y?: number };
-                return pp.first === 1 && ((Number(pp.x) || 0) > 0 || (Number(pp.y) || 0) > 0);
-              }).length
-            : 0;
-        if (placedStarters(inner?.home) >= 7 && placedStarters(inner?.away) >= 7) {
-          lineupMatchIdSet.add(c.matchId);
-        }
-      }
       const dl = c.detailLive as
         | {
             incidents?: unknown;
