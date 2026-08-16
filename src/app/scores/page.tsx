@@ -721,29 +721,47 @@ function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
 // SEO: 종목별 한글/영문 라벨 + 키워드.
 // 검색량 (월): "라이브 스코어"·"라이브스코어" 각 183만, "스포츠중계" 67만(+83%),
 // "야구 중계" 13.5만(+83%), "라이브 스포츠" 1.8만(+124%), "KBO 일정" 1.2만 — 합산 250만+.
+// ⚠️ 세 맵 모두 SPORTS(sport-leagues.ts)의 code 전부를 덮어야 한다. 빠지면 제목이
+//    "스포츠 라이브스코어" 로, 하단 문구가 "주요 리그 통합" 으로 폴백되고 JSON-LD sport 가
+//    "Sports" 가 된다 — 배구·UFC·테니스·골프·F1 이 실제로 그 상태였다(2026-08-16 발견).
 const SPORT_NAMES_KO: Record<string, string> = {
   all: "스포츠",
   soccer: "축구",
   baseball: "야구",
   basketball: "농구",
+  volleyball: "배구",
   hockey: "하키",
   esports: "e스포츠",
+  mma: "UFC",
+  tennis: "테니스",
+  golf: "골프",
+  f1: "F1",
 };
 const SPORT_NAMES_EN: Record<string, string> = {
   all: "Sports",
   soccer: "Soccer",
   baseball: "Baseball",
   basketball: "Basketball",
+  volleyball: "Volleyball",
   hockey: "Ice Hockey",
   esports: "Esports",
+  mma: "MMA",
+  tennis: "Tennis",
+  golf: "Golf",
+  f1: "Formula 1",
 };
 const SPORT_LEAGUE_BLURB: Record<string, string> = {
-  all: "축구·야구·농구·하키·e스포츠 14개 리그",
+  all: "축구·야구·농구·배구·하키·e스포츠·UFC·테니스·골프·F1",
   soccer: "K리그·EPL·라리가·분데스·세리에A·UCL·UEL·MLS",
   baseball: "KBO·NPB·MLB",
   basketball: "NBA",
-  hockey: "NHL",
+  volleyball: "V-리그·VNL·KOVO컵",
+  hockey: "NHL·KHL·챔피언스 하키 리그·유럽 리그",
   esports: "LCK·롤드컵",
+  mma: "UFC",
+  tennis: "ATP·WTA",
+  golf: "PGA·LPGA",
+  f1: "F1",
 };
 const COMMON_HIGH_VOLUME_KEYWORDS = [
   "라이브 스코어",
