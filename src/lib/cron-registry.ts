@@ -23,6 +23,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "sub-impact", label: "교체 임팩트 집계", maxAgeH: 28 },
   // 하루 2회(10,22 UTC) — 기대 12h + 유예로 16h
   { name: "club-xi", label: "클럽 예상 라인업", maxAgeH: 16 },
+  { name: "player-photos", label: "선수 사진 백필", maxAgeH: 16 },
   { name: "league-sim-snapshot", label: "시즌 시뮬", maxAgeH: 28 },
   { name: "evaluate", label: "적중률 평가", maxAgeH: 28 },
   { name: "gpt-predictions", label: "멀티 AI 성적표", maxAgeH: 28 },

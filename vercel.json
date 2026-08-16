@@ -221,6 +221,10 @@
       "schedule": "0 10,22 * * *"
     },
     {
+      "path": "/api/cron/player-photos",
+      "schedule": "20 6,18 * * *"
+    },
+    {
       "path": "/api/cron/capture-injuries",
       "schedule": "30 2 * * *"
     },
