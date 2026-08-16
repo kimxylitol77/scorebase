@@ -13,6 +13,7 @@ import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
+import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
@@ -379,6 +380,30 @@ export default async function StandingsPage({ params }: Props) {
   }
 
   if (source === "calc") {
+    // 단계 대회(예선 → 리그페이즈/조별 → 녹아웃)는 자체 계산이 전 단계를 한 표로 합산해
+    // 순위로서 의미가 없다 — UECL 예선~플레이오프가 133팀 한 표로 나오던 실측(2026-08-17).
+    // 공식 표(ts)가 있을 때만 순위를 낸다. 없으면 표 대신 일정으로 보낸다.
+    if (STAGED_COMPETITIONS.has(upper)) {
+      return (
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <AmbientGlow />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+          </span>
+          <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+          <p className="mt-3 text-sm text-neutral-500 break-keep">
+            예선·리그페이즈·녹아웃이 단계별로 나뉘는 대회라 단일 순위표로 표시하지 않습니다.
+            리그페이즈가 시작되면 공식 순위를 보여드립니다.
+          </p>
+          <Link
+            href={`/leagues/${upper}?view=fixtures`}
+            className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+          >
+            {name} 일정 보기 →
+          </Link>
+        </div>
+      );
+    }
     if (matches.length === 0) {
       return (
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
