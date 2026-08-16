@@ -25,8 +25,11 @@
 - [x] Vultr — collector.js + mapping JSON scp → chown → node --check → systemctl restart
 - [x] 검증 — 워커 poll `63 → 312 mapped teams`, 수집 8건 → 172건, skippedNoTeam=0
 - [x] 검증 — /scores 하키 탭 리그 칩 + 카드 14건(LIVE 1·예정 6·종료 7) 노출, 상세 200 (골 타임라인·피리어드 정상)
-- [x] 후속 — 친선 매치 상세의 자체 산출 "리그순위 90위 / 147팀" 차단 (친선은 순위 개념 없음)
-- [x] 후속 — 동명 축구 클럽 한글명 오적용 2건 교정 (EC 잘츠부르크 · HC 슬로반)
+- [x] 후속 — 친선 상세의 자체 산출 "리그순위 90위 / 147팀" 차단. ⚠️ 순위 산출 경로가 셋(match-extras · SoccerTeamStrength · MatchInsight)이라 첫 수정이 한 곳만 막아 실렌더에 그대로 남았다 — NO_STANDINGS_LEAGUES(sport-leagues.ts) 단일 출처 + TeamMatchup hideRank 로 마무리
+- [x] 후속 — 동명 축구 클럽 한글명 오적용 2건 교정 (EC 잘츠부르크 · HC 슬로반).
+  리그별 사전을 넣어도 `toKoreanTeamName(name)` 을 리그 인자 없이 부르는 곳(SoccerTeamStrength 3 · MatchInsight 48)이
+  있어 안 먹었다 — 사전만 추가하고 끝내면 안 된다
+- [x] 최종 실렌더 검증 — /scores 카드 20건·리그 칩, 상세 리그순위 0건·EC 표기 정상
 
 ## 안 한 것 (의도)
 
