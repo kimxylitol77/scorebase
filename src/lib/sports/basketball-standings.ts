@@ -24,6 +24,10 @@ export interface BasketballStandings {
   updatedAt: Date;
   /** true = 외부 소스가 실패해 마지막 정상 캐시를 돌려준 것. */
   stale?: boolean;
+  /** 데이터가 속한 시즌 라벨 (예: "2025-2026") — KBL 폴백·WKBL 시즌코드에서 유도. */
+  seasonLabel?: string;
+  /** true = 종료된 시즌의 최종 순위 (오프시즌 폴백 표시용). */
+  pastSeason?: boolean;
 }
 
 /** 리그별 정상 응답 팀 수 — 이보다 적으면 부분 응답으로 보고 캐시에 저장하지 않는다. */
@@ -303,28 +307,80 @@ interface KblRow {
   tname?: string;
 }
 
+const KBL_HEADERS = {
+  Channel: "WEB",
+  TeamCode: "XX",
+  "X-Requested-With": "XMLHttpRequest",
+  lang: "ko",
+  Origin: "https://kbl.or.kr",
+  Referer: "https://kbl.or.kr/",
+};
+
+async function fetchKblJson(path: string): Promise<unknown> {
+  const response = await fetch(`https://api.kbl.or.kr${path}`, {
+    headers: KBL_HEADERS,
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) return null;
+  return response.json();
+}
+
 async function fetchKblStandings(): Promise<BasketballStandings | null> {
   try {
-    const response = await fetch("https://api.kbl.or.kr/league/rank/team", {
-      headers: {
-        Channel: "WEB",
-        TeamCode: "XX",
-        "X-Requested-With": "XMLHttpRequest",
-        lang: "ko",
-        Origin: "https://kbl.or.kr",
-        Referer: "https://kbl.or.kr/",
-      },
-      cache: "no-store",
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!response.ok) return null;
-    const payload: unknown = await response.json();
-    if (!Array.isArray(payload)) return null;
-    const rows = (payload as KblRow[]).flatMap((row) => {
-      const ourTeamId = row.tcode ? KBL_TEAM_IDS[row.tcode] : undefined;
-      if (!ourTeamId || !Number.isFinite(row.rank) || !Number.isFinite(row.win) || !Number.isFinite(row.loss)) return [];
-      const wins = Number(row.win);
-      const losses = Number(row.loss);
+    const payload = await fetchKblJson("/league/rank/team");
+    if (Array.isArray(payload)) {
+      const rows = (payload as KblRow[]).flatMap((row) => {
+        const ourTeamId = row.tcode ? KBL_TEAM_IDS[row.tcode] : undefined;
+        if (!ourTeamId || !Number.isFinite(row.rank) || !Number.isFinite(row.win) || !Number.isFinite(row.loss)) return [];
+        const wins = Number(row.win);
+        const losses = Number(row.loss);
+        return [{
+          position: Number(row.rank),
+          ourTeamId,
+          played: wins + losses,
+          wins,
+          losses,
+          scored: null,
+          conceded: null,
+          difference: null,
+          gamesBehind: Number(row.winDiff) > 0 ? Number(row.winDiff) : null,
+          teamName: row.tname?.trim() || undefined,
+        }];
+      }).sort((left, right) => left.position - right.position);
+      if (rows.length === 10) return { rows, updatedAt: new Date() };
+    }
+    // 오프시즌엔 현재 시즌 표가 빈 배열로 리셋된다(2026-08 실측) → 시즌 목록에서
+    // 최근 시즌을 거슬러 최종 표를 찾는다 (glkey 예: S47G01 = 2025-2026 정규시즌).
+    return await fetchKblPastSeason();
+  } catch {
+    return null;
+  }
+}
+
+/** 시즌별 순위 응답 — /league/rank/{glkey} (현재 시즌 rank/team 과 필드명이 다르다) */
+interface KblSeasonRow {
+  rank?: number;
+  teamCode?: string;
+  teamName1?: string;
+  TWin?: number;
+  TLoss?: number;
+  winDiff?: number;
+}
+
+async function fetchKblPastSeason(): Promise<BasketballStandings | null> {
+  const seasons = await fetchKblJson("/season/list?seasonCategory=R&gameCode=01&seasonGrade=1");
+  if (!Array.isArray(seasons)) return null;
+  const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10).replace(/-/g, "");
+  for (const s of (seasons as Array<{ glkey?: string; seasonName?: string; gamedateEnd?: string }>).slice(0, 3)) {
+    if (!s.glkey) continue;
+    const payload = await fetchKblJson(`/league/rank/${s.glkey}`);
+    if (!Array.isArray(payload)) continue;
+    const rows = (payload as KblSeasonRow[]).flatMap((row) => {
+      const ourTeamId = row.teamCode ? KBL_TEAM_IDS[row.teamCode] : undefined;
+      if (!ourTeamId || !Number.isFinite(row.rank) || !Number.isFinite(row.TWin) || !Number.isFinite(row.TLoss)) return [];
+      const wins = Number(row.TWin);
+      const losses = Number(row.TLoss);
       return [{
         position: Number(row.rank),
         ourTeamId,
@@ -335,13 +391,19 @@ async function fetchKblStandings(): Promise<BasketballStandings | null> {
         conceded: null,
         difference: null,
         gamesBehind: Number(row.winDiff) > 0 ? Number(row.winDiff) : null,
-        teamName: row.tname?.trim() || undefined,
+        teamName: row.teamName1?.trim() || undefined,
       }];
     }).sort((left, right) => left.position - right.position);
-    return rows.length === 10 ? { rows, updatedAt: new Date() } : null;
-  } catch {
-    return null;
+    if (rows.length === 10) {
+      return {
+        rows,
+        updatedAt: new Date(),
+        seasonLabel: s.seasonName,
+        pastSeason: !!s.gamedateEnd && s.gamedateEnd < today,
+      };
+    }
   }
+  return null;
 }
 
 function wkblSeasonCodes(now = new Date()) {
@@ -395,7 +457,15 @@ async function fetchWkblStandings(): Promise<BasketballStandings | null> {
       if (!response.ok) continue;
       const rows = parseWkblRows(await response.text());
       if (rows.length === 6 && rows.every((row) => row.played > 0)) {
-        return { rows, updatedAt: new Date() };
+        // 시즌코드 = 시작연도-1979. WKBL 시즌은 11월~3월이라 4~10월(KST)은 종료 시즌의 최종 표.
+        const startYear = 1979 + Number(seasonCode);
+        const kstMonth = new Date(Date.now() + 9 * 3600_000).getUTCMonth() + 1;
+        return {
+          rows,
+          updatedAt: new Date(),
+          seasonLabel: `${startYear}-${startYear + 1}`,
+          pastSeason: kstMonth >= 4 && kstMonth <= 10,
+        };
       }
     } catch {
       continue;
