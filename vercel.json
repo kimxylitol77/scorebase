@@ -353,6 +353,10 @@
       "schedule": "0 */2 * * *"
     },
     {
+      "path": "/api/cron/data-freshness",
+      "schedule": "0 1,13 * * *"
+    },
+    {
       "path": "/api/cron/bing-seo",
       "schedule": "0 23 * * 0"
     },

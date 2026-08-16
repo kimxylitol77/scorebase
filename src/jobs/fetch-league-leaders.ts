@@ -9,7 +9,7 @@
 //   - MLB: MLB Stats API /v1/stats/leaders (타격 4 + 투구 4)
 //   - KBO: koreabaseball.com (시즌 hitter/pitcher basic — ajax JSON)
 //   - NPB: npb.jp/bis/{Y}/stats/{bat,pit}_{c,p}.html (양리그 합산 TOP)
-//   - LOL/LCK: BALLDONTLIE /lol/v1/player_match_map_stats 시즌 집계 (KDA·CS)
+//   - LOL/LCK: DB lolGames 자체 집계 (aggregateLolPlayers — BDL 키 사망으로 2026-08 교체)
 
 import "@/lib/env";
 import { readFileSync } from "fs";
@@ -36,6 +36,8 @@ import {
   type NpbPlayerIndexEntry,
 } from "@/lib/sports/npb-official";
 import { getWorldCupPlayerStats } from "@/lib/sports/thesports/world-cup-player-stats";
+import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
+import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
@@ -181,6 +183,15 @@ const SEASON_STATS_LEAGUES = new Set([
 // ts 0행이라 제외(= af 로 메우는 갭), PORTUGAL_SUPER_CUP 은 단일 경기라 리더보드 무의미.
 const TS_PLAYER_STAT_LEAGUES = new Set([
   "BUNDESLIGA_2", // 2026-08-08 정적 JSON 에서 이동 — 위 SEASON_STATS_LEAGUES 주석 참고
+  // 2026-08-15 af fallback 잔존 리그 일괄 이전 — af 리더 엔드포인트 사망(6월 말~)으로
+  // J1 리더보드가 아예 비어 있었다(사용자 신고). ts season/recent/player/stat 전수 실측:
+  // J1 413행·득점자 37, UCL 1164행·167, UEL 1003행·111, UECL 3198행·443, CSL 510행·156,
+  // COPA_LIB 956행·153, COPA_SUD 1205행·188, AFC_CL 177행·9, AFC_CL_TWO 88행·8,
+  // CHAMPIONSHIP 40행·4(개막 직후 — MIN_LEADERS 가드가 채워질 때까지 보류),
+  // GREEK_SL·A_LEAGUE 0행(개막 전 — 개막하면 자동 적재). J2 는 tsSeasonId 미보유
+  // 정책(NO_SEASON_ID — af 가 매치 소스)이라 제외.
+  "J1_LEAGUE", "AFC_CL", "AFC_CL_TWO", "UCL", "UEL", "UECL",
+  "CHAMPIONSHIP", "GREEK_SL", "CSL", "COPA_LIB", "COPA_SUD", "A_LEAGUE",
   // 2026-08-09 af fallback 에서 이동 — af 리더 엔드포인트가 6월 말부터 죽어(fetched 945h)
   // 개막 후에도 2025-26 리더보드가 그대로였다(사용자 신고: 에레디비시). 6개 전부
   // ts season/recent/player/stat 실측 통과(득점자 8~61명).
@@ -213,8 +224,9 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
+  // J1·J2 는 2026-27 추춘제 전환, AFC_CL 엘리트는 2024-25 부터 8~5월 — 유럽형 라벨(2026-27).
   const calendarYearLeagues = [
-    "MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP",
+    "MLS", "K_LEAGUE_1", "K_LEAGUE_2", "WORLD_CUP",
     "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
     // 2026-08-02 확장 리그 중 달력연도 시즌 (af /leagues 의 현시즌 start~end 실측 분류).
     // 중미 아페르투라(7~11월)·페로/중국/우즈벡(봄~가을)·파나마·코파 두 브라질이 여기 해당.
@@ -236,12 +248,11 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   if (calendarYearLeagues.includes(league)) {
     return { season: y, label: String(y) };
   }
-  // UEFA 컨티넨탈 컵(UCL/UEL/UECL)은 본대회(리그 페이즈) 9월 개막. 7~8월 예선 득점자를
-  // 새 시즌으로 적재하면 완료된 직전 시즌 리더보드를 최다 2골짜리 예선 데이터가 밀어낸다
-  // (2026-07 UCL 리더보드가 예선 득점판으로 뒤바뀐 실측). 컵만 전환을 9월로 늦춘다.
-  const CONTINENTAL_CUPS = ["UCL", "UEL", "UECL"];
-  const seasonStartMonth = CONTINENTAL_CUPS.includes(league) ? 9 : 7;
-  const startYear = m >= seasonStartMonth ? y : y - 1;
+  // UEFA 컨티넨탈 컵도 7월 전환 (2026-08-15). 과거 9월 지연은 af 경로가 예선 득점자를
+  // "같은 시즌 라벨"로 덮어써 직전 시즌 최종판을 파괴했기 때문인데(2026-07 실측),
+  // ts 경로는 tsSeasonId 가 시즌을 확정하고 라벨이 시즌마다 달라 과거 행이 보존된다.
+  // 9월 지연을 유지하면 ts 예선 데이터(2026-27)가 직전 시즌 라벨(2025-26)로 오적재된다.
+  const startYear = m >= 7 ? y : y - 1;
   return { season: startYear, label: `${startYear}-${String(startYear + 1).slice(2)}` };
 }
 
@@ -256,11 +267,17 @@ async function syncSoccerCategory(
   unit: string,
 ): Promise<number> {
   const raw = await fetcher(league, season);
-  const top = raw.slice(0, TOP_N);
+  // 값 0 행 제외 + 커버리지 게이트 — af 는 개막 전에도 선수 목록을 0값으로 반환해
+  // (2026-08-15 J2 실측: 전원 0골 리더보드 적재) 그대로 쓰면 쓰레기 표가 나간다.
+  // ts 경로(MIN_LEADERS)와 같은 기준으로 부족하면 skip — 기존 데이터 보존.
+  const valOf = (p: PlayerLeaderEntry & { goals?: number }) =>
+    category === "GOAL" && "goals" in p ? p.goals ?? 0 : (p as PlayerLeaderEntry).value;
+  const nonZero = (raw as (PlayerLeaderEntry & { goals?: number })[]).filter((p) => valOf(p) > 0);
+  if (nonZero.length < MIN_LEADERS) return 0;
+  const top = nonZero.slice(0, TOP_N);
   for (let i = 0; i < top.length; i++) {
-    const p = top[i] as PlayerLeaderEntry & { goals?: number };
-    const value =
-      category === "GOAL" && "goals" in p ? p.goals ?? 0 : (p as PlayerLeaderEntry).value;
+    const p = top[i];
+    const value = valOf(p);
     await upsertLeader({
       league,
       category,
@@ -553,7 +570,7 @@ async function runSoccer() {
           result[lg] = await syncLeagueFromTsPlayerStat(lg, currentSoccerSeason(lg).label);
           continue;
         }
-        // 나머지(UCL·UEL·컵·에레디비시 등) = api-football fallback. ts 시즌통계 미커버라 이게 유일 소스.
+        // 나머지(J2·AFC_U23 등 ts 시즌통계 미커버) = api-football fallback.
         const { season, label } = currentSoccerSeason(lg);
         result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
         result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
@@ -1110,159 +1127,92 @@ async function runNpb(season: number) {
 }
 
 /* ============================================================
- * LOL/LCK (BALLDONTLIE 매치 stats 집계)
+ * LOL/LCK (lolGames DB 자체 집계)
+ *
+ * BALLDONTLIE 키 Unauthorized(2026-06-12)로 동결 → /standings/LOL 이 이미 쓰는
+ * lolGames 자체 집계(aggregateLolPlayers)로 교체. league="LOL" 매치(LCK 본선·Cup·
+ * KeSPA Cup)만 집계 대상이라 BDL 시절 타 리그 유출 문제는 소스 단에서 사라졌지만,
+ * 1군 10팀 화이트리스트는 이벤트성 참가팀 방어용으로 유지 (ts team id 기준).
  * ==========================================================*/
 
-const LCK_TOURNAMENT_ID = 324;
-
-// LCK 1군 10팀 화이트리스트 (BDL 응답 team.name 정확 매치).
-// BDL 의 player_match_map_stats endpoint 는 `tournament_ids[]` 필터를 무시해서
-// LEC/LJL/KeSPA Cup 등 외부 토너먼트 stat 까지 새므로 client-side 화이트리스트로 차단.
-// 2026 시즌 LCK 정규 10팀: T1 · Gen.G · KT · HLE · Dplus KIA · BNK FearX · NS · BRO · DN SOOPers · DRX.
-// (Kwangdong Freecs / DN Freecs / DNF 는 후원사 변경 전 명칭이거나 KeSPA Cup 잔여 stat — 통과시키면 안 됨)
-const LCK_TEAM_WHITELIST = new Set([
-  "T1",
-  "Gen.G",
-  "KT Rolster",
-  "Hanwha Life Esports",
-  "Dplus KIA",
-  "Hanjin BRION", "BRION", "OK BRION",
-  "BNK FearX", "BNK FEARX",
-  "DRX",
-  "Nongshim RedForce", "NongShim RedForce",
-  "DN SOOPers",
+// LCK 1군 10팀 ts team id (TS_LOL_TEAMS 의 LCK 본선 10팀과 동일).
+const LCK_TEAM_ID_WHITELIST = new Set([
+  "4jwq2eku42pkq0v", // T1
+  "k82repjtvpxzqep", // Gen.G
+  "965mk6zt7d5jq1g", // 한화생명e스포츠
+  "dn1m1eku4j7kqoe", // KT 롤스터
+  "23xmvxjt3nj2rg8", // 디플러스 기아
+  "965mk6zt7jezq1g", // BNK 피어엑스
+  "vjxm89jb412kq6o", // 농심 레드포스
+  "ednm926hky17ryo", // 한진 브리온
+  "2y8m4exu32pkql0", // DN SOOPers
+  "y0or59wblpd4mwz", // DRX
 ]);
 
-interface LolMatchMapStat {
-  player: { id: number; nickname: string };
-  team: { id: number; name: string };
-  kills: number;
-  deaths: number;
-  assists: number;
-  creep_score: number;
-}
-
-async function fetchLolMatchStats(dateFrom: string): Promise<LolMatchMapStat[]> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return [];
-  const all: LolMatchMapStat[] = [];
-  let cursor: number | undefined;
-  // 최대 20페이지 (각 페이지 100건) — 시즌 게임 ~수백
-  for (let i = 0; i < 20; i++) {
-    try {
-      const url = new URL("https://api.balldontlie.io/lol/v1/player_match_map_stats");
-      url.searchParams.set("dates[]", dateFrom);
-      url.searchParams.set("tournament_ids[]", String(LCK_TOURNAMENT_ID));
-      url.searchParams.set("per_page", "100");
-      if (cursor) url.searchParams.set("cursor", String(cursor));
-      const r = await fetch(url.toString(), {
-        headers: { Authorization: key },
-        cache: "no-store",
-      });
-      if (!r.ok) break;
-      const data = (await r.json()) as {
-        data: LolMatchMapStat[];
-        meta?: { next_cursor?: number };
-      };
-      all.push(...data.data);
-      if (!data.meta?.next_cursor) break;
-      cursor = data.meta.next_cursor;
-    } catch {
-      break;
-    }
-  }
-  return all;
-}
-
 async function runLol(season: number) {
-  // 시즌 시작 (대략 1월) ~ 현재
-  const from = `${season}-01-01`;
-  const stats = await fetchLolMatchStats(from);
+  // 시즌 시작(1월) ~ 현재 — BDL 시절 dates[] 필터와 같은 경계. 시즌 라벨 "2026" 단일.
+  const players = await aggregateLolPlayers("LOL", new Date(Date.UTC(season, 0, 1)));
   const summary: Record<string, number> = {};
-  if (stats.length === 0) return { season: String(season), result: summary };
 
-  // player_id 별 집계
-  const byPlayer = new Map<number, {
-    nickname: string;
-    team: string;
-    kills: number;
-    deaths: number;
-    assists: number;
-    cs: number;
-    games: number;
-  }>();
-  for (const s of stats) {
-    const cur = byPlayer.get(s.player.id) ?? {
-      nickname: s.player.nickname,
-      team: s.team?.name ?? "",
-      kills: 0,
-      deaths: 0,
-      assists: 0,
-      cs: 0,
-      games: 0,
-    };
-    cur.kills += s.kills ?? 0;
-    cur.deaths += s.deaths ?? 0;
-    cur.assists += s.assists ?? 0;
-    cur.cs += s.creep_score ?? 0;
-    cur.games += 1;
-    cur.team = s.team?.name ?? cur.team;
-    byPlayer.set(s.player.id, cur);
-  }
-
-  // 평균 stats 계산 (최소 3게임 이상 + LCK 1군 화이트리스트만)
-  type Row = { id: number; nickname: string; team: string; kda: number; cs: number; killsAvg: number; games: number };
+  // 최소 3게임 + LCK 1군 화이트리스트 (기존 기준 유지)
+  type Row = { id: string; nickname: string; teamId: string; kda: number; cs: number; killsAvg: number; games: number };
   const rows: Row[] = [];
   let droppedNonLck = 0;
-  for (const [id, v] of byPlayer) {
-    if (v.games < 3) continue;
-    if (!LCK_TEAM_WHITELIST.has(v.team)) { droppedNonLck++; continue; }
-    const kda = v.deaths === 0 ? v.kills + v.assists : (v.kills + v.assists) / v.deaths;
+  for (const p of players) {
+    if (p.games < 3) continue;
+    if (!LCK_TEAM_ID_WHITELIST.has(p.teamId)) { droppedNonLck++; continue; }
     rows.push({
-      id,
-      nickname: v.nickname,
-      team: v.team,
-      kda,
-      cs: v.cs / v.games,
-      killsAvg: v.kills / v.games,
-      games: v.games,
+      id: p.playerId,
+      nickname: p.name,
+      teamId: p.teamId,
+      kda: p.kda,
+      cs: p.csPerGame,
+      killsAvg: p.games ? p.kills / p.games : 0,
+      games: p.games,
     });
   }
   if (droppedNonLck > 0) {
-    console.log(`[leaders/lol] dropped ${droppedNonLck} non-LCK players (Academy/Youth/해외 리그)`);
+    console.log(`[leaders/lol] dropped ${droppedNonLck} non-LCK players (이벤트 참가팀 등)`);
+  }
+  // 커버리지 부족 → 기존 데이터 보존 (MIN_LEADERS 가드 패턴)
+  if (rows.length < MIN_LEADERS) {
+    console.warn(`[leaders/lol] only ${rows.length} eligible players — skip (기존 보존)`);
+    return { season: String(season), result: summary };
   }
 
-  const writeCat = async (
-    code: string,
-    unit: string,
-    key: keyof Row,
-    decimals: number,
-  ) => {
-    const sorted = [...rows].sort((a, b) => (b[key] as number) - (a[key] as number));
+  const photos = (loadJsonSafe<{ players: Record<string, { photo?: string }> }>(
+    "data/lol-players.json",
+    { players: {} },
+  )).players;
+
+  const writeCat = async (code: string, unit: string, key: "kda" | "cs" | "killsAvg") => {
+    const sorted = [...rows].sort((a, b) => b[key] - a[key]);
     const top = sorted.slice(0, TOP_N);
     for (let i = 0; i < top.length; i++) {
       const r = top[i];
+      const team = TS_LOL_TEAMS[r.teamId];
       await upsertLeader({
         league: "LOL",
         category: code,
         rank: i + 1,
         playerName: r.nickname,
-        externalId: String(r.id),
-        teamName: r.team,
-        value: r[key] as number,
+        externalId: r.id, // ts player id — /players/[pid]?league=LOL 상세가 lolGames 기반이라 그대로 연결
+        teamName: team?.name ?? r.teamId,
+        teamShort: team?.short,
+        value: r[key],
         unit,
         appearances: r.games,
+        photoUrl: photos[r.id]?.photo || undefined,
         season: String(season),
       });
     }
     await clearOldRanks("LOL", code, String(season), top.length);
     summary[code] = top.length;
-    void decimals; // 표시 자릿수는 컴포넌트가 처리
   };
 
-  await writeCat("KDA", "KDA", "kda", 2);
-  await writeCat("CS", "CS", "cs", 1);
-  await writeCat("KILL", "킬/경기", "killsAvg", 1);
+  await writeCat("KDA", "KDA", "kda");
+  await writeCat("CS", "CS", "cs");
+  await writeCat("KILL", "킬/경기", "killsAvg");
   // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
   if (Object.values(summary).some((n) => n > 0)) {
     await clearFutureSeasons("LOL", String(season));

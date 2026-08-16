@@ -1,0 +1,68 @@
+{
+  "9dn1m1ghennmoep": {
+    "id": "9dn1m1ghennmoep",
+    "name": "Pep Guardiola",
+    "nameKo": "펩 과르디올라",
+    "logo": "https://img.thesports.com/football/player/6ca196de87589a3a2768e9740ab64100.png",
+    "age": null,
+    "nationality": "ESP",
+    "preferredFormation": null,
+    "joined": null,
+    "contractUntil": null
+  },
+  "kjw2r09hl8lrz84": {
+    "id": "kjw2r09hl8lrz84",
+    "name": "Jürgen Klopp",
+    "nameKo": "위르겐 클롭",
+    "logo": "https://img.thesports.com/football/player/41156b8faa234438a7abe39a6e9772ce.png",
+    "age": null,
+    "nationality": "GER",
+    "preferredFormation": null,
+    "joined": null,
+    "contractUntil": null
+  },
+  "l965mkyh7pxr1ge": {
+    "id": "l965mkyh7pxr1ge",
+    "name": "Carlo Ancelotti",
+    "nameKo": "카를로 안첼로티",
+    "logo": "https://img.thesports.com/football/player/786a8e46d58c13a10a51c44f34fd7ac3.png",
+    "age": null,
+    "nationality": "ITA",
+    "preferredFormation": null,
+    "joined": null,
+    "contractUntil": null
+  },
+  "z318q66h06wqo9j": {
+    "id": "z318q66h06wqo9j",
+    "name": "Antonio Conte",
+    "nameKo": "안토니오 콘테",
+    "logo": "https://img.thesports.com/football/player/2100c2c23c1520eb9cd27f6b3c420d7a.png",
+    "age": null,
+    "nationality": "ITA",
+    "preferredFormation": null,
+    "joined": null,
+    "contractUntil": null
+  },
+  "gpxwrxlhxe7ryk0": {
+    "id": "gpxwrxlhxe7ryk0",
+    "name": "Arne Slot",
+    "nameKo": "아르네 슬롯",
+    "logo": "https://img.thesports.com/football/player/6d67c6f7cc11c098a73744b1e3555c0f.png",
+    "age": null,
+    "nationality": "NED",
+    "preferredFormation": null,
+    "joined": null,
+    "contractUntil": null
+  },
+  "gpxwrxlh9dlryk0": {
+    "id": "gpxwrxlh9dlryk0",
+    "name": "Zinédine Zidane",
+    "nameKo": "지네딘 지단",
+    "logo": "https://img.thesports.com/football/player/da4ea7415ac1415b87e0363be78211b4.png",
+    "age": null,
+    "nationality": "FRA",
+    "preferredFormation": null,
+    "joined": null,
+    "contractUntil": null
+  }
+}

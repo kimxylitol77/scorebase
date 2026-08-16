@@ -36,7 +36,7 @@ function client() {
     baseURL: BASE,
     timeout: 8_000,
     headers: { "x-apisports-key": key },
-  }), "af-live-events");
+  }), "af-live-events", { retryWaitsMs: [800] }); // 라이브 — 한도 재시도는 짧게 1회만
 }
 
 interface RawEvent {

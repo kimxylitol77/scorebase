@@ -12,6 +12,7 @@ import EnHeader from "@/components/en/EnHeader";
 import EnFooter from "@/components/en/EnFooter";
 import PageViewTracker from "@/components/PageViewTracker";
 import PresenceTracker from "@/components/PresenceTracker";
+import EmbedAuthLinks from "@/components/EmbedAuthLinks";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site-url";
 import Chatbot from "@/components/Chatbot";
@@ -165,6 +166,7 @@ export default async function RootLayout({
           <PageViewTracker />
         </Suspense>
         <PresenceTracker />
+        <EmbedAuthLinks />
         <SiteChromeHeader
           main={
             <>

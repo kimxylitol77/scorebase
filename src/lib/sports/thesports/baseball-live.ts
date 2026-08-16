@@ -156,7 +156,10 @@ export function convertCacheToBaseballLive(opts: {
   const errAway = sObj.e ? parseSc(sObj.e[1]) : null;
 
   // status / label — DB.Match.status 우선
-  // halfTopBot = score[2] (1=top/초, 2=bottom/말 추정)
+  // halfTopBot = score[2] (1=홈 타석/말, 2=원정 타석/초)
+  // 2026-08-13 KBO·NPB 라이브 실측으로 확정 — 종전 주석의 1=초/2=말 추정은 반대였다.
+  // 근거: pN=[home, away] 에서 홈 칸만 ""(미타석)인 매치는 전부 score[2]=2 (=초),
+  // 양팀 다 채워진 매치는 전부 score[2]=1 (=말). status_id 짝/홀(438=4초·439=4말)과도 일치.
   const halfTopBot = scoreArr[2];
   let status: BaseballLiveCompat["status"];
   let statusLabel: string;
@@ -165,7 +168,7 @@ export function convertCacheToBaseballLive(opts: {
     statusLabel = "Finished";
   } else if (opts.dbStatus === "LIVE") {
     status = "LIVE";
-    const half = halfTopBot === 2 ? "말" : halfTopBot === 1 ? "초" : "";
+    const half = halfTopBot === 2 ? "초" : halfTopBot === 1 ? "말" : "";
     statusLabel = isExtra
       ? "연장"
       : maxInning > 0

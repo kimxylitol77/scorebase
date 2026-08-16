@@ -30,6 +30,8 @@ log "③-b 전 리그 감독 (Team.coach + coach-photos.json — 라인업 감�
 npx tsx --env-file=.env.local scripts/collect-all-team-coaches.ts 2>&1 | tail -2 || true
 log "③-c 감독 한글명 (Haiku, 멱등 — 신규분만)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/translate-coach-names.ts' 2>&1 | tail -1 || true
+log "③-d 비축구 감독 (MLB=Stats API·NBA/WNBA/NHL=ESPN 자동, KBO/NPB/KBL/WKBL=사전 — 사전 교체는 수동)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nonsoccer-coaches.ts' 2>&1 | tail -2 || true
 log "④ 감독 경력 (Wikidata)"
 npx tsx --env-file=.env.local scripts/build-coach-careers.ts 2>&1 | tail -1 || true
 log "⑤ 감독 트로피 (위키 Honours)"
@@ -40,8 +42,8 @@ log "⑦ api-football 그리드 포지션 (빅5·UCL·WC — 스타 포괄 커�
 npx tsx --env-file=.env.local scripts/build-player-positions.ts 2>&1 | tail -2 || true
 log "⑦-b 세부 포지션 (라인업 x/y 최빈 + af그리드 우선 병합)"
 npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
-log "⑦-c 주발 (Wikidata P8006 — overrides qid 기반, 위키 등재가 늘면 자동 반영)"
-npx tsx scripts/collect-player-foot.ts 2>&1 | tail -2 || true
+log "⑦-c 주발·계약만료 (ts preferred_foot — 미보유 선수만 단건 보충. 전수 재수집은 --from 1 수동)"
+npx tsx --env-file=.env.local scripts/collect-player-foot-thesports.ts --missing 2>&1 | tail -2 || true
 log "⑧ 선수 ts↔af 매핑 + af 시즌스탯 (17개 리그 — 대회별·시즌별 스탯 섹션 동력)"
 npx tsx --env-file=.env.local scripts/build-ts-af-player-map.ts 2>&1 | tail -3 || true
 log "⑧-b 해외파 한국 선수 로스터 (af 국적 스캔 23개 리그 — /soccer/korea 동력, ~800콜)"
@@ -52,6 +54,10 @@ npx tsx --env-file=.env.local scripts/collect-korea-abroad-match-logs.ts --days=
 npx tsx --env-file=.env.local scripts/collect-korea-abroad-positions.ts --recent=20 2>&1 | tail -3 || true
 # 해외파 grid 가 afgrid 에 병합된 뒤라 detail 을 다시 도출한다(⑦-b 는 해외파 수집 전에 돈다)
 npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
+
+# ⑧ 이 tsToAf 를 새로 쓴 뒤라야 한다 — 유령 쪽에만 붙은 af 매핑을 정본에 상속하며 같은 파일을 갱신한다.
+log "⑧-c 유령(중복) 선수 페이지 → 정본 리다이렉트 맵 (ts id 여러 개 부여로 생긴 옛 페이지 정리)"
+npx tsx --env-file=.env.local scripts/build-player-canonical-map.ts 2>&1 | tail -3 || true
 
 log "⑨ NBA 부상자 한글명 (Haiku, BDL+ESPN union — 비스타 선수 보강)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-player-names-haiku.ts' 2>&1 | tail -2 || true
@@ -85,7 +91,7 @@ env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx
 # 골프 한국 선수 집계는 daily-golf-korea.sh(매일 09:00)로 분리 — 대회가 KST 월요일 종료라 주간으론 최대 6일 지연.
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
-for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/af-player-season-stats.json data/baseball-rosters.json data/nba-players.json data/golf-korea-season.json data/korea-abroad.json; do
+for f in data/team-squads.json data/team-coaches.json data/nonsoccer-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/af-player-season-stats.json data/baseball-rosters.json data/nba-players.json data/golf-korea-season.json data/korea-abroad.json data/player-foot.json data/player-contract.json; do
   SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
   if [ "$SIZE" -lt 10000 ]; then
     echo "❌ $f 비정상 (${SIZE}B) — push 중단"
@@ -93,6 +99,15 @@ for f in data/team-squads.json data/team-coaches.json data/player-overrides.json
     exit 1
   fi
 done
+
+# 유령 리다이렉트 맵은 위 목록보다 훨씬 작다(230건 ≈ 8KB) — 10KB 임계에 걸리므로 별도 가드.
+# 비면 유령 페이지가 다시 노출될 뿐 사이트는 정상이나, 조용히 0건이 되는 건 막는다.
+CANON_SIZE=$(stat -f%z data/player-canonical-redirects.json 2>/dev/null || echo 0)
+if [ "$CANON_SIZE" -lt 1000 ]; then
+  echo "❌ data/player-canonical-redirects.json 비정상 (${CANON_SIZE}B) — push 중단"
+  git checkout -- data/ 2>/dev/null || true
+  exit 1
+fi
 
 # ── data/*.json 변경분만 commit/push ──
 if git diff --quiet -- data/; then

@@ -2,8 +2,12 @@
 // → data/team-coaches.json { tsTeamId: { name, nameKo, logo, age, nationality, countryKo,
 //   preferredFormation, joined, contractUntil } }
 //
-// /transfers view=team 감독 카드용. whitelisted IP 필요(맥북 OK). 멱등(전체 갱신).
+// /transfers view=team 감독 카드용. whitelisted IP 필요(맥북 OK).
 // 감독 교체기(시즌 중)엔 재실행으로 갱신.
+//
+// 병합 갱신 — 기존 파일 위에 이번 결과만 얹는다. 대상 집합이 Team.league 기준이라 강등팀은
+// 라벨이 바뀌는 순간 조용히 빠지는데, 통째로 덮어쓰면 그 팀 감독 카드가 사라진다
+// (2026-08-15 실측 17팀 — 웨스트햄·볼프스부르크 등 ts 엔 감독이 그대로 있는데 유실).
 //
 //   env -u ANTHROPIC_API_KEY npx tsx scripts/build-team-coaches.ts
 import dotenv from "dotenv";
@@ -85,6 +89,50 @@ const MANUAL_KO: Record<string, string> = {
   "Dino Toppmöller": "디노 토프묄러",
   "Frank Lampard": "프랭크 램파드",
   "Fabian Hürzeler": "파비안 휘르첼러",
+  // K리그2 — ts 가 한국인 감독을 로마자로만 주는데 Haiku 가 원래 한글명을 복원하지 못한다.
+  // 외국인 2명은 구단 공식 발표 표기를 따른다(누스=제라드, 퀸타=루이 — 음차 직역과 다름).
+  "Jeong-un Ko": "고정운",       // 김포
+  "Yun-kyum Choi": "최윤겸",     // 용인
+  "Moon-sik Choi": "최문식",     // 안산
+  "Hyun-jun Son": "손현준",      // 김해
+  "Gerard Nus": "제라드 누스",   // 파주
+  "Rui Quinta": "루이 퀸타",     // 청주
+  // 2026-08-15 표기 흔들림 34건 일괄 고정 — 재빌드 diff 로 확인된 Haiku 비결정 표기.
+  // 기준=발행본 유지, 단 황선홍(황순홍 오표기)·안첼로티(앙첼로티)는 교정.
+  "Greg Vanney": "그레그 배니",
+  "Carlo Ancelotti": "카를로 안첼로티",
+  "Ståle Solbakken": "스톨레 솔박켄",
+  "Dick Advocaat": "딕 애드보카트",
+  "Massimiliano Allegri": "막시밀리아노 알레그리",
+  "Carlos Queiroz": "카를로스 케이로즈",
+  "Adi Hütter": "아디 휫터",
+  "Maurizio Sarri": "마우리지오 사리",
+  "Olivier Pantaloni": "올리비에 팡탈로니",
+  "Veljko Paunovic": "벨리코 파우노비치",
+  "Gerardo Martino": "제라르도 마르티노",
+  "Bruno Génésio": "브루노 제네지오",
+  "Beñat San José": "베냐트 산호세",
+  "Thomas Dooley": "토머스 둘리",
+  "Fábio Carille": "파비우 카릴리",
+  "Benni McCarthy": "베니 맥카시",
+  "Thomas Letsch": "토마스 렛슈",
+  "Khalid Jamil": "칼리드 자밀",
+  "Moïn Chaabani": "모인 샤아바니",
+  "Pellegrino Matarazzo": "펠레그리노 마타라조",
+  "Sun-hong Hwang": "황선홍",
+  "Sebastian Hoeneß": "세바스티안 회네스",
+  "Edin Terzic": "에딘 테르지치",
+  "Eusebio Di Francesco": "유세비오 디 프란체스코",
+  "Matthias Jaissle": "마티아스 야이슬레",
+  "Jim Crawford": "짐 크로포드",
+  "Brian Riemer": "브라이언 리머",
+  "José Gomes": "조제 고메스",
+  "Koji Gyotoku": "교토쿠 고지",
+  "Cameron Knowles": "캐머론 놀스",
+  "Bostjan Cesar": "보슈찬 체사르",
+  "Emilio De Leo": "에밀리오 데 레오",
+  "Oswaldo Vizcarrondo": "오스왈도 비즈카론도",
+  "Bruno Lage": "브루노 라주",
 };
 
 interface TablesResp { code: number; results?: { tables?: Array<{ rows?: Array<{ team_id?: string }> }> } }
@@ -231,12 +279,20 @@ async function main() {
   Object.assign(enToKo, MANUAL_KO);
   console.log(`한글명 ${Object.keys(enToKo).length}/${names.length}`);
 
-  const out: Record<string, unknown> = {};
+  const prev: Record<string, { name?: string; nameKo?: string | null }> = fs.existsSync(OUT)
+    ? JSON.parse(fs.readFileSync(OUT, "utf8"))
+    : {};
+  const out: Record<string, unknown> = { ...prev };
+  // 같은 감독이면 기존 한글명을 물려준다 — Haiku 는 실행마다 일부를 못 옮기고(실측 87명),
+  // 옮긴 것도 표기가 흔들린다(주제↔조제 무리뉴 — 재실행 diff 실측 30건대).
+  // 우선순위: MANUAL_KO(교정) > 기존값(안정) > Haiku(신규 감독만). 감독이 바뀐 팀은 물려받지 않는다.
+  const keepKo = (tid: string, name: string) =>
+    prev[tid]?.name === name ? prev[tid]?.nameKo ?? null : null;
   for (const [tid, c] of byTeam) {
     out[tid] = {
       id: c.id,
       name: c.name,
-      nameKo: enToKo[c.name!] ?? null,
+      nameKo: MANUAL_KO[c.name!] ?? keepKo(tid, c.name!) ?? enToKo[c.name!] ?? null,
       logo: c.logo || null,
       age: c.age || null,
       nationality: c.nationality || null,
@@ -250,7 +306,7 @@ async function main() {
     if (out[tid]) continue;
     out[tid] = {
       name: c.name,
-      nameKo: enToKo[c.name] ?? null,
+      nameKo: MANUAL_KO[c.name] ?? keepKo(tid, c.name) ?? enToKo[c.name] ?? null,
       logo: c.logo,
       age: c.age,
       nationality: c.nationality,
@@ -260,7 +316,10 @@ async function main() {
     };
   }
   fs.writeFileSync(OUT, JSON.stringify(out));
+  const refreshed = new Set([...byTeam.keys(), ...afFallback.keys()]);
+  const carried = Object.keys(prev).filter((k) => !refreshed.has(k));
   console.log(`✓ wrote team-coaches.json — ${Object.keys(out).length}팀 (af 폴백 ${afFallback.size} 포함)`);
+  console.log(`  이번 갱신 ${refreshed.size}팀 · 기존 유지 ${carried.length}팀 (대상 집합 밖 — 강등 등)`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

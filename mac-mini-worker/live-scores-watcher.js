@@ -40,6 +40,11 @@ const REQ_TIMEOUT_MS = 20_000;
 // 2026-05-23: false alarm noise 줄이기 위해 5→8s, 15→20s.
 const SLOW_WARN_MS = 8_000;
 const SLOW_HIGH_MS = 20_000;
+// 2026-08-14: 1회 실패로는 알리지 않는다. 실측 — 하루 1,253회 중 500 이 1회뿐이고
+// 다음 사이클(1분 뒤)에 이미 정상이었다. 라우트 catch 는 200 을 주므로 이런 500 은
+// 코드 예외가 아니라 함수 타임아웃/콜드스타트 쪽이고, 대개 한 사이클 만에 지나간다.
+// 진짜 장애는 10초 뒤에도 실패하므로 검출력은 그대로다.
+const RETRY_DELAY_MS = 10_000;
 const NULL_HIGH_MS = 10 * 60 * 1000;    // LIVE null 10분 지속 → HIGH
 const STUCK_HIGH_MS = 90 * 60 * 1000;   // 같은 score 90분 → HIGH (정규 종료 시간 + 마진)
 
@@ -88,21 +93,39 @@ function describeMatches(ms, max = 3) {
     + (ms.length > max ? ` 외 ${ms.length - max}건` : "");
 }
 
+/** /api/live/scores 1회 호출. 던지지 않고 { res, dur } 또는 { err, dur } 로 돌려준다. */
+async function fetchScores() {
+  const t0 = Date.now();
+  try {
+    const res = await axios.get(`${SITE}/api/live/scores`, {
+      timeout: REQ_TIMEOUT_MS,
+      validateStatus: () => true,
+    });
+    return { res, dur: Date.now() - t0 };
+  } catch (err) {
+    return { err, dur: Date.now() - t0 };
+  }
+}
+
 async function poll() {
   const cycleStart = Date.now();
   console.log(`\n[${tsKst()}] ▶ live-scores poll`);
   await sendHeartbeat();
 
-  // 1. /api/live/scores 호출 + 응답시간 측정
-  let res;
-  const t0 = Date.now();
-  try {
-    res = await axios.get(`${SITE}/api/live/scores`, {
-      timeout: REQ_TIMEOUT_MS,
-      validateStatus: () => true,
-    });
-  } catch (e) {
-    const dur = Date.now() - t0;
+  // 1. /api/live/scores 호출 + 응답시간 측정 (실패면 10초 뒤 1회 재확인 — RETRY_DELAY_MS 주석 참고)
+  let attempt = await fetchScores();
+  if (attempt.err || attempt.res.status !== 200) {
+    const first = attempt.err ? attempt.err.message : `HTTP ${attempt.res.status}`;
+    console.log(`  1차 실패(${first}) — ${RETRY_DELAY_MS / 1000}s 뒤 재확인`);
+    await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+    attempt = await fetchScores();
+    if (!attempt.err && attempt.res.status === 200) console.log("  재확인 정상 — 알림 skip");
+  }
+
+  let res = attempt.res;
+  if (attempt.err) {
+    const e = attempt.err;
+    const dur = attempt.dur;
     await notify({
       severity: "HIGH",
       title: "라이브 스코어 API 응답 없음",
@@ -115,7 +138,7 @@ async function poll() {
     return;
   }
 
-  const dur = Date.now() - t0;
+  const dur = attempt.dur;
   const ok = res.status === 200;
 
   // 2. status 체크

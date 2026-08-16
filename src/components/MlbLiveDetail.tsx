@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import MatchWeather from "./live/MatchWeather";
+import FavoriteStar from "./scores/FavoriteStar";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
 } from "./live/LiveCommentaryBox";
@@ -176,6 +177,11 @@ interface Props {
   venueLabel?: string | null;
   /** 종료 경기의 킥오프 ISO — 날씨를 경기 당시로 고정. null 이면 현재 날씨 */
   venueWeatherAt?: string | null;
+  /** DB Match.id — 헤더 관심경기 별표용. /scores 별표와 같은 저장소라 id 가 같아야 상태가 이어진다.
+      없으면 별표 미표시. */
+  favMatchId?: number | null;
+  /** 별표 저장 시 함께 남길 매치 링크 (PiP 가 되돌아올 주소) */
+  favHref?: string;
 }
 
 const POLL_LIVE_MS = 2_000;
@@ -194,6 +200,8 @@ export default function MlbLiveDetail({
   venueCountry,
   venueLabel,
   venueWeatherAt,
+  favMatchId,
+  favHref,
 }: Props) {
   const [live, setLive] = useState<MlbLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -358,6 +366,24 @@ export default function MlbLiveDetail({
             )}
             {isLive && (
               <span className="text-[10px] text-neutral-500">10초 자동 갱신</span>
+            )}
+            {favMatchId != null && (
+              <FavoriteStar
+                matchId={String(favMatchId)}
+                showLabel
+                meta={{
+                  id: String(favMatchId),
+                  sport: "baseball",
+                  league: "MLB",
+                  homeName: homeLabel,
+                  awayName: awayLabel,
+                  homeScore,
+                  awayScore,
+                  status: isLive ? "live" : isFinished ? "finished" : "scheduled",
+                  statusLabel: live.statusLabel,
+                  href: favHref,
+                }}
+              />
             )}
           </div>
         </div>

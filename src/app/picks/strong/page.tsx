@@ -10,9 +10,11 @@ import { MARKET_LABEL, STRONG_THRESHOLD, type StrongMarket } from "@/lib/predict
 import {
   loadStrongPicks,
   loadStrongAccuracy,
+  loadUnanimousAccuracy,
   loadDailySummary,
   todayKst,
   type StrongAccuracy,
+  type MarketAccuracy,
   type StrongPickMatch,
 } from "./_data";
 import { DailyNavChart, PickCard } from "./_components";
@@ -40,9 +42,10 @@ export default async function StrongPicksPage({
 
   // 날짜별 성적은 회원 화면에서만 쓰므로 비회원일 땐 쿼리를 아낀다
   const userId = await getCurrentUserId();
-  const [matches, acc, daily] = await Promise.all([
+  const [matches, acc, unan, daily] = await Promise.all([
     loadStrongPicks(date ?? undefined),
     loadStrongAccuracy(),
+    loadUnanimousAccuracy(),
     userId ? loadDailySummary() : Promise.resolve([]),
   ]);
   const pickCount = matches.reduce((s, m) => s + m.picks.length, 0);
@@ -64,7 +67,7 @@ export default async function StrongPicksPage({
         </p>
       </header>
 
-      <Standard acc={acc} />
+      <Standard acc={acc} unan={unan} />
 
       <div className="mt-6">
         {userId ? (
@@ -91,7 +94,7 @@ export default async function StrongPicksPage({
 }
 
 // ── 기준과 성적 — 회원·비회원 모두 공개. 신뢰의 근거라 가리지 않는다 ──
-function Standard({ acc }: { acc: StrongAccuracy }) {
+function Standard({ acc, unan }: { acc: StrongAccuracy; unan: MarketAccuracy }) {
   return (
     <section className="mt-6 rounded-2xl border border-black/5 bg-white/60 p-5 dark:border-white/10 dark:bg-white/[0.04]">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -124,6 +127,16 @@ function Standard({ acc }: { acc: StrongAccuracy }) {
           );
         })}
       </dl>
+
+      {unan.total > 0 && (
+        <p className="mt-3 rounded-xl bg-violet-500/[0.06] px-3 py-2 text-[11px] leading-relaxed text-neutral-600 break-keep dark:text-neutral-300">
+          <span className="font-semibold text-violet-600 dark:text-violet-300">AI 전원 동의</span> 배지는
+          예측 AI 3개 이상이 우리 모델과 같은 쪽을 골랐다는 뜻입니다. 이 조건을 함께 만족한 픽의 실측
+          적중률은 <span className="font-bold tabular-nums">{unan.rate.toFixed(1)}%</span>({unan.total.toLocaleString()}픽)
+          입니다 — 고확신 기준만 적용했을 때보다 조금 높습니다. 다만 고확신 픽 대부분이 이미 만장일치라
+          차이는 크지 않고, 배지가 없다고 나쁜 픽인 것도 아닙니다.
+        </p>
+      )}
 
       <p className="mt-3 text-[11px] leading-relaxed text-neutral-500 break-keep">
         양팀득점은 뺐습니다 — 실측에서 확신도를 올릴수록 오히려 적중률이 떨어져(65%+ 55.2% →

@@ -213,6 +213,8 @@ export default async function LolLivePage({ params }: Props) {
         awayTeamId={match.awayTeam.id}
         games={lolGames}
         initial={initialLive}
+        favMatchId={match.id}
+        favHref={`/live/lol/${matchId}`}
       />
       <MatchHeadToHead
         homeShortName={homeShort}

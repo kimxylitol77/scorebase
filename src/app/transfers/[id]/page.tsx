@@ -2,7 +2,7 @@
 //   id = TheSports player id. PlayerMarketValue / TheSportsPlayer / FootballTransfer 만 사용 (api-football 안 씀).
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { athleteLd, breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
@@ -23,7 +23,9 @@ import rawWcSquads from "../../../../data/wc-national-squads.json";
 import rawPlayerBlogLinks from "../../../../data/player-blog-links.json";
 import rawPlayerHeatmaps from "../../../../data/player-heatmap-analysis.json";
 import rawFoot from "../../../../data/player-foot.json";
+import rawContract from "../../../../data/player-contract.json";
 import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
+import rawCanonical from "../../../../data/player-canonical-redirects.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
@@ -137,7 +139,11 @@ const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
 const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 // 주급/연봉 (Capology 5대리그, fetch-football-wages.ts) — 세전 연봉 EUR.
 const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
-const FOOT = rawFoot as Record<string, string>; // 주발 (Wikidata P8006) — "L"|"R"|"B"
+const FOOT = rawFoot as Record<string, string>; // 주발 (ts preferred_foot) — "L"|"R"|"B" ("?" = ts 도 모름, 미표시)
+// 계약 만료 (ts contract_until, unix sec). 8% 는 이미 지난 날짜 — ts 가 이적 후에도 옛 계약을
+// 남겨두기 때문. 숨기지 않고 "직전 계약"으로 맥락을 붙여 노출한다(가진 데이터는 다 보여주되,
+// 지난 것을 현재 계약처럼 읽히게 두지는 않는다). 지난 여부 판정은 서버에서 — hydration 방어.
+const CONTRACT = rawContract as Record<string, number>;
 // 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
 const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
@@ -148,6 +154,12 @@ const PLAYER_TO_NATL_TSID = new Map<string, string>();
 for (const t of Object.values(rawWcSquads as Record<string, { tsId: string; squad: Array<{ id: string }> }>)) {
   for (const s of t.squad) PLAYER_TO_NATL_TSID.set(s.id, t.tsId);
 }
+
+// 유령(중복) 선수 id → 정본 id. TheSports 가 한 선수에 id 를 여러 개 부여해 이적 때 갈아타면
+//  옛 id 의 몸값이 그 시점에 멈춘 채 페이지만 남는다 (크바라츠헬리아 = 현역 PSG + 유령 나폴리).
+//  목록은 dedup 되지만 개별 URL·sitemap 은 안 걸러져 중복 색인된다 → 정본으로 영구 이동.
+//  산출: scripts/build-player-canonical-map.ts (이름+추정생년 일치분만, 동명이인 제외).
+const CANONICAL = rawCanonical as Record<string, string>;
 
 // ISR — 몸값·이적·시즌 기록은 분 단위로 바뀌지 않음. 서울 엣지 캐시로 페이지 이동 가속(5분 재생성).
 export const revalidate = 300;
@@ -165,6 +177,7 @@ const LEAGUE_LABEL: Record<string, string> = {
   SERIE_A: "세리에 A",
   LIGUE_1: "리그 1",
   K_LEAGUE_1: "K리그1",
+  K_LEAGUE_2: "K리그2",
   SAUDI_PL: "사우디 프로리그",
   MLS: "MLS",
 };
@@ -226,15 +239,17 @@ interface HistPt { market_time?: number; market_value?: number; team_id?: string
 async function loadPlayer(id: string) {
   // mv(시장가치) 없어도 TheSportsPlayer 만 있으면 라이트 프로필 렌더 —
   // 확장 리그(K리그1·사우디·MLS)는 대부분 mv 미보유라 mv 필수면 피드 클릭이 404.
-  const [mv, tsp] = await Promise.all([
+  const [mv, tsp, squadInfo] = await Promise.all([
     prisma.playerMarketValue.findUnique({ where: { id } }),
     prisma.theSportsPlayer.findUnique({
       where: { id },
       select: { nameKo: true, name: true, photoUrl: true, position: true },
     }),
+    // 등번호 — 본문 배지와 generateMetadata title 이 함께 쓴다(여기로 올려 조회 1회로 합침).
+    prisma.playerSquadInfo.findUnique({ where: { id }, select: { number: true } }),
   ]);
   if (!mv && !tsp) return null;
-  return { mv, tsp };
+  return { mv, tsp, squadInfo };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -254,15 +269,37 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const g = season?.goals ?? 0;
   const a = season?.assists ?? 0;
   const statBit = g > 0 || a > 0 ? ` · 시즌 ${g}골 ${a}도움` : "";
+  // 이름 검색은 AI 요약에 안 뺏기는 자리라 CTR 이 높다(2026-08-14 빙 실측 "올란도 길" 31%).
+  // 경쟁 상대(나무위키·트랜스퍼마르크트)가 잘 안 주는 계약 만료·주발을 description 에 얹어
+  // 클릭 이유를 만든다. 둘 다 모듈 정적 JSON 이라 DB·API 추가 호출은 없다.
+  const contractSec = CONTRACT[id];
+  const contractBit =
+    contractSec && contractSec * 1000 > Date.now()
+      ? `계약 ${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(contractSec * 1000))}까지, `
+      : "";
+  const footBit = { L: "왼발잡이", R: "오른발잡이", B: "양발잡이" }[FOOT[id] ?? ""] ?? null;
   // mv(시장가치) 없는 라이트 프로필은 몸값 조각만 제외한 동일 패턴
-  const title = `${name} 프로필 — ${who || "축구 선수"}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : ""} · 이적 기록`;
+  const no = p.squadInfo?.number;
+  const noBit = no != null && no > 0 ? ` 등번호 ${no}번` : "";
+  const title = `${name} 프로필 — ${who || "축구 선수"}${noBit}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : ""}`;
+  const facts = [
+    g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움` : null,
+    val ? `몸값 €${val}M` : null,
+    no != null && no > 0 ? `등번호 ${no}번` : null,
+    footBit,
+  ].filter(Boolean).join(", ");
   const description = p.mv
-    ? `${who ? `${who} ` : ""}${name} 프로필 — ${g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움, ` : ""}시장가치(몸값)${val ? ` €${val}M` : ""} 변동 추이·이적 기록·시즌별 성적을 실시간 데이터로. 스코어베이스.`
-    : `${who ? `${who} ` : ""}${name} 프로필 — 이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;
+    ? `${who ? `${who} ` : ""}${name} 프로필 — ${facts ? `${facts}. ` : ""}${contractBit}몸값 변동 추이·이적 기록·시즌별 성적까지 한 페이지에.`
+    : `${who ? `${who} ` : ""}${name} 프로필 — ${facts ? `${facts}. ` : ""}${contractBit}이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;
   return {
     title,
     description,
-    keywords: [name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`, "이적시장", "스코어베이스"],
+    keywords: [
+      name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`,
+      ...(no != null && no > 0 ? [`${name} 등번호`] : []),
+      ...(contractBit ? [`${name} 계약`, `${name} 계약 만료`] : []),
+      "이적시장", "스코어베이스",
+    ],
     openGraph: { title, description, type: "profile", ...(photo ? { images: [{ url: photo }] } : {}) },
     alternates: { canonical: `/transfers/${id}` },
     // 시장가치 데이터 없는 라이트 프로필은 thin → 구글 색인 제외(빙 등은 유지).
@@ -526,6 +563,8 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, tsOurId = {}, club
 
 export default async function PlayerTransferPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const canonical = CANONICAL[id];
+  if (canonical && canonical !== id) permanentRedirect(`/transfers/${canonical}`);
   const p = await loadPlayer(id);
   if (!p) notFound();
   const { mv, tsp } = p;
@@ -556,11 +595,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // af 선수 프로필(생년월일·키·몸무게) — 헤더 신체 + 대회별 스탯 공유 캐시. ts→af 매핑 없으면 null
   const afProfile = await getSoccerPlayerBio(id, league);
 
-  // 등번호(스쿼드 sync)·수상 경력 — collect-squad-numbers / collect-player-trophies cron 적재분
-  const [squadInfo, trophyRows] = await Promise.all([
-    prisma.playerSquadInfo.findUnique({ where: { id }, select: { number: true } }),
-    prisma.playerTrophy.findMany({ where: { playerId: id }, select: { league: true, country: true, season: true, place: true } }),
-  ]);
+  // 등번호는 loadPlayer 에서 함께 읽어온다(메타와 공유). 수상 경력은 collect-player-trophies cron 적재분.
+  const squadInfo = p.squadInfo;
+  const trophyRows = await prisma.playerTrophy.findMany({
+    where: { playerId: id },
+    select: { league: true, country: true, season: true, place: true },
+  });
   // 몸값 리그 내 순위 (+ 같은 코스 포지션 내) — [league, currentValue] 색인 카운트
   let valueRank: { leagueLabel: string; rank: number; total: number; posLabel: string | null; posRank: number | null } | null = null;
   if (mv?.currentValue && league) {
@@ -1075,6 +1115,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
         foot={FOOT[id] ?? null}
+        contractUntil={CONTRACT[id] ?? null}
+        contractPast={CONTRACT[id] != null && CONTRACT[id] * 1000 <= Date.now()}
       />
 
       {/* 통산 요약 (클럽 대회 합산) — 한눈 커리어 4칸 */}

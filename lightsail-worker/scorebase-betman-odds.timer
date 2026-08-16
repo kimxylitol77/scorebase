@@ -1,0 +1,10 @@
+[Unit]
+Description=Scorebase Betman Odds — 1일 2회 (KST 09:00·21:00 = UTC 00:00·12:00)
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00
+Persistent=true
+Unit=scorebase-betman-odds.service
+
+[Install]
+WantedBy=timers.target

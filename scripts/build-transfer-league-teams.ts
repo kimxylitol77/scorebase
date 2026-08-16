@@ -12,7 +12,7 @@ import path from "node:path";
 const OUT = path.join(__dirname, "..", "data", "transfer-league-teams.json");
 const MAPPING = path.join(__dirname, "..", "src", "lib", "sports", "thesports", "league-id-mapping.json");
 // /transfers 확장 대상 리그 — 추가 시 여기 + page.tsx LEAGUES 에 같이.
-const EXPANSION = ["K_LEAGUE_1", "SAUDI_PL", "MLS"];
+const EXPANSION = ["K_LEAGUE_1", "K_LEAGUE_2", "SAUDI_PL", "MLS"];
 
 interface TableRow { team_id?: string }
 interface TablesResp { code: number; results?: { tables?: Array<{ rows?: TableRow[] }> } }

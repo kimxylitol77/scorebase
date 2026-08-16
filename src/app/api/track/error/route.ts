@@ -20,19 +20,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 429 });
   }
 
-  let message = "", digest = "", path = "";
+  let message = "", digest = "", path = "", kind = "";
   try {
     const j = JSON.parse(await req.text());
     message = String(j?.message ?? "").slice(0, 300);
     digest = String(j?.digest ?? "").slice(0, 60);
     path = String(j?.path ?? "").slice(0, 200);
+    kind = String(j?.kind ?? "").slice(0, 20);
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
   await sendTelegram(
     [
-      "🔥 <b>클라이언트 런타임 에러</b>",
+      // layout = PitchSentinel 등 레이아웃 이탈 감지 — 런타임 에러와 원인 계열이 달라 제목 분리
+      kind === "layout" ? "📐 <b>레이아웃 깨짐 감지</b>" : "🔥 <b>클라이언트 런타임 에러</b>",
       `📍 ${path || "(경로 미상)"}`,
       digest ? `digest: <code>${digest}</code>` : null,
       message ? `msg: ${message.replace(/</g, "&lt;")}` : null,

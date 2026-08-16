@@ -24,19 +24,23 @@ import {
 } from "@/lib/sports/thesports/standings-helper";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
-import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
+import {
+  loadPlayoffBracket,
+  isPlayoffSeasonDone,
+  playoffSeasonLabel,
+} from "@/lib/predict/playoff-bracket-loader";
+import { rateOf, type MarketRate } from "@/lib/predict/accuracy-stats";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { EN_PREDICTION_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
-import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import { CATEGORIES_BY_LEAGUE, LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
-import rawSeasonStats from "../../../../data/player-season-stats.json";
-import rawPlayerOverrides from "../../../../data/player-overrides.json";
-import rawPlayerPhotos from "../../../../data/player-photos.json";
 import TeamFormBadges from "@/components/predictions/TeamFormBadges";
 import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
@@ -46,19 +50,6 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { CircleDot, BookOpen } from "lucide-react";
 
 export const revalidate = 600; // ISR — 시즌 시뮬은 일 단위 데이터, 10분 캐시로 충분
-
-// TheSports 시즌 통계 기반 리그 리더보드 (빅5) — 기존 api-football LeagueLeader 대체.
-//  SERIE_A 는 시즌스탯이 2026-27 롤오버로 비어 제외 → 기존 LeagueLeader 유지.
-interface PSeasonStat { lg: string; team: string | null; goals: number | null; assists: number | null; yellow: number | null; red: number | null; matches: number | null }
-const SEASON_STATS = rawSeasonStats as Record<string, PSeasonStat>;
-const P_OVERRIDES = rawPlayerOverrides as Record<string, { nameKo?: string }>;
-const P_PHOTOS = rawPlayerPhotos as Record<string, string>;
-const TS_LEADER_CATS: { cat: string; key: "goals" | "assists" | "yellow" | "red"; unit: string }[] = [
-  { cat: "GOAL", key: "goals", unit: "골" },
-  { cat: "ASSIST", key: "assists", unit: "도움" },
-  { cat: "YELLOW", key: "yellow", unit: "장" },
-  { cat: "RED", key: "red", unit: "장" },
-];
 
 /**
  * NBA/NHL 플레이오프 미정 매치업 placeholder ("TBD", "TTBD", "Sabres/Canadiens" 등) 처리.
@@ -333,6 +324,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   }
+  // KBO — 순위 검색어는 /standings/KBO 담당(빙 Copilot 이 순위표를 요약해버려 클릭이 안 나는 구간).
+  // 여기는 요약이 못 주는 "확률" 을 전담해 검색어를 나눈다 — 두 페이지가 같은 말을 하면 서로 깎는다.
+  if (upper === "KBO") {
+    const kst = new Date(Date.now() + 9 * 3600_000);
+    const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+    return {
+      title: `KBO 가을야구 확률 (${dateLabel}) — 포스트시즌 진출·우승 확률 시뮬레이션`,
+      description:
+        `${dateLabel} 기준 KBO 가을야구(정규시즌 5위 이내) 진출 확률과 우승 확률. ` +
+        `잔여 경기를 Elo 기반 몬테카를로로 5,000회 돌려 매일 갱신합니다. 오늘 경기 승률·선발 맞대결도 함께.`,
+      keywords: [
+        "KBO 가을야구 확률",
+        "가을야구 확률",
+        "KBO 포스트시즌 진출 확률",
+        "KBO 우승 확률",
+        "프로야구 우승 확률",
+        "KBO 예측",
+        "프로야구 예측",
+        "KBO 시즌 시뮬레이션",
+        "AI 승부예측",
+        "스코어베이스",
+      ],
+      alternates: {
+        canonical,
+        ...(EN_PREDICTION_LEAGUE_SET.has(upper)
+          ? { languages: koEnLanguages(`/predictions/${upper}`, `/en/predictions/${upper}`) }
+          : {}),
+      },
+    };
+  }
   return {
     title: `${info.name} 예측 — 오늘 경기 승률·우승 확률 시뮬레이션`,
     description: `${info.subtitle}. 매일 갱신하는 ${info.name} 경기별 승률(Elo+시장 배당 모델), Monte Carlo 시즌 시뮬레이션, 우승·플레이오프 확률까지 데이터로 제공.`,
@@ -395,9 +416,13 @@ export default async function LeaguePredictions({ params }: Props) {
     },
     select: matchSelect,
   });
+  // 오프시즌 폴백 — 지난 시즌 표시는 "새 시즌 일정조차 없을 때"만. 새 시즌 fixture 가
+  // 이미 잡혀 있으면(개막 직전~직후) 지난 시즌으로 돌아가지 않고 새 시즌에 진입한다
+  // (2026-08-15: 빅5 개막 후에도 완료 <10 조건이 지난 시즌 380경기를 통째로 되살렸다).
   if (
     seasonStart &&
-    dbMatches.filter((m) => m.status === "FINISHED").length < 10
+    dbMatches.filter((m) => m.status === "FINISHED").length < 10 &&
+    !dbMatches.some((m) => m.status === "SCHEDULED")
   ) {
     dbMatches = await prisma.match.findMany({
       where: {
@@ -597,34 +622,64 @@ export default async function LeaguePredictions({ params }: Props) {
   const isUsPlayoff = isNba || isNhl;
   let playoffBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
   let playoffWinProbs: ReturnType<typeof simulatePlayoff> = [];
+  let playoffSeasonDone = false;
+  // 지난 시즌 AI 예측 성적 (비시즌 아카이브 — 채점 완료 매치 실측)
+  let lastSeasonPred: {
+    label: string;
+    oneXTwo: MarketRate;
+    over: MarketRate;
+    hc: MarketRate;
+    strong: MarketRate;
+  } | null = null;
   if (isUsPlayoff) {
-    const recentMatches = await prisma.match.findMany({
-      where: {
-        league: upper,
-        // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
-        // eslint-disable-next-line react-hooks/purity
-        startTime: { gte: new Date(Date.now() - 60 * 24 * 3600 * 1000) }, // 최근 60일
-      },
-      include: { homeTeam: true, awayTeam: true },
-      orderBy: { startTime: "asc" },
-    });
-    if (isNba) {
-      // NBA 는 TheSports 가 stage(라운드) 메타데이터를 제공 — api-sports 수집엔 없음.
-      playoffBracket = await getTsNbaPlayoffBracket();
-      if (playoffBracket.length === 0) {
-        playoffBracket = getNbaPlayoffBracket(recentMatches); // ESPN raw fallback
-      }
-    } else {
-      // NHL — ESPN raw 의 series.type='playoff'
-      playoffBracket = getNbaPlayoffBracket(recentMatches);
-    }
-    // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo
-    if (playoffBracket.length > 0 && !isWorldCup) {
+    playoffBracket = await loadPlayoffBracket(isNhl ? "NHL" : "NBA");
+    // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo.
+    // 파이널까지 끝난 시즌(비시즌 아카이브)엔 시뮬레이션할 잔여 경기가 없으므로 skip.
+    playoffSeasonDone = isPlayoffSeasonDone(playoffBracket);
+    if (playoffBracket.length > 0 && !isWorldCup && !playoffSeasonDone) {
       const eloMap: Record<number, number> = {};
       for (const [tid, rating] of elo.ratings) eloMap[tid] = rating;
       playoffWinProbs = simulatePlayoff(playoffBracket, eloMap, {
         iterations: 5000,
       });
+    }
+    // 비시즌 — 직전 시즌 채점 완료 매치로 AI 예측 성적 실측 (accuracy 페이지와 같은 채점 필드).
+    if (playoffSeasonDone) {
+      const label = playoffSeasonLabel(playoffBracket);
+      const endYear = Number(label.slice(0, 4)) + 1;
+      const rows = await prisma.match.findMany({
+        where: {
+          league: upper,
+          predCorrect: { not: null },
+          startTime: { gte: new Date(Date.UTC(endYear - 1, 8, 1)) }, // 시즌 개막 전 9/1 경계
+        },
+        select: {
+          predCorrect: true,
+          predOverCorrect: true,
+          predHcCorrect: true,
+          predHome: true,
+          predDraw: true,
+          predAway: true,
+        },
+      });
+      if (rows.length > 0) {
+        const threshold = strongPickThreshold(upper);
+        lastSeasonPred = {
+          label,
+          oneXTwo: rateOf(rows.map((m) => ({ ok: m.predCorrect }))),
+          over: rateOf(rows.map((m) => ({ ok: m.predOverCorrect }))),
+          hc: rateOf(rows.map((m) => ({ ok: m.predHcCorrect }))),
+          strong: rateOf(
+            rows
+              .filter(
+                (m) =>
+                  Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0) >=
+                  threshold,
+              )
+              .map((m) => ({ ok: m.predCorrect })),
+          ),
+        };
+      }
     }
   }
 
@@ -637,8 +692,7 @@ export default async function LeaguePredictions({ params }: Props) {
   });
   const latestSeason = allLeaderRows[0]?.season ?? "";
   const leaderRowsRaw = allLeaderRows.filter((r) => r.season === latestSeason);
-  let leaderSeason = latestSeason;
-  let hasTsLeader = false;
+  const leaderSeason = latestSeason;
   const leaderRowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of leaderRowsRaw) {
     if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
@@ -659,30 +713,17 @@ export default async function LeaguePredictions({ params }: Props) {
     });
   }
 
-  // 빅5 = TheSports 시즌 통계(player-season-stats)로 리더보드 교체. SERIE_A 는 시즌스탯 빈값 → 기존 유지.
-  const tsLeaderEntries = Object.entries(SEASON_STATS).filter(([, s]) => s.lg === upper);
-  if (tsLeaderEntries.length) {
-    const sortedByCat = TS_LEADER_CATS.map(({ cat, key, unit }) => ({
-      cat, key, unit,
-      top: tsLeaderEntries.filter(([, s]) => (s[key] ?? 0) > 0).sort((a, b) => (b[1][key] ?? 0) - (a[1][key] ?? 0)).slice(0, 10),
-    }));
-    const ids = [...new Set(sortedByCat.flatMap((c) => c.top.map(([id]) => id)))];
-    const lp = await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, nameKo: true } });
-    const nm = new Map(lp.map((p) => [p.id, p]));
-    const nameOf = (id: string) => P_OVERRIDES[id]?.nameKo || nm.get(id)?.nameKo || nm.get(id)?.name || "선수";
-    for (const k of Object.keys(leaderRowsByCategory)) delete leaderRowsByCategory[k];
-    for (const { cat, key, unit, top } of sortedByCat) {
-      leaderRowsByCategory[cat] = top.map(([id, s], i) => ({
-        rank: i + 1, playerName: nameOf(id), playerNameEn: nm.get(id)?.name ?? null,
-        teamName: toKoreanTeamName(s.team, upper) || s.team || "", teamShort: null,
-        value: s[key] ?? 0, unit, appearances: s.matches, photoUrl: P_PHOTOS[id] || null, externalId: id,
-      }));
-    }
-    leaderSeason = "2025-26";
-    hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
-  }
+  // (2026-08-15) 빅5 를 정적 JSON(player-season-stats)으로 덮어쓰던 override 제거 —
+  // 같은 JSON 을 leaders cron 이 매일 DB 에 적재하므로 중복이었고, JSON 에 행이 1~14개뿐인
+  // 리그(J1·SERBIA_SL 등)까지 가로채 신선한 DB 리더보드를 지난 시즌 라벨로 바꿔치기했다.
   // PC 중앙 컬럼용 팀 로고/국기 — 이 페이지는 자체 조립이라 공용 로더 밖에서 직접 부착.
   await attachLeaderTeamLogos(upper, leaderRowsByCategory);
+  // 부문별 1위 요약 (최대 4부문) — 풀 TOP 10 리더보드는 /standings/[league] 가 정본.
+  const leaderCatDefs = CATEGORIES_BY_LEAGUE[LEAGUE_TO_SPORT[upper] ?? "SOCCER"] ?? [];
+  const leaderTops = leaderCatDefs
+    .filter((c) => (leaderRowsByCategory[c.key]?.length ?? 0) > 0)
+    .slice(0, 4)
+    .map((c) => ({ cat: c, row: leaderRowsByCategory[c.key][0] }));
 
   // 우승 확률 추이 — 일일 시뮬 스냅샷(2개 이상부터 차트 노출). WC·KBO 공용 변환.
   type ChampionTrend = { data: WcTrendPoint[]; teams: { name: string; color: string }[] };
@@ -945,8 +986,8 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* NBA/NHL — 플레이오프 브라켓 */}
-        {isUsPlayoff && playoffBracket.length > 0 && (
+        {/* NBA/NHL — 플레이오프 브라켓 (진행 중일 때만 — 끝난 시즌 아카이브는 순위 페이지로) */}
+        {isUsPlayoff && playoffBracket.length > 0 && !playoffSeasonDone && (
           <section>
             <Heading
               title={isNhl ? "NHL 플레이오프 브라켓" : "NBA 플레이오프 브라켓"}
@@ -961,6 +1002,62 @@ export default async function LeaguePredictions({ params }: Props) {
               league={isNhl ? "NHL" : "NBA"}
             />
           </section>
+        )}
+        {isUsPlayoff && playoffSeasonDone && (
+          <>
+            {/* 지난 시즌 AI 예측 성적 — 채점 완료 매치 실측 (accuracy 페이지와 같은 채점 필드) */}
+            {lastSeasonPred && (
+              <section>
+                <Heading
+                  title={`${lastSeasonPred.label} 시즌 AI 예측 성적`}
+                  subtitle={`채점 완료 ${lastSeasonPred.oneXTwo.evaluated.toLocaleString()}경기 실측 — 다음 시즌도 같은 모델로 예측합니다`}
+                />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { name: "승패 (1X2)", stat: lastSeasonPred.oneXTwo },
+                    { name: "오버/언더", stat: lastSeasonPred.over },
+                    { name: "핸디캡", stat: lastSeasonPred.hc },
+                    { name: "Strong Pick", stat: lastSeasonPred.strong },
+                  ].map((m) => (
+                    <div
+                      key={m.name}
+                      className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] p-4"
+                    >
+                      <div className="text-[11px] text-neutral-500">{m.name}</div>
+                      <div className="mt-1 text-2xl font-bold tabular-nums">
+                        {m.stat.evaluated > 0
+                          ? `${(m.stat.rate * 100).toFixed(1)}%`
+                          : "—"}
+                      </div>
+                      <div className="text-[11px] text-neutral-500 mt-0.5">
+                        {m.stat.correct.toLocaleString()}/{m.stat.evaluated.toLocaleString()}경기 적중
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-neutral-500">
+                  전체 리그·기간별 적중률은{" "}
+                  <Link
+                    href="/predictions/accuracy"
+                    className="font-bold text-amber-600 dark:text-amber-400 hover:underline"
+                  >
+                    AI 적중률 페이지
+                  </Link>
+                  에서 확인할 수 있습니다.
+                </p>
+              </section>
+            )}
+            <p className="text-sm text-neutral-500">
+              지난 시즌 플레이오프 브라켓은{" "}
+              <Link
+                href={`/standings/${upper}`}
+                className="font-bold text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                {upper} 순위 페이지
+              </Link>
+              에서 볼 수 있습니다.
+            </p>
+          </>
         )}
 
         {/* NBA/NHL — 플레이오프 우승 시뮬레이션 (Monte Carlo 5000회) */}
@@ -1032,10 +1129,13 @@ export default async function LeaguePredictions({ params }: Props) {
         )}
 
         {/* NBA — 예상 순위는 수집기 데이터(팀 중복/매치 누락) 정비 중이라 숨김.
-            브라켓·우승확률은 위에서 정상 제공. (api-sports NBA 팀 id 불일치 — 별도 수집기 fix 예정) */}
+            (api-sports NBA 팀 id 불일치 — 별도 수집기 fix 예정) */}
         {isNba && canSimulate && (
           <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-6 text-center text-sm text-neutral-500">
-            ⓘ NBA 예상 순위는 데이터 정비 중입니다. 플레이오프 브라켓·우승 확률은 위에서 정상 제공됩니다.
+            ⓘ NBA 예상 순위는 데이터 정비 중입니다.
+            {playoffSeasonDone
+              ? " 다음 시즌 플레이오프가 시작되면 브라켓·우승 확률이 여기에 표시됩니다."
+              : " 플레이오프 브라켓·우승 확률은 위에서 정상 제공됩니다."}
           </div>
         )}
 
@@ -1389,19 +1489,43 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 시즌 리더보드 — 득점/도움/카드 (축구). 빅5는 TheSports 시즌통계 기반.
+        {/* 시즌 리더보드 요약 — 부문별 1위만. 풀 리더보드(TOP 10)는 /standings/[league] 가
+            정본 (2026-08-15 역할 분리: predictions=확률 전용, standings=순위·기록 정본).
             WORLD_CUP 은 상단 실시간 선수 랭킹으로 대체 (중복 노출 방지) */}
-        {!isWorldCup && (leaderRowsRaw.length > 0 || hasTsLeader) && (
+        {!isWorldCup && leaderTops.length > 0 && (
           <section>
             <Heading
               title="시즌 리더보드"
-              subtitle={`${leaderSeason} 시즌 · TOP 10 (매일 자동 갱신)`}
+              subtitle={`${leaderSeason} 시즌 · 부문별 1위`}
             />
-            <LeagueLeaderBoard
-              league={upper}
-              season={leaderSeason}
-              rowsByCategory={leaderRowsByCategory}
-            />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {leaderTops.map(({ cat, row }) => (
+                <div
+                  key={cat.key}
+                  className="rounded-xl bg-white ring-1 ring-black/5 px-3 py-2.5 dark:bg-white/[0.04] dark:ring-white/10"
+                >
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                    {cat.emoji} {cat.label} 1위
+                  </div>
+                  <div className="mt-1 text-sm font-semibold truncate">{row.playerName}</div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-[11px] text-neutral-500 truncate">{row.teamName}</span>
+                    <span className="text-sm font-bold tabular-nums shrink-0">
+                      {row.value.toFixed(cat.decimals ?? 0)}
+                      {row.unit ? (
+                        <span className="ml-0.5 text-[10px] font-normal text-neutral-500">{row.unit}</span>
+                      ) : null}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link
+              href={`/standings/${upper}#leaderboard`}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              전체 리더보드 보기 (TOP 10) →
+            </Link>
           </section>
         )}
 

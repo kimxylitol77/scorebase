@@ -1,7 +1,8 @@
 // TheStatsAPI 시즌 히트맵(가중 좌표) → 개요 탭 시즌 활동 카드 데이터 (data/player-heatmap-analysis.json)
 // 선수당 1콜. 좌표를 10x10 셀로 집계하고 3선/좌우 분포 요약을 계산해 PlayerHeatmapData 스키마로 저장.
 // 경기수/출전분은 우리 data/player-season-stats.json 에서 가져온다 (없으면 0).
-//   실행: THESTATSAPI_KEY=... npx tsx scripts/build-player-season-heatmaps.ts
+//   실행: THESTATSAPI_KEY=... npx tsx scripts/build-player-season-heatmaps.ts [--refresh]
+//   기본은 미수집 선수만 (--refresh 면 전원 재수집).
 import { readFileSync, writeFileSync, existsSync } from "fs";
 
 const KEY = process.env.THESTATSAPI_KEY;
@@ -10,10 +11,23 @@ const BASE = "https://api.thestatsapi.com/api";
 const MAP_PATH = new URL("../data/thestatsapi-player-map.json", import.meta.url).pathname;
 const OUT = new URL("../data/player-heatmap-analysis.json", import.meta.url).pathname;
 const SEASON_STATS = new URL("../data/player-season-stats.json", import.meta.url).pathname;
+const REFRESH = process.argv.includes("--refresh");
 
 async function api(path: string): Promise<unknown | null> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${KEY}` } });
+    // 네트워크 오류(EHOSTUNREACH 등)도 재시도한다 — 감싸지 않으면 fetch 의 throw 가 이 루프를
+    // 뚫고 나가 스크립트가 통째로 죽는다 (2026-08-15 맥미니 IPv6 경로 끊김으로 발굴 321건 소실).
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}${path}`, {
+        headers: { Authorization: `Bearer ${KEY}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (e) {
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, 5_000 * (attempt + 1)));
+      continue;
+    }
     if (res.status === 429) { await new Promise((r) => setTimeout(r, 20_000 * (attempt + 1))); continue; }
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`${res.status} ${path}`);
@@ -33,6 +47,7 @@ async function main() {
   const out = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
 
   for (const [ourId, m] of Object.entries(map)) {
+    if (out[ourId] && !REFRESH) continue; // 이미 수집된 선수는 헛콜 방지 (--refresh 로 재수집)
     const res = (await api(
       `/football/players/${m.statsId}/competitions/${m.competitionId}/seasons/${m.seasonId}/heatmap`,
     )) as { data: { points: Array<{ x: number; y: number; count: number }> } } | null;

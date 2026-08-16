@@ -110,7 +110,7 @@ export function tsInjuryReasonKo(reason: string): string {
 }
 
 type Sev = "long" | "short" | "returning";
-function tsInjurySeverity(reason: string, missedMatches: number): Sev {
+export function tsInjurySeverity(reason: string, missedMatches: number): Sev {
   const r = (reason ?? "").toLowerCase();
   // 출전정지(경고/퇴장)는 부상 아님 → short 로 분류(별도 컬러 없음)
   if (r.includes("suspension") || r.includes("suspended") || r.includes(" card")) return "short";
@@ -151,27 +151,53 @@ export async function getTheSportsInjuriesByTeam(
   if (teamIds.length === 0) return out;
   const tset = new Set(teamIds);
 
-  // 1. 각 팀의 최신 매치 + side (home/away)
+  // 1. 각 팀의 최근 매치 후보 (최신 1건만 보면 안 된다)
+  //  시즌 중에는 팀의 "최신" 매치가 아직 안 열린 다음 경기라 lineup 캐시가 없다. 그것만 보고
+  //  포기하면 리그 전체가 부상자 0명이 된다 — 2026-08 실측: K리그1 최근 60일 종료매치 41건
+  //  전부 lineup 이 있고 부상 13건이 담겨 있는데 화면엔 0팀이었다(J1 61건·사우디 13건 동일).
+  //  그래서 팀마다 최근 매치를 여러 건 모아 두고, 아래에서 캐시가 실제로 있는 최신 것을 고른다.
+  const CANDIDATES_PER_TEAM = 6;
+  const now = Date.now();
   const matches = await prisma.match.findMany({
-    where: { OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }] },
+    where: { OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }], startTime: { lte: new Date(now) } },
     select: { id: true, homeTeamId: true, awayTeamId: true, startTime: true },
     orderBy: { startTime: "desc" },
     take: 5000,
   });
-  const latest = new Map<number, { matchId: number; side: "home" | "away" }>();
+  type Cand = { matchId: number; side: "home" | "away"; at: Date };
+  const cands = new Map<number, Cand[]>();
   for (const m of matches) {
-    if (m.homeTeamId != null && tset.has(m.homeTeamId) && !latest.has(m.homeTeamId)) latest.set(m.homeTeamId, { matchId: m.id, side: "home" });
-    if (m.awayTeamId != null && tset.has(m.awayTeamId) && !latest.has(m.awayTeamId)) latest.set(m.awayTeamId, { matchId: m.id, side: "away" });
+    for (const [tid, side] of [[m.homeTeamId, "home"], [m.awayTeamId, "away"]] as const) {
+      if (tid == null || !tset.has(tid)) continue;
+      const arr = cands.get(tid) ?? [];
+      if (arr.length < CANDIDATES_PER_TEAM) {
+        arr.push({ matchId: m.id, side, at: m.startTime });
+        cands.set(tid, arr);
+      }
+    }
   }
-  if (latest.size === 0) return out;
 
-  // 2. 최신 매치들의 lineup 캐시
-  const matchIds = [...new Set([...latest.values()].map((v) => v.matchId))];
-  const caches = await prisma.theSportsMatchCache.findMany({
-    where: { matchId: { in: matchIds } }, // lineup null 은 후처리에서 skip (Prisma Json not-null 필터 타입 회피)
-    select: { matchId: true, lineup: true },
-  });
+  // 2. 후보들의 lineup 캐시를 한 번에 조회
+  const matchIds = [...new Set([...cands.values()].flat().map((v) => v.matchId))];
+  const caches = matchIds.length
+    ? await prisma.theSportsMatchCache.findMany({
+        where: { matchId: { in: matchIds } }, // lineup null 은 후처리에서 skip (Prisma Json not-null 필터 타입 회피)
+        select: { matchId: true, lineup: true },
+      })
+    : [];
   const cacheByMatch = new Map(caches.map((c) => [c.matchId, c.lineup as Record<string, unknown>]));
+
+  // 2b. 팀별로 lineup 캐시가 실제로 있는 최신 매치를 고른다.
+  //  또 그 매치가 한참 지났으면 "현재 부상자" 로 쓰지 않는다 — 비시즌엔 석 달 전 명단이
+  //  그대로 노출된다 (아스톤 빌라 최신 매치가 5/20 이라 7/7 십자인대 파열한 오나나가 빠졌다).
+  //  오래된 팀은 아래 6단계 PlayerEvent 보강으로 넘긴다.
+  const STALE_MS = 30 * 86400_000;
+  const latest = new Map<number, Cand>();
+  for (const [teamId, arr] of cands) {
+    const hit = arr.find((c) => cacheByMatch.get(c.matchId)); // arr 은 이미 최신순
+    if (hit && now - hit.at.getTime() <= STALE_MS) latest.set(teamId, hit);
+  }
+  // latest 가 비어도 아래로 진행한다 — 6단계 PlayerEvent 보강이 전 팀을 맡는다.
 
   // 3. 팀별 active injury entry 수집 + ts player id 모으기
   const teamEntries = new Map<number, TSInjEntry[]>();
@@ -206,6 +232,91 @@ export async function getTheSportsInjuriesByTeam(
         overrideSev: tsInjurySeverity(x.reason ?? "", x.missed_matches ?? 0),
       })),
     );
+  }
+
+  // 6. 최신 매치에 캐시가 없는 팀 — PlayerEvent(부상 근황)로 보강.
+  //  위 1~5 는 팀별 "최신 매치 1건" 만 본다. 비시즌·개막 전엔 그 한 건에 lineup 이 없어
+  //  리그 전체가 "풀스쿼드" 로 보인다 (2026-08 EPL 실측: 23팀 중 부상자가 잡힌 팀 1개,
+  //  우가르테 십자인대가 명단에서 통째로 빠짐). PlayerEvent 는 같은 lineup.injury 를 120일치
+  //  여러 매치에서 모아둔 것이라 커버가 훨씬 넓다.
+  const uncovered = teamIds.filter((id) => !out.has(id));
+  if (uncovered.length) {
+    const fromEvents = await injuriesFromPlayerEvents(uncovered, fake).catch(() => new Map<number, TSInjuryRaw[]>());
+    for (const [teamId, list] of fromEvents) out.set(teamId, list);
+  }
+  return out;
+}
+
+/**
+ * PlayerEvent(INJURY) → 팀별 현재 부상자. 캐시 미보유 팀 보강용.
+ * "현재 부상 중" 판정은 마지막 관측(detail.lastSeenAt = 이 부상이 마지막으로 라인업에 실려
+ * 있던 경기)이 45일 이내인지로 본다. 복귀 이벤트가 드물어(773건 중 88건) 미종결만 걸러서는
+ * 몇 달 전 3경기 결장까지 부상자로 남는다.
+ * 45일은 실측으로 잡았다 — EPL 기준 30일 31명 / 45일 33명 / 90일 55명. 45일이 프리시즌에
+ * 다친 장기 부상(오나나 십자인대 35일·망장비 34일)을 담으면서, 지난 시즌 종료 시점(82일)에
+ * 몰린 이미 복귀했을 무더기는 빼는 지점이다.
+ */
+async function injuriesFromPlayerEvents(ourTeamIds: number[], fakeStart: number): Promise<Map<number, TSInjuryRaw[]>> {
+  const out = new Map<number, TSInjuryRaw[]>();
+  const srcs = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", teamId: { in: ourTeamIds } },
+    select: { externalId: true, teamId: true },
+  });
+  if (!srcs.length) return out;
+  const ourByTs = new Map(srcs.map((s) => [s.externalId, s.teamId]));
+
+  const mvs = await prisma.playerMarketValue.findMany({
+    where: { teamId: { in: [...ourByTs.keys()] } },
+    select: { id: true, teamId: true },
+  });
+  if (!mvs.length) return out;
+  const teamByPlayer = new Map(mvs.map((m) => [m.id, m.teamId!]));
+  const playerIds = mvs.map((m) => m.id);
+
+  const [injuries, returns] = await Promise.all([
+    prisma.playerEvent.findMany({
+      where: { playerId: { in: playerIds }, type: "INJURY", id: { startsWith: "injury:" } },
+      select: { id: true, playerId: true, occurredAt: true, detail: true },
+      orderBy: { occurredAt: "desc" },
+    }),
+    prisma.playerEvent.findMany({
+      where: { playerId: { in: playerIds }, type: "RETURN" },
+      select: { id: true },
+    }),
+  ]);
+  const returned = new Set(returns.map((r) => r.id.replace(/^return:/, "")));
+
+  const now = Date.now();
+  const FRESH_MS = 45 * 86400_000;
+  const seen = new Set<string>(); // 선수당 최신 부상 1건
+  let fake = fakeStart;
+  const nameRows = await prisma.theSportsPlayer.findMany({
+    where: { id: { in: [...new Set(injuries.map((e) => e.playerId))] } },
+    select: { id: true, nameKo: true, name: true },
+  });
+  const nameById = new Map(nameRows.map((p) => [p.id, p.nameKo || p.name]));
+
+  for (const e of injuries) {
+    if (returned.has(e.id.replace(/^injury:/, ""))) continue;
+    if (seen.has(e.playerId)) continue;
+    const d = (e.detail ?? {}) as { reason?: string; reasonRaw?: string | null; missedMatches?: number | null; lastSeenAt?: string };
+    const lastSeen = d.lastSeenAt ? new Date(d.lastSeenAt).getTime() : e.occurredAt.getTime();
+    if (now - lastSeen > FRESH_MS) continue;
+    const ourId = ourByTs.get(teamByPlayer.get(e.playerId) ?? "");
+    if (ourId == null) continue;
+    seen.add(e.playerId);
+    const raw = d.reasonRaw ?? "";
+    out.set(ourId, [
+      ...(out.get(ourId) ?? []),
+      {
+        playerId: fake--,
+        playerName: nameById.get(e.playerId) || "선수",
+        reason: raw,
+        fixtureDate: e.occurredAt.toISOString(),
+        overrideKo: d.reason || tsInjuryReasonKo(raw),
+        overrideSev: tsInjurySeverity(raw, d.missedMatches ?? 0),
+      },
+    ]);
   }
   return out;
 }

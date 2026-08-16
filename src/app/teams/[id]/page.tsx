@@ -35,11 +35,13 @@ import rawTeamHistory from "../../../../data/team-history.json";
 import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistory";
 import LolTeamRoster from "@/components/LolTeamRoster";
 import AmbientGlow from "@/components/AmbientGlow";
-import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse } from "lucide-react";
+import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse, Shirt } from "lucide-react";
+import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
 import TeamSeasonPanel, { type SeasonSlice, type PanelTeamStat, type PanelXgItem } from "@/components/teams/TeamSeasonPanel";
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { parseFixtureXg } from "@/lib/xg/outcome";
 import rawCoaches from "../../../../data/team-coaches.json";
+import rawNonsoccerCoaches from "../../../../data/nonsoccer-coaches.json";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoachPhotos from "../../../../data/coach-photos.json";
 import { venueKo, cityKo } from "@/lib/venue-ko";
@@ -89,6 +91,8 @@ const T_HISTORY = rawTeamHistory as Record<string, TeamHistoryData>;
 // 감독 스냅샷 (ts coach/list + af 폴백, 키=ts team id) — 생성: scripts/build-team-coaches.ts
 const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
 const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
+// 비축구(야구 KBO·MLB·NPB / 농구 NBA·WNBA·KBL·WKBL / 하키 NHL) 감독 (키=우리 Team.id) — 생성: scripts/build-nonsoccer-coaches.ts
+const NONSOCCER_COACHES = rawNonsoccerCoaches as Record<string, { nameKo: string; nameEn?: string; interim?: boolean; asOf: string }>;
 // 라인업 감독 사전(수집·번역 범위가 가장 넓음) — team-coaches nameKo 누락분 폴백 (박태하 실측)
 const COACH_PHOTOS = rawCoachPhotos as Record<string, { nameKo?: string }>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
@@ -274,6 +278,56 @@ export default async function TeamPage({ params }: Props) {
   ]);
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
 
+  // === 선발 라인업 (축구) — "아스날 라인업" 류 검색어 대응. title 이 라인업을 약속하는데
+  // 실제 섹션이 없던 것을 콘텐츠로 채운다. 이미 로드된 upcoming·recentMatches 행에서
+  // 이 팀 쪽 lineup JSON 이 있는 가장 최근 매치를 고른다(킥오프 전 도착분 = upcoming 우선).
+  let recentLineup: {
+    formation: string | null;
+    xi: string[];
+    oppKo: string;
+    dateLabel: string;
+    finished: boolean;
+  } | null = null;
+  if (SOCCER_LEAGUES.has(team.league)) {
+    for (const m of [...upcoming, ...recentMatches]) {
+      const isHome = m.homeTeamId === teamId;
+      const raw = isHome ? m.lineupHome : m.lineupAway;
+      if (!raw) continue;
+      try {
+        const lu = JSON.parse(raw) as { formation?: string | null; startXI?: string[] };
+        if (!Array.isArray(lu.startXI) || lu.startXI.length < 11) continue;
+        const opp = isHome ? m.awayTeam : m.homeTeam;
+        const kst = new Date(m.startTime.getTime() + 9 * 3600_000);
+        recentLineup = {
+          formation: lu.formation ?? null,
+          xi: lu.startXI.slice(0, 11),
+          oppKo: toKoreanTeamName(opp.name, team.league) || opp.name,
+          dateLabel: `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`,
+          finished: m.status === "FINISHED",
+        };
+        break;
+      } catch {
+        // 파싱 안 되는 라인업은 없는 것으로 — 다음 매치 시도
+      }
+    }
+  }
+  // 선발 11명 한글명 — DB nameKo 우선(축구 4.3만명 보유), 동명이인 충돌 시 확정하지 않음.
+  let lineupPlayers: LineupPlayer[] = [];
+  if (recentLineup) {
+    const koRows = await prisma.theSportsPlayer.findMany({
+      where: { name: { in: recentLineup.xi } },
+      select: { name: true, nameKo: true },
+    });
+    const koMap = new Map<string, string | null>();
+    for (const r of koRows) {
+      koMap.set(r.name, koMap.has(r.name) && koMap.get(r.name) !== r.nameKo ? null : r.nameKo);
+    }
+    lineupPlayers = recentLineup.xi.map((n) => ({
+      name: n,
+      ko: koMap.get(n) ?? (toKoreanPlayerName(n) !== n ? toKoreanPlayerName(n) || null : null),
+    }));
+  }
+
   // 순위·폼·스트릭·홈원정은 현재 시즌만 (지난 시즌 접기·롤오버 자동, 구시즌/중복 매치 합산 방지).
   // Elo 는 시즌을 넘어 누적돼야 하므로 전체 매치 유지 (윈도잉하면 시즌마다 레이팅 리셋되는 회귀).
   const seasonStart = currentSeasonStart(team.league);
@@ -321,7 +375,14 @@ export default async function TeamPage({ params }: Props) {
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
   // 현 감독 — ts coach id 있으면 /coaches/{id} 프로필 링크, 없으면(af 폴백 팀) 표시만.
-  const coach = tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ?? null;
+  // 비축구 리그는 nonsoccer-coaches.json 폴백 (프로필 링크 없음).
+  const bbCoach = NONSOCCER_COACHES[String(team.id)] ?? null;
+  const coach =
+    tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ??
+    (bbCoach
+      ? { name: bbCoach.nameEn ?? bbCoach.nameKo, nameKo: bbCoach.nameKo, logo: null, age: null, nationality: null, preferredFormation: null, joined: null, contractUntil: null }
+      : null);
+  const coachRole = coach && !coach.id && bbCoach?.interim ? "감독대행" : "감독";
   const coachName = coach ? coach.nameKo || (coach.id && (COACH_KO[coach.id] || COACH_PHOTOS[coach.id]?.nameKo)) || coach.name : null;
 
   // TeamAbout(SEO 소개 문단)용 — 이미 계산된 값 재사용, 시즌 라벨·종목명만 파생.
@@ -342,8 +403,6 @@ export default async function TeamPage({ params }: Props) {
       where: { teamId: { in: extIds }, currentValue: { not: null } },
       orderBy: { currentValue: "desc" }, select: { id: true, currentValue: true, history: true },
     });
-    const valueOf = new Map(pmvAll.map((p) => [p.id, Math.round((p.currentValue || 0) / 1e6)]));
-
     // 공식 스쿼드(team/squad/list — 등번호 포함 정본) 우선. 없는 팀(154팀 외)은 PMV 18개월 컷오프 fallback.
     // PlayerMarketValue.teamId 는 "마지막 소속팀" 이라 은퇴 선수(칸·라암 등)가 영구 잔류 → 컷오프로만 거른다.
     const official = tsTeamRows.map((t) => T_SQUADS[t.externalId]?.squad).find((s) => Array.isArray(s) && s.length > 0);
@@ -358,6 +417,16 @@ export default async function TeamPage({ params }: Props) {
         .filter((p) => { const h = (p.history as { market_time?: number }[]) || []; return (h[h.length - 1]?.market_time ?? 0) >= cutoff; })
         .map((p) => ({ id: p.id, coarse: null, number: null }));
     }
+
+    // 몸값은 명단 id 로 다시 조회 — PMV.teamId 는 시장가치 스냅샷 시점 소속이라
+    // 이적창에 새로 온 선수는 아직 옛 팀에 걸려 있어 teamId 로만 찾으면 € 0 으로 뜬다.
+    const valueRows = official
+      ? await prisma.playerMarketValue.findMany({
+          where: { id: { in: members.map((m) => m.id) }, currentValue: { not: null } },
+          select: { id: true, currentValue: true },
+        })
+      : pmvAll;
+    const valueOf = new Map(valueRows.map((p) => [p.id, Math.round((p.currentValue || 0) / 1e6)]));
 
     const sp = await prisma.theSportsPlayer.findMany({ where: { id: { in: members.map((m) => m.id) } }, select: { id: true, name: true, nameKo: true, photoUrl: true, position: true } });
     const spMap = new Map(sp.map((p) => [p.id, p]));
@@ -656,7 +725,7 @@ export default async function TeamPage({ params }: Props) {
                       <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 grid place-items-center text-lg shrink-0">👔</div>
                     )}
                     <div className="min-w-0">
-                      <div className="text-[10px] uppercase tracking-wider text-neutral-400">감독</div>
+                      <div className="text-[10px] uppercase tracking-wider text-neutral-400">{coachRole}</div>
                       <div className="font-bold leading-tight truncate">{coachName}</div>
                       <div className="text-[11px] text-neutral-500 truncate">
                         {[coach.nationality, coach.age ? `${coach.age}세` : null, coach.preferredFormation ? `선호 ${coach.preferredFormation}` : null].filter(Boolean).join(" · ")}
@@ -1054,6 +1123,18 @@ export default async function TeamPage({ params }: Props) {
                 </div>
               </div>
             )}
+          </section>
+        )}
+
+        {/* 선발 라인업 — 이 팀 쪽 lineup 이 있는 가장 최근 매치 (경기 전 도착분 우선) */}
+        {recentLineup && lineupPlayers.length === 11 && (
+          <section>
+            <SectionH
+              title="선발 라인업"
+              subtitle={`${recentLineup.dateLabel} vs ${recentLineup.oppKo}${recentLineup.formation ? ` · ${recentLineup.formation}` : ""}${recentLineup.finished ? "" : " · 경기 전 발표"}`}
+              icon={<Shirt className="h-5 w-5" aria-hidden />}
+            />
+            <TeamRecentLineup formation={recentLineup.formation} players={lineupPlayers} />
           </section>
         )}
 

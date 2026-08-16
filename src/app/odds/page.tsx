@@ -9,15 +9,34 @@ import {
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
 import NoVigCalculator from "@/components/odds/NoVigCalculator";
+import BetmanOddsPanel from "@/components/odds/BetmanOddsPanel";
+import OddsSportTabs from "@/components/odds/OddsSportTabs";
 import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
+import { getBetmanMatches } from "@/lib/odds/betman";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata = {
-  title: "배당 흐름 | 스코어베이스",
-  description: "축구·야구·농구 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
-};
+// 베트맨 탭은 데이터도 화면도 달라 제목·설명을 나눈다 (searchParams 분기 → generateMetadata).
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ sport?: string }>;
+}) {
+  const sp = await searchParams;
+  if (sp?.sport === "betman") {
+    return {
+      title: "베트맨 배당 — 프로토 승부식 배당·국내 투표 분포 | 스코어베이스",
+      description:
+        "베트맨(스포츠토토) 프로토 승부식 배당과 국내 구매자 투표 분포를 축구·야구·농구 한 목록에서. 배당이 매긴 확률과 실제 투표 비율을 나란히 비교.",
+      alternates: { canonical: "/odds?sport=betman" },
+    };
+  }
+  return {
+    title: "배당 흐름 | 스코어베이스",
+    description: "축구·야구·농구 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
+  };
+}
 
 type Sport = "soccer" | "baseball" | "basketball";
 const SPORT_CFG: Record<Sport, { leagues: Set<string>; hasDraw: boolean }> = {
@@ -214,6 +233,24 @@ export default async function OddsPage({
   searchParams: Promise<{ sport?: string }>;
 }) {
   const sp = await searchParams;
+
+  // 베트맨 배당은 독립 탭 — 해외 북메이커 흐름과 데이터도 화면도 다르다.
+  if (sp?.sport === "betman") {
+    // 하루 2회 적재라 10분 캐시로 충분. 종목 구분 없이 시각순 한 목록.
+    const rows = await unstable_cache(
+      () => getBetmanMatches(60),
+      ["odds-betman-matches", "all"],
+      { revalidate: 600 },
+    )();
+    return (
+      <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
+        <h1 className="text-2xl font-medium">베트맨 배당</h1>
+        <OddsSportTabs sport="betman" />
+        <BetmanOddsPanel matches={rows} />
+      </div>
+    );
+  }
+
   const sport: Sport =
     sp?.sport === "baseball" || sp?.sport === "basketball" ? sp.sport : "soccer";
   const cfg = SPORT_CFG[sport];

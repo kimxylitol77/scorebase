@@ -67,9 +67,9 @@ interface GameSet {
   players: SetPlayer[];
 }
 
-async function loadSets(league: string = "LOL"): Promise<GameSet[]> {
+async function loadSets(league: string = "LOL", since?: Date): Promise<GameSet[]> {
   const matches = await prisma.match.findMany({
-    where: { league, lolGames: { not: null } },
+    where: { league, lolGames: { not: null }, ...(since ? { startTime: { gte: since } } : {}) },
     select: { lolGames: true },
   });
   const sets: GameSet[] = [];
@@ -80,8 +80,8 @@ async function loadSets(league: string = "LOL"): Promise<GameSet[]> {
   return sets;
 }
 
-export async function aggregateLolPlayers(league: string = "LOL"): Promise<LolPlayerAgg[]> {
-  const sets = await loadSets(league);
+export async function aggregateLolPlayers(league: string = "LOL", since?: Date): Promise<LolPlayerAgg[]> {
+  const sets = await loadSets(league, since);
   const agg = new Map<
     string,
     { playerId: string; name: string; teamId: string; games: number; kills: number; deaths: number; assists: number; cs: number; sec: number; wins: number; champs: Set<string> }

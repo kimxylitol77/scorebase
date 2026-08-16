@@ -7,6 +7,7 @@ import { calcEloTable, getElo } from "./elo";
 import { calcStreaks } from "./streak";
 import { calcRecentTrend } from "./recent-trend";
 import { runMonteCarlo, type MonteCarloRow } from "./monte-carlo";
+import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
 export interface TeamStreakSummary {
   teamId: number;
@@ -60,10 +61,13 @@ interface BuildOptions {
 }
 
 export function buildSeasonContext(
-  matches: PredictMatch[],
+  inputMatches: PredictMatch[],
   league: string,
   opts: BuildOptions = {},
 ): SeasonContext {
+  // 올스타전 제외 — 여기서 뽑는 순위·공수 지표·연승/연패는 ANALYSIS 글 본문에 그대로 실린다.
+  // (runMonteCarlo 는 자체적으로도 거르지만 standings 계열은 이 필터가 없으면 12팀으로 잡힘)
+  const matches = stripBaseballAllStarMatches(inputMatches);
   const finished = matches.filter((m) => m.status === "FINISHED");
   const scheduled = matches.filter((m) => m.status === "SCHEDULED");
 

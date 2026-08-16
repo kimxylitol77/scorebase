@@ -18,8 +18,11 @@ export const SEASON_BOUNDARY: Record<string, { month: number; day: number }> = {
   MLS: { month: 2, day: 1 },
   K_LEAGUE_1: { month: 2, day: 1 },
   K_LEAGUE_2: { month: 2, day: 1 },
-  J1_LEAGUE: { month: 2, day: 1 },
-  J2_LEAGUE: { month: 2, day: 1 },
+  // J리그는 2026-27 부터 추춘제(8월 개막·5월 종료) 전환 — 전환기 시즌은 2~6월에 끝났고
+  // 새 시즌 8월 개막 (DB 실측: 2026-06 이후 공백 → 2026-08 재개). 경계 2/1 이면
+  // 끝난 전환기 시즌이 "현재 시즌"에 섞여 predictions 순위·시뮬이 오염된다.
+  J1_LEAGUE: { month: 7, day: 1 },
+  J2_LEAGUE: { month: 7, day: 1 },
   WNBA: { month: 2, day: 1 },
   CPBL: { month: 2, day: 1 },
   LMB: { month: 2, day: 1 },
@@ -204,6 +207,7 @@ export const NO_SEASON_BOUNDARY: ReadonlySet<string> = new Set([
   "AFC_CUP",
   "AFC_U23",
   "ASEAN_CHAMP",
+  "CANADA_CHAMP", // 캐나다 국내 녹아웃 컵 — 연 1회 단판 토너먼트
   "CLUB_FRIENDLY",
   "CLUB_WORLD_CUP",
   "CONCACAF_CCUP",
@@ -219,6 +223,7 @@ export const NO_SEASON_BOUNDARY: ReadonlySet<string> = new Set([
   "FA_CUP",
   "INTL_FRIENDLY",
   "KFA_CUP",
+  "LEAGUES_CUP", // MLS × 리가 MX 여름 초청 대회 — 8월 한 달 단일 대회
   "LEVAIN_CUP",
   "OLYMPICS_FOOTBALL",
   "PORTUGAL_SUPER_CUP",

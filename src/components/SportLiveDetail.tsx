@@ -16,6 +16,7 @@ import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
 import MatchEventTabs from "./live/MatchEventTabs";
 import LiveTickerFeed from "./live/LiveTickerFeed";
 import MatchWeather from "./live/MatchWeather";
+import FavoriteStar from "./scores/FavoriteStar";
 import { soccerTickerLines } from "@/lib/live/ticker";
 
 // 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
@@ -25,6 +26,10 @@ const VOLLEYBALL_SET = new Set(
 const SOCCER_LEAGUES_SET = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
 );
+
+// 리그 → 종목 code (FavMeta.sport — PiP·마이페이지가 종목 구분에 쓴다)
+const sportCodeOf = (lg: string) =>
+  SPORTS.find((s) => s.leagues.includes(lg))?.code ?? "soccer";
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -163,6 +168,9 @@ interface Props {
   venueCountry?: string | null;
   /** 종료 경기의 킥오프 ISO — 날씨를 경기 당시로 고정. null 이면 현재 날씨 */
   venueWeatherAt?: string | null;
+  /** DB Match.id — 헤더 관심경기 별표용. /scores 별표와 같은 저장소라 id 가 같아야 상태가 이어진다.
+      없으면 별표 미표시. */
+  favMatchId?: number | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -194,6 +202,7 @@ export default function SportLiveDetail({
   venueCity,
   venueCountry,
   venueWeatherAt,
+  favMatchId,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -369,6 +378,24 @@ export default function SportLiveDetail({
             )}
             {isLive && (
               <span className="text-[10px] text-neutral-500">20초 자동 갱신</span>
+            )}
+            {favMatchId != null && (
+              <FavoriteStar
+                matchId={String(favMatchId)}
+                showLabel
+                meta={{
+                  id: String(favMatchId),
+                  sport: sportCodeOf(league),
+                  league,
+                  homeName: homeNameKo,
+                  awayName: awayNameKo,
+                  homeScore,
+                  awayScore,
+                  status: isLive ? "live" : isFinal ? "finished" : initialStatus === "POSTPONED" ? "postponed" : "scheduled",
+                  statusLabel: statusBadge,
+                  href: `/live/${league}/${gameId}`,
+                }}
+              />
             )}
           </div>
         </div>

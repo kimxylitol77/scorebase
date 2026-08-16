@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 const AF = "https://v3.football.api-sports.io";
 const headers = { "x-apisports-key": process.env.API_FOOTBALL_KEY ?? "" };
-const AF_LEAGUE_ID: Record<string, number> = { EPL: 39 };
+const AF_LEAGUE_ID: Record<string, number> = { EPL: 39, CHAMPIONSHIP: 40, LALIGA: 140 };
 const SEASON = 2025;
 
 // af 팀명 → 우리 Team.name 별칭 (정규화 후에도 다른 것만)
@@ -17,6 +17,7 @@ const ALIAS: Record<string, string> = {
   leedsunited: "leeds",
   westhamunited: "westham",
   tottenhamhotspur: "tottenham",
+  oviedo: "realoviedo", // af "Oviedo" vs 우리 "Real Oviedo" (LALIGA)
 };
 const norm = (s: string) => {
   const n = s.toLowerCase().replace(/[^a-z]/g, "");
@@ -69,6 +70,8 @@ function sideOut(s: AfSide) {
 async function main() {
   const league = process.argv.find((a) => a.startsWith("--league="))?.split("=")[1] ?? "EPL";
   const limit = Number(process.argv.find((a) => a.startsWith("--limit="))?.split("=")[1] ?? 0);
+  // --teams=Coventry,Hull,Ipswich — 이 팀들이 낀 경기만 백필 (승격팀 3팀에 리그 전체 550콜을 안 쓰기 위함)
+  const teamTokens = process.argv.find((a) => a.startsWith("--teams="))?.split("=")[1]?.split(",").map(norm) ?? null;
   const afLeague = AF_LEAGUE_ID[league];
   if (!afLeague) throw new Error(`af 리그 id 미등록: ${league}`);
 
@@ -77,8 +80,15 @@ async function main() {
     where: { league, status: "FINISHED", startTime: { gte: new Date("2025-08-01"), lte: new Date("2026-06-15") } },
     select: { id: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
   });
-  const byPair = new Map<string, { id: number; startTime: Date }>();
-  for (const m of ours) byPair.set(`${norm(m.homeTeam.name)}|${norm(m.awayTeam.name)}`, { id: m.id, startTime: m.startTime });
+  // 같은 홈-원정 쌍이 시즌에 두 번 나올 수 있다(정규 + 플레이오프 — 2026-08-15 헐-밀월 실측:
+  // 단일 키 가정 탓에 플레이오프 라인업이 정규 경기 id 에 붙고 정규 2경기는 누락됐다).
+  // 쌍당 배열로 들고, 매칭은 킥오프 ±3일 근접으로 고른다.
+  const byPair = new Map<string, { id: number; startTime: Date }[]>();
+  for (const m of ours) {
+    const k = `${norm(m.homeTeam.name)}|${norm(m.awayTeam.name)}`;
+    if (!byPair.has(k)) byPair.set(k, []);
+    byPair.get(k)!.push({ id: m.id, startTime: m.startTime });
+  }
   console.log(`우리 ${league} 25/26 FINISHED: ${ours.length}경기`);
 
   // 2) af 시즌 전체 fixtures → 쌍 매핑
@@ -92,8 +102,12 @@ async function main() {
   const unmatched: string[] = [];
   for (const f of fixtures) {
     if (!done.has(f.fixture?.status?.short ?? "")) continue;
-    const pair = `${norm(f.teams.home.name)}|${norm(f.teams.away.name)}`;
-    const our = byPair.get(pair);
+    const hn = norm(f.teams.home.name), an = norm(f.teams.away.name);
+    if (teamTokens && !teamTokens.some((t) => hn.includes(t) || an.includes(t))) continue;
+    const pair = `${hn}|${an}`;
+    const cands = byPair.get(pair) ?? [];
+    const afTime = new Date(f.fixture.date).getTime();
+    const our = cands.find((c) => Math.abs(c.startTime.getTime() - afTime) < 3 * 864e5);
     if (!our) { unmatched.push(`${f.fixture.id} ${f.teams.home.name} vs ${f.teams.away.name}`); continue; }
     mapped.push({ afId: f.fixture.id, matchId: our.id, date: f.fixture.date, pair });
   }
@@ -114,7 +128,13 @@ async function main() {
   for (const [i, t] of todo.entries()) {
     const sides: AfSide[] = await afGet(`/fixtures/lineups?fixture=${t.afId}`);
     if (sides.length < 2) { empty++; console.log(`  라인업 없음: ${t.afId} ${t.pair}`); await sleep(300); continue; }
-    out.push({ matchId: t.matchId, afFixtureId: t.afId, date: t.date, home: sideOut(sides[0]), away: sideOut(sides[1]) });
+    // af lineups 응답의 팀 순서는 홈 먼저가 보장되지 않는다 — fixture 의 홈팀명으로 정렬.
+    // (2026-08-15 실측: 챔피언십 Watford vs Coventry 에서 원정이 먼저 와 승패가 뒤집혀 저장됐다)
+    const homeName = t.pair.split("|")[0];
+    const homeSide = sides.find((s) => norm(s.team.name) === homeName);
+    const awaySide = sides.find((s) => s !== homeSide);
+    if (!homeSide || !awaySide) { empty++; console.log(`  홈팀 식별 실패: ${t.afId} ${t.pair}`); await sleep(300); continue; }
+    out.push({ matchId: t.matchId, afFixtureId: t.afId, date: t.date, home: sideOut(homeSide), away: sideOut(awaySide) });
     ok++;
     if ((i + 1) % 40 === 0) {
       fs.writeFileSync(outPath, JSON.stringify(out));

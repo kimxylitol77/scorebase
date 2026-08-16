@@ -14,8 +14,12 @@ import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
 import rawCoachPhotos from "../../../../data/coach-photos.json";
+import rawTacticalExtras from "../../../../data/coach-tactical-extras.json";
+import rawLegends from "../../../../data/coach-legends.json";
 import TacticalManagerSection from "@/components/TacticalManagerSection";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
+import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { formatDateKo } from "@/lib/format";
 
 // ISR — 감독 정보·경력은 거의 불변. 10분 캐시.
@@ -39,6 +43,9 @@ const CAREERS = rawCareers as Record<string, CoachCareer>;
 const HONORS = rawHonors as Record<string, HonorRow[]>;
 // 라인업 감독 사전 — team-coaches nameKo 누락분 한글명 폴백 (키 = 감독 id)
 const COACH_PHOTOS = rawCoachPhotos as Record<string, { nameKo?: string }>;
+// 과거 시즌 전술 대시보드 아카이브 (DB 에 없는 옛 시즌 — build-coach-tactical-extra 산출).
+// 전술 글이 없는 정점 시즌(레버쿠젠 알론소 23-24 등)을 감독 허브에 남기는 위키형 축적.
+const TACTICAL_EXTRAS = rawTacticalExtras as unknown as Record<string, TacticalManagerContext[]>;
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1",
   K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS", WORLD_CUP: "FIFA 월드컵 2026",
@@ -49,16 +56,19 @@ const NATL = new Set(["WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "
 // coach id → 현 소속 ts team id (team-coaches.json 이 팀 키 구조라 역인덱스)
 const TEAM_BY_COACH: Record<string, string> = {};
 for (const [tid, c] of Object.entries(COACHES)) if (c.id) TEAM_BY_COACH[c.id] = tid;
+// 레전드(비현직) 감독 레지스트리 — 현 소속이 없어도 프로필·전술 아카이브 페이지를 연다 (펩 등).
+const LEGENDS = rawLegends as Record<string, CoachSnap>;
 
 const fmtYm = (ts: number | null) =>
   ts ? `${new Date(ts * 1000).getUTCFullYear()}.${new Date(ts * 1000).getUTCMonth() + 1}` : null;
 const yrRange = (s: number | null, e: number | null) =>
   `${s ?? "?"}–${e ?? "현재"}`;
 
-function coachOf(id: string): { snap: CoachSnap; teamTsId: string } | null {
+function coachOf(id: string): { snap: CoachSnap; teamTsId: string | null } | null {
   const teamTsId = TEAM_BY_COACH[id];
-  if (!teamTsId) return null;
-  return { snap: COACHES[teamTsId], teamTsId };
+  if (teamTsId) return { snap: COACHES[teamTsId], teamTsId };
+  if (LEGENDS[id]) return { snap: LEGENDS[id], teamTsId: null };
+  return null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -89,10 +99,12 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
 
   // 현 소속팀 resolve (ts → 우리 Team) — 로고·리그·팀 페이지 링크
   let teamName: string | null = null, teamLogo: string | null = null, ourTeamId: number | null = null, teamLeague: string | null = null;
-  const tss = await prisma.teamSourceId.findMany({
-    where: { source: "thesports", externalId: teamTsId },
-    select: { teamId: true },
-  }).catch(() => []);
+  const tss = teamTsId
+    ? await prisma.teamSourceId.findMany({
+        where: { source: "thesports", externalId: teamTsId },
+        select: { teamId: true },
+      }).catch(() => [])
+    : [];
   if (tss.length) {
     const teams = await prisma.team.findMany({
       where: { id: { in: tss.map((t) => t.teamId) } },
@@ -107,21 +119,66 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  // 최근 5경기 실제 포메이션 (현 팀)
+  // 최근 5경기 실제 포메이션 + 최근 선발 라인업 (현 팀).
+  // 라인업 피치는 전 소속 시절 "전술 연구"와 나란히 현 팀 전술을 보여주기 위한 것
+  // (부임 직후엔 전술 글이 전 소속팀 것뿐이라 현 팀 맥락이 통째로 비었다 — 2026-08-15 사용자 요청).
   const recentFormations: string[] = [];
+  let curLineup: { formation: string | null; xi: string[]; oppKo: string; dateLabel: string } | null = null;
   if (ourTeamId != null) {
     const recent = await prisma.match.findMany({
       where: { status: "FINISHED", OR: [{ homeTeamId: ourTeamId }, { awayTeamId: ourTeamId }] },
       orderBy: { startTime: "desc" },
       take: 10,
-      select: { homeTeamId: true, theSportsCache: { select: { lineup: true } } },
+      select: {
+        homeTeamId: true,
+        startTime: true,
+        lineupHome: true,
+        lineupAway: true,
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } },
+        theSportsCache: { select: { lineup: true } },
+      },
     }).catch(() => []);
     for (const m of recent) {
       const lu = m.theSportsCache?.lineup as { home_formation?: string; away_formation?: string } | null;
-      const f = m.homeTeamId === ourTeamId ? lu?.home_formation : lu?.away_formation;
-      if (f) recentFormations.push(f);
-      if (recentFormations.length >= 5) break;
+      const isHome = m.homeTeamId === ourTeamId;
+      const f = isHome ? lu?.home_formation : lu?.away_formation;
+      if (f && recentFormations.length < 5) recentFormations.push(f);
+      if (!curLineup) {
+        try {
+          const raw = isHome ? m.lineupHome : m.lineupAway;
+          const parsed = raw ? (JSON.parse(raw) as { formation?: string | null; startXI?: string[] }) : null;
+          if (Array.isArray(parsed?.startXI) && parsed.startXI.length >= 11) {
+            const opp = isHome ? m.awayTeam : m.homeTeam;
+            const kst = new Date(m.startTime.getTime() + 9 * 3600_000);
+            curLineup = {
+              formation: parsed.formation ?? null,
+              xi: parsed.startXI.slice(0, 11),
+              oppKo: toKoreanTeamName(opp.name) || opp.name,
+              dateLabel: `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`,
+            };
+          }
+        } catch {
+          // 파싱 안 되는 라인업은 없는 것으로
+        }
+      }
     }
+  }
+  // 선발 11명 한글명 — 팀 페이지와 동일 규칙 (DB nameKo 우선, 동명이인 충돌 시 미확정)
+  let curLineupPlayers: LineupPlayer[] = [];
+  if (curLineup) {
+    const koRows = await prisma.theSportsPlayer.findMany({
+      where: { name: { in: curLineup.xi } },
+      select: { name: true, nameKo: true },
+    }).catch(() => []);
+    const koMap = new Map<string, string | null>();
+    for (const r of koRows) {
+      koMap.set(r.name, koMap.has(r.name) && koMap.get(r.name) !== r.nameKo ? null : r.nameKo);
+    }
+    curLineupPlayers = curLineup.xi.map((n) => ({
+      name: n,
+      ko: koMap.get(n) ?? (toKoreanPlayerName(n) !== n ? toKoreanPlayerName(n) || null : null),
+    }));
   }
   // 전술 연구 — 이 감독을 다룬 TACTICAL 아티클 누적 (글=시점 스냅샷, 이 페이지=위키형 허브).
   // 매칭은 감독 이름 기준(팀 기준이면 전임 감독 시즌 글이 새 감독 페이지에 붙는 오류).
@@ -187,7 +244,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
   const curStintStart = (career?.coachCareer ?? []).find((r) => r.end == null)?.start ?? null;
   const joinedTs = snap.joined || (curStintStart ? Date.UTC(curStintStart, 6, 1) / 1000 : null);
   let signings: Array<{ playerId: string; name: string; fromTeam: string | null; fee: number; time: number }> = [];
-  if (joinedTs) {
+  if (joinedTs && teamTsId) {
     const rows = await prisma.footballTransfer.findMany({
       where: { toTeamId: teamTsId, transferTime: { gte: joinedTs }, transferFee: { gt: 0 } },
       orderBy: { transferFee: "desc" },
@@ -216,7 +273,9 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
 
   // 감독 경력 — Wikidata 가 현 부임을 아직 반영 못했으면 ts joined 로 현 팀 행 합성
   const norm = (s: string) => s.replace(/\s|FC|CF|AFC|SC/gi, "").toLowerCase();
-  let coachRows: CareerRow[] = career?.coachCareer ?? [];
+  // 연도가 양쪽 다 없는 행은 표시 정보가 없다 — "?–현재 Italy" 처럼 현직으로 오독되는
+  // Wikidata 결손 클레임(펩 실측)이라 걸러낸다.
+  let coachRows: CareerRow[] = (career?.coachCareer ?? []).filter((r) => r.start != null || r.end != null);
   if (teamName) {
     const joinedYr = snap.joined ? new Date(snap.joined * 1000).getUTCFullYear() : null;
     const covered = coachRows.some(
@@ -354,29 +413,52 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      {/* 전술 */}
-      {(snap.preferredFormation || formationSummary) && (
-        <section className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4 sm:p-5 flex items-center gap-8 flex-wrap">
-          {snap.preferredFormation && (
-            <div className="leading-tight">
-              <div className="text-[11px] text-neutral-400 mb-0.5">선호 포메이션</div>
-              <div className="text-xl font-black tabular-nums">{snap.preferredFormation}</div>
-            </div>
-          )}
-          {formationSummary && (
-            <div className="leading-tight">
-              <div className="text-[11px] text-neutral-400 mb-0.5">최근 {recentFormations.length}경기 실제 포메이션</div>
-              <div className="text-xl font-black tabular-nums">{formationSummary}</div>
+      {/* 현 소속팀 전술 — 포메이션 요약 + 최근 선발 라인업 피치 */}
+      {(snap.preferredFormation || formationSummary || curLineupPlayers.length === 11) && (
+        <section>
+          {teamName && <h2 className="text-lg font-semibold mb-3 break-keep">현재 전술 — {teamName}</h2>}
+          <div className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4 sm:p-5 flex items-center gap-8 flex-wrap">
+            {snap.preferredFormation && (
+              <div className="leading-tight">
+                <div className="text-[11px] text-neutral-400 mb-0.5">선호 포메이션</div>
+                <div className="text-xl font-black tabular-nums">{snap.preferredFormation}</div>
+              </div>
+            )}
+            {formationSummary && (
+              <div className="leading-tight">
+                <div className="text-[11px] text-neutral-400 mb-0.5">최근 {recentFormations.length}경기 실제 포메이션</div>
+                <div className="text-xl font-black tabular-nums">{formationSummary}</div>
+              </div>
+            )}
+          </div>
+          {curLineup && curLineupPlayers.length === 11 && (
+            <div className="mt-3">
+              <div className="mb-2 text-xs text-neutral-400">
+                최근 선발 라인업 · {curLineup.dateLabel} vs {curLineup.oppKo}
+                {curLineup.formation ? ` · ${curLineup.formation}` : ""}
+              </div>
+              <TeamRecentLineup formation={curLineup.formation} players={curLineupPlayers} />
             </div>
           )}
         </section>
       )}
 
-      {/* 전술 연구 — 시즌 집계 대시보드 + 글 아카이브 (감독 축 위키형 허브, 글이 늘수록 누적) */}
-      {tacticalCtx && (
+      {/* 전술 연구 — 시즌 집계 대시보드 + 글 아카이브 (감독 축 위키형 허브, 글이 늘수록 누적).
+          부임 직후엔 최신 글이 전 소속팀 시즌 집계다 — 제목·안내로 "어느 팀 시절"인지 못박는다
+          (첼시 알론소 페이지에 레알 대시보드가 무라벨로 떠 버그로 오인, 2026-08-15). */}
+      {(tacticalCtx || (TACTICAL_EXTRAS[id] ?? []).length > 0) && (
         <section>
-          <h2 className="text-lg font-semibold mb-3 break-keep">전술 연구</h2>
-          <TacticalManagerSection ctx={tacticalCtx} />
+          <h2 className="text-lg font-semibold mb-1 break-keep">
+            전술 연구
+            {tacticalCtx && tacticalCtx.team.tsId !== teamTsId ? ` — ${tacticalCtx.team.nameKo} 시절` : ""}
+          </h2>
+          {tacticalCtx && tacticalCtx.team.tsId !== teamTsId && (
+            <p className="mb-3 text-xs text-neutral-400 break-keep">
+              현 소속({teamName ?? "현 팀"}) 부임 전 {tacticalCtx.team.nameKo} {tacticalCtx.seasonLabel} 시즌 전술 집계입니다.
+              {teamName ? ` ${teamName} 전술 연구는 새 시즌 데이터가 쌓이면 발행됩니다.` : ""}
+            </p>
+          )}
+          {tacticalCtx && <TacticalManagerSection ctx={tacticalCtx} />}
           {tacticalArticles.length > 0 && (
             <ul className="mt-4 space-y-2">
               {tacticalArticles.map((a) => (
@@ -395,7 +477,21 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
               ))}
             </ul>
           )}
-          {otherManagerArticles.length > 0 && (
+          {/* 과거 시즌 아카이브 대시보드 — 전술 글 없는 옛 시즌 (최신 글 팀·시즌과 중복 제외) */}
+          {(TACTICAL_EXTRAS[id] ?? [])
+            .filter((x) => !(tacticalCtx && x.team.tsId === tacticalCtx.team.tsId && x.seasonLabel === tacticalCtx.seasonLabel))
+            .map((x) => (
+              <div key={`${x.team.tsId}-${x.seasonLabel}`} className="mt-6">
+                <h3 className="text-base font-semibold break-keep">
+                  {x.team.nameKo} 시절 — {x.seasonLabel}
+                </h3>
+                <p className="mt-1 text-xs text-neutral-400 break-keep">
+                  스코어베이스 과거 시즌 아카이브 집계입니다. 이 시즌 데이터에는 xG·슈팅 좌표가 없습니다.
+                </p>
+                <TacticalManagerSection ctx={x} />
+              </div>
+            ))}
+          {(otherManagerArticles.length > 0 || Object.keys(TACTICAL_EXTRAS).some((cid) => cid !== id)) && (
             <div className="mt-4">
               <div className="mb-2 text-xs font-medium text-neutral-400">다른 감독 전술 연구</div>
               <div className="flex flex-wrap gap-1.5">
@@ -409,6 +505,24 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
                     {a.coachKo} · {a.teamKo}
                   </Link>
                 ))}
+                {/* 아카이브 보유 감독 — 글 없이 과거 시즌 대시보드만 있는 감독(레전드 포함) 상호 링크 */}
+                {Object.entries(TACTICAL_EXTRAS)
+                  .filter(([cid]) => cid !== id)
+                  .map(([cid, list]) => {
+                    const snap = TEAM_BY_COACH[cid] ? COACHES[TEAM_BY_COACH[cid]] : LEGENDS[cid];
+                    const first = list[0];
+                    if (!snap || !first) return null;
+                    return (
+                      <Link
+                        key={cid}
+                        href={`/coaches/${cid}`}
+                        prefetch={false}
+                        className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 hover:border-blue-300 dark:border-neutral-800 dark:bg-white/[0.04] dark:text-neutral-300 dark:hover:border-blue-800"
+                      >
+                        {snap.nameKo || snap.name} · {first.team.nameKo} {first.seasonLabel}
+                      </Link>
+                    );
+                  })}
               </div>
             </div>
           )}

@@ -8,6 +8,7 @@ import Link from "next/link";
 import CountUp from "./CountUp";
 import LolInGame from "./LolInGame";
 import type { LolGamesData } from "@/lib/sports/lol-ingame";
+import FavoriteStar from "./scores/FavoriteStar";
 
 export interface LolLive {
   matchId: number;
@@ -37,6 +38,11 @@ interface Props {
   games?: LolGamesData | null;
   /** DB 기반 초기 시리즈 (BDL 죽어도 점수 표시). BDL fetch 성공 시 갱신. */
   initial?: LolLive | null;
+  /** DB Match.id — 헤더 관심경기 별표용. matchId prop 은 BDL externalId 라 별표 키로 못 쓴다
+      (/scores 별표와 같은 저장소 = DB id 기준). 없으면 별표 미표시. */
+  favMatchId?: number | null;
+  /** 별표 저장 시 함께 남길 매치 링크 (PiP 가 되돌아올 주소) */
+  favHref?: string;
 }
 
 const POLL_LIVE_MS = 30_000;
@@ -53,6 +59,8 @@ export default function LolLiveDetail({
   awayTeamId,
   games,
   initial,
+  favMatchId,
+  favHref,
 }: Props) {
   const [live, setLive] = useState<LolLive | null>(initial ?? null);
   const [loaded, setLoaded] = useState(false);
@@ -198,9 +206,28 @@ export default function LolLiveDetail({
               </span>
             )}
           </div>
-          {isLive && (
-            <span className="text-[10px] text-neutral-500">30초 자동 갱신</span>
-          )}
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <span className="text-[10px] text-neutral-500">30초 자동 갱신</span>
+            )}
+            {favMatchId != null && (
+              <FavoriteStar
+                matchId={String(favMatchId)}
+                showLabel
+                meta={{
+                  id: String(favMatchId),
+                  sport: "esports",
+                  league: "LCK",
+                  homeName: homeNameKo,
+                  awayName: awayNameKo,
+                  homeScore: live.homeScore,
+                  awayScore: live.awayScore,
+                  status: isLive ? "live" : isFinal ? "finished" : "scheduled",
+                  href: favHref,
+                }}
+              />
+            )}
+          </div>
         </div>
 
         {/* 양팀 + 점수 */}

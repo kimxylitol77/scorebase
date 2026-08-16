@@ -29,6 +29,9 @@ export default function NbaPlayoffBracket({ series, league = "NBA" }: Props) {
   }
   const emoji = league === "NHL" ? "🏒" : "🏀";
   const title = league === "NHL" ? "NHL 플레이오프 브라켓" : "NBA 플레이오프 브라켓";
+  // 파이널까지 끝난 브라켓 = 지난 시즌 아카이브 — "실시간" 표기는 오해 소지.
+  const seasonDone =
+    grouped.FINALS.length > 0 && grouped.FINALS.every((s) => s.completed);
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] p-4 sm:p-5">
       <header className="flex items-center justify-between mb-3">
@@ -37,7 +40,7 @@ export default function NbaPlayoffBracket({ series, league = "NBA" }: Props) {
           <h3 className="font-bold text-sm sm:text-base">{title}</h3>
         </div>
         <span className="text-[10px] sm:text-[11px] text-neutral-500">
-          BO7 · 실시간
+          BO7 · {seasonDone ? "시즌 최종 결과" : "실시간"}
         </span>
       </header>
 

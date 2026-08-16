@@ -7,9 +7,10 @@
 // 각 칸은 data-scell="league|time|status|home|score|away|half|star|info|odds" 로 식별
 // (home/away 는 레이아웃 슬롯 명칭 — awayFirst 면 실제 팀은 좌우 스왑됨).
 //
-// client component — 매치 상세 링크는 팀명 텍스트에만 건다 (7m 방식, 2026-08-11 요청).
-// 행의 빈칸은 화살표 커서 + 클릭 무동작 + 텍스트 선택 자유. 리그배지/순위/예측/L/R 은
-// 기존대로 button + window.open (행 링크 시절의 nested anchor 회피 구조 유지 — 무해).
+// client component — 매치 상세 링크는 팀명 텍스트 + 점수에만 건다 (7m 방식, 2026-08-11 요청.
+// 점수 링크는 2026-08-14 추가 — 점수를 누르는 습관이 강해서). 행의 나머지 빈칸은 화살표 커서 +
+// 클릭 무동작 + 텍스트 선택 자유. 리그배지/순위/예측/L/R 은 기존대로 button + window.open
+// (행 링크 시절의 nested anchor 회피 구조 유지 — 무해).
 
 "use client";
 
@@ -160,6 +161,22 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     ) : (
       <Link data-teamname href={href} prefetch={false} className={cls}>
         {name}
+      </Link>
+    );
+  };
+
+  // 점수 클릭 → 매치 상세(라이브 페이지). 팀명 링크와 같은 목적지·같은 탭.
+  // 득점자 tooltip 은 hover 라 클릭과 겹치지 않는다.
+  const scoreLink = (inner: React.ReactNode) => {
+    if (!href) return inner;
+    const cls = "inline-flex items-baseline hover:opacity-80 transition";
+    return isExternal ? (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={cls} title="경기 상세 보기">
+        {inner}
+      </a>
+    ) : (
+      <Link href={href} prefetch={false} className={cls} title="경기 상세 보기">
+        {inner}
       </Link>
     );
   };
@@ -346,39 +363,43 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       >
         {hasScore ? (
           <>
-            <span
-              className={`relative isolate inline-block ${
-                isLive
-                  ? "text-rose-600 dark:text-rose-400"
-                  : isFinished
-                    ? (awayFirst ? awayWin : homeWin)
-                      ? "text-neutral-900 dark:text-white"
-                      : "text-neutral-400 dark:text-neutral-600"
-                    : "text-neutral-500"
-              }`}
-            >
-              {leftPing > 0 && (
-                <span key={leftPing} className="score-halo-burst" aria-hidden />
-              )}
-              {awayFirst ? awayScore : homeScore}
-            </span>
-            <span className="mx-1 text-neutral-300 dark:text-neutral-700 font-normal">-</span>
-            <span
-              className={`relative isolate inline-block ${
-                isLive
-                  ? "text-rose-600 dark:text-rose-400"
-                  : isFinished
-                    ? (awayFirst ? homeWin : awayWin)
-                      ? "text-neutral-900 dark:text-white"
-                      : "text-neutral-400 dark:text-neutral-600"
-                    : "text-neutral-500"
-              }`}
-            >
-              {rightPing > 0 && (
-                <span key={rightPing} className="score-halo-burst" aria-hidden />
-              )}
-              {awayFirst ? homeScore : awayScore}
-            </span>
+            {scoreLink(
+              <>
+                <span
+                  className={`relative isolate inline-block ${
+                    isLive
+                      ? "text-rose-600 dark:text-rose-400"
+                      : isFinished
+                        ? (awayFirst ? awayWin : homeWin)
+                          ? "text-neutral-900 dark:text-white"
+                          : "text-neutral-400 dark:text-neutral-600"
+                        : "text-neutral-500"
+                  }`}
+                >
+                  {leftPing > 0 && (
+                    <span key={leftPing} className="score-halo-burst" aria-hidden />
+                  )}
+                  {awayFirst ? awayScore : homeScore}
+                </span>
+                <span className="mx-1 text-neutral-300 dark:text-neutral-700 font-normal">-</span>
+                <span
+                  className={`relative isolate inline-block ${
+                    isLive
+                      ? "text-rose-600 dark:text-rose-400"
+                      : isFinished
+                        ? (awayFirst ? homeWin : awayWin)
+                          ? "text-neutral-900 dark:text-white"
+                          : "text-neutral-400 dark:text-neutral-600"
+                        : "text-neutral-500"
+                  }`}
+                >
+                  {rightPing > 0 && (
+                    <span key={rightPing} className="score-halo-burst" aria-hidden />
+                  )}
+                  {awayFirst ? homeScore : awayScore}
+                </span>
+              </>,
+            )}
             {/* 승부차기 — absolute 라 행 높이 불변. 점수 바로 아래 좌/우 정렬. */}
             {penaltyHome != null && penaltyAway != null && (
               <div className="absolute left-0 right-0 top-full grid grid-cols-2 text-[9px] font-semibold text-neutral-400 dark:text-neutral-500 leading-none pointer-events-none -mt-0.5">
@@ -404,7 +425,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               )}
           </>
         ) : (
-          <span className="text-neutral-500 text-[11px] font-medium">vs</span>
+          scoreLink(<span className="text-neutral-500 text-[11px] font-medium">vs</span>)
         )}
       </div>
 

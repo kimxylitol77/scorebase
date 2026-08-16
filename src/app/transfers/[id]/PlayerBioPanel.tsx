@@ -54,10 +54,15 @@ function MiniPitch({ primary, others }: { primary: PosCode; others: PosCode[] })
 
 const FOOT_KO: Record<string, string> = { L: "왼발", R: "오른발", B: "양발" };
 
+// ts contract_until 은 UTC+8 자정 기준 unix sec (전체의 99.9% 가 UTC 16:00). KST 로 읽어야
+// 만료월이 맞는다 — UTC 로 읽으면 6/30 계약이 6/29 로 하루 밀린다. 지난 계약 필터는 page 쪽.
+const contractLabel = (sec: number) =>
+  new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(sec * 1000));
+
 export default function PlayerBioPanel({
   age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
   teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur,
-  positions, posCode, foot,
+  positions, posCode, foot, contractUntil, contractPast,
 }: {
   age: number | null;
   birthDate: string | null;
@@ -78,7 +83,9 @@ export default function PlayerBioPanel({
   recentChg: number | null;
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
   posCode: string | null; // coarse G/D/M/F 폴백
-  foot?: string | null; // 주발 (Wikidata P8006) — "L"|"R"|"B"
+  foot?: string | null; // 주발 (ts preferred_foot) — "L"|"R"|"B"
+  contractUntil?: number | null; // 계약 만료 (ts contract_until, unix sec)
+  contractPast?: boolean; // 만료일이 이미 지났는지 (page 에서 판정) — "직전 계약" 으로 표기가 갈린다
 }) {
   // 구체 포지션 우선, 없으면 coarse 폴백
   const coarse = posCode ? COARSE[posCode] : null;
@@ -140,15 +147,35 @@ export default function PlayerBioPanel({
             )}
           </div>
         )}
-        {wageEur != null && (
+        {/* 주급 + 계약 만료 한 블록 — 시장가치 블록이 몸값 순위를 보조줄로 다는 것과 대칭.
+            주급은 Capology 5대리그만이라, 주급이 없으면 계약 만료가 이 자리의 주 정보가 된다. */}
+        {(wageEur != null || contractUntil != null) && (
           <div className={`${valueEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
-            <div className="text-xs text-neutral-400 mb-0.5">주급 (세전)</div>
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                €{Math.round(wageEur / 52 / 1000)}k
-              </span>
-              <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
+            <div className="text-xs text-neutral-400 mb-0.5">
+              {wageEur != null ? "주급 (세전)" : contractPast ? "직전 계약" : "계약 만료"}
             </div>
+            {wageEur != null ? (
+              <>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    €{Math.round(wageEur / 52 / 1000)}k
+                  </span>
+                  <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
+                </div>
+                {contractUntil != null && (
+                  <div className="mt-1 text-xs text-neutral-500">
+                    {contractPast ? "직전 계약 " : "계약 "}
+                    <span className="font-bold text-neutral-700 dark:text-neutral-200">{contractLabel(contractUntil)}</span>
+                    {contractPast ? " 만료" : "까지"}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-2xl font-black tabular-nums">
+                {contractLabel(contractUntil!)}
+                {contractPast && <span className="ml-1 text-sm font-normal text-neutral-400">만료</span>}
+              </div>
+            )}
           </div>
         )}
       </div>

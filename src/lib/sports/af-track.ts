@@ -59,7 +59,32 @@ export async function afFetch(
 ): Promise<Response> {
   const res = await fetch(input, init);
   await afTrack(tag, afRemainingFromHeaders(res.headers));
-  return res;
+  if (!res.ok) return res;
+
+  // 200 인데 errors 객체인 경우 — 호출부가 "데이터 없음"으로 오해하고, next.revalidate 가
+  // 붙어 있으면 그 오류 응답이 캐시에까지 굳는다. 한도면 캐시를 건너뛰고 다시 받아온다.
+  const err = await peekApiSportsError(res);
+  if (!err) return res;
+  if (err.kind === "rateLimit") {
+    for (const wait of DEFAULT_RETRY_WAITS_MS) {
+      await new Promise((r) => setTimeout(r, wait));
+      const retry = await fetch(input, { ...init, cache: "no-store", next: undefined });
+      await afTrack(tag, afRemainingFromHeaders(retry.headers));
+      if (!retry.ok) return retry;
+      const again = await peekApiSportsError(retry);
+      if (!again) return retry;
+    }
+  }
+  throw new ApiSportsError(tag, err.kind, err.message);
+}
+
+/** 응답 body 를 소비하지 않고(clone) 오류 표시만 훔쳐본다. JSON 이 아니면 무시. */
+async function peekApiSportsError(res: Response): Promise<{ kind: string; message: string } | null> {
+  try {
+    return apiSportsError(await res.clone().json());
+  } catch {
+    return null;
+  }
 }
 
 /** axios 등 fetch 가 아닌 클라이언트용 — 응답 헤더 객체를 직접 넘긴다. */
@@ -73,17 +98,73 @@ export async function afTrackHeaders(
 }
 
 /**
- * axios 인스턴스에 계측을 붙인다 — 그 클라이언트의 모든 호출이 한 번에 잡힌다.
- * 호출 경로가 여러 개인 파일(api-football-pro 등)은 URL 로 세부 태그를 나눈다.
+ * api-sports 응답의 오류 표시를 읽는다.
+ *
+ * 왜 필요한가. api-sports(축구·야구 공통)는 분당 한도 초과·일일 소진·키 오류를
+ * HTTP 200 + `errors` **객체**로 답한다(정상 응답의 errors 는 빈 배열/빈 객체).
+ * 이걸 감지하지 않으면 호출부가 "데이터 없음"으로 오해해, 시즌이 통째로 빠진
+ * 결과를 정상인 양 캐시한다(2026-08-14 선수 경력표 누락 사고).
  */
-export function attachAfTracking<T extends AxiosInstance>(client: T, baseTag: string): T {
-  client.interceptors.response.use((res) => {
+export function apiSportsError(data: unknown): { kind: string; message: string } | null {
+  const e = (data as { errors?: unknown } | undefined)?.errors;
+  if (!e || typeof e !== "object" || Array.isArray(e)) return null;
+  const rec = e as Record<string, unknown>;
+  const kind = Object.keys(rec)[0];
+  return kind ? { kind, message: String(rec[kind]) } : null;
+}
+
+/** api-sports 가 200 으로 돌려준 오류. 빈 응답으로 위장되지 않도록 예외로 올린다. */
+export class ApiSportsError extends Error {
+  constructor(readonly tag: string, readonly kind: string, message: string) {
+    super(`[${tag}] ${kind}: ${message}`);
+    this.name = "ApiSportsError";
+  }
+}
+
+/**
+ * catch 안에서 부른다 — api-sports 가 명시한 오류는 삼키지 말고 올린다.
+ *
+ * 네트워크 일시 오류는 빈 결과로 넘겨도 다음 호출에서 회복되지만, 한도·키 오류를 빈 결과로
+ * 넘기면 그게 캐시에 굳어 며칠씩 오답을 서빙한다(2026-08-14 경력표). 캐시 뒤에 있는
+ * 함수의 catch 는 반드시 이걸 통과시킨다.
+ */
+export function rethrowApiSports(e: unknown): void {
+  if (e instanceof ApiSportsError) throw e;
+}
+
+/** 분당 한도만 재시도 가치가 있다(일일 소진·키 오류는 기다려도 안 풀린다). */
+const DEFAULT_RETRY_WAITS_MS = [1500, 5000];
+
+/**
+ * axios 인스턴스에 계측 + api-sports 오류 방어를 붙인다.
+ * 호출 경로가 여러 개인 파일(api-football-pro 등)은 URL 로 세부 태그를 나눈다.
+ *
+ * 분당 한도 응답은 대기 후 자동 재시도하고, 끝내 안 풀리면 ApiSportsError 로 던진다 —
+ * 조용한 빈 응답이 상위 캐시에 굳는 것을 막는 유일한 지점이다.
+ */
+export function attachAfTracking<T extends AxiosInstance>(
+  client: T,
+  baseTag: string,
+  opts?: { retryWaitsMs?: number[] },
+): T {
+  const waits = opts?.retryWaitsMs ?? DEFAULT_RETRY_WAITS_MS;
+  client.interceptors.response.use(async (res) => {
     const path = (res.config?.url ?? "").split("?")[0].replace(/^\//, "");
-    void afTrackHeaders(
-      path ? `${baseTag}:${path}` : baseTag,
-      res.headers as unknown as Record<string, unknown> | undefined,
-    );
-    return res;
+    const tag = path ? `${baseTag}:${path}` : baseTag;
+    void afTrackHeaders(tag, res.headers as unknown as Record<string, unknown> | undefined);
+
+    const err = apiSportsError(res.data);
+    if (!err) return res;
+    if (err.kind === "rateLimit") {
+      const cfg = res.config as typeof res.config & { __afRetry?: number };
+      const n = cfg.__afRetry ?? 0;
+      if (n < waits.length) {
+        cfg.__afRetry = n + 1;
+        await new Promise((r) => setTimeout(r, waits[n]));
+        return client.request(cfg);
+      }
+    }
+    throw new ApiSportsError(tag, err.kind, err.message);
   });
   return client;
 }

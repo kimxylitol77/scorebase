@@ -6,6 +6,7 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { parseXg } from "./data-gate";
 
 // ============================================================
@@ -47,6 +48,7 @@ const TEAM_ALIAS: Record<string, string> = {
   brightonhovealbion: "brighton",
   afcbournemouth: "bournemouth",
   burnleyfc: "burnley",
+  bayernmunich: "bayernmnchen", // af "Bayern Munich" vs 우리 "Bayern München"(ü 탈락) — 과거 시즌 아카이브 빌드
 };
 export function normTeam(s: string): string {
   const n = s.toLowerCase().replace(/[^a-z]/g, "");
@@ -206,6 +208,11 @@ export async function aggregateTeamSeason(opts: {
   seasonLabel?: string;
   /** 라인업 소스 주입 — 미지정 시 백필 파일(25/26 결산). 월간 잡은 af 런타임 수집분을 넘긴다. */
   lineups?: BackfilledLineup[];
+  /** DB 매치가 없는 과거 시즌용 스코어 주입 (키 = lineups[].matchId, 홈/원정 원본 방향).
+   *  DB 행이 있으면 DB 가 우선. 주입 스코어 경기는 xG 없음으로 집계된다. */
+  scores?: Record<number, { home: number; away: number }>;
+  /** DB 로 리그 테이블을 못 만드는 과거 시즌용 최종 순위 (af standings 실측값). */
+  rankOverride?: number;
 }): Promise<ManagerSeasonAggregate> {
   const { league, teamId } = opts;
   const from = opts.from ?? new Date("2025-08-01");
@@ -235,11 +242,18 @@ export async function aggregateTeamSeason(opts: {
     const isHome = normTeam(l.home.team) === teamNorm;
     const side = isHome ? l.home : l.away;
     const oppSide = isHome ? l.away : l.home;
-    const db = dbById.get(l.matchId);
-    if (!db || db.homeScore == null || db.awayScore == null) continue;
-    const gf = isHome ? db.homeScore : db.awayScore;
-    const ga = isHome ? db.awayScore : db.homeScore;
-    const xg = parseXg(db.fixtureStats);
+    // 주입 스코어가 있으면 무조건 주입 우선 — 주입 모드의 matchId 는 af fixture id 라
+    // DB Match id 와 우연히 겹칠 수 있다 (2017 세리에A 실측: id 충돌로 엉뚱한 매치
+    // 점수가 조인돼 사리 나폴리가 19승 0무 19패로 집계). DB 조인은 백필 모드 전용.
+    const inj = opts.scores?.[l.matchId];
+    const db = inj ? undefined : dbById.get(l.matchId);
+    const hasDb = !!db && db.homeScore != null && db.awayScore != null;
+    if (!hasDb && !inj) continue;
+    const hs = inj ? inj.home : db!.homeScore!;
+    const as = inj ? inj.away : db!.awayScore!;
+    const gf = isHome ? hs : as;
+    const ga = isHome ? as : hs;
+    const xg = hasDb ? parseXg(db!.fixtureStats) : { home: null, away: null };
     enriched.push({
       row: {
         matchId: l.matchId,
@@ -268,7 +282,7 @@ export async function aggregateTeamSeason(opts: {
     else if (row.result === "D") { rec.d++; rec.points += 1; }
     else rec.l++;
   }
-  rec.rank = await computeRank(league, from, to, teamId);
+  rec.rank = opts.rankOverride ?? (await computeRank(league, from, to, teamId));
 
   // 3) 감독 재임 구간 (연속 그룹핑 — 중도 경질 감지)
   const coaches: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null; logo?: string | null }> = existsSync(dataPath("team-coaches.json"))
@@ -288,14 +302,39 @@ export async function aggregateTeamSeason(opts: {
     const t = toKoreanPlayerName(name);
     return /[가-힣]/.test(t) ? t : name;
   };
+  // 동일 인물 판정 — af 가 같은 감독을 "F. Lampard"/"Frank James Lampard Junior" 처럼 경기마다
+  // 다르게 표기해 스틴트가 갈라진다(2026-08-15 코번트리 실측: 램파드 1명이 3개 스틴트 → "감독 교체"
+  // 오탐 → 프롬프트가 교체 전후 비교를 요구하는 연쇄). 접미사(jr 등) 제거 후 토큰 포함관계로 병합.
+  const personTokens = (s: string) =>
+    s.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/)
+      .filter((t) => t.length > 1 && !["jr", "junior", "sr", "senior"].includes(t));
+  const samePerson = (a: string, b: string) => {
+    const ta = personTokens(a), tb = personTokens(b);
+    if (!ta.length || !tb.length) return a === b;
+    const [sub, sup] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+    if (sub.every((t) => sup.includes(t))) return true;
+    // 애칭+복성 조합 — "Xabi Alonso" vs "Xabier Alonso Olano"(레알 실측)는 포함관계가 안 된다.
+    // 이름(첫 토큰)이 3자 이상 접두로 같고, 성 후보(둘 다에서 첫 토큰이 아닌 공유 토큰)가 있으면 동일인.
+    // 성 후보를 "둘 다 비-첫 토큰"으로 제한해 "Frank Lampard"/"Frank Sinclair" 같은 이름만 겹침을 배제.
+    const firstA = ta[0], firstB = tb[0];
+    const prefixOk = firstA.slice(0, 3) === firstB.slice(0, 3);
+    const sharedSurname = ta.slice(1).some((t) => t.length >= 4 && tb.slice(1).includes(t));
+    return prefixOk && sharedSurname;
+  };
   const stints: CoachStint[] = [];
   for (const { row } of enriched) {
     const name = row.coach ?? "?";
     const last = stints[stints.length - 1];
-    if (!last || last.coach !== name) {
+    // 토큰 포함으로 못 잡는 별칭 변형("Hansi Flick"/"Hans-Dieter Flick", 바르사 실측)은
+    // 해석된 한글명이 같으면 동일 인물로 본다 — 같은 팀 연속 재임에서 동명이인 확률은 무시 가능.
+    if (!last || !(samePerson(last.coach, name) || coachKo(row.coach) === last.coachKo)) {
       stints.push({ coach: name, coachKo: coachKo(row.coach), from: row.date, to: row.date, played: 0, w: 0, d: 0, l: 0, ppg: 0 });
     }
     const s = stints[stints.length - 1];
+    // 첫 등장 표기가 한글 미해석("Xabier Alonso Olano")이어도 뒤에 해석되는 표기("Xabi Alonso"→사비
+    // 알론소)가 오면 표시명을 승격 — 스틴트 표에 원어가 남지 않게.
+    const ko = coachKo(row.coach);
+    if (!/[가-힣]/.test(s.coachKo) && /[가-힣]/.test(ko)) { s.coachKo = ko; s.coach = row.coach ?? s.coach; }
     s.to = row.date; s.played++;
     if (row.result === "W") s.w++; else if (row.result === "D") s.d++; else s.l++;
   }
@@ -358,8 +397,10 @@ export async function aggregateTeamSeason(opts: {
     const incl = squad.find((p) => { const pn = normName(p.name); return pn.includes(n) || n.includes(pn); });
     return incl?.id ?? null;
   };
+  // 정본 af→ts 매핑 우선 — 스쿼드 이름 매칭은 현재 스쿼드 기준이라 과거 시즌의
+  // 이적·은퇴 선수를 못 잡는다 (레버쿠젠 23-24 실측). 매핑 없을 때만 이름 매칭 폴백.
   const pids = new Map<number, string | null>();
-  for (const a of players.values()) pids.set(a.afId, pidOf(a.name));
+  for (const a of players.values()) pids.set(a.afId, afPlayerToTs(a.afId) ?? pidOf(a.name));
   const koRows = await prisma.theSportsPlayer.findMany({
     where: { id: { in: [...pids.values()].filter((v): v is string => !!v) } },
     select: { id: true, nameKo: true },

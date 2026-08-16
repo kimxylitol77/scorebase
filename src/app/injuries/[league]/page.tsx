@@ -85,14 +85,39 @@ const VALID = [
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
   // 국가대표 통합 — NATIONAL_TEAM_LEAGUES(월드컵·예선·네이션스리그·친선 등) 팀 부상자 집계
   "NATIONAL",
+  // 2026-08 추가 — ts lineup.injury 가 이미 들어오는데 페이지가 없어 못 보던 리그.
+  //  최근 60일 부상 기록 실측: 프랑스2부 121 · 독일2부 66 · 네덜란드 55 · 스코틀랜드 78.
+  //  챔피언십·포르투갈·터키는 시즌 초라 표본이 작지만 경기가 쌓이면 채워진다.
+  "CHAMPIONSHIP", "LIGUE_2", "BUNDESLIGA_2", "EREDIVISIE", "SPL", "PRIMEIRA_LIGA", "SUPER_LIG",
+  // 야구·농구·하키는 ts lineup.injury 가 전혀 안 와서 전용 소스가 있어야 한다. 전수 확인 결과
+  //  추가 가능한 건 WNBA 뿐 — ESPN 이 13팀·44명을 준다. 대만 CPBL·멕시코 LMB·호주 AIHL·
+  //  뉴질랜드 NZIHL·WKBL 은 ESPN 경로가 없고(400) 다른 소스도 없다.
+  "WNBA",
 ] as const;
 type Lg = (typeof VALID)[number];
 const SOCCER: Lg[] = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
   "NATIONAL",
+  "CHAMPIONSHIP", "LIGUE_2", "BUNDESLIGA_2", "EREDIVISIE", "SPL", "PRIMEIRA_LIGA", "SUPER_LIG",
 ];
-const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
+// 리그 탭 그룹 — 종목 먼저, 그 안에서 규모·관심도 순. 축구는 빅5 → 유럽 2·중견 → 아시아 → 국대.
+const SPORT_GROUPS: { label: string; leagues: Lg[] }[] = [
+  {
+    label: "축구",
+    leagues: [
+      "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
+      "CHAMPIONSHIP", "BUNDESLIGA_2", "LIGUE_2", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "SPL",
+      "MLS", "SAUDI_PL", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL",
+      "NATIONAL",
+    ],
+  },
+  { label: "야구", leagues: ["MLB", "KBO", "NPB"] },
+  { label: "농구", leagues: ["NBA", "WNBA"] },
+  { label: "하키", leagues: ["NHL"] },
+];
+
+const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL", "WNBA"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
 const CANONICAL = "https://www.scorebase.kr";
@@ -301,11 +326,82 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
   },
   SAUDI_PL: {
     krFull: "사우디 프로 리그",
-    krShort: "SPL",
+    // "SPL" 은 스코틀랜드 리그 코드와 겹친다 — 탭에 SPL 이 둘 보여 헷갈린다.
+    krShort: "사우디",
     enFull: "Saudi Pro League",
     starKeywords: [
       "사우디 프로 리그 부상자", "호날두 부상", "벤제마 부상", "네이마르 부상",
       "알 나스르 부상자", "알 힐랄 부상자", "알 이티하드 부상자",
+    ],
+  },
+  // 2026-08 추가분. 한국 선수 키워드는 짐작이 아니라 korea-abroad.json 실측 소속이다.
+  CHAMPIONSHIP: {
+    krFull: "잉글랜드 챔피언십",
+    krShort: "챔피언십",
+    enFull: "EFL Championship",
+    starKeywords: [
+      "챔피언십 부상자", "잉글랜드 2부 부상자",
+      "백승호 부상", "배준호 부상", "엄지성 부상", "전진우 부상",
+    ],
+  },
+  LIGUE_2: {
+    krFull: "리그 2",
+    krShort: "리그2",
+    enFull: "French Ligue 2",
+    starKeywords: ["리그2 부상자", "프랑스 2부 부상자"],
+  },
+  BUNDESLIGA_2: {
+    krFull: "분데스리가 2",
+    krShort: "분데스2",
+    enFull: "German 2. Bundesliga",
+    starKeywords: [
+      "분데스리가 2 부상자", "독일 2부 부상자",
+      "윤도영 부상", "권혁규 부상", "이호재 부상",
+    ],
+  },
+  EREDIVISIE: {
+    krFull: "에레디비시",
+    krShort: "에레디비시",
+    enFull: "Dutch Eredivisie",
+    starKeywords: [
+      "에레디비시 부상자", "네덜란드 리그 부상자",
+      "아약스 부상자", "PSV 부상자", "페예노르트 부상자",
+    ],
+  },
+  SPL: {
+    krFull: "스코티시 프리미어십",
+    krShort: "스코틀랜드",
+    enFull: "Scottish Premiership",
+    starKeywords: [
+      "스코틀랜드 리그 부상자", "셀틱 부상자", "레인저스 부상자", "양현준 부상",
+    ],
+  },
+  PRIMEIRA_LIGA: {
+    krFull: "프리메이라리가",
+    krShort: "포르투갈",
+    enFull: "Portuguese Primeira Liga",
+    starKeywords: [
+      "프리메이라리가 부상자", "포르투갈 리그 부상자",
+      "벤피카 부상자", "포르투 부상자", "스포르팅 부상자",
+      "황인범 부상", "이현주 부상",
+    ],
+  },
+  WNBA: {
+    krFull: "WNBA",
+    krShort: "WNBA",
+    enFull: "Women's National Basketball Association",
+    starKeywords: [
+      "WNBA 부상자", "여자 농구 부상자",
+      "라스베이거스 에이시스 부상자", "뉴욕 리버티 부상자",
+    ],
+  },
+  SUPER_LIG: {
+    krFull: "쉬페르리그",
+    krShort: "터키",
+    enFull: "Turkish Süper Lig",
+    starKeywords: [
+      "터키 리그 부상자", "갈라타사라이 부상자", "페네르바체 부상자",
+      "오현규 부상", "황의조 부상", "조진호 부상",
     ],
   },
 };
@@ -348,7 +444,49 @@ async function getInjuryTeams(upper: Lg) {
       return true;
     });
   }
-  return prisma.team.findMany({ where: { league: upper }, orderBy: { name: "asc" } });
+  // Team.league 라벨은 승격·강등을 늦게 따라온다 — 그대로 쓰면 강등팀 부상자가 이 리그
+  //  명단에 남는다 (2026-08 실측: EPL 23팀 중 울버햄프턴·번리·웨스트햄이 다음 시즌
+  //  챔피언십, 분데스 23팀 중 8팀 잔존, J2 40팀 중 20팀은 J3). 라벨 대신 이번 시즌
+  //  일정에 실제로 편성된 팀을 쓴다 — 승격팀도 라벨이 아직 안 붙었어도 자동으로 잡힌다.
+  const upcoming = await prisma.match.findMany({
+    where: { league: upper, startTime: { gte: new Date() } },
+    select: { homeTeamId: true, awayTeamId: true },
+    take: 600,
+  });
+  const scheduled = new Set<number>();
+  for (const m of upcoming) {
+    if (m.homeTeamId != null) scheduled.add(m.homeTeamId);
+    if (m.awayTeamId != null) scheduled.add(m.awayTeamId);
+  }
+  // 일정이 아직 안 들어온 대회(컵·비시즌)는 판단 근거가 없으니 라벨로 폴백한다.
+  if (scheduled.size >= 8) {
+    return prisma.team.findMany({ where: { id: { in: [...scheduled] } }, orderBy: { name: "asc" } });
+  }
+
+  // 라벨 폴백 경로 — 올스타·프리시즌 상대·플레이스홀더가 섞여 있다.
+  //  2026-08 실측: MLB 32팀에 "American/National All-Stars", NBA 39팀에 Team Stars·
+  //  Team Stripes·World(라이징스타)·TBD 2개·광저우·하포엘·멜버른 2개.
+  //  이름 목록으로 거르면 새 이벤트가 생길 때마다 놓치므로 정규 경기 수로 판정한다 —
+  //  정규팀은 그 리그에서 수십~수백 경기, 이벤트 팀은 1~2경기다.
+  const rows = await prisma.team.findMany({ where: { league: upper }, orderBy: { name: "asc" } });
+  if (rows.length < 8) return rows;
+  const counts = await prisma.match.groupBy({
+    by: ["homeTeamId"],
+    where: { league: upper, homeTeamId: { in: rows.map((t) => t.id) } },
+    _count: true,
+  });
+  const away = await prisma.match.groupBy({
+    by: ["awayTeamId"],
+    where: { league: upper, awayTeamId: { in: rows.map((t) => t.id) } },
+    _count: true,
+  });
+  const played = new Map<number, number>();
+  for (const c of counts) played.set(c.homeTeamId, (played.get(c.homeTeamId) ?? 0) + c._count);
+  for (const c of away) played.set(c.awayTeamId, (played.get(c.awayTeamId) ?? 0) + c._count);
+  const sorted = [...rows.map((t) => played.get(t.id) ?? 0)].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+  if (median < 10) return rows; // 표본이 얕은 리그는 판정하지 않는다
+  return rows.filter((t) => (played.get(t.id) ?? 0) >= median * 0.1);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -552,50 +690,73 @@ export default async function InjuriesByLeague({
   let allBdl: Awaited<ReturnType<typeof fetchBalldontlieInjuries>> = [];
   let allKbo: KboInjury[] = [];
   let allNpb: NpbInjuryEntry[] = [];
+  // 조회 실패를 삼키면 빈 명단이 "부상자 없음" 으로 그려진다. 사용자에겐 사이트가 고장난
+  //  것으로 보이는데 새로고침하면 정상이라 로그에도 안 남는다 (2026-08 /injuries/EPL 실측:
+  //  16팀이 1팀으로 보였다가 재요청에 복구). 이 페이지는 force-dynamic 이라 렌더마다 DB 를
+  //  치므로 커넥션 지연 한 번이 그대로 화면이 된다 — 한 번 더 시도해 흡수하고, 그래도
+  //  실패하면 빈 명단을 사실인 양 그리지 않고 화면에 밝힌다.
+  const loadFailures: string[] = [];
+  const loadOrReport = async <T,>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await fn();
+      } catch (e) {
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 400));
+          continue;
+        }
+        console.warn(`[injuries/${upper}] ${label} 실패:`, (e as Error).message);
+        loadFailures.push(label);
+      }
+    }
+    return fallback;
+  };
+
   // 축구 부상자: TheSports lineup.injury 1순위 (cache 추적 중인 팀은 부상자 0명도 신뢰).
   let tsInjByTeam = new Map<number, TSInjuryRaw[]>();
   if (isSoccer) {
-    try { tsInjByTeam = await getTheSportsInjuriesByTeam(teams.map((t) => t.id)); } catch {}
+    tsInjByTeam = await loadOrReport(
+      "TheSports 부상자",
+      () => getTheSportsInjuriesByTeam(teams.map((t) => t.id)),
+      new Map<number, TSInjuryRaw[]>(),
+    );
   }
   // cache 없는 팀(오프시즌 등)이 있을 때만 api-football 보강 — 전부 cover 면 호출 skip(rate-limit 절약).
   // NATIONAL 처럼 api-football 리그 id 가 없는 경우는 애초에 보강 대상 아님(라벨도 "TheSports" 로).
   const needAf = isSoccer && !!API_FOOTBALL_LEAGUE_ID[upper] && teams.some((t) => !tsInjByTeam.has(t.id));
   const hasKey = isSoccer ? tsInjByTeam.size > 0 || !!process.env.API_FOOTBALL_KEY : true;
   if (isSoccer && needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
-    try {
-      const season = getApiFootballSeason(new Date(), upper);
-      allInjuries = await fetchSeasonInjuriesCached(upper, season);
-      // 시즌 부상 목록에서 현재 스쿼드에 없는(이적/방출) 선수 제거 — 비시즌·시즌중 이적 잔존 방지.
-      allInjuries = await filterInjuriesToCurrentSquad(allInjuries);
-    } catch {}
-  } else if (isEspn && process.env.BALLDONTLIE_KEY) {
-    try {
-      allBdl = await fetchBalldontlieInjuries(upper as "NBA" | "MLB" | "NHL");
-    } catch {}
-    // BALLDONTLIE 실패하면 ESPN fallback
+    allInjuries = await loadOrReport(
+      "api-football 부상자",
+      async () => {
+        const season = getApiFootballSeason(new Date(), upper);
+        const rows = await fetchSeasonInjuriesCached(upper, season);
+        // 시즌 부상 목록에서 현재 스쿼드에 없는(이적/방출) 선수 제거 — 비시즌·시즌중 이적 잔존 방지.
+        return filterInjuriesToCurrentSquad(rows);
+      },
+      [],
+    );
+  } else if (isEspn && upper !== "WNBA" && process.env.BALLDONTLIE_KEY) {
+    allBdl = await loadOrReport("BALLDONTLIE 부상자", () => fetchBalldontlieInjuries(upper as "NBA" | "MLB" | "NHL"), []);
+    // BALLDONTLIE 실패하면 ESPN fallback — 폴백이 성공하면 앞선 실패는 화면에 알리지 않는다.
     if (allBdl.length === 0) {
-      try {
-        allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
-      } catch {}
+      allEspn = await loadOrReport("ESPN 부상자", () => fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL"), []);
+      if (allEspn.length > 0) loadFailures.length = 0;
     }
   } else if (isEspn) {
-    try {
-      allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
-    } catch {}
+    allEspn = await loadOrReport("ESPN 부상자", () => fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL"), []);
   } else if (upper === "KBO") {
-    try {
-      allKbo = await fetchKboInjuries();
-    } catch (e) {
-      console.warn("[injuries/KBO] fetch 실패:", (e as Error).message);
-    }
+    allKbo = await loadOrReport("KBO 부상자", () => fetchKboInjuries(), []);
   } else if (upper === "NPB") {
-    try {
-      const active = await fetchActiveNpbInjuriesCached(30);
-      // 활성 부상자 한자 → 한글 음역 보강 (pid 별 unstable_cache 1d)
-      allNpb = await enrichNpbInjuriesWithKoreanCached(active);
-    } catch (e) {
-      console.warn("[injuries/NPB] fetch 실패:", (e as Error).message);
-    }
+    allNpb = await loadOrReport(
+      "NPB 부상자",
+      async () => {
+        const active = await fetchActiveNpbInjuriesCached(30);
+        // 활성 부상자 한자 → 한글 음역 보강 (pid 별 unstable_cache 1d)
+        return enrichNpbInjuriesWithKoreanCached(active);
+      },
+      [],
+    );
   }
 
   const seasonLabel =
@@ -604,21 +765,6 @@ export default async function InjuriesByLeague({
       : isAsianBb || upper === "MLB"
         ? `${new Date().getUTCFullYear()} 시즌`
         : "2025-26 시즌";
-  const sourceLabel =
-    upper === "KBO"
-      ? "KBO 공식 (koreabaseball.com)"
-      : upper === "NPB"
-        ? "NPB 공식 (npb.jp)"
-        : isSoccer
-          ? tsInjByTeam.size > 0
-            ? needAf
-              ? "TheSports + api-football"
-              : "TheSports"
-            : "api-football Pro"
-          : isEspn
-            ? "ESPN"
-            : "api-football Pro";
-
   // 검색·필터·정렬 파라미터
   const query = (sp.q ?? "").trim().toLowerCase();
   const severityFilter = (sp.severity ?? "ALL") as
@@ -638,20 +784,32 @@ export default async function InjuriesByLeague({
     overrideKo?: string;
     overrideSev?: Severity;
   };
+  // 축구 부상자 소스 규칙 (2026-08 확정 — 그때그때 다르게 판단하지 말 것).
+  //  ① TheSports 가 정본. 경기 출전명단에 딸린 부상자 목록이라 사유·시작일·결장 경기수가
+  //     확정값이다. api-football 은 경기별 결장 플래그를 묶은 추정이라 정확도가 낮다.
+  //  ② 판정은 팀 단위. 그 팀의 최근 경기 명단을 읽었으면 ts 결과를 쓴다 — 부상자 0명도
+  //     "이 팀은 결장자가 없다" 는 확정 정보다.
+  //  ③ 명단을 못 읽은 팀만 api-football 로 보강한다.
+  //  ④ 둘 다 없으면 0명이 아니라 "확인 불가" 다. af 는 리그·시즌별로 coverage.injuries 가
+  //     꺼져 있으면 통째로 0건을 준다(2026-08 실측: 빅5·K리그·J리그 2026 = off, MLS = on).
+  //     이걸 "부상자 없음" 으로 그리면 사용자는 사이트가 고장난 줄 안다.
+  const teamSource = new Map<number, "ts" | "af" | "unknown">();
   const rawByTeam: Array<{ team: typeof teams[number]; raw: RawInjury[] }> = teams.map((t) => {
     let raw: RawInjury[] = [];
     if (isSoccer) {
       const tsRaw = tsInjByTeam.get(t.id);
       if (tsRaw) {
         raw = tsRaw; // TheSports lineup.injury (한글 사유 override 포함)
+        teamSource.set(t.id, "ts");
       } else {
-        // cache 없는 팀 → api-football 보강
+        // 명단을 못 읽은 팀 → api-football 보강. af 응답 자체가 비었으면 보강이 아니라 결손이다.
         raw = getTeamInjuries(allInjuries, t.name, undefined, 30).map((i) => ({
           playerId: i.playerId,
           playerName: i.playerName,
           reason: i.reason,
           fixtureDate: i.fixtureDate,
         }));
+        teamSource.set(t.id, allInjuries.length > 0 ? "af" : "unknown");
       }
     } else if (isEspn && allBdl.length > 0) {
       raw = getTeamEspnInjuries(allBdl, t.name, undefined, 30).map((i) => ({
@@ -717,6 +875,28 @@ export default async function InjuriesByLeague({
   }
 
   // 모든 선수 ID 모아서 Supabase batch 조회 (한 번에)
+  // 출처 라벨 — 실제로 무엇이 화면을 채웠는지로 적는다. 옛 라벨은 "af 를 호출했나" 로
+  //  판단해 af 응답이 0건이어도 "TheSports + api-football" 이라고 적었다.
+  const tsTeams = [...teamSource.values()].filter((s) => s === "ts").length;
+  const afTeams = [...teamSource.values()].filter((s) => s === "af").length;
+  const unknownTeams = teams.filter((t) => teamSource.get(t.id) === "unknown");
+  const sourceLabel =
+    upper === "KBO"
+      ? "KBO 공식 (koreabaseball.com)"
+      : upper === "NPB"
+        ? "NPB 공식 (npb.jp)"
+        : isSoccer
+          ? tsTeams > 0 && afTeams > 0
+            ? "TheSports + api-football"
+            : tsTeams > 0
+              ? "TheSports"
+              : afTeams > 0
+                ? "api-football Pro"
+                : "출처 없음"
+          : isEspn
+            ? "ESPN"
+            : "api-football Pro";
+
   const allPlayers = rawByTeam.flatMap((x) =>
     x.raw.map((i) => ({
       apiFootballId: i.playerId,
@@ -778,7 +958,11 @@ export default async function InjuriesByLeague({
   const displayTeams = upper === "NATIONAL" ? byTeam.filter((x) => x.all.length > 0) : byTeam;
 
   // 풀스쿼드 vs 부상자 있는 팀
-  const fullSquadTeams = displayTeams.filter((x) => x.all.length === 0);
+  // "풀스쿼드" 는 확인된 사실일 때만. 어느 소스도 그 팀 명단을 못 준 경우(unknown)는
+  //  부상자가 없는 게 아니라 알 수 없는 것이라 따로 뺀다.
+  const unknownTeamIds = new Set(unknownTeams.map((t) => t.id));
+  const fullSquadTeams = displayTeams.filter((x) => x.all.length === 0 && !unknownTeamIds.has(x.team.id));
+  const unconfirmedTeams = displayTeams.filter((x) => x.all.length === 0 && unknownTeamIds.has(x.team.id));
   const injuredTeams = displayTeams.filter((x) => x.all.length > 0);
 
   const totalInjuries = displayTeams.reduce((s, x) => s + x.all.length, 0);
@@ -928,22 +1112,38 @@ export default async function InjuriesByLeague({
         </div>
       </section>
 
-      {/* 리그 탭 */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-wrap items-center gap-2">
-        {VALID.map((l) => {
-          const active = l === upper;
+      {/* 리그 탭 — 종목으로 먼저 묶는다. 리그가 25개라 한 줄로 늘어놓으면 찾을 수가 없다. */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-2.5">
+        {SPORT_GROUPS.map((g) => {
+          const inGroup = g.leagues.filter((l) => VALID.includes(l));
+          if (!inGroup.length) return null;
+          const groupActive = inGroup.includes(upper);
           return (
-            <Link
-              key={l}
-              href={`/injuries/${l}${tabSuffix}`}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                active
-                  ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
-                  : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
-              }`}
-            >
-              {LEAGUE_META[l].krFull}
-            </Link>
+            <div key={g.label} className="flex flex-wrap items-center gap-2">
+              <span
+                className={`w-12 shrink-0 text-[11px] font-bold ${
+                  groupActive ? "text-neutral-900 dark:text-white" : "text-neutral-400 dark:text-neutral-500"
+                }`}
+              >
+                {g.label}
+              </span>
+              {inGroup.map((l) => {
+                const active = l === upper;
+                return (
+                  <Link
+                    key={l}
+                    href={`/injuries/${l}${tabSuffix}`}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      active
+                        ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
+                        : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
+                    }`}
+                  >
+                    {LEAGUE_META[l].krShort}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </div>
@@ -952,6 +1152,16 @@ export default async function InjuriesByLeague({
         {!hasKey && (
           <div className="rounded-xl border border-amber-300/40 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm">
             API_FOOTBALL_KEY 가 설정되지 않아 부상자 데이터를 불러오지 못했습니다.
+          </div>
+        )}
+
+        {/* 조회 실패를 침묵하지 않는다 — 빈 명단을 "부상자 없음" 으로 보여주면 오해가 된다. */}
+        {loadFailures.length > 0 && (
+          <div className="rounded-xl border border-red-400/40 bg-red-50 p-4 text-sm dark:bg-red-900/20">
+            <p className="font-semibold text-red-700 dark:text-red-300">부상자 데이터를 불러오지 못했습니다</p>
+            <p className="mt-1 text-neutral-600 dark:text-neutral-300">
+              {loadFailures.join(" · ")} 조회에 실패해 아래 명단이 실제와 다를 수 있습니다. 잠시 후 새로고침해 주세요.
+            </p>
           </div>
         )}
 
@@ -1046,8 +1256,9 @@ export default async function InjuriesByLeague({
           </section>
         )}
 
-        {/* 풀스쿼드 별도 섹션 — 상단에서 강조 */}
-        {fullSquadTeams.length > 0 && severityFilter === "ALL" && !query && (
+        {/* 풀스쿼드 별도 섹션 — 상단에서 강조.
+            조회가 실패했으면 "부상자 없음" 은 사실이 아니라 조회 결과가 빈 것뿐이라 숨긴다. */}
+        {fullSquadTeams.length > 0 && loadFailures.length === 0 && severityFilter === "ALL" && !query && (
           <section>
             <h2 className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4" aria-hidden /> 풀스쿼드 유지 {fullSquadTeams.length}팀
@@ -1080,6 +1291,29 @@ export default async function InjuriesByLeague({
                   <span className="font-semibold text-emerald-700 dark:text-emerald-300">
                     {toKoreanTeamName(x.team.name, upper)}
                   </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 확인 불가 — 어느 소스도 이 팀들의 부상 명단을 주지 않았다. 0명이 아니라 모르는 것이다. */}
+        {unconfirmedTeams.length > 0 && loadFailures.length === 0 && severityFilter === "ALL" && !query && (
+          <section>
+            <h2 className="mb-2 text-sm font-bold uppercase tracking-wider text-neutral-500">
+              부상 정보 미제공 {unconfirmedTeams.length}팀
+            </h2>
+            <p className="mb-2 text-xs text-neutral-500">
+              데이터 제공처가 이 팀들의 결장자 명단을 주지 않습니다. 부상자가 없다는 뜻이 아닙니다.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {unconfirmedTeams.map((x) => (
+                <Link
+                  key={x.team.id}
+                  href={`/teams/${x.team.id}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-neutral-400/30 bg-neutral-100 px-3 py-1.5 text-sm text-neutral-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-neutral-400/60 dark:bg-white/[0.06] dark:text-neutral-300"
+                >
+                  {toKoreanTeamName(x.team.name, upper)}
                 </Link>
               ))}
             </div>
@@ -1133,7 +1367,9 @@ export default async function InjuriesByLeague({
             ? upper === "KBO"
               ? " (시즌 부상자 명단 + 치료·재활명단). 사유는 KBO 가 공개하지 않으며 기간으로 심각도 분류."
               : " (지난 30일간 1군 엔트리에서 빠진 누적 명단, 재등록된 선수는 자동 제외). 일본 NPB 는 별도 부상자 명단 제도가 없어 1군 엔트리 제외 = 결장으로 간주."
-            : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
+            : isSoccer
+              ? " — TheSports 는 각 팀 최근 경기 출전명단의 결장자, api-football 은 시즌 누적 결장 기록입니다. 사유 한글 번역은 의학용어 매핑 기반."
+              : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
           {" "}본 명단은 참고용으로 실제 매치 라인업과 다를 수 있습니다.
         </p>
 

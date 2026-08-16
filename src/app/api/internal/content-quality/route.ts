@@ -15,12 +15,22 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // 가나 + CJK 한자. 한국어 화면에 이게 보이면 음역이 안 된 원문이다.
 const JP_TEXT = /[぀-ヿ㐀-鿿]/;
+
+// DB 는 npb.jp 원문을 저장하고 화면이 렌더 시 음역한다(/scores·/live/npb 공통).
+// 원문 자체를 판정하면 정상 저장까지 매일 울린다 — 렌더와 같은 변환을 통과시킨 뒤
+// 그래도 일본어가 남는 것(= 실제 화면에 새는 것)만 알린다 (2026-08-16 오탐 정합).
+function leaksOnScreen(league: string, name: string): boolean {
+  if (!JP_TEXT.test(name)) return false;
+  if (league !== "NPB") return true; // KBO·MLB 에 일본어면 그 자체가 이상
+  return JP_TEXT.test(npbPlayerToKorean(name));
+}
 
 // 선발 지표는 경기 임박에만 요구한다 — 발표 전 빈 값은 정상이고,
 // 그걸 알리면 매일 아침 오탐이 된다(KBO·NPB 는 당일 확정).
@@ -68,7 +78,7 @@ export async function GET(req: NextRequest) {
         continue;
       }
       if (!o?.name) continue;
-      if (JP_TEXT.test(o.name)) {
+      if (leaksOnScreen(m.league, o.name)) {
         const arr = leakByLeague.get(m.league) ?? [];
         if (arr.length < 5) arr.push(o.name);
         leakByLeague.set(m.league, arr);
@@ -88,6 +98,9 @@ export async function GET(req: NextRequest) {
     where: { league: { in: ["NPB", "KBO", "MLB"] } },
     select: { league: true, playerName: true },
   });
+  // 시즌스탯은 잡이 저장 시점에 음역해 넣고(fetch-baseball-season-stats) 화면은 저장값을
+  // 그대로 그린다 — 여기 일본어가 남았다면 그게 곧 화면 노출이라 원문 판정이 맞다.
+  // (starter 와 달리 leaksOnScreen 재변환을 쓰면 사전 갱신 후 실탐을 놓친다.)
   for (const r of statRows) {
     if (!r.playerName || !JP_TEXT.test(r.playerName)) continue;
     const key = `${r.league}:stats`;

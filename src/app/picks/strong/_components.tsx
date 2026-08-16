@@ -292,6 +292,14 @@ export function PickCard({
                   {p.detail ? (
                     <span className="ml-1.5 text-[11px] text-neutral-500">{p.detail}</span>
                   ) : null}
+                  {p.aiUnanimous >= 3 ? (
+                    <span
+                      className="ml-1.5 whitespace-nowrap rounded-full bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-bold text-violet-600 ring-1 ring-violet-500/20 dark:text-violet-300"
+                      title={`예측 AI ${p.aiUnanimous}개가 전원 같은 쪽을 골랐습니다`}
+                    >
+                      AI {p.aiUnanimous}개 전원 동의
+                    </span>
+                  ) : null}
                 </span>
                 <span className="flex shrink-0 items-center gap-1.5">
                   <ResultMark correct={p.correct} />

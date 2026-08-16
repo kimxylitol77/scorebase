@@ -20,6 +20,7 @@ import type { PredictMatch } from "./types";
 import { calcStandings, type StandingRow } from "./standings";
 import { calcEloTable, getElo } from "./elo";
 import { calcWinProbability } from "./win-probability";
+import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
 export interface MonteCarloOptions {
   /** 시뮬레이션 반복 횟수 (기본 5,000) */
@@ -65,12 +66,18 @@ interface FixedRow {
 }
 
 export function runMonteCarlo(
-  matches: PredictMatch[],
+  inputMatches: PredictMatch[],
   league: string,
   options: MonteCarloOptions = {},
 ): MonteCarloRow[] {
   const iterations = options.iterations ?? 5000;
   const relegationCount = options.relegationCount ?? 3;
+
+  // 야구 올스타전(KBO 드림·나눔 / MLB All-Stars / NPB 센트럴·퍼시픽)은 정규 팀이 아니라
+  // 여기 들어오면 KBO 가 10팀이 아닌 12팀 표로 잡혀 잔여 경기 수·expectedPosition·강등권이
+  // 어긋난다. 호출부(예측 페이지·cron·시즌 인사이트·/en)마다 필터가 갈렸던 이력이 있어
+  // 시뮬 진입점에서 한 번만 거른다 — 야구 외 리그에는 no-op.
+  const matches = stripBaseballAllStarMatches(inputMatches);
 
   // 1) 현재 시즌 standings (FINISHED 매치로 누적)
   const fixed = calcStandings(matches);
@@ -87,7 +94,9 @@ export function runMonteCarlo(
   }
 
   // 2) SCHEDULED 매치 + Elo 기반 winProb 미리 계산
-  const eloTable = calcEloTable(options.eloSeedMatches ?? matches);
+  const eloTable = calcEloTable(
+    options.eloSeedMatches ? stripBaseballAllStarMatches(options.eloSeedMatches) : matches,
+  );
   const lookupElo = (teamId: number): number =>
     options.promotedElo != null && !eloTable.ratings.has(teamId)
       ? options.promotedElo

@@ -231,7 +231,7 @@
     "tsVenueId": "gy0or5jhlv1qwzv"
   },
   {
-    "ourId": 93,
+    "ourId": 610703,
     "ourName": "1. FC Heidenheim 1846",
     "ourLeague": "BUNDESLIGA",
     "ourExternalId": "6418",
@@ -1185,7 +1185,7 @@
     "tsVenueId": "gx7lm7phoxkm2wd"
   },
   {
-    "ourId": 1541,
+    "ourId": 610697,
     "ourName": "Wolverhampton",
     "ourLeague": "EPL",
     "ourExternalId": "76",
@@ -3652,7 +3652,7 @@
     "tsVenueId": "9dn1m1ghev5moep"
   },
   {
-    "ourId": 119070,
+    "ourId": 600141,
     "ourName": "FC Volendam",
     "ourLeague": "EREDIVISIE",
     "ourExternalId": "416",
@@ -3674,7 +3674,7 @@
     "tsVenueId": "56ypq3nh0x1md7o"
   },
   {
-    "ourId": 118642,
+    "ourId": 610604,
     "ourName": "Hull City",
     "ourLeague": "CHAMPIONSHIP",
     "ourExternalId": "64",
@@ -10701,13 +10701,13 @@
     "tsVenueId": "9vjxm8ghdlpr6od"
   },
   {
-    "ourId": 599467,
-    "ourName": "Gimnasia M.",
+    "ourId": 599478,
+    "ourName": "Gimnasia L.P.",
     "ourLeague": "ARGENTINA_PL",
-    "ourExternalId": "1066",
+    "ourExternalId": "434",
     "tsId": "yl5ergphjd4r8k0",
     "tsName": "Gimnasia La Plata",
-    "matchType": "fuzzy",
+    "matchType": "manual",
     "tsVenueId": "z318q66hk45qo9j"
   },
   {
@@ -10811,13 +10811,13 @@
     "tsVenueId": "vl7oqdeh6eor510"
   },
   {
-    "ourId": 599478,
-    "ourName": "Gimnasia L.P.",
+    "ourId": 599467,
+    "ourName": "Gimnasia M.",
     "ourLeague": "ARGENTINA_PL",
-    "ourExternalId": "434",
+    "ourExternalId": "1066",
     "tsId": "jw2r09hlkldrz84",
     "tsName": "Gimnasia y Esgrima de Mendoza",
-    "matchType": "fuzzy",
+    "matchType": "manual",
     "tsVenueId": "gy0or5jhpjjqwzv"
   },
   {
@@ -17917,13 +17917,13 @@
     "matchType": "audit-auto"
   },
   {
-    "ourId": 610590,
-    "ourName": "Queens Park Rangers",
+    "ourId": 598204,
+    "ourName": "QPR",
     "ourLeague": "CHAMPIONSHIP",
-    "ourExternalId": "yl5ergphj16r8k0",
+    "ourExternalId": "72",
     "tsId": "yl5ergphj16r8k0",
     "tsName": "Queens Park Rangers",
-    "matchType": "audit-auto"
+    "matchType": "manual"
   },
   {
     "ourId": 598196,
@@ -19492,13 +19492,13 @@
     "matchType": "audit-auto"
   },
   {
-    "ourId": 610385,
-    "ourName": "FK IMT Belgrad",
+    "ourId": 286071,
+    "ourName": "IMT Novi Beograd",
     "ourLeague": "SERBIA_SL",
-    "ourExternalId": "vjxm8gh8jz0r6od",
+    "ourExternalId": "12316",
     "tsId": "vjxm8gh8jz0r6od",
     "tsName": "FK IMT Belgrad",
-    "matchType": "audit-auto"
+    "matchType": "manual"
   },
   {
     "ourId": 286053,
@@ -25026,5 +25026,35 @@
     "tsName": "Kruger United",
     "tsKo": "크루거 유나이티드",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 118742,
+    "ourName": "FC Schalke 04",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "174",
+    "tsId": "gpxwrxlhwkvryk0",
+    "tsName": "Schalke 04",
+    "tsKo": "샬케 04",
+    "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 118756,
+    "ourName": "SV Elversberg",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "1660",
+    "tsId": "z8yomo4hop0q0j6",
+    "tsName": "SV Elversberg",
+    "tsKo": "SV 엘버스베르크",
+    "matchType": "manual-promoted-2026-27"
+  },
+  {
+    "ourId": 118749,
+    "ourName": "SC Paderborn 07",
+    "ourLeague": "BUNDESLIGA",
+    "ourExternalId": "185",
+    "tsId": "kn54qllh6lyqvy9",
+    "tsName": "SC Paderborn 07",
+    "tsKo": "SC 파더본 07",
+    "matchType": "manual-promoted-2026-27"
   }
 ]

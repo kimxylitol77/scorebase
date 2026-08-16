@@ -31,6 +31,13 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
+import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
+import CollapseSection from "@/components/CollapseSection";
+import {
+  loadPlayoffBracket,
+  isPlayoffSeasonDone,
+  playoffSeasonLabel,
+} from "@/lib/predict/playoff-bracket-loader";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
@@ -62,8 +69,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: { canonical: "https://www.scorebase.kr/standings/NHL", ...enAlt(upper) },
     };
   }
-  // KBO — 빙 검색어 정밀 매칭("프로야구순위" 1,833·8위, "kbo 리그 팀 순위" 587·4위인데 CTR 0%).
-  // 날짜·1위 팀을 title/description 에 동적 삽입해 SERP 클릭 유인 — ISR 600s 라 매일 자동 갱신.
+  // KBO — 빙 최대 노출 페이지인데 CTR 0.33% (2026-08-14 실측: 노출 16,787·클릭 55).
+  // 원인은 순위가 아니라 빙 Copilot 이 우리 순위표를 그대로 요약해 답하는 것(zero-click) —
+  // "순위표"만 약속하면 클릭할 이유가 없다. 그래서 요약이 못 주는 가을야구 확률을 앞세운다.
+  // 특히 확률이 갈린 팀(5~95%)이 검색자의 실제 관심사라 그 경쟁 구간을 description 머리에 둔다.
   if (upper === "KBO") {
     let title = "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차";
     let description =
@@ -72,10 +81,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const rows = await fetchBaseballTable("KBO");
       if (rows.length >= 3) {
         const top3 = rows.slice(0, 3);
-        const teams = await prisma.team.findMany({
-          where: { id: { in: top3.map((r) => r.ourTeamId) } },
-          select: { id: true, name: true, nameKo: true },
-        });
+        // 경쟁 구간 문구에 하위권 팀 이름도 필요해 전체 조회 (10팀이라 비용 무시 가능)
+        const [teams, poOdds] = await Promise.all([
+          prisma.team.findMany({
+            where: { id: { in: rows.map((r) => r.ourTeamId) } },
+            select: { id: true, name: true, nameKo: true },
+          }),
+          getKboPostseasonOdds(),
+        ]);
         const nameOf = (id: number) => {
           const t = teams.find((x) => x.id === id);
           return t ? t.nameKo || toKoreanTeamName(t.name, "KBO") || t.name : "";
@@ -88,11 +101,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           const pct1 = (t1.wins / Math.max(t1.wins + t1.losses, 1)).toFixed(3);
           // 본문 gamesBehind 와 동일 공식 (leader=t1 기준)
           const gb2 = ((t1.wins - t2.wins + (t2.losses - t1.losses)) / 2).toFixed(1).replace(/\.0$/, "");
-          title = `프로야구 순위 (${dateLabel}) — 1위 ${n1} · KBO 리그 팀 순위표`;
+          // 확률이 갈린 팀만 = 아직 결판 안 난 가을야구 티켓 싸움. 상위권이 다 굳은 시즌 말에는
+          // 비어서 자동으로 기존(순위 위주) 문구로 돌아간다.
+          const contenders = rows
+            .map((r) => ({ name: nameOf(r.ourTeamId), p: poOdds?.get(r.ourTeamId) }))
+            .filter((x): x is { name: string; p: number } => !!x.name && x.p != null && x.p >= 0.05 && x.p <= 0.95)
+            .sort((a, b) => b.p - a.p)
+            .slice(0, 3);
+          // "티켓 경쟁" 같은 해석은 붙이지 않는다 — 94% 팀과 13% 팀을 한 묶음으로 부르면 사실이 뒤틀린다.
+          const race =
+            contenders.length >= 2
+              ? `가을야구 진출 확률 ${contenders.map((c) => `${c.name} ${(c.p * 100).toFixed(1)}%`).join(" · ")} — ` +
+                `잔여 경기 5,000회 시뮬레이션. `
+              : "";
+          title = race
+            ? `프로야구 순위 (${dateLabel}) 1위 ${n1} — KBO 팀 순위표·가을야구 확률`
+            : `프로야구 순위 (${dateLabel}) — 1위 ${n1} · KBO 리그 팀 순위표`;
           description =
-            `오늘의 KBO 리그 팀 순위 (${dateLabel}): 1위 ${n1} 승률 ${pct1} · ` +
+            race +
+            `${dateLabel} KBO 팀 순위: 1위 ${n1} 승률 ${pct1} · ` +
             `2위 ${nameOf(t2.ourTeamId)} ${gb2}게임차 · 3위 ${nameOf(t3.ourTeamId)}. ` +
-            `10개 구단 승·패·무·승률·게임차 실시간 자동 갱신.`;
+            `10개 구단 승·패·무·승률·게임차 자동 갱신.`;
         }
       }
     } catch {
@@ -245,23 +274,39 @@ export default async function StandingsPage({ params }: Props) {
     tsStandings.tables.length > 0 &&
     tsStandings.tables[0].rows.length > 0 &&
     tsStandings.tables[0].rows.every((r) => r.total === 0);
+  // ts 표의 팀 매핑 완결도 — 미매핑 행은 렌더에서 버려지므로, 갈라진 표로 갈아타면
+  // 지난 시즌 전체 표보다 못하다 (AFC_CL 16행 중 7행만 매핑 실측). 0전적 표 채택 조건에 쓴다.
+  const tsMappedRatio =
+    tsStandings && tsStandings.tables.length > 0 && tsStandings.tables[0].rows.length > 0
+      ? tsStandings.tables[0].rows.filter((r) => r.ourTeamId != null).length /
+        tsStandings.tables[0].rows.length
+      : 0;
 
   const seasonStart = currentSeasonStart(upper);
-  let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
-  // 오프시즌(새 시즌 완료 매치 0)일 때만 직전 시즌 창으로 폴백. 임계 10 이던 것을 0 으로 —
-  // 개막 후 몇 라운드 동안 지난 시즌 최근폼·순위가 새 시즌인 척 표시되던 원인(2026-08 분데스2 실측).
-  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
-    const prev = previousSeasonStart(seasonStart);
-    matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
-  }
-  // 전환기 폴백은 시즌 경계가 정의된 리그만 위 분기로 커버된다. 마지막 완료 경기 기준 창으로
+  // 전환기 폴백은 시즌 경계가 정의된 리그만 아래 분기로 커버된다. 마지막 완료 경기 기준 창으로
   // 잡으면 경계 미정의 리그(챔피언십·에레디비시 등)에서도 두 시즌 합산 없이 한 시즌만 집힌다.
   const lastFinishedAt = allMatches
     .filter((m) => m.status === "FINISHED")
     .reduce<Date | null>((mx, m) => (!mx || m.startTime > mx ? m.startTime : mx), null);
-  if (tsAllZero && lastFinishedAt) {
-    const w = lastSeasonWindow(lastFinishedAt);
-    matches = allMatches.filter((m) => m.startTime >= w.from && m.startTime < w.to);
+  // ts 표가 0전적이면 ts 가 새 시즌으로 롤오버했다는 뜻 — 개막 전이어도 그게 현재 시즌 표다.
+  // ESPN 등 주요 사이트도 개막 전 0-0 표를 노출한다(2026-08-13 챔피언십 2026-27 표 실측).
+  // 지난 시즌 표를 남겨두면 승격·강등팀이 순위표에 아예 없다(울버햄튼·소시에다드 B 실측).
+  // 단 매핑률 미달이면 이빨 빠진 표가 되므로 지난 시즌을 유지한다(AFC_CL 16행 중 7행 실측).
+  const tsPlaceholderOk = tsAllZero && (!lastFinishedAt || tsMappedRatio >= 0.9);
+
+  let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
+  // 새 시즌 표를 쓰는 경우엔 지난 시즌으로 되돌리지 않는다 — 최근폼·xG 도 새 시즌 기준.
+  if (!tsPlaceholderOk) {
+    // 오프시즌(새 시즌 완료 매치 0)일 때만 직전 시즌 창으로 폴백. 임계 10 이던 것을 0 으로 —
+    // 개막 후 몇 라운드 동안 지난 시즌 최근폼·순위가 새 시즌인 척 표시되던 원인(2026-08 분데스2 실측).
+    if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
+      const prev = previousSeasonStart(seasonStart);
+      matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+    }
+    if (tsAllZero && lastFinishedAt) {
+      const w = lastSeasonWindow(lastFinishedAt);
+      matches = allMatches.filter((m) => m.startTime >= w.from && m.startTime < w.to);
+    }
   }
 
   // 데이터 source 분기
@@ -280,11 +325,6 @@ export default async function StandingsPage({ params }: Props) {
     promotionName?: string;
   }>;
   let source: "ts" | "calc" = "calc";
-
-  // 개막 직전/직후 placeholder 허용 — ts 표가 전부 0 이어도, 이 리그에 지난 시즌 데이터가
-  // 아예 없으면(신규 온보딩 리그) 빈 화면 대신 0전적 개막판을 그대로 보여준다
-  // (2026-08-08 내셔널리그 개막일 "데이터 미수집" 빈 화면 실측).
-  const tsPlaceholderOk = tsAllZero && !lastFinishedAt;
 
   if (tsStandings && tsStandings.tables.length > 0 && (!tsAllZero || tsPlaceholderOk)) {
     // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
@@ -372,8 +412,13 @@ export default async function StandingsPage({ params }: Props) {
   const teamMap = new Map(teams.map((t) => [t.id, t]));
 
   // 시즌 리더보드 (득점왕·도움왕 등) — DB cron 이 매일 채움. 데이터 있는 리그만 노출.
-  const { rowsByCategory: leaderRows, season: leaderSeason } = await loadLeagueLeaderboard(upper);
-  const hasLeaders = Object.keys(leaderRows).length > 0;
+  const {
+    rowsByCategory: leaderRows,
+    season: leaderSeason,
+    preSeason: leadersPreSeason,
+  } = await loadLeagueLeaderboard(upper);
+  // preSeason 이면 rowsByCategory 가 비어 오므로 "개막 후 집계" 안내를 대신 띄운다.
+  const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPreSeason;
 
   // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
@@ -626,10 +671,16 @@ export default async function StandingsPage({ params }: Props) {
       )}
 
       {hasLeaders && (
-        <section className="space-y-3 pt-4">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
-          <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
-        </section>
+        // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점 (해시 진입 시 자동 펼침)
+        <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
+          {leadersPreSeason ? (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
+              새 시즌 개막 후 집계됩니다.
+            </p>
+          ) : (
+            <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
+          )}
+        </CollapseSection>
       )}
 
       {/* KBO 한정 FAQ — layout 의 BreadcrumbList·Dataset JSON-LD 와 별도 스크립트로 주입 */}
@@ -1031,8 +1082,28 @@ function formatNhlSeason(s: string): string {
   return s;
 }
 
+// NBA/NHL — 플레이오프 브라켓 접이식 섹션 (진행 중이면 펼침, 끝난 시즌 아카이브면 접힘)
+async function PlayoffBracketSection({ league }: { league: "NBA" | "NHL" }) {
+  const bracket = await loadPlayoffBracket(league);
+  if (bracket.length === 0) return null;
+  const done = isPlayoffSeasonDone(bracket);
+  const season = playoffSeasonLabel(bracket);
+  return (
+    <CollapseSection
+      title={`${season ? `${season} ` : ""}플레이오프 브라켓`}
+      meta={done ? "(시즌 최종 결과)" : "(진행 중)"}
+      defaultOpen={!done}
+    >
+      <NbaPlayoffBracket series={bracket} league={league} />
+    </CollapseSection>
+  );
+}
+
 // NBA — ESPN 공식 순위 래퍼 (브레드크럼·헤더 + 컨퍼런스 표. 표 본문은 NbaStandingsTable 공용)
-function NbaStandings({ name }: { name: string }) {
+async function NbaStandings({ name }: { name: string }) {
+  // 시즌 리더보드 — predictions 요약 카드의 "전체 보기" 착지점 (2026-08-15 역할 분리)
+  const { rowsByCategory: nbaLeaders, season: nbaLeaderSeason } = await loadLeagueLeaderboard("NBA");
+  const hasNbaLeaders = Object.keys(nbaLeaders).length > 0;
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -1073,6 +1144,14 @@ function NbaStandings({ name }: { name: string }) {
       </header>
 
       <NbaStandingsTable />
+
+      <PlayoffBracketSection league="NBA" />
+
+      {hasNbaLeaders && (
+        <CollapseSection id="leaderboard" title="NBA 시즌 리더보드">
+          <LeagueLeaderBoard league="NBA" season={nbaLeaderSeason} rowsByCategory={nbaLeaders} />
+        </CollapseSection>
+      )}
     </div>
   );
 }
@@ -1142,11 +1221,12 @@ async function NhlStandings({ name }: { name: string }) {
 
       <NhlStandingsTable std={std} />
 
+      <PlayoffBracketSection league="NHL" />
+
       {hasNhlLeaders && (
-        <section className="space-y-3 pt-4">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight">NHL 시즌 리더보드</h2>
+        <CollapseSection id="leaderboard" title="NHL 시즌 리더보드">
           <LeagueLeaderBoard league="NHL" season={nhlLeaderSeason} rowsByCategory={nhlLeaders} />
-        </section>
+        </CollapseSection>
       )}
     </div>
   );

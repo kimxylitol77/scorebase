@@ -16,6 +16,9 @@ const ENDPOINT: Record<string, string> = {
   NBA: "https://site.web.api.espn.com/apis/site/v2/sports/basketball/nba/injuries",
   MLB: "https://site.web.api.espn.com/apis/site/v2/sports/baseball/mlb/injuries",
   NHL: "https://site.web.api.espn.com/apis/site/v2/sports/hockey/nhl/injuries",
+  // 2026-08 추가 — 실측 13팀·부상자 44명. 대만 CPBL·멕시코 LMB·호주 AIHL 은 ESPN 에
+  //  해당 경로가 없다(400) — 야구/농구/하키는 ts lineup.injury 도 전혀 안 오므로 소스가 없다.
+  WNBA: "https://site.web.api.espn.com/apis/site/v2/sports/basketball/wnba/injuries",
 };
 
 interface EspnRaw {
@@ -92,7 +95,7 @@ function extractBodyPart(text: string | undefined): string | null {
 }
 
 export async function fetchEspnInjuries(
-  league: "NBA" | "MLB" | "NHL",
+  league: "NBA" | "MLB" | "NHL" | "WNBA",
 ): Promise<EspnInjuryEntry[]> {
   const url = ENDPOINT[league];
   if (!url) return [];

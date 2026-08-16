@@ -91,6 +91,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "TheSports player/market/list 증분 → PlayerMarketValue (매일 KST 09:00)",
   },
+  "vultr-betman-odds": {
+    ko: "베트맨 배당 수집",
+    intervalMs: 12 * HOUR,
+    role: "베트맨 프로토 승부식 배당·국내 투표분포 → BetmanOdds (KST 09:00·21:00)",
+  },
   "mac-mini-route-guardian": {
     ko: "라우트 가디언",
     intervalMs: 1 * DAY,

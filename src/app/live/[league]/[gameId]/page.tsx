@@ -404,14 +404,13 @@ export default async function GenericLivePage({ params }: Props) {
         }),
       ])
     : [[], []];
-  // 최근 경기 카드의 "경기 일정" 탭 — 양 팀 예정 경기 병합(중복 제거·시간순).
+  // 최근 경기 카드의 "경기 일정" 탭 — 팀별로 따로 준다(한 표에 섞이면 누구 일정인지 안 보임).
   //  축구 전용: 카드의 상대전적 탭을 "맞대결 히스토리(H2H)" 카드와 중복이라 빼고 이걸 넣는다.
-  const upcomingRows: UpcomingRow[] = (() => {
-    const seenIds = new Set<number>();
-    const merged = [...homeUpcoming, ...awayUpcoming]
-      .filter((m) => (seenIds.has(m.id) ? false : (seenIds.add(m.id), true)))
-      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-    return merged.map((m) => {
+  const toUpcomingRows = (
+    list: typeof homeUpcoming,
+    subjectTeamId: number,
+  ): UpcomingRow[] =>
+    list.map((m) => {
       const k = new Date(m.startTime.getTime() + 9 * 3600e3);
       const pad = (n: number) => String(n).padStart(2, "0");
       return {
@@ -419,10 +418,12 @@ export default async function GenericLivePage({ params }: Props) {
         time: `${pad(k.getUTCHours())}:${pad(k.getUTCMinutes())}`,
         homeName: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
         awayName: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+        subjectSide: m.homeTeamId === subjectTeamId ? ("home" as const) : ("away" as const),
         ...(m.league !== match.league ? { leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league } : {}),
       };
     });
-  })();
+  const homeUpcomingRows = toUpcomingRows(homeUpcoming, match.homeTeam.id);
+  const awayUpcomingRows = toUpcomingRows(awayUpcoming, match.awayTeam.id);
   // 경기 구장 — 그 경기에 실제로 잡힌 venue 를 먼저 쓰고, 없을 때만 홈팀 기본 구장으로 떨어진다.
   // 중립 경기장(UCL 결승·제재 경기 등)에서 홈팀 구장을 쓰면 구장도 날씨 도시도 틀린다.
   // 둘 다 없으면 null (카드 hide).
@@ -1035,6 +1036,7 @@ export default async function GenericLivePage({ params }: Props) {
         venueWeatherAt={
           match.status === "FINISHED" ? match.startTime.toISOString() : null
         }
+        favMatchId={match.id}
       />
 
       {/* 종료 경기에서는 라이브 기록을 기본 본문에 보존. 매치 한눈에와 팀 통계 탭 중복은 제외. */}
@@ -1121,7 +1123,8 @@ export default async function GenericLivePage({ params }: Props) {
             awayNameKo={awayKo}
             data={recentGames}
             showH2h={!isSoccer}
-            upcoming={isSoccer ? upcomingRows : undefined}
+            upcomingHome={isSoccer ? homeUpcomingRows : undefined}
+            upcomingAway={isSoccer ? awayUpcomingRows : undefined}
           />
         </CollapsibleSection>
       )}
@@ -1571,6 +1574,7 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         eloPrediction={null}
         oddsHistory={[]}
         playerLogoById={{}}
+        favMatchId={match.id}
       />
 
       <VolleyballRecentForm

@@ -775,6 +775,15 @@ export async function GET(req: NextRequest) {
       // 2026-08-02 CHAMPIONSHIP 오탐 — 같은 조건이 유럽 5대 리그에 동시 성립해 개막까지
       // 리그마다 반복될 참이었다. 진짜 stale 은 개막 후(경기수>0) 검사로 충분히 잡힌다.
       if (tsRows.length > 0 && tsRows.every((r) => (r.total ?? 0) === 0)) continue;
+      // 거울상 — af 가 전 팀 0경기 placeholder 일 수도 있다. 2026-08-15 CHAMPIONSHIP 실측:
+      // af 는 새 시즌 24팀 전원 0승0무0패 표(8/9 적재)를 들고 있어 "1위"가 알파벳순(버밍엄)일 뿐인데,
+      // ts 는 개막 1경기를 반영(울브스 1위)해 위 ts 가드를 통과하고 오탐 HIGH 가 났다.
+      // af 캐시가 0경기 표로 남는 동안 ts 1위가 바뀔 때마다 반복되므로 같은 원리로 skip.
+      if (
+        (afRows?.length ?? 0) > 0 &&
+        afRows!.every((r) => (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0) === 0)
+      )
+        continue;
       // 시즌 전환기 — 한쪽은 막 개막한 새 시즌, 다른 쪽은 아직 지난 시즌 최종표를 들고 있으면
       // 1위가 다른 게 당연하다. 2026-08-09 J1: ts 는 새 시즌 1경기, af 는 이행기 시즌 18경기
       // (af 가 새 시즌을 아직 반영 못 함). 렌더는 fresh 한 쪽을 쓰므로 알림 가치가 없다.

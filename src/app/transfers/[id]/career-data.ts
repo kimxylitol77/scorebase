@@ -8,7 +8,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 // 경력 fetch 캐시 — 과거 시즌은 정적, 현 시즌만 변동. 하루 캐시로 quota 절약(선수당 시즌수+1 콜).
 const getCachedCareer = unstable_cache(
   async (afId: number) => fetchPlayerCareer(afId),
-  ["player-career-v1"],
+  ["player-career-v2"], // v1 = 분당 한도로 시즌 누락된 부분 결과가 굳어 있어 폐기
+
   { revalidate: 86400 },
 );
 

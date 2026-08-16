@@ -10,6 +10,7 @@ import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-wi
 import { toKoreanTeamName } from "@/lib/team-names";
 import { isAllStarMatchRow, isBaseballAllStarTeam } from "@/lib/sports/baseball/allstar";
 import TeamBadge from "@/components/TeamBadge";
+import CollapseSection from "@/components/CollapseSection";
 
 const matchSelect = {
   id: true, league: true, status: true,
@@ -64,7 +65,10 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
     where: { league: upper, ...(seasonStart ? { startTime: { gte: seasonStart } } : {}) },
     select: matchSelect,
   });
+  // 전환기(완료 <10)엔 직전 시즌 폴백 — 문구는 지난 시즌 기준으로, 표는 접이식 아카이브.
+  let prevSeasonMode = false;
   if (seasonStart && dbMatches.filter((m) => m.status === "FINISHED").length < 10) {
+    prevSeasonMode = true;
     dbMatches = await prisma.match.findMany({
       where: { league: upper, startTime: { gte: previousSeasonStart(seasonStart), lt: seasonStart } },
       select: matchSelect,
@@ -86,7 +90,18 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
 
   // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
   // eslint-disable-next-line react-hooks/purity
-  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const nowMs = Date.now();
+  const cutoff = new Date(nowMs - 7 * 24 * 60 * 60 * 1000);
+  // 시즌 창이 아직 안 넘어갔어도 잔여 일정이 없고 마지막 경기가 30일 지났으면
+  // 오프시즌 — 지난 시즌 폴백과 동일하게 아카이브(접이식) 취급.
+  const lastFinishedMs = matches.reduce(
+    (mx, m) => (m.status === "FINISHED" ? Math.max(mx, m.startTime.getTime()) : mx),
+    0,
+  );
+  const hasUpcoming = matches.some((m) => m.startTime.getTime() > nowMs);
+  const archiveMode =
+    prevSeasonMode ||
+    (!hasUpcoming && lastFinishedMs > 0 && nowMs - lastFinishedMs > 30 * 24 * 60 * 60 * 1000);
   const priorRank = rankMap(calcEloTable(matches.filter((m) => m.startTime <= cutoff)).ratings);
   const currRank = rankMap(elo.ratings);
 
@@ -139,6 +154,82 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
 
   const top = rows[0];
 
+  const rankingBody = (
+    <div className="space-y-4">
+        {top && (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {archiveMode ? "지난 시즌 최종 기준 " : "현재 "}
+            <strong className="text-neutral-900 dark:text-white">{top.name}</strong> 이(가) Elo{" "}
+            <strong className="text-rose-600 dark:text-rose-400 tabular-nums">{top.elo}</strong>
+            {top.era != null && <> · ERA <strong className="tabular-nums">{top.era.toFixed(2)}</strong></>} 로 리그 최강
+            전력{archiveMode ? "이었습니다" : "입니다"}.
+          </p>
+        )}
+
+        <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.03] text-left text-xs uppercase tracking-wider text-neutral-500">
+                <th className="py-3 pl-4 pr-2 font-bold">#</th>
+                <th className="py-3 px-2 font-bold">팀</th>
+                <th className="py-3 px-2 font-bold text-right">Elo</th>
+                <th className="py-3 px-2 font-bold text-right">ERA</th>
+                <th className="py-3 px-2 font-bold text-right hidden sm:table-cell">WHIP</th>
+                <th className="py-3 px-2 font-bold text-center hidden sm:table-cell">변동</th>
+                <th className="py-3 px-2 font-bold text-center hidden md:table-cell">승-패</th>
+                <th className="py-3 px-2 font-bold text-center hidden lg:table-cell">득실</th>
+                <th className="py-3 px-2 pr-4 font-bold text-center">최근 5</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.teamId} className="border-b border-neutral-100 dark:border-white/[0.06] last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition">
+                  <td className="py-2.5 pl-4 pr-2 tabular-nums font-bold text-neutral-500">{r.rank}</td>
+                  <td className="py-2.5 px-2">
+                    <Link href={`/teams/${r.teamId}`} className="flex items-center gap-2 font-semibold hover:text-rose-600 dark:hover:text-rose-400 transition">
+                      <TeamBadge logoUrl={r.logoUrl} size={20} />
+                      <span className="truncate">{r.name}</span>
+                    </Link>
+                  </td>
+                  <td className="py-2.5 px-2 text-right tabular-nums font-bold">{r.elo}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums">{r.era != null ? r.era.toFixed(2) : "—"}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums text-neutral-500 hidden sm:table-cell">{r.whip != null && r.whip > 0 ? r.whip.toFixed(2) : "—"}</td>
+                  <td className="py-2.5 px-2 text-center hidden sm:table-cell">
+                    {r.move == null || r.move === 0 ? (
+                      <span className="text-neutral-300 dark:text-neutral-600">–</span>
+                    ) : r.move > 0 ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 tabular-nums text-xs font-bold">▲{r.move}</span>
+                    ) : (
+                      <span className="text-rose-600 dark:text-rose-400 tabular-nums text-xs font-bold">▼{-r.move}</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 px-2 text-center tabular-nums text-neutral-500 hidden md:table-cell">{r.w}-{r.l}</td>
+                  <td className="py-2.5 px-2 text-center tabular-nums hidden lg:table-cell">
+                    <span className={r.rd > 0 ? "text-emerald-600 dark:text-emerald-400" : r.rd < 0 ? "text-rose-600 dark:text-rose-400" : "text-neutral-500"}>
+                      {r.rd > 0 ? `+${r.rd}` : r.rd}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-2 pr-4">
+                    <div className="flex items-center justify-center gap-1">
+                      {r.form.length === 0 ? (
+                        <span className="text-neutral-300 dark:text-neutral-600 text-xs">–</span>
+                      ) : (
+                        r.form.map((f, i) => (
+                          <span key={i} className={`inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${f === "W" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/15 text-rose-600 dark:text-rose-400"}`} title={f}>
+                            {f}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -147,8 +238,9 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
           <h2 className="text-xl font-black tracking-tight">{leagueName} AI 파워랭킹</h2>
         </div>
         <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-2xl">
-          우리 AI 모델이 시즌 전 경기 결과로 계산한 <strong>Elo 레이팅</strong> 기준 팀 전력 순위에,
-          <strong> 팀 투수력(ERA·WHIP)</strong>을 함께 보여줍니다. 매 경기 후 자동 갱신됩니다.
+          우리 AI 모델이 {archiveMode ? "지난 시즌" : "시즌"} 전 경기 결과로 계산한 <strong>Elo 레이팅</strong> 기준 팀 전력 순위에,
+          <strong> 팀 투수력(ERA·WHIP)</strong>을 함께 보여줍니다.{" "}
+          {archiveMode ? "새 시즌 경기가 쌓이면 자동으로 실시간 랭킹으로 전환됩니다." : "매 경기 후 자동 갱신됩니다."}
         </p>
       </div>
 
@@ -178,75 +270,14 @@ export default async function BaseballPowerRanking({ league, leagueName }: { lea
         </div>
       </div>
 
-      {top && (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          현재 <strong className="text-neutral-900 dark:text-white">{top.name}</strong> 이(가) Elo{" "}
-          <strong className="text-rose-600 dark:text-rose-400 tabular-nums">{top.elo}</strong>
-          {top.era != null && <> · ERA <strong className="tabular-nums">{top.era.toFixed(2)}</strong></>} 로 리그 최강 전력입니다.
-        </p>
+      {/* 랭킹 본문 — 전환기(지난 시즌 폴백)엔 접이식 아카이브 */}
+      {archiveMode ? (
+        <CollapseSection title="지난 시즌 최종 파워랭킹" meta="(새 시즌 개막 후 자동 갱신)">
+          {rankingBody}
+        </CollapseSection>
+      ) : (
+        rankingBody
       )}
-
-      <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.03] text-left text-xs uppercase tracking-wider text-neutral-500">
-              <th className="py-3 pl-4 pr-2 font-bold">#</th>
-              <th className="py-3 px-2 font-bold">팀</th>
-              <th className="py-3 px-2 font-bold text-right">Elo</th>
-              <th className="py-3 px-2 font-bold text-right">ERA</th>
-              <th className="py-3 px-2 font-bold text-right hidden sm:table-cell">WHIP</th>
-              <th className="py-3 px-2 font-bold text-center hidden sm:table-cell">변동</th>
-              <th className="py-3 px-2 font-bold text-center hidden md:table-cell">승-패</th>
-              <th className="py-3 px-2 font-bold text-center hidden lg:table-cell">득실</th>
-              <th className="py-3 px-2 pr-4 font-bold text-center">최근 5</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.teamId} className="border-b border-neutral-100 dark:border-white/[0.06] last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition">
-                <td className="py-2.5 pl-4 pr-2 tabular-nums font-bold text-neutral-500">{r.rank}</td>
-                <td className="py-2.5 px-2">
-                  <Link href={`/teams/${r.teamId}`} className="flex items-center gap-2 font-semibold hover:text-rose-600 dark:hover:text-rose-400 transition">
-                    <TeamBadge logoUrl={r.logoUrl} size={20} />
-                    <span className="truncate">{r.name}</span>
-                  </Link>
-                </td>
-                <td className="py-2.5 px-2 text-right tabular-nums font-bold">{r.elo}</td>
-                <td className="py-2.5 px-2 text-right tabular-nums">{r.era != null ? r.era.toFixed(2) : "—"}</td>
-                <td className="py-2.5 px-2 text-right tabular-nums text-neutral-500 hidden sm:table-cell">{r.whip != null && r.whip > 0 ? r.whip.toFixed(2) : "—"}</td>
-                <td className="py-2.5 px-2 text-center hidden sm:table-cell">
-                  {r.move == null || r.move === 0 ? (
-                    <span className="text-neutral-300 dark:text-neutral-600">–</span>
-                  ) : r.move > 0 ? (
-                    <span className="text-emerald-600 dark:text-emerald-400 tabular-nums text-xs font-bold">▲{r.move}</span>
-                  ) : (
-                    <span className="text-rose-600 dark:text-rose-400 tabular-nums text-xs font-bold">▼{-r.move}</span>
-                  )}
-                </td>
-                <td className="py-2.5 px-2 text-center tabular-nums text-neutral-500 hidden md:table-cell">{r.w}-{r.l}</td>
-                <td className="py-2.5 px-2 text-center tabular-nums hidden lg:table-cell">
-                  <span className={r.rd > 0 ? "text-emerald-600 dark:text-emerald-400" : r.rd < 0 ? "text-rose-600 dark:text-rose-400" : "text-neutral-500"}>
-                    {r.rd > 0 ? `+${r.rd}` : r.rd}
-                  </span>
-                </td>
-                <td className="py-2.5 px-2 pr-4">
-                  <div className="flex items-center justify-center gap-1">
-                    {r.form.length === 0 ? (
-                      <span className="text-neutral-300 dark:text-neutral-600 text-xs">–</span>
-                    ) : (
-                      r.form.map((f, i) => (
-                        <span key={i} className={`inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${f === "W" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/15 text-rose-600 dark:text-rose-400"}`} title={f}>
-                          {f}
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <Link href={`/predictions/${upper}`} className="inline-flex items-center gap-1.5 font-semibold text-rose-600 dark:text-rose-400 hover:opacity-80 transition">

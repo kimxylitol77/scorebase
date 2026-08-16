@@ -12,6 +12,7 @@ import rawPhotos from "../../data/player-photos.json";
 import rawTeamLogos from "../../data/team-logos.json";
 import rawOv from "../../data/player-overrides.json";
 import { toKoreanTeamName } from "../../src/lib/team-names";
+import { boundaryShare, isSeasonBoundaryTransfer } from "../../src/lib/transfers/transfer-date";
 
 const PHOTOS = rawPhotos as Record<string, string>;
 const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
@@ -199,9 +200,26 @@ async function main() {
   for (let i = 0; i < top.length; i++) ranked.push(await build(top[i], i + 1));
   const lee = lkRow ? await build(lkRow, null) : null;
 
+  // 창 전체의 시즌 전환일(6/30·7/1) 일괄 기록 비중 — 영상 각주(Note)용 기준.
+  // props 밖에 둔다: LongformProps 타입은 Remotion repo 소유라 여기서 필드를 늘리면 그쪽 빌드가 깨진다.
+  const winRows = await p.footballTransfer.findMany({
+    where: { league: { in: FEED_LEAGUES }, transferTime: { gte: WIN_FROM, lt: WIN_TO }, transferFee: { gt: 0 } },
+    select: { transferTime: true, transferFee: true },
+  });
+  const bnd = boundaryShare(winRows);
+
   const out = {
     compositionId: "LongformTransferTop7",
     generatedAt: new Date().toISOString(),
+    // 이적일 해석 기준 — 소스가 주는 건 발효일이라 시즌 전환일에 무더기로 찍힌다.
+    // 창 시작(WIN_FROM)을 6/1 로 두는 이유이기도 하다 — 7/1 로 잡으면 이 무더기가 통째로 빠진다.
+    dateBasis: {
+      note: "이적일 = 소스 발효일. 시즌 전환일(6/30·7/1) 일괄 기록분 포함.",
+      boundaryCount: bnd.count,
+      boundaryFeeM: Math.round(bnd.fee / 1e6),
+      boundaryFeePct: Math.round(bnd.feePct),
+      windowFeeM: Math.round(bnd.totalFee / 1e6),
+    },
     props: {
       title: "2026 여름 이적시장",
       subtitle: "이적료 TOP 7",
@@ -229,10 +247,16 @@ async function main() {
   console.log(`저장 ${tsDst}`);
 
   console.log(`저장 ${dst}`);
+  console.log(
+    `\n[이적일 기준] 창 이적료 €${out.dateBasis.windowFeeM}M 중 시즌 전환일(6/30·7/1) 일괄 기록분` +
+      ` ${out.dateBasis.boundaryCount}건 €${out.dateBasis.boundaryFeeM}M (${out.dateBasis.boundaryFeePct}%)` +
+      ` — 영상 각주에 반영할 것`
+  );
   console.log(`\n2026 여름 이적료 TOP 7 (합계 ${out.props.totalM}M€ / ${krwEok(out.props.totalM).toLocaleString()}억)`);
-  for (const r of ranked) {
+  for (const [i, r] of ranked.entries()) {
     console.log(
       `  ${r.rank}. ${r.name} ${r.feeM}M€ (${r.feeKrwEok.toLocaleString()}억) | ${r.from}→${r.to} | ${r.date}` +
+        (isSeasonBoundaryTransfer(top[i].transferTime) ? "(발효일 일괄기록)" : "") +
         ` | 몸값 ${r.marketM ?? "?"}M${r.premiumPct !== null ? ` (${r.premiumPct > 0 ? "+" : ""}${r.premiumPct}%)` : ""}` +
         ` | hist ${r.history.length}pt deals ${r.deals.length}` +
         (r.note ? ` | ※${r.note}` : "") +

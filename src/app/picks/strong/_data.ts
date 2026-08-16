@@ -21,6 +21,44 @@ const FORM_GAMES = 5;
 export interface StrongPickResult extends StrongPick {
   /** 채점 결과 — null 이면 아직 채점 전 */
   correct: boolean | null;
+  /** AI 패널 전원이 같은 쪽을 고른 경우 그 패널 수, 아니면 0 (더블찬스는 패널이 안 다뤄 항상 0) */
+  aiUnanimous: number;
+}
+
+/** /picks/strong 마켓 → AiPrediction.market. 더블찬스는 AI 패널이 픽을 내지 않는다. */
+const AI_MARKET: Partial<Record<StrongMarket, string>> = {
+  "1X2": "1X2",
+  HANDICAP: "HANDICAP",
+  OVER_UNDER: "OU",
+};
+
+/** 만장일치 판정 최소 패널 — 모델 2개뿐이던 초기 구간을 만장일치로 세면 과장이다(성적표와 동일 기준) */
+const MIN_PANEL = 3;
+
+/**
+ * (matchId, AI마켓, 픽방향) → 패널 수. 전원이 같은 쪽을 골랐을 때만 담는다.
+ * 배지는 "AI들도 우리와 같은 쪽"이라는 뜻이라 방향까지 맞아야 의미가 있다.
+ */
+async function loadUnanimousKeys(matchIds: number[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (!matchIds.length) return out;
+  const rows = await prisma.aiPrediction.findMany({
+    where: { matchId: { in: matchIds }, market: { in: ["1X2", "HANDICAP", "OU"] }, published: true },
+    select: { matchId: true, model: true, market: true, pick: true },
+  });
+  const byKey = new Map<string, { picks: Set<string>; models: Set<string> }>();
+  for (const r of rows) {
+    const k = `${r.matchId}:${r.market}`;
+    const g = byKey.get(k) ?? { picks: new Set<string>(), models: new Set<string>() };
+    g.picks.add(r.pick);
+    g.models.add(r.model);
+    byKey.set(k, g);
+  }
+  for (const [k, g] of byKey) {
+    if (g.models.size < MIN_PANEL || g.picks.size !== 1) continue;
+    out.set(`${k}:${[...g.picks][0]}`, g.models.size);
+  }
+  return out;
 }
 
 /** 선발 투수·골리 JSON 에서 화면에 쓸 만큼만 뽑은 것 */
@@ -222,6 +260,8 @@ export async function loadStrongPicks(date?: string): Promise<StrongPickMatch[]>
     picked.map((x) => ({ teamIds: [x.m.homeTeamId, x.m.awayTeamId], asOf: x.m.startTime })),
   );
 
+  const unanimous = await loadUnanimousKeys(picked.map((x) => x.m.id));
+
   return picked.map(({ m, home, away, picks }) => {
     const key = (teamId: number) => forms.get(`${m.startTime.getTime()}:${teamId}`);
     const hForm = key(m.homeTeamId);
@@ -244,7 +284,12 @@ export async function loadStrongPicks(date?: string): Promise<StrongPickMatch[]>
         m.predHome != null && m.predAway != null
           ? { home: m.predHome, draw: m.predDraw ?? 0, away: m.predAway }
           : null,
-      picks: picks.map((p) => ({ ...p, correct: marketCorrect(m, p.market) })),
+      picks: picks.map((p) => ({
+        ...p,
+        correct: marketCorrect(m, p.market),
+        // AI 패널이 전원 이 픽과 같은 쪽을 골랐는가 — 방향이 다르면 "동의"가 아니다
+        aiUnanimous: unanimous.get(`${m.id}:${AI_MARKET[p.market] ?? ""}:${p.side}`) ?? 0,
+      })),
       evidence: {
         form: hForm && aForm ? { home: hForm, away: aForm } : null,
         starter: hStarter && aStarter ? { home: hStarter, away: aStarter } : null,
@@ -255,6 +300,51 @@ export async function loadStrongPicks(date?: string): Promise<StrongPickMatch[]>
       },
     };
   });
+}
+
+/**
+ * "AI 패널 전원 동의 + 고확신" 조합의 실측 — 배지 옆에 근거로 붙인다.
+ *
+ * 2026-08-14 측정 기준선. 고확신만 67.1% · 만장일치만 59.3% · 둘 다 69.3%.
+ * 만장일치를 얹어서 오르는 건 2%p 남짓이다 — 고확신 픽의 84%가 이미 만장일치라
+ * 새 정보가 거의 없기 때문이다. 그래서 별도 섹션이 아니라 배지로만 쓴다.
+ */
+export async function loadUnanimousAccuracy(): Promise<MarketAccuracy> {
+  const rows = await prisma.aiPrediction.findMany({
+    where: { market: { in: ["1X2", "HANDICAP", "OU"] }, published: true },
+    select: { matchId: true, model: true, market: true, pick: true, prob: true, correct: true },
+  });
+  const th: Record<string, number> = {
+    "1X2": STRONG_THRESHOLD["1X2"],
+    HANDICAP: STRONG_THRESHOLD.HANDICAP,
+    OU: STRONG_THRESHOLD.OVER_UNDER,
+  };
+  interface Cell { model: string; pick: string; prob: number; correct: boolean | null }
+  const byKey = new Map<string, { market: string; cells: Cell[] }>();
+  for (const r of rows) {
+    const k = `${r.matchId}:${r.market}`;
+    const g = byKey.get(k) ?? { market: r.market, cells: [] as Cell[] };
+    const ex = g.cells.find((c) => c.model === r.model);
+    // 같은 모델 중복은 채점된 쪽 우선(성적표와 동일 규칙)
+    if (ex) {
+      if (ex.correct === null && r.correct !== null) Object.assign(ex, r);
+    } else {
+      g.cells.push({ model: r.model, pick: r.pick, prob: r.prob, correct: r.correct });
+    }
+    byKey.set(k, g);
+  }
+  let total = 0, hit = 0;
+  for (const g of byKey.values()) {
+    if (g.cells.length < MIN_PANEL) continue;
+    const graded = g.cells.filter((c) => c.correct !== null);
+    if (!graded.length) continue;
+    if (new Set(g.cells.map((c) => c.pick)).size !== 1) continue; // 만장일치만
+    const sb = g.cells.find((c) => /scorebase/i.test(c.model));
+    if (!sb || sb.prob < th[g.market]) continue; // 고확신만
+    total += graded.length;
+    hit += graded.filter((c) => c.correct).length;
+  }
+  return { total, hit, rate: total ? (hit / total) * 100 : 0 };
 }
 
 export interface MarketAccuracy {

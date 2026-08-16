@@ -1,7 +1,7 @@
 // 주간 빙 SEO 점검 — 빙 기회 검색어 신규/순위 변화를 운영자 텔레그램으로. (Vercel cron 월 아침)
 // 빙 전체 검색어를 매주 스냅샷 저장 → 직전 스냅샷과 비교해 "순위 개선/하락·신규 기회"를 보고.
 // 수정은 자동화하지 않는다(코드 판단 필요) — 알림 보고 사람이 지시하면 supervisor 흐름으로 처리.
-import { fetchAllBingQueries } from "@/lib/bing-webmaster";
+import { fetchAllBingQueries, fetchBingPathCoverage } from "@/lib/bing-webmaster";
 import { isOpportunity, byPotentialDesc, OPP_MIN_POSITION } from "@/lib/search-opportunity";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
@@ -18,6 +18,15 @@ interface SnapRow {
   clicks: number;
 }
 
+// 경로별 노출 커버리지 추적 대상 — 대량 생성 페이지 위주(늘고 줄었는지가 색인 작업의 성적표).
+// 접두사가 겹치지 않게 둘 것: fetchBingPathCoverage 는 첫 매칭 하나에만 센다.
+const COVERAGE_PATHS = ["/transfers/", "/teams/", "/players/", "/national-teams/", "/live/", "/blog/", "/articles/"];
+type Coverage = Record<string, { pages: number; impressions: number; clicks: number }>;
+// 스냅샷 data 는 원래 SnapRow[] 였다. 커버리지를 얹으면서 객체로 확장 — 옛 배열도 그대로 읽는다.
+interface SnapData { queries: SnapRow[]; coverage?: Coverage }
+const readSnap = (d: unknown): SnapData =>
+  Array.isArray(d) ? { queries: d as SnapRow[] } : ((d ?? { queries: [] }) as SnapData);
+
 function kstDate(): string {
   return new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
 }
@@ -28,7 +37,7 @@ function esc(s: string): string {
 
 export async function runBingSeoCheck(
   opts: { dryRun?: boolean } = {},
-): Promise<{ ok: boolean; skipped?: string; opportunities?: number; improved?: number; dropped?: number; fresh?: number; baseline?: boolean }> {
+): Promise<{ ok: boolean; skipped?: string; opportunities?: number; improved?: number; dropped?: number; fresh?: number; baseline?: boolean; message?: string }> {
   const { dryRun = false } = opts;
   if (!process.env.BING_WEBMASTER_API_KEY) return { ok: false, skipped: "BING_WEBMASTER_API_KEY 미설정" };
 
@@ -41,9 +50,10 @@ export async function runBingSeoCheck(
     where: { date: { not: today } },
     orderBy: { date: "desc" },
   });
-  const prevMap = new Map<string, SnapRow>(
-    prev ? (prev.data as unknown as SnapRow[]).map((r) => [r.query, r]) : [],
-  );
+  const prevSnap = prev ? readSnap(prev.data) : { queries: [] as SnapRow[] };
+  const prevMap = new Map<string, SnapRow>(prevSnap.queries.map((r) => [r.query, r]));
+  // 커버리지는 실패해도 리포트 전체를 막지 않는다(검색어 파트가 본체).
+  const coverage = await fetchBingPathCoverage(COVERAGE_PATHS).catch(() => null);
 
   const improved: Array<{ query: string; from: number; to: number; impressions: number }> = [];
   const dropped: Array<{ query: string; from: number; to: number; impressions: number }> = [];
@@ -86,6 +96,17 @@ export async function runBingSeoCheck(
     lines.push("\n🆕 <b>신규 기회</b> (이번 주 새로 진입)");
     for (const r of fresh) lines.push(`· ${esc(r.query)} — 노출 ${r.impressions} · ${r.position.toFixed(1)}위`);
   }
+  if (coverage) {
+    lines.push("\n📄 <b>경로별 노출 페이지</b> (검색에 뜬 페이지 수 · 색인 수 아님)");
+    for (const p of COVERAGE_PATHS) {
+      const c = coverage[p];
+      if (!c || c.pages === 0) continue;
+      const before = prevSnap.coverage?.[p]?.pages;
+      const delta = before == null ? "" : before === c.pages ? " (=)" : ` (${c.pages > before ? "+" : ""}${c.pages - before})`;
+      const ctr = c.impressions ? ((c.clicks / c.impressions) * 100).toFixed(2) : "0.00";
+      lines.push(`· ${p} ${c.pages}개${delta} — 노출 ${c.impressions} · 클릭 ${c.clicks} · CTR ${ctr}%`);
+    }
+  }
   lines.push("\n손볼 게 있으면 알려주세요 — 메타·콘텐츠 보강 후 감독관 채점→배포합니다.");
 
   if (!dryRun) await sendTelegram(lines.join("\n"), { parseMode: "HTML" });
@@ -97,11 +118,12 @@ export async function runBingSeoCheck(
     position: Number(r.position.toFixed(1)),
     clicks: r.clicks,
   }));
+  const payload: SnapData = { queries: snap, ...(coverage ? { coverage } : {}) };
   if (!dryRun) {
     await prisma.bingSeoSnapshot.upsert({
       where: { date: today },
-      create: { date: today, data: snap as unknown as object },
-      update: { data: snap as unknown as object },
+      create: { date: today, data: payload as unknown as object },
+      update: { data: payload as unknown as object },
     });
   }
 
@@ -112,5 +134,7 @@ export async function runBingSeoCheck(
     improved: improved.length,
     dropped: dropped.length,
     fresh: fresh.length,
+    // dry 일 때만 본문을 돌려준다 — 보낼 문구를 눈으로 보고 배포 확인하려면 카운트로는 부족하다.
+    ...(dryRun ? { message: lines.join("\n") } : {}),
   };
 }

@@ -1101,9 +1101,10 @@ export default async function ScoresPage({ searchParams }: Props) {
               isExtra = true;
             }
           }
+          // score[2] 1=홈 타석(말), 2=원정 타석(초) — 2026-08-13 라이브 실측 확정
           const h = dl.score[2];
-          if (h === 1) half = "top";
-          else if (h === 2) half = "bottom";
+          if (h === 1) half = "bottom";
+          else if (h === 2) half = "top";
           const hits = sObj?.h;
           if (Array.isArray(hits) && hits.length >= 2) {
             const th = parseInt(String(hits[0]), 10);

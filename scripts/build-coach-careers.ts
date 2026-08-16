@@ -66,11 +66,22 @@ function parseCareerClaims(claims: WbClaim[]): Array<{ qid: string; start: numbe
 }
 
 async function main() {
+  // 레전드(비현직) 감독 — data/coach-legends.json 병합. --only=<id,id> 로 부분 실행 가능.
+  const legendsPath = path.join(__dirname, "..", "data", "coach-legends.json");
+  const legends = fs.existsSync(legendsPath)
+    ? (Object.values(JSON.parse(fs.readFileSync(legendsPath, "utf8"))) as Array<{ id?: string; name: string; nameKo: string | null }>)
+    : [];
+  const only = process.argv.find((a) => a.startsWith("--only="))?.split("=")[1]?.split(",");
   const coaches = JSON.parse(fs.readFileSync(COACHES_PATH, "utf8")) as Record<
     string,
     { id?: string; name: string; nameKo: string | null; nationality: string | null }
   >;
-  const list = Object.values(coaches).filter((c) => c.id && c.name);
+  const list = [
+    ...Object.values(coaches),
+    ...(legends as Array<{ id?: string; name: string; nameKo: string | null; nationality: string | null }>),
+  ]
+    .filter((c) => c.id && c.name)
+    .filter((c) => !only || only.includes(c.id!));
   console.log(`감독 ${list.length}명 Wikidata 조회`);
 
   // 국기 매핑 (ts country-list en 이름 기준)

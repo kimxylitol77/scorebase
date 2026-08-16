@@ -15,6 +15,7 @@ import LiveCommentaryBox, {
 import LiveTickerFeed from "./live/LiveTickerFeed";
 import { baseballTickerLines } from "@/lib/live/ticker";
 import MatchWeather from "./live/MatchWeather";
+import FavoriteStar from "./scores/FavoriteStar";
 import dynamic from "next/dynamic";
 
 // 라이브 승리확률 패널 — KBO 한정·51K 테이블 import 라 dynamic 으로 필요시에만 로드.
@@ -94,6 +95,11 @@ interface Props {
   venueLabel?: string | null;
   /** 종료 경기의 킥오프 ISO — 날씨를 경기 당시로 고정. null 이면 현재 날씨 */
   venueWeatherAt?: string | null;
+  /** DB Match.id — 헤더 관심경기 별표용. /scores 별표와 같은 저장소라 id 가 같아야 상태가 이어진다.
+      없으면 별표 미표시. */
+  favMatchId?: number | null;
+  /** 별표 저장 시 함께 남길 매치 링크 (PiP 가 되돌아올 주소) */
+  favHref?: string;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -156,6 +162,8 @@ export default function BaseballLiveDetail({
   venueCountry,
   venueLabel,
   venueWeatherAt,
+  favMatchId,
+  favHref,
 }: Props) {
   const [live, setLive] = useState<BaseballLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -339,6 +347,26 @@ export default function BaseballLiveDetail({
             )}
             {isLive && (
               <span className="text-[10px] text-neutral-500">라이브 자동 갱신</span>
+            )}
+            {favMatchId != null && (
+              <FavoriteStar
+                matchId={String(favMatchId)}
+                showLabel
+                meta={{
+                  id: String(favMatchId),
+                  sport: "baseball",
+                  league,
+                  homeName: homeNameKo,
+                  awayName: awayNameKo,
+                  homeShort: homeShort ?? undefined,
+                  awayShort: awayShort ?? undefined,
+                  homeScore,
+                  awayScore,
+                  status: isLive ? "live" : isFinished ? "finished" : "scheduled",
+                  statusLabel: live.statusLabel,
+                  href: favHref,
+                }}
+              />
             )}
           </div>
         </div>

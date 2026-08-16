@@ -4,7 +4,9 @@
 //   2) 이름 부분 일치 + 소속팀 일치 (우리 season-stats 의 영문 팀명 vs API current_team)
 //      — "Estêvão"(API) vs 풀네임(우리), "João Pedro" 동명 7명 같은 케이스를 자동 해결
 // 그래도 애매하면 매핑하지 않고 로그만 (틀린 매핑 < 누락).
-//   실행: THESTATSAPI_KEY=... npx tsx scripts/discover-thestatsapi-players.ts [리그=EPL] [상위N=25]
+//   실행: THESTATSAPI_KEY=... npx tsx scripts/discover-thestatsapi-players.ts [리그=EPL] [상위N=25] [--season=25/26]
+// 시즌 주의: 히트맵 커버리지가 리그마다 다르다 (2026-08-14 실측 — 25/26 은 EPL·SERIE_A 만, LALIGA·BUNDESLIGA·
+// LIGUE_1 은 404 이고 24/25 는 정상). 기존 매핑은 시즌이 다르면 statsId 를 재사용해 콜 없이 시즌만 갈아끼운다.
 import { PrismaClient } from "@prisma/client";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 
@@ -22,8 +24,11 @@ const LEAGUE_CFG: Record<string, { competitionId: string }> = {
   LIGUE_1: { competitionId: "comp_0256" },
 };
 // 하위 호환: 첫 인자가 숫자면 EPL 상위 N
-const argLeague = process.argv[2] && !/^\d+$/.test(process.argv[2]) ? process.argv[2] : "EPL";
-const TOP_N = Number((/^\d+$/.test(process.argv[2] ?? "") ? process.argv[2] : process.argv[3]) || 25);
+const positional = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const argLeague = positional[0] && !/^\d+$/.test(positional[0]) ? positional[0] : "EPL";
+const TOP_N = Number((/^\d+$/.test(positional[0] ?? "") ? positional[0] : positional[1]) || 25);
+const SEASON_TAG = process.argv.find((a) => a.startsWith("--season="))?.slice(9) ?? "25/26"; // "24/25" 형태
+const SEASON_PREFIX = `20${SEASON_TAG.split("/")[0]}-${SEASON_TAG.split("/")[1]}`; // "2024-25"
 const CFG = LEAGUE_CFG[argLeague];
 if (!CFG) { console.error(`지원 리그: ${Object.keys(LEAGUE_CFG).join(", ")}`); process.exit(1); }
 
@@ -35,7 +40,19 @@ function norm(s: string): string {
 
 async function api(path: string): Promise<unknown | null> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const res = await fetch(`${BASE}${path}`, { headers: { Authorization: `Bearer ${KEY}` } });
+    // 네트워크 오류(EHOSTUNREACH 등)도 재시도한다 — 감싸지 않으면 fetch 의 throw 가 이 루프를
+    // 뚫고 나가 스크립트가 통째로 죽는다 (2026-08-15 맥미니 IPv6 경로 끊김으로 발굴 321건 소실).
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}${path}`, {
+        headers: { Authorization: `Bearer ${KEY}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (e) {
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, 5_000 * (attempt + 1)));
+      continue;
+    }
     if (res.status === 429) { await new Promise((r) => setTimeout(r, 20_000 * (attempt + 1))); continue; }
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`${res.status} ${path}`);
@@ -47,13 +64,13 @@ async function api(path: string): Promise<unknown | null> {
 interface ApiPlayer { id: string; name: string; current_team: { id: string; name: string } | null }
 
 async function main() {
-  // 25/26 시즌 id 실행 시 조회 (리그마다 다름)
+  // 시즌 id 는 실행 시 조회 (리그마다 다름)
   const seasonsRes = (await api(`/football/competitions/${CFG.competitionId}/seasons`)) as
     | { data: Array<{ id: string; name: string }> }
     | null;
-  const season = seasonsRes?.data?.find((s) => s.name.includes("25/26"));
-  if (!season) { console.error(`${argLeague} 25/26 시즌을 찾을 수 없음`); process.exit(1); }
-  const COMP = { competitionId: CFG.competitionId, seasonId: season.id, seasonLabel: `2025-26 ${argLeague}` };
+  const season = seasonsRes?.data?.find((s) => s.name.includes(SEASON_TAG));
+  if (!season) { console.error(`${argLeague} ${SEASON_TAG} 시즌을 찾을 수 없음`); process.exit(1); }
+  const COMP = { competitionId: CFG.competitionId, seasonId: season.id, seasonLabel: `${SEASON_PREFIX} ${argLeague}` };
   console.log(`${argLeague} → ${CFG.competitionId} / ${season.id} (${season.name})`);
 
   const mv = await prisma.playerMarketValue.findMany({
@@ -81,9 +98,18 @@ async function main() {
   const out: Record<string, { statsId: string; teamId: string; teamName: string; name: string } & typeof COMP> =
     existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
 
-  let mapped = 0, skipped = 0;
+  let mapped = 0, skipped = 0, reseasoned = 0;
   for (const r of rows) {
-    if (out[r.id]) { console.log(`  = ${r.name} (기존 매핑)`); continue; }
+    const prev = out[r.id];
+    if (prev?.seasonId === COMP.seasonId) { console.log(`  = ${r.name} (기존 매핑)`); continue; }
+    if (prev) {
+      out[r.id] = { ...prev, ...COMP };
+      reseasoned++;
+      console.log(`  ↻ ${r.name} — 시즌 교체 ${COMP.seasonLabel}`);
+      // 교체는 콜 없이 루프 앞쪽에서 몰아 끝난다 — 뒤이은 첫 API 콜에서 죽으면 통째로 날아가니 함께 저장.
+      if (reseasoned % 10 === 0) writeFileSync(OUT, JSON.stringify(out, null, 1));
+      continue;
+    }
     const token = norm(r.name).split(" ").pop()!; // 검색어도 악센트 제거 (Fernández → fernandez)
     const res = (await api(`/football/players?search=${encodeURIComponent(token)}&per_page=50`)) as { data: ApiPlayer[] } | null;
     await new Promise((s) => setTimeout(s, 6000)); // trial 분당 12회
@@ -111,8 +137,11 @@ async function main() {
     out[r.id] = { statsId: c.id, teamId: team.id, teamName: team.name, name: r.name, ...COMP };
     mapped++;
     console.log(`  ✓ ${r.name} → ${c.id} (${team.name})`);
+    // 10명마다 저장 — 마지막에만 쓰면 중간에 죽을 때 전부 날아간다
+    // (2026-08-15 맥미니: EHOSTUNREACH 로 죽으면서 발굴 321건이 통째로 소실).
+    if (mapped % 10 === 0) writeFileSync(OUT, JSON.stringify(out, null, 1));
   }
   writeFileSync(OUT, JSON.stringify(out, null, 1));
-  console.log(`매핑 ${mapped} 신규 / 스킵 ${skipped} / 총 ${Object.keys(out).length} → ${OUT}`);
+  console.log(`매핑 ${mapped} 신규 / 시즌교체 ${reseasoned} / 스킵 ${skipped} / 총 ${Object.keys(out).length} → ${OUT}`);
 }
 main().finally(() => prisma.$disconnect());
