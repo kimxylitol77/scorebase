@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
+import KoreanBasketballTable from "@/components/basketball/KoreanBasketballTable";
 import LeagueStandingsTable from "@/components/leagues/LeagueStandingsTable";
 import LeaguePowerRanking from "@/components/leagues/LeaguePowerRanking";
 import BaseballPowerRanking from "@/components/leagues/BaseballPowerRanking";
@@ -327,6 +328,12 @@ interface Props {
 }
 
 // buildup식 데이터 탭 (축구 리그) — 순위·파워랭킹·일정·통계·역사·글
+// UTC 저장 시각을 KST 로 옮겨 "8월 21일" 로. 개막일 안내는 날짜만 쓰므로 시각은 버린다.
+function kstMonthDay(d: Date): string {
+  const kst = new Date(d.getTime() + 9 * 3600_000);
+  return `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+}
+
 const VIEW_KEYS = ["standings", "power", "fixtures", "stats", "history", "articles"] as const;
 // bracket 은 컵 전용이라 VIEW_KEYS(축구 리그 기본 탭)에 넣지 않는다.
 type ViewKey = (typeof VIEW_KEYS)[number] | "bracket";
@@ -559,6 +566,15 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
   const leaderboard = (isSoccer || upper === "NHL") && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
+  // 개막 전이면 리더보드가 비어 온다(preSeason 가드). "준비 안 됨"이 아니라 언제부터 집계되는지
+  // + 지난 시즌 기록은 어디 있는지를 안내한다 — 순위 탭 접기가 지난 시즌 리더보드를 갖고 있다.
+  const preSeasonFirstFixture = leaderboard?.preSeason
+    ? await prisma.match.findFirst({
+        where: { league: upper, status: "SCHEDULED", startTime: { gte: new Date() } },
+        orderBy: { startTime: "asc" },
+        select: { startTime: true },
+      })
+    : null;
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
@@ -719,7 +735,14 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <LolStandings name={info.name} />
         </div>
       )}
-      {!isSoccer && view === "standings" && isBasketball && upper !== "NBA" && (
+      {/* KBL/WKBL — 공식 사이트 순위(승률·승차). ts 순위표가 없어 StandingsOnlyView 로는
+          "수집 중" 만 나왔다. /standings 와 같은 표 + 오프시즌엔 지난 시즌 리더보드까지. */}
+      {!isSoccer && view === "standings" && (upper === "KBL" || upper === "WKBL") && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <KoreanBasketballTable league={upper} withLastLeaders />
+        </div>
+      )}
+      {!isSoccer && view === "standings" && isBasketball && upper !== "NBA" && upper !== "KBL" && upper !== "WKBL" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <StandingsOnlyView league={upper} embedded />
         </div>
@@ -740,7 +763,26 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {(isSoccer || upper === "NHL") && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
+          {leaderboard.preSeason ? (
+            <section className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 px-4 py-8 text-center text-sm text-neutral-500 space-y-2">
+              <p className="break-keep">
+                새 시즌 기록은{" "}
+                {preSeasonFirstFixture
+                  ? `${kstMonthDay(preSeasonFirstFixture.startTime)} 개막 후`
+                  : "개막 후"}{" "}
+                집계됩니다.
+              </p>
+              <Link
+                href={`/leagues/${upper}?view=standings`}
+                prefetch={false}
+                className="inline-block font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                지난 시즌 기록 보기 →
+              </Link>
+            </section>
+          ) : (
+            <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
+          )}
         </div>
       )}
       {view === "history" && (
