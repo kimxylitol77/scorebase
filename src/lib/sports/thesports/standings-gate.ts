@@ -75,26 +75,36 @@ export function afCacheUsable(
   return OK;
 }
 
-/** 리그페이즈(스위스 8경기)를 마친 뒤 토너먼트로 넘어가는 유럽 대항전. */
-export const CONTINENTAL_KNOCKOUT = new Set(["UCL", "UEL", "UECL"]);
-/** 리그페이즈 경기 수 — 최다 소화 팀이 이 수를 채웠으면 단계가 넘어간 것으로 본다. */
-const LEAGUE_PHASE_MATCHES = 8;
+/**
+ * 리그페이즈를 마친 뒤 토너먼트로 넘어가는 대항전과 그 리그페이즈 경기 수.
+ * 대회마다 다르다 — UCL·UEL 은 8경기, UECL·AFC 챔스2·여자 UCL 은 6경기.
+ * 상수 하나로 고정하면 6경기 대회는 가드가 영원히 안 걸려 작년 표가 새어 나온다.
+ */
+const LEAGUE_PHASE_MATCHES: Record<string, number> = {
+  UCL: 8,
+  UEL: 8,
+  UECL: 6,
+  AFC_CL_TWO: 6,
+  UEFA_WCL: 6,
+};
+export const CONTINENTAL_KNOCKOUT = new Set(Object.keys(LEAGUE_PHASE_MATCHES));
 
 /**
- * 유럽 대항전에서 "이전 단계(리그페이즈) 순위"를 매치 카드에 붙이면 안 되는 시점인지.
- * 리그페이즈 진행 중(최다 소화 < 8)이면 순위 표기를 유지하고, 마쳤으면 숨긴다.
- * 예선 단계도 마찬가지 — 직전 시즌 리그페이즈 표가 남아 있으면 8경기를 채운 상태라 숨겨진다.
+ * 대항전에서 "이전 단계(리그페이즈) 순위"를 매치 카드에 붙이면 안 되는 시점인지.
+ * 리그페이즈 진행 중(최다 소화 < 리그페이즈 경기 수)이면 순위 표기를 유지하고, 마쳤으면 숨긴다.
+ * 예선 단계도 마찬가지 — 직전 시즌 리그페이즈 표가 남아 있으면 경기 수를 채운 상태라 숨겨진다.
  */
 export function hideStageStandings(
   league: string,
   rows: Array<{ won?: number; draw?: number; loss?: number }>,
 ): boolean {
-  if (!CONTINENTAL_KNOCKOUT.has(league)) return false;
+  const phaseMatches = LEAGUE_PHASE_MATCHES[league];
+  if (phaseMatches == null) return false;
   const maxPlayed = rows.reduce(
     (mx, r) => Math.max(mx, (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0)),
     0,
   );
-  return maxPlayed >= LEAGUE_PHASE_MATCHES;
+  return maxPlayed >= phaseMatches;
 }
 
 export type StandingsState =

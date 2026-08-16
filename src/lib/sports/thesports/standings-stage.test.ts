@@ -18,6 +18,19 @@ test("리그페이즈를 마치면(8경기) 이후 단계에 이전 순위를 �
   assert.equal(hideStageStandings("UECL", [played(8)]), true);
 });
 
+test("리그페이즈가 6경기인 대회는 6경기로 판정한다 — 8 로 고정하면 가드가 영원히 안 걸린다", () => {
+  // 2026-08-20 UECL 플레이오프에 작년 리그페이즈 순위가 붙던 결함
+  assert.equal(hideStageStandings("UECL", [played(6), played(6)]), true);
+  assert.equal(hideStageStandings("AFC_CL_TWO", [played(6)]), true);
+  assert.equal(hideStageStandings("UEFA_WCL", [{ won: 3, draw: 1, loss: 2 }]), true);
+});
+
+test("6경기 대회도 리그페이즈 진행 중이면 순위를 유지한다", () => {
+  assert.equal(hideStageStandings("UECL", [played(3), played(2)]), false);
+  assert.equal(hideStageStandings("AFC_CL_TWO", [played(3)]), false);
+  assert.equal(hideStageStandings("UEFA_WCL", [played(5)]), false);
+});
+
 test("빈 순위표는 가드 대상이 아니다", () => {
   assert.equal(hideStageStandings("UCL", []), false);
 });
