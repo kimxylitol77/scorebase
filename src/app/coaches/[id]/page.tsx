@@ -19,6 +19,11 @@ import rawLegends from "../../../../data/coach-legends.json";
 import TacticalManagerSection from "@/components/TacticalManagerSection";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
+import {
+  SUB_IMPACT_LEAGUES,
+  type SubImpactLeagueData,
+  type SubImpactTeamRow,
+} from "@/lib/tactical/sub-impact";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { formatDateKo } from "@/lib/format";
 
@@ -116,6 +121,22 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       teamLogo = team.logoUrl;
       ourTeamId = team.id;
       teamLeague = team.league;
+    }
+  }
+
+  // 현시즌 교체 성향 카드 — 리그별 교체 임팩트 집계(SubImpactCache, 일 1회 cron)에서 현 팀 행만.
+  let subImpact: SubImpactTeamRow | null = null;
+  let subImpactSeason: string | null = null;
+  if (ourTeamId != null && teamLeague && SUB_IMPACT_LEAGUES[teamLeague]) {
+    const siRow = await prisma.subImpactCache
+      .findUnique({ where: { league: teamLeague } })
+      .catch(() => null);
+    const si = (siRow?.data as unknown as SubImpactLeagueData | null) ?? null;
+    const t = si?.teams.find((r) => r.teamId === ourTeamId);
+    if (t && t.games >= 3) {
+      // 표본 3경기 미만은 수치가 튀어 카드 자체를 숨긴다
+      subImpact = t;
+      subImpactSeason = si!.seasonLabel;
     }
   }
 
@@ -440,6 +461,54 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
               <TeamRecentLineup formation={curLineup.formation} players={curLineupPlayers} />
             </div>
           )}
+        </section>
+      )}
+
+      {/* 현시즌 교체 성향 — 교체 임팩트 집계의 현 팀 행. 리그 전체 표는 /soccer/sub-impact */}
+      {subImpact && (
+        <section>
+          <h2 className="text-lg font-semibold mb-1 break-keep">
+            교체 카드 활용 — {subImpactSeason} 시즌
+          </h2>
+          <p className="mb-3 text-xs text-neutral-400 break-keep">
+            {teamName} 경기 이벤트 데이터 집계 ({subImpact.games}경기 표본). 교체 이후 수치는
+            상관 데이터로, 전부 교체 효과라는 뜻은 아닙니다.
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="rounded-xl border border-neutral-200 px-4 py-3 dark:border-neutral-800">
+              <div className="text-xs text-neutral-400">평균 교체</div>
+              <div className="mt-1 text-xl font-bold tabular-nums">{subImpact.avgSubs}명</div>
+            </div>
+            <div className="rounded-xl border border-neutral-200 px-4 py-3 dark:border-neutral-800">
+              <div className="text-xs text-neutral-400">첫 교체 평균</div>
+              <div className="mt-1 text-xl font-bold tabular-nums">
+                {subImpact.avgFirstSubMin != null ? `${subImpact.avgFirstSubMin}분` : "-"}
+              </div>
+            </div>
+            <div className="rounded-xl border border-neutral-200 px-4 py-3 dark:border-neutral-800">
+              <div className="text-xs text-neutral-400">교체 투입 골·도움</div>
+              <div className="mt-1 text-xl font-bold tabular-nums">
+                {subImpact.jokerGoals}골 {subImpact.jokerAssists}도움
+              </div>
+            </div>
+            <div
+              className="rounded-xl border border-neutral-200 px-4 py-3 dark:border-neutral-800"
+              title="첫 교체 시점에 뒤지던 경기 중 무승부 이상으로 마친 경기와 가져온 승점"
+            >
+              <div className="text-xs text-neutral-400">뒤지던 경기 뒤집기</div>
+              <div className="mt-1 text-xl font-bold tabular-nums">
+                {subImpact.trailingAtSub > 0
+                  ? `${subImpact.trailingRecovered}/${subImpact.trailingAtSub} · +${subImpact.trailingPoints}점`
+                  : "없음"}
+              </div>
+            </div>
+          </div>
+          <Link
+            href={`/soccer/sub-impact?league=${teamLeague}`}
+            className="mt-2 inline-block text-xs text-blue-500 hover:underline"
+          >
+            리그 전체 교체 임팩트 보기 →
+          </Link>
         </section>
       )}
 

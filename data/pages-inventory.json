@@ -770,6 +770,13 @@
     "group": "menu"
   },
   {
+    "route": "/soccer/sub-impact",
+    "desc": "교체 임팩트 — 리그별 조커(교체 투입) 랭킹과 감독 교체 성향·뒤지던 경기 승점 회수 데이터 페이지. 데이터: SubImpactCache (일 1회 /api/cron/sub-impact 가 ts incidents 로 재계산).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/standings",
     "desc": "/standings 인덱스 — 순위 허브: 종목별 섹션(축구·야구·농구·하키·배구·e스포츠) + 종목 칩 앵커. (2026-06-12 역할 분리 — /predictions 는 예측 요약, 순위 전체는 여기가 정본) (2026-06-20 종목 재편 — 종목 무관 16개 나열 → 종목 섹션. 각 리그 상세에 시즌 리더보드 추가)",
     "inMenu": true,

@@ -20,6 +20,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "nhl-goalies", label: "NHL 골리", maxAgeH: 28 },
   { name: "link-friendly-af", label: "클럽 친선 af 연결", maxAgeH: 28 },
   { name: "wc-sim-snapshot", label: "WC 우승확률", maxAgeH: 28 },
+  { name: "sub-impact", label: "교체 임팩트 집계", maxAgeH: 28 },
   // 하루 2회(10,22 UTC) — 기대 12h + 유예로 16h
   { name: "club-xi", label: "클럽 예상 라인업", maxAgeH: 16 },
   { name: "league-sim-snapshot", label: "시즌 시뮬", maxAgeH: 28 },

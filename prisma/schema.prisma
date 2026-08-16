@@ -1781,3 +1781,11 @@ model BetmanOdds {
   @@index([leagueName, gameDate])
   @@index([matchId])
 }
+
+/// 리그별 교체 임팩트 집계 캐시 — /soccer/sub-impact 페이지·감독 카드가 읽는다.
+/// 일 1회 /api/cron/sub-impact 가 ts 캐시 incidents + 라인업으로 재계산해 통째 덮어씀.
+model SubImpactCache {
+  league    String   @id
+  data      Json
+  updatedAt DateTime @updatedAt
+}

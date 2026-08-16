@@ -17,6 +17,10 @@
       "schedule": "30 4,8,16 * * *"
     },
     {
+      "path": "/api/cron/sub-impact",
+      "schedule": "40 20 * * *"
+    },
+    {
       "path": "/api/cron/transfer-briefs",
       "schedule": "0 5 * * *"
     },

@@ -41,6 +41,7 @@
     "job:npb-player-logs": "tsx src/jobs/collect-npb-player-logs.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",
+    "job:sub-impact": "tsx src/jobs/build-sub-impact.ts",
     "job:transactions": "tsx --env-file=.env.local src/jobs/fetch-transactions.ts",
     "job:salaries": "tsx --env-file=.env.local src/jobs/fetch-salaries.ts",
     "scheduler": "tsx src/jobs/scheduler.ts",
