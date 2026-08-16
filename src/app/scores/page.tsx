@@ -81,6 +81,7 @@ import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import SoccerSortToggle from "@/components/scores/SoccerSortToggle";
 import SortPrefWriter from "@/components/scores/SortPrefWriter";
+import FavPrefWriter from "@/components/scores/FavPrefWriter";
 import { cookies } from "next/headers";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
@@ -485,6 +486,33 @@ const fetchCacheDerivedCached = unstable_cache(
   ["scores-page-cache-derived"],
   { revalidate: 30, tags: ["live-scores"] },
 );
+
+/** 클라이언트 컴포넌트 props 에서 null/undefined 키를 걷어낸다.
+ *  RSC 페이로드는 `"baseballLinescore":null` 같은 빈 키도 전부 직렬화한다 — 오늘 창 실측
+ *  550KB props 중 227KB(41%)가 이런 null 이었다(야구 아닌 매치의 야구 필드 등).
+ *  소비 코드가 `=== null` 로 구분하는 곳은 없어(전수 확인) undefined 로 사라져도 동작 동일. */
+function compactProps<T>(value: T): T {
+  // 순수 데이터(plain object/배열)만 재구성한다. React 엘리먼트·Date·클래스 인스턴스·프록시를
+  // 파고들면 원본이 망가진다 — actions(React 엘리먼트 배열)를 재구성했다가 페이지가 통째로
+  // 죽었다(2026-08-16 dev 실측: "used ...params or similar expression" → failed to pipe response).
+  const isPlain = (v: unknown): v is Record<string, unknown> => {
+    if (!v || typeof v !== "object") return false;
+    if (Array.isArray(v)) return false;
+    if ("$$typeof" in (v as object)) return false; // React 엘리먼트
+    const proto = Object.getPrototypeOf(v);
+    return proto === Object.prototype || proto === null;
+  };
+  if (Array.isArray(value)) {
+    return value.map((v) => (isPlain(v) || Array.isArray(v) ? compactProps(v) : v)) as unknown as T;
+  }
+  if (!isPlain(value)) return value;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (v === null || v === undefined) continue;
+    out[k] = isPlain(v) || Array.isArray(v) ? compactProps(v) : v;
+  }
+  return out as T;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -1958,10 +1986,24 @@ export default async function ScoresPage({ searchParams }: Props) {
   // normalizedAll 은 DB 매치만이라, orphan 을 즐겨찾기하면 하단 목록엔 뜨는데 "내 경기"엔
   // 안 올라오던 버그(현재 종목 탭 기준). orphanCards 를 합쳐 넘긴다(id 중복은 방어적 제외).
   const favSrcIds = new Set(normalizedAll.map((m) => String(m.id)));
-  const favSource = [
-    ...normalizedAll,
-    ...orphanCards.filter((o) => !favSrcIds.has(String(o.id))),
-  ];
+  // 즐겨찾기 후보 — 쿠키(FavPrefWriter 가 미러)로 이 방문자의 즐겨찾기만 남긴다.
+  // FavoriteMatches 는 SSR 에서 아무것도 안 그리는데(mounted 게이트) 전체 520건을 props 로
+  // 실어 보내 HTML 의 10%(548KB)를 차지하고 있었다 (2026-08-16 실측). 쿠키가 없는 방문자는
+  // 즐겨찾기도 없다는 뜻이라 빈 배열이면 충분하고, 기존 사용자는 FavPrefWriter 가 쿠키를
+  // 기록하며 1회 refresh 로 즉시 복구한다.
+  const favCookieIds = new Set(
+    ((await cookies()).get("scores_fav")?.value ?? "")
+      .split(".")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+  const favSource =
+    favCookieIds.size === 0
+      ? []
+      : [
+          ...normalizedAll,
+          ...orphanCards.filter((o) => !favSrcIds.has(String(o.id))),
+        ].filter((m) => favCookieIds.has(String(m.id)));
 
   // 상태 그룹화 — DB(normalized) + orphan(date 조회) 합침
   const liveList = [
@@ -2293,6 +2335,8 @@ export default async function ScoresPage({ searchParams }: Props) {
               <SortPrefWriter
                 explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
               />
+              {/* 즐겨찾기 id 를 쿠키로 미러 — 서버가 해당 매치만 props 로 내려보내게 한다 */}
+              <FavPrefWriter />
               <div className="shrink-0">
                 <SoccerSortToggle
                   active={sortMode}
@@ -2323,7 +2367,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 />
                 <div className="min-w-0 space-y-6">
                 <FavoriteMatches
-                  matches={favSource.map((m) => ({
+                  matches={favSource.map((m) => compactProps({
                     id: String(m.id),
                     sortKey:
                       m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
@@ -2397,7 +2441,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           ) : (
             <div className="space-y-6">
               <FavoriteMatches
-                matches={normalizedAll.map((m) => ({
+                matches={normalizedAll.filter((m) => favCookieIds.has(String(m.id))).map((m) => compactProps({
                   id: String(m.id),
                   sortKey:
                     m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
