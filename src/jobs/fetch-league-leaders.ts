@@ -132,6 +132,7 @@ async function clearFutureSeasons(league: string, currentSeason: string) {
 const SOCCER_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
+  "ASEAN_CHAMP",
   "UEL", "UECL",
   "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
   "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
@@ -188,9 +189,11 @@ const TS_PLAYER_STAT_LEAGUES = new Set([
   // J1 413행·득점자 37, UCL 1164행·167, UEL 1003행·111, UECL 3198행·443, CSL 510행·156,
   // COPA_LIB 956행·153, COPA_SUD 1205행·188, AFC_CL 177행·9, AFC_CL_TWO 88행·8,
   // CHAMPIONSHIP 40행·4(개막 직후 — MIN_LEADERS 가드가 채워질 때까지 보류),
-  // GREEK_SL·A_LEAGUE 0행(개막 전 — 개막하면 자동 적재). J2 는 tsSeasonId 미보유
-  // 정책(NO_SEASON_ID — af 가 매치 소스)이라 제외.
-  "J1_LEAGUE", "AFC_CL", "AFC_CL_TWO", "UCL", "UEL", "UECL",
+  // GREEK_SL·A_LEAGUE 0행(개막 전 — 개막하면 자동 적재).
+  // J2 는 2026-08-16 등록 — tsSeasonId 복구(빌더 NO_SEASON_ID 해제, af 매치 수집은
+  // TS_COVERED_EXCEPTIONS 가 보호). 2026-27 실측 430행·득점자 38.
+  // ASEAN_CHAMP 도 동시 등록 — 2026 대회 실측 285행·득점자 51.
+  "J1_LEAGUE", "J2_LEAGUE", "ASEAN_CHAMP", "AFC_CL", "AFC_CL_TWO", "UCL", "UEL", "UECL",
   "CHAMPIONSHIP", "GREEK_SL", "CSL", "COPA_LIB", "COPA_SUD", "A_LEAGUE",
   // 2026-08-09 af fallback 에서 이동 — af 리더 엔드포인트가 6월 말부터 죽어(fetched 945h)
   // 개막 후에도 2025-26 리더보드가 그대로였다(사용자 신고: 에레디비시). 6개 전부
@@ -228,6 +231,8 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   const calendarYearLeagues = [
     "MLS", "K_LEAGUE_1", "K_LEAGUE_2", "WORLD_CUP",
     "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
+    "ASEAN_CHAMP", // ts 시즌 year "2026" 실측 — 단기 국대 토너먼트라 달력연도 라벨
+
     // 2026-08-02 확장 리그 중 달력연도 시즌 (af /leagues 의 현시즌 start~end 실측 분류).
     // 중미 아페르투라(7~11월)·페로/중국/우즈벡(봄~가을)·파나마·코파 두 브라질이 여기 해당.
     "FAROE_PL", "PANAMA_LPF", "UZBEKISTAN_SL", "CHINA_3", "COPA_DO_BRASIL",
