@@ -23,6 +23,8 @@ interface Player {
   x?: number;
   y?: number;
   rating?: string | number;
+  /** 예상 XI 전용 — 선발 확률(0~1). 있으면 평점 대신 % 칩 표시. */
+  confidence?: number;
 }
 
 interface LineupData {
@@ -272,10 +274,19 @@ function PlayerDot({
             </div>
           )}
         </div>
-        {/* 우상단 — 부상이면 OUT, 아니면 평점 배지 */}
+        {/* 우상단 — 부상이면 OUT, 예상 XI 면 선발 확률 %, 확정이면 평점 배지 */}
         {injured ? (
           <span className="absolute -top-1 -right-1.5 px-0.5 rounded-sm text-[7px] sm:text-[10px] font-extrabold text-white leading-[1.3] shadow bg-red-600">
             OUT
+          </span>
+        ) : player.confidence != null ? (
+          <span
+            className={`absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[10px] font-extrabold text-white leading-[1.3] shadow tabular-nums ${
+              player.confidence >= 0.7 ? "bg-emerald-600" : player.confidence >= 0.45 ? "bg-sky-600" : "bg-neutral-500"
+            }`}
+            title={`선발 확률 ${Math.round(player.confidence * 100)}%`}
+          >
+            {Math.round(player.confidence * 100)}%
           </span>
         ) : (
           rating > 0 && (
@@ -398,13 +409,14 @@ function BenchList({
     <div className="mt-4">
       <h3 className="text-center text-[12px] font-bold text-neutral-500 mb-1">교체명단</h3>
       {/* 모바일은 1열 — 2열로 쪼개면 이름 칸이 45px 로 좁아져 한글 이름이 "산티아..." 로
-          잘린다(실측 390px 에서 31px 부족). 세로가 길어져도 이름이 온전한 쪽을 택한다. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 sm:gap-x-6">
+          잘린다(실측 390px 에서 31px 부족). 세로가 길어져도 이름이 온전한 쪽을 택한다.
+          grid 대신 flex 방향 전환 — 윈도우 display:grid 무력화 환경 방어. */}
+      <div className="flex flex-col sm:flex-row gap-x-3 sm:gap-x-6">
         {[
           { list: sortBench(home), label: homeNameKo },
           { list: sortBench(away), label: awayNameKo },
         ].map((col, ci) => (
-          <div key={ci} className="min-w-0">
+          <div key={ci} className="min-w-0 sm:flex-1">
             <div className="truncate text-[10px] font-semibold text-neutral-400 mb-0.5 mt-2 sm:mt-0">{col.label}</div>
             <ul className="divide-y divide-black/5 dark:divide-white/5">
               {col.list.map((p, i) => (
@@ -645,15 +657,17 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
       )}
       {!subtitle && <div className="mb-2" />}
 
-      {/* 양 팀 헤더 — home(위) / away(아래) 포메이션 */}
-      <div className="grid grid-cols-2 gap-2 mb-2 text-center text-xs">
-        <div className="rounded-md bg-rose-50 dark:bg-rose-500/10 py-1.5">
+      {/* 양 팀 헤더 — home(위) / away(아래) 포메이션.
+          grid 대신 flex — 일부 윈도우 환경에서 display:grid 가 확장프로그램에 덮여 세로로
+          쌓이는 사례(windows-display-grid-dropout) 방어. */}
+      <div className="flex gap-2 mb-2 text-center text-xs">
+        <div className="flex-1 min-w-0 rounded-md bg-rose-50 dark:bg-rose-500/10 py-1.5">
           <div className="text-neutral-500 truncate px-1 text-[11px]">{homeNameKo}</div>
           <div className="text-rose-600 dark:text-rose-400 font-bold tabular-nums">
             {data.home_formation || posFormation(homeStarters) || "-"}
           </div>
         </div>
-        <div className="rounded-md bg-blue-50 dark:bg-blue-500/10 py-1.5">
+        <div className="flex-1 min-w-0 rounded-md bg-blue-50 dark:bg-blue-500/10 py-1.5">
           <div className="text-neutral-500 truncate px-1 text-[11px]">{awayNameKo}</div>
           <div className="text-blue-600 dark:text-blue-400 font-bold tabular-nums">
             {data.away_formation || posFormation(awayStarters) || "-"}

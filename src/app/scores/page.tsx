@@ -81,6 +81,7 @@ import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import SoccerSortToggle from "@/components/scores/SoccerSortToggle";
 import SortPrefWriter from "@/components/scores/SortPrefWriter";
+import FavPrefWriter from "@/components/scores/FavPrefWriter";
 import { cookies } from "next/headers";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
@@ -486,6 +487,33 @@ const fetchCacheDerivedCached = unstable_cache(
   { revalidate: 30, tags: ["live-scores"] },
 );
 
+/** 클라이언트 컴포넌트 props 에서 null/undefined 키를 걷어낸다.
+ *  RSC 페이로드는 `"baseballLinescore":null` 같은 빈 키도 전부 직렬화한다 — 오늘 창 실측
+ *  550KB props 중 227KB(41%)가 이런 null 이었다(야구 아닌 매치의 야구 필드 등).
+ *  소비 코드가 `=== null` 로 구분하는 곳은 없어(전수 확인) undefined 로 사라져도 동작 동일. */
+function compactProps<T>(value: T): T {
+  // 순수 데이터(plain object/배열)만 재구성한다. React 엘리먼트·Date·클래스 인스턴스·프록시를
+  // 파고들면 원본이 망가진다 — actions(React 엘리먼트 배열)를 재구성했다가 페이지가 통째로
+  // 죽었다(2026-08-16 dev 실측: "used ...params or similar expression" → failed to pipe response).
+  const isPlain = (v: unknown): v is Record<string, unknown> => {
+    if (!v || typeof v !== "object") return false;
+    if (Array.isArray(v)) return false;
+    if ("$$typeof" in (v as object)) return false; // React 엘리먼트
+    const proto = Object.getPrototypeOf(v);
+    return proto === Object.prototype || proto === null;
+  };
+  if (Array.isArray(value)) {
+    return value.map((v) => (isPlain(v) || Array.isArray(v) ? compactProps(v) : v)) as unknown as T;
+  }
+  if (!isPlain(value)) return value;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (v === null || v === undefined) continue;
+    out[k] = isPlain(v) || Array.isArray(v) ? compactProps(v) : v;
+  }
+  return out as T;
+}
+
 export const dynamic = "force-dynamic";
 
 interface Props {
@@ -721,29 +749,47 @@ function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
 // SEO: 종목별 한글/영문 라벨 + 키워드.
 // 검색량 (월): "라이브 스코어"·"라이브스코어" 각 183만, "스포츠중계" 67만(+83%),
 // "야구 중계" 13.5만(+83%), "라이브 스포츠" 1.8만(+124%), "KBO 일정" 1.2만 — 합산 250만+.
+// ⚠️ 세 맵 모두 SPORTS(sport-leagues.ts)의 code 전부를 덮어야 한다. 빠지면 제목이
+//    "스포츠 라이브스코어" 로, 하단 문구가 "주요 리그 통합" 으로 폴백되고 JSON-LD sport 가
+//    "Sports" 가 된다 — 배구·UFC·테니스·골프·F1 이 실제로 그 상태였다(2026-08-16 발견).
 const SPORT_NAMES_KO: Record<string, string> = {
   all: "스포츠",
   soccer: "축구",
   baseball: "야구",
   basketball: "농구",
+  volleyball: "배구",
   hockey: "하키",
   esports: "e스포츠",
+  mma: "UFC",
+  tennis: "테니스",
+  golf: "골프",
+  f1: "F1",
 };
 const SPORT_NAMES_EN: Record<string, string> = {
   all: "Sports",
   soccer: "Soccer",
   baseball: "Baseball",
   basketball: "Basketball",
+  volleyball: "Volleyball",
   hockey: "Ice Hockey",
   esports: "Esports",
+  mma: "MMA",
+  tennis: "Tennis",
+  golf: "Golf",
+  f1: "Formula 1",
 };
 const SPORT_LEAGUE_BLURB: Record<string, string> = {
-  all: "축구·야구·농구·하키·e스포츠 14개 리그",
+  all: "축구·야구·농구·배구·하키·e스포츠·UFC·테니스·골프·F1",
   soccer: "K리그·EPL·라리가·분데스·세리에A·UCL·UEL·MLS",
   baseball: "KBO·NPB·MLB",
   basketball: "NBA",
-  hockey: "NHL",
+  volleyball: "V-리그·VNL·KOVO컵",
+  hockey: "NHL·KHL·챔피언스 하키 리그·유럽 리그",
   esports: "LCK·롤드컵",
+  mma: "UFC",
+  tennis: "ATP·WTA",
+  golf: "PGA·LPGA",
+  f1: "F1",
 };
 const COMMON_HIGH_VOLUME_KEYWORDS = [
   "라이브 스코어",
@@ -1882,6 +1928,25 @@ export default async function ScoresPage({ searchParams }: Props) {
       afTeamIdMap.set(r.externalId, s);
     }
   }
+  // af 가 킥오프를 하루 틀리게 싣는 경기 대응 — 그 팀 쌍의 DB 매치가 인접일에 있으면 같은
+  // 경기다(2026-08-23 COLOMBIA_PA: af 8/23 01:15Z ↔ 우리 8/24 01:15Z, 현지 일정은 우리가 맞다).
+  // 페이지가 그날치 DB 만 들고 있어 판정이 하루에 갇히므로, 팀 쌍만 ±2일로 따로 조회한다.
+  const crossDayTeamPairs = new Set<string>();
+  const orphanLeagues = [...new Set(datedSoccer.map((d) => d.league))];
+  if (afTeamExtIds.length && orphanLeagues.length) {
+    const dayStartMs = new Date(`${dateStr}T00:00:00+09:00`).getTime();
+    const nearby = await prisma.match.findMany({
+      where: {
+        league: { in: orphanLeagues },
+        startTime: {
+          gte: new Date(dayStartMs - 2 * 86400_000),
+          lte: new Date(dayStartMs + 3 * 86400_000),
+        },
+      },
+      select: { league: true, homeTeamId: true, awayTeamId: true },
+    });
+    for (const m of nearby) crossDayTeamPairs.add(`${m.league}|${m.homeTeamId}|${m.awayTeamId}`);
+  }
   const orphanDedup = buildOrphanDedup(
     matches.map((m) => ({
       league: m.league,
@@ -1894,6 +1959,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     })),
     datedSoccer,
     afTeamIdMap,
+    crossDayTeamPairs,
   );
   // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
   // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
@@ -1920,10 +1986,24 @@ export default async function ScoresPage({ searchParams }: Props) {
   // normalizedAll 은 DB 매치만이라, orphan 을 즐겨찾기하면 하단 목록엔 뜨는데 "내 경기"엔
   // 안 올라오던 버그(현재 종목 탭 기준). orphanCards 를 합쳐 넘긴다(id 중복은 방어적 제외).
   const favSrcIds = new Set(normalizedAll.map((m) => String(m.id)));
-  const favSource = [
-    ...normalizedAll,
-    ...orphanCards.filter((o) => !favSrcIds.has(String(o.id))),
-  ];
+  // 즐겨찾기 후보 — 쿠키(FavPrefWriter 가 미러)로 이 방문자의 즐겨찾기만 남긴다.
+  // FavoriteMatches 는 SSR 에서 아무것도 안 그리는데(mounted 게이트) 전체 520건을 props 로
+  // 실어 보내 HTML 의 10%(548KB)를 차지하고 있었다 (2026-08-16 실측). 쿠키가 없는 방문자는
+  // 즐겨찾기도 없다는 뜻이라 빈 배열이면 충분하고, 기존 사용자는 FavPrefWriter 가 쿠키를
+  // 기록하며 1회 refresh 로 즉시 복구한다.
+  const favCookieIds = new Set(
+    ((await cookies()).get("scores_fav")?.value ?? "")
+      .split(".")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+  const favSource =
+    favCookieIds.size === 0
+      ? []
+      : [
+          ...normalizedAll,
+          ...orphanCards.filter((o) => !favSrcIds.has(String(o.id))),
+        ].filter((m) => favCookieIds.has(String(m.id)));
 
   // 상태 그룹화 — DB(normalized) + orphan(date 조회) 합침
   const liveList = [
@@ -2255,6 +2335,8 @@ export default async function ScoresPage({ searchParams }: Props) {
               <SortPrefWriter
                 explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
               />
+              {/* 즐겨찾기 id 를 쿠키로 미러 — 서버가 해당 매치만 props 로 내려보내게 한다 */}
+              <FavPrefWriter />
               <div className="shrink-0">
                 <SoccerSortToggle
                   active={sortMode}
@@ -2285,7 +2367,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 />
                 <div className="min-w-0 space-y-6">
                 <FavoriteMatches
-                  matches={favSource.map((m) => ({
+                  matches={favSource.map((m) => compactProps({
                     id: String(m.id),
                     sortKey:
                       m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
@@ -2359,7 +2441,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           ) : (
             <div className="space-y-6">
               <FavoriteMatches
-                matches={normalizedAll.map((m) => ({
+                matches={normalizedAll.filter((m) => favCookieIds.has(String(m.id))).map((m) => compactProps({
                   id: String(m.id),
                   sortKey:
                     m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,

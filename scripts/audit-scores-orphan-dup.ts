@@ -63,7 +63,22 @@ async function auditDate(date: string) {
     apiFixtureId: m.apiFixtureId,
     externalId: m.externalId,
   }));
-  const dedup = buildOrphanDedup(dbMatches, dated, afTeamIdMap);
+  // 인접일 팀 쌍 — af 가 킥오프를 하루 틀리게 싣는 경기 판정용. 페이지와 같은 폭(±2일)이어야
+  // 규칙이 갈리지 않는다.
+  const dayStartMs = new Date(`${date}T00:00:00+09:00`).getTime();
+  const nearby = await prisma.match.findMany({
+    where: {
+      startTime: {
+        gte: new Date(dayStartMs - 2 * 86400 * 1000),
+        lte: new Date(dayStartMs + 3 * 86400 * 1000),
+      },
+    },
+    select: { league: true, homeTeamId: true, awayTeamId: true },
+  });
+  const crossDayTeamPairs = new Set(
+    nearby.map((m) => `${m.league}|${m.homeTeamId}|${m.awayTeamId}`),
+  );
+  const dedup = buildOrphanDedup(dbMatches, dated, afTeamIdMap, crossDayTeamPairs);
 
   const covered: string[] = [];
   const suspects: string[] = [];
@@ -108,11 +123,48 @@ async function auditDate(date: string) {
     }
   }
 
+  // 사각지대 — [잔여의심] 은 "한쪽 팀이라도 이름이 겹칠 때"만 뜬다. 양팀 다 다른 이름으로
+  // 실리면(af 가 구 팀명을 유지하는 CHINA_3, 로마자가 갈리는 RPL) 레이더 밖이라 0건으로
+  // 통과한다(2026-08-16 실측: 중국 2건·러시아 1건이 이렇게 새어 화면에 카드 두 장).
+  // 리그 단위 수량으로 잡는다 — af 경기가 DB 경기보다 많지 않은데 orphan 이 남으면, 그 리그의
+  // af 경기는 원래 전부 DB 에 있어야 하므로 이름 규칙이 놓친 것이다.
+  const perLeague = new Map<string, { af: number; db: number; orphan: number }>();
+  for (const dm of dated) {
+    const e = perLeague.get(dm.league) ?? { af: 0, db: 0, orphan: 0 };
+    e.af++;
+    if (!dedup.reasonOf(dm)) e.orphan++;
+    perLeague.set(dm.league, e);
+  }
+  for (const m of dbMatches) {
+    const e = perLeague.get(m.league) ?? { af: 0, db: 0, orphan: 0 };
+    e.db++;
+    perLeague.set(m.league, e);
+  }
+  const blind = [...perLeague.entries()]
+    .filter(([, v]) => v.af > 0 && v.db > 0 && v.orphan > 0 && v.af <= v.db)
+    .sort((a, b) => b[1].orphan - a[1].orphan);
+
   console.log(`\n===== ${date} | af ${dated.length}건 · DB ${matches.length}건 =====`);
   console.log(`[중복제거] ${covered.length}건`);
   for (const l of covered) console.log(l);
   console.log(`[잔여의심] ${suspects.length}건 — 같은 경기면 규칙 보강 대상`);
   for (const l of suspects) console.log(l);
+  console.log(
+    `[사각지대] ${blind.length}개 리그 — af 경기가 DB 보다 많지 않은데 orphan 이 남음(양팀 이름이 모두 어긋나는 유형)`,
+  );
+  for (const [lg, v] of blind) {
+    console.log(`  ${lg} | af ${v.af}건 · DB ${v.db}건 · 살아남은 orphan ${v.orphan}건`);
+    for (const dm of dated.filter((d) => d.league === lg && !dedup.reasonOf(d))) {
+      // 양팀 af id 가 이미 우리 Team 에 물려 있는데도 남았다면 이름 문제가 아니다 — 두 소스가
+      // 그 경기를 **다른 날짜**로 싣고 있다는 신호(감사는 하루 단위라 짝이 범위 밖에 있다).
+      // 처방이 갈린다: 이름 유형은 팀 ID 매핑, 날짜 유형은 일정 정합성 확인. [[cross-source-dup-reschedule]]
+      const mapped =
+        (dm.homeTeamExtId ? afTeamIdMap.has(dm.homeTeamExtId) : false) &&
+        (dm.awayTeamExtId ? afTeamIdMap.has(dm.awayTeamExtId) : false);
+      const tag = mapped ? " ← 양팀 매핑 있음: 일정(날짜) 불일치 의심" : "";
+      console.log(`      af: ${dm.homeName} vs ${dm.awayName} (${dm.startTime})${tag}`);
+    }
+  }
 }
 
 (async () => {

@@ -6,6 +6,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 
 interface NbaRow {
   espnId: string;
@@ -72,7 +74,11 @@ async function fetchNbaStandings(): Promise<NbaStd | null> {
   }
 }
 
-export default async function NbaStandingsTable() {
+/** withLastLeaders — 개막 전 접기 안에 지난 시즌 리더보드를 같이 넣는다. 리그 탭 전용 opt-in:
+ *  /standings/NBA 는 페이지가 자체 "시즌 리더보드" 섹션을 이미 렌더해 같은 표가 두 번 나온다. */
+export default async function NbaStandingsTable({
+  withLastLeaders = false,
+}: { withLastLeaders?: boolean } = {}) {
   const std = await fetchNbaStandings();
   if (!std) {
     return (
@@ -190,6 +196,10 @@ export default async function NbaStandingsTable() {
     );
   }
 
+  // 지난 시즌 리더보드 — 접기 안에서 최종 순위와 함께 본다(축구 리그와 동일 처리).
+  const lastLeaders = withLastLeaders ? await loadLeagueLeaderboard("NBA", oldLabel) : null;
+  const hasLastLeaders = Object.keys(lastLeaders?.rowsByCategory ?? {}).length > 0;
+
   // 전환기 — 다음 시즌 개막 대기. 개막 일정(있으면) + 지난 시즌 최종 순위 접기.
   return (
     <div className="space-y-4">
@@ -230,9 +240,20 @@ export default async function NbaStandingsTable() {
       <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
         <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
           <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
-          지난 시즌 최종 순위 <span className="font-normal text-neutral-400">({oldLabel})</span>
+          지난 시즌 최종 순위{hasLastLeaders ? " · 기록" : ""}{" "}
+          <span className="font-normal text-neutral-400">({oldLabel})</span>
         </summary>
-        <div className="px-2 pb-3 pt-1">{tablesEl}</div>
+        <div className="px-2 pb-3 pt-1 space-y-4">
+          {tablesEl}
+          {hasLastLeaders && (
+            <LeagueLeaderBoard
+              league="NBA"
+              season={oldLabel}
+              rowsByCategory={lastLeaders!.rowsByCategory}
+              footer={`${oldLabel} 시즌 최종 기록`}
+            />
+          )}
+        </div>
       </details>
 
       <p className="text-[11px] text-neutral-400">{nextLabel} 시즌 개막 후 자동으로 실시간 순위로 전환됩니다.</p>

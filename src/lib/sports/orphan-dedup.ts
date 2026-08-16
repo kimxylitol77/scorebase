@@ -44,6 +44,11 @@ export function romanizeTeamName(s: string): string {
     .replace(/þ/g, "th")
     .replace(/ß/g, "ss")
     .replace(/ı/g, "i")
+    // 슬라브 로마자 표기는 같은 팀을 i 로도 y 로도 적는다 — af "Krylia Sovetov vs Dinamo
+    // Makhachkala" ↔ ts "Krylya Sovetov vs Dynamo Makhachkala"(2026-08-16 RPL 실측, 양팀
+    // 모두 어긋나 카드 두 장). 한쪽으로 몰아 흡수. 전체 5002팀 스캔에서 이 치환으로 새로
+    // 겹치는 같은 리그 팀은 0건이었다(오매칭 위험 실측).
+    .replace(/y/g, "i")
     .replace(/[\s.·\-_/]/g, "");
 }
 
@@ -82,7 +87,7 @@ export interface ConfirmedPair {
 }
 
 /** 중복으로 판정한 근거 — 감사 출력용. */
-export type DedupReason = "fixtureId" | "name" | "roman" | "teamId" | "oneSide";
+export type DedupReason = "fixtureId" | "name" | "roman" | "teamId" | "oneSide" | "crossDay";
 
 const NEAR_KICKOFF_MS = 120 * 60 * 1000;
 const SAME_KICKOFF_MS = 15 * 60 * 1000;
@@ -92,11 +97,18 @@ const RESERVE_MARK = /(\bii\b|\bb\b|\bnxt\b|\bjong\b|\bam\b|u-?\d{2}\b|youth|res
 /**
  * DB 매치 집합에 대해 orphan 후보의 중복 여부를 판정하는 함수를 만든다.
  * @param afTeamIdMap af 팀 ID → 우리 Team.id 집합 (TeamSourceId source="api-football")
+ * @param crossDayTeamPairs 인접일(±2일) DB 매치의 `league|homeTeamId|awayTeamId` 집합.
+ *   af 가 킥오프를 **하루 틀리게** 싣는 경기 대응 — 2026-08-23 COLOMBIA_PA 실측: af 는
+ *   Junior vs Once Caldas 를 8/23 01:15Z, 우리(ts)는 8/24 01:15Z 로 싣는다(현지 8/23 20:15 이
+ *   맞고 af 가 하루 빠름). 판정은 하루 단위라 짝이 범위 밖이고, 그 결과 같은 경기가 이틀에 걸쳐
+ *   카드 두 장으로 뜬다. 팀 쌍은 **방향까지 같을 때만** 본다 — 홈/원정을 뒤집는 컵 2차전을
+ *   같은 경기로 지우지 않기 위함.
  */
 export function buildOrphanDedup(
   matches: DedupDbMatch[],
   dated: DatedMatch[],
   afTeamIdMap: Map<string, Set<number>>,
+  crossDayTeamPairs?: Set<string>,
 ) {
   // 팀명 정규화는 매치 수 × 후보 수만큼 반복 호출된다(프리시즌 하루 300건 이상) — 결과 캐시.
   const memo = <T,>(fn: (s: string) => T) => {
@@ -194,6 +206,19 @@ export function buildOrphanDedup(
     return false;
   };
 
+  // af 가 킥오프 날짜를 틀리게 싣는 경기 — 같은 팀 쌍(방향 동일)의 DB 매치가 인접일에 있으면
+  // 그 경기다. 팀 ID 로만 판정하므로 이름 표기와 무관하고, 방향을 강제해 컵 2차전은 살린다.
+  const coveredByCrossDay = (dm: DatedMatch) => {
+    if (!crossDayTeamPairs?.size) return false;
+    const hs = dm.homeTeamExtId ? afTeamIdMap.get(dm.homeTeamExtId) : undefined;
+    const as = dm.awayTeamExtId ? afTeamIdMap.get(dm.awayTeamExtId) : undefined;
+    if (!hs?.size || !as?.size) return false;
+    for (const h of hs) {
+      for (const a of as) if (crossDayTeamPairs.has(`${dm.league}|${h}|${a}`)) return true;
+    }
+    return false;
+  };
+
   // 한쪽 팀만 이름이 겹치는 중복 — 소스가 팀을 아예 다른 별칭으로 부르면(af "Club Brugge II" ↔
   // ts "Club NXT") 양팀 AND 매칭이 통째로 실패한다.
   // 오탐 가드 3중 — 프리시즌엔 한 팀이 하루에 상대를 바꿔 두 경기를 뛰므로, 한쪽 일치만으로
@@ -248,6 +273,7 @@ export function buildOrphanDedup(
     if (matches.some((m) => m.league === dm.league && bothSides(m, dm, romanOf))) return "roman";
     if (coveredByTeamId(dm)) return "teamId";
     if (coveredByOneSideAndTime(dm)) return "oneSide";
+    if (coveredByCrossDay(dm)) return "crossDay";
     return null;
   };
 
@@ -287,7 +313,21 @@ export function buildOrphanDedup(
   /** 감사용 — 짝으로 지목된 DB 매치(없으면 null). */
   const pairedDbMatch = (dm: DatedMatch) => {
     const dmMs = new Date(dm.startTime).getTime();
+    // 팀 ID 축을 먼저 본다 — 이름이 양쪽 다 다른 리그(af 가 구 팀명을 쓰는 CHINA_3)는 ID 로만
+    // 판정되므로, 이름으로 짝을 찾으면 감사 출력이 "짝 특정 실패"로 떠 눈으로 확인할 수 없다.
+    const hs = dm.homeTeamExtId ? afTeamIdMap.get(dm.homeTeamExtId) : undefined;
+    const as = dm.awayTeamExtId ? afTeamIdMap.get(dm.awayTeamExtId) : undefined;
+    const byTeamId =
+      hs?.size && as?.size
+        ? matches.find(
+            (m) =>
+              m.league === dm.league &&
+              ((hs.has(m.homeTeamId) && as.has(m.awayTeamId)) ||
+                (hs.has(m.awayTeamId) && as.has(m.homeTeamId))),
+          )
+        : undefined;
     return (
+      byTeamId ??
       matches.find(
         (m) =>
           m.league === dm.league &&

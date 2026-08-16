@@ -17,6 +17,8 @@ interface LineupPlayer {
   x?: number;
   y?: number;
   rating?: string | number;
+  /** 예상 XI 전용 — 가중 투표 점유율(0~1). 마커에 % 칩으로 표시. */
+  confidence?: number;
 }
 
 export interface PredictedLineupData {
@@ -54,6 +56,7 @@ function teamToPlayers(team: PredictedXiTeam): LineupPlayer[] {
     x,
     y,
     rating: p.avgRating,
+    confidence: p.confidence,
   });
 
   const out: LineupPlayer[] = [];

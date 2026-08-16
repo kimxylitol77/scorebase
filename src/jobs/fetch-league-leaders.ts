@@ -1,8 +1,7 @@
 // 리그별 시즌 리더보드 fetch — 매일 1회 cron.
 //
 // 데이터 소스:
-//   - 축구 대부분: ts season/recent/player/stat 라이브 (TS_PLAYER_STAT_LEAGUES) — 소스 1순위 원칙
-//   - 축구 달력연도 4종(K리그·MLS·브라질레이랑): data/player-season-stats.json (주간 정적 갱신)
+//   - 축구: ts season/recent/player/stat 라이브 (TS_PLAYER_STAT_LEAGUES) — 소스 1순위 원칙
 //   - 축구 잔여(AFC_U23 등): API-Football topscorers fallback — 2026-06 말부터 사망 상태
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
@@ -174,29 +173,21 @@ const SOCCER_LEAGUES = [
   "AZERBAIJAN_PL", "SINGAPORE_PL", "IRAQ_SL",
 ];
 
-// season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
-// 리그는 "리그 득점왕"이 부정확할 수 있어 제외 → api-football fallback 이 담당.
-// BUNDESLIGA_2 는 2026-08-08 ts 라이브 경로로 이동 — 정적 JSON 은 빌더 재실행·커밋 전까지
-// 지난 시즌에 동결돼, 새 시즌 개막 후에도 2025-26 리더보드가 그대로 보였다(사용자 신고).
-// ts season/recent/player/stat 실측: 새 시즌 200행·득점자 20명 → 라이브 경로 기준 충족.
-// 2026-08-16: 유럽 시즌제 9종(EPL·LALIGA·분데스·세리에A·리그1·라리가2·사우디·쉬페르리그·
-// 세리에B)도 같은 증상(2026-27 개막 후에도 2025-26 동결)으로 ts 라이브 경로로 이동.
-// 남은 4종은 달력연도 리그(시즌 중 라벨 정합) — 값이 주간 정적 갱신만큼 늦는 한계는 있다.
-const SEASON_STATS_LEAGUES = new Set([
-  "K_LEAGUE_1", "K_LEAGUE_2", "MLS", "BRASILEIRAO",
-]);
-
-// ts 시즌 선수통계를 리그 1콜로 직접 받는 확장 리그 (2026-08-02).
-// 위 SEASON_STATS_LEAGUES 는 정적 JSON(data/player-season-stats.json)을 읽는 경로라
-// 새 리그는 빌더 재실행·커밋이 필요해 stale 해진다. 이쪽은 season/recent/player/stat 을
-// cron 이 매번 호출하므로 항상 최신이다.
+// ts 시즌 선수통계를 리그 1콜로 직접 받는 리그 (2026-08-02 도입).
+// 과거의 정적 JSON 경로(data/player-season-stats.json, SEASON_STATS_LEAGUES)는 주간 빌더
+// 재실행·커밋 전까지 동결되는 구조라 단계적으로 전부 이쪽으로 이전 — 2026-08-08 분데스2,
+// 08-16 유럽 시즌제 9종(2026-27 개막 후 지난 시즌 동결), 같은 날 달력연도 4종
+// (K리그1/2·MLS·브라질레이랑 — 주간 갱신 2주 누락으로 K리그1 득점왕이 실제와 다르게
+// 표시된 것이 확인돼 이전, 정적 경로 코드는 제거)까지 완료. 이쪽은 cron 이 매번 호출하므로
+// 항상 최신이다.
 //
 // ⚠️ 같은 리그를 ts·af 두 소스로 채우면 값이 어긋난다(팀순위 이중소스 사고와 같은 원인).
 // 여기 등록한 리그는 af fallback 을 절대 타지 않는다 — runSoccer 분기가 단일 소스를 보장.
 // 등록 기준: ts season/recent/player/stat 실측으로 행이 존재하는 리그. LUXEMBOURG_ND 는
 // ts 0행이라 제외(= af 로 메우는 갭), PORTUGAL_SUPER_CUP 은 단일 경기라 리더보드 무의미.
 const TS_PLAYER_STAT_LEAGUES = new Set([
-  "BUNDESLIGA_2", // 2026-08-08 정적 JSON 에서 이동 — 위 SEASON_STATS_LEAGUES 주석 참고
+  "BUNDESLIGA_2", // 2026-08-08 정적 JSON 에서 이동 — 위 주석 참고
+  "K_LEAGUE_1", "K_LEAGUE_2", "MLS", "BRASILEIRAO", // 2026-08-16 정적 JSON 마지막 4종 이전
   // 2026-08-15 af fallback 잔존 리그 일괄 이전 — af 리더 엔드포인트 사망(6월 말~)으로
   // J1 리더보드가 아예 비어 있었다(사용자 신고). ts season/recent/player/stat 전수 실측:
   // J1 413행·득점자 37, UCL 1164행·167, UEL 1003행·111, UECL 3198행·443, CSL 510행·156,
@@ -268,7 +259,9 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
     "ECUADOR_LP", "ELITESERIEN", "ESTONIA_ML", "GEORGIA_EL", "ICELAND_1L",
     "IRELAND_PD", "LATVIA_VL", "LITHUANIA_AL", "NORWAY_1L", "PERU_PD",
     "SUPERETTAN", "URVALSDEILD", "USA_USL_CH", "VEIKKAUSLIIGA", "VENEZUELA_PD",
-    "VIETNAM_VL1", "YKKONEN", "ARGENTINA_PL", "ARG_PRIMERA_NACIONAL", "CHINA_2",
+    // VIETNAM_VL1 은 2026-08-16 제외 — V리그1 은 추춘제(9~6월)라 달력 분류가 오분류였다
+    // (ts 메타 라벨 "2025-26" 과 이중 적재 실측). ts 메타가 정본이라 폴백도 유럽형이 맞다.
+    "YKKONEN", "ARGENTINA_PL", "ARG_PRIMERA_NACIONAL", "CHINA_2",
     "BOLIVIA_PD", "URUGUAY_PD", "NWSL", "KAZAKHSTAN_PL", "BELARUS_PL", "PARAGUAY_PD",
     "BRASILEIRAO_2",
   ];
@@ -329,105 +322,18 @@ async function syncSoccerCategory(
 // 카테고리별 리더가 이 수 미만이면 커버리지 부족으로 보고 skip (기존 데이터 보존).
 const MIN_LEADERS = 5;
 
-interface SeasonStatRow {
-  lg: string;
-  season: string;
-  team: string | null;
-  goals: number | null;
-  assists: number | null;
-  yellow: number | null;
-  red: number | null;
-  matches: number | null;
-  rating: number | null;
-}
 type PlayerNameOverride = { nameKo?: string };
 
-let seasonStatsCache: Record<string, SeasonStatRow> | null = null;
-let playerPhotosCache: Record<string, string> | null = null;
 let playerOverridesCache: Record<string, PlayerNameOverride> | null = null;
-function loadJson<T>(rel: string): T {
-  return JSON.parse(readFileSync(path.join(process.cwd(), rel), "utf-8")) as T;
-}
 function loadJsonSafe<T>(rel: string, fallback: T): T {
   try {
-    return loadJson<T>(rel);
+    return JSON.parse(readFileSync(path.join(process.cwd(), rel), "utf-8")) as T;
   } catch {
     return fallback;
   }
 }
-function seasonStats(): Record<string, SeasonStatRow> {
-  return (seasonStatsCache ??= loadJson<Record<string, SeasonStatRow>>("data/player-season-stats.json"));
-}
-function playerPhotos(): Record<string, string> {
-  return (playerPhotosCache ??= loadJsonSafe("data/player-photos.json", {}));
-}
 function playerOverrides(): Record<string, PlayerNameOverride> {
   return (playerOverridesCache ??= loadJsonSafe("data/player-overrides.json", {}));
-}
-
-const SOCCER_CATS: Array<{ cat: "GOAL" | "ASSIST" | "YELLOW" | "RED"; key: "goals" | "assists" | "yellow" | "red"; unit: string }> = [
-  { cat: "GOAL", key: "goals", unit: "골" },
-  { cat: "ASSIST", key: "assists", unit: "도움" },
-  { cat: "YELLOW", key: "yellow", unit: "장" },
-  { cat: "RED", key: "red", unit: "장" },
-];
-
-/** 한 클럽리그의 리더보드를 season-stats 로 적재. 카테고리별 <5 면 skip(기존 보존). */
-async function syncClubLeagueFromSeasonStats(league: string): Promise<Record<string, number>> {
-  const stats = seasonStats();
-  const entries = Object.entries(stats).filter(([, s]) => s.lg === league);
-  const out: Record<string, number> = {};
-  if (entries.length === 0) return out;
-
-  // 리그 시즌 라벨 — 행마다 동일하나 최빈값으로 방어.
-  const seasonCount = new Map<string, number>();
-  for (const [, s] of entries) seasonCount.set(s.season, (seasonCount.get(s.season) ?? 0) + 1);
-  const seasonLabel = [...seasonCount.entries()].sort((a, b) => b[1] - a[1])[0][0];
-
-  // 카테고리별 상위 계산 (값 내림차순, 평점 tiebreak — WC 패턴과 동일).
-  const tops = SOCCER_CATS.map(({ cat, key, unit }) => ({
-    cat, key, unit,
-    top: entries
-      .filter(([, s]) => (s[key] ?? 0) > 0)
-      .sort((a, b) => (b[1][key] ?? 0) - (a[1][key] ?? 0) || (b[1].rating ?? 0) - (a[1].rating ?? 0))
-      .slice(0, TOP_N),
-  }));
-
-  // 이름 배치 조회 (TheSportsPlayer DB). 상위 등장 id 합집합.
-  const ids = [...new Set(tops.flatMap((c) => c.top.map(([id]) => id)))];
-  const lp = ids.length
-    ? await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, nameKo: true } })
-    : [];
-  const nm = new Map(lp.map((p) => [p.id, p]));
-  const ov = playerOverrides();
-  const photos = playerPhotos();
-  const nameOf = (id: string) => ov[id]?.nameKo || nm.get(id)?.nameKo || nm.get(id)?.name || "(미상)";
-
-  for (const { cat, unit, key, top } of tops) {
-    // 커버리지 부족 → 기존 데이터 보존 (upsert·clearOldRanks 모두 skip).
-    if (top.length < MIN_LEADERS) continue;
-    for (let i = 0; i < top.length; i++) {
-      const [id, s] = top[i];
-      const af = tsPlayerToAf(id);
-      await upsertLeader({
-        league,
-        category: cat,
-        rank: i + 1,
-        playerName: nameOf(id),
-        playerNameEn: nm.get(id)?.name ?? undefined,
-        externalId: af ? String(af) : id,
-        teamName: toKoreanTeamName(s.team ?? "", league) || s.team || "",
-        value: s[key] ?? 0,
-        unit,
-        appearances: s.matches ?? undefined,
-        photoUrl: photos[id] || undefined,
-        season: seasonLabel,
-      });
-    }
-    await clearOldRanks(league, cat, seasonLabel, top.length);
-    out[cat] = top.length;
-  }
-  return out;
 }
 
 /** ts 시즌 uuid 의 실제 연도로 시즌 라벨 도출 — "2026-2027" → "2026-27", "2026" → "2026".
@@ -450,8 +356,7 @@ async function tsSeasonLabelOf(seasonId: string): Promise<string | null> {
   }
 }
 
-// 확장 리그 리더 = ts season/recent/player/stat 직접 호출 (리그당 1콜).
-// 정적 JSON 경로(syncClubLeagueFromSeasonStats)와 달리 빌더 재실행이 필요 없어 stale 하지 않다.
+// 축구 리더 주 경로 = ts season/recent/player/stat 직접 호출 (리그당 1콜) — 항상 최신.
 // 한글 선수명은 TheSportsPlayer DB 에 있으면 쓰고, 없으면 ts 영문명 그대로 (하부리그는 미등재 다수).
 async function syncLeagueFromTsPlayerStat(
   league: string,
@@ -610,11 +515,6 @@ async function runSoccer() {
         // 월드컵 = TheSports 집계 (api-football 미제공 → /ballon 월드컵 소실 방지).
         if (lg === "WORLD_CUP") {
           result[lg] = await syncWorldCupFromTheSports(currentSoccerSeason(lg).label);
-          continue;
-        }
-        // TheSports 시즌통계 커버 리그 = ts 우선 (데이터 소스 1순위 원칙).
-        if (SEASON_STATS_LEAGUES.has(lg)) {
-          result[lg] = await syncClubLeagueFromSeasonStats(lg);
           continue;
         }
         // ts 시즌 선수통계 직접 호출 리그 — af 로 내려가지 않는다(이중 소스 금지).

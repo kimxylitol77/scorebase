@@ -37,17 +37,23 @@ async function isPreSeasonZeroTable(league: string): Promise<boolean> {
   return mapped >= 0.9;
 }
 
+/**
+ * @param seasonOverride 특정 시즌을 지정해 읽는다 (개막 전 "지난 시즌 최종 기록" 노출용).
+ *   지정하면 preSeason 가드를 건너뛴다 — 가드는 "현재 시즌 기록이 있을 리 없다"는 판정이라
+ *   과거 시즌을 명시적으로 요청한 호출에는 해당하지 않는다.
+ */
 export async function loadLeagueLeaderboard(
   league: string,
+  seasonOverride?: string,
 ): Promise<{ rowsByCategory: Record<string, LeaderRow[]>; season: string; preSeason: boolean }> {
   // 한 리그에 여러 시즌이 누적될 수 있어 최신 시즌만 노출 (중복 방지).
   const allRows = await prisma.leagueLeader.findMany({
-    where: { league },
+    where: { league, ...(seasonOverride ? { season: seasonOverride } : {}) },
     orderBy: [{ season: "desc" }, { category: "asc" }, { rank: "asc" }],
     take: 400,
   });
-  const season = allRows[0]?.season ?? "";
-  if (allRows.length > 0 && (await isPreSeasonZeroTable(league))) {
+  const season = seasonOverride ?? allRows[0]?.season ?? "";
+  if (!seasonOverride && allRows.length > 0 && (await isPreSeasonZeroTable(league))) {
     return { rowsByCategory: {}, season, preSeason: true };
   }
   const rows = allRows.filter((r) => r.season === season);
