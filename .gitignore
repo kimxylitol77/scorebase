@@ -55,8 +55,11 @@ prisma/migrations/
 #   빼두면 배포 빌드가 모듈 미해결로 깨진다. run-brief 는 로컬 러너라 제외 유지.
 src/lib/chatbot/run-brief.ts
 
-# 로컬 dev 도구 (preview 등)
-.claude/
+# 로컬 dev 도구 (preview 등) + 워크트리 체크아웃
+# skills 만 예외 — 이 리포 전용 운영 절차라 맥미니·Vultr·다른 세션도 읽어야 한다.
+# (`.claude/` 로 디렉터리를 통째 제외하면 하위 negation 이 안 먹어서 `/*` 형태로 둔다)
+.claude/*
+!.claude/skills/
 
 # git worktree 체크아웃 (저장소 전체 사본 — 추적하면 lint·검색이 중복 히트)
 # 과거 커밋된 .worktrees/agents-chat 스냅샷은 태그 archive/agents-chat-snapshot 에 보존.
