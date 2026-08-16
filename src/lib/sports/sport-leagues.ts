@@ -69,6 +69,9 @@ export const ALL_LEAGUES = [
   "KOVO_CUP", "KOVO_CUP_W",
   // 2026-08-16 배구 국가대표 친선 — utid 남 z8yomoxhk3gm0j6 / 여 56ypq3xh533qd7o
   "VB_FRIENDLY", "VB_FRIENDLY_W",
+  // 2026-08-16 배구 대륙·연령별 선수권 (대회명은 7m 대조 확인)
+  "VB_U17_WC", "VB_U17_WC_W", "VB_EURO_W", "VB_ASIAN_W",
+  "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -182,7 +185,12 @@ export const SPORTS: SportMeta[] = [
     emoji: "🏐",
     // 2026-06-12 신설 — TheSports 배구. V-리그는 10월 개막 시 추가 예정([[feedback_thesports_volleyball_shapes]]).
     // 2026-08-01 V-리그 남녀 추가 — 10월 개막 대비 선등록 (수집·라이브·배당은 리그 코드만으로 자동)
-    leagues: ["V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W", "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W", "VB_FRIENDLY", "VB_FRIENDLY_W"],
+    leagues: [
+      "V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W", "VNL", "VNL_W",
+      "AVC_NATIONS_W", "EGL_W", "VB_FRIENDLY", "VB_FRIENDLY_W",
+      "VB_U17_WC", "VB_U17_WC_W", "VB_EURO_W", "VB_ASIAN_W",
+      "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
+    ],
   },
   {
     code: "hockey",
@@ -475,6 +483,13 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   EGL_W: "유럽 발리볼리그 (여)", // CEV European League — 골든+실버 통합 utid (26팀 실측)
   VB_FRIENDLY: "배구 국가대표 친선 (남)",
   VB_FRIENDLY_W: "배구 국가대표 친선 (여)",
+  VB_U17_WC: "U17 세계선수권 (남)",
+  VB_U17_WC_W: "U17 세계선수권 (여)",
+  VB_EURO_W: "유럽선수권 (여)",
+  VB_ASIAN_W: "아시아선수권 (여)",
+  VB_NORCECA_W: "NORCECA 챔피언십 (여)",
+  VB_PANAM: "팬아메리카컵 (남)",
+  VB_COPA_AM: "코파아메리카 (남)",
   LOL: "LCK",
   LCK_CL: "LCK CL",
   LPL: "LPL",
@@ -734,6 +749,13 @@ export const LEAGUE_ORDER: Record<string, number> = {
   VNL_W: 25.05, // 여자 발리볼 네이션스리그 — 세계 최상위 대회 (한국 미출전)
   AVC_NATIONS_W: 25.1,
   EGL_W: 25.2,
+  VB_ASIAN_W: 25.21, // 아시아선수권 (여) — 한국 여자대표팀 출전, 배구 대회 중 국내 수요 최상위
+  VB_U17_WC_W: 25.22, // U17 세계선수권 (여) — 한국 U17 출전
+  VB_U17_WC: 25.23,
+  VB_EURO_W: 25.24, // 유럽선수권 (여) — 24팀 최상위 대륙대회
+  VB_NORCECA_W: 25.25,
+  VB_PANAM: 25.26,
+  VB_COPA_AM: 25.27,
   VB_FRIENDLY: 25.3, // 국가대표 친선 (남) — 정규 대회 뒤
   VB_FRIENDLY_W: 25.35,
   LOL: 30,
