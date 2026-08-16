@@ -45,6 +45,7 @@ const LEAGUE_KO: Record<string, string> = {
   IIHF_WC: "세계선수권",
   AIHL: "호주 아이스하키",
   NZIHL: "뉴질랜드 아이스하키",
+  HOCKEY_FRIENDLY: "아이스하키 클럽 친선",
   LOL: "LCK",
   LCK_CL: "LCK CL",
 };

@@ -12,6 +12,7 @@ export type League =
   | "IIHF_WC" // IIHF 아이스하키 세계선수권 (국가대표, TheSports ice_hockey)
   | "AIHL" // 호주 아이스하키 리그 (TheSports ice_hockey, 4~9월 = 남반구 겨울)
   | "NZIHL" // 뉴질랜드 아이스하키 리그 (TheSports ice_hockey, 5~8월)
+  | "HOCKEY_FRIENDLY" // 아이스하키 클럽 친선 (TheSports ice_hockey, 8월 프리시즌 — 축구 CLUB_FRIENDLY 와 별개)
   | "MLB"
   | "LALIGA"
   | "BUNDESLIGA"

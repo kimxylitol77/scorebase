@@ -415,12 +415,28 @@ export function valueGap(
   };
 }
 
-/** 팀 이름 매칭용 — football-data/ESPN/Odds API 사이의 표기 차이 흡수 */
+/** 정규화 후 문자열 별칭 — 소스가 아예 다른 이름을 쓰는 팀 (부분일치로 못 잇는 케이스).
+ *  김천 상무: The Odds API 가 연고 이전 전 옛 이름 "Sangju Sangmu"(상주 상무)로 보낸다
+ *  (2026-08-16 실측 — K리그 배당이 한 경기만 붙던 원인 중 하나). */
+const NORMALIZED_TEAM_ALIAS: Record<string, string> = {
+  sangjusangmu: "gimcheonsangmu",
+};
+
+/** 팀 이름 매칭용 — football-data/ESPN/Odds API 사이의 표기 차이 흡수.
+ *  hyundai 도 제거 — "Jeonbuk Hyundai Motors" ↔ 우리 "Jeonbuk Motors" 는 단어가 중간에
+ *  끼어 부분일치가 깨진다 ("울산 HD" ↔ "Ulsan Hyundai FC" 도 동일 계열). */
 export function normalizeOddsTeamName(name: string): string {
-  return name
+  const n = name
     .toLowerCase()
-    .replace(/\b(fc|afc|cf|club|hotspur|wanderers|the)\b/g, "")
+    // 악센트는 삭제가 아니라 기본 라틴으로 — "Montréal" 이 é 삭제로 "montral" 이 되면
+    // 소스의 "Montreal" 과 영영 안 만난다 (2026-08-16 MLS 배당 결손 실측).
+    // NFC 재조합 필수 — 한글이 NFD 자모로 남으면 아래 [가-힣] 필터가 통째로 지운다(KBO 사망).
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .normalize("NFC")
+    .replace(/\b(fc|afc|cf|club|hotspur|wanderers|the|hyundai)\b/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
+  return NORMALIZED_TEAM_ALIAS[n] ?? n;
 }
 
 export const ODDS_SUPPORTED_LEAGUES = Object.keys(SPORT_KEY);
