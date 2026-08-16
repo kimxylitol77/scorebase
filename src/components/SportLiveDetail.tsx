@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { SPORTS, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { hasStandingsTable } from "@/lib/sports/standings-valid";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
@@ -151,7 +152,7 @@ interface Props {
   initialPenAway?: number | null;
   /** DB Match.status — 라이브 API 가 매치 못 찾을 때 fallback (종료된 매치 등) */
   initialStatus?: "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED";
-  /** 리그 순위 (TheSports standings) — 팀명 옆 [N] 표시. 클릭 시 새창에서 /predictions/{league} */
+  /** 리그 순위 (TheSports standings) — 팀명 옆 [N] 표시. 클릭 시 새창에서 /standings/{league} */
   homePosition?: number | null;
   awayPosition?: number | null;
   /** FIFA 국가 랭킹 — 국가대항(친선/예선/대륙컵) 매치에서 리그 순위 대신 "FIFA N" 표시. position 우선. */
@@ -767,6 +768,11 @@ function TeamBlock({
   fifaRank?: number | null;
   league?: string;
 }) {
+  // 순위 [N] 클릭 → 순위표 페이지 (팀 앵커로 하이라이트). 순위표 미지원 대회만 예측 페이지 폴백.
+  const standingsUrl =
+    league && hasStandingsTable(league)
+      ? `/standings/${league}${teamId != null ? `#team-${teamId}` : ""}`
+      : `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`;
   const nameWithPosition = (
     <div className="font-bold truncate">
       {name}
@@ -777,13 +783,13 @@ function TeamBlock({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            window.open(VOLLEYBALL_SET.has(league ?? "") ? `/standings/${league}` : `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
+            window.open(standingsUrl, "_blank", "noopener,noreferrer");
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               e.stopPropagation();
-              window.open(VOLLEYBALL_SET.has(league ?? "") ? `/standings/${league}` : `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
+              window.open(standingsUrl, "_blank", "noopener,noreferrer");
             }
           }}
           title={`${name} 리그 순위 보기 (새창)`}

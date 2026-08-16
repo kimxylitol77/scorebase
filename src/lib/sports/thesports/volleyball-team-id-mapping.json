@@ -614,5 +614,47 @@
     "ourLeague": "VNL_W",
     "tsId": "p4jwq23h3l4r0ve",
     "tsName": "USA Women"
+  },
+  {
+    "ourId": 612687,
+    "ourName": "Netherlands",
+    "ourLeague": "VB_FRIENDLY",
+    "tsId": "kn54qldholorvy9",
+    "tsName": "Netherlands"
+  },
+  {
+    "ourId": 608993,
+    "ourName": "Belgium",
+    "ourLeague": "VB_FRIENDLY",
+    "tsId": "kn54qldhondrvy9",
+    "tsName": "Belgium"
+  },
+  {
+    "ourId": 610760,
+    "ourName": "Netherlands Women",
+    "ourLeague": "VB_FRIENDLY_W",
+    "tsId": "8y39mpwh266qojx",
+    "tsName": "Netherlands Women"
+  },
+  {
+    "ourId": 610774,
+    "ourName": "Bulgaria Women",
+    "ourLeague": "VB_FRIENDLY_W",
+    "tsId": "9k82redh7gpqepz",
+    "tsName": "Bulgaria Women"
+  },
+  {
+    "ourId": 608957,
+    "ourName": "Spain Women",
+    "ourLeague": "VB_FRIENDLY_W",
+    "tsId": "p4jwq23h3e9r0ve",
+    "tsName": "Spain Women"
+  },
+  {
+    "ourId": 608965,
+    "ourName": "Hungary Women",
+    "ourLeague": "VB_FRIENDLY_W",
+    "tsId": "9vjxm8lhngyq6od",
+    "tsName": "Hungary Women"
   }
 ]

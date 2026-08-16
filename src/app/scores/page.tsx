@@ -721,29 +721,47 @@ function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
 // SEO: 종목별 한글/영문 라벨 + 키워드.
 // 검색량 (월): "라이브 스코어"·"라이브스코어" 각 183만, "스포츠중계" 67만(+83%),
 // "야구 중계" 13.5만(+83%), "라이브 스포츠" 1.8만(+124%), "KBO 일정" 1.2만 — 합산 250만+.
+// ⚠️ 세 맵 모두 SPORTS(sport-leagues.ts)의 code 전부를 덮어야 한다. 빠지면 제목이
+//    "스포츠 라이브스코어" 로, 하단 문구가 "주요 리그 통합" 으로 폴백되고 JSON-LD sport 가
+//    "Sports" 가 된다 — 배구·UFC·테니스·골프·F1 이 실제로 그 상태였다(2026-08-16 발견).
 const SPORT_NAMES_KO: Record<string, string> = {
   all: "스포츠",
   soccer: "축구",
   baseball: "야구",
   basketball: "농구",
+  volleyball: "배구",
   hockey: "하키",
   esports: "e스포츠",
+  mma: "UFC",
+  tennis: "테니스",
+  golf: "골프",
+  f1: "F1",
 };
 const SPORT_NAMES_EN: Record<string, string> = {
   all: "Sports",
   soccer: "Soccer",
   baseball: "Baseball",
   basketball: "Basketball",
+  volleyball: "Volleyball",
   hockey: "Ice Hockey",
   esports: "Esports",
+  mma: "MMA",
+  tennis: "Tennis",
+  golf: "Golf",
+  f1: "Formula 1",
 };
 const SPORT_LEAGUE_BLURB: Record<string, string> = {
-  all: "축구·야구·농구·하키·e스포츠 14개 리그",
+  all: "축구·야구·농구·배구·하키·e스포츠·UFC·테니스·골프·F1",
   soccer: "K리그·EPL·라리가·분데스·세리에A·UCL·UEL·MLS",
   baseball: "KBO·NPB·MLB",
   basketball: "NBA",
-  hockey: "NHL",
+  volleyball: "V-리그·VNL·KOVO컵",
+  hockey: "NHL·KHL·챔피언스 하키 리그·유럽 리그",
   esports: "LCK·롤드컵",
+  mma: "UFC",
+  tennis: "ATP·WTA",
+  golf: "PGA·LPGA",
+  f1: "F1",
 };
 const COMMON_HIGH_VOLUME_KEYWORDS = [
   "라이브 스코어",
@@ -1882,6 +1900,25 @@ export default async function ScoresPage({ searchParams }: Props) {
       afTeamIdMap.set(r.externalId, s);
     }
   }
+  // af 가 킥오프를 하루 틀리게 싣는 경기 대응 — 그 팀 쌍의 DB 매치가 인접일에 있으면 같은
+  // 경기다(2026-08-23 COLOMBIA_PA: af 8/23 01:15Z ↔ 우리 8/24 01:15Z, 현지 일정은 우리가 맞다).
+  // 페이지가 그날치 DB 만 들고 있어 판정이 하루에 갇히므로, 팀 쌍만 ±2일로 따로 조회한다.
+  const crossDayTeamPairs = new Set<string>();
+  const orphanLeagues = [...new Set(datedSoccer.map((d) => d.league))];
+  if (afTeamExtIds.length && orphanLeagues.length) {
+    const dayStartMs = new Date(`${dateStr}T00:00:00+09:00`).getTime();
+    const nearby = await prisma.match.findMany({
+      where: {
+        league: { in: orphanLeagues },
+        startTime: {
+          gte: new Date(dayStartMs - 2 * 86400_000),
+          lte: new Date(dayStartMs + 3 * 86400_000),
+        },
+      },
+      select: { league: true, homeTeamId: true, awayTeamId: true },
+    });
+    for (const m of nearby) crossDayTeamPairs.add(`${m.league}|${m.homeTeamId}|${m.awayTeamId}`);
+  }
   const orphanDedup = buildOrphanDedup(
     matches.map((m) => ({
       league: m.league,
@@ -1894,6 +1931,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     })),
     datedSoccer,
     afTeamIdMap,
+    crossDayTeamPairs,
   );
   // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
   // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.

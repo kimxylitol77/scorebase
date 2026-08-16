@@ -31,6 +31,7 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
+import KoreanBasketballTable from "@/components/basketball/KoreanBasketballTable";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import CollapseSection from "@/components/CollapseSection";
 import {
@@ -240,6 +241,9 @@ export default async function StandingsPage({ params }: Props) {
   // NBA — ESPN 공식 standings 렌더 (2026-08 중복 팀 행 정리 후 가드 해제).
   // 자체 계산은 프리시즌·NBA컵 결승·플레이오프가 정규 승패에 섞여 부정확 — 공식 기록 전용.
   if (upper === "NBA") return <NbaStandings name={name} />;
+
+  // KBL/WKBL — 공식 사이트 순위(승률·승차 체계). 오프시즌엔 지난 시즌 최종 표를 라벨 붙여 노출.
+  if (upper === "KBL" || upper === "WKBL") return <KoreanBasketballStandings league={upper} name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
@@ -971,6 +975,9 @@ const VB_PAST_SEASON_NOTE: Record<string, string> = {
 
 async function VolleyballStandings({ league, name }: { league: string; name: string }) {
   const groups = await fetchVolleyballTable(league);
+  // 선수 시즌 리더보드 — 현재 V-리그 남녀만 데이터 보유(KOVO 공식), 그 외 대회는 자동 숨김
+  const { rowsByCategory: leaders, season: leaderSeason } = await loadLeagueLeaderboard(league);
+  const hasLeaders = Object.keys(leaders).length > 0;
   const teamIds = groups.flatMap((g) => g.rows.map((r) => r.ourTeamId));
   const [teams, vbMatches] = await Promise.all([
     prisma.team.findMany({
@@ -1076,6 +1083,17 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
       <div className="text-[11px] text-neutral-400 text-center pt-2">
         ⓘ 세트 +/- = 세트 득실 (승:패). 순위 산정은 대회 규정(승점→승수→세트율) 기준.
       </div>
+
+      {hasLeaders && (
+        <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
+          <LeagueLeaderBoard
+            league={league}
+            season={leaderSeason}
+            rowsByCategory={leaders}
+            footer={`${leaderSeason} 시즌 정규리그 최종 기록 · 출처 KOVO 공식`}
+          />
+        </CollapseSection>
+      )}
     </div>
   );
 }
@@ -1159,6 +1177,47 @@ async function NbaStandings({ name }: { name: string }) {
       {hasNbaLeaders && (
         <CollapseSection id="leaderboard" title="NBA 시즌 리더보드">
           <LeagueLeaderBoard league="NBA" season={nbaLeaderSeason} rowsByCategory={nbaLeaders} />
+        </CollapseSection>
+      )}
+    </div>
+  );
+}
+
+// ── KBL/WKBL — 공식 사이트 기록 기반 (승률·승차 체계) ──
+// 오프시즌엔 fetcher 가 지난 시즌 최종 표로 폴백하고 seasonLabel/pastSeason 을 채워 준다.
+// 표 본문·소제목·출처 주석은 공용 KoreanBasketballTable 이 렌더(/leagues/{KBL,WKBL} 순위 탭과 공유).
+// 수집 실패(빈 표) 안내도 거기서 낸다 — 여기서 미리 fetch 하면 같은 호출이 두 번 나간다.
+async function KoreanBasketballStandings({ league, name }: { league: string; name: string }) {
+  const { rowsByCategory: leaders, season: leaderSeason } = await loadLeagueLeaderboard(league);
+  const hasLeaders = Object.keys(leaders).length > 0;
+
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=basketball" className="hover:underline">농구 라이브 스코어</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{name} 순위표</span>
+      </nav>
+
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+      </header>
+
+      {/* withLastLeaders 는 끈다 — 리더보드는 바로 아래 CollapseSection 이 이미 렌더한다. */}
+      <KoreanBasketballTable league={league} />
+
+      {hasLeaders && (
+        <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
+          <LeagueLeaderBoard
+            league={league}
+            season={leaderSeason}
+            rowsByCategory={leaders}
+            footer={`${leaderSeason} 시즌 정규리그 최종 기록 · 출처 ${league} 공식`}
+          />
         </CollapseSection>
       )}
     </div>

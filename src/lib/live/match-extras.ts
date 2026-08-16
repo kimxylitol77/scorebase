@@ -4,6 +4,7 @@
 import { prisma } from "@/lib/db";
 import { calcStandings, type StandingSummary } from "@/lib/predict/standings";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
 import { calcForm, type TeamForm } from "@/lib/predict/form";
 import type { PredictMatch, FormResult } from "@/lib/predict/types";
 
@@ -268,13 +269,14 @@ async function fetchMatchExtrasInner(match: {
     /* 공식 순위 실패 — 아래 자체 계산 폴백 */
   }
   const useOfficial = !!(officialHome && officialAway);
+  const noStandings = NO_STANDINGS_LEAGUES.has(match.league);
 
   return {
     homeForm,
     awayForm,
-    homeStanding: useOfficial ? officialHome : lite(standings.byTeam.get(match.homeTeam.id)),
-    awayStanding: useOfficial ? officialAway : lite(standings.byTeam.get(match.awayTeam.id)),
-    totalTeams: useOfficial ? officialTotal : standings.rows.length,
+    homeStanding: noStandings ? null : useOfficial ? officialHome : lite(standings.byTeam.get(match.homeTeam.id)),
+    awayStanding: noStandings ? null : useOfficial ? officialAway : lite(standings.byTeam.get(match.awayTeam.id)),
+    totalTeams: noStandings ? 0 : useOfficial ? officialTotal : standings.rows.length,
     h2hHome,
     previewSlug,
     recapSlug,

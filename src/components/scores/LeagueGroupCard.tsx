@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { hasStandingsTable } from "@/lib/sports/standings-valid";
 import { getLeagueBadge } from "./soccer/leagueBadge";
 
@@ -25,7 +25,11 @@ export default function LeagueGroupCard({
 }) {
   const badge = getLeagueBadge(league);
   const flag = getLeagueFlag(league);
-  // 리그명 클릭 → 해당 리그 순위표. 순위표가 없는 대회(녹아웃 컵·친선·미지원)는 링크 없이 텍스트.
+  // 리그명 클릭 → 리그 정보 페이지(/leagues). 순위표는 헤더 우측 "순위 →" 로 분리 —
+  // 순위=순위 페이지 / 리그명=리그 정보 페이지 구분 (2026-08-16 네비 정리).
+  const leagueHref = (ALL_LEAGUES as readonly string[]).includes(league)
+    ? `/leagues/${league}`
+    : null;
   const standingsHref = hasStandingsTable(league) ? `/standings/${league}` : null;
   const nameNode = (
     <>
@@ -51,11 +55,11 @@ export default function LeagueGroupCard({
       }`}
     >
       <div className="flex items-center gap-2 px-3.5 sm:px-4 py-2.5 border-b border-neutral-200/70 dark:border-white/10">
-        {standingsHref ? (
+        {leagueHref ? (
           <Link
-            href={standingsHref}
+            href={leagueHref}
             prefetch={false}
-            aria-label={`${badge.label} 순위표`}
+            aria-label={`${badge.label} 리그 정보`}
             className="flex items-center gap-2 min-w-0 -mx-1 px-1 py-0.5 rounded-md hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
           >
             {nameNode}
@@ -63,7 +67,7 @@ export default function LeagueGroupCard({
         ) : (
           nameNode
         )}
-        {href && (
+        {href ? (
           <Link
             href={href}
             prefetch={false}
@@ -71,7 +75,15 @@ export default function LeagueGroupCard({
           >
             {linkLabel ?? "순위"} →
           </Link>
-        )}
+        ) : standingsHref ? (
+          <Link
+            href={standingsHref}
+            prefetch={false}
+            className="ml-auto shrink-0 text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            순위 →
+          </Link>
+        ) : null}
       </div>
       <div>{children}</div>
     </section>

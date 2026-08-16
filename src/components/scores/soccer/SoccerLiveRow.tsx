@@ -18,6 +18,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { hasStandingsTable } from "@/lib/sports/standings-valid";
 import FavoriteStar from "../FavoriteStar";
 import { useScoreFlash } from "../useScoreFlash";
 import type { SoccerGoal, SoccerCard, SoccerTeamStat, MatchOdds } from "@/lib/sports/live-scores";
@@ -142,9 +143,12 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     }
   };
 
+  // 순위 [N] 클릭 → 순위표 페이지 (팀 앵커로 하이라이트). 순위표 미지원 대회만 예측 페이지 폴백.
   const goToStandings = (teamId: number | undefined) =>
     openInNewTab(
-      `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`,
+      hasStandingsTable(league)
+        ? `/standings/${league}${teamId != null ? `#team-${teamId}` : ""}`
+        : `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`,
     );
 
   const isExternal = href != null && /^https?:\/\//i.test(href);
@@ -254,10 +258,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <button
           type="button"
           data-scell="league"
-          onClick={openInNewTab(`/predictions/${league}`)}
+          onClick={openInNewTab(`/leagues/${league}`)}
           className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition w-full cursor-pointer"
           style={{ background: badge.bg, color: badge.fg }}
-          title={`${badge.label} 리그 순위 보기 (새창)`}
+          title={`${badge.label} 리그 정보 보기 (새창)`}
         >
           {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
           {badge.label}

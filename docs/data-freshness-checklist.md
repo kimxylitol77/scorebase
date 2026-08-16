@@ -14,6 +14,7 @@
 - [x] `market_value_stale` — 몸값 피드 최신 갱신 > 48h
 - [x] `standings_stale` — 시즌 중 정규리그 순위 정체 > 72h 가 3개 이상, 또는 하나라도 > 168h
 - [x] `injuries_empty` — 소스가 있는 축구 리그(빅5·MLS)에서 부상자 있는 팀이 2팀 이하
+- [x] `reschedule_dup` — 같은 대진(비야구)이 12시간 안 간격으로 SCHEDULED/LIVE 2행+ = 연기 추종 시차 유령 (2026-08-16 라리가 유령 카드 사건 재발 감지용, 기준선 0·하키 친선 백투백 21h 는 게이트 통과)
 - [x] `lol_leaders_stale` / `lol_leaders_shrink` — 시즌 중(최근 14일 LCK 종료매치 있음)인데 LeagueLeader LOL 갱신 > 60h, 또는 행 수 < 15 (2026-08-15 신설 — BDL 키 사망 두 달 동결 재발 방지)
 - [x] 축 하나가 예외로 죽어도 나머지 점검은 계속 (`*_check_failed` 로 보고)
 - [x] CRON_REGISTRY 등록 — 감시 자체가 멈추면 cron-freshness 가 잡는다
@@ -29,6 +30,7 @@
 | standings | 정체 1건(J3 142h) | — | 3건 또는 168h |
 | injuries | EPL 16·라리가 18·분데스 14·세리에A 12·리그1 16·MLS 29팀 | 사용자 실측 "한 팀만" | 2팀 이하 |
 | lol leaders | 0h·30행 (2026-08-15) | BDL 동결 시 ~1,500h | 60h 또는 15행 미만 (시즌 중만) |
+| reschedule dup | 0쌍/308건 (2026-08-16) | 라리가 유령 시 7쌍 | 12h 미만 간격 쌍 1+ (야구 제외) |
 
 ## 축구 부상자 소스 규칙 (2026-08 확정 — 매번 다시 판단하지 말 것)
 

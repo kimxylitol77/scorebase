@@ -9,6 +9,8 @@ export const STANDINGS_VALID = new Set<string>([
   ...VOLLEYBALL_LEAGUES,
   "NBA",
   "WNBA",
+  "KBL",
+  "WKBL",
   "NHL",
   "KBO",
   "NPB",

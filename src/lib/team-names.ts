@@ -2066,7 +2066,7 @@ const RAW: Record<string, string> = {
   "Dinamo Zagreb": "GNK 디나모 자그레브",
   "HNK Gorica": "고리차",
   "NK Lokomotiva Zagreb": "Lok. 자그레브",
-  "NK Osijek": "ZNK 오시예크",
+  "NK Osijek": "NK 오시예크",
   // ─── HUNGARY_NB1 (TheSports 보강 5) ───
   "Debreceni VSC": "데브레첸",
   "Ferencvarosi TC": "페렌츠바로시",
@@ -4636,7 +4636,20 @@ const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 
 // 동음이의 클럽 (Al Ittihad = 사우디 SAUDI_PL / 이집트 EGYPT_PL / ...)
 // league 인자가 주어지면 글로벌 RAW 보다 우선 적용.
+// 하키 클럽 중 동명 축구 클럽의 한글명이 잘못 붙는 것들 — 글로벌 RAW 가 이름 기준이라
+// 접두가 축구 것으로 나온다. 같은 팀이 친선·정규리그·대항전에 모두 나오므로 하키 전 리그에 공유한다.
+// (디나모 민스크·스파르타크 모스크바처럼 하키 구단명과도 일치하는 건 글로벌 RAW 를 그대로 쓴다.)
+const HOCKEY_CLUB_OVERRIDES: Record<string, string> = {
+  "Red Bull Salzburg": "EC 레드불 잘츠부르크", // 축구는 FC —
+  "Slovan Bratislava": "HC 슬로반 브라티슬라바", // 축구는 SK —
+};
+const HOCKEY_OVERRIDE_LEAGUES = [
+  "HOCKEY_FRIENDLY", "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",
+  "SLOVAK_EXTRALIGA", "DENMARK_METAL", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
+];
+
 const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
+  ...Object.fromEntries(HOCKEY_OVERRIDE_LEAGUES.map((lg) => [lg, HOCKEY_CLUB_OVERRIDES])),
   // ── 국제 클럽 친선 (프리시즌, af 667) — haiku 음역 자동 생성 (2026-07-06, 801팀). 스코어 피드 전용.
   CLUB_FRIENDLY: {
     "Cancún": "칸쿤", "Monarcas": "모나르카스", "CDS Tampico Madero": "CDS 탐피코 마데로", "Koper": "코페르",
@@ -4875,6 +4888,11 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Portugal Women": "포르투갈", "Romania Women": "루마니아", "Slovakia Women": "슬로바키아",
     "Slovenia Women": "슬로베니아", "Spain Women": "스페인", "Sweden Women": "스웨덴",
     "Switzerland Women": "스위스",
+  },
+  // 배구 국가대표 친선 (여) — "X Women" 이 접미 규칙("X 위민")으로 빠지지 않게 VNL_W 표기 관행 유지
+  VB_FRIENDLY_W: {
+    "Netherlands Women": "네덜란드", "Bulgaria Women": "불가리아",
+    "Spain Women": "스페인", "Hungary Women": "헝가리",
   },
   EGYPT_PL: {
     "Al Ittihad": "이티하드 알렉산드리아",

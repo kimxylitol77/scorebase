@@ -212,6 +212,60 @@ async function checkStandings(now: Date, findings: Finding[]) {
 }
 
 /**
+ * 연기 추종 중복 — 같은 대진이 짧은 간격으로 두 행이면 유령 카드가 화면에 떠 있는 것.
+ *
+ * 왜. 연기·시간변경을 소스 하나만 반영하면 다른 소스 행이 옛 시각에 남아 같은 경기가
+ * 두 장으로 보인다(2026-08-16 라리가 — 배당 없는 카드 신고의 정체). 정리 잡
+ * (cleanup-duplicate-matches)은 미래 쌍을 종료 후로 미루므로, 그 사이 노출을 여기서 잡는다.
+ *
+ * 오탐 게이트: ① 야구 제외(더블헤더 정상) ② 킥오프 간격 12h 미만 쌍만(하키 친선
+ * 백투백 21h 실측 통과) ③ SCHEDULED/LIVE 만(종료 쌍은 정리 잡 담당).
+ * 기준선 실측(2026-08-16): 라리가 정리 후 0건.
+ */
+const DUP_PAIR_GAP_MS = 12 * 3600 * 1000;
+const DUP_BASEBALL_EXEMPT = new Set(["KBO", "NPB", "MLB", "CPBL", "LMB", "KBO_FUTURES", "NPB_MINOR", "WBC", "CARIBBEAN_SERIES"]);
+
+async function checkRescheduleDups(now: Date, findings: Finding[]) {
+  const ms = await prisma.match.findMany({
+    where: {
+      startTime: { gte: new Date(now.getTime() - 15 * 3600_000), lte: new Date(now.getTime() + 30 * 3600_000) },
+      status: { in: ["SCHEDULED", "LIVE"] },
+    },
+    select: {
+      id: true, league: true, homeTeamId: true, awayTeamId: true, startTime: true,
+      homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+    },
+  });
+  const groups = new Map<string, typeof ms>();
+  for (const m of ms) {
+    if (DUP_BASEBALL_EXEMPT.has(m.league)) continue;
+    const k = `${m.league}|${m.homeTeamId}|${m.awayTeamId}`;
+    groups.set(k, [...(groups.get(k) ?? []), m]);
+  }
+  const samples: string[] = [];
+  let dups = 0;
+  for (const arr of groups.values()) {
+    if (arr.length < 2) continue;
+    const times = arr.map((m) => m.startTime.getTime()).sort((a, b) => a - b);
+    let close = false;
+    for (let i = 1; i < times.length; i++) if (times[i] - times[i - 1] < DUP_PAIR_GAP_MS) close = true;
+    if (!close) continue;
+    dups++;
+    if (samples.length < 5) {
+      samples.push(`${arr[0].league} ${arr[0].homeTeam.name} vs ${arr[0].awayTeam.name} (${arr.map((m) => `#${m.id}`).join("·")})`);
+    }
+  }
+  if (dups > 0) {
+    findings.push({
+      kind: "reschedule_dup",
+      detail: `같은 대진 중복 노출 — ${dups}쌍이 12시간 안 간격으로 두 행입니다 (연기 추종 시차 유령 의심)`,
+      samples,
+    });
+  }
+  return { dups, checked: ms.length };
+}
+
+/**
  * LOL 리더보드 — LeagueLeader LOL 행(KDA·CS·KILL)이 조용히 동결됐는지.
  *
  * 왜. BALLDONTLIE 키가 2026-06-12 죽었는데 잡이 빈 결과를 조용히 반환(safe 격리라
@@ -451,6 +505,7 @@ export async function GET(req: Request) {
     marketValues: await run("marketValues", () => checkMarketValues(now, findings)),
     standings: await run("standings", () => checkStandings(now, findings)),
     lolLeaders: await run("lolLeaders", () => checkLolLeaders(now, findings)),
+    rescheduleDups: await run("rescheduleDups", () => checkRescheduleDups(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
     coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
