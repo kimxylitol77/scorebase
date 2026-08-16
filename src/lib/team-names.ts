@@ -4876,6 +4876,11 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Slovenia Women": "슬로베니아", "Spain Women": "스페인", "Sweden Women": "스웨덴",
     "Switzerland Women": "스위스",
   },
+  // 배구 국가대표 친선 (여) — "X Women" 이 접미 규칙("X 위민")으로 빠지지 않게 VNL_W 표기 관행 유지
+  VB_FRIENDLY_W: {
+    "Netherlands Women": "네덜란드", "Bulgaria Women": "불가리아",
+    "Spain Women": "스페인", "Hungary Women": "헝가리",
+  },
   EGYPT_PL: {
     "Al Ittihad": "이티하드 알렉산드리아",
     "Al-Ittihad": "이티하드 알렉산드리아",
