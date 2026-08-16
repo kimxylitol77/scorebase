@@ -301,6 +301,50 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
           break;
         }
       }
+
+      // 숫자↔숫자(ESPN↔af) 확장 dedup (2026-08-16): 두 소스가 미래 라운드를 서로 다른
+      // placeholder 시각으로 실으면 ±150분 창을 벗어나 같은 경기가 두 row 로 갈린다
+      // (LALIGA 66쌍·BUNDESLIGA 35쌍·LIGUE_1 42쌍 실측 — ESPN 18:00Z vs af 15:00Z 격차 180분).
+      // 숫자 id 끼리는 위 이름 fallback 도 반대 prefix 제한이라 원리상 못 잡는다.
+      // 같은 리그에서 같은 팀쌍이 "동방향"으로 4일 내 두 번 붙는 일은 없으므로(역방향
+      // 홈앤어웨이 2차전은 제외됨), 양쪽 다 SCHEDULED 인 예정 경기에 한해 ±4일로 넓혀
+      // 기존 row 갱신만 한다. 창 4일 = cleanup-duplicate-matches 탐지기 3·4 와 동일 기준
+      // (생성 차단과 사후 탐지는 같은 기준 — cross-source-dup-reschedule).
+      // 친선은 제외 — 국대 친선은 같은 팀쌍 동방향 2연전이 실재한다
+      // (실측: 2026-06 에티오피아 v 말라위 6/6·6/9 별개 A매치).
+      if (
+        !existing &&
+        m.league !== "CLUB_FRIENDLY" &&
+        m.league !== "INTL_FRIENDLY" &&
+        !incomingTs &&
+        m.status === "SCHEDULED"
+      ) {
+        const NUM_XS_WINDOW = 4 * 86400_000;
+        const numTwins = await prisma.match.findMany({
+          where: {
+            league: m.league,
+            externalId: { not: m.externalId },
+            NOT: { externalId: { startsWith: "ts-" } },
+            status: "SCHEDULED",
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            startTime: {
+              gte: new Date(m.startTime.getTime() - NUM_XS_WINDOW),
+              lte: new Date(m.startTime.getTime() + NUM_XS_WINDOW),
+            },
+          },
+          select: { id: true, externalId: true, homeTeamId: true, status: true, homeScore: true, awayScore: true, startTime: true },
+        });
+        if (numTwins.length > 0) {
+          const closest = numTwins.sort(
+            (a, b) =>
+              Math.abs(a.startTime.getTime() - m.startTime.getTime()) -
+              Math.abs(b.startTime.getTime() - m.startTime.getTime()),
+          )[0];
+          existing = { id: closest.id, externalId: closest.externalId, homeTeamId: closest.homeTeamId, status: closest.status, homeScore: closest.homeScore, awayScore: closest.awayScore };
+          dedupSameDirection = true;
+        }
+      }
     }
   }
 
