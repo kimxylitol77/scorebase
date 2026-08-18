@@ -6,8 +6,15 @@ import { prisma } from "@/lib/db";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { computeLastSeasonStandings } from "@/lib/sports/last-season-standings";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import { getActiveSeason, legacyTsSeasonId } from "@/lib/sports/season-registry";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { toKoreanTeamName } from "@/lib/team-names";
+
+// 대륙 컵 — 국내 리그용 전환 감지(참가팀 16+ · 마지막 종료 40일+)가 성립하지 않는다.
+// 예선이 여름 내내 lastFinished 를 리셋하고 참가팀 수도 유동적이라, season-watch 와 같은
+// "롤오버 대기" 신호(저장소 신시즌 ID ≠ 캐시 ID && ACTIVE 없음)로 판정한다.
+// poller 가 신시즌 표를 활성화하는 순간 조건이 깨져 자동으로 평시 렌더로 복귀한다.
+const CONTINENTAL_CUPS = new Set(["UCL", "UEL", "UECL", "AFC_CL", "AFC_CL_TWO"]);
 
 // 리그별 진출권·강등 구역 (순위 1-indexed). 표준 시즌 기준 — 매 시즌 UEFA 계수 미세변동은 단순화.
 type ZoneType = "ucl" | "uel" | "uecl" | "relegPo" | "releg";
@@ -293,6 +300,52 @@ export default async function LeagueStandingsTable({ league }: { league: string 
         <p className="text-[11px] text-neutral-400">{labels?.neu} 시즌 개막 후 자동으로 실시간 순위로 전환됩니다.</p>
       </div>
     );
+  }
+
+  // 대륙 컵 롤오버 대기: 캐시가 아직 지난 시즌 표 — "현재 시즌"으로 내보내면 오표시다.
+  // 새 시즌 안내를 메인으로, 지난 시즌 리그 페이즈 최종 순위는 접기로 강등한다.
+  if (CONTINENTAL_CUPS.has(league) && liveRows.length > 0) {
+    const [repoSeasonId, active, cache] = await Promise.all([
+      Promise.resolve(legacyTsSeasonId(league)),
+      getActiveSeason(league),
+      prisma.theSportsStandingsCache.findUnique({ where: { league }, select: { tsSeasonId: true } }),
+    ]);
+    const rolloverWait =
+      active == null && repoSeasonId != null && cache != null && cache.tsSeasonId !== repoSeasonId;
+    if (rolloverWait) {
+      // 유럽·AFC 컵 모두 추춘제 — 7월 이후면 (y)-(y+1) 이 새 시즌.
+      const y = now.getUTCMonth() + 1 >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+      const neu = `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
+      const old = `${y - 1}-${String(y % 100).padStart(2, "0")}`;
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">
+              {neu} 시즌
+            </span>
+            <span className="text-xs text-neutral-400">본선 조 편성 대기</span>
+          </div>
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3.5 text-sm dark:bg-white/[0.04] dark:ring-white/10">
+            예선·플레이오프가 진행 중입니다. 본선 대진 확정 후 순위가 집계됩니다.{" "}
+            <Link
+              href={`/leagues/${league}?view=fixtures`}
+              prefetch={false}
+              className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+            >
+              예선 일정 보기 →
+            </Link>
+          </div>
+          <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+            <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
+              <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+              지난 시즌 최종 순위 <span className="font-normal text-neutral-400">({old})</span>
+            </summary>
+            <div className="px-2 pb-3 pt-1">{renderStandingsTable(liveRows, league, true)}</div>
+          </details>
+          <p className="text-[11px] text-neutral-400">본선 개막 후 자동으로 실시간 순위로 전환됩니다.</p>
+        </div>
+      );
+    }
   }
 
   // 평시: 현재 시즌 순위.

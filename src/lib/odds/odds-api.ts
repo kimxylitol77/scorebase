@@ -106,6 +106,17 @@ export interface OddsApiEvent {
   bookmakers: OddsApiBookmaker[];
 }
 
+/**
+ * 본 시즌 key 가 잠들었을 때 함께 긁는 보조 sport key.
+ * UEFA 컵은 7~8월 예선을 The Odds API 가 **별도 key** 로 제공하고 그동안 본선 key 는
+ * inactive 다(2026-08-18 /sports 실측 — champs_league inactive · qualification ACTIVE).
+ * 비활성 key 호출은 빈 배열이 올 뿐 과금 크레딧은 동일하므로, 예선 기간이 아닐 땐
+ * 사실상 no-op 이다. UEL·UECL 은 예선 key 자체가 없다(같은 실측) — af-odds 쪽 과제.
+ */
+const EXTRA_SPORT_KEYS: Record<string, string[]> = {
+  UCL: ["soccer_uefa_champs_league_qualification"],
+};
+
 /** 한 리그의 향후 매치 odds. markets 옵션으로 h2h / totals / spreads 선택 */
 export async function fetchLeagueOdds(
   league: string,
@@ -113,6 +124,17 @@ export async function fetchLeagueOdds(
 ): Promise<OddsApiEvent[]> {
   const sportKey = SPORT_KEY[league];
   if (!sportKey) return [];
+  const keys = [sportKey, ...(EXTRA_SPORT_KEYS[league] ?? [])];
+  const out: OddsApiEvent[] = [];
+  for (const k of keys) out.push(...(await fetchSportKeyOdds(league, k, opts)));
+  return out;
+}
+
+async function fetchSportKeyOdds(
+  league: string,
+  sportKey: string,
+  opts?: { regions?: string; markets?: string },
+): Promise<OddsApiEvent[]> {
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) {
     console.warn("[odds-api] ODDS_API_KEY 미설정");
