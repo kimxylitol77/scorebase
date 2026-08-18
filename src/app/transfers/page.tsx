@@ -195,6 +195,55 @@ const getTransferTeamIndex = unstable_cache(
   { revalidate: 1800, tags: ["transfers-team-index"] },
 );
 
+// 몸값 랭킹 후보 행 — 페이지가 실제로 쓰는 파생 형태.
+// PlayerMarketValue.history 는 행당 평균 18개 스냅샷이라 빅5 전체를 raw 로 당기면 9.2MB(그중 92%가 history)다.
+// 소비처는 ① 마지막 스냅샷 시각(18개월 활성 컷오프) ② 가치 배열(스파크라인·등락률) 둘뿐 →
+// 여기까지 미리 접어 0.64MB 로 줄인다. /scores 의 lineup·detailLive 파생 캐시와 같은 패턴.
+interface PmvRow {
+  id: string;
+  teamId: string | null;
+  currentValue: number | null;
+  age: number | null;
+  league: string | null;
+  lastTime: number;
+  hist: number[];
+}
+
+// history(Json) → 파생. lastTime 은 필터 전 마지막 원소 기준, hist 는 0 제외 — 원래 계산과 동일하게 유지.
+function toPmvRows(raw: { id: string; teamId: string | null; currentValue: number | null; age: number | null; league: string | null; history: unknown }[]): PmvRow[] {
+  return raw.map((r) => {
+    const h = Array.isArray(r.history) ? (r.history as Hist[]) : [];
+    return {
+      id: r.id,
+      teamId: r.teamId,
+      currentValue: r.currentValue,
+      age: r.age,
+      league: r.league,
+      lastTime: h[h.length - 1]?.market_time ?? 0,
+      hist: h.map((x) => (x?.market_value || 0) / 1e6).filter((v) => v > 0),
+    };
+  });
+}
+
+// 기본 스코프(전체·포지션별·국가별, 그리고 league/team 미지정 뷰) 후보 — 몸값은 일일 증분 크론이라 30분 캐시.
+// team·league 지정 뷰는 where 가 요청마다 달라 캐시 대상이 아니다(호출부에서 직접 조회).
+const getPmvRowsDefault = unstable_cache(
+  async (): Promise<PmvRow[]> => {
+    const { outsideLabelIds } = await getTransferTeamIndex();
+    const raw = await prisma.playerMarketValue.findMany({
+      where: {
+        currentValue: { not: null },
+        OR: [{ league: { in: FIVE } }, { id: { in: outsideLabelIds } }],
+      },
+      orderBy: { currentValue: "desc" },
+      select: { id: true, teamId: true, currentValue: true, age: true, league: true, history: true },
+    });
+    return toPmvRows(raw);
+  },
+  ["transfers-pmv-rows-default"],
+  { revalidate: 1800, tags: ["transfers-pmv-rows-default"] },
+);
+
 // 이적 피드(최신·빅딜) 범위 — 전체 커버 리그.
 const FEED_LEAGUES = Object.keys(LEAGUES);
 // 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
@@ -477,6 +526,8 @@ export default async function TransfersPage({
     currentValue: { not: null },
     OR: [{ league: { in: FIVE } }, { id: { in: outsideLabelIds } }],
   };
+  // 아래 두 분기(team·league 지정)만 where 가 요청별로 달라진다 = 파생 캐시 비대상.
+  const usesDefaultWhere = !(view === "team" && team) && !((view === "league" || view === "squads") && league);
   if (view === "team" && team) {
     const tsForTeam = await prisma.teamSourceId.findMany({
       where: { source: "thesports", teamId: Number(team) },
@@ -497,7 +548,19 @@ export default async function TransfersPage({
     };
   }
 
-  const raw = isFeed || isInout || isRumors ? [] : await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
+  // 기본 스코프면 30분 파생 캐시(getPmvRowsDefault) — history 블랍이 핫패스에서 빠진다.
+  // team·league 지정 뷰만 where 가 달라 직접 조회 후 같은 형태로 접는다.
+  const raw: PmvRow[] = isFeed || isInout || isRumors
+    ? []
+    : usesDefaultWhere
+      ? await getPmvRowsDefault()
+      : toPmvRows(
+          await prisma.playerMarketValue.findMany({
+            where,
+            orderBy: { currentValue: "desc" },
+            select: { id: true, teamId: true, currentValue: true, age: true, league: true, history: true },
+          }),
+        );
   const ids = raw.map((r) => r.id);
   const players = await prisma.theSportsPlayer.findMany({
     where: { id: { in: ids } },
@@ -513,8 +576,6 @@ export default async function TransfersPage({
       const tm = ourId != null ? teamMeta.get(ourId) : undefined;
       const tsp = pMap.get(r.id);
       const ov = OVERRIDES[r.id];
-      const hist = Array.isArray(r.history) ? (r.history as Hist[]) : [];
-      const last = hist[hist.length - 1];
       return {
         id: r.id,
         name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
@@ -530,8 +591,8 @@ export default async function TransfersPage({
         teamName: toKoreanTeamName(tm?.name) || tm?.name || "—",
         teamLogo: tm?.logoUrl || null,
         photo: PHOTOS[r.id] || tsp?.photoUrl || null,
-        lastTime: last?.market_time ?? 0,
-        hist: hist.map((h) => (h?.market_value || 0) / 1e6).filter((v) => v > 0),
+        lastTime: r.lastTime,
+        hist: r.hist,
       };
     })
     .filter((e) => e.lastTime >= cutoff)
