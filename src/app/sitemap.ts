@@ -60,6 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/mlb-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/npb-win-probability`, changeFrequency: "monthly", priority: 0.75 },
+    // 종목 허브 — 5/23 sitemap 청소 이후 신설돼 등록 누락됐던 페이지들 (빙 실측: /baseball
+    // 노출 3,127 인데 sitemap 밖 → 크롤 신호 손해). 2026-08-18 추가.
+    { url: `${base}/soccer`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/baseball`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/basketball`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/hockey`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/previews`, changeFrequency: "hourly", priority: 0.9 },
     ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
       url: `${base}/previews?sport=${sport}`,
