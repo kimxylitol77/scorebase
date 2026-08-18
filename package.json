@@ -50,6 +50,7 @@
     "verify:football-season": "tsx --env-file=.env.local scripts/verify-football-season.ts",
     "refresh:fifa-rankings": "tsx --env-file=.env.local scripts/refresh-fifa-rankings.ts",
     "backfill:ts-team-mapping": "tsx --env-file=.env.local scripts/backfill-ts-team-mapping.ts",
+    "backfill:cup-teams": "tsx --env-file=.env.local scripts/backfill-cup-team-mapping.ts",
     "players:match": "tsx scripts/match-player-ids.ts",
     "players:apply": "tsx scripts/apply-player-seed.ts",
     "players:seed": "npm run players:match && npm run players:apply",
