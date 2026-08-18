@@ -28,13 +28,23 @@ const NOT_LEAGUE = new Set([
   "UCL", "UEL", "UECL", "COPA_LIB", "COPA_SUD", "ASEAN_CHAMP",
   "COPPA_ITALIA", "DFB_POKAL", "EMPEROR_CUP", "SUI_CUP", "SCO_LEAGUE_CUP",
   "CLUB_FRIENDLY", "WORLD_CUP", "INTL_FRIENDLY",
+  // 타 종목 친선·단기 토너먼트 — 2026-08-18 dry-run 실측에서 하키 친선이 SLOVAK_EXTRALIGA
+  // 팀을, 배구 유로가 EGL_W 팀을 역방향 오교정하려 한 것을 보고 추가.
+  "HOCKEY_FRIENDLY", "VB_FRIENDLY", "VB_FRIENDLY_W",
+  "VB_EURO_W", "VB_ASIAN_W", "VB_COPA_AM", "VB_NORCECA_W", "VB_PANAM", "VB_U17_WC", "VB_U17_WC_W",
+  "NBA_SL",
+  "BELARUS_SALEI_CUP", "KAZAKHSTAN_CUP", // 하키 프리시즌 컵 — 주 소속 아님
 ]);
 const MIN_MATCHES = 3;
+// 투표 창 = 향후 전체 + 최근 45일. 향후만 보면 일정을 1~2라운드만 미리 올리는 소규모
+// 리그의 승격팀이 3경기 문턱을 못 넘어 영영 교정되지 않는다(2026-08-18 Brno CZECH_2 잔존
+// 실측). 유럽 구시즌은 5월 종료라 45일 창에 안 들어와 강등 전 시즌 오염도 없다.
+const PAST_WINDOW_DAYS = 45;
 
 async function main() {
   const apply = process.argv.includes("--apply");
   const upcoming = await prisma.match.findMany({
-    where: { startTime: { gte: new Date() } },
+    where: { startTime: { gte: new Date(Date.now() - PAST_WINDOW_DAYS * 86400_000) } },
     select: { league: true, homeTeamId: true, awayTeamId: true },
   });
 

@@ -20,4 +20,13 @@ git fetch origin main -q && git reset --hard origin/main -q
 # SAFE 자동 삭제 (참조 0 종료매치 중복). MANUAL/PENDING/LIVE/ANOMALY 는 스킵.
 npx tsx --env-file=.env.local scripts/cleanup-duplicate-matches.ts --apply 2>&1 | tail -8
 
+# 주 1회(월) — Team.league 라벨 교정 (승격·강등·컵/친선 오염 반영).
+# 리더보드 정합성 MED 가 매일 40여 건 반복되던 근본 원인이 라벨 방치였다(2026-08-18 실측
+# 96팀 오염). 최근 45일+향후 편성 다수결이라 멱등이고, 시즌 진행에 따라 남은 전환도
+# 자동 수렴한다. 이 파일은 위 git reset 으로 자기 갱신되므로 별도 배포 불요.
+if [[ $(date +%u) == 1 ]]; then
+  log "▶ 주간 Team.league 라벨 교정"
+  npx tsx --env-file=.env.local scripts/fix-team-league-labels.ts --apply 2>&1 | tail -6
+fi
+
 log "✓ 종료"

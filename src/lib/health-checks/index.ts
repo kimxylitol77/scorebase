@@ -11,7 +11,7 @@ import { checkLinkHealth } from "./link-health";
 import { MIN_PRIOR } from "@/jobs/evaluate-predictions";
 // 축구 리더보드의 시즌 라벨도 같은 이유로 적재 잡이 단일 출처.
 import { currentSoccerSeason } from "@/jobs/fetch-league-leaders";
-import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { SOCCER_LEAGUES, leaguesForSport, type SportCode } from "@/lib/sports/sport-leagues";
 
 // ──────────────────────────────────────────────────────────────
 // 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
@@ -314,7 +314,25 @@ const CONTINENTAL_CUP_LEAGUES = new Set([
   "CLUB_WORLD_CUP",
   "COPA_LIB",
   "COPA_SUD",
+  "ASEAN_CHAMP", // 국가대표 대회 — 소속 클럽 리그 정합성 검사의 대상이 아니다
 ]);
+
+// 친선 라벨 row 와의 일치는 "오염" 증거가 아니라 친선 중복 row 의 존재 증명일 뿐이다
+// (친선은 소속이 아님). 외부 리그 비교에서 제외.
+const FRIENDLY_LEAGUES = new Set([
+  "CLUB_FRIENDLY",
+  "INTL_FRIENDLY",
+  "HOCKEY_FRIENDLY",
+  "VB_FRIENDLY",
+  "VB_FRIENDLY_W",
+]);
+
+// 리그 → 종목. 동명 클럽이 종목만 다른 경우(축구 TPS Turku ↔ 하키 리그 TPS)가 있어
+// 외부 리그 비교는 같은 종목 안에서만 의미가 있다.
+const SPORT_OF_LEAGUE = new Map<string, string>();
+for (const code of ["soccer", "baseball", "basketball", "volleyball", "hockey", "esports", "mma", "tennis", "golf", "f1"] as SportCode[]) {
+  for (const lg of leaguesForSport(code)) SPORT_OF_LEAGUE.set(lg, code);
+}
 
 function teamNameMatchesValid(name: string, validNames: Set<string>): boolean {
   if (validNames.has(name)) return true;
@@ -325,6 +343,19 @@ function teamNameMatchesValid(name: string, validNames: Set<string>): boolean {
     if (n.length < 2) continue;
     if (n.includes(name) || name.includes(n)) return true;
   }
+  return false;
+}
+
+/**
+ * 외부 리그 오염 판정 전용 — 자기 리그 매칭(위, 느슨함 유지)과 달리 정규화 완전일치만 인정.
+ * substring 을 쓰면 "Liverpool URU"(우루과이)가 EPL "Liverpool" 에, "Inter Toronto FC" 가
+ * MLS "Toronto FC" 에 걸려 영구 오탐이 매일 MED 로 쌓였다(60일 실측 — 스스로 해소 불가).
+ */
+function teamNameForeignExact(name: string, validNames: Set<string>): boolean {
+  const norm = (s: string) => s.toLowerCase().replace(/[^0-9a-z가-힣]/g, "");
+  const target = norm(name);
+  if (target.length < 3) return false;
+  for (const n of validNames) if (norm(n) === target) return true;
   return false;
 }
 
@@ -375,11 +406,16 @@ async function checkLeaderboardLeagueConsistency(now: Date): Promise<HealthFindi
     // "New York Yankees", NPB 원시약자 "(デ)" 등)이고, 이게 HIGH 오발화의 원인이었음.
     // 진짜 "외부 리그 오염"은 그 팀이 다른 리그 Team set 에 실제로 존재할 때만 → 그때만 flag.
     let foreign: string | null = null;
+    const sport = SPORT_OF_LEAGUE.get(r.league);
     for (const [oleague, oset] of byLeague) {
       if (oleague === r.league || CONTINENTAL_CUP_LEAGUES.has(oleague)) continue;
+      if (FRIENDLY_LEAGUES.has(oleague)) continue; // 친선 중복 row — 소속 증거 아님
+      // 종목이 다르면 동명 클럽일 뿐(축구 TPS ↔ 하키 TPS) — 비교 무의미
+      if (sport && SPORT_OF_LEAGUE.get(oleague) && SPORT_OF_LEAGUE.get(oleague) !== sport) continue;
+      // 완전일치만 — substring 은 타 리그 유사명("Liverpool URU"↔EPL Liverpool)에 걸려 영구 오탐
       if (
-        teamNameMatchesValid(r.teamName, oset) ||
-        (koTeam !== r.teamName && teamNameMatchesValid(koTeam, oset))
+        teamNameForeignExact(r.teamName, oset) ||
+        (koTeam !== r.teamName && teamNameForeignExact(koTeam, oset))
       ) {
         foreign = oleague;
         break;
