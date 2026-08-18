@@ -1,7 +1,7 @@
 // 국가대표팀 페이지 — 월드컵 대비. ts team id 로 국가 통합(WORLD_CUP+INTL_FRIENDLY 등).
 // 헤더(국기·FIFA랭킹·감독) + 최근 폼 + 다음 경기 + 스쿼드(라인업 누적).
 import { prisma } from "@/lib/db";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
@@ -49,14 +49,93 @@ async function unifyTeamIds(teamId: number): Promise<number[]> {
   return ids.length ? ids : [teamId];
 }
 
+// 같은 국가가 리그별 row(WORLD_CUP·INTL_FRIENDLY 등)로 URL 두 벌 색인되던 신호 분산의 정본 판정 —
+// 빙 실측: 스페인이 /3693(CTR 0.18%)·/599709 로 나뉘어 노출. WORLD_CUP row 가 정본.
+// INTL_FRIENDLY 쌍둥이는 ts 매핑이 없어 unifyTeamIds 로 안 묶임 → af id 브리지
+// (api-football ↔ world-cup 소스가 같은 af 숫자 id) 우선, 정확 동명 폴백(국가명이라 안전).
+async function canonicalNationalTeamId(teamId: number, teamName: string, league: string): Promise<number | null> {
+  if (league === "WORLD_CUP") return null;
+  const afRow = await prisma.teamSourceId.findFirst({
+    where: { teamId, source: "api-football" },
+    select: { externalId: true },
+  });
+  if (afRow) {
+    const bridges = await prisma.teamSourceId.findMany({
+      where: { externalId: afRow.externalId, source: { in: ["world-cup", "api-football"] }, teamId: { not: teamId } },
+      select: { teamId: true },
+    });
+    if (bridges.length) {
+      const t = await prisma.team.findFirst({
+        where: { id: { in: bridges.map((b) => b.teamId) }, league: "WORLD_CUP" },
+        select: { id: true },
+      });
+      if (t) return t.id;
+    }
+  }
+  const byName = await prisma.team.findFirst({ where: { name: teamName, league: "WORLD_CUP" }, select: { id: true } });
+  return byName?.id ?? null;
+}
+
+// 2026 월드컵 최종 성적 — DB 종료 매치만으로 판정(사실 짐작 금지). 산식은 실측 검증:
+// 총 104경기, 팀별 경기 수 8=결승 2팀+3·4위전 2팀 / 6=8강 / 5=16강 / 4=32강 / 3=조별리그.
+async function wc2026Result(teamIds: number[]): Promise<string | null> {
+  const idSet = new Set(teamIds);
+  const [wcMatches, finalMatch] = await Promise.all([
+    prisma.match.findMany({
+      where: { league: "WORLD_CUP", status: "FINISHED", OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }] },
+      orderBy: { startTime: "desc" },
+      select: { id: true, homeTeamId: true, homeScore: true, awayScore: true },
+    }),
+    prisma.match.findFirst({ where: { league: "WORLD_CUP", status: "FINISHED" }, orderBy: { startTime: "desc" }, select: { id: true } }),
+  ]);
+  const last = wcMatches[0];
+  if (!last) return null;
+  const won = (m: { homeTeamId: number; homeScore: number | null; awayScore: number | null }) =>
+    m.homeScore != null && m.awayScore != null && m.homeScore !== m.awayScore && (m.homeScore > m.awayScore) === idSet.has(m.homeTeamId);
+  if (finalMatch && last.id === finalMatch.id) return won(last) ? "우승" : "준우승";
+  if (wcMatches.length >= 7) return last.homeScore === last.awayScore ? "4강" : won(last) ? "3위" : "4위";
+  if (wcMatches.length === 6) return "8강";
+  if (wcMatches.length === 5) return "16강";
+  if (wcMatches.length === 4) return "32강";
+  return "조별리그";
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const team = await prisma.team.findUnique({ where: { id: parseInt(id, 10) || 0 }, select: { name: true } });
+  const numId = parseInt(id, 10) || 0;
+  const team = await prisma.team.findUnique({ where: { id: numId }, select: { name: true, league: true } });
   const ko = team ? toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name : "국가대표";
+  // 빙 zero-click 대응(2026-08 실측 — 국대 페이지 노출 1.7만에 CTR 1% 미만): Copilot 요약이
+  // 대신 못 주는 구체 수치(FIFA 랭킹·월드컵 최종 성적·감독명)를 제목·설명 머리에 배치한다.
+  let fifaRank: number | null = null;
+  let wcLabel: string | null = null;
+  let coachName: string | null = null;
+  let canonicalId = id;
+  if (team) {
+    fifaRank = getFifaRank(team.name, ko);
+    const teamIds = await unifyTeamIds(numId);
+    const [wc, tsRow, canon] = await Promise.all([
+      wc2026Result(teamIds),
+      prisma.teamSourceId.findFirst({ where: { teamId: { in: teamIds }, source: "thesports" }, select: { externalId: true } }),
+      canonicalNationalTeamId(numId, team.name, team.league),
+    ]);
+    wcLabel = wc;
+    const coach = tsRow ? COACHES[tsRow.externalId] : undefined;
+    coachName = coach ? coach.nameKo || coach.name : null;
+    // 본문의 정본 308 과 같은 규칙 — 리다이렉트 전 크롤도 canonical 로 신호 통일
+    if (canon) canonicalId = String(canon);
+  }
   // 빙 검색어 패턴("{국가} 축구 팀" / "{국가} 축구 국가대표팀")을 타이틀·키워드에 정확 매칭 —
   // 빙은 exact-match 키워드와 meta 를 구글보다 직접 반영한다.
-  const title = `${ko} 축구 국가대표팀 — 스쿼드·감독·일정·FIFA 랭킹`;
-  const description = `${ko} 축구 국가대표팀(${ko} 축구 팀) 정보 — 최신 소집 명단(스쿼드), 감독, 최근 경기 결과와 다음 일정, FIFA 랭킹을 한눈에. 2026 북중미 월드컵 경기 결과·기록 포함, 스코어베이스.`;
+  const wcTitleLabel = wcLabel && wcLabel !== "조별리그" ? `2026 월드컵 ${wcLabel}` : null;
+  const title = [
+    `${ko} 축구 국가대표팀`,
+    [wcTitleLabel, fifaRank ? `FIFA 랭킹 ${fifaRank}위` : null].filter(Boolean).join(" · ") || "스쿼드·감독·일정·FIFA 랭킹",
+  ].join(" — ");
+  const description =
+    `${fifaRank ? `FIFA 랭킹 ${fifaRank}위 ` : ""}${ko} 축구 국가대표팀(${ko} 축구 팀)` +
+    `${wcLabel ? ` — 2026 북중미 월드컵 ${wcLabel}` : ""}. ` +
+    `${coachName ? `감독 ${coachName}, ` : ""}최신 소집 명단(스쿼드)과 최근 경기 결과·다음 일정을 한눈에. 스코어베이스.`;
   const keywords = [
     `${ko} 축구 팀`,
     `${ko} 축구 국가대표팀`,
@@ -65,13 +144,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     `${ko} 감독`,
     `${ko} FIFA 랭킹`,
     `${ko} 월드컵`,
+    ...(wcLabel ? [`${ko} 월드컵 성적`] : []),
     ...(team && team.name !== ko ? [`${team.name} national team`] : []),
   ];
   return {
     title,
     description,
     keywords,
-    alternates: { canonical: `/national-teams/${id}` },
+    alternates: { canonical: `/national-teams/${canonicalId}` },
     openGraph: { title, description, type: "website" },
   };
 }
@@ -82,6 +162,10 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
   if (!teamId) notFound();
   const team = await prisma.team.findUnique({ where: { id: teamId }, select: { id: true, name: true, league: true, logoUrl: true } });
   if (!team || !NATL.has(team.league)) notFound();
+
+  // 같은 국가의 WORLD_CUP 정본 row 가 따로 있으면 308 — URL 두 벌 색인(신호 분산) 차단.
+  const canonId = await canonicalNationalTeamId(teamId, team.name, team.league);
+  if (canonId && canonId !== teamId) permanentRedirect(`/national-teams/${canonId}`);
 
   const teamIds = await unifyTeamIds(teamId);
   const teamIdSet = new Set(teamIds);
