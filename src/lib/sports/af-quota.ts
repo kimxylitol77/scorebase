@@ -74,3 +74,36 @@ export async function afQuotaBlock(tier: AfTier): Promise<string | null> {
   if (remaining >= AF_TIER[tier]) return null;
   return `af-quota-low (remaining ${remaining} < ${AF_TIER[tier]})`;
 }
+
+// ── 태그별 일일 예산 ─────────────────────────────────────────
+// 잔량 바닥 가드(afQuotaOk)는 "마지막 방어선"이라, 트래픽 비례 경로(선수 렌더)가 폭주하는
+// 날엔 문턱까지 다 쓰고 나서야 멈춘다 — 그동안 라이브·수집 몫을 밀어낸다(2026-08-18 실측:
+// 선수 렌더 계열이 하루 35,300콜 = 한도의 47%). 예산은 그 경로의 상한을 미리 긋는다.
+
+let budgetCache: { at: number; key: string; total: number } | null = null;
+
+/**
+ * 태그 묶음의 오늘 소비가 예산 안인가. 창은 UTC 일 단위 — af 쿼터 리셋(09:00 KST)과 같다.
+ * 집계 실패 시 true — 예산 가드가 렌더를 죽이면 안 된다(잔량 바닥 가드가 뒤를 받친다).
+ */
+export async function afTagBudgetOk(tags: string[], cap: number): Promise<boolean> {
+  const now = Date.now();
+  const key = tags.join("|");
+  if (budgetCache && budgetCache.key === key && now - budgetCache.at < 60_000) {
+    return budgetCache.total < cap;
+  }
+  try {
+    const { prisma } = await import("@/lib/db");
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const agg = await prisma.afUsageStat.aggregate({
+      where: { tag: { in: tags }, hour: { gte: dayStart } },
+      _sum: { calls: true },
+    });
+    const total = agg._sum.calls ?? 0;
+    budgetCache = { at: now, key, total };
+    return total < cap;
+  } catch {
+    return true;
+  }
+}

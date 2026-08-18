@@ -6,7 +6,7 @@
 
 import axios from "axios";
 import { attachAfTracking, rethrowApiSports } from "@/lib/sports/af-track";
-import { afQuotaOk } from "@/lib/sports/af-quota";
+import { afQuotaOk, afTagBudgetOk } from "@/lib/sports/af-quota";
 
 const BASE_URL = "https://v3.football.api-sports.io";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
@@ -740,7 +740,17 @@ function parseCareerSeason(season: number, data: unknown): CareerCompRow[] {
  * extras 를 같은 이유로 막았는데 선수 페이지는 남아 있었다. 잔량이 optional 문턱 아래면
  * 던져서 물러난다 — 호출부(career-data·injury-data)에 catch 가 있어 화면은 그대로 뜬다.
  */
+// 선수 렌더 경로 일일 예산 — 2026-08-18 실측 35,300콜(한도의 47%)이 크롤 트래픽에
+// 비례해 무한정 자랐다. 15,000 = 한도의 20% 를 롱테일 축적에 허용하고, 넘으면 그날은
+// 물러난다(이미 캐시된 선수는 영향 없음). 잔량 바닥 가드와 상보 — 예산은 평시 상한,
+// 바닥 가드는 최후 방어선.
+const PLAYER_RENDER_TAGS = ["af-pro:players", "af-pro:players/seasons", "af-pro:injuries"];
+const PLAYER_RENDER_DAILY_CAP = 15_000;
+
 async function requirePlayerPageQuota(): Promise<void> {
+  if (!(await afTagBudgetOk(PLAYER_RENDER_TAGS, PLAYER_RENDER_DAILY_CAP))) {
+    throw new Error("af-player-budget: 선수 렌더 af 일일 예산 소진 — 조회를 건너뜁니다");
+  }
   if (await afQuotaOk("optional")) return;
   throw new Error("af-quota-low: 선수 페이지 af 조회를 건너뜁니다");
 }

@@ -216,13 +216,15 @@ function soccerStatusLabel(short: string, elapsed?: number): string {
   }
 }
 
-// af /fixtures?live=all 을 30초 전 인스턴스 공유 캐시로 — 상단바/scores 폴링(CDN 10초)
+// af /fixtures?live=all 을 60초 전 인스턴스 공유 캐시로 — 상단바/scores 폴링(CDN 10초)
 // 마다 af 가 나가던 것을 제한 (af 일 한도 소진 지혈). 점수 신선도는 ts MQTT 병합
-// (fetchSoccerLiveTsScores, 1~2초 push)이 담당하므로 af 30초 stale 무방.
+// (fetchSoccerLiveTsScores, 1~2초 push)이 담당하므로 af stale 은 무방하다.
+// 30→60초 상향(2026-08-19): af-live:fixtures 가 하루 24,079콜로 단일 최대 소비처였다
+// (한도 75k 의 33%). ts 1순위 리그는 영향 없고, af 전용 마이너 리그 라이브만 최대 30초 늦는다.
 const fetchSoccerLiveAf = unstable_cache(
   fetchSoccerLiveUncached,
   ["soccer-live-af-all"],
-  { revalidate: 30 },
+  { revalidate: 60 },
 );
 
 export async function fetchSoccerLive(): Promise<LiveMatch[]> {
