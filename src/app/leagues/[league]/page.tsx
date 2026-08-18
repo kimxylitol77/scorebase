@@ -400,9 +400,23 @@ export async function generateMetadata({
   // NPB 만 빙 실측 검색어 "npb경기분석" 정확 문구를 title 선두에 — 다른 리그 title 은 불변.
   const baseTitle =
     upper === "NPB" ? "NPB 경기 분석·프리뷰·결과" : `${info.name} 경기 프리뷰·결과·분석`;
+  // "npb경기분석" 류 질의는 '오늘 픽' 의도 — 빙 SERP 실측(8/18): 유기적 1위인데도 CTR 0.2%,
+  // 상위 경쟁이 전부 날짜 박힌 당일 분석(유튜브 "8월 18일 일야분석" 등)이고 우리만 무날짜
+  // 방법론 문구. 오늘 경기 수·날짜를 설명 머리에 동적 삽입해 신선도를 SERP 에 드러낸다.
+  let todayLine = "";
+  try {
+    const kstNow = new Date(Date.now() + 9 * 3600_000);
+    const dayStartUtc = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600_000);
+    const n = await prisma.match.count({
+      where: { league: upper, startTime: { gte: dayStartUtc, lt: new Date(dayStartUtc.getTime() + 24 * 3600_000) } },
+    });
+    if (n > 0) todayLine = `오늘(${kstNow.getUTCMonth() + 1}/${kstNow.getUTCDate()}) ${info.name} ${n}경기 AI 승부 예측·경기 분석. `;
+  } catch {
+    // 조회 실패 시 정적 문구 유지
+  }
   return {
     title: `${baseTitle}${titleSuffix}`,
-    description: TYPE_DESC[validType] + " — " + info.copy,
+    description: todayLine + TYPE_DESC[validType] + " — " + info.copy,
     alternates: { canonical },
     openGraph: {
       title: baseTitle,

@@ -13,14 +13,43 @@ import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "야구 — 오늘 경기·순위·AI 예측·연봉 한눈에",
-  description:
-    "KBO·MLB·NPB 오늘 경기, 리그 순위, AI 승부 예측, 선발 매치업, 연봉 랭킹, 주목 선수를 한 페이지에서. 스코어베이스 야구 허브.",
-  alternates: { canonical: "https://www.scorebase.kr/baseball" },
-};
-
 const BASEBALL = ["KBO", "MLB", "NPB"];
+
+// 빙 실측(6/26~8/14): "야구순위" 류 사실형 질의에 노출 3,127·클릭 4(0.13%) — 순위 검색어는
+// /standings 가 정본(검색어 분담 원칙, cf68927). 허브는 "오늘 경기·선발·AI 예측"으로 재타겟하고
+// 오늘 경기 수를 동적 삽입해 SERP 에서 신선도·클릭 이유를 만든다.
+export async function generateMetadata(): Promise<Metadata> {
+  let title = "야구 오늘 경기·일정 — 선발 매치업·AI 예측·연봉 한눈에";
+  let description =
+    "KBO·MLB·NPB 오늘 경기 일정과 선발 매치업, AI 승부 예측, 연봉 랭킹, 주목 선수를 한 페이지에서. 리그 순위표 바로가기 포함, 스코어베이스 야구 허브.";
+  try {
+    const now = Date.now();
+    const kstNow = new Date(now + 9 * 3600_000);
+    const dayStartUtc = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600_000);
+    const dayEndUtc = new Date(dayStartUtc.getTime() + 24 * 3600_000);
+    const counts = await prisma.match.groupBy({
+      by: ["league"],
+      where: { league: { in: BASEBALL }, startTime: { gte: dayStartUtc, lt: dayEndUtc } },
+      _count: { _all: true },
+    });
+    const byLeague = new Map(counts.map((c) => [c.league, c._count._all]));
+    const parts = BASEBALL.filter((lg) => (byLeague.get(lg) ?? 0) > 0).map((lg) => `${lg} ${byLeague.get(lg)}`);
+    if (parts.length) {
+      const dateLabel = `${kstNow.getUTCMonth() + 1}/${kstNow.getUTCDate()}`;
+      title = `야구 오늘 경기 (${dateLabel}) — ${parts.join("·")}경기 일정·선발·AI 예측`;
+      description =
+        `오늘(${dateLabel}) 야구 경기 일정 — ${parts.join("경기·")}경기. ` +
+        "선발 매치업(ERA·WHIP)과 AI 승부 예측, 연봉 랭킹, 주목 선수를 한 페이지에서. 리그 순위표 바로가기 포함, 스코어베이스 야구 허브.";
+    }
+  } catch {
+    // 조회 실패 시 정적 폴백 유지
+  }
+  return {
+    title,
+    description,
+    alternates: { canonical: "https://www.scorebase.kr/baseball" },
+  };
+}
 
 interface StarterJson {
   name?: string;

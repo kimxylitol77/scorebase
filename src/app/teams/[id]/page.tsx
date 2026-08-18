@@ -207,6 +207,45 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     } catch {
       // 순위 캐시 불가 시 정적 폴백 유지
     }
+  } else {
+    // 비야구(축구·농구·하키) — 빙 실측(6/26~8/14) 클럽 페이지 노출 7.4천에 CTR 0.50%
+    // (레알 266·아틀레티코 703·토트넘 233 노출에 클릭 0~1). 야구(8/8)에서 먹힌 동적 삽입을
+    // 확장하되, 시즌 초 순위는 노이즈라 다음 경기·최근 폼을 넣는다("토트넘 경기일정" 류 정조준).
+    try {
+      const [next, recent] = await Promise.all([
+        prisma.match.findFirst({
+          where: { league: team.league, status: "SCHEDULED", startTime: { gte: new Date() }, OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }] },
+          orderBy: { startTime: "asc" },
+          select: { startTime: true, homeTeamId: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+        }),
+        prisma.match.findMany({
+          where: { league: team.league, status: "FINISHED", OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }] },
+          orderBy: { startTime: "desc" },
+          take: 5,
+          select: { homeTeamId: true, homeScore: true, awayScore: true },
+        }),
+      ]);
+      if (next) {
+        const oppName = next.homeTeamId === team.id ? next.awayTeam.name : next.homeTeam.name;
+        const oppKo = toKoreanTeamName(oppName, team.league);
+        const kst = new Date(next.startTime.getTime() + 9 * 3600_000);
+        const dateLabel = `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
+        let w = 0, d = 0, l = 0;
+        for (const m of recent) {
+          if (m.homeScore == null || m.awayScore == null) continue;
+          if (m.homeScore === m.awayScore) d++;
+          else if ((m.homeScore > m.awayScore) === (m.homeTeamId === team.id)) w++;
+          else l++;
+        }
+        const form = w + d + l > 0 ? `최근 ${w + d + l}경기 ${w}승${d > 0 ? ` ${d}무` : ""} ${l}패` : null;
+        title = `${ko} ${intent.replace("일정", "경기 일정")} — 다음 경기 ${dateLabel} ${oppKo}전`;
+        description =
+          `${ko}${enName} 다음 경기 ${dateLabel} ${oppKo}전.${form ? ` ${form}.` : ""} ` +
+          `${team.league} ${intent.replace("일정", "경기 일정")}과 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
+      }
+    } catch {
+      // 매치 조회 불가 시 정적 폴백 유지
+    }
   }
   return {
     title,

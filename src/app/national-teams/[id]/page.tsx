@@ -141,6 +141,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     `${ko} 축구 국가대표팀`,
     `${ko} 대표팀`,
     `${ko} 스쿼드`,
+    `${ko} 축구 국가대표팀 명단`, // 빙 실측 "아르헨티나 축구 국가대표팀 명단" 70노출/0클릭 — 정확 토큰
+
     `${ko} 감독`,
     `${ko} FIFA 랭킹`,
     `${ko} 월드컵`,
