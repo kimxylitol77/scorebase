@@ -6,6 +6,7 @@
 
 import axios from "axios";
 import { attachAfTracking, rethrowApiSports } from "@/lib/sports/af-track";
+import { afQuotaOk } from "@/lib/sports/af-quota";
 
 const BASE_URL = "https://v3.football.api-sports.io";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
@@ -732,10 +733,27 @@ function parseCareerSeason(season: number, data: unknown): CareerCompRow[] {
   });
 }
 
+/**
+ * 선수 페이지 렌더 경로의 쿼터 가드.
+ *
+ * 이 경로들은 cron 이 아니라 트래픽에 비례해 af 를 쓴다(선수 × 시즌). 2026-08-11 에 /live 의
+ * extras 를 같은 이유로 막았는데 선수 페이지는 남아 있었다. 잔량이 optional 문턱 아래면
+ * 던져서 물러난다 — 호출부(career-data·injury-data)에 catch 가 있어 화면은 그대로 뜬다.
+ */
+async function requirePlayerPageQuota(): Promise<void> {
+  if (await afQuotaOk("optional")) return;
+  throw new Error("af-quota-low: 선수 페이지 af 조회를 건너뜁니다");
+}
+
 // 선수 전 시즌 대회별 스탯. /players/seasons(1콜) + 시즌당 /players. 최근 12시즌 한정(유스 잡음·quota).
 // 동시 3개씩만 — 12개 동시는 분당 한도에 걸려 시즌이 조용히 누락됐다(2026-08 실측).
 // 한 시즌이라도 못 받으면 throw. 부분 결과를 반환하면 그게 그대로 캐시에 굳는다.
 export async function fetchPlayerCareer(playerId: number): Promise<CareerCompRow[]> {
+  // 선수 페이지 렌더 전용 경로 — 선수당 최대 13콜이라 봇이 롱테일을 훑으면 하루 한도를 삼킨다
+  // (2026-08-19 소진 때 af-pro:players 가 1위). 잔량이 얕으면 라이브 수집에 양보한다.
+  // 캐시(unstable_cache) 안쪽이라 히트한 선수는 영향이 없고, throw 는 캐시되지 않아
+  // 잔량이 회복되면 저절로 다시 받아온다 — 빈 표가 하루 굳는 것을 피하려고 일부러 던진다.
+  await requirePlayerPageQuota();
   const { data } = await client().get("/players/seasons", { params: { player: playerId } });
   const seasons: number[] = (data?.response ?? []).filter((s: unknown) => typeof s === "number");
   if (!seasons.length) return [];
@@ -766,6 +784,8 @@ export interface InjuryFlag {
 // 경력표와 같은 구조 — 시즌별 실패를 삼키면 부상 이력이 통째로 빈 채 12시간 캐시된다.
 // 동시 3개씩, 한 시즌이라도 못 받으면 부분 결과 대신 throw.
 export async function fetchPlayerInjuries(playerId: number, seasons: number[]): Promise<InjuryFlag[]> {
+  // 경력표와 같은 이유의 가드 — 이쪽은 ts(PlayerEvent) 가 주 소스라 생략해도 이력이 남는다.
+  await requirePlayerPageQuota();
   const flags: InjuryFlag[] = [];
   for (let i = 0; i < seasons.length; i += 3) {
     const part = await Promise.all(
