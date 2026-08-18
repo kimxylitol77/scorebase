@@ -69,7 +69,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Birmingham City",
+        "apps": 1,
+        "starts": 1,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 80,
+        "rating": 6.43,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 357286,
@@ -138,7 +151,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Stoke City",
+        "apps": 1,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 20,
+        "rating": 6.19,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 2910,
@@ -207,7 +233,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Alanyaspor",
+        "apps": 1,
+        "starts": 1,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 69,
+        "rating": 6.3,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 237050,
@@ -276,7 +315,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Swansea City",
+        "apps": 1,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 25,
+        "rating": 6.47,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 2906,
@@ -345,7 +397,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 2897,
@@ -414,7 +479,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 927,
@@ -487,7 +565,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "none",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 24888,
@@ -556,7 +647,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 186,
@@ -625,7 +729,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026",
+        "team": "Los Angeles FC",
+        "apps": 18,
+        "starts": 17,
+        "goals": 4,
+        "assists": 8,
+        "minutes": 1458,
+        "rating": 7.19,
+        "yellow": 2,
+        "red": 0
+      }
     },
     {
       "afId": 356237,
@@ -698,7 +815,20 @@
         "name": "1. FC Kaiserslautern",
         "logo": "https://media.api-sports.io/football/teams/745.png"
       },
-      "transferredAt": "2026-06-29"
+      "transferredAt": "2026-06-29",
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 512,
@@ -767,7 +897,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 423709,
@@ -889,7 +1032,20 @@
         "name": "Dordrecht",
         "logo": "https://media.api-sports.io/football/teams/409.png"
       },
-      "transferredAt": "2026-07-04"
+      "transferredAt": "2026-07-04",
+      "current": {
+        "status": "none",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 364597,
@@ -962,7 +1118,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "uncovered",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 34710,
@@ -1031,7 +1200,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Besiktas JK",
+        "apps": 1,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 27,
+        "rating": 6.64,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 137296,
@@ -1104,7 +1286,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "none",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 423708,
@@ -1177,7 +1372,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "KVC Westerlo",
+        "apps": 1,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 5,
+        "rating": 6.31,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 308648,
@@ -1244,7 +1452,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "none",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 237047,
@@ -1313,7 +1534,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026",
+        "team": "St. Louis City SC",
+        "apps": 13,
+        "starts": 9,
+        "goals": 2,
+        "assists": 1,
+        "minutes": 611,
+        "rating": 6.83,
+        "yellow": 1,
+        "red": 0
+      }
     },
     {
       "afId": 26519,
@@ -1435,7 +1669,20 @@
             "conceded": null
           }
         }
-      ]
+      ],
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 197985,
@@ -1504,7 +1751,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Crvena Zvezda",
+        "apps": 3,
+        "starts": 3,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 270,
+        "rating": 7.5,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 34708,
@@ -1573,7 +1833,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "none",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 224669,
@@ -1642,7 +1915,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Austria Vienna",
+        "apps": 3,
+        "starts": 3,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 270,
+        "rating": 6.59,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 237220,
@@ -1711,7 +1997,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Austria Vienna",
+        "apps": 3,
+        "starts": 3,
+        "goals": 0,
+        "assists": 1,
+        "minutes": 270,
+        "rating": 6.48,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 304958,
@@ -1780,7 +2079,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Celtic F.C.",
+        "apps": 2,
+        "starts": 2,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 152,
+        "rating": 6.71,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 51103,
@@ -1849,7 +2161,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026",
+        "team": "Seattle Sounders",
+        "apps": 3,
+        "starts": 2,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 153,
+        "rating": 6.62,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 34211,
@@ -1918,7 +2243,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Midtjylland",
+        "apps": 2,
+        "starts": 1,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 117,
+        "rating": 6.53,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 237218,
@@ -1987,7 +2325,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "Club Brugge",
+        "apps": 2,
+        "starts": 2,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 180,
+        "rating": 7.74,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 355171,
@@ -2056,7 +2407,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "FC Arouca",
+        "apps": 2,
+        "starts": 2,
+        "goals": 0,
+        "assists": 1,
+        "minutes": 142,
+        "rating": 6.88,
+        "yellow": 1,
+        "red": 0
+      }
     },
     {
       "afId": 304972,
@@ -2125,7 +2489,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "SV Darmstadt 98",
+        "apps": 2,
+        "starts": 0,
+        "goals": 1,
+        "assists": 0,
+        "minutes": 41,
+        "rating": 6.88,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 423714,
@@ -2194,7 +2571,20 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "preseason",
+        "season": "2026-27",
+        "team": null,
+        "apps": 0,
+        "starts": 0,
+        "goals": 0,
+        "assists": 0,
+        "minutes": 0,
+        "rating": null,
+        "yellow": 0,
+        "red": 0
+      }
     },
     {
       "afId": 2901,
@@ -2263,7 +2653,22 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null
+      "spells": null,
+      "current": {
+        "status": "played",
+        "season": "2026-27",
+        "team": "FC Porto",
+        "apps": 1,
+        "starts": 0,
+        "goals": 0,
+        "assists": 1,
+        "minutes": 24,
+        "rating": 7.19,
+        "yellow": 0,
+        "red": 0
+      }
     }
-  ]
+  ],
+  "currentSeason": "2026-27",
+  "currentUpdatedAt": "2026-08-18T00:13:03.093Z"
 }

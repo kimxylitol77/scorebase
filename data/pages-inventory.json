@@ -764,7 +764,7 @@
   },
   {
     "route": "/soccer/korea",
-    "desc": "해외파 한국 선수 허브 — 유럽·MLS에서 뛰는 한국 선수 시즌 성적 + 다음/최근 경기. 명단·시즌 성적: scripts/build-korea-abroad.ts → data/korea-abroad.json (af 국적 스캔) 다음·최근 경기: 우리 Match 테이블 (af 팀 id → TeamSourceId → Team) — 챔피언십·SPL·덴마크까지 커버된다.",
+    "desc": "해외파 한국 선수 허브 — 유럽·MLS에서 뛰는 한국 선수 시즌 성적 + 다음/최근 경기. 명단·지난 시즌 성적: scripts/build-korea-abroad.ts → data/korea-abroad.json (af 국적 스캔) 현재 시즌 성적: scripts/refresh-korea-abroad-current.ts (ts 리그당 1콜) → players[].current   두 시즌은 섞지 않는다 — 표 위 시즌 탭으로 갈라 보여준다. 이적한 선수의 지난 기록이   새 소속 옆에 붙어 현재 성적처럼 읽히던 문제(이강인 PSG 27경기)를 이 구조로 막는다. 다음·최근 경기: 우리 Match 테이블 (af 팀 id → TeamSourceId → Team) — 챔피언십·SPL·덴마크까지 커버된다.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"

@@ -1,5 +1,8 @@
 // 해외파 한국 선수 허브 — 유럽·MLS에서 뛰는 한국 선수 시즌 성적 + 다음/최근 경기.
-// 명단·시즌 성적: scripts/build-korea-abroad.ts → data/korea-abroad.json (af 국적 스캔)
+// 명단·지난 시즌 성적: scripts/build-korea-abroad.ts → data/korea-abroad.json (af 국적 스캔)
+// 현재 시즌 성적: scripts/refresh-korea-abroad-current.ts (ts 리그당 1콜) → players[].current
+//   두 시즌은 섞지 않는다 — 표 위 시즌 탭으로 갈라 보여준다. 이적한 선수의 지난 기록이
+//   새 소속 옆에 붙어 현재 성적처럼 읽히던 문제(이강인 PSG 27경기)를 이 구조로 막는다.
 // 다음·최근 경기: 우리 Match 테이블 (af 팀 id → TeamSourceId → Team) — 챔피언십·SPL·덴마크까지 커버된다.
 
 import type { Metadata } from "next";
@@ -48,9 +51,33 @@ interface Player {
     yellow: number;
     red: number;
   };
+  /** 지난 시즌 기록이 어느 시즌·어느 팀 것인지 (MLS 처럼 캘린더 시즌이면 라벨이 다르다) */
+  seasonStat?: { season?: string; team?: string } | null;
+  /** 현재 시즌 기록. status = played 출전 · none 미출전 · preseason 리그 미개막 · uncovered 대상 리그 밖 */
+  current?: Current | null;
   spells: Spell[] | null;
 }
-const DATA = raw as { updatedAt: string; season: string; players: Player[] };
+interface Current {
+  status: "played" | "none" | "preseason" | "uncovered";
+  season: string;
+  team: string | null;
+  apps: number;
+  starts: number;
+  goals: number;
+  assists: number;
+  minutes: number;
+  rating: number | null;
+  yellow: number;
+  red: number;
+}
+const DATA = raw as {
+  updatedAt: string;
+  season: string;
+  currentSeason?: string;
+  currentUpdatedAt?: string;
+  players: Player[];
+};
+const CURRENT_SEASON = DATA.currentSeason ?? "2026-27";
 
 const POS_KO: Record<string, string> = {
   Goalkeeper: "GK",
@@ -203,48 +230,108 @@ export default async function KoreaAbroadPage() {
   for (const p of players) byCountry.set(p.country, (byCountry.get(p.country) ?? 0) + 1);
   const countries = [...byCountry.entries()].sort((a, b) => b[1] - a[1]);
 
-  // 시즌 성적 표의 행 — 나라 필터(클라이언트)가 그대로 받아 쓴다
+  // 현재 시즌 정렬 — 뛴 선수 먼저(골 > 도움 > 출전 시간), 그다음 미출전, 개막 전은 맨 뒤.
+  // 개막 직후엔 표본이 얇아 지난 시즌 순서를 그대로 쓰면 0골 선수가 위에 남는다.
+  const CUR_ORDER: Record<string, number> = { played: 0, none: 1, preseason: 2, uncovered: 3 };
+  const currentSorted = [...players].sort((a, b) => {
+    const ca = a.current;
+    const cb = b.current;
+    const oa = CUR_ORDER[ca?.status ?? "uncovered"] ?? 3;
+    const ob = CUR_ORDER[cb?.status ?? "uncovered"] ?? 3;
+    if (oa !== ob) return oa - ob;
+    return (cb?.goals ?? 0) - (ca?.goals ?? 0) || (cb?.assists ?? 0) - (ca?.assists ?? 0) || (cb?.minutes ?? 0) - (ca?.minutes ?? 0);
+  });
+
+  /** 선수 이름 칸 — 두 시즌 표가 같이 쓴다 */
+  const nameCell = (p: Player, showSpells: boolean) => (
+    <td className="px-3 py-2.5">
+      <span className="flex items-center gap-2">
+        {p.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={p.photo}
+            alt=""
+            width={28}
+            height={28}
+            loading="lazy"
+            className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
+          />
+        ) : (
+          <span className="h-7 w-7 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-900" />
+        )}
+        <span className="min-w-0">
+          {playerHref(p) ? (
+            <Link
+              href={playerHref(p)!}
+              className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
+            >
+              {p.nameKo}
+            </Link>
+          ) : (
+            <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
+          )}
+          {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
+          {showSpells && p.spells && (
+            <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
+              {p.spells.length}개 리그 합산
+            </span>
+          )}
+        </span>
+      </span>
+    </td>
+  );
+
+  const CUR_NOTE: Record<string, string> = { none: "미출전", preseason: "개막 전", uncovered: "기록 없음" };
+
+  // 현재 시즌 표 — 숫자의 주인이 현 소속이라 "이적" 배지가 필요 없다
+  const currentRows = currentSorted.map((p) => {
+    const c = p.current;
+    const played = c?.status === "played";
+    const dim = !played ? " text-neutral-400" : "";
+    return {
+      country: p.country,
+      node: (
+        <tr key={p.afId}>
+          {nameCell(p, false)}
+          <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
+            <span className="flex items-center gap-1.5">
+              <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
+              <span className="truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
+            </span>
+            <span className="block truncate text-[11px] text-neutral-400">
+              {p.leagueLabel}
+              {c && c.status !== "played" && ` · ${CUR_NOTE[c.status]}`}
+            </span>
+          </td>
+          <td className={`px-2 py-2.5 text-center tabular-nums${dim}`}>{played ? c!.apps : "-"}</td>
+          <td
+            className={`px-2 py-2.5 text-center font-bold tabular-nums ${played ? "text-neutral-900 dark:text-white" : "text-neutral-400"}`}
+          >
+            {played ? c!.goals : "-"}
+          </td>
+          <td className={`px-2 py-2.5 text-center tabular-nums${dim}`}>{played ? c!.assists : "-"}</td>
+          <td className="px-2 py-2.5 text-center tabular-nums text-neutral-500">{played ? c!.minutes : "-"}</td>
+          <td className={`px-2 py-2.5 text-center tabular-nums${dim}`}>
+            {played && c!.rating != null ? c!.rating.toFixed(2) : "-"}
+          </td>
+        </tr>
+      ),
+    };
+  });
+
+  // 지난 시즌 표 — 확정 기록. 기록을 쌓은 팀·시즌을 항상 밝힌다.
+  // MLS 처럼 캘린더 시즌이면 "지난 시즌"과 현재 시즌 라벨이 같다. 그때 옛 스냅샷을 그대로 쓰면
+  // 같은 2026 시즌이 두 탭에 다른 숫자(17경기 vs 18경기)로 떠서 어느 쪽이 맞는지 알 수 없다 — 최신값으로 통일한다.
+  const prevTotals = (p: Player) =>
+    p.current && p.current.status === "played" && (p.seasonStat?.season ?? DATA.season) === p.current.season
+      ? p.current
+      : p.totals;
+
   const seasonRows = players.map((p) => ({
     country: p.country,
     node: (
       <tr key={p.afId}>
-        {/* 선수 사진 — 카드(주요 선수 4명)에만 있고 전체 명단인 이 표엔 없었다(사용자 지적).
-            이름 왼쪽 아바타로 붙인다. 없는 선수는 같은 크기 회색 원으로 열 정렬 유지. */}
-        <td className="px-3 py-2.5">
-          <span className="flex items-center gap-2">
-            {p.photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.photo}
-                alt=""
-                width={28}
-                height={28}
-                loading="lazy"
-                className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
-              />
-            ) : (
-              <span className="h-7 w-7 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-900" />
-            )}
-            <span className="min-w-0">
-              {playerHref(p) ? (
-                <Link
-                  href={playerHref(p)!}
-                  className="font-semibold text-neutral-900 hover:underline underline-offset-4 dark:text-white"
-                >
-                  {p.nameKo}
-                </Link>
-              ) : (
-                <span className="font-semibold text-neutral-900 dark:text-white">{p.nameKo}</span>
-              )}
-              {p.pos && <span className="ml-1.5 text-[10px] font-bold text-neutral-400">{POS_KO[p.pos] ?? p.pos}</span>}
-              {p.spells && (
-                <span className="ml-1.5 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/10">
-                  {p.spells.length}개 리그 합산
-                </span>
-              )}
-            </span>
-          </span>
-        </td>
+        {nameCell(p, true)}
         <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
           <span className="flex items-center gap-1.5">
             <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
@@ -255,30 +342,35 @@ export default async function KoreaAbroadPage() {
               </span>
             )}
           </span>
+          {/* 이 숫자를 쌓은 시즌·팀 — 이적한 선수는 현 소속과 다르다 */}
           <span className="block truncate text-[11px] text-neutral-400">
-            {p.leagueLabel}
-            {/* 성적은 옛 소속에서 쌓은 것 — 팀과 숫자가 안 맞아 보이지 않도록 밝힌다 */}
-            {p.seasonTeam && ` · ${DATA.season} ${toKoreanTeamName(p.seasonTeam.name) || p.seasonTeam.name}`}
+            {p.seasonTeam
+              ? `${p.seasonStat?.season ?? DATA.season} ${toKoreanTeamName(p.seasonTeam.name) || p.seasonTeam.name}`
+              : `${p.leagueLabel} · ${p.seasonStat?.season ?? DATA.season}`}
           </span>
         </td>
-        <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.apps}</td>
+        <td className="px-2 py-2.5 text-center tabular-nums">{prevTotals(p).apps}</td>
         <td className="px-2 py-2.5 text-center font-bold tabular-nums text-neutral-900 dark:text-white">
-          {p.totals.goals}
+          {prevTotals(p).goals}
         </td>
-        <td className="px-2 py-2.5 text-center tabular-nums">{p.totals.assists}</td>
-        <td className="px-2 py-2.5 text-center tabular-nums text-neutral-500">{p.totals.minutes}</td>
+        <td className="px-2 py-2.5 text-center tabular-nums">{prevTotals(p).assists}</td>
+        <td className="px-2 py-2.5 text-center tabular-nums text-neutral-500">{prevTotals(p).minutes}</td>
         <td className="px-2 py-2.5 text-center tabular-nums">
-          {p.totals.rating != null ? p.totals.rating.toFixed(2) : "-"}
+          {prevTotals(p).rating != null ? prevTotals(p).rating!.toFixed(2) : "-"}
         </td>
       </tr>
     ),
   }));
 
-  const totalGoals = players.reduce((s, p) => s + p.totals.goals, 0);
-  const totalAssists = players.reduce((s, p) => s + p.totals.assists, 0);
+  // 요약은 현재 시즌 기준 — 표의 기본 탭과 같은 시즌을 봐야 숫자가 서로 맞는다
+  const totalGoals = players.reduce((s, p) => s + (p.current?.goals ?? 0), 0);
+  const totalAssists = players.reduce((s, p) => s + (p.current?.assists ?? 0), 0);
+  const startedCount = players.filter((p) => p.current && p.current.status !== "preseason").length;
 
-  // 주요 선수 = 출전 시간 상위 4명
-  const featured = players.slice(0, 4);
+  // 주요 선수 = 현재 시즌 출전 시간 상위 4명 (개막 전이면 지난 시즌 순서 그대로)
+  const featured = [...players]
+    .sort((a, b) => (b.current?.minutes ?? 0) - (a.current?.minutes ?? 0))
+    .slice(0, 4);
 
   // 최근 경기 — 선수 소속팀 기준 최신순 8경기 (중복 제거)
   const recentRows: Array<{ p: Player; m: R }> = [];
@@ -314,11 +406,11 @@ export default async function KoreaAbroadPage() {
           __html: jsonLdScript(
             datasetLd({
               name: "해외파 한국 선수 시즌 성적",
-              description: `유럽·MLS 소속 한국 선수 ${players.length}명의 ${DATA.season} 시즌 출전·골·도움·평점 집계.`,
+              description: `유럽·MLS 소속 한국 선수 ${players.length}명의 ${CURRENT_SEASON} 시즌 출전·골·도움·평점 집계(${DATA.season} 시즌 기록 포함).`,
               path: "/soccer/korea",
               variableMeasured: ["출전", "골", "도움", "출전 시간", "평점"],
-              dateModified: DATA.updatedAt,
-              temporalCoverage: DATA.season,
+              dateModified: DATA.currentUpdatedAt ?? DATA.updatedAt,
+              temporalCoverage: `${DATA.season}/${CURRENT_SEASON}`,
             }),
           ),
         }}
@@ -326,16 +418,16 @@ export default async function KoreaAbroadPage() {
 
       <header className="space-y-3">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-sky-600 ring-1 ring-sky-500/20 dark:text-sky-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-sky-500" aria-hidden /> 축구 · {DATA.season} 시즌
+          <span className="h-1.5 w-1.5 rounded-full bg-sky-500" aria-hidden /> 축구 · {CURRENT_SEASON} 시즌
         </span>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight break-keep">해외파 한국 선수</h1>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 break-keep">
-          유럽·MLS에서 뛰는 한국 선수 {players.length}명의 시즌 출전·골·도움·평점을 한 곳에 모았습니다. 소속팀 다음
-          경기 일정까지 함께 봅니다.
+          유럽·MLS에서 뛰는 한국 선수 {players.length}명의 {CURRENT_SEASON} 시즌 출전·골·도움·평점을 한 곳에
+          모았습니다. 표 위 탭으로 {DATA.season} 시즌 기록도 그대로 볼 수 있습니다.
         </p>
         <p className="text-xs text-neutral-400">
-          {new Date(DATA.updatedAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 갱신 · 리그 경기 기준(컵대회
-          제외)
+          {new Date(DATA.currentUpdatedAt ?? DATA.updatedAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 갱신
+          · 리그 경기 기준(컵대회 제외) · 개막 전 리그는 {DATA.season} 탭에서
         </p>
       </header>
 
@@ -343,9 +435,9 @@ export default async function KoreaAbroadPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "선수", value: `${players.length}명` },
-          { label: "리그가 있는 나라", value: `${countries.length}개국` },
-          { label: "시즌 골", value: `${totalGoals}골` },
-          { label: "시즌 도움", value: `${totalAssists}도움` },
+          { label: "개막한 리그 소속", value: `${startedCount}명` },
+          { label: `${CURRENT_SEASON} 골`, value: `${totalGoals}골` },
+          { label: `${CURRENT_SEASON} 도움`, value: `${totalAssists}도움` },
         ].map((s) => (
           <div
             key={s.label}
@@ -361,7 +453,10 @@ export default async function KoreaAbroadPage() {
       <CountryFilter
         countries={countries}
         flags={Object.fromEntries(countries.map(([c]) => [c, COUNTRY_FLAG[c] ?? ""]))}
-        rows={seasonRows}
+        seasons={[
+          { key: "current", label: `${CURRENT_SEASON} 시즌`, rows: currentRows, note: "진행 중 — 개막한 리그부터 쌓입니다" },
+          { key: "prev", label: `${DATA.season} 시즌`, rows: seasonRows, note: "확정 기록 — 기록을 쌓은 팀 기준" },
+        ]}
       />
 
       {/* 주요 선수 */}
@@ -410,25 +505,32 @@ export default async function KoreaAbroadPage() {
                       </span>
                     </p>
                   </div>
-                  {p.totals.rating != null && (
+                  {p.current?.status === "played" && p.current.rating != null && (
                     <span className="ml-auto rounded-lg bg-neutral-100 px-2 py-1 text-sm font-black tabular-nums text-neutral-800 dark:bg-white/10 dark:text-white">
-                      {p.totals.rating.toFixed(2)}
+                      {p.current.rating.toFixed(2)}
                     </span>
                   )}
                 </div>
+                {/* 카드 숫자도 현재 시즌 — 표 기본 탭과 어긋나면 어느 쪽이 맞는지 알 수 없다 */}
                 <div className="mt-3 grid grid-cols-4 gap-2 text-center">
                   {[
-                    { l: "출전", v: p.totals.apps },
-                    { l: "골", v: p.totals.goals },
-                    { l: "도움", v: p.totals.assists },
-                    { l: "분", v: p.totals.minutes },
+                    { l: "출전", v: p.current?.apps ?? 0 },
+                    { l: "골", v: p.current?.goals ?? 0 },
+                    { l: "도움", v: p.current?.assists ?? 0 },
+                    { l: "분", v: p.current?.minutes ?? 0 },
                   ].map((s) => (
                     <div key={s.l}>
-                      <p className="text-base font-black tabular-nums text-neutral-900 dark:text-white">{s.v}</p>
+                      <p className="text-base font-black tabular-nums text-neutral-900 dark:text-white">
+                        {p.current?.status === "played" ? s.v : "-"}
+                      </p>
                       <p className="text-[10px] text-neutral-500">{s.l}</p>
                     </div>
                   ))}
                 </div>
+                <p className="mt-1.5 text-[10px] text-neutral-400">
+                  {CURRENT_SEASON}
+                  {p.current && p.current.status !== "played" ? ` · ${CUR_NOTE[p.current.status]}` : ""}
+                </p>
                 {m && (
                   <p className="mt-3 truncate border-t border-neutral-100 pt-2 text-[11px] text-neutral-500 dark:border-neutral-800">
                     다음 {teamKo(m.homeTeam)} vs {teamKo(m.awayTeam)}

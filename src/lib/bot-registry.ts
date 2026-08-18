@@ -142,6 +142,13 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "PGA·LPGA 시즌 리더보드 → 한국 선수 우승·톱10 재집계 + data push (매일 09:00)",
   },
+  "mac-mini-daily-korea-abroad": {
+    ko: "해외파 현재 시즌 기록",
+    intervalMs: 1 * DAY,
+    // 주간 af 스캔은 명단과 지난 시즌 확정 기록을 만든다. 현재 시즌은 ts 리그당 1콜(23콜)이라
+    // 매일 돌려도 부담이 없고, 유럽 경기가 KST 새벽에 끝나 07:20 이면 당일 반영된다.
+    role: "ts season/player/stat 23개 리그 → /soccer/korea 2026-27 탭 갱신 + push (매일 07:20)",
+  },
   "mac-mini-daily-ts-team-mapping": {
     ko: "ts 팀 매핑 일일 백필",
     intervalMs: 1 * DAY,
