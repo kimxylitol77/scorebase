@@ -128,10 +128,66 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // ── starter_incomplete 자가치유 — 알리기 전에 보강 cron 을 재실행한다.
+  //    60일 실측 "MLB 선발 지표 누락" 72회·KBO 32회가 전부 "다음 회차 자동 보강 대기"로
+  //    사람에게 갔는데, 그 보강이 곧 멱등 cron 재실행이다. 기계가 먼저 시도하고,
+  //    2회 실패분만 알림에 남긴다(health-check 자가치유 루프와 같은 원칙).
+  //    잡의 startersUpdatedAt 6h skip 이 과호출을 자연 차단하므로 여기선 시도 수만 센다.
+  const healedAway: string[] = [];
+  const heals = issues.filter((i) => i.kind === "starter_incomplete" && i.league);
+  // 봇 axios timeout 30s 안에서 안전하게 — 한 사이클에 1개 리그만 치유(동시 발화 희귀)
+  for (const issue of heals.slice(0, 1)) {
+    const league = issue.league!;
+    const healKey = `starter-incomplete:${league}`;
+    const cronRoute = league === "MLB" ? "mlb-starters" : "baseball-starters";
+    const attempts = await prisma.healthCheck.count({
+      where: { category: "self-heal", key: healKey, runAt: { gte: new Date(now.getTime() - 6 * 3600_000) } },
+    });
+    if (attempts >= 2) {
+      issue.detail += " · 자가치유 2회 실패 — 사람 확인 필요";
+      continue;
+    }
+    // 트리거만 하고 완주를 기다리지 않는다(mlb-starters 최대 120s) — 판정은 다음 15분 폴이 한다.
+    const site = (process.env.SITE_URL || "https://www.scorebase.kr").replace("://scorebase.kr", "://www.scorebase.kr");
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8_000);
+    let result = "triggered";
+    try {
+      const res = await fetch(`${site}/api/cron/${cronRoute}`, {
+        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+        signal: ctrl.signal,
+        cache: "no-store",
+      });
+      if (!res.ok) result = `fail:${res.status}`;
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") result = "fail:net";
+    } finally {
+      clearTimeout(t);
+    }
+    try {
+      await prisma.healthCheck.create({
+        data: {
+          severity: "LOW",
+          category: "self-heal",
+          key: healKey,
+          message: `${cronRoute} ${result === "triggered" ? "트리거" : "호출 실패"} (시도 ${attempts + 1}/2) — 판정은 다음 폴`,
+        },
+      });
+    } catch {
+      /* 기록 실패가 검사를 막지 않는다 */
+    }
+    if (result === "triggered") {
+      // 치유 중 — 이번 사이클은 알리지 않는다. 다음 폴에서 여전히 비어 있으면 시도 2 → 그다음 알림.
+      healedAway.push(league);
+      issues.splice(issues.indexOf(issue), 1);
+    }
+  }
+
   return NextResponse.json({
     ok: issues.length === 0,
     checkedAt: now.toISOString(),
     totals: { startersChecked: withStarters.length, statRowsChecked: statRows.length },
+    healing: healedAway,
     issues,
   });
 }
