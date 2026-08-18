@@ -128,18 +128,32 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // ── starter_incomplete 자가치유 — 알리기 전에 보강 cron 을 재실행한다.
-  //    60일 실측 "MLB 선발 지표 누락" 72회·KBO 32회가 전부 "다음 회차 자동 보강 대기"로
-  //    사람에게 갔는데, 그 보강이 곧 멱등 cron 재실행이다. 기계가 먼저 시도하고,
-  //    2회 실패분만 알림에 남긴다(health-check 자가치유 루프와 같은 원칙).
+  // ── 자가치유 — 알리기 전에 보강 cron 을 재실행한다.
+  //    60일 실측 "MLB 선발 지표 누락" 72회·KBO 32회 + 일본어 노출 58회가 전부
+  //    "다음 회차 자동 보강 대기"로 사람에게 갔는데, 그 보강이 곧 멱등 cron 재실행이다.
+  //    (2026-08-18 실증 — 10:48 synthetic 이 알린 선발 일본어 노출 4건이 11:25
+  //     baseball-starters 재실행만으로 해소됐다.) 기계가 먼저 시도하고 2회 실패분만
+  //     알림에 남긴다(health-check 자가치유 루프와 같은 원칙).
   //    잡의 startersUpdatedAt 6h skip 이 과호출을 자연 차단하므로 여기선 시도 수만 센다.
+  //    일본어 노출은 사전 결손이 원인이면 재실행으로 안 낫는데, 그때 상한 소진 →
+  //    "사람 확인 필요"(= npb-name-dict 등록, 진짜 사람 일)로 넘어가는 게 의도된 동작.
+  const HEAL_CRON: Record<string, string> = {
+    MLB: "mlb-starters",
+    KBO: "baseball-starters",
+    NPB: "baseball-starters",
+    "MLB:stats": "baseball-season-stats",
+    "KBO:stats": "baseball-season-stats",
+    "NPB:stats": "baseball-season-stats",
+  };
   const healedAway: string[] = [];
-  const heals = issues.filter((i) => i.kind === "starter_incomplete" && i.league);
-  // 봇 axios timeout 30s 안에서 안전하게 — 한 사이클에 1개 리그만 치유(동시 발화 희귀)
+  const heals = issues.filter(
+    (i) => (i.kind === "starter_incomplete" || i.kind === "foreign_text_leak") && i.league && HEAL_CRON[i.league],
+  );
+  // 봇 axios timeout 30s 안에서 안전하게 — 한 사이클에 1건만 치유(다음 15분 폴이 나머지)
   for (const issue of heals.slice(0, 1)) {
     const league = issue.league!;
-    const healKey = `starter-incomplete:${league}`;
-    const cronRoute = league === "MLB" ? "mlb-starters" : "baseball-starters";
+    const healKey = `${issue.kind === "starter_incomplete" ? "starter-incomplete" : "jp-leak"}:${league}`;
+    const cronRoute = HEAL_CRON[league];
     const attempts = await prisma.healthCheck.count({
       where: { category: "self-heal", key: healKey, runAt: { gte: new Date(now.getTime() - 6 * 3600_000) } },
     });
