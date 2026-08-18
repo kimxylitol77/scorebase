@@ -155,16 +155,53 @@ function loadState() {
     return {
       updatedAt: parsed.updatedAt || null,
       discoveries: Array.isArray(parsed.discoveries) ? parsed.discoveries : [],
+      // 검증에서 떨어진 후보의 기억. 이게 없어서 같은 도메인(sportspredict.com 이
+      // 8/15 탈락 → 8/18 재등장)이 반복 실패를 냈다 — 탈락도 발굴만큼 기억해야 한다.
+      rejected: Array.isArray(parsed.rejected) ? parsed.rejected : [],
     };
   } catch {
-    return { updatedAt: null, discoveries: [] };
+    return { updatedAt: null, discoveries: [], rejected: [] };
   }
 }
 
-function buildPrompt(reportedDomains) {
+function persistState(state) {
+  fs.mkdirSync(STATE_DIR, { recursive: true });
+  fs.writeFileSync(
+    STATE_FILE,
+    JSON.stringify(
+      {
+        updatedAt: new Date().toISOString(),
+        discoveries: state.discoveries,
+        rejected: state.rejected,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+// 탈락 기록 — 실행이 실패로 끝나도 반드시 저장한다(실패에서 배우는 게 이 함수의 존재 이유).
+// 프롬프트 길이 폭주를 막기 위해 최신 80건만 유지.
+function recordRejections(state, items) {
+  const seen = new Set(state.rejected.map((item) => item.domain));
+  for (const item of items) {
+    const domain = normalizeDomain(item.domain);
+    if (!domain || seen.has(domain)) continue;
+    seen.add(domain);
+    state.rejected.push({ domain, reason: item.reason || "", date: kstDateKey() });
+  }
+  state.rejected = state.rejected.slice(-80);
+  persistState(state);
+}
+
+function buildPrompt(reportedDomains, rejectedFromState = []) {
   const exclusions = [...KNOWN_COMPETITORS, ...reportedDomains].sort().join(", ");
   const pastReferences = [...REFERENCE_ONLY_DOMAINS].sort().join(", ");
-  const rejectedDomains = [...REJECTED_SCOUT_DOMAINS].sort().join(", ");
+  // 정적 하드코딩 목록 + 상태 파일의 동적 탈락 기록을 합친다 — 검증 실패 도메인을
+  // 사람이 코드에 추가하던 수동 루프를 상태 파일이 대신한다.
+  const rejectedDomains = [...new Set([...REJECTED_SCOUT_DOMAINS, ...rejectedFromState])]
+    .sort()
+    .join(", ");
   const nonProductDomains = [...NON_PRODUCT_DOMAINS].sort().join(", ");
   return `오늘은 ${todayKst()} 입니다. 당신은 Scorebase의 신규 경쟁자 발굴 전담 스카우트입니다.
 
@@ -302,23 +339,31 @@ function directOverlapTags(report, candidate) {
   return DIRECT_OVERLAP_TAGS.filter((tag) => overlap.includes(tag));
 }
 
+// 후보 하나에 귀속되는 오류 — error.domains 를 실어 상위(main)가 그 후보만 떨궈내고
+// 나머지 보고를 살릴 수 있게 한다(후보 1개 때문에 그날 보고 전체가 죽던 문제의 해법).
+function candidateError(message, domains) {
+  const error = new Error(message);
+  error.domains = domains;
+  return error;
+}
+
 function validateCandidateBlock(report, heading, candidate, { direct = false } = {}) {
   const block = candidateBlock(getSection(report, heading), candidate);
   if (!/^- 근거:\s*https?:\/\/\S+/m.test(block)) {
-    throw new Error(`개별 근거 URL 누락: ${candidate.domain}`);
+    throw candidateError(`개별 근거 URL 누락: ${candidate.domain}`, [candidate.domain]);
   }
   if (!direct) return;
 
   const productType = block.match(/^- 제품 유형:\s*(.+)$/m)?.[1]?.trim() || "";
   if (!DIRECT_PRODUCT_TYPES.includes(productType)) {
-    throw new Error(`직접 경쟁 제품 유형 오류: ${candidate.domain}`);
+    throw candidateError(`직접 경쟁 제품 유형 오류: ${candidate.domain}`, [candidate.domain]);
   }
   if (!/^- 실제 경기 대상:\s*예\s*$/m.test(block)) {
-    throw new Error(`실제 경기 대상 확인 실패: ${candidate.domain}`);
+    throw candidateError(`실제 경기 대상 확인 실패: ${candidate.domain}`, [candidate.domain]);
   }
   const tags = directOverlapTags(report, candidate);
   if (tags.length < 2) {
-    throw new Error(`직접 경쟁 기준 미달: ${candidate.domain} (${tags.length}/2 태그)`);
+    throw candidateError(`직접 경쟁 기준 미달: ${candidate.domain} (${tags.length}/2 태그)`, [candidate.domain]);
   }
 }
 
@@ -422,11 +467,19 @@ function validateReport(report, state) {
     throw new Error("직접 경쟁자 형식 파싱 실패 — 전송 중단");
   }
 
-  const reportedDomains = state.discoveries.map((item) => item.domain);
+  // 과거 발굴 + 과거 탈락 둘 다 재등장 금지 대상 — 탈락 기록이 없으면 같은 후보가
+  // 며칠 간격으로 되살아나 반복 실패를 낸다.
+  const reportedDomains = [
+    ...state.discoveries.map((item) => item.domain),
+    ...(state.rejected || []).map((item) => item.domain),
+  ];
   const allCandidates = [...direct, ...references];
   const excluded = allCandidates.filter((item) => isExcludedDomain(item.domain, reportedDomains));
   if (excluded.length > 0) {
-    throw new Error(`기존·제외 도메인 재등장: ${excluded.map((item) => item.domain).join(", ")}`);
+    throw candidateError(
+      `기존·제외 도메인 재등장: ${excluded.map((item) => item.domain).join(", ")}`,
+      excluded.map((item) => item.domain),
+    );
   }
 
   const unique = new Set(allCandidates.map((item) => item.domain));
@@ -447,18 +500,50 @@ function validateReport(report, state) {
 }
 
 function saveResult(state, result, report) {
-  fs.mkdirSync(STATE_DIR, { recursive: true });
   const date = kstDateKey();
-  const discoveries = [
+  state.discoveries = [
     ...state.discoveries,
     ...result.direct.map((item) => ({ ...item, type: "direct", firstSeen: date })),
     ...result.references.map((item) => ({ ...item, type: "reference", firstSeen: date })),
   ];
-  fs.writeFileSync(
-    STATE_FILE,
-    JSON.stringify({ updatedAt: new Date().toISOString(), discoveries }, null, 2),
-  );
+  persistState(state); // rejected 를 함께 보존 — 옛 형식으로 덮어쓰면 탈락 기억이 사라진다
   fs.appendFileSync(IDEA_LOG, JSON.stringify({ date, ...result, report }) + "\n");
+}
+
+// 검증 실패 후보를 보고서에서 떼어낸다 — 섹션 재구성·재번호는 dedupeCandidateSection 을
+// 재사용(제거 대상 도메인을 seen 집합에 미리 넣으면 같은 메커니즘으로 떨어져 나간다).
+// 떨어진 후보를 근거로 쓴 💡 아이디어 줄도 함께 지운다(잔류 시 아이디어 검증에서 다시 죽는다).
+function removeCandidatesFromReport(report, domains) {
+  const banned = new Set(domains.map((domain) => normalizeDomain(domain)).filter(Boolean));
+  const direct = dedupeCandidateSection(
+    getSection(report, "🥊 직접 경쟁자"),
+    new Set(banned),
+    "- 검증 가능한 직접 경쟁자 없음",
+  );
+  let clean = replaceSection(report, "🥊 직접 경쟁자", direct.section);
+  const references = dedupeCandidateSection(
+    getSection(clean, "🧭 아이디어 참고 서비스"),
+    new Set(banned),
+    "- 검증 가능한 참고 서비스 없음",
+  );
+  clean = replaceSection(clean, "🧭 아이디어 참고 서비스", references.section);
+
+  const ideasSection = getSection(clean, "💡 Scorebase 아이디어");
+  if (ideasSection) {
+    const kept = ideasSection
+      .split("\n")
+      .filter((line) => {
+        if (!/^\d+\.\s+/.test(line)) return true;
+        const source = line.match(/\[근거:\s*([^\]]+)\]/)?.[1]?.trim() || "";
+        return !banned.has(normalizeDomain(source));
+      });
+    let n = 0;
+    const renumbered = kept
+      .map((line) => (/^\d+\.\s+/.test(line) ? line.replace(/^\d+\./, `${(n += 1)}.`) : line))
+      .join("\n");
+    clean = replaceSection(clean, "💡 Scorebase 아이디어", renumbered.trim());
+  }
+  return clean;
 }
 
 async function main() {
@@ -476,10 +561,11 @@ async function main() {
   if (!process.env.OPENAI_BRIEF_MODEL) {
     process.env.OPENAI_BRIEF_MODEL = process.env.SCOUT_OPENAI_MODEL || "gpt-5.6-sol";
   }
-  const basePrompt = buildPrompt(reportedDomains);
+  const basePrompt = buildPrompt(reportedDomains, state.rejected.map((item) => item.domain));
   let clean;
   let result;
   let validationError;
+  let firstError; // 1차 시도에서 지적된 후보 — 최종 보고에 없으면 "모델이 스스로 뺀 것"으로 기억
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const prompt = validationError
       ? `${basePrompt}\n\n## 이전 결과 재검증 지시\n- 검증 실패 이유: ${validationError.message}\n- 실패한 후보의 공식 제품 페이지를 다시 확인하고, 기준을 충족하면 형식을 바로잡고 충족하지 않으면 후보에서 제거한다.\n- 검증 가능한 직접 경쟁자가 없으면 억지로 대체하지 말고 지정된 '없음' 문구를 쓴다.`
@@ -507,11 +593,48 @@ async function main() {
     } catch (error) {
       validationError = error;
       if (attempt === 0) {
+        firstError = error;
         console.warn(`[competitor-scout] 검증 실패, 1회 재검색: ${error.message}`);
       }
     }
   }
+
+  // ── 후보 단위 강등 — 재검색까지 실패했어도 문제 후보만 떼어내면 나머지는 살릴 수 있다.
+  //    예전엔 여기서 throw → 그날 보고 전체 소실 + WARN 알림이 사람에게 갔다.
+  const salvaged = [];
+  for (let round = 0; round < 3 && validationError && validationError.domains?.length; round += 1) {
+    const domains = validationError.domains;
+    salvaged.push(...domains.map((domain) => ({ domain, reason: validationError.message })));
+    clean = removeCandidatesFromReport(clean, domains);
+    try {
+      result = validateReport(clean, state);
+      validationError = null;
+    } catch (error) {
+      validationError = error;
+    }
+  }
+  if (salvaged.length > 0) {
+    // 실행이 이후 단계에서 실패해도 탈락 기억은 남긴다 — 내일 같은 후보로 또 죽지 않게.
+    recordRejections(state, salvaged);
+    console.warn(
+      `[competitor-scout] 검증 실패 후보 자동 탈락: ${salvaged.map((item) => item.domain).join(", ")}`,
+    );
+  }
   if (validationError) throw validationError;
+  if (salvaged.length > 0) {
+    clean += `\n\n(자동 탈락: ${salvaged.map((item) => item.domain).join(", ")} — 검증 실패로 이번 보고에서 제외, 이후 재보고 금지 목록에 기록)`;
+  }
+
+  // 1차에서 지적된 후보가 재검색 보고에서 사라졌으면 모델이 스스로 뺀 것 — 이것도 기억한다.
+  // (sportspredict.com 이 8/15 이렇게 빠졌다가 기억이 없어 8/18 재등장해 봇을 죽였다.)
+  if (firstError?.domains?.length && !validationError) {
+    const finalDomains = new Set([...result.direct, ...result.references].map((item) => item.domain));
+    const selfDropped = firstError.domains
+      .map((domain) => normalizeDomain(domain))
+      .filter((domain) => domain && !finalDomains.has(domain))
+      .map((domain) => ({ domain, reason: `재검증에서 제거 (${firstError.message})` }));
+    if (selfDropped.length > 0) recordRejections(state, selfDropped);
+  }
   if (DRY_RUN) {
     console.log(
       `[competitor-scout] DRY RUN — direct=${result.direct.length}, references=${result.references.length}\n${clean}`,
@@ -564,6 +687,7 @@ module.exports = {
   loadState,
   main,
   normalizeDomain,
+  removeCandidatesFromReport,
   sanitizeReport,
   validateReport,
 };
