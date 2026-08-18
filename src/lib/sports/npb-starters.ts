@@ -24,7 +24,12 @@ import {
 } from "./npb-official";
 import { kanaToKorean } from "./kana-to-korean";
 import { NPB_PLAYER_KO } from "./npb-name-dict";
+// pid → 히라가나 풀네임 사전(842명). npb.jp 선수 페이지 fetch 가 실패해도
+// 이 사전만 있으면 음역이 되므로, 아래 enrich 에서 마지막 폴백으로 쓴다.
+import rawKanaByPid from "../../../data/npb-player-kana.json";
 import { calcFip, calcLobPct } from "./baseball-saber";
+
+const KANA_BY_PID = rawKanaByPid as Record<string, string>;
 
 export interface NpbStarterPitcher {
   name: string; // 한글 음역 (UI 표시용)
@@ -397,9 +402,13 @@ export async function enrichNpbStartersWithStats(
       fetchStatsOnce(hit.pid),
       fetchPhotoOnce(hit.pid),
     ]);
-    // 한자 잔존 (PITCHER_NAME_KO 매핑 없음) → kana 음역 fallback
-    const name = hasHan(p.name) && st?.kana
-      ? (transliterateFromKana(st.kana, p.nameJp) ?? p.name)
+    // 한자 잔존 (PITCHER_NAME_KO 매핑 없음) → kana 음역 fallback.
+    // 선수 페이지 fetch 가 실패하면 st 가 null 이라 여기서 한자가 그대로 살아남아
+    // 화면으로 나갔다 (2026-08-18 尾形·吉川 — 10:30 회차 노출, 11:00 회차에 자동 복구).
+    // pid 는 로스터 index 에서 이미 얻었으므로, 그 pid 로 카나 사전을 한 번 더 본다.
+    const kana = st?.kana ?? KANA_BY_PID[hit.pid];
+    const name = hasHan(p.name) && kana
+      ? (transliterateFromKana(kana, p.nameJp) ?? p.name)
       : p.name;
     if (!st) return { ...p, name, pid: hit.pid, photoUrl };
     return {
