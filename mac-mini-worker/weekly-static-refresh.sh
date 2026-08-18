@@ -1,6 +1,7 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
+source "$HOME/dev/scorebase/mac-mini-worker/git-push-lib.sh"  # git_push_with_retry — push 경합 시 rebase 재시도
 hb_trap mac-mini-weekly-static-refresh /tmp/weekly-static-refresh.log
 # 매주 일요일 05:00 KST — /transfers·감독 페이지 정적 데이터 일괄 갱신 + data/*.json 한정 자동 push.
 # 수동 재실행에 의존하던 빌더들(스쿼드·감독·경력·트로피·국기·포지션·이적 팀사전)을 자동화 (2026-06-11).
@@ -115,7 +116,10 @@ if git diff --quiet -- data/; then
 else
   git add data/*.json
   git commit -m "chore(data): 주간 정적 데이터 자동 갱신 — 스쿼드·감독·국기·포지션·선수매핑·시즌스탯 (mac-mini)" -q
-  git push origin main -q
+  if ! git_push_with_retry; then
+    log "❌ push 최종 실패 — 커밋은 로컬에 보존됨. 다음 실행의 reset 전에 회수 필요"
+    exit 1
+  fi
   log "✓ push 완료: $(git log --oneline -1)"
 fi
 log "✓ 종료"

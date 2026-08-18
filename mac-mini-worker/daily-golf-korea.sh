@@ -1,6 +1,7 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
+source "$HOME/dev/scorebase/mac-mini-worker/git-push-lib.sh"  # git_push_with_retry — push 경합 시 rebase 재시도
 hb_trap mac-mini-daily-golf-korea /tmp/daily-golf-korea.log
 # 매일 09:00 KST — 골프 한국 선수 시즌 성적(/golf/korea) 재집계 + data json 자동 push.
 # weekly-static-refresh(일 05:00)로는 미국 일요일 종료 대회가 최대 6일 지연돼 별도 daily 로 분리.
@@ -44,7 +45,10 @@ if git diff --quiet -- data/; then
 else
   git add data/golf-korea-season.json data/golf-player-names.json data/golf-world-rankings.json
   git commit -m "chore(data): 골프 한국 선수 성적·세계랭킹 자동 갱신 (mac-mini)" -q
-  git push origin main -q
+  if ! git_push_with_retry; then
+    log "❌ push 최종 실패 — 커밋은 로컬에 보존됨. 다음 실행의 reset 전에 회수 필요"
+    exit 1
+  fi
   log "✓ push 완료: $(git log --oneline -1)"
 fi
 log "✓ 종료"

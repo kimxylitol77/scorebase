@@ -1,6 +1,7 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
+source "$HOME/dev/scorebase/mac-mini-worker/git-push-lib.sh"  # git_push_with_retry — push 경합 시 rebase 재시도
 hb_trap mac-mini-daily-fifa-rankings /tmp/daily-fifa-rankings.log
 # 매일 06:40 KST — FIFA 남녀 + 세계 클럽 랭킹을 TheSports 에서 받아 정적 JSON 자동 갱신 + push.
 #
@@ -31,7 +32,10 @@ else
   PUB=$(node -e "console.log(JSON.parse(require('fs').readFileSync('src/lib/sports/fifa-rankings-meta.json','utf8')).pubDate)")
   git add $FILES
   git commit -m "chore(data): FIFA 랭킹 자동 갱신 — ${PUB} 발표 반영 (mac-mini)" -q
-  git push origin main -q
+  if ! git_push_with_retry; then
+    log "❌ push 최종 실패 — 커밋은 로컬에 보존됨. 다음 실행의 reset 전에 회수 필요"
+    exit 1
+  fi
   log "✓ push 완료: $(git log --oneline -1)"
 fi
 log "✓ 종료"

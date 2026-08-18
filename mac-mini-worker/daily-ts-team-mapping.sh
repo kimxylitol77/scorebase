@@ -1,6 +1,7 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
+source "$HOME/dev/scorebase/mac-mini-worker/git-push-lib.sh"  # git_push_with_retry — push 경합 시 rebase 재시도
 hb_trap mac-mini-daily-ts-team-mapping /tmp/daily-ts-team-mapping.log
 # 매일 06:20 KST — ts- externalId 팀을 team-id-mapping.json 에 백필 + 자동 push.
 #
@@ -49,7 +50,10 @@ if git diff --quiet -- "$MAP"; then
 else
   git add "$MAP"
   git commit -m "chore(data): ts 팀 매핑 자동 백필 $BEFORE → $AFTER (mac-mini)" -q
-  git push origin main -q
+  if ! git_push_with_retry; then
+    log "❌ push 최종 실패 — 커밋은 로컬에 보존됨. 다음 실행의 reset 전에 회수 필요"
+    exit 1
+  fi
   log "✓ push 완료: $(git log --oneline -1)"
 fi
 log "✓ 종료"
