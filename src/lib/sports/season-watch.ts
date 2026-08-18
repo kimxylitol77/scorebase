@@ -306,6 +306,14 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
     // 최근 30일에 치른 경기가 없으면서 앞으로 경기가 있다 = 시즌 개막 대기.
     const awaitingOpen = !recentlyPlayed.has(league) && firstFixtureAt != null;
 
+    // 신시즌 롤오버 대기 — 저장소는 신시즌 후보를 가리키는데 ACTIVE 가 아직 없다
+    // (ts 가 표를 발행해야 poller 가 활성화한다 — has_table 대기). 사람이 할 일이 없는
+    // 시즌성 상태인데 컵 예선이 3일 내라 urgent 로 승격돼 매일 HIGH 가 갔다
+    // (2026-08 실측: 14일간 HIGH 164건 중 122건이 UEFA·AFC 컵 5개의 이 상태).
+    // ACTIVE 가 생긴 뒤의 불일치는 실제 설정 오류라 기존 급 그대로 남는다.
+    const rolloverWait =
+      active == null && repoSeasonId != null && cache != null && cache.tsSeasonId !== repoSeasonId;
+
     if (kind !== "FRIENDLY") {
       // 시즌 ID 3자 대조 — 저장소 / ACTIVE / 캐시
       const ids = new Set(
@@ -316,8 +324,10 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
       if (ids.size > 1) {
         issues.push({
           code: "season-id-mismatch",
-          severity: urgent ? "HIGH" : "MED",
-          detail: `저장소=${repoSeasonId ?? "없음"} / ACTIVE=${active?.providerSeasonId ?? "없음"} / 캐시=${cache?.tsSeasonId ?? "없음"}`,
+          severity: rolloverWait ? "LOW" : urgent ? "HIGH" : "MED",
+          detail:
+            `저장소=${repoSeasonId ?? "없음"} / ACTIVE=${active?.providerSeasonId ?? "없음"} / 캐시=${cache?.tsSeasonId ?? "없음"}` +
+            (rolloverWait ? " · 신시즌 표 발행 대기 (poller 활성화 시 자동 해소)" : ""),
         });
       }
 
@@ -335,7 +345,9 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
         });
       } else {
         // 유럽 컵 + poller 살아있음 = 리그페이즈 사이 시즌 경계 → stale 아님(정상).
-        const cupExempt = EUROPEAN_CUPS.has(league) && pollerAlive;
+        // 롤오버 대기도 동일 — 지난 시즌 표 동결은 의도된 노출(preseason 정본)이라
+        // AFC_CL 이 "캐시 1777시간 경과" HIGH 로 매일 가던 것을 함께 잠재운다.
+        const cupExempt = (EUROPEAN_CUPS.has(league) && pollerAlive) || rolloverWait;
         if (cacheAgeH != null && cacheAgeH > CACHE_STALE_MS / HOUR && !cupExempt) {
           issues.push({
             code: "cache-stale",
