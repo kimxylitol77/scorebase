@@ -16,6 +16,7 @@ import { leagueLabel } from "@/lib/analysis/matches";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { sportForLeague, botTeamName } from "@/lib/analysis/manager-bot";
 import { FAKE_NICKNAMES, PERSONAS, ensureFakeMember } from "@/lib/analysis/fake-members";
+import { disparagesUs } from "@/lib/analysis/free-board-policy";
 
 const DAILY_CAP = 6; // 자유게시판 봇 글 하루 상한 — 규모 대비 도배 방지
 
@@ -356,12 +357,25 @@ async function buildTopics(): Promise<Topic[]> {
       where: { startTime: { gte: start, lt: end }, predCorrect: { not: null } },
       select: { predCorrect: true },
     });
-    if (graded.length >= 5) {
+    // 하루치는 표본 노이즈가 커서 그것만 주면 "동전던지기" 류 단정이 나온다(2026-07~08 실측 9건).
+    // 최근 30일 누계를 함께 줘서 하루 수치를 맥락 안에서 말하게 한다. 임계도 5 → 20 으로.
+    if (graded.length >= 20) {
       const correct = graded.filter((g) => g.predCorrect).length;
+      const monthAgo = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+      const recent30 = await prisma.match.findMany({
+        where: { startTime: { gte: monthAgo, lt: end }, predCorrect: { not: null } },
+        select: { predCorrect: true },
+      });
+      const rc = recent30.filter((g) => g.predCorrect).length;
+      const pct = (a: number, b: number) => Math.round((a / b) * 100);
       topics.push({
         kind: "ai-report",
-        data: `어제 이 사이트 AI 모델 1X2 예측 성적: ${graded.length}경기 중 ${correct}적중 (${Math.round((correct / graded.length) * 100)}%)`,
-        guide: "AI 성적을 보고 감탄하거나 가볍게 놀리는 반응 글. 한두 문장.",
+        data:
+          `어제 이 사이트 AI 모델 1X2 예측 성적: ${graded.length}경기 중 ${correct}적중 (${pct(correct, graded.length)}%). ` +
+          `최근 30일 누계는 ${recent30.length}경기 중 ${rc}적중 (${pct(rc, recent30.length)}%) — 하루 수치는 표본이 작아 오르내린다.`,
+        guide:
+          "어제 성적을 30일 누계와 견줘 담백하게 언급하는 반응 글. 한두 문장. " +
+          "하루 숫자만 보고 모델 성능을 단정하지 말 것.",
         appendix: `\n\n[리그별 적중률 보기](/predictions/accuracy)`,
       });
     }
@@ -444,6 +458,12 @@ const FREE_SYSTEM = (nickname: string, tone: string, guide: string, recent: stri
 - 제공된 데이터에 있는 사실·숫자만 사용. 없는 것(선수 발언·부상·심판 판정·현장 직관 경험·뒷이야기) 지어내기 금지.
 - 숫자를 바꾸거나 과장하지 말 것.
 
+[이 사이트에 대한 태도 — 절대]
+- 여기는 이 사이트의 게시판이다. 사이트의 AI 예측·데이터·서비스를 조롱하거나 깎아내리지 않는다.
+- "동전 던지기", "무작위와 다를 바 없다", "이게 뭐하는 짓", "차라리 ~가 낫다" 류의 비하 표현 금지.
+- 성적이 낮은 날이라도 비웃지 말고 담백하게 적는다. 아쉬움 정도는 괜찮지만 서비스 자체를 부정하지 않는다.
+- 하루치 숫자로 모델 전체를 단정하지 않는다(표본이 작다).
+
 [중복 금지]
 최근 자유게시판 글: ${recent.length ? recent.join(" / ") : "(없음)"}
 - 위와 제목·문장 구조가 겹치면 안 됨.
@@ -491,6 +511,8 @@ export async function runFreeBoardPost(force = false): Promise<{ created: number
     const title = String(json?.title ?? "").trim().slice(0, 120);
     const body = String(json?.body ?? "").trim();
     if (!title || body.length < 4) return { created: 0, skipped: 1 };
+    // 프롬프트 규칙은 온도 0.95 에서 샌다 — 발행 직전에 한 번 더 막는다.
+    if (disparagesUs(`${title} ${body} ${topic.appendix ?? ""}`)) return { created: 0, skipped: 1 };
 
     const userId = await ensureFakeMember(i);
     // createdAt 과거 지터 — cron 정각 티 제거 (다른 봇과 동일 장치)
