@@ -34,18 +34,36 @@ function hourBucket(): Date {
 export async function afTrack(tag: string, remaining: number | null): Promise<void> {
   try {
     const hour = hourBucket();
-    await prisma.afUsageStat.upsert({
-      where: { tag_hour: { tag, hour } },
-      create: { tag, hour, calls: 1, minRemaining: remaining },
-      update: {
-        calls: { increment: 1 },
-        // 잔량은 줄어들기만 하므로 최솟값만 갱신한다(그 버킷의 끝 상태).
-        ...(remaining != null ? { minRemaining: remaining } : {}),
-      },
-    });
+    // minRemaining 은 이름 그대로 그 버킷의 **최솟값**이어야 한다. 예전 구현은 마지막 관측값으로
+    // 덮어써서, 소진 뒤 올라오는 값이 진짜 바닥을 지웠다(2026-08-19: 118 → 74999 로 덮임).
+    // Prisma upsert 는 기존 값과 비교하는 갱신을 못 만들어 raw 로 LEAST 를 쓴다.
+    // Postgres LEAST 는 NULL 인자를 무시하므로 첫 관측이 null 이어도 안전하다.
+    await prisma.$executeRaw`
+      INSERT INTO "AfUsageStat" ("tag", "hour", "calls", "minRemaining", "updatedAt")
+      VALUES (${tag}, ${hour}, 1, ${remaining}, NOW())
+      ON CONFLICT ("tag", "hour") DO UPDATE SET
+        "calls" = "AfUsageStat"."calls" + 1,
+        "minRemaining" = LEAST("AfUsageStat"."minRemaining", ${remaining}),
+        "updatedAt" = NOW()
+    `;
   } catch {
     // 계측 실패가 수집을 막아선 안 된다
   }
+}
+
+/**
+ * 이 응답의 잔량을 계측에 써도 되는가.
+ *
+ * 일일 한도를 다 쓰면 af 는 body 로만 소진을 알리고 **헤더에는 만량(74999)을 실어 보낸다**
+ * (2026-08-19 실측). 헤더를 그대로 믿으면 계측이 소진 순간을 "잔량 가득"으로 기록해,
+ * 소비 추이가 정반대로 읽힌다. 소진은 0 으로 못박고, 그 밖의 오류 응답 헤더는 버린다.
+ */
+function trackedRemaining(
+  err: { kind: string } | null,
+  fromHeaders: number | null,
+): number | null {
+  if (!err) return fromHeaders;
+  return err.kind === "requests" ? 0 : null;
 }
 
 /**
@@ -58,20 +76,20 @@ export async function afFetch(
   init?: RequestInit,
 ): Promise<Response> {
   const res = await fetch(input, init);
-  await afTrack(tag, afRemainingFromHeaders(res.headers));
-  if (!res.ok) return res;
-
   // 200 인데 errors 객체인 경우 — 호출부가 "데이터 없음"으로 오해하고, next.revalidate 가
   // 붙어 있으면 그 오류 응답이 캐시에까지 굳는다. 한도면 캐시를 건너뛰고 다시 받아온다.
-  const err = await peekApiSportsError(res);
+  // 계측보다 먼저 판정한다 — 소진 응답의 헤더 잔량은 믿으면 안 되기 때문(trackedRemaining).
+  const err = res.ok ? await peekApiSportsError(res) : null;
+  await afTrack(tag, trackedRemaining(err, afRemainingFromHeaders(res.headers)));
+  if (!res.ok) return res;
   if (!err) return res;
   if (err.kind === "rateLimit") {
     for (const wait of DEFAULT_RETRY_WAITS_MS) {
       await new Promise((r) => setTimeout(r, wait));
       const retry = await fetch(input, { ...init, cache: "no-store", next: undefined });
-      await afTrack(tag, afRemainingFromHeaders(retry.headers));
+      const again = retry.ok ? await peekApiSportsError(retry) : null;
+      await afTrack(tag, trackedRemaining(again, afRemainingFromHeaders(retry.headers)));
       if (!retry.ok) return retry;
-      const again = await peekApiSportsError(retry);
       if (!again) return retry;
     }
   }
@@ -91,10 +109,12 @@ async function peekApiSportsError(res: Response): Promise<{ kind: string; messag
 export async function afTrackHeaders(
   tag: string,
   headers: Record<string, unknown> | undefined,
+  err?: { kind: string } | null,
 ): Promise<void> {
   const raw = headers?.["x-ratelimit-requests-remaining"];
   const n = raw == null ? null : Number(raw);
-  await afTrack(tag, Number.isFinite(n as number) ? (n as number) : null);
+  const fromHeaders = Number.isFinite(n as number) ? (n as number) : null;
+  await afTrack(tag, trackedRemaining(err ?? null, fromHeaders));
 }
 
 /**
@@ -151,9 +171,8 @@ export function attachAfTracking<T extends AxiosInstance>(
   client.interceptors.response.use(async (res) => {
     const path = (res.config?.url ?? "").split("?")[0].replace(/^\//, "");
     const tag = path ? `${baseTag}:${path}` : baseTag;
-    void afTrackHeaders(tag, res.headers as unknown as Record<string, unknown> | undefined);
-
     const err = apiSportsError(res.data);
+    void afTrackHeaders(tag, res.headers as unknown as Record<string, unknown> | undefined, err);
     if (!err) return res;
     if (err.kind === "rateLimit") {
       const cfg = res.config as typeof res.config & { __afRetry?: number };
