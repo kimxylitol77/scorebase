@@ -567,15 +567,15 @@
       },
       "spells": null,
       "current": {
-        "status": "none",
+        "status": "played",
         "season": "2026-27",
-        "team": null,
-        "apps": 0,
+        "team": "Atletico Madrid",
+        "apps": 1,
         "starts": 0,
-        "goals": 0,
+        "goals": 1,
         "assists": 0,
-        "minutes": 0,
-        "rating": null,
+        "minutes": 33,
+        "rating": 8.2,
         "yellow": 0,
         "red": 0
       }
@@ -2670,5 +2670,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-18T22:20:19.572Z"
+  "currentUpdatedAt": "2026-08-19T22:20:21.406Z"
 }
