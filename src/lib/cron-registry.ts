@@ -19,6 +19,9 @@ export const CRON_REGISTRY: {
   { name: "af-odds", label: "확장 리그 배당 (api-football)", maxAgeH: 28 },
   // zeroAlertAfter 등록분 — 실측 마지막 처리량이 세 자리 이상이고, 비수기에도
   // 전 리그가 동시에 0 이 되기 어려운 잡만 넣었다. 운영하며 안전한 잡을 늘린다.
+  // ⚠️ 감시형 cron(data-freshness·llm-cost-watch·news-briefing 등 count=발견/알림 수)은
+  //    0 이 "이상 없음"이라 zeroAlertAfter 를 절대 붙이지 말 것 — 수집형(count=처리 행 수)만.
+  //    시즌제 수집(kbo/npb-player-logs·lol-collect)도 비시즌 연속 0 이 정상이라 제외.
   { name: "closing-odds", label: "북메이커 클로징 아카이브", maxAgeH: 28, zeroAlertAfter: 4 },
   { name: "standings-collect", label: "축구 순위", maxAgeH: 28 },
   { name: "baseball-standings", label: "야구 순위", maxAgeH: 28 },
@@ -66,6 +69,18 @@ export const CRON_REGISTRY: {
   { name: "player-match-logs", label: "선수 경기별 출전 로그", maxAgeH: 180, zeroAlertAfter: 2 },
   { name: "indexnow", label: "IndexNow 색인", maxAgeH: 28 },
   { name: "presence-cleanup", label: "실시간 접속 만료 정리", maxAgeH: 28 },
+  // ── 2026-08-19 전수 스캔으로 발견된 미등록분 — vercel 에 살아 있는데 죽어도 알림이 없었다.
+  //    player-match-logs 가 이 상태로 한 달 침묵했던 것과 같은 클래스(감시 사각).
+  { name: "telegram-alerts", label: "회원 텔레그램 경기 알림", maxAgeH: 2 }, // 2분 주기
+  { name: "lineup-post", label: "라인업 도착 발행", maxAgeH: 2 }, // 10분 주기
+  { name: "transfer-daily", label: "이적시장 일간 수집", maxAgeH: 28 },
+  { name: "transfer-xi", label: "이적 베스트XI", maxAgeH: 28 },
+  // 이벤트는 이적창 비수기에도 몸값 재평가·부상으로 매일 생긴다 — 연속 0 은 af 쿼터 기아 신호
+  { name: "player-events", label: "선수 근황 이벤트", maxAgeH: 28, zeroAlertAfter: 4 },
+  { name: "player-trophies", label: "선수 트로피", maxAgeH: 28 }, // 수상은 드물어 0 이 정상 — zeroAlert 금지
+  { name: "capture-injuries", label: "부상 스냅샷", maxAgeH: 28 },
+  { name: "predict-upcoming", label: "다가올 매치 예측", maxAgeH: 16 }, // 하루 2회(3,13시)
+  { name: "squad-numbers", label: "스쿼드 등번호", maxAgeH: 180 }, // 주간(화)
 ];
 
 /**
