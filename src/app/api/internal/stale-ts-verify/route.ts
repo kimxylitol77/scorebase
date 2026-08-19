@@ -5,10 +5,10 @@
 //   cleanup-stale-scheduled cron 은 Vercel(동적 IP)이라 TheSports(IP 화이트리스트) 호출 불가.
 //   → externalId 가 "ts-" prefix 인 매치(NPB/CHILE_PB/CANADA_PL 등)는 거기서 verify 못 하고
 //     매번 KEPT 로 쌓인다. 고정 IP worker(mac-mini, 화이트리스트 등록)가 이 endpoint 로
-//     대상 목록을 받아 baseball/football diary 로 verify 한 뒤 결과를 되돌려 준다.
+//     대상 목록을 받아 baseball/football/ice_hockey diary 로 verify 한 뒤 결과를 되돌려 준다.
 //
 // 매핑 단일 진실: status_id → MatchStatus 변환은 worker 에서 하지 않고 여기서
-//   mapBaseballStatus / mapFootballStatus 재사용 (worker .js 는 src/lib import 불가).
+//   mapBaseballStatus / mapFootballStatus / mapIceHockeyStatus 재사용 (worker .js 는 src/lib import 불가).
 //   worker 는 diary 의 raw statusId/score 만 추출해 보낸다.
 //
 // auth: Bearer INTERNAL_API_TOKEN.
@@ -23,7 +23,7 @@ import {
   BASKETBALL_LEAGUES,
   MMA_LEAGUES,
 } from "@/lib/sports/sport-leagues";
-import { mapBaseballStatus } from "@/lib/sports/thesports/status-codes";
+import { mapBaseballStatus, mapIceHockeyStatus } from "@/lib/sports/thesports/status-codes";
 import { mapFootballStatus } from "@/lib/sports/thesports/football-collector";
 
 export const runtime = "nodejs";
@@ -37,12 +37,13 @@ const STALE_HOURS = 6;
 // 야구 연장(3h+) 매치도 진행 중이면 KEPT 로 안전하게 유지된다.
 const LIVE_STALE_HOURS = 3;
 
-// ts- 매치 sport 분류 — baseball / football diary 만 verify 대상.
-// 하키/농구 ts- 매치는 diary 스킴이 달라 현재 제외 (worker 가 football 로 오조회하지 않도록 null).
-type VerifySport = "baseball" | "football";
+// ts- 매치 sport 분류 — baseball / football / ice_hockey diary 가 verify 대상.
+// 농구 ts- 매치는 diary 스킴이 달라 제외 (worker 가 football 로 오조회하지 않도록 null).
+type VerifySport = "baseball" | "football" | "ice_hockey";
 function sportForLeague(league: string): VerifySport | null {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
-  if (HOCKEY_LEAGUES.has(league) || BASKETBALL_LEAGUES.has(league)) return null;
+  if (HOCKEY_LEAGUES.has(league)) return "ice_hockey";
+  if (BASKETBALL_LEAGUES.has(league)) return null;
   return "football";
 }
 
@@ -237,12 +238,24 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    // 하키 status_id=0 = ABNORMAL(Suggest Hiding). ts 가 숨김을 권장한 매치라
+    // ice-hockey-match-collector 가 아예 건너뛰어 이미 만들어진 row 는 영영 갱신되지 않는다
+    // (2026-08-19 HOCKEY_FRIENDLY 3건이 9~11h stale SCHEDULED 로 고착). 6h+ stale 대상에
+    // 한해 POSTPONED 로 확정해 화면 노출을 끊는다.
+    if (sport === "ice_hockey" && r.statusId === 0) {
+      await prisma.match.update({ where: { id: m.id }, data: { status: "POSTPONED" } });
+      postponed.push(m);
+      continue;
+    }
+
     const mapped =
       r.statusId == null
         ? "SCHEDULED"
         : sport === "baseball"
           ? mapBaseballStatus(r.statusId)
-          : mapFootballStatus(r.statusId);
+          : sport === "ice_hockey"
+            ? mapIceHockeyStatus(r.statusId)
+            : mapFootballStatus(r.statusId);
 
     if (mapped === "FINISHED") {
       await prisma.match.update({

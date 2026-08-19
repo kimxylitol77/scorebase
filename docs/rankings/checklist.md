@@ -31,12 +31,18 @@
 
 몸값 1억€당 승점. 실측 헤타페 67.6 vs 첼시 4.6. 스키마 변경 없음.
 
-- [ ] 경로 확정 (`/rankings/value-clubs` 안) → 검증: 기존 97개 path 와 충돌 없음
-- [ ] 집계 쿼리 작성 (PlayerMarketValue → TeamSourceId → Team → Match) → 검증: 81팀 산출
-- [ ] 페이지 UI + 리그 탭 → 검증: 로컬 렌더 + 숫자가 쿼리 결과와 일치
-- [ ] SEO (metadata·JSON-LD·CiteBox) → 검증: 빌드 후 head 확인
-- [ ] sitemap 편입 → 검증: `/sitemap.xml` 에 노출
-- [ ] `tsc --noEmit` 통과 후 커밋·푸시
+- [x] 경로 `/rankings/value-clubs` (기존 `/rankings/ufc` 와 같은 계열)
+- [x] 집계 쿼리 — PlayerMarketValue → TeamSourceId(`externalId`, `sourceId` 아님) → Team → Match. **94팀 산출**(누락 2)
+- [x] 스쿼드 정의 교정 — 전원 합산 시 팀별 30~88명으로 갈려 밀란·인테르(80명)가 부당하게 하위권. **상위 25명 합계**로 고정
+- [x] 시즌 경계 — Match 에 season 컬럼이 없어 7월 1일 기준으로 자르고, 표본 미달이면 직전 시즌으로 폴백
+- [x] 페이지 UI — 리그별 섹션 + 앵커 네비, 1위/최하위 강조, 막대 그래프
+- [x] SEO — metadata·Dataset JSON-LD·CiteBox
+- [x] sitemap + **축구 네비 등록**(발견 경로 없으면 체류시간 목적 미달)
+- [x] 검증 — `tsc` 통과 · 5개 리그 렌더 · 숫자가 검증 쿼리와 일치 · 콘솔 에러 0 · 로고 표시 확인
+- [x] 배포 (631c395)
+
+**Phase 2 완료.** 실측 결과 — 라리가 알라베스 61.8 vs 바르사 4.8 · EPL 풀럼 13.8 vs 첼시 3.2 ·
+분데스 하이덴하임 26.9 vs 바이에른 5.5 · 리그1 브레스투아 43.9 vs PSG 5.4 · 세리에A 크레모네세 48.6 vs 인테르 7.9.
 
 ## Phase 3. 위키 조회수 랭킹 3종
 

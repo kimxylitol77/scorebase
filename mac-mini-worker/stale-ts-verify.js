@@ -8,7 +8,7 @@
 // 흐름 (4h 주기):
 //   1) heartbeat POST
 //   2) GET  /api/internal/stale-ts-verify → stale ts- SCHEDULED 목록 {matchId, tsMatchId, startTimeMs, sport}
-//   3) (sport, tsp=KST자정) 그룹별 /v1/{baseball|football}/match/diary 호출 (중복 tsp 캐싱)
+//   3) (sport, tsp=KST자정) 그룹별 /v1/{baseball|football|ice_hockey}/match/diary 호출 (중복 tsp 캐싱)
 //      → results 에서 tsMatchId 매칭 → status_id / score 추출
 //   4) POST /api/internal/stale-ts-verify {results:[{matchId, found, statusId, homeScore, awayScore}]}
 //      (status_id → FINISHED/POSTPONED 매핑은 서버가 mapBaseballStatus/mapFootballStatus 로 처리)
@@ -64,7 +64,7 @@ function numOrNull(v) {
 
 // diary result → {homeScore, awayScore}. sport 별 score 위치가 다름.
 //   football: home_scores[0]=정규시간, [5]=연장 포함 총점, [6]=승부차기(합산 금지)
-//   baseball: scores.ft[0] / scores.ft[1] (문자열 → Number)
+//   baseball·ice_hockey: scores.ft[0] / scores.ft[1] (문자열 → Number)
 // 축구 연장 경기는 [5]가 최종 — [0]만 읽으면 연장 경기 검증이 정규 스코어로 통과되는
 // 사각지대 (2026-07-20 WC 결승/준결승 사고, football-collector.ts finalScore 와 동일 로직).
 function footballFinal(arr) {
@@ -76,7 +76,8 @@ function footballFinal(arr) {
 }
 
 function extractScore(sport, r) {
-  if (sport === "baseball") {
+  // 하키 diary 의 score 는 야구와 같은 scores.ft[0]/[1] (2026-08-19 실측). 축구만 home_scores 배열.
+  if (sport === "baseball" || sport === "ice_hockey") {
     const ft = r.scores && r.scores.ft;
     return { homeScore: numOrNull(ft && ft[0]), awayScore: numOrNull(ft && ft[1]) };
   }
