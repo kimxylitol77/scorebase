@@ -114,9 +114,15 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
       if (!q) return null;
       const exact = enList.find((t) => t.norm === q);
       if (exact) return { id: exact.id, logo: exact.logo };
+      // 부분 매칭은 후보가 둘 이상 걸릴 수 있다 — "Inter Milan" 에는 Inter 와 AC Milan 이 함께
+      // 걸리고(정규화 길이가 같아 DB 행 순서로 갈렸다), "RCD Espanyol de Barcelona" 류는 긴 쪽을
+      // 고르면 남의 팀에 링크된다. 이름 앞머리에 걸린 후보를 먼저, 그다음 가장 짧은 후보를 고른다.
+      const rank = (t: { norm: string }) => (q.startsWith(t.norm) || t.norm.startsWith(q) ? 0 : 1);
       let best: { norm: string; id: number; logo: string | null } | null = null;
       for (const t of enList) {
-        if (t.norm.length >= 4 && (q.includes(t.norm) || t.norm.includes(q)) && (!best || t.norm.length > best.norm.length)) best = t;
+        if (t.norm.length < 4) continue;
+        if (!q.includes(t.norm) && !t.norm.includes(q)) continue;
+        if (!best || rank(t) < rank(best) || (rank(t) === rank(best) && t.norm.length < best.norm.length)) best = t;
       }
       return best ? { id: best.id, logo: best.logo } : null;
     };

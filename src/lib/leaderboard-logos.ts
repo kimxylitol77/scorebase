@@ -48,9 +48,17 @@ export async function attachLeaderTeamLogos(
           const ex = enList.find((t) => t.norm === q);
           if (ex) out = ex.logo;
           else {
+            // 부분 매칭은 후보가 둘 이상 걸릴 수 있다 — "RCD Espanyol de Barcelona" 에는
+            // Espanyol 과 Barcelona 가 함께 걸린다. 긴 쪽을 고르면 에스파뇰 선수에게 바르셀로나
+            // 로고가 붙었다(2026-08-19 실측). 팀 정체성은 이름 앞머리에 오므로 접두 일치를
+            // 먼저 고르고, 그다음 군더더기가 가장 적은(=가장 짧은) 후보를 고른다.
             let best: { norm: string; logo: string } | null = null;
-            for (const t of enList)
-              if (t.norm.length >= 4 && q.length >= 4 && (q.includes(t.norm) || t.norm.includes(q)) && (!best || t.norm.length > best.norm.length)) best = t;
+            const rank = (t: { norm: string }) => (q.startsWith(t.norm) || t.norm.startsWith(q) ? 0 : 1);
+            for (const t of enList) {
+              if (t.norm.length < 4 || q.length < 4) continue;
+              if (!q.includes(t.norm) && !t.norm.includes(q)) continue;
+              if (!best || rank(t) < rank(best) || (rank(t) === rank(best) && t.norm.length < best.norm.length)) best = t;
+            }
             out = best?.logo ?? null;
           }
         }
