@@ -90,6 +90,8 @@ import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
 import KickoffCountdown from "@/components/live/KickoffCountdown";
 import MatchHighlightCard from "@/components/live/MatchHighlightCard";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { getModelCalibrationStats } from "@/lib/predict/model-calibration-similar";
+import ModelCalibrationCard from "@/components/predictions/ModelCalibrationCard";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -883,6 +885,10 @@ export default async function GenericLivePage({ params }: Props) {
     );
   }
 
+  // 모델이 비슷한 확률로 봤던 과거 경기의 실제 결과 — 7m 의 "역사 전적(같은 핸디캡)" 대체.
+  // 축구만. 표본 미달이면 null 이라 카드가 통째로 빠진다.
+  const calibration = isSoccer ? await getModelCalibrationStats(match) : null;
+
   // SportsEvent JSON-LD — 검색 rich snippet + AI 인용 source.
   // 라이브/종료 매치 모두 발행 — eventStatus 분기로 의미 명확.
   const eventStatusByMatch =
@@ -1237,6 +1243,9 @@ export default async function GenericLivePage({ params }: Props) {
       <MatchVoteCard matchId={match.id} />
       <AiRoundTableStrip matchId={match.id} />
 
+      {calibration && (
+        <ModelCalibrationCard stats={calibration} homeNameKo={homeKo} awayNameKo={awayKo} />
+      )}
       <MatchInsight
         match={match}
         extraTabs={soccerTabs}
