@@ -9,6 +9,8 @@ import { generate } from "@/lib/ai/claude";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { makeHideToken } from "@/lib/admin-hide-token";
 import { extractTransferRumors } from "@/jobs/extract-transfer-rumors";
+import { findTeamLinks } from "@/lib/news/entity-links";
+import { applyLinkRules } from "@/lib/internal-links";
 
 // 재작성·검증 모델 — 품질 사고 재발 방지용 상위 모델 (haiku 오분류로 출시 당일 철회 이력).
 // sonnet-5: temperature 미지원 → claude.ts 가 model 지정 시 sampling 파라미터 미전송.
@@ -25,16 +27,23 @@ const NEW_PER_SPORT: Record<BriefingSport, number> = {
   basketball: 8,
   hockey: 8,
 };
-const MAX_PUBLISH_PER_RUN = 5;
+const MAX_PUBLISH_PER_RUN = 6;
 const MAX_PUBLISH_PER_DAY = 16; // KST 기준 — 비용·폭주 상한 (4개 종목분)
 // 종목별 런 상한 — 재료가 압도적으로 많은 축구가 캡을 독식하는 걸 막는다.
 // MIN_SCORE 게이트는 그대로라 재료 없는 비시즌 종목은 억지로 채우지 않고 그냥 비운다.
 const PER_SPORT_PER_RUN: Record<BriefingSport, number> = {
-  soccer: 2,
+  soccer: 3,
   baseball: 1,
   basketball: 1,
   hockey: 1,
 };
+// 이적 소식 런 상한 — 소스(로마노·온스타인·구단 공식)와 재료가 이적에 쏠려 있어 점수만으로
+// 뽑으면 게시판이 이적시장 전용이 된다. 2026-08-19 실측: 축구 발행 478건 중 TRANSFER 396건(83%),
+// MATCH 는 209건 수집되고도 7건(1%)만 발행됐다. 상한을 두어 감독·부상·징계·구단 소식 자리를 남긴다.
+const MAX_TRANSFER_PER_RUN = 2;
+// 본문에 삽입할 팀 페이지 링크 상한 — 본문이 400~700자라 과하면 읽기를 방해한다.
+// 렌더 시점에 Markdown 이 키워드 링크를 2개까지 더 붙이므로(autoLinkInternal) 낮게 잡는다.
+const MAX_TEAM_LINKS = 2;
 const MIN_SCORE = 5; // 뉴스가치 발행 하한 (분류 rubric 의 "신빙성 있는 이적 협상" 대역부터)
 const KEEP_DAYS = 60; // 비발행 행 보존 기간
 
@@ -404,10 +413,13 @@ async function classify(items: RssItem[]): Promise<Classified[]> {
     "score 는 한국 스포츠 팬 관점의 뉴스 가치다. keep 은 score 5 이상이면 true.",
     "",
     "공통 기준.",
-    "- 9-10: 확정 발표(오피셜 이적·계약·감독 선임/경질)·한국 선수 관련 소식",
-    "- 7-8: 합의 임박(메디컬·최종 협상)·간판 선수 장기 부상·감독 거취·구단 공식 발표",
-    "- 5-6: 실명과 구단이 특정된 신빙성 있는 협상·계약 보도·주요 구단 소식",
-    "- 0-4: 칼럼·의견·경기 리뷰·평점·중계 안내·순위 예측·사소한 소식",
+    "- 9-10: 확정 발표(오피셜 이적·계약·감독 선임/경질)·한국 선수 관련 소식·구단 징계나 승점 삭감 확정·구단 인수 완료",
+    "- 7-8: 합의 임박(메디컬·최종 협상)·간판 선수 장기 부상·감독 거취·구단 공식 발표·리그 규정이나 일정 변경·주요 수상과 기록 달성·은퇴 발표·재정 제재",
+    "- 5-6: 실명과 구단이 특정된 신빙성 있는 협상·계약 보도·주요 구단 소식·빅매치나 결승에서 나온 특기할 사건(퇴장·부상·기록)·법적 분쟁이나 구단 운영 이슈",
+    "- 0-4: 칼럼·의견·평점·중계 안내·순위 예측·판타지·사소한 소식·특기할 사건 없는 일반 경기 리뷰",
+    "",
+    "중요. 이적 소식만 뉴스가 아니다. 감독 거취·부상·징계·구단 재정과 인수·규정 변경·수상과 기록·",
+    "은퇴 같은 비이적 소식도 같은 잣대로 평가하라. 이적이라는 이유로 가산점을 주지 마라.",
     "",
     "종목별 가중.",
     "- 축구: 한국 선수(손흥민·이강인·김민재 등)·빅클럽(EPL 빅6, 레알, 바르사, 바이에른) 관련은 상향.",
@@ -724,6 +736,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   }
   // 점수순으로 훑되 종목별 런 상한을 지킨다 — 축구가 전부 먹지 않게.
   const perSport: Record<string, number> = {};
+  let transferUsed = 0;
   const candidates: Classified[] = [];
   for (const c of [...storyBest.values()].sort((a, b) => b.score - a.score)) {
     if (candidates.length >= budget) break;
@@ -731,13 +744,17 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
     if (!sp) continue;
     const used = perSport[sp] ?? 0;
     if (used >= PER_SPORT_PER_RUN[sp]) continue;
+    if (c.category === "TRANSFER") {
+      if (transferUsed >= MAX_TRANSFER_PER_RUN) continue;
+      transferUsed++;
+    }
     perSport[sp] = used + 1;
     candidates.push(c);
   }
   console.log(
     `[briefing] 후보 ${storyBest.size}건 → 처리 ${candidates.length}건 [${Object.entries(perSport)
       .map(([k, v]) => `${k}:${v}`)
-      .join(" ")}] (오늘 발행 ${publishedToday}/${MAX_PUBLISH_PER_DAY})`,
+      .join(" ")}] 이적 ${transferUsed}/${MAX_TRANSFER_PER_RUN} (오늘 발행 ${publishedToday}/${MAX_PUBLISH_PER_DAY})`,
   );
   if (candidates.length === 0) return { fetched: fetched.length, fresh: fresh.length, published: 0, rumors };
 
@@ -788,7 +805,13 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
         }
 
         const title = `[${item.tag}] ${out.titleKo}`.slice(0, 120);
-        const content = buildPostContent(item, articleUrl, out, journalist);
+        // 본문의 팀 이름을 팀 페이지로 연결 — 검증을 통과한 뒤에 넣는다.
+        // 검증 프롬프트가 마크다운 링크를 원문에 없는 삽입으로 오판하지 않게 하려는 순서다.
+        const linked = applyLinkRules(out.bodyKo, await findTeamLinks(out.bodyKo), {
+          maxLinks: MAX_TEAM_LINKS,
+          allowKoreanParticle: true,
+        });
+        const content = buildPostContent(item, articleUrl, { ...out, bodyKo: linked }, journalist);
 
         if (dry) {
           console.log(`\n===== DRY: ${title}\n${content}\n=====`);

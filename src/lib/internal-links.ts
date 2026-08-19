@@ -11,7 +11,7 @@
 //  3) 헤딩(#), 이미 [..](..) 링크 안, 인라인 코드(`..`), 코드 블록(```...```) 제외
 //  4) 우선순위 — 긴 키워드부터 (예: "FIFA 월드컵" 이 "월드컵" 보다 먼저)
 
-interface LinkRule {
+export interface LinkRule {
   keyword: string;
   href: string;
 }
@@ -83,6 +83,19 @@ export function autoLinkInternal(
   markdown: string,
   opts: AutoLinkOptions = {},
 ): string {
+  return applyLinkRules(markdown, RULES, opts);
+}
+
+/**
+ * 규칙 배열을 받아 같은 보호 규칙으로 링크를 삽입한다.
+ * 정적 키워드(RULES)와 글마다 달라지는 팀·선수 엔티티가 같은 치환 로직을 공유하게 하려고
+ * autoLinkInternal 에서 추출했다 — 보호 영역·중첩 링크 방지 로직을 두 벌 두지 않기 위함.
+ */
+export function applyLinkRules(
+  markdown: string,
+  rules: LinkRule[],
+  opts: AutoLinkOptions & { allowKoreanParticle?: boolean } = {},
+): string {
   const maxLinks = opts.maxLinks ?? 2;
   const selfHref = opts.selfHref;
   if (maxLinks <= 0) return markdown;
@@ -106,7 +119,7 @@ export function autoLinkInternal(
   const usedKeywords = new Set<string>();
   const usedHrefs = new Set<string>();
 
-  for (const rule of RULES) {
+  for (const rule of rules) {
     if (inserted >= maxLinks) break;
     if (selfHref && rule.href === selfHref) continue;
     if (usedKeywords.has(rule.keyword)) continue;
@@ -114,10 +127,13 @@ export function autoLinkInternal(
 
     const escaped = rule.keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     // 단어 경계 — 한글/영문/숫자 옆에 키워드가 직접 붙어있지 않을 때만
-    const re = new RegExp(
-      `(^|[^\\p{L}\\p{N}_])${escaped}(?=[^\\p{L}\\p{N}_]|$)`,
-      "u",
-    );
+    // 한국어는 이름 뒤에 조사가 붙는다 ("리즈 유나이티드가"). 뒤 경계를 비문자로만 두면
+    // 정작 주어로 쓰인 이름이 전부 빠지고 조사 없이 쓰인 부수적 단어만 링크된다(실측 확인).
+    // 조사 글자에 한해 뒤 경계를 열어 준다 — 임의 한글을 열면 "리즈사이드" 류가 걸린다.
+    const tail = opts.allowKoreanParticle
+      ? `(?=[^\\p{L}\\p{N}_]|$|[은는이가을를의에와과도로만])`
+      : `(?=[^\\p{L}\\p{N}_]|$)`;
+    const re = new RegExp(`(^|[^\\p{L}\\p{N}_])${escaped}${tail}`, "u");
 
     if (!re.test(text)) continue;
     // 삽입 결과를 즉시 placeholder 로 보호 — 뒤 규칙이 새 링크 텍스트 내부를 다시 매칭해
