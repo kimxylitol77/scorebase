@@ -1,6 +1,10 @@
 // 해외 뉴스 게시판 — 공신력 소스(BBC·Sky·The Athletic·ESPN·리그 공식)의 해외 보도를
 // 사실 기반 한국어 브리핑으로 재구성해 모아 보는 목록. 발행 파이프라인은
 // src/jobs/fetch-news-briefing.ts, 개별 글은 색인 보존을 위해 /analysis/{id} 를 그대로 쓴다.
+//
+// 레이아웃은 카드가 아니라 목록형이다 — 원문 사진은 저작권 때문에 쓸 수 없어 썸네일이
+// 없는데, 이미지 없는 카드 그리드는 빈 공간만 커지고 훑어보기도 불편하다.
+// 반응형은 display 토글(hidden sm:flex) 대신 flex-wrap 으로 접는다 (윈도우 grid 무력화 이슈 회피).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
@@ -11,9 +15,8 @@ import { SITE_URL } from "@/lib/site-url";
 
 export const revalidate = 300; // 5분 — 발행 주기가 2시간이라 충분
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 30;
 
-// 종목 탭 — 파이프라인의 BriefingSport 와 1:1
 const SPORT_TABS = [
   { code: null, label: "전체" },
   { code: "soccer", label: "축구" },
@@ -61,12 +64,12 @@ export const metadata: Metadata = {
 
 type Props = { searchParams: Promise<{ page?: string; sport?: string }> };
 
-/** 본문 마크다운에서 목록용 발췌 — 출처 푸터(--- 이후)와 강조 기호를 걷어낸다. */
-function excerpt(content: string, len = 110): string {
-  const body = content.split("\n---\n")[0];
-  const flat = body
-    .replace(/\*\*|\*|`|#+\s?/g, "")
+/** 본문 마크다운에서 목록용 한 줄 발췌 — 출처 푸터(--- 이후)와 마크다운 기호를 걷어낸다. */
+function excerpt(content: string, len = 95): string {
+  const flat = content
+    .split("\n---\n")[0]
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\*\*|\*|`|#+\s?/g, "")
     .replace(/\s+/g, " ")
     .trim();
   return flat.length > len ? `${flat.slice(0, len)}…` : flat;
@@ -115,10 +118,10 @@ export default async function NewsPage({ searchParams }: Props) {
   const sources = posts.length
     ? await prisma.newsBriefing.findMany({
         where: { postId: { in: posts.map((p) => p.id) } },
-        select: { postId: true, sourceName: true, sourceUrl: true },
+        select: { postId: true, sourceName: true },
       })
     : [];
-  const srcByPost = new Map(sources.map((s) => [s.postId, s]));
+  const srcByPost = new Map(sources.map((s) => [s.postId, s.sourceName]));
 
   const href = (p: number, s: string | null = sportFilter) => {
     const q = new URLSearchParams();
@@ -160,8 +163,8 @@ export default async function NewsPage({ searchParams }: Props) {
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-3 break-keep leading-relaxed">
           BBC · Sky Sports · The Athletic · ESPN · 리그 공식 발표 등 공신력 있는 해외 보도만 골라
-          한국어 브리핑으로 정리합니다. 축구 · 야구 · 농구 · 아이스하키의 이적 · 계약 · 부상 소식을
-          하루 여러 차례 업데이트합니다.
+          한국어 브리핑으로 정리합니다. 축구 · 야구 · 농구 · 아이스하키의 이적 · 계약 · 부상 ·
+          감독 소식을 하루 여러 차례 업데이트합니다.
         </p>
         <div className="mt-6">
           <BoardTabs active="briefing" />
@@ -169,7 +172,7 @@ export default async function NewsPage({ searchParams }: Props) {
       </header>
 
       {/* 종목 필터 */}
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-5 flex flex-wrap gap-2">
         {SPORT_TABS.map((t) => {
           const on = sportFilter === t.code;
           const n = t.code === null ? totalAll : (bySport.get(t.code) ?? 0);
@@ -196,62 +199,62 @@ export default async function NewsPage({ searchParams }: Props) {
           아직 브리핑이 없습니다. 곧 첫 소식이 올라옵니다.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {posts.map((p) => {
-            const { tag, rest } = splitTag(p.title);
-            const src = srcByPost.get(p.id);
-            const sp = p.sport ?? "soccer";
-            return (
-              <Link
-                key={p.id}
-                href={`/analysis/${p.id}`}
-                className="group flex flex-col rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] p-4 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700 dark:hover:bg-white/[0.06]"
-              >
-                <div className="flex items-center gap-1.5 mb-2.5 min-w-0">
-                  <span
-                    className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold ring-1 ${
-                      SPORT_STYLE[sp] ?? SPORT_STYLE.soccer
-                    }`}
+        <div className="overflow-hidden rounded-[1.5rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <ul className="divide-y divide-black/5 dark:divide-white/5">
+            {posts.map((p) => {
+              const { tag, rest } = splitTag(p.title);
+              const sp = p.sport ?? "soccer";
+              const src = srcByPost.get(p.id);
+              return (
+                <li key={p.id}>
+                  <Link
+                    href={`/analysis/${p.id}`}
+                    className="group flex flex-col gap-1.5 px-4 sm:px-6 py-3.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
                   >
-                    {SPORT_LABEL[sp] ?? "축구"}
-                  </span>
-                  {tag && (
-                    <span className="shrink-0 rounded-md bg-neutral-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
-                      {tag}
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+                      <span
+                        className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold ring-1 ${
+                          SPORT_STYLE[sp] ?? SPORT_STYLE.soccer
+                        }`}
+                      >
+                        {SPORT_LABEL[sp] ?? "축구"}
+                      </span>
+                      {tag && (
+                        <span className="shrink-0 rounded-md bg-neutral-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
+                          {tag}
+                        </span>
+                      )}
+                      <span className="font-semibold text-[15px] sm:text-base leading-snug break-keep transition-colors group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                        {rest}
+                      </span>
+                      {p.commentCount > 0 && (
+                        <span className="shrink-0 text-xs font-semibold text-rose-500">
+                          [{p.commentCount}]
+                        </span>
+                      )}
                     </span>
-                  )}
-                  <span className="ml-auto shrink-0 text-[11px] text-neutral-400">
-                    {timeAgo(p.createdAt)}
-                  </span>
-                </div>
 
-                <h2 className="text-sm sm:text-base font-semibold leading-snug mb-2 line-clamp-2 break-keep group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
-                  {rest}
-                </h2>
-
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed">
-                  {excerpt(p.content)}
-                </p>
-
-                <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5 flex items-center gap-2 text-[11px] text-neutral-400 min-w-0">
-                  {src?.sourceName && (
-                    <span className="truncate font-medium text-neutral-500 dark:text-neutral-400">
-                      출처 {src.sourceName}
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 leading-relaxed">
+                      {excerpt(p.content)}
                     </span>
-                  )}
-                  <span className="ml-auto shrink-0">조회 {p.views}</span>
-                  {p.commentCount > 0 && (
-                    <span className="shrink-0 font-semibold text-rose-500">[{p.commentCount}]</span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400">
+                      {src && <span className="font-medium text-neutral-500 dark:text-neutral-400">{src}</span>}
+                      {src && <span aria-hidden>·</span>}
+                      <span>{timeAgo(p.createdAt)}</span>
+                      <span aria-hidden>·</span>
+                      <span>조회 {p.views}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
       {totalPages > 1 && (
-        <nav className="mt-10 flex items-center justify-center gap-1.5" aria-label="페이지">
+        <nav className="mt-8 flex items-center justify-center gap-1.5" aria-label="페이지">
           {cur > 1 && (
             <Link
               href={href(cur - 1)}
@@ -274,7 +277,7 @@ export default async function NewsPage({ searchParams }: Props) {
         </nav>
       )}
 
-      <p className="mt-10 text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 break-keep">
+      <p className="mt-8 text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 break-keep">
         공신력 있는 해외 보도의 사실을 확인해 한국어로 재구성한 브리핑입니다. 전문 번역이 아니며,
         각 글에 원문 출처를 링크로 밝힙니다. 자세한 내용은 원문에서 확인하세요.
       </p>
