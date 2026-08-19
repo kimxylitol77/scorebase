@@ -2,6 +2,7 @@
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 
 export interface StarterJson {
   name?: string;
@@ -37,11 +38,24 @@ export function pitcherPhoto(league: string, s: StarterJson | null): string | nu
   return null;
 }
 
-/** 선발 표시명 — MLB 만 소스가 영문이라 사전 변환. KBO·NPB 는 수집 시점부터 DB 가 한글이라 그대로. */
+/**
+ * 선발 표시명 — /scores 의 localizeStarter 와 같은 방어 규칙.
+ *
+ * "KBO·NPB 는 DB 가 한글"이라는 종전 가정은 매일 아침 무너진다 — NPB 선발 발표 직후
+ * 원문(한자)이 DB 에 잠깐 들어오는 창이 있고(2026-08-19 실측 10:52 원문 노출 → 11:00
+ * cron 이 한글로 갱신), 그동안 이 헬퍼가 원문을 그대로 그려 synthetic 알림이 매일 왔다.
+ * content-quality 탐지기는 "화면이 렌더 시 음역한다"를 가정하므로 이 경로만 사각이었다.
+ */
 export function starterName(league: string, s: StarterJson | null | undefined): string {
   const raw = s?.name?.trim();
   if (!raw) return "";
-  return league === "MLB" ? toKoreanPlayerName(raw) : raw;
+  if (league === "NPB") {
+    // 깨진 mid-conversion(한글+카나 혼합)은 이름을 숨긴다 — /scores 와 동일
+    if (/[가-힣]/.test(raw) && /[぀-ゟ゠-ヿ]/.test(raw)) return "";
+    return npbPlayerToKorean(raw);
+  }
+  if (/[가-힣]/.test(raw)) return raw;
+  return toKoreanPlayerName(raw) || raw;
 }
 
 export const fmtStat = (v: number | undefined, d = 2) =>
