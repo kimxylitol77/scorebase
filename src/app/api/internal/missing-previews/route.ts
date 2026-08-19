@@ -125,6 +125,53 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ── 자가치유 — 알리기 전에 preview cron 을 재실행한다 (content-quality 라우트와 같은 원칙).
+  //    실측(8/15~18): 누락 알림 후 다음 preview cron(하루 4회)이 돌면 "모두 해소" — 치유법이
+  //    이미 존재하는 멱등 cron 재실행이라 기계가 먼저 시도하고, 2회 실패분만 사람에게 간다.
+  //    Elo 게이트 등 "정책상 미발행" 매치가 원인이면 재실행으로 안 낫는데, 그때 상한 소진 →
+  //    기존과 동일하게 알림이 통과하는 것이 의도된 동작이다(무한 재시도 금지).
+  //    봇(preview-coverage.js)은 missing 배열만 보므로 치유 중엔 비워서 알림을 억제하고,
+  //    판정은 다음 30분 폴이 한다. 봇 무변경 — Vercel 배포 즉시 적용.
+  let healing = false;
+  if (missing.length > 0) {
+    const HEAL_KEY = "preview-missing";
+    const attempts = await prisma.healthCheck.count({
+      where: { category: "self-heal", key: HEAL_KEY, runAt: { gte: new Date(now.getTime() - 6 * 3600_000) } },
+    });
+    if (attempts < 2) {
+      // 트리거만 하고 완주를 기다리지 않는다(preview cron 최대 300s) — 판정은 다음 폴.
+      const site = (process.env.SITE_URL || "https://www.scorebase.kr").replace("://scorebase.kr", "://www.scorebase.kr");
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 8_000);
+      let result = "triggered";
+      try {
+        const res = await fetch(`${site}/api/cron/preview`, {
+          headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+          signal: ctrl.signal,
+          cache: "no-store",
+        });
+        if (!res.ok) result = `fail:${res.status}`;
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") result = "fail:net";
+      } finally {
+        clearTimeout(t);
+      }
+      try {
+        await prisma.healthCheck.create({
+          data: {
+            severity: "LOW",
+            category: "self-heal",
+            key: HEAL_KEY,
+            message: `preview ${result === "triggered" ? "트리거" : "호출 실패"} (누락 ${missing.length}건 · 시도 ${attempts + 1}/2) — 판정은 다음 봇 폴`,
+          },
+        });
+      } catch {
+        /* 기록 실패가 검사를 막지 않는다 */
+      }
+      healing = result === "triggered";
+    }
+  }
+
   // baseball 투수 미확정 (정상 skip) 도 카운트 (참고용)
   const baseballStarterPending: Array<{ matchId: number; league: string; awayName: string; homeName: string; startTime: string }> = [];
   for (const m of matches) {
@@ -147,9 +194,12 @@ export async function GET(req: NextRequest) {
     ok: true,
     days,
     total_scheduled: matches.length,
-    missing_count: missing.length,
+    // 치유 중엔 봇 알림 억제 — 실 누락 목록은 healing_missing 으로 보존(관찰용)
+    missing_count: healing ? 0 : missing.length,
     baseball_starter_pending_count: baseballStarterPending.length,
-    missing,
+    missing: healing ? [] : missing,
+    healing,
+    healing_missing: healing ? missing : undefined,
     baseball_starter_pending: baseballStarterPending,
   });
 }
