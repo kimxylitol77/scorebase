@@ -362,12 +362,6 @@ async function createGwakPosts(limit: number, category: string): Promise<CreateG
   return { created, skipped, candidates: candidates.length, postIds };
 }
 
-/** 관리자 수동 검수용 초안 생성. */
-export async function runGwakDrafts(limit = 2): Promise<{ created: number; skipped: number; candidates: number; draftIds: number[] }> {
-  const result = await createGwakPosts(limit, GWAK_DRAFT_CATEGORY);
-  return { ...result, draftIds: result.postIds };
-}
-
 /**
  * 예약 자동 발행. 기존 검수 대기 초안이 있으면 그것부터 공개하고, 남는 수량만 새로 생성한다.
  * cron 은 실행당 limit=1로 호출해 하루 세 번에 나눠 발행한다.
