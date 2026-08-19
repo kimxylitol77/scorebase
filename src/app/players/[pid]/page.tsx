@@ -3,7 +3,8 @@
 //   ?league=NPB  → NPB 공식 (npb.jp) scraping + DB 최근 등판
 //   default      → MLB Stats API (statsapi.mlb.com)
 
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { isTsPlayerId } from "@/lib/links/leaderboard-link";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -190,6 +191,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function PlayerPage({ params, searchParams }: Props) {
   const { pid } = await params;
   const { league } = await searchParams;
+
+  // 안전망 — 이 페이지는 숫자 id 전용이다. ts player id(문자열)가 들어오면 정본인
+  // /transfers/{tsId} 로 넘긴다. 예전에 링크가 여기로 새어 404 가 났다
+  // (2026-08-19 /soccer/sub-impact 실측). 야구·농구·하키·LoL 은 자체 id 체계라 제외.
+  if (isTsPlayerId(pid) && (!league || SOCCER_PLAYER_PAGE_LEAGUE_SET.has(league))) {
+    permanentRedirect(`/transfers/${pid}`);
+  }
 
   // KBO/NPB 도 관련 글 위젯 노출 (기존 MLB 전용 → 3리그 공통)
   if (league === "KBO" || league === "NPB") {

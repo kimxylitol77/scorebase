@@ -13,6 +13,7 @@ import TeamBadge from "@/components/TeamBadge";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, COUNTRY_FLAG } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
+import { linkableTsPlayerIds, tsPlayerHref } from "@/lib/links/player-link";
 import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
 import CountryFilter from "./CountryFilter";
 import raw from "../../../../data/korea-abroad.json";
@@ -151,15 +152,10 @@ export default async function KoreaAbroadPage() {
 
   // 선수 페이지 링크 — ts id 가 있어도 DB 에 그 선수가 없으면 404 라 링크하지 않는다.
   //   (af↔ts 자동 매핑에 실물 없는 id 가 섞여 있다 — 홍현석·양민혁 실측)
-  const tsIds = players.map((p) => p.tsId).filter((v): v is string => Boolean(v));
-  const [tspRows, mvRows] = tsIds.length
-    ? await Promise.all([
-        prisma.theSportsPlayer.findMany({ where: { id: { in: tsIds } }, select: { id: true } }),
-        prisma.playerMarketValue.findMany({ where: { id: { in: tsIds } }, select: { id: true } }),
-      ])
-    : [[], []];
-  const linkable = new Set([...tspRows.map((r) => r.id), ...mvRows.map((r) => r.id)]);
-  const playerHref = (p: Player) => (p.tsId && linkable.has(p.tsId) ? `/transfers/${p.tsId}` : null);
+  const linkable = await linkableTsPlayerIds(
+    players.map((p) => p.tsId).filter((v): v is string => Boolean(v)),
+  );
+  const playerHref = (p: Player) => (p.tsId && linkable.has(p.tsId) ? tsPlayerHref(p.tsId) : null);
 
   // 팀별 다음 경기 1개 + 최근 종료 경기 1개
   const now = new Date();

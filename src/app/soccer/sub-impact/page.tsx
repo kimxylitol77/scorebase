@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Repeat, Sparkles, Timer } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
+import { linkableTsPlayerIds, tsPlayerHref } from "@/lib/links/player-link";
 import type { SubImpactLeagueData } from "@/lib/tactical/sub-impact";
 
 export const revalidate = 1800;
@@ -49,6 +50,9 @@ export default async function SubImpactPage({
 
   const row = await prisma.subImpactCache.findUnique({ where: { league: code } });
   const data = (row?.data as unknown as SubImpactLeagueData | null) ?? null;
+
+  // 조커 id 는 ts player id — 정본 상세는 /transfers/{tsId} 다. DB 에 없는 id 는 링크를 뺀다.
+  const linkable = await linkableTsPlayerIds(data?.jokers.map((p) => p.id) ?? []);
 
   return (
     <div className="relative mx-auto max-w-5xl px-4 py-8">
@@ -125,9 +129,13 @@ export default async function SubImpactPage({
                     <tr key={p.id} className="border-t border-neutral-100 dark:border-neutral-800/60">
                       <td className="px-3 py-2 text-neutral-400">{i + 1}</td>
                       <td className="px-3 py-2 font-medium">
-                        <Link href={`/players/${p.id}`} className="hover:underline">
-                          {p.nameKo ?? p.name}
-                        </Link>
+                        {linkable.has(p.id) ? (
+                          <Link href={tsPlayerHref(p.id)} className="hover:underline">
+                            {p.nameKo ?? p.name}
+                          </Link>
+                        ) : (
+                          p.nameKo ?? p.name
+                        )}
                       </td>
                       <td className="px-3 py-2 text-neutral-500">{p.teamKo}</td>
                       <td className="px-3 py-2 text-right">{p.subOn}</td>

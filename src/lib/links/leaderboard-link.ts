@@ -14,10 +14,6 @@ const PLAYER_PAGE_LEAGUES = new Set([
   "KBO", "NPB", "MLB", "NBA", "NHL", "LOL",
 ]);
 
-// 빅5 리더보드는 TheSports 시즌통계(ts player id)로 교체됨 → /transfers 상세로 링크. (SERIE_A 는 기존 api-football)
-// WORLD_CUP 도 ts player id 기반 (cache playerStats 실시간 집계) — 시장가치 보유 선수만 externalId 가 채워짐.
-const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_1", "WORLD_CUP"]);
-
 /** af player id 는 숫자, TheSports player id 는 영숫자 혼합. 링크 분기의 기준. */
 export const isTsPlayerId = (id: string) => !/^\d+$/.test(id);
 
@@ -36,7 +32,6 @@ export const isTsPlayerId = (id: string) => !/^\d+$/.test(id);
  * 결손이 아니라 미구현이므로 검사 대상에서 뺀다(선수 페이지가 생기면 자동으로 다시 대상).
  */
 export function hasPlayerPage(league: string, isSoccerLeague: boolean): boolean {
-  if (TRANSFERS_LEADER_LEAGUES.has(league)) return true;
   if (isSoccerLeague) return true; // ts id → /transfers, af id → /players 로 갈 수 있다
   return PLAYER_PAGE_LEAGUES.has(league);
 }
@@ -47,7 +42,9 @@ export function leaderPlayerHref(
   isSoccerLeague: boolean,
 ): string | null {
   if (!externalId) return null;
-  if (TRANSFERS_LEADER_LEAGUES.has(league)) return `/transfers/${externalId}`;
+  // 축구는 리그가 아니라 id 모양으로 갈라야 한다 — 같은 리그 안에 두 체계가 섞여 있다.
+  // 빅4·월드컵을 리그 이름으로 /transfers 에 몰아주던 때는 af 숫자 id 190건이 전부 404 였다
+  // (2026-08-20 실측: /transfers/1100 = 404, /players/1100?league=EPL = 307 → 정상).
   if (isSoccerLeague && isTsPlayerId(externalId)) return `/transfers/${externalId}`;
   if (!PLAYER_PAGE_LEAGUES.has(league)) return null;
   if (league === "MLB") return `/players/${externalId}`;

@@ -8,6 +8,9 @@ import { computeLastSeasonStandings } from "@/lib/sports/last-season-standings";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { getActiveSeason, legacyTsSeasonId } from "@/lib/sports/season-registry";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import { leaderPlayerHref } from "@/lib/links/leaderboard-link";
+import { linkableTsPlayerIds } from "@/lib/links/player-link";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 // 대륙 컵 — 국내 리그용 전환 감지(참가팀 16+ · 마지막 종료 40일+)가 성립하지 않는다.
@@ -210,6 +213,14 @@ export default async function LeagueStandingsTable({ league }: { league: string 
           select: { playerName: true, teamName: true, value: true, photoUrl: true, externalId: true },
         })
       : null;
+    // 링크 판정은 리더보드와 같은 공용 헬퍼 — externalId 가 ts player id 인 리그(확장 축구
+    // 리그 다수)를 /players 로 넘기면 404 다. af id 는 /players 어댑터가 리다이렉트한다.
+    // ts id 는 DB 에 그 선수가 없으면 /transfers 도 404 라 링크 자체를 뺀다.
+    let topScorerHref = leaderPlayerHref(league, topScorer?.externalId ?? null, SOCCER_LEAGUES.has(league));
+    if (topScorerHref?.startsWith("/transfers/")) {
+      const ok = await linkableTsPlayerIds([topScorer!.externalId!]);
+      if (ok.size === 0) topScorerHref = null;
+    }
     // 지난 시즌 리더보드 — 접기 안에서 최종 순위와 함께 본다. 개막 전엔 이번 시즌 기록이 0이라
     // "통계" 탭이 비는데(preSeason 가드), 축적된 지난 시즌 득점왕·도움왕은 여기서 살려 노출한다.
     const lastLeaders = labels ? await loadLeagueLeaderboard(league, labels.old) : null;
@@ -227,8 +238,7 @@ export default async function LeagueStandingsTable({ league }: { league: string 
         img: topScorer.photoUrl,
         main: topScorer.playerName,
         sub: `${topScorer.teamName} · ${Math.round(topScorer.value)}골`,
-        // /players/[pid] 어댑터가 af id 를 선수 상세(/transfers/{tsId} 등)로 리다이렉트
-        href: topScorer.externalId ? `/players/${topScorer.externalId}?league=${league}` : null,
+        href: topScorerHref,
       },
       promoted.length > 0 && {
         label: "승격·새 얼굴",

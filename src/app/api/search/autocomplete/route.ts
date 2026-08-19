@@ -6,6 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, LEAGUE_ORDER, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { isTsPlayerId, leaderPlayerHref } from "@/lib/links/leaderboard-link";
+import { linkableTsPlayerIds } from "@/lib/links/player-link";
 import {
   buildFootballPlayerIndex, playerTier, decomp, chosung, chosungQuery,
   TEAM_ALIASES, type PlayerEntry,
@@ -70,13 +72,22 @@ async function getIndex() {
     },
     orderBy: { rank: "asc" },
   });
+  // 축구 확장 리그 리더의 externalId 는 ts player id — DB 미등록이면 /transfers 도 404 다
+  // (2026-08-20 실측 3,260건 중 1,193건). 갈 데가 없으면 링크 대신 검색 결과로 보낸다.
+  const linkableTs = await linkableTsPlayerIds(
+    leaders
+      .filter((p) => p.externalId && SOCCER_LEAGUES.has(p.league) && isTsPlayerId(p.externalId))
+      .map((p) => p.externalId!),
+  );
   const seenLeader = new Set<string>();
   for (const p of leaders) {
     const k = `${p.league}|${p.playerName}`;
     if (seenLeader.has(k)) continue; // 다중 카테고리 → 최저 rank(첫 행)만
     seenLeader.add(k);
+    const isSoccer = SOCCER_LEAGUES.has(p.league);
     // 축구 리더는 PMV 인덱스와 중복 → 동명이면 스킵 (transfers 프로필이 더 풍부)
-    if (SOCCER_LEAGUES.has(p.league) && fbNames.has(p.playerName.replace(/\s+/g, ""))) continue;
+    if (isSoccer && fbNames.has(p.playerName.replace(/\s+/g, ""))) continue;
+    const deadTs = !!p.externalId && isSoccer && isTsPlayerId(p.externalId) && !linkableTs.has(p.externalId);
     const nameLower = p.playerName.toLowerCase();
     const nameEn = (p.playerNameEn || "").toLowerCase();
     players.push({
@@ -91,9 +102,11 @@ async function getIndex() {
       ed: nameEn,
       edW: nameEn.split(/\s+/).filter(Boolean),
       nc: chosung(p.playerName),
-      href: p.externalId
-        ? `/players/${p.externalId}?league=${encodeURIComponent(p.league)}`
-        : `/search?q=${encodeURIComponent(p.playerName)}`,
+      // 링크 판정은 리더보드와 같은 공용 헬퍼 — 축구 리더의 externalId 는 ts player id 라
+      // /players 로 넘기면 404 다(숫자 id 전용). 갈 데가 없으면 검색 결과로 보낸다.
+      href:
+        (deadTs ? null : leaderPlayerHref(p.league, p.externalId, isSoccer)) ??
+        `/search?q=${encodeURIComponent(p.playerName)}`,
       subtitle: [leagueLabel(p.league), p.teamName, p.unit ? `${p.unit} ${p.rank}위` : ""].filter(Boolean).join(" · "),
       league: p.league,
     });
