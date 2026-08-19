@@ -6,6 +6,7 @@
 //   npx tsx scripts/collect-player-foot-thesports.ts          # 이어서
 //   npx tsx scripts/collect-player-foot-thesports.ts --from 1 # 처음부터
 //   npx tsx scripts/collect-player-foot-thesports.ts --missing # 미보유 선수만 단건 보충 (주간 러너용)
+//   npx tsx scripts/collect-player-foot-thesports.ts --recent-transfers # 최근 14일 이적자 재조회 (계약만료 갱신, 주간 러너용)
 import "../src/lib/env";
 import { PrismaClient } from "@prisma/client";
 import * as fs from "fs";
@@ -62,11 +63,37 @@ const known = (foot: Record<string, string>) => Object.values(foot).filter((v) =
 async function main() {
   const fromArg = process.argv.indexOf("--from");
   const missingMode = process.argv.includes("--missing");
+  const recentMode = process.argv.includes("--recent-transfers");
   const ours = (await prisma.theSportsPlayer.findMany({ select: { id: true } })).map((p) => p.id);
+  // 최근 이적자 — --missing 은 결손만 채워 기존 선수 계약만료가 이적 후에도 옛 값으로
+  // 남는다(로드리 맨시티→바르샤 실측). 실이동(1·2·3·6·7)만, 발효 전 발표 포함.
+  const movedIds = recentMode
+    ? [...new Set((await prisma.footballTransfer.findMany({
+        where: {
+          transferTime: { gte: Math.floor(Date.now() / 1000) - 14 * 86400 },
+          transferType: { in: [1, 2, 3, 6, 7] },
+        },
+        select: { playerId: true },
+      })).map((t) => t.playerId).filter((v): v is string => !!v))]
+    : [];
   await prisma.$disconnect();
 
   const foot = readJson<Record<string, string>>(FOOT_PATH, {});
   const contract = readJson<Record<string, number>>(CONTRACT_PATH, {});
+
+  if (recentMode) {
+    const ourSet = new Set(ours);
+    const targets = movedIds.filter((id) => ourSet.has(id)).slice(0, MISSING_LIMIT);
+    console.log(`최근 14일 이적자 ${movedIds.length}명 중 ${targets.length}명 재조회`);
+    for (let i = 0; i < targets.length; i++) {
+      for (const r of await fetchTs("uuid", targets[i])) apply(r, foot, contract);
+      if (i % 50 === 0) save(foot, contract);
+      await sleep(700);
+    }
+    save(foot, contract);
+    console.log(`완료 — 계약만료 ${Object.keys(contract).length}명`);
+    return;
+  }
 
   if (missingMode) {
     const targets = ours.filter((id) => !foot[id]).slice(0, MISSING_LIMIT);

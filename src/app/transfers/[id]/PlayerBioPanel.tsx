@@ -61,7 +61,7 @@ const contractLabel = (sec: number) =>
 
 export default function PlayerBioPanel({
   age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
-  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur,
+  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur, wageStale,
   positions, posCode, foot, contractUntil, contractPast,
 }: {
   age: number | null;
@@ -79,6 +79,7 @@ export default function PlayerBioPanel({
   teamHref: string | null;
   valueEur: number | null;
   wageEur?: number | null; // 연봉 세전 EUR (Capology) — 주급은 /52 표기
+  wageStale?: boolean; // 주급 스냅샷 이후 이적 발효 — "이적 전 소속 기준" 라벨 (page 에서 판정)
   valueKrw: string | null;
   recentChg: number | null;
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
@@ -184,6 +185,9 @@ export default function PlayerBioPanel({
                   €{Math.round(wageEur / 52 / 1000)}k
                 </span>
                 <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
+                {wageStale && (
+                  <span className="text-[10px] text-neutral-400">이적 전 소속 기준</span>
+                )}
               </div>
             ) : (
               // 5대리그 밖은 소스가 없다 — 빈칸 대신 사유를 밝혀 자리를 지킨다.

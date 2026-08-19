@@ -139,6 +139,8 @@ const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
 const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 // 주급/연봉 (Capology 5대리그, fetch-football-wages.ts) — 세전 연봉 EUR.
 const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
+// 주급 스냅샷 시각 — 이후 발효 이적이 있으면 "이적 전 소속 기준" 라벨 판정에 쓴다.
+const WAGES_AT_SEC = Math.floor(Date.parse((rawWages as { fetchedAt?: string }).fetchedAt ?? "") / 1000);
 const FOOT = rawFoot as Record<string, string>; // 주발 (ts preferred_foot) — "L"|"R"|"B" ("?" = ts 도 모름, 미표시)
 // 계약 만료 (ts contract_until, unix sec). 8% 는 이미 지난 날짜 — ts 가 이적 후에도 옛 계약을
 // 남겨두기 때문. 숨기지 않고 "직전 계약"으로 맥락을 붙여 노출한다(가진 데이터는 다 보여주되,
@@ -889,13 +891,35 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       })
     : [];
 
-  // 근황 이벤트 (이적·몸값·부상) — 최신순. collect-player-events cron 이 주간 적재.
+  // 근황 이벤트 (이적·몸값·부상) — 최신순. collect-player-events cron 이 일간 적재.
   const playerEvents = await prisma.playerEvent.findMany({
     where: { playerId: id },
     orderBy: { occurredAt: "desc" },
     take: 60,
     select: { id: true, type: true, occurredAt: true, title: true, detail: true },
   });
+  // 이적은 FootballTransfer 를 렌더 시점에 직접 병합 — events cron(16:00 UTC)이 이적 유입
+  // (fetch-transactions)보다 먼저 돌면 새 이적이 하루 넘게 근황에 안 보인다(로드리 바르샤행
+  // 실측). cron 과 같은 id 형식이라 나중에 적재돼도 중복되지 않는다.
+  {
+    const MOVE_KO: Record<number, string> = { 1: "임대", 2: "임대 복귀", 3: "완전이적", 6: "방출", 7: "자유계약" };
+    const evIds = new Set(playerEvents.map((e) => e.id));
+    const teamKo = (tid: string | null, n: string | null) => (tid && tsTeamName[tid]) || koTeam(n);
+    for (const t of transfers) {
+      if (!t.transferTime || t.transferType == null || !(t.transferType in MOVE_KO)) continue;
+      const evId = `transfer:${id}:${t.transferTime}`;
+      if (evIds.has(evId)) continue;
+      const feeM = t.transferFee && t.transferFee > 0 ? Math.round(t.transferFee / 1e6) : 0;
+      playerEvents.push({
+        id: evId,
+        type: t.transferType === 1 ? "LOAN" : "TRANSFER",
+        occurredAt: new Date(t.transferTime * 1000),
+        title: `${teamKo(t.fromTeamId, t.fromTeamName)} → ${teamKo(t.toTeamId, t.toTeamName)} ${MOVE_KO[t.transferType]}${feeM > 0 ? ` (€${feeM}M)` : ""}`,
+        detail: { toTeamId: t.toTeamId },
+      });
+    }
+    playerEvents.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
+  }
 
   // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
   const careerGroups = await getPlayerCareerByTs(id);
@@ -1130,6 +1154,20 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         valueKrw={value != null ? krw(value) : null}
         recentChg={points.length >= 2 ? recentChg : null}
         wageEur={WAGES[id]?.eur ?? null}
+        wageStale={
+          // Capology 스냅샷(fetchedAt) 이후 발효된 실이동이 있으면 직전 소속 기준 값이다 —
+          // 숨기지 않고 라벨로 밝힌다(주간 갱신이 따라오면 자동 해제).
+          WAGES[id] != null &&
+          Number.isFinite(WAGES_AT_SEC) &&
+          transfers.some(
+            (t) =>
+              t.transferTime != null &&
+              t.transferType != null &&
+              [1, 3, 6, 7].includes(t.transferType) &&
+              t.transferTime > WAGES_AT_SEC &&
+              t.transferTime * 1000 <= Date.now(),
+          )
+        }
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
         foot={FOOT[id] ?? null}
