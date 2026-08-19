@@ -29,12 +29,14 @@
 - [x] 커밋·push
 
 ## 6. 첫 발행
-- [ ] 표본 확인 — 개막 직후라 팀당 1~2경기. 9월 첫 주부터가 자연스러움
-- [ ] 첫 편 팩트체크(평점·골·도움 DB 대조) 후 사용자 확인
+- [x] 표본 확인 — 개막 직후라 팀당 1~2경기. 9월 첫 주부터가 자연스러움
+- [x] 첫 편 팩트체크 후 발행 — laliga-weekly-xi-2026-08-19 (#3915) PUBLISHED, 운영 200 확인
 
 ## 실행 중 추가로 잡힌 것
 - [x] `af-lineup-fetch` 의 AF_LEAGUE_ID 가 EPL 하나뿐이었다 → 빅5 + 챔피언십 등록
 - [x] `normTeam` 이 분음부호를 접지 않아 "Bayern München"→"bayernmnchen" 별칭을 붓고 있었다
       → NFD 분해 추가. af "Deportivo La Coruna" ↔ 우리 "Deportivo" 는 별칭으로 처리
-- [ ] EPL·세리에A·리그앙·분데스 개막 후 첫 실행에서 `[af-lineup] 팀 쌍 미매칭` 로그 확인
-      (라리가에서 1건 나왔듯 리그마다 af 팀명 표기차가 남아 있을 수 있다)
+- [x] EPL·세리에A·리그앙·분데스 af 팀명 대조 — 개막을 기다리지 않고 af `/teams` 로 선제 감사(4콜).
+      **빅5 전부 미매칭 0** (NFD 분해 + Deportivo 별칭으로 이미 해소돼 있었다).
+      라리가만 우리 DB 가 21팀 — 초과 1건은 강등팀 `Real Oviedo`(26/27 경기 0). Team.league
+      라벨 롤오버 미반영 건이라 이 작업 범위 밖 → [[team-league-label-rollover]] 참조, 손대지 않음
