@@ -59,11 +59,14 @@ export async function runCollectPlayerMatchLogs({ backfill = false }: { backfill
     ...EURO_LEAGUE_IDS.map((id) => ({ id, season: euroSeason })),
     ...CALENDAR_LEAGUE_IDS.map((id) => ({ id, season: calSeason })),
   ];
+  // af 는 from 을 주면 to 도 필수 — from 만 주면 200 + errors:{to} 빈 응답이 되어
+  // 증분 수집이 조용히 0건이 된다 (2026-08-19 실측: 7/14 도입 후 증분이 전부 빈손이었다).
   const from = backfill ? undefined : new Date(Date.now() - 10 * 86400_000).toISOString().slice(0, 10);
+  const to = from ? new Date(Date.now() + 86400_000).toISOString().slice(0, 10) : undefined;
 
   // 1) 대회별 완료 fixtures 수집
   const fixtures = (
-    await Promise.all(comps.map((c) => fetchFixturesByLeagueId(c.id, c.season, from ? { from } : {})))
+    await Promise.all(comps.map((c) => fetchFixturesByLeagueId(c.id, c.season, from && to ? { from, to } : {})))
   ).flat();
   if (!fixtures.length) return { fixtures: 0, rows: 0, created: 0 };
 

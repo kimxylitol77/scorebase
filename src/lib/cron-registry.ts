@@ -61,6 +61,8 @@ export const CRON_REGISTRY: {
   { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
   { name: "baseball-season-backfill", label: "야구 시즌 일정 백필", maxAgeH: 180 },
+  // 주간 증분(최근 10일)이라 시즌 중 0건은 비정상 — from/to 누락 0건이 한 달 무감지였던 잡 (2026-08-19)
+  { name: "player-match-logs", label: "선수 경기별 출전 로그", maxAgeH: 180, zeroAlertAfter: 2 },
   { name: "indexnow", label: "IndexNow 색인", maxAgeH: 28 },
   { name: "presence-cleanup", label: "실시간 접속 만료 정리", maxAgeH: 28 },
 ];
