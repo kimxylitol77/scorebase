@@ -487,14 +487,27 @@ export async function aggregateTeamSeason(opts: {
   // 각 선수의 주 활동 줄(최빈 슬롯의 row)을 구해, 줄마다 그 줄 자리 수만큼 선발 많은 순으로 뽑는다.
   // (슬롯 최다 점유자만 뽑으면 자리를 옮겨 다닌 주전이 통째로 빠진다 — 레버쿠젠 안드리히 29선발
   //  실측. 줄 단위로 자르면 주전은 남기면서 줄만 지켜진다.)
+  // 줄 판정·정원 컷 모두 "그 줄에서 뛴 횟수"로 본다. 단일 최빈 슬롯이나 총 선발 수로 자르면
+  // 자리를 옮겨 다닌 멀티 자원이 그 줄 고정 주전을 밀어낸다 — 리버풀 실측: 소보슬라이(여러 줄
+  // 분산)가 2선 정원을 먹고 4:3 을 21경기 지킨 살라가 XI 에서 빠졌다.
+  const rowCounts = new Map<number, Map<number, number>>(); // afId → row → 출전
+  for (const a of players.values()) {
+    const m = new Map<number, number>();
+    for (const [g, n] of a.slots) { const r = Number(g.split(":")[0]); m.set(r, (m.get(r) ?? 0) + n); }
+    rowCounts.set(a.afId, m);
+  }
+  const rowCount = (a: Acc, row: number) => rowCounts.get(a.afId)?.get(row) ?? 0;
   const mainRowOf = (a: Acc): number | null => {
-    const top = [...a.slots.entries()].sort((x, y) => y[1] - x[1])[0];
-    return top ? Number(top[0].split(":")[0]) : null;
+    const m = rowCounts.get(a.afId);
+    if (!m || m.size === 0) return null;
+    return [...m.entries()].sort((x, y) => y[1] - x[1] || x[0] - y[0])[0][0];
   };
   const chosen: Acc[] = [];
   const chosenIds = new Set<number>();
   for (const [row, size] of [...rowSizes.entries()].sort((x, y) => x[0] - y[0])) {
-    const inRow = byMain.filter((a) => mainRowOf(a) === row).slice(0, size);
+    const inRow = byMain.filter((a) => mainRowOf(a) === row)
+      .sort((x, y) => rowCount(y, row) - rowCount(x, row) || y.startsMain - x.startsMain)
+      .slice(0, size);
     for (const a of inRow) { chosen.push(a); chosenIds.add(a.afId); }
     // 줄 안에서 자리 배정 — 자기 최빈 슬롯을 선발 많은 순으로 선점, 뺏기면 남은 자리 중 평균 x 에 가까운 곳
     for (const a of inRow) {
