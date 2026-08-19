@@ -16,6 +16,9 @@ export default function PitchSentinel() {
   useEffect(() => {
     const t = setTimeout(() => {
       try {
+        // 봇 제외 — CSS 를 안 읽는 헤드리스 크롤러는 마커가 배치될 수 없어 측정이 무의미하다
+        // (2026-08-19 HeadlessChrome 504px 오탐 실측 — 스타일시트 차단 재현으로 확정).
+        if (navigator.webdriver || /HeadlessChrome|bot|spider|crawl/i.test(navigator.userAgent)) return;
         if (sessionStorage.getItem("pitch-overflow-sent")) return;
         const pitch = ref.current?.parentElement;
         if (!pitch) return;
