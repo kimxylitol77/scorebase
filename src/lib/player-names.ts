@@ -1977,12 +1977,15 @@ const RAW_NORMALIZED: Record<string, string> = Object.fromEntries(
 // 풀네임에서 마지막 토큰(성) 만 떼어내 키로, 매핑값(한글 풀네임)을 그대로 값으로.
 // 동성이인이 있으면 가장 마지막에 등록된 매핑이 우선 (현재 데이터 규모에선 충돌 거의 없음).
 const LAST_NAME_MAP: Record<string, string> = {};
+/** 성 fallback 의 이니셜 가드용 — 성 → 사전 표제어의 이름 첫 글자. */
+const LAST_NAME_FIRST_INITIAL: Record<string, string> = {};
 for (const [en, ko] of Object.entries(RAW)) {
   const tokens = normalize(en).split(/\s+/).filter(Boolean);
   if (tokens.length < 2) continue;
   const lastEn = tokens[tokens.length - 1];
   if (!lastEn || lastEn.endsWith(".")) continue;
   LAST_NAME_MAP[lastEn] = ko;
+  LAST_NAME_FIRST_INITIAL[lastEn] = tokens[0][0];
 }
 
 // 충돌 흔한 성(서로 다른 한글값을 가진 동성이인) — last-name fallback 사용 금지
@@ -2046,15 +2049,20 @@ const AMBIGUOUS_LAST_NAMES = new Set<string>();
   }
 }
 
-const SHORT_NAME_RE = /^(?:[A-Za-z]\.\s*|[A-Za-z]\s+)([\wÀ-ſ'\-]+)$/;
+const SHORT_NAME_RE = /^([A-Za-z])(?:\.\s*|\s+)([\wÀ-ſ'\-]+)$/;
 
 function tryLastName(name: string): string | null {
   // 약식 표기 "C. Doucoure" 형태만 fallback — 풀네임은 정확 매치만 사용
   // (예: "Reece James" 가 last name 'James' fallback 으로 르브론 제임스로 잘못 매핑되던 버그 차단)
   const m = name.trim().match(SHORT_NAME_RE);
   if (!m) return null;
-  const last = normalize(m[1]);
+  const last = normalize(m[2]);
   if (AMBIGUOUS_LAST_NAMES.has(last)) return null;
+  // 이니셜 대조 — 성만 보고 넘기면 af 축약명이 동성이인으로 간다. 2026-08-19 실측: 라이프치히
+  // 주장 센터백 "W. Orban"(빌리 오르반)이 사전의 유일한 Orban 인 공격수 "Gift Orban"으로 해석돼
+  // 전술 글에 "기프트 오르반은 센터백 라인의 기준점"이라는 문장이 실렸다.
+  const first = LAST_NAME_FIRST_INITIAL[last];
+  if (first && first !== normalize(m[1])) return null;
   if (LAST_NAME_MAP[last]) return LAST_NAME_MAP[last];
   return null;
 }
