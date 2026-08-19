@@ -15,10 +15,24 @@ const AF_ODDS_LEAGUES: string[] = [
   "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP",
   "ROMANIA_L2", "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
   "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3",
+  // UEFA 컵 예선 폴백 — The Odds API 는 UEL·UECL 예선 key 가 없다(2026-08-18 /sports
+  // 실측). CUP_FILL_ONLY 가드가 본선 기간의 이중 소스 경합을 차단하므로 예외적으로 편입.
+  // af 커버리지 실측(2026-08-19): 플레이오프 각 10경기 · 북메이커 14개.
+  // AFC_CL·AFC_CL_TWO 는 af 도 0건이라 제외 — 제공 확인 후 추가.
+  "UEL", "UECL",
 ];
 
+// The Odds API 가 "본선"을 커버하는 대륙 컵 — 예선·플레이오프 기간(본선 key inactive,
+// 예선 key 도 없음 — 2026-08-18 /sports 실측)에만 af 가 메꾼다.
+// 이중 소스 경합 방지: **이미 배당이 있는 매치는 절대 덮지 않는다** (The Odds API 우선).
+// 본선이 열리면 The Odds API 가 채우기 시작하고, 이 리그들은 자연히 no-op 이 된다.
+const CUP_FILL_ONLY = new Set(["UEL", "UECL", "AFC_CL", "AFC_CL_TWO"]);
+
 // 8~5월 시즌 리그 — af season 라벨이 시작 연도 (api-football-collector seasonFor 와 동일 규칙).
-const AUG_MAY = new Set(["WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "ROMANIA_L2", "PORTUGAL_SUPER_CUP"]);
+const AUG_MAY = new Set([
+  "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "ROMANIA_L2", "PORTUGAL_SUPER_CUP",
+  "UEL", "UECL", "AFC_CL", "AFC_CL_TWO", // 추춘제 컵
+]);
 function seasonFor(league: string, d: Date): number {
   const y = d.getFullYear();
   if (AUG_MAY.has(league)) return d.getMonth() + 1 >= 7 ? y : y - 1;
@@ -145,6 +159,8 @@ export async function runFetchAfOdds(opts?: { leagues?: string[] }) {
 
       let matched = 0;
       for (const m of dbMatches) {
+        // 컵 폴백 리그 — The Odds API 가 이미 채운 매치는 건드리지 않는다 (경합 차단)
+        if (CUP_FILL_ONLY.has(league) && m.marketHome != null) continue;
         const t = m.startTime.getTime();
         const window = fixtures.filter((f) => Math.abs(f.time - t) <= 30 * 60_000);
         let pick: (typeof fixtures)[number] | null = null;
