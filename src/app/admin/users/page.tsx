@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+const PAGE_SIZE = 100;
+
 /** KST 기준 N일 전 0시(UTC Date) */
 function kstDayStart(daysAgo = 0): Date {
   const KST = 9 * 3600 * 1000;
@@ -23,7 +25,15 @@ function fmtKst(d: Date): string {
   return `${k.getUTCFullYear()}-${p(k.getUTCMonth() + 1)}-${p(k.getUTCDate())} ${p(k.getUTCHours())}:${p(k.getUTCMinutes())}`;
 }
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
+  const skip = (page - 1) * PAGE_SIZE;
+
   const todayStart = kstDayStart(0);
   const yesterdayStart = kstDayStart(1);
   const last7Start = kstDayStart(6);
@@ -47,7 +57,8 @@ export default async function AdminUsersPage() {
     prisma.user.count({ where: { emailVerified: { not: null } } }),
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      take: 100,
+      skip,
+      take: PAGE_SIZE,
       select: {
         id: true,
         email: true,
@@ -72,6 +83,7 @@ export default async function AdminUsersPage() {
       .then((r) => r.length),
   ]);
 
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const verifyRate = total > 0 ? Math.round((verified / total) * 100) : 0;
   const pvMap = new Map(
     pvByUser.map((p) => [
@@ -104,12 +116,13 @@ export default async function AdminUsersPage() {
         <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 text-sm font-semibold">
           가입자 목록{" "}
           <span className="text-neutral-500 font-normal">
-            (최근 {recent.length}명)
+            (전체 {total}명 중 {total === 0 ? 0 : skip + 1}–{skip + recent.length}
+            번째 · {page}/{totalPages} 페이지)
           </span>
         </div>
         {recent.length === 0 ? (
           <div className="px-4 py-12 text-center text-sm text-neutral-500">
-            아직 가입한 회원이 없습니다.
+            {page > 1 ? "이 페이지에는 회원이 없습니다." : "아직 가입한 회원이 없습니다."}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -167,6 +180,82 @@ export default async function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {totalPages > 1 && <Pager page={page} totalPages={totalPages} />}
+    </div>
+  );
+}
+
+/** 이전/다음 + 페이지 번호(현재 기준 최대 7개 윈도우) */
+function Pager({ page, totalPages }: { page: number; totalPages: number }) {
+  const start = Math.max(1, Math.min(page - 3, totalPages - 6));
+  const end = Math.min(totalPages, start + 6);
+  const nums: number[] = [];
+  for (let i = start; i <= end; i++) nums.push(i);
+
+  const base =
+    "px-3 py-1.5 rounded-md text-sm transition whitespace-nowrap";
+  const idle =
+    "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700";
+  const off = "text-neutral-300 dark:text-neutral-700";
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
+      {page > 1 ? (
+        <Link href={`/admin/users?page=${page - 1}`} className={`${base} ${idle}`}>
+          ← 이전
+        </Link>
+      ) : (
+        <span className={`${base} ${off}`}>← 이전</span>
+      )}
+
+      {start > 1 && (
+        <>
+          <Link href="/admin/users?page=1" className={`${base} ${idle}`}>
+            1
+          </Link>
+          <span className="text-neutral-400 text-sm">…</span>
+        </>
+      )}
+
+      {nums.map((n) =>
+        n === page ? (
+          <span
+            key={n}
+            className={`${base} bg-blue-600 text-white font-semibold tabular-nums`}
+          >
+            {n}
+          </span>
+        ) : (
+          <Link
+            key={n}
+            href={`/admin/users?page=${n}`}
+            className={`${base} ${idle} tabular-nums`}
+          >
+            {n}
+          </Link>
+        ),
+      )}
+
+      {end < totalPages && (
+        <>
+          <span className="text-neutral-400 text-sm">…</span>
+          <Link
+            href={`/admin/users?page=${totalPages}`}
+            className={`${base} ${idle} tabular-nums`}
+          >
+            {totalPages}
+          </Link>
+        </>
+      )}
+
+      {page < totalPages ? (
+        <Link href={`/admin/users?page=${page + 1}`} className={`${base} ${idle}`}>
+          다음 →
+        </Link>
+      ) : (
+        <span className={`${base} ${off}`}>다음 →</span>
+      )}
     </div>
   );
 }
