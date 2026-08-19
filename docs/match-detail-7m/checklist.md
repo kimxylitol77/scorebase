@@ -27,4 +27,14 @@
 
 ## 3순위 — 2차전 합산 스코어
 
-- [ ] 착수 전 재논의 (1차전 매치 연결 방법 확인 필요)
+- [x] 표기 방식 사용자 확정 — "직전 맞대결" (1·2차전 단정 안 함)
+- [x] `src/lib/predict/previous-leg.ts` — 컵 대회 + 홈/원정 스왑 + 21일 이내
+      → 검증: 컵 최근 400경기 전수로 96건(24.0%) 적중, 간격 중앙 7일·최대 9일
+- [x] `src/components/predictions/PreviousLegCard.tsx`
+      → 검증: 7m 예시 경기(COPA_LIB) 실렌더로 합계 1-1 일치
+- [x] 날짜 KST 표기 (kstDateLabel) → 검증: UTC 8/11 → KST 8/12(수) 정정
+- [x] tsc 통과 후 커밋
+
+## 남은 것
+
+- push 여부는 사용자 확인 대기 (3건 커밋 완료)

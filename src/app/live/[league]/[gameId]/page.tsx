@@ -94,6 +94,8 @@ import { getModelCalibrationStats } from "@/lib/predict/model-calibration-simila
 import ModelCalibrationCard from "@/components/predictions/ModelCalibrationCard";
 import { getMatchFactors } from "@/lib/predict/match-factors";
 import MatchFactorsCard from "@/components/predictions/MatchFactorsCard";
+import { getPreviousLeg } from "@/lib/predict/previous-leg";
+import PreviousLegCard from "@/components/predictions/PreviousLegCard";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -893,6 +895,23 @@ export default async function GenericLivePage({ params }: Props) {
 
   // 경기 전 체크포인트 — 7m 의 "사건 영향(유익/악재)" 대체. 새 쿼리 없음
   // (getLeagueMatches 가 cache() 라 SoccerTeamStrength 가 부른 것을 재사용).
+  // 컵 대회 직전 맞대결 + 두 경기 합계 — 7m 의 "1.2차전" 표기 대체.
+  // 종료 경기만 (진행 중엔 합계가 확정되지 않는다).
+  const thisMainHome = soccerScore?.mainHome ?? match.homeScore;
+  const thisMainAway = soccerScore?.mainAway ?? match.awayScore;
+  const previousLeg =
+    isSoccer && match.status === "FINISHED" && thisMainHome != null && thisMainAway != null
+      ? await getPreviousLeg({
+          matchId: match.id,
+          league: match.league,
+          startTime: match.startTime,
+          homeTeamId: match.homeTeam.id,
+          awayTeamId: match.awayTeam.id,
+          thisHome: thisMainHome,
+          thisAway: thisMainAway,
+        })
+      : null;
+
   const matchFactors = isSoccer
     ? await getMatchFactors({
         league: match.league,
@@ -1261,6 +1280,15 @@ export default async function GenericLivePage({ params }: Props) {
       <MatchVoteCard matchId={match.id} />
       <AiRoundTableStrip matchId={match.id} />
 
+      {previousLeg && thisMainHome != null && thisMainAway != null && (
+        <PreviousLegCard
+          leg={previousLeg}
+          thisHome={thisMainHome}
+          thisAway={thisMainAway}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+        />
+      )}
       {matchFactors && (matchFactors.home.length > 0 || matchFactors.away.length > 0) && (
         <MatchFactorsCard factors={matchFactors} homeNameKo={homeKo} awayNameKo={awayKo} />
       )}
