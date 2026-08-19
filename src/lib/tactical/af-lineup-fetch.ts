@@ -6,7 +6,9 @@ import { prisma } from "@/lib/db";
 import { normTeam, type BackfilledLineup, type BackfilledSide } from "./manager-aggregate";
 
 const AF = "https://v3.football.api-sports.io";
-export const AF_LEAGUE_ID: Record<string, number> = { EPL: 39 };
+export const AF_LEAGUE_ID: Record<string, number> = {
+  EPL: 39, LALIGA: 140, BUNDESLIGA: 78, SERIE_A: 135, LIGUE_1: 61, CHAMPIONSHIP: 40,
+};
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

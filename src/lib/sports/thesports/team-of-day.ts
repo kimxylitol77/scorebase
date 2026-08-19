@@ -117,8 +117,8 @@ export async function finishedDatesKst(): Promise<string[]> {
   return [...seen];
 }
 
-const koCountry = (en: string) =>
-  fifaCountryKo(en) ?? toKoreanTeamName(en, "WORLD_CUP") ?? en;
+const koCountry = (en: string, league = "WORLD_CUP") =>
+  (league === "WORLD_CUP" ? fifaCountryKo(en) : null) ?? toKoreanTeamName(en, league) ?? en;
 
 /**
  * 지정 KST 날짜(미지정 시 최근 완료일)의 월드컵 완료 경기 출전 선수에서
@@ -131,13 +131,17 @@ const koCountry = (en: string) =>
 export async function getTeamOfDay(
   dateKst?: string,
   pinnedNames?: string[],
+  /** 클럽 리그 주간 집계용 — 미지정 시 월드컵 하루 창(기존 동작 그대로). */
+  scope?: { league: string; gte: Date; lt: Date; label: string },
 ): Promise<TeamOfDay | null> {
-  const date = dateKst ?? (await latestFinishedDateKst());
+  const date = scope?.label ?? dateKst ?? (await latestFinishedDateKst());
   if (!date) return null;
-  const { gte, lt } = kstDayRangeUtc(date);
+  const range = scope ? { gte: scope.gte, lt: scope.lt } : kstDayRangeUtc(date);
+  const league = scope?.league ?? "WORLD_CUP";
+  const { gte, lt } = range;
 
   const matches = await prisma.match.findMany({
-    where: { league: "WORLD_CUP", status: "FINISHED", startTime: { gte, lt } },
+    where: { league, status: "FINISHED", startTime: { gte, lt } },
     select: {
       id: true,
       homeScore: true,
@@ -170,8 +174,8 @@ export async function getTeamOfDay(
     matchMeta.push({
       home: m.homeTeam.name,
       away: m.awayTeam.name,
-      homeKo: koCountry(m.homeTeam.name),
-      awayKo: koCountry(m.awayTeam.name),
+      homeKo: koCountry(m.homeTeam.name, league),
+      awayKo: koCountry(m.awayTeam.name, league),
       homeScore: m.homeScore,
       awayScore: m.awayScore,
     });
@@ -252,8 +256,9 @@ export async function getTeamOfDay(
     nameEn: p.name,
     pos: p.pos,
     country: p.country,
-    countryKo: koCountry(p.country),
-    flag: fifaFlag(p.country),
+    countryKo: koCountry(p.country, league),
+    // 클럽 리그는 국기가 없다 — 팀 로고는 호출부가 팀명으로 붙인다.
+    flag: league === "WORLD_CUP" ? fifaFlag(p.country) : "",
     rating: p.rating,
     goals: p.goals,
     assists: p.assists,

@@ -48,10 +48,13 @@ const TEAM_ALIAS: Record<string, string> = {
   brightonhovealbion: "brighton",
   afcbournemouth: "bournemouth",
   burnleyfc: "burnley",
-  bayernmunich: "bayernmnchen", // af "Bayern Munich" vs 우리 "Bayern München"(ü 탈락) — 과거 시즌 아카이브 빌드
+  bayernmunich: "bayernmunchen", // af "Bayern Munich" vs 우리 "Bayern München"
+  deportivolacoruna: "deportivo", // af 는 도시까지, 우리는 "Deportivo" (라리가 2026-08 실측)
 };
 export function normTeam(s: string): string {
-  const n = s.toLowerCase().replace(/[^a-z]/g, "");
+  // NFD 분해로 분음부호를 접는다 — 접지 않으면 "München" 이 "mnchen" 이 돼 소스마다 별칭을
+  // 붓게 된다. 빅5 확장(2026-08-19) 때 라리가·세리에A·리그앙까지 같은 문제가 번질 참이었다.
+  const n = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
   return TEAM_ALIAS[n] ?? n;
 }
 

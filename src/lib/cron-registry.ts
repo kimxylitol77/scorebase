@@ -63,6 +63,7 @@ export const CRON_REGISTRY: {
   // 위클리 — 기대 168h + 유예 12h = 180h
   { name: "fetch-salaries", label: "선수 연봉", maxAgeH: 180 },
   { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
+  { name: "weekly-xi", label: "축구 주간 베스트 XI (빅5)", maxAgeH: 180 },
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
   { name: "baseball-season-backfill", label: "야구 시즌 일정 백필", maxAgeH: 180 },
   // 주간 증분(최근 10일)이라 시즌 중 0건은 비정상 — from/to 누락 0건이 한 달 무감지였던 잡 (2026-08-19)

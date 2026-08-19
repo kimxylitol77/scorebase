@@ -117,6 +117,10 @@
       "schedule": "0 3 * * 1,4"
     },
     {
+      "path": "/api/cron/weekly-xi",
+      "schedule": "0 1 * * 2"
+    },
+    {
       "path": "/api/cron/manager-month",
       "schedule": "0 1 2 * *"
     },

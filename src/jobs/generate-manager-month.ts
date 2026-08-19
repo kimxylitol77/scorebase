@@ -1,7 +1,7 @@
-// EPL "이달의 감독" — 월간 자동 아티클 잡. 직전 달 승점/경기 1위 팀(동률 시 xG 득실차)을 뽑아
+// 빅5 "이달의 감독" — 월간 자동 아티클 잡(리그별 1편). 직전 달 승점/경기 1위 팀(동률 시 xG 득실차)을 뽑아
 // af 런타임 라인업 수집 + 월간 집계 + 웹 리서치(sonnet)로 TACTICAL DRAFT 저장.
 // cron /api/cron/manager-month (기본 OFF — MANAGER_MONTH_ENABLED=1). 시즌 개막(2026-08) 후 가동.
-//   npm run job:manager-month -- [--month=2026-09] [--dry-run]
+//   npm run job:manager-month -- [--month=2026-09] [--league=LALIGA] [--dry-run]
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { generateWithWebSearch } from "@/lib/ai/claude";
@@ -10,7 +10,16 @@ import { aggregateTeamSeason, type TacticalManagerContext, type BackfilledLineup
 import { fetchAfLineupsForRange } from "@/lib/tactical/af-lineup-fetch";
 import { dataBrief, enrichForRender, teamSlug } from "@/lib/tactical/manager-article";
 
-const LEAGUE = "EPL";
+/** 대상 리그 — 빅5. runManagerMonth 는 리그별로 1편씩 낸다. */
+const MONTH_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] as const;
+const LEAGUE_LABEL: Record<string, string> = {
+  EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 앙",
+};
+// 웹 리서치 질의용 정식 명칭 — 짧은 라벨로 검색하면 엉뚱한 리그가 섞인다.
+const LEAGUE_RESEARCH: Record<string, string> = {
+  EPL: "잉글랜드 프리미어리그", LALIGA: "스페인 라리가", BUNDESLIGA: "독일 분데스리가",
+  SERIE_A: "이탈리아 세리에 A", LIGUE_1: "프랑스 리그 1",
+};
 const MODEL = process.env.MANAGER_MONTH_MODEL || "claude-sonnet-5";
 const MIN_LENGTH = 1800;
 const MIN_PLAYED = 3; // 월 3경기 미만 팀은 후보 제외
@@ -35,16 +44,32 @@ function prevMonth(now = new Date()): string {
   return d.toISOString().slice(0, 7);
 }
 
-export async function runManagerMonth(opts: { dryRun?: boolean; month?: string } = {}): Promise<void> {
+/** 리그 전체 순회 — 한 리그 실패가 나머지를 막지 않는다. */
+export async function runManagerMonth(opts: { dryRun?: boolean; month?: string; league?: string } = {}): Promise<void> {
+  const leagues = opts.league ? [opts.league.toUpperCase()] : [...MONTH_LEAGUES];
+  for (const lg of leagues) {
+    try {
+      await runManagerMonthForLeague(lg, opts);
+    } catch (e) {
+      console.error(`[manager-month] ${lg} 실패:`, (e as Error).message?.slice(0, 200));
+    }
+  }
+}
+
+async function runManagerMonthForLeague(
+  LEAGUE: string,
+  opts: { dryRun?: boolean; month?: string },
+): Promise<void> {
   const month = opts.month ?? prevMonth();
   const { from, to } = monthBounds(month);
   const label = `${Number(month.slice(0, 4))}년 ${Number(month.slice(5))}월`;
-  const slugKey = `manager-month-${month}`;
+  // 리그를 slug 키에 넣어야 리그별로 각각 1편이 난다(넣지 않으면 첫 리그 발행 후 나머지가 전부 skip).
+  const slugKey = `${LEAGUE.toLowerCase()}-manager-month-${month}`;
 
   // 멱등 가드
   const dup = await prisma.article.findFirst({ where: { type: "TACTICAL", slug: { contains: slugKey } }, select: { slug: true } });
   if (dup) {
-    console.log(`[manager-month] 이미 존재 — skip: ${dup.slug}`);
+    console.log(`[manager-month] ${LEAGUE} 이미 존재 — skip: ${dup.slug}`);
     return;
   }
 
@@ -52,7 +77,7 @@ export async function runManagerMonth(opts: { dryRun?: boolean; month?: string }
   const lineups: BackfilledLineup[] = await fetchAfLineupsForRange(LEAGUE, from, to);
   console.log(`[manager-month] ${month} 라인업 ${lineups.length}경기 수집`);
   if (!lineups.length) {
-    console.log("[manager-month] 대상 경기 없음(비시즌?) — skip");
+    console.log(`[manager-month] ${LEAGUE} 대상 경기 없음(비시즌?) — skip`);
     return;
   }
 
@@ -74,7 +99,7 @@ export async function runManagerMonth(opts: { dryRun?: boolean; month?: string }
     }
   }
   if (!candidates.length) {
-    console.log("[manager-month] 후보 없음 — skip");
+    console.log(`[manager-month] ${LEAGUE} 후보 없음 — skip`);
     return;
   }
   const score = (c: TacticalManagerContext) => {
@@ -94,7 +119,7 @@ export async function runManagerMonth(opts: { dryRun?: boolean; month?: string }
 
   // 3) 웹 리서치 + 본문
   const researchNotes = await generateWithWebSearch(
-    `${winner.coach.name} 감독의 ${winner.team.name}이 ${label}(프리미어리그)에 보인 전술과 경기력을 조사하라. ` +
+    `${winner.coach.name} 감독의 ${winner.team.name}이 ${label}(${LEAGUE_RESEARCH[LEAGUE] ?? LEAGUE})에 보인 전술과 경기력을 조사하라. ` +
     `그 달의 전술 변화·키 경기·핵심 선수 활약·감독 발언 요지를 한국어 불릿 5~8개로 정리하라. 확인 안 되는 내용은 쓰지 말 것.`,
     { model: MODEL, maxUses: 3, maxTokens: 1200, temperature: 0.3 },
   );
@@ -102,7 +127,7 @@ export async function runManagerMonth(opts: { dryRun?: boolean; month?: string }
     .map((m) => `${m.date} ${m.homeAway === "H" ? "홈" : "원정"} vs ${m.opponentKo} ${m.gf}-${m.ga} ${m.result}${m.formation ? ` (${m.formation})` : ""}`)
     .join("\n");
   const content = await generateWithMinLength(
-    `${label} EPL "이달의 감독" 글을 작성하라. 선정: ${winner.coach.nameKo} 감독(${winner.team.nameKo}).
+    `${label} ${LEAGUE_LABEL[LEAGUE] ?? LEAGUE} "이달의 감독" 글을 작성하라. 선정: ${winner.coach.nameKo} 감독(${winner.team.nameKo}).
 
 ## 월간 데이터 (실측 — 그대로 인용)
 ${dataBrief(winner)}
@@ -130,7 +155,7 @@ ${researchNotes}
   }
 
   const h1 = content.match(/^#\s+(.+)$/m)?.[1]?.trim();
-  const title = h1 ?? `${label} EPL 이달의 감독 — ${winner.coach.nameKo} (${winner.team.nameKo})`;
+  const title = h1 ?? `${label} ${LEAGUE_LABEL[LEAGUE] ?? LEAGUE} 이달의 감독 — ${winner.coach.nameKo} (${winner.team.nameKo})`;
   const article = await prisma.article.create({
     data: {
       type: "TACTICAL",
@@ -142,7 +167,7 @@ ${researchNotes}
       tacticalContext: JSON.stringify(winner),
     },
   });
-  const slug = `${LEAGUE.toLowerCase()}-${slugKey}-${teamSlug(winner.team.name)}-${article.id}`;
+  const slug = `${slugKey}-${teamSlug(winner.team.name)}-${article.id}`;
   await prisma.article.update({ where: { id: article.id }, data: { slug } });
   console.log(`[manager-month] DRAFT 저장: ${slug} (${content.length}자)`);
 }
@@ -152,6 +177,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   runManagerMonth({
     dryRun: args.includes("--dry-run"),
     month: args.find((a) => a.startsWith("--month="))?.split("=")[1],
+    league: args.find((a) => a.startsWith("--league="))?.split("=")[1],
   })
     .catch((e) => { console.error(e); process.exit(1); })
     .finally(() => prisma.$disconnect());
