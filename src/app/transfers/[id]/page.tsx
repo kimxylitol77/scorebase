@@ -899,6 +899,24 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
 
   // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
   const careerGroups = await getPlayerCareerByTs(id);
+  // 진행 중(end=null) stint 의 경기·골 라이브 보정 — Wikidata career 는 위키 편집 주기라
+  // 이적 직후 "0경기 0골"이 오래 남는다(오바메양 데포르티보 실측). 위키 관례와 같은 기준인
+  // af 경력의 리그 대회 합산이 더 크면 그 값으로 올린다(내려쓰기 금지 — af 결손 리그 방어).
+  {
+    const leagueRows = careerGroups.filter((g) => g.cat === "league").flatMap((g) => g.rows);
+    careerView = careerView.map((c) => {
+      if (c.nt || c.end != null || c.start == null) return c;
+      const cn = normClub(c.club);
+      const agg = leagueRows
+        .filter((r) => {
+          if (r.season < c.start!) return false;
+          const n = normClub(r.teamName);
+          return matchClub(cn, n) || (n.length >= 2 && cn.includes(n)) || (cn.length >= 2 && n.includes(cn));
+        })
+        .reduce((a, r) => ({ apps: a.apps + r.appearances, goals: a.goals + r.goals }), { apps: 0, goals: 0 });
+      return agg.apps > (c.apps ?? 0) ? { ...c, apps: agg.apps, goals: agg.goals } : c;
+    });
+  }
   // 통산(클럽 대회 합산) 요약 4칸 + 시즌별 골·도움 추이 — buildup 벤치마크 (2026-07-15).
   // 연령별 대표(U23 등)가 클럽 분류로 새는 행은 제외 (Brazil U23 실측).
   const clubGroups = careerGroups.filter((g) => g.cat !== "national");
