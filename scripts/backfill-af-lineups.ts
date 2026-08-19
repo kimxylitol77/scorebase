@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 const AF = "https://v3.football.api-sports.io";
 const headers = { "x-apisports-key": process.env.API_FOOTBALL_KEY ?? "" };
-const AF_LEAGUE_ID: Record<string, number> = { EPL: 39, CHAMPIONSHIP: 40, LALIGA: 140 };
+const AF_LEAGUE_ID: Record<string, number> = { EPL: 39, CHAMPIONSHIP: 40, LALIGA: 140, BUNDESLIGA: 78 };
 const SEASON = 2025;
 
 // af 팀명 → 우리 Team.name 별칭 (정규화 후에도 다른 것만)
@@ -19,8 +19,10 @@ const ALIAS: Record<string, string> = {
   tottenhamhotspur: "tottenham",
   oviedo: "realoviedo", // af "Oviedo" vs 우리 "Real Oviedo" (LALIGA)
 };
+// NFD 분해 후 a-z 만 남긴다 — 움라우트가 소스마다 갈린다(우리 "Bayern München" vs af "Koln").
+// 분해하면 결합문자가 [^a-z] 로 떨어져 나가 ö→o·ü→u 로 수렴한다.
 const norm = (s: string) => {
-  const n = s.toLowerCase().replace(/[^a-z]/g, "");
+  const n = s.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "");
   return ALIAS[n] ?? n;
 };
 
@@ -100,9 +102,18 @@ async function main() {
   const done = new Set(["FT", "AET", "PEN"]);
   const mapped: { afId: number; matchId: number; date: string; pair: string }[] = [];
   const unmatched: string[] = [];
+  // af 시즌에는 리그 밖 상대가 낀 경기가 섞인다 — 분데스리가 승강 플레이오프 2차전(볼프스부르크 vs
+  // 파더보른, 2부 3위)이 실측. 우리 리그 소속이 아닌 팀은 매핑 대상이 아니므로 ALIAS 결손과 구분한다.
+  const ourNames = new Set<string>();
+  for (const m of ours) { ourNames.add(norm(m.homeTeam.name)); ourNames.add(norm(m.awayTeam.name)); }
+  const outOfLeague: string[] = [];
   for (const f of fixtures) {
     if (!done.has(f.fixture?.status?.short ?? "")) continue;
     const hn = norm(f.teams.home.name), an = norm(f.teams.away.name);
+    if (!ourNames.has(hn) || !ourNames.has(an)) {
+      outOfLeague.push(`${f.teams.home.name} vs ${f.teams.away.name}`);
+      continue;
+    }
     if (teamTokens && !teamTokens.some((t) => hn.includes(t) || an.includes(t))) continue;
     const pair = `${hn}|${an}`;
     const cands = byPair.get(pair) ?? [];
@@ -111,7 +122,9 @@ async function main() {
     if (!our) { unmatched.push(`${f.fixture.id} ${f.teams.home.name} vs ${f.teams.away.name}`); continue; }
     mapped.push({ afId: f.fixture.id, matchId: our.id, date: f.fixture.date, pair });
   }
-  console.log(`af 종료 fixtures 매핑: ${mapped.length} / 미매칭 ${unmatched.length}`);
+  console.log(`af 종료 fixtures 매핑: ${mapped.length} / 미매칭 ${unmatched.length} / 리그 밖 ${outOfLeague.length}`);
+  // 리그 밖은 전부 출력한다 — ALIAS 결손이 여기로 새면 조용히 경기가 빠지므로 눈으로 확인해야 한다.
+  for (const o of outOfLeague) console.log("  리그 밖(제외):", o);
   for (const u of unmatched.slice(0, 10)) console.log("  미매칭:", u);
   if (unmatched.length) throw new Error("미매칭 존재 — ALIAS 보강 필요");
 

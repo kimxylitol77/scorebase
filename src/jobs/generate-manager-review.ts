@@ -129,7 +129,9 @@ async function main() {
       `시즌 중 전술 변화, 빌드업 구조 특징, 핵심 선수의 역할, 감독의 전술 관련 발언 요지, 부상·영입이 전술에 준 영향을 ` +
       `한국어 불릿 6~10개로 정리하라. 시즌 종료 후 2026 여름 이적시장의 확정 영입·방출이 있으면 다음 시즌 전술 관점 1~2불릿을 더하라. ` +
       `각 불릿은 사실 위주 1~2문장. 웹에서 확인 안 되는 내용은 쓰지 말 것.`,
-      { model: MODEL, maxUses: 3, maxTokens: 1500, temperature: 0.3 },
+      // maxTokens 1500 은 sonnet 의 thinking + 검색 결과와 겹쳐 본문 전에 잘린다 —
+      // 슈투트가르트·호펜하임이 stop_reason=max_tokens 로 텍스트 블록 없이 끝나 2회 연속 실패했다(2026-08-19).
+      { model: MODEL, maxUses: 3, maxTokens: 3000, temperature: 0.3 },
     );
 
     // 2) 본문 생성

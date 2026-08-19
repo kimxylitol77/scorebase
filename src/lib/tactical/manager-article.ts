@@ -7,7 +7,10 @@ import type { TacticalManagerContext, XiPlayer } from "./manager-aggregate";
 
 const POS_MAP: Record<string, Pos> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 
-export const teamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+// NFD 분해로 분음부호를 접고 슬러그를 만든다 — 접지 않으면 "Bayern München" 이
+// "bayern-m-nchen" 이 된다(2026-08-19 분데스리가 실측).
+export const teamSlug = (name: string) =>
+  name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /** 평균 포지션 XI → 전술판 빌더 보드 코드 (?d=). */
 function buildLineupCode(ctx: TacticalManagerContext, knownPids: Set<string>): string {

@@ -55,8 +55,13 @@ export function normTeam(s: string): string {
   return TEAM_ALIAS[n] ?? n;
 }
 
+/** 감독 이름 해석 풀의 항목 — team-coaches.json(현직)·coach-photos.json(전체) 공통 형태. */
+interface CoachRef { name: string; nameKo?: string | null; preferredFormation?: string | null; logo?: string | null }
+
 function normName(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
+  // ß 는 NFD 로 분해되지 않아 그냥 두면 [^a-z] 로 날아간다 — af 가 같은 감독을 "Hoeneß"/"Hoeness"
+  // 로 섞어 보내 스틴트가 갈리고 한글명 조회도 빗나갔다(2026-08-19 슈투트가르트 실측). ss 로 접는다.
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/ß/g, "ss").replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
 }
 
 // ============================================================
@@ -285,13 +290,19 @@ export async function aggregateTeamSeason(opts: {
   rec.rank = opts.rankOverride ?? (await computeRank(league, from, to, teamId));
 
   // 3) 감독 재임 구간 (연속 그룹핑 — 중도 경질 감지)
-  const coaches: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null; logo?: string | null }> = existsSync(dataPath("team-coaches.json"))
+  const coaches: Record<string, CoachRef> = existsSync(dataPath("team-coaches.json"))
     ? JSON.parse(readFileSync(dataPath("team-coaches.json"), "utf8"))
     : {};
+  // 지난 시즌 감독은 현직 스냅샷(team-coaches)에 없다 — 25/26 라이프치히 올레 베르너 실측.
+  // 감독 사진 레지스트리가 한글 표기를 함께 들고 있어 해석 풀로 합친다(현직 우선).
+  const coachPhotos: Record<string, CoachRef> = existsSync(dataPath("coach-photos.json"))
+    ? JSON.parse(readFileSync(dataPath("coach-photos.json"), "utf8"))
+    : {};
+  const coachPool: CoachRef[] = [...Object.values(coaches), ...Object.values(coachPhotos)];
   const coachKo = (name: string | null): string => {
     if (!name) return "감독 미상";
     const n = normName(name);
-    let hit = Object.values(coaches).find((c) => normName(c.name) === n);
+    let hit = coachPool.find((c) => normName(c.name) === n);
     if (!hit) {
       // 성 유일 일치 폴백 (af 표기 차이 흡수). 두 가지 방어가 반드시 같이 가야 한다 —
       // 2026-08-16 오보: "Diego Pablo Simeone González"(시메오네 풀네임)의 **마지막 토큰이
@@ -303,7 +314,7 @@ export async function aggregateTeamSeason(opts: {
       const tokens = n.split(" ").filter(Boolean);
       const surnameCands = [tokens[tokens.length - 1], tokens[tokens.length - 2]].filter(Boolean);
       for (const sur of surnameCands) {
-        const byLast = Object.values(coaches).filter((c) => {
+        const byLast = coachPool.filter((c) => {
           const ct = normName(c.name).split(" ").filter(Boolean);
           if (ct[ct.length - 1] !== sur) return false;
           const first = ct[0];
@@ -362,7 +373,7 @@ export async function aggregateTeamSeason(opts: {
   }
   for (const s of stints) s.ppg = Number(((s.w * 3 + s.d) / s.played).toFixed(2));
   const mainStint = [...stints].sort((a, b) => b.played - a.played)[0];
-  const coachProfile = Object.values(coaches).find((c) => normName(c.name) === normName(mainStint.coach));
+  const coachProfile = coachPool.find((c) => normName(c.name) === normName(mainStint.coach));
 
   // 4) 포메이션 사용 분포
   const fmap = new Map<string, FormationUsage & { xgForSum: number; xgAgainstSum: number; xgN: number }>();
