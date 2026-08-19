@@ -455,9 +455,6 @@ export async function aggregateTeamSeason(opts: {
     };
   };
   const byMain = [...players.values()].filter((a) => a.n > 0).sort((a, b) => b.startsMain - a.startsMain);
-  const gk = byMain.filter((a) => a.pos === "G")[0];
-  const outfield = byMain.filter((a) => a.pos !== "G").slice(0, 10);
-  const chosen = [gk, ...outfield].filter(Boolean);
 
   // XI 좌표 = 최빈 그리드 슬롯을 중복 없이 배정. 평균 좌표는 로테이션 팀에서 여러 명이
   // 같은 자리에 겹친다(시티 실측 — 포든·베르나르두·레이너르스 한 점 포개짐). 선발 많은
@@ -483,28 +480,53 @@ export async function aggregateTeamSeason(opts: {
   for (const a of players.values()) for (const g of a.slots.keys()) slotUniverse.add(g);
   const claimed = new Set<string>();
   const coordOf = new Map<number, { x: number; y: number }>();
-  for (const a of chosen) {
-    const pref = [...a.slots.entries()].sort((x, y) => y[1] - x[1]).map(([g]) => g).find((g) => !claimed.has(g));
-    if (pref) {
-      claimed.add(pref);
-      coordOf.set(a.afId, slotXY(pref));
+
+  // XI 선정은 "줄(row) 단위"로 한다 — 선발 수 상위 10명을 그냥 뽑으면 포지션 구성이 포메이션과
+  // 어긋난다. 2026-08-19 실측: 바이에른은 수비수 5명이 뽑혀 백4 자리를 다 채우고 남은 김민재가
+  // 공격형 미드필더 자리에 섰고, 도르트문트는 공격수 벨링엄이 수비 라인에 섰다.
+  // 각 선수의 주 활동 줄(최빈 슬롯의 row)을 구해, 줄마다 그 줄 자리 수만큼 선발 많은 순으로 뽑는다.
+  // (슬롯 최다 점유자만 뽑으면 자리를 옮겨 다닌 주전이 통째로 빠진다 — 레버쿠젠 안드리히 29선발
+  //  실측. 줄 단위로 자르면 주전은 남기면서 줄만 지켜진다.)
+  const mainRowOf = (a: Acc): number | null => {
+    const top = [...a.slots.entries()].sort((x, y) => y[1] - x[1])[0];
+    return top ? Number(top[0].split(":")[0]) : null;
+  };
+  const chosen: Acc[] = [];
+  const chosenIds = new Set<number>();
+  for (const [row, size] of [...rowSizes.entries()].sort((x, y) => x[0] - y[0])) {
+    const inRow = byMain.filter((a) => mainRowOf(a) === row).slice(0, size);
+    for (const a of inRow) { chosen.push(a); chosenIds.add(a.afId); }
+    // 줄 안에서 자리 배정 — 자기 최빈 슬롯을 선발 많은 순으로 선점, 뺏기면 남은 자리 중 평균 x 에 가까운 곳
+    for (const a of inRow) {
+      const pref = [...a.slots.entries()].sort((x, y) => y[1] - x[1])
+        .map(([g]) => g).find((g) => Number(g.split(":")[0]) === row && !claimed.has(g));
+      if (pref) { claimed.add(pref); coordOf.set(a.afId, slotXY(pref)); }
+    }
+    for (const a of inRow) {
+      if (coordOf.has(a.afId)) continue;
+      const ax = a.n ? a.sx / a.n : 50;
+      const free = Array.from({ length: size }, (_, i) => `${row}:${i + 1}`).filter((g) => !claimed.has(g))
+        .sort((g1, g2) => Math.abs(slotXY(g1).x - ax) - Math.abs(slotXY(g2).x - ax))[0];
+      if (free) { claimed.add(free); coordOf.set(a.afId, slotXY(free)); }
     }
   }
-  // 자기 슬롯을 전부 선점당한 선수 — 빈 슬롯 중 평균 좌표에서 가장 가까운 곳에 배정
-  // (평균 좌표 그대로 두면 다른 슬롯과 충돌 — 빌라 등 5팀 실측 10/11)
-  for (const a of chosen) {
-    if (coordOf.has(a.afId)) continue;
+  // 줄 후보가 모자라 빈 자리가 남으면 선발 많은 미선정 선수로 채운다(평균 좌표에서 가장 가까운 자리).
+  for (const a of byMain) {
+    if (chosen.length >= slotUniverse.size) break;
+    if (chosenIds.has(a.afId)) continue;
     const ax = a.n ? a.sx / a.n : 50, ay = a.n ? a.sy / a.n : 50;
     const free = [...slotUniverse].filter((g) => !claimed.has(g))
       .sort((g1, g2) => {
         const p1 = slotXY(g1), p2 = slotXY(g2);
         return (p1.x - ax) ** 2 + (p1.y - ay) ** 2 - ((p2.x - ax) ** 2 + (p2.y - ay) ** 2);
       })[0];
-    if (free) {
-      claimed.add(free);
-      coordOf.set(a.afId, slotXY(free));
-    }
+    if (!free) break;
+    claimed.add(free);
+    chosenIds.add(a.afId);
+    chosen.push(a);
+    coordOf.set(a.afId, slotXY(free));
   }
+  chosen.sort((a, b) => b.startsMain - a.startsMain);
 
   const mostUsedXi = { formation: mainFormation, players: chosen.map((a) => toXi(a, coordOf.get(a.afId))) };
   const topStarters = [...players.values()].sort((a, b) => b.starts - a.starts).slice(0, 14).map((a) => toXi(a));
