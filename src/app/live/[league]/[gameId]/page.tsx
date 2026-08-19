@@ -92,6 +92,8 @@ import MatchHighlightCard from "@/components/live/MatchHighlightCard";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import { getModelCalibrationStats } from "@/lib/predict/model-calibration-similar";
 import ModelCalibrationCard from "@/components/predictions/ModelCalibrationCard";
+import { getMatchFactors } from "@/lib/predict/match-factors";
+import MatchFactorsCard from "@/components/predictions/MatchFactorsCard";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -889,6 +891,22 @@ export default async function GenericLivePage({ params }: Props) {
   // 축구만. 표본 미달이면 null 이라 카드가 통째로 빠진다.
   const calibration = isSoccer ? await getModelCalibrationStats(match) : null;
 
+  // 경기 전 체크포인트 — 7m 의 "사건 영향(유익/악재)" 대체. 새 쿼리 없음
+  // (getLeagueMatches 가 cache() 라 SoccerTeamStrength 가 부른 것을 재사용).
+  const matchFactors = isSoccer
+    ? await getMatchFactors({
+        league: match.league,
+        startTime: match.startTime,
+        homeTeamId: match.homeTeam.id,
+        awayTeamId: match.awayTeam.id,
+        homeNameKo: homeKo,
+        awayNameKo: awayKo,
+        h2hHome: extras.h2hHome,
+        homeStanding: extras.homeStanding,
+        awayStanding: extras.awayStanding,
+      })
+    : null;
+
   // SportsEvent JSON-LD — 검색 rich snippet + AI 인용 source.
   // 라이브/종료 매치 모두 발행 — eventStatus 분기로 의미 명확.
   const eventStatusByMatch =
@@ -1243,6 +1261,9 @@ export default async function GenericLivePage({ params }: Props) {
       <MatchVoteCard matchId={match.id} />
       <AiRoundTableStrip matchId={match.id} />
 
+      {matchFactors && (matchFactors.home.length > 0 || matchFactors.away.length > 0) && (
+        <MatchFactorsCard factors={matchFactors} homeNameKo={homeKo} awayNameKo={awayKo} />
+      )}
       {calibration && (
         <ModelCalibrationCard stats={calibration} homeNameKo={homeKo} awayNameKo={awayKo} />
       )}
