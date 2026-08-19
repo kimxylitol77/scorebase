@@ -16,6 +16,7 @@ import { ogPageImage } from "@/lib/seo/og";
 import { isGptScorecardModel } from "@/lib/predict/gpt-scorecard-model";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 export const revalidate = 1800; // 30분 ISR
 
@@ -116,12 +117,6 @@ function pickText(market: Market, pick: string, home: string, away: string, line
   if (pick === "AWAY") return away;
   return "무승부";
 }
-function matchHref(league: string, externalId: string): string {
-  if (league === "KBO" || league === "NPB" || league === "MLB") return `/live/${league.toLowerCase()}/${externalId}`;
-  if (league === "LOL") return `/live/lol/${externalId}`;
-  return `/live/${league}/${externalId}`;
-}
-
 function shortPick(pick: string, home: string, away: string): string {
   if (pick === "HOME") return home;
   if (pick === "AWAY") return away;
@@ -149,7 +144,7 @@ function TeamsLine(props: {
     );
   return (
     <Link
-      href={matchHref(props.league, props.externalId)}
+      href={matchLiveHref(props.league, props.externalId)}
       className="inline-flex min-w-0 items-center gap-1.5 text-[15px] font-semibold text-zinc-900 underline-offset-2 hover:underline dark:text-white"
     >
       {side(props.homeRaw, props.home, props.homeLogo)}
@@ -694,7 +689,7 @@ export default async function ScorecardPage() {
                       awayLogo={e.awayLogo}
                     />
                     <Link
-                      href={matchHref(e.league, e.externalId)}
+                      href={matchLiveHref(e.league, e.externalId)}
                       className="text-[12px] font-semibold text-emerald-600 underline-offset-2 hover:underline dark:text-emerald-400"
                     >
                       내 픽 남기기 →

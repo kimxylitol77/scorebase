@@ -10,16 +10,9 @@ import {
   gptScorecardModelLabel,
   preferGptScorecardModel,
 } from "@/lib/predict/gpt-scorecard-model";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 type Winner = "HOME" | "DRAW" | "AWAY";
-
-function liveHref(league: string, externalId: string): string {
-  if (league === "KBO" || league === "NPB" || league === "MLB") {
-    return `/live/${league.toLowerCase()}/${externalId}`;
-  }
-  if (league === "LOL") return `/live/lol/${externalId}`;
-  return `/live/${league}/${externalId}`;
-}
 
 function fmtKst(d: Date): string {
   return d
@@ -176,7 +169,7 @@ export default async function HomeAiScorecardShowcase() {
         {cards.map((c) => (
           <Link
             key={c.externalId}
-            href={liveHref(c.league, c.externalId)}
+            href={matchLiveHref(c.league, c.externalId)}
             className="group block rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 transition hover:border-neutral-400 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-600"
           >
             <div className="mb-3 flex items-center justify-between text-[11px] text-neutral-500">

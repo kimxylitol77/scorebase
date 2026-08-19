@@ -5,15 +5,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 const MIN_MODELS = 5;
-
-function matchHref(league: string, externalId: string): string {
-  if (league === "KBO" || league === "NPB" || league === "MLB")
-    return `/live/${league.toLowerCase()}/${externalId}`;
-  if (league === "LOL") return `/live/lol/${externalId}`;
-  return `/live/${league}/${externalId}`;
-}
 
 export default async function AiConsensusWidget() {
   const rows = await prisma.aiPrediction.findMany({

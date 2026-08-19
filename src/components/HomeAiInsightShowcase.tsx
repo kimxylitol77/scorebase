@@ -12,18 +12,10 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 // 야구는 자체 라우트, 그 외는 [league] 라우트.
 const SELF_ROUTE_LEAGUES = new Set(["KBO", "NPB", "MLB", "LOL"]);
-
-function liveHref(league: string, externalId: string): string {
-  const lg = league.toLowerCase();
-  if (league === "KBO" || league === "NPB" || league === "MLB") {
-    return `/live/${lg}/${externalId}`;
-  }
-  if (league === "LOL") return `/live/lol/${externalId}`;
-  return `/live/${league}/${externalId}`;
-}
 
 interface FocusMatch {
   id: number;
@@ -157,7 +149,7 @@ export default async function HomeAiInsightShowcase() {
       pickPct: topConf,
       isStrong,
       isLive,
-      href: liveHref(m.league, m.externalId),
+      href: matchLiveHref(m.league, m.externalId),
     };
   });
 

@@ -15,6 +15,7 @@ import {
   FAV_SOUND_STORAGE_KEY,
   FAV_SOUND_CHANGE_EVENT,
 } from "@/lib/sound/fav-sound";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 interface LiveMatch {
   id: string;
@@ -209,7 +210,7 @@ export default function LiveScoresBar() {
     if (m.league === "KBO") return `/live/kbo/${rawId}`;
     if (m.league === "NPB") return `/live/npb/${rawId}`;
     if (m.league === "MLB") return `/live/mlb/${rawId}`;
-    if (m.league === "LOL") return `/live/lol/${rawId}`;
+    if (LOL_LEAGUES.has(m.league)) return `/live/lol/${rawId}`;
     return `/leagues/${m.league}`;
   }
 

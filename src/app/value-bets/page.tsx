@@ -10,6 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 export const revalidate = 60; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -149,14 +150,6 @@ async function fetchValueBets(): Promise<ValueBet[]> {
   return bets.sort((a, b) => b.valuePct - a.valuePct);
 }
 
-function leagueDetailHref(league: string, externalId: string): string {
-  if (league === "KBO") return `/live/kbo/${externalId}`;
-  if (league === "NPB") return `/live/npb/${externalId}`;
-  if (league === "MLB") return `/live/mlb/${externalId}`;
-  if (league === "LOL") return `/live/lol/${externalId}`;
-  return `/live/${league}/${externalId}`;
-}
-
 function fmtKstTime(d: Date): string {
   return d.toLocaleString("ko-KR", {
     timeZone: "Asia/Seoul",
@@ -224,7 +217,7 @@ export default async function ValueBetsPage() {
             {bets.map((b) => (
               <li key={b.matchId}>
                 <Link
-                  href={leagueDetailHref(b.league, b.externalId)}
+                  href={matchLiveHref(b.league, b.externalId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   prefetch={false}
