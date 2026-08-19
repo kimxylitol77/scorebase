@@ -25214,5 +25214,1151 @@
     "tsId": "zp5rzghp2pvq82w",
     "tsName": "ZED FC",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 608003,
+    "ourName": "Brno",
+    "ourLeague": "CZECH_L",
+    "ourExternalId": "ts-gy0or5jhd7oqwzv",
+    "tsId": "gy0or5jhd7oqwzv",
+    "tsName": "Brno",
+    "tsKo": "FC 즈브로요프카 브르노",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613443,
+    "ourName": "Skenderbeu Korca",
+    "ourLeague": "ALBANIA_SL",
+    "ourExternalId": "ts-ednm9whk96pryox",
+    "tsId": "ednm9whk96pryox",
+    "tsName": "Skenderbeu Korca",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613444,
+    "ourName": "Hatta",
+    "ourLeague": "UAE_PL",
+    "ourExternalId": "ts-x7lm7phkz41m2wd",
+    "tsId": "x7lm7phkz41m2wd",
+    "tsName": "Hatta",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613445,
+    "ourName": "Dubai United",
+    "ourLeague": "UAE_PL",
+    "ourExternalId": "ts-4wyrn4h407lq86p",
+    "tsId": "4wyrn4h407lq86p",
+    "tsName": "Dubai United",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613446,
+    "ourName": "Gyirmot SE",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-k82rekhvx3orepz",
+    "tsId": "k82rekhvx3orepz",
+    "tsName": "Gyirmot SE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613447,
+    "ourName": "Kazincbarcika",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-3glrw7hwl9nqdyj",
+    "tsId": "3glrw7hwl9nqdyj",
+    "tsName": "Kazincbarcika",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613448,
+    "ourName": "Diosgyor VTK",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-gy0or5jhpwkqwzv",
+    "tsId": "gy0or5jhpwkqwzv",
+    "tsName": "Diosgyor VTK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613449,
+    "ourName": "Nagykanizsai TE 1866",
+    "ourLeague": "HUNGARY_2",
+    "ourExternalId": "ts-l5ergpho568r8k0",
+    "tsId": "l5ergpho568r8k0",
+    "tsName": "Nagykanizsai TE 1866",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613450,
+    "ourName": "FC Blau Weiss Linz",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-318q66howyvqo9j",
+    "tsId": "318q66howyvqo9j",
+    "tsName": "FC Blau Weiss Linz",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613451,
+    "ourName": "FC Wacker Innsbruck",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-gy0or5jhdjyqwzv",
+    "tsId": "gy0or5jhdjyqwzv",
+    "tsName": "FC Wacker Innsbruck",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613452,
+    "ourName": "ASK Voitsberg",
+    "ourLeague": "AUSTRIA_2",
+    "ourExternalId": "ts-318q66hojdyqo9j",
+    "tsId": "318q66hojdyqo9j",
+    "tsName": "ASK Voitsberg",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613453,
+    "ourName": "Bursaspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-yl5ergphx8dr8k0",
+    "tsId": "yl5ergphx8dr8k0",
+    "tsName": "Bursaspor",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613454,
+    "ourName": "Batman Petrolspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-k82rekhv56grepz",
+    "tsId": "k82rekhv56grepz",
+    "tsName": "Batman Petrolspor",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613455,
+    "ourName": "Mardin 1969 Spor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-3glrw7hyzyoqdyj",
+    "tsId": "3glrw7hyzyoqdyj",
+    "tsName": "Mardin 1969 Spor",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613456,
+    "ourName": "Karagumruk",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-jednm9wh134ryox",
+    "tsId": "jednm9wh134ryox",
+    "tsName": "Karagumruk",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613457,
+    "ourName": "Muglaspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-x7lm7phkvd9m2wd",
+    "tsId": "x7lm7phkvd9m2wd",
+    "tsName": "Muglaspor",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613458,
+    "ourName": "Safa Baku",
+    "ourLeague": "AZERBAIJAN_PL",
+    "ourExternalId": "ts-jw2r09hwddprz84",
+    "tsId": "jw2r09hwddprz84",
+    "tsName": "Safa Baku",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613459,
+    "ourName": "Kermt Hasselt",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-4jwq2gh4jy7m0ve",
+    "tsId": "4jwq2gh4jy7m0ve",
+    "tsName": "Kermt Hasselt",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613460,
+    "ourName": "FCV Dender EH",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-9vjxm8ghyopr6od",
+    "tsId": "9vjxm8ghyopr6od",
+    "tsName": "FCV Dender EH",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613461,
+    "ourName": "Inter Toronto FC",
+    "ourLeague": "CANADA_PL",
+    "ourExternalId": "ts-y39mp1hj8w6mojx",
+    "tsId": "y39mp1hj8w6mojx",
+    "tsName": "Inter Toronto FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613462,
+    "ourName": "Kriens",
+    "ourLeague": "CHALLENGE_LEAGUE",
+    "ourExternalId": "ts-8yomo4h7kkoq0j6",
+    "tsId": "8yomo4h7kkoq0j6",
+    "tsName": "Kriens",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613463,
+    "ourName": "MFK Karviná",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-965mkyh712lr1ge",
+    "tsId": "965mkyh712lr1ge",
+    "tsName": "MFK Karviná",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613464,
+    "ourName": "FK Dukla Praha",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-y39mp1h36p2mojx",
+    "tsId": "y39mp1h36p2mojx",
+    "tsName": "FK Dukla Praha",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613465,
+    "ourName": "SK Kladno",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-j1l4rjnh7x3m7vx",
+    "tsId": "j1l4rjnh7x3m7vx",
+    "tsName": "SK Kladno",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613466,
+    "ourName": "FK Třinec",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-6ypq3nh0n1kmd7o",
+    "tsId": "6ypq3nh0n1kmd7o",
+    "tsName": "FK Třinec",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613467,
+    "ourName": "FK Arsenal Česká Lípa",
+    "ourLeague": "CZECH_2",
+    "ourExternalId": "ts-dn1m1gh4l3ymoep",
+    "tsId": "dn1m1gh4l3ymoep",
+    "tsName": "FK Arsenal Česká Lípa",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613468,
+    "ourName": "AB Akademisk",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-gpxwrxlh8n7ryk0",
+    "tsId": "gpxwrxlh8n7ryk0",
+    "tsName": "AB Akademisk",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613469,
+    "ourName": "Vendsyssel",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "ts-9dn1m1gh5pomoep",
+    "tsId": "9dn1m1gh5pomoep",
+    "tsName": "Vendsyssel",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613470,
+    "ourName": "East Bengal FC",
+    "ourLeague": "INDIA_ISL",
+    "ourExternalId": "ts-4jwq2gh4g9om0ve",
+    "tsId": "4jwq2gh4g9om0ve",
+    "tsName": "East Bengal FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613471,
+    "ourName": "Warta Poznan",
+    "ourLeague": "POLAND_1L",
+    "ourExternalId": "ts-965mkyh7epvr1ge",
+    "tsId": "965mkyh7epvr1ge",
+    "tsName": "Warta Poznan",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613472,
+    "ourName": "Cambridge United",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-kn54qllh607qvy9",
+    "tsId": "kn54qllh607qvy9",
+    "tsName": "Cambridge United",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613473,
+    "ourName": "Sheffield Wednesday",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-p3glrw7he7vqdyj",
+    "tsId": "p3glrw7he7vqdyj",
+    "tsName": "Sheffield Wednesday",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613474,
+    "ourName": "Bromley",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-zp5rzghjjw5q82w",
+    "tsId": "zp5rzghjjw5q82w",
+    "tsName": "Bromley",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613475,
+    "ourName": "Milton Keynes Dons",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-kdj2ryoh0ndq1zp",
+    "tsId": "kdj2ryoh0ndq1zp",
+    "tsName": "Milton Keynes Dons",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613476,
+    "ourName": "Oxford United",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-vl7oqdehkd8r510",
+    "tsId": "vl7oqdehkd8r510",
+    "tsName": "Oxford United",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613477,
+    "ourName": "Leicester City",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-z8yomo4hjonq0j6",
+    "tsId": "z8yomo4hjonq0j6",
+    "tsName": "Leicester City",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613478,
+    "ourName": "Notts County",
+    "ourLeague": "LEAGUE_ONE",
+    "ourExternalId": "ts-p4jwq2gh3dom0ve",
+    "tsId": "p4jwq2gh3dom0ve",
+    "tsName": "Notts County",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613479,
+    "ourName": "FC Jurong",
+    "ourLeague": "SINGAPORE_PL",
+    "ourExternalId": "ts-gpxwrxlh8n9ryk0",
+    "tsId": "gpxwrxlh8n9ryk0",
+    "tsName": "FC Jurong",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613480,
+    "ourName": "Nea Salamis",
+    "ourLeague": "CYPRUS_1D",
+    "ourExternalId": "ts-zp5rzghjyjkq82w",
+    "tsId": "zp5rzghjyjkq82w",
+    "tsName": "Nea Salamis",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613481,
+    "ourName": "Karmiotissa Polemidion",
+    "ourLeague": "CYPRUS_1D",
+    "ourExternalId": "ts-y39mp1h51jomojx",
+    "tsId": "y39mp1h51jomojx",
+    "tsName": "Karmiotissa Polemidion",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613482,
+    "ourName": "Omonia 29is Maiou",
+    "ourLeague": "CYPRUS_1D",
+    "ourExternalId": "ts-jw2r09hj27prz84",
+    "tsId": "jw2r09hj27prz84",
+    "tsName": "Omonia 29is Maiou",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613483,
+    "ourName": "FC Iberia 1999 Tbilisi",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "ts-4wyrn4he915q86p",
+    "tsId": "4wyrn4he915q86p",
+    "tsName": "FC Iberia 1999 Tbilisi",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613484,
+    "ourName": "PVF-CAND FC",
+    "ourLeague": "VIETNAM_VL1",
+    "ourExternalId": "ts-6ypq3nhz48vmd7o",
+    "tsId": "6ypq3nhz48vmd7o",
+    "tsName": "PVF-CAND FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613351,
+    "ourName": "Nagasaki International University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-zp5rzgh1knzq82w",
+    "tsId": "zp5rzgh1knzq82w",
+    "tsName": "Nagasaki International University",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613485,
+    "ourName": "Maccabi Petah Tikva FC",
+    "ourLeague": "ISRAEL_PL",
+    "ourExternalId": "ts-yl5ergphjx6r8k0",
+    "tsId": "yl5ergphjx6r8k0",
+    "tsName": "Maccabi Petah Tikva FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613353,
+    "ourName": "Akita University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-1l4rjnhe78xm7vx",
+    "tsId": "1l4rjnhe78xm7vx",
+    "tsName": "Akita University",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613486,
+    "ourName": "Hapoel Ramat Gan",
+    "ourLeague": "ISRAEL_PL",
+    "ourExternalId": "ts-9vjxm8ghznjr6od",
+    "tsId": "9vjxm8ghznjr6od",
+    "tsName": "Hapoel Ramat Gan",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613355,
+    "ourName": "FC Basara Hyogo",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-pxwrxlhvpnkryk0",
+    "tsId": "pxwrxlhvpnkryk0",
+    "tsName": "FC Basara Hyogo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613487,
+    "ourName": "Sadarakpat",
+    "ourLeague": "ARMENIA_PL",
+    "ourExternalId": "ts-l5ergphpl39r8k0",
+    "tsId": "l5ergphpl39r8k0",
+    "tsName": "Sadarakpat",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613357,
+    "ourName": "Kawasoe Club",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-2y8m4zh8gzvql07",
+    "tsId": "2y8m4zh8gzvql07",
+    "tsName": "Kawasoe Club",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613358,
+    "ourName": "Toyama Shinjo",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-pxwrxlhgj97ryk0",
+    "tsId": "pxwrxlhgj97ryk0",
+    "tsName": "Toyama Shinjo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613488,
+    "ourName": "FC Syunik",
+    "ourLeague": "ARMENIA_PL",
+    "ourExternalId": "ts-pxwrxlhg529ryk0",
+    "tsId": "pxwrxlhg529ryk0",
+    "tsName": "FC Syunik",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613489,
+    "ourName": "Karbala'a",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-x7lm7phk0nvm2wd",
+    "tsId": "x7lm7phk0nvm2wd",
+    "tsName": "Karbala'a",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613490,
+    "ourName": "Al Jolan SC",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-1l4rjnhk76nm7vx",
+    "tsId": "1l4rjnhk76nm7vx",
+    "tsName": "Al Jolan SC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613491,
+    "ourName": "Ghaz Al Shamal",
+    "ourLeague": "IRAQ_SL",
+    "ourExternalId": "ts-x7lm7ph96k8m2wd",
+    "tsId": "x7lm7ph96k8m2wd",
+    "tsName": "Ghaz Al Shamal",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613492,
+    "ourName": "Qingdao West Coast",
+    "ourLeague": "CSL",
+    "ourExternalId": "ts-1l4rjnhz7n2m7vx",
+    "tsId": "1l4rjnhz7n2m7vx",
+    "tsName": "Qingdao West Coast",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613493,
+    "ourName": "Shenzhen Peng City",
+    "ourLeague": "CSL",
+    "ourExternalId": "ts-pxwrxlh9voyryk0",
+    "tsId": "pxwrxlh9voyryk0",
+    "tsName": "Shenzhen Peng City",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613369,
+    "ourName": "Veroskronos Tsuno",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-965mkyhng3yr1ge",
+    "tsId": "965mkyhng3yr1ge",
+    "tsName": "Veroskronos Tsuno",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613373,
+    "ourName": "Senshu University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-l7oqdeh413vr510",
+    "tsId": "l7oqdeh413vr510",
+    "tsName": "Senshu University",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613494,
+    "ourName": "Liaoning Tieren",
+    "ourLeague": "CSL",
+    "ourExternalId": "ts-y0or5jh4znyqwzv",
+    "tsId": "y0or5jh4znyqwzv",
+    "tsName": "Liaoning Tieren",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613376,
+    "ourName": "Kanazawa seiryo University FC",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-vjxm8ghj9vgr6od",
+    "tsId": "vjxm8ghj9vgr6od",
+    "tsName": "Kanazawa seiryo University FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613495,
+    "ourName": "Rasisalai United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "ts-y39mp1hyxv8mojx",
+    "tsId": "y39mp1hyxv8mojx",
+    "tsName": "Rasisalai United",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613379,
+    "ourName": "Tokyo International University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-8yomo4h7y41q0j6",
+    "tsId": "8yomo4h7y41q0j6",
+    "tsName": "Tokyo International University",
+    "tsKo": "도쿄 국제 대학",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613496,
+    "ourName": "Sisaket United",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "ts-6ypq3nh5e0pmd7o",
+    "tsId": "6ypq3nh5e0pmd7o",
+    "tsName": "Sisaket United",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613497,
+    "ourName": "Pattani",
+    "ourLeague": "THAI_L1",
+    "ourExternalId": "ts-4jwq2ghk04ym0ve",
+    "tsId": "4jwq2ghk04ym0ve",
+    "tsName": "Pattani",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613498,
+    "ourName": "Adhyaksa FC Banten",
+    "ourLeague": "INDONESIA_L1",
+    "ourExternalId": "ts-6ypq3nh16p9md7o",
+    "tsId": "6ypq3nh16p9md7o",
+    "tsName": "Adhyaksa FC Banten",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613499,
+    "ourName": "Garudayaksa FC",
+    "ourLeague": "INDONESIA_L1",
+    "ourExternalId": "ts-3glrw7ho791qdyj",
+    "tsId": "3glrw7ho791qdyj",
+    "tsName": "Garudayaksa FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613500,
+    "ourName": "Madura United",
+    "ourLeague": "INDONESIA_L1",
+    "ourExternalId": "ts-3glrw7h1381qdyj",
+    "tsId": "3glrw7h1381qdyj",
+    "tsName": "Madura United",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613501,
+    "ourName": "PSS Sleman",
+    "ourLeague": "INDONESIA_L1",
+    "ourExternalId": "ts-l5ergph3lnzr8k0",
+    "tsId": "l5ergph3lnzr8k0",
+    "tsName": "PSS Sleman",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613502,
+    "ourName": "BSK Banja Luka",
+    "ourLeague": "BOSNIA_PL",
+    "ourExternalId": "ts-6ypq3nh0g44md7o",
+    "tsId": "6ypq3nh0g44md7o",
+    "tsName": "BSK Banja Luka",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613503,
+    "ourName": "NK Celik Zenica",
+    "ourLeague": "BOSNIA_PL",
+    "ourExternalId": "ts-4jwq2gh4p7jm0ve",
+    "tsId": "4jwq2gh4p7jm0ve",
+    "tsName": "NK Celik Zenica",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613504,
+    "ourName": "Academica Coimbra",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "ts-gpxwrxlhwwgryk0",
+    "tsId": "gpxwrxlhwwgryk0",
+    "tsName": "Academica Coimbra",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613505,
+    "ourName": "CD Tondela",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "ts-6ypq3nh5e5pmd7o",
+    "tsId": "6ypq3nh5e5pmd7o",
+    "tsName": "CD Tondela",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613506,
+    "ourName": "Amarante",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "ts-8yomo4h78d0q0j6",
+    "tsId": "8yomo4h78d0q0j6",
+    "tsName": "Amarante",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613507,
+    "ourName": "FC Livyi Bereh",
+    "ourLeague": "UKRAINE_PL",
+    "ourExternalId": "ts-dn1m1gh3p0nmoep",
+    "tsId": "dn1m1gh3p0nmoep",
+    "tsName": "FC Livyi Bereh",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613508,
+    "ourName": "FC Bukovyna Chernivtsi",
+    "ourLeague": "UKRAINE_PL",
+    "ourExternalId": "ts-4jwq2gh4nk6m0ve",
+    "tsId": "4jwq2gh4nk6m0ve",
+    "tsName": "FC Bukovyna Chernivtsi",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613509,
+    "ourName": "Corvinul Hunedoara",
+    "ourLeague": "LIGA_I",
+    "ourExternalId": "ts-zp5rzghj0jxq82w",
+    "tsId": "zp5rzghj0jxq82w",
+    "tsName": "Corvinul Hunedoara",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613510,
+    "ourName": "Sepsi OSK Sfantul Gheorghe",
+    "ourLeague": "LIGA_I",
+    "ourExternalId": "ts-4jwq2gh4yj1m0ve",
+    "tsId": "4jwq2gh4yj1m0ve",
+    "tsName": "Sepsi OSK Sfantul Gheorghe",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613511,
+    "ourName": "JS El Biar",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-4jwq2ghvl40m0ve",
+    "tsId": "4jwq2ghvl40m0ve",
+    "tsName": "JS El Biar",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613512,
+    "ourName": "Biskra",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-ednm9whkkk8ryox",
+    "tsId": "ednm9whkkk8ryox",
+    "tsName": "Biskra",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613513,
+    "ourName": "CR Temouchent",
+    "ourLeague": "ALGERIA_L1",
+    "ourExternalId": "ts-y39mp1h3x68mojx",
+    "tsId": "y39mp1h3x68mojx",
+    "tsName": "CR Temouchent",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613384,
+    "ourName": "FC Ryukyu Okinawa",
+    "ourLeague": "LEVAIN_CUP",
+    "ourExternalId": "ts-dj2ryohk9j5q1zp",
+    "tsId": "dj2ryohk9j5q1zp",
+    "tsName": "FC Ryukyu Okinawa",
+    "tsKo": "류큐 오키나와 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613348,
+    "ourName": "Arterivo Wakayama",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-x7lm7phkjnzm2wd",
+    "tsId": "x7lm7phkjnzm2wd",
+    "tsName": "Arterivo Wakayama",
+    "tsKo": "아르테리보 와카야마",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613349,
+    "ourName": "Azul Claro Numazu",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-dn1m1gh4d19moep",
+    "tsId": "dn1m1gh4d19moep",
+    "tsName": "Azul Claro Numazu",
+    "tsKo": "아즈루 클라로 누마즈",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613350,
+    "ourName": "Beluga Rosso Iwami",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-4jwq2gh79xlm0ve",
+    "tsId": "4jwq2gh79xlm0ve",
+    "tsName": "Beluga Rosso Iwami",
+    "tsKo": "벨루가 로소 이와미",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613352,
+    "ourName": "Reinmeer Aomori FC",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-pxwrxlh13ejryk0",
+    "tsId": "pxwrxlh13ejryk0",
+    "tsName": "Reinmeer Aomori FC",
+    "tsKo": "라인메르 아오모리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613354,
+    "ourName": "Atletico Suzuka",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-4wyrn4he5w0q86p",
+    "tsId": "4wyrn4he5w0q86p",
+    "tsName": "Atletico Suzuka",
+    "tsKo": "스즈카 포인트 게터스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613356,
+    "ourName": "Celeste Tokushima",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-dj2ryohy9p1q1zp",
+    "tsId": "dj2ryohy9p1q1zp",
+    "tsName": "Celeste Tokushima",
+    "tsKo": "셀레스트 도쿠시마",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613359,
+    "ourName": "SRC Hiroshima",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-6ypq3nh5ejdmd7o",
+    "tsId": "6ypq3nh5ejdmd7o",
+    "tsName": "SRC Hiroshima",
+    "tsKo": "SRC 히로시마",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613360,
+    "ourName": "Maruyasu Okazaki",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-2y8m4zhjjk4ql07",
+    "tsId": "2y8m4zhjjk4ql07",
+    "tsName": "Maruyasu Okazaki",
+    "tsKo": "마루야스 오카자키",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613361,
+    "ourName": "Iwate Grulla Morioka",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-pxwrxlh1zv9ryk0",
+    "tsId": "pxwrxlh1zv9ryk0",
+    "tsName": "Iwate Grulla Morioka",
+    "tsKo": "그룰라 모리오카",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613362,
+    "ourName": "Sapporo University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-965mkyh78g6r1ge",
+    "tsId": "965mkyh78g6r1ge",
+    "tsName": "Sapporo University",
+    "tsKo": "삿포로 대학교",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613363,
+    "ourName": "Tohoku Gakuin University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-jw2r09hx8knrz84",
+    "tsId": "jw2r09hx8knrz84",
+    "tsName": "Tohoku Gakuin University",
+    "tsKo": "토호쿠 가쿠인 대학교",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613364,
+    "ourName": "Briobecca Urayasu",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-4wyrn4h8dw2q86p",
+    "tsId": "4wyrn4h8dw2q86p",
+    "tsName": "Briobecca Urayasu",
+    "tsKo": "브리오베카 우라야스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613365,
+    "ourName": "Reilac Shiga FC",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-l7oqdeh66xwr510",
+    "tsId": "l7oqdeh66xwr510",
+    "tsName": "Reilac Shiga FC",
+    "tsKo": "레이락 시가 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613366,
+    "ourName": "Japan Soccer College",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-ednm9whkv8wryox",
+    "tsId": "ednm9whkv8wryox",
+    "tsName": "Japan Soccer College",
+    "tsKo": "일본 축구 대학",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613367,
+    "ourName": "Giravanz Kitakyushu",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-8yomo4h7gd4q0j6",
+    "tsId": "8yomo4h7gd4q0j6",
+    "tsName": "Giravanz Kitakyushu",
+    "tsKo": "기라반즈 기타큐슈",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613368,
+    "ourName": "Okinawa SV",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-k82rekhywl6repz",
+    "tsId": "k82rekhywl6repz",
+    "tsName": "Okinawa SV",
+    "tsKo": "오키나와 SV",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613370,
+    "ourName": "Verspah Oita",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-l7oqdeh6049r510",
+    "tsId": "l7oqdeh6049r510",
+    "tsName": "Verspah Oita",
+    "tsKo": "베르스파 오이타",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613371,
+    "ourName": "Ryutsu Keizai University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-318q66hodkxqo9j",
+    "tsId": "318q66hodkxqo9j",
+    "tsName": "Ryutsu Keizai University",
+    "tsKo": "류쓰 게이자이 대학",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613372,
+    "ourName": "Criacao Shinjuku",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-pxwrxlhj3kkryk0",
+    "tsId": "pxwrxlhj3kkryk0",
+    "tsName": "Criacao Shinjuku",
+    "tsKo": "크리아카오 신주쿠",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613374,
+    "ourName": "Tsukuba University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-y0or5jhl9dxqwzv",
+    "tsId": "y0or5jhl9dxqwzv",
+    "tsName": "Tsukuba University",
+    "tsKo": "츠쿠바 대학교",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613375,
+    "ourName": "Oyama SC",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-l5ergpheoggr8k0",
+    "tsId": "l5ergpheoggr8k0",
+    "tsName": "Oyama SC",
+    "tsKo": "오야마 SC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613377,
+    "ourName": "Kyoto Sangyo University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-x7lm7phkx24m2wd",
+    "tsId": "x7lm7phkx24m2wd",
+    "tsName": "Kyoto Sangyo University",
+    "tsKo": "경상대학교",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613378,
+    "ourName": "Yamanashi Gakuin University Pegasus",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-6ypq3nh0kpymd7o",
+    "tsId": "6ypq3nh0kpymd7o",
+    "tsName": "Yamanashi Gakuin University Pegasus",
+    "tsKo": "야마나시 가쿠인 대학교 페가수스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613380,
+    "ourName": "International Pacific University",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-dn1m1gh49k4moep",
+    "tsId": "dn1m1gh49k4moep",
+    "tsName": "International Pacific University",
+    "tsKo": "국제 태평양 대학교",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613381,
+    "ourName": "AC Nagano Parceiro",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-3glrw7h10oeqdyj",
+    "tsId": "3glrw7h10oeqdyj",
+    "tsName": "AC Nagano Parceiro",
+    "tsKo": "나가노 파르세이루 AC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613382,
+    "ourName": "Fukui United",
+    "ourLeague": "EMPEROR_CUP",
+    "ourExternalId": "ts-ednm9whzl0pryox",
+    "tsId": "ednm9whzl0pryox",
+    "tsName": "Fukui United",
+    "tsKo": "푸쿠이 유나이티드 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613383,
+    "ourName": "Zweigen Kanazawa FC",
+    "ourLeague": "LEVAIN_CUP",
+    "ourExternalId": "ts-2y8m4zh3wkxql07",
+    "tsId": "2y8m4zh3wkxql07",
+    "tsName": "Zweigen Kanazawa FC",
+    "tsKo": "츠바이겐 가나자와 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 119155,
+    "ourName": "Aberdeen",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "252",
+    "tsId": "z318q66hd2jqo9j",
+    "tsName": "Aberdeen F.C.",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 119153,
+    "ourName": "Dundee Utd",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1386",
+    "tsId": "9dn1m1ghddgmoep",
+    "tsName": "Dundee United",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 598618,
+    "ourName": "Arbroath",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "4249",
+    "tsId": "v2y8m4zhy2pql07",
+    "tsName": "Arbroath",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 119152,
+    "ourName": "ST Mirren",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "251",
+    "tsId": "gx7lm7ph4pvm2wd",
+    "tsName": "St Mirren F.C.",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 115933,
+    "ourName": "Dunfermline",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1388",
+    "tsId": "e4wyrn4h1l7q86p",
+    "tsName": "Dunfermline Athletic",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 119154,
+    "ourName": "Dundee",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "253",
+    "tsId": "gx7lm7phd8em2wd",
+    "tsName": "Dundee F.C.",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 115932,
+    "ourName": "Partick",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "901",
+    "tsId": "p4jwq2ghyo3m0ve",
+    "tsName": "Partick Thistle FC",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 119156,
+    "ourName": "Livingston",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "255",
+    "tsId": "kdj2ryoh085q1zp",
+    "tsName": "Livingston F.C.",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 610710,
+    "ourName": "ST Johnstone",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "258",
+    "tsId": "z318q66hp4oqo9j",
+    "tsName": "St Johnstone F.C.",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 115938,
+    "ourName": "Falkirk",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1389",
+    "tsId": "p3glrw7h59jqdyj",
+    "tsName": "Falkirk",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 119157,
+    "ourName": "Kilmarnock",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "250",
+    "tsId": "z318q66hde1qo9j",
+    "tsName": "Kilmarnock F.C.",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 116610,
+    "ourName": "Omiya Ardija",
+    "ourLeague": "J2_LEAGUE",
+    "ourExternalId": "313",
+    "tsId": "p4jwq2ghle0m0ve",
+    "tsName": "RB Omiya Ardija",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 116607,
+    "ourName": "Tegevajaro Miyazaki",
+    "ourLeague": "J2_LEAGUE",
+    "ourExternalId": "10409",
+    "tsId": "8yomo4h7ep5q0j6",
+    "tsName": "Tegevajaro Miyazaki",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 287183,
+    "ourName": "Vejle",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "395",
+    "tsId": "8yomo4h7kyxq0j6",
+    "tsName": "Vejle",
+    "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 287184,
+    "ourName": "FC Fredericia",
+    "ourLeague": "DENMARK_2",
+    "ourExternalId": "2061",
+    "tsId": "yl5ergph6wkr8k0",
+    "tsName": "Fredericia",
+    "matchType": "manual-2026-08-19-standings"
   }
 ]
