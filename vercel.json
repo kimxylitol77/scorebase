@@ -257,6 +257,10 @@
       "schedule": "30 21 * * *"
     },
     {
+      "path": "/api/cron/llm-cost-watch",
+      "schedule": "10 */2 * * *"
+    },
+    {
       "path": "/api/cron/bot-heartbeat-check",
       "schedule": "*/10 * * * *"
     },
