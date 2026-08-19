@@ -25160,5 +25160,59 @@
     "tsId": "y0or5jhlo3yqwzv",
     "tsName": "FK Gilan Gabala",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613437,
+    "ourName": "Olympic El Qanal",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "ts-z8yomo4hpdjq0j6",
+    "tsId": "z8yomo4hpdjq0j6",
+    "tsName": "Olympic El Qanal",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613438,
+    "ourName": "Modern Sport FC",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "ts-8yomo4h2kddq0j6",
+    "tsId": "8yomo4h2kddq0j6",
+    "tsName": "Modern Sport FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613439,
+    "ourName": "Bank El Ahly",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "ts-vjxm8gh8243r6od",
+    "tsId": "vjxm8gh8243r6od",
+    "tsName": "Bank El Ahly",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613440,
+    "ourName": "Asyut Petroleum",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "ts-6ypq3nh0e0zmd7o",
+    "tsId": "6ypq3nh0e0zmd7o",
+    "tsName": "Asyut Petroleum",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613441,
+    "ourName": "Abou Qir Fertilizers SC",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "ts-gpxwrxlh4k8ryk0",
+    "tsId": "gpxwrxlh4k8ryk0",
+    "tsName": "Abou Qir Fertilizers SC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613442,
+    "ourName": "ZED FC",
+    "ourLeague": "EGYPT_PL",
+    "ourExternalId": "ts-zp5rzghp2pvq82w",
+    "tsId": "zp5rzghp2pvq82w",
+    "tsName": "ZED FC",
+    "matchType": "ts-external-id"
   }
 ]
