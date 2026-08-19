@@ -9,6 +9,9 @@ const POS_MAP: Record<string, Pos> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 
 // NFD 분해로 분음부호를 접고 슬러그를 만든다 — 접지 않으면 "Bayern München" 이
 // "bayern-m-nchen" 이 된다(2026-08-19 분데스리가 실측).
+/** af 포지션 코드 → 브리핑용 한글 라벨. */
+const POS_KO: Record<string, string> = { G: "GK", D: "수비", M: "미드필더", F: "공격" };
+
 export const teamSlug = (name: string) =>
   name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -66,8 +69,17 @@ export function dataBrief(ctx: TacticalManagerContext): string {
     `성적: ${r.rank}위, ${r.played}경기 ${r.w}승 ${r.d}무 ${r.l}패 승점 ${r.points}, 득실 ${r.gf}-${r.ga}`,
     `포메이션 사용: ${f.map((x) => `${x.formation} ${x.count}회(${x.w}승${x.d}무${x.l}패${hasXg ? `, 경기당 xG ${x.xgFor}/실점xG ${x.xgAgainst}` : ""})`).join(", ")}`,
     `선발 로테이션: 경기당 평균 ${ctx.xiChanges.avgPerMatch}명 교체${ctx.xiChanges.everPresent.length ? `, 전 경기 선발 ${ctx.xiChanges.everPresent.join("·")}` : ""}`,
-    `최다 선발(상위): ${ctx.topStarters.slice(0, 8).map((p) => `${p.nameKo} ${p.starts}회`).join(", ")}`,
-    `월별 흐름: ${ctx.monthly.map((m) => `${Number(m.month.slice(5))}월 ${m.w}승${m.d}무${m.l}패${hasXg ? `(xG ${m.xgFor}:${m.xgAgainst})` : ""}`).join(" / ")}`,
+    // 포지션을 빼면 LLM 이 이름만 보고 역할을 지어낸다 — 라이프치히 센터백 뤼케바가 "최전방에서
+    // 마무리"로 서술돼 상단 평균 포지션 피치와 어긋났다(2026-08-19). af pos 를 한글 라벨로 붙인다.
+    `최다 선발(상위): ${ctx.topStarters.slice(0, 8).map((p) => `${p.nameKo}(${POS_KO[p.pos] ?? p.pos}) ${p.starts}회`).join(", ")}`,
+    // 월별 xG 는 그 달의 합계라 단위를 안 붙이면 LLM 이 경기당으로 읽는다 — 2026-08-19 분데스리가
+    // 6편 전부에서 "12월 경기당 xG 12.5"(실제 3경기 합계) 같은 문장이 나왔다. 포메이션 줄과 같은
+    // 경기당 단위로 환산해 브리핑 전체의 단위를 하나로 맞춘다.
+    `월별 흐름: ${ctx.monthly.map((m) => {
+      const n = m.w + m.d + m.l;
+      const per = (v: number) => (n > 0 ? (v / n).toFixed(2) : "0");
+      return `${Number(m.month.slice(5))}월 ${m.w}승${m.d}무${m.l}패${hasXg ? `(경기당 xG ${per(m.xgFor)}:${per(m.xgAgainst)})` : ""}`;
+    }).join(" / ")}`,
   ];
   if (!hasXg) lines.push("주의: 이 시즌 데이터에 xG·슈팅 좌표는 없다. xG 를 본문에서 언급하지 말 것.");
   if (ctx.coachStints.length > 1) {
