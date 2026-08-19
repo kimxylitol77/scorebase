@@ -21,7 +21,7 @@ export const MOVE_TARGETS: Record<string, MoveTarget> = {
  * - 해외 브리핑: 봇 전용 발행 보드라 회원 글이 섞이면 안 된다.
  */
 export function canMovePost(post: { category: string; pick: string | null }): boolean {
-  return !post.pick && post.category !== "BRIEFING";
+  return !post.pick && !post.category.startsWith("BRIEFING");
 }
 
 /** 글이 지금 속한 목적지 키 — 수정 폼 셀렉트의 기본 선택값. */

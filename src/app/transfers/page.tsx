@@ -1320,7 +1320,7 @@ export default async function TransfersPage({
           </div>
           {/* 해외 브리핑 연결 — 루머 피드(한눈 스캔)와 브리핑 글(맥락·해설)은 같은 파이프라인의 두 얼굴 */}
           <Link
-            href="/analysis?board=briefing"
+            href="/news"
             prefetch={false}
             className="mt-3 flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 hover:bg-neutral-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.07] transition"
           >

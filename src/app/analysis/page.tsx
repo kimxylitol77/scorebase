@@ -52,11 +52,11 @@ export async function generateMetadata({
       title: "해외 축구 브리핑 — BBC·스카이스포츠 공신력 보도 정리",
       description:
         "BBC·스카이스포츠·디 애슬레틱 등 공신력 있는 해외 보도만 골라 사실 기반으로 재구성한 축구 브리핑. 찌라시 없이 출처를 글마다 명시합니다.",
-      alternates: { canonical: `${SITE_URL}/analysis?board=briefing` },
+      alternates: { canonical: `${SITE_URL}/news` }, // 목록은 /news 로 308 이전됨
       openGraph: {
         title: "해외 축구 브리핑",
         description: "공신력 있는 해외 보도만 골라 사실 기반으로 재구성.",
-        url: `${SITE_URL}/analysis?board=briefing`,
+        url: `${SITE_URL}/news`,
       },
     };
   }
@@ -228,7 +228,9 @@ function AuthorBadge({
 
 export default async function AnalysisListPage({ searchParams }: Props) {
   const { page, sport, board, feed } = await searchParams;
-  // 한 페이지 세 보드 — 스포츠 분석(기본) | 자유게시판(?board=free) | 해외 브리핑(?board=briefing).
+  // 한 페이지 두 보드 — 스포츠 분석(기본) | 자유게시판(?board=free).
+  // 해외 브리핑(?board=briefing)은 /news 로 308 이전됐고, 아래 분기는 리다이렉트가
+  // 걸리지 않는 경우를 위한 안전망으로만 남는다.
   // 같은 테이블 UI 공유. 브리핑은 봇 전용 발행 보드 (글쓰기·종목 탭 없음).
   const isFreeBoard = board === "free";
   const isBriefing = board === "briefing";

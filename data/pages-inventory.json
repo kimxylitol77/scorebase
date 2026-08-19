@@ -476,6 +476,13 @@
     "group": "worldcup"
   },
   {
+    "route": "/news",
+    "desc": "해외 뉴스 게시판 — 공신력 소스(BBC·Sky·The Athletic·ESPN·리그 공식)의 해외 보도를 사실 기반 한국어 브리핑으로 재구성해 모아 보는 목록. 발행 파이프라인은 src/jobs/fetch-news-briefing.ts, 개별 글은 색인 보존을 위해 /analysis/{id} 를 그대로 쓴다.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/notices",
     "desc": "공지/패치노트 목록 — 사이트 공지·변경 이력(CHANGELOG·NOTICE·MAINTENANCE).",
     "inMenu": false,

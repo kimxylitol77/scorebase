@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const postId = Number(id);
   if (!Number.isFinite(postId)) return { title: "글을 찾을 수 없습니다" };
   const post = await prisma.post.findFirst({
-    where: { id: postId, category: { in: ["ANALYSIS", "FREE", "BRIEFING"] } },
+    where: { id: postId, category: { in: ["ANALYSIS", "FREE", "BRIEFING", "BRIEFING_LEGACY"] } },
     select: { title: true },
   });
   if (!post) return { title: "글을 찾을 수 없습니다" };
@@ -57,7 +57,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
   if (!Number.isInteger(postId)) notFound();
 
   const post = await prisma.post.findFirst({
-    where: { id: postId, category: { in: ["ANALYSIS", "FREE", "BRIEFING"] } },
+    where: { id: postId, category: { in: ["ANALYSIS", "FREE", "BRIEFING", "BRIEFING_LEGACY"] } },
     select: {
       id: true,
       title: true,
@@ -187,7 +187,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
       </div>
 
       <Link
-        href={post.category === "BRIEFING" ? "/analysis?board=briefing" : isFree ? "/analysis?board=free" : "/analysis"}
+        href={post.category.startsWith("BRIEFING") ? "/news" : isFree ? "/analysis?board=free" : "/analysis"}
         className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10 dark:hover:text-white"
       >
         ← 목록
@@ -206,7 +206,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
       )}
 
       <article className="mt-5">
-        {post.category === "BRIEFING" ? (
+        {post.category.startsWith("BRIEFING") ? (
           <span className="inline-flex w-fit rounded-md bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-bold text-sky-600 ring-1 ring-sky-500/20 dark:text-sky-400">해외 브리핑</span>
         ) : isFree ? (
           <span className="inline-flex items-center gap-1">

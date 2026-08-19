@@ -80,8 +80,10 @@ export const COMMUNITY_CATEGORY: NavCategory = {
   label: "커뮤니티",
   href: "/analysis",
   items: [
-    // 게시판 통합(BoardTabs) — 분석·자유·브리핑·블로그·공지가 한 탭 바로 묶여 메뉴도 1개
-    { href: "/analysis", label: "게시판", desc: "분석·자유·브리핑·블로그·공지 한 곳에" },
+    // 게시판 통합(BoardTabs) — 분석·자유·블로그·공지가 한 탭 바로 묶여 메뉴도 1개
+    { href: "/analysis", label: "게시판", desc: "분석·자유·블로그·공지 한 곳에" },
+    // 해외 뉴스는 봇 발행 전용이라 성격이 달라 메뉴에 따로 노출 (BoardTabs 로도 오갈 수 있음)
+    { href: "/news", label: "해외 뉴스", desc: "BBC·Athletic·ESPN 등 공신력 소스 한국어 브리핑" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
     { href: "/picks/strong", label: "고확신 픽", desc: "AI가 자신 있어 하는 경기만 · 회원 공개" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },

@@ -42,6 +42,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/notices`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    // 해외 뉴스 게시판 — 하루 여러 차례 발행되므로 blog 보다 갱신 빈도·우선순위가 높다
+    { url: `${base}/news`, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/predictions`, changeFrequency: "hourly", priority: 0.95 },
     { url: `${base}/predictions/accuracy`, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/predictions/scorecard`, changeFrequency: "daily", priority: 0.85 },
