@@ -2,17 +2,6 @@
 
 작업 중 결정과 근거. 계속 덧붙임.
 
-## 2026-07-14 예상 XI 웹 검색 전환
-
-- **왜 시장가치 버킷을 버렸나** — 스쿼드 position 이 원천(TheSports squad/list)부터 G/D/M/F 4종뿐. 세부 포지션(윙/DM/AM/CB)이 없어 4-2-3-1 의 MF 슬롯 5개를 M 선수 시장가치순으로 채우면 중앙 자원만 몰리고 윙어 0인 기형 XI. post 991(맨유) 실측 후 삭제.
-- **실제 lineup API 는 비시즌에 불가** — match/lineup/detail 은 x/y 좌표까지 주지만 "최근 30일" 제한. 7월엔 지난 시즌 경기가 30일 초과라 code=100003. DB 저장분(Match.lineupHome)은 좌표 없이 이름 배열뿐. → 사용자 지시로 웹 검색 채택.
-- **웹 검색 XI** — generateWithWebSearch(Anthropic web_search 서버 도구)로 매체 예상 라인업 검색 → LLM 이 FORMATIONS 슬롯 id별 영문 풀네임 JSON 출력 → matchSquadPlayer(악센트제거+성 매칭)로 pid 확보. 슬롯 좌표는 FORMATIONS[formation] 사용.
-- **모델 = haiku (sonnet 아님)** — sonnet-5 는 thinking 블록이 max_tokens 를 먹어 text 를 못 냄. haiku 는 end_turn 에 깔끔한 JSON. 검색 변동으로 형식 어긋날 수 있어 2회 재시도.
-- **pause_turn 루프 필수** — web_search 는 서버 도구라 검색 왕복 중 stop_reason=pause_turn 으로 끊길 수 있음. 직전 content 이어붙여 재요청(최대 4턴). 없으면 "텍스트 블록 없음" 실패.
-- **매칭 게이트 8/11** — 11명 중 실선수 매칭 8 미만이면 엉뚱한 팀/환각으로 보고 보드 생략(다이제스트만). 감독 캐릭·감독 데이터는 손 안 댐(캐릭은 실제 맨유 감독으로 확인, 오염 아님).
-- **커스텀 이름 한계** — 스쿼드에 없는 선수(예: 갱신 전 신규 영입, 데이터 누락 선수)는 pid 없이 커스텀 이름(playerKo)으로 배치. 사진 없이 이름만. 음역 사전 미비 시 이상표기 가능(minor).
-- **신규 영입 노출** — 웹 XI 주전이 아니면 벤치 최우선(single 보드만 벤치 표시). versus 보드는 벤치 없음.
-
 ## 2026-07-12 설계 결정
 
 - **updatedAt 이 신규 판별 기준** — FootballTransfer 에 createdAt 없음. updatedAt 은 @default(now())+upsert 미갱신이라 사실상 first-seen(소식일). transferTime(발효일)은 7/1 시즌 전환 무더기·미래 임대복귀 때문에 recency 로 못 씀 (transfers/page.tsx:215 주석과 동일 결론).
