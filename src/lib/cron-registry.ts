@@ -66,8 +66,9 @@ export const CRON_REGISTRY: {
   { name: "weekly-xi", label: "축구 주간 베스트 XI (빅5)", maxAgeH: 180 },
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
   { name: "baseball-season-backfill", label: "야구 시즌 일정 백필", maxAgeH: 180 },
-  // 주간 증분(최근 10일)이라 시즌 중 0건은 비정상 — from/to 누락 0건이 한 달 무감지였던 잡 (2026-08-19)
-  { name: "player-match-logs", label: "선수 경기별 출전 로그", maxAgeH: 180, zeroAlertAfter: 2 },
+  // 일간 증분(최근 10일 창) — 시즌 중 연속 0건은 비정상. from/to 누락 0건이 한 달 무감지였던 잡 (2026-08-19).
+  // 월·화 유럽 무경기 이틀은 정상이라 4회(= 나흘)로 끊는다.
+  { name: "player-match-logs", label: "선수 경기별 출전 로그", maxAgeH: 28, zeroAlertAfter: 4 },
   { name: "indexnow", label: "IndexNow 색인", maxAgeH: 28 },
   { name: "presence-cleanup", label: "실시간 접속 만료 정리", maxAgeH: 28 },
   // ── 2026-08-19 전수 스캔으로 발견된 미등록분 — vercel 에 살아 있는데 죽어도 알림이 없었다.

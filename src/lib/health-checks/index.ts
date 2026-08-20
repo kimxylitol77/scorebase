@@ -932,6 +932,42 @@ async function checkNhlGoalieCoverage(now: Date): Promise<HealthFinding[]> {
 // ──────────────────────────────────────────────────────────────
 // 17. predCorrect null 비율 (FINISHED 매치인데 평가 안 됨)
 // ──────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// 선수 출전로그 신선도 — 커버 리그의 최근 매치데이가 PlayerMatchLog 에 반영됐는지.
+// 왜. 수집(player-match-logs)이 af from/to 오류로 한 달 조용히 0건이었고(2026-08-19),
+// 시즌 중엔 선수 페이지 출전기록·시즌별 기록이 통째로 멎는데 아무도 몰랐다.
+// 판정: 12~48h 전에 끝난 커버 리그 매치가 있는데 최신 로그가 그보다 오래됨 → MED.
+// (12h 유예 = af 경기별 스탯 발행 + 일간 04:30 UTC 수집 차례가 오기까지의 정상 지연)
+// ──────────────────────────────────────────────────────────────
+const LOG_COVERED_LEAGUES = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "MLS", "K_LEAGUE_1", "J1_LEAGUE"];
+async function checkPlayerLogFreshness(now: Date): Promise<HealthFinding[]> {
+  const latestMatch = await prisma.match.findFirst({
+    where: {
+      status: "FINISHED",
+      league: { in: LOG_COVERED_LEAGUES },
+      startTime: { gte: new Date(now.getTime() - 48 * 3600_000), lte: new Date(now.getTime() - 12 * 3600_000) },
+    },
+    orderBy: { startTime: "desc" },
+    select: { league: true, startTime: true },
+  });
+  if (!latestMatch) return [];
+  const latestLog = await prisma.playerMatchLog.findFirst({
+    orderBy: { date: "desc" },
+    select: { date: true },
+  });
+  if (latestLog && latestLog.date >= latestMatch.startTime) return [];
+  const logAgeH = latestLog ? Math.round((now.getTime() - latestLog.date.getTime()) / 3600_000) : null;
+  return [
+    {
+      category: "player-log-freshness",
+      key: "coverage",
+      severity: "MED",
+      message: `선수 출전로그가 최근 매치데이 미반영 — 최신 로그 ${logAgeH == null ? "없음" : `${logAgeH}h 전`}, 최근 종료 매치 ${latestMatch.league} ${latestMatch.startTime.toISOString().slice(0, 10)}`,
+      metadata: { latestLogAt: latestLog?.date ?? null, latestMatchAt: latestMatch.startTime, league: latestMatch.league },
+    },
+  ];
+}
+
 async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
@@ -1079,6 +1115,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "evaluation-gap", fn: checkEvaluationGap },
   { name: "duplicate-match", fn: checkDuplicateMatches },
   { name: "link-health", fn: checkLinkHealth },
+  { name: "player-log-freshness", fn: checkPlayerLogFreshness },
 ];
 
 /**

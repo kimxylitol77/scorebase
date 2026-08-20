@@ -50,7 +50,7 @@
     },
     {
       "path": "/api/cron/player-match-logs",
-      "schedule": "30 16 * * 1"
+      "schedule": "30 4 * * *"
     },
     {
       "path": "/api/cron/news-briefing",

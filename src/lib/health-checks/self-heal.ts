@@ -68,6 +68,13 @@ const REMEDIATIONS: Record<string, Remediation> = {
     maxAttempts: 2,
     actionTimeoutMs: 25_000,
   },
+  "player-log-freshness": {
+    checkName: "player-log-freshness",
+    cronRoute: "player-match-logs",
+    // 잡이 60~120s 라 트리거만 하고 판정은 다음 일일 체크 — af 콜 ~수백이라 2회로 끊는다
+    maxAttempts: 2,
+    actionTimeoutMs: 25_000,
+  },
 };
 
 const ATTEMPT_WINDOW_DAYS = 7;
