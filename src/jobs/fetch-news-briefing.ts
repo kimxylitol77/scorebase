@@ -85,7 +85,9 @@ const SOURCES: SourceDef[] = [
   { name: "Sky Sports", url: "https://www.skysports.com/rss/11095", kind: "direct", sport: "soccer", tag: "Sky" },
   {
     name: "The Athletic",
-    url: "https://news.google.com/rss/search?q=site:nytimes.com/athletic%20(football%20OR%20soccer%20OR%20transfer)%20when:2d&hl=en-US&gl=US&ceid=US:en",
+    // 단독 "transfer" 는 농구·야구 기사도 끌어온다(WNBA 은퇴 기사가 축구로 발행된 원인).
+    // 종목어와 묶어 좁히고, 남는 혼입은 분류의 sport 판정이 거른다.
+    url: "https://news.google.com/rss/search?q=site:nytimes.com/athletic%20(soccer%20OR%20football%20OR%20%22premier%20league%22)%20when:2d&hl=en-US&gl=US&ceid=US:en",
     kind: "gnews",
     sport: "soccer",
     tag: "Athletic",
@@ -394,6 +396,10 @@ interface Classified {
   i: number;
   keep: boolean;
   score: number;
+  // 분류가 판정한 실제 종목. 소스 고정값(SourceDef.sport)이 틀릴 수 있어 이쪽을 우선한다 —
+  // The Athletic 같은 다종목 매체의 검색 피드는 축구 검색어에도 WNBA·NFL 기사가 딸려 온다
+  // (2026-08-20 실측: WNBA 은퇴 기사가 축구로 발행됨).
+  sport: BriefingSport | "other";
   category: string;
   league: string | null;
   storyKey: string;
@@ -408,7 +414,7 @@ async function classify(items: RssItem[]): Promise<Classified[]> {
     "다음은 해외 스포츠 뉴스 헤드라인 목록이다 (탭 구분: 번호, (종목), [소스] 제목, 요약).",
     "각 항목을 평가해 JSON 배열만 출력하라. 다른 텍스트 금지.",
     "",
-    '필드: {"i":번호, "keep":불리언, "score":0-10 정수, "category":"TRANSFER|INJURY|MATCH|MANAGER|CLUB|OTHER", "league":"EPL|LALIGA|BUNDESLIGA|SERIE_A|LIGUE_1|UCL|WORLD_CUP|MLB|NBA|NHL|기타리그명|null", "storyKey":"핵심인물-팀 영소문자 슬러그(같은 사건이면 소스가 달라도 동일하게)", "journalist":"기자명 또는 null"}',
+    '필드: {"i":번호, "keep":불리언, "score":0-10 정수, "sport":"soccer|baseball|basketball|hockey|other", "category":"TRANSFER|INJURY|MATCH|MANAGER|CLUB|OTHER", "league":"EPL|LALIGA|BUNDESLIGA|SERIE_A|LIGUE_1|UCL|WORLD_CUP|MLB|NBA|NHL|기타리그명|null", "storyKey":"핵심인물-팀 영소문자 슬러그(같은 사건이면 소스가 달라도 동일하게)", "journalist":"기자명 또는 null"}',
     "",
     "score 는 한국 스포츠 팬 관점의 뉴스 가치다. keep 은 score 5 이상이면 true.",
     "",
@@ -427,6 +433,11 @@ async function classify(items: RssItem[]): Promise<Classified[]> {
     "- 농구(NBA): 트레이드·FA 계약·대형 부상은 상향. 단일 경기 결과·득점 기록은 5 이하.",
     "- 아이스하키(NHL): 트레이드·FA 계약·대형 부상은 상향. 단일 경기 결과는 5 이하.",
     "",
+    "sport 는 괄호 안 종목 표시를 참고하되 기사 내용으로 직접 판정하라. 표시가 틀릴 수 있다 —",
+    "전 종목을 다루는 매체의 검색 피드에는 다른 종목 기사가 섞여 들어온다.",
+    "축구는 soccer, 야구(MLB·NPB 등)는 baseball, 농구(NBA·WNBA 등)는 basketball,",
+    "아이스하키(NHL 등)는 hockey. 미식축구(NFL)·테니스·골프·F1·럭비·격투기 등 그 밖은 전부 other.",
+    "",
     "찌라시성 실명 없는 낚시, 단순 링크 모음, 판타지·베팅·중계 안내는 무조건 0-4.",
     "이적·계약(TRANSFER) 기사인데 헤드라인·요약에 대상 선수의 실명이 없으면 — '월드컵 스타', '5000만 유로 자원' 식 낚시 헤드라인 — 무조건 0-4. 이름 없는 이적 기사는 브리핑 가치가 없다.",
     "",
@@ -438,6 +449,14 @@ async function classify(items: RssItem[]): Promise<Classified[]> {
     throw new Error("분류 JSON 파싱 실패");
   }
   return parsed.filter((c) => c && typeof c.i === "number" && items[c.i]);
+}
+
+/** 실제 종목 — 분류 판정을 우선하고, 판정이 없거나 값이 이상하면 소스 고정값으로 되돌린다. */
+function resolveSport(item: RssItem, c?: Classified): BriefingSport | "other" {
+  const v = c?.sport;
+  if (v === "other") return "other";
+  if (v && v in PER_SPORT_PER_RUN) return v;
+  return item.sport;
 }
 
 // ── 2차 재작성 (sonnet) — 번역이 아닌 사실 재구성 브리핑 ─────────────────
@@ -661,7 +680,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
           sourceName: it.sourceName,
           sourceUrl: it.link,
           journalist: it.journalist ?? c?.journalist ?? null,
-          sport: it.sport,
+          sport: resolveSport(it, c) === "other" ? it.sport : (resolveSport(it, c) as BriefingSport),
           category: c?.category ?? null,
           league: c?.league ?? null,
           storyKey: c?.storyKey ?? null,
@@ -680,7 +699,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   try {
     const rumorIdx = new Set<number>();
     // 이적 루머 탭은 축구 전용 — 타 종목 TRANSFER 는 넣지 않는다.
-    for (const c of classified) if (c.category === "TRANSFER" && fresh[c.i]?.sport === "soccer") rumorIdx.add(c.i);
+    for (const c of classified) if (c.category === "TRANSFER" && fresh[c.i] && resolveSport(fresh[c.i], c) === "soccer") rumorIdx.add(c.i);
     fresh.forEach((it, i) => {
       if (it.rumorOnly) rumorIdx.add(i);
     });
@@ -740,8 +759,11 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   const candidates: Classified[] = [];
   for (const c of [...storyBest.values()].sort((a, b) => b.score - a.score)) {
     if (candidates.length >= budget) break;
-    const sp = fresh[c.i]?.sport;
-    if (!sp) continue;
+    const item0 = fresh[c.i];
+    if (!item0) continue;
+    const sp = resolveSport(item0, c);
+    // 우리가 다루지 않는 종목(NFL·테니스·골프 등)은 발행하지 않는다.
+    if (sp === "other") continue;
     const used = perSport[sp] ?? 0;
     if (used >= PER_SPORT_PER_RUN[sp]) continue;
     if (c.category === "TRANSFER") {
@@ -766,6 +788,8 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
     candidates.map(async (c) => {
       const item = fresh[c.i];
       const journalist = item.journalist ?? c.journalist;
+      // 후보 선정에서 "other" 는 이미 걸러졌으므로 여기선 4종목 중 하나다.
+      const sport = resolveSport(item, c) as BriefingSport;
       try {
         // 본문 fetch — gnews 는 원 URL 복원 시도, 실패 시 헤드라인+요약으로 진행
         const articleUrl = item.kind === "gnews" ? (resolveGnewsUrl(item.link) ?? item.link) : item.link;
@@ -779,7 +803,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
           sourceName: item.sourceName,
           journalist,
           publishedAt: item.publishedAt,
-          sport: item.sport,
+          sport,
         });
         if (!out) {
           if (!dry)
@@ -820,12 +844,12 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
         }
 
         const post = await prisma.post.create({
-          data: { authorId: botId, category: "BRIEFING", sport: item.sport, title, content },
+          data: { authorId: botId, category: "BRIEFING", sport, title, content },
           select: { id: true },
         });
         await prisma.newsBriefing.update({
           where: { id: item.id },
-          data: { status: "PUBLISHED", titleKo: out.titleKo, bodyKo: out.bodyKo, postId: post.id },
+          data: { status: "PUBLISHED", sport, titleKo: out.titleKo, bodyKo: out.bodyKo, postId: post.id },
         });
         published++;
 
