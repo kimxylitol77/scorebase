@@ -21,11 +21,15 @@ const MAX_NEW_PER_RUN = 44; // haiku 1회 분류 상한
 // 종목별 분류 쿼터 — 소스 수가 압도적인 축구(8개 피드)가 상한을 다 먹으면 타 종목이
 // 분류 단계에 도달조차 못 한다. 2026-08-19 실측: 신규 788건을 최신순 40건으로 자르니
 // 야구·농구 후보가 0건이었다. 종목별로 따로 뽑아야 한다.
+// 야구·농구·하키는 현재 본문을 주는 소스가 없어 재료 게이트에서 거의 전량 막힌다
+// (2026-08-20: ESPN·CBS·Yahoo 전부 본문 0자). 소스는 남겨 둔다 — 피드가 본문·요약을 주기
+// 시작하면 손대지 않아도 되살아난다. 다만 어차피 막힐 항목에 분류 비용을 쓸 필요는 없어
+// 쿼터만 낮춘다. 본문을 주는 소스를 새로 찾으면 이 숫자부터 되돌린다.
 const NEW_PER_SPORT: Record<BriefingSport, number> = {
-  soccer: 20,
-  baseball: 8,
-  basketball: 8,
-  hockey: 8,
+  soccer: 26,
+  baseball: 3,
+  basketball: 3,
+  hockey: 3,
 };
 const MAX_PUBLISH_PER_RUN = 6;
 const MAX_PUBLISH_PER_DAY = 16; // KST 기준 — 비용·폭주 상한 (4개 종목분)

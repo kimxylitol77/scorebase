@@ -53,21 +53,20 @@ const TX_TAG: Record<string, string> = {
 export const metadata: Metadata = {
   title: "해외 스포츠 뉴스 — 공신력 소스 한국어 브리핑",
   description:
-    "BBC·Sky Sports·The Athletic·ESPN·리그 공식 발표 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리합니다. 축구·야구(MLB)·농구(NBA)·아이스하키(NHL) 이적·계약·부상 소식을 매일 업데이트합니다.",
+    "BBC·The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고 NBA 트랜잭션을 함께 모았습니다. 해외축구 이적·계약·부상·감독 소식을 하루 여러 차례 업데이트합니다.",
   keywords: [
     "해외축구 뉴스",
     "해외축구 이적",
-    "MLB 뉴스",
-    "NBA 뉴스",
-    "NHL 뉴스",
-    "해외 스포츠 뉴스 한국어",
+    "해외축구 소식 한국어",
     "BBC 축구 뉴스",
-    "디 애슬레틱",
+    "가디언 축구",
+    "프리미어리그 뉴스",
+    "NBA 트레이드 소식",
   ],
   alternates: { canonical: `${SITE_URL}/news` },
   openGraph: {
     title: "해외 스포츠 뉴스 — 공신력 소스 한국어 브리핑",
-    description: "BBC·Sky·The Athletic·ESPN·리그 공식 — 해외 보도를 한국어로 정리한 브리핑",
+    description: "BBC·The Guardian 해외축구 브리핑과 NBA 트랜잭션을 한국어로",
     url: `${SITE_URL}/news`,
     type: "website",
   },
@@ -239,9 +238,9 @@ export default async function NewsPage({ searchParams }: Props) {
           해외 스포츠 뉴스
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-3 break-keep leading-relaxed">
-          BBC · Sky Sports · The Athletic · ESPN · 리그 공식 발표 등 공신력 있는 해외 보도만 골라
-          한국어 브리핑으로 정리합니다. 축구 · 야구 · 농구 · 아이스하키의 이적 · 계약 · 부상 ·
-          감독 소식을 하루 여러 차례 업데이트합니다.
+          BBC · The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고,
+          NBA 트랜잭션(계약 · 트레이드 · 방출)을 함께 모았습니다. 해외축구의 이적 · 계약 ·
+          부상 · 감독 소식을 하루 여러 차례 업데이트합니다.
         </p>
         <div className="mt-6">
           <BoardTabs active="briefing" />
@@ -250,7 +249,10 @@ export default async function NewsPage({ searchParams }: Props) {
 
       {/* 종목 필터 */}
       <div className="mb-5 flex flex-wrap gap-2">
-        {SPORT_TABS.map((t) => {
+        {SPORT_TABS.filter(
+          // 한 건도 없는 탭은 눌러 볼 이유가 없다. 현재 보고 있는 탭은 남긴다.
+          (t) => t.code === null || sportFilter === t.code || sportCount(t.code) > 0,
+        ).map((t) => {
           const on = sportFilter === t.code;
           const n = t.code === null ? totalAll : sportCount(t.code);
           return (

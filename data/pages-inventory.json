@@ -477,7 +477,7 @@
   },
   {
     "route": "/news",
-    "desc": "해외 뉴스 게시판 — 공신력 소스(BBC·Sky·The Athletic·ESPN·리그 공식)의 해외 보도를 사실 기반 한국어 브리핑으로 재구성해 모아 보는 목록. 발행 파이프라인은 src/jobs/fetch-news-briefing.ts, 개별 글은 색인 보존을 위해 /analysis/{id} 를 그대로 쓴다.",
+    "desc": "해외 뉴스 게시판 — 공신력 소스(BBC·Sky·The Athletic·ESPN·리그 공식)의 해외 보도를 사실 기반 한국어 브리핑으로 재구성해 모아 보는 목록. 발행 파이프라인은 src/jobs/fetch-news-briefing.ts, 개별 글은 색인 보존을 위해 /analysis/{id} 를 그대로 쓴다.  레이아웃은 카드가 아니라 목록형이다 — 원문 사진은 저작권 때문에 쓸 수 없어 썸네일이 없는데, 이미지 없는 카드 그리드는 빈 공간만 커지고 훑어보기도 불편하다. 반응형은 display 토글(hidden sm:flex) 대신 flex-wrap 으로 접는다 (윈도우 grid 무력화 이슈 회피).",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
