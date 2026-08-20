@@ -139,7 +139,13 @@ async function handle(req: Request) {
       ...(high.length > 0
         ? [
             `📍 <b>즉시 확인 ${high.length}개 리그</b>`,
-            ...high.slice(0, 12).map((l) => `   • ${l.league} — ${l.issues[0].detail}`),
+            // 알림에는 HIGH 로 올린 그 사유를 싣는다. issues[0] 을 그대로 쓰면 등급이 낮은
+            // 첫 이슈가 표시돼 승격 사유와 문구가 어긋난다(2026-08-20 DFB_POKAL — HIGH 는
+            // 시즌 쪽이었는데 "순위 소스 없음"으로 표시돼 진단을 오도했다).
+            ...high.slice(0, 12).map((l) => {
+              const top = l.issues.find((i) => i.severity === "HIGH") ?? l.issues[0];
+              return `   • ${l.league} — ${top.detail}`;
+            }),
             ...(high.length > 12 ? [`   … 외 ${high.length - 12}개`] : []),
             ``,
           ]

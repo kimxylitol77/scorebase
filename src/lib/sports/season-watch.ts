@@ -332,9 +332,13 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
       }
 
       if (!cache && !af) {
+        // 개막 전 컵은 순위표가 없는 게 정상이다 — 녹아웃 대회는 표 자체가 없고,
+        // 리그페이즈가 있는 컵도 대진 확정 전에는 표가 발행되지 않는다. 추적용으로만 남긴다.
+        // (시즌 중 컵이 소스를 잃는 건 다른 얘기라 기존 급을 유지한다.)
+        const cupBeforeDraw = kind === "CUP" && state === "PRESEASON";
         issues.push({
           code: "no-standings-source",
-          severity: state === "PRESEASON" ? "MED" : "HIGH",
+          severity: cupBeforeDraw ? "LOW" : state === "PRESEASON" ? "MED" : "HIGH",
           detail: `순위 소스 없음 (ts 캐시 X, af 캐시 X) — 일정 45일 ${nearRow?._count._all ?? 0}건`,
         });
       } else if (!cache) {
@@ -390,10 +394,20 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
       ) {
         const cand = discoveredBy.get(league);
         if (!cand) {
+          // ⚠ 저장소에 시즌 uuid 가 있으면 "후보조차 없다"는 사실이 아니다. 레지스트리에 행이
+          //   없어도 호출부가 정적 매핑으로 폴백하므로 poller 는 그 값으로 정상 수집한다.
+          //   2026-08-20 실측 — SERIE_A 등 6개 리그가 신시즌 표를 그날 받아 놓고도(매핑 100%,
+          //   캐시 0시간) 매일 HIGH 로 울렸다. 같은 감사가 몇 줄 위에서 순위 소스를 정상으로
+          //   판정하고 아래에서 시즌이 없다고 말하는 모순이었다. discover 를 돌려봐야 이미
+          //   쓰고 있는 그 값이 후보로 나올 뿐이다. 남은 일은 레지스트리 이관뿐이라 LOW.
+          //   저장소 값이 지난 시즌인 경우는 season-id-mismatch 가 캐시와 대조해 따로 잡는다.
+          const onLegacyMapping = repoSeasonId != null;
           issues.push({
             code: "no-season-before-open",
-            severity: urgent ? "HIGH" : "MED",
-            detail: `개막까지 ${daysToFirst.toFixed(1)}일인데 시즌 후보조차 없다 — discover 필요`,
+            severity: onLegacyMapping ? "LOW" : urgent ? "HIGH" : "MED",
+            detail: onLegacyMapping
+              ? `레지스트리 미등록 — 저장소 매핑(${repoSeasonId})으로 가동 중 · 개막 ${daysToFirst.toFixed(1)}일 전`
+              : `개막까지 ${daysToFirst.toFixed(1)}일인데 시즌 후보조차 없다 — discover 필요`,
           });
         } else {
           const meta = (cand.metadata ?? {}) as { verification?: { blockers?: string[] } };
