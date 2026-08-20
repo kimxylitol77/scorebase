@@ -25,6 +25,30 @@ export interface DiscoveryMatch {
   match_time: number;
   home_team_id?: string;
   away_team_id?: string;
+  /** ts round.stage_id — 한 시즌이 여러 단계·조로 갈릴 때만 쓴다. */
+  stage_id?: string;
+}
+
+/**
+ * 우리 팀이 한 팀도 없는 stage 의 매치를 버린다 — ts 한 시즌에 다른 티어까지 섞여 오는 리그용.
+ * (YKKONEN 시즌에 Kakkonen 3개 조가 함께 들어와 매핑률 분모가 42팀이 되던 것.)
+ *
+ * stage 를 하나도 못 가려내면 원본을 그대로 돌려준다 — 후보가 조용히 0건이 되는 쪽이 더 나쁘다.
+ */
+export function keepOwnStageMatches<T extends DiscoveryMatch>(
+  matches: readonly T[],
+  knownTeamIds: ReadonlySet<string>,
+): T[] {
+  const ownStages = new Set<string>();
+  for (const m of matches) {
+    if (!m.stage_id) continue;
+    const mine =
+      (m.home_team_id != null && knownTeamIds.has(m.home_team_id)) ||
+      (m.away_team_id != null && knownTeamIds.has(m.away_team_id));
+    if (mine) ownStages.add(m.stage_id);
+  }
+  if (ownStages.size === 0) return [...matches];
+  return matches.filter((m) => !m.stage_id || ownStages.has(m.stage_id));
 }
 
 /** competition_id 하나에 대해 관측된 season_id 후보. */

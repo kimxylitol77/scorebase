@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import {
   NO_STANDINGS_LEAGUES,
   STAGED_COMPETITIONS,
+  TS_SHARED_SEASON_LEAGUES,
   computeSeasonYear,
   seasonLabelFor,
 } from "./season-calendar";
@@ -122,11 +123,20 @@ export function competitionKind(league: string): CompetitionKind {
 
 function mappingRateOf(league: string, payload: unknown): { rate: number; rows: number } {
   const p = payload as { tables?: Array<{ rows?: Array<{ team_id?: string }> }> } | null;
-  const ids = (p?.tables ?? []).flatMap(
+  const known = TS_TEAM_IDS_BY_LEAGUE.get(league) ?? new Set<string>();
+  let tables = p?.tables ?? [];
+  // 한 시즌에 다른 티어까지 섞여 오는 리그(YKKONEN 등)는 우리 팀이 한 팀도 없는 표를 분모에서 뺀다.
+  // 남는 표가 하나도 없으면 걸러내지 않는다 — 매핑이 통째로 비어 있으면 0% 가 그대로 보여야 한다.
+  if (TS_SHARED_SEASON_LEAGUES.has(league)) {
+    const ours = tables.filter((t) =>
+      (t.rows ?? []).some((r) => r.team_id && known.has(r.team_id)),
+    );
+    if (ours.length > 0) tables = ours;
+  }
+  const ids = tables.flatMap(
     (t) => (t.rows ?? []).map((r) => r.team_id).filter(Boolean) as string[],
   );
   if (ids.length === 0) return { rate: 0, rows: 0 };
-  const known = TS_TEAM_IDS_BY_LEAGUE.get(league) ?? new Set<string>();
   return { rate: ids.filter((id) => known.has(id)).length / ids.length, rows: ids.length };
 }
 

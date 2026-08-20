@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   collectSeasonCandidates,
+  keepOwnStageMatches,
   verifySeasonCandidate,
   type DiscoveryMatch,
   type SeasonCandidate,
@@ -217,4 +218,29 @@ test("개막이 한참 먼 시즌은 선취 전환을 막는다", () => {
   });
   assert.equal(v.ok, false);
   assert.ok(v.blockers.includes("season-start-sanity"));
+});
+
+// ── keepOwnStageMatches — ts 한 시즌에 다른 티어가 섞여 오는 리그(YKKONEN + Kakkonen) ──
+
+test("우리 팀이 없는 stage 의 매치를 버린다", () => {
+  const ms = [
+    match({ home_team_id: "ykk1", away_team_id: "ykk2", stage_id: "groupD" }),
+    match({ home_team_id: "kak1", away_team_id: "kak2", stage_id: "groupA" }),
+    match({ home_team_id: "kak3", away_team_id: "kak4", stage_id: "groupB" }),
+  ];
+  const kept = keepOwnStageMatches(ms, new Set(["ykk1", "ykk2"]));
+  assert.deepEqual(kept.map((m) => m.stage_id), ["groupD"]);
+});
+
+test("우리 stage 를 하나도 못 가려내면 원본을 그대로 둔다 — 조용한 0건이 더 나쁘다", () => {
+  const ms = [match({ home_team_id: "a", away_team_id: "b", stage_id: "s1" })];
+  assert.equal(keepOwnStageMatches(ms, new Set(["없는팀"])).length, 1);
+});
+
+test("stage_id 가 없는 매치는 버리지 않는다", () => {
+  const ms = [
+    match({ home_team_id: "ykk1", away_team_id: "ykk2", stage_id: "groupD" }),
+    match({ home_team_id: "x", away_team_id: "y" }),
+  ];
+  assert.equal(keepOwnStageMatches(ms, new Set(["ykk1"])).length, 2);
 });

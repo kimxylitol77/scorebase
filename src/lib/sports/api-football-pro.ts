@@ -189,7 +189,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   ETTAN_SODRA: 564, // 스웨덴 에탄 쇠드라 (3부)
   NORWAY_2D_G1: 473, // 노르웨이 2. 디비션 1조 (3부)
   NORWAY_2D_G2: 474, // 노르웨이 2. 디비션 2조 (3부)
-  KAKKONEN_A: 247, // 핀란드 카코넨 A조 (3부)
+  KAKKONEN_A: 247, // 핀란드 카코넨 A조 — 2024 개편 후 4부
   KAKKONEN_B: 248, // 핀란드 카코넨 B조
   KAKKONEN_C: 249, // 핀란드 카코넨 C조
   ROMANIA_L2: 284, // 루마니아 리가 II (2부) — 과거 PARAGUAY_PD 가 이 id 로 오매핑됐던 이력 있음

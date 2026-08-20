@@ -104,7 +104,7 @@ export type League =
   | "ALLSVENSKAN" // 스웨덴 Allsvenskan (1부)
   | "SUPERETTAN" // 스웨덴 Superettan (2부)
   | "VEIKKAUSLIIGA" // 핀란드 Veikkausliiga (1부)
-  | "YKKONEN" // 핀란드 Ykkönen (2부)
+  | "YKKONEN" // 핀란드 Ykkönen — 2024 개편 후 3부 (2부는 신설 Ykkösliiga, 미커버)
   | "URVALSDEILD" // 아이슬란드 Úrvalsdeild (1부)
   | "ICELAND_1L" // 아이슬란드 1. Deild (2부)
   // 남미 추가 (달력 연도 시즌)

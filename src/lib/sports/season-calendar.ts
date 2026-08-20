@@ -137,3 +137,16 @@ export const STAGED_COMPETITIONS = new Set([
   // 정상인데 감시가 "ACTIVE 인데 캐시 없음" HIGH 로 읽었다(COPA_DO_BRASIL 실측).
   "COPA_DO_BRASIL", "LEAGUES_CUP", "PORTUGAL_SUPER_CUP",
 ]);
+
+/**
+ * ts 한 시즌 안에 다른 티어 대회까지 함께 담기는 리그 — 우리가 맡는 건 그중 일부 stage 뿐이다.
+ *
+ * YKKONEN: ts "Finnish Ykkonen"(competition gpxwrxlh7zryk0j) 2026 시즌은 stage 가 4개인데
+ * Group D(12팀)만 실제 Ykkönen(3부)이고 Group A/B/C(각 10팀)는 Kakkonen(4부)이다.
+ * 42팀 전체를 분모로 삼으면 매핑률이 12/42 = 29% 에 영원히 묶여 시즌 전환 검증이 통과할 수 없다.
+ * (2026-08-21 실측 + 위키 대조 — Ykkönen 2026 = 12팀, Kakkonen 2026 = 3개 조 30팀.)
+ *
+ * 판정은 stage 단위로 한다. "우리 팀이 한 팀도 없는 stage 는 다른 티어" 로 보고 분모에서 뺀다.
+ * stage_id 는 시즌마다 바뀌므로 값을 박아두지 않는다.
+ */
+export const TS_SHARED_SEASON_LEAGUES = new Set(["YKKONEN"]);

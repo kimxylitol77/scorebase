@@ -13,6 +13,7 @@
 import { prisma } from "../src/lib/db";
 import {
   collectSeasonCandidates,
+  keepOwnStageMatches,
   verifySeasonCandidate,
   type DiscoveryMatch,
   type SeasonCandidate,
@@ -25,7 +26,11 @@ import {
   recordDiscoveredSeason,
   staticTsTournamentId,
 } from "../src/lib/sports/season-registry";
-import { computeSeasonYear, seasonLabelFor } from "../src/lib/sports/season-calendar";
+import {
+  TS_SHARED_SEASON_LEAGUES,
+  computeSeasonYear,
+  seasonLabelFor,
+} from "../src/lib/sports/season-calendar";
 import teamIdMapping from "../src/lib/sports/thesports/team-id-mapping.json";
 
 const TS_BASE = "https://api.thesports.com";
@@ -59,6 +64,7 @@ interface TsMatch {
   match_time?: number;
   home_team_id?: string;
   away_team_id?: string;
+  round?: { stage_id?: string };
 }
 
 /** 순위 API 상태 확인 — 개막 전 "표 없음"은 정상으로 구분해 돌려준다. */
@@ -120,6 +126,7 @@ async function main() {
           match_time: m.match_time,
           home_team_id: m.home_team_id,
           away_team_id: m.away_team_id,
+          stage_id: m.round?.stage_id,
         });
       }
     } catch (e) {
@@ -128,16 +135,6 @@ async function main() {
     await sleep(250);
   }
 
-  const byCompetition = collectSeasonCandidates(matches, nowSec);
-  let candidates: SeasonCandidate[] = byCompetition.get(competitionId) ?? [];
-  const pinned = arg("season");
-  if (pinned) candidates = candidates.filter((c) => c.seasonId === pinned);
-  if (candidates.length === 0) {
-    console.log(`후보 없음 — ${league} 는 현재 diary 창(${days}일)에 매치가 없다(비수기 가능).`);
-    return;
-  }
-
-  const active = await getActiveSeason(league, PROVIDER_TS);
   // 팀 매핑은 두 곳에 산다 — 저장소 JSON 과 DB TeamSourceId. 수집 라우트는 DB 를 먼저
   // 보고(backfill:cup-teams 는 DB 에만 기록한다) JSON 은 뒤이므로, JSON 만 세면 이미
   // 메워진 갭을 여전히 미매핑으로 읽는다. 2026-08-20 DFB_POKAL — 백필로 32경기가
@@ -152,6 +149,26 @@ async function main() {
     select: { externalId: true },
   });
   for (const row of dbMapped) knownTeamIds.add(row.externalId);
+
+  // ts 한 시즌에 다른 티어 대회까지 담기는 리그는 우리 stage 의 매치만 남긴다 — 안 그러면
+  // 남의 티어 팀이 분모에 들어가 매핑률이 영원히 기준 미달이 된다(YKKONEN + Kakkonen).
+  const scoped = TS_SHARED_SEASON_LEAGUES.has(league)
+    ? keepOwnStageMatches(matches, knownTeamIds)
+    : matches;
+  if (scoped.length !== matches.length) {
+    console.log(`  다른 티어 stage 매치 ${matches.length - scoped.length}건 제외 (우리 stage ${scoped.length}건)`);
+  }
+
+  const byCompetition = collectSeasonCandidates(scoped, nowSec);
+  let candidates: SeasonCandidate[] = byCompetition.get(competitionId) ?? [];
+  const pinned = arg("season");
+  if (pinned) candidates = candidates.filter((c) => c.seasonId === pinned);
+  if (candidates.length === 0) {
+    console.log(`후보 없음 — ${league} 는 현재 diary 창(${days}일)에 매치가 없다(비수기 가능).`);
+    return;
+  }
+
+  const active = await getActiveSeason(league, PROVIDER_TS);
 
   // 2) 후보별 검증
   for (const c of candidates) {
