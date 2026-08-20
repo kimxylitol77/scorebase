@@ -26360,5 +26360,145 @@
     "tsId": "yl5ergph6wkr8k0",
     "tsName": "Fredericia",
     "matchType": "manual-2026-08-19-standings"
+  },
+  {
+    "ourId": 613561,
+    "ourName": "Eintracht Trier",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-gy0or5jhkolqwzv",
+    "tsId": "gy0or5jhkolqwzv",
+    "tsName": "Eintracht Trier",
+    "tsKo": "아인트라흐트 트리어",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613563,
+    "ourName": "Bahlinger",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-ednm9whkpp4ryox",
+    "tsId": "ednm9whkpp4ryox",
+    "tsName": "Bahlinger",
+    "tsKo": "발링거",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613568,
+    "ourName": "SC Verl",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-965mkyh7560r1ge",
+    "tsId": "965mkyh7560r1ge",
+    "tsName": "SC Verl",
+    "tsKo": "SC 베르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613569,
+    "ourName": "HEBC Hamburg",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-y0or5jhez0eqwzv",
+    "tsId": "y0or5jhez0eqwzv",
+    "tsName": "HEBC Hamburg",
+    "tsKo": "함부르크 HEBC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613570,
+    "ourName": "San Marcos FC",
+    "ourLeague": "NICARAGUA_PD",
+    "ourExternalId": "ts-l5ergphvd79r8k0",
+    "tsId": "l5ergphvd79r8k0",
+    "tsName": "San Marcos FC",
+    "tsKo": "산마르코스 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613557,
+    "ourName": "SV Hemelingen",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-vjxm8ghjd01r6od",
+    "tsId": "vjxm8ghjd01r6od",
+    "tsName": "SV Hemelingen",
+    "tsKo": "헤멜링겐 SV",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613558,
+    "ourName": "1. FC Saarbrücken",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-8y39mp1h8opmojx",
+    "tsId": "8y39mp1h8opmojx",
+    "tsName": "1. FC Saarbrücken",
+    "tsKo": "FC 자르브뤼켄",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613559,
+    "ourName": "FC Hansa Luneburg",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-1l4rjnh64dwm7vx",
+    "tsId": "1l4rjnh64dwm7vx",
+    "tsName": "FC Hansa Luneburg",
+    "tsKo": "루네부르크 한자 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613560,
+    "ourName": "TSV 1860 München",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-z318q66hp7kqo9j",
+    "tsId": "z318q66hp7kqo9j",
+    "tsName": "TSV 1860 München",
+    "tsKo": "뮌헨 1860",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613562,
+    "ourName": "Carl Zeiss Jena",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-n54qllh28j6qvy9",
+    "tsId": "n54qllh28j6qvy9",
+    "tsName": "Carl Zeiss Jena",
+    "tsKo": "칼 체이스 예나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613564,
+    "ourName": "TSV Schott Mainz",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-l7oqdeh6geor510",
+    "tsId": "l7oqdeh6geor510",
+    "tsName": "TSV Schott Mainz",
+    "tsKo": "마인츠 쇼트 TSV",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613565,
+    "ourName": "VfB 1921 Krieschow",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-1l4rjnhzy0om7vx",
+    "tsId": "1l4rjnhzy0om7vx",
+    "tsName": "VfB 1921 Krieschow",
+    "tsKo": "크리쇼프 1921 VfB",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613566,
+    "ourName": "SV Westfalia Rhynern",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-56ypq3nhxy5md7o",
+    "tsId": "56ypq3nhxy5md7o",
+    "tsName": "SV Westfalia Rhynern",
+    "tsKo": "SV 베스트팔리아 리너른",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613567,
+    "ourName": "Rot-Weiss Essen",
+    "ourLeague": "DFB_POKAL",
+    "ourExternalId": "ts-kjw2r09ho78rz84",
+    "tsId": "kjw2r09ho78rz84",
+    "tsName": "Rot-Weiss Essen",
+    "tsKo": "로트바이스 에센",
+    "matchType": "ts-external-id"
   }
 ]
