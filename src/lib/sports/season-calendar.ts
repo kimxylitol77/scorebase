@@ -133,4 +133,7 @@ export const STAGED_COMPETITIONS = new Set([
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "LEVAIN_CUP",
   "SUI_CUP", "SVENSKA_CUPEN", "SCO_LEAGUE_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  // 2026-08-20 추가 — 컵인데 LEAGUE 로 분류돼 컵 예외를 못 받고 있었다. 순위표가 없는 게
+  // 정상인데 감시가 "ACTIVE 인데 캐시 없음" HIGH 로 읽었다(COPA_DO_BRASIL 실측).
+  "COPA_DO_BRASIL", "LEAGUES_CUP", "PORTUGAL_SUPER_CUP",
 ]);
