@@ -82,6 +82,8 @@ export const CRON_REGISTRY: {
   { name: "player-trophies", label: "선수 트로피", maxAgeH: 28 }, // 수상은 드물어 0 이 정상 — zeroAlert 금지
   { name: "capture-injuries", label: "부상 스냅샷", maxAgeH: 28 },
   { name: "predict-upcoming", label: "다가올 매치 예측", maxAgeH: 16 }, // 하루 2회(3,13시)
+  // 하루 2회(3:50,15:50 UTC). 감시형이라 0건이 정상 — zeroAlertAfter 를 붙이지 말 것.
+  { name: "cleanup-ts-ghost", label: "ts 유령 매치 정리", maxAgeH: 16 },
   { name: "squad-numbers", label: "스쿼드 등번호", maxAgeH: 180 }, // 주간(화)
 ];
 

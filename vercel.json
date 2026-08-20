@@ -165,6 +165,10 @@
       "schedule": "30 19 * * *"
     },
     {
+      "path": "/api/cron/cleanup-ts-ghost",
+      "schedule": "50 3,15 * * *"
+    },
+    {
       "path": "/api/cron/cleanup-stale-scheduled",
       "schedule": "0 */2 * * *"
     },
