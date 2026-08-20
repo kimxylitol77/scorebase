@@ -86,6 +86,19 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
     take: PER_PAGE,
   });
 
+  // 팀명 → 팀 페이지 id. ESPN teamName 이 DB Team.name 과 같은 표기라 그대로 매칭된다
+  // (2026-08-20 실측 30개 팀 전부 적중). 같은 이름이 두 행인 것(TBD)은 어느 쪽인지
+  // 못 고르므로 링크하지 않는다.
+  const nbaTeams = await prisma.team.findMany({
+    where: { league: "NBA" },
+    select: { id: true, name: true },
+  });
+  const teamIdByName = new Map<string, number | null>();
+  for (const t of nbaTeams) {
+    const k = t.name.toLowerCase();
+    teamIdByName.set(k, teamIdByName.has(k) ? null : t.id); // 중복 이름 → null(비링크)
+  }
+
   // 날짜(yyyy-mm-dd)별 그룹 (현재 페이지 내)
   const groups = new Map<string, typeof rows>();
   for (const r of rows) {
@@ -174,28 +187,48 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                 {items.map((t) => {
                   const c = CAT_MAP[t.category] ?? CAT_MAP.other;
                   const koTeam = t.teamName ? toKoreanTeamName(t.teamName, "NBA") : null;
-                  // 단일 선수(계약·방출·단기) 사진 — 트레이드(다중)·감독은 매칭 안 됨 → 팀로고.
-                  const player = t.category !== "trade" ? lookupNbaPlayer(t.playerName) : null;
+                  const teamId = t.teamName ? teamIdByName.get(t.teamName.toLowerCase()) ?? null : null;
+                  const teamHref = teamId != null ? `/teams/${teamId}` : null;
+                  // 선수 링크는 트레이드 포함 전 유형에서 찾는다 (2026-08-20 실측: 트레이드
+                  // 59건 중 42건이 선수 페이지 보유 — 빼면 그만큼 갈 데를 잃는다).
+                  const player = lookupNbaPlayer(t.playerName);
                   const href = nbaPlayerHref(player);
+                  // 사진은 기존대로 단일 선수(계약·방출·단기)만 — 트레이드는 여러 선수가 얽혀
+                  // 한 명 얼굴을 세우면 그 사람 건으로 읽힌다. 트레이드·감독은 팀로고.
+                  const photo = t.category !== "trade" ? player?.photo : undefined;
+                  const body = t.descriptionKo || t.description;
+                  // 설명문 안 이름에 링크 — 한글 번역문이면 한글명, 원문이면 영문명.
+                  const bodyName = t.descriptionKo ? player?.ko : t.playerName;
                   return (
                     <li
                       key={t.id}
                       className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white px-3.5 py-3 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none dark:hover:bg-white/[0.06]"
                     >
-                      {href ? (
-                        <Link href={href}><TxAvatar photo={player?.photo} teamLogo={t.teamLogo} /></Link>
+                      {/* 아바타는 보이는 것으로 간다 — 선수 사진이면 선수, 팀로고면 팀 페이지. */}
+                      {(photo ? href : teamHref) ? (
+                        <Link href={(photo ? href : teamHref)!}>
+                          <TxAvatar photo={photo} teamLogo={t.teamLogo} />
+                        </Link>
                       ) : (
-                        <TxAvatar photo={player?.photo} teamLogo={t.teamLogo} />
+                        <TxAvatar photo={photo} teamLogo={t.teamLogo} />
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex items-center gap-2">
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${c.cls}`}>{c.label}</span>
-                          {koTeam && (
-                            <span className="truncate text-xs font-semibold text-neutral-700 dark:text-neutral-300">{koTeam}</span>
-                          )}
+                          {koTeam &&
+                            (teamHref ? (
+                              <Link
+                                href={teamHref}
+                                className="truncate text-xs font-semibold text-neutral-700 hover:underline dark:text-neutral-300"
+                              >
+                                {koTeam}
+                              </Link>
+                            ) : (
+                              <span className="truncate text-xs font-semibold text-neutral-700 dark:text-neutral-300">{koTeam}</span>
+                            ))}
                         </div>
                         <p className="text-sm leading-snug text-neutral-800 dark:text-neutral-200">
-                          {t.descriptionKo || t.description}
+                          {linkPlayerName(body, bodyName, href)}
                         </p>
                         {/* 한글 번역이 있으면 영문 원문을 보조로 (신뢰성·검증). */}
                         {t.descriptionKo && (
@@ -250,6 +283,28 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
         <Link href="/leagues/NBA" className="text-blue-600 dark:text-blue-400 hover:underline">NBA 경기·순위</Link>도 함께 확인하세요.
       </footer>
     </main>
+  );
+}
+
+/**
+ * 설명문 안에 나오는 선수 이름 첫 번째 것만 선수 페이지로 감싼다.
+ * 이름을 못 찾거나(번역문 표기 차이) 갈 데가 없으면 원문 그대로 — 죽은 링크를 만들지 않는다.
+ */
+function linkPlayerName(text: string, name: string | null | undefined, href: string | null) {
+  if (!name || !href) return text;
+  // 풀네임일 때만 — 사전에 성만 들어 있는 선수가 있어(Spencer Jones → "존스") 문장의
+  // "스펜서 존스" 중 뒤 두 글자에만 밑줄이 그이거나 동성 선수를 잘못 가리킬 수 있다.
+  if (!name.includes(" ")) return text;
+  const i = text.indexOf(name);
+  if (i < 0) return text;
+  return (
+    <>
+      {text.slice(0, i)}
+      <Link href={href} className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
+        {name}
+      </Link>
+      {text.slice(i + name.length)}
+    </>
   );
 }
 

@@ -394,6 +394,58 @@ function NbaInjuryHistory({ rows }: { rows: InjuryRow[] }) {
   );
 }
 
+interface TxRow {
+  id: string;
+  date: Date;
+  category: string;
+  teamName: string | null;
+  descriptionKo: string | null;
+  description: string;
+}
+
+const TX_LABEL: Record<string, { label: string; cls: string }> = {
+  trade: { label: "트레이드", cls: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" },
+  signing: { label: "계약", cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300" },
+  short_term: { label: "단기계약", cls: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300" },
+  waive: { label: "방출", cls: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300" },
+  staff: { label: "감독·프런트", cls: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300" },
+  other: { label: "기타", cls: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400" },
+};
+
+/** 이동 이력 — SportsTransaction(ESPN 트랜잭션). /transactions/nba 피드의 이 선수분만. */
+function NbaTransactionHistory({ rows }: { rows: TxRow[] }) {
+  return (
+    <section className="space-y-2">
+      {rows.map((r) => {
+        const c = TX_LABEL[r.category] ?? TX_LABEL.other;
+        const koTeam = r.teamName ? toKoreanTeamName(r.teamName, "NBA") || r.teamName : null;
+        return (
+          <div
+            key={r.id}
+            className="flex items-start gap-3 rounded-lg bg-neutral-50 px-4 py-3 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10"
+          >
+            <span className="shrink-0 text-xs font-semibold tabular-nums text-neutral-500">{fmtInjDate(r.date)}</span>
+            <div className="min-w-0">
+              <div className="mb-0.5 flex items-center gap-2">
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${c.cls}`}>{c.label}</span>
+                {koTeam && <span className="truncate text-xs font-semibold text-neutral-700 dark:text-neutral-300">{koTeam}</span>}
+              </div>
+              <p className="text-sm leading-snug">{r.descriptionKo || r.description}</p>
+            </div>
+          </div>
+        );
+      })}
+      <p className="mt-1 text-[11px] leading-relaxed text-neutral-400">
+        ESPN 트랜잭션 피드. 한국어는 AI 번역이며 원문은{" "}
+        <Link href="/transactions/nba" className="text-blue-600 hover:underline dark:text-blue-400">
+          NBA 트랜잭션
+        </Link>{" "}
+        페이지에서 함께 볼 수 있다.
+      </p>
+    </section>
+  );
+}
+
 /* ============================================================
  * 메인 뷰
  * ==========================================================*/
@@ -443,6 +495,17 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
         select: { id: true, type: true, occurredAt: true, title: true, detail: true },
       })
     : [];
+
+  // 이동 이력 — SportsTransaction(league=NBA, playerName=ESPN 표기).
+  // BDL 이름과 로스터 인덱스 이름이 다를 수 있어(Jr. 등) 둘 다로 찾는다.
+  const rosterName = lookupNbaPlayerByBdlId(id)?.name;
+  const txNames = [...new Set([fullName, rosterName].filter((v): v is string => Boolean(v)))];
+  const txRows = await prisma.sportsTransaction.findMany({
+    where: { league: "NBA", playerName: { in: txNames } },
+    orderBy: { date: "desc" },
+    take: 30,
+    select: { id: true, date: true, category: true, teamName: true, descriptionKo: true, description: true },
+  });
 
   // 시즌기록 팀 로고/링크 — DB NBA Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
   const nbaTeams = await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } });
@@ -610,6 +673,11 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
             key: "injuries",
             label: "부상이력",
             content: <NbaInjuryHistory rows={injuryRows} />,
+          },
+          txRows.length > 0 && {
+            key: "transactions",
+            label: "이동 이력",
+            content: <NbaTransactionHistory rows={txRows} />,
           },
         ])}
       />
