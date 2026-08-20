@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { isBotAccount } from "@/lib/bot-accounts";
+import BotCosmeticEditor from "./BotCosmeticEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -48,10 +50,15 @@ export default async function AdminUserDetailPage({
       exp: true,
       points: true,
       lastAttendanceAt: true,
+      avatarUrl: true,
+      nameColor: true,
+      avatarFrame: true,
+      title: true,
       favoriteTeam: { select: { name: true } },
     },
   });
   if (!user) notFound();
+  const isBot = isBotAccount(user.email);
 
   const last7Start = kstDayStart(6);
   const last14Start = kstDayStart(13);
@@ -112,6 +119,11 @@ export default async function AdminUserDetailPage({
       </div>
       <h1 className="text-xl font-black tracking-tight mb-1">
         {user.nickname}
+        {isBot && (
+          <span className="ml-2 rounded-md bg-violet-500/10 px-1.5 py-0.5 align-middle text-[10px] font-bold text-violet-600 ring-1 ring-violet-500/20 dark:text-violet-400">
+            봇
+          </span>
+        )}
         <span className="ml-2 text-sm font-normal text-neutral-500">
           Lv.{user.level} · {user.email}
         </span>
@@ -121,6 +133,19 @@ export default async function AdminUserDetailPage({
         {user.favoriteTeam ? ` · 응원팀 ${user.favoriteTeam.name}` : ""}
         {user.emailVerified ? " · 이메일 인증됨" : ""}
       </p>
+
+      {isBot && (
+        <div className="mb-8">
+          <BotCosmeticEditor
+            userId={user.id}
+            nickname={user.nickname}
+            avatarUrl={user.avatarUrl}
+            nameColor={user.nameColor}
+            avatarFrame={user.avatarFrame}
+            title={user.title}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <Kpi label="총 접속 PV" value={totalPv} accent />

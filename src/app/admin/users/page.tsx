@@ -1,6 +1,7 @@
 // 관리자 — 방문자 회원(User) 가입 현황 + 회원별 접속 통계. 행 클릭 → 상세(활동 이력).
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { isBotAccount } from "@/lib/bot-accounts";
 
 export const dynamic = "force-dynamic";
 
@@ -152,6 +153,11 @@ export default async function AdminUsersPage({
                       >
                         {u.nickname}
                       </Link>
+                      {isBotAccount(u.email) && (
+                        <span className="ml-1.5 rounded bg-violet-500/10 px-1 py-0.5 text-[10px] font-bold text-violet-600 ring-1 ring-violet-500/20 dark:text-violet-400">
+                          봇
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-2 text-neutral-600 dark:text-neutral-400">
                       {u.email}
