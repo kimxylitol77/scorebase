@@ -46,6 +46,12 @@ const MAX_TRANSFER_PER_RUN = 2;
 const MAX_TEAM_LINKS = 2;
 const MIN_SCORE = 5; // 뉴스가치 발행 하한 (분류 rubric 의 "신빙성 있는 이적 협상" 대역부터)
 const KEEP_DAYS = 60; // 비발행 행 보존 기간
+// 재작성 재료 하한 — 원문 본문(또는 요약)이 이보다 짧으면 발행하지 않는다.
+// 2026-08-20 실측: 발행 484건 중 288건(60%)이 "추가 내용은 확인되지 않았습니다" 류의 빈 글이었다.
+// 원인은 소스 대부분이 제목만 준다는 것 — gnews 는 description 조차 제목+매체명뿐이고,
+// ESPN·CBS·Sky 는 본문 추출이 0자다(JS 렌더). 재료 없이 쓰면 제목을 되풀이한 글이 나온다.
+// 짧고 정확한 글보다 아예 안 쓰는 게 낫다.
+const MIN_MATERIAL_CHARS = 500;
 
 const BOT_EMAIL = "intl@scorebase.internal";
 const BOT_NICKNAME = "스코어베이스 국제부";
@@ -83,6 +89,9 @@ const SOURCES: SourceDef[] = [
   // ── 축구 ────────────────────────────────────────────────────────────
   { name: "BBC Sport", url: "https://feeds.bbci.co.uk/sport/football/rss.xml", kind: "direct", sport: "soccer", tag: "BBC" },
   { name: "Sky Sports", url: "https://www.skysports.com/rss/11095", kind: "direct", sport: "soccer", tag: "Sky" },
+  // 본문 추출이 실제로 되는 몇 안 되는 소스 (2026-08-20 실측 13,007자).
+  // BBC 외에 재료를 주는 곳이 없어 축구 발행량을 떠받친다.
+  { name: "The Guardian", url: "https://www.theguardian.com/football/rss", kind: "direct", sport: "soccer", tag: "가디언" },
   {
     name: "The Athletic",
     // 단독 "transfer" 는 농구·야구 기사도 끌어온다(WNBA 은퇴 기사가 축구로 발행된 원인).
@@ -795,6 +804,18 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
         const articleUrl = item.kind === "gnews" ? (resolveGnewsUrl(item.link) ?? item.link) : item.link;
         const body =
           articleUrl.includes("news.google.com") ? null : await fetchArticleBody(articleUrl);
+
+        // 재료 게이트 — 본문도 요약도 빈약하면 재작성하지 않는다(LLM 비용도 절약).
+        const material = (body?.length ?? 0) + item.desc.length;
+        if (material < MIN_MATERIAL_CHARS) {
+          console.warn(`[briefing] 재료 부족 ${material}자 — 발행 안 함: ${item.title.slice(0, 60)}`);
+          if (!dry)
+            await prisma.newsBriefing.update({
+              where: { id: item.id },
+              data: { status: "REJECTED", note: `재료 부족 (${material}자 < ${MIN_MATERIAL_CHARS})` },
+            });
+          return;
+        }
 
         const out = await rewrite({
           title: item.title,
