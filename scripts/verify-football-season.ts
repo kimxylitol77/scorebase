@@ -138,11 +138,20 @@ async function main() {
   }
 
   const active = await getActiveSeason(league, PROVIDER_TS);
+  // 팀 매핑은 두 곳에 산다 — 저장소 JSON 과 DB TeamSourceId. 수집 라우트는 DB 를 먼저
+  // 보고(backfill:cup-teams 는 DB 에만 기록한다) JSON 은 뒤이므로, JSON 만 세면 이미
+  // 메워진 갭을 여전히 미매핑으로 읽는다. 2026-08-20 DFB_POKAL — 백필로 32경기가
+  // skippedNoTeam 0 으로 수집되는데도 검증은 0/64 불통과였다. 실제 동작과 같은 출처를 본다.
   const knownTeamIds = new Set(
     (teamIdMapping as Array<{ tsId: string; ourLeague: string }>)
       .filter((t) => t.ourLeague === league)
       .map((t) => t.tsId),
   );
+  const dbMapped = await prisma.teamSourceId.findMany({
+    where: { league, source: PROVIDER_TS },
+    select: { externalId: true },
+  });
+  for (const row of dbMapped) knownTeamIds.add(row.externalId);
 
   // 2) 후보별 검증
   for (const c of candidates) {

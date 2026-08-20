@@ -369,9 +369,13 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
       }
 
       if (active && !cache) {
+        // 컵에서 순위 캐시 부재는 정상일 수 있다 — 녹아웃은 표 자체가 없다. 게다가 바로 위
+        // no-standings-source 가 같은 사실을 이미 보고하므로 한 리그를 HIGH 로 두 번
+        // 울리지 않는다(2026-08-20 DFB_POKAL 을 ACTIVE 로 올리자 이 판정이 새로 떴다).
+        const cupWithoutTable = kind === "CUP" && standingsSource === "none";
         issues.push({
           code: "active-without-cache",
-          severity: "HIGH",
+          severity: cupWithoutTable ? "LOW" : "HIGH",
           detail: `ACTIVE 시즌(${active.seasonLabel})인데 순위 캐시가 없다`,
         });
       }
