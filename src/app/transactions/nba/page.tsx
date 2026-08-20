@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
 import AmbientGlow from "@/components/AmbientGlow";
-import { Wallet, Trophy } from "lucide-react";
+import { Wallet, Trophy, Newspaper } from "lucide-react";
 
 export const revalidate = 1800; // 30분
 
@@ -137,6 +137,12 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
             className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             <Trophy className="h-3.5 w-3.5" aria-hidden /> NBA 경기·순위
+          </Link>
+          <Link
+            href="/news?sport=basketball"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <Newspaper className="h-3.5 w-3.5" aria-hidden /> 농구 뉴스
           </Link>
         </div>
       </header>

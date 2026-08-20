@@ -12,6 +12,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import BoardTabs from "@/components/BoardTabs";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url";
+import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
 
 export const revalidate = 300; // 5분 — 발행 주기가 2시간이라 충분
 
@@ -37,6 +38,16 @@ const SPORT_STYLE: Record<string, string> = {
   baseball: "bg-amber-500/10 text-amber-600 ring-amber-500/20 dark:text-amber-400",
   basketball: "bg-orange-500/10 text-orange-600 ring-orange-500/20 dark:text-orange-400",
   hockey: "bg-sky-500/10 text-sky-600 ring-sky-500/20 dark:text-sky-400",
+};
+
+// NBA 트랜잭션 유형 → 목록 말머리. /transactions/nba 와 같은 라벨을 쓴다.
+const TX_TAG: Record<string, string> = {
+  trade: "트레이드",
+  signing: "계약",
+  short_term: "단기계약",
+  waive: "방출",
+  staff: "감독·프런트",
+  other: "이적",
 };
 
 export const metadata: Metadata = {
@@ -98,30 +109,95 @@ export default async function NewsPage({ searchParams }: Props) {
 
   const where = { category: "BRIEFING", ...(sportFilter ? { sport: sportFilter } : {}) };
 
-  const [posts, counts] = await Promise.all([
+  // NBA 트랜잭션도 이 목록의 소식이다 — 농구 브리핑은 1건인데 트랜잭션은 287건(2026-08-20 실측)
+  // 이라, 빼면 농구 탭이 사실상 빈 화면이다. 축구·야구·하키 탭에서는 섞이지 않는다.
+  const withTx = sportFilter === null || sportFilter === "basketball";
+  // 두 소스를 날짜순으로 합치므로 각각 현재 페이지까지를 넉넉히 받아 와 잘라 쓴다.
+  const need = cur * PAGE_SIZE;
+
+  const [postRows, counts, txRows, txTotal] = await Promise.all([
     prisma.post.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: (cur - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      take: need,
       select: { id: true, title: true, content: true, sport: true, views: true, commentCount: true, createdAt: true },
     }),
     prisma.post.groupBy({ by: ["sport"], _count: true, where: { category: "BRIEFING" } }),
+    withTx
+      ? prisma.sportsTransaction.findMany({
+          where: { league: "NBA" },
+          orderBy: [{ date: "desc" }, { id: "asc" }],
+          take: need,
+          select: { id: true, date: true, category: true, playerName: true, descriptionKo: true, description: true },
+        })
+      : Promise.resolve([]),
+    prisma.sportsTransaction.count({ where: { league: "NBA" } }),
   ]);
 
   const bySport = new Map(counts.map((g) => [g.sport, g._count]));
-  const totalAll = counts.reduce((s, g) => s + g._count, 0);
-  const total = sportFilter ? (bySport.get(sportFilter) ?? 0) : totalAll;
+  const totalAll = counts.reduce((s, g) => s + g._count, 0) + txTotal;
+  // 종목 건수 — 농구는 브리핑 + 트랜잭션. 탭 배지와 페이지 수가 같은 식을 써야 어긋나지 않는다.
+  const sportCount = (code: string) => (bySport.get(code) ?? 0) + (code === "basketball" ? txTotal : 0);
+  const total = sportFilter ? sportCount(sportFilter) : totalAll;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // 원문 출처 — Post 본문엔 링크만 있고 매체명이 구조화돼 있지 않아 NewsBriefing 에서 가져온다.
-  const sources = posts.length
+  const sources = postRows.length
     ? await prisma.newsBriefing.findMany({
-        where: { postId: { in: posts.map((p) => p.id) } },
+        where: { postId: { in: postRows.map((p) => p.id) } },
         select: { postId: true, sourceName: true },
       })
     : [];
   const srcByPost = new Map(sources.map((s) => [s.postId, s.sourceName]));
+
+  // 브리핑 글과 트랜잭션을 같은 모양으로 맞춰 날짜순 한 목록으로.
+  interface FeedItem {
+    key: string;
+    date: Date;
+    sport: string;
+    tag: string | null;
+    title: string;
+    sub: string; // 목록 둘째 줄 (발췌 또는 원문)
+    href: string;
+    source: string | null;
+    views: number | null;
+    comments: number;
+  }
+
+  const postItems: FeedItem[] = postRows.map((p) => {
+    const { tag, rest } = splitTag(p.title);
+    return {
+      key: `post-${p.id}`,
+      date: p.createdAt,
+      sport: p.sport ?? "soccer",
+      tag,
+      title: rest,
+      sub: excerpt(p.content),
+      href: `/analysis/${p.id}`,
+      source: srcByPost.get(p.id) ?? null,
+      views: p.views,
+      comments: p.commentCount,
+    };
+  });
+
+  const txItems: FeedItem[] = txRows.map((t) => ({
+    key: `tx-${t.id}`,
+    date: t.date,
+    sport: "basketball",
+    tag: TX_TAG[t.category] ?? TX_TAG.other,
+    title: t.descriptionKo || t.description,
+    // 한글 번역이 있으면 영문 원문을 둘째 줄에 — /transactions/nba 와 같은 방식.
+    sub: t.descriptionKo ? t.description : "",
+    // 선수 페이지가 있으면 그쪽(이동 이력 탭까지 이어진다), 없으면 트랜잭션 피드.
+    href: nbaPlayerHref(lookupNbaPlayer(t.playerName)) ?? "/transactions/nba",
+    source: "ESPN 트랜잭션",
+    views: null,
+    comments: 0,
+  }));
+
+  const items = [...postItems, ...txItems]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
 
   const href = (p: number, s: string | null = sportFilter) => {
     const q = new URLSearchParams();
@@ -140,11 +216,12 @@ export default async function NewsPage({ searchParams }: Props) {
     url: `${SITE_URL}/news`,
     mainEntity: {
       "@type": "ItemList",
-      itemListElement: posts.slice(0, 20).map((p, i) => ({
+      // 트랜잭션은 개별 상세 URL 이 없어 넣지 않는다 — 같은 주소가 반복되면 ItemList 가 망가진다.
+      itemListElement: postItems.slice(0, 20).map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `${SITE_URL}/analysis/${p.id}`,
-        name: splitTag(p.title).rest,
+        url: `${SITE_URL}${p.href}`,
+        name: p.title,
       })),
     },
   };
@@ -175,7 +252,7 @@ export default async function NewsPage({ searchParams }: Props) {
       <div className="mb-5 flex flex-wrap gap-2">
         {SPORT_TABS.map((t) => {
           const on = sportFilter === t.code;
-          const n = t.code === null ? totalAll : (bySport.get(t.code) ?? 0);
+          const n = t.code === null ? totalAll : sportCount(t.code);
           return (
             <Link
               key={t.label}
@@ -194,61 +271,60 @@ export default async function NewsPage({ searchParams }: Props) {
         })}
       </div>
 
-      {posts.length === 0 ? (
+      {items.length === 0 ? (
         <p className="text-sm text-neutral-500 py-16 text-center">
           아직 브리핑이 없습니다. 곧 첫 소식이 올라옵니다.
         </p>
       ) : (
         <div className="overflow-hidden rounded-[1.5rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <ul className="divide-y divide-black/5 dark:divide-white/5">
-            {posts.map((p) => {
-              const { tag, rest } = splitTag(p.title);
-              const sp = p.sport ?? "soccer";
-              const src = srcByPost.get(p.id);
-              return (
-                <li key={p.id}>
-                  <Link
-                    href={`/analysis/${p.id}`}
-                    className="group flex flex-col gap-1.5 px-4 sm:px-6 py-3.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
-                  >
-                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
-                      <span
-                        className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold ring-1 ${
-                          SPORT_STYLE[sp] ?? SPORT_STYLE.soccer
-                        }`}
-                      >
-                        {SPORT_LABEL[sp] ?? "축구"}
-                      </span>
-                      {tag && (
-                        <span className="shrink-0 rounded-md bg-neutral-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
-                          {tag}
-                        </span>
-                      )}
-                      <span className="font-semibold text-[15px] sm:text-base leading-snug break-keep transition-colors group-hover:text-sky-600 dark:group-hover:text-sky-400">
-                        {rest}
-                      </span>
-                      {p.commentCount > 0 && (
-                        <span className="shrink-0 text-xs font-semibold text-rose-500">
-                          [{p.commentCount}]
-                        </span>
-                      )}
+            {items.map((it) => (
+              <li key={it.key}>
+                <Link
+                  href={it.href}
+                  className="group flex flex-col gap-1.5 px-4 sm:px-6 py-3.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
+                >
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+                    <span
+                      className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold ring-1 ${
+                        SPORT_STYLE[it.sport] ?? SPORT_STYLE.soccer
+                      }`}
+                    >
+                      {SPORT_LABEL[it.sport] ?? "축구"}
                     </span>
+                    {it.tag && (
+                      <span className="shrink-0 rounded-md bg-neutral-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
+                        {it.tag}
+                      </span>
+                    )}
+                    <span className="font-semibold text-[15px] sm:text-base leading-snug break-keep transition-colors group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                      {it.title}
+                    </span>
+                    {it.comments > 0 && (
+                      <span className="shrink-0 text-xs font-semibold text-rose-500">[{it.comments}]</span>
+                    )}
+                  </span>
 
+                  {it.sub && (
                     <span className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 leading-relaxed">
-                      {excerpt(p.content)}
+                      {it.sub}
                     </span>
+                  )}
 
-                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400">
-                      {src && <span className="font-medium text-neutral-500 dark:text-neutral-400">{src}</span>}
-                      {src && <span aria-hidden>·</span>}
-                      <span>{timeAgo(p.createdAt)}</span>
-                      <span aria-hidden>·</span>
-                      <span>조회 {p.views}</span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-400">
+                    {it.source && <span className="font-medium text-neutral-500 dark:text-neutral-400">{it.source}</span>}
+                    {it.source && <span aria-hidden>·</span>}
+                    <span>{timeAgo(it.date)}</span>
+                    {it.views != null && (
+                      <>
+                        <span aria-hidden>·</span>
+                        <span>조회 {it.views}</span>
+                      </>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -279,7 +355,13 @@ export default async function NewsPage({ searchParams }: Props) {
 
       <p className="mt-8 text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 break-keep">
         공신력 있는 해외 보도의 사실을 확인해 한국어로 재구성한 브리핑입니다. 전문 번역이 아니며,
-        각 글에 원문 출처를 링크로 밝힙니다. 자세한 내용은 원문에서 확인하세요.
+        각 글에 원문 출처를 링크로 밝힙니다. 자세한 내용은 원문에서 확인하세요.{" "}
+        &lsquo;계약 · 트레이드 · 방출&rsquo; 말머리가 붙은 항목은 ESPN 트랜잭션 피드를 옮긴 것으로,
+        전체 목록은{" "}
+        <Link href="/transactions/nba" className="text-sky-600 hover:underline dark:text-sky-400">
+          NBA 트랜잭션
+        </Link>{" "}
+        에서 볼 수 있습니다.
       </p>
     </main>
   );
