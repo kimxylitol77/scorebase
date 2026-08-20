@@ -1,9 +1,14 @@
-// /transactions/nba — NBA 트랜잭션 피드 (트레이드·FA계약·방출·단기계약·감독 인사).
+// /transactions/{nba|mlb|nhl} — 리그별 트랜잭션 피드 (트레이드·FA계약·방출·단기계약·감독 인사).
 // 데이터: ESPN transactions → SportsTransaction (cron fetch-transactions, 일 1회).
 // 설명은 Haiku 한글 번역(descriptionKo) 우선 + 영문 원문 보조. 25건 페이지네이션.
+//
+// 원래 /transactions/nba 전용이었다. 야구·하키 트랜잭션이 /news 에 편입되면서 "더 보기"로
+// 갈 곳이 필요해져 리그를 파라미터로 뺐다 — 같은 화면을 세 벌 두지 않으려고.
+// 선수 사진·선수 페이지 링크는 NBA 만 매핑이 있어 NBA 에서만 붙는다(나머지는 팀 로고·팀 링크).
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
@@ -13,6 +18,18 @@ import { Wallet, Trophy, Newspaper } from "lucide-react";
 export const revalidate = 1800; // 30분
 
 const PER_PAGE = 25;
+
+// URL 조각 → 리그 설정. 여기 없는 값은 404 (임의 문자열로 빈 페이지가 색인되지 않게).
+const LEAGUES = {
+  nba: { code: "NBA", label: "NBA", sport: "basketball", sportLabel: "농구" },
+  mlb: { code: "MLB", label: "MLB", sport: "baseball", sportLabel: "야구" },
+  nhl: { code: "NHL", label: "NHL", sport: "hockey", sportLabel: "하키" },
+} as const;
+type LeagueKey = keyof typeof LEAGUES;
+
+export function generateStaticParams() {
+  return Object.keys(LEAGUES).map((league) => ({ league }));
+}
 
 const CATS: { key: string; label: string; cls: string }[] = [
   { key: "trade", label: "트레이드", cls: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" },
@@ -24,12 +41,16 @@ const CATS: { key: string; label: string; cls: string }[] = [
 ];
 const CAT_MAP = Object.fromEntries(CATS.map((c) => [c.key, c]));
 
-export const metadata: Metadata = {
-  title: "NBA 트랜잭션 — 트레이드·FA·방출",
-  description:
-    "NBA 트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로 한눈에. 선수 사진·유형별 필터 제공. 매일 자동 갱신.",
-  alternates: { canonical: "https://www.scorebase.kr/transactions/nba" },
-};
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { league } = await params;
+  const meta = LEAGUES[league as LeagueKey];
+  if (!meta) return { title: "Not Found" };
+  return {
+    title: `${meta.label} 트랜잭션 — 트레이드·FA·방출`,
+    description: `${meta.label} 트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로 한눈에. 유형별 필터 제공. 매일 자동 갱신.`,
+    alternates: { canonical: `https://www.scorebase.kr/transactions/${league}` },
+  };
+}
 
 function dateLabel(d: Date): string {
   const wk = ["일", "월", "화", "수", "목", "금", "토"][d.getUTCDay()];
@@ -37,12 +58,12 @@ function dateLabel(d: Date): string {
 }
 
 /** cat·page 보존 href. */
-function txHref(cat: string | null, page: number): string {
+function txHref(league: string, cat: string | null, page: number): string {
   const p = new URLSearchParams();
   if (cat) p.set("cat", cat);
   if (page > 1) p.set("page", String(page));
   const qs = p.toString();
-  return qs ? `/transactions/nba?${qs}` : "/transactions/nba";
+  return qs ? `/transactions/${league}?${qs}` : `/transactions/${league}`;
 }
 
 function pageList(cur: number, total: number): (number | "…")[] {
@@ -60,17 +81,23 @@ function pageList(cur: number, total: number): (number | "…")[] {
 }
 
 interface Props {
+  params: Promise<{ league: string }>;
   searchParams: Promise<{ cat?: string; page?: string }>;
 }
 
-export default async function NbaTransactionsPage({ searchParams }: Props) {
+export default async function TransactionsPage({ params, searchParams }: Props) {
+  const { league } = await params;
+  const meta = LEAGUES[league as LeagueKey];
+  if (!meta) notFound();
+  const code = meta.code;
+
   const { cat, page: pageParam } = await searchParams;
   const activeCat = cat && CAT_MAP[cat] ? cat : null;
-  const where = { league: "NBA", ...(activeCat ? { category: activeCat } : {}) };
+  const where = { league: code, ...(activeCat ? { category: activeCat } : {}) };
 
   const counts = await prisma.sportsTransaction.groupBy({
     by: ["category"],
-    where: { league: "NBA" },
+    where: { league: code },
     _count: true,
   });
   const countByCat = Object.fromEntries(counts.map((c) => [c.category, c._count]));
@@ -89,12 +116,12 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
   // 팀명 → 팀 페이지 id. ESPN teamName 이 DB Team.name 과 같은 표기라 그대로 매칭된다
   // (2026-08-20 실측 30개 팀 전부 적중). 같은 이름이 두 행인 것(TBD)은 어느 쪽인지
   // 못 고르므로 링크하지 않는다.
-  const nbaTeams = await prisma.team.findMany({
-    where: { league: "NBA" },
+  const leagueTeams = await prisma.team.findMany({
+    where: { league: code },
     select: { id: true, name: true },
   });
   const teamIdByName = new Map<string, number | null>();
-  for (const t of nbaTeams) {
+  for (const t of leagueTeams) {
     const k = t.name.toLowerCase();
     teamIdByName.set(k, teamIdByName.has(k) ? null : t.id); // 중복 이름 → null(비링크)
   }
@@ -114,35 +141,35 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
           <span>›</span>
-          <Link href="/leagues/NBA" className="hover:underline">NBA</Link>
+          <Link href={`/leagues/${code}`} className="hover:underline">{meta.label}</Link>
           <span>›</span>
           <span className="text-neutral-600 dark:text-neutral-300">트랜잭션</span>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 이적 시장
         </span>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NBA 트랜잭션</h1>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{meta.label} 트랜잭션</h1>
         <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로. 매일 자동 갱신 · 데이터 ESPN.
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link
-            href="/salaries/nba"
+            href={`/salaries/${league}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            <Wallet className="h-3.5 w-3.5" aria-hidden /> NBA 연봉 랭킹
+            <Wallet className="h-3.5 w-3.5" aria-hidden /> {meta.label} 연봉 랭킹
           </Link>
           <Link
-            href="/leagues/NBA"
+            href={`/leagues/${code}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            <Trophy className="h-3.5 w-3.5" aria-hidden /> NBA 경기·순위
+            <Trophy className="h-3.5 w-3.5" aria-hidden /> {meta.label} 경기·순위
           </Link>
           <Link
-            href="/news?sport=basketball"
+            href={`/news?sport=${meta.sport}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            <Newspaper className="h-3.5 w-3.5" aria-hidden /> 농구 뉴스
+            <Newspaper className="h-3.5 w-3.5" aria-hidden /> {meta.sportLabel} 뉴스
           </Link>
         </div>
       </header>
@@ -150,7 +177,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
       {/* 카테고리 필터 칩 — 클릭 시 1페이지로 */}
       <nav className="flex flex-wrap gap-1.5">
         <Link
-          href="/transactions/nba"
+          href={`/transactions/${league}`}
           className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             !activeCat
               ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
@@ -166,7 +193,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
           return (
             <Link
               key={c.key}
-              href={txHref(c.key, 1)}
+              href={txHref(league, c.key, 1)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 on
                   ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
@@ -192,12 +219,14 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
               <ul className="space-y-1.5">
                 {items.map((t) => {
                   const c = CAT_MAP[t.category] ?? CAT_MAP.other;
-                  const koTeam = t.teamName ? toKoreanTeamName(t.teamName, "NBA") : null;
+                  const koTeam = t.teamName ? toKoreanTeamName(t.teamName, code) : null;
                   const teamId = t.teamName ? teamIdByName.get(t.teamName.toLowerCase()) ?? null : null;
                   const teamHref = teamId != null ? `/teams/${teamId}` : null;
                   // 선수 링크는 트레이드 포함 전 유형에서 찾는다 (2026-08-20 실측: 트레이드
                   // 59건 중 42건이 선수 페이지 보유 — 빼면 그만큼 갈 데를 잃는다).
-                  const player = lookupNbaPlayer(t.playerName);
+                  // 선수 사전은 NBA 만 있다. 다른 리그에서 이름으로 억지 매칭하면 동명이인이
+                  // 걸리므로 시도하지 않는다 — 그 경우 아바타는 팀 로고, 링크는 팀 페이지.
+                  const player = code === "NBA" ? lookupNbaPlayer(t.playerName) : null;
                   const href = nbaPlayerHref(player);
                   // 사진은 기존대로 단일 선수(계약·방출·단기)만 — 트레이드는 여러 선수가 얽혀
                   // 한 명 얼굴을 세우면 그 사람 건으로 읽힌다. 트레이드·감독은 팀로고.
@@ -254,7 +283,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-1 text-sm">
           {page > 1 ? (
-            <Link href={txHref(activeCat, page - 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹ 이전</Link>
+            <Link href={txHref(league, activeCat, page - 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹ 이전</Link>
           ) : (
             <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 select-none">‹ 이전</span>
           )}
@@ -264,7 +293,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
             ) : (
               <Link
                 key={p}
-                href={txHref(activeCat, p)}
+                href={txHref(league, activeCat, p)}
                 aria-current={p === page ? "page" : undefined}
                 className={`min-w-[34px] rounded-lg px-2.5 py-1.5 text-center font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   p === page
@@ -277,7 +306,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
             ),
           )}
           {page < totalPages ? (
-            <Link href={txHref(activeCat, page + 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">다음 ›</Link>
+            <Link href={txHref(league, activeCat, page + 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">다음 ›</Link>
           ) : (
             <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 select-none">다음 ›</span>
           )}
@@ -286,7 +315,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
 
       <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
         한국어 번역은 AI(Claude Fable 5)가 생성하며 영문 원문을 함께 표기합니다. 트레이드는 한 건에 여러 선수가 포함될 수 있습니다.{" "}
-        <Link href="/leagues/NBA" className="text-blue-600 dark:text-blue-400 hover:underline">NBA 경기·순위</Link>도 함께 확인하세요.
+        <Link href={`/leagues/${code}`} className="text-blue-600 dark:text-blue-400 hover:underline">{meta.label} 경기·순위</Link>도 함께 확인하세요.
       </footer>
     </main>
   );

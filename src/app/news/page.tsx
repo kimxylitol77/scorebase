@@ -222,12 +222,11 @@ export default async function NewsPage({ searchParams }: Props) {
     title: t.descriptionKo || t.description,
     // 한글 번역이 있으면 영문 원문을 둘째 줄에 — /transactions/nba 와 같은 방식.
     sub: t.descriptionKo ? t.description : "",
-    // NBA 는 선수 페이지(이동 이력 탭까지 이어진다) 또는 트랜잭션 피드로.
-    // MLB 는 선수 매핑도 트랜잭션 페이지도 없어 링크를 걸지 않는다 — 없는 주소로 보내면 404 다.
+    // NBA 는 선수 사전이 있어 선수 페이지(이동 이력 탭까지 이어진다)로, 매칭 실패하거나
+    // 다른 리그면 해당 리그 트랜잭션 피드로 — 세 리그 다 갈 곳이 있다.
     href:
-      t.league === "NBA"
-        ? (nbaPlayerHref(lookupNbaPlayer(t.playerName)) ?? "/transactions/nba")
-        : null,
+      (t.league === "NBA" ? nbaPlayerHref(lookupNbaPlayer(t.playerName)) : null) ??
+      `/transactions/${t.league.toLowerCase()}`,
     source: "ESPN 트랜잭션",
     views: null,
     comments: 0,
