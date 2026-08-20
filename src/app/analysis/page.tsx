@@ -649,8 +649,11 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         </div>
       )}
 
+      {/* 목록 하단 — 페이지네이션은 가운데, 글쓰기는 오른쪽 (모바일은 아래 가운데) */}
+      {(totalPages > 1 || !isBriefing) && (
+      <div className="relative mt-8 flex flex-col items-center gap-4">
       {totalPages > 1 && (
-        <nav className="flex justify-center items-center gap-1.5 mt-8">
+        <nav className="flex justify-center items-center gap-1.5">
           {cur > 1 && (
             <Link
               href={href(cur - 1)}
@@ -687,6 +690,21 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             </Link>
           )}
         </nav>
+      )}
+      {!isBriefing && (
+        <Link
+          href={isFreeBoard ? "/community/new" : "/analysis/new"}
+          className={`group inline-flex items-center gap-2 rounded-full bg-rose-600 py-2 pl-5 pr-2 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(225,29,72,0.6)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:bg-rose-700 active:scale-[0.98] ${
+            totalPages > 1 ? "sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2" : ""
+          }`}
+        >
+          글쓰기
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+            <SquarePen className="h-3.5 w-3.5" aria-hidden />
+          </span>
+        </Link>
+      )}
+      </div>
       )}
 
       {!userId && (
