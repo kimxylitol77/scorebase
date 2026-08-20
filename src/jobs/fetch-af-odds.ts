@@ -64,9 +64,22 @@ async function afGet<T>(path: string): Promise<T> {
   return (await r.json()) as T;
 }
 
+// 발음부호 제거 — af 는 폴란드어·체코어 팀명을 발음부호까지 살려 주는데(Rakow/Hradec 등)
+// ts(DB) 는 ASCII 로만 준다. 같은 팀의 이 표기차를 흡수한다. NFD 분해 후 결합 문자를 떼고, 분해되지 않는 글자(l/o/d/ss)는
+// 직접 치환한다. 이 단계가 없으면 뒤의 [^a-z0-9] 제거가 발음부호 글자를 통째로 지워
+// (rakow -> rakw) 유사 판정이 빗나간다 — 2026-08-20 UECL 하이두크-라쿠프 배당 누락 원인.
+function deaccent(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0142\u0141]/g, "l")
+    .replace(/[\u00f8\u00d8]/g, "o")
+    .replace(/[\u0111\u0110\u00f0\u00d0]/g, "d")
+    .replace(/\u00df/g, "ss");
+}
 // 팀명 정규화 — ts(DB) 이름과 af 이름 표기 차이 흡수용 (소문자·영숫자만).
 function norm(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return deaccent(s).toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 // 약한 유사 판정: 한쪽이 다른쪽 포함 또는 4자 이상 공통 토큰 존재.
 function similar(a: string, b: string): boolean {
@@ -74,8 +87,8 @@ function similar(a: string, b: string): boolean {
   const nb = norm(b);
   if (!na || !nb) return false;
   if (na.includes(nb) || nb.includes(na)) return true;
-  const ta = a.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4);
-  const tb = new Set(b.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4));
+  const ta = deaccent(a).toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4);
+  const tb = new Set(deaccent(b).toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 4));
   return ta.some((t) => tb.has(t));
 }
 
