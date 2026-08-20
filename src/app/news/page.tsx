@@ -10,9 +10,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import BoardTabs from "@/components/BoardTabs";
+import Pagination from "@/components/Pagination";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
+import type { TxLeague } from "@/lib/sports/espn-transactions";
 
 export const revalidate = 300; // 5분 — 발행 주기가 2시간이라 충분
 
@@ -41,12 +43,13 @@ const SPORT_STYLE: Record<string, string> = {
 };
 
 // 종목 → ESPN 트랜잭션 리그. 브리핑 재료(원문 본문)가 없는 종목을 트랜잭션이 채운다.
-// 축구·하키는 넣지 않는다 — 축구는 브리핑이 충분하고, 하키는 아직 수집하지 않는다.
-const TX_LEAGUE: Record<string, "NBA" | "MLB"> = {
+// 축구는 넣지 않는다 — BBC·The Guardian 이 본문을 줘서 브리핑만으로 충분하다.
+const TX_LEAGUE: Record<string, TxLeague> = {
   basketball: "NBA",
   baseball: "MLB",
+  hockey: "NHL",
 };
-const TX_SPORT: Record<string, string> = { NBA: "basketball", MLB: "baseball" };
+const TX_SPORT: Record<string, string> = { NBA: "basketball", MLB: "baseball", NHL: "hockey" };
 
 // 트랜잭션 유형 → 목록 말머리. /transactions/nba 와 같은 라벨을 쓴다.
 const TX_TAG: Record<string, string> = {
@@ -61,7 +64,7 @@ const TX_TAG: Record<string, string> = {
 export const metadata: Metadata = {
   title: "해외 스포츠 뉴스 — 공신력 소스 한국어 브리핑",
   description:
-    "BBC·The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고 NBA·MLB 트랜잭션을 함께 모았습니다. 해외축구 이적·계약·부상·감독 소식을 하루 여러 차례 업데이트합니다.",
+    "BBC·The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고 NBA·MLB·NHL 트랜잭션을 함께 모았습니다. 해외축구 이적·계약·부상·감독 소식을 하루 여러 차례 업데이트합니다.",
   keywords: [
     "해외축구 뉴스",
     "해외축구 이적",
@@ -75,7 +78,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/news` },
   openGraph: {
     title: "해외 스포츠 뉴스 — 공신력 소스 한국어 브리핑",
-    description: "BBC·The Guardian 해외축구 브리핑과 NBA·MLB 트랜잭션을 한국어로",
+    description: "BBC·The Guardian 해외축구 브리핑과 NBA·MLB·NHL 트랜잭션을 한국어로",
     url: `${SITE_URL}/news`,
     type: "website",
   },
@@ -132,11 +135,11 @@ export default async function NewsPage({ searchParams }: Props) {
 
   // 트랜잭션도 이 목록의 소식이다 — 농구·야구는 브리핑 재료를 주는 소스가 없어(제목만 오는
   // 피드뿐) 빼면 탭이 사실상 빈 화면이다. 축구·하키 탭에서는 섞이지 않는다.
-  const txLeagues: ("NBA" | "MLB")[] = sportFilter
+  const txLeagues: TxLeague[] = sportFilter
     ? TX_LEAGUE[sportFilter]
       ? [TX_LEAGUE[sportFilter]]
       : []
-    : ["NBA", "MLB"];
+    : ["NBA", "MLB", "NHL"];
   const withTx = txLeagues.length > 0;
   // 두 소스를 날짜순으로 합치므로 각각 현재 페이지까지를 넉넉히 받아 와 잘라 쓴다.
   const need = cur * PAGE_SIZE;
@@ -275,7 +278,7 @@ export default async function NewsPage({ searchParams }: Props) {
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-3 break-keep leading-relaxed">
           BBC · The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고,
-          NBA · MLB 트랜잭션(계약 · 트레이드 · 방출)을 함께 모았습니다. 해외축구의 이적 · 계약 ·
+          NBA · MLB · NHL 트랜잭션(계약 · 트레이드 · 방출)을 함께 모았습니다. 해외축구의 이적 · 계약 ·
           부상 · 감독 소식을 하루 여러 차례 업데이트합니다.
         </p>
         <div className="mt-6">
@@ -364,29 +367,7 @@ export default async function NewsPage({ searchParams }: Props) {
         </div>
       )}
 
-      {totalPages > 1 && (
-        <nav className="mt-8 flex items-center justify-center gap-1.5" aria-label="페이지">
-          {cur > 1 && (
-            <Link
-              href={href(cur - 1)}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-50 dark:text-neutral-400 dark:ring-white/10 dark:hover:bg-white/5"
-            >
-              이전
-            </Link>
-          )}
-          <span className="px-3 py-1.5 text-sm text-neutral-500">
-            {cur} / {totalPages}
-          </span>
-          {cur < totalPages && (
-            <Link
-              href={href(cur + 1)}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-50 dark:text-neutral-400 dark:ring-white/10 dark:hover:bg-white/5"
-            >
-              다음
-            </Link>
-          )}
-        </nav>
-      )}
+      <Pagination cur={cur} totalPages={totalPages} href={href} />
 
       <p className="mt-8 text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 break-keep">
         공신력 있는 해외 보도의 사실을 확인해 한국어로 재구성한 브리핑입니다. 전문 번역이 아니며,
