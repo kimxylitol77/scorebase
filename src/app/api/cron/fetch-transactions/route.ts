@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
   }
 
   const param = new URL(req.url).searchParams.get("leagues");
-  const leagues = (param ? param.split(",").filter(Boolean) : ["NBA"]) as TxLeague[];
+  // 기본 NBA + MLB — 둘 다 /news 의 해당 종목 탭을 채우는 재료다(브리핑 소스가 제목만 준다).
+  const leagues = (param ? param.split(",").filter(Boolean) : ["NBA", "MLB"]) as TxLeague[];
 
   try {
     const summary = await runFetchTransactions(leagues);

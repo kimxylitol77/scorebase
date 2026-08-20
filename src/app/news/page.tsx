@@ -40,7 +40,15 @@ const SPORT_STYLE: Record<string, string> = {
   hockey: "bg-sky-500/10 text-sky-600 ring-sky-500/20 dark:text-sky-400",
 };
 
-// NBA 트랜잭션 유형 → 목록 말머리. /transactions/nba 와 같은 라벨을 쓴다.
+// 종목 → ESPN 트랜잭션 리그. 브리핑 재료(원문 본문)가 없는 종목을 트랜잭션이 채운다.
+// 축구·하키는 넣지 않는다 — 축구는 브리핑이 충분하고, 하키는 아직 수집하지 않는다.
+const TX_LEAGUE: Record<string, "NBA" | "MLB"> = {
+  basketball: "NBA",
+  baseball: "MLB",
+};
+const TX_SPORT: Record<string, string> = { NBA: "basketball", MLB: "baseball" };
+
+// 트랜잭션 유형 → 목록 말머리. /transactions/nba 와 같은 라벨을 쓴다.
 const TX_TAG: Record<string, string> = {
   trade: "트레이드",
   signing: "계약",
@@ -53,7 +61,7 @@ const TX_TAG: Record<string, string> = {
 export const metadata: Metadata = {
   title: "해외 스포츠 뉴스 — 공신력 소스 한국어 브리핑",
   description:
-    "BBC·The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고 NBA 트랜잭션을 함께 모았습니다. 해외축구 이적·계약·부상·감독 소식을 하루 여러 차례 업데이트합니다.",
+    "BBC·The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고 NBA·MLB 트랜잭션을 함께 모았습니다. 해외축구 이적·계약·부상·감독 소식을 하루 여러 차례 업데이트합니다.",
   keywords: [
     "해외축구 뉴스",
     "해외축구 이적",
@@ -62,11 +70,12 @@ export const metadata: Metadata = {
     "가디언 축구",
     "프리미어리그 뉴스",
     "NBA 트레이드 소식",
+    "MLB 트레이드 소식",
   ],
   alternates: { canonical: `${SITE_URL}/news` },
   openGraph: {
     title: "해외 스포츠 뉴스 — 공신력 소스 한국어 브리핑",
-    description: "BBC·The Guardian 해외축구 브리핑과 NBA 트랜잭션을 한국어로",
+    description: "BBC·The Guardian 해외축구 브리핑과 NBA·MLB 트랜잭션을 한국어로",
     url: `${SITE_URL}/news`,
     type: "website",
   },
@@ -101,6 +110,19 @@ function timeAgo(d: Date): string {
   return `${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
 }
 
+/** 목록 한 줄 — 연결할 페이지가 있으면 링크, 없으면 평범한 행. 야구 트랜잭션이 후자다. */
+function Row({ href, children }: { href: string | null; children: React.ReactNode }) {
+  const cls =
+    "group flex flex-col gap-1.5 px-4 sm:px-6 py-3.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]";
+  return href ? (
+    <Link href={href} className={cls}>
+      {children}
+    </Link>
+  ) : (
+    <div className={cls}>{children}</div>
+  );
+}
+
 export default async function NewsPage({ searchParams }: Props) {
   const { page, sport } = await searchParams;
   const cur = Math.max(1, Number(page) || 1);
@@ -108,13 +130,18 @@ export default async function NewsPage({ searchParams }: Props) {
 
   const where = { category: "BRIEFING", ...(sportFilter ? { sport: sportFilter } : {}) };
 
-  // NBA 트랜잭션도 이 목록의 소식이다 — 농구 브리핑은 1건인데 트랜잭션은 287건(2026-08-20 실측)
-  // 이라, 빼면 농구 탭이 사실상 빈 화면이다. 축구·야구·하키 탭에서는 섞이지 않는다.
-  const withTx = sportFilter === null || sportFilter === "basketball";
+  // 트랜잭션도 이 목록의 소식이다 — 농구·야구는 브리핑 재료를 주는 소스가 없어(제목만 오는
+  // 피드뿐) 빼면 탭이 사실상 빈 화면이다. 축구·하키 탭에서는 섞이지 않는다.
+  const txLeagues: ("NBA" | "MLB")[] = sportFilter
+    ? TX_LEAGUE[sportFilter]
+      ? [TX_LEAGUE[sportFilter]]
+      : []
+    : ["NBA", "MLB"];
+  const withTx = txLeagues.length > 0;
   // 두 소스를 날짜순으로 합치므로 각각 현재 페이지까지를 넉넉히 받아 와 잘라 쓴다.
   const need = cur * PAGE_SIZE;
 
-  const [postRows, counts, txRows, txTotal] = await Promise.all([
+  const [postRows, counts, txRows, txCounts] = await Promise.all([
     prisma.post.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -124,19 +151,24 @@ export default async function NewsPage({ searchParams }: Props) {
     prisma.post.groupBy({ by: ["sport"], _count: true, where: { category: "BRIEFING" } }),
     withTx
       ? prisma.sportsTransaction.findMany({
-          where: { league: "NBA" },
+          where: { league: { in: txLeagues } },
           orderBy: [{ date: "desc" }, { id: "asc" }],
           take: need,
-          select: { id: true, date: true, category: true, playerName: true, descriptionKo: true, description: true },
+          select: { id: true, date: true, league: true, category: true, playerName: true, descriptionKo: true, description: true },
         })
       : Promise.resolve([]),
-    prisma.sportsTransaction.count({ where: { league: "NBA" } }),
+    // 탭 배지는 필터와 무관하게 리그별 전체 건수가 필요하다.
+    prisma.sportsTransaction.groupBy({ by: ["league"], _count: true }),
   ]);
 
   const bySport = new Map(counts.map((g) => [g.sport, g._count]));
-  const totalAll = counts.reduce((s, g) => s + g._count, 0) + txTotal;
-  // 종목 건수 — 농구는 브리핑 + 트랜잭션. 탭 배지와 페이지 수가 같은 식을 써야 어긋나지 않는다.
-  const sportCount = (code: string) => (bySport.get(code) ?? 0) + (code === "basketball" ? txTotal : 0);
+  // 우리가 목록에 싣는 리그만 총계에 넣는다 — 수집만 되고 안 싣는 리그가 생겨도 어긋나지 않게.
+  const txByLeague = new Map(txCounts.map((g) => [g.league, g._count]));
+  const txShown = Object.values(TX_LEAGUE).reduce((sum, lg) => sum + (txByLeague.get(lg) ?? 0), 0);
+  const totalAll = counts.reduce((s, g) => s + g._count, 0) + txShown;
+  // 종목 건수 — 농구·야구는 브리핑 + 트랜잭션. 탭 배지와 페이지 수가 같은 식을 써야 어긋나지 않는다.
+  const sportCount = (code: string) =>
+    (bySport.get(code) ?? 0) + (TX_LEAGUE[code] ? (txByLeague.get(TX_LEAGUE[code]) ?? 0) : 0);
   const total = sportFilter ? sportCount(sportFilter) : totalAll;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -157,7 +189,7 @@ export default async function NewsPage({ searchParams }: Props) {
     tag: string | null;
     title: string;
     sub: string; // 목록 둘째 줄 (발췌 또는 원문)
-    href: string;
+    href: string | null; // 연결할 페이지가 없으면 null (링크 없이 렌더)
     source: string | null;
     views: number | null;
     comments: number;
@@ -182,13 +214,17 @@ export default async function NewsPage({ searchParams }: Props) {
   const txItems: FeedItem[] = txRows.map((t) => ({
     key: `tx-${t.id}`,
     date: t.date,
-    sport: "basketball",
+    sport: TX_SPORT[t.league] ?? "basketball",
     tag: TX_TAG[t.category] ?? TX_TAG.other,
     title: t.descriptionKo || t.description,
     // 한글 번역이 있으면 영문 원문을 둘째 줄에 — /transactions/nba 와 같은 방식.
     sub: t.descriptionKo ? t.description : "",
-    // 선수 페이지가 있으면 그쪽(이동 이력 탭까지 이어진다), 없으면 트랜잭션 피드.
-    href: nbaPlayerHref(lookupNbaPlayer(t.playerName)) ?? "/transactions/nba",
+    // NBA 는 선수 페이지(이동 이력 탭까지 이어진다) 또는 트랜잭션 피드로.
+    // MLB 는 선수 매핑도 트랜잭션 페이지도 없어 링크를 걸지 않는다 — 없는 주소로 보내면 404 다.
+    href:
+      t.league === "NBA"
+        ? (nbaPlayerHref(lookupNbaPlayer(t.playerName)) ?? "/transactions/nba")
+        : null,
     source: "ESPN 트랜잭션",
     views: null,
     comments: 0,
@@ -239,7 +275,7 @@ export default async function NewsPage({ searchParams }: Props) {
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-3 break-keep leading-relaxed">
           BBC · The Guardian 등 공신력 있는 해외 보도를 한국어 브리핑으로 정리하고,
-          NBA 트랜잭션(계약 · 트레이드 · 방출)을 함께 모았습니다. 해외축구의 이적 · 계약 ·
+          NBA · MLB 트랜잭션(계약 · 트레이드 · 방출)을 함께 모았습니다. 해외축구의 이적 · 계약 ·
           부상 · 감독 소식을 하루 여러 차례 업데이트합니다.
         </p>
         <div className="mt-6">
@@ -282,10 +318,7 @@ export default async function NewsPage({ searchParams }: Props) {
           <ul className="divide-y divide-black/5 dark:divide-white/5">
             {items.map((it) => (
               <li key={it.key}>
-                <Link
-                  href={it.href}
-                  className="group flex flex-col gap-1.5 px-4 sm:px-6 py-3.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
-                >
+                <Row href={it.href}>
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
                     <span
                       className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold ring-1 ${
@@ -324,7 +357,7 @@ export default async function NewsPage({ searchParams }: Props) {
                       </>
                     )}
                   </span>
-                </Link>
+                </Row>
               </li>
             ))}
           </ul>
