@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import type Anthropic from "@anthropic-ai/sdk";
 import { claude, CLAUDE_MODEL } from "@/lib/ai/claude";
+import { trackLlmUsage } from "@/lib/ai/usage-track";
 import { TOOL_DEFS, executeTool } from "@/lib/chatbot/tools";
 import { consumeChatQuota, limitMessage } from "@/lib/rate-limit-distributed";
 import { prisma } from "@/lib/db";
@@ -162,6 +163,17 @@ export async function POST(req: Request) {
         tools: TOOL_DEFS,
         messages,
       });
+
+      // 계측 — generate() 를 안 거치고 SDK 를 직접 부르므로 여기서 직접 기록한다.
+      // 도구 호출은 턴마다 따로 과금되므로 루프 안에서 턴마다 센다.
+      // 캐시 읽기·생성분도 입력 토큰에 더한다(system 을 ephemeral 캐시로 태워 보낸다).
+      const u = response.usage;
+      await trackLlmUsage(
+        response.model,
+        u.input_tokens + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0),
+        u.output_tokens,
+        "chat",
+      );
 
       // assistant 메시지 누적
       messages.push({ role: "assistant", content: response.content });
