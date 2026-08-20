@@ -33,6 +33,7 @@ import { NhlPlayerView } from "./NhlViews";
 import { LolPlayerView } from "./LolViews";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { lookupNbaPlayerByBdlId } from "@/lib/sports/nba-players";
 import {
   SOCCER_PLAYER_PAGE_LEAGUES,
   SOCCER_PLAYER_PAGE_LEAGUE_SET,
@@ -145,6 +146,25 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     };
   }
   if (league && ["NBA", "NHL", "LOL"].includes(league)) {
+    // NBA 는 정적 사전(nba-players.json)으로 API 호출 없이 이름·포지션·팀 확보 —
+    // 제네릭 "선수 — NBA" 제목은 선수명 검색에 아예 안 실렸다(빙 실측 NBA 노출 0).
+    if (league === "NBA") {
+      const bdl = Number(pid);
+      const info = Number.isFinite(bdl) ? lookupNbaPlayerByBdlId(bdl) : null;
+      if (info) {
+        const POS_KO: Record<string, string> = { G: "가드", F: "포워드", C: "센터" };
+        const posKo = info.pos ? POS_KO[info.pos.charAt(0)] ?? null : null;
+        const teamKo = info.team ? toKoreanTeamName(info.team) || info.team : null;
+        const who = [teamKo, posKo].filter(Boolean).join(" ");
+        const noBit = info.number != null ? ` 등번호 ${info.number}번` : "";
+        return {
+          title: `${info.ko} — ${who || "NBA 선수"}${noBit} · 프로필·기록`,
+          description: `${who ? `${who} ` : "NBA "}${info.ko}(${info.name}) 프로필 — 시즌 평균 득점·리바운드·어시스트, 경기별 기록과 연봉·드래프트 정보. 스코어베이스.`,
+          keywords: [info.ko, `${info.ko} 프로필`, `${info.ko} 기록`, `${info.ko} 연봉`, info.name, "NBA"],
+          alternates: { canonical },
+        };
+      }
+    }
     return {
       title: `선수 — ${league}`,
       description: `${league} 선수 프로필 · 통계 · 최근 경기.`,

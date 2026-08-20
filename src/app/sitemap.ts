@@ -5,6 +5,8 @@ import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 import rawCanonical from "../../data/player-canonical-redirects.json";
+import rawTeamCoaches from "../../data/team-coaches.json";
+import rawCoachLegends from "../../data/coach-legends.json";
 
 // 자동 생성되는 sitemap.xml
 // 검색 엔진(Google, 네이버 등)에 사이트 구조를 알려준다.
@@ -293,6 +295,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // 감독 페이지 — 현직(team-coaches, ts coach id 보유) + 레전드 레지스트리. 경력·우승·전술
+  // 아카이브 데이터가 쌓여 있는데 sitemap 0개였던 것 보강 (2026-08-20, 빙 노출 2페이지뿐).
+  const coachIds = new Set<string>([
+    ...Object.values(rawTeamCoaches as Record<string, { id?: string }>)
+      .map((c) => c.id)
+      .filter((x): x is string => !!x),
+    ...Object.keys(rawCoachLegends as Record<string, unknown>),
+  ]);
+  const coachPages: MetadataRoute.Sitemap = [...coachIds].map((id) => ({
+    url: `${base}/coaches/${id}`,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
   // 팀 스쿼드 몸값 (view=team) — "맨유 스쿼드" 류 팀 단위 검색 수요 타깃.
   // 시장가치 데이터 보유한 빅5 팀만 (빈 페이지 = thin 회피). + 팀 가치 랭킹 view.
   const BIG5 = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
@@ -377,5 +393,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages, ...teamPages, ...ufcFighterPages, ...baseballPlayerPages];
+  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...coachPages, ...squadPages, ...teamPages, ...ufcFighterPages, ...baseballPlayerPages];
 }

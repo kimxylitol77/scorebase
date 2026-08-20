@@ -82,12 +82,49 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!c) return { title: "감독 미발견" };
   const career = CAREERS[id];
   const name = career?.nameKo || c.snap.nameKo || COACH_PHOTOS[id]?.nameKo || c.snap.name;
-  const title = `${name} 감독 프로필 · 경력`;
-  const description = `${name} 감독의 커리어 — 역임 클럽 타임라인, 선호 포메이션, 부임·계약 정보${career?.playerCareer?.length ? "와 선수 시절" : ""}. 스코어베이스.`;
+  // 빙 zero-click 대응 — 정적 문구 대신 보유 데이터(현 소속·포메이션·우승 횟수·나이)를
+  // 제목·설명에 배치. 현 소속은 team-coaches 의 키(ts 팀 id)가 정본 — Wikidata 경력의
+  // end=null 행은 연도 양쪽 null(선수 시절 오독, 로제 실측)이 섞여 폴백으로만 쓴다.
+  let currentClub: string | null = null;
+  if (c.teamTsId) {
+    const row = await prisma.teamSourceId.findFirst({
+      where: { source: "thesports", externalId: c.teamTsId },
+      select: { team: { select: { name: true } } },
+    });
+    if (row) currentClub = toKoreanTeamName(row.team.name) || row.team.name;
+  }
+  if (!currentClub) {
+    currentClub =
+      career?.coachCareer?.filter((r) => r.end === null && r.start !== null).at(-1)?.club ?? null;
+  }
+  currentClub = currentClub?.replace(" 축구 국가대표팀", " 대표팀") ?? null;
+  // "Individual"(이달의 감독 등 개인상) 행은 우승 수에서 제외 — 펩 94회 과대집계 실측
+  const titles = HONORS[id]?.filter((h) => h.club !== "Individual").reduce((s, h) => s + h.seasons.length, 0) ?? 0;
+  const pf = c.snap.preferredFormation;
+  const joinedYear = c.snap.joined ? new Date(c.snap.joined * 1000).getUTCFullYear() : null;
+  const contractYear = c.snap.contractUntil ? new Date(c.snap.contractUntil * 1000).getUTCFullYear() : null;
+  const clubCount = career?.coachCareer ? new Set(career.coachCareer.map((r) => r.club)).size : 0;
+  const titleBits = [
+    currentClub ? `현 ${currentClub} 감독` : null,
+    pf ? `포메이션 ${pf}` : null,
+    titles > 0 ? `우승 ${titles}회` : null,
+  ].filter(Boolean);
+  const title = `${name} 감독 프로필 — ${titleBits.length ? titleBits.join(" · ") : "경력·포메이션·우승"}`;
+  const description =
+    `${career?.country ? `${career.country} 출신 ` : ""}${name} 감독${c.snap.age ? `(${c.snap.age}세)` : ""} — ` +
+    `${currentClub ? `현 ${currentClub} 사령탑` : "감독 경력"}${joinedYear ? `, ${joinedYear}년 부임` : ""}${contractYear ? `·계약 ${contractYear}년까지` : ""}. ` +
+    `${pf ? `선호 포메이션 ${pf}, ` : ""}${titles > 0 ? `통산 우승 ${titles}회, ` : ""}` +
+    `${clubCount > 0 ? `역임 클럽 ${clubCount}곳 타임라인` : "역임 클럽 타임라인"}과 최근 실제 라인업${career?.playerCareer?.length ? "·선수 시절" : ""}까지. 스코어베이스.`;
   return {
     title,
     description,
-    keywords: [name, `${name} 감독`, `${name} 경력`, "감독 프로필", "스코어베이스"],
+    keywords: [
+      name, `${name} 감독`, `${name} 경력`,
+      ...(titles > 0 ? [`${name} 우승`] : []),
+      ...(pf ? [`${name} 포메이션`, `${name} 전술`] : []),
+      ...(currentClub ? [`${currentClub} 감독`] : []), // "토트넘 감독" 류 팀명 검색 정조준
+      "감독 프로필", "스코어베이스",
+    ],
     openGraph: { title, description, type: "profile", ...(c.snap.logo ? { images: [{ url: c.snap.logo }] } : {}) },
     alternates: { canonical: `/coaches/${id}` },
   };
