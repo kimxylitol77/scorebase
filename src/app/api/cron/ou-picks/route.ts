@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runOuPicks } from "@/lib/analysis/ou-bot";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 1, 1), 5);
-    const result = await runOuPicks(limit);
+    const result = await withLlmTag("ou-picks", () => runOuPicks(limit));
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });

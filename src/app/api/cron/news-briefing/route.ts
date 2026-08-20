@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { recordCronRun } from "@/lib/cron-registry";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { runNewsBriefing } from "@/jobs/fetch-news-briefing";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -12,7 +13,7 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
-    const result = await runNewsBriefing();
+    const result = await withLlmTag("news-briefing", () => runNewsBriefing());
     await recordCronRun("news-briefing", { count: result.published });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {

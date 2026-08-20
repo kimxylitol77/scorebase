@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import type Anthropic from "@anthropic-ai/sdk";
 import { claude, CLAUDE_MODEL } from "@/lib/ai/claude";
+import { trackLlmUsage } from "@/lib/ai/usage-track";
 import { rateLimit } from "@/lib/rate-limit";
 import { getCurrentUserId } from "@/lib/current-user";
 import { buildMatchBrief } from "@/lib/chatbot/match-brief";
@@ -98,6 +99,16 @@ export async function POST(req: Request) {
       ],
       messages,
     });
+
+    // 계측 — 이 라우트는 generate() 를 안 거치고 SDK 를 직접 부르므로 여기서 직접 기록한다.
+    // 캐시 읽기·생성분도 입력 토큰에 더한다(system 을 ephemeral 캐시로 태워 보내므로).
+    const u = response.usage;
+    await trackLlmUsage(
+      response.model,
+      u.input_tokens + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0),
+      u.output_tokens,
+      "match-chat",
+    );
 
     const reply = response.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")

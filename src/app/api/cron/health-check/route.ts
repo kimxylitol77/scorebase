@@ -6,6 +6,7 @@ import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runHealthChecks } from "@/lib/health-checks";
 import { runAiReview } from "@/lib/health-checks/ai-review";
+import { withLlmTag } from "@/lib/ai/usage-track";
 import { runSelfHeal, healAnnotation, healKey } from "@/lib/health-checks/self-heal";
 import { sendTelegram } from "@/lib/notify/telegram";
 
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
   const forceAi = url.searchParams.get("force") === "ai";
   if (isMondayUtc || forceAi) {
     try {
-      const aiFindings = await runAiReview();
+      const aiFindings = await withLlmTag("health-ai-review", () => runAiReview());
       findings.push(...aiFindings);
     } catch (e) {
       findings.push({

@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runManagerPicks } from "@/lib/analysis/manager-bot";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 4, 1), 8);
-    const result = await runManagerPicks(limit);
+    const result = await withLlmTag("manager-picks", () => runManagerPicks(limit));
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json(

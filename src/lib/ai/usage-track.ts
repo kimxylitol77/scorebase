@@ -23,9 +23,26 @@ export function withLlmTag<T>(tag: string, fn: () => Promise<T>): Promise<T> {
   return tagStore.run(tag, fn);
 }
 
+/**
+ * 실행 진입점 파일명에서 태그를 유추한다 — `npx tsx src/jobs/xxx.ts` 처럼
+ * cron 라우트를 안 거치고 직접 도는 잡·스크립트(맥미니 launchd, 수동 실행)를
+ * 위한 것. 이게 없으면 그런 실행분이 전부 "unknown" 으로 뭉쳐 알림이 범인을
+ * 못 가린다(2026-08-19 $8 급증이 그랬다).
+ *
+ * 웹 서버 프로세스의 argv[1] 은 Next 런타임이라 오히려 해가 되므로,
+ * repo 의 잡·스크립트 경로일 때만 쓴다.
+ */
+function entryScriptTag(): string | null {
+  const argv1 = process.argv[1];
+  if (!argv1) return null;
+  const m = /\/(src\/jobs|scripts)\/([\w.-]+)\.(ts|mts|js|mjs)$/.exec(argv1);
+  if (!m) return null;
+  return `${m[1] === "scripts" ? "script" : "job"}:${m[2]}`;
+}
+
 /** 현재 컨텍스트의 태그. 잡 스크립트는 LLM_TAG env 로도 지정할 수 있다. */
 export function currentLlmTag(): string {
-  return tagStore.getStore() ?? process.env.LLM_TAG ?? "unknown";
+  return tagStore.getStore() ?? process.env.LLM_TAG ?? entryScriptTag() ?? "unknown";
 }
 
 function hourBucket(): Date {

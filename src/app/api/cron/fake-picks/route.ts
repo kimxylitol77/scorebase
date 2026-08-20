@@ -6,6 +6,7 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runFakeMemberPicks } from "@/lib/analysis/fake-members";
 import { runBotComments, runHitCongrats } from "@/lib/analysis/bot-comments";
 import { runFreeBoardPost } from "@/lib/analysis/free-board-bot";
+import { withLlmTag } from "@/lib/ai/usage-track";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -19,11 +20,12 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const force = url.searchParams.get("force") === "1";
     const freeForce = url.searchParams.get("free") === "1";
-    const result = await runFakeMemberPicks(force);
+    // 태그는 봇별로 나눈다 — 한 cron 슬롯에 얹혀 있을 뿐 비용 주체는 셋이다.
+    const result = await withLlmTag("fake-members", () => runFakeMemberPicks(force));
     // 봇 댓글·적중 축하·자유게시판 글 — 같은 30분 주기에 편승(별도 cron 슬롯 없이). 내부 게이트로 분산.
-    const comments = await runBotComments(force);
-    const congrats = await runHitCongrats(force);
-    const free = await runFreeBoardPost(freeForce);
+    const comments = await withLlmTag("bot-comments", () => runBotComments(force));
+    const congrats = await withLlmTag("bot-comments", () => runHitCongrats(force));
+    const free = await withLlmTag("free-board-bot", () => runFreeBoardPost(freeForce));
     return NextResponse.json({ ok: true, ...result, comments, congrats, free });
   } catch (e) {
     return NextResponse.json(

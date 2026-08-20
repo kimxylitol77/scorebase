@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchTransactions } from "@/jobs/fetch-transactions";
+import { withLlmTag } from "@/lib/ai/usage-track";
 import type { TxLeague } from "@/lib/sports/espn-transactions";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
   const leagues = (param ? param.split(",").filter(Boolean) : ["NBA", "MLB", "NHL"]) as TxLeague[];
 
   try {
-    const summary = await runFetchTransactions(leagues);
+    const summary = await withLlmTag("fetch-transactions", () => runFetchTransactions(leagues));
     await recordCronRun("fetch-transactions");
     return NextResponse.json({ ok: true, summary });
   } catch (e) {
