@@ -233,13 +233,16 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
           (숨기지도, 이번 시즌 기록처럼 보이게 두지도 않는다) */}
       {anyFallback && (
         <p className="-mt-4 text-[11px] text-neutral-500 break-keep">
+          {/* 팀명 뒤에 조사를 붙이지 않는다 — "르망는" 처럼 받침 판정이 필요해지고, 그 헬퍼가
+              이미 코드베이스에 두 벌 있다. 문구에서 조사를 없애 문제 자체를 만들지 않는다. */}
+          지난 시즌 기록 기준 —{" "}
           {[
-            homeCtx.prevLeague ? `${homeKo}는 ${LEAGUE_DISPLAY[homeCtx.prevLeague] ?? homeCtx.prevLeague}` : null,
-            awayCtx.prevLeague ? `${awayKo}는 ${LEAGUE_DISPLAY[awayCtx.prevLeague] ?? awayCtx.prevLeague}` : null,
+            homeCtx.prevLeague ? `${homeKo}(${LEAGUE_DISPLAY[homeCtx.prevLeague] ?? homeCtx.prevLeague})` : null,
+            awayCtx.prevLeague ? `${awayKo}(${LEAGUE_DISPLAY[awayCtx.prevLeague] ?? awayCtx.prevLeague})` : null,
           ]
             .filter(Boolean)
-            .join(" · ")}{" "}
-          지난 시즌 기록 기준 (이번 시즌 이 리그 경기가 아직 없음)
+            .join(", ")}
+          . 이번 시즌 이 리그 경기가 아직 없다.
         </p>
       )}
 

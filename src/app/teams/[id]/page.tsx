@@ -49,6 +49,7 @@ import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { calcForm } from "@/lib/predict/form";
+import { getTeamMatches } from "@/lib/predict/league-data";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcWinProbability } from "@/lib/predict/win-probability";
@@ -376,14 +377,23 @@ export default async function TeamPage({ params }: Props) {
     seasonMatches = matches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
   }
 
+  // 승격팀 폴백 — 위 매치는 전부 team.league 기준이라, 이번에 올라온 팀은 지난 시즌으로 물러나도
+  //  여전히 0건이다(26-27 EPL 헐 시티: EPL 0건 / 25-26 챔피언십 49건). 그래서 "최근 5경기 폼
+  //  데이터 없음"이 떴다. 폼·흐름·홈원정만 팀 기준 매치로 채운다 — 순위·공수 랭크는 리그 안에서만
+  //  뜻이 있고, 시즌 통계 패널이 이미 "새 시즌 데이터가 쌓이는 중"이라고 밝히므로 그대로 둔다.
+  const playedInLeague = seasonMatches.some(
+    (m) => m.status === "FINISHED" && (m.homeTeamId === teamId || m.awayTeamId === teamId),
+  );
+  const formMatches = playedInLeague ? seasonMatches : await getTeamMatches(teamId);
+
   // 통계
   const standings = calcStandings(seasonMatches);
   const row = standings.byTeam.get(teamId);
   const eloTable = calcEloTable(matches); // 전체 — Elo 는 시즌 누적
   const elo = getElo(eloTable, teamId);
-  const recentForm = calcForm(seasonMatches, teamId, undefined, 5);
-  const streak = calcStreaks(seasonMatches, teamId);
-  const ha = calcHomeAway(seasonMatches, teamId);
+  const recentForm = calcForm(formMatches, teamId, undefined, 5);
+  const streak = calcStreaks(formMatches, teamId);
+  const ha = calcHomeAway(formMatches, teamId);
   const attackRank = standings.attackRank.get(teamId);
   const defenseRank = standings.defenseRank.get(teamId);
 
