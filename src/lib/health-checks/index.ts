@@ -12,6 +12,7 @@ import { MIN_PRIOR } from "@/jobs/evaluate-predictions";
 // 축구 리더보드의 시즌 라벨도 같은 이유로 적재 잡이 단일 출처.
 import { currentSoccerSeason } from "@/jobs/fetch-league-leaders";
 import { SOCCER_LEAGUES, leaguesForSport, type SportCode } from "@/lib/sports/sport-leagues";
+import rawWages from "../../../data/football-wages.json";
 
 // ──────────────────────────────────────────────────────────────
 // 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
@@ -968,6 +969,34 @@ async function checkPlayerLogFreshness(now: Date): Promise<HealthFinding[]> {
   ];
 }
 
+// ──────────────────────────────────────────────────────────────
+// 주급 스냅샷 동결 — data/football-wages.json 이 몇 주째 그대로면 수집이 죽은 것.
+//   2026-08-21 실측: Capology 가 Cloudflare 챌린지로 봇을 막아 5대리그 경로까지 403 이 되었고,
+//   주간 러너 ⑦-e 는 빈 응답 가드에 걸려 옛 파일을 유지하며 "성공"처럼 조용히 끝나고 있었다.
+//   그래서 잡 실행 여부(cron-lag)로는 안 잡히고 파일의 fetchedAt 으로만 드러난다.
+//   자가치유에는 등록하지 않는다 — 재실행해도 403 이라 치유가 안 되고 알림만 반복된다.
+//   차단이 풀리면 이 finding 이 저절로 사라진다.
+// ──────────────────────────────────────────────────────────────
+async function checkWageFreshness(now: Date): Promise<HealthFinding[]> {
+  const fetchedAt = (rawWages as { fetchedAt?: string }).fetchedAt;
+  const at = fetchedAt ? Date.parse(fetchedAt) : NaN;
+  if (!Number.isFinite(at)) {
+    return [{ category: "wage-freshness", key: "snapshot", severity: "MED", message: "주급 스냅샷에 fetchedAt 이 없음 — football-wages.json 형식 확인 필요" }];
+  }
+  const ageDays = Math.floor((now.getTime() - at) / 86400_000);
+  // 주간 러너가 정상이면 7일 이내. 2주 연속 실패(=21일)부터 실제 문제로 본다.
+  if (ageDays <= 21) return [];
+  return [
+    {
+      category: "wage-freshness",
+      key: "snapshot",
+      severity: "MED",
+      message: `주급 스냅샷 ${ageDays}일째 동결 (${fetchedAt!.slice(0, 10)} 기준) — Capology Cloudflare 차단 여부 확인. 화면에는 "기준 시점"이 함께 표기된다`,
+      metadata: { fetchedAt, ageDays },
+    },
+  ];
+}
+
 async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
@@ -1116,6 +1145,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "duplicate-match", fn: checkDuplicateMatches },
   { name: "link-health", fn: checkLinkHealth },
   { name: "player-log-freshness", fn: checkPlayerLogFreshness },
+  { name: "wage-freshness", fn: checkWageFreshness },
 ];
 
 /**
