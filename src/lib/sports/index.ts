@@ -171,6 +171,14 @@ export const collectors: Record<League, MatchCollector> = {
   // 매치 소스: 17개는 ts 워커(football-competitions.ts), 에탄·노르웨이3부·카코넨 6개는 af orphan 표시 전용.
   COPA_DO_BRASIL: buildApiFootballCollector("COPA_DO_BRASIL"),
   PORTUGAL_SUPER_CUP: buildApiFootballCollector("PORTUGAL_SUPER_CUP"),
+  // 2026-08-21 빅5 슈퍼컵 — 매치 소스는 ts 컬렉터(Vultr)다. af 리그 id 는 등록하지 않는다.
+  // Record<League, MatchCollector> 를 만족시키려고 자리만 채운다 — collect 의 ALL_LEAGUES 에
+  // 없어 fetchByDate 가 호출되지 않으므로 id 미등록 throw 에 닿지 않는다(위 build 함수 주석).
+  COMMUNITY_SHIELD: buildApiFootballCollector("COMMUNITY_SHIELD"),
+  SUPERCOPA_ESPANA: buildApiFootballCollector("SUPERCOPA_ESPANA"),
+  DFL_SUPERCUP: buildApiFootballCollector("DFL_SUPERCUP"),
+  SUPERCOPPA_ITALIANA: buildApiFootballCollector("SUPERCOPPA_ITALIANA"),
+  TROPHEE_DES_CHAMPIONS: buildApiFootballCollector("TROPHEE_DES_CHAMPIONS"),
   RUSSIA_FNL: buildApiFootballCollector("RUSSIA_FNL"),
   ETTAN_NORRA: buildApiFootballCollector("ETTAN_NORRA"),
   ETTAN_SODRA: buildApiFootballCollector("ETTAN_SODRA"),

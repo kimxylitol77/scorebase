@@ -87,6 +87,8 @@ export const ALL_LEAGUES = [
   "CZECH_2", "AUSTRIA_2", "BELGIUM_2", "TURKEY_2",
   // 2026-08-01 추가 — 7m 커버리지 대조 16개 (af orphan 표시 전용, DB 수집 X)
   "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "RUSSIA_FNL",
+  // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+  "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA", "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
   "ETTAN_NORRA", "ETTAN_SODRA", "NORWAY_2D_G1", "NORWAY_2D_G2",
   "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
   "ROMANIA_L2", "CHINA_3",
@@ -154,6 +156,8 @@ export const SPORTS: SportMeta[] = [
       "CZECH_2", "AUSTRIA_2", "BELGIUM_2", "TURKEY_2",
       // 2026-08-01 추가 — 7m 커버리지 대조 16개 (af orphan 표시 전용)
       "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "RUSSIA_FNL",
+      // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+      "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA", "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
       "ETTAN_NORRA", "ETTAN_SODRA", "NORWAY_2D_G1", "NORWAY_2D_G2",
       "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
       "ROMANIA_L2", "CHINA_3",
@@ -535,6 +539,12 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   // 2026-08-01 추가 — 7m 커버리지 대조 16개
   COPA_DO_BRASIL: "코파 두 브라질",
   PORTUGAL_SUPER_CUP: "포르투갈 수페르컵",
+  // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+  COMMUNITY_SHIELD: "잉글랜드 커뮤니티 실드",
+  SUPERCOPA_ESPANA: "스페인 수페르코파",
+  DFL_SUPERCUP: "독일 슈퍼컵",
+  SUPERCOPPA_ITALIANA: "이탈리아 수페르코파",
+  TROPHEE_DES_CHAMPIONS: "프랑스 트로페 데 샹피옹",
   RUSSIA_FNL: "러시아 FNL",
   ETTAN_NORRA: "스웨덴 에탄 노라",
   ETTAN_SODRA: "스웨덴 에탄 쇠드라",
@@ -708,6 +718,12 @@ export const LEAGUE_ORDER: Record<string, number> = {
   HUNGARY_2: 16.4, CZECH_2: 16.35, AUSTRIA_2: 16.25, BELGIUM_2: 16.2, TURKEY_2: 16.55,
   // 2026-08-01 추가 — 각 상위 리그 바로 다음 소수점
   PORTUGAL_SUPER_CUP: 15.67, // PRIMEIRA_LIGA_2(15.66) 다음
+  // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+  COMMUNITY_SHIELD: 10.3, // FA_CUP·EFL_CUP 다음 — 잉글랜드
+  SUPERCOPA_ESPANA: 12.2, // COPA_DEL_REY(12.1) 다음
+  DFL_SUPERCUP: 13.2, // DFB_POKAL(13.1) 다음
+  SUPERCOPPA_ITALIANA: 14.2, // COPPA_ITALIA(14.1) 다음
+  TROPHEE_DES_CHAMPIONS: 15.2, // COUPE_DE_FRANCE(15.1) 다음
   ROMANIA_L2: 15.885, // LIGA_I(15.88) 다음
   RUSSIA_FNL: 15.995, // RPL(15.99) 다음
   NORWAY_2D_G1: 15.9341, NORWAY_2D_G2: 15.9342, // NORWAY_1L(15.934) 다음
@@ -999,6 +1015,12 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   // 2026-08-01 추가 — 7m 커버리지 대조 16개
   COPA_DO_BRASIL: "브라질",
   PORTUGAL_SUPER_CUP: "포르투갈",
+  // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+  COMMUNITY_SHIELD: "잉글랜드",
+  SUPERCOPA_ESPANA: "스페인",
+  DFL_SUPERCUP: "독일",
+  SUPERCOPPA_ITALIANA: "이탈리아",
+  TROPHEE_DES_CHAMPIONS: "프랑스",
   RUSSIA_FNL: "러시아",
   ETTAN_NORRA: "스웨덴",
   ETTAN_SODRA: "스웨덴",

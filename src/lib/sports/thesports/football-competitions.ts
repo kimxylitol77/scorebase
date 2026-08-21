@@ -76,6 +76,12 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   NICARAGUA_PD: "p3glrw7hjk4qdyj",
   COPA_DO_BRASIL: "z8yomo4hooq0j6l",
   PORTUGAL_SUPER_CUP: "j1l4rjnhe9m7vx5",
+  // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+  COMMUNITY_SHIELD: "9vjxm8gh82r6odg",
+  SUPERCOPA_ESPANA: "p3glrw7hzoqdyjv",
+  DFL_SUPERCUP: "z318q66hjyqo9jd",
+  SUPERCOPPA_ITALIANA: "e4wyrn4h4kq86pv",
+  TROPHEE_DES_CHAMPIONS: "p3glrw7hooqdyjv",
   RUSSIA_FNL: "9k82rekh6lrepzj",
   ROMANIA_L2: "v2y8m4zhw4ql074",
   COSTA_RICA_PD: "jednm9whneryox8",

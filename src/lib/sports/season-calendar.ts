@@ -136,6 +136,8 @@ export const STAGED_COMPETITIONS = new Set([
   // 2026-08-20 추가 — 컵인데 LEAGUE 로 분류돼 컵 예외를 못 받고 있었다. 순위표가 없는 게
   // 정상인데 감시가 "ACTIVE 인데 캐시 없음" HIGH 로 읽었다(COPA_DO_BRASIL 실측).
   "COPA_DO_BRASIL", "LEAGUES_CUP", "PORTUGAL_SUPER_CUP",
+  // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
+  "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA", "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
 ]);
 
 /**

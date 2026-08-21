@@ -1220,6 +1220,46 @@
     "tsSeasonId": "jw2r09hl4e7rz84"
   },
   {
+    "code": "COMMUNITY_SHIELD",
+    "ourLabel": "잉글랜드 커뮤니티 실드",
+    "tsId": "9vjxm8gh82r6odg",
+    "tsEn": "Football Association Community Shield",
+    "tsKo": "잉글랜드 커뮤니티 실드",
+    "tsSeasonId": "2y8m4zh3073ql07"
+  },
+  {
+    "code": "SUPERCOPA_ESPANA",
+    "ourLabel": "스페인 수페르코파",
+    "tsId": "p3glrw7hzoqdyjv",
+    "tsEn": "Supercopa de España",
+    "tsKo": "스페인 수페르코파",
+    "tsSeasonId": "e4wyrn4hgnpq86p"
+  },
+  {
+    "code": "DFL_SUPERCUP",
+    "ourLabel": "독일 슈퍼컵",
+    "tsId": "z318q66hjyqo9jd",
+    "tsEn": "DFL Supercup",
+    "tsKo": "독일 슈퍼컵",
+    "tsSeasonId": "k82rekhvzedrepz"
+  },
+  {
+    "code": "SUPERCOPPA_ITALIANA",
+    "ourLabel": "이탈리아 수페르코파",
+    "tsId": "e4wyrn4h4kq86pv",
+    "tsEn": "EA SPORTS FC Supercup",
+    "tsKo": "이탈리아 수페르코파",
+    "tsSeasonId": "p4jwq2ghl2dm0ve"
+  },
+  {
+    "code": "TROPHEE_DES_CHAMPIONS",
+    "ourLabel": "프랑스 트로페 데 샹피옹",
+    "tsId": "p3glrw7hooqdyjv",
+    "tsEn": "French Trophee des Champions",
+    "tsKo": "프랑스 트로페 데 샹피옹",
+    "tsSeasonId": "ednm9whk8o5ryox"
+  },
+  {
     "code": "RUSSIA_FNL",
     "ourLabel": "러시아 FNL",
     "tsId": "9k82rekh6lrepzj",

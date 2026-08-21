@@ -26,6 +26,7 @@ import {
   type SeasonRecord,
 } from "./season-registry";
 import { SOCCER_LEAGUES } from "./sport-leagues";
+import { NO_TABLE_LEAGUES } from "./standings-valid";
 import { standingsState, type StandingsState } from "./thesports/standings-gate";
 import teamIdMapping from "./thesports/team-id-mapping.json";
 import tsLeagueMap from "./thesports/league-id-mapping.json";
@@ -346,10 +347,18 @@ export async function auditFootballSeasons(opts: AuditOptions = {}): Promise<Aud
         // 리그페이즈가 있는 컵도 대진 확정 전에는 표가 발행되지 않는다. 추적용으로만 남긴다.
         // (시즌 중 컵이 소스를 잃는 건 다른 얘기라 기존 급을 유지한다.)
         const cupBeforeDraw = kind === "CUP" && state === "PRESEASON";
+        // 순위표가 의미 없는 녹아웃 대회는 "순위 소스 없음"이 영구 정상이다 — 표가 발행될 일이
+        // 아예 없으므로 HIGH 로 올리면 매일 울리기만 하는 범주 오류가 된다. 추적용 LOW 로 남긴다.
+        // (2026-08-21 빅5 슈퍼컵 온보딩 때 확인 — 단발 대회 4개가 곧바로 HIGH 4건을 만들었고,
+        //  COPA_DEL_REY·COPPA_ITALIA·COUPE_DE_FRANCE 도 비수기마다 같은 이유로 울리고 있었다.)
+        const neverHasTable = NO_TABLE_LEAGUES.has(league);
         issues.push({
           code: "no-standings-source",
-          severity: cupBeforeDraw ? "LOW" : state === "PRESEASON" ? "MED" : "HIGH",
-          detail: `순위 소스 없음 (ts 캐시 X, af 캐시 X) — 일정 45일 ${nearRow?._count._all ?? 0}건`,
+          severity:
+            neverHasTable || cupBeforeDraw ? "LOW" : state === "PRESEASON" ? "MED" : "HIGH",
+          detail:
+            `순위 소스 없음 (ts 캐시 X, af 캐시 X) — 일정 45일 ${nearRow?._count._all ?? 0}건` +
+            (neverHasTable ? " · 녹아웃 대회라 순위표 자체가 없다(정상)" : ""),
         });
       } else if (!cache) {
         issues.push({
