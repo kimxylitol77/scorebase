@@ -20374,13 +20374,13 @@
     "matchType": "audit-auto"
   },
   {
-    "ourId": 11542,
+    "ourId": 613954,
     "ourName": "Hapoel Jerusalem",
     "ourLeague": "ISRAEL_PL",
-    "ourExternalId": "131570",
+    "ourExternalId": "ts-j1l4rjnhw9vm7vx",
     "tsId": "j1l4rjnhw9vm7vx",
     "tsName": "Hapoel Jerusalem",
-    "matchType": "audit-auto"
+    "matchType": "cross-sport-fix"
   },
   {
     "ourId": 119108,
