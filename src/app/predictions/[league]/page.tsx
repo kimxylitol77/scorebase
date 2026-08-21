@@ -409,13 +409,15 @@ export default async function LeaguePredictions({ params }: Props) {
     startTime: true,
   } as const;
   const seasonStart = currentSeasonStart(upper);
-  let dbMatches = await prisma.match.findMany({
-    where: {
-      league: upper,
-      ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
-    },
+  // 리그 전체를 한 번 읽고 시즌 창은 메모리에서 자른다 — 순위·시뮬은 이번 시즌만 쓰지만
+  //  Elo 는 시즌을 넘어 누적돼야 해서(아래 eloMatches) 두 벌이 필요하다. 쿼리는 1회로 유지.
+  const allLeagueMatches = await prisma.match.findMany({
+    where: { league: upper },
     select: matchSelect,
   });
+  let dbMatches = seasonStart
+    ? allLeagueMatches.filter((m) => m.startTime >= seasonStart)
+    : allLeagueMatches;
   // 오프시즌 폴백 — 지난 시즌 표시는 "새 시즌 일정조차 없을 때"만. 새 시즌 fixture 가
   // 이미 잡혀 있으면(개막 직전~직후) 지난 시즌으로 돌아가지 않고 새 시즌에 진입한다
   // (2026-08-15: 빅5 개막 후에도 완료 <10 조건이 지난 시즌 380경기를 통째로 되살렸다).
@@ -424,13 +426,8 @@ export default async function LeaguePredictions({ params }: Props) {
     dbMatches.filter((m) => m.status === "FINISHED").length < 10 &&
     !dbMatches.some((m) => m.status === "SCHEDULED")
   ) {
-    dbMatches = await prisma.match.findMany({
-      where: {
-        league: upper,
-        startTime: { gte: previousSeasonStart(seasonStart), lt: seasonStart },
-      },
-      select: matchSelect,
-    });
+    const prevStart = previousSeasonStart(seasonStart);
+    dbMatches = allLeagueMatches.filter((m) => m.startTime >= prevStart && m.startTime < seasonStart);
   }
   // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽)은 정규 팀이 아니라 시뮬·순위를 오염시킨다
   dbMatches = dbMatches.filter((m) => !isAllStarMatchRow(m));
@@ -553,9 +550,21 @@ export default async function LeaguePredictions({ params }: Props) {
 
   // 월드컵은 클럽 매치 데이터가 없으니 시드 Elo 를 직접 사용.
   // (keyMatches 가 .map callback 에서 참조하므로 keyMatches 정의 전에 선언 — TDZ 회피).
+  //
+  // ⚠ Elo 는 **시즌을 넘어 누적**해야 한다. 시즌 창(matches)으로 계산하면 개막 직후 완료 경기가
+  //  0 건이라 전 팀이 초기값 1500 이 되고, 그 결과 리그의 모든 경기가 똑같은 확률로 나온다
+  //  (2026-08-21 실측: EPL 예정 20경기가 전부 45%/24%/31%. 시장은 헐 시티를 11% 로 보는데
+  //   화면은 45% 라고 말하고 있었다). 팀 페이지가 "윈도잉하면 시즌마다 레이팅 리셋" 이라고
+  //  적어둔 것과 같은 함정을 예측 페이지만 밟고 있었다. 순위·시뮬은 시즌 창 그대로 둔다.
+  const eloMatches: PredictMatch[] =
+    upper === "NBA"
+      ? allLeagueMatches
+          .filter((m) => validTeamIds.has(m.homeTeamId) && validTeamIds.has(m.awayTeamId))
+          .map((m) => ({ ...m }))
+      : allLeagueMatches.map((m) => ({ ...m }));
   const elo = isWorldCup
     ? buildWorldCupSeedTable(teamNameById)
-    : calcEloTable(matches);
+    : calcEloTable(eloMatches);
 
   // 이번 주 빅매치 — 상위 3팀의 직접 대결 매치만 추출 (mc 결과 기준).
   // mc 가 비어있으면 (시뮬 안 됨) 빈 배열.
