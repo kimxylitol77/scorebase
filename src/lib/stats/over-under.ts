@@ -217,3 +217,13 @@ export const getAllLeaguesOverUnder = unstable_cache(
 
 /** 오버/언더 계열 지표를 퍼센트로. 분모 0 방어. */
 export const pct = (part: number, total: number) => (total ? (part / total) * 100 : 0);
+
+/**
+ * 받침 유무에 따라 조사를 고른다 — "뮌헨로"처럼 어긋나는 문장을 막는다.
+ * 한글이 아니면(영문 팀명 등) 받침 있는 쪽을 쓴다.
+ */
+export function josa(word: string, withBatchim: string, withoutBatchim: string): string {
+  const code = word.charCodeAt(word.length - 1);
+  if (Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return withBatchim;
+  return (code - 0xac00) % 28 === 0 ? withoutBatchim : withBatchim;
+}

@@ -53,12 +53,17 @@ export default async function Page() {
 
   return (
     <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-      {jsonLdScript(
-        breadcrumbLd([
-          { name: "홈", path: "/" },
-          { name: "오버 언더 통계", path: "/over-under" },
-        ]),
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: "오버 언더 통계", path: "/over-under" },
+            ]),
+          ),
+        }}
+      />
 
       <h1 className="text-2xl sm:text-4xl font-bold tracking-tight break-keep">축구 오버 언더 통계</h1>
       <p className="mt-3 text-sm sm:text-base text-neutral-600 dark:text-neutral-400 break-keep">

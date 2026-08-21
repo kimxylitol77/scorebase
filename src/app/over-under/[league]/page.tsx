@@ -8,6 +8,7 @@ import {
   getLeagueOverUnder,
   getAllLeaguesOverUnder,
   pct,
+  josa,
   type TeamOverUnder,
 } from "@/lib/stats/over-under";
 import { LEAGUE_DISPLAY, COUNTRY_BY_LEAGUE } from "@/lib/sports/sport-leagues";
@@ -122,13 +123,18 @@ export default async function Page({ params }: { params: Promise<{ league: strin
 
   return (
     <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-      {jsonLdScript(
-        breadcrumbLd([
-          { name: "홈", path: "/" },
-          { name: "오버 언더 통계", path: "/over-under" },
-          { name: ko, path: `/over-under/${league}` },
-        ]),
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: "오버 언더 통계", path: "/over-under" },
+              { name: ko, path: `/over-under/${league}` },
+            ]),
+          ),
+        }}
+      />
 
       <Link
         href="/over-under"
@@ -167,9 +173,11 @@ export default async function Page({ params }: { params: Promise<{ league: strin
           오버가 가장 잦은 팀 · 언더가 가장 잦은 팀
         </h2>
         <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 break-keep">
-          {ko}에서 오버 2.5가 가장 잦은 팀은 <strong>{overTop[0]?.nameKo}</strong>로{" "}
+          {ko}에서 오버 2.5가 가장 잦은 팀은 <strong>{overTop[0]?.nameKo}</strong>
+          {josa(overTop[0]?.nameKo ?? "", "으로", "로")}{" "}
           {overTop[0]?.matches}경기 중 {overTop[0]?.over25}경기({f1(pct(overTop[0]?.over25 ?? 0, overTop[0]?.matches ?? 1))}%)
-          였습니다. 반대로 언더가 가장 잦은 팀은 <strong>{underTop[0]?.nameKo}</strong>로 언더 비율{" "}
+          였습니다. 반대로 언더가 가장 잦은 팀은 <strong>{underTop[0]?.nameKo}</strong>
+          {josa(underTop[0]?.nameKo ?? "", "으로", "로")} 언더 비율{" "}
           {f1(100 - pct(underTop[0]?.over25 ?? 0, underTop[0]?.matches ?? 1))}%입니다.
         </p>
 
