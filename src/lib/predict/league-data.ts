@@ -34,3 +34,32 @@ export const getLeagueTeamNames = cache(
     });
   },
 );
+
+/**
+ * 팀 기준 매치 — 승격·강등으로 그 리그에 과거 경기가 없는 팀의 폼·홈원정 폴백용.
+ * 리그를 가리지 않되 친선은 뺀다(로테이션이라 전력 신호가 아니다).
+ * 예: 26-27 EPL 헐 시티는 EPL 경기가 0건이고 25-26 챔피언십 49건이 전부다.
+ */
+export const getTeamMatches = cache(
+  async (teamId: number): Promise<PredictMatch[]> => {
+    const rows = await prisma.match.findMany({
+      where: {
+        OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+        league: { notIn: ["CLUB_FRIENDLY", "INTL_FRIENDLY"] },
+      },
+      select: {
+        id: true,
+        league: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+      },
+      orderBy: { startTime: "desc" },
+      take: 80,
+    });
+    return rows.map((m) => ({ ...m }));
+  },
+);
