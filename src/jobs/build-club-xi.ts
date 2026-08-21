@@ -312,19 +312,33 @@ export async function runBuildClubXi(): Promise<{ leagues: number; teams: number
     const nameByTeam = new Map(nameRows.map((r) => [r.id, r.name]));
 
     // 유령 쌍둥이 브리지 — 같은 클럽이 별도 Team row 로 갈라진 경우 재료를 합친다.
-    // 다리 1: sourceId(af/ts id) 공유 row. 다리 2: 정확 동명 + CLUB_FRIENDLY row 한정
+    // 다리 1: sourceId 공유 row. 다리 2: 정확 동명 + CLUB_FRIENDLY row 한정
     // (부분일치 금지 — "UWIC Inter Cardiff" 가 "Cardiff" 에 붙는 오염 방지).
-    const extByTeam = new Map<number, string[]>();
-    for (const r of allSrc) extByTeam.set(r.teamId, [...(extByTeam.get(r.teamId) ?? []), r.externalId]);
+    //
+    // ⚠ 다리 1 은 반드시 **(source, externalId) 쌍**으로 이어야 한다. externalId 만 비교하면
+    //   소스가 다른데 문자열이 같은 남의 팀이 통째로 붙는다 — af·espn·football-data·npb·
+    //   leaguepedia 가 전부 작은 정수 id 를 쓰기 때문에 충돌이 흔하다. 2026-08-21 실측:
+    //   리버풀(espn=364) ← 유르고덴(af=364), 첼시(espn=363) ← 함마르뷔(af=363),
+    //   맨시티(espn=382) ← FC 비쳅스크(af=382), 헐 시티(fd=322) ← 라나임(af=322).
+    //   EPL 19팀 중 절반이 스웨덴·노르웨이·벨라루스 선수단으로 채워져 있었고 NPB 야구팀·
+    //   LCK e스포츠팀까지 딸려왔다.
+    const pairOf = (r: { source: string; externalId: string }) => `${r.source}:${r.externalId}`;
+    const pairsByTeam = new Map<number, string[]>();
+    for (const r of allSrc) pairsByTeam.set(r.teamId, [...(pairsByTeam.get(r.teamId) ?? []), pairOf(r)]);
+    const ownPairs = new Set(allSrc.map(pairOf));
     const allExt = [...new Set(allSrc.map((r) => r.externalId))];
     const twinSrc = allExt.length
       ? await prisma.teamSourceId.findMany({
           where: { externalId: { in: allExt }, teamId: { notIn: teamIds } },
-          select: { teamId: true, externalId: true },
+          select: { teamId: true, externalId: true, source: true },
         })
       : [];
-    const twinsByExt = new Map<string, number[]>();
-    for (const r of twinSrc) twinsByExt.set(r.externalId, [...(twinsByExt.get(r.externalId) ?? []), r.teamId]);
+    const twinsByPair = new Map<string, number[]>();
+    for (const r of twinSrc) {
+      const key = pairOf(r);
+      if (!ownPairs.has(key)) continue; // 같은 문자열이어도 소스가 다르면 남의 팀이다
+      twinsByPair.set(key, [...(twinsByPair.get(key) ?? []), r.teamId]);
+    }
     const nameTwinRows = await prisma.team.findMany({
       where: { name: { in: [...nameByTeam.values()] }, league: "CLUB_FRIENDLY", id: { notIn: teamIds } },
       select: { id: true, name: true },
@@ -334,7 +348,7 @@ export async function runBuildClubXi(): Promise<{ leagues: number; teams: number
     const groupOf = (id: number): number[] => [
       ...new Set([
         id,
-        ...(extByTeam.get(id) ?? []).flatMap((ext) => twinsByExt.get(ext) ?? []),
+        ...(pairsByTeam.get(id) ?? []).flatMap((key) => twinsByPair.get(key) ?? []),
         ...(twinsByName.get(nameByTeam.get(id) ?? "") ?? []),
       ]),
     ];
