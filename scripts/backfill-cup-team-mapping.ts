@@ -5,6 +5,12 @@
 //   npm run backfill:cup-teams -- --league SUI_CUP --write        # 매핑 적용 + 매치 POST
 //   npm run backfill:cup-teams -- --league X --days 45            # diary sweep 일수 (기본 28)
 //   npm run backfill:cup-teams -- --league X --country "Japan"    # 신규 팀 country 지정
+//   npm run backfill:cup-teams -- --league COPA_DEL_REY --season   # 매핑된 tsSeasonId 의 시즌 전체
+//   npm run backfill:cup-teams -- --league X --season <uuid>       # 시즌 uuid 직접 지정
+//
+// --season 은 "미래 일정 sweep" 대신 시즌 전체(종료 경기 포함)를 대상으로 한다. 비수기라
+// 향후 일정이 0건이면 diary sweep 으로는 아무것도 못 하는데, 지난 시즌 매치가 통째로 없는
+// 대회(코파 델 레이·쿠프 드 프랑스 실측 0건)를 메울 때 쓴다. 판정·안전선은 동일하다.
 //
 // 왜 필요한가. 매치 수신 라우트의 팀 해석은 리그 네임스페이스 단위다 — J1 에 매핑된
 // 구단도 EMPEROR_CUP 네임스페이스에 없으면 그 컵 매치는 skippedNoTeam 으로 조용히
@@ -68,6 +74,19 @@ interface DiaryMatch {
   away_team_id?: string;
   match_time?: number;
   status_id: number;
+  home_scores?: unknown[];
+  away_scores?: unknown[];
+}
+
+// home_scores/away_scores: [0]=정규시간, [5]=연장 포함 총점, [6]=승부차기(절대 합산 금지).
+// lightsail-worker/football-match-collector.js 의 finalScore 와 동일해야 한다 — 연장 경기에서
+// [0]만 쓰면 연장 스코어가 90분 스코어로 되덮인다(2026-07-20 WC 결승 사고).
+function finalScore(arr: unknown): number | undefined {
+  if (!Array.isArray(arr)) return undefined;
+  const reg = Number(arr[0]);
+  const ot = Number(arr[5]);
+  if (!Number.isFinite(reg)) return undefined;
+  return Number.isFinite(ot) && ot > 0 && ot >= reg ? ot : reg;
 }
 
 async function tsGet(path: string, params: Record<string, string>): Promise<unknown[]> {
@@ -90,7 +109,13 @@ type Action =
   | { kind: "conflict"; detail: string }
   | { kind: "skip"; detail: string };
 
-async function processLeague(code: string, days: number, write: boolean, country?: string) {
+async function processLeague(
+  code: string,
+  days: number,
+  write: boolean,
+  country?: string,
+  season?: { uuid?: string },
+) {
   if (SKIP_LEAGUES.has(code)) {
     console.log(`\n■ ${code} — ESPN/api-football 수집 담당 대회. ts 로 넣으면 크로스소스 중복. 건너뜀`);
     return;
@@ -101,21 +126,33 @@ async function processLeague(code: string, days: number, write: boolean, country
     return;
   }
 
-  // 1. diary sweep — 향후 N일의 이 대회 매치
+  // 1. 매치 수집 — 기본은 향후 N일 diary sweep, --season 이면 시즌 전체(종료 경기 포함)
   const matches: DiaryMatch[] = [];
-  for (let d = 0; d < days; d++) {
-    const date = new Date(Date.now() + d * 86400_000).toISOString().slice(0, 10).replace(/-/g, "");
-    const rows = (await tsGet("match/diary", { date })) as DiaryMatch[];
-    for (const m of rows) {
-      // 0=Abnormal·13=TBD 는 컬렉터와 동일하게 제외 (유령 row 방지)
-      if (m.competition_id !== entry.tsId || m.status_id === 0 || m.status_id === 13) continue;
-      if (!m.home_team_id || !m.away_team_id) continue;
-      matches.push(m);
+  const keep = (m: DiaryMatch) =>
+    // 0=Abnormal·13=TBD 는 컬렉터와 동일하게 제외 (유령 row 방지)
+    m.competition_id === entry.tsId && m.status_id !== 0 && m.status_id !== 13 &&
+    Boolean(m.home_team_id) && Boolean(m.away_team_id);
+  let scope: string;
+  if (season) {
+    const uuid = season.uuid ?? (entry as { tsSeasonId?: string }).tsSeasonId;
+    if (!uuid) {
+      console.log(`\n■ ${code} — tsSeasonId 가 없다. --season <uuid> 로 직접 지정하라. 건너뜀`);
+      return;
     }
-    await sleep(CALL_GAP_MS);
+    const rows = (await tsGet("match/season/recent", { uuid })) as DiaryMatch[];
+    for (const m of rows) if (keep(m)) matches.push(m);
+    scope = `시즌 ${uuid} 전체`;
+  } else {
+    for (let d = 0; d < days; d++) {
+      const date = new Date(Date.now() + d * 86400_000).toISOString().slice(0, 10).replace(/-/g, "");
+      const rows = (await tsGet("match/diary", { date })) as DiaryMatch[];
+      for (const m of rows) if (keep(m)) matches.push(m);
+      await sleep(CALL_GAP_MS);
+    }
+    scope = `향후 ${days}일`;
   }
   const teamIds = [...new Set(matches.flatMap((m) => [m.home_team_id!, m.away_team_id!]))];
-  console.log(`\n■ ${code} — 향후 ${days}일 매치 ${matches.length}건 · 팀 ${teamIds.length}개`);
+  console.log(`\n■ ${code} — ${scope} 매치 ${matches.length}건 · 팀 ${teamIds.length}개`);
   if (teamIds.length === 0) return;
 
   // 2. 팀별 판정
@@ -225,6 +262,10 @@ async function processLeague(code: string, days: number, write: boolean, country
     tsAwayTeamId: m.away_team_id!,
     startTime: new Date((m.match_time || 0) * 1000).toISOString(),
     status: mapStatus(m.status_id),
+    // 종료 경기를 스코어 없이 넣으면 카드에 "null : null" 이 남는다. 라우트는 SCHEDULED 면
+    // 스코어를 알아서 버리므로 항상 실어 보내면 된다(컬렉터와 동일).
+    homeScore: finalScore(m.home_scores),
+    awayScore: finalScore(m.away_scores),
   }));
   let upserted = 0;
   let skippedNoTeam = 0;
@@ -244,14 +285,21 @@ async function processLeague(code: string, days: number, write: boolean, country
 async function main() {
   const leagues = (arg("league") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (leagues.length === 0) {
-    console.log("사용법: npm run backfill:cup-teams -- --league FA_CUP[,SUI_CUP] [--days 28] [--write] [--country \"England\"]");
+    console.log("사용법: npm run backfill:cup-teams -- --league FA_CUP[,SUI_CUP] [--days 28 | --season [uuid]] [--write] [--country \"England\"]");
     process.exit(1);
   }
   const days = Number(arg("days") ?? 28);
   const write = has("write");
   const country = arg("country");
-  console.log(`컵 팀 매핑 백필 — ${leagues.join(", ")} · sweep ${days}일 · ${write ? "WRITE" : "DRY-RUN"}`);
-  for (const code of leagues) await processLeague(code, days, write, country);
+  const season = has("season") ? { uuid: arg("season") } : undefined;
+  if (season && leagues.length > 1 && season.uuid) {
+    console.log("--season 에 uuid 를 직접 줄 때는 리그를 하나만 지정하라 (시즌 uuid 는 대회별로 다르다).");
+    process.exit(1);
+  }
+  console.log(
+    `컵 팀 매핑 백필 — ${leagues.join(", ")} · ${season ? (season.uuid ? `시즌 ${season.uuid}` : "매핑된 시즌 전체") : `sweep ${days}일`} · ${write ? "WRITE" : "DRY-RUN"}`,
+  );
+  for (const code of leagues) await processLeague(code, days, write, country, season);
   await prisma.$disconnect();
 }
 
