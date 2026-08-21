@@ -27,7 +27,7 @@ export const ALL_LEAGUES = [
   "IRELAND_PD", "BOSNIA_PL", "ALBANIA_SL", "MOLDOVA_SL",
   "ELITESERIEN", "NORWAY_1L", "ALLSVENSKAN", "SUPERETTAN",
   "VEIKKAUSLIIGA", "YKKOSLIIGA", "YKKONEN", "URVALSDEILD", "ICELAND_1L",
-  "LIGA_MX", "BRASILEIRAO", "ARGENTINA_PL", "COPA_LIB", "COPA_SUD",
+  "LIGA_MX", "BRASILEIRAO", "BRASILEIRAO_2", "ARGENTINA_PL", "COPA_LIB", "COPA_SUD",
   "CHILE_PD", "CHILE_PB", "ECUADOR_LP", "COLOMBIA_PA", "PERU_PD", "VENEZUELA_PD",
   "URUGUAY_PD", "PARAGUAY_PD", "BOLIVIA_PD",
   "EGYPT_PL", "ISRAEL_PL", "INDIA_ISL", "VIETNAM_VL1", "VIETNAM_VL2",
@@ -120,7 +120,7 @@ export const SPORTS: SportMeta[] = [
       "IRELAND_PD", "BOSNIA_PL", "ALBANIA_SL", "MOLDOVA_SL",
       "ELITESERIEN", "NORWAY_1L", "ALLSVENSKAN", "SUPERETTAN",
       "VEIKKAUSLIIGA", "YKKOSLIIGA", "YKKONEN", "URVALSDEILD", "ICELAND_1L",
-      "MLS", "LIGA_MX", "BRASILEIRAO", "ARGENTINA_PL", "COPA_LIB", "COPA_SUD",
+      "MLS", "LIGA_MX", "BRASILEIRAO", "BRASILEIRAO_2", "ARGENTINA_PL", "COPA_LIB", "COPA_SUD",
       "CHILE_PD", "CHILE_PB", "ECUADOR_LP", "COLOMBIA_PA", "PERU_PD", "VENEZUELA_PD",
       "URUGUAY_PD", "PARAGUAY_PD", "BOLIVIA_PD",
       "EGYPT_PL", "ISRAEL_PL", "INDIA_ISL",
@@ -403,6 +403,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   LEAGUES_CUP: "리그스컵",
   CANADA_CHAMP: "캐나다 챔피언십",
   BRASILEIRAO: "브라질 세리에 A",
+  // 2026-08-21 추가 — 매치·팀·순위가 매일 정상 수집되는데 노출 목록에만 없어 404·예측 0 이었다
+  BRASILEIRAO_2: "브라질 세리에 B",
   LIGA_MX: "리가 MX",
   COPA_LIB: "코파 리베르타도레스",
   COPA_SUD: "코파 수다메리카나",
@@ -664,6 +666,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   MLS: 16,
   LIGA_MX: 16.1,
   BRASILEIRAO: 16.2,
+  BRASILEIRAO_2: 16.205, // BRASILEIRAO(16.2)와 COPA_DO_BRASIL(16.21) 사이 — 1부→2부→컵 순
   COPA_LIB: 16.3,
   COPA_SUD: 16.35,
   CSL: 16.4,
@@ -867,6 +870,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   LIGA_MX: "멕시코",
   // 남미
   BRASILEIRAO: "브라질",
+  BRASILEIRAO_2: "브라질",
   CHILE_PD: "칠레",
   CHILE_PB: "칠레",
   ECUADOR_LP: "에콰도르",

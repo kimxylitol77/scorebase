@@ -75,6 +75,9 @@ const VALID_LEAGUES = [
   "GREEK_SL",
   // 북중남미
   "BRASILEIRAO",
+  // 2026-08-21 — 데이터는 매일 도는데 노출 목록에만 없어 404·예측 0 이던 것. 동급 2부
+  // (CHAMPIONSHIP·LALIGA_2·SERIE_B·LIGUE_2)는 전부 등록돼 있어 여기만 어긋나 있었다.
+  "BRASILEIRAO_2",
   "LIGA_MX",
   "COPA_LIB",
   "COPA_SUD",
@@ -557,7 +560,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         ? strongArr.filter((m) => m.predCorrect).length / strongArr.length
         : 0,
   };
-  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP","K_LEAGUE_1","K_LEAGUE_2","J1_LEAGUE","J2_LEAGUE","AFC_CL","AFC_CL_TWO","AFC_U23","SAUDI_PL","UEL","UECL","CHAMPIONSHIP","LALIGA_2","BUNDESLIGA_2","SERIE_B","LIGUE_2","EREDIVISIE","PRIMEIRA_LIGA","SUPER_LIG","JUPILER_PL","SPL","GREEK_SL","BRASILEIRAO","LIGA_MX","COPA_LIB","COPA_SUD","CSL","A_LEAGUE","CLUB_WORLD_CUP"].includes(upper);
+  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP","K_LEAGUE_1","K_LEAGUE_2","J1_LEAGUE","J2_LEAGUE","AFC_CL","AFC_CL_TWO","AFC_U23","SAUDI_PL","UEL","UECL","CHAMPIONSHIP","LALIGA_2","BUNDESLIGA_2","SERIE_B","LIGUE_2","EREDIVISIE","PRIMEIRA_LIGA","SUPER_LIG","JUPILER_PL","SPL","GREEK_SL","BRASILEIRAO","BRASILEIRAO_2","LIGA_MX","COPA_LIB","COPA_SUD","CSL","A_LEAGUE","CLUB_WORLD_CUP"].includes(upper);
 
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {

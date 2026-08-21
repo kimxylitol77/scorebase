@@ -96,6 +96,7 @@ export const LEAGUE_COUNTRY: Record<string, CountryInfo> = {
   CANADA_PL:     { name: "Canada",         code: "CA", defaultCity: "Toronto" },
   LIGA_MX:       { name: "Mexico",         code: "MX", defaultCity: "Mexico City" },
   BRASILEIRAO:   { name: "Brazil",         code: "BR", defaultCity: "Rio de Janeiro" },
+  BRASILEIRAO_2: { name: "Brazil",         code: "BR", defaultCity: "Rio de Janeiro" },
   COPA_LIB:      { name: "South America",  code: "SA", defaultCity: "Buenos Aires" },
   COPA_SUD:      { name: "South America",  code: "SA", defaultCity: "Buenos Aires" },
   CHILE_PD:      { name: "Chile",          code: "CL", defaultCity: "Santiago" },

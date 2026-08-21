@@ -51,6 +51,7 @@ const LEAGUE_BADGES: Record<string, LeagueBadgeStyle> = {
   GREEK_SL: { label: "그리스 SL", bg: "#0d5eaf", fg: "#ffffff" },
   // 북중남미 추가
   BRASILEIRAO: { label: "브라질 세A", bg: "#009c3b", fg: "#fedf00" }, // 브라질 녹황
+  BRASILEIRAO_2: { label: "브라질 세B", bg: "#009c3b", fg: "#fedf00" },
   LIGA_MX: { label: "리가 MX", bg: "#006847", fg: "#ffffff" }, // 멕시코 녹
   COPA_LIB: { label: "리베르타도레스", bg: "#193f7c", fg: "#ffffff" },
   COPA_SUD: { label: "수다메리카나", bg: "#f47b20", fg: "#ffffff" },

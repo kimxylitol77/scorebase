@@ -65,6 +65,7 @@ export const SEASON_BOUNDARY: Record<string, { month: number; day: number }> = {
   BOLIVIA_PD: { month: 1, day: 1 },
   BOSNIA_PL: { month: 1, day: 1 },
   BRASILEIRAO: { month: 6, day: 1 },
+  BRASILEIRAO_2: { month: 6, day: 1 },
   BULGARIA_PL: { month: 1, day: 1 },
   BUNDESLIGA_2: { month: 7, day: 1 },
   CANADA_PL: { month: 1, day: 1 },
