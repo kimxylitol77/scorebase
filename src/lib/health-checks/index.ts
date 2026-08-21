@@ -997,6 +997,106 @@ async function checkWageFreshness(now: Date): Promise<HealthFinding[]> {
   ];
 }
 
+// ──────────────────────────────────────────────────────────────
+// 예상 라인업 품질 — 2026-08-21 에 두 번 크게 틀렸던 축이라 셋 다 수치로 지킨다.
+//   ① 남의 팀 선수단 오염 — 유령 쌍둥이 브리지가 (source, externalId) 쌍만 보고 이어서
+//      EPL 절반이 스웨덴·노르웨이 팀, 분데스 8팀이 리그1·MLS 팀 선수단이 됐다.
+//      탐지 = XI 선수의 몸값피드 소속(ts team id)이 그 팀과 다른 비율. 몸값 있는 선수만 분모.
+//   ② 좌표 결손 — 좌표가 없으면 화면이 포메이션 틀에 점수순으로 꽂아 좌우가 뒤집힌다.
+//   ③ 캐시 정지 — cron 이 죽으면 옛 XI 가 그대로 남는다(하루 2회라 36h 면 확실히 이상).
+// 자가치유(club-xi 재실행)는 ②③ 에만 뜻이 있다 — ①은 데이터 문제라 재실행해도 그대로다.
+// ──────────────────────────────────────────────────────────────
+async function checkClubXiQuality(now: Date): Promise<HealthFinding[]> {
+  const caches = await prisma.predictedXiCache.findMany({ select: { league: true, payload: true, updatedAt: true } });
+  if (!caches.length) {
+    return [{ category: "club-xi", key: "empty", severity: "HIGH", message: "예상 라인업 캐시가 비어 있음 — /api/cron/club-xi 확인" }];
+  }
+  const out: HealthFinding[] = [];
+
+  // ③ 신선도 — 하루 2회(07:00·19:00 KST)라 36h 넘으면 확실히 멈춘 것
+  const oldest = caches.reduce((a, c) => (c.updatedAt < a.updatedAt ? c : a));
+  const ageH = Math.round((now.getTime() - oldest.updatedAt.getTime()) / 3600_000);
+  if (ageH > 36) {
+    out.push({
+      category: "club-xi", key: "stale", severity: "MED",
+      message: `예상 라인업 캐시 ${ageH}h 정지 — 가장 오래된 리그 ${oldest.league}`,
+      metadata: { league: oldest.league, ageH },
+    });
+  }
+
+  type XiRow = { teamName?: string; xi?: Array<{ id?: string; x?: number; y?: number }> };
+  const entries: Array<{ league: string; teamId: number; t: XiRow }> = [];
+  for (const c of caches)
+    for (const [tid, t] of Object.entries(c.payload as Record<string, XiRow>)) entries.push({ league: c.league, teamId: Number(tid), t });
+
+  // ② 좌표 보유율 — 실측 정상 91%. 70% 밑이면 좌표 경로가 깨진 것.
+  const withXY = entries.filter((e) => (e.t.xi?.length ?? 0) > 0 && e.t.xi!.every((x) => (x.x ?? 0) > 0 || (x.y ?? 0) > 0)).length;
+  const xyPct = Math.round((withXY / entries.length) * 100);
+  if (xyPct < 70) {
+    out.push({
+      category: "club-xi", key: "coords", severity: "MED",
+      message: `예상 라인업 좌표 보유 ${xyPct}% (정상 90%대) — 좌표 집계가 깨지면 피치 배치가 포메이션 틀로 되돌아간다`,
+      metadata: { pct: xyPct, withXY, total: entries.length },
+    });
+  }
+
+  // ① 남의 팀 선수단 오염 — **payload.teamName 이 Team.name 과 다른가**로 본다.
+  //  빌더는 teamName 을 라인업 캐시의 팀명에서 가져오므로, 브리지가 남의 팀 라인업을 끌어오면
+  //  이름부터 어긋난다(실측: 호펜하임 칸에 "Lyon", 샬케 칸에 "Monaco").
+  //  처음엔 "XI 선수의 몸값피드 소속" 으로 재려 했으나 사우디·리그2 처럼 몸값 커버리지가 낮은
+  //  리그에서 전원 불일치로 잡혀 오탐이었다(알이티하드 10/10 — 실제로는 정상 XI).
+  //  이름 대조는 오탐이 없고 실제 사고를 그대로 잡는다.
+  const ids = entries.map((e) => e.teamId);
+  const teams = ids.length
+    ? await prisma.team.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } })
+    : [];
+  const nameById = new Map(teams.map((t) => [t.id, t.name]));
+  const norm = (v: string) =>
+    v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const bad: string[] = [];
+  for (const e of entries) {
+    const dbName = nameById.get(e.teamId);
+    const pName = e.t.teamName;
+    if (!dbName || !pName) continue;
+    if (norm(dbName) !== norm(pName)) bad.push(`${e.league}:${dbName}→${pName}`);
+  }
+  if (bad.length) {
+    out.push({
+      category: "club-xi", key: "wrong-squad",
+      severity: bad.length >= 5 ? "HIGH" : "MED",
+      message: `예상 라인업에 남의 팀 선수단 ${bad.length}팀 — ${bad.slice(0, 6).join(", ")}${bad.length > 6 ? " 외" : ""}. 유령 쌍둥이 브리지(build-club-xi idGroup) 확인`,
+      metadata: { teams: bad.slice(0, 30) },
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 경기별 세부 스탯 결손 — af /fixtures/players 응답에서 shots·keyPasses·tackles 를 읽는다.
+//   파서가 회귀하면 새 경기부터 조용히 null 로 쌓이고, 화면은 칩이 안 보일 뿐이라 눈에 안 띈다.
+//   실측(2026-08-21 백필 직후) 최근 7일 출전 행의 결손 12% — 세부 스탯을 안 주는 리그가 섞인 값.
+//   40% 를 넘으면 파서·수집 경로를 의심한다.
+// ──────────────────────────────────────────────────────────────
+async function checkMatchLogDetail(): Promise<HealthFinding[]> {
+  const rows: Array<{ played: number; detailed: number }> = await prisma.$queryRawUnsafe(`
+    SELECT count(*)::int AS played, count(shots)::int AS detailed
+    FROM "PlayerMatchLog"
+    WHERE date > now() - interval '7 days' AND COALESCE(minutes, 0) > 0`);
+  const { played, detailed } = rows[0] ?? { played: 0, detailed: 0 };
+  if (played < 200) return []; // 표본 부족(비시즌·수집 공백)은 판정하지 않는다
+  const missPct = Math.round((1 - detailed / played) * 100);
+  if (missPct <= 40) return [];
+  return [
+    {
+      category: "match-log-detail",
+      key: "coverage",
+      severity: "MED",
+      message: `경기별 세부 스탯 결손 ${missPct}% (최근 7일 출전 ${played}행 중 ${played - detailed}행) — af 파서(parseFixturePlayers) 확인`,
+      metadata: { played, detailed, missPct },
+    },
+  ];
+}
+
 async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
@@ -1146,6 +1246,8 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "link-health", fn: checkLinkHealth },
   { name: "player-log-freshness", fn: checkPlayerLogFreshness },
   { name: "wage-freshness", fn: checkWageFreshness },
+  { name: "club-xi-quality", fn: checkClubXiQuality },
+  { name: "match-log-detail", fn: async () => checkMatchLogDetail() },
 ];
 
 /**

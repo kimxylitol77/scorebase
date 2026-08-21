@@ -68,6 +68,16 @@ const REMEDIATIONS: Record<string, Remediation> = {
     maxAttempts: 2,
     actionTimeoutMs: 25_000,
   },
+  "club-xi": {
+    checkName: "club-xi-quality",
+    cronRoute: "club-xi",
+    // stale(캐시 정지)·coords(좌표 결손)는 재실행으로 채워진다.
+    // wrong-squad 는 빼둔다 — 브리지가 남의 팀을 끌어오는 건 코드·데이터 문제라 몇 번을
+    // 다시 돌려도 같은 결과가 나온다. 시도 상한만 태우고 사람 개입을 늦출 뿐이다.
+    keys: ["stale", "coords"],
+    maxAttempts: 2,
+    actionTimeoutMs: 25_000,
+  },
   "player-log-freshness": {
     checkName: "player-log-freshness",
     cronRoute: "player-match-logs",

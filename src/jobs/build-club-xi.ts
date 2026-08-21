@@ -375,18 +375,30 @@ export async function runBuildClubXi(): Promise<{ leagues: number; teams: number
     const pairOf = (r: { source: string; externalId: string }) => `${r.source}:${r.externalId}`;
     const pairsByTeam = new Map<number, string[]>();
     for (const r of allSrc) pairsByTeam.set(r.teamId, [...(pairsByTeam.get(r.teamId) ?? []), pairOf(r)]);
-    const ownPairs = new Set(allSrc.map(pairOf));
+    // 쌍 → 그 쌍을 가진 우리 팀들 (이름 게이트에 쓴다)
+    const ownPairOwners = new Map<string, number[]>();
+    for (const r of allSrc) ownPairOwners.set(pairOf(r), [...(ownPairOwners.get(pairOf(r)) ?? []), r.teamId]);
     const allExt = [...new Set(allSrc.map((r) => r.externalId))];
     const twinSrc = allExt.length
       ? await prisma.teamSourceId.findMany({
           where: { externalId: { in: allExt }, teamId: { notIn: teamIds } },
-          select: { teamId: true, externalId: true, source: true },
+          select: { teamId: true, externalId: true, source: true, team: { select: { name: true } } },
         })
       : [];
+    // ⚠⚠ (source, externalId) 쌍이 같아도 **이름이 다르면 붙이지 않는다.**
+    //   TeamSourceId 에는 소스 라벨이 틀린 row 가 남아 있다 — 호펜하임이 af id 167 을
+    //   `espn:167` 로 달고 있고, 리옹의 진짜 espn id 가 167 이다. 쌍만 맞춰서는 이걸 못 거른다.
+    //   2026-08-21 실측: 분데스 18팀 중 8팀 XI 가 리옹·낭트·모나코·시카고 파이어 선수단이었다.
+    //   브리지의 목적은 "같은 클럽이 두 row 로 갈라진 것"을 잇는 것이므로 이름이 다를 수 없다.
+    const normName = (v: string) =>
+      v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const twinsByPair = new Map<string, number[]>();
     for (const r of twinSrc) {
       const key = pairOf(r);
-      if (!ownPairs.has(key)) continue; // 같은 문자열이어도 소스가 다르면 남의 팀이다
+      const owners = ownPairOwners.get(key);
+      if (!owners) continue; // 같은 문자열이어도 소스가 다르면 남의 팀이다
+      const sameName = owners.some((oid) => normName(nameByTeam.get(oid) ?? "") === normName(r.team.name));
+      if (!sameName) continue;
       twinsByPair.set(key, [...(twinsByPair.get(key) ?? []), r.teamId]);
     }
     const nameTwinRows = await prisma.team.findMany({
