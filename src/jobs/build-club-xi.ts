@@ -113,8 +113,13 @@ export async function buildTeam(
   }
   const recentCount = xis.length;
 
-  // 프리시즌 보강 — 이번 시즌 리그 경기가 아직 없으면 친선 유스 로테이션이 투표를 지배한다.
-  // 직전 시즌 같은 리그 최근 XI 를 낮은 가중으로 섞되, 현 로스터에 없는 선수는 제외.
+  // 프리시즌 보강 — 이번 시즌 리그 경기가 아직 없고 **친선 재료도 얼마 없을 때만** 직전 시즌
+  // 같은 리그 최근 XI 를 낮은 가중으로 섞는다. 현 로스터에 없는 선수는 제외.
+  //
+  // ⚠ 재료가 넉넉한데도 섞으면 여름 영입이 구조적으로 불리해진다 — 새로 온 선수는 직전 시즌
+  //   그 리그에 없었으니 0 점인데, 남아 있던 선수는 prevXis 3경기(0.8×3=2.4)를 그냥 얻는다.
+  //   맨유 실측: 틸레망스(8/15 마지막 친선 선발, 여름 영입)가 마이누에게 밀려 XI 에서 빠졌다.
+  //   보강은 어디까지나 재료 부족을 메우는 장치지 과거 스쿼드를 고정하는 장치가 아니다.
   const hasCurrentLeagueGame = xis.some((x) => x.matchLeague === league);
   const tsTeamId = ctx.tsIdByTeam.get(teamId);
   const currentSquad = new Set(
@@ -122,7 +127,7 @@ export async function buildTeam(
   );
   const stillAtClub = (id: string) => rosterRecent.has(id) || currentSquad.has(id);
   const prevXis: { players: LuPlayer[]; formation?: string }[] = [];
-  if (!hasCurrentLeagueGame) {
+  if (!hasCurrentLeagueGame && recentCount < 3) {
     const prevRows = await prisma.theSportsMatchCache.findMany({
       where: {
         match: {
@@ -149,10 +154,21 @@ export async function buildTeam(
     }
   }
 
-  if (recentCount + prevXis.length < 2) return null; // 재료 2경기 미만이면 예측 스킵 (품질 가드)
+  // 재료가 아예 없으면 스킵. 1경기만 있어도 낸다 — 개막 직전 승격팀은 프리시즌 친선 한 경기가
+  //  가진 전부인데(코번트리 실측: 최근 75일 확정 XI 1건, 승격 전이라 과거 매치가 DB 에 아예 없어
+  //  prevXis 도 0), 2경기 가드에 걸려 통째로 빠지면 **상대팀까지 안 보인다** — 블록은 양팀 다
+  //  있어야 뜨기 때문에 아스널 개막전이 라인업 없이 나갔다(2026-08-21 사용자 제보).
+  //  1경기짜리는 화면에 "최근 1경기 기반"으로 그대로 표기되니 판단은 독자가 한다.
+  if (recentCount + prevXis.length < 1) return null;
 
   // 가중 투표 — 최근 감쇠 × 대회 계수. 직전 시즌 리그 경기는 고정 0.8.
-  const RECENCY = [3, 2.4, 1.9, 1.5, 1.2];
+  // 최근 감쇠 r=0.6. 예전 r≈0.8 은 3주 전 경기를 거의 같은 무게로 봐서, 프리시즌 초반
+  //  로테이션이 개막 직전 리허설을 이겼다 — 맨유 실측: 8/08·8/01·7/24 에 선발이던 유스(레이시)가
+  //  8/15 마지막 친선 선발이자 신입 주전(틸레망스)을 밀어냈다. 개막전 XI 에 가장 가까운 신호는
+  //  마지막 경기다. r=0.6 이면 8/15 XI 의 미드필더 5명과 정확히 일치한다(0.5·0.45 도 같은 결과라
+  //  더 극단으로 갈 이유는 없다). 시즌 중에도 최근 폼을 더 반영하는 쪽이고, 컵·친선 로테이션은
+  //  대회 계수(컵 0.75·친선 0.5)가 따로 눌러준다.
+  const RECENCY = [3, 1.8, 1.08, 0.65, 0.39];
   const compW = (l: string) => (l === league ? 1 : l === "CLUB_FRIENDLY" ? 0.5 : 0.75);
   const ourTeamName = teamName || ctx.nameByTeam.get(teamId) || "";
   const teamSnaps = ourTeamName
