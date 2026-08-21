@@ -34,6 +34,7 @@ import SoccerFinishedMatchReport from "@/components/scores/soccer/SoccerFinished
 import { findMatchShotMap } from "@/lib/sports/thestatsapi-shotmaps";
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import SoccerNowBlock, { type PredictedXiTeam, type InjuryLine } from "@/components/scores/soccer/SoccerNowBlock";
+import { koNameByTsId } from "@/lib/players/injury-name";
 import { fetchSeasonInjuries, getTeamInjuries } from "@/lib/sports/api-football-pro";
 import { translateReason, classifySeverity } from "@/lib/sports/injury-format";
 import { CLUB_XI_LEAGUES, teamNameMatches } from "@/lib/predict/club-xi-leagues";
@@ -741,6 +742,8 @@ export default async function GenericLivePage({ params }: Props) {
             const n = (x: string) => x.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[\s.&·'-]/g, "");
             return `${n(tokens[tokens.length - 1] ?? "")}|${n(tokens[0] ?? "")[0] ?? ""}`;
           };
+          // 결장자는 예상 XI 에 없으니 XI 에서 한글명을 못 얻는다 — tsId 로 직접 끌어온다.
+          const koByTs = await koNameByTsId(snaps.map((s) => s.playerTsId));
           const injuredIds: string[] = [];
           const toLines = (teamName: string, xi: PredictedXiTeam["xi"]): InjuryLine[] =>
             snaps
@@ -752,7 +755,7 @@ export default async function GenericLivePage({ params }: Props) {
                   xi.find((p) => nameKey(p.name) === nameKey(s.playerName));
                 if (hit?.id) injuredIds.push(hit.id);
                 return {
-                  name: hit?.nameKo || hit?.name || s.playerName,
+                  name: hit?.nameKo || (s.playerTsId ? koByTs.get(s.playerTsId) : undefined) || hit?.name || s.playerName,
                   reason: translateReason(s.reason ?? ""),
                   sev: classifySeverity(s.reason ?? ""),
                   inXi: !!hit,

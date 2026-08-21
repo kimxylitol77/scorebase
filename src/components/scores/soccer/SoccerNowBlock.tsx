@@ -215,12 +215,15 @@ export default function SoccerNowBlock({
               <h3 className="text-sm font-bold tracking-tight">부상·결장 명단</h3>
               <span className="text-[10px] text-neutral-500">데이터 기반</span>
             </div>
-            {/* grid 대신 flex 방향 전환 — 윈도우 display:grid 무력화 환경 방어 (windows-display-grid-dropout) */}
-            <div className="flex flex-col sm:flex-row gap-y-3 sm:gap-x-4">
-              <div className="min-w-0 sm:flex-1">
+            {/* grid 도, 브레이크포인트 display 토글도 쓰지 않는다 — 윈도우 환경에서 sm: 규칙이
+                덮이면 두 팀이 세로로 쌓여 맥과 달라 보인다(windows-display-grid-dropout).
+                flex-wrap + basis 로 폭이 되면 두 열, 좁으면 한 열로 스스로 접히게 한다.
+                뷰포트가 아니라 실제 남은 폭으로 결정되므로 확대·좁은 창에서도 같은 규칙이다. */}
+            <div className="flex flex-wrap gap-y-3 gap-x-4">
+              <div className="min-w-[220px] flex-1 basis-[calc(50%-0.5rem)]">
                 <InjuryList label={homeNameKo} tone="home" items={injuriesHome ?? []} />
               </div>
-              <div className="min-w-0 sm:flex-1">
+              <div className="min-w-[220px] flex-1 basis-[calc(50%-0.5rem)]">
                 <InjuryList label={awayNameKo} tone="away" items={injuriesAway ?? []} />
               </div>
             </div>
