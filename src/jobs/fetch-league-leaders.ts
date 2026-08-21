@@ -42,6 +42,8 @@ import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
+import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
+import { TS_SHARED_SEASON_LEAGUES } from "@/lib/sports/season-calendar";
 
 const TOP_N = 10;
 
@@ -358,6 +360,21 @@ async function tsSeasonLabelOf(seasonId: string): Promise<string | null> {
   }
 }
 
+/** 이 리그에 속한 ts 팀 id — 저장소 JSON + DB TeamSourceId 양쪽 (수집 경로와 같은 출처). */
+async function ourTsTeamIds(league: string): Promise<Set<string>> {
+  const ids = new Set<string>(
+    (tsTeamMap as Array<{ tsId: string; ourLeague: string }>)
+      .filter((t) => t.ourLeague === league)
+      .map((t) => t.tsId),
+  );
+  const rows = await prisma.teamSourceId.findMany({
+    where: { league, source: "thesports" },
+    select: { externalId: true },
+  });
+  for (const r of rows) ids.add(r.externalId);
+  return ids;
+}
+
 // 축구 리더 주 경로 = ts season/recent/player/stat 직접 호출 (리그당 1콜) — 항상 최신.
 // 한글 선수명은 TheSportsPlayer DB 에 있으면 쓰고, 없으면 ts 영문명 그대로 (하부리그는 미등재 다수).
 async function syncLeagueFromTsPlayerStat(
@@ -374,8 +391,20 @@ async function syncLeagueFromTsPlayerStat(
   const seasonLabel = (await tsSeasonLabelOf(entry.tsSeasonId)) ?? fallbackSeasonLabel;
 
   const res = await fetchFootballSeasonPlayerStat(entry.tsSeasonId);
-  const rows = res.results ?? [];
+  let rows = res.results ?? [];
   if (rows.length === 0) return out;
+
+  // ts 한 시즌에 다른 티어 대회까지 담기는 리그는 우리 팀 선수만 남긴다.
+  // 이 엔드포인트는 시즌 전체를 주므로 필터가 없으면 남의 대회 선수가 리더보드에 오른다
+  // (2026-08-21 YKKONEN — 득점 Top10 중 7명이 4부 Kakkonen 선수였다).
+  // 걸러낸 뒤 표본이 얕으면 아래 MIN_LEADERS 가드가 기존 표를 보존한다.
+  if (TS_SHARED_SEASON_LEAGUES.has(league)) {
+    const ours = await ourTsTeamIds(league);
+    const before = rows.length;
+    rows = rows.filter((r) => r.team?.id && ours.has(r.team.id));
+    console.log(`[league-leaders/${league}] 다른 티어 선수 ${before - rows.length}행 제외 (남은 ${rows.length}행)`);
+    if (rows.length === 0) return out;
+  }
 
   const cats: Array<{
     cat: "GOAL" | "ASSIST" | "YELLOW" | "RED";
