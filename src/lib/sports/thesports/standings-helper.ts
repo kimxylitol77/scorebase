@@ -445,18 +445,26 @@ export async function getStandingsState(league: string): Promise<{
   // 무조건 조회하면 순위가 정상인 페이지마다 쿼리가 하나씩 늘어 빌드 프리렌더에서
   // 커넥션 풀을 압박한다 (2026-07-31 배포 실패의 두 번째 요인).
   let firstFixtureAt: Date | null = null;
+  let hasPlayed = false;
   if (rows.length === 0) {
-    const next = await prisma.match
-      .findFirst({
-        where: { league, status: "SCHEDULED", startTime: { gte: new Date() } },
-        orderBy: { startTime: "asc" },
-        select: { startTime: true },
-      })
-      .catch(() => null);
+    // 치른 경기 유무도 같이 본다 — 시즌 중인데 순위 소스만 없는 리그에 "개막 전"이 뜨던 것.
+    const [next, played] = await Promise.all([
+      prisma.match
+        .findFirst({
+          where: { league, status: "SCHEDULED", startTime: { gte: new Date() } },
+          orderBy: { startTime: "asc" },
+          select: { startTime: true },
+        })
+        .catch(() => null),
+      prisma.match
+        .findFirst({ where: { league, status: "FINISHED" }, select: { id: true } })
+        .catch(() => null),
+    ]);
     firstFixtureAt = next?.startTime ?? null;
+    hasPlayed = played != null;
   }
   return {
-    state: standingsState(league, rows.length > 0, firstFixtureAt),
+    state: standingsState(league, rows.length > 0, firstFixtureAt, new Date(), hasPlayed),
     rows,
     firstFixtureAt,
   };

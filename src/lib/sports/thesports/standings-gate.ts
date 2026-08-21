@@ -127,9 +127,14 @@ export function standingsState(
   hasRows: boolean,
   firstFixtureAt: Date | null,
   now: Date = new Date(),
+  /** 이미 치른 경기가 있는가 — 있으면 "개막 전"일 수 없다(미지정이면 기존 동작). */
+  hasPlayed = false,
 ): StandingsState {
   if (NO_STANDINGS_LEAGUES.has(league)) return "NOT_APPLICABLE";
   if (hasRows) return "READY";
-  if (firstFixtureAt && firstFixtureAt.getTime() > now.getTime()) return "PRESEASON";
+  // 표가 없고 다음 경기가 미래면 보통 개막 전이다. 단 이미 치른 경기가 있으면 시즌 중인데
+  // 순위 소스만 없는 것이므로 "개막 전"은 사실과 다르다 — 화면에 거짓 문구가 나간다.
+  // (2026-08-21 YKKOSLIIGA 온보딩 실측: 96경기를 치른 리그에 "시즌 개막 전 · 첫 경기 8-21".)
+  if (!hasPlayed && firstFixtureAt && firstFixtureAt.getTime() > now.getTime()) return "PRESEASON";
   return "MISSING";
 }

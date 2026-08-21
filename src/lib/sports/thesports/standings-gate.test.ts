@@ -58,3 +58,12 @@ test("친선은 순위 없음이 정상 상태다", () => {
   assert.equal(standingsState("CLUB_FRIENDLY", false, null, new Date()), "NOT_APPLICABLE");
   assert.equal(standingsState("INTL_FRIENDLY", false, null, new Date()), "NOT_APPLICABLE");
 });
+
+test("치른 경기가 있으면 표가 비어도 개막 전이 아니다 — 시즌 중 소스 결손", () => {
+  const now = new Date("2026-08-21T00:00:00Z");
+  const nextGame = new Date("2026-08-22T00:00:00Z");
+  // 2026-08-21 YKKOSLIIGA 실측: 96경기를 치른 리그에 "시즌 개막 전 · 첫 경기 8-21" 이 떴다.
+  assert.equal(standingsState("YKKOSLIIGA", false, nextGame, now, true), "MISSING");
+  // 아직 한 경기도 안 치렀으면 기존대로 개막 전.
+  assert.equal(standingsState("YKKOSLIIGA", false, nextGame, now, false), "PRESEASON");
+});
