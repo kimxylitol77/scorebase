@@ -27568,5 +27568,2579 @@
     "tsId": "dn1m1gh86exmoep",
     "tsName": "Huima/Urho",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613706,
+    "ourName": "Aubervilliers",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh5669md7o",
+    "tsId": "6ypq3nh5669md7o",
+    "tsName": "Aubervilliers",
+    "tsKo": "오베르빌리에",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613707,
+    "ourName": "Le Mee Sports",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4jwq2gh1nv4m0ve",
+    "tsId": "4jwq2gh1nv4m0ve",
+    "tsName": "Le Mee Sports",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613708,
+    "ourName": "GRACES",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohk4exq1zp",
+    "tsId": "dj2ryohk4exq1zp",
+    "tsName": "GRACES",
+    "tsKo": "그레이시스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613710,
+    "ourName": "Neuilly Marne",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohknw2q1zp",
+    "tsId": "dj2ryohknw2q1zp",
+    "tsName": "Neuilly Marne",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613711,
+    "ourName": "Ivry",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dn1m1gh4141moep",
+    "tsId": "dn1m1gh4141moep",
+    "tsName": "Ivry",
+    "tsKo": "이브리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613712,
+    "ourName": "USSA Vertou",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jhlj1nqwzv",
+    "tsId": "y0or5jhlj1nqwzv",
+    "tsName": "USSA Vertou",
+    "tsKo": "USSA 베르투",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613713,
+    "ourName": "La Roche-sur-Yon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohk26dq1zp",
+    "tsId": "dj2ryohk26dq1zp",
+    "tsName": "La Roche-sur-Yon",
+    "tsKo": "라 로슈-수르-욘",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613714,
+    "ourName": "Montaigu Vendee",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whewz9ryox",
+    "tsId": "ednm9whewz9ryox",
+    "tsName": "Montaigu Vendee",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613718,
+    "ourName": "Chartres FC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8gh416pr6od",
+    "tsId": "vjxm8gh416pr6od",
+    "tsName": "Chartres FC",
+    "tsKo": "샤르트르 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613724,
+    "ourName": "Alizay FAC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyhzk8kr1ge",
+    "tsId": "965mkyhzk8kr1ge",
+    "tsName": "Alizay FAC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613725,
+    "ourName": "Bois-Guillaume",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohkkzeq1zp",
+    "tsId": "dj2ryohkkzeq1zp",
+    "tsName": "Bois-Guillaume",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613731,
+    "ourName": "Quetigny",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-9dn1m1ghyenmoep",
+    "tsId": "9dn1m1ghyenmoep",
+    "tsName": "Quetigny",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613732,
+    "ourName": "La Baule-Le Pouliguen",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l5ergphvzz8r8k0",
+    "tsId": "l5ergphvzz8r8k0",
+    "tsName": "La Baule-Le Pouliguen",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613734,
+    "ourName": "FA Illkirch Graffenstaden",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y39mp1h39znmojx",
+    "tsId": "y39mp1h39znmojx",
+    "tsName": "FA Illkirch Graffenstaden",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613736,
+    "ourName": "Orvault SF",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhge58ryk0",
+    "tsId": "pxwrxlhge58ryk0",
+    "tsName": "Orvault SF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613738,
+    "ourName": "Drancy",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4h7vwkq0j6",
+    "tsId": "8yomo4h7vwkq0j6",
+    "tsName": "Drancy",
+    "tsKo": "드랑시",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613739,
+    "ourName": "Montreuil FC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhvy65ryk0",
+    "tsId": "pxwrxlhvy65ryk0",
+    "tsName": "Montreuil FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613740,
+    "ourName": "Blois",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-kn54qllh034qvy9",
+    "tsId": "kn54qllh034qvy9",
+    "tsName": "Blois",
+    "tsKo": "블와",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613741,
+    "ourName": "Seyssinet",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whkgz8ryox",
+    "tsId": "ednm9whkgz8ryox",
+    "tsName": "Seyssinet",
+    "tsKo": "세이시네",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613745,
+    "ourName": "FC Melun",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-jw2r09h1k81rz84",
+    "tsId": "jw2r09h1k81rz84",
+    "tsName": "FC Melun",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613746,
+    "ourName": "Cergy Pontoise FC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zh8vgdql07",
+    "tsId": "2y8m4zh8vgdql07",
+    "tsName": "Cergy Pontoise FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613747,
+    "ourName": "Torcy",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-318q66hjd4wqo9j",
+    "tsId": "318q66hjd4wqo9j",
+    "tsName": "Torcy",
+    "tsKo": "토르시",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613748,
+    "ourName": "AS Garchizy",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdeh1g7er510",
+    "tsId": "l7oqdeh1g7er510",
+    "tsName": "AS Garchizy",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613749,
+    "ourName": "Olympique de Villefontaine",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7ho4ldqdyj",
+    "tsId": "3glrw7ho4ldqdyj",
+    "tsName": "Olympique de Villefontaine",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613750,
+    "ourName": "AS Magenta Noumea",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyh4778r1ge",
+    "tsId": "965mkyh4778r1ge",
+    "tsName": "AS Magenta Noumea",
+    "tsKo": "AS 마젠타 누메아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613752,
+    "ourName": "Auby",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7ho40yqdyj",
+    "tsId": "3glrw7ho40yqdyj",
+    "tsName": "Auby",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613754,
+    "ourName": "Avranches",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8y39mp1hx97mojx",
+    "tsId": "8y39mp1hx97mojx",
+    "tsName": "Avranches",
+    "tsKo": "아브랑슈",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613758,
+    "ourName": "AS Le Gosier",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dn1m1gh368emoep",
+    "tsId": "dn1m1gh368emoep",
+    "tsName": "AS Le Gosier",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613759,
+    "ourName": "US Chateau-Malo",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phpx8pm2wd",
+    "tsId": "x7lm7phpx8pm2wd",
+    "tsName": "US Chateau-Malo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613760,
+    "ourName": "Lavaur",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdeh1j8vr510",
+    "tsId": "l7oqdeh1j8vr510",
+    "tsName": "Lavaur",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613761,
+    "ourName": "Pontarlier",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh01j8md7o",
+    "tsId": "6ypq3nh01j8md7o",
+    "tsName": "Pontarlier",
+    "tsKo": "퐁타를리에",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613762,
+    "ourName": "Les Bleuets",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y39mp1h9dpomojx",
+    "tsId": "y39mp1h9dpomojx",
+    "tsName": "Les Bleuets",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613763,
+    "ourName": "Villars-lIsle",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-n54qllhd419qvy9",
+    "tsId": "n54qllhd419qvy9",
+    "tsName": "Villars-lIsle",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613764,
+    "ourName": "Sarre Union",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-k82rekh96e7repz",
+    "tsId": "k82rekh96e7repz",
+    "tsName": "Sarre Union",
+    "tsKo": "사르 연합",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613768,
+    "ourName": "AS Furiani Agliani",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jhl6d3qwzv",
+    "tsId": "y0or5jhl6d3qwzv",
+    "tsName": "AS Furiani Agliani",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613770,
+    "ourName": "Rhone Vallee",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l965mkyhjzjr1ge",
+    "tsId": "l965mkyhjzjr1ge",
+    "tsName": "Rhone Vallee",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613771,
+    "ourName": "Yvetot AC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hwonlqdyj",
+    "tsId": "3glrw7hwonlqdyj",
+    "tsName": "Yvetot AC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613773,
+    "ourName": "Bandrele",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4h9ylpq86p",
+    "tsId": "4wyrn4h9ylpq86p",
+    "tsName": "Bandrele",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613774,
+    "ourName": "Atlas Paillade",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhvl79ryk0",
+    "tsId": "pxwrxlhvl79ryk0",
+    "tsName": "Atlas Paillade",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613775,
+    "ourName": "Lapalisse",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4jwq2gh1g6em0ve",
+    "tsId": "4jwq2gh1g6em0ve",
+    "tsName": "Lapalisse",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613777,
+    "ourName": "Le Cellier Mauves",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whe56wryox",
+    "tsId": "ednm9whe56wryox",
+    "tsName": "Le Cellier Mauves",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613779,
+    "ourName": "Cambrai",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh018lmd7o",
+    "tsId": "6ypq3nh018lmd7o",
+    "tsName": "Cambrai",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613733,
+    "ourName": "Les Herbiers",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhg1p4ryk0",
+    "tsId": "pxwrxlhg1p4ryk0",
+    "tsName": "Les Herbiers",
+    "tsKo": "레헤비에르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613709,
+    "ourName": "Toulon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4jwq2gh4v8em0ve",
+    "tsId": "4jwq2gh4v8em0ve",
+    "tsName": "Toulon",
+    "tsKo": "툴롱",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613715,
+    "ourName": "Vierzon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zh3j3dql07",
+    "tsId": "2y8m4zh3j3dql07",
+    "tsName": "Vierzon",
+    "tsKo": "비에르종",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613716,
+    "ourName": "Bourges",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-n54qllh2184qvy9",
+    "tsId": "n54qllh2184qvy9",
+    "tsName": "Bourges",
+    "tsKo": "부르주18",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613723,
+    "ourName": "Grand Quevilly",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyh4dgzr1ge",
+    "tsId": "965mkyh4dgzr1ge",
+    "tsName": "Grand Quevilly",
+    "tsKo": "그랑 케비이",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613737,
+    "ourName": "Bobigny A.C.",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8gh4xwjr6od",
+    "tsId": "vjxm8gh4xwjr6od",
+    "tsName": "Bobigny A.C.",
+    "tsKo": "바비니 AC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613726,
+    "ourName": "Dives",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdehn222r510",
+    "tsId": "l7oqdehn222r510",
+    "tsName": "Dives",
+    "tsKo": "디브스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613728,
+    "ourName": "Mantes-la-Ville",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4h76gpq0j6",
+    "tsId": "8yomo4h76gpq0j6",
+    "tsName": "Mantes-la-Ville",
+    "tsKo": "망뜨",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613717,
+    "ourName": "Saran",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-zp5rzgh7zdgq82w",
+    "tsId": "zp5rzgh7zdgq82w",
+    "tsName": "Saran",
+    "tsKo": "사랑",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613719,
+    "ourName": "Hyeres",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phkwp2m2wd",
+    "tsId": "x7lm7phkwp2m2wd",
+    "tsName": "Hyeres",
+    "tsKo": "이에르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613720,
+    "ourName": "Istres",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-9vjxm8ghd5vr6od",
+    "tsId": "9vjxm8ghd5vr6od",
+    "tsName": "Istres",
+    "tsKo": "이스트레",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613721,
+    "ourName": "Ajaccio Gfco",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vl7oqdehkynr510",
+    "tsId": "vl7oqdehkynr510",
+    "tsName": "Ajaccio Gfco",
+    "tsKo": "아작시오 GFCO",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613744,
+    "ourName": "Alenconnaise",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dn1m1ghn9onmoep",
+    "tsId": "dn1m1ghn9onmoep",
+    "tsName": "Alenconnaise",
+    "tsKo": "알랑콘네즈",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613722,
+    "ourName": "Gallia Lucciana",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4jwq2ghvd69m0ve",
+    "tsId": "4jwq2ghvd69m0ve",
+    "tsName": "Gallia Lucciana",
+    "tsKo": "루치아나 갈리아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613727,
+    "ourName": "Sainte Genevieve Sports",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8gh4xvor6od",
+    "tsId": "vjxm8gh4xvor6od",
+    "tsName": "Sainte Genevieve Sports",
+    "tsKo": "생트 제네비에브 스포츠",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613729,
+    "ourName": "US Chateauneuf sur Loire",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4h2g65q0j6",
+    "tsId": "8yomo4h2g65q0j6",
+    "tsName": "US Chateauneuf sur Loire",
+    "tsKo": "루아르 생토뇌프 US",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613730,
+    "ourName": "Vineuil SF",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-n54qllhjlv5qvy9",
+    "tsId": "n54qllhjlv5qvy9",
+    "tsName": "Vineuil SF",
+    "tsKo": "비누이 SF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613742,
+    "ourName": "Saint-Priest",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phkpgem2wd",
+    "tsId": "x7lm7phkpgem2wd",
+    "tsName": "Saint-Priest",
+    "tsKo": "생-프리스트",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613661,
+    "ourName": "UD Poblense",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-23xmvkh39zxqg8n",
+    "tsId": "23xmvkh39zxqg8n",
+    "tsName": "UD Poblense",
+    "tsKo": "UD 포블렌세",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613790,
+    "ourName": "Stade Béthunois",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jh46kdqwzv",
+    "tsId": "y0or5jh46kdqwzv",
+    "tsName": "Stade Béthunois",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613792,
+    "ourName": "L'Etrat La Tour Sportif",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhgvk0ryk0",
+    "tsId": "pxwrxlhgvk0ryk0",
+    "tsName": "L'Etrat La Tour Sportif",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613799,
+    "ourName": "Steenvoorde",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohy6npq1zp",
+    "tsId": "dj2ryohy6npq1zp",
+    "tsName": "Steenvoorde",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613803,
+    "ourName": "FC 2 Rives 82",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-23xmvkhxyw9qg8n",
+    "tsId": "23xmvkhxyw9qg8n",
+    "tsName": "FC 2 Rives 82",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613743,
+    "ourName": "Oissel",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4h71zkq0j6",
+    "tsId": "8yomo4h71zkq0j6",
+    "tsName": "Oissel",
+    "tsKo": "와이셀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613751,
+    "ourName": "Mulhouse",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-j1l4rjnh8eom7vx",
+    "tsId": "j1l4rjnh8eom7vx",
+    "tsName": "Mulhouse",
+    "tsKo": "뮐하우스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613755,
+    "ourName": "OCPAM",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jh1gl1qwzv",
+    "tsId": "y0or5jh1gl1qwzv",
+    "tsName": "OCPAM",
+    "tsKo": "옥팜",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613756,
+    "ourName": "Aizenay",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohn3klq1zp",
+    "tsId": "dj2ryohn3klq1zp",
+    "tsName": "Aizenay",
+    "tsKo": "아이즈네",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613626,
+    "ourName": "Betis Valladolid",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-1l4rjnhe9yom7vx",
+    "tsId": "1l4rjnhe9yom7vx",
+    "tsName": "Betis Valladolid",
+    "tsKo": "바야돌리드 베티스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613627,
+    "ourName": "Puerto de Vega",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4jwq2gh1no2m0ve",
+    "tsId": "4jwq2gh1no2m0ve",
+    "tsName": "Puerto de Vega",
+    "tsKo": "베가 항구",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613628,
+    "ourName": "CCD Alberite",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-zp5rzgh7w26q82w",
+    "tsId": "zp5rzgh7w26q82w",
+    "tsName": "CCD Alberite",
+    "tsKo": "알베리테 CCD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613629,
+    "ourName": "Manises",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8ghxpx3r6od",
+    "tsId": "vjxm8ghxpx3r6od",
+    "tsName": "Manises",
+    "tsKo": "마니세스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613631,
+    "ourName": "Sporting Ceuta",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-ednm9whew83ryox",
+    "tsId": "ednm9whew83ryox",
+    "tsName": "Sporting Ceuta",
+    "tsKo": "세우타 스포르팅",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613632,
+    "ourName": "Maracena",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-l5ergph35p2r8k0",
+    "tsId": "l5ergph35p2r8k0",
+    "tsName": "Maracena",
+    "tsKo": "마라세나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613633,
+    "ourName": "SD Textil Escudo",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-zp5rzghjz8wq82w",
+    "tsId": "zp5rzghjz8wq82w",
+    "tsName": "SD Textil Escudo",
+    "tsKo": "SD 텍스틸 에스쿠도",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613634,
+    "ourName": "Negreira",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-y0or5jhl873qwzv",
+    "tsId": "y0or5jhl873qwzv",
+    "tsName": "Negreira",
+    "tsKo": "네그레이라",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613757,
+    "ourName": "Moulien",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y39mp1hj7g9mojx",
+    "tsId": "y39mp1hj7g9mojx",
+    "tsName": "Moulien",
+    "tsKo": "무리엔 여자 축구팀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613623,
+    "ourName": "Atlètic Sant Just FC",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-23xmvkhx41kqg8n",
+    "tsId": "23xmvkhx41kqg8n",
+    "tsName": "Atlètic Sant Just FC",
+    "tsKo": "산후스트 애슬레틱 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613624,
+    "ourName": "Atletico Calatayud",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-k82rekhvzy9repz",
+    "tsId": "k82rekhvzy9repz",
+    "tsName": "Atletico Calatayud",
+    "tsKo": "아틀레티코 칼라타유드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613625,
+    "ourName": "CD Getxo",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-y0or5jhl535qwzv",
+    "tsId": "y0or5jhl535qwzv",
+    "tsName": "CD Getxo",
+    "tsKo": "게초 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613635,
+    "ourName": "CF Campanario",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-1l4rjnhxz2em7vx",
+    "tsId": "1l4rjnhxz2em7vx",
+    "tsName": "CF Campanario",
+    "tsKo": "캄파나리오 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613636,
+    "ourName": "CD Yuncos",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-x7lm7phox2zm2wd",
+    "tsId": "x7lm7phox2zm2wd",
+    "tsName": "CD Yuncos",
+    "tsKo": "윤코스 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613637,
+    "ourName": "CD Sant Jordi",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-zp5rzgh1gy9q82w",
+    "tsId": "zp5rzgh1gy9q82w",
+    "tsName": "CD Sant Jordi",
+    "tsKo": "산호르디 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613638,
+    "ourName": "Lourdes",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-3glrw7h1gllqdyj",
+    "tsId": "3glrw7h1gllqdyj",
+    "tsName": "Lourdes",
+    "tsKo": "루르드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613639,
+    "ourName": "Atletico Melilla",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4wyrn4helzlq86p",
+    "tsId": "4wyrn4helzlq86p",
+    "tsName": "Atletico Melilla",
+    "tsKo": "멜리야 아틀레티코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613640,
+    "ourName": "Atletico Palma del Rio",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-x7lm7php5j0m2wd",
+    "tsId": "x7lm7php5j0m2wd",
+    "tsName": "Atletico Palma del Rio",
+    "tsKo": "리오 델 리오 아틀레티코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613641,
+    "ourName": "Inter de Valdemoro",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-318q66hv52gqo9j",
+    "tsId": "318q66hv52gqo9j",
+    "tsName": "Inter de Valdemoro",
+    "tsKo": "발데모로 인터",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613642,
+    "ourName": "Universitario Julio Suarez FC",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-965mkyhnzw6r1ge",
+    "tsId": "965mkyhnzw6r1ge",
+    "tsName": "Universitario Julio Suarez FC",
+    "tsKo": "훌리오 수아레스 대학팀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613643,
+    "ourName": "Atletico Tordesillas",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-pxwrxlh1e6oryk0",
+    "tsId": "pxwrxlh1e6oryk0",
+    "tsName": "Atletico Tordesillas",
+    "tsKo": "토르데시야스 아틀레티코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613644,
+    "ourName": "Constancia",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-k82rekhv6wnrepz",
+    "tsId": "k82rekhv6wnrepz",
+    "tsName": "Constancia",
+    "tsKo": "콘스탄시아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613630,
+    "ourName": "UD Los Garres",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-pxwrxlh1nezryk0",
+    "tsId": "pxwrxlh1nezryk0",
+    "tsName": "UD Los Garres",
+    "tsKo": "로스 가레스 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613645,
+    "ourName": "Ourense CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4wyrn4h84dzq86p",
+    "tsId": "4wyrn4h84dzq86p",
+    "tsName": "Ourense CF",
+    "tsKo": "오우렌세 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613646,
+    "ourName": "Union Langreo",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-y0or5jhl9l6qwzv",
+    "tsId": "y0or5jhl9l6qwzv",
+    "tsName": "Union Langreo",
+    "tsKo": "랑레오 연합팀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613647,
+    "ourName": "Racing de Ferrol",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-kdj2ryoh3xeq1zp",
+    "tsId": "kdj2ryoh3xeq1zp",
+    "tsName": "Racing de Ferrol",
+    "tsKo": "라싱 데 페롤",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613648,
+    "ourName": "SD Logrones",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-n54qllhe97kqvy9",
+    "tsId": "n54qllhe97kqvy9",
+    "tsName": "SD Logrones",
+    "tsKo": "로그로뇨스 SD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613649,
+    "ourName": "UCAM Murcia",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4jwq2ghk0w9m0ve",
+    "tsId": "4jwq2ghk0w9m0ve",
+    "tsName": "UCAM Murcia",
+    "tsKo": "UCAM 무르시아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613651,
+    "ourName": "Cacereno",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8ghg4zxr6od",
+    "tsId": "vjxm8ghg4zxr6od",
+    "tsName": "Cacereno",
+    "tsKo": "카세레노",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613652,
+    "ourName": "CF Rayo Majadahonda",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8gh46ggr6od",
+    "tsId": "vjxm8gh46ggr6od",
+    "tsName": "CF Rayo Majadahonda",
+    "tsKo": "마하다혼다 라요 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613767,
+    "ourName": "Sarreguemines",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdehnpxzr510",
+    "tsId": "l7oqdehnpxzr510",
+    "tsName": "Sarreguemines",
+    "tsKo": "사르르귀민",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613765,
+    "ourName": "Andrezieux",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-p3glrw7h2d4qdyj",
+    "tsId": "p3glrw7h2d4qdyj",
+    "tsName": "Andrezieux",
+    "tsKo": "앙드레주",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613769,
+    "ourName": "LA Saint-Colomban Locmine",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jh400yqwzv",
+    "tsId": "y0or5jh400yqwzv",
+    "tsName": "LA Saint-Colomban Locmine",
+    "tsKo": "LA 생-콜롱방 로크민",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613766,
+    "ourName": "Hauts Lyonnais",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8gh4xe9r6od",
+    "tsId": "vjxm8gh4xe9r6od",
+    "tsName": "Hauts Lyonnais",
+    "tsKo": "오 리오네",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613778,
+    "ourName": "Besancon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-gy0or5jhk35qwzv",
+    "tsId": "gy0or5jhk35qwzv",
+    "tsName": "Besancon",
+    "tsKo": "베상송",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613772,
+    "ourName": "Caen PTT",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-23xmvkhdk4lqg8n",
+    "tsId": "23xmvkhdk4lqg8n",
+    "tsName": "Caen PTT",
+    "tsKo": "캉 PTT",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613776,
+    "ourName": "Stade Poitevin",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hwoovqdyj",
+    "tsId": "3glrw7hwoovqdyj",
+    "tsName": "Stade Poitevin",
+    "tsKo": "스타드 포아티번",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613780,
+    "ourName": "Feignies",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-318q66ho4gnqo9j",
+    "tsId": "318q66ho4gnqo9j",
+    "tsName": "Feignies",
+    "tsKo": "페니에",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613781,
+    "ourName": "FC Challans",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zhj3npql07",
+    "tsId": "2y8m4zhj3npql07",
+    "tsName": "FC Challans",
+    "tsKo": "샬랑 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613782,
+    "ourName": "Pontivy",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whkge8ryox",
+    "tsId": "ednm9whkge8ryox",
+    "tsName": "Pontivy",
+    "tsKo": "폰티비",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613783,
+    "ourName": "FONTENAY VENDEE FOOT",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-jw2r09hl1p5rz84",
+    "tsId": "jw2r09hl1p5rz84",
+    "tsName": "FONTENAY VENDEE FOOT",
+    "tsKo": "퐁트네 방데 풋볼",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613784,
+    "ourName": "CHAMALIERES",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phkxx4m2wd",
+    "tsId": "x7lm7phkxx4m2wd",
+    "tsName": "CHAMALIERES",
+    "tsKo": "샤말리에르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613785,
+    "ourName": "Granville",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohk44xq1zp",
+    "tsId": "dj2ryohk44xq1zp",
+    "tsName": "Granville",
+    "tsKo": "그랜빌",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613804,
+    "ourName": "Mazeres",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-zp5rzgh130wq82w",
+    "tsId": "zp5rzgh130wq82w",
+    "tsName": "Mazeres",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613805,
+    "ourName": "APM Metz",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-jw2r09hlly9rz84",
+    "tsId": "jw2r09hlly9rz84",
+    "tsName": "APM Metz",
+    "tsKo": "APM 메츠",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613807,
+    "ourName": "Montreal-la-Cluse",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dn1m1gh19kzmoep",
+    "tsId": "dn1m1gh19kzmoep",
+    "tsName": "Montreal-la-Cluse",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613808,
+    "ourName": "Chalon-sur-Saone",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4h9y0pq86p",
+    "tsId": "4wyrn4h9y0pq86p",
+    "tsName": "Chalon-sur-Saone",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613809,
+    "ourName": "Stade Quimperlois",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7ho46yqdyj",
+    "tsId": "3glrw7ho46yqdyj",
+    "tsName": "Stade Quimperlois",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613811,
+    "ourName": "US Montmorillon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4he2vyq86p",
+    "tsId": "4wyrn4he2vyq86p",
+    "tsName": "US Montmorillon",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613812,
+    "ourName": "Beaucouze",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-318q66hk8ndqo9j",
+    "tsId": "318q66hk8ndqo9j",
+    "tsName": "Beaucouze",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613813,
+    "ourName": "Premontre",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zh1vx0ql07",
+    "tsId": "2y8m4zh1vx0ql07",
+    "tsName": "Premontre",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613786,
+    "ourName": "Dinan Lehon FC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-318q66h0o2vqo9j",
+    "tsId": "318q66h0o2vqo9j",
+    "tsName": "Dinan Lehon FC",
+    "tsKo": "디낭 레옹 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613787,
+    "ourName": "Iris Club de Croix",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4h84k3q86p",
+    "tsId": "4wyrn4h84k3q86p",
+    "tsName": "Iris Club de Croix",
+    "tsKo": "크루아 이리스 클럽",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613668,
+    "ourName": "Caudal",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-23xmvkho454qg8n",
+    "tsId": "23xmvkho454qg8n",
+    "tsName": "Caudal",
+    "tsKo": "카우달",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613669,
+    "ourName": "CD Cieza",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-n54qllh269zqvy9",
+    "tsId": "n54qllh269zqvy9",
+    "tsName": "CD Cieza",
+    "tsKo": "시에사 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613674,
+    "ourName": "Numancia",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-e4wyrn4h131q86p",
+    "tsId": "e4wyrn4h131q86p",
+    "tsName": "Numancia",
+    "tsKo": "누만시아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613675,
+    "ourName": "Arenas Club de Getxo",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-ednm9whkv45ryox",
+    "tsId": "ednm9whkv45ryox",
+    "tsName": "Arenas Club de Getxo",
+    "tsKo": "게이소 아레나 클럽",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613676,
+    "ourName": "Sant Andreu",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8gh48x0r6od",
+    "tsId": "vjxm8gh48x0r6od",
+    "tsName": "Sant Andreu",
+    "tsKo": "산 안드레우",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613677,
+    "ourName": "Teruel",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-x7lm7pho7p5m2wd",
+    "tsId": "x7lm7pho7p5m2wd",
+    "tsName": "Teruel",
+    "tsKo": "테루엘",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613678,
+    "ourName": "Torrent C.F",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4wyrn4h4d7yq86p",
+    "tsId": "4wyrn4h4d7yq86p",
+    "tsName": "Torrent C.F",
+    "tsKo": "토렌트 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613679,
+    "ourName": "Portugalete",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-pxwrxlhg7v9ryk0",
+    "tsId": "pxwrxlhg7v9ryk0",
+    "tsName": "Portugalete",
+    "tsKo": "포르투갈레테",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613680,
+    "ourName": "Puente Genil",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-pxwrxlh91x7ryk0",
+    "tsId": "pxwrxlh91x7ryk0",
+    "tsName": "Puente Genil",
+    "tsKo": "푸엔테 헤닐",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613681,
+    "ourName": "FC Cartagena",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-zp5rzghjjoeq82w",
+    "tsId": "zp5rzghjjoeq82w",
+    "tsName": "FC Cartagena",
+    "tsKo": "FC 카르타헤나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613682,
+    "ourName": "Reus FC Reddis",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-6ypq3nhl3opmd7o",
+    "tsId": "6ypq3nhl3opmd7o",
+    "tsName": "Reus FC Reddis",
+    "tsKo": "레우스 FC 레디스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613683,
+    "ourName": "CE Europa",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-318q66h0j1vqo9j",
+    "tsId": "318q66h0j1vqo9j",
+    "tsName": "CE Europa",
+    "tsKo": "유로파 CE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613684,
+    "ourName": "UD Ourense",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-8yomo4h2g4dq0j6",
+    "tsId": "8yomo4h2g4dq0j6",
+    "tsName": "UD Ourense",
+    "tsKo": "오렌세 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613686,
+    "ourName": "Lucena CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-y0or5jhl09wqwzv",
+    "tsId": "y0or5jhl09wqwzv",
+    "tsName": "Lucena CF",
+    "tsKo": "루세나 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613688,
+    "ourName": "Quintanar Del Rey",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-56ypq3nhx3jmd7o",
+    "tsId": "56ypq3nhx3jmd7o",
+    "tsName": "Quintanar Del Rey",
+    "tsKo": "킨탄나르 델 레이",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613694,
+    "ourName": "Real Avila CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-n54qllh2n94qvy9",
+    "tsId": "n54qllh2n94qvy9",
+    "tsName": "Real Avila CF",
+    "tsKo": "레알 아빌라 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613698,
+    "ourName": "CA Antoniano",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8ghgww5r6od",
+    "tsId": "vjxm8ghgww5r6od",
+    "tsName": "CA Antoniano",
+    "tsKo": "안토니아노 CA",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613700,
+    "ourName": "CD Estebona",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-dj2ryohg2vzq1zp",
+    "tsId": "dj2ryohg2vzq1zp",
+    "tsName": "CD Estebona",
+    "tsKo": "에스테보나 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613701,
+    "ourName": "Real Murcia",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-z8yomo4hoevq0j6",
+    "tsId": "z8yomo4hoevq0j6",
+    "tsName": "Real Murcia",
+    "tsKo": "레알 무르시아",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613702,
+    "ourName": "Antequera CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-p3glrw7hxjlqdyj",
+    "tsId": "p3glrw7hxjlqdyj",
+    "tsName": "Antequera CF",
+    "tsKo": "안테케라 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613703,
+    "ourName": "UD Samano",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-965mkyh4njor1ge",
+    "tsId": "965mkyh4njor1ge",
+    "tsName": "UD Samano",
+    "tsKo": "사마노 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613656,
+    "ourName": "Club Deportivo Tropezon",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-2y8m4zh39v4ql07",
+    "tsId": "2y8m4zh39v4ql07",
+    "tsName": "Club Deportivo Tropezon",
+    "tsKo": "트로페손 축구단",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613657,
+    "ourName": "RSD Alcala Henares",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-e4wyrn4hp0yq86p",
+    "tsId": "e4wyrn4hp0yq86p",
+    "tsName": "RSD Alcala Henares",
+    "tsKo": "RSD 알칼라 에나레스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613659,
+    "ourName": "Extremadura UD",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-kjw2r09h84lrz84",
+    "tsId": "kjw2r09h84lrz84",
+    "tsName": "Extremadura UD",
+    "tsKo": "에스트레마두라 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613665,
+    "ourName": "La Union CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-l7oqdeh63z2r510",
+    "tsId": "l7oqdeh63z2r510",
+    "tsName": "La Union CF",
+    "tsKo": "라 연합 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613666,
+    "ourName": "Atletico Astorga",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4wyrn4he2wzq86p",
+    "tsId": "4wyrn4he2wzq86p",
+    "tsName": "Atletico Astorga",
+    "tsKo": "아스토르가 아틀레티코",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613789,
+    "ourName": "Loon-Plage",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hwokgqdyj",
+    "tsId": "3glrw7hwokgqdyj",
+    "tsName": "Loon-Plage",
+    "tsKo": "룬 플라게",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613791,
+    "ourName": "Montceau",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4h70o2q0j6",
+    "tsId": "8yomo4h70o2q0j6",
+    "tsName": "Montceau",
+    "tsKo": "몽소",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613794,
+    "ourName": "Bayonne",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-e4wyrn4hkg1q86p",
+    "tsId": "e4wyrn4hkg1q86p",
+    "tsName": "Bayonne",
+    "tsKo": "바욘",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613797,
+    "ourName": "Union Saint-Jean",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whzjjzryox",
+    "tsId": "ednm9whzjjzryox",
+    "tsName": "Union Saint-Jean",
+    "tsKo": "유니옹 생장",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613654,
+    "ourName": "CD Roda",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-1l4rjnhzyoom7vx",
+    "tsId": "1l4rjnhzyoom7vx",
+    "tsName": "CD Roda",
+    "tsKo": "로다 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613814,
+    "ourName": "Chantilly",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8gh4j1vr6od",
+    "tsId": "vjxm8gh4j1vr6od",
+    "tsName": "Chantilly",
+    "tsKo": "샹티이",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613815,
+    "ourName": "Seignosse Capbreton",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh1ke5md7o",
+    "tsId": "6ypq3nh1ke5md7o",
+    "tsName": "Seignosse Capbreton",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613816,
+    "ourName": "FC Marmande 47",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l5ergph3oypr8k0",
+    "tsId": "l5ergph3oypr8k0",
+    "tsName": "FC Marmande 47",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613817,
+    "ourName": "SS Allinges",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhvle9ryk0",
+    "tsId": "pxwrxlhvle9ryk0",
+    "tsName": "SS Allinges",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613818,
+    "ourName": "Biars-Bretenoux",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7ph0j88m2wd",
+    "tsId": "x7lm7ph0j88m2wd",
+    "tsName": "Biars-Bretenoux",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613820,
+    "ourName": "So Cassis Carnou",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhgkxdryk0",
+    "tsId": "pxwrxlhgkxdryk0",
+    "tsName": "So Cassis Carnou",
+    "tsKo": "카시 카르누 소 클럽",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613822,
+    "ourName": "AS Etoile Matoury",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hjn6lqdyj",
+    "tsId": "3glrw7hjn6lqdyj",
+    "tsName": "AS Etoile Matoury",
+    "tsKo": "AS 에뚜왈 마투리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613655,
+    "ourName": "UD San Fernando",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-1l4rjnh1287m7vx",
+    "tsId": "1l4rjnh1287m7vx",
+    "tsName": "UD San Fernando",
+    "tsKo": "산페르난도 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613658,
+    "ourName": "Utebo FC",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-318q66h0k0pqo9j",
+    "tsId": "318q66h0k0pqo9j",
+    "tsName": "Utebo FC",
+    "tsKo": "우테보 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613662,
+    "ourName": "CD Ebro",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-x7lm7phon4vm2wd",
+    "tsId": "x7lm7phon4vm2wd",
+    "tsName": "CD Ebro",
+    "tsKo": "에브로 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613663,
+    "ourName": "SD Tarazona",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-8yomo4h7oy9q0j6",
+    "tsId": "8yomo4h7oy9q0j6",
+    "tsName": "SD Tarazona",
+    "tsKo": "타라소나 SD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613664,
+    "ourName": "UD Mutilvera",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-pxwrxlhgyxeryk0",
+    "tsId": "pxwrxlhgyxeryk0",
+    "tsName": "UD Mutilvera",
+    "tsKo": "무틸베라 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613788,
+    "ourName": "Racing Club de France",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zhzz0zql07",
+    "tsId": "2y8m4zhzz0zql07",
+    "tsName": "Racing Club de France",
+    "tsKo": "레싱 클럽 드 프랑스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613793,
+    "ourName": "Quevilly Rouen Métropole",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y39mp1h3vx5mojx",
+    "tsId": "y39mp1h3vx5mojx",
+    "tsName": "Quevilly Rouen Métropole",
+    "tsKo": "케빌리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613795,
+    "ourName": "Sable-sur-Sarthe",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-jw2r09hnjv1rz84",
+    "tsId": "jw2r09hnjv1rz84",
+    "tsName": "Sable-sur-Sarthe",
+    "tsKo": "사블 쉬르 사르트",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613798,
+    "ourName": "Angouleme",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phk9enm2wd",
+    "tsId": "x7lm7phk9enm2wd",
+    "tsName": "Angouleme",
+    "tsKo": "앙굴렘",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613800,
+    "ourName": "FC Chambly Oise",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whk4kgryox",
+    "tsId": "ednm9whk4kgryox",
+    "tsName": "FC Chambly Oise",
+    "tsKo": "셩블리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613801,
+    "ourName": "Strasbourg Koenigshoffen",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l5ergphe5j1r8k0",
+    "tsId": "l5ergphe5j1r8k0",
+    "tsName": "Strasbourg Koenigshoffen",
+    "tsKo": "스트라스부르 쾨니쇼펜",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613802,
+    "ourName": "Trelissac",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohkdk3q1zp",
+    "tsId": "dj2ryohkdk3q1zp",
+    "tsName": "Trelissac",
+    "tsKo": "트렐리삭",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613826,
+    "ourName": "Avenir Sportif De Gouzon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whkkykryox",
+    "tsId": "ednm9whkkykryox",
+    "tsName": "Avenir Sportif De Gouzon",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613829,
+    "ourName": "Saint Pauloise FC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhg2pkryk0",
+    "tsId": "pxwrxlhg2pkryk0",
+    "tsName": "Saint Pauloise FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613830,
+    "ourName": "Dominicaine",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyhz828r1ge",
+    "tsId": "965mkyhz828r1ge",
+    "tsName": "Dominicaine",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613831,
+    "ourName": "ES Cappelle",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8ghxk9pr6od",
+    "tsId": "vjxm8ghxk9pr6od",
+    "tsName": "ES Cappelle",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613832,
+    "ourName": "Abbeville",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phpxnpm2wd",
+    "tsId": "x7lm7phpxnpm2wd",
+    "tsName": "Abbeville",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613833,
+    "ourName": "Etoile Bobigny",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jh19j0qwzv",
+    "tsId": "y0or5jh19j0qwzv",
+    "tsName": "Etoile Bobigny",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613834,
+    "ourName": "Villeneuve-la-Garenne",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-n54qllhd499qvy9",
+    "tsId": "n54qllhd499qvy9",
+    "tsName": "Villeneuve-la-Garenne",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613835,
+    "ourName": "Mauguio Carnon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-k82rekh12njrepz",
+    "tsId": "k82rekh12njrepz",
+    "tsName": "Mauguio Carnon",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613837,
+    "ourName": "Nord Lozere",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l5ergphpk21r8k0",
+    "tsId": "l5ergphpk21r8k0",
+    "tsName": "Nord Lozere",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613838,
+    "ourName": "Ecotay Moingt",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-jw2r09h157orz84",
+    "tsId": "jw2r09h157orz84",
+    "tsName": "Ecotay Moingt",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613839,
+    "ourName": "Pierrelatte",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryoh2758q1zp",
+    "tsId": "dj2ryoh2758q1zp",
+    "tsName": "Pierrelatte",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613841,
+    "ourName": "SA Beaumont",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4hzyx7q0j6",
+    "tsId": "8yomo4hzyx7q0j6",
+    "tsName": "SA Beaumont",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613842,
+    "ourName": "Wittenheim",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-23xmvkhxy99qg8n",
+    "tsId": "23xmvkhxy99qg8n",
+    "tsName": "Wittenheim",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613843,
+    "ourName": "Freyming",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hooo4qdyj",
+    "tsId": "3glrw7hooo4qdyj",
+    "tsName": "Freyming",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613922,
+    "ourName": "Bordeaux",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-p3glrw7he3gqdyj",
+    "tsId": "p3glrw7he3gqdyj",
+    "tsName": "Bordeaux",
+    "tsKo": "FC 지롱댕 보르도",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613849,
+    "ourName": "MJEP Cormontreuil",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-318q66hv997qo9j",
+    "tsId": "318q66hv997qo9j",
+    "tsName": "MJEP Cormontreuil",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613850,
+    "ourName": "FC Porto Portugais Amiens",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y0or5jhe3g9qwzv",
+    "tsId": "y0or5jhe3g9qwzv",
+    "tsName": "FC Porto Portugais Amiens",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613852,
+    "ourName": "Longuenesse",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8gh49gpr6od",
+    "tsId": "vjxm8gh49gpr6od",
+    "tsName": "Longuenesse",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613855,
+    "ourName": "Aire-Sur-La-Lys",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hwzgoqdyj",
+    "tsId": "3glrw7hwzgoqdyj",
+    "tsName": "Aire-Sur-La-Lys",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613856,
+    "ourName": "Mutzig",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh11g3md7o",
+    "tsId": "6ypq3nh11g3md7o",
+    "tsName": "Mutzig",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613858,
+    "ourName": "Pledran",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-23xmvkhdkklqg8n",
+    "tsId": "23xmvkhdkklqg8n",
+    "tsName": "Pledran",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613860,
+    "ourName": "Saint Cyr Collonges",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4jwq2ghxlowm0ve",
+    "tsId": "4jwq2ghxlowm0ve",
+    "tsName": "Saint Cyr Collonges",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613863,
+    "ourName": "Bogny",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whe52wryox",
+    "tsId": "ednm9whe52wryox",
+    "tsName": "Bogny",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613865,
+    "ourName": "Perigny",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dn1m1gh48xjmoep",
+    "tsId": "dn1m1gh48xjmoep",
+    "tsName": "Perigny",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613866,
+    "ourName": "SA Merignac",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-3glrw7hzo2gqdyj",
+    "tsId": "3glrw7hzo2gqdyj",
+    "tsName": "SA Merignac",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613868,
+    "ourName": "Savigneux Montbrison",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-p3glrw7hxolqdyj",
+    "tsId": "p3glrw7hxolqdyj",
+    "tsName": "Savigneux Montbrison",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613870,
+    "ourName": "Le Poinconnet",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyhz818r1ge",
+    "tsId": "965mkyhz818r1ge",
+    "tsName": "Le Poinconnet",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613667,
+    "ourName": "CD Azuaga",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-2y8m4zhjwv6ql07",
+    "tsId": "2y8m4zhjwv6ql07",
+    "tsName": "CD Azuaga",
+    "tsKo": "아수아가 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613670,
+    "ourName": "Lorca Deportiva FC",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-yl5ergph60gr8k0",
+    "tsId": "yl5ergph60gr8k0",
+    "tsName": "Lorca Deportiva FC",
+    "tsKo": "로르카 데포르티바 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613671,
+    "ourName": "CD Artistico Navalcarnero",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-dn1m1gh4jpkmoep",
+    "tsId": "dn1m1gh4jpkmoep",
+    "tsName": "CD Artistico Navalcarnero",
+    "tsKo": "나발카네로 아르티스티코 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613672,
+    "ourName": "Merida AD",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-k82rekh9678repz",
+    "tsId": "k82rekh9678repz",
+    "tsName": "Merida AD",
+    "tsKo": "메리다 AD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613673,
+    "ourName": "Naxara",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vl7oqdeh7y6r510",
+    "tsId": "vl7oqdeh7y6r510",
+    "tsName": "Naxara",
+    "tsKo": "나크사라",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613685,
+    "ourName": "Pontevedra",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-gy0or5jhdygqwzv",
+    "tsId": "gy0or5jhdygqwzv",
+    "tsName": "Pontevedra",
+    "tsKo": "폰테베드라",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613687,
+    "ourName": "Real Jaen CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-z318q66hlk0qo9j",
+    "tsId": "z318q66hlk0qo9j",
+    "tsName": "Real Jaen CF",
+    "tsKo": "레알 하엔 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613689,
+    "ourName": "UD Ibiza",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-y0or5jhlo5gqwzv",
+    "tsId": "y0or5jhlo5gqwzv",
+    "tsName": "UD Ibiza",
+    "tsKo": "UD 이비사",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613690,
+    "ourName": "Orihuela CF",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-y39mp1h3j0vmojx",
+    "tsId": "y39mp1h3j0vmojx",
+    "tsName": "Orihuela CF",
+    "tsKo": "오리훼라 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613691,
+    "ourName": "Valle de Egues",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-x7lm7phk5ogm2wd",
+    "tsId": "x7lm7phk5ogm2wd",
+    "tsName": "Valle de Egues",
+    "tsKo": "에게스 계곡팀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613692,
+    "ourName": "CD Atlético Baleares",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-jw2r09hld5xrz84",
+    "tsId": "jw2r09hld5xrz84",
+    "tsName": "CD Atlético Baleares",
+    "tsKo": "발레아레스 아틀레티코 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613693,
+    "ourName": "Gimnastic de Tarragona",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-56ypq3nho6lmd7o",
+    "tsId": "56ypq3nho6lmd7o",
+    "tsName": "Gimnastic de Tarragona",
+    "tsKo": "지므나스틱 타라고나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613695,
+    "ourName": "Real Aviles",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8gh4e55r6od",
+    "tsId": "vjxm8gh4e55r6od",
+    "tsName": "Real Aviles",
+    "tsKo": "레알 아빌레스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613696,
+    "ourName": "UD Logrones",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-6ypq3nh5en5md7o",
+    "tsId": "6ypq3nh5en5md7o",
+    "tsName": "UD Logrones",
+    "tsKo": "로그로뇨스 UD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613697,
+    "ourName": "Ponferradina",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-d23xmvkh1lyqg8n",
+    "tsId": "d23xmvkh1lyqg8n",
+    "tsName": "Ponferradina",
+    "tsKo": "폰페라디나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613699,
+    "ourName": "CE Atletic Lleida",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-3glrw7hoyeeqdyj",
+    "tsId": "3glrw7hoyeeqdyj",
+    "tsName": "CE Atletic Lleida",
+    "tsKo": "레이다 아틀레틱 CE",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613823,
+    "ourName": "Le Geldar De Kourou",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyh7zy9r1ge",
+    "tsId": "965mkyh7zy9r1ge",
+    "tsName": "Le Geldar De Kourou",
+    "tsKo": "르 겔다르 드 쿠루",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613824,
+    "ourName": "Auch",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdeh636kr510",
+    "tsId": "l7oqdeh636kr510",
+    "tsName": "Auch",
+    "tsKo": "아우크",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613819,
+    "ourName": "Chateauroux",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4zp5rzgh979q82w",
+    "tsId": "4zp5rzgh979q82w",
+    "tsName": "Chateauroux",
+    "tsKo": "샤토루",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613821,
+    "ourName": "AS Pirae",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-k82rekh9vvjrepz",
+    "tsId": "k82rekh9vvjrepz",
+    "tsName": "AS Pirae",
+    "tsKo": "피라에",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613825,
+    "ourName": "Canet Roussillon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7ph0wwjm2wd",
+    "tsId": "x7lm7ph0wwjm2wd",
+    "tsName": "Canet Roussillon",
+    "tsKo": "카네 루시용",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613844,
+    "ourName": "Avion",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyh7e5lr1ge",
+    "tsId": "965mkyh7e5lr1ge",
+    "tsName": "Avion",
+    "tsKo": "아비",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613845,
+    "ourName": "FC Bassin d'Arcachon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-kn54qllhvy9qvy9",
+    "tsId": "kn54qllhvy9qvy9",
+    "tsName": "FC Bassin d'Arcachon",
+    "tsKo": "FC 바생 다르카숑",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613847,
+    "ourName": "Camon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh0plpmd7o",
+    "tsId": "6ypq3nh0plpmd7o",
+    "tsName": "Camon",
+    "tsKo": "캐몬",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613848,
+    "ourName": "St. Maur Lusi",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9wh9xp1ryox",
+    "tsId": "ednm9wh9xp1ryox",
+    "tsName": "St. Maur Lusi",
+    "tsKo": "세인트 마우리 루시",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613827,
+    "ourName": "US Chauvigny",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-8yomo4h7z6vq0j6",
+    "tsId": "8yomo4h7z6vq0j6",
+    "tsName": "US Chauvigny",
+    "tsKo": "US 쇼비니",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613828,
+    "ourName": "Reims Ste Anne",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-n54qllhe2k6qvy9",
+    "tsId": "n54qllhe2k6qvy9",
+    "tsName": "Reims Ste Anne",
+    "tsKo": "랭스 생딴",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613836,
+    "ourName": "Selongey",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4h8vwkq86p",
+    "tsId": "4wyrn4h8vwkq86p",
+    "tsName": "Selongey",
+    "tsKo": "셀롱제",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613840,
+    "ourName": "Lyon Duchere",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohkgjgq1zp",
+    "tsId": "dj2ryohkgjgq1zp",
+    "tsName": "Lyon Duchere",
+    "tsKo": "리옹 뒤셰르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613846,
+    "ourName": "Blagnac",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-1l4rjnh62jwm7vx",
+    "tsId": "1l4rjnh62jwm7vx",
+    "tsName": "Blagnac",
+    "tsKo": "블라냑",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613853,
+    "ourName": "Bondues",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8ghpxzor6od",
+    "tsId": "vjxm8ghpxzor6od",
+    "tsName": "Bondues",
+    "tsKo": "본뒤",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613854,
+    "ourName": "Marcq En Baroeuil",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-9k82rekhpzvrepz",
+    "tsId": "9k82rekhpzvrepz",
+    "tsName": "Marcq En Baroeuil",
+    "tsKo": "마르크",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613861,
+    "ourName": "Evian Thonon Gaillard",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-kdj2ryoh0vyq1zp",
+    "tsId": "kdj2ryoh0vyq1zp",
+    "tsName": "Evian Thonon Gaillard",
+    "tsKo": "에비앙 토농 가야르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613862,
+    "ourName": "Saint-Brice",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-zp5rzghzpxeq82w",
+    "tsId": "zp5rzghzpxeq82w",
+    "tsName": "Saint-Brice",
+    "tsKo": "세인트브리스",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613864,
+    "ourName": "Saint-Meziery",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4h471pq86p",
+    "tsId": "4wyrn4h471pq86p",
+    "tsName": "Saint-Meziery",
+    "tsKo": "생 메지에리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613869,
+    "ourName": "Feurs",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhge3lryk0",
+    "tsId": "pxwrxlhge3lryk0",
+    "tsName": "Feurs",
+    "tsKo": "푀르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613851,
+    "ourName": "Beauvais",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-9vjxm8gh105r6od",
+    "tsId": "9vjxm8gh105r6od",
+    "tsName": "Beauvais",
+    "tsKo": "보베",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613857,
+    "ourName": "Raon L Etape",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohk2jeq1zp",
+    "tsId": "dj2ryohk2jeq1zp",
+    "tsName": "Raon L Etape",
+    "tsKo": "라온 레타프",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613859,
+    "ourName": "Plabennec",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zh33k6ql07",
+    "tsId": "2y8m4zh33k6ql07",
+    "tsName": "Plabennec",
+    "tsKo": "플라베넥",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613867,
+    "ourName": "Colomiers",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-dj2ryohk9e0q1zp",
+    "tsId": "dj2ryohk9e0q1zp",
+    "tsName": "Colomiers",
+    "tsKo": "콜로미에",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613871,
+    "ourName": "Romorantin",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4h8z53q86p",
+    "tsId": "4wyrn4h8z53q86p",
+    "tsName": "Romorantin",
+    "tsKo": "로모랑탱",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613873,
+    "ourName": "Les Sables Vendée",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7pho55em2wd",
+    "tsId": "x7lm7pho55em2wd",
+    "tsName": "Les Sables Vendée",
+    "tsKo": "레 사블 방데",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613874,
+    "ourName": "En Avt De St Renan",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-6ypq3nh0gv3md7o",
+    "tsId": "6ypq3nh0gv3md7o",
+    "tsName": "En Avt De St Renan",
+    "tsKo": "생 레낭 앞에서",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613876,
+    "ourName": "Touraine",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8ghxk3pr6od",
+    "tsId": "vjxm8ghxk3pr6od",
+    "tsName": "Touraine",
+    "tsKo": "투렌",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613878,
+    "ourName": "Agde",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdeh4gj8r510",
+    "tsId": "l7oqdeh4gj8r510",
+    "tsName": "Agde",
+    "tsKo": "아드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613881,
+    "ourName": "St Amand FC",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlh1z27ryk0",
+    "tsId": "pxwrxlh1z27ryk0",
+    "tsName": "St Amand FC",
+    "tsKo": "세인트 아만드 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613882,
+    "ourName": "Dieppe",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-ednm9whkpn1ryox",
+    "tsId": "ednm9whkpn1ryox",
+    "tsName": "Dieppe",
+    "tsKo": "디에프",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613885,
+    "ourName": "Forbach",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-56ypq3nhxj4md7o",
+    "tsId": "56ypq3nhxj4md7o",
+    "tsName": "Forbach",
+    "tsKo": "포흐바치",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613872,
+    "ourName": "Pen Hir",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-l7oqdeh1jdvr510",
+    "tsId": "l7oqdeh1jdvr510",
+    "tsName": "Pen Hir",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613875,
+    "ourName": "Stade Briochin",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-jw2r09hn01erz84",
+    "tsId": "jw2r09hn01erz84",
+    "tsName": "Stade Briochin",
+    "tsKo": "스타드 브리오친",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613877,
+    "ourName": "RC Epernay Champagne",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y39mp1h39kpmojx",
+    "tsId": "y39mp1h39kpmojx",
+    "tsName": "RC Epernay Champagne",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613879,
+    "ourName": "Vitre",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhg5n7ryk0",
+    "tsId": "pxwrxlhg5n7ryk0",
+    "tsName": "Vitre",
+    "tsKo": "비트르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613880,
+    "ourName": "Plouvorn AG",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4jwq2gh473ym0ve",
+    "tsId": "4jwq2gh473ym0ve",
+    "tsName": "Plouvorn AG",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613883,
+    "ourName": "GSA Tomblaine",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-1l4rjnhen2jm7vx",
+    "tsId": "1l4rjnhen2jm7vx",
+    "tsName": "GSA Tomblaine",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613884,
+    "ourName": "Boe Bon Encontre",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhzv8nryk0",
+    "tsId": "pxwrxlhzv8nryk0",
+    "tsName": "Boe Bon Encontre",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613886,
+    "ourName": "France Espoo",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-x7lm7phpx22m2wd",
+    "tsId": "x7lm7phpx22m2wd",
+    "tsName": "France Espoo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613704,
+    "ourName": "Cannes AS",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-y39mp1h358ymojx",
+    "tsId": "y39mp1h358ymojx",
+    "tsName": "Cannes AS",
+    "tsKo": "칸",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613705,
+    "ourName": "Rousset Ste Victoire",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-4wyrn4hep7oq86p",
+    "tsId": "4wyrn4hep7oq86p",
+    "tsName": "Rousset Ste Victoire",
+    "tsKo": "루세 스트 비크투와르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613735,
+    "ourName": "Biesheim",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-2y8m4zhj03lql07",
+    "tsId": "2y8m4zhj03lql07",
+    "tsName": "Biesheim",
+    "tsKo": "비에심",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613753,
+    "ourName": "ASPTT Dijon",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-pxwrxlhzlwpryk0",
+    "tsId": "pxwrxlhzlwpryk0",
+    "tsName": "ASPTT Dijon",
+    "tsKo": "디종 ASPTT",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613650,
+    "ourName": "CD Guadalajara",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-4wyrn4h86poq86p",
+    "tsId": "4wyrn4h86poq86p",
+    "tsName": "CD Guadalajara",
+    "tsKo": "과달라하라 CD",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613653,
+    "ourName": "CF Talavera de la Reina",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-l7oqdeh61jjr510",
+    "tsId": "l7oqdeh61jjr510",
+    "tsName": "CF Talavera de la Reina",
+    "tsKo": "라 레이나 탈라베라 CF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613660,
+    "ourName": "CD Toledo",
+    "ourLeague": "COPA_DEL_REY",
+    "ourExternalId": "ts-vjxm8gh41evr6od",
+    "tsId": "vjxm8gh41evr6od",
+    "tsName": "CD Toledo",
+    "tsKo": "톨레도",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613796,
+    "ourName": "Saint Malo",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-965mkyh7owyr1ge",
+    "tsId": "965mkyh7owyr1ge",
+    "tsName": "Saint Malo",
+    "tsKo": "생 말로",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613806,
+    "ourName": "FC Bayeux",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-9vjxm8ghnxer6od",
+    "tsId": "9vjxm8ghnxer6od",
+    "tsName": "FC Bayeux",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613810,
+    "ourName": "Ancienne Chateau-Gontier",
+    "ourLeague": "COUPE_DE_FRANCE",
+    "ourExternalId": "ts-vjxm8ghj8plr6od",
+    "tsId": "vjxm8ghj8plr6od",
+    "tsName": "Ancienne Chateau-Gontier",
+    "tsKo": "앙시엔 샤토-곤티에",
+    "matchType": "ts-external-id"
   }
 ]
