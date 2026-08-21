@@ -25,9 +25,19 @@ import rawCoaches from "../../../../../data/team-coaches.json";
 import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
 import rawNonSoccerCoaches from "../../../../../data/nonsoccer-coaches.json";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
-import { ALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import {
+  ALL_LEAGUES,
+  SOCCER_LEAGUES as SOCCER_LEAGUE_SET,
+  BASEBALL_LEAGUES,
+  BASKETBALL_LEAGUES,
+  HOCKEY_LEAGUES,
+  VOLLEYBALL_LEAGUES,
+  LOL_LEAGUES,
+  MMA_LEAGUES,
+} from "@/lib/sports/sport-leagues";
 import { fetchSoccerByDate } from "@/lib/sports/live-scores";
 import { buildOrphanDedup } from "@/lib/sports/orphan-dedup";
+import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -58,6 +68,23 @@ const MV_STALE_H = 48; // 일일 증분 크론 — 이틀 멈추면 이상
 const STANDINGS_STALE_H = 72;
 const STANDINGS_HARD_H = 168; // 하나라도 7일 넘으면 개수와 무관하게 알린다
 const STANDINGS_ALERT_COUNT = 3;
+
+/**
+ * 비축구 종목 리그 집합 — 크로스 종목 오매핑 판정용.
+ * ⚠ "SOCCER_LEAGUES 에 없으면 비축구" 로 판정하면 안 된다. BRASILEIRAO_2 처럼 축구인데
+ *   그 집합에서 빠진 코드가 실제로 있었고, 그렇게 짜면 정상 데이터가 매일 오탐으로 잡힌다
+ *   (2026-08-21 실측: 그 방식으로 코파 두 브라질 4건이 걸렸는데 전부 오탐이었다).
+ *   "명시적으로 다른 종목 집합에 속하는가" 로만 판정한다.
+ */
+const NON_SOCCER_LEAGUES = new Set<string>([
+  ...BASEBALL_LEAGUES, ...BASKETBALL_LEAGUES, ...HOCKEY_LEAGUES,
+  ...VOLLEYBALL_LEAGUES, ...LOL_LEAGUES, ...MMA_LEAGUES,
+]);
+
+/** 노출 누락 판정에서 뺄 리그 — 의도적으로 내렸는데 데이터가 남아 도는 경우만 넣는다. */
+const EXPOSURE_GAP_EXEMPT = new Set<string>([]);
+/** 향후 45일에 이만큼 경기가 잡혀 있어야 "살아있는 리그"로 본다(내린 리그 잔존 행 배제). */
+const EXPOSURE_GAP_MIN_FIXTURES = 3;
 // 감독 — 2026-08-15 실측: 대상 174팀 전원 보유(결손 0) · 스냅샷 323팀 · 한글명 323/323.
 // 결손 5는 감독 교체기에 ts coach_id 가 잠깐 비는 폭(2026-06 실측 빅5 14팀은 af 폴백이 메운다)
 // 위로 잡되, 사고급 유실은 놓치지 않는 선. 하한 300 은 8/15 사고 당시 273 을 걸러낸다.
@@ -129,6 +156,105 @@ async function checkCareer(now: Date, findings: Finding[]) {
 }
 
 /** 종료된 지 6시간 지났는데 점수가 없는 매치 — 수집이 멈춘 신호 */
+/**
+ * 크로스 종목 오매핑 — 축구 리그의 팀 매핑이 다른 종목 Team row 를 가리키는가.
+ *
+ * 2026-08-21 실측 사고. ISRAEL_PL "Hapoel Jerusalem" 매핑이 **농구** 하포엘 예루살렘
+ * (league=NBA, 브루클린 네츠와 붙은 시범경기 row)을 가리켜, 8/23 이스라엘 리그 경기의
+ * 홈팀이 농구 클럽으로 나가고 있었다. 같은 날 컵 백필의 이름 재사용이 축구 HIFK 를
+ * 아이스하키 LIIGA:HIFK 로 잡으려던 것도 잡았다(우리 DB 에 축구 HIFK 가 없어 "유일 일치"
+ * 가드까지 통과했다).
+ *
+ * 매핑은 두 곳에 산다 — DB TeamSourceId 와 저장소 team-id-mapping.json. 매치 수신 라우트가
+ * DB 를 먼저 보고 없으면 JSON 으로 폴백하므로 **양쪽 다** 봐야 한다(이스라엘 건은 DB 엔
+ * 없고 JSON 에만 있어서 DB 만 보면 못 잡는다).
+ */
+async function checkCrossSportMapping(findings: Finding[]) {
+  const soccer = [...SOCCER_LEAGUE_SET];
+  const nonSoccer = [...NON_SOCCER_LEAGUES];
+
+  const [srcRows, matchRows] = await Promise.all([
+    prisma.teamSourceId.findMany({
+      where: { league: { in: soccer }, team: { league: { in: nonSoccer } } },
+      select: { league: true, source: true, externalId: true, team: { select: { name: true, league: true } } },
+      take: 20,
+    }),
+    prisma.match.findMany({
+      where: {
+        league: { in: soccer },
+        OR: [{ homeTeam: { league: { in: nonSoccer } } }, { awayTeam: { league: { in: nonSoccer } } }],
+      },
+      select: {
+        id: true, league: true,
+        homeTeam: { select: { name: true, league: true } },
+        awayTeam: { select: { name: true, league: true } },
+      },
+      take: 20,
+    }),
+  ]);
+
+  // JSON 매핑 — ourId 가 가리키는 Team 의 리그가 비축구면 오매핑.
+  const jsonEntries = (teamIdMapping as Array<{ ourId: number; ourName: string; ourLeague: string }>)
+    .filter((e) => SOCCER_LEAGUE_SET.has(e.ourLeague));
+  const jsonIds = [...new Set(jsonEntries.map((e) => e.ourId))];
+  const jsonTeams = jsonIds.length
+    ? await prisma.team.findMany({ where: { id: { in: jsonIds } }, select: { id: true, league: true } })
+    : [];
+  const leagueById = new Map(jsonTeams.map((t) => [t.id, t.league]));
+  const badJson = jsonEntries.filter((e) => {
+    const lg = leagueById.get(e.ourId);
+    return lg != null && NON_SOCCER_LEAGUES.has(lg);
+  });
+
+  const total = srcRows.length + badJson.length + matchRows.length;
+  if (total > 0) {
+    findings.push({
+      kind: "cross_sport_mapping",
+      detail:
+        `축구 리그가 다른 종목 팀을 가리킴 — DB 매핑 ${srcRows.length}건 · JSON 매핑 ${badJson.length}건 · 매치 ${matchRows.length}건`,
+      samples: [
+        ...srcRows.slice(0, 2).map((r) => `DB ${r.league}→[${r.team.league}]${r.team.name}`),
+        ...badJson.slice(0, 2).map((e) => `JSON ${e.ourLeague}→${e.ourName}(#${e.ourId})`),
+        ...matchRows.slice(0, 2).map((m) => `매치#${m.id} ${m.league} ${m.homeTeam?.name}[${m.homeTeam?.league}]`),
+      ],
+    });
+  }
+  return { dbMappings: srcRows.length, jsonMappings: badJson.length, matches: matchRows.length };
+}
+
+/**
+ * 노출 누락 — 매치가 정상 수집되는데 ALL_LEAGUES 에 없어 화면에 안 나오는 리그.
+ *
+ * 2026-08-21 실측. BRASILEIRAO_2 가 매치 43건(45일 13)·팀 20·순위 20행을 매일 수집하면서도
+ * `/leagues/BRASILEIRAO_2` 404 이고 예측 0건이었다. 8/16 에 진단만 남기고 8/21 까지 방치됐다.
+ * ALL_LEAGUES 가 "화면에 나오는가"의 단일 기준이라 여기만 어긋나면 조용히 사라진다.
+ *
+ * 오탐 방지 — 내린 리그의 잔존 행이 걸리지 않게 향후 45일 경기 수 하한을 둔다. 의도적으로
+ * 내렸는데 수집이 계속되는 리그는 EXPOSURE_GAP_EXEMPT 에 넣는다(현재 비어 있음).
+ */
+async function checkLeagueExposureGap(now: Date, findings: Finding[]) {
+  const exposed = new Set<string>(ALL_LEAGUES as readonly string[]);
+  const upcoming = await prisma.match.groupBy({
+    by: ["league"],
+    where: { startTime: { gte: now, lte: new Date(now.getTime() + 45 * 86400_000) } },
+    _count: { _all: true },
+  });
+  const gaps = upcoming.filter(
+    (r) =>
+      !exposed.has(r.league) &&
+      !EXPOSURE_GAP_EXEMPT.has(r.league) &&
+      r._count._all >= EXPOSURE_GAP_MIN_FIXTURES,
+  );
+  if (gaps.length > 0) {
+    findings.push({
+      kind: "league_exposure_gap",
+      detail: `수집은 되는데 화면에 없는 리그 ${gaps.length}개 — ALL_LEAGUES 미등록이라 리그 페이지 404·예측 0`,
+      samples: gaps.slice(0, 5).map((g) => `${g.league} 향후 ${g._count._all}경기`),
+    });
+  }
+  return { checked: upcoming.length, gaps: gaps.length };
+}
+
 async function checkScores(now: Date, findings: Finding[]) {
   const from = new Date(now.getTime() - 7 * 86400_000);
   const to = new Date(now.getTime() - 6 * 3600_000);
@@ -632,6 +758,8 @@ export async function GET(req: Request) {
     injuries: await run("injuries", () => checkInjuries(findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
     coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
+    crossSportMapping: await run("crossSportMapping", () => checkCrossSportMapping(findings)),
+    leagueExposureGap: await run("leagueExposureGap", () => checkLeagueExposureGap(now, findings)),
   };
 
   if (findings.length > 0) {
