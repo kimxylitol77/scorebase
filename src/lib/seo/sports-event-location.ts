@@ -63,6 +63,9 @@ export const LEAGUE_COUNTRY: Record<string, CountryInfo> = {
   VEIKKAUSLIIGA: { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
   YKKOSLIIGA:    { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
   YKKONEN:       { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
+  KAKKONEN_A:    { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
+  KAKKONEN_B:    { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
+  KAKKONEN_C:    { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
   URVALSDEILD:   { name: "Iceland",        code: "IS", defaultCity: "Reykjavik" },
   ICELAND_1L:    { name: "Iceland",        code: "IS", defaultCity: "Reykjavik" },
   // 아시아 축구

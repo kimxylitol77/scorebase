@@ -26664,13 +26664,13 @@
     "matchType": "db-source-sync"
   },
   {
-    "ourId": 608985,
+    "ourId": 613923,
     "ourName": "Cuba",
     "ourLeague": "CONCACAF_GOLD",
-    "ourExternalId": "gx7lm75h11xq2wd",
+    "ourExternalId": "ts-p3glrw7hvooqdyj",
     "tsId": "p3glrw7hvooqdyj",
     "tsName": "Cuba",
-    "matchType": "db-source-sync"
+    "matchType": "cross-sport-fix"
   },
   {
     "ourId": 599631,
@@ -27297,6 +27297,276 @@
     "ourExternalId": "ts-9k82rekh483repz",
     "tsId": "9k82rekh483repz",
     "tsName": "FC Haka",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613924,
+    "ourName": "HIFK",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-9dn1m1ghzxdmoep",
+    "tsId": "9dn1m1ghzxdmoep",
+    "tsName": "HIFK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613925,
+    "ourName": "Union Plaani",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-4wyrn4hd7n9q86p",
+    "tsId": "4wyrn4hd7n9q86p",
+    "tsName": "Union Plaani",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613926,
+    "ourName": "PPJ Akatemia",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-ednm9whke62ryox",
+    "tsId": "ednm9whke62ryox",
+    "tsName": "PPJ Akatemia",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613927,
+    "ourName": "PEPO Lappeenranta",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-3glrw7hwvz4qdyj",
+    "tsId": "3glrw7hwvz4qdyj",
+    "tsName": "PEPO Lappeenranta",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613928,
+    "ourName": "Atlantis",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-dn1m1gh416omoep",
+    "tsId": "dn1m1gh416omoep",
+    "tsName": "Atlantis",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613929,
+    "ourName": "Mypa",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-p4jwq2ghywdm0ve",
+    "tsId": "p4jwq2ghywdm0ve",
+    "tsName": "Mypa",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613930,
+    "ourName": "HPS",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-vjxm8gh4zp0r6od",
+    "tsId": "vjxm8gh4zp0r6od",
+    "tsName": "HPS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613931,
+    "ourName": "Puistolan Urheilijat",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-zp5rzghjgx6q82w",
+    "tsId": "zp5rzghjgx6q82w",
+    "tsName": "Puistolan Urheilijat",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613932,
+    "ourName": "Lahden Reipas",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-2y8m4zh3k47ql07",
+    "tsId": "2y8m4zh3k47ql07",
+    "tsName": "Lahden Reipas",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613933,
+    "ourName": "Kiffen Helsinki",
+    "ourLeague": "KAKKONEN_A",
+    "ourExternalId": "ts-3glrw7hwgd4qdyj",
+    "tsId": "3glrw7hwgd4qdyj",
+    "tsName": "Kiffen Helsinki",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613934,
+    "ourName": "GrIFK Kauniainen",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-z8yomo4hp85q0j6",
+    "tsId": "z8yomo4hp85q0j6",
+    "tsName": "GrIFK Kauniainen",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613935,
+    "ourName": "EPS Espoo",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-318q66h06jyqo9j",
+    "tsId": "318q66h06jyqo9j",
+    "tsName": "EPS Espoo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613936,
+    "ourName": "NJS",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-6ypq3nh0ozxmd7o",
+    "tsId": "6ypq3nh0ozxmd7o",
+    "tsName": "NJS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613937,
+    "ourName": "HJS Akatemia",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-n54qllhepjzqvy9",
+    "tsId": "n54qllhepjzqvy9",
+    "tsName": "HJS Akatemia",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613938,
+    "ourName": "Honka Espoo",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-gx7lm7ph4wvm2wd",
+    "tsId": "gx7lm7ph4wvm2wd",
+    "tsName": "Honka Espoo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613939,
+    "ourName": "Aifk Turku",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-ednm9whk2llryox",
+    "tsId": "ednm9whk2llryox",
+    "tsName": "Aifk Turku",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613940,
+    "ourName": "P-Iirot",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-dn1m1gh4o32moep",
+    "tsId": "dn1m1gh4o32moep",
+    "tsName": "P-Iirot",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613941,
+    "ourName": "MuSa",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-pxwrxlhg16kryk0",
+    "tsId": "pxwrxlhg16kryk0",
+    "tsName": "MuSa",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613942,
+    "ourName": "EBK Espoo",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-y0or5jhl3pjqwzv",
+    "tsId": "y0or5jhl3pjqwzv",
+    "tsName": "EBK Espoo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613943,
+    "ourName": "Ilves Tampere II",
+    "ourLeague": "KAKKONEN_B",
+    "ourExternalId": "ts-dn1m1ghepejmoep",
+    "tsId": "dn1m1ghepejmoep",
+    "tsName": "Ilves Tampere II",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613944,
+    "ourName": "FF Jaro II",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-y0or5jhgoj7qwzv",
+    "tsId": "y0or5jhgoj7qwzv",
+    "tsName": "FF Jaro II",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613945,
+    "ourName": "Narpes Kraft",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-4zp5rzghkn7q82w",
+    "tsId": "4zp5rzghkn7q82w",
+    "tsName": "Narpes Kraft",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613946,
+    "ourName": "FC Vaajakoski",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-pxwrxlhg1xxryk0",
+    "tsId": "pxwrxlhg1xxryk0",
+    "tsName": "FC Vaajakoski",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613947,
+    "ourName": "SJK Akatemia B",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-x7lm7ph9l9om2wd",
+    "tsId": "x7lm7ph9l9om2wd",
+    "tsName": "SJK Akatemia B",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613948,
+    "ourName": "JS Hercules",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-6ypq3nh57eemd7o",
+    "tsId": "6ypq3nh57eemd7o",
+    "tsName": "JS Hercules",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613949,
+    "ourName": "GBK Kokkola",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-kjw2r09h8nlrz84",
+    "tsId": "kjw2r09h8nlrz84",
+    "tsName": "GBK Kokkola",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613950,
+    "ourName": "VPS Vaasa-J",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-dn1m1gh41e1moep",
+    "tsId": "dn1m1gh41e1moep",
+    "tsName": "VPS Vaasa-J",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613951,
+    "ourName": "TP47 Tornio",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-l965mkyh6z0r1ge",
+    "tsId": "l965mkyh6z0r1ge",
+    "tsName": "TP47 Tornio",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613952,
+    "ourName": "Jakobstads Bollklubb",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-vl7oqdeh766r510",
+    "tsId": "vl7oqdeh766r510",
+    "tsName": "Jakobstads Bollklubb",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613953,
+    "ourName": "Huima/Urho",
+    "ourLeague": "KAKKONEN_C",
+    "ourExternalId": "ts-dn1m1gh86exmoep",
+    "tsId": "dn1m1gh86exmoep",
+    "tsName": "Huima/Urho",
     "matchType": "ts-external-id"
   }
 ]

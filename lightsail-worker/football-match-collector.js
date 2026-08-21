@@ -46,6 +46,33 @@ const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 // SKIP 유지 = ts 가 incidents 데이터 부실한 국가대표/특수 대회만.
 // 2026-05-29: WORLD_CUP 은 사용자 결정으로 SKIP 해제 — TheSports 스코어 병행 수집.
 //   api-football(world-cup.ts) 도 유지하므로 상세 incidents 는 api-football 이 보강.
+// 한 대회 안에 여러 티어가 stage 로 섞여 오는 경우 — stage **이름**으로 리그를 가른다.
+// ts 에 카코넨 전용 대회 id 가 없다: "Finnish Ykkonen" 시즌 하나에
+//   Group A/B/C(각 10팀) = Kakkonen 4부 · Group D(12팀) = Ykkönen 3부
+// 가 함께 들어온다. 대회 id 로만 리그를 정하면 4부 경기가 YKKONEN 으로 들어간다
+// (지금까지는 팀이 YKKONEN 네임스페이스에 없어 skippedNoTeam 으로 조용히 버려졌다).
+// ⚠ Group D 는 넣지 않는다 — YKKONEN 매치는 af 가 정본이라 ts 로도 만들면 크로스소스 중복.
+// ⚠ stage_id 는 시즌마다 바뀌므로 절대 박아두지 않는다. 이름으로 매칭한다.
+const STAGE_SPLIT = {
+  gpxwrxlh7zryk0j: { "Group A": "KAKKONEN_A", "Group B": "KAKKONEN_B", "Group C": "KAKKONEN_C" },
+};
+const stageNameCache = new Map();
+async function stageNameOf(stageId) {
+  if (stageNameCache.has(stageId)) return stageNameCache.get(stageId);
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/stage/list`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: stageId },
+      timeout: 15_000,
+    });
+    const name = (data?.results?.[0]?.name ?? "").trim();
+    stageNameCache.set(stageId, name);
+    return name;
+  } catch {
+    stageNameCache.set(stageId, null);
+    return null;
+  }
+}
+
 const SKIP_LEAGUES = new Set([
   "CLUB_WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL",
   "INTL_FRIENDLY",
@@ -110,8 +137,10 @@ async function poll() {
     console.error(`[${ts}] ❌ map file load fail: ${e.message}`);
     return;
   }
+  // 선착순 — 같은 tsId 를 여러 코드가 공유하는 경우(카코넨 3개 조가 Ykkonen 대회를 공유)
+  // 나중 항목이 기존 리그를 덮으면 안 된다. 그 대회의 실제 분기는 STAGE_SPLIT 이 맡는다.
   const compToCode = new Map();
-  for (const l of leagues) compToCode.set(l.tsId, l.code);
+  for (const l of leagues) if (!compToCode.has(l.tsId)) compToCode.set(l.tsId, l.code);
   console.log(`[${ts}] ⚽ football-match-collector start — ${compToCode.size} mapped competitions`);
 
   const seen = new Set();
@@ -131,7 +160,14 @@ async function poll() {
       // 0=Abnormal(숨김 권장)·13=TBD(시간 미정) — push 자체 제외. TBD 를 SCHEDULED 로
       // 넣으면 같은 fixture 의 두 번째 ts id 가 유령 row 로 생성됨 (2026-07-26 사건).
       if (m.status_id === 0 || m.status_id === 13) continue;
-      const ourLeague = compToCode.get(m.competition_id);
+      let ourLeague = compToCode.get(m.competition_id);
+      const split = STAGE_SPLIT[m.competition_id];
+      if (split) {
+        // 이 대회는 stage 로 리그가 갈린다 — 매핑에 없는 stage(예: Ykkönen Group D)는 건너뛴다.
+        const sid = m.round && m.round.stage_id;
+        const name = sid ? await stageNameOf(sid) : null;
+        ourLeague = name && split[name] ? split[name] : null;
+      }
       if (!ourLeague) continue; // 우리 매핑 없는 리그
       if (SKIP_LEAGUES.has(ourLeague)) continue; // ESPN/api-football 이 cover — duplicate 회피
       if (!m.home_team_id || !m.away_team_id) continue;

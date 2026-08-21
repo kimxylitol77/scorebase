@@ -8,12 +8,17 @@
 //   npm run backfill:cup-teams -- --league COPA_DEL_REY --season   # 매핑된 tsSeasonId 의 시즌 전체
 //   npm run backfill:cup-teams -- --league X --season <uuid>       # 시즌 uuid 직접 지정
 //   npm run backfill:cup-teams -- --league AFCON --season --with-standings  # 순위표 팀까지 매핑
+//   npm run backfill:cup-teams -- --league KAKKONEN_A --season --stage "Group A"  # 한 stage 만
 //
 // --with-standings 는 순위 캐시(TheSportsStandingsCache)의 팀까지 매핑 대상에 넣는다. 조별리그
 // 대회는 표에 있는 팀이 매치보다 훨씬 많을 수 있는데(AFCON 예선 실측 매치 12팀 vs 표 48팀),
 // 매치에서만 팀을 뽑으면 순위표가 조당 1~2팀만 그려져 깨진 표가 된다. 순위 경로는 DB 가 아니라
 // team-id-mapping.json 을 읽으므로, 여기서 매핑을 만든 뒤 backfill:ts-team-mapping 으로 JSON 을
 // 채워야 표가 완성된다.
+//
+// --stage 는 한 시즌 안의 특정 stage(조)만 대상으로 삼는다. ts 가 여러 티어를 한 대회에 묶어
+// 보내는 경우(Finnish Ykkonen 시즌 = Ykkönen Group D + Kakkonen Group A/B/C) 조별로 다른
+// 우리 리그에 넣어야 하기 때문이다. stage_id 는 시즌마다 바뀌므로 **이름**으로 지정한다.
 //
 // --season 은 "미래 일정 sweep" 대신 시즌 전체(종료 경기 포함)를 대상으로 한다. 비수기라
 // 향후 일정이 0건이면 diary sweep 으로는 아무것도 못 하는데, 지난 시즌 매치가 통째로 없는
@@ -42,6 +47,7 @@
 
 import { prisma } from "../src/lib/db";
 import tsLeagueMap from "../src/lib/sports/thesports/league-id-mapping.json";
+import { SOCCER_LEAGUES } from "../src/lib/sports/sport-leagues";
 
 const TS_BASE = "https://api.thesports.com/v1/football";
 const CALL_GAP_MS = 250;
@@ -87,6 +93,7 @@ interface DiaryMatch {
   status_id: number;
   home_scores?: unknown[];
   away_scores?: unknown[];
+  round?: { stage_id?: string };
 }
 
 // home_scores/away_scores: [0]=정규시간, [5]=연장 포함 총점, [6]=승부차기(절대 합산 금지).
@@ -127,6 +134,7 @@ async function processLeague(
   country?: string,
   season?: { uuid?: string },
   withStandings = false,
+  stage?: string,
 ) {
   if (SKIP_LEAGUES.has(code)) {
     console.log(`\n■ ${code} — ESPN/api-football 수집 담당 대회. ts 로 넣으면 크로스소스 중복. 건너뜀`);
@@ -163,6 +171,30 @@ async function processLeague(
     }
     scope = `향후 ${days}일`;
   }
+  // stage 한정 — ts 가 한 대회에 여러 티어를 stage 로 묶어 보내는 경우 조별로 가른다.
+  if (stage) {
+    const before = matches.length;
+    const nameCache = new Map<string, string>();
+    const kept: DiaryMatch[] = [];
+    for (const m of matches) {
+      const sid = m.round?.stage_id;
+      if (!sid) continue;
+      if (!nameCache.has(sid)) {
+        const r = (await tsGet("stage/list", { uuid: sid })) as Array<{ name?: string }>;
+        await sleep(CALL_GAP_MS);
+        nameCache.set(sid, (r[0]?.name ?? "").trim());
+      }
+      if (nameCache.get(sid) === stage) kept.push(m);
+    }
+    matches.length = 0;
+    matches.push(...kept);
+    console.log(`  stage "${stage}" 한정 — ${before}건 중 ${matches.length}건`);
+    if (matches.length === 0) {
+      console.log(`  ⚠ 해당 stage 매치가 없다. 이름을 확인하라(관측된 stage: ${[...new Set(nameCache.values())].join(", ")})`);
+      return;
+    }
+  }
+
   const fromMatches = new Set(matches.flatMap((m) => [m.home_team_id!, m.away_team_id!]));
   let standingsOnly = 0;
   if (withStandings) {
@@ -203,8 +235,13 @@ async function processLeague(
     if (r.league === code || anyMap.has(r.externalId)) continue;
     anyMap.set(r.externalId, { teamId: r.teamId, via: `${r.league}:${r.team.name}` });
   }
+  // ⚠ 이름 재사용 후보는 **축구 팀만** — 이 스크립트는 football 전용인데 Team 테이블에는
+  // 하키·배구 팀도 있다. 종목을 안 보면 같은 이름의 다른 종목 팀에 붙는다.
+  // (2026-08-21 실측: 카코넨 A조 축구 HIFK 가 아이스하키 LIIGA:HIFK 로 잡혔다. 우리 DB 에
+  //  축구 HIFK 는 아예 없어 "유일 일치" 가드도 통과해 버렸다.)
   const byNorm = new Map<string, { id: number; name: string; league: string }[]>();
   for (const t of allTeams) {
+    if (!SOCCER_LEAGUES.has(t.league)) continue;
     const k = norm(t.name);
     if (!k) continue;
     (byNorm.get(k) ?? byNorm.set(k, []).get(k)!).push(t);
@@ -322,6 +359,7 @@ async function main() {
   const country = arg("country");
   const season = has("season") ? { uuid: arg("season") } : undefined;
   const withStandings = has("with-standings");
+  const stage = arg("stage");
   if (season && leagues.length > 1 && season.uuid) {
     console.log("--season 에 uuid 를 직접 줄 때는 리그를 하나만 지정하라 (시즌 uuid 는 대회별로 다르다).");
     process.exit(1);
@@ -329,7 +367,7 @@ async function main() {
   console.log(
     `컵 팀 매핑 백필 — ${leagues.join(", ")} · ${season ? (season.uuid ? `시즌 ${season.uuid}` : "매핑된 시즌 전체") : `sweep ${days}일`} · ${write ? "WRITE" : "DRY-RUN"}`,
   );
-  for (const code of leagues) await processLeague(code, days, write, country, season, withStandings);
+  for (const code of leagues) await processLeague(code, days, write, country, season, withStandings, stage);
   await prisma.$disconnect();
 }
 

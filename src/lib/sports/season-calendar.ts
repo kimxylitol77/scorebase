@@ -151,4 +151,9 @@ export const STAGED_COMPETITIONS = new Set([
  * 판정은 stage 단위로 한다. "우리 팀이 한 팀도 없는 stage 는 다른 티어" 로 보고 분모에서 뺀다.
  * stage_id 는 시즌마다 바뀌므로 값을 박아두지 않는다.
  */
-export const TS_SHARED_SEASON_LEAGUES = new Set(["YKKONEN"]);
+export const TS_SHARED_SEASON_LEAGUES = new Set([
+  "YKKONEN",
+  // 2026-08-21 — 같은 시즌의 Kakkonen 3개 조. 각자 자기 stage 의 팀만 매핑돼 있으므로
+  // 분모를 42팀 전체로 잡으면 셋 다 24% 로 묶인다. YKKONEN 과 같은 규칙을 적용한다.
+  "KAKKONEN_A", "KAKKONEN_B", "KAKKONEN_C",
+]);

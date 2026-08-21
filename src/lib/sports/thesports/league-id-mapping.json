@@ -709,6 +709,30 @@
     "tsSeasonId": "k82rekhvz88repz"
   },
   {
+    "code": "KAKKONEN_A",
+    "ourLabel": "핀란드 카코넨 A",
+    "tsId": "gpxwrxlh7zryk0j",
+    "tsEn": "Finnish Kakkonen Group A (Ykkonen season stage)",
+    "tsKo": "핀란드 카코넨 A",
+    "tsSeasonId": "k82rekhvz88repz"
+  },
+  {
+    "code": "KAKKONEN_B",
+    "ourLabel": "핀란드 카코넨 B",
+    "tsId": "gpxwrxlh7zryk0j",
+    "tsEn": "Finnish Kakkonen Group B (Ykkonen season stage)",
+    "tsKo": "핀란드 카코넨 B",
+    "tsSeasonId": "k82rekhvz88repz"
+  },
+  {
+    "code": "KAKKONEN_C",
+    "ourLabel": "핀란드 카코넨 C",
+    "tsId": "gpxwrxlh7zryk0j",
+    "tsEn": "Finnish Kakkonen Group C (Ykkonen season stage)",
+    "tsKo": "핀란드 카코넨 C",
+    "tsSeasonId": "k82rekhvz88repz"
+  },
+  {
     "code": "LEAGUE_ONE",
     "ourLabel": "잉글랜드 리그 원",
     "tsId": "8y39mp1hjzmojxg",
