@@ -21,6 +21,7 @@ import LolStandings from "@/components/LolStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { NO_TABLE_LEAGUES } from "@/lib/sports/standings-valid";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
@@ -106,6 +107,11 @@ const VALID_LEAGUES = [
   "DFL_SUPERCUP",
   "SUPERCOPPA_ITALIANA",
   "TROPHEE_DES_CHAMPIONS",
+  // 2026-08-21 — 매치가 있는데 폴백 순위표만 그려 경기가 안 보이던 3개.
+  // UEFA_WCL 153경기 · LEAGUES_CUP 22경기(예정 4) · CANADA_CHAMP 1경기.
+  "UEFA_WCL",
+  "LEAGUES_CUP",
+  "CANADA_CHAMP",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -365,6 +371,8 @@ const CUP_LEAGUES = new Set<string>([
   // 슈퍼컵 6개 (2026-08-21) — 1~3경기 단발이라 순위·파워랭킹이 더더욱 성립하지 않는다.
   "PORTUGAL_SUPER_CUP", "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA",
   "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
+  // 2026-08-21 — 조별리그가 있는 둘은 위 cupViews 가 순위 탭을 함께 준다.
+  "UEFA_WCL", "LEAGUES_CUP", "CANADA_CHAMP",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
@@ -575,6 +583,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )
     : [];
   const cupViews: ViewKey[] = [
+    // 조별리그·리그페이즈가 있는 컵은 순위표가 의미 있다 — CUP_LEAGUES 를 "1라운드부터 녹아웃"
+    // 으로만 가정하면 LEAGUES_CUP(A~D조)·UEFA_WCL(리그페이즈)이 일정 탭을 얻는 대신 이미 잘
+    // 나오던 표를 잃는다(2026-08-21 실렌더 확인). 판정은 NO_TABLE_LEAGUES 단일 정의를 따른다.
+    ...(!NO_TABLE_LEAGUES.has(upper) ? (["standings"] as ViewKey[]) : []),
     ...(cupRounds.length > 0 ? (["bracket"] as ViewKey[]) : []),
     "fixtures",
     ...(((championsData as Record<string, { champions: unknown[] }>)[upper]?.champions?.length ?? 0) > 0

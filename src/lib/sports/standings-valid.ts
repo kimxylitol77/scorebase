@@ -29,7 +29,9 @@ export const STANDINGS_VALID = new Set<string>([
 export const NO_TABLE_LEAGUES = new Set<string>([
   "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN",
-  "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "CONCACAF_CCUP", "AFC_CUP", "LEAGUES_CUP",
+  "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  // LEAGUES_CUP 제외 (2026-08-21) — A~D 조별리그가 있고 표가 실제로 정상 렌더 중이다
+  // (프로덕션 실렌더: A조 레온·클럽 아메리카·톨루카 …). 녹아웃 전용이 아니라 오분류였다.
   // 2026-08-21 추가 — 빅5 슈퍼컵 (ts 단독 수집 · 자세한 근거는 reports/plans/big5-super-cups/)
   "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA", "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
   "CANADA_CHAMP", "CLUB_FRIENDLY", "INTL_FRIENDLY",
