@@ -649,7 +649,7 @@
       },
       "spells": null,
       "current": {
-        "status": "preseason",
+        "status": "none",
         "season": "2026-27",
         "team": null,
         "apps": 0,
@@ -817,7 +817,7 @@
       },
       "transferredAt": "2026-06-29",
       "current": {
-        "status": "preseason",
+        "status": "none",
         "season": "2026-27",
         "team": null,
         "apps": 0,
@@ -2573,7 +2573,7 @@
       },
       "spells": null,
       "current": {
-        "status": "preseason",
+        "status": "none",
         "season": "2026-27",
         "team": null,
         "apps": 0,
@@ -2670,5 +2670,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-20T22:20:23.172Z"
+  "currentUpdatedAt": "2026-08-21T22:20:20.097Z"
 }
