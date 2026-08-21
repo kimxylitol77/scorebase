@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
-import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LOL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 import rawCanonical from "../../data/player-canonical-redirects.json";
@@ -91,6 +91,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/predictions/${lg}`,
       changeFrequency: "hourly" as const,
       priority: 0.85,
+    })),
+    // 오버/언더 통계 — 허브는 항상, 리그 상세는 핵심 리그만 등록한다.
+    // 나머지 ~80개 하부리그 페이지는 허브에서 링크로 발견되게 두고 sitemap 에서는 뺀다
+    // (위 SITEMAP_LEAGUES 주석의 크롤 예산 정책과 동일한 이유).
+    { url: `${base}/over-under`, changeFrequency: "daily", priority: 0.8 },
+    ...SITEMAP_LEAGUES.filter((lg) => SOCCER_LEAGUES.has(lg)).map((lg) => ({
+      url: `${base}/over-under/${lg}`,
+      changeFrequency: "daily" as const,
+      priority: 0.75,
     })),
     // 영어판(/en) — 핵심 URL 만 등록 (thin 희석 방지: 허브 + 핵심 리그 상세만)
     { url: `${base}/en`, changeFrequency: "daily", priority: 0.7 },
