@@ -20,6 +20,7 @@ import { sendTelegram } from "@/lib/notify/telegram";
 import { recordCronRun } from "@/lib/cron-registry";
 import { getPlayerCareerByTs } from "@/app/transfers/[id]/career-data";
 import { tsPlayerToAf } from "@/lib/players/ts-af-map";
+import { playerRenderBudgetOk } from "@/lib/sports/api-football-pro";
 import { getTheSportsInjuriesByTeam } from "@/lib/sports/thesports/injuries";
 import rawCoaches from "../../../../../data/team-coaches.json";
 import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
@@ -125,6 +126,13 @@ function currentAfSeason(now: Date): number {
 
 /** 선수 경력 — af 캐시에 부분 결과가 굳었는지. 표본은 몸값 상위(현역·노출 상위). */
 async function checkCareer(now: Date, findings: Finding[]) {
+  // 선수 렌더 af 일일 예산(15,000콜)이 소진되면 fetchPlayerCareer 가 **일부러 throw** 하고
+  // 소비처가 빈 배열로 바꾼다 — 그러면 "데이터 결손"과 구분이 안 돼 이 축이 12/12 로 울린다.
+  // 2026-08-21 실측: 예산 18,184/15,000 초과 상태에서 프로덕션 알림이 왔는데 실제 선수
+  // 페이지는 경력표가 정상이었다(캐시 히트). 측정이 불가능한 시간대는 알리지 않는다.
+  if (!(await playerRenderBudgetOk())) {
+    return { sampled: 0, stale: 0, skipped: "af-player-budget" as const };
+  }
   const season = currentAfSeason(now);
   const rows = await prisma.playerMarketValue.findMany({
     where: { currentValue: { not: null } },

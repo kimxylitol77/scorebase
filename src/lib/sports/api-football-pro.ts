@@ -747,6 +747,15 @@ function parseCareerSeason(season: number, data: unknown): CareerCompRow[] {
 const PLAYER_RENDER_TAGS = ["af-pro:players", "af-pro:players/seasons", "af-pro:injuries"];
 const PLAYER_RENDER_DAILY_CAP = 15_000;
 
+/**
+ * 선수 렌더 af 예산이 남아 있는가 — 감시가 "측정 불가"를 "결손"으로 오인하지 않게 노출한다.
+ * 예산이 소진되면 fetchPlayerCareer 는 일부러 throw 하고, 소비처가 그걸 빈 배열로 바꾸므로
+ * 겉보기엔 "경력 데이터 없음"과 구분이 안 된다(2026-08-21 career_gap 오탐의 원인).
+ */
+export async function playerRenderBudgetOk(): Promise<boolean> {
+  return afTagBudgetOk(PLAYER_RENDER_TAGS, PLAYER_RENDER_DAILY_CAP);
+}
+
 async function requirePlayerPageQuota(): Promise<void> {
   if (!(await afTagBudgetOk(PLAYER_RENDER_TAGS, PLAYER_RENDER_DAILY_CAP))) {
     throw new Error("af-player-budget: 선수 렌더 af 일일 예산 소진 — 조회를 건너뜁니다");
