@@ -122,6 +122,9 @@ export const collectors: Record<League, MatchCollector> = {
   ALLSVENSKAN: buildApiFootballCollector("ALLSVENSKAN"),
   SUPERETTAN: buildApiFootballCollector("SUPERETTAN"),
   VEIKKAUSLIIGA: buildApiFootballCollector("VEIKKAUSLIIGA"),
+  // 매치 소스는 ts 컬렉터(Vultr). af 리그 id 는 등록하지 않았다 — Record<League, MatchCollector>
+  // 를 만족시키는 자리채움이고, collect 의 ALL_LEAGUES 에 없어 fetchByDate 가 호출되지 않는다.
+  YKKOSLIIGA: buildApiFootballCollector("YKKOSLIIGA"),
   YKKONEN: buildApiFootballCollector("YKKONEN"),
   URVALSDEILD: buildApiFootballCollector("URVALSDEILD"),
   ICELAND_1L: buildApiFootballCollector("ICELAND_1L"),

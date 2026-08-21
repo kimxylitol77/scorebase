@@ -38,6 +38,7 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   ELITESERIEN: "gy0or5jhj6qwzv3",
   ALLSVENSKAN: "l965mkyhg0r1ge4",
   VEIKKAUSLIIGA: "z8yomo4h92q0j6l",
+  YKKOSLIIGA: "56ypq3nhgwmd7oj",
   URVALSDEILD: "kn54qllhp3qvy9d",
   // 아시아
   K_LEAGUE_1: "gy0or5jhlxgqwzv",

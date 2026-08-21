@@ -61,6 +61,7 @@ export const LEAGUE_COUNTRY: Record<string, CountryInfo> = {
   ALLSVENSKAN:   { name: "Sweden",         code: "SE", defaultCity: "Stockholm" },
   SUPERETTAN:    { name: "Sweden",         code: "SE", defaultCity: "Stockholm" },
   VEIKKAUSLIIGA: { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
+  YKKOSLIIGA:    { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
   YKKONEN:       { name: "Finland",        code: "FI", defaultCity: "Helsinki" },
   URVALSDEILD:   { name: "Iceland",        code: "IS", defaultCity: "Reykjavik" },
   ICELAND_1L:    { name: "Iceland",        code: "IS", defaultCity: "Reykjavik" },

@@ -62,6 +62,7 @@ export const LEAGUE_DISPLAY_EN: Record<string, string> = {
   ALLSVENSKAN: "Allsvenskan",
   SUPERETTAN: "Superettan",
   VEIKKAUSLIIGA: "Veikkausliiga",
+  YKKOSLIIGA: "Ykkösliiga",
   YKKONEN: "Ykkönen",
   URVALSDEILD: "Úrvalsdeild",
   ICELAND_1L: "1. deild karla",

@@ -27208,5 +27208,95 @@
     "tsId": "dj2ryohke0jq1zp",
     "tsName": "Guinea-Bissau",
     "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 613912,
+    "ourName": "PK-35 Vantaa",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-2y8m4zh3n2oql07",
+    "tsId": "2y8m4zh3n2oql07",
+    "tsName": "PK-35 Vantaa",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613913,
+    "ourName": "Ekenas IF Fotboll",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-gy0or5jhp27qwzv",
+    "tsId": "gy0or5jhp27qwzv",
+    "tsName": "Ekenas IF Fotboll",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613914,
+    "ourName": "JIPPO",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-dj2ryohkxlzq1zp",
+    "tsId": "dj2ryohkxlzq1zp",
+    "tsName": "JIPPO",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613915,
+    "ourName": "JaPS",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-2y8m4zh39gkql07",
+    "tsId": "2y8m4zh39gkql07",
+    "tsName": "JaPS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613916,
+    "ourName": "Klubi 04 Helsinki",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-jednm9whj63ryox",
+    "tsId": "jednm9whj63ryox",
+    "tsName": "Klubi 04 Helsinki",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613917,
+    "ourName": "Käpylän Pallo",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-y0or5jhl936qwzv",
+    "tsId": "y0or5jhl936qwzv",
+    "tsName": "Käpylän Pallo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613918,
+    "ourName": "SJK Akatemia",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-23xmvkho52zqg8n",
+    "tsId": "23xmvkho52zqg8n",
+    "tsName": "SJK Akatemia",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613919,
+    "ourName": "Mikkelin Palloilijat",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-2y8m4zh3jg2ql07",
+    "tsId": "2y8m4zh3jg2ql07",
+    "tsName": "Mikkelin Palloilijat",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613920,
+    "ourName": "KTP Kotka",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-6ypq3nh098jmd7o",
+    "tsId": "6ypq3nh098jmd7o",
+    "tsName": "KTP Kotka",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613921,
+    "ourName": "FC Haka",
+    "ourLeague": "YKKOSLIIGA",
+    "ourExternalId": "ts-9k82rekh483repz",
+    "tsId": "9k82rekh483repz",
+    "tsName": "FC Haka",
+    "matchType": "ts-external-id"
   }
 ]

@@ -170,6 +170,7 @@ export const SEASON_BOUNDARY: Record<string, { month: number; day: number }> = {
   USA_USL_CH: { month: 1, day: 1 },
   UZBEKISTAN_SL: { month: 1, day: 1 },
   VEIKKAUSLIIGA: { month: 1, day: 1 },
+  YKKOSLIIGA: { month: 1, day: 1 },
   VENEZUELA_PD: { month: 11, day: 1 },
   VIETNAM_VL1: { month: 7, day: 15 },
   VIETNAM_VL2: { month: 6, day: 15 },
