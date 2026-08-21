@@ -359,6 +359,10 @@
     {
       "path": "/api/cron/push-alerts",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/over-under-blog",
+      "schedule": "10 20 * * 0"
     }
   ]
 }
