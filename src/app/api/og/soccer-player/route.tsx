@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { POS_KO, type PosCode } from "@/lib/players/grid-position";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { SPECIAL_TEAM_KO } from "@/app/transfers/transfer-display";
 import rawSeason from "../../../../../data/player-season-stats.json";
 import rawPosDetail from "../../../../../data/player-positions-detail.json";
 
@@ -82,9 +83,25 @@ export async function GET(req: Request) {
   const pos = POS_DETAIL[id]?.primary ?? null;
   const posLabel = pos ? POS_KO[pos] : null;
   // 소속팀 — 몸값 피드의 ts team_id 를 우리 Team 으로 풀어 한글명·로고를 얻는다.
-  const teamRow = mv?.teamId
+  //  ⚠ 몸값 피드는 완전이적 발효를 며칠 늦게 반영한다. 페이지 헤더는 최신 완료 이적으로 보정하는데
+  //  (page.tsx effTeamId) 카드가 그걸 안 하면 같은 선수가 페이지에선 새 팀, 카드에선 옛 팀으로 나온다
+  //  (베르나르두 실바 실측: 페이지 레알 마드리드 / 카드 맨체스터 시티). 같은 기준을 여기서도 쓴다.
+  //  임대(transferType 1)는 보정하지 않는다 — 임대 중엔 몸값 피드(임대 클럽)가 맞다.
+  let effTeamId = mv?.teamId ?? null;
+  if (mv?.teamId) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const latest = await prisma.footballTransfer.findFirst({
+      where: { playerId: id, transferTime: { lte: nowSec, not: null }, toTeamId: { not: null }, toTeamName: { not: null } },
+      orderBy: { transferTime: "desc" },
+      select: { toTeamId: true, toTeamName: true, transferType: true },
+    });
+    if (latest?.toTeamId && latest.transferType !== 1 && latest.toTeamId !== mv.teamId && !(latest.toTeamName! in SPECIAL_TEAM_KO)) {
+      effTeamId = latest.toTeamId;
+    }
+  }
+  const teamRow = effTeamId
     ? await prisma.teamSourceId.findFirst({
-        where: { source: "thesports", externalId: mv.teamId },
+        where: { source: "thesports", externalId: effTeamId },
         select: { team: { select: { name: true, logoUrl: true } } },
       })
     : null;
