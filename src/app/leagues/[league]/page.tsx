@@ -98,6 +98,14 @@ const VALID_LEAGUES = [
   "SUI_CUP",
   "SVENSKA_CUPEN",
   "COPA_DO_BRASIL",
+  // 슈퍼컵 6개 (2026-08-21) — 위와 같은 함정. PORTUGAL_SUPER_CUP 은 등록이 빠져 있어
+  // "순위 데이터를 수집 중입니다" 만 뜨고 있었다(실렌더 확인). 빅5 온보딩과 함께 넣는다.
+  "PORTUGAL_SUPER_CUP",
+  "COMMUNITY_SHIELD",
+  "SUPERCOPA_ESPANA",
+  "DFL_SUPERCUP",
+  "SUPERCOPPA_ITALIANA",
+  "TROPHEE_DES_CHAMPIONS",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -354,6 +362,9 @@ const CUP_LEAGUES = new Set<string>([
   "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
   "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
+  // 슈퍼컵 6개 (2026-08-21) — 1~3경기 단발이라 순위·파워랭킹이 더더욱 성립하지 않는다.
+  "PORTUGAL_SUPER_CUP", "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA",
+  "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
