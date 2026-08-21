@@ -18,9 +18,11 @@ const TEAM_CONCURRENCY = 5;
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[\s.&·'-]/g, "");
 
-interface LuPlayer { id?: string; first?: number; name?: string; position?: string; shirt_number?: number; rating?: string; logo?: string }
+interface LuPlayer { id?: string; first?: number; name?: string; position?: string; shirt_number?: number; rating?: string; logo?: string; x?: number; y?: number }
 interface PredictedPlayer {
   id: string; name: string; nameKo?: string; position: string; shirtNumber?: number;
+  /** 최근 선발 좌표의 가중평균 (ts 좌표계 0~100, y 는 자기 골문 쪽이 0). 재료에 좌표가 없으면 생략. */
+  x?: number; y?: number;
   starts: number; games: number;
   /** 0~1 — 가중 투표 점유율 */
   confidence: number;
@@ -162,15 +164,44 @@ export async function buildTeam(
         nameKeys: new Set(teamSnaps.map((s) => lastInitialKey(s.playerName))),
       }
     : undefined;
-  const vote = new Map<string, { p: LuPlayer; score: number; starts: number; ratings: number[]; lastRating?: number }>();
+  // 좌표(x/y)도 같은 가중치로 누계한다. ts 라인업은 선수마다 실제 선 자리를 주는데
+  //  (실측: 아마드 x=22 y=70 = 오른쪽 윙, 도르구 x=78 y=70 = 왼쪽 윙, 브루노 x=50 y=70 = 중앙)
+  //  이걸 버리고 대분류(G/D/M/F)만 쓰면 화면이 포메이션 틀에 점수순으로 꽂아 좌우까지 뒤집힌다
+  //  (2026-08-21 사용자 제보: 맨유 백4 가 마즈라위↔매과이어 반대로, 윙어 둘이 더블 피봇에).
+  const vote = new Map<string, VoteRec>();
+  const blank = (p: LuPlayer): VoteRec => ({ p, score: 0, starts: 0, ratings: [], lastRating: undefined, pos: new Map() });
+  // 벤치는 x=y=0 으로 오므로 선발(first=1)이면서 좌표가 실린 것만 누적한다.
+  // 좌표는 **평균이 아니라 최빈 라인**으로 잡는다. 로테이션이 심한 선수를 평균 내면 여러 자리의
+  //  중간값이 나와 실제로 서지 않는 곳에 놓이고, 다른 선수와 겹치기까지 한다(실측: 브루노 50,70 /
+  //  레이시 51,72 가 포개짐). ts y 는 12·32·50·70·85 처럼 이산값이라 최빈이 잘 먹는다.
+  //  x 는 고른 라인 안에서만 가중평균 — 좌우는 라인이 정해진 뒤에 의미가 있다.
+  type PosBucket = { w: number; xw: number };
+  type VoteRec = { p: LuPlayer; score: number; starts: number; ratings: number[]; lastRating?: number; pos: Map<number, PosBucket> };
+  const addPos = (e: VoteRec, p: LuPlayer, w: number) => {
+    const x = p.x ?? 0, y = p.y ?? 0;
+    if (x <= 0 && y <= 0) return;
+    const key = Math.round(y / 5) * 5; // 미세 차이 흡수
+    const b = e.pos.get(key) ?? { w: 0, xw: 0 };
+    b.w += w;
+    b.xw += x * w;
+    e.pos.set(key, b);
+  };
+  /** 최다 가중 라인의 (x, y). 관측이 없으면 null. */
+  const restPos = (e: VoteRec): { x: number; y: number } | null => {
+    let best: [number, PosBucket] | null = null;
+    for (const entry of e.pos) if (!best || entry[1].w > best[1].w) best = entry;
+    if (!best) return null;
+    return { x: Math.round(best[1].xw / best[1].w), y: best[0] };
+  };
   let totalW = 0;
   xis.forEach((xi, i) => {
     const w = (RECENCY[i] ?? 1) * compW(xi.matchLeague);
     totalW += w;
     for (const p of xi.players) {
-      const e = vote.get(p.id!) ?? { p, score: 0, starts: 0, ratings: [] as number[], lastRating: undefined as number | undefined };
+      const e = vote.get(p.id!) ?? blank(p);
       e.score += w;
       e.starts += 1;
+      addPos(e, p, w);
       const r = parseFloat(p.rating ?? "0") || 0;
       if (r > 0) {
         e.ratings.push(r);
@@ -184,9 +215,10 @@ export async function buildTeam(
     const w = 0.8;
     totalW += w;
     for (const p of xi.players) {
-      const e = vote.get(p.id!) ?? { p, score: 0, starts: 0, ratings: [] as number[], lastRating: undefined as number | undefined };
+      const e = vote.get(p.id!) ?? blank(p);
       e.score += w;
       e.starts += 1;
+      addPos(e, p, w);
       const r = parseFloat(p.rating ?? "0") || 0;
       if (r > 0) e.ratings.push(r);
       if (p.logo && !e.p.logo) e.p.logo = p.logo;
@@ -225,6 +257,8 @@ export async function buildTeam(
   const toPlayer = (e: VoteEntry, pos: string): PredictedPlayer => ({
     id: e.p.id!, name: e.p.name!,
     position: pos, shirtNumber: e.p.shirt_number,
+    // 최빈 라인 좌표 — 화면은 이게 있으면 포메이션 틀 대신 실제 선 자리를 쓴다.
+    ...(restPos(e) ?? {}),
     starts: e.starts, games: recentCount + prevXis.length,
     confidence: +(e.score / totalW).toFixed(2),
     photo: e.p.logo,

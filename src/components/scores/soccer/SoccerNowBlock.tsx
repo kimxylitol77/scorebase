@@ -43,6 +43,9 @@ export interface PredictedXiTeam {
     lastRating?: number;
     /** api-football player id — 있으면 선수 상세 링크 */
     afId?: number;
+    /** 최근 선발 좌표의 가중평균 (ts 좌표계). 있으면 피치가 포메이션 틀 대신 이 자리를 쓴다. */
+    x?: number;
+    y?: number;
   }>;
 }
 

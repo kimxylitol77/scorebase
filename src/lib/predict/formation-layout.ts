@@ -61,6 +61,31 @@ function teamToPlayers(team: PredictedXiTeam): LineupPlayer[] {
 
   const out: LineupPlayer[] = [];
 
+  // 좌표가 실린 예상 XI — 빌더가 최근 선발의 **최빈 라인**을 넣어준다. 포메이션 틀에 점수순으로
+  //  꽂으면 좌우가 뒤집히고 윙어가 피봇 자리로 간다(맨유 실측: 마즈라위↔매과이어 반대, 아마드·
+  //  도르구가 더블 피봇에). 좌표를 그대로 쓰면 아마드 x=22(우측 윙)·브루노 50(중앙)·도르구 78
+  //  (좌측 윙) 처럼 실제 자리가 그대로 나온다.
+  //
+  //  formation 라벨로 슬롯을 다시 나누지 않는다 — 라벨(4-2-3-1)과 실제 분포(피봇 1명)가 어긋나면
+  //  y 가 두 번째로 낮은 윙어가 피봇 자리로 끌려간다. 라인 묶기는 SoccerLineupSvg 가 인접 y≤8
+  //  규칙으로 알아서 한다. 여기서는 같은 라인 안에서 마커가 포개질 때만 x 를 균등하게 편다.
+  const hasCoords = xi.length > 0 && xi.every((p) => (p.x ?? 0) > 0 || (p.y ?? 0) > 0);
+  if (hasCoords) {
+    const pts = xi.map((p) => ({ p, x: p.x ?? 50, y: p.y ?? 50 }));
+    const lines: (typeof pts)[] = [];
+    for (const q of [...pts].sort((a, b) => a.y - b.y)) {
+      const last = lines[lines.length - 1];
+      if (last && q.y - last[last.length - 1].y <= 8) last.push(q);
+      else lines.push([q]);
+    }
+    for (const line of lines) {
+      line.sort((a, b) => a.x - b.x);
+      const overlap = line.some((q, k) => k > 0 && q.x - line[k - 1].x < 10);
+      if (overlap) line.forEach((q, k) => { q.x = ((k + 1) / (line.length + 1)) * 100; });
+    }
+    return pts.map((q) => toPlayer(q.p, q.x, q.y));
+  }
+
   // GK — 골문 앞 중앙
   if (gk[0]) out.push(toPlayer(gk[0], 50, 4));
 
