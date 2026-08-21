@@ -72,9 +72,10 @@ async function main() {
   const PLAYER_URL = `${SITE}/transfers/${PLAYER_ID}`;
   const H2 = 'style="font-size:24px;margin:0 0 14px;font-weight:800;"';
   const HR = '<hr style="border:none;border-top:1px solid #eee;margin:32px 0;">';
-  const TH = 'style="padding:10px 8px;border-bottom:2px solid #333;text-align:left;font-weight:700;"';
-  const TD = 'style="padding:9px 8px;border-bottom:1px solid #eee;"';
-  const BOX = 'style="background:#f6f8fa;border-left:4px solid #d81f26;padding:14px 16px;margin:20px 0;border-radius:4px;"';
+  // 다크 테마에서 흰 배경 블록의 글자색이 상속돼 흐려지므로 color 를 명시한다.
+  const TH = 'style="padding:10px 8px;border-bottom:2px solid #333;text-align:left;font-weight:700;color:#111;"';
+  const TD = 'style="padding:9px 8px;border-bottom:1px solid #e3e6ea;color:#222;"';
+  const BOX = 'style="background:#f6f8fa;border-left:4px solid #d81f26;padding:14px 16px;margin:20px 0;border-radius:4px;color:#222;"';
 
   /** 막대 시각화 한 줄 */
   const bar = (label: string, val: string, pct: number, color: string) => `
@@ -208,7 +209,7 @@ async function main() {
     골 직후 이강인이 호세 마리아 히메네스에게 달려간 이유도 그 기사에 나옵니다. 교체로 나가면 골을 넣을 것이라고 미리 말해 준 동료였기 때문입니다.
   </p>
   <div style="overflow-x:auto;">
-  <table style="width:100%;border-collapse:collapse;font-size:15px;background:#fff;margin:16px 0;">
+  <table style="width:100%;border-collapse:collapse;font-size:15px;background:#fff;color:#222;margin:16px 0;border-radius:6px;overflow:hidden;">
     <thead><tr><th ${TH}>지표</th><th ${TH}>데뷔전 기록</th><th ${TH}>최근 1년 90분당 환산</th></tr></thead>
     <tbody>
       <tr><td ${TD}>출전 시간</td><td ${TD}>${debut.minutes}분 (교체)</td><td ${TD}>경기당 평균 ${(mins / stat.length).toFixed(0)}분</td></tr>
