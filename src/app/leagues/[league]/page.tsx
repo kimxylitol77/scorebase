@@ -740,7 +740,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
 
       {/* view별 콘텐츠 */}
-      {isSoccer && view === "standings" && (
+      {/* 컵도 포함 — cupViews 가 NO_TABLE 이 아닌 컵에 순위 탭을 주는데(조별리그·리그페이즈)
+          이 블록이 isSoccer 전용이면 탭만 있고 표가 없는 빈 화면이 된다. 2026-08-21 실측:
+          LEAGUES_CUP·UEFA_WCL 을 VALID_LEAGUES 로 옮기면서 폴백 경로가 그리던 표를 잃었다. */}
+      {(isSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeagueStandingsTable league={upper} />
         </div>
