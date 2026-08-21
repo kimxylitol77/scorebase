@@ -25,7 +25,7 @@ import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 export const revalidate = 1800;
 
 const SITE = "https://www.scorebase.kr";
-const ymd = (d: Date) => d.toISOString().slice(0, 10);
+const ymd = (iso: string) => iso.slice(0, 10);
 const f1 = (v: number) => v.toFixed(1);
 
 // generateStaticParams 를 두지 않는다 — 93개 리그를 빌드 타임에 정적 생성하면 빌드가 길어지고

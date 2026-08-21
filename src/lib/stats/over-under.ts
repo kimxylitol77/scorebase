@@ -19,7 +19,7 @@ const MIN_MATCHES_PER_TEAM = 10;
 const MIN_TEAM_MATCHES = 8;
 
 /** 집계 로직을 바꾸면 이 값을 올린다 — unstable_cache 는 배포 사이에도 살아남는다. */
-const CACHE_V = "v1";
+const CACHE_V = "v2"; // v2 — 날짜를 ISO 문자열로 바꿈(캐시 직렬화 호환)
 const REVALIDATE_SEC = 1800;
 
 export interface TeamOverUnder {
@@ -48,8 +48,9 @@ export interface LeagueOverUnder {
   over35: number;
   btts: number;
   goals: number;
-  firstAt: Date;
-  lastAt: Date;
+  /** ISO 문자열 — unstable_cache 가 JSON 직렬화를 거쳐 Date 를 문자열로 바꾸므로 처음부터 문자열로 둔다. */
+  firstAt: string;
+  lastAt: string;
   teams: TeamOverUnder[];
 }
 
@@ -62,7 +63,8 @@ export interface LeagueSummary {
   bttsPct: number;
   goalsPerMatch: number;
   teams: number;
-  lastAt: Date;
+  /** ISO 문자열 — 위와 같은 이유. */
+  lastAt: string;
 }
 
 interface TeamRow {
@@ -151,8 +153,8 @@ export async function computeLeagueOverUnder(league: string): Promise<LeagueOver
     over35: a.over35,
     btts: a.btts,
     goals: a.goals,
-    firstAt: a.first,
-    lastAt: a.last,
+    firstAt: new Date(a.first).toISOString(),
+    lastAt: new Date(a.last).toISOString(),
     teams: rows.map((r) => ({
       ...r,
       nameKo: toKoreanTeamName(r.name, league),
@@ -199,7 +201,7 @@ export async function computeAllLeaguesOverUnder(): Promise<LeagueSummary[]> {
       bttsPct: (r.btts / r.matches) * 100,
       goalsPerMatch: r.goals / r.matches,
       teams: r.teams,
-      lastAt: r.last,
+      lastAt: new Date(r.last).toISOString(),
     }))
     .sort((a, b) => b.over25Pct - a.over25Pct);
 }
