@@ -61,7 +61,7 @@ const contractLabel = (sec: number) =>
 
 export default function PlayerBioPanel({
   age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
-  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur, wageStale,
+  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur, wageStale, wageAsOf,
   positions, posCode, foot, contractUntil, contractPast,
 }: {
   age: number | null;
@@ -80,6 +80,7 @@ export default function PlayerBioPanel({
   valueEur: number | null;
   wageEur?: number | null; // 연봉 세전 EUR (Capology) — 주급은 /52 표기
   wageStale?: boolean; // 주급 스냅샷 이후 이적 발효 — "이적 전 소속 기준" 라벨 (page 에서 판정)
+  wageAsOf?: string | null; // 주급 스냅샷 기준 시점 "2026.07" — 낡은 값이 현재처럼 읽히지 않게
   valueKrw: string | null;
   recentChg: number | null;
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
@@ -185,8 +186,13 @@ export default function PlayerBioPanel({
                   €{Math.round(wageEur / 52 / 1000)}k
                 </span>
                 <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
-                {wageStale && (
+                {/* 스냅샷 기준 시점을 항상 밝힌다 — 소스(Capology)가 Cloudflare 로 막혀 갱신이
+                    멈출 수 있고, 낡은 값을 현재 주급처럼 읽히게 두지 않기 위함.
+                    이적자에겐 더 구체적인 "이적 전 소속 기준" 이 우선한다. */}
+                {wageStale ? (
                   <span className="text-[10px] text-neutral-400">이적 전 소속 기준</span>
+                ) : (
+                  wageAsOf && <span className="text-[10px] text-neutral-400">{wageAsOf} 기준</span>
                 )}
               </div>
             ) : (

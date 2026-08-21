@@ -33,12 +33,18 @@ export interface CareerGroup { cat: CareerCat; label: string; rows: CareerRow[];
 export const CAT_LABEL: Record<CareerCat, string> = { league: "리그", cup: "컵대회", clubIntl: "클럽대항전", national: "국가대표팀" };
 
 // 대회명 한글 (자주 나오는 것 — 미등록은 영문 그대로)
-const COMP_KO: Record<string, string> = {
+// 대회명 한국어 — 출전기록 대회 필터도 이 사전을 쓴다(사본 추가 방지).
+export const COMP_KO: Record<string, string> = {
   "Premier League": "프리미어리그", "La Liga": "라리가", Bundesliga: "분데스리가", "Serie A": "세리에 A", "Ligue 1": "리그 1",
   "Serie B": "세리에 B", "Ligue 2": "리그 2", Championship: "챔피언십",
   "UEFA Champions League": "챔피언스리그", "UEFA Europa League": "유로파리그", "UEFA Europa Conference League": "컨퍼런스리그", "UEFA Super Cup": "UEFA 슈퍼컵",
   "FA Cup": "FA컵", "League Cup": "EFL컵", "Copa del Rey": "코파 델 레이", "DFB Pokal": "DFB 포칼", "Coppa Italia": "코파 이탈리아",
   "Coupe de France": "쿠프 드 프랑스", "Club World Cup": "클럽 월드컵", "World Cup": "월드컵", Friendlies: "A매치 친선",
+  // 출전기록 대회 필터에 영문이 그대로 튀던 리그들 (2026-08-21 실측 분포 상위 기준)
+  "Major League Soccer": "MLS", "Segunda División": "라리가 2", "Pro League": "사우디 프로리그",
+  "2. Bundesliga": "분데스리가 2", "K League 1": "K리그1", "Süper Lig": "쉬페르리그",
+  Eredivisie: "에레디비시", "Primeira Liga": "프리메이라리가", "J1 League": "J1리그",
+  "Jupiler Pro League": "주필러 프로리그", "Friendlies Clubs": "클럽 친선",
 };
 
 // 단일 연도 시즌 표기 국가(유럽식 2024/2025 대신 2024)

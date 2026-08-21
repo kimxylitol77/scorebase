@@ -1228,6 +1228,19 @@ export interface AfFixturePlayerStat {
   yellow: number;
   red: number;
   started: boolean;
+  // 세부 스탯 — 같은 응답에 이미 들어 있던 것을 그동안 버리고 있었다(추가 호출 0건).
+  //  통계 블록이 통째로 없는 경기(미수집 리그)는 전부 null, 있으면 af 의 null 은 0 회로 읽는다.
+  shots: number | null;
+  shotsOn: number | null;
+  passes: number | null;
+  passesAcc: number | null; // af fixture 레벨은 백분율이 아니라 "성공 패스 수"다 (2026-08-21 실측)
+  keyPasses: number | null;
+  tackles: number | null;
+  interceptions: number | null;
+  duelsWon: number | null;
+  duelsTotal: number | null;
+  dribbles: number | null; // 성공
+  dribblesAtt: number | null;
 }
 
 // 한 경기의 전 선수 스탯 — /fixtures/players?fixture=. teamId 로 홈/원정 판별.
@@ -1250,6 +1263,10 @@ export async function fetchFixturePlayerStats(fixtureId: number): Promise<AfFixt
 
 function parseFixturePlayers(data: unknown): AfFixturePlayerStat[] {
   const out: AfFixturePlayerStat[] = [];
+  // af 는 "0 회"도 null 로 준다 (실측: 슛 0 인 골키퍼의 shots.total = null).
+  //  그래서 세부 스탯이 하나라도 숫자로 온 경기만 "수집된 경기"로 보고 나머지 null 을 0 으로 읽는다.
+  //  통계 자체가 없는 리그는 전부 null 로 남겨 "0 회"와 "미수집"을 구분한다.
+  const num = (v: unknown): number | null => (typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : null);
   for (const tb of ((data as Record<string, unknown>)?.response ?? []) as Record<string, unknown>[]) {
       const teamId = ((tb.team as Record<string, unknown>) ?? {}).id as number;
       for (const p of (tb.players ?? []) as Record<string, unknown>[]) {
@@ -1257,7 +1274,23 @@ function parseFixturePlayers(data: unknown): AfFixturePlayerStat[] {
         const g = (st.games as Record<string, unknown>) ?? {};
         const go = (st.goals as Record<string, unknown>) ?? {};
         const c = (st.cards as Record<string, unknown>) ?? {};
+        const sh = (st.shots as Record<string, unknown>) ?? {};
+        const pa = (st.passes as Record<string, unknown>) ?? {};
+        const tk = (st.tackles as Record<string, unknown>) ?? {};
+        const du = (st.duels as Record<string, unknown>) ?? {};
+        const dr = (st.dribbles as Record<string, unknown>) ?? {};
         const r = g.rating as string | undefined;
+        const raw = {
+          shots: num(sh.total), shotsOn: num(sh.on),
+          passes: num(pa.total), passesAcc: num(pa.accuracy), keyPasses: num(pa.key),
+          tackles: num(tk.total), interceptions: num(tk.interceptions),
+          duelsWon: num(du.won), duelsTotal: num(du.total),
+          dribbles: num(dr.success), dribblesAtt: num(dr.attempts),
+        };
+        const hasDetail = Object.values(raw).some((v) => v != null);
+        const detail = hasDetail
+          ? (Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v ?? 0])) as typeof raw)
+          : raw;
         out.push({
           teamId,
           playerId: ((p.player as Record<string, unknown>) ?? {}).id as number,
@@ -1268,6 +1301,7 @@ function parseFixturePlayers(data: unknown): AfFixturePlayerStat[] {
           yellow: (c.yellow as number) ?? 0,
           red: (c.red as number) ?? 0,
           started: g.substitute === false,
+          ...detail,
         });
     }
   }

@@ -44,6 +44,7 @@ import PlayerInjuryHistory from "./PlayerInjuryHistory";
 import PlayerTrophies from "./PlayerTrophies";
 import { getPlayerInjuriesByTs } from "./injury-data";
 import PlayerMatchLogTable, { type MatchLogRow, type SeasonAggRow } from "./PlayerMatchLogTable";
+import { COMP_KO } from "./career-data";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
@@ -141,6 +142,11 @@ const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
 // 주급 스냅샷 시각 — 이후 발효 이적이 있으면 "이적 전 소속 기준" 라벨 판정에 쓴다.
 const WAGES_AT_SEC = Math.floor(Date.parse((rawWages as { fetchedAt?: string }).fetchedAt ?? "") / 1000);
+// 스냅샷 기준 시점 표기 "2026.07" — Capology 가 Cloudflare 챌린지로 막히면 갱신이 멈추므로
+//  (2026-08-21 실측: 기존 5대리그 경로까지 403) 화면에 언제 기준인지 늘 밝힌다.
+const WAGES_AS_OF = Number.isFinite(WAGES_AT_SEC)
+  ? (() => { const d = new Date(WAGES_AT_SEC * 1000); return `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}`; })()
+  : null;
 const FOOT = rawFoot as Record<string, string>; // 주발 (ts preferred_foot) — "L"|"R"|"B" ("?" = ts 도 모름, 미표시)
 // 계약 만료 (ts contract_until, unix sec). 8% 는 이미 지난 날짜 — ts 가 이적 후에도 옛 계약을
 // 남겨두기 때문. 숨기지 않고 "직전 계약"으로 맥락을 붙여 노출한다(가진 데이터는 다 보여주되,
@@ -823,9 +829,11 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const natlCaches = natlMatchList.length
     ? await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: natlMatchList.map((m) => m.id) } }, select: { matchId: true, playerStats: true } })
     : [];
-  interface NatlGame { time: number; wc: boolean; home: string; away: string; hs: number | null; as: number | null; side: "H" | "A" | null; minutes: number; goals: number; assists: number; yellow: number; red: number; rating: number; href: string; homeLogo: string | null; awayLogo: string | null }
+  interface NatlGame { time: number; wc: boolean; home: string; away: string; hs: number | null; as: number | null; side: "H" | "A" | null; minutes: number; goals: number; assists: number; yellow: number; red: number; rating: number; href: string; homeLogo: string | null; awayLogo: string | null;
+    shots: number | null; shotsOn: number | null; keyPasses: number | null; tackles: number | null; interceptions: number | null; dribbles: number | null; dribblesAtt: number | null }
   const koNat = (n: string) => toKoreanTeamName(n) || fifaCountryKo(n) || n;
-  type NatlPsRow = { player_id: string; team_id?: string; goals?: number; assists?: number; rating?: number; minutes_played?: number; yellow_cards?: number; red_cards?: number };
+  type NatlPsRow = { player_id: string; team_id?: string; goals?: number; assists?: number; rating?: number; minutes_played?: number; yellow_cards?: number; red_cards?: number;
+    shots?: number; shots_on_target?: number; key_passes?: number; tackles?: number; interceptions?: number; dribble?: number; dribble_succ?: number };
   const natlMatched: Array<{ row: NatlPsRow; m: (typeof natlMatchList)[number] }> = [];
   for (const c of natlCaches) {
     const ps = c.playerStats as NatlPsRow[] | null;
@@ -855,6 +863,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       home: koNat(m.homeTeam.name), away: koNat(m.awayTeam.name), hs: m.homeScore, as: m.awayScore,
       side, minutes: row.minutes_played ?? 0, goals: row.goals ?? 0, assists: row.assists ?? 0,
       yellow: row.yellow_cards ?? 0, red: row.red_cards ?? 0, rating: Number(row.rating) || 0,
+      shots: row.shots ?? null, shotsOn: row.shots_on_target ?? null, keyPasses: row.key_passes ?? null,
+      tackles: row.tackles ?? null, interceptions: row.interceptions ?? null,
+      dribbles: row.dribble_succ ?? null, dribblesAtt: row.dribble ?? null,
       href: `/live/${m.league}/${m.externalId}`,
       homeLogo: m.homeTeam.logoUrl ?? null, awayLogo: m.awayTeam.logoUrl ?? null,
     };
@@ -958,20 +969,28 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       )
     : null;
   const trendPoints: TrendPoint[] = (() => {
-    const bySeason = new Map<number, { label: string; goals: number; assists: number; logo: string | null; topApps: number }>();
+    // 평점은 출전수 가중평균 — 대회별 행을 단순평균하면 1경기 뛴 컵대회가 리그 38경기와 같은 무게가 된다.
+    const bySeason = new Map<number, { label: string; goals: number; assists: number; logo: string | null; topApps: number; ratedApps: number; ratedSum: number }>();
     {
       for (const r of clubRows) {
         const cur = bySeason.get(r.season) ?? {
           label: r.seasonLabel.replace(/^20(\d\d)\/20(\d\d)$/, "$1/$2"),
-          goals: 0, assists: 0, logo: null, topApps: -1,
+          goals: 0, assists: 0, logo: null, topApps: -1, ratedApps: 0, ratedSum: 0,
         };
         cur.goals += r.goals;
         cur.assists += r.assists;
+        if (r.rating != null && r.appearances > 0) { cur.ratedApps += r.appearances; cur.ratedSum += r.rating * r.appearances; }
         if (r.appearances > cur.topApps) { cur.topApps = r.appearances; cur.logo = r.teamLogo ?? cur.logo; }
         bySeason.set(r.season, cur);
       }
     }
-    return [...bySeason.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+    return [...bySeason.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, v]) => ({
+        label: v.label, goals: v.goals, assists: v.assists, logo: v.logo,
+        // 평점 없는 시즌은 null — 0 으로 채우면 라인이 바닥으로 떨어져 부진처럼 보인다.
+        rating: v.ratedApps > 0 ? Math.round((v.ratedSum / v.ratedApps) * 100) / 100 : null,
+      }));
   })();
   // 부상 이력 (API-Football, 최근 5시즌 스펠) — 스펠 있으면 "부상" 탭 표시.
   const injurySpells = await getPlayerInjuriesByTs(id);
@@ -990,6 +1009,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       homeName: true, homeLogo: true, awayName: true, awayLogo: true,
       homeScore: true, awayScore: true, playerSide: true,
       rating: true, minutes: true, goals: true, assists: true, yellow: true, red: true, started: true,
+      shots: true, shotsOn: true, keyPasses: true, tackles: true, interceptions: true, dribbles: true, dribblesAtt: true,
     },
   });
   // 커버 매치 링크 — fixtureId ↔ Match.apiFixtureId 매칭되는 경기만 /live 상세로 (buildup 벤치마크).
@@ -1001,14 +1021,15 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     : [];
   const hrefByFixture = new Map(coveredMatches.map((m) => [m.apiFixtureId!, `/live/${m.league}/${m.externalId}`]));
   const seenFixtures = new Set<number>();
-  const matchLogs: MatchLogRow[] = rawMatchLogs
+  type RawLogRow = Omit<MatchLogRow, "seasonLabel" | "compLabel">;
+  const matchLogs: RawLogRow[] = rawMatchLogs
     .filter((m) => !seenFixtures.has(m.fixtureId) && (seenFixtures.add(m.fixtureId), true))
     .map(({ fixtureId, ...m }) => ({
       ...m,
       href: hrefByFixture.get(fixtureId) ?? null,
     }));
   // 국가대표 경기(월드컵·A매치)를 같은 행 형식으로 변환해 클럽 로그와 날짜순 통합 — "출전기록"/"경기" 탭 이원화 해소.
-  const natlLogRows: MatchLogRow[] = natlGames.map((g) => ({
+  const natlLogRows: RawLogRow[] = natlGames.map((g) => ({
     id: `natl:${g.href}:${g.time}`,
     href: g.href,
     date: new Date(g.time),
@@ -1021,6 +1042,11 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     rating: g.rating > 0 ? g.rating : null,
     minutes: g.minutes, goals: g.goals, assists: g.assists, yellow: g.yellow, red: g.red,
     started: g.minutes > 0,
+    // ts 는 af 보다 필드가 풍부하다 — 클럽(af)·국대(ts) 두 소스를 같은 행 모양으로 맞춰
+    //  UI 가 소스를 몰라도 되게 한다.
+    shots: g.shots, shotsOn: g.shotsOn, keyPasses: g.keyPasses,
+    tackles: g.tackles, interceptions: g.interceptions,
+    dribbles: g.dribbles, dribblesAtt: g.dribblesAtt,
   }));
   // 시즌별 집계 (클럽 경기 기준, 전체 로그) — 위키형 커리어 축적. 시즌 경계: 유럽형 7월 분할,
   // 달력형 리그(MLS·K리그·J1·브라질)는 연도 그대로. 브라질 세리에A 는 이탈리아와 이름이 같아 국기로 구분.
@@ -1054,8 +1080,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   }
   const seasonAgg = [...aggByLabel.values()].filter((a) => a.apps > 0).sort((a, b) => b.label.localeCompare(a.label));
 
-  // 표시 목록은 기존과 같이 최근 60경기(클럽) + 국가대표 병합 — 500행 전부 넣으면 HTML 이 비대해진다.
-  const allMatchLogs = [...matchLogs.slice(0, 60), ...natlLogRows].sort((a, b) => b.date.getTime() - a.date.getTime());
+  // 표시 목록 = 최근 120경기(클럽) + 국가대표 병합. 500행 전부 넣으면 HTML 이 비대해지고,
+  //  60 이면 시즌 필터가 한 시즌밖에 못 걸러 쓸모가 없어 두 시즌 이상 담기는 선까지만 늘렸다.
+  const compLabelOf = (m: RawLogRow) => m.compKo ?? COMP_KO[m.leagueName] ?? m.leagueName;
+  const allMatchLogs: MatchLogRow[] = [...matchLogs.slice(0, 120), ...natlLogRows]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .map((m) => ({ ...m, seasonLabel: logSeasonLabel(m), compLabel: compLabelOf(m) }));
 
   // ── 위키형 SEO — 소개 문단 + JSON-LD(Person·Breadcrumb) ──
   // 소개문 대분류 — 세부 포지션 우선 (모듈 스코프 resolveRoleKo, generateMetadata 와 공유)
@@ -1130,7 +1160,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 <Star className="h-3 w-3" aria-hidden /> 종합 {ability}
               </span>
             )}
-            <ShareCardButton />
+            <ShareCardButton cardImageUrl={`/api/og/soccer-player?id=${encodeURIComponent(id)}`} />
           </div>
         </div>
       </header>
@@ -1154,6 +1184,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         valueKrw={value != null ? krw(value) : null}
         recentChg={points.length >= 2 ? recentChg : null}
         wageEur={WAGES[id]?.eur ?? null}
+        wageAsOf={WAGES_AS_OF}
         wageStale={
           // Capology 스냅샷(fetchedAt) 이후 발효된 실이동이 있으면 직전 소속 기준 값이다 —
           // 숨기지 않고 라벨로 밝힌다(주간 갱신이 따라오면 자동 해제).

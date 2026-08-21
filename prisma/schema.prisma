@@ -1425,6 +1425,20 @@ model PlayerMatchLog {
   yellow     Int      @default(0)
   red        Int      @default(0)
   started    Boolean  @default(false)
+  /// 경기별 세부 스탯 — af /fixtures/players 응답에 원래 들어 있던 것(추가 호출 없음).
+  ///  null = 그 리그가 세부 스탯을 안 주는 경기(또는 2026-08-21 확장 이전 적재분). 0 = 실제 0 회.
+  ///  passesAcc 는 백분율이 아니라 "성공 패스 수"다 — af fixture 레벨 기벽(실측).
+  shots         Int?
+  shotsOn       Int?
+  passes        Int?
+  passesAcc     Int?
+  keyPasses     Int?
+  tackles       Int?
+  interceptions Int?
+  duelsWon      Int?
+  duelsTotal    Int?
+  dribbles      Int?
+  dribblesAtt   Int?
   createdAt  DateTime @default(now())
 
   @@index([playerId, date])

@@ -50,6 +50,9 @@ interface MatchLogRow {
   homeName: string; homeLogo: string | null; awayName: string; awayLogo: string | null;
   homeScore: number | null; awayScore: number | null; playerSide: string;
   rating: number | null; minutes: number | null; goals: number; assists: number; yellow: number; red: number; started: boolean;
+  shots: number | null; shotsOn: number | null; passes: number | null; passesAcc: number | null; keyPasses: number | null;
+  tackles: number | null; interceptions: number | null; duelsWon: number | null; duelsTotal: number | null;
+  dribbles: number | null; dribblesAtt: number | null;
 }
 
 export async function runCollectPlayerMatchLogs({ backfill = false }: { backfill?: boolean } = {}) {
@@ -99,6 +102,12 @@ export async function runCollectPlayerMatchLogs({ backfill = false }: { backfill
         yellow: s.yellow,
         red: s.red,
         started: s.started,
+        // 세부 스탯 — af 응답에 원래 있던 것 (2026-08-21 확장). 미수집 리그는 null 로 남는다.
+        shots: s.shots, shotsOn: s.shotsOn,
+        passes: s.passes, passesAcc: s.passesAcc, keyPasses: s.keyPasses,
+        tackles: s.tackles, interceptions: s.interceptions,
+        duelsWon: s.duelsWon, duelsTotal: s.duelsTotal,
+        dribbles: s.dribbles, dribblesAtt: s.dribblesAtt,
       });
     }
     return rows;

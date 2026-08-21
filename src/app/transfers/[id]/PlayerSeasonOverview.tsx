@@ -114,10 +114,13 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
           {!isGk && mins > 0 && (
             <div className="mt-3">
               <div className="mb-1 text-[11px] font-semibold text-neutral-400">90분당 지표</div>
-              <div className="grid grid-cols-5 gap-1.5">
+              {/* 6칸이라 모바일은 3+3 두 줄로 — 375px 에서 한 줄 6칸은 숫자가 뭉갠다.
+                  공격P = 골+도움. 둘을 따로 보면 "얼마나 관여했나"가 한눈에 안 잡힌다. */}
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
                 {([
                   ["골", p90(stat.goals)],
                   ["도움", p90(stat.assists)],
+                  ["공격P", p90(n(stat.goals) + n(stat.assists))],
                   ["키패스", p90(stat.keyPasses)],
                   ["태클", p90(stat.tackles)],
                   ["인터셉트", p90(stat.interceptions)],
