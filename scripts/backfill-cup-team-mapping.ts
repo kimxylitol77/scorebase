@@ -7,6 +7,13 @@
 //   npm run backfill:cup-teams -- --league X --country "Japan"    # 신규 팀 country 지정
 //   npm run backfill:cup-teams -- --league COPA_DEL_REY --season   # 매핑된 tsSeasonId 의 시즌 전체
 //   npm run backfill:cup-teams -- --league X --season <uuid>       # 시즌 uuid 직접 지정
+//   npm run backfill:cup-teams -- --league AFCON --season --with-standings  # 순위표 팀까지 매핑
+//
+// --with-standings 는 순위 캐시(TheSportsStandingsCache)의 팀까지 매핑 대상에 넣는다. 조별리그
+// 대회는 표에 있는 팀이 매치보다 훨씬 많을 수 있는데(AFCON 예선 실측 매치 12팀 vs 표 48팀),
+// 매치에서만 팀을 뽑으면 순위표가 조당 1~2팀만 그려져 깨진 표가 된다. 순위 경로는 DB 가 아니라
+// team-id-mapping.json 을 읽으므로, 여기서 매핑을 만든 뒤 backfill:ts-team-mapping 으로 JSON 을
+// 채워야 표가 완성된다.
 //
 // --season 은 "미래 일정 sweep" 대신 시즌 전체(종료 경기 포함)를 대상으로 한다. 비수기라
 // 향후 일정이 0건이면 diary sweep 으로는 아무것도 못 하는데, 지난 시즌 매치가 통째로 없는
@@ -44,7 +51,11 @@ const POST_CHUNK = 100;
 // lightsail-worker/football-match-collector.js 의 SKIP_LEAGUES 와 반드시 동기 유지.
 const SKIP_LEAGUES = new Set([
   "CLUB_WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL",
-  "INTL_FRIENDLY", "AFCON", "CONCACAF_GOLD",
+  "INTL_FRIENDLY",
+  // AFCON·CONCACAF_GOLD 제외 (2026-08-21) — "af/ESPN 이 cover" 는 사실이 아니었다.
+  // 둘 다 af 컬렉터는 등록돼 있지만 collect 라우트의 ALL_LEAGUES(106개)에 없어 한 번도 호출되지
+  // 않았고, 여기서 ts 까지 막혀 양쪽 다 안 돌아 매치 0건이었다(순위 캐시만 있고 팀 매핑 0).
+  // ts 로 소스를 넘긴다. 나중에 af 를 켜도 tsSeasonId 가 있어 TS_COVERED 필터가 af 를 걸러낸다.
 ]);
 
 function arg(name: string): string | undefined {
@@ -115,6 +126,7 @@ async function processLeague(
   write: boolean,
   country?: string,
   season?: { uuid?: string },
+  withStandings = false,
 ) {
   if (SKIP_LEAGUES.has(code)) {
     console.log(`\n■ ${code} — ESPN/api-football 수집 담당 대회. ts 로 넣으면 크로스소스 중복. 건너뜀`);
@@ -151,8 +163,25 @@ async function processLeague(
     }
     scope = `향후 ${days}일`;
   }
-  const teamIds = [...new Set(matches.flatMap((m) => [m.home_team_id!, m.away_team_id!]))];
-  console.log(`\n■ ${code} — ${scope} 매치 ${matches.length}건 · 팀 ${teamIds.length}개`);
+  const fromMatches = new Set(matches.flatMap((m) => [m.home_team_id!, m.away_team_id!]));
+  let standingsOnly = 0;
+  if (withStandings) {
+    const cache = await prisma.theSportsStandingsCache.findUnique({
+      where: { league: code },
+      select: { payload: true },
+    });
+    const tables = (cache?.payload as { tables?: Array<{ rows?: Array<{ team_id?: string }> }> } | null)?.tables ?? [];
+    for (const t of tables) {
+      for (const r of t.rows ?? []) {
+        if (r.team_id && !fromMatches.has(r.team_id)) { fromMatches.add(r.team_id); standingsOnly++; }
+      }
+    }
+  }
+  const teamIds = [...fromMatches];
+  console.log(
+    `\n■ ${code} — ${scope} 매치 ${matches.length}건 · 팀 ${teamIds.length}개` +
+      (standingsOnly > 0 ? ` (순위표에만 있는 팀 ${standingsOnly}개 포함)` : ""),
+  );
   if (teamIds.length === 0) return;
 
   // 2. 팀별 판정
@@ -292,6 +321,7 @@ async function main() {
   const write = has("write");
   const country = arg("country");
   const season = has("season") ? { uuid: arg("season") } : undefined;
+  const withStandings = has("with-standings");
   if (season && leagues.length > 1 && season.uuid) {
     console.log("--season 에 uuid 를 직접 줄 때는 리그를 하나만 지정하라 (시즌 uuid 는 대회별로 다르다).");
     process.exit(1);
@@ -299,7 +329,7 @@ async function main() {
   console.log(
     `컵 팀 매핑 백필 — ${leagues.join(", ")} · ${season ? (season.uuid ? `시즌 ${season.uuid}` : "매핑된 시즌 전체") : `sweep ${days}일`} · ${write ? "WRITE" : "DRY-RUN"}`,
   );
-  for (const code of leagues) await processLeague(code, days, write, country, season);
+  for (const code of leagues) await processLeague(code, days, write, country, season, withStandings);
   await prisma.$disconnect();
 }
 

@@ -26500,5 +26500,713 @@
     "tsName": "Rot-Weiss Essen",
     "tsKo": "로트바이스 에센",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613887,
+    "ourName": "Suriname",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "ts-pxwrxlhgoy3ryk0",
+    "tsId": "pxwrxlhgoy3ryk0",
+    "tsName": "Suriname",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613888,
+    "ourName": "Saint Vincent and the Grenadines",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "ts-gpxwrxlhkk4ryk0",
+    "tsId": "gpxwrxlhkk4ryk0",
+    "tsName": "Saint Vincent and the Grenadines",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613889,
+    "ourName": "Guadeloupe",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "ts-318q66hogloqo9j",
+    "tsId": "318q66hogloqo9j",
+    "tsName": "Guadeloupe",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613890,
+    "ourName": "Guyana",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "ts-y39mp1h349jmojx",
+    "tsId": "y39mp1h349jmojx",
+    "tsName": "Guyana",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613891,
+    "ourName": "Belize",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "ts-k82rekhvye1repz",
+    "tsId": "k82rekhvye1repz",
+    "tsName": "Belize",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613892,
+    "ourName": "Eritrea",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-318q66hoywkqo9j",
+    "tsId": "318q66hoywkqo9j",
+    "tsName": "Eritrea",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613893,
+    "ourName": "Swaziland",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-y39mp1h3jo1mojx",
+    "tsId": "y39mp1h3jo1mojx",
+    "tsName": "Swaziland",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613894,
+    "ourName": "Djibouti",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-965mkyh77g2r1ge",
+    "tsId": "965mkyh77g2r1ge",
+    "tsName": "Djibouti",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613895,
+    "ourName": "South Sudan",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-318q66h022dqo9j",
+    "tsId": "318q66h022dqo9j",
+    "tsName": "South Sudan",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613896,
+    "ourName": "Seychelles",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-1l4rjnh6558m7vx",
+    "tsId": "1l4rjnh6558m7vx",
+    "tsName": "Seychelles",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613897,
+    "ourName": "Lesotho",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-23xmvkh3963qg8n",
+    "tsId": "23xmvkh3963qg8n",
+    "tsName": "Lesotho",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613898,
+    "ourName": "Chad",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-n54qllh21n5qvy9",
+    "tsId": "n54qllh21n5qvy9",
+    "tsName": "Chad",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613899,
+    "ourName": "Somalia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-pxwrxlhgnd5ryk0",
+    "tsId": "pxwrxlhgnd5ryk0",
+    "tsName": "Somalia",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613900,
+    "ourName": "Mauritius",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-n54qllh21kgqvy9",
+    "tsId": "n54qllh21kgqvy9",
+    "tsName": "Mauritius",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613901,
+    "ourName": "Sao Tome and Principe",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-4wyrn4h8lgdq86p",
+    "tsId": "4wyrn4h8lgdq86p",
+    "tsName": "Sao Tome and Principe",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 599563,
+    "ourName": "Guatemala",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5161",
+    "tsId": "z8yomo4hpwjq0j6",
+    "tsName": "Guatemala",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599697,
+    "ourName": "Costa Rica",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "29",
+    "tsId": "kdj2ryoholnq1zp",
+    "tsName": "Costa Rica",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599807,
+    "ourName": "Dominican Republic",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5532",
+    "tsId": "8yomo4h74ovq0j6",
+    "tsName": "Dominican Republic",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 608985,
+    "ourName": "Cuba",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "gx7lm75h11xq2wd",
+    "tsId": "p3glrw7hvooqdyj",
+    "tsName": "Cuba",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599631,
+    "ourName": "Trinidad and Tobago",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5168",
+    "tsId": "kn54qllh6peqvy9",
+    "tsName": "Trinidad and Tobago",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599617,
+    "ourName": "Martinique",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "8117",
+    "tsId": "8y39mp1hl39mojx",
+    "tsName": "Martinique",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599646,
+    "ourName": "Bermuda",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5158",
+    "tsId": "k82rekhv80krepz",
+    "tsName": "Bermuda",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599753,
+    "ourName": "Honduras",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "4672",
+    "tsId": "4zp5rzghvzyq82w",
+    "tsName": "Honduras",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599547,
+    "ourName": "Jamaica",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "2385",
+    "tsId": "v2y8m4zho4oql07",
+    "tsName": "Jamaica",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599686,
+    "ourName": "Nicaragua",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5164",
+    "tsId": "k82rekhvw49repz",
+    "tsName": "Nicaragua",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3669,
+    "ourName": "Mexico",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "16",
+    "tsId": "gpxwrxlh43jryk0",
+    "tsName": "Mexico",
+    "tsKo": "멕시코",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3675,
+    "ourName": "USA",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "2384",
+    "tsId": "kn54qllhv3xqvy9",
+    "tsName": "USA",
+    "tsKo": "미국",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3681,
+    "ourName": "Haiti",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "2386",
+    "tsId": "j1l4rjnhoe6m7vx",
+    "tsName": "Haiti",
+    "tsKo": "아이티",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3697,
+    "ourName": "Saudi Arabia",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "23",
+    "tsId": "j1l4rjnh05ym7vx",
+    "tsName": "Saudi Arabia",
+    "tsKo": "사우디아라비아",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3714,
+    "ourName": "Panama",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "11",
+    "tsId": "v2y8m4zho2eql07",
+    "tsName": "Panama",
+    "tsKo": "파나마",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3686,
+    "ourName": "Curaçao",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5530",
+    "tsId": "x7lm7pho8v3m2wd",
+    "tsName": "Curaçao",
+    "tsKo": "쿠라사오",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599808,
+    "ourName": "El Salvador",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5159",
+    "tsId": "kn54qllhg9xqvy9",
+    "tsName": "El Salvador",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3673,
+    "ourName": "Canada",
+    "ourLeague": "CONCACAF_GOLD",
+    "ourExternalId": "5529",
+    "tsId": "gy0or5jhyj4qwzv",
+    "tsName": "Canada",
+    "tsKo": "캐나다",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599774,
+    "ourName": "Burundi",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1528",
+    "tsId": "zp5rzghj23vq82w",
+    "tsName": "Burundi",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599824,
+    "ourName": "Ethiopia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1506",
+    "tsId": "k82rekhv82vrepz",
+    "tsName": "Ethiopia",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 613902,
+    "ourName": "Gabon",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-kn54qllh68wqvy9",
+    "tsId": "kn54qllh68wqvy9",
+    "tsName": "Gabon",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613903,
+    "ourName": "Democratic Republic of the Congo",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-j1l4rjnho2em7vx",
+    "tsId": "j1l4rjnho2em7vx",
+    "tsName": "Democratic Republic of the Congo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613904,
+    "ourName": "Sierra Leone",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-6ypq3nh09pjmd7o",
+    "tsId": "6ypq3nh09pjmd7o",
+    "tsName": "Sierra Leone",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613905,
+    "ourName": "Cameroon",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-kdj2ryohod6q1zp",
+    "tsId": "kdj2ryohod6q1zp",
+    "tsName": "Cameroon",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613906,
+    "ourName": "Republic of the Congo",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-z8yomo4hp4kq0j6",
+    "tsId": "z8yomo4hp4kq0j6",
+    "tsName": "Republic of the Congo",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613907,
+    "ourName": "Namibia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-6ypq3nh0l4omd7o",
+    "tsId": "6ypq3nh0l4omd7o",
+    "tsName": "Namibia",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613908,
+    "ourName": "Uganda",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-d23xmvkh1wkqg8n",
+    "tsId": "d23xmvkh1wkqg8n",
+    "tsName": "Uganda",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613909,
+    "ourName": "Mozambique",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-j1l4rjnhonjm7vx",
+    "tsId": "j1l4rjnhonjm7vx",
+    "tsName": "Mozambique",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613910,
+    "ourName": "Cabo Verde",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-9vjxm8ghdpdr6od",
+    "tsId": "9vjxm8ghdpdr6od",
+    "tsName": "Cabo Verde",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613911,
+    "ourName": "Tanzania",
+    "ourLeague": "AFCON",
+    "ourExternalId": "ts-318q66hov17qo9j",
+    "tsId": "318q66hov17qo9j",
+    "tsName": "Tanzania",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 3680,
+    "ourName": "Morocco",
+    "ourLeague": "AFCON",
+    "ourExternalId": "31",
+    "tsId": "56ypq3nh9nzmd7o",
+    "tsName": "Morocco",
+    "tsKo": "모로코",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599699,
+    "ourName": "Niger",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1505",
+    "tsId": "3glrw7hwgz5qdyj",
+    "tsName": "Niger",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3696,
+    "ourName": "Egypt",
+    "ourLeague": "AFCON",
+    "ourExternalId": "32",
+    "tsId": "4zp5rzgh84yq82w",
+    "tsName": "Egypt",
+    "tsKo": "이집트",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599815,
+    "ourName": "Angola",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1529",
+    "tsId": "j1l4rjnhvx7m7vx",
+    "tsName": "Angola",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599717,
+    "ourName": "Malawi",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1495",
+    "tsId": "kdj2ryohze2q1zp",
+    "tsName": "Malawi",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3689,
+    "ourName": "Ivory Coast",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1501",
+    "tsId": "4zp5rzghv0xq82w",
+    "tsName": "Ivory Coast",
+    "tsKo": "코트디부아르",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3713,
+    "ourName": "Ghana",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1504",
+    "tsId": "j1l4rjnhoz6m7vx",
+    "tsName": "Ghana",
+    "tsKo": "가나",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599762,
+    "ourName": "Gambia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1492",
+    "tsId": "y39mp1h3987mojx",
+    "tsName": "Gambia",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3670,
+    "ourName": "South Africa",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1531",
+    "tsId": "j1l4rjnhpwnm7vx",
+    "tsName": "South Africa",
+    "tsKo": "남아프리카",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599678,
+    "ourName": "Guinea",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1509",
+    "tsId": "d23xmvkh72kqg8n",
+    "tsName": "Guinea",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599799,
+    "ourName": "Kenya",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1511",
+    "tsId": "vjxm8gh4v65r6od",
+    "tsName": "Kenya",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599643,
+    "ourName": "Equatorial Guinea",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1521",
+    "tsId": "4zp5rzghv3wq82w",
+    "tsName": "Equatorial Guinea",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599548,
+    "ourName": "Zimbabwe",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1522",
+    "tsId": "965mkyh73wer1ge",
+    "tsName": "Zimbabwe",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599732,
+    "ourName": "Burkina Faso",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1502",
+    "tsId": "4zp5rzghelgq82w",
+    "tsName": "Burkina Faso",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599537,
+    "ourName": "Benin",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1516",
+    "tsId": "4zp5rzgh9p9q82w",
+    "tsName": "Benin",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599540,
+    "ourName": "Mauritania",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1491",
+    "tsId": "4wyrn4h8o26q86p",
+    "tsName": "Mauritania",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599831,
+    "ourName": "Central African Republic",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1527",
+    "tsId": "dj2ryohkx0yq1zp",
+    "tsName": "Central African Republic",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599530,
+    "ourName": "Comoros",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1524",
+    "tsId": "l7oqdehnxynr510",
+    "tsName": "Comoros",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599698,
+    "ourName": "Libya",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1526",
+    "tsId": "gx7lm7phekxm2wd",
+    "tsName": "Libya",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3692,
+    "ourName": "Tunisia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "28",
+    "tsId": "4zp5rzgh8oxq82w",
+    "tsName": "Tunisia",
+    "tsKo": "튀니지",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599725,
+    "ourName": "Botswana",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1520",
+    "tsId": "d23xmvkhjpdqg8n",
+    "tsName": "Botswana",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599763,
+    "ourName": "Zambia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1507",
+    "tsId": "d23xmvkhjkzqg8n",
+    "tsName": "Zambia",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599679,
+    "ourName": "Togo",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1534",
+    "tsId": "965mkyh7l8wr1ge",
+    "tsName": "Togo",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3706,
+    "ourName": "Algeria",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1532",
+    "tsId": "y0or5jhlw90qwzv",
+    "tsName": "Algeria",
+    "tsKo": "알제리",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599544,
+    "ourName": "Sudan",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1510",
+    "tsId": "gx7lm7phy96m2wd",
+    "tsName": "Sudan",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 3702,
+    "ourName": "Senegal",
+    "ourLeague": "AFCON",
+    "ourExternalId": "13",
+    "tsId": "p4jwq2ghlx3m0ve",
+    "tsName": "Senegal",
+    "tsKo": "세네갈",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599539,
+    "ourName": "Liberia",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1525",
+    "tsId": "d23xmvkhj4eqg8n",
+    "tsName": "Liberia",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599752,
+    "ourName": "Mali",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1500",
+    "tsId": "56ypq3nh92omd7o",
+    "tsName": "Mali",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599826,
+    "ourName": "Rwanda",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1514",
+    "tsId": "9k82rekhpgjrepz",
+    "tsName": "Rwanda",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599545,
+    "ourName": "Nigeria",
+    "ourLeague": "AFCON",
+    "ourExternalId": "19",
+    "tsId": "v2y8m4zhlo0ql07",
+    "tsName": "Nigeria",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599722,
+    "ourName": "Madagascar",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1490",
+    "tsId": "jw2r09hl0y4rz84",
+    "tsName": "Madagascar",
+    "matchType": "db-source-sync"
+  },
+  {
+    "ourId": 599733,
+    "ourName": "Guinea-Bissau",
+    "ourLeague": "AFCON",
+    "ourExternalId": "1513",
+    "tsId": "dj2ryohke0jq1zp",
+    "tsName": "Guinea-Bissau",
+    "matchType": "db-source-sync"
   }
 ]

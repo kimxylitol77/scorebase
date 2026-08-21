@@ -112,6 +112,10 @@ const VALID_LEAGUES = [
   "UEFA_WCL",
   "LEAGUES_CUP",
   "CANADA_CHAMP",
+  // 2026-08-21 — 양쪽 소스가 다 막혀 매치 0건이던 국가대표 대회 2개(ts 로 이관 후 백필).
+  // AFCON 2027 예선 12경기·12개조 · CONCACAF_GOLD 2025 45경기·4개조.
+  "AFCON",
+  "CONCACAF_GOLD",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -373,6 +377,7 @@ const CUP_LEAGUES = new Set<string>([
   "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
   // 2026-08-21 — 조별리그가 있는 둘은 위 cupViews 가 순위 탭을 함께 준다.
   "UEFA_WCL", "LEAGUES_CUP", "CANADA_CHAMP",
+  "AFCON", "CONCACAF_GOLD",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)

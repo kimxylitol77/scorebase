@@ -48,7 +48,11 @@ const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 //   api-football(world-cup.ts) 도 유지하므로 상세 incidents 는 api-football 이 보강.
 const SKIP_LEAGUES = new Set([
   "CLUB_WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL",
-  "INTL_FRIENDLY", "AFCON", "CONCACAF_GOLD",
+  "INTL_FRIENDLY",
+  // AFCON·CONCACAF_GOLD 제외 (2026-08-21) — "af/ESPN 이 cover" 는 사실이 아니었다.
+  // 둘 다 af 컬렉터는 등록돼 있지만 collect 라우트의 ALL_LEAGUES(106개)에 없어 한 번도 호출되지
+  // 않았고, 여기서 ts 까지 막혀 양쪽 다 안 돌아 매치 0건이었다(순위 캐시만 있고 팀 매핑 0).
+  // ts 로 소스를 넘긴다. 나중에 af 를 켜도 tsSeasonId 가 있어 TS_COVERED 필터가 af 를 걸러낸다.
 ]);
 
 // TheSports football status_id (docs):
