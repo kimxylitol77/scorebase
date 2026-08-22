@@ -152,13 +152,19 @@ export default function LabClient({
 
   // ── 리그 필터 + 즉석 재채점 ──
   const [leagueFilter, setLeagueFilter] = useState<string>("ALL");
+  // 표본순 상위 10개만 보이면 축구 빅5 가 야구·농구·하키에 밀려 잘렸다(EPL 8위·세리에A 10위 턱걸이, 2026-08-22 리뷰 T4).
+  // 주력 리그는 표본 30 이상이면 고정 순서로 먼저, 나머지는 표본순. 상한 16.
   const filterOptions = useMemo(() => {
     if (!sets) return [];
-    return sets
-      .filter((s) => s.n >= 30)
+    const PRIORITY = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "K_LEAGUE_1", "UCL", "MLB", "KBO", "NPB", "NBA", "NHL"];
+    const ok = sets.filter((s) => s.n >= 30);
+    const byLeague = new Map(ok.map((s) => [s.cfg.league, s]));
+    const head = PRIORITY.filter((lg) => byLeague.has(lg));
+    const rest = ok
+      .filter((s) => !PRIORITY.includes(s.cfg.league))
       .sort((a, b) => b.n - a.n)
-      .slice(0, 10)
       .map((s) => s.cfg.league);
+    return [...head, ...rest].slice(0, 16);
   }, [sets]);
 
   const score = useMemo(() => {
