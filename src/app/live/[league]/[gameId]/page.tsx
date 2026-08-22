@@ -61,7 +61,11 @@ import AiRoundTableStrip from "@/components/AiRoundTableStrip";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import { parseTsFootballScore, fetchSoccerLive, tsIncidentsToGoals, type LiveMatch } from "@/lib/sports/live-scores";
+import { parseTsFootballScore, fetchSoccerLive, tsIncidentsToGoals, tsIncidentsToCards, tsTeamStatsToSoccerStats, tsHalfStatsToSoccerStats, type LiveMatch } from "@/lib/sports/live-scores";
+import SoccerGlanceBlock from "@/components/live/SoccerGlanceBlock";
+import MatchSummaryCard from "@/components/live/MatchSummaryCard";
+import BetmanLineCard from "@/components/live/BetmanLineCard";
+import { getBetmanLineForMatch } from "@/lib/odds/betman";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -518,6 +522,13 @@ export default async function GenericLivePage({ params }: Props) {
   let soccerSummaryNode: ReactNode = null;
   // 종료 경기 리포트 — 라이브에서 수집한 흐름·구간 통계·선수 평점을 본문에 보존.
   let soccerFinishedReportNode: ReactNode = null;
+  // "경기 한눈에" — 스코어보드 바로 아래, 탭 밖 (득점·카드 타임라인 + 풀타임/전반 통계 바)
+  let soccerGlanceNode: ReactNode = null;
+  // 요약 카드 재료 — 축구 블록 안에서 채움 (라인업 상태·주요 결장)
+  let summaryLineup: "confirmed" | "predicted" | "none" = "none";
+  // 배당 — 탭이 아니라 본문 독립 섹션(순위·폼 → 배당 → AI 순서, 2026-08-22). LiveOddsCard 가 폴링하므로 복제 아닌 이동.
+  let soccerOddsSection: ReactNode = null;
+  let summaryAbsences: { home: string[]; away: string[] } | null = null;
   let nowLineup: { home: unknown[]; away: unknown[] } | null = null;
   if (isSoccer) {
     let teamStatsNode: ReactNode = null;
@@ -558,6 +569,23 @@ export default async function GenericLivePage({ params }: Props) {
       const trendGoals = detailLive
         ? tsIncidentsToGoals(detailLive.incidents, lineupNameById)
         : null;
+      if (match.status === "LIVE" || match.status === "FINISHED") {
+        const glanceGoals = trendGoals ?? [];
+        const glanceCards = detailLive ? tsIncidentsToCards(detailLive.incidents, lineupNameById) : [];
+        const glanceStats = tsTeamStatsToSoccerStats(cache.teamStats);
+        const glanceHalf = tsHalfStatsToSoccerStats(cache.halfTeamStats, "p1");
+        soccerGlanceNode = (
+          <SoccerGlanceBlock
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            goals={glanceGoals}
+            cards={glanceCards}
+            teamStats={glanceStats}
+            halfStats={glanceHalf}
+            status={match.status}
+          />
+        );
+      }
       let xgH: number | null = null;
       let xgA: number | null = null;
       if (match.fixtureStats) {
@@ -770,6 +798,17 @@ export default async function GenericLivePage({ params }: Props) {
         // 부상 조회 실패 — 명단 없이 예상 라인업만 표시
       }
     }
+    // 요약 카드 — 라인업 상태·주요 결장 (예상 XI 에 든 선수 우선, 팀당 최대 3명)
+    summaryLineup = nowLineup ? "confirmed" : predictedHome || predictedAway ? "predicted" : "none";
+    if (injuriesHome || injuriesAway) {
+      const top = (arr?: InjuryLine[]) =>
+        (arr ?? [])
+          .filter((l) => l.sev !== "returning" && l.sev !== "non_injury")
+          .sort((a, b) => (a.inXi === b.inXi ? 0 : a.inXi ? -1 : 1))
+          .slice(0, 3)
+          .map((l) => l.name);
+      summaryAbsences = { home: top(injuriesHome), away: top(injuriesAway) };
+    }
 
     soccerNowNode = (
       <SoccerNowBlock
@@ -834,15 +873,32 @@ export default async function GenericLivePage({ params }: Props) {
         oddsHistory={oddsHistory}
       />
     );
+    // 베트맨 한 줄 — 국내 합법 배당 + 투표 분포를 해외 평균보다 먼저. 발매 없으면 null 로 자동 생략.
+    const betmanLine =
+      match.status !== "FINISHED"
+        ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime).catch(() => null)
+        : null;
     const oddsTab = (
       <div className="space-y-4">
+        {betmanLine && (
+          <BetmanLineCard
+            line={betmanLine}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            overseas={
+              match.oddsHome != null
+                ? { home: match.oddsHome, draw: match.oddsDraw ?? null, away: match.oddsAway ?? null, books: match.marketBookmakers ?? null }
+                : null
+            }
+          />
+        )}
         {liveOddsNode}
         {fixtureOdds && <MatchOddsTable odds={fixtureOdds} />}
       </div>
     );
     // 라이브 배당은 The Odds API 커버 매치만 데이터가 옴 — 확장 리그처럼 둘 다
     // 없을 수 있는 경우 oddsHistory·fixtureOdds 로 enabled 판정 (빈 탭 방지).
-    const oddsTabEnabled = !!fixtureOdds || oddsHistory.length > 0;
+    const oddsTabEnabled = !!fixtureOdds || oddsHistory.length > 0 || !!betmanLine;
 
     soccerTabs.push(
       { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
@@ -850,8 +906,18 @@ export default async function GenericLivePage({ params }: Props) {
       { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
       { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
       { key: "soccer-info", label: "경기 정보", enabled: !!infoTab, content: infoTab },
-      { key: "soccer-odds", label: "배당", enabled: oddsTabEnabled, content: oddsTab },
     );
+    if (oddsTabEnabled) {
+      soccerOddsSection = (
+        <CollapsibleSection
+          title="배당 · 시장 확률"
+          hint="해외 평균 배당 · 마진 · AI 대비 · 북메이커별"
+          defaultOpen={match.status !== "FINISHED"}
+        >
+          {oddsTab}
+        </CollapsibleSection>
+      );
+    }
   }
 
   // 모델이 비슷한 확률로 봤던 과거 경기의 실제 결과 — 7m 의 "역사 전적(같은 핸디캡)" 대체.
@@ -1056,6 +1122,51 @@ export default async function GenericLivePage({ params }: Props) {
         league={lg}
       />
 
+      {/* 경기 요약 — 시장 vs AI·결장·라인업·배당 변동·신뢰도·위험 (AI 단독 강조 대신 근거와 함께, 2026-08-22) */}
+      {isSoccer && (
+        <MatchSummaryCard
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          ai={
+            match.predHome != null && match.predAway != null
+              ? { home: match.predHome, draw: match.predDraw ?? null, away: match.predAway }
+              : null
+          }
+          market={
+            match.marketHome != null && match.marketAway != null
+              ? { home: match.marketHome, draw: match.marketDraw ?? null, away: match.marketAway }
+              : null
+          }
+          rawOdds={
+            match.oddsHome != null
+              ? { home: match.oddsHome, draw: match.oddsDraw ?? null, away: match.oddsAway ?? null }
+              : null
+          }
+          bookmakers={match.marketBookmakers ?? null}
+          absences={summaryAbsences}
+          lineup={summaryLineup}
+          oddsMove={
+            oddsHistory.length >= 2
+              ? {
+                  home: oddsHistory[oddsHistory.length - 1].home / oddsHistory[0].home - 1,
+                  away: oddsHistory[oddsHistory.length - 1].away / oddsHistory[0].away - 1,
+                  points: oddsHistory.length,
+                }
+              : null
+          }
+          calibration={
+            calibration
+              ? {
+                  sampleSize: calibration.sampleSize,
+                  gapPts: Math.abs(calibration.modelAvgHome - calibration.actualHomeRate) * 100,
+                }
+              : null
+          }
+          injuriesHref={`/injuries/${lg}`}
+        />
+      )}
+
       {/* 결론 3카드 — 결론 먼저 (명세 v2 §6, 전 종목 공통) */}
       {(conclPred || conclFactors.length > 0) && (
         <ConclusionCards
@@ -1104,6 +1215,9 @@ export default async function GenericLivePage({ params }: Props) {
         }
         favMatchId={match.id}
       />
+
+      {/* 경기 한눈에 — /scores 툴팁과 같은 블록을 탭 밖에 고정 (2026-08-22 사용자 요청) */}
+      {soccerGlanceNode}
 
       {/* 종료 경기에서는 라이브 기록을 기본 본문에 보존. 매치 한눈에와 팀 통계 탭 중복은 제외. */}
       {soccerFinishedReportNode}
@@ -1230,6 +1344,9 @@ export default async function GenericLivePage({ params }: Props) {
             </>
           );
         })()}
+
+      {/* 배당 · 시장 확률 — 순위·폼 다음, AI 예측 앞 (배당이 근거, AI 는 그 위에 얹는 판단) */}
+      {soccerOddsSection}
 
       {match.aiPredictions && match.aiPredictions.length >= 2 && (
         <AiMatchupCard
