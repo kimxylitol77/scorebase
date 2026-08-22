@@ -9,6 +9,7 @@ import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import type { LeaderRow } from "@/components/LeagueLeaderBoard";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
+import { isStaleSeason } from "@/lib/sports/current-season-label";
 
 // LeagueLeaderBoard 가 리그 이름만 보고 /transfers/{id} 로 링크하는 리그.
 // leagueLeader 테이블의 externalId 는 api-football player id 인데 /transfers 페이지는 TheSports
@@ -45,7 +46,13 @@ async function isPreSeasonZeroTable(league: string): Promise<boolean> {
 export async function loadLeagueLeaderboard(
   league: string,
   seasonOverride?: string,
-): Promise<{ rowsByCategory: Record<string, LeaderRow[]>; season: string; preSeason: boolean }> {
+): Promise<{
+  rowsByCategory: Record<string, LeaderRow[]>;
+  season: string;
+  preSeason: boolean;
+  /** 개막했지만 이번 시즌 기록이 아직 없어 노출을 보류한 지난 시즌 라벨. 없으면 null. */
+  staleSeason: string | null;
+}> {
   // 한 리그에 여러 시즌이 누적될 수 있어 최신 시즌만 노출 (중복 방지).
   const allRows = await prisma.leagueLeader.findMany({
     where: { league, ...(seasonOverride ? { season: seasonOverride } : {}) },
@@ -53,8 +60,17 @@ export async function loadLeagueLeaderboard(
     take: 400,
   });
   const season = seasonOverride ?? allRows[0]?.season ?? "";
-  if (!seasonOverride && allRows.length > 0 && (await isPreSeasonZeroTable(league))) {
-    return { rowsByCategory: {}, season, preSeason: true };
+  if (!seasonOverride && allRows.length > 0) {
+    if (await isPreSeasonZeroTable(league)) {
+      return { rowsByCategory: {}, season, preSeason: true, staleSeason: season };
+    }
+    // 개막 직후 며칠 — 순위표에 전적이 생겨 preSeason 가드는 풀렸는데 leagueLeader 는
+    // MIN_LEADERS(5) 게이트에 막혀 아직 이번 시즌 행이 없다. 그대로 두면 지난 시즌
+    // 득점왕이 "{지난시즌} 시즌 · 매일 자동 갱신" 라벨을 달고 현재 기록처럼 나간다
+    // (2026-08-22 EPL·리그1 실측 — 35경기·38경기 출전 표가 개막 이튿날 노출).
+    if (await isStaleSeason(league, season)) {
+      return { rowsByCategory: {}, season, preSeason: false, staleSeason: season };
+    }
   }
   const rows = allRows.filter((r) => r.season === season);
   const useTransfers = TRANSFERS_LEADER_LEAGUES.has(league);
@@ -105,5 +121,5 @@ export async function loadLeagueLeaderboard(
   }
   // PC 중앙 컬럼용 팀 로고/국기 — 이름 매칭이라 미스는 로고 없이(정상), 실패해도 rows 원본 유지.
   await attachLeaderTeamLogos(league, rowsByCategory);
-  return { rowsByCategory, season, preSeason: false };
+  return { rowsByCategory, season, preSeason: false, staleSeason: null };
 }

@@ -611,8 +611,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
   const leaderboard = (isSoccer || upper === "NHL") && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
-  // 개막 전이면 리더보드가 비어 온다(preSeason 가드). "준비 안 됨"이 아니라 언제부터 집계되는지
-  // + 지난 시즌 기록은 어디 있는지를 안내한다 — 순위 탭 접기가 지난 시즌 리더보드를 갖고 있다.
+  // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
+  // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).
+  // 둘 다 "준비 안 됨"이 아니라 언제부터 집계되는지 + 지난 시즌 기록을 접기로 함께 준다.
+  const leaderPending = !!leaderboard && !!leaderboard.staleSeason && Object.keys(leaderboard.rowsByCategory).length === 0;
   const preSeasonFirstFixture = leaderboard?.preSeason
     ? await prisma.match.findFirst({
         where: { league: upper, status: "SCHEDULED", startTime: { gte: new Date() } },
@@ -620,6 +622,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         select: { startTime: true },
       })
     : null;
+  // 지난 시즌 최종 기록 — 시즌을 명시하면 로더의 현재 시즌 가드를 건너뛴다.
+  const lastSeasonLeaders = leaderPending ? await loadLeagueLeaderboard(upper, leaderboard!.staleSeason!) : null;
+  const hasLastSeasonLeaders = Object.keys(lastSeasonLeaders?.rowsByCategory ?? {}).length > 0;
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
@@ -811,23 +816,42 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {(isSoccer || upper === "NHL") && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {leaderboard.preSeason ? (
-            <section className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 px-4 py-8 text-center text-sm text-neutral-500 space-y-2">
-              <p className="break-keep">
-                새 시즌 기록은{" "}
-                {preSeasonFirstFixture
-                  ? `${kstMonthDay(preSeasonFirstFixture.startTime)} 개막 후`
-                  : "개막 후"}{" "}
-                집계됩니다.
-              </p>
-              <Link
-                href={`/leagues/${upper}?view=standings`}
-                prefetch={false}
-                className="inline-block font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                지난 시즌 기록 보기 →
-              </Link>
-            </section>
+          {leaderPending ? (
+            <div className="space-y-4">
+              <section className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 px-4 py-8 text-center text-sm text-neutral-500 space-y-2">
+                <p className="break-keep">
+                  {leaderboard.preSeason
+                    ? `새 시즌 기록은 ${
+                        preSeasonFirstFixture ? `${kstMonthDay(preSeasonFirstFixture.startTime)} 개막 후` : "개막 후"
+                      } 집계됩니다.`
+                    : "이번 시즌 기록을 집계하는 중입니다. 라운드가 쌓이면 자동으로 표시됩니다."}
+                </p>
+                <Link
+                  href={`/leagues/${upper}?view=standings`}
+                  prefetch={false}
+                  className="inline-block font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  이번 시즌 순위 보기 →
+                </Link>
+              </section>
+              {hasLastSeasonLeaders && (
+                <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+                  <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
+                    <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+                    지난 시즌 최종 기록{" "}
+                    <span className="font-normal text-neutral-400">({leaderboard.staleSeason})</span>
+                  </summary>
+                  <div className="px-2 pb-3 pt-1">
+                    <LeagueLeaderBoard
+                      league={upper}
+                      season={leaderboard.staleSeason!}
+                      rowsByCategory={lastSeasonLeaders!.rowsByCategory}
+                      footer={`${leaderboard.staleSeason} 시즌 최종 기록`}
+                    />
+                  </div>
+                </details>
+              )}
+            </div>
           ) : (
             <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
           )}

@@ -445,9 +445,14 @@ export default async function StandingsPage({ params }: Props) {
     rowsByCategory: leaderRows,
     season: leaderSeason,
     preSeason: leadersPreSeason,
+    staleSeason: leadersStaleSeason,
   } = await loadLeagueLeaderboard(upper);
-  // preSeason 이면 rowsByCategory 가 비어 오므로 "개막 후 집계" 안내를 대신 띄운다.
-  const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPreSeason;
+  // 이번 시즌 기록이 아직 없으면(개막 전 preSeason · 개막 직후 표본 부족 staleSeason)
+  // rowsByCategory 가 비어 온다 — 안내 문구 + 지난 시즌 최종 기록을 대신 띄운다.
+  const leadersPending = !!leadersStaleSeason && Object.keys(leaderRows).length === 0;
+  const lastSeasonLeaders = leadersPending ? await loadLeagueLeaderboard(upper, leadersStaleSeason) : null;
+  const lastSeasonRows = lastSeasonLeaders?.rowsByCategory ?? {};
+  const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPending;
 
   // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
@@ -702,10 +707,22 @@ export default async function StandingsPage({ params }: Props) {
       {hasLeaders && (
         // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점 (해시 진입 시 자동 펼침)
         <CollapseSection id="leaderboard" title={`${name} 시즌 리더보드`}>
-          {leadersPreSeason ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
-              새 시즌 개막 후 집계됩니다.
-            </p>
+          {leadersPending ? (
+            <div className="space-y-3">
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
+                {leadersPreSeason
+                  ? "새 시즌 개막 후 집계됩니다."
+                  : "이번 시즌 기록을 집계하는 중입니다. 라운드가 쌓이면 자동으로 표시됩니다."}
+              </p>
+              {Object.keys(lastSeasonRows).length > 0 && (
+                <LeagueLeaderBoard
+                  league={upper}
+                  season={leadersStaleSeason!}
+                  rowsByCategory={lastSeasonRows}
+                  footer={`${leadersStaleSeason} 시즌 최종 기록`}
+                />
+              )}
+            </div>
           ) : (
             <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
           )}
