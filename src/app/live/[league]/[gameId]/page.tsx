@@ -65,6 +65,7 @@ import { parseTsFootballScore, fetchSoccerLive, tsIncidentsToGoals, tsIncidentsT
 import SoccerGlanceBlock from "@/components/live/SoccerGlanceBlock";
 import MatchSummaryCard from "@/components/live/MatchSummaryCard";
 import BetmanLineCard from "@/components/live/BetmanLineCard";
+import OddsMarketsGrid from "@/components/live/OddsMarketsGrid";
 import { getBetmanLineForMatch } from "@/lib/odds/betman";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
@@ -895,12 +896,26 @@ export default async function GenericLivePage({ params }: Props) {
           />
         )}
         {liveOddsNode}
+        {match.oddsHome != null && (
+          <OddsMarketsGrid
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            bookmakers={match.marketBookmakers ?? null}
+            odds={{
+              home: match.oddsHome, draw: match.oddsDraw, away: match.oddsAway,
+              hcLine: match.oddsHcLine, hcHome: match.oddsHcHome, hcAway: match.oddsHcAway,
+              totalLine: match.oddsTotalLine, over: match.oddsOver, under: match.oddsUnder,
+              bttsYes: match.oddsBttsYes, bttsNo: match.oddsBttsNo,
+              dc1X: match.oddsDc1X, dc12: match.oddsDc12, dcX2: match.oddsDcX2,
+            }}
+          />
+        )}
         {fixtureOdds && <MatchOddsTable odds={fixtureOdds} />}
       </div>
     );
     // 라이브 배당은 The Odds API 커버 매치만 데이터가 옴 — 확장 리그처럼 둘 다
     // 없을 수 있는 경우 oddsHistory·fixtureOdds 로 enabled 판정 (빈 탭 방지).
-    const oddsTabEnabled = !!fixtureOdds || oddsHistory.length > 0 || !!betmanLine;
+    const oddsTabEnabled = !!fixtureOdds || oddsHistory.length > 0 || !!betmanLine || match.oddsHome != null;
 
     soccerTabs.push(
       { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
