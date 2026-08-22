@@ -354,7 +354,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       <div
         data-scell="score"
         // 72px 고정 트랙(globals.css) — auto 면 vs(예정)·0-1(진행) 내용폭 차이로 행마다
-        // 팀명 정렬이 어긋남 (2026-06-14). 우측 끝 odds minmax(0,96px)는 vs 중앙정렬 spacer 겸용.
+        // 팀명 정렬이 어긋남 (2026-06-14). 우측 끝 odds minmax(0,124px)는 vs 중앙정렬 spacer 겸용.
         className="relative text-center font-black text-[18px] tabular-nums whitespace-nowrap px-2 group hover:z-50"
         onMouseEnter={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
