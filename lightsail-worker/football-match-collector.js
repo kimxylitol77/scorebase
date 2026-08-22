@@ -95,11 +95,18 @@ function mapStatus(id) {
   return "SCHEDULED";
 }
 
+// diary 의 results_extra.team 이 팀 로고를 준다 — 한 번의 poll 안에서 id→logo 로 모아
+// 매치 payload 에 실어 보낸다(서버는 로고가 비어 있는 팀만 채움). 이걸 버리면 라우트가
+// 만든 하부리그 팀이 전부 로고 없이 남는다(2026-08-22 카코넨·DFB 포칼 144팀).
+const teamLogos = new Map();
 async function fetchDiary(tsp) {
   const { data } = await axios.get(`${TS_BASE}/v1/football/match/diary`, {
     params: { user: TS_USER, secret: TS_SECRET, tsp },
     timeout: 30_000,
   });
+  for (const t of (data.results_extra && data.results_extra.team) || []) {
+    if (t && t.id && t.logo) teamLogos.set(t.id, t.logo);
+  }
   return Array.isArray(data.results) ? data.results : [];
 }
 
@@ -200,6 +207,8 @@ async function poll() {
         // 라운드 — 리그는 round_num, 컵은 round_num=0 이라 stage 이름("Round 1"·"Round of 16")이
         // 정본. 서버가 raw 에 남겨 일정 탭 라운드 네비·컵 대진표가 ts 매치에서도 선다.
         ...(await roundOf(m)),
+        ...(teamLogos.has(m.home_team_id) ? { homeLogo: teamLogos.get(m.home_team_id) } : {}),
+        ...(teamLogos.has(m.away_team_id) ? { awayLogo: teamLogos.get(m.away_team_id) } : {}),
       });
     }
   }

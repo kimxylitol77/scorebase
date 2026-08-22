@@ -102,6 +102,9 @@ interface MatchPayload {
   // 라운드 — diary 의 round. 리그는 roundNum, 컵은 roundNum=0 이라 stageName("Round 1")이 정본.
   // Match.raw 에 {"thesports":{"round":…}} 로 남긴다 (일정 탭 라운드 네비·컵 대진표 소스).
   round?: { stageId: string | null; roundNum: number; groupNum: number; stageName: string | null };
+  // 팀 로고 — diary results_extra.team 의 logo. 로고가 비어 있는 팀만 채운다(기존 로고 보존).
+  homeLogo?: string;
+  awayLogo?: string;
 }
 interface Body {
   sport: "football" | "baseball" | "ice_hockey" | "basketball" | "volleyball";
@@ -272,10 +275,14 @@ export async function POST(req: NextRequest) {
   let skippedNoTeam = 0;
   let skippedDuplicate = 0;
   let startTimeFixed = 0;
+  // 로고 후보 — 루프 뒤에 한 번에 "로고 없는 팀"만 골라 채운다(매치마다 쿼리하지 않음).
+  const logoCandidates = new Map<number, string>();
 
   for (const m of body.matches) {
     const homeId = resolveTsTeamId(m.league, m.tsHomeTeamId);
     const awayId = resolveTsTeamId(m.league, m.tsAwayTeamId);
+    if (homeId && m.homeLogo) logoCandidates.set(homeId, m.homeLogo);
+    if (awayId && m.awayLogo) logoCandidates.set(awayId, m.awayLogo);
     if (!homeId || !awayId) {
       // ts team mapping 없음 — 매치 row 못 만듦. 다만 같은 league + 시각 ±90분 안에
       // non-ts 매치 (api-football/ESPN 가 만든 매치) 가 unique 하면 ts cache 만 연결.
@@ -660,9 +667,27 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // 로고 없는 팀만 채운다 — 라우트가 만든 하부리그 팀이 이니셜 배지로 남던 것(2026-08-22 144팀).
+  let logosFilled = 0;
+  if (logoCandidates.size > 0) {
+    try {
+      const bare = await prisma.team.findMany({
+        where: { id: { in: [...logoCandidates.keys()] }, OR: [{ logoUrl: null }, { logoUrl: "" }] },
+        select: { id: true },
+      });
+      for (const t of bare) {
+        await prisma.team.update({ where: { id: t.id }, data: { logoUrl: logoCandidates.get(t.id)! } });
+        logosFilled++;
+      }
+    } catch (e) {
+      console.warn(`[ts-matches] logo fill fail: ${(e as Error).message}`);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     upserted,
+    logosFilled,
     skippedNoTeam,
     skippedDuplicate,
     startTimeFixed,
