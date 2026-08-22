@@ -120,7 +120,8 @@ export default function BasketballLiveOddsTab({
       odds={odds}
       homeNameKo={homeNameKo}
       awayNameKo={awayNameKo}
-      hasDraw={false}
+      // 축구도 이 탭을 쓴다 — 데이터에 draw 가 오면 승무패 3칸 (리뷰 M3: 2-way 고정이라 무승부가 통째로 빠졌다, 2026-08-22)
+      hasDraw={odds.h2h?.draw != null}
       eloPrediction={eloPrediction}
       oddsHistory={oddsHistory}
     />

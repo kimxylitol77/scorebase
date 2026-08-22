@@ -109,6 +109,7 @@ export default function LiveOddsCard({
 }: Props) {
   const { h2h, totals, spread, bookmakers, bookmakerList, fetchedAt } = odds;
   const [expanded, setExpanded] = useState(false);
+  const [sortKey, setSortKey] = useState<"title" | "home" | "draw" | "away">("title");
   // 경과시간("n초 전")은 SSR 시각과 하이드레이션 시각이 달라 텍스트가 어긋난다.
   // React 19 는 mismatch 시 루트 전체를 재렌더해 테마(html.dark)까지 되돌리므로
   // 마운트 후에만 표시한다.
@@ -153,9 +154,40 @@ export default function LiveOddsCard({
     v == null ? "" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
 
   // 북메이커 sorted by title
+  // 정렬 — 기본 이름순, 칼럼 헤더 클릭으로 홈/무/원정 배당 내림차순 (라인쇼핑: 최고가 맨 위)
   const sortedBMs = (bookmakerList ?? [])
     .filter((b) => b.h2h)
-    .sort((a, b) => a.title.localeCompare(b.title));
+    .sort((a, b) =>
+      sortKey === "title"
+        ? a.title.localeCompare(b.title)
+        : ((b.h2h?.[sortKey] ?? 0) - (a.h2h?.[sortKey] ?? 0)) || a.title.localeCompare(b.title),
+    );
+  // 칼럼별 최고 배당 + 최고-최저 스프레드 (%) — "여기가 제일 좋다"를 0.5초 안에
+  const colMax = (k: "home" | "draw" | "away") =>
+    sortedBMs.reduce((m, b) => Math.max(m, b.h2h?.[k] ?? 0), 0);
+  const colMin = (k: "home" | "draw" | "away") =>
+    sortedBMs.reduce((m, b) => (b.h2h?.[k] != null ? Math.min(m, b.h2h[k]!) : m), Infinity);
+  const bestHome = colMax("home");
+  const bestDraw = colMax("draw");
+  const bestAway = colMax("away");
+  const spreadPct = (k: "home" | "draw" | "away") => {
+    const mx = colMax(k);
+    const mn = colMin(k);
+    return mx > 0 && Number.isFinite(mn) && mn > 0 ? ((mx - mn) / mn) * 100 : null;
+  };
+  const bestCls = "bg-emerald-100/70 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 rounded-md";
+  const thSort = (k: "home" | "draw" | "away", label: string) => (
+    <th className="text-right py-2 px-1.5 font-medium w-16">
+      <button
+        type="button"
+        onClick={() => setSortKey((cur) => (cur === k ? "title" : k))}
+        aria-label={`${label} 배당 ${sortKey === k ? "정렬 해제" : "높은 순 정렬"}`}
+        className={`hover:underline ${sortKey === k ? "text-neutral-800 dark:text-neutral-100 font-semibold" : ""}`}
+      >
+        {label}{sortKey === k ? " ↓" : ""}
+      </button>
+    </th>
+  );
 
   return (
     <div className="rounded-[28px] bg-neutral-100/70 dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_8px_32px_-8px_rgba(0,0,0,0.6)] backdrop-blur-xl p-5 sm:p-6 space-y-5">
@@ -305,7 +337,14 @@ export default function LiveOddsCard({
             onClick={() => setExpanded((v) => !v)}
             className="w-full flex items-center justify-between rounded-full bg-white/60 dark:bg-white/[0.05] hover:bg-white dark:hover:bg-white/[0.08] ring-1 ring-black/5 dark:ring-white/10 px-4 py-2.5 text-[12px] font-medium text-neutral-700 dark:text-neutral-300 transition"
           >
-            <span>북메이커별 비교 · {sortedBMs.length}곳</span>
+            <span>
+              북메이커별 비교 · {sortedBMs.length}곳
+              {spreadPct("home") != null && (
+                <span className="ml-2 text-[10px] text-neutral-500">
+                  최고−최저 홈 {spreadPct("home")!.toFixed(0)}% · 원정 {spreadPct("away")!.toFixed(0)}%
+                </span>
+              )}
+            </span>
             <span className={`text-neutral-400 transition-transform ${expanded ? "rotate-180" : ""}`}>
               ⌃
             </span>
@@ -316,9 +355,9 @@ export default function LiveOddsCard({
                 <thead>
                   <tr className="text-neutral-400 dark:text-neutral-500 border-b border-black/5 dark:border-white/5">
                     <th className="text-left py-2 pr-2 font-medium">북메이커</th>
-                    <th className="text-right py-2 px-1.5 font-medium w-14">홈</th>
-                    {hasDraw && <th className="text-right py-2 px-1.5 font-medium w-14">무</th>}
-                    <th className="text-right py-2 px-1.5 font-medium w-14">원정</th>
+                    {thSort("home", "홈")}
+                    {hasDraw && thSort("draw", "무")}
+                    {thSort("away", "원정")}
                   </tr>
                 </thead>
                 <tbody>
@@ -330,15 +369,15 @@ export default function LiveOddsCard({
                       <td className="py-2 pr-2 truncate text-neutral-700 dark:text-neutral-200">
                         {b.title}
                       </td>
-                      <td className="text-right py-2 px-1.5 font-semibold text-neutral-900 dark:text-white">
+                      <td className={`text-right py-2 px-1.5 font-semibold text-neutral-900 dark:text-white ${b.h2h?.home === bestHome ? bestCls : ""}`} title={b.h2h?.home === bestHome ? "최고 배당" : undefined}>
                         {fmt(b.h2h?.home)}
                       </td>
                       {hasDraw && (
-                        <td className="text-right py-2 px-1.5 text-neutral-600 dark:text-neutral-300">
+                        <td className={`text-right py-2 px-1.5 text-neutral-600 dark:text-neutral-300 ${b.h2h?.draw != null && b.h2h.draw === bestDraw ? bestCls : ""}`} title={b.h2h?.draw === bestDraw ? "최고 배당" : undefined}>
                           {fmt(b.h2h?.draw ?? null)}
                         </td>
                       )}
-                      <td className="text-right py-2 px-1.5 font-semibold text-neutral-900 dark:text-white">
+                      <td className={`text-right py-2 px-1.5 font-semibold text-neutral-900 dark:text-white ${b.h2h?.away === bestAway ? bestCls : ""}`} title={b.h2h?.away === bestAway ? "최고 배당" : undefined}>
                         {fmt(b.h2h?.away)}
                       </td>
                     </tr>
