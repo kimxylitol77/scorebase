@@ -18,10 +18,14 @@
 
 # 최대 3회 시도. 실패하면 fetch → rebase 로 origin 위에 얹고 재시도한다.
 # 성공 0 / 최종 실패 1. 실패해도 커밋은 로컬에 남는다.
+#
+# 인자로 refspec 을 줄 수 있다(기본 main). 브랜치가 main 이 아닐 수 있는 곳 —
+# 예를 들어 Vultr 처럼 clone 상태를 장담 못 하는 워커 — 는 `HEAD:main` 을 넘긴다.
 git_push_with_retry() {
+  local refspec="${1:-main}"
   local attempt
   for attempt in 1 2 3; do
-    if git push origin main -q; then
+    if git push origin "$refspec" -q; then
       return 0
     fi
 

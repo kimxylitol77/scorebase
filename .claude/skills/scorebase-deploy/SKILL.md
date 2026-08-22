@@ -44,10 +44,15 @@ cd /Users/kimss/scorebase && rm scripts/_*-tmp.mjs
 ### 2. Type check (필수)
 
 ```bash
-cd /Users/kimss/scorebase && npx tsc --noEmit -p tsconfig.json 2>&1 | head -20
+cd /Users/kimss/scorebase && out=$(npx tsc --noEmit -p tsconfig.json 2>&1); code=$?
+echo "$out" | head -30; echo "--- tsc exit=$code (0 이어야 통과)"
 ```
 
 error 있으면 **즉시 멈춤** + 사용자에게 보고. fix 후 재실행.
+
+⚠️ `npx tsc ... | head -20` 처럼 **파이프로 받지 말 것** — exit code 가 head 것이 되어 항상 0 이고,
+에러가 20줄을 넘으면 잘린 채 "통과처럼" 보인다. push 와 같은 결함 클래스다(아래 5단계 경고).
+출력을 변수에 담아 `$?` 를 살린 뒤 잘라 보는 게 둘 다 만족한다.
 
 ### 3. 단위 검증 (선택)
 
