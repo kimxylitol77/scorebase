@@ -40,7 +40,7 @@ export default async function MyPicksPage() {
 
   const votes = await prisma.matchVote.findMany({
     where: { userId: user.id },
-    select: { matchId: true, pick: true, correct: true },
+    select: { matchId: true, pick: true, correct: true, pickOdds: true, closeOdds: true, clv: true },
   });
   const total = votes.length;
   const scoredVotes = votes.filter((v) => v.correct !== null);
@@ -66,6 +66,12 @@ export default async function MyPicksPage() {
     .sort((a, b) => b.match!.startTime.getTime() - a.match!.startTime.getTime());
 
   const hit = scored.filter((v) => v.correct).length;
+  // 수익 시뮬(플랫 1유닛, 픽 시점 배당) + 평균 CLV — 둘 다 참고용, 배당 없는 표는 제외
+  const priced = scored.filter((v) => v.pickOdds != null && v.pickOdds > 1);
+  const units = priced.reduce((a, v) => a + (v.correct ? v.pickOdds! - 1 : -1), 0);
+  const roi = priced.length > 0 ? units / priced.length : null;
+  const clvRows = votes.filter((v) => v.clv != null);
+  const avgClv = clvRows.length > 0 ? (clvRows.reduce((a, v) => a + v.clv!, 0) / clvRows.length) * 100 : null;
   const recent10 = scored.slice(0, 10);
   const recent10Hit = recent10.filter((v) => v.correct).length;
   let streak = 0;
@@ -143,7 +149,7 @@ export default async function MyPicksPage() {
       ) : (
         <>
           {/* 요약 */}
-          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
             <div className={card}>
               <div className="text-xs text-neutral-500 dark:text-neutral-400">적중률</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-neutral-900 dark:text-white">{pct(hit, scored.length)}%</div>
@@ -164,6 +170,22 @@ export default async function MyPicksPage() {
               <div className="text-xs text-neutral-500 dark:text-neutral-400">총 투표</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-neutral-900 dark:text-white">{total}</div>
               <div className="mt-0.5 text-xs text-neutral-500">채점 대기 {pending}</div>
+            </div>
+            <div className={card} title="픽 시점 해외 평균 배당으로 매 경기 1유닛을 걸었다고 가정한 후행 시뮬레이션. 참고용이며 실제 수익을 보장하지 않습니다.">
+              <div className="text-xs text-neutral-500 dark:text-neutral-400">수익 시뮬 (1u)</div>
+              <div className={`mt-1 text-2xl font-bold tabular-nums ${roi == null ? "text-neutral-400" : units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {roi == null ? "—" : `${units >= 0 ? "+" : ""}${units.toFixed(1)}u`}
+              </div>
+              <div className="mt-0.5 text-xs text-neutral-500 tabular-nums">
+                {roi == null ? "배당 기록된 표 없음" : `ROI ${roi >= 0 ? "+" : ""}${(roi * 100).toFixed(1)}% · ${priced.length}표`}
+              </div>
+            </div>
+            <div className={card} title="CLV(Closing Line Value) — 픽 시점 배당이 킥오프 직전 종가보다 얼마나 좋았는지. 양수가 꾸준하면 시장보다 먼저 움직인 것.">
+              <div className="text-xs text-neutral-500 dark:text-neutral-400">평균 CLV</div>
+              <div className={`mt-1 text-2xl font-bold tabular-nums ${avgClv == null ? "text-neutral-400" : avgClv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {avgClv == null ? "—" : `${avgClv >= 0 ? "+" : ""}${avgClv.toFixed(1)}%`}
+              </div>
+              <div className="mt-0.5 text-xs text-neutral-500">{avgClv == null ? "종가 기록 대기" : `${clvRows.length}표 · 종가 대비`}</div>
             </div>
             <div className={card}>
               <div className="text-xs text-neutral-500 dark:text-neutral-400">회원 랭킹</div>
@@ -272,6 +294,7 @@ export default async function MyPicksPage() {
                     <th className="px-3 py-2 font-medium">경기</th>
                     <th className="px-3 py-2 font-medium">내 픽</th>
                     <th className="px-3 py-2 text-center font-medium">결과</th>
+                    <th className="px-3 py-2 text-right font-medium" title="픽 배당 · 종가 대비 CLV">배당·CLV</th>
                     <th className="px-3 py-2 text-center font-medium">AI</th>
                   </tr>
                 </thead>
@@ -297,6 +320,20 @@ export default async function MyPicksPage() {
                             <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">적중</span>
                           ) : (
                             <span className="rounded-full bg-neutral-500/10 px-2 py-0.5 text-xs font-medium text-neutral-500">미적중</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-xs tabular-nums">
+                          {v.pickOdds == null ? (
+                            <span className="text-neutral-400">—</span>
+                          ) : (
+                            <>
+                              <span className="text-neutral-700 dark:text-neutral-200">{v.pickOdds.toFixed(2)}</span>
+                              {v.clv != null && (
+                                <span className={`ml-1 ${v.clv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                                  {v.clv >= 0 ? "+" : ""}{(v.clv * 100).toFixed(1)}%
+                                </span>
+                              )}
+                            </>
                           )}
                         </td>
                         <td className="px-3 py-2.5 text-center text-xs font-medium">

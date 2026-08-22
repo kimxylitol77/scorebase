@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true, status: true, startTime: true },
+    select: { id: true, status: true, startTime: true, oddsHome: true, oddsDraw: true, oddsAway: true },
   });
   if (!match) return NextResponse.json({ error: "match not found" }, { status: 404 });
   // 킥오프 이후 투표·변경 불가 (라이브 중 결과 보고 투표하는 치팅 방지)
@@ -56,17 +56,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "투표가 마감된 경기입니다." }, { status: 409 });
   }
 
+  // CLV 재료 — 픽 시점의 픽 쪽 해외 평균 배당(마진 포함). 배당 없는 경기는 null (CLV 산출 제외).
+  const pickOdds =
+    pick === "home" ? match.oddsHome : pick === "draw" ? match.oddsDraw : match.oddsAway;
+  const oddsFields = { pickOdds: pickOdds ?? null, closeOdds: null, clv: null };
   if (userId) {
     await prisma.matchVote.upsert({
       where: { matchId_userId: { matchId, userId } },
-      create: { matchId, userId, sessionId: sessionId || null, pick },
-      update: { pick, correct: null },
+      create: { matchId, userId, sessionId: sessionId || null, pick, ...oddsFields },
+      update: { pick, correct: null, ...oddsFields },
     });
   } else {
     await prisma.matchVote.upsert({
       where: { matchId_sessionId: { matchId, sessionId } },
-      create: { matchId, sessionId, pick },
-      update: { pick, correct: null },
+      create: { matchId, sessionId, pick, ...oddsFields },
+      update: { pick, correct: null, ...oddsFields },
     });
   }
 

@@ -68,9 +68,18 @@ export default async function PicksPage() {
   const myPickByMatch = new Map(myVotes.map((v) => [v.matchId, v.pick]));
 
   // 내 기록 (로그인) — 채점된 투표의 적중률 + 같은 경기에서 AI(predCorrect) 와 비교
-  let myRecord: { total: number; scored: number; hit: number; aiHit: number } | null = null;
+  let myRecord: {
+    total: number; scored: number; hit: number; aiHit: number;
+    /** 플랫 1유닛 후행 시뮬 — 픽 배당 있는 채점 표만. 참고용, 수익 보장 아님 */
+    units: number; unitsN: number; roi: number | null; avgOdds: number | null;
+    /** 평균 CLV(%) — 종가 대비 픽 배당. 표본 수 함께 */
+    avgClv: number | null; clvN: number;
+  } | null = null;
   if (userId) {
-    const all = await prisma.matchVote.findMany({ where: { userId }, select: { matchId: true, correct: true } });
+    const all = await prisma.matchVote.findMany({
+      where: { userId },
+      select: { matchId: true, correct: true, pickOdds: true, clv: true },
+    });
     const scoredRows = all.filter((v) => v.correct !== null);
     let aiHit = 0;
     if (scoredRows.length) {
@@ -80,11 +89,20 @@ export default async function PicksPage() {
       });
       aiHit = aiRows.filter((m) => m.predCorrect).length;
     }
+    const priced = scoredRows.filter((v) => v.pickOdds != null && v.pickOdds > 1);
+    const units = priced.reduce((acc, v) => acc + (v.correct ? v.pickOdds! - 1 : -1), 0);
+    const clvRows = all.filter((v) => v.clv != null);
     myRecord = {
       total: all.length,
       scored: scoredRows.length,
       hit: scoredRows.filter((v) => v.correct).length,
       aiHit,
+      units,
+      unitsN: priced.length,
+      roi: priced.length > 0 ? units / priced.length : null,
+      avgOdds: priced.length > 0 ? priced.reduce((a, v) => a + v.pickOdds!, 0) / priced.length : null,
+      avgClv: clvRows.length > 0 ? (clvRows.reduce((a, v) => a + v.clv!, 0) / clvRows.length) * 100 : null,
+      clvN: clvRows.length,
     };
   }
 
@@ -126,6 +144,30 @@ export default async function PicksPage() {
               <span className="ml-1 text-xs text-neutral-500">({Math.round((myRecord.hit / myRecord.scored) * 100)}%)</span>
             )}
           </div>
+          {myRecord.roi != null && (
+            <div
+              className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
+              title="픽 시점 해외 평균 배당으로 매 경기 1유닛을 걸었다고 가정한 후행 시뮬레이션. 참고용이며 실제 수익을 보장하지 않습니다."
+            >
+              수익 <span className={`font-bold tabular-nums ${myRecord.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {myRecord.units >= 0 ? "+" : ""}{myRecord.units.toFixed(1)}u
+              </span>
+              <span className="ml-1 text-xs text-neutral-500 tabular-nums">
+                ROI {myRecord.roi >= 0 ? "+" : ""}{(myRecord.roi * 100).toFixed(1)}% · 평균 배당 {myRecord.avgOdds!.toFixed(2)} · {myRecord.unitsN}표
+              </span>
+            </div>
+          )}
+          {myRecord.avgClv != null && (
+            <div
+              className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
+              title="CLV(Closing Line Value) — 내가 픽한 시점 배당이 킥오프 직전 종가보다 얼마나 좋았는지. 양수가 꾸준하면 시장보다 먼저 움직인 것."
+            >
+              평균 CLV <span className={`font-bold tabular-nums ${myRecord.avgClv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {myRecord.avgClv >= 0 ? "+" : ""}{myRecord.avgClv.toFixed(1)}%
+              </span>
+              <span className="ml-1 text-xs text-neutral-500">{myRecord.clvN}표 · 종가 대비</span>
+            </div>
+          )}
           {myRecord.scored > 0 && (
             <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
               같은 경기 AI 적중 <span className="font-bold text-neutral-900 dark:text-white">{myRecord.aiHit}</span>

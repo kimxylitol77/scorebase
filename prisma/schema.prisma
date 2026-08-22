@@ -1064,6 +1064,7 @@ model User {
   cosmetics        UserCosmetic[]
   dreamTeams       DreamTeam[]
   teamFollows      UserTeamFollow[]
+  leagueFollows    UserLeagueFollow[]
   matchFollows     UserMatchFollow[]
   analystFollows   UserAnalystFollow[] @relation("AnalystFollower") // 내가 팔로우한 분석가
   analystFollowers UserAnalystFollow[] @relation("AnalystFollowee") // 나를 팔로우한 회원
@@ -1081,6 +1082,19 @@ model UserTeamFollow {
 
   @@unique([userId, teamId])
   @@index([teamId])
+}
+
+/// 회원 즐겨찾기 리그 — /scores 사이드바 ☆(localStorage useFavoriteLeagues)를 서버로 미러링 (2026-08-22).
+/// 기기 간 유지 + 이후 리그 단위 알림·개인화 축.
+model UserLeagueFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  league    String // 리그 코드 (EPL, KLEAGUE1 …)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, league])
+  @@index([league])
 }
 
 /// 회원 즐겨찾기 경기 — /scores 의 ⭐(localStorage)를 서버로 미러링해 텔레그램 알림 대상에 포함.
@@ -1211,6 +1225,10 @@ model MatchVote {
   sessionId String? // 익명 식별 — PageViewTracker 의 scorebase-sid 재사용
   pick      String // "home" | "draw" | "away"
   correct   Boolean? // 경기 종료 후 채점 (null = 미채점)
+  // CLV(종가 대비 가치) — 픽 시점 해외 평균 배당 vs 킥오프 직전 마지막 스냅샷 배당 (2026-08-22).
+  pickOdds  Float? // 투표 시점 픽 쪽 배당 (Match.odds* 평균, 마진 포함)
+  closeOdds Float? // 킥오프 직전 마지막 OddsSnapshot 의 픽 쪽 배당 (채점 시 채움)
+  clv       Float? // pickOdds / closeOdds - 1 (양수 = 종가보다 좋은 배당에 픽)
   createdAt DateTime @default(now())
 
   @@unique([matchId, userId])
