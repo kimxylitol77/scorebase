@@ -75,7 +75,12 @@ function deaccent(s: string): string {
     .replace(/[\u0142\u0141]/g, "l")
     .replace(/[\u00f8\u00d8]/g, "o")
     .replace(/[\u0111\u0110\u00f0\u00d0]/g, "d")
-    .replace(/\u00df/g, "ss");
+    .replace(/\u00df/g, "ss")
+    // 2026-08-22 — 두 정규화(여기 · odds-api normalizeOddsTeamName)는 별개 함수라
+    // 한쪽만 고치면 다른 쪽에 같은 버그가 남는다. 문자 집합을 맞춰 둔다.
+    .replace(/[\u0131]/g, "i")
+    .replace(/[\u00fe\u00de]/g, "th")
+    .replace(/[\u00e6\u00c6]/g, "ae");
 }
 // 팀명 정규화 — ts(DB) 이름과 af 이름 표기 차이 흡수용 (소문자·영숫자만).
 function norm(s: string): string {

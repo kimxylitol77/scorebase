@@ -464,6 +464,25 @@ const NORMALIZED_TEAM_ALIAS: Record<string, string> = {
   tianjinteda: "tianjinjinmentiger",
   qingdaoyouthisland: "qingdaowestcoast",
   kryliyasovetov: "krylyasovetov",
+  // 2026-08-22 전수 스윕 — 개명·표기차로 이름 매칭이 빗나가던 13팀.
+  // 중국 슈퍼리그 개명 4팀 (연고·명칭 변경이 잦아 매 시즌 재확인 대상)
+  hangzhougreentown: "zhejiang",
+  shenyangurban: "liaoningtieren",
+  qingdaojonoon: "qingdaohainiu",
+  dalianzhixing: "dalianyingbo",
+  // 스페인 2부 — 1군 B팀 표기가 소스마다 다르다(II ↔ B ↔ 별칭)
+  realsociedadii: "realsociedadb",
+  celtavigoii: "celtafortuna",
+  // 독일·포르투갈·러시아·사우디 — 표기·음역 차이
+  herthabsc: "herthaberlin",
+  guimaraes: "vitoriasc",
+  akrontogliatti: "akrontolyatti",
+  altaawon: "altaawoun",
+  // 브라질 — Athletico(파라나) 는 h 유무와 주 약칭이 함께 어긋난다
+  athleticoparanaensepr: "atleticoparanaense",
+  // 북유럽 — 어순 뒤집힘
+  unitednordic: "nordicunited",
+  turkups: "tpsturku",
   // MLS — LA 두 팀은 "losangeles" 가 갤럭시의 부분문자열이라 LAFC 쪽을 canonical 로
   // 수렴시켜 오염을 막는다 ("losangeles"→lafc, 갤럭시는 풀네임으로).
   losangeles: "lafc",
@@ -498,7 +517,9 @@ export function normalizeOddsTeamName(name: string): string {
     .replace(/[̀-ͯ]/g, "")
     .normalize("NFC")
     // NFD 로 분해 안 되는 특수 라틴 문자 음역 (Wisła·Bodø·Đà 류 — 삭제되면 영영 못 만남)
+    // ı(터키 점 없는 i)·þ·ð 는 2026-08-22 추가 — Kasımpaşa 가 kasmpasa 로 뭉개져 배당이 비었다.
     .replace(/ł/g, "l").replace(/ø/g, "o").replace(/đ/g, "d").replace(/ß/g, "ss").replace(/æ/g, "ae")
+    .replace(/ı/g, "i").replace(/þ/g, "th").replace(/ð/g, "d")
     // 소스별 표기 변형 통일 (Dinamo↔Dynamo, Utd↔United)
     .replace(/dinamo/g, "dynamo")
     .replace(/\butd\b/g, "united")
