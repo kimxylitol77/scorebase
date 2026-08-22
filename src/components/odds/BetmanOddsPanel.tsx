@@ -9,13 +9,11 @@
 
 import { ChevronDown } from "lucide-react";
 import type { BetmanMatch, BetmanLine } from "@/lib/odds/betman";
+import BetmanTeamsRow from "./BetmanTeamsRow";
 
 const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구" };
 
 const fmtOdds = (v: number | null) => (v != null && v > 0 ? v.toFixed(2) : "-");
-
-/** 베트맨 원본에 "일본_여자" 처럼 언더스코어가 섞여 온다 — 표시할 때만 공백으로 편다. */
-const teamLabel = (s: string) => s.replace(/_/g, " ");
 
 /** 배당 → 마진 제거한 내재확률(합=1). 투표 비율과 같은 축에서 비교하기 위함. */
 function impliedPct(w: number | null, d: number | null, l: number | null) {
@@ -33,27 +31,6 @@ function votePct(line: BetmanLine) {
   const total = w + d + l;
   if (total <= 0) return null;
   return { w: (w / total) * 100, d: (d / total) * 100, l: (l / total) * 100, total };
-}
-
-function TeamLogo({ url, name }: { url: string | null; name: string }) {
-  if (url) {
-    return (
-      // 외부 도메인 로고가 섞여 있어 next/image 최적화 대상이 아니다 (/scores 팀로고와 동일).
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={url}
-        alt=""
-        loading="lazy"
-        className="h-7 w-7 shrink-0 rounded bg-white object-contain p-0.5"
-      />
-    );
-  }
-  // 이름 매칭이 모호하면 로고를 달지 않는다 — 틀린 마크보다 이니셜이 낫다.
-  return (
-    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-bold text-neutral-400 dark:bg-neutral-800">
-      {name.slice(0, 1)}
-    </span>
-  );
 }
 
 /** 국내 투표 분포 — 이 화면의 주인공이라 굵게 잡고 % 를 막대 안에 박는다. */
@@ -198,45 +175,17 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
                   )}
                 </div>
 
-                {/* 팀 + 배당. 모바일은 3열로 두면 팀명이 잘린다(실측 375px "야쿠르트 …") →
-                    세로로 쌓아 팀명에 폭을 다 준다. 데스크탑은 홈 좌·원정 우 3열 유지.
-                    양쪽 다 자식 순서는 [로고][이름] — 데스크탑 홈만 flex-row-reverse 로 뒤집어
-                    [이름][로고] 우측 정렬을 만든다.
-                    ⚠️ 데스크탑 3열은 grid 가 아니라 flex(sm:flex-row + flex-1)로 —
-                    일부 윈도우 환경(확장프로그램 등)이 display:grid 만 무력화해 팀명이
-                    가운데로 쏠려 보이는 실사례(2026-08-16). flex 는 전 화면에서 검증됨. */}
-                <div className="mt-2 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
-                  <div className="flex min-w-0 items-center gap-2 sm:flex-1 sm:flex-row-reverse sm:justify-start">
-                    <TeamLogo url={m.homeLogo} name={m.homeName} />
-                    <span className="truncate text-[14px] text-neutral-800 dark:text-neutral-100 sm:text-right">
-                      {teamLabel(m.homeName)}
-                    </span>
-                  </div>
-                  <div className="flex shrink-0 items-center justify-center gap-1.5 tabular-nums sm:gap-2.5">
-                    {/* 모바일은 팀이 위아래로 쌓여 배당이 어느 팀 것인지 모호해진다 →
-                        승/무/패 라벨을 붙인다. 데스크탑은 팀 사이에 있어 자명하므로 숨긴다. */}
-                    <span className="min-w-[46px] rounded-md bg-rose-50 px-2 py-1 text-center text-[14px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
-                      <span className="mr-1 text-[10px] font-medium opacity-70 sm:hidden">승</span>
-                      {fmtOdds(m.winAllot)}
-                    </span>
-                    {hasDraw && (
-                      <span className="min-w-[46px] rounded-md bg-neutral-100 px-2 py-1 text-center text-[14px] font-semibold text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                        <span className="mr-1 text-[10px] font-medium opacity-70 sm:hidden">무</span>
-                        {fmtOdds(m.drawAllot)}
-                      </span>
-                    )}
-                    <span className="min-w-[46px] rounded-md bg-blue-50 px-2 py-1 text-center text-[14px] font-bold text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
-                      <span className="mr-1 text-[10px] font-medium opacity-70 sm:hidden">패</span>
-                      {fmtOdds(m.loseAllot)}
-                    </span>
-                  </div>
-                  <div className="flex min-w-0 items-center gap-2 sm:flex-1">
-                    <TeamLogo url={m.awayLogo} name={m.awayName} />
-                    <span className="truncate text-[14px] text-neutral-800 dark:text-neutral-100">
-                      {teamLabel(m.awayName)}
-                    </span>
-                  </div>
-                </div>
+                {/* 팀 + 배당. 레이아웃은 BetmanTeamsRow 가 JS(matchMedia)로 고른다 —
+                    일부 윈도우 환경이 sm: 덮어쓰기를 무력화하는 실사례 2건(8/16 grid, 8/22 flex-row). */}
+                <BetmanTeamsRow
+                  homeLogo={m.homeLogo}
+                  homeName={m.homeName}
+                  awayLogo={m.awayLogo}
+                  awayName={m.awayName}
+                  winAllot={m.winAllot}
+                  drawAllot={m.drawAllot}
+                  loseAllot={m.loseAllot}
+                />
 
                 {/* 국내 투표 분포 — 이 화면의 주인공 */}
                 <div className="mt-2.5">
