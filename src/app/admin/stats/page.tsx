@@ -1471,12 +1471,28 @@ export default async function StatsPage({ searchParams }: Props) {
               <KpiCard label="클릭 (빙)" value={bing.totals?.clicks ?? 0} accent />
               <KpiCard label="노출 (빙)" value={bing.totals?.impressions ?? 0} />
             </div>
-            <SectionCard title="빙 검색어 TOP 20" subtitle="클릭순 · Bing Webmaster Tools 집계">
+            <SectionCard title="빙 검색어 TOP 30" subtitle="클릭순 · Bing Webmaster Tools 집계">
               {bing.queries.length === 0 ? (
                 <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
               ) : (
-                <GscTable
+                <CollapsibleGscTable
                   rows={bing.queries.map((q) => ({
+                    keys: [q.query],
+                    clicks: q.clicks,
+                    impressions: q.impressions,
+                    ctr: q.ctr,
+                    position: q.position,
+                  }))}
+                  keyLabel="검색어"
+                />
+              )}
+            </SectionCard>
+            <SectionCard title="노출 많은 키워드 TOP 30" subtitle="노출순 · 클릭 여부와 무관">
+              {bing.topImpressions.length === 0 ? (
+                <EmptyHint message="빙 노출 데이터가 아직 없습니다." />
+              ) : (
+                <CollapsibleGscTable
+                  rows={bing.topImpressions.map((q) => ({
                     keys: [q.query],
                     clicks: q.clicks,
                     impressions: q.impressions,
@@ -1489,7 +1505,9 @@ export default async function StatsPage({ searchParams }: Props) {
             </SectionCard>
             <p className="text-xs text-neutral-500 leading-relaxed">
               ⓘ 빙은 referrer 에 검색어를 안 남겨(구글과 동일) 위 &lsquo;검색어&rsquo; 표엔 안 잡힙니다 —
-              빙 검색어는 이 섹션이 유일한 소스입니다. 빙 기회 검색어(보강 타겟)는 위{" "}
+              빙 검색어는 이 섹션이 유일한 소스입니다. <strong>클릭순</strong>은 실제로 유입을 만든 검색어,{" "}
+              <strong>노출순</strong>은 클릭이 0이어도 수요가 큰 검색어라 메타·콘텐츠 보강 후보를 찾는 표입니다.
+              빙 기회 검색어(보강 타겟)는 위{" "}
               <strong>&lsquo;기회 검색어&rsquo; 섹션</strong>에서 구글과 나란히 봅니다. 수치는 1시간 캐시됩니다.
               {bing.siteUrl && (
                 <>
@@ -1963,26 +1981,73 @@ function SearchCompareColumn({
 }
 
 /** GSC 검색어/페이지 공용 표 — 노출·클릭·CTR·평균순위. isPage 면 키를 path 로 표시 + 링크. */
+// 검색어 표 접이식 래퍼 — 앞 head 행만 보이고 나머지는 펼치기.
+// 유입 도메인 표(위)와 같은 details/summary 패턴 — JS 없이 동작한다.
+function CollapsibleGscTable({
+  rows,
+  keyLabel,
+  head = 10,
+}: {
+  rows: GscRow[];
+  keyLabel: string;
+  head?: number;
+}) {
+  const rest = rows.slice(head);
+  return (
+    <>
+      <GscTable rows={rows.slice(0, head)} keyLabel={keyLabel} />
+      {rest.length > 0 && (
+        <details className="group mt-1">
+          <summary className="cursor-pointer list-none py-2 text-sm font-medium text-sky-600 dark:text-sky-400 hover:underline select-none">
+            <span className="group-open:hidden">+ 나머지 {rest.length}개 펼치기</span>
+            <span className="hidden group-open:inline">접기</span>
+          </summary>
+          <div className="border-t border-neutral-200 dark:border-neutral-800">
+            <GscTable rows={rest} keyLabel={keyLabel} startIndex={head} hideHead />
+          </div>
+        </details>
+      )}
+    </>
+  );
+}
+
 function GscTable({
   rows,
   keyLabel,
   isPage,
+  startIndex = 0,
+  hideHead,
 }: {
   rows: GscRow[];
   keyLabel: string;
   isPage?: boolean;
+  /** 접기로 표를 둘로 나눌 때 순번이 1부터 다시 시작하지 않도록 */
+  startIndex?: number;
+  /** 펼친 뒤쪽 표는 헤더를 반복하지 않는다 */
+  hideHead?: boolean;
 }) {
   return (
     <table className="w-full text-sm table-fixed">
-      <thead>
-        <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
-          <th className="text-left font-medium pb-2 pr-2">{keyLabel}</th>
-          <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
-          <th className="text-right font-medium pb-2 px-1 w-20">노출</th>
-          <th className="text-right font-medium pb-2 px-1 w-14">CTR</th>
-          <th className="text-right font-medium pb-2 pl-1 w-14">순위</th>
-        </tr>
-      </thead>
+      {/* 열 폭을 colgroup 에 고정 — 접기로 표가 둘로 나뉘면 뒤쪽 표엔 thead(w-14 등)가 없어
+          table-fixed 가 첫 tbody 행 기준으로 폭을 다시 잡아 두 표의 열이 어긋난다. */}
+      <colgroup>
+        <col />
+        <col className="w-14" />
+        <col className="w-20" />
+        <col className="w-14" />
+        <col className="w-14" />
+      </colgroup>
+      {!hideHead && (
+        <thead>
+          <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+            <th className="text-left font-medium pb-2 pr-2">{keyLabel}</th>
+            <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
+            <th className="text-right font-medium pb-2 px-1 w-20">노출</th>
+            <th className="text-right font-medium pb-2 px-1 w-14">CTR</th>
+            <th className="text-right font-medium pb-2 pl-1 w-14">순위</th>
+          </tr>
+        </thead>
+      )}
       <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
         {rows.map((r, i) => {
           const key = r.keys[0] ?? "";
@@ -1992,7 +2057,7 @@ function GscTable({
               <td className="py-2 pr-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="w-5 shrink-0 text-right tabular-nums text-neutral-400 font-bold text-xs">
-                    {i + 1}
+                    {startIndex + i + 1}
                   </span>
                   {isPage ? (
                     <a

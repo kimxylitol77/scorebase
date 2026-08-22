@@ -33,6 +33,8 @@ export interface BingOverview {
   siteUrl: string | null;
   /** 검색어 TOP — 클릭순 */
   queries: BingQueryRow[];
+  /** 검색어 TOP — 노출순. 클릭순 목록이 못 보여주는 "수요는 큰데 클릭이 안 붙는" 검색어를 드러낸다. */
+  topImpressions: BingQueryRow[];
   /** 기회 검색어 — 노출은 많은데 순위가 낮아(4위 밖) 클릭을 못 받는 것, 노출순.
    *  콘텐츠/타이틀 보강으로 순위를 끌어올릴 타겟. */
   opportunities: BingQueryRow[];
@@ -135,12 +137,15 @@ const fetchBingOverviewCached = unstable_cache(
     const all = await fetchAllBingQueries();
     const queries = [...all]
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
-      .slice(0, 20);
+      .slice(0, 30);
+    // 노출순 — fetchAllBingQueries 가 이미 노출 내림차순이라 자르기만 하면 된다.
+    const topImpressions = all.slice(0, 30);
     // 기회 검색어 — 노출 충분한데 순위가 낮아(4~30위) 클릭을 못 받는 것. 잠재 클릭순.
     const opportunities = all.filter(isOpportunity).sort(byPotentialDesc).slice(0, 20);
     return {
       siteUrl: bingSiteUrl(),
       queries,
+      topImpressions,
       opportunities,
       totals: {
         clicks: all.reduce((s, r) => s + r.clicks, 0),
@@ -148,14 +153,14 @@ const fetchBingOverviewCached = unstable_cache(
       },
     };
   },
-  ["bing-overview-v2"],
+  ["bing-overview-v3"],
   { revalidate: 3600 }, // 1시간 캐시 — quota 보호
 );
 
 /** /admin/stats 진입점 — 미설정/실패 모두 throw 없이 상태로 반환. */
 export async function getBingOverview(): Promise<BingOverview> {
   if (!process.env.BING_WEBMASTER_API_KEY) {
-    return { configured: false, error: null, siteUrl: null, queries: [], opportunities: [], totals: null };
+    return { configured: false, error: null, siteUrl: null, queries: [], topImpressions: [], opportunities: [], totals: null };
   }
   try {
     const data = await fetchBingOverviewCached();
@@ -166,6 +171,7 @@ export async function getBingOverview(): Promise<BingOverview> {
       error: e instanceof Error ? e.message : String(e),
       siteUrl: null,
       queries: [],
+      topImpressions: [],
       opportunities: [],
       totals: null,
     };
