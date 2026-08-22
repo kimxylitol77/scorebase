@@ -68,6 +68,13 @@ const REMEDIATIONS: Record<string, Remediation> = {
     maxAttempts: 2,
     actionTimeoutMs: 25_000,
   },
+  "leaderboard-season": {
+    checkName: "leaderboard-season",
+    cronRoute: "league-leaders",
+    // 잡이 리그를 순회해 오래 걸린다 — 트리거만 하고 판정은 다음 일일 체크가 한다.
+    maxAttempts: 2,
+    actionTimeoutMs: 25_000,
+  },
   "club-xi": {
     checkName: "club-xi-quality",
     cronRoute: "club-xi",

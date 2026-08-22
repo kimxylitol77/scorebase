@@ -1072,6 +1072,47 @@ async function checkClubXiQuality(now: Date): Promise<HealthFinding[]> {
 }
 
 // ──────────────────────────────────────────────────────────────
+// 리더보드 시즌 정합성 — 개막해서 경기를 치렀는데 LeagueLeader 에 이번 시즌 행이 없는가.
+//   이 상태면 화면은 "개막 후 집계됩니다" 안내만 계속 띄운다(득점왕 등이 영영 안 나온다).
+//   반대로 가드가 없던 시절에는 **지난 시즌 득점왕이 현재 기록처럼 노출**됐다
+//   (2026-08-21 사용자 제보: EPL 통계 탭에 25-26 왓킨스 37경기). 노출은 시즌 라벨 가드로
+//   막았으니, 남은 위험은 "적재가 멈춰 새 시즌이 영영 안 채워지는" 쪽이다 — 그걸 지킨다.
+//   임계는 완료 20경기(리그당 2라운드쯤) — 개막 첫 주말에 울리면 매주 노이즈가 된다.
+// ──────────────────────────────────────────────────────────────
+async function checkLeaderboardSeason(): Promise<HealthFinding[]> {
+  const covered = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "K_LEAGUE_1", "J1_LEAGUE"];
+  const stale: string[] = [];
+  for (const lg of covered) {
+    const cur = currentSoccerSeason(lg)?.label;
+    if (!cur) continue;
+    const start = seasonStartOf(cur);
+    if (!start) continue;
+    const played = await prisma.match.count({
+      where: { league: lg, status: "FINISHED", homeScore: { not: null }, startTime: { gte: start } },
+    });
+    if (played < 20) continue; // 아직 초반 — 판정하지 않는다
+    const rows = await prisma.leagueLeader.count({ where: { league: lg, season: cur } });
+    if (rows === 0) stale.push(`${lg}(${played}경기·${cur} 0건)`);
+  }
+  if (!stale.length) return [];
+  return [
+    {
+      category: "leaderboard-season",
+      key: "missing",
+      severity: "MED",
+      message: `리더보드에 이번 시즌 행이 없다 — ${stale.join(", ")}. 화면은 "개막 후 집계" 안내만 계속 뜬다. league-leaders cron 확인`,
+      metadata: { leagues: stale },
+    },
+  ];
+}
+
+/** "2026-27" → 그 시즌 시작(7/1). 라벨은 fetch-league-leaders 가 단일 출처. */
+function seasonStartOf(label: string): Date | null {
+  const y = Number(label.slice(0, 4));
+  return Number.isFinite(y) ? new Date(Date.UTC(y, 6, 1)) : null;
+}
+
+// ──────────────────────────────────────────────────────────────
 // 경기별 세부 스탯 결손 — af /fixtures/players 응답에서 shots·keyPasses·tackles 를 읽는다.
 //   파서가 회귀하면 새 경기부터 조용히 null 로 쌓이고, 화면은 칩이 안 보일 뿐이라 눈에 안 띈다.
 //   실측(2026-08-21 백필 직후) 최근 7일 출전 행의 결손 12% — 세부 스탯을 안 주는 리그가 섞인 값.
@@ -1248,6 +1289,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "wage-freshness", fn: checkWageFreshness },
   { name: "club-xi-quality", fn: checkClubXiQuality },
   { name: "match-log-detail", fn: async () => checkMatchLogDetail() },
+  { name: "leaderboard-season", fn: async () => checkLeaderboardSeason() },
 ];
 
 /**
