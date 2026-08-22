@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
-import { ALL_LEAGUES, LOL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
+import { getAllLeaguesOverUnder } from "@/lib/stats/over-under";
 import rawCanonical from "../../data/player-canonical-redirects.json";
 import rawTeamCoaches from "../../data/team-coaches.json";
 import rawCoachLegends from "../../data/coach-legends.json";
@@ -34,6 +35,9 @@ const SITEMAP_LEAGUES = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = SITE_URL;
   const now = new Date();
+
+  // 오버/언더 집계 대상 리그 — 캐시된 집계라 sitemap 재생성(1h) 비용이 크지 않다.
+  const overUnderLeagues = (await getAllLeaguesOverUnder()).map((l) => l.league);
 
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [
@@ -92,14 +96,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
-    // 오버/언더 통계 — 허브는 항상, 리그 상세는 핵심 리그만 등록한다.
-    // 나머지 ~80개 하부리그 페이지는 허브에서 링크로 발견되게 두고 sitemap 에서는 뺀다
-    // (위 SITEMAP_LEAGUES 주석의 크롤 예산 정책과 동일한 이유).
+    // 오버/언더 통계 — 집계 대상 리그를 전부 등록한다(2026-08-22 사용자 결정).
+    // 위 SITEMAP_LEAGUES 의 하부리그 제외 정책에 대한 예외다. 그 정책은 순위표처럼
+    // 내용이 비는 thin 페이지를 겨냥한 것이고, 이 페이지들은 리그마다 팀별 표(오버 1.5·2.5·3.5,
+    // 양팀 득점, 홈/원정 분해)와 분포 차트가 채워져 있어 해당하지 않는다.
+    // 대상 자체가 "팀당 8경기 이상 · 컵/친선 제외" 필터를 통과한 리그라 빈 페이지가 끼지 않는다.
     { url: `${base}/over-under`, changeFrequency: "daily", priority: 0.8 },
-    ...SITEMAP_LEAGUES.filter((lg) => SOCCER_LEAGUES.has(lg)).map((lg) => ({
+    ...overUnderLeagues.map((lg) => ({
       url: `${base}/over-under/${lg}`,
       changeFrequency: "daily" as const,
-      priority: 0.75,
+      priority: SITEMAP_LEAGUES.includes(lg) ? 0.75 : 0.6,
     })),
     // 영어판(/en) — 핵심 URL 만 등록 (thin 희석 방지: 허브 + 핵심 리그 상세만)
     { url: `${base}/en`, changeFrequency: "daily", priority: 0.7 },
