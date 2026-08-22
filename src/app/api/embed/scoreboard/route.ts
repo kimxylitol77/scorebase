@@ -2,7 +2,9 @@
 // 라이브는 fetchAllLiveScores(종목별 캐시)에서, 아니면 DB Match 의 최종/예정값.
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { fetchAllLiveScores } from "@/lib/sports/live-scores";
+import { fetchAllLiveScores, parseTsFootballScore } from "@/lib/sports/live-scores";
+import { tsFootballLiveLabel, tsFootballLiveState } from "@/lib/sports/ts-football-live-label";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
@@ -46,6 +48,7 @@ export async function GET(req: NextRequest) {
       awayScore: true,
       homeTeam: { select: { name: true, nameKo: true, shortName: true, logoUrl: true } },
       awayTeam: { select: { name: true, nameKo: true, shortName: true, logoUrl: true } },
+      theSportsCache: { select: { detailLive: true, updatedAt: true } },
     },
   });
   if (!match) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -56,7 +59,23 @@ export async function GET(req: NextRequest) {
 
   // 라이브 — 종목별 캐시된 집계에서 이 경기만 추출 (id 접두사 af-/ts- 제거)
   let live: { homeScore: number; awayScore: number; statusLabel: string } | null = null;
-  if (match.status !== "FINISHED") {
+  // 1순위: TheSports 캐시 (MQTT 푸시, 분 라벨 정확) — /scores 행의 "후반 64'" 과 같은 경로.
+  //  캐시가 10분 넘게 안 움직였으면 stale 로 보고 아래 집계로 넘어간다.
+  if (match.status !== "FINISHED" && SOCCER_LEAGUES.has(league) && match.theSportsCache?.detailLive) {
+    const cache = match.theSportsCache;
+    const fresh = Date.now() - cache.updatedAt.getTime() < 10 * 60_000;
+    const st = tsFootballLiveState(cache.detailLive);
+    const label = st && fresh ? tsFootballLiveLabel(st.sid, st.pts, Date.now()) : null;
+    if (label) {
+      const fs = parseTsFootballScore(cache.detailLive as Parameters<typeof parseTsFootballScore>[0]);
+      live = {
+        homeScore: fs?.mainHome ?? match.homeScore ?? 0,
+        awayScore: fs?.mainAway ?? match.awayScore ?? 0,
+        statusLabel: label,
+      };
+    }
+  }
+  if (!live && match.status !== "FINISHED") {
     try {
       const all = await fetchAllLiveScores();
       const hit = all.find((m) => m.id.replace(/^[a-z]+-/i, "") === id);

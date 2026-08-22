@@ -80,6 +80,7 @@ import SoccerStatusTabs, {
 import MatchCard from "@/components/scores/MatchCard";
 import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import ShowMoreRows from "@/components/scores/ShowMoreRows";
+import { tsFootballLiveLabel } from "@/lib/sports/ts-football-live-label";
 import type { ReactNode } from "react";
 import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import SoccerSortToggle from "@/components/scores/SoccerSortToggle";
@@ -746,36 +747,7 @@ function shortLabel(shortName: string | null, koName: string): string {
   if (tokens.length >= 2 && tokens[0].length <= 4) return tokens[0];
   return koName.slice(0, 4);
 }
-// ts detailLive.score → "전반 38'" 류 진행분 라벨. status_id: 2=전반 3=HT 4=후반 5/6=연장
-// 7=승부차기 (football-collector mapFootballStatus 와 동일 코드표). phaseStartTs 는 현재
-// 페이즈 시작 시각이라 후반이면 45 + 경과분으로 합산 표기가 된다.
-function tsFootballLiveLabel(
-  statusId: number,
-  phaseStartTs: number,
-  nowMs: number,
-): string | null {
-  // HT(3)·승부차기(7)는 경과분이 필요 없는 정적 라벨 — 이때 ts 는 phase ts 를 0 으로 준다
-  // (맨유-PSG HT 실측). 시각 검사를 여기서 하지 않으면 하프타임 내내 라벨이 사라진다.
-  if (statusId === 3) return "HT";
-  if (statusId === 7) return "승부차기";
-  if (!(phaseStartTs > 0)) return null;
-  const elapsed = Math.max(0, Math.floor((nowMs / 1000 - phaseStartTs) / 60)) + 1;
-  switch (statusId) {
-    case 2:
-      return `전반 ${Math.min(elapsed, 45)}${elapsed > 45 ? "+" : ""}'`;
-    case 4: {
-      const total = 45 + elapsed;
-      return `후반 ${Math.min(total, 90)}${total > 90 ? "+" : ""}'`;
-    }
-    case 5:
-    case 6: {
-      const total = 90 + elapsed;
-      return `연장 ${Math.min(total, 120)}${total > 120 ? "+" : ""}'`;
-    }
-    default:
-      return null;
-  }
-}
+// tsFootballLiveLabel 은 src/lib/sports/ts-football-live-label.ts 로 이동 (방송 오버레이 API 와 공용, 2026-08-23)
 
 // "전반 38'", "후반 67'", "HT" 등에서 minute / half short 추출
 function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
