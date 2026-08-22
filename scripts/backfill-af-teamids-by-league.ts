@@ -64,6 +64,12 @@ const MANUAL: Record<string, { af: string; ourId: number; note: string }[]> = {
     { af: "2313", ourId: 611751, note: "Correcaminos Uat → Correcaminos de la U.A.T. (약어)" },
     { af: "19905", ourId: 607885, note: "CDS Tampico Madero → Club Jaiba Brava (별명, city=Tampico y Ciudad Madero)" },
   ],
+  // 이집트 1부 승격팀 — af 가 아랍어를 다르게 음역한다(2026-08-22 사각지대 경보 대응).
+  //  Bank El Ahly 는 af=National Bank of Egypt 로 Team row 가 갈려 있어 별도로 병합했다.
+  EGYPT_PL: [
+    { af: "15731", ourId: 613441, note: "Abu Qair Semad → Abou Qir Fertilizers SC (음역차, 같은 비료회사 클럽)" },
+    { af: "13822", ourId: 613437, note: "Olympic El Qanah → Olympic El Qanal (끝 철자 h/l)" },
+  ],
   // 핀란드 3부 — af 가 약어·숫자 표기를 쓴다. 남은 af 3팀 : DB 3팀 이 정확히 1:1 이라
   //  자동 규칙이 엉뚱한 짝에 쓰기 전에 먼저 소비시킨다(2026-08-22 사각지대 경보 대응).
   KAKKONEN_C: [
