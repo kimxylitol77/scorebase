@@ -193,6 +193,8 @@ export default function FavoriteMatches({ matches }: Props) {
       baseballLinescore={m.baseballLinescore}
       periodLinescore={m.periodLinescore}
       soccerGoals={m.soccerGoals}
+      soccerTeamStats={m.soccerTeamStats}
+      soccerHalfStats={m.soccerHalfStats}
       soccerCtx={m.soccerCtx}
       esportsCtx={m.esportsCtx}
       homeStarter={m.homeStarter}

@@ -764,8 +764,9 @@ function OddsPopup({
   );
 }
 
-/** 통계 바 행들 (점유율·슈팅·코너·카드) — 풀타임/전반 공용. 좌=홈(rose), 우=원정(blue). */
-function StatBars({ stats }: { stats: SoccerTeamStat[] }) {
+/** 통계 바 행들 (점유율·슈팅·코너·카드) — 풀타임/전반 공용. 좌=홈(rose), 우=원정(blue).
+ *  내 경기 카드(MatchCard)도 같은 블록을 쓴다 (2026-08-22 사용자 요청). */
+export function StatBars({ stats }: { stats: SoccerTeamStat[] }) {
   return (
     <div className="space-y-1.5">
       {stats.map((s) => {
