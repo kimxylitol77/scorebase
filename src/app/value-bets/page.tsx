@@ -11,6 +11,7 @@ import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import { matchLiveHref } from "@/lib/links/match-live-link";
+import ValueBetList from "@/components/value-bets/ValueBetList";
 
 export const revalidate = 60; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -204,81 +205,25 @@ export default async function ValueBetsPage() {
           </div>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-          <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px] gap-3 px-4 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-black/5 dark:border-white/5">
-            <div>리그</div>
-            <div>시간</div>
-            <div>매치</div>
-            <div className="text-center">픽</div>
-            <div className="text-center">Elo vs 배당사</div>
-            <div className="text-right">Value</div>
-          </div>
-          <ul className="divide-y divide-black/5 dark:divide-white/5">
-            {bets.map((b) => (
-              <li key={b.matchId}>
-                <Link
-                  href={matchLiveHref(b.league, b.externalId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  prefetch={false}
-                  className="block px-4 py-3 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
-                >
-                  <div className="md:hidden space-y-1">
-                    <div className="flex items-center justify-between text-[11px] text-neutral-500">
-                      <span>{LEAGUE_DISPLAY[b.league] ?? b.league}</span>
-                      <span>{fmtKstTime(b.startTime)}</span>
-                    </div>
-                    <div className="text-sm font-medium truncate">
-                      {b.homeName} <span className="text-neutral-400">vs</span> {b.awayName}
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-rose-600 dark:text-rose-400 font-bold">
-                        {sideLabel(b.bestSide, b.homeName, b.awayName)} @ {b.odds.toFixed(2)}
-                      </span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-black tabular-nums">
-                        +{b.valuePct.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px] gap-3 items-center text-sm">
-                    <div className="text-[11px] text-neutral-600 dark:text-neutral-400 truncate">
-                      {LEAGUE_DISPLAY[b.league] ?? b.league}
-                    </div>
-                    <div className="text-[11px] text-neutral-500 tabular-nums">
-                      {fmtKstTime(b.startTime)}
-                    </div>
-                    <div className="truncate">
-                      <span className="font-medium">{b.homeName}</span>
-                      <span className="text-neutral-400 mx-1.5">vs</span>
-                      <span className="font-medium">{b.awayName}</span>
-                      {b.status === "LIVE" && (
-                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">
-                          LIVE {b.homeScore ?? "-"}:{b.awayScore ?? "-"}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-center">
-                      <div className="text-rose-600 dark:text-rose-400 font-bold text-[13px]">
-                        {sideLabel(b.bestSide, b.homeName, b.awayName)}
-                      </div>
-                      <div className="text-[10px] text-neutral-500 tabular-nums">
-                        @ {b.odds.toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="text-center text-[11px] tabular-nums text-neutral-600 dark:text-neutral-400">
-                      <span className="font-bold">{(b.eloPct * 100).toFixed(0)}%</span>
-                      <span className="text-neutral-400 mx-1">vs</span>
-                      <span>{(b.impliedPct * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="text-right text-emerald-600 dark:text-emerald-400 font-black tabular-nums text-base">
-                      +{b.valuePct.toFixed(1)}%
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ValueBetList
+          bets={bets.map((b) => ({
+            matchId: b.matchId,
+            href: matchLiveHref(b.league, b.externalId),
+            leagueLabel: LEAGUE_DISPLAY[b.league] ?? b.league,
+            timeLabel: fmtKstTime(b.startTime),
+            startMs: b.startTime.getTime(),
+            homeName: b.homeName,
+            awayName: b.awayName,
+            status: b.status,
+            homeScore: b.homeScore,
+            awayScore: b.awayScore,
+            pickLabel: sideLabel(b.bestSide, b.homeName, b.awayName),
+            valuePct: b.valuePct,
+            eloPct: b.eloPct,
+            impliedPct: b.impliedPct,
+            odds: b.odds,
+          }))}
+        />
       )}
 
       {/* SEO 본문 — 밸류 베트 개념 + 가치 페이지 내부링크 (thin 탈출) */}
