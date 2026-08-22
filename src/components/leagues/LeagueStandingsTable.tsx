@@ -20,18 +20,25 @@ import { toKoreanTeamName } from "@/lib/team-names";
 const CONTINENTAL_CUPS = new Set(["UCL", "UEL", "UECL", "AFC_CL", "AFC_CL_TWO"]);
 
 // 리그별 진출권·강등 구역 (순위 1-indexed). 표준 시즌 기준 — 매 시즌 UEFA 계수 미세변동은 단순화.
-type ZoneType = "ucl" | "uel" | "uecl" | "relegPo" | "releg";
+type ZoneType = "ucl" | "uel" | "uecl" | "promo" | "promoPo" | "relegPo" | "releg";
 const ZONES: Record<string, { from: number; to: number; type: ZoneType }[]> = {
   EPL: [{ from: 1, to: 4, type: "ucl" }, { from: 5, to: 5, type: "uel" }, { from: 18, to: 20, type: "releg" }],
   LALIGA: [{ from: 1, to: 4, type: "ucl" }, { from: 5, to: 6, type: "uel" }, { from: 18, to: 20, type: "releg" }],
   SERIE_A: [{ from: 1, to: 4, type: "ucl" }, { from: 5, to: 6, type: "uel" }, { from: 18, to: 20, type: "releg" }],
   BUNDESLIGA: [{ from: 1, to: 4, type: "ucl" }, { from: 5, to: 5, type: "uel" }, { from: 6, to: 6, type: "uecl" }, { from: 16, to: 16, type: "relegPo" }, { from: 17, to: 18, type: "releg" }],
   LIGUE_1: [{ from: 1, to: 3, type: "ucl" }, { from: 4, to: 4, type: "uel" }, { from: 5, to: 5, type: "uecl" }, { from: 16, to: 16, type: "relegPo" }, { from: 17, to: 18, type: "releg" }],
+  // J리그 2026-27 (추춘제 첫 시즌, 20팀). J1 은 하위 3팀 강등만 확정 표기 — ACL 배분은 천황배
+  // 결과에 걸려 위치만으로 못 정한다. J2 는 1~2위 자동 승격·3~6위 PO·하위 3팀 강등.
+  // K리그1 2026 은 김천 상무 해체로 순위와 무관하게 김천만 강등되는 특수 시즌이라 넣지 않는다.
+  J1_LEAGUE: [{ from: 18, to: 20, type: "releg" }],
+  J2_LEAGUE: [{ from: 1, to: 2, type: "promo" }, { from: 3, to: 6, type: "promoPo" }, { from: 18, to: 20, type: "releg" }],
 };
 const ZONE_BORDER: Record<ZoneType, string> = {
   ucl: "border-l-blue-500",
   uel: "border-l-orange-400",
   uecl: "border-l-teal-400",
+  promo: "border-l-emerald-500",
+  promoPo: "border-l-lime-400",
   relegPo: "border-l-amber-400",
   releg: "border-l-rose-500",
 };
@@ -39,6 +46,8 @@ const ZONE_DOT: Record<ZoneType, string> = {
   ucl: "bg-blue-500",
   uel: "bg-orange-400",
   uecl: "bg-teal-400",
+  promo: "bg-emerald-500",
+  promoPo: "bg-lime-400",
   relegPo: "bg-amber-400",
   releg: "bg-rose-500",
 };
@@ -46,6 +55,8 @@ const ZONE_LABEL: Record<ZoneType, string> = {
   ucl: "챔피언스리그",
   uel: "유로파리그",
   uecl: "컨퍼런스리그",
+  promo: "승격",
+  promoPo: "승격 PO",
   relegPo: "강등 PO",
   releg: "강등",
 };
