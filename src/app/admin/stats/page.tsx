@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { DailyArea, HourlyBar } from "@/components/charts/StatsChart";
 import LivePresencePanel from "@/components/admin/LivePresencePanel";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
+import { suspiciousSessionIds, concurrentSeries, concurrentByDay } from "@/lib/traffic-filter";
 import { detectDevice, DEVICE_LABEL, type DeviceType } from "@/lib/device-detect";
 import {
   classifyLanding,
@@ -160,36 +161,31 @@ export default async function StatsPage({ searchParams }: Props) {
   const humansRange = rangeRaw.filter((r) => !detectBot(r.userAgent).isBot);
   const botsRange = rangeRaw.filter((r) => detectBot(r.userAgent).isBot);
 
-  // ── 의심 봇(위장 스크레이퍼) 세션 분리 — 2026-07-05 실측: 사람 UA(가짜 Safari)로 매 요청
-  // localStorage 를 초기화해 sessionId 가 전부 1PV 로 남는 크롤러가 체류·이탈률을 오염.
-  // 휴리스틱: 기간 내 PV 1개 + 랜딩 referrer·utm 없음 + 진입 페이지(홈·스코어)가 아닌 상세 랜딩.
-  // 진짜 방문자는 대부분 referrer 를 달고 오거나(검색·SNS) 재방문으로 PV 가 누적된다 —
-  // 북마크로 상세 페이지 1번 본 진짜 사람도 일부 섞이지만(과소집계) 스크레이퍼 오염보다 작다.
-  const ENTRY_PATHS = new Set(["/", "/scores", "/landing"]);
-  const isDesktopLinuxUa = (ua: string | null) => /X11; Linux/.test(ua ?? "");
-  const pvBySid = new Map<string, number>();
-  for (const r of humansRange) {
-    if (r.sessionId) pvBySid.set(r.sessionId, (pvBySid.get(r.sessionId) ?? 0) + 1);
-  }
-  const suspiciousSids = new Set<string>();
-  for (const l of landingRaw) {
-    if (!l.sessionId || l.referrer || l.utmSource) continue;
-    if (detectBot(l.userAgent).isBot) continue;
-    if (pvBySid.get(l.sessionId) !== 1) continue;
-    if (ENTRY_PATHS.has(l.path.split("?")[0])) continue;
-    suspiciousSids.add(l.sessionId);
-  }
-  // 데스크톱 리눅스 UA 도 의심 세션 — 2026-07-22 실측: 구글 referrer 랜딩 73건 중 59건이
-  // 이 UA 였고(전체 랜딩의 1%), 그중 33건의 랜딩이 /leagues/ELITESERIEN 인데 GSC 상 그
-  // 페이지 노출은 0 — 구글에 뜬 적 없는 페이지를 구글에서 클릭할 수 없다 = referrer 위조.
-  // 같은 기간 GSC 실클릭은 6건뿐이라 "구글 유입 79" 는 사실상 전부 이 스크레이퍼였다.
-  // 한국향 소비자 트래픽에서 데스크톱 리눅스는 사실상 없어 판별 신호로 쓴다
-  // (안드로이드는 "Linux; Android" 라 X11 로 걸리지 않는다).
-  for (const r of [...landingRaw, ...humansRange]) {
-    if (r.sessionId && isDesktopLinuxUa(r.userAgent)) suspiciousSids.add(r.sessionId);
-  }
+  // 의심 봇(위장 스크레이퍼) 세션 — 판정 규칙은 lib/traffic-filter 가 단일 출처.
+  // 화면과 세션 안 에이전트가 서로 다른 규칙으로 세던 것을 2026-08-22 에 그리로 합쳤다.
+  const suspiciousSids = suspiciousSessionIds(humansRange, landingRaw);
   // 사람 지표는 의심 봇 제외본으로 계산 (원본 humansRange 는 봇 대비 비율 등에 유지)
   const humansClean = humansRange.filter((r) => !r.sessionId || !suspiciousSids.has(r.sessionId));
+
+  // 동시 접속(고정 창 안의 고유 세션) — heartbeat 는 이력이 없어 PV 로 근사한다.
+  const concFrom = range === "all" ? last30 : range === "30d" ? last30 : last7;
+  const concurrent = concurrentSeries(humansClean, concFrom, now, 5);
+  const concurrentDays = concurrentByDay(concurrent).slice(-14);
+  const concurrentHours = (() => {
+    const per = new Map<number, { sum: number; n: number; peak: number }>();
+    for (const b of concurrent.buckets) {
+      const h = new Date(b.t + 9 * 3_600_000).getUTCHours();
+      const e = per.get(h) ?? { sum: 0, n: 0, peak: 0 };
+      e.sum += b.n;
+      e.n++;
+      if (b.n > e.peak) e.peak = b.n;
+      per.set(h, e);
+    }
+    return Array.from({ length: 24 }, (_, h) => {
+      const e = per.get(h) ?? { sum: 0, n: 0, peak: 0 };
+      return { hour: h, avg: e.n ? e.sum / e.n : 0, peak: e.peak };
+    });
+  })();
 
   // KPI 계산 헬퍼
   const filterRange = (rows: Row[], from: Date, to?: Date) =>
@@ -206,10 +202,13 @@ export default async function StatsPage({ searchParams }: Props) {
     }
     return ids.size;
   };
-  const humanTodayPV = filterRange(humans30 as Row[], today00KST);
-  const humanTodayUnique = uniqueRange(humans30 as Row[], today00KST);
-  const humanYesterdayPV = filterRange(humans30 as Row[], yesterday00KST, today00KST);
-  const humanYesterdayUnique = uniqueRange(humans30 as Row[], yesterday00KST, today00KST);
+  // 오늘·어제도 기간 지표와 같은 기준(의심 봇 제외)으로 센다 — 2026-08-22 이전에는 이 둘만
+  // detectBot 만 적용해, 같은 화면의 "오늘 방문자"와 "기간 방문자"가 다른 기준이었다.
+  // humansClean 은 range 와 무관하게 오늘·어제를 항상 포함한다(rangeRaw 가 ts desc 라 최신은 안 잘림).
+  const humanTodayPV = filterRange(humansClean as Row[], today00KST);
+  const humanTodayUnique = uniqueRange(humansClean as Row[], today00KST);
+  const humanYesterdayPV = filterRange(humansClean as Row[], yesterday00KST, today00KST);
+  const humanYesterdayUnique = uniqueRange(humansClean as Row[], yesterday00KST, today00KST);
   const humanRangePV = humansClean.length;
   const humanRangeUnique = new Set(
     humansClean.map((r) => r.sessionId).filter(Boolean) as string[],
@@ -493,23 +492,9 @@ export default async function StatsPage({ searchParams }: Props) {
   // 의심 봇 휴리스틱의 "기간 내 PV 1개" 판정이 기간 종속이라, 전역 suspiciousSids 대신
   // 각 주 윈도우 기준으로 같은 휴리스틱을 재계산한다 (사람 PV 는 humans30 이 14일을 포함).
   const aggChannelWeek = (from: Date, to: Date) => {
-    const pvBySidWeek = new Map<string, number>();
-    for (const r of humans30) {
-      if (r.ts < from || r.ts >= to || !r.sessionId) continue;
-      pvBySidWeek.set(r.sessionId, (pvBySidWeek.get(r.sessionId) ?? 0) + 1);
-    }
+    const weekHumans = humans30.filter((r) => r.ts >= from && r.ts < to);
     const weekRows = landing14Raw.filter((l) => l.ts >= from && l.ts < to);
-    const suspiciousWeek = new Set<string>();
-    for (const l of weekRows) {
-      if (!l.sessionId || l.referrer || l.utmSource) continue;
-      if (detectBot(l.userAgent).isBot) continue;
-      if (pvBySidWeek.get(l.sessionId) !== 1) continue;
-      if (ENTRY_PATHS.has(l.path.split("?")[0])) continue;
-      suspiciousWeek.add(l.sessionId);
-    }
-    for (const l of weekRows) {
-      if (l.sessionId && isDesktopLinuxUa(l.userAgent)) suspiciousWeek.add(l.sessionId);
-    }
+    const suspiciousWeek = suspiciousSessionIds(weekHumans, weekRows);
     const counts = new Map<TrafficChannel, number>();
     let total = 0;
     for (const l of weekRows) {
@@ -653,6 +638,65 @@ export default async function StatsPage({ searchParams }: Props) {
           <KpiCard label="세션 수" value={sessionCount} sub={`방문자 ${humanRangeUnique.toLocaleString()}명 기준`} />
           <KpiCard label="세션당 PV" value={sessionCount ? (humanRangePV / sessionCount).toFixed(1) : "0"} sub="페이지 깊이" />
         </div>
+
+        <SectionCard
+          title="동시 접속"
+          subtitle={`${concurrent.bucketMinutes}분 창 고유 세션 · ${rangeLabel}`}
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <KpiCard
+              label="피크"
+              value={concurrent.peak}
+              suffix="명"
+              accent
+              sub={
+                concurrent.peakAt
+                  ? `${new Date(concurrent.peakAt.getTime() + 9 * 3_600_000)
+                      .toISOString()
+                      .replace("T", " ")
+                      .slice(5, 16)} KST`
+                  : "—"
+              }
+            />
+            <KpiCard label="평균" value={concurrent.avg.toFixed(1)} suffix="명" sub="빈 시간 포함" />
+            <KpiCard label="중앙값" value={concurrent.median} suffix="명" />
+            <KpiCard label="상위 5%" value={concurrent.p95} suffix="명" sub="붐빌 때 이 정도" />
+          </div>
+          <ConcurrentHourChart hours={concurrentHours} />
+          <div className="mt-5 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                  <th className="py-2 font-medium">날짜 (KST)</th>
+                  <th className="py-2 font-medium text-right">피크</th>
+                  <th className="py-2 font-medium text-right">시각</th>
+                  <th className="py-2 font-medium text-right">평균</th>
+                </tr>
+              </thead>
+              <tbody>
+                {concurrentDays.map((d) => (
+                  <tr key={d.day} className="border-b border-neutral-100 dark:border-neutral-900 last:border-0">
+                    <td className="py-1.5">
+                      {d.day.slice(5)} ({DAY_KO[new Date(`${d.day}T00:00:00Z`).getUTCDay()]})
+                      {d.partial && <span className="ml-1.5 text-[10px] text-neutral-400">부분</span>}
+                    </td>
+                    <td className="py-1.5 text-right font-semibold tabular-nums">{d.peak}</td>
+                    <td className="py-1.5 text-right text-neutral-500 tabular-nums">{d.peakAt}</td>
+                    <td className={`py-1.5 text-right tabular-nums ${d.partial ? "text-neutral-400" : "text-neutral-500"}`}>
+                      {d.avg.toFixed(1)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[11px] text-neutral-500 break-keep">
+            heartbeat(실시간 패널)는 이력을 남기지 않아 과거 구간은 PV 로 근사합니다 — 같은 창 안에
+            PV 를 낸 고유 세션 수(GA 활성 사용자와 같은 정의). 봇 {suspiciousSids.size.toLocaleString()}세션
+            제외 기준은 위 방문자 지표와 동일합니다. &quot;부분&quot; 은 조회 구간에 하루가 다 담기지
+            않은 날 — 평균은 담긴 시간대만의 값이라 다른 날과 직접 비교하지 마세요.
+          </p>
+        </SectionCard>
 
         <SectionCard title="디바이스 분포" subtitle={rangeLabel}>
           {deviceTotal === 0 ? (
@@ -1761,6 +1805,38 @@ function KpiCard({
           {sub}
         </div>
       )}
+    </div>
+  );
+}
+
+const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
+
+/** 시간대별 평균 동시 접속 — 막대 하나가 KST 한 시간. 골든타임을 눈으로 찾으라고 둔다. */
+function ConcurrentHourChart({ hours }: { hours: Array<{ hour: number; avg: number; peak: number }> }) {
+  const max = Math.max(1, ...hours.map((h) => h.avg));
+  return (
+    <div>
+      <div className="flex items-end gap-[3px] h-28">
+        {hours.map((h) => (
+          <div key={h.hour} className="flex-1 flex flex-col justify-end items-center group relative">
+            <div
+              className="w-full rounded-t bg-sky-500/70 group-hover:bg-sky-500 transition-colors"
+              style={{ height: `${Math.max(2, (h.avg / max) * 100)}%` }}
+            />
+            <span className="absolute -top-5 hidden group-hover:block text-[10px] font-semibold whitespace-nowrap">
+              {h.avg.toFixed(1)} / 최대 {h.peak}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-[3px] mt-1">
+        {hours.map((h) => (
+          <span key={h.hour} className="flex-1 text-center text-[9px] text-neutral-400 tabular-nums">
+            {h.hour % 3 === 0 ? h.hour : ""}
+          </span>
+        ))}
+      </div>
+      <p className="mt-1 text-[10px] text-neutral-400 text-center">KST 시간대별 평균 (막대에 올리면 최대값)</p>
     </div>
   );
 }
