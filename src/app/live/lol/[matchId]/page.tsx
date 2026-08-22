@@ -143,8 +143,8 @@ export default async function LolLivePage({ params }: Props) {
       const aw = lAS.wins / lAS.played;
       lolFactors.push({
         label: "시즌 승률",
-        home: hw.toFixed(3),
-        away: aw.toFixed(3),
+        home: `${(hw * 100).toFixed(1)}%`,
+        away: `${(aw * 100).toFixed(1)}%`,
         edge: hw > aw ? "home" : hw < aw ? "away" : "even",
       });
     }

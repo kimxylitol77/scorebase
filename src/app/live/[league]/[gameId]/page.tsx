@@ -982,8 +982,8 @@ export default async function GenericLivePage({ params }: Props) {
       const aw = cAS.wins / cAS.played;
       conclFactors.push({
         label: "시즌 승률",
-        home: hw.toFixed(3),
-        away: aw.toFixed(3),
+        home: `${(hw * 100).toFixed(1)}%`,
+        away: `${(aw * 100).toFixed(1)}%`,
         edge: hw > aw ? "home" : hw < aw ? "away" : "even",
       });
       const hgf = cHS.goalsFor / cHS.played;
