@@ -83,6 +83,7 @@ import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 import { getVenueByOurTeamId, getVenueByTsId } from "@/lib/sports/thesports/venues";
 import { fetchMatchPrediction, fetchTeamSeasonStats, fetchFixtureRound } from "@/lib/sports/api-football-extras";
+import { afMatchRef, afFixtureId } from "@/lib/sports/af-match-ref";
 import { headers } from "next/headers";
 import { detectBot } from "@/lib/bot-detect";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
@@ -361,18 +362,20 @@ export default async function GenericLivePage({ params }: Props) {
     (msFromKickoff > -7 * 86400_000 && msFromKickoff < 48 * 3600_000);
   const afLeagueId = isSoccer ? API_FOOTBALL_LEAGUE_ID[lg] : undefined;
   const afSeason = match.startTime.getUTCFullYear();
-  const homeAfExtId = isSoccer ? match.homeTeam.externalId : null;
-  const awayAfExtId = isSoccer ? match.awayTeam.externalId : null;
-  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer && afRecent && !(await isBotRequest())
+  // ⚠ gameId(=externalId)·팀 externalId 를 af id 로 넘기면 남의 경기·남의 팀이 실려온다.
+  // EPL 은 둘 다 football-data 대역이라 예측 확률·라운드 라벨·팀 시즌 통계가 통째로
+  // 뒤바뀐다(2026-08-22 실측: 예측=독일 U19, 팀통계=Piast Gliwice·Norwich). af-match-ref 참조.
+  const afRef = afMatchRef(match);
+  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer && afRecent && afRef && !(await isBotRequest())
     ? await Promise.all([
-        fetchMatchPrediction(gameId).catch(() => null),
-        afLeagueId && homeAfExtId
-          ? fetchTeamSeasonStats(parseInt(homeAfExtId, 10), afLeagueId, afSeason).catch(() => null)
+        fetchMatchPrediction(afRef.fixtureId).catch(() => null),
+        afLeagueId
+          ? fetchTeamSeasonStats(afRef.homeId, afLeagueId, afSeason).catch(() => null)
           : Promise.resolve(null),
-        afLeagueId && awayAfExtId
-          ? fetchTeamSeasonStats(parseInt(awayAfExtId, 10), afLeagueId, afSeason).catch(() => null)
+        afLeagueId
+          ? fetchTeamSeasonStats(afRef.awayId, afLeagueId, afSeason).catch(() => null)
           : Promise.resolve(null),
-        fetchFixtureRound(gameId).catch(() => null),
+        fetchFixtureRound(afRef.fixtureId).catch(() => null),
       ])
     : [null, null, null, null];
 
@@ -813,7 +816,7 @@ export default async function GenericLivePage({ params }: Props) {
     // + API-Sports 북메이커별 상세. 본문 중복 카드는 SportLiveDetail 에서 제거됨.
     // 종료 48h+ 매치는 af odds 콜도 생략 (위 afRecent 게이트와 동일한 지혈).
     const fixtureOdds = afRecent && /^\d+$/.test(match.externalId)
-      ? await fetchFixtureOdds(match.externalId)
+      ? await fetchFixtureOdds(String(afFixtureId(match) ?? ""))
       : null;
     const liveOddsNode = (
       <BasketballLiveOddsTab

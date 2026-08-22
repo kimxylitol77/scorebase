@@ -2,6 +2,7 @@
 // 우리 Match.externalId 가 api-football fixture id 체계인 리그(J2/남미/MLS 등)는
 // 매핑 없이 그대로 조회 가능. The Odds API 가 못 주는 한국/하위 리그 배당 보완용.
 import "server-only";
+import { afFixtureId } from "@/lib/sports/af-match-ref";
 import { prisma } from "@/lib/db";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 
@@ -89,14 +90,16 @@ export async function backfillApiFootballOdds(): Promise<number> {
       startTime: { gte: new Date(Date.now() - 86400000), lte: new Date(Date.now() + 3 * 86400000) },
       oddsHome: null,
     },
-    select: { id: true, league: true, externalId: true },
+    select: { id: true, league: true, externalId: true, raw: true },
   });
-  const soccer = ms.filter(
-    (m) => SOCCER_LEAGUES.has(m.league as never) && /^\d+$/.test(String(m.externalId)),
-  );
+  // ⚠ externalId 를 af fixture id 로 쓰면 남의 경기 배당이 저장된다 — EPL 등은 externalId 가
+  // football-data 대역이라 af 에서 전혀 다른 경기다(af-match-ref.ts 참조).
+  const soccer = ms
+    .map((m) => ({ m, fid: afFixtureId(m) }))
+    .filter((x) => SOCCER_LEAGUES.has(x.m.league as never) && x.fid != null);
   let ok = 0;
-  for (const m of soccer) {
-    const fo = await fetchFixtureOdds(String(m.externalId));
+  for (const { m, fid } of soccer) {
+    const fo = await fetchFixtureOdds(String(fid));
     if (fo) {
       const o = parseFixtureOdds(fo);
       if (o) {

@@ -1,5 +1,6 @@
 // PREVIEW/RECAP/ANALYSIS 글 상세 — 본문 + AiDisclosure + ExternalSources + JSON-LD.
 import { prisma } from "@/lib/db";
+import { afFixtureId } from "@/lib/sports/af-match-ref";
 import Image from "next/image";
 import Markdown from "@/components/Markdown";
 import InningScoreChart from "@/components/InningScoreChart";
@@ -590,8 +591,9 @@ export default async function ArticlePage({ params }: Props) {
             awayTeam: { id: m.awayTeam.id },
           })
         : Promise.resolve(null),
-      isSoccer && m.status === "SCHEDULED" && /^\d+$/.test(m.externalId)
-        ? fetchFixtureOdds(m.externalId).catch(() => null)
+      // af fixture id 는 헬퍼로 — externalId 가 af id 가 아닌 리그가 있다(af-match-ref.ts)
+      isSoccer && m.status === "SCHEDULED" && afFixtureId(m) != null
+        ? fetchFixtureOdds(String(afFixtureId(m))).catch(() => null)
         : Promise.resolve(null),
       isBaseballLg && m.status === "SCHEDULED"
         ? loadBaseballOdds(m.id).then((r) => r?.odds ?? null).catch(() => null)
