@@ -523,8 +523,10 @@ export default function LivePipScore() {
     window.addEventListener("pointerup", up);
   }
 
-  const body = (
-    <div className="max-h-72 overflow-y-auto p-2">
+  // 분리 창(doc)은 창 높이를 꽉 채우고(고정 max-h 면 창을 키워도 안쪽 스크롤만 남는다 — 2026-08-22),
+  // 인페이지 카드는 종전대로 max-h. @container 로 창 폭이 좁으면(<288px) 리그 칸을 접어 팀명에 폭을 준다.
+  const body = (isDocMode: boolean) => (
+    <div className={`@container p-2 ${isDocMode ? "min-h-0 flex-1 overflow-y-auto" : "max-h-72 overflow-y-auto"}`}>
       {rows.length === 0 ? (
         <p className="px-2 py-6 text-center text-[12px] leading-relaxed text-neutral-500">
           즐겨찾기한 경기가 없어요.
@@ -538,9 +540,11 @@ export default function LivePipScore() {
               key={m.id}
               // 좌(리그)·우(상태) 칸을 같은 고정폭으로 — 리그명이 길어도 가운데
               // 점수 축이 모든 행에서 세로 정렬되게 (auto 폭이면 긴 뱃지가 축을 밀어냄).
-              className={`grid grid-cols-[3.25rem_1fr_auto_1fr_3.25rem] items-center gap-1.5 rounded-lg px-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 ${size === "lg" ? "py-2.5 text-sm" : "py-1.5 text-[12px]"} ${m.state === "done" ? "opacity-60" : ""}`}
+              // 좁은 창(<288px)은 리그 칸 없이 [홈 점수 원정 상태] — 팀명이 리그명보다 먼저다.
+              className={`grid grid-cols-[1fr_auto_1fr_3.25rem] @2xs:grid-cols-[3.25rem_1fr_auto_1fr_3.25rem] items-center gap-1.5 rounded-lg px-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 ${size === "lg" ? "py-2.5 text-sm" : "py-1.5 text-[12px]"} ${m.state === "done" ? "opacity-60" : ""}`}
             >
-              <span className="flex min-w-0 justify-start overflow-hidden">
+              {/* 배지는 한 줄로 자른다 — 3.25rem 안에서 "멕시코 리가 엑스판시온" 이 세 줄로 접히던 것 */}
+              <span className="hidden min-w-0 justify-start overflow-hidden @2xs:flex [&>*]:max-w-full [&>*]:truncate [&>*]:whitespace-nowrap">
                 <LeagueBadge league={m.league} size="sm" />
               </span>
               <span className="truncate text-right font-medium text-neutral-800 dark:text-neutral-200">
@@ -646,9 +650,14 @@ export default function LivePipScore() {
   // Document PiP 모드 — 분리 창의 body 에 포털 렌더 (인페이지 카드는 숨김).
   if (docWin && !docWin.closed) {
     return createPortal(
-      <div className="min-h-screen bg-white dark:bg-neutral-900">
+      <div className="relative flex h-screen flex-col bg-white dark:bg-neutral-900">
         {header(true)}
-        {body}
+        {body(true)}
+        {/* 안쪽 가장자리 리사이즈 핸들 — OS 창 테두리는 잡기 어렵다(사용자 지적: 모서리만 됨).
+            좌·우·아래 8px 띠를 끌면 resizeBy 로 창이 커진다. */}
+        <ResizeEdge win={docWin} side="left" />
+        <ResizeEdge win={docWin} side="right" />
+        <ResizeEdge win={docWin} side="bottom" />
       </div>,
       docWin.document.body,
     );
@@ -673,7 +682,59 @@ export default function LivePipScore() {
           화면 아무 곳이나 클릭하면 미니 창이 다시 밖으로 빠집니다
         </p>
       )}
-      {body}
+      {body(false)}
     </div>
   );
+}
+
+/** 분리 창 안쪽 가장자리 리사이즈 핸들. Document PiP 는 resizeBy/resizeTo 를 user activation 안에서만
+ *  허용한다 — 이동 중 호출이 거부되면 놓는 순간(새 activation) 한 번에 누적분을 적용한다. */
+function ResizeEdge({ win, side }: { win: Window; side: "left" | "right" | "bottom" }) {
+  const horizontal = side !== "bottom";
+  function onDown(e: ReactPointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.screenX;
+    const startY = e.screenY;
+    let applied = 0; // 이동 중 실제 반영된 누적 px
+    let last = 0;
+    const delta = (ev: PointerEvent) =>
+      side === "right" ? ev.screenX - startX : side === "left" ? startX - ev.screenX : ev.screenY - startY;
+    const move = (ev: PointerEvent) => {
+      last = delta(ev);
+      const step = last - applied;
+      if (Math.abs(step) < 4) return;
+      try {
+        if (horizontal) win.resizeBy(step, 0);
+        else win.resizeBy(0, step);
+        applied = last;
+      } catch {
+        // activation 없음 — 놓을 때 한 번에
+      }
+    };
+    const up = (ev: PointerEvent) => {
+      win.removeEventListener("pointermove", move);
+      win.removeEventListener("pointerup", up);
+      win.removeEventListener("pointercancel", up);
+      const rest = delta(ev) - applied;
+      if (Math.abs(rest) >= 4) {
+        try {
+          if (horizontal) win.resizeBy(rest, 0);
+          else win.resizeBy(0, rest);
+        } catch {
+          // 브라우저가 허용하지 않으면 포기 — OS 테두리 리사이즈는 여전히 가능
+        }
+      }
+    };
+    win.addEventListener("pointermove", move);
+    win.addEventListener("pointerup", up);
+    win.addEventListener("pointercancel", up);
+  }
+  const cls =
+    side === "left"
+      ? "left-0 top-0 h-full w-2 cursor-ew-resize"
+      : side === "right"
+        ? "right-0 top-0 h-full w-2 cursor-ew-resize"
+        : "bottom-0 left-0 h-2 w-full cursor-ns-resize";
+  return <div onPointerDown={onDown} className={`absolute z-10 ${cls}`} aria-hidden />;
 }
