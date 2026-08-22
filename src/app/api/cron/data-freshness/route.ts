@@ -788,7 +788,13 @@ export async function GET(req: Request) {
     );
   }
 
-  await recordCronRun("data-freshness", { ok: findings.length === 0, count: findings.length });
+  // ok=false 는 "실행 실패"가 아니라 "결손 발견"이다 — cron 감시가 lastError 를 그대로
+  // 보여주므로 kind 를 남겨야 사후에 무엇이 잡혔는지 알 수 있다(비우면 "원인 미상"으로 뜸).
+  await recordCronRun("data-freshness", {
+    ok: findings.length === 0,
+    count: findings.length,
+    error: findings.length > 0 ? `결손 감지: ${findings.map((f) => f.kind).join(", ")}` : undefined,
+  });
 
   return NextResponse.json({
     ok: findings.length === 0,
