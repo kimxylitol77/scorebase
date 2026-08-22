@@ -14,7 +14,12 @@
 //    .2xl\:…·.max-*) 규칙을 전부 읽어 `!important` 를 붙인 **레이어 밖** <style> 로 다시 주입한다.
 //    Tailwind 4 유틸은 @layer 안에 있어 외부 주입 스타일에 항상 지는데, 레이어 밖 + !important 는
 //    그보다 세다. 열거가 아니라 실제 규칙을 복사하므로 임의값(grid-cols-[…])도 그대로 따라온다.
-// 3. 세션당 1회 /api/track/error 에 layout 비콘 — 어느 환경에서 얼마나 나는지 운영진이 본다.
+// 3. 그래도 안 고쳐지면(간섭이 자기 스타일을 맨 뒤에 다시 붙이거나 user-origin 이라 author 보다 센 경우)
+//    **인라인 !important** 로 간다.
+//    깨진 브레이크포인트 클래스를 가진 요소를 찾아 `el.style.setProperty(prop, val, "important")`.
+//    인라인 important 는 어떤 author 규칙보다 세다. 동적으로 생기는 요소는 MutationObserver 로 따라가고,
+//    창이 좁아져 브레이크포인트가 풀리면 되돌린다. 같은 속성의 더 큰 브레이크포인트 클래스가 있으면 건너뛴다.
+// 4. 세션당 1회 /api/track/error 에 layout 비콘 — 어느 환경에서 얼마나 나는지·어느 단계에서 고쳐졌는지.
 //
 // 정상 환경에서는 탐침 한 번(수 ms)으로 끝나고 아무것도 주입하지 않는다.
 import { useEffect } from "react";
@@ -33,8 +38,111 @@ const PROBES = (bp: string): Array<[string, string, string]> => [
   [`block ${bp}:hidden`, "display", "none"],
 ];
 
+// 인라인 강제용 — computed 속성명 → CSS 속성명, 같은 속성군 클래스 접두(더 큰 브레이크포인트 충돌 검사용)
+const PROP_META: Record<string, { css: string; family: string[] }> = {
+  flexDirection: { css: "flex-direction", family: ["flex-row", "flex-col", "flex-row-reverse", "flex-col-reverse"] },
+  display: { css: "display", family: ["block", "hidden", "flex", "grid", "inline", "inline-block", "inline-flex", "contents", "table"] },
+};
+
+type Enforce = { bp: string; query: string; token: string; prop: string; css: string; value: string };
+const active: Enforce[] = [];
+let observer: MutationObserver | null = null;
+
+/** 깨진 탐침 → 강제 항목. 탐침 클래스 중 ':' 가 든 토큰이 브레이크포인트 유틸이다. */
+function toEnforce(failed: string[]): Enforce[] {
+  const out: Enforce[] = [];
+  for (const f of failed) {
+    const cls = f.split("→")[0]!;
+    const token = cls.split(" ").find((t) => t.includes(":"));
+    if (!token) continue;
+    const bp = token.split(":")[0]!;
+    const query = BREAKPOINTS.find(([b]) => b === bp)?.[1];
+    if (!query) continue;
+    for (const [pc, prop, want] of PROBES(bp)) {
+      if (pc !== cls) continue;
+      const meta = PROP_META[prop];
+      if (meta && !out.some((e) => e.token === token)) out.push({ bp, query, token, prop, css: meta.css, value: want });
+    }
+  }
+  return out;
+}
+
+/** 활성 강제 항목을 현재 DOM·현재 폭에 적용(또는 해제). */
+function applyEnforce() {
+  for (const e of active) {
+    const on = window.matchMedia(e.query).matches;
+    const meta = PROP_META[e.prop]!;
+    const higher = BREAKPOINTS.filter(([b, q]) => b !== e.bp && BREAKPOINTS.findIndex(([x]) => x === b) > BREAKPOINTS.findIndex(([x]) => x === e.bp) && window.matchMedia(q).matches).map(([b]) => b);
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>(`[class~="${e.token}"]`))) {
+      const tokens = el.className.split(/\s+/);
+      // 더 큰 브레이크포인트에서 같은 속성을 다시 바꾸는 클래스가 있으면 그쪽이 맞다 — 건드리지 않는다
+      const overridden = higher.some((hb) => tokens.some((t) => t.startsWith(hb + ":") && meta.family.includes(t.slice(hb.length + 1))));
+      if (on && !overridden) {
+        if (el.style.getPropertyValue(e.css) !== e.value) el.style.setProperty(e.css, e.value, "important");
+        el.setAttribute("data-sb-enforced", "1");
+      } else if (el.hasAttribute("data-sb-enforced")) {
+        el.style.removeProperty(e.css);
+        el.removeAttribute("data-sb-enforced");
+      }
+    }
+  }
+}
+
+/** 원인 추적용 진단 한 줄 — 인라인(일반/important)이 먹는지 + 우리 것 아닌 스타일시트 목록. */
+function diagnose(bp: string): string {
+  const host = document.createElement("div");
+  host.style.cssText = "position:absolute;left:-9999px;top:0;width:10px;height:10px;overflow:hidden;";
+  document.body.appendChild(host);
+  try {
+    const a = document.createElement("div");
+    a.className = `flex flex-col ${bp}:flex-row`;
+    a.style.flexDirection = "row";
+    host.appendChild(a);
+    const b = document.createElement("div");
+    b.className = `flex flex-col ${bp}:flex-row`;
+    b.style.setProperty("flex-direction", "row", "important");
+    host.appendChild(b);
+    const inl = `inline=${getComputedStyle(a).flexDirection}/imp=${getComputedStyle(b).flexDirection}`;
+    const sheets = Array.from(document.styleSheets)
+      .filter((sh) => !(sh.href && sh.href.startsWith(location.origin + "/_next/")))
+      .map((sh) => {
+        const n = sh.ownerNode as Element | null;
+        const id = n ? `${n.tagName.toLowerCase()}${n.id ? "#" + n.id : ""}${n.getAttribute("data-precedence") ? "[next]" : ""}` : "?";
+        return (sh.href ? sh.href.replace(/^https?:\/\//, "").slice(0, 40) : id) + (n?.textContent ? `(${n.textContent.length})` : "");
+      });
+    return `${inl} · sheets=[${sheets.join("|").slice(0, 200)}] · adopted=${document.adoptedStyleSheets?.length ?? 0}`;
+  } finally {
+    host.remove();
+  }
+}
+
 const RESPONSIVE_SELECTOR = /\.(?:sm|md|lg|xl|2xl|max-sm|max-md|max-lg|max-xl|max-2xl)\\:/;
 const STYLE_ID = "sb-responsive-repair";
+
+/** 우리 /_next CSS 에 실제로 존재하는 셀렉터 집합 — Tailwind 는 쓰인 클래스만 생성하므로,
+ *  없는 클래스를 탐침하면 "깨짐"으로 오탐한다(2026-08-22 코드에 없는 md 변형을 탐침해 오탐 3건 실측). */
+let knownSelectors: Set<string> | null = null;
+function collectKnownSelectors(): Set<string> {
+  if (knownSelectors) return knownSelectors;
+  const set = new Set<string>();
+  const walk = (rules: CSSRuleList) => {
+    for (const r of Array.from(rules)) {
+      if (r instanceof CSSStyleRule) set.add(r.selectorText);
+      else if ("cssRules" in r) walk((r as CSSGroupingRule).cssRules);
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    if (!sheet.href || !sheet.href.startsWith(location.origin + "/_next/")) continue;
+    try {
+      walk(sheet.cssRules);
+    } catch {
+      // 읽기 실패는 건너뛴다
+    }
+  }
+  knownSelectors = set;
+  return set;
+}
+const tokenExists = (token: string) => collectKnownSelectors().has("." + token.replace(":", "\\:"));
 
 function probe(): string[] {
   const failed: string[] = [];
@@ -45,6 +153,8 @@ function probe(): string[] {
     for (const [bp, query] of BREAKPOINTS) {
       if (!window.matchMedia(query).matches) continue;
       for (const [cls, prop, want] of PROBES(bp)) {
+        const token = cls.split(" ").find((t) => t.includes(":"))!;
+        if (!tokenExists(token)) continue; // CSS 에 없는 클래스는 검사 대상이 아니다
         const el = document.createElement("div");
         el.className = cls;
         host.appendChild(el);
@@ -98,34 +208,64 @@ function collectResponsiveRules(): string {
 export default function ResponsiveGuard() {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let verifyTimer: ReturnType<typeof setTimeout> | undefined;
+    const escalate = (failed: string[]) => {
+      for (const e of toEnforce(failed)) if (!active.some((x) => x.token === e.token)) active.push(e);
+      applyEnforce();
+      if (!observer) {
+        let t: ReturnType<typeof setTimeout> | undefined;
+        observer = new MutationObserver(() => {
+          clearTimeout(t);
+          t = setTimeout(applyEnforce, 100);
+        });
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+      }
+    };
+    const beacon = (failed: string[], after: string[], stage: string) => {
+      if (sessionStorage.getItem("responsive-guard-sent")) return;
+      sessionStorage.setItem("responsive-guard-sent", "1");
+      const bp = after[0]?.split(" ").find((x) => x.includes(":"))?.split(":")[0] ?? "sm";
+      fetch("/api/track/error", {
+        method: "POST",
+        keepalive: true,
+        body: JSON.stringify({
+          kind: "layout",
+          path: location.pathname + location.search,
+          message: `responsive-dropout ${failed.join(", ")} · stage=${stage} cssRepaired=${after.length === 0} · ${innerWidth}px · ${navigator.userAgent.slice(0, 120)} · ${after.length ? diagnose(bp) : ""}`,
+        }),
+      }).catch(() => {});
+    };
     const run = () => {
       try {
         if (navigator.webdriver || /HeadlessChrome|bot|spider|crawl/i.test(navigator.userAgent)) return;
         const failed = probe();
-        if (!failed.length) return;
-        if (!document.getElementById(STYLE_ID)) {
-          const css = collectResponsiveRules();
-          if (css) {
-            const st = document.createElement("style");
-            st.id = STYLE_ID;
-            st.textContent = css;
-            document.head.appendChild(st);
-          }
-          // 복구 뒤 재탐침 — 비콘에 "고쳐졌는지"까지 싣는다.
-          const after = probe();
-          if (!sessionStorage.getItem("responsive-guard-sent")) {
-            sessionStorage.setItem("responsive-guard-sent", "1");
-            fetch("/api/track/error", {
-              method: "POST",
-              keepalive: true,
-              body: JSON.stringify({
-                kind: "layout",
-                path: location.pathname + location.search,
-                message: `responsive-dropout ${failed.join(", ")} · repaired=${after.length === 0} · ${innerWidth}px · ${navigator.userAgent.slice(0, 160)}`,
-              }),
-            }).catch(() => {});
-          }
+        if (!failed.length) {
+          if (active.length) applyEnforce(); // 복구 모드에서 폭이 바뀐 경우 강제 항목 갱신
+          return;
         }
+        if (document.getElementById(STYLE_ID)) {
+          // CSS 단계는 이미 했는데 또 실패 — 바로 인라인 단계
+          escalate(failed);
+          return;
+        }
+        const css = collectResponsiveRules();
+        if (css) {
+          const st = document.createElement("style");
+          st.id = STYLE_ID;
+          st.textContent = css;
+          document.head.appendChild(st);
+        }
+        // 재검증은 잠시 뒤에 — 간섭이 우리 스타일 뒤에 자기 것을 다시 붙이는 경우를 잡기 위해.
+        clearTimeout(verifyTimer);
+        verifyTimer = setTimeout(() => {
+          try {
+            const after = probe();
+            if (after.length) escalate(after);
+            beacon(failed, after, after.length ? "inline" : "css");
+          } catch {
+            // 가드가 화면을 깨면 안 된다
+          }
+        }, 500);
       } catch {
         // 가드가 화면을 깨면 안 된다
       }
@@ -139,7 +279,10 @@ export default function ResponsiveGuard() {
     window.addEventListener("resize", onResize);
     return () => {
       clearTimeout(timer);
+      clearTimeout(verifyTimer);
       window.removeEventListener("resize", onResize);
+      observer?.disconnect();
+      observer = null;
     };
   }, []);
   return null;

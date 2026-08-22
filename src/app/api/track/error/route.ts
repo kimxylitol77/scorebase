@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
   let message = "", digest = "", path = "", kind = "";
   try {
     const j = JSON.parse(await req.text());
-    message = String(j?.message ?? "").slice(0, 300);
+    // layout 비콘(ResponsiveGuard)은 진단 문자열이 길다 — 원인 추적용이라 더 허용
+    message = String(j?.message ?? "").slice(0, String(j?.kind ?? "") === "layout" ? 700 : 300);
     digest = String(j?.digest ?? "").slice(0, 60);
     path = String(j?.path ?? "").slice(0, 200);
     kind = String(j?.kind ?? "").slice(0, 20);
