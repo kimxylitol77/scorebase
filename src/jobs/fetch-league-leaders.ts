@@ -173,6 +173,11 @@ const SOCCER_LEAGUES = [
   "BOSNIA_PL", "UAE_PL", "LEAGUES_CUP", "LUXEMBOURG_ND",
   "ALBANIA_SL", "CYPRUS_1D", "HNL", "ISRAEL_PL", "QATAR_SL", "THAI_L1",
   "AZERBAIJAN_PL", "SINGAPORE_PL", "IRAQ_SL",
+  // 2026-08-22 국내컵 — 리그 페이지 통계 탭에 컵 득점왕을 내기 위해 등록. ts 실측(행·득점자):
+  // EFL컵 1425·85, 스코 리그컵 1029·187, 코파 델 레이 2811·299(아직 2025-26 current),
+  // 코파 이탈리아 877·56, DFB 포칼 160·14, 쿠프 드 프랑스 3450·301(2025-26), CONCACAF 챔스 695·90.
+  // FA컵·천황배는 has_player_stats=0, AFC_CUP 은 2023-24 에 멈춰 제외.
+  "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE", "CONCACAF_CCUP",
 ];
 
 // ts 시즌 선수통계를 리그 1콜로 직접 받는 리그 (2026-08-02 도입).
@@ -215,6 +220,11 @@ const TS_PLAYER_STAT_LEAGUES = new Set([
   "BOSNIA_PL", "UAE_PL", "LEAGUES_CUP", "LUXEMBOURG_ND",
   "ALBANIA_SL", "CYPRUS_1D", "HNL", "ISRAEL_PL", "QATAR_SL", "THAI_L1",
   "AZERBAIJAN_PL", "SINGAPORE_PL", "IRAQ_SL",
+  // 2026-08-22 국내컵 — 리그 페이지 통계 탭에 컵 득점왕을 내기 위해 등록. ts 실측(행·득점자):
+  // EFL컵 1425·85, 스코 리그컵 1029·187, 코파 델 레이 2811·299(아직 2025-26 current),
+  // 코파 이탈리아 877·56, DFB 포칼 160·14, 쿠프 드 프랑스 3450·301(2025-26), CONCACAF 챔스 695·90.
+  // FA컵·천황배는 has_player_stats=0, AFC_CUP 은 2023-24 에 멈춰 제외.
+  "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE", "CONCACAF_CCUP",
   "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
   "RUSSIA_FNL", "ROMANIA_L2",
@@ -251,6 +261,7 @@ export function currentSoccerSeason(league: string): { season: number; label: st
     "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
     "ASEAN_CHAMP", // ts 시즌 year "2026" 실측 — 단기 국대 토너먼트라 달력연도 라벨
     "IRELAND_2", "LEAGUES_CUP", // 2026-08-16 3차 — ts year "2026" 실측 (ts 메타 라벨의 폴백용)
+    "CONCACAF_CCUP", // 2026-08-22 — ts year "2026" 실측 (폴백용)
 
     // 2026-08-02 확장 리그 중 달력연도 시즌 (af /leagues 의 현시즌 start~end 실측 분류).
     // 중미 아페르투라(7~11월)·페로/중국/우즈벡(봄~가을)·파나마·코파 두 브라질이 여기 해당.

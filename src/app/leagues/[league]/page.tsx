@@ -590,6 +590,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         ),
       )
     : [];
+  // 컵 선수 순위 — 리더보드 행이 있는 컵만 통계 탭을 연다(DFB 포칼·EFL컵 등, fetch-league-leaders 가 채움).
+  const cupHasLeaders =
+    CUP_LEAGUES.has(upper) && (await prisma.leagueLeader.count({ where: { league: upper } })) > 0;
   const cupViews: ViewKey[] = [
     // 조별리그·리그페이즈가 있는 컵은 순위표가 의미 있다 — CUP_LEAGUES 를 "1라운드부터 녹아웃"
     // 으로만 가정하면 LEAGUES_CUP(A~D조)·UEFA_WCL(리그페이즈)이 일정 탭을 얻는 대신 이미 잘
@@ -597,20 +600,29 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     ...(!NO_TABLE_LEAGUES.has(upper) ? (["standings"] as ViewKey[]) : []),
     ...(cupRounds.length > 0 ? (["bracket"] as ViewKey[]) : []),
     "fixtures",
+    ...(cupHasLeaders ? (["stats"] as ViewKey[]) : []),
     ...(((championsData as Record<string, { champions: unknown[] }>)[upper]?.champions?.length ?? 0) > 0
       ? (["history"] as ViewKey[])
       : []),
     "articles",
   ];
-  const dataViews: ViewKey[] = isSoccer
+  const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
+  const dataViewsAll: ViewKey[] = isSoccer
     ? [...VIEW_KEYS]
     : CUP_LEAGUES.has(upper)
       ? cupViews
       : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
+  // 글이 한 건도 없는 리그는 글 탭을 빼 빈 목록으로 가는 길을 없앤다. 데이터 탭이 하나도 없는
+  // 리그는 글 탭이 유일한 화면이라 남긴다(빈 안내가 404 보다 낫다).
+  const dataViews: ViewKey[] =
+    totalAll === 0 && dataViewsAll.some((v) => v !== "articles")
+      ? dataViewsAll.filter((v) => v !== "articles")
+      : dataViewsAll;
   const hasDataTabs = dataViews.some((v) => v !== "articles");
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
-  const leaderboard = (isSoccer || upper === "NHL") && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
+  const showStats = isSoccer || upper === "NHL" || cupHasLeaders;
+  const leaderboard = showStats && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
   // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
   // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).
   // 둘 다 "준비 안 됨"이 아니라 언제부터 집계되는지 + 지난 시즌 기록을 접기로 함께 준다.
@@ -626,7 +638,6 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const lastSeasonLeaders = leaderPending ? await loadLeagueLeaderboard(upper, leaderboard!.staleSeason!) : null;
   const hasLastSeasonLeaders = Object.keys(lastSeasonLeaders?.rowsByCategory ?? {}).length > 0;
 
-  const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
   for (const c of countsByType) {
     // TACTICAL(감독 전술 연구)은 분석 탭에 합산 — 목록 where 와 동일 기준 (탭 카운트만 2로 남던 문제)
@@ -814,7 +825,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           )}
         </div>
       )}
-      {(isSoccer || upper === "NHL") && view === "stats" && leaderboard && (
+      {showStats && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {leaderPending ? (
             <div className="space-y-4">
