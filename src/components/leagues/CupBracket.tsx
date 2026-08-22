@@ -25,6 +25,13 @@ export default function CupBracket({
     );
   }
   return (
+    <div className="space-y-3">
+      {/* 기둥이 하나면 트리로 안 보인다 — 왜 한 줄 목록인지 말해준다(DFB 포칼 1라운드 32경기, 2026-08-22). */}
+      {rounds.length === 1 && (
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 break-keep px-1">
+          {rounds[0].ko} 진행 중 · 다음 라운드 대진이 정해지면 오른쪽에 이어 붙어 트리가 됩니다.
+        </p>
+      )}
     <div className="overflow-x-auto -mx-4 sm:mx-0">
       <div className="px-4 sm:px-0 flex gap-3 sm:gap-4 min-w-max">
         {rounds.map((r) => (
@@ -43,6 +50,7 @@ export default function CupBracket({
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 }
