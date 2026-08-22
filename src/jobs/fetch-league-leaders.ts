@@ -142,8 +142,8 @@ const SOCCER_LEAGUES = [
   "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD",
   "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
-  // 2026-08-02 확장 리그 — 소스는 전부 ts(TS_PLAYER_STAT_LEAGUES). 표본 얕은 리그는
-  // MIN_LEADERS 게이트가 알아서 skip 하므로 개막 직후에도 빈 카테고리가 나가지 않는다.
+  // 2026-08-02 확장 리그 — 소스는 전부 ts(TS_PLAYER_STAT_LEAGUES). 값 0 행은 필터가
+  // 걸러내므로 기록이 아예 없는 리그는 카테고리 자체가 안 나간다(빈 표 방지).
   "WALES_PL", "MONTENEGRO_1L", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
   "RUSSIA_FNL", "ROMANIA_L2",
@@ -324,7 +324,14 @@ async function syncSoccerCategory(
 }
 
 // 카테고리별 리더가 이 수 미만이면 커버리지 부족으로 보고 skip (기존 데이터 보존).
-const MIN_LEADERS = 5;
+//
+// 2026-08-22 5 → 1. 이 하한이 막던 두 가지를 이제 다른 장치가 맡는다.
+//   - 0값 쓰레기 표 → 위아래 경로 모두 값 > 0 필터를 먼저 통과시킨다.
+//   - "얕은 새 시즌 표가 지난 시즌을 밀어냄" → 표시층의 시즌 라벨 가드
+//     (lib/sports/current-season-label.ts)가 지난 시즌을 접기로 따로 보존한다.
+// 하한만 남으니 개막전 1경기를 치른 리그가 "시작했는데 통계가 빈" 상태로 며칠 방치됐다
+// (2026-08-22 사용자 신고 — EPL·리그1 개막 이튿날 득점자 3명이 게이트에 걸려 skip).
+const MIN_LEADERS = 1;
 
 type PlayerNameOverride = { nameKo?: string };
 
