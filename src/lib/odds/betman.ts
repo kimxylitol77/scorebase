@@ -181,3 +181,60 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
   }
   return out;
 }
+
+/** 경기 상세용 — 우리 경기(팀 id + 킥오프)에 해당하는 베트맨 승무패 한 줄. 없으면 null. */
+export interface BetmanMatchLine {
+  winAllot: number;
+  drawAllot: number | null;
+  loseAllot: number;
+  /** 국내 구매자 투표 비율(%) — 투표 합이 0 이면 null */
+  votePct: { win: number; draw: number | null; lose: number } | null;
+  gameDate: string;
+  gmTs: number;
+}
+
+export async function getBetmanLineForMatch(
+  homeTeamId: number,
+  awayTeamId: number,
+  startTime: Date,
+): Promise<BetmanMatchLine | null> {
+  // 사전 역인덱스: Team.id → 베트맨 표기들 (한 팀이 여러 표기를 가질 수 있다)
+  const homeNames = new Set<string>();
+  const awayNames = new Set<string>();
+  for (const [name, id] of Object.entries(TEAM_MAP)) {
+    if (id === homeTeamId) homeNames.add(name);
+    if (id === awayTeamId) awayNames.add(name);
+  }
+  if (homeNames.size === 0 || awayNames.size === 0) return null;
+  const rows = await prisma.betmanOdds.findMany({
+    where: {
+      itemCode: "SC",
+      betTypNm: { in: [...BASE_TYPES] },
+      homeName: { in: [...homeNames] },
+      awayName: { in: [...awayNames] },
+      gameDate: {
+        gte: new Date(startTime.getTime() - 3 * 3600 * 1000),
+        lte: new Date(startTime.getTime() + 3 * 3600 * 1000),
+      },
+      winAllot: { not: null },
+    },
+    orderBy: { gmTs: "desc" },
+    take: 1,
+    select: {
+      gmTs: true, gameDate: true, winAllot: true, drawAllot: true, loseAllot: true,
+      winVotes: true, drawVotes: true, loseVotes: true,
+    },
+  });
+  const r = rows[0];
+  if (!r || r.winAllot == null || r.loseAllot == null) return null;
+  const w = r.winVotes ?? 0, d = r.drawVotes ?? 0, l = r.loseVotes ?? 0;
+  const tot = w + d + l;
+  return {
+    winAllot: r.winAllot,
+    drawAllot: r.drawAllot,
+    loseAllot: r.loseAllot,
+    votePct: tot > 0 ? { win: (w / tot) * 100, draw: r.drawVotes != null ? (d / tot) * 100 : null, lose: (l / tot) * 100 } : null,
+    gameDate: r.gameDate.toISOString(),
+    gmTs: r.gmTs,
+  };
+}
