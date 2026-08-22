@@ -58,9 +58,8 @@ export interface MatchCardProps {
   /** 축구 골 list (분 + 선수) — 라이브/종료 매치에 표시 */
   soccerGoals?: SoccerGoal[] | null;
   soccerCards?: SoccerCard[] | null;
-  /** 축구 팀 통계(점유율·슈팅 등) — 풀타임 / 전반. 내 경기 카드에 행 툴팁과 같은 바 표시 */
+  /** 축구 팀 통계(점유율·슈팅 등) — 풀타임. 내 경기 카드에 행 툴팁과 같은 바 표시 */
   soccerTeamStats?: SoccerTeamStat[] | null;
-  soccerHalfStats?: SoccerTeamStat[] | null;
   soccerCtx?: SoccerContext | null;
   esportsCtx?: EsportsContext | null;
   /** 야구 선발투수 */
@@ -217,7 +216,6 @@ export default function MatchCard(props: MatchCardProps) {
     periodLinescore,
     soccerGoals,
     soccerTeamStats,
-    soccerHalfStats,
     soccerCtx,
     esportsCtx,
     homeStarter,
@@ -519,16 +517,10 @@ export default function MatchCard(props: MatchCardProps) {
           <SoccerGoals goals={soccerGoals} />
         </div>
       )}
-      {/* 축구 팀 통계 — 라이브/종료. 점유율·슈팅·코너·카드 바 + 전반전 (행 hover 툴팁과 동일 블록) */}
+      {/* 축구 팀 통계 — 라이브/종료. 풀타임 점유율·슈팅·코너·카드 바만 (전반전은 카드가 너무 커져 제외, 2026-08-22 사용자) */}
       {(isLive || isFinished) && soccerTeamStats && soccerTeamStats.length > 0 && (
-        <div className="px-3.5 sm:px-4 py-2 border-t border-[var(--score-border)] space-y-2">
+        <div className="px-3.5 sm:px-4 py-2 border-t border-[var(--score-border)]">
           <StatBars stats={soccerTeamStats} />
-          {soccerHalfStats && soccerHalfStats.length > 0 && (
-            <div className="pt-1.5 border-t border-dashed border-[var(--score-border)]">
-              <div className="text-center text-[9px] text-neutral-400 mb-1">전반전</div>
-              <StatBars stats={soccerHalfStats} />
-            </div>
-          )}
         </div>
       )}
 
