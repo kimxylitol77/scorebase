@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   // 로컬 dev·worktree 서버는 .env.local 공유로 텔레그램 발송이 가능해
@@ -31,6 +32,17 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
+
+  // DB 에 먼저 보관 — 운영진이 텔레그램 없이도 세션 단위로 훑을 수 있게. 실패해도 비콘은 성공 처리.
+  try {
+    await prisma.clientReport.create({
+      data: { kind, path, message, ua: (req.headers.get("user-agent") ?? "").slice(0, 200) },
+    });
+  } catch (e) {
+    console.error("[track/error] store failed", e);
+  }
+  // layout(ResponsiveGuard) 은 발생량이 많아 텔레그램으로 보내지 않는다 — DB 에서 집계해 본다.
+  if (kind === "layout") return NextResponse.json({ ok: true });
 
   await sendTelegram(
     [

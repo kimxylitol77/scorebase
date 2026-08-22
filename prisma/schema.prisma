@@ -1821,3 +1821,16 @@ model SubImpactCache {
   data      Json
   updatedAt DateTime @updatedAt
 }
+
+/// 클라이언트 비콘 보관 — /api/track/error 가 받은 레이아웃 감지·런타임 에러 (2026-08-22).
+/// 텔레그램만으로는 쌓이지 않아 운영진이 세션을 못 본다 — layout 류는 여기만 쓰고 알림은 안 보낸다.
+model ClientReport {
+  id        Int      @id @default(autoincrement())
+  kind      String // "layout" | "" (런타임 에러)
+  path      String
+  message   String
+  ua        String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([kind, createdAt])
+}
