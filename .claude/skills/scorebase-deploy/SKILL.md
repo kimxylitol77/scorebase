@@ -90,10 +90,27 @@ EOF
 ### 5. Push
 
 ```bash
-cd /Users/kimss/scorebase && git push origin main 2>&1 | tail -5
+cd /Users/kimss/scorebase && for i in 1 2 3; do
+  git fetch origin main -q
+  git -c rebase.autoStash=true rebase origin/main || { git rebase --abort; echo "rebase 충돌 — 수동 확인 필요"; break; }
+  git push origin HEAD:main && { echo "✓ push 성공"; break; }
+  echo "  거부 (시도 $i) — 재시도"; sleep 5
+done
+git fetch origin main -q; git rev-list --count origin/main..HEAD   # ← 반드시 0
 ```
 
 **main 직접 push 가 패턴**. PR 만들지 말 것. `gh pr create` 호출 X.
+
+⚠️ **`git push` 에 `| tail` 같은 파이프를 붙이지 말 것.** 파이프라인의 exit code 는 마지막
+명령(tail)의 것이라 **push 가 거부돼도 성공으로 읽힌다.** 2026-08-22 실측 — 커밋 5건이
+"push 성공"으로 보고됐는데 origin 에 없었다(다른 세션이 먼저 push 해 non-fast-forward 거부).
+판정은 `if git push ...; then` 처럼 **exit code 로** 하고, 끝나면 위 `rev-list --count` 가
+0 인지 **눈으로 확인**한다. 봇용 공용 함수 `mac-mini-worker/git-push-lib.sh` 도 같은 원칙이다.
+
+세션이 길어 다른 세션과 같은 파일을 만졌다면 rebase 충돌이 난다. **어느 쪽 구현이 나은지
+먼저 읽고** 정할 것 — 상대가 더 정교하면 `git rebase --skip` 으로 내 커밋을 버리는 게 맞다.
+`autoStash` 는 필수다 — 다른 잡이 갱신한 `data/*.json` 같은 unstaged 변경이 하나라도 있으면
+rebase 가 **시작조차 못 하고** 거부되는데, 이게 진짜 충돌과 구분 없이 보고되면 오진한다.
 
 ### 6. Production 검증 (선택)
 

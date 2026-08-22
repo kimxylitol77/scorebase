@@ -123,6 +123,10 @@ curl -s -H "Authorization: Bearer $TOKEN" https://www.scorebase.kr/api/internal/
 
 5. **push** — `git push origin main`. PR 만들지 않음. main 직접 push 가 패턴.
 
+   ⚠️ **`| tail` 같은 파이프를 붙이지 말 것** — exit code 가 tail 것이 되어 거부를 성공으로 읽는다.
+   판정은 `if git push ...; then`, 끝나면 `git rev-list --count origin/main..HEAD` 가 0 인지 확인.
+   거부되면 `git fetch origin main && git rebase origin/main` 후 재시도(scorebase-deploy 5단계 참조).
+
 ### 6. Follow-up 기록
 
 이번 fix 로 다 해결 안 되거나 다음 시즌에 다시 봐야 할 작업이 있으면:
