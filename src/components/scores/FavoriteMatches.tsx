@@ -212,6 +212,13 @@ export default function FavoriteMatches({ matches }: Props) {
         <span className="text-[11px] text-neutral-400 tabular-nums">
           {fav.length}경기 · {sportOrder.length}종목
         </span>
+        <a
+          href="/account#favorites"
+          className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+          title="마이페이지 — 즐겨찾기 경기·팀·알림 설정"
+        >
+          관리 →
+        </a>
         <div className="ml-auto flex items-center gap-1.5">
           {/* 킥오프 푸시 알림 — 비회원 OK, 미지원 브라우저에선 자동 숨김 */}
           <PushAlertToggle />

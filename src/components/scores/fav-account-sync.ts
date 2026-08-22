@@ -19,6 +19,7 @@ import {
   type FavMeta,
 } from "./useFavorites";
 import { replaceFavTeams, readFavTeams, type FavTeam } from "./useFavoriteTeams";
+import { replaceFavLeagues, readFavLeagues } from "./useFavoriteLeagues";
 
 const OWNER_KEY = "scorebase:fav-owner";
 
@@ -150,17 +151,20 @@ async function doSync(nickname: string | null): Promise<void> {
     if (owner) {
       replaceFavMatches([], {});
       replaceFavTeams([]);
+      replaceFavLeagues([]);
       writeOwner(null);
     }
     return; // owner 도 없으면 익명 로컬 즐겨찾기 — 그대로 둔다
   }
 
   // 로그인 — 그 계정의 서버 팔로우를 내려받는다. 실패 시 owner 미변경으로 중단(다음 확정 때 재시도).
-  const [matchRes, teamRes] = await Promise.all([
+  const [matchRes, teamRes, leagueRes] = await Promise.all([
     getJson<{ matchIds?: number[] }>("/api/favorites/matches"),
     getJson<{ teamIds?: string[] }>("/api/favorites/teams"),
+    getJson<{ leagues?: string[] }>("/api/favorites/leagues"),
   ]);
   if (!matchRes || !teamRes) return;
+  const serverLeagues = (leagueRes?.leagues ?? []).filter((x): x is string => typeof x === "string");
   const serverMatchIds = (matchRes.matchIds ?? []).map(String);
   const serverTeamIds = (teamRes.teamIds ?? [])
     .map(Number)
@@ -171,6 +175,7 @@ async function doSync(nickname: string | null): Promise<void> {
     const meta = await buildMatchMeta(serverMatchIds);
     replaceFavMatches(serverMatchIds, meta);
     replaceFavTeams(await buildTeams(serverTeamIds, []));
+    replaceFavLeagues(serverLeagues);
     writeOwner(nickname);
     return;
   }
@@ -184,11 +189,14 @@ async function doSync(nickname: string | null): Promise<void> {
   const pulled = await buildMatchMeta(matchIds);
   replaceFavMatches(matchIds, { ...pulled, ...readFavMeta() }); // 로컬 스냅샷(ts- 포함) 우선
   replaceFavTeams(await buildTeams(teamIds, localTeams));
+  const leagues = [...new Set([...readFavLeagues(), ...serverLeagues])];
+  replaceFavLeagues(leagues);
   writeOwner(nickname);
 
   // 합집합을 서버에도 반영 — 숫자 id 만 저장되는 건 라우트가 걸러준다.
   putJson("/api/favorites/matches", { matchIds });
   putJson("/api/favorites/teams", { teamIds });
+  putJson("/api/favorites/leagues", { leagues });
 }
 
 // 동시 실행 가드 — 진행 중이면 마지막 요청만 보관했다가 끝나고 이어서 처리.

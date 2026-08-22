@@ -80,7 +80,7 @@ export default function FavoriteSummary() {
   const list = [...ids];
 
   return (
-    <section className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6">
+    <section id="favorites" className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6 scroll-mt-20">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold flex items-center gap-1.5">
           <span aria-hidden>⭐</span> 즐겨찾기 경기

@@ -4,6 +4,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { scheduleFavServerSync } from "./fav-server-sync";
 
 const STORAGE_KEY = "scorebase:fav-leagues";
 const EVENT_NAME = "scorebase:fav-leagues-changed";
@@ -54,9 +55,22 @@ function write(leagues: string[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(leagues.slice(0, MAX_LEAGUES)));
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    scheduleFavServerSync(); // 로그인 회원이면 서버(UserLeagueFollow)에도 미러링
   } catch {
     // quota / private mode — 무시
   }
+}
+
+/** 계정 동기화(pull)용 — 서버 세트로 교체. 이벤트만 쏘고 서버 재PUT 은 안 한다. */
+export function replaceFavLeagues(leagues: string[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(leagues.slice(0, MAX_LEAGUES)));
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+  } catch {}
+}
+
+export function readFavLeagues(): string[] {
+  return getSnapshot();
 }
 
 export function useFavoriteLeagues() {

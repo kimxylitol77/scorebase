@@ -31,6 +31,15 @@ function readTeamIds(): number[] {
   }
 }
 
+function readLeagues(): string[] {
+  try {
+    const arr = JSON.parse(localStorage.getItem("scorebase:fav-leagues") ?? "[]");
+    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 /** 별표 토글 직후 호출 — 로그인 회원이면 localStorage 전체 집합을 서버로 교체 PUT. */
 export function scheduleFavServerSync(): void {
   if (typeof window === "undefined") return;
@@ -46,5 +55,6 @@ export function scheduleFavServerSync(): void {
       }).catch(() => {});
     void put("/api/favorites/matches", { matchIds: readMatchIds() });
     void put("/api/favorites/teams", { teamIds: readTeamIds() });
+    void put("/api/favorites/leagues", { leagues: readLeagues() });
   }, DEBOUNCE_MS);
 }
