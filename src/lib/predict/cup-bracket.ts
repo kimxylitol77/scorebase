@@ -6,8 +6,9 @@
 // FA컵 Round of 128, 코파 델 레이 Round of 32 …). 그래서 라운드를 고정 목록이 아니라
 // 라벨에서 순위를 계산해 동적으로 세운다.
 //
-// ts 소스 매치는 대진표에 못 올린다. ts 는 컵에 round_num=0 만 주고 그 stage_id 가
-// stage/list 사전에 없어 라운드를 특정할 수 없다(2026-08-09 실측). af 수집이 전제.
+// ts 소스 매치도 올린다 (2026-08-22). 8/9 에는 "stage_id 가 stage/list 에 없다"고 봤는데
+// 재실측하니 stage/list?uuid=<stage_id> 가 "Round 1"·"Round of 16" 을 준다 — 워커가
+// 그 이름을 raw {"thesports":{"round":{"stageName"}}} 로 남기고 여기서 af 라벨과 같게 읽는다.
 
 import type { Prisma } from "@prisma/client";
 
@@ -55,6 +56,7 @@ type MatchWithTeams = Prisma.MatchGetPayload<{
 
 interface AfRaw {
   league?: { round?: string };
+  thesports?: { round?: { stageName?: string | null } };
   teams?: {
     home?: { winner?: boolean | null };
     away?: { winner?: boolean | null };
@@ -72,8 +74,8 @@ export function roundRank(label: string): number | null {
   // 조별리그·리그 페이즈는 트리로 그릴 수 없다
   if (/group|regular season|league stage|league phase/.test(s)) return null;
   if (/prelim|qualif/.test(s)) return 0;
-  // "1st Round" · "3rd Round" — 대회 초반 라운드
-  const nth = s.match(/^(\d+)(?:st|nd|rd|th)\s+round/);
+  // "1st Round" · "3rd Round"(af) · "Round 1"(ts stage 이름) — 대회 초반 라운드
+  const nth = s.match(/^(\d+)(?:st|nd|rd|th)\s+round/) ?? s.match(/^round\s+(\d+)$/);
   if (nth) return Math.min(9, Number(nth[1]));
   // "Round of 64" — 남은 팀 수가 적을수록 뒤
   const roundOf = s.match(/round of (\d+)/);
@@ -93,7 +95,7 @@ export function roundKo(label: string): string {
   const s = label.trim().toLowerCase();
   if (/prelim/.test(s)) return "예선";
   if (/qualif/.test(s)) return "예선";
-  const nth = s.match(/^(\d+)(?:st|nd|rd|th)\s+round/);
+  const nth = s.match(/^(\d+)(?:st|nd|rd|th)\s+round/) ?? s.match(/^round\s+(\d+)$/);
   if (nth) return `${nth[1]}라운드`;
   const roundOf = s.match(/round of (\d+)/);
   if (roundOf) return `${roundOf[1]}강`;
@@ -141,7 +143,7 @@ export function buildCupBracket(matches: MatchWithTeams[]): CupRound[] {
 
   for (const m of matches) {
     const raw = parseRaw(m.raw);
-    const label = raw.league?.round;
+    const label = raw.league?.round ?? raw.thesports?.round?.stageName ?? undefined;
     if (!label) continue;
     const rank = roundRank(label);
     if (rank === null) continue;

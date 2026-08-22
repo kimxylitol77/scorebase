@@ -115,6 +115,21 @@ function finalScore(arr) {
   return Number.isFinite(ot) && ot > 0 && ot >= reg ? ot : reg;
 }
 
+// diary 의 round {stage_id, round_num, group_num} 을 payload 로. stage 이름은 캐시 조회(대회당 몇 개).
+async function roundOf(m) {
+  const r = m.round;
+  if (!r || typeof r !== "object") return {};
+  const stageName = r.stage_id ? await stageNameOf(r.stage_id) : null;
+  return {
+    round: {
+      stageId: r.stage_id || null,
+      roundNum: Number(r.round_num) || 0,
+      groupNum: Number(r.group_num) || 0,
+      stageName: stageName || null,
+    },
+  };
+}
+
 async function postBatch(matches) {
   if (matches.length === 0) return { ok: true, upserted: 0, skippedNoTeam: 0 };
   const res = await axios.post(
@@ -182,6 +197,9 @@ async function poll() {
         awayScore: finalScore(m.away_scores),
         // 날씨 — diary environment {weather, temperature, humidity, wind, pressure}. 라이브 상세 표시용.
         ...(m.environment && typeof m.environment === "object" ? { environment: m.environment } : {}),
+        // 라운드 — 리그는 round_num, 컵은 round_num=0 이라 stage 이름("Round 1"·"Round of 16")이
+        // 정본. 서버가 raw 에 남겨 일정 탭 라운드 네비·컵 대진표가 ts 매치에서도 선다.
+        ...(await roundOf(m)),
       });
     }
   }

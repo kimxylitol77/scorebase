@@ -2,6 +2,8 @@
 // 라운드 컬럼이 스키마에 없어 raw 원본에서 읽는다. 두 소스 형태가 다르다.
 //   api-football : {"league":{"round":"Regular Season - 12"}}
 //   football-data: {"matchday":12}
+//   thesports    : {"thesports":{"round":{"roundNum":12,"stageName":"Round 1"}}} — 리그는 roundNum,
+//                  컵은 roundNum=0 이라 일정 탭 라운드 네비엔 못 쓰고 대진표(cup-bracket)가 stageName 을 읽는다.
 // 중복은 DB 정리(cleanup-duplicate-matches)가 미래 SCHEDULED 를 보류하는 사이
 // 화면에 카드가 두 장 뜨는 것을 막기 위한 표시층 방어. DB 는 건드리지 않는다.
 
@@ -11,6 +13,11 @@ const DUP_WINDOW_MS = 72 * 3600_000;
 /** af "Regular Season - 12" / "Group Stage - 3" · fd matchday → 12. 못 읽으면 null. */
 export function parseRound(raw: string | null): number | null {
   if (!raw) return null;
+  const ts = raw.match(/"roundNum"\s*:\s*(\d+)/);
+  if (ts) {
+    const n = Number(ts[1]);
+    return n > 0 ? n : null;
+  }
   // af — round 문자열 끝의 숫자. "Round of 16" 처럼 녹아웃 라벨은 숫자가 없거나
   // 의미가 달라 Regular/Group/Round N 형태만 취한다.
   const af = raw.match(/"round"\s*:\s*"([^"]+)"/);

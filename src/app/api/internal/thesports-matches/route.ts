@@ -73,6 +73,17 @@ function sameTeamName(a: string, b: string): boolean {
 }
 export const dynamic = "force-dynamic";
 
+/** diary round → Match.raw 문자열. round 가 없으면 null (raw 를 건드리지 않는다). */
+function tsRoundRaw(r: MatchPayload["round"]): string | null {
+  if (!r || (!r.roundNum && !r.stageName)) return null;
+  return JSON.stringify({ thesports: { round: r } });
+}
+/** ts 가 아닌 소스의 raw 인가 — 비어 있거나 우리가 쓴 {"thesports":…} 면 false. */
+function hasForeignRaw(raw: string | null): boolean {
+  if (!raw) return false;
+  return !/^\s*\{\s*"thesports"\s*:/.test(raw);
+}
+
 interface MatchPayload {
   league: string;
   tsMatchId: string;
@@ -88,6 +99,9 @@ interface MatchPayload {
   playoffStageId?: string;
   // 경기 환경(날씨) — diary 의 environment {weather, temperature, humidity, wind, pressure}. 있으면 cache 에 저장.
   environment?: unknown;
+  // 라운드 — diary 의 round. 리그는 roundNum, 컵은 roundNum=0 이라 stageName("Round 1")이 정본.
+  // Match.raw 에 {"thesports":{"round":…}} 로 남긴다 (일정 탭 라운드 네비·컵 대진표 소스).
+  round?: { stageId: string | null; roundNum: number; groupNum: number; stageName: string | null };
 }
 interface Body {
   sport: "football" | "baseball" | "ice_hockey" | "basketball" | "volleyball";
@@ -567,7 +581,7 @@ export async function POST(req: NextRequest) {
       const STATUS_RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
       const existing = await prisma.match.findUnique({
         where: { league_externalId: { league: m.league, externalId } },
-        select: { status: true, homeScore: true, awayScore: true },
+        select: { status: true, homeScore: true, awayScore: true, raw: true },
       });
       const incomingRank = STATUS_RANK[m.status];
       const allowStatus =
@@ -608,6 +622,10 @@ export async function POST(req: NextRequest) {
       if (m.playoffRound) updateData.playoffRound = m.playoffRound;
       if (m.playoffConference !== undefined) updateData.playoffConference = m.playoffConference;
       if (m.playoffStageId) updateData.playoffStageId = m.playoffStageId;
+      // 라운드는 raw 에 남긴다. api-football 원본({"fixture":…})이 이미 있으면 절대 덮지 않는다 —
+      // 그 raw 는 라운드 외에 isApiFootball 판정·컵 대진표도 읽는다. ts 자체 raw 는 갱신 가능.
+      const tsRaw = tsRoundRaw(m.round);
+      if (tsRaw && !hasForeignRaw(existing?.raw ?? null)) updateData.raw = tsRaw;
 
       const savedMatch = await prisma.match.upsert({
         where: { league_externalId: { league: m.league, externalId } },
@@ -624,6 +642,7 @@ export async function POST(req: NextRequest) {
           playoffRound: m.playoffRound ?? null,
           playoffConference: m.playoffConference ?? null,
           playoffStageId: m.playoffStageId ?? null,
+          raw: tsRaw,
         },
         select: { id: true },
       });
