@@ -19,7 +19,11 @@ const EXTRAS_TAG = "af-extras";
  * api-football /fixtures?id=X — fixture 메타 (round 등) 만 추출.
  * cache: 3600s (round 는 변동 없음).
  */
-export async function fetchFixtureRound(fixtureId: string | number): Promise<string | null> {
+export async function fetchFixtureRound(
+  fixtureId: string | number,
+  /** 우리 매치의 af 팀 id — 주면 응답과 대조해 남의 경기를 걸러낸다. */
+  expect?: { homeId: number; awayId: number },
+): Promise<string | null> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
   if (!(await afQuotaOk("optional"))) return null;
@@ -29,8 +33,16 @@ export async function fetchFixtureRound(fixtureId: string | number): Promise<str
       next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { response?: Array<{ league?: { round?: string } }> };
-    return data.response?.[0]?.league?.round ?? null;
+    const data = (await res.json()) as {
+      response?: Array<{
+        league?: { round?: string };
+        teams?: { home?: { id?: number }; away?: { id?: number } };
+      }>;
+    };
+    const row = data.response?.[0];
+    if (!row) return null;
+    if (!afTeamsMatch(row.teams, expect, "fixtures(round)", fixtureId)) return null;
+    return row.league?.round ?? null;
   } catch {
     return null;
   }
@@ -83,8 +95,28 @@ function pct(s: string): number {
  * api-football /predictions — 매치별 winner 예측 + 확률 + 팀 비교 메트릭.
  * cache: 1800s (600→1800, 8/11 쿼터 절감 — 예측치는 라이브 중 크게 안 변함). 응답 없거나 키 미설정 시 null.
  */
+/** af 응답이 우리 매치의 것인지 확인한다. fixture id 를 잘못 넘겨도 화면에 나가지 않게 하는 마지막 방어선.
+ *  (2026-08-22 — externalId 를 af fixture id 로 넘겨 독일 U19 경기의 예측·라운드가 EPL 매치에 표시됐다.) */
+function afTeamsMatch(
+  teams: { home?: { id?: number }; away?: { id?: number } } | undefined,
+  expect: { homeId: number; awayId: number } | undefined,
+  what: string,
+  fixtureId: string | number,
+): boolean {
+  if (!expect) return true;
+  const h = teams?.home?.id;
+  const a = teams?.away?.id;
+  if (h === expect.homeId && a === expect.awayId) return true;
+  console.warn(
+    `[af] ${what} fixture=${fixtureId} 팀 불일치 — 기대 ${expect.homeId}/${expect.awayId}, 응답 ${h}/${a}. 남의 경기로 보고 폐기한다.`,
+  );
+  return false;
+}
+
 export async function fetchMatchPrediction(
   fixtureId: string | number,
+  /** 우리 매치의 af 팀 id — 주면 응답과 대조해 남의 경기를 걸러낸다(afMatchRef 로 얻는다). */
+  expect?: { homeId: number; awayId: number },
 ): Promise<MatchPrediction | null> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return null;
@@ -101,6 +133,7 @@ export async function fetchMatchPrediction(
     const data = (await res.json()) as AfPredictionsResponse;
     const r = data.response?.[0];
     if (!r) return null;
+    if (!afTeamsMatch(r.teams, expect, "predictions", fixtureId)) return null;
     const p = r.predictions;
     const c = r.comparison;
     return {

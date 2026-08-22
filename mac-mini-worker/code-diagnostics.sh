@@ -25,6 +25,21 @@ log "▶ 배포 변경 검수 (ChatGPT+Ollama)..."
 DEPLOY_REVIEW=$(node mac-mini-worker/code-review-deploy.js 2>&1 || echo "(배포 검수 실행 실패)")
 log "▶ 배포 검수 완료 (${#DEPLOY_REVIEW}자)"
 
+# ── af id 오용 정적 검사 ──
+# 2026-08-22 사고 재발 감시 — Match.externalId(EPL 은 football-data 대역)를 af fixture id 로
+# 넘겨 라이브 중계·AI 예측·라운드·팀 시즌 통계가 통째로 남의 경기(독일 U19)가 됐다.
+# 런타임 방어(afTeamsMatch)가 화면 노출은 막지만, 잘못 부르는 코드는 여기서 잡는다.
+# set -e 에 걸리지 않게 rc 를 따로 받는다(위반이면 exit 1 이 정상 동작이다).
+AF_ID_RC=0
+AF_ID_CHECK=$(npx --yes tsx scripts/check-af-id-misuse.ts 2>&1) || AF_ID_RC=$?
+log "▶ af id 오용 검사 rc=$AF_ID_RC"
+if [ "$AF_ID_RC" != "0" ]; then
+  DEPLOY_REVIEW="$DEPLOY_REVIEW
+
+— af id 오용 검사 (위반) —
+$AF_ID_CHECK"
+fi
+
 # ── PHASE 2: Claude(Max OAuth) 감독관 종합 ──
 # Max 구독(OAuth) 사용 — ANTHROPIC_API_KEY 가 OAuth 를 이기므로 제거 (hermes /fix 패턴)
 unset ANTHROPIC_API_KEY
@@ -58,6 +73,8 @@ echo "----- /REPORT -----"
 SEV="INFO"
 TITLE="🔍 야간 코드 진단 (감독관 종합)"
 if echo "$DEPLOY_REVIEW" | grep -q "깨진 라우트"; then SEV="HIGH"; TITLE="🚨 배포 변경 404 감지"; fi
+# af id 오용은 화면에 남의 경기 데이터가 뜨는 사고라 즉시 HIGH.
+if [ "$AF_ID_RC" != "0" ]; then SEV="HIGH"; TITLE="🚨 af id 오용 감지 (남의 경기 데이터 위험)"; fi
 
 # 텔레그램 전송 + heartbeat (node 로 JSON 안전 인코딩)
 SITE="${SITE_URL:-https://www.scorebase.kr}"

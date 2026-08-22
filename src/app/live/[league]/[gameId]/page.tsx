@@ -198,9 +198,11 @@ async function renderOrphanSoccerLive(live: LiveMatch, lg: string, gameId: strin
   const awayKo = toKoreanTeamName(live.awayName, lg);
   const label = LEAGUE_DISPLAY[lg] ?? lg;
   const flag = getLeagueFlag(lg);
+  // af-id-ok: orphan 은 findOrphanLive 가 `af-${gameId}` 로 찾아낸 매치라 gameId 가 곧 af
+  // fixture id 다(DB 미적재라 raw 도 없다). 그 외 경로는 반드시 afMatchRef 를 쓸 것.
   const prediction = (await isBotRequest())
     ? null
-    : await fetchMatchPrediction(gameId).catch(() => null);
+    : await fetchMatchPrediction(gameId).catch(() => null); // af-id-ok (사유는 위 주석)
   const teamCol = (name: string, logo?: string | null) => (
     <div className="flex flex-col items-center gap-2 min-w-0">
       {logo ? (
@@ -372,14 +374,14 @@ export default async function GenericLivePage({ params }: Props) {
   const afRef = afMatchRef(match);
   const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer && afRecent && afRef && !(await isBotRequest())
     ? await Promise.all([
-        fetchMatchPrediction(afRef.fixtureId).catch(() => null),
+        fetchMatchPrediction(afRef.fixtureId, afRef).catch(() => null),
         afLeagueId
           ? fetchTeamSeasonStats(afRef.homeId, afLeagueId, afSeason).catch(() => null)
           : Promise.resolve(null),
         afLeagueId
           ? fetchTeamSeasonStats(afRef.awayId, afLeagueId, afSeason).catch(() => null)
           : Promise.resolve(null),
-        fetchFixtureRound(afRef.fixtureId).catch(() => null),
+        fetchFixtureRound(afRef.fixtureId, afRef).catch(() => null),
       ])
     : [null, null, null, null];
 

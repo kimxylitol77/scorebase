@@ -62,7 +62,8 @@
     "assistant:index": "tsx --env-file=.env.local assistant/index.ts",
     "assistant": "tsx --env-file=.env.local assistant/server.ts",
     "backfill:match-venue": "tsx --env-file=.env.local scripts/backfill-match-venue-id.ts",
-    "job:weekly-xi": "tsx --env-file=.env.local src/jobs/generate-weekly-best-xi.ts"
+    "job:weekly-xi": "tsx --env-file=.env.local src/jobs/generate-weekly-best-xi.ts",
+    "check:af-id": "tsx scripts/check-af-id-misuse.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
