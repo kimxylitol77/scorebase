@@ -17,6 +17,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site-url";
 import Chatbot from "@/components/Chatbot";
 import LivePipScore from "@/components/LivePipScore";
+import ResponsiveGuard from "@/components/ResponsiveGuard";
 
 // 한글 콘텐츠가 메인이므로 본문 sans 는 Pretendard 를 우선.
 // 영문 코드/숫자는 Geist Mono 를 보조 폰트로.
@@ -199,6 +200,7 @@ export default async function RootLayout({
         />
         <Chatbot />
         <LivePipScore />
+        <ResponsiveGuard />
         <Analytics />
       </body>
     </html>
