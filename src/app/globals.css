@@ -712,13 +712,14 @@ body {
 }
 
 /* 기본(최광폭) 템플릿 — 칸 순서: league time status home score away half star info odds.
-   score 72px 고정(내용폭 차이로 행마다 팀명 정렬 어긋남 방지), odds minmax(0,154px)는
-   vs/점수 가운데 정렬용 우측 spacer 겸용. */
+   score 72px 고정(내용폭 차이로 행마다 팀명 정렬 어긋남 방지), odds minmax(0,96px)는
+   vs/점수 가운데 정렬용 우측 spacer 겸용(9px 두 줄 배당 실폭 ~70px — 154px 는 팀명을 깎아먹었다,
+   2026-08-22 사용자 지적: "별·예측·L 과 배당 사이가 너무 넓고 팀명이 조금만 보인다"). */
 [data-srow="flat"] {
-  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 154px);
+  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 96px);
 }
 [data-srow="grouped"] {
-  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 154px);
+  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 96px);
 }
 /* 리그 미니 라벨(좌측 팀 칸 안) — 3단계에서 리그 배지 칸 대체용. 평소 숨김. */
 [data-scell="league-mini"] {

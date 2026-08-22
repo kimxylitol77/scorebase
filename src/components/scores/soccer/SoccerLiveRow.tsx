@@ -247,7 +247,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       // grid-template-columns 는 globals.css 가 data-srow 값 + 컨테이너 쿼리로 정의 —
       // 좁은 컨테이너에서 배당→전반·정보→리그배지→시간 순으로 접혀 팀명 폭을 지킨다.
       data-srow={hideLeague ? "grouped" : "flat"}
-      className={`grid items-center gap-3 ${insetX ? "px-3 sm:px-4" : "px-0"} py-2 text-sm transition ${
+      className={`grid items-center gap-2 ${insetX ? "px-3 sm:px-4" : "px-0"} py-2 text-sm transition ${
         isLive
           ? "bg-rose-50/70 dark:bg-rose-500/[0.07] hover:bg-rose-100/70 dark:hover:bg-rose-500/[0.12]"
           : "hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
@@ -354,7 +354,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       <div
         data-scell="score"
         // 72px 고정 트랙(globals.css) — auto 면 vs(예정)·0-1(진행) 내용폭 차이로 행마다
-        // 팀명 정렬이 어긋남 (2026-06-14). 우측 끝 odds minmax(0,154px)는 vs 중앙정렬 spacer 겸용.
+        // 팀명 정렬이 어긋남 (2026-06-14). 우측 끝 odds minmax(0,96px)는 vs 중앙정렬 spacer 겸용.
         className="relative text-center font-black text-[18px] tabular-nums whitespace-nowrap px-2 group hover:z-50"
         onMouseEnter={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
@@ -923,10 +923,10 @@ export function SoccerLiveRowHeader() {
   return (
     <div
       data-srow
-      className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
+      className="grid items-center gap-2 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,154px)",
+          "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,96px)",
       }}
     >
       <div className="text-center">리그명</div>
