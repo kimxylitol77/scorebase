@@ -112,14 +112,16 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
     .sort((a, b) => parseFloat(a) - parseFloat(b));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 승무패 */}
       {mwRows.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center justify-between">
+        <details open className="group">
+          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 rounded-lg px-1 py-1.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04] list-none [&::-webkit-details-marker]:hidden">
             <h3 className="text-sm font-bold tracking-tight">승무패</h3>
             <span className="text-[11px] text-neutral-500">북메이커 {odds.bookmakerCount}곳 · 최고배당 강조</span>
-          </div>
+            <span className="ml-auto text-[10px] text-neutral-400 transition-transform group-open:rotate-90" aria-hidden>▶</span>
+          </summary>
+          <div className="mt-3 space-y-4">
 
           {/* 요약 카드 — 평균배당 + 예상확률 + 확률바 + 최고배당 */}
           <div className="mb-3 grid grid-cols-3 gap-2">
@@ -140,8 +142,13 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
             ))}
           </div>
 
-          {/* 북메이커별 표 */}
-          <div className={boxCls}>
+          {/* 북메이커별 표 — 기본 접힘 (13행이 화면을 다 먹는다, 2026-08-23 사용자) */}
+          <details className="group/bm">
+            <summary className="cursor-pointer select-none text-[12px] font-semibold text-neutral-600 dark:text-neutral-300 hover:underline list-none [&::-webkit-details-marker]:hidden">
+              <span className="inline-block text-[10px] text-neutral-400 transition-transform group-open/bm:rotate-90 mr-1" aria-hidden>▶</span>
+              북메이커별 배당 {odds.bookmakerCount}곳 보기
+            </summary>
+          <div className={`${boxCls} mt-2`}>
             <table className="w-full min-w-[360px] text-sm">
               <thead>
                 <tr className={headCls}>
@@ -167,16 +174,21 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
               </tbody>
             </table>
           </div>
-        </section>
+          </details>
+          </div>
+        </details>
       )}
 
-      {/* 아시안 핸디캡 */}
+      {/* 아시안 핸디캡 — 기본 접힘 */}
       {hcLines.length > 0 && (
-        <section>
-          <h3 className="mb-3 text-sm font-bold tracking-tight">
-            아시안 핸디캡 <span className="text-[11px] font-normal text-neutral-500">(라인별 최고배당)</span>
-          </h3>
-          <div className={boxCls}>
+        <details className="group">
+          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 rounded-lg px-1 py-1.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04] list-none [&::-webkit-details-marker]:hidden">
+            <h3 className="text-sm font-bold tracking-tight">
+              아시안 핸디캡 <span className="text-[11px] font-normal text-neutral-500">(라인별 최고배당 · {hcLines.length}라인)</span>
+            </h3>
+            <span className="ml-auto text-[10px] text-neutral-400 transition-transform group-open:rotate-90" aria-hidden>▶</span>
+          </summary>
+          <div className={`${boxCls} mt-3`}>
             <table className="w-full min-w-[300px] text-sm">
               <thead>
                 <tr className={headCls}>
@@ -199,16 +211,19 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
               </tbody>
             </table>
           </div>
-        </section>
+        </details>
       )}
 
-      {/* 언더오버 */}
+      {/* 언더오버 — 기본 접힘 */}
       {ouLines.length > 0 && (
-        <section>
-          <h3 className="mb-3 text-sm font-bold tracking-tight">
-            언더오버 <span className="text-[11px] font-normal text-neutral-500">(기준선별 최고배당)</span>
-          </h3>
-          <div className={boxCls}>
+        <details className="group">
+          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 rounded-lg px-1 py-1.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04] list-none [&::-webkit-details-marker]:hidden">
+            <h3 className="text-sm font-bold tracking-tight">
+              언더오버 <span className="text-[11px] font-normal text-neutral-500">(기준선별 최고배당 · {ouLines.length}기준선)</span>
+            </h3>
+            <span className="ml-auto text-[10px] text-neutral-400 transition-transform group-open:rotate-90" aria-hidden>▶</span>
+          </summary>
+          <div className={`${boxCls} mt-3`}>
             <table className="w-full min-w-[300px] text-sm">
               <thead>
                 <tr className={headCls}>
@@ -231,7 +246,7 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
               </tbody>
             </table>
           </div>
-        </section>
+        </details>
       )}
 
       <p className="text-[10px] text-neutral-400">

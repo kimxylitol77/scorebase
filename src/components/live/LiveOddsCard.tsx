@@ -176,6 +176,8 @@ export default function LiveOddsCard({
     return mx > 0 && Number.isFinite(mn) && mn > 0 ? ((mx - mn) / mn) * 100 : null;
   };
   const bestCls = "bg-emerald-100/70 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 rounded-md";
+  const subSummaryCls =
+    "flex cursor-pointer select-none items-center gap-1.5 px-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-400 list-none [&::-webkit-details-marker]:hidden hover:text-neutral-800 dark:hover:text-neutral-200";
   const thSort = (k: "home" | "draw" | "away", label: string) => (
     <th className="text-right py-2 px-1.5 font-medium w-16">
       <button
@@ -190,10 +192,11 @@ export default function LiveOddsCard({
   );
 
   return (
-    <div className="rounded-[28px] bg-neutral-100/70 dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_8px_32px_-8px_rgba(0,0,0,0.6)] backdrop-blur-xl p-5 sm:p-6 space-y-5">
-      {/* 헤더 — status 인지 라벨 + freshness 배지 */}
-      <div className="flex items-center justify-between">
+    <details open className="group/card rounded-[28px] bg-neutral-100/70 dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_8px_32px_-8px_rgba(0,0,0,0.6)] backdrop-blur-xl p-5 sm:p-6 [&[open]]:space-y-5">
+      {/* 헤더 — status 인지 라벨 + freshness 배지. 카드 전체 접기/펼치기 (2026-08-23 사용자) */}
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-2 list-none [&::-webkit-details-marker]:hidden">
         <div className="flex items-center gap-2">
+          <span className="text-[10px] text-neutral-400 transition-transform group-open/card:rotate-90" aria-hidden>▶</span>
           {!isFinished && (
             <span className="relative inline-flex w-2 h-2">
               <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-60" />
@@ -216,7 +219,7 @@ export default function LiveOddsCard({
             </span>
           ) : null}
         </div>
-      </div>
+      </summary>
 
       {/* 1X2 — implied % + Elo 비교 */}
       {h2h && (
@@ -268,23 +271,25 @@ export default function LiveOddsCard({
       )}
 
       {totals && (
-        <div className="space-y-2">
-          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 px-1">
-            총득점 <span className="text-neutral-400 dark:text-neutral-500">· 기준 {totals.line}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
+        <details className="group/t">
+          <summary className={subSummaryCls}>
+            <span className="text-[10px] text-neutral-400 transition-transform group-open/t:rotate-90" aria-hidden>▶</span>
+            총득점 <span className="text-neutral-400 dark:text-neutral-500">· 기준 {totals.line} · 오버 {fmt(totals.over)} / 언더 {fmt(totals.under)}</span>
+          </summary>
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <OddsCell label={`오버 ${totals.line}`} value={totals.over} />
             <OddsCell label={`언더 ${totals.line}`} value={totals.under} />
           </div>
-        </div>
+        </details>
       )}
 
       {spread && (
-        <div className="space-y-2">
-          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 px-1">
-            핸디캡 <span className="text-neutral-400 dark:text-neutral-500">· {spread.pick === "HOME" ? homeNameKo : awayNameKo} −{spread.line}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
+        <details className="group/s">
+          <summary className={subSummaryCls}>
+            <span className="text-[10px] text-neutral-400 transition-transform group-open/s:rotate-90" aria-hidden>▶</span>
+            핸디캡 <span className="text-neutral-400 dark:text-neutral-500">· {spread.pick === "HOME" ? homeNameKo : awayNameKo} −{spread.line} · {fmt(spread.homeOdds)} / {fmt(spread.awayOdds)}</span>
+          </summary>
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <OddsCell
               label={
                 spread.pick === "HOME"
@@ -302,14 +307,15 @@ export default function LiveOddsCard({
               value={spread.awayOdds}
             />
           </div>
-        </div>
+        </details>
       )}
 
-      {/* Sparkline — 30 snapshot 시계열 (최대 3h) */}
+      {/* Sparkline — 30 snapshot 시계열 (최대 3h). 기본 접힘 */}
       {oddsHistory && oddsHistory.length >= 2 && (
-        <div className="rounded-2xl bg-white/70 dark:bg-white/[0.03] ring-1 ring-black/5 dark:ring-white/5 p-4 space-y-2.5">
-          <div className="flex items-baseline justify-between">
+        <details className="group/h rounded-2xl bg-white/70 dark:bg-white/[0.03] ring-1 ring-black/5 dark:ring-white/5 p-4 [&[open]]:space-y-2.5">
+          <summary className="flex cursor-pointer select-none items-baseline justify-between gap-2 list-none [&::-webkit-details-marker]:hidden">
             <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+              <span className="inline-block text-[10px] text-neutral-400 transition-transform group-open/h:rotate-90 mr-1" aria-hidden>▶</span>
               {isFinished ? "경기 전 배당 흐름" : "배당 흐름"} · {oddsHistory.length}개 snapshot
             </div>
             <SparklineLegend
@@ -319,14 +325,14 @@ export default function LiveOddsCard({
               first={oddsHistory[0]}
               last={oddsHistory[oddsHistory.length - 1]}
             />
-          </div>
+          </summary>
           <Sparklines
             points={oddsHistory}
             hasDraw={hasDraw}
             homeNameKo={homeNameKo}
             awayNameKo={awayNameKo}
           />
-        </div>
+        </details>
       )}
 
       {/* 북메이커별 표 — 펼치기 */}
@@ -388,7 +394,7 @@ export default function LiveOddsCard({
           )}
         </div>
       )}
-    </div>
+    </details>
   );
 }
 
