@@ -6,7 +6,9 @@
 
 :root {
   color-scheme: light;
-  --background: #ffffff;
+  /* 라이트 배경은 순백이 아니라 살짝 회색 — 흰 카드(bg-white ring-black/5)가 순백 위에서는 일반
+     윈도우 모니터에서 경계가 사라진다(2026-08-22 선수 페이지 "박스가 안 보이고 흰 화면"). */
+  --background: #f6f6f7;
   --foreground: #0a0a0a;
 }
 
