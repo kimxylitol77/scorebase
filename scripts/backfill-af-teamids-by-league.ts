@@ -64,6 +64,13 @@ const MANUAL: Record<string, { af: string; ourId: number; note: string }[]> = {
     { af: "2313", ourId: 611751, note: "Correcaminos Uat → Correcaminos de la U.A.T. (약어)" },
     { af: "19905", ourId: 607885, note: "CDS Tampico Madero → Club Jaiba Brava (별명, city=Tampico y Ciudad Madero)" },
   ],
+  // 핀란드 3부 — af 가 약어·숫자 표기를 쓴다. 남은 af 3팀 : DB 3팀 이 정확히 1:1 이라
+  //  자동 규칙이 엉뚱한 짝에 쓰기 전에 먼저 소비시킨다(2026-08-22 사각지대 경보 대응).
+  KAKKONEN_C: [
+    { af: "9192", ourId: 613952, note: "JBK → Jakobstads Bollklubb (약어, city=Jacobstad)" },
+    { af: "18609", ourId: 613947, note: "SJK-juniorit → SJK Akatemia B (유스팀 표기차)" },
+    { af: "27701", ourId: 613944, note: "Jaro 2 → FF Jaro II (2군 숫자↔로마자)" },
+  ],
   UZBEKISTAN_SL: [
     { af: "4209", ourId: 611741, note: "Andijan → FK Andijon (철자)" },
     { af: "4213", ourId: 611749, note: "Mash'al → Mashal Muborak (아포스트로피, city=Mubarek)" },
