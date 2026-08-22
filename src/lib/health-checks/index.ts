@@ -1072,6 +1072,68 @@ async function checkClubXiQuality(now: Date): Promise<HealthFinding[]> {
 }
 
 // ──────────────────────────────────────────────────────────────
+// Team row 중복 — 같은 클럽이 두 row 로 갈려 한 리그 경기에 둘 다 등장하는가.
+//   증상은 조용하다. 화면에는 카드가 두 장 뜨거나(같은 경기가 두 row 로), 한쪽 row 에만
+//   과거가 쌓여 팀 페이지·팀 전력이 텅 빈다(2026-08-21~22 실측: 레스터 3 row, 이집트
+//   Bank El Ahly 2 row). 시즌 롤오버 때 새 row 가 생기면서 반복되는 유형이다.
+//
+//   지표 = **같은 리그 이번 시즌 경기에 동명 팀이 두 row 로 등장**. Team.league 라벨이 아니라
+//   경기 기준으로 봐야 한다 — 라벨은 승강 때 갱신이 밀려 같은 리그로 안 묶인다(우루과이
+//   Club Nacional 실측). 이름 정규화에서 FC/SV 같은 클럽 약어는 **지우지 않는다** —
+//   지우면 "FC Schaffhausen"↔"SV Schaffhausen"(실제로 다른 팀)이 붙는 알려진 오탐이 난다.
+//
+//   컵·대륙대회·친선은 뺀다. 예선 참가팀이 별도 네임스페이스로 들어와 구조적으로 중복이
+//   생기고(2026-08-22 실측 70건 중 66건), 병합 정책도 다르다(컵 row 를 정규 리그 row 와
+//   합치지 말 것). 자가치유도 등록하지 않는다 — 병합은 매번 근거를 따로 확인해야 한다.
+// ──────────────────────────────────────────────────────────────
+const DUP_SKIP_LEAGUE = /CUP|COPA|UCL|UEL|UECL|LIB|SUD|SUPER|POKAL|TROPHY|LEVAIN|SHIELD|PLAYOFF|QUALI|FRIENDLY/i;
+
+async function checkTeamRowDuplicates(now: Date): Promise<HealthFinding[]> {
+  const since = new Date(now.getTime() - 90 * 86400e3);
+  const ms = await prisma.match.findMany({
+    where: { league: { in: [...SOCCER_LEAGUES] }, startTime: { gte: since } },
+    select: { league: true, homeTeamId: true, awayTeamId: true },
+  });
+  const byLeague = new Map<string, Set<number>>();
+  for (const m of ms) {
+    if (DUP_SKIP_LEAGUE.test(m.league)) continue;
+    const s = byLeague.get(m.league) ?? new Set<number>();
+    if (m.homeTeamId) s.add(m.homeTeamId);
+    if (m.awayTeamId) s.add(m.awayTeamId);
+    byLeague.set(m.league, s);
+  }
+  const allIds = [...new Set([...byLeague.values()].flatMap((s) => [...s]))];
+  if (!allIds.length) return [];
+  const teams = await prisma.team.findMany({ where: { id: { in: allIds } }, select: { id: true, name: true } });
+  const nameById = new Map(teams.map((t) => [t.id, t.name]));
+  const norm = (v: string) => v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const dups: string[] = [];
+  for (const [lg, ids] of byLeague) {
+    const byName = new Map<string, number[]>();
+    for (const id of ids) {
+      const k = norm(nameById.get(id) ?? "");
+      if (!k) continue;
+      byName.set(k, [...(byName.get(k) ?? []), id]);
+    }
+    for (const group of byName.values()) {
+      if (group.length < 2) continue;
+      dups.push(`${lg}:${nameById.get(group[0])}(${group.join("/")})`);
+    }
+  }
+  if (!dups.length) return [];
+  return [
+    {
+      category: "team-dup",
+      key: "same-name",
+      severity: dups.length >= 8 ? "HIGH" : "MED",
+      message: `Team row 중복 ${dups.length}건 — ${dups.slice(0, 6).join(", ")}${dups.length > 6 ? " 외" : ""}. 같은 리그 경기에 동명 팀이 두 row 로 뛴다(카드 중복·팀 페이지 결손 원인). 병합은 scorebase-team-dedup 절차로`,
+      metadata: { teams: dups.slice(0, 30) },
+    },
+  ];
+}
+
+// ──────────────────────────────────────────────────────────────
 // 리더보드 시즌 정합성 — 개막해서 경기를 치렀는데 LeagueLeader 에 이번 시즌 행이 없는가.
 //   이 상태면 화면은 "개막 후 집계됩니다" 안내만 계속 띄운다(득점왕 등이 영영 안 나온다).
 //   반대로 가드가 없던 시절에는 **지난 시즌 득점왕이 현재 기록처럼 노출**됐다
@@ -1290,6 +1352,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "club-xi-quality", fn: checkClubXiQuality },
   { name: "match-log-detail", fn: async () => checkMatchLogDetail() },
   { name: "leaderboard-season", fn: async () => checkLeaderboardSeason() },
+  { name: "team-dup", fn: checkTeamRowDuplicates },
 ];
 
 /**
