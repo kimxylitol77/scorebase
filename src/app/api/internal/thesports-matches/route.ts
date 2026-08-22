@@ -616,7 +616,9 @@ export async function POST(req: NextRequest) {
       // 이 라우트는 숫자만 update 하므로 한번 들어온 0 이 영영 남아 카드에 "0 : 0" 이 뜬다
       // (2026-07-29 실측 CLUB_FRIENDLY 154건). 이미 남아 있는 값도 여기서 되돌린다.
       const finalStatus = allowStatus ? m.status : (existing?.status ?? m.status);
-      const preGame = finalStatus === "SCHEDULED";
+      // 연기도 시작 전과 같이 다룬다 — 2026-08-22 실측 361건 중 292건이 POSTPONED 였다.
+      // 킥오프 직전에 0-0 이 들어온 뒤 연기로 바뀌면 그 0 이 남아 "0 0 연기" 로 나간다.
+      const preGame = finalStatus === "SCHEDULED" || finalStatus === "POSTPONED";
       if (preGame) {
         if (existing && (existing.homeScore != null || existing.awayScore != null)) {
           updateData.homeScore = null;

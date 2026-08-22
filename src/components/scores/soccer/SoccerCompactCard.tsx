@@ -72,7 +72,9 @@ export default function SoccerCompactCard(props: Props) {
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
-  // SCHEDULED 매치는 score 무시 (collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피)
+  // SCHEDULED·연기 매치는 score 무시 (collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피).
+  // 2026-08-22 — 이 값을 계산해 두고 정작 점수 출력에는 안 써서 연기 경기가 "0 0 연기" 로 나갔다
+  // (스위스 슈퍼리그·체코 1부·MLS 등 361건). 출력·스타일 양쪽에 반드시 이 게이트를 통과시킬 것.
   const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   const homeWin = hasScore && home.score! > away.score!;
   const awayWin = hasScore && away.score! > home.score!;
@@ -229,7 +231,7 @@ export default function SoccerCompactCard(props: Props) {
               ({penaltyHome})
             </span>
           )}
-          {home.score ?? "-"}
+          {hasScore ? home.score : "-"}
         </span>
         <span
           className={scoreClass(awayWin, hasScore && !awayWin)}
@@ -239,7 +241,7 @@ export default function SoccerCompactCard(props: Props) {
               ({penaltyAway})
             </span>
           )}
-          {away.score ?? "-"}
+          {hasScore ? away.score : "-"}
         </span>
       </div>
     </div>
