@@ -82,7 +82,7 @@ export default async function StrongPicksPage({
 
       <footer className="mt-10 border-t border-black/5 pt-4 dark:border-white/10">
         <p className="text-[11px] leading-relaxed text-zinc-500 dark:text-white/45">
-          통계 모델 기반 참고용 정보이며 도박·베팅과 무관합니다. 리그별 전체 성적은{" "}
+          통계 모델 기반 참고용 정보이며 베팅을 권유하지 않습니다. 경기 결과를 보장하지 않습니다. 리그별 전체 성적은{" "}
           <Link href="/predictions/accuracy" className="underline underline-offset-2 hover:text-zinc-700 dark:hover:text-white/70">
             적중률 보드
           </Link>

@@ -269,7 +269,7 @@ export default function AiSportsPredictionPage() {
             </div>
           </div>
           <p className="mt-6 text-xs text-zinc-400 dark:text-white/35">
-            ⓘ 모든 확률은 통계 모델 기반 추정치이며, 도박·베팅과 무관한 정보 제공 목적입니다.
+            ⓘ 모든 확률은 통계 모델 기반 추정치이며, 베팅을 권유하지 않는 스포츠 분석 참고용 정보입니다. 경기 결과를 보장하지 않습니다.
           </p>
         </div>
       </section>

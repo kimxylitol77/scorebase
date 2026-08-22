@@ -187,12 +187,29 @@ export default function Footer() {
 
         {/* 안내 영역 — 면책·저작권 */}
         <div className="mt-8 space-y-2 border-t border-black/5 pt-6 text-[12px] leading-relaxed text-neutral-500 dark:border-white/10 dark:text-white/55">
+          {/* 포지셔닝 — 배당·밸류베트를 다루면서 "베팅과 무관"이라 쓰면 스스로 충돌한다(2026-08-22 리뷰 T3).
+              회피 대신 명시: 베팅 서비스 아님 + 권유 아님 + 합법 사업자 외 미지원 + 책임·절제 안내. */}
           <p>
-            본 사이트는 스포츠 정보 제공을 목적으로 하는 미디어이며,{" "}
+            본 사이트는 스포츠 정보와 통계 분석을 제공하는 미디어이며,{" "}
             <strong className="text-neutral-700 dark:text-white/85">
-              도박·베팅과 무관
+              베팅 서비스를 직접 제공하지 않고 베팅을 권유하지 않습니다
             </strong>
-            합니다.
+            . 배당·확률 정보는 스포츠 분석 참고용이며, AI 예측은 경기 결과를 보장하지 않습니다.
+          </p>
+          <p>
+            실제 베팅은 이용자 본인의 책임이며, 합법적으로 허가된 사업자(국민체육진흥공단 스포츠토토)와
+            규제 환경 안에서만 이용해야 합니다. 국내법상 불법 사설 베팅 이용을 지원하지 않습니다.{" "}
+            <strong className="text-neutral-700 dark:text-white/85">만 19세 미만 이용 불가.</strong>{" "}
+            과도한 이용과 손실을 피하시고, 도박 문제로 어려움을 겪고 있다면{" "}
+            <a
+              href="https://www.kcgp.or.kr"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-white/85"
+            >
+              한국도박문제예방치유원 상담전화 1336
+            </a>
+            (연중무휴)으로 연락하세요.
           </p>
           <p>
             외부 데이터 출처(football-data.org · ESPN · MLB Stats · NHL API 등)를
