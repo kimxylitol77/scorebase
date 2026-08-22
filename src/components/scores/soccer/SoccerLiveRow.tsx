@@ -9,7 +9,7 @@
 //
 // client component — 매치 상세 링크는 팀명 텍스트 + 점수에만 건다 (7m 방식, 2026-08-11 요청.
 // 점수 링크는 2026-08-14 추가 — 점수를 누르는 습관이 강해서). 행의 나머지 빈칸은 화살표 커서 +
-// 클릭 무동작 + 텍스트 선택 자유. 리그배지/순위/예측/L/R 은 기존대로 button + window.open
+// 클릭 무동작 + 텍스트 선택 자유. 리그배지/순위/분석/라인업/리뷰 는 기존대로 button + window.open
 // (행 링크 시절의 nested anchor 회피 구조 유지 — 무해).
 
 "use client";
@@ -524,7 +524,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         />
       </div>
 
-      {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때).
+      {/* 8. 정보 — 분석(AI 모델 확률) + 라인업 cover 리그 + 리뷰 글 (있을 때). 단문자 L/R 은 의미 불명이라 풀네임 (2026-08-22).
           justify-start 로 AI 칩 위치를 row 마다 동일하게 고정 (칩 개수에 따라 흔들리지 않게).
           data-scell="info": 스코어보드.kr(.sb-mode) 상시 숨김 + 좁은 컨테이너 접힘 (globals.css). */}
       <div data-scell="info" className="flex items-center justify-start gap-1">
@@ -532,30 +532,33 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           <button
             type="button"
             onClick={openInNewTab(href)}
-            title="AI 매치 인사이트"
+            title="AI 모델 확률·핵심 변수 보기 (새 탭)"
+            aria-label="AI 분석 — 모델 확률과 핵심 변수 보기"
             className="inline-flex items-center justify-center px-1.5 h-5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition whitespace-nowrap cursor-pointer"
           >
-            예측
+            분석
           </button>
         )}
         {href && hasLineup && (
           <button
             type="button"
             onClick={openInNewTab(href)}
-            title="라인업"
-            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition cursor-pointer"
+            title="선발 라인업 보기 (새 탭)"
+            aria-label="선발 라인업 보기"
+            className="inline-flex items-center justify-center px-1.5 h-5 rounded text-[9px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition whitespace-nowrap cursor-pointer"
           >
-            L
+            라인업
           </button>
         )}
         {recapSlug && (
           <button
             type="button"
             onClick={openInNewTab(`/articles/${recapSlug}`)}
-            title="리뷰"
-            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition cursor-pointer"
+            title="경기 리뷰 글 보기 (새 탭)"
+            aria-label="경기 리뷰 글 보기"
+            className="inline-flex items-center justify-center px-1.5 h-5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition whitespace-nowrap cursor-pointer"
           >
-            R
+            리뷰
           </button>
         )}
       </div>
@@ -567,13 +570,13 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   if (!href) return rowContent;
 
-  // 행 전체 링크 제거 (7m 방식) — 매치 상세 진입은 팀명(teamNameLink)·예측/L/R 버튼으로.
+  // 행 전체 링크 제거 (7m 방식) — 매치 상세 진입은 팀명(teamNameLink)·분석/라인업/리뷰 버튼으로.
   return (
     <div className="border-b border-neutral-200 dark:border-white/5">{rowContent}</div>
   );
 }
 
-/** 배당 셀 — 행에 1X2(승/무/패)+오버언더 작게, hover 시 상세 팝업(핸디캡 포함).
+/** 배당 셀 — 행에 승/무/패 + 오버언더(기준선) 라벨 포함, hover 시 상세 팝업(핸디캡·제공처·갱신시각).
  *  팝업은 overflow-x-auto 컨테이너에 세로로 잘리므로(특히 마지막 행이 하단으로 넘쳐 잘림)
  *  GoalsTooltip 처럼 fixed + 실측 좌표로 띄우고, 하단 공간 부족하면 위로 플립한다. */
 function OddsCell({ odds }: { odds: MatchOdds | null }) {
@@ -581,17 +584,29 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
   // hover 시 셀의 우측·하단 좌표 저장 → 팝업을 fixed 로 띄워 컨테이너 클립 회피.
   const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
   if (!odds) return null;
+  const stale = isOddsStale(odds.updatedAt);
+  const aria = `배당 승 ${f(odds.home)} 무 ${f(odds.draw)} 패 ${f(odds.away)}${
+    odds.over != null ? `, 오버언더 ${odds.totalLine ?? ""} 오버 ${f(odds.over)} 언더 ${f(odds.under)}` : ""
+  }${odds.books ? `, ${odds.books}곳 평균` : ""}${stale ? ", 갱신 지연" : ""} — 배당 흐름 보기`;
   return (
     <div
       data-scell="odds"
       role="link"
-      title="이 배당이 어디로 움직이는지 — 배당 흐름 보기"
+      tabIndex={0}
+      aria-label={aria}
+      title="배당 흐름 보기 (새 탭)"
       onClick={(e) => {
         // 행 전체가 <Link> 라 nested anchor 회피 — button 배지들과 동일하게 window.open 우회.
         e.preventDefault();
         e.stopPropagation();
         if (typeof window !== "undefined")
           window.open("/odds?sport=soccer", "_blank", "noopener,noreferrer");
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          window.open("/odds?sport=soccer", "_blank", "noopener,noreferrer");
+        }
       }}
       className="relative flex cursor-pointer flex-col items-end justify-center gap-0.5 text-[9px] leading-none tabular-nums hover:text-neutral-600 dark:hover:text-neutral-300"
       onMouseEnter={(e) => {
@@ -600,23 +615,70 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
       }}
       onMouseLeave={() => setPos(null)}
     >
-      {/* 1X2 (승/무/패) — 스코어·결과가 먼저 읽히게 배당은 뮤트(hover 팝업에서 강조). */}
-      <div className="flex gap-1 text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-500">
-        <span>{f(odds.home)}</span>
-        <span className="opacity-70">{f(odds.draw)}</span>
-        <span>{f(odds.away)}</span>
+      {/* 승/무/패 — 라벨은 더 뮤트, 숫자는 기존 톤. 화살표는 오프닝 대비 2% 초과 변동만. */}
+      <div className="flex gap-1 text-neutral-400 dark:text-neutral-500">
+        <OddsPair label="승" value={f(odds.home)} trend={odds.trend?.home} />
+        <OddsPair label="무" value={f(odds.draw)} trend={odds.trend?.draw} muted />
+        <OddsPair label="패" value={f(odds.away)} trend={odds.trend?.away} />
       </div>
-      {/* 오버언더 */}
+      {/* 오버언더 — 기준선 명시 (2.5 인지 3.5 인지 없으면 숫자가 무의미) */}
       {odds.over != null && (
         <div className="flex gap-1 text-neutral-400/70 dark:text-neutral-600">
-          <span>O{f(odds.over)}</span>
-          <span>U{f(odds.under)}</span>
+          {odds.totalLine != null && <span className="opacity-80">O/U {odds.totalLine}</span>}
+          <OddsPair label="오버" value={f(odds.over)} />
+          <OddsPair label="언더" value={f(odds.under)} />
+          {stale && (
+            <span className="text-amber-600 dark:text-amber-400 font-semibold" title="배당 갱신 지연">
+              지연
+            </span>
+          )}
         </div>
       )}
       {/* hover 상세 팝업 — fixed (컨테이너 세로 클립 회피) */}
       <OddsPopup odds={odds} pos={pos} f={f} onClose={() => setPos(null)} />
     </div>
   );
+}
+
+/** 라벨+배당 한 쌍. trend 가 있으면 ▲(상승)·▼(하락, 돈 몰림) 화살표. */
+function OddsPair({
+  label,
+  value,
+  trend,
+  muted,
+}: {
+  label: string;
+  value: string;
+  trend?: -1 | 0 | 1 | null;
+  muted?: boolean;
+}) {
+  return (
+    <span className={`inline-flex items-baseline gap-px ${muted ? "opacity-70" : ""}`}>
+      <span className="text-[8px] opacity-70">{label}</span>
+      <span>{value}</span>
+      {trend === 1 && <span className="text-[7px] text-rose-500" aria-label="상승">▲</span>}
+      {trend === -1 && <span className="text-[7px] text-blue-500" aria-label="하락">▼</span>}
+    </span>
+  );
+}
+
+/** 목록 배당은 cron 평균값(라이브 폴링 아님) — 6시간 넘게 안 움직였을 때만 "지연" 표시. */
+const ODDS_STALE_MS = 6 * 60 * 60 * 1000;
+function isOddsStale(updatedAt: number | null | undefined): boolean {
+  if (updatedAt == null) return false;
+  return Date.now() - updatedAt > ODDS_STALE_MS;
+}
+
+/** 갱신 시각 상대 표기 — 서버/클라이언트 시계 차이로 hydration 이 어긋나므로 mount 후에만 계산. */
+function useOddsAgo(updatedAt: number | null | undefined): string | null {
+  const [ago, setAgo] = useState<string | null>(null);
+  useEffect(() => {
+    if (updatedAt == null) return;
+    const min = Math.max(0, Math.floor((Date.now() - updatedAt) / 60000));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAgo(min < 1 ? "방금" : min < 60 ? `${min}분 전` : min < 1440 ? `${Math.floor(min / 60)}시간 전` : `${Math.floor(min / 1440)}일 전`);
+  }, [updatedAt]);
+  return ago;
 }
 
 /** 배당 상세 팝업 — fixed 로 띄워 overflow 컨테이너 세로 클립 회피. 하단 공간 부족(마지막 행)이면 위로 플립. */
@@ -633,6 +695,7 @@ function OddsPopup({
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [top, setTop] = useState<number | null>(null);
+  const ago = useOddsAgo(odds.updatedAt);
   // 호버 중 스크롤하면 fixed 팝업이 행과 분리되므로 닫는다.
   useEffect(() => {
     if (!pos) return;
@@ -650,29 +713,32 @@ function OddsPopup({
     setTop(Math.min(pos.bottom + 4, Math.max(8, window.innerHeight - h - 8)));
   }, [pos]);
   if (!pos) return null;
+  const stale = isOddsStale(odds.updatedAt);
+  const arrow = (t?: -1 | 0 | 1 | null) =>
+    t === 1 ? <span className="text-rose-500"> ▲</span> : t === -1 ? <span className="text-blue-500"> ▼</span> : null;
   return (
     <div
       ref={boxRef}
       className="fixed z-50 pointer-events-none"
       style={{ right: pos.right, top: top ?? pos.bottom + 4 }}
     >
-      <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 p-2.5 text-left min-w-[176px]">
+      <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 p-2.5 text-left min-w-[196px]">
         <div className="text-[10px] font-bold text-neutral-500 mb-1.5">
-          배당{odds.books ? ` · ${odds.books}곳 평균` : ""}
+          배당{odds.books ? ` · 해외 ${odds.books}곳 평균` : ""}
         </div>
         <div className="space-y-1 text-[11px]">
           <div className="flex justify-between">
             <span className="text-neutral-500">승 / 무 / 패</span>
             <span className="tabular-nums">
-              <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
-              {" "}{f(odds.draw)}{" "}
-              <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}</span>
+              <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}{arrow(odds.trend?.home)}</span>
+              {" "}{f(odds.draw)}{arrow(odds.trend?.draw)}{" "}
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}{arrow(odds.trend?.away)}</span>
             </span>
           </div>
           {odds.over != null && (
             <div className="flex justify-between pt-1 mt-1 border-t border-neutral-200 dark:border-white/10">
               <span className="text-neutral-500">오버언더 {odds.totalLine}</span>
-              <span className="tabular-nums">O {f(odds.over)} / U {f(odds.under)}</span>
+              <span className="tabular-nums">오버 {f(odds.over)} / 언더 {f(odds.under)}</span>
             </div>
           )}
           {odds.hcHome != null && (
@@ -681,6 +747,17 @@ function OddsPopup({
               <span className="tabular-nums">{f(odds.hcHome)} / {f(odds.hcAway)}</span>
             </div>
           )}
+          <div className="flex justify-between pt-1 mt-1 border-t border-neutral-200 dark:border-white/10 text-[10px] text-neutral-500">
+            <span>갱신 {ago ?? (odds.updatedAt == null ? "시각 미상" : "")}</span>
+            {stale ? (
+              <span className="text-amber-600 dark:text-amber-400 font-semibold">갱신 지연</span>
+            ) : odds.trend ? (
+              <span>▲▼ 오프닝 대비</span>
+            ) : null}
+          </div>
+          <div className="text-[9px] text-neutral-400 leading-snug">
+            참고용 정보이며 베팅을 권유하지 않습니다.
+          </div>
         </div>
       </div>
     </div>
@@ -926,7 +1003,7 @@ export function SoccerLiveRowHeader() {
       className="grid items-center gap-2 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,96px)",
+          "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 72px minmax(0,124px)",
       }}
     >
       <div className="text-center">리그명</div>

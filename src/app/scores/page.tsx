@@ -159,6 +159,47 @@ const fetchLineupReadyIdsCached = unstable_cache(
   { revalidate: 60, tags: ["live-scores"] },
 );
 
+/** 오프닝 배당 (매치별 첫 OddsSnapshot) — 행의 배당 상승/하락 화살표 원료. 5분 캐시 (오프닝은 불변). */
+const fetchOpeningOddsCached = unstable_cache(
+  async (soccerMatchIds: number[]): Promise<Record<number, { h: number; d: number | null; a: number }>> => {
+    if (soccerMatchIds.length === 0) return {};
+    const rows = await prisma.oddsSnapshot.findMany({
+      where: { matchId: { in: soccerMatchIds } },
+      orderBy: [{ matchId: "asc" }, { fetchedAt: "asc" }],
+      distinct: ["matchId"],
+      select: { matchId: true, homeOdds: true, drawOdds: true, awayOdds: true },
+    });
+    const out: Record<number, { h: number; d: number | null; a: number }> = {};
+    for (const r of rows) out[r.matchId] = { h: r.homeOdds, d: r.drawOdds, a: r.awayOdds };
+    return out;
+  },
+  ["scores-page-opening-odds"],
+  { revalidate: 300, tags: ["live-scores"] },
+);
+
+/** oddsBookmakers JSON 의 updatedAt (epoch ms) — 없으면 null */
+function oddsUpdatedAt(json: unknown): number | null {
+  if (!json || typeof json !== "object") return null;
+  const t = (json as { updatedAt?: unknown }).updatedAt;
+  return typeof t === "number" && Number.isFinite(t) ? t : null;
+}
+
+/** 오프닝 대비 현재 배당 흐름 — 2% 넘게 움직였을 때만 방향 표시 (소수점 노이즈 억제) */
+function oddsTrend(
+  open: { h: number; d: number | null; a: number } | undefined,
+  h: number | null,
+  d: number | null,
+  a: number | null,
+): MatchOdds["trend"] {
+  if (!open || h == null || a == null) return null;
+  const dir = (cur: number | null, base: number | null): -1 | 0 | 1 => {
+    if (cur == null || base == null || base <= 0) return 0;
+    const r = cur / base - 1;
+    return r > 0.02 ? 1 : r < -0.02 ? -1 : 0;
+  };
+  return { home: dir(h, open.h), draw: dir(d, open.d), away: dir(a, open.a) };
+}
+
 /** 캐시 블랍 → 화면 파생값 (30초 캐시) — lineup 분리와 같은 수법의 2탄.
  *  detailLive/teamStats/halfTeamStats 1.8MB(566행 실측)를 매 요청 당기던 것을, 블랍은 이
  *  함수 안에서만 읽고 파생 결과(수십 KB)만 돌려준다. 라이브 정밀도는 fetchLiveCached(30초)와
@@ -1105,6 +1146,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         oddsHcHome: true,
         oddsHcAway: true,
         marketBookmakers: true,
+        oddsBookmakers: true,
         predWinner: true,
       },
       orderBy: { startTime: "asc" },
@@ -1158,6 +1200,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   const soccerTeamStatsByMatchId = new Map<number, SoccerTeamStat[]>();
   const soccerHalfStatsByMatchId = new Map<number, SoccerTeamStat[]>();
   const soccerHalfScoreByMatchId = new Map<number, { home: number; away: number }>();
+  const openingOddsByMatchId = new Map<number, { h: number; d: number | null; a: number }>();
   // 축구 라인업(cache.lineup) 실제 존재 매치 — L 배지용 (리그 whitelist 대신 실제 유무).
   const lineupMatchIdSet = new Set<number>();
   const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
@@ -1246,7 +1289,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     // 매 요청 1.8MB 당기던 것을 파생값(수십 KB) 30초 캐시로 대체 (lineup 분리와 같은 수법 2탄).
     const byNum = (a: number, b: number) => a - b;
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
-    const [derived, lineupReadyIds] = await Promise.all([
+    const [derived, lineupReadyIds, openingOdds] = await Promise.all([
       fetchCacheDerivedCached({
         soccerIds: [...soccerMatchIds].sort(byNum),
         baseball: [...baseballLiveDbIds].sort(byNum).map((id) => [id, idToExt.get(id) ?? ""] as [number, string]),
@@ -1256,8 +1299,10 @@ export default async function ScoresPage({ searchParams }: Props) {
         volleyballIds: [...volleyballMatchIds].sort(byNum),
       }),
       fetchLineupReadyIdsCached([...soccerMatchIds].sort(byNum)),
+      fetchOpeningOddsCached([...soccerMatchIds].sort(byNum)).catch(() => ({})),
     ]);
     for (const id of lineupReadyIds) lineupMatchIdSet.add(id);
+    for (const [k, v] of Object.entries(openingOdds)) openingOddsByMatchId.set(Number(k), v);
     // 캐시 산출은 JSON 직렬화를 거쳐 키가 문자열 — 기존 소비 코드가 쓰는 Map 으로 복원한다.
     const fill = <T,>(rec: Record<number, T>, map: Map<number, T>) => {
       for (const [k, v] of Object.entries(rec)) map.set(Number(k), v as T);
@@ -1674,6 +1719,8 @@ export default async function ScoresPage({ searchParams }: Props) {
               hcHome: m.oddsHcHome,
               hcAway: m.oddsHcAway,
               books: m.marketBookmakers,
+              updatedAt: oddsUpdatedAt(m.oddsBookmakers),
+              trend: oddsTrend(openingOddsByMatchId.get(m.id), m.oddsHome, m.oddsDraw, m.oddsAway),
             }
           : null,
       penHome: sport_ === "soccer" ? fs?.penHome ?? null : null,

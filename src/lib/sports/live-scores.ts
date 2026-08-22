@@ -990,6 +990,10 @@ export interface MatchOdds {
   hcHome: number | null;
   hcAway: number | null;
   books: number | null;
+  /** 마지막 배당 갱신 시각 (epoch ms) — oddsBookmakers.updatedAt. 없으면 null */
+  updatedAt?: number | null;
+  /** 오프닝(첫 스냅샷) 대비 현재 1X2 배당 흐름. -1=하락(돈 몰림)·0=보합·1=상승. 스냅샷 없으면 null */
+  trend?: { home: -1 | 0 | 1; draw: -1 | 0 | 1; away: -1 | 0 | 1 } | null;
 }
 
 /**

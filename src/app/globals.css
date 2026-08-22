@@ -705,7 +705,9 @@ body {
    접힘 우선순위(사용자 확정): 배당 → 전반+정보 → 리그배지(팀명 옆 미니 라벨로 대체) → 시간.
    팀명(home/away, minmax(0,1fr)×2)은 마지막까지 최대 폭 유지.
    경계값 근거: 비팀명 폭 합(고정칸+gap12×칸수-1+행패딩32) + 팀명 칸 120px×2 확보 기준.
-   flat = 시간순 평면 뷰(리그 배지 포함 10칸) · grouped = 리그 그룹 카드(9칸). */
+   flat = 시간순 평면 뷰(리그 배지 포함 10칸) · grouped = 리그 그룹 카드(9칸).
+   2026-08-22: 정보 칸 48→72px (L/R 단문자 → 라인업/리뷰 풀네임), 배당 96→124px (승/무/패·O/U 라벨).
+   팀명 우선 원칙 유지 — 같은 날 154→96 축소분 안에서 절충. 2단계 경계 +24px. */
 
 /* 행 리스트 래퍼가 쿼리 컨테이너 — 사이드바 유무·위성 도메인 전폭 모두 실폭 기준 자동 대응. */
 [data-srows] {
@@ -714,14 +716,14 @@ body {
 }
 
 /* 기본(최광폭) 템플릿 — 칸 순서: league time status home score away half star info odds.
-   score 72px 고정(내용폭 차이로 행마다 팀명 정렬 어긋남 방지), odds minmax(0,96px)는
+   score 72px 고정(내용폭 차이로 행마다 팀명 정렬 어긋남 방지), odds minmax(0,124px)는
    vs/점수 가운데 정렬용 우측 spacer 겸용(9px 두 줄 배당 실폭 ~70px — 154px 는 팀명을 깎아먹었다,
    2026-08-22 사용자 지적: "별·예측·L 과 배당 사이가 너무 넓고 팀명이 조금만 보인다"). */
 [data-srow="flat"] {
-  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 96px);
+  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 72px minmax(0, 124px);
 }
 [data-srow="grouped"] {
-  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 96px);
+  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 72px minmax(0, 124px);
 }
 /* 리그 미니 라벨(좌측 팀 칸 안) — 3단계에서 리그 배지 칸 대체용. 평소 숨김. */
 [data-scell="league-mini"] {
@@ -729,17 +731,17 @@ body {
 }
 
 /* ── 1단계: 배당 접힘 (팀명 칸이 120px 밑으로 내려가기 전에 먼저 양보) ── */
-@container srows (max-width: 970px) {
+@container srows (max-width: 1006px) {
   [data-srow="flat"] {
-    grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px;
+    grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 72px;
   }
   [data-srow="flat"] > [data-scell="odds"] {
     display: none;
   }
 }
-@container srows (max-width: 845px) {
+@container srows (max-width: 881px) {
   [data-srow="grouped"] {
-    grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px;
+    grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 72px;
   }
   [data-srow="grouped"] > [data-scell="odds"] {
     display: none;
@@ -747,7 +749,7 @@ body {
 }
 
 /* ── 2단계: 전반 스코어(half) + 정보(예측/L/R, info) 접힘 ── */
-@container srows (max-width: 800px) {
+@container srows (max-width: 836px) {
   [data-srow="flat"] {
     grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
   }
@@ -756,7 +758,7 @@ body {
     display: none;
   }
 }
-@container srows (max-width: 680px) {
+@container srows (max-width: 716px) {
   [data-srow="grouped"] {
     grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
   }
