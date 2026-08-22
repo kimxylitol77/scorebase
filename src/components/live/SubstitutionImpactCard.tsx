@@ -99,7 +99,7 @@ export default function SubstitutionImpactCard({ events, homeNameKo, awayNameKo,
               <span className="font-semibold text-emerald-700 dark:text-emerald-400">IN {localize(imp.sub.playerName)}</span>
               <span className="text-neutral-400">↔</span>
               {avatarFor(imp.sub.assistId, playerLogoById)}
-              <span className="text-neutral-500 line-through">{localize(imp.sub.assistName)}</span>
+              <span className="text-neutral-500"><span className="font-semibold text-rose-500">OUT</span> {localize(imp.sub.assistName)}</span>
             </div>
             {/* 후속 골 */}
             <ul className="mt-2 pl-1 space-y-1">

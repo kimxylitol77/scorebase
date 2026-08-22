@@ -73,7 +73,9 @@ function iconAndLabel(ev: SoccerEvent): { icon: string; label: string; color: st
       return { icon: "🟨🟥", label: "경고 누적 퇴장", color: "text-rose-600" };
     return { icon: "🟨", label: "옐로카드", color: "text-amber-600" };
   }
-  if (ev.type === "subst") return { icon: "🔄", label: "교체", color: "text-blue-600" };
+  // 교체: 메인 선수 = 들어온 선수(IN). 나간 선수는 assist 자리 — 취소선 대신 "OUT" 라벨로 명시
+  // (취소선은 "이름 오류"로 읽힌다는 사용자 지적, 2026-08-22).
+  if (ev.type === "subst") return { icon: "🔄", label: "교체 IN", color: "text-emerald-600 dark:text-emerald-400" };
   return { icon: "📺", label: "VAR", color: "text-purple-600" };
 }
 
@@ -215,8 +217,11 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
           const homeBlock = ev.side === "home" && (
             <div className="flex items-center gap-2 justify-end">
               {ev.type === "subst" && assistKo && (
-                <span className="flex items-center gap-1 text-[11px] text-neutral-400">
-                  <span className="line-through">{shortName(assistKo)}</span>
+                <span className="flex items-center gap-1 text-[11px] text-neutral-500" title={`${assistKo} 교체 아웃`}>
+                  <span className="text-right leading-tight">
+                    <span className="block">{shortName(assistKo)}</span>
+                    <span className="block text-[10px] font-semibold text-rose-500">OUT</span>
+                  </span>
                   <PlayerAvatar id={ev.assistId} name={ev.assistName} logoById={playerLogoById} />
                 </span>
               )}
@@ -245,9 +250,12 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
                 </div>
               </div>
               {ev.type === "subst" && assistKo && (
-                <span className="flex items-center gap-1 text-[11px] text-neutral-400">
+                <span className="flex items-center gap-1 text-[11px] text-neutral-500" title={`${assistKo} 교체 아웃`}>
                   <PlayerAvatar id={ev.assistId} name={ev.assistName} logoById={playerLogoById} />
-                  <span className="line-through">{shortName(assistKo)}</span>
+                  <span className="text-left leading-tight">
+                    <span className="block">{shortName(assistKo)}</span>
+                    <span className="block text-[10px] font-semibold text-rose-500">OUT</span>
+                  </span>
                 </span>
               )}
             </div>
