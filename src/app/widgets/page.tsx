@@ -30,6 +30,15 @@ interface Widget {
 
 const WIDGETS: Widget[] = [
   {
+    key: "scoreboard",
+    title: "라이브 스코어보드 오버레이",
+    desc: "한 경기의 점수·경기 시간을 투명 배경 위에 5초마다 갱신. OBS 브라우저 소스로 넣으면 방송 오버레이가 됩니다. 각 경기 상세 페이지의 '방송 오버레이' 섹션에서 경기별 URL 을 복사하세요.",
+    embedPath: "/embed/scoreboard?league=EPL&id=560547&bg=dark",
+    height: 140,
+    linkUrl: "/scores",
+    linkText: "라이브 스코어 - 스코어베이스",
+  },
+  {
     key: "wc-bracket",
     title: "2026 월드컵 대진표",
     desc: "32강부터 결승까지 토너먼트 대진을 한눈에. 조별리그 결과가 반영되면 자동으로 갱신됩니다.",
