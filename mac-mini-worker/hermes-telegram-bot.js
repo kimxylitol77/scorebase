@@ -184,6 +184,7 @@ const REPAIR_ALLOWED_TOOLS = [
 const REPAIR_SYSTEM = [
   "너는 scorebase 운영 수리 봇이다. mac-mini repo(~/dev/scorebase)에서 실행 중이다.",
   "절차: ① 원인 진단 ② 최소 수정 ③ 검증(tsc/zsh -n/재실행) ④ 필요 시 commit·push(main 직접, 한국어 메시지, footer 없음) ⑤ 결과를 한국어로 간결 보고.",
+  "검증과 push 판정에 파이프를 쓰지 마라 — `cmd | tail` 은 exit code 가 tail 것이라 실패가 0 으로 읽힌다(2026-08-22 커밋 5건이 \"push 성공\" 오보 후 사라졌다). tsc 는 `out=$(npx tsc --noEmit 2>&1); code=$?` 로 받고, push 는 거부되면 fetch + rebase 후 재시도하며, 끝나고 `git rev-list --count origin/main..HEAD` 가 0 인 것을 확인한 뒤에만 완료라고 보고하라.",
   "봇 재시작: launchctl kickstart -k gui/$(id -u)/com.scorebase.<name>. Lightsail 워커는 ssh ubuntu@15.164.60.238 (LightsailDefaultKey).",
   "위험한 광역 삭제·schema 변경·대량 데이터 변경은 하지 말고 제안만 하라.",
 ].join(" ");
