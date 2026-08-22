@@ -20,6 +20,9 @@ import {
 const PIP_ON_KEY = "scorebase:pip-on";
 const PIP_POS_KEY = "scorebase:pip-pos";
 const PIP_SIZE_KEY = "scorebase:pip-size";
+// 표시 스타일 — list(기존 행 목록) | broadcast(방송형 스코어바: 검은 패널·큰 점수·아래 경기 시간, 2026-08-23 사용자)
+const PIP_STYLE_KEY = "scorebase:pip-style";
+type PipStyle = "list" | "broadcast";
 // 새로고침 직전에 Document PiP 분리 상태를 남기는 sessionStorage 플래그 —
 // 브라우저가 opener unload 때 분리 창을 강제로 닫으므로, 다음 로드의 첫 클릭에서 재분리.
 const PIP_DOC_RESTORE_KEY = "scorebase:pip-doc-restore";
@@ -115,6 +118,7 @@ export default function LivePipScore() {
   const [brief, setBrief] = useState<Record<string, BriefMatch>>({});
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [size, setSize] = useState<"sm" | "lg">("sm"); // 기본 작게
+  const [pipStyle, setPipStyle] = useState<PipStyle>("list");
   const [mounted, setMounted] = useState(false);
   // Document PiP 분리 창 — null 이면 인페이지 플로팅 카드로 렌더.
   const [docWin, setDocWin] = useState<Window | null>(null);
@@ -141,6 +145,12 @@ export default function LivePipScore() {
       }
       const sz = localStorage.getItem(PIP_SIZE_KEY);
       if (sz === "sm" || sz === "lg") setSize(sz);
+      try {
+        const st = localStorage.getItem(PIP_STYLE_KEY);
+        if (st === "broadcast" || st === "list") setPipStyle(st);
+      } catch {
+        // ignore
+      }
     } catch {
       // ignore
     }
@@ -429,6 +439,16 @@ export default function LivePipScore() {
     setOn(false);
   }
 
+  function toggleStyle() {
+    const next: PipStyle = pipStyle === "list" ? "broadcast" : "list";
+    setPipStyle(next);
+    try {
+      localStorage.setItem(PIP_STYLE_KEY, next);
+    } catch {
+      // ignore
+    }
+  }
+
   function toggleSize() {
     const next = size === "sm" ? "lg" : "sm";
     setSize(next);
@@ -533,6 +553,36 @@ export default function LivePipScore() {
           <br />
           경기 카드의 별표를 눌러보세요.
         </p>
+      ) : pipStyle === "broadcast" ? (
+        // 방송형 — 유튜브 중계 오버레이처럼 검은 패널 위 큰 점수, 아래 경기 시간
+        <ul className="space-y-1.5">
+          {rows.map((m) => (
+            <li
+              key={m.id}
+              className={`rounded-xl bg-neutral-950 text-white px-3 ${size === "lg" ? "py-2.5" : "py-2"} ${m.state === "done" ? "opacity-60" : ""}`}
+            >
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <span className={`truncate text-right font-bold ${size === "lg" ? "text-base" : "text-[13px]"}`}>{m.home}</span>
+                <span className={`whitespace-nowrap font-black tabular-nums ${size === "lg" ? "text-2xl" : "text-xl"}`}>
+                  {m.homeScore != null && m.awayScore != null ? (
+                    <>
+                      <CountUp value={m.homeScore} className="tabular-nums" />
+                      <span className="mx-1 text-white/50">-</span>
+                      <CountUp value={m.awayScore} className="tabular-nums" />
+                    </>
+                  ) : (
+                    <span className="text-white/50">vs</span>
+                  )}
+                </span>
+                <span className={`truncate font-bold ${size === "lg" ? "text-base" : "text-[13px]"}`}>{m.away}</span>
+              </div>
+              <div className={`mt-0.5 text-center font-bold tabular-nums ${size === "lg" ? "text-sm" : "text-[12px]"} ${m.state === "live" ? "text-emerald-400" : "text-white/60"}`}>
+                {m.state === "live" && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-rose-500 align-middle animate-pulse" aria-hidden />}
+                {m.statusLabel}
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : (
         <ul className="space-y-1">
           {rows.map((m) => (
@@ -609,6 +659,20 @@ export default function LivePipScore() {
             밖으로
           </button>
         )}
+        <button
+          type="button"
+          onClick={toggleStyle}
+          aria-pressed={pipStyle === "broadcast"}
+          aria-label={pipStyle === "broadcast" ? "목록형으로 보기" : "방송형 스코어바로 보기"}
+          title={pipStyle === "broadcast" ? "목록형으로" : "방송형 스코어바 (중계 오버레이 스타일)"}
+          className={`mr-0.5 rounded-md px-1.5 py-1 text-[10px] font-bold transition ${
+            pipStyle === "broadcast"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+              : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+          }`}
+        >
+          방송형
+        </button>
         <button
           type="button"
           onClick={toggleSize}
