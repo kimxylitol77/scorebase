@@ -193,6 +193,7 @@ export async function GET(
           id: true,
           referee: true,
           status: true,
+          raw: true, // af fixture id 추출용 — externalId 가 af id 가 아닌 리그가 있다(아래)
           homeTeam: { select: { externalId: true } },
           awayTeam: { select: { externalId: true } },
         },
@@ -244,19 +245,48 @@ export async function GET(
         // 신뢰한다 (ts nameKo 한글명 유지 — af 폴백은 영문이라 가능하면 ts 우선).
         const homeExt = ourMatch.homeTeam.externalId;
         const awayExt = ourMatch.awayTeam.externalId;
+        // ⚠ gameId(=Match.externalId)도, 팀 externalId 도 af id 라는 보장이 없다.
+        // EPL 은 둘 다 football-data 대역이다(매치 560544 / 팀 349·71) — 진짜 af 값은
+        // raw 안에 있다(fixture.id 1557370 / teams 57·746). externalId 를 af fixture id 로
+        // 넘기면 그 번호의 남의 경기가 실려온다: 2026-08-22 입스위치vs선덜랜드 라이브에
+        // 2019 독일 U19 경기가 붙어 킥오프 6분 시점에 90+3분·0:3 으로 표시됐다.
+        // raw 가 af 형식이면 거기서 셋을 함께 읽고, 아니면(ts 배열 등) 기존 폴백을 쓴다.
+        const afRef = (() => {
+          try {
+            const rv = ourMatch.raw;
+            const r = (typeof rv === "string" ? JSON.parse(rv) : rv) as {
+              fixture?: { id?: unknown };
+              teams?: { home?: { id?: unknown }; away?: { id?: unknown } };
+            } | null;
+            const fid = r?.fixture?.id;
+            const h = r?.teams?.home?.id;
+            const a = r?.teams?.away?.id;
+            if (typeof fid === "number" && typeof h === "number" && typeof a === "number") {
+              return { fixtureId: fid, homeId: h, awayId: a };
+            }
+          } catch {
+            /* af 형식이 아니면 아래 폴백 */
+          }
+          if (/^\d+$/.test(gameId) && homeExt && awayExt) {
+            const h = parseInt(homeExt, 10);
+            const a = parseInt(awayExt, 10);
+            if (Number.isFinite(h) && Number.isFinite(a)) {
+              return { fixtureId: parseInt(gameId, 10), homeId: h, awayId: a };
+            }
+          }
+          return null;
+        })();
         if (
           (ourMatch.status === "LIVE" || ourMatch.status === "FINISHED") &&
           !out.soccerEvents?.length &&
-          /^\d+$/.test(gameId) &&
-          homeExt &&
-          awayExt
+          afRef
         ) {
           try {
             const { fetchSoccerEventsByFixture } = await import("@/lib/live/soccer-events");
             const afEvents = await fetchSoccerEventsByFixture(
-              parseInt(gameId, 10),
-              parseInt(homeExt, 10),
-              parseInt(awayExt, 10),
+              afRef.fixtureId,
+              afRef.homeId,
+              afRef.awayId,
             );
             if (afEvents?.length) out.soccerEvents = afEvents;
           } catch (e) {

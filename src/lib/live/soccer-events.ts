@@ -72,12 +72,25 @@ async function fetchEventsForFixture(info: FixtureInfo): Promise<SoccerEvent[] |
   try {
     const { data } = await c.get("/fixtures/events", { params: { fixture: info.id } });
     const raws = (data?.response ?? []) as RawEvent[];
+    // ⚠ fixture id 가 이 경기의 af id 라는 보장이 없다. EPL 은 Match.externalId 가 af fixture id 가
+    // 아닌데(팀 externalId 만 af id) 호출부가 그걸 그대로 넘긴다 — 그 번호가 af 에 실재하면
+    // 남의 경기 이벤트가 통째로 실려온다. 게다가 side 가 `아니면 away` 라 남의 팀 이벤트는
+    // 전부 원정팀 것으로 둔갑한다(2026-08-22 입스위치vs선덜랜드 라이브에 2019 독일 U19
+    // 경기가 붙어 90+3분·0:3 으로 표시됐다. 킥오프 6분 경과 시점).
+    // 우리 두 팀이 응답에 하나도 없으면 남의 경기다 — 추가 호출 없이 여기서 끊는다.
+    const teamIds = new Set(raws.map((r) => r.team?.id).filter((v): v is number => typeof v === "number"));
+    if (teamIds.size > 0 && !teamIds.has(info.homeTeamId) && !teamIds.has(info.awayTeamId)) {
+      cache.set(info.id, { payload: null, at: Date.now() });
+      return null;
+    }
     const out: SoccerEvent[] = [];
     for (const r of raws) {
       const min = r.time?.elapsed;
       if (typeof min !== "number") continue;
-      const side: "home" | "away" =
-        r.team.id === info.homeTeamId ? "home" : "away";
+      // 우리 두 팀 것만 남긴다 — 모르는 팀을 away 로 떠넘기지 않는다.
+      const side: "home" | "away" | null =
+        r.team.id === info.homeTeamId ? "home" : r.team.id === info.awayTeamId ? "away" : null;
+      if (!side) continue;
       out.push({
         minute: min,
         extra: r.time?.extra ?? 0,
