@@ -23,6 +23,8 @@ const HR = '<hr style="border:none;border-top:1px solid #eee;margin:32px 0;">';
 // 다크 테마에서 흰 배경 블록의 글자색이 상속돼 흐려지므로 color 를 명시한다.
 const TH = 'style="padding:9px 8px;border-bottom:2px solid #333;text-align:left;font-weight:700;color:#111;"';
 const TD = 'style="padding:8px;border-bottom:1px solid #e3e6ea;color:#222;"';
+// 흰 표 안의 링크 — 다크 테마 링크색(밝음)이 상속되면 흰 배경에서 사라진다(8/22 실측). 색을 박는다.
+const A_IN_TABLE = 'style="color:#1d4ed8;text-decoration:underline;"';
 const TABLE =
   'style="width:100%;border-collapse:collapse;font-size:15px;background:#fff;color:#222;margin:12px 0;"';
 const BOX =
@@ -55,7 +57,7 @@ export async function buildAndSaveOverUnderBlog(): Promise<{ slug: string; id: n
       .map(
         (l, i) => `      <tr>
         <td ${TD}>${i + 1}</td>
-        <td ${TD}><a href="${SITE}/over-under/${l.league}">${ko(l.league)}</a>${
+        <td ${TD}><a ${A_IN_TABLE} href="${SITE}/over-under/${l.league}">${ko(l.league)}</a>${
           COUNTRY_BY_LEAGUE[l.league] ? ` <span style="color:#888;font-size:13px;">${COUNTRY_BY_LEAGUE[l.league]}</span>` : ""
         }</td>
         <td ${TD} align="right"><strong>${f1(l.over25Pct)}%</strong></td>
