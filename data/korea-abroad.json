@@ -74,12 +74,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Birmingham City",
-        "apps": 1,
-        "starts": 1,
+        "apps": 2,
+        "starts": 2,
         "goals": 0,
         "assists": 0,
-        "minutes": 80,
-        "rating": 6.43,
+        "minutes": 142,
+        "rating": 6.37,
         "yellow": 0,
         "red": 0
       }
@@ -156,12 +156,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Stoke City",
-        "apps": 1,
-        "starts": 0,
+        "apps": 2,
+        "starts": 1,
         "goals": 0,
         "assists": 0,
-        "minutes": 20,
-        "rating": 6.19,
+        "minutes": 110,
+        "rating": 6.36,
         "yellow": 0,
         "red": 0
       }
@@ -320,12 +320,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Swansea City",
-        "apps": 1,
+        "apps": 2,
         "starts": 0,
         "goals": 0,
         "assists": 0,
-        "minutes": 25,
-        "rating": 6.47,
+        "minutes": 54,
+        "rating": 6.78,
         "yellow": 0,
         "red": 0
       }
@@ -2670,5 +2670,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-21T22:20:20.097Z"
+  "currentUpdatedAt": "2026-08-22T22:20:23.133Z"
 }
