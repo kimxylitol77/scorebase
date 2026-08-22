@@ -32,6 +32,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/standings", label: "리그 순위", desc: "EPL·라리가·K리그 등" },
       { href: "/soccer/korea", label: "해외파 한국 선수", desc: "유럽·MLS 시즌 성적 · 다음 경기" },
       { href: "/transfers", label: "몸값·가치 랭킹", desc: "선수 이적가치 · 가성비 구단" },
+      { href: "/over-under", label: "오버·언더 통계", desc: "리그·팀별 오버 2.5 비율 · 하부리그까지" },
       { href: "/odds?sport=soccer", label: "배당 흐름", desc: "밸류 베트 · 시장 움직임 실시간" },
     ],
   },
