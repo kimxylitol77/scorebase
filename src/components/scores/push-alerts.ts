@@ -3,6 +3,25 @@
 "use client";
 
 const ENABLED_KEY = "scorebase:push-alerts"; // "1" = 사용자가 벨 켬
+const KINDS_KEY = "scorebase:push-kinds"; // JSON ["KICKOFF","LINEUP","FINAL"] — 종류별 옵트인 (2026-08-22)
+export const PUSH_KINDS = ["KICKOFF", "LINEUP", "FINAL"] as const;
+export type PushKind = (typeof PUSH_KINDS)[number];
+export const PUSH_KIND_LABEL: Record<PushKind, string> = { KICKOFF: "킥오프 15분 전", LINEUP: "선발 라인업 발표", FINAL: "경기 종료·결과" };
+
+export function readPushKinds(): PushKind[] {
+  try {
+    const arr = JSON.parse(localStorage.getItem(KINDS_KEY) ?? "null");
+    if (Array.isArray(arr)) return PUSH_KINDS.filter((k) => arr.includes(k));
+  } catch {}
+  return [...PUSH_KINDS];
+}
+
+export function writePushKinds(kinds: PushKind[]): void {
+  try {
+    localStorage.setItem(KINDS_KEY, JSON.stringify(kinds));
+  } catch {}
+  schedulePushSync();
+}
 const SW_PATH = "/push-sw.js";
 
 export function isPushSupported(): boolean {
@@ -86,6 +105,7 @@ async function syncSubscription(sub: PushSubscription): Promise<boolean> {
       endpoint: sub.endpoint,
       keys: json.keys,
       matchIds: readFavMatchIds(),
+      kinds: readPushKinds(),
     }),
   }).catch(() => null);
   return !!res?.ok;

@@ -14,6 +14,7 @@ interface Body {
   endpoint?: string;
   keys?: { p256dh?: string; auth?: string };
   matchIds?: unknown[];
+  kinds?: unknown[];
 }
 
 export async function POST(req: Request) {
@@ -32,6 +33,10 @@ export async function POST(req: Request) {
 
   const rawIds = Array.isArray(body.matchIds) ? body.matchIds : [];
   const ids = [...new Set(rawIds.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, MAX_MATCHES * 3);
+  // 알림 종류 — 화이트리스트 밖은 버림, 비어 있으면 KICKOFF 만 (구버전 클라이언트 호환)
+  const KINDS = ["KICKOFF", "LINEUP", "FINAL"];
+  const kindsRaw = Array.isArray(body.kinds) ? body.kinds.filter((k): k is string => typeof k === "string" && KINDS.includes(k)) : [];
+  const kinds = kindsRaw.length > 0 ? [...new Set(kindsRaw)] : ["KICKOFF"];
 
   // 서버 필터 — 예정 + 미래 7일 내 경기만 알림 대상
   const now = new Date();
@@ -60,7 +65,7 @@ export async function POST(req: Request) {
     ...(valid.length
       ? [
           prisma.pushMatchAlert.createMany({
-            data: valid.map((m) => ({ subscriptionId: sub.id, matchId: m.id })),
+            data: valid.flatMap((m) => kinds.map((kind) => ({ subscriptionId: sub.id, matchId: m.id, kind }))),
             skipDuplicates: true,
           }),
         ]
