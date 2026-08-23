@@ -708,15 +708,15 @@ export default function LivePipScore() {
           type="button"
           onClick={toggleStyle}
           aria-pressed={pipStyle === "broadcast"}
-          aria-label={pipStyle === "broadcast" ? "목록형으로 보기" : "방송형 스코어바로 보기"}
-          title={pipStyle === "broadcast" ? "목록형으로" : "방송형 스코어바 (중계 오버레이 스타일)"}
+          aria-label={pipStyle === "broadcast" ? "간단히 보기" : "자세히 보기 (로고·큰 점수·경기 시간)"}
+          title={pipStyle === "broadcast" ? "간단히 보기" : "자세히 보기 — 로고·큰 점수·경기 시간"}
           className={`mr-0.5 rounded-md px-1.5 py-1 text-[10px] font-bold transition ${
             pipStyle === "broadcast"
               ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
               : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
           }`}
         >
-          방송형
+          {pipStyle === "broadcast" ? "간단히" : "자세히"}
         </button>
         <button
           type="button"
