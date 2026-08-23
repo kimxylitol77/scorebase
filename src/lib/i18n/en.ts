@@ -425,6 +425,7 @@ const TEAM_NAME_EN: Record<string, string> = {
   "에버턴": "Everton",
   "입스위치": "Ipswich Town",
   "헐 시티": "Hull City",
+  "디트로이트 피스턴스": "Detroit Pistons",
 };
 
 export function toEnglishTeamName(name: string): string {

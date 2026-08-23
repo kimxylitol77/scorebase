@@ -1,0 +1,38 @@
+{
+  "header": "StandingsOnlyView (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(en, league)",
+      "toEnglishTeamName(en)"
+    ]
+  ],
+  "dict": {
+    "프리미어리그": "Premier League",
+    "라리가": "LaLiga",
+    "분데스리가": "Bundesliga",
+    "K리그 1": "K League 1",
+    "J1 리그": "J1 League",
+    "📊 현재 시즌 순위표 · 매일 자동 갱신": "📊 Current season table · updated daily",
+    "시즌 개막 전": "Before the season starts",
+    "새 시즌 순위표는 개막 후 표시됩니다": "The new season table appears once play begins",
+    " · 첫 경기 ": " · first match ",
+    "순위 데이터를 수집 중입니다. 잠시 후 다시 확인해주세요.": "Collecting standings data. Please check back shortly.",
+    "※ 2026 J리그 100년 비전 리그 — 지역 그룹별 순위": "※ 2026 J.League 100-Year Vision — standings by regional group",
+    "※ 조별 순위 — 그룹 단계 진행 중": "※ Group standings — group stage in progress",
+    "팀": "Team",
+    "경기": "GP",
+    "승": "W",
+    "무": "D",
+    "패": "L",
+    "득실": "GD",
+    "승점": "Pts",
+    "시즌 리더보드": "Season leaders",
+    "⏳ 예측 기능 준비 중": "⏳ Predictions coming soon",
+    "이 리그는 현재 순위표만 제공됩니다. Elo 레이팅 기반 우승/강등 시뮬레이션은 데이터가 더 쌓이는 대로 추가될 예정입니다.": "Only the table is available for this league. Elo-based title and relegation simulation will follow once enough data accumulates.",
+    "인기 리그 예측 보러가기": "Browse popular league predictions"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "header": "UclBracket (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(team.name)",
+      "toEnglishTeamName(team.name)"
+    ]
+  ],
+  "dict": {
+    "knockout 라운드 매치가 아직 없습니다.": "No knockout matches yet.",
+    "경기": " matches",
+    "대진 미확정": "Draw pending",
+    "KST · 결승 (단판)": "KST · final (single leg)",
+    "1차전": "1st leg",
+    "2차전": "2nd leg"
+  }
+}
