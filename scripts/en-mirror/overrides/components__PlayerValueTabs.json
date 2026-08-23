@@ -10,10 +10,6 @@
       "{ href: \"/en/salaries/soccer\","
     ],
     [
-      "{ href: \"/salaries/kbo\",",
-      "{ href: \"/en/salaries/kbo\","
-    ],
-    [
       "{ href: \"/salaries/mlb\",",
       "{ href: \"/en/salaries/mlb\","
     ],
@@ -36,6 +32,10 @@
     [
       "{ href: \"/salaries/f1\",",
       "{ href: \"/en/salaries/f1\","
+    ],
+    [
+      "  { href: \"/salaries/kbo\", label: \"KBO\" },\n",
+      ""
     ]
   ]
 }

@@ -1,0 +1,182 @@
+{
+  "header": "/en/salaries/nba — NBA 선수·팀 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520). API 실패 시.\n",
+      ""
+    ],
+    [
+      "/** USD → 한화 약식 — 억/만원 단위. */\nfunction fmtKrw(usd: number, rate: number): string {\n  const won = usd * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n\n",
+      ""
+    ],
+    [
+      "  const rate = await fetchUsdKrw();\n",
+      ""
+    ],
+    [
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                      <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400 font-normal\">{fmtKrw(t.total, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                    <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 hidden lg:table-cell\">{fmtKrw(t.total, rate)}</td>\n",
+      ""
+    ],
+    [
+      "                        <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                      <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">{fmtKrw(r.salary, rate)}</td>\n",
+      ""
+    ],
+    [
+      "        <NbaSalaryFooter rate={rate} />",
+      "        <NbaSalaryFooter />"
+    ],
+    [
+      "      <NbaSalaryFooter rate={rate} />",
+      "      <NbaSalaryFooter />"
+    ],
+    [
+      "function NbaSalaryFooter({ rate }: { rate: number }) {",
+      "function NbaSalaryFooter() {"
+    ],
+    [
+      "      연봉은 해당 시즌 실계약액(USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. 데이터 제공{\" \"}",
+      "      Salaries are actual contract value for the season (USD). Data by{\" \"}"
+    ],
+    [
+      "      {\" · 환율 \"}\n      <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n        Frankfurter\n      </a>\n",
+      ""
+    ],
+    [
+      "/** 현재 USD→KRW 환율 — frankfurter(ECB). revalidate 캐시 안에서 시간당 1회. 실패 시 fallback. */\nasync function fetchUsdKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=USD&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "import { lookupNbaPlayer, nbaPlayerHref } from \"@/lib/sports/nba-players\";",
+      "import { lookupNbaPlayer } from \"@/lib/sports/nba-players\";"
+    ],
+    [
+      "import { ArrowLeftRight, CircleDollarSign, Trophy } from \"lucide-react\";",
+      "import { CircleDollarSign, Trophy } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "                const ko = toKoreanTeamName(t.name, \"NBA\") ?? t.name;\n",
+      "                const ko = t.name;\n"
+    ],
+    [
+      "  const teamKo = teamParam ? (toKoreanTeamName(teamParam, \"NBA\") ?? teamParam) : null;",
+      "  const teamKo = teamParam ?? null;"
+    ],
+    [
+      "        .filter(\n          (n) =>\n            n.toLowerCase().includes(lower) ||\n            toKoreanPlayerName(n).includes(q) ||\n            (lookupNbaPlayer(n)?.ko ?? \"\").includes(q),\n        ),",
+      "        .filter((n) => n.toLowerCase().includes(lower)),"
+    ],
+    [
+      "                  // 위키 사전(정본) 우선 — 미등재만 로스터 json ko(음역 포함) fallback.\n                  const dictKo = toKoreanPlayerName(r.playerName);\n                  const display = dictKo !== r.playerName ? dictKo : info?.ko ?? r.playerName;\n                  const href = nbaPlayerHref(info);",
+      "                  const display = r.playerName;\n                  const href = info?.bdlId != null ? `/en/players/${info.bdlId}?league=NBA` : null;"
+    ],
+    [
+      "                          {toKoreanTeamName(r.teamName, \"NBA\")}\n",
+      "                          {r.teamName}\n"
+    ],
+    [
+      "<PlayerValueTabs active=\"/salaries/nba\" />",
+      "<PlayerValueTabs active=\"/en/salaries/nba\" />"
+    ],
+    [
+      "href={`/salaries/nba?team=${encodeURIComponent(t.name)}`}",
+      "href={`/en/salaries/nba?team=${encodeURIComponent(t.name)}`}"
+    ],
+    [
+      "<form method=\"get\" action=\"/salaries/nba\" className=\"flex gap-2\">",
+      "<form method=\"get\" action=\"/en/salaries/nba\" className=\"flex gap-2\">"
+    ],
+    [
+      "href={p === 1 ? \"/salaries/nba\" : `/salaries/nba?page=${p}`}",
+      "href={p === 1 ? \"/en/salaries/nba\" : `/en/salaries/nba?page=${p}`}"
+    ],
+    [
+      "      href={page === 1 ? \"/salaries/nba\" : `/salaries/nba?page=${page}`}",
+      "      href={page === 1 ? \"/en/salaries/nba\" : `/en/salaries/nba?page=${page}`}"
+    ],
+    [
+      "<Link href=\"/scores\" className=\"hover:underline\">라이브 스코어</Link>",
+      "<Link href=\"/en/scores\" className=\"hover:underline\">라이브 스코어</Link>"
+    ],
+    [
+      "<Link href=\"/salaries/nba\" className={pill(playerOn)}>선수별</Link>",
+      "<Link href=\"/en/salaries/nba\" className={pill(playerOn)}>선수별</Link>"
+    ],
+    [
+      "<Link href=\"/salaries/nba?view=team\" className={pill(view === \"team\")}>팀별</Link>",
+      "<Link href=\"/en/salaries/nba?view=team\" className={pill(view === \"team\")}>팀별</Link>"
+    ],
+    [
+      "        <Link\n          href=\"/transactions/nba\"\n          className=\"inline-flex items-center gap-1.5 rounded-full bg-white/60 px-3.5 py-1.5 font-semibold text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10\"\n        >\n          <ArrowLeftRight className=\"h-3.5 w-3.5\" aria-hidden /> NBA 트랜잭션\n        </Link>\n",
+      ""
+    ],
+    [
+      "          href=\"/leagues/NBA\"",
+      "          href=\"/en/standings/NBA\""
+    ],
+    [
+      "          <Link\n            href=\"/salaries/nba\"\n            className=\"shrink-0 self-center text-xs text-neutral-400 underline-offset-2 hover:underline\"\n          >",
+      "          <Link\n            href=\"/en/salaries/nba\"\n            className=\"shrink-0 self-center text-xs text-neutral-400 underline-offset-2 hover:underline\"\n          >"
+    ],
+    [
+      "        <Link\n          href=\"/salaries/nba\"\n          className=\"inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]\"\n        >",
+      "        <Link\n          href=\"/en/salaries/nba\"\n          className=\"inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]\"\n        >"
+    ],
+    [
+      "subtitle={`팀별 총 연봉(페이롤) 순위 · ${teamRows.length}개 구단`}",
+      "subtitle={`team payroll ranking · ${teamRows.length} clubs`}"
+    ],
+    [
+      "            ? `\"${q}\" 검색 결과 · ${total.toLocaleString()}명`\n            : teamKo\n              ? `${teamKo} 선수 연봉 (달러·원화) · ${total.toLocaleString()}명`\n              : `선수별 연봉 순위 (달러·원화) · 전체 ${total.toLocaleString()}명 · 매주 자동 갱신`",
+      "            ? `search results for \"${q}\" · ${total.toLocaleString()} players`\n            : teamKo\n              ? `${teamKo} player salaries (USD) · ${total.toLocaleString()} players`\n              : `player salary ranking (USD) · ${total.toLocaleString()} players · updated weekly`"
+    ],
+    [
+      "        {season} 시즌 {subtitle} · 데이터 Basketball Reference.",
+      "        {season} season · {subtitle} · data by Basketball Reference."
+    ],
+    [
+      "  title: \"NBA 선수·팀별 연봉 랭킹 — 2025-26 (한화)\",\n  description:\n    \"NBA 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 스테판 커리·요키치 등 최고 연봉 선수와 레이커스·닉스 구단 페이롤을 달러·원화로. 한국어 표기, 매주 자동 갱신. 데이터 Basketball Reference.\",\n  keywords: [\"NBA 연봉\", \"NBA 팀 연봉\", \"NBA 페이롤\", \"NBA 팀별 연봉\", \"NBA 샐러리캡\", \"커리 연봉\", \"NBA 선수 연봉 순위\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/nba\" },",
+      "  title: \"NBA Salaries — Player and Team Payroll Rankings 2025-26\",\n  description:\n    \"NBA player salary rankings plus team payroll totals. Stephen Curry, Nikola Jokic and the highest-paid players, with Lakers and Knicks payrolls in USD. Updated weekly. Data from Basketball Reference.\",\n  keywords: [\"NBA salaries\", \"NBA payroll\", \"NBA team payroll\", \"highest paid NBA players\", \"Curry salary\", \"NBA salary cap\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/nba\",\n    languages: koEnLanguages(\"/salaries/nba\", \"/en/salaries/nba\"),\n  },"
+    ]
+  ],
+  "dict": {
+    "라이브 스코어": "Live Scores",
+    "연봉 랭킹": "Salaries",
+    "NBA 연봉 랭킹": "NBA Salaries",
+    "선수": "Player",
+    "팀": "Team",
+    "나이": "Age",
+    "연봉": "Salary",
+    "인원": "Players",
+    "총 연봉": "Total Payroll",
+    "평균": "Average",
+    "선수별": "By player",
+    "팀별": "By team",
+    "검색": "Search",
+    "초기화": "Reset",
+    "선수 이름 검색 (한글·영문)": "Search player name",
+    "연봉 데이터를 불러오는 중입니다.": "Salary data is loading.",
+    "‹ 이전": "‹ Prev",
+    "다음 ›": "Next ›",
+    "NBA 경기·순위": "NBA scores & standings"
+  }
+}

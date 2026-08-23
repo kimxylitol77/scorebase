@@ -1,0 +1,114 @@
+{
+  "header": "/en/salaries/f1 — F1 드라이버 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)\n",
+      ""
+    ],
+    [
+      "function fmtKrw(usd: number, rate: number): string {\n  const won = usd * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n\n",
+      ""
+    ],
+    [
+      "async function fetchUsdKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=USD&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "  const rate = await fetchUsdKrw();\n",
+      ""
+    ],
+    [
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                      <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                    <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">{fmtKrw(r.salary, rate)}</td>\n",
+      ""
+    ],
+    [
+      "  // 한글 드라이버명 — 시드 JSON name→nameKo (DB 에는 영문만 저장)\n  const koMap = new Map(getF1Salaries().map((d) => [d.name, d.nameKo]));\n",
+      ""
+    ],
+    [
+      "import { F1_TEAM_KO, F1_TEAM_COLOR, F1_TEAM_LOGO, fetchF1Championship } from \"@/lib/sports/espn-f1\";",
+      "import { F1_TEAM_COLOR, F1_TEAM_LOGO, fetchF1Championship } from \"@/lib/sports/espn-f1\";"
+    ],
+    [
+      "import { getF1Salaries, F1_SALARY_AS_OF, F1_SALARY_SOURCE, F1_SALARY_SOURCE_URL } from \"@/lib/sports/f1-salaries\";",
+      "import { F1_SALARY_AS_OF, F1_SALARY_SOURCE, F1_SALARY_SOURCE_URL } from \"@/lib/sports/f1-salaries\";"
+    ],
+    [
+      "import { CircleDollarSign } from \"lucide-react\";",
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "                const nameKo = koMap.get(r.playerName) ?? null;\n                const teamKo = F1_TEAM_KO[r.teamName] ?? r.teamName;",
+      "                const teamKo = r.teamName;"
+    ],
+    [
+      "                          <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />\n                          <span className=\"min-w-0\">\n                            <span className={`block truncate font-semibold group-hover:underline ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>\n                              {nameKo ?? r.playerName}\n                            </span>\n                            {nameKo && <span className=\"block truncate text-[11px] font-normal text-neutral-400\">{r.playerName}</span>}\n                          </span>",
+      "                          <PlayerPhoto photo={r.photoUrl} name={r.playerName} />\n                          <span className=\"min-w-0\">\n                            <span className={`block truncate font-semibold group-hover:underline ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>\n                              {r.playerName}\n                            </span>\n                          </span>"
+    ],
+    [
+      "                          <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />\n                          <span className=\"min-w-0\">\n                            <span className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>\n                              {nameKo ?? r.playerName}\n                            </span>\n                            {nameKo && <span className=\"block truncate text-[11px] font-normal text-neutral-400\">{r.playerName}</span>}\n                          </span>",
+      "                          <PlayerPhoto photo={r.photoUrl} name={r.playerName} />\n                          <span className=\"min-w-0\">\n                            <span className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>\n                              {r.playerName}\n                            </span>\n                          </span>"
+    ],
+    [
+      "<PlayerValueTabs active=\"/salaries/f1\" />",
+      "<PlayerValueTabs active=\"/en/salaries/f1\" />"
+    ],
+    [
+      "<Link href=\"/scores?sport=f1\" className=\"hover:underline\">F1</Link>",
+      "<Link href=\"/en/scores?sport=f1\" className=\"hover:underline\">F1</Link>"
+    ],
+    [
+      "<Link href=\"/rankings/f1\" className=\"font-semibold text-blue-600 dark:text-blue-400 hover:underline\">",
+      "<Link href=\"/en/rankings/f1\" className=\"font-semibold text-blue-600 dark:text-blue-400 hover:underline\">"
+    ],
+    [
+      "href={`/rankings/f1/${athleteId}`}",
+      "href={`/en/rankings/f1/${athleteId}`}"
+    ],
+    [
+      "        F1 팀은 드라이버 연봉을 공식 발표하지 않습니다. 아래 수치는 공식 발표가 아닌 <strong>미디어 종합 추정치</strong>\n        ({F1_SALARY_SOURCE}, {F1_SALARY_AS_OF} 기준)이며 실제 계약 조건과 다를 수 있습니다.",
+      "        F1 teams do not disclose driver salaries officially. The figures below are <strong>aggregated media estimates</strong>{\" \"}\n        ({F1_SALARY_SOURCE}, as of {F1_SALARY_AS_OF}) and may differ from actual contract terms."
+    ],
+    [
+      "        연봉은 {season} 시즌 추정 기본급(USD, 보너스·스폰서 수입 제외) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다.\n        일부 신인은 추정 범위(50만~100만 달러)의 하한값으로 표기했습니다. 추정 출처{\" \"}",
+      "        Figures are estimated base salaries for the {season} season (USD, excluding bonuses and endorsements).\n        Some rookies are shown at the lower bound of an estimated range ($500K–$1M). Estimates from{\" \"}"
+    ],
+    [
+      "        {\" · 환율 \"}\n        <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n          Frankfurter\n        </a>\n",
+      ""
+    ],
+    [
+      "  title: \"F1 드라이버 연봉 랭킹 — 추정 연봉 순위 (한화)\",\n  description:\n    \"2026 F1 드라이버 연봉 순위를 달러·원화로. 페르스타펀·해밀턴·르클레르 등 드라이버별 추정 기본급과 소속 팀을 한국어로 — 공식 발표가 없어 미디어 종합 추정치 기준.\",\n  keywords: [\"F1 연봉\", \"F1 드라이버 연봉\", \"페르스타펀 연봉\", \"해밀턴 연봉\", \"F1 연봉 순위\", \"포뮬러1 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/f1\" },",
+      "  title: \"F1 Driver Salaries — Estimated Earnings Ranking\",\n  description:\n    \"2026 Formula 1 driver salary rankings in USD. Estimated base pay for Max Verstappen, Lewis Hamilton, Charles Leclerc and every driver on the grid — aggregated media estimates, as teams do not disclose salaries.\",\n  keywords: [\"F1 driver salaries\", \"Formula 1 salaries\", \"Verstappen salary\", \"Hamilton salary\", \"F1 highest paid drivers\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/f1\",\n    languages: koEnLanguages(\"/salaries/f1\", \"/en/salaries/f1\"),\n  },"
+    ],
+    [
+      "{F1_SALARY_SOURCE}",
+      "RacingNews365 (aggregated media estimates)"
+    ],
+    [
+      "import { F1_SALARY_AS_OF, F1_SALARY_SOURCE, F1_SALARY_SOURCE_URL } from \"@/lib/sports/f1-salaries\";",
+      "import { F1_SALARY_AS_OF, F1_SALARY_SOURCE_URL } from \"@/lib/sports/f1-salaries\";"
+    ]
+  ],
+  "dict": {
+    "드라이버 연봉": "Driver Salaries",
+    "연봉 랭킹": "Salaries",
+    "F1 드라이버 연봉": "F1 Driver Salaries",
+    "시즌 드라이버": "season —",
+    "명의 연봉 추정 기본급(보너스 제외, 달러·원화) 순위.": "drivers by estimated base salary (USD, bonuses excluded).",
+    "드라이버": "Driver",
+    "팀": "Team",
+    "연봉 (추정)": "Salary (est.)",
+    "연봉 데이터를 불러오는 중입니다.": "Salary data is loading.",
+    "시즌 성적이 궁금하다면": "Looking for championship standings?",
+    "F1 챔피언십 순위 보기": "View F1 championship standings"
+  }
+}

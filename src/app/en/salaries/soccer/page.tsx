@@ -12,7 +12,6 @@ import {
   type SoccerBigLeague,
   SOCCER_SALARY_AS_OF,
   SOCCER_SALARY_SEASON,
-  SOCCER_SALARY_SOURCE,
   SOCCER_SALARY_SOURCE_URL,
 } from "@/lib/sports/soccer-salaries";
 import rawPhotos from "../../../../../data/player-photos.json";
@@ -278,7 +277,7 @@ export default async function SoccerSalariesPage({
       <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
         Figures are estimated pre-tax base salaries for the {SOCCER_SALARY_SEASON} season (EUR, excluding bonuses and
         endorsements). Premier League weekly wages (GBP) are annualised and converted to EUR.
-        Estimates from {SOCCER_SALARY_SOURCE}{" "}
+        Estimates aggregated from Capology, Planet Football, GiveMeSport, Sofascore and The National.{" "}
         <a href={SOCCER_SALARY_SOURCE_URL} target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
           (source article)
         </a>

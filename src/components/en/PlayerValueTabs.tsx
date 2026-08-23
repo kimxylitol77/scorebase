@@ -4,7 +4,6 @@ import Link from "next/link";
 const TABS = [
   { href: "/en/transfers", label: "Transfers" },
   { href: "/en/salaries/soccer", label: "Football Wages" },
-  { href: "/en/salaries/kbo", label: "KBO" },
   { href: "/en/salaries/mlb", label: "MLB" },
   { href: "/en/salaries/nba", label: "NBA" },
   { href: "/en/salaries/nhl", label: "NHL" },

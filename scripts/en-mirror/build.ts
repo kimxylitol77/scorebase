@@ -128,6 +128,19 @@ function rewriteComponentImports(src: string, mirror: Map<string, string>): stri
   });
 }
 
+/**
+ * 생성물에 남으면 안 되는 한국어 전용 흔적. tsc 는 미사용 함수를 에러로 잡지 않으므로
+ * (환율 조회 함수가 통째로 남아도 빌드가 통과한다) 여기서 따로 본다.
+ */
+const FORBIDDEN = [
+  "toKoreanTeamName", "toKoreanPlayerName", "toKoreanCoachName",
+  "fmtKrw", "FX_FALLBACK", "frankfurter",
+];
+
+export function checkResidue(code: string): string[] {
+  return FORBIDDEN.filter((f) => code.includes(f));
+}
+
 export interface FileResult {
   rel: string;
   outPath: string;
@@ -198,10 +211,16 @@ if (require.main === module) {
   const dict = loadJson<Record<string, string>>(DICT_PATH, {});
   const results: FileResult[] = [];
 
+  let residueCount = 0;
   const emit = (abs: string, outPath: string) => {
     const { code, missing, total } = transformFile(abs, outPath, dict, plan.mirrorComponents);
     const rel = path.relative(SRC, abs).split(path.sep).join("/");
     results.push({ rel, outPath, missing, total });
+    const residue = checkResidue(code);
+    if (residue.length) {
+      residueCount += residue.length;
+      console.warn(`  [잔존] ${rel} :: ${residue.join(", ")}`);
+    }
     if (write) {
       fs.mkdirSync(path.dirname(outPath), { recursive: true });
       fs.writeFileSync(outPath, code);
@@ -226,5 +245,6 @@ if (require.main === module) {
       console.log(`  ${String(n).padStart(3)}x ${JSON.stringify(text)}`);
     }
   }
+  if (residueCount) console.log(`한국어 전용 흔적 ${residueCount}건 — 위 [잔존] 경고 확인`);
   if (!write) console.log("\n(미리보기 — 쓰려면 --write)");
 }

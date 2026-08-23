@@ -27,8 +27,8 @@
 
 ## Phase 3 — 일괄 생성
 연봉 랭킹 (8)
-- [ ] /salaries/soccer  - [ ] /salaries/mlb  - [ ] /salaries/nba  - [ ] /salaries/nhl
-- [ ] /salaries/kbo  - [ ] /salaries/f1  - [ ] /salaries/tennis  - [x] /salaries/golf
+- [x] /salaries/soccer  - [x] /salaries/mlb  - [x] /salaries/nba  - [x] /salaries/nhl
+- [~] /salaries/kbo — **불가**: 선수·팀·포지션이 한글 원본뿐, 영문명 데이터 없음  - [x] /salaries/f1  - [x] /salaries/tennis  - [x] /salaries/golf
 
 랭킹 (4)
 - [ ] /rankings/f1  - [ ] /rankings/tennis  - [ ] /rankings/ufc  - [ ] /rankings/value-clubs

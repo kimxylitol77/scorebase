@@ -160,6 +160,10 @@
     [
       "export const metadata: Metadata = {\n  title: \"MLB 선수·팀별 연봉 랭킹 — 2026 (한화)\",\n  description:\n    \"MLB 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 후안 소토·오타니 등 최고 연봉 선수와 다저스·메츠·양키스 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 Spotrac.\",\n  keywords: [\"MLB 연봉\", \"MLB 팀 연봉\", \"MLB 페이롤\", \"MLB 팀별 연봉\", \"다저스 연봉\", \"MLB 선수 연봉 순위\", \"오타니 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/mlb\" },\n};",
       "export const metadata: Metadata = {\n  title: \"MLB Salaries — Player and Team Payroll Rankings 2026\",\n  description:\n    \"MLB player salary rankings plus team payroll totals. Juan Soto, Shohei Ohtani and the highest-paid players, with Dodgers, Mets and Yankees payrolls in USD. Updated weekly. Data from Spotrac.\",\n  keywords: [\"MLB salaries\", \"MLB payroll\", \"MLB team payroll\", \"highest paid MLB players\", \"Ohtani salary\", \"Dodgers payroll\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/mlb\",\n    languages: koEnLanguages(\"/salaries/mlb\", \"/en/salaries/mlb\"),\n  },\n};"
+    ],
+    [
+      "  // 선수검색(q) — 영문명 부분일치 + 한글명(toKoreanPlayerName 변환) 부분일치 모두 지원.\n",
+      "  // 선수검색(q) — 영문명 부분일치. 영어판이라 한글명 매칭은 태우지 않는다.\n"
     ]
   ],
   "dict": {

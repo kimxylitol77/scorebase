@@ -1,0 +1,152 @@
+{
+  "header": "/en/salaries/nhl — NHL 선수·팀 연봉(cap hit) 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)\n",
+      ""
+    ],
+    [
+      "function fmtKrw(usd: number, rate: number): string {\n  const won = usd * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n\nasync function fetchUsdKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=USD&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "  const rate = await fetchUsdKrw();\n",
+      ""
+    ],
+    [
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                      <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400 font-normal\">{fmtKrw(t.total, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                    <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 hidden lg:table-cell\">{fmtKrw(t.total, rate)}</td>\n",
+      ""
+    ],
+    [
+      "                        <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                      <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">{fmtKrw(r.salary, rate)}</td>\n",
+      ""
+    ],
+    [
+      "        <SalaryFooter rate={rate} />",
+      "        <SalaryFooter />"
+    ],
+    [
+      "      <SalaryFooter rate={rate} />",
+      "      <SalaryFooter />"
+    ],
+    [
+      "function SalaryFooter({ rate }: { rate: number }) {",
+      "function SalaryFooter() {"
+    ],
+    [
+      "      연봉은 해당 시즌 cap hit(USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. 선수 한국어명·팀은 보유 데이터 매칭분만 표기됩니다. 데이터 제공{\" \"}",
+      "      Salaries are cap hit for the season (USD). Data by{\" \"}"
+    ],
+    [
+      "      {\" · 환율 \"}\n      <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n        Frankfurter\n      </a>\n",
+      ""
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "import { nhlPlayerKo } from \"@/lib/sports/nhl-live-names\";\n",
+      ""
+    ],
+    [
+      "import { CircleDollarSign } from \"lucide-react\";",
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "                const ko = toKoreanTeamName(t.name, \"NHL\") ?? t.name;\n",
+      "                const ko = t.name;\n"
+    ],
+    [
+      "  const teamKo = teamParam ? (toKoreanTeamName(teamParam, \"NHL\") ?? teamParam) : null;",
+      "  const teamKo = teamParam ?? null;"
+    ],
+    [
+      "        .filter((n) => n.toLowerCase().includes(lower) || toKoreanPlayerName(n).includes(q)),",
+      "        .filter((n) => n.toLowerCase().includes(lower)),"
+    ],
+    [
+      "                  // 위키 사전(정본) 우선 — 미등재만 haiku json(ts-id 키라 사실상 미스) → 영문 fallback.\n                  const dictKo = toKoreanPlayerName(r.playerName);\n                  const display = dictKo !== r.playerName ? dictKo : (nhlId ? nhlPlayerKo(nhlId) : \"\") || r.playerName;\n                  const team = r.teamName ? toKoreanTeamName(r.teamName, \"NHL\") : null;",
+      "                  const display = r.playerName;\n                  const team = r.teamName ?? null;"
+    ],
+    [
+      "\"/salaries/nhl\"",
+      "\"/en/salaries/nhl\""
+    ],
+    [
+      "`/salaries/nhl?page=${p}`",
+      "`/en/salaries/nhl?page=${p}`"
+    ],
+    [
+      "`/salaries/nhl?page=${page}`",
+      "`/en/salaries/nhl?page=${page}`"
+    ],
+    [
+      "`/salaries/nhl?team=${encodeURIComponent(t.name)}`",
+      "`/en/salaries/nhl?team=${encodeURIComponent(t.name)}`"
+    ],
+    [
+      "\"/salaries/nhl?view=team\"",
+      "\"/en/salaries/nhl?view=team\""
+    ],
+    [
+      "`/players/${nhlId}?league=NHL`",
+      "`/en/players/${nhlId}?league=NHL`"
+    ],
+    [
+      "<Link href=\"/hockey\" className=\"hover:underline\">하키</Link>",
+      "<Link href=\"/en/standings/NHL\" className=\"hover:underline\">하키</Link>"
+    ],
+    [
+      "subtitle={`팀별 총 연봉(페이롤) 순위 · ${teamRows.length}개 구단`}",
+      "subtitle={`team payroll ranking · ${teamRows.length} clubs`}"
+    ],
+    [
+      "            ? `\"${q}\" 검색 결과 · ${total.toLocaleString()}명`\n            : teamKo\n              ? `${teamKo} 선수 연봉 (달러·원화) · ${total.toLocaleString()}명`\n              : `선수별 연봉(cap hit) 순위 (달러·원화) · 전체 ${total.toLocaleString()}명 · 매주 자동 갱신`",
+      "            ? `search results for \"${q}\" · ${total.toLocaleString()} players`\n            : teamKo\n              ? `${teamKo} player salaries (USD) · ${total.toLocaleString()} players`\n              : `player cap hit ranking (USD) · ${total.toLocaleString()} players · updated weekly`"
+    ],
+    [
+      "        {season} 시즌 {subtitle} · cap hit 기준 · 데이터 CapWages.",
+      "        {season} season · {subtitle} · data by CapWages."
+    ],
+    [
+      "  title: \"NHL 선수·팀별 연봉 랭킹 — cap hit (한화)\",\n  description:\n    \"NHL 선수 연봉(cap hit) 순위 + 팀별 총 연봉(페이롤) 랭킹. 매키넌·카프리조프·드라이자이틀 등 최고 연봉 선수와 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 CapWages.\",\n  keywords: [\"NHL 연봉\", \"NHL 팀 연봉\", \"NHL 페이롤\", \"NHL cap hit\", \"NHL 선수 연봉 순위\", \"매키넌 연봉\", \"하키 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/nhl\" },",
+      "  title: \"NHL Salaries — Player Cap Hit and Team Payroll Rankings\",\n  description:\n    \"NHL player salary (cap hit) rankings plus team payroll totals. Nathan MacKinnon, Kirill Kaprizov, Leon Draisaitl and the highest-paid players in USD. Updated weekly. Data from CapWages.\",\n  keywords: [\"NHL salaries\", \"NHL cap hit\", \"NHL payroll\", \"NHL team payroll\", \"highest paid NHL players\", \"MacKinnon salary\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/nhl\",\n    languages: koEnLanguages(\"/salaries/nhl\", \"/en/salaries/nhl\"),\n  },"
+    ]
+  ],
+  "dict": {
+    "하키": "Hockey",
+    "연봉 랭킹": "Salaries",
+    "NHL 연봉 랭킹": "NHL Salaries",
+    "선수": "Player",
+    "팀": "Team",
+    "연봉": "Salary",
+    "인원": "Players",
+    "총 연봉": "Total Payroll",
+    "평균": "Average",
+    "선수별": "By player",
+    "팀별": "By team",
+    "검색": "Search",
+    "초기화": "Reset",
+    "선수 이름 검색 (한글·영문)": "Search player name",
+    "연봉 데이터를 불러오는 중입니다.": "Salary data is loading.",
+    "‹ 이전": "‹ Prev",
+    "다음 ›": "Next ›"
+  }
+}

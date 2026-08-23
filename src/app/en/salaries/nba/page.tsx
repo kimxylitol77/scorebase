@@ -1,27 +1,29 @@
-// /en/salaries/mlb — MLB 선수·팀 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
+// /en/salaries/nba — NBA 선수·팀 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { lookupNbaPlayer } from "@/lib/sports/nba-players";
+import { nbaEspnLogo } from "@/lib/sports/nba-logos";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/en/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
-import { CircleDollarSign } from "lucide-react";
+import { CircleDollarSign, Trophy } from "lucide-react";
 import { koEnLanguages } from "@/lib/i18n/en";
 
-export const revalidate = 3600;
+export const revalidate = 3600; // 1시간 — 연봉 주1회·환율 시간당 갱신이면 충분
 
 const PER_PAGE = 25;
 
 export const metadata: Metadata = {
-  title: "MLB Salaries — Player and Team Payroll Rankings 2026",
+  title: "NBA Salaries — Player and Team Payroll Rankings 2025-26",
   description:
-    "MLB player salary rankings plus team payroll totals. Juan Soto, Shohei Ohtani and the highest-paid players, with Dodgers, Mets and Yankees payrolls in USD. Updated weekly. Data from Spotrac.",
-  keywords: ["MLB salaries", "MLB payroll", "MLB team payroll", "highest paid MLB players", "Ohtani salary", "Dodgers payroll"],
+    "NBA player salary rankings plus team payroll totals. Stephen Curry, Nikola Jokic and the highest-paid players, with Lakers and Knicks payrolls in USD. Updated weekly. Data from Basketball Reference.",
+  keywords: ["NBA salaries", "NBA payroll", "NBA team payroll", "highest paid NBA players", "Curry salary", "NBA salary cap"],
   alternates: {
-    canonical: "https://www.scorebase.kr/en/salaries/mlb",
-    languages: koEnLanguages("/salaries/mlb", "/en/salaries/mlb"),
+    canonical: "https://www.scorebase.kr/en/salaries/nba",
+    languages: koEnLanguages("/salaries/nba", "/en/salaries/nba"),
   },
 };
 
@@ -33,24 +35,7 @@ function fmtUsd(n: number): string {
 function fmtFull(n: number): string {
   return `$${n.toLocaleString()}`;
 }
-/** 페이지 내 mlbamId 들의 생년월일 일괄 조회 — MLB Stats people 배치(무료 공식, 1회 호출). 실패 시 빈 맵. */
-async function fetchMlbBirthdays(ids: string[]): Promise<Map<string, string>> {
-  const map = new Map<string, string>();
-  if (ids.length === 0) return map;
-  try {
-    const res = await fetch(`https://statsapi.mlb.com/api/v1/people?personIds=${ids.join(",")}`, {
-      signal: AbortSignal.timeout(8000),
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return map;
-    const j = (await res.json()) as { people?: Array<{ id: number; birthDate?: string }> };
-    for (const p of j.people ?? []) if (p.birthDate) map.set(String(p.id), p.birthDate);
-  } catch {
-    /* 실패 시 나이 미표기(— ) */
-  }
-  return map;
-}
-
+/** 페이지 번호 목록 — 1 … (현재-1) 현재 (현재+1) … 마지막. */
 function pageList(cur: number, total: number): (number | "…")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const set = new Set([1, 2, total - 1, total, cur - 1, cur, cur + 1]);
@@ -69,36 +54,29 @@ interface Props {
   searchParams: Promise<{ page?: string; view?: string; team?: string; q?: string }>;
 }
 
-export default async function MlbSalariesPage({ searchParams }: Props) {
+export default async function NbaSalariesPage({ searchParams }: Props) {
   const { page: pageParam, view, team: teamParam, q: qParam } = await searchParams;
-
-  // 팀 로고·기준집합 — Team(MLB) 30팀(영문 풀네임). 스팟랙엔 마이너 산하팀(1명 row)도 섞여
-  // 있어 팀 뷰는 이 30팀으로 필터한다.
-  const mlbTeams = await prisma.team.findMany({ where: { league: "MLB" }, select: { name: true, logoUrl: true } });
-  const teamLogoMap = new Map(mlbTeams.map((t) => [t.name, t.logoUrl]));
-  const mlbTeamSet = new Set(mlbTeams.map((t) => t.name));
 
   // ── 팀별 페이롤 랭킹 뷰 ──
   if (view === "team") {
     const grouped = await prisma.playerSalary.groupBy({
       by: ["teamName"],
-      where: { league: "MLB" },
+      where: { league: "NBA" },
       _sum: { salary: true },
       _count: { _all: true },
     });
     const season =
-      (await prisma.playerSalary.findFirst({ where: { league: "MLB" }, select: { season: true } }))?.season ??
-      String(new Date().getUTCFullYear());
+      (await prisma.playerSalary.findFirst({ where: { league: "NBA" }, select: { season: true } }))?.season ?? "2025-26";
     const teamRows = grouped
-      .filter((g) => g.teamName && mlbTeamSet.has(g.teamName))
+      .filter((g) => g.teamName && g.teamName.trim())
       .map((g) => ({ name: g.teamName as string, total: g._sum.salary ?? 0, count: g._count._all }))
       .sort((a, b) => b.total - a.total);
     return (
       <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
         <AmbientGlow />
-        <PlayerValueTabs active="/en/salaries/mlb" />
-        <SalaryHeader season={season} subtitle={`team payroll ranking · ${teamRows.length} clubs`} />
-        <ViewToggle view="team" />
+        <PlayerValueTabs active="/en/salaries/nba" />
+        <NbaSalaryHeader season={season} subtitle={`team payroll ranking · ${teamRows.length} clubs`} />
+        <NbaViewToggle view="team" />
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
           <table className="w-full text-sm">
             <thead>
@@ -114,13 +92,13 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
               {teamRows.map((t, i) => {
                 const top3 = i < 3;
                 const ko = t.name;
-                const logo = teamLogoMap.get(t.name) ?? null;
+                const logo = nbaEspnLogo(t.name);
                 const avg = t.count ? t.total / t.count : 0;
                 return (
                   <tr key={t.name} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{i + 1}</td>
                     <td className="px-2 py-2.5">
-                      <Link href={`/en/salaries/mlb?team=${encodeURIComponent(t.name)}`} className="flex items-center gap-2.5 hover:underline">
+                      <Link href={`/en/salaries/nba?team=${encodeURIComponent(t.name)}`} className="flex items-center gap-2.5 hover:underline">
                         {logo && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={logo} alt="" className="w-6 h-6 object-contain shrink-0" />
@@ -139,18 +117,18 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
             </tbody>
           </table>
         </div>
-        <SalaryFooter />
+        <NbaSalaryFooter />
       </main>
     );
   }
 
-  // ── 선수별 랭킹 뷰 (team 파라미터 있으면 그 팀만, 없으면 전체 페이지네이션) ──
-  // 선수검색(q) — 영문명 부분일치. 영어판이라 한글명 매칭은 태우지 않는다.
+  // ── 선수별 뷰 (team 파라미터 있으면 그 팀만) ──
+  // 선수검색(q) — MLB/NHL 과 동일 패턴. 영문명 부분일치 + 한글명(위키 사전·로스터 json) 부분일치.
   const q = (qParam ?? "").trim();
   let searchNames: string[] | null = null;
   if (q) {
     const all = await prisma.playerSalary.findMany({
-      where: { league: "MLB" },
+      where: { league: "NBA" },
       select: { playerName: true },
     });
     const lower = q.toLowerCase();
@@ -161,10 +139,10 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
     )];
   }
   const where = searchNames
-    ? { league: "MLB", playerName: { in: searchNames } }
+    ? { league: "NBA", playerName: { in: searchNames } }
     : teamParam
-      ? { league: "MLB", teamName: teamParam }
-      : { league: "MLB" };
+      ? { league: "NBA", teamName: teamParam }
+      : { league: "NBA" };
   const total = await prisma.playerSalary.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = teamParam ? 1 : Math.min(Math.max(1, parseInt(pageParam ?? "1", 10) || 1), totalPages);
@@ -175,20 +153,14 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
     skip: teamParam || searchNames ? 0 : (page - 1) * PER_PAGE,
     take: teamParam || searchNames ? 100 : PER_PAGE,
   });
-  const season = rows[0]?.season ?? String(new Date().getUTCFullYear());
+  const season = rows[0]?.season ?? "2025-26";
   const teamKo = teamParam ?? null;
-
-  // 나이 — 행 사진 URL(mlbstatic headshot)의 mlbamId → MLB Stats people 배치(1회 호출) → 생년월일
-  const mlbamIds = Array.from(
-    new Set(rows.map((r) => r.photoUrl?.match(/\/people\/(\d+)\//)?.[1]).filter((x): x is string => Boolean(x))),
-  );
-  const birthdayMap = await fetchMlbBirthdays(mlbamIds);
 
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
-      <PlayerValueTabs active="/en/salaries/mlb" />
-      <SalaryHeader
+      <PlayerValueTabs active="/en/salaries/nba" />
+      <NbaSalaryHeader
         season={season}
         subtitle={
           q
@@ -198,10 +170,10 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
               : `player salary ranking (USD) · ${total.toLocaleString()} players · updated weekly`
         }
       />
-      <ViewToggle view="player" teamLabel={teamKo} />
+      <NbaViewToggle view="player" teamLabel={teamKo} />
 
-      {/* 선수검색 — GET 폼(?q=), 영문·한글명 모두 매칭 */}
-      <form method="get" action="/en/salaries/mlb" className="flex gap-2">
+      {/* 선수검색 — GET 폼(?q=), MLB/NHL 과 동일 패턴. 영문·한글명 모두 매칭 */}
+      <form method="get" action="/en/salaries/nba" className="flex gap-2">
         <input
           type="search"
           name="q"
@@ -217,7 +189,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
         </button>
         {q && (
           <Link
-            href="/en/salaries/mlb"
+            href="/en/salaries/nba"
             className="shrink-0 self-center text-xs text-neutral-400 underline-offset-2 hover:underline"
           >
             Reset
@@ -226,7 +198,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
       </form>
 
       {rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-neutral-400">Salary data is loading.</p>
+        <p className="py-16 text-center text-sm text-neutral-400 break-keep">Salary data is loading.</p>
       ) : (
         <>
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
@@ -234,38 +206,40 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                   <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
-                  <th className="px-2 py-2.5 text-left font-semibold">Player</th>
+                  <th className="px-2 py-2.5 text-left font-semibold" colSpan={2}>Player</th>
                   <th className="px-2 py-2.5 text-left font-semibold">Team</th>
                   <th className="px-3 py-2.5 text-center font-semibold w-14 hidden lg:table-cell">Age</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">Salary</th>
-                </tr>
+                  </tr>
               </thead>
               <tbody>
                 {rows.map((r) => {
                   const top3 = r.rank <= 3;
+                  const info = lookupNbaPlayer(r.playerName);
                   const display = r.playerName;
-                  const team = r.teamName ?? null;
-                  const teamLogo = r.teamName ? teamLogoMap.get(r.teamName) ?? null : null;
-                  // 사진 URL(mlbstatic headshot)의 mlbamId → 통일 선수 페이지(/players/[pid], MLB 기본)
-                  const mlbamId = r.photoUrl?.match(/\/people\/(\d+)\//)?.[1];
-                  const href = mlbamId ? `/en/players/${mlbamId}` : null;
-                  const bd = mlbamId ? birthdayMap.get(mlbamId) : undefined;
-                  const age = calcAge(bd ? new Date(bd) : null);
+                  const href = info?.bdlId != null ? `/en/players/${info.bdlId}?league=NBA` : null;
+                  const teamLogo = nbaEspnLogo(r.teamName);
+                  const age = calcAge(info?.birthday ? new Date(info.birthday * 1000) : null);
+                  const nameEl = (
+                    <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${href ? "hover:underline" : ""}`}>
+                      {display}
+                    </span>
+                  );
                   return (
-                    <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
+                    <tr
+                      key={r.id}
+                      className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
+                    >
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
-                      <td className="px-2 py-2.5">
+                      <td className="pl-2 py-1.5 w-9">
                         {href ? (
-                          <Link href={href} className="flex items-center gap-2.5 hover:underline">
-                            <PlayerPhoto photo={r.photoUrl} name={display} />
-                            <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
-                          </Link>
+                          <Link href={href}><PlayerPhoto photo={info?.photo} name={display} /></Link>
                         ) : (
-                          <div className="flex items-center gap-2.5">
-                            <PlayerPhoto photo={r.photoUrl} name={display} />
-                            <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
-                          </div>
+                          <PlayerPhoto photo={info?.photo} name={display} />
                         )}
+                      </td>
+                      <td className="pr-2 py-2.5">
+                        {href ? <Link href={href}>{nameEl}</Link> : nameEl}
                       </td>
                       <td className="px-2 py-2.5 text-neutral-500">
                         <span className="inline-flex items-center gap-1.5">
@@ -273,7 +247,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={teamLogo} alt="" className="w-5 h-5 object-contain shrink-0 hidden lg:inline-block" />
                           )}
-                          {team ?? "—"}
+                          {r.teamName}
                         </span>
                       </td>
                       <td className="px-3 py-2.5 text-center tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{age ?? "—"}</td>
@@ -287,7 +261,8 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
             </table>
           </div>
 
-          {!teamParam && totalPages > 1 && (
+          {/* 페이지네이션 */}
+          {!teamParam && !q && totalPages > 1 && (
             <nav className="flex items-center justify-center gap-1 text-sm">
               <PageLink page={page - 1} disabled={page <= 1} label="‹ Prev" />
               {pageList(page, totalPages).map((p, i) =>
@@ -296,7 +271,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                 ) : (
                   <Link
                     key={p}
-                    href={p === 1 ? "/en/salaries/mlb" : `/en/salaries/mlb?page=${p}`}
+                    href={p === 1 ? "/en/salaries/nba" : `/en/salaries/nba?page=${p}`}
                     aria-current={p === page ? "page" : undefined}
                     className={`min-w-[34px] rounded-full px-2.5 py-1.5 text-center font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       p === page
@@ -314,19 +289,19 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
         </>
       )}
 
-      <SalaryFooter />
+      <NbaSalaryFooter />
     </main>
   );
 }
 
-// 공통 헤더 — 빵부스러기 + 타이틀 + 부제(뷰별 문구).
-function SalaryHeader({ season, subtitle }: { season: string; subtitle: string }) {
+// 공통 헤더 — 빵부스러기 + 타이틀 + 부제(뷰별) + 액션 링크.
+function NbaSalaryHeader({ season, subtitle }: { season: string; subtitle: string }) {
   return (
     <header className="space-y-2">
       <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
         <Link href="/en/scores" className="hover:underline">Live Scores</Link>
         <span>›</span>
-        <Link href="/en/standings/MLB" className="hover:underline">MLB</Link>
+        <Link href="/leagues/NBA" className="hover:underline">NBA</Link>
         <span>›</span>
         <span className="text-neutral-600 dark:text-neutral-300">Salaries</span>
       </div>
@@ -334,17 +309,25 @@ function SalaryHeader({ season, subtitle }: { season: string; subtitle: string }
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> Salaries
       </span>
       <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
-        <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> MLB Salaries
+        <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> NBA Salaries
       </h1>
       <p className="text-sm text-neutral-500 leading-relaxed break-keep">
-        {season} season · {subtitle} · data by Spotrac.
+        {season} season · {subtitle} · data by Basketball Reference.
       </p>
+      <div className="flex flex-wrap gap-2 pt-1 text-xs">
+        <Link
+          href="/en/standings/NBA"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-3.5 py-1.5 font-semibold text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
+        >
+          <Trophy className="h-3.5 w-3.5" aria-hidden /> NBA scores & standings
+        </Link>
+      </div>
     </header>
   );
 }
 
 // 선수별 ↔ 팀별 뷰 토글. team 필터 중이면 해제 칩 노출.
-function ViewToggle({ view, teamLabel }: { view: "player" | "team"; teamLabel?: string | null }) {
+function NbaViewToggle({ view, teamLabel }: { view: "player" | "team"; teamLabel?: string | null }) {
   const pill = (on: boolean) =>
     `rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
       on
@@ -354,11 +337,11 @@ function ViewToggle({ view, teamLabel }: { view: "player" | "team"; teamLabel?: 
   const playerOn = view === "player" && !teamLabel;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Link href="/en/salaries/mlb" className={pill(playerOn)}>By player</Link>
-      <Link href="/en/salaries/mlb?view=team" className={pill(view === "team")}>By team</Link>
+      <Link href="/en/salaries/nba" className={pill(playerOn)}>By player</Link>
+      <Link href="/en/salaries/nba?view=team" className={pill(view === "team")}>By team</Link>
       {teamLabel && (
         <Link
-          href="/en/salaries/mlb"
+          href="/en/salaries/nba"
           className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
         >
           {teamLabel} <span aria-hidden className="opacity-70">×</span>
@@ -369,25 +352,26 @@ function ViewToggle({ view, teamLabel }: { view: "player" | "team"; teamLabel?: 
 }
 
 // 공통 푸터 — 출처·환율 면책.
-function SalaryFooter() {
+function NbaSalaryFooter() {
   return (
-    <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
-      Salaries are total contract value for the season (USD). Data by{" "}
-      <a href="https://www.spotrac.com/mlb/rankings" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
-        Spotrac
+    <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed break-keep">
+      Salaries are actual contract value for the season (USD). Data by{" "}
+      <a href="https://www.basketball-reference.com/contracts/players.html" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
+        Basketball Reference
       </a>
       .
     </footer>
   );
 }
 
+/** 이전/다음 버튼 — disabled 면 비활성 표시. */
 function PageLink({ page, disabled, label }: { page: number; disabled: boolean; label: string }) {
   if (disabled) {
     return <span className="rounded-full px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">{label}</span>;
   }
   return (
     <Link
-      href={page === 1 ? "/en/salaries/mlb" : `/en/salaries/mlb?page=${page}`}
+      href={page === 1 ? "/en/salaries/nba" : `/en/salaries/nba?page=${page}`}
       className="rounded-full border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"
     >
       {label}

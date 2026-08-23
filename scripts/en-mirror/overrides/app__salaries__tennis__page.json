@@ -1,0 +1,92 @@
+{
+  "header": "/en/salaries/tennis — ATP·WTA 시즌 상금 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)\n",
+      ""
+    ],
+    [
+      "function fmtKrw(usd: number, rate: number): string {\n  const won = usd * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n\nasync function fetchUsdKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=USD&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "  const [rate, rows, ranks] = await Promise.all([\n    fetchUsdKrw(),\n    prisma.playerSalary.findMany({",
+      "  const [rows, ranks] = await Promise.all([\n    prisma.playerSalary.findMany({"
+    ],
+    [
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                      <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                    <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">{fmtKrw(r.salary, rate)}</td>\n",
+      ""
+    ],
+    [
+      "                const display = hit?.nameKo ?? r.playerName;\n                const country = hit?.countryKo ?? hit?.countryEn ?? (r.teamName || null);",
+      "                const display = r.playerName;\n                const country = hit?.countryEn ?? (r.teamName || null);"
+    ],
+    [
+      "                      <span className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>{display}</span>\n                      {hit?.nameKo && <span className=\"block truncate text-[11px] font-normal text-neutral-400\">{r.playerName}</span>}\n",
+      "                      <span className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>{display}</span>\n"
+    ],
+    [
+      "<PlayerValueTabs active=\"/salaries/tennis\" />",
+      "<PlayerValueTabs active=\"/en/salaries/tennis\" />"
+    ],
+    [
+      "<Link href=\"/scores?sport=tennis\" className=\"hover:underline\">테니스</Link>",
+      "<Link href=\"/en/scores?sport=tennis\" className=\"hover:underline\">테니스</Link>"
+    ],
+    [
+      "href={t === \"ATP\" ? \"/salaries/tennis\" : \"/salaries/tennis?tour=wta\"}",
+      "href={t === \"ATP\" ? \"/en/salaries/tennis\" : \"/en/salaries/tennis?tour=wta\"}"
+    ],
+    [
+      "href={tour === \"WTA\" ? \"/rankings/tennis?tour=wta\" : \"/rankings/tennis\"}",
+      "href={tour === \"WTA\" ? \"/en/rankings/tennis?tour=wta\" : \"/en/rankings/tennis\"}"
+    ],
+    [
+      "href={`/rankings/tennis/${hit.athleteId}`}",
+      "href={`/en/rankings/tennis/${hit.athleteId}`}"
+    ],
+    [
+      "          {season} 시즌 {tour === \"WTA\" ? \"WTA 여자\" : \"ATP 남자\"} 상금(YTD·단식+복식 합산) 순위 top {rows.length || 50} (달러·원화) · {TENNIS_PRIZE_AS_OF} 기준.",
+      "          {season} season {tour === \"WTA\" ? \"WTA\" : \"ATP\"} prize money (YTD, singles + doubles) — top {rows.length || 50} in USD · as of {TENNIS_PRIZE_AS_OF}."
+    ],
+    [
+      "              {t === \"ATP\" ? \"ATP 남자\" : \"WTA 여자\"}",
+      "              {t === \"ATP\" ? \"ATP (men)\" : \"WTA (women)\"}"
+    ],
+    [
+      "        상금은 {season} 시즌 누적(YTD) 공식 상금(단식·복식·혼합 합산, USD) 기준 {TENNIS_PRIZE_AS_OF} 발표분이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다.\n        복식 전문 선수 등 일부는 한글명·국적 매칭이 없어 영문으로 표기됩니다. 데이터 제공{\" \"}",
+      "        Official year-to-date prize money for the {season} season (singles, doubles and mixed combined, USD), as published {TENNIS_PRIZE_AS_OF}.\n        Some doubles specialists have no country match and are shown without a flag. Data by{\" \"}"
+    ],
+    [
+      "        {\" · 환율 \"}\n        <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n          Frankfurter\n        </a>\n",
+      ""
+    ],
+    [
+      "  const label = isWta ? \"WTA 여자\" : \"ATP 남자\";\n  return {\n    title: `테니스 상금 랭킹 — ${label} 시즌 상금 순위 (한화)`,\n    description: `${label} 테니스 시즌 상금(YTD) 순위 top 50 을 달러·원화로. 단식·복식 합산 공식 상금을 한국어 선수명으로 — 스코어베이스. 데이터 ATP·WTA 공식 발표.`,\n    keywords: [\"테니스 상금 랭킹\", \"ATP 상금\", \"WTA 상금\", \"테니스 상금 순위\", \"시너 상금\", \"사발렌카 상금\", \"알카라스 상금\"],\n    alternates: { canonical: `https://www.scorebase.kr/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}` },\n  };",
+      "  const label = isWta ? \"WTA\" : \"ATP\";\n  return {\n    title: `Tennis Prize Money — ${label} Season Earnings Ranking`,\n    description: `${label} year-to-date prize money ranking, top 50 in USD. Official singles and doubles earnings — data from ATP and WTA.`,\n    keywords: [\"tennis prize money\", \"ATP prize money\", \"WTA prize money\", \"tennis earnings ranking\", \"Sinner prize money\", \"Sabalenka prize money\"],\n    alternates: {\n      canonical: `https://www.scorebase.kr/en/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n      languages: koEnLanguages(\n        `/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n        `/en/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n      ),\n    },\n  };"
+    ],
+    [
+      "import { CircleDollarSign } from \"lucide-react\";",
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "테니스": "Tennis",
+    "상금 랭킹": "Prize Money",
+    "테니스 상금 랭킹": "Tennis Prize Money",
+    "선수": "Player",
+    "국적": "Country",
+    "시즌 상금": "Season Earnings",
+    "상금 데이터를 불러오는 중입니다.": "Prize money data is loading.",
+    "성적 기준 순위가 궁금하다면": "Looking for performance rankings?",
+    "테니스 세계랭킹 보기": "View tennis world rankings"
+  }
+}
