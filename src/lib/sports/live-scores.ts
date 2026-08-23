@@ -1284,9 +1284,10 @@ export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string
       detail = "Red Card";
     } else if (t === 9) {
       type = "subst";
-      // ⚠️ TheSports 의 in_player/out_player 는 api-football 과 반대 정의 — in_player_name 에
-      // 실제 "나간(OUT)" 선수가 담긴다 (정상 cache 경기 확인: ts in=Koivisto = af OUT, 남아공-한국
-      // 8교체 전부 반대). swap 해 playerName=실제 IN(out_player), assistName=실제 OUT(in_player).
+      // TheSports in_player = 투입(IN), out_player = 아웃(OUT) — 정의 그대로.
+      // ⚠️ 과거엔 "ts 가 반대"라며 swap 했는데(남아공-한국전 관찰) 2026-08-23 최근 14일 340경기
+      // 3,043교체 전수 대조(선발 명단 first=1 기준) 결과 3,043:1 로 정의 그대로였다 — swap 이
+      // 사이트 전체 교체 표기를 뒤집고 있었음(이강인 아웃이 "투입"으로). sub-impact.ts 도 정의 그대로 쓴다.
       const inName = typeof i.in_player_name === "string" ? i.in_player_name : null;
       const outName = typeof i.out_player_name === "string" ? i.out_player_name : null;
       const inId = typeof i.in_player_id === "string" ? i.in_player_id : null;
@@ -1298,10 +1299,10 @@ export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string
         type,
         detail,
         side,
-        playerName: loc(outName, outId),
-        assistName: loc(inName, inId),
-        playerId: outId,
-        assistId: inId,
+        playerName: loc(inName, inId),
+        assistName: loc(outName, outId),
+        playerId: inId,
+        assistId: outId,
       });
       continue;
     } else if (t === 28) {
