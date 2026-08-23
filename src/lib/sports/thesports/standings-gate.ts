@@ -76,16 +76,21 @@ export function afCacheUsable(
 }
 
 /**
- * 리그페이즈를 마친 뒤 토너먼트로 넘어가는 대항전과 그 리그페이즈 경기 수.
- * 대회마다 다르다 — UCL·UEL 은 8경기, UECL·AFC 챔스2·여자 UCL 은 6경기.
- * 상수 하나로 고정하면 6경기 대회는 가드가 영원히 안 걸려 작년 표가 새어 나온다.
+ * 리그페이즈(또는 조별리그)를 마친 뒤 토너먼트로 넘어가는 대항전과 그 단계의 경기 수.
+ * 대회마다 다르다 — 스위스식 리그페이즈(UCL·UEL·AFC 챔스 엘리트)는 8경기,
+ * 4팀 조별리그(UECL·AFC 챔스2·여자 UCL·코파 리베르타도레스·코파 수다메리카나)는 6경기.
+ * 상수 하나로 고정하면 6경기 대회는 가드가 영원히 안 걸려 작년 표가 새어 나오고,
+ * map 에서 빠진 대회는 아예 가드 대상이 아니라 조별 순위가 녹아웃 카드에 그대로 붙는다.
  */
 const LEAGUE_PHASE_MATCHES: Record<string, number> = {
   UCL: 8,
   UEL: 8,
   UECL: 6,
+  AFC_CL: 8,
   AFC_CL_TWO: 6,
   UEFA_WCL: 6,
+  COPA_LIB: 6,
+  COPA_SUD: 6,
 };
 export const CONTINENTAL_KNOCKOUT = new Set(Object.keys(LEAGUE_PHASE_MATCHES));
 

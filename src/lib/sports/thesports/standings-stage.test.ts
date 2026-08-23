@@ -31,6 +31,25 @@ test("6경기 대회도 리그페이즈 진행 중이면 순위를 유지한다"
   assert.equal(hideStageStandings("UEFA_WCL", [played(5)]), false);
 });
 
+test("남미 대항전 조별리그(6경기)를 마치면 녹아웃 카드에 조 순위를 붙이지 않는다", () => {
+  // 2026-08-23 coverage audit 실측: COPA_LIB·COPA_SUD 가 map 에 없어 가드가 아예 안 걸렸고,
+  // fresh 캐시가 완료된 조별표(8조×4팀, 전원 6경기)라 8/26·8/27 녹아웃 카드에 조 순위가 붙었다.
+  assert.equal(hideStageStandings("COPA_LIB", [played(6), played(6)]), true);
+  assert.equal(hideStageStandings("COPA_SUD", [{ won: 3, draw: 1, loss: 2 }]), true);
+});
+
+test("남미 대항전도 조별리그 진행 중이면 순위를 유지한다", () => {
+  assert.equal(hideStageStandings("COPA_LIB", [played(4), played(3)]), false);
+  assert.equal(hideStageStandings("COPA_SUD", [played(5)]), false);
+});
+
+test("AFC 챔스 엘리트는 스위스식 8경기 — 6 으로 잡으면 리그페이즈 중에 순위가 사라진다", () => {
+  // ts 캐시 실측: AFC_CL 은 2개 지역 테이블×16팀(리그페이즈), 지난 시즌 팀당 8경기.
+  // 반면 AFC_CL_TWO 는 8조×4팀이라 6경기 — 같은 AFC 라도 임계가 다르다.
+  assert.equal(hideStageStandings("AFC_CL", [played(6), played(6)]), false);
+  assert.equal(hideStageStandings("AFC_CL", [played(8), played(7)]), true);
+});
+
 test("빈 순위표는 가드 대상이 아니다", () => {
   assert.equal(hideStageStandings("UCL", []), false);
 });
