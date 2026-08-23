@@ -35,10 +35,10 @@
 
 축구 데이터 (17)
 - [ ] /transfers/[id]  - [ ] /leagues/[league]  - [ ] /previews  - [ ] /previews/[league]
-- [ ] /h2h/[pair]  - [ ] /over-under  - [ ] /over-under/[league]  - [ ] /odds
-- [ ] /value-bets  - [ ] /coaches/[id]  - [ ] /national-teams  - [ ] /national-teams/[id]
-- [ ] /ballon  - [ ] /world-cup  - [ ] /world-cup/xg
-- [ ] /predictions/title-race  - [ ] /predictions/club-ranking
+- [ ] /h2h/[pair]  - [x] /over-under  - [ ] /over-under/[league]  - [ ] /odds
+- [ ] /value-bets  - [ ] /coaches/[id]  - [x] /national-teams  - [ ] /national-teams/[id]
+- [~] /ballon — 보류: lib/ballon.ts 안에서 한글화. 도구 페이지라 검색 유입 낮음  - [ ] /world-cup  - [ ] /world-cup/xg
+- [x] /predictions/title-race  - [x] /predictions/club-ranking
 
 - [ ] 검증: `npx tsc --noEmit` 통과
 

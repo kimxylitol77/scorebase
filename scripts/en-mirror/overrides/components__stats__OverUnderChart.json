@@ -1,0 +1,22 @@
+{
+  "header": "오버/언더 차트·타일 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "aria-label={`리그별 오버 2.5 비율 분포. ${values.length}개 리그.`}",
+      "aria-label={`Distribution of over 2.5 rates across ${values.length} leagues.`}"
+    ],
+    [
+      "<title>{`${mid - BUCKET / 2}~${mid + BUCKET / 2}% 구간 — ${c}개 리그`}</title>",
+      "<title>{`${mid - BUCKET / 2}–${mid + BUCKET / 2}% band — ${c} leagues`}</title>"
+    ],
+    [
+      "        가운데 선 = 리그 평균 {fmt1(average)}%",
+      "        Centre line = league average {fmt1(average)}%"
+    ]
+  ],
+  "dict": {
+    "가로축은 오버 2.5 비율, 세로 높이는 해당 구간에 속한 리그 수입니다.": "The horizontal axis is the over 2.5 rate; bar height is how many leagues fall in that band.",
+    "리그 평균보다 오버가 잦음": "More overs than league average",
+    "리그 평균보다 언더가 잦음": "More unders than league average"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "header": "/en/national-teams — 2026 월드컵 출전 48개국 허브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { fifaCountryKo, fifaFlag, getFifaRank } from \"@/lib/sports/fifa-rankings\";",
+      "import { fifaFlag, getFifaRank } from \"@/lib/sports/fifa-rankings\";"
+    ],
+    [
+      "                name: fifaCountryKo(t.name) ?? t.name,",
+      "                name: t.name,"
+    ],
+    [
+      "                  const ko = fifaCountryKo(name) ?? name;\n",
+      "                  const ko = name;\n"
+    ],
+    [
+      "              { name: \"홈\", path: \"/\" },\n              { name: \"2026 월드컵\", path: \"/world-cup\" },\n              { name: \"출전국 국가대표팀\", path: \"/national-teams\" },",
+      "              { name: \"Home\", path: \"/en\" },\n              { name: \"2026 World Cup\", path: \"/en/world-cup\" },\n              { name: \"National teams\", path: \"/en/national-teams\" },"
+    ],
+    [
+      "              name: \"2026 FIFA 월드컵 출전국 국가대표팀\",",
+      "              name: \"2026 FIFA World Cup national teams\","
+    ],
+    [
+      "                path: `/national-teams/${t.id}`,",
+      "                path: `/en/national-teams/${t.id}`,"
+    ],
+    [
+      "          href=\"/world-cup\"\n",
+      "          href=\"/en/world-cup\"\n"
+    ],
+    [
+      "href={`/world-cup/best-xi/${group.toLowerCase()}`}",
+      "href={`/en/world-cup/best-xi/${group.toLowerCase()}`}"
+    ],
+    [
+      "href={`/national-teams/${team.id}`}",
+      "href={`/en/national-teams/${team.id}`}"
+    ],
+    [
+      "<Link href=\"/world-cup\" className=\"underline\">",
+      "<Link href=\"/en/world-cup\" className=\"underline\">"
+    ],
+    [
+      "<Link href=\"/predictions/WORLD_CUP\" className=\"underline\">",
+      "<Link href=\"/en/predictions/WORLD_CUP\" className=\"underline\">"
+    ],
+    [
+      "<h2 className=\"font-bold\">{group}조</h2>",
+      "<h2 className=\"font-bold\">Group {group}</h2>"
+    ],
+    [
+      "<span className=\"ml-1 text-[11px] text-neutral-400\">({rank}위)</span>",
+      "<span className=\"ml-1 text-[11px] text-neutral-400\">(#{rank})</span>"
+    ],
+    [
+      "  title: \"2026 월드컵 출전국 48개국 — 조별 전력·스쿼드·감독\",\n  description:\n    \"2026 북중미 월드컵 본선 48개국을 조별(A~L)로 한눈에. 국가별 Elo 전력 지수와 FIFA 랭킹, 소집 스쿼드·감독·경기 일정 페이지까지 연결되는 국가대표팀 허브.\",\n  keywords: [\n    \"2026 월드컵 출전국\",\n    \"월드컵 조 편성\",\n    \"월드컵 조별리그\",\n    \"국가대표 스쿼드\",\n    \"월드컵 전력 분석\",\n    \"스코어베이스\",\n  ],\n  alternates: { canonical: \"/national-teams\" },",
+      "  title: \"2026 World Cup — All 48 Qualified Nations by Group\",\n  description:\n    \"Every nation at the 2026 North American World Cup, laid out by group (A–L). Elo strength ratings and FIFA rankings for each country, linking through to squads, managers and fixtures.\",\n  keywords: [\n    \"2026 World Cup teams\",\n    \"World Cup groups\",\n    \"World Cup group stage\",\n    \"national team squads\",\n    \"World Cup power ratings\",\n  ],\n  alternates: {\n    canonical: \"/en/national-teams\",\n    languages: koEnLanguages(\"/national-teams\", \"/en/national-teams\"),\n  },"
+    ],
+    [
+      "import AmbientGlow from \"@/components/AmbientGlow\";",
+      "import AmbientGlow from \"@/components/AmbientGlow\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "2026 북중미 월드컵": "2026 World Cup",
+    "출전국 48개국 — 조별 전력 한눈에": "All 48 Qualified Nations, Group by Group",
+    "국가를 누르면 소집 스쿼드·감독·최근 폼·경기 일정 페이지로 이동합니다. Elo 는\n          자체 전력 지수(높을수록 강팀), 괄호는 FIFA 랭킹.": "Tap a nation for its squad, manager, recent form and fixtures. Elo is our own strength rating (higher is stronger); the figure in brackets is the FIFA ranking.",
+    "조 베스트 XI →": "Group best XI →",
+    "ⓘ 조 편성은 2026 북중미 월드컵 본선 추첨 기준. 우승·진출 확률 시뮬레이션은": "ⓘ Groups follow the 2026 World Cup final draw. Title and qualification probabilities are on the",
+    "월드컵 허브": "World Cup hub",
+    "와": "and",
+    "월드컵 예측": "World Cup predictions",
+    "페이지에서 확인할 수 있습니다.": "pages."
+  }
+}
