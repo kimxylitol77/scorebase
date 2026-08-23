@@ -204,11 +204,11 @@ export default function LiveOddsCard({
             </span>
           )}
           <span className="text-[13px] font-semibold tracking-tight text-neutral-900 dark:text-white">
-            {isFinished ? "경기 전 배당" : "라이브 배당"}
+            {isFinished ? "경기 전 최종 배당" : "실시간 배당"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] tabular-nums">
-          <span className="text-neutral-500 dark:text-neutral-400">{bookmakers}곳 평균</span>
+          <span className="text-neutral-500 dark:text-neutral-400" title="실시간 폴링에 응답한 북메이커만 평균 — 경기 전 평균(25곳)과 표본이 다릅니다">{bookmakers}곳 실시간 평균</span>
           {isFinished ? (
             <span className="rounded-full bg-neutral-200/70 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:text-neutral-400">
               경기 전 최종

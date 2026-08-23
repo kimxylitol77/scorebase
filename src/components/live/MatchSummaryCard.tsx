@@ -119,8 +119,8 @@ export default function MatchSummaryCard(p: MatchSummaryCardProps) {
               <tr className="text-[10px] uppercase tracking-wider text-neutral-500">
                 <th className="text-left font-semibold py-1">결과</th>
                 <th className="text-right font-semibold py-1">AI 확률</th>
-                <th className="text-right font-semibold py-1">시장(마진 제거)</th>
-                <th className="text-right font-semibold py-1 hidden sm:table-cell">시장(마진 포함)</th>
+                <th className="text-right font-semibold py-1">경기 전 시장(마진 제거)</th>
+                <th className="text-right font-semibold py-1 hidden sm:table-cell">경기 전 시장(마진 포함)</th>
                 <th className="text-right font-semibold py-1">차이</th>
               </tr>
             </thead>
@@ -145,7 +145,7 @@ export default function MatchSummaryCard(p: MatchSummaryCardProps) {
             </tbody>
           </table>
           <p className="mt-1.5 text-[11px] text-neutral-500 break-keep">
-            시장 확률은 {bookmakers ? `해외 ${bookmakers}곳 평균 배당` : "평균 배당"}의 역수를 합이 100%가 되게 정규화한 값(마진 제거)입니다.
+            시장 확률은 {bookmakers ? `해외 ${bookmakers}곳 경기 전 평균 배당` : "경기 전 평균 배당"}의 역수를 합이 100%가 되게 정규화한 값(마진 제거)입니다. 실시간 배당은 아래 배당 섹션에 따로 있습니다(표본이 달라 값이 다를 수 있음).
             {best && (
               <>
                 {" "}가장 큰 차이는 <strong className="text-neutral-800 dark:text-neutral-200">{best.label} {pts(best.diff)}</strong> — {diffState(best.diff)}.

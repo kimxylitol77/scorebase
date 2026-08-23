@@ -66,6 +66,7 @@ import SoccerGlanceBlock from "@/components/live/SoccerGlanceBlock";
 import MatchSummaryCard from "@/components/live/MatchSummaryCard";
 import BetmanLineCard from "@/components/live/BetmanLineCard";
 import OddsMarketsGrid from "@/components/live/OddsMarketsGrid";
+import { isLiveOddsSupported } from "@/lib/odds/live-odds";
 import { getBetmanLineForMatch } from "@/lib/odds/betman";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
@@ -901,6 +902,7 @@ export default async function GenericLivePage({ params }: Props) {
             homeNameKo={homeKo}
             awayNameKo={awayKo}
             bookmakers={match.marketBookmakers ?? null}
+            pendingOnly={isLiveOddsSupported(lg)}
             odds={{
               home: match.oddsHome, draw: match.oddsDraw, away: match.oddsAway,
               hcLine: match.oddsHcLine, hcHome: match.oddsHcHome, hcAway: match.oddsHcAway,
@@ -928,7 +930,7 @@ export default async function GenericLivePage({ params }: Props) {
       soccerOddsSection = (
         <CollapsibleSection
           title="배당 · 시장 확률"
-          hint="해외 평균 배당 · 마진 · AI 대비 · 북메이커별"
+          hint="실시간 평균(이 카드) · 경기 전 평균 25곳(위 요약 카드) — 표본이 달라 소수점이 다를 수 있음"
           defaultOpen={match.status !== "FINISHED"}
         >
           {oddsTab}

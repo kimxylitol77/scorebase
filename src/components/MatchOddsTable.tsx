@@ -1,4 +1,4 @@
-// 경기별 배당 표 — 승무패(요약 카드 + 북메이커별 표) + 아시안 핸디캡 + 언더오버.
+// 경기별 배당 표 — 아시안 핸디캡 라인 + 기준선별 언더오버 (승무패·북메이커 표는 실시간 카드와 중복이라 제거, 2026-08-23).
 // 데이터: API-Sports(api-football). odds 는 live page 에서 fetchFixtureOdds 로 주입(enabled 정확화).
 import type { FixtureOdds } from "@/lib/odds/api-sports-odds";
 
@@ -30,39 +30,6 @@ function OddCell({ value, isBest }: { value: number; isBest: boolean }) {
 }
 
 export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
-  // ── 승무패 (북메이커 × 홈/무/원정) ──
-  const mwRows = odds.bookmakers
-    .map((b) => ({ name: b.name, v: b.markets.find((m) => m.name === "Match Winner")?.values ?? [] }))
-    .filter((r) => r.v.length === 3);
-  const cols = ["Home", "Draw", "Away"] as const;
-  const ko: Record<string, string> = { Home: "홈", Draw: "무", Away: "원정" };
-  const barColor: Record<string, string> = { Home: "bg-emerald-500", Draw: "bg-neutral-400", Away: "bg-sky-500" };
-
-  // 열별 전체 배당 모음 → 최고/평균/예상확률(평균배당 기반 vig 정규화).
-  const colAll: Record<string, number[]> = { Home: [], Draw: [], Away: [] };
-  for (const r of mwRows)
-    for (const v of r.v) {
-      const o = parseFloat(v.odd) || 0;
-      if (o) colAll[v.value]?.push(o);
-    }
-  const bestMw: Record<string, number> = {
-    Home: Math.max(0, ...colAll.Home),
-    Draw: Math.max(0, ...colAll.Draw),
-    Away: Math.max(0, ...colAll.Away),
-  };
-  const avgMw: Record<string, number> = {
-    Home: colAll.Home.length ? colAll.Home.reduce((s, x) => s + x, 0) / colAll.Home.length : 0,
-    Draw: colAll.Draw.length ? colAll.Draw.reduce((s, x) => s + x, 0) / colAll.Draw.length : 0,
-    Away: colAll.Away.length ? colAll.Away.reduce((s, x) => s + x, 0) / colAll.Away.length : 0,
-  };
-  const inv = cols.map((c) => (avgMw[c] > 0 ? 1 / avgMw[c] : 0));
-  const invSum = inv.reduce((s, x) => s + x, 0) || 1;
-  const prob: Record<string, number> = {
-    Home: (inv[0] / invSum) * 100,
-    Draw: (inv[1] / invSum) * 100,
-    Away: (inv[2] / invSum) * 100,
-  };
-
   // ── 아시안 핸디캡 (라인별 최고배당) ── value: "Home -0.5" / "Away -0.5"
   const hcHome = new Map<string, number[]>();
   const hcAway = new Map<string, number[]>();
@@ -113,72 +80,8 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
 
   return (
     <div className="space-y-4">
-      {/* 승무패 */}
-      {mwRows.length > 0 && (
-        <details open className="group">
-          <summary className="flex cursor-pointer select-none items-center justify-between gap-2 rounded-lg px-1 py-1.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04] list-none [&::-webkit-details-marker]:hidden">
-            <h3 className="text-sm font-bold tracking-tight">승무패</h3>
-            <span className="text-[11px] text-neutral-500">북메이커 {odds.bookmakerCount}곳 · 최고배당 강조</span>
-            <span className="ml-auto text-[10px] text-neutral-400 transition-transform group-open:rotate-90" aria-hidden>▶</span>
-          </summary>
-          <div className="mt-3 space-y-4">
-
-          {/* 요약 카드 — 평균배당 + 예상확률 + 확률바 + 최고배당 */}
-          <div className="mb-3 grid grid-cols-3 gap-2">
-            {cols.map((c) => (
-              <div
-                key={c}
-                className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3 text-center dark:border-neutral-800 dark:bg-white/[0.02]"
-              >
-                <div className="text-[11px] font-medium text-neutral-500">{ko[c]}</div>
-                <div className="mt-0.5 text-xl font-bold tabular-nums">{avgMw[c] ? avgMw[c].toFixed(2) : "-"}</div>
-                <div className="text-[11px] text-neutral-400">
-                  예상 {Math.round(prob[c])}% · 최고 {bestMw[c] ? bestMw[c].toFixed(2) : "-"}
-                </div>
-                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
-                  <div className={`h-full rounded-full ${barColor[c]}`} style={{ width: `${prob[c]}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 북메이커별 표 — 기본 접힘 (13행이 화면을 다 먹는다, 2026-08-23 사용자) */}
-          <details className="group/bm">
-            <summary className="cursor-pointer select-none text-[12px] font-semibold text-neutral-600 dark:text-neutral-300 hover:underline list-none [&::-webkit-details-marker]:hidden">
-              <span className="inline-block text-[10px] text-neutral-400 transition-transform group-open/bm:rotate-90 mr-1" aria-hidden>▶</span>
-              북메이커별 배당 {odds.bookmakerCount}곳 보기
-            </summary>
-          <div className={`${boxCls} mt-2`}>
-            <table className="w-full min-w-[360px] text-sm">
-              <thead>
-                <tr className={headCls}>
-                  <th className="px-3 py-2 text-left font-semibold">북메이커</th>
-                  {cols.map((c) => <th key={c} className="px-3 py-2 text-center font-semibold">{ko[c]}</th>)}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/70">
-                {mwRows.map((r) => (
-                  <tr key={r.name} className="hover:bg-neutral-50 dark:hover:bg-white/[0.03]">
-                    <td className="px-3 py-2.5 text-[13px] text-neutral-700 dark:text-neutral-300 truncate">{r.name}</td>
-                    {cols.map((c) => {
-                      const v = r.v.find((x) => x.value === c);
-                      const odd = v ? parseFloat(v.odd) || 0 : 0;
-                      return (
-                        <td key={c} className={cell}>
-                          <OddCell value={odd} isBest={odd > 0 && odd === bestMw[c]} />
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          </details>
-          </div>
-        </details>
-      )}
-
+      {/* 승무패 요약·북메이커별 표는 제거 — 실시간 배당 카드와 중복(표본 13곳 vs 11곳으로 값이 달라 혼란, 2026-08-23 리뷰 N1).
+          이 표의 고유 정보인 아시안 핸디캡 라인·기준선별 O/U 만 남긴다. */}
       {/* 아시안 핸디캡 — 기본 접힘 */}
       {hcLines.length > 0 && (
         <details className="group">
@@ -250,7 +153,7 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
       )}
 
       <p className="text-[10px] text-neutral-400">
-        데이터: API-Sports · 예상확률은 평균배당 기반 추정 · 참고용(베팅 권유 아님)
+        데이터: API-Sports 북메이커 {odds.bookmakerCount}곳 · 라인별 최고배당이라 위 실시간 평균과 표본이 다릅니다 · 참고용(베팅 권유 아님)
       </p>
     </div>
   );

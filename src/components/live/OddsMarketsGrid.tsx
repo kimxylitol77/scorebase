@@ -13,6 +13,8 @@ interface Props {
     dc1X: number | null; dc12: number | null; dcX2: number | null;
   };
   bookmakers: number | null;
+  /** 실시간 배당 카드가 같은 시장(승무패·핸디캡·O/U)을 이미 보여주는 리그 — 값은 생략하고 미수집 시장 칩만 */
+  pendingOnly?: boolean;
 }
 
 const f = (n: number | null) => (n == null ? "—" : n.toFixed(2));
@@ -23,7 +25,7 @@ interface Market {
   cells: Array<{ label: string; value: number | null }> | null; // null = 미수집
 }
 
-export default function OddsMarketsGrid({ homeNameKo, awayNameKo, odds, bookmakers }: Props) {
+export default function OddsMarketsGrid({ homeNameKo, awayNameKo, odds, bookmakers, pendingOnly = false }: Props) {
   const has = (...v: Array<number | null>) => v.some((x) => x != null);
   const markets: Market[] = [
     {
@@ -75,13 +77,26 @@ export default function OddsMarketsGrid({ homeNameKo, awayNameKo, odds, bookmake
   ];
   const available = markets.filter((m) => m.cells);
   const pending = markets.filter((m) => !m.cells);
+  if (pendingOnly) {
+    // 같은 값을 두 번 찍지 않는다 (한 페이지 배당 4중 표기 지적, 2026-08-23). 미수집 시장 안내만.
+    return pending.length > 0 ? (
+      <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-neutral-400 px-1">
+        <span>데이터 준비 중인 시장:</span>
+        {pending.map((m) => (
+          <span key={m.key} className="rounded-full border border-dashed border-neutral-300 dark:border-white/15 px-2 py-0.5">
+            {m.label}
+          </span>
+        ))}
+      </div>
+    ) : null;
+  }
   if (available.length === 0) return null;
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
       <header className="flex items-center justify-between gap-2 mb-2">
-        <div className="text-[12px] font-bold">시장별 배당</div>
-        <span className="text-[10px] text-neutral-500">{bookmakers ? `해외 ${bookmakers}곳 평균 · ` : ""}경기 전 기준</span>
+        <div className="text-[12px] font-bold">경기 전 평균 배당</div>
+        <span className="text-[10px] text-neutral-500">{bookmakers ? `해외 ${bookmakers}곳 평균 · ` : ""}실시간 배당 미지원 리그</span>
       </header>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {available.map((m) => (

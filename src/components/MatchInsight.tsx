@@ -1155,15 +1155,8 @@ export default async function MatchInsight({
   // === 시장 odds 탭 ===
   const hasMarketCompare =
     match.marketHome != null && match.marketAway != null;
-  const hasOddsTable = !!(
-    match.oddsHome ||
-    match.oddsOver ||
-    match.oddsHcHome ||
-    match.oddsBttsYes ||
-    match.oddsDc1X
-  );
   const marketContent =
-    hasMarketCompare || hasOddsTable ? (
+    hasMarketCompare ? (
       <div className="space-y-6">
         {hasMarketCompare && (
           <Section title="예측 비교 — 순수 Elo · 시장 반영 · 베팅시장">
@@ -1184,29 +1177,7 @@ export default async function MatchInsight({
             />
           </Section>
         )}
-        {hasOddsTable && (
-          <Section title="베팅사이트 평균 배당">
-            <OddsTable
-              homeName={toKoreanTeamName(match.homeTeam.name, match.league)}
-              awayName={toKoreanTeamName(match.awayTeam.name, match.league)}
-              oddsHome={match.oddsHome ?? null}
-              oddsDraw={match.oddsDraw ?? null}
-              oddsAway={match.oddsAway ?? null}
-              oddsTotalLine={match.oddsTotalLine ?? null}
-              oddsOver={match.oddsOver ?? null}
-              oddsUnder={match.oddsUnder ?? null}
-              oddsHcLine={match.oddsHcLine ?? null}
-              oddsHcHome={match.oddsHcHome ?? null}
-              oddsHcAway={match.oddsHcAway ?? null}
-              oddsBttsYes={match.oddsBttsYes ?? null}
-              oddsBttsNo={match.oddsBttsNo ?? null}
-              oddsDc1X={match.oddsDc1X ?? null}
-              oddsDc12={match.oddsDc12 ?? null}
-              oddsDcX2={match.oddsDcX2 ?? null}
-              hideDraw={hideDraw}
-            />
-          </Section>
-        )}
+        {/* 베팅사이트 평균 배당 표는 제거 — 같은 25곳 평균이 요약 카드·배당 섹션에 이미 있어 한 페이지 4중 표기 (2026-08-23 리뷰 N1) */}
       </div>
     ) : null;
 
@@ -1306,7 +1277,7 @@ export default async function MatchInsight({
         },
         {
           key: "market",
-          label: "시장 odds",
+          label: "모델 vs 시장",
           enabled: !!marketContent,
           content: marketContent,
         },
@@ -1357,132 +1328,6 @@ const TONE_TEXT = {
   violet: "text-violet-700 dark:text-violet-300",
 } as const;
 
-function OddsTable({
-  homeName,
-  awayName,
-  oddsHome,
-  oddsDraw,
-  oddsAway,
-  oddsTotalLine,
-  oddsOver,
-  oddsUnder,
-  oddsHcLine,
-  oddsHcHome,
-  oddsHcAway,
-  oddsBttsYes,
-  oddsBttsNo,
-  oddsDc1X,
-  oddsDc12,
-  oddsDcX2,
-  hideDraw,
-}: {
-  homeName: string;
-  awayName: string;
-  oddsHome: number | null;
-  oddsDraw: number | null;
-  oddsAway: number | null;
-  oddsTotalLine: number | null;
-  oddsOver: number | null;
-  oddsUnder: number | null;
-  oddsHcLine: number | null;
-  oddsHcHome: number | null;
-  oddsHcAway: number | null;
-  oddsBttsYes: number | null;
-  oddsBttsNo: number | null;
-  oddsDc1X: number | null;
-  oddsDc12: number | null;
-  oddsDcX2: number | null;
-  hideDraw: boolean;
-}) {
-  const fmt = (n: number | null) => (n != null ? n.toFixed(2) : "—");
-  return (
-    <div className="space-y-2.5">
-      {/* 1X2 */}
-      {oddsHome && oddsAway && (
-        <div className="grid grid-cols-[auto_1fr_1fr_1fr] sm:grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
-            1X2
-          </div>
-          <OddsCell label={homeName} value={fmt(oddsHome)} />
-          {!hideDraw && oddsDraw && <OddsCell label="무" value={fmt(oddsDraw)} />}
-          {(hideDraw || !oddsDraw) && <div />}
-          <OddsCell label={awayName} value={fmt(oddsAway)} />
-        </div>
-      )}
-      {/* OVER/UNDER */}
-      {oddsOver && oddsUnder && oddsTotalLine != null && (
-        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
-            O/U
-          </div>
-          <OddsCell label={`OVER ${oddsTotalLine}`} value={fmt(oddsOver)} />
-          <OddsCell label="기준선" value={String(oddsTotalLine)} mono />
-          <OddsCell label={`UNDER ${oddsTotalLine}`} value={fmt(oddsUnder)} />
-        </div>
-      )}
-      {/* 핸디캡 */}
-      {oddsHcHome && oddsHcAway && oddsHcLine != null && (
-        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
-            HC
-          </div>
-          <OddsCell label={`${homeName} -${oddsHcLine}`} value={fmt(oddsHcHome)} />
-          <OddsCell label="line" value={`±${oddsHcLine}`} mono />
-          <OddsCell label={`${awayName} +${oddsHcLine}`} value={fmt(oddsHcAway)} />
-        </div>
-      )}
-      {/* 더블 찬스 (축구만) */}
-      {oddsDc1X && oddsDc12 && oddsDcX2 && (
-        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
-            DC
-          </div>
-          <OddsCell label={`${homeName} 또는 무`} value={fmt(oddsDc1X)} />
-          <OddsCell label="홈 또는 원정" value={fmt(oddsDc12)} />
-          <OddsCell label={`무 또는 ${awayName}`} value={fmt(oddsDcX2)} />
-        </div>
-      )}
-      {/* BTTS (축구만) */}
-      {oddsBttsYes && oddsBttsNo && (
-        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
-            BTTS
-          </div>
-          <OddsCell label="양 팀 득점 YES" value={fmt(oddsBttsYes)} />
-          <div />
-          <OddsCell label="양 팀 득점 NO" value={fmt(oddsBttsNo)} />
-        </div>
-      )}
-      <p className="text-[11px] text-neutral-500">
-        decimal odds (소수 배당) — 1.85 = 1만원 베팅 시 1.85만원 환수. 베팅사이트
-        평균값 (vig 미제거 raw odds).
-      </p>
-    </div>
-  );
-}
-
-function OddsCell({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="text-center min-w-0">
-      <div className="text-[10px] text-neutral-500 truncate">{label}</div>
-      <div
-        className={`text-base sm:text-lg font-bold tabular-nums ${
-          mono ? "text-neutral-500" : "text-neutral-900 dark:text-white"
-        }`}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
 
 function MarketCompareTable({
   baseHome,
