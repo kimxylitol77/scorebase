@@ -1,0 +1,101 @@
+{
+  "header": "/en/salaries/golf — PGA 투어 상금 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { fifaCountryKo } from \"@/lib/sports/fifa-rankings\";\n",
+      ""
+    ],
+    [
+      "import golfNames from \"../../../../data/golf-player-names.json\";\n",
+      ""
+    ],
+    [
+      "const NAMES = golfNames as Record<string, string>;\n",
+      ""
+    ],
+    [
+      "const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)\n",
+      ""
+    ],
+    [
+      "function fmtKrw(usd: number, rate: number): string {\n  const won = usd * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n",
+      ""
+    ],
+    [
+      "async function fetchUsdKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=USD&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "  const rate = await fetchUsdKrw();\n",
+      ""
+    ],
+    [
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                    <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">{fmtKrw(r.salary, rate)}</td>\n",
+      ""
+    ],
+    [
+      "                      <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                const isKorean = r.teamName === \"South Korea\";\n",
+      ""
+    ],
+    [
+      "                const nameKo = NAMES[r.playerName] ?? null;\n",
+      ""
+    ],
+    [
+      "<PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />",
+      "<PlayerPhoto photo={r.photoUrl} name={r.playerName} />"
+    ],
+    [
+      "                          <span className={`block truncate font-semibold ${isKorean ? \"text-rose-600 dark:text-rose-400\" : top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>\n                            {nameKo ?? r.playerName}\n                          </span>\n                          {nameKo && <span className=\"block truncate text-[11px] font-normal text-neutral-400\">{r.playerName}</span>}\n",
+      "                          <span className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"}`}>\n                            {r.playerName}\n                          </span>\n"
+    ],
+    [
+      "                      {r.teamName ? (fifaCountryKo(r.teamName) ?? r.teamName) : \"—\"}\n",
+      "                      {r.teamName ?? \"—\"}\n"
+    ],
+    [
+      "      <p className=\"text-xs text-neutral-500\">\n        성적 기준 순위가 궁금하다면{\" \"}\n        <Link href=\"/golf/korea?view=world\" className=\"font-semibold text-blue-600 dark:text-blue-400 hover:underline\">\n          골프 세계랭킹 보기\n        </Link>\n        .\n      </p>\n\n",
+      ""
+    ],
+    [
+      "        상금은 {season} 시즌 PGA 투어 공식 상금(Official Money, USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다.\n        {updated && ` 마지막 갱신 ${updated}.`} 데이터 제공{\" \"}",
+      "        Official PGA Tour money (Official Money, USD) for the {season} season.\n        {updated && ` Last updated ${updated}.`} Data by{\" \"}"
+    ],
+    [
+      "        {\" · 환율 \"}\n        <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n          Frankfurter\n        </a>\n",
+      ""
+    ],
+    [
+      "<PlayerValueTabs active=\"/salaries/golf\" />",
+      "<PlayerValueTabs active=\"/en/salaries/golf\" />"
+    ],
+    [
+      "<Link href=\"/scores?sport=golf\" className=\"hover:underline\">골프</Link>",
+      "<Link href=\"/en/scores?sport=golf\" className=\"hover:underline\">골프</Link>"
+    ],
+    [
+      "export const metadata: Metadata = {\n  title: \"골프 상금 랭킹 — PGA 투어 시즌 상금 순위 (한화)\",\n  description:\n    \"PGA 투어 시즌 상금(머니리스트) 순위를 달러·원화로. 셰플러 등 상금 상위 60명과 임성재·김시우·김주형 한국 선수 위치까지 한국어로 — 매주 자동 갱신, 데이터 ESPN.\",\n  keywords: [\"골프 상금 랭킹\", \"PGA 상금 순위\", \"PGA 머니리스트\", \"골프 상금 순위\", \"임성재 상금\", \"김주형 상금\", \"셰플러 상금\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/golf\" },\n};",
+      "export const metadata: Metadata = {\n  title: \"Golf Prize Money Rankings — PGA Tour Season Earnings\",\n  description:\n    \"PGA Tour season earnings (money list) in USD. Top 60 by prize money, updated weekly. Data from ESPN.\",\n  keywords: [\"golf prize money\", \"PGA Tour money list\", \"PGA earnings ranking\", \"golf earnings\", \"PGA Tour prize money\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/golf\",\n    languages: koEnLanguages(\"/salaries/golf\", \"/en/salaries/golf\"),\n  },\n};"
+    ],
+    [
+      "import { CircleDollarSign } from \"lucide-react\";",
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "골프 상금 랭킹": "Golf Prize Money Rankings",
+    "상금 랭킹": "Prize Money",
+    "시즌 상금": "Season Earnings",
+    "상금 데이터를 불러오는 중입니다.": "Prize money data is loading.",
+    "시즌 PGA 투어 공식 상금(머니리스트) 순위 top": "PGA Tour official money list — top",
+    "(달러·원화) · 매주 자동 갱신 · 한국 선수는 색으로 강조.": "(USD) · updated weekly."
+  }
+}

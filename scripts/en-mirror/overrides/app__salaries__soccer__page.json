@@ -1,0 +1,124 @@
+{
+  "header": "/en/salaries/soccer — 빅5 리그 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const FX_FALLBACK = 1650; // EUR→KRW fallback (2026-07 실측 ~1,650)\n",
+      ""
+    ],
+    [
+      "function fmtKrw(eur: number, rate: number): string {\n  const won = eur * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n\n",
+      ""
+    ],
+    [
+      "async function fetchEurKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=EUR&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "  const [rate, logoOf, matchPlayer] = await Promise.all([fetchEurKrw(), buildLogoMap(), buildPlayerMatcher()]);",
+      "  const [logoOf, matchPlayer] = await Promise.all([buildLogoMap(), buildPlayerMatcher()]);"
+    ],
+    [
+      "              <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                    <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                  <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">\n                    {fmtKrw(r.salary, rate)}\n                  </td>\n",
+      ""
+    ],
+    [
+      "  SOCCER_LEAGUE_KO,\n",
+      ""
+    ],
+    [
+      "import { CircleDollarSign } from \"lucide-react\";",
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { enLeagueName, koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "` — ${SOCCER_LEAGUE_KO[leagueFilter]} ${rows.length}명`",
+      "` — ${enLeagueName(leagueFilter)} ${rows.length}`"
+    ],
+    [
+      "            {SOCCER_LEAGUE_KO[lg]}\n",
+      "            {enLeagueName(lg)}\n"
+    ],
+    [
+      "                      {SOCCER_LEAGUE_KO[r.league]}\n",
+      "                      {enLeagueName(r.league)}\n"
+    ],
+    [
+      "                  <PlayerPhoto photo={pl?.photo ?? null} name={r.nameKo} />\n                  <span className=\"min-w-0\">\n                    <span\n                      className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"} ${pl ? \"group-hover:underline\" : \"\"}`}\n                    >\n                      {r.nameKo}\n                    </span>\n                    <span className=\"block truncate text-[11px] font-normal text-neutral-400\">{r.name}</span>\n                  </span>\n",
+      "                  <PlayerPhoto photo={pl?.photo ?? null} name={r.name} />\n                  <span className=\"min-w-0\">\n                    <span\n                      className={`block truncate font-semibold ${top3 ? \"text-amber-600 dark:text-amber-400\" : \"\"} ${pl ? \"group-hover:underline\" : \"\"}`}\n                    >\n                      {r.name}\n                    </span>\n                  </span>\n"
+    ],
+    [
+      "aria-label={`${r.nameKo} 선수 페이지`}",
+      "aria-label={`${r.name} player page`}"
+    ],
+    [
+      "                      {r.teamKo}\n",
+      "                      {r.team}\n"
+    ],
+    [
+      "<Link href=\"/scores?sport=soccer\" className=\"hover:underline\">축구</Link>",
+      "<Link href=\"/en/scores?sport=soccer\" className=\"hover:underline\">축구</Link>"
+    ],
+    [
+      "<Link href=\"/transfers\" className=\"font-semibold text-blue-600 dark:text-blue-400 hover:underline\">",
+      "<Link href=\"/en/transfers\" className=\"font-semibold text-blue-600 dark:text-blue-400 hover:underline\">"
+    ],
+    [
+      "<Link href=\"/salaries/soccer\" className={pill(!leagueFilter)}>",
+      "<Link href=\"/en/salaries/soccer\" className={pill(!leagueFilter)}>"
+    ],
+    [
+      "href={`/salaries/soccer?league=${lg}`}",
+      "href={`/en/salaries/soccer?league=${lg}`}"
+    ],
+    [
+      "return { href: `/transfers/${hit.id}`,",
+      "return { href: `/en/transfers/${hit.id}`,"
+    ],
+    [
+      "<PlayerValueTabs active=\"/salaries/soccer\" />",
+      "<PlayerValueTabs active=\"/en/salaries/soccer\" />"
+    ],
+    [
+      "        축구 클럽은 선수 연봉을 공식 발표하지 않습니다. 아래 수치는 공식 발표가 아닌 <strong>미디어 종합 추정치</strong>\n        ({SOCCER_SALARY_AS_OF} 기준)이며 실제 계약 조건과 다를 수 있습니다.",
+      "        Clubs do not disclose player salaries officially. The figures below are <strong>aggregated media estimates</strong>{\" \"}\n        (as of {SOCCER_SALARY_AS_OF}) and may differ from actual contract terms."
+    ],
+    [
+      "        이적료 기준 선수 몸값이 궁금하다면{\" \"}",
+      "        Curious about transfer fees instead?{\" \"}"
+    ],
+    [
+      "        연봉은 {SOCCER_SALARY_SEASON} 시즌 세전 기본급 추정치(EUR, 보너스·스폰서 수입 제외) 기준이며, 원화는 1유로 ={\" \"}\n        {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. EPL 주급(파운드)은 연봉 환산 후 유로로 통일했습니다.\n        추정 출처 {SOCCER_SALARY_SOURCE}{\" \"}",
+      "        Figures are estimated pre-tax base salaries for the {SOCCER_SALARY_SEASON} season (EUR, excluding bonuses and\n        endorsements). Premier League weekly wages (GBP) are annualised and converted to EUR.\n        Estimates from {SOCCER_SALARY_SOURCE}{\" \"}"
+    ],
+    [
+      "        {\" · 환율 \"}\n        <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n          Frankfurter\n        </a>\n",
+      ""
+    ],
+    [
+      "export const metadata: Metadata = {\n  title: \"축구 선수 연봉 랭킹 — 빅5 리그 최고 연봉 순위 (한화)\",\n  description:\n    \"유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 축구 선수 연봉 순위를 유로·원화로. 홀란·음바페·케인 등 최고 연봉 선수와 소속팀을 한국어로 — 공식 발표가 없어 미디어 종합 추정치 기준.\",\n  keywords: [\"축구 연봉\", \"축구선수 연봉 순위\", \"홀란 연봉\", \"음바페 연봉\", \"손흥민 연봉\", \"EPL 연봉\", \"빅리그 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/soccer\" },\n};",
+      "export const metadata: Metadata = {\n  title: \"Football Player Salaries — Top Earners in Europe's Big Five Leagues\",\n  description:\n    \"Salary rankings for the Premier League, LaLiga, Bundesliga, Serie A and Ligue 1. Haaland, Mbappé, Kane and other top earners in EUR — aggregated media estimates, as clubs do not disclose wages.\",\n  keywords: [\"football salaries\", \"soccer player wages\", \"Haaland salary\", \"Mbappe salary\", \"Premier League wages\", \"highest paid footballers\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/soccer\",\n    languages: koEnLanguages(\"/salaries/soccer\", \"/en/salaries/soccer\"),\n  },\n};"
+    ]
+  ],
+  "dict": {
+    "축구": "Football",
+    "선수 연봉": "Player Salaries",
+    "연봉 랭킹": "Salaries",
+    "축구 선수 연봉": "Football Player Salaries",
+    "시즌 유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 최고 연봉": "season — Europe's big five leagues, top",
+    "명의\n          세전 연봉 추정치(보너스 제외, 유로·원화) 순위": " players by estimated pre-tax salary (EUR, bonuses excluded)",
+    "이적시장 몸값 보기": "View transfer market values",
+    "전체": "All",
+    "선수": "Player",
+    "팀": "Team",
+    "리그": "League",
+    "연봉 (추정)": "Salary (est.)",
+    "(기준 기사)": "(source article)"
+  }
+}

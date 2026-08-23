@@ -1,0 +1,185 @@
+{
+  "header": "/en/salaries/mlb — MLB 선수·팀 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)\n",
+      ""
+    ],
+    [
+      "function fmtKrw(usd: number, rate: number): string {\n  const won = usd * rate;\n  if (won >= 1e8) return `약 ${Math.round(won / 1e8).toLocaleString()}억원`;\n  if (won >= 1e4) return `약 ${Math.round(won / 1e4).toLocaleString()}만원`;\n  return `약 ${Math.round(won).toLocaleString()}원`;\n}\n\n",
+      ""
+    ],
+    [
+      "async function fetchUsdKrw(): Promise<number> {\n  try {\n    const res = await fetch(\"https://api.frankfurter.app/latest?from=USD&to=KRW\", {\n      signal: AbortSignal.timeout(6000),\n      next: { revalidate: 3600 },\n    });\n    if (!res.ok) return FX_FALLBACK;\n    const j = (await res.json()) as { rates?: { KRW?: number } };\n    const krw = j.rates?.KRW;\n    return typeof krw === \"number\" && krw > 0 ? krw : FX_FALLBACK;\n  } catch {\n    return FX_FALLBACK;\n  }\n}\n\n",
+      ""
+    ],
+    [
+      "  const rate = await fetchUsdKrw();\n",
+      ""
+    ],
+    [
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">평균</th>\n                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      "                <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">평균</th>\n"
+    ],
+    [
+      "                      <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400 font-normal\">{fmtKrw(t.total, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                    <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 hidden lg:table-cell\">{fmtKrw(t.total, rate)}</td>\n",
+      ""
+    ],
+    [
+      "                  <th className=\"px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell\">원화 환산</th>\n",
+      ""
+    ],
+    [
+      "                        <div className=\"lg:hidden text-[11px] tabular-nums text-neutral-400\">{fmtKrw(r.salary, rate)}</div>\n",
+      ""
+    ],
+    [
+      "                      <td className=\"px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell\">{fmtKrw(r.salary, rate)}</td>\n",
+      ""
+    ],
+    [
+      "        <SalaryFooter rate={rate} />",
+      "        <SalaryFooter />"
+    ],
+    [
+      "      <SalaryFooter rate={rate} />",
+      "      <SalaryFooter />"
+    ],
+    [
+      "function SalaryFooter({ rate }: { rate: number }) {",
+      "function SalaryFooter() {"
+    ],
+    [
+      "      연봉은 해당 시즌 계약 총액(USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. 선수 한국어명·팀은 보유 데이터 매칭분만 표기됩니다. 데이터 제공{\" \"}",
+      "      Salaries are total contract value for the season (USD). Data by{\" \"}"
+    ],
+    [
+      "      {\" · 환율 \"}\n      <a href=\"https://www.frankfurter.app\" target=\"_blank\" rel=\"nofollow noopener\" className=\"text-blue-600 dark:text-blue-400 hover:underline\">\n        Frankfurter\n      </a>\n",
+      ""
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "import { MLB_PLAYER_NAMES_KO } from \"@/lib/sports/mlb-player-names\";\n",
+      ""
+    ],
+    [
+      "import { CircleDollarSign } from \"lucide-react\";",
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "                const ko = toKoreanTeamName(t.name, \"MLB\") ?? t.name;\n",
+      "                const ko = t.name;\n"
+    ],
+    [
+      "  const teamKo = teamParam ? (toKoreanTeamName(teamParam, \"MLB\") ?? teamParam) : null;",
+      "  const teamKo = teamParam ?? null;"
+    ],
+    [
+      "        .filter((n) => n.toLowerCase().includes(lower) || toKoreanPlayerName(n).includes(q)),",
+      "        .filter((n) => n.toLowerCase().includes(lower)),"
+    ],
+    [
+      "  // 선수 한글명 2순위 소스 = TheSportsPlayer(MLB) 매칭 (1순위는 위키 사전).\n  const names = rows.map((r) => r.playerName);\n  const tsP = names.length\n    ? await prisma.theSportsPlayer.findMany({\n        where: { sport: \"MLB\", name: { in: names } },\n        select: { name: true, nameKo: true },\n      })\n    : [];\n  const pMap = new Map(tsP.map((p) => [p.name, p]));\n\n",
+      ""
+    ],
+    [
+      "                  const p = pMap.get(r.playerName);\n                  const display = MLB_PLAYER_NAMES_KO[r.playerName] ?? p?.nameKo ?? toKoreanPlayerName(r.playerName);\n                  const team = r.teamName ? toKoreanTeamName(r.teamName, \"MLB\") : null;",
+      "                  const display = r.playerName;\n                  const team = r.teamName ?? null;"
+    ],
+    [
+      "<PlayerValueTabs active=\"/salaries/mlb\" />",
+      "<PlayerValueTabs active=\"/en/salaries/mlb\" />"
+    ],
+    [
+      "href={`/salaries/mlb?team=${encodeURIComponent(t.name)}`}",
+      "href={`/en/salaries/mlb?team=${encodeURIComponent(t.name)}`}"
+    ],
+    [
+      "<form method=\"get\" action=\"/salaries/mlb\" className=\"flex gap-2\">",
+      "<form method=\"get\" action=\"/en/salaries/mlb\" className=\"flex gap-2\">"
+    ],
+    [
+      "const href = mlbamId ? `/players/${mlbamId}` : null;",
+      "const href = mlbamId ? `/en/players/${mlbamId}` : null;"
+    ],
+    [
+      "href={p === 1 ? \"/salaries/mlb\" : `/salaries/mlb?page=${p}`}",
+      "href={p === 1 ? \"/en/salaries/mlb\" : `/en/salaries/mlb?page=${p}`}"
+    ],
+    [
+      "      href={page === 1 ? \"/salaries/mlb\" : `/salaries/mlb?page=${page}`}",
+      "      href={page === 1 ? \"/en/salaries/mlb\" : `/en/salaries/mlb?page=${page}`}"
+    ],
+    [
+      "<Link href=\"/scores\" className=\"hover:underline\">라이브 스코어</Link>",
+      "<Link href=\"/en/scores\" className=\"hover:underline\">라이브 스코어</Link>"
+    ],
+    [
+      "<Link href=\"/leagues/MLB\" className=\"hover:underline\">MLB</Link>",
+      "<Link href=\"/en/standings/MLB\" className=\"hover:underline\">MLB</Link>"
+    ],
+    [
+      "<Link href=\"/salaries/mlb\" className={pill(playerOn)}>선수별</Link>",
+      "<Link href=\"/en/salaries/mlb\" className={pill(playerOn)}>선수별</Link>"
+    ],
+    [
+      "<Link href=\"/salaries/mlb?view=team\" className={pill(view === \"team\")}>팀별</Link>",
+      "<Link href=\"/en/salaries/mlb?view=team\" className={pill(view === \"team\")}>팀별</Link>"
+    ],
+    [
+      "          <Link\n            href=\"/salaries/mlb\"\n            className=\"shrink-0 self-center text-xs text-neutral-400 underline-offset-2 hover:underline\"\n          >",
+      "          <Link\n            href=\"/en/salaries/mlb\"\n            className=\"shrink-0 self-center text-xs text-neutral-400 underline-offset-2 hover:underline\"\n          >"
+    ],
+    [
+      "        <Link\n          href=\"/salaries/mlb\"\n          className=\"inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]\"\n        >",
+      "        <Link\n          href=\"/en/salaries/mlb\"\n          className=\"inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]\"\n        >"
+    ],
+    [
+      "<SalaryHeader season={season} subtitle={`팀별 총 연봉(페이롤) 순위 · ${teamRows.length}개 구단`} />",
+      "<SalaryHeader season={season} subtitle={`team payroll ranking · ${teamRows.length} clubs`} />"
+    ],
+    [
+      "          q\n            ? `\"${q}\" 검색 결과 · ${total.toLocaleString()}명`\n            : teamKo\n              ? `${teamKo} 선수 연봉 (달러·원화) · ${total.toLocaleString()}명`\n              : `선수별 연봉 순위 (달러·원화) · 전체 ${total.toLocaleString()}명 · 매주 자동 갱신`",
+      "          q\n            ? `search results for \"${q}\" · ${total.toLocaleString()} players`\n            : teamKo\n              ? `${teamKo} player salaries (USD) · ${total.toLocaleString()} players`\n              : `player salary ranking (USD) · ${total.toLocaleString()} players · updated weekly`"
+    ],
+    [
+      "        {season} 시즌 {subtitle} · 데이터 Spotrac.",
+      "        {season} season · {subtitle} · data by Spotrac."
+    ],
+    [
+      "export const metadata: Metadata = {\n  title: \"MLB 선수·팀별 연봉 랭킹 — 2026 (한화)\",\n  description:\n    \"MLB 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 후안 소토·오타니 등 최고 연봉 선수와 다저스·메츠·양키스 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 Spotrac.\",\n  keywords: [\"MLB 연봉\", \"MLB 팀 연봉\", \"MLB 페이롤\", \"MLB 팀별 연봉\", \"다저스 연봉\", \"MLB 선수 연봉 순위\", \"오타니 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/mlb\" },\n};",
+      "export const metadata: Metadata = {\n  title: \"MLB Salaries — Player and Team Payroll Rankings 2026\",\n  description:\n    \"MLB player salary rankings plus team payroll totals. Juan Soto, Shohei Ohtani and the highest-paid players, with Dodgers, Mets and Yankees payrolls in USD. Updated weekly. Data from Spotrac.\",\n  keywords: [\"MLB salaries\", \"MLB payroll\", \"MLB team payroll\", \"highest paid MLB players\", \"Ohtani salary\", \"Dodgers payroll\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/mlb\",\n    languages: koEnLanguages(\"/salaries/mlb\", \"/en/salaries/mlb\"),\n  },\n};"
+    ]
+  ],
+  "dict": {
+    "라이브 스코어": "Live Scores",
+    "연봉 랭킹": "Salaries",
+    "MLB 연봉 랭킹": "MLB Salaries",
+    "선수": "Player",
+    "팀": "Team",
+    "나이": "Age",
+    "연봉": "Salary",
+    "인원": "Players",
+    "총 연봉": "Total Payroll",
+    "평균": "Average",
+    "선수별": "By player",
+    "팀별": "By team",
+    "검색": "Search",
+    "초기화": "Reset",
+    "선수 이름 검색 (한글·영문)": "Search player name",
+    "연봉 데이터를 불러오는 중입니다.": "Salary data is loading.",
+    "‹ 이전": "‹ Prev",
+    "다음 ›": "Next ›"
+  }
+}

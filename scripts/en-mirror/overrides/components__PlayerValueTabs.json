@@ -1,0 +1,41 @@
+{
+  "header": "선수 가치·연봉 탭 (영어판) — /en/salaries/* 공유 네비. scripts/en-mirror 로 자동 생성.",
+  "preReplace": [
+    [
+      "{ href: \"/transfers\",",
+      "{ href: \"/en/transfers\","
+    ],
+    [
+      "{ href: \"/salaries/soccer\",",
+      "{ href: \"/en/salaries/soccer\","
+    ],
+    [
+      "{ href: \"/salaries/kbo\",",
+      "{ href: \"/en/salaries/kbo\","
+    ],
+    [
+      "{ href: \"/salaries/mlb\",",
+      "{ href: \"/en/salaries/mlb\","
+    ],
+    [
+      "{ href: \"/salaries/nba\",",
+      "{ href: \"/en/salaries/nba\","
+    ],
+    [
+      "{ href: \"/salaries/nhl\",",
+      "{ href: \"/en/salaries/nhl\","
+    ],
+    [
+      "{ href: \"/salaries/golf\",",
+      "{ href: \"/en/salaries/golf\","
+    ],
+    [
+      "{ href: \"/salaries/tennis\",",
+      "{ href: \"/en/salaries/tennis\","
+    ],
+    [
+      "{ href: \"/salaries/f1\",",
+      "{ href: \"/en/salaries/f1\","
+    ]
+  ]
+}
