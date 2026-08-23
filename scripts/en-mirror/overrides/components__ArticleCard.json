@@ -1,0 +1,30 @@
+{
+  "header": "components__ArticleCard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(home.name, article.league)",
+      "toEnglishTeamName(home.name)"
+    ],
+    [
+      "toKoreanTeamName(away.name, article.league)",
+      "toEnglishTeamName(away.name)"
+    ]
+  ],
+  "dict": {
+    "선발 미확정": "Line-up TBC",
+    "선발 업데이트": "Line-up updated",
+    "선발 확정": "Line-up confirmed",
+    "연기": "Postponed",
+    "종료": "Finished",
+    "오늘": "Today",
+    "내일": "Tomorrow",
+    "프리뷰": "Preview",
+    "리뷰": "Report",
+    "분석": "Analysis",
+    "읽어보기": "Read"
+  }
+}

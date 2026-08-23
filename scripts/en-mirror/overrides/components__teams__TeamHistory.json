@@ -1,0 +1,17 @@
+{
+  "header": "teams__TeamHistory (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  const hasAny = data.titles.length > 0 || data.managers.length > 0 || data.legends.length > 0;",
+      "  // 우승 대회명·명장·레전드가 한글 데이터라 영어판에서는 섹션을 내지 않는다\n  const hasAny = false;"
+    ]
+  ],
+  "dict": {
+    "역사": "History",
+    "주요 우승": "Major honours",
+    "회": "",
+    "역대 우승": "All-time honours",
+    "역대 명장": "Notable managers",
+    "클럽 레전드": "Club legends"
+  }
+}

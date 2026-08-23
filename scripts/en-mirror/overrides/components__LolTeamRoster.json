@@ -1,0 +1,14 @@
+{
+  "header": "LolTeamRoster (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "🎮 로스터": "🎮 Roster",
+    "명 · 수집 경기 기준 · 클릭 시 상세": " players · from collected games · tap for detail",
+    "· 승률": "· win rate",
+    "세트당 평균 — 킬": "Per game — kills",
+    "드래곤": "dragons",
+    "타워": "towers",
+    "게임": "games",
+    "분": "min"
+  }
+}

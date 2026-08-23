@@ -1,0 +1,29 @@
+{
+  "header": "teams__TeamAbout (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  let intro = `${name}${enName ? `(${enName})` : \"\"}${eunneun(name)} ${leagueLabel}에서 활동하는 ${sportLabel} 구단입니다.`;",
+      "  let intro = `${name} is a ${sportLabel.toLowerCase()} club competing in ${leagueLabel}.`;"
+    ],
+    [
+      "    const cap = venue.capacity ? `(${venue.capacity.toLocaleString()}석)` : \"\";\n    intro += ` 홈 경기는 ${venueKo(venue.venueName)}${cap}에서 열립니다.`;",
+      "    const cap = venue.capacity ? ` (capacity ${venue.capacity.toLocaleString()})` : \"\";\n    intro += ` Home matches are played at ${venue.venueName}${cap}.`;"
+    ],
+    [
+      "  if (venue?.foundation) intro += ` ${venue.foundation}년에 창단했습니다.`;",
+      "  if (venue?.foundation) intro += ` Founded in ${venue.foundation}.`;"
+    ],
+    [
+      "    let rec = `${seasonLabel} 시즌에는 리그 ${record.position}위(승점 ${record.points}, ${record.wins}승 ${record.draws}무 ${record.losses}패)를 기록했으며, ${record.goalsFor}골을 넣고 ${record.goalsAgainst}골을 내주었습니다.`;",
+      "    let rec = `In ${seasonLabel} they finished ${record.position}th on ${record.points} points (${record.wins}W ${record.draws}D ${record.losses}L), scoring ${record.goalsFor} and conceding ${record.goalsAgainst}.`;"
+    ],
+    [
+      "      rec += ` 리그 공격력 ${attackRank}위, 수비력 ${defenseRank}위였습니다.`;",
+      "      rec += ` That ranked ${attackRank}th for attack and ${defenseRank}th for defence.`;"
+    ]
+  ],
+  "dict": {
+    "은": "",
+    "는": ""
+  }
+}

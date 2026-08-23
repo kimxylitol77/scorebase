@@ -1,0 +1,29 @@
+{
+  "header": "components__teams__TransfersSection (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "toKoreanPlayerName(it.playerName) || it.playerName",
+      "it.playerName"
+    ],
+    [
+      "toKoreanTeamName(it.oppTeam) || it.oppTeam",
+      "toEnglishTeamName(it.oppTeam)"
+    ]
+  ],
+  "dict": {
+    "임대": "Loan",
+    "임대 복귀": "Loan return",
+    "자유 계약": "Free transfer",
+    "🔄 최근 이적": "🔄 Recent transfers",
+    "영입": "In",
+    "방출": "Out"
+  }
+}

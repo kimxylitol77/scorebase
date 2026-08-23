@@ -1,0 +1,181 @@
+{
+  "header": "app__teams___id___page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName, enLeagueName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "toKoreanTeamName(team.name, team.league)",
+      "toEnglishTeamName(team.name)"
+    ],
+    [
+      "toKoreanTeamName(oppName, team.league)",
+      "toEnglishTeamName(oppName)"
+    ],
+    [
+      "toKoreanTeamName(opp.name, team.league) || opp.name",
+      "toEnglishTeamName(opp.name)"
+    ],
+    [
+      "toKoreanPlayerName(n)",
+      "n"
+    ],
+    [
+      "toKoreanPlayerName(en)",
+      "en"
+    ],
+    [
+      "toKoreanTeamName(isHome ? m.awayTeam.name : m.homeTeam.name, team.league)",
+      "toEnglishTeamName(isHome ? m.awayTeam.name : m.homeTeam.name)"
+    ],
+    [
+      "toKoreanPlayerName(p.name) || p.name",
+      "p.name"
+    ],
+    [
+      "toKoreanTeamName(opp.name, m.league)",
+      "toEnglishTeamName(opp.name)"
+    ],
+    [
+      "  const coachName = coach ? coach.nameKo || (coach.id && (COACH_KO[coach.id] || COACH_PHOTOS[coach.id]?.nameKo)) || coach.name : null;",
+      "  const coachName = coach ? coach.name : null;"
+    ],
+    [
+      "      canonical: `/teams/${id}`,",
+      "      canonical: `/en/teams/${id}`,"
+    ],
+    [
+      "          leagueLabel={LEAGUE_DISPLAY[team.league] ?? team.league}",
+      "          leagueLabel={enLeagueName(team.league)}"
+    ],
+    [
+      "name: ov?.nameKo || t?.nameKo || t?.name || \"선수\"",
+      "name: t?.name || \"Player\""
+    ],
+    [
+      "      koMap.set(r.name, koMap.has(r.name) && koMap.get(r.name) !== r.nameKo ? null : r.nameKo);",
+      "      koMap.set(r.name, null); // 영어판 — 한글명을 쓰지 않는다"
+    ],
+    [
+      "  const [dbMatches, recentMatches, upcoming, articles, tsTeamRows] = await Promise.all([",
+      "  // 관련 기사는 한국어 콘텐츠라 영어판에서는 비운다 (아래 articles 사용처가 자동으로 숨는다)\n  const [dbMatches, recentMatches, upcoming, articlesRaw, tsTeamRows] = await Promise.all(["
+    ],
+    [
+      "    prisma.teamSourceId.findMany({ where: { source: \"thesports\", teamId: team.id }, select: { externalId: true } }),\n  ]);",
+      "    prisma.teamSourceId.findMany({ where: { source: \"thesports\", teamId: team.id }, select: { externalId: true } }),\n  ]);\n  const articles: typeof articlesRaw = [];"
+    ]
+  ],
+  "dict": {
+    "축구": "Football",
+    "야구": "Baseball",
+    "농구": "Basketball",
+    "아이스하키": "Ice Hockey",
+    "e스포츠": "Esports",
+    "팀을 찾을 수 없습니다": "Team not found",
+    "팀 프로필": "Team profile",
+    "감독": "Manager",
+    "감독대행": "Caretaker",
+    "세": "",
+    "선호 ": "prefers ",
+    "· 프로필 →": "· profile →",
+    "위": "",
+    "세계": "World",
+    "세계 클럽 랭킹": "World club ranking",
+    "클럽 정보": "Club info",
+    "홈구장": "Stadium",
+    "석": " capacity",
+    "창단": "Founded",
+    "년": "",
+    "스쿼드 가치": "Squad value",
+    "외국인 ": "foreign ",
+    "공식 웹사이트 →": "Official website →",
+    "최근 5경기 폼": "Last 5 form",
+    "데이터 없음": "No data",
+    "흐름 (Streak)": "Streak",
+    "홈/원정 분리": "Home / away split",
+    "명 · 클릭 시 상세": " players · tap for detail",
+    "시장가치순 · ": "By market value · ",
+    "스쿼드 몸값 랭킹 · 시장가치 Best XI 전체보기 →": "Squad values and best XI →",
+    "🏒 로스터": "🏒 Roster",
+    "🏀 로스터": "🏀 Roster",
+    "⚾ 로스터": "⚾ Roster",
+    "명 · NHL 공식 · 클릭 시 상세": " players · NHL official · tap for detail",
+    "명 · MLB 공식 · 클릭 시 상세": " players · MLB official · tap for detail",
+    "명 · ESPN · 클릭 시 상세": " players · ESPN · tap for detail",
+    " 공식 · 클릭 시 상세": " official · tap for detail",
+    "명 · ": " players · ",
+    "명": "",
+    "공격수": "Forwards",
+    "수비수": "Defencemen",
+    "골리": "Goalies",
+    "포수": "Catchers",
+    "내야수": "Infielders",
+    "외야수": "Outfielders",
+    "투수": "Pitchers",
+    "야수": "Position players",
+    "가드": "Guards",
+    "포워드": "Forwards",
+    "센터": "Centers",
+    "선수단": "Squad",
+    "부상·결장 명단": "Injuries and absences",
+    "부상·결장 명단 보기": "View injuries and absences",
+    "실시간 통합 집계 페이지에서 팀별로 확인": "See the full league-wide list by club",
+    "시즌 핵심 선수": "Key players",
+    "시즌 득점·도움 누적 Top": "Season goals and assists — top",
+    "득점": "Goals",
+    "도움": "Assists",
+    "출전": "Apps",
+    "선발 라인업": "Starting line-up",
+    " · 경기 전 발표": " · announced before kick-off",
+    "다가오는 경기": "Upcoming matches",
+    "다음 5경기": "Next 5",
+    "승률 추정": "estimated probability",
+    "최근 경기": "Recent matches",
+    "최근 5경기 결과": "Last 5 results",
+    "관련 기사": "Related articles",
+    "이(가) 등장한 최근 기사": "Recent articles mentioning this club",
+    "특이 흐름 없음": "No notable streak",
+    "연승 중": " game win streak",
+    "경기 무패": " unbeaten",
+    "연패 중": " game losing streak",
+    "최근 5경기 클린시트": "Clean sheets in the last 5",
+    "최근 5경기 무득점": "No goals in the last 5",
+    "시즌": "season",
+    "경기 일정": "Fixtures",
+    "일정": "Fixtures",
+    "경기당": "per match",
+    "점": " pts",
+    "상대전적": "Head to head",
+    "일": "",
+    "월 ": "-",
+    " 팀 순위 (": " standings (",
+    " 순위·일정·로스터·AI 승부예측": " — Standings, Fixtures, Roster and AI Predictions",
+    "순위·일정·이적·라인업": "standings, fixtures, transfers and line-ups",
+    "순위·일정·로스터": "standings, fixtures and roster",
+    "순위·일정·로스터·선수 기록": "standings, fixtures, roster and player records",
+    "야구 팀 순위·일정·로스터·선수 통계": "baseball standings, fixtures, roster and player stats",
+    "정보를 실시간 데이터로 정리했습니다. 현재 순위·다음 경기 일정·로스터·AI 승부예측을 아래에서 확인하세요.": " — current standing, next fixture, roster and AI predictions, kept up to date.",
+    "과 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.": " and AI predictions on one page.",
+    " 정보. 현재 순위와 최근 폼, 다음 경기 일정, 주요 선수와 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.": " — current standing, recent form, next fixture, key players and AI predictions on one page.",
+    "일정·로스터·선수 통계와 AI 승부예측을 실시간 갱신합니다.": "Fixtures, roster, player stats and AI predictions, kept current.",
+    "최근 ": "Last ",
+    "경기 ": " matches ",
+    "승 ": "W ",
+    "패 승률 ": "L · win rate ",
+    "위, ": ", ",
+    "오늘의 ": "Today's ",
+    "위 · 야구 일정·로스터·통계": " · baseball fixtures, roster and stats",
+    " 다음 경기 ": " next match ",
+    " — 다음 경기 ": " — next match ",
+    "전.": ".",
+    "전": " vs",
+    "승": "W",
+    "무": "D",
+    "패": "L"
+  }
+}
