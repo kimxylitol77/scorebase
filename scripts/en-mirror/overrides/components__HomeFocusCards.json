@@ -1,0 +1,15 @@
+{
+  "header": "HomeFocusCards (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "시즌 예측 대시보드": "Season prediction dashboard",
+    "Elo · Monte Carlo 시뮬레이션으로 본 리그 우승·강등 확률": "Title and relegation probabilities from Elo and Monte Carlo simulation",
+    "스코어베이스 라이브스코어": "Scorebase live scores",
+    "KBO · NPB · MLB · EPL · NBA · NHL 라이브 푸시 (평균 2-3초)": "KBO, NPB, MLB, Premier League, NBA and NHL live push (2–3 seconds)",
+    "프리뷰 모음": "Match previews",
+    "매 경기 AI 가 자동 생성하는 매치 인사이트": "AI-generated insight for every fixture",
+    "부상자 명단": "Injury lists",
+    "10개 리그 부상자 매일 갱신": "10 leagues, updated daily",
+    "주요 페이지 바로 이동": "Jump to a section"
+  }
+}

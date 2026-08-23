@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getStandingsState } from "@/lib/sports/thesports/standings-helper";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from "@/lib/i18n/en";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import LeagueBadge from "@/components/en/LeagueBadge";
 import LeagueLeaderBoard from "@/components/en/LeagueLeaderBoard";

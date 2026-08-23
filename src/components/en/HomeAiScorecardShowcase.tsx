@@ -1,0 +1,232 @@
+// components__HomeAiScorecardShowcase (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
+
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
+import { prisma } from "@/lib/db";
+import { toEnglishTeamName } from "@/lib/i18n/en";
+import { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from "@/lib/i18n/en";
+import {
+  gptScorecardModelLabel,
+  preferGptScorecardModel,
+} from "@/lib/predict/gpt-scorecard-model";
+import { matchLiveHref } from "@/lib/links/match-live-link";
+
+type Winner = "HOME" | "DRAW" | "AWAY";
+
+function fmtKst(d: Date): string {
+  return d
+    .toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(/\.\s/g, "/")
+    .replace("/ ", " ");
+}
+
+function pickLabel(pick: Winner, home: string, away: string): string {
+  if (pick === "HOME") return home;
+  if (pick === "AWAY") return away;
+  return "Draw";
+}
+
+export default async function HomeAiScorecardShowcase() {
+  const rows = await prisma.aiPrediction.findMany({
+    where: { market: "1X2", published: true },
+    select: {
+      model: true,
+      pick: true,
+      prob: true,
+      correct: true,
+      match: {
+        select: {
+          externalId: true,
+          league: true,
+          startTime: true,
+          status: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      },
+    },
+  });
+  if (rows.length === 0) return null;
+
+  interface Cell { model: string; pick: Winner; prob: number; correct: boolean | null }
+  interface Row {
+    externalId: string;
+    league: string;
+    startTime: Date;
+    status: string;
+    home: string;
+    away: string;
+    sb?: Cell;
+    gpt?: Cell;
+  }
+  const byMatch = new Map<string, Row>();
+  for (const r of rows) {
+    const m = r.match;
+    let row = byMatch.get(m.externalId);
+    if (!row) {
+      row = {
+        externalId: m.externalId,
+        league: m.league,
+        startTime: m.startTime,
+        status: m.status,
+        home: toEnglishTeamName(m.homeTeam.name),
+        away: toEnglishTeamName(m.awayTeam.name),
+      };
+      byMatch.set(m.externalId, row);
+    }
+    const cell: Cell = { model: r.model, pick: r.pick as Winner, prob: r.prob, correct: r.correct };
+    if (r.model === "scorebase") row.sb = cell;
+    else if (preferGptScorecardModel(row.gpt?.model, r.model)) row.gpt = cell;
+  }
+  const all = [...byMatch.values()].filter((r) => r.sb && r.gpt);
+
+  // 누적 전적 — 두 모델 모두 채점된 경기.
+  const graded = all.filter((r) => r.sb!.correct !== null && r.gpt!.correct !== null);
+  const sbHit = graded.filter((r) => r.sb!.correct === true).length;
+  const gptHit = graded.filter((r) => r.gpt!.correct === true).length;
+  const sbRate = graded.length > 0 ? (sbHit / graded.length) * 100 : 0;
+  const gptRate = graded.length > 0 ? (gptHit / graded.length) * 100 : 0;
+
+  // 카드 — 다가오는 경기 우선, 없으면 최근 채점 경기. 리그 다양하게 최대 3개.
+  // 두 AI 픽이 "갈린" 경기를 먼저 (정면 대결이 핵심 볼거리).
+  // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now();
+  const disagrees = (r: Row) => r.sb!.pick !== r.gpt!.pick;
+  const upcoming = all
+    .filter((r) => r.status === "SCHEDULED" && r.startTime.getTime() >= now)
+    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  const base = upcoming.length > 0
+    ? upcoming
+    : [...graded].sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  // 갈린 경기 우선, 그 안에서는 기존(시간) 순서 유지.
+  const pool = [...base].sort((a, b) => Number(disagrees(b)) - Number(disagrees(a)));
+
+  const seen = new Set<string>();
+  const cards: Row[] = [];
+  for (const r of pool) {
+    if (seen.has(r.league)) continue;
+    seen.add(r.league);
+    cards.push(r);
+    if (cards.length >= 3) break;
+  }
+  if (cards.length < 3) {
+    for (const r of pool) {
+      if (cards.includes(r)) continue;
+      cards.push(r);
+      if (cards.length >= 3) break;
+    }
+  }
+  if (cards.length === 0) return null;
+
+  const leader = graded.length === 0 ? null : sbRate > gptRate ? "sb" : gptRate > sbRate ? "gpt" : "tie";
+
+  return (
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 mt-8 mb-10" aria-label="AI head-to-head">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tight">
+            <Sparkles className="h-5 w-5 text-rose-500" aria-hidden /> AI head-to-head
+          </h2>
+          <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+            Scorebase AI vs GPT, cumulative (5.5 → 5.6 Sol) — same fixtures, predicted before kick-off and scored on the result.
+          </p>
+        </div>
+        <Link
+          href="/predictions/scorecard"
+          className="hidden sm:inline-block text-sm font-medium text-rose-600 dark:text-rose-400 hover:underline shrink-0"
+        >
+          Full scorecard →
+        </Link>
+      </div>
+
+      {graded.length >= 5 && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm dark:border-neutral-800 dark:bg-neutral-900/50">
+          <span className="text-neutral-500">Same {graded.length}match accuracy</span>
+          <span className={`font-bold tabular-nums ${leader === "sb" ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-white/70"}`}>
+            Ours {sbRate.toFixed(0)}%
+          </span>
+          <span className="text-neutral-300 dark:text-white/20">vs</span>
+          <span className={`font-bold tabular-nums ${leader === "gpt" ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-white/70"}`}>
+            GPT cumulative {gptRate.toFixed(0)}%
+          </span>
+        </div>
+      )}
+
+      <div
+        className={`grid grid-cols-1 gap-3 sm:gap-4 ${
+          cards.length >= 3 ? "md:grid-cols-3" : cards.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1"
+        }`}
+      >
+        {cards.map((c) => (
+          <Link
+            key={c.externalId}
+            href={matchLiveHref(c.league, c.externalId)}
+            className="group block rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 transition hover:border-neutral-400 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-600"
+          >
+            <div className="mb-3 flex items-center justify-between text-[11px] text-neutral-500">
+              <span className="font-medium">{LEAGUE_DISPLAY[c.league] ?? c.league}</span>
+              <span className="tabular-nums">{fmtKst(c.startTime)}</span>
+            </div>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-sm font-bold tracking-tight text-neutral-900 dark:text-white">
+                {c.home} <span className="text-neutral-300 dark:text-white/20">vs</span> {c.away}
+              </span>
+              {disagrees(c) && (
+                <span className="shrink-0 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
+                  Split
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <PickMini label="Our model" cell={c.sb!} home={c.home} away={c.away} accent="rose" />
+              <PickMini label={gptScorecardModelLabel(c.gpt!.model)} cell={c.gpt!} home={c.home} away={c.away} accent="emerald" />
+            </div>
+            <div className="mt-3 text-[11px] font-medium text-rose-600 group-hover:underline dark:text-rose-400">
+              Match details →
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PickMini({
+  label,
+  cell,
+  home,
+  away,
+  accent,
+}: {
+  label: string;
+  cell: { pick: Winner; prob: number; correct: boolean | null };
+  home: string;
+  away: string;
+  accent: "rose" | "emerald";
+}) {
+  const dot = accent === "rose" ? "bg-rose-500" : "bg-emerald-500";
+  const mark = cell.correct === null ? "" : cell.correct ? " ✓" : " ✗";
+  const markColor = cell.correct === true ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
+  return (
+    <div className="rounded-lg bg-neutral-50 px-2.5 py-2 dark:bg-white/[0.03]">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium text-neutral-400 dark:text-white/40">
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden /> {label}
+      </div>
+      <div className="mt-0.5 text-[13px] font-bold text-neutral-900 dark:text-white">
+        {pickLabel(cell.pick, home, away)}
+        <span className="ml-1 text-[10px] font-normal text-neutral-400 tabular-nums dark:text-white/30">
+          {(cell.prob * 100).toFixed(0)}%
+        </span>
+        {mark && <span className={`text-[11px] font-bold ${markColor}`}>{mark}</span>}
+      </div>
+    </div>
+  );
+}

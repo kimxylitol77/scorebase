@@ -1,0 +1,315 @@
+{
+  "header": "app__page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import HomeRankingShowcase from \"@/components/HomeRankingShowcase\";\n",
+      ""
+    ],
+    [
+      "      <HomeRankingShowcase />\n\n",
+      ""
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(final.homeTeam.name, \"WORLD_CUP\")",
+      "toEnglishTeamName(final.homeTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(final.awayTeam.name, \"WORLD_CUP\")",
+      "toEnglishTeamName(final.awayTeam.name)"
+    ],
+    [
+      "  alternates: {\n    canonical: CANONICAL,",
+      "  alternates: {\n    canonical: `${CANONICAL}/en`,"
+    ],
+    [
+      "    locale: \"ko_KR\",\n    url: CANONICAL,",
+      "    locale: \"en_US\",\n    url: `${CANONICAL}/en`,"
+    ],
+    [
+      "  inLanguage: \"ko-KR\",\n  // sameAs",
+      "  inLanguage: \"en\",\n  // sameAs"
+    ],
+    [
+      "  inLanguage: \"ko-KR\",\n  publisher:",
+      "  inLanguage: \"en\",\n  publisher:"
+    ],
+    [
+      "target: `${CANONICAL}/search?q={search_term_string}`",
+      "target: `${CANONICAL}/en/search?q={search_term_string}`"
+    ],
+    [
+      "  const restLatest = latest.slice(0, 6);",
+      "  const restLatest: typeof latest = [];"
+    ],
+    [
+      "    href: \"/world-cup\",",
+      "    href: \"/en/predictions\","
+    ],
+    [
+      "      href: \"/world-cup?view=bracket\",\n    };",
+      "      href: \"/en/predictions\",\n    };"
+    ],
+    [
+      "    href: \"/world-cup?view=bracket\",\n  };",
+      "    href: \"/en/predictions\",\n  };"
+    ],
+    [
+      "  const kst = new Intl.DateTimeFormat(\"ko-KR\", {\n    timeZone: \"Asia/Seoul\",",
+      "  const kst = new Intl.DateTimeFormat(\"en-GB\", {\n    timeZone: \"Asia/Seoul\","
+    ],
+    [
+      "`북중미 월드컵 결산 — ${winner} 우승`",
+      "`World Cup 2026 wrap-up — ${winner} champions`"
+    ],
+    [
+      "title: `월드컵 결승 진행 중 — ${home} vs ${away}`",
+      "title: `World Cup final live — ${home} vs ${away}`"
+    ],
+    [
+      "title: `월드컵 결승 — ${home} vs ${away}`",
+      "title: `World Cup final — ${home} vs ${away}`"
+    ],
+    [
+      "sub: `${kst} 킥오프(한국시간)${favored ? ` · AI 예측 ${favored} 우위` : \"\"} — 대진표·우승 확률 한눈에`",
+      "sub: `Kick-off ${kst} KST${favored ? ` · AI favours ${favored}` : \"\"} — bracket and title odds at a glance`"
+    ],
+    [
+      "            오늘 경기는{\" \"}\n            <Link href=\"/scores\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              라이브스코어\n            </Link>\n            , 경기 전 분석은{\" \"}\n            <Link href=\"/previews\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              프리뷰\n            </Link>\n            , 종료 후 결과는{\" \"}\n            <Link href=\"/predictions\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              리뷰\n            </Link>\n            에서 확인할 수 있습니다.{\" \"}\n            <Link href=\"/injuries\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              부상자 명단\n            </Link>\n            과{\" \"}\n            <Link href=\"/standings\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              리그별 분석\n            </Link>\n            은 매일 자동 갱신됩니다.{\" \"}\n            <Link href=\"/standings/KBO\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              KBO 순위\n            </Link>\n            와{\" \"}\n            <Link href=\"/world-cup\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              2026 월드컵 결산\n            </Link>\n            도 확인할 수 있습니다.",
+      "            Today's fixtures are on{\" \"}\n            <Link href=\"/en/scores\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              live scores\n            </Link>\n            , the pre-match numbers sit in the{\" \"}\n            <Link href=\"/en/predictions\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              prediction dashboard\n            </Link>\n            , and{\" \"}\n            <Link href=\"/en/injuries\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              injury lists\n            </Link>{\" \"}\n            plus{\" \"}\n            <Link href=\"/en/standings\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              league tables\n            </Link>{\" \"}\n            refresh automatically every day. There is also the{\" \"}\n            <Link href=\"/en/standings/KBO\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              KBO table\n            </Link>{\" \"}\n            and the{\" \"}\n            <Link href=\"/en/transfers\" className=\"text-blue-600 dark:text-blue-400 hover:underline font-medium\">\n              transfer market\n            </Link>\n            ."
+    ],
+    [
+      "          경기 시작 전, Elo 레이팅과 최근 폼·홈 원정 강도를 종합한{\" \"}\n          <strong className=\"text-zinc-950 dark:text-white\">\n            매치 프리뷰\n          </strong>\n          로 양 팀의 강점과 추정 승률을 미리 확인하세요.",
+      "          Before kick-off, our{\" \"}\n          <strong className=\"text-zinc-950 dark:text-white\">\n            match preview\n          </strong>{\" \"}\n          combines Elo ratings, recent form and home/away strength so you can see\n          each side's edge and the estimated win probability in advance."
+    ],
+    [
+      "          팀별{\" \"}\n          <strong className=\"text-zinc-950 dark:text-white\">\n            부상자 명단\n          </strong>\n          과 결장 영향도를 추적해 매치 결과를 좌우하는 변수를 미리 파악할 수\n          있게 합니다.",
+      "          We track each club's{\" \"}\n          <strong className=\"text-zinc-950 dark:text-white\">\n            injury list\n          </strong>{\" \"}\n          and how much each absence matters, so the variables that swing a result\n          are visible before the whistle."
+    ],
+    [
+      "          Elo 레이팅·시즌 시뮬레이션·H2H 전적 데이터를 결합한{\" \"}\n          <strong className=\"text-zinc-950 dark:text-white\">\n            AI 매치 인사이트\n          </strong>\n          로 데이터 기반 관전을 돕습니다.",
+      "          Elo ratings, season simulations and head-to-head records come together\n          in an{\" \"}\n          <strong className=\"text-zinc-950 dark:text-white\">\n            AI match insight\n          </strong>{\" \"}\n          that lets you watch with the data in hand."
+    ],
+    [
+      "`모델이 리그별 고신뢰 임계를 넘긴 매치만 따로 추적 — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(\", \")} 적중. 종료된 모든 매치 백테스트로 검증.`",
+      "`We track only the matches that clear a league-specific confidence threshold — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(\", \")} correct, backtested across every finished match.`"
+    ],
+    [
+      "      href: \"/predictions/scorecard\",",
+      "      href: \"/en/predictions/scorecard\","
+    ],
+    [
+      "      href: \"/lab\",",
+      "      href: \"/en/predictions/accuracy\","
+    ],
+    [
+      "      href: \"/scores\",",
+      "      href: \"/en/scores\","
+    ],
+    [
+      "      href: \"/predictions/accuracy\",\n      cta: \"적중률 보드 보기\",",
+      "      href: \"/en/predictions/accuracy\",\n      cta: \"적중률 보드 보기\","
+    ],
+    [
+      "      href: \"/predictions/accuracy\",\n      cta: \"Value Bet 통계\",",
+      "      href: \"/en/predictions/accuracy\",\n      cta: \"Value Bet 통계\","
+    ],
+    [
+      "      href: \"/predictions/accuracy\",\n      cta: \"리그별 적중률\",",
+      "      href: \"/en/predictions/accuracy\",\n      cta: \"리그별 적중률\","
+    ],
+    [
+      "      href: \"/about\",\n      cta: \"방법론 상세\",",
+      "      href: \"/en/predictions/accuracy\",\n      cta: \"방법론 상세\","
+    ],
+    [
+      "        href=\"/about\"\n        hrefLabel=\"자세히 보기\"",
+      "        href=\"/en/predictions/accuracy\"\n        hrefLabel=\"자세히 보기\""
+    ],
+    [
+      "            href=\"/predictions\"\n            hrefLabel=\"예측 대시보드\"",
+      "            href=\"/en/predictions\"\n            hrefLabel=\"예측 대시보드\""
+    ],
+    [
+      "href: \"/leagues/EPL\"",
+      "href: \"/en/standings/EPL\""
+    ],
+    [
+      "href: \"/leagues/LALIGA\"",
+      "href: \"/en/standings/LALIGA\""
+    ],
+    [
+      "href: \"/leagues/BUNDESLIGA\"",
+      "href: \"/en/standings/BUNDESLIGA\""
+    ],
+    [
+      "href: \"/leagues/SERIE_A\"",
+      "href: \"/en/standings/SERIE_A\""
+    ],
+    [
+      "href: \"/leagues/LIGUE_1\"",
+      "href: \"/en/standings/LIGUE_1\""
+    ],
+    [
+      "href: \"/leagues/UCL\"",
+      "href: \"/en/standings/UCL\""
+    ],
+    [
+      "href: \"/leagues/MLS\"",
+      "href: \"/en/standings/MLS\""
+    ],
+    [
+      "href: \"/leagues/NBA\"",
+      "href: \"/en/standings/NBA\""
+    ],
+    [
+      "href: \"/leagues/KBO\"",
+      "href: \"/en/standings/KBO\""
+    ],
+    [
+      "href: \"/leagues/NPB\"",
+      "href: \"/en/standings/NPB\""
+    ],
+    [
+      "href: \"/leagues/MLB\"",
+      "href: \"/en/standings/MLB\""
+    ],
+    [
+      "href: \"/leagues/NHL\"",
+      "href: \"/en/standings/NHL\""
+    ],
+    [
+      "href: \"/leagues/LOL\"",
+      "href: \"/en/standings/LOL\""
+    ]
+  ],
+  "dict": {
+    "스코어베이스 (Scorebase) — 통계 기반 AI 스포츠 분석": "Scorebase — AI sports analysis built on statistics",
+    "감이 아니라, 숫자로 보는 경기. EPL · 라리가 · 분데스리가 · 세리에A · 리그앙 · UCL · MLS · KBO · NBA · MLB · NHL · FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터 미디어.": "Matches read in numbers, not hunches. Premier League, LaLiga, Bundesliga, Serie A, Ligue 1, Champions League, MLS, KBO, NBA, MLB, NHL and the 2026 FIFA World Cup — an Elo model and multiple AI systems working through global sports data every day.",
+    "스코어베이스": "Scorebase",
+    "스코어 베이스": "Score Base",
+    "AI 스포츠 분석": "AI sports analysis",
+    "AI 데이터 분석": "AI data analysis",
+    "스포츠 데이터 분석": "sports data analysis",
+    "스포츠 인사이트": "sports insight",
+    "매치 인사이트": "match insight",
+    "경기 인사이트": "fixture insight",
+    "경기 프리뷰": "match preview",
+    "경기 리뷰": "match review",
+    "스포츠 프리뷰": "sports preview",
+    "스포츠 리뷰": "sports review",
+    "부상자 명단": "injury list",
+    "축구 부상자": "football injuries",
+    "NBA 부상자": "NBA injuries",
+    "MLB 부상자": "MLB injuries",
+    "EPL 순위": "EPL table",
+    "프리미어리그 순위": "Premier League table",
+    "MLB 순위": "MLB standings",
+    "NBA 순위": "NBA standings",
+    "NHL 순위": "NHL standings",
+    "라리가 순위": "LaLiga table",
+    "분데스리가 순위": "Bundesliga table",
+    "세리에A 순위": "Serie A table",
+    "챔피언스리그 순위": "Champions League table",
+    "Elo 레이팅": "Elo rating",
+    "승률 예측": "win probability",
+    "시즌 예측": "season projection",
+    "경기 결과": "match results",
+    "스포츠 미디어": "sports media",
+    "KBO 리그": "KBO League",
+    "KBO 순위": "KBO standings",
+    "한국 프로야구": "Korean baseball",
+    "FIFA 월드컵": "FIFA World Cup",
+    "월드컵 2026": "World Cup 2026",
+    "북중미 월드컵": "North American World Cup",
+    "대한민국 월드컵": "South Korea World Cup",
+    "스코어베이스 — 감이 아니라, 숫자로 보는 경기": "Scorebase — matches read in numbers, not hunches",
+    "EPL · 라리가 · 분데스 · KBO · NBA · MLB · NHL · FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석.": "Premier League, LaLiga, Bundesliga, KBO, NBA, MLB, NHL and the 2026 World Cup — analysed daily by an Elo model and multiple AI systems.",
+    "스코어베이스 — 다크 톤 데이터 시각화 위에 축구공·농구공·야구공·아이스하키 퍽이 와이어프레임으로 표현된 AI 스포츠 미디어 배너": "Scorebase — an AI sports media banner showing wireframe football, basketball, baseball and hockey puck over dark-toned data visualisation",
+    "AI 데이터 분석 기반 스포츠 미디어 — EPL·NBA·MLB·NHL 프리뷰·리뷰·부상자 명단·매치 인사이트": "AI-driven sports media — Premier League, NBA, MLB and NHL previews, reviews, injury lists and match insight",
+    "스코어베이스는 어떤 사이트인가요?": "What is Scorebase?",
+    "스코어베이스의 매치 인사이트는 어떻게 만들어지나요?": "How is a Scorebase match insight built?",
+    "매치 인사이트는 어떻게 만들어지나요?": "How is a match insight built?",
+    "스코어베이스에서 어떤 리그를 다루나요?": "Which leagues does Scorebase cover?",
+    "어떤 리그를 다루나요?": "Which leagues do you cover?",
+    "스코어베이스는 도박·베팅 사이트인가요?": "Is Scorebase a gambling or betting site?",
+    "도박·베팅 사이트인가요?": "Is this a gambling or betting site?",
+    "스코어베이스(Scorebase)는 EPL·라리가·분데스리가·세리에A·NBA·MLB·NHL 등 글로벌 스포츠의 매치 프리뷰, 리뷰, 부상자 명단, Elo 레이팅 기반 매치 인사이트를 AI가 매일 자동 생성하고 업데이트하는 데이터 분석 스포츠 미디어입니다.": "Scorebase is a data-analysis sports publication where AI generates and updates match previews, reviews, injury lists and Elo-based match insight every day for the Premier League, LaLiga, Bundesliga, Serie A, NBA, MLB, NHL and more.",
+    "스코어베이스(Scorebase)는 EPL·라리가·분데스리가·세리에A·NBA·MLB·NHL 등 글로벌 스포츠의 매치 프리뷰, 리뷰, 부상자 명단, Elo 레이팅 기반 매치 인사이트를 AI가 매일 자동 생성·업데이트하는 데이터 분석 스포츠 미디어입니다.": "Scorebase is a data-analysis sports publication where AI generates and updates match previews, reviews, injury lists and Elo-based match insight every day for the Premier League, LaLiga, Bundesliga, Serie A, NBA, MLB, NHL and more.",
+    "football-data.org, ESPN 등 공인 데이터 소스를 정규화한 뒤, Elo 레이팅·득실 차·홈/원정 강도·최근 흐름·H2H 전적을 결합해 시즌 시뮬레이션을 돌려 우승 확률·강등 확률·매치 승률을 추정합니다.": "We normalise recognised data sources such as football-data.org and ESPN, then combine Elo ratings, goal difference, home/away strength, recent form and head-to-head records in a season simulation to estimate title odds, relegation risk and match win probabilities.",
+    "축구(EPL·라리가·분데스리가·세리에A·리그앙·MLS·챔피언스리그·K리그·J리그 등), 야구(KBO·NPB·MLB), 농구(NBA), 아이스하키(NHL), e스포츠(LCK)까지 총 19개 리그를 매일 자동 업데이트합니다.": "Nineteen leagues update automatically every day — football (Premier League, LaLiga, Bundesliga, Serie A, Ligue 1, MLS, Champions League, K League, J League and others), baseball (KBO, NPB, MLB), basketball (NBA), ice hockey (NHL) and esports (LCK).",
+    "아닙니다. 스코어베이스는 데이터 분석 기반의 스포츠 미디어이며, 도박·베팅과는 무관합니다. 모든 승률·우승 확률 수치는 통계 모델 기반의 참고용 정보입니다.": "No. Scorebase is a data-analysis sports publication and has nothing to do with gambling or betting. Every win and title probability is reference information produced by a statistical model.",
+    "자주 묻는 질문": "Frequently asked questions",
+    "최신 매치 리뷰·프리뷰": "Latest match reviews and previews",
+    "19개 리그의 매치 인사이트를 매일 자동 업데이트": "Match insight across 19 leagues, updated daily",
+    "시즌 인사이트 — Elo 기반 우승 확률": "Season insight — title odds from Elo",
+    "19개 리그의 현재 흐름과 시즌 시뮬레이션 결과를 한 눈에": "Current form and season simulations across 19 leagues at a glance",
+    "예측 대시보드": "Prediction dashboard",
+    "라이브스코어부터 시즌 예측까지 — 데이터 스포츠 미디어": "From live scores to season projections — sports media built on data",
+    "스코어베이스는 EPL, 라리가, 분데스리가, 세리에 A, MLB, NBA, NHL, KBO, NPB 등 주요 리그의 실시간 라이브스코어와 경기 데이터를 한 곳에서 제공하는 스포츠 미디어입니다. Elo 레이팅·Monte Carlo 시뮬레이션·H2H 상대 전적으로 매 경기의 흐름과 시즌 전망을 데이터 기반으로 정리합니다.": "Scorebase brings live scores and match data for the Premier League, LaLiga, Bundesliga, Serie A, MLB, NBA, NHL, KBO and NPB into one place. Elo ratings, Monte Carlo simulation and head-to-head records turn each fixture and each season outlook into something you can read in numbers.",
+    "최근 업데이트 · 사이트 차별화": "Recent updates",
+    "단순 결과 정리에서 한 발 더 — 데이터로 검증하고 시장과 비교합니다": "A step past bare results — verified against data and compared with the market",
+    "AI 예측 성적표 · 우리 AI vs GPT-5.6": "AI scorecard · our model vs GPT-5.6",
+    "두 AI가 같은 경기를 경기 전에 예측하고 결과로 채점합니다. 누가 더 잘 맞히는지 경기별 적중·실패를 숨김 없이 누적 공개 — 월드컵·MLB·NBA 등 매일 자동 추가.": "Two AI systems predict the same fixtures before kick-off and are scored on the result. Every hit and miss is published, match by match, and the World Cup, MLB and NBA are added automatically each day.",
+    "AI 성적표 보기": "Open the AI scorecard",
+    "커스텀 예측 봇 만들기 — 예측 실험실": "Strong Pick accuracy, in the open",
+    "우리 AI 의 신호 5개(팀 체급·최근 기세·홈 이점·대중 시선·언더독)를 손잡이로 직접 조절해 나만의 봇을 만들고, 최근 1년 실제 경기로 즉석 백테스트. 저장하면 매일 자동 픽이 생기고 결과로 채점됩니다.": "Five signals drive the model — team quality, recent momentum, home advantage, public attention and underdog value. Every pick they produce is scored on the real result and published on the accuracy board.",
+    "내 봇 만들기": "See the accuracy board",
+    "스코어베이스 라이브스코어": "Scorebase live scores",
+    "19개 리그 (EPL · KBO · NPB · MLB · NBA · NHL · UCL · LCK 등) 라이브 / 종료 / 예정 매치를 한 페이지에.": "Live, finished and upcoming matches across 19 leagues — Premier League, KBO, NPB, MLB, NBA, NHL, Champions League, LCK and more — on one page.",
+    "라이브 스코어 보기": "Open live scores",
+    "AI Strong Pick · 모델이 강하게 확신한 픽": "AI Strong Pick · where the model is most confident",
+    "모델이 리그별 고신뢰 임계를 넘긴 매치만 따로 추적합니다. 실제 적중률은 적중률 보드에서 실시간 공개합니다.": "We track only the matches that clear a league-specific confidence threshold. The real hit rate is published live on the accuracy board.",
+    "적중률 보드 보기": "Open the accuracy board",
+    "베팅사이트 odds vs AI 모델 비교": "Bookmaker odds vs the AI model",
+    "글마다 여러 베팅사이트 평균 implied 확률을 우리 모델과 나란히 표시. 모델이 시장보다 5%p+ 자신 있는 결과는 Value Bet 으로 강조.": "Each article shows the average implied probability across several bookmakers next to our own model. Where the model is 5pp or more ahead of the market, the outcome is flagged as a value bet.",
+    "Value Bet 통계": "Value bet statistics",
+    "예측 시장 5종 동시 추적": "Five prediction markets tracked at once",
+    "1X2 · 더블 찬스 · OVER/UNDER · 핸디캡 · BTTS — 종목별 자동 적용. 1,233매치 백테스트 기준 적중률 투명 공개.": "1X2, double chance, over/under, handicap and BTTS, applied automatically by sport. Accuracy is published openly from a 1,233-match backtest.",
+    "리그별 적중률": "Accuracy by league",
+    "통계 모델 정밀화": "A sharper statistical model",
+    "Elo 마진 가중치(MoV) + 축구 핸디캡 Skellam 분포 적용. 골 차이가 큰 매치는 Elo 변동이 더 크고, 핸디캡 정확도도 안정.": "Elo now carries margin-of-victory weighting, and football handicaps use a Skellam distribution. Wider winning margins move the rating further, and handicap accuracy holds steadier.",
+    "방법론 상세": "How the model works",
+    "스코어베이스가 매일 분석하는 3가지": "Three things Scorebase works through every day",
+    "공인 데이터 소스에서 Elo · 시뮬레이션 · AI 스포츠 경기 심층 분석까지": "From recognised data sources to Elo, simulation and in-depth AI match analysis",
+    "AI 스포츠 경기 심층 분석": "In-depth AI match analysis",
+    "데이터 출처": "Data sources",
+    "football-data.org, ESPN 등 공인 스포츠 데이터 소스를 정규화하여 경기 결과·통계·일정을 매일 수집합니다.": "Recognised sports data sources such as football-data.org and ESPN are normalised, and results, statistics and fixtures are collected daily.",
+    "팀별 강도를 정량화하는 Elo 레이팅을 매 경기 갱신해 매치 승률 추정의 기준으로 활용합니다.": "Elo ratings quantify each team's strength and update after every match, forming the basis for win probability estimates.",
+    "시즌 시뮬레이션": "Season simulation",
+    "남은 일정을 Monte Carlo 방식으로 반복 시뮬레이션해 우승·강등·플레이오프 진출 확률을 산출합니다.": "The remaining fixtures are simulated repeatedly by Monte Carlo to produce title, relegation and play-off probabilities.",
+    "스코어베이스의 분석 방법론": "How Scorebase analyses",
+    "모든 숫자는 통계 모델에서 직접 산출됩니다": "Every number comes straight out of a statistical model",
+    "자세히 보기": "Read more",
+    "북중미 월드컵 결산": "World Cup 2026 wrap-up",
+    "최종 대진표·우승 확률 추이·조별 베스트 XI 다시 보기": "Final bracket, title-odds trend and the best XI from each group",
+    "라이브 스코어·AI 우승 확률 한눈에": "Live score and AI title odds at a glance",
+    "예측 / 매치 / 분석": "Predictions / matches / analysis",
+    "프리미어리그": "Premier League",
+    "EPL · 잉글랜드": "EPL · England",
+    "라리가": "LaLiga",
+    "스페인": "Spain",
+    "분데스리가": "Bundesliga",
+    "독일": "Germany",
+    "세리에 A": "Serie A",
+    "이탈리아": "Italy",
+    "리그 1": "Ligue 1",
+    "프랑스": "France",
+    "챔피언스리그": "Champions League",
+    "유럽": "Europe",
+    "북미": "North America",
+    "미국 농구": "US basketball",
+    "NPB 리그": "NPB League",
+    "일본 프로야구": "Japanese baseball",
+    "메이저리그": "Major League Baseball",
+    "북미 아이스하키": "North American ice hockey",
+    "리그 오브 레전드 한국": "League of Legends Korea",
+    "리그별 매치 인사이트": "Match insight by league",
+    "원하는 리그의 프리뷰·리뷰·시즌 분석으로 바로 이동": "Jump straight to previews, reviews and season analysis for any league",
+    "아직 발행된 기사가 없습니다": "No articles published yet",
+    "잠시 후 자동 생성된 기사가 표시될 예정입니다.": "Automatically generated articles will appear here shortly."
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "header": "components__SeasonInsight (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(raw)",
+      "toEnglishTeamName(raw)"
+    ],
+    [
+      "`팀 ${id}`",
+      "`Team ${id}`"
+    ],
+    [
+      "            <strong>{teamName(top1.teamId)}</strong>이(가) 승점{\" \"}\n            <strong className=\"tabular-nums\">{top1.points}점</strong>으로 선두를\n            지키고 있다.{\" \"}\n            {top2 ? (\n              <>\n                2위 <strong>{teamName(top2.teamId)}</strong>(\n                <span className=\"tabular-nums\">{top2.points}점</span>)와의 격차는{\" \"}\n                {gapTop === 0 ? (\n                  \"동률\"\n                ) : (\n                  <>\n                    <strong className=\"tabular-nums\">{gapTop}점</strong>\n                  </>\n                )}\n                으로,{\" \"}\n                {gapTop >= 8\n                  ? \"사실상 우승 윤곽이 좁혀지는 흐름이다.\"\n                  : gapTop >= 4\n                    ? \"막판 변수가 남은 추격전이다.\"\n                    : \"선두 다툼이 시즌 끝까지 이어질 전망이다.\"}\n              </>\n            ) : (\n              \"단독 선두 체제다.\"\n            )}",
+      "            <strong>{teamName(top1.teamId)}</strong> lead the table on{\" \"}\n            <strong className=\"tabular-nums\">{top1.points} points</strong>.{\" \"}\n            {top2 ? (\n              <>\n                Second-placed <strong>{teamName(top2.teamId)}</strong> (\n                <span className=\"tabular-nums\">{top2.points} pts</span>) are{\" \"}\n                {gapTop === 0 ? (\n                  \"level on points\"\n                ) : (\n                  <>\n                    <strong className=\"tabular-nums\">{gapTop} points</strong> behind\n                  </>\n                )}\n                , and{\" \"}\n                {gapTop >= 8\n                  ? \"the title picture is narrowing fast.\"\n                  : gapTop >= 4\n                    ? \"the chase still has room for a late twist.\"\n                    : \"the race at the top looks set to run to the final day.\"}\n              </>\n            ) : (\n              \"no one else is close.\"\n            )}"
+    ],
+    [
+      "              공격 지표에서는{\" \"}\n              <strong>{teamName(attackBest.teamId)}</strong>이(가) 경기당{\" \"}\n              <strong className=\"tabular-nums\">\n                {(attackBest.goalsFor / attackBest.played).toFixed(2)}득점\n              </strong>\n              으로 가장 매서운 화력을 보이고 있고, 수비는{\" \"}\n              <strong>{teamName(defenseBest.teamId)}</strong>이(가) 경기당{\" \"}\n              <strong className=\"tabular-nums\">\n                {(defenseBest.goalsAgainst / defenseBest.played).toFixed(2)}실점\n              </strong>\n              으로 리그 최소 실점을 기록 중이다.",
+      "              In attack,{\" \"}\n              <strong>{teamName(attackBest.teamId)}</strong> are the sharpest side in the\n              league at{\" \"}\n              <strong className=\"tabular-nums\">\n                {(attackBest.goalsFor / attackBest.played).toFixed(2)} goals\n              </strong>{\" \"}\n              per game, while{\" \"}\n              <strong>{teamName(defenseBest.teamId)}</strong> have the meanest defence,\n              conceding{\" \"}\n              <strong className=\"tabular-nums\">\n                {(defenseBest.goalsAgainst / defenseBest.played).toFixed(2)} goals\n              </strong>{\" \"}\n              a game."
+    ],
+    [
+      "              Elo 레이팅에 기반한 5,000회 시뮬레이션 결과,{\" \"}\n              {mcChampions.map((c, i) => (\n                <span key={c.teamId}>\n                  {i > 0 && (i === mcChampions.length - 1 ? \"와 \" : \", \")}\n                  <strong>{teamName(c.teamId)}</strong>의 우승 확률은{\" \"}\n                  <strong className=\"tabular-nums\">{formatChampionPct(c.pct / 100)}</strong>\n                </span>\n              ))}\n              로 추정된다.\n              {mcRelegation.length > 0 && (\n                <>\n                  {\" \"}강등권(하위 {info.relegationCount}팀)에서는{\" \"}\n                  {mcRelegation\n                    .map((r) => `${teamName(r.teamId)} ${formatChampionPct(r.pct / 100)}`)\n                    .join(\", \")}{\" \"}\n                  순으로 위험 지표가 높다.\n                </>\n              )}",
+      "              Across 5,000 simulations built on Elo ratings, the title odds come out at{\" \"}\n              {mcChampions.map((c, i) => (\n                <span key={c.teamId}>\n                  {i > 0 && (i === mcChampions.length - 1 ? \" and \" : \", \")}\n                  <strong>{teamName(c.teamId)}</strong>{\" \"}\n                  <strong className=\"tabular-nums\">{formatChampionPct(c.pct / 100)}</strong>\n                </span>\n              ))}\n              .\n              {mcRelegation.length > 0 && (\n                <>\n                  {\" \"}At the other end (bottom {info.relegationCount}), the relegation risk\n                  runs{\" \"}\n                  {mcRelegation\n                    .map((r) => `${teamName(r.teamId)} ${formatChampionPct(r.pct / 100)}`)\n                    .join(\", \")}\n                  .\n                </>\n              )}"
+    ],
+    [
+      "              곧 열리는 빅매치는{\" \"}\n              <strong>\n                {teamName(bigMatch.homeTeamId)} vs {teamName(bigMatch.awayTeamId)}\n              </strong>\n              로, 양 팀의 시즌 흐름과 Elo 격차를 종합한 통계 추정 승률은{\" \"}",
+      "              The next big fixture is{\" \"}\n              <strong>\n                {teamName(bigMatch.homeTeamId)} vs {teamName(bigMatch.awayTeamId)}\n              </strong>\n              . Combining both sides' season form with the Elo gap, the estimated win\n              probabilities are{\" \"}"
+    ],
+    [
+      "              (홈 / 무 / 원정).",
+      "              (home / draw / away)."
+    ],
+    [
+      "            {info.name} 인사이트",
+      "            {info.name} insight"
+    ],
+    [
+      "            {finishedCount} / {totalRounds}경기 진행",
+      "            {finishedCount} / {totalRounds} matches played"
+    ],
+    [
+      "            전체 시즌 예측 →",
+      "            Full season projection →"
+    ],
+    [
+      "            {info.name} 기사 →",
+      "            {info.name} articles →"
+    ],
+    [
+      "href={`/predictions/${league}`}",
+      "href={`/en/predictions/${league}`}"
+    ],
+    [
+      "href={`/leagues/${league}`}",
+      "href={`/en/standings/${league}`}"
+    ]
+  ],
+  "dict": {
+    "프리미어리그": "Premier League",
+    "라리가": "LaLiga",
+    "분데스리가": "Bundesliga",
+    "세리에 A": "Serie A",
+    "리그 1": "Ligue 1",
+    "챔피언스리그": "Champions League",
+    "English Premier League · 2025-26 시즌": "English Premier League · 2025-26 season",
+    "National Basketball Association · 2025-26 시즌": "National Basketball Association · 2025-26 season",
+    "National Hockey League · 2025-26 시즌": "National Hockey League · 2025-26 season",
+    "Major League Baseball · 2026 시즌": "Major League Baseball · 2026 season",
+    "La Liga · 2025-26 시즌": "La Liga · 2025-26 season",
+    "Bundesliga · 2025-26 시즌": "Bundesliga · 2025-26 season",
+    "Serie A · 2025-26 시즌": "Serie A · 2025-26 season",
+    "Ligue 1 · 2025-26 시즌": "Ligue 1 · 2025-26 season",
+    "Major League Soccer · 2026 시즌": "Major League Soccer · 2026 season",
+    "1위": "1st",
+    "2위": "2nd",
+    "공격 1위": "Best attack",
+    "수비 1위": "Best defence",
+    "점": " pts",
+    " 득점/경기": " goals/game",
+    " 실점/경기": " conceded/game"
+  }
+}

@@ -1,14 +1,8 @@
 // scores__SoccerLeagueSidebar (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
 
 import Link from "next/link";
-import {
-  POPULAR_SOCCER_LEAGUES,
-  COUNTRY_BY_LEAGUE,
-  COUNTRY_FLAG,
-  COUNTRY_ORDER,
-  LEAGUE_DISPLAY,
-  LEAGUE_ORDER,
-} from "@/lib/sports/sport-leagues";
+import { POPULAR_SOCCER_LEAGUES, COUNTRY_BY_LEAGUE, COUNTRY_FLAG, COUNTRY_ORDER, LEAGUE_ORDER } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from "@/lib/i18n/en";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { enLeagueName, enCountryName } from "@/lib/i18n/en";
 import SoccerLeagueSidebarList, { type SidebarLeagueItem } from "./SoccerLeagueSidebarList";

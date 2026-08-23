@@ -1,0 +1,17 @@
+{
+  "header": "HeroSection (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "적중률을 숨기지 않는 AI 스포츠 분석": "AI sports analysis that publishes its hit rate",
+    "감": "Not a hunch",
+    "이 아니라,": " —",
+    "숫자": "numbers",
+    "로 보는 경기.": " you can read.",
+    "EPL · 라리가 · 분데스 ·": "Premier League · LaLiga · Bundesliga ·",
+    "Elo 모델": "An Elo model",
+    "과": "and",
+    "멀티 AI": "multiple AI models",
+    "가 매일 분석하는\n          글로벌 스포츠 데이터.": " working through global sports data every day.",
+    "+ 경기 실측 채점 — 리그·시장별 적중률 전부 공개": "+ matches scored on actual results — accuracy published by league and market"
+  }
+}

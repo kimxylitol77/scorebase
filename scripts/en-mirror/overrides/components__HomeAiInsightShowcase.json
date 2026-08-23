@@ -1,0 +1,41 @@
+{
+  "header": "components__HomeAiInsightShowcase (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { LEAGUE_DISPLAY, leagueHasDraw } from \"@/lib/sports/sport-leagues\";",
+      "import { leagueHasDraw } from \"@/lib/sports/sport-leagues\";\nimport { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(m.homeTeam.name, m.league)",
+      "toEnglishTeamName(m.homeTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(m.awayTeam.name, m.league)",
+      "toEnglishTeamName(m.awayTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(c.match.awayTeam.name, c.match.league)",
+      "toEnglishTeamName(c.match.awayTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(c.match.homeTeam.name, c.match.league)",
+      "toEnglishTeamName(c.match.homeTeam.name)"
+    ]
+  ],
+  "dict": {
+    "무승부": "Draw",
+    "오늘의 AI 매치 인사이트": "Today's AI match insight",
+    "Elo 레이팅 기반 승률 추정. 라이브 페이지에서 5탭 (선발·팀전력·AI예측·상대전적·시장odds) 자세히.": "Win probabilities from Elo ratings. The live page carries five tabs — line-ups, team strength, AI prediction, head-to-head and market odds.",
+    "전체 라이브 →": "All live matches →",
+    "원정 승 ": "Away ",
+    "무승부 ": "Draw ",
+    "홈 승 ": "Home ",
+    "AI 픽": "AI pick",
+    "매치 인사이트 5탭 보기 →": "Open the five insight tabs →",
+    " 로고": " logo"
+  }
+}

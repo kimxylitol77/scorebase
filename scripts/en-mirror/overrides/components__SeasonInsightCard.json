@@ -1,0 +1,42 @@
+{
+  "header": "components__SeasonInsightCard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(t.name)",
+      "toEnglishTeamName(t.name)"
+    ],
+    [
+      "          데이터 수집 중 ({finishedCount}경기)",
+      "          Collecting data ({finishedCount} matches)"
+    ],
+    [
+      "            {finishedCount}경기",
+      "            {finishedCount} matches"
+    ],
+    [
+      "            {top1.points}점 · Elo {Math.round(top1Elo)}",
+      "            {top1.points} pts · Elo {Math.round(top1Elo)}"
+    ],
+    [
+      "  const rankLabel = PLAYOFF_LEAGUES.has(league) ? \"정규시즌 1위\" : \"1위\";",
+      "  const rankLabel = PLAYOFF_LEAGUES.has(league) ? \"Regular season 1st\" : \"1st\";"
+    ],
+    [
+      "              우승 확률",
+      "              Title odds"
+    ]
+  ],
+  "dict": {
+    "프리미어리그": "Premier League",
+    "라리가": "LaLiga",
+    "분데스리가": "Bundesliga",
+    "세리에 A": "Serie A",
+    "리그 1": "Ligue 1",
+    "챔피언스리그": "Champions League",
+    "데이터 수집 중 (": "Collecting data ("
+  }
+}

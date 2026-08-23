@@ -2,6 +2,10 @@
   "header": "scores__SoccerLeagueSidebar (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
   "preReplace": [
     [
+      "import {\n  POPULAR_SOCCER_LEAGUES,\n  COUNTRY_BY_LEAGUE,\n  COUNTRY_FLAG,\n  COUNTRY_ORDER,\n  LEAGUE_DISPLAY,\n  LEAGUE_ORDER,\n} from \"@/lib/sports/sport-leagues\";",
+      "import { POPULAR_SOCCER_LEAGUES, COUNTRY_BY_LEAGUE, COUNTRY_FLAG, COUNTRY_ORDER, LEAGUE_ORDER } from \"@/lib/sports/sport-leagues\";\nimport { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from \"@/lib/i18n/en\";"
+    ],
+    [
       "  return (LEAGUE_DISPLAY[a] ?? a).localeCompare(LEAGUE_DISPLAY[b] ?? b, \"ko\");",
       "  return enLeagueName(a).localeCompare(enLeagueName(b), \"en\");"
     ],
