@@ -1,0 +1,10 @@
+{
+  "header": "/en/injuries — 기본 리그로 redirect (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [
+    [
+      "redirect(\"/injuries/EPL\");",
+      "redirect(\"/en/injuries/EPL\");"
+    ]
+  ],
+  "dict": {}
+}

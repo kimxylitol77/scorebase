@@ -1,6 +1,6 @@
-// /en/injuries — 기본 리그(EPL)로 redirect (ko /injuries 와 동일 패턴)
+// /en/injuries — 기본 리그로 redirect (영어판). scripts/en-mirror 로 자동 생성.
 import { redirect } from "next/navigation";
 
-export default function EnInjuriesIndex() {
+export default function InjuriesIndex() {
   redirect("/en/injuries/EPL");
 }

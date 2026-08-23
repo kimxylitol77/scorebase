@@ -267,6 +267,8 @@ export const COUNTRY_EN: Record<string, string> = {
   "엘살바도르": "El Salvador",
   "니카라과": "Nicaragua",
   "우즈베키스탄": "Uzbekistan",
+  "룩셈부르크": "Luxembourg",
+  "웨일스": "Wales",
 };
 
 /** 종목 코드 → 영문 라벨 (SPORTS.label 은 한국어) */

@@ -1,0 +1,84 @@
+{
+  "header": "/en/predictions — 시즌 예측 허브 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [
+    [
+      "    name: fifaCountryKo(r.name) ?? toKoreanTeamName(r.name, \"INTL_FRIENDLY\"),",
+      "    name: r.name,"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "    canonical: \"/predictions\",",
+      "    canonical: \"/en/predictions\","
+    ],
+    [
+      "name: toKoreanTeamName(c.name) || c.name,",
+      "name: c.name,"
+    ],
+    [
+      "      const top3 = await safeFetchTop3(league);",
+      "      const top3 = await safeFetchTop3(league, \"en\");"
+    ],
+    [
+      "    fetchSoccerCountryGroups(),",
+      "    fetchSoccerCountryGroups(\"en\"),"
+    ],
+    [
+      "    fetchSportGroups(PREDICTION_PAGE_CODES),",
+      "    fetchSportGroups(PREDICTION_PAGE_CODES, \"en\"),"
+    ]
+  ],
+  "dict": {
+    "시즌 예측 — 우승 확률·플레이오프·리더보드": "Season Predictions — Title, Play-off and Leaderboards",
+    "시즌 우승·플레이오프·강등 확률과 득점·홈런·타율·ERA 리더보드를 Monte Carlo 5,000회 + Elo 레이팅으로 분석합니다. EPL·라리가·K리그·KBO·MLB·NPB·NBA·NHL·LCK — 전체 리그 순위는 순위 허브에서.": "Title, play-off and relegation probabilities plus scoring, home run, batting average and ERA leaderboards, from 5,000 Monte Carlo runs on Elo ratings. Premier League, LaLiga, K League, KBO, MLB, NPB, NBA, NHL and LCK.",
+    "시즌 예측": "Season predictions",
+    "우승 확률": "Title probability",
+    "강등 확률": "Relegation probability",
+    "플레이오프 확률": "Play-off probability",
+    "Monte Carlo 시뮬레이션": "Monte Carlo simulation",
+    "Elo 레이팅": "Elo ratings",
+    "리그 순위": "League tables",
+    "리그 리더보드": "League leaderboards",
+    "득점왕": "top scorer",
+    "도움왕": "top assists",
+    "득점 순위": "scoring charts",
+    "어시스트 순위": "assist charts",
+    "EPL 순위": "Premier League table",
+    "라리가 순위": "LaLiga table",
+    "라리가 득점왕": "LaLiga top scorer",
+    "홈런 순위": "home run leaders",
+    "타율 순위": "batting average leaders",
+    "ERA 순위": "ERA leaders",
+    "다승": "wins",
+    "탈삼진": "strikeouts",
+    "KBO 홈런왕": "KBO home run leader",
+    "MLB 홈런": "MLB home runs",
+    "NBA 득점 순위": "NBA scoring leaders",
+    "NBA 리바운드": "NBA rebounds",
+    "FIFA 랭킹": "FIFA rankings",
+    "축구 국가대표 순위": "national team rankings",
+    "대한민국": "South Korea",
+    "잉글랜드": "England",
+    "스페인": "Spain",
+    "독일": "Germany",
+    "이탈리아": "Italy",
+    "프랑스": "France",
+    "스코어베이스 시즌 우승 확률 예측": "Scorebase season title probability",
+    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 + Elo 레이팅 기반 우승·플레이오프·강등 확률.": "Season simulation across 19 leagues — title, play-off and relegation probabilities from 5,000 Monte Carlo runs on Elo ratings.",
+    "시즌 우승 확률": "Season title probability",
+    "Elo 레이팅 예측": "Elo-based projection",
+    "Monte Carlo 시뮬레이션(5,000회) + Elo 레이팅": "Monte Carlo simulation (5,000 runs) plus Elo ratings",
+    "스코어베이스": "Scorebase",
+    "홈": "Home",
+    "리그별 시즌 예측": "Season predictions by league",
+    "리그별 우승·플레이오프·강등 확률, 순위표, 시즌 리더보드 페이지.": "Title, play-off and relegation probabilities, tables and season leaderboards for each league.",
+    " 시즌 예측": " season prediction",
+    "전 세계 전체 리그 순위 →": "All league tables worldwide →",
+    "경기 결과 리뷰 및 시즌 데이터 분석": "Match reports and season data",
+    "EPL, MLB, NBA, KBO 등 주요 리그의 시즌 우승·플레이오프·강등 확률을 Elo 레이팅과 Monte Carlo\n          시뮬레이션으로 분석해 제공합니다. 경기 종료 후 결과 리뷰와 적중률 보드도 함께 확인할 수 있습니다.": "Title, play-off and relegation probabilities for the Premier League, MLB, NBA, KBO and more, from Elo ratings and Monte Carlo\n          simulation. Post-match reports and the accuracy board are available too.",
+    "각 리그 상세 페이지에서는 실시간": "Each league page also carries live",
+    "리그 순위표": "league tables"
+  }
+}

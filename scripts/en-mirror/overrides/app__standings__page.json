@@ -1,0 +1,75 @@
+{
+  "header": "/en/standings — 리그별 순위 허브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "    canonical: \"https://www.scorebase.kr/standings\",",
+      "    canonical: \"https://www.scorebase.kr/en/standings\","
+    ],
+    [
+      "    fetchSportGroups(),",
+      "    fetchSportGroups(undefined, \"en\"),"
+    ],
+    [
+      "    fetchSoccerCountryGroups(),",
+      "    fetchSoccerCountryGroups(\"en\"),"
+    ],
+    [
+      "            {s.emoji} {s.label}",
+      "            {s.emoji} {SPORT_LABEL_EN[s.code] ?? s.label}"
+    ],
+    [
+      "              {sport.label}",
+      "              {SPORT_LABEL_EN[sport.code] ?? sport.label}"
+    ],
+    [
+      "import { SPORTS",
+      "import { SPORT_LABEL_EN } from \"@/lib/i18n/en\";\nimport { SPORTS"
+    ]
+  ],
+  "dict": {
+    "리그별 순위 및 시즌 분석 - 스코어베이스": "League Tables & Season Analysis — Scorebase",
+    "축구·야구·농구·하키·배구·e스포츠 종목별 리그 순위와 득점왕·도움왕 리더보드. EPL·라리가·MLB·NBA·KBO·NHL 등 시즌 순위를 Elo 레이팅·최근 폼과 함께 정리.": "League tables and scoring leaderboards across football, baseball, basketball, hockey, volleyball and esports — Premier League, LaLiga, MLB, NBA, KBO, NHL and more, with Elo ratings and recent form.",
+    "메이저리그": "Major League Baseball",
+    "KBO 리그": "KBO League",
+    "한국 프로야구": "Korean baseball",
+    "NPB 리그": "NPB",
+    "일본 프로야구": "Japanese baseball",
+    "미국 프로농구": "US basketball",
+    "한국 프로농구": "Korean basketball",
+    "한국 여자 프로농구": "Korean women's basketball",
+    "북미 아이스하키": "North American ice hockey",
+    "V-리그 남자부": "V-League (men)",
+    "V-리그 여자부": "V-League (women)",
+    "KOVO · 2025-26 최종 순위": "KOVO · 2025-26 final table",
+    "발리볼 네이션스리그": "Volleyball Nations League",
+    "VNL · 남자 국가대항": "VNL · men's international",
+    "AVC 네이션스컵": "AVC Nations Cup",
+    "배구 여자 · 한국 출전": "Women's volleyball",
+    "유럽 발리볼리그": "European Volleyball League",
+    "배구 여자 · CEV": "Women's volleyball · CEV",
+    "LOL · 순위·선수 정보": "LoL · standings and players",
+    "유럽 LoL · 순위·선수 정보": "European LoL · standings and players",
+    "북미 LoL · 순위·선수 정보": "North American LoL · standings and players",
+    "중국 LoL · 그룹별 순위": "Chinese LoL · group standings",
+    "이스포츠 월드컵": "Esports World Cup",
+    "LoL · T1 출전 · 그룹 순위": "LoL · group standings",
+    "AI 예측 보기": "AI predictions",
+    "순위표 보기": "View table",
+    "진행 중인 축구 리그 순위가 없습니다. 시즌이 시작되면 자동으로 표시됩니다.": "No football league is in season right now. Tables appear automatically once a season starts.",
+    "개 리그": " leagues",
+    "리그 순위": "League tables",
+    "리그별 순위": "League Tables",
+    "축구·야구·농구·하키·배구·e스포츠 — 종목별 시즌 순위와 득점왕·도움왕 리더보드를 한눈에.\n          각 리그를 클릭해 상세 순위표와 시즌 리더보드를 확인하세요.": "Season tables and scoring leaderboards across football, baseball, basketball, hockey, volleyball and esports.\n          Tap a league for its full table and season leaders.",
+    "리그별 순위 및 시즌 데이터 분석": "League tables and season data",
+    "EPL, 라리가, 분데스리가, 세리에 A, MLB, NBA, KBO 등 주요 리그의 시즌 순위·승점·득실차·홈/원정 분리 성적을 Elo 레이팅 기반 분석과 함께 제공합니다. 각 리그 순위표에서는 득점왕·도움왕 등 시즌 리더보드도 함께 확인할 수 있습니다.": "Season tables for the Premier League, LaLiga, Bundesliga, Serie A, MLB, NBA, KBO and more — points, goal difference and home/away splits alongside Elo-based analysis. Each table also carries the season's scoring and assist leaders.",
+    "실시간 경기 진행은": "Live match progress is on",
+    "라이브스코어": "Live scores",
+    "에서, 경기 전 매치업 분석은": ", pre-match analysis on",
+    "프리뷰": "Previews",
+    "에서, 종료 후 결과는": ", and post-match results on",
+    "리뷰": "Reports",
+    "에서 확인할 수 있습니다.": ".",
+    "부상자 명단": "Injury lists",
+    "도 함께 참고하세요.": "are also worth a look."
+  }
+}
