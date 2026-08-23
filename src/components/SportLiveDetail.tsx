@@ -19,6 +19,8 @@ import LiveTickerFeed from "./live/LiveTickerFeed";
 import MatchWeather from "./live/MatchWeather";
 import FavoriteStar from "./scores/FavoriteStar";
 import { soccerTickerLines } from "@/lib/live/ticker";
+// 타입만 참조 — import type 이라 서버 전용 모듈(prisma)이 번들에 딸려오지 않는다.
+import type { RefereeCardTendency } from "@/lib/stats/referee-cards";
 
 // 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
 const VOLLEYBALL_SET = new Set(
@@ -127,6 +129,8 @@ interface MatchLive {
   penAway?: number | null;
   /** 주심 이름 (축구 — route 가 DB Match.referee 를 실어줌) */
   referee?: string | null;
+  /** 주심 카드 성향 (축구 — route 가 DB 자체 집계를 실어줌. 표본 미달이면 null) */
+  refereeStats?: RefereeCardTendency | null;
 }
 
 interface Props {
@@ -172,6 +176,10 @@ interface Props {
   /** DB Match.id — 헤더 관심경기 별표용. /scores 별표와 같은 저장소라 id 가 같아야 상태가 이어진다.
       없으면 별표 미표시. */
   favMatchId?: number | null;
+  /** SSR 단 주심 이름 (축구 — DB Match.referee). 첫 폴링 전에도 주심 줄을 그리기 위해 받는다. */
+  initialReferee?: string | null;
+  /** SSR 단 주심 카드 성향. 표본 미달이면 null 이라 주심 이름만 남는다. */
+  initialRefereeStats?: RefereeCardTendency | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -204,6 +212,8 @@ export default function SportLiveDetail({
   venueCountry,
   venueWeatherAt,
   favMatchId,
+  initialReferee,
+  initialRefereeStats,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -315,6 +325,9 @@ export default function SportLiveDetail({
   // 배당 + 북메이커 상세 합침, 본문 중복 카드 제거).
   const isBasketball = league === "NBA" || league === "WNBA";
   const isSoccerLeague = SOCCER_LEAGUES_SET.has(league);
+  // 주심 — SSR 값으로 먼저 그리고, 폴링 응답이 오면 그쪽 값을 쓴다(둘 다 같은 DB 행).
+  const refereeName = live?.referee ?? initialReferee ?? null;
+  const refereeStats = live?.refereeStats ?? initialRefereeStats ?? null;
   const suppressLiveOddsCard = isBasketball || isSoccerLeague;
 
   // 종목별 LIVE 카드 클래스 (border glow 색)
@@ -438,10 +451,21 @@ export default function SportLiveDetail({
         </div>
       </div>
 
-      {/* 축구 — 주심 (DB Match.referee) */}
-      {isSoccerLeague && live?.referee && (
+      {/* 축구 — 주심 + 카드 성향 (DB Match.referee + MatchStats 자체 집계).
+          성향은 표본 하한(10경기) 미달이면 route/SSR 둘 다 null 을 줘서 이름만 남는다. */}
+      {isSoccerLeague && refereeName && (
         <div className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-          주심 {live.referee}
+          주심 {refereeName}
+          {refereeStats && (
+            <span className="ml-1.5 text-neutral-400 dark:text-neutral-500">
+              · 경기당 옐로 {refereeStats.avgYellow.toFixed(1)}장
+              {" ("}
+              {refereeStats.matches}경기
+              {refereeStats.leagueAvgYellow != null &&
+                ` · 리그 평균 ${refereeStats.leagueAvgYellow.toFixed(1)}장`}
+              {")"}
+            </span>
+          )}
         </div>
       )}
 

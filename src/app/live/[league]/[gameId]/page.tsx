@@ -16,6 +16,7 @@ import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBAL
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
+import { getRefereeCardTendency } from "@/lib/stats/referee-cards";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -349,6 +350,9 @@ export default async function GenericLivePage({ params }: Props) {
 
   // 라이브 배당 시계열 — 최근 30 snapshot (sparkline). 매치 없으면 빈 배열.
   const oddsHistory = await getOddsHistory(match.id).catch(() => []);
+
+  // 주심 카드 성향 (축구) — 리그 단위 6시간 캐시. 축구가 아니거나 표본 미달이면 null.
+  const refereeStats = await getRefereeCardTendency(lg, match.referee);
 
   // NHL 골리 (다른 리그는 null)
   const homeGoalie = lg === "NHL" ? parseGoalie(match.homeGoalie) : null;
@@ -1233,6 +1237,8 @@ export default async function GenericLivePage({ params }: Props) {
           match.status === "FINISHED" ? match.startTime.toISOString() : null
         }
         favMatchId={match.id}
+        initialReferee={match.referee}
+        initialRefereeStats={refereeStats}
       />
 
       {/* 경기 한눈에 — /scores 툴팁과 같은 블록을 탭 밖에 고정 (2026-08-22 사용자 요청) */}

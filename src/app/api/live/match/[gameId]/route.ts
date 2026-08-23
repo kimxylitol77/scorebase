@@ -18,6 +18,7 @@ import {
 // 모두 제거. TheSports cache.detailLive 로 일원화 (page.tsx 가 직접 cache 조회).
 // fetchEspnSummary 는 NBA/NHL/MLB 에서 여전히 사용 (keep).
 import type { SoccerEvent } from "@/lib/live/soccer-events";
+import type { RefereeCardTendency } from "@/lib/stats/referee-cards";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
@@ -89,6 +90,8 @@ interface MatchLive {
   trendGoals?: SoccerGoal[] | null;
   /** 주심 이름 (축구 — DB Match.referee. 정적이라 ETag hash 제외, 첫 200 응답에만 실림). */
   referee?: string | null;
+  /** 주심 카드 성향 (축구 — DB 자체 집계. 표본 하한 미달이면 미포함). referee 와 같이 정적. */
+  refereeStats?: RefereeCardTendency | null;
 }
 
 function kstDate(d: Date = new Date()): string {
@@ -197,7 +200,13 @@ export async function GET(
         },
       });
       if (ourMatch) {
-        if (ourMatch.referee) out.referee = ourMatch.referee;
+        if (ourMatch.referee) {
+          out.referee = ourMatch.referee;
+          // 주심 카드 성향 — 같은 DB 행에서 이어지는 파생값. 리그 단위 6시간 캐시라
+          // 요청마다 전수 집계하지 않는다. 표본 미달이면 null 이라 화면은 이름만 남는다.
+          const { getRefereeCardTendency } = await import("@/lib/stats/referee-cards");
+          out.refereeStats = await getRefereeCardTendency(league, ourMatch.referee);
+        }
         const cache = await db.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
           select: { detailLive: true, trend: true, updatedAt: true },
