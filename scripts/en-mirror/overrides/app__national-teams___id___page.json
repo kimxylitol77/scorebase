@@ -1,0 +1,168 @@
+{
+  "header": "/en/national-teams/[id] — 국가대표팀 상세 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { fifaCountryKo, fifaFlag, getFifaRank } from \"@/lib/sports/fifa-rankings\";",
+      "import { fifaFlag, getFifaRank } from \"@/lib/sports/fifa-rankings\";"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "  const ko = team ? toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name : \"국가대표\";",
+      "  const ko = team ? team.name : \"National team\";"
+    ],
+    [
+      "    coachName = coach ? coach.nameKo || coach.name : null;",
+      "    coachName = coach ? coach.name : null;"
+    ],
+    [
+      "  const koCountry = toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name;",
+      "  const koCountry = team.name;"
+    ],
+    [
+      "    return toKoreanTeamName(opp) || fifaCountryKo(opp) || opp;",
+      "    return opp;"
+    ],
+    [
+      "              const ko = toKoreanTeamName(r.team) || fifaCountryKo(r.team) || r.team;",
+      "              const ko = r.team;"
+    ],
+    [
+      "  const koName = new Map(tsPlayers.map((p) => [p.id, p.nameKo]));",
+      "  const koName = new Map<string, string | null>();"
+    ],
+    [
+      "                {coach.nameKo || (coach.id && COACH_KO[coach.id]) || (coachId && COACH_KO[coachId]) || coach.name}",
+      "                {coach.name}"
+    ],
+    [
+      "  if (finalMatch && last.id === finalMatch.id) return won(last) ? \"우승\" : \"준우승\";",
+      "  if (finalMatch && last.id === finalMatch.id) return won(last) ? \"Winners\" : \"Runners-up\";"
+    ],
+    [
+      "  if (wcMatches.length >= 7) return last.homeScore === last.awayScore ? \"4강\" : won(last) ? \"3위\" : \"4위\";",
+      "  if (wcMatches.length >= 7) return last.homeScore === last.awayScore ? \"Semi-finals\" : won(last) ? \"3rd place\" : \"4th place\";"
+    ],
+    [
+      "  if (wcMatches.length === 6) return \"8강\";",
+      "  if (wcMatches.length === 6) return \"Quarter-finals\";"
+    ],
+    [
+      "  if (wcMatches.length === 5) return \"16강\";",
+      "  if (wcMatches.length === 5) return \"Round of 16\";"
+    ],
+    [
+      "  if (wcMatches.length === 4) return \"32강\";",
+      "  if (wcMatches.length === 4) return \"Round of 32\";"
+    ],
+    [
+      "  return \"조별리그\";",
+      "  return \"Group stage\";"
+    ],
+    [
+      "const wcTitleLabel = wcLabel && wcLabel !== \"조별리그\" ? `2026 월드컵 ${wcLabel}` : null;",
+      "const wcTitleLabel = wcLabel && wcLabel !== \"Group stage\" ? `2026 World Cup ${wcLabel}` : null;"
+    ],
+    [
+      "<Link href=\"/world-cup\" className=\"inline-flex items-center gap-1 hover:underline\" prefetch={false}>",
+      "<Link href=\"/en/world-cup\" className=\"inline-flex items-center gap-1 hover:underline\" prefetch={false}>"
+    ],
+    [
+      "<Link href=\"/national-teams\" className=\"hover:underline\" prefetch={false}>",
+      "<Link href=\"/en/national-teams\" className=\"hover:underline\" prefetch={false}>"
+    ],
+    [
+      "href={coach.id ? `/coaches/${coach.id}` : \"#\"}",
+      "href={coach.id ? `/en/coaches/${coach.id}` : \"#\"}"
+    ],
+    [
+      "href={`/scores?sport=soccer&date=${new Date(m.startTime.getTime() + 9 * 3600e3).toISOString().slice(0, 10)}`}",
+      "href={`/en/scores?sport=soccer&date=${new Date(m.startTime.getTime() + 9 * 3600e3).toISOString().slice(0, 10)}`}"
+    ],
+    [
+      "<Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} transition-all",
+      "<Link key={p.id} href={`/en/transfers/${p.id}`} className={`${cls} transition-all"
+    ],
+    [
+      "                        href={`/transfers/${p.id}`}",
+      "                        href={`/en/transfers/${p.id}`}"
+    ],
+    [
+      "<Link key={r.team} href={`/national-teams/${tid}`}",
+      "<Link key={r.team} href={`/en/national-teams/${tid}`}"
+    ],
+    [
+      "<span className=\"ml-2 font-semibold text-white/90\">FIFA {fifaRank}위</span>",
+      "<span className=\"ml-2 font-semibold text-white/90\">FIFA #{fifaRank}</span>"
+    ],
+    [
+      "<h2 className=\"text-sm font-bold text-neutral-500 mb-2\">{group}조 순위</h2>",
+      "<h2 className=\"text-sm font-bold text-neutral-500 mb-2\">Group {group} table</h2>"
+    ],
+    [
+      "<span className=\"text-neutral-400 font-normal\">· 시즌 {goalSpots.length}골</span>",
+      "<span className=\"text-neutral-400 font-normal\">· {goalSpots.length} goals this season</span>"
+    ]
+  ],
+  "dict": {
+    "2026 월드컵": "2026 World Cup",
+    "출전국 48개국": "48 qualified nations",
+    "국가대표": "National team",
+    "축구 국가대표팀": "national football team",
+    " 축구 국가대표팀": " national football team",
+    " 대표팀": " national team",
+    " 축구 팀": " football team",
+    " 축구 국가대표팀(": " national football team (",
+    " 축구 팀)": " football team)",
+    " 축구 국가대표팀 명단": " national football team squad",
+    " 스쿼드": " squad",
+    " 감독": " manager",
+    " 월드컵": " World Cup",
+    " 월드컵 성적": " World Cup result",
+    " FIFA 랭킹": " FIFA ranking",
+    "FIFA 랭킹 ": "FIFA ranking ",
+    "위 ": " · ",
+    "위": "",
+    "스쿼드·감독·일정·FIFA 랭킹": "Squad, manager, fixtures and FIFA ranking",
+    "2026 월드컵 ": "2026 World Cup ",
+    " — 2026 북중미 월드컵 ": " — 2026 World Cup ",
+    "감독 ": "Manager ",
+    "최신 소집 명단(스쿼드)과 최근 경기 결과·다음 일정을 한눈에. 스코어베이스.": "Latest call-up squad, recent results and upcoming fixtures.",
+    "감독": "Manager",
+    "세": "",
+    " · 선호 ": " · prefers ",
+    "· 프로필 →": "· profile →",
+    "최근 폼": "Recent form",
+    "다음 경기": "Next match",
+    "핵심 선수": "Key players",
+    "· 월드컵 본선 / 평가전 구분": "· World Cup finals vs friendlies",
+    "🏆 본선": "🏆 Finals",
+    "평가전": "Friendlies",
+    "시즌 득점": "Season goals",
+    "골 위치 히트맵": "Goal location heatmap",
+    "자책골": "own goal",
+    "득점": "Goals",
+    "스쿼드": "Squad",
+    "명)": ")",
+    "공식 소집 명단": "Official call-up list",
+    "최근 소집 라인업 기준": "Based on the most recent call-up",
+    "아직 소집 라인업 데이터가 없습니다. 경기가 임박하면 업데이트됩니다.": "No call-up data yet. This updates as the next match approaches.",
+    "골키퍼": "Goalkeepers",
+    "수비수": "Defenders",
+    "미드필더": "Midfielders",
+    "공격수": "Forwards",
+    "조 순위": "Group table",
+    "팀": "Team",
+    "경기": "P",
+    "승": "W",
+    "무": "D",
+    "패": "L",
+    "득실": "GD",
+    "승점": "Pts",
+    "상위 2팀 32강 직행 · 각 조 3위는 와일드카드 경쟁": "Top two go through to the round of 32 · third-placed teams compete for wildcard spots",
+    "조별리그": "Group stage",
+    "골": " goals"
+  }
+}

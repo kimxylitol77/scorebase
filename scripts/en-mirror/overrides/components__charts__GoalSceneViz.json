@@ -1,0 +1,11 @@
+{
+  "header": "GoalSceneViz (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "· 빌드업": "· build-up",
+    "패스 · 점선=패스 경로, 실선=슛 · ←/→ 골문 방향이 공격 방향": "passes · dotted = pass, solid = shot · the goal side shows the attacking direction",
+    "공격 →": "Attack →",
+    "자책골": "own goal",
+    "득점": "goal"
+  }
+}

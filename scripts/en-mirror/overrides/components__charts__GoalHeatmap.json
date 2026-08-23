@@ -1,0 +1,12 @@
+{
+  "header": "GoalHeatmap (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "        {teamName} 시즌 득점 {spots.length}골의 슈팅 위치 · 페널티박스 안 {boxPct}% · 진한 곳일수록 골이 자주 나는 지점",
+      "        {teamName} — {spots.length} goals this season · {boxPct}% from inside the box · darker areas are where goals come from most"
+    ]
+  ],
+  "dict": {
+    "공격 →": "Attack →"
+  }
+}
