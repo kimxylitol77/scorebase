@@ -1,0 +1,94 @@
+{
+  "header": "감독 전술 대시보드 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "title={`${p.nameKo} — 선발 ${p.starts}회`}",
+      "title={`${p.name} — ${p.starts} starts`}"
+    ],
+    [
+      "alt={p.nameKo}",
+      "alt={p.name}"
+    ],
+    [
+      "{p.nameKo.slice(0, 1)}",
+      "{p.name.slice(0, 1)}"
+    ],
+    [
+      "                    {p.nameKo}\n",
+      "                    {p.name}\n"
+    ],
+    [
+      "title={`${g.min}' ${g.nameKo} — xG ${xg.toFixed(2)}${SIT_KO[g.sit] ? ` (${SIT_KO[g.sit]})` : \"\"}`}",
+      "title={`${g.min}' ${g.name} — xG ${xg.toFixed(2)}${SIT_KO[g.sit] ? ` (${SIT_KO[g.sit]})` : \"\"}`}"
+    ],
+    [
+      "{sp.topShooters.slice(0, 3).map((s) => `${s.nameKo} ${s.goals}골`).join(\", \")}",
+      "{sp.topShooters.slice(0, 3).map((s) => `${s.name} ${s.goals}`).join(\", \")}"
+    ],
+    [
+      "alt={ctx.coach.nameKo}",
+      "alt={ctx.coach.name}"
+    ],
+    [
+      "{ctx.coach.nameKo} — {ctx.team.nameKo}",
+      "{ctx.coach.name} — {ctx.team.name}"
+    ]
+  ],
+  "dict": {
+    "오픈 플레이": "Open play",
+    "어시스트 연결": "Assisted",
+    "페널티킥": "Penalty",
+    "세트피스": "Set piece",
+    "코너킥": "Corner",
+    "프리킥": "Free kick",
+    "역습": "Counter",
+    "자책골": "Own goal",
+    "포메이션 사용 분포": "Formation usage",
+    "경기 ": " matches, ",
+    "승 ": "W ",
+    "무 ": "D ",
+    "패": "L",
+    ", 경기당 xG ": " · xG per match ",
+    " / 실점 xG ": " / xGA ",
+    "경기 ·": " matches ·",
+    "승": "W",
+    "무": "D",
+    "xG는 해당 포메이션 경기의 경기당 평균 기대득점.": "xG is average expected goals per match in that formation.",
+    "베스트 XI 평균 포지션 —": "Average positions, best XI —",
+    " — 선발 ": " — starts ",
+    "회": "",
+    "선발": "starts",
+    "사용": "used",
+    "경기에서 각 선수가 가장 자주 선 자리 기준. 시즌 최다 선발 11인의 실제 배치를 한 판에 모았다.": " matches, showing where each player stood most often. The eleven most-selected starters on one pitch.",
+    "이 라인업으로 전술판 직접 그려보기": "Open this line-up in the tactics board",
+    "시즌 득점 지도 —": "Season goal map —",
+    "골": " goals",
+    "원 크기 = 슈팅 순간 기대득점(xG). 시즌 슈팅": "Circle size = expected goals (xG) at the moment of the shot. Season shots",
+    "회, xG 합": ", total xG",
+    ", 박스 안 비중": ", share from inside the box",
+    "%.\n        최다 득점": "%.\n        Top scorer",
+    "월별 xG 득실차": "Monthly xG difference",
+    "월 — ": " — ",
+    "패, xG ": "L, xG ",
+    " 대 ": " vs ",
+    "월": "",
+    "월 합산 기대득점 − 기대실점. 양수(파랑)면 그 달 경기 내용이 상대보다 우위였다는 뜻.": "Monthly expected goals minus expected goals against. Positive (blue) means the team out-created opponents that month.",
+    "시즌": "season",
+    " · 선호 포메이션 ": " · preferred formation ",
+    "팀 스쿼드·몸값 →": "Squad & market values →",
+    "팀 페이지 →": "Team page →",
+    "순위": "Position",
+    "위": "",
+    "승점": "Points",
+    "전적": "Record",
+    "득실": "Goal difference",
+    "경기당 로테이션": "Changes per match",
+    "명": "",
+    "전 경기 선발": "Ever-present",
+    "없음": "none",
+    "감독": "Manager",
+    "기간": "Period",
+    "승점/경기": "Pts/match",
+    "경기": "P"
+  }
+}

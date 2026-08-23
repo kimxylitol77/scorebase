@@ -1,0 +1,183 @@
+{
+  "header": "/en/coaches/[id] — 감독 프로필 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  EPL: \"EPL\", LALIGA: \"라리가\", BUNDESLIGA: \"분데스리가\", SERIE_A: \"세리에 A\", LIGUE_1: \"리그 1\",\n  K_LEAGUE_1: \"K리그1\", SAUDI_PL: \"사우디 프로리그\", MLS: \"MLS\", WORLD_CUP: \"FIFA 월드컵 2026\",",
+      "  EPL: \"Premier League\", LALIGA: \"LaLiga\", BUNDESLIGA: \"Bundesliga\", SERIE_A: \"Serie A\", LIGUE_1: \"Ligue 1\",\n  K_LEAGUE_1: \"K League 1\", SAUDI_PL: \"Saudi Pro League\", MLS: \"MLS\", WORLD_CUP: \"FIFA World Cup 2026\","
+    ],
+    [
+      "  `${s ?? \"?\"}–${e ?? \"현재\"}`;",
+      "  `${s ?? \"?\"}–${e ?? \"present\"}`;"
+    ],
+    [
+      "  const name = career?.nameKo || c.snap.nameKo || COACH_PHOTOS[id]?.nameKo || c.snap.name;",
+      "  const name = c.snap.name;"
+    ],
+    [
+      "    if (row) currentClub = toKoreanTeamName(row.team.name) || row.team.name;",
+      "    if (row) currentClub = row.team.name;"
+    ],
+    [
+      "  currentClub = currentClub?.replace(\" 축구 국가대표팀\", \" 대표팀\") ?? null;",
+      "  currentClub = currentClub?.replace(\" national football team\", \"\") ?? null;"
+    ],
+    [
+      "        name: pMap.get(r.playerId)?.nameKo || pMap.get(r.playerId)?.name || \"선수\",",
+      "        name: pMap.get(r.playerId)?.name || \"Player\","
+    ],
+    [
+      "  if (!c) return { title: \"감독 미발견\" };",
+      "  if (!c) return { title: \"Manager not found\" };"
+    ],
+    [
+      "  const titleBits = [\n    currentClub ? `현 ${currentClub} 감독` : null,\n    pf ? `포메이션 ${pf}` : null,\n    titles > 0 ? `우승 ${titles}회` : null,\n  ].filter(Boolean);\n  const title = `${name} 감독 프로필 — ${titleBits.length ? titleBits.join(\" · \") : \"경력·포메이션·우승\"}`;\n  const description =\n    `${career?.country ? `${career.country} 출신 ` : \"\"}${name} 감독${c.snap.age ? `(${c.snap.age}세)` : \"\"} — ` +\n    `${currentClub ? `현 ${currentClub} 사령탑` : \"감독 경력\"}${joinedYear ? `, ${joinedYear}년 부임` : \"\"}${contractYear ? `·계약 ${contractYear}년까지` : \"\"}. ` +\n    `${pf ? `선호 포메이션 ${pf}, ` : \"\"}${titles > 0 ? `통산 우승 ${titles}회, ` : \"\"}` +\n    `${clubCount > 0 ? `역임 클럽 ${clubCount}곳 타임라인` : \"역임 클럽 타임라인\"}과 최근 실제 라인업${career?.playerCareer?.length ? \"·선수 시절\" : \"\"}까지. 스코어베이스.`;",
+      "  const titleBits = [\n    currentClub ? `${currentClub} manager` : null,\n    pf ? `${pf} formation` : null,\n    titles > 0 ? `${titles} trophies` : null,\n  ].filter(Boolean);\n  const title = `${name} — Manager Profile${titleBits.length ? ` · ${titleBits.join(\" · \")}` : \"\"}`;\n  const description =\n    `${name}${c.snap.age ? `, ${c.snap.age}` : \"\"}${career?.country ? `, ${career.country}` : \"\"} — ` +\n    `${currentClub ? `currently in charge of ${currentClub}` : \"managerial career\"}${joinedYear ? `, appointed ${joinedYear}` : \"\"}${contractYear ? `, contracted to ${contractYear}` : \"\"}. ` +\n    `${pf ? `Preferred formation ${pf}. ` : \"\"}${titles > 0 ? `${titles} trophies won. ` : \"\"}` +\n    `${clubCount > 0 ? `Timeline of ${clubCount} clubs` : \"Club timeline\"}, recent line-ups${career?.playerCareer?.length ? \" and playing career\" : \"\"}.`;"
+    ],
+    [
+      "      name, `${name} 감독`, `${name} 경력`,\n      ...(titles > 0 ? [`${name} 우승`] : []),\n      ...(pf ? [`${name} 포메이션`, `${name} 전술`] : []),\n      ...(currentClub ? [`${currentClub} 감독`] : []), // \"토트넘 감독\" 류 팀명 검색 정조준\n      \"감독 프로필\", \"스코어베이스\",",
+      "      name, `${name} manager`, `${name} career`,\n      ...(titles > 0 ? [`${name} trophies`] : []),\n      ...(pf ? [`${name} formation`, `${name} tactics`] : []),\n      ...(currentClub ? [`${currentClub} manager`] : []),\n      \"manager profile\", \"football manager\","
+    ],
+    [
+      "    alternates: { canonical: `/coaches/${id}` },",
+      "    alternates: {\n      canonical: `/en/coaches/${id}`,\n      languages: koEnLanguages(`/coaches/${id}`, `/en/coaches/${id}`),\n    },"
+    ],
+    [
+      "import TacticalManagerSection from \"@/components/TacticalManagerSection\";",
+      "import TacticalManagerSection from \"@/components/TacticalManagerSection\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "{g.club === \"Individual\" ? (<span className=\"inline-flex items-center gap-1.5\"><Award className=\"h-4 w-4 text-amber-500\" aria-hidden /> 개인 수상</span>) : toKoreanTeamName(g.club) || g.club}",
+      "{g.club === \"Individual\" ? (<span className=\"inline-flex items-center gap-1.5\"><Award className=\"h-4 w-4 text-amber-500\" aria-hidden /> 개인 수상</span>) : g.club}"
+    ],
+    [
+      "{tacticalCtx && tacticalCtx.team.tsId !== teamTsId ? ` — ${tacticalCtx.team.nameKo} 시절` : \"\"}",
+      "{tacticalCtx && tacticalCtx.team.tsId !== teamTsId ? ` — ${tacticalCtx.team.name} era` : \"\"}"
+    ],
+    [
+      "              현 소속({teamName ?? \"현 팀\"}) 부임 전 {tacticalCtx.team.nameKo} {tacticalCtx.seasonLabel} 시즌 전술 집계입니다.",
+      "              These are {tacticalCtx.team.name} {tacticalCtx.seasonLabel} figures, from before the {teamName ?? \"current club\"} appointment."
+    ],
+    [
+      "                  {x.team.nameKo} 시절 — {x.seasonLabel}",
+      "                  {x.team.name} era — {x.seasonLabel}"
+    ],
+    [
+      "toKoreanTeamName(team.name) || team.name",
+      "team.name"
+    ],
+    [
+      "toKoreanTeamName(opp.name) || opp.name",
+      "opp.name"
+    ],
+    [
+      "toKoreanTeamName(r.fromTeamName) || r.fromTeamName",
+      "r.fromTeamName"
+    ],
+    [
+      "norm(toKoreanTeamName(h.club) || h.club)",
+      "norm(h.club)"
+    ],
+    [
+      "toKoreanTeamName(h.club) || h.club",
+      "h.club"
+    ],
+    [
+      "toKoreanTeamName(r.club) || r.club",
+      "r.club"
+    ],
+    [
+      "koMap.get(n) ?? (toKoreanPlayerName(n) !== n ? toKoreanPlayerName(n) || null : null)",
+      "koMap.get(n) ?? null"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "  const name = career?.nameKo || snap.nameKo || COACH_PHOTOS[id]?.nameKo || snap.name;",
+      "  const name = snap.name;"
+    ],
+    [
+      "      koMap.set(r.name, koMap.has(r.name) && koMap.get(r.name) !== r.nameKo ? null : r.nameKo);",
+      "      koMap.set(r.name, null);"
+    ],
+    [
+      "otherManagerArticles.push({ slug: r.slug, coachKo: ctx.coach.nameKo, teamKo: ctx.team.nameKo });",
+      "otherManagerArticles.push({ slug: r.slug, coachKo: ctx.coach.name, teamKo: ctx.team.name });"
+    ],
+    [
+      "          {tacticalArticles.length > 0 && (",
+      "          {false && tacticalArticles.length > 0 && ("
+    ],
+    [
+      "                        {snap.nameKo || snap.name} · {first.team.nameKo} {first.seasonLabel}",
+      "                        {snap.name} · {first.team.name} {first.seasonLabel}"
+    ],
+    [
+      "                        href={`/coaches/${cid}`}",
+      "                        href={`/en/coaches/${cid}`}"
+    ],
+    [
+      "{career.country}",
+      "{null}"
+    ],
+    [
+      "  const coachTimeline = [...tlRows].reverse(); // 최신 위",
+      "  const coachTimeline: typeof tlRows = []; // 경력 데이터가 한글 전용 — 영어판은 우승 기록 폴백을 쓴다"
+    ],
+    [
+      "      {career?.playerCareer && career.playerCareer.length > 0 && (",
+      "      {false && career?.playerCareer && career.playerCareer.length > 0 && ("
+    ]
+  ],
+  "dict": {
+    "감독 프로필": "Manager profile",
+    "감독": "Manager",
+    "세": "",
+    " 스쿼드": " squad",
+    " 대표팀": " national team",
+    "월 ": "/",
+    "일": "",
+    " 부임": " appointed",
+    "계약 ~": "contract to ",
+    "현재 전술 —": "Current tactics —",
+    "선호 포메이션": "Preferred formation",
+    "최근": "Last",
+    "경기 실제 포메이션": " matches, formations used",
+    "최근 선발 라인업 ·": "Most recent starting XI ·",
+    "교체 카드 활용 —": "Use of substitutions —",
+    "시즌": "season",
+    "경기 이벤트 데이터 집계 (": "match event data (",
+    "경기 표본). 교체 이후 수치는\n            상관 데이터로, 전부 교체 효과라는 뜻은 아닙니다.": "match sample). Figures after substitutions are correlational — they do not prove the changes caused the outcome.",
+    "평균 교체": "Subs per match",
+    "명": "",
+    "첫 교체 평균": "First sub, average",
+    "분": "'",
+    "교체 투입 골·도움": "Goals & assists off the bench",
+    "골": "G",
+    "도움": "A",
+    "첫 교체 시점에 뒤지던 경기 중 무승부 이상으로 마친 경기와 가져온 승점": "Matches recovered to a draw or better after trailing at the first substitution, and the points gained",
+    "뒤지던 경기 뒤집기": "Recovered from behind",
+    "점": " pts",
+    "없음": "none",
+    "리그 전체 교체 임팩트 보기 →": "League-wide substitution impact →",
+    "전술 연구": "Tactical study",
+    " 전술 연구는 새 시즌 데이터가 쌓이면 발행됩니다.": " tactical study will follow once the new season has enough data.",
+    "스코어베이스 과거 시즌 아카이브 집계입니다. 이 시즌 데이터에는 xG·슈팅 좌표가 없습니다.": "Archived figures for a past season. This season has no xG or shot coordinates.",
+    "다른 감독 전술 연구": "Other managers",
+    "감독 경력": "Managerial career",
+    "우승 총": "Trophies",
+    "회": "",
+    "현직": "current",
+    "우승 기록": "Trophies",
+    "총": "total",
+    "개인 수상": "Individual awards",
+    "재임 중 주요 영입": "Key signings during tenure",
+    "선수 시절": "Playing career",
+    "ⓘ 현직·계약·선호 포메이션 = TheSports · 경력·국적 = Wikipedia/Wikidata · 최근 포메이션 = 스코어베이스 라인업 데이터.": "ⓘ Current club, contract and preferred formation from TheSports · career and nationality from Wikipedia/Wikidata · recent formations from Scorebase line-up data."
+  }
+}
