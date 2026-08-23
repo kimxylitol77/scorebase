@@ -16,7 +16,8 @@ import {
 } from "@/lib/sports/soccer-salaries";
 import rawPhotos from "../../../../../data/player-photos.json";
 import { CircleDollarSign } from "lucide-react";
-import { enLeagueName, koEnLanguages } from "@/lib/i18n/en";
+import { enLeagueName } from "@/lib/i18n/en";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 const PHOTOS = rawPhotos as Record<string, string>;
 

@@ -54,12 +54,12 @@
       "<span className=\"ml-1 text-[11px] text-neutral-400\">(#{rank})</span>"
     ],
     [
-      "  title: \"2026 월드컵 출전국 48개국 — 조별 전력·스쿼드·감독\",\n  description:\n    \"2026 북중미 월드컵 본선 48개국을 조별(A~L)로 한눈에. 국가별 Elo 전력 지수와 FIFA 랭킹, 소집 스쿼드·감독·경기 일정 페이지까지 연결되는 국가대표팀 허브.\",\n  keywords: [\n    \"2026 월드컵 출전국\",\n    \"월드컵 조 편성\",\n    \"월드컵 조별리그\",\n    \"국가대표 스쿼드\",\n    \"월드컵 전력 분석\",\n    \"스코어베이스\",\n  ],\n  alternates: { canonical: \"/national-teams\" },",
+      "  title: \"2026 월드컵 출전국 48개국 — 조별 전력·스쿼드·감독\",\n  description:\n    \"2026 북중미 월드컵 본선 48개국을 조별(A~L)로 한눈에. 국가별 Elo 전력 지수와 FIFA 랭킹, 소집 스쿼드·감독·경기 일정 페이지까지 연결되는 국가대표팀 허브.\",\n  keywords: [\n    \"2026 월드컵 출전국\",\n    \"월드컵 조 편성\",\n    \"월드컵 조별리그\",\n    \"국가대표 스쿼드\",\n    \"월드컵 전력 분석\",\n    \"스코어베이스\",\n  ],\n  alternates: {\n    canonical: \"/national-teams\",\n    languages: koEnLanguages(\"/national-teams\", \"/en/national-teams\"),\n  },",
       "  title: \"2026 World Cup — All 48 Qualified Nations by Group\",\n  description:\n    \"Every nation at the 2026 North American World Cup, laid out by group (A–L). Elo strength ratings and FIFA rankings for each country, linking through to squads, managers and fixtures.\",\n  keywords: [\n    \"2026 World Cup teams\",\n    \"World Cup groups\",\n    \"World Cup group stage\",\n    \"national team squads\",\n    \"World Cup power ratings\",\n  ],\n  alternates: {\n    canonical: \"/en/national-teams\",\n    languages: koEnLanguages(\"/national-teams\", \"/en/national-teams\"),\n  },"
     ],
     [
       "import AmbientGlow from \"@/components/AmbientGlow\";",
-      "import AmbientGlow from \"@/components/AmbientGlow\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import AmbientGlow from \"@/components/AmbientGlow\";"
     ]
   ],
   "dict": {

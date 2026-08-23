@@ -4,10 +4,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
-import { koEnLanguages } from "@/lib/i18n/en";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
 import { breadcrumbLd, itemListLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 

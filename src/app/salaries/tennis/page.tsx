@@ -11,6 +11,7 @@ import PlayerPhoto from "@/components/PlayerPhoto";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { TENNIS_PRIZE_AS_OF } from "@/lib/sports/tennis-prize-money";
 import { CircleDollarSign } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -28,7 +29,13 @@ export async function generateMetadata({
     title: `테니스 상금 랭킹 — ${label} 시즌 상금 순위 (한화)`,
     description: `${label} 테니스 시즌 상금(YTD) 순위 top 50 을 달러·원화로. 단식·복식 합산 공식 상금을 한국어 선수명으로 — 스코어베이스. 데이터 ATP·WTA 공식 발표.`,
     keywords: ["테니스 상금 랭킹", "ATP 상금", "WTA 상금", "테니스 상금 순위", "시너 상금", "사발렌카 상금", "알카라스 상금"],
-    alternates: { canonical: `https://www.scorebase.kr/salaries/tennis${isWta ? "?tour=wta" : ""}` },
+    alternates: {
+      canonical: `https://www.scorebase.kr/salaries/tennis${isWta ? "?tour=wta" : ""}`,
+      languages: koEnLanguages(
+        `/salaries/tennis${isWta ? "?tour=wta" : ""}`,
+        `/en/salaries/tennis${isWta ? "?tour=wta" : ""}`,
+      ),
+    },
   };
 }
 

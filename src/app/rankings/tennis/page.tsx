@@ -7,6 +7,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import DriverAvatar from "@/components/scores/f1/DriverAvatar";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { SITE_URL } from "@/lib/site-url";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -25,7 +26,13 @@ export async function generateMetadata({
       "테니스 세계랭킹", "ATP 랭킹", "WTA 랭킹", "테니스 순위", "ATP 순위",
       "테니스 랭킹 포인트", "시너 랭킹", "알카라스 랭킹", "조코비치 순위",
     ],
-    alternates: { canonical: `${SITE_URL}/rankings/tennis${tour === "WTA" ? "?tour=wta" : ""}` },
+    alternates: {
+      canonical: `${SITE_URL}/rankings/tennis${tour === "WTA" ? "?tour=wta" : ""}`,
+      languages: koEnLanguages(
+        `/rankings/tennis${tour === "WTA" ? "?tour=wta" : ""}`,
+        `/en/rankings/tennis${tour === "WTA" ? "?tour=wta" : ""}`,
+      ),
+    },
   };
 }
 

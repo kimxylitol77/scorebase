@@ -11,6 +11,7 @@ import PlayerValueTabs from "@/components/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
 import { CircleDollarSign } from "lucide-react";
 import golfNames from "../../../../data/golf-player-names.json";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -22,7 +23,10 @@ export const metadata: Metadata = {
   description:
     "PGA 투어 시즌 상금(머니리스트) 순위를 달러·원화로. 셰플러 등 상금 상위 60명과 임성재·김시우·김주형 한국 선수 위치까지 한국어로 — 매주 자동 갱신, 데이터 ESPN.",
   keywords: ["골프 상금 랭킹", "PGA 상금 순위", "PGA 머니리스트", "골프 상금 순위", "임성재 상금", "김주형 상금", "셰플러 상금"],
-  alternates: { canonical: "https://www.scorebase.kr/salaries/golf" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/salaries/golf",
+    languages: koEnLanguages("/salaries/golf", "/en/salaries/golf"),
+  },
 };
 
 function fmtUsd(n: number): string {

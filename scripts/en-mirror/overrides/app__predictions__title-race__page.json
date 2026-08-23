@@ -7,7 +7,7 @@
     ],
     [
       "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";",
-      "import { enLeagueName, koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { enLeagueName } from \"@/lib/i18n/en\";"
     ],
     [
       "      name: toKoreanTeamName(nameById.get(r.teamId) ?? `Team ${r.teamId}`, league),",

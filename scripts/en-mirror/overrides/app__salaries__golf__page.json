@@ -82,12 +82,12 @@
       "<Link href=\"/en/scores?sport=golf\" className=\"hover:underline\">골프</Link>"
     ],
     [
-      "export const metadata: Metadata = {\n  title: \"골프 상금 랭킹 — PGA 투어 시즌 상금 순위 (한화)\",\n  description:\n    \"PGA 투어 시즌 상금(머니리스트) 순위를 달러·원화로. 셰플러 등 상금 상위 60명과 임성재·김시우·김주형 한국 선수 위치까지 한국어로 — 매주 자동 갱신, 데이터 ESPN.\",\n  keywords: [\"골프 상금 랭킹\", \"PGA 상금 순위\", \"PGA 머니리스트\", \"골프 상금 순위\", \"임성재 상금\", \"김주형 상금\", \"셰플러 상금\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/golf\" },\n};",
+      "export const metadata: Metadata = {\n  title: \"골프 상금 랭킹 — PGA 투어 시즌 상금 순위 (한화)\",\n  description:\n    \"PGA 투어 시즌 상금(머니리스트) 순위를 달러·원화로. 셰플러 등 상금 상위 60명과 임성재·김시우·김주형 한국 선수 위치까지 한국어로 — 매주 자동 갱신, 데이터 ESPN.\",\n  keywords: [\"골프 상금 랭킹\", \"PGA 상금 순위\", \"PGA 머니리스트\", \"골프 상금 순위\", \"임성재 상금\", \"김주형 상금\", \"셰플러 상금\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/salaries/golf\",\n    languages: koEnLanguages(\"/salaries/golf\", \"/en/salaries/golf\"),\n  },\n};",
       "export const metadata: Metadata = {\n  title: \"Golf Prize Money Rankings — PGA Tour Season Earnings\",\n  description:\n    \"PGA Tour season earnings (money list) in USD. Top 60 by prize money, updated weekly. Data from ESPN.\",\n  keywords: [\"golf prize money\", \"PGA Tour money list\", \"PGA earnings ranking\", \"golf earnings\", \"PGA Tour prize money\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/golf\",\n    languages: koEnLanguages(\"/salaries/golf\", \"/en/salaries/golf\"),\n  },\n};"
     ],
     [
       "import { CircleDollarSign } from \"lucide-react\";",
-      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { CircleDollarSign } from \"lucide-react\";"
     ]
   ],
   "dict": {

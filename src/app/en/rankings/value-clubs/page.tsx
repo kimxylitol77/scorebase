@@ -7,9 +7,9 @@ import TeamBadge from "@/components/TeamBadge";
 import CiteBox from "@/components/en/CiteBox";
 import { Coins, TrendingDown } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
-import { koEnLanguages } from "@/lib/i18n/en";
 import { ogPageImage } from "@/lib/seo/og";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 

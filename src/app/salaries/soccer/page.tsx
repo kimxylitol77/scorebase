@@ -21,6 +21,7 @@ import {
 } from "@/lib/sports/soccer-salaries";
 import rawPhotos from "../../../../data/player-photos.json";
 import { CircleDollarSign } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 const PHOTOS = rawPhotos as Record<string, string>;
 
@@ -34,7 +35,10 @@ export const metadata: Metadata = {
   description:
     "유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 축구 선수 연봉 순위를 유로·원화로. 홀란·음바페·케인 등 최고 연봉 선수와 소속팀을 한국어로 — 공식 발표가 없어 미디어 종합 추정치 기준.",
   keywords: ["축구 연봉", "축구선수 연봉 순위", "홀란 연봉", "음바페 연봉", "손흥민 연봉", "EPL 연봉", "빅리그 연봉"],
-  alternates: { canonical: "https://www.scorebase.kr/salaries/soccer" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/salaries/soccer",
+    languages: koEnLanguages("/salaries/soccer", "/en/salaries/soccer"),
+  },
 };
 
 function fmtEur(n: number): string {

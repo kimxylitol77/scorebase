@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
-import { koEnLanguages, enWeightClass } from "@/lib/i18n/en";
+import { enWeightClass } from "@/lib/i18n/en";
 import UfcRankingsView, { type RankCategory, type RankedFighter } from "./UfcRankingsView";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600; // 랭킹은 주 1회 갱신 → 1시간 캐시로 충분
 

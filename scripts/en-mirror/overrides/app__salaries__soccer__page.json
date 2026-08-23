@@ -35,7 +35,7 @@
     ],
     [
       "import { CircleDollarSign } from \"lucide-react\";",
-      "import { CircleDollarSign } from \"lucide-react\";\nimport { enLeagueName, koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { CircleDollarSign } from \"lucide-react\";\nimport { enLeagueName } from \"@/lib/i18n/en\";"
     ],
     [
       "` — ${SOCCER_LEAGUE_KO[leagueFilter]} ${rows.length}명`",
@@ -102,7 +102,7 @@
       ""
     ],
     [
-      "export const metadata: Metadata = {\n  title: \"축구 선수 연봉 랭킹 — 빅5 리그 최고 연봉 순위 (한화)\",\n  description:\n    \"유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 축구 선수 연봉 순위를 유로·원화로. 홀란·음바페·케인 등 최고 연봉 선수와 소속팀을 한국어로 — 공식 발표가 없어 미디어 종합 추정치 기준.\",\n  keywords: [\"축구 연봉\", \"축구선수 연봉 순위\", \"홀란 연봉\", \"음바페 연봉\", \"손흥민 연봉\", \"EPL 연봉\", \"빅리그 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/soccer\" },\n};",
+      "export const metadata: Metadata = {\n  title: \"축구 선수 연봉 랭킹 — 빅5 리그 최고 연봉 순위 (한화)\",\n  description:\n    \"유럽 빅5 리그(EPL·라리가·분데스리가·세리에A·리그1) 축구 선수 연봉 순위를 유로·원화로. 홀란·음바페·케인 등 최고 연봉 선수와 소속팀을 한국어로 — 공식 발표가 없어 미디어 종합 추정치 기준.\",\n  keywords: [\"축구 연봉\", \"축구선수 연봉 순위\", \"홀란 연봉\", \"음바페 연봉\", \"손흥민 연봉\", \"EPL 연봉\", \"빅리그 연봉\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/salaries/soccer\",\n    languages: koEnLanguages(\"/salaries/soccer\", \"/en/salaries/soccer\"),\n  },\n};",
       "export const metadata: Metadata = {\n  title: \"Football Player Salaries — Top Earners in Europe's Big Five Leagues\",\n  description:\n    \"Salary rankings for the Premier League, LaLiga, Bundesliga, Serie A and Ligue 1. Haaland, Mbappé, Kane and other top earners in EUR — aggregated media estimates, as clubs do not disclose wages.\",\n  keywords: [\"football salaries\", \"soccer player wages\", \"Haaland salary\", \"Mbappe salary\", \"Premier League wages\", \"highest paid footballers\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/soccer\",\n    languages: koEnLanguages(\"/salaries/soccer\", \"/en/salaries/soccer\"),\n  },\n};"
     ],
     [

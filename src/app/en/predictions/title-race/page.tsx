@@ -8,9 +8,10 @@ import {
   GROUPED_STANDINGS_LEAGUES,
   type StandingsRow,
 } from "@/lib/sports/thesports/standings-helper";
-import { enLeagueName, koEnLanguages } from "@/lib/i18n/en";
+import { enLeagueName } from "@/lib/i18n/en";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 600; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
   title: "Title Race Trackerboard",
   description:
     "Live title races across 80+ football leagues. Points gap between first and second, matches played, and how the contenders compare.",
-  alternates: { canonical: "/predictions/title-race" },
+  alternates: {
+    canonical: "/predictions/title-race",
+    languages: koEnLanguages("/predictions/title-race", "/en/predictions/title-race"),
+  },
 };
 
 // 핵심 리그만 (잘 알려진 리그 우선 + 한국 시청자 trafficking)

@@ -14,6 +14,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
 import { ArrowLeftRight, CircleDollarSign, Trophy } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600; // 1시간 — 연봉 주1회·환율 시간당 갱신이면 충분
 
@@ -25,7 +26,10 @@ export const metadata: Metadata = {
   description:
     "NBA 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 스테판 커리·요키치 등 최고 연봉 선수와 레이커스·닉스 구단 페이롤을 달러·원화로. 한국어 표기, 매주 자동 갱신. 데이터 Basketball Reference.",
   keywords: ["NBA 연봉", "NBA 팀 연봉", "NBA 페이롤", "NBA 팀별 연봉", "NBA 샐러리캡", "커리 연봉", "NBA 선수 연봉 순위"],
-  alternates: { canonical: "https://www.scorebase.kr/salaries/nba" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/salaries/nba",
+    languages: koEnLanguages("/salaries/nba", "/en/salaries/nba"),
+  },
 };
 
 function fmtUsd(n: number): string {

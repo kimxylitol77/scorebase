@@ -11,6 +11,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Swords } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -148,7 +149,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "상대전적",
       "스코어베이스",
     ],
-    alternates: { canonical: `/h2h/${a}-vs-${b}` },
+    alternates: {
+      canonical: `/h2h/${a}-vs-${b}`,
+      languages: koEnLanguages(`/h2h/${a}-vs-${b}`, `/en/h2h/${a}-vs-${b}`),
+    },
     robots: GOOGLE_NOINDEX,
   };
 }

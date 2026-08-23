@@ -9,6 +9,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
 import { breadcrumbLd, itemListLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -24,7 +25,10 @@ export const metadata: Metadata = {
     "월드컵 전력 분석",
     "스코어베이스",
   ],
-  alternates: { canonical: "/national-teams" },
+  alternates: {
+    canonical: "/national-teams",
+    languages: koEnLanguages("/national-teams", "/en/national-teams"),
+  },
 };
 
 export default async function NationalTeamsIndex() {

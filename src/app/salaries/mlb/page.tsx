@@ -13,6 +13,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
 import { CircleDollarSign } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -24,7 +25,10 @@ export const metadata: Metadata = {
   description:
     "MLB 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 후안 소토·오타니 등 최고 연봉 선수와 다저스·메츠·양키스 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 Spotrac.",
   keywords: ["MLB 연봉", "MLB 팀 연봉", "MLB 페이롤", "MLB 팀별 연봉", "다저스 연봉", "MLB 선수 연봉 순위", "오타니 연봉"],
-  alternates: { canonical: "https://www.scorebase.kr/salaries/mlb" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/salaries/mlb",
+    languages: koEnLanguages("/salaries/mlb", "/en/salaries/mlb"),
+  },
 };
 
 function fmtUsd(n: number): string {

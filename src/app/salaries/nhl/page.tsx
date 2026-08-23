@@ -12,6 +12,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
 import { CircleDollarSign } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -23,7 +24,10 @@ export const metadata: Metadata = {
   description:
     "NHL 선수 연봉(cap hit) 순위 + 팀별 총 연봉(페이롤) 랭킹. 매키넌·카프리조프·드라이자이틀 등 최고 연봉 선수와 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 CapWages.",
   keywords: ["NHL 연봉", "NHL 팀 연봉", "NHL 페이롤", "NHL cap hit", "NHL 선수 연봉 순위", "매키넌 연봉", "하키 연봉"],
-  alternates: { canonical: "https://www.scorebase.kr/salaries/nhl" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/salaries/nhl",
+    languages: koEnLanguages("/salaries/nhl", "/en/salaries/nhl"),
+  },
 };
 
 function fmtUsd(n: number): string {

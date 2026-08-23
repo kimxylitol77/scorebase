@@ -42,12 +42,12 @@
       "  const label = tour === \"WTA\" ? \"WTA\" : \"ATP\";"
     ],
     [
-      "    title: `${label} 테니스 세계랭킹 — 순위·포인트 (한글)`,\n    description: `${label} 테니스 세계랭킹 1~150위를 한국어 선수명으로. 순위 등락, 랭킹 포인트, 국적을 한눈에. 시너·알카라스·조코비치 등 상위 선수 프로필과 시즌 성적까지 — 스코어베이스.`,\n    keywords: [\n      \"테니스 세계랭킹\", \"ATP 랭킹\", \"WTA 랭킹\", \"테니스 순위\", \"ATP 순위\",\n      \"테니스 랭킹 포인트\", \"시너 랭킹\", \"알카라스 랭킹\", \"조코비치 순위\",\n    ],\n    alternates: { canonical: `${SITE_URL}/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}` },",
+      "    title: `${label} 테니스 세계랭킹 — 순위·포인트 (한글)`,\n    description: `${label} 테니스 세계랭킹 1~150위를 한국어 선수명으로. 순위 등락, 랭킹 포인트, 국적을 한눈에. 시너·알카라스·조코비치 등 상위 선수 프로필과 시즌 성적까지 — 스코어베이스.`,\n    keywords: [\n      \"테니스 세계랭킹\", \"ATP 랭킹\", \"WTA 랭킹\", \"테니스 순위\", \"ATP 순위\",\n      \"테니스 랭킹 포인트\", \"시너 랭킹\", \"알카라스 랭킹\", \"조코비치 순위\",\n    ],\n    alternates: {\n      canonical: `${SITE_URL}/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n      languages: koEnLanguages(\n        `/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n        `/en/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n      ),\n    },",
       "    title: `${label} Tennis World Rankings — Positions and Points`,\n    description: `${label} tennis world rankings, positions 1–150. Weekly movement, ranking points and nationality for Sinner, Alcaraz, Djokovic and every ranked player.`,\n    keywords: [\n      \"tennis world rankings\", \"ATP rankings\", \"WTA rankings\", \"tennis standings\",\n      \"tennis ranking points\", \"Sinner ranking\", \"Alcaraz ranking\", \"Djokovic ranking\",\n    ],\n    alternates: {\n      canonical: `${SITE_URL}/en/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n      languages: koEnLanguages(\n        `/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n        `/en/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n      ),\n    },"
     ],
     [
       "import { SITE_URL } from \"@/lib/site-url\";",
-      "import { SITE_URL } from \"@/lib/site-url\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { SITE_URL } from \"@/lib/site-url\";"
     ]
   ],
   "dict": {

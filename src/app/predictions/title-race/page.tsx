@@ -13,6 +13,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 600; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -20,7 +21,10 @@ export const metadata: Metadata = {
   title: "우승 경쟁 trackerboard",
   description:
     "전 세계 80+ 축구 리그의 우승 경쟁 현황을 한눈에. 1위와 2위 승점차, 잔여 경기, 챔피언 후보 비교. 스코어베이스.",
-  alternates: { canonical: "/predictions/title-race" },
+  alternates: {
+    canonical: "/predictions/title-race",
+    languages: koEnLanguages("/predictions/title-race", "/en/predictions/title-race"),
+  },
 };
 
 // 핵심 리그만 (잘 알려진 리그 우선 + 한국 시청자 trafficking)

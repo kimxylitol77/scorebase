@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import UfcRankingsView, { type RankCategory, type RankedFighter } from "./UfcRankingsView";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600; // 랭킹은 주 1회 갱신 → 1시간 캐시로 충분
 
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
   description:
     "UFC 공식 체급별 랭킹과 파운드-포-파운드(P4P) 순위. 헤비급·라이트급·웰터급 등 남녀 전 체급 챔피언과 컨텐더 1~15위를 한국어 이름·전적과 함께. 매주 자동 갱신, 데이터 UFC.com.",
   keywords: ["UFC 랭킹", "UFC 순위", "체급별 랭킹", "파운드 포 파운드", "P4P", "UFC 챔피언", "UFC 헤비급 랭킹", "MMA 랭킹"],
-  alternates: { canonical: "https://www.scorebase.kr/rankings/ufc" },
+  alternates: {
+    canonical: "https://www.scorebase.kr/rankings/ufc",
+    languages: koEnLanguages("/rankings/ufc", "/en/rankings/ufc"),
+  },
 };
 
 export default async function UfcRankingsPage() {

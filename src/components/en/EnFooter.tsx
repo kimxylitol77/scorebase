@@ -28,6 +28,55 @@ export default function EnFooter() {
             한국어 (Korean site)
           </Link>
         </div>
+
+        {/* 연봉·랭킹·통계 — 헤더에 다 넣기엔 많아 푸터에서 묶어 노출한다 */}
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
+          <Link href="/en/salaries/soccer" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Football wages
+          </Link>
+          <Link href="/en/salaries/mlb" className="hover:text-neutral-900 dark:hover:text-white transition">
+            MLB salaries
+          </Link>
+          <Link href="/en/salaries/nba" className="hover:text-neutral-900 dark:hover:text-white transition">
+            NBA salaries
+          </Link>
+          <Link href="/en/salaries/nhl" className="hover:text-neutral-900 dark:hover:text-white transition">
+            NHL salaries
+          </Link>
+          <Link href="/en/salaries/f1" className="hover:text-neutral-900 dark:hover:text-white transition">
+            F1 salaries
+          </Link>
+          <Link href="/en/salaries/tennis" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Tennis prize money
+          </Link>
+          <Link href="/en/salaries/golf" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Golf prize money
+          </Link>
+          <Link href="/en/rankings/tennis" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Tennis rankings
+          </Link>
+          <Link href="/en/rankings/f1" className="hover:text-neutral-900 dark:hover:text-white transition">
+            F1 standings
+          </Link>
+          <Link href="/en/rankings/ufc" className="hover:text-neutral-900 dark:hover:text-white transition">
+            UFC rankings
+          </Link>
+          <Link href="/en/rankings/value-clubs" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Value for money clubs
+          </Link>
+          <Link href="/en/over-under" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Over/Under stats
+          </Link>
+          <Link href="/en/predictions/club-ranking" className="hover:text-neutral-900 dark:hover:text-white transition">
+            World club rankings
+          </Link>
+          <Link href="/en/predictions/title-race" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Title races
+          </Link>
+          <Link href="/en/national-teams" className="hover:text-neutral-900 dark:hover:text-white transition">
+            World Cup nations
+          </Link>
+        </div>
         <p className="text-xs leading-relaxed">
           Scorebase provides data-driven sports analysis powered by Elo ratings, market odds and
           statistical models. Predictions are probabilistic estimates, not guarantees — please use

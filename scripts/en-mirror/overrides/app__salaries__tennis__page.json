@@ -70,12 +70,12 @@
       ""
     ],
     [
-      "  const label = isWta ? \"WTA 여자\" : \"ATP 남자\";\n  return {\n    title: `테니스 상금 랭킹 — ${label} 시즌 상금 순위 (한화)`,\n    description: `${label} 테니스 시즌 상금(YTD) 순위 top 50 을 달러·원화로. 단식·복식 합산 공식 상금을 한국어 선수명으로 — 스코어베이스. 데이터 ATP·WTA 공식 발표.`,\n    keywords: [\"테니스 상금 랭킹\", \"ATP 상금\", \"WTA 상금\", \"테니스 상금 순위\", \"시너 상금\", \"사발렌카 상금\", \"알카라스 상금\"],\n    alternates: { canonical: `https://www.scorebase.kr/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}` },\n  };",
+      "  const label = isWta ? \"WTA 여자\" : \"ATP 남자\";\n  return {\n    title: `테니스 상금 랭킹 — ${label} 시즌 상금 순위 (한화)`,\n    description: `${label} 테니스 시즌 상금(YTD) 순위 top 50 을 달러·원화로. 단식·복식 합산 공식 상금을 한국어 선수명으로 — 스코어베이스. 데이터 ATP·WTA 공식 발표.`,\n    keywords: [\"테니스 상금 랭킹\", \"ATP 상금\", \"WTA 상금\", \"테니스 상금 순위\", \"시너 상금\", \"사발렌카 상금\", \"알카라스 상금\"],\n    alternates: {\n      canonical: `https://www.scorebase.kr/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n      languages: koEnLanguages(\n        `/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n        `/en/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n      ),\n    },\n  };",
       "  const label = isWta ? \"WTA\" : \"ATP\";\n  return {\n    title: `Tennis Prize Money — ${label} Season Earnings Ranking`,\n    description: `${label} year-to-date prize money ranking, top 50 in USD. Official singles and doubles earnings — data from ATP and WTA.`,\n    keywords: [\"tennis prize money\", \"ATP prize money\", \"WTA prize money\", \"tennis earnings ranking\", \"Sinner prize money\", \"Sabalenka prize money\"],\n    alternates: {\n      canonical: `https://www.scorebase.kr/en/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n      languages: koEnLanguages(\n        `/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n        `/en/salaries/tennis${isWta ? \"?tour=wta\" : \"\"}`,\n      ),\n    },\n  };"
     ],
     [
       "import { CircleDollarSign } from \"lucide-react\";",
-      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { CircleDollarSign } from \"lucide-react\";"
     ]
   ],
   "dict": {

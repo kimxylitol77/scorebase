@@ -20,6 +20,7 @@ import {
   UNDER_HUE,
 } from "@/components/stats/OverUnderChart";
 import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 1800;
 
@@ -57,7 +58,10 @@ export async function generateMetadata({
       `${ko} 오버 많이 나는 팀`, `${ko} 언더 많이 나는 팀`, `${ko} 경기당 득점`,
       "축구 오버언더 통계", "오버 2.5 통계",
     ].join(", "),
-    alternates: { canonical: `${SITE}/over-under/${league}` },
+    alternates: {
+      canonical: `${SITE}/over-under/${league}`,
+      languages: koEnLanguages(`/over-under/${league}`, `/en/over-under/${league}`),
+    },
     openGraph: { title, description, url: `${SITE}/over-under/${league}`, type: "article" },
   };
 }

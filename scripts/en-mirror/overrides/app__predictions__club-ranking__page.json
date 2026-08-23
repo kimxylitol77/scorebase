@@ -59,7 +59,7 @@
     ],
     [
       "import { SITE_URL } from \"@/lib/site-url\";",
-      "import { SITE_URL } from \"@/lib/site-url\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { SITE_URL } from \"@/lib/site-url\";"
     ]
   ],
   "dict": {

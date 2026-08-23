@@ -8,6 +8,7 @@ import TeamBadge from "@/components/TeamBadge";
 import DriverAvatar from "@/components/scores/f1/DriverAvatar";
 import { fetchF1Championship, F1_TEAM_LOGO } from "@/lib/sports/espn-f1";
 import { SITE_URL } from "@/lib/site-url";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 1800;
 
@@ -28,7 +29,13 @@ export async function generateMetadata({
       "F1 순위", "F1 드라이버 순위", "F1 챔피언십", "포뮬러1 순위", "컨스트럭터 순위",
       "F1 포인트", "페르스타펀", "해밀턴", "르클레르", "노리스",
     ],
-    alternates: { canonical: `${SITE_URL}/rankings/f1${isTeam ? "?view=team" : ""}` },
+    alternates: {
+      canonical: `${SITE_URL}/rankings/f1${isTeam ? "?view=team" : ""}`,
+      languages: koEnLanguages(
+        `/rankings/f1${isTeam ? "?view=team" : ""}`,
+        `/en/rankings/f1${isTeam ? "?view=team" : ""}`,
+      ),
+    },
   };
 }
 

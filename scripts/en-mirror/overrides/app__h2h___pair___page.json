@@ -2,6 +2,10 @@
   "header": "/en/h2h/[pair] — 팀 간 상대전적 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
   "preReplace": [
     [
+      "import { koEnLanguages } from \"@/lib/i18n/en\";\n",
+      ""
+    ],
+    [
       "  const koA = toKoreanTeamName(teamA.name, teamA.league) || teamA.name;\n  const koB = toKoreanTeamName(teamB.name, teamB.league) || teamB.name;",
       "  const koA = toEnglishTeamName(teamA.name);\n  const koB = toEnglishTeamName(teamB.name);"
     ],
@@ -78,7 +82,7 @@
       "      `${koA} ${koB} h2h`,\n      \"head to head\","
     ],
     [
-      "    alternates: { canonical: `/h2h/${a}-vs-${b}` },",
+      "    alternates: {\n      canonical: `/h2h/${a}-vs-${b}`,\n      languages: koEnLanguages(`/h2h/${a}-vs-${b}`, `/en/h2h/${a}-vs-${b}`),\n    },",
       "    alternates: {\n      canonical: `/en/h2h/${a}-vs-${b}`,\n      languages: koEnLanguages(`/h2h/${a}-vs-${b}`, `/en/h2h/${a}-vs-${b}`),\n    },"
     ]
   ],

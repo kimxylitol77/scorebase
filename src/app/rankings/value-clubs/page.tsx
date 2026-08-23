@@ -12,6 +12,7 @@ import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import { teamDisplayKo } from "@/lib/team-names";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
 
@@ -47,7 +48,10 @@ export const metadata: Metadata = {
     "가성비 구단", "스쿼드 가치", "몸값 대비 성적", "축구 구단 효율", "프리미어리그 몸값",
     "라리가 스쿼드 가치", "축구 시장가치 랭킹",
   ],
-  alternates: { canonical: `${SITE_URL}/rankings/value-clubs` },
+  alternates: {
+    canonical: `${SITE_URL}/rankings/value-clubs`,
+    languages: koEnLanguages("/rankings/value-clubs", "/en/rankings/value-clubs"),
+  },
   openGraph: {
     title: "가성비 구단 랭킹 — 몸값 대비 승점",
     description: "빅5 구단을 스쿼드 시장가치 1억 유로당 승점으로 줄 세웠습니다.",

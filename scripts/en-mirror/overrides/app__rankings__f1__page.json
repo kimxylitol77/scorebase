@@ -50,12 +50,12 @@
       "              {\" \"}Current leader: <strong className=\"text-neutral-800 dark:text-neutral-200\">{leader.name}</strong>\n              {leader.team && ` (${leader.team})`} · {leader.points} pts."
     ],
     [
-      "  const label = isTeam ? \"컨스트럭터(팀)\" : \"드라이버\";\n  return {\n    title: `F1 ${label} 챔피언십 순위 — 포인트·우승 (${YEAR})`,\n    description: `${YEAR} 포뮬러 1 ${label} 챔피언십 순위를 한국어로. 포인트·우승 횟수·선두와의 격차까지 한눈에. 페르스타펀·해밀턴·르클레르 등 드라이버와 레드불·페라리·맥라렌 팀 순위 — 스코어베이스.`,\n    keywords: [\n      \"F1 순위\", \"F1 드라이버 순위\", \"F1 챔피언십\", \"포뮬러1 순위\", \"컨스트럭터 순위\",\n      \"F1 포인트\", \"페르스타펀\", \"해밀턴\", \"르클레르\", \"노리스\",\n    ],\n    alternates: { canonical: `${SITE_URL}/rankings/f1${isTeam ? \"?view=team\" : \"\"}` },\n  };",
+      "  const label = isTeam ? \"컨스트럭터(팀)\" : \"드라이버\";\n  return {\n    title: `F1 ${label} 챔피언십 순위 — 포인트·우승 (${YEAR})`,\n    description: `${YEAR} 포뮬러 1 ${label} 챔피언십 순위를 한국어로. 포인트·우승 횟수·선두와의 격차까지 한눈에. 페르스타펀·해밀턴·르클레르 등 드라이버와 레드불·페라리·맥라렌 팀 순위 — 스코어베이스.`,\n    keywords: [\n      \"F1 순위\", \"F1 드라이버 순위\", \"F1 챔피언십\", \"포뮬러1 순위\", \"컨스트럭터 순위\",\n      \"F1 포인트\", \"페르스타펀\", \"해밀턴\", \"르클레르\", \"노리스\",\n    ],\n    alternates: {\n      canonical: `${SITE_URL}/rankings/f1${isTeam ? \"?view=team\" : \"\"}`,\n      languages: koEnLanguages(\n        `/rankings/f1${isTeam ? \"?view=team\" : \"\"}`,\n        `/en/rankings/f1${isTeam ? \"?view=team\" : \"\"}`,\n      ),\n    },\n  };",
       "  const label = isTeam ? \"Constructor\" : \"Driver\";\n  return {\n    title: `F1 ${label} Championship Standings — Points and Wins (${YEAR})`,\n    description: `${YEAR} Formula 1 ${label.toLowerCase()} championship standings. Points, race wins and gap to the leader for Verstappen, Hamilton, Leclerc and every Red Bull, Ferrari and McLaren entry.`,\n    keywords: [\n      \"F1 standings\", \"F1 driver standings\", \"F1 championship\", \"Formula 1 standings\",\n      \"constructor standings\", \"F1 points\", \"Verstappen\", \"Hamilton\", \"Leclerc\", \"Norris\",\n    ],\n    alternates: {\n      canonical: `${SITE_URL}/en/rankings/f1${isTeam ? \"?view=team\" : \"\"}`,\n      languages: koEnLanguages(\n        `/rankings/f1${isTeam ? \"?view=team\" : \"\"}`,\n        `/en/rankings/f1${isTeam ? \"?view=team\" : \"\"}`,\n      ),\n    },\n  };"
     ],
     [
       "import { SITE_URL } from \"@/lib/site-url\";",
-      "import { SITE_URL } from \"@/lib/site-url\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { SITE_URL } from \"@/lib/site-url\";"
     ]
   ],
   "dict": {

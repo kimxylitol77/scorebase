@@ -116,6 +116,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/en/predictions/scorecard`, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/en/injuries/EPL`, changeFrequency: "daily", priority: 0.55 },
     { url: `${base}/en/transfers`, changeFrequency: "daily", priority: 0.6 },
+    // 영어판 연봉·상금 랭킹 (2026-08 en-mirror 로 생성) — KBO 는 한글 원본뿐이라 제외
+    ...["soccer", "mlb", "nba", "nhl", "f1", "tennis", "golf"].map((sp) => ({
+      url: `${base}/en/salaries/${sp}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+    // 영어판 랭킹
+    ...["f1", "tennis", "ufc", "value-clubs"].map((r) => ({
+      url: `${base}/en/rankings/${r}`,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    })),
+    { url: `${base}/en/over-under`, changeFrequency: "daily", priority: 0.65 },
+    // 오버/언더 리그 상세는 핵심 리그만 — thin 희석 방지(한국어판은 94개 전체 등재)
+    ...SITEMAP_LEAGUES.map((lg) => ({
+      url: `${base}/en/over-under/${lg}`,
+      changeFrequency: "daily" as const,
+      priority: 0.55,
+    })),
+    { url: `${base}/en/predictions/club-ranking`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/en/predictions/title-race`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/en/national-teams`, changeFrequency: "weekly", priority: 0.55 },
     ...SITEMAP_LEAGUES.filter((lg) => EN_STANDINGS_LEAGUE_SET.has(lg)).map((lg) => ({
       url: `${base}/en/standings/${lg}`,
       changeFrequency: "daily" as const,

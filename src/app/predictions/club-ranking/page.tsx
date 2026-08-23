@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import rawClubs from "../../../../data/club-rankings.json";
 import clubMeta from "../../../../data/club-rankings-meta.json";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 interface ClubRank { id: string; rank: number; name: string; logo: string | null; countryLogo: string | null; points: number; prev: number; change: number }
 const CLUBS = rawClubs as ClubRank[];
@@ -26,7 +27,10 @@ export const metadata: Metadata = {
     "바이에른 뮌헨 순위", "레알 마드리드 순위", "맨시티 순위", "PSG 순위", "바르셀로나 순위",
     "스코어베이스",
   ],
-  alternates: { canonical: "/predictions/club-ranking" },
+  alternates: {
+    canonical: "/predictions/club-ranking",
+    languages: koEnLanguages("/predictions/club-ranking", "/en/predictions/club-ranking"),
+  },
   openGraph: {
     title: `세계 축구 클럽 랭킹 TOP ${CLUBS.length}`,
     description: `${TOP_NAMES} 등 세계 클럽 순위·포인트·변동을 한 화면에서.`,

@@ -1,0 +1,11 @@
+{
+  "header": "월드컵 허브 탭바 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "조별리그": "Groups",
+    "대진표": "Bracket",
+    "개요": "Overview",
+    "예측": "Predictions",
+    "선수": "Players"
+  }
+}

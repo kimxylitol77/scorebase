@@ -67,7 +67,7 @@
     ],
     [
       "import { CircleDollarSign } from \"lucide-react\";",
-      "import { CircleDollarSign } from \"lucide-react\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import { CircleDollarSign } from \"lucide-react\";"
     ],
     [
       "                const ko = toKoreanTeamName(t.name, \"NHL\") ?? t.name;\n",
@@ -84,6 +84,10 @@
     [
       "                  // 위키 사전(정본) 우선 — 미등재만 haiku json(ts-id 키라 사실상 미스) → 영문 fallback.\n                  const dictKo = toKoreanPlayerName(r.playerName);\n                  const display = dictKo !== r.playerName ? dictKo : (nhlId ? nhlPlayerKo(nhlId) : \"\") || r.playerName;\n                  const team = r.teamName ? toKoreanTeamName(r.teamName, \"NHL\") : null;",
       "                  const display = r.playerName;\n                  const team = r.teamName ?? null;"
+    ],
+    [
+      "  title: \"NHL 선수·팀별 연봉 랭킹 — cap hit (한화)\",\n  description:\n    \"NHL 선수 연봉(cap hit) 순위 + 팀별 총 연봉(페이롤) 랭킹. 매키넌·카프리조프·드라이자이틀 등 최고 연봉 선수와 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 CapWages.\",\n  keywords: [\"NHL 연봉\", \"NHL 팀 연봉\", \"NHL 페이롤\", \"NHL cap hit\", \"NHL 선수 연봉 순위\", \"매키넌 연봉\", \"하키 연봉\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/salaries/nhl\",\n    languages: koEnLanguages(\"/salaries/nhl\", \"/en/salaries/nhl\"),\n  },",
+      "  title: \"NHL Salaries — Player Cap Hit and Team Payroll Rankings\",\n  description:\n    \"NHL player salary (cap hit) rankings plus team payroll totals. Nathan MacKinnon, Kirill Kaprizov, Leon Draisaitl and the highest-paid players in USD. Updated weekly. Data from CapWages.\",\n  keywords: [\"NHL salaries\", \"NHL cap hit\", \"NHL payroll\", \"NHL team payroll\", \"highest paid NHL players\", \"MacKinnon salary\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/nhl\",\n    languages: koEnLanguages(\"/salaries/nhl\", \"/en/salaries/nhl\"),\n  },"
     ],
     [
       "\"/salaries/nhl\"",
@@ -124,10 +128,6 @@
     [
       "        {season} 시즌 {subtitle} · cap hit 기준 · 데이터 CapWages.",
       "        {season} season · {subtitle} · data by CapWages."
-    ],
-    [
-      "  title: \"NHL 선수·팀별 연봉 랭킹 — cap hit (한화)\",\n  description:\n    \"NHL 선수 연봉(cap hit) 순위 + 팀별 총 연봉(페이롤) 랭킹. 매키넌·카프리조프·드라이자이틀 등 최고 연봉 선수와 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 CapWages.\",\n  keywords: [\"NHL 연봉\", \"NHL 팀 연봉\", \"NHL 페이롤\", \"NHL cap hit\", \"NHL 선수 연봉 순위\", \"매키넌 연봉\", \"하키 연봉\"],\n  alternates: { canonical: \"https://www.scorebase.kr/salaries/nhl\" },",
-      "  title: \"NHL Salaries — Player Cap Hit and Team Payroll Rankings\",\n  description:\n    \"NHL player salary (cap hit) rankings plus team payroll totals. Nathan MacKinnon, Kirill Kaprizov, Leon Draisaitl and the highest-paid players in USD. Updated weekly. Data from CapWages.\",\n  keywords: [\"NHL salaries\", \"NHL cap hit\", \"NHL payroll\", \"NHL team payroll\", \"highest paid NHL players\", \"MacKinnon salary\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/salaries/nhl\",\n    languages: koEnLanguages(\"/salaries/nhl\", \"/en/salaries/nhl\"),\n  },"
     ]
   ],
   "dict": {

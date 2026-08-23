@@ -2,6 +2,10 @@
   "header": "/en/over-under/[league] — 리그별 팀 오버/언더 표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
   "preReplace": [
     [
+      "import { koEnLanguages } from \"@/lib/i18n/en\";\n",
+      ""
+    ],
+    [
       "import { LEAGUE_DISPLAY, COUNTRY_BY_LEAGUE } from \"@/lib/sports/sport-leagues\";",
       "import { COUNTRY_BY_LEAGUE } from \"@/lib/sports/sport-leagues\";\nimport { enLeagueName, enCountryName, koEnLanguages } from \"@/lib/i18n/en\";"
     ],
@@ -66,7 +70,7 @@
       "  const title = `${ko} Over/Under Stats — Team Over 2.5 Ranking (${data.matches} matches)`;\n  const description =\n    `${ko} has an over 2.5 rate of ${over}%. Overs come most often for ${top?.name} (${f1(pct(top?.over25 ?? 0, top?.matches ?? 1))}%) ` +\n    `and least often for ${bottom?.name} (unders ${f1(100 - pct(bottom?.over25 ?? 0, bottom?.matches ?? 1))}%). ` +\n    `Average ${(data.goals / data.matches).toFixed(2)} goals per match, BTTS ${f1(pct(data.btts, data.matches))}%. Updated as each match finishes.`;"
     ],
     [
-      "    keywords: [\n      `${ko} 오버`, `${ko} 언더`, `${ko} 오버언더`, `${ko} 오버 2.5`,\n      `${ko} 오버 많이 나는 팀`, `${ko} 언더 많이 나는 팀`, `${ko} 경기당 득점`,\n      \"축구 오버언더 통계\", \"오버 2.5 통계\",\n    ].join(\", \"),\n    alternates: { canonical: `${SITE}/over-under/${league}` },\n    openGraph: { title, description, url: `${SITE}/over-under/${league}`, type: \"article\" },",
+      "    keywords: [\n      `${ko} 오버`, `${ko} 언더`, `${ko} 오버언더`, `${ko} 오버 2.5`,\n      `${ko} 오버 많이 나는 팀`, `${ko} 언더 많이 나는 팀`, `${ko} 경기당 득점`,\n      \"축구 오버언더 통계\", \"오버 2.5 통계\",\n    ].join(\", \"),\n    alternates: {\n      canonical: `${SITE}/over-under/${league}`,\n      languages: koEnLanguages(`/over-under/${league}`, `/en/over-under/${league}`),\n    },\n    openGraph: { title, description, url: `${SITE}/over-under/${league}`, type: \"article\" },",
       "    keywords: [\n      `${ko} over under`, `${ko} over 2.5`, `${ko} btts`, `${ko} goals per match`,\n      `${ko} highest scoring teams`, `${ko} lowest scoring teams`,\n      \"football over under stats\", \"over 2.5 statistics\",\n    ].join(\", \"),\n    alternates: {\n      canonical: `${SITE}/en/over-under/${league}`,\n      languages: koEnLanguages(`/over-under/${league}`, `/en/over-under/${league}`),\n    },\n    openGraph: { title, description, url: `${SITE}/en/over-under/${league}`, type: \"article\" },"
     ],
     [

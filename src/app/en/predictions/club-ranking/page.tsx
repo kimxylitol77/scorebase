@@ -4,11 +4,11 @@ import type { Metadata } from "next";
 import { ChevronLeft, Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { SITE_URL } from "@/lib/site-url";
-import { koEnLanguages } from "@/lib/i18n/en";
 import { prisma } from "@/lib/db";
 import rawClubs from "../../../../../data/club-rankings.json";
 import clubMeta from "../../../../../data/club-rankings-meta.json";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 interface ClubRank { id: string; rank: number; name: string; logo: string | null; countryLogo: string | null; points: number; prev: number; change: number }
 const CLUBS = rawClubs as ClubRank[];
@@ -24,7 +24,10 @@ export const metadata: Metadata = {
     "European club rankings", "club rankings 2026",
     "Bayern Munich ranking", "Real Madrid ranking", "Man City ranking", "PSG ranking", "Barcelona ranking",
   ],
-  alternates: { canonical: "/predictions/club-ranking" },
+  alternates: {
+    canonical: "/predictions/club-ranking",
+    languages: koEnLanguages("/predictions/club-ranking", "/en/predictions/club-ranking"),
+  },
   openGraph: {
     title: `World Football Club Rankings — Top ${CLUBS.length}`,
     description: `Positions, points and movement for ${TOP_NAMES} and the rest of the world's ranked clubs.`,

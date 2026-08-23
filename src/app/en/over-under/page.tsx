@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllLeaguesOverUnder } from "@/lib/stats/over-under";
 import { COUNTRY_BY_LEAGUE } from "@/lib/sports/sport-leagues";
-import { enLeagueName, enCountryName, koEnLanguages } from "@/lib/i18n/en";
+import { enLeagueName, enCountryName } from "@/lib/i18n/en";
 import {
   StatTile,
   RatioBar,
@@ -12,6 +12,7 @@ import {
   UNDER_HUE,
 } from "@/components/en/stats/OverUnderChart";
 import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 1800;
 

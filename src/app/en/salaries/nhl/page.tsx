@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   keywords: ["NHL salaries", "NHL cap hit", "NHL payroll", "NHL team payroll", "highest paid NHL players", "MacKinnon salary"],
   alternates: {
     canonical: "https://www.scorebase.kr/en/salaries/nhl",
-    languages: koEnLanguages("/salaries/nhl", "/en/salaries/nhl"),
+    languages: koEnLanguages("/en/salaries/nhl", "/en/salaries/nhl"),
   },
 };
 
