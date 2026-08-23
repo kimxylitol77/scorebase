@@ -2906,7 +2906,7 @@ function SoccerRowLayout({
       </div>
     );
 
-  // ── 상단 구획 (전체 보기 전용): 오늘의 주요 경기 / 곧 시작 / 배당·라인업 변동 ──
+  // ── 상단 구획 (전체 보기 전용): 오늘의 주요 경기 / 곧 시작 ──
   // 서버 컴포넌트 — 요청마다 1회 렌더라 Date.now() 허용 (notStalePast 와 동일 전제).
   // eslint-disable-next-line react-hooks/purity
   const nowMs = Date.now();
@@ -2924,16 +2924,7 @@ function SoccerRowLayout({
         })
         .slice(0, 10)
     : [];
-  const changed = showHighlights
-    ? [...liveSorted, ...scheduledSorted]
-        .filter((m) => {
-          const t = m.odds?.trend;
-          const oddsMoved = !!t && (t.home !== 0 || t.draw !== 0 || t.away !== 0);
-          const lineupArrived = m.status === "SCHEDULED" && lineupSet.has(Number(m.id));
-          return oddsMoved || lineupArrived;
-        })
-        .slice(0, 8)
-    : [];
+  // "배당·라인업 변동" 구획은 사용자 요청으로 제거 (2026-08-23) — 주요 경기·곧 시작만 유지.
   const highlightSection = (
     title: string,
     hint: string,
@@ -2960,11 +2951,10 @@ function SoccerRowLayout({
       </section>
     ) : null;
   const highlights = (mobile: boolean) =>
-    showHighlights && (featured.length > 0 || soon.length > 0 || changed.length > 0) ? (
+    showHighlights && (featured.length > 0 || soon.length > 0) ? (
       <>
         {highlightSection("오늘의 주요 경기", "인기 리그 · 진행 중 → 예정 → 종료", featured, mobile)}
         {highlightSection("곧 시작", "2시간 이내 킥오프", soon, mobile)}
-        {highlightSection("배당·라인업 변동", "오프닝 대비 배당 이동 · 선발 발표", changed, mobile)}
       </>
     ) : null;
 
