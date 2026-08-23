@@ -104,6 +104,10 @@
     [
       "<span className=\"text-neutral-400 font-normal\">· 시즌 {goalSpots.length}골</span>",
       "<span className=\"text-neutral-400 font-normal\">· {goalSpots.length} goals this season</span>"
+    ],
+    [
+      "    alternates: {\n      canonical: `/national-teams/${canonicalId}`,\n      languages: koEnLanguages(`/national-teams/${canonicalId}`, `/en/national-teams/${canonicalId}`),\n    },",
+      "    alternates: {\n      canonical: `/en/national-teams/${canonicalId}`,\n      languages: koEnLanguages(`/national-teams/${canonicalId}`, `/en/national-teams/${canonicalId}`),\n    },"
     ]
   ],
   "dict": {

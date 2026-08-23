@@ -165,11 +165,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     where: { league: "WORLD_CUP" },
     select: { id: true },
   });
-  const nationalTeamPages: MetadataRoute.Sitemap = wcTeams.map((t) => ({
-    url: `${base}/national-teams/${t.id}`,
-    changeFrequency: "daily" as const,
-    priority: 0.8,
-  }));
+  const nationalTeamPages: MetadataRoute.Sitemap = wcTeams.flatMap((t) => [
+    {
+      url: `${base}/national-teams/${t.id}`,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    },
+    // 영어판(2026-08 en-mirror) — 허브에서 링크되는 48개국 상세.
+    // 감독 페이지(/en/coaches)는 경력 데이터가 한글 전용이라 섹션이 빠져 한국어판보다 얇아 제외.
+    {
+      url: `${base}/en/national-teams/${t.id}`,
+      changeFrequency: "daily" as const,
+      priority: 0.5,
+    },
+  ]);
 
   // 월드컵 '오늘의 베스트 XI' 날짜별 페이지 — 최신일은 base(staticPages)에 이미 등록 + [date] 가
   // redirect 하므로 slice(1)로 과거일만. 과거일 평점은 확정 = 거의 불변(monthly).

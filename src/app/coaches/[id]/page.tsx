@@ -26,6 +26,7 @@ import {
 } from "@/lib/tactical/sub-impact";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { formatDateKo } from "@/lib/format";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 // ISR — 감독 정보·경력은 거의 불변. 10분 캐시.
 export const revalidate = 600;
@@ -126,7 +127,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       "감독 프로필", "스코어베이스",
     ],
     openGraph: { title, description, type: "profile", ...(c.snap.logo ? { images: [{ url: c.snap.logo }] } : {}) },
-    alternates: { canonical: `/coaches/${id}` },
+    alternates: {
+      canonical: `/coaches/${id}`,
+      languages: koEnLanguages(`/coaches/${id}`, `/en/coaches/${id}`),
+    },
   };
 }
 

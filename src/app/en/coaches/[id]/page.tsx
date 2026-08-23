@@ -13,7 +13,6 @@ import rawCoachPhotos from "../../../../../data/coach-photos.json";
 import rawTacticalExtras from "../../../../../data/coach-tactical-extras.json";
 import rawLegends from "../../../../../data/coach-legends.json";
 import TacticalManagerSection from "@/components/en/TacticalManagerSection";
-import { koEnLanguages } from "@/lib/i18n/en";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
 import {
@@ -22,6 +21,7 @@ import {
   type SubImpactTeamRow,
 } from "@/lib/tactical/sub-impact";
 import { formatDateKo } from "@/lib/format";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 // ISR — 감독 정보·경력은 거의 불변. 10분 캐시.
 export const revalidate = 600;

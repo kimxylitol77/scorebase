@@ -16,6 +16,7 @@ import rawCoaches from "../../../../../data/team-coaches.json";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import rawWcSquads from "../../../../../data/wc-national-squads.json";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 // ISR — 스쿼드·일정·조별 순위 5분 캐시(WC 라이브 결과는 /world-cup·/standings 가 정본).
@@ -151,7 +152,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title,
     description,
     keywords,
-    alternates: { canonical: `/national-teams/${canonicalId}` },
+    alternates: {
+      canonical: `/en/national-teams/${canonicalId}`,
+      languages: koEnLanguages(`/national-teams/${canonicalId}`, `/en/national-teams/${canonicalId}`),
+    },
     openGraph: { title, description, type: "website" },
   };
 }

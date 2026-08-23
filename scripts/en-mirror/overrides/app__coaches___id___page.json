@@ -38,12 +38,12 @@
       "      name, `${name} manager`, `${name} career`,\n      ...(titles > 0 ? [`${name} trophies`] : []),\n      ...(pf ? [`${name} formation`, `${name} tactics`] : []),\n      ...(currentClub ? [`${currentClub} manager`] : []),\n      \"manager profile\", \"football manager\","
     ],
     [
-      "    alternates: { canonical: `/coaches/${id}` },",
+      "    alternates: {\n      canonical: `/coaches/${id}`,\n      languages: koEnLanguages(`/coaches/${id}`, `/en/coaches/${id}`),\n    },",
       "    alternates: {\n      canonical: `/en/coaches/${id}`,\n      languages: koEnLanguages(`/coaches/${id}`, `/en/coaches/${id}`),\n    },"
     ],
     [
       "import TacticalManagerSection from \"@/components/TacticalManagerSection\";",
-      "import TacticalManagerSection from \"@/components/TacticalManagerSection\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+      "import TacticalManagerSection from \"@/components/TacticalManagerSection\";"
     ],
     [
       "{g.club === \"Individual\" ? (<span className=\"inline-flex items-center gap-1.5\"><Award className=\"h-4 w-4 text-amber-500\" aria-hidden /> 개인 수상</span>) : toKoreanTeamName(g.club) || g.club}",
