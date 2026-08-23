@@ -1,0 +1,215 @@
+{
+  "header": "/en/standings/[league] — 리그별 순위표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "          return t ? t.nameKo || toKoreanTeamName(t.name, \"KBO\") || t.name : \"\";",
+      "          return t ? toEnglishTeamName(t.name) : \"\";"
+    ],
+    [
+      "              const ko = toKoreanTeamName(t.name, upper);",
+      "              const ko = toEnglishTeamName(t.name);"
+    ],
+    [
+      "{toKoreanTeamName(t.name, upper)}",
+      "{toEnglishTeamName(t.name)}"
+    ],
+    [
+      "{toKoreanTeamName(r.name, \"WORLD_CUP\")}",
+      "{toEnglishTeamName(r.name)}"
+    ],
+    [
+      "{toKoreanTeamName(t.name, league)}",
+      "{toEnglishTeamName(t.name)}"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName, enLeagueName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "canonical: \"https://www.scorebase.kr/standings/NHL\"",
+      "canonical: \"https://www.scorebase.kr/en/standings/NHL\""
+    ],
+    [
+      "canonical: \"https://www.scorebase.kr/standings/KBO\"",
+      "canonical: \"https://www.scorebase.kr/en/standings/KBO\""
+    ],
+    [
+      "canonical: \"https://www.scorebase.kr/standings/EPL\"",
+      "canonical: \"https://www.scorebase.kr/en/standings/EPL\""
+    ],
+    [
+      "canonical: \"https://www.scorebase.kr/standings/EWC\"",
+      "canonical: \"https://www.scorebase.kr/en/standings/EWC\""
+    ],
+    [
+      "canonical: \"https://www.scorebase.kr/standings/LPL\"",
+      "canonical: \"https://www.scorebase.kr/en/standings/LPL\""
+    ],
+    [
+      "  const bracket = await loadPlayoffBracket(league);\n  if (bracket.length === 0) return null;",
+      "  // 브라켓 라벨(라운드명·시리즈 요약)이 DB 에 한국어로만 있어 영어판에서는 감춘다\n  const bracket = await loadPlayoffBracket(league);\n  if (bracket.length >= 0) return null;"
+    ],
+    [
+      "  } = await loadLeagueLeaderboard(upper);",
+      "  } = await loadLeagueLeaderboard(upper, undefined, \"en\");"
+    ],
+    [
+      "await loadLeagueLeaderboard(upper, leadersStaleSeason)",
+      "await loadLeagueLeaderboard(upper, leadersStaleSeason, \"en\")"
+    ],
+    [
+      "await loadLeagueLeaderboard(league);",
+      "await loadLeagueLeaderboard(league, undefined, \"en\");"
+    ],
+    [
+      "await loadLeagueLeaderboard(\"NBA\");",
+      "await loadLeagueLeaderboard(\"NBA\", undefined, \"en\");"
+    ],
+    [
+      "await loadLeagueLeaderboard(\"NHL\");",
+      "await loadLeagueLeaderboard(\"NHL\", undefined, \"en\");"
+    ],
+    [
+      "  const name = LEAGUE_DISPLAY[upper] ?? upper;",
+      "  const name = enLeagueName(upper);"
+    ],
+    [
+      "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";\n",
+      ""
+    ]
+  ],
+  "dict": {
+    "팀": "Team",
+    "경기": "GP",
+    "승": "W",
+    "무": "D",
+    "패": "L",
+    "승점": "Pts",
+    "득점": "GF",
+    "실점": "GA",
+    "득실": "GD",
+    "승률": "PCT",
+    "게임차": "GB",
+    "팀 ·": "teams ·",
+    "일": "",
+    "월 ": "-",
+    "시즌 진행 중": "Season in progress",
+    "지난 시즌 최종 순위": "Last season's final table",
+    "TheSports 실시간 갱신": "Live updates from TheSports",
+    "FINISHED 매치 기반 계산": "Calculated from finished matches",
+    "시즌 매치 데이터가 아직 수집되지 않았습니다.": "No match data collected for this season yet.",
+    "일정 보기 →": "View fixtures →",
+    "예선·리그페이즈·녹아웃이 단계별로 나뉘는 대회라 단일 순위표로 표시하지 않습니다.\n            리그페이즈가 시작되면 공식 순위를 보여드립니다.": "This competition runs qualifying, a league phase and knockouts in stages, so a single table does not apply.\n            The official table appears once the league phase begins.",
+    "KBO 리그 팀 순위는 얼마나 자주 갱신되나요?": "How often are the KBO standings updated?",
+    "경기 종료 후 공식 순위 데이터를 10분 주기로 수집하며, 이 순위표 페이지도 약 10분 간격으로 자동 갱신됩니다.": "Official standings are collected every 10 minutes after matches finish, and this page refreshes on roughly the same cycle.",
+    "프로야구 순위는 어떤 기준으로 정해지나요?": "How are the standings ordered?",
+    "승률 순입니다. 승률은 승수를 승수와 패수의 합으로 나눈 값이며, 무승부는 승률 계산에서 제외됩니다.": "By win percentage — wins divided by wins plus losses. Draws are excluded from the calculation.",
+    "게임차는 어떻게 계산하나요?": "How is games behind calculated?",
+    "(1위 팀 승수 - 해당 팀 승수 + 해당 팀 패수 - 1위 팀 패수) ÷ 2 값입니다. 1위 팀과의 격차를 경기 수 단위로 나타낸 값입니다.": "(leader's wins − team's wins + team's losses − leader's losses) ÷ 2. It expresses the gap to first place in games.",
+    "KBO 포스트시즌에는 몇 팀이 진출하나요?": "How many teams make the KBO postseason?",
+    "정규시즌 상위 5팀이 진출합니다. 4위와 5위가 와일드카드 결정전(4위 팀 1승 어드밴티지)을 치르고, 승자가 3위와 준플레이오프, 그 승자가 2위와 플레이오프, 최종 승자가 1위와 한국시리즈를 치릅니다.": "The top five. Fourth and fifth meet in a wild-card series (fourth starts one win up); the winner plays third, that winner plays second, and the final winner meets first in the Korean Series.",
+    "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차": "KBO League Standings 2026 — Win Percentage and Games Behind",
+    "KBO 리그 팀 순위표. 10개 구단 승·패·무·승률·게임차와 최근 폼을 한눈에. 한국 프로야구 순위 매일 자동 갱신.": "KBO League standings — wins, losses, draws, win percentage, games behind and recent form for all 10 clubs. Updated daily.",
+    "2026 한국 프로야구(KBO 리그) 10개 구단 팀 순위표. 승·무·패와 승률, 게임차 기준 공식 순위를 매일 자동 갱신합니다.": "Official 2026 KBO League table for all 10 clubs, ordered by win percentage with games behind. Updated daily.",
+    "2026 일본 프로야구(NPB) 12개 구단 팀 순위표. 승·무·패와 승률 기준 공식 순위를 매일 자동 갱신합니다.": "Official 2026 NPB table for all 12 clubs, ordered by win percentage. Updated daily.",
+    "NHL 순위표 — 동·서부 컨퍼런스 전체 순위": "NHL Standings — Eastern and Western Conference",
+    "NHL 정규시즌 순위표. 동부·서부 컨퍼런스 32팀의 경기·승·패·연장패·승점 전체 순위를 NHL 공식 기록으로 매일 자동 갱신.": "NHL regular-season standings — games, wins, losses, overtime losses and points for all 32 teams across both conferences, from official NHL records.",
+    "프리미어리그 순위 — 2026-27 EPL 팀 순위표·일정": "Premier League Table 2026-27 — Standings and Fixtures",
+    "잉글랜드 프리미어리그(EPL) 팀 순위표. 2026-27 새 시즌 개막 후 승점·승무패·골득실 실시간 자동 갱신, 개막 전에는 참가 20팀 명단 제공. 시즌 우승 확률 시뮬레이션 함께 제공.": "Premier League table — points, results and goal difference update live once the 2026-27 season starts; before kick-off the 20 competing clubs are listed. Title probability simulation included.",
+    "LPL 순위 — 2026 중국 롤 프로리그 그룹별 순위표": "LPL Standings 2026 — League of Legends Pro League by Group",
+    "LPL(중국 League of Legends Pro League) 2026 스플릿 순위표. 그룹(조)별 팀 순위·승패·승률과 팀 로스터를 한눈에. 매일 자동 갱신.": "LPL 2026 split standings by group — team records, win percentage and rosters. Updated daily.",
+    "이스포츠 월드컵 LoL 순위 — 그룹 스테이지 결과·일정": "Esports World Cup LoL Standings — Group Stage",
+    "이스포츠 월드컵(Esports World Cup) 리그 오브 레전드 그룹 스테이지 순위·경기 결과·일정. T1 등 출전팀의 승패와 세트 스코어를 한눈에. 매일 자동 갱신.": "Esports World Cup League of Legends group stage — standings, results and fixtures with set scores. Updated daily.",
+    " 시즌 순위표. 승점·승무패·골득실·득점·실점 한눈에. 매일 자동 갱신.": " season table — points, results, goal difference, goals for and against. Updated daily.",
+    " 순위표": " Table",
+    "KBO 순위": "KBO standings",
+    "KBO 리그 팀 순위": "KBO League table",
+    "KBO 팀 순위": "KBO team standings",
+    "KBO 순위표": "KBO table",
+    "KBO 리그 순위": "KBO League standings",
+    "프로야구 순위": "Korean baseball standings",
+    "프로야구 순위표": "Korean baseball table",
+    "야구 순위": "baseball standings",
+    "한국 프로야구 순위": "Korean baseball standings",
+    "프리미어리그 순위": "Premier League standings",
+    "EPL 순위": "EPL table",
+    "EPL 순위표": "EPL standings",
+    "프리미어리그 순위표": "Premier League table",
+    "잉글랜드 프리미어리그": "English Premier League",
+    "EPL 개막": "Premier League opening",
+    "프리미어리그 일정": "Premier League fixtures",
+    "LPL 순위": "LPL standings",
+    "LPL 순위표": "LPL table",
+    "중국 롤 순위": "Chinese LoL standings",
+    "LPL 팀 순위": "LPL team standings",
+    "이스포츠 월드컵 LoL": "Esports World Cup LoL",
+    "EWC 롤": "EWC LoL",
+    "이스포츠 월드컵 순위": "Esports World Cup standings",
+    "10개 구단 승·패·무·승률·게임차 자동 갱신.": "All 10 clubs — wins, losses, draws, win percentage and games behind, updated automatically.",
+    " KBO 팀 순위: 1위 ": " KBO standings: 1st ",
+    " 승률 ": " · win pct ",
+    "2위 ": "2nd ",
+    "게임차 · 3위 ": "GB · 3rd ",
+    " · KBO 리그 팀 순위표": " · KBO League table",
+    ") — 1위 ": ") — 1st ",
+    ") 1위 ": ") 1st ",
+    " — KBO 팀 순위표·가을야구 확률": " — KBO table and postseason probability",
+    "가을야구 진출 확률 ": "Postseason probability ",
+    "잔여 경기 5,000회 시뮬레이션. ": "From 5,000 simulations of the remaining fixtures. ",
+    "순위표": "table",
+    "리그 순위": "League standings",
+    "라이브 스코어": "Live scores",
+    " 시즌 리더보드": " season leaders",
+    "최근 5": "Last 5",
+    "조별 순위": "Group standings",
+    "부상자 →": "Injuries →",
+    "AI 예측 →": "AI prediction →",
+    "순위 데이터 수집 중입니다. 잠시 후 다시 확인해주세요.": "Collecting standings data. Please check back shortly.",
+    "2025-26 시즌 정규리그 최종 순위 · 새 시즌은 2026년 10월 개막 후 자동 갱신": "2025-26 final regular-season table · updates resume when the new season starts in October 2026",
+    "프로야구 순위 (": "Baseball standings (",
+    "NHL 시즌 리더보드": "NHL season leaders",
+    "NHL 순위표": "NHL table",
+    "정규시즌 · 32팀 · NHL 공식 기록 (승 2점 · 연장패 1점)": "Regular season · 32 teams · official NHL records (2 points for a win, 1 for an overtime loss)",
+    " 공식": " official",
+    " 시즌 정규리그 최종 기록 · 출처 ": " final regular-season record · source ",
+    " 시즌 정규리그 최종 기록 · 출처 KOVO 공식": " final regular-season record · source KOVO",
+    " 시즌 최종 기록": " final record",
+    "농구 라이브 스코어": "Basketball live scores",
+    "배구 라이브 스코어": "Volleyball live scores",
+    "NBA 시즌 리더보드": "NBA season leaders",
+    "NBA 순위표": "NBA table",
+    "동부·서부 컨퍼런스 · 30팀 · NBA 공식 기록": "Eastern and Western Conference · 30 teams · official NBA records",
+    "(진행 중)": "(in progress)",
+    "(시즌 최종 결과)": "(final result)",
+    "플레이오프 브라켓": "Play-off bracket",
+    "세트 +/-": "Set +/-",
+    "ⓘ 세트 +/- = 세트 득실 (승:패). 순위 산정은 대회 규정(승점→승수→세트율) 기준.": "ⓘ Set +/- is sets won and lost. Ranking follows competition rules (points, then wins, then set ratio).",
+    "승점 · 승패 · 세트 득실 — TheSports 공식 순위, 경기 종료 후 자동 갱신": "Points · record · set difference — official TheSports standings, updated after each match",
+    "ⓘ FINISHED 매치만 집계 · 동률 시 승점→득실→다득점 순.": "ⓘ Finished matches only · ties broken by points, then goal difference, then goals scored.",
+    "ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외.": "ⓘ Finished matches only. Scheduled and postponed matches are excluded.",
+    "3위는 12개 조 중 상위 8팀이 32강 진출": "The eight best third-placed teams from 12 groups reach the round of 32",
+    "조 1·2위 32강 직행": "Top two go straight to the round of 32",
+    "3위 — 상위 8팀 32강 진출 가능": "Third — the eight best advance to the round of 32",
+    "32강 직행권": "Direct to round of 32",
+    "조": "Group",
+    "48개국 12개 조 · 조별리그": "48 nations, 12 groups · group stage",
+    "우승 확률 시뮬레이션 →": "Title probability simulation →",
+    "경기 종료 · 경기 종료 시 자동 갱신": "Match finished · updates as matches end",
+    "KBO 리그 팀 순위 — 자주 묻는 질문": "KBO League Standings — FAQ",
+    "이번 시즌 기록을 집계하는 중입니다. 라운드가 쌓이면 자동으로 표시됩니다.": "Collecting this season's records. They appear as rounds are played.",
+    "새 시즌 개막 후 집계됩니다.": "Collection resumes when the new season starts.",
+    "xG 심화 순위 — 기대 승점(xPTS)": "Advanced table — expected points (xPTS)",
+    "경기별": "Per-match",
+    "xG(기대득점)": "xG (expected goals)",
+    "를 포아송 모델로 승점화한": "converted to points via a Poisson model —",
+    "xPTS(기대 승점)": "xPTS (expected points)",
+    "와\n            실제 승점을 비교합니다. ± 가": "compared with actual points. A ±",
+    "면 경기 내용 대비 초과 성과(결정력·운),": "above zero means outperforming the underlying play (finishing or luck);",
+    "면 만든 기회에 비해 승점을 놓친 불운입니다.": "below zero means points dropped relative to chances created.",
+    "ⓘ xG 보유": "ⓘ Based on matches with xG,",
+    "경기 기준 · xG 출처 api-football · 실제 승점 순 정렬.": " · xG from api-football · sorted by actual points.",
+    "우승·순위 예측 자세히 보기": "See the full title and table projection",
+    "가을야구": "Postseason",
+    "가을야구 = 정규시즌 상위 5팀 진출 확률. 잔여 경기를 Elo 기반 몬테카를로로 5,000회 시뮬레이션해\n          매일 갱신합니다.": "Postseason probability is the chance of finishing in the top five. The remaining fixtures are simulated 5,000 times with an Elo-based Monte Carlo model, refreshed daily."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "header": "LeagueLeaderBoard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "리더보드 데이터가 아직 준비되지 않았습니다. 매일 자동으로 갱신됩니다.": "Leaderboard data is not ready yet. It refreshes daily.",
+    "경기": " matches",
+    " 시즌 · 매일 자동 갱신": " season · updated daily"
+  }
+}

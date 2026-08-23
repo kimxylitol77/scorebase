@@ -1,0 +1,21 @@
+{
+  "header": "scores__RecentFormDots (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "팀": "Team",
+    "경기": "GP",
+    "승": "W",
+    "패": "L",
+    "무": "D",
+    "승점": "Pts",
+    "득점": "GF",
+    "실점": "GA",
+    "득실": "GD",
+    "승률": "PCT",
+    "홈": "Home",
+    "원정": "Away",
+    "시즌": "season",
+    "최근 ": "Last ",
+    "경기 폼": " match form"
+  }
+}

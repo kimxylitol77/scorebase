@@ -1,0 +1,50 @@
+{
+  "header": "NbaStandingsTable (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(db.name, \"NBA\")",
+      "toEnglishTeamName(db.name)"
+    ],
+    [
+      "toKoreanTeamName(m.awayTeam.name, \"NBA\") || m.awayTeam.name",
+      "toEnglishTeamName(m.awayTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(m.homeTeam.name, \"NBA\") || m.homeTeam.name",
+      "toEnglishTeamName(m.homeTeam.name)"
+    ]
+  ],
+  "dict": {
+    "팀": "Team",
+    "경기": "GP",
+    "승": "W",
+    "패": "L",
+    "무": "D",
+    "승점": "Pts",
+    "득점": "GF",
+    "실점": "GA",
+    "득실": "GD",
+    "승률": "PCT",
+    "홈": "Home",
+    "원정": "Away",
+    "시즌": "season",
+    "순위 데이터 수집 중입니다. 잠시 후 다시 확인해주세요.": "Collecting standings data. Please check back shortly.",
+    "개막 대기 · 지난 시즌 종료": "Awaiting the new season · last season complete",
+    "개막 일정": "Season opener",
+    "시즌 개막 일정은 확정되면 자동으로 표시됩니다.": "The opening fixture appears once confirmed.",
+    "지난 시즌 최종 순위": "Last season's final table",
+    " · 기록": " · record",
+    " 시즌 최종 기록": " final record",
+    "시즌 개막 후 자동으로 실시간 순위로 전환됩니다.": "This switches to the live table once the season starts.",
+    "동부 컨퍼런스": "Eastern Conference",
+    "서부 컨퍼런스": "Western Conference",
+    "게임차": "GB",
+    "최근 10": "L10",
+    "연속": "Streak",
+    "정규시즌 · NBA 공식 기록(ESPN) · 경기 종료 후 자동 갱신": "Regular season · official NBA records (ESPN) · updated after each game"
+  }
+}

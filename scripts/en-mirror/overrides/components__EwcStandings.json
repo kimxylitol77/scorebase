@@ -1,0 +1,45 @@
+{
+  "header": "EwcStandings (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(t.name) || t.name",
+      "toEnglishTeamName(t.name)"
+    ],
+    [
+      "toKoreanTeamName(m.homeTeam.name) || m.homeTeam.name",
+      "toEnglishTeamName(m.homeTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(m.awayTeam.name) || m.awayTeam.name",
+      "toEnglishTeamName(m.awayTeam.name)"
+    ]
+  ],
+  "dict": {
+    "팀": "Team",
+    "경기": "GP",
+    "승": "W",
+    "패": "L",
+    "무": "D",
+    "승점": "Pts",
+    "득점": "GF",
+    "실점": "GA",
+    "득실": "GD",
+    "승률": "PCT",
+    "홈": "Home",
+    "원정": "Away",
+    "시즌": "season",
+    "e스포츠 라이브": "Esports live",
+    "그룹 순위": "Group standings",
+    "이스포츠 월드컵": "Esports World Cup",
+    "LoL 그룹 순위": "LoL group standings",
+    "League of Legends · 그룹 스테이지(BO5) · 2026 · TheSports": "League of Legends · group stage (BO5) · 2026 · TheSports",
+    "세트": "Sets",
+    "경기 결과": "Results",
+    "예정 경기": "Upcoming",
+    "ⓘ 이스포츠 월드컵은 그룹 스테이지 후 녹아웃으로 진행됩니다 · 녹아웃 대진은 확정 시 반영 · 시간 KST": "ⓘ The Esports World Cup runs a group stage followed by knockouts · the bracket appears once confirmed · times in KST"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "header": "NbaPlayoffBracket (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(team.name)",
+      "toEnglishTeamName(team.name)"
+    ]
+  ],
+  "dict": {
+    "플레이오프 매치가 아직 없습니다.": "No play-off matches yet.",
+    "NHL 플레이오프 브라켓": "NHL play-off bracket",
+    "NBA 플레이오프 브라켓": "NBA play-off bracket",
+    "시즌 최종 결과": "Final result",
+    "실시간": "Live",
+    "동부": "East",
+    "서부": "West",
+    "결승": "Finals",
+    "게임 ▾": "Games ▾"
+  }
+}

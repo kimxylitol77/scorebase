@@ -1,173 +1,260 @@
-// /en/standings/[league] — 영어판 리그 순위표. 소스는 ko 와 동일 체계 —
-// 축구=getFullStandings(ts/af), 야구=fetchBaseballTable(공식)→calcStandings(DB 매치) 폴백.
-// 야구는 승률(PCT)·게임차(GB) 컬럼, 그 외는 승점 테이블. 팀명은 영문(DB 원본 + 한→영 매핑).
+// /en/standings/[league] — 리그별 순위표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import AmbientGlow from "@/components/AmbientGlow";
-import { SITE_URL } from "@/lib/site-url";
-import { getFullStandings, type StandingsRow } from "@/lib/sports/thesports/standings-helper";
-import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
-import { fetchNhlStandings, type NhlStandingRow } from "@/lib/sports/nhl-api";
 import { calcStandings } from "@/lib/predict/standings";
-import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
-import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
-import { koTeamNameToEnglish } from "@/lib/team-names";
-import { LEADER_CATEGORY_EN } from "@/lib/i18n/en";
+import { lastSeasonWindow } from "@/lib/sports/last-season-standings";
+import { getRecentForm } from "@/lib/predict/recent-form";
+import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
+import RecentFormDots from "@/components/en/scores/RecentFormDots";
+import { toEnglishTeamName, enLeagueName } from "@/lib/i18n/en";
+import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
+import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
+import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
+import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
+import { getTeamGroup } from "@/lib/predict/world-cup-elos";
+import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
+import { fetchNhlStandings } from "@/lib/sports/nhl-api";
+import LeagueLeaderBoard from "@/components/en/LeagueLeaderBoard";
+import { EN_STANDINGS_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
+import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
+import LolStandings from "@/components/LolStandings";
+import LolSimpleStandings from "@/components/en/LolSimpleStandings";
+import LolLplStandings from "@/components/en/LolLplStandings";
+import EwcStandings from "@/components/en/EwcStandings";
+import NhlStandingsTable from "@/components/en/NhlStandingsTable";
+import NbaStandingsTable from "@/components/en/NbaStandingsTable";
+import KoreanBasketballTable from "@/components/en/basketball/KoreanBasketballTable";
+import NbaPlayoffBracket from "@/components/en/NbaPlayoffBracket";
+import CollapseSection from "@/components/CollapseSection";
 import {
-  enLeagueName,
-  toEnglishTeamName,
-  BASEBALL_LEAGUES_EN,
-  EN_PREDICTION_LEAGUE_SET,
-  EN_STANDINGS_LEAGUE_SET as VALID,
-} from "@/lib/i18n/en";
+  loadPlayoffBracket,
+  isPlayoffSeasonDone,
+  playoffSeasonLabel,
+} from "@/lib/predict/playoff-bracket-loader";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Trophy, HeartPulse } from "lucide-react";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
-export const revalidate = 600;
+export const revalidate = 600; // ISR — 순위는 경기 종료 후 poller 가 갱신, 10분 캐시로 충분
 
 interface Props {
   params: Promise<{ league: string }>;
 }
 
+const VALID = STANDINGS_VALID;
+
+// 영어판(/en/standings) 지원 리그만 hreflang 상호 연결
+const enAlt = (upper: string) =>
+  EN_STANDINGS_LEAGUE_SET.has(upper)
+    ? { languages: koEnLanguages(`/standings/${upper}`, `/en/standings/${upper}`) }
+    : {};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
-  if (!VALID.has(upper)) return {};
   const name = enLeagueName(upper);
+  if (upper === "NHL") {
+    return {
+      title: "NHL Standings — Eastern and Western Conference",
+      description:
+        "NHL regular-season standings — games, wins, losses, overtime losses and points for all 32 teams across both conferences, from official NHL records.",
+      alternates: { canonical: "https://www.scorebase.kr/en/standings/NHL", ...enAlt(upper) },
+    };
+  }
+  // KBO — 빙 최대 노출 페이지인데 CTR 0.33% (2026-08-14 실측: 노출 16,787·클릭 55).
+  // 원인은 순위가 아니라 빙 Copilot 이 우리 순위표를 그대로 요약해 답하는 것(zero-click) —
+  // "순위표"만 약속하면 클릭할 이유가 없다. 그래서 요약이 못 주는 가을야구 확률을 앞세운다.
+  // 특히 확률이 갈린 팀(5~95%)이 검색자의 실제 관심사라 그 경쟁 구간을 description 머리에 둔다.
+  if (upper === "KBO") {
+    let title = "KBO League Standings 2026 — Win Percentage and Games Behind";
+    let description =
+      "KBO League standings — wins, losses, draws, win percentage, games behind and recent form for all 10 clubs. Updated daily.";
+    try {
+      const rows = await fetchBaseballTable("KBO");
+      if (rows.length >= 3) {
+        const top3 = rows.slice(0, 3);
+        // 경쟁 구간 문구에 하위권 팀 이름도 필요해 전체 조회 (10팀이라 비용 무시 가능)
+        const [teams, poOdds] = await Promise.all([
+          prisma.team.findMany({
+            where: { id: { in: rows.map((r) => r.ourTeamId) } },
+            select: { id: true, name: true, nameKo: true },
+          }),
+          getKboPostseasonOdds(),
+        ]);
+        const nameOf = (id: number) => {
+          const t = teams.find((x) => x.id === id);
+          return t ? toEnglishTeamName(t.name) : "";
+        };
+        const [t1, t2, t3] = top3;
+        const n1 = nameOf(t1.ourTeamId);
+        if (n1) {
+          const kst = new Date(Date.now() + 9 * 3600_000);
+          const dateLabel = `${kst.getUTCMonth() + 1}-${kst.getUTCDate()}`;
+          const pct1 = (t1.wins / Math.max(t1.wins + t1.losses, 1)).toFixed(3);
+          // 본문 gamesBehind 와 동일 공식 (leader=t1 기준)
+          const gb2 = ((t1.wins - t2.wins + (t2.losses - t1.losses)) / 2).toFixed(1).replace(/\.0$/, "");
+          // 확률이 갈린 팀만 = 아직 결판 안 난 가을야구 티켓 싸움. 상위권이 다 굳은 시즌 말에는
+          // 비어서 자동으로 기존(순위 위주) 문구로 돌아간다.
+          const contenders = rows
+            .map((r) => ({ name: nameOf(r.ourTeamId), p: poOdds?.get(r.ourTeamId) }))
+            .filter((x): x is { name: string; p: number } => !!x.name && x.p != null && x.p >= 0.05 && x.p <= 0.95)
+            .sort((a, b) => b.p - a.p)
+            .slice(0, 3);
+          // "티켓 경쟁" 같은 해석은 붙이지 않는다 — 94% 팀과 13% 팀을 한 묶음으로 부르면 사실이 뒤틀린다.
+          const race =
+            contenders.length >= 2
+              ? `Postseason probability ${contenders.map((c) => `${c.name} ${(c.p * 100).toFixed(1)}%`).join(" · ")} — ` +
+                `From 5,000 simulations of the remaining fixtures. `
+              : "";
+          title = race
+            ? `Baseball standings (${dateLabel}) 1st ${n1} — KBO table and postseason probability`
+            : `Baseball standings (${dateLabel}) — 1st ${n1} · KBO League table`;
+          description =
+            race +
+            `${dateLabel} KBO standings: 1st ${n1} · win pct ${pct1} · ` +
+            `2nd ${nameOf(t2.ourTeamId)} ${gb2}GB · 3rd ${nameOf(t3.ourTeamId)}. ` +
+            `All 10 clubs — wins, losses, draws, win percentage and games behind, updated automatically.`;
+        }
+      }
+    } catch {
+      // 순위 캐시 불가 시 정적 폴백 유지
+    }
+    return {
+      title,
+      description,
+      keywords: [
+        "KBO standings",
+        "KBO League table",
+        "KBO team standings",
+        "KBO table",
+        "KBO League standings",
+        "Korean baseball standings",
+        "Korean baseball table",
+        "baseball standings",
+        "Korean baseball standings",
+      ],
+      alternates: { canonical: "https://www.scorebase.kr/en/standings/KBO", ...enAlt(upper) },
+    };
+  }
+  // EPL — 8월 개막 수요 선점 (빙 색인 리드타임 감안해 미리 정밀 매칭)
+  if (upper === "EPL") {
+    return {
+      title: "Premier League Table 2026-27 — Standings and Fixtures",
+      description:
+        "Premier League table — points, results and goal difference update live once the 2026-27 season starts; before kick-off the 20 competing clubs are listed. Title probability simulation included.",
+      keywords: [
+        "Premier League standings",
+        "EPL table",
+        "EPL standings",
+        "Premier League table",
+        "English Premier League",
+        "Premier League opening",
+        "Premier League fixtures",
+      ],
+      alternates: { canonical: "https://www.scorebase.kr/en/standings/EPL", ...enAlt(upper) },
+    };
+  }
+  if (upper === "EWC") {
+    return {
+      title: "Esports World Cup LoL Standings — Group Stage",
+      description:
+        "Esports World Cup League of Legends group stage — standings, results and fixtures with set scores. Updated daily.",
+      keywords: ["Esports World Cup LoL", "EWC LoL", "Esports World Cup standings", "EWC T1", "Esports World Cup LoL"],
+      alternates: { canonical: "https://www.scorebase.kr/en/standings/EWC" },
+    };
+  }
+  if (upper === "LPL") {
+    return {
+      title: "LPL Standings 2026 — League of Legends Pro League by Group",
+      description:
+        "LPL 2026 split standings by group — team records, win percentage and rosters. Updated daily.",
+      keywords: ["LPL standings", "LPL table", "Chinese LoL standings", "LPL team standings", "LoL Pro League"],
+      alternates: { canonical: "https://www.scorebase.kr/en/standings/LPL" },
+    };
+  }
   return {
-    title: `${name} Standings — Full Table`,
-    description: `Current ${name} standings with wins, losses, points and goal difference — updated throughout the day.`,
-    alternates: {
-      canonical: `${SITE_URL}/en/standings/${upper}`,
-      languages: {
-        ko: `${SITE_URL}/standings/${upper}`,
-        en: `${SITE_URL}/en/standings/${upper}`,
-        "x-default": `${SITE_URL}/standings/${upper}`,
-      },
-    },
+    title: `${name} Table`,
+    description: `${name} season table — points, results, goal difference, goals for and against. Updated daily.`,
+    alternates: { canonical: `https://www.scorebase.kr/standings/${upper}`, ...enAlt(upper) },
   };
 }
 
-function StandingsTable({
-  rows,
-  nameById,
-  isBaseball,
-}: {
-  rows: StandingsRow[];
-  nameById: Map<number, string>;
-  isBaseball: boolean;
-}) {
-  const sorted = [...rows].sort((a, b) => a.position - b.position || b.points - a.points);
-  // 야구 게임차 — 선두 대비 ((선두승-승)+(패-선두패))/2
-  const leader = sorted[0];
-  const gb = (r: StandingsRow) =>
-    leader ? ((leader.won - r.won + (r.loss - leader.loss)) / 2).toFixed(1).replace(/\.0$/, "") : "-";
-  const hasDraws = sorted.some((r) => r.draw > 0);
+// KBO 순위 FAQ — 빙 실측 키워드("kbo 리그 팀 순위"·"프로야구 순위"·"야구 순위") 대응.
+// 답변 사실 근거: 갱신 주기 = standings-poller 10분 주기 수집(lib/sports/thesports/baseball-table.ts)
+// + 이 페이지 revalidate 600초. 승률·게임차 = 아래 winPct·gamesBehind 계산식과 동일.
+// 포스트시즌 = KBO 공식 규정(상위 5팀, 와일드카드→준PO→PO→한국시리즈).
+const KBO_FAQ: { q: string; a: string }[] = [
+  {
+    q: "How often are the KBO standings updated?",
+    a: "Official standings are collected every 10 minutes after matches finish, and this page refreshes on roughly the same cycle.",
+  },
+  {
+    q: "How are the standings ordered?",
+    a: "By win percentage — wins divided by wins plus losses. Draws are excluded from the calculation.",
+  },
+  {
+    q: "How is games behind calculated?",
+    a: "(leader's wins − team's wins + team's losses − leader's losses) ÷ 2. It expresses the gap to first place in games.",
+  },
+  {
+    q: "How many teams make the KBO postseason?",
+    a: "The top five. Fourth and fifth meet in a wild-card series (fourth starts one win up); the winner plays third, that winner plays second, and the final winner meets first in the Korean Series.",
+  },
+];
 
-  return (
-    <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10">
-      <table className="w-full min-w-[560px] text-sm">
-        <thead>
-          <tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-400 dark:border-white/10">
-            <th className="px-3 py-2.5 w-10 text-center">#</th>
-            <th className="px-3 py-2.5">Team</th>
-            <th className="px-2 py-2.5 text-center">GP</th>
-            <th className="px-2 py-2.5 text-center">W</th>
-            {(!isBaseball || hasDraws) && <th className="px-2 py-2.5 text-center">{isBaseball ? "T" : "D"}</th>}
-            <th className="px-2 py-2.5 text-center">L</th>
-            {isBaseball ? (
-              <>
-                <th className="px-2 py-2.5 text-center">PCT</th>
-                <th className="px-2 py-2.5 text-center">GB</th>
-              </>
-            ) : (
-              <>
-                {sorted.some((r) => r.goalsFor != null) && (
-                  <>
-                    <th className="hidden px-2 py-2.5 text-center sm:table-cell">GF</th>
-                    <th className="hidden px-2 py-2.5 text-center sm:table-cell">GA</th>
-                    <th className="px-2 py-2.5 text-center">GD</th>
-                  </>
-                )}
-                <th className="px-2 py-2.5 text-center font-bold">Pts</th>
-              </>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((r) => {
-            const games = r.won + r.draw + r.loss;
-            const pctVal = r.won + r.loss > 0 ? (r.won / (r.won + r.loss)).toFixed(3).replace(/^0/, "") : "-";
-            return (
-              <tr
-                key={`${r.teamId}-${r.position}`}
-                className="border-b border-neutral-100 last:border-0 dark:border-white/5"
-              >
-                <td className="px-3 py-2 text-center font-bold tabular-nums text-neutral-400">{r.position}</td>
-                <td className="px-3 py-2 font-medium">
-                  <Link href={`/en/teams/${r.teamId}`} prefetch={false} className="hover:underline">
-                    {nameById.get(r.teamId) ?? `Team ${r.teamId}`}
-                  </Link>
-                </td>
-                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{games}</td>
-                <td className="px-2 py-2 text-center tabular-nums">{r.won}</td>
-                {(!isBaseball || hasDraws) && (
-                  <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{r.draw}</td>
-                )}
-                <td className="px-2 py-2 text-center tabular-nums">{r.loss}</td>
-                {isBaseball ? (
-                  <>
-                    <td className="px-2 py-2 text-center tabular-nums font-semibold">{pctVal}</td>
-                    <td className="px-2 py-2 text-center tabular-nums text-neutral-500">
-                      {r.position === leader?.position ? "-" : gb(r)}
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    {sorted.some((x) => x.goalsFor != null) && (
-                      <>
-                        <td className="hidden px-2 py-2 text-center tabular-nums text-neutral-500 sm:table-cell">
-                          {r.goalsFor ?? "-"}
-                        </td>
-                        <td className="hidden px-2 py-2 text-center tabular-nums text-neutral-500 sm:table-cell">
-                          {r.goalsAgainst ?? "-"}
-                        </td>
-                        <td className="px-2 py-2 text-center tabular-nums text-neutral-500">
-                          {r.goalDiff != null && r.goalDiff > 0 ? `+${r.goalDiff}` : (r.goalDiff ?? "-")}
-                        </td>
-                      </>
-                    )}
-                    <td className="px-2 py-2 text-center font-bold tabular-nums">{r.points}</td>
-                  </>
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+export default async function StandingsPage({ params }: Props) {
+  const { league } = await params;
+  const upper = league.toUpperCase();
+  if (!VALID.has(upper)) notFound();
+  const name = enLeagueName(upper);
 
-// 야구 — 공식 순위(fetchBaseballTable) → ts/af 캐시(getFullStandings) → DB 매치 calcStandings 순 폴백.
-async function fetchBaseballRows(upper: string): Promise<StandingsRow[]> {
-  const bb = await fetchBaseballTable(upper).catch(() => []);
-  if (bb.length > 0) {
-    return bb.map((r) => ({
-      teamId: r.ourTeamId,
-      position: r.position,
-      points: r.wins * 3,
-      won: r.wins,
-      draw: r.draws,
-      loss: r.losses,
-      goalsFor: r.goalsFor,
-      goalsAgainst: r.goalsAgainst,
-      goalDiff: r.goalsFor - r.goalsAgainst,
-    }));
-  }
-  const cached = await getFullStandings(upper).catch(() => [] as StandingsRow[]);
-  if (cached.length > 0) return cached;
+  // 월드컵은 단일표가 아니라 12개 조(A~L) 분리 표 — 전용 렌더로 분기
+  if (upper === "WORLD_CUP") return <WorldCupStandings name={name} />;
+
+  // 배구는 세트 득실 컬럼 + 조별(Pool) 다중 테이블 — 전용 렌더로 분기
+  if (VOLLEYBALL_LEAGUES.has(upper)) return <VolleyballStandings league={upper} name={name} />;
+
+  // NHL 은 승점 체계(승 2·연장패 1) + OTL 컬럼이 축구식과 달라 — 공식 순위 전용 렌더
+  if (upper === "NHL") return <NhlStandings name={name} />;
+
+  // LOL(LCK) — ts table/list JSON 백필(data/lol-standings.json) 정적 렌더
+  if (upper === "LOL") return <LolStandings name={name} />;
+
+  // 해외 LoL(LEC/LCS) — 순위 + 로스터만(매치 미수집이라 KDA·통계 탭 없음)
+  if (upper === "LEC" || upper === "LCS") return <LolSimpleStandings league={upper} name={name} />;
+
+  // LPL(중국) — 그룹(part_stage)별 순위 + 로스터. 매치 미수집이라 통계 탭 없음.
+  if (upper === "LPL") return <LolLplStandings name={name} />;
+
+  // EWC(이스포츠 월드컵) — 녹아웃 토너먼트라 TheSports 순위표 없음 → DB 매치로 그룹 순위 계산.
+  if (upper === "EWC") return <EwcStandings name={name} />;
+
+  // NBA — ESPN 공식 standings 렌더 (2026-08 중복 팀 행 정리 후 가드 해제).
+  // 자체 계산은 프리시즌·NBA컵 결승·플레이오프가 정규 승패에 섞여 부정확 — 공식 기록 전용.
+  if (upper === "NBA") return <NbaStandings name={name} />;
+
+  // KBL/WKBL — 공식 사이트 순위(승률·승차 체계). 오프시즌엔 지난 시즌 최종 표를 라벨 붙여 노출.
+  if (upper === "KBL" || upper === "WKBL") return <KoreanBasketballStandings league={upper} name={name} />;
+
+  // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
+  // 2차: DB FINISHED 매치 기반 calcStandings fallback
+  const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper);
+  const tsStandings = isSoccerLeague ? await fetchStandingsForLeague(upper) : null;
+  // 야구(KBO/NPB) 순위는 TheSports season/table/detail 공식 순위 사용 (DB 매치 계산보다 정확).
+  const baseballTable =
+    upper === "KBO" || upper === "NPB" ? await fetchBaseballTable(upper) : null;
+
+  // 시즌 매치 (recent form dots 용 + fallback 계산용) — 현재 시즌만.
+  // 지난 시즌을 접어 롤오버 자동화 + 중복/구시즌 매치가 순위에 합산되는 것 방지
+  // (NBA 는 시즌 필드가 없어 startTime 경계로만 구분. season-window 는 리그별 자동).
   const allMatches = (
     await prisma.match.findMany({
       where: { league: upper },
@@ -182,240 +269,1072 @@ async function fetchBaseballRows(upper: string): Promise<StandingsRow[]> {
         startTime: true,
       },
     })
-  ).filter((m) => !isAllStarMatchRow(m)); // 올스타전 제외
+  ).filter((m) => !isAllStarMatchRow(m)); // 야구 올스타전은 정규 순위에 섞이면 안 됨
+  // 시즌 전환기 — ts 표가 새 시즌으로 갱신되면서 승·무·패·승점이 전부 0 이 된 상태
+  // (2026-07 EPL·라리가·세리에A·리그1 실측). 순번만 남은 빈 표 대신 지난 시즌 최종 기록을 보여준다.
+  const tsAllZero =
+    !!tsStandings &&
+    tsStandings.tables.length > 0 &&
+    tsStandings.tables[0].rows.length > 0 &&
+    tsStandings.tables[0].rows.every((r) => r.total === 0);
+  // ts 표의 팀 매핑 완결도 — 미매핑 행은 렌더에서 버려지므로, 갈라진 표로 갈아타면
+  // 지난 시즌 전체 표보다 못하다 (AFC_CL 16행 중 7행만 매핑 실측). 0전적 표 채택 조건에 쓴다.
+  const tsMappedRatio =
+    tsStandings && tsStandings.tables.length > 0 && tsStandings.tables[0].rows.length > 0
+      ? tsStandings.tables[0].rows.filter((r) => r.ourTeamId != null).length /
+        tsStandings.tables[0].rows.length
+      : 0;
+
   const seasonStart = currentSeasonStart(upper);
+  // 전환기 폴백은 시즌 경계가 정의된 리그만 아래 분기로 커버된다. 마지막 완료 경기 기준 창으로
+  // 잡으면 경계 미정의 리그(챔피언십·에레디비시 등)에서도 두 시즌 합산 없이 한 시즌만 집힌다.
+  const lastFinishedAt = allMatches
+    .filter((m) => m.status === "FINISHED")
+    .reduce<Date | null>((mx, m) => (!mx || m.startTime > mx ? m.startTime : mx), null);
+  // ts 표가 0전적이면 ts 가 새 시즌으로 롤오버했다는 뜻 — 개막 전이어도 그게 현재 시즌 표다.
+  // ESPN 등 주요 사이트도 개막 전 0-0 표를 노출한다(2026-08-13 챔피언십 2026-27 표 실측).
+  // 지난 시즌 표를 남겨두면 승격·강등팀이 순위표에 아예 없다(울버햄튼·소시에다드 B 실측).
+  // 단 매핑률 미달이면 이빨 빠진 표가 되므로 지난 시즌을 유지한다(AFC_CL 16행 중 7행 실측).
+  const tsPlaceholderOk = tsAllZero && (!lastFinishedAt || tsMappedRatio >= 0.9);
+
   let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
-  // 오프시즌(완료 0)일 때만 지난 시즌 폴백 — ko 판과 동일 기준 (임계 10 → 0).
-  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
-    const prev = previousSeasonStart(seasonStart);
-    matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+  // 새 시즌 표를 쓰는 경우엔 지난 시즌으로 되돌리지 않는다 — 최근폼·xG 도 새 시즌 기준.
+  if (!tsPlaceholderOk) {
+    // 오프시즌(새 시즌 완료 매치 0)일 때만 직전 시즌 창으로 폴백. 임계 10 이던 것을 0 으로 —
+    // 개막 후 몇 라운드 동안 지난 시즌 최근폼·순위가 새 시즌인 척 표시되던 원인(2026-08 분데스2 실측).
+    if (seasonStart && matches.filter((m) => m.status === "FINISHED").length === 0) {
+      const prev = previousSeasonStart(seasonStart);
+      matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+    }
+    if (tsAllZero && lastFinishedAt) {
+      const w = lastSeasonWindow(lastFinishedAt);
+      matches = allMatches.filter((m) => m.startTime >= w.from && m.startTime < w.to);
+    }
   }
-  if (matches.length === 0) return [];
-  return calcStandings(matches).rows.map((r) => ({
-    teamId: r.teamId,
-    position: r.position,
-    points: r.points,
-    won: r.wins,
-    draw: r.draws,
-    loss: r.losses,
-    goalsFor: r.goalsFor,
-    goalsAgainst: r.goalsAgainst,
-    goalDiff: r.goalDiff,
-  }));
-}
 
-// 시즌 리더보드 — leagueLeader 는 표시명이 한글 저장이라 playerNameEn(라틴 문자)만 노출.
-// KBO·NPB 는 영문 선수명이 없어 자동으로 섹션이 숨는다.
-interface EnLeaderRow {
-  rank: number;
-  player: string;
-  team: string | null;
-  value: number;
-  category: string;
-}
+  // 데이터 source 분기
+  let rows: Array<{
+    position: number;
+    teamId: number;
+    played: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDiff: number;
+    points: number;
+    promotionColor?: string;
+    promotionName?: string;
+  }>;
+  let source: "ts" | "calc" = "calc";
 
-async function fetchEnLeaders(league: string): Promise<{ season: string; groups: Map<string, EnLeaderRow[]> }> {
-  const { rowsByCategory, season } = await loadLeagueLeaderboard(league).catch(() => ({
-    rowsByCategory: {} as Record<string, { rank: number; playerName: string; playerNameEn: string | null; teamName: string; teamShort: string | null; value: number }[]>,
-    season: "",
-  }));
-  const groups = new Map<string, EnLeaderRow[]>();
-  for (const [category, rows] of Object.entries(rowsByCategory)) {
-    const usable = rows
-      .filter((r) => r.playerNameEn && /^[A-Za-z]/.test(r.playerNameEn))
-      .slice(0, 5)
+  if (tsStandings && tsStandings.tables.length > 0 && (!tsAllZero || tsPlaceholderOk)) {
+    // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
+    const promoMap = new Map(tsStandings.promotions.map((p) => [p.id, p]));
+    const tsRows = tsStandings.tables[0].rows
+      .filter((r) => r.ourTeamId != null) // 미매핑 ts 팀 제거
       .map((r) => {
-        const rawTeam = r.teamName ?? "";
-        const team = /[가-힣]/.test(rawTeam) ? koTeamNameToEnglish(rawTeam) : rawTeam || null;
-        return { rank: r.rank, player: r.playerNameEn!, team, value: r.value, category };
-      });
-    if (usable.length > 0) groups.set(category, usable);
+        const promo = r.promotion_id ? promoMap.get(r.promotion_id) : undefined;
+        return {
+          position: r.position,
+          teamId: r.ourTeamId!,
+          played: r.total,
+          wins: r.won,
+          draws: r.draw,
+          losses: r.loss,
+          goalsFor: r.goals,
+          goalsAgainst: r.goals_against,
+          goalDiff: r.goal_diff,
+          points: r.points,
+          promotionColor: promo?.color,
+          promotionName: promo?.name,
+        };
+      })
+      .sort((a, b) => a.position - b.position);
+    if (tsRows.length > 0) {
+      rows = tsRows;
+      source = "ts";
+    }
   }
-  return { season, groups };
-}
 
-const leaderValue = (category: string, v: number) =>
-  category === "BA" ? v.toFixed(3).replace(/^0/, "") : category === "ERA" ? v.toFixed(2) : category === "SAVE_PCT" ? v.toFixed(3) : `${v}`;
+  // 야구(KBO/NPB) — TheSports 공식 순위 (season/table/detail). 미매핑/실패 시 calc fallback.
+  if (source === "calc" && baseballTable && baseballTable.length > 0) {
+    rows = baseballTable.map((r) => ({
+      position: r.position,
+      teamId: r.ourTeamId,
+      played: r.played,
+      wins: r.wins,
+      draws: r.draws,
+      losses: r.losses,
+      goalsFor: r.goalsFor,
+      goalsAgainst: r.goalsAgainst,
+      goalDiff: r.goalsFor - r.goalsAgainst,
+      points: r.wins * 3,
+      promotionColor: undefined,
+      promotionName: undefined,
+    }));
+    source = "ts";
+  }
 
-function LeadersSection({ season, groups }: { season: string; groups: Map<string, EnLeaderRow[]> }) {
-  if (groups.size === 0) return null;
+  if (source === "calc") {
+    // 단계 대회(예선 → 리그페이즈/조별 → 녹아웃)는 자체 계산이 전 단계를 한 표로 합산해
+    // 순위로서 의미가 없다 — UECL 예선~플레이오프가 133팀 한 표로 나오던 실측(2026-08-17).
+    // 공식 표(ts)가 있을 때만 순위를 낸다. 없으면 표 대신 일정으로 보낸다.
+    if (STAGED_COMPETITIONS.has(upper)) {
+      return (
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <AmbientGlow />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+          </span>
+          <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} table</h1>
+          <p className="mt-3 text-sm text-neutral-500 break-keep">
+            This competition runs qualifying, a league phase and knockouts in stages, so a single table does not apply.
+            The official table appears once the league phase begins.
+          </p>
+          <Link
+            href={`/leagues/${upper}?view=fixtures`}
+            className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+          >
+            {name} View fixtures →
+          </Link>
+        </div>
+      );
+    }
+    if (matches.length === 0) {
+      return (
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <AmbientGlow />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+          </span>
+          <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} table</h1>
+          <p className="mt-3 text-sm text-neutral-500 break-keep">No match data collected for this season yet.</p>
+        </div>
+      );
+    }
+    const calc = calcStandings(matches);
+    rows = calc.rows.map((r) => ({ ...r, promotionColor: undefined, promotionName: undefined }));
+  }
+
+  // 표시 중인 표가 지난 시즌인지 — ts 가 리셋됐거나, 계산 경로가 현재 시즌 완료 매치 부족으로
+  // 직전 시즌 창을 쓴 경우. 오프시즌에 "시즌 진행 중" 으로 표기되던 것을 실제 상태로 바꾼다.
+  const showingLastSeason =
+    (tsAllZero && !tsPlaceholderOk) || // placeholder 0전적 표는 새 시즌이지 지난 시즌이 아님
+    (source === "calc" &&
+      seasonStart != null &&
+      !matches.some((m) => m.status === "FINISHED" && m.startTime >= seasonStart));
+
+  // xG 심화(기대 승점) — 축구 리그 중 xG 커버리지 90%+ 만 노출 (부분 커버는 xPTS 누계 왜곡).
+  const xgTable = isSoccerLeague ? await buildXgTable(matches) : null;
+
+  // 팀 DB lookup — 본 순위표 + xG 표 팀 합집합 (MLS 처럼 ts 표가 컨퍼런스 1개만 줄 때
+  // xG 표의 나머지 컨퍼런스 팀이 조회에서 빠져 행이 사라지는 것 방지).
+  const teamIds = [...new Set([...rows!.map((r) => r.teamId), ...(xgTable?.rows.map((r) => r.teamId) ?? [])])];
+  const teams = await prisma.team.findMany({
+    where: { id: { in: teamIds } },
+    select: { id: true, name: true, shortName: true, logoUrl: true },
+  });
+  const teamMap = new Map(teams.map((t) => [t.id, t]));
+
+  // 시즌 리더보드 (득점왕·도움왕 등) — DB cron 이 매일 채움. 데이터 있는 리그만 노출.
+  const {
+    rowsByCategory: leaderRows,
+    season: leaderSeason,
+    preSeason: leadersPreSeason,
+    staleSeason: leadersStaleSeason,
+  } = await loadLeagueLeaderboard(upper, undefined, "en");
+  // 이번 시즌 기록이 아직 없으면(개막 전 preSeason · 개막 직후 표본 부족 staleSeason)
+  // rowsByCategory 가 비어 온다 — 안내 문구 + 지난 시즌 최종 기록을 대신 띄운다.
+  const leadersPending = !!leadersStaleSeason && Object.keys(leaderRows).length === 0;
+  const lastSeasonLeaders = leadersPending ? await loadLeagueLeaderboard(upper, leadersStaleSeason, "en") : null;
+  const lastSeasonRows = lastSeasonLeaders?.rowsByCategory ?? {};
+  const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPending;
+
+  // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
+  // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
+  const isBaseball = upper === "KBO" || upper === "NPB";
+  // 게임차는 단일 리그 표에서만 의미 — NPB 는 센트럴·퍼시픽 합산 렌더라 생략.
+  const showGb = upper === "KBO";
+  const leader = rows![0];
+  const winPct = (r: { wins: number; losses: number }) =>
+    r.wins + r.losses > 0 ? (r.wins / (r.wins + r.losses)).toFixed(3) : "-";
+  const gamesBehind = (r: { wins: number; losses: number }) => {
+    const gb = (leader.wins - r.wins + (r.losses - leader.losses)) / 2;
+    return gb <= 0 ? "-" : gb.toFixed(1);
+  };
+
+  // 가을야구(포스트시즌 5강) 진출 확률 — KBO 만. 상위 5팀 진출이라 몬테카를로 top5 와 정확히 일치한다.
+  // NPB(센트럴·퍼시픽 각 3위)·MLB(지구 + 와일드카드)는 구조가 달라 같은 값을 쓰면 안 된다.
+  // null = 데이터 부족이거나 시즌 종료(잔여 경기 0) → 컬럼 자체를 숨김.
+  const poOdds = upper === "KBO" ? await getKboPostseasonOdds() : null;
+  // 몬테카를로가 확률을 0.999 로 캡하므로 100% 는 나오지 않는다(monte-carlo.ts:221).
+  // 0.1% 미만도 "탈락"이라 단정하지 않는다 — 시뮬 표본 추정이라 매직넘버 탈락 확정과 다르다.
+  const poLabel = (p: number | undefined) =>
+    p === undefined ? "-" : p < 0.001 ? "<0.1%" : `${(p * 100).toFixed(1)}%`;
+  const poTone = (p: number | undefined) =>
+    p !== undefined && p >= 0.9
+      ? "text-emerald-600 dark:text-emerald-400"
+      : p !== undefined && p >= 0.5
+        ? "text-neutral-800 dark:text-neutral-200"
+        : p !== undefined && p >= 0.1
+          ? "text-neutral-500"
+          : "text-neutral-400";
+
   return (
-    <section className="space-y-4 border-t border-neutral-200 pt-6 dark:border-white/10">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Season leaders</h2>
-        {season && <span className="text-xs text-neutral-500">{season} season</span>}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from(groups.entries()).map(([category, rows]) => (
-          <div key={category} className="rounded-2xl border border-neutral-200 p-4 dark:border-white/10">
-            <h3 className="text-xs font-bold uppercase tracking-wide text-neutral-400">
-              {LEADER_CATEGORY_EN[category] ?? category}
-            </h3>
-            <div className="mt-2 space-y-1.5">
-              {rows.map((r) => (
-                <div key={`${category}-${r.rank}-${r.player}`} className="flex items-center justify-between gap-2 text-sm">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="w-4 text-center text-xs font-bold tabular-nums text-neutral-400">{r.rank}</span>
-                    <span className="truncate font-medium">{r.player}</span>
-                    {r.team && <span className="hidden truncate text-xs text-neutral-400 sm:inline">{r.team}</span>}
-                  </div>
-                  <span className="shrink-0 font-bold tabular-nums">{leaderValue(category, r.value)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores" className="hover:underline">
+          Live scores
+        </Link>
+        <span>›</span>
+        <Link href={`/leagues/${upper}`} className="hover:underline">
+          {name}
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">table</span>
+      </nav>
 
-// NHL — 공식 API 컨퍼런스별 표 (승점 체계가 W/L/OTL 이라 일반 표와 분리 렌더)
-function NhlConferenceTable({ title, rows }: { title: string; rows: NhlStandingRow[] }) {
-  return (
-    <section className="space-y-2">
-      <h2 className="text-lg font-bold tracking-tight">{title}</h2>
-      <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-white/10">
-        <table className="w-full min-w-[560px] text-sm">
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} table</h1>
+        <p className="text-sm text-neutral-500 mt-2 break-keep">
+          {rows!.length}teams · {showingLastSeason ? "Last season's final table" : "Season in progress"} ·{" "}
+          {source === "ts" ? "Live updates from TheSports" : "Calculated from finished matches"}
+        </p>
+        {isBaseball && (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
+            {upper === "KBO"
+              ? "Official 2026 KBO League table for all 10 clubs, ordered by win percentage with games behind. Updated daily."
+              : "Official 2026 NPB table for all 12 clubs, ordered by win percentage. Updated daily."}
+          </p>
+        )}
+      </header>
+
+      <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm border-separate border-spacing-0">
           <thead>
-            <tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-400 dark:border-white/10">
-              <th className="px-3 py-2.5 w-10 text-center">#</th>
-              <th className="px-3 py-2.5">Team</th>
-              <th className="px-2 py-2.5 text-center">GP</th>
-              <th className="px-2 py-2.5 text-center">W</th>
-              <th className="px-2 py-2.5 text-center">L</th>
-              <th className="px-2 py-2.5 text-center">OTL</th>
-              <th className="px-2 py-2.5 text-center font-bold">PTS</th>
-              <th className="hidden px-2 py-2.5 text-center sm:table-cell">GF</th>
-              <th className="hidden px-2 py-2.5 text-center sm:table-cell">GA</th>
-              <th className="px-2 py-2.5 text-center">DIFF</th>
+            <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
+              <th className="text-right py-2 pl-3 pr-2 font-semibold">#</th>
+              <th className="text-left py-2 px-2 font-semibold">Team</th>
+              <th className="text-center py-2 px-2 font-semibold w-10">GP</th>
+              <th className="text-center py-2 px-2 font-semibold w-10">W</th>
+              <th className="text-center py-2 px-2 font-semibold w-10">D</th>
+              <th className="text-center py-2 px-2 font-semibold w-10">L</th>
+              {isBaseball ? (
+                <>
+                  {showGb && <th className="text-center py-2 px-2 font-semibold w-14">GB</th>}
+                  <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">Last 5</th>
+                  <th className={`text-right py-2 pl-2 font-semibold w-14 ${poOdds ? "pr-2" : "pr-3"}`}>PCT</th>
+                  {poOdds && <th className="text-right py-2 pr-3 pl-2 font-semibold w-[4.5rem]">Postseason</th>}
+                </>
+              ) : (
+                <>
+                  <th className="text-center py-2 px-2 font-semibold w-12">GF</th>
+                  <th className="text-center py-2 px-2 font-semibold w-12">GA</th>
+                  <th className="text-center py-2 px-2 font-semibold w-12">GD</th>
+                  <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">Last 5</th>
+                  <th className="text-right py-2 pr-3 pl-2 font-semibold w-12">Pts</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
-            {rows.map((r, i) => (
-              <tr key={r.abbrev} className="border-b border-neutral-100 last:border-0 dark:border-white/5">
-                <td className="px-3 py-2 text-center font-bold tabular-nums text-neutral-400">{i + 1}</td>
-                <td className="px-3 py-2 font-medium">{r.name}</td>
-                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{r.gamesPlayed}</td>
-                <td className="px-2 py-2 text-center tabular-nums">{r.wins}</td>
-                <td className="px-2 py-2 text-center tabular-nums">{r.losses}</td>
-                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{r.otLosses}</td>
-                <td className="px-2 py-2 text-center font-bold tabular-nums">{r.points}</td>
-                <td className="hidden px-2 py-2 text-center tabular-nums text-neutral-500 sm:table-cell">{r.goalFor}</td>
-                <td className="hidden px-2 py-2 text-center tabular-nums text-neutral-500 sm:table-cell">{r.goalAgainst}</td>
-                <td className="px-2 py-2 text-center tabular-nums text-neutral-500">
-                  {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
-                </td>
-              </tr>
-            ))}
+            {rows!.map((r) => {
+              const t = teamMap.get(r.teamId);
+              if (!t) return null;
+              const ko = toEnglishTeamName(t.name);
+              const gd = r.goalDiff;
+              return (
+                <tr
+                  key={r.teamId}
+                  id={`team-${r.teamId}`}
+                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={r.promotionColor ? { boxShadow: `inset 3px 0 0 0 ${r.promotionColor}` } : undefined}
+                  title={r.promotionName || undefined}
+                >
+                  <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">
+                    {r.position}
+                  </td>
+                  <td className="py-2 px-2">
+                    <Link
+                      href={`/teams/${t.id}`}
+                      prefetch={false}
+                      className="flex items-center gap-2 hover:underline"
+                    >
+                      {t.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                      ) : (
+                        <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                      )}
+                      <span className="font-semibold truncate max-w-[160px] sm:max-w-none">{ko}</span>
+                    </Link>
+                  </td>
+                  <td className="text-center py-2 px-2 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                  <td className="text-center py-2 px-2 tabular-nums text-emerald-600 dark:text-emerald-400">{r.wins}</td>
+                  <td className="text-center py-2 px-2 tabular-nums text-neutral-500">{r.draws}</td>
+                  <td className="text-center py-2 px-2 tabular-nums text-rose-500">{r.losses}</td>
+                  {isBaseball ? (
+                    <>
+                      {showGb && (
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-600 dark:text-neutral-400">
+                          {gamesBehind(r)}
+                        </td>
+                      )}
+                      <td className="text-center py-2 px-2 hidden sm:table-cell">
+                        <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
+                      </td>
+                      <td className={`text-right py-2 pl-2 tabular-nums font-black text-base ${poOdds ? "pr-2" : "pr-3"}`}>{winPct(r)}</td>
+                      {poOdds && (
+                        <td className={`text-right py-2 pr-3 pl-2 tabular-nums font-semibold ${poTone(poOdds.get(r.teamId))}`}>
+                          {poLabel(poOdds.get(r.teamId))}
+                        </td>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsFor}</td>
+                      <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsAgainst}</td>
+                      <td className={`text-center py-2 px-2 tabular-nums font-semibold ${gd > 0 ? "text-emerald-600 dark:text-emerald-400" : gd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
+                        {gd > 0 ? `+${gd}` : gd}
+                      </td>
+                      <td className="text-center py-2 px-2 hidden sm:table-cell">
+                        <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
+                      </td>
+                      <td className="text-right py-2 pr-3 pl-2 tabular-nums font-black text-base">{r.points}</td>
+                    </>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+        </div>
       </div>
-    </section>
-  );
-}
 
-async function NhlStandingsPage() {
-  const [std, leaders] = await Promise.all([fetchNhlStandings(), fetchEnLeaders("NHL")]);
-  if (!std || std.rows.length === 0) notFound();
-  const sortRows = (conf: string) =>
-    std.rows
-      .filter((r) => r.conference === conf)
-      .sort((a, b) => b.points - a.points || b.regulationWins - a.regulationWins);
-  return (
-    <main className="relative mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
-      <AmbientGlow />
-      <header className="space-y-2">
-        <nav className="text-xs text-neutral-400">
-          <Link href="/en/standings" className="hover:underline">
-            Standings
-          </Link>{" "}
-          / NHL
-        </nav>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">NHL standings</h1>
-        <p className="text-sm text-neutral-500">
-          {std.season} season — official NHL records, updated daily.{" "}
-          <Link href="/en/predictions/NHL" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            NHL AI predictions
+      <div className="text-[11px] text-neutral-400 text-center pt-2">
+        ⓘ Finished matches only. Scheduled and postponed matches are excluded.
+      </div>
+
+      {poOdds && (
+        <p className="text-[11px] text-neutral-400 text-center leading-relaxed break-keep">
+          Postseason probability is the chance of finishing in the top five. The remaining fixtures are simulated 5,000 times with an Elo-based Monte Carlo model, refreshed daily.{" "}
+          <Link href="/predictions/KBO" className="underline hover:text-neutral-600 dark:hover:text-neutral-300">
+            See the full title and table projection
           </Link>
-          .
         </p>
-      </header>
-      <NhlConferenceTable title="Eastern Conference" rows={sortRows("Eastern")} />
-      <NhlConferenceTable title="Western Conference" rows={sortRows("Western")} />
-      <LeadersSection {...leaders} />
-    </main>
+      )}
+
+      {xgTable && (
+        <section className="space-y-3 pt-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight break-keep">Advanced table — expected points (xPTS)</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed break-keep">
+            Per-match <strong>xG (expected goals)</strong>converted to points via a Poisson model — <strong>xPTS (expected points)</strong>compared with actual points. A ± <strong>+</strong> above zero means outperforming the underlying play (finishing or luck);
+            <strong> -</strong> below zero means points dropped relative to chances created.
+          </p>
+          <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-separate border-spacing-0">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
+                    <th className="text-right py-2 pl-3 pr-2 font-semibold">#</th>
+                    <th className="text-left py-2 px-2 font-semibold">Team</th>
+                    <th className="text-center py-2 px-2 font-semibold w-10">GP</th>
+                    <th className="text-center py-2 px-2 font-semibold w-12 hidden sm:table-cell">GF</th>
+                    <th className="text-center py-2 px-2 font-semibold w-14 hidden sm:table-cell">xG</th>
+                    <th className="text-center py-2 px-2 font-semibold w-12 hidden sm:table-cell">GA</th>
+                    <th className="text-center py-2 px-2 font-semibold w-14 hidden sm:table-cell">xGC</th>
+                    <th className="text-center py-2 px-2 font-semibold w-12">Pts</th>
+                    <th className="text-center py-2 px-2 font-semibold w-14">xPTS</th>
+                    <th className="text-right py-2 pr-3 pl-2 font-semibold w-14">±</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {xgTable.rows.map((r, i) => {
+                    const t = teamMap.get(r.teamId);
+                    if (!t) return null;
+                    const luck = r.pts - r.xpts;
+                    return (
+                      <tr
+                        key={r.teamId}
+                        className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      >
+                        <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
+                        <td className="py-2 px-2">
+                          <Link href={`/teams/${t.id}`} prefetch={false} className="flex items-center gap-2 hover:underline">
+                            {t.logoUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={t.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                            )}
+                            <span className="font-semibold truncate max-w-[160px] sm:max-w-none">{toEnglishTeamName(t.name)}</span>
+                          </Link>
+                        </td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300 hidden sm:table-cell">{r.gf}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-500 hidden sm:table-cell">{r.xgFor.toFixed(1)}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300 hidden sm:table-cell">{r.ga}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-500 hidden sm:table-cell">{r.xgAgainst.toFixed(1)}</td>
+                        <td className="text-center py-2 px-2 tabular-nums font-black">{r.pts}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-500">{r.xpts.toFixed(1)}</td>
+                        <td className={`text-right py-2 pr-3 pl-2 tabular-nums font-semibold ${luck > 2 ? "text-emerald-600 dark:text-emerald-400" : luck < -2 ? "text-rose-500" : "text-neutral-500"}`}>
+                          {luck > 0 ? `+${luck.toFixed(1)}` : luck.toFixed(1)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="text-[11px] text-neutral-400 text-center">
+            ⓘ Based on matches with xG, {xgTable.covered}/{xgTable.finished} · xG from api-football · sorted by actual points.
+          </div>
+        </section>
+      )}
+
+      {hasLeaders && (
+        // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점 (해시 진입 시 자동 펼침)
+        <CollapseSection id="leaderboard" title={`${name} season leaders`}>
+          {leadersPending ? (
+            <div className="space-y-3">
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
+                {leadersPreSeason
+                  ? "Collection resumes when the new season starts."
+                  : "Collecting this season's records. They appear as rounds are played."}
+              </p>
+              {Object.keys(lastSeasonRows).length > 0 && (
+                <LeagueLeaderBoard
+                  league={upper}
+                  season={leadersStaleSeason!}
+                  rowsByCategory={lastSeasonRows}
+                  footer={`${leadersStaleSeason} final record`}
+                />
+              )}
+            </div>
+          ) : (
+            <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
+          )}
+        </CollapseSection>
+      )}
+
+      {/* KBO 한정 FAQ — layout 의 BreadcrumbList·Dataset JSON-LD 와 별도 스크립트로 주입 */}
+      {upper === "KBO" && (
+        <section className="space-y-3 pt-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight break-keep">KBO League Standings — FAQ</h2>
+          <div className="space-y-2">
+            {KBO_FAQ.map((f) => (
+              <details
+                key={f.q}
+                className="rounded-2xl border border-neutral-200 dark:border-white/10 px-4 py-3"
+              >
+                <summary className="text-sm font-semibold cursor-pointer break-keep">{f.q}</summary>
+                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
+                  {f.a}
+                </p>
+              </details>
+            ))}
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: jsonLdScript({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: KBO_FAQ.map((f) => ({
+                  "@type": "Question",
+                  name: f.q,
+                  acceptedAnswer: { "@type": "Answer", text: f.a },
+                })),
+              }),
+            }}
+          />
+        </section>
+      )}
+    </div>
   );
 }
 
-export default async function EnStandingsLeague({ params }: Props) {
-  const { league } = await params;
-  const upper = league.toUpperCase();
-  if (!VALID.has(upper)) notFound();
+// ── xG 심화 순위 — 시즌 FINISHED 매치의 xG 로 팀별 기대득점·기대승점(xPTS) 집계 ──
+// xgscore.io 벤치마크. 실제 승점과 xPTS 의 차이로 순위표의 '운' 요소를 수치화.
+// 커버리지 90% 미만 리그는 누계가 왜곡되어 null 반환(섹션 미노출). 현재 통과: 라리가·세리에A 등.
+interface XgAggRow {
+  teamId: number;
+  played: number;
+  gf: number;
+  ga: number;
+  xgFor: number;
+  xgAgainst: number;
+  pts: number;
+  xpts: number;
+}
 
-  if (upper === "NHL") return NhlStandingsPage();
-
-  const [rows, leaders] = await Promise.all([
-    BASEBALL_LEAGUES_EN.has(upper)
-      ? fetchBaseballRows(upper)
-      : getFullStandings(upper).catch(() => [] as StandingsRow[]),
-    fetchEnLeaders(upper),
-  ]);
-  if (rows.length === 0) notFound();
-
-  const teams = await prisma.team.findMany({
-    where: { id: { in: rows.map((r) => r.teamId) } },
-    select: { id: true, name: true },
+async function buildXgTable(
+  matches: Array<{
+    id: number;
+    status: string;
+    homeTeamId: number;
+    awayTeamId: number;
+    homeScore: number | null;
+    awayScore: number | null;
+  }>,
+): Promise<{ rows: XgAggRow[]; covered: number; finished: number } | null> {
+  const finished = matches.filter(
+    (m) => m.status === "FINISHED" && m.homeScore != null && m.awayScore != null,
+  );
+  if (finished.length < 20) return null; // 표본 부족(컵 초기·시즌 초)
+  const stats = await prisma.match.findMany({
+    where: { id: { in: finished.map((m) => m.id) }, fixtureStats: { not: null } },
+    select: { id: true, fixtureStats: true },
   });
-  const nameById = new Map(teams.map((t) => [t.id, toEnglishTeamName(t.name)]));
+  const xgById = new Map<number, { home: number; away: number }>();
+  for (const s of stats) {
+    const { home, away } = parseFixtureXg(s.fixtureStats);
+    if (home != null && away != null) xgById.set(s.id, { home, away });
+  }
+  if (xgById.size / finished.length < 0.9) return null;
 
-  const name = enLeagueName(upper);
-  const isBaseball = BASEBALL_LEAGUES_EN.has(upper);
-  // J1/J2 100년 비전 등 그룹 포맷 — group 별 분리 렌더
-  const groups = new Map<string, StandingsRow[]>();
-  for (const r of rows) {
-    const g = r.group ?? "";
-    if (!groups.has(g)) groups.set(g, []);
-    groups.get(g)!.push(r);
+  const byTeam = new Map<number, XgAggRow>();
+  const rowOf = (teamId: number): XgAggRow => {
+    let r = byTeam.get(teamId);
+    if (!r) {
+      r = { teamId, played: 0, gf: 0, ga: 0, xgFor: 0, xgAgainst: 0, pts: 0, xpts: 0 };
+      byTeam.set(teamId, r);
+    }
+    return r;
+  };
+  for (const m of finished) {
+    const xg = xgById.get(m.id);
+    if (!xg) continue; // 미커버 경기는 실제 승점 쪽도 제외 — 같은 경기 집합으로 공정 비교
+    const o = xgOutcome(xg.home, xg.away);
+    const h = rowOf(m.homeTeamId);
+    const a = rowOf(m.awayTeamId);
+    h.played++;
+    a.played++;
+    h.gf += m.homeScore!;
+    h.ga += m.awayScore!;
+    h.xgFor += xg.home;
+    h.xgAgainst += xg.away;
+    a.gf += m.awayScore!;
+    a.ga += m.homeScore!;
+    a.xgFor += xg.away;
+    a.xgAgainst += xg.home;
+    h.xpts += o.xptsHome;
+    a.xpts += o.xptsAway;
+    if (m.homeScore! > m.awayScore!) h.pts += 3;
+    else if (m.homeScore! < m.awayScore!) a.pts += 3;
+    else {
+      h.pts++;
+      a.pts++;
+    }
+  }
+  const rows = [...byTeam.values()].sort(
+    (x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf,
+  );
+  return { rows, covered: xgById.size, finished: finished.length };
+}
+
+// ── FIFA 월드컵 2026 조별 순위 — 48개국 12개 조, FINISHED 매치 기반 자체 집계 ──
+// 조 1·2위 32강 직행 + 3위 중 상위 8팀 추가 진출 (48팀 신규 포맷).
+// 정렬: 승점 > 득실 > 다득점 (동률 세부 규칙(H2H·페어플레이)은 조별 종료 시점에만 의미 — 생략).
+async function WorldCupStandings({ name }: { name: string }) {
+  const [teams, matches] = await Promise.all([
+    prisma.team.findMany({
+      where: { league: "WORLD_CUP" },
+      select: { id: true, name: true, logoUrl: true },
+    }),
+    prisma.match.findMany({
+      where: { league: "WORLD_CUP" },
+      select: { status: true, homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true },
+    }),
+  ]);
+
+  interface Row {
+    teamId: number; name: string; logo: string | null;
+    played: number; wins: number; draws: number; losses: number;
+    gf: number; ga: number; pts: number;
+  }
+  const rowByTeam = new Map<number, Row>();
+  const groupOf = new Map<number, string>();
+  for (const t of teams) {
+    const g = getTeamGroup(t.name);
+    if (!g) continue; // 조 매핑 안 되는 row (중복/비본선) 제외
+    groupOf.set(t.id, g);
+    rowByTeam.set(t.id, { teamId: t.id, name: t.name, logo: t.logoUrl, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, pts: 0 });
+  }
+  for (const m of matches) {
+    if (m.status !== "FINISHED" || m.homeScore == null || m.awayScore == null) continue;
+    const h = rowByTeam.get(m.homeTeamId);
+    const a = rowByTeam.get(m.awayTeamId);
+    if (!h || !a) continue;
+    // 32강 이후 토너먼트 매치 제외 — 같은 조 팀끼리의 경기만 조별 집계
+    if (groupOf.get(m.homeTeamId) !== groupOf.get(m.awayTeamId)) continue;
+    h.played++; a.played++;
+    h.gf += m.homeScore; h.ga += m.awayScore;
+    a.gf += m.awayScore; a.ga += m.homeScore;
+    if (m.homeScore > m.awayScore) { h.wins++; h.pts += 3; a.losses++; }
+    else if (m.homeScore < m.awayScore) { a.wins++; a.pts += 3; h.losses++; }
+    else { h.draws++; h.pts++; a.draws++; a.pts++; }
   }
 
+  const groups = new Map<string, Row[]>();
+  for (const [teamId, g] of groupOf) {
+    const arr = groups.get(g) || [];
+    arr.push(rowByTeam.get(teamId)!);
+    groups.set(g, arr);
+  }
+  for (const arr of groups.values()) {
+    arr.sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf || x.name.localeCompare(y.name));
+  }
+  const groupKeys = [...groups.keys()].sort();
+  const playedTotal = matches.filter((m) => m.status === "FINISHED").length;
+
   return (
-    <main className="relative mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
+    <div className="relative max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
-      <header className="space-y-2">
-        <nav className="text-xs text-neutral-400">
-          <Link href="/en/standings" className="hover:underline">
-            Standings
-          </Link>{" "}
-          / {name}
-        </nav>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{name} standings</h1>
-        <p className="text-sm text-neutral-500">
-          Updated throughout the day.
-          {EN_PREDICTION_LEAGUE_SET.has(upper) && (
-            <>
-              {" "}
-              See{" "}
-              <Link
-                href={`/en/predictions/${upper}`}
-                className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-              >
-                {name} AI predictions
-              </Link>
-              .
-            </>
-          )}
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores" className="hover:underline">Live scores</Link>
+        <span>›</span>
+        <Link href="/leagues/WORLD_CUP" className="hover:underline">{name}</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">Group standings</span>
+      </nav>
+
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> Group standings
+          </span>
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} Group standings</h1>
+          <p className="text-sm text-neutral-500 mt-2 break-keep">
+            48 nations, 12 groups · group stage {playedTotal}Match finished · updates as matches end
+          </p>
+        </div>
+        <Link
+          href="/predictions/WORLD_CUP"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline shrink-0"
+        >
+          <Trophy className="h-4 w-4" aria-hidden /> Title probability simulation →
+        </Link>
+      </header>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {groupKeys.map((g) => (
+          <section key={g} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:hover:bg-white/[0.02]">
+            <h2 className="px-4 py-2.5 text-sm font-black bg-neutral-50 dark:bg-white/[0.04] border-b border-neutral-200 dark:border-white/10">
+              {g}Group
+            </h2>
+            <table className="w-full text-sm border-separate border-spacing-0">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wider text-neutral-400">
+                  <th className="text-right py-1.5 pl-3 pr-1 font-semibold w-7">#</th>
+                  <th className="text-left py-1.5 px-1.5 font-semibold">Team</th>
+                  <th className="text-center py-1.5 px-1 font-semibold w-8">GP</th>
+                  <th className="text-center py-1.5 px-1 font-semibold w-7">W</th>
+                  <th className="text-center py-1.5 px-1 font-semibold w-7">D</th>
+                  <th className="text-center py-1.5 px-1 font-semibold w-7">L</th>
+                  <th className="text-center py-1.5 px-1 font-semibold w-10">GD</th>
+                  <th className="text-right py-1.5 pr-3 pl-1 font-semibold w-10">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(groups.get(g) || []).map((r, i) => {
+                  const gd = r.gf - r.ga;
+                  // 1·2위 = 32강 직행(emerald), 3위 = 상위 8팀 와일드카드 가능(amber)
+                  const stripe = i < 2 ? "#10b981" : i === 2 ? "#f59e0b" : undefined;
+                  return (
+                    <tr
+                      key={r.teamId}
+                      className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      style={stripe ? { boxShadow: `inset 3px 0 0 0 ${stripe}` } : undefined}
+                      title={i < 2 ? "Direct to round of 32" : i === 2 ? "Third — the eight best advance to the round of 32" : undefined}
+                    >
+                      <td className="text-right py-2 pl-3 pr-1 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
+                      <td className="py-2 px-1.5">
+                        <Link href={`/national-teams/${r.teamId}`} prefetch={false} className="flex items-center gap-2 hover:underline">
+                          {r.logo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={r.logo} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                          )}
+                          <span className="font-semibold truncate max-w-[120px] sm:max-w-[150px]">
+                            {toEnglishTeamName(r.name)}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="text-center py-2 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                      <td className="text-center py-2 px-1 tabular-nums text-emerald-600 dark:text-emerald-400">{r.wins}</td>
+                      <td className="text-center py-2 px-1 tabular-nums text-neutral-500">{r.draws}</td>
+                      <td className="text-center py-2 px-1 tabular-nums text-rose-500">{r.losses}</td>
+                      <td className={`text-center py-2 px-1 tabular-nums font-semibold ${gd > 0 ? "text-emerald-600 dark:text-emerald-400" : gd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
+                        {gd > 0 ? `+${gd}` : gd}
+                      </td>
+                      <td className="text-right py-2 pr-3 pl-1 tabular-nums font-black">{r.pts}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </section>
+        ))}
+      </div>
+
+      <div className="text-[11px] text-neutral-400 text-center pt-2 space-y-0.5">
+        <p>
+          <span className="inline-block w-2.5 h-2.5 rounded-sm align-[-1px] mr-1" style={{ background: "#10b981" }} />
+          Top two go straight to the round of 32
+          <span className="inline-block w-2.5 h-2.5 rounded-sm align-[-1px] mx-1 ml-3" style={{ background: "#f59e0b" }} />
+          The eight best third-placed teams from 12 groups reach the round of 32
+        </p>
+        <p>ⓘ Finished matches only · ties broken by points, then goal difference, then goals scored.</p>
+      </div>
+    </div>
+  );
+}
+
+
+// ── 배구 순위 (VNL/AVC/유럽리그/V-리그) — TheSports season/table/detail cache 기반 ──
+// 승점·승패·세트 득실. AVC/유럽리그는 조별(Pool) 다중 테이블 그대로 렌더.
+
+// V-리그는 비시즌이라 지난 시즌 최종 표를 라벨 붙여 노출 (2026-08-16, 캐시 수동 적재).
+// ⚠️ 10월 새 시즌 개막·standings-poller VOLLEYBALL_SEASONS 편입 시 이 라벨을 제거할 것.
+const VB_PAST_SEASON_NOTE: Record<string, string> = {
+  V_LEAGUE: "2025-26 final regular-season table · updates resume when the new season starts in October 2026",
+  V_LEAGUE_W: "2025-26 final regular-season table · updates resume when the new season starts in October 2026",
+};
+
+async function VolleyballStandings({ league, name }: { league: string; name: string }) {
+  const groups = await fetchVolleyballTable(league);
+  // 선수 시즌 리더보드 — 현재 V-리그 남녀만 데이터 보유(KOVO 공식), 그 외 대회는 자동 숨김
+  const { rowsByCategory: leaders, season: leaderSeason } = await loadLeagueLeaderboard(league, undefined, "en");
+  const hasLeaders = Object.keys(leaders).length > 0;
+  const teamIds = groups.flatMap((g) => g.rows.map((r) => r.ourTeamId));
+  const [teams, vbMatches] = await Promise.all([
+    prisma.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true, name: true, logoUrl: true },
+    }),
+    // 최근 5 도트용 — 대회 FINISHED 매치 (세트 스코어 기준 W/L)
+    prisma.match.findMany({
+      where: { league },
+      select: { status: true, homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true, startTime: true },
+    }),
+  ]);
+  const teamMap = new Map(teams.map((t) => [t.id, t]));
+  const multi = groups.length > 1;
+
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=volleyball" className="hover:underline">Volleyball live scores</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{name} table</span>
+      </nav>
+
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} table</h1>
+        <p className="text-sm text-neutral-500 mt-2 break-keep">
+          {VB_PAST_SEASON_NOTE[league] ??
+            "Points · record · set difference — official TheSports standings, updated after each match"}
         </p>
       </header>
 
-      {Array.from(groups.entries()).map(([g, groupRows]) => (
-        <section key={g || "main"} className="space-y-2">
-          {g && <h2 className="text-lg font-bold tracking-tight">{g}</h2>}
-          <StandingsTable rows={groupRows} nameById={nameById} isBaseball={isBaseball} />
-        </section>
-      ))}
+      {groups.length === 0 ? (
+        <p className="rounded-xl border border-neutral-200 dark:border-white/10 px-5 py-10 text-center text-sm text-neutral-500 break-keep">
+          Collecting standings data. Please check back shortly.
+        </p>
+      ) : (
+        <div className={multi ? "grid sm:grid-cols-2 gap-4" : "space-y-4"}>
+          {groups.map((g) => (
+            <section key={g.name} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:hover:bg-white/[0.02]">
+              {multi && (
+                <h2 className="px-4 py-2.5 text-sm font-black bg-neutral-50 dark:bg-white/[0.04] border-b border-neutral-200 dark:border-white/10">
+                  {g.name}
+                </h2>
+              )}
+              <table className="w-full text-sm border-separate border-spacing-0">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-neutral-400">
+                    <th className="text-right py-2 pl-3 pr-2 font-semibold w-8">#</th>
+                    <th className="text-left py-2 px-2 font-semibold">Team</th>
+                    <th className="text-center py-2 px-1 font-semibold w-10">GP</th>
+                    <th className="text-center py-2 px-1 font-semibold w-8">W</th>
+                    <th className="text-center py-2 px-1 font-semibold w-8">L</th>
+                    <th className="text-center py-2 px-1 font-semibold w-14">Set +/-</th>
+                    <th className="text-center py-2 px-1 font-semibold w-16 hidden sm:table-cell">Last 5</th>
+                    <th className="text-right py-2 pr-3 pl-1 font-semibold w-12">Pts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g.rows.map((r) => {
+                    const t = teamMap.get(r.ourTeamId);
+                    if (!t) return null;
+                    const sd = r.setsWin - r.setsLoss;
+                    return (
+                      <tr key={r.ourTeamId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                        <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">{r.position}</td>
+                        <td className="py-2 px-2">
+                          <span className="flex items-center gap-2">
+                            {t.logoUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={t.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                            )}
+                            <span className="font-semibold truncate max-w-[150px] sm:max-w-none">
+                              {toEnglishTeamName(t.name)}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="text-center py-2 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                        <td className="text-center py-2 px-1 tabular-nums text-emerald-600 dark:text-emerald-400">{r.wins}</td>
+                        <td className="text-center py-2 px-1 tabular-nums text-rose-500">{r.losses}</td>
+                        <td className={`text-center py-2 px-1 tabular-nums font-semibold ${sd > 0 ? "text-emerald-600 dark:text-emerald-400" : sd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
+                          {r.setsWin}:{r.setsLoss}
+                        </td>
+                        <td className="text-center py-2 px-1 hidden sm:table-cell">
+                          <RecentFormDots form={getRecentForm(vbMatches, r.ourTeamId, 5)} size="sm" />
+                        </td>
+                        <td className="text-right py-2 pr-3 pl-1 tabular-nums font-black text-base">{r.points}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
+          ))}
+        </div>
+      )}
 
-      <LeadersSection {...leaders} />
-    </main>
+      <div className="text-[11px] text-neutral-400 text-center pt-2">
+        ⓘ Set +/- is sets won and lost. Ranking follows competition rules (points, then wins, then set ratio).
+      </div>
+
+      {hasLeaders && (
+        <CollapseSection id="leaderboard" title={`${name} season leaders`}>
+          <LeagueLeaderBoard
+            league={league}
+            season={leaderSeason}
+            rowsByCategory={leaders}
+            footer={`${leaderSeason} final regular-season record · source KOVO`}
+          />
+        </CollapseSection>
+      )}
+    </div>
+  );
+}
+
+
+// ── NHL 순위 — NHL 공식 API /standings/now (정규시즌, 승 2점·연장패 1점) ──
+// 축구식 calcStandings(승×3·무×1)와 승점 체계가 달라 공식 기록을 그대로 렌더.
+// 표 컬럼도 NHL 식: 경기·승·패·연장패(OTL)·득점·실점·득실·승점 ('무' 없음).
+// 표 본체는 공용 NhlStandingsTable 컴포넌트가 렌더(/leagues/NHL 순위 탭과 공유).
+function formatNhlSeason(s: string): string {
+  // "20252026" → "2025-26"
+  if (/^\d{8}$/.test(s)) return `${s.slice(0, 4)}-${s.slice(6, 8)}`;
+  return s;
+}
+
+// NBA/NHL — 플레이오프 브라켓 접이식 섹션 (진행 중이면 펼침, 끝난 시즌 아카이브면 접힘)
+async function PlayoffBracketSection({ league }: { league: "NBA" | "NHL" }) {
+  // 브라켓 라벨(라운드명·시리즈 요약)이 DB 에 한국어로만 있어 영어판에서는 감춘다
+  const bracket = await loadPlayoffBracket(league);
+  if (bracket.length >= 0) return null;
+  const done = isPlayoffSeasonDone(bracket);
+  const season = playoffSeasonLabel(bracket);
+  return (
+    <CollapseSection
+      title={`${season ? `${season} ` : ""}Play-off bracket`}
+      meta={done ? "(final result)" : "(in progress)"}
+      defaultOpen={!done}
+    >
+      <NbaPlayoffBracket series={bracket} league={league} />
+    </CollapseSection>
+  );
+}
+
+// NBA — ESPN 공식 순위 래퍼 (브레드크럼·헤더 + 컨퍼런스 표. 표 본문은 NbaStandingsTable 공용)
+async function NbaStandings({ name }: { name: string }) {
+  // 시즌 리더보드 — predictions 요약 카드의 "전체 보기" 착지점 (2026-08-15 역할 분리)
+  const { rowsByCategory: nbaLeaders, season: nbaLeaderSeason } = await loadLeagueLeaderboard("NBA", undefined, "en");
+  const hasNbaLeaders = Object.keys(nbaLeaders).length > 0;
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=basketball" className="hover:underline">
+          Live scores
+        </Link>
+        <span>›</span>
+        <Link href="/leagues/NBA" className="hover:underline">
+          {name}
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">table</span>
+      </nav>
+
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+          </span>
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NBA table</h1>
+          <p className="text-sm text-neutral-500 mt-2 break-keep">Eastern and Western Conference · 30 teams · official NBA records</p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Link
+            href="/predictions/NBA"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline"
+          >
+            <Trophy className="h-4 w-4" aria-hidden /> AI prediction →
+          </Link>
+          <Link
+            href="/injuries/NBA"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            <HeartPulse className="h-4 w-4" aria-hidden /> Injuries →
+          </Link>
+        </div>
+      </header>
+
+      <NbaStandingsTable />
+
+      <PlayoffBracketSection league="NBA" />
+
+      {hasNbaLeaders && (
+        <CollapseSection id="leaderboard" title="NBA season leaders">
+          <LeagueLeaderBoard league="NBA" season={nbaLeaderSeason} rowsByCategory={nbaLeaders} />
+        </CollapseSection>
+      )}
+    </div>
+  );
+}
+
+// ── KBL/WKBL — 공식 사이트 기록 기반 (승률·승차 체계) ──
+// 오프시즌엔 fetcher 가 지난 시즌 최종 표로 폴백하고 seasonLabel/pastSeason 을 채워 준다.
+// 표 본문·소제목·출처 주석은 공용 KoreanBasketballTable 이 렌더(/leagues/{KBL,WKBL} 순위 탭과 공유).
+// 수집 실패(빈 표) 안내도 거기서 낸다 — 여기서 미리 fetch 하면 같은 호출이 두 번 나간다.
+async function KoreanBasketballStandings({ league, name }: { league: string; name: string }) {
+  const { rowsByCategory: leaders, season: leaderSeason } = await loadLeagueLeaderboard(league, undefined, "en");
+  const hasLeaders = Object.keys(leaders).length > 0;
+
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=basketball" className="hover:underline">Basketball live scores</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{name} table</span>
+      </nav>
+
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} table</h1>
+      </header>
+
+      {/* withLastLeaders 는 끈다 — 리더보드는 바로 아래 CollapseSection 이 이미 렌더한다. */}
+      <KoreanBasketballTable league={league} />
+
+      {hasLeaders && (
+        <CollapseSection id="leaderboard" title={`${name} season leaders`}>
+          <LeagueLeaderBoard
+            league={league}
+            season={leaderSeason}
+            rowsByCategory={leaders}
+            footer={`${leaderSeason} final regular-season record · source ${league} official`}
+          />
+        </CollapseSection>
+      )}
+    </div>
+  );
+}
+
+async function NhlStandings({ name }: { name: string }) {
+  const std = await fetchNhlStandings();
+  if (!std || std.rows.length === 0) {
+    return (
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <AmbientGlow />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} table</h1>
+        <p className="mt-3 text-sm text-neutral-500 break-keep">
+          Collecting standings data. Please check back shortly.
+        </p>
+      </div>
+    );
+  }
+  const seasonLabel = formatNhlSeason(std.season);
+
+  // 시즌 리더보드 (골·어시·포인트·세이브%) — 데이터 있을 때만.
+  const { rowsByCategory: nhlLeaders, season: nhlLeaderSeason } = await loadLeagueLeaderboard("NHL", undefined, "en");
+  const hasNhlLeaders = Object.keys(nhlLeaders).length > 0;
+
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=hockey" className="hover:underline">
+          Live scores
+        </Link>
+        <span>›</span>
+        <Link href="/leagues/NHL" className="hover:underline">
+          {name}
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">table</span>
+      </nav>
+
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> League standings
+          </span>
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NHL table</h1>
+          <p className="text-sm text-neutral-500 mt-2 break-keep">
+            {seasonLabel} Regular season · 32 teams · official NHL records (2 points for a win, 1 for an overtime loss)
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Link
+            href="/predictions/NHL"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline"
+          >
+            <Trophy className="h-4 w-4" aria-hidden /> AI prediction →
+          </Link>
+          <Link
+            href="/injuries/NHL"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            <HeartPulse className="h-4 w-4" aria-hidden /> Injuries →
+          </Link>
+        </div>
+      </header>
+
+      <NhlStandingsTable std={std} />
+
+      <PlayoffBracketSection league="NHL" />
+
+      {hasNhlLeaders && (
+        <CollapseSection id="leaderboard" title="NHL season leaders">
+          <LeagueLeaderBoard league="NHL" season={nhlLeaderSeason} rowsByCategory={nhlLeaders} />
+        </CollapseSection>
+      )}
+    </div>
   );
 }

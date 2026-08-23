@@ -1,0 +1,13 @@
+{
+  "header": "LolSimpleStandings (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "유럽 · League of Legends EMEA Championship": "Europe · League of Legends EMEA Championship",
+    "북미 · League of Legends Championship Series": "North America · League of Legends Championship Series",
+    "e스포츠 라이브": "Esports live",
+    "순위·선수정보": "Standings & players",
+    "리그 순위": "League standings",
+    "· 2026 시즌 · TheSports": "· 2026 season · TheSports",
+    "ⓘ 정규 스플릿 순위 · 선수·챔피언 통계는 수집된 세트 기준 · 경기 종료 후 갱신": "ⓘ Regular split standings · player and champion stats from collected games · updated after each match"
+  }
+}

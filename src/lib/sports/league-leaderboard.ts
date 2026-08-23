@@ -4,6 +4,7 @@
 import { prisma } from "@/lib/db";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toEnglishTeamName } from "@/lib/i18n/en";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
@@ -46,6 +47,9 @@ async function isPreSeasonZeroTable(league: string): Promise<boolean> {
 export async function loadLeagueLeaderboard(
   league: string,
   seasonOverride?: string,
+  // locale='en' 이면 선수·팀명 한글 변환을 건너뛴다 (DB 원본이 영문).
+  // standings-overview 의 StandingsLocale 과 같은 규칙.
+  locale: "ko" | "en" = "ko",
 ): Promise<{
   rowsByCategory: Record<string, LeaderRow[]>;
   season: string;
@@ -105,12 +109,15 @@ export async function loadLeagueLeaderboard(
 
   const rowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of rows) {
+    // 영어판 — playerNameEn 이 없고 원본이 한글이면(KBO 등) 낼 이름이 없어 행을 건너뛴다.
+    // 이름 없는 행을 남기면 리더보드가 빈칸으로 보인다.
+    if (locale === "en" && !r.playerNameEn && /[가-힣]/.test(r.playerName)) continue;
     if (!rowsByCategory[r.category]) rowsByCategory[r.category] = [];
     rowsByCategory[r.category].push({
       rank: r.rank,
-      playerName: toKoreanPlayerName(r.playerName),
+      playerName: locale === "en" ? (r.playerNameEn ?? r.playerName) : toKoreanPlayerName(r.playerName),
       playerNameEn: r.playerNameEn ?? r.playerName,
-      teamName: toKoreanTeamName(r.teamName, league),
+      teamName: locale === "en" ? toEnglishTeamName(r.teamName) : toKoreanTeamName(r.teamName, league),
       teamShort: r.teamShort,
       value: r.value,
       unit: r.unit,

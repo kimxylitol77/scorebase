@@ -1,0 +1,11 @@
+{
+  "header": "LolLplStandings (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "e스포츠 라이브": "Esports live",
+    "순위": "Standings",
+    "리그 순위": "League standings",
+    "중국 · League of Legends Pro League · 2026 스플릿 · TheSports": "China · League of Legends Pro League · 2026 split · TheSports",
+    "ⓘ LPL 스플릿은 그룹(조)별로 순위가 매겨집니다 · 그룹마다 1위부터 표기 · 경기 종료 후 갱신": "ⓘ LPL splits are ranked by group · each group starts from first · updated after each match"
+  }
+}
