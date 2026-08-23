@@ -1,7 +1,7 @@
 // 유럽 대항전 단계 가드 + 그룹 순위 예외 세트 상태 고정.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hideStageStandings } from "./standings-gate";
+import { hideStageStandings, isUnplayedTable } from "./standings-gate";
 import { GROUPED_STANDINGS_LEAGUES } from "./standings-helper";
 
 const played = (n: number) => ({ won: n, draw: 0, loss: 0 });
@@ -57,6 +57,22 @@ test("빈 순위표는 가드 대상이 아니다", () => {
 test("일반 리그는 이 가드의 영향을 받지 않는다", () => {
   assert.equal(hideStageStandings("EPL", [played(38)]), false);
   assert.equal(hideStageStandings("J1_LEAGUE", [played(20)]), false);
+});
+
+test("전 팀 0경기 표는 개막 전 placeholder — 순위 정보가 아니다", () => {
+  // 2026-08-23 실측: AFC_CL 32행 전원 0승0무0패인데 12팀이 카드 칩 [1]·[2] 를 받고 있었다.
+  assert.equal(isUnplayedTable([played(0), played(0), played(0)]), true);
+  assert.equal(isUnplayedTable([{ won: 0, draw: 0, loss: 0 }, {}]), true);
+});
+
+test("한 팀이라도 경기를 치렀으면 개막 전이 아니다", () => {
+  assert.equal(isUnplayedTable([played(0), played(1), played(0)]), false);
+  assert.equal(isUnplayedTable([{ won: 0, draw: 1, loss: 0 }]), false);
+  assert.equal(isUnplayedTable([{ won: 0, draw: 0, loss: 1 }]), false);
+});
+
+test("빈 표는 0경기가 아니라 표 없음 — 폴백 대상이라 여기서 막지 않는다", () => {
+  assert.equal(isUnplayedTable([]), false);
 });
 
 test("그룹 순위 예외 세트는 현재 비어 있다 — 2026-27 단일표 복귀", () => {

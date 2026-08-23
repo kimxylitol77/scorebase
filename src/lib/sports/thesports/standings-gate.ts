@@ -112,6 +112,22 @@ export function hideStageStandings(
   return maxPlayed >= phaseMatches;
 }
 
+/**
+ * 아직 한 경기도 치르지 않은 순위표인가 — 개막 전 placeholder.
+ *
+ * 전 팀이 0승0무0패면 표의 position 은 순위가 아니라 시드·알파벳 배열일 뿐이다.
+ * 그대로 카드 칩으로 내보내면 개막도 안 한 대회에 [1]·[2] 가 붙어 사실이 아닌 정보가 된다.
+ * (2026-08-23 실측 — AFC_CL 32행 전원 0경기인데 12팀이 칩을 받고 있었다.)
+ *
+ * 빈 표는 여기서 판정하지 않는다(false) — "0경기"가 아니라 "표 없음"이라 폴백 대상이다.
+ */
+export function isUnplayedTable(
+  rows: Array<{ won?: number; draw?: number; loss?: number }>,
+): boolean {
+  if (rows.length === 0) return false;
+  return rows.every((r) => (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0) === 0);
+}
+
 export type StandingsState =
   /** 쓸 수 있는 순위표가 있다 */
   | "READY"

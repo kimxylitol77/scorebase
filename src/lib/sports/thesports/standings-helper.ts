@@ -17,6 +17,7 @@ import {
   tsCacheUsable,
   isSeasonGated,
   hideStageStandings,
+  isUnplayedTable,
   standingsState,
   type StandingsState,
 } from "./standings-gate";
@@ -136,7 +137,18 @@ export async function getStandingsPositions(
     // 녹아웃 매치(16강~결승)에 리그페이즈 순위([11] 등) 표기는 무의미·혼란이라 숨김.
     // 리그페이즈 진행 중(최다 소화 경기 < 8)엔 순위 표기 유지. (2026-05-29 UCL 결승 PSG[11])
     // 판정은 standings-gate.hideStageStandings 로 옮겨 단위 테스트가 가능하게 했다.
-    if (hideStageStandings(league, (payload?.tables ?? []).flatMap((t) => t.rows ?? []))) {
+    const tsRows = (payload?.tables ?? []).flatMap((t) => t.rows ?? []);
+    if (hideStageStandings(league, tsRows)) {
+      cache.set(league, { fetchedAt: now, positionByOurTeamId });
+      return null;
+    }
+    // 개막 전 표 — 전 팀 0경기면 position 은 시드 순서일 뿐이라 칩으로 내보내지 않는다.
+    // af 폴백도 타지 않고 여기서 끊는다: 현재 시즌 표가 "아직 0경기"라고 말하는데 af 의
+    // 지난 시즌 표를 덧대면 개막도 안 한 대회에 작년 순위가 붙는다. 아래 af 병합부의
+    // "서로 다른 시즌의 두 순위표를 섞지 않는다"와 같은 원칙이다.
+    // (2026-08-23 실측 — AFC_CL·BUNDESLIGA 등 10개 리그가 0경기 표로 칩을 내고 있었고,
+    //  A_LEAGUE·THAI_L1 등은 거기에 90일 묵은 af 2025 표까지 섞여 있었다.)
+    if (isUnplayedTable(tsRows)) {
       cache.set(league, { fetchedAt: now, positionByOurTeamId });
       return null;
     }
@@ -162,11 +174,18 @@ export async function getStandingsPositions(
     // 서로 다른 시즌의 두 순위표를 섞지 않는다 — 시즌 안 맞는 af 캐시는 병합하지 않는다.
     const af = afRow && gate.afOk(afRow.season) ? afRow : null;
     if (af) {
+      // won/draw/loss 는 개막 전 판정에 쓴다 — 타입에서 빼면 전부 undefined 로 읽혀
+      // isUnplayedTable 이 항상 true 가 되고 af 병합이 통째로 죽는다.
       const rows = (af.rows as unknown as Array<{
         teamExternalId: string;
         position: number;
+        won?: number;
+        draw?: number;
+        loss?: number;
       }>) ?? [];
-      if (rows.length > 0) {
+      // af 표도 전 팀 0경기면 개막 전 placeholder — ts 와 같은 이유로 칩을 만들지 않는다.
+      // (2026-08-23 실측 — ts 표가 아예 없는 UEFA_NL 54행이 전원 0경기인데 칩이 나가고 있었다.)
+      if (rows.length > 0 && !isUnplayedTable(rows)) {
         const externalIds = rows.map((r) => r.teamExternalId);
         const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
         const teams = await prisma.team.findMany({
