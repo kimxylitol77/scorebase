@@ -1,0 +1,251 @@
+{
+  "header": "/en/transfers — 이적시장 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "    const nm = t ? toKoreanTeamName(t.name) || t.name : null;",
+      "    const nm = t ? t.name : null;"
+    ],
+    [
+      "name: toKoreanTeamName(teamMeta.get(id)?.name) || teamMeta.get(id)?.name || \"\"",
+      "name: teamMeta.get(id)?.name || \"\""
+    ],
+    [
+      "const coachKoName = (c: { id?: string; name: string; nameKo: string | null }) => c.nameKo || (c.id && COACH_PHOTOS_KO[c.id]?.nameKo) || c.name;",
+      "const coachKoName = (c: { id?: string; name: string; nameKo: string | null }) => c.name;"
+    ],
+    [
+      "    name: ov?.nameKo || tsp?.nameKo || tsp?.name || \"선수\",",
+      "    name: tsp?.name || \"Player\","
+    ],
+    [
+      "        teamName: toKoreanTeamName(tm?.name) || tm?.name || \"—\",",
+      "        teamName: tm?.name || \"—\","
+    ],
+    [
+      "name: toKoreanTeamName(tm.name) || tm.name,",
+      "name: tm.name,"
+    ],
+    [
+      "          name: toKoreanTeamName(tm?.name) || tm?.name || \"—\",",
+      "          name: tm?.name || \"—\","
+    ],
+    [
+      "            name: toKoreanTeamName(tm?.name) || tm?.name || \"팀\",",
+      "            name: tm?.name || \"Club\","
+    ],
+    [
+      "canonical = \"/transfers\";",
+      "canonical = \"/en/transfers\";"
+    ],
+    [
+      "canonical = `/transfers?view=team&team=${Number(sp.team)}`;",
+      "canonical = `/en/transfers?view=team&team=${Number(sp.team)}`;"
+    ],
+    [
+      "canonical = lgLabel ? `/transfers?view=squads&league=${sp.league}` : \"/transfers?view=squads\";",
+      "canonical = lgLabel ? `/en/transfers?view=squads&league=${sp.league}` : \"/en/transfers?view=squads\";"
+    ],
+    [
+      "canonical = \"/transfers?view=bigdeals\";",
+      "canonical = \"/en/transfers?view=bigdeals\";"
+    ],
+    [
+      "canonical = \"/transfers?view=inout\";",
+      "canonical = \"/en/transfers?view=inout\";"
+    ],
+    [
+      "canonical = lgLabel ? `/transfers?view=latest&league=${sp.league}` : \"/transfers?view=latest\";",
+      "canonical = lgLabel ? `/en/transfers?view=latest&league=${sp.league}` : \"/en/transfers?view=latest\";"
+    ],
+    [
+      "canonical = \"/transfers?view=rumors\";",
+      "canonical = \"/en/transfers?view=rumors\";"
+    ],
+    [
+      "    country: ov?.country || null,",
+      "    country: null,"
+    ],
+    [
+      "                const from = r.fromTeamKo || r.fromTeam;",
+      "                const from = r.fromTeam;"
+    ],
+    [
+      "                const to = r.toTeamKo || r.toTeam;",
+      "                const to = r.toTeam;"
+    ],
+    [
+      "<span className=\"font-bold\">{r.playerKo}</span>",
+      "<span className=\"font-bold\">{r.playerName}</span>"
+    ],
+    [
+      "                      <p className=\"mt-1 text-[13px] leading-snug text-neutral-700 dark:text-white/70\">{r.summaryKo}</p>\n",
+      ""
+    ],
+    [
+      "    ? await prisma.transferRumor.findMany({\n        where: rumorWhere,",
+      "    ? (await prisma.transferRumor.findMany({\n        where: rumorWhere,"
+    ],
+    [
+      "        skip: (safePage - 1) * PER,\n        take: PER,\n      })\n    : [];",
+      "        skip: (safePage - 1) * PER,\n        take: PER,\n      })).filter((r) => !/[가-힣]/.test(r.sourceName)) // 한국 매체 출처는 영어판에서 제외\n    : [];"
+    ]
+  ],
+  "dict": {
+    "라리가": "LaLiga",
+    "분데스리가": "Bundesliga",
+    "세리에 A": "Serie A",
+    "리그 1": "Ligue 1",
+    "K리그1": "K League 1",
+    "K리그2": "K League 2",
+    "사우디 프로리그": "Saudi Pro League",
+    "빅5 리그": "Big five leagues",
+    "유럽 빅5": "Europe's big five",
+    "전체": "All",
+    "이적 임박·루머": "Imminent & rumours",
+    "팀 스쿼드 가치": "Squad values",
+    "팀별 IN/OUT": "Club ins & outs",
+    " 빅딜": " big deals",
+    "이적료 TOP": "Top fees",
+    "이적 시장": "Transfer market",
+    "이적 유형": "Transfer type",
+    "시장가치(몸값)": "Market value",
+    " 시장가치": " market value",
+    "\" 검색": "\" search",
+    "홈": "Home",
+    "공식 발표": "Official",
+    "히위고 · 합의": "Here we go · agreed",
+    "메디컬": "Medical",
+    "협상 중": "In talks",
+    "최근 90일": "Last 90 days",
+    " 여름 이적시장": " summer window",
+    "년 ": "-",
+    "월 ": "-",
+    "일 (": " (",
+    ") 소식": ")",
+    "일": "Sun",
+    "월": "Mon",
+    "화": "Tue",
+    "수": "Wed",
+    "목": "Thu",
+    "금": "Fri",
+    "토": "Sat",
+    "억": "",
+    "조": "",
+    " 예정": " upcoming",
+    "주요 이적": "Key transfers",
+    "· 이름·이적료 확인분 ·": "· confirmed name and fee ·",
+    "공식 발표 전": "Before official confirmation",
+    "합의(히위고)·메디컬·협상": "agreed (here we go), medical and talks",
+    "단계 보도 · BBC·Sky·로마노 등 공신력 소스만 · 최근": "stages · only credible sources (BBC, Sky, Romano) · last",
+    "일 ·": " days ·",
+    "전체 이적 이력": "All transfers",
+    "· 최신순 ·": "· newest first ·",
+    "선수단 몸값 랭킹 · 시장가치순 ·": "Squad value ranking · by market value ·",
+    "랭킹 ·": "ranking ·",
+    "팀별 스쿼드 시장가치 총액": "Total squad market value by club",
+    "· 영입 지출순 ·": "· by spend ·",
+    "팀별 영입·방출": "Ins and outs by club",
+    "· 유럽 빅5 리그 ·": "· Europe's big five ·",
+    "선수 몸값 랭킹과": "Player market value rankings and",
+    "변동 추이": "value trends",
+    "가성비 구단 랭킹": "Value for money clubs",
+    "발롱도르 순위 지수": "Ballon d'Or index",
+    "스쿼드": "Squad",
+    "스쿼드 총 가치": "Total squad value",
+    " · 평균 ": " · average ",
+    "팀 페이지 →": "Team page →",
+    "감독": "Manager",
+    " 부임": " appointed",
+    "계약 ~": "contract to ",
+    "· 프로필 →": "· profile →",
+    "선호 포메이션": "Preferred formation",
+    "축구 이적시장 데이터 — 선수 몸값·이적 기록": "Football transfer market data — values and transfers",
+    "유럽 빅5·K리그1·MLS·사우디 등 선수 시장가치(몸값) 랭킹과 이적료·임대·자유이적 기록을 정리한 데이터.": "Market value rankings and transfer, loan and free-agent records across Europe's big five, K League 1, MLS and the Saudi Pro League.",
+    "선수 몸값 랭킹 · 이적시장 시장가치": "Player Market Value Rankings — Transfer Market",
+    "리그 선수 시장가치(몸값) 랭킹과 변동 추이, 이적 기록, 커리어·시즌별 성적까지. 스코어베이스에서 선수 몸값을 한눈에.": "league market value rankings with value trends, transfer records and season-by-season stats.",
+    "이적 임박·루머 · 히위고 단계 실시간": "Imminent Transfers & Rumours — Here We Go Tracker",
+    "합의(히위고)·메디컬·협상 단계의 축구 이적 보도를 공신력 있는 소스만 골라 한국어 요약으로. 공식 발표 전 이적 흐름을 가장 빠르게 — 스코어베이스 이적시장.": "Transfer reports at the agreed, medical and talks stages, filtered to credible sources only — the flow of a deal before it is official.",
+    "최신 축구 이적 현황 · ": "Latest Football Transfers · ",
+    " 선수 이적 소식을 최신순으로. 이적료·임대·자유이적까지 매일 업데이트 — 스코어베이스 이적시장.": " transfers, newest first. Fees, loans and free transfers, updated daily.",
+    "팀별 영입·방출 IN/OUT · ": "Club Ins and Outs · ",
+    " 유럽 빅5 리그 팀별 영입(IN)·방출(OUT) 현황과 이적 지출·수입·순지출 총정리 — 스코어베이스 이적시장.": " ins and outs by club across Europe's big five, with spend, income and net spend.",
+    " 빅딜 랭킹 · 이적료 TOP": " Big Deals — Top Transfer Fees",
+    " 유럽 빅5 리그 최고 이적료 랭킹. 확정 이적 빅딜을 이적료 순으로 한눈에 — 스코어베이스 이적시장.": " highest transfer fees across Europe's big five, ranked by fee.",
+    "팀 스쿼드 가치 랭킹 · 선수단 총액": "Squad Value Ranking — Total Club Value",
+    "리그 팀별 스쿼드 시장가치 총액 랭킹. 선수단 가치·평균 연령·최고가 선수를 팀 단위로 비교 — 스코어베이스 이적시장.": " total squad market value by club, with average age and most valuable player.",
+    "팀 스쿼드 · 선수단 몸값 랭킹": "Squad Values — Club Market Value Ranking",
+    "유럽 빅5 리그 팀별 선수단 시장가치(몸값) 랭킹 — 스코어베이스 이적시장.": "Squad market value ranking by club across Europe's big five.",
+    " 선수 몸값": " player values",
+    " 선수단": " squad",
+    " 선수단 시장가치 총정리 — 스쿼드 총 가치와 베스트11, 선수별 몸값·변동 추이·포지션·연령까지 한눈에. 스코어베이스 이적시장.": " squad market values — total value, best XI, and each player's value, position and age.",
+    " 스쿼드 · 선수단 몸값 랭킹": " Squad — Player Market Values",
+    "선수 몸값·시장가치·이적 기록을 한눈에": "Player values, market values and transfer records",
+    "스코어베이스": "Scorebase",
+    "선수 시장가치": "player market value",
+    "축구 이적": "football transfers",
+    "세": "",
+    "건.": ".",
+    "건": "",
+    "명": "",
+    "명.": ".",
+    "팀.": " clubs.",
+    "리그": "League",
+    "팀": "Club",
+    "이적료": "Fee",
+    "최신 이적": "Latest transfers",
+    "선수 몸값": "Player values",
+    "시장가치": "Market value",
+    "소속팀": "Club",
+    "포지션": "Position",
+    "나이": "Age",
+    "이름": "Name",
+    "최근": "Recent",
+    "직전 업데이트 대비": "vs previous update",
+    "유럽 빅5·K리그1·사우디·MLS": "Europe's big five · K League 1 · Saudi · MLS",
+    "유럽 빅5 ": "Europe's big five ",
+    "주요 리그": "Top leagues",
+    " 스쿼드": " squad",
+    " 겨울 이적시장": " winter window",
+    "데이터": "Data",
+    "임박·루머": "Imminent & rumours",
+    "페이지 · 스코어베이스": "· Scorebase",
+    "조건에 맞는 선수가 없습니다.": "No players match these filters.",
+    "\" 검색 결과가 없습니다.": "\" returned no results.",
+    "· 평균": "· average",
+    "총 가치": "Total value",
+    "인원": "Players",
+    "최고가 선수": "Most valuable",
+    "집계할 시장가치 데이터가 없습니다.": "No market value data to aggregate.",
+    "집계할 이적 데이터가 없습니다.": "No transfer data to aggregate.",
+    "이적 데이터를 수집하는 중입니다.": "Collecting transfer data.",
+    "아직 집계된 빅딜이 없습니다.": "No big deals recorded yet.",
+    "일 내 수집된 임박·루머 소식이 없습니다.": " days — no imminent or rumour reports collected.",
+    "IN · 지출": "IN · spend",
+    "OUT · 수입": "OUT · income",
+    "순지출": "Net spend",
+    "집계 기준. 이적일은 소스가 주는": "basis. Transfer dates come from the source's",
+    "발효일": "effective date",
+    "이라 시즌 전환일(6/30·7/1)에\n                일괄 기록되는 건이 있습니다. 이 집계에서는": ", so some deals are recorded in bulk on the season boundary (30 June / 1 July). Here",
+    "M(이적료의 ": "M (",
+    "이 해당합니다. 창 안에서 성사된 이적이라 합계에는 포함하되, 일자별 분포로는 읽지 마세요.": " of the fee total falls there. Those deals happened within the window and count toward the total, but do not read them as a daily distribution.",
+    "브리핑 보러가기 →": "Read the briefing →",
+    "이 소식들의 자세한 맥락은 해외 브리핑에서": "Fuller context for these reports is in the briefing",
+    "언론 보도 기반의": "Based on press reports and",
+    "미확정": "unconfirmed",
+    "정보입니다. 공식 발표 전 내용은 바뀌거나 무산될 수 있으며,\n            확정되면": ". Details can change or fall through before an official announcement; once confirmed they move to the",
+    "탭에 반영됩니다.": "tab.",
+    "AI 이적 브리핑": "AI transfer briefing",
+    "주목 영입을 스코어베이스 AI가 한 줄로 분석합니다.": "notable signings, analysed in one line each.",
+    "확정 이적 사실 + 시장가치 기반 AI 분석. 이적료·계약 조건 등 미공개 수치는 포함하지 않습니다.": "Based on confirmed transfers and market values. Undisclosed fees and contract terms are not included.",
+    "전체 →": "See all →",
+    "💸 빅딜": "💸 Big deals",
+    "📉 급락": "📉 Biggest falls",
+    "📈 급상승": "📈 Biggest rises",
+    "전술 연구 —": "Tactical study —",
+    "경기": " matches"
+  }
+}

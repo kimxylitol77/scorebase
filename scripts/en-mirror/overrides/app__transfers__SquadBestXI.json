@@ -1,0 +1,11 @@
+{
+  "header": "스쿼드 베스트 XI (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "⚽ 시장가치 Best XI": "⚽ Best XI by market value",
+    "XI 합계": "XI total",
+    "억": "",
+    "시장가치 기준 베스트11 (": "Best XI by market value (",
+    ") · 스코어베이스": ") · Scorebase"
+  }
+}

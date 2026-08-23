@@ -1,0 +1,478 @@
+// 이적시장 필터 바 (영어판). scripts/en-mirror 로 자동 생성.
+"use client";
+// 이적시장 필터바 — 카테고리(전체/리그별/팀별/국가별/포지션별/최신 이적/빅딜/IN·OUT) + 컨텍스트 하위필터 + 선수·팀 검색.
+// 팀·국가는 검색 가능한 드롭다운(선택/바깥클릭 시 닫힘), 리그·포지션은 칩.
+// 검색창은 /api/transfers/suggest 자동완성(자모 분해·초성 매칭) — 선수 클릭 → 개인페이지, 팀 클릭 → 스쿼드 뷰.
+import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+
+interface TeamOpt { id: number; name: string; count: number }
+interface CountryOpt { name: string; flag: string | null; count: number }
+interface SugPlayer { id: string; name: string; team: string; photo: string | null; value: string }
+interface SugTeam { id: number; name: string; logo: string | null; count: number }
+interface SugRes { players: SugPlayer[]; teams: SugTeam[] }
+
+interface Props {
+  view: string;
+  league: string;
+  team: string;
+  pos: string;
+  country: string;
+  search: string;
+  mode: string; // 최신 이적: "" = 주요(기본) | "all" = 전체 이력
+  ttype: string; // 최신 이적 유형 필터: "" | "fee" | "loan"
+  leagues: { code: string; label: string; logo?: string | null }[];
+  // 시장가치 기반 뷰(팀 가치) 리그 범위 — PMV 커버리지 얇은 확장 리그 제외(빅5)
+  valueLeagues: { code: string; label: string; logo?: string | null }[];
+  teams: TeamOpt[];
+  countries: CountryOpt[];
+}
+
+const CATS = [
+  { key: "all", label: "All" },
+  { key: "league", label: "By league" },
+  { key: "team", label: "By club" },
+  { key: "country", label: "By country" },
+  { key: "pos", label: "By position" },
+  { key: "latest", label: "Latest transfers" },
+  { key: "rumors", label: "⚡ Imminent & rumours" },
+  { key: "bigdeals", label: "💸 Big deals" },
+  { key: "inout", label: "IN/OUT" },
+  { key: "squads", label: "🏟️ Squad values" },
+];
+// 이적 피드형·집계형 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
+const FEED_VIEWS = ["latest", "rumors", "bigdeals", "inout", "squads"];
+// 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
+const POSITIONS = [
+  { code: "GK", label: "GK" },
+  { code: "CB", label: "CB" },
+  { code: "FB", label: "FB" },
+  { code: "DM", label: "DM" },
+  { code: "CM", label: "CM" },
+  { code: "AM", label: "AM" },
+  { code: "W", label: "W" },
+  { code: "ST", label: "ST" },
+];
+
+function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string; q?: string; mode?: string; t?: string }): string {
+  const params = new URLSearchParams();
+  if (o.view && o.view !== "all") params.set("view", o.view);
+  if (o.league) params.set("league", o.league);
+  if (o.team) params.set("team", o.team);
+  if (o.pos) params.set("pos", o.pos);
+  if (o.country) params.set("country", o.country);
+  if (o.q) params.set("q", o.q);
+  if (o.mode) params.set("mode", o.mode);
+  if (o.t) params.set("t", o.t);
+  const qs = params.toString();
+  return `/transfers${qs ? `?${qs}` : ""}`;
+}
+
+export default function TransfersFilterBar({ view, league, team, pos, country, search, mode, ttype, leagues, valueLeagues, teams, countries }: Props) {
+  const router = useRouter();
+  const [open, setOpen] = useState<null | "team" | "country">(null);
+  const [q, setQ] = useState("");
+  const [typed, setTyped] = useState<{ forSearch: string; value: string }>({
+    forSearch: search,
+    value: search,
+  });
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // ── 검색 자동완성 ──
+  const [sug, setSug] = useState<SugRes | null>(null);
+  const [sugOpen, setSugOpen] = useState(false);
+  const [hi, setHi] = useState(-1); // 키보드 하이라이트 index (-1 = 없음)
+  const formRef = useRef<HTMLFormElement>(null);
+  const sugCache = useRef(new Map<string, SugRes>());
+  const debRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // 뒤로가기 등 라우트 변경 시 검색창 동기화.
+  // effect + setState 대신 "어느 search prop 기준으로 입력했는지" 를 함께 들고 파생한다.
+  const searchText = typed.forSearch === search ? typed.value : search;
+  const setSearchText = (value: string) => setTyped({ forSearch: search, value });
+
+  // 바깥 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(null);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  // 자동완성 바깥 클릭 닫기 + 언마운트 시 디바운스·요청 정리
+  useEffect(() => {
+    if (!sugOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(e.target as Node)) { setSugOpen(false); setHi(-1); }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [sugOpen]);
+  useEffect(() => () => { if (debRef.current) clearTimeout(debRef.current); abortRef.current?.abort(); }, []);
+
+  const fetchSug = (raw: string) => {
+    const t = raw.trim();
+    if (debRef.current) clearTimeout(debRef.current);
+    if (!t) { setSug(null); setSugOpen(false); setHi(-1); abortRef.current?.abort(); return; }
+    const hit = sugCache.current.get(t);
+    if (hit) { setSug(hit); setSugOpen(true); setHi(-1); return; }
+    debRef.current = setTimeout(async () => {
+      abortRef.current?.abort();
+      const ac = new AbortController();
+      abortRef.current = ac;
+      try {
+        const r = await fetch(`/api/transfers/suggest?q=${encodeURIComponent(t)}`, { signal: ac.signal });
+        if (!r.ok) return;
+        const j = (await r.json()) as SugRes;
+        if (sugCache.current.size > 100) sugCache.current.clear();
+        sugCache.current.set(t, j);
+        setSug(j);
+        setSugOpen(true);
+        setHi(-1);
+      } catch { /* abort — 무시 */ }
+    }, 140);
+  };
+
+  const go = (o: Parameters<typeof buildUrl>[0]) => {
+    setOpen(null);
+    setQ("");
+    setSugOpen(false);
+    setHi(-1);
+    router.push(buildUrl(o));
+  };
+
+  const chip = (active: boolean) =>
+    `px-3.5 py-1.5 rounded-full text-sm font-bold border transition ${
+      active
+        ? "bg-cyan-600 text-white border-cyan-600"
+        : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+    }`;
+
+  // 리그 칩 내용 — 리그 마크(로고) + 라벨. 로고 없으면 라벨만.
+  const leagueChip = (l: { label: string; logo?: string | null }) =>
+    l.logo ? (
+      <span className="inline-flex items-center gap-1.5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={l.logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+        {l.label}
+      </span>
+    ) : (
+      l.label
+    );
+
+  const teamName = team ? teams.find((t) => String(t.id) === team)?.name : null;
+  const countryName = country || null;
+  const fil = (s: string) => s.toLowerCase().includes(q.toLowerCase());
+
+  const runSearch = () => {
+    const t = searchText.trim();
+    const v = FEED_VIEWS.includes(view) ? "all" : view;
+    go({ view: v, league, team, pos, country, q: t || undefined });
+  };
+
+  const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    runSearch();
+  };
+
+  // 하이라이트 index → 항목 실행 (선수 → 개인페이지 / 팀 → 스쿼드 뷰 / 마지막 = 전체 검색)
+  const selectAt = (i: number) => {
+    const ps = sug?.players || [];
+    const ts = sug?.teams || [];
+    if (i < ps.length) { setSugOpen(false); setHi(-1); router.push(`/transfers/${ps[i].id}`); return; }
+    if (i < ps.length + ts.length) { go({ view: "team", team: String(ts[i - ps.length].id) }); return; }
+    runSearch();
+  };
+
+  const onSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return; // 한글 IME 조합 중 Enter 중복 방지
+    if (!sugOpen || !sug) return;
+    const total = sug.players.length + sug.teams.length + 1; // +1 = 전체 검색 행
+    if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => (h + 1) % total); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setHi((h) => (h - 1 + total) % total); }
+    else if (e.key === "Escape") { setSugOpen(false); setHi(-1); }
+    else if (e.key === "Enter" && hi >= 0) { e.preventDefault(); selectAt(hi); }
+  };
+
+  return (
+    <div ref={wrapRef} className="space-y-3">
+      {/* 카테고리 탭 */}
+      <div className="flex flex-wrap gap-2">
+        {CATS.map((c) => (
+          <button key={c.key} onClick={() => go({ view: c.key })} className={chip(view === c.key)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 선수·팀 검색 — 자동완성 (한 글자·초성부터 매칭) */}
+      <form ref={formRef} onSubmit={submitSearch} className="relative max-w-xs">
+        <span className="absolute left-3 top-[19px] -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">🔍</span>
+        <input
+          value={searchText}
+          onChange={(e) => { setSearchText(e.target.value); fetchSug(e.target.value); }}
+          onFocus={() => { if (searchText.trim() && sug) setSugOpen(true); }}
+          onKeyDown={onSearchKey}
+          placeholder="Search player or club"
+          autoComplete="off"
+          spellCheck={false}
+          className="w-full pl-9 pr-8 py-2 rounded-xl text-sm border border-neutral-300 dark:border-neutral-700 bg-transparent outline-none focus:border-cyan-500 dark:focus:border-cyan-500 transition"
+        />
+        {(searchText || search) && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => { setSearchText(""); setSug(null); setSugOpen(false); setHi(-1); if (search) go({ view, league, team, pos, country }); }}
+            className="absolute right-2.5 top-[19px] -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          >
+            ✕
+          </button>
+        )}
+
+        {sugOpen && sug && (
+          <div className="absolute z-40 top-full left-0 right-0 mt-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl overflow-hidden">
+            <div className="max-h-96 overflow-y-auto py-1">
+              {sug.players.length === 0 && sug.teams.length === 0 && (
+                <p className="px-4 py-3 text-sm text-neutral-400">No matching player or club</p>
+              )}
+              {sug.players.map((p, i) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => selectAt(i)}
+                  onMouseEnter={() => setHi(i)}
+                  className={`flex items-center gap-2.5 w-full text-left px-3 py-2 ${hi === i ? "bg-neutral-100 dark:bg-neutral-800" : ""}`}
+                >
+                  <span className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                    {p.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.photo} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">{p.name.slice(0, 1)}</span>
+                    )}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold truncate text-neutral-800 dark:text-neutral-100">{p.name}</span>
+                    <span className="block text-xs text-neutral-400 truncate">{p.team}</span>
+                  </span>
+                  <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 shrink-0">{p.value}</span>
+                </button>
+              ))}
+              {sug.teams.length > 0 && (
+                <p className="px-3 pt-2 pb-1 text-[11px] font-bold text-neutral-400 border-t border-neutral-100 dark:border-neutral-800">Clubs</p>
+              )}
+              {sug.teams.map((t, j) => {
+                const i = sug.players.length + j;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => selectAt(i)}
+                    onMouseEnter={() => setHi(i)}
+                    className={`flex items-center gap-2.5 w-full text-left px-3 py-2 ${hi === i ? "bg-neutral-100 dark:bg-neutral-800" : ""}`}
+                  >
+                    <span className="w-7 h-7 shrink-0 flex items-center justify-center">
+                      {t.logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.logo} alt="" className="w-6 h-6 object-contain" loading="lazy" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-neutral-500">{t.name.slice(0, 1)}</span>
+                      )}
+                    </span>
+                    <span className="flex-1 text-sm font-semibold truncate text-neutral-800 dark:text-neutral-100">{t.name}</span>
+                    <span className="text-xs text-neutral-400 shrink-0">Players {t.count}</span>
+                  </button>
+                );
+              })}
+              <button
+                type="submit"
+                onMouseEnter={() => setHi(sug.players.length + sug.teams.length)}
+                className={`flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-cyan-600 dark:text-cyan-400 font-semibold border-t border-neutral-100 dark:border-neutral-800 ${
+                  hi === sug.players.length + sug.teams.length ? "bg-neutral-100 dark:bg-neutral-800" : ""
+                }`}
+              >
+                🔍 “{searchText.trim()}” — search all
+              </button>
+            </div>
+          </div>
+        )}
+      </form>
+
+      {/* 최신 이적 하위 필터 — 주요/전체 토글 + 유형 칩 + 리그 칩 */}
+      {view === "latest" && (
+        <>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button onClick={() => go({ view: "latest", t: ttype || undefined, league: league || undefined })} className={chip(mode !== "all")}>
+              Main
+            </button>
+            <button onClick={() => go({ view: "latest", mode: "all", t: ttype || undefined, league: league || undefined })} className={chip(mode === "all")}>
+              All
+            </button>
+            <span className="w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-1" aria-hidden />
+            <button
+              onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "fee" ? undefined : "fee", league: league || undefined })}
+              className={chip(ttype === "fee")}
+            >
+              💰 Fee
+            </button>
+            <button
+              onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "loan" ? undefined : "loan", league: league || undefined })}
+              className={chip(ttype === "loan")}
+            >
+              Loans & returns
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype || undefined })} className={chip(!league)}>
+              All leagues
+            </button>
+            {leagues.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype || undefined, league: l.code })}
+                className={chip(league === l.code)}
+              >
+                {leagueChip(l)}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* 팀 가치 랭킹 하위 필터 — 리그 범위 (시장가치 커버리지 있는 빅5만) */}
+      {view === "squads" && (
+        <div className="flex flex-wrap gap-1.5">
+          <button onClick={() => go({ view: "squads" })} className={chip(!league)}>
+            Big five
+          </button>
+          {valueLeagues.map((l) => (
+            <button key={l.code} onClick={() => go({ view: "squads", league: l.code })} className={chip(league === l.code)}>
+              {leagueChip(l)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 하위 필터 */}
+      {view === "league" && (
+        <div className="flex flex-wrap gap-1.5">
+          {leagues.map((l) => (
+            <button key={l.code} onClick={() => go({ view: "league", league: l.code })} className={chip(league === l.code)}>
+              {leagueChip(l)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === "pos" && (
+        <div className="flex flex-wrap gap-1.5">
+          {POSITIONS.map((p) => (
+            <button key={p.code} onClick={() => go({ view: "pos", pos: p.code })} className={chip(pos === p.code)}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === "team" && (
+        <div className="relative w-full max-w-xs">
+          <button
+            onClick={() => setOpen(open === "team" ? null : "team")}
+            className="flex items-center justify-between gap-2 w-full px-4 py-2 rounded-xl text-sm font-bold border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <span className={teamName ? "text-cyan-600 dark:text-cyan-400 truncate" : "text-neutral-500"}>{teamName || "Select a club"}</span>
+            <span className="text-neutral-400 text-xs shrink-0">▾</span>
+          </button>
+          {open === "team" && (
+            <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl overflow-hidden">
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search clubs…"
+                className="w-full px-4 py-2.5 text-sm bg-transparent border-b border-neutral-200 dark:border-neutral-800 outline-none"
+              />
+              <div className="max-h-72 overflow-y-auto py-1">
+                {team && (
+                  <button onClick={() => go({ view: "team" })} className="block w-full text-left px-4 py-2 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                    All clubs
+                  </button>
+                )}
+                {teams.filter((t) => fil(t.name)).map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => go({ view: "team", team: String(t.id) })}
+                    className={`flex justify-between gap-2 w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                      String(t.id) === team ? "font-bold text-cyan-600 dark:text-cyan-400" : "text-neutral-600 dark:text-neutral-300"
+                    }`}
+                  >
+                    <span className="truncate">{t.name}</span>
+                    <span className="text-xs text-neutral-400 shrink-0">{t.count}</span>
+                  </button>
+                ))}
+                {teams.filter((t) => fil(t.name)).length === 0 && (
+                  <p className="px-4 py-3 text-sm text-neutral-400">No results</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {view === "country" && (
+        <div className="relative w-full max-w-xs">
+          <button
+            onClick={() => setOpen(open === "country" ? null : "country")}
+            className="flex items-center justify-between gap-2 w-full px-4 py-2 rounded-xl text-sm font-bold border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <span className={countryName ? "text-cyan-600 dark:text-cyan-400 truncate" : "text-neutral-500"}>{countryName || "Select a country"}</span>
+            <span className="text-neutral-400 text-xs shrink-0">▾</span>
+          </button>
+          {open === "country" && (
+            <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl overflow-hidden">
+              {countries.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-neutral-400">Collecting country data…</p>
+              ) : (
+                <>
+                  <input
+                    autoFocus
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search countries…"
+                    className="w-full px-4 py-2.5 text-sm bg-transparent border-b border-neutral-200 dark:border-neutral-800 outline-none"
+                  />
+                  <div className="max-h-72 overflow-y-auto py-1">
+                    {country && (
+                      <button onClick={() => go({ view: "country" })} className="block w-full text-left px-4 py-2 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        All countries
+                      </button>
+                    )}
+                    {countries.filter((c) => fil(c.name)).map((c) => (
+                      <button
+                        key={c.name}
+                        onClick={() => go({ view: "country", country: c.name })}
+                        className={`flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                          c.name === country ? "font-bold text-cyan-600 dark:text-cyan-400" : "text-neutral-600 dark:text-neutral-300"
+                        }`}
+                      >
+                        {c.flag && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={c.flag} alt="" className="w-4 h-4 object-contain shrink-0" />
+                        )}
+                        <span className="truncate flex-1">{c.name}</span>
+                        <span className="text-xs text-neutral-400 shrink-0">{c.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
