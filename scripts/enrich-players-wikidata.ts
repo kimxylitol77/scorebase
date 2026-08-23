@@ -228,10 +228,13 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
   const qidById = new Map<string, string>();
   let done = 0;
   for (const [id, en] of enById) {
-    const qid = QID_PIN[id] || await searchQid(en); // 핀 우선 — 동명이인 오매칭 우회
+    // 핀 > 이미 저장된 qid > 검색. --force 주간 재조회에서 확정된 qid 를 다시 찾을 이유가 없다
+    //  (빅5 3,900명 검색 = pace 만으로 ~10분. 저장 qid 는 P54 가드를 통과한 것만 남는다).
+    const known = QID_PIN[id] || prev[id]?.qid;
+    const qid = known || await searchQid(en);
     if (qid) qidById.set(id, qid);
     if (++done % 100 === 0) console.log(`  [${league}] 검색 ${done}/${enById.size} | qid ${qidById.size} | pace ${PACE}`);
-    if (!QID_PIN[id]) await sleep(PACE); // 핀은 API 미호출 → throttle 불필요
+    if (!known) await sleep(PACE); // 핀·저장분은 API 미호출 → throttle 불필요
   }
 
   // ── phase 2: 엔티티 배치 (labels + claims) ──

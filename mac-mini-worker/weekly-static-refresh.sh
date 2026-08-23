@@ -37,6 +37,8 @@ log "④ 감독 경력 (Wikidata)"
 npx tsx --env-file=.env.local scripts/build-coach-careers.ts 2>&1 | tail -1 || true
 log "⑤ 감독 트로피 (위키 Honours)"
 npx tsx --env-file=.env.local scripts/build-coach-honors.ts 2>&1 | tail -1 || true
+log "⑤-b 선수 커리어·국적 재조회 (Wikidata P54 — /transfers 커리어 타임라인·국가대표 캡. 무스케줄이라 6/6 이후 동결이었음)"
+npx tsx --env-file=.env.local scripts/enrich-players-wikidata.ts --force 2>&1 | tail -3 || true
 log "⑥ 국기·국적 (130시즌)"
 npx tsx --env-file=.env.local scripts/build-player-flags.ts 2>&1 | tail -1 || true
 log "⑦ api-football 그리드 포지션 (빅5·UCL·WC — 스타 포괄 커버리지)"

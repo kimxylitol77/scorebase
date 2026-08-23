@@ -938,7 +938,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // 이적 직후 "0경기 0골"이 오래 남는다(오바메양 데포르티보 실측). 위키 관례와 같은 기준인
   // af 경력의 리그 대회 합산이 더 크면 그 값으로 올린다(내려쓰기 금지 — af 결손 리그 방어).
   {
-    const leagueRows = careerGroups.filter((g) => g.cat === "league").flatMap((g) => g.rows);
+    // 친선은 뺀다 — af 분류상 "클럽 친선"·"Premier League - Summer Series" 가 리그 그룹에 들어와
+    //  그대로 더하면 위키 기준(공식 리그 출전)보다 부풀려진다(루크 쇼 맨유 +14경기 실측).
+    const leagueRows = careerGroups
+      .filter((g) => g.cat === "league")
+      .flatMap((g) => g.rows)
+      .filter((r) => !/친선|friendl|summer series/i.test(r.compName));
     careerView = careerView.map((c) => {
       if (c.nt || c.end != null || c.start == null) return c;
       const cn = normClub(c.club);
