@@ -1,0 +1,14 @@
+{
+  "header": "charts__ReliabilityCurveChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "예측": "Predicted",
+    "% → 실제": "% → actual",
+    "개 예측": " predictions",
+    "스코어베이스": "Scorebase",
+    "베팅시장": "Betting market",
+    "완벽 보정": "Perfect calibration",
+    "점 크기 = 표본 수": "Dot size = sample",
+    "x축 = 모델이 부여한 예측 확률 · y축 = 그 확률대에서 실제로 일어난 비율. 점이 대각선에\n        가까울수록 확률이 정직하며, 대각선보다 아래면 그만큼 자신감이 과했다는 의미입니다. Brier 점수는\n        낮을수록 정확합니다.": "x-axis = probability the model assigned · y-axis = how often it actually happened. The closer to the diagonal, the more honest the probability; below the diagonal means overconfidence. A lower Brier score is better."
+  }
+}

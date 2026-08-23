@@ -1,0 +1,10 @@
+{
+  "header": "charts__CumulativeAccuracyChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "시즌 진행 ": "Season progress ",
+    " · 표본 ": " · sample ",
+    "경기": " matches",
+    "x축 = 시즌 진행률(0~100%) · y축 = 그 시점까지 1X2 누적 적중률 · 점선 = 50% 기준선. 범례를 눌러\n        리그를 켜고 끌 수 있습니다.": "x-axis = season progress (0–100%) · y-axis = cumulative 1X2 accuracy to that point · dotted line = 50% baseline. Tap the legend to toggle leagues."
+  }
+}

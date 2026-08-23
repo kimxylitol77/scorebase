@@ -1,0 +1,9 @@
+{
+  "header": "ConsensusGate (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "3초 구글 가입하고 전부 보기": "Sign in with Google to see everything",
+    "이미 회원이라면": "Already a member?",
+    "로그인": "Sign in"
+  }
+}

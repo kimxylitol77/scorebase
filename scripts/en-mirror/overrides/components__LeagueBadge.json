@@ -1,6 +1,15 @@
 {
   "header": "LeagueBadge (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
-  "preReplace": [],
+  "preReplace": [
+    [
+      "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";",
+      "import { enLeagueName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "LEAGUE_DISPLAY[league] ?? league",
+      "enLeagueName(league)"
+    ]
+  ],
   "dict": {
     "라리가": "LaLiga",
     "분데스": "Bundesliga",

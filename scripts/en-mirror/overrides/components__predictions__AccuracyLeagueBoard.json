@@ -1,0 +1,18 @@
+{
+  "header": "predictions__AccuracyLeagueBoard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "누적 전체": "All time",
+    "최근 30일": "Last 30 days",
+    "최근 14일": "Last 14 days",
+    "최근 7일": "Last 7 days",
+    "기간을 바꾸면 1X2뿐 아니라 시장별 수치가 모두 그 기간 기준으로 바뀝니다.": "Changing the window updates every market, not just 1X2.",
+    "이 기간에 채점 완료된 경기가 없습니다. 더 긴 기간을 선택해 보세요.": "No matches were scored in this window. Try a longer period.",
+    "이 기간에 채점 완료 경기가 없는": "Leagues with no scored matches in this window",
+    "개 리그는 표시하지 않았습니다.": "are hidden.",
+    "핸디": "Handicap",
+    "표본": "Sample",
+    "건 —": " —",
+    "건 미만이라 흔들릴 수 있습니다.": " or fewer, so the figure may swing."
+  }
+}
