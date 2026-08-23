@@ -1,0 +1,43 @@
+{
+  "header": "NhlViews (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";",
+      ""
+    ],
+    [
+      "toKoreanTeamName(team)",
+      "toEnglishTeamName(team)"
+    ],
+    [
+      "toKoreanTeamName(profile.teamFullName)",
+      "toEnglishTeamName(profile.teamFullName)"
+    ],
+    [
+      "toKoreanPlayerName(fullName)",
+      "fullName"
+    ]
+  ],
+  "dict": {
+    " 드래프트 ": " draft ",
+    "NHL 공식 API ·": "Official NHL API ·",
+    "ⓘ 데이터 출처: NHL 공식 API (api-web.nhle.com) · 시즌별·통산·수상 포함.": "ⓘ Data source: official NHL API (api-web.nhle.com) · season, career and awards included.",
+    "개요": "Overview",
+    "결과": "Result",
+    "경기": "G",
+    "상대": "Opponent",
+    "수상 이력": "Awards",
+    "순위": "Rank",
+    "시즌": "Season",
+    "시즌 기록이 없습니다.": "No season records.",
+    "시즌기록": "Season log",
+    "일자": "Date",
+    "통산 (career)": "Career",
+    "팀": "Team",
+    "회": ""
+  }
+}

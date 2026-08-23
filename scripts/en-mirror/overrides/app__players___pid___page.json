@@ -1,0 +1,142 @@
+{
+  "header": "page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";",
+      ""
+    ],
+    [
+      "toKoreanTeamName(main.teamName)",
+      "toEnglishTeamName(main.teamName)"
+    ],
+    [
+      "toKoreanTeamName(info.team)",
+      "toEnglishTeamName(info.team)"
+    ],
+    [
+      "toKoreanTeamName(s.teamName)",
+      "toEnglishTeamName(s.teamName)"
+    ],
+    [
+      "toKoreanPlayerName(profile.name)",
+      "profile.name"
+    ],
+    [
+      "toKoreanPlayerName(hitterFirst.name)",
+      "hitterFirst.name"
+    ],
+    [
+      "  const canonical = league && league !== \"MLB\" ? `/players/${pid}?league=${league}` : `/players/${pid}`;",
+      "  const koCanonical = league && league !== \"MLB\" ? `/players/${pid}?league=${league}` : `/players/${pid}`;\n  const canonical = league && league !== \"MLB\" ? `/en/players/${pid}?league=${league}` : `/en/players/${pid}`;"
+    ],
+    [
+      "languages: koEnLanguages(canonical, `/en/players/${pid}?league=${league}`),",
+      "languages: koEnLanguages(koCanonical, canonical),"
+    ],
+    [
+      "languages: koEnLanguages(canonical, `/en/players/${pid}`),",
+      "languages: koEnLanguages(koCanonical, canonical),"
+    ],
+    [
+      "          href={`/leagues/${league}`}",
+      "          href={`/en/standings/${league}`}"
+    ],
+    [
+      "import PlayerRelatedArticles from \"@/components/players/PlayerRelatedArticles\";\n",
+      ""
+    ],
+    [
+      "          <PlayerRelatedArticles pid={pid} name=\"\" />\n",
+      ""
+    ],
+    [
+      "          <PlayerRelatedArticles pid={pid} name={hitterFirst.name || hitterFirst.name} />\n",
+      ""
+    ],
+    [
+      "        <PlayerRelatedArticles pid={pid} name={profile.name || profile.name} />\n",
+      ""
+    ],
+    [
+      "  if (league === \"KBO\" || league === \"NPB\") {\n    const View = league === \"KBO\" ? KboPlayerView : NpbPlayerView;\n    return (\n      <>\n        <View pid={pid} />\n        <div className=\"max-w-6xl mx-auto px-4 sm:px-6 pb-10\">\n        </div>\n      </>\n    );\n  }",
+      "  // KBO·NPB 는 선수명·팀명·기록 원본이 한국어 전용 — 영어판 미지원\n  if (league === \"KBO\" || league === \"NPB\") notFound();"
+    ],
+    [
+      "  const koCanonical = league && league !== \"MLB\" ? `/players/${pid}?league=${league}` : `/players/${pid}`;",
+      "  if (league === \"KBO\" || league === \"NPB\") return { title: \"Not Found\", robots: GOOGLE_NOINDEX };\n  const koCanonical = league && league !== \"MLB\" ? `/players/${pid}?league=${league}` : `/players/${pid}`;"
+    ]
+  ],
+  "dict": {
+    " · 시즌 ": " · season ",
+    " · 프로필·기록": " · profile and stats",
+    " · 프로필·기록·이적": " · profile, stats and transfers",
+    " — KBO 선발 투수 통계": " — KBO starting pitcher statistics",
+    " — MLB 선발 투수 성적·통계": " — MLB starting pitcher statistics",
+    " — MLB 타자 성적·통계": " — MLB hitter statistics",
+    " — NPB 선발 투수 통계": " — NPB starting pitcher statistics",
+    " 기록": " records",
+    " 등번호 ": " #",
+    " 선수 프로필 · 통계 · 최근 경기.": " player profile, statistics and recent games.",
+    " 성적": " stats",
+    " 성적 — ": " stats — ",
+    " 시즌 ERA·WHIP·K/9·최근 등판 결과.": " season ERA, WHIP, K/9 and recent outings.",
+    " 시즌 타율": " season AVG",
+    " 시즌 통계·이적·몸값": " season statistics, transfers and market value",
+    " 시즌 통계·최근 경기": " season statistics and recent games",
+    " 연봉": " salary",
+    " 의 ": "'s ",
+    " 의 시즌 ERA(평균자책)·WHIP·IP·W-L·최근 등판 결과.": "'s season ERA, WHIP, IP, W-L and recent outings.",
+    " 의 시즌 ERA(평균자책)·WHIP·IP·승패·최근 등판.": "'s season ERA, WHIP, IP, win-loss record and recent outings.",
+    " 타율 ": " AVG ",
+    " 통계": " statistics",
+    " 투수 ERA·최근 등판 (KBO)": " pitcher ERA and recent outings (KBO)",
+    " 투수 ERA·최근 등판 (NPB)": " pitcher ERA and recent outings (NPB)",
+    " 프로필": " profile",
+    " 프로필 — 시즌 경기·골·도움·평점 통계, ": " profile — season appearances, goals, assists and ratings, ",
+    " 홈런 ": " HR ",
+    ") 프로필 — 시즌 평균 득점·리바운드·어시스트, 경기별 기록과 연봉·드래프트 정보. 스코어베이스.": ") profile — points, rebounds and assists per game, plus game logs, salary and draft information. Scorebase.",
+    "KBO 선발 투수 시즌 통계·최근 등판": "KBO starting pitcher season statistics and recent outings",
+    "NBA 선수": "NBA player",
+    "NPB 선발 투수 시즌 통계·최근 등판": "NPB starting pitcher season statistics and recent outings",
+    "·타점·OPS·최근 경기 기록.": ", RBI, OPS and recent game logs.",
+    "·홈런": "·HR",
+    "ⓘ 데이터 출처: API-Football (api-sports.io). 시즌 stats 는 매일 자동 갱신됩니다.": "ⓘ Data source: API-Football (api-sports.io). Season stats refresh automatically every day.",
+    "가드": "Guard",
+    "개": "",
+    "경기": "G",
+    "골 ": "Goals ",
+    "골키퍼": "Goalkeeper",
+    "공격수": "Forward",
+    "대회": "Competition",
+    "대회별 stats (": "Stats by competition (",
+    "도움": "Assists",
+    "득점": "R",
+    "미드필더": "Midfielder",
+    "번": "",
+    "분": " min",
+    "선발": "Starter",
+    "선발 투수": "Starting pitcher",
+    "선수 — ": "player — ",
+    "선수 미발견": "Player not found",
+    "세": "",
+    "센터": "Center",
+    "수비수": "Defender",
+    "슛/유효": "Shots / on target",
+    "시즌": "Season",
+    "시즌 누적": "Season total",
+    "이적 기록과 시장가치(몸값)까지 실시간 데이터로 정리. 스코어베이스.": "with transfer history and market value, kept up to date. Scorebase.",
+    "축구 선수": "Football player",
+    "출장": "GP",
+    "키패스": "Key passes",
+    "타자": "Batter",
+    "태클": "Tackles",
+    "팀": "Team",
+    "패스": "Passes",
+    "평점": "Rating",
+    "포워드": "Forward"
+  }
+}

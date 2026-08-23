@@ -1,0 +1,25 @@
+{
+  "header": "PitchZoneChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "· 포수 시점": "· catcher's view",
+    "구": " pitches",
+    "너클볼": "Knuckleball",
+    "너클커브": "Knuckle curve",
+    "스위퍼": "Sweeper",
+    "스플리터": "Splitter",
+    "슬라이더": "Slider",
+    "슬러브": "Slurve",
+    "슬로우커브": "Slow curve",
+    "싱커": "Sinker",
+    "체인지업": "Changeup",
+    "출처: Baseball Savant (Statcast) · 포수가 보는 스트라이크존": "Source: Baseball Savant (Statcast) · the strike zone as the catcher sees it",
+    "커브": "Curveball",
+    "커터": "Cutter",
+    "투구 로케이션": "Pitch location",
+    "투구 로케이션 존 히트맵": "Pitch location zone heat map",
+    "투심": "2-Seam",
+    "포심": "4-Seam",
+    "포크볼": "Forkball"
+  }
+}

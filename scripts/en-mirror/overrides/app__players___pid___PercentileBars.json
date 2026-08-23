@@ -1,0 +1,28 @@
+{
+  "header": "PercentileBars (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "Statcast 퍼센타일": "Statcast percentiles",
+    "· MLB 전체 대비": "· vs all of MLB",
+    "강타 억제": "Hard-hit suppression",
+    "강타율": "Hard-hit %",
+    "기대 ERA": "xERA",
+    "배럴 %": "Barrel %",
+    "배럴 억제": "Barrel suppression",
+    "배트 스피드": "Bat speed",
+    "볼넷": "BB",
+    "빨강에 가까울수록 리그 상위. 출처: Baseball Savant (Statcast)": "Redder means higher in the league. Source: Baseball Savant (Statcast)",
+    "삼진": "SO",
+    "삼진 회피": "Strikeout avoidance",
+    "유인구 유도": "Chase induced",
+    "유인구 참기": "Chase avoided",
+    "제구 (볼넷↓)": "Command (fewer BB)",
+    "주력": "Pace",
+    "컨택 (헛스윙↓)": "Contact (fewer whiffs)",
+    "타구 속도": "Exit velocity",
+    "타구 억제": "Contact suppression",
+    "패스트볼 구속": "Fastball velocity",
+    "패스트볼 회전": "Fastball spin",
+    "헛스윙 유도": "Whiff rate"
+  }
+}

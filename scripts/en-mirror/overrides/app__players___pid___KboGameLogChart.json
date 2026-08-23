@@ -1,0 +1,14 @@
+{
+  "header": "KboGameLogChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "경기별 타율 추이": "AVG by game",
+    "경기별 평균자책점 추이": "ERA by game",
+    "누적 ERA": "Cumulative ERA",
+    "누적 타율": "Cumulative AVG",
+    "막대 = 그 경기 안타 · 라인 = 그 시점까지의 시즌 타율": "Bars = hits in that game · line = season AVG to that point",
+    "막대 = 그 경기 자책점 · 라인 = 그 시점까지의 시즌 평균자책점": "Bars = earned runs in that game · line = season ERA to that point",
+    "안타": "H",
+    "자책점": "ER"
+  }
+}

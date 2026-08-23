@@ -1,0 +1,14 @@
+{
+  "header": "BaseballPlayerSeo (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    " 소속 ": " · ",
+    "는": "",
+    "선수 소개": "Player profile",
+    "야구": "Baseball",
+    "야구 선수": "Baseball player",
+    "은": "",
+    "이다.": ".",
+    "홈": "Home"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "header": "KboPercentileSection (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    " 리그 내 위치를 백분위로 확인해 보세요.": " See where they sit in the league, by percentile.",
+    " 리그 백분위 | Scorebase": " league percentiles | Scorebase",
+    ") 기준. 백분위 90 = 리그 상위 10%.": ". Percentile 90 = top 10% of the league.",
+    "경기 이상 출장": "games or more",
+    "규정 표본": "Qualified sample",
+    "리그 백분위": "League percentile",
+    "명(": "players (",
+    "백분위 ": "Percentile ",
+    "의 ": "'s ",
+    "이닝 이상 투구": "innings or more"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "header": "MlbViews (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";",
+      ""
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "toKoreanTeamName(profile.team, \"MLB\")",
+      "toEnglishTeamName(profile.team)"
+    ],
+    [
+      "toKoreanPlayerName(profile.name)",
+      "profile.name"
+    ]
+  ],
+  "dict": {
+    " 시즌 타율 ": " season AVG ",
+    " 시즌 평균자책점 ": " season ERA ",
+    "ⓘ 데이터 출처: MLB 공식 Stats API (statsapi.mlb.com) · Statcast 퍼센타일 Baseball Savant.\n      시즌·고급 지표(wRC+·WAR·FIP)는 매 경기 후 갱신됩니다.": "ⓘ Data sources: official MLB Stats API (statsapi.mlb.com) · Statcast percentiles from Baseball Savant.\n      Season and advanced metrics (wRC+, WAR, FIP) refresh after every game.",
+    "개요": "Overview",
+    "경기": "G",
+    "날짜": "Date",
+    "데뷔 ": "Debut ",
+    "리그평균 ": "League avg ",
+    "볼넷": "BB",
+    "삼진": "SO",
+    "상대": "Opponent",
+    "선발": "Starter",
+    "세": "",
+    "스위치": "Switch",
+    "스플릿": "Splits",
+    "시즌": "Season",
+    "시즌 ERA": "Season ERA",
+    "시즌기록": "Season log",
+    "우완": "RHP",
+    "우타": "Bats R",
+    "을 기록 중이다.": ".",
+    "이닝": "IP",
+    "이닝별 구속": "Velocity by inning",
+    "일자": "Date",
+    "좌완": "LHP",
+    "좌타": "Bats L",
+    "최근 경기 기록이 없습니다.": "No recent games.",
+    "최근 등판 기록이 없습니다.": "No recent appearances.",
+    "타구 분포": "Batted-ball distribution",
+    "타율": "AVG",
+    "타자": "Batter",
+    "타점": "RBI",
+    "통산 (career)": "Career",
+    "투구 로케이션": "Pitch location",
+    "투수": "Pitcher",
+    "피안타율": "AVG against",
+    "피홈런": "HR allowed",
+    "홈런": "HR"
+  }
+}

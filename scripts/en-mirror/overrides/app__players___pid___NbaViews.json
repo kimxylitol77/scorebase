@@ -1,0 +1,78 @@
+{
+  "header": "NbaViews (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";",
+      ""
+    ],
+    [
+      "toKoreanTeamName(full)",
+      "toEnglishTeamName(full)"
+    ],
+    [
+      "toKoreanTeamName(info.name)",
+      "toEnglishTeamName(info.name)"
+    ],
+    [
+      "toKoreanTeamName(r.teamName, \"NBA\")",
+      "toEnglishTeamName(r.teamName)"
+    ],
+    [
+      "toKoreanTeamName(teamName)",
+      "toEnglishTeamName(teamName)"
+    ],
+    [
+      "toKoreanPlayerName(fullName)",
+      "fullName"
+    ]
+  ],
+  "dict": {
+    " · 출생 ": " · born ",
+    " 드래프트 ": " draft ",
+    " 생": " born",
+    "36분 뛴다고 가정했을 때의 생산량. 출전시간 편차를 걷어내 벤치·롤플레이어끼리 비교할 때 쓰인다.": "Production scaled to 36 minutes, so bench players and role players can be compared without minutes distorting the picture.",
+    "36분 환산": "Per 36 minutes",
+    "ESPN 부상 명단을 매주 스냅샷해 이력화. 복귀는 명단에서 사라진 시점으로 추정한다.": "Built from weekly snapshots of the ESPN injury list. A return is inferred from the week the name disappears.",
+    "ESPN 트랜잭션 피드. 한국어는 AI 번역이며 원문은": "ESPN transaction feed. The original text is at",
+    "NBA 트랜잭션": "NBA transactions",
+    "ⓘ 데이터 출처: 기본정보 BALLDONTLIE · 통계·시즌별·스플릿·수상 ESPN · 연봉·생일·출생지 TheSports.": "ⓘ Data sources: biography BALLDONTLIE · statistics, seasons, splits and awards ESPN · salary, birthday and birthplace TheSports.",
+    "감독·프런트": "Coaching & front office",
+    "개요": "Overview",
+    "경기": "G",
+    "경기 기록이 없습니다.": "No game records.",
+    "계약": "Contract",
+    "기타": "Other",
+    "년차": "yr",
+    "단기계약": "Short-term deal",
+    "매치": "Match",
+    "방출": "Released",
+    "부상이력": "Injury history",
+    "세": "",
+    "수상 이력": "Awards",
+    "순위": "Rank",
+    "스플릿": "Splits",
+    "승 / 패": "W / L",
+    "시즌": "Season",
+    "시즌 기록이 없습니다.": "No season records.",
+    "시즌 통계가 없습니다.": "No season statistics.",
+    "시즌기록": "Season log",
+    "억": "00 million KRW",
+    "연봉": "Salary",
+    "월": "Month",
+    "월별 추이": "By month",
+    "이동 이력": "Movement history",
+    "일자": "Date",
+    "조": "Group",
+    "통산": "Career",
+    "통산 평균": "Career avg",
+    "트레이드": "Trade",
+    "팀": "Team",
+    "페이지에서 함께 볼 수 있다.": "can be seen on the same page.",
+    "평균": "Average",
+    "홈 / 원정": "Home / away"
+  }
+}

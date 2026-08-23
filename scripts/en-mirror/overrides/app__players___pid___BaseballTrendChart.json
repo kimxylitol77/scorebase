@@ -1,0 +1,11 @@
+{
+  "header": "BaseballTrendChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "OBP · SLG · OPS — 위로 갈수록 생산성 상승": "OBP · SLG · OPS — higher means more production",
+    "낮을수록 좋음": "Lower is better",
+    "낮을수록 좋음 · FIP=운·수비 무관 실질 방어율": "Lower is better · FIP strips out luck and defence",
+    "시즌별 ERA · FIP 추이": "ERA · FIP by season",
+    "시즌별 슬래시라인 추이": "Slash line by season"
+  }
+}

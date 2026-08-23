@@ -1,0 +1,14 @@
+{
+  "header": "SprayChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "· 인플레이": "· in play",
+    "아웃 ": "out ",
+    "안타 ": "H ",
+    "출처: Baseball Savant (Statcast) · 인플레이 타구 낙구 지점": "Source: Baseball Savant (Statcast) · landing spots of balls in play",
+    "타구": "Batted ball",
+    "타구 분포": "Batted-ball distribution",
+    "타구 분포 스프레이차트": "Spray chart",
+    "홈런 ": "HR "
+  }
+}

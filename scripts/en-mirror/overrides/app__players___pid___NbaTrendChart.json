@@ -1,0 +1,8 @@
+{
+  "header": "NbaTrendChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "경기당 평균 — 시즌에 따른 성장·하락 흐름": "Per game — how the numbers rise or fall across seasons",
+    "시즌별 PTS · REB · AST 추이": "PTS · REB · AST by season"
+  }
+}

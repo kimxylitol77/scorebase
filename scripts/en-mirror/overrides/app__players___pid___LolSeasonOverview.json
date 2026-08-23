@@ -1,0 +1,20 @@
+{
+  "header": "LolSeasonOverview (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "CS/게임": "CS per game",
+    "CS/분": "CS per minute",
+    "레이더에 마우스를 올리면 실제 수치가 표시됩니다": "Hover the radar to see the actual numbers",
+    "성과": "Honours",
+    "세트": "Sets",
+    "세트 집계": "Set totals",
+    "승률": "Win %",
+    "시즌 상세 기록": "Detailed season log",
+    "전투": "Combat",
+    "종": "",
+    "챔프 폭": "Champion pool",
+    "총 킬 / 어시": "Total kills / assists",
+    "파밍": "Farming",
+    "플레이 챔프": "Champions played"
+  }
+}

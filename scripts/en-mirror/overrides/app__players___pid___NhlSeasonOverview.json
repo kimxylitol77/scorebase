@@ -1,0 +1,28 @@
+{
+  "header": "NhlSeasonOverview (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "PP골": "PP goals",
+    "결승골": "Winners",
+    "경기": "G",
+    "골": "Goals",
+    "공격": "Attack",
+    "레이더에 마우스를 올리면 실제 수치가 표시됩니다": "Hover the radar to see the actual numbers",
+    "방어": "Defence",
+    "성적": "Stats",
+    "슈팅": "Shots",
+    "슛(SOG)": "Shots on goal",
+    "스페셜": "Special teams",
+    "승-패-OT": "W-L-OT",
+    "승률": "Win %",
+    "승부 결정": "Shootout",
+    "시즌": "Season",
+    "시즌 상세 기록": "Detailed season log",
+    "어시스트": "Assists",
+    "완봉": "SHO",
+    "완봉(SHO)": "SHO",
+    "출전": "Apps",
+    "출전 경기": "Games played",
+    "포인트": "Points"
+  }
+}

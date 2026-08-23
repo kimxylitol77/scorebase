@@ -1,0 +1,21 @@
+{
+  "header": "SeasonTable (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import type { HitterSeasonRow, PitcherSeasonRow } from \"@/lib/sports/mlb-player-extras\";",
+      "import type { HitterSeasonRow, PitcherSeasonRow } from \"@/lib/sports/mlb-player-extras\";\nimport { enSplitLabel } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "                {r.teamLabel}\n",
+      "                {enSplitLabel(r.teamLabel)}\n"
+    ]
+  ],
+  "dict": {
+    "시즌": "Season",
+    "시즌 기록이 없습니다.": "No season records.",
+    "장타": "SLG",
+    "출루": "OBP",
+    "타율": "AVG",
+    "팀": "Team"
+  }
+}

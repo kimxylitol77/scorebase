@@ -1,0 +1,31 @@
+{
+  "header": "SplitsView (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import type { PlayerSplits, SplitRow } from \"@/lib/sports/mlb-player-extras\";",
+      "import type { PlayerSplits, SplitRow } from \"@/lib/sports/mlb-player-extras\";\nimport { enSplitLabel } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "<div className=\"text-xs font-bold text-neutral-500 mb-2.5\">{row.label}</div>",
+      "<div className=\"text-xs font-bold text-neutral-500 mb-2.5\">{enSplitLabel(row.label)}</div>"
+    ],
+    [
+      "<td className=\"px-3 py-2 text-left font-semibold\">{r.label}</td>",
+      "<td className=\"px-3 py-2 text-left font-semibold\">{enSplitLabel(r.label)}</td>"
+    ],
+    [
+      "<td className=\"px-3 py-1.5\">{r.label}</td>",
+      "<td className=\"px-3 py-1.5\">{enSplitLabel(r.label)}</td>"
+    ]
+  ],
+  "dict": {
+    "구분": "Type",
+    "월": "Month",
+    "월별 추이": "By month",
+    "이 시즌 스플릿 데이터가 아직 없습니다.": "No split data for this season yet.",
+    "타율": "AVG",
+    "투수 좌우 상대": "Pitcher handedness split",
+    "피안타율": "AVG against",
+    "홈 / 원정": "Home / away"
+  }
+}

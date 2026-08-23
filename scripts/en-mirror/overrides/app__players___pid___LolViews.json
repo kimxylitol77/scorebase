@@ -1,0 +1,30 @@
+{
+  "header": "LolViews (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "TheSports (세트별 스코어보드 집계)": "TheSports (per-set scoreboard totals)",
+    "ⓘ 데이터 출처: TheSports LoL (세트별 스코어보드 집계). 수집된 LCK 경기 범위 내 통계입니다.": "ⓘ Data source: TheSports LoL (per-set scoreboard totals). Covers the LCK matches we have collected.",
+    "개요": "Overview",
+    "게임": "Games",
+    "결과": "Result",
+    "경기": "G",
+    "경기 기록이 없습니다.": "No game records.",
+    "미드": "Mid",
+    "분": " min",
+    "상대": "Opponent",
+    "서폿": "Support",
+    "선수": "Player",
+    "세": "",
+    "세트 출전": "Sets played",
+    "승률": "Win %",
+    "시간": "Time",
+    "원딜": "Bot",
+    "일자": "Date",
+    "정글": "Jungle",
+    "집계된 경기 기록이 없습니다.": "No games recorded.",
+    "챔피언": "Champion",
+    "챔피언 기록이 없습니다.": "No champion records.",
+    "탑": "Top",
+    "평균 K/D/A": "Average K/D/A"
+  }
+}

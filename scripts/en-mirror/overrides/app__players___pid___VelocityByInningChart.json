@@ -1,0 +1,13 @@
+{
+  "header": "VelocityByInningChart (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "경기가 길어질수록 공이 느려지는지 — 피로를 간접적으로 보는 지표": "Whether the ball slows as the game goes on — an indirect read on fatigue",
+    "구": " pitches",
+    "만 집계합니다.\n          구속 하락은 피로의 신호일 수 있지만, 투구 전략·구장·기온 등 다른 이유로도 변합니다.": " is counted.\n          A drop in velocity can signal fatigue, but pitch strategy, ballpark and temperature move it too.",
+    "이닝별 구속": "Velocity by inning",
+    "출처: Baseball Savant (Statcast) · 이닝당 15구 미만인 이닝은 표본이 작아 제외했습니다.\n          구종 믹스 변화로 인한 착시를 없애려고 주무기": "Source: Baseball Savant (Statcast) · innings with fewer than 15 pitches are excluded as too small a sample.\n          To avoid an illusion caused by a shifting pitch mix, only the primary pitch",
+    "회": "",
+    "후반까지 구속이 떨어지지 않았습니다.": "Velocity held up into the later innings."
+  }
+}

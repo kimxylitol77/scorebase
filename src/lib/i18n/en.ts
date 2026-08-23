@@ -331,6 +331,37 @@ export const EN_STANDINGS_LEAGUE_SET = new Set<string>([
 /** DB Team.name 이 한글로 저장된 리그(KBO·NPB)의 한→영 공식 팀명.
  *  그 외 리그는 DB 원본이 이미 영문이라 매핑 불필요 (fallback = 원본 반환). */
 const TEAM_NAME_EN: Record<string, string> = {
+  // MLB (mlb-player-extras 의 teamLabel 이 한국어 축약형)
+  "애리조나": "Diamondbacks",
+  "애틀랜타": "Braves",
+  "볼티모어": "Orioles",
+  "보스턴": "Red Sox",
+  "시카고C": "Cubs",
+  "시카고W": "White Sox",
+  "신시내티": "Reds",
+  "클리블랜드": "Guardians",
+  "콜로라도": "Rockies",
+  "디트로이트": "Tigers",
+  "휴스턴": "Astros",
+  "캔자스시티": "Royals",
+  "LA에인절스": "Angels",
+  "LA다저스": "Dodgers",
+  "마이애미": "Marlins",
+  "밀워키": "Brewers",
+  "미네소타": "Twins",
+  "뉴욕메츠": "Mets",
+  "뉴욕양키스": "Yankees",
+  "오클랜드": "Athletics",
+  "필라델피아": "Phillies",
+  "피츠버그": "Pirates",
+  "샌디에이고": "Padres",
+  "샌프란시스코": "Giants",
+  "시애틀": "Mariners",
+  "세인트루이스": "Cardinals",
+  "탬파베이": "Rays",
+  "텍사스": "Rangers",
+  "토론토": "Blue Jays",
+  "워싱턴": "Nationals",
   // KBO
   "LG 트윈스": "LG Twins",
   "삼성 라이온즈": "Samsung Lions",
@@ -551,3 +582,23 @@ export function enMatchStatus(label: string | null | undefined): string | null {
     .replace(/(\d+)세트/, "Set $1")
     .trim();
 }
+
+/** mlb-player-extras·kbo-official 이 만들어 내려보내는 한국어 스플릿 라벨을 영어로 되돌린다.
+ *  (라벨이 lib 안에서 조립돼 미러 사전으로는 못 잡는다) */
+export function enSplitLabel(label: string): string {
+  const m = /^(\d+)팀$/.exec(label);
+  if (m) return `${m[1]} teams`;
+  const mm = /^(\d+)월$/.exec(label);
+  if (mm) return MONTH_EN[Number(mm[1])] ?? label;
+  return SPLIT_LABEL_EN[label] ?? toEnglishTeamName(label);
+}
+
+const SPLIT_LABEL_EN: Record<string, string> = {
+  "vs 좌타": "vs LHB", "vs 우타": "vs RHB", "vs 좌투": "vs LHP", "vs 우투": "vs RHP",
+  "홈": "Home", "원정": "Away", "전체": "Total",
+};
+
+const MONTH_EN: Record<number, string> = {
+  1: "March/April", 2: "March/April", 3: "March/April", 4: "April", 5: "May", 6: "June",
+  7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December",
+};

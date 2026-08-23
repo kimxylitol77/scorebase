@@ -1,0 +1,23 @@
+{
+  "header": "NbaSeasonOverview (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "경기": "G",
+    "경기 평균": "Per game",
+    "득점": "R",
+    "레이더에 마우스를 올리면 실제 수치가 표시됩니다": "Hover the radar to see the actual numbers",
+    "리바운드": "Rebounds",
+    "분": " min",
+    "수비·리바운드": "Defence & rebounding",
+    "스틸 / 블록": "Steals / blocks",
+    "시즌 ·": "Season ·",
+    "시즌 상세 기록": "Detailed season log",
+    "야투 / 3점": "FG / 3PT",
+    "어시스트": "Assists",
+    "출전": "Apps",
+    "턴오버": "Turnovers",
+    "평균 득점": "Points per game",
+    "평균 시간": "Average time",
+    "플레이메이킹": "Playmaking"
+  }
+}
