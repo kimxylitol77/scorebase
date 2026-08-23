@@ -1,0 +1,25 @@
+{
+  "header": "scores__SoccerLeagueSidebar (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  return (LEAGUE_DISPLAY[a] ?? a).localeCompare(LEAGUE_DISPLAY[b] ?? b, \"ko\");",
+      "  return enLeagueName(a).localeCompare(enLeagueName(b), \"en\");"
+    ],
+    [
+      "      const country = COUNTRY_BY_LEAGUE[l] ?? null;",
+      "      const country = enCountryName(COUNTRY_BY_LEAGUE[l] ?? \"\") || null;"
+    ],
+    [
+      "        name: LEAGUE_DISPLAY[l] ?? l,",
+      "        name: enLeagueName(l),"
+    ],
+    [
+      "import { API_FOOTBALL_LEAGUE_ID } from \"@/lib/sports/api-football-pro\";",
+      "import { API_FOOTBALL_LEAGUE_ID } from \"@/lib/sports/api-football-pro\";\nimport { enLeagueName, enCountryName } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "축구 리그 목록": "Football leagues",
+    "전체 리그": "All leagues"
+  }
+}

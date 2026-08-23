@@ -1,0 +1,10 @@
+{
+  "header": "scores__FavoriteStar (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "즐겨찾기 해제": "Remove from favourites",
+    "즐겨찾기 추가": "Add to favourites",
+    "관심 등록됨": "Starred",
+    "관심경기": "Star"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "header": "live__LiveCommentaryBox (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  if (!matchSummary?.trim()) return null;",
+      "  if (!matchSummary?.trim()) return null;\n  if (/[가-힣]/.test(matchSummary)) return null; // 한국어 코멘터리는 영어판에 내보내지 않는다"
+    ]
+  ],
+  "dict": {
+    "초 전": "s ago",
+    "분 전": "m ago",
+    "시간 전": "h ago",
+    "AI 승률 예측 — ": "AI win probability — ",
+    "🤖 AI 코멘터리": "🤖 AI commentary"
+  }
+}

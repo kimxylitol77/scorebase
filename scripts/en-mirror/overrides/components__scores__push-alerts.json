@@ -1,0 +1,9 @@
+{
+  "header": "scores__push-alerts (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "킥오프 15분 전": "15 minutes before kick-off",
+    "선발 라인업 발표": "Starting line-ups announced",
+    "경기 종료·결과": "Full-time result"
+  }
+}

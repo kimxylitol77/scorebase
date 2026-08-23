@@ -1,0 +1,18 @@
+{
+  "header": "LeagueBadge (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "라리가": "LaLiga",
+    "분데스": "Bundesliga",
+    "세리에A": "Serie A",
+    "리그1": "Ligue 1",
+    "챔스": "UCL",
+    "유로파": "Europa",
+    "친선": "Friendly",
+    "아세안": "ASEAN",
+    "캐나다컵": "Canadian C.",
+    "A매치": "Intl",
+    "월드컵": "World Cup",
+    "국가대표": "National"
+  }
+}

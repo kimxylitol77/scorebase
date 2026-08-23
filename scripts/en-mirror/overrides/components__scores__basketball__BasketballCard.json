@@ -1,0 +1,14 @@
+{
+  "header": "scores__basketball__BasketballCard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "종료": "FT",
+    "연기": "PP",
+    "예정": "Upcoming",
+    "진행 중": "Live",
+    "팀": "Team",
+    "쿼터": "Q",
+    "이 종목 배당이 어디로 움직이는지 — 배당 흐름 보기": "See where the odds are moving",
+    "배당흐름": "Odds"
+  }
+}

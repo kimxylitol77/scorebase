@@ -76,7 +76,11 @@ function localImports(src: string, dir: string): { spec: string; abs: string }[]
       if (fs.existsSync(base + ext)) { out.push({ spec, abs: base + ext }); break; }
     }
   }
-  return out.filter((x) => x.abs.startsWith(path.join(SRC, "app")));
+  // src/app 뿐 아니라 src/components 안에서 상대경로로 부르는 하위 컴포넌트도 대상이다
+  // (SoccerLeagueSidebar → ./SoccerLeagueSidebarList 를 놓쳐 사이드바가 통째로 한글이었다).
+  return out.filter(
+    (x) => x.abs.startsWith(path.join(SRC, "app")) || x.abs.startsWith(path.join(SRC, "components")),
+  );
 }
 
 /** 렌더 경로(주석 제외)에 한글이 있는가 — AST 기준. */
@@ -118,11 +122,13 @@ export function collectPlan(pageFiles: string[]): Plan {
 
     // 페이지 옆 로컬 컴포넌트 — 한글이 있으면 /en 쪽에 같은 상대 위치로 미러를 만든다.
     for (const { abs } of localImports(src, path.dirname(file))) {
-      if (abs.includes(`${path.sep}app${path.sep}en${path.sep}`)) continue;
+      if (abs.includes(`${path.sep}en${path.sep}`)) continue; // 이미 영어 전용
       const csrc = fs.readFileSync(abs, "utf8");
       if (hasHangul(csrc, abs)) {
-        const relFromApp = path.relative(path.join(SRC, "app"), abs);
-        mirrorLocals.set(abs, path.join(SRC, "app/en", relFromApp));
+        const inApp = abs.startsWith(path.join(SRC, "app"));
+        const root = inApp ? "app" : "components";
+        const rel = path.relative(path.join(SRC, root), abs);
+        mirrorLocals.set(abs, path.join(SRC, root, "en", rel));
       }
       walk(abs);
     }

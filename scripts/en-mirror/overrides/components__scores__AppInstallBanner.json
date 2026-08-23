@@ -1,0 +1,11 @@
+{
+  "header": "scores__AppInstallBanner (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "스코어베이스를 홈 화면에": "Add Scorebase to your home screen",
+    "공유 → '홈 화면에 추가'로 앱처럼 사용": "Share → 'Add to Home Screen' to use it like an app",
+    "라이브 스코어를 앱처럼 바로 열기": "Open live scores like an app",
+    "추가": "Add",
+    "닫기": "Dismiss"
+  }
+}

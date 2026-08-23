@@ -1,0 +1,15 @@
+{
+  "header": "scores__BaseballMiniBoard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "1루": "1st",
+    "2루": "2nd",
+    "3루": "3rd",
+    "주자 없음": "Bases empty",
+    "초": "Top",
+    "말": "Bot",
+    "연장": "Extra",
+    "회": "",
+    "사": " out"
+  }
+}

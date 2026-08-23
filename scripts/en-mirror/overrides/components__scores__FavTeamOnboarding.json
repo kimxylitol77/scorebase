@@ -1,0 +1,10 @@
+{
+  "header": "scores__FavTeamOnboarding (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "좋아하는 팀을 즐겨찾기": "Star your favourite teams",
+    "하면 다음 방문에 맨 위에 바로 떠요. 경기 카드나 팀 페이지의": " and they appear at the top next time. Tap the",
+    "를 눌러보세요.": " on a match card or team page.",
+    "닫기": "Dismiss"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "header": "scores__AdBanner (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "광고": "Ad",
+    "이적시장 바로가기": "Go to transfers",
+    "여름": "Summer",
+    "이적시장": "transfer window",
+    "총정리": "in full",
+    "영입·방출·이적료·루머를 한눈에": "Signings, exits, fees and rumours in one place",
+    "바로가기": "Open"
+  }
+}

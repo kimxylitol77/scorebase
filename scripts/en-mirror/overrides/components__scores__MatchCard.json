@@ -1,0 +1,31 @@
+{
+  "header": "scores__MatchCard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "스트로급": "Strawweight",
+    "플라이급": "Flyweight",
+    "밴텀급": "Bantamweight",
+    "페더급": "Featherweight",
+    "라이트급": "Lightweight",
+    "웰터급": "Welterweight",
+    "미들급": "Middleweight",
+    "라이트헤비급": "Light Heavyweight",
+    "헤비급": "Heavyweight",
+    "여자 스트로급": "Women's Strawweight",
+    "여자 플라이급": "Women's Flyweight",
+    "여자 밴텀급": "Women's Bantamweight",
+    "여자 페더급": "Women's Featherweight",
+    "캐치웨이트": "Catchweight",
+    "서브미션": "Submission",
+    "판정 (만장)": "Decision (unanimous)",
+    "판정 (분할)": "Decision (split)",
+    "판정 (다수)": "Decision (majority)",
+    "판정": "Decision",
+    "신장": "Height",
+    "체중": "Weight",
+    "리치": "Reach",
+    "스탠스": "Stance",
+    "연기": "PP",
+    "종료": "FT"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "header": "LivePipScore (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "        \"브라우저 밖 분리에 실패했어요.\\n\" +\n          \"Chrome/Edge 116 이상에서 지원됩니다.\\n(\" +",
+      "        \"Could not pop the window out.\\n\" +\n          \"Requires Chrome or Edge 116 or newer.\\n(\" +"
+    ]
+  ],
+  "dict": {
+    "종료": "FT",
+    "연기": "PP",
+    "예정": "Upcoming",
+    "진행 중": "Live",
+    "팀": "Team",
+    "스코어베이스 내 경기": "My matches — Scorebase",
+    "즐겨찾기한 경기가 없어요.": "No starred matches yet.",
+    "경기 카드의 별표를 눌러보세요.": "Tap the star on a match card.",
+    "내 경기": "My matches",
+    "브라우저 밖으로 분리": "Pop out of the browser",
+    "브라우저 밖 항상-위 미니 창으로 분리": "Pop out into an always-on-top mini window",
+    "밖으로": "Pop out",
+    "간단히 보기": "Compact view",
+    "간단히": "Compact",
+    "자세히 보기 (로고·큰 점수·경기 시간)": "Detailed view (logos, large score, match clock)",
+    "자세히 보기 — 로고·큰 점수·경기 시간": "Detailed view — logos, large score, match clock",
+    "자세히": "Detailed",
+    "크게 보기": "Larger",
+    "작게 보기": "Smaller",
+    "PiP 닫기": "Close PiP",
+    "즐겨찾기 라이브 스코어 PiP": "Starred live scores (PiP)",
+    "화면 아무 곳이나 클릭하면 미니 창이 다시 밖으로 빠집니다": "Click anywhere to pop the mini window back out"
+  }
+}

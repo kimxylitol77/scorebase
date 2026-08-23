@@ -1,0 +1,16 @@
+{
+  "header": "scores__SportTabs (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { SPORTS, type SportCode } from \"@/lib/sports/sport-leagues\";",
+      "import { SPORTS, type SportCode } from \"@/lib/sports/sport-leagues\";\nimport { SPORT_LABEL_EN } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "<span>{s.label}</span>",
+      "<span>{SPORT_LABEL_EN[s.code] ?? s.label}</span>"
+    ]
+  ],
+  "dict": {
+    "종목 탭": "Sports"
+  }
+}

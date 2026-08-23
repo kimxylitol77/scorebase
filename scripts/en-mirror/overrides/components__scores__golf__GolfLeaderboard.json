@@ -1,0 +1,21 @@
+{
+  "header": "scores__golf__GolfLeaderboard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "홀": "Hole",
+    "합계": "Total",
+    "누적": "Cumulative",
+    "라운드": "Round",
+    "타수": "Strokes",
+    "스코어": "Score",
+    "아직 기록된 스코어가 없습니다.": "No scores recorded yet.",
+    "이 대회는 홀별 스코어카드가 제공되지 않아 라운드 총점만 표시합니다. 출처 ESPN.": "This event does not provide hole-by-hole cards, so only round totals are shown. Source ESPN.",
+    "이글 이상": "Eagle or better",
+    "버디": "Birdie",
+    "보기": "Bogey",
+    "더블보기 이상": "Double bogey or worse",
+    "순위": "Pos",
+    "선수": "Player",
+    "오늘": "Today"
+  }
+}

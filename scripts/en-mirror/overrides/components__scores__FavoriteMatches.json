@@ -1,0 +1,30 @@
+{
+  "header": "scores__FavoriteMatches (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "축구": "Football",
+    "야구": "Baseball",
+    "농구": "Basketball",
+    "하키": "Hockey",
+    "e스포츠": "Esports",
+    "즐겨찾기 ": "",
+    "경기 전체 해제할까요?": " starred matches — clear them all?",
+    "⭐ 즐겨찾기한 경기가 오늘 일정에 없습니다.": "⭐ None of your starred matches are on today's schedule.",
+    "전체 해제": "Clear all",
+    "⭐ 내 경기": "⭐ My matches",
+    "경기 ·": " matches ·",
+    "종목": " sports",
+    "마이페이지 — 즐겨찾기 경기·팀·알림 설정": "My page — starred matches, teams and alerts",
+    "관리 →": "Manage →",
+    "즐겨찾기 라이브를 화면에 고정(PiP) — 드래그로 이동": "Pin starred live matches (PiP) — drag to move",
+    "화면 고정": "Pin",
+    "크게 보기": "Larger",
+    "작게 보기": "Smaller",
+    "즐겨찾기 소리 ON": "Sound on for starred",
+    "즐겨찾기 소리": "Starred sound",
+    "모든 즐겨찾기 해제": "Clear all starred",
+    "경기": " matches",
+    "종료": "FT",
+    "연기": "PP"
+  }
+}

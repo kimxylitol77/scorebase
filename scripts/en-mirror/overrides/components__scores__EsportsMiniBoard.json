@@ -1,0 +1,9 @@
+{
+  "header": "scores__EsportsMiniBoard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "게임 진행": "Game",
+    "시리즈": "Series",
+    "승 필요": " to win"
+  }
+}

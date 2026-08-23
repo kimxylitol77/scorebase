@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "Bayern Munich ranking", "Real Madrid ranking", "Man City ranking", "PSG ranking", "Barcelona ranking",
   ],
   alternates: {
-    canonical: "/predictions/club-ranking",
+    canonical: "/en/predictions/club-ranking",
     languages: koEnLanguages("/predictions/club-ranking", "/en/predictions/club-ranking"),
   },
   openGraph: {

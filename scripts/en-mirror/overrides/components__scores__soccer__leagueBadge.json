@@ -1,0 +1,59 @@
+{
+  "header": "scores__soccer__leagueBadge (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "LEAGUE_DISPLAY[league] ?? league",
+      "enLeagueName(league)"
+    ],
+    [
+      "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";",
+      "import { enLeagueName } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "프리미어리그": "Premier League",
+    "라리가": "LaLiga",
+    "분데스리가": "Bundesliga",
+    "세리에 A": "Serie A",
+    "리그 1": "Ligue 1",
+    "챔피언스리그": "UCL",
+    "월드컵 2026": "World Cup 2026",
+    "K리그 1": "K League 1",
+    "K리그 2": "K League 2",
+    "J1 리그": "J1 League",
+    "J2 리그": "J2 League",
+    "AFC 챔스": "AFC CL",
+    "사우디 PL": "Saudi PL",
+    "유로파 리그": "Europa League",
+    "컨퍼런스 리그": "Conference League",
+    "챔피언십": "Championship",
+    "라리가 2": "LaLiga 2",
+    "분데스 2": "Bundesliga 2",
+    "세리에 B": "Serie B",
+    "리그 2": "Ligue 2",
+    "클럽 월드컵": "Club World Cup",
+    "AFC 챔스 2": "AFC CL Two",
+    "중국 슈퍼": "Chinese SL",
+    "A-리그": "A-League",
+    "에레디비시": "Eredivisie",
+    "프리메이라": "Primeira Liga",
+    "쉬페르 리그": "Süper Lig",
+    "주피러": "Jupiler Pro",
+    "스코틀랜드": "Scottish PL",
+    "그리스 SL": "Greek SL",
+    "브라질 세A": "Brasileirão A",
+    "브라질 세B": "Brasileirão B",
+    "리가 MX": "Liga MX",
+    "리베르타도레스": "Libertadores",
+    "수다메리카나": "Sudamericana",
+    "FA컵": "FA Cup",
+    "카라바오": "Carabao Cup",
+    "코파 델 레이": "Copa del Rey",
+    "코파 이탈리아": "Coppa Italia",
+    "DFB-포칼": "DFB-Pokal",
+    "쿠프 프랑스": "Coupe de France",
+    "KFA컵": "KFA Cup",
+    "천황배": "Emperor's Cup",
+    "AFC컵": "AFC Cup"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "header": "scores__f1__F1Board (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "연습 1": "Practice 1",
+    "연습 2": "Practice 2",
+    "연습 3": "Practice 3",
+    "퀄리파잉": "Qualifying",
+    "레이스": "Race",
+    "일": "Sun",
+    "월": "Mon",
+    "화": "Tue",
+    "수": "Wed",
+    "목": "Thu",
+    "금": "Fri",
+    "토": "Sat",
+    "표시할 그랑프리 일정이 없습니다.": "No Grand Prix scheduled.",
+    "그랑프리 주간(보통 금~일)에 세션 일정·결과가 표시됩니다. 데이터 출처 ESPN.": "Session times and results appear during a Grand Prix weekend (usually Friday to Sunday). Data from ESPN.",
+    "진행 중": "Live",
+    "종료": "Finished",
+    "예정": "Upcoming",
+    "챔피언십": "Championship",
+    "세션 시간 KST · 결과는 세션 종료 후 top10 · 2분 갱신 · 데이터 출처 ESPN": "Session times in KST · top 10 shown after each session · refreshed every 2 min · data from ESPN"
+  }
+}

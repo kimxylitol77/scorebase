@@ -1,0 +1,12 @@
+{
+  "header": "scores__tennis__TennisBoard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "이 날짜에 표시할 ATP·WTA 단식 경기가 없습니다.": "No ATP or WTA singles matches on this date.",
+    "진행 중인 투어 대회 기간에 경기가 표시됩니다. 데이터 출처 ESPN.": "Matches appear while a tour event is running. Data from ESPN.",
+    "경기": "Matches",
+    "대진표": "Draw",
+    "종료": "Final",
+    "단식 기준 · 60초 갱신 · 데이터 출처 ESPN": "Singles only · refreshed every 60s · data from ESPN"
+  }
+}

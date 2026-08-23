@@ -1,0 +1,13 @@
+{
+  "header": "scores__DateSlider (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "        const weekday = d.toLocaleDateString(\"ko-KR\", {",
+      "        const weekday = d.toLocaleDateString(\"en-GB\", {"
+    ]
+  ],
+  "dict": {
+    "일자 슬라이더": "Date selector",
+    "오늘": "Today"
+  }
+}

@@ -1,0 +1,97 @@
+// scores__SoccerStatusTabs (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
+
+import Link from "next/link";
+
+export type SoccerStatusFilter = "all" | "live" | "scheduled" | "finished" | "postponed";
+
+interface Props {
+  active: SoccerStatusFilter;
+  counts: { all: number; live: number; scheduled: number; finished: number; postponed: number };
+  /** 일자 유지용 */
+  date: string;
+  /** 리그 필터 유지용 (선택) */
+  league?: string | null;
+  /** 정렬 방식 유지용 (선택) — "time" 만 URL 에 실림 */
+  sort?: string | null;
+}
+
+function buildHref(
+  date: string,
+  league: string | null | undefined,
+  status: SoccerStatusFilter,
+  sort?: string | null,
+): string {
+  const params = new URLSearchParams();
+  params.set("sport", "soccer");
+  params.set("date", date);
+  if (league) params.set("league", league);
+  if (status !== "all") params.set("status", status);
+  if (sort === "time") params.set("sort", "time");
+  return `/scores?${params.toString()}`;
+}
+
+export default function SoccerStatusTabs({ active, counts, date, league, sort }: Props) {
+  const items: { key: SoccerStatusFilter; label: string; count: number }[] = [
+    { key: "all", label: "All", count: counts.all },
+    { key: "live", label: "Live", count: counts.live },
+    { key: "scheduled", label: "Upcoming", count: counts.scheduled },
+    { key: "finished", label: "Finished", count: counts.finished },
+    { key: "postponed", label: "Postponed", count: counts.postponed },
+  ];
+
+  return (
+    // 모바일도 가로 스크롤 chips (grid 5열 → flex) — 정렬 토글과 한 줄을 나눠 쓰기 위해 flex-1 min-w-0 (2026-08-01 세로 압축)
+    <nav
+      className="min-w-0 flex-1 flex gap-1.5 sm:gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+      aria-label="Match status filter"
+    >
+      {items.map((item) => {
+        const isActive = active === item.key;
+        const isLive = item.key === "live";
+        const baseClass =
+          "inline-flex shrink-0 items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-[13px] sm:text-sm font-semibold whitespace-nowrap transition-colors";
+        const stateClass = isActive
+          ? isLive
+            ? "bg-rose-600 text-white shadow-sm"
+            : "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+          : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700";
+        return (
+          <Link
+            key={item.key}
+            href={buildHref(date, league, item.key, sort)}
+            className={`${baseClass} ${stateClass}`}
+            aria-current={isActive ? "page" : undefined}
+          >
+            {isLive && (
+              <span
+                className={`relative flex h-2 w-2 ${isActive ? "" : "text-rose-500"}`}
+                aria-hidden
+              >
+                <span
+                  className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
+                    isActive ? "bg-white" : "bg-rose-500"
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex h-2 w-2 rounded-full ${
+                    isActive ? "bg-white" : "bg-rose-500"
+                  }`}
+                />
+              </span>
+            )}
+            <span>{item.label}</span>
+            {item.count > 0 && (
+              <span
+                className={`text-xs tabular-nums ${
+                  isActive ? "opacity-90" : "opacity-60"
+                }`}
+              >
+                ({item.count})
+              </span>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

@@ -1,0 +1,213 @@
+{
+  "header": "/en/scores — 라이브 스코어 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "const COMMON_HIGH_VOLUME_KEYWORDS = [\n  \"라이브 스코어\",\n  \"라이브스코어\",\n  \"실시간 스코어\",\n  \"스포츠중계\",\n  \"라이브 스포츠\",\n  \"스포츠 스코어\",\n  \"오늘 경기 일정\",\n  \"스포츠 일정\",\n];",
+      "const COMMON_HIGH_VOLUME_KEYWORDS = [\n  \"live scores\",\n  \"livescore\",\n  \"live sports scores\",\n  \"sports results\",\n  \"todays fixtures\",\n  \"match schedule\",\n];"
+    ],
+    [
+      "  all: [\n    \"오늘 경기\", \"오늘 스포츠\", \"스포츠 라이브\", \"전 종목 라이브 스코어\",\n  ],\n  soccer: [\n    \"축구 라이브 스코어\", \"축구 중계\", \"축구 일정\", \"오늘 축구\",\n    \"EPL 라이브\", \"프리미어리그 일정\", \"K리그 일정\", \"J리그 일정\",\n    \"UCL 라이브\", \"AFC 챔피언스리그\",\n  ],\n  baseball: [\n    \"야구 라이브 스코어\", \"야구 중계\", \"오늘 야구\",\n    \"KBO 라이브\", \"KBO 일정\", \"KBO 라이브 스코어\",\n    \"MLB 라이브\", \"NPB 라이브\", \"프로야구 일정\", \"프로야구 중계\", \"오늘 KBO\",\n  ],\n  basketball: [\n    \"농구 라이브 스코어\", \"NBA 라이브\", \"NBA 일정\", \"오늘 NBA\", \"KBL 라이브\",\n  ],\n  hockey: [\n    \"하키 라이브 스코어\", \"NHL 라이브\", \"NHL 일정\",\n  ],\n  esports: [\n    \"LCK 라이브\", \"LCK 일정\", \"LCK 스코어\",\n    \"롤 라이브\", \"롤드컵 일정\", \"e스포츠 라이브\",\n  ],\n};",
+      "  all: [\n    \"todays matches\", \"live sport today\", \"all sports live scores\",\n  ],\n  soccer: [\n    \"football live scores\", \"soccer livescore\", \"football fixtures\", \"football today\",\n    \"Premier League live\", \"Premier League fixtures\", \"K League fixtures\", \"J League fixtures\",\n    \"Champions League live\", \"AFC Champions League\",\n  ],\n  baseball: [\n    \"baseball live scores\", \"baseball today\",\n    \"KBO live\", \"KBO schedule\", \"KBO livescore\",\n    \"MLB live\", \"NPB live\", \"MLB schedule\",\n  ],\n  basketball: [\n    \"basketball live scores\", \"NBA live\", \"NBA schedule\", \"NBA today\", \"KBL live\",\n  ],\n  hockey: [\n    \"hockey live scores\", \"NHL live\", \"NHL schedule\",\n  ],\n  esports: [\n    \"LCK live\", \"LCK schedule\", \"LCK scores\",\n    \"League of Legends live\", \"Worlds schedule\", \"esports live scores\",\n  ],\n};"
+    ],
+    [
+      "  volleyball: \"V-리그·VNL·KOVO컵\",",
+      "  volleyball: \"V-League · VNL · KOVO Cup\","
+    ],
+    [
+      "  hockey: \"NHL·KHL·챔피언스 하키 리그·유럽 리그\",",
+      "  hockey: \"NHL · KHL · Champions Hockey League\","
+    ],
+    [
+      "  esports: \"LCK·롤드컵\",",
+      "  esports: \"LCK · Worlds\","
+    ],
+    [
+      "  const title = `${sportKo} 라이브스코어 — ${dateKo} 실시간 점수 · 일정 · 결과`;",
+      "  const title = `${sportKo} Livescore — ${dateKo} Live Scores, Fixtures & Results`;"
+    ],
+    [
+      "  const description =\n    `${sportKo} 라이브스코어 — ${dateKo} 경기 일정·실시간 점수·종료 결과. ` +\n    `${leagueBlurb} 통합 라이브 스코어. Elo 모델 승률 추정·Value Bet·평균 2-3초 갱신. 스코어베이스.`;",
+      "  const description =\n    `${sportKo} livescore — fixtures, live scores and final results for ${dateKo}. ` +\n    `${leagueBlurb} in one place. Elo model win probabilities, value bets, updates in 2–3 seconds.`;"
+    ],
+    [
+      "    `${dateKo} ${sportKo}`,\n    `${sportKo} 라이브 스코어`,\n    `${sportKo} 일정`,\n    `오늘 ${sportKo}`,",
+      "    `${sportKo} ${dateKo}`,\n    `${sportKo} live scores`,\n    `${sportKo} fixtures`,\n    `${sportKo} today`,"
+    ],
+    [
+      "    \"스코어베이스\", \"Scorebase\",",
+      "    \"Scorebase\","
+    ],
+    [
+      "import { teamDisplayKo, toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "import { toKoreanPlayerName } from \"@/lib/player-names\";\n",
+      ""
+    ],
+    [
+      "/** 매치 starter 이름 한글화.\n *  - NPB: 카나 → 한국어 음역 (npbPlayerToKorean). 한국어 + 카나 혼합 깨짐 감지 시 숨김.\n *  - MLB/KBO 등: player-names 사전 lookup (toKoreanPlayerName). 미등록은 영문 그대로.\n */\nfunction localizeStarter(name: string | null, league: string): string | null {\n  if (!name) return null;\n  if (league === \"NPB\") {\n    // 깨진 mid-conversion 결과 — 한국어 + 일본 카나 mix 시 숨김.\n    if (/[가-힣]/.test(name) && /[぀-ゟ゠-ヿ]/.test(name)) return null;\n    return npbPlayerToKorean(name);\n  }\n  // 이미 한글이면 그대로\n  if (/[가-힣]/.test(name)) return name;\n  return toKoreanPlayerName(name) || name;\n}",
+      "/** 매치 starter 이름 — 영어판은 원본(영문)을 그대로 쓴다.\n *  한글로만 들어온 이름(NPB 음역 등)은 영어 화면에 낼 수 없어 숨긴다.\n */\nfunction localizeStarter(name: string | null, _league: string): string | null {\n  if (!name) return null;\n  if (/[가-힣]/.test(name)) return null;\n  return name;\n}"
+    ],
+    [
+      "toKoreanTeamName(dm.homeName, dm.league)",
+      "toEnglishTeamName(dm.homeName)"
+    ],
+    [
+      "toKoreanTeamName(dm.awayName, dm.league)",
+      "toEnglishTeamName(dm.awayName)"
+    ],
+    [
+      "toKoreanTeamName(m.awayTeam.name, m.league)",
+      "toEnglishTeamName(m.awayTeam.name)"
+    ],
+    [
+      "toKoreanTeamName(m.homeTeam.name, m.league)",
+      "toEnglishTeamName(m.homeTeam.name)"
+    ],
+    [
+      "m.homeTeam.mmaFighter?.nameKo ?? teamDisplayKo(m.homeTeam, m.league)",
+      "toEnglishTeamName(m.homeTeam.name)"
+    ],
+    [
+      "m.awayTeam.mmaFighter?.nameKo ?? teamDisplayKo(m.awayTeam, m.league)",
+      "toEnglishTeamName(m.awayTeam.name)"
+    ],
+    [
+      "function kstDateLabel(d: Date): string {\n  return d.toLocaleDateString(\"ko-KR\", {\n    timeZone: \"Asia/Seoul\",\n    month: \"long\",\n    day: \"numeric\",\n    weekday: \"short\",\n  });\n}",
+      "function kstDateLabel(d: Date): string {\n  return d.toLocaleDateString(\"en-GB\", {\n    timeZone: \"Asia/Seoul\",\n    month: \"long\",\n    day: \"numeric\",\n    weekday: \"short\",\n  });\n}"
+    ],
+    [
+      "const SPORT_NAMES_KO: Record<string, string> = {\n  all: \"스포츠\",\n  soccer: \"축구\",\n  baseball: \"야구\",\n  basketball: \"농구\",\n  volleyball: \"배구\",\n  hockey: \"하키\",\n  esports: \"e스포츠\",\n  mma: \"UFC\",\n  tennis: \"테니스\",\n  golf: \"골프\",\n  f1: \"F1\",",
+      "const SPORT_NAMES_KO: Record<string, string> = {\n  all: \"Sports\",\n  soccer: \"Football\",\n  baseball: \"Baseball\",\n  basketball: \"Basketball\",\n  volleyball: \"Volleyball\",\n  hockey: \"Hockey\",\n  esports: \"Esports\",\n  mma: \"UFC\",\n  tennis: \"Tennis\",\n  golf: \"Golf\",\n  f1: \"F1\","
+    ],
+    [
+      "  return LEAGUE_DISPLAY[league] ?? league;",
+      "  return enLeagueName(league);"
+    ],
+    [
+      "import { toEnglishTeamName } from \"@/lib/i18n/en\";",
+      "import { toEnglishTeamName, enLeagueName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "    const weekday = d.toLocaleDateString(\"ko-KR\", {",
+      "    const weekday = d.toLocaleDateString(\"en-GB\", {"
+    ],
+    [
+      "    return `${y}년${mm}월${dd}일(${weekday})`;",
+      "    return `${y}-${mm}-${dd} (${weekday})`;"
+    ],
+    [
+      "      liveStatusLabel: isLive ? dm.statusLabel : null,",
+      "      liveStatusLabel: isLive ? enMatchStatus(dm.statusLabel) : null,"
+    ],
+    [
+      "      liveStatusLabel:\n        sport_ === \"basketball\"\n          ? basketballStatusLabelByMatchId.get(m.id) ?? live?.statusLabel ?? null\n          : sport_ === \"volleyball\"\n            ? volleyballStatusLabelByMatchId.get(m.id) ?? null\n            : live?.statusLabel ??\n              (sport_ === \"hockey\"\n                ? hockeyStatusLabelByMatchId.get(m.id) ?? null\n                : sport_ === \"soccer\"\n                  ? soccerTsLiveLabelByMatchId.get(m.id) ?? null // ts 전용 경기 진행분 폴백\n                  : null),",
+      "      liveStatusLabel: enMatchStatus(\n        sport_ === \"basketball\"\n          ? basketballStatusLabelByMatchId.get(m.id) ?? live?.statusLabel ?? null\n          : sport_ === \"volleyball\"\n            ? volleyballStatusLabelByMatchId.get(m.id) ?? null\n            : live?.statusLabel ??\n              (sport_ === \"hockey\"\n                ? hockeyStatusLabelByMatchId.get(m.id) ?? null\n                : sport_ === \"soccer\"\n                  ? soccerTsLiveLabelByMatchId.get(m.id) ?? null // ts 전용 경기 진행분 폴백\n                  : null),\n      ),"
+    ],
+    [
+      "import { toEnglishTeamName, enLeagueName } from \"@/lib/i18n/en\";",
+      "import { toEnglishTeamName, enLeagueName, enMatchStatus } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "function shortLabel(shortName: string | null, koName: string): string {\n  if (shortName && shortName.trim()) return shortName.trim();\n  if (/[가-힣]/.test(koName)) {\n    const first = koName.split(/\\s+/)[0];\n    return first.length > 4 ? first.slice(0, 4) : first;\n  }",
+      "function shortLabel(shortName: string | null, koName: string): string {\n  const s = shortName?.trim();\n  if (s) {\n    const en = toEnglishTeamName(s);\n    if (!/[가-힣]/.test(en)) return en;\n  }\n  if (/[가-힣]/.test(koName)) {\n    const en = toEnglishTeamName(koName);\n    if (!/[가-힣]/.test(en)) return en.split(/\\s+/)[0];\n  }"
+    ],
+    [
+      "abbr: dm.homeShort,",
+      "abbr: dm.homeShort ? toEnglishTeamName(dm.homeShort) : dm.homeShort,"
+    ],
+    [
+      "abbr: dm.awayShort,",
+      "abbr: dm.awayShort ? toEnglishTeamName(dm.awayShort) : dm.awayShort,"
+    ],
+    [
+      "        abbr: m.homeTeam.shortName,",
+      "        abbr: m.homeTeam.shortName ? toEnglishTeamName(m.homeTeam.shortName) : null,"
+    ],
+    [
+      "        abbr: m.awayTeam.shortName,",
+      "        abbr: m.awayTeam.shortName ? toEnglishTeamName(m.awayTeam.shortName) : null,"
+    ],
+    [
+      "  const canonical = sportCode === \"soccer\" ? \"/scores\" : `/scores?sport=${sportCode}`;",
+      "  const canonical = sportCode === \"soccer\" ? \"/en/scores\" : `/en/scores?sport=${sportCode}`;"
+    ]
+  ],
+  "dict": {
+    "축구": "Football",
+    "야구": "Baseball",
+    "농구": "Basketball",
+    "배구": "Volleyball",
+    "하키": "Hockey",
+    "e스포츠": "Esports",
+    "축구·야구·농구·배구·하키·e스포츠·UFC·테니스·골프·F1": "Football · Baseball · Basketball · Volleyball · Hockey · Esports · UFC · Tennis · Golf · F1",
+    "K리그·EPL·라리가·분데스·세리에A·UCL·UEL·MLS": "K League · Premier League · LaLiga · Bundesliga · Serie A · UCL · UEL · MLS",
+    "전반": "1st half",
+    "후반": "2nd half",
+    "하프타임": "Half-time",
+    "연장": "Extra time",
+    "연장 ": "ET ",
+    "세트": "Set",
+    "세트 ": "Set ",
+    "1쿼터 종료": "End of Q1",
+    "3쿼터 종료": "End of Q3",
+    "1P 인터미션": "1st intermission",
+    "2P 인터미션": "2nd intermission",
+    "🔴 진행 중": "🔴 Live",
+    "🚫 연기": "🚫 Postponed",
+    "선택한 상태에 해당하는 경기가 없습니다.": "No matches match the selected status.",
+    "라이브 스코어": "Live scores",
+    " 라이브 스코어 · 일정 · 결과": " live scores, fixtures and results",
+    " 라이브 스코어 — 스코어베이스": " live scores — Scorebase",
+    "스코어베이스": "Scorebase",
+    "홈": "Home",
+    "· 총": "· ",
+    "경기": " matches",
+    "리그": " leagues",
+    "년": "-",
+    "월": "-",
+    "일(": " (",
+    "오늘의 주요 경기": "Today's key matches",
+    "인기 리그 · 진행 중 → 예정 → 종료": "Popular leagues · live → upcoming → finished",
+    "주요 리그": "Top leagues",
+    "라이브 스코어·경기 일정·종료 결과를 한곳에서 확인하세요.": "Live scores, fixtures and final results in one place.",
+    "통합, Elo 모델 승률 추정, 라이브 푸시 평균 2-3초 갱신.": "combined, with Elo model win probabilities and live push updates in 2–3 seconds.",
+    "ⓘ 라이브 점수는 TheSports 라이브 푸시로 평균 2-3초 반영됩니다 (매치 상세는 KBO·NPB·MLB 베이스 상황·볼카운트까지 실시간).": "ⓘ Live scores arrive via TheSports push, typically within 2–3 seconds (match detail includes live base state and count for KBO, NPB and MLB).",
+    "AI 예측": "AI prediction",
+    "라인업": "Line-ups",
+    "우승 확률": "Title odds",
+    "우승 확률 시뮬 →": "Title probability simulator →",
+    "랭킹 보기 →": "View rankings →",
+    "순위 보기 →": "View standings →",
+    "성적 보기 →": "View results →",
+    "🏆 2026 FIFA 월드컵": "🏆 2026 FIFA World Cup",
+    "— 48개국 본선, 북중미 3개국 개최": "— 48 nations, hosted across North America",
+    "🏆 스탠리컵 파이널": "🏆 Stanley Cup Final",
+    "🏎️ F1 챔피언십 순위": "🏎️ F1 championship standings",
+    "— 드라이버·컨스트럭터 포인트": "— driver and constructor points",
+    "🎾 테니스 세계랭킹": "🎾 Tennis world rankings",
+    "— ATP·WTA 150위, 한국어 선수명": "— ATP and WTA top 150",
+    "🥊 UFC 랭킹": "🥊 UFC rankings",
+    "— 체급별 챔피언·컨텐더, 파운드-포-파운드": "— champions and contenders by division, plus pound-for-pound",
+    "🇰🇷 한국 선수 시즌 성적": "🇰🇷 Korean players this season",
+    "— LPGA·PGA 우승·톱10 집계": "— LPGA and PGA wins and top-10s",
+    "오늘의 라이브스코어 및 스포츠 분석": "Today's live scores and analysis",
+    "오늘 진행되는 EPL, MLB, NBA, KBO 주요 경기의 라이브스코어와 실시간 경기 데이터를 제공합니다.": "Live scores and real-time match data for today's Premier League, MLB, NBA and KBO fixtures.",
+    "경기 전": "Pre-match",
+    "프리뷰": "previews",
+    "분석과 종료 후": "and post-match",
+    "콘텐츠를 통해 회원들이 경기 흐름과 핵심 데이터를 한눈에 확인할 수 있습니다.": "coverage lets you follow the flow of a match and its key numbers at a glance.",
+    "리그별 분석": "League analysis",
+    "과": "and",
+    "부상자 명단": "injury lists",
+    "도 함께 제공됩니다.": "are also available.",
+    "✅ 종료": "✅ Finished",
+    "⏳ 예정": "⏳ Upcoming",
+    "● 진행 중 (": "● Live (",
+    "🚫 연기 (": "🚫 Postponed (",
+    "스포츠": "Sports",
+    "중단": "Suspended",
+    "리뷰": "Report"
+  }
+}

@@ -60,6 +60,10 @@
     [
       "import { SITE_URL } from \"@/lib/site-url\";",
       "import { SITE_URL } from \"@/lib/site-url\";"
+    ],
+    [
+      "  alternates: {\n    canonical: \"/predictions/club-ranking\",\n    languages: koEnLanguages(\"/predictions/club-ranking\", \"/en/predictions/club-ranking\"),\n  },",
+      "  alternates: {\n    canonical: \"/en/predictions/club-ranking\",\n    languages: koEnLanguages(\"/predictions/club-ranking\", \"/en/predictions/club-ranking\"),\n  },"
     ]
   ],
   "dict": {

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description:
     "Live title races across 80+ football leagues. Points gap between first and second, matches played, and how the contenders compare.",
   alternates: {
-    canonical: "/predictions/title-race",
+    canonical: "/en/predictions/title-race",
     languages: koEnLanguages("/predictions/title-race", "/en/predictions/title-race"),
   },
 };

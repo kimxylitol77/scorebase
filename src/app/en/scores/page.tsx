@@ -1,304 +1,3197 @@
-// /en/scores — 영어판 라이브 스코어. DB Match 가 폴러로 실시간 갱신되는 단일 소스라
-// ko /scores 의 ESPN 오버레이 없이 DB 직조회 린 버전으로 구성. LIVE 있으면 60초 자동 새로고침.
-// 날짜는 UTC 달력일 기준(?date=YYYY-MM-DD) — 글로벌 방문자 대상이라 KST 를 강제하지 않는다.
-import type { Metadata } from "next";
+// /en/scores — 라이브 스코어 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
+
 import Link from "next/link";
-import AmbientGlow from "@/components/AmbientGlow";
-import AutoRefresh from "@/components/en/AutoRefresh";
-import LocalKickoff from "@/components/en/LocalKickoff";
+import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { SITE_URL } from "@/lib/site-url";
-import { SPORTS } from "@/lib/sports/sport-leagues";
 import {
-  enLeagueName,
-  toEnglishTeamName,
-  SPORT_LABEL_EN,
-  EN_PREDICTION_LEAGUE_SET,
-} from "@/lib/i18n/en";
+  SPORTS,
+  BASEBALL_LEAGUES,
+  VOLLEYBALL_LEAGUES,
+  BASKETBALL_LEAGUES,
+  HOCKEY_LEAGUES,
+  MMA_LEAGUES,
+  LOL_LEAGUES,
+  leaguesForSport,
+  LEAGUE_DISPLAY,
+  LEAGUE_ORDER,
+  POPULAR_SOCCER_LEAGUES,
+  type SportCode,
+} from "@/lib/sports/sport-leagues";
+import { toEnglishTeamName, enLeagueName, enMatchStatus } from "@/lib/i18n/en";
+import { koEnLanguages } from "@/lib/i18n/en";
+import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
+import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
+import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
+import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { calcStandings } from "@/lib/predict/standings";
+import { currentSeasonStart } from "@/lib/predict/season-window";
+import type { PredictMatch } from "@/lib/predict/types";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
+import { buildSportsEventLocation } from "@/lib/seo/sports-event-location";
+import {
+  fetchAllLiveScores,
+  fetchBaseballByDate,
+  fetchMlbByDate,
+  fetchEspnPeriodLinescores,
+  extractNbaUltraPeriodsFromRaw,
+  tsIncidentsToGoals,
+  tsIncidentsToCards,
+  tsTeamStatsToSoccerStats,
+  tsHalfStatsToSoccerStats,
+  tsHalfTimeScore,
+  tsHalfScoreFromGoals,
+  type BaseballGameDetails,
+  type PeriodLinescore as PeriodLinescoreData,
+  type SoccerGoal,
+  type SoccerCard,
+  type SoccerTeamStat,
+  type MatchOdds,
+  type LiveMatch,
+  parseTsFootballScore,
+  type TsFootballScoreParsed,
+  fetchSoccerByDate,
+  type DatedMatch,
+} from "@/lib/sports/live-scores";
+import {
+  buildOrphanDedup,
+  normalizeTeamName,
+  romanizeTeamName,
+} from "@/lib/sports/orphan-dedup";
+import SportTabs from "@/components/en/scores/SportTabs";
+import TennisBoard from "@/components/en/scores/tennis/TennisBoard";
+import GolfBoard from "@/components/en/scores/golf/GolfBoard";
+import F1Board from "@/components/en/scores/f1/F1Board";
+import MyTeamsStrip from "@/components/en/MyTeamsStrip";
+import FavTeamOnboarding from "@/components/en/scores/FavTeamOnboarding";
+import AppInstallBanner from "@/components/en/scores/AppInstallBanner";
+import AdBanner from "@/components/en/scores/AdBanner";
+import DateSlider from "@/components/en/scores/DateSlider";
+import LeagueChips from "@/components/en/scores/LeagueChips";
+import LeagueDropdown from "@/components/en/scores/LeagueDropdown";
+import SoccerStatusTabs, {
+  type SoccerStatusFilter,
+} from "@/components/en/scores/SoccerStatusTabs";
+import MatchCard from "@/components/en/scores/MatchCard";
+import LeagueGroupCard from "@/components/en/scores/LeagueGroupCard";
+import ShowMoreRows from "@/components/en/scores/ShowMoreRows";
+import { tsFootballLiveLabel } from "@/lib/sports/ts-football-live-label";
+import type { ReactNode } from "react";
+import SoccerLeagueSidebar from "@/components/en/scores/SoccerLeagueSidebar";
+import SoccerSortToggle from "@/components/en/scores/SoccerSortToggle";
+import SortPrefWriter from "@/components/scores/SortPrefWriter";
+import FavPrefWriter from "@/components/scores/FavPrefWriter";
+import { cookies } from "next/headers";
+import FavoriteMatches from "@/components/en/scores/FavoriteMatches";
+import EmptyState from "@/components/en/scores/EmptyState";
+import LiveRefresher from "@/components/en/scores/LiveRefresher";
+import SoccerCompactCard from "@/components/en/scores/soccer/SoccerCompactCard";
+import SoccerLiveRow from "@/components/en/scores/soccer/SoccerLiveRow";
+import type { SoccerContext } from "@/components/en/scores/SoccerMiniBoard";
+import type { BaseballLinescoreData } from "@/components/en/scores/BaseballLinescore";
+import type { BaseballContext } from "@/components/en/scores/BaseballMiniBoard";
+import type { EsportsContext } from "@/components/en/scores/EsportsMiniBoard";
+import LiveSoundToggle from "@/components/en/LiveSoundToggle";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 
-export const metadata: Metadata = {
-  title: "Live Scores — Football, Baseball, Basketball & More",
-  description:
-    "Live scores, results and fixtures across 40+ football leagues plus MLB, KBO, NPB, NBA, NHL and volleyball — updated around the clock.",
-  alternates: {
-    canonical: `${SITE_URL}/en/scores`,
-    languages: {
-      ko: `${SITE_URL}/scores`,
-      en: `${SITE_URL}/en/scores`,
-      "x-default": `${SITE_URL}/scores`,
-    },
+const fetchLiveCached = unstable_cache(
+  fetchAllLiveScores,
+  ["scores-page-live"],
+  { revalidate: 30, tags: ["live-scores"] },
+);
+
+// 일자별 야구 매치 innings (LIVE+FINISHED 모두) — 종료 매치 linescore 보강용.
+// 일자 별 cache key 분리, 60초 revalidate.
+const fetchBaseballByDateCached = unstable_cache(
+  fetchBaseballByDate,
+  ["scores-page-baseball-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// MLB 는 ESPN 기반 collector 라 externalId = ESPN game id. api-sports 와 별도 fetch.
+const fetchMlbByDateCached = unstable_cache(
+  fetchMlbByDate,
+  ["scores-page-mlb-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// 일자별 우리 축구 리그 경기 전부 (예정/라이브/종료) — orphan(DB 미적재) 카드 보강.
+const fetchSoccerByDateCached = unstable_cache(
+  fetchSoccerByDate,
+  ["scores-page-soccer-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// (축구 골/카드는 ESPN 미사용 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출)
+// NBA/NHL 쿼터/피리어드별 점수 — ESPN scoreboard linescores.
+const fetchPeriodsByDateCached = unstable_cache(
+  fetchEspnPeriodLinescores,
+  ["scores-page-period-linescores"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+
+// L 배지(라인업 확정) matchId 목록 — lineup 블랍이 이 페이지 캐시 페이로드의 65%(실측 3.5MB/요청)인데
+// 소비는 "확정 여부" boolean 뿐이다. 매 요청 당기는 대신 60초 캐시로 분리한다 (확정 라인업은 분 단위로
+// 안 변함). 인자는 unstable_cache 가 해시해 키로 쓰므로 호출부에서 정렬해 넘긴다(순서 흔들림 = 캐시 미스).
+const fetchLineupReadyIdsCached = unstable_cache(
+  async (soccerMatchIds: number[]): Promise<number[]> => {
+    if (soccerMatchIds.length === 0) return [];
+    const rows = await prisma.theSportsMatchCache.findMany({
+      where: { matchId: { in: soccerMatchIds }, lineup: { not: Prisma.DbNull } },
+      select: { matchId: true, lineup: true },
+    });
+    // SoccerLineupSvg 의 ready 조건과 동일 — 양팀 선발(first=1) 중 좌표 배치(x>0||y>0) 7명+.
+    const placedStarters = (arr: unknown): number =>
+      Array.isArray(arr)
+        ? arr.filter((p) => {
+            const pp = p as { first?: number; x?: number; y?: number };
+            return pp.first === 1 && ((Number(pp.x) || 0) > 0 || (Number(pp.y) || 0) > 0);
+          }).length
+        : 0;
+    const out: number[] = [];
+    for (const c of rows) {
+      // DbNull 필터를 지나도 JSON null 행은 null 로 온다 (Json null 두 종류 함정) — 가드 필수.
+      if (!c.lineup || typeof c.lineup !== "object") continue;
+      const inner = (c.lineup as { lineup?: { home?: unknown[]; away?: unknown[] } }).lineup;
+      if (placedStarters(inner?.home) >= 7 && placedStarters(inner?.away) >= 7) out.push(c.matchId);
+    }
+    return out;
   },
-};
+  ["scores-page-lineup-ready"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
 
-// e스포츠는 팀명 일부가 DB 한글 저장이라 v1 제외 (표시 언어 오염 방지)
-const EXCLUDED_SPORTS = new Set(["esports"]);
-const SPORT_ORDER = ["soccer", "baseball", "basketball", "hockey", "volleyball", "mma"];
+/** 오프닝 배당 (매치별 첫 OddsSnapshot) — 행의 배당 상승/하락 화살표 원료. 5분 캐시 (오프닝은 불변). */
+const fetchOpeningOddsCached = unstable_cache(
+  async (soccerMatchIds: number[]): Promise<Record<number, { h: number; d: number | null; a: number }>> => {
+    if (soccerMatchIds.length === 0) return {};
+    const rows = await prisma.oddsSnapshot.findMany({
+      where: { matchId: { in: soccerMatchIds } },
+      orderBy: [{ matchId: "asc" }, { fetchedAt: "asc" }],
+      distinct: ["matchId"],
+      select: { matchId: true, homeOdds: true, drawOdds: true, awayOdds: true },
+    });
+    const out: Record<number, { h: number; d: number | null; a: number }> = {};
+    for (const r of rows) out[r.matchId] = { h: r.homeOdds, d: r.drawOdds, a: r.awayOdds };
+    return out;
+  },
+  ["scores-page-opening-odds"],
+  { revalidate: 300, tags: ["live-scores"] },
+);
 
-const LEAGUE_TO_SPORT = new Map<string, string>();
-for (const s of SPORTS) {
-  if (s.code === "all" || EXCLUDED_SPORTS.has(s.code)) continue;
-  for (const lg of s.leagues) if (!LEAGUE_TO_SPORT.has(lg)) LEAGUE_TO_SPORT.set(lg, s.code);
+/** oddsBookmakers JSON 의 updatedAt (epoch ms) — 없으면 null */
+function oddsUpdatedAt(json: unknown): number | null {
+  if (!json || typeof json !== "object") return null;
+  const t = (json as { updatedAt?: unknown }).updatedAt;
+  return typeof t === "number" && Number.isFinite(t) ? t : null;
 }
+
+/** 오프닝 대비 현재 배당 흐름 — 2% 넘게 움직였을 때만 방향 표시 (소수점 노이즈 억제) */
+function oddsTrend(
+  open: { h: number; d: number | null; a: number } | undefined,
+  h: number | null,
+  d: number | null,
+  a: number | null,
+): MatchOdds["trend"] {
+  if (!open || h == null || a == null) return null;
+  const dir = (cur: number | null, base: number | null): -1 | 0 | 1 => {
+    if (cur == null || base == null || base <= 0) return 0;
+    const r = cur / base - 1;
+    return r > 0.02 ? 1 : r < -0.02 ? -1 : 0;
+  };
+  return { home: dir(h, open.h), draw: dir(d, open.d), away: dir(a, open.a) };
+}
+
+/** 캐시 블랍 → 화면 파생값 (30초 캐시) — lineup 분리와 같은 수법의 2탄.
+ *  detailLive/teamStats/halfTeamStats 1.8MB(566행 실측)를 매 요청 당기던 것을, 블랍은 이
+ *  함수 안에서만 읽고 파생 결과(수십 KB)만 돌려준다. 라이브 정밀도는 fetchLiveCached(30초)와
+ *  동일 급. 축구 진행분 라벨만 Date.now() 의존이라 원료(sid·페이즈 시작 ts)를 돌려주고
+ *  렌더 쪽에서 계산한다(분 표시가 캐시 수명만큼 동결되는 것 방지).
+ *  인자 배열은 캐시 키로 해시되므로 호출부에서 정렬해 넘긴다. */
+interface ScoresCacheDerived {
+  soccerGoals: Record<number, SoccerGoal[]>;
+  soccerCards: Record<number, SoccerCard[]>;
+  soccerTeamStats: Record<number, SoccerTeamStat[]>;
+  soccerHalfStats: Record<number, SoccerTeamStat[]>;
+  soccerHalfScore: Record<number, { home: number; away: number }>;
+  footballScore: Record<number, TsFootballScoreParsed>;
+  /** 진행분 라벨 원료 — 렌더에서 tsFootballLiveLabel(sid, pts, Date.now()) 로 계산 */
+  soccerLiveState: Record<number, { sid: number; pts: number }>;
+  hockeyPeriod: Record<number, PeriodLinescoreData>;
+  hockeyStatusLabel: Record<number, string>;
+  basketballPeriod: Record<number, PeriodLinescoreData>;
+  basketballStatusLabel: Record<number, string>;
+  volleyballPeriod: Record<number, PeriodLinescoreData>;
+  volleyballStatusLabel: Record<number, string>;
+  baseballCtx: Record<string, {
+    bases: [boolean, boolean, boolean];
+    outs: number | null;
+    inning: number | null;
+    half: "top" | "bottom" | null;
+    awayInnings: (number | null)[];
+    homeInnings: (number | null)[];
+    awayHits: number | null;
+    homeHits: number | null;
+    awayErrors: number | null;
+    homeErrors: number | null;
+    isExtra: boolean;
+  }>;
+}
+
+const fetchCacheDerivedCached = unstable_cache(
+  async (input: {
+    soccerIds: number[];
+    /** [matchId, externalId] 쌍 — 야구 ctx 는 externalId 키라 매핑을 같이 받는다 */
+    baseball: [number, string][];
+    hockeyIds: number[];
+    basketballIds: number[];
+    basketballLabelIds: number[];
+    volleyballIds: number[];
+  }): Promise<ScoresCacheDerived> => {
+    const out: ScoresCacheDerived = {
+      soccerGoals: {}, soccerCards: {}, soccerTeamStats: {}, soccerHalfStats: {},
+      soccerHalfScore: {}, footballScore: {}, soccerLiveState: {},
+      hockeyPeriod: {}, hockeyStatusLabel: {},
+      basketballPeriod: {}, basketballStatusLabel: {},
+      volleyballPeriod: {}, volleyballStatusLabel: {},
+      baseballCtx: {},
+    };
+    const soccerIdSet = new Set(input.soccerIds);
+    const baseballIdSet = new Set(input.baseball.map(([id]) => id));
+    const hockeyIdSet = new Set(input.hockeyIds);
+    const basketballIdSet = new Set(input.basketballIds);
+    const basketballLabelIdSet = new Set(input.basketballLabelIds);
+    const volleyballIdSet = new Set(input.volleyballIds);
+    const idToExt = new Map(input.baseball);
+    const cacheIds = [...new Set([
+      ...input.soccerIds, ...baseballIdSet, ...input.hockeyIds,
+      ...input.basketballIds, ...input.basketballLabelIds, ...input.volleyballIds,
+    ])];
+    if (cacheIds.length === 0) return out;
+
+    const caches = await prisma.theSportsMatchCache.findMany({
+      where: { matchId: { in: cacheIds } },
+      select: { matchId: true, detailLive: true, teamStats: true, halfTeamStats: true },
+    });
+    // 골/카드 인시던트 선수 한글화 — 전 매치 incident player_id 수집 → nameKo 맵(1회 쿼리)
+    const incidentNameById: Record<string, string> = {};
+    {
+      const pids = new Set<string>();
+      for (const c of caches) {
+        if (!soccerIdSet.has(c.matchId)) continue;
+        const incs = (c.detailLive as { incidents?: unknown } | null)?.incidents;
+        if (!Array.isArray(incs)) continue;
+        for (const inc of incs) {
+          const v = (inc as Record<string, unknown>).player_id;
+          if (typeof v === "string" && v) pids.add(v);
+        }
+      }
+      if (pids.size > 0) {
+        const rows = await prisma.theSportsPlayer.findMany({
+          where: { id: { in: Array.from(pids) }, nameKo: { not: null } },
+          select: { id: true, nameKo: true },
+        });
+        for (const r of rows) if (r.nameKo) incidentNameById[r.id] = r.nameKo;
+      }
+    }
+    for (const c of caches) {
+      const dl = c.detailLive as
+        | {
+            incidents?: unknown;
+            extra?: { base?: string; out?: number };
+            score?: [string, number, number, Record<string, [string, string] | undefined>];
+          }
+        | null;
+      if (!dl) continue;
+      // 축구 골/카드 + 승부차기/연장 점수 (score 배열은 incidents 없어도 존재)
+      if (soccerIdSet.has(c.matchId)) {
+        const fs = parseTsFootballScore(dl);
+        if (fs) out.footballScore[c.matchId] = fs;
+        // 진행분 라벨 원료 — score[1]=status_id, score[4]=페이즈 시작 ts
+        {
+          const sc = dl.score as unknown as unknown[] | undefined;
+          const sid = Number(sc?.[1]);
+          const pts = Number(sc?.[4]);
+          if (Number.isFinite(sid)) {
+            out.soccerLiveState[c.matchId] = { sid, pts: Number.isFinite(pts) ? pts : 0 };
+          }
+        }
+        if (dl.incidents) {
+          const goals = tsIncidentsToGoals(dl.incidents, incidentNameById);
+          const cards = tsIncidentsToCards(dl.incidents, incidentNameById);
+          if (goals.length > 0) out.soccerGoals[c.matchId] = goals;
+          if (cards.length > 0) out.soccerCards[c.matchId] = cards;
+        }
+        // 팀 통계 (점유율·슈팅·코너·카드) — team_stats/list named fields
+        const tstats = tsTeamStatsToSoccerStats(c.teamStats);
+        if (tstats.length > 0) out.soccerTeamStats[c.matchId] = tstats;
+        // 전반전 통계 (half/team_stats/detail 의 p1)
+        const hstats = tsHalfStatsToSoccerStats(c.halfTeamStats, "p1");
+        if (hstats.length > 0) out.soccerHalfStats[c.matchId] = hstats;
+        // 전반 점수: halfTeamStats.p1 골(정확) 우선, 없으면 incidents 골 시각으로 자체계산
+        const hscore =
+          tsHalfTimeScore(c.halfTeamStats) ??
+          (dl.incidents ? tsHalfScoreFromGoals(tsIncidentsToGoals(dl.incidents)) : null);
+        if (hscore) out.soccerHalfScore[c.matchId] = hscore;
+      }
+      // 배구 세트 (VNL/AVC/유럽리그) — score[3] = {ft:[h세트,a세트], p1..p5:[h점,a점]}.
+      // ft 는 합계가 아니라 "세트 스코어" — 큰 점수 칸과 표의 T(세트) 에 그대로 사용.
+      if (volleyballIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        const sObj = dl.score[3] as Record<string, unknown>;
+        const vlabel = volleyballLiveLabel(Number(dl.score[1]), sObj);
+        if (vlabel) out.volleyballStatusLabel[c.matchId] = vlabel;
+        const homeSets: (number | null)[] = [];
+        const awaySets: (number | null)[] = [];
+        for (let i = 1; i <= 5; i++) {
+          const pv = sObj?.["p" + i];
+          if (!Array.isArray(pv) || pv.length < 2) continue;
+          const h = Number(pv[0]);
+          const a = Number(pv[1]);
+          homeSets.push(Number.isFinite(h) ? h : null);
+          awaySets.push(Number.isFinite(a) ? a : null);
+        }
+        const ft = sObj?.["ft"];
+        const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+        const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+        if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
+          out.volleyballPeriod[c.matchId] = {
+            homePeriods: homeSets,
+            awayPeriods: awaySets,
+            homeScore: ftH,
+            awayScore: ftA,
+          };
+        }
+      }
+      // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
+      // _swap 키 있으면 ts perspective 반대 → home/away 반전 (야구 패턴 동일).
+      if (hockeyIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        const plabel = iceHockeyLiveLabel(Number(dl.score[1]));
+        if (plabel) out.hockeyStatusLabel[c.matchId] = plabel;
+        const sObj = dl.score[3] as Record<string, unknown>;
+        const swap = (dl as { _swap?: boolean })?._swap === true;
+        const homePeriods: (number | null)[] = [];
+        const awayPeriods: (number | null)[] = [];
+        for (let i = 1; i <= 9; i++) {
+          const p = sObj?.["p" + i];
+          if (!Array.isArray(p) || p.length < 2) continue;
+          const h = Number(p[0]);
+          const a = Number(p[1]);
+          const hv = Number.isFinite(h) ? h : null;
+          const av = Number.isFinite(a) ? a : null;
+          homePeriods.push(swap ? av : hv);
+          awayPeriods.push(swap ? hv : av);
+        }
+        if (homePeriods.length > 0) {
+          const ft = sObj?.["ft"];
+          const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+          const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+          const sum = (arr: (number | null)[]) =>
+            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
+          const hScore = Number.isFinite(ftH) ? (swap ? Number(ftA) : ftH) : sum(homePeriods);
+          const aScore = Number.isFinite(ftA) ? (swap ? Number(ftH) : ftA) : sum(awayPeriods);
+          out.hockeyPeriod[c.matchId] = {
+            homePeriods,
+            awayPeriods,
+            homeScore: hScore,
+            awayScore: aScore,
+          };
+        }
+      }
+      // 농구 쿼터 (NBA/WNBA/KBL/WKBL) — cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열.
+      if (basketballIdSet.has(c.matchId)) {
+        const bScore = dl.score as unknown[] | undefined;
+        const homeArr = Array.isArray(bScore) ? bScore[3] : undefined;
+        const awayArr = Array.isArray(bScore) ? bScore[4] : undefined;
+        if (Array.isArray(homeArr) && Array.isArray(awayArr)) {
+          const toNum = (x: unknown): number | null => {
+            const n = Number(x);
+            return Number.isFinite(n) ? n : null;
+          };
+          const homePeriods = homeArr.map(toNum);
+          const awayPeriods = awayArr.map(toNum);
+          // 트레일링 OT 컬럼(정규 4쿼터 초과) 이 양 팀 모두 0 이면 제거 — NBA ESPN 렌더와 컬럼 수 맞춤.
+          let len = Math.max(homePeriods.length, awayPeriods.length);
+          while (len > 4 && (homePeriods[len - 1] ?? 0) === 0 && (awayPeriods[len - 1] ?? 0) === 0) {
+            len--;
+          }
+          const hp = homePeriods.slice(0, len);
+          const ap = awayPeriods.slice(0, len);
+          const sum = (arr: (number | null)[]) =>
+            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
+          if (hp.length > 0 || ap.length > 0) {
+            out.basketballPeriod[c.matchId] = {
+              homePeriods: hp,
+              awayPeriods: ap,
+              homeScore: sum(hp),
+              awayScore: sum(ap),
+            };
+          }
+        }
+      }
+      // 농구 진행 쿼터 라벨 (NBA 포함) — score[1]=status_id, timer[3]=쿼터 잔여초.
+      if (basketballLabelIdSet.has(c.matchId)) {
+        const bScore = dl.score as unknown[] | undefined;
+        const statusId = Array.isArray(bScore) ? Number(bScore[1]) : NaN;
+        const timerArr = (dl as { timer?: unknown[] }).timer;
+        const remaining = Array.isArray(timerArr) ? Number(timerArr[3]) : NaN;
+        if (Number.isFinite(statusId)) {
+          const label = basketballLiveLabel(statusId, Number.isFinite(remaining) ? remaining : null);
+          if (label) out.basketballStatusLabel[c.matchId] = label;
+        }
+      }
+      // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
+      // cache.detailLive.score[3] 의 p_i = [tsHome, tsAway] (commit f25de7a 정정).
+      // _swap=true 면 ts perspective 가 우리와 반대 → 우리 home/away 로 변환.
+      if (baseballIdSet.has(c.matchId)) {
+        const extraBase = dl.extra?.base;
+        const baseStr =
+          typeof extraBase === "string" && /^[01]{3}$/.test(extraBase) ? extraBase : "000";
+        const ext = idToExt.get(c.matchId);
+        const swap = (dl as { _swap?: boolean })?._swap === true;
+        let inning: number | null = null;
+        let half: "top" | "bottom" | null = null;
+        let isExtra = false;
+        const awayInnings: (number | null)[] = [];
+        const homeInnings: (number | null)[] = [];
+        let awayHits: number | null = null;
+        let homeHits: number | null = null;
+        let awayErrors: number | null = null;
+        let homeErrors: number | null = null;
+        if (Array.isArray(dl.score) && dl.score.length >= 4) {
+          const sObj = dl.score[3] as Record<string, [string, string] | undefined>;
+          for (let i = 1; i <= 12; i++) {
+            const p = sObj?.["p" + i];
+            if (!Array.isArray(p) || p.length < 2) continue;
+            inning = i;
+            const tsHome = parseInt(String(p[0]), 10);
+            const tsAway = parseInt(String(p[1]), 10);
+            if (swap) {
+              homeInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+              awayInnings.push(Number.isFinite(tsHome) ? tsHome : null);
+            } else {
+              homeInnings.push(Number.isFinite(tsHome) ? tsHome : null);
+              awayInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+            }
+          }
+          // 연장: TheSports 가 연장 이닝별(p10+) 미제공, score[3].ft(연장 포함 총점)만 줌.
+          const ftArr = sObj?.ft as [string, string] | undefined;
+          if (Array.isArray(ftArr) && ftArr.length >= 2 && homeInnings.length >= 9) {
+            const ftHome = parseInt(String(ftArr[swap ? 1 : 0]), 10);
+            const ftAway = parseInt(String(ftArr[swap ? 0 : 1]), 10);
+            let sumHome = 0;
+            let sumAway = 0;
+            for (const v of homeInnings) sumHome += v ?? 0;
+            for (const v of awayInnings) sumAway += v ?? 0;
+            if (Number.isFinite(ftHome) && Number.isFinite(ftAway) && (ftHome > sumHome || ftAway > sumAway)) {
+              homeInnings.push(ftHome - sumHome);
+              awayInnings.push(ftAway - sumAway);
+              isExtra = true;
+            }
+          }
+          // score[2] 1=홈 타석(말), 2=원정 타석(초) — 2026-08-13 라이브 실측 확정
+          const h = dl.score[2];
+          if (h === 1) half = "bottom";
+          else if (h === 2) half = "top";
+          const hits = sObj?.h;
+          if (Array.isArray(hits) && hits.length >= 2) {
+            const th = parseInt(String(hits[0]), 10);
+            const ta = parseInt(String(hits[1]), 10);
+            homeHits = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
+            awayHits = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
+          }
+          const errs = sObj?.e;
+          if (Array.isArray(errs) && errs.length >= 2) {
+            const th = parseInt(String(errs[0]), 10);
+            const ta = parseInt(String(errs[1]), 10);
+            homeErrors = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
+            awayErrors = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
+          }
+        }
+        if (ext) {
+          out.baseballCtx[ext] = {
+            bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
+            outs: typeof dl.extra?.out === "number" ? dl.extra.out : null,
+            inning,
+            half,
+            awayInnings,
+            homeInnings,
+            awayHits,
+            homeHits,
+            awayErrors,
+            homeErrors,
+            isExtra,
+          };
+        }
+      }
+    }
+    return out;
+  },
+  ["scores-page-cache-derived"],
+  { revalidate: 30, tags: ["live-scores"] },
+);
+
+/** 클라이언트 컴포넌트 props 에서 null/undefined 키를 걷어낸다.
+ *  RSC 페이로드는 `"baseballLinescore":null` 같은 빈 키도 전부 직렬화한다 — 오늘 창 실측
+ *  550KB props 중 227KB(41%)가 이런 null 이었다(야구 아닌 매치의 야구 필드 등).
+ *  소비 코드가 `=== null` 로 구분하는 곳은 없어(전수 확인) undefined 로 사라져도 동작 동일. */
+function compactProps<T>(value: T): T {
+  // 순수 데이터(plain object/배열)만 재구성한다. React 엘리먼트·Date·클래스 인스턴스·프록시를
+  // 파고들면 원본이 망가진다 — actions(React 엘리먼트 배열)를 재구성했다가 페이지가 통째로
+  // 죽었다(2026-08-16 dev 실측: "used ...params or similar expression" → failed to pipe response).
+  const isPlain = (v: unknown): v is Record<string, unknown> => {
+    if (!v || typeof v !== "object") return false;
+    if (Array.isArray(v)) return false;
+    if ("$$typeof" in (v as object)) return false; // React 엘리먼트
+    const proto = Object.getPrototypeOf(v);
+    return proto === Object.prototype || proto === null;
+  };
+  if (Array.isArray(value)) {
+    return value.map((v) => (isPlain(v) || Array.isArray(v) ? compactProps(v) : v)) as unknown as T;
+  }
+  if (!isPlain(value)) return value;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (v === null || v === undefined) continue;
+    out[k] = isPlain(v) || Array.isArray(v) ? compactProps(v) : v;
+  }
+  return out as T;
+}
+
+export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ date?: string }>;
+  searchParams: Promise<{
+    date?: string;
+    sport?: string;
+    league?: string;
+    /** soccer 전용 — all | live | scheduled | finished */
+    status?: string;
+    /** soccer 전용 — time(시간순 평면) | 미지정(리그별 그룹) */
+    sort?: string;
+  }>;
 }
 
-function utcDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
+// SPORTS 정의에서 soccer 리그를 그대로 사용 — 추가 리그 (CHILE_PB, POLAND_1L 등) 동기화 자동 반영
+const SOCCER_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
+);
+
+function sportFromLeague(league: string): string {
+  if (BASEBALL_LEAGUES.has(league)) return "baseball";
+  if (SOCCER_LEAGUES.has(league)) return "soccer";
+  if (BASKETBALL_LEAGUES.has(league)) return "basketball"; // NBA/WNBA/KBL/WKBL (이전엔 NBA 만 → 나머지가 "other" 한 줄로 빠짐)
+  if (HOCKEY_LEAGUES.has(league)) return "hockey"; // NHL + IIHF_WC (이전엔 NHL 만 → IIHF_WC 가 "other" 한 줄로 빠짐)
+  if (VOLLEYBALL_LEAGUES.has(league)) return "volleyball"; // VNL/AVC/유럽리그 (2026-06-12)
+  if (MMA_LEAGUES.has(league)) return "mma"; // UFC
+  if (LOL_LEAGUES.has(league)) return "esports";
+  return "other";
 }
 
-interface Row {
-  id: number;
-  league: string;
-  status: string;
-  startTime: Date;
-  homeScore: number | null;
-  awayScore: number | null;
-  home: string;
-  away: string;
-  predWinner: string | null;
-  predProb: number | null;
-  marketOdds: string | null;
-}
-
-function StatusCell({ m }: { m: Row }) {
-  if (m.status === "LIVE") {
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-400">
-        <span className="relative inline-flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-rose-500" />
-        </span>
-        LIVE
-      </span>
-    );
+// ice_hockey status_id → 진행 피리어드 라벨 (IIHF_WC 등 live statusLabel 이 없을 때
+// HockeyCard 의 피리어드 표시·하이라이트용). parsePeriod("2P") 호환 형식.
+// 코드표: 30/31/32=P1/P2/P3, 331/332=인터미션, 6/10=OT, 8/13=SO, 17=중단.
+function iceHockeyLiveLabel(statusId: number): string | null {
+  switch (statusId) {
+    case 30:
+      return "1P";
+    case 31:
+      return "2P";
+    case 32:
+      return "3P";
+    case 331:
+      return "1st intermission";
+    case 332:
+      return "2nd intermission";
+    case 6:
+    case 10:
+      return "OT";
+    case 8:
+    case 13:
+      return "SO";
+    case 17:
+      return "Suspended";
+    default:
+      return null;
   }
-  if (m.status === "FINISHED") return <span className="text-[11px] font-semibold text-neutral-400">FT</span>;
-  if (m.status === "POSTPONED") return <span className="text-[11px] text-neutral-400">Postponed</span>;
-  return (
-    <span className="text-[11px] tabular-nums text-neutral-500">
-      <LocalKickoff iso={m.startTime.toISOString()} withDate={false} />
-    </span>
+}
+
+// basketball status_id → 진행 쿼터 라벨 (live statusLabel 이 없는 WNBA/KBL/WKBL +
+// BALLDONTLIE 가 period 0 으로 "LIVE" 만 주는 NBA 모두 cache 로 보강).
+// 코드표 (status-codes.ts): 2/4/6/8 = Q1~Q4 진행, 3/5/7 = 쿼터 사이 휴식, 9/13 = 연장, 11 = 중단.
+// remainingSec = detailLive.timer[3] = 현재 쿼터 잔여 초 (countdown, 2026-05-29 검증: 362→212).
+// in-play 는 "3Q 6:02" (영문 Q) — BasketballCard parseQuarter 가 "N쿼터"+클럭으로 렌더.
+// 휴식/연장/중단은 한국어 라벨 (parseQuarter 미매칭 → 카드가 라벨 그대로 표시).
+function basketballLiveLabel(
+  statusId: number,
+  remainingSec: number | null,
+): string | null {
+  const clock =
+    remainingSec != null && Number.isFinite(remainingSec) && remainingSec >= 0
+      ? `${Math.floor(remainingSec / 60)}:${String(remainingSec % 60).padStart(2, "0")}`
+      : null;
+  switch (statusId) {
+    case 2:
+      return clock ? `1Q ${clock}` : "1Q";
+    case 4:
+      return clock ? `2Q ${clock}` : "2Q";
+    case 6:
+      return clock ? `3Q ${clock}` : "3Q";
+    case 8:
+      return clock ? `4Q ${clock}` : "4Q";
+    case 3:
+      return "End of Q1";
+    case 5:
+      return "Half-time";
+    case 7:
+      return "End of Q3";
+    case 9:
+    case 13:
+      return clock ? `ET ${clock}` : "Extra time";
+    case 11:
+      return "Suspended";
+    default:
+      return null;
+  }
+}
+
+// volleyball status_id → 진행 세트 라벨 ("2세트 18-15"). score[3] 의 현재 세트 p_i 점수 포함.
+// 코드표 (status-codes.ts): 432/434/436/438/440 = 1~5세트, 17 = 중단.
+function volleyballLiveLabel(
+  statusId: number,
+  scoreObj: Record<string, unknown> | null,
+): string | null {
+  const SET: Record<number, number> = { 432: 1, 434: 2, 436: 3, 438: 4, 440: 5 };
+  if (statusId === 17) return "Suspended";
+  const setNo = SET[statusId];
+  if (!setNo) return null;
+  const p = scoreObj?.["p" + setNo];
+  if (Array.isArray(p) && p.length >= 2) {
+    const h = Number(p[0]);
+    const a = Number(p[1]);
+    if (Number.isFinite(h) && Number.isFinite(a)) return `${setNo}Set ${h}-${a}`;
+  }
+  return `${setNo}Set`;
+}
+
+function parseKstDate(s: string | undefined): Date {
+  if (s && /^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return new Date(`${s}T00:00:00+09:00`);
+  }
+  const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
+  return new Date(
+    Date.UTC(
+      nowKst.getUTCFullYear(),
+      nowKst.getUTCMonth(),
+      nowKst.getUTCDate(),
+      -9,
+    ),
   );
 }
+function dateQuery(d: Date): string {
+  const k = new Date(d.getTime() + 9 * 3600 * 1000);
+  return k.toISOString().slice(0, 10);
+}
+function kstHHmm(d: Date): string {
+  return d.toLocaleTimeString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+function kstDateLabel(d: Date): string {
+  return d.toLocaleDateString("en-GB", {
+    timeZone: "Asia/Seoul",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
+}
+function parseStarter(json: string | null): string | null {
+  if (!json) return null;
+  try {
+    const obj = JSON.parse(json) as { name?: string };
+    return obj.name?.trim() || null;
+  } catch {
+    return null;
+  }
+}
 
-function MatchRow({ m }: { m: Row }) {
-  const played = m.status === "LIVE" || m.status === "FINISHED";
-  const pickLabel =
-    m.status === "SCHEDULED" && m.predWinner && m.predProb != null
-      ? m.predWinner === "HOME"
-        ? m.home
-        : m.predWinner === "AWAY"
-          ? m.away
-          : "Draw"
+/** 매치 starter 이름 — 영어판은 원본(영문)을 그대로 쓴다.
+ *  한글로만 들어온 이름(NPB 음역 등)은 영어 화면에 낼 수 없어 숨긴다.
+ */
+function localizeStarter(name: string | null, _league: string): string | null {
+  if (!name) return null;
+  if (/[가-힣]/.test(name)) return null;
+  return name;
+}
+
+/** 카드 linescore 등 좁은 곳의 팀 약칭. shortName 우선, 없으면 한글 첫 단어
+ *  (4자 cap), 영문은 첫 단어 또는 4자. */
+function shortLabel(shortName: string | null, koName: string): string {
+  const s = shortName?.trim();
+  if (s) {
+    const en = toEnglishTeamName(s);
+    if (!/[가-힣]/.test(en)) return en;
+  }
+  if (/[가-힣]/.test(koName)) {
+    const en = toEnglishTeamName(koName);
+    if (!/[가-힣]/.test(en)) return en.split(/\s+/)[0];
+  }
+  const tokens = koName.split(/\s+/).filter(Boolean);
+  if (tokens.length >= 2 && tokens[0].length <= 4) return tokens[0];
+  return koName.slice(0, 4);
+}
+// tsFootballLiveLabel 은 src/lib/sports/ts-football-live-label.ts 로 이동 (방송 오버레이 API 와 공용, 2026-08-23)
+
+// "전반 38'", "후반 67'", "HT" 등에서 minute / half short 추출
+function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
+  if (!statusLabel) return null;
+  if (/^HT$/i.test(statusLabel)) return { halfLabel: "HT", minute: 45 };
+  const m = statusLabel.match(/(전반|후반|연장|LIVE)\s*(\d+)/);
+  if (m) {
+    const half =
+      m[1] === "1st half" ? "1H" : m[1] === "2nd half" ? "2H" : m[1] === "Extra time" ? "ET" : "LIVE";
+    return { halfLabel: half, minute: parseInt(m[2], 10) };
+  }
+  return { halfLabel: statusLabel };
+}
+
+// SEO: 종목별 한글/영문 라벨 + 키워드.
+// 검색량 (월): "라이브 스코어"·"라이브스코어" 각 183만, "스포츠중계" 67만(+83%),
+// "야구 중계" 13.5만(+83%), "라이브 스포츠" 1.8만(+124%), "KBO 일정" 1.2만 — 합산 250만+.
+// ⚠️ 세 맵 모두 SPORTS(sport-leagues.ts)의 code 전부를 덮어야 한다. 빠지면 제목이
+//    "스포츠 라이브스코어" 로, 하단 문구가 "주요 리그 통합" 으로 폴백되고 JSON-LD sport 가
+//    "Sports" 가 된다 — 배구·UFC·테니스·골프·F1 이 실제로 그 상태였다(2026-08-16 발견).
+const SPORT_NAMES_KO: Record<string, string> = {
+  all: "Sports",
+  soccer: "Football",
+  baseball: "Baseball",
+  basketball: "Basketball",
+  volleyball: "Volleyball",
+  hockey: "Hockey",
+  esports: "Esports",
+  mma: "UFC",
+  tennis: "Tennis",
+  golf: "Golf",
+  f1: "F1",
+};
+const SPORT_NAMES_EN: Record<string, string> = {
+  all: "Sports",
+  soccer: "Soccer",
+  baseball: "Baseball",
+  basketball: "Basketball",
+  volleyball: "Volleyball",
+  hockey: "Ice Hockey",
+  esports: "Esports",
+  mma: "MMA",
+  tennis: "Tennis",
+  golf: "Golf",
+  f1: "Formula 1",
+};
+const SPORT_LEAGUE_BLURB: Record<string, string> = {
+  all: "Football · Baseball · Basketball · Volleyball · Hockey · Esports · UFC · Tennis · Golf · F1",
+  soccer: "K League · Premier League · LaLiga · Bundesliga · Serie A · UCL · UEL · MLS",
+  baseball: "KBO·NPB·MLB",
+  basketball: "NBA",
+  volleyball: "V-League · VNL · KOVO Cup",
+  hockey: "NHL · KHL · Champions Hockey League",
+  esports: "LCK · Worlds",
+  mma: "UFC",
+  tennis: "ATP·WTA",
+  golf: "PGA·LPGA",
+  f1: "F1",
+};
+const COMMON_HIGH_VOLUME_KEYWORDS = [
+  "live scores",
+  "livescore",
+  "live sports scores",
+  "sports results",
+  "todays fixtures",
+  "match schedule",
+];
+const SPORT_KEYWORDS: Record<string, string[]> = {
+  all: [
+    "todays matches", "live sport today", "all sports live scores",
+  ],
+  soccer: [
+    "football live scores", "soccer livescore", "football fixtures", "football today",
+    "Premier League live", "Premier League fixtures", "K League fixtures", "J League fixtures",
+    "Champions League live", "AFC Champions League",
+  ],
+  baseball: [
+    "baseball live scores", "baseball today",
+    "KBO live", "KBO schedule", "KBO livescore",
+    "MLB live", "NPB live", "MLB schedule",
+  ],
+  basketball: [
+    "basketball live scores", "NBA live", "NBA schedule", "NBA today", "KBL live",
+  ],
+  hockey: [
+    "hockey live scores", "NHL live", "NHL schedule",
+  ],
+  esports: [
+    "LCK live", "LCK schedule", "LCK scores",
+    "League of Legends live", "Worlds schedule", "esports live scores",
+  ],
+};
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const sp = await searchParams;
+  const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
+  const day = parseKstDate(sp.date);
+  const dateStr = dateQuery(day);
+  const dateKo = kstDateLabel(day); // "5월 17일 (일)"
+  const sportKo = SPORT_NAMES_KO[sportCode] ?? "Sports";
+  const leagueBlurb = SPORT_LEAGUE_BLURB[sportCode] ?? "Top leagues";
+  const leagueQ = sp.league ? `&league=${sp.league}` : "";
+  const url = `${SITE_URL}/scores?sport=${sportCode}&date=${dateStr}${leagueQ}`;
+
+  // "라이브스코어"(붙임형)가 실제 검색 형태(월 183만) — 빙 키워드 리포트(8/8)에 이 계열
+  // 노출 0 = 헤드 키워드 미진입. keywords 배열에만 있고 title 에 없으면 exact-match 에서
+  // 지는 패턴(NPB/MLB f16f915 와 동일)이라 검색어를 제목 맨 앞으로 올린다.
+  const title = `${sportKo} Livescore — ${dateKo} Live Scores, Fixtures & Results`;
+  const description =
+    `${sportKo} livescore — fixtures, live scores and final results for ${dateKo}. ` +
+    `${leagueBlurb} in one place. Elo model win probabilities, value bets, updates in 2–3 seconds.`;
+
+  const keywords = [
+    `${sportKo} ${dateKo}`,
+    `${sportKo} live scores`,
+    `${sportKo} fixtures`,
+    `${sportKo} today`,
+    ...COMMON_HIGH_VOLUME_KEYWORDS,
+    ...(SPORT_KEYWORDS[sportCode] ?? []),
+    "Scorebase",
+  ];
+
+  // 종목별 OG 이미지가 아직 없어서 기본 /og-image.png 폴백.
+  const ogImage = "/og-image.png";
+
+  // thin content noindex — 오늘 date 외, league/status filter 적용된 URL 은 Google 색인 제외.
+  // 검색 가치 = sport 별 base URL (예: /scores?sport=soccer). 나머지는 duplicate signal.
+  const todayKstStr = dateQuery(new Date());
+  const isThin =
+    (sp.date && dateStr !== todayKstStr) ||
+    Boolean(sp.league) ||
+    (sp.status !== undefined && sp.status !== "all") ||
+    Boolean(sp.sort);
+
+  // canonical 은 sport 별 base URL 고정 — date param 은 매일 바뀌어 canonical 이
+  // 매일 변하는 중복 신호가 됐었다 (2026-05 진단: "Crawled - not indexed" 원인).
+  const canonical = sportCode === "soccer" ? "/en/scores" : `/en/scores?sport=${sportCode}`;
+
+  return {
+    title: { absolute: title },
+    description,
+    keywords,
+    alternates: {
+      canonical,
+      // 영어판(/en/scores) hreflang — 축구 base 뷰(=canonical /scores)에서만 상호 연결
+      ...(sportCode === "soccer" && !isThin
+        ? { languages: koEnLanguages("/scores", "/en/scores") }
+        : {}),
+    },
+    ...(isThin && { robots: { index: false, follow: true } }),
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "Scorebase",
+      locale: "ko_KR",
+      type: "website",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${dateKo} ${sportKo} live scores — Scorebase`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+  };
+}
+
+export default async function ScoresPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const sport = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
+  const leaguesAll = leaguesForSport(sport);
+  const leagueFilter = sp.league && leaguesAll.includes(sp.league) ? sp.league : null;
+  const leagues = leagueFilter ? [leagueFilter] : leaguesAll;
+  // prisma query 용 — sport 탭 무관 모든 종목 매치 가져옴 (FavoriteMatches 가
+  // 다른 종목 즐겨찾기도 표시하도록). leagueFilter 일 때만 그 리그 한정.
+  // 메인 그리드 표시 시 sportFilteredNormalized 로 sport 별 filter.
+  const leaguesForQuery = leagueFilter
+    ? [leagueFilter]
+    : leaguesForSport("all");
+  // 축구 전용 상태 필터 (다른 종목엔 무시)
+  const statusFilter: SoccerStatusFilter =
+    sport === "soccer" &&
+    (sp.status === "live" ||
+      sp.status === "scheduled" ||
+      sp.status === "finished" ||
+      sp.status === "postponed")
+      ? sp.status
+      : "all";
+  // 축구 전용 정렬 방식 — league(리그별 그룹, 기본) | time(시간순 평면).
+  // URL 파라미터가 최우선, 없으면 쿠키(마지막 선택 기억) — 스코어보드.kr 처럼 루트로
+  // 재진입하는 사용 패턴에서 시간순 선택이 새로고침마다 풀리던 문제 해결 (2026-07-19).
+  const sortCookie = (await cookies()).get("scores_sort")?.value;
+  const sortMode: "league" | "time" =
+    sport !== "soccer"
+      ? "league"
+      : sp.sort === "time"
+        ? "time"
+        : sp.sort === "league"
+          ? "league"
+          : sortCookie === "time"
+            ? "time"
+            : "league";
+  const day = parseKstDate(sp.date);
+  const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
+  const dateStr = sp.date ?? dateQuery(day);
+
+  // 축구는 KST 자정 boundary 매치 (UCL/EPL 새벽 매치) 만 추가 cover —
+  // -1h 로 전날 21시 매치 등은 정확히 제외 (2026-05-24 사용자 보고).
+  // +30h (익일 06:00 KST): 유럽 대항전 새벽 1~4시 킥오프를 당일 저녁 탭에 노출
+  // (2026-08-11 사용자 요청 — UCL 예선이 "내일" 탭에만 있었음). 축구 뷰 전용 —
+  // 다른 종목/전체 탭은 아래 normalized 필터에서 종전 +25h 로 자름 (예정 섹션이
+  // 날짜 헤더 그룹이 아니라 평면이라 "01:00" 표기가 오늘 새벽으로 오독됨).
+  const soccerRangeStart = new Date(day.getTime() - 1 * 3600 * 1000);
+  const soccerRangeEnd = new Date(day.getTime() + 30 * 3600 * 1000);
+  const nonSoccerViewCutoff = new Date(day.getTime() + 25 * 3600 * 1000);
+  const soccerWindow = { gte: soccerRangeStart, lt: soccerRangeEnd };
+  const dayWindow = { gte: day, lt: dayEnd };
+
+  // 야구 카테고리 (또는 전체) 일 때만 종료 매치용 innings 추가 fetch.
+  const needsBaseballDetails =
+    sport === "baseball" ||
+    sport === "all" ||
+    leagues.some((l) => BASEBALL_LEAGUES.has(l));
+  // 축구 카테고리 (또는 전체) — 골 list fetch
+  const needsSoccerGoals =
+    sport === "soccer" ||
+    sport === "all" ||
+    leagues.some((l) => SOCCER_LEAGUES.has(l));
+  const needsNba =
+    sport === "basketball" || sport === "all" || leagues.includes("NBA");
+  const needsNhl =
+    sport === "hockey" || sport === "all" || leagues.includes("NHL");
+
+  const [
+    matches,
+    liveMatches,
+    apiSportsDetails,
+    mlbDetails,
+    nbaPeriods,
+    nhlPeriods,
+  ] = await Promise.all([
+    prisma.match.findMany({
+      where: {
+        // POSTPONED 매치도 노출 — 축구 "연기" 탭에서 표시 (2026-05-23).
+        // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
+        // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
+        // "Sabres/Canadiens" 같은 슬래시 포함 placeholder (NHL 다음 라운드 미정) 도 제외.
+        // 선택 일자 이전(어제)의 FINISHED 매치 제외 — 이미 끝난 어제 경기는 노출 X.
+        // 자정 boundary 라이브/예정 매치는 유지 (status != FINISHED).
+        AND: [
+          { homeTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
+          { awayTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
+          // 슬래시 포함 팀명 hide — NBA/NHL placeholder ("Sabres/Canadiens" 다음 라운드 미정)
+          // 만 hide. 페로 제도/도서 국가 합병팀 (EB/Streymur II 등) 은 실제 클럽이라 노출.
+          {
+            OR: [
+              { league: { notIn: ["NBA", "NHL"] } },
+              {
+                AND: [
+                  { homeTeam: { is: { name: { not: { contains: "/" } } } } },
+                  { awayTeam: { is: { name: { not: { contains: "/" } } } } },
+                ],
+              },
+            ],
+          },
+          {
+            NOT: { status: "FINISHED", startTime: { lt: day } },
+          },
+        ],
+        // 축구 + 하키는 ±1일 윈도우(soccerWindow), 그 외 종목은 선택 일자만(dayWindow).
+        // 하키(IIHF_WC 등)는 KST 자정 직전(23:20) 시작해 자정을 넘겨 진행하는 경기가
+        // 많아, dayWindow 면 "오늘" 탭에서 빠짐 → 축구와 동일 자정 boundary 윈도우 적용.
+        // leagueFilter 가 있으면 단일 리그 단일 window, 없으면 모든 종목 OR.
+        // sport tab 과 무관하게 모든 종목 매치 가져옴 — FavoriteMatches 가
+        // sport tab 무관 모든 종목 fav 표시하기 위해 (2026-05-23 변경).
+        ...(leagueFilter
+          ? {
+              league: leagueFilter,
+              startTime:
+                SOCCER_LEAGUES.has(leagueFilter) || HOCKEY_LEAGUES.has(leagueFilter)
+                  ? soccerWindow
+                  : dayWindow,
+            }
+          : {
+              OR: [
+                {
+                  league: {
+                    in: leaguesForQuery.filter(
+                      (l) => SOCCER_LEAGUES.has(l) || HOCKEY_LEAGUES.has(l),
+                    ),
+                  },
+                  startTime: soccerWindow,
+                },
+                {
+                  league: {
+                    in: leaguesForQuery.filter(
+                      (l) => !SOCCER_LEAGUES.has(l) && !HOCKEY_LEAGUES.has(l),
+                    ),
+                  },
+                  startTime: dayWindow,
+                },
+              ],
+            }),
+      },
+      // include → select 로 좁힘 — Match.raw (큰 JSON, NBA Ultra 만 필요)
+      // + Team 의 elo/country/venue 등 미사용 컬럼 + prediction 필드 fetch 제외.
+      // payload 60% 감소 + SSR latency 0.5-1s 단축 예상.
+      select: {
+        id: true,
+        league: true,
+        externalId: true,
+        status: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+        updatedAt: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        apiFixtureId: true, // orphan 카드 중복 판정 — af fixture 확정 대조
+        homeStarter: true,
+        awayStarter: true,
+        resultMethod: true,
+        resultRound: true,
+        resultClock: true,
+        homeTeam: {
+          select: {
+            id: true, name: true, nameKo: true, externalId: true, shortName: true, logoUrl: true,
+            // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
+            mmaFighter: {
+              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true, headshot: true, photo: true },
+            },
+          },
+        },
+        awayTeam: {
+          select: {
+            id: true, name: true, nameKo: true, externalId: true, shortName: true, logoUrl: true,
+            // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
+            mmaFighter: {
+              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true, headshot: true, photo: true },
+            },
+          },
+        },
+        articles: {
+          where: { status: "PUBLISHED" },
+          select: { slug: true, type: true },
+        },
+        liveCommentary: {
+          select: { eventComments: true, matchSummary: true, summaryAt: true, scoreSnapshot: true },
+        },
+        // AI 승률 예측 — predict-match endpoint 가 cache write. UI 카드 chip 용.
+        predHome: true,
+        predDraw: true,
+        predAway: true,
+        oddsHome: true,
+        oddsDraw: true,
+        oddsAway: true,
+        oddsTotalLine: true,
+        oddsOver: true,
+        oddsUnder: true,
+        oddsHcLine: true,
+        oddsHcHome: true,
+        oddsHcAway: true,
+        marketBookmakers: true,
+        oddsBookmakers: true,
+        predWinner: true,
+      },
+      orderBy: { startTime: "asc" },
+    }),
+    fetchLiveCached(),
+    // fetch 가 실패하면 throw → unstable_cache 가 빈 응답 캐싱 안 함.
+    // 이 페이지 렌더는 빈 결과로 계속 — catch 해서 빈 객체로 대체.
+    needsBaseballDetails
+      ? fetchBaseballByDateCached(dateStr).catch(
+          () => ({}) as Record<string, BaseballGameDetails>,
+        )
+      : Promise.resolve({} as Record<string, BaseballGameDetails>),
+    needsBaseballDetails && leagues.includes("MLB")
+      ? fetchMlbByDateCached(dateStr).catch(
+          () => ({}) as Record<string, BaseballGameDetails>,
+        )
+      : Promise.resolve({} as Record<string, BaseballGameDetails>),
+    needsNba
+      ? fetchPeriodsByDateCached("basketball/nba", dateStr)
+      : Promise.resolve({} as Record<string, PeriodLinescoreData>),
+    needsNhl
+      ? fetchPeriodsByDateCached("hockey/nhl", dateStr)
+      : Promise.resolve({} as Record<string, PeriodLinescoreData>),
+  ]);
+  const periodMap: Record<string, PeriodLinescoreData> = { ...nbaPeriods, ...nhlPeriods };
+  // NBA Ultra (api-sports) 매치는 ESPN ID 가 아니라 ESPN linescore 조회 안 됨.
+  // Match.raw 의 NBA Ultra response 에 linescore 가 이미 있으므로 그걸 parse 해서 merge.
+  // raw 는 큰 JSON 이라 메인 matches select 에서 제외 — NBA 만 별도 fetch (시즌 중 max 15-20 매치, cost 작음).
+  const nbaMatchIds = matches.filter((m) => m.league === "NBA").map((m) => m.id);
+  if (nbaMatchIds.length > 0) {
+    const nbaRaws = await prisma.match.findMany({
+      where: { id: { in: nbaMatchIds } },
+      select: { id: true, raw: true, externalId: true },
+    });
+    for (const r of nbaRaws) {
+      if (periodMap[r.externalId]) continue;
+      const parsed = extractNbaUltraPeriodsFromRaw(r.raw);
+      if (parsed) periodMap[r.externalId] = parsed;
+    }
+  }
+
+  // TheSportsMatchCache 한 번에 조회 — 축구 골/카드(incidents) + 야구 베이스/아웃(extra)
+  // 두 source 동시 사용. 이전: soccer + baseball 별도 두 round-trip → 합쳐서 한 round-trip
+  // (~50-100ms 단축 + Neon pool 사용량 절약).
+  //
+  // 야구 baseballLiveDbIds 는 DB.status === "LIVE" 만 보면 SCHEDULED → LIVE 미갱신 매치
+  // (특히 MLB ESPN collector 갭) 가 빠짐. cache 의 detailLive 가 5분 이내면 실제 진행
+  // 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
+  const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
+  const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
+  const soccerTeamStatsByMatchId = new Map<number, SoccerTeamStat[]>();
+  const soccerHalfStatsByMatchId = new Map<number, SoccerTeamStat[]>();
+  const soccerHalfScoreByMatchId = new Map<number, { home: number; away: number }>();
+  const openingOddsByMatchId = new Map<number, { h: number; d: number | null; a: number }>();
+  // 축구 라인업(cache.lineup) 실제 존재 매치 — L 배지용 (리그 whitelist 대신 실제 유무).
+  const lineupMatchIdSet = new Set<number>();
+  const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
+  // 축구 진행분 라벨 — af/ESPN 라이브 피드가 없는 ts 전용 경기(친선·카라바오·내셔널 등)가
+  // 분 표시 없이 맨숭맨숭한 "LIVE" 로만 뜨던 것의 폴백 (2026-08-08 사용자 신고).
+  // ts detailLive.score: [id, status_id, home[], away[], phase_start_ts] — score[4]는 "현재
+  // 페이즈 시작 시각"이다 (실측: 전반 경기=킥오프 시각, 후반 경기=하프타임 후 재개 시각).
+  const soccerTsLiveLabelByMatchId = new Map<number, string>();
+  // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
+  const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  // 하키 진행 피리어드 라벨 (IIHF 등 live statusLabel 없을 때 cache status_id 로 생성)
+  const hockeyStatusLabelByMatchId = new Map<number, string>();
+  // 농구 (WNBA/KBL/WKBL) 쿼터 점수표 — NBA 는 ESPN periodMap 사용, 나머지는 ESPN 미지원이라 cache 에서 추출.
+  const basketballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  // 농구 진행 쿼터 라벨 ("3Q 6:02"/"하프타임") — cache status_id + timer 로 생성.
+  // NBA 포함 전 리그 (BDL "LIVE" / WNBA 등 라벨 부재 보강).
+  const basketballStatusLabelByMatchId = new Map<number, string>();
+  // 배구 (VNL/AVC/유럽리그) 세트별 점수표 + 진행 세트 라벨 — TheSports cache 가 유일 소스.
+  const volleyballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  const volleyballStatusLabelByMatchId = new Map<number, string>();
+  const baseballCacheCtx = new Map<string, {
+    bases: [boolean, boolean, boolean];
+    outs: number | null;
+    inning: number | null;
+    half: "top" | "bottom" | null;
+    awayInnings: (number | null)[];
+    homeInnings: (number | null)[];
+    awayHits: number | null;
+    homeHits: number | null;
+    awayErrors: number | null;
+    homeErrors: number | null;
+    isExtra: boolean;
+  }>();
+
+  const soccerMatchIds = needsSoccerGoals
+    ? matches.filter((m) => SOCCER_LEAGUES.has(m.league)).map((m) => m.id)
+    : [];
+  // KBO/NPB/MLB + CPBL/LMB. cache.detailLive 의 bases/outs/inning(LIVE) +
+  // 이닝별 점수표(LIVE/종료) 추출. CPBL/LMB 는 api-baseball 매핑이 없어 종료 경기
+  // 이닝표가 TheSports cache 가 유일 소스 → SCHEDULED 만 제외(이닝 없음).
+  const baseballLiveDbIds = matches
+    .filter(
+      (m) =>
+        ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(m.league) &&
+        m.status !== "SCHEDULED",
+    )
+    .map((m) => m.id);
+  // 하키 (NHL/IIHF_WC) — IIHF_WC 는 ESPN periodMap 에 없어 cache.score 에서 피리어드 추출.
+  // SCHEDULED 제외 (피리어드 없음). NHL 은 ESPN 우선 + cache fallback.
+  const hockeyMatchIds = matches
+    .filter((m) => HOCKEY_LEAGUES.has(m.league) && m.status !== "SCHEDULED")
+    .map((m) => m.id);
+  // 농구 (NBA/WNBA/KBL/WKBL) — SCHEDULED 제외 (쿼터 없음).
+  // cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열에서 추출.
+  // NBA 도 포함 — ESPN periodMap 이 우선, 비어있을 때만 cache fallback (1114줄).
+  const basketballMatchIds = matches
+    .filter(
+      (m) =>
+        BASKETBALL_LEAGUES.has(m.league) &&
+        m.status !== "SCHEDULED",
+    )
+    .map((m) => m.id);
+  // 진행 쿼터 라벨용 — NBA 포함 모든 농구 LIVE 매치 (period 표와 달리 NBA 도 cache 라벨 사용).
+  const basketballLabelMatchIds = matches
+    .filter(
+      (m) => BASKETBALL_LEAGUES.has(m.league) && m.status !== "SCHEDULED",
+    )
+    .map((m) => m.id);
+  // 배구 — SCHEDULED 제외 (세트 없음). cache.score[3] = {ft, p1..p5} (하키와 같은 객체형).
+  const volleyballMatchIds = matches
+    .filter((m) => VOLLEYBALL_LEAGUES.has(m.league) && m.status !== "SCHEDULED")
+    .map((m) => m.id);
+  const cacheIds = Array.from(
+    new Set([
+      ...soccerMatchIds,
+      ...baseballLiveDbIds,
+      ...hockeyMatchIds,
+      ...basketballMatchIds,
+      ...basketballLabelMatchIds,
+      ...volleyballMatchIds,
+    ]),
+  );
+
+  if (cacheIds.length > 0) {
+    // 블랍(detailLive·teamStats·halfTeamStats)은 fetchCacheDerivedCached 안에서만 읽는다 —
+    // 매 요청 1.8MB 당기던 것을 파생값(수십 KB) 30초 캐시로 대체 (lineup 분리와 같은 수법 2탄).
+    const byNum = (a: number, b: number) => a - b;
+    const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
+    const [derived, lineupReadyIds, openingOdds] = await Promise.all([
+      fetchCacheDerivedCached({
+        soccerIds: [...soccerMatchIds].sort(byNum),
+        baseball: [...baseballLiveDbIds].sort(byNum).map((id) => [id, idToExt.get(id) ?? ""] as [number, string]),
+        hockeyIds: [...hockeyMatchIds].sort(byNum),
+        basketballIds: [...basketballMatchIds].sort(byNum),
+        basketballLabelIds: [...basketballLabelMatchIds].sort(byNum),
+        volleyballIds: [...volleyballMatchIds].sort(byNum),
+      }),
+      fetchLineupReadyIdsCached([...soccerMatchIds].sort(byNum)),
+      fetchOpeningOddsCached([...soccerMatchIds].sort(byNum)).catch(() => ({})),
+    ]);
+    for (const id of lineupReadyIds) lineupMatchIdSet.add(id);
+    for (const [k, v] of Object.entries(openingOdds)) openingOddsByMatchId.set(Number(k), v);
+    // 캐시 산출은 JSON 직렬화를 거쳐 키가 문자열 — 기존 소비 코드가 쓰는 Map 으로 복원한다.
+    const fill = <T,>(rec: Record<number, T>, map: Map<number, T>) => {
+      for (const [k, v] of Object.entries(rec)) map.set(Number(k), v as T);
+    };
+    fill(derived.soccerGoals, soccerGoalsByMatchId);
+    fill(derived.soccerCards, soccerCardsByMatchId);
+    fill(derived.soccerTeamStats, soccerTeamStatsByMatchId);
+    fill(derived.soccerHalfStats, soccerHalfStatsByMatchId);
+    fill(derived.soccerHalfScore, soccerHalfScoreByMatchId);
+    fill(derived.footballScore, footballScoreByMatchId);
+    fill(derived.hockeyPeriod, hockeyPeriodByMatchId);
+    fill(derived.hockeyStatusLabel, hockeyStatusLabelByMatchId);
+    fill(derived.basketballPeriod, basketballPeriodByMatchId);
+    fill(derived.basketballStatusLabel, basketballStatusLabelByMatchId);
+    fill(derived.volleyballPeriod, volleyballPeriodByMatchId);
+    fill(derived.volleyballStatusLabel, volleyballStatusLabelByMatchId);
+    // 축구 진행분 라벨 — 원료(sid·페이즈 시작 ts)에 현재 시각 적용 (분 표시가 캐시로 동결되지 않게)
+    for (const [k, st] of Object.entries(derived.soccerLiveState)) {
+      const label = tsFootballLiveLabel(st.sid, st.pts, Date.now());
+      if (label) soccerTsLiveLabelByMatchId.set(Number(k), label);
+    }
+    for (const [ext, v] of Object.entries(derived.baseballCtx)) baseballCacheCtx.set(ext, v);
+  }
+
+  // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
+  const baseballDetailsMap: Record<string, BaseballGameDetails> = {
+    ...apiSportsDetails,
+    ...mlbDetails,
+  };
+
+  // 외부 라이브 매치 ↔ DB 매치 매칭 (externalId 또는 league+이름)
+  const liveByExternalId = new Map<string, LiveMatch>();
+  const liveByNameKey = new Map<string, LiveMatch>();
+  // 팀명 정규화 키 2종은 orphan 중복 판정과 같은 정의를 써야 해 lib/sports/orphan-dedup 이 단일 출처.
+  const normalizeName = normalizeTeamName;
+  const romanizeName = romanizeTeamName;
+  // 라이브 매치를 페이지의 KST 일자로 필터 — 다른 날짜 매치가 같은 팀명으로 false-match 되는 것 방지.
+  // (예: 5/15 한화-KT 라이브 데이터가 5/16 한화-KT DB 매치에 잘못 붙어 "진행 중" 으로 보이던 버그)
+  const liveForThisDay = liveMatches.filter((lm) => {
+    const kstDate = new Date(new Date(lm.startTime).getTime() + 9 * 3600 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    return kstDate === dateStr;
+  });
+  for (const lm of liveForThisDay) {
+    const rawId = lm.id.replace(/^[a-z]+-/i, "");
+    liveByExternalId.set(rawId, lm);
+    liveByNameKey.set(
+      `${lm.league}|${normalizeName(lm.homeName)}|${normalizeName(lm.awayName)}`,
+      lm,
+    );
+  }
+  // 더블헤더 — 같은 league + 두 팀 페어 + 같은 KST 일자에 2경기 이상이면 name fallback 금지.
+  // 이름만으로는 1차전 (FINISHED) 과 2차전 (LIVE) 라이브 데이터 구분 불가 → 종료된 1차전이
+  // 2차전 라이브 데이터를 받아 effStatus=LIVE 로 잘못 표시되고 ctx 는 비어서 "주자 정보 없음"
+  // 표시되는 버그. externalId 정확 매치만 허용. (2026-05-24 fix — STL@CIN 더블헤더)
+  const dhPairKey = (league: string, homeTeamId: number, awayTeamId: number, startTime: Date) =>
+    `${league}|${[homeTeamId, awayTeamId].sort((a, b) => a - b).join("-")}|${dateQuery(startTime)}`;
+  const dhPairCount = new Map<string, number>();
+  for (const m of matches) {
+    const k = dhPairKey(m.league, m.homeTeamId, m.awayTeamId, m.startTime);
+    dhPairCount.set(k, (dhPairCount.get(k) ?? 0) + 1);
+  }
+
+  function matchLive(m: {
+    externalId: string;
+    league: string;
+    startTime: Date;
+    homeTeamId: number;
+    awayTeamId: number;
+    homeTeam: { name: string };
+    awayTeam: { name: string };
+  }): LiveMatch | undefined {
+    const byExt = liveByExternalId.get(m.externalId);
+    if (byExt) return byExt;
+    const isDoubleHeader =
+      (dhPairCount.get(dhPairKey(m.league, m.homeTeamId, m.awayTeamId, m.startTime)) ?? 0) > 1;
+    if (isDoubleHeader) return undefined; // name fallback 금지
+    const byName = liveByNameKey.get(
+      `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
+    );
+    if (byName) return byName;
+    // substring fallback — api-football "Urawa" vs DB "Urawa Red Diamonds" 등
+    // 양쪽 normalize 후 둘 중 한쪽이 다른쪽 포함하면 매치로 간주.
+    const dbHome = normalizeName(m.homeTeam.name);
+    const dbAway = normalizeName(m.awayTeam.name);
+    for (const lm of liveForThisDay) {
+      if (lm.league !== m.league) continue;
+      const lh = normalizeName(lm.homeName);
+      const la = normalizeName(lm.awayName);
+      const homeOk = lh.includes(dbHome) || dbHome.includes(lh);
+      const awayOk = la.includes(dbAway) || dbAway.includes(la);
+      if (homeOk && awayOk) return lm;
+    }
+    return undefined;
+  }
+
+  // orphan 카드 (DB 매치 없음) → 간소 NormalizedMatch. 그날 우리 리그 경기(예정/라이브/종료)를
+  // date 조회로 보강. 팀 로고 포함. 라이브는 상세 링크 연결, 예정/종료는 점수만(상세 폴백은 라이브 한정).
+  function orphanCard(dm: DatedMatch): NormalizedMatch {
+    const st = new Date(dm.startTime);
+    const sport_ = sportFromLeague(dm.league);
+    const extId = dm.id.replace(/^[a-z]+-/i, "");
+    const isLive = dm.status === "LIVE";
+    const isScheduled = dm.status === "SCHEDULED";
+    return {
+      id: dm.id,
+      sport: sport_,
+      league: dm.league,
+      status: dm.status,
+      home: { name: toEnglishTeamName(dm.homeName), abbr: dm.homeShort ? toEnglishTeamName(dm.homeShort) : dm.homeShort, logo: dm.homeLogo ?? null, score: isScheduled ? null : dm.homeScore, teamId: -1, position: null, fifaRank: null },
+      away: { name: toEnglishTeamName(dm.awayName), abbr: dm.awayShort ? toEnglishTeamName(dm.awayShort) : dm.awayShort, logo: dm.awayLogo ?? null, score: isScheduled ? null : dm.awayScore, teamId: -1, position: null, fifaRank: null },
+      timeLabel: kstHHmm(st),
+      liveStatusLabel: isLive ? enMatchStatus(dm.statusLabel) : null,
+      homeStarter: null,
+      awayStarter: null,
+      soccerCtx: isLive ? parseSoccerStatus(dm.statusLabel) : null,
+      soccerGoals: null,
+      soccerCards: null,
+      soccerTeamStats: null,
+      soccerHalfStats: null,
+      soccerHalfScore: null,
+      odds: null,
+      esportsCtx: null,
+      baseballCtx: null,
+      baseballLinescore: null,
+      periodLinescore: null,
+      liveCommentary: null,
+      startTime: st,
+      href: isLive ? `/live/${dm.league}/${extId}` : null,
+      doubleHeader: null,
+      mma: null,
+      mmaResult: null,
+    };
+  }
+
+  // TheSports standings — 카드 팀명 옆 [순위] 표시용. 축구 리그만 prefetch.
+  // 야구 [순위] chip 은 별도 검증 후 활성화 (2026-05-27 /predictions 500 사고로 revert).
+  const soccerLeaguesInPage = Array.from(
+    new Set(
+      matches
+        .filter((m) => (SPORTS.find((s) => s.code === "soccer")?.leagues ?? []).includes(m.league))
+        .map((m) => m.league),
+    ),
+  );
+  const standingsByLeague = soccerLeaguesInPage.length > 0
+    ? await getStandingsForLeagues(soccerLeaguesInPage)
+    : new Map<string, Map<number, number>>();
+
+  // 배구 [순위] — TheSports season/table cache (volleyball-table). AVC/유럽리그는 조내 순위.
+  const volleyballLeaguesInPage = Array.from(
+    new Set(matches.filter((m) => VOLLEYBALL_LEAGUES.has(m.league)).map((m) => m.league)),
+  );
+  const vbPositionByLeague = new Map<string, Map<number, number>>();
+  for (const lg of volleyballLeaguesInPage) {
+    try {
+      const groups = await fetchVolleyballTable(lg);
+      const posMap = new Map<number, number>();
+      for (const g of groups) for (const r of g.rows) posMap.set(r.ourTeamId, r.position);
+      if (posMap.size > 0) vbPositionByLeague.set(lg, posMap);
+    } catch {
+      // cache miss — 순위 없이 렌더
+    }
+  }
+
+  // 야구·농구 [순위] 재활성 (2026-07-02) — 5/27 /predictions 500 사고 재발 방지:
+  // 리그별 try-catch 격리 + position number 강제, 실패 시 칩 없이 렌더.
+  // KBO/NPB = TheSports 공식 table(/standings 와 동일 정본), 그 외 클럽 리그 =
+  // 시즌 창 DB 계산(currentSeasonStart — 지난 시즌·MLB 시범경기 오염 차단).
+  // 토너먼트성 야구(WBC 등)는 명단 제외 = 칩 없음.
+  const RANK_CHIP_CALC_LEAGUES = new Set(["MLB", "CPBL", "LMB", "NBA", "WNBA"]);
+  const rankChipLeaguesInPage = Array.from(
+    new Set(
+      matches
+        .map((m) => m.league)
+        .filter((lg) => lg === "KBO" || lg === "NPB" || RANK_CHIP_CALC_LEAGUES.has(lg)),
+    ),
+  );
+  for (const lg of rankChipLeaguesInPage) {
+    try {
+      const posMap = new Map<number, number>();
+      if (lg === "KBO" || lg === "NPB") {
+        for (const r of await fetchBaseballTable(lg)) {
+          const pos = Number(r.position);
+          if (Number.isFinite(pos) && pos > 0) posMap.set(r.ourTeamId, pos);
+        }
+      } else {
+        const seasonStart = currentSeasonStart(lg);
+        const finished = await prisma.match.findMany({
+          where: {
+            league: lg,
+            status: "FINISHED",
+            homeScore: { not: null },
+            awayScore: { not: null },
+            ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
+          },
+          select: {
+            id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
+            homeScore: true, awayScore: true, startTime: true,
+          },
+        });
+        for (const row of calcStandings(finished as PredictMatch[]).rows) {
+          posMap.set(row.teamId, row.position);
+        }
+      }
+      if (posMap.size > 0) vbPositionByLeague.set(lg, posMap); // 기존 소비 경로 재사용 (배구와 동일)
+    } catch {
+      // standings 실패 — 칩 없이 렌더 (페이지는 정상)
+    }
+  }
+
+  // 매치 → 정규화 (sport 분기 + 라이브 보강)
+  // 라이브 API 매치 중 DB 매치에 매칭된 id 추적 — 나머지(orphan)는 메인 카드 누락 방지용으로 따로 추가.
+  const matchedLiveIds = new Set<string>();
+  const normalizedAllRaw = matches.map((m) => {
+    const live = matchLive(m);
+    if (live) matchedLiveIds.add(live.id);
+    const elapsedMs = Date.now() - m.startTime.getTime();
+    const sport_ = sportFromLeague(m.league);
+    // sport 별 staleLive 임계 — 정규 경기 시간 + 적당 마진.
+    // 축구: 90+추가시간 = ~2h → 2.5h 후 staleLive (DB.status=LIVE 인데 라이브
+    // API 응답에 없으면 종료로 간주). 야간 매치가 cron 갭 (KST 22:00 ~ 다음날
+    // 11:30) 안에서도 페이지에 자동 종료 표시. (2026-05-23)
+    const staleThresholdMs =
+      sport_ === "soccer" ? 2.5 * 3600 * 1000
+      : sport_ === "basketball" ? 3 * 3600 * 1000
+      : sport_ === "hockey" ? 3.5 * 3600 * 1000
+      : sport_ === "esports" ? 6 * 3600 * 1000
+      : 4 * 3600 * 1000; // baseball (12회 연장 가능) 기본
+    const staleLive =
+      !live && m.status === "LIVE" && elapsedMs > staleThresholdMs;
+    // staleScheduled — DB.status=SCHEDULED 인데 시작 + 임계 지났고 라이브 데이터도 없음.
+    // = 안 열리는 유령 경기(플레이오프 if-necessary, 시리즈 이미 종료 등) 또는 cron 갱신 누락.
+    // 거짓 "연기"(POSTPONED)/"예정"으로 노출하지 않고 /scores 에서 hidden 처리.
+    // 진짜 경기면 cleanup-stale-scheduled cron 이 외부 verify 후 FINISHED/POSTPONED 정정 → 그때 노출.
+    // (2026-05-29 VGK@COL: VGK 4-0 스윕으로 안 열리는 if-necessary 경기가 예정/연기로 오표시)
+    const staleScheduled =
+      !live && m.status === "SCHEDULED" && elapsedMs > staleThresholdMs;
+    const effStatus = live
+      ? "LIVE"
+      : staleLive
+        ? "FINISHED"
+        : m.status;
+    // monotonic max(live, DB.Match) — TheSports MQTT/fast-poller 가 채운 DB 가 live (api-sports 15-30s) 보다 fresh 한 경우 그쪽 사용.
+    // 점수는 단방향 증가 — 더 큰 값이 안전.
+    //
+    // ⚠️ 야구 예외 (2026-05-27 화면 5:5/5:5/5:5/7:7 동점 사고):
+    // 야구는 live API (api-baseball) 와 DB (TheSports cache→Match sync) 의 home/away
+    // perspective 가 swap 될 수 있음. Math.max 로 비교하면 양 팀 점수가 같은 max 값으로
+    // 합쳐져 동점 표시. DB 는 cache→Match sync 가 swap 처리 후 정확 → 야구는 DB 만 사용.
+    const liveH = live?.homeScore;
+    const liveA = live?.awayScore;
+    const dbH = m.homeScore;
+    const dbA = m.awayScore;
+    const isBaseball = BASEBALL_LEAGUES.has(m.league);
+    // 축구: TheSports cache 의 정규/연장 점수(fs.main) 우선 — DB.homeScore 는 승부차기 합산
+    // 오염 가능(예: UCL 결승 4-3). 승부차기는 별도 penHome/penAway 로 분리 표시.
+    const fs = footballScoreByMatchId.get(m.id) ?? null;
+    // 축구 정규/연장 점수 reconciliation — ts cache(fs.main)·af-live·DB 중 최댓값.
+    // ts detailLive 가 라이브/종료 미추적으로 stale(0-0 고착)일 때 af·DB 골이 가려지던
+    // 버그 fix (2026-06-14 독일 1-0 쿠라사오: af·DB 1-0 인데 ts캐시 0-0 노출).
+    // 단 DB 는 승부차기 합산 오염 가능 → fs 에 승부차기(penHome) 있으면 DB 제외(fs.main·af만).
+    // 라이브엔 승부차기 없어 af·DB 모두 정규점수라 안전.
+    const hasPens = fs != null && (fs.penHome != null || fs.penAway != null);
+    const numsOf = (...vals: (number | null | undefined)[]) =>
+      vals.filter((v): v is number => typeof v === "number");
+    const homeCands = numsOf(fs?.mainHome, liveH, hasPens ? undefined : dbH);
+    const awayCands = numsOf(fs?.mainAway, liveA, hasPens ? undefined : dbA);
+    const homeScore = isBaseball
+      ? (dbH ?? liveH ?? null)
+      : homeCands.length ? Math.max(...homeCands) : null;
+    const awayScore = isBaseball
+      ? (dbA ?? liveA ?? null)
+      : awayCands.length ? Math.max(...awayCands) : null;
+    const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
+    const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
+
+    // 모든 매치 → 라이브 상세 페이지로 (점수판 클릭 시 매치 detail 우선).
+    // KBO/NPB/MLB/LOL 은 전용 라우트, NBA/NHL/축구 (36 리그) 는 /live/{league}/{externalId}.
+    let href: string | null = null;
+    if (m.league === "MLB") href = `/live/mlb/${m.externalId}`;
+    else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
+    else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
+    else if (LOL_LEAGUES.has(m.league)) href = `/live/lol/${m.externalId}`;
+    else if (m.league === "UFC") href = `/live/ufc/${m.id}`; // UFC 매치 상세 (파이터 Tale of the Tape + 전적/배당)
+    else if (
+      BASEBALL_LEAGUES.has(m.league) ||    // LMB/CPBL/KBO_FUTURES/NPB_MINOR 등 마이너 야구 (MLB/KBO/NPB 는 위 전용 라우트)
+      BASKETBALL_LEAGUES.has(m.league) || // NBA/WNBA/KBL/WKBL
+      HOCKEY_LEAGUES.has(m.league) ||      // NHL/IIHF_WC
+      VOLLEYBALL_LEAGUES.has(m.league) ||  // VNL/AVC/유럽리그 — 세트 상세
+      SOCCER_LEAGUES.has(m.league)
+    ) {
+      href = `/live/${m.league}/${m.externalId}`;
+    } else if (recap) href = `/articles/${recap}`;
+    else if (preview) href = `/articles/${preview}`;
+
+    // 국가대항(친선/예선/대륙컵) 매치 — 리그 standings 개념이 없으므로 [순위] 자리에
+    // FIFA 국가 랭킹을 표시. 클럽 리그(EPL/이라크 스타스 리그 등)는 절대 안 건드림(position 유지).
+    const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(m.league);
+    // UFC 파이터는 정적 dict 대신 MmaFighter.nameKo (haiku 음역) 우선, 없으면 영문 fallback.
+    // 일반 팀은 사전 hit > Team.nameKo(TheSports 공식) > 영문 (teamDisplayKo).
+    const homeNameKo =
+      toEnglishTeamName(m.homeTeam.name);
+    const awayNameKo =
+      toEnglishTeamName(m.awayTeam.name);
+    const homeFifaRank = isNationalTeam
+      ? getFifaRank(m.homeTeam.name, homeNameKo)
       : null;
+    const awayFifaRank = isNationalTeam
+      ? getFifaRank(m.awayTeam.name, awayNameKo)
+      : null;
+
+    return {
+      id: m.id,
+      sport: sport_,
+      league: m.league,
+      status: effStatus as "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED",
+      hidden: staleScheduled, // 유령/stale SCHEDULED → /scores 표시에서 제외
+      home: {
+        name: homeNameKo,
+        abbr: m.homeTeam.shortName ? toEnglishTeamName(m.homeTeam.shortName) : null,
+        // UFC: ESPN 헤드샷 우선(api-sports photo 일부 깨짐) → photo → 로고. 비UFC 는 mmaFighter null → logoUrl.
+        logo: m.homeTeam.mmaFighter?.headshot ?? m.homeTeam.mmaFighter?.photo ?? m.homeTeam.logoUrl,
+        score: homeScore,
+        teamId: m.homeTeamId,
+        position: isNationalTeam
+          ? null
+          : standingsByLeague.get(m.league)?.get(m.homeTeamId) ??
+            vbPositionByLeague.get(m.league)?.get(m.homeTeamId) ??
+            null,
+        fifaRank: homeFifaRank,
+      },
+      away: {
+        name: awayNameKo,
+        abbr: m.awayTeam.shortName ? toEnglishTeamName(m.awayTeam.shortName) : null,
+        logo: m.awayTeam.mmaFighter?.headshot ?? m.awayTeam.mmaFighter?.photo ?? m.awayTeam.logoUrl,
+        score: awayScore,
+        teamId: m.awayTeamId,
+        position: isNationalTeam
+          ? null
+          : standingsByLeague.get(m.league)?.get(m.awayTeamId) ??
+            vbPositionByLeague.get(m.league)?.get(m.awayTeamId) ??
+            null,
+        fifaRank: awayFifaRank,
+      },
+      // UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null)
+      mma:
+        sport_ === "mma"
+          ? {
+              category:
+                m.homeTeam.mmaFighter?.category ?? m.awayTeam.mmaFighter?.category ?? null,
+              home: {
+                nickname: m.homeTeam.mmaFighter?.nickname ?? null,
+                height: m.homeTeam.mmaFighter?.height ?? null,
+                weight: m.homeTeam.mmaFighter?.weight ?? null,
+                reach: m.homeTeam.mmaFighter?.reach ?? null,
+                stance: m.homeTeam.mmaFighter?.stance ?? null,
+              },
+              away: {
+                nickname: m.awayTeam.mmaFighter?.nickname ?? null,
+                height: m.awayTeam.mmaFighter?.height ?? null,
+                weight: m.awayTeam.mmaFighter?.weight ?? null,
+                reach: m.awayTeam.mmaFighter?.reach ?? null,
+                stance: m.awayTeam.mmaFighter?.stance ?? null,
+              },
+            }
+          : null,
+      // UFC 승리 방법/라운드 (종료 mma 카드 — ESPN athlete result)
+      mmaResult:
+        sport_ === "mma" && m.resultMethod
+          ? { method: m.resultMethod, round: m.resultRound, clock: m.resultClock }
+          : null,
+      startTime: m.startTime,
+      timeLabel: kstHHmm(m.startTime),
+      liveStatusLabel: enMatchStatus(
+        sport_ === "basketball"
+          ? basketballStatusLabelByMatchId.get(m.id) ?? live?.statusLabel ?? null
+          : sport_ === "volleyball"
+            ? volleyballStatusLabelByMatchId.get(m.id) ?? null
+            : live?.statusLabel ??
+              (sport_ === "hockey"
+                ? hockeyStatusLabelByMatchId.get(m.id) ?? null
+                : sport_ === "soccer"
+                  ? soccerTsLiveLabelByMatchId.get(m.id) ?? null // ts 전용 경기 진행분 폴백
+                  : null),
+      ),
+      homeStarter: isBaseball
+        ? localizeStarter(parseStarter(m.homeStarter), m.league)
+        : null,
+      awayStarter: isBaseball
+        ? localizeStarter(parseStarter(m.awayStarter), m.league)
+        : null,
+      soccerCtx:
+        sport_ === "soccer"
+          ? parseSoccerStatus(
+              live?.statusLabel ?? soccerTsLiveLabelByMatchId.get(m.id) ?? null,
+            )
+          : null,
+      // TheSports cache 의 incidents 에서 추출 — match.id 직접 키.
+      soccerGoals: sport_ === "soccer" ? soccerGoalsByMatchId.get(m.id) ?? null : null,
+      soccerCards: sport_ === "soccer" ? soccerCardsByMatchId.get(m.id) ?? null : null,
+      soccerTeamStats: sport_ === "soccer" ? soccerTeamStatsByMatchId.get(m.id) ?? null : null,
+      soccerHalfStats: sport_ === "soccer" ? soccerHalfStatsByMatchId.get(m.id) ?? null : null,
+      soccerHalfScore: sport_ === "soccer" ? soccerHalfScoreByMatchId.get(m.id) ?? null : null,
+      odds:
+        sport_ === "soccer" && m.oddsHome != null
+          ? {
+              home: m.oddsHome,
+              draw: m.oddsDraw ?? 0,
+              away: m.oddsAway ?? 0,
+              totalLine: m.oddsTotalLine,
+              over: m.oddsOver,
+              under: m.oddsUnder,
+              hcLine: m.oddsHcLine,
+              hcHome: m.oddsHcHome,
+              hcAway: m.oddsHcAway,
+              books: m.marketBookmakers,
+              updatedAt: oddsUpdatedAt(m.oddsBookmakers),
+              trend: oddsTrend(openingOddsByMatchId.get(m.id), m.oddsHome, m.oddsDraw, m.oddsAway),
+            }
+          : null,
+      penHome: sport_ === "soccer" ? fs?.penHome ?? null : null,
+      penAway: sport_ === "soccer" ? fs?.penAway ?? null : null,
+      esportsCtx:
+        sport_ === "esports" && live?.esports
+          ? ({
+              bestOf: live.esports.bestOf,
+              currentGame: live.esports.currentGame,
+              series: live.esports.series,
+            } as EsportsContext)
+          : null,
+      periodLinescore:
+        sport_ === "basketball"
+          ? // 농구는 TheSports cache 우선 (쿼터 데이터 정확), ESPN 은 fallback.
+            basketballPeriodByMatchId.get(m.id) ??
+            periodMap[m.externalId] ??
+            null
+          : sport_ === "hockey"
+            ? periodMap[m.externalId] ??
+              hockeyPeriodByMatchId.get(m.id) ??
+              null
+            : sport_ === "volleyball"
+              ? volleyballPeriodByMatchId.get(m.id) ?? null
+              : null,
+      // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
+      // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
+      baseballLinescore: isBaseball
+        ? (() => {
+            const details =
+              live?.baseball ?? baseballDetailsMap[m.externalId];
+            const cachedBb = baseballCacheCtx.get(m.externalId);
+            // TheSports 야구(MLB 외 KBO/NPB/CPBL/LMB)는 cache 우선 — 연장을 ft 로 복구.
+            // (ESPN/API-Sports 는 연장이 extra 1칸이라 이닝별 표가 부정확/9회까지만)
+            const tsBaseballHasInnings =
+              m.league !== "MLB" &&
+              !!cachedBb &&
+              (cachedBb.awayInnings.length > 0 || cachedBb.homeInnings.length > 0);
+            if (details && !tsBaseballHasInnings) {
+              return {
+                awayInnings: details.awayInnings,
+                homeInnings: details.homeInnings,
+                awayScore: awayScore ?? 0,
+                homeScore: homeScore ?? 0,
+                awayHits: details.awayHits,
+                homeHits: details.homeHits,
+                awayErrors: details.awayErrors,
+                homeErrors: details.homeErrors,
+                awayLabel: shortLabel(
+                  m.awayTeam.shortName,
+                  toEnglishTeamName(m.awayTeam.name),
+                ),
+                homeLabel: shortLabel(
+                  m.homeTeam.shortName,
+                  toEnglishTeamName(m.homeTeam.name),
+                ),
+              };
+            }
+            const cached = baseballCacheCtx.get(m.externalId);
+            if (cached && (cached.awayInnings.length > 0 || cached.homeInnings.length > 0)) {
+              return {
+                awayInnings: cached.awayInnings,
+                homeInnings: cached.homeInnings,
+                awayScore: awayScore ?? 0,
+                homeScore: homeScore ?? 0,
+                awayHits: cached.awayHits,
+                homeHits: cached.homeHits,
+                awayErrors: cached.awayErrors,
+                homeErrors: cached.homeErrors,
+                awayLabel: shortLabel(
+                  m.awayTeam.shortName,
+                  toEnglishTeamName(m.awayTeam.name),
+                ),
+                homeLabel: shortLabel(
+                  m.homeTeam.shortName,
+                  toEnglishTeamName(m.homeTeam.name),
+                ),
+              };
+            }
+            return null;
+          })()
+        : null,
+      // 라이브 야구 컨텍스트 (베이스/아웃/회·말).
+      // KBO/NPB: TheSportsMatchCache (baseballCacheCtx) 우선 — ESPN MLB 는 baseballDetailsMap.ctx.
+      baseballCtx: isBaseball
+        ? (() => {
+            const cached = baseballCacheCtx.get(m.externalId);
+            if (cached) {
+              return {
+                inning: cached.inning ?? undefined,
+                half: cached.half,
+                outs: cached.outs,
+                bases: cached.bases,
+                isExtra: cached.isExtra,
+              } satisfies BaseballContext;
+            }
+            const mlb = baseballDetailsMap[m.externalId]?.ctx;
+            if (mlb) {
+              return {
+                inning: mlb.inning ?? undefined,
+                half: mlb.half,
+                outs: mlb.outs,
+                bases: mlb.bases,
+              } satisfies BaseballContext;
+            }
+            return null;
+          })()
+        : null,
+      liveCommentary:
+        isBaseball && m.liveCommentary
+          ? {
+              matchSummary: m.liveCommentary.matchSummary,
+              summaryAt: m.liveCommentary.summaryAt,
+              scoreSnapshot: m.liveCommentary.scoreSnapshot,
+              // AI 승률 예측 chip — predictionEngine 결과 (commit 7e9a349).
+              // predHome 있는데 predWinner=null 이면 NO_PICK → chip 숨김 + 본문에 고정 문구 표시.
+              prediction:
+                m.predHome != null
+                  ? {
+                      pick: (m.predWinner as "HOME" | "AWAY" | "DRAW" | null) ?? null,
+                      probHome: m.predHome,
+                      probDraw: m.predDraw,
+                      probAway: m.predAway,
+                      homeName: m.homeTeam.name,
+                      awayName: m.awayTeam.name,
+                    }
+                  : null,
+              homeScore: m.homeScore,
+              awayScore: m.awayScore,
+              sport: "baseball" as const,
+            }
+          : null,
+      preview,
+      recap,
+      href,
+      doubleHeader: null as { index: number; total: number } | null,
+    };
+  })
+    // 유령/stale SCHEDULED 는 favorites·doubleheader·데이터 payload 등 모든 소비에서 제외.
+    .filter((m) => !m.hidden);
+
+  // DB 내부 중복 카드 제거 (축구) — 같은 실경기가 api-football backfill(ext=숫자) 행과
+  // TheSports(ext=ts-) 행 두 개로 적재돼 카드가 두 장 뜨던 것 방지 (2026-07-10 카라바흐·
+  // 디나모 키에프). 두 행은 Team row 도 달라(Qarabag vs FK Qarabag) teamId 기반 doubleheader
+  // 버킷엔 안 걸린다. 같은 리그·같은 날·홈/원정 원어명 overlap 이면 동일 경기로 보고 한 장만 남김.
+  // ⚠️ 비교는 한글 표시명 아닌 원어 Team.name — af "Qarabag" vs ts "FK Qarabag" 처럼 한쪽만
+  // 한글 매핑돼 표시명이 갈리므로. 남길 우선순위: ts- ext > 데이터 풍부 > 먼저 온 것.
+  const dupLoserIds = new Set<number>();
+  {
+    const rawById = new Map(
+      matches.map((m) => [m.id, { h: m.homeTeam.name, a: m.awayTeam.name, ext: m.externalId ?? "" }] as const),
+    );
+    const overlap = (x: string, y: string) =>
+      x.length >= 3 && y.length >= 3 && (x.includes(y) || y.includes(x));
+    const richness = (m: (typeof normalizedAllRaw)[number]) =>
+      (m.odds ? 1 : 0) + (m.liveCommentary ? 1 : 0) +
+      (m.soccerGoals ? 1 : 0) + (m.home.logo ? 1 : 0) + (m.away.logo ? 1 : 0);
+    // ts- ext 우선(100) + 데이터 풍부 — 점수 높은 쪽이 keeper.
+    const score = (m: (typeof normalizedAllRaw)[number]) =>
+      ((rawById.get(m.id)?.ext ?? "").startsWith("ts-") ? 100 : 0) + richness(m);
+    const soccer = normalizedAllRaw.filter((m) => SOCCER_LEAGUES.has(m.league));
+    for (let i = 0; i < soccer.length; i++) {
+      const a = soccer[i];
+      if (dupLoserIds.has(a.id)) continue;
+      const ra = rawById.get(a.id);
+      if (!ra) continue;
+      for (let j = i + 1; j < soccer.length; j++) {
+        const b = soccer[j];
+        if (dupLoserIds.has(b.id)) continue;
+        if (a.league !== b.league) continue;
+        if (dateQuery(a.startTime) !== dateQuery(b.startTime)) continue;
+        const rb = rawById.get(b.id);
+        if (!rb) continue;
+        if (
+          overlap(romanizeName(ra.h), romanizeName(rb.h)) &&
+          overlap(romanizeName(ra.a), romanizeName(rb.a))
+        ) {
+          const loser = score(a) >= score(b) ? b : a;
+          dupLoserIds.add(loser.id);
+        }
+      }
+    }
+  }
+  const normalizedAll = normalizedAllRaw.filter((m) => !dupLoserIds.has(m.id));
+
+  // 더블헤더 감지 — 같은 league + 두 팀 페어 + 같은 KST 일자에 2경기 이상.
+  // 시작 시간 순서로 1, 2 번호 부여. MLB 정규 더블헤더 + KBO/NPB 가능성 모두 대응.
+  const dhBuckets = new Map<string, (typeof normalizedAll)[number][]>();
+  for (const m of normalizedAll) {
+    const pair = [m.home.teamId, m.away.teamId].sort((a, b) => a - b).join("-");
+    const key = `${m.league}|${pair}|${dateQuery(m.startTime)}`;
+    let bucket = dhBuckets.get(key);
+    if (!bucket) {
+      bucket = [];
+      dhBuckets.set(key, bucket);
+    }
+    bucket.push(m);
+  }
+  for (const bucket of dhBuckets.values()) {
+    if (bucket.length < 2) continue;
+    bucket.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    bucket.forEach((m, i) => {
+      m.doubleHeader = { index: i + 1, total: bucket.length };
+    });
+  }
+
+  // normalizedAll = 모든 종목 매치 (FavoriteMatches 용 — sport tab 무관 fav 표시).
+  // normalized = 현재 sport 의 리그만 — 메인 그리드 / 상태 섹션 / 헤더 카운트 용.
+  // 새벽 확장분(+25h~+30h)은 축구 뷰에서만 표시 — 예정 섹션이 날짜 헤더로 그룹핑되는
+  // 축구 레이아웃과 달리, 전체/하키 뷰는 평면 리스트라 익일 새벽 경기가 오독됨.
+  const sportLeagueSet = new Set(leaguesForSport(sport));
+  const normalized = normalizedAll.filter(
+    (m) =>
+      sportLeagueSet.has(m.league) &&
+      !m.hidden &&
+      (sport === "soccer" || m.startTime < nonSoccerViewCutoff),
+  );
+
+  // orphan — DB Match row 가 없는 그날 우리 축구 리그 경기(예정/라이브/종료)를 date 조회로 보강.
+  // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) live=all 만 쓰면 종료 후
+  // 사라지므로, 날짜 기반 조회로 라이프사이클(예정→라이브→종료) 전부 표시.
+  const sportIncludesSoccer = sport === "soccer" || sport === "all";
+  // orphan af 조회는 오늘-2 ~ 오늘+7 창만 — 크롤러가 날짜 페이지네이션을 무한 순회하며
+  // 날짜당 af 2콜(UTC 2일 조회)을 태우는 것 차단. 창 밖 날짜는 DB 매치만으로 충분
+  // (orphan 은 경기 임박·직후에만 의미, af 일 한도 소진 지혈의 일부).
+  const dayDiff =
+    (new Date(`${dateStr}T00:00:00+09:00`).getTime() - Date.now()) / 86400_000;
+  const datedSoccer: DatedMatch[] = sportIncludesSoccer && dayDiff > -3 && dayDiff < 7
+    ? await fetchSoccerByDateCached(dateStr)
+    : [];
+  const dbExtIds = new Set(matches.map((m) => m.externalId)); // DB 매치와 중복 제거용
+  // externalId dedup 만으론 부족 — TheSports 수집 매치(ext="ts-xxx")와 api-football
+  // orphan(ext="af-{fixtureId}")은 같은 경기라도 source 별 id 체계가 달라 ext 가 절대
+  // 안 맞음. LALIGA_2 등 TheSports 로 적재되는 하위 리그가 full 카드 + minimal orphan
+  // 두 장으로 중복되던 버그 (2026-06-10 알메리아-카스테욘). 팀명·팀ID·킥오프로 보강한
+  // 판정은 lib/sports/orphan-dedup 이 단일 출처 — scripts/audit-scores-orphan-dup 이
+  // 같은 함수로 감사한다(규칙을 이 파일에 두면 감사 사본이 갈라져 재발을 놓친다).
+  const afTeamExtIds = [
+    ...new Set(
+      datedSoccer.flatMap((d) => [d.homeTeamExtId, d.awayTeamExtId]).filter(Boolean) as string[],
+    ),
+  ];
+  const afTeamIdMap = new Map<string, Set<number>>();
+  if (afTeamExtIds.length) {
+    const rows = await prisma.teamSourceId.findMany({
+      where: { source: "api-football", externalId: { in: afTeamExtIds } },
+      select: { externalId: true, teamId: true },
+    });
+    for (const r of rows) {
+      const s = afTeamIdMap.get(r.externalId) ?? new Set<number>();
+      s.add(r.teamId);
+      afTeamIdMap.set(r.externalId, s);
+    }
+  }
+  // af 가 킥오프를 하루 틀리게 싣는 경기 대응 — 그 팀 쌍의 DB 매치가 인접일에 있으면 같은
+  // 경기다(2026-08-23 COLOMBIA_PA: af 8/23 01:15Z ↔ 우리 8/24 01:15Z, 현지 일정은 우리가 맞다).
+  // 페이지가 그날치 DB 만 들고 있어 판정이 하루에 갇히므로, 팀 쌍만 ±2일로 따로 조회한다.
+  const crossDayTeamPairs = new Set<string>();
+  const orphanLeagues = [...new Set(datedSoccer.map((d) => d.league))];
+  if (afTeamExtIds.length && orphanLeagues.length) {
+    const dayStartMs = new Date(`${dateStr}T00:00:00+09:00`).getTime();
+    const nearby = await prisma.match.findMany({
+      where: {
+        league: { in: orphanLeagues },
+        startTime: {
+          gte: new Date(dayStartMs - 2 * 86400_000),
+          lte: new Date(dayStartMs + 3 * 86400_000),
+        },
+      },
+      select: { league: true, homeTeamId: true, awayTeamId: true },
+    });
+    for (const m of nearby) crossDayTeamPairs.add(`${m.league}|${m.homeTeamId}|${m.awayTeamId}`);
+  }
+  const orphanDedup = buildOrphanDedup(
+    matches.map((m) => ({
+      league: m.league,
+      startTime: m.startTime,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      homeName: m.homeTeam.name,
+      awayName: m.awayTeam.name,
+      apiFixtureId: m.apiFixtureId,
+    })),
+    datedSoccer,
+    afTeamIdMap,
+    crossDayTeamPairs,
+  );
+  // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
+  // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
+  const isYouthOrWomenFriendly = (dm: DatedMatch) =>
+    dm.league === "INTL_FRIENDLY" &&
+    /\bU-?\d{2}\b|women|girls|\(w\)/i.test(`${dm.homeName} ${dm.awayName}`);
+  const orphanCards = datedSoccer
+    .filter(
+      (dm) =>
+        sportLeagueSet.has(dm.league) &&
+        (!leagueFilter || dm.league === leagueFilter) &&
+        !isYouthOrWomenFriendly(dm) &&
+        !dbExtIds.has(dm.id.replace(/^[a-z]+-/i, "")) &&
+        !orphanDedup.isCovered(dm) &&
+        !matchedLiveIds.has(dm.id) &&
+        // af 가 라이브 추적 안 하는 하위 친선·군소 리그는 경기가 끝나도 영영 NS 로 방치
+        // (2026-08-01 포텐차 친선: 킥오프 24h 후에도 af NS). 킥오프 +2h 지난 "예정" orphan 은
+        // 거짓 예정이므로 숨김 — 결과도 영영 안 오는 경기라 종료 전환 대신 제거가 맞다.
+        !(dm.status === "SCHEDULED" && Date.now() - new Date(dm.startTime).getTime() > 2 * 3600 * 1000),
+    )
+    .map((dm) => orphanCard(dm));
+
+  // "내 경기"(FavoriteMatches)는 orphan(DB 미적재 클럽친선·군소리그) 매치도 대상이어야 한다.
+  // normalizedAll 은 DB 매치만이라, orphan 을 즐겨찾기하면 하단 목록엔 뜨는데 "내 경기"엔
+  // 안 올라오던 버그(현재 종목 탭 기준). orphanCards 를 합쳐 넘긴다(id 중복은 방어적 제외).
+  const favSrcIds = new Set(normalizedAll.map((m) => String(m.id)));
+  // 즐겨찾기 후보 — 쿠키(FavPrefWriter 가 미러)로 이 방문자의 즐겨찾기만 남긴다.
+  // FavoriteMatches 는 SSR 에서 아무것도 안 그리는데(mounted 게이트) 전체 520건을 props 로
+  // 실어 보내 HTML 의 10%(548KB)를 차지하고 있었다 (2026-08-16 실측). 쿠키가 없는 방문자는
+  // 즐겨찾기도 없다는 뜻이라 빈 배열이면 충분하고, 기존 사용자는 FavPrefWriter 가 쿠키를
+  // 기록하며 1회 refresh 로 즉시 복구한다.
+  const favCookieIds = new Set(
+    ((await cookies()).get("scores_fav")?.value ?? "")
+      .split(".")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+  const favSource =
+    favCookieIds.size === 0
+      ? []
+      : [
+          ...normalizedAll,
+          ...orphanCards.filter((o) => !favSrcIds.has(String(o.id))),
+        ].filter((m) => favCookieIds.has(String(m.id)));
+
+  // 상태 그룹화 — DB(normalized) + orphan(date 조회) 합침
+  const liveList = [
+    ...normalized.filter((m) => m.status === "LIVE"),
+    ...orphanCards.filter((m) => m.status === "LIVE"),
+  ];
+  // 킥오프 +2h 지난 SCHEDULED 는 예정 섹션에서 제외 — 수집 갭으로 결과 갱신이 늦는 매치
+  // (ts 연결 실패 리그 등)가 자정 넘어서도 "예정"으로 남던 문제. cleanup-stale-scheduled(4h)가
+  // 결과를 채우면 종료 섹션으로 정상 복귀하므로 숨김은 일시적이다.
+  const notStalePast = (m: { startTime: Date }) =>
+    Date.now() - m.startTime.getTime() < 2 * 3600 * 1000;
+  const scheduledList = [
+    ...normalized.filter((m) => m.status === "SCHEDULED" && notStalePast(m)),
+    ...orphanCards.filter((m) => m.status === "SCHEDULED"),
+  ];
+  // 종료 섹션 — effStatus=FINISHED 이면서 startTime 이 선택 일자(KST 자정) 이후인 매치만.
+  // 어제 LIVE 로 stuck 되었다가 staleLive 로 FINISHED 변환된 매치 (collector cron 누락 케이스)
+  // 가 오늘 종료 섹션에 노출되는 문제 방지. 자정 boundary 매치는 startTime >= day 라 OK.
+  const finishedList = [
+    ...normalized.filter((m) => m.status === "FINISHED" && m.startTime.getTime() >= day.getTime()),
+    ...orphanCards.filter((m) => m.status === "FINISHED"),
+  ];
+  // 연기 섹션 — POSTPONED 매치. cleanup-stale-scheduled cron 으로 자동 처리되는 매치도 포함.
+  const postponedList = [
+    ...normalized.filter((m) => m.status === "POSTPONED"),
+    ...orphanCards.filter((m) => m.status === "POSTPONED"),
+  ];
+
+  // 라이브 카운트 (종목 탭 dot 표시용)
+  const liveCounts: Partial<Record<SportCode, number>> = {};
+  for (const m of liveList) {
+    const sCode = SPORTS.find((s) => s.leagues.includes(m.league))?.code;
+    if (sCode) liveCounts[sCode] = (liveCounts[sCode] ?? 0) + 1;
+    liveCounts.all = (liveCounts.all ?? 0) + 1;
+  }
+
+  // 빈 상태 → 가까운 가용 일자 lookup (±7일 내)
+  // orphan(DB 미적재 라이브-온리 리그: WK리그·친선 등) 카드만 있는 날도 "경기 있음" —
+  // 헤더 카운트는 orphan 포함인데 목록만 EmptyState 로 갈라지던 버그 방지 (2026-08-01).
+  const hasAnyMatch = normalized.length > 0 || orphanCards.length > 0;
+  let nextAvailable: { date: string; label: string } | null = null;
+  if (!hasAnyMatch) {
+    // 앞으로 열릴 경기를 먼저 찾는다. ±7일을 한 번에 asc 로 뒤지면 언제나 과거가 먼저
+    // 잡혀 "다음 경기"라며 지난 날짜를 안내한다(비시즌 종목에서 특히 티난다).
+    const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
+    const nearby =
+      (await prisma.match.findFirst({
+        where: {
+          league: { in: leagues },
+          startTime: { gte: dayEnd, lt: new Date(day.getTime() + 8 * 24 * 3600 * 1000) },
+        },
+        orderBy: { startTime: "asc" },
+        select: { startTime: true },
+      })) ??
+      (await prisma.match.findFirst({
+        where: {
+          league: { in: leagues },
+          startTime: { gte: new Date(day.getTime() - 7 * 24 * 3600 * 1000), lt: day },
+        },
+        orderBy: { startTime: "desc" },
+        select: { startTime: true },
+      }));
+    if (nearby) {
+      // 링크 날짜도 라벨과 같은 KST 기준으로 — UTC 자정으로 내림하면 KST 오전 경기에서
+      // 라벨(9일)과 링크(8일)가 하루 어긋난다.
+      nextAvailable = {
+        date: dateQuery(nearby.startTime),
+        label: kstDateLabel(nearby.startTime),
+      };
+    }
+  }
+
+  const extraQuery =
+    (leagueFilter ? `&league=${leagueFilter}` : "") +
+    (statusFilter !== "all" ? `&status=${statusFilter}` : "") +
+    (sortMode === "time" ? "&sort=time" : "");
+
+  // SEO 동적 값 — generateMetadata 와 일치시킴.
+  const sportKo = SPORT_NAMES_KO[sport] ?? "Sports";
+  const dateKo = kstDateLabel(day);
+  const leagueBlurb = SPORT_LEAGUE_BLURB[sport] ?? "Top leagues";
+  const pageUrl = `${SITE_URL}/scores?sport=${sport}&date=${dateStr}${extraQuery}`;
+
+  // JSON-LD: BreadcrumbList — 홈 → 라이브 스코어 → 종목 · 일자
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Live scores", item: `${SITE_URL}/scores` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${sportKo} · ${dateKo}`,
+        item: pageUrl,
+      },
+    ],
+  };
+  // JSON-LD: ItemList (SportsEvent up to 20) — 검색 결과 rich snippet
+  const itemListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${dateKo} ${sportKo} live scores, fixtures and results`,
+    numberOfItems: normalized.length,
+    itemListElement: normalized.slice(0, 20).map((m, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "SportsEvent",
+        name: `${m.away.name} vs ${m.home.name}`,
+        startDate: m.startTime.toISOString(),
+        sport: SPORT_NAMES_EN[m.sport] ?? "Sports",
+        location: buildSportsEventLocation({ league: m.league, homeName: m.home.name }),
+        homeTeam: { "@type": "SportsTeam", name: m.home.name },
+        awayTeam: { "@type": "SportsTeam", name: m.away.name },
+        ...(m.href ? { url: `${SITE_URL}${m.href}` } : {}),
+      },
+    })),
+  };
+
+  // 모든 종목 동일 max-w-6xl (헤더와 일치) — 사이드바 + 메인이 그 안에 fit
+  const containerMaxW = sport === "soccer" ? "max-w-7xl" : "max-w-6xl";
+
+  // 축구 상태 필터 — 표시할 매치 결정
+  // 기본은 오늘 KST 만 LIVE 섹션 표시. 단 자정 boundary 매치(예: 5/28 23:20 시작 →
+  // 5/29 새벽 진행 중)는 어제 날짜에 속하지만 현재 LIVE 이므로, 실제 LIVE 매치가
+  // 있으면(liveList>0) 날짜 무관 표시 — 헤더 "LIVE N" 카운트와 렌더 불일치 방지.
+  // (staleLive 는 이미 effStatus=FINISHED 로 변환되므로 liveList 는 진짜 진행 중만)
+  const todayKstStr = dateQuery(new Date());
+  const isToday = dateStr === todayKstStr;
+  const showLive =
+    (isToday || liveList.length > 0) &&
+    (sport !== "soccer" || statusFilter === "all" || statusFilter === "live");
+  const showScheduled = sport !== "soccer" || statusFilter === "all" || statusFilter === "scheduled";
+  const showFinished = sport !== "soccer" || statusFilter === "all" || statusFilter === "finished";
+  const showPostponed = sport !== "soccer" || statusFilter === "all" || statusFilter === "postponed";
+  const visibleLive = showLive ? liveList : [];
+  const visibleScheduled = showScheduled ? scheduledList : [];
+  const visibleFinished = showFinished ? finishedList : [];
+  const visiblePostponed = showPostponed ? postponedList : [];
+  const visibleCount =
+    visibleLive.length + visibleScheduled.length + visibleFinished.length + visiblePostponed.length;
+  // 좌측 사이드바용 — 오늘 리그별 경기 수(전 상태 합산). 경기 있는 리그만 노출 + 카운트.
+  const leagueMatchCounts: Record<string, number> = {};
+  for (const m of [...liveList, ...scheduledList, ...finishedList, ...postponedList]) {
+    leagueMatchCounts[m.league] = (leagueMatchCounts[m.league] ?? 0) + 1;
+  }
+  const soccerDayTotal =
+    liveList.length + scheduledList.length + finishedList.length + postponedList.length;
+
   return (
-    <div className="px-3 py-2">
-      <div className="grid grid-cols-[64px_1fr_auto_1fr] items-center gap-2 text-sm">
-        <StatusCell m={m} />
-        <span className={`truncate text-right ${played && m.homeScore != null && m.awayScore != null && m.homeScore > m.awayScore ? "font-bold" : ""}`}>
-          {m.home}
-        </span>
-        <span className="min-w-[44px] text-center tabular-nums">
-          {played && m.homeScore != null ? (
-            <span className={`font-bold ${m.status === "LIVE" ? "text-rose-600 dark:text-rose-400" : ""}`}>
-              {m.homeScore} : {m.awayScore}
-            </span>
-          ) : (
-            <span className="text-neutral-400">vs</span>
-          )}
-        </span>
-        <span className={`truncate ${played && m.homeScore != null && m.awayScore != null && m.awayScore > m.homeScore ? "font-bold" : ""}`}>
-          {m.away}
-        </span>
-      </div>
-      {(pickLabel || m.marketOdds) && (
-        <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-[11px] text-neutral-400">
-          {pickLabel && (
-            <span>
-              AI pick{" "}
-              <span className="font-semibold text-neutral-600 dark:text-neutral-300">
-                {pickLabel} {Math.round((m.predProb ?? 0) * 100)}%
+    <div data-scores-root className={`${containerMaxW} mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-3 sm:space-y-4`}>
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbLd) }}
+      />
+      {normalized.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListLd) }}
+        />
+      )}
+
+      {/* 내 팀 바로가기 — 즐겨찾기 팀(localStorage) chips, 비어 있으면 미렌더 */}
+      <MyTeamsStrip />
+      {/* 온보딩·설치·광고·SEO 문장은 목록 아래로 (2026-08-01 첫 경기 도달 압축 — 모바일 734px → 목표 430px) */}
+
+      {/* 헤더 — 모바일은 제목·카운트 한 줄 (세로 압축) */}
+      <header className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <h1 className="text-xl sm:text-3xl font-black tracking-tight">
+            Live scores
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            {/* 테니스·골프는 DB 파이프라인 밖(ESPN 보드)이라 카운트가 항상 0 — 숨김 */}
+            {sport !== "tennis" && sport !== "golf" && sport !== "f1" && (
+              <span>{dateKo} ·  {liveList.length + scheduledList.length + finishedList.length + postponedList.length} matches</span>
+            )}
+            {liveList.length > 0 && (
+              <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                ● LIVE {liveList.length}
+              </span>
+            )}
+            {liveList.length > 0 && <LiveSoundToggle />}
+          </p>
+        </div>
+        <LiveRefresher liveCount={liveList.length} />
+      </header>
+
+      {/* 종목 탭 */}
+      <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
+
+      {/* 일자 슬라이더 */}
+      <DateSlider selectedDate={dateStr} todayKst={todayKstStr} sport={sport} extraQuery={extraQuery} />
+
+      {/* UFC 랭킹 진입 배너 — MMA 뷰에서만. 체급별·P4P 랭킹 페이지로 유도. */}
+      {sport === "mma" && (
+        <Link
+          href="/rankings/ufc"
+          prefetch={false}
+          className="block rounded-xl bg-gradient-to-r from-rose-500 via-red-500 to-amber-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+        >
+          <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+            <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+              🥊 UFC rankings{" "}
+              <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                — champions and contenders by division, plus pound-for-pound
               </span>
             </span>
-          )}
-          {m.marketOdds && <span className="tabular-nums">odds {m.marketOdds}</span>}
-        </div>
+            <span className="shrink-0 text-[12px] font-bold text-rose-600 dark:text-rose-400">
+              View rankings →
+            </span>
+          </span>
+        </Link>
       )}
+
+      {/* 축구: 사이드바 제거 — 매치 list 만 가운데 정렬 / 다른 종목: 기존 그대로 */}
+      {/* 테니스·골프 — ESPN 직접 fetch 표시 전용 (DB 파이프라인 미사용, docs/tennis-golf-scores) */}
+      {sport === "tennis" ? (
+        <>
+          {/* 테니스 랭킹 진입 배너 — UFC 랭킹 배너 패턴 */}
+          <Link
+            href="/rankings/tennis"
+            prefetch={false}
+            className="block rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+              <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                🎾 Tennis world rankings{" "}
+                <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                  — ATP and WTA top 150
+                </span>
+              </span>
+              <span className="shrink-0 text-[12px] font-bold text-emerald-600 dark:text-emerald-400">
+                View rankings →
+              </span>
+            </span>
+          </Link>
+          <TennisBoard kstDateStr={dateStr} />
+        </>
+      ) : sport === "golf" ? (
+        <>
+          {/* 한국 선수 시즌 트래커 진입 — 골프의 한국 특화 콘텐츠 */}
+          <Link
+            href="/golf/korea"
+            prefetch={false}
+            className="block rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+              <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                🇰🇷 Korean players this season{" "}
+                <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                  — LPGA and PGA wins and top-10s
+                </span>
+              </span>
+              <span className="shrink-0 text-[12px] font-bold text-amber-600 dark:text-amber-400">
+                View results →
+              </span>
+            </span>
+          </Link>
+          <GolfBoard />
+        </>
+      ) : sport === "f1" ? (
+        <>
+          {/* F1 챔피언십 순위 진입 배너 */}
+          <Link
+            href="/rankings/f1"
+            prefetch={false}
+            className="block rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-orange-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+              <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                🏎️ F1 championship standings{" "}
+                <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                  — driver and constructor points
+                </span>
+              </span>
+              <span className="shrink-0 text-[12px] font-bold text-red-600 dark:text-red-400">
+                View standings →
+              </span>
+            </span>
+          </Link>
+          <F1Board />
+        </>
+      ) : sport === "soccer" ? (
+        <div className="space-y-4">
+            {/* 🏆 월드컵 기간 배너 (2026-06-11 개막 ~ 07-19 결승) — 우승 시뮬 진입점.
+                gradient 는 /predictions 허브 WORLD_CUP 카드와 통일. */}
+            {!leagueFilter &&
+              day >= new Date("2026-06-08T00:00:00+09:00") &&
+              day <= new Date("2026-07-20T00:00:00+09:00") && (
+                <Link
+                  href="/predictions/world_cup"
+                  prefetch={false}
+                  className="block rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+                    <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                      🏆 2026 FIFA World Cup{" "}
+                      <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                        — 48 nations, hosted across North America
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-[12px] font-bold text-amber-600 dark:text-amber-400">
+                      Title probability simulator →
+                    </span>
+                  </span>
+                </Link>
+              )}
+
+            {/* 상태 탭 + 보기 방식 토글 — 한 줄 (모바일 세로 압축, 상태 탭은 가로 스크롤) */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <SoccerStatusTabs
+                active={statusFilter}
+                counts={{
+                  // orphanCards(DB 미적재 경기)를 포함하는 리스트 합과 일치시킴 — "전체(9)·종료(10)" 모순 방지
+                  all: liveList.length + scheduledList.length + finishedList.length + postponedList.length,
+                  live: liveList.length,
+                  scheduled: scheduledList.length,
+                  finished: finishedList.length,
+                  postponed: postponedList.length,
+                }}
+                date={dateStr}
+                league={leagueFilter}
+                sort={sortMode === "time" ? "time" : null}
+              />
+              {/* 명시 선택은 쿠키로 기억 */}
+              <SortPrefWriter
+                explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
+              />
+              {/* 즐겨찾기 id 를 쿠키로 미러 — 서버가 해당 매치만 props 로 내려보내게 한다 */}
+              <FavPrefWriter />
+              <div className="shrink-0">
+                <SoccerSortToggle
+                  active={sortMode}
+                  date={dateStr}
+                  league={leagueFilter}
+                  status={statusFilter}
+                />
+              </div>
+            </div>
+
+            {/* 매치 list — orphan 카드만 있는 날(라이브-온리 리그)도 목록 렌더 */}
+            {!hasAnyMatch ? (
+              <EmptyState sport={sport} nextAvailable={nextAvailable} />
+            ) : visibleCount === 0 ? (
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-5 py-10 text-center text-sm text-neutral-500">
+                No matches match the selected status.
+              </div>
+            ) : (
+              <div className="lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-6 lg:items-start">
+                <SoccerLeagueSidebar
+                  leagues={leaguesAll}
+                  activeLeague={leagueFilter}
+                  date={dateStr}
+                  status={statusFilter}
+                  sort={sortMode === "time" ? "time" : null}
+                  matchCounts={leagueMatchCounts}
+                  totalCount={soccerDayTotal}
+                />
+                <div className="min-w-0 space-y-6">
+                <FavoriteMatches
+                  matches={favSource.map((m) => compactProps({
+                    id: String(m.id),
+                    sortKey:
+                      m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
+                    matchId: String(m.id),
+                    sport: m.sport,
+                    status:
+                      m.status === "LIVE"
+                        ? "live"
+                        : m.status === "FINISHED"
+                          ? "finished"
+                          : m.status === "POSTPONED"
+                            ? "postponed"
+                            : "scheduled",
+                    league: m.league,
+                    leagueLabel: displayLeagueLabel(m.league, m.startTime),
+                    home: m.home,
+                    away: m.away,
+                    timeLabel: m.timeLabel,
+                    liveStatusLabel: m.liveStatusLabel,
+                    baseballCtx: m.baseballCtx,
+                    baseballLinescore: m.baseballLinescore,
+                    periodLinescore: m.periodLinescore,
+                    soccerGoals: m.soccerGoals,
+                    soccerTeamStats: m.sport === "soccer" ? m.soccerTeamStats : null,
+                    soccerCtx: m.soccerCtx,
+                    esportsCtx: m.esportsCtx,
+                    homeStarter: m.homeStarter,
+                    awayStarter: m.awayStarter,
+                    href: m.href,
+                    actions: actionsFor(m),
+                    liveCommentary: m.liveCommentary,
+                    preview: m.preview,
+                    recap: m.recap,
+                    hasLineup: lineupMatchIdSet.has(Number(m.id)),
+                  }))}
+                />
+                <SoccerRowLayout
+                  liveList={visibleLive}
+                  scheduledList={visibleScheduled}
+                  finishedList={visibleFinished}
+                  postponedList={visiblePostponed}
+                  lineupSet={lineupMatchIdSet}
+                  sortByTime={sortMode === "time"}
+                  showHighlights={!leagueFilter && statusFilter === "all" && sortMode !== "time"}
+                />
+                </div>
+              </div>
+            )}
+        </div>
+      ) : (
+        <>
+          {/* 리그 필터 — 야구 (12+ 리그) 는 드롭다운, 그 외는 가로 chip */}
+          {leaguesAll.length > 1 &&
+            (sport === "baseball" ? (
+              <LeagueDropdown
+                leagues={leaguesAll}
+                activeLeague={leagueFilter}
+                sport={sport}
+                date={dateStr}
+              />
+            ) : (
+              <LeagueChips
+                leagues={leaguesAll}
+                activeLeague={leagueFilter}
+                sport={sport}
+                date={dateStr}
+              />
+            ))}
+
+          {/* 매치 list — sport=all 은 축구 orphan 카드만 있는 날도 목록 렌더 */}
+          {!hasAnyMatch ? (
+            <EmptyState sport={sport} nextAvailable={nextAvailable} />
+          ) : (
+            <div className="space-y-6">
+              <FavoriteMatches
+                matches={normalizedAll.filter((m) => favCookieIds.has(String(m.id))).map((m) => compactProps({
+                  id: String(m.id),
+                  sortKey:
+                    m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
+                  matchId: String(m.id),
+                  sport: m.sport,
+                  status:
+                    m.status === "LIVE"
+                      ? "live"
+                      : m.status === "FINISHED"
+                        ? "finished"
+                        : m.status === "POSTPONED"
+                          ? "postponed"
+                          : "scheduled",
+                  league: m.league,
+                  leagueLabel: displayLeagueLabel(m.league, m.startTime),
+                  home: m.home,
+                  away: m.away,
+                  timeLabel: m.timeLabel,
+                  liveStatusLabel: m.liveStatusLabel,
+                  baseballCtx: m.baseballCtx,
+                  baseballLinescore: m.baseballLinescore,
+                  periodLinescore: m.periodLinescore,
+                  soccerGoals: m.soccerGoals,
+                  soccerTeamStats: m.sport === "soccer" ? m.soccerTeamStats : null,
+                  soccerCtx: m.soccerCtx,
+                  esportsCtx: m.esportsCtx,
+                  homeStarter: m.homeStarter,
+                  awayStarter: m.awayStarter,
+                  href: m.href,
+                  actions: actionsFor(m),
+                  liveCommentary: m.liveCommentary,
+                  preview: m.preview,
+                  recap: m.recap,
+                  hasLineup: lineupMatchIdSet.has(Number(m.id)),
+                }))}
+              />
+              {isToday && liveList.length > 0 && (
+                <Section title="🔴 Live" count={liveList.length}>
+                  {liveList.map((m) => renderCard(m))}
+                </Section>
+              )}
+              {scheduledList.length > 0 && (
+                <Section title="⏳ Upcoming" count={scheduledList.length}>
+                  {scheduledList.map((m) => renderCard(m))}
+                </Section>
+              )}
+              {finishedList.length > 0 && (
+                <Section title="✅ Finished" count={finishedList.length}>
+                  {finishedList.map((m) => renderCard(m))}
+                </Section>
+              )}
+              {postponedList.length > 0 && (
+                <Section title="🚫 Postponed" count={postponedList.length}>
+                  {postponedList.map((m) => renderCard(m))}
+                </Section>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 상단에서 내린 블록 (2026-08-01) — 재방문 유도 온보딩 + PWA 설치 + 광고. 점수보다 아래 */}
+      <FavTeamOnboarding />
+      <AppInstallBanner />
+      <AdBanner />
+
+      {/* SEO 친화 보조 텍스트 — 검색 키워드 자연 포함 (크롤러용, 상단에서 이동) */}
+      <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed pt-2">
+        {dateKo} {sportKo} Live scores, fixtures and final results in one place.
+        {" "}{leagueBlurb} combined, with Elo model win probabilities and live push updates in 2–3 seconds.
+      </p>
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed pt-2">
+        ⓘ Live scores arrive via TheSports push, typically within 2–3 seconds (match detail includes live base state and count for KBO, NPB and MLB).
+      </p>
+
+      <section className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
+        <h2 className="text-base sm:text-lg font-bold tracking-tight">
+          Today's live scores and analysis
+        </h2>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          Live scores and real-time match data for today's Premier League, MLB, NBA and KBO fixtures.
+        </p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          Pre-match{" "}
+          <Link href="/previews" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            previews
+          </Link>{" "}
+          and post-match{" "}
+          <Link href="/predictions" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            Report
+          </Link>{" "}
+          coverage lets you follow the flow of a match and its key numbers at a glance.{" "}
+          <Link href="/injuries" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            injury lists
+          </Link>
+          and{" "}
+          <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            League analysis
+          </Link>
+          are also available.
+        </p>
+      </section>
     </div>
   );
 }
 
-export default async function EnScores({ searchParams }: Props) {
-  const { date } = await searchParams;
-  const today = utcDateStr(new Date());
-  const dateStr = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today;
-  const dayStart = new Date(`${dateStr}T00:00:00Z`);
-  const dayEnd = new Date(dayStart.getTime() + 86400000);
-  const prev = utcDateStr(new Date(dayStart.getTime() - 43200000));
-  const next = utcDateStr(new Date(dayEnd.getTime() + 43200000));
-
-  const matches = await prisma.match.findMany({
-    where: { startTime: { gte: dayStart, lt: dayEnd } },
-    select: {
-      id: true,
-      league: true,
-      status: true,
-      startTime: true,
-      homeScore: true,
-      awayScore: true,
-      predHome: true,
-      predDraw: true,
-      predAway: true,
-      predWinner: true,
-      marketHome: true,
-      marketDraw: true,
-      marketAway: true,
-      homeTeam: { select: { name: true } },
-      awayTeam: { select: { name: true } },
-    },
-    orderBy: { startTime: "asc" },
-  });
-
-  // 시장 implied 확률(마진 제거 평균) → 소수 배당 문자열 "2.10 / 3.40 / 3.60"
-  const toOdds = (h: number | null, d: number | null, a: number | null): string | null => {
-    if (!h || !a) return null;
-    const f = (p: number) => (1 / p).toFixed(2);
-    return d && d > 0.01 ? `${f(h)} / ${f(d)} / ${f(a)}` : `${f(h)} / ${f(a)}`;
-  };
-
-  // 종목 → 리그 → 매치 그룹핑 (미지원 종목·미매핑 리그 제외)
-  const bySport = new Map<string, Map<string, Row[]>>();
-  let liveCount = 0;
-  for (const m of matches) {
-    const sport = LEAGUE_TO_SPORT.get(m.league);
-    if (!sport) continue;
-    const predProb =
-      m.predWinner === "HOME" ? m.predHome : m.predWinner === "AWAY" ? m.predAway : m.predDraw;
-    const row: Row = {
-      id: m.id,
-      league: m.league,
-      status: m.status,
-      startTime: m.startTime,
-      homeScore: m.homeScore,
-      awayScore: m.awayScore,
-      home: toEnglishTeamName(m.homeTeam.name),
-      away: toEnglishTeamName(m.awayTeam.name),
-      predWinner: m.predWinner,
-      predProb: predProb ?? null,
-      marketOdds: m.status === "SCHEDULED" ? toOdds(m.marketHome, m.marketDraw, m.marketAway) : null,
-    };
-    if (m.status === "LIVE") liveCount++;
-    if (!bySport.has(sport)) bySport.set(sport, new Map());
-    const byLeague = bySport.get(sport)!;
-    if (!byLeague.has(m.league)) byLeague.set(m.league, []);
-    byLeague.get(m.league)!.push(row);
-  }
-
-  const sportsToShow = SPORT_ORDER.filter((s) => bySport.has(s));
-  const dayLabel = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(dayStart);
-
+function Section({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number;
+  children: React.ReactNode;
+}) {
   return (
-    <main className="relative mx-auto max-w-4xl space-y-8 px-4 py-10 sm:px-6">
-      <AmbientGlow />
-      <AutoRefresh enabled={liveCount > 0} />
-      <header className="space-y-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> Scores
+    <section>
+      <div className="flex items-center justify-between mb-2.5 px-1">
+        <h2 className="text-sm font-bold tracking-tight">{title}</h2>
+        <span className="text-[11px] text-neutral-400 tabular-nums">
+          {count} matches
         </span>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Live scores &amp; results</h1>
-        <p className="text-sm text-neutral-500">
-          {liveCount > 0
-            ? `${liveCount} ${liveCount === 1 ? "match" : "matches"} in play — auto-refreshing every minute.`
-            : "Fixtures and results by day. Times shown in your local timezone."}
-        </p>
-      </header>
-
-      {/* 날짜 네비 — UTC 달력일 */}
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          href={`/en/scores?date=${prev}`}
-          prefetch={false}
-          className="rounded-full px-3 py-1.5 font-medium text-neutral-500 ring-1 ring-black/10 transition hover:text-neutral-900 dark:ring-white/15 dark:hover:text-white"
-        >
-          ← Prev
-        </Link>
-        <span className="rounded-full bg-neutral-900 px-4 py-1.5 font-semibold text-white dark:bg-white dark:text-neutral-900">
-          {dayLabel}
-          {dateStr === today && " · Today"}
-        </span>
-        <Link
-          href={`/en/scores?date=${next}`}
-          prefetch={false}
-          className="rounded-full px-3 py-1.5 font-medium text-neutral-500 ring-1 ring-black/10 transition hover:text-neutral-900 dark:ring-white/15 dark:hover:text-white"
-        >
-          Next →
-        </Link>
-        {dateStr !== today && (
-          <Link href="/en/scores" prefetch={false} className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
-            Back to today
-          </Link>
-        )}
-      </nav>
-
-      {sportsToShow.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-500 dark:border-white/15">
-          No matches on this day.
-        </p>
-      ) : (
-        sportsToShow.map((sport) => {
-          const byLeague = bySport.get(sport)!;
-          const sportMeta = SPORTS.find((s) => s.code === sport);
-          return (
-            <section key={sport} className="space-y-4">
-              <h2 className="flex items-center gap-2 border-b border-neutral-200 pb-2 text-xl font-bold tracking-tight dark:border-white/10">
-                <span>{sportMeta?.emoji}</span>
-                {SPORT_LABEL_EN[sport] ?? sport}
-              </h2>
-              {Array.from(byLeague.entries()).map(([league, rows]) => (
-                <div key={league} className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10">
-                  <div className="flex items-center justify-between gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-neutral-500 dark:border-white/10 dark:bg-white/[0.03]">
-                    <span>{enLeagueName(league)}</span>
-                    {EN_PREDICTION_LEAGUE_SET.has(league) && (
-                      <Link
-                        href={`/en/predictions/${league}`}
-                        className="font-semibold normal-case tracking-normal text-blue-600 hover:underline dark:text-blue-400"
-                      >
-                        Predictions →
-                      </Link>
-                    )}
-                  </div>
-                  <div className="divide-y divide-neutral-100 dark:divide-white/5">
-                    {rows.map((m) => (
-                      <MatchRow key={m.id} m={m} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </section>
-          );
-        })
-      )}
-
-      <section className="border-t border-neutral-200 pt-6 dark:border-white/10">
-        <p className="text-sm text-neutral-500">
-          Want win probabilities for upcoming matches? See{" "}
-          <Link href="/en/predictions" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            AI predictions
-          </Link>{" "}
-          — with{" "}
-          <Link href="/en/predictions/accuracy" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            published accuracy
-          </Link>
-          .
-        </p>
-      </section>
-    </main>
+      </div>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</ul>
+    </section>
   );
 }
+
+/** 축구 row layout — named.com 스타일 한 줄 매치 표. */
+function SoccerRowLayout({
+  liveList,
+  scheduledList,
+  finishedList,
+  postponedList,
+  lineupSet,
+  sortByTime = false,
+  showHighlights = false,
+}: {
+  liveList: NormalizedMatch[];
+  scheduledList: NormalizedMatch[];
+  finishedList: NormalizedMatch[];
+  postponedList: NormalizedMatch[];
+  /** cache.lineup 존재 매치 id — L 배지용 */
+  lineupSet: Set<number>;
+  /** ?sort=time — 리그 그룹 대신 전 경기 시간순 평면 리스트 (행에 리그 배지 표시) */
+  sortByTime?: boolean;
+  /** 전체 보기(리그·상태 필터 없음)일 때만 상단 "주요 / 곧 시작 / 변동" 구획 표시 */
+  showHighlights?: boolean;
+}) {
+  const renderRow = (m: NormalizedMatch, showLeague = false) => {
+    const statusKey: "scheduled" | "live" | "finished" | "postponed" =
+      m.status === "LIVE"
+        ? "live"
+        : m.status === "FINISHED"
+          ? "finished"
+          : m.status === "POSTPONED"
+            ? "postponed"
+            : "scheduled";
+    return (
+      <SoccerLiveRow
+        key={String(m.id)}
+        matchId={m.id}
+        league={m.league}
+        insetX
+        status={statusKey}
+        timeLabel={m.timeLabel}
+        liveStatusLabel={m.liveStatusLabel}
+        home={{
+          name: m.home.name,
+          logo: m.home.logo ?? null,
+          teamId: m.home.teamId,
+        }}
+        away={{
+          name: m.away.name,
+          logo: m.away.logo ?? null,
+          teamId: m.away.teamId,
+        }}
+        homeScore={m.home.score}
+        awayScore={m.away.score}
+        penaltyHome={m.penHome ?? null}
+        penaltyAway={m.penAway ?? null}
+        soccerGoals={m.soccerGoals}
+        soccerCards={m.soccerCards}
+        soccerTeamStats={m.soccerTeamStats}
+        soccerHalfStats={m.soccerHalfStats}
+        soccerHalfScore={m.soccerHalfScore}
+        odds={m.odds}
+        homeShort={m.home.abbr ?? m.home.name}
+        awayShort={m.away.abbr ?? m.away.name}
+        previewSlug={m.preview ?? null}
+        recapSlug={m.recap ?? null}
+        href={m.href}
+        homePosition={m.home.position ?? null}
+        awayPosition={m.away.position ?? null}
+        homeFifaRank={m.home.fifaRank ?? null}
+        awayFifaRank={m.away.fifaRank ?? null}
+        awayFirst={BASEBALL_LEAGUES.has(m.league)}
+        hasLineup={lineupSet.has(Number(m.id))}
+        hideLeague={!showLeague}
+      />
+    );
+  };
+
+  // 정렬 — startTime 우선, 같은 시간이면 league 알파벳 (KBO → MLB → NPB / J1 → J2 등).
+  // 동시간 KBO 매치가 맨 위 (사용자: 국야 위로).
+  const byStartThenLeague = (a: NormalizedMatch, b: NormalizedMatch) =>
+    a.startTime.getTime() - b.startTime.getTime() || a.league.localeCompare(b.league);
+  // 🏆 월드컵 강조 — WC 매치는 일반 상태 섹션에서 분리해 최상단 전용 섹션에 고정
+  // (live → scheduled → finished 순). 대회 기간 외엔 매치가 없으니 자동 비표시.
+  const isWc = (m: NormalizedMatch) => m.league === "WORLD_CUP";
+  const liveSorted = [...liveList].filter((m) => !isWc(m)).sort(byStartThenLeague);
+  const scheduledSorted = [...scheduledList].filter((m) => !isWc(m)).sort(byStartThenLeague);
+  const finishedSorted = [...finishedList].filter((m) => !isWc(m)).sort(byStartThenLeague);
+  const postponedSorted = [...postponedList].sort(byStartThenLeague);
+  const wcLive = [...liveList].filter(isWc).sort(byStartThenLeague);
+  const wcScheduled = [...scheduledList].filter(isWc).sort(byStartThenLeague);
+  const wcFinished = [...finishedList].filter(isWc).sort(byStartThenLeague);
+  const wcAll = [...wcLive, ...wcScheduled, ...wcFinished];
+  const dayKey = (d: Date): string =>
+    new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const dayLabel = (d: Date): string => {
+    const k = new Date(d.getTime() + 9 * 3600 * 1000);
+    const y = k.getUTCFullYear();
+    const mm = String(k.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(k.getUTCDate()).padStart(2, "0");
+    const weekday = d.toLocaleDateString("en-GB", {
+      timeZone: "Asia/Seoul",
+      weekday: "short",
+    });
+    return `${y}-${mm}-${dd} (${weekday})`;
+  };
+  const dayGroupsOf = (
+    list: NormalizedMatch[],
+  ): Array<{ day: string; label: string; items: NormalizedMatch[] }> => {
+    const groups: Array<{ day: string; label: string; items: NormalizedMatch[] }> = [];
+    for (const m of list) {
+      const k = dayKey(m.startTime);
+      const last = groups[groups.length - 1];
+      if (last && last.day === k) last.items.push(m);
+      else groups.push({ day: k, label: dayLabel(m.startTime), items: [m] });
+    }
+    return groups;
+  };
+
+  // 리그별 그룹 — LeagueGroupCard 로 묶기 위해 리그 단위로 분할. 리그 순서는 LEAGUE_ORDER(인기순),
+  // 리그 내 매치는 입력 정렬(byStartThenLeague=시작시각) 유지.
+  const leagueGroupsOf = (
+    list: NormalizedMatch[],
+  ): Array<{ league: string; items: NormalizedMatch[] }> => {
+    const map = new Map<string, NormalizedMatch[]>();
+    for (const m of list) {
+      const arr = map.get(m.league);
+      if (arr) arr.push(m);
+      else map.set(m.league, [m]);
+    }
+    return [...map.entries()]
+      .map(([league, items]) => ({ league, items }))
+      .sort(
+        (a, b) =>
+          ((LEAGUE_ORDER as Record<string, number>)[a.league] ?? 999) -
+          ((LEAGUE_ORDER as Record<string, number>)[b.league] ?? 999),
+      );
+  };
+  const scheduledGroups = dayGroupsOf(scheduledSorted);
+  const finishedGroups = dayGroupsOf(finishedSorted);
+  const postponedGroups = dayGroupsOf(postponedSorted);
+
+  const mobileCardFor = (m: NormalizedMatch, showLeague = false) => {
+    const statusKey =
+      m.status === "LIVE"
+        ? "live"
+        : m.status === "FINISHED"
+          ? "finished"
+          : m.status === "POSTPONED"
+            ? "postponed"
+            : "scheduled";
+    if (m.sport === "soccer") {
+      return (
+        <SoccerCompactCard
+          key={String(m.id)}
+          matchId={m.id}
+          league={m.league}
+          showLeague={showLeague}
+          status={statusKey}
+          timeLabel={m.timeLabel}
+          liveStatusLabel={m.liveStatusLabel}
+          home={m.home}
+          away={m.away}
+          previewSlug={m.preview ?? null}
+          recapSlug={m.recap ?? null}
+          href={m.href}
+        />
+      );
+    }
+    return (
+      <MatchCard
+        key={String(m.id)}
+        matchId={m.id}
+        sport={m.sport}
+        status={statusKey}
+        league={m.league}
+        home={m.home}
+        away={m.away}
+        timeLabel={m.timeLabel}
+        liveStatusLabel={m.liveStatusLabel}
+        soccerCtx={m.soccerCtx}
+        soccerGoals={null}
+        href={m.href}
+        doubleHeader={m.doubleHeader}
+        mma={m.mma}
+        mmaResult={m.mmaResult}
+      />
+    );
+  };
+
+  const dateHeaderMobile = (label: string) => (
+    <div className="rounded-md border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[12px] font-bold py-1.5 tabular-nums">
+      {label}
+    </div>
+  );
+  const dateHeaderDesktop = (label: string) => (
+    <div className="border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
+      {label}
+    </div>
+  );
+  const statusHeader = (label: string, color: string, size: "sm" | "md") => (
+    <div
+      className={`flex items-center gap-2 px-1 ${size === "sm" ? "text-[12px]" : "text-[13px]"} font-bold ${color}`}
+    >
+      <span>{label}</span>
+    </div>
+  );
+
+  // 🏆 월드컵 섹션 헤더 (모바일/데스크탑 공용) — LIVE 카운트 + 우승 시뮬 링크
+  const wcSectionHeader = (
+    <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-transparent dark:from-amber-500/15 dark:via-rose-500/10">
+      <span className="text-[13px] font-extrabold tracking-tight text-amber-700 dark:text-amber-400">
+        🏆 2026 FIFA World Cup
+        {wcLive.length > 0 && (
+          <span className="ml-2 text-[11px] font-bold text-rose-600 dark:text-rose-500">
+            ● LIVE {wcLive.length}
+          </span>
+        )}
+      </span>
+      <Link
+        href="/predictions/world_cup"
+        prefetch={false}
+        className="shrink-0 text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:underline"
+      >
+        Title probability simulator →
+      </Link>
+    </div>
+  );
+
+  // 시간순 평면 뷰(?sort=time) 공용 카드 셸 — LeagueGroupCard 와 동일 톤(헤더 없음).
+  const flatCardClass =
+    "rounded-2xl border border-neutral-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-28px_rgba(15,23,42,0.20)] overflow-hidden dark:bg-white/[0.045] dark:border-white/10 dark:shadow-none";
+
+  // SoccerRowLayout = 축구 전용 → 리그 그룹 카드(얇은 행)로 묶는다.
+  // sortByTime 이면 그룹 없이 전 경기 시간순 평면 리스트(행에 리그 배지).
+  // 리그 카드 행 상한 — 초과분은 "더 보기" 뒤 (DOM 36k·7.5초 진범이던 통째 렌더 차단). 진행 중은 상한 없음.
+  const ROW_CAP = 10;
+  const capped = (items: NormalizedMatch[], render: (m: NormalizedMatch) => ReactNode, cap?: number) => {
+    if (!cap || items.length <= cap + 2) return items.map(render);
+    return (
+      <ShowMoreRows
+        initial={items.slice(0, cap).map(render)}
+        more={items.slice(cap).map(render)}
+        moreCount={items.length - cap}
+      />
+    );
+  };
+  // 리그 카드 상한 — 상태 섹션마다 인기순 앞 8개 리그만 펼치고 나머지(군소 리그 수십 개)는 토글 뒤.
+  // 행 상한만으론 DOM 이 안 줄었다(리그 207개 × 데스크톱·모바일 두 트리, 2026-08-22 실측 38k).
+  const LEAGUE_CAP = 8;
+  const cappedLeagues = (
+    groups: Array<{ league: string; items: NormalizedMatch[] }>,
+    render: (lg: { league: string; items: NormalizedMatch[] }) => ReactNode,
+    cap?: number,
+  ) => {
+    if (!cap || groups.length <= cap + 2) return groups.map(render);
+    const rest = groups.slice(cap);
+    return (
+      <ShowMoreRows
+        initial={groups.slice(0, cap).map(render)}
+        more={rest.map(render)}
+        moreCount={rest.length}
+        unit=" leagues"
+        wrapClass="py-1 text-center"
+      />
+    );
+  };
+  const renderMobileList = (items: NormalizedMatch[], cap?: number) =>
+    sortByTime ? (
+      <section className={flatCardClass}>
+        <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+          {items.map((m) => mobileCardFor(m, true))}
+        </ul>
+      </section>
+    ) : (
+      <div className="space-y-2.5">
+        {cappedLeagues(
+          leagueGroupsOf(items),
+          (lg) => (
+            <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
+              <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+                {capped(lg.items, (m) => mobileCardFor(m), cap)}
+              </ul>
+            </LeagueGroupCard>
+          ),
+          cap ? LEAGUE_CAP : undefined,
+        )}
+      </div>
+    );
+  // 데스크톱도 동일 그룹 카드 — 행은 SoccerLiveRow(hideLeague). 전역 테이블 헤더 대신 카드 헤더.
+  const renderDesktopList = (items: NormalizedMatch[], cap?: number) =>
+    sortByTime ? (
+      <section className={flatCardClass}>
+        {/* data-srows: 행 접힘 컨테이너 쿼리 기준(globals.css) — 사이드바 유무와 무관하게 실폭 대응 */}
+        <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+          {items.map((m) => renderRow(m, true))}
+        </div>
+      </section>
+    ) : (
+      <div className="space-y-3">
+        {cappedLeagues(
+          leagueGroupsOf(items),
+          (lg) => (
+            <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
+              <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+                {capped(lg.items, (m) => renderRow(m), cap)}
+              </div>
+            </LeagueGroupCard>
+          ),
+          cap ? LEAGUE_CAP : undefined,
+        )}
+      </div>
+    );
+
+  // ── 상단 구획 (전체 보기 전용): 오늘의 주요 경기 ──
+  const popularSet = new Set(POPULAR_SOCCER_LEAGUES);
+  const featured = showHighlights
+    ? [...liveSorted, ...scheduledSorted, ...finishedSorted]
+        .filter((m) => popularSet.has(m.league))
+        .slice(0, 6)
+    : [];
+  // "곧 시작"·"배당·라인업 변동" 구획은 사용자 요청으로 제거 (2026-08-23) — 오늘의 주요 경기만 유지.
+  const highlightSection = (
+    title: string,
+    hint: string,
+    items: NormalizedMatch[],
+    mobile: boolean,
+  ) =>
+    items.length > 0 ? (
+      <section className="space-y-2">
+        <div className="flex items-baseline gap-2 px-1">
+          <span className="text-[12px] font-bold text-neutral-800 dark:text-neutral-100">{title}</span>
+          <span className="text-[10px] text-neutral-400">{hint}</span>
+        </div>
+        <div className={flatCardClass}>
+          {mobile ? (
+            <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {items.map((m) => mobileCardFor(m, true))}
+            </ul>
+          ) : (
+            <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {items.map((m) => renderRow(m, true))}
+            </div>
+          )}
+        </div>
+      </section>
+    ) : null;
+  const highlights = (mobile: boolean) =>
+    showHighlights && featured.length > 0 ? (
+      <>
+        {highlightSection("Today's key matches", "Popular leagues · live → upcoming → finished", featured, mobile)}
+      </>
+    ) : null;
+
+  return (
+    <div className="space-y-5">
+      {/* 모바일 */}
+      <div className="md:hidden space-y-4">
+        {highlights(true)}
+        {wcAll.length > 0 && (
+          <section className="rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 p-[1.5px] shadow-sm">
+            <div className="rounded-[10.5px] bg-white dark:bg-neutral-950 overflow-hidden">
+              {wcSectionHeader}
+              <ul className="divide-y divide-neutral-200 dark:divide-white/10">
+                {wcAll.map((m) => mobileCardFor(m))}
+              </ul>
+            </div>
+          </section>
+        )}
+        {liveSorted.length > 0 && (
+          <section className="space-y-2">
+            {statusHeader(`● Live (${liveSorted.length})`, "text-rose-600 dark:text-rose-500", "sm")}
+            {renderMobileList(liveSorted)}
+          </section>
+        )}
+        {scheduledGroups.length > 0 && (
+          <section className="space-y-2">
+            {statusHeader("⏳ Upcoming", "text-neutral-600 dark:text-neutral-400", "sm")}
+            {scheduledGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderMobile(g.label)}
+                {renderMobileList(g.items, ROW_CAP)}
+              </div>
+            ))}
+          </section>
+        )}
+        {finishedGroups.length > 0 && (
+          <section className="space-y-2">
+            {statusHeader("✅ Finished", "text-neutral-500", "sm")}
+            {finishedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderMobile(g.label)}
+                {renderMobileList(g.items, ROW_CAP)}
+              </div>
+            ))}
+          </section>
+        )}
+        {postponedGroups.length > 0 && (
+          <section className="space-y-2">
+            {statusHeader(`🚫 Postponed (${postponedSorted.length})`, "text-amber-600 dark:text-amber-500", "sm")}
+            {postponedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderMobile(g.label)}
+                {renderMobileList(g.items, ROW_CAP)}
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+
+      {/* 데스크탑 — 모바일과 동일한 리그 그룹 카드(얇은 행). 전역 테이블 헤더 대신 카드별 헤더. */}
+      <div className="hidden md:block space-y-4">
+        {highlights(false)}
+        {wcAll.length > 0 && (
+          <LeagueGroupCard league="WORLD_CUP" count={wcAll.length} accent="wc" href="/world-cup" linkLabel="Title odds">
+            <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {wcAll.map((m) => renderRow(m))}
+            </div>
+          </LeagueGroupCard>
+        )}
+        {liveSorted.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-rose-600 dark:text-rose-500">
+              ● Live ({liveSorted.length})
+            </div>
+            {renderDesktopList(liveSorted)}
+          </section>
+        )}
+        {scheduledGroups.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-neutral-600 dark:text-neutral-400">⏳ Upcoming</div>
+            {scheduledGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderDesktop(g.label)}
+                {renderDesktopList(g.items, ROW_CAP)}
+              </div>
+            ))}
+          </section>
+        )}
+        {finishedGroups.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-neutral-500">✅ Finished</div>
+            {finishedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderDesktop(g.label)}
+                {renderDesktopList(g.items, ROW_CAP)}
+              </div>
+            ))}
+          </section>
+        )}
+        {postponedGroups.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-amber-600 dark:text-amber-500">
+              🚫 Postponed ({postponedSorted.length})
+            </div>
+            {postponedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderDesktop(g.label)}
+                {renderDesktopList(g.items, ROW_CAP)}
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type MmaTale = {
+  nickname: string | null;
+  height: string | null;
+  weight: string | null;
+  reach: string | null;
+  stance: string | null;
+};
+
+type NormalizedMatch = {
+  id: string | number;
+  sport: string;
+  league: string;
+  status: "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED";
+  home: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null; fifaRank?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null; fifaRank?: number | null };
+  timeLabel: string;
+  liveStatusLabel: string | null;
+  homeStarter: string | null;
+  awayStarter: string | null;
+  soccerCtx: SoccerContext | null;
+  soccerGoals: SoccerGoal[] | null;
+  soccerCards: SoccerCard[] | null;
+  soccerTeamStats: SoccerTeamStat[] | null;
+  soccerHalfStats: SoccerTeamStat[] | null;
+  soccerHalfScore: { home: number; away: number } | null;
+  odds: MatchOdds | null;
+  esportsCtx: EsportsContext | null;
+  baseballCtx: BaseballContext | null;
+  baseballLinescore: BaseballLinescoreData | null;
+  periodLinescore: PeriodLinescoreData | null;
+  liveCommentary: {
+    matchSummary: string | null;
+    summaryAt: Date | string | null;
+    scoreSnapshot: string | null;
+  } | null;
+  startTime: Date;
+  preview?: string;
+  recap?: string;
+  href: string | null;
+  /** 축구 승부차기 — 정규/연장 동점 후 PK */
+  penHome?: number | null;
+  penAway?: number | null;
+  doubleHeader: { index: number; total: number } | null;
+  /** UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null) */
+  mma: { category: string | null; home: MmaTale; away: MmaTale } | null;
+  mmaResult: { method: string | null; round: number | null; clock: string | null } | null;
+};
+
+// 야구 라인업 cover 리그 — MLB 만 풍부한 boxscore 라인업 (MLB Stats API).
+// KBO/NPB/CPBL/LMB 등은 라인업 미커버 (TheSports squad 정도, 풍부 X).
+const BASEBALL_LINEUP_LEAGUES = new Set(["MLB"]);
+
+function actionsFor(m: NormalizedMatch) {
+  const showAi = !!m.href; // 모든 매치 — 라이브 페이지의 매치 인사이트 5탭 진입
+  const showLineup = !!m.href && BASEBALL_LINEUP_LEAGUES.has(m.league);
+  if (!showAi && !m.recap && !showLineup) return null;
+  // 배구도 AI 예측 가동 (volleyball-predict cron — Elo+시장 블렌드, 2026-06-12)
+  const aiLabel = "AI prediction";
+  return (
+    <>
+      {showAi && (
+        <Link
+          href={m.href!}
+          prefetch={false}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
+        >
+          {aiLabel}
+        </Link>
+      )}
+      {showLineup && (
+        <Link
+          href={m.href!}
+          prefetch={false}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition"
+        >
+          Line-ups
+        </Link>
+      )}
+      {m.recap && (
+        <Link
+          href={`/articles/${m.recap}`}
+          prefetch={false}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
+        >
+          Report
+        </Link>
+      )}
+    </>
+  );
+}
+
+// 리그 표시 라벨 — NHL 은 6월에 스탠리컵 파이널만 열리므로(TheSports stage 데이터가
+// SCHEDULED 단계엔 없음) 6월(KST) NHL 경기는 "🏆 스탠리컵 파이널" 로 표시.
+function displayLeagueLabel(league: string, startTime: string | Date): string {
+  const t = typeof startTime === "string" ? new Date(startTime) : startTime;
+  const kstMonth = new Date(t.getTime() + 9 * 3600 * 1000).getUTCMonth();
+  if (league === "NHL" && kstMonth === 5) return "🏆 Stanley Cup Final"; // 5 = 6월(0-idx)
+  return enLeagueName(league);
+}
+
+function renderCard(m: NormalizedMatch) {
+  const statusKey: "scheduled" | "live" | "finished" | "postponed" =
+    m.status === "LIVE"
+      ? "live"
+      : m.status === "FINISHED"
+        ? "finished"
+        : m.status === "POSTPONED"
+          ? "postponed"
+          : "scheduled";
+
+  return (
+    <MatchCard
+      key={String(m.id)}
+      matchId={m.id}
+      sport={m.sport}
+      status={statusKey}
+      league={m.league}
+      leagueLabel={displayLeagueLabel(m.league, m.startTime)}
+      home={m.home}
+      away={m.away}
+      timeLabel={m.timeLabel}
+      liveStatusLabel={m.liveStatusLabel}
+      baseballCtx={m.baseballCtx}
+      baseballLinescore={m.baseballLinescore}
+      periodLinescore={m.periodLinescore}
+      soccerGoals={m.soccerGoals}
+      soccerCtx={m.soccerCtx}
+      esportsCtx={m.esportsCtx}
+      homeStarter={m.homeStarter}
+      awayStarter={m.awayStarter}
+      href={m.href}
+      actions={actionsFor(m)}
+      liveCommentary={m.liveCommentary}
+      doubleHeader={m.doubleHeader}
+      mma={m.mma}
+      mmaResult={m.mmaResult}
+    />
+  );
+}
+
+// LEAGUE_ORDER import 유지 (LEAGUE_DISPLAY 와 함께 sport-leagues 에서 export됨)
+void LEAGUE_ORDER;

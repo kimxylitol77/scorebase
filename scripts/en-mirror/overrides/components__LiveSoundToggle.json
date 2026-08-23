@@ -1,0 +1,12 @@
+{
+  "header": "LiveSoundToggle (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "점수 변화 사운드 끄기": "Turn score sound off",
+    "점수 변화 사운드 켜기": "Turn score sound on",
+    "점수 변화 시 사운드 ON (클릭 OFF)": "Score sound ON (click to turn off)",
+    "점수 변화 시 사운드 OFF (클릭 ON)": "Score sound OFF (click to turn on)",
+    "골 알림 ON": "Goal sound on",
+    "골 알림": "Goal sound"
+  }
+}

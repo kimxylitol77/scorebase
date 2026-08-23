@@ -1,0 +1,12 @@
+{
+  "header": "scores__hockey__HockeyCard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "종료": "FT",
+    "연기": "PP",
+    "예정": "Upcoming",
+    "진행 중": "Live",
+    "팀": "Team",
+    "피리어드": "Period"
+  }
+}

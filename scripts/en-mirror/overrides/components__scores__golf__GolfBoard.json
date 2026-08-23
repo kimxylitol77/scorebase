@@ -1,0 +1,13 @@
+{
+  "header": "scores__golf__GolfBoard (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    "지금 진행 중인 PGA·LPGA 대회가 없습니다.": "No PGA or LPGA event is currently running.",
+    "대회 기간(보통 목~일)에 리더보드가 표시됩니다. 데이터 출처 ESPN.": "The leaderboard appears during tournament days (usually Thursday to Sunday). Data from ESPN.",
+    "진행 중": "Live",
+    "종료": "Final",
+    "예정": "Upcoming",
+    "명 출전": " in the field",
+    "리더보드 top10 + 한국 선수 전원 · 선수 행을 누르면 홀별 스코어카드 · 5분 갱신 · 데이터 출처 ESPN": "Top 10 leaderboard · tap a player for the hole-by-hole card · refreshed every 5 min · data from ESPN"
+  }
+}

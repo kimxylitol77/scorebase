@@ -1,0 +1,18 @@
+{
+  "header": "scores__SoccerLeagueSidebarList (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [],
+  "dict": {
+    " 즐겨찾기 해제": " — remove from favourites",
+    " 즐겨찾기 추가": " — add to favourites",
+    "즐겨찾기 해제": "Remove from favourites",
+    "즐겨찾기": "Favourites",
+    "리그·국가 검색": "Search league or country",
+    "리그 또는 국가 이름으로 검색": "Search by league or country name",
+    "검색 결과": "Results",
+    "오늘 경기가 있는 리그 중 일치하는 항목이 없습니다.": "No match among leagues with fixtures today.",
+    "즐겨찾기 리그": "Favourite leagues",
+    "인기 리그": "Popular leagues",
+    "오늘 경기 많은 리그": "Most fixtures today",
+    "국가별 리그": "By country"
+  }
+}

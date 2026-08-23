@@ -258,6 +258,15 @@ export const COUNTRY_EN: Record<string, string> = {
   가나: "Ghana",
   이라크: "Iraq",
   기타: "Other",
+  "몬테네그로": "Montenegro",
+  "페로 제도": "Faroe Islands",
+  "코스타리카": "Costa Rica",
+  "과테말라": "Guatemala",
+  "온두라스": "Honduras",
+  "파나마": "Panama",
+  "엘살바도르": "El Salvador",
+  "니카라과": "Nicaragua",
+  "우즈베키스탄": "Uzbekistan",
 };
 
 /** 종목 코드 → 영문 라벨 (SPORTS.label 은 한국어) */
@@ -269,6 +278,10 @@ export const SPORT_LABEL_EN: Record<string, string> = {
   hockey: "Ice Hockey",
   esports: "Esports",
   mma: "MMA",
+  tennis: "Tennis",
+  golf: "Golf",
+  f1: "F1",
+  all: "Sports",
 };
 
 export function enLeagueName(code: string): string {
@@ -340,6 +353,30 @@ const TEAM_NAME_EN: Record<string, string> = {
   "도호쿠 라쿠텐 골든이글스": "Tohoku Rakuten Golden Eagles",
   "후쿠오카 소프트뱅크 호크스": "Fukuoka SoftBank Hawks",
   "히로시마 도요 카프": "Hiroshima Toyo Carp",
+  // NPB 축약형 + e스포츠 — /scores 카드는 풀네임이 아니라 축약형으로 온다 (2026-08 실측)
+  "닛폰햄": "Nippon-Ham",
+  "지바롯데": "Chiba Lotte",
+  "한신": "Hanshin",
+  "요코하마": "Yokohama",
+  "오릭스": "ORIX",
+  "소프트뱅크": "SoftBank",
+  "야쿠르트": "Yakult",
+  "주니치": "Chunichi",
+  "히로시마": "Hiroshima",
+  "요미우리": "Yomiuri",
+  "세이부": "Seibu",
+  "라쿠텐": "Rakuten",
+  "농심 레드포스": "Nongshim RedForce",
+  "BNK 피어엑스": "BNK FearX",
+  "한화생명e스포츠": "Hanwha Life Esports",
+  "시프터스": "Shifters",
+  "프나틱": "Fnatic",
+  "무비스타 코이": "Movistar KOI",
+  "SK 게이밍": "SK Gaming",
+  "플라이퀘스트": "FlyQuest",
+  "센티넬스": "Sentinels",
+  "디그니타스": "Dignitas",
+  "디스가이즈드": "Disguised",
 };
 
 export function toEnglishTeamName(name: string): string {
@@ -444,3 +481,23 @@ export const RADAR_AXIS_EN: Record<string, string> = {
   "경합 승률": "Duels won",
   "수비/90": "Def. actions/90",
 };
+
+/**
+ * 라이브 경기 상태 라벨 한글 → 영문.
+ * `lib/sports/live-scores.ts` 의 soccerStatusLabel 이 "전반 23'" 처럼 한국어로 만들고,
+ * 그 파일은 미러 대상이 아니라 표시 직전에 갈아끼운다.
+ */
+export function enMatchStatus(label: string | null | undefined): string | null {
+  if (!label) return label ?? null;
+  return label
+    .replace(/^전반\s*/, "1H ")
+    .replace(/^후반\s*/, "2H ")
+    .replace(/^연장\s*/, "ET ")
+    .replace(/^승부차기$/, "Pens")
+    .replace(/(\d+)회\s*초/, "Top $1")
+    .replace(/(\d+)회\s*말/, "Bot $1")
+    .replace(/(\d+)쿼터/, "Q$1")
+    .replace(/(\d+)피리어드/, "P$1")
+    .replace(/(\d+)세트/, "Set $1")
+    .trim();
+}
