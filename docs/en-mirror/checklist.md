@@ -31,7 +31,7 @@
 - [~] /salaries/kbo — **불가**: 선수·팀·포지션이 한글 원본뿐, 영문명 데이터 없음  - [x] /salaries/f1  - [x] /salaries/tennis  - [x] /salaries/golf
 
 랭킹 (4)
-- [ ] /rankings/f1  - [ ] /rankings/tennis  - [ ] /rankings/ufc  - [ ] /rankings/value-clubs
+- [x] /rankings/f1  - [x] /rankings/tennis  - [x] /rankings/ufc  - [x] /rankings/value-clubs
 
 축구 데이터 (17)
 - [ ] /transfers/[id]  - [ ] /leagues/[league]  - [ ] /previews  - [ ] /previews/[league]

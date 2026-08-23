@@ -1,0 +1,10 @@
+{
+  "header": "데이터 인용 유도 박스 (영어판) — 출처·링크 원클릭 복사. scripts/en-mirror 로 자동 생성.",
+  "dict": {
+    "이 데이터 인용하기": "Cite this data",
+    "통계·수치를 블로그·기사에 인용하실 때 아래 출처를 함께 표기해 주시면\n        자유롭게 사용하실 수 있습니다. 전문 무단 복제·재배포는 제한됩니다.": "You are free to use these figures in blogs and articles as long as you credit the source below.\n        Wholesale copying or redistribution is not permitted.",
+    "복사됨 ✓": "Copied ✓",
+    "출처 문구 복사": "Copy citation",
+    "링크 복사": "Copy link"
+  }
+}

@@ -159,3 +159,39 @@ script/style 을 걷어내고 태그를 벗겨야 "사용자 눈에 보이는 �
   결과는 맞을 수 있지만 우연이므로 `[미적용]` 경고가 뜨면 반드시 생성물을 확인할 것.
 - **tsc 의 `incremental: true` 캐시가 stale 해지면** 엉뚱한 파일에 `TS2393 Duplicate function`
   이 뜬다. 코드를 고치기 전에 `tsconfig.tsbuildinfo` 를 지우고 다시 돌려볼 것.
+
+---
+
+## 2026-08-23 · 랭킹 4종 완료 — 빌더 한계 두 가지를 고침
+
+### 로컬 컴포넌트를 놓치고 있었다
+
+`/rankings/ufc` 가 `./UfcRankingsView` 를 쓰는데, 의존성 추적이 `@/components/**` 만 보고 있어
+영어 페이지 안에 한국어 UI 가 통째로 남을 뻔했다.
+
+대상 페이지를 전수 조사하니 3곳이 로컬 컴포넌트를 쓴다 —
+`/rankings/ufc`(1개) · `/ballon`(2개) · **`/transfers/[id]`(17개)**.
+`build.ts` 에 로컬 컴포넌트 미러를 추가했다. 미러는 `src/app/en/<route>/` 에 같은 이름으로 놓이므로
+상대 import 는 재계산하지 않고 그대로 둔다(`rewriteRelativeImports` 에서 제외).
+
+### DB 에만 있는 한글은 소스 치환으로 못 잡는다
+
+UFC 체급명(`MmaRanking.displayName`)이 한글로만 저장돼 있다.
+페이지에 매핑 객체를 넣으려 했더니 **키가 한글이라 추출기가 "미번역" 으로 잡았다** — 당연한 결과다.
+`src/lib/i18n/en.ts` 에 `UFC_WEIGHT_CLASS_EN` / `enWeightClass()` 로 옮겨 페이지 소스에서 한글을 없앴다.
+앞으로 DB 발 한글은 이 사전 파일에 모은다.
+
+파이터 이름은 `RankedFighter` 가 `name`(영문)·`nameKo` 를 둘 다 들고 있어 문제없었다.
+KBO 와 달리 영문 원본이 살아 있는 구조.
+
+### 보정 규칙 검증기의 결함 (mkrule.py)
+
+규칙을 쓸 때 매번 **원본 소스**와 비교해 존재를 확인했는데,
+`build.ts` 의 `applyRules` 는 규칙을 순서대로 적용한다.
+그래서 "앞 규칙이 바꿔놓은 자리를 노리는 규칙" 이 거짓 불일치로 잡혔다.
+검증도 순차 적용으로 바꿔야 한다 — `/tmp/mkrule.py` 의 `Rules` 클래스가 그 역할.
+
+### 주의: 검증 요청이 몰리면 rate-limit 에 걸린다
+
+`verify.ts` 를 연달아 돌리면 middleware 의 rate-limit 이 429 를 준다.
+한 번에 검사하는 라우트 수를 줄이거나 사이를 띄울 것.

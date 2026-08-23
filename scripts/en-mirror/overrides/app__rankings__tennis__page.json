@@ -1,0 +1,66 @@
+{
+  "header": "/en/rankings/tennis — ATP·WTA 세계랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "                      name={r.nameKo ?? r.name}\n",
+      "                      name={r.name}\n"
+    ],
+    [
+      "                        {r.nameKo ?? r.name}\n                      </span>\n                      {r.nameKo && (\n                        <span className=\"block truncate text-[11px] text-neutral-400\">{r.name}</span>\n                      )}\n",
+      "                        {r.name}\n                      </span>\n"
+    ],
+    [
+      "                      {r.countryKo ?? r.countryEn ?? \"\"}\n",
+      "                      {r.countryEn ?? \"\"}\n"
+    ],
+    [
+      "href={t === \"ATP\" ? \"/rankings/tennis\" : \"/rankings/tennis?tour=wta\"}",
+      "href={t === \"ATP\" ? \"/en/rankings/tennis\" : \"/en/rankings/tennis?tour=wta\"}"
+    ],
+    [
+      "          href=\"/scores?sport=tennis\"",
+      "          href=\"/en/scores?sport=tennis\""
+    ],
+    [
+      "href={tour === \"WTA\" ? \"/salaries/tennis?tour=wta\" : \"/salaries/tennis\"}",
+      "href={tour === \"WTA\" ? \"/en/salaries/tennis?tour=wta\" : \"/en/salaries/tennis\"}"
+    ],
+    [
+      "href={`/rankings/tennis/${r.athleteId}`}",
+      "href={`/en/rankings/tennis/${r.athleteId}`}"
+    ],
+    [
+      "        <Link\n          href=\"/tennis/draw\"\n          className=\"inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]\"\n        >\n          대진표\n        </Link>\n",
+      ""
+    ],
+    [
+      "              {t === \"ATP\" ? \"ATP 남자\" : \"WTA 여자\"}",
+      "              {t === \"ATP\" ? \"ATP (men)\" : \"WTA (women)\"}"
+    ],
+    [
+      "  const label = tour === \"WTA\" ? \"WTA 여자\" : \"ATP 남자\";",
+      "  const label = tour === \"WTA\" ? \"WTA\" : \"ATP\";"
+    ],
+    [
+      "    title: `${label} 테니스 세계랭킹 — 순위·포인트 (한글)`,\n    description: `${label} 테니스 세계랭킹 1~150위를 한국어 선수명으로. 순위 등락, 랭킹 포인트, 국적을 한눈에. 시너·알카라스·조코비치 등 상위 선수 프로필과 시즌 성적까지 — 스코어베이스.`,\n    keywords: [\n      \"테니스 세계랭킹\", \"ATP 랭킹\", \"WTA 랭킹\", \"테니스 순위\", \"ATP 순위\",\n      \"테니스 랭킹 포인트\", \"시너 랭킹\", \"알카라스 랭킹\", \"조코비치 순위\",\n    ],\n    alternates: { canonical: `${SITE_URL}/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}` },",
+      "    title: `${label} Tennis World Rankings — Positions and Points`,\n    description: `${label} tennis world rankings, positions 1–150. Weekly movement, ranking points and nationality for Sinner, Alcaraz, Djokovic and every ranked player.`,\n    keywords: [\n      \"tennis world rankings\", \"ATP rankings\", \"WTA rankings\", \"tennis standings\",\n      \"tennis ranking points\", \"Sinner ranking\", \"Alcaraz ranking\", \"Djokovic ranking\",\n    ],\n    alternates: {\n      canonical: `${SITE_URL}/en/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n      languages: koEnLanguages(\n        `/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n        `/en/rankings/tennis${tour === \"WTA\" ? \"?tour=wta\" : \"\"}`,\n      ),\n    },"
+    ],
+    [
+      "import { SITE_URL } from \"@/lib/site-url\";",
+      "import { SITE_URL } from \"@/lib/site-url\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "테니스 랭킹": "Tennis Rankings",
+    "테니스 세계랭킹": "Tennis World Rankings",
+    "ATP(남자)·WTA(여자) 세계랭킹 1~150위. 선수 이름을 한국어로, 순위 등락과 랭킹 포인트를 함께 봅니다.": "ATP (men) and WTA (women) world rankings, positions 1–150 — with weekly movement and ranking points.",
+    "순위": "Rank",
+    "선수": "Player",
+    "국적": "Country",
+    "포인트": "Points",
+    "🎾 테니스 라이브 스코어": "🎾 Tennis live scores",
+    "시즌 상금 랭킹": "Season prize money",
+    "랭킹 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.": "Could not load ranking data. Please try again shortly.",
+    "랭킹은 매주 갱신됩니다(ATP·WTA 공식 발표 기준). 선수 이름은 한국어 위키백과와 외래어표기법을 기준으로 표기하며,\n        일부 선수는 통용 표기와 다를 수 있습니다. 데이터 출처 ESPN.": "Rankings are updated weekly from official ATP and WTA releases. Data from ESPN."
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "header": "/en/rankings/ufc — UFC 체급별·P4P 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "    displayName: r.displayName,",
+      "    displayName: enWeightClass(r.displayName),"
+    ],
+    [
+      "return tid != null ? { ...f, href: `/ufc/fighters/${tid}` } : f;",
+      "return tid != null ? { ...f, href: `/en/ufc/fighters/${tid}` } : f;"
+    ],
+    [
+      "<Link href=\"/scores\" className=\"hover:underline\">라이브 스코어</Link>",
+      "<Link href=\"/en/scores\" className=\"hover:underline\">라이브 스코어</Link>"
+    ],
+    [
+      "<Link href=\"/scores?sport=mma\" className=\"hover:underline\">UFC</Link>",
+      "<Link href=\"/en/scores?sport=mma\" className=\"hover:underline\">UFC</Link>"
+    ],
+    [
+      "  title: \"UFC 랭킹 — 체급별 순위·파운드-포-파운드 (한글)\",\n  description:\n    \"UFC 공식 체급별 랭킹과 파운드-포-파운드(P4P) 순위. 헤비급·라이트급·웰터급 등 남녀 전 체급 챔피언과 컨텐더 1~15위를 한국어 이름·전적과 함께. 매주 자동 갱신, 데이터 UFC.com.\",\n  keywords: [\"UFC 랭킹\", \"UFC 순위\", \"체급별 랭킹\", \"파운드 포 파운드\", \"P4P\", \"UFC 챔피언\", \"UFC 헤비급 랭킹\", \"MMA 랭킹\"],\n  alternates: { canonical: \"https://www.scorebase.kr/rankings/ufc\" },",
+      "  title: \"UFC Rankings — Divisional and Pound-for-Pound\",\n  description:\n    \"Official UFC divisional rankings and pound-for-pound (P4P) standings. Champions and the top 15 contenders in every men's and women's division, with records. Updated weekly from UFC.com.\",\n  keywords: [\"UFC rankings\", \"UFC standings\", \"pound for pound\", \"P4P rankings\", \"UFC champions\", \"UFC heavyweight rankings\", \"MMA rankings\"],\n  alternates: {\n    canonical: \"https://www.scorebase.kr/en/rankings/ufc\",\n    languages: koEnLanguages(\"/rankings/ufc\", \"/en/rankings/ufc\"),\n  },"
+    ],
+    [
+      "import AmbientGlow from \"@/components/AmbientGlow\";",
+      "import AmbientGlow from \"@/components/AmbientGlow\";\nimport { koEnLanguages, enWeightClass } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "라이브 스코어": "Live Scores",
+    "랭킹": "Rankings",
+    "UFC 랭킹": "UFC Rankings",
+    "체급별 챔피언·컨텐더 순위와 파운드-포-파운드(P4P) 랭킹. 매주 갱신 · 데이터 UFC.com.": "Divisional champion and contender rankings plus pound-for-pound (P4P). Updated weekly · data from UFC.com.",
+    "UFC 랭킹 준비 중": "UFC rankings coming soon",
+    "랭킹 데이터를 수집 중입니다. 곧 추가됩니다.": "We are still collecting ranking data. It will appear shortly."
+  }
+}

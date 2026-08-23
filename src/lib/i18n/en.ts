@@ -390,3 +390,29 @@ export function koEnLanguages(koPath: string, enPath: string) {
     "x-default": `${SITE_URL}${koPath}`,
   };
 }
+
+/**
+ * UFC 체급명 한글 → 영문.
+ * MmaRanking.displayName 이 한글로만 저장돼 있어 영어판(/en/rankings/ufc)에서 갈아끼운다.
+ * 소스에 한글 키를 두면 en-mirror 추출기가 "미번역" 으로 잡으므로 여기(사전 파일)에 둔다.
+ */
+export const UFC_WEIGHT_CLASS_EN: Record<string, string> = {
+  "파운드-포-파운드 (남)": "Pound-for-Pound (Men)",
+  "파운드-포-파운드 (여)": "Pound-for-Pound (Women)",
+  "플라이급": "Flyweight",
+  "밴텀급": "Bantamweight",
+  "페더급": "Featherweight",
+  "라이트급": "Lightweight",
+  "웰터급": "Welterweight",
+  "미들급": "Middleweight",
+  "라이트헤비급": "Light Heavyweight",
+  "헤비급": "Heavyweight",
+  "여자 스트로급": "Women's Strawweight",
+  "여자 플라이급": "Women's Flyweight",
+  "여자 밴텀급": "Women's Bantamweight",
+  "여자 페더급": "Women's Featherweight",
+};
+
+export function enWeightClass(ko: string): string {
+  return UFC_WEIGHT_CLASS_EN[ko] ?? ko;
+}

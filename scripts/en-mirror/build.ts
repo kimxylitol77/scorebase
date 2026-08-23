@@ -61,6 +61,24 @@ function componentImports(src: string): string[] {
   return out;
 }
 
+/**
+ * 같은 폴더(또는 app 안)를 가리키는 상대 import 목록.
+ * 페이지 옆에 둔 로컬 컴포넌트(`./UfcRankingsView`)도 한글을 들고 있으면 미러가 필요하다.
+ */
+function localImports(src: string, dir: string): { spec: string; abs: string }[] {
+  const out: { spec: string; abs: string }[] = [];
+  const re = /from\s+["'](\.[^"']*)["']/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    const spec = m[1];
+    const base = path.resolve(dir, spec);
+    for (const ext of [".tsx", ".ts"]) {
+      if (fs.existsSync(base + ext)) { out.push({ spec, abs: base + ext }); break; }
+    }
+  }
+  return out.filter((x) => x.abs.startsWith(path.join(SRC, "app")));
+}
+
 /** 렌더 경로(주석 제외)에 한글이 있는가 — AST 기준. */
 function hasHangul(src: string, file: string): boolean {
   return extractSource(src, file).length > 0;
@@ -73,17 +91,21 @@ export interface Plan {
   mirrorComponents: Map<string, string>;
   /** 한글이 없어 원본을 그대로 쓰는 컴포넌트 */
   reused: Set<string>;
+  /** 미러를 만들 로컬 컴포넌트: 원본 절대경로 → 생성 위치 */
+  mirrorLocals: Map<string, string>;
 }
 
 export function collectPlan(pageFiles: string[]): Plan {
   const mirrorComponents = new Map<string, string>();
   const reused = new Set<string>();
+  const mirrorLocals = new Map<string, string>();
   const seen = new Set<string>();
 
   const walk = (file: string) => {
     if (seen.has(file)) return;
     seen.add(file);
     const src = fs.readFileSync(file, "utf8");
+
     for (const spec of componentImports(src)) {
       const abs = resolveAlias(spec);
       if (!abs) { console.warn(`  [해석 실패] ${spec}`); continue; }
@@ -93,9 +115,20 @@ export function collectPlan(pageFiles: string[]): Plan {
       else reused.add(spec);
       walk(abs);
     }
+
+    // 페이지 옆 로컬 컴포넌트 — 한글이 있으면 /en 쪽에 같은 상대 위치로 미러를 만든다.
+    for (const { abs } of localImports(src, path.dirname(file))) {
+      if (abs.includes(`${path.sep}app${path.sep}en${path.sep}`)) continue;
+      const csrc = fs.readFileSync(abs, "utf8");
+      if (hasHangul(csrc, abs)) {
+        const relFromApp = path.relative(path.join(SRC, "app"), abs);
+        mirrorLocals.set(abs, path.join(SRC, "app/en", relFromApp));
+      }
+      walk(abs);
+    }
   };
   for (const f of pageFiles) walk(f);
-  return { mirrorComponents, reused };
+  return { mirrorComponents, reused, mirrorLocals };
 }
 
 // ---------- 2패스: 변환 ----------
@@ -112,10 +145,19 @@ function applyRules(src: string, rules: [string, string][], label: string, file:
   return out;
 }
 
-function rewriteRelativeImports(src: string, fromDir: string, toDir: string): string {
-  return src.replace(/from\s+(["'])(\.[^"']*)\1/g, (_all, q, spec) => {
-    const abs = path.resolve(fromDir, spec);
-    let next = path.relative(toDir, abs).split(path.sep).join("/");
+function rewriteRelativeImports(
+  src: string,
+  fromDir: string,
+  toDir: string,
+  mirrorLocals: Map<string, string>,
+): string {
+  return src.replace(/from\s+(["'])(\.[^"']*)\1/g, (all, q, spec) => {
+    const base = path.resolve(fromDir, spec);
+    // 미러가 만들어지는 로컬 컴포넌트는 /en 쪽에도 같은 상대 위치에 놓이므로 경로를 건드리지 않는다.
+    for (const ext of [".tsx", ".ts"]) {
+      if (mirrorLocals.has(base + ext)) return all;
+    }
+    let next = path.relative(toDir, base).split(path.sep).join("/");
     if (!next.startsWith(".")) next = "./" + next;
     return `from ${q}${next}${q}`;
   });
@@ -153,6 +195,7 @@ export function transformFile(
   outPath: string,
   dict: Record<string, string>,
   mirror: Map<string, string>,
+  mirrorLocals: Map<string, string> = new Map(),
 ): { code: string; missing: Hit[]; total: number } {
   const rel = path.relative(SRC, absFile).split(path.sep).join("/");
   const ov = loadOverride(rel);
@@ -175,7 +218,7 @@ export function transformFile(
   }
 
   out = applyRules(out, ov.replace ?? [], "replace", absFile);
-  out = rewriteRelativeImports(out, path.dirname(absFile), path.dirname(outPath));
+  out = rewriteRelativeImports(out, path.dirname(absFile), path.dirname(outPath), mirrorLocals);
   out = rewriteComponentImports(out, mirror);
 
   if (ov.header) out = `// ${ov.header}\n` + out.replace(/^(\/\/[^\n]*\n)+/, "");
@@ -206,14 +249,17 @@ if (require.main === module) {
   for (const f of pageFiles) if (!fs.existsSync(f)) { console.error(`없는 페이지: ${f}`); process.exit(1); }
 
   const plan = collectPlan(pageFiles);
-  console.log(`대상 페이지 ${routes.length}개 · 미러 컴포넌트 ${plan.mirrorComponents.size}개 · 원본 재사용 ${plan.reused.size}개\n`);
+  console.log(
+    `대상 페이지 ${routes.length}개 · 미러 컴포넌트 ${plan.mirrorComponents.size}개` +
+    ` · 로컬 컴포넌트 ${plan.mirrorLocals.size}개 · 원본 재사용 ${plan.reused.size}개\n`,
+  );
 
   const dict = loadJson<Record<string, string>>(DICT_PATH, {});
   const results: FileResult[] = [];
 
   let residueCount = 0;
   const emit = (abs: string, outPath: string) => {
-    const { code, missing, total } = transformFile(abs, outPath, dict, plan.mirrorComponents);
+    const { code, missing, total } = transformFile(abs, outPath, dict, plan.mirrorComponents, plan.mirrorLocals);
     const rel = path.relative(SRC, abs).split(path.sep).join("/");
     results.push({ rel, outPath, missing, total });
     const residue = checkResidue(code);
@@ -232,6 +278,11 @@ if (require.main === module) {
 
   console.log("[컴포넌트]");
   for (const [spec, abs] of plan.mirrorComponents) emit(abs, enComponentFileFor(spec));
+  if (plan.mirrorLocals.size) {
+    console.log("\n[로컬 컴포넌트]");
+    for (const [abs, outPath] of plan.mirrorLocals) emit(abs, outPath);
+  }
+
   console.log("\n[페이지]");
   routes.forEach((r, i) => emit(pageFiles[i], enPageFileFor(r)));
 

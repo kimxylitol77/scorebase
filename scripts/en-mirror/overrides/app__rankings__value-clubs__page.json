@@ -1,0 +1,81 @@
+{
+  "header": "/en/rankings/value-clubs — 몸값 대비 승점 효율 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  { key: \"EPL\", label: \"프리미어리그\" },\n  { key: \"LALIGA\", label: \"라리가\" },\n  { key: \"SERIE_A\", label: \"세리에 A\" },\n  { key: \"BUNDESLIGA\", label: \"분데스리가\" },\n  { key: \"LIGUE_1\", label: \"리그 1\" },",
+      "  { key: \"EPL\", label: \"Premier League\" },\n  { key: \"LALIGA\", label: \"LaLiga\" },\n  { key: \"SERIE_A\", label: \"Serie A\" },\n  { key: \"BUNDESLIGA\", label: \"Bundesliga\" },\n  { key: \"LIGUE_1\", label: \"Ligue 1\" },"
+    ],
+    [
+      "      name: teamDisplayKo(s, p.league),",
+      "      name: s.name,"
+    ],
+    [
+      "import { teamDisplayKo } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "  const citeDate = new Date().toLocaleDateString(\"ko-KR\", { timeZone: \"Asia/Seoul\", year: \"numeric\", month: \"long\", day: \"numeric\" });",
+      "  const citeDate = new Date().toLocaleDateString(\"en-GB\", { timeZone: \"Asia/Seoul\", year: \"numeric\", month: \"long\", day: \"numeric\" });"
+    ],
+    [
+      "  const citeUrl = `${SITE_URL}/rankings/value-clubs`;",
+      "  const citeUrl = `${SITE_URL}/en/rankings/value-clubs`;"
+    ],
+    [
+      "    ? `가성비 구단 랭킹 ${season.label} — ${sections.map((s) => `${s.label} 1위 ${s.rows[0].name} ${s.rows[0].eff.toFixed(1)}점/1억€`).join(\", \")} (빅5 ${totalTeams}팀, 스쿼드 상위 ${SQUAD_TOP_N}명 기준 · 출처 Scorebase ${citeUrl}, ${citeDate})`\n    : `가성비 구단 랭킹 — 몸값 대비 승점 (출처 Scorebase ${citeUrl})`;",
+      "    ? `Value for Money Clubs ${season.label} — ${sections.map((s) => `${s.label} leader ${s.rows[0].name} ${s.rows[0].eff.toFixed(1)} pts per €100M`).join(\", \")} (${totalTeams} big-five clubs, top ${SQUAD_TOP_N} squad players · source Scorebase ${citeUrl}, ${citeDate})`\n    : `Value for Money Clubs — points per €100M of squad value (source Scorebase ${citeUrl})`;"
+    ],
+    [
+      "    name: `가성비 구단 랭킹 ${season.label} — 몸값 대비 승점`,\n    description: \"빅5 리그 구단을 스쿼드 시장가치 1억 유로당 승점으로 정렬한 효율 랭킹 데이터셋.\",\n    url: citeUrl,\n    keywords: [\"가성비 구단\", \"스쿼드 가치\", \"몸값 대비 성적\"],\n    creator: { \"@type\": \"Organization\", name: \"스코어베이스\", url: SITE_URL },",
+      "    name: `Value for Money Clubs ${season.label} — points per €100M of squad value`,\n    description: \"Efficiency ranking of Europe's big five league clubs by league points per €100M of squad market value.\",\n    url: citeUrl,\n    keywords: [\"value for money clubs\", \"squad value\", \"points per squad value\"],\n    creator: { \"@type\": \"Organization\", name: \"Scorebase\", url: SITE_URL },"
+    ],
+    [
+      "  title: \"가성비 구단 랭킹 — 몸값 대비 승점 (빅5 리그)\",\n  description:\n    \"프리미어리그·라리가·세리에A·분데스리가·리그1 구단을 스쿼드 시장가치 1억 유로당 승점으로 줄 세운 랭킹. 돈을 가장 효율적으로 쓴 구단과 가장 비효율적으로 쓴 구단을 리그별로 비교합니다.\",\n  keywords: [\n    \"가성비 구단\", \"스쿼드 가치\", \"몸값 대비 성적\", \"축구 구단 효율\", \"프리미어리그 몸값\",\n    \"라리가 스쿼드 가치\", \"축구 시장가치 랭킹\",\n  ],\n  alternates: { canonical: `${SITE_URL}/rankings/value-clubs` },\n  openGraph: {\n    title: \"가성비 구단 랭킹 — 몸값 대비 승점\",\n    description: \"빅5 구단을 스쿼드 시장가치 1억 유로당 승점으로 줄 세웠습니다.\",\n    url: `${SITE_URL}/rankings/value-clubs`,\n    images: ogPageImage({ title: \"가성비 구단 랭킹\", subtitle: \"몸값 1억€당 승점\", tag: \"빅5\" }),\n  },",
+      "  title: \"Value for Money Clubs — Points per €100M of Squad Value\",\n  description:\n    \"Premier League, LaLiga, Serie A, Bundesliga and Ligue 1 clubs ranked by league points per €100M of squad market value. See who spends efficiently and who does not, league by league.\",\n  keywords: [\n    \"value for money clubs\", \"squad value\", \"points per squad value\", \"football club efficiency\",\n    \"Premier League squad value\", \"LaLiga squad value\", \"football market value ranking\",\n  ],\n  alternates: {\n    canonical: `${SITE_URL}/en/rankings/value-clubs`,\n    languages: koEnLanguages(\"/rankings/value-clubs\", \"/en/rankings/value-clubs\"),\n  },\n  openGraph: {\n    title: \"Value for Money Clubs — points per €100M\",\n    description: \"Europe's big five clubs ranked by league points per €100M of squad market value.\",\n    url: `${SITE_URL}/en/rankings/value-clubs`,\n    images: ogPageImage({ title: \"Value for Money Clubs\", subtitle: \"Points per €100M squad value\", tag: \"Big 5\" }),\n  },"
+    ],
+    [
+      "href={`/teams/${r.teamId}`}",
+      "href={`/en/teams/${r.teamId}`}"
+    ],
+    [
+      "<Link href=\"/transfers\" className=\"font-medium text-rose-600 underline-offset-2 hover:underline dark:text-rose-400\">",
+      "<Link href=\"/en/transfers\" className=\"font-medium text-rose-600 underline-offset-2 hover:underline dark:text-rose-400\">"
+    ],
+    [
+      "<Link href=\"/standings\" className=\"font-medium text-rose-600 underline-offset-2 hover:underline dark:text-rose-400\">",
+      "<Link href=\"/en/standings\" className=\"font-medium text-rose-600 underline-offset-2 hover:underline dark:text-rose-400\">"
+    ],
+    [
+      "import { SITE_URL } from \"@/lib/site-url\";",
+      "import { SITE_URL } from \"@/lib/site-url\";\nimport { koEnLanguages } from \"@/lib/i18n/en\";"
+    ]
+  ],
+  "dict": {
+    "시즌": "season",
+    "가성비 구단 랭킹": "Value for Money Clubs",
+    "스쿼드 몸값": "Clubs ranked by",
+    "1억 유로당 승점": "league points per €100M of squad value",
+    "으로 줄 세웠습니다.\n          잘하는 팀 순위가 아니라": ". This is not a ranking of who is best —",
+    "쓴 돈 대비 얼마나 뽑아냈나": "it measures how much they got for what they spent",
+    "의 순위라,\n          우승팀이 맨 아래에 오기도 합니다.": ", so champions sometimes finish last.",
+    "팀": "clubs",
+    "가성비 1위": "most efficient",
+    "최하위": "least efficient",
+    "계산 방법": "How it is calculated",
+    "승점 ÷ (스쿼드 시장가치 ÷ 1억 유로)": "points ÷ (squad market value ÷ €100M)",
+    "경기 미만 팀은 제외합니다.": "Clubs with fewer matches played are excluded.",
+    "리그끼리 비교하지 마세요.": "Do not compare across leagues.",
+    "리그마다 몸값 수준 자체가 달라(같은 시즌 최저 스쿼드가\n            프리미어리그는 약 290M€, 라리가는 약 55M€) 리그를 넘어선 숫자 비교는 의미가 없습니다. 같은 리그 안에서만 줄을 세웠습니다.": "Wage and value levels differ so much between leagues (the cheapest squad in one season is about €290M in the Premier League but €55M in LaLiga) that cross-league comparison is meaningless. Clubs are ranked only within their own league.",
+    "구단 스쿼드 가치와 평균 나이는": "Squad values and average ages are on",
+    "이적시장": "Transfers",
+    "에서, 리그 순위는": ", and league tables are on",
+    "순위표": "Standings",
+    "에서 볼 수 있습니다.": ".",
+    "입니다. 숫자가 클수록 적은 돈으로 많은 승점을 얻은 것입니다.\n            스쿼드 가치는 팀 내 시장가치": ". A higher number means more points won per euro spent. Squad value is the sum of the club's",
+    "상위": "top",
+    "명": "",
+    "의 합입니다. 명단 전체를 더하면 유스와 방출\n            대기 선수까지 섞여(같은 빅5인데 팀별 30~88명) 명단이 두꺼운 팀만 손해를 보기 때문입니다.": " players by market value. Counting whole squads would mix in youth and fringe players (30–88 per club even within the big five) and unfairly penalise deep squads.",
+    "승점": "Points",
+    "경기 · 스쿼드": "played · squad"
+  }
+}

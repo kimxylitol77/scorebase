@@ -1,0 +1,30 @@
+{
+  "header": "UFC 랭킹 인터랙티브 뷰 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  const label = (f.nameKo ?? f.name).trim().charAt(0);",
+      "  const label = f.name.trim().charAt(0);"
+    ],
+    [
+      "                {active.champion.nameKo ?? active.champion.name}",
+      "                {active.champion.name}"
+    ],
+    [
+      "<div className=\"truncate text-lg font-black\">{active.champion.nameKo ?? active.champion.name}</div>",
+      "<div className=\"truncate text-lg font-black\">{active.champion.name}</div>"
+    ],
+    [
+      "                {f.nameKo ?? f.name}",
+      "                {f.name}"
+    ],
+    [
+      "<span className=\"min-w-0 flex-1 truncate text-sm font-semibold\">{f.nameKo ?? f.name}</span>",
+      "<span className=\"min-w-0 flex-1 truncate text-sm font-semibold\">{f.name}</span>"
+    ]
+  ],
+  "dict": {
+    "🏆 챔피언": "🏆 Champion",
+    "랭킹 데이터 준비 중": "Ranking data coming soon",
+    "출처: UFC.com 공식 랭킹 · 미디어 패널 투표로 매주 갱신됩니다. 한글 표기가 없는 파이터는 영문으로 표시됩니다.": "Source: official UFC.com rankings · updated weekly by media panel vote."
+  }
+}
