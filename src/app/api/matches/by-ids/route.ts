@@ -25,8 +25,8 @@ export async function GET(req: Request) {
     select: {
       id: true, league: true, externalId: true, status: true, startTime: true,
       homeScore: true, awayScore: true,
-      homeTeam: { select: { name: true } },
-      awayTeam: { select: { name: true } },
+      homeTeam: { select: { name: true, logoUrl: true } },
+      awayTeam: { select: { name: true, logoUrl: true } },
     },
   });
 
@@ -38,6 +38,8 @@ export async function GET(req: Request) {
     startTime: m.startTime.toISOString(),
     homeName: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
     awayName: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+    homeLogo: m.homeTeam.logoUrl ?? null,
+    awayLogo: m.awayTeam.logoUrl ?? null,
     homeScore: m.homeScore,
     awayScore: m.awayScore,
   }));

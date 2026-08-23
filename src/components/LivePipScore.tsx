@@ -38,6 +38,8 @@ interface LiveMatch {
   awayName: string;
   homeShort: string;
   awayShort: string;
+  homeLogo?: string | null;
+  awayLogo?: string | null;
   homeScore: number;
   awayScore: number;
   statusLabel: string;
@@ -54,6 +56,8 @@ interface BriefMatch {
   startTime: string;
   homeName: string;
   awayName: string;
+  homeLogo?: string | null;
+  awayLogo?: string | null;
   homeScore: number | null;
   awayScore: number | null;
 }
@@ -66,12 +70,44 @@ interface PipRow {
   away: string;
   homeScore: number | null;
   awayScore: number | null;
+  /** 팀 엠블럼 — 방송형 스타일용. 라이브 API → DB(by-ids) 순, 없으면 null */
+  homeLogo: string | null;
+  awayLogo: string | null;
   statusLabel: string;
   /** live=0 → scheduled=1 → finished/postponed=2 (정렬·색상) */
   state: "live" | "scheduled" | "done";
 }
 
 const POLL_LIVE_MS = 5_000;
+
+/** 방송형 팀 엠블럼 — URL 없거나 404 면 이니셜 원형 폴백 (군소팀 로고 결손 방어) */
+function PipLogo({ url, name, size }: { url: string | null; name: string; size: number }) {
+  const [err, setErr] = useState(false);
+  if (url && !err) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt=""
+        width={size}
+        height={size}
+        onError={() => setErr(true)}
+        className="shrink-0 rounded-full bg-white object-contain p-0.5"
+        style={{ width: size, height: size }}
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <span
+      className="inline-flex shrink-0 items-center justify-center rounded-full bg-white/15 text-[10px] font-bold text-white/80"
+      style={{ width: size, height: size }}
+      aria-hidden
+    >
+      {name.slice(0, 1)}
+    </span>
+  );
+}
 
 // 오늘(KST) 이전에 시작한 경기인지 — /scores "내 경기"(오늘 데이터 ∩ 즐겨찾기)와
 // 목록을 맞추기 위해 지난 종료 경기는 PiP 에서 숨긴다. 시작시각 미상도 숨김(내 경기에 없음).
@@ -359,12 +395,15 @@ export default function LivePipScore() {
   const rows: PipRow[] = [...favIds]
     .map((id): PipRow | null => {
       const live = liveById.get(id);
+      const bLogo = brief[id];
       if (live) {
         return {
           id,
           league: live.league,
           home: live.homeShort || live.homeName,
           away: live.awayShort || live.awayName,
+          homeLogo: live.homeLogo ?? bLogo?.homeLogo ?? null,
+          awayLogo: live.awayLogo ?? bLogo?.awayLogo ?? null,
           homeScore: live.homeScore,
           awayScore: live.awayScore,
           statusLabel: live.statusLabel,
@@ -390,6 +429,8 @@ export default function LivePipScore() {
           league: b.league,
           home: meta?.homeShort || b.homeName,
           away: meta?.awayShort || b.awayName,
+          homeLogo: b.homeLogo ?? null,
+          awayLogo: b.awayLogo ?? null,
           homeScore: state === "scheduled" ? null : b.homeScore,
           awayScore: state === "scheduled" ? null : b.awayScore,
           statusLabel:
@@ -417,6 +458,8 @@ export default function LivePipScore() {
         league: meta.league,
         home: meta.homeShort || meta.homeName,
         away: meta.awayShort || meta.awayName,
+        homeLogo: null,
+        awayLogo: null,
         homeScore: meta.homeScore ?? null,
         awayScore: meta.awayScore ?? null,
         statusLabel:
@@ -561,8 +604,9 @@ export default function LivePipScore() {
               key={m.id}
               className={`rounded-xl bg-neutral-950 text-white px-3 ${size === "lg" ? "py-2.5" : "py-2"} ${m.state === "done" ? "opacity-60" : ""}`}
             >
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+              <div className="grid grid-cols-[1fr_auto_auto_auto_1fr] items-center gap-2">
                 <span className={`truncate text-right font-bold ${size === "lg" ? "text-base" : "text-[13px]"}`}>{m.home}</span>
+                <PipLogo url={m.homeLogo} name={m.home} size={size === "lg" ? 28 : 22} />
                 <span className={`whitespace-nowrap font-black tabular-nums ${size === "lg" ? "text-2xl" : "text-xl"}`}>
                   {m.homeScore != null && m.awayScore != null ? (
                     <>
@@ -574,6 +618,7 @@ export default function LivePipScore() {
                     <span className="text-white/50">vs</span>
                   )}
                 </span>
+                <PipLogo url={m.awayLogo} name={m.away} size={size === "lg" ? 28 : 22} />
                 <span className={`truncate font-bold ${size === "lg" ? "text-base" : "text-[13px]"}`}>{m.away}</span>
               </div>
               <div className={`mt-0.5 text-center font-bold tabular-nums ${size === "lg" ? "text-sm" : "text-[12px]"} ${m.state === "live" ? "text-emerald-400" : "text-white/60"}`}>
