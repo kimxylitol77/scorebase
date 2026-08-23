@@ -34,8 +34,8 @@
 - [x] /rankings/f1  - [x] /rankings/tennis  - [x] /rankings/ufc  - [x] /rankings/value-clubs
 
 축구 데이터 (17)
-- [ ] /transfers/[id]  - [ ] /leagues/[league]  - [ ] /previews  - [ ] /previews/[league]
-- [ ] /h2h/[pair]  - [x] /over-under  - [x] /over-under/[league]  - [ ] /odds
+- [ ] /transfers/[id]  - [ ] /leagues/[league]  - [~] /previews — **불가**: 기사 제목 2,784건이 한국어. UI만 영어면 저품질  - [~] /previews/[league] — **불가**: 위와 같음
+- [x] /h2h/[pair]  - [x] /over-under  - [x] /over-under/[league]  - [ ] /odds
 - [ ] /value-bets  - [ ] /coaches/[id]  - [x] /national-teams  - [ ] /national-teams/[id]
 - [~] /ballon — 보류: lib/ballon.ts 안에서 한글화. 도구 페이지라 검색 유입 낮음  - [ ] /world-cup  - [ ] /world-cup/xg
 - [x] /predictions/title-race  - [x] /predictions/club-ranking

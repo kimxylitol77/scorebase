@@ -195,3 +195,26 @@ KBO 와 달리 영문 원본이 살아 있는 구조.
 
 `verify.ts` 를 연달아 돌리면 middleware 의 rate-limit 이 429 를 준다.
 한 번에 검사하는 라우트 수를 줄이거나 사이를 띄울 것.
+
+---
+
+## 2026-08-23 · Team.name 이 항상 영문은 아니다 (h2h 에서 발각)
+
+`/en/h2h/...` 렌더 검증에서 "도쿄 야쿠르트 스왈로스" 가 그대로 나왔다.
+`Team.name` 을 영문 원본으로 믿고 `toKoreanTeamName()` 만 벗겼는데,
+**NPB·KBO 팀은 DB 에 한글 이름으로 저장돼 있다**.
+
+다행히 `src/lib/i18n/en.ts` 에 `TEAM_NAME_EN`(KBO 10팀 + NPB 12팀)과
+`toEnglishTeamName()` 이 이미 있어 씌우는 것으로 해결했다.
+
+**앞으로의 규칙** — 야구가 섞일 수 있는 페이지에서 `Team.name` 을 쓸 때는
+그냥 쓰지 말고 `toEnglishTeamName()` 을 태운다.
+축구 전용 페이지(`/over-under`, `/predictions/title-race`)는 확인 결과 영문이라 문제없었다.
+
+이건 렌더 검증이 없었으면 못 잡았을 결함이다. 미번역 0건 · tsc 통과였는데도 한글이 나왔다.
+
+## /previews · /previews/[league] 불가 판정
+
+`/previews` 는 프리뷰 기사 2,784건의 제목이 본체인데 전부 한국어다.
+UI 라벨만 영어로 바꾸면 "영어 껍데기 + 한국어 기사 목록" 이 된다 — KBO 와 같은 구조.
+기사 자체를 영어로 생성하는 파이프라인이 없으면 의미가 없어 이번 범위에서 제외한다.

@@ -1,0 +1,107 @@
+{
+  "header": "/en/h2h/[pair] — 팀 간 상대전적 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  const koA = toKoreanTeamName(teamA.name, teamA.league) || teamA.name;\n  const koB = toKoreanTeamName(teamB.name, teamB.league) || teamB.name;",
+      "  const koA = toEnglishTeamName(teamA.name);\n  const koB = toEnglishTeamName(teamB.name);"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";",
+      "import { enLeagueName, koEnLanguages, toEnglishTeamName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "  const leagueLabel = LEAGUE_DISPLAY[teamA.league] ?? teamA.league;",
+      "  const leagueLabel = enLeagueName(teamA.league);"
+    ],
+    [
+      "                    {LEAGUE_DISPLAY[m.league] ?? m.league}\n",
+      "                    {enLeagueName(m.league)}\n"
+    ],
+    [
+      "  const days = [\"일\", \"월\", \"화\", \"수\", \"목\", \"금\", \"토\"];",
+      "  const days = [\"Sun\", \"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\"];"
+    ],
+    [
+      "            href={`/leagues/${teamA.league}`}",
+      "            href={`/en/standings/${teamA.league}`}"
+    ],
+    [
+      "              href={`/teams/${teamA.id}`}",
+      "              href={`/en/teams/${teamA.id}`}"
+    ],
+    [
+      "              href={`/teams/${teamB.id}`}",
+      "              href={`/en/teams/${teamB.id}`}"
+    ],
+    [
+      "              href={`/live/${next.league}/${next.externalId}`}",
+      "              href=\"/en/scores\""
+    ],
+    [
+      "<Link href={`/teams/${teamA.id}`} className=\"underline\" prefetch={false}>",
+      "<Link href={`/en/teams/${teamA.id}`} className=\"underline\" prefetch={false}>"
+    ],
+    [
+      "<Link href={`/teams/${teamB.id}`} className=\"underline\" prefetch={false}>",
+      "<Link href={`/en/teams/${teamB.id}`} className=\"underline\" prefetch={false}>"
+    ],
+    [
+      "<Link href={`/predictions/${teamA.league}`} className=\"underline\" prefetch={false}>",
+      "<Link href={`/en/predictions/${teamA.league}`} className=\"underline\" prefetch={false}>"
+    ],
+    [
+      "  if (!ids) return { title: \"상대전적\" };",
+      "  if (!ids) return { title: \"Head to head\" };"
+    ],
+    [
+      "  if (!teamA || !teamB || (finished.length === 0 && !next)) return { title: \"상대전적 없음\" };",
+      "  if (!teamA || !teamB || (finished.length === 0 && !next)) return { title: \"No head-to-head record\" };"
+    ],
+    [
+      "  const record = t.n > 0 ? ` — ${t.n}전 ${t.winA}승 ${t.draw}무 ${t.winB}패` : \" — 첫 맞대결\";",
+      "  const record = t.n > 0 ? ` — ${t.n} meetings, ${t.winA}W ${t.draw}D ${t.winB}L` : \" — first meeting\";"
+    ],
+    [
+      "    title: `${koA} ${koB} 상대전적${record}`,\n    description: `${koA} vs ${koB} 역대 맞대결 전적${record}. 최근 경기 결과, 평균 득점${\n      next ? \", 다음 맞대결 일정과 모델 승률\" : \"\"\n    }까지 데이터로 정리 — 스코어베이스.`,",
+      "    title: `${koA} vs ${koB} Head to Head${record}`,\n    description: `${koA} vs ${koB} head-to-head record${record}. Recent results and average goals${\n      next ? \", plus the next fixture and model win probabilities\" : \"\"\n    }.`,"
+    ],
+    [
+      "      `${koA} ${koB} 상대전적`,\n      `${koA} ${koB} 전적`,",
+      "      `${koA} ${koB} head to head`,\n      `${koA} vs ${koB} record`,"
+    ],
+    [
+      "      `${koA} ${koB} 맞대결`,\n      \"상대전적\",\n      \"스코어베이스\",",
+      "      `${koA} ${koB} h2h`,\n      \"head to head\","
+    ],
+    [
+      "    alternates: { canonical: `/h2h/${a}-vs-${b}` },",
+      "    alternates: {\n      canonical: `/en/h2h/${a}-vs-${b}`,\n      languages: koEnLanguages(`/h2h/${a}-vs-${b}`, `/en/h2h/${a}-vs-${b}`),\n    },"
+    ]
+  ],
+  "dict": {
+    "상대전적": "Head to Head",
+    "역대 맞대결": "Based on",
+    "경기": " matches",
+    "기록": "records",
+    "기준 — 우리 DB 에 수집된 경기 한정.": "in our database.",
+    "승": " wins",
+    "무승부": "Draws",
+    "총": "of",
+    "전": " meetings",
+    "평균 득점": "Average goals",
+    "다음 맞대결": "Next meeting",
+    "모델 승률 —": "Model probabilities —",
+    "경기 상세 →": "Match details →",
+    "최근 맞대결": "Recent meetings",
+    "홈 경기 · 점수는": "at home · score reads",
+    "순": "",
+    "ⓘ 전적은 스코어베이스 수집 범위(최근 시즌 위주) 기준이라 역대 통산과 다를 수 있습니다.\n        팀 상세:": "ⓘ Records cover the seasons in our database, so they may differ from all-time totals. Teams:",
+    "· 리그:": "· League:",
+    "예측": "predictions",
+    "· 무": "· draw"
+  }
+}
