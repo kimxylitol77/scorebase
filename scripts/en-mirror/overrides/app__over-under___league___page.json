@@ -1,0 +1,128 @@
+{
+  "header": "/en/over-under/[league] — 리그별 팀 오버/언더 표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { LEAGUE_DISPLAY, COUNTRY_BY_LEAGUE } from \"@/lib/sports/sport-leagues\";",
+      "import { COUNTRY_BY_LEAGUE } from \"@/lib/sports/sport-leagues\";\nimport { enLeagueName, enCountryName, koEnLanguages } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "  const ko = LEAGUE_DISPLAY[league] ?? league;\n  const over = f1(pct(data.over25, data.matches));",
+      "  const ko = enLeagueName(league);\n  const over = f1(pct(data.over25, data.matches));"
+    ],
+    [
+      "  const ko = LEAGUE_DISPLAY[league] ?? league;\n  const country = COUNTRY_BY_LEAGUE[league];",
+      "  const ko = enLeagueName(league);\n  const country = enCountryName(COUNTRY_BY_LEAGUE[league]);"
+    ],
+    [
+      "<span className=\"truncate\">{t.nameKo}</span>",
+      "<span className=\"truncate\">{t.name}</span>"
+    ],
+    [
+      "${top?.nameKo}",
+      "${top?.name}"
+    ],
+    [
+      "${bottom?.nameKo}",
+      "${bottom?.name}"
+    ],
+    [
+      "<strong>{overTop[0]?.nameKo}</strong>",
+      "<strong>{overTop[0]?.name}</strong>"
+    ],
+    [
+      "<strong>{underTop[0]?.nameKo}</strong>",
+      "<strong>{underTop[0]?.name}</strong>"
+    ],
+    [
+      "                label={t.nameKo}",
+      "                label={t.name}"
+    ],
+    [
+      "              {LEAGUE_DISPLAY[l.league] ?? l.league}\n",
+      "              {enLeagueName(l.league)}\n"
+    ],
+    [
+      "        href=\"/over-under\"\n",
+      "        href=\"/en/over-under\"\n"
+    ],
+    [
+      "href={`/over-under/${l.league}`}",
+      "href={`/en/over-under/${l.league}`}"
+    ],
+    [
+      "<Link href=\"/over-under\" className=\"mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline\">",
+      "<Link href=\"/en/over-under\" className=\"mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline\">"
+    ],
+    [
+      "              { name: \"홈\", path: \"/\" },\n              { name: \"오버 언더 통계\", path: \"/over-under\" },\n              { name: ko, path: `/over-under/${league}` },",
+      "              { name: \"Home\", path: \"/en\" },\n              { name: \"Over/Under stats\", path: \"/en/over-under\" },\n              { name: ko, path: `/en/over-under/${league}` },"
+    ],
+    [
+      "  if (!data) return { title: \"오버 언더 통계\" };",
+      "  if (!data) return { title: \"Over/Under stats\" };"
+    ],
+    [
+      "  const title = `${ko} 오버 언더 통계 — 오버 많이 나는 팀 순위 (${data.matches}경기 집계)`;\n  const description =\n    `${ko} 오버 2.5 비율은 ${over}%입니다. 오버가 가장 잦은 팀은 ${top?.name}(${f1(pct(top?.over25 ?? 0, top?.matches ?? 1))}%), ` +\n    `언더가 가장 잦은 팀은 ${bottom?.name}(언더 ${f1(100 - pct(bottom?.over25 ?? 0, bottom?.matches ?? 1))}%)입니다. ` +\n    `경기당 평균 ${(data.goals / data.matches).toFixed(2)}골, 양팀 득점 ${f1(pct(data.btts, data.matches))}%. 경기가 끝날 때마다 갱신됩니다.`;",
+      "  const title = `${ko} Over/Under Stats — Team Over 2.5 Ranking (${data.matches} matches)`;\n  const description =\n    `${ko} has an over 2.5 rate of ${over}%. Overs come most often for ${top?.name} (${f1(pct(top?.over25 ?? 0, top?.matches ?? 1))}%) ` +\n    `and least often for ${bottom?.name} (unders ${f1(100 - pct(bottom?.over25 ?? 0, bottom?.matches ?? 1))}%). ` +\n    `Average ${(data.goals / data.matches).toFixed(2)} goals per match, BTTS ${f1(pct(data.btts, data.matches))}%. Updated as each match finishes.`;"
+    ],
+    [
+      "    keywords: [\n      `${ko} 오버`, `${ko} 언더`, `${ko} 오버언더`, `${ko} 오버 2.5`,\n      `${ko} 오버 많이 나는 팀`, `${ko} 언더 많이 나는 팀`, `${ko} 경기당 득점`,\n      \"축구 오버언더 통계\", \"오버 2.5 통계\",\n    ].join(\", \"),\n    alternates: { canonical: `${SITE}/over-under/${league}` },\n    openGraph: { title, description, url: `${SITE}/over-under/${league}`, type: \"article\" },",
+      "    keywords: [\n      `${ko} over under`, `${ko} over 2.5`, `${ko} btts`, `${ko} goals per match`,\n      `${ko} highest scoring teams`, `${ko} lowest scoring teams`,\n      \"football over under stats\", \"over 2.5 statistics\",\n    ].join(\", \"),\n    alternates: {\n      canonical: `${SITE}/en/over-under/${league}`,\n      languages: koEnLanguages(`/over-under/${league}`, `/en/over-under/${league}`),\n    },\n    openGraph: { title, description, url: `${SITE}/en/over-under/${league}`, type: \"article\" },"
+    ],
+    [
+      "<th className={th}>경기</th>",
+      "<th className={th}>Matches</th>"
+    ],
+    [
+      "<StatTile label=\"경기당 평균 득점\" value={`${goalsPer.toFixed(2)}골`} sub={`총 ${data.goals.toLocaleString()}골`} />",
+      "<StatTile label=\"경기당 평균 득점\" value={goalsPer.toFixed(2)} sub={`${data.goals.toLocaleString()} goals total`} />"
+    ]
+  ],
+  "dict": {
+    "리그 전체 보기": "All leagues",
+    "오버 언더 통계": "Over/Under Stats",
+    "경기 집계 (": " matches (",
+    "). 오버 2.5 는 한 경기 총득점이 3골\n        이상인 경우를 말합니다. 경기가 끝날 때마다 자동으로 다시 계산됩니다.": "). Over 2.5 means three or more total goals in a match. Recalculated as each match finishes.",
+    "오버 2.5 비율": "Over 2.5 rate",
+    "경기당 평균 득점": "Goals per match",
+    "골": " goals/match",
+    "양팀 모두 득점": "Both teams scored",
+    "경기": " matches",
+    "오버 리그 순위": "League rank for overs",
+    "위": "",
+    "개 리그 중": " leagues",
+    "오버가 가장 잦은 팀 · 언더가 가장 잦은 팀": "Most overs · most unders",
+    "에서 오버 2.5가 가장 잦은 팀은": " — overs come most often for",
+    "입니다.": ".",
+    "경기 가운데": " matches played,",
+    "경기(": " of them (",
+    "%)에서 3골 이상이 나왔습니다. 반대로 언더가 가장 잦은 팀은": "%) with three or more goals. At the other end,",
+    "이며, 언더 비율은": " has an under rate of",
+    "%입니다.": "%.",
+    "팀별 오버 언더 전체 표": "full team over/under table",
+    "오버 2.5 비율이 높은 순입니다. 언더 비율은 오버의 나머지라, 표를 아래에서부터 읽으면 언더가 잦은 팀 순위가 됩니다.": "Sorted by over 2.5 rate. Unders are simply the remainder, so reading from the bottom gives the under ranking.",
+    "팀": "Team",
+    "오버 2.5": "Over 2.5",
+    "언더 2.5": "Under 2.5",
+    "오버 1.5": "Over 1.5",
+    "오버 3.5": "Over 3.5",
+    "양팀 득점": "BTTS",
+    "경기당 골": "Goals/match",
+    "홈 오버": "Home over",
+    "원정 오버": "Away over",
+    "8경기 미만인 팀은 비율이 크게 흔들려 표에서 제외했습니다.": "Teams with fewer than 8 matches are excluded — the rates swing too much.",
+    "전체 리그 가운데": "Where",
+    "의 위치": "sits among all leagues",
+    "스코어베이스가 집계하는": "Distribution of over 2.5 rates across the",
+    "개 축구 리그의 오버 2.5 비율 분포입니다.": " football leagues we track.",
+    "는": " is at",
+    "%로": "%,",
+    "에 해당합니다.": "",
+    "다른 리그 오버 언더 보기": "Other leagues",
+    "개 리그 전체 보기 →": "leagues in full →",
+    "경기 / 전체 ": " matches of ",
+    "집계 대상 ": "of ",
+    "경기 중 오버 ": " matches · overs ",
+    "경기 · 경기당 ": " · "
+  }
+}
