@@ -457,13 +457,15 @@ export default function SportLiveDetail({
         <div className="text-center text-xs text-neutral-500 dark:text-neutral-400">
           주심 {refereeName}
           {refereeStats && (
+            // 한 개의 템플릿 문자열로 낸다 — JSX 줄바꿈이 공백을 먹어 "4.3장(리그" 로 붙는 걸 막고,
+            // 리그 평균이 null 인 분기에서 괄호가 통째로 사라지게 한다.
+            // "최근 N경기"(집계 창 단서) + "평균"(이 경기 예측이 아님)이 둘 다 들어가야 한다.
             <span className="ml-1.5 text-neutral-400 dark:text-neutral-500">
-              · 경기당 옐로 {refereeStats.avgYellow.toFixed(1)}장
-              {" ("}
-              {refereeStats.matches}경기
-              {refereeStats.leagueAvgYellow != null &&
-                ` · 리그 평균 ${refereeStats.leagueAvgYellow.toFixed(1)}장`}
-              {")"}
+              {`· 최근 ${refereeStats.matches}경기 평균 옐로카드 ${refereeStats.avgYellow.toFixed(1)}장${
+                refereeStats.leagueAvgYellow != null
+                  ? ` (리그 평균 ${refereeStats.leagueAvgYellow.toFixed(1)}장)`
+                  : ""
+              }`}
             </span>
           )}
         </div>
