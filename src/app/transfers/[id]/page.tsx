@@ -27,8 +27,7 @@ import rawContract from "../../../../data/player-contract.json";
 import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
 import rawCanonical from "../../../../data/player-canonical-redirects.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
-import PlayerSeasonOverview from "./PlayerSeasonOverview";
-import PlayerAdvancedStats from "./PlayerAdvancedStats";
+import PlayerSeasonSwitch, { type SeasonChoice } from "./PlayerSeasonSwitch";
 import PlayerTraits from "./PlayerTraits";
 import PlayerAdvancedMetrics, { type AdvMetrics } from "./PlayerAdvancedMetrics";
 import rawAdvMetrics from "../../../../data/player-advanced-thestats.json";
@@ -98,9 +97,12 @@ function coarsePos(pos: string | null): string {
   return ["F", "M", "D", "G"].includes(p) ? p : "M";
 }
 
-function computeStatPercentiles(target: SeasonStat): Record<string, number> {
+// 백분위는 **같은 시즌** 선수들과 비교해야 한다. 기본 모집단은 현 시즌(SEASON)이고, 지난 시즌
+// 기록은 그 시즌 아카이브(PlayerSeasonStatArchive)를 넘겨 계산한다 — 25-26 기록을 26-27
+// 선수들과 비교하면 숫자가 틀린다.
+function computeStatPercentiles(target: SeasonStat, population: SeasonStat[] = Object.values(SEASON)): Record<string, number> {
   const grp = coarsePos(target.pos);
-  const peers = Object.values(SEASON).filter(
+  const peers = population.filter(
     (s) => coarsePos(s.pos) === grp && (s.minutes ?? 0) >= 450,
   );
   const valOf = (s: SeasonStat, spec: (typeof PCT_STATS)[number]): number | null => {
@@ -613,6 +615,38 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     where: { playerId: id },
     select: { league: true, country: true, season: true, place: true },
   });
+
+  // 시즌 상세 기록·성적 상세의 시즌 목록 — 현 시즌(SEASON) + 지난 시즌(아카이브, ts 소스).
+  // ts 는 newest-only 라 시즌이 넘어가면 직전 시즌이 화면에서 사라졌다(저장은 됐는데 읽는 곳이
+  // 없었다). 백분위는 시즌마다 **그 시즌 모집단**으로 계산한다 — 다른 시즌과 섞으면 틀린다.
+  const normSeasonKey = (v: string) => v.replace(/[–—]/g, "-");
+  const seasonChoices: SeasonChoice[] = [];
+  if (season && (season.minutes ?? 0) > 0) {
+    seasonChoices.push({ label: season.season, current: true, stat: season, pct: computeStatPercentiles(season) });
+  }
+  const pastRows = await prisma.playerSeasonStatArchive.findMany({
+    where: { playerId: id, source: "ts" },
+    select: { seasonLabel: true, stat: true },
+    orderBy: { seasonLabel: "desc" },
+  });
+  const curKey = season ? normSeasonKey(season.season) : null;
+  const seen = new Set<string>();
+  for (const row of pastRows) {
+    const st = row.stat as unknown as SeasonStat;
+    const key = normSeasonKey(row.seasonLabel);
+    if (!st || (st.minutes ?? 0) <= 0 || key === curKey || seen.has(key)) continue;
+    seen.add(key);
+    // 그 시즌 모집단 — 백분위 요건(450분+)만 읽어 전송량을 줄인다
+    const peers = await prisma.$queryRaw<Array<{ stat: SeasonStat }>>`
+      SELECT stat FROM "PlayerSeasonStatArchive"
+      WHERE source = 'ts' AND "seasonLabel" = ${row.seasonLabel} AND (stat->>'minutes')::int >= 450`;
+    seasonChoices.push({
+      label: row.seasonLabel,
+      current: false,
+      stat: st,
+      pct: computeStatPercentiles(st, peers.map((r) => r.stat)),
+    });
+  }
   // 몸값 리그 내 순위 (+ 같은 코스 포지션 내) — [league, currentValue] 색인 카운트
   let valueRank: { leagueLabel: string; rank: number; total: number; posLabel: string | null; posRank: number | null } | null = null;
   if (mv?.currentValue && league) {
@@ -1251,10 +1285,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {heatmapAnalysis && (
                   <PlayerHeatmapAnalysis name={name} data={heatmapAnalysis} />
                 )}
-                {/* 시즌 상세 기록 — 레이더 + 90분당 + 슈팅/패스/수비 */}
-                {season && (season.minutes ?? 0) > 0 && (
-                  <PlayerSeasonOverview name={name} stat={season} />
-                )}
+                {/* 시즌 상세 기록(레이더) + 시즌 성적 상세(백분위) — 시즌 탭으로 전환.
+                    현 시즌 + 아카이브 지난 시즌. 강점·약점은 현 시즌 기준 그대로. */}
+                <PlayerSeasonSwitch name={name} seasons={seasonChoices} />
                 {/* 강점·약점 — 포지션 상대 백분위 상·하위 (데이터 있는 스탯만) */}
                 {season && (season.minutes ?? 0) > 0 && (
                   <PlayerTraits pct={computeStatPercentiles(season)} />
@@ -1262,10 +1295,6 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {/* 고급 지표 — xG·xA·빅찬스·터치 (EPL·세리에A, 데이터 있는 선수만) */}
                 {ADV_METRICS[id] && (
                   <PlayerAdvancedMetrics adv={ADV_METRICS[id]} goals={season?.goals ?? 0} assists={season?.assists ?? 0} />
-                )}
-                {/* 시즌 성적 상세 — FotMob식 카테고리별 스탯 + 포지션 백분위 순위 바 (펼치기) */}
-                {season && (season.minutes ?? 0) > 0 && (
-                  <PlayerAdvancedStats stat={season} pct={computeStatPercentiles(season)} />
                 )}
                 {/* 현 시즌 대회별 스탯 (af). ts→af 매핑 없으면 자동 미표시 */}
                 <CompetitionStatsSection tsId={id} league={mv?.league ?? null} extraRows={wcCompRow ? [wcCompRow] : []} />
