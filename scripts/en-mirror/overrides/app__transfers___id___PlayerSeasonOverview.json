@@ -1,0 +1,47 @@
+{
+  "header": "시즌 상세 기록 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [
+    [
+      "import { toRadarAxes } from \"@/lib/player-radar\";",
+      "import { toRadarAxes } from \"@/lib/player-radar\";\nimport { RADAR_AXIS_EN } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "  const radarData = toRadarAxes(stat);",
+      "  const radarData = toRadarAxes(stat).map((a) => ({ ...a, axis: RADAR_AXIS_EN[a.axis] ?? a.axis }));"
+    ]
+  ],
+  "dict": {
+    "경기": "Apps",
+    "골": "Goals",
+    "도움": "Assists",
+    "선발": "Starts",
+    "출전": "Apps",
+    "분": "min",
+    "슈팅": "Shots",
+    "유효슈팅": "On target",
+    "키패스": "Key passes",
+    "패스성공": "Pass acc.",
+    "태클": "Tackles",
+    "가로채기": "Interceptions",
+    "인터셉트": "Interceptions",
+    "경고": "Yellow",
+    "퇴장": "Red",
+    "선방": "Saves",
+    "리그": "League",
+    "득점": "Goals",
+    "시즌 상세 기록": "Season detail",
+    "레이더에 마우스를 올리면 실제 수치가 표시됩니다": "Hover the radar to see the underlying numbers",
+    "90분당 지표": "Per 90 minutes",
+    "공격P": "Att. actions",
+    "총 슛": "Total shots",
+    "유효 / 정확도": "On target / accuracy",
+    "패스": "Passing",
+    "패스 정확도": "Pass accuracy",
+    "수비": "Defending",
+    "골키핑": "Goalkeeping",
+    "세이브": "Saves",
+    "출전 / 선발": "Apps / starts",
+    "경기 / 선발": "apps / starts",
+    "출전 시간": "Minutes played"
+  }
+}

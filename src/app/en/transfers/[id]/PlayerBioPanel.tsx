@@ -1,0 +1,256 @@
+// 선수 프로필 패널 (영어판). scripts/en-mirror 로 자동 생성.
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { POS_XY, type PosCode } from "@/lib/players/grid-position";
+import { POS_EN as POS_KO } from "@/lib/i18n/en";
+
+// coarse 폴백용 라벨/좌표
+const COARSE: Record<string, { label: string; code: PosCode }> = {
+  F: { label: "Forward", code: "ST" },
+  M: { label: "Midfielder", code: "CM" },
+  D: { label: "Defender", code: "CB" },
+  G: { label: "Goalkeeper", code: "GK" },
+};
+
+function InfoCell({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-lg font-bold tabular-nums truncate">{children}</div>
+      <div className="text-xs text-neutral-500">{label}</div>
+    </div>
+  );
+}
+
+function MiniPitch({ primary, others }: { primary: PosCode; others: PosCode[] }) {
+  const markers: { code: PosCode; primary: boolean }[] = [
+    { code: primary, primary: true },
+    ...others.map((c) => ({ code: c, primary: false })),
+  ];
+  return (
+    <svg viewBox="0 0 100 130" className="w-full h-full" role="img" aria-label="Position">
+      <rect x="1" y="1" width="98" height="128" rx="4" className="fill-neutral-100 dark:fill-white/[0.05] stroke-black/10 dark:stroke-white/10" strokeWidth="0.6" />
+      <line x1="1" y1="65" x2="99" y2="65" className="stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
+      <circle cx="50" cy="65" r="11" className="fill-none stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
+      <rect x="30" y="1" width="40" height="16" className="fill-none stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
+      <rect x="30" y="113" width="40" height="16" className="fill-none stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
+      {markers.map((m, i) => {
+        const xy = POS_XY[m.code];
+        if (!xy) return null;
+        const cy = (xy.y / 100) * 130;
+        return (
+          <g key={m.code + i}>
+            <circle cx={xy.x} cy={cy} r={m.primary ? 11 : 8.5} className={m.primary ? "fill-rose-500" : "fill-neutral-400 dark:fill-neutral-500"} />
+            <text x={xy.x} y={cy} textAnchor="middle" dominantBaseline="central" className="fill-white font-bold" fontSize={m.primary ? 7.5 : 6}>
+              {m.code}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+const FOOT_KO: Record<string, string> = { L: "Left", R: "Right", B: "Both" };
+
+// ts contract_until 은 UTC+8 자정 기준 unix sec (전체의 99.9% 가 UTC 16:00). KST 로 읽어야
+// 만료월이 맞는다 — UTC 로 읽으면 6/30 계약이 6/29 로 하루 밀린다. 지난 계약 필터는 page 쪽.
+const contractLabel = (sec: number) =>
+  new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(sec * 1000));
+
+export default function PlayerBioPanel({
+  age, birthDate, height, weight, birthPlace, valueRank, country, flag, natlHref,
+  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur, wageStale, wageAsOf,
+  positions, posCode, foot, contractUntil, contractPast,
+}: {
+  age: number | null;
+  birthDate: string | null;
+  height: string | null;
+  weight: string | null;
+  birthPlace?: string | null; // af 프로필 출생지 (도시)
+  valueRank?: { leagueLabel: string; rank: number; total: number; posLabel: string | null; posRank: number | null } | null; // 몸값 리그 내 순위
+  country: string | null;
+  flag: string | null;
+  natlHref: string | null;
+  teamName: string;
+  teamLogo: string | null;
+  leagueLabel: string | null;
+  teamHref: string | null;
+  valueEur: number | null;
+  wageEur?: number | null; // 연봉 세전 EUR (Capology) — 주급은 /52 표기
+  wageStale?: boolean; // 주급 스냅샷 이후 이적 발효 — "이적 전 소속 기준" 라벨 (page 에서 판정)
+  wageAsOf?: string | null; // 주급 스냅샷 기준 시점 "2026.07" — 낡은 값이 현재처럼 읽히지 않게
+  valueKrw: string | null;
+  recentChg: number | null;
+  positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
+  posCode: string | null; // coarse G/D/M/F 폴백
+  foot?: string | null; // 주발 (ts preferred_foot) — "L"|"R"|"B"
+  contractUntil?: number | null; // 계약 만료 (ts contract_until, unix sec)
+  contractPast?: boolean; // 만료일이 이미 지났는지 (page 에서 판정) — "직전 계약" 으로 표기가 갈린다
+}) {
+  // 구체 포지션 우선, 없으면 coarse 폴백
+  const coarse = posCode ? COARSE[posCode] : null;
+  const primary: PosCode | null = positions?.primary ?? coarse?.code ?? null;
+  const others: PosCode[] = positions?.others ?? [];
+  const primaryLabel = positions ? POS_KO[positions.primary] : coarse?.label ?? null;
+  // 돈 관련 두 칸(시장가치·주급)은 셋 중 하나라도 있으면 함께 그린다 — 짝 유지가 목적.
+  const moneyRow = valueEur != null || wageEur != null || contractUntil != null;
+
+  return (
+    <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none overflow-hidden grid sm:grid-cols-[1fr_auto]">
+      {/* 왼쪽 — 정보 */}
+      <div className="p-5 grid grid-cols-2 gap-x-6 gap-y-4 content-start">
+        {/* 상단 4칸(나이·신체·국가·소속)은 결손이어도 자리를 비우지 않는다 — 하나가 빠지면
+            뒤 칸이 통째로 한 칸씩 밀려 선수마다 카드 배치가 달라진다(백승호 실측: 나이가 없어
+            주급이 좌측으로 이동). 2열 격자에서 위치 고정이 통일의 전제. */}
+        <InfoCell label="Age">
+          {age != null ? (
+            <>{age}{birthDate ? <span className="ml-1 text-xs font-normal text-neutral-400">{birthDate}</span> : null}</>
+          ) : (
+            <span className="text-neutral-300 dark:text-neutral-700">–</span>
+          )}
+        </InfoCell>
+        <InfoCell label="Physical">
+          {height ? (
+            <>{height.replace(/\s*cm/i, "")}cm{weight ? ` · ${weight.replace(/\s*kg/i, "")}kg` : ""}</>
+          ) : (
+            <span className="text-neutral-300 dark:text-neutral-700">–</span>
+          )}
+        </InfoCell>
+        <InfoCell label="Nationality">
+          {country ? (
+            <span className="inline-flex items-center gap-1.5">
+              {flag && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={flag} alt="" className="w-5 h-3.5 object-cover rounded-[1px]" />
+              )}
+              {natlHref ? <Link href={natlHref} prefetch={false} className="hover:underline">{country}</Link> : country}
+              {birthPlace && <span className="text-xs font-normal text-neutral-400 truncate">{birthPlace} Born</span>}
+            </span>
+          ) : (
+            <span className="text-neutral-300 dark:text-neutral-700">–</span>
+          )}
+        </InfoCell>
+        <InfoCell label="Club">
+          <span className="inline-flex items-center gap-1.5">
+            {teamLogo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={teamLogo} alt="" className="w-5 h-5 object-contain" />
+            )}
+            {teamHref ? <Link href={teamHref} className="hover:underline truncate">{teamName}</Link> : <span className="truncate">{teamName}</span>}
+          </span>
+        </InfoCell>
+        {/* 시장가치 · 주급 두 칸은 항상 짝으로 — 한쪽만 렌더하면 남은 칸이 1열로 밀려
+            선수마다 자리가 달라진다(백승호 실측: 몸값 없고 계약만 있어 주급이 좌측으로 이동). */}
+        {moneyRow && (
+          <div className="pt-1 border-t border-black/5 dark:border-white/10">
+            <div className="text-xs text-neutral-400 mb-0.5">Market value</div>
+            {valueEur == null ? (
+              <div className="text-2xl font-black tabular-nums text-neutral-300 dark:text-neutral-700">
+                –<span className="ml-1.5 align-middle text-xs font-normal text-neutral-400">not yet rated</span>
+              </div>
+            ) : (
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400 tabular-nums">€{valueEur}M</span>
+              {valueKrw && <span className="text-xs text-neutral-500 tabular-nums">{valueKrw}</span>}
+              {recentChg != null && (
+                <span className={`text-xs font-semibold tabular-nums ${recentChg >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                  {recentChg >= 0 ? "▲" : "▼"} {Math.abs(recentChg)}% <span className="text-neutral-400 font-normal">recent</span>
+                </span>
+              )}
+            </div>
+            )}
+            {valueRank && (
+              <div className="mt-1 text-xs text-neutral-500 tabular-nums">
+                {valueRank.leagueLabel} market value <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.rank}</span>
+                <span className="text-neutral-400"> / {valueRank.total}</span>
+                {valueRank.posRank != null && valueRank.posLabel && (
+                  <span> · {valueRank.posLabel} <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.posRank}</span></span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {/* 주급 + 계약 만료 한 블록 — 시장가치 블록이 몸값 순위를 보조줄로 다는 것과 대칭.
+            ⚠️ 자리·크기를 데이터 유무로 바꾸지 말 것. 예전엔 주급이 없으면 계약 만료가
+            col-span-2 로 좌측 전폭을 먹고 2xl 로 커져, 선수마다 카드가 달라 보였다
+            (야말 vs 김민재 실측 — 사용자 지적). 주급은 Capology 5대리그뿐이라 결손이 기본값에
+            가깝다. 이제 칸은 항상 2열 중 오른쪽에 고정하고, 없는 값만 회색으로 비운다. */}
+        {moneyRow && (
+          <div className="pt-1 border-t border-black/5 dark:border-white/10">
+            <div className="text-xs text-neutral-400 mb-0.5">Weekly wage (gross)</div>
+            {wageEur != null ? (
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  €{Math.round(wageEur / 52 / 1000)}k
+                </span>
+                <span className="text-xs text-neutral-500 tabular-nums">Annual €{(wageEur / 1e6).toFixed(1)}M</span>
+                {/* 스냅샷 기준 시점을 항상 밝힌다 — 소스(Capology)가 Cloudflare 로 막혀 갱신이
+                    멈출 수 있고, 낡은 값을 현재 주급처럼 읽히게 두지 않기 위함.
+                    이적자에겐 더 구체적인 "이적 전 소속 기준" 이 우선한다. */}
+                {wageStale ? (
+                  <span className="text-[10px] text-neutral-400">at previous club</span>
+                ) : (
+                  wageAsOf && <span className="text-[10px] text-neutral-400">{wageAsOf} as of</span>
+                )}
+              </div>
+            ) : (
+              // 5대리그 밖은 소스가 없다 — 빈칸 대신 사유를 밝혀 자리를 지킨다.
+              <div className="text-2xl font-black tabular-nums text-neutral-300 dark:text-neutral-700">
+                –<span className="ml-1.5 align-middle text-xs font-normal text-neutral-400">undisclosed</span>
+              </div>
+            )}
+            <div className="mt-1 text-xs text-neutral-500">
+              {contractUntil != null ? (
+                <>
+                  {contractPast ? "Previous contract expired " : "Contract until "}
+                  <span className="font-bold text-neutral-700 dark:text-neutral-200">{contractLabel(contractUntil)}</span>
+                </>
+              ) : (
+                <span className="text-neutral-400">No contract expiry on record</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 오른쪽 — 포지션 */}
+      {primary && (
+        <div className="p-5 sm:border-l border-t sm:border-t-0 border-black/5 dark:border-white/10 flex gap-4 sm:w-[280px]">
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="text-sm font-bold text-neutral-500">Position</div>
+            <div>
+              <div className="text-xs text-neutral-400">preferred</div>
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[11px] font-bold">{primary}</span>
+                {primaryLabel && <span className="text-base font-bold">{primaryLabel}</span>}
+              </div>
+            </div>
+            {others.length > 0 && (
+              <div>
+                <div className="text-xs text-neutral-400">can play</div>
+                <div className="flex flex-wrap gap-1 mt-0.5">
+                  {others.map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.08] text-xs font-semibold">
+                      <span className="text-neutral-500">{c}</span>
+                      <span className="text-neutral-400 font-normal">{POS_KO[c]}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {foot && FOOT_KO[foot] && (
+              <div>
+                <div className="text-xs text-neutral-400">Foot</div>
+                <div className="text-sm font-bold">{FOOT_KO[foot]}</div>
+              </div>
+            )}
+          </div>
+          <div className="w-[92px] shrink-0">
+            <MiniPitch primary={primary} others={others} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

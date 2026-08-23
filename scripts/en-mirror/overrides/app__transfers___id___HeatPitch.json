@@ -1,0 +1,8 @@
+{
+  "header": "활동 히트맵 피치 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "활동 히트맵": "Activity heatmap",
+    " (공격 방향 오른쪽)": " (attacking right)"
+  }
+}

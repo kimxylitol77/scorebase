@@ -1,0 +1,16 @@
+{
+  "header": "커리어 표 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "경력": "Career",
+    "시즌": "Season",
+    "팀": "Club",
+    "대회": "Competition",
+    "평점": "Rating",
+    "출전": "Apps",
+    "골": "Goals",
+    "도움": "Assists",
+    "경고/퇴장": "Y/R",
+    "합계": "Total"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "header": "선수 경기 로그 표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "{toKoreanTeamName(name) || name}",
+      "{name}"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ]
+  ],
+  "dict": {
+    "승": "W",
+    "무": "D",
+    "패": "L",
+    "슛 ": "Shots ",
+    " (유효 ": " (on target ",
+    "키패스 ": "Key passes ",
+    "태클 ": "Tackles ",
+    "인터셉트 ": "Interceptions ",
+    "드리블 ": "Dribbles ",
+    "월드컵": "World Cup",
+    "벤치": "Bench",
+    "전체": "All",
+    "시즌별 기록": "Season records",
+    "클럽 경기 기준": "club matches only",
+    "시즌": "Season",
+    "경기": "Apps",
+    "선발": "Starts",
+    "골": "Goals",
+    "도움": "Assists",
+    "평점": "Rating",
+    "경고·퇴장": "Y/R",
+    "출전기록": "Match log",
+    "최근 ": "last ",
+    "경기 · 전체 ": " matches · ",
+    "대회": "Competition",
+    "이전": "Previous",
+    "경기 더보기": " more matches",
+    "해당 조건의 경기가 없습니다.": "No matches match these filters."
+  }
+}

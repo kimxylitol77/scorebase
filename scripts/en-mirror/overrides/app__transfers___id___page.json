@@ -1,0 +1,250 @@
+{
+  "header": "/en/transfers/[id] — 선수 상세 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  const name = OVERRIDES[id]?.nameKo || p.tsp?.nameKo || p.tsp?.name || \"선수\";",
+      "  const name = p.tsp?.name || \"Player\";"
+    ],
+    [
+      "  const name = OVERRIDES[id]?.nameKo || tsp?.nameKo || tsp?.name || \"선수\";",
+      "  const name = tsp?.name || \"Player\";"
+    ],
+    [
+      "  const teamKo = season?.team ? toKoreanTeamName(season.team) || season.team : null;",
+      "  const teamKo = season?.team ?? null;"
+    ],
+    [
+      "sub: season.team ? toKoreanTeamName(season.team) || season.team : null",
+      "sub: season.team ?? null"
+    ],
+    [
+      "({ club: toKoreanTeamName(w.club) || w.club,",
+      "({ club: w.club,"
+    ],
+    [
+      "      if (team) { teamName = toKoreanTeamName(team.name) || team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }",
+      "      if (team) { teamName = team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }"
+    ],
+    [
+      "      tsTeamName[t.externalId] = toKoreanTeamName(tm.name) || tm.name;",
+      "      tsTeamName[t.externalId] = tm.name;"
+    ],
+    [
+      "    teamName = toKoreanTeamName(season.team) || season.team;",
+      "    teamName = season.team;"
+    ],
+    [
+      "  const koNat = (n: string) => toKoreanTeamName(n) || fifaCountryKo(n) || n;",
+      "  const koNat = (n: string) => n;"
+    ],
+    [
+      "  return (toKoreanTeamName(s) || s).toLowerCase()",
+      "  return s.toLowerCase()"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ],
+    [
+      "  const role = o.role || \"축구 선수\";\n  const parts: string[] = [\n    `${o.name}${josa(o.name, \"은\", \"는\")} ${o.teamName ? `${o.teamName} 소속의 ` : \"\"}${o.country ? `${o.country} 국적 ` : \"\"}${role}이다.`,\n  ];\n  if (o.apps > 0) parts.push(`통산 ${o.apps}경기에서 ${o.goals}골 ${o.assists}도움을 기록했다.`);\n  if (o.valueM != null) parts.push(`현재 시장가치는 약 €${o.valueM}M이다.`);\n  return parts.join(\" \");",
+      "  const role = o.role || \"footballer\";\n  const parts: string[] = [\n    `${o.name} is a ${o.country ? `${o.country} ` : \"\"}${role}${o.teamName ? ` playing for ${o.teamName}` : \"\"}.`,\n  ];\n  if (o.apps > 0) parts.push(`He has ${o.goals} goals and ${o.assists} assists in ${o.apps} career appearances.`);\n  if (o.valueM != null) parts.push(`His current market value is around €${o.valueM}M.`);\n  return parts.join(\" \");"
+    ],
+    [
+      "  const statBit = g > 0 || a > 0 ? ` · 시즌 ${g}골 ${a}도움` : \"\";",
+      "  const statBit = g > 0 || a > 0 ? ` · ${g}G ${a}A this season` : \"\";"
+    ],
+    [
+      "      ? `계약 ${new Intl.DateTimeFormat(\"ko-KR\", { timeZone: \"Asia/Seoul\", year: \"numeric\", month: \"long\" }).format(new Date(contractSec * 1000))}까지, `",
+      "      ? `Contracted to ${new Intl.DateTimeFormat(\"en-GB\", { timeZone: \"Asia/Seoul\", year: \"numeric\", month: \"long\" }).format(new Date(contractSec * 1000))}. `"
+    ],
+    [
+      "  const footBit = { L: \"왼발잡이\", R: \"오른발잡이\", B: \"양발잡이\" }[FOOT[id] ?? \"\"] ?? null;",
+      "  const footBit = { L: \"left-footed\", R: \"right-footed\", B: \"two-footed\" }[FOOT[id] ?? \"\"] ?? null;"
+    ],
+    [
+      "  const noBit = no != null && no > 0 ? ` 등번호 ${no}번` : \"\";",
+      "  const noBit = no != null && no > 0 ? ` · #${no}` : \"\";"
+    ],
+    [
+      "  const title = `${name} 프로필 — ${who || \"축구 선수\"}${noBit}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : \"\"}`;",
+      "  const title = `${name} — ${who || \"Footballer\"}${noBit}${statBit}${p.mv && val ? ` · €${val}M` : \"\"}`;"
+    ],
+    [
+      "    g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움` : null,\n    val ? `몸값 €${val}M` : null,\n    no != null && no > 0 ? `등번호 ${no}번` : null,",
+      "    g > 0 || a > 0 ? `${g} goals and ${a} assists this season` : null,\n    val ? `market value €${val}M` : null,\n    no != null && no > 0 ? `shirt number ${no}` : null,"
+    ],
+    [
+      "    ? `${who ? `${who} ` : \"\"}${name} 프로필 — ${facts ? `${facts}. ` : \"\"}${contractBit}몸값 변동 추이·이적 기록·시즌별 성적까지 한 페이지에.`\n    : `${who ? `${who} ` : \"\"}${name} 프로필 — ${facts ? `${facts}. ` : \"\"}${contractBit}이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;",
+      "    ? `${name}${who ? ` — ${who}` : \"\"}. ${facts ? `${facts}. ` : \"\"}${contractBit}Market value history, transfer record and season-by-season stats on one page.`\n    : `${name}${who ? ` — ${who}` : \"\"}. ${facts ? `${facts}. ` : \"\"}${contractBit}Transfer record, season stats and career history.`;"
+    ],
+    [
+      "      name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`,\n      ...(no != null && no > 0 ? [`${name} 등번호`] : []),\n      ...(contractBit ? [`${name} 계약`, `${name} 계약 만료`] : []),\n      \"이적시장\", \"스코어베이스\",",
+      "      name, `${name} profile`, `${name} stats`, `${name} market value`, `${name} transfer`,\n      ...(no != null && no > 0 ? [`${name} shirt number`] : []),\n      ...(contractBit ? [`${name} contract`, `${name} contract expiry`] : []),\n      \"transfer market\", \"football player profile\","
+    ],
+    [
+      "    alternates: {\n      canonical: `/transfers/${id}`,\n      languages: koEnLanguages(`/transfers/${id}`, `/en/transfers/${id}`),\n    },",
+      "    alternates: {\n      canonical: `/en/transfers/${id}`,\n      languages: koEnLanguages(`/transfers/${id}`, `/en/transfers/${id}`),\n    },"
+    ],
+    [
+      "import { GOOGLE_NOINDEX } from \"@/lib/seo-robots\";",
+      "import { GOOGLE_NOINDEX } from \"@/lib/seo-robots\";"
+    ],
+    [
+      "    name, country: ov?.country ?? null, role: roleKo, teamName: teamName ?? null,",
+      "    name, country: null, role: roleKo, teamName: teamName ?? null,"
+    ],
+    [
+      "`${o.name} is a ${o.country ? `${o.country} ` : \"\"}${role}${o.teamName ? ` playing for ${o.teamName}` : \"\"}.`",
+      "`${o.name} is a ${role}${o.teamName && o.teamName !== \"—\" ? ` playing for ${o.teamName}` : \"\"}.`"
+    ],
+    [
+      "        country={ov?.country ?? null}",
+      "        country={null}"
+    ],
+    [
+      "        ⓘ 시장가치·이적·현 시즌 성적 = 스코어베이스 데이터 · 국적·커리어·과거 시즌 = Wikipedia·Wikidata. 원화는 €1 = ₩{EUR_KRW.toLocaleString()} 기준 환산.",
+      "        ⓘ Market value, transfers and current-season stats from Scorebase · career and past seasons from Wikipedia and Wikidata."
+    ],
+    [
+      "  const career = ov?.career || [];",
+      "  const career: CareerEntry[] = []; // 위키 커리어는 한글 전용 — 영어판은 시장가치 변동 이력 폴백을 쓴다"
+    ],
+    [
+      "  const playerEvents = await prisma.playerEvent.findMany({\n    where: { playerId: id },\n    orderBy: { occurredAt: \"desc\" },\n    take: 60,\n    select: { id: true, type: true, occurredAt: true, title: true, detail: true },\n  });",
+      "  const playerEventsRaw = await prisma.playerEvent.findMany({\n    where: { playerId: id },\n    orderBy: { occurredAt: \"desc\" },\n    take: 60,\n    select: { id: true, type: true, occurredAt: true, title: true, detail: true },\n  });\n  // 근황 제목은 봇이 한국어로 적재한다(영문 필드 없음). 정형 접두어만 영어로 바꾸고,\n  // 팀명이 한글로 남는 이적 이벤트는 영어판에서 내보내지 않는다.\n  const playerEvents = playerEventsRaw\n    .map((e) => ({ ...e, title: e.title.replace(/^몸값 /, \"Value \") }))\n    .filter((e) => !/[가-힣]/.test(e.title));"
+    ]
+  ],
+  "dict": {
+    "프리미어리그": "Premier League",
+    "챔피언스리그": "Champions League",
+    "유로파리그": "Europa League",
+    "컨퍼런스리그": "Conference League",
+    "코파 델 레이": "Copa del Rey",
+    "FA컵": "FA Cup",
+    "EFL컵": "EFL Cup",
+    "DFB 포칼": "DFB-Pokal",
+    "코파 이탈리아": "Coppa Italia",
+    "쿠프 드 프랑스": "Coupe de France",
+    "수퍼컵": "Super Cup",
+    "트로페 데 샹피옹": "Trophée des Champions",
+    "커뮤니티 실드": "Community Shield",
+    "클럽 친선": "Club friendlies",
+    "클럽 월드컵": "Club World Cup",
+    "A매치 친선": "International friendlies",
+    "A매치": "Internationals",
+    "월드컵 남미 예선": "World Cup qualifying (CONMEBOL)",
+    "월드컵 아프리카 예선": "World Cup qualifying (CAF)",
+    "월드컵 아시아 예선": "World Cup qualifying (AFC)",
+    "월드컵 북중미 예선": "World Cup qualifying (CONCACAF)",
+    "K리그1": "K League 1",
+    "K리그2": "K League 2",
+    "사우디 프로리그": "Saudi Pro League",
+    "골키퍼": "Goalkeeper",
+    "수비수": "Defender",
+    "미드필더": "Midfielder",
+    "공격수": "Forward",
+    "개요": "Overview",
+    "기록": "Stats",
+    "경력": "Career",
+    "시즌별": "By season",
+    "출전기록": "Match log",
+    "히트맵": "Heatmap",
+    "분석": "Analysis",
+    "근황": "Timeline",
+    "선수 소개": "About",
+    "종합": "Overall",
+    "종합 능력치": "Overall rating",
+    "등번호": "Shirt number",
+    "번": "",
+    "비교하기": "Compare",
+    "시장가치": "Market value",
+    "시장가치 추이": "Market value trend",
+    "최고 €": "peak €",
+    "변동 이력 (": "History (",
+    "시점": "Date",
+    "원화": "KRW",
+    "나이": "Age",
+    "통산 출전": "Career apps",
+    "통산 득점": "Career goals",
+    "통산 도움": "Career assists",
+    "경고/퇴장": "Cards",
+    "총합 / 평균": "Total / average",
+    "팀": "Club",
+    "시즌": "Season",
+    "대회": "Competition",
+    "시즌 · 대회": "Season · competition",
+    "현 시즌 대회별 스탯": "This season by competition",
+    "개": "",
+    "홈": "Home",
+    "커리어 & 몸값 변동": "Career & market value",
+    "클럽별 이력과 그 시기의 시장가치 변동.": "Club history alongside market value at the time.",
+    "개 클럽": " clubs",
+    "완전이적": "Permanent",
+    "임대 복귀": "Loan return",
+    "자유이적": "Free transfer",
+    "자유영입": "Free agent",
+    "미상": "Undisclosed",
+    "징계": "Suspension",
+    "이적·근황 기록이 아직 없습니다.": "No transfer or timeline records yet.",
+    "이적·몸값·부상 등 최근 기록. 매일 자동 갱신.": "Recent transfers, market value moves and injuries. Updated daily.",
+    "이전 기록": "Earlier",
+    "건 더보기": " more",
+    "–현재": "–present",
+    "진행중": "ongoing",
+    "결장": "missed",
+    "기간": "Period",
+    "사유": "Reason",
+    "TheSports 부상 기록 + API-Football 결장·의심 기록. 정지(경고 누적)는 제외.": "Injury records from TheSports plus absence flags from API-Football. Suspensions are excluded.",
+    "공유하기": "Share",
+    "링크 공유·복사": "Share or copy link",
+    "공유 카드 이미지": "Share card image",
+    "자유게시판에 공유": "Share to the board",
+    "링크 복사됨": "Link copied",
+    "관련 글 (": "Related articles (",
+    "선수 미발견": "Player not found",
+    "억": "",
+    "조": "",
+    "M이다.": "M.",
+    "왼발잡이": "left-footed",
+    "오른발잡이": "right-footed",
+    "양발잡이": "two-footed",
+    "계약 ": "contract ",
+    "까지, ": "until ",
+    " · 시즌 ": " · season ",
+    "등번호 ": "shirt ",
+    "몸값 €": "value €",
+    "시즌 ": "season ",
+    " · 몸값 €": " · value €",
+    " 등번호 ": " shirt ",
+    " 프로필": " profile",
+    " 성적": " stats",
+    " 몸값": " market value",
+    " 시장가치": " market value",
+    " 이적": " transfer",
+    " 등번호": " shirt number",
+    " 계약": " contract",
+    " 계약 만료": " contract expiry",
+    "스코어베이스": "Scorebase",
+    "이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.": "Transfer record, season stats and career history.",
+    "몸값 변동 추이·이적 기록·시즌별 성적까지 한 페이지에.": "Market value history, transfer record and season stats on one page.",
+    "라리가": "LaLiga",
+    "분데스리가": "Bundesliga",
+    "세리에 A": "Serie A",
+    "리그 1": "Ligue 1",
+    "월드컵": "World Cup",
+    "축구 선수": "footballer",
+    "이적": "Transfer",
+    "부상": "Injury",
+    "임대": "Loan",
+    "몸값": "Value",
+    "방출": "Released",
+    "복귀": "Return",
+    "자유계약": "Free agent",
+    " 시즌": " season",
+    "골": "G",
+    "도움": "A",
+    "경기": "apps",
+    "출전": "Apps",
+    "평점": "Rating"
+  }
+}

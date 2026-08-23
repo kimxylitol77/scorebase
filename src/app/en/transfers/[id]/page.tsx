@@ -1,5 +1,4 @@
-// 선수 개인페이지 (TheSports 기반) — 몸값 추이 + 변동 이력 + 이적 기록.
-//   id = TheSports player id. PlayerMarketValue / TheSportsPlayer / FootballTransfer 만 사용 (api-football 안 씀).
+// /en/transfers/[id] — 선수 상세 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -9,30 +8,29 @@ import { athleteLd, breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 import { ArrowLeft, Star, Users } from "lucide-react";
 import { tsPlayerToAf, afPlayerToTs } from "@/lib/players/ts-af-map";
 import AmbientGlow from "@/components/AmbientGlow";
-import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaCountryKo } from "@/lib/sports/fifa-rankings";
-import rawOverrides from "../../../../data/player-overrides.json";
-import rawSeason from "../../../../data/player-season-stats.json";
-import rawDetailPos from "../../../../data/player-positions-detail.json";
+import rawOverrides from "../../../../../data/player-overrides.json";
+import rawSeason from "../../../../../data/player-season-stats.json";
+import rawDetailPos from "../../../../../data/player-positions-detail.json";
 import type { PosCode } from "@/lib/players/grid-position";
-import rawPhotos from "../../../../data/player-photos.json";
-import rawWiki from "../../../../data/player-wiki-seasons.json";
-import rawAbility from "../../../../data/player-ability.json";
-import rawTeamLogos from "../../../../data/team-logos.json";
-import rawWcSquads from "../../../../data/wc-national-squads.json";
-import rawPlayerBlogLinks from "../../../../data/player-blog-links.json";
-import rawPlayerHeatmaps from "../../../../data/player-heatmap-analysis.json";
-import rawFoot from "../../../../data/player-foot.json";
-import rawContract from "../../../../data/player-contract.json";
-import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
-import rawCanonical from "../../../../data/player-canonical-redirects.json";
+import rawPhotos from "../../../../../data/player-photos.json";
+import rawWiki from "../../../../../data/player-wiki-seasons.json";
+import rawAbility from "../../../../../data/player-ability.json";
+import rawTeamLogos from "../../../../../data/team-logos.json";
+import rawWcSquads from "../../../../../data/wc-national-squads.json";
+import rawPlayerBlogLinks from "../../../../../data/player-blog-links.json";
+import rawPlayerHeatmaps from "../../../../../data/player-heatmap-analysis.json";
+import rawFoot from "../../../../../data/player-foot.json";
+import rawContract from "../../../../../data/player-contract.json";
+import rawMatchHeatmaps from "../../../../../data/player-match-heatmaps.json";
+import rawCanonical from "../../../../../data/player-canonical-redirects.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
 import PlayerTraits from "./PlayerTraits";
 import PlayerAdvancedMetrics, { type AdvMetrics } from "./PlayerAdvancedMetrics";
-import rawAdvMetrics from "../../../../data/player-advanced-thestats.json";
-import rawWages from "../../../../data/football-wages.json";
+import rawAdvMetrics from "../../../../../data/player-advanced-thestats.json";
+import rawWages from "../../../../../data/football-wages.json";
 import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
 import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
@@ -45,11 +43,11 @@ import PlayerTrophies from "./PlayerTrophies";
 import { getPlayerInjuriesByTs } from "./injury-data";
 import PlayerMatchLogTable, { type MatchLogRow, type SeasonAggRow } from "./PlayerMatchLogTable";
 import { COMP_KO } from "./career-data";
-import PlayerTabs from "./PlayerTabs";
+import PlayerTabs from "../../../transfers/[id]/PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
-import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
+import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/en/transfers/CompetitionStatsSection";
 import { SPECIAL_TEAM_KO, koTeam } from "../transfer-display";
-import ShareCardButton from "@/components/ShareCardButton";
+import ShareCardButton from "@/components/en/ShareCardButton";
 import { koEnLanguages } from "@/lib/i18n/en";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
@@ -181,18 +179,18 @@ export function generateStaticParams() {
 
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "EPL",
-  LALIGA: "라리가",
-  BUNDESLIGA: "분데스리가",
-  SERIE_A: "세리에 A",
-  LIGUE_1: "리그 1",
-  K_LEAGUE_1: "K리그1",
-  K_LEAGUE_2: "K리그2",
-  SAUDI_PL: "사우디 프로리그",
+  LALIGA: "LaLiga",
+  BUNDESLIGA: "Bundesliga",
+  SERIE_A: "Serie A",
+  LIGUE_1: "Ligue 1",
+  K_LEAGUE_1: "K League 1",
+  K_LEAGUE_2: "K League 2",
+  SAUDI_PL: "Saudi Pro League",
   MLS: "MLS",
 };
 const POS_LABEL: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 // 대분류 포지션 한글 — 소개 문단·JSON-LD jobTitle 용 (표시용 세부 포지션과 별개)
-const POS_KO: Record<string, string> = { G: "골키퍼", D: "수비수", M: "미드필더", F: "공격수" };
+const POS_KO: Record<string, string> = { G: "Goalkeeper", D: "Defender", M: "Midfielder", F: "Forward" };
 // 세부 포지션(라인업 좌표 기반) → 대분류 — ts position 이 부정확한 경우가 있어 세부를 우선(설영우 실측).
 // generateMetadata(title)와 본문 소개문이 공유.
 const DETAIL_COARSE: Record<string, string> = {
@@ -214,20 +212,20 @@ function josa(w: string, batchim: string, none: string): string {
 }
 // 선수 소개 문단 — DB 값 조립(위키 서사 복사 아님). 있는 데이터만 이어붙임.
 function buildAbout(o: { name: string; country: string | null; role: string | null; teamName: string | null; apps: number; goals: number; assists: number; valueM: number | null }): string {
-  const role = o.role || "축구 선수";
+  const role = o.role || "footballer";
   const parts: string[] = [
-    `${o.name}${josa(o.name, "은", "는")} ${o.teamName ? `${o.teamName} 소속의 ` : ""}${o.country ? `${o.country} 국적 ` : ""}${role}이다.`,
+    `${o.name} is a ${role}${o.teamName && o.teamName !== "—" ? ` playing for ${o.teamName}` : ""}.`,
   ];
-  if (o.apps > 0) parts.push(`통산 ${o.apps}경기에서 ${o.goals}골 ${o.assists}도움을 기록했다.`);
-  if (o.valueM != null) parts.push(`현재 시장가치는 약 €${o.valueM}M이다.`);
+  if (o.apps > 0) parts.push(`He has ${o.goals} goals and ${o.assists} assists in ${o.apps} career appearances.`);
+  if (o.valueM != null) parts.push(`His current market value is around €${o.valueM}M.`);
   return parts.join(" ");
 }
 
 const EUR_KRW = 1791.5;
 function krw(eurM: number): string {
   const eok = (eurM * 1e6 * EUR_KRW) / 1e8;
-  if (eok >= 10000) return (eok / 10000).toFixed(2) + "조";
-  return Math.round(eok).toLocaleString() + "억";
+  if (eok >= 10000) return (eok / 10000).toFixed(2) + "";
+  return Math.round(eok).toLocaleString() + "";
 }
 function fmtDate(unixSec?: number): string {
   if (!unixSec) return "—";
@@ -238,7 +236,7 @@ function fmtDate(unixSec?: number): string {
 // 클럽명 정규화 — 한국어 변환 후 소문자·FC류 토큰·공백 제거 (career club ↔ 이적기록 팀명 매칭용)
 const CLUB_STOP = new Set(["fc", "afc", "cf", "sc", "cd", "ac", "club"]);
 function normClub(s: string): string {
-  return (toKoreanTeamName(s) || s).toLowerCase().split(/\s+/).filter((w) => !CLUB_STOP.has(w)).join("");
+  return s.toLowerCase().split(/\s+/).filter((w) => !CLUB_STOP.has(w)).join("");
 }
 // 정규화된 클럽명 동일 판정 (정확 → 접두) — 커리어 행 로고·stale 보정 공통
 const matchClub = (a: string, b: string) => !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a));
@@ -264,54 +262,54 @@ async function loadPlayer(id: string) {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const p = await loadPlayer(id);
-  if (!p) return { title: "선수 미발견" };
-  const name = OVERRIDES[id]?.nameKo || p.tsp?.nameKo || p.tsp?.name || "선수";
+  if (!p) return { title: "Player not found" };
+  const name = p.tsp?.name || "Player";
   const val = p.mv?.currentValue ? Math.round(p.mv.currentValue / 1e6) : null;
   const photo = PHOTOS[id] || p.tsp?.photoUrl || null;
   // 빙 실측 — 기존 "몸값 추이" 제목은 "{선수} 프로필/성적/골" 검색을 못 물었다(선수명 12종 검색
   // 대비 랜딩 노출 2). 검색어 선행+동적 데이터 패턴(fc81896 계열) 적용. 데이터는 전부
   // 모듈 정적 JSON(SEASON·DETAIL_POS)+기존 loadPlayer 재사용 — 추가 DB·API 호출 0.
   const season = SEASON[id];
-  const teamKo = season?.team ? toKoreanTeamName(season.team) || season.team : null;
+  const teamKo = season?.team ?? null;
   const posKo = resolveRoleKo(id, p.tsp?.position);
   const who = [teamKo, posKo].filter(Boolean).join(" ");
   const g = season?.goals ?? 0;
   const a = season?.assists ?? 0;
-  const statBit = g > 0 || a > 0 ? ` · 시즌 ${g}골 ${a}도움` : "";
+  const statBit = g > 0 || a > 0 ? ` · ${g}G ${a}A this season` : "";
   // 이름 검색은 AI 요약에 안 뺏기는 자리라 CTR 이 높다(2026-08-14 빙 실측 "올란도 길" 31%).
   // 경쟁 상대(나무위키·트랜스퍼마르크트)가 잘 안 주는 계약 만료·주발을 description 에 얹어
   // 클릭 이유를 만든다. 둘 다 모듈 정적 JSON 이라 DB·API 추가 호출은 없다.
   const contractSec = CONTRACT[id];
   const contractBit =
     contractSec && contractSec * 1000 > Date.now()
-      ? `계약 ${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(contractSec * 1000))}까지, `
+      ? `Contracted to ${new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(new Date(contractSec * 1000))}. `
       : "";
-  const footBit = { L: "왼발잡이", R: "오른발잡이", B: "양발잡이" }[FOOT[id] ?? ""] ?? null;
+  const footBit = { L: "left-footed", R: "right-footed", B: "two-footed" }[FOOT[id] ?? ""] ?? null;
   // mv(시장가치) 없는 라이트 프로필은 몸값 조각만 제외한 동일 패턴
   const no = p.squadInfo?.number;
-  const noBit = no != null && no > 0 ? ` 등번호 ${no}번` : "";
-  const title = `${name} 프로필 — ${who || "축구 선수"}${noBit}${statBit}${p.mv && val ? ` · 몸값 €${val}M` : ""}`;
+  const noBit = no != null && no > 0 ? ` · #${no}` : "";
+  const title = `${name} — ${who || "Footballer"}${noBit}${statBit}${p.mv && val ? ` · €${val}M` : ""}`;
   const facts = [
-    g > 0 || a > 0 ? `시즌 ${g}골 ${a}도움` : null,
-    val ? `몸값 €${val}M` : null,
-    no != null && no > 0 ? `등번호 ${no}번` : null,
+    g > 0 || a > 0 ? `${g} goals and ${a} assists this season` : null,
+    val ? `market value €${val}M` : null,
+    no != null && no > 0 ? `shirt number ${no}` : null,
     footBit,
   ].filter(Boolean).join(", ");
   const description = p.mv
-    ? `${who ? `${who} ` : ""}${name} 프로필 — ${facts ? `${facts}. ` : ""}${contractBit}몸값 변동 추이·이적 기록·시즌별 성적까지 한 페이지에.`
-    : `${who ? `${who} ` : ""}${name} 프로필 — ${facts ? `${facts}. ` : ""}${contractBit}이적 기록과 시즌별 성적·커리어. 스코어베이스 이적시장.`;
+    ? `${name}${who ? ` — ${who}` : ""}. ${facts ? `${facts}. ` : ""}${contractBit}Market value history, transfer record and season-by-season stats on one page.`
+    : `${name}${who ? ` — ${who}` : ""}. ${facts ? `${facts}. ` : ""}${contractBit}Transfer record, season stats and career history.`;
   return {
     title,
     description,
     keywords: [
-      name, `${name} 프로필`, `${name} 성적`, `${name} 몸값`, `${name} 시장가치`, `${name} 이적`,
-      ...(no != null && no > 0 ? [`${name} 등번호`] : []),
-      ...(contractBit ? [`${name} 계약`, `${name} 계약 만료`] : []),
-      "이적시장", "스코어베이스",
+      name, `${name} profile`, `${name} stats`, `${name} market value`, `${name} transfer`,
+      ...(no != null && no > 0 ? [`${name} shirt number`] : []),
+      ...(contractBit ? [`${name} contract`, `${name} contract expiry`] : []),
+      "transfer market", "football player profile",
     ],
     openGraph: { title, description, type: "profile", ...(photo ? { images: [{ url: photo }] } : {}) },
     alternates: {
-      canonical: `/transfers/${id}`,
+      canonical: `/en/transfers/${id}`,
       languages: koEnLanguages(`/transfers/${id}`, `/en/transfers/${id}`),
     },
     // 시장가치 데이터 없는 라이트 프로필은 thin → 구글 색인 제외(빙 등은 유지).
@@ -372,7 +370,7 @@ function ValueChart({ points, markers = [] }: { points: { t: number; v: number }
 function yrRange(s: number | null, e: number | null): string {
   if (s == null && e == null) return "—";
   const ss = s != null ? String(s) : "?";
-  if (e == null) return `${ss}–현재`;
+  if (e == null) return `${ss}–present`;
   return s === e ? ss : `${ss}–${e}`;
 }
 
@@ -381,12 +379,12 @@ interface ValuePoint { time: number; v: number; age?: number | null; chg: number
 interface PlayerEventRow { id: string; type: string; occurredAt: Date; title: string; detail?: unknown }
 // 근황 이벤트 유형 → 배지 라벨·색 + 타임라인 점 색.
 const EV_META: Record<string, { label: string; badge: string; dot: string }> = {
-  TRANSFER: { label: "이적", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", dot: "bg-emerald-500" },
-  LOAN: { label: "임대", badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", dot: "bg-amber-500" },
-  VALUE_UP: { label: "몸값", badge: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300", dot: "bg-cyan-500" },
-  VALUE_DOWN: { label: "몸값", badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300", dot: "bg-rose-500" },
-  INJURY: { label: "부상", badge: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300", dot: "bg-red-500" },
-  RETURN: { label: "복귀", badge: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300", dot: "bg-green-500" },
+  TRANSFER: { label: "Transfer", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", dot: "bg-emerald-500" },
+  LOAN: { label: "Loan", badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", dot: "bg-amber-500" },
+  VALUE_UP: { label: "Value", badge: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300", dot: "bg-cyan-500" },
+  VALUE_DOWN: { label: "Value", badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300", dot: "bg-rose-500" },
+  INJURY: { label: "Injury", badge: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300", dot: "bg-red-500" },
+  RETURN: { label: "Return", badge: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300", dot: "bg-green-500" },
 };
 
 // 근황 타임라인 — 이적·몸값·부상 이벤트를 최신순으로. 최근 8건 노출 + 나머지 접기.
@@ -395,7 +393,7 @@ function RecentTimeline({ events, logos = {} }: { events: PlayerEventRow[]; logo
   if (!events.length) return null;
   const fmt = (d: Date) => `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${String(d.getUTCDate()).padStart(2, "0")}`;
   const row = (e: PlayerEventRow) => {
-    const m = EV_META[e.type] ?? { label: "기록", badge: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300", dot: "bg-neutral-400" };
+    const m = EV_META[e.type] ?? { label: "Stats", badge: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300", dot: "bg-neutral-400" };
     // 이적·임대는 도착팀 로고 표시 (detail.toTeamId → 우리 로고맵)
     const toId = (e.type === "TRANSFER" || e.type === "LOAN") && e.detail && typeof e.detail === "object"
       ? (e.detail as { toTeamId?: string }).toTeamId : null;
@@ -418,14 +416,14 @@ function RecentTimeline({ events, logos = {} }: { events: PlayerEventRow[]; logo
   const head = events.slice(0, 8), rest = events.slice(8);
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-1">근황</h2>
-      <p className="text-xs text-neutral-500 mb-3">이적·몸값·부상 등 최근 기록. 매일 자동 갱신.</p>
+      <h2 className="text-lg font-semibold mb-1">Timeline</h2>
+      <p className="text-xs text-neutral-500 mb-3">Recent transfers, market value moves and injuries. Updated daily.</p>
       <div className="relative border-l border-black/10 dark:border-white/10 ml-1.5">
         {head.map(row)}
         {rest.length > 0 && (
           <details className="group">
             <summary className="pl-5 py-2 text-xs text-cyan-600 dark:text-cyan-400 cursor-pointer select-none list-none marker:hidden hover:underline">
-              이전 기록 {rest.length}건 더보기
+              Earlier {rest.length} more
             </summary>
             {rest.map(row)}
           </details>
@@ -505,15 +503,15 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, tsOurId = {}, club
 
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-1">커리어 & 몸값 변동</h2>
-      <p className="text-xs text-neutral-500 mb-3">클럽별 이력과 그 시기의 시장가치 변동.</p>
+      <h2 className="text-lg font-semibold mb-1">Career & market value</h2>
+      <p className="text-xs text-neutral-500 mb-3">Club history alongside market value at the time.</p>
       {nts.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {nts.map((n, i) => (
             <span key={i} className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 text-xs">
               <span className="text-neutral-500">🏳️ {n.club}</span>
-              {n.apps != null && <span className="font-semibold tabular-nums">{n.apps}경기</span>}
-              {n.goals != null && <span className="text-cyan-600 dark:text-cyan-400 font-semibold tabular-nums">{n.goals}골</span>}
+              {n.apps != null && <span className="font-semibold tabular-nums">{n.apps}apps</span>}
+              {n.goals != null && <span className="text-cyan-600 dark:text-cyan-400 font-semibold tabular-nums">{n.goals}G</span>}
             </span>
           ))}
         </div>
@@ -544,10 +542,10 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, tsOurId = {}, club
                     <span className="font-semibold">{c.club}</span>
                   </>
                 )}
-                {c.loan && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">임대</span>}
+                {c.loan && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">Loan</span>}
                 {(c.apps != null || c.goals != null) && (
                   <span className="ml-auto text-xs text-neutral-500 tabular-nums shrink-0">
-                    {c.apps != null ? `${c.apps}경기` : ""}{c.goals != null ? ` · ${c.goals}골` : ""}
+                    {c.apps != null ? `${c.apps}apps` : ""}{c.goals != null ? ` · ${c.goals}G` : ""}
                   </span>
                 )}
               </div>
@@ -581,9 +579,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   if (!p) notFound();
   const { mv, tsp } = p;
 
-  const name = OVERRIDES[id]?.nameKo || tsp?.nameKo || tsp?.name || "선수";
+  const name = tsp?.name || "Player";
   const ov = OVERRIDES[id];
-  const career = ov?.career || [];
+  const career: CareerEntry[] = []; // 위키 커리어는 한글 전용 — 영어판은 시장가치 변동 이력 폴백을 쓴다
   const season = SEASON[id];
   const photoUrl = PHOTOS[id] || tsp?.photoUrl || null;
   const ability = ABILITY[id] ?? null;
@@ -595,12 +593,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const wikiBySeason = new Map<string, WikiSeasonRow[]>();
   for (const w of WIKI[id] || []) { const a = wikiBySeason.get(w.season) || []; a.push(w); wikiBySeason.set(w.season, a); }
   const seasonEntries: SeasonEntry[] = [];
-  if (season) seasonEntries.push({ kind: "rich", label: `${season.season} 시즌`, sub: season.team ? toKoreanTeamName(season.team) || season.team : null, stat: season });
+  if (season) seasonEntries.push({ kind: "rich", label: `${season.season} season`, sub: season.team ?? null, stat: season });
   const curNorm = season ? normSeason(season.season) : null;
   for (const sk of [...wikiBySeason.keys()].sort((a, b) => normSeason(b).localeCompare(normSeason(a)))) {
     if (curNorm && normSeason(sk) === curNorm) continue;
-    const rows = wikiBySeason.get(sk)!.map((w) => ({ club: toKoreanTeamName(w.club) || w.club, lApps: w.lApps, lGoals: w.lGoals, tApps: w.tApps, tGoals: w.tGoals }));
-    seasonEntries.push({ kind: "wiki", label: `${sk} 시즌`, sub: rows.length === 1 ? rows[0].club : `${rows.length}개 클럽`, rows });
+    const rows = wikiBySeason.get(sk)!.map((w) => ({ club: w.club, lApps: w.lApps, lGoals: w.lGoals, tApps: w.tApps, tGoals: w.tGoals }));
+    seasonEntries.push({ kind: "wiki", label: `${sk} season`, sub: rows.length === 1 ? rows[0].club : `${rows.length} clubs`, rows });
   }
   const value = mv?.currentValue ? Math.round(mv.currentValue / 1e6) : null;
   const league = mv?.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
@@ -645,7 +643,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         select: { id: true, name: true, logoUrl: true, league: true },
       });
       const team = teams.find((t) => t.league === mv.league) || teams[0];
-      if (team) { teamName = toKoreanTeamName(team.name) || team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }
+      if (team) { teamName = team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }
     }
   }
 
@@ -687,7 +685,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       const p = pri(tm.league);
       if (tsLogo[t.externalId] && bestPri[t.externalId] <= p) continue;
       tsLogo[t.externalId] = tm.logoUrl;
-      tsTeamName[t.externalId] = toKoreanTeamName(tm.name) || tm.name;
+      tsTeamName[t.externalId] = tm.name;
       tsOurId[t.externalId] = tm.id;
       bestPri[t.externalId] = p;
     }
@@ -699,7 +697,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   //  이적 이력은 유럽 진출 이전(K리그 시절)에서 끊겨 있는 경우가 많아 옛 팀이 현 소속으로 뜬다
   //  (오현규 "수원 삼성"·이영준 "수원 FC" 실측). 현 시즌 출전 기록이 있으면 그게 가장 확실한 소속.
   if (teamName === "—" && season?.team) {
-    teamName = toKoreanTeamName(season.team) || season.team;
+    teamName = season.team;
   }
 
   // 그래도 없으면 최신 이적(도착)에서 유도
@@ -835,7 +833,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     : [];
   interface NatlGame { time: number; wc: boolean; home: string; away: string; hs: number | null; as: number | null; side: "H" | "A" | null; minutes: number; goals: number; assists: number; yellow: number; red: number; rating: number; href: string; homeLogo: string | null; awayLogo: string | null;
     shots: number | null; shotsOn: number | null; keyPasses: number | null; tackles: number | null; interceptions: number | null; dribbles: number | null; dribblesAtt: number | null }
-  const koNat = (n: string) => toKoreanTeamName(n) || fifaCountryKo(n) || n;
+  const koNat = (n: string) => n;
   type NatlPsRow = { player_id: string; team_id?: string; goals?: number; assists?: number; rating?: number; minutes_played?: number; yellow_cards?: number; red_cards?: number;
     shots?: number; shots_on_target?: number; key_passes?: number; tackles?: number; interceptions?: number; dribble?: number; dribble_succ?: number };
   const natlMatched: Array<{ row: NatlPsRow; m: (typeof natlMatchList)[number] }> = [];
@@ -907,17 +905,22 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     : [];
 
   // 근황 이벤트 (이적·몸값·부상) — 최신순. collect-player-events cron 이 일간 적재.
-  const playerEvents = await prisma.playerEvent.findMany({
+  const playerEventsRaw = await prisma.playerEvent.findMany({
     where: { playerId: id },
     orderBy: { occurredAt: "desc" },
     take: 60,
     select: { id: true, type: true, occurredAt: true, title: true, detail: true },
   });
+  // 근황 제목은 봇이 한국어로 적재한다(영문 필드 없음). 정형 접두어만 영어로 바꾸고,
+  // 팀명이 한글로 남는 이적 이벤트는 영어판에서 내보내지 않는다.
+  const playerEvents = playerEventsRaw
+    .map((e) => ({ ...e, title: e.title.replace(/^몸값 /, "Value ") }))
+    .filter((e) => !/[가-힣]/.test(e.title));
   // 이적은 FootballTransfer 를 렌더 시점에 직접 병합 — events cron(16:00 UTC)이 이적 유입
   // (fetch-transactions)보다 먼저 돌면 새 이적이 하루 넘게 근황에 안 보인다(로드리 바르샤행
   // 실측). cron 과 같은 id 형식이라 나중에 적재돼도 중복되지 않는다.
   {
-    const MOVE_KO: Record<number, string> = { 1: "임대", 2: "임대 복귀", 3: "완전이적", 6: "방출", 7: "자유계약" };
+    const MOVE_KO: Record<number, string> = { 1: "Loan", 2: "Loan return", 3: "Permanent", 6: "Released", 7: "Free agent" };
     const evIds = new Set(playerEvents.map((e) => e.id));
     const teamKo = (tid: string | null, n: string | null) => (tid && tsTeamName[tid]) || koTeam(n);
     for (const t of transfers) {
@@ -1043,7 +1046,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     href: g.href,
     date: new Date(g.time),
     leagueName: g.wc ? "World Cup" : "Friendlies",
-    compKo: g.wc ? "월드컵" : "A매치",
+    compKo: g.wc ? "World Cup" : "Internationals",
     leagueFlag: null,
     homeName: g.home, homeLogo: g.homeLogo, awayName: g.away, awayLogo: g.awayLogo,
     homeScore: g.hs, awayScore: g.as,
@@ -1100,7 +1103,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // 소개문 대분류 — 세부 포지션 우선 (모듈 스코프 resolveRoleKo, generateMetadata 와 공유)
   const roleKo = resolveRoleKo(id, tsp?.position);
   const aboutText = buildAbout({
-    name, country: ov?.country ?? null, role: roleKo, teamName: teamName ?? null,
+    name, country: null, role: roleKo, teamName: teamName ?? null,
     apps: careerTotals?.apps ?? 0, goals: careerTotals?.goals ?? 0, assists: careerTotals?.assists ?? 0,
     valueM: value,
   });
@@ -1112,13 +1115,13 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     birthDate: afProfile?.birthDate ?? null,
     height: afProfile?.height ?? null,
     weight: afProfile?.weight ?? null,
-    jobTitle: roleKo ?? "축구 선수",
+    jobTitle: roleKo ?? "footballer",
     team: teamName ? { name: teamName, url: ourTeamId != null ? `/teams/${ourTeamId}` : null } : null,
     sameAs: ov?.qid ? [`https://www.wikidata.org/wiki/${ov.qid}`] : [],
     description: aboutText,
   });
   const crumbLd = breadcrumbLd([
-    { name: "홈", path: "/" }, { name: "이적시장", path: "/transfers" }, { name, path: `/transfers/${id}` },
+    { name: "Home", path: "/" }, { name: "Transfers", path: "/transfers" }, { name, path: `/transfers/${id}` },
   ]);
 
   return (
@@ -1131,13 +1134,13 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           href={`/transfers${league ? `?league=${league}` : ""}`}
           className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
         >
-          <ArrowLeft className="h-3 w-3" aria-hidden /> 이적시장
+          <ArrowLeft className="h-3 w-3" aria-hidden /> Transfers
         </Link>
         <Link
           href={`/compare?a=${id}`}
           className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-cyan-600 ring-1 ring-cyan-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-cyan-400"
         >
-          <Users className="h-3 w-3" aria-hidden /> 비교하기
+          <Users className="h-3 w-3" aria-hidden /> Compare
         </Link>
       </div>
 
@@ -1160,13 +1163,13 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
               </span>
             )}
             {squadInfo?.number != null && squadInfo.number > 0 && (
-              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 tabular-nums" title="등번호">
+              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 tabular-nums" title="Shirt number">
                 No.{squadInfo.number}
               </span>
             )}
             {ability != null && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" title="종합 능력치">
-                <Star className="h-3 w-3" aria-hidden /> 종합 {ability}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" title="Overall rating">
+                <Star className="h-3 w-3" aria-hidden /> Overall {ability}
               </span>
             )}
             <ShareCardButton cardImageUrl={`/api/og/soccer-player?id=${encodeURIComponent(id)}`} />
@@ -1182,7 +1185,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         weight={afProfile?.weight ?? null}
         birthPlace={afProfile?.birthPlace ?? null}
         valueRank={valueRank}
-        country={ov?.country ?? null}
+        country={null}
         flag={ov?.flag ?? null}
         natlHref={natlTeamIds.length > 0 ? `/national-teams/${natlTeamIds[0]}` : null}
         teamName={teamName}
@@ -1219,10 +1222,10 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       {careerTotals && careerTotals.apps > 0 && (
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
           {([
-            ["통산 출전", String(careerTotals.apps), ""],
-            ["통산 득점", String(careerTotals.goals), "text-rose-500"],
-            ["통산 도움", String(careerTotals.assists), "text-blue-500"],
-            ["경고/퇴장", `${careerTotals.yellow}/${careerTotals.red}`, ""],
+            ["Career apps", String(careerTotals.apps), ""],
+            ["Career goals", String(careerTotals.goals), "text-rose-500"],
+            ["Career assists", String(careerTotals.assists), "text-blue-500"],
+            ["Cards", `${careerTotals.yellow}/${careerTotals.red}`, ""],
           ] as [string, string, string][]).map(([label, v, cls]) => (
             <div key={label} className="rounded-xl bg-white px-2 py-3 text-center ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
               <div className={`text-xl sm:text-2xl font-bold tabular-nums ${cls}`}>{v}</div>
@@ -1235,7 +1238,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       {/* 소개 — 데이터 조립형 문단 (AI 검색 인용·GEO). 위키 서사 복사 아님 */}
       {showAbout && (
         <section className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
-          <h2 className="sr-only">{name} 선수 소개</h2>
+          <h2 className="sr-only">{name} About</h2>
           <p>{aboutText}</p>
         </section>
       )}
@@ -1245,7 +1248,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         tabs={[
           {
             key: "overview",
-            label: "개요",
+            label: "Overview",
             content: (
               <>
                 {heatmapAnalysis && (
@@ -1275,8 +1278,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {points.length >= 2 && (
                   <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
                     <div className="flex items-baseline justify-between mb-3">
-                      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">시장가치 추이</h2>
-                      <span className="text-xs text-neutral-400">최고 €{Math.round(peak)}M</span>
+                      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">Market value trend</h2>
+                      <span className="text-xs text-neutral-400">peak €{Math.round(peak)}M</span>
                     </div>
                     <ValueChart points={points} markers={markers} />
                   </section>
@@ -1286,15 +1289,15 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                   <CareerTimeline entries={careerView} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} tsOurId={tsOurId} clubTeamId={clubTeamId} arrivals={arrivals} />
                 ) : hist.length >= 1 ? (
                   <section>
-                    <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
+                    <h2 className="text-lg font-semibold mb-3">History ({hist.length})</h2>
                     <div className="overflow-hidden rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
                       <table className="w-full text-sm">
                         <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                           <tr>
-                            <th className="text-left px-3 py-2 font-medium">시점</th>
-                            <th className="text-right px-3 py-2 font-medium">시장가치</th>
-                            <th className="text-right px-3 py-2 font-medium">원화</th>
-                            <th className="text-right px-3 py-2 font-medium">나이</th>
+                            <th className="text-left px-3 py-2 font-medium">Date</th>
+                            <th className="text-right px-3 py-2 font-medium">Market value</th>
+                            <th className="text-right px-3 py-2 font-medium">KRW</th>
+                            <th className="text-right px-3 py-2 font-medium">Age</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -1320,7 +1323,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           ...(careerGroups.length > 0
             ? [{
                 key: "career",
-                label: "경력",
+                label: "Career",
                 content: (
                   <>
                     <CareerTrendChart points={trendPoints} />
@@ -1330,24 +1333,24 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 ),
               }]
             : seasonEntries.length > 0
-            ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
+            ? [{ key: "seasons", label: "By season", content: <SeasonAccordion seasons={seasonEntries} /> }]
             : []),
           ...(allMatchLogs.length > 0
-            ? [{ key: "matchlog", label: "출전기록", content: <PlayerMatchLogTable rows={allMatchLogs} seasonAgg={seasonAgg} /> }]
+            ? [{ key: "matchlog", label: "Match log", content: <PlayerMatchLogTable rows={allMatchLogs} seasonAgg={seasonAgg} /> }]
             : []),
           ...(injurySpells.length > 0
-            ? [{ key: "injury", label: "부상", content: <PlayerInjuryHistory spells={injurySpells} /> }]
+            ? [{ key: "injury", label: "Injury", content: <PlayerInjuryHistory spells={injurySpells} /> }]
             : []),
           {
             key: "transfers",
-            label: "이적",
+            label: "Transfer",
             content: (
               <>
       {/* 근황 — 이적·몸값·부상 통합 타임라인. 이적행에 도착팀 로고. (기존 이적 기록 표를 흡수) */}
       {playerEvents.length > 0 ? (
         <RecentTimeline events={playerEvents} logos={tsLogo} />
       ) : (
-        <p className="text-sm text-neutral-500">이적·근황 기록이 아직 없습니다.</p>
+        <p className="text-sm text-neutral-500">No transfer or timeline records yet.</p>
       )}
               </>
             ),
@@ -1355,7 +1358,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           ...(matchHeatmaps && matchHeatmaps.matches.length > 0
             ? [{
                 key: "heatmap",
-                label: "히트맵",
+                label: "Heatmap",
                 content: (
                   <PlayerMatchHeatmaps
                     name={name}
@@ -1372,7 +1375,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       {/* 이 선수 관련 글 — STAR 리포트 등 (선수 페이지 → 글 바로가기) */}
       {(relatedArticles.length > 0 || relatedBlogs.length > 0) && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">{name} 관련 글 ({relatedArticles.length + relatedBlogs.length})</h2>
+          <h2 className="text-lg font-semibold mb-3">{name} Related articles ({relatedArticles.length + relatedBlogs.length})</h2>
           <div className="overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10 divide-y divide-black/5 dark:divide-white/5">
             {relatedBlogs.map((b) => (
               <Link
@@ -1380,7 +1383,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 href={`/blog/${b.slug}`}
                 className="flex items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
               >
-                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">분석</span>
+                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Analysis</span>
                 <span className="truncate font-semibold min-w-0 flex-1">{b.title}</span>
                 <span className="ml-auto shrink-0 text-xs text-neutral-400 tabular-nums">{fmtDate(b.publishedAt ? Math.floor(b.publishedAt.getTime() / 1000) : undefined)}</span>
               </Link>
@@ -1401,7 +1404,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       )}
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 시장가치·이적·현 시즌 성적 = 스코어베이스 데이터 · 국적·커리어·과거 시즌 = Wikipedia·Wikidata. 원화는 €1 = ₩{EUR_KRW.toLocaleString()} 기준 환산.
+        ⓘ Market value, transfers and current-season stats from Scorebase · career and past seasons from Wikipedia and Wikidata.
       </p>
     </article>
   );

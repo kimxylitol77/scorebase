@@ -1,0 +1,11 @@
+{
+  "header": "공유 버튼 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "링크 복사됨": "Link copied",
+    "공유하기": "Share",
+    "링크 공유·복사": "Share or copy link",
+    "자유게시판에 공유": "Share to the board",
+    "공유 카드 이미지": "Share card image"
+  }
+}

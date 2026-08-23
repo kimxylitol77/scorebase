@@ -1,0 +1,26 @@
+{
+  "header": "시즌별 성적 아코디언 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "경기": "Apps",
+    "골": "Goals",
+    "도움": "Assists",
+    "선발": "Starts",
+    "출전": "Apps",
+    "분": "min",
+    "슈팅": "Shots",
+    "유효슈팅": "On target",
+    "키패스": "Key passes",
+    "패스성공": "Pass acc.",
+    "태클": "Tackles",
+    "가로채기": "Interceptions",
+    "인터셉트": "Interceptions",
+    "경고": "Yellow",
+    "퇴장": "Red",
+    "선방": "Saves",
+    "리그": "League",
+    "득점": "Goals",
+    "시즌별 성적": "Season by season",
+    "· 전체": "· all"
+  }
+}

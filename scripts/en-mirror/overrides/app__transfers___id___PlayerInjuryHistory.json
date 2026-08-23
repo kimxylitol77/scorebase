@@ -1,0 +1,15 @@
+{
+  "header": "부상 이력 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "부상 이력": "Injury history",
+    "건": "",
+    "진행중": "ongoing",
+    "결장": "missed",
+    "기간": "Period",
+    "사유": "Reason",
+    "TheSports 부상 기록 + API-Football 결장·의심 기록. 정지(경고 누적)는 제외.": "Injury records from TheSports plus absence flags from API-Football. Suspensions are excluded.",
+    "경기": " matches",
+    "부상": "Injury"
+  }
+}

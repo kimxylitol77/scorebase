@@ -1,0 +1,23 @@
+{
+  "header": "시즌 활동 분석 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "낮음": "Low",
+    "높음": "High",
+    "공격 3선": "Final third",
+    "평균 전진 위치": "Average position",
+    "수비 지역": "Defensive third",
+    "중앙 지역": "Middle third",
+    "공격 지역": "Attacking third",
+    "오른쪽": "the right",
+    "왼쪽": "the left",
+    "시즌 활동 분석": "Season activity",
+    "경기 ·": " matches ·",
+    "분": " min",
+    "시즌 누적 활동 히트맵": "Season activity heatmap",
+    "누적 터치": "Total touches",
+    "는 중앙 지역에서 가장 많은 활동을 기록했고, 측면에서는": " was most active through the middle, and down the flanks favoured",
+    "관여 비중이 더 높았습니다.": ".",
+    "TheStatsAPI 시즌 누적 위치 데이터. 0-100 경기장 좌표를 10x10 구역으로 집계한 활동 밀도입니다.": "Season position data from TheStatsAPI. Pitch coordinates (0–100) aggregated into a 10×10 grid of activity density."
+  }
+}

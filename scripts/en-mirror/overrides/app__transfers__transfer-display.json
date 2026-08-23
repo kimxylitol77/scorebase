@@ -1,0 +1,25 @@
+{
+  "header": "이적 표시 헬퍼 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "  return SPECIAL_TEAM_KO[name || \"\"] || toKoreanTeamName(name || undefined) || name || \"—\";",
+      "  return name || \"—\";"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ]
+  ],
+  "dict": {
+    "자유이적": "Free transfer",
+    "임대": "Loan",
+    "임대복귀": "Loan return",
+    "은퇴": "Retired",
+    "자유계약": "Free agent",
+    "징계": "Suspension",
+    "미상": "Undisclosed",
+    "방출": "Released",
+    "복귀": "Return",
+    "자유영입": "Free signing"
+  }
+}

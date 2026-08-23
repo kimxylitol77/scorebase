@@ -1,0 +1,14 @@
+{
+  "header": "커리어 추이 차트 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "시즌별": "Season by season",
+    "골·도움": "Goals & assists",
+    "평점": "Rating",
+    "추이": "trend",
+    "클럽 대회 합산 · 시즌 아래는 당시 소속팀": "Club competitions combined · club shown under each season",
+    " · 출전수 가중평균": " · weighted by appearances",
+    "골": "Goals",
+    "도움": "Assists"
+  }
+}

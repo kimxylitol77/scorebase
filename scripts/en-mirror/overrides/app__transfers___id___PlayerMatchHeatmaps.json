@@ -1,0 +1,40 @@
+{
+  "header": "경기별 히트맵 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [
+    [
+      "`${Number(mm)}/${Number(dd)} ${toKoreanTeamName(m.opp)} (${m.ha === \"H\" ? \"홈\" : \"원정\"}) ${m.score} ${RESULT_KO[m.result]}`",
+      "`${Number(mm)}/${Number(dd)} ${m.opp} (${m.ha === \"H\" ? \"H\" : \"A\"}) ${m.score} ${RESULT_KO[m.result]}`"
+    ],
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";\n",
+      ""
+    ]
+  ],
+  "dict": {
+    "낮음": "Low",
+    "높음": "High",
+    "공격 3선": "Final third",
+    "평균 전진 위치": "Average position",
+    "수비 지역": "Defensive third",
+    "중앙 지역": "Middle third",
+    "공격 지역": "Attacking third",
+    "승": "W",
+    "무": "D",
+    "패": "L",
+    "홈": "H",
+    "원정": "A",
+    " 시즌 전체": " full season",
+    "시즌 전체": "Full season",
+    "최근 ": "Last ",
+    "경기 합산": " matches combined",
+    "직전 경기": "Most recent match",
+    "경기": " matches",
+    "경기별 히트맵": "Match by match heatmaps",
+    "데이터 보유": "with data",
+    "경기 선택": "Select a match",
+    "경기 선택…": "Select a match…",
+    " 히트맵": " heatmap",
+    "터치": "Touches",
+    "TheStatsAPI 경기별 터치 좌표. 히트맵 데이터가 제공되는 경기만 표시됩니다.": "Per-match touch coordinates from TheStatsAPI. Only matches with heatmap data are listed."
+  }
+}

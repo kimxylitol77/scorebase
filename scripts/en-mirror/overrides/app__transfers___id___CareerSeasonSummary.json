@@ -1,0 +1,16 @@
+{
+  "header": "시즌별 팀 요약 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [],
+  "dict": {
+    "시즌별 팀 요약": "Season by season, by club",
+    "클럽 대회 합산 · 같은 시즌 복수 팀은 하위 행(임대 등)": "Club competitions combined · multiple clubs in one season appear as extra rows (loans etc.)",
+    "팀": "Club",
+    "시즌": "Season",
+    "총합 / 평균": "Total / average",
+    "경기": "Apps",
+    "골": "Goals",
+    "도움": "Assists",
+    "평점": "Rating",
+    "출전": "Apps"
+  }
+}

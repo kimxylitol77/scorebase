@@ -3,6 +3,11 @@
 // grep 으로 HTML 을 통째 세면 안 된다. Next.js 가 RSC payload 를 <script> 에 직렬화해 넣어서
 // 본문이 완전한 영어여도 한글이 수천 자 잡힌다. script/style 을 걷어낸 뒤 태그를 벗겨야
 // "사용자 눈에 보이는 한글" 만 남는다.
+//
+// ⚠️ 한계 — 이 검사는 SSR HTML 만 본다. 클라이언트에서 그려지는 것(차트 축 라벨 등)은
+// 서버 HTML 에 없어 여기서 안 잡힌다. 실제로 /en/transfers 레이더 축이 한글인 채
+// "통과" 로 나왔다(브라우저 innerText 로 발견). 차트·인터랙티브 위젯이 있는 페이지는
+// 브라우저로 한 번 더 볼 것.
 export {}; // 모듈로 취급시켜 전역 이름 충돌을 막는다 (다른 스크립트도 main() 을 쓴다)
 
 const BASE = process.env.EN_VERIFY_BASE ?? "http://localhost:3000";

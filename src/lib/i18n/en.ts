@@ -416,3 +416,31 @@ export const UFC_WEIGHT_CLASS_EN: Record<string, string> = {
 export function enWeightClass(ko: string): string {
   return UFC_WEIGHT_CLASS_EN[ko] ?? ko;
 }
+
+/**
+ * 포지션 코드 → 영문 라벨. lib/players/grid-position 의 POS_KO 와 짝.
+ * 영어판 선수 페이지가 세부 포지션을 영어로 표기할 때 쓴다.
+ */
+export const POS_EN: Record<string, string> = {
+  GK: "Goalkeeper",
+  LB: "Left-back", LWB: "Left wing-back", CB: "Centre-back", RB: "Right-back", RWB: "Right wing-back",
+  CDM: "Defensive midfielder", LM: "Left midfielder", CM: "Central midfielder",
+  RM: "Right midfielder", CAM: "Attacking midfielder",
+  LW: "Left winger", RW: "Right winger", SS: "Second striker", ST: "Striker", CF: "Centre-forward",
+};
+
+/**
+ * 선수 레이더 축 라벨 한글 → 영문. lib/player-radar 의 label 과 짝.
+ * 레이더는 클라이언트에서 그려져 SSR HTML 에 안 나오므로 en-mirror 의 HTML 검증이
+ * 잡지 못한다 — 축 라벨을 바꿀 땐 브라우저로 직접 확인할 것.
+ */
+export const RADAR_AXIS_EN: Record<string, string> = {
+  "골/90": "Goals/90",
+  "도움/90": "Assists/90",
+  "슈팅 정확도": "Shot accuracy",
+  "키패스/90": "Key passes/90",
+  "패스 정확도": "Pass accuracy",
+  "드리블 성공률": "Dribble success",
+  "경합 승률": "Duels won",
+  "수비/90": "Def. actions/90",
+};

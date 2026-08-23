@@ -1,0 +1,48 @@
+{
+  "header": "선수 프로필 패널 (영어판). scripts/en-mirror 로 자동 생성.",
+  "preReplace": [
+    [
+      "import { POS_KO, POS_XY, type PosCode } from \"@/lib/players/grid-position\";",
+      "import { POS_XY, type PosCode } from \"@/lib/players/grid-position\";\nimport { POS_EN as POS_KO } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "  new Intl.DateTimeFormat(\"ko-KR\", { timeZone: \"Asia/Seoul\", year: \"numeric\", month: \"long\" }).format(new Date(sec * 1000));",
+      "  new Intl.DateTimeFormat(\"en-GB\", { timeZone: \"Asia/Seoul\", year: \"numeric\", month: \"long\" }).format(new Date(sec * 1000));"
+    ],
+    [
+      "                  {contractPast ? \"직전 계약 \" : \"계약 \"}\n                  <span className=\"font-bold text-neutral-700 dark:text-neutral-200\">{contractLabel(contractUntil)}</span>\n                  {contractPast ? \" 만료\" : \"까지\"}",
+      "                  {contractPast ? \"Previous contract expired \" : \"Contract until \"}\n                  <span className=\"font-bold text-neutral-700 dark:text-neutral-200\">{contractLabel(contractUntil)}</span>"
+    ]
+  ],
+  "dict": {
+    "공격수": "Forward",
+    "미드필더": "Midfielder",
+    "수비수": "Defender",
+    "골키퍼": "Goalkeeper",
+    "포지션": "Position",
+    "왼발": "Left",
+    "오른발": "Right",
+    "양발": "Both",
+    "나이": "Age",
+    "세": "",
+    "신체": "Physical",
+    "국가": "Nationality",
+    "출생": "Born",
+    "소속": "Club",
+    "현재 시장가치": "Market value",
+    "집계 전": "not yet rated",
+    "최근": "recent",
+    "몸값": "market value",
+    "위": "",
+    "명": "",
+    "주급 (세전)": "Weekly wage (gross)",
+    "연봉 €": "Annual €",
+    "이적 전 소속 기준": "at previous club",
+    "기준": "as of",
+    "비공개": "undisclosed",
+    "계약 만료 정보 없음": "No contract expiry on record",
+    "선호": "preferred",
+    "뛸 수 있는": "can play",
+    "주발": "Foot"
+  }
+}
