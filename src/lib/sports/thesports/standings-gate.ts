@@ -56,7 +56,8 @@ export function tsCacheUsable(
 /**
  * api-football 순위 캐시를 이 시즌에 써도 되는가.
  * ts 와 달리 af 캐시는 시즌을 "연도"로 들고 있어 ACTIVE seasonYear 와 직접 비교한다.
- * @param activeSeasonYear resolveSeasonYear() 결과 (레지스트리 → 없으면 달력 계산)
+ * @param activeSeasonYear 레지스트리가 아는 시즌 연도(registrySeasonYear). 달력 계산값을
+ *                          여기 넣지 말 것 — 멀쩡한 표를 지운다. 모르면 호출부가 게이트를 건너뛴다.
  */
 export function afCacheUsable(
   league: string,

@@ -135,6 +135,7 @@ function loadActive(): Promise<Map<string, SeasonRecord>> {
 /** 테스트·CLI 에서 캐시 무효화. */
 export function invalidateSeasonCache(): void {
   activeCache = null;
+  knownCache = null;
   registryAvailable = null;
 }
 
@@ -159,6 +160,67 @@ export async function listActiveSeasons(provider?: string): Promise<SeasonRecord
 export async function resolveTsSeasonId(league: string): Promise<string | null> {
   const active = await getActiveSeason(league, PROVIDER_TS);
   return active?.providerSeasonId ?? legacyTsSeasonId(league);
+}
+
+/**
+ * 리그별 **가장 최신** 후보 시즌 연도. 최소값을 잡으면 지난 시즌을 기준으로 삼아
+ * 게이트가 거꾸로(새 캐시를 차단) 동작한다.
+ */
+export function newestSeasonYearByLeague(
+  rows: Array<{ league: string; seasonYear: number }>,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const r of rows) {
+    const cur = out.get(r.league);
+    if (cur == null || r.seasonYear > cur) out.set(r.league, r.seasonYear);
+  }
+  return out;
+}
+
+// ── 레지스트리가 "아는" 시즌 (ACTIVE 아닌 후보 포함) ──────────
+const KNOWN_TTL_MS = 60 * 1000;
+let knownCache: { at: number; byLeague: Promise<Map<string, number>> } | null = null;
+
+/** 리그별 최신 후보 시즌 연도 (DISCOVERED·VERIFIED). ARCHIVED 는 지난 시즌이라 제외. */
+function loadKnownSeasonYears(): Promise<Map<string, number>> {
+  const now = Date.now();
+  if (knownCache && now - knownCache.at < KNOWN_TTL_MS) return knownCache.byLeague;
+  const p = (async () => {
+    const byLeague = new Map<string, number>();
+    if (!(await isRegistryAvailable())) return byLeague;
+    try {
+      const rows = await prisma.competitionSeason.findMany({
+        where: { status: { in: ["DISCOVERED", "VERIFIED"] } },
+        select: { league: true, seasonYear: true },
+      });
+      for (const [lg, y] of newestSeasonYearByLeague(rows)) byLeague.set(lg, y);
+    } catch {
+      // 레지스트리 접근 실패 — 빈 map = "아는 시즌 없음" 으로 기존 동작 유지.
+    }
+    return byLeague;
+  })();
+  knownCache = { at: now, byLeague: p };
+  return p;
+}
+
+/**
+ * 캐시 시즌 검증용 기준 연도 — **레지스트리가 아는 값만** 돌려준다.
+ *
+ * `resolveSeasonYear` 와 다른 점은 달력 계산으로 폴백하지 않는다는 것이다. 달력 공식은
+ * 기대·저장 라벨 불일치로 멀쩡한 표를 지운 전례가 있어 게이트 기준으로 쓰지 않는다.
+ * 아는 시즌이 없으면 null — 호출부는 게이트를 걸지 않고 기존 동작을 유지한다.
+ *
+ * ACTIVE 가 없어도 DISCOVERED/VERIFIED 후보는 쓴다. 신시즌 롤오버 대기 구간이야말로
+ * provider 캐시에 지난 시즌 표가 남아 있는 가장 위험한 창인데, ACTIVE 만 보면
+ * 하필 그때 게이트가 통째로 꺼진다 (2026-08-23 실측 — UCL·UEL·UECL·UEFA_WCL·AFC_CL·
+ * WORLD_CUP 6개가 신시즌 DISCOVERED 상태로 af 2025 캐시를 무검증 통과 중이었다).
+ */
+export async function registrySeasonYear(league: string): Promise<number | null> {
+  const af = await getActiveSeason(league, PROVIDER_AF);
+  if (af) return af.seasonYear;
+  const ts = await getActiveSeason(league, PROVIDER_TS);
+  if (ts) return ts.seasonYear;
+  return (await loadKnownSeasonYears()).get(league) ?? null;
 }
 
 /**

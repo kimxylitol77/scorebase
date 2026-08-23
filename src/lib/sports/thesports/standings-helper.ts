@@ -11,7 +11,7 @@
 
 import { prisma } from "@/lib/db";
 import teamIdMapping from "./team-id-mapping.json";
-import { PROVIDER_AF, PROVIDER_TS, getActiveSeason, resolveSeasonYear } from "../season-registry";
+import { PROVIDER_TS, getActiveSeason, registrySeasonYear } from "../season-registry";
 import {
   afCacheUsable,
   tsCacheUsable,
@@ -73,19 +73,20 @@ async function seasonGate(league: string): Promise<{
 }> {
   if (!isSeasonGated(league)) return { tsOk: () => true, afOk: () => true };
   try {
-    const [activeTs, activeAf, seasonYear] = await Promise.all([
+    const [activeTs, gateYear] = await Promise.all([
       getActiveSeason(league, PROVIDER_TS),
-      getActiveSeason(league, PROVIDER_AF),
-      resolveSeasonYear(league),
+      registrySeasonYear(league),
     ]);
     const activeSeasonId = activeTs?.providerSeasonId ?? null;
-    // ACTIVE 레지스트리가 아예 없는 리그는 af 쪽도 기존 동작 유지 — 계산값만으로
-    // 지금 화면에 나가는 캐시를 끊으면 도입 자체가 회귀가 된다.
-    const hasRegistry = activeTs != null || activeAf != null;
+    // 레지스트리가 아는 시즌이 하나도 없는 리그는 af 쪽 기존 동작 유지 — 남은 기준은
+    // 달력 계산뿐인데, 그걸로 지금 화면에 나가는 캐시를 끊으면 도입 자체가 회귀가 된다.
+    // registrySeasonYear 는 ACTIVE 가 없어도 DISCOVERED/VERIFIED 후보까지 본다:
+    // 롤오버 대기 구간이 provider 캐시에 지난 시즌 표가 남는 가장 위험한 창인데
+    // ACTIVE 만 보면 하필 그때 게이트가 꺼졌다.
     return {
       tsOk: (cacheSeasonId) => tsCacheUsable(league, activeSeasonId, cacheSeasonId).usable,
       afOk: (cacheSeason) =>
-        hasRegistry ? afCacheUsable(league, seasonYear, cacheSeason).usable : true,
+        gateYear == null ? true : afCacheUsable(league, gateYear, cacheSeason).usable,
     };
   } catch (e) {
     console.warn(`[standings-helper] season gate 조회 실패 league=${league}:`, (e as Error).message);
