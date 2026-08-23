@@ -92,15 +92,19 @@ export function soccerTickerLines(
         e.detail === "Penalty"
           ? "페널티킥 득점"
           : e.detail === "Extra Time Goal"
-            ? "연장 득점"
-            : "득점";
+              ? "연장 득점"
+              : "득점";
       const who = e.playerName ? ` ${e.playerName}` : "";
       const assist = e.assistName ? ` (도움 ${e.assistName})` : "";
       lines.push({
         key,
         tag,
         kind: "goal",
-        text: `${teamName}${who} ${kindLabel}!${assist} ${situation} — ${homeName} ${h}:${a} ${awayName}.`,
+        // 자책골은 득점 측(teamName)과 선수 소속이 다르다 — "A팀 득점 — 상대 X 자책골" 로 읽히게
+        text:
+          e.detail === "Own Goal"
+            ? `${teamName} 득점 — 상대${who} 자책골! ${situation} — ${homeName} ${h}:${a} ${awayName}.`
+            : `${teamName}${who} ${kindLabel}!${assist} ${situation} — ${homeName} ${h}:${a} ${awayName}.`,
       });
     } else if (e.type === "card") {
       const red = e.detail === "Red Card";

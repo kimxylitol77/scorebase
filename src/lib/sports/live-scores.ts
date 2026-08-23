@@ -1268,11 +1268,13 @@ export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string
       assistName = typeof i.assist1_name === "string" ? i.assist1_name : null;
       assistId = typeof i.assist1_id === "string" ? i.assist1_id : null;
     } else if (t === 17) {
+      // 17 = 자책골 (2026-08-23 전수 대조: 득점자 소속 ≠ 득점 측 40:0). 예전엔 "Penalty" 로 잘못 매핑.
+      type = "goal";
+      detail = "Own Goal";
+    } else if (t === 8) {
+      // 8 = 페널티 골 (득점자 소속 = 득점 측 100:0, tsIncidentsToGoals 코드표와 동일)
       type = "goal";
       detail = "Penalty";
-    } else if (t === 8) {
-      type = "goal";
-      detail = "Normal Goal";
     } else if (t === 29) {
       type = "goal";
       detail = "Extra Time Goal";
