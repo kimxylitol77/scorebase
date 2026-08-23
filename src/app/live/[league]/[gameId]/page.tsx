@@ -66,7 +66,6 @@ import SoccerGlanceBlock from "@/components/live/SoccerGlanceBlock";
 import MatchSummaryCard from "@/components/live/MatchSummaryCard";
 import BetmanLineCard from "@/components/live/BetmanLineCard";
 import OddsMarketsGrid from "@/components/live/OddsMarketsGrid";
-import ScoreboardEmbedBox from "@/components/embed/ScoreboardEmbedBox";
 import { getBetmanLineForMatch } from "@/lib/odds/betman";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
@@ -1236,13 +1235,6 @@ export default async function GenericLivePage({ params }: Props) {
 
       {/* 경기 한눈에 — /scores 툴팁과 같은 블록을 탭 밖에 고정 (2026-08-22 사용자 요청) */}
       {soccerGlanceNode}
-
-      {/* 방송 오버레이 — OBS 브라우저 소스용 스코어보드 URL (2026-08-23 사용자 요청, 빌드업 스타일) */}
-      {match.status !== "POSTPONED" && (
-        <CollapsibleSection title="방송 오버레이 (OBS)" hint="점수·경기 시간 투명 스코어보드 URL">
-          <ScoreboardEmbedBox league={lg} id={gameId} siteUrl={process.env.SITE_URL ?? "https://www.scorebase.kr"} />
-        </CollapsibleSection>
-      )}
 
       {/* 종료 경기에서는 라이브 기록을 기본 본문에 보존. 매치 한눈에와 팀 통계 탭 중복은 제외. */}
       {soccerFinishedReportNode}

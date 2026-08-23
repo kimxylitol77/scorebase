@@ -31,8 +31,8 @@ interface Widget {
 const WIDGETS: Widget[] = [
   {
     key: "scoreboard",
-    title: "라이브 스코어보드 오버레이",
-    desc: "한 경기의 점수·경기 시간을 투명 배경 위에 5초마다 갱신. OBS 브라우저 소스로 넣으면 방송 오버레이가 됩니다. 각 경기 상세 페이지의 '방송 오버레이' 섹션에서 경기별 URL 을 복사하세요.",
+    title: "라이브 스코어보드",
+    desc: "한 경기의 점수·경기 시간을 투명 배경 위에 5초마다 갱신. OBS 브라우저 소스나 iframe 으로 어디든 붙일 수 있습니다. URL 의 league·id 를 원하는 경기로 바꿔 쓰세요.",
     embedPath: "/embed/scoreboard?league=EPL&id=560547&bg=dark",
     height: 140,
     linkUrl: "/scores",
