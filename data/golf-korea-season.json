@@ -1,6 +1,6 @@
 {
   "year": "2026",
-  "updatedAt": "2026-08-23T00:00:13.387Z",
+  "updatedAt": "2026-08-24T00:00:14.867Z",
   "players": [
     {
       "tour": "LPGA",
@@ -90,11 +90,17 @@
       "tour": "PGA",
       "name": "Tom Kim",
       "id": null,
-      "starts": 20,
+      "starts": 21,
       "wins": 1,
       "top10": 4,
       "best": 1,
       "recent": [
+        {
+          "event": "BMW Championship",
+          "date": "2026-08-20",
+          "order": 29,
+          "score": "-3"
+        },
         {
           "event": "FedEx St. Jude Championship",
           "date": "2026-08-13",
@@ -118,12 +124,6 @@
           "date": "2026-07-16",
           "order": 107,
           "score": "+3"
-        },
-        {
-          "event": "Genesis Scottish Open",
-          "date": "2026-07-09",
-          "order": 1,
-          "score": "-17"
         }
       ],
       "nameKo": "김주형"
@@ -216,11 +216,17 @@
       "tour": "PGA",
       "name": "Si Woo Kim",
       "id": null,
-      "starts": 22,
+      "starts": 23,
       "wins": 0,
       "top10": 11,
       "best": 2,
       "recent": [
+        {
+          "event": "BMW Championship",
+          "date": "2026-08-20",
+          "order": 33,
+          "score": "-2"
+        },
         {
           "event": "FedEx St. Jude Championship",
           "date": "2026-08-13",
@@ -244,12 +250,6 @@
           "date": "2026-07-09",
           "order": 9,
           "score": "-11"
-        },
-        {
-          "event": "Travelers Championship",
-          "date": "2026-06-25",
-          "order": 46,
-          "score": "-9"
         }
       ],
       "nameKo": "김시우"
@@ -468,11 +468,17 @@
       "tour": "PGA",
       "name": "Sungjae Im",
       "id": null,
-      "starts": 21,
+      "starts": 22,
       "wins": 0,
       "top10": 3,
       "best": 6,
       "recent": [
+        {
+          "event": "BMW Championship",
+          "date": "2026-08-20",
+          "order": 11,
+          "score": "-8"
+        },
         {
           "event": "FedEx St. Jude Championship",
           "date": "2026-08-13",
@@ -496,12 +502,6 @@
           "date": "2026-07-23",
           "order": 87,
           "score": "-1"
-        },
-        {
-          "event": "The Open",
-          "date": "2026-07-16",
-          "order": 15,
-          "score": "-4"
         }
       ],
       "nameKo": "임성재"
