@@ -1,5 +1,6 @@
 // 선수 개인페이지 (TheSports 기반) — 몸값 추이 + 변동 이력 + 이적 기록.
 //   id = TheSports player id. PlayerMarketValue / TheSportsPlayer / FootballTransfer 만 사용 (api-football 안 씀).
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -131,6 +132,32 @@ function computeStatPercentiles(target: SeasonStat, population: SeasonStat[] = O
   }
   return out;
 }
+// 지난 시즌 백분위 모집단 — 시즌별 1회만 DB 를 읽고 24h 캐시(아카이브는 동결 데이터).
+// 캐시 없이는 선수 페이지 ISR 마다 2,700행·1.2MB 쿼리가 돌았다(실측 2.6s). 백분위 계산에
+// 쓰는 필드만 투영해 ~5분의 1 로 줄인다. unstable_cache 는 Date 를 문자열로 바꾸지만
+// (isr-no-store-conflict) 여기는 순수 JSON 이라 무관하다.
+const getArchivePopulation = unstable_cache(
+  async (seasonLabel: string): Promise<SeasonStat[]> => {
+    const rows = await prisma.$queryRaw<Array<{ s: SeasonStat }>>`
+      SELECT jsonb_build_object(
+        'pos', stat->'pos', 'minutes', stat->'minutes', 'goals', stat->'goals',
+        'shots', stat->'shots', 'sot', stat->'sot', 'assists', stat->'assists',
+        'keyPasses', stat->'keyPasses', 'passAcc', stat->'passAcc',
+        'dribbles', stat->'dribbles', 'dribbleAtt', stat->'dribbleAtt',
+        'duelsWon', stat->'duelsWon', 'duelsTotal', stat->'duelsTotal',
+        'tackles', stat->'tackles', 'interceptions', stat->'interceptions',
+        'blocks', stat->'blocks', 'dribbledPast', stat->'dribbledPast',
+        'foulsDrawn', stat->'foulsDrawn', 'foulsCommitted', stat->'foulsCommitted',
+        'yellow', stat->'yellow', 'red', stat->'red'
+      ) AS s
+      FROM "PlayerSeasonStatArchive"
+      WHERE source = 'ts' AND "seasonLabel" = ${seasonLabel} AND (stat->>'minutes')::int >= 450`;
+    return rows.map((r) => r.s);
+  },
+  ["archive-pct-population"],
+  { revalidate: 86400 },
+);
+
 // 선수 사진 (TheSports season player.logo). DB photoUrl(라인업)보다 커버리지 높아 우선.
 const PHOTOS = rawPhotos as Record<string, string>;
 // 과거 시즌 (Wikipedia Career statistics) — 시즌별 클럽 리그/총 출장·골
@@ -636,15 +663,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     const key = normSeasonKey(row.seasonLabel);
     if (!st || (st.minutes ?? 0) <= 0 || key === curKey || seen.has(key)) continue;
     seen.add(key);
-    // 그 시즌 모집단 — 백분위 요건(450분+)만 읽어 전송량을 줄인다
-    const peers = await prisma.$queryRaw<Array<{ stat: SeasonStat }>>`
-      SELECT stat FROM "PlayerSeasonStatArchive"
-      WHERE source = 'ts' AND "seasonLabel" = ${row.seasonLabel} AND (stat->>'minutes')::int >= 450`;
+    const peers = await getArchivePopulation(row.seasonLabel);
     seasonChoices.push({
       label: row.seasonLabel,
       current: false,
       stat: st,
-      pct: computeStatPercentiles(st, peers.map((r) => r.stat)),
+      pct: computeStatPercentiles(st, peers),
     });
   }
   // 몸값 리그 내 순위 (+ 같은 코스 포지션 내) — [league, currentValue] 색인 카운트
