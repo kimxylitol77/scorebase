@@ -1375,7 +1375,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     return (
                       <tr key={m.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
                         <td className="px-4 py-2.5 text-xs text-neutral-500 tabular-nums whitespace-nowrap">
-                          {m.startTime.toLocaleString("ko-KR", {
+                          {m.startTime.toLocaleString("en-GB", {
                             month: "2-digit",
                             day: "2-digit",
                             hour: "2-digit",

@@ -1,0 +1,13 @@
+{
+  "header": "HomeRankingShowcase (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것. 닉네임이 한글이고 게시판이 한국어라 /en 홈은 이 섹션을 렌더하지 않는다.",
+  "preReplace": [],
+  "dict": {
+    "예측 적중률 랭킹": "Prediction accuracy ranking",
+    "🏆 예측 적중률 랭킹": "🏆 Prediction accuracy ranking",
+    "회원 승부예측이 실제 경기 결과로 자동 채점 — 누가 가장 잘 맞추나.": "Member picks scored automatically against real results — who reads matches best.",
+    "전체 랭킹 →": "Full ranking →",
+    "승": "W",
+    "패": "L",
+    "스포츠 분석 게시판에서 예측 올리기 →": "Post a prediction on the analysis board →"
+  }
+}

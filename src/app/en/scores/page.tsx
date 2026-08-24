@@ -691,7 +691,7 @@ function dateQuery(d: Date): string {
   return k.toISOString().slice(0, 10);
 }
 function kstHHmm(d: Date): string {
-  return d.toLocaleTimeString("ko-KR", {
+  return d.toLocaleTimeString("en-GB", {
     timeZone: "Asia/Seoul",
     hour: "2-digit",
     minute: "2-digit",

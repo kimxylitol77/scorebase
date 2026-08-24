@@ -27,7 +27,7 @@ export default function TeamFormBadges({ form }: Props) {
           className={`inline-flex items-center justify-center w-4 h-4 rounded text-[9px] font-bold leading-none tabular-nums ${BADGE_CLASS[f.result]}`}
           title={
             f.startTime
-              ? `${f.startTime.toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" })} — ${f.result === "W" ? "W" : f.result === "D" ? "D" : "L"}`
+              ? `${f.startTime.toLocaleDateString("en-GB", { month: "2-digit", day: "2-digit" })} — ${f.result === "W" ? "W" : f.result === "D" ? "D" : "L"}`
               : f.result
           }
         >

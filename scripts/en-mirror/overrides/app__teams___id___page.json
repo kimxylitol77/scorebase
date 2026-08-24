@@ -68,6 +68,10 @@
     [
       "    prisma.teamSourceId.findMany({ where: { source: \"thesports\", teamId: team.id }, select: { externalId: true } }),\n  ]);",
       "    prisma.teamSourceId.findMany({ where: { source: \"thesports\", teamId: team.id }, select: { externalId: true } }),\n  ]);\n  const articles: typeof articlesRaw = [];"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

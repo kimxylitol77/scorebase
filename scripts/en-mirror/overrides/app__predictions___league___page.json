@@ -60,6 +60,10 @@
     [
       "<td className=\"px-2 py-1.5 font-bold whitespace-nowrap sticky left-0 bg-white dark:bg-neutral-950\">{row.split(\" \")[0]}</td>",
       "<td className=\"px-2 py-1.5 font-bold whitespace-nowrap sticky left-0 bg-white dark:bg-neutral-950\">{toEnglishTeamName(row).split(\" \")[0]}</td>"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

@@ -48,6 +48,10 @@
     [
       "import { SITE_URL } from \"@/lib/site-url\";",
       "import { SITE_URL } from \"@/lib/site-url\";"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

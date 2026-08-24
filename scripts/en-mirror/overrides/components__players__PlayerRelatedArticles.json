@@ -1,6 +1,11 @@
 {
   "header": "PlayerRelatedArticles (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것. 기사가 한국어 전용이라 /en/players 는 이 컴포넌트를 렌더하지 않는다.",
-  "preReplace": [],
+  "preReplace": [
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
+    ]
+  ],
   "dict": {
     "관련 글 (": "Related articles (",
     "분석": "Analysis"

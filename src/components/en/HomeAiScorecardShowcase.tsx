@@ -15,7 +15,7 @@ type Winner = "HOME" | "DRAW" | "AWAY";
 
 function fmtKst(d: Date): string {
   return d
-    .toLocaleString("ko-KR", {
+    .toLocaleString("en-GB", {
       timeZone: "Asia/Seoul",
       month: "numeric",
       day: "numeric",

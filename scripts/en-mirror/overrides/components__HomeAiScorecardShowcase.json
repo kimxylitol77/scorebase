@@ -16,6 +16,10 @@
     [
       "toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name",
       "toEnglishTeamName(m.awayTeam.name)"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

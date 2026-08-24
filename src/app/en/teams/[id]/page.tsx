@@ -1205,7 +1205,7 @@ export default async function TeamPage({ params }: Props) {
                     return (
                       <tr key={m.id} className="transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                         <td className="px-4 py-3 text-xs text-neutral-500 tabular-nums w-32">
-                          {m.startTime.toLocaleString("ko-KR", {
+                          {m.startTime.toLocaleString("en-GB", {
                             month: "2-digit",
                             day: "2-digit",
                             hour: "2-digit",

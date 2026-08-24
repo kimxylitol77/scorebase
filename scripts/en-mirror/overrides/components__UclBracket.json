@@ -8,6 +8,10 @@
     [
       "toKoreanTeamName(team.name)",
       "toEnglishTeamName(team.name)"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

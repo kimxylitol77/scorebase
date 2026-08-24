@@ -38,7 +38,7 @@ export default function KeyMatchPreview({ matches }: Props) {
             className="flex items-center gap-2 sm:gap-3 rounded-lg bg-white/60 dark:bg-neutral-900/60 hover:bg-white dark:hover:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800/60 px-3 py-2 transition group"
           >
             <div className="text-[10px] text-neutral-500 tabular-nums shrink-0 w-12 text-center font-medium">
-              {m.startTime.toLocaleString("ko-KR", {
+              {m.startTime.toLocaleString("en-GB", {
                 month: "2-digit",
                 day: "2-digit",
                 timeZone: "Asia/Seoul",

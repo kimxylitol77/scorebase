@@ -414,7 +414,7 @@ export default function LivePipScore() {
           b.status === "LIVE" ? "live" : b.status === "SCHEDULED" ? "scheduled" : "done";
         // 지난 종료 경기 — "내 경기" 목록과 불일치 방지 (오늘 종료 경기는 유지)
         if (state === "done" && startedBeforeTodayKst(b.startTime)) return null;
-        const kickoff = new Date(b.startTime).toLocaleTimeString("ko-KR", {
+        const kickoff = new Date(b.startTime).toLocaleTimeString("en-GB", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,

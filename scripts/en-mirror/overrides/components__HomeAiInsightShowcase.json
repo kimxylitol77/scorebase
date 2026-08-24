@@ -24,6 +24,10 @@
     [
       "toKoreanTeamName(c.match.homeTeam.name, c.match.league)",
       "toEnglishTeamName(c.match.homeTeam.name)"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

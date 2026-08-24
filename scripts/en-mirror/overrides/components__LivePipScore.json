@@ -4,6 +4,10 @@
     [
       "        \"브라우저 밖 분리에 실패했어요.\\n\" +\n          \"Chrome/Edge 116 이상에서 지원됩니다.\\n(\" +",
       "        \"Could not pop the window out.\\n\" +\n          \"Requires Chrome or Edge 116 or newer.\\n(\" +"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

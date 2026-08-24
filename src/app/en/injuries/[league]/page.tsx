@@ -896,7 +896,7 @@ export default async function InjuriesByLeague({
     .slice(0, 2)
     .map((p) => p[0]);
 
-  const lastUpdatedKst = new Date().toLocaleString("ko-KR", {
+  const lastUpdatedKst = new Date().toLocaleString("en-GB", {
     timeZone: "Asia/Seoul",
     month: "2-digit",
     day: "2-digit",
@@ -1483,7 +1483,7 @@ function TeamInjuryCard({
                 <span title={nextMatch.startTime.toISOString()}>
                   Next match {nextMatch.isHome ? "vs" : "@"}{" "}
                   {toEnglishTeamName(nextMatch.oppName)},{" "}
-                  {nextMatch.startTime.toLocaleDateString("ko-KR", {
+                  {nextMatch.startTime.toLocaleDateString("en-GB", {
                     month: "2-digit",
                     day: "2-digit",
                     timeZone: "Asia/Seoul",
@@ -1554,7 +1554,7 @@ function TeamInjuryCard({
                 {p.reasonKo}
                 {p.returnDate && (
                   <span className="ml-2 text-neutral-400">
-                    · return {new Date(p.returnDate).toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" })}
+                    · return {new Date(p.returnDate).toLocaleDateString("en-GB", { month: "2-digit", day: "2-digit" })}
                   </span>
                 )}
               </span>

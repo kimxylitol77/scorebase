@@ -132,6 +132,10 @@
     [
       "  const canonical = sportCode === \"soccer\" ? \"/scores\" : `/scores?sport=${sportCode}`;",
       "  const canonical = sportCode === \"soccer\" ? \"/en/scores\" : `/en/scores?sport=${sportCode}`;"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

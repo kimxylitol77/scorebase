@@ -29,7 +29,7 @@ interface FocusMatch {
 }
 
 function fmtKstTime(d: Date): string {
-  return d.toLocaleString("ko-KR", {
+  return d.toLocaleString("en-GB", {
     timeZone: "Asia/Seoul",
     hour: "2-digit",
     minute: "2-digit",
@@ -38,7 +38,7 @@ function fmtKstTime(d: Date): string {
 }
 
 function fmtKstDate(d: Date): string {
-  const m = d.toLocaleString("ko-KR", {
+  const m = d.toLocaleString("en-GB", {
     timeZone: "Asia/Seoul",
     month: "numeric",
     day: "numeric",

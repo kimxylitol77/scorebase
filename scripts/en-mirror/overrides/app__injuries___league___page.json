@@ -372,6 +372,10 @@
     [
       "      const tsRaw = tsInjByTeam.get(t.id);\n      if (tsRaw) {\n        raw = tsRaw; // TheSports lineup.injury (한글 사유 override 포함)\n        teamSource.set(t.id, \"ts\");\n      } else {",
       "      // 영어판 — TheSports 캐시는 선수명·사유가 한글이라 쓰지 않고 api-football(영문)만 쓴다.\n      const tsRaw = null as (typeof tsInjByTeam extends Map<number, infer V> ? V : never) | null;\n      if (tsRaw) {\n        raw = tsRaw;\n        teamSource.set(t.id, \"ts\");\n      } else {"
+    ],
+    [
+      "\"ko-KR\"",
+      "\"en-GB\""
     ]
   ],
   "dict": {

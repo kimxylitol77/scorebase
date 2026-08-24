@@ -156,7 +156,7 @@ export default async function TennisRankingsPage({
 
                   {/* 포인트 */}
                   <span className="text-right text-sm font-bold tabular-nums text-neutral-700 dark:text-neutral-300">
-                    {r.points.toLocaleString("ko-KR")}
+                    {r.points.toLocaleString("en-GB")}
                   </span>
                 </Link>
               </li>

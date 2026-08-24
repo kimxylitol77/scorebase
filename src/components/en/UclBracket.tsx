@@ -169,7 +169,7 @@ function SeriesFooter({ series }: { series: BracketSeries }) {
     if (leg.status !== "FINISHED") {
       return (
         <div className="px-3 py-1.5 text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
-          {leg.startTime.toLocaleString("ko-KR", {
+          {leg.startTime.toLocaleString("en-GB", {
             month: "2-digit",
             day: "2-digit",
             hour: "2-digit",
@@ -195,7 +195,7 @@ function SeriesFooter({ series }: { series: BracketSeries }) {
             <span>{label}</span>
             <span className="tabular-nums">
               {isPending
-                ? leg.startTime.toLocaleDateString("ko-KR", {
+                ? leg.startTime.toLocaleDateString("en-GB", {
                     month: "2-digit",
                     day: "2-digit",
                   })
