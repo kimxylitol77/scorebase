@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getBenchmarkData } from "@/lib/predict/llm-benchmark";
 import { EXCLUSION_NOTE_EN } from "@/lib/predict/scorecard-eligibility";
+import { BENCHMARK_LICENSE, MIN_BIN_N } from "@/lib/predict/llm-benchmark";
 import CalibrationChart from "@/components/en/benchmark/CalibrationChart";
 import { SITE_URL } from "@/lib/site-url";
 import { jsonLdScript } from "@/lib/seo/jsonld";
@@ -116,6 +117,11 @@ export default async function BenchmarkPage() {
     variableMeasured: ["stated confidence", "outcome", "Brier score", "expected calibration error"],
     creator: { "@type": "Organization", name: "Scorebase", url: SITE_URL },
     isAccessibleForFree: true,
+    license: "https://creativecommons.org/licenses/by/4.0/",
+    distribution: [
+      { "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${SITE_URL}/en/benchmark/data.csv` },
+      { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE_URL}/en/benchmark/data.json` },
+    ],
   };
 
   return (
@@ -189,8 +195,16 @@ export default async function BenchmarkPage() {
         </table>
       </div>
       <p className="mt-4 text-[13px] leading-relaxed text-zinc-500 dark:text-white/45">
-        Seven LLMs pooled, 1X2 markets, 95% confidence intervals. Above roughly 57% stated
-        confidence the actual hit rate flattens out — the extra confidence buys nothing.
+        Seven LLMs pooled, 1X2 markets, 95% confidence intervals. Buckets are five percentage points
+        wide. Above roughly 57% stated confidence the actual hit rate flattens out — the extra
+        confidence buys nothing.
+      </p>
+      <p className="mt-2 text-[13px] leading-relaxed text-zinc-500 dark:text-white/45">
+        Buckets holding fewer than {MIN_BIN_N} forecasts are not plotted, because a handful of
+        forecasts cannot pin down a rate. That hides{" "}
+        {d.calibrationHidden.toLocaleString("en-GB")} of {d.calibrationTotal.toLocaleString("en-GB")}{" "}
+        forecasts, spread thinly across the extremes. They are all in the downloadable data below —
+        bucket them yourself if you want to see them.
       </p>
 
       <H2 id="ece">Calibration error, model by model</H2>
@@ -329,6 +343,38 @@ export default async function BenchmarkPage() {
           </tbody>
         </table>
       </div>
+
+      <H2 id="data">Every row, downloadable</H2>
+      <p className="mb-5 text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
+        Publishing only the aggregates would ask you to take our arithmetic on trust. Instead here is
+        every scored forecast behind the numbers above — {d.scored.toLocaleString("en-GB")} rows, one
+        per model per event, with the timestamp it was written, the confidence stated, the outcome,
+        and the bookmaker&rsquo;s implied probabilities so the market control reproduces too.
+      </p>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <a
+          href="/en/benchmark/data.csv"
+          className="flex-1 rounded-2xl bg-zinc-900 px-5 py-4 text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+        >
+          <span className="block text-[15px] font-semibold">Download CSV</span>
+          <span className="mt-0.5 block text-[13px] opacity-70">
+            {d.scored.toLocaleString("en-GB")} rows · spreadsheet-ready
+          </span>
+        </a>
+        <a
+          href="/en/benchmark/data.json"
+          className="flex-1 rounded-2xl bg-white px-5 py-4 ring-1 ring-black/10 transition hover:bg-zinc-50 dark:bg-white/[0.06] dark:ring-white/15 dark:hover:bg-white/10"
+        >
+          <span className="block text-[15px] font-semibold text-zinc-950 dark:text-white">Download JSON</span>
+          <span className="mt-0.5 block text-[13px] text-zinc-500 dark:text-white/50">
+            Same rows plus the computed aggregates
+          </span>
+        </a>
+      </div>
+      <p className="mt-4 text-[13px] leading-relaxed text-zinc-500 dark:text-white/45">
+        Released under {BENCHMARK_LICENSE} — use it, cite it, check our arithmetic. If you recompute
+        anything and get a different answer, we want to know.
+      </p>
 
       <H2 id="method">Method</H2>
       <div className="space-y-4 text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">

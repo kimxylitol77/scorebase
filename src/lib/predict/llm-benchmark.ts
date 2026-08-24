@@ -16,6 +16,16 @@ import { unstable_cache } from "next/cache";
 /** 야구는 무승부가 없고 기본 승률이 높아 다른 종목과 섞으면 해석이 왜곡된다. */
 const BASEBALL = ["MLB", "NPB", "KBO"];
 
+// 확신도 버킷 — 5%p 폭으로 30%~100% 전체를 덮는다.
+// 상한을 0.90 으로 두면 90% 이상 예측이 오버플로 버킷으로 빠지고,
+// 그게 표시 하한(n>=40)에 걸려 조용히 사라진다. 하필 가장 과신한 구간이라
+// 결과가 실제보다 순해 보인다 — 범위로 덮어서 누락 자체를 없앤다.
+const BIN_LO = 0.3;
+const BIN_HI = 1.0;
+const BIN_COUNT = 14;
+/** 표시 하한 — 이보다 작은 버킷은 그리지 않는다(페이지에 명시한다). */
+export const MIN_BIN_N = 40;
+
 export interface ModelStat {
   model: string;
   n: number;
@@ -62,6 +72,10 @@ export interface BenchmarkData {
   to: string;
   excluded: number;
   calibration: CalibrationBin[];
+  /** 표시 하한(n<40)에 걸려 곡선에서 빠진 예측 수 — 페이지에 그대로 밝힌다. */
+  calibrationHidden: number;
+  /** 캘리브레이션 대상 1X2 LLM 예측 총수 */
+  calibrationTotal: number;
   /** 대조군 곡선 — 배당 시장은 대각선에 붙고 LLM 은 아래로 처진다 */
   marketCalibration: CalibrationBin[];
   perModel: ModelStat[];
@@ -98,7 +112,7 @@ function chiSqP(chi2: number): number {
 /** 캐시 없이 즉시 집계 — 원본 데이터 내보내기·검증 스크립트가 쓴다.
  *  (unstable_cache 는 Next 요청 컨텍스트 밖에서 못 돈다) */
 export async function computeBenchmark(): Promise<BenchmarkData> {
-  const [scale, excludedRow, calRows, modelRows, marketRow, splitRows, pairedRows, mktCalRows, leagueRows] =
+  const [scale, excludedRow, calRows, modelRows, marketRow, splitRows, pairedRows, mktCalRows, calTotalRow, leagueRows] =
     await Promise.all([
       prisma.$queryRaw<{ scored: bigint; matches: bigint; models: bigint; d0: string; d1: string }[]>`
         SELECT COUNT(*)::bigint AS scored, COUNT(DISTINCT p."matchId")::bigint AS matches,
@@ -119,14 +133,14 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
         FROM "AiPrediction" p JOIN "Match" m ON m.id = p."matchId"
         WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime"
           AND p.market = '1X2' AND p.model <> 'scorebase'
-        GROUP BY width_bucket(p.prob, 0.35, 0.90, 11)
-        HAVING COUNT(*) >= 40
+        GROUP BY width_bucket(p.prob, ${BIN_LO}::float8, ${BIN_HI}::float8, ${BIN_COUNT}::int)
+        HAVING COUNT(*) >= ${MIN_BIN_N}::int
         ORDER BY 1`,
 
       prisma.$queryRaw<{ model: string; n: bigint; hit: bigint; brier: number; ece: number }[]>`
         WITH b AS (
           SELECT p.model, p.correct, p.prob,
-                 width_bucket(p.prob, 0.35, 0.90, 11) AS bin
+                 width_bucket(p.prob, ${BIN_LO}::float8, ${BIN_HI}::float8, ${BIN_COUNT}::int) AS bin
           FROM "AiPrediction" p JOIN "Match" m ON m.id = p."matchId"
           WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime" AND p.market = '1X2'
         ), per_bin AS (
@@ -160,7 +174,7 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
                  = (CASE WHEN hs > aws THEN 'HOME' WHEN aws > hs THEN 'AWAY' ELSE 'DRAW' END) AS ok
           FROM mm
         ), pb AS (
-          SELECT width_bucket(prob, 0.35, 0.90, 11) AS bin, COUNT(*)::numeric AS bn,
+          SELECT width_bucket(prob, ${BIN_LO}::float8, ${BIN_HI}::float8, ${BIN_COUNT}::int) AS bin, COUNT(*)::numeric AS bn,
                  ABS(AVG(prob) - AVG(CASE WHEN ok THEN 1.0 ELSE 0.0 END)) AS gap
           FROM pick GROUP BY 1
         )
@@ -217,8 +231,14 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
         )
         SELECT AVG(prob) AS claimed, AVG(CASE WHEN ok THEN 1.0 ELSE 0.0 END) AS actual,
                COUNT(*)::bigint AS n
-        FROM pick GROUP BY width_bucket(prob, 0.35, 0.90, 11)
-        HAVING COUNT(*) >= 40 ORDER BY 1`,
+        FROM pick GROUP BY width_bucket(prob, ${BIN_LO}::float8, ${BIN_HI}::float8, ${BIN_COUNT}::int)
+        HAVING COUNT(*) >= ${MIN_BIN_N}::int ORDER BY 1`,
+
+      prisma.$queryRaw<{ n: bigint }[]>`
+        SELECT COUNT(*)::bigint AS n
+        FROM "AiPrediction" p JOIN "Match" m ON m.id = p."matchId"
+        WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime"
+          AND p.market = '1X2' AND p.model <> 'scorebase'`,
 
       prisma.$queryRaw<{ league: string; n: bigint }[]>`
         SELECT m.league, COUNT(*)::bigint AS n
@@ -269,6 +289,9 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
     from: s?.d0 ?? "", to: s?.d1 ?? "",
     excluded: Number(excludedRow[0]?.n ?? 0),
     calibration: calRows.map(toBin),
+    calibrationTotal: Number(calTotalRow[0]?.n ?? 0),
+    calibrationHidden:
+      Number(calTotalRow[0]?.n ?? 0) - calRows.reduce((a, r) => a + Number(r.n), 0),
     marketCalibration: mktCalRows.map(toBin),
     perModel, market,
     sportSplit: [...splitMap.values()].sort((a, b) => b.baseballN + b.otherN - (a.baseballN + a.otherN)),
@@ -281,3 +304,65 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
 export const getBenchmarkData = unstable_cache(computeBenchmark, ["llm-benchmark-v1"], {
   revalidate: 3600,
 });
+
+/* ============================================================
+ * 원본 데이터 내려받기 — 페이지의 모든 수치를 남이 직접 재현할 수 있어야 한다.
+ * 집계만 공개하면 "당신 계산을 믿으라" 가 되므로 예측 한 건 한 건을 낸다.
+ * ==========================================================*/
+
+export interface BenchmarkRow {
+  prediction_id: number;
+  event_id: number;
+  league: string;
+  home_team: string;
+  away_team: string;
+  kickoff_utc: string;
+  predicted_at_utc: string;
+  model: string;
+  market: string;
+  pick: string;
+  stated_prob: number;
+  line: number | null;
+  correct: 0 | 1;
+  home_score: number | null;
+  away_score: number | null;
+  outcome_1x2: string | null;
+  market_prob_home: number | null;
+  market_prob_draw: number | null;
+  market_prob_away: number | null;
+}
+
+/** 채점이 끝난 예측만. 킥오프 전 조건은 페이지 집계와 동일하게 SQL 에서 건다. */
+export async function loadBenchmarkRows(): Promise<BenchmarkRow[]> {
+  const rows = await prisma.$queryRaw<Record<string, unknown>[]>`
+    SELECT p.id AS prediction_id, m.id AS event_id, m.league,
+           ht.name AS home_team, at.name AS away_team,
+           to_char(m."startTime" AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS kickoff_utc,
+           to_char(p."predictedAt" AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS predicted_at_utc,
+           p.model, p.market, p.pick, p.prob AS stated_prob, p.line,
+           (CASE WHEN p.correct THEN 1 ELSE 0 END) AS correct,
+           m."homeScore" AS home_score, m."awayScore" AS away_score,
+           (CASE WHEN m."homeScore" IS NULL OR m."awayScore" IS NULL THEN NULL
+                 WHEN m."homeScore" > m."awayScore" THEN 'HOME'
+                 WHEN m."awayScore" > m."homeScore" THEN 'AWAY' ELSE 'DRAW' END) AS outcome_1x2,
+           m."marketHome" AS market_prob_home, m."marketDraw" AS market_prob_draw,
+           m."marketAway" AS market_prob_away
+    FROM "AiPrediction" p
+    JOIN "Match" m ON m.id = p."matchId"
+    JOIN "Team" ht ON ht.id = m."homeTeamId"
+    JOIN "Team" at ON at.id = m."awayTeamId"
+    WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime"
+    ORDER BY m."startTime", m.id, p.model, p.market`;
+  return rows as unknown as BenchmarkRow[];
+}
+
+/** 팀명은 DB 에 한글인 리그가 있다(KBO·NPB·e스포츠) — 영문 데이터셋이라 되돌린다. */
+export const BENCHMARK_COLUMNS: (keyof BenchmarkRow)[] = [
+  "prediction_id", "event_id", "league", "home_team", "away_team",
+  "kickoff_utc", "predicted_at_utc", "model", "market", "pick",
+  "stated_prob", "line", "correct", "home_score", "away_score",
+  "outcome_1x2", "market_prob_home", "market_prob_draw", "market_prob_away",
+];
+
+export const BENCHMARK_LICENSE = "CC BY 4.0";
+export const BENCHMARK_ATTRIBUTION = "Scorebase LLM Forecasting Benchmark — https://www.scorebase.kr/en/benchmark";
