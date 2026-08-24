@@ -3481,5 +3481,635 @@
   "competitionId": "comp_0256",
   "seasonId": "sn_6184519",
   "seasonLabel": "2024-25 LIGUE_1"
+ },
+ "3glrw7hy9vyoqdy": {
+  "statsId": "pl_58628595",
+  "teamId": "tm_37262",
+  "teamName": "Inter",
+  "name": "Petar Sučić",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "l5ergphel897r8k": {
+  "statsId": "pl_62192916",
+  "teamId": "tm_37262",
+  "teamName": "Inter",
+  "name": "Pio Esposito",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "8yomo4h2xz84q0j": {
+  "statsId": "pl_57917542",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Strahinja Pavlovic",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "965mkyhn3gjr1ge": {
+  "statsId": "pl_30842560",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Christian Pulisic",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "3glrw7hj75yxqdy": {
+  "statsId": "pl_29150658",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Charles De Ketelaere",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "6ypq3nhlvv3md7o": {
+  "statsId": "pl_84027040",
+  "teamId": "tm_10361",
+  "teamName": "Beşiktaş",
+  "name": "Dušan Vlahović",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "6ypq3nhwgwjlmd7": {
+  "statsId": "pl_19334409",
+  "teamId": "tm_98487",
+  "teamName": "Roma",
+  "name": "Neil El Aynaoui",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "dj2ryohjlv0xq1z": {
+  "statsId": "pl_96327761",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Francisco Conceicao",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "dj2ryohj19wkq1z": {
+  "statsId": "pl_84794773",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Mario Gila",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "zp5rzgh29o8q82w": {
+  "statsId": "pl_29852297",
+  "teamId": "tm_1002",
+  "teamName": "Aston Villa",
+  "name": "Zion Suzuki",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "y0or5jh1v1wqwzv": {
+  "statsId": "pl_29720130",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Weston McKennie",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "l5ergphp42kr8k0": {
+  "statsId": "pl_57434355",
+  "teamId": "tm_02943",
+  "teamName": "Napoli",
+  "name": "Alessandro Buongiorno",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlhvx2eryk0": {
+  "statsId": "pl_61996466",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Marco Carnesecchi",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "3glrw7hze0yqdyj": {
+  "statsId": "pl_61916869",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Nikola Krstović",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "vjxm8gh8xx09r6o": {
+  "statsId": "pl_40595057",
+  "teamId": "tm_02943",
+  "teamName": "Napoli",
+  "name": "Alisson Santos",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "x7lm7ph9ek08m2w": {
+  "statsId": "pl_98194340",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Christ Inao Oulaï",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "3glrw7hj8e7kqdy": {
+  "statsId": "pl_25330500",
+  "teamId": "tm_46156",
+  "teamName": "Bologna",
+  "name": "Jonathan Rowe",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "4jwq2ghvdzy4m0v": {
+  "statsId": "pl_96912110",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Ardon Jashari",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlh9y1vxryk": {
+  "statsId": "pl_96369277",
+  "teamId": "tm_9145",
+  "teamName": "Arsenal",
+  "name": "Riccardo Calafiori",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "8yomo4h5kveq0j6": {
+  "statsId": "pl_57371238",
+  "teamId": "tm_02924",
+  "teamName": "Como",
+  "name": "Anastasios Douvikas",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlhzne4ryk0": {
+  "statsId": "pl_13635463",
+  "teamId": "tm_74434",
+  "teamName": "Olympique Lyonnais",
+  "name": "Loïs Openda",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "n54qllh8gllqvy9": {
+  "statsId": "pl_29683089",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Gianluca Scamacca",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "x7lm7phwwjzm2wd": {
+  "statsId": "pl_57268852",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Christopher Nkunku",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "318q66h44gpqo9j": {
+  "statsId": "pl_13587883",
+  "teamId": "tm_73673",
+  "teamName": "Real Madrid",
+  "name": "Denzel Dumfries",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "l5ergphvx99r8k0": {
+  "statsId": "pl_1730341",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Manuel Locatelli",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "zp5rzghz1kl1q82": {
+  "statsId": "pl_30176120",
+  "teamId": "tm_98487",
+  "teamName": "Roma",
+  "name": "Evan N'Dicka",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "y0or5jhe8lwyqwz": {
+  "statsId": "pl_84786333",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Koni De Winter",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "y0or5jhez1dkqwz": {
+  "statsId": "pl_08955908",
+  "teamId": "tm_73047",
+  "teamName": "Lazio",
+  "name": "Nicolò Rovella",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "8yomo4h525zq0j6": {
+  "statsId": "pl_72021737",
+  "teamId": "tm_46107",
+  "teamName": "Udinese",
+  "name": "Oumar Solet",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "23xmvkhxd43qg8n": {
+  "statsId": "pl_57413169",
+  "teamId": "tm_02943",
+  "teamName": "Napoli",
+  "name": "David Neres",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "k82rekho40ndrep": {
+  "statsId": "pl_74597396",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Davide Bartesaghi",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "k82rekhyn06yrep": {
+  "statsId": "pl_72000763",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Samuele Ricci",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlh2w4nryk0": {
+  "statsId": "pl_45154476",
+  "teamId": "tm_02943",
+  "teamName": "Napoli",
+  "name": "Sam Beukema",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlh2l41ryk0": {
+  "statsId": "pl_29772636",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Giacomo Raspadori",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlhv0dgryk0": {
+  "statsId": "pl_58742639",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Isak Hien",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "4jwq2gh7w97m0ve": {
+  "statsId": "pl_13635940",
+  "teamId": "tm_73047",
+  "teamName": "Lazio",
+  "name": "Davide Frattesi",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "y0or5jhge5lqwzv": {
+  "statsId": "pl_29618880",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Jhon Lucumi",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "4wyrn4h4699eq86": {
+  "statsId": "pl_58752297",
+  "teamId": "tm_02924",
+  "teamName": "Como",
+  "name": "Jayden Addai",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "x7lm7phw8nv5m2w": {
+  "statsId": "pl_97033474",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Cher Ndour",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "318q66hvygj6qo9": {
+  "statsId": "pl_72706644",
+  "teamId": "tm_37262",
+  "teamName": "Inter",
+  "name": "Andy Diouf",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "k82rekhygk2jrep": {
+  "statsId": "pl_30306850",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Lorenzo Bernasconi",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "vjxm8ghjlx9dr6o": {
+  "statsId": "pl_84656803",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Andrea Cambiaso",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "965mkyh3odp1r1g": {
+  "statsId": "pl_08597725",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Nicola Zalewski",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "vjxm8ghj3pljr6o": {
+  "statsId": "pl_84699272",
+  "teamId": "tm_02943",
+  "teamName": "Napoli",
+  "name": "Billy Gilmour",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "965mkyh3ggz9r1g": {
+  "statsId": "pl_84723787",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Ederson",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "3glrw7h1exgoqdy": {
+  "statsId": "pl_29856969",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Alexis Saelemaekers",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "pxwrxlh28d7ryk0": {
+  "statsId": "pl_84698795",
+  "teamId": "tm_02924",
+  "teamName": "Como",
+  "name": "Lucas Da Cunha",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "4wyrn4hej2vq86p": {
+  "statsId": "pl_1593966",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Mike Maignan",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "k82rekh9d7p5rep": {
+  "statsId": "pl_57397176",
+  "teamId": "tm_51921",
+  "teamName": "Sassuolo",
+  "name": "Armand Lauriente",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "dn1m1gh8po89moe": {
+  "statsId": "pl_37563430",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Jeff Ekhator",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "23xmvkhknez9qg8": {
+  "statsId": "pl_36238243",
+  "teamId": "tm_0406",
+  "teamName": "Liverpool",
+  "name": "Giovanni Leoni",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "4wyrn4h4nv96q86": {
+  "statsId": "pl_83355866",
+  "teamId": "tm_64529",
+  "teamName": "Torino",
+  "name": "Pietro Comuzzo",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "vjxm8gh87gz8r6o": {
+  "statsId": "pl_36185143",
+  "teamId": "tm_98487",
+  "teamName": "Roma",
+  "name": "Daniele Ghilardi",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "vjxm8gh8lgkdr6o": {
+  "statsId": "pl_58746521",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Alessandro Circati",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "ednm9whzgd9ryox": {
+  "statsId": "pl_3860382",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Adrien Rabiot",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "965mkyhn52nr1ge": {
+  "statsId": "pl_45744047",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Matteo Gabbia",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "n54qllh8d9wqvy9": {
+  "statsId": "pl_45765074",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Fikayo Tomori",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "l5ergphv954r8k0": {
+  "statsId": "pl_1700398",
+  "teamId": "tm_37262",
+  "teamName": "Inter",
+  "name": "Manuel Akanji",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "y39mp1hj6lk1moj": {
+  "statsId": "pl_74256771",
+  "teamId": "tm_73047",
+  "teamName": "Lazio",
+  "name": "Oliver Provstgaard",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "x7lm7ph07jw1m2w": {
+  "statsId": "pl_08534841",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Lazar Samardzic",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "ednm9whd4v2ryox": {
+  "statsId": "pl_13790416",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Nicolo Fagioli",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "y39mp1h1908mojx": {
+  "statsId": "pl_84589358",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Domilson Dodo",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "4jwq2ghk97nm0ve": {
+  "statsId": "pl_1997398",
+  "teamId": "tm_37262",
+  "teamName": "Inter",
+  "name": "Hakan Çalhanoğlu",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "dj2ryohnj7nvq1z": {
+  "statsId": "pl_25181327",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Francesco Camarda",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "ednm9whvy3wgryo": {
+  "statsId": "pl_19688775",
+  "teamId": "tm_74434",
+  "teamName": "Olympique Lyonnais",
+  "name": "Zachary Athekame",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "vjxm8gh8lxndr6o": {
+  "statsId": "pl_19434304",
+  "teamId": "tm_02943",
+  "teamName": "Napoli",
+  "name": "Antonio Vergara",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "318q66h4zg4lqo9": {
+  "statsId": "pl_62893698",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Mateo Pellegrino",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "ednm9whz58nwryo": {
+  "statsId": "pl_84848685",
+  "teamId": "tm_64529",
+  "teamName": "Torino",
+  "name": "Cesare Casadei",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "zp5rzghzgo54q82": {
+  "statsId": "pl_57565356",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Fabio Miretti",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
+ },
+ "3glrw7hjp1v7qdy": {
+  "statsId": "pl_29161031",
+  "teamId": "tm_73047",
+  "teamName": "Lazio",
+  "name": "Gustav Isaksen",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_3061436",
+  "seasonLabel": "2025-26 SERIE_A"
  }
 }
