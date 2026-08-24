@@ -332,6 +332,28 @@ export const EN_STANDINGS_LEAGUE_SET = new Set<string>([
 /** DB Team.name 이 한글로 저장된 리그(KBO·NPB)의 한→영 공식 팀명.
  *  그 외 리그는 DB 원본이 이미 영문이라 매핑 불필요 (fallback = 원본 반환). */
 const TEAM_NAME_EN: Record<string, string> = {
+  // LoL 해외 팀 (DB Team.name 이 한글)
+  "G2 e스포츠": "G2 Esports",
+  "JD 게이밍": "JD Gaming",
+  "LGD 게이밍": "LGD Gaming",
+  "LNG e스포츠": "LNG Esports",
+  "나투스 빈케레": "Natus Vincere",
+  "닌자 인 파자마스": "Ninjas in Pyjamas",
+  "리옹": "LYON",
+  "빌리빌리 게이밍": "Bilibili Gaming",
+  "쇼피파이 리벨리온": "Shopify Rebellion",
+  "썬더토크 게이밍": "ThunderTalk Gaming",
+  "애니원스 레전드": "Anyone's Legend",
+  "에드워드 게이밍": "Edward Gaming",
+  "웨이보 게이밍": "Weibo Gaming",
+  "인빅터스 게이밍": "Invictus Gaming",
+  "자이언트엑스": "GIANTX",
+  "클라우드9": "Cloud9",
+  "탑 e스포츠": "Top Esports",
+  "팀 WE": "Team WE",
+  "팀 리퀴드": "Team Liquid",
+  "팀 바이탈리티": "Team Vitality",
+  "팀 헤레틱스": "Team Heretics",
   // MLB (mlb-player-extras 의 teamLabel 이 한국어 축약형)
   "애리조나": "Diamondbacks",
   "애틀랜타": "Braves",
