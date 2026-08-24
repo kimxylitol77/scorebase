@@ -18,6 +18,10 @@ import { prisma } from "@/lib/db";
 import { recordCronRun } from "@/lib/cron-registry";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { alertIntervalMs, auditFootballSeasons, type LeagueAudit } from "@/lib/sports/season-watch";
+import {
+  autoDiscoverSeasons,
+  type AutoDiscoverResult,
+} from "@/lib/sports/thesports/season-autodiscover";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -45,6 +49,18 @@ async function handle(req: Request) {
   const audit = await auditFootballSeasons();
   const now = audit.generatedAt;
 
+  // 개막 임박인데 레지스트리에 시즌 행이 없는 리그는, 알리기 전에 발견을 시도한다.
+  // 감지만 해 두고 사람이 CLI(discover-football-seasons --write)를 돌려주길 기다리는 그 사이가
+  // 곧 af 시즌 게이트가 꺼져 지난 시즌 표가 새는 창이다 (2026-08-24 THAI_L1 등 4개 실측).
+  // 대상이 없으면 ts 호출 0 — 발견은 부가 작업이라 실패해도 감시 본류는 그대로 진행한다.
+  let discovery: AutoDiscoverResult | null = null;
+  try {
+    discovery = await autoDiscoverSeasons(audit.exceptions, now);
+  } catch (e) {
+    console.warn("[football-season-watch] 시즌 자동 발견 실패:", (e as Error).message);
+  }
+  const discovered = new Set((discovery?.recorded ?? []).map((r) => r.league));
+
   // 최근 이력 — 같은 상태의 반복 알림을 막기 위한 지문 비교용.
   const recent = await prisma.healthCheck.findMany({
     where: { category: CATEGORY, runAt: { gte: new Date(now.getTime() - 14 * 86400_000) } },
@@ -64,7 +80,13 @@ async function handle(req: Request) {
     severity: string; key: string; message: string; metadata: Record<string, unknown>;
   }> = [];
 
-  for (const l of audit.exceptions) {
+  for (const l0 of audit.exceptions) {
+    // 방금 후보를 기록한 리그는 "쓸 시즌이 없다"가 더 이상 사실이 아니다 — 같은 실행에서
+    // 고쳐 놓고 그대로 알리면 감사가 스스로 모순된다.
+    const l = discovered.has(l0.league)
+      ? { ...l0, issues: l0.issues.filter((i) => i.code !== "no-season-before-open") }
+      : l0;
+    if (l.issues.length === 0) continue;
     const fp = fingerprint(l);
     const prev = lastNotified.get(l.league);
     const interval = alertIntervalMs(l.daysToFirstFixture);
@@ -150,6 +172,13 @@ async function handle(req: Request) {
             ``,
           ]
         : []),
+      ...(discovery && discovery.recorded.length > 0
+        ? [
+            `🆕 <b>신시즌 자동 등록 ${discovery.recorded.length}건</b> (DISCOVERED — 전환은 별도)`,
+            ...discovery.recorded.map((r) => `   • ${r.league} ${r.seasonLabel} · ${r.teamCount}팀`),
+            ``,
+          ]
+        : []),
       `📊 검사 ${audit.summary.checked}리그 · 예외 ${audit.exceptions.length}리그`,
       `➡️ 상세: npm run audit:football-seasons`,
     ];
@@ -166,6 +195,7 @@ async function handle(req: Request) {
     checked: audit.summary.checked,
     exceptions: audit.exceptions.length,
     alerted: toAlert.length + (pollerNotify ? 1 : 0),
+    discovery,
     summary: audit.summary,
     poller: audit.poller,
   });
