@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown, Handshake, FlaskConical } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { predictedBeforeKickoff } from "@/lib/predict/scorecard-eligibility";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
 import TeamBadge from "@/components/TeamBadge";
@@ -162,6 +163,7 @@ export default async function ScorecardPage() {
     orderBy: { match: { startTime: "asc" } },
     select: {
       model: true, market: true, pick: true, prob: true, line: true, reason: true, correct: true,
+      predictedAt: true,
       match: {
         select: {
           id: true, league: true, startTime: true, status: true, homeScore: true, awayScore: true, externalId: true,
@@ -175,6 +177,7 @@ export default async function ScorecardPage() {
   // (matchId, market) 단위로 전 모델 픽을 한 데이터포인트로 묶음.
   const byKey = new Map<string, DP>();
   for (const r of rows) {
+    if (!predictedBeforeKickoff(r)) continue;
     const m = r.match;
     const mk = r.market as Market;
     const key = `${m.id}:${mk}`;

@@ -1,5 +1,6 @@
 // /picks/strong 데이터 — 고확신 픽 목록 + 그 픽을 뒷받침하는 근거 + 기준의 실제 성적.
 import { prisma } from "@/lib/db";
+import { predictedBeforeKickoff } from "@/lib/predict/scorecard-eligibility";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import {
@@ -312,7 +313,10 @@ export async function loadStrongPicks(date?: string): Promise<StrongPickMatch[]>
 export async function loadUnanimousAccuracy(): Promise<MarketAccuracy> {
   const rows = await prisma.aiPrediction.findMany({
     where: { market: { in: ["1X2", "HANDICAP", "OU"] }, published: true },
-    select: { matchId: true, model: true, market: true, pick: true, prob: true, correct: true },
+    select: {
+      matchId: true, model: true, market: true, pick: true, prob: true, correct: true,
+      predictedAt: true, match: { select: { startTime: true } },
+    },
   });
   const th: Record<string, number> = {
     "1X2": STRONG_THRESHOLD["1X2"],
@@ -322,6 +326,7 @@ export async function loadUnanimousAccuracy(): Promise<MarketAccuracy> {
   interface Cell { model: string; pick: string; prob: number; correct: boolean | null }
   const byKey = new Map<string, { market: string; cells: Cell[] }>();
   for (const r of rows) {
+    if (!predictedBeforeKickoff(r)) continue;
     const k = `${r.matchId}:${r.market}`;
     const g = byKey.get(k) ?? { market: r.market, cells: [] as Cell[] };
     const ex = g.cells.find((c) => c.model === r.model);

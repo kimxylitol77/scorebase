@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { predictedBeforeKickoff } from "@/lib/predict/scorecard-eligibility";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from "@/lib/i18n/en";
 import {
@@ -41,6 +42,7 @@ export default async function HomeAiScorecardShowcase() {
       pick: true,
       prob: true,
       correct: true,
+      predictedAt: true,
       match: {
         select: {
           externalId: true,
@@ -68,6 +70,7 @@ export default async function HomeAiScorecardShowcase() {
   }
   const byMatch = new Map<string, Row>();
   for (const r of rows) {
+    if (!predictedBeforeKickoff(r)) continue;
     const m = r.match;
     let row = byMatch.get(m.externalId);
     if (!row) {

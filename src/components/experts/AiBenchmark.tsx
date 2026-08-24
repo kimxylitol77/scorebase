@@ -3,6 +3,7 @@
 // "AI를 이긴 회원 N명" 자체가 가입·참여 동기 = 전환 콘텐츠.
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { predictedBeforeKickoff } from "@/lib/predict/scorecard-eligibility";
 import type { RankRow } from "@/lib/analysis/ranking";
 
 const RANK_MIN = 30; // 소표본 왜곡 방지 — 성적표와 동일 기준
@@ -21,10 +22,11 @@ const AI_META: Record<string, { label: string; order: number }> = {
 export default async function AiBenchmark({ memberRows }: { memberRows: RankRow[] }) {
   const rows = await prisma.aiPrediction.findMany({
     where: { correct: { not: null }, published: true },
-    select: { model: true, correct: true },
+    select: { model: true, correct: true, predictedAt: true, match: { select: { startTime: true } } },
   });
   const tally = new Map<string, { total: number; hit: number }>();
   for (const r of rows) {
+    if (!predictedBeforeKickoff(r)) continue;
     const m = r.model.startsWith("gpt-") ? "gpt" : r.model;
     if (!AI_META[m]) continue;
     const t = tally.get(m) ?? { total: 0, hit: 0 };
