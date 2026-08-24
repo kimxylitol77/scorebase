@@ -109,6 +109,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     // 영어판(/en) — 핵심 URL 만 등록 (thin 희석 방지: 허브 + 핵심 리그 상세만)
     { url: `${base}/en`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${base}/en/benchmark`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/en/scores`, changeFrequency: "hourly", priority: 0.65 },
     { url: `${base}/en/standings`, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/en/predictions`, changeFrequency: "daily", priority: 0.65 },
