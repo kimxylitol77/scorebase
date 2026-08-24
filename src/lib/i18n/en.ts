@@ -2,6 +2,7 @@
 // 데이터(팀·선수명)는 DB 원본이 이미 영문이라 여기서는 UI 라벨만 다룬다.
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { SITE_URL } from "@/lib/site-url";
+import { koTeamNameToEnglish } from "@/lib/team-names";
 
 /** 리그 코드 → 영문 표시명. 없으면 코드 그대로 노출해도 대부분 영문이라 치명적이지 않다. */
 export const LEAGUE_DISPLAY_EN: Record<string, string> = {
@@ -461,7 +462,9 @@ const TEAM_NAME_EN: Record<string, string> = {
 };
 
 export function toEnglishTeamName(name: string): string {
-  return TEAM_NAME_EN[name] ?? name;
+  // TEAM_NAME_EN 이 우선(축약형·예외 교정). 없으면 team-names.ts 역매핑으로 떨어진다 —
+  // 팀이 하나씩 샐 때마다 사전을 늘리는 대신 한 번에 커버한다("브라이턴" 누락 실측).
+  return TEAM_NAME_EN[name] ?? koTeamNameToEnglish(name) ?? name;
 }
 
 /** /en/injuries/[league] 지원 리그 — 영문 원본 소스만 (축구=af, 미국리그=ESPN).
