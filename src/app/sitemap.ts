@@ -439,5 +439,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...coachPages, ...squadPages, ...teamPages, ...ufcFighterPages, ...baseballPlayerPages];
+  // 영어판 선수 페이지 — MLB 만. KBO/NPB 는 선수명·팀명이 한국어 원본뿐이라 /en 에서 404 다.
+  const enBaseballPlayerPages: MetadataRoute.Sitemap = [];
+  for (const key of bbSeen) {
+    const [league, externalId] = key.split(":");
+    if (league !== "MLB") continue;
+    enBaseballPlayerPages.push({
+      url: `${base}/en/players/${externalId}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    });
+  }
+
+  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...coachPages, ...squadPages, ...teamPages, ...ufcFighterPages, ...baseballPlayerPages, ...enBaseballPlayerPages];
 }
