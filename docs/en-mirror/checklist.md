@@ -42,7 +42,15 @@
 - [x] 한국어 원본 hreflang 역방향 (양방향 출력 실측)
 - [x] sitemap 등재 (오버/언더는 핵심 리그만, 선수 페이지는 미등재 — 아래 사유)
 - [x] EnHeader 에 Salaries, EnFooter 에 신규 15개 링크
-- [x] IndexNow 제출 (85건, HTTP 200)
+- [x] IndexNow 제출 (85건 → 133건 → /en/players 1,394건, 전부 HTTP 200)
+
+### 홈·선수 배포 후 production 에서 추가로 잡힌 것 (전부 수정·배포 완료)
+
+로컬 `verify.ts` 는 통과했는데 production 에서 드러난 것들 — **배포 후 재검증이 필요하다.**
+
+- `toLocaleString("ko-KR")` 12개 파일 → `"en-GB"` (킥오프가 "오전 04:00" 로 나갔다)
+- `toEnglishTeamName` 에 `koTeamNameToEnglish` 폴백 (TEAM_NAME_EN 누락 팀이 한글로 나갔다)
+- LoL 해외 팀 한글명 29개 매핑 (DB Team.name 이 한글)
 
 ## 불가 (3) — 데이터가 한국어 전용
 
