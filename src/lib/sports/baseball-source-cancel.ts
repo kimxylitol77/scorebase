@@ -21,3 +21,39 @@ export function isFutureSourceCancel(
   if (!startTime) return false;
   return (short ?? "").toUpperCase() === "CANC" && startTime.getTime() > now.getTime();
 }
+
+// ─────────────────────────────────────────────────────────────
+// 취소 경기가 "종료 0-0" 으로 굳는 것 차단 (2026-08-25).
+//
+// collect 의 mergeStatus 는 "점수 없는 FINISHED 는 확정 결과가 아니다" 라며 소스의
+// POSTPONED 를 받아준다. 그런데 그 판정이 `homeScore != null` 이라 **0-0 은 점수 있음**
+// 으로 읽힌다. 취소 경기가 한 번 FINISHED 0-0 으로 찍히면 소스가 매 수집마다 POST 를
+// 줘도 영영 "종료 0-0" 으로 남는다.
+//
+// 실측 (2026-08-25, 최근 365일). FINISHED 인데 raw 가 연기/취소인 매치 24건 중
+//   0-0 23건 = KBO 18 · NPB 5 — 전부 이 경로로 굳은 취소 경기.
+//   득점 있음 1건 = KBO #2218 (0-1, ABD 중단) — 이건 가드가 막는 게 맞다.
+//   축구 0건.
+// 야구 FINISHED 0-0 37건 중 소스가 연기/취소인 게 23건, 나머지 14건은 소스 FT 라
+// 이 규칙에 걸리지 않는다(incoming 이 POSTPONED 일 때만 발동).
+//
+// 축구를 제외하는 이유. 0-0 무승부가 정상 결과인 데다, af 가 종료 경기에 PST/NS 를
+// 주는 기벽이 실측돼 있어(SUI_CUP #5801019 af NS 26h+ 고착) 진짜 결과를 지울 수 있다.
+
+/** 야구 리그 — 0-0 종료를 "결과 없음"으로 볼 대상. */
+const BASEBALL = new Set(["KBO", "NPB", "MLB", "LMB", "CPBL", "KBO_FUTURES"]);
+
+/**
+ * 기존 FINISHED row 가 "지켜야 할 확정 결과" 를 갖고 있는가.
+ * false 면 소스의 POSTPONED 를 받아들여도 된다.
+ */
+export function hasProtectedResult(
+  league: string,
+  homeScore: number | null | undefined,
+  awayScore: number | null | undefined,
+): boolean {
+  if (homeScore == null && awayScore == null) return false;
+  // 야구의 0-0 은 취소 경기의 잔여값이지 결과가 아니다 (실측 23/23).
+  if (BASEBALL.has(league) && homeScore === 0 && awayScore === 0) return false;
+  return true;
+}

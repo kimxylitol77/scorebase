@@ -13,6 +13,7 @@ import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
 import { fetchLolAll } from "@/lib/sports/lol";
 import { LOL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { hasProtectedResult } from "@/lib/sports/baseball-source-cancel";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
@@ -155,6 +156,8 @@ function parseArgs(): { leagues: League[]; date: string } {
 // 찍히면 이후 소스가 계속 POST(연기) 를 줘도 이 가드에 막혀 영영 "종료 -:-" 로 남았다
 // (2026-08-01 KBO #2485 롯데-삼성: raw 는 POST 로 갱신되는데 status 만 FINISHED 고착).
 // 점수가 있는 FINISHED 는 종전대로 강력 보호 — 역행 차단 목적 그대로.
+// "점수 없음" 판정은 hasProtectedResult 가 맡는다 — `!= null` 로 재면 0-0 이 점수 있음으로
+// 읽혀 같은 고착이 재현된다 (2026-08-25 KBO 18·NPB 5 실측). 야구의 0-0 은 결과가 아니다.
 function mergeStatus(
   existing: MatchStatus | null | undefined,
   incoming: MatchStatus,
@@ -376,7 +379,7 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
               status: mergeStatus(
                 exStatus,
                 m.status,
-                existing.homeScore != null || existing.awayScore != null,
+                hasProtectedResult(m.league, existing.homeScore, existing.awayScore),
               ),
             }
           : {}),
@@ -396,7 +399,7 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
   const mergedStatus = mergeStatus(
     current?.status as MatchStatus | undefined,
     m.status,
-    current != null && (current.homeScore != null || current.awayScore != null),
+    current != null && hasProtectedResult(m.league, current.homeScore, current.awayScore),
   );
 
   await prisma.match.upsert({

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isFutureSourceCancel } from "./baseball-source-cancel";
+import { hasProtectedResult, isFutureSourceCancel } from "./baseball-source-cancel";
 
 const NOW = new Date("2026-07-29T03:00:00Z"); // 12:00 KST
 const future = (days: number) =>
@@ -51,4 +51,35 @@ test("경계 — 킥오프 순간은 미래가 아니다", () => {
     isFutureSourceCancel("CANC", new Date(NOW.getTime() + 1), NOW),
     true,
   );
+});
+
+test("야구의 0-0 종료는 지켜야 할 결과가 아니다 — 취소 경기의 잔여값", () => {
+  // 2026-08-25 실측: FINISHED 인데 소스가 연기인 야구 23건이 전부 0-0 이었다.
+  for (const lg of ["KBO", "NPB", "MLB", "LMB", "CPBL"]) {
+    assert.equal(hasProtectedResult(lg, 0, 0), false, lg);
+  }
+});
+
+test("야구도 득점이 있으면 보호한다 — 중단 경기의 점수는 지운다", () => {
+  // KBO #2218 (0-1, ABD 중단) 유형. 소스가 연기라고 해도 이건 덮지 않는다.
+  assert.equal(hasProtectedResult("KBO", 0, 1), true);
+  assert.equal(hasProtectedResult("KBO", 3, 0), true);
+});
+
+test("축구의 0-0 은 정상 결과라 보호한다", () => {
+  // af 가 종료 경기에 PST/NS 를 주는 기벽이 실측돼 있어(SUI_CUP #5801019) 뒤집으면 안 된다.
+  assert.equal(hasProtectedResult("EPL", 0, 0), true);
+  assert.equal(hasProtectedResult("FA_CUP", 0, 0), true);
+  assert.equal(hasProtectedResult("NHL", 0, 0), true);
+});
+
+test("점수가 아예 없으면 종목과 무관하게 보호 대상이 아니다", () => {
+  assert.equal(hasProtectedResult("KBO", null, null), false);
+  assert.equal(hasProtectedResult("EPL", null, null), false);
+  assert.equal(hasProtectedResult("EPL", undefined, undefined), false);
+});
+
+test("한쪽만 있는 반쪽 점수는 보호한다 — 수집 중간 상태를 지우지 않는다", () => {
+  assert.equal(hasProtectedResult("KBO", 0, null), true);
+  assert.equal(hasProtectedResult("EPL", null, 2), true);
 });
