@@ -18,7 +18,7 @@ import {
   ESPN_BASKETBALL_SLUG,
   verifyEspnBasketball,
 } from "@/lib/sports/espn-basketball-verify";
-import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES, HOCKEY_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
 import { TS_COVERED_EXCEPTIONS } from "@/lib/sports/ts-covered-exceptions";
 
@@ -298,7 +298,8 @@ export async function GET(req: NextRequest) {
   // 1) stale LIVE 매치 처리 (시작 + cutoff 지났는데 LIVE) — data-sanity 봇 알림 제거
   //    점수 있으면 FINISHED, 없으면 POSTPONED.
   //    축구는 3.5h (종료 ~2.5h 후 여유) — ts 군소 축구가 fast-poller 누락으로 LIVE 고착하는
-  //    공백 단축(2026-06-14 ARG #441867 진단). 야구/기타는 연장 고려 6h 유지. 정밀 복구는
+  //    공백 단축(2026-06-14 ARG #441867 진단). 하키는 4h(실경기 3h 미만),
+  //    야구/기타는 연장 고려 6h 유지. 정밀 복구는
   //    mac-mini stale-ts-verify(diary status_id)가 먼저 처리하고, 이 cron 은 worker 중단 시 백스톱.
   const liveCutoffSoccer = new Date(Date.now() - 3.5 * 3600 * 1000);
   const liveCutoffDefault = new Date(Date.now() - 6 * 3600 * 1000);
@@ -307,13 +308,22 @@ export async function GET(req: NextRequest) {
   // 포함 최대 2.5h 면 확실히 종료라 3.5h(연장 컵대회 여유) 대신 2.5h 로 당겨 유령 LIVE 노출·
   // data-sanity 반복 알림 공백 단축 (2026-07-11 #1159143/#1159129 207분 stuck 진단).
   const liveCutoffFriendly = new Date(Date.now() - 2.5 * 3600 * 1000);
+  // 하키는 "야구/기타" 6h 에 묶여 있었는데, 3피리어드 + 인터미션 + 연장·슛아웃을 다 합쳐도
+  // 실경기가 3h 를 넘지 않는다. 6h 는 그만큼 유령 LIVE 노출을 길게 끌었다 — data-sanity 는
+  // 90분에 울리는데 백스톱은 6h 라 그 사이가 통째로 공백이었다 (2026-08-25 HOCKEY_FRIENDLY
+  // #7179267·#8228876 실측: ts 가 P1 에서 고착하거나 status_id=0 으로 숨겨도 우리만 LIVE).
+  const liveCutoffHockey = new Date(Date.now() - 4 * 3600 * 1000);
   const staleLive = await prisma.match.findMany({
     where: {
       status: "LIVE",
       OR: [
         { league: "CLUB_FRIENDLY", startTime: { lt: liveCutoffFriendly } },
         { league: { in: [...SOCCER_LEAGUES] }, startTime: { lt: liveCutoffSoccer } },
-        { league: { notIn: [...SOCCER_LEAGUES] }, startTime: { lt: liveCutoffDefault } },
+        { league: { in: [...HOCKEY_LEAGUES] }, startTime: { lt: liveCutoffHockey } },
+        {
+          league: { notIn: [...SOCCER_LEAGUES, ...HOCKEY_LEAGUES] },
+          startTime: { lt: liveCutoffDefault },
+        },
       ],
     },
     include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
