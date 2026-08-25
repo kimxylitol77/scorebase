@@ -8,7 +8,7 @@ source "$HOME/dev/scorebase/mac-mini-worker/git-push-lib.sh"
 #   유럽 경기가 KST 새벽에 끝나므로 07:20 이면 당일 반영된다.
 #   weekly-static-refresh(일 05:00)의 ⑧-b 는 af 국적 스캔(~800콜)으로 **명단과 지난 시즌 확정 기록**을 만든다.
 #   현재 시즌 기록은 ts 리그당 1콜(총 23콜)이라 매일 돌려도 부담이 없어 이 잡으로 분리했다.
-# 안전선: ① data/korea-abroad.json 만 add (코드 절대 미포함) ② 빈 파일 가드 ③ 실패 시 push 안 함.
+# 안전선: ① data/korea-abroad.json 만 add (코드 절대 미포함) ② 빈 파일 가드 ③ 출전 기록 급감 가드 ④ 실패 시 push 안 함.
 set -e
 set -o pipefail
 cd ~/dev/scorebase
@@ -43,6 +43,32 @@ if [ "$STAT_SIZE" -lt 1000000 ]; then
   git checkout -- data/ 2>/dev/null || true
   exit 1
 fi
+
+# 의미 가드 — 위 크기 가드는 "값만 null 로 바뀌는" 오염을 못 잡는다(2026-08-24 8f2d9a3 ·
+#   08-25 1a2ac41: ts IP 차단으로 전 리그 실패했는데 파일 크기는 거의 그대로라 통과했다).
+#   status:"played" 건수를 직전 커밋과 비교한다. 스크립트 단 가드(156e1da 전멸 가드 + 소스 전면
+#   실패 가드)는 "0명" 절벽만 잡는다 — 일부 리그만 빈 결과(code=0, results=[])를 주는 부분 붕괴
+#   (19→5 등)와 다른 잡·수동 편집이 data/ 를 망가뜨리는 경우는 이 파일 기준 가드만 잡는다.
+#   실측 근거 — 현재 시즌 기록 도입(508f945, 08-18) 이후 정상 커밋 10개의 played 는
+#   18·18·19·19·19·19·19·19·19·19 로 일간 변동 최대 1, 오염 커밋 2건은 0 이었다
+#   (2026-08-27 재측정 — 프록시 전환 후 08-27 07:20 9c66ba8 도 19 로 정상).
+#   임계를 "직전의 절반 미만"으로 두면 19 기준 9 이하에서만 걸려 정상 변동(±1)과 겹치지 않는다.
+played_count() {
+  node -e 'let s="";process.stdin.on("data",(d)=>{s+=d}).on("end",()=>{try{const j=JSON.parse(s);console.log((j.players||[]).filter((p)=>p&&p.current&&p.current.status==="played").length)}catch(e){console.log(-1)}})'
+}
+PLAYED_NOW=$(played_count < data/korea-abroad.json)
+PLAYED_HEAD=$(git show HEAD:data/korea-abroad.json | played_count)
+if [ "$PLAYED_NOW" -lt 0 ]; then
+  echo "❌ data/korea-abroad.json 파싱 불가 — push 중단"
+  git checkout -- data/ 2>/dev/null || true
+  exit 1
+fi
+if [ "$PLAYED_HEAD" -gt 0 ] && [ $((PLAYED_NOW * 2)) -lt "$PLAYED_HEAD" ]; then
+  echo "❌ 해외파 출전 기록 급감 (HEAD ${PLAYED_HEAD}명 → ${PLAYED_NOW}명) — ts 조회 실패 의심, push 중단"
+  git checkout -- data/ 2>/dev/null || true
+  exit 1
+fi
+log "출전 기록 ${PLAYED_HEAD} → ${PLAYED_NOW}명 (의미 가드 통과)"
 
 if git diff --quiet -- data/korea-abroad.json data/player-season-stats.json data/player-photos.json; then
   log "변경 없음 — push 생략"
