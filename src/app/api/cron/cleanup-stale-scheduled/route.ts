@@ -19,6 +19,7 @@ import {
   verifyEspnBasketball,
 } from "@/lib/sports/espn-basketball-verify";
 import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES, HOCKEY_LEAGUES } from "@/lib/sports/sport-leagues";
+import { tsFinishEvidence } from "@/lib/sports/thesports/finish-evidence";
 import type { League } from "@/lib/sports/types";
 import { TS_COVERED_EXCEPTIONS } from "@/lib/sports/ts-covered-exceptions";
 
@@ -338,9 +339,27 @@ export async function GET(req: NextRequest) {
       .filter((m) => API_FOOTBALL_LEAGUES.has(m.league as League) && /^\d+$/.test(m.externalId))
       .map((m) => m.externalId),
   );
+  // 0-0 stale LIVE 는 af 폴백에서 "점수 있음 = 완주"로 읽혀 FINISHED 0-0 이라는 없는 결과로
+  // 굳는다 (2026-08-25 HOCKEY_FRIENDLY #7179267 — ts 가 P1 에 고착한 채 4.6h). ts 캐시의
+  // 피리어드·status_id 로 완주 여부를 가려 확정을 막는다. 대상이 0-0 뿐이라 조회도 그때만.
+  const scorelessLiveIds = staleLive
+    .filter((m) => m.homeScore === 0 && m.awayScore === 0)
+    .map((m) => m.id);
+  const tsScoreById = new Map<number, unknown>();
+  if (scorelessLiveIds.length > 0) {
+    const caches = await prisma.theSportsMatchCache.findMany({
+      where: { matchId: { in: scorelessLiveIds } },
+      select: { matchId: true, detailLive: true },
+    });
+    for (const c of caches) {
+      const score = (c.detailLive as { score?: unknown } | null)?.score;
+      if (score !== undefined) tsScoreById.set(c.matchId, score);
+    }
+  }
   let liveFinished = 0;
   let livePostponed = 0;
   let liveKeptInPlay = 0;
+  let liveScorelessBlocked = 0;
   const livePostponedIds: number[] = [];
   for (const m of staleLive) {
     const v = API_FOOTBALL_LEAGUES.has(m.league as League) ? liveVerifyMap.get(m.externalId) : undefined;
@@ -365,9 +384,23 @@ export async function GET(req: NextRequest) {
       continue;
     }
     // af 미커버·조회 실패·SKIP → 기존 로직 (점수 있으면 FINISHED, 없으면 POSTPONED)
+    // 단 0-0 은 "점수 있음"이 완주를 뜻하지 않는다 — ts 캐시가 미완주라고 말하면 확정하지
+    // 않는다. 판정 불가(캐시 없음·구조 미상·축구)면 기존 동작 유지 (정당한 0-0 무승부 보호).
     const hasScore = m.homeScore != null && m.awayScore != null;
-    const newStatus: "FINISHED" | "POSTPONED" = hasScore ? "FINISHED" : "POSTPONED";
-    await prisma.match.update({ where: { id: m.id }, data: { status: newStatus } });
+    const scorelessBlocked =
+      hasScore &&
+      m.homeScore === 0 &&
+      m.awayScore === 0 &&
+      tsFinishEvidence(m.league, tsScoreById.get(m.id)) === "UNPLAYED";
+    if (scorelessBlocked) liveScorelessBlocked++;
+    const newStatus: "FINISHED" | "POSTPONED" = hasScore && !scorelessBlocked ? "FINISHED" : "POSTPONED";
+    await prisma.match.update({
+      where: { id: m.id },
+      // 확정 보류분은 0-0 도 같이 지운다 — 남겨두면 연기 카드가 "0:0" 을 결과처럼 보여준다.
+      data: scorelessBlocked
+        ? { status: newStatus, homeScore: null, awayScore: null }
+        : { status: newStatus },
+    });
     if (newStatus === "FINISHED") liveFinished++; else { livePostponed++; livePostponedIds.push(m.id); }
   }
   // 무경기로 POSTPONED 된 매치의 PUBLISHED PREVIEW 글을 REJECTED 로 내림 (사이트 노출 차단).
@@ -589,9 +622,9 @@ export async function GET(req: NextRequest) {
         severity: liveFinished + livePostponed >= 5 ? "MED" : "LOW",
         category: "stale-cleanup",
         key: "live-summary",
-        message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed} / af 진행중 유지 ${liveKeptInPlay})`,
+        message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed} / af 진행중 유지 ${liveKeptInPlay}${liveScorelessBlocked > 0 ? ` / 0-0 확정보류 ${liveScorelessBlocked}` : ""})`,
         // sample 은 메인 경로(아래 summary)와 동일 스키마 유지 — /admin/health 가 startTime 으로 렌더
-        metadata: { liveFinished, livePostponed, liveKeptInPlay, rejectedPreviews, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
+        metadata: { liveFinished, livePostponed, liveKeptInPlay, liveScorelessBlocked, rejectedPreviews, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
       },
     });
     return NextResponse.json({ ok: true, marked: 0, liveFinished, livePostponed, rejectedPreviews });
