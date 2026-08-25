@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { postponedLabel } from "@/lib/sports/sport-leagues";
 import type { BaseballLinescoreData } from "../BaseballLinescore";
 import type { BaseballContext } from "../BaseballMiniBoard";
 import FavoriteStar from "../FavoriteStar";
@@ -145,7 +146,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
     </span>
   ) : isPostponed ? (
     <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-neutral-100 dark:bg-white/[.06] text-neutral-500 dark:text-slate-400">
-      연기
+      {postponedLabel(league)}
     </span>
   ) : (
     <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider tabular-nums bg-sky-100 dark:bg-blue-500/[.12] text-sky-700 dark:text-blue-400">

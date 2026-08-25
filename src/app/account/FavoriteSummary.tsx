@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useFavorites, readFavMeta } from "@/components/scores/useFavorites";
 import { canPushFavorites } from "@/components/scores/fav-account-sync";
+import { postponedLabel } from "@/lib/sports/sport-leagues";
 
 interface MatchInfo {
   id: number;
@@ -30,7 +31,8 @@ function kst(iso: string): string {
 const STATUS_LABEL: Record<string, { text: string; cls: string }> = {
   LIVE: { text: "진행 중", cls: "text-rose-600 dark:text-rose-400" },
   FINISHED: { text: "종료", cls: "text-neutral-400" },
-  POSTPONED: { text: "연기", cls: "text-amber-600 dark:text-amber-400" },
+  // POSTPONED 는 종목마다 부르는 말이 달라 여기서 고정하지 않고 아래에서 league 로 정한다.
+  POSTPONED: { text: "", cls: "text-amber-600 dark:text-amber-400" },
 };
 
 export default function FavoriteSummary() {
@@ -124,7 +126,10 @@ export default function FavoriteSummary() {
               const home = m?.homeName ?? snap?.homeName ?? "?";
               const away = m?.awayName ?? snap?.awayName ?? "?";
               const league = m?.league ?? snap?.league ?? "";
-              const badge = STATUS_LABEL[m?.status ?? ""];
+              const base = STATUS_LABEL[m?.status ?? ""];
+              const badge = base
+                ? { ...base, text: base.text || postponedLabel(league) }
+                : base;
               const scored = m && m.homeScore != null && m.awayScore != null;
               const href = m ? `/live/${m.league}/${m.externalId}` : (snap?.href ?? "/scores");
               return (

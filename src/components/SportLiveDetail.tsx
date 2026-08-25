@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { SPORTS, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { SPORTS, LEAGUE_DISPLAY, postponedLabel } from "@/lib/sports/sport-leagues";
 import { hasStandingsTable } from "@/lib/sports/standings-valid";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
@@ -302,7 +302,7 @@ export default function SportLiveDetail({
       : isFinal
         ? "종료"
         : initialStatus === "POSTPONED"
-          ? "연기"
+          ? postponedLabel(league)
           : (live?.statusLabel || "예정");
 
   // Scorebase LiveCard v2 — 우세팀 강조

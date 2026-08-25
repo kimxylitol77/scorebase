@@ -10,6 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import {
   leaguesForSport,
   LEAGUE_DISPLAY,
+  postponedLabel,
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 
@@ -173,7 +174,7 @@ export default async function BoardPage({
                           : isFin
                             ? "종료"
                             : m.status === "POSTPONED"
-                              ? "연기"
+                              ? postponedLabel(m.league)
                               : kstHHmm(m.startTime)}
                       </div>
                     </div>

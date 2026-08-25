@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
+import { postponedLabel } from "@/lib/sports/sport-leagues";
 import CountUp from "./CountUp";
 import LeagueBadge from "./LeagueBadge";
 import {
@@ -435,7 +436,7 @@ export default function LivePipScore() {
           awayScore: state === "scheduled" ? null : b.awayScore,
           statusLabel:
             b.status === "POSTPONED"
-              ? "연기"
+              ? postponedLabel(b.league)
               : state === "done"
                 ? "종료"
                 : state === "live"

@@ -23,7 +23,7 @@ import { getExternalLinks } from "@/lib/external-links";
 import AdminEditLink from "@/components/AdminEditLink";
 import { SITE_URL } from "@/lib/site-url";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { SOCCER_LEAGUES, BASEBALL_LEAGUES, postponedLabel } from "@/lib/sports/sport-leagues";
 import WinProbBar from "@/components/WinProbBar";
 import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores/soccer/buildSoccerCacheTabs";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -806,8 +806,8 @@ export default async function ArticlePage({ params }: Props) {
           scoreBadge = "LIVE";
           boxTitle = "Live";
         } else if (isPostponed) {
-          statusLabel = "연기";
-          scoreBadge = "연기";
+          statusLabel = postponedLabel(article.league);
+          scoreBadge = statusLabel;
           boxTitle = "Postponed";
         } else {
           statusLabel = "예정";

@@ -308,6 +308,17 @@ export function leagueHasDraw(league: string): boolean {
   return SOCCER_LEAGUES.has(league);
 }
 
+// POSTPONED 매치의 화면 라벨 — 종목마다 부르는 말이 다르다.
+// 야구는 우천 등으로 그날 경기를 무르는 것을 "취소" 라고 부른다("연기" 는 순연 편성 쪽).
+// 우리가 받는 신호는 api-baseball POST · TheSports status_id=14 로 사유까지는 오지 않으므로
+// "우천취소" 처럼 원인을 붙이지 않는다 (KBO 는 미세먼지·폭염 취소도 같은 코드로 온다).
+// 라벨 분기의 단일 진실 — 화면마다 inline 삼항으로 쓰지 말 것.
+// 목록(그룹 헤더)을 넘기면 전부 야구일 때만 "취소" — 종목이 섞이면 "연기" 로 남긴다.
+export function postponedLabel(league: string | string[] | null | undefined): string {
+  const list = Array.isArray(league) ? league : league != null ? [league] : [];
+  return list.length > 0 && list.every((l) => BASEBALL_LEAGUES.has(l)) ? "취소" : "연기";
+}
+
 export function leaguesForSport(code: SportCode): string[] {
   if (code === "all") return ALL_LEAGUES;
   return SPORTS.find((s) => s.code === code)?.leagues ?? ALL_LEAGUES;

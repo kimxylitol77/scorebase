@@ -20,6 +20,7 @@ import {
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
   POPULAR_SOCCER_LEAGUES,
+  postponedLabel,
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { teamDisplayKo, toKoreanTeamName } from "@/lib/team-names";
@@ -2166,6 +2167,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const visibleScheduled = showScheduled ? scheduledList : [];
   const visibleFinished = showFinished ? finishedList : [];
   const visiblePostponed = showPostponed ? postponedList : [];
+  // 연기 그룹 제목 — 야구만 모인 목록이면 "취소" (야구는 우천 등으로 무른 경기를 그렇게 부른다).
+  const postponedHeadLabel = postponedLabel(postponedList.map((m) => m.league));
   const visibleCount =
     visibleLive.length + visibleScheduled.length + visibleFinished.length + visiblePostponed.length;
   // 좌측 사이드바용 — 오늘 리그별 경기 수(전 상태 합산). 경기 있는 리그만 노출 + 카운트.
@@ -2518,7 +2521,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 </Section>
               )}
               {postponedList.length > 0 && (
-                <Section title="🚫 연기" count={postponedList.length}>
+                <Section title={`🚫 ${postponedHeadLabel}`} count={postponedList.length}>
                   {postponedList.map((m) => renderCard(m))}
                 </Section>
               )}
@@ -2681,6 +2684,7 @@ function SoccerRowLayout({
   const scheduledSorted = [...scheduledList].filter((m) => !isWc(m)).sort(byStartThenLeague);
   const finishedSorted = [...finishedList].filter((m) => !isWc(m)).sort(byStartThenLeague);
   const postponedSorted = [...postponedList].sort(byStartThenLeague);
+  const postponedHeadLabel = postponedLabel(postponedSorted.map((m) => m.league));
   const wcLive = [...liveList].filter(isWc).sort(byStartThenLeague);
   const wcScheduled = [...scheduledList].filter(isWc).sort(byStartThenLeague);
   const wcFinished = [...finishedList].filter(isWc).sort(byStartThenLeague);
@@ -2991,7 +2995,7 @@ function SoccerRowLayout({
         )}
         {postponedGroups.length > 0 && (
           <section className="space-y-2">
-            {statusHeader(`🚫 연기 (${postponedSorted.length})`, "text-amber-600 dark:text-amber-500", "sm")}
+            {statusHeader(`🚫 ${postponedHeadLabel} (${postponedSorted.length})`, "text-amber-600 dark:text-amber-500", "sm")}
             {postponedGroups.map((g) => (
               <div key={g.day} className="space-y-2">
                 {dateHeaderMobile(g.label)}
@@ -3045,7 +3049,7 @@ function SoccerRowLayout({
         {postponedGroups.length > 0 && (
           <section className="space-y-2">
             <div className="text-[12px] font-bold text-amber-600 dark:text-amber-500">
-              🚫 연기 ({postponedSorted.length})
+              🚫 {postponedHeadLabel} ({postponedSorted.length})
             </div>
             {postponedGroups.map((g) => (
               <div key={g.day} className="space-y-2">

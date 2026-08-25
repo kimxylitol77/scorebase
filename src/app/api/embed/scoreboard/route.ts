@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { fetchAllLiveScores, parseTsFootballScore } from "@/lib/sports/live-scores";
 import { tsFootballLiveLabel, tsFootballLiveState } from "@/lib/sports/ts-football-live-label";
-import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { SOCCER_LEAGUES, postponedLabel } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
       : match.status === "FINISHED"
         ? "종료"
         : match.status === "POSTPONED"
-          ? "연기"
+          ? postponedLabel(league)
           : match.status === "LIVE"
             ? "진행 중"
             : kstHHMM(match.startTime));

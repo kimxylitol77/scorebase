@@ -4,6 +4,7 @@ import TeamBadge from "./TeamBadge";
 import { formatRelativeKo } from "@/lib/format";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
+import { postponedLabel } from "@/lib/sports/sport-leagues";
 
 interface Props {
   article: {
@@ -76,6 +77,7 @@ function buildStarterBadge(
 function buildStatusChip(
   type: string,
   match: NonNullable<Props["article"]["match"]> | null | undefined,
+  league: string,
 ): { label: string; cls: string } | null {
   if (type !== "PREVIEW") return null; // RECAP 은 본질이 종료 후 글 — 칩 불필요
   if (!match?.status) return null; // status 를 select 안 한 호출부는 생략
@@ -86,7 +88,7 @@ function buildStatusChip(
     };
   if (match.status === "POSTPONED")
     return {
-      label: "연기",
+      label: postponedLabel(league),
       cls: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20",
     };
   if (match.status === "FINISHED")
@@ -136,7 +138,7 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
     article.match,
   );
 
-  const statusChip = buildStatusChip(article.type, article.match);
+  const statusChip = buildStatusChip(article.type, article.match, article.league);
 
   // 매치업 줄 — 제목이 서술형("포항의 공격력이 제주의 수비를 압도할 매치")이라
   // 어떤 경기인지 한눈에 안 들어와서 로고+팀명을 제목 위에 따로 놓는다.
