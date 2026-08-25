@@ -47,7 +47,10 @@ async function main() {
   const out = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
 
   for (const [ourId, m] of Object.entries(map)) {
-    if (out[ourId] && !REFRESH) continue; // 이미 수집된 선수는 헛콜 방지 (--refresh 로 재수집)
+    // 이미 수집된 선수는 헛콜 방지 (--refresh 로 재수집).
+    // 단 매핑 시즌이 바뀌었으면 다시 받는다 — 시즌만 비교 안 하면 26/27 로 갈아탄 뒤에도
+    // 25/26 카드가 그대로 남아 "매핑은 새 시즌, 카드는 지난 시즌"으로 어긋난다.
+    if (out[ourId]?.seasonId === m.seasonId && !REFRESH) continue;
     const res = (await api(
       `/football/players/${m.statsId}/competitions/${m.competitionId}/seasons/${m.seasonId}/heatmap`,
     )) as { data: { points: Array<{ x: number; y: number; count: number }> } } | null;

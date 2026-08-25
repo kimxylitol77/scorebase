@@ -2,9 +2,18 @@
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
 hb_trap mac-mini-heatmap-backfill /tmp/heatmap-backfill.log
-# TheStatsAPI 히트맵 수집 — 빅5 순차 (매주 토 01:00 KST, launchd).
+# TheStatsAPI 히트맵 수집 — 빅5 26/27 (매주 토 01:00 KST, launchd).
 # 전 단계 멱등이라 매주 같은 명령을 돌리면 결손분만 이어서 채운다.
-# 25/26 히트맵은 EPL·SERIE_A 만 제공되므로 나머지 리그는 24/25 로 받는다 (2026-08-14 실측).
+#
+# 시즌 정책 — **현재 시즌(26/27)만 돈다.**
+#   지난 시즌(EPL·SERIE_A 25/26 / LALIGA·LIGUE_1 24/25) 백필은 2026-08-24 실행으로 끝냈다.
+#   매핑은 선수당 시즌이 하나뿐이라, 과거 시즌 패스를 같이 두면 매주 앞뒤로 갈아타며
+#   시즌 카드를 두 번 재빌드한다(610명 × 2 × 6s ≈ 2시간 헛일). 그래서 뺐다.
+#   과거 시즌을 다시 채워야 하면 수동으로:
+#     bash scripts/run-thestatsapi-pipeline.sh LIGUE_1 200 24/25
+#   ⚠ 리그별로 제공 시즌이 다르다 (2026-08-25 실측) — 26/27 은 EPL·SERIE_A·LALIGA·LIGUE_1 이
+#   200, 분데스는 개막 전이라 404(경기 4건 전부 scheduled). 개막하면 자동으로 붙는다.
+#   라리가는 25/26 만 404 이고 24/25·26/27 은 정상이라는 기벽이 있다.
 #
 # ⚠ 이 스크립트는 git reset 을 하지 않는다. 몇 시간짜리라 다른 봇의 reset 과 겹치면
 #   워킹트리 진행분이 통째로 날아가기 때문. 대신 보존을 두 겹으로 둔다.
@@ -33,11 +42,14 @@ while true; do sleep 600; { zsh "$SAVE" 2>&1 | sed 's/^/  [중간저장] /'; } |
 SAVER_PID=$!
 trap 'kill $SAVER_PID 2>/dev/null || true' EXIT INT TERM
 
-bash scripts/run-thestatsapi-pipeline.sh EPL 200 25/26 || log "EPL 실패(계속)"
-bash scripts/run-thestatsapi-pipeline.sh SERIE_A 200 25/26 || log "SERIE_A 실패(계속)"
-bash scripts/run-thestatsapi-pipeline.sh LALIGA 200 24/25 || log "LALIGA 실패(계속)"
-bash scripts/run-thestatsapi-pipeline.sh BUNDESLIGA 200 24/25 || log "BUNDESLIGA 실패(계속)"
-bash scripts/run-thestatsapi-pipeline.sh LIGUE_1 200 24/25 || log "LIGUE_1 실패(계속)"
+for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1; do
+  bash scripts/run-thestatsapi-pipeline.sh "$LG" 200 26/27 || log "$LG 실패(계속)"
+done
+
+# 시즌 활동 카드 재수집 — 진행 중인 시즌은 매주 누적치가 달라진다. 파이프라인 안의 카드 단계는
+# "같은 시즌이면 skip" 이라 첫 주 이후로는 굳어버린다. 주 1회 전원 재수집(610명 ≈ 1시간).
+# 데이터 0건이면 기존 카드를 덮지 않으므로, 개막 전 리그는 지난 시즌 카드가 그대로 남는다.
+npx tsx --env-file=.env.local scripts/build-player-season-heatmaps.ts --refresh 2>&1 | tail -3 || log "시즌카드 재수집 실패(계속)"
 
 kill $SAVER_PID 2>/dev/null || true
 

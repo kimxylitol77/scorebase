@@ -188,7 +188,7 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     // 8/15~16 손으로 한 번 돌린 뒤 스케줄이 없어 7일간 멈춰 있었다(2026-08-23 점검).
     // 몇 시간짜리라 워킹트리에만 있는 진행분은 다른 봇의 git reset 에 날아간다 —
     // 10분마다 origin 위에 plumbing 커밋으로 직접 push 하는 구조가 전제다.
-    role: "TheStatsAPI 빅5 선수 히트맵 수집 → data/*.json 직접 push (토 01:00)",
+    role: "TheStatsAPI 빅5 선수 히트맵 현재 시즌(26/27) 수집 → data/*.json 직접 push (토 01:00)",
   },
   "mac-mini-synthetic-monitor": {
     ko: "합성 페이지 검증",
