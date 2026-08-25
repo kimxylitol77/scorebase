@@ -141,6 +141,7 @@ async function main() {
 
   // 리그별 ts 시즌 스탯 수집
   const rowsByLeague = new Map<string, TsPlayerStat[] | null>(); // null = 조회 실패
+  const failedLeagues = new Set<string>(); // 조회 실패 리그 — "우리가 안 받는 리그"와 반드시 구분한다
   for (const lg of LEAGUES) {
     const seasonId = LEAGUE_MAP.find((l) => l.code === lg.code)?.tsSeasonId;
     if (!seasonId) {
@@ -150,12 +151,26 @@ async function main() {
     try {
       const rows = await tsGet(seasonId);
       rowsByLeague.set(lg.code, rows);
+      if (rows === null) failedLeagues.add(lg.code);
       console.log(`  · ${lg.code.padEnd(15)} ${rows === null ? "조회 실패" : `${rows.length}행`}`);
     } catch (e) {
       rowsByLeague.set(lg.code, null);
+      failedLeagues.add(lg.code);
       console.warn(`  · ${lg.code}: ${(e as Error).message}`);
     }
     await sleep(250);
+  }
+
+  // ── 소스 전면 실패 가드 — 한 리그도 못 읽었으면 갱신할 재료가 없다.
+  //    아래 전멸 가드(played 비교)는 이 경우 발동하지 않는다. 실패 리그 선수는 기존 값이 보존돼
+  //    파일의 출전 인원이 직전 그대로 유지되기 때문이다. 그대로 두면 ts 가 며칠째 죽어 있어도
+  //    "갱신 시각만 바뀐 커밋"이 매일 push 되고 잡은 성공으로 보고된다 — 장애가 조용히 묻힌다.
+  const okLeagues = [...rowsByLeague.values()].filter((r) => r !== null).length;
+  if (okLeagues === 0) {
+    console.error(
+      `\n⛔ 저장 중단 — 전 리그 조회 실패 (실패 ${failedLeagues.size} · 성공 0). ts 접근 자체가 막힌 상태다.`,
+    );
+    process.exit(2);
   }
 
   // 리그별 KOR 선수 인덱스
@@ -175,8 +190,10 @@ async function main() {
   let none = 0;
   let preseason = 0;
   let uncovered = 0;
+  let preserved = 0;
   const matchedTsIds = new Set<string>();
   const noneNames: string[] = [];
+  const preservedLeagues = new Map<string, number>();
 
   for (const p of data.players) {
     const rows = rowsByLeague.get(p.league);
@@ -184,14 +201,24 @@ async function main() {
     // 리그 코드는 남아 있는데 라벨이 다른 선수 = 대상 밖 리그로 이적한 것(조진호 SUPER_LIG → 1. Lig).
     // 그대로 두면 "미출전"으로 단정되지만 실제로는 우리가 그 리그 기록을 안 받는 것이다.
     const offTarget = !!p.leagueLabel && p.leagueLabel !== LEAGUES.find((l) => l.code === p.league)?.label;
+    const fetchFailed = failedLeagues.has(p.league);
 
-    if (rows === undefined || rows === null || offTarget) {
-      // 대상 리그 밖이거나 조회 실패 — 숫자를 지어내지 않고 "기록 없음"으로 둔다
+    // ① 대상 리그 밖 / tsSeasonId 미등록 — 우리가 그 리그 기록을 안 받는다(지속 상태).
+    if (offTarget || (!fetchFailed && rows === undefined)) {
+      // 숫자를 지어내지 않고 "기록 없음"으로 둔다
       p.current = { status: "uncovered", season, team: null, apps: 0, starts: 0, goals: 0, assists: 0, minutes: 0, rating: null, yellow: 0, red: 0 };
       uncovered++;
       continue;
     }
-    if (rows.length === 0) {
+    // ② 조회 실패 — "기록이 없다"가 아니라 "못 읽었다". 어제 값을 그대로 둔다.
+    //    전멸 가드(아래)는 전 리그 실패만 잡으므로, 일부 리그만 실패하면 그 리그 선수들이
+    //    조용히 uncovered 로 덮여 화면에서 기록이 사라진다 — 이 분기가 그 구멍을 막는다.
+    if (fetchFailed) {
+      preserved++;
+      preservedLeagues.set(p.league, (preservedLeagues.get(p.league) ?? 0) + 1);
+      continue;
+    }
+    if (!rows || rows.length === 0) {
       p.current = { status: "preseason", season, team: null, apps: 0, starts: 0, goals: 0, assists: 0, minutes: 0, rating: null, yellow: 0, red: 0 };
       preseason++;
       continue;
@@ -251,8 +278,13 @@ async function main() {
   data.currentUpdatedAt = new Date().toISOString();
 
   console.log(
-    `\n출전 ${played} · 미출전 ${none} · 개막 전 ${preseason} · 리그 미커버 ${uncovered} (명단 ${data.players.length})`,
+    `\n출전 ${played} · 미출전 ${none} · 개막 전 ${preseason} · 리그 미커버 ${uncovered} · 조회실패 보존 ${preserved} (명단 ${data.players.length})`,
   );
+  if (preserved) {
+    console.warn(
+      `⚠ 조회 실패 ${failedLeagues.size}개 리그 — 직전 값 보존: ${[...preservedLeagues].map(([c, n]) => `${c}:${n}`).join(" · ")}`,
+    );
+  }
   if (noneNames.length) {
     // 진짜 미출전인지, 이름이 안 붙은 것인지는 여기 목록을 봐야 갈린다
     console.log(`개막했는데 기록 없는 선수 ${noneNames.length}명 — ${noneNames.join(" · ")}`);
@@ -270,7 +302,12 @@ async function main() {
   //    직전 파일에 출전 기록이 있었는데 이번 실행이 출전 0 이면 조회 실패로 보고 저장을 포기한다.
   //    (2026-08-24~25 맥미니 IP 차단이 매일 07:20 19명 기록을 0 으로 지우던 사고의 재발 방지.
   //     시즌 사이 실제 전원 0 인 시기는 preseason 상태라 played 비교에 안 걸린다.)
-  if (played === 0 && prevPlayed > 0) {
+  //    비교 대상은 played 카운터가 아니라 **쓰려는 파일의 출전 인원**이다. 조회 실패 리그의 선수는
+  //    위에서 기존 값을 보존하고 played 를 올리지 않으므로, 출전자가 전부 실패 리그에 몰린 부분
+  //    실패에서 played 는 0 이 된다 — 그 값으로 비교하면 보존이 정상 동작했는데도 저장을 포기한다
+  //    (재현: 23개 중 EPL 만 성공시키면 played 0 · 보존 27 인데 파일 출전 인원은 그대로 19).
+  const playedInFile = data.players.filter((p) => (p.current as CurrentStat | null | undefined)?.status === "played").length;
+  if (playedInFile === 0 && prevPlayed > 0) {
     console.error(
       `\n⛔ 저장 중단 — 직전 파일 출전 ${prevPlayed}명이 이번 실행에서 0명. ts 조회 실패(IP 차단 등)로 판단, 기존 데이터 유지.`,
     );
