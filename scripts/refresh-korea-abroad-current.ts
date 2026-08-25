@@ -65,15 +65,27 @@ interface Player {
 }
 
 async function tsGet(seasonId: string): Promise<TsPlayerStat[] | null> {
-  const url = new URL(TS_BASE + "/v1/football/season/recent/player/stat");
-  url.searchParams.set("user", process.env.THESPORTS_USER ?? "");
-  url.searchParams.set("secret", process.env.THESPORTS_SECRET ?? "");
+  // THESPORTS_PROXY_URL 이 있으면 화이트리스트 IP(Vultr) 프록시 경유 — 맥미니 직통이 IP 차단으로
+  // 매일 빈 결과를 받아 19명 기록을 0 으로 덮어쓰던 사고의 근본 원인 (2026-08-24~25 실측).
+  const proxy = process.env.THESPORTS_PROXY_URL;
+  const url = new URL((proxy || TS_BASE) + "/v1/football/season/recent/player/stat");
+  if (!proxy) {
+    url.searchParams.set("user", process.env.THESPORTS_USER ?? "");
+    url.searchParams.set("secret", process.env.THESPORTS_SECRET ?? "");
+  }
   url.searchParams.set("uuid", seasonId);
-  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(30_000) });
+  const res = await fetch(url.toString(), {
+    signal: AbortSignal.timeout(30_000),
+    headers: proxy ? { "x-ts-proxy-token": process.env.THESPORTS_PROXY_TOKEN ?? "" } : undefined,
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const j = (await res.json()) as { code?: number; results?: TsPlayerStat[] };
+  const j = (await res.json()) as { code?: number; results?: TsPlayerStat[]; err?: string };
   // code!==0 은 오류다. 빈 배열(개막 전)과 구분해야 "미개막"을 "미출전"으로 오인하지 않는다.
-  if (j.code !== 0) return null;
+  // 화이트리스트 밖 IP 는 code 없이 {err: "IP is not authorized"} 만 온다 — 이것도 오류.
+  if (j.code !== 0) {
+    if (j.err) console.error(`  ts 오류: ${j.err}`);
+    return null;
+  }
   return Array.isArray(j.results) ? j.results : [];
 }
 
@@ -124,6 +136,8 @@ async function main() {
     currentUpdatedAt?: string;
     players: Player[];
   };
+  // 전멸 가드 원료 — 갱신 전 파일의 출전 인원
+  const prevPlayed = data.players.filter((p) => (p.current as CurrentStat | null | undefined)?.status === "played").length;
 
   // 리그별 ts 시즌 스탯 수집
   const rowsByLeague = new Map<string, TsPlayerStat[] | null>(); // null = 조회 실패
@@ -251,6 +265,16 @@ async function main() {
   if (DRY) {
     console.log("\n[--dry] 파일 미기록");
     return;
+  }
+  // ── 전멸 가드 — 소스 실패(IP 차단·장애)로 받은 빈 결과를 좋은 데이터 위에 덮어쓰지 않는다.
+  //    직전 파일에 출전 기록이 있었는데 이번 실행이 출전 0 이면 조회 실패로 보고 저장을 포기한다.
+  //    (2026-08-24~25 맥미니 IP 차단이 매일 07:20 19명 기록을 0 으로 지우던 사고의 재발 방지.
+  //     시즌 사이 실제 전원 0 인 시기는 preseason 상태라 played 비교에 안 걸린다.)
+  if (played === 0 && prevPlayed > 0) {
+    console.error(
+      `\n⛔ 저장 중단 — 직전 파일 출전 ${prevPlayed}명이 이번 실행에서 0명. ts 조회 실패(IP 차단 등)로 판단, 기존 데이터 유지.`,
+    );
+    process.exit(2);
   }
   fs.writeFileSync(OUT, JSON.stringify(data, null, 2));
   console.log(`\n✓ ${path.relative(process.cwd(), OUT)} 갱신`);
