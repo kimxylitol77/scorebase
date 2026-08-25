@@ -121,6 +121,10 @@
       "schedule": "0 1 * * 2"
     },
     {
+      "path": "/api/cron/soccer-weekly-review",
+      "schedule": "0 2 * * 2"
+    },
+    {
       "path": "/api/cron/manager-month",
       "schedule": "0 1 2 * *"
     },

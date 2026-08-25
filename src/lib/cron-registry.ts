@@ -64,6 +64,7 @@ export const CRON_REGISTRY: {
   { name: "fetch-salaries", label: "선수 연봉", maxAgeH: 180 },
   { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
   { name: "weekly-xi", label: "축구 주간 베스트 XI (빅5)", maxAgeH: 180 },
+  { name: "soccer-weekly-review", label: "축구 주간 리뷰 (빅5, MVP 선수·감독)", maxAgeH: 180 },
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
   { name: "baseball-season-backfill", label: "야구 시즌 일정 백필", maxAgeH: 180 },
   // 일간 증분(최근 10일 창) — 시즌 중 연속 0건은 비정상. from/to 누락 0건이 한 달 무감지였던 잡 (2026-08-19).
