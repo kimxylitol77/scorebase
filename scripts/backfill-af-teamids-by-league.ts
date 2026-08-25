@@ -51,6 +51,11 @@ async function fetchAfTeams(leagueId: number): Promise<AfTeam[]> {
 // 근거는 ①af venue.city ②같은 날 경기 대조(양팀 중 나머지가 확정되면 남은 짝도 확정)
 // ③리그 팀 수 1:1 소거. 셋 중 하나라도 없으면 넣지 않는다.
 const MANUAL: Record<string, { af: string; ourId: number; note: string }[]> = {
+  BRASILEIRAO_2: [
+    // 2026-08-25 orphan_card_dup — DB 는 ts 로 수집돼 af 팀 id 가 통째로 비어 있던 리그.
+    { af: "123", ourId: 611850, note: "Sport Recife → Sport Club do Recife" },
+    { af: "125", ourId: 611859, note: "America Mineiro → America MG (MG=Minas Gerais)" },
+  ],
   ARG_PRIMERA_NACIONAL: [
     { af: "448", ourId: 607820, note: "Colon Santa Fe → Colon de Santa Fe (전치사)" },
     { af: "461", ourId: 607802, note: "San Martin S.J. → San Martin San Juan (약어, city=San Juan)" },
