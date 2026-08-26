@@ -337,7 +337,32 @@ async function main() {
 
     const teams = await af(`/teams?league=${afId}&season=${season}`);
     const allAfPlayers: AfPlayerRow[] = []; // 리그 전체 af 풀 — 팀매핑 누락 선수 폴백용
+    // 이름 그럴듯함 게이트 — 스탯 지문 경로가 이름을 안 보고 매칭해 딴사람이 붙는 사고 방지.
+    // 2026-08-26 실측: 사비뉴↔니코 오라일리(같은 맨시티, 지문 일치)가 붙어 포지션(LB)·생일·
+    // 출전로그 58행까지 통째로 오염됐다. 같은 스캔에서 마린↔Beraldo·웨슬리↔Zubeldia 도 나왔다.
+    // 브라질식 애칭(Savinho↔Sávio)은 접두 일치(4자+)로 통과시키고, 토큰이 하나도 안 겹치는
+    // 완전 딴이름만 거른다. ts 영문명이 없으면 판정 불가 — 기존 동작 유지(통과).
+    const nameGateRejects: string[] = [];
+    const namesPlausiblySame = (tsId: string, p: AfPlayerRow): boolean => {
+      const en = tsEnName.get(tsId);
+      if (!en) return true;
+      const a = tokset(en);
+      if (a.size === 0 || p.fullTok.size === 0) return true;
+      for (const t of a) {
+        for (const u of p.fullTok) {
+          if (t === u) return true;
+          // 공통 접두 4자+ — 브라질식 애칭은 어간을 바꾼다(Sávio→Savi+nho 라 startsWith 불성립).
+          if (t.length >= 4 && u.length >= 4 && t.slice(0, 4) === u.slice(0, 4)) return true;
+          if ((t.length === 1 || u.length === 1) && t[0] === u[0]) return true;
+        }
+      }
+      return false;
+    };
     const recordMatch = (tsId: string, p: AfPlayerRow) => {
+      if (!namesPlausiblySame(tsId, p)) {
+        nameGateRejects.push(`${tsEnName.get(tsId) ?? tsId} ↔ af ${p.name}`);
+        return;
+      }
       tsToAf[tsId] = p.id;
       afName[p.id] = p.name;
       newSeasons[tsId] = toSeasonStat(lg, seasonLabel, p.teamName, p);
@@ -465,6 +490,9 @@ async function main() {
         }
         if (cands.length === 1) { recordMatch(p.id, cands[0]); takenL.add(cands[0].id); byLeague++; }
       }
+    }
+    if (nameGateRejects.length > 0) {
+      console.log(`  ${lg} 이름 게이트 거부 ${nameGateRejects.length}건: ${nameGateRejects.slice(0, 5).join(" · ")}`);
     }
     console.log(`${lg}: 누적 매칭 ${Object.keys(tsToAf).length} · 시즌스탯 신규 ${Object.keys(newSeasons).length}`);
   }
