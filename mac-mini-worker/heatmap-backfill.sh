@@ -42,20 +42,48 @@ while true; do sleep 600; { zsh "$SAVE" 2>&1 | sed 's/^/  [중간저장] /'; } |
 SAVER_PID=$!
 trap 'kill $SAVER_PID 2>/dev/null || true' EXIT INT TERM
 
+# ── 리그별 재시도 — 이 맥은 네트워크가 간헐적으로 끊긴다 (2026-08-26 실측: 02:48·03:47
+#    두 차례. thestatsapi 는 TLS DEPTH_ZERO_SELF_SIGNED_CERT, github 는 Network is unreachable).
+#    스크립트 안 API 재시도(4회·수초)로는 못 넘기는 길이라 리그 단위로 크게 물러섰다 재시도한다.
+#    한 번 끊기면 그 뒤 리그가 줄줄이 즉사해 실행 전체가 헛돈다 — 8/26 26/27 첫 실행이 그랬다.
+run_league() {
+  local lg=$1 attempt
+  for attempt in 1 2 3; do
+    if bash scripts/run-thestatsapi-pipeline.sh "$lg" 200 26/27; then return 0; fi
+    if [ "$attempt" -lt 3 ]; then
+      log "$lg 실패 (시도 $attempt/3) — 5분 뒤 재시도"
+      sleep 300
+    fi
+  done
+  log "$lg 3회 연속 실패 — 이번 회차는 건너뛴다"
+  return 1
+}
+
 for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1; do
-  bash scripts/run-thestatsapi-pipeline.sh "$LG" 200 26/27 || log "$LG 실패(계속)"
+  run_league "$LG" || true
 done
 
 # 시즌 활동 카드 재수집 — 진행 중인 시즌은 매주 누적치가 달라진다. 파이프라인 안의 카드 단계는
 # "같은 시즌이면 skip" 이라 첫 주 이후로는 굳어버린다. 주 1회 전원 재수집(610명 ≈ 1시간).
 # 데이터 0건이면 기존 카드를 덮지 않으므로, 개막 전 리그는 지난 시즌 카드가 그대로 남는다.
-npx tsx --env-file=.env.local scripts/build-player-season-heatmaps.ts --refresh 2>&1 | tail -3 || log "시즌카드 재수집 실패(계속)"
+for attempt in 1 2; do
+  if npx tsx --env-file=.env.local scripts/build-player-season-heatmaps.ts --refresh 2>&1 | tail -3; then break; fi
+  log "시즌카드 재수집 실패 (시도 $attempt/2)"
+  [ "$attempt" -eq 1 ] && sleep 300
+done
 
 kill $SAVER_PID 2>/dev/null || true
 
 # ── 최종 보존 — 종료코드로 판정 (0 성공·변경없음 / 2 무결성 skip / 그 외 실패)
+# rc=3 은 git fetch 실패 = 네트워크. 수집분이 origin 에 없다는 뜻이라 물러섰다 다시 민다.
 RC=0
-zsh "$SAVE" || RC=$?
+for attempt in 1 2 3; do
+  RC=0
+  zsh "$SAVE" || RC=$?
+  if [ "$RC" -ne 3 ]; then break; fi
+  log "최종 저장 fetch 실패 (시도 $attempt/3) — 3분 뒤 재시도"
+  sleep 180
+done
 case $RC in
   0) log "✓ 최종 저장 완료" ;;
   2) log "⚠ 데이터 파일 무결성 미달 — 저장 건너뜀"; exit 1 ;;
