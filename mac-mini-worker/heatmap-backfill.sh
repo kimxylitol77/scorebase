@@ -59,9 +59,20 @@ run_league() {
   return 1
 }
 
+FAILED=()
 for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1; do
-  run_league "$LG" || true
+  run_league "$LG" || FAILED+=("$LG")
 done
+
+# ── 2차 스윕 — 단절이 한 시간 넘게 이어진 적이 있다(8/26 11:28~12:20 Neon 불통으로 5개 리그
+#    전부 3/3 실패). 리그 안 재시도(5분×3=15분)로는 못 넘는 길이라, 실패분만 30분 뒤 한 번 더.
+if [ ${#FAILED[@]} -gt 0 ]; then
+  log "1차에서 실패: ${FAILED[*]} — 30분 뒤 2차 스윕"
+  sleep 1800
+  for LG in "${FAILED[@]}"; do
+    run_league "$LG" || log "$LG 2차도 실패 — 다음 주까지 대기"
+  done
+fi
 
 # 시즌 활동 카드 재수집 — 진행 중인 시즌은 매주 누적치가 달라진다. 파이프라인 안의 카드 단계는
 # "같은 시즌이면 skip" 이라 첫 주 이후로는 굳어버린다. 주 1회 전원 재수집(610명 ≈ 1시간).
