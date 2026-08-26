@@ -2417,7 +2417,7 @@
         "goals": 0,
         "assists": 1,
         "minutes": 204,
-        "rating": 6.62,
+        "rating": 6.46,
         "yellow": 1,
         "red": 0
       }
@@ -2670,5 +2670,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-25T13:52:49.671Z"
+  "currentUpdatedAt": "2026-08-26T22:20:29.274Z"
 }
