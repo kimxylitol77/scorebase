@@ -7,6 +7,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { extractSource, type Hit } from "./extract";
+import { applyGlobalReplace } from "./global-replace";
 
 const ROOT = path.resolve(__dirname, "../..");
 const SRC = path.join(ROOT, "src");
@@ -208,7 +209,7 @@ export function transformFile(
   const merged = { ...dict, ...(ov.dict ?? {}) };
 
   const src = fs.readFileSync(absFile, "utf8");
-  const pre = applyRules(src, ov.preReplace ?? [], "preReplace", absFile);
+  const pre = applyRules(applyGlobalReplace(src), ov.preReplace ?? [], "preReplace", absFile);
 
   const hits = extractSource(pre, absFile);
   const missing: Hit[] = [];

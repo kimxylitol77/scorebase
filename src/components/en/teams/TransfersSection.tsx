@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 
 interface Item {
@@ -13,6 +14,8 @@ interface Item {
   direction: "in" | "out";
   oppTeam: string;
   oppLogo?: string;
+  /** 선수 페이지가 있을 때만 온다 (서버가 ts 매핑으로 판정). 없으면 링크하지 않는다. */
+  href?: string;
 }
 
 interface Props {
@@ -76,7 +79,15 @@ export default function TransfersSection({ teamId }: Props) {
                   {isIn ? "In" : "Out"}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">{playerKo}</div>
+                  <div className="font-bold truncate">
+                    {it.href ? (
+                      <Link href={it.href} prefetch={false} className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline">
+                        {playerKo}
+                      </Link>
+                    ) : (
+                      playerKo
+                    )}
+                  </div>
                   <div className="text-[11px] text-neutral-500 truncate">
                     {isIn ? "← " : "→ "}
                     {oppKo}

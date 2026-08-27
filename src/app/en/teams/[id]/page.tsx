@@ -6,13 +6,14 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import LeagueBadge from "@/components/en/LeagueBadge";
 import ArticleCard from "@/components/en/ArticleCard";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import { toEnglishTeamName, enLeagueName } from "@/lib/i18n/en";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/en/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
-import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import TeamAbout from "@/components/en/teams/TeamAbout";
 import TransfersSection from "@/components/en/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -198,9 +199,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         const kst = new Date(Date.now() + 9 * 3600_000);
         const dateLabel = `${kst.getUTCMonth() + 1}-${kst.getUTCDate()}`;
         const pct = (r.wins / Math.max(r.wins + r.losses, 1)).toFixed(3);
-        // ko 판과 동일 — 인덱스가 아니라 ts position (복수 표·매핑 결손에서 어긋난다)
-        const rankLabel = `${team.league}${r.division && /central|pacific/i.test(r.division) ? ` ${r.division.replace(/ Division$/i, "")}` : ""} #${r.position}`;
-        title = `${ko} standings (${dateLabel}) — ${rankLabel} · baseball fixtures, roster and stats`;
+        // 순위는 배열 인덱스가 아니라 ts 가 준 position 을 쓴다 — 매핑 결손·복수 표(NPB 양대 리그)
+        // 에서 인덱스는 실제 순위와 어긋난다(2026-08-27 KIA 4위 → "7위" 오표기 사고).
+        const divLabel = npbDivisionKo(r.division); // NPB 만 "센트럴/퍼시픽", KBO 는 빈 문자열
+        const rankLabel = `${team.league}${divLabel ? ` ${divLabel}` : ""} ${r.position}`;
+        title = `${ko} standings (${dateLabel}) — ${rankLabel} · 야구 일정·로스터·통계`;
         description =
           `Today's ${ko} standings (${dateLabel}): ${rankLabel}, ${r.wins}W ${r.losses}L · win rate ${pct}. ` +
           `Fixtures, roster, player stats and AI predictions, kept current.`;
@@ -1229,9 +1232,20 @@ export default async function TeamPage({ params }: Props) {
                         <td className="px-4 py-3 text-right text-xs whitespace-nowrap">
                           <span className="text-neutral-500">estimated probability </span>
                           <strong>{Math.round(myProb * 100)}%</strong>
+                          {/* 경기 상세(프리뷰·배당·라인업) 링크 — 최근 경기와 동일 아이콘 */}
+                          <Link
+                            href={matchLiveHref(m.league, m.externalId)}
+                            aria-label="경기 상세 — 프리뷰·배당·라인업"
+                            title="경기 상세 — 프리뷰·배당·라인업"
+                            className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-md align-middle text-neutral-400 hover:bg-neutral-100 hover:text-rose-600 dark:hover:bg-white/[0.08] dark:hover:text-rose-400 transition"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
+                            </svg>
+                          </Link>
                           <Link
                             href={`/teams/${teamId}/vs/${opp.id}`}
-                            className="ml-3 text-rose-600 dark:text-rose-400 hover:underline"
+                            className="ml-2 text-rose-600 dark:text-rose-400 hover:underline"
                           >
                             Head to head
                           </Link>
@@ -1294,6 +1308,19 @@ export default async function TeamPage({ params }: Props) {
                           className={`px-3 py-3 text-right text-xs font-bold w-10 ${result ? resColor[result] : ""}`}
                         >
                           {result ?? "-"}
+                        </td>
+                        <td className="px-1 py-3 text-center text-xs w-9">
+                          {/* 경기 상세(라이브스코어 페이지) 링크 — 2026-08-27 사용자 요청 */}
+                          <Link
+                            href={matchLiveHref(m.league, m.externalId)}
+                            aria-label="경기 상세 — 기록·통계·리포트"
+                            title="경기 상세 — 기록·통계·리포트"
+                            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-rose-600 dark:hover:bg-white/[0.08] dark:hover:text-rose-400 transition"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
+                            </svg>
+                          </Link>
                         </td>
                         <td className="px-3 py-3 text-right text-xs w-20">
                           <Link

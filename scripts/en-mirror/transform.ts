@@ -8,6 +8,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { extractSource, type Hit } from "./extract";
+import { applyGlobalReplace } from "./global-replace";
 
 const ROOT = path.resolve(__dirname, "../..");
 
@@ -62,7 +63,7 @@ export function transform(koFile: string, route: string) {
   const dict = { ...loadDict(), ...(ov?.dict ?? {}) };
 
   // 1) 한국어 원문 기준 사전 처리 → 그 결과를 다시 파싱해야 위치가 맞는다
-  const pre = applyRules(src, ov?.preReplace ?? [], "preReplace");
+  const pre = applyRules(applyGlobalReplace(src), ov?.preReplace ?? [], "preReplace");
 
   const hits: Hit[] = extractSource(pre, koFile);
   const missing: Hit[] = [];

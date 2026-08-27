@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { dedupeAfTransfers } from "@/lib/transfers/af-transfer-dedupe";
+import { afPlayerToTs } from "@/lib/players/ts-af-map";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +33,13 @@ interface OutItem {
   direction: "in" | "out";
   oppTeam: string;
   oppLogo?: string;
+  /**
+   * 선수 페이지 링크. ts 매핑이 있을 때만 채운다 — 축구 선수 페이지 정본은
+   * /transfers/{tsId}(통합본)이고, af id 만 있는 선수는 /players 뷰가 af 시즌 스탯이
+   * 없으면 notFound() 라 링크를 걸면 404 로 보내게 된다. 유소년·단기 계약이 그 부류다.
+   * 판정은 서버에서 — 매핑 파일은 fs 로 읽어 클라이언트가 볼 수 없다.
+   */
+  href?: string;
 }
 
 export async function GET(
@@ -114,7 +122,10 @@ export async function GET(
         });
       }
     }
-    const out: OutItem[] = dedupeAfTransfers(flat);
+    const out: OutItem[] = dedupeAfTransfers(flat).map((r) => {
+      const tsId = afPlayerToTs(r.playerId);
+      return tsId ? { ...r, href: `/transfers/${tsId}` } : r;
+    });
     // 최신 순 정렬 + 최대 20개
     out.sort((a, b) => b.date.localeCompare(a.date));
     return NextResponse.json({ items: out.slice(0, 20) });
