@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
+import { dedupeAfTransfers } from "@/lib/transfers/af-transfer-dedupe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -92,17 +93,15 @@ export async function GET(
     }
     const data = (await res.json()) as { response?: RawItem[] };
     // api-football transfers 는 날짜 이상치("290715" 같은 비표준)·중복 레코드가 섞여 있어 정제한다.
+    // 중복은 두 종류다 — 완전 동일 레코드, 그리고 **같은 이적을 이틀 연속 날짜로 준 것**.
+    // 후자는 키에 date 가 있으면 안 걸러져 같은 선수가 두 줄로 노출됐다 (dedupeAfTransfers 참고).
     const isValidDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d);
-    const seen = new Set<string>();
-    const out: OutItem[] = [];
+    const flat: Array<OutItem & { playerId: number; inId: number; outId: number }> = [];
     for (const item of data.response ?? []) {
       for (const tr of item.transfers ?? []) {
         if (!isValidDate(tr.date)) continue; // 날짜 형식 이상치 제외
-        const key = `${item.player.id}|${tr.date}|${tr.teams.in.id}|${tr.teams.out.id}`;
-        if (seen.has(key)) continue; // 중복 제외
-        seen.add(key);
         const isIn = tr.teams.in.id === afTeamId;
-        out.push({
+        flat.push({
           playerId: item.player.id,
           playerName: item.player.name,
           date: tr.date,
@@ -110,9 +109,12 @@ export async function GET(
           direction: isIn ? "in" : "out",
           oppTeam: isIn ? tr.teams.out.name : tr.teams.in.name,
           oppLogo: isIn ? tr.teams.out.logo : tr.teams.in.logo,
+          inId: tr.teams.in.id,
+          outId: tr.teams.out.id,
         });
       }
     }
+    const out: OutItem[] = dedupeAfTransfers(flat);
     // 최신 순 정렬 + 최대 20개
     out.sort((a, b) => b.date.localeCompare(a.date));
     return NextResponse.json({ items: out.slice(0, 20) });
