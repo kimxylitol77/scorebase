@@ -758,6 +758,12 @@ export async function GET(req: NextRequest) {
     //   (c) GROUPED_STANDINGS_LEAGUES — 그룹제라 af 를 주 소스로 쓰는 리그. 현재 비어 있다
     //       (2026-08-09 J1/J2 가 단일 표로 복귀). 다시 등록되면 이 비교는 무의미하니 skip.
     if (ts && af && !GROUPED_STANDINGS_LEAGUES.has(league)) {
+      // af 는 폴백이라 낡은 게 정상이다 — standings-collect 는 ts 가 fresh 하면 af 갱신을
+      // 건너뛰고 AF_FALLBACK_STALE_MS(14일)까지 방치한다(quota 보호). 그 낡은 표의 1위를
+      // fresh 한 ts 와 맞대면 시즌 중엔 며칠만 지나도 어긋나 HIGH 가 반복된다
+      // (2026-08-27 LALIGA — af 32h 전 표라 1위가 세비야, ts 는 레알. 화면은 ts 라 정상이었다).
+      // 낡음 자체는 아래 standings_stale 검사가 이미 맡으므로 여기서는 비교하지 않는다.
+      if (now - af.updatedAt.getTime() > STANDINGS_AF_STALE_MS) continue;
       const tsPayload = ts.payload as unknown as {
         tables?: Array<{ rows?: Array<{ position?: number; team_id?: string; total?: number }> }>;
       };
