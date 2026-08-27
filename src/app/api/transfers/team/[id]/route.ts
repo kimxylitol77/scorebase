@@ -7,9 +7,13 @@ import { rateLimit } from "@/lib/rate-limit";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { dedupeAfTransfers } from "@/lib/transfers/af-transfer-dedupe";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
+import { squadTsIdByName } from "@/lib/transfers/squad-player-lookup";
+import rawTeamSquads from "../../../../../../data/team-squads.json";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const TEAM_SQUADS = rawTeamSquads as Record<string, { squad: Array<{ id: string; name: string }> }>;
 
 interface RawTransfer {
   date: string;
@@ -70,9 +74,10 @@ export async function GET(
       // api-football team id 는 Team.externalId 가 아니라 TeamSourceId(source='api-football') 에 있다.
       // 빅리그 Team.externalId 는 football-data.org id 라, 그대로 쓰면 엉뚱한 팀이 조회된다
       // (예: Arsenal externalId=57 → api-football 57 = Ipswich).
+      // ts sourceId 도 같이 — 아래 스쿼드 폴백이 쓴다.
       sourceIds: {
-        where: { source: "api-football" },
-        select: { externalId: true },
+        where: { source: { in: ["api-football", "thesports"] } },
+        select: { source: true, externalId: true },
       },
     },
   });
@@ -82,7 +87,7 @@ export async function GET(
   if (!API_FOOTBALL_LEAGUE_ID[team.league]) {
     return NextResponse.json({ items: [], note: "league not supported" });
   }
-  const afIdStr = team.sourceIds[0]?.externalId;
+  const afIdStr = team.sourceIds.find((x) => x.source === "api-football")?.externalId;
   const afTeamId = afIdStr ? parseInt(afIdStr) : NaN;
   if (!Number.isFinite(afTeamId)) {
     return NextResponse.json({ items: [], note: "no api-football mapping" });
@@ -122,13 +127,36 @@ export async function GET(
         });
       }
     }
-    const out: OutItem[] = dedupeAfTransfers(flat).map((r) => {
-      const tsId = afPlayerToTs(r.playerId);
-      return tsId ? { ...r, href: `/transfers/${tsId}` } : r;
+    // 최신 순 정렬 + 최대 20개 — 링크 판정은 노출되는 20건에만 한다.
+    const out = dedupeAfTransfers(flat).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
+
+    // ts 매핑만으로 링크하면 안 된다. ts-af-player-map 에는 **DB 행이 없는 낡은 ts id** 가
+    // 섞여 있어(2026-08-27 M. Godts af 340153 → l7oqdehl0yv9r51, 실제 정본은 dn1m1gh3lzj4moe)
+    // 그대로 걸면 404 로 보낸다. 같은 선수에 ts id 가 여럿 부여되며 생기는 유령 페이지 계열이다.
+    // 그래서 "매핑이 있나" 가 아니라 "선수 행이 실재하나" 로 판정한다. 20건이라 조회 1회.
+    // 낡은 매핑으로 링크가 끊긴 자리는 **이 팀의 공식 스쿼드**로 메운다. 영입 선수는
+    // 그 팀 명단에 들어와 있으므로 살아 있는 ts id 가 거기 있다. 오매칭을 막으려고
+    // 성(surname) 일치가 명단에서 유일할 때만 쓴다 (squad-player-lookup, 단위 테스트 동반).
+    const tsTeamId = team.sourceIds.find((x) => x.source === "thesports")?.externalId;
+    const squad = tsTeamId ? TEAM_SQUADS[tsTeamId]?.squad : undefined;
+    const candidates = new Map<number, string>();
+    for (const r of out) {
+      const tsId = afPlayerToTs(r.playerId) ?? squadTsIdByName(squad, r.playerName);
+      if (tsId) candidates.set(r.playerId, tsId);
+    }
+    const alive = new Set<string>();
+    if (candidates.size > 0) {
+      const rows = await prisma.theSportsPlayer.findMany({
+        where: { id: { in: [...new Set(candidates.values())] } },
+        select: { id: true },
+      });
+      rows.forEach((x) => alive.add(x.id));
+    }
+    const items: OutItem[] = out.map((r) => {
+      const tsId = candidates.get(r.playerId);
+      return tsId && alive.has(tsId) ? { ...r, href: `/transfers/${tsId}` } : r;
     });
-    // 최신 순 정렬 + 최대 20개
-    out.sort((a, b) => b.date.localeCompare(a.date));
-    return NextResponse.json({ items: out.slice(0, 20) });
+    return NextResponse.json({ items });
   } catch (e) {
     return NextResponse.json({ items: [], error: (e as Error).message }, { status: 200 });
   }
