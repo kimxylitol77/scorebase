@@ -193,15 +193,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (BASEBALL_LEAGUES.has(team.league)) {
     try {
       const rows = await fetchBaseballTable(team.league);
-      const idx = rows.findIndex((r) => r.ourTeamId === team.id);
-      if (idx >= 0) {
-        const r = rows[idx];
+      const r = rows.find((x) => x.ourTeamId === team.id);
+      if (r) {
         const kst = new Date(Date.now() + 9 * 3600_000);
         const dateLabel = `${kst.getUTCMonth() + 1}-${kst.getUTCDate()}`;
         const pct = (r.wins / Math.max(r.wins + r.losses, 1)).toFixed(3);
-        title = `${ko} standings (${dateLabel}) — ${team.league} ${idx + 1} · baseball fixtures, roster and stats`;
+        // ko 판과 동일 — 인덱스가 아니라 ts position (복수 표·매핑 결손에서 어긋난다)
+        const rankLabel = `${team.league}${r.division && /central|pacific/i.test(r.division) ? ` ${r.division.replace(/ Division$/i, "")}` : ""} #${r.position}`;
+        title = `${ko} standings (${dateLabel}) — ${rankLabel} · baseball fixtures, roster and stats`;
         description =
-          `Today's ${ko} standings (${dateLabel}): ${team.league} ${idx + 1}, ${r.wins}W ${r.losses}L · win rate ${pct}. ` +
+          `Today's ${ko} standings (${dateLabel}): ${rankLabel}, ${r.wins}W ${r.losses}L · win rate ${pct}. ` +
           `Fixtures, roster, player stats and AI predictions, kept current.`;
       }
     } catch {

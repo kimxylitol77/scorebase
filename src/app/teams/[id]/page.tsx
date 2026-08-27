@@ -12,7 +12,7 @@ import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
-import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -194,15 +194,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (BASEBALL_LEAGUES.has(team.league)) {
     try {
       const rows = await fetchBaseballTable(team.league);
-      const idx = rows.findIndex((r) => r.ourTeamId === team.id);
-      if (idx >= 0) {
-        const r = rows[idx];
+      const r = rows.find((x) => x.ourTeamId === team.id);
+      if (r) {
         const kst = new Date(Date.now() + 9 * 3600_000);
         const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
         const pct = (r.wins / Math.max(r.wins + r.losses, 1)).toFixed(3);
-        title = `${ko} 팀 순위 (${dateLabel}) — ${team.league} ${idx + 1}위 · 야구 일정·로스터·통계`;
+        // 순위는 배열 인덱스가 아니라 ts 가 준 position 을 쓴다 — 매핑 결손·복수 표(NPB 양대 리그)
+        // 에서 인덱스는 실제 순위와 어긋난다(2026-08-27 KIA 4위 → "7위" 오표기 사고).
+        const divLabel = npbDivisionKo(r.division); // NPB 만 "센트럴/퍼시픽", KBO 는 빈 문자열
+        const rankLabel = `${team.league}${divLabel ? ` ${divLabel}` : ""} ${r.position}위`;
+        title = `${ko} 팀 순위 (${dateLabel}) — ${rankLabel} · 야구 일정·로스터·통계`;
         description =
-          `오늘의 ${ko} 팀 순위 (${dateLabel}): ${team.league} ${idx + 1}위, ${r.wins}승 ${r.losses}패 승률 ${pct}. ` +
+          `오늘의 ${ko} 팀 순위 (${dateLabel}): ${rankLabel}, ${r.wins}승 ${r.losses}패 승률 ${pct}. ` +
           `일정·로스터·선수 통계와 AI 승부예측을 실시간 갱신합니다.`;
       }
     } catch {
