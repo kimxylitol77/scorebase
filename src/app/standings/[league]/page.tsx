@@ -14,7 +14,7 @@ import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
@@ -454,9 +454,11 @@ export default async function StandingsPage({ params }: Props) {
   const lastSeasonRows = lastSeasonLeaders?.rowsByCategory ?? {};
   const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPending;
 
-  // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
+  // 야구 — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
-  const isBaseball = upper === "KBO" || upper === "NPB";
+  // ⚠️ 2026-08-27: KBO·NPB 만 분기돼 있어 **MLB 가 축구식 그대로였다** — 83승 팀에 "승점 249"
+  //   (승×3), 야구에 없는 무승부 열이 0 으로 채워진 채 노출. BASEBALL_LEAGUES 단일 기준으로 교체.
+  const isBaseball = BASEBALL_LEAGUES.has(upper);
   // 게임차는 단일 리그 표에서만 의미 — NPB 는 센트럴·퍼시픽 합산 렌더라 생략.
   const showGb = upper === "KBO";
   const leader = rows![0];
@@ -512,7 +514,9 @@ export default async function StandingsPage({ params }: Props) {
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
             {upper === "KBO"
               ? "2026 한국 프로야구(KBO 리그) 10개 구단 팀 순위표. 승·무·패와 승률, 게임차 기준 공식 순위를 매일 자동 갱신합니다."
-              : "2026 일본 프로야구(NPB) 12개 구단 팀 순위표. 승·무·패와 승률 기준 공식 순위를 매일 자동 갱신합니다."}
+              : upper === "NPB"
+                ? "2026 일본 프로야구(NPB) 12개 구단 팀 순위표. 승·무·패와 승률 기준 공식 순위를 매일 자동 갱신합니다."
+                : `${name} ${rows!.length}개 구단 팀 순위표. 승·패와 승률 기준 순위를 매일 자동 갱신합니다.`}
           </p>
         )}
       </header>

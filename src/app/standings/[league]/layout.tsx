@@ -2,7 +2,7 @@
 //  page.tsx 가 종목별(WORLD_CUP·배구·NHL·LOL·축구·야구)로 early-return 분기가 많아,
 //  layout 에서 감싸면 어느 분기로 렌더되든 구조화 데이터가 항상 붙는다. 리그명만 있으면 됨.
 import type { ReactNode } from "react";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
 
 export default async function StandingsLeagueLayout({
@@ -19,8 +19,9 @@ export default async function StandingsLeagueLayout({
   if (!name) return <>{children}</>;
 
   const path = `/standings/${upper}`;
-  // 야구(KBO/NPB)는 표가 승률·게임차 기준 — Dataset 서술도 실제 표와 일치시킴 (축구식 승점·득실 아님).
-  const isBaseball = upper === "KBO" || upper === "NPB";
+  // 야구는 표가 승률·게임차 기준 — Dataset 서술도 실제 표와 일치시킴 (축구식 승점·득실 아님).
+  // page.tsx 의 isBaseball 과 같은 기준이어야 한다(어긋나면 표와 구조화 데이터가 딴소리).
+  const isBaseball = BASEBALL_LEAGUES.has(upper);
   const ld = {
     "@context": "https://schema.org",
     "@graph": [
