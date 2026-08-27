@@ -139,22 +139,30 @@ export async function GET(
     // 성(surname) 일치가 명단에서 유일할 때만 쓴다 (squad-player-lookup, 단위 테스트 동반).
     const tsTeamId = team.sourceIds.find((x) => x.source === "thesports")?.externalId;
     const squad = tsTeamId ? TEAM_SQUADS[tsTeamId]?.squad : undefined;
-    const candidates = new Map<number, string>();
+    // 후보를 둘 다 모은다. 매핑이 **죽은 id 를 반환하는** 경우가 있어(?? 로 잇면 폴백이
+    // 영영 안 돈다) 실재 확인 뒤에 고르는 순서여야 한다.
+    const mapped = new Map<number, string>();
+    const fromSquad = new Map<number, string>();
     for (const r of out) {
-      const tsId = afPlayerToTs(r.playerId) ?? squadTsIdByName(squad, r.playerName);
-      if (tsId) candidates.set(r.playerId, tsId);
+      const m = afPlayerToTs(r.playerId);
+      if (m) mapped.set(r.playerId, m);
+      const sq = squadTsIdByName(squad, r.playerName);
+      if (sq) fromSquad.set(r.playerId, sq);
     }
     const alive = new Set<string>();
-    if (candidates.size > 0) {
+    const probe = [...new Set([...mapped.values(), ...fromSquad.values()])];
+    if (probe.length > 0) {
       const rows = await prisma.theSportsPlayer.findMany({
-        where: { id: { in: [...new Set(candidates.values())] } },
+        where: { id: { in: probe } },
         select: { id: true },
       });
       rows.forEach((x) => alive.add(x.id));
     }
     const items: OutItem[] = out.map((r) => {
-      const tsId = candidates.get(r.playerId);
-      return tsId && alive.has(tsId) ? { ...r, href: `/transfers/${tsId}` } : r;
+      const m = mapped.get(r.playerId);
+      const sq = fromSquad.get(r.playerId);
+      const tsId = m && alive.has(m) ? m : sq && alive.has(sq) ? sq : null;
+      return tsId ? { ...r, href: `/transfers/${tsId}` } : r;
     });
     return NextResponse.json({ items });
   } catch (e) {
