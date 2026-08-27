@@ -7,6 +7,7 @@ import { calcEloTable, getElo } from "./elo";
 import { calcStreaks } from "./streak";
 import { calcRecentTrend } from "./recent-trend";
 import { runMonteCarlo, type MonteCarloRow } from "./monte-carlo";
+import { checkScheduleIntegrity } from "./schedule-integrity";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
 export interface TeamStreakSummary {
@@ -136,6 +137,13 @@ export function buildSeasonContext(
       iterations: opts.iterations ?? 5000,
       relegationCount: opts.relegationCount ?? 0,
     });
+    // DB 일정이 잘린 리그는 시뮬이 극단 확률(99.9%)을 낸다. 화면과 같은 판정으로 통째로
+    // 버린다 — ANALYSIS 글은 이 mc 로 "우승 확률" 문단을 쓰므로 발행물까지 오보가 번진다.
+    // (2026-08-27 실측: K리그1·MLS)
+    if (mc.length > 0) {
+      const topChampion = Math.max(...mc.map((r) => r.champion));
+      if (!checkScheduleIntegrity(matches, topChampion).trustworthy) mc = undefined;
+    }
   }
 
   // 빅매치 (Elo 합 가장 높은 SCHEDULED 매치)

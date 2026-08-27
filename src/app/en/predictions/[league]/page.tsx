@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
+import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
 import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
@@ -504,6 +505,12 @@ export default async function LeaguePredictions({ params }: Props) {
       });
     }
   }
+
+  // 우승확률 노출 가드 — ko /predictions/[league] 와 같은 판정을 같은 함수로 돌린다.
+  // (2026-08-27 실측: /en/predictions/K_LEAGUE_1·MLS 도 99.9% 를 렌더 중이었다.)
+  const topChampion = mc.length > 0 ? Math.max(...mc.map((r) => r.champion)) : 0;
+  const scheduleIntegrity = checkScheduleIntegrity(matches, topChampion);
+  const showChampion = scheduleIntegrity.trustworthy;
 
   // 다가오는 경기 (다음 7일 — 월드컵은 개막까지 한 달 가까이 남아 14일로 확장)
   const now = new Date();
@@ -1150,21 +1157,52 @@ export default async function LeaguePredictions({ params }: Props) {
         {/* 일반 리그 — Monte Carlo 결과 (UCL·NBA 제외) */}
         {canSimulate && !isWorldCup && !isUcl && !isNba && (
           <>
-            {/* 우승 확률 */}
-            <section>
-              <Heading title="Title probability" subtitle="Chance of finishing first" />
-              <div className="sm:max-w-xl">
-                <MonteCarloBar
-                  data={mc
-                    .filter((r) => r.champion >= 0.001)
-                    .slice(0, 12)
-                    .map((r) => ({
-                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
-                      value: r.champion * 100,
-                    }))}
-                />
-              </div>
-            </section>
+            {/* 우승 확률 — 일정이 잘린 리그는 숨기고 사유를 밝힌다 */}
+            {showChampion ? (
+              <section>
+                <Heading title="Title probability" subtitle="Chance of finishing first" />
+                <div className="sm:max-w-xl">
+                  <MonteCarloBar
+                    data={mc
+                      .filter((r) => r.champion >= 0.001)
+                      .slice(0, 12)
+                      .map((r) => ({
+                        name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                        value: r.champion * 100,
+                      }))}
+                  />
+                </div>
+              </section>
+            ) : scheduleIntegrity.failure === "no-remaining" ? (
+              /* 남은 경기 없음 — 비시즌·시즌 종료의 정상 상태라 경고색을 쓰지 않는다 (ko 와 동일). */
+              <section>
+                <Heading title="Title probability" subtitle="No matches left to simulate" />
+                <div className="sm:max-w-xl rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                  <p className="leading-relaxed">
+                    The season is over, or the next fixtures have not been published yet. With no
+                    matches left, the title is a settled result rather than a probability, so we do
+                    not simulate it.
+                  </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-neutral-500">
+                    The projected points and standings below are based on matches played so far.
+                  </p>
+                </div>
+              </section>
+            ) : (
+              <section>
+                <Heading title="Title probability" subtitle="Not calculated for this season yet" />
+                <div className="sm:max-w-xl rounded-xl border border-amber-300/70 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+                  <p className="font-semibold">Title probability is hidden.</p>
+                  <p className="mt-1 leading-relaxed">{scheduleIntegrity.reasonEn}</p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-amber-800/80 dark:text-amber-200/70">
+                    When fewer matches are on file than are actually left to play, the leader&apos;s
+                    title probability comes out far too high. Rather than show a wrong number, we
+                    hide it until the schedule is complete. The projected points and standings below
+                    are based on matches played so far.
+                  </p>
+                </div>
+              </section>
+            )}
 
             {/* 야구 — 우승 확률 추이 (일일 스냅샷 누적, KBO·NPB·MLB) */}
             {isBaseballSim && baseballTrend && (
@@ -1264,6 +1302,7 @@ export default async function LeaguePredictions({ params }: Props) {
                 subtitle="Average points · average position · last 5"
               />
               <ProjectionsTable
+                showChampion={showChampion}
                 rows={mc.map((r) => ({
                   name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                   logoUrl: teamLogoById.get(r.teamId) ?? null,
@@ -1674,6 +1713,8 @@ interface ProjectionsTableProps {
   relegationCount?: number;
   /** teamId → 최근 5경기 W/D/L. */
   formByTeamId?: Map<number, Array<{ result: "W" | "D" | "L"; startTime: Date }>>;
+  /** false 면 우승 % 열을 통째로 감춘다 (일정 결손 리그). */
+  showChampion?: boolean;
 }
 
 function ProjectionsTable({
@@ -1681,6 +1722,7 @@ function ProjectionsTable({
   top4Cutoff = 0,
   relegationCount = 0,
   formByTeamId,
+  showChampion = true,
 }: ProjectionsTableProps) {
   const total = rows.length;
   const relegationStartIdx = relegationCount > 0 ? total - relegationCount : total;
@@ -1694,7 +1736,9 @@ function ProjectionsTable({
             <th className="text-left px-3 py-2 font-medium hidden sm:table-cell w-32">Last 5</th>
             <th className="text-right px-3 py-2 font-medium">Pts</th>
             <th className="text-right px-3 py-2 font-medium">Projected pts</th>
-            <th className="text-right px-3 py-2 font-medium">Title %</th>
+            {showChampion && (
+              <th className="text-right px-3 py-2 font-medium">Title %</th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -1743,11 +1787,13 @@ function ProjectionsTable({
                 <td className="px-3 py-2 text-right tabular-nums font-semibold">
                   {r.expectedPoints.toFixed(1)}
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums">
-                  {r.champion >= 0.001
-                    ? `${(r.champion * 100).toFixed(1)}%`
-                    : "<0.1%"}
-                </td>
+                {showChampion && (
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {r.champion >= 0.001
+                      ? `${(r.champion * 100).toFixed(1)}%`
+                      : "<0.1%"}
+                  </td>
+                )}
               </tr>
             );
           })}

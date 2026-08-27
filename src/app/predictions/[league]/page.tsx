@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
+import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
 import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
@@ -505,6 +506,13 @@ export default async function LeaguePredictions({ params }: Props) {
       });
     }
   }
+
+  // 우승확률 노출 가드 — DB 일정이 잘린 리그가 99.9% 를 뿜는 것을 막는다.
+  // (2026-08-27 실측: K리그1·MLS 가 잔여 일정 결손으로 99.9% 를 렌더 중이었다.)
+  // 극단값일 때만 검사하므로 시즌 초·중반 리그는 영향받지 않는다.
+  const topChampion = mc.length > 0 ? Math.max(...mc.map((r) => r.champion)) : 0;
+  const scheduleIntegrity = checkScheduleIntegrity(matches, topChampion);
+  const showChampion = scheduleIntegrity.trustworthy;
 
   // 다가오는 경기 (다음 7일 — 월드컵은 개막까지 한 달 가까이 남아 14일로 확장)
   const now = new Date();
@@ -1151,21 +1159,51 @@ export default async function LeaguePredictions({ params }: Props) {
         {/* 일반 리그 — Monte Carlo 결과 (UCL·NBA 제외) */}
         {canSimulate && !isWorldCup && !isUcl && !isNba && (
           <>
-            {/* 우승 확률 */}
-            <section>
-              <Heading title="우승 확률" subtitle="시즌 종료 시점 1위 차지 가능성" />
-              <div className="sm:max-w-xl">
-                <MonteCarloBar
-                  data={mc
-                    .filter((r) => r.champion >= 0.001)
-                    .slice(0, 12)
-                    .map((r) => ({
-                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
-                      value: r.champion * 100,
-                    }))}
-                />
-              </div>
-            </section>
+            {/* 우승 확률 — 일정이 잘린 리그는 숨기고 사유를 밝힌다 */}
+            {showChampion ? (
+              <section>
+                <Heading title="우승 확률" subtitle="시즌 종료 시점 1위 차지 가능성" />
+                <div className="sm:max-w-xl">
+                  <MonteCarloBar
+                    data={mc
+                      .filter((r) => r.champion >= 0.001)
+                      .slice(0, 12)
+                      .map((r) => ({
+                        name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                        value: r.champion * 100,
+                      }))}
+                  />
+                </div>
+              </section>
+            ) : scheduleIntegrity.failure === "no-remaining" ? (
+              /* 남은 경기가 아예 없음 — 비시즌·시즌 종료의 정상 상태라 경고색을 쓰지 않는다.
+                 (NBA·NHL 이 여름에 여기 들어온다. 끝난 시즌의 1위는 확률이 아니라 사실이다.) */
+              <section>
+                <Heading title="우승 확률" subtitle="남은 경기가 없어 계산하지 않습니다" />
+                <div className="sm:max-w-xl rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+                  <p className="leading-relaxed">
+                    시즌이 끝났거나 다음 일정이 아직 등록되지 않았습니다. 남은 경기가 없으면
+                    우승은 확률이 아니라 이미 정해진 결과라 따로 계산하지 않습니다.
+                  </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-neutral-500">
+                    아래 예상 승점·순위는 지금까지 치른 경기 기준입니다.
+                  </p>
+                </div>
+              </section>
+            ) : (
+              <section>
+                <Heading title="우승 확률" subtitle="이번 시즌은 아직 계산하지 않습니다" />
+                <div className="sm:max-w-xl rounded-xl border border-amber-300/70 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+                  <p className="font-semibold">우승 확률을 표시하지 않습니다.</p>
+                  <p className="mt-1 leading-relaxed">{scheduleIntegrity.reason}</p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-amber-800/80 dark:text-amber-200/70">
+                    남은 경기가 실제보다 적게 잡히면 1위 팀의 우승 확률이 실제보다 훨씬 높게
+                    나옵니다. 잘못된 수치를 보여주는 대신 일정이 채워질 때까지 감춥니다.
+                    아래 예상 승점·순위는 지금까지 치른 경기 기준입니다.
+                  </p>
+                </div>
+              </section>
+            )}
 
             {/* 야구 — 우승 확률 추이 (일일 스냅샷 누적, KBO·NPB·MLB) */}
             {isBaseballSim && baseballTrend && (
@@ -1265,6 +1303,7 @@ export default async function LeaguePredictions({ params }: Props) {
                 subtitle="평균 승점 · 평균 순위 · 최근 5경기"
               />
               <ProjectionsTable
+                showChampion={showChampion}
                 rows={mc.map((r) => ({
                   name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                   logoUrl: teamLogoById.get(r.teamId) ?? null,
@@ -1675,6 +1714,8 @@ interface ProjectionsTableProps {
   relegationCount?: number;
   /** teamId → 최근 5경기 W/D/L. */
   formByTeamId?: Map<number, Array<{ result: "W" | "D" | "L"; startTime: Date }>>;
+  /** false 면 우승 % 열을 통째로 감춘다 (일정 결손 리그). */
+  showChampion?: boolean;
 }
 
 function ProjectionsTable({
@@ -1682,6 +1723,7 @@ function ProjectionsTable({
   top4Cutoff = 0,
   relegationCount = 0,
   formByTeamId,
+  showChampion = true,
 }: ProjectionsTableProps) {
   const total = rows.length;
   const relegationStartIdx = relegationCount > 0 ? total - relegationCount : total;
@@ -1695,7 +1737,9 @@ function ProjectionsTable({
             <th className="text-left px-3 py-2 font-medium hidden sm:table-cell w-32">최근 5</th>
             <th className="text-right px-3 py-2 font-medium">승점</th>
             <th className="text-right px-3 py-2 font-medium">예상 승점</th>
-            <th className="text-right px-3 py-2 font-medium">우승 %</th>
+            {showChampion && (
+              <th className="text-right px-3 py-2 font-medium">우승 %</th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -1744,11 +1788,13 @@ function ProjectionsTable({
                 <td className="px-3 py-2 text-right tabular-nums font-semibold">
                   {r.expectedPoints.toFixed(1)}
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums">
-                  {r.champion >= 0.001
-                    ? `${(r.champion * 100).toFixed(1)}%`
-                    : "<0.1%"}
-                </td>
+                {showChampion && (
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {r.champion >= 0.001
+                      ? `${(r.champion * 100).toFixed(1)}%`
+                      : "<0.1%"}
+                  </td>
+                )}
               </tr>
             );
           })}
