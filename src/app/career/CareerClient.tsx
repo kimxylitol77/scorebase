@@ -6,6 +6,7 @@ import {
 } from "@/lib/career/engine";
 import { loadClubs } from "@/lib/career/clubs";
 import { NATIONS, NATION_BY_CODE } from "@/lib/career/nations";
+import { buildShareParams } from "@/lib/career/share";
 import type { CareerState, Club, Decision, Position } from "@/lib/career/types";
 
 const POSITIONS: { code: Position; label: string }[] = [
@@ -386,6 +387,29 @@ function DecisionPanel({
 
 function RetiredCard({ state, onReset }: { state: CareerState; onReset: () => void }) {
   const sum = summarize(state);
+  const [shared, setShared] = useState<"idle" | "copied" | "failed">("idle");
+
+  // 결과는 서버에 저장하지 않는다 — 공유 링크 자체가 기록이다
+  const share = async () => {
+    const url = `${window.location.origin}/career/result?${buildShareParams(state, sum).toString()}`;
+    const text = `축구선수 인생 살아보기 — 통산 ${sum.apps}경기 ${sum.goals}골, 최고 능력치 ${sum.peakOvr}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "내 축구 커리어", text, url });
+        return;
+      } catch {
+        // 사용자가 공유창을 닫은 경우 — 링크 복사로 넘어간다
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShared("copied");
+      window.setTimeout(() => setShared("idle"), 2000);
+    } catch {
+      setShared("failed");
+    }
+  };
+
   const stats: [string, string][] = [
     ["통산 경기", String(sum.apps)],
     ["골", String(sum.goals)],
@@ -410,13 +434,22 @@ function RetiredCard({ state, onReset }: { state: CareerState; onReset: () => vo
           </div>
         ))}
       </dl>
-      <button
-        type="button"
-        onClick={onReset}
-        className="mt-5 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
-      >
-        다시 살아보기
-      </button>
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={share}
+          className="rounded-xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-600"
+        >
+          {shared === "copied" ? "링크 복사됨" : shared === "failed" ? "복사 실패" : "결과 공유하기"}
+        </button>
+        <button
+          type="button"
+          onClick={onReset}
+          className="rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+        >
+          다시 살아보기
+        </button>
+      </div>
     </div>
   );
 }
