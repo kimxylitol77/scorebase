@@ -28,6 +28,7 @@ import rawNonSoccerCoaches from "../../../../../data/nonsoccer-coaches.json";
 import rawTeamSquads from "../../../../../data/team-squads.json";
 import { judgeSquadFreshness } from "@/lib/monitor/squad-freshness";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import type { League } from "@/lib/sports/types";
 import {
   ALL_LEAGUES,
   SOCCER_LEAGUES as SOCCER_LEAGUE_SET,
@@ -39,6 +40,7 @@ import {
   MMA_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import { fetchSoccerByDate } from "@/lib/sports/live-scores";
+import { fetchEspnSoccerByDate, SOCCER_LEAGUE_CODES } from "@/lib/sports/espn-soccer";
 import { buildOrphanDedup } from "@/lib/sports/orphan-dedup";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 
@@ -541,6 +543,99 @@ async function checkOrphanCardDups(now: Date, findings: Finding[]) {
   return { checked: dated.length, blindLeagues: blind.length };
 }
 
+/**
+ * 홈/원정 방향 반전 — 개최지 이전 등으로 소스가 사후에 홈/원정을 스왑했는데 우리 Match 가
+ * 옛 방향으로 남은 매치 (2026-08-23 리그1 렌-PSG #1165778 사고, venue-move-home-away-flip).
+ * 라이브 이벤트·라인업·배당·적중 기록이 통째로 반전돼 보이고, 발견은 사람 눈이었다.
+ *
+ * 왜 fresh ESPN 재조회인가. collect 재수집이 그 날짜에 다시 닿지 않으면 저장 raw 도 옛
+ * 방향 그대로라(사고 당시 raw·DB 둘 다 PSG 홈으로 서로 일치) 저장 raw vs DB 대조만으로는
+ * 원리상 못 잡는다. ESPN scoreboard 를 (리그, UTC 날짜)당 1회 재조회해 현재 방향을 DB 와
+ * 맞댄다. ts 는 홈 팀 id 를 DB 에 안 남기므로 ESPN 이 가장 싼 대조 경로다.
+ * 비용: 최근 7일 종료 매치의 (리그,날짜) 조합 — 실측 24개 ≈ 24콜, 하루 2회.
+ *
+ * 왜 event id 가 아니라 팀쌍 대조인가 (2026-08-27 실측). 저장 raw 는
+ * fetch-api-football 이 af 형식으로 덮어써 ESPN 형태가 4/53건뿐이고, externalId 도
+ * ESPN id·af fixture id·ts- 가 혼재해 id 로 fresh 이벤트를 찾으면 12건만 걸린다.
+ * fresh 이벤트의 양 팀을 TeamSourceId(source=espn)로 우리 teamId 로 변환한 뒤
+ * "같은 팀쌍" 매치를 찾아 방향만 비교하면 id 체계와 무관하다 — 기준선 실측
+ * 대상 73건 중 대조 39·모호 0·flips 0 (나머지는 espn 매핑 부재·타날짜 이벤트로 생략).
+ *
+ * 오탐 게이트 — ① ESPN scoreboard 코드가 있는 리그만(SOCCER_LEAGUE_CODES)
+ * ② fresh 양 팀의 espn 매핑이 둘 다 있을 때만(없으면 판정 생략) ③ 같은 팀쌍 후보가
+ * 정확히 1건일 때만(모호하면 생략) ④ 정확한 스왑(홈↔원정 교차 일치)만 — 팀 교체 등
+ * 다른 변화는 이 축의 대상이 아니다.
+ */
+async function checkHomeAwayFlip(now: Date, findings: Finding[]) {
+  const rows = await prisma.match.findMany({
+    where: {
+      league: { in: Object.keys(SOCCER_LEAGUE_CODES) },
+      status: "FINISHED",
+      startTime: { gte: new Date(now.getTime() - 7 * 86400_000), lte: now },
+    },
+    select: {
+      id: true, league: true, startTime: true, homeTeamId: true, awayTeamId: true,
+      homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+    },
+  });
+
+  // (리그, UTC 날짜)당 scoreboard 1회 — crossCheckEplWithEspn(collect)과 같은 날짜 규약.
+  const byKey = new Map<string, typeof rows>();
+  for (const t of rows) {
+    const k = `${t.league}|${t.startTime.toISOString().slice(0, 10)}`;
+    byKey.set(k, [...(byKey.get(k) ?? []), t]);
+  }
+  const flips: string[] = [];
+  let compared = 0;
+  for (const [key, group] of byKey) {
+    const [league, date] = key.split("|");
+    let fresh;
+    try {
+      fresh = await fetchEspnSoccerByDate(league as League, date);
+    } catch {
+      continue; // ESPN 일시 오류 — 이 (리그,날짜)만 건너뜀, 다음 실행이 다시 본다
+    }
+    const extIds = [
+      ...new Set(fresh.flatMap((f) => [f.homeTeam.externalId, f.awayTeam.externalId]).filter(Boolean)),
+    ];
+    const maps = extIds.length
+      ? await prisma.teamSourceId.findMany({
+          where: { league, source: "espn", externalId: { in: extIds } },
+          select: { externalId: true, teamId: true },
+        })
+      : [];
+    const idMap = new Map(maps.map((m) => [m.externalId, m.teamId]));
+    const freshPairs = fresh
+      .map((f) => ({ h: idMap.get(f.homeTeam.externalId), a: idMap.get(f.awayTeam.externalId) }))
+      .filter((p): p is { h: number; a: number } => p.h != null && p.a != null && p.h !== p.a);
+    for (const t of group) {
+      const cand = freshPairs.filter(
+        (p) =>
+          (p.h === t.homeTeamId && p.a === t.awayTeamId) ||
+          (p.h === t.awayTeamId && p.a === t.homeTeamId),
+      );
+      if (cand.length !== 1) continue; // 이벤트 미발견·매핑 결손·같은 쌍 복수 — 판정 생략
+      compared++;
+      if (cand[0].h === t.awayTeamId && cand[0].a === t.homeTeamId) {
+        flips.push(`${t.league} #${t.id} ${t.homeTeam.name} vs ${t.awayTeam.name}`);
+      }
+    }
+    await new Promise((r) => setTimeout(r, 80));
+  }
+
+  if (flips.length > 0) {
+    findings.push({
+      kind: "home_away_flip",
+      detail:
+        `홈/원정 방향 반전 — 종료 매치 ${flips.length}건이 ESPN 현재 방향과 반대입니다 ` +
+        `(개최지 이전 스왑 의심 — 라이브 이벤트·라인업·배당·적중 기록 반전 위험. ` +
+        `메모리 venue-move-home-away-flip 절차로 수동 교정)`,
+      samples: flips.slice(0, 5),
+    });
+  }
+  return { candidates: rows.length, compared, flips: flips.length };
+}
+
 async function checkRescheduleDups(now: Date, findings: Finding[]) {
   const ms = await prisma.match.findMany({
     where: {
@@ -836,6 +931,7 @@ export async function GET(req: Request) {
     standings: await run("standings", () => checkStandings(now, findings)),
     lolLeaders: await run("lolLeaders", () => checkLolLeaders(now, findings)),
     rescheduleDups: await run("rescheduleDups", () => checkRescheduleDups(now, findings)),
+    homeAwayFlip: await run("homeAwayFlip", () => checkHomeAwayFlip(now, findings)),
     orphanCardDups: await run("orphanCardDups", () => checkOrphanCardDups(now, findings)),
     tournamentBracketGap: await run("tournamentBracketGap", () => checkTournamentBracketGap(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),

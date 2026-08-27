@@ -16,6 +16,7 @@ import { LOL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { hasProtectedResult } from "@/lib/sports/baseball-source-cancel";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
+import { sendTelegram } from "@/lib/notify/telegram";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 
 /**
@@ -188,6 +189,56 @@ function eqTeamNameLoose(a: string, b: string): boolean {
   const na = normalizeTeamNameLoose(a);
   const nb = normalizeTeamNameLoose(b);
   return !!na && na === nb;
+}
+
+// ── 개최지 이전 홈/원정 반전 가드 (2026-08-23 리그1 렌-PSG #1165778 사고) ──
+// 구장 이전 등으로 소스가 같은 externalId 매치의 홈/원정을 사후에 뒤집으면, 그대로
+// update 할 경우 Match 팀 방향만 뒤집히고 pred/market·배당 3테이블·라인업 라벨·봇픽·
+// 발행된 프리뷰 글은 옛 방향으로 남아 통째로 오염된다. 자동 스왑 금지 — row 를 건드리지
+// 않고 경고 로그 + 알림만 남긴다. 교정은 메모리 venue-move-home-away-flip 절차대로
+// 수동 단일 트랜잭션 (대칭 필드 미러링 + 배당 컬럼 스왑 + 봇픽 + 프리뷰 글).
+// 알림 dedup: collect 는 30분 cron 이라 매 회 울리면 하루 40건+ 소음 — HealthCheck
+// (category=collect:home_away_flip) 최근 기록이 있으면 재발송 생략 (12h당 1회).
+const FLIP_ALERT_DEDUP_MS = 12 * 3600 * 1000;
+
+async function alertHomeAwayFlip(m: NormalizedMatch, matchId: number, source: string) {
+  const key = `${m.league}:${m.externalId}`;
+  console.warn(
+    `[upsertMatch/flip] ${key} (matchId=${matchId}) — 소스(${source})가 홈/원정을 반대로 보냄: ` +
+      `소스 홈=${m.homeTeam.name} vs ${m.awayTeam.name}. DB 방향 유지·갱신 skip, 수동 교정 필요`,
+  );
+  try {
+    const recent = await prisma.healthCheck.findFirst({
+      where: {
+        category: "collect:home_away_flip",
+        key,
+        runAt: { gte: new Date(Date.now() - FLIP_ALERT_DEDUP_MS) },
+      },
+      select: { id: true },
+    });
+    if (recent) return;
+    await prisma.healthCheck.create({
+      data: {
+        severity: "HIGH",
+        category: "collect:home_away_flip",
+        key,
+        message: `홈/원정 반전 감지 — 소스 홈=${m.homeTeam.name}, DB 는 반대 방향. 갱신 중단됨`,
+        metadata: { matchId, source, sourceHome: m.homeTeam.name, sourceAway: m.awayTeam.name },
+      },
+    });
+    await sendTelegram(
+      [
+        `🚨 <b>홈/원정 반전 감지 (개최지 이전 의심)</b>`,
+        ``,
+        `📍 <b>무엇</b>: ${m.league} ${m.homeTeam.name} vs ${m.awayTeam.name} (matchId=${matchId}, ext=${m.externalId})`,
+        `💥 <b>영향</b>: 소스가 홈/원정을 뒤집었는데 DB 는 옛 방향 — 라이브 이벤트·라인업·배당이 반전 노출 위험. collect 가 이 매치 갱신을 중단함`,
+        `🔍 <b>원인</b>: 구장 이전 시 소스(${source})가 공식 기록대로 홈/원정 스왑 (렌-PSG 사고 계열)`,
+        `➡️ <b>확인</b>: 메모리 venue-move-home-away-flip 절차로 수동 교정 (팀 스왑 + 대칭 필드 + 배당 3테이블 + 봇픽 + 프리뷰 글)`,
+      ].join("\n"),
+    );
+  } catch (e) {
+    console.error(`[upsertMatch/flip] 알림 실패:`, (e as Error).message);
+  }
 }
 
 // opts.source: 팀 resolve 에 쓸 source 명시 — 기본은 getPrimarySource(league).
@@ -394,8 +445,22 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
   // 새 응답이 LIVE/SCHEDULED 라도 status 유지. POSTPONED 는 incoming 으로 자유 갱신.
   const current = await prisma.match.findUnique({
     where: { league_externalId: { league: m.league, externalId: m.externalId } },
-    select: { status: true, homeScore: true, awayScore: true },
+    select: { id: true, status: true, homeScore: true, awayScore: true, homeTeamId: true, awayTeamId: true },
   });
+
+  // 홈/원정 반전 감지 — 기존 row 와 정확히 교차(홈↔원정)로만 판정. 팀 교체·TBD 확정 등
+  // 다른 변경은 대상 아님. 감지 시 갱신 전체 중단 — 그대로 update 하면 팀 방향과 raw 만
+  // 뒤집혀 부속 데이터(pred/odds/라인업/글)와 어긋난다 (위 alertHomeAwayFlip 주석 참고).
+  if (
+    current &&
+    homeTeam.id !== awayTeam.id &&
+    current.homeTeamId === awayTeam.id &&
+    current.awayTeamId === homeTeam.id
+  ) {
+    await alertHomeAwayFlip(m, current.id, source);
+    return;
+  }
+
   const mergedStatus = mergeStatus(
     current?.status as MatchStatus | undefined,
     m.status,
