@@ -1,6 +1,6 @@
 // 선수단 스냅샷(data/team-squads.json) 신선도 판정 — data-freshness 감시 축의 순수 판정부.
 //
-// 왜 필요한가. 이 파일은 맥미니 weekly-static-refresh(일요일)가 갱신하는데, 잡이 조용히
+// 왜 필요한가. 이 파일은 맥미니 daily-team-squads(12:30)가 갱신하는데, 잡이 조용히
 // 멈춰도 **내용은 멀쩡해서** 기존 감시 축이 하나도 안 울린다. 2026-08-27 실측 —
 // 파일이 8/15 빌드로 12일 묵어 있는 동안 이적창이 열려 있었고, 실이적 82명이 팀 페이지
 // 선수단에서 통째로 빠져 있었다(af 이적 섹션은 실시간이라 "영입은 떴는데 선수단엔 없음").
@@ -11,8 +11,12 @@
 //   · 일부 팀 정체 — 오래된 팀 비율 급증 = ts 가 빈 응답을 주거나 빌더 대상 집합에서 빠짐.
 //     빌더는 병합식이라 갱신 실패 팀은 옛 값이 그대로 남는다. 소리 없이 낡는 유일한 경로다.
 
-/** 빌더는 주 1회 — 한 번 걸러도 10일이면 확실히 멈춘 것이다. */
-export const SQUAD_STALE_DAYS = 10;
+/**
+ * 빌더는 하루 1회(mac-mini daily-team-squads, 12:30 KST) — 사흘이면 확실히 멈춘 것이다.
+ * 2026-08-27 이전엔 주간 잡에 묶여 있어 10일이었다. 이적창에 7일치 영입이 통째로 빠지는
+ * 주기라 일일로 분리했고, 임계도 새 주기에 맞춰 조인다.
+ */
+export const SQUAD_STALE_DAYS = 3;
 /** 개별 팀이 이만큼 낡으면 "갱신 실패로 눌러앉은 것"으로 센다. */
 export const SQUAD_TEAM_STALE_DAYS = 30;
 /**
@@ -60,7 +64,7 @@ export function judgeSquadFreshness(
     problems.push({
       kind: "squad_snapshot_stale",
       detail: `선수단 스냅샷이 ${newestAgeDays}일째 그대로입니다 (최신 ${newest}, 임계 ${SQUAD_STALE_DAYS}일). `
-        + "weekly-static-refresh 가 도는지 확인 — 이적창이 열려 있으면 새 영입이 팀 페이지 선수단에서 통째로 빠집니다",
+        + "daily-team-squads 가 도는지 확인 — 이적창이 열려 있으면 새 영입이 팀 페이지 선수단에서 통째로 빠집니다",
     });
   }
   if (teamStale / teams > SQUAD_TEAM_STALE_PCT) {

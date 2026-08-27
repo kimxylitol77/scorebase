@@ -25,7 +25,7 @@ test("재빌드 직후는 조용하다 — 대상 밖 13팀이 낡아 있어도 
   assert.deepEqual(r.problems, []);
 });
 
-test("주 1회를 한 번 걸러도 아직 안 울린다 — 임계는 10일", () => {
+test("하루 걸러도 아직 안 울린다 — 임계는 3일(일 주기 + 유예)", () => {
   const at = (d: number) => {
     const t = new Date(NOW.getTime() - d * 86400000).toISOString().slice(0, 10);
     return judgeSquadFreshness(mk([[t, 100]]), NOW);
