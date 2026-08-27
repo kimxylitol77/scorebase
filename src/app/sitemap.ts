@@ -68,6 +68,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/mlb-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/npb-win-probability`, changeFrequency: "monthly", priority: 0.75 },
+    // 미니게임 — 로그인 없이 도는 커리어 시뮬. /dream-team 은 로그인 벽 + sitemap 누락으로
+    // 아무도 못 찾았다(회원 117명 중 팀 3개). 같은 실수를 반복하지 않으려고 등록한다.
+    { url: `${base}/career`, changeFrequency: "monthly", priority: 0.7 },
     // 종목 허브 — 5/23 sitemap 청소 이후 신설돼 등록 누락됐던 페이지들 (빙 실측: /baseball
     // 노출 3,127 인데 sitemap 밖 → 크롤 신호 손해). 2026-08-18 추가.
     { url: `${base}/soccer`, changeFrequency: "daily", priority: 0.85 },

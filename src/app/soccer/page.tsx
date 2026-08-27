@@ -25,6 +25,7 @@ import {
   Repeat,
   Banknote,
   ClipboardList,
+  Footprints,
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -277,6 +278,7 @@ export default async function SoccerHub() {
         <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
         <FnChip href="/odds?sport=soccer" Icon={Activity} label="배당 흐름" />
         <FnChip href="/dream-team" Icon={Users} label="드림팀 게임" />
+        <FnChip href="/career" Icon={Footprints} label="축구선수 인생 살아보기" />
         <FnChip href="/lineup" Icon={ClipboardList} label="라인업 전술판" />
         <FnChip href="/k-league-cards" Icon={IdCard} label="K리그 카드 선수 데이터" />
       </div>
