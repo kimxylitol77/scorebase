@@ -6703,5 +6703,14 @@
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "dn1m1ghog87moep": {
+  "statsId": "pl_30133676",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Gleison Bremer",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  }
 }
