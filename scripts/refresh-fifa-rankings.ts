@@ -15,6 +15,10 @@
 // ⚠ TheSports IP whitelist 필요 (맥미니·맥북 등록됨).
 
 import { readFileSync, writeFileSync } from "fs";
+// ts 직통 fetch 는 화이트리스트 밖 IP(맥미니)에서 죽는다 — 공용 client 를 타면
+// THESPORTS_PROXY_URL 이 있을 때 Vultr 프록시로 우회한다.
+// (2026-08-26·27 06:40 연속 실패의 원인. 메모리 korea-abroad-wipe-incident 와 같은 뿌리.)
+import { thesportsGet } from "../src/lib/sports/thesports/client";
 import path from "path";
 
 const DATASETS = [
@@ -81,18 +85,10 @@ function normalizeName(raw: string): string {
 const write = process.argv.includes("--write");
 
 async function refreshDataset(d0: (typeof DATASETS)[number], knownNames: Set<string>) {
-  const user = process.env.THESPORTS_USER;
-  const secret = process.env.THESPORTS_SECRET;
-  if (!user || !secret) throw new Error("THESPORTS_USER / THESPORTS_SECRET 미설정");
-
-  const u = new URL(`https://api.thesports.com/v1/football/ranking/fifa/${d0.api}`);
-  u.searchParams.set("user", user);
-  u.searchParams.set("secret", secret);
-  const d = (await (await fetch(u, { signal: AbortSignal.timeout(20000) })).json()) as {
+  const d = await thesportsGet<{
     code: number;
     results?: { pub_time?: number; items?: Array<{ ranking: number; team?: { name?: string } }> };
-  };
-  if (d.code !== 0) throw new Error(`[${d0.label}] ts code=${d.code}`);
+  }>(`/v1/football/ranking/fifa/${d0.api}`);
   const items = d.results?.items ?? [];
   const pubDate = d.results?.pub_time
     ? new Date(d.results.pub_time * 1000).toISOString().slice(0, 10)
@@ -143,12 +139,7 @@ const CLUB_META = path.join(process.cwd(), "data/club-rankings-meta.json");
 const CLUB_TOP_N = 150; // 페이지·팀 배지가 쓰는 범위 — 전체 2,700+ 를 다 실을 이유 없음
 
 async function refreshClubRankings() {
-  const user = process.env.THESPORTS_USER!;
-  const secret = process.env.THESPORTS_SECRET!;
-  const u = new URL("https://api.thesports.com/v1/football/ranking/club");
-  u.searchParams.set("user", user);
-  u.searchParams.set("secret", secret);
-  const d = (await (await fetch(u, { signal: AbortSignal.timeout(20000) })).json()) as {
+  const d = await thesportsGet<{
     code: number;
     results?: Array<{
       team?: { id?: string; name?: string; logo?: string; country_logo?: string };
@@ -157,8 +148,7 @@ async function refreshClubRankings() {
       previous_points?: number;
       position_changed?: number;
     }>;
-  };
-  if (d.code !== 0) throw new Error(`[클럽] ts code=${d.code}`);
+  }>("/v1/football/ranking/club");
   const items = d.results ?? [];
   // pub_time 이 없어 발표일 역행 가드 대신 규모·내용 가드를 쓴다.
   if (items.length < 1000) throw new Error(`[클럽] 전체 규모 비정상 ${items.length} — 중단`);
