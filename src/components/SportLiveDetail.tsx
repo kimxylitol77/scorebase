@@ -216,6 +216,8 @@ export default function SportLiveDetail({
   initialRefereeStats,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
+  // 점수·경기 시간의 마지막 동기화 시각 — 배당(라이브 카드)·라인업(발표 시각)과 별개 축 (지시문 9)
+  const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
   const statusRef = useRef<MatchLive["status"]>("UNKNOWN");
   // 폴링 간격(LIVE/IDLE) 판단용. 렌더 중 ref 를 쓰면 안 되므로(react-hooks/refs)
@@ -253,6 +255,7 @@ export default function SportLiveDetail({
         if (json.live) {
           setLive(json.live);
           setLoaded(true);
+          setLastSyncAt(Date.now());
         }
       } catch {
         // ignore
@@ -287,6 +290,7 @@ export default function SportLiveDetail({
 
   // SSR placeholder — 첫 fetch 도착 전엔 DB 점수/상태만 표시
   const isLive = live?.status === "LIVE";
+  const syncAgo = lastSyncAt != null ? Math.max(0, Math.round((Date.now() - lastSyncAt) / 1000)) : null;
   const isFinal =
     live?.status === "FINAL" ||
     // 라이브 API 에 매치 없고 DB 가 FINISHED 면 종료된 경기로 간주
@@ -373,6 +377,14 @@ export default function SportLiveDetail({
             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
               {LEAGUE_DISPLAY[league] ?? league}
             </span>
+            {isLive && syncAgo != null && (
+              <span
+                className="text-[10px] tabular-nums text-neutral-500"
+                title="점수·경기 시간이 마지막으로 동기화된 시각 — 배당·라인업은 각자 별도 주기로 갱신됩니다"
+              >
+                점수 {syncAgo < 3 ? "방금" : `${syncAgo}초 전`} 동기화
+              </span>
+            )}
             {isLive && contextLabel && (
               <span
                 className="text-[11px] font-bold tabular-nums"

@@ -1169,6 +1169,7 @@ export default async function GenericLivePage({ params }: Props) {
           bookmakers={match.marketBookmakers ?? null}
           absences={summaryAbsences}
           lineup={summaryLineup}
+          lineupUpdatedAt={match.lineupUpdatedAt?.toISOString() ?? null}
           oddsMove={
             oddsHistory.length >= 2
               ? {

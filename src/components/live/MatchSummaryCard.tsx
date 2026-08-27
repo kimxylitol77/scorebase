@@ -25,6 +25,8 @@ export interface MatchSummaryCardProps {
   /** 주요 결장 (예상 XI 포함 여부 기준 상위) */
   absences: { home: string[]; away: string[] } | null;
   lineup: "confirmed" | "predicted" | "none";
+  /** 라인업 발표(수집) 시각 — 확정 라인업일 때 표시 */
+  lineupUpdatedAt?: string | null;
   /** 배당 흐름 — 오프닝 대비 현재 홈/원정 배당 변화율 (+ 상승 / − 하락) */
   oddsMove: { home: number; away: number; points: number } | null;
   /** 모델 신뢰도 재료 — 유사 확률대 표본·보정 오차 */
@@ -98,6 +100,8 @@ export default function MatchSummaryCard(p: MatchSummaryCardProps) {
   if (oddsMove && Math.max(Math.abs(oddsMove.home), Math.abs(oddsMove.away)) >= 0.08) risks.push("배당 급변 — 시장 재평가 중");
   if (best && Math.abs(best.diff) >= 0.1) risks.push("AI-시장 괴리 큼 — 모델 과신 주의");
   if (calibration && calibration.gapPts >= 5) risks.push(`유사 경기에서 모델 보정 오차 ${calibration.gapPts.toFixed(1)}%p`);
+  // 정직성 — 부상·결장은 Elo 모델 입력에 없다. 결장이 있는데 이 사실을 숨기면 확률을 과신하게 된다 (리뷰 M8).
+  if (absN > 0 && p.ai) risks.push("부상·결장은 AI 확률에 미반영 — 수치보다 보수적으로 볼 것");
   if (!market) risks.push("시장 배당 없음 — AI 단독 판단");
   if (bookmakers != null && bookmakers > 0 && bookmakers < 5) risks.push(`배당 표본 ${bookmakers}곳 — 시장 평균 신뢰 낮음`);
 
@@ -160,7 +164,15 @@ export default function MatchSummaryCard(p: MatchSummaryCardProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 pt-3 border-t border-neutral-100 dark:border-white/10">
         <Cell label="라인업">
           {lineup === "confirmed" ? (
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">확정 라인업</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+              확정 라인업
+              {p.lineupUpdatedAt && (
+                <span className="block text-[10px] font-normal text-neutral-400">
+                  {new Date(p.lineupUpdatedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" })}{" "}
+                  발표
+                </span>
+              )}
+            </span>
           ) : lineup === "predicted" ? (
             <span className="text-amber-600 dark:text-amber-400 font-semibold">예상 라인업</span>
           ) : (

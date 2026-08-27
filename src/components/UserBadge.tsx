@@ -20,8 +20,18 @@ function LoginLink() {
 
 export default function UserBadge() {
   const me = useMe();
-  // 로딩 중엔 기본(비로그인) 표시 — 방문자 대다수가 비로그인이라 스왑 빈도 최소
-  if (!me?.nickname) return <LoginLink />;
+  // null = 아직 미확인(하드로드 직후) — "로그인"을 기본값으로 그리면 로그인 사용자가
+  // 로그아웃된 화면을 먼저 본다(2026-08-22 리뷰 T2). 확인 전엔 같은 크기의 스켈레톤 필.
+  if (me === null)
+    return (
+      <span
+        aria-hidden
+        className="inline-flex items-center px-2.5 py-1 rounded-full border border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-transparent select-none animate-pulse bg-neutral-100 dark:bg-neutral-900"
+      >
+        로그인
+      </span>
+    );
+  if (!me.nickname) return <LoginLink />;
 
   return (
     <div className="inline-flex items-center gap-1.5">

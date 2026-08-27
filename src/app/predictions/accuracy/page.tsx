@@ -152,6 +152,10 @@ async function reliabilitySeries(): Promise<{
   market: RelPoint[];
   modelBrier: number;
   marketBrier: number;
+  modelLogLoss: number;
+  marketLogLoss: number;
+  /** 결과별(홈승/무/원정승) — 모델 최고확률 픽 기준 적중률 */
+  outcome: Array<{ label: string; picks: number; hits: number; actual: number }>;
 }> {
   const ms = await prisma.match.findMany({
     where: {
@@ -181,6 +185,14 @@ async function reliabilitySeries(): Promise<{
   const modelBins = mk();
   const marketBins = mk();
   let brierM = 0, nM = 0, brierK = 0, nK = 0;
+  // Log Loss — 실제 결과에 부여한 확률의 -log 평균. 0 확률 가드로 1e-6 클램프.
+  let llM = 0, llMn = 0, llK = 0, llKn = 0;
+  // 홈/무/원정별 — 모델이 그 결과를 픽했을 때의 적중률 + 실제 발생 수
+  const oc = [
+    { label: "홈 승", picks: 0, hits: 0, actual: 0 },
+    { label: "무승부", picks: 0, hits: 0, actual: 0 },
+    { label: "원정 승", picks: 0, hits: 0, actual: 0 },
+  ];
 
   for (const m of ms) {
     const h = m.homeScore!, a = m.awayScore!;
@@ -196,6 +208,14 @@ async function reliabilitySeries(): Promise<{
       used = true;
     }
     if (used) { brierM += bs; nM++; }
+    const actIdx = act.indexOf(1);
+    oc[actIdx].actual++;
+    // 모델 픽 = 최고 확률 결과 (null 은 -1 로 제외)
+    let best = -1, bestP = -1;
+    for (let k = 0; k < 3; k++) { const p = pp[k]; if (p != null && p > bestP) { bestP = p; best = k; } }
+    if (best >= 0) { oc[best].picks++; if (best === actIdx) oc[best].hits++; }
+    const pAct = pp[actIdx];
+    if (pAct != null) { llM += -Math.log(Math.max(1e-6, pAct)); llMn++; }
 
     const mp = [m.marketHome, m.marketDraw, m.marketAway];
     if (mp.every((p) => p != null)) {
@@ -205,6 +225,8 @@ async function reliabilitySeries(): Promise<{
         mbs += (mp[k]! - act[k]) ** 2;
       }
       brierK += mbs; nK++;
+      const mAct = mp[act.indexOf(1)];
+      if (mAct != null) { llK += -Math.log(Math.max(1e-6, mAct)); llKn++; }
     }
   }
 
@@ -223,6 +245,9 @@ async function reliabilitySeries(): Promise<{
     market: toPts(marketBins),
     modelBrier: nM ? +(brierM / nM).toFixed(4) : 0,
     marketBrier: nK ? +(brierK / nK).toFixed(4) : 0,
+    modelLogLoss: llMn ? +(llM / llMn).toFixed(4) : 0,
+    marketLogLoss: llKn ? +(llK / llKn).toFixed(4) : 0,
+    outcome: oc,
   };
 }
 
@@ -434,6 +459,33 @@ export default async function AccuracyPage() {
             modelBrier={reliability.modelBrier}
             marketBrier={reliability.marketBrier}
           />
+
+          {/* Log Loss + 홈/무/원정별 적중률 (2026-08-27, 리뷰 §8) */}
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 mb-1">
+                Log Loss <span className="normal-case font-normal">(낮을수록 정확 — 자신 있게 틀리면 크게 벌점)</span>
+              </div>
+              <div className="flex items-baseline gap-4 tabular-nums">
+                <span className="text-xl font-bold">{reliability.modelLogLoss.toFixed(3)}<span className="ml-1 text-xs font-medium text-neutral-500">모델</span></span>
+                <span className="text-xl font-bold text-neutral-500">{reliability.marketLogLoss.toFixed(3)}<span className="ml-1 text-xs font-medium text-neutral-500">시장</span></span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 mb-2">
+                홈/무/원정별 — 모델이 그쪽을 픽했을 때 적중률
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center tabular-nums">
+                {reliability.outcome.map((o) => (
+                  <div key={o.label}>
+                    <div className="text-[11px] text-neutral-500">{o.label}</div>
+                    <div className="text-lg font-bold">{o.picks > 0 ? `${Math.round((o.hits / o.picks) * 100)}%` : "—"}</div>
+                    <div className="text-[10px] text-neutral-400">{o.hits}/{o.picks}픽 · 실제 {o.actual}회</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
       )}
 
