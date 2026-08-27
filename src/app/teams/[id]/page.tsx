@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
@@ -1295,6 +1296,19 @@ export default async function TeamPage({ params }: Props) {
                           className={`px-3 py-3 text-right text-xs font-bold w-10 ${result ? resColor[result] : ""}`}
                         >
                           {result ?? "-"}
+                        </td>
+                        <td className="px-1 py-3 text-center text-xs w-9">
+                          {/* 경기 상세(라이브스코어 페이지) 링크 — 2026-08-27 사용자 요청 */}
+                          <Link
+                            href={matchLiveHref(m.league, m.externalId)}
+                            aria-label="경기 상세 — 기록·통계·리포트"
+                            title="경기 상세 — 기록·통계·리포트"
+                            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-rose-600 dark:hover:bg-white/[0.08] dark:hover:text-rose-400 transition"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
+                            </svg>
+                          </Link>
                         </td>
                         <td className="px-3 py-3 text-right text-xs w-20">
                           <Link
