@@ -513,6 +513,13 @@ export default async function LeaguePredictions({ params }: Props) {
   const topChampion = mc.length > 0 ? Math.max(...mc.map((r) => r.champion)) : 0;
   const scheduleIntegrity = checkScheduleIntegrity(matches, topChampion);
   const showChampion = scheduleIntegrity.trustworthy;
+  // MLS 는 정규 1위가 우승이 아니라 서포터스 실드다 (우승은 플레이오프 MLS 컵).
+  // 표 1위 = 트로피가 아닌 리그는 제목에서 "우승"이라 쓰지 않는다.
+  const championLabel = upper === "MLS" ? "정규리그 1위 확률" : "우승 확률";
+  const championSubtitle =
+    upper === "MLS"
+      ? "정규리그 1위(서포터스 실드) 가능성 — MLS 컵 우승은 플레이오프에서 가려집니다"
+      : "시즌 종료 시점 1위 차지 가능성";
 
   // 다가오는 경기 (다음 7일 — 월드컵은 개막까지 한 달 가까이 남아 14일로 확장)
   const now = new Date();
@@ -1162,7 +1169,7 @@ export default async function LeaguePredictions({ params }: Props) {
             {/* 우승 확률 — 일정이 잘린 리그는 숨기고 사유를 밝힌다 */}
             {showChampion ? (
               <section>
-                <Heading title="우승 확률" subtitle="시즌 종료 시점 1위 차지 가능성" />
+                <Heading title={championLabel} subtitle={championSubtitle} />
                 <div className="sm:max-w-xl">
                   <MonteCarloBar
                     data={mc
