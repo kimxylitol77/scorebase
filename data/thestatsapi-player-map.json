@@ -4793,8 +4793,8 @@
   "teamName": "Celta Vigo",
   "name": "Williot Swedberg",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "ednm9whz21g5ryo": {
   "statsId": "pl_72607446",
@@ -4802,8 +4802,8 @@
   "teamName": "Atlético Madrid",
   "name": "Johnny Cardoso",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "k82rekhy05d9rep": {
   "statsId": "pl_96344631",
@@ -4811,8 +4811,8 @@
   "teamName": "Elche",
   "name": "David Affengruber",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "pxwrxlh93kyoryk": {
   "statsId": "pl_45466621",
@@ -4820,8 +4820,8 @@
   "teamName": "Real Sociedad",
   "name": "Orri Steinn Óskarsson",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "318q66hvngxvqo9": {
   "statsId": "pl_13711809",
@@ -4829,8 +4829,8 @@
   "teamName": "River Plate",
   "name": "Thiago Almada",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "vjxm8gh2l3xr6od": {
   "statsId": "pl_29603752",
@@ -4838,8 +4838,8 @@
   "teamName": "Atlético Madrid",
   "name": "Robin Le Normand",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "23xmvkhxn9zqg8n": {
   "statsId": "pl_84084982",
@@ -4847,8 +4847,8 @@
   "teamName": "Real Sociedad",
   "name": "Takefusa Kubo",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "k82rekh3104repz": {
   "statsId": "pl_72973451",
@@ -4856,8 +4856,8 @@
   "teamName": "Real Madrid",
   "name": "Éder Militão",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "y0or5jh3j1o0qwz": {
   "statsId": "pl_57952149",
@@ -4865,8 +4865,8 @@
   "teamName": "Barcelona",
   "name": "Marc Casadó",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "vjxm8ghjo4j4r6o": {
   "statsId": "pl_29113282",
@@ -4874,8 +4874,8 @@
   "teamName": "Girona FC",
   "name": "Azzedine Ounahi",
   "competitionId": "comp_8814",
-  "seasonId": "sn_5761468",
-  "seasonLabel": "2024-25 LALIGA"
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "x7lm7ph0n866m2w": {
   "statsId": "pl_96388726",
@@ -6712,5 +6712,14 @@
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
+ },
+ "x7lm7ph07k6nm2w": {
+  "statsId": "pl_29103828",
+  "teamId": "tm_89774",
+  "teamName": "Rayo Vallecano",
+  "name": "Andrei Ratiu",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  }
 }
