@@ -11,6 +11,7 @@
 import Link from "next/link";
 import { toKoreanCoachName } from "@/lib/coach-names";
 import { coachById } from "@/lib/coach-photos";
+import { coachPageHref } from "@/lib/coach-page-link";
 
 interface Player {
   id?: string;
@@ -92,12 +93,25 @@ function CoachRow({
   const h = hp?.nameKo ?? toKoreanCoachName(hp?.name ?? home);
   const a = ap?.nameKo ?? toKoreanCoachName(ap?.name ?? away);
   if (!h && !a) return null;
+  // 감독 페이지가 있는 감독만 링크 — 무조건 걸면 미등재 감독이 404 (선수 linkableIds 와 같은 원칙)
+  const hHref = coachPageHref(coachIds?.home);
+  const aHref = coachPageHref(coachIds?.away);
+  const nameCls = "min-w-0 flex-1 truncate text-[12px] sm:text-[13px] font-medium";
+  const linkCls = " hover:underline decoration-neutral-400 underline-offset-2";
   return (
     <div className="mt-3 flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
       <CoachFace logo={hp?.logo} />
-      <span className="min-w-0 flex-1 truncate text-[12px] sm:text-[13px] font-medium">{h || "-"}</span>
+      {hHref ? (
+        <Link href={hHref} className={nameCls + linkCls} prefetch={false}>{h || "-"}</Link>
+      ) : (
+        <span className={nameCls}>{h || "-"}</span>
+      )}
       <span className="shrink-0 text-[10px] font-semibold text-neutral-500">감독</span>
-      <span className="min-w-0 flex-1 truncate text-right text-[12px] sm:text-[13px] font-medium">{a || "-"}</span>
+      {aHref ? (
+        <Link href={aHref} className={nameCls + " text-right" + linkCls} prefetch={false}>{a || "-"}</Link>
+      ) : (
+        <span className={nameCls + " text-right"}>{a || "-"}</span>
+      )}
       <CoachFace logo={ap?.logo} />
     </div>
   );
