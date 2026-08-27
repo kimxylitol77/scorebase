@@ -25,6 +25,8 @@ import { getTheSportsInjuriesByTeam } from "@/lib/sports/thesports/injuries";
 import rawCoaches from "../../../../../data/team-coaches.json";
 import rawTransferTeams from "../../../../../data/transfer-league-teams.json";
 import rawNonSoccerCoaches from "../../../../../data/nonsoccer-coaches.json";
+import rawTeamSquads from "../../../../../data/team-squads.json";
+import { judgeSquadFreshness } from "@/lib/monitor/squad-freshness";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import {
   ALL_LEAGUES,
@@ -99,6 +101,7 @@ const COACH_ENTRY_FLOOR = 300;
 const COACH_NO_KO_ALERT = 10;
 const COACHES = rawCoaches as Record<string, { name: string; nameKo: string | null }>;
 const TRANSFER_TEAMS = rawTransferTeams as Record<string, string>;
+const TEAM_SQUADS = rawTeamSquads as Record<string, { updatedAt: string }>;
 // 전 리그 감독 — 2026-08-15 실측: 축구 75개 리그 합산 952/1072(88.8%), 30% 미만 4개
 // (WK_LEAGUE 0 · LIGA_MX 12 · ELSALVADOR_PD 17 · GUATEMALA_LN 17) · 비축구 8리그는 아래 실측.
 // 얇은 리그는 소스 사정이라 개별로는 안 울리고, 그 개수가 배로 늘 때만 본다.
@@ -657,6 +660,20 @@ async function checkInjuries(findings: Finding[]) {
 }
 
 /**
+ * 선수단 스냅샷 신선도 — 같은 주간 빌더가 멈췄는지를 "내용"이 아니라 "날짜"로 본다.
+ *
+ * 기존 축들은 전부 내용을 보기 때문에, 파일이 낡기만 하고 멀쩡하면 아무도 안 운다.
+ * 2026-08-27 실측 — 12일 묵은 스냅샷 때문에 실이적 82명이 팀 페이지 선수단에서 빠져 있는데
+ * af 이적 섹션은 실시간이라 "영입은 떴는데 선수단엔 없다"는 자기모순이 그대로 노출됐다.
+ * 판정은 squad-freshness.ts (단위 테스트 동반).
+ */
+async function checkSquadFreshness(now: Date, findings: Finding[]) {
+  const r = judgeSquadFreshness(TEAM_SQUADS, now);
+  for (const p of r.problems) findings.push({ kind: p.kind, detail: p.detail });
+  return { teams: r.teams, newest: r.newest, newestAgeDays: r.newestAgeDays, teamStale: r.teamStale };
+}
+
+/**
  * 감독 스냅샷 — 주간 빌더(weekly-static-refresh 일요일 05:00)가 조용히 망가졌는지.
  *
  * 이 축이 필요한 이유. 2026-08-15 build-team-coaches 가 결과를 통째로 덮어쓰는 구조라
@@ -822,6 +839,7 @@ export async function GET(req: Request) {
     orphanCardDups: await run("orphanCardDups", () => checkOrphanCardDups(now, findings)),
     tournamentBracketGap: await run("tournamentBracketGap", () => checkTournamentBracketGap(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
+    squadFreshness: await run("squadFreshness", () => checkSquadFreshness(now, findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
     coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
     crossSportMapping: await run("crossSportMapping", () => checkCrossSportMapping(findings)),

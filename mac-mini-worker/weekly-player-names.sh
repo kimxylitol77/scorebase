@@ -1,7 +1,10 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
+# 주간 잡은 로그가 사라지면 다음 기회가 일주일 뒤다 — /tmp 는 재부팅·주기청소로 지워져
+# 2026-08-23 실패를 사후에 못 봤다. repo 안 logs/ 로 (.gitignore *.log).
+mkdir -p "$HOME/dev/scorebase/logs"
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
-hb_trap mac-mini-weekly-player-names /tmp/weekly-player-names.log
+hb_trap mac-mini-weekly-player-names $HOME/dev/scorebase/logs/weekly-player-names.log
 # 주 1회 — MLB 선수명 사전 자동 보강 + git push.
 # 1) 네이버 source (정확한 표기, starter 중심)
 # 2) Haiku 음역 (네이버 누락 선수 자동 보강)

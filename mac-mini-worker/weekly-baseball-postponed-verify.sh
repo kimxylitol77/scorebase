@@ -1,7 +1,10 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
+# 주간 잡은 로그가 사라지면 다음 기회가 일주일 뒤다 — /tmp 는 재부팅·주기청소로 지워져
+# 2026-08-23 실패를 사후에 못 봤다. repo 안 logs/ 로 (.gitignore *.log).
+mkdir -p "$HOME/dev/scorebase/logs"
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
-hb_trap mac-mini-weekly-baseball-verify /tmp/weekly-baseball-postponed-verify.log
+hb_trap mac-mini-weekly-baseball-verify $HOME/dev/scorebase/logs/weekly-baseball-postponed-verify.log
 # 매주 월 08:30 KST — 야구 미래 POSTPONED 오분류를 TheSports 교차 대조로 정정.
 #
 # Vercel 데일리 cron(verify-baseball-postponed)은 api-baseball 한 소스만 보고 게이트가

@@ -1,8 +1,11 @@
 #!/bin/zsh
 # heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
+# 주간 잡은 로그가 사라지면 다음 기회가 일주일 뒤다 — /tmp 는 재부팅·주기청소로 지워져
+# 2026-08-23 실패를 사후에 못 봤다. repo 안 logs/ 로 (.gitignore *.log).
+mkdir -p "$HOME/dev/scorebase/logs"
 source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
 source "$HOME/dev/scorebase/mac-mini-worker/git-push-lib.sh"  # git_push_with_retry — push 경합 시 rebase 재시도
-hb_trap mac-mini-weekly-static-refresh /tmp/weekly-static-refresh.log
+hb_trap mac-mini-weekly-static-refresh $HOME/dev/scorebase/logs/weekly-static-refresh.log
 # 매주 일요일 05:00 KST — /transfers·감독 페이지 정적 데이터 일괄 갱신 + data/*.json 한정 자동 push.
 # 수동 재실행에 의존하던 빌더들(스쿼드·감독·경력·트로피·국기·포지션·이적 팀사전)을 자동화 (2026-06-11).
 # 안전선: ① data/*.json 만 add (코드 절대 미포함) ② 핵심 json 빈 파일 가드 ③ 실패 시 push 안 함.
