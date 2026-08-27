@@ -238,11 +238,12 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    // 하키 status_id=0 = ABNORMAL(Suggest Hiding). ts 가 숨김을 권장한 매치라
-    // ice-hockey-match-collector 가 아예 건너뛰어 이미 만들어진 row 는 영영 갱신되지 않는다
-    // (2026-08-19 HOCKEY_FRIENDLY 3건이 9~11h stale SCHEDULED 로 고착). 6h+ stale 대상에
-    // 한해 POSTPONED 로 확정해 화면 노출을 끊는다.
-    if (sport === "ice_hockey" && r.statusId === 0) {
+    // 하키 status_id 0·99 는 ice-hockey-match-collector 가 push 자체에서 건너뛴다
+    // (0=ABNORMAL 숨김 권장, 99=TBD 시간 미정). 그래서 이미 만들어진 row 는 영영 갱신되지
+    // 않고 stale SCHEDULED 로 고착한다 — 2026-08-19 status 0 으로 3건, 2026-08-27 status 99
+    // 로 2건. 킥오프가 6h 넘게 지났는데도 미정이면 그 일정은 무의미하므로 POSTPONED 로
+    // 확정해 화면 노출을 끊는다.
+    if (sport === "ice_hockey" && (r.statusId === 0 || r.statusId === 99)) {
       await prisma.match.update({ where: { id: m.id }, data: { status: "POSTPONED" } });
       postponed.push(m);
       continue;
