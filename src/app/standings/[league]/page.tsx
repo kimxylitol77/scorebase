@@ -22,6 +22,8 @@ import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import { getTeamGroup } from "@/lib/predict/world-cup-elos";
 import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
+import { deriveKnockout } from "@/lib/sports/knockout-derive";
+import KnockoutBracket from "@/components/standings/KnockoutBracket";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { EN_STANDINGS_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
@@ -1039,6 +1041,26 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
   const teamMap = new Map(teams.map((t) => [t.id, t]));
   const multi = groups.length > 1;
 
+  // 토너먼트 대진표 — 조별(Group/Pool) 편성 대회에서 크로스 그룹 매치가 시작되면 자동 유도.
+  // ts 배구엔 라운드 원천이 없다(stage 미승인) — 유도 근거는 knockout-derive.ts 주석.
+  // "3위 팀 순위" 같은 보조 표는 조 편성이 아니라 제외한다.
+  const groupOf = new Map<number, string>();
+  for (const g of groups) {
+    if (!/group|pool|조\b/i.test(g.name)) continue;
+    for (const r of g.rows) groupOf.set(r.ourTeamId, g.name);
+  }
+  const knockout = deriveKnockout(
+    vbMatches.map((m) => ({
+      homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId,
+      homeScore: m.homeScore, awayScore: m.awayScore,
+      status: m.status, startTime: m.startTime,
+    })),
+    groupOf,
+  );
+  const bracketTeamInfo = new Map(
+    teams.map((t) => [t.id, { name: toKoreanTeamName(t.name, league) || t.name, logoUrl: t.logoUrl }]),
+  );
+
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -1058,6 +1080,8 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
             "승점 · 승패 · 세트 득실 — TheSports 공식 순위, 경기 종료 후 자동 갱신"}
         </p>
       </header>
+
+      {knockout && <KnockoutBracket data={knockout} teamInfo={bracketTeamInfo} />}
 
       {groups.length === 0 ? (
         <p className="rounded-xl border border-neutral-200 dark:border-white/10 px-5 py-10 text-center text-sm text-neutral-500 break-keep">
