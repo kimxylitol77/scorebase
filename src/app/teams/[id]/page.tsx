@@ -1231,9 +1231,20 @@ export default async function TeamPage({ params }: Props) {
                         <td className="px-4 py-3 text-right text-xs whitespace-nowrap">
                           <span className="text-neutral-500">승률 추정 </span>
                           <strong>{Math.round(myProb * 100)}%</strong>
+                          {/* 경기 상세(프리뷰·배당·라인업) 링크 — 최근 경기와 동일 아이콘 */}
+                          <Link
+                            href={matchLiveHref(m.league, m.externalId)}
+                            aria-label="경기 상세 — 프리뷰·배당·라인업"
+                            title="경기 상세 — 프리뷰·배당·라인업"
+                            className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-md align-middle text-neutral-400 hover:bg-neutral-100 hover:text-rose-600 dark:hover:bg-white/[0.08] dark:hover:text-rose-400 transition"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
+                            </svg>
+                          </Link>
                           <Link
                             href={`/teams/${teamId}/vs/${opp.id}`}
-                            className="ml-3 text-rose-600 dark:text-rose-400 hover:underline"
+                            className="ml-2 text-rose-600 dark:text-rose-400 hover:underline"
                           >
                             상대전적
                           </Link>
