@@ -288,8 +288,12 @@ async function main() {
     const t = teamById.get(m.teamId);
     if (t) teamInfoByTs.set(m.externalId, { name: t.name, league: t.league });
   }
+  // 이름 유니버스는 매칭 후보 전체를 덮어야 한다 — mv 선수만 로드하면 몸값 행이 없는
+  // 선수(K리그 다수)는 게이트가 판정 불가(통과)가 되어 지문 오매칭이 그대로 실린다
+  // (2026-08-26 실측: 재빌드가 K리그 58건을 새로 오염시켰다. 게이트가 있었는데도).
+  const nameUniverse = [...new Set([...allMv.map((p) => p.id), ...Object.keys(TS)])];
   const nameRowsAll = await prisma.theSportsPlayer.findMany({
-    where: { id: { in: allMv.map((p) => p.id) } },
+    where: { id: { in: nameUniverse } },
     select: { id: true, name: true },
   });
   // 영문명 (한글 잔존자는 이름 매칭 제외 — 지문 폴백만)
