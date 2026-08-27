@@ -21,6 +21,9 @@ export default function EnFooter() {
           <Link href="/en/benchmark" className="hover:text-neutral-900 dark:hover:text-white transition">
             LLM Benchmark
           </Link>
+          <Link href="/en/benchmark/method" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Benchmark Method
+          </Link>
           <Link href="/en/injuries" className="hover:text-neutral-900 dark:hover:text-white transition">
             Injuries
           </Link>

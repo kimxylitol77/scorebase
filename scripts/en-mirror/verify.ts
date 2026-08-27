@@ -15,6 +15,12 @@ const BASE = process.env.EN_VERIFY_BASE ?? "http://localhost:3000";
 // 영어판에 남아 있어도 되는 한글 — 언어 전환 UI.
 const ALLOWED = new Set(["한국어", "한국어 (Korean site)"]);
 
+// 한글이 있는 게 정상인 경로 — 검사에서 통째로 뺀다.
+// /en/benchmark/method 는 LLM 에 실제로 보내는 한국어 프롬프트를 원문 그대로 싣는다.
+// 원문 공개가 그 페이지의 존재 이유(검증 가능성)라 번역본으로 갈아치우면 안 된다.
+// 여기 등록해 두지 않으면 다음 세션이 "미번역" 으로 오해해 지운다.
+const HANGUL_BY_DESIGN = ["/en/benchmark/method"];
+
 function visibleHangul(html: string): string[] {
   const stripped = html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/g, " ")
@@ -38,7 +44,8 @@ async function main() {
     try {
       const res = await fetch(`${BASE}${route}`, { signal: AbortSignal.timeout(60000) });
       status = res.status;
-      if (status === 200) leaks = visibleHangul(await res.text());
+      const byDesign = HANGUL_BY_DESIGN.some((r) => route.startsWith(r));
+      if (status === 200 && !byDesign) leaks = visibleHangul(await res.text());
     } catch (e) {
       console.log(`  실패  ${route.padEnd(44)} ${(e as Error).message}`);
       bad++;

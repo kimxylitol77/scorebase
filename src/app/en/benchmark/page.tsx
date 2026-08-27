@@ -413,7 +413,19 @@ export default async function BenchmarkPage() {
         </p>
       </div>
 
-      <div className="mt-12 rounded-2xl bg-zinc-50 p-5 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+      <div className="mt-8 rounded-2xl border border-zinc-200 p-5 dark:border-white/10">
+        <p className="text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
+          That is the summary. The{" "}
+          <Link href="/en/benchmark/method" className="font-semibold text-rose-600 hover:underline dark:text-rose-400">
+            full method
+          </Link>{" "}
+          carries the verbatim prompt, how each market is scored, the compliance figures behind the
+          calibration result, and the limitations — including the product filter we deliberately do
+          not apply here, because applying it would inflate these numbers.
+        </p>
+      </div>
+
+      <div className="mt-8 rounded-2xl bg-zinc-50 p-5 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
         <p className="text-[14px] leading-relaxed text-zinc-600 dark:text-white/60">
           Every individual forecast behind these numbers is published before kick-off and kept
           afterwards, win or lose, on the{" "}

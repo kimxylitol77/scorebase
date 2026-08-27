@@ -64,6 +64,23 @@ export interface PairedTest {
   p: number;
 }
 
+/** 프롬프트 지시(0.70 초과 자제) 이행률 — 캘리브레이션 해석에 필요하다. */
+export interface Compliance {
+  model: string;
+  n: number;
+  over70: number;
+  exactlyHalf: number;
+  avgProb: number;
+}
+
+/** 발행 게이트를 적용하면 수치가 얼마나 부풀려지는지 — 벤치마크는 적용하지 않는다. */
+export interface GateEffect {
+  allN: number;
+  allHit: number;
+  publishedN: number;
+  publishedHit: number;
+}
+
 export interface BenchmarkData {
   scored: number;
   matches: number;
@@ -83,6 +100,8 @@ export interface BenchmarkData {
   sportSplit: SportSplit[];
   paired: PairedTest[];
   leagues: { league: string; n: number }[];
+  compliance: Compliance[];
+  gate: GateEffect;
 }
 
 function toBin(r: { claimed: number; actual: number; n: bigint }): CalibrationBin {
@@ -112,7 +131,7 @@ function chiSqP(chi2: number): number {
 /** 캐시 없이 즉시 집계 — 원본 데이터 내보내기·검증 스크립트가 쓴다.
  *  (unstable_cache 는 Next 요청 컨텍스트 밖에서 못 돈다) */
 export async function computeBenchmark(): Promise<BenchmarkData> {
-  const [scale, excludedRow, calRows, modelRows, marketRow, splitRows, pairedRows, mktCalRows, calTotalRow, leagueRows] =
+  const [scale, excludedRow, calRows, modelRows, marketRow, splitRows, pairedRows, mktCalRows, calTotalRow, compRows, gateRow, leagueRows] =
     await Promise.all([
       prisma.$queryRaw<{ scored: bigint; matches: bigint; models: bigint; d0: string; d1: string }[]>`
         SELECT COUNT(*)::bigint AS scored, COUNT(DISTINCT p."matchId")::bigint AS matches,
@@ -240,6 +259,23 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
         WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime"
           AND p.market = '1X2' AND p.model <> 'scorebase'`,
 
+      prisma.$queryRaw<{ model: string; n: bigint; over70: bigint; half: bigint; avg: number }[]>`
+        SELECT p.model, COUNT(*)::bigint AS n,
+               COUNT(*) FILTER (WHERE p.prob > 0.70)::bigint AS over70,
+               COUNT(*) FILTER (WHERE p.prob = 0.5)::bigint AS half,
+               AVG(p.prob) AS avg
+        FROM "AiPrediction" p JOIN "Match" m ON m.id = p."matchId"
+        WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime" AND p.market = '1X2'
+        GROUP BY 1 HAVING COUNT(*) >= 200 ORDER BY 2 DESC`,
+
+      prisma.$queryRaw<{ all_n: bigint; all_hit: bigint; pub_n: bigint; pub_hit: bigint }[]>`
+        SELECT COUNT(*)::bigint AS all_n,
+               SUM(CASE WHEN p.correct THEN 1 ELSE 0 END)::bigint AS all_hit,
+               COUNT(*) FILTER (WHERE p.published)::bigint AS pub_n,
+               SUM(CASE WHEN p.published AND p.correct THEN 1 ELSE 0 END)::bigint AS pub_hit
+        FROM "AiPrediction" p JOIN "Match" m ON m.id = p."matchId"
+        WHERE p.correct IS NOT NULL AND p."predictedAt" < m."startTime"`,
+
       prisma.$queryRaw<{ league: string; n: bigint }[]>`
         SELECT m.league, COUNT(*)::bigint AS n
         FROM "AiPrediction" p JOIN "Match" m ON m.id = p."matchId"
@@ -297,6 +333,14 @@ export async function computeBenchmark(): Promise<BenchmarkData> {
     sportSplit: [...splitMap.values()].sort((a, b) => b.baseballN + b.otherN - (a.baseballN + a.otherN)),
     paired,
     leagues: leagueRows.map((r) => ({ league: r.league, n: Number(r.n) })),
+    compliance: compRows.map((r) => ({
+      model: r.model, n: Number(r.n), over70: Number(r.over70),
+      exactlyHalf: Number(r.half), avgProb: Number(r.avg),
+    })),
+    gate: {
+      allN: Number(gateRow[0]?.all_n ?? 0), allHit: Number(gateRow[0]?.all_hit ?? 0),
+      publishedN: Number(gateRow[0]?.pub_n ?? 0), publishedHit: Number(gateRow[0]?.pub_hit ?? 0),
+    },
   };
 }
 
