@@ -23,6 +23,7 @@
 //   2) league + tsMatchId 가 externalId 로 match upsert.
 
 import { readFileSync } from "fs";
+import { placeholderKickoffTimes } from "@/lib/sports/thesports/placeholder-kickoff";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
@@ -278,7 +279,37 @@ export async function POST(req: NextRequest) {
   // 로고 후보 — 루프 뒤에 한 번에 "로고 없는 팀"만 골라 채운다(매치마다 쿼리하지 않음).
   const logoCandidates = new Map<number, string>();
 
+  // 날짜 미정 대진은 들이지 않는다. 추첨은 끝났는데 일정표가 아직인 구간에서 ts 는
+  // 대진 전량을 한 킥오프 시각에 얹어 둔다 — 2026-08-28 UCL 실측: 36팀 144경기가
+  // 전부 2026-09-08 19:00 UTC 하나에 몰려 있었다(status_id 전부 1). 그대로 upsert 하면
+  // /scores 에 동시 킥오프 144경기가 뜬다. 일정이 배정되면 다음 수집에서 자연히 풀린다.
+  // 판정은 리그별로 — 여러 대회가 한 batch 에 섞여 오므로 합쳐서 세면 안 된다.
+  const skipTimes = new Map<string, Set<number>>();
+  {
+    const byLeague = new Map<string, Array<{ startTime: Date }>>();
+    for (const m of body.matches) {
+      const arr = byLeague.get(m.league) ?? [];
+      arr.push({ startTime: new Date(m.startTime) });
+      byLeague.set(m.league, arr);
+    }
+    for (const [lg, arr] of byLeague) {
+      const t = placeholderKickoffTimes(arr);
+      if (t.size > 0) {
+        skipTimes.set(lg, t);
+        console.warn(
+          `[ts-matches] ${lg} 자리표시자 킥오프 skip — ${arr.filter((x) => t.has(x.startTime.getTime())).length}건 ` +
+            `(${[...t].map((x) => new Date(x).toISOString()).join(", ")})`,
+        );
+      }
+    }
+  }
+  let skippedPlaceholder = 0;
+
   for (const m of body.matches) {
+    if (skipTimes.get(m.league)?.has(new Date(m.startTime).getTime())) {
+      skippedPlaceholder++;
+      continue;
+    }
     const homeId = resolveTsTeamId(m.league, m.tsHomeTeamId);
     const awayId = resolveTsTeamId(m.league, m.tsAwayTeamId);
     if (homeId && m.homeLogo) logoCandidates.set(homeId, m.homeLogo);
@@ -692,6 +723,7 @@ export async function POST(req: NextRequest) {
     logosFilled,
     skippedNoTeam,
     skippedDuplicate,
+    skippedPlaceholder,
     startTimeFixed,
     received: body.matches.length,
   });
