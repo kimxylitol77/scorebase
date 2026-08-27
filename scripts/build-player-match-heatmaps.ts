@@ -62,6 +62,11 @@ async function api(path: string): Promise<unknown | null> {
       continue;
     }
     if (res.status === 404) return null;
+    // 5xx 는 공급자 쪽 일시 오류다 — 429 와 같이 물러섰다 재시도한다. 안 그러면 500 한 번에
+    // 스테이지가 통째로 죽는다 (2026-08-27 라리가 26/27 matches 500 으로 리그1·시즌카드 전멸).
+    if (res.status >= 500) {
+      if (attempt < 3) { await new Promise((r) => setTimeout(r, 10_000 * (attempt + 1))); continue; }
+    }
     if (!res.ok) throw new Error(`${res.status} ${path}`);
     return res.json();
   }
@@ -82,54 +87,61 @@ async function main() {
   const teamMatchCache = new Map<string, ApiMatch[]>();
 
   for (const p of PLAYERS) {
-    const existing = new Set((out[p.ourId]?.matches ?? []).map((m) => m.id));
-    let matches = teamMatchCache.get(p.teamId);
-    if (!matches) {
-      matches = [];
-      for (let page = 1; page <= 5; page++) {
-        const res = (await api(
-          `/football/matches?competition_id=${p.competitionId}&season_id=${p.seasonId}&team_id=${p.teamId}&per_page=50&page=${page}`,
-        )) as { data: ApiMatch[] } | null;
-        await new Promise((r) => setTimeout(r, 6000));
-        if (!res) break;
-        matches.push(...res.data);
-        if (res.data.length < 50) break;
+    try {
+      const existing = new Set((out[p.ourId]?.matches ?? []).map((m) => m.id));
+      let matches = teamMatchCache.get(p.teamId);
+      if (!matches) {
+        matches = [];
+        for (let page = 1; page <= 5; page++) {
+          const res = (await api(
+            `/football/matches?competition_id=${p.competitionId}&season_id=${p.seasonId}&team_id=${p.teamId}&per_page=50&page=${page}`,
+          )) as { data: ApiMatch[] } | null;
+          await new Promise((r) => setTimeout(r, 6000));
+          if (!res) break;
+          matches.push(...res.data);
+          if (res.data.length < 50) break;
+        }
+        teamMatchCache.set(p.teamId, matches);
       }
-      teamMatchCache.set(p.teamId, matches);
-    }
-    const finished = matches
-      .filter((m) => m.status === "finished")
-      .sort((a, b) => b.utc_date.localeCompare(a.utc_date));
-    console.log(`${p.ourId}: 종료 경기 ${finished.length}, 기수집 ${existing.size}`);
+      const finished = matches
+        .filter((m) => m.status === "finished")
+        .sort((a, b) => b.utc_date.localeCompare(a.utc_date));
+      console.log(`${p.ourId}: 종료 경기 ${finished.length}, 기수집 ${existing.size}`);
 
-    const rows: MatchHeatmap[] = out[p.ourId]?.matches ?? [];
-    let added = 0, empty = 0;
-    for (const m of finished) {
-      if (existing.has(m.id)) continue;
-      const hm = (await api(`/football/matches/${m.id}/players/${p.statsId}/heatmap`)) as {
-        data: { points: Array<{ x: number; y: number }> };
-      } | null;
-      await new Promise((r) => setTimeout(r, 6000)); // trial 분당 12회 — 결과와 무관하게 콜마다 간격
-      const points = hm?.data?.points ?? [];
-      if (points.length === 0) { empty++; continue; } // 404/빈 배열 = 미출전 또는 소스 무데이터
-      const isHome = m.home_team.id === p.teamId;
-      const us = isHome ? m.score.home : m.score.away;
-      const them = isHome ? m.score.away : m.score.home;
-      rows.push({
-        id: m.id,
-        date: m.utc_date.slice(0, 10),
-        opp: isHome ? m.away_team.name : m.home_team.name,
-        ha: isHome ? "H" : "A",
-        score: `${us}-${them}`,
-        result: us === them ? "D" : (us ?? 0) > (them ?? 0) ? "W" : "L",
-        points: points.map((pt) => [pt.x, pt.y]),
-      });
-      added++;
+      const rows: MatchHeatmap[] = out[p.ourId]?.matches ?? [];
+      let added = 0, empty = 0;
+      for (const m of finished) {
+        if (existing.has(m.id)) continue;
+        const hm = (await api(`/football/matches/${m.id}/players/${p.statsId}/heatmap`)) as {
+          data: { points: Array<{ x: number; y: number }> };
+        } | null;
+        await new Promise((r) => setTimeout(r, 6000)); // trial 분당 12회 — 결과와 무관하게 콜마다 간격
+        const points = hm?.data?.points ?? [];
+        if (points.length === 0) { empty++; continue; } // 404/빈 배열 = 미출전 또는 소스 무데이터
+        const isHome = m.home_team.id === p.teamId;
+        const us = isHome ? m.score.home : m.score.away;
+        const them = isHome ? m.score.away : m.score.home;
+        rows.push({
+          id: m.id,
+          date: m.utc_date.slice(0, 10),
+          opp: isHome ? m.away_team.name : m.home_team.name,
+          ha: isHome ? "H" : "A",
+          score: `${us}-${them}`,
+          result: us === them ? "D" : (us ?? 0) > (them ?? 0) ? "W" : "L",
+          points: points.map((pt) => [pt.x, pt.y]),
+        });
+        added++;
+      }
+      rows.sort((a, b) => b.date.localeCompare(a.date));
+      out[p.ourId] = { seasonLabel: p.seasonLabel, matches: rows };
+      writeFileSync(OUT, JSON.stringify(out)); // 선수 단위 저장 — 중단돼도 진행분 보존
+      console.log(`  신규 ${added}, 미출전/무데이터 ${empty}, 총 ${rows.length}경기`);
+    } catch (e) {
+      // 한 선수 실패로 전체가 죽지 않게 — 팀 매치 캐시는 부분 결과일 수 있으니 버린다.
+      // 진행분은 선수 단위로 이미 저장됐고, 다음 회차가 멱등으로 다시 집는다.
+      teamMatchCache.delete(p.teamId);
+      console.log(`  ⚠ ${p.ourId} 건너뜀 — ${(e as Error).message}`);
     }
-    rows.sort((a, b) => b.date.localeCompare(a.date));
-    out[p.ourId] = { seasonLabel: p.seasonLabel, matches: rows };
-    writeFileSync(OUT, JSON.stringify(out)); // 선수 단위 저장 — 중단돼도 진행분 보존
-    console.log(`  신규 ${added}, 미출전/무데이터 ${empty}, 총 ${rows.length}경기`);
   }
 
   console.log(`저장: ${OUT}`);

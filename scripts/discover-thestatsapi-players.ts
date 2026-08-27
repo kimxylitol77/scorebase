@@ -55,6 +55,10 @@ async function api(path: string): Promise<unknown | null> {
     }
     if (res.status === 429) { await new Promise((r) => setTimeout(r, 20_000 * (attempt + 1))); continue; }
     if (res.status === 404) return null;
+    // 5xx 는 공급자 일시 오류 — 429 처럼 물러섰다 재시도 (2026-08-27 라리가 500 으로 스테이지 전멸).
+    if (res.status >= 500) {
+      if (attempt < 3) { await new Promise((r) => setTimeout(r, 10_000 * (attempt + 1))); continue; }
+    }
     if (!res.ok) throw new Error(`${res.status} ${path}`);
     return res.json();
   }

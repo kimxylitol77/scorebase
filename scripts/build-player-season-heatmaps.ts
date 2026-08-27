@@ -30,6 +30,11 @@ async function api(path: string): Promise<unknown | null> {
     }
     if (res.status === 429) { await new Promise((r) => setTimeout(r, 20_000 * (attempt + 1))); continue; }
     if (res.status === 404) return null;
+    // 5xx 는 공급자 쪽 일시 오류다 — 429 와 같이 물러섰다 재시도한다. 안 그러면 500 한 번에
+    // 스테이지가 통째로 죽는다 (2026-08-27 라리가 26/27 matches 500 으로 리그1·시즌카드 전멸).
+    if (res.status >= 500) {
+      if (attempt < 3) { await new Promise((r) => setTimeout(r, 10_000 * (attempt + 1))); continue; }
+    }
     if (!res.ok) throw new Error(`${res.status} ${path}`);
     return res.json();
   }
@@ -51,51 +56,56 @@ async function main() {
     // 단 매핑 시즌이 바뀌었으면 다시 받는다 — 시즌만 비교 안 하면 26/27 로 갈아탄 뒤에도
     // 25/26 카드가 그대로 남아 "매핑은 새 시즌, 카드는 지난 시즌"으로 어긋난다.
     if (out[ourId]?.seasonId === m.seasonId && !REFRESH) continue;
-    const res = (await api(
-      `/football/players/${m.statsId}/competitions/${m.competitionId}/seasons/${m.seasonId}/heatmap`,
-    )) as { data: { points: Array<{ x: number; y: number; count: number }> } } | null;
-    await new Promise((r) => setTimeout(r, 6000)); // trial 분당 12회
-    const points = res?.data?.points ?? [];
-    if (points.length === 0) { console.log(`  ✗ ${m.name} — 시즌 데이터 없음`); continue; }
+    try {
+      const res = (await api(
+        `/football/players/${m.statsId}/competitions/${m.competitionId}/seasons/${m.seasonId}/heatmap`,
+      )) as { data: { points: Array<{ x: number; y: number; count: number }> } } | null;
+      await new Promise((r) => setTimeout(r, 6000)); // trial 분당 12회
+      const points = res?.data?.points ?? [];
+      if (points.length === 0) { console.log(`  ✗ ${m.name} — 시즌 데이터 없음`); continue; }
 
-    const cellMap = new Map<string, number>();
-    let total = 0, sx = 0, sy = 0, def = 0, mid = 0, att = 0, left = 0, center = 0, right = 0;
-    for (const p of points) {
-      const w = p.count;
-      total += w; sx += p.x * w; sy += p.y * w;
-      if (p.x < 100 / 3) def += w; else if (p.x < 200 / 3) mid += w; else att += w;
-      if (p.y < 100 / 3) left += w; else if (p.y < 200 / 3) center += w; else right += w;
-      const key = `${Math.min(9, Math.floor(p.x / 10)) * 10},${Math.min(9, Math.floor(p.y / 10)) * 10}`;
-      cellMap.set(key, (cellMap.get(key) ?? 0) + w);
+      const cellMap = new Map<string, number>();
+      let total = 0, sx = 0, sy = 0, def = 0, mid = 0, att = 0, left = 0, center = 0, right = 0;
+      for (const p of points) {
+        const w = p.count;
+        total += w; sx += p.x * w; sy += p.y * w;
+        if (p.x < 100 / 3) def += w; else if (p.x < 200 / 3) mid += w; else att += w;
+        if (p.y < 100 / 3) left += w; else if (p.y < 200 / 3) center += w; else right += w;
+        const key = `${Math.min(9, Math.floor(p.x / 10)) * 10},${Math.min(9, Math.floor(p.y / 10)) * 10}`;
+        cellMap.set(key, (cellMap.get(key) ?? 0) + w);
+      }
+      const cells = [...cellMap.entries()].map(([k, count]) => {
+        const [x, y] = k.split(",").map(Number);
+        return { x, y, count };
+      });
+      const st = seasonStats[ourId];
+      out[ourId] = {
+        source: "TheStatsAPI",
+        sourcePlayerId: m.statsId,
+        competitionId: m.competitionId,
+        seasonId: m.seasonId,
+        seasonLabel: m.seasonLabel,
+        matches: st?.matches ?? 0,
+        minutes: st?.minutes ?? 0,
+        summary: {
+          weightedPoints: total,
+          averageX: sx / total,
+          averageY: sy / total,
+          defensiveThirdPct: (def / total) * 100,
+          middleThirdPct: (mid / total) * 100,
+          attackingThirdPct: (att / total) * 100,
+          leftPct: (left / total) * 100,
+          centerPct: (center / total) * 100,
+          rightPct: (right / total) * 100,
+        },
+        cells,
+      };
+      writeFileSync(OUT, JSON.stringify(out)); // 선수 단위 저장
+      console.log(`  ✓ ${m.name} — ${points.length}포인트, 가중 ${total}`);
+    } catch (e) {
+      // 한 선수 실패로 전체가 죽지 않게 — 다음 회차가 멱등으로 다시 집는다.
+      console.log(`  ⚠ ${m.name} 건너뜀 — ${(e as Error).message}`);
     }
-    const cells = [...cellMap.entries()].map(([k, count]) => {
-      const [x, y] = k.split(",").map(Number);
-      return { x, y, count };
-    });
-    const st = seasonStats[ourId];
-    out[ourId] = {
-      source: "TheStatsAPI",
-      sourcePlayerId: m.statsId,
-      competitionId: m.competitionId,
-      seasonId: m.seasonId,
-      seasonLabel: m.seasonLabel,
-      matches: st?.matches ?? 0,
-      minutes: st?.minutes ?? 0,
-      summary: {
-        weightedPoints: total,
-        averageX: sx / total,
-        averageY: sy / total,
-        defensiveThirdPct: (def / total) * 100,
-        middleThirdPct: (mid / total) * 100,
-        attackingThirdPct: (att / total) * 100,
-        leftPct: (left / total) * 100,
-        centerPct: (center / total) * 100,
-        rightPct: (right / total) * 100,
-      },
-      cells,
-    };
-    writeFileSync(OUT, JSON.stringify(out)); // 선수 단위 저장
-    console.log(`  ✓ ${m.name} — ${points.length}포인트, 가중 ${total}`);
   }
   console.log(`저장: ${OUT} (${Object.keys(out).length}명)`);
 }
