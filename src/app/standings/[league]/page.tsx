@@ -1044,11 +1044,19 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
   // 토너먼트 대진표 — 조별(Group/Pool) 편성 대회에서 크로스 그룹 매치가 시작되면 자동 유도.
   // ts 배구엔 라운드 원천이 없다(stage 미승인) — 유도 근거는 knockout-derive.ts 주석.
   // "3위 팀 순위" 같은 보조 표는 조 편성이 아니라 제외한다.
+  // 팀이 두 조 이상에 나타나면 캐시에 예선+본선 등 다단계가 섞인 것 — 이때 유도하면
+  // 본선 조별 경기가 녹아웃으로 오판돼 엉터리 대진표가 선다(VB_EURO_W 실측: 진행 중
+  // 대회에 "결승 종료"가 표시됨). 다단계 혼재면 유도를 포기한다 — 엉터리보다 없음이 낫다.
   const groupOf = new Map<number, string>();
+  let multiPhase = false;
   for (const g of groups) {
     if (!/group|pool|조\b/i.test(g.name)) continue;
-    for (const r of g.rows) groupOf.set(r.ourTeamId, g.name);
+    for (const r of g.rows) {
+      if (groupOf.has(r.ourTeamId) && groupOf.get(r.ourTeamId) !== g.name) multiPhase = true;
+      groupOf.set(r.ourTeamId, g.name);
+    }
   }
+  if (multiPhase) groupOf.clear();
   const knockout = deriveKnockout(
     vbMatches.map((m) => ({
       homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId,

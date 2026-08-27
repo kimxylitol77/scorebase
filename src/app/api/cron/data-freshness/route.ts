@@ -387,41 +387,58 @@ const DUP_BASEBALL_EXEMPT = new Set(["KBO", "NPB", "MLB", "CPBL", "LMB", "KBO_FU
  * 잡으므로 표기가 아무리 갈려도 걸린다. 그 리그의 af 경기는 원래 전부 DB 에 있어야 하기 때문.
  * (af > DB 인 리그는 DB 미적재 군소·친선이 섞여 정상 orphan 이 많다 — 대상에서 뺀다.)
  */
-/** 배구 토너먼트 대진표 공백 — 크로스 그룹(녹아웃) 매치가 도는데 조 매핑이 안 서면
- *  /standings 대진표가 조용히 안 뜬다. 원인은 대개 순위 캐시에 Group 표 부재
- *  (standings-poller 시즌 미등록) 또는 팀 매핑 결손. 유도 로직 자체는 렌더마다 도는
- *  knockout-derive 와 동일 재료를 본다 — 여기선 재료 어긋남만 잡는다. */
-async function checkVbBracketGap(now: Date, findings: Finding[]) {
-  const { fetchVolleyballTable } = await import("@/lib/sports/thesports/volleyball-table");
+/** 토너먼트 대진표 공백 — 전 종목. 두 갈래를 잡는다.
+ *  ① 배구(자동 유도 대상): 크로스 그룹 매치가 도는데 조 매핑 재료가 없어 대진표가 조용히
+ *     안 서는 경우(순위 캐시에 Group 표 부재 = standings-poller 시즌 미등록 등).
+ *  ② 배구 외 종목: ts 순위 캐시에 Group 표가 2개+ 있는 대회가 새로 나타나면(IIHF 세계선수권
+ *     등) 아직 브래킷이 연결 안 된 종목이다 — 스킬 scorebase-tournament-bracket 로 연결하라는 경보.
+ *  다단계 혼재(한 팀이 두 조에)는 렌더 쪽 가드처럼 여기서도 판정 제외한다. */
+async function checkTournamentBracketGap(now: Date, findings: Finding[]) {
+  const caches = await prisma.theSportsStandingsCache.findMany({ select: { league: true, payload: true } });
   const recent = new Date(now.getTime() - 3 * 86400_000);
   const ahead = new Date(now.getTime() + 7 * 86400_000);
-  const leagues = await prisma.match.groupBy({
+  const out: Record<string, string> = {};
+  for (const c of caches) {
+    const tables = ((c.payload as { tables?: Array<{ name?: string; rows?: Array<{ team_id?: string }> }> } | null)?.tables ?? []);
+    const groupTables = tables.filter((t) => /group|pool|조\b/i.test(t?.name ?? ""));
+    if (groupTables.length < 2) continue;
+    const seen = new Set<string>();
+    let multiPhase = false;
+    for (const t of groupTables) for (const r of t.rows ?? []) {
+      if (r.team_id && seen.has(r.team_id)) multiPhase = true;
+      if (r.team_id) seen.add(r.team_id);
+    }
+    if (multiPhase) { out[c.league] = "다단계 혼재 — 판정 제외"; continue; }
+    const n = await prisma.match.count({ where: { league: c.league, startTime: { gte: recent, lte: ahead } } });
+    if (n === 0) { out[c.league] = "매치 없음"; continue; }
+    if (c.league.startsWith("VB_") || c.league.startsWith("AVC_")) {
+      out[c.league] = `배구 자동 유도 대상 (${groupTables.length}조·${n}경기)`;
+      continue; // 배구는 렌더가 유도 — 재료(조 표)가 이미 있으므로 정상
+    }
+    findings.push({
+      kind: "tournament_bracket_gap",
+      detail: `${c.league}: 조별(Group ${groupTables.length}개) 대회에 최근·예정 ${n}경기 — 배구 외 종목이라 대진표 미연결. 스킬 scorebase-tournament-bracket 으로 연결 필요`,
+    });
+    out[c.league] = "비배구 조별 대회 — 경보";
+  }
+  // 배구인데 조 표가 아예 없는 역방향(재료 결손)은 매치 수 대비 팀 수로 잡는다
+  const vbLeagues = await prisma.match.groupBy({
     by: ["league"],
     where: { league: { startsWith: "VB_" }, startTime: { gte: recent, lte: ahead } },
   });
-  const out: Record<string, string> = {};
-  for (const { league } of leagues) {
-    const groups = await fetchVolleyballTable(league).catch(() => []);
-    const groupOf = new Map<number, string>();
-    for (const g of groups) {
-      if (!/group|pool|조\b/i.test(g.name)) continue;
-      for (const r of g.rows) groupOf.set(r.ourTeamId, g.name);
-    }
-    if (groupOf.size > 0) { out[league] = `조 매핑 ${groupOf.size}팀 — 정상`; continue; }
-    // 조 매핑이 전혀 없는데 서로 다른 팀 조합이 8팀+ 이면 토너먼트 진행 의심
+  for (const { league } of vbLeagues) {
+    if (out[league]) continue; // 위에서 이미 판정(조 표 있음)
     const ms = await prisma.match.findMany({
       where: { league, startTime: { gte: recent, lte: ahead } },
       select: { homeTeamId: true, awayTeamId: true },
     });
     const teams = new Set(ms.flatMap((m) => [m.homeTeamId, m.awayTeamId]));
-    if (ms.length >= 4 && teams.size >= 8) {
+    if (ms.length >= 4 && teams.size >= 8 && !/FRIENDLY/.test(league)) {
       findings.push({
         kind: "vb_bracket_gap",
         detail: `${league}: 최근·예정 ${ms.length}경기(${teams.size}팀)가 도는데 순위 캐시에 조(Group) 표가 없어 토너먼트 대진표가 안 선다 — standings-poller 시즌 등록/팀 매핑 확인`,
       });
       out[league] = "조 표 없음 — 경보";
-    } else {
-      out[league] = "표본 부족 — 판정 생략";
     }
   }
   return out;
@@ -803,7 +820,7 @@ export async function GET(req: Request) {
     lolLeaders: await run("lolLeaders", () => checkLolLeaders(now, findings)),
     rescheduleDups: await run("rescheduleDups", () => checkRescheduleDups(now, findings)),
     orphanCardDups: await run("orphanCardDups", () => checkOrphanCardDups(now, findings)),
-    vbBracketGap: await run("vbBracketGap", () => checkVbBracketGap(now, findings)),
+    tournamentBracketGap: await run("tournamentBracketGap", () => checkTournamentBracketGap(now, findings)),
     injuries: await run("injuries", () => checkInjuries(findings)),
     coaches: await run("coaches", () => checkCoaches(findings)),
     coachesAllLeagues: await run("coachesAllLeagues", () => checkAllLeagueCoaches(now, findings)),
