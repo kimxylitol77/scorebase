@@ -34,6 +34,8 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/transfers", label: "몸값·가치 랭킹", desc: "선수 이적가치 · 가성비 구단" },
       { href: "/over-under", label: "오버·언더 통계", desc: "리그·팀별 오버 2.5 비율 · 하부리그까지" },
       { href: "/odds?sport=soccer", label: "배당 흐름", desc: "밸류 베트 · 시장 움직임 실시간" },
+      // 커뮤니티 메뉴를 둘로 나누며 이리로 옮김 — 야구는 부상자 데이터가 없어 사실상 축구 전용이다
+      { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
     ],
   },
   {
@@ -76,7 +78,9 @@ export const SPORT_CATEGORIES: NavCategory[] = [
   },
 ];
 
-// 커뮤니티 — 콘텐츠·회원·랭킹 (+ 부상자 명단·AI 프리뷰 모음: 종목 무관 공통이라 여기로)
+// 커뮤니티 — 사람이 읽고 쓰고 노는 것 (콘텐츠·게임)
+// AI 예측 도구는 성격이 달라 AI_CATEGORY 로 분리했다(2026-08-27). 한 메뉴에 11개가
+// 섞여 있어 게시판을 찾으러 온 사람과 예측을 보러 온 사람이 같은 목록을 훑어야 했다.
 export const COMMUNITY_CATEGORY: NavCategory = {
   label: "커뮤니티",
   href: "/analysis",
@@ -85,16 +89,24 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/analysis", label: "게시판", desc: "분석·자유·블로그·공지 한 곳에" },
     // 해외 뉴스는 봇 발행 전용이라 성격이 달라 메뉴에 따로 노출 (BoardTabs 로도 오갈 수 있음)
     { href: "/news", label: "해외 뉴스", desc: "BBC·Athletic·ESPN 등 공신력 소스 한국어 브리핑" },
-    { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
-    { href: "/picks/strong", label: "고확신 픽", desc: "AI가 자신 있어 하는 경기만 · 회원 공개" },
-    { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
-    { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.6 적중률 대결" },
-    { href: "/lab", label: "커스텀 봇", desc: "손잡이 5개로 나만의 예측 봇 · 즉석 백테스트" },
-    { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
-    { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
+    { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
+    { href: "/career", label: "축구선수 인생 살아보기", desc: "유스부터 은퇴까지 · 회원가입 없이" },
   ],
 };
 
-/** 모바일 메뉴용 — 종목 4 + 커뮤니티 평면 리스트 */
-export const ALL_CATEGORIES: NavCategory[] = [...SPORT_CATEGORIES, COMMUNITY_CATEGORY];
+// AI 분석실 — 우리 AI 가 만든 예측·검증 도구 묶음
+export const AI_CATEGORY: NavCategory = {
+  label: "AI 분석실",
+  href: "/previews",
+  items: [
+    { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
+    { href: "/picks/strong", label: "고확신 픽", desc: "AI가 자신 있어 하는 경기만 · 회원 공개" },
+    { href: "/previews", label: "프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
+    { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.6 적중률 대결" },
+    { href: "/lab", label: "커스텀 예측 봇 만들기", desc: "손잡이 5개로 나만의 예측 봇 · 즉석 백테스트" },
+  ],
+};
+
+/** 모바일 메뉴용 — 종목 4 + 커뮤니티 + AI 분석실 평면 리스트 */
+export const ALL_CATEGORIES: NavCategory[] = [...SPORT_CATEGORIES, COMMUNITY_CATEGORY, AI_CATEGORY];

@@ -8,6 +8,7 @@ import LangSwitch from "./en/LangSwitch";
 import {
   SPORT_CATEGORIES,
   COMMUNITY_CATEGORY,
+  AI_CATEGORY,
   type NavCategory,
 } from "./nav-config";
 
@@ -35,6 +36,7 @@ export default function Header() {
               <CategoryDropdown key={c.label} {...c} />
             ))}
             <CategoryDropdown {...COMMUNITY_CATEGORY} />
+            <CategoryDropdown {...AI_CATEGORY} />
           </nav>
         </div>
 
