@@ -29,6 +29,18 @@ const PLAYERS = Object.entries(
     return false;
   });
 
+// 국내 컵 + 유럽 대항전 — 리그 경기만 모으면 FA컵·챔스 경기가 통째로 빠진다.
+// 2026-08-28 실측: 5대 국내컵과 UCL 모두 히트맵을 준다(야말 UCL 24/25 529포인트).
+// ⚠ 특정 선수가 404 인 건 커버리지 구멍이 아니라 **그 대회에 아직 안 뛴 것**이다 —
+//   스타 선수로만 찔러 보면 컵 전체가 미제공인 것처럼 오판한다(실제로 한 번 오판했다).
+const EXTRA_COMPS: Record<string, string[]> = {
+  EPL: ["comp_7428", "comp_2504", "comp_3498"], // FA컵 · EFL컵 · UCL
+  LALIGA: ["comp_7915", "comp_3498"], // 코파 델 레이 · UCL
+  SERIE_A: ["comp_8525", "comp_3498"], // 코파 이탈리아 · UCL
+  BUNDESLIGA: ["comp_3620", "comp_3498"], // DFB 포칼 · UCL
+  LIGUE_1: ["comp_4750", "comp_3498"], // 쿠프 드 프랑스 · UCL
+};
+
 interface MatchHeatmap {
   id: string;
   date: string; // YYYY-MM-DD (UTC)
@@ -73,6 +85,17 @@ async function api(path: string): Promise<unknown | null> {
   throw new Error(`429 지속 ${path}`);
 }
 
+// 컵 대회의 같은 시즌 id 해소 (대회당 1콜, 캐시). 시즌 표기는 리그와 같은 "26/27" 형태.
+const cupSeason = new Map<string, string | null>();
+async function cupSeasonId(comp: string, tag: string): Promise<string | null> {
+  const k = `${comp}:${tag}`;
+  if (cupSeason.has(k)) return cupSeason.get(k)!;
+  const res = (await api(`/football/competitions/${comp}/seasons`)) as { data: { id: string; name: string }[] } | null;
+  const hit = res?.data?.find((x) => x.name.includes(tag))?.id ?? null;
+  cupSeason.set(k, hit);
+  return hit;
+}
+
 async function main() {
   const out: Record<string, { seasonLabel: string; matches: MatchHeatmap[] }> = existsSync(OUT)
     ? JSON.parse(readFileSync(OUT, "utf8"))
@@ -89,24 +112,36 @@ async function main() {
   for (const p of PLAYERS) {
     try {
       const existing = new Set((out[p.ourId]?.matches ?? []).map((m) => m.id));
-      let matches = teamMatchCache.get(p.teamId);
-      if (!matches) {
-        matches = [];
-        for (let page = 1; page <= 5; page++) {
-          const res = (await api(
-            `/football/matches?competition_id=${p.competitionId}&season_id=${p.seasonId}&team_id=${p.teamId}&per_page=50&page=${page}`,
-          )) as { data: ApiMatch[] } | null;
-          await new Promise((r) => setTimeout(r, 6000));
-          if (!res) break;
-          matches.push(...res.data);
-          if (res.data.length < 50) break;
-        }
-        teamMatchCache.set(p.teamId, matches);
+      // 리그 + 그 리그의 컵·대항전. 시즌 태그는 리그 라벨에서 뽑는다 ("2026-27 EPL" → "26/27").
+      const league = p.seasonLabel.split(" ").slice(1).join(" ");
+      const tag = `${p.seasonLabel.slice(2, 4)}/${p.seasonLabel.slice(5, 7)}`; // "2026-27 EPL" → "26/27"
+      const pairs = [{ comp: p.competitionId, season: p.seasonId }];
+      for (const c of EXTRA_COMPS[league] ?? []) {
+        const sid = await cupSeasonId(c, tag);
+        if (sid) pairs.push({ comp: c, season: sid });
       }
-      const finished = matches
-        .filter((m) => m.status === "finished")
-        .sort((a, b) => b.utc_date.localeCompare(a.utc_date));
-      console.log(`${p.ourId}: 종료 경기 ${finished.length}, 기수집 ${existing.size}`);
+
+      const finished: ApiMatch[] = [];
+      for (const pr of pairs) {
+        const ck = `${pr.comp}:${p.teamId}`;
+        let matches = teamMatchCache.get(ck);
+        if (!matches) {
+          matches = [];
+          for (let page = 1; page <= 5; page++) {
+            const res = (await api(
+              `/football/matches?competition_id=${pr.comp}&season_id=${pr.season}&team_id=${p.teamId}&per_page=50&page=${page}`,
+            )) as { data: ApiMatch[] } | null;
+            await new Promise((r) => setTimeout(r, 6000));
+            if (!res) break;
+            matches.push(...res.data);
+            if (res.data.length < 50) break;
+          }
+          teamMatchCache.set(ck, matches);
+        }
+        finished.push(...matches.filter((m) => m.status === "finished"));
+      }
+      finished.sort((a, b) => b.utc_date.localeCompare(a.utc_date));
+      console.log(`${p.ourId}: 종료 경기 ${finished.length}(대회 ${pairs.length}), 기수집 ${existing.size}`);
 
       const rows: MatchHeatmap[] = out[p.ourId]?.matches ?? [];
       let added = 0, empty = 0;
@@ -139,7 +174,7 @@ async function main() {
     } catch (e) {
       // 한 선수 실패로 전체가 죽지 않게 — 팀 매치 캐시는 부분 결과일 수 있으니 버린다.
       // 진행분은 선수 단위로 이미 저장됐고, 다음 회차가 멱등으로 다시 집는다.
-      teamMatchCache.delete(p.teamId);
+      for (const k of [...teamMatchCache.keys()]) if (k.endsWith(`:${p.teamId}`)) teamMatchCache.delete(k);
       console.log(`  ⚠ ${p.ourId} 건너뜀 — ${(e as Error).message}`);
     }
   }
