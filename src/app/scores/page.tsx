@@ -56,8 +56,8 @@ import {
   type LiveMatch,
   parseTsFootballScore,
   type TsFootballScoreParsed,
-  fetchSoccerByDate,
   type DatedMatch,
+  fetchSoccerByDateSmart,
 } from "@/lib/sports/live-scores";
 import {
   buildOrphanDedup,
@@ -120,11 +120,9 @@ const fetchMlbByDateCached = unstable_cache(
   { revalidate: 60, tags: ["live-scores"] },
 );
 // 일자별 우리 축구 리그 경기 전부 (예정/라이브/종료) — orphan(DB 미적재) 카드 보강.
-const fetchSoccerByDateCached = unstable_cache(
-  fetchSoccerByDate,
-  ["scores-page-soccer-by-date"],
-  { revalidate: 60, tags: ["live-scores"] },
-);
+// 날짜별 캐시 주기는 live-scores.ts 의 fetchSoccerByDateSmart 가 가른다 (오늘 60초 / 그 외 1시간 —
+// 크롤러의 날짜 스윕이 af 일 한도 33%를 태우던 것 지혈, 2026-08-28).
+const fetchSoccerByDateCached = fetchSoccerByDateSmart;
 // (축구 골/카드는 ESPN 미사용 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출)
 // NBA/NHL 쿼터/피리어드별 점수 — ESPN scoreboard linescores.
 const fetchPeriodsByDateCached = unstable_cache(

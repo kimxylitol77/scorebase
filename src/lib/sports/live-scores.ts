@@ -2179,6 +2179,22 @@ const fetchSoccerByDateCachedForLive = unstable_cache(
   { revalidate: 60, tags: ["live-scores"] },
 );
 
+// 비-오늘 날짜용 완캐시 — /scores?date= 를 크롤러가 날짜별로 훑으면 날짜마다 60초 캐시가
+// af /fixtures?date 2콜씩 태워 af-live:fixtures 가 일 2.5만 콜(한도 33%)까지 치솟았다
+// (2026-08-28 AfUsageStat 실측). 어제·미래 일정은 분 단위 신선도가 필요 없어 1시간이면 된다.
+// 오늘(KST)만 60초 캐시를 쓴다 — 아래 fetchSoccerByDateSmart 가 가른다.
+const fetchSoccerByDateCachedSlow = unstable_cache(
+  fetchSoccerByDate,
+  ["scores-page-soccer-by-date-slow"],
+  { revalidate: 3600, tags: ["live-scores"] },
+);
+
+/** /scores 류 페이지용 날짜별 일정 조회 — 오늘(KST)=60초, 그 외=1시간 캐시. */
+export function fetchSoccerByDateSmart(dateStr: string): ReturnType<typeof fetchSoccerByDate> {
+  const todayKst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  return dateStr === todayKst ? fetchSoccerByDateCachedForLive(dateStr) : fetchSoccerByDateCachedSlow(dateStr);
+}
+
 export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
   // 오늘(KST) 날짜 — orphan LIVE 보강용 date 조회 키.
   const todayKst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
