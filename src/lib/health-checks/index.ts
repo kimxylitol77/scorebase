@@ -316,6 +316,15 @@ const CONTINENTAL_CUP_LEAGUES = new Set([
   "COPA_LIB",
   "COPA_SUD",
   "ASEAN_CHAMP", // 국가대표 대회 — 소속 클럽 리그 정합성 검사의 대상이 아니다
+  // 국내 컵 — 자국 여러 티어 클럽 출전이 정상이라 "외부 리그 선수"가 정의상 오탐
+  // (2026-08-28: 쿠프 드 프랑스 22명·코파 델 레이 33명·DFB 포칼 28명 등 매일 MED 다발).
+  // leagues/[league]/page.tsx 의 CUP_LEAGUES 와 같은 축 — 새 컵 온보딩 시 양쪽 갱신.
+  "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
+  "PORTUGAL_SUPER_CUP", "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA",
+  "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
+  "UEFA_WCL", "LEAGUES_CUP", "CANADA_CHAMP", "AFCON", "CONCACAF_GOLD",
 ]);
 
 // 친선 라벨 row 와의 일치는 "오염" 증거가 아니라 친선 중복 row 의 존재 증명일 뿐이다
@@ -409,6 +418,8 @@ async function checkLeaderboardLeagueConsistency(now: Date): Promise<HealthFindi
     let foreign: string | null = null;
     const sport = SPORT_OF_LEAGUE.get(r.league);
     for (const [oleague, oset] of byLeague) {
+      // 컵 네임스페이스 Team row 는 자국 클럽의 중복 등록이라 "그 리그 소속" 증거가 아니다
+      // (LIGA_MX 치바스가 COPA_DEL_REY 로 오판되던 것, 2026-08-28).
       if (oleague === r.league || CONTINENTAL_CUP_LEAGUES.has(oleague)) continue;
       if (FRIENDLY_LEAGUES.has(oleague)) continue; // 친선 중복 row — 소속 증거 아님
       // 종목이 다르면 동명 클럽일 뿐(축구 TPS ↔ 하키 TPS) — 비교 무의미
