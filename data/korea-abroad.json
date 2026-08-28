@@ -74,12 +74,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Birmingham City",
-        "apps": 2,
+        "apps": 3,
         "starts": 2,
         "goals": 0,
         "assists": 0,
-        "minutes": 142,
-        "rating": 6.37,
+        "minutes": 158,
+        "rating": 6.35,
         "yellow": 0,
         "red": 0
       }
@@ -399,7 +399,7 @@
       },
       "spells": null,
       "current": {
-        "status": "preseason",
+        "status": "none",
         "season": "2026-27",
         "team": null,
         "apps": 0,
@@ -481,16 +481,16 @@
       },
       "spells": null,
       "current": {
-        "status": "preseason",
+        "status": "played",
         "season": "2026-27",
-        "team": null,
-        "apps": 0,
-        "starts": 0,
+        "team": "FC Bayern Munich",
+        "apps": 1,
+        "starts": 1,
         "goals": 0,
         "assists": 0,
-        "minutes": 0,
-        "rating": null,
-        "yellow": 0,
+        "minutes": 84,
+        "rating": 6.87,
+        "yellow": 1,
         "red": 0
       }
     },
@@ -899,7 +899,7 @@
       },
       "spells": null,
       "current": {
-        "status": "preseason",
+        "status": "none",
         "season": "2026-27",
         "team": null,
         "apps": 0,
@@ -1671,7 +1671,7 @@
         }
       ],
       "current": {
-        "status": "preseason",
+        "status": "none",
         "season": "2026-27",
         "team": null,
         "apps": 0,
@@ -2670,5 +2670,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-27T22:20:26.000Z"
+  "currentUpdatedAt": "2026-08-28T22:20:31.281Z"
 }
