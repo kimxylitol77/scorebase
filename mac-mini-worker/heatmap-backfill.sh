@@ -59,8 +59,11 @@ run_league() {
   return 1
 }
 
+# 빅5 + 히트맵이 실제로 나오는 하위리그 3개 (2026-08-28 전수 확인).
+# 하위 3개는 PlayerMarketValue 가 비어 있어 discover 가 팀 스쿼드로 유니버스를 만든다
+# (SPL 25 · BUNDESLIGA_2 92 · SERIE_B 90명 — 200 상한에 안 걸린다).
 FAILED=()
-for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1; do
+for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1 SPL BUNDESLIGA_2 SERIE_B; do
   run_league "$LG" || FAILED+=("$LG")
 done
 

@@ -22,6 +22,12 @@ const LEAGUE_CFG: Record<string, { competitionId: string }> = {
   SERIE_A: { competitionId: "comp_5840" },
   BUNDESLIGA: { competitionId: "comp_4643" },
   LIGUE_1: { competitionId: "comp_0256" },
+  // 빅5 밖에서 히트맵이 실제로 나오는 리그 (2026-08-28 전수 확인).
+  // ⚠ 대회 목록에 있는 것과 히트맵을 주는 것은 다르다 — MLS·사우디·UCL·유로파·챔피언십·
+  //   에레디비시·프리메이라·쉬페르리그·브라질·리가MX·K리그1·J1 은 전부 404 였다.
+  SPL: { competitionId: "comp_6387" },
+  BUNDESLIGA_2: { competitionId: "comp_0406" },
+  SERIE_B: { competitionId: "comp_5450" },
 };
 // 하위 호환: 첫 인자가 숫자면 EPL 상위 N
 const positional = process.argv.slice(2).filter((a) => !a.startsWith("--"));
@@ -77,12 +83,31 @@ async function main() {
   const COMP = { competitionId: CFG.competitionId, seasonId: season.id, seasonLabel: `${SEASON_PREFIX} ${argLeague}` };
   console.log(`${argLeague} → ${CFG.competitionId} / ${season.id} (${season.name})`);
 
-  const mv = await prisma.playerMarketValue.findMany({
+  let mv: { id: string }[] = await prisma.playerMarketValue.findMany({
     where: { league: argLeague },
     orderBy: { currentValue: "desc" },
     take: TOP_N,
     select: { id: true, currentValue: true },
   });
+  // 몸값 유니버스가 없는 리그는 우리 DB 팀 스쿼드로 대신한다.
+  // PlayerMarketValue 는 빅5·MLS·사우디·K리그만 채워져 있어(2026-08-28 실측) 그 밖의 리그는
+  // 이 폴백이 없으면 대상 0명으로 조용히 끝난다. 몸값순 정렬이 없으니 TOP_N 은 "상위"가
+  // 아니라 "앞에서 N명"이 되는데, 하위 리그는 어차피 전원 대상이라 무해하다.
+  if (mv.length === 0) {
+    const teams = await prisma.team.findMany({ where: { league: argLeague }, select: { id: true } });
+    const src = await prisma.teamSourceId.findMany({
+      where: { teamId: { in: teams.map((t) => t.id) }, source: "thesports" },
+      select: { externalId: true },
+    });
+    mv = src.length
+      ? await prisma.theSportsPlayer.findMany({
+          where: { teamId: { in: src.map((x) => x.externalId) } },
+          take: TOP_N,
+          select: { id: true },
+        })
+      : [];
+    console.log(`${argLeague} 몸값 유니버스 없음 → 팀 스쿼드에서 ${mv.length}명`);
+  }
   // 이름은 TheSportsPlayer 에서 (PlayerMarketValue 에는 이름 필드 없음)
   const names = new Map(
     (await prisma.theSportsPlayer.findMany({
