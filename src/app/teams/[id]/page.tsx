@@ -1395,6 +1395,9 @@ function OppLogo({
       />
     );
   }
+  if (src.includes("thesports.com") || src.includes("media.api-sports.io")) {
+    return <Image src={src} alt="" width={20} height={20} className="w-5 h-5 object-contain shrink-0" />;
+  }
   return (
     /* eslint-disable-next-line @next/next/no-img-element */
     <img

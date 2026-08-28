@@ -7,6 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
+import TeamLogoImg from "../../TeamLogoImg";
 import TeamNameCell from "../TeamNameCell";
 import { teamColor } from "@/lib/team-colors";
 import { useScoreFlash } from "../useScoreFlash";
@@ -33,24 +34,15 @@ interface Props {
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
-  // 군소팀 로고 URL 이 404(이미지 없음)면 onError 로 이니셜 fallback. (af KFA컵 등)
-  const [err, setErr] = useState(false);
-  if (url && !err) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return (
-      <img
-        src={url}
-        alt=""
-        onError={() => setErr(true)}
-        className="w-4 h-4 object-contain shrink-0 bg-white rounded-sm p-0.5"
-        loading="lazy"
-      />
-    );
-  }
+  // 공용 TeamLogoImg — optimizer 경유 (2026-08-28)
   return (
-    <span className="w-4 h-4 inline-flex items-center justify-center text-[9px] font-bold text-neutral-400 bg-white/5 rounded-full shrink-0">
-      {name.slice(0, 1)}
-    </span>
+    <TeamLogoImg
+      url={url}
+      name={name}
+      size={16}
+      className="w-4 h-4 object-contain shrink-0 bg-white rounded-sm p-0.5"
+      fallbackClassName="w-4 h-4 inline-flex items-center justify-center text-[9px] font-bold text-neutral-400 bg-white/5 rounded-full shrink-0"
+    />
   );
 }
 

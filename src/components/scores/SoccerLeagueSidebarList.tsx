@@ -68,7 +68,6 @@ function LeagueRow({
             width={size}
             height={size}
             className={`shrink-0 object-contain ${small ? "opacity-80" : ""}`}
-            unoptimized
           />
         ) : (
           <span className="inline-block shrink-0" style={{ width: size }} />
