@@ -59,12 +59,23 @@ run_league() {
   return 1
 }
 
-# 빅5 + 히트맵이 실제로 나오는 하위리그 3개 (2026-08-28 전수 확인).
-# 하위 3개는 PlayerMarketValue 가 비어 있어 discover 가 팀 스쿼드로 유니버스를 만든다
-# (SPL 25 · BUNDESLIGA_2 92 · SERIE_B 90명 — 200 상한에 안 걸린다).
+# 히트맵이 실제로 나오는 리그 전부 (2026-08-28 실측). 빅5 밖은 PlayerMarketValue 가
+# 비어 있어 discover 가 팀 스쿼드로 유니버스를 만든다(사우디·K리그만 몸값 보유).
+# ⚠ 미제공 확인 — MLS(36명 2시즌) · 브라질(54명 3시즌). 스코티시컵도 18명 전멸.
+#   "몇 명 찔러 404"는 미제공 근거가 못 된다. 그 선수가 그 대회에 안 뛴 것일 뿐이다.
 FAILED=()
-for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1 SPL BUNDESLIGA_2 SERIE_B; do
+for LG in EPL SERIE_A LALIGA BUNDESLIGA LIGUE_1 \
+          CHAMPIONSHIP EREDIVISIE PRIMEIRA_LIGA SUPER_LIG JUPILER_PL SPL SAUDI_PL \
+          BUNDESLIGA_2 SERIE_B LALIGA_2 LIGUE_2; do
   run_league "$LG" || FAILED+=("$LG")
+done
+
+# 달력 시즌(1~12월) 리그 — 시즌 인자가 "2026" 형태다. 26/27 로 주면 시즌을 못 찾고 죽는다.
+for LG in K_LEAGUE_1 J1_LEAGUE; do
+  for attempt in 1 2 3; do
+    bash scripts/run-thestatsapi-pipeline.sh "$LG" 200 2026 && break
+    [ "$attempt" -lt 3 ] && { log "$LG 실패 (시도 $attempt/3) — 5분 뒤 재시도"; sleep 300; }
+  done
 done
 
 # ── 2차 스윕 — 단절이 한 시간 넘게 이어진 적이 있다(8/26 11:28~12:20 Neon 불통으로 5개 리그

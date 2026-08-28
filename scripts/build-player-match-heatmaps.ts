@@ -33,12 +33,15 @@ const PLAYERS = Object.entries(
 // 2026-08-28 실측: 5대 국내컵과 UCL 모두 히트맵을 준다(야말 UCL 24/25 529포인트).
 // ⚠ 특정 선수가 404 인 건 커버리지 구멍이 아니라 **그 대회에 아직 안 뛴 것**이다 —
 //   스타 선수로만 찔러 보면 컵 전체가 미제공인 것처럼 오판한다(실제로 한 번 오판했다).
+const UEFA = ["comp_3498", "comp_7739", "comp_408698"]; // UCL · 유로파 · 컨퍼런스
 const EXTRA_COMPS: Record<string, string[]> = {
-  EPL: ["comp_7428", "comp_2504", "comp_3498"], // FA컵 · EFL컵 · UCL
-  LALIGA: ["comp_7915", "comp_3498"], // 코파 델 레이 · UCL
-  SERIE_A: ["comp_8525", "comp_3498"], // 코파 이탈리아 · UCL
-  BUNDESLIGA: ["comp_3620", "comp_3498"], // DFB 포칼 · UCL
-  LIGUE_1: ["comp_4750", "comp_3498"], // 쿠프 드 프랑스 · UCL
+  EPL: ["comp_7428", "comp_2504", ...UEFA], // FA컵 · EFL컵
+  LALIGA: ["comp_7915", ...UEFA], // 코파 델 레이
+  SERIE_A: ["comp_8525", ...UEFA], // 코파 이탈리아
+  BUNDESLIGA: ["comp_3620", ...UEFA], // DFB 포칼
+  LIGUE_1: ["comp_4750", ...UEFA], // 쿠프 드 프랑스
+  // 유럽 대항전에 나가는 나머지 리그 — 국내컵은 미확인이라 대항전만 붙인다
+  EREDIVISIE: UEFA, PRIMEIRA_LIGA: UEFA, SUPER_LIG: UEFA, JUPILER_PL: UEFA, SPL: UEFA,
 };
 
 interface MatchHeatmap {
@@ -114,7 +117,9 @@ async function main() {
       const existing = new Set((out[p.ourId]?.matches ?? []).map((m) => m.id));
       // 리그 + 그 리그의 컵·대항전. 시즌 태그는 리그 라벨에서 뽑는다 ("2026-27 EPL" → "26/27").
       const league = p.seasonLabel.split(" ").slice(1).join(" ");
-      const tag = `${p.seasonLabel.slice(2, 4)}/${p.seasonLabel.slice(5, 7)}`; // "2026-27 EPL" → "26/27"
+      // "2026-27 EPL" → "26/27" · "2026 K_LEAGUE_1" → "2026" (달력 시즌 리그)
+      const yr = p.seasonLabel.split(" ")[0];
+      const tag = /^\d{4}-\d{2}$/.test(yr) ? `${yr.slice(2, 4)}/${yr.slice(5, 7)}` : yr;
       const pairs = [{ comp: p.competitionId, season: p.seasonId }];
       for (const c of EXTRA_COMPS[league] ?? []) {
         const sid = await cupSeasonId(c, tag);

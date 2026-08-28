@@ -28,13 +28,28 @@ const LEAGUE_CFG: Record<string, { competitionId: string }> = {
   SPL: { competitionId: "comp_6387" },
   BUNDESLIGA_2: { competitionId: "comp_0406" },
   SERIE_B: { competitionId: "comp_5450" },
+  CHAMPIONSHIP: { competitionId: "comp_8321" },
+  EREDIVISIE: { competitionId: "comp_3809" },
+  LALIGA_2: { competitionId: "comp_0976" },
+  LIGUE_2: { competitionId: "comp_9777" },
+  PRIMEIRA_LIGA: { competitionId: "comp_8385" },
+  SUPER_LIG: { competitionId: "comp_9235" },
+  JUPILER_PL: { competitionId: "comp_8531" },
+  SAUDI_PL: { competitionId: "comp_45025" },
+  // 달력 시즌(1~12월) 리그 — 시즌 인자를 "2026" 형태로 준다
+  K_LEAGUE_1: { competitionId: "comp_1646" },
+  J1_LEAGUE: { competitionId: "comp_6240" },
 };
 // 하위 호환: 첫 인자가 숫자면 EPL 상위 N
 const positional = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const argLeague = positional[0] && !/^\d+$/.test(positional[0]) ? positional[0] : "EPL";
 const TOP_N = Number((/^\d+$/.test(positional[0] ?? "") ? positional[0] : positional[1]) || 25);
 const SEASON_TAG = process.argv.find((a) => a.startsWith("--season="))?.slice(9) ?? "25/26"; // "24/25" 형태
-const SEASON_PREFIX = `20${SEASON_TAG.split("/")[0]}-${SEASON_TAG.split("/")[1]}`; // "2024-25"
+// "24/25" → "2024-25". 달력 시즌 리그(K리그·J1·브라질)는 "2026" 처럼 슬래시가 없다 —
+// 그대로 쓰지 않으면 "202026-undefined" 라벨이 만들어져 시즌 비교가 통째로 깨진다.
+const SEASON_PREFIX = SEASON_TAG.includes("/")
+  ? `20${SEASON_TAG.split("/")[0]}-${SEASON_TAG.split("/")[1]}`
+  : SEASON_TAG;
 const CFG = LEAGUE_CFG[argLeague];
 if (!CFG) { console.error(`지원 리그: ${Object.keys(LEAGUE_CFG).join(", ")}`); process.exit(1); }
 
