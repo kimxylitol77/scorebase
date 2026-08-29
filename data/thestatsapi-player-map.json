@@ -6982,5 +6982,86 @@
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "2y8m4zhgx6p1ql0": {
+  "statsId": "pl_58156",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Jon Dahl Tomasson",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "3glrw7hj63d2qdy": {
+  "statsId": "pl_62580419",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Joris Mathijsen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "8yomo4h2x685q0j": {
+  "statsId": "pl_456796",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Bonaventure Kalou",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1gh8d8y6moe": {
+  "statsId": "pl_46620",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Mark van Bommel",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "k82rekhy6wjyrep": {
+  "statsId": "pl_36284",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Jan Kromkamp",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "l7oqdeh42x5dr51": {
+  "statsId": "pl_19576",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Jaap Stam",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "p3glrw7h5j7qdyj": {
+  "statsId": "pl_20301",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Dirk Kuyt",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8ghjx3ynr6o": {
+  "statsId": "pl_131649",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Giovanni van Bronckhorst",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y39mp1h3yjlmojx": {
+  "statsId": "pl_381048",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Arjen Robben",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  }
 }
