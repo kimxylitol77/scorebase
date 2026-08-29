@@ -7207,5 +7207,50 @@
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "2y8m4zhzxp7ql07": {
+  "statsId": "pl_08301453",
+  "teamId": "tm_896909",
+  "teamName": "Marbella FC",
+  "name": "Zinho Vanheusden",
+  "competitionId": "comp_8531",
+  "seasonId": "sn_6195301",
+  "seasonLabel": "2026-27 JUPILER_PL"
+ },
+ "n54qllhx68poqvy": {
+  "statsId": "pl_29286973",
+  "teamId": "tm_694184",
+  "teamName": "Patro Eisden Maasmechelen",
+  "name": "Isaias Delpupo",
+  "competitionId": "comp_8531",
+  "seasonId": "sn_6195301",
+  "seasonLabel": "2026-27 JUPILER_PL"
+ },
+ "x7lm7ph08v12m2w": {
+  "statsId": "pl_36254003",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Peter van der Heyden",
+  "competitionId": "comp_8531",
+  "seasonId": "sn_6195301",
+  "seasonLabel": "2026-27 JUPILER_PL"
+ },
+ "y0or5jhe68dxqwz": {
+  "statsId": "pl_45707",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Geert De Vlieger",
+  "competitionId": "comp_8531",
+  "seasonId": "sn_6195301",
+  "seasonLabel": "2026-27 JUPILER_PL"
+ },
+ "zp5rzghxnglnq82": {
+  "statsId": "pl_0114",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Nico Van Kerckhoven",
+  "competitionId": "comp_8531",
+  "seasonId": "sn_6195301",
+  "seasonLabel": "2026-27 JUPILER_PL"
  }
 }
