@@ -7063,5 +7063,50 @@
   "competitionId": "comp_3809",
   "seasonId": "sn_5744954",
   "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "4jwq2ghx2yxym0v": {
+  "statsId": "pl_15651454",
+  "teamId": "tm_8932260",
+  "teamName": "FC Alverca",
+  "name": "Isaac James",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "9k82rekh4pkrepz": {
+  "statsId": "pl_09203",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Iker Casillas",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "dj2ryohky83q1zp": {
+  "statsId": "pl_020301",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Fábio Coentrão",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "ednm9whzexjeryo": {
+  "statsId": "pl_292328",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Maniche",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "kdj2ryoh62lq1zp": {
+  "statsId": "pl_66638",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Eliseu",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
  }
 }
