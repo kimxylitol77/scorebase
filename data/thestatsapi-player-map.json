@@ -7108,5 +7108,104 @@
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "4jwq2ghvp5wjm0v": {
+  "statsId": "pl_04044",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Tony Sylva",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4h87n2q86p": {
+  "statsId": "pl_272793",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Jean-Jacques Gosso",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4hdvpzpq86": {
+  "statsId": "pl_45119007",
+  "teamId": "tm_98487",
+  "teamName": "Roma",
+  "name": "Devis Vasquez",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8y39mp1hly0mojx": {
+  "statsId": "pl_614699",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Serdar Taşçı",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "9vjxm8gh6per6od": {
+  "statsId": "pl_89038",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Georgios Samaras",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "ednm9whzyz3yryo": {
+  "statsId": "pl_08095714",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Jayden oosterwolde",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "k82rekhy6wvwrep": {
+  "statsId": "pl_83627058",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Tomas Ujfalusi",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "n54qllhx49wyqvy": {
+  "statsId": "pl_96338062",
+  "teamId": "tm_47528",
+  "teamName": "Kocaelispor",
+  "name": "Berkan Kutlu",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "pxwrxlh9ey1zryk": {
+  "statsId": "pl_5348",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Emmanuel Eboué",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "z318q66heznqo9j": {
+  "statsId": "pl_456625",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Cédric Carrasso",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "zp5rzghz45n2q82": {
+  "statsId": "pl_99264",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Raúl Meireles",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
  }
 }
