@@ -7252,5 +7252,41 @@
   "competitionId": "comp_8531",
   "seasonId": "sn_6195301",
   "seasonLabel": "2026-27 JUPILER_PL"
+ },
+ "dn1m1ghn7ll1moe": {
+  "statsId": "pl_72515",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "David Weir",
+  "competitionId": "comp_6387",
+  "seasonId": "sn_8406037",
+  "seasonLabel": "2026-27 SPL"
+ },
+ "jednm9whnn8ryox": {
+  "statsId": "pl_720922",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Niko Kranjčar",
+  "competitionId": "comp_6387",
+  "seasonId": "sn_8406037",
+  "seasonLabel": "2026-27 SPL"
+ },
+ "kdj2ryoh3l9q1zp": {
+  "statsId": "pl_57392433",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Alex Bruce",
+  "competitionId": "comp_6387",
+  "seasonId": "sn_8406037",
+  "seasonLabel": "2026-27 SPL"
+ },
+ "p3glrw7he81qdyj": {
+  "statsId": "pl_47555982",
+  "teamId": "tm_20507",
+  "teamName": "East Stirlingshire",
+  "name": "James McFadden",
+  "competitionId": "comp_6387",
+  "seasonId": "sn_8406037",
+  "seasonLabel": "2026-27 SPL"
  }
 }
