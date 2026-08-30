@@ -156,12 +156,12 @@
         "status": "played",
         "season": "2026",
         "team": "Los Angeles FC",
-        "apps": 20,
-        "starts": 18,
+        "apps": 21,
+        "starts": 19,
         "goals": 4,
         "assists": 8,
-        "minutes": 1575,
-        "rating": 7.12,
+        "minutes": 1665,
+        "rating": 7.07,
         "yellow": 2,
         "red": 0
       }
@@ -872,15 +872,15 @@
       },
       "spells": null,
       "current": {
-        "status": "none",
+        "status": "played",
         "season": "2026-27",
-        "team": null,
-        "apps": 0,
-        "starts": 0,
-        "goals": 0,
+        "team": "Grasshopper",
+        "apps": 1,
+        "starts": 1,
+        "goals": 1,
         "assists": 0,
-        "minutes": 0,
-        "rating": null,
+        "minutes": 59,
+        "rating": 7.11,
         "yellow": 0,
         "red": 0
       }
@@ -1174,12 +1174,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Austria Vienna",
-        "apps": 3,
-        "starts": 3,
+        "apps": 4,
+        "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 270,
-        "rating": 6.59,
+        "minutes": 360,
+        "rating": 6.28,
         "yellow": 0,
         "red": 0
       }
@@ -1338,12 +1338,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Club Brugge",
-        "apps": 3,
-        "starts": 3,
+        "apps": 4,
+        "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 270,
-        "rating": 7.56,
+        "minutes": 360,
+        "rating": 7.29,
         "yellow": 0,
         "red": 0
       }
@@ -1424,8 +1424,8 @@
         "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 318,
-        "rating": 6.64,
+        "minutes": 334,
+        "rating": 6.61,
         "yellow": 0,
         "red": 0
       }
@@ -1584,12 +1584,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Midtjylland",
-        "apps": 3,
+        "apps": 4,
         "starts": 2,
         "goals": 0,
         "assists": 0,
-        "minutes": 207,
-        "rating": 6.46,
+        "minutes": 220,
+        "rating": 6.44,
         "yellow": 0,
         "red": 0
       }
@@ -1912,12 +1912,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Alanyaspor",
-        "apps": 2,
-        "starts": 2,
+        "apps": 3,
+        "starts": 3,
         "goals": 0,
         "assists": 0,
-        "minutes": 134,
-        "rating": 6.3,
+        "minutes": 208,
+        "rating": 6.34,
         "yellow": 0,
         "red": 0
       }
@@ -2081,7 +2081,7 @@
         "goals": 1,
         "assists": 1,
         "minutes": 171,
-        "rating": 7.18,
+        "rating": 7.21,
         "yellow": 0,
         "red": 0
       }
@@ -2486,12 +2486,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "SV Darmstadt 98",
-        "apps": 2,
+        "apps": 3,
         "starts": 0,
         "goals": 1,
         "assists": 0,
-        "minutes": 41,
-        "rating": 6.88,
+        "minutes": 65,
+        "rating": 6.69,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-29T22:20:25.582Z"
+  "currentUpdatedAt": "2026-08-30T22:20:25.235Z"
 }
