@@ -404,6 +404,15 @@ export interface TSFootballSeasonPlayerStatResponse {
     yellow_cards: number;
     shots: number;
     shots_on_target: number;
+    /** 드리블 시도/성공 — 실응답 확인 필드 (2026-08-30 EPL 실측, 문서 밖) */
+    dribble?: number;
+    dribble_succ?: number;
+    key_passes?: number;
+    tackles?: number;
+    interceptions?: number;
+    clearances?: number;
+    saves?: number;
+    was_fouled?: number;
     /** 평점 — x100 stored. 평균 = rating/court/100 */
     rating: number;
     big_chance_created?: number;

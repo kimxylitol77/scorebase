@@ -424,13 +424,32 @@ async function syncLeagueFromTsPlayerStat(
     if (rows.length === 0) return out;
   }
 
+  // 평점은 비율 스탯이라 출전 게이트 필수 — 1경기 8.0 이 시즌 1위가 되지 않게.
+  // 개막 직후에도 표가 서도록 절대값(5) 대신 리그 최다 출전의 절반(최소 2)으로 적응형.
+  const maxCourt = rows.reduce((m, r) => Math.max(m, r.court ?? 0), 0);
+  const ratingGate = Math.max(2, Math.ceil(maxCourt / 2));
+  type StatRow = (typeof rows)[number];
   const cats: Array<{
-    cat: "GOAL" | "ASSIST" | "YELLOW" | "RED";
+    cat: string;
     unit: string;
-    val: (r: (typeof rows)[number]) => number;
+    val: (r: StatRow) => number;
+    /** 순위 대상 조건 — 기본 val>0 */
+    ok?: (r: StatRow) => boolean;
   }> = [
     { cat: "GOAL", unit: "골", val: (r) => r.goals ?? 0 },
     { cat: "ASSIST", unit: "도움", val: (r) => r.assists ?? 0 },
+    // 2026-08-30 확장 — ts 시즌 스탯 실응답에 있는 필드만 (경쟁사 FotMob·Sofascore 표준 세트).
+    { cat: "SHOT_ON", unit: "회", val: (r) => r.shots_on_target ?? 0 },
+    { cat: "DRIBBLE_SUCC", unit: "회", val: (r) => r.dribble_succ ?? 0 },
+    { cat: "CHANCE", unit: "회", val: (r) => r.key_passes ?? 0 },
+    { cat: "DEFENSE", unit: "회", val: (r) => (r.tackles ?? 0) + (r.interceptions ?? 0) + (r.clearances ?? 0) },
+    { cat: "SAVE", unit: "세이브", val: (r) => r.saves ?? 0 },
+    {
+      cat: "RATING",
+      unit: "평점",
+      val: (r) => +(((r.rating ?? 0) / Math.max(r.court ?? 1, 1)) / 100).toFixed(2),
+      ok: (r) => (r.court ?? 0) >= ratingGate && (r.rating ?? 0) > 0,
+    },
     { cat: "YELLOW", unit: "장", val: (r) => r.yellow_cards ?? 0 },
     { cat: "RED", unit: "장", val: (r) => r.red_cards ?? 0 },
   ];
@@ -440,7 +459,7 @@ async function syncLeagueFromTsPlayerStat(
     ...new Set(
       cats.flatMap((c) =>
         rows
-          .filter((r) => c.val(r) > 0)
+          .filter((r) => (c.ok ? c.ok(r) : c.val(r) > 0))
           .sort((a, b) => c.val(b) - c.val(a))
           .slice(0, TOP_N)
           .map((r) => r.player?.id)
@@ -463,7 +482,7 @@ async function syncLeagueFromTsPlayerStat(
   for (const c of cats) {
     // rating 은 x100 누적이라 court(출전)로 나눠야 평균 — tiebreak 에만 쓰므로 비율만 맞으면 된다.
     const top = rows
-      .filter((r) => c.val(r) > 0)
+      .filter((r) => (c.ok ? c.ok(r) : c.val(r) > 0))
       .sort(
         (a, b) =>
           c.val(b) - c.val(a) ||

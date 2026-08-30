@@ -14,7 +14,10 @@ export const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
   SOCCER: [
     { key: "GOAL", label: "득점", emoji: "⚽" },
     { key: "ASSIST", label: "도움", emoji: "🎯" },
-    // CHANCE·RATING·DEFENSE·SAVE 는 월드컵(실시간 playerStats 집계)만 데이터 공급 — 빅5는 탭 미노출
+    // 2026-08-30 — ts 시즌 스탯 리그(TS_PLAYER_STAT_LEAGUES)는 아래 확장 세트도 공급
+    { key: "SHOT_ON", label: "유효슛", emoji: "🥅" },
+    { key: "DRIBBLE_SUCC", label: "드리블", emoji: "🏃" },
+    // CHANCE·RATING·DEFENSE·SAVE — 월드컵(실시간 집계) + ts 시즌 스탯 리그가 공급
     { key: "CHANCE", label: "키패스", emoji: "🔑" },
     { key: "RATING", label: "평점", emoji: "⭐", decimals: 2 },
     { key: "DEFENSE", label: "수비", emoji: "🛡️" },
