@@ -8350,5 +8350,86 @@
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "jw2r09hjw1oorz8": {
+  "statsId": "pl_36041475",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Samuel Klein",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l5ergpho4jwr8k0": {
+  "statsId": "pl_766391",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Mensur Mujdža",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l7oqdeh0yl1dr51": {
+  "statsId": "pl_19449569",
+  "teamId": "tm_5768",
+  "teamName": "Leyton Orient",
+  "name": "Fin Stevens",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l7oqdeh4gv2yr51": {
+  "statsId": "pl_72660627",
+  "teamId": "tm_15059",
+  "teamName": "Arminia Bielefeld",
+  "name": "Leo Oppermann",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "n54qllh85e1qvy9": {
+  "statsId": "pl_96046797",
+  "teamId": "tm_64346",
+  "teamName": "Alemannia Aachen",
+  "name": "Steve Kroll",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y0or5jh0pyjqwzv": {
+  "statsId": "pl_30287345",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Fraser Hornby",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y0or5jhe6d06qwz": {
+  "statsId": "pl_25831323",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Jacek Krzynówek",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y39mp1h10wynmoj": {
+  "statsId": "pl_37537518",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Bruno Katz",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y39mp1hyl81omoj": {
+  "statsId": "pl_02717473",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Marwin Reiner Ian Schmitz",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
  }
 }
