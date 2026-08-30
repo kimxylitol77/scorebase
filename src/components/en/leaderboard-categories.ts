@@ -13,6 +13,8 @@ export const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
   SOCCER: [
     { key: "GOAL", label: "Goals", emoji: "⚽" },
     { key: "ASSIST", label: "Assists", emoji: "🎯" },
+    { key: "SHOT_ON", label: "Shots on target", emoji: "🥅" },
+    { key: "DRIBBLE_SUCC", label: "Dribbles", emoji: "🏃" },
     // CHANCE·RATING·DEFENSE·SAVE 는 월드컵(실시간 playerStats 집계)만 데이터 공급 — 빅5는 탭 미노출
     { key: "CHANCE", label: "Key passes", emoji: "🔑" },
     { key: "RATING", label: "Rating", emoji: "⭐", decimals: 2 },

@@ -122,7 +122,7 @@ export async function loadLeagueLeaderboard(
       value: r.value,
       unit: r.unit,
       appearances: r.appearances,
-      subLabel: locale === "en" ? null : (r.subLabel ?? null), // 보조 문구는 한국어로 저장 — EN 은 미표시
+      subLabel: locale === "en" ? translateSubLabel(r.subLabel) : (r.subLabel ?? null),
       photoUrl: r.photoUrl,
       externalId: resolveExternalId(r.externalId),
     });
@@ -130,4 +130,28 @@ export async function loadLeagueLeaderboard(
   // PC 중앙 컬럼용 팀 로고/국기 — 이름 매칭이라 미스는 로고 없이(정상), 실패해도 rows 원본 유지.
   await attachLeaderTeamLogos(league, rowsByCategory);
   return { rowsByCategory, season, preSeason: false, staleSeason: null };
+}
+
+// 보조 맥락(subLabel)은 한국어 고정 어휘로 저장된다 — EN 은 읽기 시점 용어 치환.
+// 형식을 수집 잡이 통제하므로(전환율·성공률·태클 등) 단어 치환으로 충분하다.
+const SUB_LABEL_EN: Array<[RegExp, string]> = [
+  [/슛/g, "Shots"],
+  [/득점/g, "Goals"],
+  [/전환율/g, "Conv."],
+  [/시도/g, "Att."],
+  [/성공률/g, "Succ."],
+  [/키패스/g, "Key passes"],
+  [/도움/g, "Assists"],
+  [/빅찬스/g, "Big chances"],
+  [/태클/g, "Tackles"],
+  [/인터셉트/g, "Int."],
+  [/클리어/g, "Clr."],
+  [/(\d+)분 출전/g, "$1 min played"],
+];
+function translateSubLabel(ko: string | null | undefined): string | null {
+  if (!ko) return null;
+  let out = ko;
+  for (const [re, en] of SUB_LABEL_EN) out = out.replace(re, en);
+  // 못 옮긴 한글이 남으면 그 문구는 숨긴다 — 영어판에 한글 노출 금지
+  return /[가-힣]/.test(out) ? null : out;
 }

@@ -18,6 +18,7 @@ export interface LeaderRow {
   value: number;
   unit: string | null;
   appearances: number | null;
+  subLabel?: string | null;
   photoUrl: string | null;
   /** 팀 로고 URL (클럽 리그, attachLeaderTeamLogos 가 채움) — PC 중앙 컬럼용. */
   teamLogo?: string | null;
@@ -154,6 +155,9 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 <div className="text-lg sm:text-xl font-black tabular-nums">
                   {decimals > 0 ? r.value.toFixed(decimals) : Math.round(r.value)}
                 </div>
+                {r.subLabel && (
+                  <div className="text-[10px] text-neutral-400 tabular-nums whitespace-nowrap">{r.subLabel}</div>
+                )}
               </div>
               <span
                 className={`text-neutral-300 dark:text-neutral-600 text-xs shrink-0 ${href ? "" : "invisible"}`}
