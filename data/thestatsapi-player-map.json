@@ -8431,5 +8431,95 @@
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "1l4rjnhkn749m7v": {
+  "statsId": "pl_46267017",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Giacomo Maucci",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "23xmvkhdp56gqg8": {
+  "statsId": "pl_61050829",
+  "teamId": "tm_51921",
+  "teamName": "Sassuolo",
+  "name": "Josh Doig",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "2y8m4zh8lj36ql0": {
+  "statsId": "pl_40207990",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Davide De Battisti",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "318q66hvg655qo9": {
+  "statsId": "pl_13867899",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Nicholas Bonfanti",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "3glrw7hj82oqdyj": {
+  "statsId": "pl_0910815",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Fabio Gerli",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "3glrw7hz7vzkqdy": {
+  "statsId": "pl_58723954",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Dachi Lordkipanidze",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "4jwq2gh74e9pm0v": {
+  "statsId": "pl_25989320",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Eddy cabianca",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "4jwq2ghvwpx4m0v": {
+  "statsId": "pl_29299625",
+  "teamId": "tm_0805527",
+  "teamName": "Caronnese",
+  "name": "Alessandro Curci",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "6ypq3nh59pnmd7o": {
+  "statsId": "pl_4044708",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Marco Festa",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "6ypq3nhzj1domd7": {
+  "statsId": "pl_30208537",
+  "teamId": "tm_98418",
+  "teamName": "Bari",
+  "name": "Giuseppe Sibilli",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
  }
 }
