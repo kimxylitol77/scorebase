@@ -197,8 +197,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
 
-  // 득점 감지 — LIVE 축구는 항상 켬. 점수 숫자 뒤 halo(score-halo-burst) + flashSide(골 임팩트).
-  const { awayPing, homePing, flashSide } = useScoreFlash(
+  // 득점 감지 — LIVE 축구는 항상 켬. flashSide(골 임팩트)만 사용 — 점수 뒤 원형 halo 는 제거 (2026-08-30 사용자: 반복 발화 거슬림).
+  const { flashSide } = useScoreFlash(
     awayScore ?? 0,
     homeScore ?? 0,
     isLive,
@@ -207,13 +207,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   // 0~2분 윈도우=실제 ~3분 잔존)는 라이브 느릴 때 보강책이었으나, 점수가 af+ts 병합으로
   // 빨라져 제거 — "너무 오래 떠 있음" 해소 (2026-06-14).
   const goalFlashSide = flashSide;
-  // 좌/우 표시 순서는 awayFirst 에 따라 바뀜 — 좌측 숫자의 ping 을 골라준다.
-  const leftPing = awayFirst ? awayPing : homePing;
 
   // 득점자 tooltip 좌표 — 컨테이너(overflow-x-auto)에 잘리지 않게 fixed 로 띄운다.
   // x 는 화면 가장자리 클램프(폭 280px 절반+여유), 세로는 렌더 후 실측 클램프 (GoalsTooltip).
   const [tipPos, setTipPos] = useState<{ x: number; bottom: number } | null>(null);
-  const rightPing = awayFirst ? homePing : awayPing;
 
   // SCHEDULED 매치는 score 무시 — collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피
   const hasScore = (isLive || isFinished) && homeScore != null && awayScore != null;
@@ -372,10 +369,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                         : "text-neutral-500"
                   }`}
                 >
-                  {leftPing > 0 && (
-                    <span key={leftPing} className="score-halo-burst" aria-hidden />
-                  )}
-                  {awayFirst ? awayScore : homeScore}
+                                    {awayFirst ? awayScore : homeScore}
                 </span>
                 <span className="mx-1 text-neutral-300 dark:text-neutral-700 font-normal">-</span>
                 <span
@@ -389,10 +383,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                         : "text-neutral-500"
                   }`}
                 >
-                  {rightPing > 0 && (
-                    <span key={rightPing} className="score-halo-burst" aria-hidden />
-                  )}
-                  {awayFirst ? homeScore : awayScore}
+                                    {awayFirst ? homeScore : awayScore}
                 </span>
               </>,
             )}

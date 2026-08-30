@@ -486,7 +486,7 @@ function MobileCells({
   const cellBorder = "border-r border-neutral-200/70 dark:border-neutral-800";
   // 야구 LIVE 매치만 — 득점 시 점수 숫자 뒤 halo flash.
   const flashEnabled = match.sport === "baseball" && match.status === "live";
-  const { awayPing, homePing } = useScoreFlash(
+  useScoreFlash(
     match.away.score ?? 0,
     match.home.score ?? 0,
     flashEnabled,
@@ -511,17 +511,11 @@ function MobileCells({
           {hasScore ? (
             <>
               <span className="relative isolate inline-block">
-                {homePing > 0 && (
-                  <span key={homePing} className="score-halo-burst" aria-hidden />
-                )}
-                {match.home.score}
+                                {match.home.score}
               </span>
               <span className="mx-1 text-neutral-400">-</span>
               <span className="relative isolate inline-block">
-                {awayPing > 0 && (
-                  <span key={awayPing} className="score-halo-burst" aria-hidden />
-                )}
-                {match.away.score}
+                                {match.away.score}
               </span>
             </>
           ) : (
