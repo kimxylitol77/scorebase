@@ -8260,5 +8260,95 @@
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "23xmvkhk0j85qg8": {
+  "statsId": "pl_20675359",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Paul Hennrich",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "2y8m4zhgwdw8ql0": {
+  "statsId": "pl_96342223",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Tim Siersleben",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "318q66hvgvd0qo9": {
+  "statsId": "pl_61562505",
+  "teamId": "tm_46896",
+  "teamName": "SG Dynamo Dresden",
+  "name": "Thomas Keller",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4jwq2ghvpgwzm0v": {
+  "statsId": "pl_45876250",
+  "teamId": "tm_9794082",
+  "teamName": "CDC Montalegre",
+  "name": "Isaac Boakye",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4wyrn4hvz83wq86": {
+  "statsId": "pl_15444084",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Jakub Zielinski",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "6ypq3nh1o61md7o": {
+  "statsId": "pl_29781781",
+  "teamId": "tm_6917",
+  "teamName": "Blackburn Rovers",
+  "name": "Oladapo Afolayan",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "6ypq3nhl2vjemd7": {
+  "statsId": "pl_8480",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Jörg Böhme",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "8yomo4hv6y6q0j6": {
+  "statsId": "pl_72953465",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Dimitar Mitov",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "dj2ryohg2633q1z": {
+  "statsId": "pl_36537262",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Alessio Besio",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "e4wyrn4h1l7q86p": {
+  "statsId": "pl_5166",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Miso Brecko",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
  }
 }
