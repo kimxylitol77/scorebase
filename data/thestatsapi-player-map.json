@@ -8656,5 +8656,50 @@
   "competitionId": "comp_5450",
   "seasonId": "sn_3025358",
   "seasonLabel": "2026-27 SERIE_B"
+ },
+ "dj2ryohyk2gq1zp": {
+  "statsId": "pl_7256190",
+  "teamId": "tm_722937",
+  "teamName": "Jeju SK",
+  "name": "Tobias Figueiredo",
+  "competitionId": "comp_1646",
+  "seasonId": "sn_6133361",
+  "seasonLabel": "2026 K_LEAGUE_1"
+ },
+ "x7lm7pho4d0m2wd": {
+  "statsId": "pl_8957754",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Modou Barrow",
+  "competitionId": "comp_1646",
+  "seasonId": "sn_6133361",
+  "seasonLabel": "2026 K_LEAGUE_1"
+ },
+ "dn1m1ghn7l3jmoe": {
+  "statsId": "pl_297799",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Ki Hyeon Seol",
+  "competitionId": "comp_1646",
+  "seasonId": "sn_6133361",
+  "seasonLabel": "2026 K_LEAGUE_1"
+ },
+ "ednm9whzkx7ryox": {
+  "statsId": "pl_8970074",
+  "teamId": "tm_842530",
+  "teamName": "Jeonbuk Hyundai Motors",
+  "name": "Patrick Twumasi",
+  "competitionId": "comp_1646",
+  "seasonId": "sn_6133361",
+  "seasonLabel": "2026 K_LEAGUE_1"
+ },
+ "9k82rekh7l2repz": {
+  "statsId": "pl_976742",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Chu-Young Park",
+  "competitionId": "comp_1646",
+  "seasonId": "sn_6133361",
+  "seasonLabel": "2026 K_LEAGUE_1"
  }
 }
