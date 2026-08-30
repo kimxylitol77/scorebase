@@ -21,6 +21,10 @@ export function useScoreFlash(
   flashSide: "home" | "away" | null;
 } {
   const prevRef = useRef<{ away: number; home: number } | null>(null);
+  // 세션 중 관측한 최고 점수 — 소스 플랩(병합값이 3-1↔2-1 로 출렁)일 때 회복분을 "득점"으로
+  // 재판정해 halo 가 주기적으로 반복되던 것 차단 (2026-08-30 첼시 HT 빨간 원 신고).
+  // 진짜 골은 항상 최고점을 넘어 놓치지 않는다. (골 취소 후 같은 점수 재득점만 flash 생략 — 표기는 정상)
+  const maxRef = useRef<{ away: number; home: number }>({ away: 0, home: 0 });
   const [awayPing, setAwayPing] = useState(0);
   const [homePing, setHomePing] = useState(0);
   const [flashSide, setFlashSide] = useState<"home" | "away" | null>(null);
@@ -28,13 +32,18 @@ export function useScoreFlash(
   useEffect(() => {
     const prev = prevRef.current;
     prevRef.current = { away: awayScore, home: homeScore };
+    const max = maxRef.current;
+    const isNewHome = homeScore > max.home;
+    const isNewAway = awayScore > max.away;
+    max.home = Math.max(max.home, homeScore);
+    max.away = Math.max(max.away, awayScore);
     if (!prev || !enabled) return;
     let side: "home" | "away" | null = null;
-    if (homeScore > prev.home) {
+    if (homeScore > prev.home && isNewHome) {
       setHomePing((n) => n + 1);
       side = "home";
     }
-    if (awayScore > prev.away) {
+    if (awayScore > prev.away && isNewAway) {
       setAwayPing((n) => n + 1);
       side = "away";
     }
