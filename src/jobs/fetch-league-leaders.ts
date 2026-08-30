@@ -59,6 +59,7 @@ interface UpsertInput {
   value: number;
   unit?: string;
   appearances?: number;
+  subLabel?: string;
   photoUrl?: string;
   season: string;
 }
@@ -83,6 +84,7 @@ function leaderUpsertOp(d: UpsertInput) {
       value: d.value,
       unit: d.unit,
       appearances: d.appearances,
+      subLabel: d.subLabel ?? null,
       photoUrl: d.photoUrl,
       fetchedAt: new Date(),
     },
@@ -435,20 +437,43 @@ async function syncLeagueFromTsPlayerStat(
     val: (r: StatRow) => number;
     /** 순위 대상 조건 — 기본 val>0 */
     ok?: (r: StatRow) => boolean;
+    /** 값 옆 보조 맥락 — 전환율(득점/슈팅)·성공률(성공/시도) 등. null 이면 미표시 */
+    sub?: (r: StatRow) => string | null;
   }> = [
-    { cat: "GOAL", unit: "골", val: (r) => r.goals ?? 0 },
-    { cat: "ASSIST", unit: "도움", val: (r) => r.assists ?? 0 },
+    {
+      cat: "GOAL", unit: "골", val: (r) => r.goals ?? 0,
+      sub: (r) => ((r.shots ?? 0) > 0 ? `슛 ${r.shots} · 전환율 ${Math.round(((r.goals ?? 0) / r.shots!) * 100)}%` : null),
+    },
+    {
+      cat: "ASSIST", unit: "도움", val: (r) => r.assists ?? 0,
+      sub: (r) => ((r.key_passes ?? 0) > 0 ? `키패스 ${r.key_passes}` : null),
+    },
     // 2026-08-30 확장 — ts 시즌 스탯 실응답에 있는 필드만 (경쟁사 FotMob·Sofascore 표준 세트).
-    { cat: "SHOT_ON", unit: "회", val: (r) => r.shots_on_target ?? 0 },
-    { cat: "DRIBBLE_SUCC", unit: "회", val: (r) => r.dribble_succ ?? 0 },
-    { cat: "CHANCE", unit: "회", val: (r) => r.key_passes ?? 0 },
-    { cat: "DEFENSE", unit: "회", val: (r) => (r.tackles ?? 0) + (r.interceptions ?? 0) + (r.clearances ?? 0) },
+    {
+      cat: "SHOT_ON", unit: "회", val: (r) => r.shots_on_target ?? 0,
+      // 유효슛 대비 득점 = 유효슛 전환율(on-target conversion)
+      sub: (r) => `득점 ${r.goals ?? 0}${(r.shots_on_target ?? 0) > 0 ? ` · 전환율 ${Math.round(((r.goals ?? 0) / r.shots_on_target!) * 100)}%` : ""}`,
+    },
+    {
+      cat: "DRIBBLE_SUCC", unit: "회", val: (r) => r.dribble_succ ?? 0,
+      // 드리블 성공률(success rate) = 성공/시도
+      sub: (r) => ((r.dribble ?? 0) > 0 ? `시도 ${r.dribble} · 성공률 ${Math.round(((r.dribble_succ ?? 0) / r.dribble!) * 100)}%` : null),
+    },
+    {
+      cat: "CHANCE", unit: "회", val: (r) => r.key_passes ?? 0,
+      sub: (r) => `도움 ${r.assists ?? 0}${(r.big_chance_created ?? 0) > 0 ? ` · 빅찬스 ${r.big_chance_created}` : ""}`,
+    },
+    {
+      cat: "DEFENSE", unit: "회", val: (r) => (r.tackles ?? 0) + (r.interceptions ?? 0) + (r.clearances ?? 0),
+      sub: (r) => `태클 ${r.tackles ?? 0} · 인터셉트 ${r.interceptions ?? 0} · 클리어 ${r.clearances ?? 0}`,
+    },
     { cat: "SAVE", unit: "세이브", val: (r) => r.saves ?? 0 },
     {
       cat: "RATING",
       unit: "평점",
       val: (r) => +(((r.rating ?? 0) / Math.max(r.court ?? 1, 1)) / 100).toFixed(2),
       ok: (r) => (r.court ?? 0) >= ratingGate && (r.rating ?? 0) > 0,
+      sub: (r) => ((r.minutes_played ?? 0) > 0 ? `${r.minutes_played}분 출전` : null),
     },
     { cat: "YELLOW", unit: "장", val: (r) => r.yellow_cards ?? 0 },
     { cat: "RED", unit: "장", val: (r) => r.red_cards ?? 0 },
@@ -509,6 +534,7 @@ async function syncLeagueFromTsPlayerStat(
           value: c.val(r),
           unit: c.unit,
           appearances: r.matches ?? undefined,
+          subLabel: c.sub ? (c.sub(r) ?? undefined) : undefined,
           photoUrl: r.player?.logo || undefined,
           season: seasonLabel,
         }),

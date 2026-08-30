@@ -122,6 +122,7 @@ export async function loadLeagueLeaderboard(
       value: r.value,
       unit: r.unit,
       appearances: r.appearances,
+      subLabel: locale === "en" ? null : (r.subLabel ?? null), // 보조 문구는 한국어로 저장 — EN 은 미표시
       photoUrl: r.photoUrl,
       externalId: resolveExternalId(r.externalId),
     });

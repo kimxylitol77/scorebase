@@ -469,6 +469,7 @@ model LeagueLeader {
   value        Float // 골수 · 도움 · 카드 · ERA · 타율 등
   unit         String? // "득점" · "도움" · "ERA" 등 짧은 라벨 (UI 표시용)
   appearances  Int? // 출장수 (축구) / 경기수 (야구 등)
+  subLabel     String? // 값 옆 보조 맥락 — "득점 3 · 전환율 30%"(유효슛 탭), "시도 12 · 성공률 58%"(드리블) 등 (2026-08-30)
   photoUrl     String? // 선수 사진 (외부 API 제공 시)
   season       String // "2025-26" (축구) · "2026" (야구 등)
   fetchedAt    DateTime @default(now())
