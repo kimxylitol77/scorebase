@@ -18,6 +18,7 @@ export interface LeaderRow {
   value: number;
   unit: string | null;
   appearances: number | null;
+  /** 값 옆 보조 맥락 — "득점 3 · 전환율 30%" 등 (없으면 미표시) */
   subLabel?: string | null;
   photoUrl: string | null;
   /** 팀 로고 URL (클럽 리그, attachLeaderTeamLogos 가 채움) — PC 중앙 컬럼용. */
@@ -155,6 +156,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 <div className="text-lg sm:text-xl font-black tabular-nums">
                   {decimals > 0 ? r.value.toFixed(decimals) : Math.round(r.value)}
                 </div>
+                {/* 보조 맥락 — 전환율·성공률 등. 값의 의미를 한 줄로 (2026-08-30 사용자 요청) */}
                 {r.subLabel && (
                   <div className="text-[10px] text-neutral-400 tabular-nums whitespace-nowrap">{r.subLabel}</div>
                 )}

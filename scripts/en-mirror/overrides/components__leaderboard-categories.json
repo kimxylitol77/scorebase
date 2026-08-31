@@ -34,6 +34,8 @@
     "블로킹": "Blocks",
     "서브": "Serve",
     "세트": "Set",
-    "리시브": "Receive"
+    "리시브": "Receive",
+    "유효슛": "Shots on target",
+    "드리블": "Dribbles"
   }
 }

@@ -1,0 +1,18 @@
+{
+  "header": "순위표 시즌 전환 칩 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "dict": {
+    "시즌": "Season",
+    "이번 시즌": "This season",
+    "시즌 선택": "Season selector"
+  },
+  "replace": [
+    [
+      "href={`/standings/${league}`}",
+      "href={`/en/standings/${league}`}"
+    ],
+    [
+      "href={`/standings/${league}/${s}`}",
+      "href={`/en/standings/${league}/${s}`}"
+    ]
+  ]
+}

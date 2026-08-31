@@ -1,0 +1,9 @@
+{
+  "header": "토너먼트 대진표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "dict": {
+    "토너먼트 대진표": "Knockout bracket",
+    "종료": "FT",
+    "3·4위전": "3rd place",
+    "대진은 경기 일정 기준 자동 구성 · 다음 라운드는 일정 확정 시 추가됩니다.": "Bracket is built automatically from the fixture list · later rounds appear once scheduled."
+  }
+}

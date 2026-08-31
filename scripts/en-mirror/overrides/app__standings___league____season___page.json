@@ -1,0 +1,63 @@
+{
+  "header": "/en/standings/[league]/[season] — 시즌별 최종 순위 아카이브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { toKoreanTeamName } from \"@/lib/team-names\";",
+      "import { toEnglishTeamName, enLeagueName } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "  const name = LEAGUE_DISPLAY[upper] ?? upper;",
+      "  const name = enLeagueName(upper);"
+    ],
+    [
+      "{champ.ko ?? toKoreanTeamName(champ.name, upper)}",
+      "{toEnglishTeamName(champ.name)}"
+    ],
+    [
+      "{r.ko ?? toKoreanTeamName(r.name, upper)}",
+      "{toEnglishTeamName(r.name)}"
+    ],
+    [
+      "https://www.scorebase.kr/standings/${upper}/${season}",
+      "https://www.scorebase.kr/en/standings/${upper}/${season}"
+    ],
+    [
+      "loadLeagueLeaderboard(upper, season)",
+      "loadLeagueLeaderboard(upper, season, \"en\")"
+    ],
+    [
+      "        <Link href={`/standings/${upper}`} className=\"hover:underline\">",
+      "        <Link href={`/en/standings/${upper}`} className=\"hover:underline\">"
+    ],
+    [
+      "        <Link href={`/standings/${upper}`} className=\"underline hover:text-neutral-600 dark:hover:text-neutral-300\">",
+      "        <Link href={`/en/standings/${upper}`} className=\"underline hover:text-neutral-600 dark:hover:text-neutral-300\">"
+    ],
+    [
+      "if (currentLabel === season) redirect(`/standings/${upper}`);",
+      "if (currentLabel === season) redirect(`/en/standings/${upper}`);"
+    ]
+  ],
+  "dict": {
+    "순위표": "table",
+    " 시즌 최종 기록": " final record",
+    " 시즌 리더보드": " season leaders",
+    "에서 확인하세요.": "page.",
+    "시즌 종료 시점에 동결된 최종 순위입니다. 현재 시즌은": "final table, frozen at the end of the season. For the current season see the",
+    "승점": "Pts",
+    "득실": "GD",
+    "패": "L",
+    "무": "D",
+    "승": "W",
+    "경기": "GP",
+    "팀": "Team",
+    "조": "Group",
+    "· 우승": "· Champions",
+    "팀 · 시즌 종료 최종 기록": "teams · final record at season end",
+    "시즌 최종 순위": "final standings",
+    "리그 순위": "League standings",
+    "라이브 스코어": "Live scores",
+    " 시즌 최종 순위표. 우승팀과 전체 팀의 승·무·패·득실·승점 최종 기록 아카이브.": " season final league table — champions and full records (wins, draws, losses, goal difference, points) from our archive.",
+    " 시즌 최종 순위": " Final Standings"
+  }
+}

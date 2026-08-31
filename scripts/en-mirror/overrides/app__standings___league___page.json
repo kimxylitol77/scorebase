@@ -74,8 +74,12 @@
       "  const name = enLeagueName(upper);"
     ],
     [
-      "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";\n",
-      ""
+      "import { LEAGUE_DISPLAY, BASEBALL_LEAGUES } from \"@/lib/sports/sport-leagues\";\n",
+      "import { BASEBALL_LEAGUES } from \"@/lib/sports/sport-leagues\";\n"
+    ],
+    [
+      "{ name: toKoreanTeamName(t.name, league) || t.name, logoUrl: t.logoUrl }",
+      "{ name: toEnglishTeamName(t.name), logoUrl: t.logoUrl }"
     ]
   ],
   "dict": {
@@ -210,6 +214,7 @@
     "경기 기준 · xG 출처 api-football · 실제 승점 순 정렬.": " · xG from api-football · sorted by actual points.",
     "우승·순위 예측 자세히 보기": "See the full title and table projection",
     "가을야구": "Postseason",
-    "가을야구 = 정규시즌 상위 5팀 진출 확률. 잔여 경기를 Elo 기반 몬테카를로로 5,000회 시뮬레이션해\n          매일 갱신합니다.": "Postseason probability is the chance of finishing in the top five. The remaining fixtures are simulated 5,000 times with an Elo-based Monte Carlo model, refreshed daily."
+    "가을야구 = 정규시즌 상위 5팀 진출 확률. 잔여 경기를 Elo 기반 몬테카를로로 5,000회 시뮬레이션해\n          매일 갱신합니다.": "Postseason probability is the chance of finishing in the top five. The remaining fixtures are simulated 5,000 times with an Elo-based Monte Carlo model, refreshed daily.",
+    "개 구단 팀 순위표. 승·패와 승률 기준 순위를 매일 자동 갱신합니다.": " clubs — team standings ordered by win percentage. Updated daily."
   }
 }

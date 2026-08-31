@@ -13,6 +13,7 @@ import RecentFormDots from "@/components/en/scores/RecentFormDots";
 import { toEnglishTeamName, enLeagueName } from "@/lib/i18n/en";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
@@ -20,6 +21,8 @@ import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import { getTeamGroup } from "@/lib/predict/world-cup-elos";
 import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
+import { deriveKnockout } from "@/lib/sports/knockout-derive";
+import KnockoutBracket from "@/components/en/standings/KnockoutBracket";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/en/LeagueLeaderBoard";
 import { EN_STANDINGS_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
@@ -33,6 +36,7 @@ import NbaStandingsTable from "@/components/en/NbaStandingsTable";
 import KoreanBasketballTable from "@/components/en/basketball/KoreanBasketballTable";
 import NbaPlayoffBracket from "@/components/en/NbaPlayoffBracket";
 import CollapseSection from "@/components/CollapseSection";
+import StandingsSeasonNav from "@/components/en/standings/StandingsSeasonNav";
 import {
   loadPlayoffBracket,
   isPlayoffSeasonDone,
@@ -452,9 +456,11 @@ export default async function StandingsPage({ params }: Props) {
   const lastSeasonRows = lastSeasonLeaders?.rowsByCategory ?? {};
   const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPending;
 
-  // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
+  // 야구 — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
-  const isBaseball = upper === "KBO" || upper === "NPB";
+  // ⚠️ 2026-08-27: KBO·NPB 만 분기돼 있어 **MLB 가 축구식 그대로였다** — 83승 팀에 "승점 249"
+  //   (승×3), 야구에 없는 무승부 열이 0 으로 채워진 채 노출. BASEBALL_LEAGUES 단일 기준으로 교체.
+  const isBaseball = BASEBALL_LEAGUES.has(upper);
   // 게임차는 단일 리그 표에서만 의미 — NPB 는 센트럴·퍼시픽 합산 렌더라 생략.
   const showGb = upper === "KBO";
   const leader = rows![0];
@@ -510,9 +516,15 @@ export default async function StandingsPage({ params }: Props) {
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
             {upper === "KBO"
               ? "Official 2026 KBO League table for all 10 clubs, ordered by win percentage with games behind. Updated daily."
-              : "Official 2026 NPB table for all 12 clubs, ordered by win percentage. Updated daily."}
+              : upper === "NPB"
+                ? "Official 2026 NPB table for all 12 clubs, ordered by win percentage. Updated daily."
+                : `${name} ${rows!.length} clubs — team standings ordered by win percentage. Updated daily.`}
           </p>
         )}
+        <div className="mt-3">
+          {/* 지난 시즌 최종 순위 아카이브 전환 — 아카이브 없는 리그는 자동 미노출 */}
+          <StandingsSeasonNav league={upper} active="current" />
+        </div>
       </header>
 
       <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
@@ -1031,6 +1043,34 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
   const teamMap = new Map(teams.map((t) => [t.id, t]));
   const multi = groups.length > 1;
 
+  // 토너먼트 대진표 — 조별(Group/Pool) 편성 대회에서 크로스 그룹 매치가 시작되면 자동 유도.
+  // ts 배구엔 라운드 원천이 없다(stage 미승인) — 유도 근거는 knockout-derive.ts 주석.
+  // "3위 팀 순위" 같은 보조 표는 조 편성이 아니라 제외한다.
+  // 팀이 두 조 이상에 나타나면 캐시에 예선+본선 등 다단계가 섞인 것 — 이때 유도하면
+  // 본선 조별 경기가 녹아웃으로 오판돼 엉터리 대진표가 선다(VB_EURO_W 실측: 진행 중
+  // 대회에 "결승 종료"가 표시됨). 다단계 혼재면 유도를 포기한다 — 엉터리보다 없음이 낫다.
+  const groupOf = new Map<number, string>();
+  let multiPhase = false;
+  for (const g of groups) {
+    if (!/group|pool|조\b/i.test(g.name)) continue;
+    for (const r of g.rows) {
+      if (groupOf.has(r.ourTeamId) && groupOf.get(r.ourTeamId) !== g.name) multiPhase = true;
+      groupOf.set(r.ourTeamId, g.name);
+    }
+  }
+  if (multiPhase) groupOf.clear();
+  const knockout = deriveKnockout(
+    vbMatches.map((m) => ({
+      homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId,
+      homeScore: m.homeScore, awayScore: m.awayScore,
+      status: m.status, startTime: m.startTime,
+    })),
+    groupOf,
+  );
+  const bracketTeamInfo = new Map(
+    teams.map((t) => [t.id, { name: toEnglishTeamName(t.name), logoUrl: t.logoUrl }]),
+  );
+
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -1050,6 +1090,8 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
             "Points · record · set difference — official TheSports standings, updated after each match"}
         </p>
       </header>
+
+      {knockout && <KnockoutBracket data={knockout} teamInfo={bracketTeamInfo} />}
 
       {groups.length === 0 ? (
         <p className="rounded-xl border border-neutral-200 dark:border-white/10 px-5 py-10 text-center text-sm text-neutral-500 break-keep">
