@@ -30142,5 +30142,23 @@
     "tsName": "Ancienne Chateau-Gontier",
     "tsKo": "앙시엔 샤토-곤티에",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 614536,
+    "ourName": "Truong Tuoi Dong Nai",
+    "ourLeague": "VIETNAM_VL1",
+    "ourExternalId": "ts-4wyrn4he7kjq86p",
+    "tsId": "4wyrn4he7kjq86p",
+    "tsName": "Truong Tuoi Dong Nai",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 614537,
+    "ourName": "Bac Ninh",
+    "ourLeague": "VIETNAM_VL1",
+    "ourExternalId": "ts-1l4rjnhz9yxm7vx",
+    "tsId": "1l4rjnhz9yxm7vx",
+    "tsName": "Bac Ninh",
+    "matchType": "ts-external-id"
   }
 ]
