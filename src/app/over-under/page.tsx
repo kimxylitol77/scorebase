@@ -55,6 +55,17 @@ export default async function Page() {
   const th = "px-2 py-2 text-right font-semibold whitespace-nowrap";
   const td = "px-2 py-2 text-right tabular-nums whitespace-nowrap";
 
+  // 한국 독자가 실제로 찾는 리그만 골라 한 문장으로 —— "EPL 오버 몇 %" 류 질문에 그대로 답하는 문단이 된다.
+  const FEATURED = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "K_LEAGUE_1", "J1_LEAGUE"];
+  const featured = FEATURED.map((code) => all.find((l) => l.league === code)).filter(
+    (l): l is NonNullable<typeof l> => Boolean(l),
+  );
+  const FEATURED_SENTENCE = featured.length
+    ? `${featured
+        .map((l) => `${LEAGUE_DISPLAY[l.league] ?? l.league} ${f1(l.over25Pct)}%`)
+        .join(", ")} 순으로 오버 2.5가 나왔습니다.`
+    : "집계된 주요 리그가 아직 없습니다.";
+
   return (
     <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
       <script
@@ -73,6 +84,19 @@ export default async function Page() {
       <p className="mt-3 text-sm sm:text-base text-neutral-600 dark:text-neutral-400 break-keep">
         1부부터 하부리그까지 축구 {all.length}개 리그 {matches.toLocaleString()}경기를 집계했습니다. 오버 2.5는 한 경기
         총득점이 3골 이상인 경우입니다. 경기가 끝날 때마다 다시 계산되므로 표는 늘 최신 상태입니다.
+      </p>
+      {/* 결론 문단 — 표에만 있던 답을 문장으로 꺼낸다. 표는 AI 답변에 통째로 인용되지 않고
+          문단 단위로 발췌되므로, 앞 맥락 없이도 완결되는 문장이 있어야 인용 대상이 된다.
+          숫자는 전부 집계에서 나오므로 경기가 쌓이면 이 문장도 함께 갱신된다. */}
+      <p className="mt-3 text-sm sm:text-base text-neutral-700 dark:text-neutral-300 break-keep">
+        오버가 가장 자주 나오는 리그는 <strong>{LEAGUE_DISPLAY[top?.league ?? ""] ?? "-"}</strong>입니다. 전체 경기의{" "}
+        {f1(top?.over25Pct ?? 0)}%에서 3골 이상이 나왔고 경기당 평균 {(top?.goalsPerMatch ?? 0).toFixed(2)}골을 기록했습니다.
+        반대로 언더가 가장 자주 나오는 리그는 <strong>{LEAGUE_DISPLAY[bottom?.league ?? ""] ?? "-"}</strong>입니다. 언더 비율{" "}
+        {f1(100 - (bottom?.over25Pct ?? 0))}%에 경기당 평균 {(bottom?.goalsPerMatch ?? 0).toFixed(2)}골로, 두 리그의 차이는{" "}
+        {f1((top?.over25Pct ?? 0) - (bottom?.over25Pct ?? 0))}%포인트입니다. {all.length}개 리그 전체 평균은 오버 {f1(avg)}%입니다.
+      </p>
+      <p className="mt-3 text-sm sm:text-base text-neutral-700 dark:text-neutral-300 break-keep">
+        한국에서 많이 보는 리그로 좁히면 {FEATURED_SENTENCE}
       </p>
 
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
