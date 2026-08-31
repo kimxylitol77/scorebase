@@ -1,16 +1,22 @@
 {
   "year": "2026",
-  "updatedAt": "2026-08-30T00:00:14.152Z",
+  "updatedAt": "2026-08-31T00:00:15.136Z",
   "players": [
     {
       "tour": "LPGA",
       "name": "Haeran Ryu",
       "id": null,
-      "starts": 14,
+      "starts": 15,
       "wins": 2,
-      "top10": 6,
+      "top10": 7,
       "best": 1,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 10,
+          "score": "-8"
+        },
         {
           "event": "The Standard Portland Classic",
           "date": "2026-08-13",
@@ -34,12 +40,6 @@
           "date": "2026-06-25",
           "order": 1,
           "score": "-13"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 2,
-          "score": "-10"
         }
       ],
       "nameKo": "유해란"
@@ -48,11 +48,17 @@
       "tour": "LPGA",
       "name": "Hyo Joo Kim",
       "id": null,
-      "starts": 13,
+      "starts": 14,
       "wins": 2,
-      "top10": 4,
+      "top10": 5,
       "best": 1,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 2,
+          "score": "-12"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -76,12 +82,6 @@
           "date": "2026-07-09",
           "order": 26,
           "score": "-6"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 47,
-          "score": "+2"
         }
       ],
       "nameKo": "김효주"
@@ -90,11 +90,17 @@
       "tour": "PGA",
       "name": "Tom Kim",
       "id": null,
-      "starts": 21,
+      "starts": 22,
       "wins": 1,
       "top10": 4,
       "best": 1,
       "recent": [
+        {
+          "event": "TOUR Championship",
+          "date": "2026-08-27",
+          "order": 15,
+          "score": "-9"
+        },
         {
           "event": "BMW Championship",
           "date": "2026-08-20",
@@ -118,12 +124,6 @@
           "date": "2026-07-23",
           "order": 21,
           "score": "-14"
-        },
-        {
-          "event": "The Open",
-          "date": "2026-07-16",
-          "order": 107,
-          "score": "+3"
         }
       ],
       "nameKo": "김주형"
@@ -132,11 +132,17 @@
       "tour": "LPGA",
       "name": "Jenny Shin",
       "id": null,
-      "starts": 15,
+      "starts": 16,
       "wins": 1,
       "top10": 2,
       "best": 1,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 100,
+          "score": "+3"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -160,12 +166,6 @@
           "date": "2026-07-09",
           "order": 114,
           "score": "+5"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 36,
-          "score": "E"
         }
       ],
       "nameKo": "신지은"
@@ -174,11 +174,17 @@
       "tour": "LPGA",
       "name": "Mi Hyang Lee",
       "id": null,
-      "starts": 14,
+      "starts": 15,
       "wins": 1,
       "top10": 1,
       "best": 1,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 91,
+          "score": "+2"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -202,12 +208,6 @@
           "date": "2026-07-09",
           "order": 101,
           "score": "+3"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 131,
-          "score": "+6"
         }
       ],
       "nameKo": "이미향"
@@ -216,11 +216,17 @@
       "tour": "PGA",
       "name": "Si Woo Kim",
       "id": null,
-      "starts": 23,
+      "starts": 24,
       "wins": 0,
       "top10": 11,
       "best": 2,
       "recent": [
+        {
+          "event": "TOUR Championship",
+          "date": "2026-08-27",
+          "order": 17,
+          "score": "-9"
+        },
         {
           "event": "BMW Championship",
           "date": "2026-08-20",
@@ -244,67 +250,25 @@
           "date": "2026-07-16",
           "order": 8,
           "score": "-6"
-        },
-        {
-          "event": "Genesis Scottish Open",
-          "date": "2026-07-09",
-          "order": 9,
-          "score": "-11"
         }
       ],
       "nameKo": "김시우"
     },
     {
       "tour": "LPGA",
-      "name": "Somi Lee",
-      "id": null,
-      "starts": 17,
-      "wins": 0,
-      "top10": 6,
-      "best": 4,
-      "recent": [
-        {
-          "event": "CPKC Women's Open",
-          "date": "2026-08-20",
-          "order": 30,
-          "score": "-5"
-        },
-        {
-          "event": "The Standard Portland Classic",
-          "date": "2026-08-13",
-          "order": 10,
-          "score": "-14"
-        },
-        {
-          "event": "AIG Women's Open",
-          "date": "2026-07-30",
-          "order": 88,
-          "score": "+6"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 143,
-          "score": "+10"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 10,
-          "score": "-11"
-        }
-      ],
-      "nameKo": "이소미"
-    },
-    {
-      "tour": "LPGA",
       "name": "Sei Young Kim",
       "id": null,
-      "starts": 15,
+      "starts": 16,
       "wins": 0,
-      "top10": 5,
+      "top10": 6,
       "best": 3,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 5,
+          "score": "-10"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -328,25 +292,67 @@
           "date": "2026-07-09",
           "order": 22,
           "score": "-7"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 8,
-          "score": "-6"
         }
       ],
       "nameKo": "김세영"
     },
     {
       "tour": "LPGA",
+      "name": "Somi Lee",
+      "id": null,
+      "starts": 18,
+      "wins": 0,
+      "top10": 6,
+      "best": 4,
+      "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 12,
+          "score": "-8"
+        },
+        {
+          "event": "CPKC Women's Open",
+          "date": "2026-08-20",
+          "order": 30,
+          "score": "-5"
+        },
+        {
+          "event": "The Standard Portland Classic",
+          "date": "2026-08-13",
+          "order": 10,
+          "score": "-14"
+        },
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 88,
+          "score": "+6"
+        },
+        {
+          "event": "ISPS HANDA Women's Scottish Open",
+          "date": "2026-07-23",
+          "order": 143,
+          "score": "+10"
+        }
+      ],
+      "nameKo": "이소미"
+    },
+    {
+      "tour": "LPGA",
       "name": "Ina Yoon",
       "id": null,
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 4,
       "best": 2,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 46,
+          "score": "E"
+        },
         {
           "event": "AIG Women's Open",
           "date": "2026-07-30",
@@ -370,12 +376,6 @@
           "date": "2026-06-25",
           "order": 2,
           "score": "-11"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 80,
-          "score": "+5"
         }
       ],
       "nameKo": "윤이나"
@@ -384,11 +384,17 @@
       "tour": "LPGA",
       "name": "A Lim Kim",
       "id": null,
-      "starts": 15,
+      "starts": 16,
       "wins": 0,
       "top10": 3,
       "best": 2,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 93,
+          "score": "+2"
+        },
         {
           "event": "AIG Women's Open",
           "date": "2026-07-30",
@@ -412,12 +418,6 @@
           "date": "2026-06-25",
           "order": 11,
           "score": "-6"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 19,
-          "score": "+1"
         }
       ],
       "nameKo": "김아림"
@@ -426,11 +426,17 @@
       "tour": "LPGA",
       "name": "Jin Hee Im",
       "id": null,
-      "starts": 17,
+      "starts": 18,
       "wins": 0,
       "top10": 3,
       "best": 2,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 11,
+          "score": "-8"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -454,12 +460,6 @@
           "date": "2026-07-09",
           "order": 4,
           "score": "-15"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 72,
-          "score": "+2"
         }
       ],
       "nameKo": "임진희"
@@ -510,11 +510,17 @@
       "tour": "LPGA",
       "name": "Hye-Jin Choi",
       "id": null,
-      "starts": 18,
+      "starts": 19,
       "wins": 0,
       "top10": 3,
       "best": 6,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 20,
+          "score": "-6"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -537,12 +543,6 @@
           "event": "ISPS HANDA Women's Scottish Open",
           "date": "2026-07-23",
           "order": 13,
-          "score": "+1"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 75,
           "score": "+1"
         }
       ],
@@ -594,11 +594,17 @@
       "tour": "LPGA",
       "name": "Minji Kang",
       "id": null,
-      "starts": 16,
+      "starts": 17,
       "wins": 0,
       "top10": 2,
       "best": 5,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 27,
+          "score": "-3"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -622,12 +628,6 @@
           "date": "2026-07-23",
           "order": 107,
           "score": "+10"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 40,
-          "score": "-5"
         }
       ],
       "nameKo": "강민지"
@@ -636,11 +636,17 @@
       "tour": "LPGA",
       "name": "Soo Bin Joo",
       "id": null,
-      "starts": 15,
+      "starts": 16,
       "wins": 0,
       "top10": 2,
       "best": 7,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 59,
+          "score": "+4"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -664,12 +670,6 @@
           "date": "2026-07-23",
           "order": 56,
           "score": "+14"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 48,
-          "score": "-4"
         }
       ],
       "nameKo": "주수빈"
@@ -678,11 +678,17 @@
       "tour": "LPGA",
       "name": "Amy Yang",
       "id": null,
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 1,
       "best": 2,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 144,
+          "score": "E"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -706,12 +712,6 @@
           "date": "2026-07-09",
           "order": 15,
           "score": "-9"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 21,
-          "score": "-2"
         }
       ],
       "nameKo": "양희영"
@@ -720,11 +720,17 @@
       "tour": "LPGA",
       "name": "Jin Young Ko",
       "id": null,
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 1,
       "best": 5,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 121,
+          "score": "+6"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -748,12 +754,6 @@
           "date": "2026-07-09",
           "order": 120,
           "score": "+6"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 44,
-          "score": "+2"
         }
       ],
       "nameKo": "고진영"
@@ -762,11 +762,17 @@
       "tour": "LPGA",
       "name": "Youmin Hwang",
       "id": null,
-      "starts": 17,
+      "starts": 18,
       "wins": 0,
       "top10": 1,
       "best": 6,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 80,
+          "score": "+2"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -790,12 +796,6 @@
           "date": "2026-07-23",
           "order": 42,
           "score": "+9"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 97,
-          "score": "+3"
         }
       ],
       "nameKo": "황유민"
@@ -804,11 +804,17 @@
       "tour": "LPGA",
       "name": "Narin An",
       "id": null,
-      "starts": 11,
+      "starts": 12,
       "wins": 0,
       "top10": 1,
       "best": 7,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 14,
+          "score": "-7"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -832,12 +838,6 @@
           "date": "2026-06-25",
           "order": 127,
           "score": "+5"
-        },
-        {
-          "event": "Meijer LPGA Classic for Simply Give",
-          "date": "2026-06-18",
-          "order": 48,
-          "score": "-4"
         }
       ],
       "nameKo": "안나린"
@@ -846,11 +846,17 @@
       "tour": "LPGA",
       "name": "Jiwon Jeon",
       "id": null,
-      "starts": 10,
+      "starts": 11,
       "wins": 0,
       "top10": 1,
       "best": 8,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 94,
+          "score": "+3"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -874,12 +880,6 @@
           "date": "2026-06-25",
           "order": 48,
           "score": "+3"
-        },
-        {
-          "event": "Meijer LPGA Classic for Simply Give",
-          "date": "2026-06-18",
-          "order": 94,
-          "score": "+1"
         }
       ],
       "nameKo": "전지원"
@@ -930,11 +930,17 @@
       "tour": "LPGA",
       "name": "Chella Choi",
       "id": null,
-      "starts": 13,
+      "starts": 14,
       "wins": 0,
       "top10": 0,
       "best": 12,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 54,
+          "score": "+2"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -958,12 +964,6 @@
           "date": "2026-06-25",
           "order": 94,
           "score": "+3"
-        },
-        {
-          "event": "Meijer LPGA Classic for Simply Give",
-          "date": "2026-06-18",
-          "order": 88,
-          "score": "E"
         }
       ],
       "nameKo": "최운정"
@@ -1050,11 +1050,17 @@
       "tour": "LPGA",
       "name": "Dongeun Lee",
       "id": null,
-      "starts": 11,
+      "starts": 12,
       "wins": 0,
       "top10": 0,
       "best": 18,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 51,
+          "score": "+1"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -1078,12 +1084,6 @@
           "date": "2026-06-18",
           "order": 74,
           "score": "-1"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 18,
-          "score": "-3"
         }
       ],
       "nameKo": "이동은"
@@ -1176,11 +1176,17 @@
       "tour": "LPGA",
       "name": "Kumkang Park",
       "id": null,
-      "starts": 10,
+      "starts": 11,
       "wins": 0,
       "top10": 0,
       "best": 33,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 125,
+          "score": "+7"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -1204,12 +1210,6 @@
           "date": "2026-05-29",
           "order": 80,
           "score": "+4"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 133,
-          "score": "+12"
         }
       ],
       "nameKo": "박금강"
@@ -1242,11 +1242,17 @@
       "tour": "LPGA",
       "name": "Jeongeun Lee5",
       "id": null,
-      "starts": 11,
+      "starts": 12,
       "wins": 0,
       "top10": 0,
       "best": 37,
       "recent": [
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 81,
+          "score": "+2"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -1269,12 +1275,6 @@
           "event": "ShopRite LPGA Classic powered by Wakefern",
           "date": "2026-05-29",
           "order": 70,
-          "score": "+5"
-        },
-        {
-          "event": "Kroger Queen City Championship pres by P&G",
-          "date": "2026-05-14",
-          "order": 106,
           "score": "+5"
         }
       ],
