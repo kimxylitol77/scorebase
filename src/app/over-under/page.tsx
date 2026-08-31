@@ -57,9 +57,9 @@ export default async function Page() {
 
   // 한국 독자가 실제로 찾는 리그만 골라 한 문장으로 —— "EPL 오버 몇 %" 류 질문에 그대로 답하는 문단이 된다.
   const FEATURED = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "K_LEAGUE_1", "J1_LEAGUE"];
-  const featured = FEATURED.map((code) => all.find((l) => l.league === code)).filter(
-    (l): l is NonNullable<typeof l> => Boolean(l),
-  );
+  const featured = FEATURED.map((code) => all.find((l) => l.league === code))
+    .filter((l): l is NonNullable<typeof l> => Boolean(l))
+    .sort((a, b) => b.over25Pct - a.over25Pct);
   const FEATURED_SENTENCE = featured.length
     ? `${featured
         .map((l) => `${LEAGUE_DISPLAY[l.league] ?? l.league} ${f1(l.over25Pct)}%`)
