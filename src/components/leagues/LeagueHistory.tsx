@@ -128,6 +128,9 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
     };
   }
 
+  // 시즌 라벨 → 아카이브 존재 여부 — 우승 행에서 그 시즌 최종 순위 페이지로 바로 연결
+  const archiveSet = new Set(archivedSeasons.map((s) => s.seasonLabel));
+
   // 최다 우승 집계 (+ ko→en, 로고 조회용)
   const counts = new Map<string, number>();
   const enByKo = new Map<string, string>();
@@ -213,11 +216,22 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
                     우승 기록
                   </Link>
                 )}
-                {/* 최신 시즌 챔피언 옆에만 리그 예측·순위 바로가기 (현재 시즌 페이지). 예측·순위 페이지가 있는 리그 한정. */}
+                {/* 아카이브가 있는 시즌은 그 시즌 최종 순위 페이지로 — "2025-26 옆 순위가 현재 시즌으로 가던" 혼선 수정(2026-08-31 사용자). */}
+                {archiveSet.has(c.season) && (
+                  <Link
+                    href={`/standings/${league}/${c.season}`}
+                    className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15"
+                  >
+                    최종 순위
+                  </Link>
+                )}
+                {/* 최신 시즌 챔피언 옆에만 현재 시즌 예측 바로가기. 현재 순위 링크는 아카이브 링크가 있으면 생략(혼선 방지). */}
                 {i === 0 && CHAMPION_QUICKLINK_LEAGUES.has(league) && (
                   <>
-                    <Link href={`/predictions/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">예측</Link>
-                    <Link href={`/standings/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">순위</Link>
+                    <Link href={`/predictions/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">이번 시즌 예측</Link>
+                    {!archiveSet.has(c.season) && (
+                      <Link href={`/standings/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">순위</Link>
+                    )}
                   </>
                 )}
               </div>

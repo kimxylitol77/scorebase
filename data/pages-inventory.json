@@ -133,6 +133,20 @@
     "group": "other"
   },
   {
+    "route": "/career",
+    "desc": "축구선수 인생 시뮬레이터 — 로그인 없이 즐기는 커리어 게임 (게임 진행은 전부 클라이언트)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/career/result",
+    "desc": "커리어 결과 공유 페이지 — 공유 링크를 받은 사람이 도착하는 곳. 결과는 URL 쿼리에 들어 있다. 조합이 무한하므로 색인은 막고(noindex), 대신 \"나도 해보기\" 로 게임으로 보낸다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/coaches/[id]",
     "desc": "감독 상세 페이지. id = TheSports coach id. 데이터: data/team-coaches.json(현직 스냅샷 — ts coach/list) + data/coach-careers.json (Wikidata P6087 감독 경력 + P54 선수 시절 + 국적) + 라인업 cache(최근 실제 포메이션). 갱신: scripts/build-team-coaches.ts → scripts/build-coach-careers.ts 순서 재실행.",
     "inMenu": false,
@@ -231,6 +245,13 @@
     "group": "other"
   },
   {
+    "route": "/embed/scoreboard",
+    "desc": "방송 오버레이 스코어보드 임베드 — OBS 브라우저 소스/iframe 용 (사이트 chrome 없음, 투명 배경). URL: /embed/scoreboard?league=EPL&id=560547&bg=transparent&size=1&clock=1&names=short&league_badge=0",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/embed/wc-bracket",
     "desc": "2026 월드컵 대진표 임베드 위젯 — 외부 블로그가 iframe 으로 붙이는 화면(사이트 chrome 없음). 출처 링크(제공: 스코어베이스)를 노출해 클릭·백링크 유도. 본문은 /world-cup 대진표 탭과 동일 데이터.",
     "inMenu": false,
@@ -239,94 +260,248 @@
   },
   {
     "route": "/en",
-    "desc": "/en 랜딩 — 영어권 진입점: 오늘의 AI 픽 + Standings/Predictions 허브 링크.",
+    "desc": "app__page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
+    "route": "/en/benchmark",
+    "desc": "LLM 예측 캘리브레이션 벤치마크 (영어권 공개용).  ⚠️ 손으로 작성한 영어 전용 페이지다. 대응하는 한국어 원본이 없으므로    scripts/en-mirror 가 건드리지 않는다. 여기를 직접 수정한다.  독자는 HN·r/LocalLLaMA·r/MachineLearning 이다. 이 청중은 표본수·신뢰구간· baseline 이 없으면 첫 댓글에서 무너뜨린다. 그래서 원칙이 셋이다.   1. 모든 숫자에 n 과 95% CI 를 같이 낸다.   2. 주장할 수 없는 것(모델 간 순위)을 우리가 먼저 명시한다.   3. 대조군(배당 시장)을 같은 경기에서 같은 방식으로 채점해 나란히 둔다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/benchmark/method",
+    "desc": "방법론 전문. 벤치마크를 의심하는 사람이 두 번째로 오는 페이지다.  ⚠️ 손으로 작성한 영어 전용 페이지. en-mirror 가 건드리지 않는다.  원칙 — 불리한 사실을 우리가 먼저 쓴다. 프롬프트를 원문 그대로 공개하는 이상 독자가 직접 읽고 해석할 수 있으므로, 우리가 해석을 내놓지 않으면 \"숨겼다\" 가 된다. 특히 세 가지는 반드시 우리 입으로 말해야 한다.   ① 프롬프트가 모델에게 확률을 0.50~0.58 로 낮추라고 지시한다   ② 프롬프트가 한국어다   ③ 제품의 발행 게이트를 벤치마크에는 적용하지 않는다(적용하면 수치가 부풀려진다)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/coaches/[id]",
+    "desc": "감독 프로필 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/en/h2h/[pair]",
+    "desc": "팀 간 상대전적 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/en/injuries",
-    "desc": "기본 리그(EPL)로 redirect (ko /injuries 와 동일 패턴)",
+    "desc": "기본 리그로 redirect (영어판). scripts/en-mirror 로 자동 생성.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/en/injuries/[league]",
-    "desc": "영어판 부상자 명단. 소스가 영문 원본이라 변환 없이 노출 — 축구=api-football 시즌 부상(+현 스쿼드 필터), NBA/MLB/NHL=ESPN. KBO/NPB 는 한국어 소스(공식 등록·말소 공시)라 v1 제외. ko 페이지의 TheSports 1순위 오버레이는 미사용(린 버전).",
+    "desc": "리그별 부상자 명단 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/en/national-teams",
+    "desc": "2026 월드컵 출전 48개국 허브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/national-teams/[id]",
+    "desc": "국가대표팀 상세 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/en/over-under",
+    "desc": "리그별 오버/언더 통계 허브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/over-under/[league]",
+    "desc": "리그별 팀 오버/언더 표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
   },
   {
     "route": "/en/players/[pid]",
-    "desc": "영어판 선수 상세 (린). MLB(기본)=MLB Stats API 타자/투수, ?league=축구코드=api-football 프로필. 소스가 영문 원본이라 변환 없이 노출. KBO/NPB(한국어 스크랩)·NBA/NHL/LOL(전용 뷰 미이식)은 v1 미지원 → 404.",
+    "desc": "page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
   },
   {
     "route": "/en/predictions",
-    "desc": "영어판 예측 허브: 리그 카드 + 임박 Strong Pick 하이라이트.",
+    "desc": "시즌 예측 허브 (영어판). scripts/en-mirror 로 자동 생성.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/en/predictions/[league]",
-    "desc": "영어판 리그 예측: 임박 경기 확률·픽 + 최근 판정 결과(투명 공개).",
+    "desc": "리그별 시즌 예측 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
   },
   {
     "route": "/en/predictions/accuracy",
-    "desc": "AI 예측 적중률 영어판. 집계는 ko 와 공용(lib/predict/accuracy-stats) 이라 두 언어 페이지가 항상 같은 숫자를 보여준다.",
+    "desc": "AI 예측 적중률 보드 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/predictions/club-ranking",
+    "desc": "세계 클럽 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/en/predictions/scorecard",
-    "desc": "멀티 AI 승부예측 리더보드 영어판 (린). 데이터·채점은 ko 와 동일(AiPrediction, published 만) + GPT 버전 통합 규칙 공유(isGptScorecardModel). ko 의 시장 탭·경기별 히스토리·컨센서스 게이트는 미이식 — 리더보드·시장별 성적·다가오는 원탁만.",
+    "desc": "멀티 AI 성적표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/predictions/title-race",
+    "desc": "리그별 우승 경쟁 현황 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/rankings/f1",
+    "desc": "F1 챔피언십 순위 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/rankings/tennis",
+    "desc": "ATP·WTA 세계랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/rankings/ufc",
+    "desc": "UFC 체급별·P4P 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/rankings/value-clubs",
+    "desc": "몸값 대비 승점 효율 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/f1",
+    "desc": "F1 드라이버 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/golf",
+    "desc": "PGA 투어 상금 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/mlb",
+    "desc": "MLB 선수·팀 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/nba",
+    "desc": "NBA 선수·팀 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/nhl",
+    "desc": "NHL 선수·팀 연봉(cap hit) 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/soccer",
+    "desc": "빅5 리그 연봉 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/salaries/tennis",
+    "desc": "ATP·WTA 시즌 상금 랭킹 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/en/scores",
-    "desc": "영어판 라이브 스코어. DB Match 가 폴러로 실시간 갱신되는 단일 소스라 ko /scores 의 ESPN 오버레이 없이 DB 직조회 린 버전으로 구성. LIVE 있으면 60초 자동 새로고침. 날짜는 UTC 달력일 기준(?date=YYYY-MM-DD) — 글로벌 방문자 대상이라 KST 를 강제하지 않는다.",
+    "desc": "라이브 스코어 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/en/standings",
-    "desc": "영어판 순위 허브: 종목·국가별 리그 카드 + Top3 미리보기 (ko /standings 의 린 버전).",
+    "desc": "리그별 순위 허브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/en/standings/[league]",
-    "desc": "영어판 리그 순위표. 소스는 ko 와 동일 체계 — 축구=getFullStandings(ts/af), 야구=fetchBaseballTable(공식)→calcStandings(DB 매치) 폴백. 야구는 승률(PCT)·게임차(GB) 컬럼, 그 외는 승점 테이블. 팀명은 영문(DB 원본 + 한→영 매핑).",
+    "desc": "리그별 순위표 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
   },
   {
     "route": "/en/teams/[id]",
-    "desc": "영어판 팀 상세 (린). 헤더 + 시즌 성적 + 최근/예정 매치 + 로스터. 로스터: 축구=ts 공식 스쿼드(team-squads.json, 영문명), MLB=Stats API(선수페이지 링크), NHL=공식 API, NBA=정적 인덱스. KBO/NPB 로스터는 한글명이라 v1 미노출(팀 페이지 자체는 지원).",
+    "desc": "app__teams___id___page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
   },
   {
     "route": "/en/transfers",
-    "desc": "영어판 이적시장 (린). 루머 트래커(스테이지 배지) + 공식 이적 피드(ts) + 시장가치 Top 10. 데이터가 전부 영문 원본(선수·팀명·피)이라 변환 없이 노출. ko 의 aiBrief·summaryKo(한국어 생성문)와 스쿼드/베스트XI 뷰는 미사용.",
+    "desc": "이적시장 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
+  },
+  {
+    "route": "/en/transfers/[id]",
+    "desc": "선수 상세 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
   },
   {
     "route": "/experts",
@@ -387,9 +562,9 @@
   {
     "route": "/lab",
     "desc": "회원 커스텀 예측 봇 만들기: 손잡이 5개로 우리 모델을 조립하고 즉석 백테스트·경기 시뮬·봇 저장. 비회원은 기능 소개 + 비활성 미리보기 + 가입 CTA. 손잡이 조작·백테스트·저장은 회원 전용.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/landing",
@@ -511,11 +686,25 @@
     "group": "menu"
   },
   {
-    "route": "/picks",
-    "desc": "승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)",
+    "route": "/over-under",
+    "desc": "오버/언더 통계 허브 — 축구 전 리그(하부리그 포함)를 오버 2.5 비율로 세운다. 각 행에서 리그별 상세 페이지로 들어간다.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
+  },
+  {
+    "route": "/over-under/[league]",
+    "desc": "리그별 오버/언더 통계 페이지 — /over-under/BUNDESLIGA 처럼 리그 코드로 접근한다. DB 를 직접 집계하므로 경기가 끝나면 다음 렌더에서 바로 반영된다(재생성 cron 불필요).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/picks",
+    "desc": "승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/picks/me",
@@ -527,9 +716,9 @@
   {
     "route": "/picks/strong",
     "desc": "모델이 자신 있어 하는 픽만 모아 보는 회원 전용 화면. 비회원은 기준·성적과 오늘 몇 건인지까지 보고, 실제 픽은 가입 후 (/lab 과 같은 방침). 지난 날짜의 픽과 그 채점 결과도 회원에게만 공개한다(2026-08-04 사용자 확정).",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/players/[pid]",
@@ -583,9 +772,9 @@
   {
     "route": "/predictions/scorecard",
     "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "predictions-deep"
   },
   {
     "route": "/predictions/starters",
@@ -625,9 +814,9 @@
   {
     "route": "/previews",
     "desc": "종목별 PREVIEW 글 모음 페이지. 축구·야구·농구·하키·e스포츠 카테고리 탭으로 프리뷰만 모아 보기.  야구는 리그별 발행 주기가 달라(MLB 미래 3일치 / KBO·NPB 당일분) 한 그리드에 섞으면 MLB 미래 경기가 화면을 점유해 KBO/NPB 가 묻힘 → 야구 탭은 KBO·MLB·NPB 하위 탭으로 두고 한 번에 한 리그만 선택해서 보게 함. (그 외 종목은 카테고리 통합 그리드)",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/previews/[league]",
@@ -793,6 +982,13 @@
   {
     "route": "/standings/[league]",
     "desc": "리그별 순위표 페이지 — 36개 축구 리그 + 야구/농구/하키 일부 지원. /standings/EPL, /standings/K_LEAGUE_1 등.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/standings/[league]/[season]",
+    "desc": "시즌별 최종 순위 아카이브 페이지 — /standings/EPL/2025-26. SeasonStandingsArchive 정본 렌더. 현재 시즌은 /standings/[league] 담당 — 현재 라벨로 들어오면 그쪽으로 redirect.",
     "inMenu": false,
     "dynamic": true,
     "group": "detail"

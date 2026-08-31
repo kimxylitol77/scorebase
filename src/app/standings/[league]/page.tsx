@@ -37,6 +37,7 @@ import NbaStandingsTable from "@/components/NbaStandingsTable";
 import KoreanBasketballTable from "@/components/basketball/KoreanBasketballTable";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import CollapseSection from "@/components/CollapseSection";
+import StandingsSeasonNav from "@/components/standings/StandingsSeasonNav";
 import {
   loadPlayoffBracket,
   isPlayoffSeasonDone,
@@ -521,6 +522,10 @@ export default async function StandingsPage({ params }: Props) {
                 : `${name} ${rows!.length}개 구단 팀 순위표. 승·패와 승률 기준 순위를 매일 자동 갱신합니다.`}
           </p>
         )}
+        <div className="mt-3">
+          {/* 지난 시즌 최종 순위 아카이브 전환 — 아카이브 없는 리그는 자동 미노출 */}
+          <StandingsSeasonNav league={upper} active="current" />
+        </div>
       </header>
 
       <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
