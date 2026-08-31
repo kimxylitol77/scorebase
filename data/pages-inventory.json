@@ -483,6 +483,13 @@
     "group": "detail"
   },
   {
+    "route": "/en/standings/[league]/[season]",
+    "desc": "시즌별 최종 순위 아카이브 (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/en/teams/[id]",
     "desc": "app__teams___id___page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
     "inMenu": false,
