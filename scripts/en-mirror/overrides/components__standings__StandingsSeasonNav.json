@@ -7,12 +7,12 @@
   },
   "replace": [
     [
-      "href={`/standings/${league}`}",
-      "href={`/en/standings/${league}`}"
+      "href={`${basePath}/${league}`}",
+      "href={`/en${basePath}/${league}`}"
     ],
     [
-      "href={`/standings/${league}/${s}`}",
-      "href={`/en/standings/${league}/${s}`}"
+      "href={`${basePath}/${league}/${s}`}",
+      "href={`/en${basePath}/${league}/${s}`}"
     ]
   ]
 }

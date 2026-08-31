@@ -225,6 +225,15 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
                     최종 순위
                   </Link>
                 )}
+                {/* 그 시즌 AI 예측 결산 — 주요 리그 한정 (마켓별 적중률 실측) */}
+                {archiveSet.has(c.season) && CHAMPION_QUICKLINK_LEAGUES.has(league) && (
+                  <Link
+                    href={`/predictions/${league}/${c.season}`}
+                    className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15"
+                  >
+                    예측 결산
+                  </Link>
+                )}
                 {/* 최신 시즌 챔피언 옆에만 현재 시즌 예측 바로가기. 현재 순위 링크는 아카이브 링크가 있으면 생략(혼선 방지). */}
                 {i === 0 && CHAMPION_QUICKLINK_LEAGUES.has(league) && (
                   <>

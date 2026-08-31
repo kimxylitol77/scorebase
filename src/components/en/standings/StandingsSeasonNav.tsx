@@ -7,10 +7,13 @@ import { resolveSeasonYear } from "@/lib/sports/season-registry";
 export default async function StandingsSeasonNav({
   league,
   active,
+  basePath = "/standings",
 }: {
   league: string;
   /** "current" = 현재 시즌 페이지, 그 외 = 보고 있는 아카이브 시즌 라벨 */
   active: "current" | string;
+  /** 순위표(/standings) 외에 예측 결산(/predictions)도 같은 칩을 쓴다 */
+  basePath?: "/standings" | "/predictions";
 }) {
   let past: string[] = [];
   try {
@@ -36,11 +39,11 @@ export default async function StandingsSeasonNav({
   return (
     <nav className="flex flex-wrap items-center gap-1.5" aria-label="Season selector">
       <span className="text-[11px] text-neutral-500 mr-0.5">Season</span>
-      <Link href={`/en/standings/${league}`} className={chip(active === "current")}>
+      <Link href={`/en${basePath}/${league}`} className={chip(active === "current")}>
         This season
       </Link>
       {past.map((s) => (
-        <Link key={s} href={`/en/standings/${league}/${s}`} className={chip(active === s)}>
+        <Link key={s} href={`/en${basePath}/${league}/${s}`} className={chip(active === s)}>
           {s}
         </Link>
       ))}

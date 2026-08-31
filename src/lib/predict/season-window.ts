@@ -200,6 +200,22 @@ export function previousSeasonStart(start: Date): Date {
 }
 
 /**
+ * 시즌 라벨("2025-26" 유럽형 | "2025" 달력형) → 그 시즌의 [시작, 끝) 창.
+ * 라벨 앞 4자리가 시작 연도라는 공통 규칙을 이용한다. 경계 미정의 리그는 null.
+ * (과거 시즌 예측 결산 — /predictions/[league]/[season] 이 사용)
+ */
+export function seasonWindowForLabel(league: string, label: string): { from: Date; to: Date } | null {
+  const b = SEASON_BOUNDARY[league];
+  const y = Number(label.slice(0, 4));
+  // 연도 범위 밖(9999 등 URL 오염)은 Date 가 +010000 년을 만들어 Prisma 변환이 터진다
+  if (!b || !Number.isInteger(y) || y < 2000 || y > 2100) return null;
+  return {
+    from: new Date(Date.UTC(y, b.month - 1, b.day)),
+    to: new Date(Date.UTC(y + 1, b.month - 1, b.day)),
+  };
+}
+
+/**
  * 시즌 경계를 두지 않는 대회 — 컵·국가대표·단일 대회·친선.
  * 축구 리그는 SEASON_BOUNDARY 아니면 여기, 둘 중 하나에 반드시 있어야 한다
  * (season-window.test.ts 가 강제). 새 리그 등록 시 여기서 컴파일/테스트가 잡아준다.

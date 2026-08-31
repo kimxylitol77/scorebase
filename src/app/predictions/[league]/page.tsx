@@ -48,6 +48,7 @@ import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
 import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
+import StandingsSeasonNav from "@/components/standings/StandingsSeasonNav";
 import { CircleDot, BookOpen } from "lucide-react";
 
 export const revalidate = 600; // ISR — 시즌 시뮬은 일 단위 데이터, 10분 캐시로 충분
@@ -822,6 +823,10 @@ export default async function LeaguePredictions({ params }: Props) {
                 <span>5,000회 시뮬레이션 기반</span>
               </>
             )}
+          </div>
+          <div className="mt-3">
+            {/* 지난 시즌 AI 예측 결산 전환 — 아카이브 없는 리그는 자동 미노출 */}
+            <StandingsSeasonNav league={upper} active="current" basePath="/predictions" />
           </div>
         </div>
       </section>
