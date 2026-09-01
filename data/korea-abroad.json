@@ -709,12 +709,12 @@
         "status": "played",
         "season": "2026",
         "team": "St. Louis City SC",
-        "apps": 15,
-        "starts": 11,
+        "apps": 16,
+        "starts": 12,
         "goals": 2,
         "assists": 1,
-        "minutes": 767,
-        "rating": 6.73,
+        "minutes": 839,
+        "rating": 6.69,
         "yellow": 1,
         "red": 0
       }
@@ -1748,12 +1748,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Birmingham City",
-        "apps": 3,
+        "apps": 4,
         "starts": 2,
         "goals": 0,
         "assists": 0,
-        "minutes": 158,
-        "rating": 6.35,
+        "minutes": 161,
+        "rating": 6.34,
         "yellow": 0,
         "red": 0
       }
@@ -1835,7 +1835,7 @@
         "goals": 0,
         "assists": 0,
         "minutes": 230,
-        "rating": 6.66,
+        "rating": 6.65,
         "yellow": 0,
         "red": 0
       }
@@ -1994,12 +1994,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Stoke City",
-        "apps": 3,
-        "starts": 2,
+        "apps": 4,
+        "starts": 3,
         "goals": 0,
         "assists": 0,
-        "minutes": 172,
-        "rating": 6.17,
+        "minutes": 262,
+        "rating": 6.18,
         "yellow": 1,
         "red": 0
       }
@@ -2240,12 +2240,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Besiktas JK",
-        "apps": 2,
+        "apps": 3,
         "starts": 1,
         "goals": 0,
         "assists": 0,
-        "minutes": 84,
-        "rating": 6.51,
+        "minutes": 103,
+        "rating": 6.52,
         "yellow": 0,
         "red": 0
       }
@@ -2404,12 +2404,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Swansea City",
-        "apps": 3,
-        "starts": 1,
-        "goals": 1,
-        "assists": 1,
-        "minutes": 139,
-        "rating": 7.25,
+        "apps": 4,
+        "starts": 2,
+        "goals": 2,
+        "assists": 2,
+        "minutes": 229,
+        "rating": 7.46,
         "yellow": 0,
         "red": 0
       }
@@ -2573,7 +2573,7 @@
         "goals": 0,
         "assists": 1,
         "minutes": 68,
-        "rating": 6.94,
+        "rating": 6.93,
         "yellow": 1,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-08-30T22:20:25.235Z"
+  "currentUpdatedAt": "2026-09-01T22:20:38.416Z"
 }
