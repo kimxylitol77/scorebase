@@ -97,24 +97,31 @@ export function buildPreviewCaption(
   },
   opts: { url: string },
 ): string {
+  // 스레드체 (2026-09-02 리서치 반영): 한 호흡 = 한 줄 세로 나열 + 초간결 숫자 + 질문 마무리.
+  // 문어체 광고문·해시태그 다발은 스킵당한다. 인기 게시물(좋아요 5.8천)의 형식을 따른다.
   const hot = c.stats.find((s) => s.hot);
-  const header = `${hot ? "🔥" : "📊"} ${c.home} vs ${c.away} — ${c.verdict}`;
-  const meta = `${c.leagueLabel} · ${c.kickoffKst} KST`;
-  const lines = c.stats.map((s) => `${s.hot ? "🔥" : "·"} ${s.label} ${s.value} — ${s.note}`).join("\n");
-  const tail = "숫자는 매일 자동 갱신되고, 틀린 픽도 그대로 남습니다.";
-  const hashtags = "#스코어베이스 #승부예측 #AI예측 #스포츠분석 #오늘의경기";
-  const footer = `\n\n👉 ${opts.url}\n\n${hashtags}`;
-  const fixed = `${header}\n${meta}\n\n`;
-  const budget = THREADS_TEXT_LIMIT - fixed.length - footer.length - tail.length - 2;
-  return `${fixed}${truncate(lines, budget)}\n\n${tail}${footer}`;
+  const head = [`${c.home} vs ${c.away}`, `${c.leagueLabel} 오늘 ${c.kickoffKst}`].join("\n");
+  const nums = c.stats
+    .slice(0, 3)
+    .map((s) => `${s.label} ${s.value}`)
+    .join("\n");
+  const pick = hot ? `AI 픽은 ${hot.value}` : c.verdict;
+  const ask = "여러분 픽은? 댓글로 👇";
+  const footer = `\n\n${opts.url}\n#스코어베이스 #AI픽`;
+  const fixed = `${head}\n\n`;
+  const tail = `\n\n${pick}\n${ask}${footer}`;
+  const budget = THREADS_TEXT_LIMIT - fixed.length - tail.length;
+  return `${fixed}${truncate(nums, budget)}${tail}`;
 }
 
 // scorebase 기능 소개 caption (매일 1개 로테이션). features.ts 데이터 사용.
+// 스레드체 (2026-09-02 리서치 반영): ✅ 체크리스트 광고문 폐기 — 훅 + 짧은 줄 나열 + 저자세 CTA.
+// 해시태그는 2개로 축소 (인기 게시물은 해시태그가 거의 없다).
 export function buildFeatureCaption(f: ThreadsFeature, opts: { url: string }): string {
-  const header = `${f.emoji} ${f.hook}`;
-  const intro = `scorebase 의 ${f.title} — ${f.sub}.`;
-  const points = f.points.map((p) => `✅ ${p}`).join("\n");
-  const footer = `👉 ${opts.url}\n\n${f.hashtags}`;
-  const body = `${header}\n\n${intro}\n\n${points}\n\n${footer}`;
+  const header = f.hook;
+  const points = f.points.map((p) => p).join("\n");
+  const tag = f.hashtags.split(" ").slice(0, 2).join(" ");
+  const footer = `무료입니다. 써보고 별로면 말아요\n${opts.url}\n\n${tag}`;
+  const body = `${header}\n\n${points}\n\n${footer}`;
   return truncate(body, THREADS_TEXT_LIMIT);
 }

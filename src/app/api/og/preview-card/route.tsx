@@ -83,45 +83,53 @@ export async function GET(req: Request) {
           </div>
         </div>
 
-        {/* 매치업 — 세로 카드라 두 줄로 크게 */}
-        <div style={{ display: "flex", flexDirection: "column", marginTop: "58px", gap: "10px" }}>
-          <div style={{ display: "flex", fontSize: "76px", fontWeight: 900, letterSpacing: "-0.035em" }}>{card.home}</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "22px" }}>
-            <div style={{ display: "flex", fontSize: "34px", fontWeight: 800, color: "#64748b" }}>vs</div>
-            <div style={{ display: "flex", height: "2px", flex: 1, background: "rgba(255,255,255,0.14)" }} />
+        {/* 매치업 — 한 줄 압축 (히어로 숫자에 자리를 내준다) */}
+        <div style={{ display: "flex", flexDirection: "column", marginTop: "46px", gap: "6px" }}>
+          <div style={{ display: "flex", fontSize: "62px", fontWeight: 900, letterSpacing: "-0.035em" }}>{card.home}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ display: "flex", fontSize: "30px", fontWeight: 800, color: "#64748b" }}>vs</div>
+            <div style={{ display: "flex", fontSize: "62px", fontWeight: 900, letterSpacing: "-0.035em" }}>{card.away}</div>
           </div>
-          <div style={{ display: "flex", fontSize: "76px", fontWeight: 900, letterSpacing: "-0.035em" }}>{card.away}</div>
         </div>
 
-        {/* 수치 3칸 — 세로 스택 */}
-        <div style={{ display: "flex", flexDirection: "column", marginTop: "56px", gap: "20px" }}>
-          {card.stats.map((s, i) => (
+        {/* 히어로 숫자 — 첫 수치(승률)를 스크롤 스토퍼로 거대하게.
+            스레드 리서치(2026-09-02): 인기 게시물은 큰 숫자 하나 + 짧은 줄이 전부다. 대시보드형 3칸은 광고로 읽힌다. */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "30px" }}>
+          <div style={{ display: "flex", fontSize: "36px", fontWeight: 800, color: "#94a3b8" }}>{card.stats[0]?.label ?? "AI 승률"}</div>
+          <div style={{ display: "flex", fontSize: "260px", fontWeight: 900, color: "#fde047", letterSpacing: "-0.04em", lineHeight: 1.05 }}>
+            {card.stats[0]?.value ?? "-"}
+          </div>
+          <div style={{ display: "flex", fontSize: "28px", fontWeight: 700, color: "#8fa0b8" }}>{card.stats[0]?.note ?? ""}</div>
+        </div>
+
+        {/* 보조 수치 — 최대 2줄, 한 줄 압축 */}
+        <div style={{ display: "flex", flexDirection: "column", marginTop: "42px", gap: "14px" }}>
+          {card.stats.slice(1, 3).map((s, i) => (
             <div
               key={i}
               style={{
-                display: "flex", flexDirection: "column", gap: "8px",
-                padding: "26px 32px", borderRadius: "22px",
-                background: s.hot ? "rgba(253,224,71,0.11)" : "rgba(255,255,255,0.055)",
-                border: s.hot ? "2px solid rgba(253,224,71,0.5)" : "1px solid rgba(255,255,255,0.09)",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "20px 30px", borderRadius: "18px",
+                background: s.hot ? "rgba(253,224,71,0.1)" : "rgba(255,255,255,0.05)",
+                border: s.hot ? "2px solid rgba(253,224,71,0.45)" : "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: "27px", fontWeight: 800, color: s.hot ? "#fde047" : "#94a3b8" }}>{s.label}</span>
-                <span style={{ fontSize: "52px", fontWeight: 900, color: s.hot ? "#fde047" : "white", letterSpacing: "-0.02em" }}>
-                  {s.value}
-                </span>
-              </div>
-              <div style={{ display: "flex", fontSize: "23px", fontWeight: 600, color: "#8fa0b8" }}>{s.note}</div>
+              <span style={{ fontSize: "27px", fontWeight: 800, color: s.hot ? "#fde047" : "#94a3b8" }}>{s.label}</span>
+              <span style={{ fontSize: "40px", fontWeight: 900, color: s.hot ? "#fde047" : "white", letterSpacing: "-0.02em" }}>
+                {s.value}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* 하단 — 한 줄 결론 + 도메인 */}
+        {/* 하단 — 결론 + 참여 유도 질문 (스레드는 댓글이 노출을 만든다) */}
         <div style={{ display: "flex", flex: 1 }} />
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ display: "flex", fontSize: "34px", fontWeight: 800, color: "#e2e8f0" }}>{card.verdict}</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <div style={{ display: "flex", fontSize: "36px", fontWeight: 900, color: "#e2e8f0" }}>{card.verdict}</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: "26px", fontWeight: 800, color: "#7c8ba1" }}>적중률까지 그대로 공개합니다</span>
+            <span style={{ display: "flex", fontSize: "30px", fontWeight: 900, color: "#fde047", padding: "10px 26px", borderRadius: "999px", border: "2px solid rgba(253,224,71,0.5)" }}>
+              당신의 픽은? 댓글로 👇
+            </span>
             <span style={{ fontSize: "28px", fontWeight: 900, color: "#a5b4fc" }}>scorebase.kr</span>
           </div>
         </div>

@@ -36,36 +36,26 @@ export async function GET(req: Request) {
             <BarMark />
             <span>Scorebase</span>
           </div>
-          <div style={{ display: "flex", fontSize: "19px", fontWeight: 700, padding: "8px 20px", borderRadius: "999px", background: "rgba(255,255,255,0.18)" }}>
-            기능 소개
+          <div style={{ display: "flex", fontSize: "26px" }}>{f.emoji}</div>
+        </div>
+
+        {/* 훅 — 카드의 주인공. 스레드 리서치(2026-09-02): 체크리스트 광고 카드는 스킵당한다.
+            사람 말투의 큰 한 문장이 스크롤을 세운다. 체크포인트·이모지·"기능 소개" 배지 제거. */}
+        <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
+          <div style={{ display: "flex", fontSize: "84px", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.28, wordBreak: "keep-all" }}>
+            {f.hook}
           </div>
         </div>
 
-        {/* 큰 이모지 */}
-        <div style={{ display: "flex", fontSize: "138px", marginTop: "44px", lineHeight: 1 }}>{f.emoji}</div>
-
-        {/* 타이틀 + 부제 */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "14px" }}>
-          <div style={{ display: "flex", fontSize: "66px", fontWeight: 900, letterSpacing: "-0.035em" }}>{f.title}</div>
-          <div style={{ display: "flex", fontSize: "31px", fontWeight: 600, opacity: 0.92 }}>{f.sub}</div>
-        </div>
-
-        {/* 포인트 3개 */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "22px", marginTop: "50px", flex: 1 }}>
-          {f.points.map((p, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <div style={{ display: "flex", width: "46px", height: "46px", borderRadius: "13px", background: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center" }}>
-                <svg width="26" height="26" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" stroke="white" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
-              </div>
-              <span style={{ display: "flex", fontSize: "33px", fontWeight: 600 }}>{p}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* 하단 */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "flex", fontSize: "27px", fontWeight: 800, letterSpacing: "0.02em" }}>scorebase.kr</span>
-          <span style={{ display: "flex", fontSize: "22px", fontWeight: 700, opacity: 0.85, padding: "8px 18px", borderRadius: "999px", background: "rgba(255,255,255,0.16)" }}>매일 무료 공개</span>
+        {/* 하단 — 무엇인지 한 줄 + 도메인 */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ display: "flex", fontSize: "34px", fontWeight: 700, opacity: 0.92 }}>
+            {f.title} · {f.sub}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ display: "flex", fontSize: "28px", fontWeight: 800, letterSpacing: "0.02em" }}>scorebase.kr</span>
+            <span style={{ display: "flex", fontSize: "22px", fontWeight: 700, opacity: 0.85, padding: "8px 18px", borderRadius: "999px", background: "rgba(255,255,255,0.16)" }}>무료</span>
+          </div>
         </div>
       </div>
     ),
