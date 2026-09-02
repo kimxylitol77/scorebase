@@ -18,6 +18,24 @@ const CACHE_HEADERS = {
 
 const SIZE = { width: 1080, height: 1350 };
 
+// satori 는 시스템 폰트가 없다 — 카드에 쓰는 글자만 Google Fonts subset 으로 받는다.
+// vercel/og 의 자동 폰트 로딩에만 기대면 실패 시 한글이 □ 로 깨진 채 CDN 에 캐시된다
+// (2026-09-02 프로덕션 실측). 명시 로딩 실패 시엔 렌더하지 않고 500 — 두부 카드 발행 방지.
+async function loadFont(text: string): Promise<ArrayBuffer | null> {
+  try {
+    const api = `https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@800&text=${encodeURIComponent(text)}`;
+    const css = await (await fetch(api)).text();
+    const url = css.match(/src:\s*url\(([^)]+?)\)\s*format/)?.[1];
+    if (!url) return null;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
+
 const Wordmark = () => (
   <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "30px", fontWeight: 900, letterSpacing: "-0.02em" }}>
     <div style={{ display: "flex", alignItems: "flex-end", gap: "4px", height: "32px" }}>
@@ -59,6 +77,14 @@ export async function GET(req: Request) {
   if (!card) return Fallback("아직 예측이 준비되지 않았습니다");
 
   const leagueLabel = LEAGUE_DISPLAY[card.league] ?? card.league;
+
+  const fontText = [
+    card.home, card.away, leagueLabel, card.kickoffKst, card.verdict,
+    ...card.stats.flatMap((s) => [s.label, s.value, s.note]),
+    "당신의 픽은? 댓글로 AI 승률 Scorebase scorebase.kr vs KST 0123456789%.·",
+  ].join("");
+  const font = await loadFont(fontText);
+  if (!font) return Fallback("카드 준비 중입니다");
 
   return new ImageResponse(
     (
@@ -135,6 +161,10 @@ export async function GET(req: Request) {
         </div>
       </div>
     ),
-    { ...SIZE, headers: CACHE_HEADERS },
+    {
+      ...SIZE,
+      headers: CACHE_HEADERS,
+      fonts: [{ name: "Pretendard", data: font, weight: 800 as const, style: "normal" as const }],
+    },
   );
 }

@@ -9,12 +9,33 @@ export const runtime = "nodejs";
 
 const CACHE_HEADERS = { "Cache-Control": "public, max-age=3600, s-maxage=21600" };
 
+// satori 는 시스템 폰트가 없다 — 카드에 쓰는 글자만 Google Fonts subset 으로 받는다.
+// vercel/og 의 자동 폰트 로딩에만 기대면 실패 시 한글이 □ 로 깨진 채 CDN 에 캐시된다
+// (2026-09-02 프로덕션 실측). 명시 로딩 실패 시엔 렌더하지 않고 500 — 두부 카드 발행 방지.
+async function loadFont(text: string): Promise<ArrayBuffer | null> {
+  try {
+    const api = `https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@800&text=${encodeURIComponent(text)}`;
+    const css = await (await fetch(api)).text();
+    const url = css.match(/src:\s*url\(([^)]+?)\)\s*format/)?.[1];
+    if (!url) return null;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const key = url.searchParams.get("key");
   const { dateKey } = kstDayWindow(url.searchParams.get("d"));
   const f = (key && THREADS_FEATURES.find((x) => x.key === key)) || featureForDate(dateKey);
   const [g1, g2] = f.accent;
+
+  const font = await loadFont(`${f.hook}${f.title}${f.sub}Scorebase scorebase.kr 무료`);
+  if (!font) return new Response("font load failed", { status: 503 });
 
   return new ImageResponse(
     (
@@ -59,7 +80,10 @@ export async function GET(req: Request) {
         </div>
       </div>
     ),
-    { width: 1080, height: 1080, headers: CACHE_HEADERS },
+    {
+      width: 1080, height: 1080, headers: CACHE_HEADERS,
+      fonts: [{ name: "Pretendard", data: font, weight: 800 as const, style: "normal" as const }],
+    },
   );
 }
 
