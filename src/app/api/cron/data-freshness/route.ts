@@ -516,7 +516,10 @@ async function checkOrphanCardDups(now: Date, findings: Finding[]) {
     per.set(m.league, e);
   }
   const blind = [...per.entries()]
-    .filter(([, v]) => v.af > 0 && v.db > 0 && v.orphan > 0 && v.af <= v.db)
+    // 친선(FRIENDLY)은 ts·af 가 서로 다른 경기를 나눠 갖는 네임스페이스라 "af≤DB 인데 잔여"
+    // 전제가 성립하지 않는다 — af 단독 친선 1건이 중복 의심으로 잡히던 오탐 제외
+    // (2026-09-03 Real Aranjuez vs Alavés III 실측: DB 에 상대 경기 자체가 없음).
+    .filter(([lg, v]) => !/FRIENDLY/.test(lg) && v.af > 0 && v.db > 0 && v.orphan > 0 && v.af <= v.db)
     .sort((a, b) => b[1].orphan - a[1].orphan);
 
   if (blind.length) {
