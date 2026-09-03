@@ -231,3 +231,10 @@ VB_ASIAN_W 가 8강인데 조별 표만 보이던 것. ts 배구엔 라운드 �
 - [x] 타이밍 측정 — 로컬: 메인 쿼리 2~4s(Neon 변동), 순위 0.65·배구 0.62·순위칩 1.49·orphan 0.46 직렬
 - [x] 캐시/병렬화 적용 · tsc — 직렬 2.76s→0.85s(로컬), 출력 동일성 확인(순위칩 70/202·orphan 64 일치)
 - [x] 배포(2590c62) · 운영 출력 동일 · TTFB 는 로컬 회선 변동(구글 0.77s)이 커서 Vultr 에서 측정: /scores 0.44~0.99s(중앙 0.58) · 홈(엣지 캐시) 0.05s. 수정 전 Vultr 기준선은 없음 — 다음 측정도 Vultr 에서.
+
+## GSC 리포트 → sitemap 분리 (2026-09-03, `31395b6`)
+- 진단: 28일 클릭 85(브랜드 71)·노출 162, 핵심 허브 "크롤됨-색인안됨" 10/20·"URL 모름" 8/20 (/standings/EPL·KBO 포함)
+- 원인: 한국어 /standings/{리그} sitemap 0건 + noindex 페이지가 대부분인 12k URL sitemap
+- 조치: lib/seo/sitemap-entries.ts 빌더 → /sitemap.xml lean(2,142) · /sitemap-full.xml full(12,527, 빙용)
+- 사용자 수동: GSC 색인요청 6개 + sitemap 재제출 · 빙 웹마스터에 /sitemap-full.xml 제출
+- 판정: 4~6주 뒤 URL 검사 20개 재실행(스크립트 패턴은 메모리 seo-indexing-crash-2026-05)
