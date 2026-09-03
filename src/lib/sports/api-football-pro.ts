@@ -5,6 +5,7 @@
 // 호출 절약: 시즌·리그 단위 캐시. 만료 6시간.
 
 import axios from "axios";
+import { unstable_cache } from "next/cache";
 import { attachAfTracking, rethrowApiSports } from "@/lib/sports/af-track";
 import { afQuotaOk, afTagBudgetOk } from "@/lib/sports/af-quota";
 
@@ -264,6 +265,28 @@ interface CacheEntry<T> {
 const injuriesCache = new Map<string, CacheEntry<InjuryEntry[]>>();
 const topScorersCache = new Map<string, CacheEntry<TopScorerEntry[]>>();
 
+// 위 Map 캐시는 프로세스 메모리라 Vercel 서버리스에선 인스턴스마다 따로 채워진다 — 라이브 상세·
+// 글·팀 페이지 렌더가 부를 때마다 새 인스턴스가 af 를 다시 불러 두 태그가 하루 각 1~2만 콜
+// (2026-08-31 실측 81,340콜 = 한도 초과의 주범). 전 인스턴스 공유 데이터 캐시로 (리그, 시즌)당
+// 한 번만 받는다. 한도 오류는 attachAfTracking 이 throw 로 바꿔 캐시에 안 굳는다.
+// 잡(tsx) 실행 시엔 Next 캐시 저장소가 없어 그냥 통과한다(live-scores.ts 와 같은 방식).
+const fetchInjuriesRawShared = unstable_cache(
+  async (lid: number, season: number): Promise<AfInjuryRow[]> => {
+    const { data } = await client().get("/injuries", { params: { league: lid, season } });
+    return (data?.response ?? []) as AfInjuryRow[];
+  },
+  ["af-pro-injuries-season-raw"],
+  { revalidate: 3600 }, // 부상은 경기 전후로 바뀌어 1시간
+);
+const fetchTopScorersRawShared = unstable_cache(
+  async (lid: number, season: number): Promise<AfTopScorerRow[]> => {
+    const { data } = await client().get("/players/topscorers", { params: { league: lid, season } });
+    return (data?.response ?? []) as AfTopScorerRow[];
+  },
+  ["af-pro-topscorers-season-raw"],
+  { revalidate: 6 * 3600 }, // 득점왕은 라운드 단위 변동 — Map 캐시 TTL 과 동일 6시간
+);
+
 /**
  * api-football 팀명 매칭 — "Man City" ↔ "Manchester City",
  * "Brighton Hove" ↔ "Brighton & Hove Albion" 같은 차이 흡수.
@@ -337,10 +360,9 @@ export async function fetchSeasonInjuries(
   }
 
   try {
-    const { data } = await client().get("/injuries", {
-      params: { league: lid, season },
-    });
-    const arr: InjuryEntry[] = (data?.response ?? []).map((r: AfInjuryRow) => ({
+    const rows = await fetchInjuriesRawShared(lid, season);
+    // 종전(axios any) 과 같은 형태 — af 는 player.id 를 항상 준다
+    const arr = rows.map((r: AfInjuryRow) => ({
       playerId: r.player?.id,
       playerName: r.player?.name ?? "",
       reason: r.player?.reason ?? "",
@@ -349,7 +371,7 @@ export async function fetchSeasonInjuries(
       teamId: r.team?.id,
       teamName: r.team?.name ?? "",
       fixtureDate: r.fixture?.date ?? undefined,
-    }));
+    })) as InjuryEntry[];
     injuriesCache.set(key, { fetchedAt: Date.now(), data: arr });
     return arr;
   } catch (e) {
@@ -518,10 +540,8 @@ export async function fetchSeasonTopScorers(
   }
 
   try {
-    const { data } = await client().get("/players/topscorers", {
-      params: { league: lid, season },
-    });
-    const arr: TopScorerEntry[] = (data?.response ?? []).map((r: AfTopScorerRow) => {
+    const rows = await fetchTopScorersRawShared(lid, season);
+    const arr = rows.map((r: AfTopScorerRow) => {
       const stat = r.statistics?.[0] ?? {};
       return {
         playerId: r.player?.id,
@@ -533,7 +553,7 @@ export async function fetchSeasonTopScorers(
         assists: stat.goals?.assists ?? 0,
         appearances: stat.games?.appearences ?? 0,
       };
-    });
+    }) as TopScorerEntry[];
     topScorersCache.set(key, { fetchedAt: Date.now(), data: arr });
     return arr;
   } catch (e) {
