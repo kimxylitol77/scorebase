@@ -5,11 +5,23 @@
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
+import { isSplitYearLeague } from "@/lib/sports/season-calendar";
 
 // 대상 리그 — The Odds API 축구 67종에 없는 확장 리그만 (2026-08-02 전수 실측).
 // RUSSIA_FNL 은 af 에도 부킹 0(제재) 실측이라 제외. The Odds API 커버 리그는 절대 넣지 말 것
 // (이중 소스 → marketHome 덮어쓰기 경합).
 const AF_ODDS_LEAGUES: string[] = [
+  // 2026-09-03 추가 — 최근 30일 배당 0건 리그 전수 대조. 전부 ts 전용 수집이라 af fixture id 가
+  // 없어 경기별 백필(api-sports-odds)이 못 닿았고, af leagues 조회로 coverage.odds=true 확인.
+  // J2·FA_CUP·INDONESIA_L1·THAI_L1·VIETNAM_VL1·GHANA_PL·MOROCCO_BP·INDIA_ISL·SINGAPORE_PL·
+  // PARAGUAY_PD 는 같은 조회에서 odds=false 라 제외(넣어도 0건).
+  "ARG_PRIMERA_NACIONAL", "COLOMBIA_PA", "VENEZUELA_PD", "PERU_PD", "URUGUAY_PD", "BOLIVIA_PD",
+  "K_LEAGUE_2", "K3_LEAGUE", "WK_LEAGUE", "EMPEROR_CUP",
+  "NATIONAL_LEAGUE", "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
+  "EREDIVISIE_2", "PRIMEIRA_LIGA_2", "CHALLENGE_LEAGUE", "POLAND_1L", "KAKKONEN_A",
+  "CZECH_L", "LIGA_I", "BULGARIA_PL", "HUNGARY_NB1", "UKRAINE_PL", "LITHUANIA_AL",
+  "AZERBAIJAN_PL", "ARMENIA_PL", "BOSNIA_PL", "ALBANIA_SL",
+  "ISRAEL_PL", "UAE_PL", "QATAR_SL", "EGYPT_PL", "SOUTHAFRICA_PSL", "ALGERIA_L1",
   "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "FAROE_PL",
   "PANAMA_LPF", "ELSALVADOR_PD", "NICARAGUA_PD",
   "COPA_DO_BRASIL", "PORTUGAL_SUPER_CUP",
@@ -29,13 +41,15 @@ const AF_ODDS_LEAGUES: string[] = [
 const CUP_FILL_ONLY = new Set(["UEL", "UECL", "AFC_CL", "AFC_CL_TWO"]);
 
 // 8~5월 시즌 리그 — af season 라벨이 시작 연도 (api-football-collector seasonFor 와 동일 규칙).
+// season-calendar 의 유럽형 목록(isSplitYearLeague)에 없는 것만 여기 남긴다 — 2026-09-03 확장분은
+// 전부 그 목록으로 판정된다.
 const AUG_MAY = new Set([
   "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND", "ROMANIA_L2", "PORTUGAL_SUPER_CUP",
   "UEL", "UECL", "AFC_CL", "AFC_CL_TWO", // 추춘제 컵
 ]);
 function seasonFor(league: string, d: Date): number {
   const y = d.getFullYear();
-  if (AUG_MAY.has(league)) return d.getMonth() + 1 >= 7 ? y : y - 1;
+  if (AUG_MAY.has(league) || isSplitYearLeague(league)) return d.getMonth() + 1 >= 7 ? y : y - 1;
   return y;
 }
 

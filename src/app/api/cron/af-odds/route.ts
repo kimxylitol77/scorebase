@@ -5,7 +5,8 @@ import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchAfOdds } from "@/jobs/fetch-af-odds";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 리그 53개 × (odds 1~5페이지 + fixtures 1콜) 순차 — 60s 로는 뒤쪽 리그가 잘린다 (2026-09-03 확장).
+export const maxDuration = 300;
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
