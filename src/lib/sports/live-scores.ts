@@ -2205,10 +2205,25 @@ const fetchSoccerByDateCachedSlow = unstable_cache(
   { revalidate: 3600, tags: ["live-scores"] },
 );
 
-/** /scores 류 페이지용 날짜별 일정 조회 — 오늘(KST)=60초, 그 외=1시간 캐시. */
+// 지난 날짜용 장기 캐시 — 끝난 날의 일정·결과는 더 바뀌지 않는다.
+//
+// 2026-09-03 실측: 태그를 쪼개 보니 af-live:fixtures 약 770콜/시 중 date 조회가 530콜(69%)로
+// live=all(240콜)보다 컸다. fetchSoccerByDate 는 KST 하루가 UTC 이틀에 걸쳐 1회당 af 2콜을
+// 쓰는데, 크롤러가 /scores?date= 를 날짜별로 훑으면 날짜마다 별도 캐시 키라 1시간 캐시로는
+// 거의 못 막는다. 과거 날짜는 24시간으로 늘려 반복 크롤을 하루 1회로 접는다.
+// (미래 날짜는 연기·시각 변경이 있어 1시간 유지.)
+const fetchSoccerByDateCachedPast = unstable_cache(
+  fetchSoccerByDate,
+  ["scores-page-soccer-by-date-past"],
+  { revalidate: 86400, tags: ["live-scores"] },
+);
+
+/** /scores 류 페이지용 날짜별 일정 조회 — 오늘(KST)=60초 · 과거=24시간 · 미래=1시간. */
 export function fetchSoccerByDateSmart(dateStr: string): ReturnType<typeof fetchSoccerByDate> {
   const todayKst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-  return dateStr === todayKst ? fetchSoccerByDateCachedForLive(dateStr) : fetchSoccerByDateCachedSlow(dateStr);
+  if (dateStr === todayKst) return fetchSoccerByDateCachedForLive(dateStr);
+  if (dateStr < todayKst) return fetchSoccerByDateCachedPast(dateStr);
+  return fetchSoccerByDateCachedSlow(dateStr);
 }
 
 export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
