@@ -3,12 +3,14 @@
 // Bearer auth: env INTERNAL_API_TOKEN.
 
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { mapFootballStatus, convertTsLineup } from "@/lib/sports/thesports/football-collector";
 import { predictMatchById } from "@/lib/predictionEngine";
 import { mapBaseballStatus, mapIceHockeyStatus, mapBasketballStatus, mapVolleyballStatus } from "@/lib/sports/thesports/status-codes";
 import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { RANK_CHIP_CALC_LEAGUES, RANK_CHIP_TAG } from "@/lib/sports/rank-chip-cache";
 import type { MatchStatus } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -232,6 +234,27 @@ export async function POST(req: NextRequest) {
       if (Object.keys(updateData).length > 0) {
         await prisma.match.update({ where: { id: body.matchId }, data: updateData });
         matchUpdated = true;
+        // 순위칩(MLB·CPBL·LMB·NBA·WNBA)은 시즌 전체 매치를 읽어 계산하느라 10분 캐시라,
+        // 경기가 끝나도 최대 10분간 옛 순위가 걸린다. 종료로 바뀐 순간에만 캐시를 비운다.
+        // 점수 변동마다가 아니라 "종료" 한 번뿐이라 재계산 부담이 없고, 외부 API 를 물고 있는
+        // live-scores 태그는 건드리지 않는다.
+        if (
+          updateData.status === "FINISHED" &&
+          RANK_CHIP_CALC_LEAGUES.has(currentMatch.league)
+        ) {
+          // 바깥 try 의 catch 가 통째로 삼키면 무효화 실패가 "Match update 실패"와 구분이
+          // 안 되고 조용히 사라진다 — 따로 잡아 로그로 남긴다(실패해도 10분 타이머가 백스톱).
+          try {
+            // Next 16 은 2인자 필수 — 1인자 형태는 deprecated 경고만 내고 만다.
+            // "max" 는 프레임워크가 라우트 핸들러에 권하는 값이다(updateTag 은 서버 액션 전용).
+            revalidateTag(RANK_CHIP_TAG, "max");
+          } catch (e) {
+            console.warn(
+              `[thesports-cache] 순위칩 캐시 무효화 실패 ${currentMatch.league} #${body.matchId}:`,
+              (e as Error).message,
+            );
+          }
+        }
       }
     } catch {
       // Match update 실패 ignore — cache 는 이미 저장

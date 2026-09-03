@@ -23,6 +23,7 @@ import {
   postponedLabel,
   type SportCode,
 } from "@/lib/sports/sport-leagues";
+import { RANK_CHIP_CALC_LEAGUES, RANK_CHIP_TAG } from "@/lib/sports/rank-chip-cache";
 import { teamDisplayKo, toKoreanTeamName } from "@/lib/team-names";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
@@ -190,7 +191,8 @@ const fetchSeasonRankChipCached = unstable_cache(
     return Object.fromEntries(posMap);
   },
   ["scores-page-season-rank-chip"],
-  { revalidate: 600, tags: ["live-scores"] },
+  // rank-chip 태그는 경기 종료 시 즉시 갱신용 (thesports-cache route 가 비운다).
+  { revalidate: 600, tags: ["live-scores", RANK_CHIP_TAG] },
 );
 
 const fetchOpeningOddsCached = unstable_cache(
@@ -1493,7 +1495,6 @@ export default async function ScoresPage({ searchParams }: Props) {
   // KBO/NPB = TheSports 공식 table(/standings 와 동일 정본), 그 외 클럽 리그 =
   // 시즌 창 DB 계산(currentSeasonStart — 지난 시즌·MLB 시범경기 오염 차단).
   // 토너먼트성 야구(WBC 등)는 명단 제외 = 칩 없음.
-  const RANK_CHIP_CALC_LEAGUES = new Set(["MLB", "CPBL", "LMB", "NBA", "WNBA"]);
   const rankChipLeaguesInPage = Array.from(
     new Set(
       matches
