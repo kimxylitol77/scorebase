@@ -131,7 +131,11 @@ function extractInternalLinks(html, fromUrl) {
 }
 
 // ── 3. 단일 URL 검사 ──
-async function checkUrl(url) {
+// ⚠ 본문(body)은 **결과 객체에 담지 않는다.** 담으면 sitemap 전수 결과 배열에 그대로
+// 쌓여 힙이 터진다 — 2026-09-03 실측: sitemap 12,436 URL × 페이지당 200~500KB.
+// Vultr(2GB) 이전 후 26일간 OOM 재시작 16,119회, 한 번도 완주하지 못했다.
+// 링크 추출이 필요한 호출부는 onBody 콜백으로 **본문이 살아 있는 동안** 처리한다.
+async function checkUrl(url, onBody) {
   const t0 = Date.now();
   try {
     const res = await axios.get(url, {
@@ -142,25 +146,27 @@ async function checkUrl(url) {
     });
     const dur = Date.now() - t0;
     const status = res.status;
-    const body = typeof res.data === "string" ? res.data : "";
     let kind = "ok";
     if (status === 404) kind = "404";
     else if (status >= 500) kind = "5xx";
     else if (status >= 400) kind = "4xx";
-    return { url, status, dur, kind, body };
+    if (kind === "ok" && onBody) {
+      onBody(typeof res.data === "string" ? res.data : "", url);
+    }
+    return { url, status, dur, kind };
   } catch (e) {
     return { url, status: 0, dur: Date.now() - t0, kind: "error", error: e.message };
   }
 }
 
 // ── 4. 동시성 제한 fetch 풀 ──
-async function fetchPool(urls, onResult) {
+async function fetchPool(urls, onResult, onBody) {
   let idx = 0;
   const results = [];
   async function worker() {
     while (idx < urls.length) {
       const my = idx++;
-      const r = await checkUrl(urls[my]);
+      const r = await checkUrl(urls[my], onBody);
       results.push(r);
       if (onResult) onResult(r, my + 1, urls.length);
     }
@@ -188,26 +194,22 @@ async function bfsCrawl(startUrls) {
     const batch = frontier.slice(0, CONCURRENCY * 4); // 한 번에 ~20개 처리
     frontier = frontier.slice(batch.length);
 
+    // 링크 추출은 본문이 살아 있는 동안(onBody) 끝낸다 — 결과 배열에 본문을 남기지 않는다.
+    const depthByUrl = new Map(batch.map((b) => [b.url, b.depth]));
     const checked = await fetchPool(
       batch.map((b) => b.url),
       null,
-    );
-
-    for (let i = 0; i < checked.length; i++) {
-      const r = checked[i];
-      const depth = batch[i].depth;
-      results.push(r);
-
-      // 다음 depth로 확장 — 정상 응답이고 깊이 제한 안 넘었을 때만
-      if (r.kind === "ok" && depth < BFS_MAX_DEPTH && r.body) {
-        const links = extractInternalLinks(r.body, r.url);
-        for (const l of links) {
+      (body, url) => {
+        const depth = depthByUrl.get(url) ?? 0;
+        if (depth >= BFS_MAX_DEPTH || !body) return;
+        for (const l of extractInternalLinks(body, url)) {
           if (seen.has(l) || seen.size >= BFS_MAX_URLS) continue;
           seen.add(l);
           frontier.push({ url: l, depth: depth + 1 });
         }
-      }
-    }
+      },
+    );
+    for (const r of checked) results.push(r);
   }
   return results;
 }
