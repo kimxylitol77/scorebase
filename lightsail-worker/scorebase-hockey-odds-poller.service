@@ -1,0 +1,16 @@
+[Unit]
+Description=Scorebase TheSports Ice Hockey Odds Poller (3min odds/history, KHL/LIIGA/CHL etc.)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/hockey-odds-poller.js
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/hockey-odds-poller.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/hockey-odds-poller.err
+
+[Install]
+WantedBy=multi-user.target

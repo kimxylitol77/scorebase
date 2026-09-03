@@ -19,6 +19,9 @@ export const SPORT_KEY: Record<string, string> = {
   NBA: "basketball_nba",
   WNBA: "basketball_wnba", // 2026-07 추가 — 시즌 4~9월, The Odds API active 확인
   NHL: "icehockey_nhl",
+  // 2026-09-03 추가 — /sports?all=true 실측 active, 9/4 개막 6경기 게시. 유럽 하키 나머지(KHL 등)는
+  // The Odds API 에 없어 TheSports ice_hockey/odds/history 폴러가 맡는다(reports/plans/hockey-odds).
+  LIIGA: "icehockey_liiga",
   MLB: "baseball_mlb",
   // KBO/NPB — The Odds API 무료 plan 에서도 active=true 확인 (2026-05).
   KBO: "baseball_kbo",

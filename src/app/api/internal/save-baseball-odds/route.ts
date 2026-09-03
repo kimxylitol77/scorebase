@@ -6,9 +6,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { HOCKEY_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** TheSports 배당을 시장 확률(marketHome)까지 쓰는 리그 — 하키 중 The Odds API 가 커버하는 NHL·LIIGA 제외. */
+const HOCKEY_TS_MARKET_LEAGUES = new Set([...HOCKEY_LEAGUES].filter((l) => l !== "NHL" && l !== "LIIGA"));
 
 interface Body {
   matchId: number;
@@ -72,7 +76,10 @@ export async function POST(req: NextRequest) {
   // 우리 Match 존재 확인 — 없으면 silently skip (worker 가 stale id 호출해도 안전).
   const exists = await prisma.match.findUnique({
     where: { id: body.matchId },
-    select: { id: true, status: true, oddsHome: true, oddsOver: true, oddsHcHome: true },
+    select: {
+      id: true, league: true, status: true, oddsHome: true, oddsOver: true, oddsHcHome: true,
+      openingMarketHome: true,
+    },
   });
   if (!exists) return NextResponse.json({ skipped: "match not found", matchId: body.matchId }, { status: 200 });
 
@@ -120,6 +127,7 @@ export async function POST(req: NextRequest) {
     // 기존 값(주로 MLB 의 The Odds API)은 보존 — 비어있는 마켓만 TheSports 로 채움(gap-fill).
     // KBO/NPB 는 The Odds API 미커버라 항상 null → TheSports 가 채움.
     const data: Record<string, number> = {};
+    let marketPatch: Record<string, Date> = {};
     if (eu && exists.oddsHome == null) {
       data.oddsHome = eu.v1;
       data.oddsAway = eu.v2;
@@ -134,9 +142,27 @@ export async function POST(req: NextRequest) {
       data.oddsHcAway = asia.v2;
       if (asia.mid != null) data.oddsHcLine = Math.abs(asia.mid);
     }
+    // 하키(NHL·LIIGA 제외) — 시장 확률(marketHome)도 여기서 쓴다. 그 둘은 The Odds API 가 주인이라
+    // 건드리지 않고, 나머지 유럽 하키(KHL·CHL·체코 등)는 TheSports 가 유일한 시장 신호라 매 push 갱신.
+    // 야구가 marketHome 을 일부러 안 쓰는 것(api-baseball-odds.ts)과 달리 하키는 NHL 이 이미
+    // 시장 블렌드를 쓰고 있어 같은 정책의 확장이다 — reports/plans/hockey-odds/context-notes.md.
+    if (eu && HOCKEY_TS_MARKET_LEAGUES.has(exists.league)) {
+      const ih = 1 / eu.v1;
+      const ia = 1 / eu.v2;
+      const pHome = ih / (ih + ia);
+      Object.assign(data, {
+        marketHome: pHome,
+        marketAway: 1 - pHome,
+        marketBookmakers: 1,
+        ...(exists.openingMarketHome == null
+          ? { openingMarketHome: pHome, openingMarketAway: 1 - pHome }
+          : {}),
+      });
+      marketPatch = { marketUpdatedAt: new Date(), ...(exists.openingMarketHome == null ? { openingCapturedAt: new Date() } : {}) };
+    }
     if (Object.keys(data).length) {
       await prisma.match
-        .update({ where: { id: body.matchId }, data })
+        .update({ where: { id: body.matchId }, data: { ...data, ...marketPatch } })
         .then(() => {
           oddsUpdated = true;
         })

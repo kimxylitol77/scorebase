@@ -317,6 +317,7 @@ const MARKET_LABELS: Record<string, string[]> = {
   soccer: ["승·무·패", "오버언더", "핸디캡", "BTTS·더블찬스"],
   baseball: ["머니라인", "오버언더", "런라인"],
   basketball: ["머니라인", "오버언더", "스프레드"],
+  hockey: ["머니라인", "오버언더", "퍽라인"],
 };
 
 function ExtraMarketRow({ label, cells }: { label: string; cells: [string, number | null][] }) {

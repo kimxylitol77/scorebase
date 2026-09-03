@@ -1,4 +1,4 @@
-// 배당 흐름 — 종목(축구/야구/농구)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.
+// 배당 흐름 — 종목(축구/야구/농구/하키)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.
 import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -6,6 +6,7 @@ import {
   SOCCER_LEAGUES,
   BASEBALL_LEAGUES,
   BASKETBALL_LEAGUES,
+  HOCKEY_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
 import NoVigCalculator from "@/components/odds/NoVigCalculator";
@@ -34,15 +35,17 @@ export async function generateMetadata({
   }
   return {
     title: "배당 흐름 | 스코어베이스",
-    description: "축구·야구·농구 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
+    description: "축구·야구·농구·하키 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
   };
 }
 
-type Sport = "soccer" | "baseball" | "basketball";
+type Sport = "soccer" | "baseball" | "basketball" | "hockey";
 const SPORT_CFG: Record<Sport, { leagues: Set<string>; hasDraw: boolean }> = {
   soccer: { leagues: SOCCER_LEAGUES as Set<string>, hasDraw: true },
   baseball: { leagues: BASEBALL_LEAGUES as Set<string>, hasDraw: false },
   basketball: { leagues: BASKETBALL_LEAGUES as Set<string>, hasDraw: false },
+  // 2026-09-03 — NHL·LIIGA 는 The Odds API, 나머지 유럽 하키는 TheSports 폴러(연장 포함 2-way).
+  hockey: { leagues: HOCKEY_LEAGUES as Set<string>, hasDraw: false },
 };
 
 type Pt = { t: number; home: number; draw: number | null; away: number };
@@ -117,7 +120,8 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
     byMatch.set(s.matchId, arr);
   }
   // 야구는 TheSports 업체별 히스토리(60초)가 있으면 그걸 우선 사용.
-  const tsHist = sport === "baseball" ? await baseballHistorySeries(ids) : new Map<number, Pt[]>();
+  // 하키도 같은 ts 히스토리 테이블(hockey-odds-poller, 3분 주기)을 쓴다.
+  const tsHist = sport === "baseball" || sport === "hockey" ? await baseballHistorySeries(ids) : new Map<number, Pt[]>();
 
   const matches: FlowMatch[] = rows
     .map((m) => {
@@ -252,14 +256,14 @@ export default async function OddsPage({
   }
 
   const sport: Sport =
-    sp?.sport === "baseball" || sp?.sport === "basketball" ? sp.sport : "soccer";
+    sp?.sport === "baseball" || sp?.sport === "basketball" || sp?.sport === "hockey" ? sp.sport : "soccer";
   const cfg = SPORT_CFG[sport];
 
   const matches = await getFlowMatchesCached(sport);
 
-  // 흐름 통계(배당 하락 경기의 실제 승률) — 야구(2-way) + 축구(3-way, 무승부=미적중).
+  // 흐름 통계(배당 하락 경기의 실제 승률) — 야구·하키(2-way) + 축구(3-way, 무승부=미적중).
   const hitrate =
-    sport === "baseball"
+    sport === "baseball" || sport === "hockey"
       ? await getFlowHitrate(Array.from(cfg.leagues))
       : sport === "soccer"
         ? await getFlowHitrate(Array.from(cfg.leagues), 60, { threeWay: true })
