@@ -11,7 +11,7 @@ import { ChevronDown } from "lucide-react";
 import type { BetmanMatch, BetmanLine } from "@/lib/odds/betman";
 import BetmanTeamsRow from "./BetmanTeamsRow";
 
-const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구" };
+const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구", VL: "배구" };
 
 const fmtOdds = (v: number | null) => (v != null && v > 0 ? v.toFixed(2) : "-");
 

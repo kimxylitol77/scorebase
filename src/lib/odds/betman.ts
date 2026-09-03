@@ -28,7 +28,7 @@ export interface BetmanMatch extends BetmanLine {
   /** ISO 문자열 — unstable_cache 가 반환값을 JSON 직렬화해 Date 가 문자열이 된다.
       타입만 Date 로 두면 렌더에서 "Invalid time value" 로 터진다(실측). */
   gameDate: string;
-  /** SC 축구 / BS 야구 / BK 농구 */
+  /** SC 축구 / BS 야구 / BK 농구 / VL 배구 */
   itemCode: string | null;
   leagueName: string;
   homeName: string;
@@ -38,11 +38,12 @@ export interface BetmanMatch extends BetmanLine {
   lines: BetmanLine[];
 }
 
-const ITEM_CODES = ["SC", "BS", "BK"];
-/** 대표로 세울 기본형. 축구 = 승무패(3-way), 야구·농구 = 일반 승패(2-way). */
+// VL(배구) — 2026-09-03 추가. 워커는 전 종목을 쌓지만 이 필터에 걸려 화면에 안 나오고 있었다.
+const ITEM_CODES = ["SC", "BS", "BK", "VL"];
+/** 대표로 세울 기본형. 축구 = 승무패(3-way), 야구·농구·배구 = 일반 승패(2-way). */
 const BASE_TYPES = new Set(["승무패", "일반 승패"]);
 /** 펼침 목록 정렬 — 익숙한 순서대로. 목록에 없는 유형은 뒤로. */
-const LINE_ORDER = ["승N패", "일반 정수핸디캡", "일반 소수핸디캡", "일반 언더오버", "일반 홀짝"];
+const LINE_ORDER = ["승N패", "일반 정수핸디캡", "일반 소수핸디캡", "일반 세트핸디캡", "일반 언더오버", "일반 홀짝"];
 
 const norm = (s: string) => s.replace(/[\s·.()]/g, "").toLowerCase();
 
