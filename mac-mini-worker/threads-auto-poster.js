@@ -233,7 +233,20 @@ async function runOnce() {
         `${tsKst()} ✓ 발행 [${item.kind}] ${item.refKey} → media ${mediaId}`,
       );
     } catch (e) {
-      const msg = e.response?.data?.error?.message || e.message;
+      // Meta 의 message 는 "An unknown error occurred" 로 뭉개져 오는 일이 잦다.
+      // 실제 단서는 code·error_subcode·error_user_msg 에 있어 함께 남긴다
+      // (2026-09-03 Vultr 이전 직후 원인 추적이 여기서 막혔다).
+      const err = e.response?.data?.error;
+      const detail = err
+        ? [
+            err.message,
+            err.code != null ? `code=${err.code}` : null,
+            err.error_subcode != null ? `subcode=${err.error_subcode}` : null,
+            err.error_user_msg ? `user_msg=${err.error_user_msg}` : null,
+            err.fbtrace_id ? `trace=${err.fbtrace_id}` : null,
+          ].filter(Boolean).join(" · ")
+        : e.message;
+      const msg = detail || e.message;
       console.error(`${tsKst()} ✗ 발행 실패 [${item.kind}] ${item.refKey}: ${msg}`);
       await notify({
         severity: "WARN",
