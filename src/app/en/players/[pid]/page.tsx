@@ -16,14 +16,14 @@ import { fetchKboPitcherProfile } from "@/lib/sports/kbo-official";
 import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchNpbPitcherProfileCached as fetchNpbPitcherProfile } from "@/lib/sports/npb-cache";
 import { KboPlayerView, NpbPlayerView, npbDisplayName } from "./KboNpbViews";
-import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
-import { cache } from "react";
+import { type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
+import { fetchSoccerPlayerProfileCached } from "@/lib/players/soccer-player-cache";
 
 // 요청 스코프 dedupe — generateMetadata 와 본문이 같은 (id, season) 호출을 공유해
 // af 쿼터 소모가 기존(요청당 1콜)과 동일하게 유지된다. af 일 한도 소진 사고(3ea74b7) 재발 방지.
-const fetchSoccerProfileCached = cache(
-  (id: number, season: number) => fetchSoccerPlayerProfile(id, season),
-);
+// 영속 캐시(unstable_cache, 6h) — React cache() 는 요청 단위라 매 요청 af 를 다시 때렸다.
+// 상세 근거는 soccer-player-cache.ts.
+const fetchSoccerProfileCached = fetchSoccerPlayerProfileCached;
 import { NbaPlayerView } from "./NbaViews";
 import { NhlPlayerView } from "./NhlViews";
 import { LolPlayerView } from "./LolViews";
