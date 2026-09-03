@@ -520,6 +520,17 @@ async function fetchLolOdds(): Promise<number> {
         ...totalMapsPatch,
       },
     });
+    // /odds LOL 탭 시계열 — 본 파이프와 같은 1분 중복 회피. 이게 없으면 흐름 뷰가 경기를 아예 안 세운다
+    // (books 도 points 도 없는 매치는 걸러짐 — 2026-09-03 탭 신설).
+    const recentSnap = await prisma.oddsSnapshot.findFirst({
+      where: { matchId: m.id, fetchedAt: { gte: new Date(Date.now() - 60_000) } },
+      select: { id: true },
+    });
+    if (!recentSnap) {
+      await prisma.oddsSnapshot.create({
+        data: { matchId: m.id, homeOdds: dh, drawOdds: null, awayOdds: da, bookmakers: ev.sample },
+      });
+    }
     matched++;
   }
   console.log(

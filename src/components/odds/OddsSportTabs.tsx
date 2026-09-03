@@ -1,4 +1,4 @@
-// /odds 상단 탭 — 종목 4개 + 베트맨 배당. OddsFlowList(흐름 뷰)와 베트맨 뷰가 함께 쓴다.
+// /odds 상단 탭 — 종목 7개 + 베트맨 배당. OddsFlowList(흐름 뷰)와 베트맨 뷰가 함께 쓴다.
 // 두 뷰가 서로 다른 컴포넌트라 탭을 한쪽에 두면 다른 쪽에서 탭이 사라진다 → 여기로 분리.
 
 "use client";
@@ -10,6 +10,9 @@ export const ODDS_TABS: [string, string][] = [
   ["baseball", "야구"],
   ["basketball", "농구"],
   ["hockey", "하키"],
+  ["volleyball", "배구"],
+  ["esports", "LOL"],
+  ["mma", "UFC"],
   ["betman", "베트맨 배당"],
 ];
 

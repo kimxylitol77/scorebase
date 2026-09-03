@@ -7,6 +7,9 @@ import {
   BASEBALL_LEAGUES,
   BASKETBALL_LEAGUES,
   HOCKEY_LEAGUES,
+  VOLLEYBALL_LEAGUES,
+  LOL_LEAGUES,
+  MMA_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
 import NoVigCalculator from "@/components/odds/NoVigCalculator";
@@ -35,18 +38,26 @@ export async function generateMetadata({
   }
   return {
     title: "배당 흐름 | 스코어베이스",
-    description: "축구·야구·농구·하키 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
+    description: "축구·야구·농구·하키·배구·LOL·UFC 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
   };
 }
 
-type Sport = "soccer" | "baseball" | "basketball" | "hockey";
+type Sport = "soccer" | "baseball" | "basketball" | "hockey" | "volleyball" | "esports" | "mma";
 const SPORT_CFG: Record<Sport, { leagues: Set<string>; hasDraw: boolean }> = {
   soccer: { leagues: SOCCER_LEAGUES as Set<string>, hasDraw: true },
   baseball: { leagues: BASEBALL_LEAGUES as Set<string>, hasDraw: false },
   basketball: { leagues: BASKETBALL_LEAGUES as Set<string>, hasDraw: false },
   // 2026-09-03 — NHL·LIIGA 는 The Odds API, 나머지 유럽 하키는 TheSports 폴러(연장 포함 2-way).
   hockey: { leagues: HOCKEY_LEAGUES as Set<string>, hasDraw: false },
+  // 2026-09-03 — 셋 다 데이터는 이미 쌓이고 있었는데 탭이 없어 갈 곳이 없던 종목.
+  // 배구 = TheSports 폴러(ts 히스토리) · LOL = OddsPapi/Cloudbet/Pinnacle 스냅샷 · UFC = The Odds API 일 1회.
+  volleyball: { leagues: VOLLEYBALL_LEAGUES as Set<string>, hasDraw: false },
+  esports: { leagues: LOL_LEAGUES as Set<string>, hasDraw: false },
+  mma: { leagues: MMA_LEAGUES as Set<string>, hasDraw: false },
 };
+const SPORT_KEYS = new Set<string>(Object.keys(SPORT_CFG));
+/** ts 업체별 히스토리(15분 버킷)를 시계열로 쓰는 종목 — 나머지는 OddsSnapshot. */
+const TS_HISTORY_SPORTS = new Set<Sport>(["baseball", "hockey", "volleyball"]);
 
 type Pt = { t: number; home: number; draw: number | null; away: number };
 
@@ -120,8 +131,8 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
     byMatch.set(s.matchId, arr);
   }
   // 야구는 TheSports 업체별 히스토리(60초)가 있으면 그걸 우선 사용.
-  // 하키도 같은 ts 히스토리 테이블(hockey-odds-poller, 3분 주기)을 쓴다.
-  const tsHist = sport === "baseball" || sport === "hockey" ? await baseballHistorySeries(ids) : new Map<number, Pt[]>();
+  // 하키·배구도 같은 ts 히스토리 테이블(각 폴러, 3분 주기)을 쓴다.
+  const tsHist = TS_HISTORY_SPORTS.has(sport) ? await baseballHistorySeries(ids) : new Map<number, Pt[]>();
 
   const matches: FlowMatch[] = rows
     .map((m) => {
@@ -255,15 +266,15 @@ export default async function OddsPage({
     );
   }
 
-  const sport: Sport =
-    sp?.sport === "baseball" || sp?.sport === "basketball" || sp?.sport === "hockey" ? sp.sport : "soccer";
+  const sport: Sport = sp?.sport && SPORT_KEYS.has(sp.sport) ? (sp.sport as Sport) : "soccer";
   const cfg = SPORT_CFG[sport];
 
   const matches = await getFlowMatchesCached(sport);
 
-  // 흐름 통계(배당 하락 경기의 실제 승률) — 야구·하키(2-way) + 축구(3-way, 무승부=미적중).
+  // 흐름 통계(배당 하락 경기의 실제 승률) — 2-way 종목 전부 + 축구(3-way, 무승부=미적중).
+  // 농구는 종전대로 제외(NBA 비시즌 표본 왜곡).
   const hitrate =
-    sport === "baseball" || sport === "hockey"
+    sport !== "soccer" && sport !== "basketball"
       ? await getFlowHitrate(Array.from(cfg.leagues))
       : sport === "soccer"
         ? await getFlowHitrate(Array.from(cfg.leagues), 60, { threeWay: true })

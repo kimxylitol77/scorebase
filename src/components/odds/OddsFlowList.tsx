@@ -318,6 +318,9 @@ const MARKET_LABELS: Record<string, string[]> = {
   baseball: ["머니라인", "오버언더", "런라인"],
   basketball: ["머니라인", "오버언더", "스프레드"],
   hockey: ["머니라인", "오버언더", "퍽라인"],
+  volleyball: ["머니라인", "오버언더", "세트핸디캡"],
+  esports: ["머니라인", "맵 오버언더"],
+  mma: ["머니라인"],
 };
 
 function ExtraMarketRow({ label, cells }: { label: string; cells: [string, number | null][] }) {

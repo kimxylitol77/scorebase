@@ -4,6 +4,7 @@
 //   - Match: league="UFC", externalId=The Odds event id, home/awayTeamId=파이터
 // 사용: npx tsx src/jobs/collect-mma.ts
 import "@/lib/env";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { collectUfcEventPairs, ufcPairKey } from "./enrich-mma-espn";
 
@@ -52,6 +53,60 @@ async function upsertFighter(name: string): Promise<number> {
   return t.id;
 }
 
+/**
+ * 배당 저장 — 이미 받은 h2h 를 Match 배당 컬럼·업체 목록·시계열 스냅샷으로. 종전엔 raw 에만 묻혀
+ * /odds 가 UFC 를 0/94 로 봤다(2026-09-03). 업체 평균 decimal + vig 제거 implied, 오프닝은 1회.
+ * in-play 가드(한쪽 implied > 0.97)는 fetch-odds 와 동일.
+ */
+async function saveUfcOdds(
+  m: { id: number; openingMarketHome: number | null },
+  home: string,
+  away: string,
+  ev: Record<string, unknown>,
+) {
+  const books: Array<{ nm: string; h: number; d: null; a: number }> = [];
+  for (const b of (ev.bookmakers as Array<Record<string, unknown>> | undefined) ?? []) {
+    const h2h = ((b.markets as Array<Record<string, unknown>> | undefined) ?? []).find((mk) => mk.key === "h2h");
+    const outs = (h2h?.outcomes as Array<{ name: string; price: number }> | undefined) ?? [];
+    const hv = outs.find((o) => o.name === home)?.price;
+    const av = outs.find((o) => o.name === away)?.price;
+    if (hv == null || av == null || hv <= 1 || av <= 1) continue;
+    books.push({ nm: String(b.title ?? b.key ?? ""), h: hv, d: null, a: av });
+  }
+  if (!books.length) return;
+  const dh = books.reduce((s, b) => s + b.h, 0) / books.length;
+  const da = books.reduce((s, b) => s + b.a, 0) / books.length;
+  const pH = 1 / dh, pA = 1 / da;
+  const impliedHome = pH / (pH + pA);
+  if (Math.max(impliedHome, 1 - impliedHome) > 0.97) return;
+  await prisma.match.update({
+    where: { id: m.id },
+    data: {
+      marketHome: impliedHome,
+      marketDraw: 0,
+      marketAway: 1 - impliedHome,
+      marketBookmakers: books.length,
+      marketUpdatedAt: new Date(),
+      oddsHome: dh,
+      oddsDraw: null,
+      oddsAway: da,
+      oddsBookmakers: { updatedAt: new Date().toISOString(), books } as unknown as Prisma.InputJsonValue,
+      ...(m.openingMarketHome == null
+        ? { openingMarketHome: impliedHome, openingMarketDraw: 0, openingMarketAway: 1 - impliedHome, openingCapturedAt: new Date() }
+        : {}),
+    },
+  });
+  const recentSnap = await prisma.oddsSnapshot.findFirst({
+    where: { matchId: m.id, fetchedAt: { gte: new Date(Date.now() - 60_000) } },
+    select: { id: true },
+  });
+  if (!recentSnap) {
+    await prisma.oddsSnapshot.create({
+      data: { matchId: m.id, homeOdds: dh, drawOdds: null, awayOdds: da, bookmakers: books.length },
+    });
+  }
+}
+
 export async function runCollectMma() {
   const key = process.env.ODDS_API_KEY ?? "";
   if (!key) {
@@ -83,7 +138,7 @@ export async function runCollectMma() {
     if (useFilter && !espnPairs.has(ufcPairKey(home, away))) { skipped++; continue; } // ESPN 미확정 → 등록 안 함
     const homeId = await upsertFighter(home);
     const awayId = await upsertFighter(away);
-    await prisma.match.upsert({
+    const saved = await prisma.match.upsert({
       where: { league_externalId: { league: "UFC", externalId: id } },
       update: {
         homeTeamId: homeId,
@@ -100,7 +155,9 @@ export async function runCollectMma() {
         startTime: new Date(commence),
         raw: JSON.stringify(ev),
       },
+      select: { id: true, openingMarketHome: true },
     });
+    await saveUfcOdds(saved, home, away, ev);
     n++;
   }
   console.log(`[mma] ${n}경기 등록 / ${skipped}경기 skip(ESPN 미확정)`);
