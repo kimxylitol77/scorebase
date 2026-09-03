@@ -32,9 +32,25 @@ const BDL_BASE = "https://api.balldontlie.io";
 
 const TIMEOUT = 8000;
 
-/** af URL → 계측 태그. 경로만 남겨 쿼리(리그·날짜)는 버린다. */
+/**
+ * af URL → 계측 태그. 경로만 남기되, fixtures 경로만은 쿼리 종류까지 구분한다.
+ *
+ * 이유. `af-live:fixtures` 하나에 성격이 다른 호출 셋이 뭉쳐 있어 원인 추적이 막혔다
+ * (2026-09-03 — 하루 24,531콜로 af 최대 소비처인데, 60초 캐시가 걸린 live=all 인지
+ * 날짜 조회인지 리그·기간 조회인지 계측만으로는 가릴 수 없었다).
+ *   fixtures:live  — /fixtures?live=all       (60초 공유 캐시)
+ *   fixtures:date  — /fixtures?date=…         (오늘 60초 · 그 외 1시간 캐시)
+ *   fixtures:range — /fixtures?league&from&to (캐시 없음 — no-store)
+ */
 function afTagForUrl(url: string): string {
-  const path = url.slice(AF_BASE.length).split("?")[0].replace(/^\//, "");
+  const rest = url.slice(AF_BASE.length);
+  const path = rest.split("?")[0].replace(/^\//, "");
+  if (path === "fixtures") {
+    const q = rest.split("?")[1] ?? "";
+    if (q.includes("live=")) return "af-live:fixtures:live";
+    if (q.includes("from=") || q.includes("league=")) return "af-live:fixtures:range";
+    if (q.includes("date=")) return "af-live:fixtures:date";
+  }
   return `af-live:${path || "root"}`;
 }
 
