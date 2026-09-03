@@ -38,7 +38,11 @@ fi
 
 # 3. 코드가 바뀌었으면 tsc + 단위 테스트 통과가 커밋의 조건이다
 if echo "$staged" | grep -qE '\.(ts|tsx|mts)$'; then
-  if [ ! -x node_modules/.bin/tsc ]; then
+  # 워크트리에는 node_modules 가 없다 — 공용 .git 의 부모(저장소 루트)에서도 찾는다.
+  # 워크트리 기준으로만 보던 탓에 에이전트 작업이 전부 게이트를 조용히 통과하고 있었다
+  # (npm 자체는 상위 디렉터리의 node_modules 를 찾아 쓰므로 실행에는 문제가 없다).
+  repo_root=$(dirname "$(git rev-parse --git-common-dir)")
+  if [ ! -x node_modules/.bin/tsc ] && [ ! -x "$repo_root/node_modules/.bin/tsc" ]; then
     echo "[pre-commit] node_modules 가 없어 tsc·테스트를 건너뜁니다 (push 시 다시 검사)." >&2
   else
     if ! out=$(npm run -s typecheck 2>&1); then

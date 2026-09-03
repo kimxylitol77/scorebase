@@ -14,7 +14,9 @@ while read -r _local_ref local_sha _remote_ref _remote_sha; do
 done
 [ "$need" = 0 ] && exit 0
 
-if [ ! -x node_modules/.bin/tsc ]; then
+# 워크트리에는 node_modules 가 없다 — 공용 .git 의 부모(저장소 루트)에서도 찾는다.
+repo_root=$(dirname "$(git rev-parse --git-common-dir)")
+if [ ! -x node_modules/.bin/tsc ] && [ ! -x "$repo_root/node_modules/.bin/tsc" ]; then
   echo "[pre-push] node_modules 가 없어 검증 없이 푸시합니다. 메인 저장소에서 npm run typecheck && npm test 를 확인하세요." >&2
   exit 0
 fi
