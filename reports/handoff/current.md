@@ -208,3 +208,26 @@ VB_ASIAN_W 가 8강인데 조별 표만 보이던 것. ts 배구엔 라운드 �
 전 종목 조사: Group 표 대회는 현재 전부 배구. 감시 `tournament_bracket_gap`(전 종목화) —
 배구 외 조별 대회 출현 시 스킬로 연결하라는 경보. Neon 이 오늘 자주 끊김(dev 서버는 유지) —
 새 프로세스 연결만 실패하는 패턴, 스크립트에 재시도 붙일 것.
+
+
+---
+
+# 진행 노트 — /scores TTFB·페이로드 개선 (2026-09-03, session 519cdd3e)
+
+## 실측 (착수 전 기준선)
+- /scores 압축 전 1.18MB, **실제 전송(gzip) 112KB** — 바이트는 문제 아님
+- **TTFB 1.4~2.3s** (n=6, sin1) vs 홈 1.0s · /scores?sport=baseball 1.4s
+- RSC 592KB 중 className 150KB(1,516개)·서버 마크업 호스트 엘리먼트 1,402개 — 하이드레이션 무게
+- 페이지 데이터 경로가 직렬: 메인 Promise.all → NBA raw → derived → 축구 순위(getStandingsForLeagues)
+  → 배구 테이블 루프(await/리그) → 순위칩 루프(MLB·NBA 등은 **매 요청 시즌 전체 FINISHED 조회+calcStandings**)
+  → af 날짜 보강(fetchSoccerByDateCached) → teamSourceId → nearby → 쿠키 → findFirst×2
+
+## 계획
+1. dev 임시 타이밍 로그로 단계별 소요 파악 (커밋 안 함)
+2. 무거운 단계 캐시(순위칩 시즌 계산 unstable_cache 10분) + 독립 단계 병렬화(af 보강 선발사)
+3. 운영 TTFB 재측정(n=6) 으로 효과 확인
+
+## 체크리스트
+- [x] 타이밍 측정 — 로컬: 메인 쿼리 2~4s(Neon 변동), 순위 0.65·배구 0.62·순위칩 1.49·orphan 0.46 직렬
+- [x] 캐시/병렬화 적용 · tsc — 직렬 2.76s→0.85s(로컬), 출력 동일성 확인(순위칩 70/202·orphan 64 일치)
+- [ ] 배포 · TTFB 비교

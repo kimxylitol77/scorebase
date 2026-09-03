@@ -749,6 +749,13 @@
     "group": "detail"
   },
   {
+    "route": "/predictions/[league]/[season]",
+    "desc": "과거 시즌 AI 예측 결산 페이지 — /predictions/EPL/2025-26. 경기 시점에 저장된 예측(Match.pred*)을 종료 후 채점한 실측(pred*Correct)으로 마켓별 적중률을 집계하고, SeasonStandingsArchive 의 최종 순위 요약을 붙인다. 현재 시즌 시뮬은 /predictions/[league] 담당.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/predictions/accuracy",
     "desc": "AI 예측 적중률 보드 — 15개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).",
     "inMenu": false,
