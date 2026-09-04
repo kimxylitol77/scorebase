@@ -7,5 +7,5 @@
 - [x] 푸터 "무료 위젯 임베드" 링크
 - [x] 임베드에서 챗봇·PiP 플로팅 숨김 (`EmbedHidden` 래퍼, layout)
 - [x] tsc 통과 · 로컬 dev 렌더 확인(EPL 순위 10행·K리그1/KBO 경기 목록·다크 테마·갤러리 select)
-- [ ] 운영 렌더 확인 (embed 2종·/widgets 코드 출력)
+- [x] 운영 렌더 확인 — /embed/standings K리그1 10행·/embed/fixtures EPL 5경기 승률·/widgets 카드 2종·X-Frame-Options 미부여 확인(2026-09-04)
 - [x] 커밋·푸시
