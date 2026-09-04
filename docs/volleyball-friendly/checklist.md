@@ -26,3 +26,14 @@
 - [x] backfill=16 일회 실행 — 과거분 포함 251건 upsert
 - [x] standings-poller VOLLEYBALL_SEASONS 7 등록 → 캐시 7/7 (ok 143→150)
 - [x] 검증 — DB 223건, 한국 대표팀 11건, /scores 배구 1→19경기, 순위표 조별 렌더
+
+## 3차 — 아시아선수권 (남) VB_ASIAN (2026-09-04, 4ff8e05)
+
+발단: 베트맨 배당 탭에 뜬 한국-대만(9/4 16:00 "아시아 남자배구 선수권대회")이 /scores 에 없었다. ts utid `8y39mpwh5wlqojx` 가 수집기 매핑에 없어 조용히 skip 되던 것.
+
+- [x] 대회 확정 — 이번엔 ts `unique_tournament/list` 가 인가돼 있어 이름("Asian Championship")을 직접 받았고, 베트맨 라벨·참가팀(12개국·4개조·9/4~9/9 18경기)과 일치
+- [x] 리그 코드 VB_ASIAN — ALL_LEAGUES·SPORTS.volleyball·LEAGUE_DISPLAY "아시아선수권 (남)"·priority 25.215
+- [x] team-names VB_ASIAN 12개국
+- [x] 팀 — 중국·일본·이란은 VNL row 재사용(TeamSourceId 만 추가), 9개국 신규 / 매핑 JSON 두 사본 204→216
+- [x] collector UTID_TO_LEAGUE + standings-poller VOLLEYBALL_SEASONS(season 2y8m4wh84xzql07, table/detail code=0·4테이블)
+- [ ] Vultr 배포·재시작 → 수집 18건·순위 캐시 확인 → /scores 배구 탭 노출 (백그라운드 검증 중)
