@@ -36,4 +36,4 @@
 - [x] team-names VB_ASIAN 12개국
 - [x] 팀 — 중국·일본·이란은 VNL row 재사용(TeamSourceId 만 추가), 9개국 신규 / 매핑 JSON 두 사본 204→216
 - [x] collector UTID_TO_LEAGUE + standings-poller VOLLEYBALL_SEASONS(season 2y8m4wh84xzql07, table/detail code=0·4테이블)
-- [ ] Vultr 배포·재시작 → 수집 18건·순위 캐시 확인 → /scores 배구 탭 노출 (백그라운드 검증 중)
+- [x] Vultr 배포·재시작 → 첫 poll upserted=30 skippedNoTeam=0 · DB VB_ASIAN 18경기(한국-대만 LIVE 1-1) · /scores 배구 탭 "아시아선수권 (남)" 카드+순위 칩 노출 확인
