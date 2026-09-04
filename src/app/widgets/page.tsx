@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import EmbedCodeBox from "@/components/EmbedCodeBox";
+import LeagueWidgetCard, { type LeagueWidgetConfig } from "@/components/LeagueWidgetCard";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { Code2, Check } from "lucide-react";
 
 export const revalidate = 3600;
@@ -11,12 +13,40 @@ export const revalidate = 3600;
 const SITE_URL = process.env.SITE_URL ?? "https://www.scorebase.kr";
 
 export const metadata: Metadata = {
-  title: "무료 스포츠 위젯 임베드 — 2026 월드컵 대진표 위젯",
+  title: "무료 스포츠 위젯 임베드 — 리그 순위표·경기 일정·AI 승률·라이브 스코어보드",
   description:
-    "2026 월드컵 대진표 등 스코어베이스 위젯을 블로그·홈페이지에 무료로 임베드하세요. 복사·붙여넣기 한 번으로 실시간 데이터 위젯을 넣을 수 있습니다.",
-  keywords: ["월드컵 대진표 위젯", "스포츠 위젯", "축구 위젯 임베드", "무료 위젯", "스코어베이스 위젯"],
+    "EPL·K리그·KBO 등 리그 순위표, 경기 일정과 AI 승률, 라이브 스코어보드 위젯을 블로그·카페·홈페이지에 무료로 임베드하세요. 복사·붙여넣기 한 번으로 자동 갱신되는 위젯이 들어갑니다.",
+  keywords: ["리그 순위표 위젯", "EPL 순위 위젯", "경기 일정 위젯", "스포츠 위젯", "축구 위젯 임베드", "무료 위젯", "스코어베이스 위젯"],
   alternates: { canonical: `${SITE_URL}/widgets` },
 };
+
+// 리그 선택형 위젯 — 2026-09-04 추가. 순위표는 축구만(야구·농구 순위 헬퍼가 따로), 경기·승률은 전 종목.
+const opts = (codes: string[]) => codes.map((code) => ({ code, label: LEAGUE_DISPLAY[code] ?? code }));
+const SOCCER_PICK = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "MLS", "EREDIVISIE", "PRIMEIRA_LIGA", "CHAMPIONSHIP", "SAUDI_PL"];
+const LEAGUE_WIDGETS: LeagueWidgetConfig[] = [
+  {
+    key: "standings",
+    title: "리그 순위표",
+    desc: "리그 순위·승점·득실을 표로. 경기가 끝나면 자동으로 갱신됩니다. URL 의 rows=10 으로 표시 팀 수, theme=dark 로 어두운 배경을 고를 수 있습니다.",
+    embedPathBase: "/embed/standings?league=",
+    height: 420,
+    linkUrlTemplate: "/leagues/{league}",
+    linkTextTemplate: "{label} 순위 - 스코어베이스",
+    leagues: opts(SOCCER_PICK),
+    siteUrl: SITE_URL,
+  },
+  {
+    key: "fixtures",
+    title: "경기 일정 · AI 승률",
+    desc: "다가오는 경기와 스코어베이스 AI 의 홈·무·원정 승률을 막대로. 라이브 중이면 점수도 함께. URL 의 days=7·limit=10 으로 기간과 경기 수를 조절합니다.",
+    embedPathBase: "/embed/fixtures?league=",
+    height: 560,
+    linkUrlTemplate: "/leagues/{league}",
+    linkTextTemplate: "{label} 경기 일정·AI 승률 - 스코어베이스",
+    leagues: opts([...SOCCER_PICK, "UCL", "KBO", "MLB", "NPB", "NBA", "NHL", "KBL", "V_LEAGUE"]),
+    siteUrl: SITE_URL,
+  },
+];
 
 interface Widget {
   key: string;
@@ -85,6 +115,9 @@ export default function WidgetsPage() {
       </header>
 
       <div className="space-y-10">
+        {LEAGUE_WIDGETS.map((w) => (
+          <LeagueWidgetCard key={w.key} w={w} />
+        ))}
         {WIDGETS.map((w) => {
           const code = embedCode(w);
           const src = SITE_URL + w.embedPath;
@@ -119,7 +152,7 @@ export default function WidgetsPage() {
       </div>
 
       <p className="mt-10 text-xs text-neutral-400 leading-relaxed break-keep">
-        위젯은 자유롭게 사용할 수 있으며, 출처 표기(스코어베이스 링크)를 그대로 유지해 주세요. 더 많은 위젯(리그 순위·적중률 등)을 준비 중입니다.
+        위젯은 자유롭게 사용할 수 있으며, 출처 표기(스코어베이스 링크)를 그대로 유지해 주세요. 더 많은 위젯(AI 적중률 성적표·배당 흐름 등)을 준비 중입니다.
         문의는 사이트 하단 채널로 보내주시면 됩니다.
       </p>
     </main>

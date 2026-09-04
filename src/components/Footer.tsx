@@ -64,6 +64,7 @@ const COMMUNITY: Array<{ href: string; label: string }> = [
   { href: "/blog", label: "블로그" },
   { href: "/analysis", label: "스포츠 분석" },
   { href: "/experts", label: "예측 전문가" },
+  { href: "/widgets", label: "무료 위젯 임베드" },
   { href: "/notices", label: "공지 · 패치노트" },
   { href: "/blog/about-scorebase", label: "스코어베이스 소개" },
   { href: "/about", label: "방법론 · 데이터 흐름" },

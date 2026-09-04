@@ -245,8 +245,22 @@
     "group": "other"
   },
   {
+    "route": "/embed/fixtures",
+    "desc": "향후 경기 + AI 승률 임베드 위젯 — 외부 블로그가 iframe 으로 붙이는 화면(사이트 chrome 없음). URL: /embed/fixtures?league=EPL&days=7&limit=10&theme=light|dark 리그 페이지와 같은 Match.predHome/Draw/Away 를 막대로 보여준다. 전 리그 가능.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/embed/scoreboard",
     "desc": "방송 오버레이 스코어보드 임베드 — OBS 브라우저 소스/iframe 용 (사이트 chrome 없음, 투명 배경). URL: /embed/scoreboard?league=EPL&id=560547&bg=transparent&size=1&clock=1&names=short&league_badge=0",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/embed/standings",
+    "desc": "리그 순위표 임베드 위젯 — 외부 블로그가 iframe 으로 붙이는 화면(사이트 chrome 없음). URL: /embed/standings?league=EPL&rows=10&theme=light|dark 축구 리그만 — 야구·농구 순위는 소스 이중화 헬퍼가 따로라 범위 밖(reports/plans/embed-widgets).",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
@@ -680,7 +694,7 @@
   },
   {
     "route": "/odds",
-    "desc": "배당 흐름 — 종목(축구/야구/농구)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.",
+    "desc": "배당 흐름 — 종목(축구/야구/농구/하키)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
