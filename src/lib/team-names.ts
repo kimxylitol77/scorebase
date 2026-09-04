@@ -4914,6 +4914,21 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Trinidad & Tobago Women": "트리니다드 토바고",
     "USA Women": "미국",
   },
+  // 2026-09-04 아시아선수권 (남) 12개국
+  VB_ASIAN: {
+    "Australia": "호주",
+    "Bahrain": "바레인",
+    "China": "중국",
+    "Chinese Taipei": "대만",
+    "India": "인도",
+    "Iran": "이란",
+    "Japan": "일본",
+    "New Zealand": "뉴질랜드",
+    "Oman": "오만",
+    "Qatar": "카타르",
+    "South Korea": "대한민국",
+    "Thailand": "태국",
+  },
   VB_ASIAN_W: {
     "Australia Women": "호주",
     "China Women": "중국",

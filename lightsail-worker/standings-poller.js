@@ -172,6 +172,7 @@ const VOLLEYBALL_SEASONS = [
   { code: "VB_NORCECA_W", seasonId: "dj2rydhg2ejr1zp" },
   { code: "VB_PANAM", seasonId: "zp5rzdhp2zwq82w" },
   { code: "VB_COPA_AM", seasonId: "318q67h47vdro9j" },
+  { code: "VB_ASIAN", seasonId: "2y8m4wh84xzql07" }, // 2026-09-04 아시아선수권 (남) — 조별 4테이블 code=0 확인
 ];
 
 async function fetchVolleyballStandings(seasonId) {

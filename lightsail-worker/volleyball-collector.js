@@ -61,6 +61,8 @@ const UTID_TO_LEAGUE = {
   "965mkdh73y8r1ge": "VB_NORCECA_W",
   "p3glrwjh1n4qdyj": "VB_PANAM",
   "vjxm8lh46vlq6od": "VB_COPA_AM",
+  // 2026-09-04 아시아선수권 (남) — 12개국 4개조, ts unique_tournament "Asian Championship"
+  "8y39mpwh5wlqojx": "VB_ASIAN",
 };
 
 // src/lib/sports/thesports/status-codes.ts 의 mapVolleyballStatus 와 단일 진실.

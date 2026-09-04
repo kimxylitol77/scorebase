@@ -72,6 +72,8 @@ export const ALL_LEAGUES = [
   // 2026-08-16 배구 대륙·연령별 선수권 (대회명은 7m 대조 확인)
   "VB_U17_WC", "VB_U17_WC_W", "VB_EURO_W", "VB_ASIAN_W",
   "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
+  // 2026-09-04 아시아선수권 (남) — utid 8y39mpwh5wlqojx, ts 대회명 "Asian Championship"·베트맨 라벨 일치
+  "VB_ASIAN",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -194,6 +196,7 @@ export const SPORTS: SportMeta[] = [
       "AVC_NATIONS_W", "EGL_W", "VB_FRIENDLY", "VB_FRIENDLY_W",
       "VB_U17_WC", "VB_U17_WC_W", "VB_EURO_W", "VB_ASIAN_W",
       "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
+      "VB_ASIAN", // 2026-09-04 아시아선수권 (남)
     ],
   },
   {
@@ -505,6 +508,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   VB_U17_WC_W: "U17 세계선수권 (여)",
   VB_EURO_W: "유럽선수권 (여)",
   VB_ASIAN_W: "아시아선수권 (여)",
+  VB_ASIAN: "아시아선수권 (남)",
   VB_NORCECA_W: "NORCECA 챔피언십 (여)",
   VB_PANAM: "팬아메리카컵 (남)",
   VB_COPA_AM: "코파아메리카 (남)",
@@ -782,6 +786,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   AVC_NATIONS_W: 25.1,
   EGL_W: 25.2,
   VB_ASIAN_W: 25.21, // 아시아선수권 (여) — 한국 여자대표팀 출전, 배구 대회 중 국내 수요 최상위
+  VB_ASIAN: 25.215, // 아시아선수권 (남) — 한국 남자대표팀 출전 (2026-09-04)
   VB_U17_WC_W: 25.22, // U17 세계선수권 (여) — 한국 U17 출전
   VB_U17_WC: 25.23,
   VB_EURO_W: 25.24, // 유럽선수권 (여) — 24팀 최상위 대륙대회
