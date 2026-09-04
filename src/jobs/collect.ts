@@ -12,7 +12,10 @@ import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
 import { fetchLolAll } from "@/lib/sports/lol";
-import { LOL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { LOL_LEAGUES, MMA_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+
+/** 홈/원정이 구장이 아니라 소스의 팀 순서일 뿐인 종목 — 반전 가드 대상에서 뺀다. */
+const NO_VENUE_LEAGUES = new Set<string>([...LOL_LEAGUES, ...MMA_LEAGUES]);
 import { hasProtectedResult } from "@/lib/sports/baseball-source-cancel";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
@@ -445,20 +448,38 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
   // 새 응답이 LIVE/SCHEDULED 라도 status 유지. POSTPONED 는 incoming 으로 자유 갱신.
   const current = await prisma.match.findUnique({
     where: { league_externalId: { league: m.league, externalId: m.externalId } },
-    select: { id: true, status: true, homeScore: true, awayScore: true, homeTeamId: true, awayTeamId: true },
+    select: {
+      id: true, status: true, homeScore: true, awayScore: true, homeTeamId: true, awayTeamId: true,
+      predHome: true, predAway: true, marketHome: true, marketAway: true,
+      openingMarketHome: true, openingMarketAway: true, oddsHome: true, oddsAway: true,
+    },
   });
 
   // 홈/원정 반전 감지 — 기존 row 와 정확히 교차(홈↔원정)로만 판정. 팀 교체·TBD 확정 등
   // 다른 변경은 대상 아님. 감지 시 갱신 전체 중단 — 그대로 update 하면 팀 방향과 raw 만
   // 뒤집혀 부속 데이터(pred/odds/라인업/글)와 어긋난다 (위 alertHomeAwayFlip 주석 참고).
-  if (
-    current &&
+  const flipped =
+    current != null &&
     homeTeam.id !== awayTeam.id &&
     current.homeTeamId === awayTeam.id &&
-    current.awayTeamId === homeTeam.id
-  ) {
-    await alertHomeAwayFlip(m, current.id, source);
-    return;
+    current.awayTeamId === homeTeam.id;
+  // 구장이 없는 종목(LOL·UFC)은 "홈/원정"이 소스의 팀 순서일 뿐이라 뒤집히는 게 정상이다
+  // (2026-09-04 LOL KT-DK 오탐 — 경기 당일 갱신이 막혀 라이브·점수가 안 들어올 뻔함).
+  // 이 종목은 소스 순서를 받아들이되, 라인업·배당 테이블·글이 없으므로 Match 의 대칭
+  // 필드(예측·시장·배당)만 같이 뒤집으면 정합이 유지된다. 구장 종목은 종전대로 중단+알림.
+  let flipPatch: Record<string, number | null> = {};
+  if (flipped) {
+    if (!NO_VENUE_LEAGUES.has(m.league)) {
+      await alertHomeAwayFlip(m, current.id, source);
+      return;
+    }
+    flipPatch = {
+      predHome: current.predAway, predAway: current.predHome,
+      marketHome: current.marketAway, marketAway: current.marketHome,
+      openingMarketHome: current.openingMarketAway, openingMarketAway: current.openingMarketHome,
+      oddsHome: current.oddsAway, oddsAway: current.oddsHome,
+    };
+    console.warn(`[upsertMatch/flip] ${m.league} ${m.externalId} — 비구장 종목 팀 순서 반전, 대칭 필드 미러링`);
   }
 
   const mergedStatus = mergeStatus(
@@ -488,6 +509,7 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
       referee: m.referee ?? undefined,
       // venueId 도 같은 이유로 값이 있을 때만 — ts 외 소스가 재수집해도 기존값을 지우지 않는다.
       venueId: m.venueId ?? undefined,
+      ...flipPatch,
     },
     create: {
       league: m.league,
