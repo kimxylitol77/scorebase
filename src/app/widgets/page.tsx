@@ -20,19 +20,19 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/widgets` },
 };
 
-// 리그 선택형 위젯 — 2026-09-04 추가. 순위표는 축구만(야구·농구 순위 헬퍼가 따로), 경기·승률은 전 종목.
+// 리그 선택형 위젯 — 2026-09-04 추가. 순위표는 공개 순위 API 와 같은 종목 통합 빌더(축구·야구·농구·배구·NHL), 경기·승률은 전 종목.
 const opts = (codes: string[]) => codes.map((code) => ({ code, label: LEAGUE_DISPLAY[code] ?? code }));
 const SOCCER_PICK = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "MLS", "EREDIVISIE", "PRIMEIRA_LIGA", "CHAMPIONSHIP", "SAUDI_PL"];
 const LEAGUE_WIDGETS: LeagueWidgetConfig[] = [
   {
     key: "standings",
     title: "리그 순위표",
-    desc: "리그 순위·승점·득실을 표로. 경기가 끝나면 자동으로 갱신됩니다. URL 의 rows=10 으로 표시 팀 수, theme=dark 로 어두운 배경을 고를 수 있습니다.",
+    desc: "리그 순위·승점·득실(야구·농구는 승률·게임차)을 표로. 경기가 끝나면 자동으로 갱신됩니다. URL 의 rows=10 으로 표시 팀 수, theme=dark 로 어두운 배경을 고를 수 있습니다.",
     embedPathBase: "/embed/standings?league=",
     height: 420,
     linkUrlTemplate: "/leagues/{league}",
     linkTextTemplate: "{label} 순위 - 스코어베이스",
-    leagues: opts(SOCCER_PICK),
+    leagues: opts(["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "K_LEAGUE_2", "MLS", "EREDIVISIE", "UCL", "KBO", "NPB", "MLB", "NBA", "WNBA", "KBL", "WKBL", "NHL", "V_LEAGUE", "V_LEAGUE_W"]),
     siteUrl: SITE_URL,
   },
   {
@@ -59,6 +59,24 @@ interface Widget {
 }
 
 const WIDGETS: Widget[] = [
+  {
+    key: "accuracy",
+    title: "AI 승부 예측 적중률 성적표",
+    desc: "리그별로 스코어베이스 AI 의 경기 전 승·무·패 예측이 얼마나 맞았는지. URL 의 period=d30 을 d7·d14·all 로 바꿔 기간을 고를 수 있습니다. 매시간 갱신.",
+    embedPath: "/embed/accuracy?period=d30",
+    height: 520,
+    linkUrl: "/predictions/accuracy",
+    linkText: "AI 예측 적중률 - 스코어베이스",
+  },
+  {
+    key: "odds-movers",
+    title: "배당 급변 (돈이 몰리는 경기)",
+    desc: "향후 3일 경기 중 오픈 배당 대비 시장 승률이 가장 크게 움직인 경기. URL 의 sport=soccer 를 baseball·basketball·hockey 로 바꿀 수 있습니다.",
+    embedPath: "/embed/odds-movers?sport=soccer",
+    height: 460,
+    linkUrl: "/odds",
+    linkText: "배당 흐름 - 스코어베이스",
+  },
   {
     key: "scoreboard",
     title: "라이브 스코어보드",
@@ -152,7 +170,7 @@ export default function WidgetsPage() {
       </div>
 
       <p className="mt-10 text-xs text-neutral-400 leading-relaxed break-keep">
-        위젯은 자유롭게 사용할 수 있으며, 출처 표기(스코어베이스 링크)를 그대로 유지해 주세요. 더 많은 위젯(AI 적중률 성적표·배당 흐름 등)을 준비 중입니다.
+        위젯은 자유롭게 사용할 수 있으며, 출처 표기(스코어베이스 링크)를 그대로 유지해 주세요. 원하는 위젯이 없으면 문의해 주세요.
         문의는 사이트 하단 채널로 보내주시면 됩니다.
       </p>
     </main>

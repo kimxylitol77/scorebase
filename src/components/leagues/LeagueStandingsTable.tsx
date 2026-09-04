@@ -373,7 +373,17 @@ export default async function LeagueStandingsTable({ league }: { league: string 
   return (
     <div className="space-y-2">
       {renderStandingsTable(liveRows, league, true)}
-      <p className="text-[11px] text-neutral-400">현재 시즌 · 매일 자동 갱신</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[11px] text-neutral-400">현재 시즌 · 매일 자동 갱신</p>
+        {/* 위젯 배포 동선 — 이 표를 그대로 iframe 으로 붙여 갈 수 있다(/widgets 의 복사 코드 = 출처 백링크). */}
+        <Link
+          href="/widgets"
+          className="inline-flex items-center gap-1 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-700 transition whitespace-nowrap"
+          prefetch={false}
+        >
+          이 순위표를 내 블로그에 붙이기 →
+        </Link>
+      </div>
     </div>
   );
 }
