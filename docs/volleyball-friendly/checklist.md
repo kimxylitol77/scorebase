@@ -37,3 +37,11 @@
 - [x] 팀 — 중국·일본·이란은 VNL row 재사용(TeamSourceId 만 추가), 9개국 신규 / 매핑 JSON 두 사본 204→216
 - [x] collector UTID_TO_LEAGUE + standings-poller VOLLEYBALL_SEASONS(season 2y8m4wh84xzql07, table/detail code=0·4테이블)
 - [x] Vultr 배포·재시작 → 첫 poll upserted=30 skippedNoTeam=0 · DB VB_ASIAN 18경기(한국-대만 LIVE 1-1) · /scores 배구 탭 "아시아선수권 (남)" 카드+순위 칩 노출 확인
+
+## 4차 — 8월 보류분 3개 (2026-09-04, 8a7f4b5)
+
+- [x] 이름 확정 — ts `unique_tournament/list` 인가로 직접 조회(7m 대조 불필요): Central American & Caribbean Games Women(4년 주기, 8/5~7 종료 10경기) · SEA V League Women(8/7~9, 6경기) · Premier Volleyball League(필리핀 여자 클럽, 8/8~ 주 1~2회 진행 중)
+- [x] 리그 코드 VB_CAC_GAMES_W·VB_SEA_V_W·PVL_W + 표시명·정렬·한글 팀명 22
+- [x] 팀 22 (국대 10 재사용·클럽 등 12 신규) → 매핑 JSON 두 사본 216→238
+- [x] collector UTID 3 · standings-poller 시즌 3 (CAC 2테이블, SEA V·PVL 실측 0 → 빈 payload skip)
+- [x] Vultr 배포·재시작 + backfill=30 → upserted=411 · DB PVL_W 21(진행 14 종료)·CAC 10·SEA V 6 (2026-09-04)
