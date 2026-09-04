@@ -1,6 +1,7 @@
 // 역대 발롱도르 수상자 섹션 — /ballon 라이브 순위 아래 참고용 명예의 전당.
 // 정적 큐레이션(ballon-winners.ts). 지수는 수상 시즌 스탯 기준으로 라이브와 동일 산식.
 import Image from "next/image";
+import Link from "next/link";
 import { BALLON_WINNERS, winnerScore } from "@/lib/ballon-winners";
 
 export default function BallonWinners() {
@@ -26,20 +27,25 @@ export default function BallonWinners() {
                 <div className="text-[10px] text-neutral-400 leading-tight">수상</div>
               </div>
 
-              {/* 사진 */}
-              <Image
-                src={w.photoUrl}
-                alt={w.nameKo}
-                width={44}
-                height={44}
-                className="rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800 w-11 h-11"
-                unoptimized
-              />
+              {/* 사진 — 선수 페이지로 */}
+              <Link href={`/transfers/${w.tsId}`} className="shrink-0" aria-label={`${w.nameKo} 선수 페이지`}>
+                <Image
+                  src={w.photoUrl}
+                  alt={w.nameKo}
+                  width={44}
+                  height={44}
+                  className="rounded-full object-cover bg-neutral-100 dark:bg-neutral-800 w-11 h-11"
+                  unoptimized
+                />
+              </Link>
 
               {/* 이름·소속 */}
               <div className="min-w-0 flex-1">
                 <div className="font-bold truncate">
-                  <span>{w.nationFlag}</span> {w.nameKo}
+                  <span>{w.nationFlag}</span>{" "}
+                  <Link href={`/transfers/${w.tsId}`} className="hover:underline">
+                    {w.nameKo}
+                  </Link>
                 </div>
                 <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
                   {w.club} · {w.season}

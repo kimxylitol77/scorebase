@@ -19,6 +19,9 @@ export interface BallonWinner {
   season: string; // 수상 대상 시즌 라벨
   nameKo: string;
   nameEn: string;
+  // 선수 페이지(/transfers/{tsId}) 정본 id. 이름 검색은 동명·유령 행(메시 y0or5jhg0z79qwz 등)을
+  // 잡을 수 있어 큐레이션 데이터에 고정한다. 2026-09-04 프로덕션 200 확인분.
+  tsId: string;
   club: string; // 수상 시즌 소속 클럽
   nationFlag: string; // 국적 국기 이모지
   photoUrl: string;
@@ -38,6 +41,7 @@ export const BALLON_WINNERS: BallonWinner[] = [
     season: "2024-25",
     nameKo: "우스만 뎀벨레",
     nameEn: "Ousmane Dembélé",
+    tsId: "318q66hjv6kqo9j",
     club: "파리 생제르맹",
     nationFlag: "🇫🇷",
     photoUrl: "https://media.api-sports.io/football/players/153.png",
@@ -52,6 +56,7 @@ export const BALLON_WINNERS: BallonWinner[] = [
     season: "2023-24",
     nameKo: "로드리",
     nameEn: "Rodri",
+    tsId: "4wyrn4hvlloq86p",
     club: "맨체스터 시티",
     nationFlag: "🇪🇸",
     photoUrl: "https://media.api-sports.io/football/players/44.png",
@@ -66,6 +71,7 @@ export const BALLON_WINNERS: BallonWinner[] = [
     season: "2022-23",
     nameKo: "리오넬 메시",
     nameEn: "Lionel Messi",
+    tsId: "p3glrw7hv73qdyj",
     club: "파리 생제르맹",
     nationFlag: "🇦🇷",
     photoUrl: "https://media.api-sports.io/football/players/154.png",
@@ -81,6 +87,7 @@ export const BALLON_WINNERS: BallonWinner[] = [
     season: "2021-22",
     nameKo: "카림 벤제마",
     nameEn: "Karim Benzema",
+    tsId: "9dn1m1ghzp2moep",
     club: "레알 마드리드",
     nationFlag: "🇫🇷",
     photoUrl: "https://media.api-sports.io/football/players/759.png",
@@ -95,6 +102,7 @@ export const BALLON_WINNERS: BallonWinner[] = [
     season: "2020-21",
     nameKo: "리오넬 메시",
     nameEn: "Lionel Messi",
+    tsId: "p3glrw7hv73qdyj",
     club: "바르셀로나",
     nationFlag: "🇦🇷",
     photoUrl: "https://media.api-sports.io/football/players/154.png",
