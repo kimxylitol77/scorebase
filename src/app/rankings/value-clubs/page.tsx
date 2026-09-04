@@ -11,7 +11,7 @@ import { Coins, TrendingDown } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import { teamDisplayKo } from "@/lib/team-names";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
 import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
@@ -159,7 +159,7 @@ export default async function ValueClubsPage() {
     description: "빅5 리그 구단을 스쿼드 시장가치 1억 유로당 승점으로 정렬한 효율 랭킹 데이터셋.",
     url: citeUrl,
     keywords: ["가성비 구단", "스쿼드 가치", "몸값 대비 성적"],
-    creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+    creator: orgRef(),
     isAccessibleForFree: true,
   };
 

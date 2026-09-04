@@ -9,7 +9,7 @@ import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
 import { matchLiveHref } from "@/lib/links/match-live-link";
 import ValueBetList from "@/components/value-bets/ValueBetList";
 
@@ -35,7 +35,7 @@ const VALUE_BETS_JSONLD = {
     "Elo 모델 예측 확률과 배당사 implied 확률을 비교해 +5%p 이상 격차(밸류 베트)를 자동 발굴한 데이터.",
   url: `${SITE_URL}/value-bets`,
   keywords: ["밸류 베트", "value bet", "Elo 예측", "implied 확률"],
-  creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+  creator: orgRef(),
   isAccessibleForFree: true,
   measurementTechnique: "Elo 레이팅 예측 확률 vs 배당사 implied 확률 비교",
 };

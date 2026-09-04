@@ -10,7 +10,8 @@ import AmbientGlow from "@/components/AmbientGlow";
 import sanitizeHtml from "sanitize-html";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
+import { SITE_AUTHOR, authorRef } from "@/lib/seo/author";
 
 export const revalidate = 600;
 
@@ -107,21 +108,14 @@ export default async function BlogDetailPage({ params }: Props) {
     description: b.excerpt ?? undefined,
     datePublished: b.publishedAt.toISOString(),
     dateModified: b.updatedAt.toISOString(),
-    author: {
-      "@type": "Organization",
-      name: "스코어베이스",
-      url: SITE_URL,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "스코어베이스",
-      url: SITE_URL,
-    },
+    // 저자: 운영자 실체(lib/seo/author)가 설정돼 있으면 Person, 아니면 조직. publisher 는 항상 단일 @id 조직.
+    author: authorRef() ?? orgRef(),
+    publisher: orgRef(),
     image: b.thumbnailUrl ?? undefined,
     keywords: b.tags ?? undefined,
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${slug}` },
     // 저작권 주체 명시 — 도용 시 권리자를 구조화 데이터로 못박는다(DMCA 근거).
-    copyrightHolder: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+    copyrightHolder: orgRef(),
     copyrightYear: b.publishedAt.getFullYear(),
   };
 
@@ -150,6 +144,11 @@ export default async function BlogDetailPage({ params }: Props) {
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 블로그
           </span>
           <span className="text-xs text-neutral-500">{formatDateKo(b.publishedAt)}</span>
+          {SITE_AUTHOR && (
+            <Link href={SITE_AUTHOR.url} className="text-xs text-neutral-500 hover:underline">
+              · {SITE_AUTHOR.name}
+            </Link>
+          )}
           {b.tags && <span className="text-xs text-neutral-500">· {b.tags}</span>}
         </div>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight break-keep">

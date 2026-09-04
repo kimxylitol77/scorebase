@@ -225,7 +225,7 @@ const MATCH_DURATION_MIN: Record<string, number> = {
 
 // 리그별 country/city 매핑 + location 빌더는 공통 helper 로 이동.
 import { LEAGUE_COUNTRY, buildSportsEventLocation } from "@/lib/seo/sports-event-location";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
 
 interface MatchForEvent {
   homeTeam: { name: string };
@@ -308,6 +308,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       league: true,
       type: true,
       publishedAt: true,
+      // 글 시점 승률 — meta description 의 단일 소스(Match.pred* 는 사후 갱신됨).
+      predHome: true,
+      predAway: true,
       match: {
         select: {
           startTime: true,
@@ -315,8 +318,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           awayScore: true,
           homeStarter: true,
           awayStarter: true,
-          predHome: true,
-          predAway: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -427,9 +428,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           ? withStarters
           : `${homeKo} vs ${awayKo} 예측·선발 분석 (${md})`;
       if (!isLol) {
+        // 승률은 글에 저장된 값(article.pred*) — 본문과 같은 시점의 단일 소스. Match.pred* 는
+        // predict-upcoming 이 사후 갱신해 meta 와 본문 승률이 달라지던 원인이었다 (2026-09-03 GEO 감사).
         const probs =
-          m.predHome != null && m.predAway != null
-            ? ` 모델 승률 ${homeKo} ${Math.round(m.predHome * 100)}%·${awayKo} ${Math.round(m.predAway * 100)}%.`
+          article.predHome != null && article.predAway != null
+            ? ` 모델 승률 ${homeKo} ${Math.round(article.predHome * 100)}%·${awayKo} ${Math.round(article.predAway * 100)}%.`
             : "";
         const starterDesc = starterPair ? ` 선발 ${starterPair}.` : "";
         desc = `${md} ${article.league} ${homeKo} vs ${awayKo} 프리뷰.${starterDesc}${probs} 최근 폼·맞대결·순위 데이터 분석. 스코어베이스.`;
@@ -467,7 +470,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: desc,
     ...(keywords ? { keywords } : {}),
     ...(autoNoIndex && { robots: { index: false, follow: true } }),
-    authors: [{ name: "스코어베이스 데이터 분석팀", url: SITE_URL }],
+    authors: [{ name: "스코어베이스", url: SITE_URL }],
     alternates: { canonical: url },
     openGraph: {
       title: displayTitle,
@@ -478,7 +481,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "ko_KR",
       publishedTime: article.publishedAt?.toISOString(),
       modifiedTime: article.publishedAt?.toISOString(),
-      authors: ["스코어베이스 데이터 분석팀"],
+      authors: ["스코어베이스"],
       section: article.league,
     },
     twitter: {
@@ -488,7 +491,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     other: {
       "article:section": article.league,
-      "article:author": "스코어베이스 데이터 분석팀",
+      "article:author": "스코어베이스",
     },
   };
 }
@@ -616,15 +619,10 @@ export default async function ArticlePage({ params }: Props) {
     headline: article.title,
     description: desc,
     image: [`${SITE_URL}/articles/${slug}/opengraph-image`],
-    author: {
-      "@type": "Organization",
-      name: "스코어베이스 데이터 분석팀",
-      url: SITE_URL,
-    },
+    // 자동 발행 글의 저자는 조직이 정직하다(실체 없는 "분석팀" 대신 단일 @id 조직). publisher 도 같은 @id.
+    author: orgRef(),
     publisher: {
-      "@type": "Organization",
-      name: SITE_NAME,
-      url: SITE_URL,
+      ...orgRef(),
       logo: {
         "@type": "ImageObject",
         url: `${SITE_URL}/og-image.png`,
@@ -636,7 +634,7 @@ export default async function ArticlePage({ params }: Props) {
     inLanguage: "ko-KR",
     articleSection: article.league,
     // 저작권 주체 명시 — 도용 시 권리자를 구조화 데이터로 못박는다(DMCA 근거).
-    copyrightHolder: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    copyrightHolder: orgRef(),
     copyrightYear: (article.publishedAt ?? article.createdAt).getFullYear(),
   };
 
@@ -715,6 +713,12 @@ export default async function ArticlePage({ params }: Props) {
             <span className="text-neutral-500 font-medium">{article.type}</span>
           );
         })()}
+        {/* 자동 발행 글 라벨 — 실제로 하는 것만 적는다(llms.txt·/about 문구와 동일해야 한다). */}
+        {(article.type === "PREVIEW" || article.type === "RECAP") && (
+          <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-600 ring-1 ring-inset ring-black/5 dark:bg-white/[0.06] dark:text-white/60 dark:ring-white/10">
+            AI 분석 · 데이터 자동 검증 · 운영자 표본 검수
+          </span>
+        )}
         <span className="text-neutral-500">{date}</span>
       </div>
 

@@ -30,6 +30,19 @@ const SEO_TOOL_BOTS = [
   "Yandex",
 ];
 
+// 인용·검색용 AI 봇 — 명시 허용. 지금까지는 `*` 규칙을 상속받아 열려 있었지만, 그 규칙을 바꾸는 순간
+// 같이 막히는 사고를 막으려고 의도를 파일에 남긴다 (2026-09-04 GEO 감사). 위 학습봇 차단과 짝을 이룬다.
+const AI_CITATION_BOTS = [
+  "OAI-SearchBot", // ChatGPT 검색 색인
+  "ChatGPT-User", // ChatGPT 사용자 질의 시 실시간 fetch
+  "PerplexityBot", // Perplexity 색인
+  "Perplexity-User", // Perplexity 사용자 질의 시 실시간 fetch
+  "Claude-SearchBot", // Claude 검색 색인
+  "Claude-User", // Claude 사용자 질의 시 실시간 fetch
+];
+
+const HUMAN_ONLY_PATHS = ["/admin", "/api/admin", "/go"];
+
 export default function robots(): MetadataRoute.Robots {
   const base = SITE_URL;
   return {
@@ -38,8 +51,10 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // /go — 사람 전용 외부 이동 통로 (스코어보드 footer → scorebase). 봇 경유 차단.
-        disallow: ["/admin", "/api/admin", "/go"],
+        disallow: HUMAN_ONLY_PATHS,
       },
+      // 인용·검색용 AI 봇 — 전 경로 허용(사람 전용 경로만 제외).
+      ...AI_CITATION_BOTS.map((ua) => ({ userAgent: ua, allow: "/", disallow: HUMAN_ONLY_PATHS })),
       // AI 학습 크롤러 — 전 경로 차단 (개별 그룹으로 펼쳐 파서 호환성 확보).
       ...AI_TRAINING_BOTS.map((ua) => ({ userAgent: ua, disallow: "/" })),
       // SEO 툴 크롤러 — 전 경로 차단.

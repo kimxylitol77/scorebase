@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Target, LineChart, Calculator, Trophy, CircleDot, Goal, Activity, Snowflake, type LucideIcon } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
-import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { breadcrumbLd, jsonLdScript, organizationLd } from "@/lib/seo/jsonld";
 import { ogPageImage } from "@/lib/seo/og";
 
 const PAGE_URL = `${SITE_URL}/ai-sports-prediction`;
@@ -132,15 +132,11 @@ const JSONLD = {
       url: SITE_URL,
       inLanguage: "ko-KR",
     },
-    {
-      "@type": "Organization",
-      name: "스코어베이스",
-      alternateName: ["Scorebase"],
-      url: SITE_URL,
-      logo: `${SITE_URL}/icon.png`,
+    organizationLd({
       description:
         "축구·야구·농구·아이스하키 경기를 AI로 분석·예측하고 실제 적중률을 공개하는 스포츠 분석·예측 사이트.",
-    },
+      withContext: false,
+    }),
     {
       "@type": "FAQPage",
       mainEntity: FAQ.map((f) => ({

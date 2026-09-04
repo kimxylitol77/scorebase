@@ -29,7 +29,7 @@ import HomeAiScorecardShowcase from "@/components/en/HomeAiScorecardShowcase";
 import SectionHeading from "@/components/en/SectionHeading";
 import SeasonInsight from "@/components/en/SeasonInsight";
 import SeasonInsightCard from "@/components/en/SeasonInsightCard";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, organizationLd, orgRef } from "@/lib/seo/jsonld";
 
 // 1시간마다 ISR 재생성 — Monte Carlo 시뮬레이션 비용 흡수 + SEO 친화
 export const revalidate = 3600;
@@ -100,21 +100,12 @@ export const metadata: Metadata = {
   },
 };
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Scorebase",
-  alternateName: ["Scorebase", "Score Base", "Score Base"],
-  url: CANONICAL,
-  logo: `${CANONICAL}/icon.png`,
+// 조직 본체 — 한국어 홈과 같은 단일 @id. 이름은 "스코어베이스" 하나로 두고 영문명은 alternateName.
+const organizationJsonLd = organizationLd({
   description:
     "AI-driven sports media — Premier League, NBA, MLB and NHL previews, reviews, injury lists and match insight",
   inLanguage: "en",
-  // sameAs — 공개 소셜 채널 (env 미설정이면 필드 자체를 생략, 죽은 URL 금지)
-  ...(process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL
-    ? { sameAs: [process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL] }
-    : {}),
-};
+});
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
@@ -123,7 +114,7 @@ const websiteJsonLd = {
   alternateName: "Scorebase",
   url: CANONICAL,
   inLanguage: "en",
-  publisher: { "@type": "Organization", name: "Scorebase" },
+  publisher: orgRef(),
   potentialAction: {
     "@type": "SearchAction",
     target: `${CANONICAL}/en/search?q={search_term_string}`,

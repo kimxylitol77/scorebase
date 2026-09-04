@@ -49,6 +49,11 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 600; // ISR — 순위는 경기 종료 후 poller 가 갱신, 10분 캐시로 충분
 
+// ISR 활성화 — 이 선언이 없으면 revalidate 가 있어도 매 요청 렌더된다 (한국어판 standings 와 동일, 2026-09-04).
+export function generateStaticParams() {
+  return [] as { league: string }[];
+}
+
 interface Props {
   params: Promise<{ league: string }>;
 }

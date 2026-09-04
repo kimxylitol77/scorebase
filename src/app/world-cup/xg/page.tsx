@@ -10,7 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { parseFixtureXg, xgFairnessPct } from "@/lib/xg/outcome";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
 
 export const revalidate = 600; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -33,7 +33,7 @@ const XG_JSONLD = {
   description: "2026 월드컵 전 경기의 팀별 xG 와 실제 결과 비교 데이터.",
   url: `${SITE_URL}/world-cup/xg`,
   keywords: ["월드컵 xG", "기대득점", "expected goals"],
-  creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+  creator: orgRef(),
   isAccessibleForFree: true,
   measurementTechnique: "api-football expected_goals 집계 vs 실제 득점 비교",
 };

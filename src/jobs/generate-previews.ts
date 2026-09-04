@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { predictMatchById } from "@/lib/predictionEngine";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
+import { articleGateEnabled, checkArticleGate } from "@/lib/articles/publish-gate";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
 import { parseKnockoutRound } from "@/lib/predict/wc-bracket";
@@ -934,6 +935,21 @@ export async function runPreview(opts?: {
       // 길이 미달 — 글만 스킵. 픽은 위에서 이미 저장돼 남는다.
       if (!content) continue;
 
+      // 발행 정합 게이트 (2026-09-04) — 종목 금칙어·본문 승률 vs 저장 승률·결장자 수 근거를 규칙으로 검사.
+      // 걸리면 버리지 않고 PENDING_REVIEW 로 남긴다(픽은 이미 저장됨). lib/articles/publish-gate 참조.
+      const gate = checkArticleGate({
+        content,
+        league: m.league,
+        mode: "preview",
+        winProb: ready.ready ? (wp ?? null) : null,
+        injuries: context.injuries ?? null,
+      });
+      const gateOk = gate.ok || !articleGateEnabled();
+      if (!gate.ok) {
+        console.warn(`[preview] 게이트 ${gateOk ? "경고(해제 상태)" : "보류"} m#${m.id} ${m.league} — ${gate.reasons.join(" / ")}`);
+      }
+      const publishNow = autoPublish && gateOk;
+
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);
       // [M/D] 패턴 prefix 가 이미 있으면 OK, 그 외 [...] 형태로 시작해도 prefix 강제 추가.
@@ -960,8 +976,8 @@ export async function runPreview(opts?: {
           title,
           slug,
           content,
-          status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
-          publishedAt: autoPublish ? new Date() : null,
+          status: publishNow ? "PUBLISHED" : "PENDING_REVIEW",
+          publishedAt: publishNow ? new Date() : null,
           // 글에 실리는 픽도 같은 원칙 — 야구는 선발 확정 전이면 비워 둔다(위 pickReadiness).
           predHome: ready.ready ? (wp?.home ?? null) : null,
           predDraw: ready.ready ? (wp?.draw ?? null) : null,

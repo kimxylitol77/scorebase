@@ -1,5 +1,40 @@
-// 공용 JSON-LD 빌더 — BreadcrumbList·Dataset·ItemList. 데이터 페이지가 AI/검색 인용·위계 파악에 유리하도록.
+// 공용 JSON-LD 빌더 — Organization(단일 @id)·BreadcrumbList·Dataset·ItemList. 데이터 페이지가 AI/검색 인용·위계 파악에 유리하도록.
 import { SITE_URL } from "@/lib/site-url";
+
+/** 조직 엔티티 단일 @id — 모든 publisher·author·creator 가 이 하나를 가리켜야 AI·검색이 같은 주체로 묶는다.
+ *  (2026-09-04 GEO 감사: 홈 "스코어베이스" vs 소개·기사 "Scorebase" 로 갈려 있고 @id 가 없어 엔티티 분열) */
+export const ORG_ID = `${SITE_URL}/#organization`;
+export const ORG_NAME = "스코어베이스";
+
+/** 공개 소셜·외부 프로필 — 죽은 URL 금지. 텔레그램은 env 로만(미설정이면 생략), Threads 는 실재 확인된 계정. */
+export const SOCIAL_LINKS: string[] = [
+  ...(process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL ? [process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL] : []),
+  "https://www.threads.com/@scorebase1",
+];
+
+/** 참조용 조직 — publisher·author·creator 자리에. 본체(organizationLd)가 없는 페이지여도 @id 로 같은 엔티티임을 선언. */
+export function orgRef() {
+  return { "@type": "Organization", "@id": ORG_ID, name: ORG_NAME, url: SITE_URL };
+}
+
+/** 조직 본체 — 홈·소개 등 대표 페이지에 싣는다. @graph 안에 넣을 때는 withContext: false. */
+export function organizationLd(opts?: { description?: string; inLanguage?: string; withContext?: boolean }) {
+  const base = {
+    "@type": "Organization",
+    "@id": ORG_ID,
+    name: ORG_NAME,
+    alternateName: ["Scorebase", "스코어 베이스", "Score Base"],
+    url: SITE_URL,
+    logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.png` },
+    description:
+      opts?.description ??
+      "데이터 기반 스포츠 분석 미디어 — 라이브 스코어·AI 프리뷰/리뷰·시즌 시뮬레이션·예측 적중률 공개",
+    inLanguage: opts?.inLanguage ?? "ko-KR",
+    foundingDate: "2026",
+    ...(SOCIAL_LINKS.length ? { sameAs: SOCIAL_LINKS } : {}),
+  };
+  return opts?.withContext === false ? base : { "@context": "https://schema.org", ...base };
+}
 
 /** 빵부스러기 — [{name, path}] 순서대로. path 는 절대(http) 또는 상대(/x). 마지막이 현재 페이지. */
 export function breadcrumbLd(items: { name: string; path: string }[]) {
@@ -30,7 +65,7 @@ export function datasetLd(opts: {
     name: opts.name,
     description: opts.description,
     url: `${SITE_URL}${opts.path}`,
-    creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+    creator: orgRef(),
     isAccessibleForFree: true,
     ...(opts.variableMeasured ? { variableMeasured: opts.variableMeasured } : {}),
     ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),

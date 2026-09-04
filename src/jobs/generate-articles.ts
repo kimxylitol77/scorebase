@@ -5,6 +5,7 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
+import { articleGateEnabled, checkArticleGate } from "@/lib/articles/publish-gate";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { buildLolRecapPromptV2 } from "@/prompts/lol-recap";
 import { buildLolRecapContext } from "@/lib/sports/lol-recap-context";
@@ -279,6 +280,14 @@ export async function runRecap(opts?: {
       });
       if (!content) continue; // 길이 미달 — DB INSERT 스킵
 
+      // 발행 정합 게이트 (2026-09-04) — 리뷰는 종목 금칙어만(라인업을 아는 글이라 결장·승률 대조는 맞지 않음).
+      const gate = checkArticleGate({ content, league: m.league, mode: "recap" });
+      const gateOk = gate.ok || !articleGateEnabled();
+      if (!gate.ok) {
+        console.warn(`[recap] 게이트 ${gateOk ? "경고(해제 상태)" : "보류"} m#${m.id} ${m.league} — ${gate.reasons.join(" / ")}`);
+      }
+      const publishNow = autoPublish && gateOk;
+
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);
       const title = rawTitle.startsWith("[")
@@ -304,8 +313,8 @@ export async function runRecap(opts?: {
           title,
           slug,
           content,
-          status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
-          publishedAt: autoPublish ? new Date() : null,
+          status: publishNow ? "PUBLISHED" : "PENDING_REVIEW",
+          publishedAt: publishNow ? new Date() : null,
           // 본문=위젯 단일 소스 — Elo·시즌 승점 글 시점 스냅샷 (preview 와 동일).
           eloHome: context.elo?.home ?? null,
           eloAway: context.elo?.away ?? null,

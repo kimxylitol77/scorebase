@@ -7,6 +7,7 @@
 // 반응형은 display 토글(hidden sm:flex) 대신 flex-wrap 으로 접는다 (윈도우 grid 무력화 이슈 회피).
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import BoardTabs from "@/components/BoardTabs";
@@ -126,44 +127,61 @@ function Row({ href, children }: { href: string | null; children: React.ReactNod
   );
 }
 
+// searchParams 를 읽어 라우트는 dynamic 이지만(CDN 캐시 불가), DB 조회 5개는 60초 캐시로 묶는다.
+// 2026-09-03 GEO 감사: /news TTFB 12초 + no-store 로 실시간 fetch 봇이 포기하던 페이지.
+// unstable_cache 는 Date 를 문자열로 바꾸므로 호출부에서 new Date() 로 되살린다 (transfers 페이지와 같은 함정).
+const loadNewsFeed = unstable_cache(
+  async (cur: number, sportFilter: string | null) => {
+      const where = { category: "BRIEFING", ...(sportFilter ? { sport: sportFilter } : {}) };
+
+      // 트랜잭션도 이 목록의 소식이다 — 농구·야구는 브리핑 재료를 주는 소스가 없어(제목만 오는
+      // 피드뿐) 빼면 탭이 사실상 빈 화면이다. 축구·하키 탭에서는 섞이지 않는다.
+      const txLeagues: TxLeague[] = sportFilter
+        ? TX_LEAGUE[sportFilter]
+          ? [TX_LEAGUE[sportFilter]]
+          : []
+        : ["NBA", "MLB", "NHL"];
+      const withTx = txLeagues.length > 0;
+      // 두 소스를 날짜순으로 합치므로 각각 현재 페이지까지를 넉넉히 받아 와 잘라 쓴다.
+      const need = cur * PAGE_SIZE;
+      const [postRows, counts, txRows, txCounts] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: need,
+          select: { id: true, title: true, content: true, sport: true, views: true, commentCount: true, createdAt: true },
+        }),
+        prisma.post.groupBy({ by: ["sport"], _count: true, where: { category: "BRIEFING" } }),
+        withTx
+          ? prisma.sportsTransaction.findMany({
+              where: { league: { in: txLeagues } },
+              orderBy: [{ date: "desc" }, { id: "asc" }],
+              take: need,
+              select: { id: true, date: true, league: true, category: true, playerName: true, descriptionKo: true, description: true },
+            })
+          : Promise.resolve([]),
+        // 탭 배지는 필터와 무관하게 리그별 전체 건수가 필요하다.
+        prisma.sportsTransaction.groupBy({ by: ["league"], _count: true }),
+      ]);
+      // 원문 출처 — Post 본문엔 링크만 있고 매체명이 구조화돼 있지 않아 NewsBriefing 에서 가져온다.
+      const sources = postRows.length
+        ? await prisma.newsBriefing.findMany({
+            where: { postId: { in: postRows.map((p) => p.id) } },
+            select: { postId: true, sourceName: true },
+          })
+        : [];
+      return { postRows, counts, txRows, txCounts, sources };
+  },
+  ["news-feed"],
+  { revalidate: 60, tags: ["news"] },
+);
+
 export default async function NewsPage({ searchParams }: Props) {
   const { page, sport } = await searchParams;
   const cur = Math.max(1, Number(page) || 1);
   const sportFilter = sport && SPORT_LABEL[sport] ? sport : null;
 
-  const where = { category: "BRIEFING", ...(sportFilter ? { sport: sportFilter } : {}) };
-
-  // 트랜잭션도 이 목록의 소식이다 — 농구·야구는 브리핑 재료를 주는 소스가 없어(제목만 오는
-  // 피드뿐) 빼면 탭이 사실상 빈 화면이다. 축구·하키 탭에서는 섞이지 않는다.
-  const txLeagues: TxLeague[] = sportFilter
-    ? TX_LEAGUE[sportFilter]
-      ? [TX_LEAGUE[sportFilter]]
-      : []
-    : ["NBA", "MLB", "NHL"];
-  const withTx = txLeagues.length > 0;
-  // 두 소스를 날짜순으로 합치므로 각각 현재 페이지까지를 넉넉히 받아 와 잘라 쓴다.
-  const need = cur * PAGE_SIZE;
-
-  const [postRows, counts, txRows, txCounts] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: need,
-      select: { id: true, title: true, content: true, sport: true, views: true, commentCount: true, createdAt: true },
-    }),
-    prisma.post.groupBy({ by: ["sport"], _count: true, where: { category: "BRIEFING" } }),
-    withTx
-      ? prisma.sportsTransaction.findMany({
-          where: { league: { in: txLeagues } },
-          orderBy: [{ date: "desc" }, { id: "asc" }],
-          take: need,
-          select: { id: true, date: true, league: true, category: true, playerName: true, descriptionKo: true, description: true },
-        })
-      : Promise.resolve([]),
-    // 탭 배지는 필터와 무관하게 리그별 전체 건수가 필요하다.
-    prisma.sportsTransaction.groupBy({ by: ["league"], _count: true }),
-  ]);
-
+  const { postRows, counts, txRows, txCounts, sources } = await loadNewsFeed(cur, sportFilter);
   const bySport = new Map(counts.map((g) => [g.sport, g._count]));
   // 우리가 목록에 싣는 리그만 총계에 넣는다 — 수집만 되고 안 싣는 리그가 생겨도 어긋나지 않게.
   const txByLeague = new Map(txCounts.map((g) => [g.league, g._count]));
@@ -175,13 +193,6 @@ export default async function NewsPage({ searchParams }: Props) {
   const total = sportFilter ? sportCount(sportFilter) : totalAll;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // 원문 출처 — Post 본문엔 링크만 있고 매체명이 구조화돼 있지 않아 NewsBriefing 에서 가져온다.
-  const sources = postRows.length
-    ? await prisma.newsBriefing.findMany({
-        where: { postId: { in: postRows.map((p) => p.id) } },
-        select: { postId: true, sourceName: true },
-      })
-    : [];
   const srcByPost = new Map(sources.map((s) => [s.postId, s.sourceName]));
 
   // 브리핑 글과 트랜잭션을 같은 모양으로 맞춰 날짜순 한 목록으로.
@@ -202,7 +213,7 @@ export default async function NewsPage({ searchParams }: Props) {
     const { tag, rest } = splitTag(p.title);
     return {
       key: `post-${p.id}`,
-      date: p.createdAt,
+      date: new Date(p.createdAt), // unstable_cache 경유 시 문자열
       sport: p.sport ?? "soccer",
       tag,
       title: rest,
@@ -216,7 +227,7 @@ export default async function NewsPage({ searchParams }: Props) {
 
   const txItems: FeedItem[] = txRows.map((t) => ({
     key: `tx-${t.id}`,
-    date: t.date,
+    date: new Date(t.date), // unstable_cache 경유 시 문자열
     sport: TX_SPORT[t.league] ?? "basketball",
     tag: TX_TAG[t.category] ?? TX_TAG.other,
     title: t.descriptionKo || t.description,

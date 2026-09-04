@@ -50,6 +50,13 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 600; // ISR — 순위는 경기 종료 후 poller 가 갱신, 10분 캐시로 충분
 
+// ISR 활성화 — 이 선언이 없으면 revalidate 가 있어도 매 요청 렌더된다 (transfers/teams 2026-08-01 실측과 동일).
+// 2026-09-03 GEO 감사: /standings/EPL 이 private, no-store + MISS 로 매 크롤 origin 렌더, 1회 연결 실패.
+// 빈 배열 = 빌드 프리렌더 0건, 요청 온 리그만 생성 후 캐시.
+export function generateStaticParams() {
+  return [] as { league: string }[];
+}
+
 interface Props {
   params: Promise<{ league: string }>;
 }

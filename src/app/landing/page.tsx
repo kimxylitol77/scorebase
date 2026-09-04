@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Zap, ListOrdered, Target, BarChart3, Banknote, Bandage, type LucideIcon } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, organizationLd } from "@/lib/seo/jsonld";
 
 // 스코어베이스.com (브랜드 랜딩 전용 도메인) 자기참조 canonical/OG.
 // 과거엔 canonical 이 scorebase.kr/landing 이라 구글이 .com 을 scorebase.kr 로 흡수 →
@@ -91,14 +91,10 @@ const JSONLD = {
   "@context": "https://schema.org",
   "@graph": [
     { "@type": "WebSite", name: "스코어베이스", alternateName: ["Scorebase", "스코어 베이스"], url: SCOREBASE_COM_URL, inLanguage: "ko-KR" },
-    {
-      "@type": "Organization",
-      name: "스코어베이스",
-      alternateName: ["Scorebase"],
-      url: SITE_URL,
-      logo: `${SITE_URL}/icon.png`,
+    organizationLd({
       description: "라이브스코어·리그 순위·해외 이적시장을 실시간으로 반영하는 글로벌 스포츠 데이터 미디어",
-    },
+      withContext: false,
+    }),
     { "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
   ],
 };

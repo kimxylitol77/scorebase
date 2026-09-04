@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
 
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 const PATH = "/compare/live-score-apps";
@@ -114,8 +114,8 @@ export default function CompareLiveScoreAppsPage() {
     inLanguage: "ko",
     datePublished: PUBLISHED,
     dateModified: MODIFIED,
-    author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
-    publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/icon.png` },
+    author: orgRef(),
+    publisher: { ...orgRef(), logo: `${SITE_URL}/icon.png` },
   };
 
   return (

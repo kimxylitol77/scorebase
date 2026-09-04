@@ -4,9 +4,7 @@ import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ArrowRight } from "lucide-react";
-import { jsonLdScript } from "@/lib/seo/jsonld";
-
-const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
+import { jsonLdScript, organizationLd } from "@/lib/seo/jsonld";
 
 export const metadata: Metadata = {
   title: "Scorebase 소개 — 데이터로 보는 글로벌 스포츠",
@@ -22,20 +20,11 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: SITE_NAME,
-    url: SITE_URL,
-    logo: `${SITE_URL}/icon.png`,
+  // 조직 본체는 lib/seo/jsonld 의 단일 @id — 홈·기사·블로그의 publisher 와 같은 엔티티로 묶인다.
+  const orgJsonLd = organizationLd({
     description:
       "EPL · NBA · MLB · NHL · 유럽 5대 리그 · 챔피언스리그 · MLS 의 경기 결과·프리뷰·시즌 시뮬레이션을 데이터 기반으로 매일 자동 정리하는 스포츠 미디어.",
-    // 공개 소셜 채널 (env 미설정이면 빈 배열 유지 — 죽은 URL 금지)
-    sameAs: process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL
-      ? [process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL]
-      : [],
-    foundingDate: "2026",
-  };
+  });
   return (
     <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-12">
       <AmbientGlow />
@@ -140,9 +129,11 @@ export default function AboutPage() {
         <h2>AI 글 작성 정책</h2>
         <p>
           프리뷰·리캡 기사는 위 데이터(시즌 순위·Elo·H2H·최근 폼·홈/원정
-          기록)를 컨텍스트로 받은 LLM 이 한국어로 자연스럽게 정리합니다. 자동
-          생성된 모든 글은 실제 통계와 일치하는지 데이터 검증을 거쳐
-          발행됩니다.
+          기록)를 컨텍스트로 받은 LLM 이 한국어로 자연스럽게 정리합니다. 발행
+          전에 규칙 검사(종목에 맞지 않는 표현 · 본문 승률과 모델 승률의 불일치 ·
+          근거 없는 결장자 수)를 자동으로 거치고, 걸린 글은 사람이 확인하기 전까지
+          공개하지 않습니다. 모든 글을 사람이 편집하지는 않으며, 운영자가 표본을
+          검수합니다.
         </p>
         <p>
           시즌 종합 분석 글은 Monte Carlo 결과를 바탕으로 주 1회 자동 작성되며,
