@@ -38,12 +38,14 @@ export interface ArticleGateInput {
 
 export type ArticleGateResult = { ok: true } | { ok: false; reasons: string[] };
 
-// 종목에 있을 수 없는 개념. 야구·농구·하키에 강등/승격, 축구에 이닝/홈런. 최소만 — 과하면 정상 글을 막는다.
+// 종목에 있을 수 없는 개념. 야구·농구·하키에 "리그 강등" 어법(강등전·강등권·잔류 싸움), 축구에 이닝/홈런.
+// "강등" 한 단어로 잡으면 안 된다 — 야구는 "2군 강등", 농구는 "G리그 강등" 이 정상 용어다 (2026-09-04 NPB 오탐).
 // e스포츠는 리그마다 승강 구조가 달라 제외.
+const RELEGATION_TALK = /강등(전|권|\s?위험|\s?가능성|\s?경쟁|\s?확률)|잔류\s?(싸움|경쟁|다툼)|승격권/g;
 const SPORT_FORBIDDEN: Partial<Record<ArticleGateSport, RegExp>> = {
-  baseball: /강등|승격/g,
-  basketball: /강등|승격/g,
-  hockey: /강등|승격/g,
+  baseball: RELEGATION_TALK,
+  basketball: RELEGATION_TALK,
+  hockey: RELEGATION_TALK,
   soccer: /이닝|홈런|타율|삼진/g,
 };
 
@@ -59,6 +61,8 @@ function splitSentences(text: string): string[] {
 function isModelProbSentence(s: string): boolean {
   if (/오버|언더|OVER|UNDER|핸디|커버|토탈|득점|실점/i.test(s)) return false;
   if (/최근|통산|역대|상대전적|맞대결|홈 경기 승률|원정 승률/.test(s)) return false;
+  // 시장(배당) 확률을 모델 승률과 나란히 적는 문장은 대조 불가 — "시장 평균 40% 대 60%" 는 모델 값이 아니다.
+  if (/시장|배당|북메이커|오즈|implied/i.test(s)) return false;
   return /(모델|추정|예측|통계)/.test(s) && /(승률|승리|이길|확률)/.test(s);
 }
 
@@ -85,7 +89,8 @@ export function checkArticleGate(input: ArticleGateInput): ArticleGateResult {
       const bad: string[] = [];
       for (const s of splitSentences(content)) {
         if (!isModelProbSentence(s)) continue;
-        for (const m of s.matchAll(/(\d{1,3})(?:\.\d+)?\s*%(?![pP])/g)) {
+        // "%p"·"%포인트" 는 격차 표기라 승률이 아니다.
+        for (const m of s.matchAll(/(\d{1,3})(?:\.\d+)?\s*%(?![pP]|포인트)/g)) {
           const n = Number(m[1]);
           if (n > 100) continue;
           if (!allowed.some((a) => Math.abs(a - n) <= 1)) bad.push(`${n}%`);
@@ -104,12 +109,12 @@ export function checkArticleGate(input: ArticleGateInput): ArticleGateResult {
       if (!input.injuries) {
         reasons.push(`근거 없는 결장자 수 주장: ${[...new Set(claims)].map((n) => `${n}명`).join(", ")} (프롬프트에 부상 데이터 없음)`);
       } else {
-        const h = input.injuries.home.length;
-        const a = input.injuries.away.length;
-        const ok = new Set([h, a, h + a]);
-        const wrong = [...new Set(claims)].filter((n) => !ok.has(n));
+        // 명단이 있으면 부분 집계("투수진 부상 17명")도 정당하다 — 명단 총원을 넘는 숫자만 지어낸 것으로 본다.
+        // (2026-09-04 NPB 오탐: 1군 등록말소 명단이 길어 홈·원정·합계 정확 일치 요구가 정상 글을 막았다)
+        const total = input.injuries.home.length + input.injuries.away.length;
+        const wrong = [...new Set(claims)].filter((n) => n > total);
         if (wrong.length) {
-          reasons.push(`결장자 수 ${wrong.map((n) => `${n}명`).join(", ")} 이(가) 명단(홈 ${h}·원정 ${a})과 불일치`);
+          reasons.push(`결장자 수 ${wrong.map((n) => `${n}명`).join(", ")} 이(가) 명단 총원(${total}명)을 넘음`);
         }
       }
     }

@@ -61,12 +61,40 @@ test("부상 데이터를 주지 않은 축구 글의 '결장자 6명' 은 지�
   if (!r.ok) assert.match(r.reasons[0], /근거 없는 결장자/);
 });
 
-test("명단을 준 경우 홈·원정·합계 중 하나와 맞으면 통과, 아니면 차단", () => {
+test("명단을 준 경우 총원 이하의 숫자(부분 집계 포함)는 통과, 총원을 넘으면 차단", () => {
   const injuries = { home: [{}, {}], away: [{}] };
-  const ok = checkArticleGate({ content: "홈팀은 결장자 2명, 양 팀 합쳐 3명이 빠진다.", league: "KBO", mode: "preview", injuries });
+  const ok = checkArticleGate({ content: "홈팀은 결장자 2명, 양 팀 합쳐 3명이 빠진다. 투수진 부상 1명.", league: "KBO", mode: "preview", injuries });
   assert.equal(ok.ok, true);
   const bad = checkArticleGate({ content: "홈팀 결장자 5명.", league: "KBO", mode: "preview", injuries });
   assert.equal(bad.ok, false);
+});
+
+// 2026-09-04 실전 첫날 NPB 4건 오탐 — 재발 방지
+test("야구의 '2군 강등'·'1군 승격' 은 정상 용어 — 통과. 리그 강등 어법(강등전·강등권)만 차단", () => {
+  const ok = checkArticleGate({ content: "부진한 선발은 2군 강등 후 재조정에 들어갔고, 유망주가 1군 승격했다.", league: "NPB", mode: "preview" });
+  assert.equal(ok.ok, true);
+  const bad = checkArticleGate({ content: "강등권 탈출을 위한 잔류 싸움이다.", league: "NPB", mode: "preview" });
+  assert.equal(bad.ok, false);
+});
+
+test("시장 배당 확률이 모델 승률과 나란히 있는 문장은 대조하지 않는다", () => {
+  const r = checkArticleGate({
+    content: "통계 추정 승률은 라쿠텐 44% 대 닛폰햄 56%로, 시장 평균(라쿠텐 40% 대 닛폰햄 60%)과도 거의 일치한다.",
+    league: "NPB",
+    mode: "preview",
+    winProb: { home: 0.44, draw: 0, away: 0.56 },
+  });
+  assert.equal(r.ok, true);
+});
+
+test("'14%포인트' 격차 표기는 승률이 아니다", () => {
+  const r = checkArticleGate({
+    content: "샘플에서 홈 팀의 승률 우위는 약 14%포인트로 추정되며, 모델은 양 팀 승률을 50%씩 추정했다.",
+    league: "NPB",
+    mode: "preview",
+    winProb: { home: 0.5, draw: 0, away: 0.5 },
+  });
+  assert.equal(r.ok, true);
 });
 
 test("recap 은 금칙어만 본다 — 결장 수·승률 문장이 있어도 통과", () => {
