@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { predictMatchById } from "@/lib/predictionEngine";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
-import { articleGateEnabled, checkArticleGate } from "@/lib/articles/publish-gate";
+import { articleGateBlocks, checkArticleGate } from "@/lib/articles/publish-gate";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
 import { parseKnockoutRound } from "@/lib/predict/wc-bracket";
@@ -55,7 +55,7 @@ import type {
   LolPlayerStatsLite,
   LolChampionMeta,
 } from "@/prompts/match-preview";
-import { notifyDraftReady } from "@/lib/notify/telegram";
+import { notifyDraftReady, sendTelegram } from "@/lib/notify/telegram";
 import { titleDatePrefixKST } from "@/lib/format";
 import {
   buildMatchContext,
@@ -944,11 +944,12 @@ export async function runPreview(opts?: {
         winProb: ready.ready ? (wp ?? null) : null,
         injuries: context.injuries ?? null,
       });
-      const gateOk = gate.ok || !articleGateEnabled();
+      // 기본은 예전처럼 자동 발행 + 사유를 텔레그램으로 알림. ARTICLE_PUBLISH_GATE=block 일 때만 보류.
+      const hold = !gate.ok && articleGateBlocks();
       if (!gate.ok) {
-        console.warn(`[preview] 게이트 ${gateOk ? "경고(해제 상태)" : "보류"} m#${m.id} ${m.league} — ${gate.reasons.join(" / ")}`);
+        console.warn(`[preview] 게이트 ${hold ? "보류" : "경고(발행)"} m#${m.id} ${m.league} — ${gate.reasons.join(" / ")}`);
       }
-      const publishNow = autoPublish && gateOk;
+      const publishNow = autoPublish && !hold;
 
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);
@@ -957,6 +958,13 @@ export async function runPreview(opts?: {
         ? rawTitle
         : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
+      if (!gate.ok) {
+        await sendTelegram(
+          `⚠️ preview 게이트 ${hold ? "보류" : "경고 (발행됨)"} — ${m.league} ${title}\n` +
+            gate.reasons.map((r) => `- ${r}`).join("\n") +
+            `\n/articles/${slug}`,
+        ).catch((e) => console.warn(`[preview] 게이트 알림 실패: ${(e as Error).message}`));
+      }
 
       // 야구(KBO/MLB/NPB) — InningScoreChart 렌더용 JSON 컨텍스트
       const baseballCtx =

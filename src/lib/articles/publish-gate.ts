@@ -123,7 +123,8 @@ export function checkArticleGate(input: ArticleGateInput): ArticleGateResult {
   return reasons.length ? { ok: false, reasons } : { ok: true };
 }
 
-/** env 로 전체 해제 — 규칙이 정상 글을 과하게 막을 때 임시 우회. */
-export function articleGateEnabled(): boolean {
-  return process.env.ARTICLE_PUBLISH_GATE !== "off";
+/** 보류 모드 — 기본은 "발행하고 사유만 알림"(예전과 같은 자동 발행). ARTICLE_PUBLISH_GATE=block 일 때만 PENDING_REVIEW 로 잡는다.
+ *  실전 첫날(2026-09-04) 4/4 보류 중 3건이 오탐이었고 운영자가 매번 승인하는 흐름을 원치 않아 경고 모드를 기본으로 뒀다. */
+export function articleGateBlocks(): boolean {
+  return process.env.ARTICLE_PUBLISH_GATE === "block";
 }

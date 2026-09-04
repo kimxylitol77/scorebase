@@ -5,11 +5,11 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
-import { articleGateEnabled, checkArticleGate } from "@/lib/articles/publish-gate";
+import { articleGateBlocks, checkArticleGate } from "@/lib/articles/publish-gate";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { buildLolRecapPromptV2 } from "@/prompts/lol-recap";
 import { buildLolRecapContext } from "@/lib/sports/lol-recap-context";
-import { notifyDraftReady } from "@/lib/notify/telegram";
+import { notifyDraftReady, sendTelegram } from "@/lib/notify/telegram";
 import { titleDatePrefixKST } from "@/lib/format";
 import {
   buildMatchContext,
@@ -282,11 +282,12 @@ export async function runRecap(opts?: {
 
       // 발행 정합 게이트 (2026-09-04) — 리뷰는 종목 금칙어만(라인업을 아는 글이라 결장·승률 대조는 맞지 않음).
       const gate = checkArticleGate({ content, league: m.league, mode: "recap" });
-      const gateOk = gate.ok || !articleGateEnabled();
+      // 기본은 예전처럼 자동 발행 + 사유를 텔레그램으로 알림. ARTICLE_PUBLISH_GATE=block 일 때만 보류.
+      const hold = !gate.ok && articleGateBlocks();
       if (!gate.ok) {
-        console.warn(`[recap] 게이트 ${gateOk ? "경고(해제 상태)" : "보류"} m#${m.id} ${m.league} — ${gate.reasons.join(" / ")}`);
+        console.warn(`[recap] 게이트 ${hold ? "보류" : "경고(발행)"} m#${m.id} ${m.league} — ${gate.reasons.join(" / ")}`);
       }
-      const publishNow = autoPublish && gateOk;
+      const publishNow = autoPublish && !hold;
 
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);
@@ -294,6 +295,13 @@ export async function runRecap(opts?: {
         ? rawTitle
         : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
+      if (!gate.ok) {
+        await sendTelegram(
+          `⚠️ recap 게이트 ${hold ? "보류" : "경고 (발행됨)"} — ${m.league} ${title}\n` +
+            gate.reasons.map((r) => `- ${r}`).join("\n") +
+            `\n/articles/${slug}`,
+        ).catch((e) => console.warn(`[recap] 게이트 알림 실패: ${(e as Error).message}`));
+      }
 
       // 야구(KBO/MLB/NPB) 이닝별 득점 모델 결과 — UI InningScoreChart 렌더용
       const baseballCtx =
