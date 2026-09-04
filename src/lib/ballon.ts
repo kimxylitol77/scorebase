@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
+import { aliveTsPlayerIds } from "@/lib/players/ts-player-alive";
+import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
@@ -174,6 +176,8 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
     const ts = afPlayerToTs(afId);
     if (ts) tsByAf.set(afId, ts);
   }
+  // 매핑이 가리키는 ts 행이 실재하는지 — 죽은 id 로 링크하면 404 다 (ts-player-alive.ts).
+  const aliveTs = await aliveTsPlayerIds(tsByAf.values());
   const ratingByTs = new Map<string, number>();
   if (tsByAf.size > 0) {
     const grouped = await prisma.playerMatchLog.groupBy({
@@ -334,7 +338,14 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
       wcAssistPts,
       ratingPts,
       teamPts,
-      href: ts ? `/transfers/${ts}` : null,
+      // 선수 페이지 링크 — ts 통합 페이지가 정본이고, 매핑이 없거나 죽었으면 af 뷰
+      // (/players/{afId}?league=) 로 보낸다. 그 라우트가 지원하지 않는 리그면 링크하지 않는다.
+      href:
+        ts && aliveTs.has(ts)
+          ? `/transfers/${ts}`
+          : SOCCER_PLAYER_PAGE_LEAGUE_SET.has(mainLeague)
+            ? `/players/${a.afId}?league=${mainLeague}`
+            : null,
     });
   }
 

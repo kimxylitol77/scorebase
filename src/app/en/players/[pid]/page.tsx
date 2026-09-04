@@ -3,6 +3,7 @@
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { isTsPlayerId } from "@/lib/links/leaderboard-link";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
+import { isTsPlayerAlive } from "@/lib/players/ts-player-alive";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -228,7 +229,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     // 축구 선수 페이지 단일화 (2026-06-10) — ts 매핑 있으면 /transfers 선수 페이지로
     // 영구 이동 (시장가치·커리어·대회별 스탯 통합본). 매핑 없는 선수는 기존 af 뷰 유지.
     const tsId = afPlayerToTs(pid);
-    if (tsId) redirect(`/transfers/${tsId}`);
+    // 매핑이 죽은 ts id 를 가리키면(실측 70건) 리다이렉트가 곧 404 다 — 실재할 때만.
+    if (tsId && (await isTsPlayerAlive(tsId))) redirect(`/transfers/${tsId}`);
     return renderSoccerPlayerView(pid, league);
   }
 
@@ -249,7 +251,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (!hitterFirst) {
     // MLB 미존재 — league 없이 들어온 축구 af id 면 통합 선수 페이지로
     const tsId = afPlayerToTs(pid);
-    if (tsId) redirect(`/transfers/${tsId}`);
+    // 매핑이 죽은 ts id 를 가리키면(실측 70건) 리다이렉트가 곧 404 다 — 실재할 때만.
+    if (tsId && (await isTsPlayerAlive(tsId))) redirect(`/transfers/${tsId}`);
     notFound();
   }
   const isPitcher = hitterFirst.position === "P";
