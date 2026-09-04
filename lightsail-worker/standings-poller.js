@@ -173,6 +173,10 @@ const VOLLEYBALL_SEASONS = [
   { code: "VB_PANAM", seasonId: "zp5rzdhp2zwq82w" },
   { code: "VB_COPA_AM", seasonId: "318q67h47vdro9j" },
   { code: "VB_ASIAN", seasonId: "2y8m4wh84xzql07" }, // 2026-09-04 아시아선수권 (남) — 조별 4테이블 code=0 확인
+  // 2026-09-04 8월 보류분 — CAC 게임은 2테이블, SEA V·PVL 은 실측 tables=0(빈 payload 은 위에서 skip). 등록해 두면 ts 가 표를 주기 시작할 때 자동 유입.
+  { code: "VB_CAC_GAMES_W", seasonId: "dn1m1nh339xqoep" },
+  { code: "VB_SEA_V_W", seasonId: "23xmvzhkgokqg8n" },
+  { code: "PVL_W", seasonId: "3glrwjhyon0qdyj" },
 ];
 
 async function fetchVolleyballStandings(seasonId) {

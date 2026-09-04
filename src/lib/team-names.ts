@@ -4914,6 +4914,35 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Trinidad & Tobago Women": "트리니다드 토바고",
     "USA Women": "미국",
   },
+  // 2026-09-04 8월 보류분 3개 — 중미·카리브 게임(여)·SEA V리그(여)·필리핀 PVL(여)
+  VB_CAC_GAMES_W: {
+    "Colombia Women": "콜롬비아",
+    "Costa Rica Women": "코스타리카",
+    "Cuba Women": "쿠바",
+    "Dominican Republic Women": "도미니카공화국",
+    "Mexico Women": "멕시코",
+    "Puerto Rico Women": "푸에르토리코",
+    "Trinidad & Tobago Women": "트리니다드 토바고",
+    "Venezuela Women": "베네수엘라",
+  },
+  VB_SEA_V_W: {
+    "Indonesia Women": "인도네시아",
+    "Philippines Women": "필리핀",
+    "Thailand Women": "태국",
+    "Vietnam Women": "베트남",
+  },
+  PVL_W: {
+    "Akari Chargers Women": "아카리 차저스",
+    "Cignal HD Spikers Women": "시그널 HD 스파이커스",
+    "Creamline Cool Smashers Women": "크림라인 쿨 스매셔스",
+    "Est Cola Women": "에스트 콜라",
+    "Farm Fresh Foxies Women": "팜 프레시 폭시스",
+    "Galeries Tower Highrisers Women": "갤러리스 타워 하이라이저스",
+    "Nxled Chameleons Women": "NX레드 카멜레온스",
+    "PLDT High Speed Hitters Women": "PLDT 하이스피드 히터스",
+    "Thành Phố Hồ Chí Minh Women": "호찌민시",
+    "Zus Coffee Thunderbelles Women": "주스 커피 썬더벨스",
+  },
   // 2026-09-04 아시아선수권 (남) 12개국
   VB_ASIAN: {
     "Australia": "호주",

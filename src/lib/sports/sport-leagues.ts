@@ -74,6 +74,8 @@ export const ALL_LEAGUES = [
   "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
   // 2026-09-04 아시아선수권 (남) — utid 8y39mpwh5wlqojx, ts 대회명 "Asian Championship"·베트맨 라벨 일치
   "VB_ASIAN",
+  // 2026-09-04 8월 보류분 3개 — ts unique_tournament/list 인가로 이름 확정. 중미·카리브 게임(여)·SEA V리그(여)·필리핀 PVL(여)
+  "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -197,6 +199,7 @@ export const SPORTS: SportMeta[] = [
       "VB_U17_WC", "VB_U17_WC_W", "VB_EURO_W", "VB_ASIAN_W",
       "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
       "VB_ASIAN", // 2026-09-04 아시아선수권 (남)
+      "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W", // 2026-09-04 8월 보류분 3개
     ],
   },
   {
@@ -509,6 +512,9 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   VB_EURO_W: "유럽선수권 (여)",
   VB_ASIAN_W: "아시아선수권 (여)",
   VB_ASIAN: "아시아선수권 (남)",
+  VB_CAC_GAMES_W: "중미·카리브 게임 (여)",
+  VB_SEA_V_W: "SEA V리그 (여)",
+  PVL_W: "필리핀 PVL (여)",
   VB_NORCECA_W: "NORCECA 챔피언십 (여)",
   VB_PANAM: "팬아메리카컵 (남)",
   VB_COPA_AM: "코파아메리카 (남)",
@@ -787,6 +793,9 @@ export const LEAGUE_ORDER: Record<string, number> = {
   EGL_W: 25.2,
   VB_ASIAN_W: 25.21, // 아시아선수권 (여) — 한국 여자대표팀 출전, 배구 대회 중 국내 수요 최상위
   VB_ASIAN: 25.215, // 아시아선수권 (남) — 한국 남자대표팀 출전 (2026-09-04)
+  VB_SEA_V_W: 25.26, // SEA V리그 (여) — 동남아 4개국
+  PVL_W: 25.27, // 필리핀 PVL (여) — 주 1~2회 클럽 리그
+  VB_CAC_GAMES_W: 25.28, // 중미·카리브 게임 (여) — 4년 주기
   VB_U17_WC_W: 25.22, // U17 세계선수권 (여) — 한국 U17 출전
   VB_U17_WC: 25.23,
   VB_EURO_W: 25.24, // 유럽선수권 (여) — 24팀 최상위 대륙대회

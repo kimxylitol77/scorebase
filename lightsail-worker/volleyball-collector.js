@@ -63,6 +63,10 @@ const UTID_TO_LEAGUE = {
   "vjxm8lh46vlq6od": "VB_COPA_AM",
   // 2026-09-04 아시아선수권 (남) — 12개국 4개조, ts unique_tournament "Asian Championship"
   "8y39mpwh5wlqojx": "VB_ASIAN",
+  // 2026-09-04 8월 보류분 3개 — ts unique_tournament/list 인가로 이름 확정
+  "y39mpwh3zg2qojx": "VB_CAC_GAMES_W", // Central American & Caribbean Games Women (4년 주기)
+  "jw2r0nhlo1xqz84": "VB_SEA_V_W",     // SEA V League Women
+  "jw2r0nhldw7qz84": "PVL_W",          // Premier Volleyball League (필리핀 여자 클럽)
 };
 
 // src/lib/sports/thesports/status-codes.ts 의 mapVolleyballStatus 와 단일 진실.

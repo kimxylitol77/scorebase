@@ -266,6 +266,76 @@
     "tsName": "Switzerland Women"
   },
   {
+    "ourId": 614917,
+    "ourName": "Akari Chargers Women",
+    "ourLeague": "PVL_W",
+    "tsId": "n54qldh2xek9rvy",
+    "tsName": "Akari Chargers Women"
+  },
+  {
+    "ourId": 614913,
+    "ourName": "Cignal HD Spikers Women",
+    "ourLeague": "PVL_W",
+    "tsId": "8yomoxh72k57m0j",
+    "tsName": "Cignal HD Spikers Women"
+  },
+  {
+    "ourId": 614914,
+    "ourName": "Creamline Cool Smashers Women",
+    "ourLeague": "PVL_W",
+    "tsId": "6ypq3xh0z545qd7",
+    "tsName": "Creamline Cool Smashers Women"
+  },
+  {
+    "ourId": 614919,
+    "ourName": "Est Cola Women",
+    "ourLeague": "PVL_W",
+    "tsId": "vl7oqddh53pq510",
+    "tsName": "Est Cola Women"
+  },
+  {
+    "ourId": 614915,
+    "ourName": "Farm Fresh Foxies Women",
+    "ourLeague": "PVL_W",
+    "tsId": "23xmvzh3dog9qg8",
+    "tsName": "Farm Fresh Foxies Women"
+  },
+  {
+    "ourId": 614918,
+    "ourName": "Galeries Tower Highrisers Women",
+    "ourLeague": "PVL_W",
+    "tsId": "2y8m4wh3gj40ql0",
+    "tsName": "Galeries Tower Highrisers Women"
+  },
+  {
+    "ourId": 614916,
+    "ourName": "Nxled Chameleons Women",
+    "ourLeague": "PVL_W",
+    "tsId": "pxwrxdhg9129myk",
+    "tsName": "Nxled Chameleons Women"
+  },
+  {
+    "ourId": 614912,
+    "ourName": "PLDT High Speed Hitters Women",
+    "ourLeague": "PVL_W",
+    "tsId": "zp5rzdhjz72wq82",
+    "tsName": "PLDT High Speed Hitters Women"
+  },
+  {
+    "ourId": 614920,
+    "ourName": "Thành Phố Hồ Chí Minh Women",
+    "ourLeague": "PVL_W",
+    "tsId": "y39mpwh31122qoj",
+    "tsName": "Thành Phố Hồ Chí Minh Women"
+  },
+  {
+    "ourId": 614911,
+    "ourName": "Zus Coffee Thunderbelles Women",
+    "ourLeague": "PVL_W",
+    "tsId": "1l4rjdh6z13jr7v",
+    "tsName": "Zus Coffee Thunderbelles Women"
+  },
+  {
     "ourId": 612675,
     "ourName": "KB손해보험 스타즈",
     "ourLeague": "V_LEAGUE",
@@ -530,6 +600,62 @@
     "ourLeague": "VB_ASIAN_W",
     "tsId": "kn54qldhok2rvy9",
     "tsName": "Vietnam Women"
+  },
+  {
+    "ourId": 614910,
+    "ourName": "Colombia Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "j1l4rjdhwwor7vx",
+    "tsName": "Colombia Women"
+  },
+  {
+    "ourId": 612973,
+    "ourName": "Costa Rica Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "p4jwq23h384r0ve",
+    "tsName": "Costa Rica Women"
+  },
+  {
+    "ourId": 612971,
+    "ourName": "Cuba Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "jednm9vh3j9qyox",
+    "tsName": "Cuba Women"
+  },
+  {
+    "ourId": 610771,
+    "ourName": "Dominican Republic Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "p4jwq23h332r0ve",
+    "tsName": "Dominican Republic Women"
+  },
+  {
+    "ourId": 612970,
+    "ourName": "Mexico Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "jednm9vh333qyox",
+    "tsName": "Mexico Women"
+  },
+  {
+    "ourId": 612972,
+    "ourName": "Puerto Rico Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "l965mkdh66jr1ge",
+    "tsName": "Puerto Rico Women"
+  },
+  {
+    "ourId": 612969,
+    "ourName": "Trinidad & Tobago Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "9k82redh75zqepz",
+    "tsName": "Trinidad & Tobago Women"
+  },
+  {
+    "ourId": 614909,
+    "ourName": "Venezuela Women",
+    "ourLeague": "VB_CAC_GAMES_W",
+    "tsId": "8y39mpwh227qojx",
+    "tsName": "Venezuela Women"
   },
   {
     "ourId": 608996,
@@ -922,6 +1048,34 @@
     "ourLeague": "VB_PANAM",
     "tsId": "gy0or58h2vprwzv",
     "tsName": "USA"
+  },
+  {
+    "ourId": 608974,
+    "ourName": "Indonesia Women",
+    "ourLeague": "VB_SEA_V_W",
+    "tsId": "yl5ergdh9p4r8k0",
+    "tsName": "Indonesia Women"
+  },
+  {
+    "ourId": 608971,
+    "ourName": "Philippines Women",
+    "ourLeague": "VB_SEA_V_W",
+    "tsId": "d23xmvzhngoqg8n",
+    "tsName": "Philippines Women"
+  },
+  {
+    "ourId": 610770,
+    "ourName": "Thailand Women",
+    "ourLeague": "VB_SEA_V_W",
+    "tsId": "kdj2rydhz29r1zp",
+    "tsName": "Thailand Women"
+  },
+  {
+    "ourId": 608967,
+    "ourName": "Vietnam Women",
+    "ourLeague": "VB_SEA_V_W",
+    "tsId": "kn54qldhok2rvy9",
+    "tsName": "Vietnam Women"
   },
   {
     "ourId": 612993,
