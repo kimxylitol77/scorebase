@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { buildMatchContext } from "@/lib/predict/build-context";
 import type { PredictMatch } from "@/lib/predict/types";
 import { hasTacticalData, parseFormation, parseXg } from "./data-gate";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export interface TacticalContext {
   matchId: number;
@@ -74,8 +75,9 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
   if (!hasTacticalData(match)) return null;
   if (match.homeScore == null || match.awayScore == null) return null;
 
-  const home = match.homeTeam.name;
-  const away = match.awayTeam.name;
+  // 팀명은 한글로 주입 — 영문을 주면 본문·제목이 "Arsenal" 로 나가거나 모델이 스스로 음역한다(ANALYSIS 와 같은 교훈).
+  const home = toKoreanTeamName(match.homeTeam.name, match.league) || match.homeTeam.name;
+  const away = toKoreanTeamName(match.awayTeam.name, match.league) || match.awayTeam.name;
 
   // Elo·폼·H2H 프레이밍 — 이 경기 직전 1년 window (match-brief 와 동일 파이프라인).
   const seasonMatches = await prisma.match.findMany({
