@@ -820,7 +820,7 @@
   },
   {
     "route": "/predictions/scorecard",
-    "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.",
+    "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적. 리더보드에는 개별 모델 외에 \"AI 합의\"(다수결) 파생 좌석이 함께 선다 — buildConsensus 주석 참고.",
     "inMenu": false,
     "dynamic": false,
     "group": "predictions-deep"

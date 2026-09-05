@@ -1,5 +1,6 @@
 // AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고
 // 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
+// 리더보드에는 개별 모델 외에 "AI 합의"(다수결) 파생 좌석이 함께 선다 — buildConsensus 주석 참고.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown, Handshake, FlaskConical } from "lucide-react";
@@ -29,8 +30,10 @@ const MARKET_META: { key: Market; label: string }[] = [
 ];
 
 // 모델 표시 메타 — gpt-5.5/5.6 은 "gpt" 로 통합. accent 는 panelists.ts 와 맞춤.
-type Accent = "rose" | "emerald" | "sky" | "amber" | "teal" | "violet" | "indigo";
+type Accent = "rose" | "emerald" | "sky" | "amber" | "teal" | "violet" | "indigo" | "fuchsia";
 const MODEL_META: Record<string, { label: string; accent: Accent; order: number }> = {
+  // 파생 좌석 — 개별 AI 가 아니라 그 판의 다수결. order 는 원탁 나열에서 맨 앞.
+  consensus: { label: "AI 합의", accent: "fuchsia", order: -1 },
   scorebase: { label: "스코어베이스", accent: "rose", order: 0 },
   gpt: { label: "GPT-5.6 Sol", accent: "emerald", order: 1 },
   grok: { label: "Grok", accent: "sky", order: 2 },
@@ -55,6 +58,7 @@ const ACCENT: Record<Accent, { text: string; dot: string; bar: string; soft: str
   teal: { text: "text-teal-600 dark:text-teal-400", dot: "bg-teal-500", bar: "bg-teal-500", soft: "bg-teal-500/10", ring: "ring-teal-400/60 dark:ring-teal-400/40" },
   violet: { text: "text-violet-600 dark:text-violet-400", dot: "bg-violet-500", bar: "bg-violet-500", soft: "bg-violet-500/10", ring: "ring-violet-400/60 dark:ring-violet-400/40" },
   indigo: { text: "text-indigo-600 dark:text-indigo-400", dot: "bg-indigo-500", bar: "bg-indigo-500", soft: "bg-indigo-500/10", ring: "ring-indigo-400/60 dark:ring-indigo-400/40" },
+  fuchsia: { text: "text-fuchsia-600 dark:text-fuchsia-400", dot: "bg-fuchsia-500", bar: "bg-fuchsia-500", soft: "bg-fuchsia-500/10", ring: "ring-fuchsia-400/60 dark:ring-fuchsia-400/40" },
 };
 
 // ⚠ 패널이 늘면 여기 모델명도 같이 갱신할 것 — metadata 는 정적 export 라
@@ -101,7 +105,9 @@ interface DP {
   awayRaw: string;
   homeLogo: string | null;
   awayLogo: string | null;
-  cells: Map<string, Cell>; // model → cell
+  cells: Map<string, Cell>; // model → cell (실제 AI 만)
+  /** 파생 합의 픽 — cells 에 넣지 않는다(고신뢰·만장일치 집계가 자기 자신을 다시 세는 것 방지). */
+  consensus: Cell | null;
 }
 interface Tally {
   predicted: number;
@@ -190,6 +196,7 @@ export default async function ScorecardPage() {
         homeRaw: m.homeTeam.name, awayRaw: m.awayTeam.name,
         homeLogo: m.homeTeam.logoUrl, awayLogo: m.awayTeam.logoUrl,
         cells: new Map(),
+        consensus: null,
       };
       byKey.set(key, dp);
     }
@@ -206,17 +213,54 @@ export default async function ScorecardPage() {
 
   const datapoints = [...byKey.values()];
 
+  // ── AI 합의 좌석 (파생) ──────────────────────────────────────────────
+  // 다수결이 개별 모델보다 꾸준히 낫다는 실측(2026-09-05, 일곱 모델이 모두 예측한 616경기:
+  // 다수결 57.3% · 최고 개별 56.8% · 스코어베이스 55.5%. 다섯 모델 이상 1,288경기에서도 56.6% 로 1위)에
+  // 따라 채점 좌석으로 세운다. 독립 모델이 아니라 같은 판의 픽에서 뽑아낸 값이므로 cells 에는
+  // 넣지 않는다 — 넣으면 고신뢰 픽·만장일치 집계가 자기 자신을 한 표 더 세게 된다.
+  const CONSENSUS = "consensus";
+  const CONSENSUS_MIN_PANEL = 3; // 둘뿐인 "다수결"은 합의가 아니다
+  function buildConsensus(cells: Map<string, Cell>): Cell | null {
+    if (cells.size < CONSENSUS_MIN_PANEL) return null;
+    const count = new Map<string, number>();
+    const probSum = new Map<string, number>();
+    for (const c of cells.values()) {
+      count.set(c.pick, (count.get(c.pick) ?? 0) + 1);
+      probSum.set(c.pick, (probSum.get(c.pick) ?? 0) + c.prob);
+    }
+    // 표 수 우선, 동수면 확률 합이 큰 쪽 — 렌더마다 픽이 흔들리지 않도록 결정론적으로.
+    const pick = [...count.entries()].sort(
+      (a, b) => b[1] - a[1] || (probSum.get(b[0]) ?? 0) - (probSum.get(a[0]) ?? 0),
+    )[0][0];
+    const agree = [...cells.values()].filter((c) => c.pick === pick);
+    // 같은 (경기·시장·픽) 은 어느 모델이 냈든 채점 결과가 같다 — 기준선(line)도 모델 간 동일하다
+    // (2026-09-05 실측: 채점 완료 22,497건에서 픽↔정오 충돌 0건, 라인 갈린 경기 0건).
+    const graded = agree.find((c) => c.correct !== null);
+    return {
+      pick,
+      prob: agree.reduce((sum, c) => sum + c.prob, 0) / agree.length,
+      line: agree[0].line,
+      correct: graded ? graded.correct : null,
+    };
+  }
+  for (const d of datapoints) d.consensus = buildConsensus(d.cells);
+
   // 데이터에 실제 존재하는 모델(정렬은 MODEL_META order).
-  const present = [...new Set(rows.map((r) => normModel(r.model)))].sort(
+  const aiModels = [...new Set(rows.map((r) => normModel(r.model)))].sort(
     (a, b) => metaOf(a).order - metaOf(b).order,
   );
+  // 합의는 채점 좌석으로만 합류 — "AI N개" 문구는 aiModels 를 센다(합의는 AI 가 아니다).
+  const present = datapoints.some((d) => d.consensus) ? [CONSENSUS, ...aiModels] : aiModels;
+  /** 좌석의 셀 — 합의는 cells 밖에 있으므로 이 함수를 거쳐 읽는다. */
+  const cellOf = (d: DP, model: string): Cell | undefined =>
+    model === CONSENSUS ? d.consensus ?? undefined : d.cells.get(model);
 
   // 모델별 누적 성적(채점된 것 기준) + 예측 수.
   const tallyOf = (model: string, filter?: (d: DP) => boolean): Tally => {
     let predicted = 0, graded = 0, correct = 0;
     for (const d of datapoints) {
       if (filter && !filter(d)) continue;
-      const c = d.cells.get(model);
+      const c = cellOf(d, model);
       if (!c) continue;
       predicted++;
       if (c.correct !== null) {
@@ -233,7 +277,7 @@ export default async function ScorecardPage() {
   const recentTallyOf = (model: string) => {
     let graded = 0, correct = 0;
     for (let i = datapoints.length - 1; i >= 0 && graded < RECENT_WINDOW; i--) {
-      const c = datapoints[i].cells.get(model);
+      const c = cellOf(datapoints[i], model);
       if (!c || c.correct === null) continue;
       graded++;
       if (c.correct) correct++;
@@ -482,7 +526,7 @@ export default async function ScorecardPage() {
   const citeUrl = `${SITE_URL}/predictions/scorecard`;
   const citation =
     leader
-      ? `AI 예측 성적표 — ${gradedModels.map((m) => `${m.label} ${(m.tally.rate * 100).toFixed(1)}%`).join(", ")} (채점 ${leader.tally.graded}경기 기준, ${present.length}개 AI 리더보드 · 출처 Scorebase ${citeUrl}, ${citeDate})`
+      ? `AI 예측 성적표 — ${gradedModels.map((m) => `${m.label} ${(m.tally.rate * 100).toFixed(1)}%`).join(", ")} (채점 ${leader.tally.graded}경기 기준, ${aiModels.length}개 AI 리더보드 · 출처 Scorebase ${citeUrl}, ${citeDate})`
       : `AI 예측 성적표 — 멀티 AI 승부예측 리더보드 (출처 Scorebase ${citeUrl})`;
 
   const jsonLd = {
@@ -561,7 +605,7 @@ export default async function ScorecardPage() {
             <p>
               스포츠 예측에 완성된 모델은 없습니다. 그래서 스코어베이스는 하나의 AI에 기대는 대신,
               시장에 새로운 모델이 나올 때마다 <strong>같은 경기·같은 데이터·같은 기준</strong>으로 투입해
-              실제 결과로 검증합니다. 지금 <strong>{board.length}개</strong>가 이 성적표 위에서 경쟁하고 있고,
+              실제 결과로 검증합니다. 지금 <strong>{aiModels.length}개</strong>가 이 성적표 위에서 경쟁하고 있고,
               지금까지 <strong>{totalGraded.toLocaleString()}건</strong>이 채점됐습니다.
             </p>
             <p>
@@ -616,9 +660,13 @@ export default async function ScorecardPage() {
 
       {/* 리더보드 */}
       <section className="mb-12">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+        <h2 className="mb-1.5 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
           <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 누적 적중률 리더보드
         </h2>
+        <p className="mb-4 text-[13px] leading-relaxed text-zinc-500 dark:text-white/40">
+          <strong className="font-semibold text-fuchsia-600 dark:text-fuchsia-400">AI 합의</strong>는 독립 모델이 아니라,
+          그 경기에 픽을 낸 AI가 {CONSENSUS_MIN_PANEL}개 이상일 때의 다수결입니다. 개별 모델과 같은 기준으로 채점해 나란히 세웁니다.
+        </p>
         <div className="space-y-2">
           {gradedModels.map((b, i) => {
             const a = ACCENT[b.accent];
@@ -636,6 +684,11 @@ export default async function ScorecardPage() {
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-[15px] font-semibold text-zinc-900 dark:text-white">
                         {b.label}
+                        {b.model === CONSENSUS && (
+                          <span className="ml-1.5 align-middle rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 dark:bg-white/10 dark:text-white/50">
+                            파생
+                          </span>
+                        )}
                         {i === 0 && <span className="ml-1.5 align-middle text-[10px] font-bold text-amber-500">1위</span>}
                       </span>
                       <span className={`shrink-0 text-xl font-bold tabular-nums ${a.text}`}>
@@ -742,7 +795,7 @@ export default async function ScorecardPage() {
           </p>
           <div className="mb-4 flex items-center gap-2.5 rounded-xl bg-emerald-500/[0.07] px-3.5 py-2.5 ring-1 ring-emerald-500/15 flex-wrap">
             <span className="text-[13px] text-zinc-700 dark:text-white/70">
-              <strong>AI {board.length}개와 대결해 보세요</strong> — 경기에서 픽을 남기면 AI와 같은 기준으로 채점되고, 적중률이 기록됩니다.
+              <strong>AI {aiModels.length}개와 대결해 보세요</strong> — 경기에서 픽을 남기면 AI와 같은 기준으로 채점되고, 적중률이 기록됩니다.
             </span>
             <Link
               href="/signup?from=%2Fpredictions%2Fscorecard"
@@ -838,7 +891,7 @@ export default async function ScorecardPage() {
             };
             return (
               <ConsensusGate
-                title={`AI ${board.length}개의 예정 경기 픽은 회원 공개입니다`}
+                title={`AI ${aiModels.length}개의 예정 경기 픽은 회원 공개입니다`}
                 desc="무료 가입하면 모든 예정 경기의 AI 픽과 만장일치·의견갈림을 볼 수 있고, 내 픽도 AI와 같은 기준으로 채점됩니다."
               >
                 <div className="space-y-2">{upcoming.slice(0, 20).map(renderCard)}</div>
@@ -1142,7 +1195,7 @@ export default async function ScorecardPage() {
                         </div>
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {present.map((m) => {
-                            const c = d.cells.get(m);
+                            const c = cellOf(d, m);
                             if (!c || c.correct === null) return null;
                             const a = ACCENT[metaOf(m).accent];
                             return (
