@@ -972,6 +972,18 @@ function actualWinner(home: number, away: number): Winner {
  * 축구는 정규시간 점수로 채점(승부차기·연장 오염 제거) — evaluate 와 동일 기준.
  */
 export async function runEvaluateAiPredictions() {
+  // 자가치유 — 잠깐 FINISHED 로 잡혀 채점된 뒤 POSTPONED·재편성으로 되돌아간 경기(야구 우천 취소 패턴)의
+  // 채점값을 되돌린다. 남겨두면 성적표 피드에 "-:-" 경기가 채점된 것으로 뜬다(2026-09-05 실측 43행).
+  // 다시 FINISHED 되면 아래 pending 루프가 정상 재채점한다.
+  const healed = await prisma.aiPrediction.updateMany({
+    where: {
+      correct: { not: null },
+      match: { OR: [{ status: { not: "FINISHED" } }, { homeScore: null }, { awayScore: null }] },
+    },
+    data: { correct: null },
+  });
+  if (healed.count > 0) console.log(`[gpt-pred] 종료 아닌 경기의 채점값 리셋 — ${healed.count}건`);
+
   const pending = await prisma.aiPrediction.findMany({
     where: {
       correct: null,
