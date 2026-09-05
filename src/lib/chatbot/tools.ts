@@ -10,6 +10,7 @@ import { toKoreanTeamName, searchTeamNamesByKo } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { ALL_LEAGUES, SOCCER_LEAGUES as SOCCER_LEAGUES_ALL } from "@/lib/sports/sport-leagues";
+import { CATEGORIES_BY_LEAGUE, LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
@@ -208,6 +209,20 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
     },
   },
   {
+    name: "get_league_leaders",
+    description:
+      "리그 시즌 개인 순위(득점왕·도움왕·평점·경고 등). '프리미어리그 득점왕' '라리가 도움 1위' '누가 제일 많이 넣었어' 같은 질문에 사용. 축구·야구·농구·하키 모두 지원.",
+    input_schema: {
+      type: "object",
+      properties: {
+        league: { type: "string", description: "리그 코드. 예: EPL, LALIGA, KBO" },
+        category: { type: "string", description: "GOAL(득점) · ASSIST(도움) · RATING(평점) · YELLOW · RED · SAVE 등. 생략하면 득점." },
+        top: { type: "integer", description: "상위 몇 명. 기본 5, 최대 20" },
+      },
+      required: ["league"],
+    },
+  },
+  {
     name: "get_standings",
     description:
       "리그 순위표를 반환한다. 순위·경기수·승무패·득실·승점. '지금 EPL 순위' '누가 1위야' '강등권' 같은 질문에 사용.",
@@ -271,6 +286,12 @@ export async function executeTool(
       return await getMatchPrediction(input.matchId as number);
     case "find_match":
       return await findMatch(String(input.teams ?? ""));
+    case "get_league_leaders":
+      return await getLeagueLeaders(
+        input.league as string | undefined,
+        input.category as string | undefined,
+        Math.min(20, Math.max(1, (input.top as number) || 5)),
+      );
     case "search_articles":
       return await searchArticles(String(input.query ?? ""));
     case "get_top_picks":
@@ -486,6 +507,52 @@ function formatMatchRows(rows: MatchRow[]): string {
       return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${h} vs ${a}${score} · ${m.status} · ${matchUrl(m.league, m.externalId)}`;
     })
     .join("\n");
+}
+
+/**
+ * 리그 시즌 개인 순위 — 득점왕·도움왕 등.
+ *
+ * 데이터는 LeagueLeader 에 이미 있었다(151개 리그·11,667행, /leagues/{lg}?view=stats 가 쓰는 표).
+ * 그런데 챗봇에 도구가 없어 "득점왕 정보는 Scorebase에서 제공하지 않는 데이터입니다" 로
+ * 답했다 (2026-09-05 제보). 우리 데이터를 두고 남의 사이트로 보내던 셈이다.
+ */
+async function getLeagueLeaders(leagueRaw?: string, categoryRaw?: string, top = 5): Promise<string> {
+  const league = normalizeLeague(leagueRaw);
+  if (!league) return `리그를 알 수 없음: ${leagueRaw ?? "(없음)"}.`;
+  const category = (categoryRaw ?? "GOAL").toUpperCase();
+
+  // 최신 시즌만 — 한 리그에 여러 시즌이 쌓여 있어 섞으면 지난 시즌 득점왕이 현재처럼 나간다.
+  const latest = await prisma.leagueLeader.findFirst({
+    where: { league, category },
+    orderBy: { season: "desc" },
+    select: { season: true },
+  });
+  if (!latest) {
+    const avail = await prisma.leagueLeader.findMany({
+      where: { league }, select: { category: true }, distinct: ["category"], take: 12,
+    });
+    return avail.length
+      ? `${league} 에 ${category} 순위는 없음. 있는 항목: ${avail.map((a) => a.category).join(", ")}.`
+      : `${league} 시즌 개인 순위 데이터가 아직 없음.`;
+  }
+
+  const rows = await prisma.leagueLeader.findMany({
+    where: { league, category, season: latest.season },
+    orderBy: { rank: "asc" },
+    take: top,
+    select: { rank: true, playerName: true, teamName: true, value: true },
+  });
+  if (rows.length === 0) return `${league} ${category} 순위 데이터가 비어 있음.`;
+
+  const sport = LEAGUE_TO_SPORT[league] ?? "SOCCER";
+  const label =
+    (CATEGORIES_BY_LEAGUE[sport] ?? CATEGORIES_BY_LEAGUE.SOCCER).find((c) => c.key === category)?.label ?? category;
+
+  const head = `${league} ${latest.season} 시즌 ${label} 순위:`;
+  const body = rows.map(
+    (r) => `${r.rank}. ${r.playerName}${r.teamName ? ` (${toKoreanTeamName(r.teamName, league)})` : ""} — ${r.value}`,
+  );
+  return [head, ...body, `전체: ${SITE_URL}/leagues/${league}?view=stats`].join("\n");
 }
 
 async function getMatchPrediction(matchId: number): Promise<string> {
