@@ -102,7 +102,10 @@ env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
 for f in data/team-squads.json data/team-coaches.json data/nonsoccer-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/af-player-season-stats.json data/baseball-rosters.json data/nba-players.json data/golf-korea-season.json data/korea-abroad.json data/player-foot.json data/player-contract.json data/football-wages.json; do
-  SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
+  # ⚠ 크기 검증은 wc 로 한다 — `stat -f%z` 는 BSD(맥) 전용이라 리눅스에서 실패하고
+  #   `|| echo 0` 에 걸려 **항상 0B** 로 읽힌다. 그러면 이 가드가 매번 트립해
+  #   산출물이 조용히 커밋되지 않는다 (2026-09-05 Vultr 이전 후 실측: 히트맵 4주치 유실).
+  SIZE=$( { wc -c < "$f" 2>/dev/null || echo 0; } | tr -d "[:space:]" )
   if [ "$SIZE" -lt 10000 ]; then
     echo "❌ $f 비정상 (${SIZE}B) — push 중단"
     git checkout -- data/ 2>/dev/null || true
@@ -112,7 +115,7 @@ done
 
 # 유령 리다이렉트 맵은 위 목록보다 훨씬 작다(230건 ≈ 8KB) — 10KB 임계에 걸리므로 별도 가드.
 # 비면 유령 페이지가 다시 노출될 뿐 사이트는 정상이나, 조용히 0건이 되는 건 막는다.
-CANON_SIZE=$(stat -f%z data/player-canonical-redirects.json 2>/dev/null || echo 0)
+CANON_SIZE=$( { wc -c < data/player-canonical-redirects.json 2>/dev/null || echo 0; } | tr -d "[:space:]" )
 if [ "$CANON_SIZE" -lt 1000 ]; then
   echo "❌ data/player-canonical-redirects.json 비정상 (${CANON_SIZE}B) — push 중단"
   git checkout -- data/ 2>/dev/null || true

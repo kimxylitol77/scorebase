@@ -31,7 +31,10 @@ npx tsx scripts/build-golf-world-rankings.ts 2>&1 | tail -2 || true
 
 # 빈 파일 가드 — 응답 이상으로 데이터가 쪼그라들면 push 중단
 for f in data/golf-korea-season.json data/golf-world-rankings.json; do
-  SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
+  # ⚠ 크기 검증은 wc 로 한다 — `stat -f%z` 는 BSD(맥) 전용이라 리눅스에서 실패하고
+  #   `|| echo 0` 에 걸려 **항상 0B** 로 읽힌다. 그러면 이 가드가 매번 트립해
+  #   산출물이 조용히 커밋되지 않는다 (2026-09-05 Vultr 이전 후 실측: 히트맵 4주치 유실).
+  SIZE=$( { wc -c < "$f" 2>/dev/null || echo 0; } | tr -d "[:space:]" )
   if [ "$SIZE" -lt 10000 ]; then
     echo "❌ $f 비정상 (${SIZE}B) — push 중단"
     git checkout -- data/ 2>/dev/null || true
