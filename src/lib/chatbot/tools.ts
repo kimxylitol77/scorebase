@@ -6,7 +6,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
-import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanTeamName, searchTeamNamesByKo } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { ALL_LEAGUES, SOCCER_LEAGUES as SOCCER_LEAGUES_ALL } from "@/lib/sports/sport-leagues";
@@ -196,6 +196,18 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
     },
   },
   {
+    name: "find_match",
+    description:
+      "팀 이름으로 경기를 찾는다. '맨유 에버턴 누가 이겨?' '토트넘 다음 경기' 처럼 **리그를 모른 채 두 팀(또는 한 팀)만 주어질 때** 가장 먼저 쓴다. 리그를 추측해 get_upcoming_matches 를 부르지 말 것. 반환된 [#숫자] 로 get_match_prediction 을 이어서 호출한다.",
+    input_schema: {
+      type: "object",
+      properties: {
+        teams: { type: "string", description: "팀 이름. 한 팀 또는 '맨유 에버턴' 처럼 두 팀. 한글·영문·부분 일치 모두 가능" },
+      },
+      required: ["teams"],
+    },
+  },
+  {
     name: "get_standings",
     description:
       "리그 순위표를 반환한다. 순위·경기수·승무패·득실·승점. '지금 EPL 순위' '누가 1위야' '강등권' 같은 질문에 사용.",
@@ -257,6 +269,8 @@ export async function executeTool(
       );
     case "get_match_prediction":
       return await getMatchPrediction(input.matchId as number);
+    case "find_match":
+      return await findMatch(String(input.teams ?? ""));
     case "search_articles":
       return await searchArticles(String(input.query ?? ""));
     case "get_top_picks":
@@ -367,6 +381,113 @@ async function getRecentResults(leagueRaw?: string, days = 3): Promise<string> {
   return lines.join("\n");
 }
 
+/** 사전에 없는 구어 별칭 — searchTeamNamesByKo 가 못 잡는 것만. */
+const TEAM_NICKNAMES: Record<string, string> = {
+  맨유: "Manchester United",
+  맨시티: "Manchester City",
+  아스날: "Arsenal",
+  PSG: "Paris Saint-Germain",
+  psg: "Paris Saint-Germain",
+  파리생제르맹: "Paris Saint-Germain",
+  뮌헨: "Bayern Munich",
+  돌문: "Borussia Dortmund",
+  아틀레티코: "Atletico Madrid",
+};
+
+/**
+ * 팀 이름으로 경기를 찾는다 — 리그를 모를 때의 진입점.
+ *
+ * 이게 없어서 "맨유 에버턴 누가 이길까" 같은 가장 흔한 질문에, 모델이 리그를 추측해
+ * get_upcoming_matches 를 부르거나 그냥 "찾을 수 없습니다" 로 답했다 (2026-09-05 제보).
+ *
+ * ⚠ Team.nameKo 는 대부분 비어 있다 — 한글명은 렌더 시 team-names 사전이 붙인다.
+ * 그래서 한글 질의는 반드시 searchTeamNamesByKo 로 영문명을 얻어 조회해야 한다
+ * (DB 에 nameKo contains "에버턴" 을 걸면 0건이다).
+ */
+async function findMatch(teamsRaw: string): Promise<string> {
+  const q = teamsRaw.trim();
+  if (!q) return "팀 이름이 비었음.";
+  const tokens = q.split(/\s+/).filter((t) => t.length >= 2).slice(0, 6);
+  if (tokens.length === 0) return "팀 이름이 너무 짧음.";
+
+  // 각 토큰 → 영문 팀명 후보. 한글은 사전·별칭으로, 영문은 그대로 부분일치.
+  // 토큰별로 후보 팀 id 집합을 따로 들고 있어야 "맞대결"을 판정할 수 있다.
+  const groups: number[][] = [];
+  for (const tok of tokens) {
+    const en = [
+      ...(TEAM_NICKNAMES[tok] ? [TEAM_NICKNAMES[tok]] : []),
+      ...searchTeamNamesByKo(tok, 12),
+    ];
+    const rows = await prisma.team.findMany({
+      where: {
+        OR: [
+          ...(en.length ? [{ name: { in: en } }] : []),
+          ...(/^[a-zA-Z]/.test(tok) ? [{ name: { contains: tok, mode: "insensitive" as const } }] : []),
+        ],
+      },
+      select: { id: true },
+      take: 30,
+    });
+    if (rows.length) groups.push(rows.map((r) => r.id));
+  }
+  if (groups.length === 0) return `"${q}" 에 해당하는 팀을 찾지 못했음.`;
+
+  const since = { gt: new Date(Date.now() - 7 * 86400_000) };
+  // 두 그룹 이상이면 맞대결 우선. 첫 쌍에서 멈추지 않고 **모든 쌍을 모아** 가장 임박한 경기를
+  // 고른다 — "Manchester United Everton" 은 [Manchester]×[United] 쌍이 먼저 맞아 맨유 vs 맨시티를
+  // 집어버렸다. 사용자가 묻는 건 보통 다음 경기이므로 시간순이 가장 안전한 기준이다.
+  const paired: MatchRow[] = [];
+  for (let i = 0; i < groups.length; i++) {
+    for (let j = i + 1; j < groups.length; j++) {
+      const rows = await prisma.match.findMany({
+        where: {
+          startTime: since,
+          OR: [
+            { homeTeamId: { in: groups[i] }, awayTeamId: { in: groups[j] } },
+            { homeTeamId: { in: groups[j] }, awayTeamId: { in: groups[i] } },
+          ],
+        },
+        include: { homeTeam: true, awayTeam: true },
+        orderBy: { startTime: "asc" },
+        take: 5,
+      });
+      paired.push(...rows);
+    }
+  }
+  if (paired.length) {
+    const seen = new Set<number>();
+    const uniq = paired.filter((m) => !seen.has(m.id) && seen.add(m.id));
+    uniq.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    return formatMatchRows(uniq.slice(0, 5));
+  }
+  // 맞대결이 없으면 첫 그룹의 일정
+  const rows = await prisma.match.findMany({
+    where: { startTime: since, OR: [{ homeTeamId: { in: groups[0] } }, { awayTeamId: { in: groups[0] } }] },
+    include: { homeTeam: true, awayTeam: true },
+    orderBy: { startTime: "asc" },
+    take: 5,
+  });
+  if (rows.length === 0) {
+    return `"${q}" 관련 경기를 최근 7일~향후 일정에서 찾지 못했음. 지난 경기는 get_recent_results 로 확인할 것.`;
+  }
+  return formatMatchRows(rows);
+}
+
+type MatchRow = { id: number; league: string; startTime: Date; status: string; externalId: string;
+  homeScore: number | null; awayScore: number | null;
+  homeTeam: { name: string }; awayTeam: { name: string } };
+
+function formatMatchRows(rows: MatchRow[]): string {
+  return rows
+    .map((m) => {
+      const h = toKoreanTeamName(m.homeTeam.name, m.league);
+      const a = toKoreanTeamName(m.awayTeam.name, m.league);
+      const score = m.homeScore != null ? ` ${m.homeScore}:${m.awayScore}` : "";
+      return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${h} vs ${a}${score} · ${m.status} · ${matchUrl(m.league, m.externalId)}`;
+    })
+    .join("\n");
+}
+
 async function getMatchPrediction(matchId: number): Promise<string> {
   if (!Number.isFinite(matchId)) return "matchId 가 올바르지 않음.";
   const m = await prisma.match.findUnique({
@@ -383,10 +504,23 @@ async function getMatchPrediction(matchId: number): Promise<string> {
   out.push(`상태: ${m.status}${m.homeScore != null ? ` (${m.homeScore}:${m.awayScore})` : ""}`);
 
   out.push("");
-  out.push("[모델 예측]");
-  out.push(
-    `1X2 → 홈 ${pct(m.predHome)} / 무 ${pct(m.predDraw)} / 원정 ${pct(m.predAway)} · 픽: ${m.predWinner ?? "-"}`,
-  );
+  // 예측이 비었을 때 "홈 - / 무 -" 만 주면 모델이 조회 실패로 읽고 사과해 버린다.
+  // 그건 데이터가 없는 것이지 경기를 못 찾은 게 아니다 — 사유와 링크를 명시해 안내를 유도한다.
+  // (2026-09-05 사용자 제보: 하루 뒤 에버턴 vs 맨유에 "예측 데이터를 찾을 수 없습니다" 로 답함)
+  if (m.predHome == null && m.predOverPick == null && m.predHcPick == null) {
+    out.push("[모델 예측] 아직 생성되지 않음 — 경기 자체는 정상 등록돼 있다.");
+    out.push(
+      "사유: 시즌 초반이라 양 팀 경기 표본이 모델 최소치에 못 미치거나, 예측 생성 잡이 아직 이 경기를 처리하지 않음.",
+    );
+    out.push(
+      "안내: 예측을 지어내지 말 것. 경기 일정·상대·링크를 알려주고, 위 링크에서 경기 전 예측과 시장 배당이 채워지는 대로 확인할 수 있다고 답할 것.",
+    );
+  } else {
+    out.push("[모델 예측]");
+    out.push(
+      `1X2 → 홈 ${pct(m.predHome)} / 무 ${pct(m.predDraw)} / 원정 ${pct(m.predAway)} · 픽: ${m.predWinner ?? "-"}`,
+    );
+  }
   if (isSoccer && m.predDcPick) {
     out.push(`DC → ${m.predDcPick} (${pct(m.predDcProb)})`);
   }
