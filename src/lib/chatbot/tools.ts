@@ -9,22 +9,26 @@ import { sendTelegram } from "@/lib/notify/telegram";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
+import { ALL_LEAGUES, SOCCER_LEAGUES as SOCCER_LEAGUES_ALL } from "@/lib/sports/sport-leagues";
 import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 
-const ALLOWED_LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "MLS", "UCL", "NBA", "NHL", "MLB", "KBO", "NPB",
-] as const;
+// 챗봇이 조회할 수 있는 리그 = 사이트가 노출하는 리그 전부(ALL_LEAGUES).
+//
+// 예전엔 12개 화이트리스트였다. 그래서 프롬프트를 고쳐도 도구 계층에서 막혀
+// "브라질 세리에A 순위는 지원하지 않습니다" 처럼 우리 데이터를 두고 거절했다
+// (2026-09-05 관리자 채팅 로그 — 최근 30일 경기가 있는 181개 리그 중 170개가 거절 대상).
+// 노출 단일 진실이 ALL_LEAGUES 이므로 챗봇도 같은 기준을 쓴다.
+const ALLOWED_LEAGUES = ALL_LEAGUES;
 
-type League = (typeof ALLOWED_LEAGUES)[number];
+type League = string;
 
-const SOCCER_LEAGUES = new Set<string>([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
-]);
+// 축구 판정은 sport-leagues 의 단일 진실을 쓴다 — 여기 따로 두면 리그를 넓힐 때마다
+// 새 축구 리그가 야구 포맷(승패만)으로 렌더된다.
+const SOCCER_LEAGUES = SOCCER_LEAGUES_ALL;
 
 function normalizeLeague(input?: string): League | undefined {
   if (!input) return undefined;
