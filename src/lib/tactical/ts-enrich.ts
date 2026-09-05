@@ -72,6 +72,25 @@ export interface NameLink {
   name: string;
   href: string;
 }
+/** 도식 한 명 — 피치 % 좌표(x 좌→우, y 위→아래, 자기 팀이 위로 공격), 역할 약어, 한글명. */
+export interface ShapePlayer {
+  name: string;
+  role: string; // GK·CB·LB·RB·DM·CM·AM·LM·RM·LW·RW·ST
+  line: "G" | "D" | "M" | "F";
+  x: number;
+  y: number;
+}
+/** 본문 삽입용 전술 도식 데이터 — 한 팀의 셋업(색 마커+라인)과 상대 형태(흰 마커, 미러링). */
+export interface ShapeFigure {
+  side: "home" | "away";
+  team: string;
+  formation: string | null;
+  coach: string | null;
+  players: ShapePlayer[];
+  opponent: string;
+  opponentFormation: string | null;
+  opponentPlayers: ShapePlayer[];
+}
 export interface TsEnrichment {
   /** 프롬프트 [경기 데이터] 에 덧붙일 줄들. */
   lines: string[];
@@ -79,6 +98,20 @@ export interface TsEnrichment {
   links: NameLink[];
   /** /lineup?d= 전술판 프리로드 코드(양 팀 선발 좌표). 좌표 결손이면 null. */
   lineupCode: string | null;
+  /** 본문 도식(홈 셋업·원정 셋업). 좌표 결손이면 빈 배열. */
+  shapes: ShapeFigure[];
+}
+
+/** ts 포지션(G/D/M/F) + 좌표 → 역할 약어. x 는 자기 팀 기준 좌→우 0~100, y 는 자기 골문 0. */
+function roleOf(pos: string, x: number, y: number): { role: string; line: ShapePlayer["line"] } {
+  if (pos === "G") return { role: "GK", line: "G" };
+  if (pos === "D") return { role: x < 33 ? "LB" : x > 67 ? "RB" : "CB", line: "D" };
+  if (pos === "M") {
+    if (x < 22) return { role: "LM", line: "M" };
+    if (x > 78) return { role: "RM", line: "M" };
+    return { role: y < 42 ? "DM" : y < 60 ? "CM" : "AM", line: "M" };
+  }
+  return { role: x < 33 ? "LW" : x > 67 ? "RW" : "ST", line: "F" };
 }
 
 const POS_KO: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
@@ -96,7 +129,7 @@ const num = (v: string | number | undefined | null): number | null => {
 const clean = (s: string | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
 
 export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo: string): Promise<TsEnrichment> {
-  const empty: TsEnrichment = { lines: [], links: [], lineupCode: null };
+  const empty: TsEnrichment = { lines: [], links: [], lineupCode: null, shapes: [] };
   const cache = await prisma.theSportsMatchCache.findUnique({
     where: { matchId },
     select: { lineup: true, detailLive: true, playerStats: true },
@@ -247,7 +280,7 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
 
   // ── /lineup 전술판 코드 (맞대결 보드, 실좌표) ──
   // 보드 좌표 규약은 LineupBuilder.placeY 와 동일: 홈=아래(50+y*0.46)·원정=위(50-y*0.46), y 는 공격 방향이 0.
-  // ts y 는 자기 골문이 0 이므로 100-y 로 뒤집고, 원정은 x 도 미러링해 마주 보게 한다.
+  // ts y 는 자기 골문이 0 이므로 100-y 로 뒤집는다. ts x 는 "아래로 공격" 화면 기준이라 위로 공격하는 홈만 x 를 뒤집는다.
   let lineupCode: string | null = null;
   const placedOf = (arr: TsLineupPlayer[], sideKey: "home" | "away"): Placed[] | null => {
     const xi = arr.filter((p) => p.first === 1);
@@ -259,7 +292,7 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
         pid: null,
         name: nameOf(p.id, p.name),
         pos: POS_BOARD[p.position ?? ""] ?? "MF",
-        x: sideKey === "away" ? 100 - (p.x ?? 50) : (p.x ?? 50),
+        x: sideKey === "away" ? (p.x ?? 50) : 100 - (p.x ?? 50),
         y: sideKey === "away" ? Math.round(50 - attackY * 0.46) : Math.round(50 + attackY * 0.46),
       };
     });
@@ -282,7 +315,64 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
     lineupCode = encodeBoard(board);
   }
 
-  return { lines, links, lineupCode };
+  // ── 본문 도식 — 각 팀 셋업(위로 공격) + 상대 형태(미러링) ──
+  const shapePlayers = (arr: TsLineupPlayer[], mirror: boolean): ShapePlayer[] | null => {
+    const xi = arr.filter((p) => p.first === 1);
+    if (xi.length < 7 || xi.filter((p) => (p.x ?? 0) > 0 || (p.y ?? 0) > 0).length < 7) return null;
+    return xi.map((p) => {
+      const rx = p.x ?? 50, ry = p.y ?? 50;
+      // ts 좌표는 "아래로 공격하는 화면" 기준(SoccerLineupSvg 헤더 규약: home left%=x, top%=y·0.5).
+      // 그래서 x 가 작을수록 그 팀의 오른쪽 측면이다 — 역할 판정은 팀 기준 좌우로 뒤집어 넣는다.
+      const { role, line } = roleOf(p.position ?? "M", 100 - rx, ry);
+      // 자기 팀은 위로 공격 → left% = 100-x, top% = 100-y. 상대는 아래로 공격 → left% = x, top% = y.
+      return {
+        name: nameOf(p.id, p.name),
+        role,
+        line,
+        x: mirror ? rx : 100 - rx,
+        y: mirror ? ry : 100 - ry,
+      };
+    });
+  };
+  const shapes: ShapeFigure[] = [];
+  const hs = shapePlayers(homeAll, false), asOpp = shapePlayers(awayAll, true);
+  const as_ = shapePlayers(awayAll, false), hsOpp = shapePlayers(homeAll, true);
+  const coachKo = (id: string | undefined) => {
+    const c = coachById(id);
+    return c?.nameKo ?? toKoreanCoachName(c?.name) ?? null;
+  };
+  if (hs && asOpp && as_ && hsOpp) {
+    shapes.push({
+      side: "home", team: homeKo, formation: lu?.home_formation ?? null, coach: coachKo(lu?.coach_id?.home), players: hs,
+      opponent: awayKo, opponentFormation: lu?.away_formation ?? null, opponentPlayers: asOpp,
+    });
+    shapes.push({
+      side: "away", team: awayKo, formation: lu?.away_formation ?? null, coach: coachKo(lu?.coach_id?.away), players: as_,
+      opponent: homeKo, opponentFormation: lu?.home_formation ?? null, opponentPlayers: hsOpp,
+    });
+  }
+
+  return { lines, links, lineupCode, shapes };
+}
+
+/** 본문에서 도식 자리를 표시하는 토큰 — 글 페이지가 이 토큰 위치에 TacticalShapeFigure 를 렌더한다. */
+export const SHAPE_TOKEN = { home: "{{tactical-shape:home}}", away: "{{tactical-shape:away}}" } as const;
+export const SHAPE_TOKEN_RE = /\{\{tactical-shape:(home|away)\}\}/g;
+
+/**
+ * "## 두 감독의 셋업" 섹션 끝(다음 ## 직전)에 도식 토큰 두 개를 끼운다.
+ * 그 섹션이 없으면 첫 ## 섹션 뒤에. 이미 토큰이 있으면 그대로.
+ */
+export function insertShapeTokens(md: string): string {
+  if (/\{\{tactical-shape:(home|away)\}\}/.test(md)) return md; // /g 정규식의 lastIndex 상태 회피
+  const lines = md.split("\n");
+  let start = lines.findIndex((l) => /^##\s+두 감독의 셋업/.test(l));
+  if (start === -1) start = lines.findIndex((l) => /^##\s/.test(l));
+  if (start === -1) return `${md}\n\n${SHAPE_TOKEN.home}\n\n${SHAPE_TOKEN.away}`;
+  let end = lines.findIndex((l, i) => i > start && /^##\s/.test(l));
+  if (end === -1) end = lines.length;
+  lines.splice(end, 0, "", SHAPE_TOKEN.home, "", SHAPE_TOKEN.away, "");
+  return lines.join("\n");
 }
 
 /**

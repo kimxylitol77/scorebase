@@ -15,7 +15,7 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildTacticalContext } from "@/lib/tactical/context";
 import { buildTacticalAnalysisPrompt } from "@/prompts/tactical-analysis";
 import { hasTacticalData } from "@/lib/tactical/data-gate";
-import { linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
+import { insertShapeTokens, linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
 
 const TARGET_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL"];
 const LOOKBACK_DAYS = 5; // 최근 종료 경기만 (라이브 운영 시 새 시즌 기준)
@@ -55,6 +55,8 @@ async function collectCandidates(matchId: number | null): Promise<number[]> {
 /** 본문 후처리 — 등재된 선수·감독 이름 첫 등장에 링크, 끝에 전술판 프리로드 링크. 전부 결정적(LLM 산출 아님). */
 function decorate(content: string, ctx: { links: { name: string; href: string }[]; lineupCode: string | null; home: string; away: string }): string {
   let out = linkNamesInMarkdown(content, ctx.links);
+  // 좌표가 있을 때만 도식 토큰 — 글 페이지가 토큰 자리에 양 팀 셋업 도식을 그린다(없으면 토큰 제거).
+  if (ctx.lineupCode) out = insertShapeTokens(out);
   if (ctx.lineupCode) {
     out += `\n\n---\n\n[▶ ${ctx.home} vs ${ctx.away} 양 팀 선발 라인업을 전술판에서 열기](/lineup?d=${ctx.lineupCode}) — 실제 경기 평균 위치 좌표 그대로 불러옵니다. 선수를 끌어 옮기고 화살표를 그려 나만의 해석을 남겨 보세요.`;
   }
