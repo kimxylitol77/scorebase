@@ -15,6 +15,7 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { buildAbsChallengeSection } from "@/lib/sports/mlb-abs-challenges";
 import { buildTacticalPointsBlock } from "@/lib/tactical/weekly-points";
+import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 
 const RELEGATION_BY_LEAGUE: Record<string, number> = {
   EPL: 3,
@@ -158,7 +159,21 @@ export async function runAnalysis() {
             startTime: true,
           },
         });
-        const matches = dbMatches as PredictMatch[];
+        const allMatches = dbMatches as PredictMatch[];
+
+        // 시즌 경계 필터 — 리그 전체를 합산하면 시즌 초 글이 지난 시즌 순위표("28승 7무 5패 91점,
+        // 시즌 막바지")를 서술한다(2026-09-05 실측). predictions/[league] 와 같은 규칙:
+        // 이번 시즌만 쓰되, 새 시즌 일정조차 없을 때만 지난 시즌으로 폴백. Elo 는 시즌을 넘어 누적.
+        const seasonStart = currentSeasonStart(league);
+        let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
+        if (
+          seasonStart &&
+          matches.filter((m) => m.status === "FINISHED").length < 10 &&
+          !matches.some((m) => m.status === "SCHEDULED")
+        ) {
+          const prevStart = previousSeasonStart(seasonStart);
+          matches = allMatches.filter((m) => m.startTime >= prevStart && m.startTime < seasonStart);
+        }
 
         const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
         if (finishedCount < 30) {
@@ -185,17 +200,25 @@ export async function runAnalysis() {
         }
 
         const teams = await prisma.team.findMany({ where: { league } });
+        // 승격팀·컵 참가팀은 Team.league 라벨이 다른 row 로 박혀 있어 league 필터에 빠진다 —
+        // 글에 "팀 1540" 같은 id 가 노출됐던 원인. 매치에 등장하는 id 를 보강 로드한다.
+        const known = new Set(teams.map((t) => t.id));
+        const orphanIds = [...new Set(matches.flatMap((m) => [m.homeTeamId, m.awayTeamId]))].filter((id) => !known.has(id));
+        if (orphanIds.length > 0) {
+          teams.push(...(await prisma.team.findMany({ where: { id: { in: orphanIds } } })));
+        }
         // 팀명은 한글로 주입 — 영문을 주면 모델이 스스로 음역하다 "아르센알" 류 오염(실측).
         const nameById = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name, league) || t.name]));
 
         const context = buildSeasonContext(matches, league, {
           relegationCount: RELEGATION_BY_LEAGUE[league] ?? 0,
           iterations: 3000,
+          eloMatches: allMatches,
         });
 
         const teamName = (id: number) => nameById.get(id) ?? `팀 ${id}`;
         // 축구 한정 — 향후 7일 빅매치 1경기의 전술 포인트 데이터. 스탯이 얇으면 null(섹션 없이 기존대로).
-        const tactical = await buildTacticalPointsBlock(league, matches, teamName);
+        const tactical = await buildTacticalPointsBlock(league, allMatches, teamName);
         if (tactical) console.log(`[analysis] ${league} 전술 포인트 대상: ${tactical.home} vs ${tactical.away} (#${tactical.matchId})`);
 
         prompt = buildSeasonAnalysisPrompt({ context, teamName, tactical });

@@ -59,6 +59,8 @@ export interface SeasonContext {
 interface BuildOptions {
   relegationCount?: number;
   iterations?: number;
+  /** Elo 계산용 경기 집합 — 순위·시뮬은 이번 시즌만 쓰되 Elo 는 시즌을 넘어 누적돼야 할 때 전 시즌 경기를 넘긴다. 미지정이면 inputMatches. */
+  eloMatches?: PredictMatch[];
 }
 
 export function buildSeasonContext(
@@ -73,7 +75,7 @@ export function buildSeasonContext(
   const scheduled = matches.filter((m) => m.status === "SCHEDULED");
 
   const standings = calcStandings(matches);
-  const eloTable = calcEloTable(matches);
+  const eloTable = calcEloTable(opts.eloMatches ? stripBaseballAllStarMatches(opts.eloMatches) : matches);
 
   const topRows = standings.rows.slice(0, 5);
   const totalTeams = standings.rows.length;
