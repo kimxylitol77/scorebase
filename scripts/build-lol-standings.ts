@@ -103,14 +103,36 @@ function pickStandings(rows: TsTableRow[]): TsTableRow[] {
   }
   if (!best) return [];
   const seen = new Set<string>();
-  return best.rows
-    .filter((r) => {
-      const id = r.team_id ?? "";
-      if (seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    })
-    .sort((a, b) => (Number(a.position) || 99) - (Number(b.position) || 99));
+  const uniq = best.rows.filter((r) => {
+    const id = r.team_id ?? "";
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+
+  // part_stage(상·하위 그룹)로 갈린 표는 position 이 그룹마다 1부터 다시 시작한다.
+  // 2026-09-05 LCK 실측: 새 stage 가 상위 5팀(19-7 … 15-11)·하위 5팀(10-16 … 6-20) 두 그룹으로
+  //   오면서 1~5위가 두 번 찍혔다. 실제로 갈라진 리그는 아니다 — 같은 기간 DB 매치 130건 중
+  //   조 간 맞대결이 45건이라 라운드로빈이 계속되는 단일 리그다.
+  // 그래서 그룹을 승률 높은 순으로 이어 붙여 한 표로 만든다. 그룹 안 순서는 ts position 을
+  //   그대로 둔다 — 동률 타이브레이크는 ts 가 판정한 값이라 우리가 다시 매기면 짐작이 된다.
+  const byPart = new Map<string, TsTableRow[]>();
+  for (const r of uniq) {
+    const key = r.part_stage_id ?? "";
+    const arr = byPart.get(key) ?? [];
+    arr.push(r);
+    byPart.set(key, arr);
+  }
+  const winRate = (rows: TsTableRow[]) => {
+    const w = rows.reduce((sum, r) => sum + (Number(r.win) || 0), 0);
+    const l = rows.reduce((sum, r) => sum + (Number(r.lose) || 0), 0);
+    return w + l > 0 ? w / (w + l) : 0;
+  };
+  return [...byPart.values()]
+    .sort((a, b) => winRate(b) - winRate(a))
+    .flatMap((rows) =>
+      [...rows].sort((a, b) => (Number(a.position) || 99) - (Number(b.position) || 99)),
+    );
 }
 
 // ── LCK(기존) — dbId 조인, 로스터는 lolGames 집계가 담당하므로 미포함 ──
@@ -125,7 +147,9 @@ async function buildLck() {
   const standings = ranked.map((r, i) => {
     const t = TS_LOL_TEAMS[r.team_id ?? ""];
     return {
-      rank: Number(r.position) || i + 1,
+      // pickStandings 가 최종 표시 순서로 돌려준다. ts position 은 그룹마다 1부터라
+      // 그대로 쓰면 1위가 둘이 된다 — 순번은 여기서 다시 매긴다.
+      rank: i + 1,
       teamId: r.team_id ?? "",
       name: t?.name ?? r.team_id ?? "",
       short: t?.short ?? "?",
@@ -208,7 +232,7 @@ async function buildForeign(league: string) {
   const standings = ranked.map((r, i) => {
     const t = teamMeta.get(r.team_id ?? "");
     return {
-      rank: Number(r.position) || i + 1,
+      rank: i + 1, // 위와 같은 이유 — 그룹 병합 후 ts position 은 중복될 수 있다
       teamId: r.team_id ?? "",
       name: FOREIGN_KO[r.team_id ?? ""] ?? t?.name ?? r.team_id ?? "",
       short: t?.abbr || "",

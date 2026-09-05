@@ -60,14 +60,15 @@ function standingsCell(leagues: string[]): string {
 
 // 지금 눈에 띄는 갭 — 우선순위 후보 (수동 큐레이션, 2026-09-05 갱신).
 const GAPS: { sport: string; level: "none" | "part"; text: string }[] = [
-  { sport: "UFC", level: "none", text: "정식 AI예측이 없어 회원봇 픽만. 배당은 2026-09 부터 The Odds API h2h 를 Match 에 저장(/odds UFC 탭)." },
+  { sport: "UFC", level: "none", text: "정식 AI예측 없음 — 막힌 곳은 모델이 아니라 데이터다. 종료 144경기에 파이터가 280명이라 2경기 이상 뛴 선수가 8명, 3경기 이상은 0명(2026-09-05 실측). 같은 상대·반복 출전이 없어 Elo 가 성립하지 않는다. 열려면 파이터 전적(승-패)을 주는 소스가 먼저 필요하다. 배당은 2026-09 부터 The Odds API h2h 저장(/odds UFC 탭)." },
   { sport: "농구(KBL·WKBL)", level: "part", text: "NBA·WNBA 는 시즌시뮬·연봉·이적·배당이 있는데 국내 리그는 전부 없음. 배당은 Odds API·TheSports 어디에도 없어 시즌 중 베트맨 BK 가 유일한 소스." },
   { sport: "배구", level: "part", text: "AI예측(volleyball-elo)·순위·배당(ts 폴러) 가동. 남은 갭=프리뷰 글 미생성, 선수 상세 페이지 없음(리그 리더보드만), 시즌 우승확률 미구현." },
-  { sport: "e스포츠", level: "part", text: "LCK 는 일정·결과·순위·선수·시즌시뮬·배당까지 커버. 남은 갭=LEC·LCS 매치/통계 얇고 미래 일정 부족, LPL 은 표시만." },
+  { sport: "e스포츠", level: "part", text: "LCK 는 일정·결과·순위·선수·시즌시뮬·배당까지 커버. LEC·LCS 는 /standings 에만 있고 /leagues 쪽 연결이 빠져 \"수집 중\" 만 뜨던 것을 2026-09-05 에 이었다. 남은 갭=LPL 은 그룹 순위·로스터만, 미래 일정은 전 리그가 얇다(롤드컵 전 지역리그 종료 시기)." },
   { sport: "야구", level: "part", text: "NPB 연봉·이적 없음, KBO/NPB 팀 로스터 미완(scraping). CPBL·LMB 는 배당 소스 자체가 없음." },
   { sport: "하키", level: "part", text: "유럽 리그 순위·배당은 붙었으나 시즌시뮬은 NHL 뿐. 이적·부상 소스 없음(ts lineup.injury 미제공)." },
   { sport: "축구", level: "part", text: "배당 미커버 잔여=api-football 이 odds=false 로 주는 리그(J2·FA컵·동남아·가나·모로코·인도·파라과이). 연봉은 빅5 미디어 추정치뿐(Capology 403 차단)." },
   { sport: "테니스·골프·F1", level: "part", text: "ESPN 직접 fetch 로 랭킹·상금·일정만 표시하고 DB 수집이 없다. 그래서 AI예측·배당이 전부 공백이고 골프는 한국 선수 트래커 범위만 덮는다." },
+  { sport: "LoL 순위 갱신", level: "part", text: "lol-standings*.json 은 cron 이 없는 수동 백필이라 손으로 돌려야 한다. 2026-09-05 확인 시 LCK 는 6/21·LEC·LCS 는 7/25 값이 그대로 떠 있었다. 자동화하려면 ts 접근이 되는 Vultr 워커에서 돌려 커밋하거나 JSON 대신 DB 에 넣어야 한다." },
 ];
 
 // 페이지 인벤토리 그룹 — 표시 순서·한글 라벨·색 (스크립트의 group 키와 1:1).

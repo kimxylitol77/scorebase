@@ -18,6 +18,9 @@ import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
 import LolStandings from "@/components/LolStandings";
+import LolSimpleStandings from "@/components/LolSimpleStandings";
+import LolLplStandings from "@/components/LolLplStandings";
+import EwcStandings from "@/components/EwcStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
@@ -458,6 +461,24 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const upper = league.toUpperCase();
   if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
+    // e스포츠(LEC·LCS·LPL·EWC) — ts 축구식 순위 캐시가 없어 StandingsOnlyView 로 빠지면
+    // "순위 데이터를 수집 중입니다" 만 나온다(2026-09-05 실측). 정작 /standings/LEC 에는
+    // 같은 데이터가 정상으로 떠 있었다 — 리그 페이지만 연결이 빠져 있던 것.
+    if (upper === "LEC" || upper === "LCS" || upper === "LPL" || upper === "EWC") {
+      const lolName = LEAGUE_DISPLAY[upper] ?? upper;
+      return (
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{lolName}</h1>
+          {upper === "LPL" ? (
+            <LolLplStandings name={lolName} />
+          ) : upper === "EWC" ? (
+            <EwcStandings name={lolName} />
+          ) : (
+            <LolSimpleStandings league={upper} name={lolName} />
+          )}
+        </main>
+      );
+    }
     // ALL_LEAGUES 안에 있으면 순위표만 (글 카드는 데이터 적어서 fallback 제공 안 함)
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
       return <StandingsOnlyView league={upper} />;

@@ -1,7 +1,7 @@
 {
   "league": "LOL",
   "name": "LCK",
-  "updatedAt": "2026-06-21T04:15:15.180Z",
+  "updatedAt": "2026-09-05T06:18:48.460Z",
   "standings": [
     {
       "rank": 1,
@@ -9,49 +9,49 @@
       "name": "한화생명e스포츠",
       "short": "HLE",
       "logo": "https://eimg.thesports.com/lol/team/FosSfN6KzBxq4oiU_Xi7z_DJ4rMF",
-      "win": 15,
-      "lose": 3,
+      "win": 19,
+      "lose": 7,
       "dbId": 22588
     },
     {
       "rank": 2,
-      "teamId": "4jwq2eku42pkq0v",
-      "name": "T1",
-      "short": "T1",
-      "logo": "https://eimg.thesports.com/lol/team/FvlF-KaNF_aUW28gaY0-Uw5ITFoW",
-      "win": 14,
-      "lose": 4,
-      "dbId": 22590
-    },
-    {
-      "rank": 3,
       "teamId": "k82repjtvpxzqep",
       "name": "Gen.G",
       "short": "GEN",
       "logo": "https://eimg.thesports.com/lol/team/FmS7NLx8b7zRARpNmDkvDrhjKx0w",
-      "win": 14,
-      "lose": 4,
+      "win": 19,
+      "lose": 7,
       "dbId": 22593
     },
     {
-      "rank": 4,
-      "teamId": "dn1m1eku4j7kqoe",
-      "name": "KT 롤스터",
-      "short": "KT",
-      "logo": "https://eimg.thesports.com/lol/team/Fqw0V_AbDcoKj78Xxm1tbGMYP0o2",
-      "win": 13,
-      "lose": 5,
-      "dbId": 22591
+      "rank": 3,
+      "teamId": "4jwq2eku42pkq0v",
+      "name": "T1",
+      "short": "T1",
+      "logo": "https://eimg.thesports.com/lol/team/FvlF-KaNF_aUW28gaY0-Uw5ITFoW",
+      "win": 17,
+      "lose": 9,
+      "dbId": 22590
     },
     {
-      "rank": 5,
+      "rank": 4,
       "teamId": "23xmvxjt3nj2rg8",
       "name": "디플러스 기아",
       "short": "DK",
       "logo": "https://eimg.thesports.com/lol/team/Fg1Z7jhh5zluHsCcrWC2vOiiEo7s",
-      "win": 11,
-      "lose": 7,
+      "win": 17,
+      "lose": 9,
       "dbId": 22586
+    },
+    {
+      "rank": 5,
+      "teamId": "dn1m1eku4j7kqoe",
+      "name": "KT 롤스터",
+      "short": "KT",
+      "logo": "https://eimg.thesports.com/lol/team/Fqw0V_AbDcoKj78Xxm1tbGMYP0o2",
+      "win": 15,
+      "lose": 11,
+      "dbId": 22591
     },
     {
       "rank": 6,
@@ -59,39 +59,39 @@
       "name": "한진 브리온",
       "short": "BRO",
       "logo": "https://eimg.thesports.com/lol/team/FlFdQU07TgJrOF4wvMOGFRJzg8KK",
-      "win": 6,
-      "lose": 12,
+      "win": 10,
+      "lose": 16,
       "dbId": 22587
     },
     {
       "rank": 7,
-      "teamId": "965mk6zt7jezq1g",
-      "name": "BNK 피어엑스",
-      "short": "BFX",
-      "logo": "https://eimg.thesports.com/lol/team/FlycExNPh_FPU6tqsmvMotdwigIt",
-      "win": 6,
-      "lose": 12,
-      "dbId": 22589
-    },
-    {
-      "rank": 8,
-      "teamId": "y0or59wblpd4mwz",
-      "name": "DRX",
-      "short": "DRX",
-      "logo": "https://eimg.thesports.com/lol/team/FrJTPfp5FygOCrCXcHyzETJXGi6c",
-      "win": 5,
-      "lose": 13,
-      "dbId": 22596
-    },
-    {
-      "rank": 9,
       "teamId": "vjxm89jb412kq6o",
       "name": "농심 레드포스",
       "short": "NS",
       "logo": "https://eimg.thesports.com/lol/team/FgXx-XxZb5L3_QPcFFJAFKWVrHhE",
-      "win": 5,
-      "lose": 13,
+      "win": 10,
+      "lose": 16,
       "dbId": 22585
+    },
+    {
+      "rank": 8,
+      "teamId": "965mk6zt7jezq1g",
+      "name": "BNK 피어엑스",
+      "short": "BFX",
+      "logo": "https://eimg.thesports.com/lol/team/FlycExNPh_FPU6tqsmvMotdwigIt",
+      "win": 10,
+      "lose": 16,
+      "dbId": 22589
+    },
+    {
+      "rank": 9,
+      "teamId": "y0or59wblpd4mwz",
+      "name": "DRX",
+      "short": "DRX",
+      "logo": "https://eimg.thesports.com/lol/team/FrJTPfp5FygOCrCXcHyzETJXGi6c",
+      "win": 7,
+      "lose": 19,
+      "dbId": 22596
     },
     {
       "rank": 10,
@@ -99,8 +99,8 @@
       "name": "DN SOOPers",
       "short": "DNS",
       "logo": "https://eimg.thesports.com/lol/team/FiREL-9p9kEsrBd0LMbO_gmBv6qC",
-      "win": 1,
-      "lose": 17,
+      "win": 6,
+      "lose": 20,
       "dbId": 22592
     }
   ]
