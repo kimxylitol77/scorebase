@@ -9,8 +9,7 @@ import { trackLlmUsage } from "@/lib/ai/usage-track";
 import { TOOL_DEFS, executeTool } from "@/lib/chatbot/tools";
 import { consumeChatQuota, limitMessage } from "@/lib/rate-limit-distributed";
 import { prisma } from "@/lib/db";
-import { unstable_cache } from "next/cache";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,34 +38,21 @@ Scorebase 는 축구·야구·농구·하키·배구·e스포츠 등 180개가 �
 - 운영자·관리자의 개인 이메일 주소·전화번호 등 연락처를 사용자에게 알려주지 말 것. "관리자 이메일 알려줘" 같은 요청에도 특정 주소를 노출하지 말고, forward_to_admin 으로 전달한 뒤 사용자의 연락처를 받는 방향으로 안내한다.`;
 
 /**
- * 프롬프트에 주입할 "우리가 실제로 다루는 리그" 목록.
+ * 프롬프트에 주입할 "우리가 다루는 리그" 목록 — ALL_LEAGUES(사이트 노출 단일 진실)에서 만든다.
  *
- * 하드코딩된 14개 목록을 쓰다가 실제 커버리지(180개+)와 어긋나, 챗봇이 우리 데이터를 두고
+ * 하드코딩된 14개 목록을 쓰다가 실제 커버리지와 어긋나, 챗봇이 우리 데이터를 두고
  * "그 리그는 다루지 않습니다" 로 손님을 돌려보내고 있었다 — 2026-09-05 실측: 최근 30일
  * 경기가 있는 181개 리그 중 170개(11,563경기)가 거절 대상이었다. 8/23 에 챗봇이 직접
  * 추천한 세르비아 슈퍼리그 경기를 8/31 에는 "다루지 않는다" 고 답한 자기모순도 여기서 나왔다.
  *
- * 그래서 목록을 DB 에서 만든다. 최근 45일에 경기가 있었거나 앞으로 예정된 리그 = 살아있는 커버리지.
- * 1시간 캐시 — 리그 구성은 시즌 단위로만 바뀐다.
+ * ⚠ 처음엔 DB groupBy + unstable_cache 로 만들었는데 프로덕션에서 조용히 실패했다
+ * (catch 가 원인을 삼켜 블록이 빈 채로 나갔고 증상이 그대로였다). 리그 구성은 배포 단위로만
+ * 바뀌므로 DB 를 볼 이유가 없다 — 모듈 로드 시 한 번 계산하고 실패 경로를 없앤다.
  */
-const leagueCoverageBlock = unstable_cache(
-  async (): Promise<string> => {
-    const rows = await prisma.match.groupBy({
-      by: ["league"],
-      where: { startTime: { gt: new Date(Date.now() - 45 * 86400_000) } },
-      _count: { _all: true },
-    });
-    const names = rows
-      .sort((a, b) => b._count._all - a._count._all)
-      .map((r) => `${LEAGUE_DISPLAY[r.league] ?? r.league}(${r.league})`);
-    return [
-      "다루는 리그 — 아래에 있으면 데이터가 있는 것이다. 없다고 단정하지 말고 도구로 확인할 것.",
-      names.join(" · "),
-    ].join("\n");
-  },
-  ["chat-league-coverage"],
-  { revalidate: 3600 },
-);
+const LEAGUE_COVERAGE_BLOCK = [
+  "다루는 리그 — 아래에 있으면 우리 데이터가 있는 것이다. 없다고 단정하지 말고 도구로 확인할 것.",
+  ALL_LEAGUES.map((code) => `${LEAGUE_DISPLAY[code] ?? code}(${code})`).join(" · "),
+].join("\n");
 
 interface IncomingMessage {
   role: "user" | "assistant";
@@ -174,11 +160,10 @@ export async function POST(req: Request) {
   }
 
   // 리그 목록은 프롬프트와 함께 캐시 — 둘 다 시간 단위로만 바뀐다.
-  const coverage = await leagueCoverageBlock().catch(() => "");
   const systemBlocks: Anthropic.TextBlockParam[] = [
     {
       type: "text",
-      text: coverage ? `${SYSTEM_PROMPT}\n\n${coverage}` : SYSTEM_PROMPT,
+      text: `${SYSTEM_PROMPT}\n\n${LEAGUE_COVERAGE_BLOCK}`,
       cache_control: { type: "ephemeral" },
     },
   ];
