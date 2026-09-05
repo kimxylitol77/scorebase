@@ -21,11 +21,14 @@ interface BuildInput {
   context: SeasonContext;
   /** 팀 ID → 팀 이름 매핑 */
   teamName: (id: number) => string;
+  /** 다가오는 빅매치 전술 포인트 데이터 블록(lib/tactical/weekly-points). 있으면 전술 섹션을 요구한다. */
+  tactical?: { home: string; away: string; text: string } | null;
 }
 
 export function buildSeasonAnalysisPrompt({
   context,
   teamName,
+  tactical,
 }: BuildInput): string {
   const lg = context.league;
   const friendlyName = LEAGUE_NAME[lg] ?? lg;
@@ -144,13 +147,31 @@ export function buildSeasonAnalysisPrompt({
     });
   }
 
+  if (tactical) {
+    lines.push("");
+    lines.push(tactical.text);
+  }
+
+  // 전술 섹션 — 유튜브 전술 채널이 흡수하는 "전술 학습 수요"를 검색 가능한 텍스트로 받는 구획.
+  // 세 축(포메이션·템포/압박·세트피스)을 고정해 매주 같은 구조로 쌓이게 한다.
+  const tacticalReq = tactical
+    ? `
+- 마지막 본문 H2 로 "이번 주 주목할 전술 포인트 3가지 — ${tactical.home} vs ${tactical.away}" 를 반드시 넣고,
+  [전술 포인트 데이터] 만 근거로 아래 세 항목을 번호 목록으로 각 2~3문장씩 쓸 것:
+  1. 포메이션 맞대결 — 양 팀 최근 최다 포메이션과 그 맞물림(중원 수 우위·측면 폭 등)을 데이터에 적힌 포메이션으로만 서술
+  2. 템포와 압박 성향 — 점유율·슈팅·피슈팅·파울 수치로 어느 쪽이 주도권을 잡고 어느 쪽이 내려앉을지 서술. 압박 강도 수치(PPDA 등)는 데이터에 없으니 절대 만들지 말 것
+  3. 세트피스 — 코너킥 획득/허용 수치로 세트피스 비중을 서술. 세트피스 득점 수·키커 이름은 데이터에 없으니 언급 금지
+  이 섹션은 "이번 주 주목할 전술 포인트" 정리이므로 예측·승패 단정은 하지 말 것`
+    : "";
+  const lengthReq = tactical ? "1600~2100자" : "1200~1600자";
+
   return `다음 데이터를 토대로 ${friendlyName} 시즌 종합 분석 기사를 작성해주세요.
 
 [입력 데이터]
 ${lines.join("\n")}
 
 [작성 요구사항]
-- 1200~1600자 분량의 한국어 분석 기사
+- ${lengthReq} 분량의 한국어 분석 기사
 - 제목은 시즌 흐름·핵심 키워드를 직관적으로 (예: "프리미어리그 막바지, 우승은 사실상 결정됐다")
 - 리드(굵은 글씨) 한 줄: 시즌의 핵심 메시지
 - H2 소제목 3~4개 추천 구성:
@@ -158,7 +179,7 @@ ${lines.join("\n")}
   · "공격·수비 맞붙은 팀들" (공격/수비 랭킹 활용)
   · "뜨거운 팀, 차가운 팀" (streak·최근 폼)
   · "Monte Carlo 시뮬레이션이 보는 시즌 끝" (있을 때)
-  · "남은 빅매치" (있을 때)
+  · "남은 빅매치" (있을 때)${tacticalReq}
 - 마지막 한 문단은 차분한 정리 (단정 X)
 
 [중요 주의]

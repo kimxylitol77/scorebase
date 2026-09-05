@@ -14,6 +14,7 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { buildAbsChallengeSection } from "@/lib/sports/mlb-abs-challenges";
+import { buildTacticalPointsBlock } from "@/lib/tactical/weekly-points";
 
 const RELEGATION_BY_LEAGUE: Record<string, number> = {
   EPL: 3,
@@ -192,10 +193,12 @@ export async function runAnalysis() {
           iterations: 3000,
         });
 
-        prompt = buildSeasonAnalysisPrompt({
-          context,
-          teamName: (id) => nameById.get(id) ?? `팀 ${id}`,
-        });
+        const teamName = (id: number) => nameById.get(id) ?? `팀 ${id}`;
+        // 축구 한정 — 향후 7일 빅매치 1경기의 전술 포인트 데이터. 스탯이 얇으면 null(섹션 없이 기존대로).
+        const tactical = await buildTacticalPointsBlock(league, matches, teamName);
+        if (tactical) console.log(`[analysis] ${league} 전술 포인트 대상: ${tactical.home} vs ${tactical.away} (#${tactical.matchId})`);
+
+        prompt = buildSeasonAnalysisPrompt({ context, teamName, tactical });
       }
 
       let content = await generateWithMinLength(prompt, {
