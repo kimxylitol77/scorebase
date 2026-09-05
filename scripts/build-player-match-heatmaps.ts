@@ -3,6 +3,7 @@
 //   실행: THESTATSAPI_KEY=... npx tsx scripts/build-player-match-heatmaps.ts
 // 확장: PLAYERS 배열에 선수 추가 (ourId=TheSports id, 나머지=TheStatsAPI id — players?search= 로 조회)
 import { readFileSync, writeFileSync, existsSync } from "fs";
+import { heatmapSeasonLabel } from "../src/lib/players/heatmap-season-label";
 
 const KEY = process.env.THESTATSAPI_KEY;
 if (!KEY) { console.error("THESTATSAPI_KEY 필요"); process.exit(1); }
@@ -173,7 +174,9 @@ async function main() {
         added++;
       }
       rows.sort((a, b) => b.date.localeCompare(a.date));
-      out[p.ourId] = { seasonLabel: p.seasonLabel, matches: rows };
+      // 라벨은 매핑의 현재 시즌이 아니라 실제 경기 날짜에서 뽑는다 — 소스가 새 시즌 좌표를
+      // 아직 안 주는 선수에게 새 시즌 딱지가 붙던 버그(2026-09-05 모건 로져스).
+      out[p.ourId] = { seasonLabel: heatmapSeasonLabel(p.seasonLabel, rows), matches: rows };
       writeFileSync(OUT, JSON.stringify(out)); // 선수 단위 저장 — 중단돼도 진행분 보존
       console.log(`  신규 ${added}, 미출전/무데이터 ${empty}, 총 ${rows.length}경기`);
     } catch (e) {
