@@ -115,19 +115,19 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
       type: "object",
       properties: {
         league: { type: "string", description: "리그 코드" },
-        days: { type: "integer", description: "오늘 이후 며칠. 기본 3, 최대 7" },
+        days: { type: "integer", description: "오늘 이후 며칠. 기본 7, 최대 14" },
       },
     },
   },
   {
     name: "get_recent_results",
     description:
-      "최근 N일(기본 3일) 종료된 경기 결과 + 모델 적중 여부. '어제 결과' '최근 NBA' 같은 질문에 사용.",
+      "최근 N일(기본 14일) 종료된 경기 결과 + 모델 적중 여부. '어제 결과' '최근 NBA' '맨시티 최근 성적' 같은 질문에 사용. 축구는 주 1경기라 기본 14일이어야 최근 5경기가 잡힌다.",
     input_schema: {
       type: "object",
       properties: {
         league: { type: "string", description: "리그 코드" },
-        days: { type: "integer", description: "최근 며칠. 기본 3, 최대 14" },
+        days: { type: "integer", description: "최근 며칠. 기본 14, 최대 60" },
       },
     },
   },
@@ -243,12 +243,13 @@ export async function executeTool(
     case "get_upcoming_matches":
       return await getUpcomingMatches(
         input.league as string | undefined,
-        Math.min(7, Math.max(1, (input.days as number) || 3)),
+        Math.min(14, Math.max(1, (input.days as number) || 7)),
       );
     case "get_recent_results":
       return await getRecentResults(
         input.league as string | undefined,
-        Math.min(14, Math.max(1, (input.days as number) || 3)),
+        // 기본 3일은 축구(주 1경기)에서 거의 항상 0~1경기라 "최근 5경기"를 못 채웠다.
+        Math.min(60, Math.max(1, (input.days as number) || 14)),
       );
     case "get_match_prediction":
       return await getMatchPrediction(input.matchId as number);
