@@ -1,5 +1,5 @@
 // scripts/cleanup-duplicate-ts-matches.mjs
-// "ts:" prefix 매치 row 중 같은 league + ±90분 윈도우 + 양 팀 이름 normalize 매칭되는
+// "ts:" prefix 매치 row 중 같은 league + 시각 윈도우 + 양 팀 이름 normalize 매칭되는
 // non-ts 매치 (api-football / ESPN / football-data 등) 가 있으면 중복 — ts 매치 정리.
 //
 // 처리:
@@ -20,6 +20,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes("--apply");
+
+// 매칭 윈도우 — 야구만 넓다.
+// 2026-09-05: MLB·NPB 중복 7건이 ±90분 밖이라 이 잡이 전부 놓치고 있었다(간격 220~360분).
+//   원인 둘. ① 더블헤더 2차전은 "1차전 끝나고 시작" 이라 ESPN 예정 시각과 ts 실제 시각이 3~6시간
+//   벌어진다. ② ts 가 예정 시각을 아예 다르게 잡는 경기가 있다.
+//   실측 사례: DET@CLE 2차전이 ESPN 23:10 · ts 02:15(+3h5m), CHC@NYM 이 6시간 차.
+// ⚠ 넓힌 만큼 더블헤더 1차전에 잘못 붙을 수 있어 **가장 가까운 시각** 후보 하나만 고른다.
+//   1·2차전이 둘 다 non-ts(ESPN)면 서로 짝지어지지 않는다 — 이 잡은 ts↔non-ts 만 본다.
+const BASEBALL = new Set(["MLB", "KBO", "NPB", "CPBL", "LMB", "KBO_FUTURES", "NPB_MINOR"]);
+const windowMs = (league) => (BASEBALL.has(league) ? 8 : 1.5) * 60 * 60 * 1000;
 
 function normalizeTeamName(s) {
   return s
@@ -60,33 +70,45 @@ async function main() {
   let matchDeleted = 0;
   const dupByLeague = new Map();
 
-  await prisma.$transaction(
-    async (tx) => {
+  // ── 1단계: 스캔 (읽기 전용, 트랜잭션 밖) ──────────────────────────────
+  // 종전엔 스캔까지 한 인터랙티브 트랜잭션 안에서 돌렸는데, Neon 이 긴 트랜잭션을 끊어
+  // P2028("Transaction not found")로 죽었다 — Prisma timeout 을 600s 로 올려도 그대로였다
+  // (2026-09-05 야구 창 확대 후 실측). 읽기는 밖에서, 쓰기만 쌍마다 짧은 트랜잭션으로 나눈다.
+  const plan = [];
+  {
       for (const ts of tsMatches) {
         const startMs = ts.startTime.getTime();
-        const candidates = await tx.match.findMany({
+        const candidates = await prisma.match.findMany({
           where: {
             league: ts.league,
             startTime: {
-              gte: new Date(startMs - 90 * 60 * 1000),
-              lte: new Date(startMs + 90 * 60 * 1000),
+              gte: new Date(startMs - windowMs(ts.league)),
+              lte: new Date(startMs + windowMs(ts.league)),
             },
             NOT: { externalId: { startsWith: "ts-" } },
           },
           select: {
             id: true,
             externalId: true,
+            startTime: true,
             homeTeam: { select: { name: true } },
             awayTeam: { select: { name: true } },
           },
         });
-        const original = candidates.find(
-          (c) =>
-            (sameTeamName(c.homeTeam.name, ts.homeTeam.name) &&
-              sameTeamName(c.awayTeam.name, ts.awayTeam.name)) ||
-            (sameTeamName(c.homeTeam.name, ts.awayTeam.name) &&
-              sameTeamName(c.awayTeam.name, ts.homeTeam.name)),
-        );
+        // 이름이 맞는 후보 중 **시각이 가장 가까운** 하나. find() 로 아무거나 집으면
+        // 더블헤더에서 2차전 ts 행이 1차전에 붙는다(2026-09-05 DET@CLE 실측).
+        const original = candidates
+          .filter(
+            (c) =>
+              (sameTeamName(c.homeTeam.name, ts.homeTeam.name) &&
+                sameTeamName(c.awayTeam.name, ts.awayTeam.name)) ||
+              (sameTeamName(c.homeTeam.name, ts.awayTeam.name) &&
+                sameTeamName(c.awayTeam.name, ts.homeTeam.name)),
+          )
+          .sort(
+            (a, b) =>
+              Math.abs(a.startTime.getTime() - startMs) - Math.abs(b.startTime.getTime() - startMs),
+          )[0];
         if (!original) continue; // ts only 매치 (COPA_LIB 등) — keep
 
         dupFound++;
@@ -94,9 +116,14 @@ async function main() {
         console.log(
           `  [${ts.league}] dup: ts ${ts.externalId} (#${ts.id}) → 원본 ${original.externalId} (#${original.id}) — ${ts.awayTeam.name}@${ts.homeTeam.name}`,
         );
+        plan.push({ ts, original });
+      }
+  }
 
-        if (!APPLY) continue;
-
+  // ── 2단계: 적용 (쌍마다 짧은 트랜잭션) ────────────────────────────────
+  if (APPLY) {
+    for (const { ts, original } of plan) {
+      await prisma.$transaction(async (tx) => {
         // ts 매치의 cache 가 있으면 원본으로 이전
         const tsCache = await tx.theSportsMatchCache.findUnique({
           where: { matchId: ts.id },
@@ -119,13 +146,14 @@ async function main() {
             cacheMigrated++;
           }
         }
-
+        // MatchVote 는 Match 에 FK 가 없다(스키마 확인) — cascade 가 안 걸려 명시 삭제해야
+        // 고아 투표가 남는다. 2026-09-05 중복 정리 때 확인.
+        await tx.matchVote.deleteMany({ where: { matchId: ts.id } });
         await tx.match.delete({ where: { id: ts.id } });
         matchDeleted++;
-      }
-    },
-    { timeout: 120_000 },
-  );
+      });
+    }
+  }
 
   console.log("\n=== 요약 ===");
   console.log(`중복 발견: ${dupFound}`);
