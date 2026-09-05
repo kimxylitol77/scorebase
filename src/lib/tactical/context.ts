@@ -7,6 +7,7 @@ import { buildMatchContext } from "@/lib/predict/build-context";
 import type { PredictMatch } from "@/lib/predict/types";
 import { hasTacticalData, parseFormation, parseXg } from "./data-gate";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { buildTsEnrichment, type NameLink } from "./ts-enrich";
 
 export interface TacticalContext {
   matchId: number;
@@ -17,6 +18,10 @@ export interface TacticalContext {
   awayScore: number;
   /** 프롬프트에 주입할 사람이 읽는 데이터 텍스트 */
   text: string;
+  /** 본문 자동 링크용 이름 → 경로(등재된 선수·감독만). */
+  links: NameLink[];
+  /** /lineup?d= 전술판 프리로드 코드. 좌표 결손이면 null. */
+  lineupCode: string | null;
 }
 
 /** 라인업 JSON 에서 감독명 추출 — coach 가 문자열이거나 {name} 객체인 두 형태 모두 대응. */
@@ -134,8 +139,12 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
   lines.push(
     `[포메이션] 홈 ${home} ${formH}${coachH ? ` (감독 ${coachH})` : ""} / 원정 ${away} ${formA}${coachA ? ` (감독 ${coachA})` : ""}`,
   );
-  if (xiH.length) lines.push(`[홈 선발 XI] ${xiH.join(", ")}`);
-  if (xiA.length) lines.push(`[원정 선발 XI] ${xiA.join(", ")}`);
+  // ts 캐시 보강(감독·한글 선발 XI·타임라인·선수 스탯). 캐시 없으면 af 라인업의 영문 선발만.
+  const ts = await buildTsEnrichment(match.id, home, away);
+  if (ts.lines.length === 0) {
+    if (xiH.length) lines.push(`[홈 선발 XI] ${xiH.join(", ")}`);
+    if (xiA.length) lines.push(`[원정 선발 XI] ${xiA.join(", ")}`);
+  }
 
   // xG — 게이트 통과했으므로 양팀 모두 존재. 실제 득점과 병기(마무리 효율 해석 재료).
   lines.push(`[xG] 홈 ${xg.home!.toFixed(2)} / 원정 ${xg.away!.toFixed(2)} (실제 ${match.homeScore} - ${match.awayScore})`);
@@ -162,6 +171,7 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
     lines.push(
       `[상대전적] 홈 ${ctx.h2h.homeWins}승 ${ctx.h2h.draws}무 ${ctx.h2h.awayWins}패 (총 ${ctx.h2h.total}경기)`,
     );
+  lines.push(...ts.lines);
 
   return {
     matchId: match.id,
@@ -171,5 +181,7 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
     homeScore: match.homeScore,
     awayScore: match.awayScore,
     text: lines.join("\n"),
+    links: ts.links,
+    lineupCode: ts.lineupCode,
   };
 }

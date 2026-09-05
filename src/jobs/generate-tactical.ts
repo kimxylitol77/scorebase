@@ -6,6 +6,7 @@
 //   npm run job:tactical                 (실제 생성 — DRAFT 저장)
 //   tsx --env-file=.env.local src/jobs/generate-tactical.ts --dry-run
 //   tsx --env-file=.env.local src/jobs/generate-tactical.ts --match=79825 --dry-run
+//   tsx --env-file=.env.local src/jobs/generate-tactical.ts --match=79825 --update=4600   (기존 글 본문 재생성 — 상태·slug 유지)
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
@@ -14,6 +15,7 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildTacticalContext } from "@/lib/tactical/context";
 import { buildTacticalAnalysisPrompt } from "@/prompts/tactical-analysis";
 import { hasTacticalData } from "@/lib/tactical/data-gate";
+import { linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
 
 const TARGET_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL"];
 const LOOKBACK_DAYS = 5; // 최근 종료 경기만 (라이브 운영 시 새 시즌 기준)
@@ -50,8 +52,18 @@ async function collectCandidates(matchId: number | null): Promise<number[]> {
   return rows.filter(hasTacticalData).slice(0, PER_RUN_CAP).map((r) => r.id);
 }
 
-export async function runTactical(opts: { dryRun?: boolean; matchId?: number | null } = {}) {
+/** 본문 후처리 — 등재된 선수·감독 이름 첫 등장에 링크, 끝에 전술판 프리로드 링크. 전부 결정적(LLM 산출 아님). */
+function decorate(content: string, ctx: { links: { name: string; href: string }[]; lineupCode: string | null; home: string; away: string }): string {
+  let out = linkNamesInMarkdown(content, ctx.links);
+  if (ctx.lineupCode) {
+    out += `\n\n---\n\n[▶ ${ctx.home} vs ${ctx.away} 양 팀 선발 라인업을 전술판에서 열기](/lineup?d=${ctx.lineupCode}) — 실제 경기 평균 위치 좌표 그대로 불러옵니다. 선수를 끌어 옮기고 화살표를 그려 나만의 해석을 남겨 보세요.`;
+  }
+  return out;
+}
+
+export async function runTactical(opts: { dryRun?: boolean; matchId?: number | null; updateArticleId?: number | null } = {}) {
   const dryRun = opts.dryRun ?? false;
+  const updateId = opts.updateArticleId ?? null;
   console.log(`[tactical] 시작 (dryRun=${dryRun})`);
 
   const ids = await collectCandidates(opts.matchId ?? null);
@@ -67,7 +79,7 @@ export async function runTactical(opts: { dryRun?: boolean; matchId?: number | n
       const existing = await prisma.article.findFirst({
         where: { matchId: id, type: "TACTICAL" },
       });
-      if (existing && !dryRun) {
+      if (existing && !dryRun && existing.id !== updateId) {
         console.log(`[tactical] 매치 ${id} 이미 글 #${existing.id} 있음 — 스킵`);
         continue;
       }
@@ -79,17 +91,18 @@ export async function runTactical(opts: { dryRun?: boolean; matchId?: number | n
       }
 
       const prompt = buildTacticalAnalysisPrompt(ctx);
-      const content = await generateWithMinLength(prompt, {
+      const raw = await generateWithMinLength(prompt, {
         system: SYSTEM_PROMPT,
-        maxTokens: 3500,
+        maxTokens: 4500,
         temperature: 0.6,
         minLength: MIN_TACTICAL_LENGTH,
         label: `tactical ${ctx.league} ${id}`,
       });
-      if (!content) {
+      if (!raw) {
         console.log(`[tactical] 매치 ${id} 본문 길이 미달 — 스킵`);
         continue;
       }
+      const content = decorate(raw, ctx);
       const title = extractTitle(content);
 
       if (dryRun) {
@@ -98,6 +111,13 @@ export async function runTactical(opts: { dryRun?: boolean; matchId?: number | n
         console.log("=".repeat(60));
         console.log(content);
         console.log("=".repeat(60) + "\n");
+        continue;
+      }
+
+      if (updateId != null) {
+        // 기존 글 본문만 교체 — slug·status·publishedAt 은 그대로(이미 색인된 URL 유지).
+        await prisma.article.update({ where: { id: updateId }, data: { title, content } });
+        console.log(`[tactical] ♻️ 글 #${updateId} 본문 재생성 ${title} (${content.length}자, 링크 ${ctx.links.length}명)`);
         continue;
       }
 
@@ -134,7 +154,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const dryRun = args.includes("--dry-run");
   const matchArg = args.find((a) => a.startsWith("--match="));
   const matchId = matchArg ? Number(matchArg.split("=")[1]) : null;
-  runTactical({ dryRun, matchId })
+  const updateArg = args.find((a) => a.startsWith("--update="));
+  const updateArticleId = updateArg ? Number(updateArg.split("=")[1]) : null;
+  if (updateArticleId != null && matchId == null) {
+    console.error("[tactical] --update 는 --match 와 함께 써야 합니다");
+    process.exit(1);
+  }
+  runTactical({ dryRun, matchId, updateArticleId })
     .catch((e) => {
       console.error(e);
       process.exit(1);
