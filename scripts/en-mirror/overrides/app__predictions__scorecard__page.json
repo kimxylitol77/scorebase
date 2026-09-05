@@ -154,6 +154,25 @@
     "정확히 같은 경기": "exactly the same fixtures",
     "를 경기 전에 예측합니다.\n          1X2·핸디캡·오버언더 세 시장을 두고 맞붙어, 결과가 나오면": " before kick-off. They compete across 1X2, handicap and over/under, and once results land we score everything —",
     "전패까지 그대로": "losing runs included",
-    "채점해 쌓습니다.": "."
+    "채점해 쌓습니다.": ".",
+    "현재 선두": "Current leader",
+    "채점 누적": "Scored total",
+    "개 · 3시장 합산": " models · 3 markets combined",
+    "어제 합산": "Yesterday, all models",
+    "최근 7일 합산": "Last 7 days, all models",
+    " 픽 적중": " picks correct",
+    "채점 대기": "awaiting scoring",
+    "채점 없음": "none scored",
+    "최근 7일 적중률 − 누적 적중률": "Last-7-day accuracy minus cumulative accuracy",
+    "7일": "7d",
+    "14일": "14d",
+    "30일": "30d",
+    "어제": "Yesterday",
+    "최근 ": "Last ",
+    "1위~": "Top ",
+    "위 격차": " separated by",
+    "—\n            수천 건 표본에서도 오차 범위 안이라 사실상 동률입니다. 순위보다 기간별 추세와 시장·리그별 강약을 보세요.": "—\n            inside the margin of error even at this sample size, so effectively a tie. Read the period trends and market/league strengths rather than the rank.",
+    "다수 픽": "Majority pick",
+    "동의 · 평균 확신": "agree · avg confidence"
   }
 }

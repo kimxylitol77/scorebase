@@ -83,7 +83,6 @@ interface Cell {
   pick: string;
   prob: number;
   line: number | null;
-  reason: string | null;
   correct: boolean | null;
 }
 interface DP {
@@ -161,7 +160,7 @@ export default async function ScorecardPage() {
     where: { market: { in: ["1X2", "HANDICAP", "OU"] }, published: true },
     orderBy: { match: { startTime: "asc" } },
     select: {
-      model: true, market: true, pick: true, prob: true, line: true, reason: true, correct: true,
+      model: true, market: true, pick: true, prob: true, line: true, correct: true,
       predictedAt: true,
       match: {
         select: {
@@ -195,9 +194,12 @@ export default async function ScorecardPage() {
     }
     const nm = normModel(r.model);
     const existing = dp.cells.get(nm);
+    // 종료되지 않은 경기(연기·재편성)에 남은 채점값은 무시 — evaluate 잡이 되돌리지만 렌더도 이중 방어.
+    const graded = m.status === "FINISHED" && m.homeScore !== null && m.awayScore !== null;
+    const correct = graded ? r.correct : null;
     // gpt 통합 시 채점된 쪽(과거 5.5)을 우선 보존.
-    if (!existing || (existing.correct === null && r.correct !== null)) {
-      dp.cells.set(nm, { pick: r.pick, prob: r.prob, line: r.line, reason: r.reason, correct: r.correct });
+    if (!existing || (existing.correct === null && correct !== null)) {
+      dp.cells.set(nm, { pick: r.pick, prob: r.prob, line: r.line, correct });
     }
   }
 
@@ -269,6 +271,23 @@ export default async function ScorecardPage() {
   const provisionalModels = board.filter((b) => b.tally.graded > 0 && b.tally.graded < RANK_MIN);
   const pendingModels = board.filter((b) => b.tally.graded === 0);
   const maxRate = Math.max(0.0001, ...gradedModels.map((b) => b.tally.rate));
+  // 상위 격차 — 1위와 1.0%p 이내에 몇 모델이 몰려 있는지. 카드 순위가 실제보다 큰 차이처럼 읽히는 것을
+  // 막는 정직 캡션의 재료(격차는 동적, 임계는 표본 4천 건대 표준오차 ~0.8%p 기준).
+  const TIE_GAP = 0.01;
+  const tiedTop = gradedModels.filter((b) => gradedModels[0].tally.rate - b.tally.rate <= TIE_GAP).length;
+  const topGap = gradedModels.length >= 2 ? gradedModels[0].tally.rate - gradedModels[tiedTop - 1].tally.rate : 0;
+  // 전 모델 합산 — 헤더 KPI 스트립용(어제·최근 7일).
+  const sumTally = (pick: (b: (typeof board)[number]) => Tally) =>
+    board.reduce<Tally>(
+      (s, b) => {
+        const t = pick(b);
+        const graded = s.graded + t.graded, correct = s.correct + t.correct;
+        return { predicted: s.predicted + t.predicted, graded, correct, rate: graded > 0 ? correct / graded : 0 };
+      },
+      { predicted: 0, graded: 0, correct: 0, rate: 0 },
+    );
+  const ydayAll = sumTally((b) => b.yday);
+  const r7All = sumTally((b) => b.r7);
 
   // 고신뢰 픽 — 어떤 모델이든 확률 65% 이상으로 확신한 픽의 채점 성적(전 시장 누적).
   // 확신 강도와 실제 적중이 비례하는지 보여주는 대표 숫자. DB 동적 계산(하드코딩 금지).
@@ -416,12 +435,15 @@ export default async function ScorecardPage() {
   const upcoming = [...upMap.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   // 컨센서스(다수결) 계산.
-  const consensusOf = (picks: { pick: string }[]) => {
+  const consensusOf = (picks: { pick: string; prob: number }[]) => {
     const cnt = new Map<string, number>();
     for (const p of picks) cnt.set(p.pick, (cnt.get(p.pick) ?? 0) + 1);
     let best = "", n = 0;
     for (const [k, v] of cnt) if (v > n) { best = k; n = v; }
-    return { pick: best, agree: n, total: picks.length };
+    // 다수 픽에 동의한 모델들의 평균 확신 — 카드 요약 줄용.
+    const agreeing = picks.filter((p) => p.pick === best);
+    const avgProb = agreeing.length > 0 ? agreeing.reduce((s, p) => s + p.prob, 0) / agreeing.length : 0;
+    return { pick: best, agree: n, total: picks.length, avgProb };
   };
 
   // 경기별 성적 피드 — 채점된 데이터포인트, 최근순.
@@ -453,9 +475,6 @@ export default async function ScorecardPage() {
 
   const fmtDate = (d: Date) => d.toLocaleDateString("en-GB", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
   const fmtTime = (d: Date) => d.toLocaleTimeString("en-GB", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false });
-  // 롤링 탤리 표기 — 채점 0건이면 "—".
-  const rollLabel = (t: Tally) =>
-    t.graded > 0 ? `${(t.rate * 100).toFixed(1)}% (${t.correct}/${t.graded})` : "—";
 
   const leader = gradedModels[0];
   const citeDate = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" });
@@ -491,6 +510,37 @@ export default async function ScorecardPage() {
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
           The Scorebase statistical model and <strong className="text-zinc-800 dark:text-white/80">GPT·Claude·Grok·Gemini·Qwen·Kimi</strong>  — several AI models predicting <strong className="text-zinc-800 dark:text-white/80">exactly the same fixtures</strong> before kick-off. They compete across 1X2, handicap and over/under, and once results land we score everything — <strong className="text-zinc-800 dark:text-white/80">losing runs included</strong> .
         </p>
+
+        {/* KPI 스트립 — 첫 화면에서 숫자가 먼저 보이게. 아래 섹션들의 대표값을 압축한 것이라 전부 DB 동적. */}
+        {leader && (
+          <dl className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              {
+                k: "Current leader",
+                v: leader.label,
+                sub: `${(leader.tally.rate * 100).toFixed(1)}% · ${leader.tally.correct}/${leader.tally.graded}`,
+                accent: ACCENT[leader.accent].text,
+              },
+              { k: "Scored total", v: totalGraded.toLocaleString(), sub: `AI ${board.length} models · 3 markets combined` },
+              {
+                k: "Yesterday, all models",
+                v: ydayAll.graded > 0 ? `${(ydayAll.rate * 100).toFixed(1)}%` : "—",
+                sub: ydayAll.graded > 0 ? `${ydayAll.correct}/${ydayAll.graded} picks correct` : "awaiting scoring",
+              },
+              {
+                k: "Last 7 days, all models",
+                v: r7All.graded > 0 ? `${(r7All.rate * 100).toFixed(1)}%` : "—",
+                sub: r7All.graded > 0 ? `${r7All.correct}/${r7All.graded} picks correct` : "awaiting scoring",
+              },
+            ].map((s) => (
+              <div key={s.k} className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-white/35">{s.k}</dt>
+                <dd className={`mt-1 truncate text-xl font-bold tabular-nums ${s.accent ?? "text-zinc-900 dark:text-white"}`}>{s.v}</dd>
+                <dd className="mt-0.5 text-[11px] tabular-nums text-zinc-500 dark:text-white/40">{s.sub}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </header>
 
       {/* 진화 선언 — 낮은 적중률·신규 모델의 소표본을 방문자가 "부실"이 아니라 "검증 과정"으로
@@ -587,19 +637,53 @@ export default async function ScorecardPage() {
                     <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-white/[0.06]">
                       <div className={`h-full rounded-full ${a.bar}`} style={{ width: `${(b.tally.rate / maxRate) * 100}%` }} />
                     </div>
-                    <div className="mt-1 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
-                      {b.tally.correct} / {b.tally.graded} correct · last {b.recent.graded} {b.recent.correct}correct
-                      {b.yday.graded > 0 && <> · yesterday {b.yday.correct}/{b.yday.graded}</>}
-                    </div>
-                    <div className="mt-0.5 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
-                      Last 7 days {rollLabel(b.r7)} · 14 days {rollLabel(b.r14)} · 30 days {rollLabel(b.r30)}
+                    <div className="mt-1 flex items-center gap-2 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
+                      <span>{b.tally.correct} / {b.tally.graded} correct</span>
+                      {b.r7.graded >= RANK_MIN && (() => {
+                        const delta = b.r7.rate - b.tally.rate;
+                        const up = delta >= 0;
+                        return (
+                          <span
+                            className={`rounded-full px-1.5 py-0.5 font-semibold ${up ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"}`}
+                            title="Last-7-day accuracy minus cumulative accuracy"
+                          >
+                            7d {up ? "▲" : "▼"} {Math.abs(delta * 100).toFixed(1)}%p
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
+                </div>
+                {/* 기간별 스탯 — 누적 이력이 긴 모델과 갓 합류한 모델을 같은 창으로 비교하는 보조 지표. */}
+                <div className="mt-3 grid grid-cols-5 gap-1 border-t border-black/5 pt-2.5 dark:border-white/5">
+                  {[
+                    { k: `Last ${RECENT_WINDOW}`, t: { ...b.recent, predicted: b.recent.graded } as Tally },
+                    { k: "Yesterday", t: b.yday },
+                    { k: "7d", t: b.r7 },
+                    { k: "14d", t: b.r14 },
+                    { k: "30d", t: b.r30 },
+                  ].map((s) => (
+                    <div key={s.k} className="min-w-0 text-center">
+                      <div className="truncate text-[10px] text-zinc-400 dark:text-white/30">{s.k}</div>
+                      <div className="text-[13px] font-semibold tabular-nums text-zinc-700 dark:text-white/75">
+                        {s.t.graded > 0 ? `${(s.t.rate * 100).toFixed(1)}%` : "—"}
+                      </div>
+                      <div className="text-[10px] tabular-nums text-zinc-400 dark:text-white/30">
+                        {s.t.graded > 0 ? `${s.t.correct}/${s.t.graded}` : "none scored"}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             );
           })}
         </div>
+        {tiedTop >= 2 && (
+          <p className="mt-3 text-center text-[13px] text-zinc-500 dark:text-white/40">
+            Top {tiedTop} separated by <strong className="text-zinc-700 dark:text-white/70">{(topGap * 100).toFixed(1)}%p</strong> —
+            inside the margin of error even at this sample size, so effectively a tie. Read the period trends and market/league strengths rather than the rank.
+          </p>
+        )}
 
         {(provisionalModels.length > 0 || pendingModels.length > 0) && (
           <div className="mt-3 rounded-2xl bg-zinc-50 p-4 ring-1 ring-zinc-200/70 dark:bg-white/[0.02] dark:ring-white/10">
@@ -690,7 +774,15 @@ export default async function ScorecardPage() {
                       Leave your pick →
                     </Link>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  {/* 다수 픽 요약 — 칩 7개를 읽기 전에 결론이 먼저 보이게. */}
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-zinc-500 dark:text-white/45">
+                    <span>Majority pick</span>
+                    <span className="rounded-md bg-zinc-900 px-2 py-0.5 font-bold text-white dark:bg-white dark:text-zinc-900">
+                      {shortPick(con.pick, e.home, e.away)}
+                    </span>
+                    <span className="tabular-nums">AI {con.agree}/{con.total} agree · avg confidence {(con.avgProb * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     {e.picks.map((p) => {
                       const a = ACCENT[metaOf(p.model).accent];
                       return (

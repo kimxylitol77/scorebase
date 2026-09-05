@@ -119,3 +119,4 @@
 - UECL 뱃지가 "유로파" 로 UEL 과 같은 라벨인 것은 LeagueBadge 의 의도된 사용자 요청(좁은 뱃지) — 손대지 않음.
 - 자가치유 대상은 실측 51행(발행 43 + 미발행 8). 수동 리셋 대신 배포 후 첫 evaluate cron(22:00 KST)에 맡긴다 — 프로덕션 DB 수동 쓰기를 한 번 줄이고, 잡 경로가 실제로 도는지 로그(`종료 아닌 경기의 채점값 리셋 — N건`)로 확인할 수 있다.
 - 헤드리스 크롬 `--window-size=390` 스크린샷은 prod 도 똑같이 우측이 잘린다 — 최소 창폭 때문인 도구 아티팩트. 모바일 검증은 Browser 패널 mobile 프리셋에서 scrollWidth 대조로 했다(문서·KPI dl·5열 그리드 전부 넘침 0).
+- 영어판(/en/predictions/scorecard)은 `scripts/en-mirror` 가 한국어 원본에서 사전 치환으로 생성한다. 새 문구 19건을 override(`app__predictions__scorecard__page.json`) dict 에 등록하고 `build.ts /predictions/scorecard --write` 로 재생성 — 미번역 0건, verify 통과. 영어판 파일을 직접 고치지 말 것(다음 재생성 때 사라진다). 영어판의 `react/no-unescaped-entities` 3건("model's" 등)은 이전부터 있던 것이라 손대지 않았다.
