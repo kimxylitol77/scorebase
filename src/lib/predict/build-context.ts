@@ -30,6 +30,7 @@ import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
 import { calcStandings } from "./standings";
+import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 import { calcHomeAway } from "./home-away";
 import { calcStreaks } from "./streak";
 import { calcRecentTrend } from "./recent-trend";
@@ -151,6 +152,10 @@ export function buildMatchContext(
   awayName?: string,
   baseballStarter?: { homeEra?: number; awayEra?: number },
 ): PreviewContext {
+  // 야구 올스타전(KBO 드림·나눔, MLB All-Stars, NPB 센트럴·퍼시픽)은 소스가 정규 리그로 내려줘
+  // 순위표에 "Central league 13위" 같은 행을 만들고 총 팀 수를 14로 부풀린다(2026-09-06 NPB 프리뷰 실측).
+  // 순위·Elo·폼 전부 이 컨텍스트에서 나가므로 입구에서 한 번 걷어낸다(축구·농구엔 no-op).
+  matches = stripBaseballAllStarMatches(matches); // 아래 순위·마켓·폼 계산이 전부 matches 를 직접 쓴다
   const before = matches.filter(
     (m) => m.startTime.getTime() < referenceTime.getTime(),
   );
