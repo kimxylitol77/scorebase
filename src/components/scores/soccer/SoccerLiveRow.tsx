@@ -610,11 +610,6 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
           {odds.totalLine != null && <span className="opacity-80">O/U {odds.totalLine}</span>}
           <OddsPair label="오버" value={f(odds.over)} />
           <OddsPair label="언더" value={f(odds.under)} />
-          {stale && (
-            <span className="text-amber-600 dark:text-amber-400 font-semibold" title="배당 갱신 지연">
-              지연
-            </span>
-          )}
         </div>
       )}
       {/* hover 상세 팝업 — fixed (컨테이너 세로 클립 회피) */}

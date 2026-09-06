@@ -211,8 +211,18 @@ interface AFFixtureResp {
   }>;
 }
 
+// af 는 중단(INT)된 경기를 재개·취소 판정이 날 때까지 /fixtures?live=all 에 그대로 남긴다 —
+// 킥오프 8시간 뒤에도 "진행 중 · INT" 로 떠 있던 에레디비시 위트레흐트전(2026-09-06 신고).
+// 킥오프 후 이 시간이 지난 INT 는 사실상 중단·연기로 본다(연장·승부차기 포함 최장 경기 ≈ 2.5h).
+const INT_STALE_MS = 4 * 60 * 60 * 1000;
+function isStaleInterrupted(short: string, fixtureDate: string): boolean {
+  return short === "INT" && Date.now() - new Date(fixtureDate).getTime() > INT_STALE_MS;
+}
+
 function soccerStatusLabel(short: string, elapsed?: number): string {
   switch (short) {
+    case "INT":
+      return "중단";
     case "1H":
       return `전반 ${elapsed ?? 0}'`;
     case "2H":
@@ -259,6 +269,7 @@ async function fetchSoccerLiveUncached(): Promise<LiveMatch[]> {
       .map((f): LiveMatch | null => {
         const rawCode = AF_ID_TO_CODE[f.league.id];
         if (!rawCode) return null; // 우리가 지원하는 12리그 외 제외
+        if (isStaleInterrupted(f.fixture.status.short, f.fixture.date)) return null; // 킥오프 4h+ 지난 중단 경기는 라이브 아님
         const code = reclassifyFriendly(rawCode, f.teams.home.name, f.teams.away.name);
         const g = afGoalsExcludingShootout(f.fixture.status.short, f.goals, f.score);
         return {
@@ -328,7 +339,8 @@ export async function fetchSoccerLiveTsScores(): Promise<
 }
 
 /** api-football fixture status.short → 우리 status 분류. */
-function soccerEffStatus(short: string): "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED" {
+function soccerEffStatus(short: string, fixtureDate: string): "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED" {
+  if (isStaleInterrupted(short, fixtureDate)) return "POSTPONED";
   if (["1H", "2H", "HT", "ET", "BT", "P", "LIVE", "INT"].includes(short)) return "LIVE";
   if (["FT", "AET", "PEN", "AWD", "WO"].includes(short)) return "FINISHED";
   if (["PST", "CANC", "ABD", "SUSP"].includes(short)) return "POSTPONED";
@@ -398,7 +410,7 @@ export async function fetchSoccerByDate(kstDateStr: string): Promise<DatedMatch[
         awayScore: g.away ?? 0,
         statusLabel: soccerStatusLabel(f.fixture.status.short, f.fixture.status.elapsed),
         startTime: f.fixture.date,
-        status: soccerEffStatus(f.fixture.status.short),
+        status: soccerEffStatus(f.fixture.status.short, f.fixture.date),
       });
     }
     return out;
