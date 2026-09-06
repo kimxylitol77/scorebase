@@ -323,6 +323,14 @@ export function buildMatchContext(
       homeRow && awayRow
         ? { home: homeRow.points, away: awayRow.points }
         : undefined,
+    // 승·무·패 기록 — 야구 프리뷰는 승점(3/1/0 환산) 대신 이걸로 순위를 서술한다.
+    record:
+      homeRow && awayRow
+        ? {
+            home: { wins: homeRow.wins, draws: homeRow.draws, losses: homeRow.losses },
+            away: { wins: awayRow.wins, draws: awayRow.draws, losses: awayRow.losses },
+          }
+        : undefined,
     attackDefense: {
       home: {
         attack: standings.attackRank.get(homeTeamId),

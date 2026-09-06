@@ -3,6 +3,7 @@
 import type { NormalizedMatch } from "@/lib/sports/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { WC_ROUND_LABEL, type WcRound } from "@/lib/predict/wc-bracket";
+import { SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 /** LoL 로스터 1인 — BDL/Leaguepedia 양쪽 호환 */
 export interface LolRosterPlayer {
@@ -84,6 +85,11 @@ export interface PreviewContext {
   position?: { home: number; away: number; total: number };
   /** 시즌 승점 */
   points?: { home: number; away: number };
+  /** 시즌 승·무·패 — 야구는 승점 대신 이걸로 순위 줄을 만든다 */
+  record?: {
+    home: { wins: number; draws: number; losses: number };
+    away: { wins: number; draws: number; losses: number };
+  };
   /** 공격/수비 랭킹 (1-based) */
   attackDefense?: {
     home: { attack?: number; defense?: number };
@@ -325,6 +331,11 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   const { match, context = {} } = input;
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
+  // 강등 제도는 유럽형 축구 리그에만 있다. 야구·농구·하키·e스포츠 프리뷰가 "강등권" 을 쓰던 원인은
+  // 아래 "시즌 함의" 지시문이 종목 구분 없이 우승/강등/플레이오프를 요구한 것(2026-09-06, 야구 프리뷰 4편 중 1편).
+  const isSoccer = SOCCER_LEAGUES.has(match.league);
+  const isBaseball = BASEBALL_LEAGUES.has(match.league);
+  const seasonStakes = isSoccer ? "우승/강등/플레이오프(유럽 대항전 티켓)" : isBaseball ? "우승(리그 1위)/포스트시즌 진출" : "우승/플레이오프 진출";
   const dateStr = match.startTime.toLocaleString("ko-KR", {
     year: "numeric",
     month: "2-digit",
@@ -354,8 +365,23 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   // 넉아웃 매치는 순위·승점 라인 생략 — calcStandings 가 넉아웃 승점까지 합산한 값(조별 최대 9점 초과)이라
   // "조별리그 성적" 으로 라벨링할 수 없고, 48팀 통합 순위는 오서술만 유발한다.
   if (context.position && !(match.league === "WORLD_CUP" && context.wcKnockoutRound)) {
+    if (isBaseball && context.record) {
+      // 야구는 승점이 아니라 승패로 순위를 읽는다. 3/1/0 환산 "152점" 을 주면 축구 순위표로 오독한다.
+      // NPB 는 calcStandings 가 센트럴·퍼시픽을 합친 12팀 표라 리그 내 순위가 아님을 명시한다.
+      const rec = (r: { wins: number; draws: number; losses: number }) => `${r.wins}승 ${r.losses}패${r.draws ? ` ${r.draws}무` : ""}`;
+      const note = match.league === "NPB" ? " (센트럴·퍼시픽 통합 참고 순위 — 리그 내 순위 아님)" : "";
+      ctxLines.push(
+        `- 시즌 순위: ${home} ${context.position.home}위 (${rec(context.record.home)}) / ${away} ${context.position.away}위 (${rec(context.record.away)}) — 총 ${context.position.total}팀${note}`,
+      );
+    } else {
+      ctxLines.push(
+        `- 시즌 순위: ${home} ${context.position.home}위 (${context.points?.home ?? "?"}점) / ${away} ${context.position.away}위 (${context.points?.away ?? "?"}점) — 총 ${context.position.total}팀`,
+      );
+    }
+  }
+  if (!isSoccer) {
     ctxLines.push(
-      `- 시즌 순위: ${home} ${context.position.home}위 (${context.points?.home ?? "?"}점) / ${away} ${context.position.away}위 (${context.points?.away ?? "?"}점) — 총 ${context.position.total}팀`,
+      `- ⚠️ 종목 규칙(반드시 준수): 이 종목에는 강등 제도가 없다. "강등", "강등권", "잔류", "강등 확률" 같은 표현 절대 금지. 시즌 함의는 ${seasonStakes} 경쟁으로만 서술하라.`,
     );
   }
   if (context.elo) {
@@ -734,7 +760,7 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 - market_odds: 여러 베팅사이트 평균 implied 확률 (개수는 컨텍스트의 N개사 그대로)
 - value_bet: 모델이 시장보다 5%p+ 자신 있는 시장 (있으면 표시)
 - strong_pick: 모델 신뢰도 65%+ 여부 + 해당 시장
-- season_impact: 이 경기 결과가 우승·강등·플레이오프 확률에 미칠 변동
+- season_impact: 이 경기 결과가 ${seasonStakes} 확률에 미칠 변동
 
 # WRITING DOCTRINE — 반드시 지켜라
 1. 사실 → 통계 → 해석 → 함의 순서.
@@ -880,7 +906,7 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
   한 문장 경고로 본문에 포함한다. 없으면 언급하지 마라.
 
 ## 시즌 함의
-이 경기 결과가 우승/강등/플레이오프 확률을 어떻게 흔드는지 1문단.
+이 경기 결과가 ${seasonStakes} 확률을 어떻게 흔드는지 1문단.
 
 ## 관전 포인트 (3개)
 데이터 기반으로만. 감성적·미사여구 금지.
