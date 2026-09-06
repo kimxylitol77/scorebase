@@ -74,12 +74,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "1. FSV Mainz 05",
-        "apps": 1,
-        "starts": 1,
+        "apps": 2,
+        "starts": 2,
         "goals": 0,
-        "assists": 0,
-        "minutes": 68,
-        "rating": 6.31,
+        "assists": 1,
+        "minutes": 156,
+        "rating": 6.92,
         "yellow": 0,
         "red": 0
       }
@@ -156,12 +156,12 @@
         "status": "played",
         "season": "2026",
         "team": "Los Angeles FC",
-        "apps": 21,
-        "starts": 19,
-        "goals": 4,
-        "assists": 8,
-        "minutes": 1665,
-        "rating": 7.07,
+        "apps": 22,
+        "starts": 20,
+        "goals": 5,
+        "assists": 9,
+        "minutes": 1755,
+        "rating": 7.16,
         "yellow": 2,
         "red": 0
       }
@@ -709,12 +709,12 @@
         "status": "played",
         "season": "2026",
         "team": "St. Louis City SC",
-        "apps": 16,
+        "apps": 17,
         "starts": 12,
         "goals": 2,
         "assists": 1,
-        "minutes": 839,
-        "rating": 6.69,
+        "minutes": 849,
+        "rating": 6.68,
         "yellow": 1,
         "red": 0
       }
@@ -1748,12 +1748,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Birmingham City",
-        "apps": 4,
-        "starts": 2,
+        "apps": 5,
+        "starts": 3,
         "goals": 0,
         "assists": 0,
-        "minutes": 161,
-        "rating": 6.34,
+        "minutes": 251,
+        "rating": 6.49,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-05T22:20:18.764Z"
+  "currentUpdatedAt": "2026-09-06T22:20:19.022Z"
 }
