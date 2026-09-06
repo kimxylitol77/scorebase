@@ -887,9 +887,12 @@ async function buildSoccerWeeklyXi() {
   for (let i = 0; i < top.length; i++) {
     const t = top[i];
     const photoFile = `soc-${t.id}.png`;
-    const ok = photoOf.get(t.id) ? await download(photoOf.get(t.id)!, photoFile) : false;
+    // TodPlayer.logo 는 팀 엠블럼이 아니라 선수 사진 URL 이다(09-06 실측 — 로고 자리에 얼굴이 들어감). 사진 폴백으로만 쓴다.
+    const photoUrl = photoOf.get(t.id) || t.logo;
+    const ok = photoUrl ? await download(photoUrl, photoFile) : false;
     let logoFile = "";
-    if (t.logo) { logoFile = `socteam-${t.country.replace(/[^a-z0-9]/gi, "").toLowerCase()}.png`; await download(t.logo, logoFile); }
+    const teamLogo = w.logoByTeam[t.country];
+    if (teamLogo) { logoFile = `socteam-${t.country.replace(/[^a-z0-9]/gi, "").toLowerCase()}.png`; if (!(await download(teamLogo, logoFile))) logoFile = ""; }
     cards.push({
       rank: i + 1,
       name: OV[t.id]?.nameKo || t.name,
