@@ -2261,7 +2261,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       </header>
 
       {/* 종목 탭 */}
-      <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
+      <SportTabs activeSport={sport} liveCounts={liveCounts} date={isToday ? undefined : dateStr} />
 
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} todayKst={todayKstStr} sport={sport} extraQuery={extraQuery} />

@@ -8,7 +8,8 @@ interface Props {
   /** 종목별 LIVE 경기 수 (0 = dot 숨김) */
   liveCounts?: Partial<Record<SportCode, number>>;
   /** 일자 쿼리 유지 */
-  date: string;
+  /** 선택 날짜 yyyy-mm-dd. 오늘이면 생략(undefined) — URL 에 오늘 날짜를 박지 않아 탭이 날짜를 따라온다. */
+  date?: string;
 }
 
 export default function SportTabs({ activeSport, liveCounts, date }: Props) {
@@ -23,7 +24,7 @@ export default function SportTabs({ activeSport, liveCounts, date }: Props) {
         return (
           <Link
             key={s.code}
-            href={`/scores?sport=${s.code}&date=${date}`}
+            href={date ? `/scores?sport=${s.code}&date=${date}` : `/scores?sport=${s.code}`}
             className={`sport-tab ${active ? "active" : ""}`}
           >
             <span aria-hidden>{s.emoji}</span>
