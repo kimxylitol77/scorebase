@@ -18,6 +18,7 @@ import {
   FAV_SOUND_CHANGE_EVENT,
 } from "@/lib/sound/fav-sound";
 import { useClientValue, subscribeToStorage } from "@/lib/use-client-value";
+import { postponedLabel } from "@/lib/sports/sport-leagues";
 
 interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
   id: string;
@@ -378,7 +379,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
     : isFinished
       ? "FT"
       : isPostponed
-        ? "PP"
+        ? "Postponed"
         : match.timeLabel;
   const statusColor = isLive
     ? "text-rose-600 dark:text-rose-400 font-semibold"

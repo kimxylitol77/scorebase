@@ -96,7 +96,13 @@ function Logo({ url, name, big }: { url?: string | null; name: string; big?: boo
     //  - Liquipedia (LCK 로고): hotlink Referer 검사로 외부 직접 fetch 불가.
     //  - ESPN MMA 파이터 사진: 매 로드마다 ESPN 핫링크 대신 한 번 받아 캐시본 재사용
     //    (MatchCard 안 espncdn 은 MMA 파이터 전용, remotePatterns 에 등록됨).
-    if (url.includes("liquipedia.net") || url.includes("a.espncdn.com")) {
+    // thesports·api-sports 로고도 optimizer 경유 — 원본 50~90KB PNG 를 그대로 받던 것 (2026-08-28)
+    if (
+      url.includes("liquipedia.net") ||
+      url.includes("a.espncdn.com") ||
+      url.includes("thesports.com") ||
+      url.includes("media.api-sports.io")
+    ) {
       return (
         <Image
           src={url}

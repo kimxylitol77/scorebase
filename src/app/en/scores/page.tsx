@@ -18,8 +18,10 @@ import {
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
   POPULAR_SOCCER_LEAGUES,
+  postponedLabel,
   type SportCode,
 } from "@/lib/sports/sport-leagues";
+import { RANK_CHIP_CALC_LEAGUES, RANK_CHIP_TAG } from "@/lib/sports/rank-chip-cache";
 import { toEnglishTeamName, enLeagueName, enMatchStatus } from "@/lib/i18n/en";
 import { koEnLanguages } from "@/lib/i18n/en";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
@@ -159,6 +161,37 @@ const fetchLineupReadyIdsCached = unstable_cache(
 );
 
 /** 오프닝 배당 (매치별 첫 OddsSnapshot) — 행의 배당 상승/하락 화살표 원료. 5분 캐시 (오프닝은 불변). */
+// 야구/농구 순위칩(MLB·CPBL·LMB·NBA·WNBA) — 시즌 전체 FINISHED 매치를 읽어 순위를 계산하는데
+// 종전엔 매 요청마다 리그별로 직렬 실행했다(MLB 만 2천 경기+, 로컬 실측 1.5s). 순위는 경기가
+// 끝나야 바뀌므로 10분 공유 캐시로 충분하다(/standings 의 revalidate 600 과 같은 기준).
+// Map 은 직렬화가 안 돼 Record 로 돌려주고 소비처에서 Map 으로 복원한다.
+const fetchSeasonRankChipCached = unstable_cache(
+  async (lg: string): Promise<Record<number, number>> => {
+    const posMap = new Map<number, number>();
+    const seasonStart = currentSeasonStart(lg);
+    const finished = await prisma.match.findMany({
+      where: {
+        league: lg,
+        status: "FINISHED",
+        homeScore: { not: null },
+        awayScore: { not: null },
+        ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
+      },
+      select: {
+        id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
+        homeScore: true, awayScore: true, startTime: true,
+      },
+    });
+    for (const row of calcStandings(finished as PredictMatch[]).rows) {
+      posMap.set(row.teamId, row.position);
+    }
+    return Object.fromEntries(posMap);
+  },
+  ["scores-page-season-rank-chip"],
+  // rank-chip 태그는 경기 종료 시 즉시 갱신용 (thesports-cache route 가 비운다).
+  { revalidate: 600, tags: ["live-scores", RANK_CHIP_TAG] },
+);
+
 const fetchOpeningOddsCached = unstable_cache(
   async (soccerMatchIds: number[]): Promise<Record<number, { h: number; d: number | null; a: number }>> => {
     if (soccerMatchIds.length === 0) return {};
@@ -954,6 +987,18 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
 
+  // af 날짜 보강(orphan 카드)은 DB 결과와 무관하게 dateStr 만 있으면 시작할 수 있다 —
+  // 종전엔 순위·순위칩·배구 표까지 다 끝난 뒤 직렬로 불러 그 시간만큼 TTFB 를 더했다.
+  // 여기서 먼저 발사하고 소비 지점(orphan 판정)에서 await 한다. 창 조건은 종전과 동일:
+  // 오늘-2 ~ 오늘+7 만 — 크롤러 날짜 스윕이 af 한도를 태우던 것 차단(2026-08-28).
+  const sportIncludesSoccerEarly = sport === "soccer" || sport === "all";
+  const dayDiffEarly =
+    (new Date(`${dateStr}T00:00:00+09:00`).getTime() - Date.now()) / 86400_000;
+  const datedSoccerPromise: Promise<DatedMatch[]> =
+    sportIncludesSoccerEarly && dayDiffEarly > -3 && dayDiffEarly < 7
+      ? fetchSoccerByDateCached(dateStr).catch(() => [] as DatedMatch[])
+      : Promise.resolve([] as DatedMatch[]);
+
   // 축구는 KST 자정 boundary 매치 (UCL/EPL 새벽 매치) 만 추가 cover —
   // -1h 로 전날 21시 매치 등은 정확히 제외 (2026-05-24 사용자 보고).
   // +30h (익일 06:00 KST): 유럽 대항전 새벽 1~4시 킥오프를 당일 저녁 탭에 노출
@@ -1413,32 +1458,35 @@ export default async function ScoresPage({ searchParams }: Props) {
         .map((m) => m.league),
     ),
   );
-  const standingsByLeague = soccerLeaguesInPage.length > 0
-    ? await getStandingsForLeagues(soccerLeaguesInPage)
-    : new Map<string, Map<number, number>>();
+  // 축구 순위·배구 표·야구/농구 순위칩은 서로 독립 — 아래에서 한 번에 병렬 조회한다
+  // (종전엔 셋이 직렬이라 로컬 실측 0.65s+0.62s+1.49s 를 그대로 TTFB 에 더했다).
+  const standingsPromise = soccerLeaguesInPage.length > 0
+    ? getStandingsForLeagues(soccerLeaguesInPage)
+    : Promise.resolve(new Map<string, Map<number, number>>());
 
   // 배구 [순위] — TheSports season/table cache (volleyball-table). AVC/유럽리그는 조내 순위.
   const volleyballLeaguesInPage = Array.from(
     new Set(matches.filter((m) => VOLLEYBALL_LEAGUES.has(m.league)).map((m) => m.league)),
   );
   const vbPositionByLeague = new Map<string, Map<number, number>>();
-  for (const lg of volleyballLeaguesInPage) {
-    try {
-      const groups = await fetchVolleyballTable(lg);
-      const posMap = new Map<number, number>();
-      for (const g of groups) for (const r of g.rows) posMap.set(r.ourTeamId, r.position);
-      if (posMap.size > 0) vbPositionByLeague.set(lg, posMap);
-    } catch {
-      // cache miss — 순위 없이 렌더
-    }
-  }
+  const volleyballPromise = Promise.all(
+    volleyballLeaguesInPage.map(async (lg) => {
+      try {
+        const groups = await fetchVolleyballTable(lg);
+        const posMap = new Map<number, number>();
+        for (const g of groups) for (const r of g.rows) posMap.set(r.ourTeamId, r.position);
+        return [lg, posMap] as const;
+      } catch {
+        return [lg, new Map<number, number>()] as const; // cache miss — 순위 없이 렌더
+      }
+    }),
+  );
 
   // 야구·농구 [순위] 재활성 (2026-07-02) — 5/27 /predictions 500 사고 재발 방지:
   // 리그별 try-catch 격리 + position number 강제, 실패 시 칩 없이 렌더.
   // KBO/NPB = TheSports 공식 table(/standings 와 동일 정본), 그 외 클럽 리그 =
   // 시즌 창 DB 계산(currentSeasonStart — 지난 시즌·MLB 시범경기 오염 차단).
   // 토너먼트성 야구(WBC 등)는 명단 제외 = 칩 없음.
-  const RANK_CHIP_CALC_LEAGUES = new Set(["MLB", "CPBL", "LMB", "NBA", "WNBA"]);
   const rankChipLeaguesInPage = Array.from(
     new Set(
       matches
@@ -1446,38 +1494,34 @@ export default async function ScoresPage({ searchParams }: Props) {
         .filter((lg) => lg === "KBO" || lg === "NPB" || RANK_CHIP_CALC_LEAGUES.has(lg)),
     ),
   );
-  for (const lg of rankChipLeaguesInPage) {
-    try {
-      const posMap = new Map<number, number>();
-      if (lg === "KBO" || lg === "NPB") {
-        for (const r of await fetchBaseballTable(lg)) {
-          const pos = Number(r.position);
-          if (Number.isFinite(pos) && pos > 0) posMap.set(r.ourTeamId, pos);
+  const rankChipPromise = Promise.all(
+    rankChipLeaguesInPage.map(async (lg) => {
+      try {
+        const posMap = new Map<number, number>();
+        if (lg === "KBO" || lg === "NPB") {
+          for (const r of await fetchBaseballTable(lg)) {
+            const pos = Number(r.position);
+            if (Number.isFinite(pos) && pos > 0) posMap.set(r.ourTeamId, pos);
+          }
+        } else {
+          for (const [teamId, pos] of Object.entries(await fetchSeasonRankChipCached(lg))) {
+            posMap.set(Number(teamId), pos);
+          }
         }
-      } else {
-        const seasonStart = currentSeasonStart(lg);
-        const finished = await prisma.match.findMany({
-          where: {
-            league: lg,
-            status: "FINISHED",
-            homeScore: { not: null },
-            awayScore: { not: null },
-            ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
-          },
-          select: {
-            id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
-            homeScore: true, awayScore: true, startTime: true,
-          },
-        });
-        for (const row of calcStandings(finished as PredictMatch[]).rows) {
-          posMap.set(row.teamId, row.position);
-        }
+        return [lg, posMap] as const;
+      } catch {
+        return [lg, new Map<number, number>()] as const; // standings 실패 — 칩 없이 렌더 (페이지는 정상)
       }
-      if (posMap.size > 0) vbPositionByLeague.set(lg, posMap); // 기존 소비 경로 재사용 (배구와 동일)
-    } catch {
-      // standings 실패 — 칩 없이 렌더 (페이지는 정상)
-    }
-  }
+    }),
+  );
+
+  const [standingsByLeague, vbResults, rankResults] = await Promise.all([
+    standingsPromise,
+    volleyballPromise,
+    rankChipPromise,
+  ]);
+  for (const [lg, posMap] of vbResults) if (posMap.size > 0) vbPositionByLeague.set(lg, posMap);
+  for (const [lg, posMap] of rankResults) if (posMap.size > 0) vbPositionByLeague.set(lg, posMap); // 기존 소비 경로 재사용 (배구와 동일)
 
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
   // 라이브 API 매치 중 DB 매치에 매칭된 id 추적 — 나머지(orphan)는 메인 카드 누락 방지용으로 따로 추가.
@@ -1908,15 +1952,10 @@ export default async function ScoresPage({ searchParams }: Props) {
   // orphan — DB Match row 가 없는 그날 우리 축구 리그 경기(예정/라이브/종료)를 date 조회로 보강.
   // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) live=all 만 쓰면 종료 후
   // 사라지므로, 날짜 기반 조회로 라이프사이클(예정→라이브→종료) 전부 표시.
-  const sportIncludesSoccer = sport === "soccer" || sport === "all";
   // orphan af 조회는 오늘-2 ~ 오늘+7 창만 — 크롤러가 날짜 페이지네이션을 무한 순회하며
   // 날짜당 af 2콜(UTC 2일 조회)을 태우는 것 차단. 창 밖 날짜는 DB 매치만으로 충분
   // (orphan 은 경기 임박·직후에만 의미, af 일 한도 소진 지혈의 일부).
-  const dayDiff =
-    (new Date(`${dateStr}T00:00:00+09:00`).getTime() - Date.now()) / 86400_000;
-  const datedSoccer: DatedMatch[] = sportIncludesSoccer && dayDiff > -3 && dayDiff < 7
-    ? await fetchSoccerByDateCached(dateStr)
-    : [];
+  const datedSoccer: DatedMatch[] = await datedSoccerPromise;
   const dbExtIds = new Set(matches.map((m) => m.externalId)); // DB 매치와 중복 제거용
   // externalId dedup 만으론 부족 — TheSports 수집 매치(ext="ts-xxx")와 api-football
   // orphan(ext="af-{fixtureId}")은 같은 경기라도 source 별 id 체계가 달라 ext 가 절대
@@ -1929,35 +1968,40 @@ export default async function ScoresPage({ searchParams }: Props) {
       datedSoccer.flatMap((d) => [d.homeTeamExtId, d.awayTeamExtId]).filter(Boolean) as string[],
     ),
   ];
+  // 아래 두 조회는 datedSoccer 만 있으면 되고 서로 독립 — 한 번에 보낸다 (종전 직렬 2 round-trip).
   const afTeamIdMap = new Map<string, Set<number>>();
-  if (afTeamExtIds.length) {
-    const rows = await prisma.teamSourceId.findMany({
-      where: { source: "api-football", externalId: { in: afTeamExtIds } },
-      select: { externalId: true, teamId: true },
-    });
-    for (const r of rows) {
-      const s = afTeamIdMap.get(r.externalId) ?? new Set<number>();
-      s.add(r.teamId);
-      afTeamIdMap.set(r.externalId, s);
-    }
-  }
+  const crossDayTeamPairs = new Set<string>();
+  const orphanLeagues = [...new Set(datedSoccer.map((d) => d.league))];
   // af 가 킥오프를 하루 틀리게 싣는 경기 대응 — 그 팀 쌍의 DB 매치가 인접일에 있으면 같은
   // 경기다(2026-08-23 COLOMBIA_PA: af 8/23 01:15Z ↔ 우리 8/24 01:15Z, 현지 일정은 우리가 맞다).
   // 페이지가 그날치 DB 만 들고 있어 판정이 하루에 갇히므로, 팀 쌍만 ±2일로 따로 조회한다.
-  const crossDayTeamPairs = new Set<string>();
-  const orphanLeagues = [...new Set(datedSoccer.map((d) => d.league))];
-  if (afTeamExtIds.length && orphanLeagues.length) {
+  {
     const dayStartMs = new Date(`${dateStr}T00:00:00+09:00`).getTime();
-    const nearby = await prisma.match.findMany({
-      where: {
-        league: { in: orphanLeagues },
-        startTime: {
-          gte: new Date(dayStartMs - 2 * 86400_000),
-          lte: new Date(dayStartMs + 3 * 86400_000),
-        },
-      },
-      select: { league: true, homeTeamId: true, awayTeamId: true },
-    });
+    const [sourceRows, nearby] = await Promise.all([
+      afTeamExtIds.length
+        ? prisma.teamSourceId.findMany({
+            where: { source: "api-football", externalId: { in: afTeamExtIds } },
+            select: { externalId: true, teamId: true },
+          })
+        : Promise.resolve([]),
+      afTeamExtIds.length && orphanLeagues.length
+        ? prisma.match.findMany({
+            where: {
+              league: { in: orphanLeagues },
+              startTime: {
+                gte: new Date(dayStartMs - 2 * 86400_000),
+                lte: new Date(dayStartMs + 3 * 86400_000),
+              },
+            },
+            select: { league: true, homeTeamId: true, awayTeamId: true },
+          })
+        : Promise.resolve([]),
+    ]);
+    for (const r of sourceRows) {
+      const set = afTeamIdMap.get(r.externalId) ?? new Set<number>();
+      set.add(r.teamId);
+      afTeamIdMap.set(r.externalId, set);
+    }
     for (const m of nearby) crossDayTeamPairs.add(`${m.league}|${m.homeTeamId}|${m.awayTeamId}`);
   }
   const orphanDedup = buildOrphanDedup(
@@ -2157,6 +2201,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const visibleScheduled = showScheduled ? scheduledList : [];
   const visibleFinished = showFinished ? finishedList : [];
   const visiblePostponed = showPostponed ? postponedList : [];
+  // 연기 그룹 제목 — 야구만 모인 목록이면 "취소" (야구는 우천 등으로 무른 경기를 그렇게 부른다).
+  const postponedHeadLabel = "Postponed";
   const visibleCount =
     visibleLive.length + visibleScheduled.length + visibleFinished.length + visiblePostponed.length;
   // 좌측 사이드바용 — 오늘 리그별 경기 수(전 상태 합산). 경기 있는 리그만 노출 + 카운트.
@@ -2208,7 +2254,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       </header>
 
       {/* 종목 탭 */}
-      <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
+      <SportTabs activeSport={sport} liveCounts={liveCounts} date={isToday ? undefined : dateStr} />
 
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} todayKst={todayKstStr} sport={sport} extraQuery={extraQuery} />
@@ -2509,7 +2555,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 </Section>
               )}
               {postponedList.length > 0 && (
-                <Section title="🚫 Postponed" count={postponedList.length}>
+                <Section title={`🚫 ${postponedHeadLabel}`} count={postponedList.length}>
                   {postponedList.map((m) => renderCard(m))}
                 </Section>
               )}
@@ -2672,6 +2718,7 @@ function SoccerRowLayout({
   const scheduledSorted = [...scheduledList].filter((m) => !isWc(m)).sort(byStartThenLeague);
   const finishedSorted = [...finishedList].filter((m) => !isWc(m)).sort(byStartThenLeague);
   const postponedSorted = [...postponedList].sort(byStartThenLeague);
+  const postponedHeadLabel = "Postponed";
   const wcLive = [...liveList].filter(isWc).sort(byStartThenLeague);
   const wcScheduled = [...scheduledList].filter(isWc).sort(byStartThenLeague);
   const wcFinished = [...finishedList].filter(isWc).sort(byStartThenLeague);
@@ -2982,7 +3029,7 @@ function SoccerRowLayout({
         )}
         {postponedGroups.length > 0 && (
           <section className="space-y-2">
-            {statusHeader(`🚫 Postponed (${postponedSorted.length})`, "text-amber-600 dark:text-amber-500", "sm")}
+            {statusHeader(`🚫 ${postponedHeadLabel} (${postponedSorted.length})`, "text-amber-600 dark:text-amber-500", "sm")}
             {postponedGroups.map((g) => (
               <div key={g.day} className="space-y-2">
                 {dateHeaderMobile(g.label)}
@@ -3036,7 +3083,7 @@ function SoccerRowLayout({
         {postponedGroups.length > 0 && (
           <section className="space-y-2">
             <div className="text-[12px] font-bold text-amber-600 dark:text-amber-500">
-              🚫 Postponed ({postponedSorted.length})
+              🚫 {postponedHeadLabel} ({postponedSorted.length})
             </div>
             {postponedGroups.map((g) => (
               <div key={g.day} className="space-y-2">

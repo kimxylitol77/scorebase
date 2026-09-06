@@ -9,6 +9,7 @@ import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { hasStandingsTable } from "@/lib/sports/standings-valid";
 import FavoriteStar from "../FavoriteStar";
+import TeamLogoImg from "../../../TeamLogoImg";
 import { useScoreFlash } from "../../../scores/useScoreFlash";
 import type { SoccerGoal, SoccerCard, SoccerTeamStat, MatchOdds } from "@/lib/sports/live-scores";
 
@@ -69,24 +70,15 @@ export interface SoccerLiveRowProps {
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
-  // 군소팀 로고 URL 이 404(이미지 없음)면 onError 로 이니셜 fallback. (af KFA컵 등)
-  const [err, setErr] = useState(false);
-  if (url && !err) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return (
-      <img
-        src={url}
-        alt=""
-        onError={() => setErr(true)}
-        className="h-5 w-5 object-contain shrink-0 bg-white rounded p-0.5"
-        loading="lazy"
-      />
-    );
-  }
+  // 원본 50~90KB PNG 를 20px 로 그리던 것 — 공용 TeamLogoImg(optimizer 경유)로 (2026-08-28).
   return (
-    <span className="w-5 h-5 inline-flex items-center justify-center text-[10px] font-bold text-neutral-400 bg-white/5 rounded-full shrink-0">
-      {name.slice(0, 1)}
-    </span>
+    <TeamLogoImg
+      url={url}
+      name={name}
+      size={20}
+      className="h-5 w-5 object-contain shrink-0 bg-white rounded p-0.5"
+      fallbackClassName="w-5 h-5 inline-flex items-center justify-center text-[10px] font-bold text-neutral-400 bg-white/5 rounded-full shrink-0"
+    />
   );
 }
 

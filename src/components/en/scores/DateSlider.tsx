@@ -5,6 +5,7 @@
 // 선택된 일자 버튼은 마운트 후 자동으로 가로 중앙으로 스크롤된다.
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 interface Props {
@@ -32,6 +33,17 @@ export default function DateSlider({
   extraQuery = "",
 }: Props) {
   const activeRef = useRef<HTMLAnchorElement | null>(null);
+  const router = useRouter();
+
+  // 새로고침(reload)으로 들어왔는데 URL 의 날짜가 오늘이 아니면 오늘로 옮긴다.
+  // 어제 켜 둔 탭(?date=어제)을 다음 날 새로고침하면 어제 경기가 그대로 보이던 것(사용자 신고 2026-09-06).
+  // 날짜 칩·뒤로가기 등 사용자가 고른 이동은 reload 가 아니라 건드리지 않는다.
+  useEffect(() => {
+    if (selectedDate === todayKst) return;
+    const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type !== "reload") return;
+    router.replace(`/en/scores?sport=${sport}${extraQuery}`);
+  }, [selectedDate, todayKst, sport, extraQuery, router]);
 
   useEffect(() => {
     // 선택된 일자 버튼 → 가로 중앙으로 스크롤. 페이지 세로 스크롤은 건드리지 않음.
@@ -70,7 +82,8 @@ export default function DateSlider({
           <Link
             key={ds}
             ref={active ? activeRef : undefined}
-            href={`/scores?sport=${sport}&date=${ds}${extraQuery}`}
+            // 오늘 칩은 date 를 안 붙인다 — 오늘에 둔 탭이 날짜가 바뀌어도 새로고침만으로 새 오늘을 따라온다.
+            href={isToday ? `/en/scores?sport=${sport}${extraQuery}` : `/en/scores?sport=${sport}&date=${ds}${extraQuery}`}
             className={cls}
           >
             <span className="text-[10px] opacity-80">

@@ -8,6 +8,10 @@
     [
       "<span>{s.label}</span>",
       "<span>{SPORT_LABEL_EN[s.code] ?? s.label}</span>"
+    ],
+    [
+      "href={date ? `/scores?sport=${s.code}&date=${date}` : `/scores?sport=${s.code}`}",
+      "href={date ? `/en/scores?sport=${s.code}&date=${date}` : `/en/scores?sport=${s.code}`}"
     ]
   ],
   "dict": {

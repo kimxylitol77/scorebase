@@ -4,6 +4,14 @@
     [
       "        const weekday = d.toLocaleDateString(\"ko-KR\", {",
       "        const weekday = d.toLocaleDateString(\"en-GB\", {"
+    ],
+    [
+      "router.replace(`/scores?sport=${sport}${extraQuery}`);",
+      "router.replace(`/en/scores?sport=${sport}${extraQuery}`);"
+    ],
+    [
+      "href={isToday ? `/scores?sport=${sport}${extraQuery}` : `/scores?sport=${sport}&date=${ds}${extraQuery}`}",
+      "href={isToday ? `/en/scores?sport=${sport}${extraQuery}` : `/en/scores?sport=${sport}&date=${ds}${extraQuery}`}"
     ]
   ],
   "dict": {
