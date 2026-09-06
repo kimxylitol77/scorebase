@@ -12,6 +12,8 @@ import { toKoreanPlayerName } from "../../src/lib/player-names";
 import { toKoreanTeamName } from "../../src/lib/team-names";
 // 선발 JSON 파싱·사진 URL 은 사이트(/predictions/starters)와 같은 헬퍼를 쓴다
 import { parseStarter, pitcherPhoto } from "../../src/lib/predict/starter-card";
+// 축구 주간 베스트 XI — 화요일 글(weekly-xi cron)과 같은 산식·같은 7일 창
+import { getWeeklyBestXi } from "../../src/lib/soccer/weekly-best-xi";
 
 const OV = rawOv as Record<string, { nameKo?: string }>;
 const SHORTS = "/Users/kimss/scorebase-shorts";
@@ -864,6 +866,67 @@ async function buildStarterBoard(league: "KBO") {
   save("starter-board-kbo", "StarterBoard", props, text);
 }
 
+// ─────────────────────────── 축구 주간 베스트 5 (리그 요일 로테이션) ───────────────────────────
+// 주간 베스트 XI 글(화 발행)의 산식을 그대로 써서 지난 7일 평점 상위 5명을 카드로 만든다.
+// 리그는 요일로 돌린다(월 EPL·화 라리가·수 분데스·목 세리에·금 리그1·토 EPL·일 라리가) — argv[3] 로 강제 가능.
+// 표본이 부족하면(개막 주·A매치 브레이크) throw → daily-shorts.sh 가 soccer-cards 로 폴백한다.
+async function buildSoccerWeeklyXi() {
+  const ROTATION = ["LALIGA", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "EPL"]; // 일~토
+  const league = process.argv[3] || ROTATION[new Date(Date.now() + 9 * 3600000).getUTCDay()];
+  const LEAGUE_KO: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에A", LIGUE_1: "리그1" };
+  const LEAGUE_COLOR: Record<string, string> = { EPL: "#37003c", LALIGA: "#ee8707", BUNDESLIGA: "#d3010c", SERIE_A: "#024494", LIGUE_1: "#091c3e" };
+  const POS_KO: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
+  const w = await getWeeklyBestXi(league);
+  if (!w || w.xi.length < 5) throw new Error(`${league} 주간 베스트 표본 부족 (matches=${w?.matchCount ?? 0})`);
+  const top = [...w.xi].sort((a, b) => b.rating - a.rating || b.goals - a.goals || b.assists - a.assists).slice(0, 5);
+  const tsp = await p.theSportsPlayer.findMany({ where: { id: { in: top.map((t) => t.id) } }, select: { id: true, photoUrl: true } });
+  const photoOf = new Map(tsp.map((t) => [t.id, t.photoUrl]));
+  const leagueKo = LEAGUE_KO[league] ?? league;
+  const range = `${w.from.slice(5).replace("-", "/")}~${w.to.slice(5).replace("-", "/")}`;
+  const cards = [];
+  for (let i = 0; i < top.length; i++) {
+    const t = top[i];
+    const photoFile = `soc-${t.id}.png`;
+    const ok = photoOf.get(t.id) ? await download(photoOf.get(t.id)!, photoFile) : false;
+    let logoFile = "";
+    if (t.logo) { logoFile = `socteam-${t.country.replace(/[^a-z0-9]/gi, "").toLowerCase()}.png`; await download(t.logo, logoFile); }
+    cards.push({
+      rank: i + 1,
+      name: OV[t.id]?.nameKo || t.name,
+      team: toKoreanTeamName(t.country) || t.countryKo || t.country,
+      photo: ok ? photoFile : "soc-placeholder.png",
+      logo: logoFile,
+      color: SOCCER_COLOR[t.country] ?? LEAGUE_COLOR[league] ?? "#6366f1",
+      tier: `${leagueKo} 주간 베스트`,
+      note: `${POS_KO[t.pos] ?? t.pos} · ${range} · 리그 ${w.matchCount}경기 기준`,
+      cutout: true,
+      heroIdx: 0,
+      stats: [
+        { label: "평점", value: +t.rating.toFixed(2), decimals: 2 },
+        { label: "골", value: t.goals },
+        { label: "도움", value: t.assists },
+      ],
+    });
+  }
+  const mvp = top[0];
+  const hookFace = {
+    photo: cards[0].photo,
+    bigStat: mvp.rating.toFixed(2),
+    line1: `${cards[0].name}, 이번 주 ${leagueKo} MVP`,
+    line2: `${mvp.goals}골 ${mvp.assists}도움 · 평점 1위`,
+    color: cards[0].color,
+  };
+  const text = cardText({
+    headline: `${leagueKo} 이번 주 베스트 5 (${range})`,
+    cards,
+    keyStatIdx: 0,
+    ctaUrl: "scorebase.kr/soccer",
+    tags: `축구,해외축구,${leagueKo},주간 베스트,평점,MVP,${cards.map((c) => c.name).join(",")}`,
+    igHashtags: `#축구 #해외축구 #${leagueKo.replace(/\s/g, "")} #주간베스트 #MVP`,
+  });
+  save("soccer-weekly-xi", "SoccerCards", { title: `${leagueKo} · ${range}`, subtitle: "이번 주 평점 베스트 5", cta: "scorebase.kr/soccer", cards, hookFace }, text);
+}
+
 (async () => {
   const topic = process.argv[2];
   const builders: Record<string, () => Promise<void>> = {
@@ -872,6 +935,7 @@ async function buildStarterBoard(league: "KBO") {
     "kbo-cards": () => buildBaseballCards("KBO"),
     "mlb-cards": () => buildBaseballCards("MLB"),
     "soccer-cards": buildSoccerCards,
+    "soccer-weekly-xi": buildSoccerWeeklyXi,
     "mlb-avg-cards": buildMlbAvgCards,
     "ai-battle": buildAiBattle,
     "starter-kbo": () => buildStarterDuel("KBO"),
