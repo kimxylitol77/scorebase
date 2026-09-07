@@ -1,4 +1,5 @@
 // /picks/strong 데이터 — 고확신 픽 목록 + 그 픽을 뒷받침하는 근거 + 기준의 실제 성적.
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { predictedBeforeKickoff } from "@/lib/predict/scorecard-eligibility";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -310,7 +311,7 @@ export async function loadStrongPicks(date?: string): Promise<StrongPickMatch[]>
  * 만장일치를 얹어서 오르는 건 2%p 남짓이다 — 고확신 픽의 84%가 이미 만장일치라
  * 새 정보가 거의 없기 때문이다. 그래서 별도 섹션이 아니라 배지로만 쓴다.
  */
-export async function loadUnanimousAccuracy(): Promise<MarketAccuracy> {
+async function computeUnanimousAccuracy(): Promise<MarketAccuracy> {
   const rows = await prisma.aiPrediction.findMany({
     where: { market: { in: ["1X2", "HANDICAP", "OU"] }, published: true },
     select: {
@@ -352,6 +353,16 @@ export async function loadUnanimousAccuracy(): Promise<MarketAccuracy> {
   return { total, hit, rate: total ? (hit / total) * 100 : 0 };
 }
 
+/**
+ * 전 기간 누적 집계(AiPrediction 전량 스캔)라 요청마다 돌릴 값이 아니다 — 행이 쌓일수록
+ * 선형으로 느려진다. 산출은 숫자 3개뿐이고 시간 단위로 거의 안 변해 30분 캐시로 분리한다.
+ */
+export const loadUnanimousAccuracy = unstable_cache(
+  computeUnanimousAccuracy,
+  ["strong-unanimous-accuracy"],
+  { revalidate: 1800, tags: ["strong-unanimous-accuracy"] },
+);
+
 export interface MarketAccuracy {
   total: number;
   hit: number;
@@ -367,7 +378,7 @@ export interface StrongAccuracy extends MarketAccuracy {
  * 이 기준의 실제 성적 — 화면에 "근거"로 내보내는 수치라 반드시 DB 실측이어야 한다.
  * 마켓별 count 두 번씩(전체·적중)이라 전수 스캔보다 가볍다.
  */
-export async function loadStrongAccuracy(): Promise<StrongAccuracy> {
+async function computeStrongAccuracy(): Promise<StrongAccuracy> {
   const hcWhere = { predHcCorrect: { not: null }, predHcProb: { gte: STRONG_THRESHOLD.HANDICAP } };
   const dcWhere = { predDcCorrect: { not: null }, predDcProb: { gte: STRONG_THRESHOLD.DOUBLE_CHANCE } };
   const ouWhere = {
@@ -413,6 +424,13 @@ export async function loadStrongAccuracy(): Promise<StrongAccuracy> {
     },
   };
 }
+
+/** 위와 같은 이유 — 전 기간 count 8회라 매 요청 돌릴 값이 아니다. */
+export const loadStrongAccuracy = unstable_cache(
+  computeStrongAccuracy,
+  ["strong-accuracy"],
+  { revalidate: 1800, tags: ["strong-accuracy"] },
+);
 
 export interface DailyStat {
   /** KST yyyy-mm-dd */
