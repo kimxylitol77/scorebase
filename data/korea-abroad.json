@@ -1584,12 +1584,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Midtjylland",
-        "apps": 5,
-        "starts": 3,
+        "apps": 6,
+        "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 287,
-        "rating": 6.38,
+        "minutes": 352,
+        "rating": 6.39,
         "yellow": 0,
         "red": 0
       }
@@ -1912,12 +1912,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Alanyaspor",
-        "apps": 3,
+        "apps": 4,
         "starts": 3,
         "goals": 0,
         "assists": 0,
-        "minutes": 208,
-        "rating": 6.34,
+        "minutes": 217,
+        "rating": 6.4,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-06T22:20:19.022Z"
+  "currentUpdatedAt": "2026-09-07T22:20:15.224Z"
 }
