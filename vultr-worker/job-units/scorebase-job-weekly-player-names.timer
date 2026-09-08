@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Job Timer: weekly-player-names
+
+[Timer]
+OnCalendar=Sun *-*-* 03:15:00 Asia/Seoul
+Persistent=true
+
+[Install]
+WantedBy=timers.target

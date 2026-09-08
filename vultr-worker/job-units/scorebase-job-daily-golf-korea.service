@@ -1,0 +1,14 @@
+# 맥미니 이전 repo 잡 (2026-09-03) — 원본 launchd com.scorebase.daily-golf-korea
+[Unit]
+Description=Scorebase Job: daily-golf-korea (migrated from mac mini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase
+ExecStart=/bin/zsh /home/ubuntu/scorebase/mac-mini-worker/daily-golf-korea.sh
+StandardOutput=append:/home/ubuntu/scorebase/logs/daily-golf-korea.log
+StandardError=append:/home/ubuntu/scorebase/logs/daily-golf-korea.log
+TimeoutStartSec=3600

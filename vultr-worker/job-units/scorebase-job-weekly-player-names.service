@@ -1,0 +1,14 @@
+# 맥미니 이전 repo 잡 (2026-09-03) — 원본 launchd com.scorebase.weekly-player-names
+[Unit]
+Description=Scorebase Job: weekly-player-names (migrated from mac mini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase
+ExecStart=/bin/zsh /home/ubuntu/scorebase/mac-mini-worker/weekly-player-names.sh
+StandardOutput=append:/home/ubuntu/scorebase/logs/weekly-player-names.log
+StandardError=append:/home/ubuntu/scorebase/logs/weekly-player-names.log
+TimeoutStartSec=3600

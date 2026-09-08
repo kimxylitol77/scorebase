@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Job Timer: daily-ts-team-mapping
+
+[Timer]
+OnCalendar=*-*-* 06:20:00 Asia/Seoul
+Persistent=true
+
+[Install]
+WantedBy=timers.target

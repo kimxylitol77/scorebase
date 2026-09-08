@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Job Timer: weekly-baseball-postponed-verify
+
+[Timer]
+OnCalendar=Mon *-*-* 08:30:00 Asia/Seoul
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,14 @@
+# 맥미니 이전 repo 잡 (2026-09-03) — 원본 launchd com.scorebase.daily-fifa-rankings
+[Unit]
+Description=Scorebase Job: daily-fifa-rankings (migrated from mac mini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase
+ExecStart=/bin/zsh /home/ubuntu/scorebase/mac-mini-worker/daily-fifa-rankings.sh
+StandardOutput=append:/home/ubuntu/scorebase/logs/daily-fifa-rankings.log
+StandardError=append:/home/ubuntu/scorebase/logs/daily-fifa-rankings.log
+TimeoutStartSec=3600

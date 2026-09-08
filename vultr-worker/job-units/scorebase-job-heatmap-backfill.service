@@ -1,0 +1,14 @@
+# 맥미니 이전 repo 잡 (2026-09-03) — 원본 launchd com.scorebase.heatmap-backfill
+[Unit]
+Description=Scorebase Job: heatmap-backfill (migrated from mac mini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase
+ExecStart=/bin/zsh /home/ubuntu/scorebase/mac-mini-worker/heatmap-backfill.sh
+StandardOutput=append:/home/ubuntu/scorebase/logs/heatmap-backfill.log
+StandardError=append:/home/ubuntu/scorebase/logs/heatmap-backfill.log
+TimeoutStartSec=21600

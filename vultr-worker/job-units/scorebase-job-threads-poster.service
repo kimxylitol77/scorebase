@@ -1,0 +1,15 @@
+# 맥미니 이전 (2026-09-03) — 원본 launchd com.scorebase.threads-auto-poster (상주, 30분 내부 루프)
+[Unit]
+Description=Scorebase Job: threads-auto-poster (migrated from mac mini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase/mac-mini-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase/mac-mini-worker/threads-auto-poster.js
+Restart=always
+RestartSec=30
+StandardOutput=append:/home/ubuntu/scorebase/logs/threads-auto-poster.log
+StandardError=append:/home/ubuntu/scorebase/logs/threads-auto-poster.log

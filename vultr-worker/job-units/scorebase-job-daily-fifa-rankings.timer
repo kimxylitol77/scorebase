@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Job Timer: daily-fifa-rankings
+
+[Timer]
+OnCalendar=*-*-* 06:40:00 Asia/Seoul
+Persistent=true
+
+[Install]
+WantedBy=timers.target

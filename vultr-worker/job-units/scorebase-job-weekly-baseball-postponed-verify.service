@@ -1,0 +1,14 @@
+# 맥미니 이전 repo 잡 (2026-09-03) — 원본 launchd com.scorebase.weekly-baseball-postponed-verify
+[Unit]
+Description=Scorebase Job: weekly-baseball-postponed-verify (migrated from mac mini)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase
+ExecStart=/bin/zsh /home/ubuntu/scorebase/mac-mini-worker/weekly-baseball-postponed-verify.sh
+StandardOutput=append:/home/ubuntu/scorebase/logs/weekly-baseball-postponed-verify.log
+StandardError=append:/home/ubuntu/scorebase/logs/weekly-baseball-postponed-verify.log
+TimeoutStartSec=3600
