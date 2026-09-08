@@ -70,7 +70,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       // 빙 검색 형태 "{선수} 성적/방어율" 커버 — 팀명을 title 로 승격
       title: `${info.name} 성적 — ${info.team ?? "KBO"} 투수 ERA·최근 등판 (KBO)`,
-      description: `${info.team ?? "KBO"} ${info.name} 의 시즌 ERA(평균자책)·WHIP·IP·W-L·최근 등판 결과.`,
+      description: `${info.team ?? "KBO"} ${info.name}의 시즌 ERA(평균자책)·WHIP·IP·W-L·최근 등판 결과.`,
       alternates: { canonical },
       openGraph: {
         title: `${info.name} — KBO 선발 투수 통계`,
@@ -85,7 +85,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const teamKo = npbTeamJpToKor(info.team) ?? info.team ?? "NPB";
     return {
       title: `${koName} 성적 — ${teamKo} 투수 ERA·최근 등판 (NPB)`,
-      description: `${teamKo} ${koName} 의 시즌 ERA(평균자책)·WHIP·IP·승패·최근 등판.`,
+      description: `${teamKo} ${koName}의 시즌 ERA(평균자책)·WHIP·IP·승패·최근 등판.`,
       alternates: { canonical },
       openGraph: {
         title: `${koName} — NPB 선발 투수 통계`,
@@ -185,15 +185,26 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     // 빙 실측 "{선수} 타율"(이정후 타율 노출 11·클릭 0) — 시즌 스탯을 title 에 숫자로 박아
     // SERP 에서 즉답이 보이게. 스탯은 이미 fetch 한 profile.season 재사용이라 추가 비용 0.
     const s = profile.season;
+    // 한국어 페이지인데 팀명이 "San Francisco Giants" 로 나가고 있었다.
+    const teamKo = profile.team ? toKoreanTeamName(profile.team, "MLB") || profile.team : "";
+    const who = teamKo ? `${teamKo} ${koName}` : koName;
     const hitterTitle =
       !isPitcher && s?.avg
-        ? `${koName} 타율 ${s.avg}${s.hr != null ? ` 홈런 ${s.hr}` : ""}${s.ops ? ` OPS ${s.ops}` : ""} — MLB ${yr} 성적`
+        ? `${koName} 타율 ${s.avg}${s.hr != null ? ` 홈런 ${s.hr}` : ""}${s.ops ? ` OPS ${s.ops}` : ""} — MLB ${yr} 성적·최근 경기`
         : `${koName} — MLB 타자 성적·통계`;
+    // 설명이 "타점·OPS" 처럼 항목 이름만 나열하고 있었다 — 값은 이미 profile.season 에 있다.
+    const hitterStats = [
+      s?.games != null ? `${s.games}경기` : null,
+      s?.avg ? `타율 ${s.avg}` : null,
+      s?.hr != null ? `홈런 ${s.hr}개` : null,
+      s?.rbi != null ? `타점 ${s.rbi}` : null,
+      s?.ops ? `OPS ${s.ops}` : null,
+    ].filter(Boolean).join(" · ");
     return {
       title: isPitcher ? `${koName} — MLB 선발 투수 성적·통계` : hitterTitle,
       description: isPitcher
-        ? `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
-        : `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 타율${s?.avg ? ` ${s.avg}` : ""}·홈런${s?.hr != null ? ` ${s.hr}개` : ""}·타점·OPS·최근 경기 기록.`,
+        ? `${who}의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
+        : `${who}의 ${yr} 시즌 성적${hitterStats ? `: ${hitterStats}` : ""}. 최근 경기 기록과 통산 성적을 한 페이지에서 확인하세요.`,
       alternates: {
         canonical,
         // 영어판(/en/players) hreflang — MLB 는 bare 경로가 정본
