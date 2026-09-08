@@ -9,6 +9,12 @@ import { hasTacticalData, parseFormation, parseXg } from "./data-gate";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { buildTsEnrichment, type NameLink } from "./ts-enrich";
 
+/**
+ * xG 없이 ts 캐시(양 팀 포메이션 + 타임라인)로 게이트하는 리그. K리그1 은 af 가 xG 를 안 주고
+ * af 포메이션도 절반 이하지만 ts 라인업·인시던트는 전 경기 있다(2026-09-09 실측 47/47).
+ */
+export const TS_TACTICAL_LEAGUES = new Set<string>(["K_LEAGUE_1"]);
+
 export interface TacticalContext {
   matchId: number;
   home: string;
@@ -16,6 +22,12 @@ export interface TacticalContext {
   league: string;
   homeScore: number;
   awayScore: number;
+  /** 양 팀 xG 가 있는가 — 없으면 프롬프트가 xG 언급을 금지한다. */
+  hasXg: boolean;
+  /** 선수별 실지표가 있는가 — 없으면 "숫자가 가리킨 선수" 섹션을 빼고 개인 수치 창작을 금지한다. */
+  hasPlayerStats: boolean;
+  /** 리그 라운드(af raw.league.round 끝 숫자). 시리즈 킥커 표기용. 없으면 null. */
+  round: number | null;
   /** 프롬프트에 주입할 사람이 읽는 데이터 텍스트 */
   text: string;
   /** 본문 자동 링크용 이름 → 경로(등재된 선수·감독만). */
@@ -53,8 +65,21 @@ function parseStartXI(lineupJson: string | null): string[] {
   return [];
 }
 
+/** af raw.league.round("Regular Season - 28") 끝 숫자. 컵 라운드명·결손이면 null. */
+function parseRound(raw: string | null): number | null {
+  if (!raw) return null;
+  try {
+    const r = (JSON.parse(raw) as { league?: { round?: string } }).league?.round;
+    const m = r?.match(/(\d+)\s*$/);
+    return m ? Number(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * matchId 하나로 전술 컨텍스트를 조립. 게이트(포메이션+xG) 미통과·매치 없음이면 null.
+ * matchId 하나로 전술 컨텍스트를 조립. 게이트 미통과·매치 없음이면 null.
+ * 게이트는 리그별 — 기본은 af 포메이션+xG, TS_TACTICAL_LEAGUES 는 ts 양 팀 포메이션+타임라인.
  */
 export async function buildTacticalContext(matchId: number): Promise<TacticalContext | null> {
   const match = await prisma.match.findUnique({
@@ -71,18 +96,30 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
       lineupHome: true,
       lineupAway: true,
       fixtureStats: true,
+      raw: true,
       matchStats: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },
   });
   if (!match) return null;
-  if (!hasTacticalData(match)) return null;
+  const tsOnly = TS_TACTICAL_LEAGUES.has(match.league);
+  if (!tsOnly && !hasTacticalData(match)) return null;
+  if (match.status !== "FINISHED") return null;
   if (match.homeScore == null || match.awayScore == null) return null;
 
   // 팀명은 한글로 주입 — 영문을 주면 본문·제목이 "Arsenal" 로 나가거나 모델이 스스로 음역한다(ANALYSIS 와 같은 교훈).
   const home = toKoreanTeamName(match.homeTeam.name, match.league) || match.homeTeam.name;
   const away = toKoreanTeamName(match.awayTeam.name, match.league) || match.awayTeam.name;
+
+  // ts 캐시 보강(감독·한글 선발 XI·타임라인·선수 스탯). 캐시 없으면 af 라인업의 영문 선발만.
+  const ts = await buildTsEnrichment(match.id, home, away);
+  // af 라인업에 포메이션이 없으면 ts 포메이션으로 — K리그1 은 af 포메이션이 절반 이하.
+  const formH = parseFormation(match.lineupHome) ?? ts.formations.home;
+  const formA = parseFormation(match.lineupAway) ?? ts.formations.away;
+  const hasTimeline = ts.lines.some((l) => l.startsWith("[타임라인]"));
+  // ts 전용 게이트 — 양 팀 포메이션 + 타임라인이 없으면 "두 감독의 셋업·장면" 재료가 없어 일반론글이 된다.
+  if (tsOnly && (!formH || !formA || !hasTimeline)) return null;
 
   // Elo·폼·H2H 프레이밍 — 이 경기 직전 1년 window (match-brief 와 동일 파이프라인).
   const seasonMatches = await prisma.match.findMany({
@@ -123,8 +160,6 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
     away,
   );
 
-  const formH = parseFormation(match.lineupHome);
-  const formA = parseFormation(match.lineupAway);
   const coachH = parseCoach(match.lineupHome);
   const coachA = parseCoach(match.lineupAway);
   const xiH = parseStartXI(match.lineupHome);
@@ -139,15 +174,14 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
   lines.push(
     `[포메이션] 홈 ${home} ${formH}${coachH ? ` (감독 ${coachH})` : ""} / 원정 ${away} ${formA}${coachA ? ` (감독 ${coachA})` : ""}`,
   );
-  // ts 캐시 보강(감독·한글 선발 XI·타임라인·선수 스탯). 캐시 없으면 af 라인업의 영문 선발만.
-  const ts = await buildTsEnrichment(match.id, home, away);
   if (ts.lines.length === 0) {
     if (xiH.length) lines.push(`[홈 선발 XI] ${xiH.join(", ")}`);
     if (xiA.length) lines.push(`[원정 선발 XI] ${xiA.join(", ")}`);
   }
 
-  // xG — 게이트 통과했으므로 양팀 모두 존재. 실제 득점과 병기(마무리 효율 해석 재료).
-  lines.push(`[xG] 홈 ${xg.home!.toFixed(2)} / 원정 ${xg.away!.toFixed(2)} (실제 ${match.homeScore} - ${match.awayScore})`);
+  // xG — 빅5 는 게이트 통과했으므로 양팀 모두 존재. ts 전용 리그는 없을 수 있어 있을 때만 주입.
+  const hasXg = xg.home != null && xg.away != null;
+  if (hasXg) lines.push(`[xG] 홈 ${xg.home!.toFixed(2)} / 원정 ${xg.away!.toFixed(2)} (실제 ${match.homeScore} - ${match.awayScore})`);
 
   // 매치스탯 — 선택 항목. 있으면 주입.
   if (st) {
@@ -180,6 +214,9 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
     league: match.league,
     homeScore: match.homeScore,
     awayScore: match.awayScore,
+    hasXg,
+    hasPlayerStats: ts.hasPlayerStats,
+    round: parseRound(match.raw),
     text: lines.join("\n"),
     links: ts.links,
     lineupCode: ts.lineupCode,

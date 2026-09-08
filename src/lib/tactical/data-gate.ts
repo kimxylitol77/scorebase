@@ -42,6 +42,17 @@ export function parseXg(fixtureStats: string | null): {
   return { home: null, away: null };
 }
 
+/**
+ * ts 라인업 JSON 에 양 팀 포메이션이 있는가 — xG 가 없는 리그(K리그1)의 후보 선별용.
+ * 최종 게이트는 buildTacticalContext 가 타임라인 존재까지 확인한다.
+ */
+export function hasTsFormations(lineup: unknown): boolean {
+  if (!lineup || typeof lineup !== "object") return false;
+  const lu = lineup as { home_formation?: unknown; away_formation?: unknown };
+  const ok = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+  return ok(lu.home_formation) && ok(lu.away_formation);
+}
+
 /** 게이트 탈락 사유(로그·디버깅용). 통과 시 null. */
 export function tacticalGateReason(m: TacticalGateInput): string | null {
   if (m.status !== "FINISHED") return "미종료(Post-match 대상 아님)";

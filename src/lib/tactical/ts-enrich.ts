@@ -100,6 +100,10 @@ export interface TsEnrichment {
   lineupCode: string | null;
   /** 본문 도식(홈 셋업·원정 셋업). 좌표 결손이면 빈 배열. */
   shapes: ShapeFigure[];
+  /** ts 라인업의 양 팀 포메이션 — af 라인업에 포메이션이 없는 리그(K리그1)의 게이트·표기 폴백. */
+  formations: { home: string | null; away: string | null };
+  /** 선수별 실지표(패스·태클·슈팅·듀얼·키패스)가 하나라도 있는가. K리그1 ts 스탯은 rating 0.0 만 있는 껍데기라 false. */
+  hasPlayerStats: boolean;
 }
 
 /** ts 포지션(G/D/M/F) + 좌표 → 역할 약어. x 는 자기 팀 기준 좌→우 0~100, y 는 자기 골문 0. */
@@ -127,9 +131,14 @@ const num = (v: string | number | undefined | null): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 const clean = (s: string | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
+// ts 평점은 미제공 리그(K리그1 실측 2026-09-09)에서 0.0 으로 채워 온다 — 0 이하는 결손으로 본다.
+const rating = (v: string | number | undefined | null): number | null => {
+  const n = num(v);
+  return n != null && n > 0 ? n : null;
+};
 
 export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo: string): Promise<TsEnrichment> {
-  const empty: TsEnrichment = { lines: [], links: [], lineupCode: null, shapes: [] };
+  const empty: TsEnrichment = { lines: [], links: [], lineupCode: null, shapes: [], formations: { home: null, away: null }, hasPlayerStats: false };
   const cache = await prisma.theSportsMatchCache.findUnique({
     where: { matchId },
     select: { lineup: true, detailLive: true, playerStats: true },
@@ -209,7 +218,7 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
     xi.sort((a, b) => (order[a.position ?? ""] ?? 9) - (order[b.position ?? ""] ?? 9));
     const s = xi
       .map((p) => {
-        const r = num(p.rating);
+        const r = rating(p.rating);
         return `${nameOf(p.id, p.name)}(${POS_KO[p.position ?? ""] ?? p.position ?? "?"}${p.shirt_number ? ` #${p.shirt_number}` : ""}${p.captain === 1 ? " 주장" : ""}${r != null ? ` 평점 ${r.toFixed(1)}` : ""})`;
       })
       .join(", ");
@@ -251,8 +260,8 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
     const top = (key: keyof TsPlayerStat, n = 1) =>
       [...rows].filter((s) => (num(s[key] as number) ?? 0) > 0).sort((a, b) => (num(b[key] as number) ?? 0) - (num(a[key] as number) ?? 0)).slice(0, n);
     const out: string[] = [];
-    const byRating = [...rows].filter((s) => num(s.rating) != null).sort((a, b) => (num(b.rating) ?? 0) - (num(a.rating) ?? 0)).slice(0, 3);
-    if (byRating.length) out.push(`평점 상위 ${byRating.map((s) => `${nm(s)} ${num(s.rating)!.toFixed(1)}(${s.minutes_played}분)`).join(", ")}`);
+    const byRating = [...rows].filter((s) => rating(s.rating) != null).sort((a, b) => (rating(b.rating) ?? 0) - (rating(a.rating) ?? 0)).slice(0, 3);
+    if (byRating.length) out.push(`평점 상위 ${byRating.map((s) => `${nm(s)} ${rating(s.rating)!.toFixed(1)}(${s.minutes_played}분)`).join(", ")}`);
     const kp = top("key_passes", 2);
     if (kp.length) out.push(`키패스 ${kp.map((s) => `${nm(s)} ${s.key_passes}`).join(", ")}`);
     const ps = top("passes", 2);
@@ -352,7 +361,17 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
     });
   }
 
-  return { lines, links, lineupCode, shapes };
+  const STAT_KEYS: (keyof TsPlayerStat)[] = ["passes", "key_passes", "tackles", "shots", "duels", "interceptions", "dribble"];
+  const hasPlayerStats = stats.some((s) => rating(s.rating) != null || STAT_KEYS.some((k) => (num(s[k] as number) ?? 0) > 0));
+
+  return {
+    lines,
+    links,
+    lineupCode,
+    shapes,
+    formations: { home: clean(lu?.home_formation) || null, away: clean(lu?.away_formation) || null },
+    hasPlayerStats,
+  };
 }
 
 /** 본문에서 도식 자리를 표시하는 토큰 — 글 페이지가 이 토큰 위치에 TacticalShapeFigure 를 렌더한다. */
