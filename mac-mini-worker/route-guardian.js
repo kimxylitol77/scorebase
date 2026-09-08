@@ -37,6 +37,9 @@ const BFS_MAX_DEPTH = 3;
 // 3초+ 느림, 8초+ 매우 느림 (방문자 체감 큰 지연).
 const SLOW_WARN_MS = 3_000;
 const SLOW_HIGH_MS = 8_000;
+// 느림 후보 재측정 상한 — 한 건당 1회 추가 요청이라 전수 재측정은 크롤을 두 배로 늘린다.
+// 느린 순으로 이만큼만 확인하고 나머지는 그대로 확정한다.
+const SLOW_RECHECK_MAX = 40;
 
 if (!TOKEN) {
   console.error("❌ INTERNAL_API_TOKEN 미설정 — .env 확인");
@@ -264,10 +267,36 @@ async function runOnce() {
     : 0;
   const p50Ms = okDurs.length > 0 ? okDurs[Math.floor(okDurs.length * 0.5)] : 0;
   const p95Ms = okDurs.length > 0 ? okDurs[Math.floor(okDurs.length * 0.95)] : 0;
-  const slowWarn = oks
+  // 느림 후보 → 재측정 게이트.
+  // 이 크롤 자체가 2천여 URL 을 한 번씩 처음 때리는 것이라, ISR 만료·동적 렌더 페이지는
+  // "그 순간 처음 도는" 콜드 렌더로 잡힌다. 2026-09-08 실측: 알림에 7.7s 로 뜬 URL 들이
+  // 같은 서버에서 곧바로 다시 요청하면 0.06~0.65s 였다(72건 대부분이 여기 해당).
+  // 콜드를 걸러내지 않으면 slowWarn>0 조건 때문에 매 실행 알림이 나가 감시가 소음이 된다.
+  // 2차가 임계 밑이면 콜드로 보고 제외한다 — 진짜로 지속 지연되는 페이지만 남는다.
+  const slowCandidates = oks
+    .filter((r) => r.dur >= SLOW_WARN_MS)
+    .sort((a, b) => b.dur - a.dur);
+  const slowConfirmed = [];
+  let coldCount = 0;
+  if (slowCandidates.length > 0) {
+    console.log(`  느림 후보 ${slowCandidates.length}건 재측정 (콜드 렌더 판별)`);
+    for (const r of slowCandidates.slice(0, SLOW_RECHECK_MAX)) {
+      const again = await checkUrl(r.url);
+      if (again.kind === "ok" && again.dur < SLOW_WARN_MS) {
+        coldCount++;
+        continue; // 워밍 후 정상 → 콜드 렌더
+      }
+      // 재측정도 느리면 확정. 느린 쪽(2차)을 보고값으로 쓴다 — 지속 지연의 실제 크기.
+      slowConfirmed.push({ ...r, dur: again.kind === "ok" ? again.dur : r.dur });
+    }
+    // 상한을 넘은 나머지는 재측정 없이 그대로 확정 처리(과소보고 방지)
+    slowConfirmed.push(...slowCandidates.slice(SLOW_RECHECK_MAX));
+    console.log(`  → 콜드 ${coldCount}건 제외 · 지속 지연 ${slowConfirmed.length}건`);
+  }
+  const slowWarn = slowConfirmed
     .filter((r) => r.dur >= SLOW_WARN_MS && r.dur < SLOW_HIGH_MS)
     .sort((a, b) => b.dur - a.dur);
-  const slowHigh = oks
+  const slowHigh = slowConfirmed
     .filter((r) => r.dur >= SLOW_HIGH_MS)
     .sort((a, b) => b.dur - a.dur);
 
