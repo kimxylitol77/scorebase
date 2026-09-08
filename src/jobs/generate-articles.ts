@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { articleGateBlocks, checkArticleGate } from "@/lib/articles/publish-gate";
+import { humanizeArticle } from "@/lib/articles/humanize";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { buildLolRecapPromptV2 } from "@/prompts/lol-recap";
 import { buildLolRecapContext } from "@/lib/sports/lol-recap-context";
@@ -272,13 +273,18 @@ export async function runRecap(opts?: {
         m.league === "LOL" && lolRecapCtx
           ? buildLolRecapPromptV2(lolRecapCtx)
           : buildRecapPrompt({ match: normalized, context });
-      const content = await generateWithMinLength(prompt, {
+      const draft = await generateWithMinLength(prompt, {
         system: SYSTEM_PROMPT,
         maxTokens: 4096,
         temperature: 0.6,
         label: `recap ${m.league}#${m.id}`,
       });
-      if (!content) continue; // 길이 미달 — DB INSERT 스킵
+      if (!draft) continue; // 길이 미달 — DB INSERT 스킵
+
+      // 심판봇 (2026-09-04) — 규칙 채점이 기준 미달이면 LLM 이 문체만 고쳐 쓰고(숫자·헤딩·표 불변 검증) 재채점.
+      // 검증 실패면 초고 그대로. 글을 막지 않는다. lib/articles/humanize 참조. ARTICLE_HUMANIZE=off 로 해제.
+      const humanized = await humanizeArticle(draft, { label: `recap ${m.league}#${m.id}` });
+      const content = humanized.content;
 
       // 발행 정합 게이트 (2026-09-04) — 리뷰는 종목 금칙어만(라인업을 아는 글이라 결장·승률 대조는 맞지 않음).
       const gate = checkArticleGate({ content, league: m.league, mode: "recap" });
