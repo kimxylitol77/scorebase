@@ -16,6 +16,9 @@ import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import rawPlayerSeason from "../../../data/player-season-stats.json";
+import rawPlayerOverrides from "../../../data/player-overrides.json";
 
 // 챗봇이 조회할 수 있는 리그 = 사이트가 노출하는 리그 전부(ALL_LEAGUES).
 //
@@ -146,6 +149,18 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
         matchId: { type: "integer", description: "Match.id (숫자)" },
       },
       required: ["matchId"],
+    },
+  },
+  {
+    name: "find_player",
+    description:
+      "선수 이름(한글·영문, 일부만도 가능)으로 우리 선수 데이터를 찾는다. 소속·포지션·등번호·이번 시즌 출전/골/도움·몸값과 선수 페이지 링크를 돌려준다. 사람 이름이 들어오면 글 검색보다 이 도구를 먼저 부른다.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "선수 이름. 예: 이강인, 손흥민, Saka" },
+      },
+      required: ["query"],
     },
   },
   {
@@ -294,6 +309,8 @@ export async function executeTool(
       );
     case "search_articles":
       return await searchArticles(String(input.query ?? ""));
+    case "find_player":
+      return await findPlayer(String(input.query ?? ""));
     case "get_top_picks":
       return await getTopPicks(input.league as string | undefined);
     case "get_xg_matchups":
@@ -650,22 +667,110 @@ async function getMatchPrediction(matchId: number): Promise<string> {
   return out.join("\n");
 }
 
+// 제목 일치를 먼저, 본문 일치를 뒤에. 선수·감독 이름은 제목엔 거의 없고 본문에만 있어
+// 제목만 보면 "관련 글 없음"으로 손님을 돌려보냈다(2026-09-08 이강인 — 본문 언급 5편).
 async function searchArticles(query: string): Promise<string> {
   const q = query.trim();
   if (!q) return "검색어가 비어 있음.";
-  const articles = await prisma.article.findMany({
-    where: {
-      status: "PUBLISHED",
-      title: { contains: q, mode: "insensitive" },
-    },
+  const select = { slug: true, title: true, type: true, league: true, publishedAt: true } as const;
+  const byTitle = await prisma.article.findMany({
+    where: { status: "PUBLISHED", title: { contains: q, mode: "insensitive" } },
     orderBy: { publishedAt: "desc" },
     take: 5,
-    select: { slug: true, title: true, type: true, league: true, publishedAt: true },
+    select,
   });
+  const seen = new Set(byTitle.map((a) => a.slug));
+  const byBody =
+    byTitle.length < 5
+      ? (
+          await prisma.article.findMany({
+            where: { status: "PUBLISHED", content: { contains: q, mode: "insensitive" }, slug: { notIn: [...seen] } },
+            orderBy: { publishedAt: "desc" },
+            take: 5 - byTitle.length,
+            select,
+          })
+        ).map((a) => ({ ...a, bodyHit: true as const }))
+      : [];
+  const articles = [...byTitle.map((a) => ({ ...a, bodyHit: false as const })), ...byBody];
   if (articles.length === 0) return `"${q}" 관련 게시 글 없음.`;
   return articles
-    .map((a) => `- [${a.type}] ${a.title} (/articles/${a.slug})`)
+    .map((a) => `- [${a.type}] ${a.title} (${SITE_URL}/articles/${a.slug})${a.bodyHit ? " — 본문에서 언급" : ""}`)
     .join("\n");
+}
+
+// ============================================================
+// 선수 찾기 — 선수 페이지(/transfers/[id])가 쓰는 소스 그대로: TheSportsPlayer(이름)·
+// PlayerMarketValue(몸값)·PlayerSquadInfo(등번호)·player-season-stats.json(소속·시즌 기록).
+// ============================================================
+interface PlayerSeasonRow {
+  lg?: string | null; season?: string | null; team?: string | null; pos?: string | null;
+  matches?: number | null; starts?: number | null; goals?: number | null; assists?: number | null; minutes?: number | null;
+}
+const PLAYER_SEASON = rawPlayerSeason as unknown as Record<string, PlayerSeasonRow>;
+const PLAYER_OVERRIDES = rawPlayerOverrides as unknown as Record<string, { nameKo?: string | null }>;
+const POS_KO_CHAT: Record<string, string> = { G: "골키퍼", D: "수비수", M: "미드필더", F: "공격수" };
+
+async function findPlayer(query: string): Promise<string> {
+  const q = query.trim();
+  if (q.length < 2) return "선수 이름을 2글자 이상 입력해 주세요.";
+  // 수동 교정 사전(player-overrides)에 한글명이 있으면 그 id 를 먼저 후보에 넣는다.
+  const overrideIds = Object.entries(PLAYER_OVERRIDES)
+    .filter(([, v]) => v?.nameKo && v.nameKo.includes(q))
+    .map(([id]) => id)
+    .slice(0, 5);
+  const rows = await prisma.theSportsPlayer.findMany({
+    where: {
+      OR: [
+        { id: { in: overrideIds.length ? overrideIds : ["__none__"] } },
+        { nameKo: { contains: q } },
+        { name: { contains: q, mode: "insensitive" } },
+      ],
+    },
+    select: { id: true, name: true, nameKo: true, position: true },
+    take: 200, // "saka" 류 짧은 영문은 일본 선수명(사카이·사카모토…)에 수십 건 걸린다 — 넓게 받아 아래서 순위를 매긴다
+  });
+  if (rows.length === 0) return `"${q}" 에 해당하는 선수를 우리 데이터에서 찾지 못했습니다.`;
+  // 정렬: 이름 완전 일치 → 단어 단위 일치("Saka" 는 Bukayo Saka, 사카이 X) → 이번 시즌 기록 보유.
+  // 부분 일치만 쓰면 "Saka" 에 사카이·사카모토가 먼저 나온다(실측).
+  const ql = q.toLowerCase();
+  const wordRe = new RegExp(`(^|[\\s-])${ql.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[\\s-])`, "i");
+  const score = (r: { name: string; nameKo: string | null }, season: PlayerSeasonRow | undefined) => {
+    const names = [r.name, r.nameKo ?? ""].map((n) => n.toLowerCase());
+    let sc = 0;
+    if (names.some((n) => n === ql)) sc += 100;
+    else if (names.some((n) => wordRe.test(n))) sc += 50;
+    if (season) sc += 10;
+    return sc;
+  };
+  const ranked = rows
+    .map((r) => ({ r, season: PLAYER_SEASON[r.id] as PlayerSeasonRow | undefined }))
+    .sort((a, b) => score(b.r, b.season) - score(a.r, a.season))
+    .slice(0, 3);
+  const [mvs, squads] = await Promise.all([
+    prisma.playerMarketValue.findMany({ where: { id: { in: ranked.map((x) => x.r.id) } }, select: { id: true, currentValue: true } }),
+    prisma.playerSquadInfo.findMany({ where: { id: { in: ranked.map((x) => x.r.id) } }, select: { id: true, number: true } }),
+  ]);
+  const mvById = new Map(mvs.map((m) => [m.id, m.currentValue]));
+  const noById = new Map(squads.map((s) => [s.id, s.number]));
+  const lines = ranked.map(({ r, season }) => {
+    const name = PLAYER_OVERRIDES[r.id]?.nameKo || r.nameKo || r.name;
+    const team = season?.team ? toKoreanTeamName(season.team, season.lg ?? undefined) || season.team : null;
+    const pos = POS_KO_CHAT[r.position ?? season?.pos ?? ""] ?? null;
+    const no = noById.get(r.id);
+    const mv = mvById.get(r.id);
+    const facts: string[] = [];
+    if (team) facts.push(`소속 ${team}${season?.lg ? `(${season.lg})` : ""}`);
+    if (pos) facts.push(pos);
+    if (no != null && no > 0) facts.push(`등번호 ${no}`);
+    if (season) facts.push(`${season.season ?? "이번"} 시즌 ${season.matches ?? 0}경기(선발 ${season.starts ?? 0}) ${season.goals ?? 0}골 ${season.assists ?? 0}도움${season.minutes ? ` ${season.minutes}분` : ""}`);
+    if (mv) facts.push(`몸값 €${Math.round(mv / 1e5) / 10}M`);
+    return `- ${name}${r.name && r.name !== name ? ` (${r.name})` : ""} — ${facts.length ? facts.join(" · ") : "기록 없음"} · 선수 페이지 ${SITE_URL}/transfers/${r.id}`;
+  });
+  return [
+    `"${q}" 검색 결과 ${rows.length}명 중 상위 ${ranked.length}명:`,
+    ...lines,
+    "관련 글은 search_articles 로 이어서 찾을 수 있다. 한국 선수면 해외파 허브도 안내: " + `${SITE_URL}/soccer/korea`,
+  ].join("\n");
 }
 
 // 예정 경기 중 모델 최고 확률이 높은 순으로 Strong Pick 후보 반환. "가장 신뢰도 높은 예측" 류 질문용.
@@ -683,8 +788,17 @@ async function getTopPicks(leagueRaw?: string): Promise<string> {
     orderBy: { startTime: "asc" },
     take: 100,
   });
-  if (matches.length === 0) return "예정 경기 중 예측이 있는 경기가 없습니다.";
-  const ranked = matches
+  // predWinner 가 비어 있으면 모델이 "추천 없음(NO_PICK)" 으로 판정한 경기다 — 확률은 있어도 픽이 아니다.
+  // 이걸 "무승부" 로 내보내 배구(무승부 없음)에 "무승부 73.9%" 가 찍혔다(2026-09-05 로그).
+  const picked = matches.filter((m) => m.predWinner === "HOME" || m.predWinner === "AWAY" || m.predWinner === "DRAW");
+  if (picked.length === 0) {
+    const baseballNote =
+      league && BASEBALL_LEAGUES.has(league)
+        ? " 야구는 양 팀 선발 투수가 확정된 뒤(대개 경기 당일 오후) 예측이 생성됩니다."
+        : "";
+    return `예정 경기 중 모델이 픽을 낸 경기가 아직 없습니다.${baseballNote}`;
+  }
+  const ranked = picked
     .map((m) => {
       const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
       const pickName =
