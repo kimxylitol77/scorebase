@@ -69,6 +69,70 @@ const enAlt = (upper: string) =>
     ? { languages: koEnLanguages(`/standings/${upper}`, `/en/standings/${upper}`) }
     : {};
 
+// 축구 리그 순위 메타 — 빙 실측(2026-09-08): 축구 순위 페이지 노출 6,106에 클릭 22(CTR 0.36%),
+// /standings/EPL 만 봐도 1,209 노출 0 클릭이다. 같은 자리에서 KBO 는 날짜·1위 팀을 제목에 넣은 뒤
+// CTR 0.63%→1.22% 로 올랐다(아래 KBO 분기). 정적 "…순위표" 문구가 원인이라 보고 같은 처방을 옮긴다.
+// 표를 못 믿는 상황에서는 null 을 돌려 기존 정적 문구를 그대로 쓴다.
+async function soccerStandingsMeta(
+  upper: string,
+  name: string,
+): Promise<{ title: string; description: string } | null> {
+  try {
+    const ts = await fetchStandingsForLeague(upper);
+    // 조·컨퍼런스가 갈린 대회(MLS 동/서, 조별리그)는 tables[0] 의 1위가 리그 1위가 아니다 — 손대지 않는다.
+    if (!ts || ts.tables.length !== 1) return null;
+    const all = ts.tables[0].rows;
+    const rows = all.filter((r) => r.ourTeamId != null).sort((a, b) => a.position - b.position);
+    // ts 롤오버 직후 0전적 표(개막 전)는 1위가 의미 없다 — 정적 문구 유지.
+    if (rows.length < 3 || rows.every((r) => r.total === 0)) return null;
+    // 실제 1위가 미매핑으로 걸러졌으면 2위가 머리에 온다 — 그 상태로 "1위" 를 쓰면 오보다.
+    if (rows[0].position !== 1) return null;
+    const top3 = rows.slice(0, 3);
+    const teams = await prisma.team.findMany({
+      where: { id: { in: top3.map((r) => r.ourTeamId!) } },
+      select: { id: true, name: true, nameKo: true },
+    });
+    // 표는 toKoreanTeamName 으로 렌더한다 — 메타에서 nameKo 를 먼저 쓰면 같은 팀이
+    // 제목 "아스날" / 표 "아스널" 로 갈린다. 표기를 표와 일치시킨다.
+    const nameOf = (id: number) => {
+      const t = teams.find((x) => x.id === id);
+      return t ? toKoreanTeamName(t.name, upper) || t.nameKo || t.name : "";
+    };
+    const names = top3.map((r) => nameOf(r.ourTeamId!));
+    if (!names[0]) return null;
+    const kst = new Date(Date.now() + 9 * 3600_000);
+    const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+    const rest = top3
+      .slice(1)
+      .map((r, i) => (names[i + 1] ? `${r.position}위 ${names[i + 1]} ${r.points}점` : null))
+      .filter(Boolean)
+      .join(" · ");
+    return {
+      title: `${name} 순위 (${dateLabel}) — 1위 ${names[0]} 승점 ${top3[0].points} · ${name} 팀 순위표`,
+      description:
+        `${dateLabel} ${name} 팀 순위: 1위 ${names[0]} ${top3[0].total}경기 승점 ${top3[0].points}` +
+        `${rest ? ` · ${rest}` : ""}. ` +
+        `${all.length}개 팀 승점·승무패·골득실과 최근 폼을 매일 자동 갱신합니다.`,
+    };
+  } catch {
+    return null; // 순위 캐시 불가 시 정적 폴백
+  }
+}
+
+// 빙에 들어오는 표기는 우리 표시명 그대로가 아니다 — "영국 프리미어 리그 팀 순위" 1,238 노출,
+// "k리그1" 164 노출(표시명은 "K리그 1"). 표시명만으로 안 잡히는 리그만 통용 표기를 보탠다.
+const SOCCER_STANDINGS_ALIAS: Record<string, string[]> = {
+  EPL: ["프리미어리그", "EPL", "영국 프리미어 리그"],
+  K_LEAGUE_1: ["K리그1", "K리그 1", "K리그"],
+  K_LEAGUE_2: ["K리그2", "K리그 2"],
+  LIGUE_1: ["리그앙", "프랑스 리그앙"],
+};
+
+function soccerStandingsKeywords(upper: string, name: string): string[] {
+  const aliases = SOCCER_STANDINGS_ALIAS[upper] ?? [name];
+  return [...new Set(aliases.flatMap((a) => [`${a} 순위`, `${a} 순위표`, `${a} 팀 순위`]))];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
@@ -155,6 +219,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ],
       alternates: { canonical: "https://www.scorebase.kr/standings/KBO", ...enAlt(upper) },
     };
+  }
+  // 축구 리그 — 순위표가 살아 있으면 날짜·1위 팀·승점을 앞세운다. 개막 전이거나 캐시가 없으면
+  // null 이라 아래 정적 분기(EPL·제네릭)로 그대로 떨어진다.
+  if ((SOCCER_LEAGUES as readonly string[]).includes(upper)) {
+    const dyn = await soccerStandingsMeta(upper, name);
+    if (dyn) {
+      return {
+        title: dyn.title,
+        description: dyn.description,
+        keywords: soccerStandingsKeywords(upper, name),
+        alternates: { canonical: `https://www.scorebase.kr/standings/${upper}`, ...enAlt(upper) },
+      };
+    }
   }
   // EPL — 8월 개막 수요 선점 (빙 색인 리드타임 감안해 미리 정밀 매칭)
   if (upper === "EPL") {
