@@ -14,6 +14,7 @@ import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
+import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -204,10 +205,79 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         // 에서 인덱스는 실제 순위와 어긋난다(2026-08-27 KIA 4위 → "7위" 오표기 사고).
         const divLabel = npbDivisionKo(r.division); // NPB 만 "센트럴/퍼시픽", KBO 는 빈 문자열
         const rankLabel = `${team.league}${divLabel ? ` ${divLabel}` : ""} ${r.position}위`;
+        // 순위 문구는 부가 조회보다 먼저 확정한다 — 아래 조회가 실패해도 순위까지 잃지 않는다.
         title = `${ko} 팀 순위 (${dateLabel}) — ${rankLabel} · 야구 일정·로스터·통계`;
         description =
           `오늘의 ${ko} 팀 순위 (${dateLabel}): ${rankLabel}, ${r.wins}승 ${r.losses}패 승률 ${pct}. ` +
           `일정·로스터·선수 통계와 AI 승부예측을 실시간 갱신합니다.`;
+        // 빙 SERP 실측(2026-09-08): "한화 이글스 팀 순위 야구" 우리가 3위인데 클릭 0.2%.
+        // Copilot 요약은 뜨지 않았고, 우리 스니펫이 제목·설명만으로 순위·승패를 다 답해
+        // 클릭할 이유를 남기지 않는 게 원인이었다. 우리보다 위에 있는 경쟁사(lkbo.ai.kr·
+        // kbo-dashboard)는 순위에 더해 "다음 경기·최근 10경기" 를 약속한다.
+        // 순위 토큰은 매칭에 필요하니 그대로 두고, 클릭해야 얻는 값을 앞에 덧붙인다.
+        // ⚠ "잔여 N경기" 는 쓰지 않는다 — DB 의 SCHEDULED 는 8일치만 들어와 있어(2026-09-08 실측
+        //    KBO 9/15까지 28건) 실제 잔여 경기가 아니다. 틀린 수치를 SERP 로 내보내게 된다.
+        try {
+          const [nextGame, last10] = await Promise.all([
+            prisma.match.findFirst({
+              where: {
+                league: team.league,
+                status: "SCHEDULED",
+                startTime: { gte: new Date() },
+                OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
+              },
+              orderBy: { startTime: "asc" },
+              select: { startTime: true, homeTeamId: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+            }),
+            prisma.match.findMany({
+              where: {
+                league: team.league,
+                status: "FINISHED",
+                OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
+              },
+              orderBy: { startTime: "desc" },
+              take: 10,
+              select: { homeTeamId: true, homeScore: true, awayScore: true },
+            }),
+          ]);
+          let nextLabel = "";
+          if (nextGame) {
+            const opp = nextGame.homeTeamId === team.id ? nextGame.awayTeam.name : nextGame.homeTeam.name;
+            const nk = new Date(nextGame.startTime.getTime() + 9 * 3600_000);
+            nextLabel = `다음 ${nk.getUTCMonth() + 1}/${nk.getUTCDate()} ${toKoreanTeamName(opp, team.league)}전`;
+          }
+          let w = 0, l = 0, dr = 0;
+          for (const m of last10) {
+            if (m.homeScore == null || m.awayScore == null) continue;
+            if (m.homeScore === m.awayScore) dr++;
+            else if ((m.homeScore > m.awayScore) === (m.homeTeamId === team.id)) w++;
+            else l++;
+          }
+          const played = w + l + dr;
+          const formLabel = played > 0 ? `최근 ${played}경기 ${w}승${dr > 0 ? ` ${dr}무` : ""} ${l}패` : "";
+          // 가을야구 확률은 KBO 전용(postseason-odds 가 KBO 구조만 다룬다). 확률이 갈린 팀만 —
+          // 0%·100% 로 굳은 팀에 확률을 붙이면 클릭 유인이 아니라 군더더기다.
+          let poLabel = "";
+          if (team.league === "KBO") {
+            const po = (await getKboPostseasonOdds())?.get(team.id);
+            if (po != null && po >= 0.05 && po <= 0.95) {
+              poLabel = `가을야구 진출 확률 ${(po * 100).toFixed(1)}%(잔여 경기 5,000회 시뮬레이션)`;
+            }
+          }
+          // 제목은 빙에서 38자 안팎에서 잘린다(실측) — 순위 바로 뒤에 다음 경기를 두고,
+          // 매칭에만 쓰이는 "야구 일정·로스터" 는 꼬리로 보낸다.
+          if (nextLabel || formLabel) {
+            title =
+              `${ko} 팀 순위 (${dateLabel}) — ${rankLabel}` +
+              `${nextLabel ? `, ${nextLabel}` : ""} · 야구 일정·로스터·통계`;
+            const head = [poLabel, nextLabel, formLabel].filter(Boolean).join(" · ");
+            description =
+              `${head}. 오늘의 ${ko} 팀 순위 (${dateLabel}): ${rankLabel}, ${r.wins}승 ${r.losses}패 승률 ${pct}. ` +
+              `일정·로스터·선수 통계와 AI 승부예측을 실시간 갱신합니다.`;
+          }
+        } catch {
+          // 부가 값 조회 실패 — 위에서 확정한 순위 문구를 그대로 쓴다
+        }
       }
     } catch {
       // 순위 캐시 불가 시 정적 폴백 유지
