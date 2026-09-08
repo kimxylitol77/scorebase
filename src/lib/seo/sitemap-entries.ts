@@ -140,7 +140,11 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     })),
     { url: `${base}/en/over-under`, changeFrequency: "daily", priority: 0.65 },
     // 오버/언더 리그 상세는 핵심 리그만 — thin 희석 방지(한국어판은 94개 전체 등재)
-    ...SITEMAP_LEAGUES.map((lg) => ({
+    // ⚠️ 집계 통과 리그와 반드시 교집합을 잡는다. 한국어판은 getAllLeaguesOverUnder() 결과를 쓰는데
+    //   영어판만 고정 목록을 그대로 써서, 페이지가 404 인 리그를 사이트맵이 검색엔진에 제출하고 있었다
+    //   (2026-09-08 route-guardian 적발: CLUB_WORLD_CUP — 32팀 대회는 우승팀도 7경기라
+    //    "팀당 8경기" 임계를 구조적으로 넘을 수 없어 페이지가 영원히 안 생긴다).
+    ...SITEMAP_LEAGUES.filter((lg) => overUnderLeagues.includes(lg)).map((lg) => ({
       url: `${base}/en/over-under/${lg}`,
       changeFrequency: "daily" as const,
       priority: 0.55,
