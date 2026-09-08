@@ -150,7 +150,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // "순위표"만 약속하면 클릭할 이유가 없다. 그래서 요약이 못 주는 가을야구 확률을 앞세운다.
   // 특히 확률이 갈린 팀(5~95%)이 검색자의 실제 관심사라 그 경쟁 구간을 description 머리에 둔다.
   if (upper === "KBO") {
-    let title = "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차";
+    // 빙 실측(2026-09-08): "프로야구 순위 2026" 370 노출 1 클릭·"야구 순위 2026" 150/1 인데
+    // 동적 제목에는 연도 토큰이 없었다(정적 폴백에만 하드코딩돼 있었다). 시즌 연도는
+    // 순위·시뮬과 같은 season-window 에서 가져와 해가 바뀌어도 자동으로 맞는다.
+    const kboSeason = currentSeasonStart("KBO")?.getUTCFullYear();
+    const seasonTag = kboSeason ? `${kboSeason} ` : "";
+    let title = `KBO 리그 팀 순위 — ${seasonTag}프로야구 순위표·승률·게임차`;
     let description =
       "KBO 리그 팀 순위표. 10개 구단 승·패·무·승률·게임차와 최근 폼을 한눈에. 한국 프로야구 순위 매일 자동 갱신.";
     try {
@@ -191,13 +196,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 `잔여 경기 5,000회 시뮬레이션. `
               : "";
           title = race
-            ? `프로야구 순위 (${dateLabel}) 1위 ${n1} — KBO 팀 순위표·가을야구 확률`
-            : `프로야구 순위 (${dateLabel}) — 1위 ${n1} · KBO 리그 팀 순위표`;
+            ? `프로야구 순위 (${dateLabel}) 1위 ${n1} — ${seasonTag}KBO 팀 순위표·가을야구 확률`
+            : `프로야구 순위 (${dateLabel}) — 1위 ${n1} · ${seasonTag}KBO 리그 팀 순위표`;
           description =
             race +
             `${dateLabel} KBO 팀 순위: 1위 ${n1} 승률 ${pct1} · ` +
             `2위 ${nameOf(t2.ourTeamId)} ${gb2}게임차 · 3위 ${nameOf(t3.ourTeamId)}. ` +
-            `10개 구단 승·패·무·승률·게임차 자동 갱신.`;
+            `${seasonTag}시즌 10개 구단 승·패·무·승률·게임차 자동 갱신.`;
         }
       }
     } catch {
@@ -207,6 +212,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       keywords: [
+        ...(kboSeason
+          ? [`${kboSeason} 프로야구 순위`, `${kboSeason} KBO 순위`, `${kboSeason} 야구 순위`]
+          : []),
         "KBO 순위",
         "KBO 리그 팀 순위",
         "KBO 팀 순위",
