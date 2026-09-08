@@ -23,7 +23,7 @@ import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { NO_STANDINGS_LEAGUES } from "@/lib/sports/season-calendar";
-import { PROVIDER_TS, getActiveSeason, resolveSeasonYear } from "@/lib/sports/season-registry";
+import { PROVIDER_TS, afSeasonYear, getActiveSeason, resolveSeasonYear } from "@/lib/sports/season-registry";
 import { tsCacheUsable } from "@/lib/sports/thesports/standings-gate";
 import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import { afQuotaOk } from "@/lib/sports/af-quota";
@@ -237,7 +237,9 @@ async function handle(req: NextRequest) {
   for (const { league } of batch) {
     const leagueId = API_FOOTBALL_LEAGUE_ID[league as keyof typeof API_FOOTBALL_LEAGUE_ID]!;
     // 시즌 연도 — ACTIVE 레지스트리 우선, 없으면 달력 계산.
-    const season = await resolveSeasonYear(league, now);
+    // af 가 우리와 다르게 번호를 매기는 리그(J1)는 보정한 값으로 조회하고 그 값을 캐시에 남긴다
+    // — 검증 게이트도 같은 보정을 보므로 두 쪽이 어긋나지 않는다.
+    const season = afSeasonYear(league, await resolveSeasonYear(league, now));
     const rows = await fetchStandings(apiKey, leagueId, season);
     if (!rows || rows.length === 0) {
       out.fail.push(`${league}(s${season})`);

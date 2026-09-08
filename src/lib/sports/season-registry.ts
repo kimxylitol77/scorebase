@@ -224,6 +224,26 @@ export async function registrySeasonYear(league: string): Promise<number | null>
 }
 
 /**
+ * api-football 전용 시즌 번호 보정 — provider 가 우리(ts 기준) 연도와 다르게 매기는 리그만.
+ *
+ * J1 은 추춘제 전환 뒤 api-football 이 2026-08 개막 시즌을 **2027** 로 매긴다
+ * (2026 은 2~6월 이행 시즌으로 이미 끝났다). 같은 전환을 한 J2 는 2026 이라 provider 안에서도
+ * 일관되지 않으니 리그 단위로만 예외를 둔다.
+ *
+ * ⚠️ 표시용 시즌 라벨에는 쓰지 말 것 — 여기 값은 api-football 호출·그 캐시 검증 전용이다.
+ * resolveSeasonYear 를 그대로 바꾸면 sitemap·아카이브의 라벨이 "2027" 로 틀어진다.
+ * 2026-09-09 실측 — 이 보정이 없어 af 순위 캐시가 6월에 끝난 표에 동결돼 있었다.
+ */
+const AF_SEASON_YEAR_OVERRIDE: Record<string, Record<number, number>> = {
+  J1_LEAGUE: { 2026: 2027 },
+};
+
+/** api-football 호출·캐시 검증에 쓸 시즌 연도. 보정 대상이 아니면 입력을 그대로 돌려준다. */
+export function afSeasonYear(league: string, year: number): number {
+  return AF_SEASON_YEAR_OVERRIDE[league]?.[year] ?? year;
+}
+
+/**
  * api-football `season` 파라미터용 시즌 연도.
  * ACTIVE 레지스트리(af → ts 순) 우선 → 없으면 season-calendar 계산(제한적 fallback).
  */

@@ -11,7 +11,7 @@
 
 import { prisma } from "@/lib/db";
 import teamIdMapping from "./team-id-mapping.json";
-import { PROVIDER_TS, getActiveSeason, registrySeasonYear } from "../season-registry";
+import { PROVIDER_TS, afSeasonYear, getActiveSeason, registrySeasonYear } from "../season-registry";
 import {
   afCacheUsable,
   tsCacheUsable,
@@ -83,10 +83,13 @@ async function seasonGate(league: string): Promise<{
     // registrySeasonYear 는 ACTIVE 가 없어도 DISCOVERED/VERIFIED 후보까지 본다:
     // 롤오버 대기 구간이 provider 캐시에 지난 시즌 표가 남는 가장 위험한 창인데
     // ACTIVE 만 보면 하필 그때 게이트가 꺼졌다.
+    // af 캐시는 af 가 매긴 번호로 저장된다 — 게이트 기준도 같은 보정을 거쳐야 한다.
+    // (보정 없으면 J1 이 2026 vs 2026 으로 맞아떨어져 6월에 끝난 표가 통과했다. 2026-09-09 실측)
+    const afGateYear = gateYear == null ? null : afSeasonYear(league, gateYear);
     return {
       tsOk: (cacheSeasonId) => tsCacheUsable(league, activeSeasonId, cacheSeasonId).usable,
       afOk: (cacheSeason) =>
-        gateYear == null ? true : afCacheUsable(league, gateYear, cacheSeason).usable,
+        afGateYear == null ? true : afCacheUsable(league, afGateYear, cacheSeason).usable,
     };
   } catch (e) {
     console.warn(`[standings-helper] season gate 조회 실패 league=${league}:`, (e as Error).message);
