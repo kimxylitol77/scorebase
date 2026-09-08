@@ -15,6 +15,22 @@ if [ -f mac-mini-worker/.env ]; then set -a; . mac-mini-worker/.env; set +a; fi
 # 2026-07-12: Lightsail(15.164.60.238, 7/10 삭제) → Vultr 승계. 3일 연속 ssh timeout 실패 수리.
 WORKER="root@64.176.230.240"
 SSHOPT="-o ConnectTimeout=20 -o BatchMode=yes -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=120"
+
+# TheSports 는 워커 IP 만 화이트리스트라 fetch 를 워커에서 돌린다. 그런데 2026-09-03 이전으로
+# 이 스크립트 자체가 그 워커 위에서 돌게 됐고, 자기 자신에게 ssh 하다 매일
+# "Permission denied (publickey)" 로 죽었다(heartbeat 도 같이 끊겨 있어 9/08 까지 무감지).
+# 워커 위면 왕복 없이 그대로 로컬 실행한다.
+if ip -4 addr show 2>/dev/null | grep -q "inet ${WORKER#*@}/"; then IS_WORKER=1; else IS_WORKER=0; fi
+
+w_put() { # 로컬 스크립트 → 워커
+  if [ "$IS_WORKER" = 1 ]; then [ "$1" = "$2" ] || cp -f "$1" "$2"; else scp ${=SSHOPT} "$1" "$WORKER:$2"; fi
+}
+w_run() { # 워커에서 실행
+  if [ "$IS_WORKER" = 1 ]; then bash "$1"; else ssh ${=SSHOPT} "$WORKER" "bash $1"; fi
+}
+w_get() { # 워커 산출물 회수 (워커 위면 이미 로컬에 있다 — 존재만 확인)
+  if [ "$IS_WORKER" = 1 ]; then [ -f "$1" ]; else scp ${=SSHOPT} "$WORKER:$1" "$2"; fi
+}
 LOG_PREFIX="[daily-official-korean $(date '+%Y-%m-%d %H:%M:%S')]"
 echo "$LOG_PREFIX ▶ 시작"
 
@@ -27,11 +43,11 @@ npx --yes prisma generate >/dev/null 2>&1 || true
 
 # 1. worker 에 fetch 스크립트 전송 + 실행 (TheSports IP whitelist = worker 만, ~12분)
 echo "$LOG_PREFIX ▶ worker fetch (language type=5 전량)"
-scp ${=SSHOPT} scripts/fetch-thesports-language.sh "$WORKER:/tmp/fetch-thesports-language.sh"
-ssh ${=SSHOPT} "$WORKER" 'bash /tmp/fetch-thesports-language.sh' 2>&1 | tail -3
+w_put scripts/fetch-thesports-language.sh /tmp/fetch-thesports-language.sh
+w_run /tmp/fetch-thesports-language.sh 2>&1 | tail -3
 
 # 2. 결과 회수
-scp ${=SSHOPT} "$WORKER:/tmp/lang-player-ko.jsonl" /tmp/lang-player-ko.jsonl
+w_get /tmp/lang-player-ko.jsonl /tmp/lang-player-ko.jsonl
 echo "$LOG_PREFIX ▶ 수집 $(wc -l < /tmp/lang-player-ko.jsonl) 명"
 
 # 3. DB 적용 (공식 우선 + 정규화, 멱등)
@@ -40,9 +56,9 @@ npx --yes tsx --env-file=.env.local scripts/apply-thesports-official-korean.ts -
 
 # 4. 팀 공식 한국어명 (type=4) — 선수와 같은 경로, ~1분으로 짧음
 echo "$LOG_PREFIX ▶ worker fetch (language type=4 팀)"
-scp ${=SSHOPT} scripts/fetch-thesports-language-team.sh "$WORKER:/tmp/fetch-thesports-language-team.sh"
-ssh ${=SSHOPT} "$WORKER" 'bash /tmp/fetch-thesports-language-team.sh' 2>&1 | tail -3
-scp ${=SSHOPT} "$WORKER:/tmp/lang-team-ko.jsonl" /tmp/lang-team-ko.jsonl
+w_put scripts/fetch-thesports-language-team.sh /tmp/fetch-thesports-language-team.sh
+w_run /tmp/fetch-thesports-language-team.sh 2>&1 | tail -3
+w_get /tmp/lang-team-ko.jsonl /tmp/lang-team-ko.jsonl
 echo "$LOG_PREFIX ▶ 팀 수집 $(wc -l < /tmp/lang-team-ko.jsonl) 건"
 echo "$LOG_PREFIX ▶ 팀 DB 적용"
 npx --yes tsx --env-file=.env.local scripts/apply-thesports-team-nameko.ts --apply 2>&1 | tail -5

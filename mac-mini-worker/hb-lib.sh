@@ -13,16 +13,40 @@
 #
 # 필요 env: SITE_URL(기본 scorebase.kr), INTERNAL_API_TOKEN
 
+# 토큰 확보 — 봇 전용 mac-mini-worker/.env 에만 있다고 가정하면 안 된다.
+# 2026-09-03 맥미니→Vultr 이전 때 그 파일이 SITE_URL 만 담아 새로 만들어지면서 셸 봇 10개의
+# heartbeat 가 전부 토큰 없이 나가 401 로 버려졌다. 잡은 정상인데 감시만 6일간 죽어 있었고,
+# 그사이 진짜로 실패하던 잡 4개도 같이 묻혔다(2026-09-08 발견). repo 루트 .env.local 을 폴백으로 읽는다.
+_hb_token() {
+  [ -n "$INTERNAL_API_TOKEN" ] && { printf '%s' "$INTERNAL_API_TOKEN"; return 0; }
+  local f
+  for f in "$PWD/.env.local" "$HOME/dev/scorebase/.env.local"; do
+    [ -f "$f" ] || continue
+    grep -m1 '^INTERNAL_API_TOKEN=' "$f" 2>/dev/null | cut -d= -f2- | tr -d '"'"'"'\r' && return 0
+  done
+  return 0
+}
+
 _hb_post() { # $1 name, $2 ok(true|false), $3 error, $4 durationMs
   # error 는 개행→공백, 쌍따옴표→홑따옴표, 역슬래시 제거로 JSON-safe 화 (380자 cap)
-  local err payload
+  local err payload token code
   err=$(printf '%s' "$3" | tr '\n' ' ' | tr '"' "'" | tr -d '\\' | cut -c1-380)
   payload=$(printf '{"name":"%s","ok":%s,"durationMs":%s,"error":"%s"}' \
     "$1" "$2" "${4:-0}" "$err")
-  curl -sS -m 15 -X POST "${SITE_URL:-https://www.scorebase.kr}/api/internal/bot-heartbeat" \
-    -H "Authorization: Bearer ${INTERNAL_API_TOKEN}" \
+  token=$(_hb_token)
+  # 조용한 실패 금지 — 토큰이 없거나 서버가 거절하면 잡 로그에 남긴다. heartbeat 실패가
+  # 잡 자체를 죽이면 안 되므로 rc 는 항상 0 (아래 || 로 흡수).
+  if [ -z "$token" ]; then
+    echo "[hb] INTERNAL_API_TOKEN 없음 — heartbeat 미전송 ($1)" >&2
+    return 0
+  fi
+  code=$(curl -sS -m 15 -o /dev/null -w '%{http_code}' \
+    -X POST "${SITE_URL:-https://www.scorebase.kr}/api/internal/bot-heartbeat" \
+    -H "Authorization: Bearer ${token}" \
     -H "Content-Type: application/json" \
-    -d "$payload" >/dev/null 2>&1 || true
+    -d "$payload" 2>/dev/null) || code="000"
+  [ "$code" = "200" ] || echo "[hb] heartbeat 실패 http=$code ($1)" >&2
+  return 0
 }
 
 # 1회 발사 가드 — zshexit 과 ERR trap 이 같은 죽음에 겹쳐도 heartbeat 는 한 번만.

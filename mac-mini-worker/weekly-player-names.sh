@@ -26,7 +26,10 @@ echo "$LOG_PREFIX ▶ 1/2 MLB 네이버 사전 빌드 (14일)"
 npx --yes tsx --env-file=.env.local scripts/build-mlb-player-names-naver.ts 14 2>&1 | tail -3
 
 echo "$LOG_PREFIX ▶ 2/2 MLB Haiku 음역 (네이버 누락만)"
-ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-haiku-4-5-20251001}" \
+# ⚠️ ANTHROPIC_API_KEY 를 여기서 다시 넘기지 말 것 — 셸에 없으면 빈 값이 export 되고,
+#   node --env-file 은 "이미 있는 변수"를 덮지 않아 .env.local 의 진짜 키가 가려진다(실측).
+#   봇 전용 .env 에 키가 없던 Vultr 에서 매주 "❌ ANTHROPIC_API_KEY 미설정"으로 죽던 원인.
+ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-haiku-4-5-20251001}" \
   npx --yes tsx --env-file=.env.local scripts/build-mlb-player-names-haiku.ts 14 2>&1 | tail -10
 
 CHANGED=$(git status --short src/lib/sports/mlb-player-names-naver.ts src/lib/sports/mlb-player-names-haiku.ts | wc -l | tr -d ' ')
