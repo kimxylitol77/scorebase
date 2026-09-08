@@ -13,3 +13,7 @@ Restart=always
 RestartSec=30
 StandardOutput=append:/home/ubuntu/scorebase/logs/threads-auto-poster.log
 StandardError=append:/home/ubuntu/scorebase/logs/threads-auto-poster.log
+
+# 2026-09-08 — [Install] 이 없어 static 이었고 재부팅 시 자동으로 뜨지 않았다. 부팅 자동시작 부여.
+[Install]
+WantedBy=multi-user.target

@@ -47,4 +47,4 @@ ssh root@64.176.230.240 'cd /etc/systemd/system && tar cf - scorebase-job-*.serv
 ```
 
 - `scorebase-job-threads-poster.service` 는 타이머가 없다. 내부 30분 루프를 도는 상주 서비스라 `Restart=always` 로 유지된다.
-  단 `[Install]` 절이 없어 `static` 상태다(2026-09-03 수동 start 이후 계속 running). 서버 재부팅 시 자동으로 다시 뜨지 않으니 복원 후에는 `systemctl start` 를 직접 해야 한다.
+  타이머가 없는 대신 `WantedBy=multi-user.target` 으로 부팅 자동시작한다(2026-09-08 부여 — 그전까지는 `[Install]` 이 없어 `static` 이었고 재부팅 시 뜨지 않았다). 서버를 새로 구축했다면 `systemctl enable --now` 로 올린다.
