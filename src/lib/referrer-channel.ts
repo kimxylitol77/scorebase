@@ -18,6 +18,7 @@ export type TrafficChannel =
   | "facebook"
   | "kakao"
   | "youtube"
+  | "tiktok"
   | "telegram"
   | "ai_chat"
   | "search_other"
@@ -36,6 +37,7 @@ export const CHANNEL_META: Record<TrafficChannel, { label: string; emoji: string
   facebook: { label: "페이스북", emoji: "🔵" },
   kakao: { label: "카카오톡 (utm)", emoji: "💬" },
   youtube: { label: "유튜브", emoji: "▶️" },
+  tiktok: { label: "틱톡", emoji: "🎵" },
   telegram: { label: "텔레그램", emoji: "📨" },
   ai_chat: { label: "AI 검색 (ChatGPT 등)", emoji: "🤖" },
   search_other: { label: "기타 검색엔진", emoji: "🔍" },
@@ -55,6 +57,7 @@ export const CHANNEL_ORDER: TrafficChannel[] = [
   "facebook",
   "kakao",
   "youtube",
+  "tiktok",
   "telegram",
   "ai_chat",
   "search_other",
@@ -76,6 +79,8 @@ const UTM_SOURCE_CHANNEL: Record<string, TrafficChannel> = {
   kakaotalk: "kakao",
   katalk: "kakao",
   youtube: "youtube",
+  tiktok: "tiktok",
+  tt: "tiktok",
   telegram: "telegram",
   tg: "telegram",
   naver: "naver",
@@ -122,6 +127,8 @@ const matchers: Array<{ channel: TrafficChannel; re: RegExp }> = [
   { channel: "x", re: /(^|\.)(x\.com|twitter\.com|t\.co)$/ },
   { channel: "facebook", re: /(^|\.)(facebook\.com|fb\.me|fb\.com|messenger\.com)$/ },
   { channel: "youtube", re: /(^|\.)(youtube\.com|youtu\.be)$/ },
+  { channel: "tiktok", re: /(^|\.)tiktok\.com$/ }, // vm./vt./m. 단축 링크도 tiktok.com 하위
+
   // 기타 검색엔진
   {
     channel: "search_other",
@@ -154,12 +161,27 @@ export function classifyReferrer(referrer: string | null): {
 export function classifyLanding(
   referrer: string | null,
   utmSource: string | null,
+  userAgent?: string | null,
 ): { channel: TrafficChannel; domain: string | null } {
   if (utmSource) {
     const mapped = UTM_SOURCE_CHANNEL[utmSource];
     if (mapped) return { channel: mapped, domain: null };
   }
-  return classifyReferrer(referrer);
+  const byRef = classifyReferrer(referrer);
+  // 인앱 브라우저 폴백 — 틱톡 인앱은 referrer 를 거의 안 남겨 "직접" 으로 새던 것을 UA 로 건진다.
+  // referrer 가 외부 사이트로 잡혔으면 그쪽이 실제 출처이므로 direct 일 때만 적용.
+  if (byRef.channel === "direct") {
+    const inApp = inAppChannelFromUa(userAgent);
+    if (inApp) return { channel: inApp, domain: null };
+  }
+  return byRef;
+}
+
+/** 인앱 브라우저 UA 표식 → 채널. 틱톡: musical_ly(iOS)·BytedanceWebview(Android)·"TikTok". */
+function inAppChannelFromUa(ua: string | null | undefined): TrafficChannel | null {
+  if (!ua) return null;
+  if (/musical_ly|BytedanceWebview|\bTikTok\b/i.test(ua)) return "tiktok";
+  return null;
 }
 
 /** 검색엔진 referrer 에서 검색어 추출 — 네이버/다음/빙/야후/줌 등은 referrer URL 에

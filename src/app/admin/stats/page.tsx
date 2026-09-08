@@ -448,7 +448,7 @@ export default async function StatsPage({ searchParams }: Props) {
   for (const r of landingRaw) {
     if (detectBot(r.userAgent).isBot) continue;
     if (r.sessionId && suspiciousSids.has(r.sessionId)) continue; // 위장 스크레이퍼 랜딩 제외
-    const { channel, domain } = classifyLanding(r.referrer, r.utmSource);
+    const { channel, domain } = classifyLanding(r.referrer, r.utmSource, r.userAgent);
     const e = channelAgg.get(channel) ?? { count: 0, ids: new Set<string>() };
     e.count++;
     if (r.sessionId) e.ids.add(r.sessionId);
@@ -500,7 +500,7 @@ export default async function StatsPage({ searchParams }: Props) {
     for (const l of weekRows) {
       if (detectBot(l.userAgent).isBot) continue;
       if (l.sessionId && suspiciousWeek.has(l.sessionId)) continue;
-      const { channel } = classifyLanding(l.referrer, l.utmSource);
+      const { channel } = classifyLanding(l.referrer, l.utmSource, l.userAgent);
       counts.set(channel, (counts.get(channel) ?? 0) + 1);
       total++;
     }
