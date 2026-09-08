@@ -12,10 +12,19 @@ export interface HumanessScore {
   metrics: Record<string, number>;
 }
 
+export type HumanizeFormat = "md" | "html";
+
+/** HTML 글(블로그)의 산문 줄 — <p> 로 시작하고 style 속성이 없는 줄만 고쳐쓰기 대상. 나머지(헤딩·표·figure·script·li·메타 문단)는 보존. */
+function isHtmlProseLine(t: string): boolean {
+  // 속성이 붙은 <p>(style·class)는 메타 줄이나 FAQ 답처럼 코드가 만든 것이라 건드리지 않는다.
+  return /^<p>/i.test(t);
+}
+
 /** 보존 대상 줄 — 페이지가 파싱하거나 위젯과 단일 소스여야 하는 것. 채점에서도 제외한다. */
-export function isProtectedLine(line: string): boolean {
+export function isProtectedLine(line: string, format: HumanizeFormat = "md"): boolean {
   const t = line.trim();
   if (!t) return false;
+  if (format === "html") return !isHtmlProseLine(t);
   if (t.startsWith("#")) return true; // 헤딩
   if (t.startsWith("|")) return true; // 표
   if (t.startsWith("<!--")) return true; // MVP 마커 등 주석
@@ -29,7 +38,7 @@ export function isProtectedLine(line: string): boolean {
 }
 
 /** 산문만 남긴다 — 보존 줄·마크다운 기호 제거. */
-function extractProse(content: string): { text: string; boldLabelSets: number; listsOfThree: number } {
+function extractProse(content: string, format: HumanizeFormat = "md"): { text: string; boldLabelSets: number; listsOfThree: number } {
   const lines = content.split("\n");
   const kept: string[] = [];
   let boldLabelSets = 0;
@@ -37,8 +46,9 @@ function extractProse(content: string): { text: string; boldLabelSets: number; l
   let listRun = 0;
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
-    const t = raw.trim();
-    if (isProtectedLine(raw)) continue;
+    const t = format === "html" ? raw.trim().replace(/<[^>]+>/g, "").trim() : raw.trim();
+    if (isProtectedLine(raw, format)) continue;
+    if (!t) continue;
     // 번호 목록: 정확히 3개짜리 목록이 몇 번 나오는지
     if (/^\d+\.\s/.test(t)) {
       listRun++;
@@ -49,7 +59,7 @@ function extractProse(content: string): { text: string; boldLabelSets: number; l
     // 볼드 라벨 한 줄(문장부호 없이 끝) + 다음 비어있지 않은 줄이 문단 = 세트
     if (/^\*\*[^*]{2,60}\*\*$/.test(t)) {
       const next = lines.slice(i + 1).find((l) => l.trim() !== "");
-      if (next && !isProtectedLine(next) && !/^\*\*/.test(next.trim())) boldLabelSets++;
+      if (next && !isProtectedLine(next, format) && !/^\*\*/.test(next.trim())) boldLabelSets++;
       continue;
     }
     kept.push(t.replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""));
@@ -76,8 +86,8 @@ const HEDGE_RE = /(가능성이 높다|가능성이 크다|것으로 보인다|�
 const INTENSIFIER_RE = /극단적|극명|극악|압도적|압도한다|명확한|명확히|결정적|핵심적|상당한|뚜렷|월등|본격적|현저히|절대 우위|가장 중요한/g;
 
 /** 규칙 채점 — 결정론. 같은 글은 항상 같은 점수. */
-export function scoreHumanness(content: string): HumanessScore {
-  const { text, boldLabelSets, listsOfThree } = extractProse(content);
+export function scoreHumanness(content: string, format: HumanizeFormat = "md"): HumanessScore {
+  const { text, boldLabelSets, listsOfThree } = extractProse(content, format);
   const sentences = splitSentences(text);
   const n = sentences.length;
   const findings: string[] = [];
@@ -149,11 +159,13 @@ export function scoreHumanness(content: string): HumanessScore {
 
 const NUMBER_RE = /\d[\d,.:%\-]*\d|\d/g;
 
-function numberSet(s: string): Set<string> {
-  return new Set((s.match(NUMBER_RE) ?? []).map((x) => x.replace(/[.,:\-]+$/, "")));
+/** 숫자 집합 — HTML 은 태그·속성(URL 의 2026, width=1200 …)을 걷어내고 가시 텍스트만 센다. */
+export function numberSet(s: string, format: HumanizeFormat = "md"): Set<string> {
+  const text = format === "html" ? s.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ") : s;
+  return new Set((text.match(NUMBER_RE) ?? []).map((x) => x.replace(/[.,:\-]+$/, "")));
 }
-function protectedLines(s: string): string[] {
-  return s.split("\n").filter((l) => isProtectedLine(l) && l.trim() !== "---").map((l) => l.trim());
+function protectedLines(s: string, format: HumanizeFormat = "md"): string[] {
+  return s.split("\n").filter((l) => isProtectedLine(l, format) && l.trim() !== "---").map((l) => l.trim());
 }
 function linkSet(s: string): Set<string> {
   return new Set([...s.matchAll(/\]\(([^)]*)\)/g)].map((m) => m[1]));
@@ -164,10 +176,10 @@ function setDiff(a: Set<string>, b: Set<string>): string[] {
 
 /** 보존 줄을 원문으로 되돌린다 — 모델이 라벨 줄의 줄표나 리드 문장을 손댔어도 개수가 같으면 자리마다 원문을 덮어쓴다.
  *  페이지가 파싱하는 줄은 어차피 원문이어야 하므로 폐기보다 복원이 맞다. 개수가 다르면 null(구조가 깨진 것). */
-export function restoreProtectedLines(original: string, revised: string): string | null {
-  const po = original.split("\n").filter((l) => isProtectedLine(l) && l.trim() !== "---");
+export function restoreProtectedLines(original: string, revised: string, format: HumanizeFormat = "md"): string | null {
+  const po = original.split("\n").filter((l) => isProtectedLine(l, format) && l.trim() !== "---");
   const rl = revised.split("\n");
-  const idx = rl.map((l, i) => (isProtectedLine(l) && l.trim() !== "---" ? i : -1)).filter((i) => i >= 0);
+  const idx = rl.map((l, i) => (isProtectedLine(l, format) && l.trim() !== "---" ? i : -1)).filter((i) => i >= 0);
   if (idx.length !== po.length) return null;
   idx.forEach((i, k) => {
     rl[i] = po[k];
@@ -176,17 +188,17 @@ export function restoreProtectedLines(original: string, revised: string): string
 }
 
 /** 고쳐쓴 글이 원문의 사실·구조를 보존했는지. 실패 사유가 비면 통과. */
-export function checkInvariants(original: string, revised: string): string[] {
+export function checkInvariants(original: string, revised: string, format: HumanizeFormat = "md"): string[] {
   const reasons: string[] = [];
-  const po = protectedLines(original);
-  const pr = protectedLines(revised);
+  const po = protectedLines(original, format);
+  const pr = protectedLines(revised, format);
   const firstDiff = po.findIndex((l, i) => l !== pr[i]);
   if (po.length !== pr.length || firstDiff >= 0) {
     const detail = firstDiff >= 0 ? ` 첫 차이: "${po[firstDiff]?.slice(0, 40)}" → "${pr[firstDiff]?.slice(0, 40)}"` : "";
     reasons.push(`보존 줄(헤딩·표·라벨) 불일치: 원문 ${po.length}줄 vs 고침 ${pr.length}줄${detail}`);
   }
-  const no = numberSet(original);
-  const nr = numberSet(revised);
+  const no = numberSet(original, format);
+  const nr = numberSet(revised, format);
   const missing = setDiff(no, nr);
   const added = setDiff(nr, no);
   if (missing.length) {
@@ -202,13 +214,30 @@ export function checkInvariants(original: string, revised: string): string[] {
   if (setDiff(lo, lr).length || setDiff(lr, lo).length) reasons.push("링크 집합 불일치");
   const ratio = revised.length / Math.max(original.length, 1);
   if (ratio < 0.7 || ratio > 1.35) reasons.push(`길이 ${ratio.toFixed(2)}배 (허용 0.7~1.35)`);
+  // 종결어미 체가 뒤집히면 폐기 — 합니다체 블로그를 한다체로 바꿔 놓는 사고 방지 (2026-09-04 실측)
+  const politeO = politeRatio(original, format);
+  const politeR = politeRatio(revised, format);
+  if ((politeO >= 0.6 && politeR < 0.4) || (politeO <= 0.4 && politeR > 0.6)) {
+    reasons.push(`문체 뒤집힘 (합니다체 비율 ${Math.round(politeO * 100)}%→${Math.round(politeR * 100)}%)`);
+  }
   return reasons;
+}
+
+/** 합니다체 비율 — 문장 종결부 중 "~습니다/~입니다" 의 몫. */
+export function politeRatio(s: string, format: HumanizeFormat = "md"): number {
+  const text = format === "html" ? s.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ") : s;
+  const polite = (text.match(/(습니다|입니다|합니다|됩니다|십시오)[.!?]/g) ?? []).length;
+  const plain = (text.match(/[가-힣]다[.!?]/g) ?? []).length;
+  const total = polite + plain;
+  return total ? polite / total : 0;
 }
 
 // ── 루프 ────────────────────────────────────────────────────────────
 
 export interface HumanizeOptions {
   label?: string;
+  /** md(기사 마크다운, 기본) | html(블로그 HTML — <p> 줄만 고친다) */
+  format?: HumanizeFormat;
   threshold?: number;
   maxRounds?: number;
   model?: string;
@@ -239,12 +268,13 @@ export async function humanizeArticle(content: string, opts: HumanizeOptions = {
   const maxRounds = opts.maxRounds ?? Number(process.env.HUMANIZE_MAX_ROUNDS ?? 2);
   const model = opts.model ?? process.env.HUMANIZE_MODEL;
   const label = opts.label ?? "article";
+  const format = opts.format ?? "md";
   const revise =
     opts.revise ??
     ((prompt: string, system: string, m?: string) =>
       generate(prompt, { system, maxTokens: 6000, ...(m ? { model: m } : { temperature: 0.4 }) }));
 
-  const first = scoreHumanness(content);
+  const first = scoreHumanness(content, format);
   const result: HumanizeResult = {
     content,
     before: first.score,
@@ -265,25 +295,25 @@ export async function humanizeArticle(content: string, opts: HumanizeOptions = {
     let out: string;
     try {
       const notes = lastRejection ? [`직전 시도가 폐기된 이유 — 이번엔 반드시 지켜라: ${lastRejection}`] : [];
-      out = stripFence(await revise(buildHumanizePrompt(current, [...currentFindings, ...notes]), HUMANIZE_SYSTEM, model));
+      out = stripFence(await revise(buildHumanizePrompt(current, [...currentFindings, ...notes], format), HUMANIZE_SYSTEM, model));
     } catch (e) {
       result.rejections.push(`${r + 1}회: 호출 실패 ${(e as Error).message?.slice(0, 120)}`);
       break;
     }
-    const restored = restoreProtectedLines(content, out);
+    const restored = restoreProtectedLines(content, out, format);
     if (restored == null) {
       lastRejection = "보존 줄(헤딩·표·라벨·리드)이 사라지거나 늘어남";
       result.rejections.push(`${r + 1}회: ${lastRejection}`);
       continue;
     }
     out = restored;
-    const bad = checkInvariants(content, out); // 항상 원문 기준 — 라운드가 쌓여도 숫자는 원문과 같아야 한다
+    const bad = checkInvariants(content, out, format); // 항상 원문 기준 — 라운드가 쌓여도 숫자는 원문과 같아야 한다
     if (bad.length) {
       lastRejection = bad.join(" / ");
       result.rejections.push(`${r + 1}회: ${lastRejection}`);
       continue;
     }
-    const s = scoreHumanness(out);
+    const s = scoreHumanness(out, format);
     if (s.score <= currentScore) {
       lastRejection = `점수 미개선 ${currentScore}→${s.score}. 감점 사유를 더 과감하게 고쳐라`;
       result.rejections.push(`${r + 1}회: ${lastRejection}`);

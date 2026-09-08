@@ -65,6 +65,7 @@
     "job:weekly-xi": "tsx --env-file=.env.local src/jobs/generate-weekly-best-xi.ts",
     "check:af-id": "tsx scripts/check-af-id-misuse.ts",
     "humanize:check": "tsx --env-file=.env.local scripts/humanize-preview.ts",
+    "seo:improve": "tsx --env-file=.env.local scripts/seo-improve-blog.ts",
     "job:soccer-weekly": "tsx --env-file=.env.local src/jobs/generate-soccer-weekly-review.ts"
   },
   "dependencies": {
