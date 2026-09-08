@@ -172,6 +172,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "FA컵(예선 포함) TheSports 수집 — 비리그 팀 자동 생성, push 경로 skippedNoTeam 사각 담당 (매일 09:40)",
   },
+  "mac-mini-daily-kleague-tactical": {
+    ko: "K리그 이주의 전술 분석",
+    intervalMs: 1 * DAY,
+    role: "K리그1 전날 종료 경기 TACTICAL 자동 생성·팩트 게이트 통과 시 발행 (매일 11:00, Vultr)",
+  },
   "mac-mini-weekly-baseball-verify": {
     ko: "야구 POSTPONED 교차 대조",
     intervalMs: 7 * DAY,

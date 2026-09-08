@@ -1,0 +1,14 @@
+# K리그1 전술 리뷰 자동 발행 (2026-09-09) — "K리그 이주의 전술 분석". Vercel tactical cron 과 별개(빅5 DRAFT 미양산·300s 한도 회피).
+[Unit]
+Description=Scorebase Job: daily-kleague-tactical
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase
+ExecStart=/bin/zsh /home/ubuntu/scorebase/mac-mini-worker/daily-kleague-tactical.sh
+StandardOutput=append:/home/ubuntu/scorebase/logs/daily-kleague-tactical.log
+StandardError=append:/home/ubuntu/scorebase/logs/daily-kleague-tactical.log
+TimeoutStartSec=3600

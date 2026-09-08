@@ -1,0 +1,9 @@
+[Unit]
+Description=Scorebase Job Timer: daily-kleague-tactical
+
+[Timer]
+OnCalendar=*-*-* 11:00:00 Asia/Seoul
+Persistent=true
+
+[Install]
+WantedBy=timers.target
