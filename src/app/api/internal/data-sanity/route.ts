@@ -157,6 +157,11 @@ export async function GET(req: NextRequest) {
   if (!process.env.INTERNAL_API_TOKEN) return unauthorized();
   if (auth !== `Bearer ${process.env.INTERNAL_API_TOKEN}`) return unauthorized();
 
+  // ?heal=1 일 때만 DB 를 고친다. 기본 GET 은 순수 탐지기로 남긴다 —
+  // 3분마다 도는 엔드포인트라 부작용을 기본값으로 두면 사고가 조용히 번진다.
+  const heal = new URL(req.url).searchParams.get("heal") === "1";
+  const healed: { matchId: number; from: string; to: string }[] = [];
+
   const now = Date.now();
   // 야구는 매치 시작 ±12시간, 축구는 진행 중인 매치만 (LIVE).
   // DB 부담 최소화: 단일 쿼리로 야구 매치 + 관련 cache + 팀명.
@@ -328,13 +333,19 @@ export async function GET(req: NextRequest) {
     // 종료 뒤에 굳어버린 오류를 놓쳤다 (2026-08-02 NPB #1248071: DB 7-4 인데 실제 7-6,
     // npb.jp 공식으로 확인). 종료 점수 오류는 적중률·기사·팀 성적에 영구히 남고,
     // 라이브 상세는 stale 가드에 걸려 아예 안 뜬다.
-    // 종료 직후 sync lag 를 피해 +2시간 지난 경기만 본다.
+    //
+    // 판정은 **이닝 합**으로 한다. cache 든 DB 든 한쪽을 무조건 믿을 수 없기 때문 —
+    // 60일 전수 대조(야구 종료 1,619경기)에서 진짜 불일치는 1건뿐이었고 그마저
+    // cache 쪽이 쓰레기였다(LMB #4898668: ft 0:0 · 이닝 1회분만, DB 3:1 이 정답).
+    // 이닝별 점수가 9회 이상 있고 그 합이 ft 와 맞으면 cache 는 스스로 앞뒤가 맞는 것이라
+    // 정답으로 채택하고, 아니면 cache 를 의심해 사람에게 넘긴다.
     if (m.status === "FINISHED" && m.homeScore != null && m.awayScore != null) {
       const finishedLongAgo = now - m.startTime.getTime() > 2 * 60 * 60 * 1000;
       const dlF = cacheByMatchId.get(m.id)?.detailLive as
-        | { score?: [string, number, number, { ft?: [string, string] }] }
+        | { score?: [string, number, number, Record<string, [string, string] | undefined>] }
         | null;
-      const ftF = dlF?.score?.[3]?.ft;
+      const scF = dlF?.score;
+      const ftF = scF?.[3]?.ft;
       if (finishedLongAgo && Array.isArray(ftF) && ftF.length === 2) {
         const fh = parseInt(ftF[0], 10);
         const fa = parseInt(ftF[1], 10);
@@ -342,12 +353,51 @@ export async function GET(req: NextRequest) {
         const okHA = fh === m.homeScore && fa === m.awayScore;
         const okAH = fh === m.awayScore && fa === m.homeScore;
         if (Number.isFinite(fh) && Number.isFinite(fa) && !okHA && !okAH) {
-          issues.push({
-            ...matchInfo,
-            kind: "cache_db_mismatch",
-            severity: "HIGH",
-            detail: `종료 경기 최종점수 불일치 — DB ${m.homeScore}:${m.awayScore} vs cache ft=[${fh},${fa}] (적중률·기사에 영구 반영됨, 공식 기록으로 확인 후 DB 정정 필요)`,
-          });
+          // 이닝 합 자체검증 (p1..p20 = [home, away], 연장 포함)
+          let ih = 0, ia = 0, innings = 0;
+          for (let i = 1; i <= 20; i++) {
+            const p = scF?.[3]?.[`p${i}`];
+            if (!Array.isArray(p) || p.length < 2) continue;
+            ih += parseInt(p[0], 10) || 0;
+            ia += parseInt(p[1], 10) || 0;
+            innings++;
+          }
+          const cacheSelfConsistent = innings >= 9 && ih === fh && ia === fa;
+          // collector 가 아직 손대는 중이면 불일치가 저절로 사라진다 — 2026-09-08 KBO #9481070
+          // 알림이 그랬다(검사 7초 뒤 DB 가 3:6 → 4:6 으로 따라잡음). 시작 시각이 아니라
+          // **DB 를 마지막으로 만진 시각**으로 재야 이 창을 제대로 닫는다.
+          const dbSettled = now - m.updatedAt.getTime() > 30 * 60 * 1000;
+
+          if (cacheSelfConsistent && dbSettled && heal) {
+            // 자동 정정 — 적중률은 predCorrect=null 로 되돌려 evaluate cron 이 다시 채점한다.
+            // (점수가 틀린 채로 채점된 승패는 뒤집힐 수 있다 — 메모리 finished-score-drift)
+            await prisma.match.update({
+              where: { id: m.id },
+              data: { homeScore: fh, awayScore: fa, predCorrect: null },
+            });
+            healed.push({ matchId: m.id, from: `${m.homeScore}:${m.awayScore}`, to: `${fh}:${fa}` });
+            issues.push({
+              ...matchInfo,
+              kind: "cache_db_mismatch",
+              severity: "WARN",
+              detail: `종료 경기 최종점수 자동정정 — DB ${m.homeScore}:${m.awayScore} → ${fh}:${fa} (이닝 ${innings}회 합 ${ih}:${ia} 이 ft 와 일치). 적중률 재채점 대기`,
+            });
+          } else if (cacheSelfConsistent && dbSettled) {
+            issues.push({
+              ...matchInfo,
+              kind: "cache_db_mismatch",
+              severity: "HIGH",
+              detail: `종료 경기 최종점수 불일치 — DB ${m.homeScore}:${m.awayScore} vs cache ft=[${fh},${fa}] (이닝 ${innings}회 합이 ft 와 일치 = cache 가 정답. ?heal=1 로 자동정정 가능)`,
+            });
+          } else if (!cacheSelfConsistent) {
+            issues.push({
+              ...matchInfo,
+              kind: "cache_db_mismatch",
+              severity: "WARN",
+              detail: `종료 경기 최종점수 불일치 — DB ${m.homeScore}:${m.awayScore} vs cache ft=[${fh},${fa}] · 이닝 ${innings}회 합 ${ih}:${ia} 가 ft 와 안 맞아 **cache 쪽이 의심**된다. 공식 기록 확인 필요(자동정정 안 함)`,
+            });
+          }
+          // cacheSelfConsistent && !dbSettled = collector 가 아직 따라잡는 중 → 알리지 않는다
         }
       }
     }
@@ -925,7 +975,9 @@ export async function GET(req: NextRequest) {
       baseballMatches: baseballIds.length,
       standingsChecked: STANDINGS_CHECK_LEAGUES.length,
       issues: issues.length,
+      healed: healed.length,
     },
+    healed,
     issues,
   });
 }

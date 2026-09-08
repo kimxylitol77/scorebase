@@ -109,7 +109,9 @@ async function poll() {
 
   let resp;
   try {
-    const { data } = await axios.get(`${SITE}/api/internal/data-sanity`, {
+    // heal=1 — 종료 경기 최종점수가 cache 이닝합과 어긋나면 서버가 DB 를 자동정정한다.
+    // 판정 근거가 cache 자체정합(이닝 9회+ 합 == ft)일 때만이라 근거 없는 덮어쓰기는 없다.
+    const { data } = await axios.get(`${SITE}/api/internal/data-sanity?heal=1`, {
       headers, timeout: 30_000,
     });
     resp = data;
@@ -118,7 +120,9 @@ async function poll() {
     return;
   }
   const issues = Array.isArray(resp?.issues) ? resp.issues : [];
-  console.log(`  매치 ${resp?.totals?.matchesChecked ?? "?"}건 / 이슈 ${issues.length}건`);
+  const healed = Array.isArray(resp?.healed) ? resp.healed : [];
+  console.log(`  매치 ${resp?.totals?.matchesChecked ?? "?"}건 / 이슈 ${issues.length}건${healed.length ? ` / 자동정정 ${healed.length}건` : ""}`);
+  for (const h of healed) console.log(`  🔧 #${h.matchId} 점수 정정 ${h.from} → ${h.to}`);
 
   if (issues.length === 0) {
     console.log("  ✓ 데이터 일관성 양호");
