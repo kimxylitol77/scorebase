@@ -1994,12 +1994,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Stoke City",
-        "apps": 4,
+        "apps": 5,
         "starts": 3,
         "goals": 0,
         "assists": 0,
-        "minutes": 262,
-        "rating": 6.18,
+        "minutes": 293,
+        "rating": 6.24,
         "yellow": 1,
         "red": 0
       }
@@ -2404,12 +2404,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Swansea City",
-        "apps": 5,
+        "apps": 6,
         "starts": 3,
         "goals": 2,
         "assists": 2,
-        "minutes": 282,
-        "rating": 7.34,
+        "minutes": 294,
+        "rating": 7.19,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-08T11:37:54.914Z"
+  "currentUpdatedAt": "2026-09-08T22:20:18.971Z"
 }
