@@ -52,6 +52,10 @@ export function tacticalFactGateReason(i: FactGateInput): string | null {
     if (!ok) return `데이터에 없는 시간 "${m[0].trim()}"`;
   }
 
+  // 폼 문자열 원문 누출 — "DWLLL" 처럼 데이터 토큰이 산문에 그대로 박힌 글(2026-09-09 #4806 실측).
+  const rawForm = body.match(/(?<![A-Za-z])[WDL]{3,}(?![A-Za-z])/);
+  if (rawForm) return `폼 문자열 원문 누출 "${rawForm[0]}"`;
+
   // 퍼센트 — 본문의 N% 는 데이터 텍스트에 그대로 있어야 한다(점유율 스왑·창작 차단).
   for (const m of body.matchAll(/(\d{1,3})\s*%/g)) {
     if (!i.dataText.includes(`${m[1]}%`)) return `데이터에 없는 퍼센트 "${m[0]}"`;
