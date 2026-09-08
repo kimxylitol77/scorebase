@@ -35,9 +35,11 @@ export function tacticalFactGateReason(i: FactGateInput): string | null {
   const en = title.match(/[A-Za-z]{4,}/);
   if (en) return `제목에 영문 표기 "${en[0]}"`;
 
-  // 스코어 — 실제 결과가 본문에 한 번은 있어야 한다("1-0"·"1:0"·"1대0").
-  const scoreRe = new RegExp(`${i.homeScore}\\s*[-:대]\\s*${i.awayScore}`);
-  if (!scoreRe.test(i.content)) return `본문에 실제 스코어 ${i.homeScore}-${i.awayScore} 없음`;
+  // 스코어 — 실제 결과가 본문에 한 번은 있어야 한다("1-0"·"1:0"·"1대0"). 순서는 양쪽 허용 —
+  // 원정 승을 "3-0 승리"로 쓰는 게 자연스러워 홈 기준만 받으면 정상 글이 탈락한다(2026-09-09 강원 원정 0-3 실측).
+  const sc = (a: number, b: number) => new RegExp(`(^|[^\\d-])${a}\\s*[-:대]\\s*${b}(?![\\d-])`, "m");
+  if (!sc(i.homeScore, i.awayScore).test(i.content) && !sc(i.awayScore, i.homeScore).test(i.content))
+    return `본문에 실제 스코어 ${i.homeScore}-${i.awayScore} 없음`;
 
   // 시간 — 본문의 "N분"·"N'"·"전반/후반 N분" 은 타임라인·출전시간 집합 안이어야 한다. 기간 표현(N분간·N분 동안)은 제외.
   const allowed = allowedMinutes(i.dataText);

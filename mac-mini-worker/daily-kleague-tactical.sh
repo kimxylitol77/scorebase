@@ -16,6 +16,7 @@ log "▶ 시작"
 # repo 최신화 — 잡 코드 최신 기준
 git fetch origin main -q && git reset --hard origin/main -q
 
-npx tsx --env-file=.env.local src/jobs/generate-tactical.ts --league=K_LEAGUE_1 2>&1 | tail -20
+# 선수명 사전 미매핑 경고(수십 줄)가 tail 을 밀어내 "대상 N경기"·생성 결과가 로그에서 잘렸다(첫 실행 실측) → 걸러낸다.
+npx tsx --env-file=.env.local src/jobs/generate-tactical.ts --league=K_LEAGUE_1 2>&1 | (grep -v "player-names\] 매핑 없음" || true) | tail -60
 
 log "✓ 종료"
