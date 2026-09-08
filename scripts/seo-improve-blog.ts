@@ -233,12 +233,18 @@ async function improveOne(id: number, apply: boolean) {
   const figure = (title: string, subtitle: string) =>
     `<figure><img src="${ogImage(title, subtitle, keyword ?? "스코어베이스")}" alt="${esc(`${title} — ${subtitle}`)}" width="1200" height="630" loading="lazy" style="width:100%;height:auto;border-radius:12px;display:block;" /></figure>`;
   if (needImg > 0) {
-    const firstH2 = lines.findIndex((l) => /<h2/i.test(l));
-    if (firstH2 >= 0) lines.splice(firstH2, 0, figure(p.title.split(" — ")[0].slice(0, 40), keyword ?? "스코어베이스 데이터"), "");
+    // 첫 H2 앞, 없으면 첫 문단 뒤
+    let at = lines.findIndex((l) => /<h2/i.test(l));
+    if (at < 0) at = lines.findIndex((l) => /^\s*<p(\s|>)/i.test(l)) + 1;
+    lines.splice(Math.max(at, 0), 0, figure(p.title.split(" — ")[0].slice(0, 40), keyword ?? "스코어베이스 데이터"), "");
   }
-  if (needImg > 1 && sections.length) {
-    const i = lines.findIndex((l) => l.includes(h2(sections[0].h2)));
-    if (i >= 0) lines.splice(i, 0, figure(sections[0].h2.slice(0, 40), p.title.split(" — ")[0].slice(0, 40)), "");
+  if (needImg > 1) {
+    // 첫 추가 섹션 앞, 없으면 마지막 H2 앞
+    const h2s = lines.map((l, i) => (/<h2/i.test(l) ? i : -1)).filter((i) => i >= 0);
+    let i = sections.length ? lines.findIndex((l) => l.includes(h2(sections[0].h2))) : -1;
+    if (i < 0) i = h2s.length ? h2s[h2s.length - 1] : lines.length - 1;
+    const sub = sections.length ? sections[0].h2 : keyword ?? "스코어베이스";
+    lines.splice(i, 0, figure(sub.slice(0, 40), p.title.split(" — ")[0].slice(0, 40)), "");
   }
 
   let content = lines.join("\n");
