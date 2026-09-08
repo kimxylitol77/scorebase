@@ -527,7 +527,9 @@ export function normalizeOddsTeamName(name: string): string {
     .replace(/dinamo/g, "dynamo")
     .replace(/\butd\b/g, "united")
     // 클럽 접미·연결어 제거 — FF/IF(북유럽)·SK/FK/BB(동유럽·터키)·CA(남미)·de/do/da(스페인·포르투갈어)
-    .replace(/\b(fc|afc|cf|club|clube|hotspur|wanderers|the|hyundai|ff|if|sk|fk|bb|ca|de|do|da)\b/g, "")
+    // and 는 2026-09-08 추가 — 배당사는 "Havant and Waterlooville", 우리는 "Havant Waterlooville",
+    // 또 어느 쪽은 "Felixstowe & Walton"(&는 아래에서 탈락)이라 연결어 표기만으로 갈렸다.
+    .replace(/\b(fc|afc|cf|club|clube|hotspur|wanderers|the|and|hyundai|ff|if|sk|fk|bb|ca|de|do|da)\b/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
   return NORMALIZED_TEAM_ALIAS[n] ?? n;
 }
