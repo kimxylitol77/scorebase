@@ -41,10 +41,11 @@ export function tacticalFactGateReason(i: FactGateInput): string | null {
   if (!sc(i.homeScore, i.awayScore).test(i.content) && !sc(i.awayScore, i.homeScore).test(i.content))
     return `본문에 실제 스코어 ${i.homeScore}-${i.awayScore} 없음`;
 
-  // 시간 — 본문의 "N분"·"N'"·"전반/후반 N분" 은 타임라인·출전시간 집합 안이어야 한다. 기간 표현(N분간·N분 동안)은 제외.
+  // 시간 — 본문의 "N분"·"N'"·"전반/후반 N분" 은 타임라인·출전시간 집합 안이어야 한다.
+  // 기간·범위 표현(N분간·N분 동안·N분대)은 시각이 아니라 제외 — "후반 70분대 교체"(69'·76') 는 정상 서술(2026-09-09 #4807 실측).
   const allowed = allowedMinutes(i.dataText);
   const body = i.content.replace(/^#.*$/m, "");
-  for (const m of body.matchAll(/(전반|후반)?\s*(\d{1,3})(?:\+(\d{1,2}))?\s*(분|')(?!간|\s*동안|\s*가량|\s*이상|\s*이내|\s*넘)/g)) {
+  for (const m of body.matchAll(/(전반|후반)?\s*(\d{1,3})(?:\+(\d{1,2}))?\s*(분|')(?!간|대|\s*동안|\s*가량|\s*이상|\s*이내|\s*넘)/g)) {
     const half = m[1];
     const base = Number(m[2]);
     const abs = half === "후반" && base <= 45 ? base + 45 : base;

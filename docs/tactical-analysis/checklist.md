@@ -66,12 +66,15 @@
 - 소문자 model/DB 키 등 기존 식별자 오염
 
 ## Phase 7 — K리그1 확대 ("K리그 이주의 전술 분석", 2026-09-09)
-- [ ] `ts-enrich.ts` — 평점 0.0 은 결손으로 취급(null), `formations`·`hasPlayerStats` 노출
-- [ ] `context.ts` — `TS_TACTICAL_LEAGUES`(K_LEAGUE_1) 는 xG 없이 ts 포메이션+타임라인으로 게이트, `hasXg`·`hasPlayerStats`·`round` 필드
-- [ ] `tactical-analysis.ts` 프롬프트 — K리그1 이름, xG·선수 스탯 부재 시 해당 섹션·규칙 제거(창작 방지)
-- [ ] `fact-gate.ts` — 자동 발행 전 결정적 대조(제목 영문·스코어·분·퍼센트). 탈락 시 DRAFT 로 남김
-- [ ] `generate-tactical.ts` — `--league=` 플래그, 리그별 cap/lookback, 시리즈 킥커 줄, K리그1 PUBLISHED 자동 전환
-- [ ] `mac-mini-worker/daily-kleague-tactical.sh` + `vultr-worker/job-units/scorebase-job-daily-kleague-tactical.{service,timer}` (매일 11:00 KST)
-- [ ] `bot-registry.ts` heartbeat 등록
-- [ ] dry-run 2경기 검수 → tsc → 실발행 1경기 → 리그 페이지 분석 탭 실렌더 확인
-- [ ] Vultr 배포(scp → daemon-reload → enable --now) + 수동 1회 실행 로그 확인
+- [x] `ts-enrich.ts` — 평점 0.0 은 결손으로 취급(null), `formations`·`hasPlayerStats` 노출
+- [x] `context.ts` — `TS_TACTICAL_LEAGUES`(K_LEAGUE_1) 는 xG 없이 ts 포메이션+타임라인으로 게이트, `hasXg`·`hasPlayerStats`·`round` 필드
+- [x] `tactical-analysis.ts` 프롬프트 — K리그1 이름, xG·선수 스탯 부재 시 해당 섹션·규칙 제거(창작 방지)
+- [x] `fact-gate.ts` — 자동 발행 전 결정적 대조(제목 영문·스코어·분·퍼센트). 탈락 시 DRAFT 로 남김
+- [x] `generate-tactical.ts` — `--league=` 플래그, 리그별 cap/lookback, 시리즈 킥커 줄, K리그1 PUBLISHED 자동 전환
+- [x] `mac-mini-worker/daily-kleague-tactical.sh` + `vultr-worker/job-units/scorebase-job-daily-kleague-tactical.{service,timer}` (매일 11:00 KST)
+- [x] `bot-registry.ts` heartbeat 등록
+- [x] dry-run 1경기 검수 → tsc → 실발행 4경기(27R 2·28R 2) → 글 페이지(킥커·도식·전술판·링크)·리그 분석 탭 실렌더 확인
+- [x] Vultr 배포(scp → daemon-reload → enable --now) + 수동 1회 실행 로그 확인
+- [x] 첫 실행 실측 → 게이트 오탐 2종(원정 승 스코어 순서·"N분대" 범위 표현) 수정, 진짜 오류 1건("후반 50분") 차단 확인
+- [ ] 1~2주 운영 후 DRAFT 잔존율·탈락 사유 분포 점검 — 오탐이 잦은 규칙은 완화, 새 오류 유형은 규칙 추가
+- [ ] K리그2 확대 여부 결정 (ts 포메이션 40/50 보유 — 동일 게이트로 가능)
