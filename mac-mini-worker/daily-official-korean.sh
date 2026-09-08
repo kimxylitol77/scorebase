@@ -22,11 +22,10 @@ SSHOPT="-o ConnectTimeout=20 -o BatchMode=yes -o StrictHostKeyChecking=no -o Ser
 # 워커 위면 왕복 없이 그대로 로컬 실행한다.
 if ip -4 addr show 2>/dev/null | grep -q "inet ${WORKER#*@}/"; then IS_WORKER=1; else IS_WORKER=0; fi
 
-w_put() { # 로컬 스크립트 → 워커
-  if [ "$IS_WORKER" = 1 ]; then [ "$1" = "$2" ] || cp -f "$1" "$2"; else scp ${=SSHOPT} "$1" "$WORKER:$2"; fi
-}
-w_run() { # 워커에서 실행
-  if [ "$IS_WORKER" = 1 ]; then bash "$1"; else ssh ${=SSHOPT} "$WORKER" "bash $1"; fi
+w_exec() { # $1 로컬(repo) 스크립트, $2 워커에 둘 경로 — 워커 위면 repo 사본을 그대로 실행한다.
+  # /tmp 로 복사하지 않는 이유: 예전 root scp 가 남긴 동명 파일이 sticky /tmp 에 남아 있어
+  # ubuntu 로는 덮어쓸 수 없다("Operation not permitted"). 복사 자체가 불필요하다.
+  if [ "$IS_WORKER" = 1 ]; then bash "$1"; else scp ${=SSHOPT} "$1" "$WORKER:$2"; ssh ${=SSHOPT} "$WORKER" "bash $2"; fi
 }
 w_get() { # 워커 산출물 회수 (워커 위면 이미 로컬에 있다 — 존재만 확인)
   if [ "$IS_WORKER" = 1 ]; then [ -f "$1" ]; else scp ${=SSHOPT} "$WORKER:$1" "$2"; fi
@@ -43,8 +42,7 @@ npx --yes prisma generate >/dev/null 2>&1 || true
 
 # 1. worker 에 fetch 스크립트 전송 + 실행 (TheSports IP whitelist = worker 만, ~12분)
 echo "$LOG_PREFIX ▶ worker fetch (language type=5 전량)"
-w_put scripts/fetch-thesports-language.sh /tmp/fetch-thesports-language.sh
-w_run /tmp/fetch-thesports-language.sh 2>&1 | tail -3
+w_exec scripts/fetch-thesports-language.sh /tmp/fetch-thesports-language.sh 2>&1 | tail -3
 
 # 2. 결과 회수
 w_get /tmp/lang-player-ko.jsonl /tmp/lang-player-ko.jsonl
@@ -56,8 +54,7 @@ npx --yes tsx --env-file=.env.local scripts/apply-thesports-official-korean.ts -
 
 # 4. 팀 공식 한국어명 (type=4) — 선수와 같은 경로, ~1분으로 짧음
 echo "$LOG_PREFIX ▶ worker fetch (language type=4 팀)"
-w_put scripts/fetch-thesports-language-team.sh /tmp/fetch-thesports-language-team.sh
-w_run /tmp/fetch-thesports-language-team.sh 2>&1 | tail -3
+w_exec scripts/fetch-thesports-language-team.sh /tmp/fetch-thesports-language-team.sh 2>&1 | tail -3
 w_get /tmp/lang-team-ko.jsonl /tmp/lang-team-ko.jsonl
 echo "$LOG_PREFIX ▶ 팀 수집 $(wc -l < /tmp/lang-team-ko.jsonl) 건"
 echo "$LOG_PREFIX ▶ 팀 DB 적용"
