@@ -15,6 +15,7 @@ import FavoriteTeamButton from "@/components/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
+import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -177,7 +178,30 @@ function teamIntentKeywords(league: string): string {
     case "hockey":
       return "순위·일정·로스터";
     default:
-      return "순위·일정·이적·라인업"; // soccer
+      // 빙 실측 "맨체스터 유나이티드 팀 순위 축구" 168·"레알 마드리드 팀 순위 축구" 135·
+      // "아스널 fc 축구 팀" 172 노출에 클릭 0 — 야구와 같이 "축구"·"팀 순위" 토큰을 정확 매칭한다.
+      return "축구 팀 순위·일정·이적·라인업"; // soccer
+  }
+}
+
+// 축구 클럽의 현재 리그 순위 — 순위표 페이지와 같은 ts 캐시를 본다.
+// 못 믿을 때는 null 을 돌려 순위 없이 기존 문구를 쓴다(가드는 /standings/[league] 와 동일 기준).
+async function soccerClubRank(
+  league: string,
+  teamId: number,
+): Promise<{ position: number; total: number; points: number } | null> {
+  try {
+    const ts = await fetchStandingsForLeague(league);
+    // 조·컨퍼런스가 갈린 대회는 표마다 순위가 1부터 다시 시작한다 — "N위" 가 리그 순위가 아니다.
+    if (!ts || ts.tables.length !== 1) return null;
+    const rows = ts.tables[0].rows;
+    // 개막 전 0전적 표는 순번일 뿐 순위가 아니다.
+    if (rows.length === 0 || rows.every((r) => r.total === 0)) return null;
+    const row = rows.find((r) => r.ourTeamId === teamId);
+    if (!row || row.total === 0) return null;
+    return { position: row.position, total: row.total, points: row.points };
+  } catch {
+    return null;
   }
 }
 
@@ -300,11 +324,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           select: { homeTeamId: true, homeScore: true, awayScore: true },
         }),
       ]);
-      if (next) {
-        const oppName = next.homeTeamId === team.id ? next.awayTeam.name : next.homeTeam.name;
-        const oppKo = toKoreanTeamName(oppName, team.league);
-        const kst = new Date(next.startTime.getTime() + 9 * 3600_000);
-        const dateLabel = `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
+      // 리그 순위 — 들어오는 질의는 "{팀} 팀 순위 축구" 인데 제목에 순위 숫자가 없었다.
+      // 8/18 에는 시즌 초라 뺐지만 이제 라운드가 쌓였다. 경기 수를 함께 적어 "3경기 뒤 11위" 임이
+      // 드러나게 한다 — 라운드 초반 순위를 확정된 것처럼 보이게 하지 않기 위함.
+      // 순위 조회는 축구만 — fetchStandingsForLeague 는 ts 축구 순위 캐시 전용이다.
+      const rank = SOCCER_LEAGUES.has(team.league) ? await soccerClubRank(team.league, team.id) : null;
+      const rankLabel = rank ? `${LEAGUE_DISPLAY[team.league] ?? team.league} ${rank.position}위` : "";
+      const todayKst = new Date(Date.now() + 9 * 3600_000);
+      const todayLabel = `${todayKst.getUTCMonth() + 1}/${todayKst.getUTCDate()}`;
+      if (next || rankLabel) {
+        let nextLabel = "";
+        if (next) {
+          const oppName = next.homeTeamId === team.id ? next.awayTeam.name : next.homeTeam.name;
+          const oppKo = toKoreanTeamName(oppName, team.league);
+          const kst = new Date(next.startTime.getTime() + 9 * 3600_000);
+          nextLabel = `다음 경기 ${kst.getUTCMonth() + 1}/${kst.getUTCDate()} ${oppKo}전`;
+        }
         let w = 0, d = 0, l = 0;
         for (const m of recent) {
           if (m.homeScore == null || m.awayScore == null) continue;
@@ -312,10 +347,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           else if ((m.homeScore > m.awayScore) === (m.homeTeamId === team.id)) w++;
           else l++;
         }
-        const form = w + d + l > 0 ? `최근 ${w + d + l}경기 ${w}승${d > 0 ? ` ${d}무` : ""} ${l}패` : null;
-        title = `${ko} ${intent.replace("일정", "경기 일정")} — 다음 경기 ${dateLabel} ${oppKo}전`;
+        const form = w + d + l > 0 ? `최근 ${w + d + l}경기 ${w}승${d > 0 ? ` ${d}무` : ""} ${l}패` : "";
+        // 빙은 제목을 38자 안팎에서 자른다 — 순위·다음 경기를 앞에, 매칭용 키워드는 꼬리로.
+        title = rankLabel
+          ? `${ko} 팀 순위 (${todayLabel}) — ${rankLabel}${nextLabel ? ` · ${nextLabel}` : ""} · ${intent}`
+          : `${ko} ${intent.replace("일정", "경기 일정")} — ${nextLabel}`;
+        const head = rank
+          ? `${todayLabel} ${ko}${enName} ${rankLabel}, ${rank.total}경기 승점 ${rank.points}.`
+          : `${ko}${enName} ${nextLabel}.`;
+        const rest = [rank && nextLabel ? nextLabel : "", form].filter(Boolean).join(" · ");
         description =
-          `${ko}${enName} 다음 경기 ${dateLabel} ${oppKo}전.${form ? ` ${form}.` : ""} ` +
+          `${head}${rest ? ` ${rest}.` : ""} ` +
           `${team.league} ${intent.replace("일정", "경기 일정")}과 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
       }
     } catch {
