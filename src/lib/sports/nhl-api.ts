@@ -632,8 +632,12 @@ export async function fetchNhlStandings(): Promise<{
 } | null> {
   let data: { standings?: Record<string, unknown>[]; [k: string]: unknown };
   try {
+    // ⚠️ no-store 금지 — 이 함수는 ISR(revalidate 600) 인 /standings/NHL 에서 불린다.
+    //   static 렌더 중 no-store fetch 는 Next 가 dynamic 전환 에러로 던져 페이지가 500 이 된다
+    //   (2026-09-04 ISR 전환 → NHL/EN NHL 순위 500, 9-08 발견). 순위는 경기 종료 후에만 바뀌어
+    //   5분 캐시로 충분하다. jobs/ 는 Next 밖이라 next 옵션이 무시돼 항상 최신을 받는다.
     const r = await fetch(`${BASE_URL}/standings/now`, {
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(10000),
     });
     if (!r.ok) return null;

@@ -317,9 +317,11 @@ const KBL_HEADERS = {
 };
 
 async function fetchKblJson(path: string): Promise<unknown> {
+  // ⚠️ no-store 금지 — ISR(revalidate 600) 인 /standings/KBL 에서 불린다. static 렌더 중
+  //   no-store fetch 는 페이지를 500 으로 만든다(2026-09-08 실측). NBA(fetchEspnNbaRows)와 같은 주기.
   const response = await fetch(`https://api.kbl.or.kr${path}`, {
     headers: KBL_HEADERS,
-    cache: "no-store",
+    next: { revalidate: 600 },
     signal: AbortSignal.timeout(10_000),
   });
   if (!response.ok) return null;
@@ -451,7 +453,8 @@ async function fetchWkblStandings(): Promise<BasketballStandings | null> {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
         body,
-        cache: "no-store",
+        // ⚠️ no-store 금지 — /standings/WKBL 도 ISR 이다 (위 fetchKblJson 주석 참고).
+        next: { revalidate: 600 },
         signal: AbortSignal.timeout(10_000),
       });
       if (!response.ok) continue;
