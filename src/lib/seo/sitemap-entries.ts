@@ -7,7 +7,7 @@ import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { resolveSeasonYear } from "@/lib/sports/season-registry";
 import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
-import { getAllLeaguesOverUnder } from "@/lib/stats/over-under";
+import { getAllLeaguesOverUnder, leaguesWithOverUnderPage } from "@/lib/stats/over-under";
 import rawCanonical from "../../../data/player-canonical-redirects.json";
 import rawTeamCoaches from "../../../data/team-coaches.json";
 import rawCoachLegends from "../../../data/coach-legends.json";
@@ -43,6 +43,7 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
 
   // 오버/언더 집계 대상 리그 — 캐시된 집계라 sitemap 재생성(1h) 비용이 크지 않다.
   const overUnderLeagues = (await getAllLeaguesOverUnder()).map((l) => l.league);
+  const enOverUnderLeagues = await leaguesWithOverUnderPage(SITEMAP_LEAGUES);
 
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [
@@ -140,11 +141,12 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     })),
     { url: `${base}/en/over-under`, changeFrequency: "daily", priority: 0.65 },
     // 오버/언더 리그 상세는 핵심 리그만 — thin 희석 방지(한국어판은 94개 전체 등재)
-    // ⚠️ 집계 통과 리그와 반드시 교집합을 잡는다. 한국어판은 getAllLeaguesOverUnder() 결과를 쓰는데
-    //   영어판만 고정 목록을 그대로 써서, 페이지가 404 인 리그를 사이트맵이 검색엔진에 제출하고 있었다
-    //   (2026-09-08 route-guardian 적발: CLUB_WORLD_CUP — 32팀 대회는 우승팀도 7경기라
-    //    "팀당 8경기" 임계를 구조적으로 넘을 수 없어 페이지가 영원히 안 생긴다).
-    ...SITEMAP_LEAGUES.filter((lg) => overUnderLeagues.includes(lg)).map((lg) => ({
+    // ⚠️ 페이지가 실제로 렌더되는 리그만 등재한다. 고정 목록을 그대로 매핑하던 탓에 404 인
+    //   리그를 검색엔진에 제출하고 있었다(2026-09-08 route-guardian 적발: CLUB_WORLD_CUP —
+    //   32팀 대회는 우승팀도 7경기라 "팀당 8경기" 임계를 구조적으로 못 넘어 페이지가 영원히 안 생긴다).
+    //   판정은 반드시 leaguesWithOverUnderPage(페이지와 동일 기준) 로 한다 —
+    //   허브 요약 overUnderLeagues 는 축구 전용이라 NBA·KBO 등 멀쩡한 14개까지 날아간다.
+    ...enOverUnderLeagues.map((lg) => ({
       url: `${base}/en/over-under/${lg}`,
       changeFrequency: "daily" as const,
       priority: 0.55,

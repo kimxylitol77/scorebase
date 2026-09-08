@@ -206,6 +206,36 @@ export async function computeAllLeaguesOverUnder(): Promise<LeagueSummary[]> {
     .sort((a, b) => b.over25Pct - a.over25Pct);
 }
 
+/**
+ * 주어진 리그 중 /over-under/[league] 가 실제로 렌더되는 것만 — 사이트맵이 404 URL 을
+ * 제출하지 않게 페이지와 **같은 기준**으로 판정한다(팀당 8경기 이상인 팀 존재 + 리그 종료 30경기 이상).
+ * ⚠️ 허브 요약(computeAllLeaguesOverUnder)을 이 판정에 쓰면 안 된다 — 그쪽은 SOCCER_LEAGUES 로
+ *   한정돼 있어 NBA·KBO 처럼 상세 페이지가 멀쩡한 리그까지 통째로 걸러진다(2026-09-08 실측).
+ */
+export async function leaguesWithOverUnderPage(leagues: string[]): Promise<string[]> {
+  if (leagues.length === 0) return [];
+  const rows = await prisma.$queryRawUnsafe<Array<{ league: string }>>(
+    `
+    WITH f AS (
+      SELECT league, "homeTeamId" AS "teamId" FROM "Match"
+       WHERE status = 'FINISHED' AND "homeScore" IS NOT NULL AND "awayScore" IS NOT NULL
+         AND league = ANY($1::text[])
+      UNION ALL
+      SELECT league, "awayTeamId" FROM "Match"
+       WHERE status = 'FINISHED' AND "homeScore" IS NOT NULL AND "awayScore" IS NOT NULL
+         AND league = ANY($1::text[])
+    ),
+    per_team AS (SELECT league, "teamId", COUNT(*) AS c FROM f GROUP BY league, "teamId"),
+    ok_team AS (SELECT DISTINCT league FROM per_team WHERE c >= ${MIN_TEAM_MATCHES}),
+    total AS (SELECT league, COUNT(*) / 2 AS m FROM f GROUP BY league)
+    SELECT t.league FROM total t JOIN ok_team o ON o.league = t.league
+     WHERE t.m >= ${MIN_LEAGUE_MATCHES}
+    `,
+    leagues,
+  );
+  return rows.map((r) => r.league);
+}
+
 export const getLeagueOverUnder = (league: string) =>
   unstable_cache(() => computeLeagueOverUnder(league), ["over-under-league", CACHE_V, league], {
     revalidate: REVALIDATE_SEC,
