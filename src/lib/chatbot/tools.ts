@@ -104,7 +104,7 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
   {
     name: "get_today_matches",
     description:
-      "오늘(KST) 예정 또는 진행 중인 경기 목록과 모델 1X2 예측, 시장 배당을 가져온다. league 필터 가능. 사용자가 '오늘 경기' '오늘 EPL' 같은 질문을 할 때 사용.",
+      "오늘(KST) 경기를 진행 중 → 예정 순으로 모델 1X2 예측과 함께 가져온다(종료 경기는 리그별 개수 요약). league 필터 가능. '오늘 경기' '오늘 EPL' 질문에 사용. 답할 때는 진행 중·예정 경기를 종목/리그별로 묶어 소개하고, 종료 경기는 '오늘 이미 N경기 종료' 한 줄로만 언급한다.",
     input_schema: {
       type: "object",
       properties: {
@@ -337,6 +337,9 @@ export async function executeTool(
   }
 }
 
+// 오늘(KST) 경기 — 진행 중 → 예정(빠른 순) 을 본문으로, 종료는 리그별 요약으로.
+// 예전엔 시작시간순 30건만 잘라 새벽에 끝난 UCL·사우디·핀란드가 30칸을 채우고 저녁 KBO·유럽 경기가
+// 통째로 빠져 "오늘 경기는 대부분 종료" 라는 오답이 나갔다(2026-09-09 10:12 로그).
 async function getTodayMatches(leagueRaw?: string): Promise<string> {
   const league = normalizeLeague(leagueRaw);
   const { start, end } = kstDayRange(0);
@@ -347,25 +350,53 @@ async function getTodayMatches(leagueRaw?: string): Promise<string> {
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { startTime: "asc" },
-    take: 30,
   });
   if (matches.length === 0) {
     return league
       ? `오늘(KST) ${league} 경기 없음.`
       : "오늘(KST) 예정된 경기가 없습니다.";
   }
-  const lines = matches.map((m) => {
+  const line = (m: (typeof matches)[number]) => {
     const winner =
       m.predWinner === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league)
       : m.predWinner === "AWAY" ? toKoreanTeamName(m.awayTeam.name, m.league)
-      : m.predWinner === "DRAW" ? "무승부" : "-";
+      : m.predWinner === "DRAW" ? "무승부" : "추천 없음(확률만 참고)";
     const score =
       m.homeScore != null && m.awayScore != null
         ? ` ${m.homeScore}:${m.awayScore}`
         : "";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}${score} (${m.status}) · 모델픽: ${winner} (H ${pct(m.predHome)} / D ${pct(m.predDraw)} / A ${pct(m.predAway)}) · ${matchUrl(m.league, m.externalId)}`;
-  });
-  return lines.join("\n");
+    const pick = m.predHome != null ? ` · 모델픽: ${winner} (H ${pct(m.predHome)} / D ${pct(m.predDraw)} / A ${pct(m.predAway)})` : " · 모델픽: 아직 생성 전";
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}${score} (${m.status})${pick} · ${matchUrl(m.league, m.externalId)}`;
+  };
+  const live = matches.filter((m) => m.status === "LIVE");
+  const upcoming = matches.filter((m) => m.status === "SCHEDULED" || m.status === "TIMED");
+  const finished = matches.filter((m) => m.status === "FINISHED");
+  const other = matches.length - live.length - upcoming.length - finished.length;
+
+  // 리그 하나를 물었으면 상태 무관 시간순 전부(상한 40).
+  if (league) {
+    return [
+      `오늘(KST) ${league} ${matches.length}경기 — 진행 ${live.length} · 예정 ${upcoming.length} · 종료 ${finished.length}`,
+      ...matches.slice(0, 40).map(line),
+    ].join("\n");
+  }
+
+  const byLeague = (rows: typeof matches) => {
+    const cnt = new Map<string, number>();
+    for (const m of rows) cnt.set(m.league, (cnt.get(m.league) ?? 0) + 1);
+    return [...cnt.entries()].sort((a, b) => b[1] - a[1]).map(([lg, n]) => `${lg} ${n}`).join(", ");
+  };
+  const out: string[] = [
+    `오늘(KST) 전체 ${matches.length}경기 — 진행 중 ${live.length} · 예정 ${upcoming.length} · 종료 ${finished.length}${other > 0 ? ` · 연기/기타 ${other}` : ""}`,
+    "(아래는 진행 중·예정 경기. 종료 경기는 마지막 줄 요약 — 사용자가 결과를 물을 때만 get_recent_results 로 상세를 낸다)",
+  ];
+  if (live.length) out.push(`■ 진행 중 ${live.length}경기`, ...live.slice(0, 15).map(line));
+  if (upcoming.length) {
+    out.push(`■ 예정 ${upcoming.length}경기 (리그별: ${byLeague(upcoming)})`, ...upcoming.slice(0, 25).map(line));
+    if (upcoming.length > 25) out.push(`… 외 ${upcoming.length - 25}경기 — 리그를 지정하면 전부 보여준다`);
+  }
+  if (finished.length) out.push(`■ 종료 ${finished.length}경기 (리그별: ${byLeague(finished)})`);
+  return out.join("\n");
 }
 
 async function getUpcomingMatches(leagueRaw?: string, days = 3): Promise<string> {
