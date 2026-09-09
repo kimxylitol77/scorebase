@@ -1748,12 +1748,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Birmingham City",
-        "apps": 5,
-        "starts": 3,
+        "apps": 6,
+        "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 251,
-        "rating": 6.49,
+        "minutes": 341,
+        "rating": 6.38,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-08T22:20:18.971Z"
+  "currentUpdatedAt": "2026-09-09T22:20:16.876Z"
 }
