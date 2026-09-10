@@ -5,8 +5,11 @@ import { readFileSync, statSync } from "node:fs";
 
 const [mp4, dataJson, privacy = "private"] = process.argv.slice(2);
 if (!mp4 || !dataJson) throw new Error("사용법: youtube-upload.mts <mp4> <data.json> [privacy]");
-const { GOOGLE_CLIENT_ID: cid, GOOGLE_CLIENT_SECRET: sec, YOUTUBE_REFRESH_TOKEN: rt } = process.env;
-if (!cid || !sec || !rt) throw new Error("GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / YOUTUBE_REFRESH_TOKEN 필요");
+// 승인 스크립트(youtube-auth.mts)와 같은 클라이언트여야 리프레시 토큰이 통한다
+const cid = process.env.YT_OAUTH_CLIENT_ID || process.env.GSC_OAUTH_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+const sec = process.env.YT_OAUTH_CLIENT_SECRET || process.env.GSC_OAUTH_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+const rt = process.env.YOUTUBE_REFRESH_TOKEN;
+if (!cid || !sec || !rt) throw new Error("GSC_OAUTH_CLIENT_ID / GSC_OAUTH_CLIENT_SECRET / YOUTUBE_REFRESH_TOKEN 필요");
 
 const yt = JSON.parse(readFileSync(dataJson, "utf8")).text.youtube as { title: string; description: string; tags: string };
 // 제목 100자 제한 · #shorts 없으면 붙인다 (세로 60초 미만이면 없어도 쇼츠 분류되지만 검색용)

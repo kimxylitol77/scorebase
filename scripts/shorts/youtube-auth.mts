@@ -4,12 +4,13 @@
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
 
-const clientId = process.env.GOOGLE_CLIENT_ID;
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-if (!clientId || !clientSecret) throw new Error("GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET 이 .env.local 에 없습니다");
+// 로컬에는 웹 로그인 키(GOOGLE_CLIENT_*)가 없고(Vercel 전용) 서치콘솔용 데스크톱 클라이언트(GSC_OAUTH_*)만 있다.
+// 데스크톱 클라이언트는 루프백 리디렉션을 등록 없이 허용하므로 그걸 유튜브 승인에도 쓴다(같은 scorebase 프로젝트).
+const clientId = process.env.YT_OAUTH_CLIENT_ID || process.env.GSC_OAUTH_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+const clientSecret = process.env.YT_OAUTH_CLIENT_SECRET || process.env.GSC_OAUTH_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+if (!clientId || !clientSecret) throw new Error("GSC_OAUTH_CLIENT_ID / GSC_OAUTH_CLIENT_SECRET (또는 GOOGLE_CLIENT_*) 이 .env.local 에 없습니다");
 
-// scorebase-web 클라이언트에 등록된 로컬 리디렉션 URI 를 그대로 쓴다 (콘솔 변경 불필요)
-const REDIRECT = process.env.YT_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback";
+const REDIRECT = process.env.YT_REDIRECT_URI || "http://localhost:8787/oauth2callback";
 const port = Number(new URL(REDIRECT).port || 80);
 const SCOPE = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
 
