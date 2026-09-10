@@ -156,12 +156,12 @@
         "status": "played",
         "season": "2026",
         "team": "Los Angeles FC",
-        "apps": 22,
-        "starts": 20,
+        "apps": 23,
+        "starts": 21,
         "goals": 5,
         "assists": 9,
-        "minutes": 1755,
-        "rating": 7.16,
+        "minutes": 1845,
+        "rating": 7.14,
         "yellow": 2,
         "red": 0
       }
@@ -709,12 +709,12 @@
         "status": "played",
         "season": "2026",
         "team": "St. Louis City SC",
-        "apps": 17,
-        "starts": 12,
+        "apps": 18,
+        "starts": 13,
         "goals": 2,
         "assists": 1,
-        "minutes": 849,
-        "rating": 6.68,
+        "minutes": 914,
+        "rating": 6.69,
         "yellow": 1,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-09T22:20:16.876Z"
+  "currentUpdatedAt": "2026-09-10T22:20:16.193Z"
 }
