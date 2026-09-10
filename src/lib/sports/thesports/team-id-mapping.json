@@ -4004,7 +4004,7 @@
     "tsVenueId": "z8yomo4hkk0q0j6"
   },
   {
-    "ourId": 119230,
+    "ourId": 599501,
     "ourName": "Club Nacional",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "2356",
@@ -4297,7 +4297,7 @@
     "tsVenueId": "p3glrw7h1o5qdyj"
   },
   {
-    "ourId": 119238,
+    "ourId": 288869,
     "ourName": "Junior",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "1135",
@@ -4513,7 +4513,7 @@
     "tsVenueId": "vl7oqdehe8gr510"
   },
   {
-    "ourId": 119273,
+    "ourId": 599496,
     "ourName": "Juventud",
     "ourLeague": "COPA_SUD",
     "ourExternalId": "2353",
@@ -9932,7 +9932,7 @@
     "tsVenueId": "9vjxm8ghd4kr6od"
   },
   {
-    "ourId": 119246,
+    "ourId": 288726,
     "ourName": "U. Catolica",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "2994",
@@ -10292,7 +10292,7 @@
     "tsVenueId": "e4wyrn4h8nnq86p"
   },
   {
-    "ourId": 500,
+    "ourId": 7,
     "ourName": "Barcelona",
     "ourLeague": "UCL",
     "ourExternalId": "83",
@@ -10433,7 +10433,7 @@
     "matchType": "cross-ref"
   },
   {
-    "ourId": 119223,
+    "ourId": 599461,
     "ourName": "Platense",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "1064",
@@ -10453,7 +10453,7 @@
     "matchType": "exact-amb"
   },
   {
-    "ourId": 119247,
+    "ourId": 288825,
     "ourName": "Barcelona SC",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "1152",
@@ -23709,7 +23709,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 598500,
+    "ourId": 290185,
     "ourName": "Công An Nhân Dân",
     "ourLeague": "AFC_CL_TWO",
     "ourExternalId": "16400",
@@ -23862,7 +23862,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 119230,
+    "ourId": 599501,
     "ourName": "Club Nacional",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "2356",
@@ -23880,7 +23880,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 119246,
+    "ourId": 288726,
     "ourName": "U. Catolica",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "2994",
@@ -23889,7 +23889,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 119247,
+    "ourId": 288825,
     "ourName": "Barcelona SC",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "1152",
@@ -23898,7 +23898,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 119223,
+    "ourId": 599461,
     "ourName": "Platense",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "1064",
@@ -23925,7 +23925,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 119238,
+    "ourId": 288869,
     "ourName": "Junior",
     "ourLeague": "COPA_LIB",
     "ourExternalId": "1135",
@@ -23943,7 +23943,7 @@
     "matchType": "manual-review"
   },
   {
-    "ourId": 119273,
+    "ourId": 599496,
     "ourName": "Juventud",
     "ourLeague": "COPA_SUD",
     "ourExternalId": "2353",
