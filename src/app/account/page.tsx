@@ -251,6 +251,18 @@ export default async function AccountPage({ searchParams }: Props) {
           {/* 즐겨찾기 팀 — 목록·해제 (client island) */}
           <MyFavoriteTeams />
 
+          {/* 개인 적중률 노트북 진입 — 즐겨찾기 팀·리그 기준 AI 적중률 */}
+          <Link
+            href="/account/hit-rate"
+            className="flex items-center justify-between rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none px-6 py-4 hover:ring-blue-300 dark:hover:ring-blue-500/40 transition-colors"
+          >
+            <div>
+              <div className="text-sm font-semibold">내 팀 AI 적중률</div>
+              <div className="mt-0.5 text-[11px] text-neutral-500">즐겨찾기한 팀·리그에서 AI 예측이 얼마나 맞았는지 자동으로 쌓입니다.</div>
+            </div>
+            <span className="text-neutral-400" aria-hidden>→</span>
+          </Link>
+
           {/* 팔로우한 분석가 — 목록·해제 (서버 조회) */}
           <MyAnalystFollows userId={session.userId} />
 

@@ -21,6 +21,13 @@
     "group": "other"
   },
   {
+    "route": "/account/hit-rate",
+    "desc": "개인 적중률 노트북 — 회원이 즐겨찾기한 팀·리그에 대한 AI 예측 적중률을 누적·시각화 (로그인 필수).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/account/shop",
     "desc": "포인트 상점 — 프로필 꾸미기(닉네임 색상·아바타 프레임) 구매·장착. 마이페이지 하위.",
     "inMenu": false,
@@ -369,6 +376,20 @@
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
+  },
+  {
+    "route": "/en/picks",
+    "desc": "승부예측(영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/en/picks/me",
+    "desc": "내 예측 리포트(영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/en/players/[pid]",
