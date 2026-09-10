@@ -24,6 +24,10 @@
     [
       "const day = [\"일\", \"월\", \"화\", \"수\", \"목\", \"금\", \"토\"][k.getUTCDay()];",
       "const day = [\"Sun\", \"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\"][k.getUTCDay()];"
+    ],
+    [
+      "import { displayGrade } from \"@/lib/user-level\";",
+      "import { displayGradeEn as displayGrade } from \"@/lib/user-level\";"
     ]
   ],
   "dict": {

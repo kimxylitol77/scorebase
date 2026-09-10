@@ -8,7 +8,7 @@ import { toEnglishTeamName } from "@/lib/i18n/en";
 import MatchVoteButtons from "@/components/en/MatchVoteButtons";
 import { buildVoteMarkets, loadVoteDists, VOTE_MATCH_SELECT } from "@/components/en/MatchVoteCard";
 import { MARKET_LABEL_EN as MARKET_LABEL, type VoteMarket } from "@/lib/vote-markets";
-import { displayGrade } from "@/lib/user-level";
+import { displayGradeEn as displayGrade } from "@/lib/user-level";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 

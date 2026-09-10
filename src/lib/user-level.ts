@@ -104,6 +104,17 @@ export function levelProgress(exp: number): {
 /** 특별 등급 — 레전드(Lv12) 위. exp 무관, badge 로만 부여(매니저·운영 계정). */
 export const OFFICIAL_GRADE = { emoji: "🎖️", name: "공식 분석관" } as const;
 
+/** 영어판 등급명 — GRADES 와 같은 순서(level 1~12). /en 미러가 displayGradeEn 으로 갈아끼운다. */
+export const GRADE_NAMES_EN: readonly string[] = [
+  "Sunday League", "Youth", "Amateur", "Semi-pro", "Pro Debut", "Second Division",
+  "First Division", "Cup Winner", "Europa", "Champions League", "Ballon d’Or", "Legend",
+];
+export function displayGradeEn(level: number, badge?: string | null): { emoji: string; name: string } {
+  if (badge === "OFFICIAL") return { emoji: OFFICIAL_GRADE.emoji, name: "Official Analyst" };
+  const g = gradeByLevel(level);
+  return { emoji: g.emoji, name: GRADE_NAMES_EN[g.level - 1] ?? g.name };
+}
+
 /** 표시용 등급 — badge 가 있으면 특별 등급, 없으면 exp(level) 기반 일반 등급. */
 export function displayGrade(
   level: number,
