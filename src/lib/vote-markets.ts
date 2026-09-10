@@ -5,6 +5,8 @@ import { getSportProfile, handicapCorrect, overActual } from "@/lib/predict/mark
 export type VoteMarket = "1X2" | "HANDICAP" | "OU";
 export const VOTE_MARKETS: readonly VoteMarket[] = ["1X2", "HANDICAP", "OU"];
 export const MARKET_LABEL: Record<VoteMarket, string> = { "1X2": "승부", HANDICAP: "핸디캡", OU: "오버언더" };
+/** 영어판(/en, en-mirror 가 preReplace 로 갈아끼움) */
+export const MARKET_LABEL_EN: Record<VoteMarket, string> = { "1X2": "1X2", HANDICAP: "Handicap", OU: "Over/Under" };
 
 const PICKS_BY_MARKET: Record<VoteMarket, readonly string[]> = {
   "1X2": ["home", "draw", "away"],
@@ -45,13 +47,14 @@ export function resolveLines(m: LineSource): { HANDICAP: number | null; OU: numb
 }
 
 /** 픽 표시 라벨 — 팀명과 라인을 붙인 사람용 문구. */
-export function pickLabel(market: VoteMarket, pick: string, home: string, away: string, line: number | null): string {
+export function pickLabel(market: VoteMarket, pick: string, home: string, away: string, line: number | null, lang: "ko" | "en" = "ko"): string {
+  const en = lang === "en";
   if (market === "HANDICAP") {
     const l = line != null ? ` ${pick === "home" ? "−" : "+"}${line}` : "";
     return `${pick === "home" ? home : away}${l}`;
   }
-  if (market === "OU") return `${pick === "over" ? "오버" : "언더"}${line != null ? ` ${line}` : ""}`;
-  return pick === "home" ? home : pick === "away" ? away : "무승부";
+  if (market === "OU") return `${pick === "over" ? (en ? "Over" : "오버") : en ? "Under" : "언더"}${line != null ? ` ${line}` : ""}`;
+  return pick === "home" ? home : pick === "away" ? away : en ? "Draw" : "무승부";
 }
 
 /** 종료 스코어로 정답 픽 — 시장별. 핸디캡은 라인 정확히 걸치면(margin==line) null(무효). */

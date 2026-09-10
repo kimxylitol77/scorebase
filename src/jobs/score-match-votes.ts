@@ -2,6 +2,7 @@
 // correct 를 채운다. 연기·취소 매치 투표는 null 유지(기록 제외). CLV 는 1X2 만(스냅샷에 hc/ou 배당 없음).
 import { prisma } from "@/lib/db";
 import { isVoteMarket, resultPick } from "@/lib/vote-markets";
+import { EXP_REWARDS, POINT_REWARDS, expToLevel } from "@/lib/user-level";
 
 export async function runScoreMatchVotes() {
   // 미채점 투표가 있는 매치만 수집 (연기·취소 매치 투표는 null 유지 — 기록에서 제외됨)
@@ -74,6 +75,40 @@ export async function runScoreMatchVotes() {
       scored += hit.count + miss.count;
     }
   }
-  console.log(`[evaluate/votes] 매치 ${matches.length} · 투표 ${scored} 채점 · CLV ${clvFilled}${pushes ? ` · 푸시/무효 묶음 ${pushes}` : ""}`);
-  return { scored, matches: matches.length, clvFilled };
+  const rewarded = matches.length > 0 ? await rewardVoteHits(matches.map((m) => m.id)) : 0;
+  console.log(`[evaluate/votes] 매치 ${matches.length} · 투표 ${scored} 채점 · CLV ${clvFilled} · 보상 ${rewarded}${pushes ? ` · 푸시/무효 묶음 ${pushes}` : ""}`);
+  return { scored, matches: matches.length, clvFilled, rewarded };
+}
+
+/**
+ * 적중 보상 — 로그인 회원의 적중 표에 exp·포인트. ExpLog reason 에 표 id 를 박아 멱등(점수 정정으로
+ * correct 가 리셋됐다 다시 채점돼도, 소급 실행을 몇 번 해도 두 번 주지 않는다). 익명 표는 대상 아님.
+ * user-exp.awardExp 와 같은 갱신(exp·points 증가 → level 재계산 → ExpLog)이지만 그 모듈은 server-only 라
+ * tsx 로 도는 잡에서 못 부른다 — 여기서 같은 규칙으로 직접 쓴다.
+ * @param matchIds 생략하면 전체 적중 표(소급용).
+ */
+export async function rewardVoteHits(matchIds?: number[]): Promise<number> {
+  const hits = await prisma.matchVote.findMany({
+    where: { ...(matchIds ? { matchId: { in: matchIds } } : {}), correct: true, userId: { not: null } },
+    select: { id: true, userId: true },
+  });
+  if (hits.length === 0) return 0;
+  const done = new Set(
+    (await prisma.expLog.findMany({ where: { reason: { in: hits.map((v) => `vote_hit:${v.id}`) } }, select: { reason: true } })).map((r) => r.reason),
+  );
+  let rewarded = 0;
+  for (const v of hits) {
+    const reason = `vote_hit:${v.id}`;
+    if (done.has(reason)) continue;
+    const u = await prisma.user.update({
+      where: { id: v.userId! },
+      data: { exp: { increment: EXP_REWARDS.voteHit }, points: { increment: POINT_REWARDS.voteHit } },
+      select: { exp: true, level: true },
+    });
+    await prisma.expLog.create({ data: { userId: v.userId!, exp: EXP_REWARDS.voteHit, points: POINT_REWARDS.voteHit, reason } });
+    const level = expToLevel(Math.max(u.exp, 0));
+    if (level !== u.level) await prisma.user.update({ where: { id: v.userId! }, data: { level } });
+    rewarded++;
+  }
+  return rewarded;
 }

@@ -12,3 +12,7 @@
 - API 실측(NPB 13045): HANDICAP away(line 1.5, 배당 2.40)·OU over→under 변경(line 7, 1.94)·1X2 home 각각 독립 upsert, HANDICAP 에 draw 는 400. 라인은 시장 배당선(oddsHcLine 1.5·oddsTotalLine 7) 우선 적용됨. 테스트 행 삭제.
 - 채점 잡 1회 실행: 종료 4경기·투표 4건 채점·CLV 4. 푸시(라인 정확 일치)는 correct null 로 남는다 — 매 실행 다시 스캔되므로 늘어나면 `take: 300` 창을 갉아먹는다. 후속: 푸시 표시 컬럼 또는 채점 시각 컬럼.
 - 랭킹은 전 시장 합산 그대로(3표 게이트도 그대로). 아바타는 resolveAvatar(1등급 = 루키 기본 프사)·등급은 displayGrade 로 experts 와 같은 규칙.
+
+## 영어판 + 포인트 (같은 날, 사용자 추가 요청)
+- 영어판엔 투표 기능이 아예 없었다(/en/picks 없음, en 컴포넌트 없음). en-mirror 로 /picks·/picks/me 와 MatchVoteButtons/Card 를 생성. lib 의 한글 라벨은 미러 대상이 아니라 `MARKET_LABEL_EN`·`pickLabel(..., "en")` 을 lib 에 두고 override preReplace 로 갈아끼웠다. `/en/login` 은 없어 로그인 링크는 `/login` 유지. eslint `react/no-unescaped-entities` 는 사전의 `'` 를 `’` 로 바꿔 해결.
+- 포인트: 원클릭 표는 글 예측(300/100)보다 낮게 exp 30·points 20. 지급은 채점 잡 `rewardVoteHits` — user-exp.awardExp 가 `server-only` 라 tsx 잡에서 못 불러 같은 규칙(exp·points 증가 → expToLevel → ExpLog)을 직접 쓴다. 멱등 키는 ExpLog reason `vote_hit:{voteId}`. 기존 적중 162건 소급 지급(2회 실행 시 0건 확인). BALLBOY 87건 → Lv2.

@@ -39,6 +39,7 @@ export const EXP_REWARDS = {
   analysisPost: 500, // 분석글 작성
   predictionJoin: 50, // 경기 예측 참여
   predictionHit: 300, // 🎯 예측 적중 (자동 채점)
+  voteHit: 30, // 원클릭 승부예측(/picks) 적중 — 글 예측(300)보다 낮게. 시장당 1표라 하루 수십 표 가능
   recommendReceived: 20, // 내 글 추천 1개당
   firstPostBonus: 500, // 생애 첫 글 보너스 (일반 글 보상에 추가 — 첫 글은 사실상 2배)
 } as const;
@@ -50,6 +51,7 @@ export const POINT_REWARDS = {
   analysisPost: 100,
   predictionJoin: 20, // 경기 예측 참여 (글 작성 보상에 추가 지급)
   predictionHit: 100, // 🎯 예측 적중 (자동 채점)
+  voteHit: 20, // 원클릭 승부예측(/picks) 적중
   recommendReceived: 5,
   firstPostBonus: 100, // 생애 첫 글 보너스
 } as const;

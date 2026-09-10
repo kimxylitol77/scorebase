@@ -7,3 +7,5 @@
 - [x] score-match-votes 시장별 채점 → 검증: 종료 경기 dry 계산
 - [x] 랭킹 아바타·등급 + picks/me 시장 라벨 → 검증: 실렌더
 - [x] tsc·eslint·커밋·배포·프로덕션 확인
+- [x] 영어판 /en/picks·/en/picks/me + en 투표 컴포넌트 — en-mirror override 4개, 미번역 0
+- [x] 적중 포인트: voteHit(exp 30·points 20) 채점 잡에서 멱등 지급(ExpLog reason vote_hit:{id}), 기존 162건 소급
