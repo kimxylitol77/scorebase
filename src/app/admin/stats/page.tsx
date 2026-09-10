@@ -10,6 +10,8 @@ import {
   CHANNEL_META,
   CHANNEL_ORDER,
   type TrafficChannel,
+  aiServiceOf,
+  AI_SERVICES,
 } from "@/lib/referrer-channel";
 import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
 import { getBingOverview } from "@/lib/bing-webmaster";
@@ -88,7 +90,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing, aiSvcRaw] = await Promise.all([
     // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
     // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
     // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전 (잘림은 30일 차트의 옛날쪽 며칠).
@@ -138,6 +140,20 @@ export default async function StatsPage({ searchParams }: Props) {
     prisma.user.findMany({ select: { id: true, createdAt: true } }),
     getGscOverview(),
     getBingOverview(),
+    // AI 서비스별 유입 — 랜딩뿐 아니라 그 방문이 이어 본 PV 까지(사람). referrer 또는 utm_source 에
+    // AI 서비스 흔적이 있는 행만 DB 에서 좁혀 온다(행 수 수백).
+    prisma.pageView.findMany({
+      where: {
+        ...rangeWhere,
+        OR: ["chatgpt", "openai", "copilot", "perplexity", "claude", "anthropic", "gemini.google", "bard.google"].flatMap((k) => [
+          { referrer: { contains: k, mode: "insensitive" as const } },
+          { utmSource: { contains: k, mode: "insensitive" as const } },
+        ]),
+      },
+      select: { ts: true, path: true, userAgent: true, sessionId: true, referrer: true, utmSource: true },
+      take: 20000,
+      orderBy: { ts: "desc" },
+    }),
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -464,6 +480,33 @@ export default async function StatsPage({ searchParams }: Props) {
     }
     landingTotal++;
   }
+  // === AI 서비스별 유입 (사람 PV, referrer·utm 기준) — ai_chat 채널을 서비스 단위로 ===
+  // utm_source 는 링크 URL 에만, referrer 는 첫 페이지에만 남으므로 사실상 "AI 링크를 누른 횟수" 다.
+  // 한 방문자가 답변 속 링크를 여러 개 누르면 PV 가 방문자보다 커진다.
+  const aiSvcAgg = new Map<string, { pv: number; ids: Set<string>; paths: Map<string, number> }>();
+  for (const r of aiSvcRaw) {
+    if (detectBot(r.userAgent).isBot) continue;
+    if (r.sessionId && suspiciousSids.has(r.sessionId)) continue;
+    const svc = aiServiceOf(r.referrer, r.utmSource);
+    if (!svc) continue;
+    const e = aiSvcAgg.get(svc) ?? { pv: 0, ids: new Set<string>(), paths: new Map<string, number>() };
+    e.pv++;
+    if (r.sessionId) e.ids.add(r.sessionId);
+    e.paths.set(r.path, (e.paths.get(r.path) ?? 0) + 1);
+    aiSvcAgg.set(svc, e);
+  }
+  // 0 인 서비스도 행 유지 — "안 잡히는 건지 안 오는 건지" 를 표에서 바로 본다.
+  const aiSvcRows = AI_SERVICES.map((name) => {
+    const e = aiSvcAgg.get(name);
+    return {
+      name,
+      pv: e?.pv ?? 0,
+      unique: e?.ids.size ?? 0,
+      topPaths: e ? [...e.paths.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3) : [],
+    };
+  });
+  const aiSvcTotalPv = aiSvcRows.reduce((s, r) => s + r.pv, 0);
+
   // 유입 0 인 채널도 행 유지 — 신규 채널(유튜브 등) 개설 후 "잡히고는 있나" 를
   // 표에서 바로 확인하려면 0 행이 보여야 한다.
   const channelData = CHANNEL_ORDER.map((c) => ({
@@ -987,6 +1030,39 @@ export default async function StatsPage({ searchParams }: Props) {
               })}
             </ul>
           )}
+        </SectionCard>
+
+        <SectionCard
+          title="AI 서비스별 유입"
+          subtitle={`${rangeLabel} · AI 링크 클릭 ${aiSvcTotalPv.toLocaleString()}회 (사람 · referrer·utm_source 기준)`}
+        >
+          <table className="w-full text-sm table-fixed">
+            <thead>
+              <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                <th className="text-left font-medium pb-2 pr-2 w-28">서비스</th>
+                <th className="text-right font-medium pb-2 px-1 w-16">방문자</th>
+                <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
+                <th className="text-left font-medium pb-2 pl-3">많이 들어온 페이지</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {aiSvcRows.map((r) => (
+                <tr key={r.name} className={r.pv === 0 ? "opacity-40" : undefined}>
+                  <td className="py-2 pr-2 font-medium">{r.name}</td>
+                  <td className="py-2 px-1 text-right tabular-nums font-semibold">{r.unique.toLocaleString()}</td>
+                  <td className="py-2 px-1 text-right tabular-nums">{r.pv.toLocaleString()}</td>
+                  <td className="py-2 pl-3 text-xs text-neutral-500 truncate">
+                    {r.topPaths.length === 0 ? "—" : r.topPaths.map(([p, n]) => `${p} (${n})`).join(" · ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-[11px] text-neutral-400 leading-relaxed">
+            ChatGPT·Copilot·Perplexity 는 링크에 utm_source 를 붙여 거의 전부 잡힙니다. Claude·Gemini 는 태그를 안 붙이고
+            referrer 만 남기므로 앱·인앱 브라우저처럼 referrer 가 빠지는 경로는 &quot;직접&quot; 으로 섞입니다(하한값).
+            AI 가 답변에서 우리를 언급만 하고 클릭이 없으면 여기에 안 잡힙니다.
+          </p>
         </SectionCard>
 
         <SectionCard

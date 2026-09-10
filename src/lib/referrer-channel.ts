@@ -215,3 +215,25 @@ export function extractSearchQuery(referrer: string | null): string | null {
     return null;
   }
 }
+
+/** AI 서비스 개별 식별 — admin/stats "AI 서비스별 유입" 표. ai_chat 채널을 서비스 단위로 쪼갠다. */
+export const AI_SERVICES = ["ChatGPT", "Bing Copilot", "Perplexity", "Claude", "Gemini"] as const;
+export type AiService = (typeof AI_SERVICES)[number];
+
+const AI_SERVICE_RE: Array<[AiService, RegExp]> = [
+  ["ChatGPT", /chatgpt|openai/i],
+  ["Bing Copilot", /copilot/i],
+  ["Perplexity", /perplexity/i],
+  ["Claude", /claude|anthropic/i],
+  ["Gemini", /gemini\.google|bard\.google/i],
+];
+
+/**
+ * referrer·utm_source 로 AI 서비스를 특정. 둘 다 본다 — ChatGPT·Copilot·Perplexity 는 링크에
+ * utm_source 를 붙이고(2026-09 실측 ChatGPT 90일 375건 중 350건이 utm), Claude 는 referrer 만 남긴다.
+ */
+export function aiServiceOf(referrer: string | null, utmSource: string | null): AiService | null {
+  const src = `${referrer ?? ""} ${utmSource ?? ""}`;
+  for (const [name, re] of AI_SERVICE_RE) if (re.test(src)) return name;
+  return null;
+}
