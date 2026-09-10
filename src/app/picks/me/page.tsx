@@ -19,6 +19,7 @@ const LEAGUE_KO: Record<string, string> = {
 };
 
 const PICK_KO: Record<string, string> = { home: "홈 승", draw: "무승부", away: "원정 승" };
+import { MARKET_LABEL, pickLabel, type VoteMarket } from "@/lib/vote-markets";
 
 function pct(hit: number, total: number): number {
   return Math.round((hit / total) * 100);
@@ -40,7 +41,7 @@ export default async function MyPicksPage() {
 
   const votes = await prisma.matchVote.findMany({
     where: { userId: user.id },
-    select: { matchId: true, pick: true, correct: true, pickOdds: true, closeOdds: true, clv: true },
+    select: { matchId: true, market: true, line: true, pick: true, correct: true, pickOdds: true, closeOdds: true, clv: true },
   });
   const total = votes.length;
   const scoredVotes = votes.filter((v) => v.correct !== null);
@@ -305,7 +306,7 @@ export default async function MyPicksPage() {
                     const home = toKoreanTeamName(m.homeTeam.name, lg) || m.homeTeam.name;
                     const away = toKoreanTeamName(m.awayTeam.name, lg) || m.awayTeam.name;
                     return (
-                      <tr key={v.matchId} className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60">
+                      <tr key={`${v.matchId}-${v.market}`} className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60">
                         <td className="px-3 py-2.5">
                           <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
                             {kstDate(m.startTime)} · {LEAGUE_KO[lg] ?? lg}
@@ -314,7 +315,14 @@ export default async function MyPicksPage() {
                             {home} <span className="tabular-nums text-neutral-500">{m.homeScore}:{m.awayScore}</span> {away}
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 text-neutral-600 dark:text-neutral-300">{PICK_KO[v.pick] ?? v.pick}</td>
+                        <td className="px-3 py-2.5 text-neutral-600 dark:text-neutral-300">
+                          {v.market === "1X2"
+                            ? (PICK_KO[v.pick] ?? v.pick)
+                            : pickLabel(v.market as VoteMarket, v.pick, home, away, v.line)}
+                          {v.market !== "1X2" && (
+                            <span className="ml-1 rounded bg-neutral-100 px-1 py-0.5 text-[10px] text-neutral-500 dark:bg-white/[0.08] dark:text-neutral-400">{MARKET_LABEL[v.market as VoteMarket] ?? v.market}</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2.5 text-center">
                           {v.correct ? (
                             <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">적중</span>

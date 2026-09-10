@@ -1,6 +1,7 @@
-// 승부예측 투표 채점 — FINISHED 매치의 미채점 투표(correct null)를 최종 스코어로 채움.
-// evaluate cron(22:00 KST) 에서 predCorrect 채점과 함께 호출.
+// 승부예측 투표 채점 — evaluate cron 에 피기백. 종료 매치의 최종 스코어로 시장별(1X2·핸디캡·오버언더) 정답을 내고
+// correct 를 채운다. 연기·취소 매치 투표는 null 유지(기록 제외). CLV 는 1X2 만(스냅샷에 hc/ou 배당 없음).
 import { prisma } from "@/lib/db";
+import { isVoteMarket, resultPick } from "@/lib/vote-markets";
 
 export async function runScoreMatchVotes() {
   // 미채점 투표가 있는 매치만 수집 (연기·취소 매치 투표는 null 유지 — 기록에서 제외됨)
@@ -24,9 +25,9 @@ export async function runScoreMatchVotes() {
 
   let scored = 0;
   let clvFilled = 0;
+  let pushes = 0;
   for (const m of matches) {
-    const result = m.homeScore! > m.awayScore! ? "home" : m.homeScore! < m.awayScore! ? "away" : "draw";
-    // CLV — 킥오프 직전 마지막 스냅샷(종가) 대비 픽 배당. 스냅샷 없으면 건너뜀(추정 금지).
+    // CLV — 킥오프 직전 마지막 스냅샷(종가) 대비 픽 배당. 스냅샷 없으면 건너뜀(추정 금지). 1X2 표만.
     const close = await prisma.oddsSnapshot.findFirst({
       where: { matchId: m.id, fetchedAt: { lte: m.startTime } },
       orderBy: { fetchedAt: "desc" },
@@ -34,7 +35,7 @@ export async function runScoreMatchVotes() {
     });
     if (close) {
       const votes = await prisma.matchVote.findMany({
-        where: { matchId: m.id, closeOdds: null, pickOdds: { not: null } },
+        where: { matchId: m.id, market: "1X2", closeOdds: null, pickOdds: { not: null } },
         select: { id: true, pick: true, pickOdds: true },
       });
       for (const v of votes) {
@@ -47,16 +48,32 @@ export async function runScoreMatchVotes() {
         clvFilled++;
       }
     }
-    const hit = await prisma.matchVote.updateMany({
-      where: { matchId: m.id, correct: null, pick: result },
-      data: { correct: true },
-    });
-    const miss = await prisma.matchVote.updateMany({
+
+    // 시장·라인별 정답 — 같은 (market, line) 묶음은 한 번에 updateMany.
+    const pending = await prisma.matchVote.findMany({
       where: { matchId: m.id, correct: null },
-      data: { correct: false },
+      select: { market: true, line: true },
+      distinct: ["market", "line"],
     });
-    scored += hit.count + miss.count;
+    for (const p of pending) {
+      const market = isVoteMarket(p.market) ? p.market : "1X2";
+      const answer = resultPick(market, p.line, m.homeScore!, m.awayScore!);
+      if (answer == null) {
+        // 라인에 정확히 걸친 핸디/OU(푸시)·라인 없는 표는 채점 불가 — null 로 남겨 기록에서 뺀다.
+        pushes++;
+        continue;
+      }
+      const hit = await prisma.matchVote.updateMany({
+        where: { matchId: m.id, market: p.market, line: p.line, correct: null, pick: answer },
+        data: { correct: true },
+      });
+      const miss = await prisma.matchVote.updateMany({
+        where: { matchId: m.id, market: p.market, line: p.line, correct: null },
+        data: { correct: false },
+      });
+      scored += hit.count + miss.count;
+    }
   }
-  console.log(`[evaluate/votes] 매치 ${matches.length} · 투표 ${scored} 채점 · CLV ${clvFilled}`);
+  console.log(`[evaluate/votes] 매치 ${matches.length} · 투표 ${scored} 채점 · CLV ${clvFilled}${pushes ? ` · 푸시/무효 묶음 ${pushes}` : ""}`);
   return { scored, matches: matches.length, clvFilled };
 }

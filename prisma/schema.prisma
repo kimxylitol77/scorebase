@@ -1224,7 +1224,10 @@ model MatchVote {
   matchId   Int
   userId    String? // 로그인 회원 (null = 익명)
   sessionId String? // 익명 식별 — PageViewTracker 의 scorebase-sid 재사용
-  pick      String // "home" | "draw" | "away"
+  pick      String // 1X2: "home"|"draw"|"away" · HANDICAP: "home"|"away" · OU: "over"|"under"
+  // 시장 — 2026-09-10 핸디캡·오버언더 투표 확장. 기존 행은 '1X2'. raw SQL(prisma/sql/alter-match-vote-market.sql).
+  market    String   @default("1X2") // "1X2" | "HANDICAP" | "OU"
+  line      Float? // HANDICAP: 양수(home=홈 -line, away=원정 +line) · OU: 총점 기준선 · 1X2: null
   correct   Boolean? // 경기 종료 후 채점 (null = 미채점)
   // CLV(종가 대비 가치) — 픽 시점 해외 평균 배당 vs 킥오프 직전 마지막 스냅샷 배당 (2026-08-22).
   pickOdds  Float? // 투표 시점 픽 쪽 배당 (Match.odds* 평균, 마진 포함)
@@ -1232,8 +1235,8 @@ model MatchVote {
   clv       Float? // pickOdds / closeOdds - 1 (양수 = 종가보다 좋은 배당에 픽)
   createdAt DateTime @default(now())
 
-  @@unique([matchId, userId])
-  @@unique([matchId, sessionId])
+  @@unique([matchId, userId, market])
+  @@unique([matchId, sessionId, market])
   @@index([userId])
   @@index([matchId])
 }

@@ -1,0 +1,9 @@
+# 체크리스트
+- [x] prisma/sql/alter-match-vote-market.sql + schema.prisma(market·line·3중 유니크) → 검증: prisma generate·tsc
+- [x] 프로덕션 DDL 실행(lock_timeout 3s) → 검증: 컬럼·인덱스 조회, 기존 727행 market='1X2'
+- [x] lib/vote-markets.ts — 라인 결정·픽 검증·라벨 단일 소스 → 검증: tsx 단위 확인
+- [x] api/vote GET/POST 시장 지원 → 검증: curl POST(1X2·HANDICAP·OU) + 중복 upsert
+- [x] MatchVoteButtons 시장 탭 + MatchVoteCard/picks 페이지 데이터 주입 → 검증: 실렌더
+- [x] score-match-votes 시장별 채점 → 검증: 종료 경기 dry 계산
+- [x] 랭킹 아바타·등급 + picks/me 시장 라벨 → 검증: 실렌더
+- [x] tsc·eslint·커밋·배포·프로덕션 확인

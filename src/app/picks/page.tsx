@@ -2,9 +2,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { getCurrentUserId } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MatchVoteButtons from "@/components/MatchVoteButtons";
+import { buildVoteMarkets, loadVoteDists, VOTE_MATCH_SELECT } from "@/components/MatchVoteCard";
+import { MARKET_LABEL, type VoteMarket } from "@/lib/vote-markets";
+import { displayGrade } from "@/lib/user-level";
+import { resolveAvatar } from "@/lib/analysis/analysts";
+import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
   title: "승부예측 — 나 vs AI | Scorebase",
@@ -40,32 +46,25 @@ export default async function PicksPage() {
 
   const matches = await prisma.match.findMany({
     where: { league: { in: PICK_LEAGUES }, status: "SCHEDULED", startTime: { gt: now, lte: until } },
-    select: {
-      id: true, league: true, startTime: true,
-      predHome: true, predDraw: true, predAway: true,
-      homeTeam: { select: { name: true } },
-      awayTeam: { select: { name: true } },
-    },
+    select: VOTE_MATCH_SELECT,
     orderBy: { startTime: "asc" },
     take: 40,
   });
   const ids = matches.map((m) => m.id);
 
-  const [voteRows, myVotes] = await Promise.all([
-    ids.length
-      ? prisma.matchVote.groupBy({ by: ["matchId", "pick"], where: { matchId: { in: ids } }, _count: { _all: true } })
-      : Promise.resolve([]),
+  const [distByMatch, myVotes] = await Promise.all([
+    loadVoteDists(ids),
     userId && ids.length
-      ? prisma.matchVote.findMany({ where: { userId, matchId: { in: ids } }, select: { matchId: true, pick: true } })
+      ? prisma.matchVote.findMany({ where: { userId, matchId: { in: ids } }, select: { matchId: true, market: true, pick: true } })
       : Promise.resolve([]),
   ]);
-  const distByMatch = new Map<number, Record<string, number>>();
-  for (const r of voteRows) {
-    const d = distByMatch.get(r.matchId) ?? { home: 0, draw: 0, away: 0 };
-    d[r.pick] = r._count._all;
-    distByMatch.set(r.matchId, d);
+  // 내 픽 — 매치 → 시장 → 픽
+  const myPicksByMatch = new Map<number, Partial<Record<VoteMarket, string>>>();
+  for (const v of myVotes) {
+    const o = myPicksByMatch.get(v.matchId) ?? {};
+    o[v.market as VoteMarket] = v.pick;
+    myPicksByMatch.set(v.matchId, o);
   }
-  const myPickByMatch = new Map(myVotes.map((v) => [v.matchId, v.pick]));
 
   // 내 기록 (로그인) — 채점된 투표의 적중률 + 같은 경기에서 AI(predCorrect) 와 비교
   let myRecord: {
@@ -78,7 +77,7 @@ export default async function PicksPage() {
   if (userId) {
     const all = await prisma.matchVote.findMany({
       where: { userId },
-      select: { matchId: true, correct: true, pickOdds: true, clv: true },
+      select: { matchId: true, market: true, correct: true, pickOdds: true, clv: true },
     });
     const scoredRows = all.filter((v) => v.correct !== null);
     let aiHit = 0;
@@ -116,9 +115,26 @@ export default async function PicksPage() {
     ORDER BY SUM(CASE WHEN correct THEN 1 ELSE 0 END)::float / COUNT(*) DESC, COUNT(*) DESC
     LIMIT 20`;
   const boardUsers = board.length
-    ? await prisma.user.findMany({ where: { id: { in: board.map((b) => b.userId) } }, select: { id: true, nickname: true } })
+    ? await prisma.user.findMany({
+        where: { id: { in: board.map((b) => b.userId) } },
+        select: { id: true, nickname: true, avatarUrl: true, level: true, badge: true, avatarFrame: true },
+      })
     : [];
-  const nickById = new Map(boardUsers.map((u) => [u.id, u.nickname]));
+  const userById = new Map(boardUsers.map((u) => [u.id, u]));
+  // 시장별 적중(승부·핸디·오버언더) — 랭커마다 어느 시장에 강한지 한 줄 보조 표기.
+  const perMarket = board.length
+    ? await prisma.$queryRaw<{ userId: string; market: string; total: number; hit: number }[]>`
+        SELECT "userId", market, COUNT(*)::int AS total, SUM(CASE WHEN correct THEN 1 ELSE 0 END)::int AS hit
+        FROM "MatchVote"
+        WHERE "userId" IN (${Prisma.join(board.map((b) => b.userId))}) AND correct IS NOT NULL
+        GROUP BY "userId", market`
+    : [];
+  const marketByUser = new Map<string, { market: string; total: number; hit: number }[]>();
+  for (const r of perMarket) {
+    const arr = marketByUser.get(r.userId) ?? [];
+    arr.push(r);
+    marketByUser.set(r.userId, arr);
+  }
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
@@ -204,18 +220,7 @@ export default async function PicksPage() {
               const lg = m.league ?? "";
               const home = toKoreanTeamName(m.homeTeam.name, lg) || m.homeTeam.name;
               const away = toKoreanTeamName(m.awayTeam.name, lg) || m.awayTeam.name;
-              let aiPick: string | null = null;
-              let aiProb: number | null = null;
-              if (m.predHome != null && m.predAway != null) {
-                const cands: [string, number][] = [
-                  ["home", m.predHome],
-                  ["away", m.predAway],
-                  ...(m.predDraw != null ? ([["draw", m.predDraw]] as [string, number][]) : []),
-                ];
-                cands.sort((a, b) => b[1] - a[1]);
-                aiPick = cands[0][0];
-                aiProb = cands[0][1];
-              }
+              const markets = buildVoteMarkets(m, distByMatch.get(m.id) ?? {}, myPicksByMatch.get(m.id) ?? {});
               return (
                 <div key={m.id} className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-white/10 dark:bg-white/[0.04]">
                   <div className="mb-2 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
@@ -231,12 +236,8 @@ export default async function PicksPage() {
                     awayName={away}
                     hasDraw={DRAW_LEAGUES.has(lg)}
                     closed={false}
-                    dist={distByMatch.get(m.id) ?? { home: 0, draw: 0, away: 0 }}
-                    myPick={myPickByMatch.get(m.id) ?? null}
+                    markets={markets}
                     loggedIn={!!userId}
-                    aiPick={aiPick}
-                    aiProb={aiProb}
-                    result={null}
                   />
                 </div>
               );
@@ -248,7 +249,7 @@ export default async function PicksPage() {
       {/* 랭킹 */}
       <section className="mt-8">
         <h2 className="text-sm font-bold text-neutral-900 dark:text-white">적중 랭킹</h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다.</p>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다.</p>
         {board.length === 0 ? (
           <p className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
             아직 랭커가 없습니다. 첫 경기가 끝나면 채점이 시작됩니다 — 1위를 선점하세요.
@@ -265,14 +266,40 @@ export default async function PicksPage() {
                 </tr>
               </thead>
               <tbody>
-                {board.map((b, i) => (
+                {board.map((b, i) => {
+                  const u = userById.get(b.userId);
+                  const g = u ? displayGrade(u.level, u.badge) : null;
+                  const avatar = u ? resolveAvatar(u.avatarUrl, u.nickname, u.level, u.badge) : null;
+                  const mk = (marketByUser.get(b.userId) ?? []).filter((r) => r.total > 0);
+                  const rankCls = i === 0 ? "text-amber-500" : i === 1 ? "text-neutral-400" : i === 2 ? "text-amber-700" : "text-neutral-900 dark:text-white";
+                  return (
                   <tr key={b.userId} className={`border-b border-neutral-100 last:border-0 dark:border-neutral-800/60 ${b.userId === userId ? "bg-rose-500/5" : ""}`}>
-                    <td className="px-3 py-2.5 font-medium text-neutral-900 dark:text-white">{i + 1}</td>
-                    <td className="px-3 py-2.5 text-neutral-700 dark:text-neutral-200">{nickById.get(b.userId) ?? "회원"}</td>
+                    <td className={`px-3 py-2.5 font-bold tabular-nums ${rankCls}`}>{i + 1}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        {avatar && <Avatar avatar={avatar} size="sm" frame={u?.avatarFrame} />}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate font-medium text-neutral-800 dark:text-neutral-100">{u?.nickname ?? "회원"}</span>
+                            {g && (
+                              <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:bg-white/[0.08] dark:text-neutral-300" title={`Lv.${u?.level ?? 1}`}>
+                                {g.emoji} {g.name}
+                              </span>
+                            )}
+                          </div>
+                          {mk.length > 0 && (
+                            <div className="mt-0.5 text-[10px] tabular-nums text-neutral-400 dark:text-neutral-500">
+                              {mk.map((r) => `${MARKET_LABEL[r.market as VoteMarket] ?? r.market} ${r.hit}/${r.total}`).join(" · ")}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600 dark:text-neutral-300">{b.hit}/{b.total}</td>
                     <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-neutral-900 dark:text-white">{Math.round((b.hit / b.total) * 100)}%</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
