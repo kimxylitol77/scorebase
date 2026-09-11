@@ -24,3 +24,7 @@
 - **EN 페이지 lint**: `src/app/en/page.tsx` 의 `react/no-unescaped-entities` 3건(288·481·490행 `Today's` 등)은 origin/main 에 이미 있던 것. 이 과제 변경 밖이라 손대지 않음.
 - **모바일 검증 함정**: 데스크톱 헤드리스 Chrome `--window-size=390,844` 스크린샷은 최소 창폭 때문에 히어로가 잘려 보여 오탐. CDP 로 `Emulation.setDeviceMetricsOverride(390, mobile:true)` 를 걸면 H1 이 2줄로 정상 줄바꿈("우리 픽의 수익률은 / −3.8%입니다."), 컨테이너 358px, 가로 스크롤 없음.
 - **검증 결과(로컬 dev, 2026-09-11)**: `/` H1 −3.8% == `/predictions/accuracy` 모델 픽 전체 −3.8%. `/en` 도 동일. description·og:description·twitter:description 3종 모두 같은 값. EN verify 잔여 한글 0.
+
+## 2026-09-11 배포·운영 검증
+- 사용자 결정: 적중률 H1 안·차이(+2.8%p) 선행 타협안 대신 **원안(H1 에 −3.8%) 유지**. 이유는 같은 표본 적중률에서 시장이 이기고(55.4% vs 55.9%), 모델이 이기는 유일한 지표가 수익률이라서.
+- main 반영 `2dc6ec2`(Vercel success). 운영 대조 결과 KR/EN 모두 `/` H1·meta·og·twitter description = `/predictions/accuracy` 「모델 픽 · 전체」 = −3.8% (시장 −6.6%, +2.8%p, 1,833경기, 2026-09-11 기준).
