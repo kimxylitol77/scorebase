@@ -8,7 +8,7 @@
     <string>/Users/kkulkkul/dev/scorebase/mac-mini-worker</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/node</string>
+        <string>/opt/homebrew/bin/node</string>
         <string>/Users/kkulkkul/dev/scorebase/mac-mini-worker/match-shorts.js</string>
     </array>
     <key>RunAtLoad</key>
