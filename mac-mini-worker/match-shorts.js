@@ -26,6 +26,8 @@ const kstDay = (d) => new Date(d.getTime() + 9 * 3600000).toISOString().slice(0,
 const tg = async (text) => { if (!process.env.TELEGRAM_BOT_TOKEN) return; await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text }) }).catch(() => {}); };
 const heartbeat = async () => { if (!TOKEN) return; await fetch(`${SITE}/api/internal/bot-heartbeat`, { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ bot: "mac-mini-match-shorts", host: require("node:os").hostname() }) }).catch(() => {}); };
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", env: { ...process.env, SHORTS_DIR: SHORTS, PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH}` }, maxBuffer: 64 << 20 });
+// Neon 은 새벽에 순간 "Can't reach database server" 를 던진다(09-11 E2E 실측) — DB 호출은 3회 재시도
+const withRetry = async (fn) => { let last; for (let i = 0; i < 3; i++) { try { return await fn(); } catch (e) { last = e; log(`  DB 재시도 ${i + 1}/3: ${String(e.message).split("\n")[0].slice(0, 100)}`); await new Promise((r) => setTimeout(r, 10_000)); } } throw last; };
 const SELECT = { id: true, league: true, startTime: true, homeScore: true, awayScore: true, updatedAt: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } };
 
 async function processMatch(m, st, { ignoreCap }) {
@@ -59,7 +61,7 @@ async function tick() {
   await heartbeat();
   const st = loadState();
   const since = new Date(Date.now() - WINDOW_H * 3600000);
-  const rows = await p.match.findMany({ where: { league: { in: BIG5 }, status: "FINISHED", startTime: { gte: new Date(since.getTime() - 2 * 3600000) }, updatedAt: { gte: since } }, select: SELECT });
+  const rows = await withRetry(() => p.match.findMany({ where: { league: { in: BIG5 }, status: "FINISHED", startTime: { gte: new Date(since.getTime() - 2 * 3600000) }, updatedAt: { gte: since } }, select: SELECT }));
   const cands = rows.filter((m) => !st.done[m.id] && !st.skipped[m.id]);
   if (!cands.length) return;
   for (const m of cands.sort((a, b) => b.updatedAt - a.updatedAt)) await processMatch(m, st, {});
@@ -67,7 +69,7 @@ async function tick() {
 }
 
 async function once(matchId) {
-  const m = await p.match.findUnique({ where: { id: matchId }, select: SELECT });
+  const m = await withRetry(() => p.match.findUnique({ where: { id: matchId }, select: SELECT }));
   if (!m) throw new Error(`경기 없음 ${matchId}`);
   const st = loadState(); delete st.done[m.id]; delete st.skipped[m.id];
   await processMatch(m, st, { ignoreCap: true }); saveState(st);
