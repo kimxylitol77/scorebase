@@ -21,6 +21,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 5 * MIN,
     role: "Ollama/Haiku 매치 진행 박스 생성",
   },
+  "mac-mini-match-shorts": {
+    ko: "경기 종료 데이터 카드 쇼츠",
+    intervalMs: 5 * MIN,
+    role: "빅5 FT 후 샷맵·xG 쇼츠 렌더 → 유튜브 비공개 업로드",
+  },
   "mac-mini-endpoint-monitor": {
     ko: "엔드포인트 헬스 체크",
     intervalMs: 5 * MIN,
