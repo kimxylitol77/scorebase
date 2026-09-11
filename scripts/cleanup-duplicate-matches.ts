@@ -152,7 +152,8 @@ function pickSurvivor(rows: Row[]): Row {
 // MANUAL 그룹 병합. survivor 유지, loser 의 참조를 이전/정리 후 loser row 삭제.
 //   Article: survivor 에 같은 type 기사 있으면 loser 중복기사 삭제, 없으면 이전.
 //   Post: 전부 survivor 로 이전(matchId unique 없음).
-//   MatchVote: survivor 와 (userId 또는 sessionId) 충돌하면 loser 표 삭제, 아니면 이전.
+//   MatchVote: survivor 와 (userId 또는 sessionId, market) 충돌하면 loser 표 삭제, 아니면 이전.
+//     고유키가 [matchId, userId, market]·[matchId, sessionId, market] 라 시장이 다르면 충돌 아님 (absorb-plan 과 동일 규칙).
 //   MemberBotPick: (botId, market) 충돌하면 loser 픽 삭제(같은 봇의 중복 픽), 아니면 이전.
 //   UserMatchFollow: (userId) 충돌하면 loser 즐겨찾기 삭제, 아니면 이전.
 //   TheSportsMatchCache: survivor 가 없으면 loser 것을 이전(라이브 push 소유권 보존),
@@ -162,9 +163,9 @@ async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise
   const plan: string[] = [];
   const survArts = await prisma.article.findMany({ where: { matchId: survivor.id }, select: { type: true } });
   const survTypes = new Set(survArts.map((a) => a.type));
-  const survVotes = await prisma.matchVote.findMany({ where: { matchId: survivor.id }, select: { userId: true, sessionId: true } });
-  const survUsers = new Set(survVotes.map((v) => v.userId).filter(Boolean) as string[]);
-  const survSessions = new Set(survVotes.map((v) => v.sessionId).filter(Boolean) as string[]);
+  const survVotes = await prisma.matchVote.findMany({ where: { matchId: survivor.id }, select: { userId: true, sessionId: true, market: true } });
+  const survUsers = new Set(survVotes.filter((v) => v.userId).map((v) => `${v.userId}|${v.market}`));
+  const survSessions = new Set(survVotes.filter((v) => v.sessionId).map((v) => `${v.sessionId}|${v.market}`));
   const survPicks = await prisma.memberBotPick.findMany({ where: { matchId: survivor.id }, select: { botId: true, market: true } });
   const survPickKeys = new Set(survPicks.map((p) => `${p.botId}|${p.market}`));
   const survFollows = await prisma.userMatchFollow.findMany({ where: { matchId: survivor.id }, select: { userId: true } });
@@ -174,7 +175,7 @@ async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise
   for (const L of losers) {
     const arts = await prisma.article.findMany({ where: { matchId: L.id }, select: { id: true, type: true, slug: true } });
     const posts = await prisma.post.findMany({ where: { matchId: L.id }, select: { id: true } });
-    const votes = await prisma.matchVote.findMany({ where: { matchId: L.id }, select: { id: true, userId: true, sessionId: true } });
+    const votes = await prisma.matchVote.findMany({ where: { matchId: L.id }, select: { id: true, userId: true, sessionId: true, market: true } });
     const picks = await prisma.memberBotPick.findMany({ where: { matchId: L.id }, select: { id: true, botId: true, market: true } });
     const follows = await prisma.userMatchFollow.findMany({ where: { matchId: L.id }, select: { id: true, userId: true } });
 
@@ -193,15 +194,17 @@ async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise
       if (apply) await prisma.post.update({ where: { id: p.id }, data: { matchId: survivor.id } });
     }
     for (const v of votes) {
-      const conflict = (v.userId && survUsers.has(v.userId)) || (v.sessionId && survSessions.has(v.sessionId));
+      const uk = v.userId ? `${v.userId}|${v.market}` : null;
+      const sk = v.sessionId ? `${v.sessionId}|${v.market}` : null;
+      const conflict = (uk && survUsers.has(uk)) || (sk && survSessions.has(sk));
       if (conflict) {
-        plan.push(`VOTE삭제 #${v.id} — survivor 에 동일 유저/세션 표 존재`);
+        plan.push(`VOTE삭제 #${v.id}(${v.market}) — survivor 에 동일 유저/세션·시장 표 존재`);
         if (apply) await prisma.matchVote.delete({ where: { id: v.id } });
       } else {
-        plan.push(`VOTE이전 #${v.id} → #${survivor.id}`);
+        plan.push(`VOTE이전 #${v.id}(${v.market}) → #${survivor.id}`);
         if (apply) await prisma.matchVote.update({ where: { id: v.id }, data: { matchId: survivor.id } });
-        if (v.userId) survUsers.add(v.userId);
-        if (v.sessionId) survSessions.add(v.sessionId);
+        if (uk) survUsers.add(uk);
+        if (sk) survSessions.add(sk);
       }
     }
     for (const p of picks) {
