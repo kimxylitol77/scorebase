@@ -5,9 +5,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import SearchInput from "./SearchInput";
-import { ALL_CATEGORIES } from "./nav-config";
+import { ALL_CATEGORIES, isCategoryActive } from "./nav-config";
 
-// 메뉴 구조는 nav-config.ts 단일 정의 (데스크탑 Header 와 공유) — 종목 4 + 커뮤니티.
+// 메뉴 구조는 nav-config.ts 단일 정의 (데스크탑 Header 와 공유) — 종목 4 + 배당 + 커뮤니티 + AI 분석실.
 const GROUPS = ALL_CATEGORIES;
 
 export default function MobileMenu({ account }: { account?: ReactNode }) {
@@ -91,7 +91,12 @@ export default function MobileMenu({ account }: { account?: ReactNode }) {
             {GROUPS.map((g) => (
               <div key={g.label}>
                 <div className="flex items-center gap-2 mb-1.5 px-1">
-                  <span className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-500">
+                  {/* 현재 페이지가 이 그룹의 하위 항목이면 라벨 활성(데스크톱 헤더와 같은 판정) */}
+                  <span
+                    className={`text-xs font-bold uppercase tracking-[0.15em] ${
+                      isCategoryActive(g, path) ? "text-neutral-900 dark:text-white" : "text-neutral-500"
+                    }`}
+                  >
                     {g.label}
                   </span>
                 </div>

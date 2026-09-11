@@ -19,6 +19,11 @@ export interface NavCategory {
   /** 종목명 자체 클릭 시 이동할 대표 페이지 (데스크탑 드롭다운 헤더) */
   href: string;
   items: NavSubItem[];
+  /**
+   * 이 메뉴가 "정본"인 경로 접두 — 같은 링크가 다른 메뉴에도 있을 때 활성 표시는 여기만 켠다.
+   * (/odds 는 축구·야구·농구 드롭다운에도 있지만 감사 지시서가 「배당」을 정본으로 지정했다)
+   */
+  owns?: string[];
 }
 
 export const SPORT_CATEGORIES: NavCategory[] = [
@@ -108,5 +113,33 @@ export const AI_CATEGORY: NavCategory = {
   ],
 };
 
-/** 모바일 메뉴용 — 종목 4 + 커뮤니티 + AI 분석실 평면 리스트 */
-export const ALL_CATEGORIES: NavCategory[] = [...SPORT_CATEGORIES, COMMUNITY_CATEGORY, AI_CATEGORY];
+// 배당 — 행동 기준 메뉴(2026-09-11 감사 §2). 밸류 베트·수익률 보드가 푸터에서만 닿고 베트맨이 /odds
+// 4번째 탭에 숨어 있어 "배당을 보러 온" 사용자가 도달하지 못했다. 종목 드롭다운의 「배당 흐름」은 그대로 두고
+// 이 메뉴가 정본이다(owns).
+export const ODDS_CATEGORY: NavCategory = {
+  label: "배당",
+  href: "/odds?sport=soccer",
+  owns: ["/odds", "/value-bets", "/predictions/accuracy"],
+  items: [
+    { href: "/odds?sport=soccer", label: "배당 흐름", desc: "오픈 대비 변동 · 돈이 몰리는 방향" },
+    { href: "/value-bets", label: "밸류 베트", desc: "모델이 시장보다 자신 있는 경기" },
+    { href: "/odds?sport=betman", label: "베트맨 승부식", desc: "국내 합법 · 프로토 배당·투표 분포" },
+    { href: "/predictions/accuracy", label: "수익률 보드", desc: "실배당 채점 — 적중률·유닛 수익률" },
+  ],
+};
+
+/** 모바일 메뉴용 — 종목 4 + 배당 + 커뮤니티 + AI 분석실 평면 리스트 (데스크탑 헤더와 같은 순서) */
+export const ALL_CATEGORIES: NavCategory[] = [...SPORT_CATEGORIES, ODDS_CATEGORY, COMMUNITY_CATEGORY, AI_CATEGORY];
+
+/** href 의 경로 부분(쿼리 제외) */
+const pathOf = (href: string) => href.split("?")[0];
+
+/**
+ * 현재 경로가 이 카테고리의 하위 항목인가 — 헤더·모바일 라벨 활성 표시용.
+ * 어떤 카테고리가 그 경로를 owns 로 소유하면 그 카테고리만 활성(다른 메뉴의 같은 링크는 무시).
+ */
+export function isCategoryActive(cat: NavCategory, pathname: string): boolean {
+  const owner = ALL_CATEGORIES.find((c) => c.owns?.some((p) => pathname === p || pathname.startsWith(p + "/")));
+  if (owner) return owner.label === cat.label;
+  return cat.items.some((it) => pathOf(it.href) === pathname);
+}
