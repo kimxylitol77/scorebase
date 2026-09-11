@@ -406,12 +406,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "1. FC Union Berlin",
-        "apps": 2,
-        "starts": 0,
+        "apps": 3,
+        "starts": 1,
         "goals": 0,
         "assists": 0,
-        "minutes": 56,
-        "rating": 5.89,
+        "minutes": 145,
+        "rating": 6,
         "yellow": 0,
         "red": 0
       }
@@ -2240,12 +2240,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Besiktas JK",
-        "apps": 4,
-        "starts": 1,
+        "apps": 5,
+        "starts": 2,
         "goals": 0,
-        "assists": 0,
-        "minutes": 108,
-        "rating": 6.51,
+        "assists": 1,
+        "minutes": 198,
+        "rating": 6.59,
         "yellow": 0,
         "red": 0
       }
@@ -2486,12 +2486,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "SV Darmstadt 98",
-        "apps": 4,
-        "starts": 0,
-        "goals": 1,
+        "apps": 5,
+        "starts": 1,
+        "goals": 2,
         "assists": 0,
-        "minutes": 87,
-        "rating": 6.71,
+        "minutes": 163,
+        "rating": 6.98,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-10T22:20:16.193Z"
+  "currentUpdatedAt": "2026-09-11T22:20:17.496Z"
 }
