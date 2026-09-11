@@ -30,8 +30,8 @@
       "    locale: \"en_US\",\n    url: `${CANONICAL}/en`,"
     ],
     [
-      "  inLanguage: \"ko-KR\",\n  // sameAs",
-      "  inLanguage: \"en\",\n  // sameAs"
+      "    \"AI 데이터 분석 기반 스포츠 미디어 — EPL·NBA·MLB·NHL 프리뷰·리뷰·부상자 명단·매치 인사이트\",\n});",
+      "    \"AI 데이터 분석 기반 스포츠 미디어 — EPL·NBA·MLB·NHL 프리뷰·리뷰·부상자 명단·매치 인사이트\",\n  inLanguage: \"en\",\n});"
     ],
     [
       "  inLanguage: \"ko-KR\",\n  publisher:",
@@ -310,6 +310,14 @@
     "리그별 매치 인사이트": "Match insight by league",
     "원하는 리그의 프리뷰·리뷰·시즌 분석으로 바로 이동": "Jump straight to previews, reviews and season analysis for any league",
     "아직 발행된 기사가 없습니다": "No articles published yet",
-    "잠시 후 자동 생성된 기사가 표시될 예정입니다.": "Automatically generated articles will appear here shortly."
+    "잠시 후 자동 생성된 기사가 표시될 예정입니다.": "Automatically generated articles will appear here shortly.",
+    "우리 픽의 수익률은 ": "Our picks have returned ",
+    ", 시장 인기픽은 ": "; market favourites returned ",
+    "지금은 시장이 ": "Right now the market leads by ",
+    " 앞서고, 이 숫자도 그대로 공개합니다.": " — and we publish that number too.",
+    "그 차이 ": "That gap of ",
+    "가 우리 모델의 전부입니다.": " is everything our model adds.",
+    " 기준 ": " snapshot, ",
+    "경기 실배당 시뮬레이션 — EPL · 라리가 · 분데스리가 · KBO · NBA · MLB · NHL, 적중률을 숨기지 않는 AI 스포츠 분석.": " matches simulated at real pre-match odds — Premier League · LaLiga · Bundesliga · KBO · NBA · MLB · NHL. AI sports analysis that publishes its hit rate."
   }
 }

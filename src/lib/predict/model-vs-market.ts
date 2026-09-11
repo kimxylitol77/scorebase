@@ -1,6 +1,7 @@
 // 모델 vs 베팅시장 정면 비교 + 플랫 유닛 ROI 집계 — /predictions/accuracy 전용 단일 출처.
 // 같은 표본에서 모델 픽과 시장 favorite 을 나란히 채점하고, 프리매치 평균 배당(vig 포함)에
 // 1유닛씩 걸었다는 가정의 후행 수익 시뮬레이션을 계산한다.
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { ACCURACY_LEAGUES } from "@/lib/predict/accuracy-stats";
 
@@ -100,6 +101,8 @@ export interface FlatUnitRoiStat {
   marketFav: { all: RoiWindow; d30: RoiWindow };
   /** 표본이 되는 리그 구성 (n 내림차순) — "야구 중심 표본" 투명 표기용 */
   leagues: Array<{ league: string; evaluated: number; units: number; roi: number }>;
+  /** 집계 시각(ISO) — 홈 "기준일" 표기용. 캐시된 값이라 렌더 시각이 아니라 집계 시각이 정직하다. */
+  asOf: string;
 }
 
 type RoiRow = {
@@ -119,7 +122,7 @@ type RoiRow = {
  * 플랫 유닛 ROI — 각 경기 시작 전 마지막 OddsSnapshot(북메이커 평균 배당, vig 포함)에
  * 모델의 1X2 픽으로 1유닛을 걸었다는 후행 시뮬레이션. 시장 favorite 베팅이 기준선.
  */
-export async function flatUnitRoiStats(): Promise<FlatUnitRoiStat | null> {
+async function computeFlatUnitRoiStats(): Promise<FlatUnitRoiStat | null> {
   const leagueList = ACCURACY_LEAGUES.map((l) => `'${l}'`).join(",");
   const rows = await prisma.$queryRawUnsafe<RoiRow[]>(`
     SELECT m.league,
@@ -200,5 +203,66 @@ export async function flatUnitRoiStats(): Promise<FlatUnitRoiStat | null> {
     .map((l) => ({ ...l, units: +l.units.toFixed(2), roi: l.evaluated > 0 ? l.units / l.evaluated : 0 }))
     .sort((a, b) => b.evaluated - a.evaluated);
 
-  return model.all.evaluated > 0 ? { model, marketFav, leagues } : null;
+  return model.all.evaluated > 0 ? { model, marketFav, leagues, asOf: new Date().toISOString() } : null;
+}
+
+/**
+ * 홈 H1·meta 와 /predictions/accuracy 가 같은 캐시 항목을 읽게 1시간 영속 캐시로 묶는다.
+ * 페이지별 ISR(3600) 만으로는 각자 재생성 시점에 DB 를 따로 읽어 두 화면의 수익률이 갈릴 수 있다.
+ */
+export const flatUnitRoiStats = unstable_cache(computeFlatUnitRoiStats, ["flat-unit-roi"], {
+  revalidate: 3600,
+  tags: ["flat-unit-roi"],
+});
+
+/** 홈 히어로·meta 가 수익률 주장을 내보내는 최소 표본 — accuracy 페이지 섹션 게이트(100)와 같은 값. */
+export const ROI_CLAIM_MIN_SAMPLE = 100;
+
+/** 홈 H1·서브·meta description 이 공유하는 문구 재료 — 한 곳에서 포맷해 화면과 meta 가 어긋나지 않게. */
+export interface RoiClaim {
+  /** 모델 픽 전체 ROI, 예 "−3.8%" (U+2212) */
+  modelPct: string;
+  /** 시장 favorite 전체 ROI, 예 "−6.6%" */
+  marketPct: string;
+  /** 모델 − 시장, 예 "+2.8%p" */
+  edgePct: string;
+  /** 차이가 0 이하 = 시장이 앞선 상태. 문구를 부드럽게 바꾸지 않고 그대로 말한다. */
+  marketLeads: boolean;
+  /** 표본 경기 수 표기, 예 "1,833" */
+  sample: string;
+  /** 집계 기준일(KST), 예 "2026-09-11" */
+  asOfDate: string;
+}
+
+/**
+ * 소수 첫째 자리 백분율. 반올림은 accuracy 페이지의 `(r * 100).toFixed(1)` 과 같은 toFixed 를 써서
+ * 두 화면의 숫자가 경계값에서도 갈리지 않게 한다. 부호는 타이포그래피 마이너스, "−0.0" 은 "0.0".
+ */
+function pct(r: number, suffix: string): string {
+  const v = (Math.abs(r) * 100).toFixed(1);
+  if (v === "0.0") return `0.0${suffix}`;
+  return `${r < 0 ? "−" : "+"}${v}${suffix}`;
+}
+
+/** 순수 함수 — 통계가 없거나 표본이 게이트 미만이면 null(주장하지 않음). */
+export function buildRoiClaim(stat: FlatUnitRoiStat | null): RoiClaim | null {
+  if (!stat || stat.model.all.evaluated < ROI_CLAIM_MIN_SAMPLE) return null;
+  const edge = stat.model.all.roi - stat.marketFav.all.roi;
+  return {
+    modelPct: pct(stat.model.all.roi, "%"),
+    marketPct: pct(stat.marketFav.all.roi, "%"),
+    edgePct: pct(edge, "%p"),
+    marketLeads: edge <= 0,
+    sample: stat.model.all.evaluated.toLocaleString("en-US"),
+    asOfDate: new Date(stat.asOf).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }),
+  };
+}
+
+/** DB·캐시 실패까지 삼켜 null — 홈은 이 값이 없으면 기존 문구로 fallback 한다(틀린 숫자보다 무주장). */
+export async function roiClaim(): Promise<RoiClaim | null> {
+  try {
+    return buildRoiClaim(await flatUnitRoiStats());
+  } catch {
+    return null;
+  }
 }

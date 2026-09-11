@@ -1,6 +1,7 @@
 // 홈(메인) — 통계 기반 AI 스포츠 분석 랜딩. 오늘 경기·AI 예측·최신 콘텐츠 입구.
 import type { Metadata } from "next";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
+import { roiClaim } from "@/lib/predict/model-vs-market";
 import Link from "next/link";
 import {
   Activity,
@@ -38,7 +39,8 @@ export const revalidate = 3600;
 // 메인 페이지 canonical 은 항상 www 버전으로 고정 (apex 는 redirect)
 const CANONICAL = "https://www.scorebase.kr";
 
-export const metadata: Metadata = {
+// 정적 기본값 — description 류는 아래 generateMetadata 가 수익률 주장으로 덧씌운다(주장 재료가 없으면 이 값 그대로).
+const baseMetadata: Metadata = {
   title: "스코어베이스 (Scorebase) — 통계 기반 AI 스포츠 분석",
   description:
     "감이 아니라, 숫자로 보는 경기. EPL · 라리가 · 분데스리가 · 세리에A · 리그앙 · UCL · MLS · KBO · NBA · MLB · NHL · FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터 미디어.",
@@ -100,6 +102,28 @@ export const metadata: Metadata = {
     },
   },
 };
+
+/**
+ * meta description / og:description / twitter:description 을 홈 H1 과 같은 수익률 주장으로.
+ * 재료는 HeroSection 과 같은 roiClaim(플랫 유닛 수익률 단일 소스) — 화면과 meta 가 다른 숫자를 말하지 않게.
+ * 주장 재료가 없으면(실패·표본 부족) baseMetadata 그대로 — 틀린 숫자는 내보내지 않는다.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const claim = await roiClaim();
+  if (!claim) return baseMetadata;
+  const edgeSentence = claim.marketLeads
+    ? `지금은 시장이 ${claim.edgePct.replace(/^[+−]/, "")} 앞서고, 이 숫자도 그대로 공개합니다.`
+    : `그 차이 ${claim.edgePct}가 우리 모델의 전부입니다.`;
+  const description =
+    `우리 픽의 수익률은 ${claim.modelPct}, 시장 인기픽은 ${claim.marketPct}. ${edgeSentence} ` +
+    `${claim.asOfDate} 기준 ${claim.sample}경기 실배당 시뮬레이션 — EPL · 라리가 · 분데스리가 · KBO · NBA · MLB · NHL, 적중률을 숨기지 않는 AI 스포츠 분석.`;
+  return {
+    ...baseMetadata,
+    description,
+    openGraph: { ...baseMetadata.openGraph, description },
+    twitter: { ...baseMetadata.twitter, description },
+  };
+}
 
 // 조직 본체 — 단일 @id(lib/seo/jsonld). 기사·블로그·소개의 publisher 가 전부 이 @id 를 가리킨다.
 const organizationJsonLd = organizationLd({

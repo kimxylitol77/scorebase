@@ -1,6 +1,7 @@
 // app__page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
 import type { Metadata } from "next";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
+import { roiClaim } from "@/lib/predict/model-vs-market";
 import Link from "next/link";
 import {
   Activity,
@@ -37,7 +38,8 @@ export const revalidate = 3600;
 // 메인 페이지 canonical 은 항상 www 버전으로 고정 (apex 는 redirect)
 const CANONICAL = "https://www.scorebase.kr";
 
-export const metadata: Metadata = {
+// 정적 기본값 — description 류는 아래 generateMetadata 가 수익률 주장으로 덧씌운다(주장 재료가 없으면 이 값 그대로).
+const baseMetadata: Metadata = {
   title: "Scorebase — AI sports analysis built on statistics",
   description:
     "Matches read in numbers, not hunches. Premier League, LaLiga, Bundesliga, Serie A, Ligue 1, Champions League, MLS, KBO, NBA, MLB, NHL and the 2026 FIFA World Cup — an Elo model and multiple AI systems working through global sports data every day.",
@@ -100,7 +102,29 @@ export const metadata: Metadata = {
   },
 };
 
-// 조직 본체 — 한국어 홈과 같은 단일 @id. 이름은 "스코어베이스" 하나로 두고 영문명은 alternateName.
+/**
+ * meta description / og:description / twitter:description 을 홈 H1 과 같은 수익률 주장으로.
+ * 재료는 HeroSection 과 같은 roiClaim(플랫 유닛 수익률 단일 소스) — 화면과 meta 가 다른 숫자를 말하지 않게.
+ * 주장 재료가 없으면(실패·표본 부족) baseMetadata 그대로 — 틀린 숫자는 내보내지 않는다.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const claim = await roiClaim();
+  if (!claim) return baseMetadata;
+  const edgeSentence = claim.marketLeads
+    ? `Right now the market leads by ${claim.edgePct.replace(/^[+−]/, "")} — and we publish that number too.`
+    : `That gap of ${claim.edgePct} is everything our model adds.`;
+  const description =
+    `Our picks have returned ${claim.modelPct}; market favourites returned ${claim.marketPct}. ${edgeSentence} ` +
+    `${claim.asOfDate} snapshot, ${claim.sample} matches simulated at real pre-match odds — Premier League · LaLiga · Bundesliga · KBO · NBA · MLB · NHL. AI sports analysis that publishes its hit rate.`;
+  return {
+    ...baseMetadata,
+    description,
+    openGraph: { ...baseMetadata.openGraph, description },
+    twitter: { ...baseMetadata.twitter, description },
+  };
+}
+
+// 조직 본체 — 단일 @id(lib/seo/jsonld). 기사·블로그·소개의 publisher 가 전부 이 @id 를 가리킨다.
 const organizationJsonLd = organizationLd({
   description:
     "AI-driven sports media — Premier League, NBA, MLB and NHL previews, reviews, injury lists and match insight",
