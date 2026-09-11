@@ -60,9 +60,9 @@
 - 모바일 네비에도 동일하게 반영.
 
 ### 수용 기준
-- [ ] 데스크톱·모바일 모두 상단 1클릭으로 `/value-bets`, `/predictions/accuracy`, `/odds?sport=betman` 도달 가능.
-- [ ] 키보드 탐색(Tab/Enter)과 스크린리더로 열리고 닫힌다.
-- [ ] 현재 페이지가 하위 항목일 때 「배당」이 활성 상태로 표시된다.
+- [x] 데스크톱·모바일 모두 상단 1클릭으로 `/value-bets`, `/predictions/accuracy`, `/odds?sport=betman` 도달 가능.
+- [x] 키보드 탐색(Tab/Enter)과 스크린리더로 열리고 닫힌다.
+- [x] 현재 페이지가 하위 항목일 때 「배당」이 활성 상태로 표시된다.
 
 ---
 
