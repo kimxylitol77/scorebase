@@ -105,7 +105,7 @@ export const AI_CATEGORY: NavCategory = {
   label: "AI 분석실",
   href: "/previews",
   items: [
-    { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
+    { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 픽 시점 배당으로 수익률 채점" },
     { href: "/picks/strong", label: "고확신 픽", desc: "AI가 자신 있어 하는 경기만 · 회원 공개" },
     { href: "/previews", label: "프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.6 적중률 대결" },

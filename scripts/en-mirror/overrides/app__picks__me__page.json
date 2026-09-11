@@ -125,6 +125,21 @@
     "님의 예측 정확도": "’s prediction accuracy",
     "내 예측 리포트": "My prediction report",
     "기타": "Other",
-    "내 예측 리포트 · 스코어베이스": "My prediction report · Scorebase"
+    "내 예측 리포트 · 스코어베이스": "My prediction report · Scorebase",
+    "건 제외": " excluded",
+    "배당 없음": "No odds:",
+    "배당 없음 ": "No odds: ",
+    " · 배당 없음 ": " · no odds: ",
+    "수익률 ": "Return ",
+    " · 평균 배당 ": " · avg odds ",
+    "수익률": "Return",
+    "내 픽 · 전체": "My picks · all",
+    "픽 시점 해외 평균 배당": "Average overseas odds at pick time",
+    "모델 픽 · 전체": "Model picks · all",
+    "경기 전 마지막 배당 · 1경기 1유닛": "Last pre-match odds · 1 unit per match",
+    "시장 인기픽 · 전체": "Market favourite · all",
+    "기준선 (최저 배당 베팅)": "Baseline (backing the shortest odds)",
+    "배당에 북메이커 마진이 들어 있어 장기 수익률은 마이너스가 정상 기대치입니다. 표본이 서로 달라 승패를 가르는 비교가 아니라, 내 픽이 모델·시장 기준선과 어느 위치인지 보는 표입니다.": "Odds carry the bookmaker margin, so a negative long-run return is the normal expectation. The samples differ, so this is not a win/lose contest — it shows where your picks sit against the model and market baselines.",
+    "수익률 기준선 · 같은 잣대(1표 1유닛)": "Return baselines · same yardstick (1 unit per pick)"
   }
 }

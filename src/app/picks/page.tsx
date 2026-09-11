@@ -1,4 +1,4 @@
-// /picks — 승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)
+// /picks — 승부예측 허브 = 내 픽 기록장: 오늘·내일 경기 원클릭 투표(픽 시점 배당 저장) + 적중률·유닛 수익률 + 회원 랭킹
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
@@ -9,12 +9,14 @@ import MatchVoteButtons from "@/components/MatchVoteButtons";
 import { buildVoteMarkets, loadVoteDists, VOTE_MATCH_SELECT } from "@/components/MatchVoteCard";
 import { MARKET_LABEL, type VoteMarket } from "@/lib/vote-markets";
 import { displayGrade } from "@/lib/user-level";
+import { settleFlatUnits, fmtRoiPct, fmtUnits, type FlatRoiResult } from "@/lib/predict/flat-roi";
+import { roiClaim } from "@/lib/predict/model-vs-market";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
   title: "승부예측 — 나 vs AI | Scorebase",
-  description: "오늘·내일 경기를 원클릭으로 예측하고 AI 모델과 적중률을 겨뤄보세요. 회원 적중 랭킹 제공.",
+  description: "오늘·내일 경기를 원클릭으로 예측하면 픽 시점 배당이 저장되고, 종료 후 적중률과 유닛 수익률로 채점됩니다. 회원 랭킹 제공.",
 };
 export const dynamic = "force-dynamic";
 
@@ -66,11 +68,11 @@ export default async function PicksPage() {
     myPicksByMatch.set(v.matchId, o);
   }
 
-  // 내 기록 (로그인) — 채점된 투표의 적중률 + 같은 경기에서 AI(predCorrect) 와 비교
+  // 내 기록 (로그인) — 적중률 + 플랫 유닛 수익률(flat-roi 단일 계산기, accuracy·/lab 과 같은 규칙) + 평균 CLV
   let myRecord: {
-    total: number; scored: number; hit: number; aiHit: number;
-    /** 플랫 1유닛 후행 시뮬 — 픽 배당 있는 채점 표만. 참고용, 수익 보장 아님 */
-    units: number; unitsN: number; roi: number | null; avgOdds: number | null;
+    total: number; scored: number; hit: number;
+    /** 픽 시점 배당으로 1유닛 후행 정산. excluded = 배당 없는 표(화면에 "제외" 로 표기) */
+    roi: FlatRoiResult;
     /** 평균 CLV(%) — 종가 대비 픽 배당. 표본 수 함께 */
     avgClv: number | null; clvN: number;
   } | null = null;
@@ -80,30 +82,18 @@ export default async function PicksPage() {
       select: { matchId: true, market: true, correct: true, pickOdds: true, clv: true },
     });
     const scoredRows = all.filter((v) => v.correct !== null);
-    let aiHit = 0;
-    if (scoredRows.length) {
-      const aiRows = await prisma.match.findMany({
-        where: { id: { in: scoredRows.map((v) => v.matchId) }, predCorrect: { not: null } },
-        select: { predCorrect: true },
-      });
-      aiHit = aiRows.filter((m) => m.predCorrect).length;
-    }
-    const priced = scoredRows.filter((v) => v.pickOdds != null && v.pickOdds > 1);
-    const units = priced.reduce((acc, v) => acc + (v.correct ? v.pickOdds! - 1 : -1), 0);
     const clvRows = all.filter((v) => v.clv != null);
     myRecord = {
       total: all.length,
       scored: scoredRows.length,
       hit: scoredRows.filter((v) => v.correct).length,
-      aiHit,
-      units,
-      unitsN: priced.length,
-      roi: priced.length > 0 ? units / priced.length : null,
-      avgOdds: priced.length > 0 ? priced.reduce((a, v) => a + v.pickOdds!, 0) / priced.length : null,
+      roi: settleFlatUnits(scoredRows.map((v) => ({ odds: v.pickOdds, won: v.correct === true }))),
       avgClv: clvRows.length > 0 ? (clvRows.reduce((a, v) => a + v.clv!, 0) / clvRows.length) * 100 : null,
       clvN: clvRows.length,
     };
   }
+  // 기준선 — 모델 픽·시장 인기픽 플랫 ROI(홈 H1·accuracy 와 같은 캐시). 적중 수 비교("AI 를 이기는 중") 대신 수익률 잣대를 나란히.
+  const baseline = await roiClaim();
 
   // 회원 적중 랭킹 — 채점 3표 이상, 적중률순
   const board = await prisma.$queryRaw<{ userId: string; total: number; hit: number }[]>`
@@ -141,69 +131,66 @@ export default async function PicksPage() {
       <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">
         승부예측
       </span>
-      <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">나 vs AI — 누가 더 잘 맞힐까</h1>
+      <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">내 픽 기록장 — 배당 기준으로 채점받는 승부예측</h1>
       <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-        오늘·내일 경기를 원클릭으로 예측해 보세요. 투표하면 우리 AI 모델의 픽이 공개되고, 경기 종료 후 자동 채점됩니다.
-        {!userId && <span className="ml-1">비로그인도 투표할 수 있고, 로그인하면 적중률·랭킹에 기록됩니다.</span>}
+        오늘·내일 경기를 원클릭으로 예측하면 픽 시점 해외 평균 배당이 함께 저장되고, 경기 종료 후 적중과 유닛 손익이 자동 채점됩니다. 투표하면 우리 AI 모델의 픽도 공개됩니다.
+        {!userId && <span className="ml-1">비로그인도 투표할 수 있고, 로그인하면 적중률·수익률·랭킹에 기록됩니다.</span>}
       </p>
 
-      {/* 내 기록 */}
+      {/* 내 기록 — 내 픽 · 적중률 · 평균 배당 · 누적 · 수익률 (+ 배당 없음 제외 표기) */}
       {myRecord && myRecord.total > 0 && (
-        <div className="mt-5 flex flex-wrap gap-2">
-          <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
-            내 투표 <span className="font-bold text-neutral-900 dark:text-white">{myRecord.total}</span>
-          </div>
-          <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
-            적중 <span className="font-bold text-rose-600 dark:text-rose-400">{myRecord.hit}</span>
-            <span className="text-neutral-400">/{myRecord.scored}</span>
-            {myRecord.scored > 0 && (
-              <span className="ml-1 text-xs text-neutral-500">({Math.round((myRecord.hit / myRecord.scored) * 100)}%)</span>
+        <div className="mt-5">
+          <div className="flex flex-wrap gap-2">
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
+              내 픽 <span className="font-bold text-neutral-900 dark:text-white">{myRecord.total}</span>
+              {myRecord.scored < myRecord.total && <span className="ml-1 text-xs text-neutral-500">채점 {myRecord.scored}</span>}
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
+              적중률{" "}
+              <span className="font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                {myRecord.scored > 0 ? `${Math.round((myRecord.hit / myRecord.scored) * 100)}%` : "—"}
+              </span>
+              {myRecord.scored > 0 && <span className="ml-1 text-xs text-neutral-500">{myRecord.hit}/{myRecord.scored}</span>}
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]" title="정산에 들어간 표의 픽 시점 해외 평균 배당(마진 포함) 평균">
+              평균 배당 <span className="font-bold tabular-nums text-neutral-900 dark:text-white">{myRecord.roi.avgOdds == null ? "—" : myRecord.roi.avgOdds.toFixed(2)}</span>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]" title="픽 시점 해외 평균 배당으로 매 표 1유닛을 걸었다고 가정한 후행 정산. 참고용이며 실제 수익을 보장하지 않습니다.">
+              누적{" "}
+              <span className={`font-bold tabular-nums ${myRecord.roi.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {myRecord.roi.evaluated > 0 ? fmtUnits(myRecord.roi.units) : "—"}
+              </span>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]" title="누적 유닛 ÷ 정산 표 수 — /predictions/accuracy 「플랫 유닛 수익률」과 같은 계산">
+              수익률{" "}
+              <span className={`font-bold tabular-nums ${myRecord.roi.roi >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {myRecord.roi.evaluated > 0 ? fmtRoiPct(myRecord.roi.roi) : "—"}
+              </span>
+              <span className="ml-1 text-xs text-neutral-500 tabular-nums">{myRecord.roi.evaluated}표 정산</span>
+            </div>
+            {myRecord.avgClv != null && (
+              <div
+                className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
+                title="CLV(Closing Line Value) — 내가 픽한 시점 배당이 킥오프 직전 종가보다 얼마나 좋았는지. 양수가 꾸준하면 시장보다 먼저 움직인 것."
+              >
+                평균 CLV <span className={`font-bold tabular-nums ${myRecord.avgClv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                  {myRecord.avgClv >= 0 ? "+" : ""}{myRecord.avgClv.toFixed(1)}%
+                </span>
+                <span className="ml-1 text-xs text-neutral-500">{myRecord.clvN}표 · 종가 대비</span>
+              </div>
             )}
           </div>
-          {myRecord.roi != null && (
-            <div
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
-              title="픽 시점 해외 평균 배당으로 매 경기 1유닛을 걸었다고 가정한 후행 시뮬레이션. 참고용이며 실제 수익을 보장하지 않습니다."
-            >
-              수익 <span className={`font-bold tabular-nums ${myRecord.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {myRecord.units >= 0 ? "+" : ""}{myRecord.units.toFixed(1)}u
-              </span>
-              <span className="ml-1 text-xs text-neutral-500 tabular-nums">
-                ROI {myRecord.roi >= 0 ? "+" : ""}{(myRecord.roi * 100).toFixed(1)}% · 평균 배당 {myRecord.avgOdds!.toFixed(2)} · {myRecord.unitsN}표
-              </span>
-            </div>
-          )}
-          {myRecord.avgClv != null && (
-            <div
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
-              title="CLV(Closing Line Value) — 내가 픽한 시점 배당이 킥오프 직전 종가보다 얼마나 좋았는지. 양수가 꾸준하면 시장보다 먼저 움직인 것."
-            >
-              평균 CLV <span className={`font-bold tabular-nums ${myRecord.avgClv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {myRecord.avgClv >= 0 ? "+" : ""}{myRecord.avgClv.toFixed(1)}%
-              </span>
-              <span className="ml-1 text-xs text-neutral-500">{myRecord.clvN}표 · 종가 대비</span>
-            </div>
-          )}
-          {myRecord.scored > 0 && (
-            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
-              같은 경기 AI 적중 <span className="font-bold text-neutral-900 dark:text-white">{myRecord.aiHit}</span>
-              <span className="ml-1 text-xs font-medium">
-                {myRecord.hit > myRecord.aiHit ? (
-                  <span className="text-emerald-600 dark:text-emerald-400">AI 를 이기는 중!</span>
-                ) : myRecord.hit === myRecord.aiHit ? (
-                  <span className="text-neutral-500">AI 와 동률</span>
-                ) : (
-                  <span className="text-neutral-500">AI 가 우세</span>
-                )}
-              </span>
-            </div>
-          )}
-          <Link
-            href="/picks/me"
-            className="flex items-center rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
-          >
-            내 예측 리포트 →
-          </Link>
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
+            {myRecord.roi.excluded > 0 && <span className="mr-2">배당 없음 {myRecord.roi.excluded}건 제외</span>}
+            {baseline && (
+              <>
+                기준선 · 모델 픽 전체 <span className="font-semibold text-neutral-700 dark:text-neutral-200">{baseline.modelPct}</span>
+                {" · "}시장 인기픽 <span className="font-semibold text-neutral-700 dark:text-neutral-200">{baseline.marketPct}</span>
+                {" — 같은 잣대(1표 1유닛) · "}
+                <Link href="/predictions/accuracy" className="text-blue-600 hover:underline dark:text-blue-400">수익률 보드 →</Link>
+              </>
+            )}
+          </p>
         </div>
       )}
 

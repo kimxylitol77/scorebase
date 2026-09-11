@@ -21,6 +21,7 @@
 //   → 언더독 멱변환 → argmax 픽.
 //   NHL 골리 보정은 피처 커버 0.9%(14/1495) 라 v1 제외 (2026-07-19 조사).
 
+import { settleFlatUnits, type FlatBet } from "@/lib/predict/flat-roi";
 import type { PredictMatch } from "./types";
 import { STARTING_ELO, applyEloMatch, eloSpread } from "./elo";
 import { homeAdvantageFor, getDrawConfig } from "./win-probability";
@@ -113,6 +114,10 @@ export interface BotFeature {
   mDraw: number | null;
   mAway: number | null;
   books: number | null;
+  /** 원배당(마감 기준, vig 포함) — 백테스트 유닛 수익률용. 없으면 null(정산 제외) */
+  oHome: number | null;
+  oDraw: number | null;
+  oAway: number | null;
   /** 리그 prior 가중 (표본<30 이면 0) — 고정 적용 */
   priorW: number;
   priorHome: number;
@@ -138,7 +143,7 @@ export function leagueConfigOf(league: string): BotLeagueConfig {
   };
 }
 
-/** 와이어 포맷 — [matchId, res, day, eloH, eloA, ha, formH, formA, sShift, mH, mD, mA, books, priorW, pH, pD, pA] */
+/** 와이어 포맷 — [matchId, res, day, eloH, eloA, ha, formH, formA, sShift, mH, mD, mA, books, priorW, pH, pD, pA, oH, oD, oA] */
 export type BotFeatureTuple = (number | null)[];
 
 const round = (v: number, dp: number) => {
@@ -165,6 +170,9 @@ export function featureToTuple(f: BotFeature): BotFeatureTuple {
     round(f.priorHome, 3),
     round(f.priorDraw, 3),
     round(f.priorAway, 3),
+    f.oHome == null ? null : round(f.oHome, 3),
+    f.oDraw == null ? null : round(f.oDraw, 3),
+    f.oAway == null ? null : round(f.oAway, 3),
   ];
 }
 
@@ -187,6 +195,9 @@ export function featureFromTuple(t: BotFeatureTuple): BotFeature {
     priorHome: t[14] as number,
     priorDraw: t[15] as number,
     priorAway: t[16] as number,
+    oHome: t[17] ?? null,
+    oDraw: t[18] ?? null,
+    oAway: t[19] ?? null,
   };
 }
 
@@ -303,6 +314,8 @@ export interface BotBacktestScore {
   acc: number;
   /** 3-way Brier (Σ(p-o)² 평균) — 낮을수록 좋음 */
   brier: number;
+  /** 플랫 유닛 수익률(마감 배당 기준) — 배당 없는 경기는 정산 제외(excluded). flat-roi 와 같은 규칙 */
+  roi: { evaluated: number; wins: number; units: number; roi: number; excluded: number };
 }
 
 export function scoreBacktest(
@@ -313,16 +326,21 @@ export function scoreBacktest(
   let n = 0;
   let hits = 0;
   let brierSum = 0;
+  const allBets: FlatBet[] = [];
 
   for (const { cfg, features } of sets) {
     let ln = 0;
     let lhits = 0;
     let lbrier = 0;
+    const lgBets: FlatBet[] = [];
     for (const f of features) {
       if (f.res == null) continue;
       const wp = computeCustomProb(f, cfg, knobs);
       const pick = pickOf(wp);
       const actual = f.res === 0 ? "HOME" : f.res === 1 ? "DRAW" : "AWAY";
+      // 봇 픽 쪽 원배당으로 1유닛 — 무승부 없는 종목의 DRAW 픽은 배당이 없어 자연히 제외
+      const pickOdds = pick === "HOME" ? f.oHome : pick === "DRAW" ? f.oDraw : f.oAway;
+      lgBets.push({ odds: pickOdds, won: pick === actual });
       const oH = f.res === 0 ? 1 : 0;
       const oD = f.res === 1 ? 1 : 0;
       const oA = f.res === 2 ? 1 : 0;
@@ -337,15 +355,17 @@ export function scoreBacktest(
         hits: lhits,
         acc: lhits / ln,
         brier: lbrier / ln,
+        roi: settleFlatUnits(lgBets),
       };
       n += ln;
       hits += lhits;
       brierSum += lbrier;
+      allBets.push(...lgBets);
     }
   }
 
   return {
-    total: { n, hits, acc: n > 0 ? hits / n : 0, brier: n > 0 ? brierSum / n : 0 },
+    total: { n, hits, acc: n > 0 ? hits / n : 0, brier: n > 0 ? brierSum / n : 0, roi: settleFlatUnits(allBets) },
     byLeague,
   };
 }
@@ -365,6 +385,10 @@ export interface BotTargetInput {
   marketDraw?: number | null;
   marketAway?: number | null;
   marketBookmakers?: number | null;
+  /** 원배당(마감) — 백테스트 유닛 정산용, 없으면 제외 */
+  oddsHome?: number | null;
+  oddsDraw?: number | null;
+  oddsAway?: number | null;
 }
 
 interface StarterJson {
@@ -462,6 +486,9 @@ export function buildLeagueFeatures(
       mDraw: t.marketDraw ?? null,
       mAway: t.marketAway ?? null,
       books: t.marketBookmakers ?? null,
+      oHome: t.oddsHome ?? null,
+      oDraw: t.oddsDraw ?? null,
+      oAway: t.oddsAway ?? null,
       priorW: pw,
       priorHome: priorN > 0 ? ph / priorN : 0,
       priorDraw: priorN > 0 ? pd / priorN : 0,

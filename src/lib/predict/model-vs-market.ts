@@ -4,6 +4,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { ACCURACY_LEAGUES } from "@/lib/predict/accuracy-stats";
+import { isSaneOdds, settleFlatUnits, type FlatBet } from "@/lib/predict/flat-roi";
 
 export interface HeadToHeadLeagueRow {
   league: string;
@@ -150,21 +151,14 @@ async function computeFlatUnitRoiStats(): Promise<FlatUnitRoiStat | null> {
   `);
   if (rows.length === 0) return null;
 
-  const mkWindow = (): RoiWindow => ({ evaluated: 0, wins: 0, units: 0, roi: 0 });
-  const model = { all: mkWindow(), d30: mkWindow() };
-  const marketFav = { all: mkWindow(), d30: mkWindow() };
-  const byLeague = new Map<string, { league: string; evaluated: number; units: number; roi: number }>();
+  // 정산은 flat-roi.settleFlatUnits 한 곳 — /picks·/lab 과 같은 규칙(배당 없음·이상치 제외).
+  const bets = { modelAll: [] as FlatBet[], modelD30: [] as FlatBet[], favAll: [] as FlatBet[], favD30: [] as FlatBet[] };
+  const byLeagueBets = new Map<string, FlatBet[]>();
   const d30Cut = Date.now() - 30 * 86400_000;
-
-  const settle = (w: RoiWindow, odds: number, won: boolean) => {
-    w.evaluated++;
-    if (won) { w.wins++; w.units += odds - 1; } else { w.units -= 1; }
-  };
 
   for (const r of rows) {
     // 배당 이상치(수집 오류·서스펜드 라인) 방어 — 표본에서 제외
-    const sane = (o: number | null) => o != null && o >= 1.01 && o <= 30;
-    if (!sane(r.homeodds) || !sane(r.awayodds)) continue;
+    if (!isSaneOdds(r.homeodds) || !isSaneOdds(r.awayodds)) continue;
 
     const actual = r.homescore > r.awayscore ? 0 : r.homescore === r.awayscore ? 1 : 2;
     const odds = [r.homeodds, r.drawodds, r.awayodds];
@@ -172,35 +166,37 @@ async function computeFlatUnitRoiStats(): Promise<FlatUnitRoiStat | null> {
     const pp = [r.predhome ?? -1, r.preddraw ?? -1, r.predaway ?? -1];
     const modelPick = pp.indexOf(Math.max(...pp));
     const modelOdds = odds[modelPick];
-    if (!sane(modelOdds)) continue;
+    if (!isSaneOdds(modelOdds)) continue;
 
     // 시장 favorite = 최저 배당 쪽 (무배당 없으면 홈/원정만)
-    const cands = [0, 1, 2].filter((i) => sane(odds[i]));
+    const cands = [0, 1, 2].filter((i) => isSaneOdds(odds[i]));
     const favPick = cands.reduce((best, i) => (odds[i]! < odds[best]! ? i : best), cands[0]);
 
     const recent = r.starttime.getTime() >= d30Cut;
-    settle(model.all, modelOdds!, modelPick === actual);
-    settle(marketFav.all, odds[favPick]!, favPick === actual);
+    const modelBet = { odds: modelOdds, won: modelPick === actual };
+    const favBet = { odds: odds[favPick], won: favPick === actual };
+    bets.modelAll.push(modelBet);
+    bets.favAll.push(favBet);
     if (recent) {
-      settle(model.d30, modelOdds!, modelPick === actual);
-      settle(marketFav.d30, odds[favPick]!, favPick === actual);
+      bets.modelD30.push(modelBet);
+      bets.favD30.push(favBet);
     }
-
-    let lg = byLeague.get(r.league);
-    if (!lg) {
-      lg = { league: r.league, evaluated: 0, units: 0, roi: 0 };
-      byLeague.set(r.league, lg);
-    }
-    lg.evaluated++;
-    lg.units += modelPick === actual ? modelOdds! - 1 : -1;
+    const lg = byLeagueBets.get(r.league) ?? [];
+    lg.push(modelBet);
+    byLeagueBets.set(r.league, lg);
   }
 
-  for (const w of [model.all, model.d30, marketFav.all, marketFav.d30]) {
-    w.roi = w.evaluated > 0 ? w.units / w.evaluated : 0;
-    w.units = +w.units.toFixed(2);
-  }
-  const leagues = [...byLeague.values()]
-    .map((l) => ({ ...l, units: +l.units.toFixed(2), roi: l.evaluated > 0 ? l.units / l.evaluated : 0 }))
+  const win = (b: FlatBet[]): RoiWindow => {
+    const s = settleFlatUnits(b);
+    return { evaluated: s.evaluated, wins: s.wins, units: s.units, roi: s.roi };
+  };
+  const model = { all: win(bets.modelAll), d30: win(bets.modelD30) };
+  const marketFav = { all: win(bets.favAll), d30: win(bets.favD30) };
+  const leagues = [...byLeagueBets.entries()]
+    .map(([league, b]) => {
+      const s = settleFlatUnits(b);
+      return { league, evaluated: s.evaluated, units: s.units, roi: s.roi };
+    })
     .sort((a, b) => b.evaluated - a.evaluated);
 
   return model.all.evaluated > 0 ? { model, marketFav, leagues, asOf: new Date().toISOString() } : null;

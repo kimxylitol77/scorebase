@@ -150,6 +150,13 @@
     "건 ·": " · ",
     "평가": "evaluated",
     "표본 부족": "Thin sample",
-    "전 리그 합산 · 1X2": "All leagues · 1X2"
+    "전 리그 합산 · 1X2": "All leagues · 1X2",
+    "회": "",
+    "픽 · 실제": "pick · actual",
+    "홈/무/원정별 — 모델이 그쪽을 픽했을 때 적중률": "By home/draw/away — hit rate when the model picked that side",
+    "(낮을수록 정확 — 자신 있게 틀리면 크게 벌점)": "(lower is better — confident misses are penalised most)",
+    "원정 승": "Away win",
+    "무승부": "Draw",
+    "홈 승": "Home win"
   }
 }

@@ -1,10 +1,13 @@
-// /picks/me — 회원 전용 내 예측 리포트: 요약·나 vs AI·리그별·월별·최근 기록 (MatchVote 집계)
+// /picks/me — 회원 전용 내 예측 리포트: 요약(적중률·유닛 수익률·CLV)·수익률 기준선(모델·시장)·리그별·월별·최근 기록 (MatchVote 집계)
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
+import RoiCard from "@/components/predictions/RoiCard";
+import { settleFlatUnits, fmtRoiPct, fmtUnits } from "@/lib/predict/flat-roi";
+import { flatUnitRoiStats } from "@/lib/predict/model-vs-market";
 
 export const metadata: Metadata = {
   title: "내 예측 리포트 · 스코어베이스",
@@ -67,10 +70,11 @@ export default async function MyPicksPage() {
     .sort((a, b) => b.match!.startTime.getTime() - a.match!.startTime.getTime());
 
   const hit = scored.filter((v) => v.correct).length;
-  // 수익 시뮬(플랫 1유닛, 픽 시점 배당) + 평균 CLV — 둘 다 참고용, 배당 없는 표는 제외
-  const priced = scored.filter((v) => v.pickOdds != null && v.pickOdds > 1);
-  const units = priced.reduce((a, v) => a + (v.correct ? v.pickOdds! - 1 : -1), 0);
-  const roi = priced.length > 0 ? units / priced.length : null;
+  // 수익 시뮬(플랫 1유닛, 픽 시점 배당) — flat-roi 단일 계산기(accuracy·/picks·/lab 과 같은 규칙). 배당 없는 표는 excluded 로 표기.
+  const flat = settleFlatUnits(scored.map((v) => ({ odds: v.pickOdds, won: v.correct === true })));
+  const roi = flat.evaluated > 0 ? flat.roi : null;
+  // 기준선 — 모델 픽·시장 인기픽 플랫 ROI(같은 캐시). "나 vs AI 적중 수" 대신 수익률 잣대로 나란히.
+  const modelRoi = await flatUnitRoiStats().catch(() => null);
   const clvRows = votes.filter((v) => v.clv != null);
   const avgClv = clvRows.length > 0 ? (clvRows.reduce((a, v) => a + v.clv!, 0) / clvRows.length) * 100 : null;
   const recent10 = scored.slice(0, 10);
@@ -80,11 +84,6 @@ export default async function MyPicksPage() {
     if (!v.correct) break;
     streak++;
   }
-
-  // 나 vs AI — 같은 경기에서 AI(predCorrect)가 채점된 것만 비교
-  const vsAi = scored.filter((v) => v.match!.predCorrect !== null);
-  const vsAiMyHit = vsAi.filter((v) => v.correct).length;
-  const vsAiAiHit = vsAi.filter((v) => v.match!.predCorrect).length;
 
   // 리그별 분해 (투표수순)
   const byLeague = new Map<string, { total: number; hit: number }>();
@@ -174,11 +173,12 @@ export default async function MyPicksPage() {
             </div>
             <div className={card} title="픽 시점 해외 평균 배당으로 매 경기 1유닛을 걸었다고 가정한 후행 시뮬레이션. 참고용이며 실제 수익을 보장하지 않습니다.">
               <div className="text-xs text-neutral-500 dark:text-neutral-400">수익 시뮬 (1u)</div>
-              <div className={`mt-1 text-2xl font-bold tabular-nums ${roi == null ? "text-neutral-400" : units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {roi == null ? "—" : `${units >= 0 ? "+" : ""}${units.toFixed(1)}u`}
+              <div className={`mt-1 text-2xl font-bold tabular-nums ${roi == null ? "text-neutral-400" : flat.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {roi == null ? "—" : fmtUnits(flat.units)}
               </div>
               <div className="mt-0.5 text-xs text-neutral-500 tabular-nums">
-                {roi == null ? "배당 기록된 표 없음" : `ROI ${roi >= 0 ? "+" : ""}${(roi * 100).toFixed(1)}% · ${priced.length}표`}
+                {roi == null ? "배당 기록된 표 없음" : `수익률 ${fmtRoiPct(roi)} · 평균 배당 ${flat.avgOdds!.toFixed(2)} · ${flat.evaluated}표`}
+                {flat.excluded > 0 && ` · 배당 없음 ${flat.excluded}건 제외`}
               </div>
             </div>
             <div className={card} title="CLV(Closing Line Value) — 픽 시점 배당이 킥오프 직전 종가보다 얼마나 좋았는지. 양수가 꾸준하면 시장보다 먼저 움직인 것.">
@@ -199,34 +199,28 @@ export default async function MyPicksPage() {
             </div>
           </div>
 
-          {/* 나 vs AI */}
-          {vsAi.length > 0 && (
+          {/* 수익률 기준선 — 내 픽 vs 모델 픽 vs 시장 인기픽, 전부 플랫 1유닛 같은 잣대(카드도 accuracy 와 동일) */}
+          {flat.evaluated > 0 && (
             <section className="mt-7">
-              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">나 vs AI · 같은 경기 {vsAi.length}</h2>
-              <div className={`mt-2 ${card}`}>
-                {[
-                  { label: "나", hitCount: vsAiMyHit, accent: "bg-rose-500" },
-                  { label: "AI", hitCount: vsAiAiHit, accent: "bg-neutral-400 dark:bg-neutral-500" },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center gap-3 py-1.5">
-                    <span className="w-8 shrink-0 text-sm font-semibold text-neutral-900 dark:text-white">{row.label}</span>
-                    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10">
-                      <div className={`h-full rounded-full ${row.accent}`} style={{ width: `${pct(row.hitCount, vsAi.length)}%` }} />
-                    </div>
-                    <span className="w-24 shrink-0 text-right text-sm tabular-nums text-neutral-600 dark:text-neutral-300">
-                      {row.hitCount}/{vsAi.length} · <span className="font-semibold text-neutral-900 dark:text-white">{pct(row.hitCount, vsAi.length)}%</span>
-                    </span>
-                  </div>
-                ))}
-                <p className="mt-2 text-xs font-medium">
-                  {vsAiMyHit > vsAiAiHit ? (
-                    <span className="text-emerald-600 dark:text-emerald-400">AI 를 이기고 있습니다.</span>
-                  ) : vsAiMyHit === vsAiAiHit ? (
-                    <span className="text-neutral-500">AI 와 동률입니다.</span>
-                  ) : (
-                    <span className="text-neutral-500">AI 가 {vsAiAiHit - vsAiMyHit}경기 앞서 있습니다.</span>
-                  )}
-                </p>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">수익률 기준선 · 같은 잣대(1표 1유닛)</h2>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 break-keep">
+                배당에 북메이커 마진이 들어 있어 장기 수익률은 마이너스가 정상 기대치입니다. 표본이 서로 달라 승패를 가르는 비교가 아니라, 내 픽이 모델·시장 기준선과 어느 위치인지 보는 표입니다.
+              </p>
+              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <RoiCard
+                  label="내 픽 · 전체"
+                  sub="픽 시점 해외 평균 배당"
+                  w={flat}
+                  hitNoun="적중"
+                  sampleNoun="표"
+                  excludedNote={flat.excluded > 0 ? `배당 없음 ${flat.excluded}건 제외` : undefined}
+                />
+                {modelRoi && (
+                  <>
+                    <RoiCard label="모델 픽 · 전체" sub="경기 전 마지막 배당 · 1경기 1유닛" w={modelRoi.model.all} />
+                    <RoiCard label="시장 인기픽 · 전체" sub="기준선 (최저 배당 베팅)" w={modelRoi.marketFav.all} />
+                  </>
+                )}
               </div>
             </section>
           )}

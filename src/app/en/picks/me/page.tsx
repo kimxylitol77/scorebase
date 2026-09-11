@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/current-user";
 import { toEnglishTeamName } from "@/lib/i18n/en";
+import RoiCard from "@/components/en/predictions/RoiCard";
+import { settleFlatUnits, fmtRoiPct, fmtUnits } from "@/lib/predict/flat-roi";
+import { flatUnitRoiStats } from "@/lib/predict/model-vs-market";
 
 export const metadata: Metadata = {
   title: "My prediction report · Scorebase",
@@ -67,10 +70,11 @@ export default async function MyPicksPage() {
     .sort((a, b) => b.match!.startTime.getTime() - a.match!.startTime.getTime());
 
   const hit = scored.filter((v) => v.correct).length;
-  // 수익 시뮬(플랫 1유닛, 픽 시점 배당) + 평균 CLV — 둘 다 참고용, 배당 없는 표는 제외
-  const priced = scored.filter((v) => v.pickOdds != null && v.pickOdds > 1);
-  const units = priced.reduce((a, v) => a + (v.correct ? v.pickOdds! - 1 : -1), 0);
-  const roi = priced.length > 0 ? units / priced.length : null;
+  // 수익 시뮬(플랫 1유닛, 픽 시점 배당) — flat-roi 단일 계산기(accuracy·/picks·/lab 과 같은 규칙). 배당 없는 표는 excluded 로 표기.
+  const flat = settleFlatUnits(scored.map((v) => ({ odds: v.pickOdds, won: v.correct === true })));
+  const roi = flat.evaluated > 0 ? flat.roi : null;
+  // 기준선 — 모델 픽·시장 인기픽 플랫 ROI(같은 캐시). "나 vs AI 적중 수" 대신 수익률 잣대로 나란히.
+  const modelRoi = await flatUnitRoiStats().catch(() => null);
   const clvRows = votes.filter((v) => v.clv != null);
   const avgClv = clvRows.length > 0 ? (clvRows.reduce((a, v) => a + v.clv!, 0) / clvRows.length) * 100 : null;
   const recent10 = scored.slice(0, 10);
@@ -80,11 +84,6 @@ export default async function MyPicksPage() {
     if (!v.correct) break;
     streak++;
   }
-
-  // 나 vs AI — 같은 경기에서 AI(predCorrect)가 채점된 것만 비교
-  const vsAi = scored.filter((v) => v.match!.predCorrect !== null);
-  const vsAiMyHit = vsAi.filter((v) => v.correct).length;
-  const vsAiAiHit = vsAi.filter((v) => v.match!.predCorrect).length;
 
   // 리그별 분해 (투표수순)
   const byLeague = new Map<string, { total: number; hit: number }>();
@@ -174,11 +173,12 @@ export default async function MyPicksPage() {
             </div>
             <div className={card} title="Backtest assuming 1 unit per match at the average overseas odds when you picked. For reference only — no returns are guaranteed.">
               <div className="text-xs text-neutral-500 dark:text-neutral-400">P/L sim (1u)</div>
-              <div className={`mt-1 text-2xl font-bold tabular-nums ${roi == null ? "text-neutral-400" : units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {roi == null ? "—" : `${units >= 0 ? "+" : ""}${units.toFixed(1)}u`}
+              <div className={`mt-1 text-2xl font-bold tabular-nums ${roi == null ? "text-neutral-400" : flat.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {roi == null ? "—" : fmtUnits(flat.units)}
               </div>
               <div className="mt-0.5 text-xs text-neutral-500 tabular-nums">
-                {roi == null ? "no votes with odds" : `ROI ${roi >= 0 ? "+" : ""}${(roi * 100).toFixed(1)}% · ${priced.length} votes`}
+                {roi == null ? "no votes with odds" : `Return ${fmtRoiPct(roi)} · avg odds ${flat.avgOdds!.toFixed(2)} · ${flat.evaluated} votes`}
+                {flat.excluded > 0 && ` · no odds: ${flat.excluded} excluded`}
               </div>
             </div>
             <div className={card} title="CLV (Closing Line Value) — how much better the odds at pick time were than the closing line. Consistently positive means you moved before the market.">
@@ -199,34 +199,28 @@ export default async function MyPicksPage() {
             </div>
           </div>
 
-          {/* 나 vs AI */}
-          {vsAi.length > 0 && (
+          {/* 수익률 기준선 — 내 픽 vs 모델 픽 vs 시장 인기픽, 전부 플랫 1유닛 같은 잣대(카드도 accuracy 와 동일) */}
+          {flat.evaluated > 0 && (
             <section className="mt-7">
-              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Me vs AI · same matches {vsAi.length}</h2>
-              <div className={`mt-2 ${card}`}>
-                {[
-                  { label: "Me", hitCount: vsAiMyHit, accent: "bg-rose-500" },
-                  { label: "AI", hitCount: vsAiAiHit, accent: "bg-neutral-400 dark:bg-neutral-500" },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center gap-3 py-1.5">
-                    <span className="w-8 shrink-0 text-sm font-semibold text-neutral-900 dark:text-white">{row.label}</span>
-                    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10">
-                      <div className={`h-full rounded-full ${row.accent}`} style={{ width: `${pct(row.hitCount, vsAi.length)}%` }} />
-                    </div>
-                    <span className="w-24 shrink-0 text-right text-sm tabular-nums text-neutral-600 dark:text-neutral-300">
-                      {row.hitCount}/{vsAi.length} · <span className="font-semibold text-neutral-900 dark:text-white">{pct(row.hitCount, vsAi.length)}%</span>
-                    </span>
-                  </div>
-                ))}
-                <p className="mt-2 text-xs font-medium">
-                  {vsAiMyHit > vsAiAiHit ? (
-                    <span className="text-emerald-600 dark:text-emerald-400">Beating the AI.</span>
-                  ) : vsAiMyHit === vsAiAiHit ? (
-                    <span className="text-neutral-500">Level with the AI.</span>
-                  ) : (
-                    <span className="text-neutral-500">AI {vsAiAiHit - vsAiMyHit} ahead.</span>
-                  )}
-                </p>
+              <h2 className="text-sm font-bold text-neutral-900 dark:text-white">Return baselines · same yardstick (1 unit per pick)</h2>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 break-keep">
+                Odds carry the bookmaker margin, so a negative long-run return is the normal expectation. The samples differ, so this is not a win/lose contest — it shows where your picks sit against the model and market baselines.
+              </p>
+              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <RoiCard
+                  label="My picks · all"
+                  sub="Average overseas odds at pick time"
+                  w={flat}
+                  hitNoun="hits"
+                  sampleNoun=" votes"
+                  excludedNote={flat.excluded > 0 ? `No odds: ${flat.excluded} excluded` : undefined}
+                />
+                {modelRoi && (
+                  <>
+                    <RoiCard label="Model picks · all" sub="Last pre-match odds · 1 unit per match" w={modelRoi.model.all} />
+                    <RoiCard label="Market favourite · all" sub="Baseline (backing the shortest odds)" w={modelRoi.marketFav.all} />
+                  </>
+                )}
               </div>
             </section>
           )}

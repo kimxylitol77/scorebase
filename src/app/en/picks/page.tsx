@@ -9,12 +9,14 @@ import MatchVoteButtons from "@/components/en/MatchVoteButtons";
 import { buildVoteMarkets, loadVoteDists, VOTE_MATCH_SELECT } from "@/components/en/MatchVoteCard";
 import { MARKET_LABEL_EN as MARKET_LABEL, type VoteMarket } from "@/lib/vote-markets";
 import { displayGradeEn as displayGrade } from "@/lib/user-level";
+import { settleFlatUnits, fmtRoiPct, fmtUnits, type FlatRoiResult } from "@/lib/predict/flat-roi";
+import { roiClaim } from "@/lib/predict/model-vs-market";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
   title: "Predictions — You vs AI | Scorebase",
-  description: "Predict today’s and tomorrow’s matches with one click and compete with the AI model on accuracy. Member ranking included.",
+  description: "Predict today’s and tomorrow’s matches in one click; the odds at pick time are saved and every pick is scored for hit rate and unit return. Member rankings included.",
 };
 export const dynamic = "force-dynamic";
 
@@ -66,11 +68,11 @@ export default async function PicksPage() {
     myPicksByMatch.set(v.matchId, o);
   }
 
-  // 내 기록 (로그인) — 채점된 투표의 적중률 + 같은 경기에서 AI(predCorrect) 와 비교
+  // 내 기록 (로그인) — 적중률 + 플랫 유닛 수익률(flat-roi 단일 계산기, accuracy·/lab 과 같은 규칙) + 평균 CLV
   let myRecord: {
-    total: number; scored: number; hit: number; aiHit: number;
-    /** 플랫 1유닛 후행 시뮬 — 픽 배당 있는 채점 표만. 참고용, 수익 보장 아님 */
-    units: number; unitsN: number; roi: number | null; avgOdds: number | null;
+    total: number; scored: number; hit: number;
+    /** 픽 시점 배당으로 1유닛 후행 정산. excluded = 배당 없는 표(화면에 "제외" 로 표기) */
+    roi: FlatRoiResult;
     /** 평균 CLV(%) — 종가 대비 픽 배당. 표본 수 함께 */
     avgClv: number | null; clvN: number;
   } | null = null;
@@ -80,30 +82,18 @@ export default async function PicksPage() {
       select: { matchId: true, market: true, correct: true, pickOdds: true, clv: true },
     });
     const scoredRows = all.filter((v) => v.correct !== null);
-    let aiHit = 0;
-    if (scoredRows.length) {
-      const aiRows = await prisma.match.findMany({
-        where: { id: { in: scoredRows.map((v) => v.matchId) }, predCorrect: { not: null } },
-        select: { predCorrect: true },
-      });
-      aiHit = aiRows.filter((m) => m.predCorrect).length;
-    }
-    const priced = scoredRows.filter((v) => v.pickOdds != null && v.pickOdds > 1);
-    const units = priced.reduce((acc, v) => acc + (v.correct ? v.pickOdds! - 1 : -1), 0);
     const clvRows = all.filter((v) => v.clv != null);
     myRecord = {
       total: all.length,
       scored: scoredRows.length,
       hit: scoredRows.filter((v) => v.correct).length,
-      aiHit,
-      units,
-      unitsN: priced.length,
-      roi: priced.length > 0 ? units / priced.length : null,
-      avgOdds: priced.length > 0 ? priced.reduce((a, v) => a + v.pickOdds!, 0) / priced.length : null,
+      roi: settleFlatUnits(scoredRows.map((v) => ({ odds: v.pickOdds, won: v.correct === true }))),
       avgClv: clvRows.length > 0 ? (clvRows.reduce((a, v) => a + v.clv!, 0) / clvRows.length) * 100 : null,
       clvN: clvRows.length,
     };
   }
+  // 기준선 — 모델 픽·시장 인기픽 플랫 ROI(홈 H1·accuracy 와 같은 캐시). 적중 수 비교("AI 를 이기는 중") 대신 수익률 잣대를 나란히.
+  const baseline = await roiClaim();
 
   // 회원 적중 랭킹 — 채점 3표 이상, 적중률순
   const board = await prisma.$queryRaw<{ userId: string; total: number; hit: number }[]>`
@@ -141,69 +131,66 @@ export default async function PicksPage() {
       <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">
         Predictions
       </span>
-      <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">You vs AI — who calls it better?</h1>
+      <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">My pick record — predictions scored against the odds</h1>
       <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-        Predict today’s and tomorrow’s matches with one click. Voting reveals our AI model’s pick, and results are scored automatically after the match.
-        {!userId && <span className="ml-1">You can vote without signing in; sign in to record accuracy and rank.</span>}
+        Predict today’s and tomorrow’s matches with one click. The average overseas odds at the moment you pick are saved with it, and after the final whistle each pick is scored for hit and unit profit. Voting also reveals our AI model’s pick.
+        {!userId && <span className="ml-1">You can vote without signing in; sign in to have hit rate, return and ranking recorded.</span>}
       </p>
 
-      {/* 내 기록 */}
+      {/* 내 기록 — 내 픽 · 적중률 · 평균 배당 · 누적 · 수익률 (+ 배당 없음 제외 표기) */}
       {myRecord && myRecord.total > 0 && (
-        <div className="mt-5 flex flex-wrap gap-2">
-          <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
-            My votes <span className="font-bold text-neutral-900 dark:text-white">{myRecord.total}</span>
-          </div>
-          <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
-            hits <span className="font-bold text-rose-600 dark:text-rose-400">{myRecord.hit}</span>
-            <span className="text-neutral-400">/{myRecord.scored}</span>
-            {myRecord.scored > 0 && (
-              <span className="ml-1 text-xs text-neutral-500">({Math.round((myRecord.hit / myRecord.scored) * 100)}%)</span>
+        <div className="mt-5">
+          <div className="flex flex-wrap gap-2">
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
+              My pick <span className="font-bold text-neutral-900 dark:text-white">{myRecord.total}</span>
+              {myRecord.scored < myRecord.total && <span className="ml-1 text-xs text-neutral-500">scored {myRecord.scored}</span>}
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
+              accuracy{" "}
+              <span className="font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                {myRecord.scored > 0 ? `${Math.round((myRecord.hit / myRecord.scored) * 100)}%` : "—"}
+              </span>
+              {myRecord.scored > 0 && <span className="ml-1 text-xs text-neutral-500">{myRecord.hit}/{myRecord.scored}</span>}
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]" title="Average of the pick-time overseas odds (margin included) across settled picks">
+              Avg odds <span className="font-bold tabular-nums text-neutral-900 dark:text-white">{myRecord.roi.avgOdds == null ? "—" : myRecord.roi.avgOdds.toFixed(2)}</span>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]" title="Retrospective settlement assuming 1 unit per pick at the average overseas odds when you picked. For reference only — no returns are guaranteed.">
+              Units{" "}
+              <span className={`font-bold tabular-nums ${myRecord.roi.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {myRecord.roi.evaluated > 0 ? fmtUnits(myRecord.roi.units) : "—"}
+              </span>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]" title="Cumulative units ÷ settled picks — the same calculation as the flat-unit return on /en/predictions/accuracy">
+              Return{" "}
+              <span className={`font-bold tabular-nums ${myRecord.roi.roi >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                {myRecord.roi.evaluated > 0 ? fmtRoiPct(myRecord.roi.roi) : "—"}
+              </span>
+              <span className="ml-1 text-xs text-neutral-500 tabular-nums">{myRecord.roi.evaluated} picks settled</span>
+            </div>
+            {myRecord.avgClv != null && (
+              <div
+                className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
+                title="CLV (Closing Line Value) — how much better your odds were than the closing line at kick-off. Consistently positive means you moved before the market."
+              >
+                Avg CLV <span className={`font-bold tabular-nums ${myRecord.avgClv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                  {myRecord.avgClv >= 0 ? "+" : ""}{myRecord.avgClv.toFixed(1)}%
+                </span>
+                <span className="ml-1 text-xs text-neutral-500">{myRecord.clvN} votes · vs closing</span>
+              </div>
             )}
           </div>
-          {myRecord.roi != null && (
-            <div
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
-              title="Backtest assuming 1 unit per match at the average overseas odds when you picked. For reference only — no returns are guaranteed."
-            >
-              P/L <span className={`font-bold tabular-nums ${myRecord.units >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {myRecord.units >= 0 ? "+" : ""}{myRecord.units.toFixed(1)}u
-              </span>
-              <span className="ml-1 text-xs text-neutral-500 tabular-nums">
-                ROI {myRecord.roi >= 0 ? "+" : ""}{(myRecord.roi * 100).toFixed(1)}% · avg odds {myRecord.avgOdds!.toFixed(2)} · {myRecord.unitsN} votes
-              </span>
-            </div>
-          )}
-          {myRecord.avgClv != null && (
-            <div
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]"
-              title="CLV (Closing Line Value) — how much better your odds were than the closing line at kick-off. Consistently positive means you moved before the market."
-            >
-              Avg CLV <span className={`font-bold tabular-nums ${myRecord.avgClv >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-                {myRecord.avgClv >= 0 ? "+" : ""}{myRecord.avgClv.toFixed(1)}%
-              </span>
-              <span className="ml-1 text-xs text-neutral-500">{myRecord.clvN} votes · vs closing</span>
-            </div>
-          )}
-          {myRecord.scored > 0 && (
-            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm dark:border-neutral-800 dark:bg-white/[0.04]">
-              AI hits, same matches <span className="font-bold text-neutral-900 dark:text-white">{myRecord.aiHit}</span>
-              <span className="ml-1 text-xs font-medium">
-                {myRecord.hit > myRecord.aiHit ? (
-                  <span className="text-emerald-600 dark:text-emerald-400">Beating the AI!</span>
-                ) : myRecord.hit === myRecord.aiHit ? (
-                  <span className="text-neutral-500">Level with AI</span>
-                ) : (
-                  <span className="text-neutral-500">AI ahead</span>
-                )}
-              </span>
-            </div>
-          )}
-          <Link
-            href="/en/picks/me"
-            className="flex items-center rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
-          >
-            My prediction report →
-          </Link>
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
+            {myRecord.roi.excluded > 0 && <span className="mr-2">No odds: {myRecord.roi.excluded} excluded</span>}
+            {baseline && (
+              <>
+                Baseline · model picks overall <span className="font-semibold text-neutral-700 dark:text-neutral-200">{baseline.modelPct}</span>
+                {" · "}market favourite <span className="font-semibold text-neutral-700 dark:text-neutral-200">{baseline.marketPct}</span>
+                {" — same yardstick (1 unit per pick) · "}
+                <Link href="/predictions/accuracy" className="text-blue-600 hover:underline dark:text-blue-400">Returns board →</Link>
+              </>
+            )}
+          </p>
         </div>
       )}
 

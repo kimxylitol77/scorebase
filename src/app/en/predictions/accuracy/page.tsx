@@ -29,6 +29,8 @@ import {
   type FlatUnitRoiStat,
 } from "@/lib/predict/model-vs-market";
 import { koEnLanguages } from "@/lib/i18n/en";
+import RoiCard from "@/components/en/predictions/RoiCard";
+import { fmtRoiPct } from "@/lib/predict/flat-roi";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 3600; // 1시간 ISR
@@ -152,6 +154,10 @@ async function reliabilitySeries(): Promise<{
   market: RelPoint[];
   modelBrier: number;
   marketBrier: number;
+  modelLogLoss: number;
+  marketLogLoss: number;
+  /** 결과별(홈승/무/원정승) — 모델 최고확률 픽 기준 적중률 */
+  outcome: Array<{ label: string; picks: number; hits: number; actual: number }>;
 }> {
   const ms = await prisma.match.findMany({
     where: {
@@ -181,6 +187,14 @@ async function reliabilitySeries(): Promise<{
   const modelBins = mk();
   const marketBins = mk();
   let brierM = 0, nM = 0, brierK = 0, nK = 0;
+  // Log Loss — 실제 결과에 부여한 확률의 -log 평균. 0 확률 가드로 1e-6 클램프.
+  let llM = 0, llMn = 0, llK = 0, llKn = 0;
+  // 홈/무/원정별 — 모델이 그 결과를 픽했을 때의 적중률 + 실제 발생 수
+  const oc = [
+    { label: "Home win", picks: 0, hits: 0, actual: 0 },
+    { label: "Draw", picks: 0, hits: 0, actual: 0 },
+    { label: "Away win", picks: 0, hits: 0, actual: 0 },
+  ];
 
   for (const m of ms) {
     const h = m.homeScore!, a = m.awayScore!;
@@ -196,6 +210,14 @@ async function reliabilitySeries(): Promise<{
       used = true;
     }
     if (used) { brierM += bs; nM++; }
+    const actIdx = act.indexOf(1);
+    oc[actIdx].actual++;
+    // 모델 픽 = 최고 확률 결과 (null 은 -1 로 제외)
+    let best = -1, bestP = -1;
+    for (let k = 0; k < 3; k++) { const p = pp[k]; if (p != null && p > bestP) { bestP = p; best = k; } }
+    if (best >= 0) { oc[best].picks++; if (best === actIdx) oc[best].hits++; }
+    const pAct = pp[actIdx];
+    if (pAct != null) { llM += -Math.log(Math.max(1e-6, pAct)); llMn++; }
 
     const mp = [m.marketHome, m.marketDraw, m.marketAway];
     if (mp.every((p) => p != null)) {
@@ -205,6 +227,8 @@ async function reliabilitySeries(): Promise<{
         mbs += (mp[k]! - act[k]) ** 2;
       }
       brierK += mbs; nK++;
+      const mAct = mp[act.indexOf(1)];
+      if (mAct != null) { llK += -Math.log(Math.max(1e-6, mAct)); llKn++; }
     }
   }
 
@@ -223,6 +247,9 @@ async function reliabilitySeries(): Promise<{
     market: toPts(marketBins),
     modelBrier: nM ? +(brierM / nM).toFixed(4) : 0,
     marketBrier: nK ? +(brierK / nK).toFixed(4) : 0,
+    modelLogLoss: llMn ? +(llM / llMn).toFixed(4) : 0,
+    marketLogLoss: llKn ? +(llK / llKn).toFixed(4) : 0,
+    outcome: oc,
   };
 }
 
@@ -426,6 +453,33 @@ export default async function AccuracyPage() {
             modelBrier={reliability.modelBrier}
             marketBrier={reliability.marketBrier}
           />
+
+          {/* Log Loss + 홈/무/원정별 적중률 (2026-08-27, 리뷰 §8) */}
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 mb-1">
+                Log Loss <span className="normal-case font-normal">(lower is better — confident misses are penalised most)</span>
+              </div>
+              <div className="flex items-baseline gap-4 tabular-nums">
+                <span className="text-xl font-bold">{reliability.modelLogLoss.toFixed(3)}<span className="ml-1 text-xs font-medium text-neutral-500">Model</span></span>
+                <span className="text-xl font-bold text-neutral-500">{reliability.marketLogLoss.toFixed(3)}<span className="ml-1 text-xs font-medium text-neutral-500">Market</span></span>
+              </div>
+            </div>
+            <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 mb-2">
+                By home/draw/away — hit rate when the model picked that side
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center tabular-nums">
+                {reliability.outcome.map((o) => (
+                  <div key={o.label}>
+                    <div className="text-[11px] text-neutral-500">{o.label}</div>
+                    <div className="text-lg font-bold">{o.picks > 0 ? `${Math.round((o.hits / o.picks) * 100)}%` : "—"}</div>
+                    <div className="text-[10px] text-neutral-400">{o.hits}/{o.picks}pick · actual {o.actual}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
       )}
 
@@ -602,24 +656,8 @@ function HeadToHeadSection({ data }: { data: HeadToHeadStat }) {
 function FlatRoiSection({ data }: { data: FlatUnitRoiStat }) {
   const rows = data.leagues.filter((l) => l.evaluated >= ROI_LEAGUE_MIN);
   const edge = data.model.all.roi - data.marketFav.all.roi;
-  const roiPct = (r: number) => `${r > 0 ? "+" : ""}${(r * 100).toFixed(1)}%`;
-  const unitsFmt = (u: number) => `${u > 0 ? "+" : ""}${u.toFixed(1)}u`;
-  const RoiCard = ({ label, sub, w }: { label: string; sub: string; w: { evaluated: number; wins: number; units: number; roi: number } }) => (
-    <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
-      <p className="text-xs text-neutral-500">{label}</p>
-      <p className="text-[10px] text-neutral-400 mt-0.5 mb-2">{sub}</p>
-      <div
-        className={`text-2xl font-bold tabular-nums ${
-          w.roi >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"
-        }`}
-      >
-        {roiPct(w.roi)}
-      </div>
-      <p className="text-[11px] text-neutral-500 tabular-nums mt-1">
-        {unitsFmt(w.units)} · {w.wins.toLocaleString()}W / {w.evaluated.toLocaleString()} matches
-      </p>
-    </div>
-  );
+  // 카드는 공용 RoiCard(/picks/me·/lab 과 동일) — 회원 픽·봇 백테스트가 모델과 같은 잣대임을 같은 모양으로 보인다.
+  const roiPct = fmtRoiPct;
   return (
     <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
       <h2 className="text-lg font-semibold mb-1">Flat-unit return — real-odds simulation</h2>

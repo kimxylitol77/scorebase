@@ -29,6 +29,8 @@ import {
   type FlatUnitRoiStat,
 } from "@/lib/predict/model-vs-market";
 import { koEnLanguages } from "@/lib/i18n/en";
+import RoiCard from "@/components/predictions/RoiCard";
+import { fmtRoiPct } from "@/lib/predict/flat-roi";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 
 export const revalidate = 3600; // 1시간 ISR
@@ -692,24 +694,8 @@ function HeadToHeadSection({ data }: { data: HeadToHeadStat }) {
 function FlatRoiSection({ data }: { data: FlatUnitRoiStat }) {
   const rows = data.leagues.filter((l) => l.evaluated >= ROI_LEAGUE_MIN);
   const edge = data.model.all.roi - data.marketFav.all.roi;
-  const roiPct = (r: number) => `${r > 0 ? "+" : ""}${(r * 100).toFixed(1)}%`;
-  const unitsFmt = (u: number) => `${u > 0 ? "+" : ""}${u.toFixed(1)}u`;
-  const RoiCard = ({ label, sub, w }: { label: string; sub: string; w: { evaluated: number; wins: number; units: number; roi: number } }) => (
-    <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
-      <p className="text-xs text-neutral-500">{label}</p>
-      <p className="text-[10px] text-neutral-400 mt-0.5 mb-2">{sub}</p>
-      <div
-        className={`text-2xl font-bold tabular-nums ${
-          w.roi >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"
-        }`}
-      >
-        {roiPct(w.roi)}
-      </div>
-      <p className="text-[11px] text-neutral-500 tabular-nums mt-1">
-        {unitsFmt(w.units)} · {w.wins.toLocaleString()}승 / {w.evaluated.toLocaleString()}경기
-      </p>
-    </div>
-  );
+  // 카드는 공용 RoiCard(/picks/me·/lab 과 동일) — 회원 픽·봇 백테스트가 모델과 같은 잣대임을 같은 모양으로 보인다.
+  const roiPct = fmtRoiPct;
   return (
     <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
       <h2 className="text-lg font-semibold mb-1">플랫 유닛 수익률 — 실배당 시뮬레이션</h2>

@@ -3,6 +3,7 @@
 // 피처 벡터는 /api/bot-backtest 1회 로드 후 손잡이 변경마다 member-bot.ts 순수함수로 재채점한다.
 
 import { useEffect, useMemo, useState } from "react";
+import RoiCard from "@/components/predictions/RoiCard";
 import Link from "next/link";
 import {
   SlidersHorizontal,
@@ -518,6 +519,22 @@ export default function LabClient({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+              {score.total.n > 0 && (
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {/* 유닛 수익률 — accuracy·/picks 와 같은 계산기(flat-roi)·같은 카드. 배당은 마감 배당이라 라벨에 명시 */}
+                  <RoiCard
+                    label="내 봇 유닛 수익률"
+                    sub="마감 배당 · 1경기 1유닛 후행 정산"
+                    w={score.total.roi}
+                    hitNoun="적중"
+                    excludedNote={score.total.roi.excluded > 0 ? `배당 없음 ${score.total.roi.excluded.toLocaleString()}경기 제외` : undefined}
+                  />
+                  <p className="self-center text-[11px] leading-relaxed text-zinc-500 break-keep dark:text-white/45">
+                    적중률은 배당을 무시합니다. 정배만 찍어도 적중률은 오르지만 유닛은 줄 수 있어, 두 숫자를 같이 봐야 봇의 실제 가치가 보입니다.
+                    배당에 북메이커 마진이 있어 장기 수익률은 마이너스가 정상 기대치입니다.
+                  </p>
                 </div>
               )}
               <p className="mt-3 border-t border-black/5 pt-2 text-[11px] leading-relaxed text-zinc-500 dark:border-white/10 dark:text-white/45">
