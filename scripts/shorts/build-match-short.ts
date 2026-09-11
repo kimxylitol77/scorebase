@@ -103,11 +103,16 @@ async function main() {
     topShooter ? `최다 슛: ${topShooter.name} ${topShooter.shots}회 xG ${topShooter.xg}` : "",
   ].filter(Boolean).join("\n");
   const allowed = new Set<string>(); for (const n of brief.match(/\d+(?:\.\d+)?/g) ?? []) { allowed.add(n); if (n.includes(".")) allowed.add(n.replace(/0+$/, "").replace(/\.$/, "")); }
+  // 파생 수치도 허용: 스코어 차·xG 차(소수 2자리)·골 수·작은 정수(1골 차, 2배 같은 표현)
+  for (const n of [Math.abs(hs - as), aH.goals.length, aA.goals.length, 0, 1, 2, 3]) allowed.add(String(n));
+  for (const x of [Math.abs(aH.xg - aA.xg), aH.xg + aA.xg]) { const t = x.toFixed(2); allowed.add(t); allowed.add(t.replace(/0+$/, "").replace(/\.$/, "")); }
   const prompt = `아래 축구 경기 데이터만 근거로 한국어 인사이트 문장 2개를 써라. 규칙: 각 문장 40자 이내, 아래 브리핑에 있는 숫자만 사용(새 숫자·비율 계산 금지), 팀명은 브리핑 표기 그대로, 이모지·따옴표 금지, 두 문장을 줄바꿈으로만 구분해 출력.\n첫 문장 = 스코어와 xG 의 관계(누가 기회를 더 만들었고 결과는 어땠나). 둘째 문장 = 골 장면이나 최다 슛 선수 중 가장 눈에 띄는 사실.\n\n${brief}`;
   let insight: string[] = [];
   for (let attempt = 0; attempt < 2 && insight.length === 0; attempt++) {
     const out = await generate(prompt, { model: process.env.SHORT_INSIGHT_MODEL || "claude-haiku-4-5-20251001", maxTokens: 300 }).catch((e) => { console.error("생성 실패:", (e as Error).message); return ""; });
-    const lines = out.split(/\n|(?<=다\.)\s+(?=\S)/).map((l) => l.replace(/^[-•\d.)\s]+/, "").trim()).filter((l) => l.length >= 8 && l.length <= 48).slice(0, 2);
+    let lines = out.split("\n").map((l) => l.replace(/^[-•\d.)\s]+/, "").trim()).filter(Boolean);
+    if (lines.length < 2 && lines[0]) lines = lines[0].split(/(?<=[.!?])\s+/).map((l) => l.trim()).filter(Boolean); // 한 줄로 붙여 쓴 경우
+    lines = lines.filter((l) => l.length >= 8 && l.length <= 48).slice(0, 2);
     const bad = lines.flatMap((l) => (l.match(/\d+(?:\.\d+)?/g) ?? []).filter((n) => !allowed.has(n)));
     if (lines.length === 2 && bad.length === 0) insight = lines; else console.error(`인사이트 게이트 탈락(시도 ${attempt + 1}): 허용 외 숫자 ${bad.join(",") || "-"} / 줄 ${lines.length}`);
   }
