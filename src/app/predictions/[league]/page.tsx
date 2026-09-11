@@ -13,7 +13,7 @@ import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
-import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { selectSeasonMatches } from "@/lib/predict/season-matches";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -410,27 +410,16 @@ export default async function LeaguePredictions({ params }: Props) {
     awayScore: true,
     startTime: true,
   } as const;
-  const seasonStart = currentSeasonStart(upper);
   // 리그 전체를 한 번 읽고 시즌 창은 메모리에서 자른다 — 순위·시뮬은 이번 시즌만 쓰지만
   //  Elo 는 시즌을 넘어 누적돼야 해서(아래 eloMatches) 두 벌이 필요하다. 쿼리는 1회로 유지.
+  //  시즌 창·오프시즌 폴백 규칙은 season-matches.ts 단일 정의(홈 시즌 인사이트 카드와 공유).
   const allLeagueMatches = await prisma.match.findMany({
     where: { league: upper },
     select: matchSelect,
   });
-  let dbMatches = seasonStart
-    ? allLeagueMatches.filter((m) => m.startTime >= seasonStart)
-    : allLeagueMatches;
-  // 오프시즌 폴백 — 지난 시즌 표시는 "새 시즌 일정조차 없을 때"만. 새 시즌 fixture 가
-  // 이미 잡혀 있으면(개막 직전~직후) 지난 시즌으로 돌아가지 않고 새 시즌에 진입한다
-  // (2026-08-15: 빅5 개막 후에도 완료 <10 조건이 지난 시즌 380경기를 통째로 되살렸다).
-  if (
-    seasonStart &&
-    dbMatches.filter((m) => m.status === "FINISHED").length < 10 &&
-    !dbMatches.some((m) => m.status === "SCHEDULED")
-  ) {
-    const prevStart = previousSeasonStart(seasonStart);
-    dbMatches = allLeagueMatches.filter((m) => m.startTime >= prevStart && m.startTime < seasonStart);
-  }
+  const seasonSel = selectSeasonMatches(allLeagueMatches, upper);
+  const seasonStart = seasonSel.seasonStart;
+  let dbMatches = seasonSel.season;
   // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽)은 정규 팀이 아니라 시뮬·순위를 오염시킨다
   dbMatches = dbMatches.filter((m) => !isAllStarMatchRow(m));
   // NBA — 정규 30팀만 화이트리스트 (DB 에 친선·올스타·국제 팀 9개 섞여 있어 시뮬 노이즈 제거)

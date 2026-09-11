@@ -9,6 +9,8 @@ import { calcWinProbability } from "@/lib/predict/win-probability";
 import { formatChampionPct } from "@/lib/format";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
+import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
@@ -32,61 +34,61 @@ const LEAGUE_INFO: Record<
 > = {
   EPL: {
     name: "Premier League",
-    subtitle: "English Premier League · 2025-26 season",
+    subtitle: "English Premier League",
     relegationCount: 3,
     showDraw: true,
   },
   NBA: {
     name: "NBA",
-    subtitle: "National Basketball Association · 2025-26 season",
+    subtitle: "National Basketball Association",
     relegationCount: 0,
     showDraw: false,
   },
   NHL: {
     name: "NHL",
-    subtitle: "National Hockey League · 2025-26 season",
+    subtitle: "National Hockey League",
     relegationCount: 0,
     showDraw: false,
   },
   MLB: {
     name: "MLB",
-    subtitle: "Major League Baseball · 2026 season",
+    subtitle: "Major League Baseball",
     relegationCount: 0,
     showDraw: false,
   },
   LALIGA: {
     name: "LaLiga",
-    subtitle: "La Liga · 2025-26 season",
+    subtitle: "La Liga",
     relegationCount: 3,
     showDraw: true,
   },
   BUNDESLIGA: {
     name: "Bundesliga",
-    subtitle: "Bundesliga · 2025-26 season",
+    subtitle: "Bundesliga",
     relegationCount: 3,
     showDraw: true,
   },
   SERIE_A: {
     name: "Serie A",
-    subtitle: "Serie A · 2025-26 season",
+    subtitle: "Serie A",
     relegationCount: 3,
     showDraw: true,
   },
   LIGUE_1: {
     name: "Ligue 1",
-    subtitle: "Ligue 1 · 2025-26 season",
+    subtitle: "Ligue 1",
     relegationCount: 2,
     showDraw: true,
   },
   MLS: {
     name: "MLS",
-    subtitle: "Major League Soccer · 2026 season",
+    subtitle: "Major League Soccer",
     relegationCount: 0,
     showDraw: true,
   },
   UCL: {
     name: "Champions League",
-    subtitle: "UEFA Champions League · 2025-26",
+    subtitle: "UEFA Champions League",
     relegationCount: 0,
     showDraw: true,
   },
@@ -109,7 +111,9 @@ export default async function SeasonInsight({ league }: Props) {
     },
   });
   // 올스타전 제외 — MLB All-Stars 가 순위표에 정규팀처럼 끼어든다
-  const matches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
+  const allMatches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
+  // 순위·시뮬·빅매치는 이번 시즌만(예측 페이지와 같은 규칙)
+  const { season: matches, isPreviousSeason, seasonLabel } = selectSeasonMatches(allMatches, league);
 
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;
@@ -119,7 +123,8 @@ export default async function SeasonInsight({ league }: Props) {
   }
 
   const standings = calcStandings(matches);
-  const elo = calcEloTable(matches);
+  // Elo 는 시즌을 넘어 누적 — 전체 경기로
+  const elo = calcEloTable(allMatches);
   const teams = await prisma.team.findMany({
     where: { league, id: { in: standings.rows.map((r) => r.teamId) } },
     select: { id: true, name: true },
@@ -145,10 +150,13 @@ export default async function SeasonInsight({ league }: Props) {
   let mcChampions: Array<{ teamId: number; pct: number }> = [];
   let mcRelegation: Array<{ teamId: number; pct: number }> = [];
   if (scheduledCount > 0) {
-    const mc = runMonteCarlo(matches, league, {
+    const mcRaw = runMonteCarlo(matches, league, {
       iterations: 1000,
       relegationCount: info.relegationCount,
     });
+    // 일정 결손 가드 — 잔여 일정이 잘린 리그의 99.9% 우승 확률 차단(예측 페이지와 같은 검사)
+    const topChampion = mcRaw.length > 0 ? Math.max(...mcRaw.map((r) => r.champion)) : 0;
+    const mc = checkScheduleIntegrity(matches, topChampion).trustworthy ? mcRaw : [];
     mcChampions = mc
       .filter((r) => r.champion >= 0.001)
       .slice(0, 3)
@@ -195,12 +203,14 @@ export default async function SeasonInsight({ league }: Props) {
       <div className="border-b border-black/5 px-6 pt-6 pb-5 dark:border-white/10">
         <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-white/45">
           {info.subtitle}
+          {seasonLabel && ` · ${seasonLabel} season`}
         </div>
         <div className="mt-1 flex items-baseline justify-between">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
             {info.name} insight
           </h2>
           <div className="text-xs tabular-nums text-zinc-500 dark:text-white/45">
+            {isPreviousSeason && <span className="mr-1 text-amber-600 dark:text-amber-400">Last season</span>}
             {finishedCount} / {totalRounds} matches played
           </div>
         </div>

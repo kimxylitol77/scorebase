@@ -6,6 +6,8 @@ import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
+import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import { formatChampionPct } from "@/lib/format";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
@@ -59,7 +61,9 @@ export default async function SeasonInsightCard({ league }: Props) {
     },
   });
   // 올스타전 제외 — MLB All-Stars 가 순위표에 정규팀처럼 끼어든다
-  const matches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
+  const allMatches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
+  // 순위·시뮬은 이번 시즌만(예측 페이지와 같은 규칙). 전체 경기로 계산하면 지난 시즌 우승팀이 1위로 남는다.
+  const { season: matches, isPreviousSeason } = selectSeasonMatches(allMatches, league);
 
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;
@@ -81,7 +85,8 @@ export default async function SeasonInsightCard({ league }: Props) {
   }
 
   const standings = calcStandings(matches);
-  const eloTable = calcEloTable(matches);
+  // Elo 는 시즌을 넘어 누적 — 시즌 창으로 자르면 개막 직후 전 팀이 1500 으로 리셋된다
+  const eloTable = calcEloTable(allMatches);
   const teams = await prisma.team.findMany({
     where: { league, id: { in: standings.rows.map((r) => r.teamId) } },
     select: { id: true, name: true },
@@ -97,7 +102,9 @@ export default async function SeasonInsightCard({ league }: Props) {
       iterations: 5000,
       relegationCount: info.relegationCount,
     });
-    const champ = mc.find((r) => r.champion > 0);
+    // 일정 결손 가드 — DB 일정이 잘린 리그가 99.9% 를 뿜는 것을 막는다(예측 페이지와 같은 검사)
+    const topChampion = mc.length > 0 ? Math.max(...mc.map((r) => r.champion)) : 0;
+    const champ = checkScheduleIntegrity(matches, topChampion).trustworthy ? mc.find((r) => r.champion > 0) : undefined;
     if (champ) {
       topChampPct = {
         name: nameById.get(champ.teamId) ?? "?",
@@ -120,6 +127,7 @@ export default async function SeasonInsightCard({ league }: Props) {
             {info.name}
           </div>
           <div className="ml-2 shrink-0 text-[10px] tabular-nums text-zinc-400 dark:text-white/35">
+            {isPreviousSeason && <span className="mr-1 text-amber-600 dark:text-amber-400">Last season</span>}
             {finishedCount} matches
           </div>
         </div>

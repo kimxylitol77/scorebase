@@ -65,21 +65,14 @@
     "세리에 A": "Serie A",
     "리그 1": "Ligue 1",
     "챔피언스리그": "Champions League",
-    "English Premier League · 2025-26 시즌": "English Premier League · 2025-26 season",
-    "National Basketball Association · 2025-26 시즌": "National Basketball Association · 2025-26 season",
-    "National Hockey League · 2025-26 시즌": "National Hockey League · 2025-26 season",
-    "Major League Baseball · 2026 시즌": "Major League Baseball · 2026 season",
-    "La Liga · 2025-26 시즌": "La Liga · 2025-26 season",
-    "Bundesliga · 2025-26 시즌": "Bundesliga · 2025-26 season",
-    "Serie A · 2025-26 시즌": "Serie A · 2025-26 season",
-    "Ligue 1 · 2025-26 시즌": "Ligue 1 · 2025-26 season",
-    "Major League Soccer · 2026 시즌": "Major League Soccer · 2026 season",
     "1위": "1st",
     "2위": "2nd",
     "공격 1위": "Best attack",
     "수비 1위": "Best defence",
     "점": " pts",
     " 득점/경기": " goals/game",
-    " 실점/경기": " conceded/game"
+    " 실점/경기": " conceded/game",
+    "지난 시즌": "Last season",
+    " 시즌": " season"
   }
 }
