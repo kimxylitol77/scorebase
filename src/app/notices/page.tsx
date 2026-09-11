@@ -32,8 +32,9 @@ const TYPE_LABEL: Record<string, { label: string; tone: string }> = {
 };
 
 export default async function NoticesPage() {
+  // 고정 공지(가이드 페이지)가 항상 맨 위 — 시간순으로 밀려 내려가지 않게
   const notices = await prisma.notice.findMany({
-    orderBy: { publishedAt: "desc" },
+    orderBy: [{ pinned: "desc" }, { publishedAt: "desc" }],
     take: 50,
   });
 
@@ -73,9 +74,14 @@ export default async function NoticesPage() {
               <li key={n.id}>
                 <Link
                   href={`/notices/${n.slug}`}
-                  className="group block rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_14px_40px_-26px_rgba(15,23,30,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:bg-white/[0.04] dark:shadow-none dark:ring-white/10 dark:hover:bg-white/[0.06] dark:hover:ring-white/20"
+                  className={`group block rounded-2xl bg-white p-5 ring-1 ${n.pinned ? "ring-neutral-900/20 dark:ring-white/25" : "ring-black/5"} shadow-[0_14px_40px_-26px_rgba(15,23,30,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:bg-white/[0.04] dark:shadow-none dark:hover:bg-white/[0.06] dark:hover:ring-white/20`}
                 >
                   <div className="flex items-center gap-2 mb-2">
+                    {n.pinned && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
+                        고정
+                      </span>
+                    )}
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${t.tone}`}
                     >

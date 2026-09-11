@@ -12,6 +12,7 @@ interface Props {
     slug: string;
     content: string;
     publishedAt: string; // ISO string
+    pinned?: boolean;
   };
   submitLabel: string;
 }
@@ -61,6 +62,13 @@ export default function NoticeForm({ action, initial, submitLabel }: Props) {
             }
             className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm"
           />
+        </div>
+        <div className="flex items-end">
+          {/* 고정 — 목록 최상단(가이드 페이지처럼 시간순에서 빼야 하는 공지) */}
+          <label className="inline-flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 pb-2">
+            <input type="checkbox" name="pinned" value="1" defaultChecked={!!initial?.pinned} className="h-4 w-4" />
+            목록 상단 고정
+          </label>
         </div>
       </div>
 

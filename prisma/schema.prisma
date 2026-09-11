@@ -368,6 +368,8 @@ model Notice {
   slug        String   @unique
   content     String // Markdown
   publishedAt DateTime @default(now())
+  // 고정 공지 — 목록 최상단(가이드 페이지 등). 2026-09-11 raw SQL 로 추가(prisma/sql/alter-notice-pinned.sql).
+  pinned      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

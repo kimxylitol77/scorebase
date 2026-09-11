@@ -39,6 +39,7 @@ export default async function EditNoticePage({ params }: Props) {
           slug: n.slug,
           content: n.content,
           publishedAt: n.publishedAt.toISOString(),
+          pinned: n.pinned,
         }}
       />
     </main>

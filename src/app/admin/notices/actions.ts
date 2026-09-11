@@ -25,6 +25,7 @@ export async function createNotice(formData: FormData) {
   const slugInput = String(formData.get("slug") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const publishedAtStr = String(formData.get("publishedAt") ?? "").trim();
+  const pinned = formData.get("pinned") === "1";
 
   if (!VALID_TYPES.has(type)) throw new Error("유효하지 않은 type");
   if (!title) throw new Error("제목 필수");
@@ -36,7 +37,7 @@ export async function createNotice(formData: FormData) {
   const publishedAt = publishedAtStr ? new Date(publishedAtStr) : new Date();
 
   const created = await prisma.notice.create({
-    data: { type, title, slug, content, publishedAt },
+    data: { type, title, slug, content, publishedAt, pinned },
   });
 
   revalidatePath("/notices");
@@ -53,6 +54,7 @@ export async function updateNotice(formData: FormData) {
   const slug = String(formData.get("slug") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const publishedAtStr = String(formData.get("publishedAt") ?? "").trim();
+  const pinned = formData.get("pinned") === "1";
 
   if (!id) throw new Error("id 필수");
   if (!VALID_TYPES.has(type)) throw new Error("유효하지 않은 type");
@@ -65,6 +67,7 @@ export async function updateNotice(formData: FormData) {
       title,
       slug,
       content,
+      pinned,
       ...(publishedAtStr ? { publishedAt: new Date(publishedAtStr) } : {}),
     },
   });

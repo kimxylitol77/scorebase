@@ -65,6 +65,11 @@ export default async function NoticeDetailPage({ params }: Props) {
 
       <header className="mb-8">
         <div className="flex items-center gap-2 mb-3">
+          {n.pinned && (
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
+              고정
+            </span>
+          )}
           <span
             className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${t.tone}`}
           >
