@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { roiClaim, type RoiClaim } from "@/lib/predict/model-vs-market";
+import { loadTodayMatchCandidates } from "@/lib/home/today-matches";
 import Link from "next/link";
 import {
   Activity,
@@ -25,7 +26,7 @@ import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
 import HomeFocusCards from "@/components/HomeFocusCards";
-import HomeAiInsightShowcase from "@/components/HomeAiInsightShowcase";
+import HomeTodayMatches from "@/components/HomeTodayMatches";
 import HomeAiScorecardShowcase from "@/components/HomeAiScorecardShowcase";
 import HomeRankingShowcase from "@/components/HomeRankingShowcase";
 import SectionHeading from "@/components/SectionHeading";
@@ -214,7 +215,7 @@ function buildFaqJsonLd(claim: RoiClaim | null) {
 }
 
 export default async function Home() {
-  const [latest, claim] = await Promise.all([
+  const [latest, claim, today] = await Promise.all([
     prisma.article.findMany({
       where: { status: "PUBLISHED" },
       orderBy: { publishedAt: "desc" },
@@ -222,6 +223,8 @@ export default async function Home() {
     }),
     // FAQ 수익률 답 — 히어로·meta 와 같은 캐시 값
     roiClaim(),
+    // 첫 화면 오늘 주요 경기 후보(실패 시 블록 생략 — 홈이 통째로 죽지 않게)
+    loadTodayMatchCandidates().catch(() => null),
   ]);
 
   const restLatest = latest.slice(0, 6);
@@ -244,6 +247,11 @@ export default async function Home() {
 
       <HeroSection />
 
+      {/* 첫 화면 오늘 주요 경기 6 — 감사 §3. 관심팀·현재 시각 재정렬과 점수 갱신은 클라이언트에서 */}
+      {today && today.candidates.length > 0 && (
+        <HomeTodayMatches candidates={today.candidates} serverNowMs={today.nowMs} todayEndMs={today.todayEndMs} />
+      )}
+
       {/* 내 팀 바로가기 — 즐겨찾기 팀 보유 방문자만 렌더 */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-5">
         <MyTeamsStrip />
@@ -251,7 +259,6 @@ export default async function Home() {
 
       <HomeFocusCards />
 
-      <HomeAiInsightShowcase />
 
       <HomeAiScorecardShowcase />
 

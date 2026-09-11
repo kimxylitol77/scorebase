@@ -1,4 +1,4 @@
-// 메인 페이지 최상단 인트로 섹션. 글씨만 — 4개 진입 카드는 HomeFocusCards 분리.
+// 메인 페이지 최상단 인트로 섹션. 글씨만 — 바로 아래 오늘 주요 경기 6(HomeTodayMatches)이 붙어 높이를 절반으로 눌렀다(감사 §3).
 // 포지셔닝: "적중률을 숨기지 않는 AI 예측" — H1 이 곧 검증 가능한 수치 주장(플랫 유닛 수익률).
 // 수치는 /predictions/accuracy 「플랫 유닛 수익률」과 같은 소스(roiClaim)에서 읽고, 없으면 옛 문구로 fallback.
 import Link from "next/link";
@@ -35,20 +35,21 @@ export default async function HeroSection() {
             "radial-gradient(60% 80% at 20% 0%, rgba(120,119,198,0.18), transparent 60%), radial-gradient(40% 60% at 90% 30%, rgba(0,212,255,0.18), transparent 60%), radial-gradient(50% 70% at 50% 100%, rgba(59,130,246,0.18), transparent 60%)",
         }}
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <p className="eyebrow text-[11px] font-semibold tracking-[0.2em] uppercase text-neutral-500 mb-4">
+      {/* 높이 예산: 운영 395px(1280·390 공통) 의 절반 이하 — 여백·글자 축소, CTA 를 기준일 줄에 텍스트 링크로 합침 */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+        <p className="eyebrow text-[10px] font-semibold tracking-[0.2em] uppercase text-neutral-500 mb-1.5">
           적중률을 숨기지 않는 AI 스포츠 분석
         </p>
         {claim ? (
           <>
             <h1
               id="hero-title"
-              className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05] tracking-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-black leading-[1.1] tracking-tight"
             >
               우리 픽의 수익률은{" "}
               <span className="hero-accent tabular-nums">{claim.modelPct}</span>입니다.
             </h1>
-            <p className="lede mt-5 max-w-2xl text-base sm:text-lg text-neutral-600 dark:text-neutral-400 break-keep">
+            <p className="lede mt-1.5 max-w-2xl text-sm sm:text-base text-neutral-600 dark:text-neutral-400 break-keep">
               시장 인기픽은 <strong className="tabular-nums">{claim.marketPct}</strong>.{" "}
               {claim.marketLeads ? (
                 <>
@@ -61,39 +62,42 @@ export default async function HeroSection() {
                 </>
               )}
             </p>
-            <p className="mt-2 text-xs sm:text-sm text-neutral-500 tabular-nums">
-              {claim.asOfDate} 기준 · {claim.sample}경기 · 경기 전 마지막 배당에 1경기 1유닛
+            <p className="mt-1.5 text-[11px] sm:text-xs text-neutral-500 tabular-nums">
+              {claim.asOfDate} 기준 · {claim.sample}경기
+              <span className="hidden sm:inline"> · 경기 전 마지막 배당에 1경기 1유닛</span>
+              {gradedLabel && (
+                <>
+                  {" · "}
+                  <Link href="/predictions/accuracy" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                    {gradedLabel}+ 경기 실측 채점 기록 보기 →
+                  </Link>
+                </>
+              )}
             </p>
           </>
         ) : (
           <>
             <h1
               id="hero-title"
-              className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05] tracking-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-black leading-[1.1] tracking-tight"
             >
               <span className="hero-accent-soft">감</span>이 아니라,{" "}
               <span className="hero-accent">숫자</span>로 보는 경기.
             </h1>
-            <p className="lede mt-5 max-w-2xl text-base sm:text-lg text-neutral-600 dark:text-neutral-400">
+            <p className="lede mt-1.5 max-w-2xl text-sm sm:text-base text-neutral-600 dark:text-neutral-400">
               EPL · 라리가 · 분데스 · <strong>KBO</strong> · <strong>NPB</strong> ·
               NBA · MLB · NHL · <strong>LCK</strong> —{" "}
               <strong>Elo 모델</strong>과 <strong>멀티 AI</strong>가 매일 분석하는
               글로벌 스포츠 데이터.
             </p>
+            {gradedLabel && (
+              <p className="mt-1.5 text-[11px] sm:text-xs text-neutral-500 tabular-nums">
+                <Link href="/predictions/accuracy" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                  {gradedLabel}+ 경기 실측 채점 기록 보기 →
+                </Link>
+              </p>
+            )}
           </>
-        )}
-        {gradedLabel && (
-          <Link
-            href="/predictions/accuracy"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-neutral-800 ring-1 ring-black/10 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.06] dark:text-white dark:ring-white/15"
-          >
-            <span className="relative inline-flex w-1.5 h-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            {gradedLabel}+ 경기 실측 채점 기록 보기
-            <span aria-hidden>→</span>
-          </Link>
         )}
       </div>
     </section>

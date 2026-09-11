@@ -33,20 +33,21 @@ export default async function HeroSection() {
             "radial-gradient(60% 80% at 20% 0%, rgba(120,119,198,0.18), transparent 60%), radial-gradient(40% 60% at 90% 30%, rgba(0,212,255,0.18), transparent 60%), radial-gradient(50% 70% at 50% 100%, rgba(59,130,246,0.18), transparent 60%)",
         }}
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <p className="eyebrow text-[11px] font-semibold tracking-[0.2em] uppercase text-neutral-500 mb-4">
+      {/* 높이 예산: 운영 395px(1280·390 공통) 의 절반 이하 — 여백·글자 축소, CTA 를 기준일 줄에 텍스트 링크로 합침 */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+        <p className="eyebrow text-[10px] font-semibold tracking-[0.2em] uppercase text-neutral-500 mb-1.5">
           AI sports analysis that publishes its hit rate
         </p>
         {claim ? (
           <>
             <h1
               id="hero-title"
-              className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05] tracking-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-black leading-[1.1] tracking-tight"
             >
               Our picks have returned{" "}
               <span className="hero-accent tabular-nums">{claim.modelPct}</span>.
             </h1>
-            <p className="lede mt-5 max-w-2xl text-base sm:text-lg text-neutral-600 dark:text-neutral-400 break-keep">
+            <p className="lede mt-1.5 max-w-2xl text-sm sm:text-base text-neutral-600 dark:text-neutral-400 break-keep">
               Market favourites returned <strong className="tabular-nums">{claim.marketPct}</strong>.{" "}
               {claim.marketLeads ? (
                 <>
@@ -59,38 +60,41 @@ export default async function HeroSection() {
                 </>
               )}
             </p>
-            <p className="mt-2 text-xs sm:text-sm text-neutral-500 tabular-nums">
-              {claim.asOfDate} snapshot · {claim.sample} matches · 1 unit per match at the last pre-match odds
+            <p className="mt-1.5 text-[11px] sm:text-xs text-neutral-500 tabular-nums">
+              {claim.asOfDate} snapshot · {claim.sample} matches
+              <span className="hidden sm:inline"> · 1 unit per match at the last pre-match odds</span>
+              {gradedLabel && (
+                <>
+                  {" · "}
+                  <Link href="/predictions/accuracy" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                    {gradedLabel}+ matches scored on actual results — see the record →
+                  </Link>
+                </>
+              )}
             </p>
           </>
         ) : (
           <>
             <h1
               id="hero-title"
-              className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05] tracking-tight"
+              className="text-2xl sm:text-3xl md:text-4xl font-black leading-[1.1] tracking-tight"
             >
               <span className="hero-accent-soft">Not a hunch</span> —{" "}
               <span className="hero-accent">numbers</span> you can read.
             </h1>
-            <p className="lede mt-5 max-w-2xl text-base sm:text-lg text-neutral-600 dark:text-neutral-400">
+            <p className="lede mt-1.5 max-w-2xl text-sm sm:text-base text-neutral-600 dark:text-neutral-400">
               Premier League · LaLiga · Bundesliga · <strong>KBO</strong> · <strong>NPB</strong> ·
               NBA · MLB · NHL · <strong>LCK</strong> —{" "}
               <strong>An Elo model</strong>and <strong>multiple AI models</strong> working through global sports data every day.
             </p>
+            {gradedLabel && (
+              <p className="mt-1.5 text-[11px] sm:text-xs text-neutral-500 tabular-nums">
+                <Link href="/predictions/accuracy" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                  {gradedLabel}+ matches scored on actual results — see the record →
+                </Link>
+              </p>
+            )}
           </>
-        )}
-        {gradedLabel && (
-          <Link
-            href="/predictions/accuracy"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-neutral-800 ring-1 ring-black/10 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.06] dark:text-white dark:ring-white/15"
-          >
-            <span className="relative inline-flex w-1.5 h-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            {gradedLabel}+ matches scored on actual results — see the record
-            <span aria-hidden>→</span>
-          </Link>
         )}
       </div>
     </section>

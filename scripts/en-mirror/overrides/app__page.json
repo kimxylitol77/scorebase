@@ -184,6 +184,10 @@
     [
       "href: \"/leagues/LOL\"",
       "href: \"/en/standings/LOL\""
+    ],
+    [
+      "loadTodayMatchCandidates().catch(() => null)",
+      "loadTodayMatchCandidates({ lang: \"en\" }).catch(() => null)"
     ]
   ],
   "dict": {
@@ -326,6 +330,7 @@
     "가 모델 신호의 크기입니다. ": " is the size of the model’s edge. ",
     "배당에는 북메이커 마진(약 5%)이 포함돼 장기 수익률은 마이너스가 정상 기대치입니다. 경기별 채점 기록은 https://www.scorebase.kr/predictions/accuracy 에 공개합니다.": "Odds include the bookmaker margin (about 5%), so a negative long-run return is the normal expectation. Match-by-match scoring is published at https://www.scorebase.kr/en/predictions/accuracy.",
     "아닙니다. 스코어베이스는 베팅을 중개하거나 권유하지 않는 데이터 분석 스포츠 미디어입니다. 배당은 시장의 예측치로서 분석·검증 대상으로만 다루며(배당 흐름·밸류 베트·수익률 보드), 모든 확률·수익률 수치는 통계 모델 기반의 참고용 정보입니다.": "No. Scorebase is a data-analysis sports media site that neither brokers nor encourages betting. Odds are treated only as the market’s forecast to analyse and verify (odds flow, value bets, the returns board), and every probability or return figure is model-based reference information.",
-    "입니다. ": ". "
+    "입니다. ": ". ",
+    "오늘 주요 경기 후보(실패 시 블록 생략 — 홈이 통째로 죽지 않게)": "today’s key-match candidates (block omitted on failure)"
   }
 }

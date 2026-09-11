@@ -19,8 +19,9 @@
     "그 차이": "That gap of",
     "가 우리 모델의 전부입니다.": " is everything our model adds.",
     "기준 ·": "snapshot ·",
-    "경기 · 경기 전 마지막 배당에 1경기 1유닛": " matches · 1 unit per match at the last pre-match odds",
     "가 매일 분석하는\n              글로벌 스포츠 데이터.": " working through global sports data every day.",
-    "+ 경기 실측 채점 기록 보기": "+ matches scored on actual results — see the record"
+    "경기": " matches",
+    "· 경기 전 마지막 배당에 1경기 1유닛": "· 1 unit per match at the last pre-match odds",
+    "+ 경기 실측 채점 기록 보기 →": "+ matches scored on actual results — see the record →"
   }
 }

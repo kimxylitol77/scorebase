@@ -1,0 +1,26 @@
+{
+  "header": "HomeTodayMatches (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "preReplace": [
+    [
+      "import { LEAGUE_DISPLAY } from \"@/lib/sports/sport-leagues\";",
+      "import { LEAGUE_DISPLAY_EN as LEAGUE_DISPLAY } from \"@/lib/i18n/en\";"
+    ],
+    [
+      "<Link href=\"/scores\" className=\"text-xs",
+      "<Link href=\"/en/scores\" className=\"text-xs"
+    ]
+  ],
+  "dict": {
+    "오늘 주요 경기": "Today’s key matches",
+    "전체 경기 →": "All matches →",
+    "내 팀": "My team",
+    "종료": "FT",
+    "내일 ": "Tomorrow ",
+    "배당": "Odds",
+    "승": "1",
+    "무": "X",
+    "패": "2",
+    "모델 확률": "Model probability",
+    "배당 준비 중": "Odds not yet available"
+  }
+}
