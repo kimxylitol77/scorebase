@@ -159,6 +159,10 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
             >
               <summary className="cursor-pointer list-none px-3 py-3 [&::-webkit-details-marker]:hidden">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
+                  {/* 프로토 경기번호 — 한국 구매자는 팀명이 아니라 이 번호로 경기를 찾는다(2026-09-11). */}
+                  <span className="rounded bg-neutral-900 px-1.5 py-px font-bold tabular-nums text-white dark:bg-white dark:text-neutral-900">
+                    #{m.matchSeq}
+                  </span>
                   <span className="tabular-nums">{kst(m.gameDate)}</span>
                   <span className="rounded bg-neutral-100 px-1.5 py-px font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
                     {SPORT_LABEL[m.itemCode ?? ""] ?? "-"}
