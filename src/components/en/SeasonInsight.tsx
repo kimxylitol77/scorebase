@@ -7,10 +7,9 @@ import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { formatChampionPct } from "@/lib/format";
-import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
-import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
+import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 
@@ -150,13 +149,9 @@ export default async function SeasonInsight({ league }: Props) {
   let mcChampions: Array<{ teamId: number; pct: number }> = [];
   let mcRelegation: Array<{ teamId: number; pct: number }> = [];
   if (scheduledCount > 0) {
-    const mcRaw = runMonteCarlo(matches, league, {
-      iterations: 1000,
-      relegationCount: info.relegationCount,
-    });
-    // 일정 결손 가드 — 잔여 일정이 잘린 리그의 99.9% 우승 확률 차단(예측 페이지와 같은 검사)
-    const topChampion = mcRaw.length > 0 ? Math.max(...mcRaw.map((r) => r.champion)) : 0;
-    const mc = checkScheduleIntegrity(matches, topChampion).trustworthy ? mcRaw : [];
+    // 공용 1h 캐시 시뮬(5,000회) — 예측 페이지·리그 허브 예측 탭과 같은 결과. 일정 결손 가드 포함.
+    const sim = await getLeagueSeasonSim(league).catch(() => null);
+    const mc = sim && sim.trustworthy ? sim.rows : [];
     mcChampions = mc
       .filter((r) => r.champion >= 0.001)
       .slice(0, 3)

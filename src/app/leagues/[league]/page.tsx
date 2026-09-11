@@ -24,7 +24,11 @@ import EwcStandings from "@/components/EwcStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
-import { NO_TABLE_LEAGUES } from "@/lib/sports/standings-valid";
+import { NO_TABLE_LEAGUES, STANDINGS_VALID } from "@/lib/sports/standings-valid";
+import LeaguePredictionsPanel from "@/components/leagues/LeaguePredictionsPanel";
+import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
+import { leaguesWithOverUnderPage } from "@/lib/stats/over-under";
+import { LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
@@ -358,11 +362,13 @@ function kstMonthDay(d: Date): string {
   return `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
 }
 
-const VIEW_KEYS = ["standings", "power", "fixtures", "stats", "history", "articles"] as const;
+// predictions(시즌 시뮬 요약)은 예측 지원 리그(PREDICTION_LEAGUE_SET)에만 — 아래 dataViewsAll 에서 거른다.
+const VIEW_KEYS = ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"] as const;
 // bracket 은 컵 전용이라 VIEW_KEYS(축구 리그 기본 탭)에 넣지 않는다.
 type ViewKey = (typeof VIEW_KEYS)[number] | "bracket";
 const VIEW_LABEL: Record<ViewKey, string> = {
   standings: "순위",
+  predictions: "예측",
   power: "파워랭킹",
   fixtures: "일정",
   stats: "통계",
@@ -585,17 +591,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
-    NHL: ["standings", "power", "fixtures", "stats", "history", "articles"],
-    LOL: ["standings", "power", "fixtures", "history", "articles"],
+    NHL: ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"],
+    LOL: ["standings", "predictions", "power", "fixtures", "history", "articles"],
     // NBA — 순위(ESPN 공식, 2026-08 중복 팀 정리 후 개방) + 일정(서머리그 + 지난 시즌 접기).
-    NBA: ["standings", "fixtures", "history", "articles"],
+    NBA: ["standings", "predictions", "fixtures", "history", "articles"],
     // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
     KBL: ["standings", "fixtures", "articles"],
     WKBL: ["standings", "fixtures", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
-    KBO: ["power", "fixtures", "history", "articles"],
-    MLB: ["power", "fixtures", "history", "articles"],
-    NPB: ["power", "fixtures", "history", "articles"],
+    KBO: ["predictions", "power", "fixtures", "history", "articles"],
+    MLB: ["predictions", "power", "fixtures", "history", "articles"],
+    NPB: ["predictions", "power", "fixtures", "history", "articles"],
   };
   const isBasketball = ["NBA", "KBL", "WKBL", "WNBA"].includes(upper);
   // 컵 대진표 — 라운드를 읽을 수 있는 매치가 하나라도 있어야 탭을 연다(빈 탭 방지).
@@ -619,6 +625,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     // 으로만 가정하면 LEAGUES_CUP(A~D조)·UEFA_WCL(리그페이즈)이 일정 탭을 얻는 대신 이미 잘
     // 나오던 표를 잃는다(2026-08-21 실렌더 확인). 판정은 NO_TABLE_LEAGUES 단일 정의를 따른다.
     ...(!NO_TABLE_LEAGUES.has(upper) ? (["standings"] as ViewKey[]) : []),
+    ...(PREDICTION_LEAGUE_SET.has(upper) ? (["predictions"] as ViewKey[]) : []),
     ...(cupRounds.length > 0 ? (["bracket"] as ViewKey[]) : []),
     "fixtures",
     ...(cupHasLeaders ? (["stats"] as ViewKey[]) : []),
@@ -628,11 +635,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     "articles",
   ];
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
-  const dataViewsAll: ViewKey[] = isSoccer
+  const dataViewsAll: ViewKey[] = (isSoccer
     ? [...VIEW_KEYS]
     : CUP_LEAGUES.has(upper)
       ? cupViews
-      : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
+      : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
+  ).filter((v) => v !== "predictions" || PREDICTION_LEAGUE_SET.has(upper));
   // 글이 한 건도 없는 리그는 글 탭을 빼 빈 목록으로 가는 길을 없앤다. 데이터 탭이 하나도 없는
   // 리그는 글 탭이 유일한 화면이라 남긴다(빈 안내가 404 보다 낫다).
   const dataViews: ViewKey[] =
@@ -640,6 +648,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       ? dataViewsAll.filter((v) => v !== "articles")
       : dataViewsAll;
   const hasDataTabs = dataViews.some((v) => v !== "articles");
+  // 데이터 디렉터리 — 오버·언더 페이지는 표본 있는 축구 리그만 열린다(404 링크 방지)
+  const hasOverUnder = isSoccer ? (await leaguesWithOverUnderPage([upper])).includes(upper) : false;
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
   const showStats = isSoccer || upper === "NHL" || cupHasLeaders;
@@ -709,16 +719,30 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             </p>
           )}
 
-          {/* 토너먼트/플레이오프 브래킷 — /predictions/[league] 에 대진표 보유한 리그(NBA·NHL·UCL) */}
-          {BRACKET_CTA_LABEL[upper] && (
-            <Link
-              href={`/predictions/${upper}`}
-              className="inline-flex items-center gap-1.5 mt-5 rounded-full bg-rose-500/10 px-4 py-2 text-sm font-bold text-rose-600 ring-1 ring-rose-500/20 transition hover:bg-rose-500/15 dark:text-rose-400"
-            >
-              <Trophy className="h-4 w-4" aria-hidden /> {BRACKET_CTA_LABEL[upper]}
-              <span aria-hidden>→</span>
-            </Link>
+          {/* 허브 = 리그 데이터의 메인. 시즌 예측 CTA(예측 탭) + 브래킷 보유 리그는 대진표 CTA, 아래에 데이터 디렉터리 칩 */}
+          {(PREDICTION_LEAGUE_SET.has(upper) || BRACKET_CTA_LABEL[upper]) && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {PREDICTION_LEAGUE_SET.has(upper) && dataViews.includes("predictions") && (
+                <Link
+                  href={`/leagues/${upper}?view=predictions`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-4 py-2 text-sm font-bold text-rose-600 ring-1 ring-rose-500/20 transition hover:bg-rose-500/15 dark:text-rose-400"
+                >
+                  <Trophy className="h-4 w-4" aria-hidden /> 시즌 예측 · 우승 확률
+                  <span aria-hidden>→</span>
+                </Link>
+              )}
+              {BRACKET_CTA_LABEL[upper] && (
+                <Link
+                  href={`/predictions/${upper}`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-neutral-900/5 px-4 py-2 text-sm font-bold text-neutral-800 ring-1 ring-black/10 transition hover:bg-neutral-900/10 dark:bg-white/[0.06] dark:text-white dark:ring-white/15"
+                >
+                  {BRACKET_CTA_LABEL[upper]}
+                  <span aria-hidden>→</span>
+                </Link>
+              )}
+            </div>
           )}
+          <LeagueDataDirectory league={upper} hasInjuries={INJURY_LEAGUES.has(upper)} hasOverUnder={hasOverUnder} />
 
           {r1x2.evaluated > 0 && (
             <div className="mt-5">
@@ -783,6 +807,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {/* 컵도 포함 — cupViews 가 NO_TABLE 이 아닌 컵에 순위 탭을 주는데(조별리그·리그페이즈)
           이 블록이 isSoccer 전용이면 탭만 있고 표가 없는 빈 화면이 된다. 2026-08-21 실측:
           LEAGUES_CUP·UEFA_WCL 을 VALID_LEAGUES 로 옮기면서 폴백 경로가 그리던 표를 잃었다. */}
+      {view === "predictions" && <LeaguePredictionsPanel league={upper} />}
+
       {(isSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeagueStandingsTable league={upper} />
@@ -1261,6 +1287,40 @@ function EmptyArticles({
       <p className="text-neutral-500">
         아직 {leagueName} {tabLabel} 글이 없습니다.
       </p>
+    </div>
+  );
+}
+
+// 이적/몸값 페이지가 리그 필터를 지원하는 리그 — /transfers 의 LEAGUES 와 같은 키
+const TRANSFER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "K_LEAGUE_2", "SAUDI_PL", "MLS"]);
+const ODDS_SPORT: Record<string, string> = { SOCCER: "soccer", BASEBALL: "baseball", BASKETBALL: "basketball" };
+
+/**
+ * 데이터 디렉터리 — 이 리그의 다른 데이터 페이지(순위 정본·부상자·이적·오버언더·배당·시즌 결산)로 가는 한 곳의 입구.
+ * 허브를 리그 데이터의 메인으로 쓰기 위한 것(2026-09-11). 그 리그에 실제로 있는 페이지만 칩으로 만든다.
+ */
+function LeagueDataDirectory({ league, hasInjuries, hasOverUnder }: { league: string; hasInjuries: boolean; hasOverUnder: boolean }) {
+  const sport = LEAGUE_TO_SPORT[league];
+  const chips: { href: string; label: string }[] = [];
+  if (STANDINGS_VALID.has(league) && !NO_TABLE_LEAGUES.has(league)) chips.push({ href: `/standings/${league}`, label: "순위표 전체" });
+  if (hasInjuries) chips.push({ href: `/injuries/${league}`, label: "부상자 명단" });
+  if (TRANSFER_LEAGUES.has(league)) chips.push({ href: `/transfers?league=${league}`, label: "이적·몸값" });
+  if (hasOverUnder) chips.push({ href: `/over-under/${league}`, label: "오버·언더 통계" });
+  if (sport && ODDS_SPORT[sport]) chips.push({ href: `/odds?sport=${ODDS_SPORT[sport]}`, label: "배당 흐름" });
+  if (PREDICTION_LEAGUE_SET.has(league)) chips.push({ href: `/predictions/${league}`, label: "시즌 예측 상세" });
+  if (chips.length === 0) return null;
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-1.5" aria-label="리그 데이터 바로가기">
+      <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{LEAGUE_DISPLAY[league] ?? league} 데이터</span>
+      {chips.map((c) => (
+        <Link
+          key={c.href}
+          href={c.href}
+          className="rounded-full border border-neutral-200 bg-white/70 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 dark:border-neutral-800 dark:bg-white/[0.04] dark:text-neutral-200 dark:hover:bg-white/[0.08]"
+        >
+          {c.label}
+        </Link>
+      ))}
     </div>
   );
 }

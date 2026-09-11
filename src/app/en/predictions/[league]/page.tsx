@@ -13,7 +13,9 @@ import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
-import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { PREDICTION_LEAGUES, type PredictionLeague } from "@/lib/predict/prediction-leagues";
+import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/en/LeagueBadge";
@@ -47,6 +49,7 @@ import KeyMatchPreview from "@/components/en/predictions/KeyMatchPreview";
 import StandingsOnlyView from "@/components/en/StandingsOnlyView";
 import { ALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
+import StandingsSeasonNav from "@/components/en/standings/StandingsSeasonNav";
 import { CircleDot, BookOpen } from "lucide-react";
 
 export const revalidate = 600; // ISR — 시즌 시뮬은 일 단위 데이터, 10분 캐시로 충분
@@ -67,32 +70,9 @@ function displayTeamName(name: string | undefined | null, league?: string): stri
   return trimmed;
 }
 
-const VALID = [
-  "EPL",
-  "LALIGA",
-  "BUNDESLIGA",
-  "SERIE_A",
-  "LIGUE_1",
-  "MLS",
-  "UCL",
-  "WORLD_CUP",
-  "NBA",
-  "NHL",
-  "MLB",
-  "KBO",
-  "NPB",
-  "LOL",
-  // 2026-05-17 — 한국·아시아 5개 리그 추가 (DB 50건+)
-  "K_LEAGUE_1",
-  "K_LEAGUE_2",
-  "J1_LEAGUE",
-  "J2_LEAGUE",
-  "AFC_CL",
-  "WNBA", // 2026-05-21 — 미국 여자 농구 (api-sports basketball v1, league=13)
-  "UEL", // UEFA 유로파 리그 — 2026-05-21 추가
-  "UECL", // UEFA 유로파 컨퍼런스 — 2026-05-21 추가
-] as const;
-type ValidLeague = (typeof VALID)[number];
+// 지원 리그 목록은 lib/predict/prediction-leagues 단일 정의(리그 허브 예측 탭과 공유)
+const VALID = PREDICTION_LEAGUES;
+type ValidLeague = PredictionLeague;
 
 const LEAGUE_INFO: Record<
   ValidLeague,
@@ -408,27 +388,16 @@ export default async function LeaguePredictions({ params }: Props) {
     awayScore: true,
     startTime: true,
   } as const;
-  const seasonStart = currentSeasonStart(upper);
   // 리그 전체를 한 번 읽고 시즌 창은 메모리에서 자른다 — 순위·시뮬은 이번 시즌만 쓰지만
   //  Elo 는 시즌을 넘어 누적돼야 해서(아래 eloMatches) 두 벌이 필요하다. 쿼리는 1회로 유지.
+  //  시즌 창·오프시즌 폴백 규칙은 season-matches.ts 단일 정의(홈 시즌 인사이트 카드와 공유).
   const allLeagueMatches = await prisma.match.findMany({
     where: { league: upper },
     select: matchSelect,
   });
-  let dbMatches = seasonStart
-    ? allLeagueMatches.filter((m) => m.startTime >= seasonStart)
-    : allLeagueMatches;
-  // 오프시즌 폴백 — 지난 시즌 표시는 "새 시즌 일정조차 없을 때"만. 새 시즌 fixture 가
-  // 이미 잡혀 있으면(개막 직전~직후) 지난 시즌으로 돌아가지 않고 새 시즌에 진입한다
-  // (2026-08-15: 빅5 개막 후에도 완료 <10 조건이 지난 시즌 380경기를 통째로 되살렸다).
-  if (
-    seasonStart &&
-    dbMatches.filter((m) => m.status === "FINISHED").length < 10 &&
-    !dbMatches.some((m) => m.status === "SCHEDULED")
-  ) {
-    const prevStart = previousSeasonStart(seasonStart);
-    dbMatches = allLeagueMatches.filter((m) => m.startTime >= prevStart && m.startTime < seasonStart);
-  }
+  const seasonSel = selectSeasonMatches(allLeagueMatches, upper);
+  const seasonStart = seasonSel.seasonStart;
+  let dbMatches = seasonSel.season;
   // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽)은 정규 팀이 아니라 시뮬·순위를 오염시킨다
   dbMatches = dbMatches.filter((m) => !isAllStarMatchRow(m));
   // NBA — 정규 30팀만 화이트리스트 (DB 에 친선·올스타·국제 팀 9개 섞여 있어 시뮬 노이즈 제거)
@@ -499,23 +468,23 @@ export default async function LeaguePredictions({ params }: Props) {
       // 각자 돌리면 페이지마다 ±1%p 다르게 보이므로 공용 캐시 시뮬을 함께 쓴다.
       mc = (await getKboSeasonSim()).rows;
     } else {
-      mc = runMonteCarlo(matches, upper, {
-        iterations: 5000,
-        relegationCount: info.relegationCount,
-      });
+      // 일반 리그 — 공용 1h 캐시(홈 시즌 카드·리그 허브 예측 탭과 같은 결과). 시드 없는 MC 를 각자 돌리면 페이지마다 ±1%p 어긋난다.
+      mc = (await getLeagueSeasonSim(upper)).rows;
     }
   }
 
-  // 우승확률 노출 가드 — ko /predictions/[league] 와 같은 판정을 같은 함수로 돌린다.
-  // (2026-08-27 실측: /en/predictions/K_LEAGUE_1·MLS 도 99.9% 를 렌더 중이었다.)
+  // 우승확률 노출 가드 — DB 일정이 잘린 리그가 99.9% 를 뿜는 것을 막는다.
+  // (2026-08-27 실측: K리그1·MLS 가 잔여 일정 결손으로 99.9% 를 렌더 중이었다.)
+  // 극단값일 때만 검사하므로 시즌 초·중반 리그는 영향받지 않는다.
   const topChampion = mc.length > 0 ? Math.max(...mc.map((r) => r.champion)) : 0;
   const scheduleIntegrity = checkScheduleIntegrity(matches, topChampion);
   const showChampion = scheduleIntegrity.trustworthy;
-  // MLS 는 정규 1위가 우승이 아니라 서포터스 실드다 (ko 와 동일 처리).
-  const championLabel = upper === "MLS" ? "Supporters' Shield probability" : "Title probability";
+  // MLS 는 정규 1위가 우승이 아니라 서포터스 실드다 (우승은 플레이오프 MLS 컵).
+  // 표 1위 = 트로피가 아닌 리그는 제목에서 "우승"이라 쓰지 않는다.
+  const championLabel = upper === "MLS" ? "Regular-season first place probability" : "Title probability";
   const championSubtitle =
     upper === "MLS"
-      ? "Chance of finishing first in the regular season — the MLS Cup is decided in the playoffs"
+      ? "Chance of finishing first in the regular season (Supporters’ Shield) — the MLS Cup is decided in the playoffs"
       : "Chance of finishing first";
 
   // 다가오는 경기 (다음 7일 — 월드컵은 개막까지 한 달 가까이 남아 14일로 확장)
@@ -801,6 +770,12 @@ export default async function LeaguePredictions({ params }: Props) {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> AI prediction
           </span>
+          {/* 리그 허브가 리그 데이터의 메인 — 시뮬 상세에서 순위·일정·글로 되돌아가는 길 */}
+          {!isWorldCup && (
+            <Link href={`/leagues/${upper}`} className="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+              ← {info.name} hub
+            </Link>
+          )}
           <div className="mt-4 flex items-center gap-3 mb-2">
             <LeagueBadge league={upper} size="md" />
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
@@ -820,6 +795,10 @@ export default async function LeaguePredictions({ params }: Props) {
                 <span>From 5,000 simulations</span>
               </>
             )}
+          </div>
+          <div className="mt-3">
+            {/* 지난 시즌 AI 예측 결산 전환 — 아카이브 없는 리그는 자동 미노출 */}
+            <StandingsSeasonNav league={upper} active="current" basePath="/predictions" />
           </div>
         </div>
       </section>
@@ -1180,31 +1159,27 @@ export default async function LeaguePredictions({ params }: Props) {
                 </div>
               </section>
             ) : scheduleIntegrity.failure === "no-remaining" ? (
-              /* 남은 경기 없음 — 비시즌·시즌 종료의 정상 상태라 경고색을 쓰지 않는다 (ko 와 동일). */
+              /* 남은 경기가 아예 없음 — 비시즌·시즌 종료의 정상 상태라 경고색을 쓰지 않는다.
+                 (NBA·NHL 이 여름에 여기 들어온다. 끝난 시즌의 1위는 확률이 아니라 사실이다.) */
               <section>
-                <Heading title="Title probability" subtitle="No matches left to simulate" />
+                <Heading title="Title probability" subtitle="No matches left — not simulated" />
                 <div className="sm:max-w-xl rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
                   <p className="leading-relaxed">
-                    The season is over, or the next fixtures have not been published yet. With no
-                    matches left, the title is a settled result rather than a probability, so we do
-                    not simulate it.
+                    The season has ended or the next fixtures are not yet registered. With no matches left, the title is a settled result rather than a probability, so it is not simulated.
                   </p>
                   <p className="mt-2 text-[12px] leading-relaxed text-neutral-500">
-                    The projected points and standings below are based on matches played so far.
+                    The expected points and positions below are based on matches played so far.
                   </p>
                 </div>
               </section>
             ) : (
               <section>
-                <Heading title="Title probability" subtitle="Not calculated for this season yet" />
+                <Heading title="Title probability" subtitle="Not calculated yet this season" />
                 <div className="sm:max-w-xl rounded-xl border border-amber-300/70 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
-                  <p className="font-semibold">Title probability is hidden.</p>
-                  <p className="mt-1 leading-relaxed">{scheduleIntegrity.reasonEn}</p>
+                  <p className="font-semibold">Title probability is not shown.</p>
+                  <p className="mt-1 leading-relaxed">{scheduleIntegrity.reason}</p>
                   <p className="mt-2 text-[12px] leading-relaxed text-amber-800/80 dark:text-amber-200/70">
-                    When fewer matches are on file than are actually left to play, the leader&apos;s
-                    title probability comes out far too high. Rather than show a wrong number, we
-                    hide it until the schedule is complete. The projected points and standings below
-                    are based on matches played so far.
+                    If fewer remaining fixtures are loaded than actually exist, the leader’s title probability comes out far too high. Rather than show a wrong number we hide it until the schedule is complete. The expected points and positions below are based on matches played so far.
                   </p>
                 </div>
               </section>

@@ -4,10 +4,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
-import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
-import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
+import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import { formatChampionPct } from "@/lib/format";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
@@ -95,16 +94,11 @@ export default async function SeasonInsightCard({ league }: Props) {
 
   const top1 = standings.rows[0];
 
-  // 우승 확률 (Monte Carlo, scheduled 있을 때만)
+  // 우승 확률 — 공용 1h 캐시 시뮬(예측 페이지·리그 허브와 같은 결과). 시뮬 불가·일정 결손이면 표시 안 함.
   let topChampPct: { name: string; pct: number } | null = null;
   if (scheduledCount > 0 && finishedCount >= 20) {
-    const mc = runMonteCarlo(matches, league, {
-      iterations: 5000,
-      relegationCount: info.relegationCount,
-    });
-    // 일정 결손 가드 — DB 일정이 잘린 리그가 99.9% 를 뿜는 것을 막는다(예측 페이지와 같은 검사)
-    const topChampion = mc.length > 0 ? Math.max(...mc.map((r) => r.champion)) : 0;
-    const champ = checkScheduleIntegrity(matches, topChampion).trustworthy ? mc.find((r) => r.champion > 0) : undefined;
+    const sim = await getLeagueSeasonSim(league).catch(() => null);
+    const champ = sim && sim.trustworthy ? sim.rows.find((r) => r.champion > 0) : undefined;
     if (champ) {
       topChampPct = {
         name: nameById.get(champ.teamId) ?? "?",

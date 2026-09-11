@@ -14,6 +14,8 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { PREDICTION_LEAGUES, type PredictionLeague } from "@/lib/predict/prediction-leagues";
+import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -69,32 +71,9 @@ function displayTeamName(name: string | undefined | null, league?: string): stri
   return trimmed;
 }
 
-const VALID = [
-  "EPL",
-  "LALIGA",
-  "BUNDESLIGA",
-  "SERIE_A",
-  "LIGUE_1",
-  "MLS",
-  "UCL",
-  "WORLD_CUP",
-  "NBA",
-  "NHL",
-  "MLB",
-  "KBO",
-  "NPB",
-  "LOL",
-  // 2026-05-17 — 한국·아시아 5개 리그 추가 (DB 50건+)
-  "K_LEAGUE_1",
-  "K_LEAGUE_2",
-  "J1_LEAGUE",
-  "J2_LEAGUE",
-  "AFC_CL",
-  "WNBA", // 2026-05-21 — 미국 여자 농구 (api-sports basketball v1, league=13)
-  "UEL", // UEFA 유로파 리그 — 2026-05-21 추가
-  "UECL", // UEFA 유로파 컨퍼런스 — 2026-05-21 추가
-] as const;
-type ValidLeague = (typeof VALID)[number];
+// 지원 리그 목록은 lib/predict/prediction-leagues 단일 정의(리그 허브 예측 탭과 공유)
+const VALID = PREDICTION_LEAGUES;
+type ValidLeague = PredictionLeague;
 
 const LEAGUE_INFO: Record<
   ValidLeague,
@@ -490,10 +469,8 @@ export default async function LeaguePredictions({ params }: Props) {
       // 각자 돌리면 페이지마다 ±1%p 다르게 보이므로 공용 캐시 시뮬을 함께 쓴다.
       mc = (await getKboSeasonSim()).rows;
     } else {
-      mc = runMonteCarlo(matches, upper, {
-        iterations: 5000,
-        relegationCount: info.relegationCount,
-      });
+      // 일반 리그 — 공용 1h 캐시(홈 시즌 카드·리그 허브 예측 탭과 같은 결과). 시드 없는 MC 를 각자 돌리면 페이지마다 ±1%p 어긋난다.
+      mc = (await getLeagueSeasonSim(upper)).rows;
     }
   }
 
@@ -793,6 +770,12 @@ export default async function LeaguePredictions({ params }: Props) {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> AI 예측
           </span>
+          {/* 리그 허브가 리그 데이터의 메인 — 시뮬 상세에서 순위·일정·글로 되돌아가는 길 */}
+          {!isWorldCup && (
+            <Link href={`/leagues/${upper}`} className="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+              ← {info.name} 허브
+            </Link>
+          )}
           <div className="mt-4 flex items-center gap-3 mb-2">
             <LeagueBadge league={upper} size="md" />
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">

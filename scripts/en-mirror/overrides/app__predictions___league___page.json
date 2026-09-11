@@ -252,6 +252,15 @@
     "승패 (1X2)": "1X2",
     "경기 실측 — 다음 시즌도 같은 모델로 예측합니다": " matches measured — the same model carries into next season",
     "채점 완료 ": "Scored ",
-    " 시즌 AI 예측 성적": " season AI prediction record"
+    " 시즌 AI 예측 성적": " season AI prediction record",
+    "허브": "hub",
+    "남은 경기가 실제보다 적게 잡히면 1위 팀의 우승 확률이 실제보다 훨씬 높게\n                    나옵니다. 잘못된 수치를 보여주는 대신 일정이 채워질 때까지 감춥니다.\n                    아래 예상 승점·순위는 지금까지 치른 경기 기준입니다.": "If fewer remaining fixtures are loaded than actually exist, the leader’s title probability comes out far too high. Rather than show a wrong number we hide it until the schedule is complete. The expected points and positions below are based on matches played so far.",
+    "우승 확률을 표시하지 않습니다.": "Title probability is not shown.",
+    "이번 시즌은 아직 계산하지 않습니다": "Not calculated yet this season",
+    "아래 예상 승점·순위는 지금까지 치른 경기 기준입니다.": "The expected points and positions below are based on matches played so far.",
+    "시즌이 끝났거나 다음 일정이 아직 등록되지 않았습니다. 남은 경기가 없으면\n                    우승은 확률이 아니라 이미 정해진 결과라 따로 계산하지 않습니다.": "The season has ended or the next fixtures are not yet registered. With no matches left, the title is a settled result rather than a probability, so it is not simulated.",
+    "남은 경기가 없어 계산하지 않습니다": "No matches left — not simulated",
+    "정규리그 1위(서포터스 실드) 가능성 — MLS 컵 우승은 플레이오프에서 가려집니다": "Chance of finishing first in the regular season (Supporters’ Shield) — the MLS Cup is decided in the playoffs",
+    "정규리그 1위 확률": "Regular-season first place probability"
   }
 }
