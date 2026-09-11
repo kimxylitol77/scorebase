@@ -12,6 +12,7 @@ import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
+import { planTwinAbsorb } from "@/lib/matches/absorb-plan";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
 import { afGoalsExcludingShootout } from "@/lib/sports/api-football-pro";
 import {
@@ -86,20 +87,12 @@ async function findCrossSourceTwin(
 }
 
 /**
- * 흡수를 막지 않는 종속 테이블. 사람 판단이 필요한 종속(글·투표 등)과 달리 여기 있는 것은
- * "같은 경기"라는 사실만으로 기계적으로 처리할 수 있다.
+ * 중복이 확정된 stale row 를 쌍둥이로 흡수한다. 붙어 있는 종속은 테이블별 규칙
+ * (planTwinAbsorb, reports/plans/stale-twin-absorb)으로 이전·삭제하고, 규칙이 없거나
+ * 종료 후에만 생기는 데이터가 있으면 false — 사람 판단으로 남긴다.
  *
- * OddsSnapshot — 시장 배당 시계열. twin 이 이미 갖고 있으면 stale 쪽은 열등한 부분집합이라
- * 버려도 손실이 없고, 없으면 통째로 넘기면 된다. 이걸 차단 사유로 두면 흡수가 영영 안 되고
- * cron 이 2h 마다 같은 알림을 낸다 (2026-07-28 SUPERETTAN #309246: 스냅샷 2건이 흡수를 막아
- * 7/27 04시부터 12회 이상 동일 알림 반복. twin 은 같은 경기 배당을 이미 73건 보유).
- */
-const ABSORB_IGNORED_TABLES = new Set(["OddsSnapshot"]);
-
-/**
- * 중복이 확정된 stale row 를 쌍둥이로 흡수한다. 종속 데이터가 하나라도 있으면
- * 삭제하지 않고 false — cron 이 사람 판단 없이 파괴적으로 지우지 않게 한다
- * (data-sanity 의 크로스소스 중복 알림이 남아 사람이 처리).
+ * 종전엔 배당 스냅샷 외 종속이 하나라도 있으면 거부해서, 프리뷰 글·봇 픽만 붙은 연기 경기가
+ * 매 실행 "중복충돌"로 남았다(2026-09-09 Middlesbrough vs Millwall 29회 반복).
  */
 async function absorbIntoTwin(
   staleId: number,
@@ -107,48 +100,131 @@ async function absorbIntoTwin(
 ): Promise<boolean> {
   // matchId 를 참조하는 모든 테이블을 스키마에서 읽어 전수 확인 — 개별 모델을 나열하면
   // 테이블이 늘 때 조용히 새고, Cascade 관계는 에러 없이 함께 지워져 손실을 못 본다.
+  // 조회는 트랜잭션 밖에서 한다 — 안에서 돌리면 Neon 지연으로 기본 5초 제한에 걸려 롤백된다.
   const cols = await prisma.$queryRaw<Array<{ table_name: string; data_type: string }>>`
     SELECT c.table_name, c.data_type
     FROM information_schema.columns c
     JOIN information_schema.tables t
       ON t.table_name = c.table_name AND t.table_schema = c.table_schema
     WHERE c.table_schema = 'public' AND c.column_name = 'matchId' AND t.table_type = 'BASE TABLE'`;
+  const counts: Record<string, number> = {};
   for (const { table_name, data_type } of cols) {
-    if (ABSORB_IGNORED_TABLES.has(table_name)) continue;
     const isText = data_type === "text" || data_type === "character varying";
     const rows = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
       `SELECT COUNT(*)::int AS n FROM "${table_name}" WHERE "matchId" = $1`,
       isText ? String(staleId) : staleId,
     );
-    if (rows[0]?.n) return false; // 종속 있음 — 사람이 판단
+    counts[table_name] = rows[0]?.n ?? 0;
+  }
+  const [articles, picks, votes, follows, twinPicks, twinVotes, twinFollows, twinOdds, twinCache, twinBetman] =
+    await Promise.all([
+      counts.Article
+        ? prisma.article.findMany({ where: { matchId: staleId }, select: { id: true, type: true, status: true } })
+        : [],
+      counts.MemberBotPick
+        ? prisma.memberBotPick.findMany({ where: { matchId: staleId }, select: { id: true, botId: true, market: true } })
+        : [],
+      counts.MatchVote
+        ? prisma.matchVote.findMany({
+            where: { matchId: staleId },
+            select: { id: true, userId: true, sessionId: true, market: true },
+          })
+        : [],
+      counts.UserMatchFollow
+        ? prisma.userMatchFollow.findMany({ where: { matchId: staleId }, select: { id: true, userId: true } })
+        : [],
+      prisma.memberBotPick.findMany({ where: { matchId: twin.id }, select: { botId: true, market: true } }),
+      prisma.matchVote.findMany({ where: { matchId: twin.id }, select: { userId: true, sessionId: true, market: true } }),
+      prisma.userMatchFollow.findMany({ where: { matchId: twin.id }, select: { userId: true } }),
+      prisma.oddsSnapshot.count({ where: { matchId: twin.id } }),
+      prisma.theSportsMatchCache.count({ where: { matchId: twin.id } }),
+      prisma.betmanOdds.count({ where: { matchId: twin.id } }),
+    ]);
+  const plan = planTwinAbsorb({
+    counts,
+    articles,
+    picks,
+    votes,
+    follows,
+    twin: {
+      picks: twinPicks,
+      votes: twinVotes,
+      followUserIds: twinFollows.map((f) => f.userId),
+      oddsSnapshots: twinOdds,
+      hasTsCache: twinCache > 0,
+      betmanOdds: twinBetman,
+    },
+  });
+  if (plan.blocked.length) {
+    console.warn(`[cleanup-stale-scheduled] #${staleId} → #${twin.id} 흡수 보류: ${plan.blocked.join(", ")}`);
+    return false;
   }
   const stale = await prisma.match.findUnique({
     where: { id: staleId },
     select: { marketHome: true, marketDraw: true, marketAway: true, marketBookmakers: true },
   });
-  await prisma.$transaction(async (tx) => {
-    // 배당은 stale row 에만 있는 경우가 있어(af 가 odds 를 받아옴) 흡수 전 넘긴다.
-    if (stale && twin.marketHome == null && stale.marketHome != null) {
-      await tx.match.update({
-        where: { id: twin.id },
-        data: {
-          marketHome: stale.marketHome,
-          marketDraw: stale.marketDraw,
-          marketAway: stale.marketAway,
-          marketBookmakers: stale.marketBookmakers,
-        },
-      });
-    }
-    // 배당 시계열도 twin 이 비었을 때만 넘긴다. 양쪽에 있으면 섞지 않고 stale 쪽을
-    // Cascade 로 버린다 — 두 소스의 평균이 한 차트에 겹치면 그래프가 지그재그가 된다.
-    if ((await tx.oddsSnapshot.count({ where: { matchId: twin.id } })) === 0) {
-      await tx.oddsSnapshot.updateMany({
-        where: { matchId: staleId },
-        data: { matchId: twin.id },
-      });
-    }
-    await tx.match.delete({ where: { id: staleId } });
-  });
+  await prisma.$transaction(
+    async (tx) => {
+      // 배당은 stale row 에만 있는 경우가 있어(af 가 odds 를 받아옴) 흡수 전 넘긴다.
+      if (stale && twin.marketHome == null && stale.marketHome != null) {
+        await tx.match.update({
+          where: { id: twin.id },
+          data: {
+            marketHome: stale.marketHome,
+            marketDraw: stale.marketDraw,
+            marketAway: stale.marketAway,
+            marketBookmakers: stale.marketBookmakers,
+          },
+        });
+      }
+      // 1) 삭제 먼저 — 이전보다 앞서야 쌍둥이 쪽 고유키와 부딪히지 않는다.
+      if (plan.deletePickIds.length) await tx.memberBotPick.deleteMany({ where: { id: { in: plan.deletePickIds } } });
+      if (plan.deleteVoteIds.length) await tx.matchVote.deleteMany({ where: { id: { in: plan.deleteVoteIds } } });
+      if (plan.deleteFollowIds.length) await tx.userMatchFollow.deleteMany({ where: { id: { in: plan.deleteFollowIds } } });
+      if (plan.deleteAlertLogs) {
+        await tx.pushMatchAlert.deleteMany({ where: { matchId: staleId } });
+        await tx.telegramAlertLog.deleteMany({ where: { matchId: String(staleId) } });
+      }
+      // 2) 이전
+      if (plan.movePickIds.length) {
+        await tx.memberBotPick.updateMany({ where: { id: { in: plan.movePickIds } }, data: { matchId: twin.id } });
+      }
+      if (plan.moveVoteIds.length) {
+        await tx.matchVote.updateMany({ where: { id: { in: plan.moveVoteIds } }, data: { matchId: twin.id } });
+      }
+      if (plan.moveFollowIds.length) {
+        await tx.userMatchFollow.updateMany({ where: { id: { in: plan.moveFollowIds } }, data: { matchId: twin.id } });
+      }
+      if (plan.movePosts) await tx.post.updateMany({ where: { matchId: staleId }, data: { matchId: twin.id } });
+      if (plan.movePlayerEvents) {
+        await tx.playerEvent.updateMany({ where: { matchId: staleId }, data: { matchId: twin.id } });
+      }
+      if (plan.moveTsCache) {
+        await tx.theSportsMatchCache.update({ where: { matchId: staleId }, data: { matchId: twin.id } });
+      }
+      if (plan.betman !== "none") {
+        await tx.betmanOdds.updateMany({
+          where: { matchId: staleId },
+          data: { matchId: plan.betman === "move" ? twin.id : null },
+        });
+      }
+      // 배당 시계열은 twin 이 비었을 때만 넘긴다. 양쪽에 있으면 섞지 않고 stale 쪽을
+      // Cascade 로 버린다 — 두 소스의 평균이 한 차트에 겹치면 그래프가 지그재그가 된다.
+      if (plan.moveOddsSnapshots) {
+        await tx.oddsSnapshot.updateMany({ where: { matchId: staleId }, data: { matchId: twin.id } });
+      }
+      // 3) 날짜 틀린 게시 프리뷰는 공용 규칙대로 REJECTED. 옛 행에 남겨 두면(삭제 시 SET NULL)
+      //    쌍둥이의 새 프리뷰 생성을 막지 않는다.
+      if (plan.rejectArticleIds.length) {
+        await tx.article.updateMany({
+          where: { id: { in: plan.rejectArticleIds }, status: "PUBLISHED" },
+          data: { status: "REJECTED" },
+        });
+      }
+      await tx.match.delete({ where: { id: staleId } });
+    },
+    { timeout: 30000, maxWait: 10000 },
+  );
   return true;
 }
 
