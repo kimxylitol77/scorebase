@@ -25,7 +25,7 @@ const saveState = (st) => { fs.mkdirSync(path.dirname(STATE), { recursive: true 
 const kstDay = (d) => new Date(d.getTime() + 9 * 3600000).toISOString().slice(0, 10);
 const tg = async (text) => { if (!process.env.TELEGRAM_BOT_TOKEN) return; await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text }) }).catch(() => {}); };
 const heartbeat = async () => { if (!TOKEN) return; await fetch(`${SITE}/api/internal/bot-heartbeat`, { method: "POST", headers: { "content-type": "application/json", Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ bot: "mac-mini-match-shorts", host: require("node:os").hostname() }) }).catch(() => {}); };
-const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", env: { ...process.env, PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH}` }, maxBuffer: 64 << 20 });
+const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", env: { ...process.env, SHORTS_DIR: SHORTS, PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH}` }, maxBuffer: 64 << 20 });
 const SELECT = { id: true, league: true, startTime: true, homeScore: true, awayScore: true, updatedAt: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } };
 
 async function processMatch(m, st, { ignoreCap }) {
