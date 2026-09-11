@@ -7,6 +7,7 @@ import "@/lib/env";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { collectUfcEventPairs, ufcPairKey } from "./enrich-mma-espn";
+import { findReissuedEventRows, type SeenEvent } from "./mma-reissued-events";
 
 const ODDS_BASE = "https://api.the-odds-api.com/v4/sports/mma_mixed_martial_arts";
 
@@ -129,6 +130,7 @@ export async function runCollectMma() {
   console.log(`[mma] ESPN 확정 카드 ${espnPairs.size}경기${useFilter ? "" : " → 필터 미적용(이번 회차)"}`);
 
   let n = 0, skipped = 0;
+  const seen: SeenEvent[] = []; // 이번 회차에 실제 upsert 한 이벤트 — 재발급 판정 기준
   for (const ev of events as Array<Record<string, unknown>>) {
     const home = ev.home_team as string | undefined;
     const away = ev.away_team as string | undefined;
@@ -158,6 +160,7 @@ export async function runCollectMma() {
       select: { id: true, openingMarketHome: true },
     });
     await saveUfcOdds(saved, home, away, ev);
+    seen.push({ externalId: id, pairKey: ufcPairKey(home, away) });
     n++;
   }
   console.log(`[mma] ${n}경기 등록 / ${skipped}경기 skip(ESPN 미확정)`);
@@ -202,7 +205,7 @@ export async function runCollectMma() {
       const tname = new Map(teams.map((t) => [t.id, t.name]));
       const scheduled = await prisma.match.findMany({
         where: { league: "UFC", status: "SCHEDULED" },
-        select: { id: true, homeTeamId: true, awayTeamId: true },
+        select: { id: true, externalId: true, homeTeamId: true, awayTeamId: true },
       });
       const toDelete = scheduled
         .filter((m) => {
@@ -216,6 +219,45 @@ export async function runCollectMma() {
         console.log(`[mma] ESPN 미확정 경기 ${toDelete.length}건 정리`);
       } else {
         console.log("[mma] 정리 대상 없음");
+      }
+
+      // 재발급 이벤트 — 같은 대진이 새 id 로 들어왔고 옛 id 는 피드에서 사라진 SCHEDULED 행.
+      // 위 ESPN 정리는 대진 키가 이름만 봐서 이 행을 확정 카드로 통과시킨다(mma-reissued-events.ts).
+      // Match 참조 중 Cascade 가 아닌 관계가 있어, 배당 시계열(OddsSnapshot) 외 의존 데이터가 있으면 남긴다.
+      const candidates = findReissuedEventRows(
+        scheduled
+          .filter((m) => !toDelete.includes(m.id))
+          .flatMap((m) => {
+            const h = m.homeTeamId != null ? tname.get(m.homeTeamId) : undefined;
+            const a = m.awayTeamId != null ? tname.get(m.awayTeamId) : undefined;
+            return h && a ? [{ id: m.id, externalId: m.externalId, pairKey: ufcPairKey(h, a) }] : [];
+          }),
+        seen,
+      );
+      if (candidates.length) {
+        const fks = await prisma.$queryRaw<Array<{ table_name: string; column_name: string }>>`
+          SELECT tc.table_name, kcu.column_name FROM information_schema.table_constraints tc
+            JOIN information_schema.key_column_usage kcu
+              ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+            JOIN information_schema.constraint_column_usage ccu
+              ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
+           WHERE tc.constraint_type = 'FOREIGN KEY' AND ccu.table_name = 'Match' AND ccu.column_name = 'id'`;
+        const reissued: number[] = [];
+        for (const id of candidates) {
+          let blocked = false;
+          for (const t of fks) {
+            if (t.table_name === "OddsSnapshot") continue;
+            const r = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
+              `SELECT COUNT(*)::int AS n FROM "${t.table_name}" WHERE "${t.column_name}" = $1`,
+              id,
+            );
+            if (r[0]?.n) { blocked = true; break; }
+          }
+          if (!blocked) reissued.push(id);
+        }
+        if (reissued.length) await prisma.match.deleteMany({ where: { id: { in: reissued } } });
+        const held = candidates.length - reissued.length;
+        console.log(`[mma] 재발급 이벤트 옛 행 ${reissued.length}건 정리${held ? ` · 의존 데이터로 보류 ${held}건` : ""}`);
       }
     } catch (e) {
       console.warn("[mma] 정리 실패:", (e as Error).message);
