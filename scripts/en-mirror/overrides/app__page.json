@@ -241,7 +241,6 @@
     "스코어베이스(Scorebase)는 EPL·라리가·분데스리가·세리에A·NBA·MLB·NHL 등 글로벌 스포츠의 매치 프리뷰, 리뷰, 부상자 명단, Elo 레이팅 기반 매치 인사이트를 AI가 매일 자동 생성·업데이트하는 데이터 분석 스포츠 미디어입니다.": "Scorebase is a data-analysis sports publication where AI generates and updates match previews, reviews, injury lists and Elo-based match insight every day for the Premier League, LaLiga, Bundesliga, Serie A, NBA, MLB, NHL and more.",
     "football-data.org, ESPN 등 공인 데이터 소스를 정규화한 뒤, Elo 레이팅·득실 차·홈/원정 강도·최근 흐름·H2H 전적을 결합해 시즌 시뮬레이션을 돌려 우승 확률·강등 확률·매치 승률을 추정합니다.": "We normalise recognised data sources such as football-data.org and ESPN, then combine Elo ratings, goal difference, home/away strength, recent form and head-to-head records in a season simulation to estimate title odds, relegation risk and match win probabilities.",
     "축구(EPL·라리가·분데스리가·세리에A·리그앙·MLS·챔피언스리그·K리그·J리그 등), 야구(KBO·NPB·MLB), 농구(NBA), 아이스하키(NHL), e스포츠(LCK)까지 총 19개 리그를 매일 자동 업데이트합니다.": "Nineteen leagues update automatically every day — football (Premier League, LaLiga, Bundesliga, Serie A, Ligue 1, MLS, Champions League, K League, J League and others), baseball (KBO, NPB, MLB), basketball (NBA), ice hockey (NHL) and esports (LCK).",
-    "아닙니다. 스코어베이스는 데이터 분석 기반의 스포츠 미디어이며, 도박·베팅과는 무관합니다. 모든 승률·우승 확률 수치는 통계 모델 기반의 참고용 정보입니다.": "No. Scorebase is a data-analysis sports publication and has nothing to do with gambling or betting. Every win and title probability is reference information produced by a statistical model.",
     "자주 묻는 질문": "Frequently asked questions",
     "최신 매치 리뷰·프리뷰": "Latest match reviews and previews",
     "19개 리그의 매치 인사이트를 매일 자동 업데이트": "Match insight across 19 leagues, updated daily",
@@ -318,6 +317,15 @@
     "그 차이 ": "That gap of ",
     "가 우리 모델의 전부입니다.": " is everything our model adds.",
     " 기준 ": " snapshot, ",
-    "경기 실배당 시뮬레이션 — EPL · 라리가 · 분데스리가 · KBO · NBA · MLB · NHL, 적중률을 숨기지 않는 AI 스포츠 분석.": " matches simulated at real pre-match odds — Premier League · LaLiga · Bundesliga · KBO · NBA · MLB · NHL. AI sports analysis that publishes its hit rate."
+    "경기 실배당 시뮬레이션 — EPL · 라리가 · 분데스리가 · KBO · NBA · MLB · NHL, 적중률을 숨기지 않는 AI 스포츠 분석.": " matches simulated at real pre-match odds — Premier League · LaLiga · Bundesliga · KBO · NBA · MLB · NHL. AI sports analysis that publishes its hit rate.",
+    "스코어베이스 — 우리 픽의 수익률은 ": "Scorebase — our picks have returned ",
+    "스코어베이스 AI 픽의 수익률은 얼마인가요?": "What is the return on Scorebase’s AI picks?",
+    "경기에서 경기 전 마지막 배당에 모델 픽으로 1경기 1유닛을 걸었다고 가정한 플랫 유닛 수익률은 ": " matches, staking one flat unit per match on the model pick at the last pre-match odds, the return is ",
+    ", 같은 경기에서 시장 인기픽(최저 배당)에 걸었을 때는 ": "; backing the market favourite (shortest odds) on the same matches returns ",
+    " 앞서며, 이 숫자도 그대로 공개합니다. ": " — and we publish that number too. ",
+    "가 모델 신호의 크기입니다. ": " is the size of the model’s edge. ",
+    "배당에는 북메이커 마진(약 5%)이 포함돼 장기 수익률은 마이너스가 정상 기대치입니다. 경기별 채점 기록은 https://www.scorebase.kr/predictions/accuracy 에 공개합니다.": "Odds include the bookmaker margin (about 5%), so a negative long-run return is the normal expectation. Match-by-match scoring is published at https://www.scorebase.kr/en/predictions/accuracy.",
+    "아닙니다. 스코어베이스는 베팅을 중개하거나 권유하지 않는 데이터 분석 스포츠 미디어입니다. 배당은 시장의 예측치로서 분석·검증 대상으로만 다루며(배당 흐름·밸류 베트·수익률 보드), 모든 확률·수익률 수치는 통계 모델 기반의 참고용 정보입니다.": "No. Scorebase is a data-analysis sports media site that neither brokers nor encourages betting. Odds are treated only as the market’s forecast to analyse and verify (odds flow, value bets, the returns board), and every probability or return figure is model-based reference information.",
+    "입니다. ": ". "
   }
 }

@@ -1,7 +1,7 @@
 // 홈(메인) — 통계 기반 AI 스포츠 분석 랜딩. 오늘 경기·AI 예측·최신 콘텐츠 입구.
 import type { Metadata } from "next";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
-import { roiClaim } from "@/lib/predict/model-vs-market";
+import { roiClaim, type RoiClaim } from "@/lib/predict/model-vs-market";
 import Link from "next/link";
 import {
   Activity,
@@ -117,11 +117,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     `우리 픽의 수익률은 ${claim.modelPct}, 시장 인기픽은 ${claim.marketPct}. ${edgeSentence} ` +
     `${claim.asOfDate} 기준 ${claim.sample}경기 실배당 시뮬레이션 — EPL · 라리가 · 분데스리가 · KBO · NBA · MLB · NHL, 적중률을 숨기지 않는 AI 스포츠 분석.`;
+  // 공유 카드 제목도 같은 주장으로 — 설명만 바꾸면 제목("감이 아니라…")과 설명이 다른 말을 한다. <title> 은 브랜드+키워드라 유지.
+  const shareTitle = `스코어베이스 — 우리 픽의 수익률은 ${claim.modelPct}, 시장 인기픽은 ${claim.marketPct}`;
   return {
     ...baseMetadata,
     description,
-    openGraph: { ...baseMetadata.openGraph, description },
-    twitter: { ...baseMetadata.twitter, description },
+    openGraph: { ...baseMetadata.openGraph, title: shareTitle, description },
+    twitter: { ...baseMetadata.twitter, title: shareTitle, description },
   };
 }
 
@@ -146,7 +148,31 @@ const websiteJsonLd = {
   },
 };
 
-const faqJsonLd = {
+/**
+ * FAQ 구조화 데이터 — AI 답변엔진이 가장 잘 인용하는 형식이라 홈의 핵심 주장(수익률)을 claim 이 있을 때 질문으로 넣는다.
+ * 히어로·meta 와 같은 roiClaim 값이라 세 곳이 다른 숫자를 말하지 않는다. claim 없으면 그 질문은 생략(틀린 숫자 금지).
+ */
+/** 수익률 Q&A — JSON-LD 와 화면 FAQ 가 같은 문장을 써야(구조화 데이터는 화면 내용과 일치해야 한다) 한 곳에서 만든다. */
+function roiFaq(claim: RoiClaim | null): { q: string; a: string } | null {
+  if (!claim) return null;
+  return {
+    q: "스코어베이스 AI 픽의 수익률은 얼마인가요?",
+    a:
+      `${claim.asOfDate} 기준 ${claim.sample}경기에서 경기 전 마지막 배당에 모델 픽으로 1경기 1유닛을 걸었다고 가정한 플랫 유닛 수익률은 ${claim.modelPct}, 같은 경기에서 시장 인기픽(최저 배당)에 걸었을 때는 ${claim.marketPct}입니다. ` +
+      (claim.marketLeads
+        ? `지금은 시장이 ${claim.edgePct.replace(/^[+−]/, "")} 앞서며, 이 숫자도 그대로 공개합니다. `
+        : `그 차이 ${claim.edgePct}가 모델 신호의 크기입니다. `) +
+      "배당에는 북메이커 마진(약 5%)이 포함돼 장기 수익률은 마이너스가 정상 기대치입니다. 경기별 채점 기록은 https://www.scorebase.kr/predictions/accuracy 에 공개합니다.",
+  };
+}
+
+const FAQ_BETTING_ANSWER =
+  "아닙니다. 스코어베이스는 베팅을 중개하거나 권유하지 않는 데이터 분석 스포츠 미디어입니다. 배당은 시장의 예측치로서 분석·검증 대상으로만 다루며(배당 흐름·밸류 베트·수익률 보드), 모든 확률·수익률 수치는 통계 모델 기반의 참고용 정보입니다.";
+
+function buildFaqJsonLd(claim: RoiClaim | null) {
+  const roi = roiFaq(claim);
+  const roiQ = roi ? [{ "@type": "Question", name: roi.q, acceptedAnswer: { "@type": "Answer", text: roi.a } }] : [];
+  return {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
@@ -179,18 +205,24 @@ const faqJsonLd = {
       name: "스코어베이스는 도박·베팅 사이트인가요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "아닙니다. 스코어베이스는 데이터 분석 기반의 스포츠 미디어이며, 도박·베팅과는 무관합니다. 모든 승률·우승 확률 수치는 통계 모델 기반의 참고용 정보입니다.",
+        text: FAQ_BETTING_ANSWER,
       },
     },
+    ...roiQ,
   ],
-};
+  };
+}
 
 export default async function Home() {
-  const latest = await prisma.article.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { publishedAt: "desc" },
-    take: 12,
-  });
+  const [latest, claim] = await Promise.all([
+    prisma.article.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { publishedAt: "desc" },
+      take: 12,
+    }),
+    // FAQ 수익률 답 — 히어로·meta 와 같은 캐시 값
+    roiClaim(),
+  ]);
 
   const restLatest = latest.slice(0, 6);
   const hasAny = latest.length > 0;
@@ -207,7 +239,7 @@ export default async function Home() {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(buildFaqJsonLd(claim)) }}
       />
 
       <HeroSection />
@@ -277,7 +309,7 @@ export default async function Home() {
 
         <MethodologySection />
 
-        <FaqSection />
+        <FaqSection claim={claim} />
 
         <section className="pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
           <h2 className="text-base sm:text-lg font-bold tracking-tight">
@@ -730,7 +762,7 @@ function MethodologySection() {
   );
 }
 
-function FaqSection() {
+function FaqSection({ claim }: { claim: RoiClaim | null }) {
   const faqs = [
     {
       q: "스코어베이스는 어떤 사이트인가요?",
@@ -746,8 +778,10 @@ function FaqSection() {
     },
     {
       q: "도박·베팅 사이트인가요?",
-      a: "아닙니다. 스코어베이스는 데이터 분석 기반의 스포츠 미디어이며, 도박·베팅과는 무관합니다. 모든 승률·우승 확률 수치는 통계 모델 기반의 참고용 정보입니다.",
+      a: FAQ_BETTING_ANSWER,
     },
+    // 수익률 Q — claim 있을 때만(JSON-LD 와 동일 문장)
+    ...(roiFaq(claim) ? [roiFaq(claim)!] : []),
   ];
   return (
     <section aria-labelledby="faq-title">

@@ -22,8 +22,13 @@
 - [/predictions/{LEAGUE}](https://www.scorebase.kr/predictions/EPL): Monte Carlo 5000회 시뮬레이션 우승/플레이오프/강등 확률. Elo Rating 기반.
 - [/predictions](https://www.scorebase.kr/predictions): 19개 리그 시즌 시뮬레이션 인덱스.
 - [/predictions/title-race](https://www.scorebase.kr/predictions/title-race): 우승 경쟁 hot 리그 모음.
-- [/predictions/accuracy](https://www.scorebase.kr/predictions/accuracy): 13개 리그 1X2·핸디캡·오버언더 시장별 실측 적중률(시즌 누적). 경기 전 예측을 결과로 채점한 적중률의 단일 출처.
+- [/predictions/accuracy](https://www.scorebase.kr/predictions/accuracy): 13개 리그 1X2·핸디캡·오버언더 시장별 실측 적중률(시즌 누적) + 플랫 유닛 수익률(경기 전 마지막 배당에 모델 픽 1유닛 후행 시뮬레이션, 시장 favorite 베팅을 기준선으로 나란히 공개). 홈 H1 의 수익률 수치가 이 페이지에서 나온다. 적중률·수익률의 단일 출처.
 - [/predictions/scorecard](https://www.scorebase.kr/predictions/scorecard): AI 예측 성적표 — 스코어베이스 통계 모델 vs GPT-5.5 가 같은 경기를 경기 전 예측하고 결과로 채점한 정면 비교(1X2·핸디·OU 시장별).
+
+### 배당·수익률 (베팅 중개·권유 없음 — 시장 예측치의 분석·검증)
+- [/odds](https://www.scorebase.kr/odds?sport=soccer): 배당 흐름 — 오픈 대비 변동, 돈이 몰리는 방향. 종목 탭(축구·야구·농구) + 베트맨(국내 합법 프로토) 배당·투표 분포.
+- [/value-bets](https://www.scorebase.kr/value-bets): 밸류 베트 — 모델 확률이 배당사 implied 확률보다 높은 경기(모델이 시장보다 자신 있는 경기).
+- 수익률 검증은 위 /predictions/accuracy 의 「플랫 유닛 수익률」 참고. 마이너스 수익률·표본 편중(야구 중심)도 그대로 공개한다.
 
 ### 도구 (인터랙티브)
 - [/tools/kbo-win-probability](https://www.scorebase.kr/tools/kbo-win-probability): KBO 야구 상황별 승리확률 계산기 — 이닝·점수차·아웃·주자별 승률 + 번트·도루·고의4구 전술 손익(마르코프 + 몬테카를로). MLB(/tools/mlb-win-probability)·NPB(/tools/npb-win-probability) 버전도 제공.

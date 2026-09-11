@@ -1,7 +1,7 @@
 // app__page (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.
 import type { Metadata } from "next";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
-import { roiClaim } from "@/lib/predict/model-vs-market";
+import { roiClaim, type RoiClaim } from "@/lib/predict/model-vs-market";
 import Link from "next/link";
 import {
   Activity,
@@ -116,11 +116,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     `Our picks have returned ${claim.modelPct}; market favourites returned ${claim.marketPct}. ${edgeSentence} ` +
     `${claim.asOfDate} snapshot, ${claim.sample} matches simulated at real pre-match odds — Premier League · LaLiga · Bundesliga · KBO · NBA · MLB · NHL. AI sports analysis that publishes its hit rate.`;
+  // 공유 카드 제목도 같은 주장으로 — 설명만 바꾸면 제목("감이 아니라…")과 설명이 다른 말을 한다. <title> 은 브랜드+키워드라 유지.
+  const shareTitle = `Scorebase — our picks have returned ${claim.modelPct}; market favourites returned ${claim.marketPct}`;
   return {
     ...baseMetadata,
     description,
-    openGraph: { ...baseMetadata.openGraph, description },
-    twitter: { ...baseMetadata.twitter, description },
+    openGraph: { ...baseMetadata.openGraph, title: shareTitle, description },
+    twitter: { ...baseMetadata.twitter, title: shareTitle, description },
   };
 }
 
@@ -146,7 +148,31 @@ const websiteJsonLd = {
   },
 };
 
-const faqJsonLd = {
+/**
+ * FAQ 구조화 데이터 — AI 답변엔진이 가장 잘 인용하는 형식이라 홈의 핵심 주장(수익률)을 claim 이 있을 때 질문으로 넣는다.
+ * 히어로·meta 와 같은 roiClaim 값이라 세 곳이 다른 숫자를 말하지 않는다. claim 없으면 그 질문은 생략(틀린 숫자 금지).
+ */
+/** 수익률 Q&A — JSON-LD 와 화면 FAQ 가 같은 문장을 써야(구조화 데이터는 화면 내용과 일치해야 한다) 한 곳에서 만든다. */
+function roiFaq(claim: RoiClaim | null): { q: string; a: string } | null {
+  if (!claim) return null;
+  return {
+    q: "What is the return on Scorebase’s AI picks?",
+    a:
+      `${claim.asOfDate} snapshot, ${claim.sample} matches, staking one flat unit per match on the model pick at the last pre-match odds, the return is ${claim.modelPct}; backing the market favourite (shortest odds) on the same matches returns ${claim.marketPct}. ` +
+      (claim.marketLeads
+        ? `Right now the market leads by ${claim.edgePct.replace(/^[+−]/, "")} — and we publish that number too. `
+        : `That gap of ${claim.edgePct} is the size of the model’s edge. `) +
+      "Odds include the bookmaker margin (about 5%), so a negative long-run return is the normal expectation. Match-by-match scoring is published at https://www.scorebase.kr/en/predictions/accuracy.",
+  };
+}
+
+const FAQ_BETTING_ANSWER =
+  "No. Scorebase is a data-analysis sports media site that neither brokers nor encourages betting. Odds are treated only as the market’s forecast to analyse and verify (odds flow, value bets, the returns board), and every probability or return figure is model-based reference information.";
+
+function buildFaqJsonLd(claim: RoiClaim | null) {
+  const roi = roiFaq(claim);
+  const roiQ = roi ? [{ "@type": "Question", name: roi.q, acceptedAnswer: { "@type": "Answer", text: roi.a } }] : [];
+  return {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: [
@@ -179,18 +205,24 @@ const faqJsonLd = {
       name: "Is Scorebase a gambling or betting site?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. Scorebase is a data-analysis sports publication and has nothing to do with gambling or betting. Every win and title probability is reference information produced by a statistical model.",
+        text: FAQ_BETTING_ANSWER,
       },
     },
+    ...roiQ,
   ],
-};
+  };
+}
 
 export default async function Home() {
-  const latest = await prisma.article.findMany({
-    where: { status: "PUBLISHED" },
-    orderBy: { publishedAt: "desc" },
-    take: 12,
-  });
+  const [latest, claim] = await Promise.all([
+    prisma.article.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { publishedAt: "desc" },
+      take: 12,
+    }),
+    // FAQ 수익률 답 — 히어로·meta 와 같은 캐시 값
+    roiClaim(),
+  ]);
 
   const restLatest: typeof latest = [];
   const hasAny = latest.length > 0;
@@ -207,7 +239,7 @@ export default async function Home() {
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(buildFaqJsonLd(claim)) }}
       />
 
       <HeroSection />
@@ -275,7 +307,7 @@ export default async function Home() {
 
         <MethodologySection />
 
-        <FaqSection />
+        <FaqSection claim={claim} />
 
         <section className="pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
           <h2 className="text-base sm:text-lg font-bold tracking-tight">
@@ -726,7 +758,7 @@ function MethodologySection() {
   );
 }
 
-function FaqSection() {
+function FaqSection({ claim }: { claim: RoiClaim | null }) {
   const faqs = [
     {
       q: "What is Scorebase?",
@@ -742,8 +774,10 @@ function FaqSection() {
     },
     {
       q: "Is this a gambling or betting site?",
-      a: "No. Scorebase is a data-analysis sports publication and has nothing to do with gambling or betting. Every win and title probability is reference information produced by a statistical model.",
+      a: FAQ_BETTING_ANSWER,
     },
+    // 수익률 Q — claim 있을 때만(JSON-LD 와 동일 문장)
+    ...(roiFaq(claim) ? [roiFaq(claim)!] : []),
   ];
   return (
     <section aria-labelledby="faq-title">
