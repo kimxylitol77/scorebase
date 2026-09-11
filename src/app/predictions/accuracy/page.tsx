@@ -28,6 +28,8 @@ import {
   type HeadToHeadStat,
   type FlatUnitRoiStat,
 } from "@/lib/predict/model-vs-market";
+import { oddsBandStats, type OddsBandStats } from "@/lib/predict/odds-band-stats";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { koEnLanguages } from "@/lib/i18n/en";
 import RoiCard from "@/components/predictions/RoiCard";
 import { fmtRoiPct } from "@/lib/predict/flat-roi";
@@ -254,13 +256,14 @@ async function reliabilitySeries(): Promise<{
 }
 
 export default async function AccuracyPage() {
-  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi] = await Promise.all([
+  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi, oddsBand] = await Promise.all([
     Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
     valueBetStats(),
     cumulativeAccuracySeries(),
     reliabilitySeries(),
     headToHeadStats(),
     flatUnitRoiStats(),
+    oddsBandStats().catch(() => null),
   ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
@@ -499,6 +502,9 @@ export default async function AccuracyPage() {
       {/* 플랫 유닛 ROI — 실배당(vig 포함) 후행 시뮬레이션 */}
       {flatRoi && flatRoi.model.all.evaluated >= 100 && <FlatRoiSection data={flatRoi} />}
 
+      {/* 인기픽 배당 구간별 성적 + 리그별 인기픽 적중률 — "낮은 배당이 얼마나 맞나" 를 종목·리그별로 */}
+      {oddsBand && oddsBand.evaluated >= 100 && <OddsBandSection data={oddsBand} />}
+
       {/* 리그별 카드 — 기간 × 시장 교차 필터 */}
       <section className="mb-10">
         <h2 className="text-lg font-semibold mb-1">리그별 · 시장별 적중률</h2>
@@ -687,6 +693,73 @@ function HeadToHeadSection({ data }: { data: HeadToHeadStat }) {
           </table>
         </div>
       )}
+    </section>
+  );
+}
+
+function OddsBandSection({ data }: { data: OddsBandStats }) {
+  const pct = (a: number, b: number) => (b > 0 ? `${((a / b) * 100).toFixed(1)}%` : "–");
+  const th = "py-2 pr-3 font-semibold text-right";
+  return (
+    <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
+      <h2 className="text-lg font-semibold mb-1">인기픽은 얼마나 맞나 — 배당 구간별 · 리그별</h2>
+      <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+        해외 평균 배당이 있는 {data.evaluated.toLocaleString()}경기에서, 가장 낮은 배당 쪽(인기픽)이 실제로 이긴 비율과
+        같은 경기의 모델 적중률을 나란히 놓았습니다. 배당이 낮을수록 잘 맞지만, 리그마다 그 정도가 크게 다릅니다.
+      </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="overflow-x-auto">
+          <p className="text-xs font-semibold text-neutral-500 mb-2">인기픽 배당 구간</p>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[11px] uppercase tracking-wider text-neutral-500">
+                <th className="py-2 pr-3 font-semibold">배당</th>
+                <th className={th}>표본</th>
+                <th className={th}>인기픽</th>
+                <th className="py-2 font-semibold text-right">모델</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {data.bands.map((b) => (
+                <tr key={b.band}>
+                  <td className="py-2 pr-3 font-medium tabular-nums">{b.band}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-neutral-500">{b.evaluated.toLocaleString()}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums">{pct(b.favCorrect, b.evaluated)}</td>
+                  <td className="py-2 text-right tabular-nums">{pct(b.modelCorrect, b.evaluated)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="overflow-x-auto">
+          <p className="text-xs font-semibold text-neutral-500 mb-2">리그별 인기픽 적중률 (표본 30경기 이상)</p>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[11px] uppercase tracking-wider text-neutral-500">
+                <th className="py-2 pr-3 font-semibold">리그</th>
+                <th className={th}>표본</th>
+                <th className={th}>평균 배당</th>
+                <th className={th}>인기픽</th>
+                <th className="py-2 font-semibold text-right">모델</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {data.leagues.map((l) => (
+                <tr key={l.league}>
+                  <td className="py-2 pr-3 font-medium">{LEAGUE_NAME[l.league] ?? LEAGUE_DISPLAY[l.league] ?? l.league}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-neutral-500">{l.evaluated.toLocaleString()}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-neutral-500">{l.avgFavOdds.toFixed(2)}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums">{pct(l.favCorrect, l.evaluated)}</td>
+                  <td className="py-2 text-right tabular-nums">{pct(l.modelCorrect, l.evaluated)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p className="mt-3 text-[11px] text-neutral-400 break-keep">
+        인기픽 = 홈·무·원정 중 배당이 가장 낮은 결과. 배당은 해외 베팅사이트 평균(마진 포함)이며 마감 시점 값이라 예측 시점과 다를 수 있습니다.
+      </p>
     </section>
   );
 }
