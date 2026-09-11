@@ -258,7 +258,7 @@ export default async function OddsPage({
       { revalidate: 600 },
     )();
     return (
-      <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
+      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
         <h1 className="text-2xl font-medium">베트맨 배당</h1>
         <OddsSportTabs sport="betman" />
         <BetmanOddsPanel matches={rows} />
@@ -281,7 +281,7 @@ export default async function OddsPage({
         : null;
 
   return (
-    <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
+    <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
       <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} />
       <NoVigCalculator defaultMode={cfg.hasDraw ? "three" : "two"} />
     </div>
