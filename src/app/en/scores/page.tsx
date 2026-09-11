@@ -2893,7 +2893,8 @@ function SoccerRowLayout({
         more={rest.map(render)}
         moreCount={rest.length}
         unit=" leagues"
-        wrapClass="py-1 text-center"
+        wrapClass="py-3 text-center"
+        pill
       />
     );
   };
