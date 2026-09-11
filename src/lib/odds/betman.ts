@@ -25,6 +25,8 @@ export interface BetmanLine {
 export interface BetmanMatch extends BetmanLine {
   key: string;
   gmTs: number;
+  /** 회차 내 프로토 경기번호 — 한국 구매자는 팀명이 아니라 이 번호로 경기를 지목한다. */
+  matchSeq: number;
   /** ISO 문자열 — unstable_cache 가 반환값을 JSON 직렬화해 Date 가 문자열이 된다.
       타입만 Date 로 두면 렌더에서 "Invalid time value" 로 터진다(실측). */
   gameDate: string;
@@ -123,7 +125,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
     },
     orderBy: [{ gameDate: "asc" }, { gmTs: "desc" }],
     select: {
-      id: true, gmTs: true, gameDate: true, itemCode: true, leagueName: true,
+      id: true, gmTs: true, matchSeq: true, gameDate: true, itemCode: true, leagueName: true,
       homeName: true, awayName: true,
       betNm: true, betTypNm: true, handi: true, winHandi: true, loseHandi: true,
       winAllot: true, drawAllot: true, loseAllot: true,
@@ -164,6 +166,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
     out.push({
       key,
       gmTs: g.gmTs,
+      matchSeq: base.matchSeq,
       gameDate: base.gameDate.toISOString(),
       itemCode: base.itemCode,
       leagueName: base.leagueName,
@@ -183,7 +186,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
   return out;
 }
 
-/** 경기 상세용 — 우리 경기(팀 id + 킥오프)에 해당하는 베트맨 승무패 한 줄. 없으면 null. */
+/** 경기 상세용 — 우리 경기에 해당하는 베트맨 승무패(야구·농구·배구는 승패) 한 줄. 없으면 null. */
 export interface BetmanMatchLine {
   winAllot: number;
   drawAllot: number | null;
@@ -192,42 +195,20 @@ export interface BetmanMatchLine {
   votePct: { win: number; draw: number | null; lose: number } | null;
   gameDate: string;
   gmTs: number;
+  /** 회차 내 프로토 경기번호 */
+  matchSeq: number;
 }
 
-export async function getBetmanLineForMatch(
-  homeTeamId: number,
-  awayTeamId: number,
-  startTime: Date,
-): Promise<BetmanMatchLine | null> {
-  // 사전 역인덱스: Team.id → 베트맨 표기들 (한 팀이 여러 표기를 가질 수 있다)
-  const homeNames = new Set<string>();
-  const awayNames = new Set<string>();
-  for (const [name, id] of Object.entries(TEAM_MAP)) {
-    if (id === homeTeamId) homeNames.add(name);
-    if (id === awayTeamId) awayNames.add(name);
-  }
-  if (homeNames.size === 0 || awayNames.size === 0) return null;
-  const rows = await prisma.betmanOdds.findMany({
-    where: {
-      itemCode: "SC",
-      betTypNm: { in: [...BASE_TYPES] },
-      homeName: { in: [...homeNames] },
-      awayName: { in: [...awayNames] },
-      gameDate: {
-        gte: new Date(startTime.getTime() - 3 * 3600 * 1000),
-        lte: new Date(startTime.getTime() + 3 * 3600 * 1000),
-      },
-      winAllot: { not: null },
-    },
-    orderBy: { gmTs: "desc" },
-    take: 1,
-    select: {
-      gmTs: true, gameDate: true, winAllot: true, drawAllot: true, loseAllot: true,
-      winVotes: true, drawVotes: true, loseVotes: true,
-    },
-  });
-  const r = rows[0];
-  if (!r || r.winAllot == null || r.loseAllot == null) return null;
+const LINE_SELECT = {
+  gmTs: true, matchSeq: true, gameDate: true, winAllot: true, drawAllot: true, loseAllot: true,
+  winVotes: true, drawVotes: true, loseVotes: true,
+} as const;
+
+function toLine(r: {
+  gmTs: number; matchSeq: number; gameDate: Date; winAllot: number | null; drawAllot: number | null; loseAllot: number | null;
+  winVotes: number | null; drawVotes: number | null; loseVotes: number | null;
+}): BetmanMatchLine | null {
+  if (r.winAllot == null || r.loseAllot == null) return null;
   const w = r.winVotes ?? 0, d = r.drawVotes ?? 0, l = r.loseVotes ?? 0;
   const tot = w + d + l;
   return {
@@ -237,5 +218,45 @@ export async function getBetmanLineForMatch(
     votePct: tot > 0 ? { win: (w / tot) * 100, draw: r.drawVotes != null ? (d / tot) * 100 : null, lose: (l / tot) * 100 } : null,
     gameDate: r.gameDate.toISOString(),
     gmTs: r.gmTs,
+    matchSeq: r.matchSeq,
   };
+}
+
+/**
+ * 1순위 = link-betman-matches 가 채운 matchId. 2순위 = 사전 이름 + 킥오프 ±3h(배치가 아직 안 돈 최신 회차).
+ * 종목 필터를 두지 않는다 — 예전엔 itemCode:"SC" 로 고정돼 야구는 사전이 전부 있는데도 카드가 안 떴다(2026-09-11).
+ */
+export async function getBetmanLineForMatch(
+  homeTeamId: number,
+  awayTeamId: number,
+  startTime: Date,
+  matchId?: number,
+): Promise<BetmanMatchLine | null> {
+  const base = { betTypNm: { in: [...BASE_TYPES] }, winAllot: { not: null } };
+  if (matchId != null) {
+    const r = await prisma.betmanOdds.findFirst({ where: { matchId, ...base }, orderBy: { gmTs: "desc" }, select: LINE_SELECT });
+    if (r) return toLine(r);
+  }
+  // 사전 역인덱스: Team.id → 베트맨 표기들 (한 팀이 여러 표기를 가질 수 있다)
+  const homeNames = new Set<string>();
+  const awayNames = new Set<string>();
+  for (const [name, id] of Object.entries(TEAM_MAP)) {
+    if (id === homeTeamId) homeNames.add(name);
+    if (id === awayTeamId) awayNames.add(name);
+  }
+  if (homeNames.size === 0 || awayNames.size === 0) return null;
+  const r = await prisma.betmanOdds.findFirst({
+    where: {
+      ...base,
+      homeName: { in: [...homeNames] },
+      awayName: { in: [...awayNames] },
+      gameDate: {
+        gte: new Date(startTime.getTime() - 3 * 3600 * 1000),
+        lte: new Date(startTime.getTime() + 3 * 3600 * 1000),
+      },
+    },
+    orderBy: { gmTs: "desc" },
+    select: LINE_SELECT,
+  });
+  return r ? toLine(r) : null;
 }

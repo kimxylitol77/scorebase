@@ -367,6 +367,10 @@
     {
       "path": "/api/cron/over-under-blog",
       "schedule": "10 20 * * 0"
+    },
+    {
+      "path": "/api/cron/betman-link",
+      "schedule": "0 1,13 * * *"
     }
   ]
 }

@@ -86,6 +86,8 @@ export const CRON_REGISTRY: {
   // 하루 2회(3:50,15:50 UTC). 감시형이라 0건이 정상 — zeroAlertAfter 를 붙이지 말 것.
   { name: "cleanup-ts-ghost", label: "ts 유령 매치 정리", maxAgeH: 16 },
   { name: "squad-numbers", label: "스쿼드 등번호", maxAgeH: 180 }, // 주간(화)
+  // 하루 2회(1,13 UTC, 베트맨 워커 1h 뒤) — 비발매 요일엔 0 이 정상이라 zeroAlert 금지
+  { name: "betman-link", label: "베트맨 발매 경기 연결", maxAgeH: 16 },
 ];
 
 /**
