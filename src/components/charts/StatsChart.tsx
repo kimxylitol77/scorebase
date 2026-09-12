@@ -69,7 +69,7 @@ export function HourlyTraffic({ data }: { data: HourlyTrafficPoint[] }) {
           <YAxis yAxisId="pv" stroke="#3b82f6" fontSize={11} tick={{ fill: "currentColor" }} allowDecimals={false} />
           <YAxis yAxisId="uv" orientation="right" stroke="#10b981" fontSize={11} tick={{ fill: "currentColor" }} allowDecimals={false} />
           <Tooltip cursor={{ fill: "rgba(115,115,115,0.08)" }} contentStyle={TOOLTIP_STYLE} formatter={fmtSeries} labelFormatter={(h: unknown) => `${h}시`} />
-          <Bar yAxisId="pv" dataKey="views" fill="#3b82f6" fillOpacity={0.75} radius={[4, 4, 0, 0]} />
+          <Bar yAxisId="pv" dataKey="views" fill="#3b82f6" fillOpacity={0.75} radius={[4, 4, 0, 0]} isAnimationActive={false} />
           <Line yAxisId="uv" type="monotone" dataKey="visitors" stroke="#10b981" strokeWidth={2.5} dot={false} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
