@@ -5,7 +5,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Gem } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { leagueLogoUrl } from "@/lib/sports/league-logos";
+import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -50,6 +52,12 @@ interface ValueBet {
   startTime: Date;
   homeName: string;
   awayName: string;
+  /** 클럽 = Team.logoUrl, 국가대항 = null(국기로) */
+  homeLogo: string | null;
+  awayLogo: string | null;
+  /** 국가대항 리그만 — fifaFlag 이모지 */
+  homeFlag: string | null;
+  awayFlag: string | null;
   status: string;
   homeScore: number | null;
   awayScore: number | null;
@@ -131,13 +139,21 @@ async function fetchValueBets(): Promise<ValueBet[]> {
       bestOdds = snap.awayOdds;
     }
     if (bestValue < MIN_VALUE_PCT) continue;
+    // 클럽 리그 = 로고, 국가대항 = 국기 — 둘을 같이 그리지 않는다(스킬 scorebase-team-logo)
+    const national = isNationalTeamLeague(m.league);
+    const homeName = toKoreanTeamName(m.homeTeam.name, m.league);
+    const awayName = toKoreanTeamName(m.awayTeam.name, m.league);
     bets.push({
       matchId: m.id,
       league: m.league,
       externalId: m.externalId,
       startTime: m.startTime,
-      homeName: toKoreanTeamName(m.homeTeam.name, m.league),
-      awayName: toKoreanTeamName(m.awayTeam.name, m.league),
+      homeName,
+      awayName,
+      homeLogo: national ? null : m.homeTeam.logoUrl,
+      awayLogo: national ? null : m.awayTeam.logoUrl,
+      homeFlag: national ? fifaFlag(m.homeTeam.name, homeName) || null : null,
+      awayFlag: national ? fifaFlag(m.awayTeam.name, awayName) || null : null,
       status: m.status,
       homeScore: m.homeScore,
       awayScore: m.awayScore,
@@ -210,6 +226,13 @@ export default async function ValueBetsPage() {
             matchId: b.matchId,
             href: matchLiveHref(b.league, b.externalId),
             leagueLabel: LEAGUE_DISPLAY[b.league] ?? b.league,
+            // 리그 마크 — 로고(api-football/ESPN) 우선, 없으면 국기 이모지
+            leagueLogo: leagueLogoUrl(b.league),
+            leagueFlag: getLeagueFlag(b.league) || null,
+            homeLogo: b.homeLogo,
+            awayLogo: b.awayLogo,
+            homeFlag: b.homeFlag,
+            awayFlag: b.awayFlag,
             timeLabel: fmtKstTime(b.startTime),
             startMs: b.startTime.getTime(),
             homeName: b.homeName,

@@ -4,6 +4,8 @@
 
 "use client";
 
+import TeamBadge from "@/components/TeamBadge";
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
@@ -11,6 +13,12 @@ export interface ValueBetRow {
   matchId: number;
   href: string;
   leagueLabel: string;
+  leagueLogo: string | null;
+  leagueFlag: string | null;
+  homeLogo: string | null;
+  awayLogo: string | null;
+  homeFlag: string | null;
+  awayFlag: string | null;
   timeLabel: string;
   /** 정렬용 epoch ms */
   startMs: number;
@@ -46,6 +54,34 @@ export function kellyFraction(p: number, odds: number): number {
   const b = odds - 1;
   if (b <= 0) return 0;
   return Math.max(0, (p * b - (1 - p)) / b);
+}
+
+/** 리그 마크 — 로고 있으면 로고, 없으면 국기 이모지, 둘 다 없으면 라벨만 */
+function LeagueMark({ logo, flag, label }: { logo: string | null; flag: string | null; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 min-w-0">
+      {logo ? (
+        <TeamBadge logoUrl={logo} size={14} className="bg-white rounded-sm" />
+      ) : flag ? (
+        <span aria-hidden className="text-[12px] leading-none">{flag}</span>
+      ) : null}
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
+/** 팀 마크 — 클럽 로고 또는 국기(국가대항). 로고·국기 모두 없으면 이름만 */
+function TeamMark({ logo, flag, name, size = 16 }: { logo: string | null; flag: string | null; name: string; size?: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 min-w-0 align-middle">
+      {logo ? (
+        <TeamBadge logoUrl={logo} size={size} className="bg-white rounded-sm" />
+      ) : flag ? (
+        <span aria-hidden className="text-[13px] leading-none">{flag}</span>
+      ) : null}
+      <span className="font-medium truncate">{name}</span>
+    </span>
+  );
 }
 
 export default function ValueBetList({ bets }: { bets: ValueBetRow[] }) {
@@ -122,12 +158,14 @@ export default function ValueBetList({ bets }: { bets: ValueBetRow[] }) {
                     className="block px-4 py-3 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                   >
                     <div className="md:hidden space-y-1">
-                      <div className="flex items-center justify-between text-[11px] text-neutral-500">
-                        <span>{b.leagueLabel}</span>
-                        <span>{b.timeLabel}</span>
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-500">
+                        <LeagueMark logo={b.leagueLogo} flag={b.leagueFlag} label={b.leagueLabel} />
+                        <span className="shrink-0">{b.timeLabel}</span>
                       </div>
-                      <div className="text-sm font-medium truncate">
-                        {b.homeName} <span className="text-neutral-400">vs</span> {b.awayName}
+                      <div className="flex items-center gap-1.5 text-sm font-medium min-w-0">
+                        <TeamMark logo={b.homeLogo} flag={b.homeFlag} name={b.homeName} />
+                        <span className="text-neutral-400 shrink-0">vs</span>
+                        <TeamMark logo={b.awayLogo} flag={b.awayFlag} name={b.awayName} />
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-rose-600 dark:text-rose-400 font-bold">
@@ -140,12 +178,14 @@ export default function ValueBetList({ bets }: { bets: ValueBetRow[] }) {
                       </div>
                     </div>
                     <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px_70px] gap-3 items-center text-sm">
-                      <div className="text-[11px] text-neutral-600 dark:text-neutral-400 truncate">{b.leagueLabel}</div>
+                      <div className="text-[11px] text-neutral-600 dark:text-neutral-400 truncate">
+                        <LeagueMark logo={b.leagueLogo} flag={b.leagueFlag} label={b.leagueLabel} />
+                      </div>
                       <div className="text-[11px] text-neutral-500 tabular-nums">{b.timeLabel}</div>
-                      <div className="truncate">
-                        <span className="font-medium">{b.homeName}</span>
-                        <span className="text-neutral-400 mx-1.5">vs</span>
-                        <span className="font-medium">{b.awayName}</span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <TeamMark logo={b.homeLogo} flag={b.homeFlag} name={b.homeName} size={18} />
+                        <span className="text-neutral-400 shrink-0">vs</span>
+                        <TeamMark logo={b.awayLogo} flag={b.awayFlag} name={b.awayName} size={18} />
                         {b.status === "LIVE" && (
                           <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">
                             LIVE {b.homeScore ?? "-"}:{b.awayScore ?? "-"}
