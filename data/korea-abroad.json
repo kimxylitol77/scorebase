@@ -74,12 +74,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "1. FSV Mainz 05",
-        "apps": 2,
-        "starts": 2,
+        "apps": 3,
+        "starts": 3,
         "goals": 0,
         "assists": 1,
-        "minutes": 156,
-        "rating": 6.92,
+        "minutes": 201,
+        "rating": 6.55,
         "yellow": 0,
         "red": 0
       }
@@ -875,12 +875,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Grasshopper",
-        "apps": 3,
+        "apps": 4,
         "starts": 1,
         "goals": 2,
         "assists": 0,
-        "minutes": 118,
-        "rating": 7.2,
+        "minutes": 154,
+        "rating": 7.04,
         "yellow": 0,
         "red": 0
       }
@@ -1748,12 +1748,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Birmingham City",
-        "apps": 6,
+        "apps": 7,
         "starts": 4,
-        "goals": 0,
+        "goals": 1,
         "assists": 0,
-        "minutes": 341,
-        "rating": 6.38,
+        "minutes": 371,
+        "rating": 6.54,
         "yellow": 0,
         "red": 0
       }
@@ -1912,12 +1912,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Alanyaspor",
-        "apps": 4,
+        "apps": 5,
         "starts": 3,
         "goals": 0,
         "assists": 0,
-        "minutes": 217,
-        "rating": 6.4,
+        "minutes": 218,
+        "rating": 5.12,
         "yellow": 0,
         "red": 0
       }
@@ -2568,12 +2568,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "FC Porto",
-        "apps": 4,
-        "starts": 0,
+        "apps": 5,
+        "starts": 1,
         "goals": 0,
         "assists": 1,
-        "minutes": 94,
-        "rating": 6.79,
+        "minutes": 164,
+        "rating": 6.73,
         "yellow": 1,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-11T22:20:17.496Z"
+  "currentUpdatedAt": "2026-09-12T22:20:19.738Z"
 }
