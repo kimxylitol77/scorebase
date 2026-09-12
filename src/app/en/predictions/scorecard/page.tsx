@@ -747,13 +747,20 @@ export default async function ScorecardPage() {
             const renderCard = (e: UpMatch) => {
               const con = consensusOf(e.picks);
               const split = con.agree < con.total;
+              // Unanimous only when the whole panel picked and all agreed (2026-09-12) —
+              // 국문판과 같은 규칙. 분모는 두 배지 모두 패널 수.
+              const unanimous = !split && con.total >= present.length;
               return (
                 <div key={e.matchId} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
                   <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-white/40">
                     <LeagueBadge league={e.league} />
                     <span>{fmtDate(e.startTime)} {fmtTime(e.startTime)}</span>
-                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${split ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}>
-                      {split ? `Split ${con.agree}/${con.total}` : `Unanimous ${con.total}`}
+                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${split ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : unanimous ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-zinc-500/10 text-zinc-600 dark:text-white/50"}`}>
+                      {split
+                        ? `Split ${con.agree}/${present.length}`
+                        : unanimous
+                          ? `Unanimous ${present.length}`
+                          : `AI ${con.agree}/${present.length}`}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -780,7 +787,7 @@ export default async function ScorecardPage() {
                     <span className="rounded-md bg-zinc-900 px-2 py-0.5 font-bold text-white dark:bg-white dark:text-zinc-900">
                       {shortPick(con.pick, e.home, e.away)}
                     </span>
-                    <span className="tabular-nums">AI {con.agree}/{con.total} agree · avg confidence {(con.avgProb * 100).toFixed(0)}%</span>
+                    <span className="tabular-nums">AI {con.agree}/{present.length} agree · avg confidence {(con.avgProb * 100).toFixed(0)}%</span>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {e.picks.map((p) => {
