@@ -7,6 +7,7 @@
 // 접힘/펼침은 <details>/<summary> — 상태가 하나뿐이라 client 컴포넌트로 만들 이유가 없다.
 // 펼치면 같은 경기의 핸디캡·언더오버·홀짝·승N패 라인이 나온다.
 
+import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import type { BetmanMatch, BetmanLine } from "@/lib/odds/betman";
 import BetmanTeamsRow from "./BetmanTeamsRow";
@@ -119,7 +120,31 @@ function LineRow({ line }: { line: BetmanLine }) {
   );
 }
 
-export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] }) {
+/** KST 날짜 키("2026-09-13")와 라벨("9/13 (일)") */
+function kstDayKey(iso: string): string {
+  const d = new Date(new Date(iso).getTime() + 9 * 3600_000);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+function kstDayLabel(key: string, todayKey: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const wd = ["일", "월", "화", "수", "목", "금", "토"][new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  const base = `${m}/${d} (${wd})`;
+  const diff = Math.round((Date.UTC(y, m - 1, d) - Date.parse(todayKey)) / 86400_000);
+  return diff === 0 ? `오늘 ${base}` : diff === 1 ? `내일 ${base}` : diff === 2 ? `모레 ${base}` : base;
+}
+
+const chip = (active: boolean) =>
+  `inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-semibold ring-1 transition ${
+    active
+      ? "bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900 dark:ring-white"
+      : "bg-white text-neutral-600 ring-neutral-200 hover:bg-neutral-50 dark:bg-white/[0.04] dark:text-neutral-300 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+  }`;
+
+/**
+ * @param date  KST 날짜 키(YYYY-MM-DD) — 그 날만. 없으면 발매 중 전부를 날짜별로 묶어 보인다.
+ * @param item  SC/BS/BK/VL — 종목 필터. 없으면 전 종목.
+ */
+export default function BetmanOddsPanel({ matches, date, item }: { matches: BetmanMatch[]; date?: string; item?: string }) {
   if (matches.length === 0) {
     return (
       <p className="mt-6 rounded-xl border border-neutral-200 px-4 py-8 text-center text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
@@ -128,17 +153,56 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
     );
   }
 
-  const kst = (iso: string) => {
+  // 날짜·종목 칩 — 카운트는 전체 기준(필터를 걸어도 다른 날짜·종목에 몇 경기 있는지 보이게)
+  const todayKey = kstDayKey(new Date().toISOString());
+  const dayCounts = new Map<string, number>();
+  const itemCounts = new Map<string, number>();
+  for (const m of matches) {
+    const k = kstDayKey(m.gameDate);
+    dayCounts.set(k, (dayCounts.get(k) ?? 0) + 1);
+    if (m.itemCode) itemCounts.set(m.itemCode, (itemCounts.get(m.itemCode) ?? 0) + 1);
+  }
+  const days = [...dayCounts.keys()].sort();
+  const dateSel = date && dayCounts.has(date) ? date : null;
+  const itemSel = item && itemCounts.has(item) ? item : null;
+  const shown = matches.filter((m) => (!dateSel || kstDayKey(m.gameDate) === dateSel) && (!itemSel || m.itemCode === itemSel));
+  const href = (d: string | null, it: string | null) =>
+    `/odds?sport=betman${d ? `&date=${d}` : ""}${it ? `&item=${it}` : ""}`;
+  // 날짜별 묶음 — 같은 날 안에서는 프로토 경기번호 순
+  const groups = new Map<string, BetmanMatch[]>();
+  for (const m of shown) {
+    const k = kstDayKey(m.gameDate);
+    const g = groups.get(k) ?? [];
+    g.push(m);
+    groups.set(k, g);
+  }
+  for (const g of groups.values()) g.sort((a, b) => a.matchSeq - b.matchSeq);
+
+  const kstTime = (iso: string) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "-";
-    return new Intl.DateTimeFormat("ko-KR", {
-      month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
-      hour12: false, timeZone: "Asia/Seoul",
-    }).format(d);
+    return new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" }).format(d);
   };
 
   return (
     <section className="mt-4">
+      {/* 날짜 칩 — 오늘·내일·모레 … 발매 중인 날짜 전부. 없던 시절엔 60건 상한에 내일 이후가 잘렸다. */}
+      <div className="mb-2 flex flex-wrap gap-1.5" aria-label="날짜">
+        <Link href={href(null, itemSel)} className={chip(!dateSel)}>전체 <span className="opacity-60 tabular-nums">{matches.length}</span></Link>
+        {days.map((d) => (
+          <Link key={d} href={href(d, itemSel)} className={chip(dateSel === d)}>
+            {kstDayLabel(d, todayKey)} <span className="opacity-60 tabular-nums">{dayCounts.get(d)}</span>
+          </Link>
+        ))}
+      </div>
+      <div className="mb-3 flex flex-wrap gap-1.5" aria-label="종목">
+        <Link href={href(dateSel, null)} className={chip(!itemSel)}>전 종목</Link>
+        {["SC", "BS", "BK", "VL"].filter((c) => itemCounts.has(c)).map((c) => (
+          <Link key={c} href={href(dateSel, c)} className={chip(itemSel === c)}>
+            {SPORT_LABEL[c]} <span className="opacity-60 tabular-nums">{itemCounts.get(c)}</span>
+          </Link>
+        ))}
+      </div>
       <p className="mb-3 text-[12px] leading-relaxed text-neutral-500 dark:text-neutral-400">
         프로토 승부식 배당과 <strong className="font-semibold">국내 구매자 투표 분포</strong>입니다
         {matches[0]?.gmTs ? ` (${matches[0].gmTs} 회차 기준)` : ""}. 막대는 실제 투표 비율,
@@ -147,8 +211,19 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
         경기를 누르면 핸디캡·언더오버 배당이 펼쳐집니다. 출처는 베트맨(스포츠토토).
       </p>
 
+      {shown.length === 0 && (
+        <p className="rounded-xl border border-neutral-200 px-4 py-8 text-center text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+          이 조건에 발매 경기가 없습니다.
+        </p>
+      )}
+      {[...groups.entries()].map(([dayKey, list]) => (
+      <div key={dayKey} className="mb-6">
+        <div className="sticky top-16 z-10 mb-2 flex items-baseline gap-2 bg-white/90 py-1.5 backdrop-blur dark:bg-neutral-950/90">
+          <h2 className="text-sm font-bold">{kstDayLabel(dayKey, todayKey)}</h2>
+          <span className="text-[11px] tabular-nums text-neutral-500">{list.length}경기 · {list[0].gmTs} 회차</span>
+        </div>
       <div className="space-y-2">
-        {matches.map((m) => {
+        {list.map((m) => {
           const hasDraw = m.drawAllot != null;
           const pct = votePct(m);
           const imp = impliedPct(m.winAllot, m.drawAllot, m.loseAllot);
@@ -163,7 +238,7 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
                   <span className="rounded bg-neutral-900 px-1.5 py-px font-bold tabular-nums text-white dark:bg-white dark:text-neutral-900">
                     #{m.matchSeq}
                   </span>
-                  <span className="tabular-nums">{kst(m.gameDate)}</span>
+                  <span className="tabular-nums">{kstTime(m.gameDate)}</span>
                   <span className="rounded bg-neutral-100 px-1.5 py-px font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
                     {SPORT_LABEL[m.itemCode ?? ""] ?? "-"}
                   </span>
@@ -228,6 +303,8 @@ export default function BetmanOddsPanel({ matches }: { matches: BetmanMatch[] })
           );
         })}
       </div>
+      </div>
+      ))}
     </section>
   );
 }

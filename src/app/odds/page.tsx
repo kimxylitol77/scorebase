@@ -245,15 +245,16 @@ function getFlowMatchesCached(sport: Sport): Promise<FlowMatch[]> {
 export default async function OddsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sport?: string }>;
+  searchParams: Promise<{ sport?: string; date?: string; item?: string }>;
 }) {
   const sp = await searchParams;
 
   // 베트맨 배당은 독립 탭 — 해외 북메이커 흐름과 데이터도 화면도 다르다.
   if (sp?.sport === "betman") {
-    // 하루 2회 적재라 10분 캐시로 충분. 종목 구분 없이 시각순 한 목록.
+    // 하루 2회 적재라 10분 캐시로 충분. 발매 중인 경기 전부(보통 2~3일치 100~150경기)를 날짜별로 묶어 보인다 —
+    // 60건 상한이 있을 땐 내일 후반·모레 경기가 통째로 잘렸다(2026-09-12 제보: 오늘 26·내일 77·모레 40경기 중 60건만).
     const rows = await unstable_cache(
-      () => getBetmanMatches(60),
+      () => getBetmanMatches(600),
       ["odds-betman-matches", "all"],
       { revalidate: 600 },
     )();
@@ -261,7 +262,7 @@ export default async function OddsPage({
       <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
         <h1 className="text-2xl font-medium">베트맨 배당</h1>
         <OddsSportTabs sport="betman" />
-        <BetmanOddsPanel matches={rows} />
+        <BetmanOddsPanel matches={rows} date={sp.date} item={sp.item} />
       </div>
     );
   }
