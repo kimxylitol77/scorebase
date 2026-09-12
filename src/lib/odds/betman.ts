@@ -46,6 +46,11 @@ const ITEM_CODES = ["SC", "BS", "BK", "VL"];
 const BASE_TYPES = new Set(["승무패", "일반 승패"]);
 /** 펼침 목록 정렬 — 익숙한 순서대로. 목록에 없는 유형은 뒤로. */
 const LINE_ORDER = ["승N패", "일반 정수핸디캡", "일반 소수핸디캡", "일반 세트핸디캡", "일반 언더오버", "일반 홀짝"];
+/** 펼침 정렬 키 — 전반 라인은 같은 유형이라도 뒤로(풀타임 먼저). */
+const lineRank = (r: { betTypNm: string | null; betNm: string | null }) => {
+  const i = LINE_ORDER.indexOf(r.betTypNm ?? "");
+  return (i < 0 ? 99 : i) + ((r.betNm ?? "").includes("전반") ? 100 : 0);
+};
 
 const norm = (s: string) => s.replace(/[\s·.()]/g, "").toLowerCase();
 
@@ -148,15 +153,12 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
   const out: BetmanMatch[] = [];
   for (const [key, g] of groups) {
     // 대표 = 기본형 중 배당이 매겨진 것. 없으면 이 경기는 보여줄 게 없다.
-    const base = g.rows.find((r) => BASE_TYPES.has(r.betTypNm ?? "") && r.winAllot != null);
+    // 전반 승무패/승패는 betTypNm 이 같아 대표로 뽑히면 풀타임 배당처럼 보인다(2026-09-12 실측 김천 vs 강원) — 대표에서 제외.
+    const base = g.rows.find((r) => BASE_TYPES.has(r.betTypNm ?? "") && r.winAllot != null && !(r.betNm ?? "").includes("전반"));
     if (!base) continue;
     const lines: BetmanLine[] = g.rows
       .filter((r) => r.id !== base.id && r.winAllot != null)
-      .sort((a, b) => {
-        const ia = LINE_ORDER.indexOf(a.betTypNm ?? "");
-        const ib = LINE_ORDER.indexOf(b.betTypNm ?? "");
-        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
-      })
+      .sort((a, b) => lineRank(a) - lineRank(b))
       .map((r) => ({
         id: r.id, betNm: r.betNm, betTypNm: r.betTypNm,
         handi: r.handi, winHandi: r.winHandi, loseHandi: r.loseHandi,

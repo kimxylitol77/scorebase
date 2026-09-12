@@ -73,7 +73,8 @@ function LineRow({ line }: { line: BetmanLine }) {
   return (
     <div className="grid grid-cols-[1fr_auto] items-center gap-3 border-t border-neutral-100 px-3 py-2 dark:border-neutral-800/70 sm:grid-cols-[170px_120px_1fr]">
       <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
-        {line.betTypNm ?? line.betNm ?? "-"}
+        {/* 전반 라인은 유형명("승무패")만 보이면 풀타임과 구분이 안 된다 — betNm("축구 전반 승무패")로 */}
+        {(line.betNm ?? "").includes("전반") ? line.betNm : (line.betTypNm ?? line.betNm ?? "-")}
         {lineLabel && (
           <span className="ml-1 rounded bg-neutral-100 px-1 py-px text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
             {lineLabel}
