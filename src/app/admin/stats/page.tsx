@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { DailyArea, DailyTraffic, HourlyTraffic } from "@/components/charts/StatsChart";
+import SectionRangeTabs, { type RangeKey } from "@/components/admin/SectionRangeTabs";
 import LivePresencePanel from "@/components/admin/LivePresencePanel";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
 import { suspiciousSessionIds, concurrentSeries, concurrentByDay } from "@/lib/traffic-filter";
@@ -33,10 +34,6 @@ function dayKey(d: Date) {
 function shortDay(d: Date) {
   const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
   return `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
-}
-function hourKey(d: Date) {
-  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-  return String(kst.getUTCHours()).padStart(2, "0");
 }
 
 // Host 헤더 → 사람이 읽을 도메인 라벨. 운영 2개 도메인 + 개발/프리뷰 그룹핑.
@@ -90,7 +87,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing, aiSvcRaw, dayUaAgg, hourUaAgg] = await Promise.all([
+  const [recent30Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing, aiSvcRaw, dayUaAgg, hourUaAgg, landingAgg] = await Promise.all([
     // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
     // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
     // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전. 30일 차트는 2026-09-12 부터 SQL 집계(dayUaAgg)라 잘림 무관.
@@ -98,12 +95,6 @@ export default async function StatsPage({ searchParams }: Props) {
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
       take: 150000,
-      orderBy: { ts: "desc" },
-    }),
-    prisma.pageView.findMany({
-      where: { ts: { gte: last24h } },
-      select: { ts: true, userAgent: true, sessionId: true },
-      take: 40000,
       orderBy: { ts: "desc" },
     }),
     prisma.pageView.findMany({
@@ -157,15 +148,22 @@ export default async function StatsPage({ searchParams }: Props) {
     // 30일 일별·24시간 시간대 차트 — 행을 다 받지 않고 (일, UA) 단위로 DB 에서 접는다. recent30Raw 는 take 150k 라
     // 30일 PV 가 27만을 넘긴 뒤(2026-09 실측) 옛쪽 보름이 0 으로 그려졌다. UA 그룹은 3천 개뿐이라 봇 판정(detectBot)은
     // 그대로 메모리에서 — 트래픽 판정 단일 출처 유지. 방문자 = 그날 고유 세션(sessionId).
-    // 기간은 화면 상단 선택(7일·30일·전체)을 따른다 — 전체는 첫 기록(2026-05-09)부터 127일, 8.8k 그룹·1.8s.
+    // 항상 전체 기간(첫 기록 2026-05-09 부터, 8.8k 그룹·1.8s) — 카드 안 탭이 7일·30일·전체를 즉시 바꾼다(페이지 재요청 없음).
     prisma.$queryRaw<Array<{ day: string; ua: string | null; pv: number; visitors: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day, "userAgent" AS ua,
              count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
-      FROM "PageView" WHERE ts >= ${range === "all" ? new Date(0) : range === "30d" ? last30 : last7} GROUP BY 1, 2`,
+      FROM "PageView" GROUP BY 1, 2`,
     prisma.$queryRaw<Array<{ hour: string; ua: string | null; pv: number; visitors: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'HH24') AS hour, "userAgent" AS ua,
              count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
       FROM "PageView" WHERE ts >= ${last24h} GROUP BY 1, 2`,
+    // 유입 채널 카드 — 랜딩 행 33만(30일만 21만)이라 take 10만은 잘린다. (일, referrer 호스트, utm, UA) 로 접어
+    // 12k 그룹·2.8s. classifyLanding 은 호스트만 보므로 "https://host/" 로 되살려 넘긴다. 봇 판정은 detectBot(UA).
+    prisma.$queryRaw<Array<{ day: string; host: string; utm: string | null; ua: string | null; n: number; sessions: number }>>`
+      SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day,
+             split_part(split_part(coalesce(referrer, ''), '://', 2), '/', 1) AS host,
+             "utmSource" AS utm, "userAgent" AS ua, count(*)::int AS n, count(DISTINCT "sessionId")::int AS sessions
+      FROM "PageView" WHERE "isLanding" = true GROUP BY 1, 2, 3, 4`,
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -287,45 +285,71 @@ export default async function StatsPage({ searchParams }: Props) {
   const botRangeCount = botsRange.length;
 
   // 일별 — 사람 기준 30일 (차트는 30일 고정 — 시각화 일관성)
-  // 일별(선택 범위) — (일, UA) SQL 집계 위에 detectBot. take 잘림이 없어 범위 전부 그려진다.
+  // 일별 — (일, UA) SQL 집계(전체 기간) 위에 detectBot. take 잘림이 없어 어느 기간이든 전부 그려진다.
   const firstDay = dayUaAgg.reduce((m, g) => (g.day < m ? g.day : m), dayKey(now));
-  const rangeDays =
-    range === "all"
-      ? Math.round((new Date(dayKey(now) + "T00:00:00Z").getTime() - new Date(firstDay + "T00:00:00Z").getTime()) / 86400000) + 1
-      : range === "30d" ? 30 : 7;
-  const humanDayBuckets = new Map<string, { views: number; visitors: number }>();
-  const botDayBuckets = new Map<string, number>();
-  for (let i = rangeDays - 1; i >= 0; i--) {
-    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    humanDayBuckets.set(dayKey(d), { views: 0, visitors: 0 });
-    botDayBuckets.set(dayKey(d), 0);
+  const allDays =
+    Math.round((new Date(dayKey(now) + "T00:00:00Z").getTime() - new Date(firstDay + "T00:00:00Z").getTime()) / 86400000) + 1;
+  const humanByDay = new Map<string, { views: number; visitors: number }>();
+  const botByDay = new Map<string, number>();
+  for (let i = allDays - 1; i >= 0; i--) {
+    const d = dayKey(new Date(now.getTime() - i * 24 * 60 * 60 * 1000));
+    humanByDay.set(d, { views: 0, visitors: 0 });
+    botByDay.set(d, 0);
   }
   for (const g of dayUaAgg) {
     if (detectBot(g.ua).isBot) {
-      if (botDayBuckets.has(g.day)) botDayBuckets.set(g.day, (botDayBuckets.get(g.day) ?? 0) + g.pv);
+      if (botByDay.has(g.day)) botByDay.set(g.day, (botByDay.get(g.day) ?? 0) + g.pv);
       continue;
     }
-    const b = humanDayBuckets.get(g.day);
+    const b = humanByDay.get(g.day);
     if (b) { b.views += g.pv; b.visitors += g.visitors; }
   }
   const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
-  const humanDailyData = Array.from(humanDayBuckets.entries()).map(([d, v]) => ({
+  const allDaily = Array.from(humanByDay.entries()).map(([d, v]) => ({
     date: shortDay(new Date(d + "T12:00:00Z")),
     day: d,
     weekday: WEEKDAY[new Date(d + "T12:00:00+09:00").getUTCDay()],
     views: v.views,
     visitors: v.visitors,
   }));
-  const botDailyData = Array.from(botDayBuckets.entries()).map(([d, v]) => ({
+  const RANGE_DAYS: Record<RangeKey, number> = { "7d": 7, "30d": 30, all: allDays };
+  const dailyFor = (k: RangeKey) => {
+    const rows = allDaily.slice(-RANGE_DAYS[k]);
+    return {
+      key: k,
+      days: rows.length,
+      rows,
+      views: rows.reduce((a, d) => a + d.views, 0),
+      visitors: rows.reduce((a, d) => a + d.visitors, 0),
+      avgVisitors: Math.round(rows.reduce((a, d) => a + d.visitors, 0) / Math.max(1, rows.length)),
+      peak: rows.reduce((best, d) => (d.visitors > best.visitors ? d : best), rows[0]),
+    };
+  };
+  const dailyPanels = { "7d": dailyFor("7d"), "30d": dailyFor("30d"), all: dailyFor("all") } as const;
+  // 봇 일별 차트(아래 봇 섹션)는 전역 기간을 따른다.
+  const botDailyData = Array.from(botByDay.entries()).slice(-RANGE_DAYS[range]).map(([d, v]) => ({
     date: shortDay(new Date(d + "T12:00:00Z")),
     views: v,
   }));
-  const daily30 = {
-    views: humanDailyData.reduce((a, d) => a + d.views, 0),
-    visitors: humanDailyData.reduce((a, d) => a + d.visitors, 0),
-    avgVisitors: Math.round(humanDailyData.reduce((a, d) => a + d.visitors, 0) / Math.max(1, humanDailyData.length)),
-    peak: humanDailyData.reduce((best, d) => (d.visitors > best.visitors ? d : best), humanDailyData[0]),
+
+  // 유입 채널 — 세 기간 각각 채널별 유입·방문자(고유 세션). 같은 세션이 채널 안에서 다른 호스트로 두 번 랜딩하면 방문자가 1 더 세질 수 있다(드묾).
+  const channelFor = (k: RangeKey) => {
+    const cutoff = k === "all" ? "" : dayKey(new Date(now.getTime() - (RANGE_DAYS[k] - 1) * 24 * 60 * 60 * 1000));
+    const agg = new Map<TrafficChannel, { count: number; unique: number }>();
+    let total = 0;
+    for (const g of landingAgg) {
+      if (g.day < cutoff) continue;
+      if (detectBot(g.ua).isBot) continue;
+      const { channel } = classifyLanding(g.host ? `https://${g.host}/` : null, g.utm, g.ua);
+      const e = agg.get(channel) ?? { count: 0, unique: 0 };
+      e.count += g.n;
+      e.unique += g.sessions;
+      agg.set(channel, e);
+      total += g.n;
+    }
+    return { total, rows: CHANNEL_ORDER.map((c) => ({ channel: c, count: agg.get(c)?.count ?? 0, unique: agg.get(c)?.unique ?? 0 })) };
   };
+  const channelPanels = { "7d": channelFor("7d"), "30d": channelFor("30d"), all: channelFor("all") } as const;
 
   // 24시간 시간대 — 사람 기준 (24h 고정)
   const humanHourBuckets = new Map<string, { views: number; visitors: number }>();
@@ -488,7 +512,6 @@ export default async function StatsPage({ searchParams }: Props) {
   const searchQueryAgg = new Map<string, { count: number; channel: TrafficChannel }>();
   // 외부 유입(직접 제외)이 도착한 랜딩 페이지
   const externalLandingPathAgg = new Map<string, number>();
-  let landingTotal = 0;
   for (const r of landingRaw) {
     if (detectBot(r.userAgent).isBot) continue;
     if (r.sessionId && suspiciousSids.has(r.sessionId)) continue; // 위장 스크레이퍼 랜딩 제외
@@ -506,7 +529,6 @@ export default async function StatsPage({ searchParams }: Props) {
     if (channel !== "direct") {
       externalLandingPathAgg.set(r.path, (externalLandingPathAgg.get(r.path) ?? 0) + 1);
     }
-    landingTotal++;
   }
   // === AI 서비스별 유입 (사람 PV, referrer·utm 기준) — ai_chat 채널을 서비스 단위로 ===
   // utm_source 는 링크 URL 에만, referrer 는 첫 페이지에만 남으므로 사실상 "AI 링크를 누른 횟수" 다.
@@ -533,15 +555,7 @@ export default async function StatsPage({ searchParams }: Props) {
       topPaths: e ? [...e.paths.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3) : [],
     };
   });
-  const aiSvcTotalPv = aiSvcRows.reduce((s, r) => s + r.pv, 0);
 
-  // 유입 0 인 채널도 행 유지 — 신규 채널(유튜브 등) 개설 후 "잡히고는 있나" 를
-  // 표에서 바로 확인하려면 0 행이 보여야 한다.
-  const channelData = CHANNEL_ORDER.map((c) => ({
-    channel: c,
-    count: channelAgg.get(c)?.count ?? 0,
-    unique: channelAgg.get(c)?.ids.size ?? 0,
-  }));
   const topReferralDomains = Array.from(referralDomainAgg.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 50);
@@ -804,49 +818,11 @@ export default async function StatsPage({ searchParams }: Props) {
           )}
         </SectionCard>
 
-        <SectionCard title={`${rangeLabel} 방문자 · 페이지뷰`} subtitle={`일별 ${rangeDays}일 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션`}>
-          {daily30.views === 0 ? (
-            <EmptyHint />
-          ) : (
-            <>
-              <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <MiniStat label={`${rangeLabel} 방문자`} value={daily30.visitors} tone="emerald" />
-                <MiniStat label={`${rangeLabel} 페이지뷰`} value={daily30.views} tone="blue" />
-                <MiniStat label="하루 평균 방문자" value={daily30.avgVisitors} tone="emerald" />
-                <MiniStat label={`최다 방문일 (${daily30.peak.date})`} value={daily30.peak.visitors} tone="emerald" />
-              </div>
-              <DailyTraffic data={humanDailyData} tickEvery={rangeDays <= 7 ? 0 : rangeDays <= 31 ? 4 : Math.ceil(rangeDays / 10)} />
-              {/* 날짜별 표 — 최신이 위. 전체 범위는 127일이라 스크롤 박스 */}
-              <div className="mt-4 max-h-[320px] overflow-y-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-white dark:bg-neutral-950">
-                    <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
-                      <th className="px-3 py-2 text-left font-medium">날짜</th>
-                      <th className="px-3 py-2 text-right font-medium text-emerald-600 dark:text-emerald-400">방문자</th>
-                      <th className="px-3 py-2 text-right font-medium text-blue-600 dark:text-blue-400">페이지뷰</th>
-                      <th className="px-3 py-2 text-right font-medium">1인당 페이지</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-                    {[...humanDailyData].reverse().map((d) => {
-                      const weekend = d.weekday === "토" || d.weekday === "일";
-                      return (
-                        <tr key={d.day} className={d.day === daily30.peak.day ? "bg-emerald-50/60 dark:bg-emerald-500/10" : undefined}>
-                          <td className="px-3 py-1.5 tabular-nums">
-                            {d.day.slice(5).replace("-", "/")}
-                            <span className={`ml-1 text-[11px] ${weekend ? "text-rose-500" : "text-neutral-400"}`}>{d.weekday}</span>
-                          </td>
-                          <td className="px-3 py-1.5 text-right tabular-nums font-semibold">{d.visitors.toLocaleString()}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums">{d.views.toLocaleString()}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums text-neutral-500">{d.visitors > 0 ? (d.views / d.visitors).toFixed(1) : "–"}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+        <SectionCard title="방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션 · 카드 안에서 기간 선택">
+          <SectionRangeTabs
+            id="daily"
+            panels={{ "7d": <DailyPanel p={dailyPanels["7d"]} />, "30d": <DailyPanel p={dailyPanels["30d"]} />, all: <DailyPanel p={dailyPanels.all} /> }}
+          />
         </SectionCard>
 
         <SectionCard title="최근 24시간 시간대 분포" subtitle="KST 0~23시 · 막대 = 페이지뷰 · 선 = 방문자">
@@ -1061,73 +1037,15 @@ export default async function StatsPage({ searchParams }: Props) {
           <span className="text-base">🚪</span>
           <h2 className="text-lg font-bold tracking-tight">유입 채널</h2>
           <span className="text-xs text-neutral-500">
-            (사람 · 랜딩 기준 · {rangeLabel}) — 구글/네이버/SNS/직접
+            (사람 · 랜딩 기준) — 구글/네이버/SNS/직접 · 첫 카드는 카드 안에서 기간 선택, 나머지는 상단 기간({rangeLabel})
           </span>
         </div>
 
-        <SectionCard title="어디서 들어왔나" subtitle={`유입 ${landingTotal.toLocaleString()}회`}>
-          {landingTotal === 0 ? (
-            <EmptyHint message="유입 기록은 2026-06-11 기능 추가 이후 랜딩 PV부터 쌓입니다. 하루 정도 지나면 채널 분포가 보입니다." />
-          ) : (
-            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {channelData.map((c) => {
-                const meta = CHANNEL_META[c.channel];
-                const max = Math.max(...channelData.map((x) => x.count));
-                const pct = max > 0 ? (c.count / max) * 100 : 0;
-                const share =
-                  landingTotal > 0 ? Math.round((c.count / landingTotal) * 100) : 0;
-                return (
-                  <li
-                    key={c.channel}
-                    className={`py-2.5 flex items-center gap-3 text-sm${c.count === 0 ? " opacity-40" : ""}`}
-                  >
-                    <span className="text-base w-6 text-center">{meta.emoji}</span>
-                    <span className="font-medium truncate w-40 sm:w-48">{meta.label}</span>
-                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                      <div className="h-full bg-sky-500" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="tabular-nums text-neutral-500 font-semibold w-36 text-right">
-                      방문자 {c.unique.toLocaleString()} · {c.count.toLocaleString()}회
-                      <span className="text-neutral-400"> ({share}%)</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard
-          title="AI 서비스별 유입"
-          subtitle={`${rangeLabel} · AI 링크 클릭 ${aiSvcTotalPv.toLocaleString()}회 (사람 · referrer·utm_source 기준)`}
-        >
-          <table className="w-full text-sm table-fixed">
-            <thead>
-              <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
-                <th className="text-left font-medium pb-2 pr-2 w-28">서비스</th>
-                <th className="text-right font-medium pb-2 px-1 w-16">방문자</th>
-                <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
-                <th className="text-left font-medium pb-2 pl-3">많이 들어온 페이지</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {aiSvcRows.map((r) => (
-                <tr key={r.name} className={r.pv === 0 ? "opacity-40" : undefined}>
-                  <td className="py-2 pr-2 font-medium">{r.name}</td>
-                  <td className="py-2 px-1 text-right tabular-nums font-semibold">{r.unique.toLocaleString()}</td>
-                  <td className="py-2 px-1 text-right tabular-nums">{r.pv.toLocaleString()}</td>
-                  <td className="py-2 pl-3 text-xs text-neutral-500 truncate">
-                    {r.topPaths.length === 0 ? "—" : r.topPaths.map(([p, n]) => `${p} (${n})`).join(" · ")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="mt-3 text-[11px] text-neutral-400 leading-relaxed">
-            ChatGPT·Copilot·Perplexity 는 링크에 utm_source 를 붙여 거의 전부 잡힙니다. Claude·Gemini 는 태그를 안 붙이고
-            referrer 만 남기므로 앱·인앱 브라우저처럼 referrer 가 빠지는 경로는 &quot;직접&quot; 으로 섞입니다(하한값).
-            AI 가 답변에서 우리를 언급만 하고 클릭이 없으면 여기에 안 잡힙니다.
-          </p>
+        <SectionCard title="어디서 들어왔나" subtitle="랜딩 기준 · 봇 제외 · 방문자 = 고유 세션">
+          <SectionRangeTabs
+            id="channels"
+            panels={{ "7d": <ChannelPanel p={channelPanels["7d"]} />, "30d": <ChannelPanel p={channelPanels["30d"]} />, all: <ChannelPanel p={channelPanels.all} /> }}
+          />
         </SectionCard>
 
         <SectionCard
@@ -1926,6 +1844,92 @@ function RangeSelector({ active }: { active: Range }) {
         );
       })}
     </div>
+  );
+}
+
+type DailyPanelData = {
+  key: RangeKey;
+  days: number;
+  rows: Array<{ date: string; day: string; weekday: string; views: number; visitors: number }>;
+  views: number;
+  visitors: number;
+  avgVisitors: number;
+  peak: { date: string; day: string; visitors: number };
+};
+
+/** 방문자·페이지뷰 카드의 한 기간 패널 — 요약 칩 + 이축 차트 + 날짜별 표. 서버가 세 기간을 렌더해 탭 컴포넌트에 넘긴다. */
+function DailyPanel({ p }: { p: DailyPanelData }) {
+  if (p.views === 0) return <EmptyHint />;
+  const label = RANGE_LABEL[p.key];
+  return (
+    <>
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <MiniStat label={`${label} 방문자`} value={p.visitors} tone="emerald" />
+        <MiniStat label={`${label} 페이지뷰`} value={p.views} tone="blue" />
+        <MiniStat label="하루 평균 방문자" value={p.avgVisitors} tone="emerald" />
+        <MiniStat label={`최다 방문일 (${p.peak.date})`} value={p.peak.visitors} tone="emerald" />
+      </div>
+      <DailyTraffic data={p.rows} tickEvery={p.days <= 7 ? 0 : p.days <= 31 ? 4 : Math.ceil(p.days / 10)} />
+      <div className="mt-4 max-h-[320px] overflow-y-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 bg-white dark:bg-neutral-950">
+            <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+              <th className="px-3 py-2 text-left font-medium">날짜</th>
+              <th className="px-3 py-2 text-right font-medium text-emerald-600 dark:text-emerald-400">방문자</th>
+              <th className="px-3 py-2 text-right font-medium text-blue-600 dark:text-blue-400">페이지뷰</th>
+              <th className="px-3 py-2 text-right font-medium">1인당 페이지</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+            {[...p.rows].reverse().map((d) => {
+              const weekend = d.weekday === "토" || d.weekday === "일";
+              return (
+                <tr key={d.day} className={d.day === p.peak.day ? "bg-emerald-50/60 dark:bg-emerald-500/10" : undefined}>
+                  <td className="px-3 py-1.5 tabular-nums">
+                    {d.day.slice(5).replace("-", "/")}
+                    <span className={`ml-1 text-[11px] ${weekend ? "text-rose-500" : "text-neutral-400"}`}>{d.weekday}</span>
+                  </td>
+                  <td className="px-3 py-1.5 text-right tabular-nums font-semibold">{d.visitors.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{d.views.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums text-neutral-500">{d.visitors > 0 ? (d.views / d.visitors).toFixed(1) : "–"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/** 유입 채널 카드의 한 기간 패널 — 채널별 막대. 0 인 채널도 흐리게 남긴다(새 채널이 잡히는지 바로 보려고). */
+function ChannelPanel({ p }: { p: { total: number; rows: Array<{ channel: TrafficChannel; count: number; unique: number }> } }) {
+  if (p.total === 0) return <EmptyHint message="이 기간엔 랜딩 유입이 없습니다." />;
+  const max = Math.max(...p.rows.map((x) => x.count));
+  return (
+    <>
+      <p className="mb-2 text-[11px] text-neutral-500">유입 {p.total.toLocaleString()}회</p>
+      <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        {p.rows.map((c) => {
+          const meta = CHANNEL_META[c.channel];
+          const pct = max > 0 ? (c.count / max) * 100 : 0;
+          const share = p.total > 0 ? Math.round((c.count / p.total) * 100) : 0;
+          return (
+            <li key={c.channel} className={`py-2.5 flex items-center gap-3 text-sm${c.count === 0 ? " opacity-40" : ""}`}>
+              <span className="text-base w-6 text-center">{meta.emoji}</span>
+              <span className="font-medium truncate w-40 sm:w-48">{meta.label}</span>
+              <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                <div className="h-full bg-sky-500" style={{ width: `${pct}%` }} />
+              </div>
+              <span className="tabular-nums text-neutral-500 font-semibold w-36 text-right">
+                방문자 {c.unique.toLocaleString()} · {c.count.toLocaleString()}회
+                <span className="text-neutral-400"> ({share}%)</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
