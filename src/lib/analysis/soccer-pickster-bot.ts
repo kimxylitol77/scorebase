@@ -5,6 +5,7 @@
 // 경기 종료 후 scoreAnalysisPredictions 가 1X2 자동 채점 → 풋볼픽스터 적중률 누적.
 
 import "server-only";
+import { foreignScriptReason } from "@/lib/analysis/korean-purity";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/user-auth";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -189,6 +190,10 @@ export async function saveSoccerPickPost(
     select: { id: true },
   });
   if (dup) return { created: false, reason: "dup" };
+
+  // 한국어 순도 게이트 — 맥미니 qwen 이 중국어·일본어로 새면 저장하지 않는다(2026-09-10 #3678 전문 중국어).
+  const foreign = foreignScriptReason(`${input.title}\n${input.analysis}`);
+  if (foreign) return { created: false, reason: `foreign_script: ${foreign}` };
 
   // 스탯카드 짤 상시 첨부 — AI 승률 바 + 배당 (우리 데이터 근거 시각화).
   const card = `\n\n![경기 데이터 카드](/api/og/match-card?m=${input.matchId})`;

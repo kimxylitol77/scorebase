@@ -6,6 +6,7 @@
 // 자동 채점 → "해외픽스터" 적중률이 게시판에 누적된다 (우리 AI 적중률과 비교 가능).
 
 import "server-only";
+import { foreignScriptReason } from "@/lib/analysis/korean-purity";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/user-auth";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -174,6 +175,10 @@ export async function saveConsensusPost(
     select: { id: true },
   });
   if (dup) return { created: false, reason: "dup" };
+
+  // 한국어 순도 게이트 — 맥미니 qwen 이 중국어·일본어로 새면 저장하지 않는다(2026-09-10 #3678 전문 중국어).
+  const foreign = foreignScriptReason(`${input.title}\n${input.analysis}`);
+  if (foreign) return { created: false, reason: `foreign_script: ${foreign}` };
 
   const post = await prisma.post.create({
     data: {

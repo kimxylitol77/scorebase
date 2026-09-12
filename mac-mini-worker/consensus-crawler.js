@@ -127,9 +127,10 @@ async function savePost(payload) {
   return data; // { created, postId?, reason? }
 }
 
-// qwen 외래어 표기 시 가끔 섞이는 일본어 가나 — 감지/제거(한국어 순도 보강).
-const hasKana = (s) => /[぀-ヿ]/.test(s);
-const stripKana = (s) => s.replace(/[぀-ヿ]/g, "");
+// qwen 이 섞는 외국 문자 — 일본어 가나뿐 아니라 중국어(한자 2자 이상 연속)도 잡는다.
+// 2026-09-10 풋볼픽스터 #3678 이 제목·본문 전부 중국어로 발행됐다(가나만 보던 게이트 통과). 낱글자 한자("行"·"甲")는 허용.
+// 서버(src/lib/analysis/korean-purity.ts)도 같은 기준으로 한 번 더 막는다.
+const hasForeign = (s) => /[぀-ヿ]/.test(s) || /[一-鿿]{2,}/.test(s) || (s.match(/[一-鿿]/g) || []).length >= 3;
 
 /** Ollama 응답에서 JSON 객체 추출 (format:json 이지만 방어적으로 한 번 더). */
 function parseJson(raw) {
@@ -145,7 +146,7 @@ function parseJson(raw) {
   return null;
 }
 
-/** ② 로컬 Ollama 한국어 분석 생성. 가나 섞이면 재생성(2회), 마지막엔 제거 후 발행. */
+/** ② 로컬 Ollama 한국어 분석 생성. 외국 문자(가나·한자) 섞이면 재생성(2회), 끝까지 남으면 발행 건너뜀. */
 async function genLocal(m) {
   const favLabel = m.pick === "OVER" ? "오버" : "언더";
   const favPct = m.pick === "OVER" ? m.overPct : m.underPct;
@@ -187,10 +188,10 @@ async function genLocal(m) {
     let title = String(json.title ?? "").trim().slice(0, 120);
     let analysis = String(json.analysis ?? "").trim();
     if (!title || analysis.length < 20) continue;
-    if (hasKana(title) || hasKana(analysis)) {
-      if (attempt < 2) continue; // 재생성
-      title = stripKana(title); // 마지막 시도: 가나 제거하고 발행
-      analysis = stripKana(analysis);
+    if (hasForeign(title) || hasForeign(analysis)) {
+      // 재생성. 마지막 시도까지 외국 문자가 남으면 발행하지 않는다 — 제거하고 내보내면 반쪽 글이 된다.
+      log(`외국 문자 감지(attempt ${attempt + 1}) — ${attempt < 2 ? "재생성" : "발행 건너뜀"}`);
+      continue;
     }
     return { title, analysis };
   }
