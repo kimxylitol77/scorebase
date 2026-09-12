@@ -1049,6 +1049,39 @@ export default async function StatsPage({ searchParams }: Props) {
         </SectionCard>
 
         <SectionCard
+          title="AI 서비스별 유입"
+          subtitle={`${rangeLabel} · AI 링크 클릭 ${aiSvcRows.reduce((a, r) => a + r.pv, 0).toLocaleString()}회 (사람 · referrer·utm_source 기준)`}
+        >
+          <table className="w-full text-sm table-fixed">
+            <thead>
+              <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                <th className="text-left font-medium pb-2 pr-2 w-28">서비스</th>
+                <th className="text-right font-medium pb-2 px-1 w-16">방문자</th>
+                <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
+                <th className="text-left font-medium pb-2 pl-3">많이 들어온 페이지</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {aiSvcRows.map((r) => (
+                <tr key={r.name} className={r.pv === 0 ? "opacity-40" : undefined}>
+                  <td className="py-2 pr-2 font-medium">{r.name}</td>
+                  <td className="py-2 px-1 text-right tabular-nums font-semibold">{r.unique.toLocaleString()}</td>
+                  <td className="py-2 px-1 text-right tabular-nums">{r.pv.toLocaleString()}</td>
+                  <td className="py-2 pl-3 text-xs text-neutral-500 truncate">
+                    {r.topPaths.length === 0 ? "—" : r.topPaths.map(([p, n]) => `${p} (${n})`).join(" · ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-[11px] text-neutral-400 leading-relaxed">
+            ChatGPT·Copilot·Perplexity 는 링크에 utm_source 를 붙여 거의 전부 잡힙니다. Claude·Gemini 는 태그를 안 붙이고
+            referrer 만 남기므로 앱·인앱 브라우저처럼 referrer 가 빠지는 경로는 &quot;직접&quot; 으로 섞입니다(하한값).
+            AI 가 답변에서 우리를 언급만 하고 클릭이 없으면 여기에 안 잡힙니다.
+          </p>
+        </SectionCard>
+
+        <SectionCard
           title="지난주 대비"
           subtitle="이번 주 = 최근 7일 · 지난주 = 그 전 7일 (기간 선택과 무관)"
         >
