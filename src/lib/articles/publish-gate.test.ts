@@ -119,3 +119,33 @@ test("정상 프리뷰는 통과", () => {
   });
   assert.equal(r.ok, true);
 });
+
+test("1X2 표의 '모델 추정' 칸이 저장 픽과 다르면 차단 (2026-09-12 야구 Poisson 사고)", () => {
+  const r = checkArticleGate({
+    content: [
+      "| 시장 | 모델 추정 | 시장 평균 | 차이 |",
+      "|---|---|---|---|",
+      "| **1X2 (홈/무/원정)** | 61% / 0% / 39% | 61% / 0% / 39% | 0%p |",
+    ].join("\n"),
+    league: "MLB",
+    mode: "preview",
+    winProb: { home: 0.532, draw: 0, away: 0.468 },
+  });
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.reasons[0], /61%/);
+});
+
+test("1X2 표가 저장 픽과 같으면 시장 평균 칸이 달라도 통과", () => {
+  const r = checkArticleGate({
+    content: [
+      "| 시장 | 모델 추정 | 시장 평균 | 차이 |",
+      "|---|---|---|---|",
+      "| **1X2 (홈/원정)** | 53% / 47% | 63% / 37% | -10%p (홈) |",
+      "| **더블 찬스** | 53% | 63% | -10%p |",
+    ].join("\n"),
+    league: "MLB",
+    mode: "preview",
+    winProb: { home: 0.532, draw: 0, away: 0.468 },
+  });
+  assert.equal(r.ok, true);
+});

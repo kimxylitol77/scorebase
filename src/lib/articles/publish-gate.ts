@@ -66,6 +66,22 @@ function isModelProbSentence(s: string): boolean {
   return /(모델|추정|예측|통계)/.test(s) && /(승률|승리|이길|확률)/.test(s);
 }
 
+/** 마크다운 "모델 vs 시장" 표의 1X2 행에서 "모델 추정" 칸만 뽑는다 (표 컬럼 순서는 프롬프트가
+ *  | 시장 | 모델 추정 | 시장 평균 | 차이 | 로 고정). 시장 평균 칸은 모델과 달라야 정상이라 안 본다.
+ *
+ *  이 행은 문장이 아니라 isModelProbSentence 의 어휘 조건(모델·추정·예측·통계)에 안 걸린다. 그래서
+ *  2026-09-12 야구 사고 — 본문 1X2 표에만 Poisson 승률이 들어가 저장 픽과 갈린 68건 — 이 게이트를
+ *  그대로 통과했다. 프롬프트에서 Poisson 승률 값을 뺐지만(78a72e8) 표 행 대조는 남겨둔다. */
+function oneXTwoModelCell(content: string): string | null {
+  for (const line of content.split("\n")) {
+    if (!line.includes("|") || !/1X2/i.test(line)) continue;
+    const cells = line.split("|").map((c) => c.trim());
+    const i = cells.findIndex((c) => /1X2/i.test(c));
+    if (i >= 0 && cells[i + 1]) return cells[i + 1];
+  }
+  return null;
+}
+
 export function checkArticleGate(input: ArticleGateInput): ArticleGateResult {
   const reasons: string[] = [];
   const { content, league } = input;
@@ -87,15 +103,20 @@ export function checkArticleGate(input: ArticleGateInput): ArticleGateResult {
     if (input.winProb) {
       const allowed = [input.winProb.home, input.winProb.draw, input.winProb.away].map((p) => Math.round(p * 100));
       const bad: string[] = [];
-      for (const s of splitSentences(content)) {
-        if (!isModelProbSentence(s)) continue;
-        // "%p"·"%포인트" 는 격차 표기라 승률이 아니다.
-        for (const m of s.matchAll(/(\d{1,3})(?:\.\d+)?\s*%(?![pP]|포인트)/g)) {
+      // "%p"·"%포인트" 는 격차 표기라 승률이 아니다.
+      const collect = (text: string) => {
+        for (const m of text.matchAll(/(\d{1,3})(?:\.\d+)?\s*%(?![pP]|포인트)/g)) {
           const n = Number(m[1]);
           if (n > 100) continue;
           if (!allowed.some((a) => Math.abs(a - n) <= 1)) bad.push(`${n}%`);
         }
+      };
+      for (const s of splitSentences(content)) {
+        if (!isModelProbSentence(s)) continue;
+        collect(s);
       }
+      const cell = oneXTwoModelCell(content);
+      if (cell) collect(cell);
       if (bad.length) {
         reasons.push(`본문 승률 ${[...new Set(bad)].join(", ")} 이(가) 모델 승률(홈 ${allowed[0]}/무 ${allowed[1]}/원정 ${allowed[2]})과 불일치`);
       }

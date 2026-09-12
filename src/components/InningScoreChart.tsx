@@ -84,16 +84,26 @@ export default function InningScoreChart({
         </div>
       </footer>
 
+      {/* 이 승률은 페이지 상단 "AI 모델 승률"(저장 픽 = 풀엔진 predictMatchById)과 다른 모델이다.
+          여기는 이닝별 득점 분포만 쓰고 시장 배당 블렌드를 받지 않아, 21일치 실측으로 평균 12.2%p
+          (최대 55%p) 벌어진다. 같은 값처럼 보이면 안 되므로 산출 기준을 라벨과 각주로 밝힌다
+          (2026-09-12). 카드 안 예상 득점과 짝이 맞는 값이라 여기서는 이쪽을 쓰는 게 맞다. */}
       {winProb && (
-        <div className="mt-2 text-[11px] text-neutral-500">
-          모델 승률(Skellam): {awayName}{" "}
-          <span className="font-semibold tabular-nums">
-            {(winProb.team1 * 100).toFixed(0)}%
-          </span>{" "}
-          / {homeName}{" "}
-          <span className="font-semibold tabular-nums">
-            {(winProb.team2 * 100).toFixed(0)}%
-          </span>
+        <div className="mt-2 space-y-1 text-[11px] text-neutral-500">
+          <div>
+            이닝 모델 승률 · Poisson 기준: {awayName}{" "}
+            <span className="font-semibold tabular-nums">
+              {(winProb.team1 * 100).toFixed(0)}%
+            </span>{" "}
+            / {homeName}{" "}
+            <span className="font-semibold tabular-nums">
+              {(winProb.team2 * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="text-neutral-400 dark:text-neutral-500">
+            위 예상 득점 분포만으로 계산한 값입니다. 선발 투수·베팅 시장 배당까지 반영하는 페이지
+            상단의 AI 모델 승률과는 산출 기준이 달라 수치가 다를 수 있습니다.
+          </div>
         </div>
       )}
     </section>
