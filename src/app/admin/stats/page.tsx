@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { DailyArea, HourlyBar } from "@/components/charts/StatsChart";
+import { DailyArea, DailyTraffic, HourlyTraffic } from "@/components/charts/StatsChart";
 import LivePresencePanel from "@/components/admin/LivePresencePanel";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
 import { suspiciousSessionIds, concurrentSeries, concurrentByDay } from "@/lib/traffic-filter";
@@ -90,10 +90,10 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing, aiSvcRaw] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing, aiSvcRaw, dayUaAgg, hourUaAgg] = await Promise.all([
     // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
     // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
-    // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전 (잘림은 30일 차트의 옛날쪽 며칠).
+    // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전. 30일 차트는 2026-09-12 부터 SQL 집계(dayUaAgg)라 잘림 무관.
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
@@ -154,6 +154,17 @@ export default async function StatsPage({ searchParams }: Props) {
       take: 20000,
       orderBy: { ts: "desc" },
     }),
+    // 30일 일별·24시간 시간대 차트 — 행을 다 받지 않고 (일, UA) 단위로 DB 에서 접는다. recent30Raw 는 take 150k 라
+    // 30일 PV 가 27만을 넘긴 뒤(2026-09 실측) 옛쪽 보름이 0 으로 그려졌다. UA 그룹은 3천 개뿐이라 봇 판정(detectBot)은
+    // 그대로 메모리에서 — 트래픽 판정 단일 출처 유지. 방문자 = 그날 고유 세션(sessionId).
+    prisma.$queryRaw<Array<{ day: string; ua: string | null; pv: number; visitors: number }>>`
+      SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day, "userAgent" AS ua,
+             count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
+      FROM "PageView" WHERE ts >= ${last30} GROUP BY 1, 2`,
+    prisma.$queryRaw<Array<{ hour: string; ua: string | null; pv: number; visitors: number }>>`
+      SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'HH24') AS hour, "userAgent" AS ua,
+             count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
+      FROM "PageView" WHERE ts >= ${last24h} GROUP BY 1, 2`,
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -275,43 +286,51 @@ export default async function StatsPage({ searchParams }: Props) {
   const botRangeCount = botsRange.length;
 
   // 일별 — 사람 기준 30일 (차트는 30일 고정 — 시각화 일관성)
-  const humanDayBuckets = new Map<string, number>();
+  // 일별 30일 — (일, UA) SQL 집계 위에 detectBot. take 잘림이 없어 30일 전부 그려진다.
+  const humanDayBuckets = new Map<string, { views: number; visitors: number }>();
   const botDayBuckets = new Map<string, number>();
   for (let i = 29; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    humanDayBuckets.set(dayKey(d), 0);
+    humanDayBuckets.set(dayKey(d), { views: 0, visitors: 0 });
     botDayBuckets.set(dayKey(d), 0);
   }
-  for (const r of humans30) {
-    const k = dayKey(r.ts);
-    if (humanDayBuckets.has(k))
-      humanDayBuckets.set(k, (humanDayBuckets.get(k) ?? 0) + 1);
-  }
-  for (const r of bots30) {
-    const k = dayKey(r.ts);
-    if (botDayBuckets.has(k))
-      botDayBuckets.set(k, (botDayBuckets.get(k) ?? 0) + 1);
+  for (const g of dayUaAgg) {
+    if (detectBot(g.ua).isBot) {
+      if (botDayBuckets.has(g.day)) botDayBuckets.set(g.day, (botDayBuckets.get(g.day) ?? 0) + g.pv);
+      continue;
+    }
+    const b = humanDayBuckets.get(g.day);
+    if (b) { b.views += g.pv; b.visitors += g.visitors; }
   }
   const humanDailyData = Array.from(humanDayBuckets.entries()).map(([d, v]) => ({
     date: shortDay(new Date(d + "T12:00:00Z")),
-    views: v,
+    views: v.views,
+    visitors: v.visitors,
   }));
   const botDailyData = Array.from(botDayBuckets.entries()).map(([d, v]) => ({
     date: shortDay(new Date(d + "T12:00:00Z")),
     views: v,
   }));
+  const daily30 = {
+    views: humanDailyData.reduce((a, d) => a + d.views, 0),
+    visitors: humanDailyData.reduce((a, d) => a + d.visitors, 0),
+    avg7Visitors: Math.round(humanDailyData.slice(-7).reduce((a, d) => a + d.visitors, 0) / 7),
+    peak: humanDailyData.reduce((best, d) => (d.visitors > best.visitors ? d : best), humanDailyData[0]),
+  };
 
   // 24시간 시간대 — 사람 기준 (24h 고정)
-  const humanHourBuckets = new Map<string, number>();
+  const humanHourBuckets = new Map<string, { views: number; visitors: number }>();
   for (let h = 0; h < 24; h++)
-    humanHourBuckets.set(String(h).padStart(2, "0"), 0);
-  for (const r of recent24Raw) {
-    if (detectBot(r.userAgent).isBot) continue;
-    humanHourBuckets.set(hourKey(r.ts), (humanHourBuckets.get(hourKey(r.ts)) ?? 0) + 1);
+    humanHourBuckets.set(String(h).padStart(2, "0"), { views: 0, visitors: 0 });
+  for (const g of hourUaAgg) {
+    if (detectBot(g.ua).isBot) continue;
+    const b = humanHourBuckets.get(g.hour);
+    if (b) { b.views += g.pv; b.visitors += g.visitors; }
   }
   const humanHourlyData = Array.from(humanHourBuckets.entries()).map(([h, v]) => ({
     hour: h,
-    views: v,
+    views: v.views,
+    visitors: v.visitors,
   }));
 
   // 디바이스 분포 (사람만, 선택 기간) — 모바일/태블릿/데스크탑
@@ -776,19 +795,27 @@ export default async function StatsPage({ searchParams }: Props) {
           )}
         </SectionCard>
 
-        <SectionCard title="최근 30일 PV" subtitle="일별 합계">
-          {humans30.length === 0 ? (
+        <SectionCard title="최근 30일 방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션">
+          {daily30.views === 0 ? (
             <EmptyHint />
           ) : (
-            <DailyArea data={humanDailyData} />
+            <>
+              <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <MiniStat label="30일 방문자" value={daily30.visitors} tone="emerald" />
+                <MiniStat label="30일 페이지뷰" value={daily30.views} tone="blue" />
+                <MiniStat label="최근 7일 하루 평균 방문자" value={daily30.avg7Visitors} tone="emerald" />
+                <MiniStat label={`최다 방문일 (${daily30.peak.date})`} value={daily30.peak.visitors} tone="emerald" />
+              </div>
+              <DailyTraffic data={humanDailyData} />
+            </>
           )}
         </SectionCard>
 
-        <SectionCard title="최근 24시간 시간대 분포" subtitle="KST 0~23시">
+        <SectionCard title="최근 24시간 시간대 분포" subtitle="KST 0~23시 · 막대 = 페이지뷰 · 선 = 방문자">
           {humanHourlyData.every((h) => h.views === 0) ? (
             <EmptyHint />
           ) : (
-            <HourlyBar data={humanHourlyData} />
+            <HourlyTraffic data={humanHourlyData} />
           )}
         </SectionCard>
 
@@ -1860,6 +1887,17 @@ function RangeSelector({ active }: { active: Range }) {
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+/** 차트 위 요약 칩 — 방문자(초록)·페이지뷰(파랑) 색을 차트 범례와 맞춘다. */
+function MiniStat({ label, value, tone }: { label: string; value: number; tone: "emerald" | "blue" }) {
+  const color = tone === "emerald" ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400";
+  return (
+    <div className="rounded-lg bg-neutral-50 px-3 py-2 dark:bg-white/[0.04]">
+      <div className="text-[11px] text-neutral-500 truncate">{label}</div>
+      <div className={`text-lg font-bold tabular-nums ${color}`}>{value.toLocaleString()}</div>
     </div>
   );
 }
