@@ -157,10 +157,11 @@ export default async function StatsPage({ searchParams }: Props) {
     // 30일 일별·24시간 시간대 차트 — 행을 다 받지 않고 (일, UA) 단위로 DB 에서 접는다. recent30Raw 는 take 150k 라
     // 30일 PV 가 27만을 넘긴 뒤(2026-09 실측) 옛쪽 보름이 0 으로 그려졌다. UA 그룹은 3천 개뿐이라 봇 판정(detectBot)은
     // 그대로 메모리에서 — 트래픽 판정 단일 출처 유지. 방문자 = 그날 고유 세션(sessionId).
+    // 기간은 화면 상단 선택(7일·30일·전체)을 따른다 — 전체는 첫 기록(2026-05-09)부터 127일, 8.8k 그룹·1.8s.
     prisma.$queryRaw<Array<{ day: string; ua: string | null; pv: number; visitors: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day, "userAgent" AS ua,
              count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
-      FROM "PageView" WHERE ts >= ${last30} GROUP BY 1, 2`,
+      FROM "PageView" WHERE ts >= ${range === "all" ? new Date(0) : range === "30d" ? last30 : last7} GROUP BY 1, 2`,
     prisma.$queryRaw<Array<{ hour: string; ua: string | null; pv: number; visitors: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'HH24') AS hour, "userAgent" AS ua,
              count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
@@ -286,10 +287,15 @@ export default async function StatsPage({ searchParams }: Props) {
   const botRangeCount = botsRange.length;
 
   // 일별 — 사람 기준 30일 (차트는 30일 고정 — 시각화 일관성)
-  // 일별 30일 — (일, UA) SQL 집계 위에 detectBot. take 잘림이 없어 30일 전부 그려진다.
+  // 일별(선택 범위) — (일, UA) SQL 집계 위에 detectBot. take 잘림이 없어 범위 전부 그려진다.
+  const firstDay = dayUaAgg.reduce((m, g) => (g.day < m ? g.day : m), dayKey(now));
+  const rangeDays =
+    range === "all"
+      ? Math.round((new Date(dayKey(now) + "T00:00:00Z").getTime() - new Date(firstDay + "T00:00:00Z").getTime()) / 86400000) + 1
+      : range === "30d" ? 30 : 7;
   const humanDayBuckets = new Map<string, { views: number; visitors: number }>();
   const botDayBuckets = new Map<string, number>();
-  for (let i = 29; i >= 0; i--) {
+  for (let i = rangeDays - 1; i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     humanDayBuckets.set(dayKey(d), { views: 0, visitors: 0 });
     botDayBuckets.set(dayKey(d), 0);
@@ -302,8 +308,11 @@ export default async function StatsPage({ searchParams }: Props) {
     const b = humanDayBuckets.get(g.day);
     if (b) { b.views += g.pv; b.visitors += g.visitors; }
   }
+  const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
   const humanDailyData = Array.from(humanDayBuckets.entries()).map(([d, v]) => ({
     date: shortDay(new Date(d + "T12:00:00Z")),
+    day: d,
+    weekday: WEEKDAY[new Date(d + "T12:00:00+09:00").getUTCDay()],
     views: v.views,
     visitors: v.visitors,
   }));
@@ -314,7 +323,7 @@ export default async function StatsPage({ searchParams }: Props) {
   const daily30 = {
     views: humanDailyData.reduce((a, d) => a + d.views, 0),
     visitors: humanDailyData.reduce((a, d) => a + d.visitors, 0),
-    avg7Visitors: Math.round(humanDailyData.slice(-7).reduce((a, d) => a + d.visitors, 0) / 7),
+    avgVisitors: Math.round(humanDailyData.reduce((a, d) => a + d.visitors, 0) / Math.max(1, humanDailyData.length)),
     peak: humanDailyData.reduce((best, d) => (d.visitors > best.visitors ? d : best), humanDailyData[0]),
   };
 
@@ -795,18 +804,47 @@ export default async function StatsPage({ searchParams }: Props) {
           )}
         </SectionCard>
 
-        <SectionCard title="최근 30일 방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션">
+        <SectionCard title={`${rangeLabel} 방문자 · 페이지뷰`} subtitle={`일별 ${rangeDays}일 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션`}>
           {daily30.views === 0 ? (
             <EmptyHint />
           ) : (
             <>
               <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <MiniStat label="30일 방문자" value={daily30.visitors} tone="emerald" />
-                <MiniStat label="30일 페이지뷰" value={daily30.views} tone="blue" />
-                <MiniStat label="최근 7일 하루 평균 방문자" value={daily30.avg7Visitors} tone="emerald" />
+                <MiniStat label={`${rangeLabel} 방문자`} value={daily30.visitors} tone="emerald" />
+                <MiniStat label={`${rangeLabel} 페이지뷰`} value={daily30.views} tone="blue" />
+                <MiniStat label="하루 평균 방문자" value={daily30.avgVisitors} tone="emerald" />
                 <MiniStat label={`최다 방문일 (${daily30.peak.date})`} value={daily30.peak.visitors} tone="emerald" />
               </div>
-              <DailyTraffic data={humanDailyData} />
+              <DailyTraffic data={humanDailyData} tickEvery={rangeDays <= 7 ? 0 : rangeDays <= 31 ? 4 : Math.ceil(rangeDays / 10)} />
+              {/* 날짜별 표 — 최신이 위. 전체 범위는 127일이라 스크롤 박스 */}
+              <div className="mt-4 max-h-[320px] overflow-y-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-white dark:bg-neutral-950">
+                    <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                      <th className="px-3 py-2 text-left font-medium">날짜</th>
+                      <th className="px-3 py-2 text-right font-medium text-emerald-600 dark:text-emerald-400">방문자</th>
+                      <th className="px-3 py-2 text-right font-medium text-blue-600 dark:text-blue-400">페이지뷰</th>
+                      <th className="px-3 py-2 text-right font-medium">1인당 페이지</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+                    {[...humanDailyData].reverse().map((d) => {
+                      const weekend = d.weekday === "토" || d.weekday === "일";
+                      return (
+                        <tr key={d.day} className={d.day === daily30.peak.day ? "bg-emerald-50/60 dark:bg-emerald-500/10" : undefined}>
+                          <td className="px-3 py-1.5 tabular-nums">
+                            {d.day.slice(5).replace("-", "/")}
+                            <span className={`ml-1 text-[11px] ${weekend ? "text-rose-500" : "text-neutral-400"}`}>{d.weekday}</span>
+                          </td>
+                          <td className="px-3 py-1.5 text-right tabular-nums font-semibold">{d.visitors.toLocaleString()}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">{d.views.toLocaleString()}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-neutral-500">{d.visitors > 0 ? (d.views / d.visitors).toFixed(1) : "–"}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </>
           )}
         </SectionCard>
@@ -1810,7 +1848,7 @@ export default async function StatsPage({ searchParams }: Props) {
           )}
         </SectionCard>
 
-        <SectionCard title="최근 30일 봇 PV" subtitle="일별 합계">
+        <SectionCard title={`${rangeLabel} 봇 트래픽`} subtitle="일별 합계">
           {bots30.length === 0 ? (
             <EmptyHint />
           ) : (

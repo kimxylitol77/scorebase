@@ -27,7 +27,7 @@ interface TrafficPoint {
 }
 
 /** 일별 방문자(선, 초록) + 페이지뷰(면, 파랑). 축 두 개 — PV 가 방문자의 5~6배라 한 축이면 방문자 선이 바닥에 깔린다. */
-export function DailyTraffic({ data }: { data: TrafficPoint[] }) {
+export function DailyTraffic({ data, tickEvery = 4 }: { data: TrafficPoint[]; tickEvery?: number }) {
   return (
     <div className="h-[280px] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -39,7 +39,7 @@ export function DailyTraffic({ data }: { data: TrafficPoint[] }) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" opacity={0.4} vertical={false} />
-          <XAxis dataKey="date" stroke="#737373" fontSize={11} tick={{ fill: "currentColor" }} interval={4} />
+          <XAxis dataKey="date" stroke="#737373" fontSize={11} tick={{ fill: "currentColor" }} interval={tickEvery} />
           <YAxis yAxisId="pv" stroke="#3b82f6" fontSize={11} tick={{ fill: "currentColor" }} allowDecimals={false} />
           <YAxis yAxisId="uv" orientation="right" stroke="#10b981" fontSize={11} tick={{ fill: "currentColor" }} allowDecimals={false} />
           <Tooltip contentStyle={TOOLTIP_STYLE} formatter={fmtSeries} />
