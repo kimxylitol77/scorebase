@@ -38,6 +38,8 @@ export type FlowMatch = {
   awayKo: string;
   homeLogo: string | null;
   awayLogo: string | null;
+  /** 리그 로고(api-football/ESPN). 없으면 국기 이모지로 */
+  leagueLogo: string | null;
   movementSide: "home" | "draw" | "away";
   movementLabel: string;
   outcomes: {
@@ -121,6 +123,13 @@ function leagueColor(league: string): string {
   let hash = 0;
   for (let i = 0; i < league.length; i += 1) hash = (hash * 31 + league.charCodeAt(i)) >>> 0;
   return LEAGUE_COLORS[hash % LEAGUE_COLORS.length];
+}
+
+/** 리그 마크 — 로고 우선, 없으면 국기. 색 코드 칩(leagueColor) 위에 얹어 기존 인지 방식(약어)을 유지한다. */
+function LeagueMark({ m, size = 18 }: { m: FlowMatch; size?: number }) {
+  if (m.leagueLogo) return <TeamBadge logoUrl={m.leagueLogo} size={size} className="rounded-sm bg-white" />;
+  const flag = getLeagueFlag(m.league);
+  return flag ? <span aria-hidden className="leading-none" style={{ fontSize: size * 0.8 }}>{flag}</span> : null;
 }
 
 function leagueCode(league: string): string {
@@ -608,7 +617,10 @@ function OddsRadarTable({
                         style={{ backgroundColor: leagueColor(m.league) }}
                         title={LEAGUE_DISPLAY[m.league] ?? m.league}
                       >
-                        {leagueCode(m.league)}
+                        <span className="flex flex-col items-center gap-1">
+                          <LeagueMark m={m} size={20} />
+                          <span>{leagueCode(m.league)}</span>
+                        </span>
                       </td>
                       <td className="h-[76px] px-3 text-center tabular-nums">
                         <div className="text-[11px] text-neutral-400">{time.date}</div>
@@ -673,9 +685,10 @@ function OddsRadarTable({
                 className="flex w-full items-center gap-2 px-3 py-2.5 text-left"
               >
                 <span
-                  className="flex h-8 min-w-[64px] items-center justify-center rounded px-2 text-[10px] font-semibold text-white"
+                  className="flex h-8 min-w-[64px] items-center justify-center gap-1 rounded px-2 text-[10px] font-semibold text-white"
                   style={{ backgroundColor: leagueColor(m.league) }}
                 >
+                  <LeagueMark m={m} size={16} />
                   {leagueCode(m.league)}
                 </span>
                 <span className="w-12 flex-none text-center tabular-nums">
@@ -739,8 +752,9 @@ function Hero({ m, hasDraw }: { m: FlowMatch; hasDraw: boolean }) {
             <span className="truncate">{m.awayKo}</span>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px] text-neutral-400">
-            <span>
-              {getLeagueFlag(m.league)} {LEAGUE_DISPLAY[m.league] ?? m.league} · {fmtTime(m.startTime)}
+            <span className="inline-flex items-center gap-1.5">
+              <LeagueMark m={m} size={16} />
+              {LEAGUE_DISPLAY[m.league] ?? m.league} · {fmtTime(m.startTime)}
             </span>
             <FlowChips m={m} moved />
           </div>
@@ -1036,16 +1050,24 @@ export default function OddsFlowList({
   const [displayMode, setDisplayMode] = useState<DisplayMode>("table");
   // 움직임 없는 경기는 기본 접힘 — "배당 흐름" 페이지에서 흐름 없는 카드가 지면 다 먹던 것 개선.
   const [showQuiet, setShowQuiet] = useState(false);
+  // 리그 필터 — 축구는 한 화면에 100개 리그·300경기가 섞여 "내 리그" 만 보려면 스크롤뿐이었다(2026-09-12).
+  const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
+  const leagueChips = useMemo(() => {
+    const cnt = new Map<string, number>();
+    for (const m of matches) cnt.set(m.league, (cnt.get(m.league) ?? 0) + 1);
+    return [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 14);
+  }, [matches]);
   const filteredMatches = useMemo(() => {
+    const pool = leagueFilter ? matches.filter((m) => m.league === leagueFilter) : matches;
     const selected = movementFilter === "drop"
-      ? matches.filter((m) => m.deltaPct <= -1.5)
+      ? pool.filter((m) => m.deltaPct <= -1.5)
       : movementFilter === "rise"
-        ? matches.filter((m) => m.deltaPct >= 1.5)
-        : matches;
+        ? pool.filter((m) => m.deltaPct >= 1.5)
+        : pool;
     return [...selected].sort((a, b) =>
       movementFilter === "rise" ? b.deltaPct - a.deltaPct : a.deltaPct - b.deltaPct,
     );
-  }, [matches, movementFilter]);
+  }, [matches, movementFilter, leagueFilter]);
 
   if (!matches.length)
     return (
@@ -1058,7 +1080,11 @@ export default function OddsFlowList({
       </div>
     );
 
-  const displayMatches = filteredMatches.length ? filteredMatches : matches;
+  const displayMatches = filteredMatches.length
+    ? filteredMatches
+    : leagueFilter
+      ? matches.filter((m) => m.league === leagueFilter)
+      : matches;
   const hero = displayMatches[0];
   const rest = displayMatches.slice(1);
   const heroMoves = hero.points.length >= 2 && Math.abs(hero.deltaPct) >= 3;
@@ -1073,6 +1099,40 @@ export default function OddsFlowList({
         <MovementFilters value={movementFilter} onChange={setMovementFilter} />
         <DisplayModeSwitch value={displayMode} onChange={setDisplayMode} />
       </div>
+      {leagueChips.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-1.5" aria-label="리그">
+          <button
+            type="button"
+            onClick={() => setLeagueFilter(null)}
+            className={`rounded-full px-3 py-1 text-[12px] font-semibold ring-1 transition ${
+              !leagueFilter
+                ? "bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900 dark:ring-white"
+                : "bg-white text-neutral-600 ring-neutral-200 hover:bg-neutral-50 dark:bg-white/[0.04] dark:text-neutral-300 dark:ring-white/10"
+            }`}
+          >
+            전체 리그 <span className="opacity-60 tabular-nums">{matches.length}</span>
+          </button>
+          {leagueChips.map(([lg, n]) => {
+            const sample = matches.find((m) => m.league === lg)!;
+            const active = leagueFilter === lg;
+            return (
+              <button
+                key={lg}
+                type="button"
+                onClick={() => setLeagueFilter(active ? null : lg)}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[12px] font-semibold ring-1 transition ${
+                  active
+                    ? "bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900 dark:ring-white"
+                    : "bg-white text-neutral-600 ring-neutral-200 hover:bg-neutral-50 dark:bg-white/[0.04] dark:text-neutral-300 dark:ring-white/10"
+                }`}
+              >
+                <LeagueMark m={sample} size={14} />
+                {LEAGUE_DISPLAY[lg] ?? lg} <span className="opacity-60 tabular-nums">{n}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {!filteredMatches.length && (
         <p className="mt-4 rounded-lg border border-dashed border-neutral-200 px-4 py-3 text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">

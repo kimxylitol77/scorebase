@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import {
   SOCCER_LEAGUES,
   BASEBALL_LEAGUES,
@@ -197,6 +198,8 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
         awayKo: toKoreanTeamName(m.awayTeam.name, m.league),
         homeLogo: m.homeTeam.logoUrl ?? null,
         awayLogo: m.awayTeam.logoUrl ?? null,
+        // 리그 마크 — api-football/ESPN 로고, 없으면 화면이 국기로 폴백
+        leagueLogo: leagueLogoUrl(m.league),
         movementSide: movement?.key ?? "home",
         movementLabel: movement?.label ?? toKoreanTeamName(m.homeTeam.name, m.league),
         outcomes: {
