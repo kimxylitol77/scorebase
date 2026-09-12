@@ -2,17 +2,30 @@ import { prisma } from "@/lib/db";
 import { DailyArea, DailyTraffic, HourlyTraffic } from "@/components/charts/StatsChart";
 import SectionRangeTabs, { type RangeKey } from "@/components/admin/SectionRangeTabs";
 import LivePresencePanel from "@/components/admin/LivePresencePanel";
-import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
-import { suspiciousSessionIds, concurrentSeries, concurrentByDay } from "@/lib/traffic-filter";
-import { detectDevice, DEVICE_LABEL, type DeviceType } from "@/lib/device-detect";
+import { KpiCard, SectionCard, EmptyHint, MiniStat } from "@/components/admin/StatsCards";
+import {
+  RangeStatsProvider,
+  HumanKpiCards,
+  ConcurrentCard,
+  DeviceCard,
+  PopularPagesCard,
+  ExitPagesCard,
+  HostCard,
+  AiServicesCard,
+  SearchQueriesCard,
+  ExternalLandingsCard,
+  ReferralDomainsCard,
+  AiBotRangeCards,
+  BotRangeCards,
+} from "@/components/admin/RangeStats";
+import { computeRangeStats } from "@/lib/admin/stats-range";
+import { detectBot, type BotCategory } from "@/lib/bot-detect";
+import { suspiciousSessionIds } from "@/lib/traffic-filter";
 import {
   classifyLanding,
-  extractSearchQuery,
   CHANNEL_META,
   CHANNEL_ORDER,
   type TrafficChannel,
-  aiServiceOf,
-  AI_SERVICES,
 } from "@/lib/referrer-channel";
 import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
 import { getBingOverview } from "@/lib/bing-webmaster";
@@ -23,7 +36,6 @@ import {
   OPP_MAX_POSITION,
 } from "@/lib/search-opportunity";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -36,17 +48,6 @@ function shortDay(d: Date) {
   return `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
 }
 
-// Host 헤더 → 사람이 읽을 도메인 라벨. 운영 2개 도메인 + 개발/프리뷰 그룹핑.
-function friendlyHost(host: string | null): string {
-  if (!host) return "도메인 미상 (이전 기록)";
-  const h = host.toLowerCase().split(":")[0].replace(/^www\./, "");
-  if (h.includes("xn--hy1bm7m1yevrd8pq")) return "스코어보드.kr";
-  if (h.includes("scorebase.kr")) return "scorebase.kr";
-  if (h === "localhost" || h.startsWith("127.")) return "localhost (개발)";
-  if (h.endsWith(".vercel.app")) return "Vercel 프리뷰";
-  return h || "(빈 host)";
-}
-
 type Range = "7d" | "30d" | "all";
 
 const RANGE_LABEL: Record<Range, string> = {
@@ -55,19 +56,9 @@ const RANGE_LABEL: Record<Range, string> = {
   "all": "전체",
 };
 
-function parseRange(v: string | string[] | undefined): Range {
-  if (v === "30d" || v === "all") return v;
-  return "7d";
-}
-
-interface Props {
-  searchParams: Promise<{ range?: string }>;
-}
-
-export default async function StatsPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const range = parseRange(sp.range);
-
+export default async function StatsPage() {
+  // 기간(7일·30일·전체)은 카드마다 탭으로 고른다 — 초기값은 7일, 나머지는 클라이언트가 /api/admin/stats-range 로 받는다.
+  const range: Range = "7d";
   const now = new Date();
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -76,18 +67,9 @@ export default async function StatsPage({ searchParams }: Props) {
   const today00KST = new Date(dayKey(now) + "T00:00:00+09:00");
   const yesterday00KST = new Date(today00KST.getTime() - 24 * 60 * 60 * 1000);
 
-  // 기간 선택용 — 인기 페이지/봇 TOP/디바이스 분포 / KPI 의 main range
-  // take 한도는 실측 행수(2026-08-01: 7d 49k · 30d 107k · all 153k) 대비 2배 여유.
-  // 초과하면 desc 정렬이라 옛쪽부터 잘린다 — 라벨 기간보다 짧게 집계되므로 주기 점검.
-  const rangeWhere =
-    range === "all"
-      ? {}
-      : { ts: { gte: range === "30d" ? last30 : last7 } };
-  const rangeTake = range === "all" ? 300000 : range === "30d" ? 200000 : 100000;
-
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, rangeRaw, totalAll, landingRaw, landing14Raw, memberPvRaw, allUsers, gsc, bing, aiSvcRaw, dayUaAgg, hourUaAgg, landingAgg] = await Promise.all([
+  const [recent30Raw, totalAll, landing14Raw, memberPvRaw, allUsers, gsc, bing, dayUaAgg, hourUaAgg, landingAgg, initialStats] = await Promise.all([
     // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
     // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
     // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전. 30일 차트는 2026-09-12 부터 SQL 집계(dayUaAgg)라 잘림 무관.
@@ -97,21 +79,7 @@ export default async function StatsPage({ searchParams }: Props) {
       take: 150000,
       orderBy: { ts: "desc" },
     }),
-    prisma.pageView.findMany({
-      where: rangeWhere,
-      select: { ts: true, path: true, userAgent: true, sessionId: true, host: true },
-      take: rangeTake,
-      orderBy: { ts: "desc" },
-    }),
     prisma.pageView.count(),
-    // 유입 채널 — 랜딩 PV 만 (isLanding=true, 2026-06-11 이후 기록). 행 수가 적어
-    // 별도 쿼리가 메인 rangeRaw 에 referrer 컬럼 얹는 것보다 가볍다.
-    prisma.pageView.findMany({
-      where: { ...rangeWhere, isLanding: true },
-      select: { referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
-      take: 100000,
-      orderBy: { ts: "desc" },
-    }),
     // 유입 채널 주간 비교용 — range 와 무관하게 14일 고정(이번 주 7일 + 지난주 7일).
     // 위 landingRaw 와 같은 랜딩 1행 원칙, ts 만 추가로 가져와 코드에서 주 분리.
     prisma.pageView.findMany({
@@ -131,23 +99,6 @@ export default async function StatsPage({ searchParams }: Props) {
     prisma.user.findMany({ select: { id: true, createdAt: true } }),
     getGscOverview(),
     getBingOverview(),
-    // AI 서비스별 유입 — 랜딩뿐 아니라 그 방문이 이어 본 PV 까지(사람). referrer 또는 utm_source 에
-    // AI 서비스 흔적이 있는 행만 DB 에서 좁혀 온다(행 수 수백).
-    prisma.pageView.findMany({
-      where: {
-        ...rangeWhere,
-        OR: ["chatgpt", "openai", "copilot", "perplexity", "claude", "anthropic", "gemini.google", "bard.google"].flatMap((k) => [
-          { referrer: { contains: k, mode: "insensitive" as const } },
-          { utmSource: { contains: k, mode: "insensitive" as const } },
-        ]),
-      },
-      select: { ts: true, path: true, userAgent: true, sessionId: true, referrer: true, utmSource: true },
-      take: 20000,
-      orderBy: { ts: "desc" },
-    }),
-    // 30일 일별·24시간 시간대 차트 — 행을 다 받지 않고 (일, UA) 단위로 DB 에서 접는다. recent30Raw 는 take 150k 라
-    // 30일 PV 가 27만을 넘긴 뒤(2026-09 실측) 옛쪽 보름이 0 으로 그려졌다. UA 그룹은 3천 개뿐이라 봇 판정(detectBot)은
-    // 그대로 메모리에서 — 트래픽 판정 단일 출처 유지. 방문자 = 그날 고유 세션(sessionId).
     // 항상 전체 기간(첫 기록 2026-05-09 부터, 8.8k 그룹·1.8s) — 카드 안 탭이 7일·30일·전체를 즉시 바꾼다(페이지 재요청 없음).
     prisma.$queryRaw<Array<{ day: string; ua: string | null; pv: number; visitors: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day, "userAgent" AS ua,
@@ -164,6 +115,8 @@ export default async function StatsPage({ searchParams }: Props) {
              split_part(split_part(coalesce(referrer, ''), '://', 2), '/', 1) AS host,
              "utmSource" AS utm, "userAgent" AS ua, count(*)::int AS n, count(DISTINCT "sessionId")::int AS sessions
       FROM "PageView" WHERE "isLanding" = true GROUP BY 1, 2, 3, 4`,
+    // 기간 카드 초기값(7일) — 나머지 기간은 클라이언트가 API 로 받는다. 계산은 lib/admin/stats-range 한 곳.
+    computeRangeStats(range),
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -183,106 +136,10 @@ export default async function StatsPage({ searchParams }: Props) {
       humans30.push(r);
     }
   }
-  // 기간 선택 범위에서 사람/봇 분리
-  const humansRange = rangeRaw.filter((r) => !detectBot(r.userAgent).isBot);
-  const botsRange = rangeRaw.filter((r) => detectBot(r.userAgent).isBot);
-
-  // 의심 봇(위장 스크레이퍼) 세션 — 판정 규칙은 lib/traffic-filter 가 단일 출처.
-  // 화면과 세션 안 에이전트가 서로 다른 규칙으로 세던 것을 2026-08-22 에 그리로 합쳤다.
-  const suspiciousSids = suspiciousSessionIds(humansRange, landingRaw);
-  // 사람 지표는 의심 봇 제외본으로 계산 (원본 humansRange 는 봇 대비 비율 등에 유지)
-  const humansClean = humansRange.filter((r) => !r.sessionId || !suspiciousSids.has(r.sessionId));
-
-  // 동시 접속(고정 창 안의 고유 세션) — heartbeat 는 이력이 없어 PV 로 근사한다.
-  const concFrom = range === "all" ? last30 : range === "30d" ? last30 : last7;
-  const concurrent = concurrentSeries(humansClean, concFrom, now, 5);
-  const concurrentDays = concurrentByDay(concurrent).slice(-14);
-  const concurrentHours = (() => {
-    const per = new Map<number, { sum: number; n: number; peak: number }>();
-    for (const b of concurrent.buckets) {
-      const h = new Date(b.t + 9 * 3_600_000).getUTCHours();
-      const e = per.get(h) ?? { sum: 0, n: 0, peak: 0 };
-      e.sum += b.n;
-      e.n++;
-      if (b.n > e.peak) e.peak = b.n;
-      per.set(h, e);
-    }
-    return Array.from({ length: 24 }, (_, h) => {
-      const e = per.get(h) ?? { sum: 0, n: 0, peak: 0 };
-      return { hour: h, avg: e.n ? e.sum / e.n : 0, peak: e.peak };
-    });
-  })();
-
-  // KPI 계산 헬퍼
-  const filterRange = (rows: Row[], from: Date, to?: Date) =>
-    rows.filter((r) =>
-      to ? r.ts >= from && r.ts < to : r.ts >= from,
-    ).length;
-  // unique sessionId 카운트 — 같은 방문자 여러 PV 도 1로 카운트
-  const uniqueRange = (rows: Row[], from: Date, to?: Date) => {
-    const ids = new Set<string>();
-    for (const r of rows) {
-      if (r.ts < from) continue;
-      if (to && r.ts >= to) continue;
-      if (r.sessionId) ids.add(r.sessionId);
-    }
-    return ids.size;
-  };
-  // 오늘·어제도 기간 지표와 같은 기준(의심 봇 제외)으로 센다 — 2026-08-22 이전에는 이 둘만
-  // detectBot 만 적용해, 같은 화면의 "오늘 방문자"와 "기간 방문자"가 다른 기준이었다.
-  // humansClean 은 range 와 무관하게 오늘·어제를 항상 포함한다(rangeRaw 가 ts desc 라 최신은 안 잘림).
-  const humanTodayPV = filterRange(humansClean as Row[], today00KST);
-  const humanTodayUnique = uniqueRange(humansClean as Row[], today00KST);
-  const humanYesterdayPV = filterRange(humansClean as Row[], yesterday00KST, today00KST);
-  const humanYesterdayUnique = uniqueRange(humansClean as Row[], yesterday00KST, today00KST);
-  const humanRangePV = humansClean.length;
-  const humanRangeUnique = new Set(
-    humansClean.map((r) => r.sessionId).filter(Boolean) as string[],
-  ).size;
-
-  // 실제 체류·이탈률 — sessionId 는 localStorage 영구 ID(방문자 식별)라 세션이 아니므로,
-  // 같은 sessionId 의 PV 를 시간순으로 훑어 30분 이상 공백이 나면 새 세션으로 끊는다.
-  // 세션 체류 = 첫~마지막 PV 간격, 이탈 = PV 1개짜리 세션.
-  const SESSION_GAP_MS = 30 * 60 * 1000;
-  const sessionDurations: number[] = [];
-  let sessionBounces = 0;
-  {
-    const bySid = new Map<string, number[]>();
-    for (const r of humansClean) {
-      if (!r.sessionId) continue;
-      const arr = bySid.get(r.sessionId);
-      if (arr) arr.push(r.ts.getTime());
-      else bySid.set(r.sessionId, [r.ts.getTime()]);
-    }
-    const close = (start: number, end: number, count: number) => {
-      sessionDurations.push((end - start) / 1000);
-      if (count === 1) sessionBounces++;
-    };
-    for (const times of bySid.values()) {
-      times.sort((a, b) => a - b);
-      let start = times[0];
-      let prev = times[0];
-      let count = 1;
-      for (let i = 1; i < times.length; i++) {
-        if (times[i] - prev > SESSION_GAP_MS) {
-          close(start, prev, count);
-          start = times[i];
-          count = 1;
-        } else {
-          count++;
-        }
-        prev = times[i];
-      }
-      close(start, prev, count);
-    }
-  }
-  const sessionCount = sessionDurations.length;
-  const avgSessionSec = sessionCount ? Math.round(sessionDurations.reduce((a, b) => a + b, 0) / sessionCount) : 0;
-  const bounceRate = sessionCount ? Math.round((sessionBounces / sessionCount) * 100) : 0;
-  const avgSessionLabel = avgSessionSec >= 60 ? `${Math.floor(avgSessionSec / 60)}분 ${avgSessionSec % 60}초` : `${avgSessionSec}초`;
-  const botToday = filterRange(bots30 as Row[], today00KST);
-  const botYesterday = filterRange(bots30 as Row[], yesterday00KST, today00KST);
-  const botRangeCount = botsRange.length;
+  // 봇 오늘·어제 — 30일 원본(bots30) 기준, 기간과 무관.
+  const inRange = (rows: Row[], from: Date, to?: Date) => rows.filter((r) => r.ts >= from && (!to || r.ts < to)).length;
+  const botToday = inRange(bots30 as Row[], today00KST);
+  const botYesterday = inRange(bots30 as Row[], yesterday00KST, today00KST);
 
   // 일별 — 사람 기준 30일 (차트는 30일 고정 — 시각화 일관성)
   // 일별 — (일, UA) SQL 집계(전체 기간) 위에 detectBot. take 잘림이 없어 어느 기간이든 전부 그려진다.
@@ -326,11 +183,9 @@ export default async function StatsPage({ searchParams }: Props) {
     };
   };
   const dailyPanels = { "7d": dailyFor("7d"), "30d": dailyFor("30d"), all: dailyFor("all") } as const;
-  // 봇 일별 차트(아래 봇 섹션)는 전역 기간을 따른다.
-  const botDailyData = Array.from(botByDay.entries()).slice(-RANGE_DAYS[range]).map(([d, v]) => ({
-    date: shortDay(new Date(d + "T12:00:00Z")),
-    views: v,
-  }));
+  // 봇 일별 차트(아래 봇 섹션) — 세 기간 패널.
+  const botDailyAll = Array.from(botByDay.entries()).map(([d, v]) => ({ date: shortDay(new Date(d + "T12:00:00Z")), views: v }));
+  const botDailyPanels = { "7d": botDailyAll.slice(-7), "30d": botDailyAll.slice(-30), all: botDailyAll } as const;
 
   // 유입 채널 — 세 기간 각각 채널별 유입·방문자(고유 세션). 같은 세션이 채널 안에서 다른 호스트로 두 번 랜딩하면 방문자가 1 더 세질 수 있다(드묾).
   const channelFor = (k: RangeKey) => {
@@ -365,82 +220,6 @@ export default async function StatsPage({ searchParams }: Props) {
     views: v.views,
     visitors: v.visitors,
   }));
-
-  // 디바이스 분포 (사람만, 선택 기간) — 모바일/태블릿/데스크탑
-  const deviceCount = new Map<DeviceType, number>();
-  deviceCount.set("mobile", 0);
-  deviceCount.set("tablet", 0);
-  deviceCount.set("desktop", 0);
-  for (const r of humansClean) {
-    const d = detectDevice(r.userAgent);
-    deviceCount.set(d.type, (deviceCount.get(d.type) ?? 0) + 1);
-  }
-  const deviceTotal =
-    (deviceCount.get("mobile") ?? 0) +
-    (deviceCount.get("tablet") ?? 0) +
-    (deviceCount.get("desktop") ?? 0);
-  const deviceData = (["mobile", "tablet", "desktop"] as DeviceType[]).map((t) => {
-    const count = deviceCount.get(t) ?? 0;
-    return {
-      type: t,
-      count,
-      pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0,
-    };
-  });
-
-  // 인기 페이지 (사람만, 선택 기간)
-  const humanPathCount = new Map<string, number>();
-  for (const r of humansClean) {
-    humanPathCount.set(r.path, (humanPathCount.get(r.path) ?? 0) + 1);
-  }
-  const topHumanPaths = Array.from(humanPathCount.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-
-  // === 이탈 페이지 — 세션의 마지막 PV 가 어느 path 였는지 (사람만, 선택 기간) ===
-  // 세션 정의는 위 체류·이탈률 블록과 동일 (같은 sessionId, 30분 공백 = 새 세션).
-  // 이탈률 = 그 페이지를 본 세션 중 그 페이지가 마지막이었던 비율. path 는 쿼리 제거해 묶는다.
-  const exitCountByPath = new Map<string, number>();
-  const seenSessionsByPath = new Map<string, number>();
-  {
-    const rowsBySid = new Map<string, Array<{ t: number; path: string }>>();
-    for (const r of humansClean) {
-      if (!r.sessionId) continue;
-      const row = { t: r.ts.getTime(), path: r.path.split("?")[0] };
-      const arr = rowsBySid.get(r.sessionId);
-      if (arr) arr.push(row);
-      else rowsBySid.set(r.sessionId, [row]);
-    }
-    const closeSession = (pages: string[]) => {
-      const exit = pages[pages.length - 1];
-      exitCountByPath.set(exit, (exitCountByPath.get(exit) ?? 0) + 1);
-      for (const p of new Set(pages)) {
-        seenSessionsByPath.set(p, (seenSessionsByPath.get(p) ?? 0) + 1);
-      }
-    };
-    for (const rows of rowsBySid.values()) {
-      rows.sort((a, b) => a.t - b.t);
-      let pages: string[] = [rows[0].path];
-      let prev = rows[0].t;
-      for (let i = 1; i < rows.length; i++) {
-        if (rows[i].t - prev > SESSION_GAP_MS) {
-          closeSession(pages);
-          pages = [rows[i].path];
-        } else {
-          pages.push(rows[i].path);
-        }
-        prev = rows[i].t;
-      }
-      closeSession(pages);
-    }
-  }
-  const topExitPaths = Array.from(exitCountByPath.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([path, exits]) => {
-      const seen = seenSessionsByPath.get(path) ?? exits;
-      return { path, exits, seen, rate: Math.round((exits / seen) * 100) };
-    });
 
   // === 회원 이탈(잠수) — 로그인 PV 기준, range 무관 전체 ===
   // userId 는 2026-07-28 배포 이후에만 채워짐 — 그 전 접속은 "기록 없음" 으로 잡힌다.
@@ -491,87 +270,10 @@ export default async function StatsPage({ searchParams }: Props) {
     }
   }
 
-  // 도메인별 (사람만, 선택 기간) — scorebase.kr vs 스코어보드.kr 분리.
-  const hostAgg = new Map<string, { pv: number; ids: Set<string> }>();
-  for (const r of humansClean) {
-    const label = friendlyHost(r.host);
-    const e = hostAgg.get(label) ?? { pv: 0, ids: new Set<string>() };
-    e.pv++;
-    if (r.sessionId) e.ids.add(r.sessionId);
-    hostAgg.set(label, e);
-  }
-  const hostData = Array.from(hostAgg.entries())
-    .map(([host, e]) => ({ host, pv: e.pv, unique: e.ids.size }))
-    .sort((a, b) => b.pv - a.pv);
-  const hostTotalPv = hostData.reduce((s, h) => s + h.pv, 0);
-
-  // === 유입 채널 (사람 랜딩 PV 기준) — 구글/네이버/다음/빙/인스타/스레드/X/직접 ===
-  const channelAgg = new Map<TrafficChannel, { count: number; ids: Set<string> }>();
-  const referralDomainAgg = new Map<string, number>();
-  // 검색 키워드 (네이버·다음·빙 등 referrer 에 남는 검색어 — 구글은 GSC 전용)
-  const searchQueryAgg = new Map<string, { count: number; channel: TrafficChannel }>();
-  // 외부 유입(직접 제외)이 도착한 랜딩 페이지
-  const externalLandingPathAgg = new Map<string, number>();
-  for (const r of landingRaw) {
-    if (detectBot(r.userAgent).isBot) continue;
-    if (r.sessionId && suspiciousSids.has(r.sessionId)) continue; // 위장 스크레이퍼 랜딩 제외
-    const { channel, domain } = classifyLanding(r.referrer, r.utmSource, r.userAgent);
-    const e = channelAgg.get(channel) ?? { count: 0, ids: new Set<string>() };
-    e.count++;
-    if (r.sessionId) e.ids.add(r.sessionId);
-    channelAgg.set(channel, e);
-    if (domain) referralDomainAgg.set(domain, (referralDomainAgg.get(domain) ?? 0) + 1);
-    const q = extractSearchQuery(r.referrer);
-    if (q) {
-      const cur = searchQueryAgg.get(q);
-      searchQueryAgg.set(q, { count: (cur?.count ?? 0) + 1, channel });
-    }
-    if (channel !== "direct") {
-      externalLandingPathAgg.set(r.path, (externalLandingPathAgg.get(r.path) ?? 0) + 1);
-    }
-  }
-  // === AI 서비스별 유입 (사람 PV, referrer·utm 기준) — ai_chat 채널을 서비스 단위로 ===
-  // utm_source 는 링크 URL 에만, referrer 는 첫 페이지에만 남으므로 사실상 "AI 링크를 누른 횟수" 다.
-  // 한 방문자가 답변 속 링크를 여러 개 누르면 PV 가 방문자보다 커진다.
-  const aiSvcAgg = new Map<string, { pv: number; ids: Set<string>; paths: Map<string, number> }>();
-  for (const r of aiSvcRaw) {
-    if (detectBot(r.userAgent).isBot) continue;
-    if (r.sessionId && suspiciousSids.has(r.sessionId)) continue;
-    const svc = aiServiceOf(r.referrer, r.utmSource);
-    if (!svc) continue;
-    const e = aiSvcAgg.get(svc) ?? { pv: 0, ids: new Set<string>(), paths: new Map<string, number>() };
-    e.pv++;
-    if (r.sessionId) e.ids.add(r.sessionId);
-    e.paths.set(r.path, (e.paths.get(r.path) ?? 0) + 1);
-    aiSvcAgg.set(svc, e);
-  }
-  // 0 인 서비스도 행 유지 — "안 잡히는 건지 안 오는 건지" 를 표에서 바로 본다.
-  const aiSvcRows = AI_SERVICES.map((name) => {
-    const e = aiSvcAgg.get(name);
-    return {
-      name,
-      pv: e?.pv ?? 0,
-      unique: e?.ids.size ?? 0,
-      topPaths: e ? [...e.paths.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3) : [],
-    };
-  });
-
-  const topReferralDomains = Array.from(referralDomainAgg.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 50);
-  const topSearchQueries = Array.from(searchQueryAgg.entries())
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 15);
-  // 네이버·다음 검색어 (referrer 기반 방문) — 3채널 통합 비교의 한 열.
-  const naverDaumQueries = Array.from(searchQueryAgg.entries())
-    .filter(([, v]) => v.channel === "naver" || v.channel === "daum")
-    .map(([query, v]) => ({ query, count: v.count, channel: v.channel }))
-    .sort((a, b) => b.count - a.count)
+  // 네이버·다음 검색어(검색 채널 종합 비교의 한 열) — 초기 기간(7일) 값. 기간 카드는 RangeStats 가 담당.
+  const naverDaumQueries = initialStats.searchQueries
+    .filter((q) => q.channel === "naver" || q.channel === "daum")
     .slice(0, 10);
-  const topExternalLandings = Array.from(externalLandingPathAgg.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-
   // === 유입 채널 지난주 대비 — 이번 주(최근 7일) vs 지난주(그 전 7일), range 무관 고정 ===
   // 집계 원칙은 위 채널 집계와 동일(봇 제외·의심 스크레이퍼 제외·classifyLanding) — 기간 축만 주 단위.
   // 의심 봇 휴리스틱의 "기간 내 PV 1개" 판정이 기간 종속이라, 전역 suspiciousSids 대신
@@ -603,13 +305,11 @@ export default async function StatsPage({ searchParams }: Props) {
   // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
   // bots30 / botsRange 안에서 category === "ai" 만 추출 → KPI + top paths + 일별.
   const aiBots30 = bots30.filter((r) => r.botCategory === "ai");
-  const aiBotsRange = botsRange.filter((r) => detectBot(r.userAgent).category === "ai");
   const aiTodayPV = aiBots30.filter((r) => r.ts >= today00KST).length;
   const aiYesterdayPV = aiBots30.filter(
     (r) => r.ts >= yesterday00KST && r.ts < today00KST,
   ).length;
   const aiLast24hPV = aiBots30.filter((r) => r.ts >= last24h).length;
-  const aiRangePV = aiBotsRange.length;
   // 일별 PV (최근 30일)
   const aiDailyBuckets = new Map<string, number>();
   const allDays30 = new Set<string>();
@@ -628,52 +328,6 @@ export default async function StatsPage({ searchParams }: Props) {
     .map(([day, views]) => ({ day, date: shortDay(new Date(day + "T12:00:00Z")), views }))
     .sort((a, b) => a.day.localeCompare(b.day))
     .map(({ date, views }) => ({ date, views }));
-  // AI bot 별 PV (이름별)
-  const aiBotByName = new Map<string, number>();
-  for (const r of aiBotsRange) {
-    const info = detectBot(r.userAgent);
-    if (!info.name) continue;
-    aiBotByName.set(info.name, (aiBotByName.get(info.name) ?? 0) + 1);
-  }
-  const aiTopBots = Array.from(aiBotByName.entries()).sort((a, b) => b[1] - a[1]);
-  // AI bot 이 본 top paths
-  const aiPathCount = new Map<string, number>();
-  for (const r of aiBotsRange) {
-    aiPathCount.set(r.path, (aiPathCount.get(r.path) ?? 0) + 1);
-  }
-  const aiTopPaths = Array.from(aiPathCount.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15);
-
-  // 봇 카테고리별 합계 (선택 기간)
-  const botCatCount = new Map<BotCategory, number>();
-  const botNameCount = new Map<string, { count: number; category: BotCategory }>();
-  for (const r of botsRange) {
-    const info = detectBot(r.userAgent);
-    if (!info.isBot || !info.category || !info.name) continue;
-    botCatCount.set(info.category, (botCatCount.get(info.category) ?? 0) + 1);
-    const cur = botNameCount.get(info.name);
-    botNameCount.set(info.name, {
-      count: (cur?.count ?? 0) + 1,
-      category: info.category,
-    });
-  }
-  const botCatData = (Object.keys(BOT_CATEGORY_LABEL) as BotCategory[]).map((c) => ({
-    category: c,
-    count: botCatCount.get(c) ?? 0,
-  }));
-  const topBots = Array.from(botNameCount.entries())
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 12);
-
-  // 의심 봇(위장 스크레이퍼) PV 는 봇 쪽으로 집계 — 사람 vs 봇 비율을 정직하게
-  const suspectPv = humansRange.length - humansClean.length;
-  const totalBots = botsRange.length + suspectPv;
-  const totalHumans = humansClean.length;
-  const botRatio =
-    totalBots + totalHumans > 0
-      ? Math.round((totalBots / (totalBots + totalHumans)) * 100)
-      : 0;
   const rangeLabel = RANGE_LABEL[range];
 
   return (
@@ -684,9 +338,9 @@ export default async function StatsPage({ searchParams }: Props) {
           실시간은 heartbeat 기준, 기간 통계는 페이지뷰(PV) 기준입니다. 관리자
           영역(/admin)은 제외하고 봇과 사람을 User-Agent로 분리합니다.
         </p>
-        <RangeSelector active={range} />
       </header>
 
+      <RangeStatsProvider initial={initialStats}>
       <LivePresencePanel />
 
       {/* === 사람 트래픽 === */}
@@ -697,128 +351,13 @@ export default async function StatsPage({ searchParams }: Props) {
           <span className="text-xs text-neutral-500">(봇 제외)</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label="누적 PV (전체 — 사람+봇)" value={totalAll} />
-          <KpiCard
-            label="오늘 방문자"
-            value={humanTodayUnique}
-            sub={`PV ${humanTodayPV.toLocaleString()}`}
-            accent
-          />
-          <KpiCard
-            label="어제 방문자"
-            value={humanYesterdayUnique}
-            sub={`PV ${humanYesterdayPV.toLocaleString()}`}
-          />
-          <KpiCard
-            label={`${rangeLabel} 방문자`}
-            value={humanRangeUnique}
-            sub={`PV ${humanRangePV.toLocaleString()}`}
-          />
-        </div>
+        <HumanKpiCards totalAll={totalAll} />
 
-        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label={`${rangeLabel} 평균 체류`} value={avgSessionLabel} accent sub="페이지 이동으로 관측된 시간만" />
-          <KpiCard label="이탈률" value={bounceRate} suffix="%" sub={`1페이지 세션 · 열린 탭 체류 미반영 · 의심 봇 ${suspiciousSids.size.toLocaleString()}세션 제외`} />
-          <KpiCard label="세션 수" value={sessionCount} sub={`방문자 ${humanRangeUnique.toLocaleString()}명 기준`} />
-          <KpiCard label="세션당 PV" value={sessionCount ? (humanRangePV / sessionCount).toFixed(1) : "0"} sub="페이지 깊이" />
-        </div>
+        <ConcurrentCard />
 
-        <SectionCard
-          title="동시 접속"
-          subtitle={`${concurrent.bucketMinutes}분 창 고유 세션 · ${rangeLabel}`}
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-            <KpiCard
-              label="피크"
-              value={concurrent.peak}
-              suffix="명"
-              accent
-              sub={
-                concurrent.peakAt
-                  ? `${new Date(concurrent.peakAt.getTime() + 9 * 3_600_000)
-                      .toISOString()
-                      .replace("T", " ")
-                      .slice(5, 16)} KST`
-                  : "—"
-              }
-            />
-            <KpiCard label="평균" value={concurrent.avg.toFixed(1)} suffix="명" sub="빈 시간 포함" />
-            <KpiCard label="중앙값" value={concurrent.median} suffix="명" />
-            <KpiCard label="상위 5%" value={concurrent.p95} suffix="명" sub="붐빌 때 이 정도" />
-          </div>
-          <ConcurrentHourChart hours={concurrentHours} />
-          <div className="mt-5 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
-                  <th className="py-2 font-medium">날짜 (KST)</th>
-                  <th className="py-2 font-medium text-right">피크</th>
-                  <th className="py-2 font-medium text-right">시각</th>
-                  <th className="py-2 font-medium text-right">평균</th>
-                </tr>
-              </thead>
-              <tbody>
-                {concurrentDays.map((d) => (
-                  <tr key={d.day} className="border-b border-neutral-100 dark:border-neutral-900 last:border-0">
-                    <td className="py-1.5">
-                      {d.day.slice(5)} ({DAY_KO[new Date(`${d.day}T00:00:00Z`).getUTCDay()]})
-                      {d.partial && <span className="ml-1.5 text-[10px] text-neutral-400">부분</span>}
-                    </td>
-                    <td className="py-1.5 text-right font-semibold tabular-nums">{d.peak}</td>
-                    <td className="py-1.5 text-right text-neutral-500 tabular-nums">{d.peakAt}</td>
-                    <td className={`py-1.5 text-right tabular-nums ${d.partial ? "text-neutral-400" : "text-neutral-500"}`}>
-                      {d.avg.toFixed(1)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-3 text-[11px] text-neutral-500 break-keep">
-            heartbeat(실시간 패널)는 이력을 남기지 않아 과거 구간은 PV 로 근사합니다 — 같은 창 안에
-            PV 를 낸 고유 세션 수(GA 활성 사용자와 같은 정의). 봇 {suspiciousSids.size.toLocaleString()}세션
-            제외 기준은 위 방문자 지표와 동일합니다. &quot;부분&quot; 은 조회 구간에 하루가 다 담기지
-            않은 날 — 평균은 담긴 시간대만의 값이라 다른 날과 직접 비교하지 마세요.
-          </p>
-        </SectionCard>
+        <DeviceCard />
 
-        <SectionCard title="디바이스 분포" subtitle={rangeLabel}>
-          {deviceTotal === 0 ? (
-            <EmptyHint />
-          ) : (
-            <ul className="grid grid-cols-3 gap-3">
-              {deviceData.map((d) => {
-                const meta = DEVICE_LABEL[d.type];
-                return (
-                  <li
-                    key={d.type}
-                    className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 text-center bg-white dark:bg-neutral-950"
-                  >
-                    <div className="text-3xl">{meta.emoji}</div>
-                    <div className="mt-1 text-xs font-medium text-neutral-500">
-                      {meta.label}
-                    </div>
-                    <div className="mt-1 text-2xl font-black tabular-nums">
-                      {d.count.toLocaleString()}
-                    </div>
-                    <div className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
-                      {d.pct}%
-                    </div>
-                    <div className="mt-2 h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500"
-                        style={{ width: `${d.pct}%` }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard title="방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션 · 카드 안에서 기간 선택">
+        <SectionCard title="방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션(날짜별 합이라 위 KPI 의 기간 고유 방문자보다 큼)">
           <SectionRangeTabs
             id="daily"
             panels={{ "7d": <DailyPanel p={dailyPanels["7d"]} />, "30d": <DailyPanel p={dailyPanels["30d"]} />, all: <DailyPanel p={dailyPanels.all} /> }}
@@ -833,45 +372,7 @@ export default async function StatsPage({ searchParams }: Props) {
           )}
         </SectionCard>
 
-        <SectionCard title="인기 페이지" subtitle={rangeLabel}>
-          {topHumanPaths.length === 0 ? (
-            <EmptyHint />
-          ) : (
-            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {topHumanPaths.map(([path, count], i) => {
-                const max = topHumanPaths[0][1];
-                const pct = (count / max) * 100;
-                return (
-                  <li
-                    key={path}
-                    className="py-2.5 flex items-center gap-3 text-sm"
-                  >
-                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
-                      {i + 1}
-                    </span>
-                    <a
-                      href={path}
-                      target="_blank"
-                      rel="noopener"
-                      className="font-medium hover:underline truncate max-w-[40%]"
-                    >
-                      {path}
-                    </a>
-                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="tabular-nums text-neutral-500 font-semibold w-12 text-right">
-                      {count}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SectionCard>
+        <PopularPagesCard />
       </section>
 
       {/* === 이탈 분석 (이탈 페이지 + 회원 잠수) === */}
@@ -884,55 +385,7 @@ export default async function StatsPage({ searchParams }: Props) {
           </span>
         </div>
 
-        <SectionCard
-          title="이탈 페이지 TOP 10"
-          subtitle={`${rangeLabel} · 세션의 마지막 페이지 기준 · 의심 봇 제외`}
-        >
-          {topExitPaths.length === 0 ? (
-            <EmptyHint />
-          ) : (
-            <>
-              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {topExitPaths.map((e, i) => {
-                  const max = topExitPaths[0].exits;
-                  const pct = (e.exits / max) * 100;
-                  return (
-                    <li key={e.path} className="py-2.5 flex items-center gap-3 text-sm">
-                      <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
-                        {i + 1}
-                      </span>
-                      <a
-                        href={e.path}
-                        target="_blank"
-                        rel="noopener"
-                        className="font-medium hover:underline truncate max-w-[36%]"
-                      >
-                        {e.path}
-                      </a>
-                      <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                        <div className="h-full bg-rose-500" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="tabular-nums text-neutral-500 font-semibold w-16 text-right">
-                        {e.exits.toLocaleString()}
-                      </span>
-                      <span
-                        className="tabular-nums w-24 text-right text-xs text-neutral-500"
-                        title="그 페이지를 본 세션 중 그 페이지가 마지막이었던 비율"
-                      >
-                        이탈률 {e.rate}%
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="mt-3 text-[11px] text-neutral-500 leading-relaxed">
-                이탈률 = 그 페이지를 본 세션 중 그 페이지에서 방문이 끝난 비율.
-                많이 보이는 페이지일수록 이탈 세션 수도 자연히 크니, 순위(절대 수)와
-                이탈률(비율)을 같이 보세요.
-              </p>
-            </>
-          )}
-        </SectionCard>
+        <ExitPagesCard />
 
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-sm">회원 잠수 현황</h3>
@@ -1037,7 +490,7 @@ export default async function StatsPage({ searchParams }: Props) {
           <span className="text-base">🚪</span>
           <h2 className="text-lg font-bold tracking-tight">유입 채널</h2>
           <span className="text-xs text-neutral-500">
-            (사람 · 랜딩 기준) — 구글/네이버/SNS/직접 · 첫 카드는 카드 안에서 기간 선택, 나머지는 상단 기간({rangeLabel})
+            (사람 · 랜딩 기준) — 구글/네이버/SNS/직접 · 카드마다 기간 선택
           </span>
         </div>
 
@@ -1048,38 +501,7 @@ export default async function StatsPage({ searchParams }: Props) {
           />
         </SectionCard>
 
-        <SectionCard
-          title="AI 서비스별 유입"
-          subtitle={`${rangeLabel} · AI 링크 클릭 ${aiSvcRows.reduce((a, r) => a + r.pv, 0).toLocaleString()}회 (사람 · referrer·utm_source 기준)`}
-        >
-          <table className="w-full text-sm table-fixed">
-            <thead>
-              <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
-                <th className="text-left font-medium pb-2 pr-2 w-28">서비스</th>
-                <th className="text-right font-medium pb-2 px-1 w-16">방문자</th>
-                <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
-                <th className="text-left font-medium pb-2 pl-3">많이 들어온 페이지</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {aiSvcRows.map((r) => (
-                <tr key={r.name} className={r.pv === 0 ? "opacity-40" : undefined}>
-                  <td className="py-2 pr-2 font-medium">{r.name}</td>
-                  <td className="py-2 px-1 text-right tabular-nums font-semibold">{r.unique.toLocaleString()}</td>
-                  <td className="py-2 px-1 text-right tabular-nums">{r.pv.toLocaleString()}</td>
-                  <td className="py-2 pl-3 text-xs text-neutral-500 truncate">
-                    {r.topPaths.length === 0 ? "—" : r.topPaths.map(([p, n]) => `${p} (${n})`).join(" · ")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="mt-3 text-[11px] text-neutral-400 leading-relaxed">
-            ChatGPT·Copilot·Perplexity 는 링크에 utm_source 를 붙여 거의 전부 잡힙니다. Claude·Gemini 는 태그를 안 붙이고
-            referrer 만 남기므로 앱·인앱 브라우저처럼 referrer 가 빠지는 경로는 &quot;직접&quot; 으로 섞입니다(하한값).
-            AI 가 답변에서 우리를 언급만 하고 클릭이 없으면 여기에 안 잡힙니다.
-          </p>
-        </SectionCard>
+        <AiServicesCard />
 
         <SectionCard
           title="지난주 대비"
@@ -1136,121 +558,11 @@ export default async function StatsPage({ searchParams }: Props) {
         </SectionCard>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <SectionCard
-            title="검색 키워드 (네이버·다음·빙)"
-            subtitle={`${rangeLabel} · 검색 유입 ${topSearchQueries.reduce((s, [, v]) => s + v.count, 0)}회`}
-          >
-            {topSearchQueries.length === 0 ? (
-              <EmptyHint message="아직 검색어가 잡힌 유입이 없습니다. 네이버·다음 검색 유입부터 쌓입니다 (구글·빙 검색어는 아래 '검색 성과' 섹션에서 확인 — referrer 에 검색어를 안 남김)." />
-            ) : (
-              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {topSearchQueries.map(([query, info], i) => {
-                  const max = topSearchQueries[0][1].count;
-                  const pct = max > 0 ? (info.count / max) * 100 : 0;
-                  return (
-                    <li key={query} className="py-2 flex items-center gap-3 text-sm">
-                      <span className="w-5 text-right tabular-nums text-neutral-400 font-bold">
-                        {i + 1}
-                      </span>
-                      <span className="text-base">{CHANNEL_META[info.channel].emoji}</span>
-                      <span className="font-medium truncate max-w-[45%]">{query}</span>
-                      <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                        <div className="h-full bg-teal-500" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
-                        {info.count}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </SectionCard>
-
-          <SectionCard title="외부 유입 랜딩 페이지 TOP 10" subtitle={`${rangeLabel} · 직접 제외`}>
-            {topExternalLandings.length === 0 ? (
-              <EmptyHint message="외부(검색·SNS·타 사이트) 유입이 도착한 페이지가 아직 없습니다." />
-            ) : (
-              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {topExternalLandings.map(([path, count], i) => {
-                  const max = topExternalLandings[0][1];
-                  const pct = max > 0 ? (count / max) * 100 : 0;
-                  return (
-                    <li key={path} className="py-2 flex items-center gap-3 text-xs">
-                      <span className="w-5 text-right tabular-nums text-neutral-400 font-bold">
-                        {i + 1}
-                      </span>
-                      <a
-                        href={path}
-                        target="_blank"
-                        rel="noopener"
-                        className="font-mono truncate max-w-[55%] hover:underline"
-                      >
-                        {path}
-                      </a>
-                      <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                        <div className="h-full bg-indigo-400/80" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
-                        {count}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </SectionCard>
+          <SearchQueriesCard />
+          <ExternalLandingsCard />
         </div>
 
-        {topReferralDomains.length > 0 && (
-          <SectionCard
-            title={`기타 사이트 상세 (referral ${topReferralDomains.length}개)`}
-            subtitle={rangeLabel}
-          >
-            {(() => {
-              const max = topReferralDomains[0][1];
-              const row = ([domain, count]: [string, number], i: number) => {
-                const pct = max > 0 ? (count / max) * 100 : 0;
-                return (
-                  <li key={domain} className="py-2 flex items-center gap-3 text-sm">
-                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
-                      {i + 1}
-                    </span>
-                    <span className="font-mono text-xs truncate max-w-[45%]">{domain}</span>
-                    <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                      <div className="h-full bg-sky-400/80" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
-                      {count}
-                    </span>
-                  </li>
-                );
-              };
-              const head = topReferralDomains.slice(0, 10);
-              const rest = topReferralDomains.slice(10);
-              return (
-                <>
-                  <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                    {head.map(row)}
-                  </ul>
-                  {rest.length > 0 && (
-                    <details className="group mt-1">
-                      <summary className="cursor-pointer list-none py-2 text-sm font-medium text-sky-600 dark:text-sky-400 hover:underline select-none">
-                        <span className="group-open:hidden">
-                          + 나머지 {rest.length}개 펼치기
-                        </span>
-                        <span className="hidden group-open:inline">접기</span>
-                      </summary>
-                      <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 border-t border-neutral-200 dark:border-neutral-800">
-                        {rest.map((entry, i) => row(entry, i + 10))}
-                      </ul>
-                    </details>
-                  )}
-                </>
-              );
-            })()}
-          </SectionCard>
-        )}
+        <ReferralDomainsCard />
 
         <p className="text-xs text-neutral-500 leading-relaxed">
           ⓘ 랜딩(외부→사이트 첫 진입) 1회 = 1유입으로 집계 — 내부 페이지 이동은 세지 않습니다.
@@ -1617,37 +929,10 @@ export default async function StatsPage({ searchParams }: Props) {
         <div className="flex items-center gap-2 pt-6">
           <span className="text-base">🌐</span>
           <h2 className="text-lg font-bold tracking-tight">도메인별</h2>
-          <span className="text-xs text-neutral-500">(사람 기준 · {rangeLabel})</span>
+          <span className="text-xs text-neutral-500">(사람 기준 · 카드에서 기간 선택)</span>
         </div>
 
-        <SectionCard title="도메인별 방문자·PV" subtitle={rangeLabel}>
-          {hostData.length === 0 ? (
-            <EmptyHint message="아직 도메인이 기록된 방문이 없습니다. host 기록은 추가(2026-06-04) 이후 PV 부터 — 이전 PV 는 '도메인 미상'." />
-          ) : (
-            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {hostData.map((h, i) => {
-                const max = hostData[0].pv;
-                const pct = max > 0 ? (h.pv / max) * 100 : 0;
-                const share = hostTotalPv > 0 ? Math.round((h.pv / hostTotalPv) * 100) : 0;
-                return (
-                  <li key={h.host} className="py-2.5 flex items-center gap-3 text-sm">
-                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
-                      {i + 1}
-                    </span>
-                    <span className="font-medium truncate max-w-[38%]">{h.host}</span>
-                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                      <div className="h-full bg-violet-500" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="tabular-nums text-neutral-500 font-semibold w-32 text-right">
-                      방문자 {h.unique.toLocaleString()} · PV {h.pv.toLocaleString()}
-                      <span className="text-neutral-400"> ({share}%)</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SectionCard>
+        <HostCard />
 
         <p className="text-xs text-neutral-500 leading-relaxed">
           ⓘ scorebase.kr 과 스코어보드.kr 은 같은 앱을 공유합니다. 스코어보드.kr 루트(/)는
@@ -1666,78 +951,7 @@ export default async function StatsPage({ searchParams }: Props) {
           </span>
         </div>
 
-        {/* KPI — 오늘/어제/24h/기간 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label="오늘 AI PV" value={aiTodayPV} accent sub="ChatGPT·Claude 등" />
-          <KpiCard label="어제 AI PV" value={aiYesterdayPV} sub="비교 baseline" />
-          <KpiCard label="최근 24시간" value={aiLast24hPV} sub="rolling window" />
-          <KpiCard label={`${rangeLabel} AI PV`} value={aiRangePV} sub="기간 합계" />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <SectionCard title="AI 봇별 PV" subtitle={rangeLabel}>
-            {aiTopBots.length === 0 ? (
-              <EmptyHint message="AI 크롤러 방문이 아직 없습니다. 색인되면 GPTBot/ClaudeBot 등이 잡힙니다." />
-            ) : (
-              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {aiTopBots.map(([name, count], i) => {
-                  const max = aiTopBots[0][1];
-                  const pct = max > 0 ? (count / max) * 100 : 0;
-                  return (
-                    <li key={name} className="py-2.5 flex items-center gap-3 text-sm">
-                      <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
-                        {i + 1}
-                      </span>
-                      <span className="font-medium truncate max-w-[50%]">{name}</span>
-                      <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <span className="tabular-nums text-neutral-600 dark:text-neutral-300 font-semibold w-12 text-right">
-                        {count}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </SectionCard>
-
-          <SectionCard title="AI 봇이 본 페이지 TOP 15" subtitle={rangeLabel}>
-            {aiTopPaths.length === 0 ? (
-              <EmptyHint />
-            ) : (
-              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {aiTopPaths.map(([path, count], i) => {
-                  const max = aiTopPaths[0][1];
-                  const pct = max > 0 ? (count / max) * 100 : 0;
-                  return (
-                    <li key={path} className="py-2 flex items-center gap-3 text-xs">
-                      <span className="w-5 text-right tabular-nums text-neutral-400 font-bold">
-                        {i + 1}
-                      </span>
-                      <Link
-                        href={path}
-                        target="_blank"
-                        className="font-mono truncate max-w-[55%] hover:underline text-emerald-700 dark:text-emerald-400"
-                      >
-                        {path}
-                      </Link>
-                      <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                        <div className="h-full bg-emerald-400/80" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
-                        {count}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </SectionCard>
-        </div>
+        <AiBotRangeCards today={aiTodayPV} yesterday={aiYesterdayPV} last24h={aiLast24hPV} />
 
         <SectionCard title="최근 30일 AI 봇 PV" subtitle="일별 합계 — 인용·색인 추세">
           {aiBots30.length === 0 ? (
@@ -1763,85 +977,17 @@ export default async function StatsPage({ searchParams }: Props) {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label={`봇 비율 (${rangeLabel})`} value={botRatio} suffix="%" />
-          <KpiCard label="봇 오늘" value={botToday} accent />
-          <KpiCard label="봇 어제" value={botYesterday} />
-          <KpiCard label={`봇 ${rangeLabel}`} value={botRangeCount} />
-        </div>
+        <BotRangeCards today={botToday} yesterday={botYesterday} />
 
-        <SectionCard title={`봇 카테고리 분포 (${rangeLabel})`} subtitle="유형별 합계">
-          {totalBots === 0 ? (
-            <EmptyHint message="봇 트래픽이 잡히지 않았습니다." />
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-              {botCatData.map((c) => {
-                const meta = BOT_CATEGORY_LABEL[c.category];
-                const pct =
-                  totalBots > 0 ? Math.round((c.count / totalBots) * 100) : 0;
-                return (
-                  <li
-                    key={c.category}
-                    className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 text-center bg-white dark:bg-neutral-950"
-                  >
-                    <div className="text-2xl">{meta.emoji}</div>
-                    <div className="mt-1 text-[11px] font-medium text-neutral-500">
-                      {meta.label}
-                    </div>
-                    <div className="mt-0.5 text-lg font-bold tabular-nums">
-                      {c.count}
-                    </div>
-                    <div className="text-[10px] text-neutral-400">{pct}%</div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard title={`${rangeLabel} 봇 트래픽`} subtitle="일별 합계">
-          {bots30.length === 0 ? (
-            <EmptyHint />
-          ) : (
-            <DailyArea data={botDailyData} />
-          )}
-        </SectionCard>
-
-        <SectionCard title={`봇 TOP 12 (${rangeLabel})`} subtitle="이름별 PV">
-          {topBots.length === 0 ? (
-            <EmptyHint />
-          ) : (
-            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {topBots.map(([name, info], i) => {
-                const max = topBots[0][1].count;
-                const pct = (info.count / max) * 100;
-                const meta = BOT_CATEGORY_LABEL[info.category];
-                return (
-                  <li
-                    key={name}
-                    className="py-2.5 flex items-center gap-3 text-sm"
-                  >
-                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
-                      {i + 1}
-                    </span>
-                    <span className="text-base">{meta.emoji}</span>
-                    <span className="font-medium truncate max-w-[40%]">
-                      {name}
-                    </span>
-                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                      <div
-                        className="h-full bg-amber-500"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="tabular-nums text-neutral-500 font-semibold w-12 text-right">
-                      {info.count}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+        <SectionCard title="봇 트래픽 일별" subtitle="일별 합계 · 카드 안에서 기간 선택">
+          <SectionRangeTabs
+            id="봇 일별"
+            panels={{
+              "7d": <DailyArea data={botDailyPanels["7d"]} />,
+              "30d": <DailyArea data={botDailyPanels["30d"]} />,
+              all: <DailyArea data={botDailyPanels.all} />,
+            }}
+          />
         </SectionCard>
       </section>
 
@@ -1851,31 +997,7 @@ export default async function StatsPage({ searchParams }: Props) {
         모니터링 용도로 활용 가능 (예: GPTBot 빈도 ↑ = ChatGPT 답변에 인용 가능성).
         디바이스 분포는 iPadOS 13+ Safari 가 desktop UA 와 동일해서 일부 iPad 가 데스크탑으로 잡힐 수 있습니다.
       </p>
-    </div>
-  );
-}
-
-function RangeSelector({ active }: { active: Range }) {
-  const ranges: Range[] = ["7d", "30d", "all"];
-  return (
-    <div className="mt-4 inline-flex rounded-lg border border-neutral-200 dark:border-neutral-800 p-0.5 bg-neutral-50 dark:bg-neutral-900">
-      {ranges.map((r) => {
-        const isActive = r === active;
-        return (
-          <Link
-            key={r}
-            href={r === "7d" ? "/admin/stats" : `/admin/stats?range=${r}`}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
-              isActive
-                ? "bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm"
-                : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-            }`}
-            prefetch={false}
-          >
-            {RANGE_LABEL[r]}
-          </Link>
-        );
-      })}
+      </RangeStatsProvider>
     </div>
   );
 }
@@ -1897,7 +1019,7 @@ function DailyPanel({ p }: { p: DailyPanelData }) {
   return (
     <>
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <MiniStat label={`${label} 방문자`} value={p.visitors} tone="emerald" />
+        <MiniStat label={`${label} 일별 방문자 합`} value={p.visitors} tone="emerald" />
         <MiniStat label={`${label} 페이지뷰`} value={p.views} tone="blue" />
         <MiniStat label="하루 평균 방문자" value={p.avgVisitors} tone="emerald" />
         <MiniStat label={`최다 방문일 (${p.peak.date})`} value={p.peak.visitors} tone="emerald" />
@@ -1966,110 +1088,6 @@ function ChannelPanel({ p }: { p: { total: number; rows: Array<{ channel: Traffi
   );
 }
 
-/** 차트 위 요약 칩 — 방문자(초록)·페이지뷰(파랑) 색을 차트 범례와 맞춘다. */
-function MiniStat({ label, value, tone }: { label: string; value: number; tone: "emerald" | "blue" }) {
-  const color = tone === "emerald" ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400";
-  return (
-    <div className="rounded-lg bg-neutral-50 px-3 py-2 dark:bg-white/[0.04]">
-      <div className="text-[11px] text-neutral-500 truncate">{label}</div>
-      <div className={`text-lg font-bold tabular-nums ${color}`}>{value.toLocaleString()}</div>
-    </div>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  accent,
-  suffix,
-  sub,
-}: {
-  label: string;
-  value: number | string;
-  accent?: boolean;
-  suffix?: string;
-  sub?: string;
-}) {
-  return (
-    <div
-      className={`rounded-xl border p-4 ${
-        accent
-          ? "border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10"
-          : "border-neutral-200 dark:border-neutral-800"
-      }`}
-    >
-      <div className="text-xs font-medium uppercase tracking-wider text-neutral-500">
-        {label}
-      </div>
-      <div className="mt-1 text-2xl font-black tabular-nums">
-        {typeof value === "number" ? value.toLocaleString() : value}
-        {suffix && (
-          <span className="text-base font-bold text-neutral-500">{suffix}</span>
-        )}
-      </div>
-      {sub && (
-        <div className="mt-0.5 text-[11px] text-neutral-500 tabular-nums">
-          {sub}
-        </div>
-      )}
-    </div>
-  );
-}
-
-const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
-
-/** 시간대별 평균 동시 접속 — 막대 하나가 KST 한 시간. 골든타임을 눈으로 찾으라고 둔다. */
-function ConcurrentHourChart({ hours }: { hours: Array<{ hour: number; avg: number; peak: number }> }) {
-  const max = Math.max(1, ...hours.map((h) => h.avg));
-  return (
-    <div>
-      <div className="flex items-end gap-[3px] h-28">
-        {hours.map((h) => (
-          <div key={h.hour} className="flex-1 flex flex-col justify-end items-center group relative">
-            <div
-              className="w-full rounded-t bg-sky-500/70 group-hover:bg-sky-500 transition-colors"
-              style={{ height: `${Math.max(2, (h.avg / max) * 100)}%` }}
-            />
-            <span className="absolute -top-5 hidden group-hover:block text-[10px] font-semibold whitespace-nowrap">
-              {h.avg.toFixed(1)} / 최대 {h.peak}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-[3px] mt-1">
-        {hours.map((h) => (
-          <span key={h.hour} className="flex-1 text-center text-[9px] text-neutral-400 tabular-nums">
-            {h.hour % 3 === 0 ? h.hour : ""}
-          </span>
-        ))}
-      </div>
-      <p className="mt-1 text-[10px] text-neutral-400 text-center">KST 시간대별 평균 (막대에 올리면 최대값)</p>
-    </div>
-  );
-}
-
-function SectionCard({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
-      <div className="flex items-baseline justify-between mb-4">
-        <h3 className="font-semibold">{title}</h3>
-        {subtitle && (
-          <span className="text-xs text-neutral-500">{subtitle}</span>
-        )}
-      </div>
-      {children}
-    </section>
-  );
-}
-
 /** 지난주 대비 증감 셀 — 절대 건수 + %, 방향은 lucide 아이콘. 지난주 0건이면 "신규". */
 function WeekDelta({ cur, prev }: { cur: number; prev: number }) {
   if (prev === 0) {
@@ -2106,14 +1124,6 @@ function WeekDelta({ cur, prev }: { cur: number; prev: number }) {
       {diff.toLocaleString()} ({up ? "+" : ""}
       {pct}%)
     </span>
-  );
-}
-
-function EmptyHint({ message }: { message?: string } = {}) {
-  return (
-    <div className="text-sm text-neutral-500 py-8 text-center">
-      {message ?? "아직 데이터가 충분하지 않습니다."}
-    </div>
   );
 }
 
