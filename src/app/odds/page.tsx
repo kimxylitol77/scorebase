@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
+import { kstDayWindow } from "@/lib/threads/kst";
 import {
   SOCCER_LEAGUES,
   BASEBALL_LEAGUES,
@@ -286,7 +287,7 @@ export default async function OddsPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
-      <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} />
+      <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} todayKey={kstDayWindow().dateKey} />
       <NoVigCalculator defaultMode={cfg.hasDraw ? "three" : "two"} />
     </div>
   );

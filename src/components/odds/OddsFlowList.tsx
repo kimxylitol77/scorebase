@@ -117,6 +117,37 @@ function splitTime(ms: number): { date: string; time: string } {
   return { date, time };
 }
 
+/** KST 날짜 키 — 오늘·내일·모레 칩(베트맨 탭과 같은 규칙) */
+function kstDayKey(ms: number): string {
+  const d = new Date(ms + 9 * 3600_000);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+function kstDayLabel(key: string, todayKey: string): string {
+  const [y, mo, d] = key.split("-").map(Number);
+  const wd = ["일", "월", "화", "수", "목", "금", "토"][new Date(Date.UTC(y, mo - 1, d)).getUTCDay()];
+  const base = `${mo}/${d} (${wd})`;
+  const diff = Math.round((Date.UTC(y, mo - 1, d) - Date.parse(todayKey)) / 86400_000);
+  return diff === 0 ? `오늘 ${base}` : diff === 1 ? `내일 ${base}` : diff === 2 ? `모레 ${base}` : base;
+}
+
+/** 표 "AI 모델 vs 시장" 셀 — 돈 몰린 쪽의 모델 확률과 시장 내재확률, 괴리 배지(edgeNote 와 같은 임계 ±5%p) */
+function ModelVsMarketCell({ m }: { m: FlowMatch }) {
+  if (m.modelProb == null || m.marketProb == null) return <span className="text-neutral-300 dark:text-neutral-600">—</span>;
+  const e = (m.modelProb - m.marketProb) * 100;
+  const tone = e >= 5 ? "text-emerald-600 dark:text-emerald-400" : e <= -5 ? "text-amber-600 dark:text-amber-400" : "text-neutral-500";
+  return (
+    <span className="flex flex-col items-center gap-0.5 tabular-nums" title={`${m.movementLabel} — 우리 모델 ${(m.modelProb * 100).toFixed(1)}% vs 시장 내재확률 ${(m.marketProb * 100).toFixed(1)}%`}>
+      <span className="max-w-[110px] truncate text-[10px] text-neutral-400">{m.movementLabel}</span>
+      <span className="text-[12px]">
+        <span className="font-semibold text-neutral-800 dark:text-neutral-100">{(m.modelProb * 100).toFixed(0)}%</span>
+        <span className="mx-1 text-neutral-400">vs</span>
+        <span className="text-neutral-600 dark:text-neutral-300">{(m.marketProb * 100).toFixed(0)}%</span>
+      </span>
+      <span className={`text-[10px] font-bold ${tone}`}>{e >= 5 ? `AI 동의 +${e.toFixed(0)}%p` : e <= -5 ? `AI 신중 −${Math.abs(e).toFixed(0)}%p` : `${e >= 0 ? "+" : "−"}${Math.abs(e).toFixed(0)}%p`}</span>
+    </span>
+  );
+}
+
 const LEAGUE_COLORS = ["#315f86", "#765b8f", "#a53a2b", "#61702d", "#3f7567", "#8a5d32", "#53657f"];
 
 function leagueColor(league: string): string {
@@ -579,7 +610,7 @@ function OddsRadarTable({
 }) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const toggle = (id: number) => setExpandedId((current) => (current === id ? null : id));
-  const colSpan = hasDraw ? 7 : 6;
+  const colSpan = (hasDraw ? 7 : 6) + 1; // + AI 모델 vs 시장 열
 
   return (
     <>
@@ -603,6 +634,9 @@ function OddsRadarTable({
                   원정승 <span className="block text-[9px] font-normal text-neutral-400">오픈 / 현재</span>
                 </th>
                 <th className="min-w-[210px] px-4 text-left font-medium">원정팀</th>
+                <th className="w-[150px] border-l border-neutral-200 px-2 text-center font-medium dark:border-neutral-700">
+                  AI 모델 vs 시장 <span className="block text-[9px] font-normal text-neutral-400">돈 몰린 쪽 확률</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -647,6 +681,10 @@ function OddsRadarTable({
                           <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{m.awayKo}</span>
                           {expanded ? <ChevronUp className="h-4 w-4 flex-none text-neutral-400" /> : <ChevronDown className="h-4 w-4 flex-none text-neutral-400" />}
                         </button>
+                      </td>
+                      {/* 돈 몰린 쪽을 우리 모델도 지지하나 — 밸류 베트로 이어지는 이 페이지의 핵심 답 */}
+                      <td className="h-[76px] border-l border-neutral-200 px-2 text-center dark:border-neutral-700">
+                        <ModelVsMarketCell m={m} />
                       </td>
                     </tr>
                     {expanded && (
@@ -1040,11 +1078,14 @@ export default function OddsFlowList({
   sport,
   hasDraw,
   hitrate,
+  todayKey: todayKeyProp,
 }: {
   matches: FlowMatch[];
   sport: string;
   hasDraw: boolean;
   hitrate: FlowHitrate | null;
+  /** KST 오늘 날짜 키(YYYY-MM-DD) — 날짜 칩 라벨(오늘/내일/모레) 기준 */
+  todayKey?: string;
 }) {
   const [movementFilter, setMovementFilter] = useState<MovementFilter>("drop");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("table");
@@ -1052,13 +1093,22 @@ export default function OddsFlowList({
   const [showQuiet, setShowQuiet] = useState(false);
   // 리그 필터 — 축구는 한 화면에 100개 리그·300경기가 섞여 "내 리그" 만 보려면 스크롤뿐이었다(2026-09-12).
   const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
+  // 날짜 칩 — 하락 폭 순 정렬이라 오늘·모레 경기가 섞이던 것. 오늘/내일/모레(있는 날만) + 전체.
+  const [dayFilter, setDayFilter] = useState<string | null>(null);
+  // 오늘 키는 서버가 넘긴다(렌더 중 Date.now 금지) — 자정 직후 어제 밤 LIVE 경기가 "오늘" 로 붙지 않게
+  const todayKey = todayKeyProp ?? kstDayKey(matches.length ? Math.min(...matches.map((m) => m.startTime)) : 0);
+  const dayChips = useMemo(() => {
+    const cnt = new Map<string, number>();
+    for (const m of matches) cnt.set(kstDayKey(m.startTime), (cnt.get(kstDayKey(m.startTime)) ?? 0) + 1);
+    return [...cnt.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [matches]);
   const leagueChips = useMemo(() => {
     const cnt = new Map<string, number>();
     for (const m of matches) cnt.set(m.league, (cnt.get(m.league) ?? 0) + 1);
     return [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 14);
   }, [matches]);
   const filteredMatches = useMemo(() => {
-    const pool = leagueFilter ? matches.filter((m) => m.league === leagueFilter) : matches;
+    const pool = matches.filter((m) => (!leagueFilter || m.league === leagueFilter) && (!dayFilter || kstDayKey(m.startTime) === dayFilter));
     const selected = movementFilter === "drop"
       ? pool.filter((m) => m.deltaPct <= -1.5)
       : movementFilter === "rise"
@@ -1067,7 +1117,7 @@ export default function OddsFlowList({
     return [...selected].sort((a, b) =>
       movementFilter === "rise" ? b.deltaPct - a.deltaPct : a.deltaPct - b.deltaPct,
     );
-  }, [matches, movementFilter, leagueFilter]);
+  }, [matches, movementFilter, leagueFilter, dayFilter]);
 
   if (!matches.length)
     return (
@@ -1082,9 +1132,7 @@ export default function OddsFlowList({
 
   const displayMatches = filteredMatches.length
     ? filteredMatches
-    : leagueFilter
-      ? matches.filter((m) => m.league === leagueFilter)
-      : matches;
+    : matches.filter((m) => (!leagueFilter || m.league === leagueFilter) && (!dayFilter || kstDayKey(m.startTime) === dayFilter));
   const hero = displayMatches[0];
   const rest = displayMatches.slice(1);
   const heroMoves = hero.points.length >= 2 && Math.abs(hero.deltaPct) >= 3;
@@ -1099,8 +1147,29 @@ export default function OddsFlowList({
         <MovementFilters value={movementFilter} onChange={setMovementFilter} />
         <DisplayModeSwitch value={displayMode} onChange={setDisplayMode} />
       </div>
+      {dayChips.length > 1 && (
+        <div className="mt-3 flex flex-wrap gap-1.5" aria-label="날짜">
+          {[["", matches.length] as [string, number], ...dayChips].map(([k, n]) => {
+            const active = k === "" ? !dayFilter : dayFilter === k;
+            return (
+              <button
+                key={k || "all"}
+                type="button"
+                onClick={() => setDayFilter(k === "" ? null : active ? null : k)}
+                className={`rounded-full px-3 py-1 text-[12px] font-semibold ring-1 transition ${
+                  active
+                    ? "bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900 dark:ring-white"
+                    : "bg-white text-neutral-600 ring-neutral-200 hover:bg-neutral-50 dark:bg-white/[0.04] dark:text-neutral-300 dark:ring-white/10"
+                }`}
+              >
+                {k === "" ? "전체 날짜" : kstDayLabel(k, todayKey)} <span className="opacity-60 tabular-nums">{n}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       {leagueChips.length > 1 && (
-        <div className="mt-3 flex flex-wrap gap-1.5" aria-label="리그">
+        <div className="mt-2 flex flex-wrap gap-1.5" aria-label="리그">
           <button
             type="button"
             onClick={() => setLeagueFilter(null)}
