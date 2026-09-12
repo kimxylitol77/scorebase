@@ -9,7 +9,7 @@
 
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import type { BetmanMatch, BetmanLine } from "@/lib/odds/betman";
+import { betmanRenderNow, type BetmanMatch, type BetmanLine } from "@/lib/odds/betman";
 import BetmanTeamsRow from "./BetmanTeamsRow";
 
 const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구", VL: "배구" };
@@ -75,6 +75,9 @@ function LineRow({ line }: { line: BetmanLine }) {
       <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
         {/* 전반 라인은 유형명("승무패")만 보이면 풀타임과 구분이 안 된다 — betNm("축구 전반 승무패")로 */}
         {(line.betNm ?? "").includes("전반") ? line.betNm : (line.betTypNm ?? line.betNm ?? "-")}
+        {line.single && (
+          <span className="ml-1 rounded bg-emerald-500/10 px-1 py-px text-[10px] font-bold text-emerald-700 dark:text-emerald-300">단폭</span>
+        )}
         {lineLabel && (
           <span className="ml-1 rounded bg-neutral-100 px-1 py-px text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
             {lineLabel}
@@ -184,6 +187,18 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
     if (Number.isNaN(d.getTime())) return "-";
     return new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" }).format(d);
   };
+  // 발매 마감 — 베트맨 endDate 는 대부분 경기 시작과 같고(그때는 표기 생략), 회차 마감(예: 9/13 23:00)보다
+  // 늦게 시작하는 경기는 회차 마감으로 당겨진다. 킥오프와 1분 이상 다를 때만 "마감 HH:mm" 을 붙인다.
+  const nowMs = betmanRenderNow();
+  const deadline = (m: BetmanMatch): { label: string; closed: boolean; soon: boolean } | null => {
+    if (!m.endDate) return null;
+    const end = new Date(m.endDate).getTime();
+    const kick = new Date(m.gameDate).getTime();
+    if (!Number.isFinite(end) || Math.abs(kick - end) < 60_000) return null;
+    const sameDay = kstDayKey(m.endDate) === kstDayKey(m.gameDate);
+    const label = sameDay ? kstTime(m.endDate) : `${kstDayLabel(kstDayKey(m.endDate), todayKey).replace(/^(오늘|내일|모레) /, "")} ${kstTime(m.endDate)}`;
+    return { label, closed: end <= nowMs, soon: end > nowMs && end - nowMs <= 3600_000 };
+  };
 
   return (
     <section className="mt-4">
@@ -209,7 +224,8 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
         {matches[0]?.gmTs ? ` (${matches[0].gmTs} 회차 기준)` : ""}. 막대는 실제 투표 비율,
         오른쪽 <strong className="font-semibold">배당 기준 확률</strong>은 배당을 확률로 바꾼
         값입니다 — 둘이 벌어진 경기가 여론과 시장이 다르게 보는 경기입니다.
-        경기를 누르면 핸디캡·언더오버 배당이 펼쳐집니다. 출처는 베트맨(스포츠토토).
+        경기를 누르면 핸디캡·언더오버 배당이 펼쳐집니다. <strong className="font-semibold">단폭</strong>은 1경기만 단독으로 살 수 있는 유형,
+        마감 표시는 경기 시작보다 먼저 발매가 끝나는 경기입니다. 출처는 베트맨(스포츠토토).
       </p>
 
       {shown.length === 0 && (
@@ -244,6 +260,30 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
                     {SPORT_LABEL[m.itemCode ?? ""] ?? "-"}
                   </span>
                   <span className="truncate">{m.leagueName}</span>
+                  {/* 단폭 — 1경기만 단독 구매 가능(베트맨 sgl). 조합이 기본인 승부식에서 실구매자가 먼저 보는 표시 */}
+                  {m.single && (
+                    <span className="rounded bg-emerald-500/10 px-1.5 py-px text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-500/30">
+                      단폭
+                    </span>
+                  )}
+                  {(() => {
+                    const dl = deadline(m);
+                    if (!dl) return null;
+                    return (
+                      <span
+                        className={`rounded px-1.5 py-px text-[10px] font-semibold ring-1 ${
+                          dl.closed
+                            ? "bg-neutral-100 text-neutral-500 ring-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-700"
+                            : dl.soon
+                              ? "bg-rose-500/10 text-rose-600 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30"
+                              : "bg-amber-500/10 text-amber-700 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-500/30"
+                        }`}
+                        title="베트맨 발매 마감 시각 — 경기 시작보다 앞서 마감되는 경기(회차 마감 등)만 표시"
+                      >
+                        {dl.closed ? "발매 마감" : `마감 ${dl.label}`}
+                      </span>
+                    );
+                  })()}
                   {m.lines.length > 0 && (
                     // 펼칠 수 있다는 걸 알아볼 수 있어야 한다 — 회색 10px 로는 안 보인다.
                     // 색 있는 알약 + 닫힘/열림 문구 교체(CSS group-open, JS 불필요).

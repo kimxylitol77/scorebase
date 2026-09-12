@@ -95,7 +95,9 @@ export async function POST(req: NextRequest) {
       ${num(col(row, "handi"))}, ${num(col(row, "winHandi"))}, ${num(col(row, "loseHandi"))},
       ${allot(col(row, "winAllot"))}, ${allot(col(row, "drawAllot"))}, ${allot(col(row, "loseAllot"))},
       ${v?.w ?? null}, ${v?.d ?? null}, ${v?.l ?? null},
-      ${str(col(row, "protoStatus"))}, ${str(col(row, "gameResult"))}, ${now}, ${now}
+      ${str(col(row, "protoStatus"))}, ${str(col(row, "gameResult"))},
+      ${col(row, "sgl") == null ? null : String(col(row, "sgl")) === "1"}, ${num(col(row, "endDate")) != null ? new Date(num(col(row, "endDate"))!) : null},
+      ${now}, ${now}
     )`);
   }
 
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest) {
         "handi","winHandi","loseHandi",
         "winAllot","drawAllot","loseAllot",
         "winVotes","drawVotes","loseVotes",
-        "protoStatus","gameResult","fetchedAt","updatedAt"
+        "protoStatus","gameResult","sgl","endDate","fetchedAt","updatedAt"
       ) VALUES ${Prisma.join(chunk)}
       ON CONFLICT ("id") DO UPDATE SET
         "gameDate"=EXCLUDED."gameDate",
@@ -127,6 +129,7 @@ export async function POST(req: NextRequest) {
         "winAllot"=EXCLUDED."winAllot","drawAllot"=EXCLUDED."drawAllot","loseAllot"=EXCLUDED."loseAllot",
         "winVotes"=EXCLUDED."winVotes","drawVotes"=EXCLUDED."drawVotes","loseVotes"=EXCLUDED."loseVotes",
         "protoStatus"=EXCLUDED."protoStatus","gameResult"=EXCLUDED."gameResult",
+        "sgl"=EXCLUDED."sgl","endDate"=EXCLUDED."endDate",
         "fetchedAt"=EXCLUDED."fetchedAt","updatedAt"=EXCLUDED."updatedAt"
     `;
     // matchId 는 갱신 대상에서 뺀다 — 나중에 붙일 Match 매핑을 재수집이 지우면 안 된다.

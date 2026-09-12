@@ -1825,6 +1825,9 @@ model BetmanOdds {
   drawVotes Int?
   loseVotes Int?
 
+  // 단폭(1경기 단독 구매) 가능 여부(sgl) · 발매 마감 시각(endDate) — 2026-09-12 raw SQL 추가(prisma/sql/alter-betman-sgl-enddate.sql)
+  sgl         Boolean?
+  endDate     DateTime?
   protoStatus String? // 발매 상태
   gameResult  String? // 결과 (확정 전 null)
   matchId     Int? // 우리 Match 연결 — 매핑 붙이기 전까지 null

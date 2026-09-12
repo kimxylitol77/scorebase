@@ -19,6 +19,10 @@ export interface BetmanLine {
   winVotes: number | null;
   drawVotes: number | null;
   loseVotes: number | null;
+  /** 단폭(1경기 단독 구매) 가능 — 베트맨 sgl='1'. null = 수집 전 행 */
+  single: boolean | null;
+  /** 발매 마감 시각(ISO) — 베트맨 endDate. 없으면 null */
+  endDate: string | null;
 }
 
 /** 경기 한 건 — 기본형(승무패/승패)을 대표로 세우고, 나머지 유형은 lines 로 접어 둔다. */
@@ -51,6 +55,9 @@ const lineRank = (r: { betTypNm: string | null; betNm: string | null }) => {
   const i = LINE_ORDER.indexOf(r.betTypNm ?? "");
   return (i < 0 ? 99 : i) + ((r.betNm ?? "").includes("전반") ? 100 : 0);
 };
+
+/** 렌더 시각 — 컴포넌트에서 Date.now() 를 직접 부르면 react-hooks/purity 에 걸린다(마감 임박 판정용). */
+export const betmanRenderNow = () => Date.now();
 
 const norm = (s: string) => s.replace(/[\s·.()]/g, "").toLowerCase();
 
@@ -135,6 +142,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
       betNm: true, betTypNm: true, handi: true, winHandi: true, loseHandi: true,
       winAllot: true, drawAllot: true, loseAllot: true,
       winVotes: true, drawVotes: true, loseVotes: true,
+      sgl: true, endDate: true,
     },
     take: 3000,
   });
@@ -164,6 +172,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
         handi: r.handi, winHandi: r.winHandi, loseHandi: r.loseHandi,
         winAllot: r.winAllot, drawAllot: r.drawAllot, loseAllot: r.loseAllot,
         winVotes: r.winVotes, drawVotes: r.drawVotes, loseVotes: r.loseVotes,
+        single: r.sgl, endDate: r.endDate ? r.endDate.toISOString() : null,
       }));
     out.push({
       key,
@@ -181,6 +190,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
       handi: base.handi, winHandi: base.winHandi, loseHandi: base.loseHandi,
       winAllot: base.winAllot, drawAllot: base.drawAllot, loseAllot: base.loseAllot,
       winVotes: base.winVotes, drawVotes: base.drawVotes, loseVotes: base.loseVotes,
+      single: base.sgl, endDate: base.endDate ? base.endDate.toISOString() : null,
       lines,
     });
     if (out.length >= take) break;
