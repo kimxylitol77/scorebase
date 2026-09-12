@@ -614,6 +614,7 @@ export async function GET(req: NextRequest) {
     },
     select: {
       id: true, externalId: true, league: true, status: true, startTime: true,
+      createdAt: true,
       homeTeamId: true, awayTeamId: true,
       homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
     },
@@ -633,6 +634,8 @@ export async function GET(req: NextRequest) {
   }
   // 확대 창 안에서도 "3h 초과"는 방향 검사를 붙인다 — 아래 sameDir 가드 참고.
   const XS_NEAR_MS = 3 * 3600_000;
+  // 자동정리 유예 — 정리 잡이 매시 :30 이라 한 바퀴(60분) + 실행시간 여유.
+  const XS_CLEANUP_GRACE_MS = 90 * 60_000;
   const seenXsPairs = new Set<string>();
   for (const rows of xsGroups.values()) {
     if (rows.length < 2) continue;
@@ -675,6 +678,19 @@ export async function GET(req: NextRequest) {
         if (seenXsPairs.has(pairId)) continue;
         seenXsPairs.add(pairId);
         const numericRow = aTs ? b : a;
+        // 정리 잡(daily-dup-cleanup, Vultr 매시 :30)이 자동으로 지우는 모양이면 그 차례가
+        // 오기 전에는 알리지 않는다. 2026-09-12 SLOVENIA·CYPRUS 5쌍이 그랬다 — af row 가
+        // 15:31 에 생기고 16:02 에 HIGH 로 울렸는데, 정리 잡은 이미 그 5쌍을 SAFE 로 판정하고
+        // 있었다. 사람이 할 일이 없는 건에 HIGH 를 울리면 진짜 알림이 묻힌다.
+        // 자동정리 대상 모양 = 킥오프가 초 단위까지 같고 양쪽 다 SCHEDULED
+        // (cleanup-duplicate-matches.ts 의 identicalFuture 와 같은 조건).
+        // 참조가 걸려 MANUAL 로 빠지는 쌍은 유예가 지나면 그대로 알림이 뜬다.
+        const autoCleanable =
+          a.startTime.getTime() === b.startTime.getTime() &&
+          a.status === "SCHEDULED" &&
+          b.status === "SCHEDULED";
+        const bornAt = Math.max(a.createdAt.getTime(), b.createdAt.getTime());
+        if (autoCleanable && now - bornAt < XS_CLEANUP_GRACE_MS) continue;
         // LIVE/SCHEDULED 포함 = 지금 화면 중복 노출 → HIGH. 둘 다 FINISHED 면 표시는
         // 렌더 dedup 이 합치지만 Elo/폼 계산 이중 집계 오염이라 WARN.
         const active = [a, b].some((r) => r.status === "LIVE" || r.status === "SCHEDULED");

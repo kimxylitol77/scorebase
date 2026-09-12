@@ -2,7 +2,10 @@
 Description=Scorebase Job Timer: daily-dup-cleanup
 
 [Timer]
-OnCalendar=*-*-* 10:30:00 Asia/Seoul
+# 매시 :30 — 하루 1회로는 중복 카드가 최대 24시간 화면에 남는다. 2026-09-12 실측:
+# af row 가 15:31 에 생겨 16:02 에 HIGH 알림, 정리 잡 차례는 9시간 뒤였다.
+# 스크립트는 멱등하고 SAFE(참조 0)만 지우며 전체 dry-run 이 28초라 매시가 부담이 아니다.
+OnCalendar=*-*-* *:30:00 Asia/Seoul
 Persistent=true
 
 [Install]
