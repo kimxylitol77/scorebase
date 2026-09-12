@@ -465,11 +465,11 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
       `- Poisson 모델 예상 득점: ${away}(원정) ${context.totalExpectedRuns.team1.toFixed(2)} · ${home}(홈) ${context.totalExpectedRuns.team2.toFixed(2)}`,
     );
   }
-  if (context.winProbPoisson) {
-    ctxLines.push(
-      `- Poisson+Skellam 승률: ${away}(원정) ${pct(context.winProbPoisson.team1)} · ${home}(홈) ${pct(context.winProbPoisson.team2)}`,
-    );
-  }
+  // Poisson+Skellam 승률은 프롬프트에 주지 않는다(2026-09-12). 이 값은 저장 픽(풀엔진
+  // predictMatchById)과 평균 12.2%p 벌어지는 별개 모델이라, 두 세트를 같이 주면 모델이 본문
+  // 1X2 표에 이쪽을 써서 위젯·픽과 어긋났다(야구 프리뷰 21일치 206건 중 68건=33%, 축구 0건).
+  // 승률 출처는 위 "통계 추정 승률" 한 세트뿐. Poisson 결과는 예상 득점·이닝 카드로만 노출한다
+  // (context.winProbPoisson 은 baseballContext JSON 으로 위젯에 계속 전달됨).
   if (context.inningScoreProbs && context.inningScoreProbs.length === 9) {
     // 본문에서 카드와 같은 수치 나열 막기 위해 prompt 에는 요약 정보만.
     // 7회 이후 불펜 전환점이 핵심.
