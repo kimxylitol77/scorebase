@@ -185,14 +185,27 @@ export async function buildTeam(
   //  이걸 버리고 대분류(G/D/M/F)만 쓰면 화면이 포메이션 틀에 점수순으로 꽂아 좌우까지 뒤집힌다
   //  (2026-08-21 사용자 제보: 맨유 백4 가 마즈라위↔매과이어 반대로, 윙어 둘이 더블 피봇에).
   const vote = new Map<string, VoteRec>();
-  const blank = (p: LuPlayer): VoteRec => ({ p, score: 0, starts: 0, ratings: [], lastRating: undefined, pos: new Map() });
+  const blank = (p: LuPlayer): VoteRec => ({ p, score: 0, starts: 0, ratings: [], lastRating: undefined, pos: new Map(), posVotes: new Map() });
+  const addPosVote = (e: VoteRec, p: LuPlayer, w: number) => {
+    const c = p.position ?? "M";
+    e.posVotes.set(c, (e.posVotes.get(c) ?? 0) + w);
+  };
+  /** 가중 최빈 대분류 — 동률이면 가장 최근 관측(e.p.position) */
+  const modePos = (e: VoteRec): string => {
+    let best: string | null = null, bw = -1;
+    for (const [c, w] of e.posVotes) if (w > bw) { best = c; bw = w; }
+    return best ?? e.p.position ?? "M";
+  };
   // 벤치는 x=y=0 으로 오므로 선발(first=1)이면서 좌표가 실린 것만 누적한다.
   // 좌표는 **평균이 아니라 최빈 라인**으로 잡는다. 로테이션이 심한 선수를 평균 내면 여러 자리의
   //  중간값이 나와 실제로 서지 않는 곳에 놓이고, 다른 선수와 겹치기까지 한다(실측: 브루노 50,70 /
   //  레이시 51,72 가 포개짐). ts y 는 12·32·50·70·85 처럼 이산값이라 최빈이 잘 먹는다.
   //  x 는 고른 라인 안에서만 가중평균 — 좌우는 라인이 정해진 뒤에 의미가 있다.
   type PosBucket = { w: number; xw: number };
-  type VoteRec = { p: LuPlayer; score: number; starts: number; ratings: number[]; lastRating?: number; pos: Map<number, PosBucket> };
+  // posVotes — 대분류(G/D/M/F)도 경기마다 달라진다(실측 2026-09-12: 쿠냐가 4경기 ST "F", 1경기 LW "M").
+  //  첫 관측(=가장 최근 경기) 하나로 분류하면 그 한 경기가 슬롯을 뒤바꾼다 — 쿠냐가 M 슬롯을 차지해
+  //  F 슬롯에 1경기 출전 셰슈코가 들어가고 래시포드가 밀려 4-2-3-1 이 4-2-2-2 로 그려졌다. 가중 최빈으로 정한다.
+  type VoteRec = { p: LuPlayer; score: number; starts: number; ratings: number[]; lastRating?: number; pos: Map<number, PosBucket>; posVotes: Map<string, number> };
   const addPos = (e: VoteRec, p: LuPlayer, w: number) => {
     const x = p.x ?? 0, y = p.y ?? 0;
     if (x <= 0 && y <= 0) return;
@@ -218,6 +231,7 @@ export async function buildTeam(
       e.score += w;
       e.starts += 1;
       addPos(e, p, w);
+      addPosVote(e, p, w);
       const r = parseFloat(p.rating ?? "0") || 0;
       if (r > 0) {
         e.ratings.push(r);
@@ -235,6 +249,7 @@ export async function buildTeam(
       e.score += w;
       e.starts += 1;
       addPos(e, p, w);
+      addPosVote(e, p, w);
       const r = parseFloat(p.rating ?? "0") || 0;
       if (r > 0) e.ratings.push(r);
       if (p.logo && !e.p.logo) e.p.logo = p.logo;
@@ -287,13 +302,13 @@ export async function buildTeam(
   for (const pos of ["G", "D", "M", "F"]) {
     const need = slots[pos];
     const picked = ranked
-      .filter((e) => (e.p.position ?? "M") === pos && !xi.some((x) => x.id === e.p.id))
+      .filter((e) => modePos(e) === pos && !xi.some((x) => x.id === e.p.id))
       .slice(0, need);
     for (const e of picked) xi.push(toPlayer(e, pos));
   }
   for (const e of ranked) {
     if (xi.length >= 11) break;
-    if (!xi.some((x) => x.id === e.p.id)) xi.push(toPlayer(e, e.p.position ?? "M"));
+    if (!xi.some((x) => x.id === e.p.id)) xi.push(toPlayer(e, modePos(e)));
   }
   if (xi.length !== 11) return null;
   return {
