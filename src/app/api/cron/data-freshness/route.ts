@@ -69,7 +69,10 @@ const CAREER_ALERT_MIN = 3;
 const SCORE_ALERT_RATIO = 0.03; // 실측 0% — 3% 넘으면 수집 고장
 const PRED_MIN_MATCHES = 8; // 표본이 작으면 비율이 요동친다
 const PRED_ALERT_RATIO = 0.5;
-const MV_STALE_H = 48; // 일일 증분 크론 — 이틀 멈추면 이상
+// 몸값 — 행 나이가 아니라 크론 하트비트로 본다(checkMarketValues 주석 참조).
+const MV_HEARTBEAT = "lightsail-football-market-values"; // Vultr 타이머, UTC 00:00 = KST 09:00
+const MV_HEARTBEAT_STALE_H = 30; // 하루 주기 + 유예 6h — 이틀째 안 돌면 확실히 이상
+const MV_FAIL_ALERT = 2; // 실행은 되는데 연속 실패면 별도로 알린다
 const STANDINGS_STALE_H = 72;
 const STANDINGS_HARD_H = 168; // 하나라도 7일 넘으면 개수와 무관하게 알린다
 const STANDINGS_ALERT_COUNT = 3;
@@ -318,18 +321,32 @@ async function checkPredictions(now: Date, findings: Finding[]) {
   return { target: target.length, covered };
 }
 
-/** 몸값 피드 — 일일 증분 크론이 멈추면 순위·선수 카드가 통째로 옛 값이 된다 */
+/** 몸값 피드 — 일일 증분 크론이 멈추면 순위·선수 카드가 통째로 옛 값이 된다.
+ *
+ * 판정은 **크론 하트비트**로 한다(2026-09-12). 예전엔 PlayerMarketValue.max(updatedAt) 을 봤는데,
+ * ts 증분 스트림은 대부분 우리가 안 가진 하위·마이너 리그 선수라 크론이 정상으로 돌아도 DB 행이
+ * 며칠씩 안 바뀐다(실측: 최근 3일 3건·7일 11건 upsert, 그 사이 하트비트는 ok·drained). 행 나이로
+ * 재면 크론 생사와 무관한 오탐이 주기적으로 울린다. */
 async function checkMarketValues(now: Date, findings: Finding[]) {
-  const agg = await prisma.playerMarketValue.aggregate({ _max: { updatedAt: true } });
-  const last = agg._max.updatedAt;
-  const ageH = last ? Math.round((now.getTime() - last.getTime()) / 3600_000) : null;
-  if (ageH == null || ageH > MV_STALE_H) {
+  const hb = await prisma.botHeartbeat.findUnique({
+    where: { name: MV_HEARTBEAT },
+    select: { lastAt: true, metadata: true },
+  });
+  const ageH = hb ? Math.round((now.getTime() - hb.lastAt.getTime()) / 3600_000) : null;
+  const meta = (hb?.metadata ?? null) as { consecutiveFailures?: number } | null;
+  const fails = meta?.consecutiveFailures ?? 0;
+  if (ageH == null || ageH > MV_HEARTBEAT_STALE_H) {
     findings.push({
       kind: "market_value_stale",
-      detail: `몸값 피드 — 마지막 갱신이 ${ageH ?? "기록 없음"}시간 전입니다`,
+      detail: `몸값 피드 크론 — 마지막 실행이 ${ageH ?? "기록 없음"}시간 전입니다 (하트비트 ${MV_HEARTBEAT})`,
+    });
+  } else if (fails >= MV_FAIL_ALERT) {
+    findings.push({
+      kind: "market_value_stale",
+      detail: `몸값 피드 크론 — 연속 실패 ${fails}회 (마지막 실행 ${ageH}시간 전)`,
     });
   }
-  return { ageH };
+  return { ageH, consecutiveFailures: fails };
 }
 
 /** 순위 — 시즌 중인 정규리그만. 비수기·컵대회 정체는 정상이라 거른다. */
