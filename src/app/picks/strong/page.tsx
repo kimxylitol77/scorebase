@@ -17,7 +17,7 @@ import {
   type MarketAccuracy,
   type StrongPickMatch,
 } from "./_data";
-import { DailyNavChart, PickCard } from "./_components";
+import { ComboCards, DailyNavChart, PickCard } from "./_components";
 
 export const dynamic = "force-dynamic"; // 회원 여부에 따라 갈리는 화면
 
@@ -73,6 +73,7 @@ export default async function StrongPicksPage({
         {userId ? (
           <div className="space-y-4">
             <DailyNavChart days={daily} active={date} />
+            <ComboCards matches={matches} byMarket={acc.byMarket} past={date != null} />
             <PickList matches={matches} acc={acc} date={date} />
           </div>
         ) : (

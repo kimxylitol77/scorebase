@@ -330,3 +330,119 @@ export function PickCard({
     </li>
   );
 }
+
+// ── 오늘의 조합 — 고확신 픽 2~3레그 자동 조합(Dimers Parlay Picker 벤치마크, 2026-09-13). 조합 로직은 lib/predict/parlay ──
+import { buildParlays, type ParlayLeg } from "@/lib/predict/parlay";
+
+/** 매치 목록을 조합 레그로 편다. 앞으로 볼 날(date=null)은 종료 경기 제외 — 이미 끝난 픽을 "오늘의 조합"에 넣으면 안 된다. */
+export function toParlayLegs(matches: StrongPickMatch[], includeFinished: boolean): ParlayLeg[] {
+  return matches
+    .filter((m) => includeFinished || !m.finished)
+    .flatMap((m) =>
+      m.picks.map((p) => ({
+        matchId: m.matchId,
+        league: m.league,
+        market: p.market,
+        pick: p.pick,
+        detail: p.detail,
+        prob: p.prob,
+        correct: p.correct,
+        home: m.home,
+        away: m.away,
+        startTime: m.startTime,
+      })),
+    );
+}
+
+export function ComboCards({
+  matches,
+  byMarket,
+  past,
+}: {
+  matches: StrongPickMatch[];
+  byMarket: Record<StrongMarket, MarketAccuracy>;
+  /** 지난 날짜 — 종료 레그 포함·결과 표시 */
+  past: boolean;
+}) {
+  const rate = Object.fromEntries(
+    (Object.keys(byMarket) as StrongMarket[]).map((k) => [k, byMarket[k].total > 0 ? byMarket[k].rate / 100 : 0]),
+  ) as Partial<Record<StrongMarket, number>>;
+  const parlays = buildParlays(toParlayLegs(matches, past), rate);
+  if (parlays.length === 0) return null;
+
+  return (
+    <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 dark:bg-emerald-500/[0.06]">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold">
+          {past ? "그날의 조합" : "조합 픽"}
+          <span className="ml-2 text-xs font-normal text-neutral-500">
+            {past ? "그날" : "앞으로 72시간"} 고확신 픽을 다른 경기끼리 2~3개 묶었습니다
+          </span>
+        </h2>
+        <span className="text-[11px] text-neutral-500">독립 가정 · 같은 경기는 안 묶음</span>
+      </div>
+
+      <ul className="mt-3 grid gap-3 md:grid-cols-3">
+        {parlays.map((c) => (
+          <li key={c.key} className="flex flex-col rounded-xl border border-black/5 bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-300">{c.label}</span>
+              <span className="flex items-center gap-1.5">
+                <ResultMark correct={c.correct} />
+                <span className="text-[11px] text-neutral-500">{c.legs.length}레그</span>
+              </span>
+            </div>
+
+            <ol className="mt-2 flex-1 space-y-1.5">
+              {c.legs.map((l, i) => {
+                const th = STRONG_THRESHOLD[l.market];
+                return (
+                  <li key={`${l.matchId}-${l.market}`} className="rounded-lg bg-black/[0.03] px-2.5 py-2 text-xs dark:bg-white/[0.04]">
+                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-500">
+                      <span className="font-bold text-neutral-400">{i + 1}</span>
+                      <span className="rounded bg-black/[0.05] px-1 py-px font-medium dark:bg-white/10">{l.league}</span>
+                      <span className="truncate">
+                        {l.home} vs {l.away}
+                      </span>
+                      <span className="ml-auto tabular-nums">{kst(l.startTime)}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="min-w-0 break-keep">
+                        <span className="mr-1.5 text-[10px] font-medium text-neutral-500">{MARKET_LABEL[l.market]}</span>
+                        <span className="font-semibold">{l.pick}</span>
+                        {l.detail ? <span className="ml-1 text-[10px] text-neutral-500">{l.detail}</span> : null}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1">
+                        <ResultMark correct={l.correct} />
+                        <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{pct(l.prob)}</span>
+                        <span className="text-[10px] text-neutral-400 tabular-nums">기준 {pct(th)}</span>
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <div className="mt-3 flex items-end justify-between gap-2 border-t border-black/5 pt-2 dark:border-white/10">
+              <div>
+                <div className="text-[10px] text-neutral-500">조합 확률 (모델)</div>
+                <div className="text-lg font-black tabular-nums text-emerald-600 dark:text-emerald-400">{pct(c.prob)}</div>
+              </div>
+              {c.expected != null ? (
+                <div className="text-right">
+                  <div className="text-[10px] text-neutral-500">실측 기대</div>
+                  <div className="text-sm font-bold tabular-nums text-neutral-700 dark:text-neutral-200">{pct(c.expected)}</div>
+                </div>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-3 text-[11px] leading-relaxed text-neutral-500 break-keep">
+        조합 확률은 각 레그 확신도를 곱한 값이고, 실측 기대는 각 마켓 기준의 과거 적중률을 곱한 값입니다. 레그가 하나라도 빗나가면 조합은
+        빗나간 것으로 칩니다. 조합은 저장하지 않고 그날 픽에서 같은 규칙으로 다시 만듭니다. 베팅을 권유하지 않습니다.
+      </p>
+    </section>
+  );
+}
