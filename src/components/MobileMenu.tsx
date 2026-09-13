@@ -41,14 +41,14 @@ export default function MobileMenu({ account }: { account?: ReactNode }) {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
         aria-expanded={open}
-        className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
+        className="xl:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
       >
         {open ? <CloseIcon /> : <BurgerIcon />}
       </button>
 
       {/* 모바일 패널 — h-[calc(100dvh-4rem)] 로 iOS Safari 동적 viewport 대응 */}
       <div
-        className={`lg:hidden fixed inset-x-0 top-16 z-50 h-[calc(100dvh-4rem)] bg-white dark:bg-neutral-950 transition-all duration-200 ${
+        className={`xl:hidden fixed inset-x-0 top-16 z-50 h-[calc(100dvh-4rem)] bg-white dark:bg-neutral-950 transition-all duration-200 ${
           open
             ? "opacity-100 visible"
             : "opacity-0 invisible pointer-events-none"
@@ -79,7 +79,7 @@ export default function MobileMenu({ account }: { account?: ReactNode }) {
             라이브 스코어
           </Link>
           {/* AI에게 묻기 — 메뉴를 닫고 플로팅 챗봇을 연다 */}
-          <AskAiButton variant="menu" onOpen={() => setOpen(false)} />
+          <AskAiButton onOpen={() => setOpen(false)} />
 
           {/* 예측 대시보드 — 플래그십 CTA */}
           <Link
@@ -104,7 +104,8 @@ export default function MobileMenu({ account }: { account?: ReactNode }) {
                   </span>
                 </div>
                 <ul className="rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 overflow-hidden">
-                  {g.items.map((it) => {
+                  {/* 동작 항목(AI에게 묻기)은 위 전용 버튼이 있어 목록에선 뺀다 */}
+                  {g.items.filter((it) => !it.action).map((it) => {
                     const active = path === it.href;
                     return (
                       <li key={it.href}>

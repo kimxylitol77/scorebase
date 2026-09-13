@@ -12,6 +12,8 @@ export interface NavSubItem {
   href: string;
   label: string;
   desc?: string;
+  /** 링크가 아니라 동작인 항목 — "open-chat" 은 플로팅 챗봇을 연다(헤더 우측 버튼이 폭을 넘겨 드롭다운으로 옮김, 2026-09-13) */
+  action?: "open-chat";
 }
 
 export interface NavCategory {
@@ -105,6 +107,7 @@ export const AI_CATEGORY: NavCategory = {
   label: "AI 분석실",
   href: "/previews",
   items: [
+    { href: "#ai-chat", action: "open-chat", label: "AI에게 묻기", desc: "오늘 고확신 픽 · 오버 값 경기 — 자연어로 질문" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 픽 시점 배당으로 수익률 채점" },
     { href: "/picks/strong", label: "고확신 픽", desc: "AI가 자신 있어 하는 경기만 · 회원 공개" },
     { href: "/previews", label: "프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
