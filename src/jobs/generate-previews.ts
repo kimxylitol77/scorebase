@@ -113,6 +113,26 @@ function buildSlug(league: string, matchId: number): string {
   return `${league.toLowerCase()}-preview-${matchId}`;
 }
 
+// 동시 처리 건수. claude.ts 가 429/529 를 backoff 로 흡수하지만 haiku 동시 호출·af 조회 부담을
+//  생각해 3 으로 — 300초 안에 10건 안팎이면 하루 8런으로 주말 물량(2일 60건)을 감당한다.
+const PREVIEW_CONCURRENCY = 3;
+
+/** 배열 순서(시작 시간순)대로 꺼내 동시 limit 건씩 처리. 개별 실패는 fn 안에서 삼킨다. */
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<void>,
+): Promise<void> {
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const item = items[next++];
+      await fn(item);
+    }
+  });
+  await Promise.all(workers);
+}
+
 export async function runPreview(opts?: {
   autoPublish?: boolean;
   league?: string;
@@ -248,7 +268,10 @@ export async function runPreview(opts?: {
     leagueMatches[lg] = list as PredictMatch[];
   }
 
-  for (const m of matches) {
+  // 매치별 처리를 함수로 떼어 동시 여러 건 돌린다. 글 1건이 haiku 출력 ~3,000토큰이라 60~90초
+  //  걸리는데, 직렬로는 Vercel maxDuration(300초) 안에 3~4건만 발행되고 잘렸다(2026-09-13 주말
+  //  실측 — 3일 창 128경기, 오늘분 25건 누락). 풀 3 이면 런당 10건 안팎.
+  const processOne = async (m: (typeof matches)[number]): Promise<void> => {
     try {
       // KBO/NPB 는 선발 투수 확정 후에만 PREVIEW 발행 (매치 당일 KST ~11시 게재).
       // starter 매칭 실패 = 아직 확정 안 됨 → 다음 cron 까지 skip.
@@ -257,30 +280,30 @@ export async function runPreview(opts?: {
         const kstMatch = new Date(m.startTime.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
         if (kstNow !== kstMatch || kboStarters.length === 0) {
           console.log(`[preview/KBO] skip — starter 미확정: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
-          continue;
+          return;
         }
         const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
         if (!p) {
           console.log(`[preview/KBO] skip — starter 매칭 안 됨: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
-          continue;
+          return;
         }
       }
       if (m.league === "NPB") {
         if (npbStarters.length === 0) {
           console.log(`[preview/NPB] skip — starter 미확정: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
-          continue;
+          return;
         }
         const p = pickNpbStartersForMatch(npbStarters, m.homeTeam.name, m.awayTeam.name, m.startTime);
         if (!p) {
           console.log(`[preview/NPB] skip — starter 매칭 안 됨: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
-          continue;
+          return;
         }
       }
       // MLB 도 선발 양쪽 확정 후에만 발행 — 선발·배당 없는 빈약 프리뷰 방지(사용자 요청 2026-06-01).
       // KBO/NPB 와 동일 정책. 선발 미정이면 다음 cron 에서 채워진 후 재시도.
       if (m.league === "MLB" && (!m.homeStarter || !m.awayStarter)) {
         console.log(`[preview/MLB] skip — 선발 미확정: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
-        continue;
+        return;
       }
       let context = buildMatchContext(
         leagueMatches[m.league],
@@ -836,7 +859,7 @@ export async function runPreview(opts?: {
         Math.round(context.elo.away) === STARTING_ELO
       ) {
         console.log(`[preview] skip — 양 팀 Elo 기본값(무명 팀): ${m.homeTeam.name} vs ${m.awayTeam.name}`);
-        continue;
+        return;
       }
 
       // 풀엔진 일원화 (2026-06-10) — predictionEngine 의 전체 시그널 체인
@@ -934,7 +957,7 @@ export async function runPreview(opts?: {
         label: `preview ${m.league}#${m.id}`,
       });
       // 길이 미달 — 글만 스킵. 픽은 위에서 이미 저장돼 남는다.
-      if (!draft) continue;
+      if (!draft) return;
 
       // 심판봇 (2026-09-04) — 규칙 채점이 기준 미달이면 LLM 이 문체만 고쳐 쓰고(숫자·헤딩·표 불변 검증) 재채점.
       // 검증 실패면 초고 그대로. 글을 막지 않는다. lib/articles/humanize 참조. ARTICLE_HUMANIZE=off 로 해제.
@@ -1022,7 +1045,8 @@ export async function runPreview(opts?: {
         (err as Error).message,
       );
     }
-  }
+  };
+  await runWithConcurrency(matches, PREVIEW_CONCURRENCY, processOne);
 
   console.log("[preview] 완료");
 }
