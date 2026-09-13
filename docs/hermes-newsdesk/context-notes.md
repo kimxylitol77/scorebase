@@ -51,6 +51,27 @@
 - 헤드라인의 계약 금액·발언은 "원문 확인 필요"로 스스로 표시함.
 - 서식 문제 1 — URL·검색어 칸 끝에 마침표를 붙여 링크가 깨질 수 있음 → SOUL.md 규칙 추가.
 
+## 2026-09-13 가동
+
+- 사용자 결정 — 게이트웨이는 **하나로 통합**(default 멀티플렉서), 실행 시각은 **KST 09시**(`0 7 * * *`, 맥이 +07).
+- `gateway migrate --multiplex --dry-run` 은 "옮길 게이트웨이 없음"만 출력하고 설정을 켜지 않는다.
+  직접 `hermes config set gateway.multiplex_profiles true`. 이때 "recognized key 아님" 경고가 뜨지만
+  `hermes_cli/gateway.py`(4441줄)·`web_server_cron.py` 가 `gateway.multiplex_profiles` 를 읽는다 → 무시해도 됨.
+- 설치 후 로그 `Cron scheduler will tick 2 profile(s) under multiplex: ['default', 'newsdesk']`,
+  `No messaging platforms enabled` → 텔레그램 연동 전이라 정상. 오류 0.
+- cron `deliver local` 결과는 `~/.hermes/profiles/newsdesk/cron/output/<job_id>/<시각>.md` (프롬프트·재료·응답 전부 포함).
+- cron 실행은 34초 (수동 -z 81초). 스케줄러가 앞에 `[SILENT]` 규칙 안내를 자동으로 붙인다.
+
+## cron 첫 제안서 (2026-09-13 12:24, 스케줄러 경로)
+
+- 글감 3 — 아스날 5연승, 토트넘·에버튼 대조, 맨유 원정 앞둔 맨시티 4연승. 제외 5.
+- **재료 근거 없는 표현 1건** — 아스날 제목의 "선두". 재료엔 순위가 없고 헤드라인은 "perfect title defence" 뿐.
+  수치(연승·무득점·무패·일정)는 전부 일치. → SOUL.md 에 "제목안도 순위·기록 표현은 재료에 값이 있을 때만" 규칙 추가.
+- 관찰 — 맨시티 글감은 사실상 **경기 프리뷰**다. 사이트는 EPL PREVIEW 를 이미 자동 생성(noindex)하므로
+  겹칠 수 있다. 프리뷰형 글감을 제외할지는 사용자 판단 대기 (SOUL.md 에 아직 반영 안 함).
+- 관찰 — 단일 매체(sources=1) 이슈를 NHL 2매체 이슈보다 앞에 뒀다. 이유는 "더비 직전 검색 수요". 기준 3(매체 수)보다
+  기준 2(한국 검색 수요)를 우선한 것이라 SOUL.md 순서와는 맞는다.
+
 ## 헤르메스 구조 메모
 
 - 프로필 홈 `~/.hermes/profiles/<id>/` — config·.env·SOUL.md·skills·cron·scripts 가 프로필별.

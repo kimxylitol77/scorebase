@@ -21,12 +21,12 @@
 - [x] 수동 1회 실행 → 제안서 3건, 재료 대조 불일치 0건 (81초)
 
 ## 3. 예약 작업
-- [x] `newsdesk cron create "0 9 * * *" ... --script material.sh --continuity --deliver local` (id 9aa2b5a55603)
-- [ ] **게이트웨이 기동 (사용자 승인 필요)** — 꺼져 있으면 cron 이 안 돈다
-- [ ] `cron run` 으로 즉시 1회 → `cron runs` 로 성공 확인
+- [x] `newsdesk cron create ... --script material.sh --continuity --deliver local` (id 9aa2b5a55603) → 사용자 결정으로 `0 7 * * *`(+07 = KST 09시)
+- [x] 게이트웨이 기동 — 사용자 승인, default 에 `gateway.multiplex_profiles: true` + `hermes gateway install --start-now --start-on-login` (launchd `ai.hermes.gateway`), newsdesk 는 멀티플렉서가 서비스
+- [x] `cron run` 으로 즉시 1회 → completed, 결과 `profiles/newsdesk/cron/output/9aa2b5a55603/2026-09-13_12-24-36.md`
 - [ ] 텔레그램 연동 후 deliver 를 telegram 으로 변경 (사용자 `hermes gateway setup` 선행)
 
 ## 4. 운영 관찰 (2주)
-- [ ] 첫 3회 제안서 — 재료 대조 결과 context-notes 에 기록 (1/3 완료, 수동 실행분)
+- [ ] 첫 3회 제안서 — 재료 대조 결과 context-notes 에 기록 (2/3 완료 — 수동 1, cron 1)
 - [ ] 모델 결정 (무료 muse-spark 유지 / Kimi)
 - [ ] 2주 후 성공 기준 판정 → v2(초안) 진행 여부 결정
