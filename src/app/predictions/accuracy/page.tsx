@@ -364,6 +364,15 @@ export default async function AccuracyPage() {
           {totalEvaluated.toLocaleString()}경기를 시점 기준으로 백테스트하여
           산출하며, 수치를 보정 없이 표본 수와 함께 그대로 공개합니다.
         </p>
+        {/* 검증 투명성 한 줄 — 누적 ROI 를 안 여는 서비스가 많다(OddsTrader Top Predictions 벤치마크, 2026-09-13). 숫자는 이 페이지 실측. */}
+        <Link
+          href="/predictions/scorecard"
+          className="mt-4 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] px-4 py-2.5 text-sm text-neutral-800 transition hover:bg-emerald-500/10 dark:text-neutral-200 break-keep"
+        >
+          <span className="font-semibold text-emerald-700 dark:text-emerald-400">검증 투명성</span>
+          <span>{LEAGUES.length}개 리그 · 실측 적중률 · 모델 vs 시장 ROI 전체 공개 — 적중률만 보여주고 수익률은 감추지 않습니다.</span>
+          <span className="font-semibold text-emerald-700 dark:text-emerald-400">멀티 AI 성적표 보기 →</span>
+        </Link>
       </header>
 
       {/* AI Strong Pick — 리그별 고신뢰 임계 초과 픽만의 적중률 (마케팅 강조) */}
