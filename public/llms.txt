@@ -26,7 +26,8 @@
 - [/predictions/scorecard](https://www.scorebase.kr/predictions/scorecard): AI 예측 성적표 — 스코어베이스 통계 모델 vs GPT-5.5 가 같은 경기를 경기 전 예측하고 결과로 채점한 정면 비교(1X2·핸디·OU 시장별).
 
 ### 배당·수익률 (베팅 중개·권유 없음 — 시장 예측치의 분석·검증)
-- [/odds](https://www.scorebase.kr/odds?sport=soccer): 배당 흐름 — 오픈 대비 변동, 돈이 몰리는 방향. 종목 탭(축구·야구·농구) + 베트맨(국내 합법 프로토) 배당·투표 분포.
+- [/odds?sport=soccer](https://www.scorebase.kr/odds?sport=soccer): 배당 흐름 — 해외 북메이커 평균 배당의 오픈 대비 변동(돈이 몰리는 방향), 하락 폭별 실제 적중 비율(최근 60일 실측), 표 마지막 열에 우리 AI 모델 확률 vs 시장 내재확률(±5%p 동의/신중 배지). 야구·농구·하키·배구·LOL·UFC 탭은 ?sport= 로.
+- [/odds?sport=betman](https://www.scorebase.kr/odds?sport=betman): 베트맨(스포츠토토) 프로토 승부식 — 회차 배당(승무패·핸디캡·언더오버·홀짝·전반)과 국내 구매자 투표 분포를 오늘·내일·모레로 묶어 표시, 단폭(1경기 단독 구매) 가능 여부와 발매 마감 시각. 하루 2회(09:00·21:00) 수집.
 - [/value-bets](https://www.scorebase.kr/value-bets): 밸류 베트 — 모델 확률이 배당사 implied 확률보다 높은 경기(모델이 시장보다 자신 있는 경기).
 - 수익률 검증은 위 /predictions/accuracy 의 「플랫 유닛 수익률」 참고. 마이너스 수익률·표본 편중(야구 중심)도 그대로 공개한다.
 

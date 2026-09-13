@@ -18,30 +18,43 @@ import NoVigCalculator from "@/components/odds/NoVigCalculator";
 import BetmanOddsPanel from "@/components/odds/BetmanOddsPanel";
 import OddsSportTabs from "@/components/odds/OddsSportTabs";
 import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
-import { getBetmanMatches } from "@/lib/odds/betman";
+import { getBetmanMatches, type BetmanMatch } from "@/lib/odds/betman";
+import type { Metadata } from "next";
+import { jsonLdScript } from "@/lib/seo/jsonld";
+import { ogPageImage } from "@/lib/seo/og";
+import OddsSeoSection from "@/components/odds/OddsSeoSection";
+import { betmanFaq, betmanJsonLd, betmanMetadata, faqJsonLd, flowFaq, flowJsonLd, flowMetadata, type OddsSportKey } from "@/lib/odds/odds-seo";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// 베트맨 탭은 데이터도 화면도 달라 제목·설명을 나눈다 (searchParams 분기 → generateMetadata).
+// 베트맨 목록 — 메타데이터와 본문이 같은 캐시를 읽는다(회차·경기 수를 설명에 넣기 위해).
+const getBetmanCached = unstable_cache(() => getBetmanMatches(600), ["odds-betman-matches", "all"], { revalidate: 600 });
+const betmanDays = (rows: BetmanMatch[]) => new Set(rows.map((r) => new Date(new Date(r.gameDate).getTime() + 9 * 3600_000).toISOString().slice(0, 10))).size;
+
+// 종목·베트맨 탭마다 제목·설명·canonical·OG 를 나눈다. 실측 숫자(흐름 적중 비율·회차·경기 수)를 설명에 박는다 — force-dynamic 이라 낡지 않는다.
 export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<{ sport?: string }>;
-}) {
+}): Promise<Metadata> {
   const sp = await searchParams;
+  const build = (m: { title: string; description: string; keywords: string[]; canonical: string; ogTitle: string; ogSubtitle: string }): Metadata => ({
+    title: m.title,
+    description: m.description,
+    keywords: m.keywords,
+    alternates: { canonical: m.canonical },
+    openGraph: { title: m.ogTitle, description: m.description, url: m.canonical, images: ogPageImage({ title: m.ogTitle, subtitle: m.ogSubtitle, tag: "배당" }) },
+    twitter: { card: "summary_large_image", title: m.ogTitle, description: m.description },
+  });
   if (sp?.sport === "betman") {
-    return {
-      title: "베트맨 배당 — 프로토 승부식 배당·국내 투표 분포 | 스코어베이스",
-      description:
-        "베트맨(스포츠토토) 프로토 승부식 배당과 국내 구매자 투표 분포를 축구·야구·농구 한 목록에서. 배당이 매긴 확률과 실제 투표 비율을 나란히 비교.",
-      alternates: { canonical: "/odds?sport=betman" },
-    };
+    const rows = await getBetmanCached().catch(() => [] as BetmanMatch[]);
+    return build(betmanMetadata(rows[0]?.gmTs ?? null, rows.length, betmanDays(rows)));
   }
-  return {
-    title: "배당 흐름 | 스코어베이스",
-    description: "축구·야구·농구·하키·배구·LOL·UFC 경기 배당이 시간에 따라 어느 쪽으로 움직이는지 — 시장의 흐름을 한눈에.",
-  };
+  const sport: Sport = sp?.sport && SPORT_KEYS.has(sp.sport) ? (sp.sport as Sport) : "soccer";
+  const cfg = SPORT_CFG[sport];
+  const [matches, hitrate] = await Promise.all([getFlowMatchesCached(sport).catch(() => []), flowHitrateFor(sport, cfg).catch(() => null)]);
+  return build(flowMetadata(sport, hitrate, matches.length));
 }
 
 type Sport = "soccer" | "baseball" | "basketball" | "hockey" | "volleyball" | "esports" | "mma";
@@ -257,16 +270,33 @@ export default async function OddsPage({
   if (sp?.sport === "betman") {
     // 하루 2회 적재라 10분 캐시로 충분. 발매 중인 경기 전부(보통 2~3일치 100~150경기)를 날짜별로 묶어 보인다 —
     // 60건 상한이 있을 땐 내일 후반·모레 경기가 통째로 잘렸다(2026-09-12 제보: 오늘 26·내일 77·모레 40경기 중 60건만).
-    const rows = await unstable_cache(
-      () => getBetmanMatches(600),
-      ["odds-betman-matches", "all"],
-      { revalidate: 600 },
-    )();
+    const rows = await getBetmanCached();
+    const round = rows[0]?.gmTs ?? null;
+    const faq = betmanFaq(round, rows.length);
     return (
       <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
+        {[...betmanJsonLd(), faqJsonLd(faq)].map((ld, i) => (
+          <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
+        ))}
         <h1 className="text-2xl font-medium">베트맨 배당</h1>
         <OddsSportTabs sport="betman" />
         <BetmanOddsPanel matches={rows} date={sp.date} item={sp.item} />
+        <OddsSeoSection
+          heading="베트맨 배당 페이지 읽는 법"
+          intro={[
+            `베트맨(스포츠토토) 프로토 승부식은 국내에서 합법적으로 발매되는 고정 배당 투표권입니다. 이 페이지는 발매 중 경기${round ? `(${round} 회차)` : ""} ${rows.length}건의 배당과 국내 구매자 투표 분포를 하루 두 번(09:00·21:00) 수집해 오늘·내일·모레로 묶어 보여줍니다.`,
+            "이 화면의 값어치는 배당 자체보다 국내 투표 분포입니다. 해외 북메이커는 배당만 주지만 베트맨은 국내 구매자가 실제로 어디에 걸었는지를 주기 때문에, 배당을 확률로 바꾼 값과 투표 비율이 벌어진 경기가 곧 여론과 시장이 다르게 보는 경기입니다. 같은 경기의 해외 배당 흐름과 우리 AI 모델 확률은 경기 상세 페이지에서 나란히 볼 수 있습니다.",
+            "스코어베이스는 베팅을 중개하거나 권유하지 않으며, 배당은 시장의 예측치로서 분석·검증 대상으로만 다룹니다. 실제 구매는 합법 사업자 안에서 이용자 본인의 책임이며 만 19세 미만은 이용할 수 없습니다.",
+          ]}
+          faq={faq}
+          links={[
+            { href: "/odds?sport=soccer", label: "해외 배당 흐름" },
+            { href: "/value-bets", label: "밸류 베트" },
+            { href: "/predictions/accuracy", label: "수익률 보드" },
+            { href: "/blog/flat-unit-roi-vs-hit-rate", label: "플랫 유닛 수익률이란" },
+            { href: "/notices/site-guide", label: "가이드 페이지" },
+          ]}
+        />
       </div>
     );
   }
@@ -274,21 +304,53 @@ export default async function OddsPage({
   const sport: Sport = sp?.sport && SPORT_KEYS.has(sp.sport) ? (sp.sport as Sport) : "soccer";
   const cfg = SPORT_CFG[sport];
 
-  const matches = await getFlowMatchesCached(sport);
-
-  // 흐름 통계(배당 하락 경기의 실제 승률) — 2-way 종목 전부 + 축구(3-way, 무승부=미적중).
-  // 농구는 종전대로 제외(NBA 비시즌 표본 왜곡).
-  const hitrate =
-    sport !== "soccer" && sport !== "basketball"
-      ? await getFlowHitrate(Array.from(cfg.leagues))
-      : sport === "soccer"
-        ? await getFlowHitrate(Array.from(cfg.leagues), 60, { threeWay: true })
-        : null;
+  const [matches, hitrate] = await Promise.all([getFlowMatchesCached(sport), flowHitrateFor(sport, cfg)]);
+  const faq = flowFaq(sport, hitrate);
+  const meta = ODDS_META_LABEL[sport];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
+      {[...flowJsonLd(sport), faqJsonLd(faq)].map((ld, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
+      ))}
       <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} todayKey={kstDayWindow().dateKey} />
       <NoVigCalculator defaultMode={cfg.hasDraw ? "three" : "two"} />
+      <OddsSeoSection
+        heading={`${meta.label} 배당 흐름 읽는 법`}
+        intro={[
+          `배당 흐름은 경기 배당이 처음 공개된 값(오픈)에서 지금까지 어느 쪽으로 얼마나 움직였는지입니다. 스코어베이스는 ${meta.leagues} ${meta.label} 경기의 해외 북메이커 평균 배당을 시간순으로 기록해, 배당이 내려가는 쪽(돈이 몰리는 쪽)과 올라가는 쪽을 표와 그래프로 보여줍니다. 현재 ${matches.length}경기가 목록에 있습니다.`,
+          hitrate && hitrate.hitPct != null && hitrate.total >= 30
+            ? `돈이 몰린 쪽이 항상 이기지는 않습니다. 최근 ${hitrate.windowDays}일 ${hitrate.total.toLocaleString()}경기에서 배당이 1.5% 이상 내려간 쪽이 실제로 이긴 비율은 ${hitrate.hitPct.toFixed(1)}%였고, 표 위 통계에서 하락 폭별로 나눠 볼 수 있습니다. 표의 마지막 열은 그 경기에서 돈이 몰린 쪽을 우리 AI 모델도 지지하는지(AI 동의)·시장이 과열됐는지(AI 신중)를 5%p 기준으로 표시합니다.`
+            : "돈이 몰린 쪽이 항상 이기지는 않습니다. 표의 마지막 열은 그 경기에서 돈이 몰린 쪽을 우리 AI 모델도 지지하는지(AI 동의)·시장이 과열됐는지(AI 신중)를 5%p 기준으로 표시합니다.",
+          "스코어베이스는 베팅을 중개하거나 권유하지 않으며, 배당은 시장의 예측치로서 분석·검증 대상으로만 다룹니다. 모든 확률과 흐름 신호는 통계 모델 기반의 참고용 정보이고 경기 결과를 보장하지 않습니다.",
+        ]}
+        faq={faq}
+        links={[
+          { href: "/value-bets", label: "밸류 베트" },
+          { href: "/odds?sport=betman", label: "베트맨 배당" },
+          { href: "/predictions/accuracy", label: "수익률 보드" },
+          { href: "/blog/flat-unit-roi-vs-hit-rate", label: "플랫 유닛 수익률이란" },
+          { href: "/notices/site-guide", label: "가이드 페이지" },
+        ]}
+      />
     </div>
   );
 }
+
+// 흐름 통계(배당 하락 경기의 실제 승률) — 2-way 종목 전부 + 축구(3-way, 무승부=미적중). 농구는 종전대로 제외(NBA 비시즌 표본 왜곡).
+function flowHitrateFor(sport: Sport, cfg: { leagues: Set<string> }) {
+  return sport !== "soccer" && sport !== "basketball"
+    ? getFlowHitrate(Array.from(cfg.leagues))
+    : sport === "soccer"
+      ? getFlowHitrate(Array.from(cfg.leagues), 60, { threeWay: true })
+      : Promise.resolve(null);
+}
+const ODDS_META_LABEL: Record<OddsSportKey, { label: string; leagues: string }> = {
+  soccer: { label: "축구", leagues: "EPL·라리가·분데스리가·세리에 A·리그 1·K리그·J리그·UCL 등 100여 리그" },
+  baseball: { label: "야구", leagues: "KBO·MLB·NPB" },
+  basketball: { label: "농구", leagues: "NBA·WNBA·KBL" },
+  hockey: { label: "하키", leagues: "NHL·유럽 리그" },
+  volleyball: { label: "배구", leagues: "V-리그·VNL·국제대회" },
+  esports: { label: "LOL", leagues: "LCK·LPL·LEC·LCS" },
+  mma: { label: "UFC", leagues: "UFC" },
+};
