@@ -156,12 +156,12 @@
         "status": "played",
         "season": "2026",
         "team": "Los Angeles FC",
-        "apps": 23,
-        "starts": 21,
+        "apps": 24,
+        "starts": 22,
         "goals": 5,
         "assists": 9,
-        "minutes": 1845,
-        "rating": 7.14,
+        "minutes": 1935,
+        "rating": 7.11,
         "yellow": 2,
         "red": 0
       }
@@ -1174,11 +1174,11 @@
         "status": "played",
         "season": "2026-27",
         "team": "Austria Vienna",
-        "apps": 5,
+        "apps": 6,
         "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 391,
+        "minutes": 440,
         "rating": 6.2,
         "yellow": 1,
         "red": 0
@@ -1256,12 +1256,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Austria Vienna",
-        "apps": 4,
-        "starts": 4,
+        "apps": 5,
+        "starts": 5,
         "goals": 0,
         "assists": 1,
-        "minutes": 356,
-        "rating": 6.37,
+        "minutes": 446,
+        "rating": 6.47,
         "yellow": 0,
         "red": 0
       }
@@ -1338,12 +1338,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Club Brugge",
-        "apps": 5,
-        "starts": 5,
+        "apps": 6,
+        "starts": 6,
         "goals": 0,
         "assists": 0,
-        "minutes": 450,
-        "rating": 7.05,
+        "minutes": 540,
+        "rating": 7.08,
         "yellow": 1,
         "red": 0
       }
@@ -1420,12 +1420,12 @@
         "status": "played",
         "season": "2026",
         "team": "Seattle Sounders",
-        "apps": 6,
+        "apps": 7,
         "starts": 4,
         "goals": 0,
         "assists": 0,
-        "minutes": 334,
-        "rating": 6.61,
+        "minutes": 345,
+        "rating": 6.57,
         "yellow": 0,
         "red": 0
       }
@@ -2076,12 +2076,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Atletico Madrid",
-        "apps": 4,
-        "starts": 3,
+        "apps": 5,
+        "starts": 4,
         "goals": 1,
         "assists": 1,
-        "minutes": 230,
-        "rating": 7.03,
+        "minutes": 290,
+        "rating": 6.89,
         "yellow": 1,
         "red": 0
       }
@@ -2158,12 +2158,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "FC Bayern Munich",
-        "apps": 1,
-        "starts": 1,
+        "apps": 2,
+        "starts": 2,
         "goals": 0,
         "assists": 0,
-        "minutes": 84,
-        "rating": 6.87,
+        "minutes": 174,
+        "rating": 6.74,
         "yellow": 1,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-12T22:20:19.738Z"
+  "currentUpdatedAt": "2026-09-13T22:20:17.327Z"
 }
