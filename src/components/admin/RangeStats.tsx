@@ -243,18 +243,30 @@ export function DeviceCard() {
 
 export function PopularPagesCard() {
   return (
-    <RangeCard id="인기 페이지" title="인기 페이지" subtitle={(d) => d.label}>
-      {(d) =>
-        d.topPaths.length === 0 ? (
-          <EmptyHint />
-        ) : (
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {d.topPaths.map((x, i) => (
-              <RankRow key={x.path} rank={i + 1} label={x.path} href={x.path} pct={(x.count / d.topPaths[0].count) * 100} value={x.count} />
-            ))}
-          </ul>
-        )
-      }
+    <RangeCard id="인기 페이지" title="인기 페이지" subtitle={(d) => `${d.label} · 상위 ${d.topPaths.length}개`}>
+      {(d) => {
+        if (d.topPaths.length === 0) return <EmptyHint />;
+        const max = d.topPaths[0].count;
+        const row = (x: { path: string; count: number }, i: number) => (
+          <RankRow key={x.path} rank={i + 1} label={x.path} href={x.path} pct={(x.count / max) * 100} value={x.count.toLocaleString()} />
+        );
+        const head = d.topPaths.slice(0, 10);
+        const rest = d.topPaths.slice(10);
+        return (
+          <>
+            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">{head.map(row)}</ul>
+            {rest.length > 0 && (
+              <details className="group mt-1">
+                <summary className="cursor-pointer list-none py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline select-none">
+                  <span className="group-open:hidden">+ 나머지 {rest.length}개 펼치기 (11~{d.topPaths.length}위)</span>
+                  <span className="hidden group-open:inline">접기</span>
+                </summary>
+                <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 border-t border-neutral-200 dark:border-neutral-800">{rest.map((x, i) => row(x, i + 10))}</ul>
+              </details>
+            )}
+          </>
+        );
+      }}
     </RangeCard>
   );
 }

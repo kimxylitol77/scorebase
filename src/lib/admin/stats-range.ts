@@ -275,7 +275,8 @@ export async function computeRangeStats(range: StatsRange): Promise<RangeStats> 
         return { type: t, count, pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0 };
       }),
     },
-    topPaths: top(pathCount, 10, (v) => v).map(([path, count]) => ({ path, count })),
+    // 카드는 10개 펼치고 나머지는 접힘(2026-09-13 요청) — 50개까지.
+    topPaths: top(pathCount, 50, (v) => v).map(([path, count]) => ({ path, count })),
     exitPaths: top(exitCountByPath, 10, (v) => v).map(([path, exits]) => {
       const seen = seenSessionsByPath.get(path) ?? exits;
       return { path, exits, seen, rate: Math.round((exits / seen) * 100) };
