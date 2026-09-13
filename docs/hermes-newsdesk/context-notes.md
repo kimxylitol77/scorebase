@@ -24,6 +24,33 @@
   NFL 기사가 soccer 로 분류된 사례(The Athletic). → 재료 스크립트에서 score·기사 수로 거른다.
 - `Team` 은 `name`(영문) + `nameKo` + `league` 보유 → 영문 제목과 매칭 가능.
 
+## 2026-09-13 구축 중 실측
+
+- **`Team.eloRating` 은 전 리그 기본값 1500** (EPL·KBO·LALIGA·MLB·NBA·NHL 비기본값 0건). 실제 Elo 는 예측 코드가
+  런타임에 계산한다. 재료에 실었더니 전 팀 "Elo 1위"로 나와 편집장이 틀린 사실을 쓸 뻔했다 → 제외.
+  순위·Elo 가 필요하면 발행 단계에서 Claude Code 가 예측 로직으로 뽑는다.
+- **cron 은 `platform="cron"` 별도 toolset.** `tools disable` 기본값은 cli 라 cron 실행에는 적용 안 된다.
+  `--platform cron` 으로 한 번 더 꺼야 한다. 확인은 프로필 config.yaml 의 `platform_toolsets.cron`.
+- 처음엔 `file` 도구를 안 껐다 → 켜져 있으면 에이전트가 `~/scorebase/.env.local` 을 읽을 수 있다. 끔.
+- `hermes tools --summary` 는 대화형 터미널 필요. 비대화형 확인은 `tools list` + config.yaml.
+- cron `--script` 는 프로필 홈 `scripts/` 기준 파일명만 준다 (`material.sh`).
+- 래퍼는 `env -i` 깨끗한 환경에서 검증 — PATH 에 `/usr/local/bin`(node) 포함 필요.
+- **이 맥 시간대는 Asia/Ho_Chi_Minh(+07).** cron `0 9 * * *` = KST 11시. 재료 스크립트 날짜 표기는 KST 고정.
+- **게이트웨이가 꺼져 있으면 cron 이 발화하지 않는다.** 프로필마다 게이트웨이가 따로 있고
+  (`gateway list` → default·newsdesk 둘 다 not running), `gateway migrate --multiplex` 로 default 하나가
+  모든 프로필을 서비스하게 묶을 수 있다 (중복 봇 토큰이 있으면 preflight 가 막음).
+- 노트북 네트워크가 느린 시간대(구글 3.7초)에 Neon `Can't reach database server` 일시 실패 2회.
+  DNS·5432 TCP·운영 /news 200 모두 정상이었고 재시도 1회에 성공 — 코드 문제 아님.
+  cron 에서 반복되면 재료 스크립트에 재시도를 넣는다 (지금은 넣지 않음).
+
+## 첫 제안서 (2026-09-13 수동 실행, muse-spark-1.3 free)
+
+- 글감 3 — 아스날 5연승(선덜랜드전), 토트넘·에버튼 0-0 기록 대조, 골든나이츠 마크 스톤 연장.
+  제외 5 — 팀 데이터 없음 2, 한국 검색 수요 약함 2, 단일 매체 1. 이유가 모두 SOUL.md 기준과 일치.
+- 재료 대조 불일치 0건. 토트넘 "리그 무승·무득점"도 대회명으로 컵 5-1 승을 구분해 맞게 읽음.
+- 헤드라인의 계약 금액·발언은 "원문 확인 필요"로 스스로 표시함.
+- 서식 문제 1 — URL·검색어 칸 끝에 마침표를 붙여 링크가 깨질 수 있음 → SOUL.md 규칙 추가.
+
 ## 헤르메스 구조 메모
 
 - 프로필 홈 `~/.hermes/profiles/<id>/` — config·.env·SOUL.md·skills·cron·scripts 가 프로필별.

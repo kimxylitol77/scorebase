@@ -7,25 +7,26 @@
 - [x] plan / checklist / context-notes 작성
 
 ## 1. 재료 스크립트 (scorebase)
-- [ ] `scripts/newsdesk-material.mjs` — 36h storyKey 클러스터 조회 (읽기 전용)
-- [ ] 노이즈 제거 — score<3·단일 기사·굿즈/통계 페이지류 제외
-- [ ] 클러스터 팀명 → `Team(name, league)` 매칭 → 순위·Elo·최근 경기 붙이기
-- [ ] 출력 JSON 크기 상한 (프롬프트 폭주 방지)
-- [ ] 로컬 실행 검증 — 실제 출력에 큰 이슈 3개 이상, 팀 매칭 결과 눈으로 대조
+- [x] `scripts/newsdesk-material.mjs` — 36h storyKey 클러스터 조회 (읽기 전용) (27f381e)
+- [x] 노이즈 제거 — score≥2 AND (score≥4 OR 매체≥2)
+- [x] 클러스터 팀명 → `Team(name, league)` 매칭 → 최근 5경기(대회명)·다음 경기 (Elo 는 전부 1500 이라 제외, 순위는 v2)
+- [x] 출력 JSON 크기 상한 — 스토리 8·팀 3 (약 13KB)
+- [x] 로컬 실행 검증 — 스토리 8, 팀 매칭 대조 완료 (`env -i` 깨끗한 환경 래퍼 경로 포함)
 
 ## 2. 헤르메스 프로필
-- [ ] `hermes profile create newsdesk --clone --description ...`
-- [ ] `profiles/newsdesk/SOUL.md` — 글감 편집장 규칙 (한국어, 저작권·사실 가드레일, 출력 형식)
-- [ ] 위험 도구 끄기 — terminal · code_execution · computer_use · browser (재료는 스크립트가 줌)
-- [ ] `profiles/newsdesk/scripts/material.sh` — scorebase 스크립트 호출 래퍼
-- [ ] 수동 1회 실행 → 제안서 품질·사실 대조
+- [x] `hermes profile create newsdesk --clone --description ...`
+- [x] `profiles/newsdesk/SOUL.md` — 글감 편집장 규칙 (원본은 SOUL.md.bak.default)
+- [x] 위험 도구 끄기 — terminal · code_execution · computer_use · browser · file · cronjob · delegation, **cli 와 cron 플랫폼 둘 다**
+- [x] `profiles/newsdesk/scripts/material.sh` — scorebase 스크립트 호출 래퍼
+- [x] 수동 1회 실행 → 제안서 3건, 재료 대조 불일치 0건 (81초)
 
 ## 3. 예약 작업
-- [ ] `hermes -p newsdesk cron create "0 9 * * *" ... --script material.sh --continuity --deliver local`
+- [x] `newsdesk cron create "0 9 * * *" ... --script material.sh --continuity --deliver local` (id 9aa2b5a55603)
+- [ ] **게이트웨이 기동 (사용자 승인 필요)** — 꺼져 있으면 cron 이 안 돈다
 - [ ] `cron run` 으로 즉시 1회 → `cron runs` 로 성공 확인
 - [ ] 텔레그램 연동 후 deliver 를 telegram 으로 변경 (사용자 `hermes gateway setup` 선행)
 
 ## 4. 운영 관찰 (2주)
-- [ ] 첫 3회 제안서 — 재료 대조 결과 context-notes 에 기록
+- [ ] 첫 3회 제안서 — 재료 대조 결과 context-notes 에 기록 (1/3 완료, 수동 실행분)
 - [ ] 모델 결정 (무료 muse-spark 유지 / Kimi)
 - [ ] 2주 후 성공 기준 판정 → v2(초안) 진행 여부 결정
