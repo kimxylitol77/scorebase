@@ -45,6 +45,9 @@ import { getTheSportsInjuriesByTeam, type TSInjuryRaw } from "@/lib/sports/thesp
 import { NATIONAL_TEAM_LEAGUES, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { translateReason, classifySeverity, SEVERITY_META, type Severity } from "@/lib/sports/injury-format";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { resolveSeasonYear } from "@/lib/sports/season-registry";
+import { seasonLabelFor } from "@/lib/sports/season-calendar";
+import { basketballSeasonLabel } from "@/lib/sports/basketball-season";
 
 function classifyKboDuration(
   duration: string,
@@ -121,6 +124,13 @@ const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL", "WNBA"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
 const CANONICAL = "https://www.scorebase.kr";
+
+// 표시용 시즌 라벨 — 한국어판 /injuries 의 seasonLabelOf 와 같은 규칙 (하드코딩 "2025-26" 제거).
+async function seasonLabelOf(league: Lg): Promise<string> {
+  if (league === "NATIONAL") return "International fixtures";
+  if (league === "NBA" || league === "NHL") return `${basketballSeasonLabel(new Date())} season`;
+  return `${seasonLabelFor(league, await resolveSeasonYear(league))} season`;
+}
 
 interface LeagueMeta {
   krFull: string;
@@ -439,12 +449,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {}
 
   const url = `${CANONICAL}/en/injuries/${upper}`;
-  const seasonLabel =
-    upper === "NATIONAL"
-      ? "International fixtures"
-      : upper === "KBO" || upper === "NPB" || upper === "MLB"
-        ? `${new Date().getUTCFullYear()} season`
-        : "2025-26 season";
+  const seasonLabel = await seasonLabelOf(upper);
   const sourceLabel =
     upper === "KBO"
       ? "KBO official (koreabaseball.com)"
@@ -643,12 +648,7 @@ export default async function InjuriesByLeague({
     );
   }
 
-  const seasonLabel =
-    upper === "NATIONAL"
-      ? "International fixtures"
-      : isAsianBb || upper === "MLB"
-        ? `${new Date().getUTCFullYear()} season`
-        : "2025-26 season";
+  const seasonLabel = await seasonLabelOf(upper);
   // 검색·필터·정렬 파라미터
   const query = (sp.q ?? "").trim().toLowerCase();
   const severityFilter = (sp.severity ?? "ALL") as
@@ -1098,7 +1098,7 @@ export default async function InjuriesByLeague({
           <section className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-5 space-y-2 text-sm leading-relaxed text-neutral-700 break-keep dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300">
             <p>
               <strong>
-                {upper === "NATIONAL" ? "" : "2025-26 season "}{lm.krFull} A total of{" "}
+                {upper === "NATIONAL" ? "" : `${seasonLabel} `}{lm.krFull} A total of{" "}
                 {totalInjuries}
               </strong>
               . {displayTeams.length} {upper === "NATIONAL" ? "national team" : "Team"} average {avgPerTeam.toFixed(1)}

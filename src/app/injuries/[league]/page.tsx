@@ -45,6 +45,9 @@ import { getTheSportsInjuriesByTeam, type TSInjuryRaw } from "@/lib/sports/thesp
 import { NATIONAL_TEAM_LEAGUES, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { translateReason, classifySeverity, SEVERITY_META, type Severity } from "@/lib/sports/injury-format";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { resolveSeasonYear } from "@/lib/sports/season-registry";
+import { seasonLabelFor } from "@/lib/sports/season-calendar";
+import { basketballSeasonLabel } from "@/lib/sports/basketball-season";
 
 function classifyKboDuration(
   duration: string,
@@ -121,6 +124,15 @@ const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL", "WNBA"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
 const CANONICAL = "https://www.scorebase.kr";
+
+// 표시용 시즌 라벨. 예전엔 "2025-26 시즌" 문자열이 박혀 있어 시즌이 바뀌어도 그대로였다(2026-09 실측).
+//  축구·야구·WNBA 는 시즌 레지스트리(ACTIVE) → season-calendar 폴백으로 "2026-27" / "2026",
+//  NBA·NHL 은 10월 개막이라 7월 경계 "2026-27" (basketball-season 과 같은 규칙).
+async function seasonLabelOf(league: Lg): Promise<string> {
+  if (league === "NATIONAL") return "국가대표 A매치";
+  if (league === "NBA" || league === "NHL") return `${basketballSeasonLabel(new Date())} 시즌`;
+  return `${seasonLabelFor(league, await resolveSeasonYear(league))} 시즌`;
+}
 
 interface LeagueMeta {
   krFull: string;
@@ -554,12 +566,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {}
 
   const url = `${CANONICAL}/injuries/${upper}`;
-  const seasonLabel =
-    upper === "NATIONAL"
-      ? "국가대표 A매치"
-      : upper === "KBO" || upper === "NPB" || upper === "MLB"
-        ? `${new Date().getUTCFullYear()} 시즌`
-        : "2025-26 시즌";
+  const seasonLabel = await seasonLabelOf(upper);
   const sourceLabel =
     upper === "KBO"
       ? "KBO 공식 (koreabaseball.com)"
@@ -759,12 +766,9 @@ export default async function InjuriesByLeague({
     );
   }
 
-  const seasonLabel =
-    upper === "NATIONAL"
-      ? "국가대표 A매치"
-      : isAsianBb || upper === "MLB"
-        ? `${new Date().getUTCFullYear()} 시즌`
-        : "2025-26 시즌";
+  const seasonLabel = await seasonLabelOf(upper);
+  // 서술문 앞머리 — 국가대표는 "국가대표 A매치 국가대표 …" 로 겹쳐서 뺀다.
+  const seasonPrefix = upper === "NATIONAL" ? "" : `${seasonLabel} `;
   // 검색·필터·정렬 파라미터
   const query = (sp.q ?? "").trim().toLowerCase();
   const severityFilter = (sp.severity ?? "ALL") as
@@ -1016,6 +1020,13 @@ export default async function InjuriesByLeague({
     hour: "2-digit",
     minute: "2-digit",
   });
+  // 문장 안에 넣는 기준일 — "09. 13. AM 10:52" 는 인용문에 어색해 "2026년 9월 13일" 로.
+  const asOfDate = new Date().toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   const pageUrl = `${CANONICAL}/injuries/${upper}`;
 
@@ -1062,6 +1073,79 @@ export default async function InjuriesByLeague({
     })),
   };
 
+  const sourceNote = isAsianBb
+    ? upper === "KBO"
+      ? " (시즌 부상자 명단 + 치료·재활명단). 사유는 KBO 가 공개하지 않으며 기간으로 심각도 분류."
+      : " (지난 30일간 1군 엔트리에서 빠진 누적 명단, 재등록된 선수는 자동 제외). 일본 NPB 는 별도 부상자 명단 제도가 없어 1군 엔트리 제외 = 결장으로 간주."
+    : isSoccer
+      ? " — TheSports 는 각 팀 최근 경기 출전명단의 결장자, api-football 은 시즌 누적 결장 기록입니다. 사유 한글 번역은 의학용어 매핑 기반."
+      : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반.";
+
+  // FAQ — 검색·AI 답변 엔진이 그대로 인용할 수 있게 숫자·날짜를 문장에 박는다.
+  //  분류 기준 답변은 classifySeverity / classifyKboDuration / NPB overrideSev("short") 의 실제 규칙.
+  const unitLabel = upper === "NATIONAL" ? "대표팀" : "팀";
+  const faqs: { q: string; a: string }[] = [
+    {
+      q: `${seasonPrefix}${lm.krFull} 부상자는 총 몇 명인가요?`,
+      a:
+        totalInjuries > 0
+          ? `${asOfDate} 기준 ${lm.krFull} 전체 부상·결장 선수는 ${totalInjuries}명으로, ${displayTeams.length}개 ${unitLabel} 평균 ${avgPerTeam.toFixed(1)}명이 결장 중입니다.${
+              fullSquadTeams.length > 0 ? ` 부상자가 없는 풀스쿼드 ${unitLabel}은 ${fullSquadTeams.length}개입니다.` : ""
+            }`
+          : `${asOfDate} 기준 집계된 부상·결장 선수가 없습니다. 명단은 매일 갱신되며 경기가 진행되면 다시 채워집니다.`,
+    },
+    ...(top3.length > 0
+      ? [
+          {
+            q: `${lm.krFull}에서 부상자가 가장 많은 ${unitLabel}은 어디인가요?`,
+            a: `${asOfDate} 기준 ${top3
+              .map((x, i) => `${i + 1}위 ${toKoreanTeamName(x.team.name, upper)} ${x.all.length}명`)
+              .join(", ")} 순입니다.`,
+          },
+        ]
+      : []),
+    {
+      q: `${lm.krFull} 부상자 명단의 출처와 갱신 주기는 어떻게 되나요?`,
+      a: `출처는 ${sourceLabel}입니다${sourceNote} 페이지는 매일 갱신되며 마지막 갱신은 ${lastUpdatedKst}(KST)입니다.`,
+    },
+    {
+      q: "장기 결장·단기 결장·회복 임박은 어떤 기준으로 나누나요?",
+      a:
+        upper === "KBO"
+          ? "KBO 는 부상 사유를 공개하지 않아 등록 기간으로 나눕니다. 30일 이상 등록이면 장기 결장, 10일·15일 등록이면 단기 결장, 치료·재활명단은 회복 임박으로 분류합니다."
+          : upper === "NPB"
+            ? "NPB 는 1군 등록 말소 사유를 공개하지 않아 말소된 선수를 모두 단기 결장으로 표시하며, 재등록되면 명단에서 자동 제외됩니다."
+            : "십자인대·골절·수술 등 복귀까지 수개월이 걸리는 부상은 장기 결장, 햄스트링·발목·근육 등 몇 주 단위 부상은 단기 결장, 컨디션·질병·재활 단계는 회복 임박, 징계·대표팀 차출·구단 결정 등 부상이 아닌 결장은 부상 외로 분류합니다.",
+    },
+    {
+      q: "이 부상자 명단은 경기 예측과 프리뷰에도 반영되나요?",
+      a: "네. 경기 상세의 예상 라인업 아래 부상·결장 명단과 AI 프리뷰 글이 이 페이지와 같은 소스와 우선순위로 만들어집니다. 다만 실제 경기 라인업은 킥오프 직전에 바뀔 수 있어 참고용으로 보시기 바랍니다.",
+    },
+  ];
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+  const webPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": pageUrl,
+    url: pageUrl,
+    name: `${lm.krFull} 부상자 명단 ${seasonLabel}`,
+    inLanguage: "ko-KR",
+    dateModified: new Date().toISOString(),
+    isPartOf: { "@type": "WebSite", name: "스코어베이스", url: CANONICAL },
+    about: { "@type": "SportsOrganization", name: lm.krFull, alternateName: lm.enFull },
+    ...(totalInjuries > 0
+      ? { speakable: { "@type": "SpeakableSpecification", cssSelector: ["#injury-summary"] } }
+      : {}),
+  };
+
   return (
     <div className="relative">
       <AmbientGlow />
@@ -1072,6 +1156,14 @@ export default async function InjuriesByLeague({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(itemListJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(webPageJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
       />
 
       {/* 헤더 */}
@@ -1106,6 +1198,14 @@ export default async function InjuriesByLeague({
                 : "팀별 1군 엔트리에서 빠진 선수 (지난 30일 누적, 복귀자 자동 제외). 일본 NPB 는 KBO/MLB 같은 별도 부상자 명단 제도가 없어 '出場選手登録抹消(출장 선수 등록 말소)' = 1군 결장으로 표시. 부상·재활·강등·컨디션 난조 등 사유는 구단이 공개하지 않음."
               : "팀별 시즌 누적 부상·결장 선수. 사유는 영문 의학용어를 한글로 자동 번역, 심각도별 분류."}
           </p>
+          {totalInjuries > 0 && (
+            <p className="mt-2 text-sm font-semibold text-neutral-800 dark:text-neutral-200 break-keep">
+              {asOfDate} 기준 {seasonPrefix}{lm.krFull} 부상·결장 선수는 총 {totalInjuries}명
+              {top3.length > 0 &&
+                ` (최다 결장 ${toKoreanTeamName(top3[0].team.name, upper)} ${top3[0].all.length}명)`}
+              .
+            </p>
+          )}
           <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-neutral-500">
             <Clock className="h-3 w-3" aria-hidden /> 마지막 업데이트: {lastUpdatedKst} · 출처: {sourceLabel}
           </p>
@@ -1206,15 +1306,15 @@ export default async function InjuriesByLeague({
           </section>
         )}
 
-        {/* SEO 분석 문단 */}
+        {/* SEO 분석 문단 — id 는 WebPage JSON-LD speakable 대상 */}
         {totalInjuries > 0 && (
-          <section className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-5 space-y-2 text-sm leading-relaxed text-neutral-700 break-keep dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300">
+          <section id="injury-summary" className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-5 space-y-2 text-sm leading-relaxed text-neutral-700 break-keep dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300">
             <p>
               <strong>
-                {upper === "NATIONAL" ? "" : "2025-26 시즌 "}{lm.krFull} 전체 부상·결장 선수는 총{" "}
+                {seasonPrefix}{lm.krFull} 전체 부상·결장 선수는 총{" "}
                 {totalInjuries}명
               </strong>
-              으로 집계됐다. {displayTeams.length}개 {upper === "NATIONAL" ? "대표팀" : "팀"} 평균 {avgPerTeam.toFixed(1)}
+              으로 집계됐다({asOfDate} 기준). {displayTeams.length}개 {upper === "NATIONAL" ? "대표팀" : "팀"} 평균 {avgPerTeam.toFixed(1)}
               명이 결장 중이며
               {top3.length > 0 && (
                 <>
@@ -1363,13 +1463,7 @@ export default async function InjuriesByLeague({
 
         <p className="text-[11px] text-neutral-500 leading-relaxed">
           데이터: {sourceLabel}
-          {isAsianBb
-            ? upper === "KBO"
-              ? " (시즌 부상자 명단 + 치료·재활명단). 사유는 KBO 가 공개하지 않으며 기간으로 심각도 분류."
-              : " (지난 30일간 1군 엔트리에서 빠진 누적 명단, 재등록된 선수는 자동 제외). 일본 NPB 는 별도 부상자 명단 제도가 없어 1군 엔트리 제외 = 결장으로 간주."
-            : isSoccer
-              ? " — TheSports 는 각 팀 최근 경기 출전명단의 결장자, api-football 은 시즌 누적 결장 기록입니다. 사유 한글 번역은 의학용어 매핑 기반."
-              : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
+          {sourceNote}
           {" "}본 명단은 참고용으로 실제 매치 라인업과 다를 수 있습니다.
         </p>
 
@@ -1399,6 +1493,26 @@ export default async function InjuriesByLeague({
             </Link>
             도 함께 참고하세요.
           </p>
+        </section>
+
+        {/* FAQ — 답변은 위 집계값으로 동적 생성. JSON-LD 와 본문이 같은 배열을 쓴다. */}
+        <section className="space-y-3 pt-2">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight break-keep">
+            {lm.krFull} 부상자 명단 — 자주 묻는 질문
+          </h2>
+          <div className="space-y-2">
+            {faqs.map((f) => (
+              <details
+                key={f.q}
+                className="rounded-2xl border border-neutral-200 dark:border-white/10 px-4 py-3"
+              >
+                <summary className="text-sm font-semibold cursor-pointer break-keep">{f.q}</summary>
+                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
+                  {f.a}
+                </p>
+              </details>
+            ))}
+          </div>
         </section>
       </div>
     </div>
