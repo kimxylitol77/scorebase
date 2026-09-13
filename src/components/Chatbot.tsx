@@ -4,6 +4,7 @@
 // Phase 1 — 대화 히스토리는 클라이언트 메모리만 (새로고침 시 사라짐).
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { OPEN_CHAT_EVENT, type OpenChatDetail } from "@/lib/open-chat-event";
 import { usePathname } from "next/navigation";
 import { useMatchChatMounted } from "@/components/live/match-chat-presence";
 
@@ -72,6 +73,7 @@ function renderContent(text: string): ReactNode {
 
 // 자주 하는 질문 — 클릭하면 바로 전송.
 const SUGGESTIONS = [
+  "오늘 고확신 픽 뭐야?",
   "오늘 경기 알려줘",
   "가장 신뢰도 높은 예측은?",
   "예측 적중률은 어때?",
@@ -96,6 +98,17 @@ export default function Chatbot() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  // 헤더 "AI에게 묻기" — 밖에서 여는 유일한 경로(lib/open-chat-event). 2026-09-13 사용자 승인으로 추가.
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      setOpen(true);
+      const preset = (e as CustomEvent<OpenChatDetail>).detail?.preset;
+      if (preset) setInput(preset);
+    };
+    window.addEventListener(OPEN_CHAT_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, onOpen);
+  }, []);
 
   async function send(preset?: string) {
     const text = (preset ?? input).trim();

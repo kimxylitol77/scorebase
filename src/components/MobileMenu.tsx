@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import AskAiButton from "./AskAiButton";
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
@@ -77,6 +78,8 @@ export default function MobileMenu({ account }: { account?: ReactNode }) {
             </span>
             라이브 스코어
           </Link>
+          {/* AI에게 묻기 — 메뉴를 닫고 플로팅 챗봇을 연다 */}
+          <AskAiButton variant="menu" onOpen={() => setOpen(false)} />
 
           {/* 예측 대시보드 — 플래그십 CTA */}
           <Link

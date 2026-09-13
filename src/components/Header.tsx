@@ -4,6 +4,7 @@ import MobileMenu from "./MobileMenu";
 import ThemeToggle from "./ThemeToggle";
 import AdminBadge from "./AdminBadge";
 import UserBadge from "./UserBadge";
+import AskAiButton from "./AskAiButton";
 import LangSwitch from "./en/LangSwitch";
 import NavDropdown from "./NavDropdown";
 import {
@@ -46,6 +47,8 @@ export default function Header() {
 
         {/* 우측 — 검색 아이콘 + 계정/언어/테마 */}
         <div className="hidden lg:flex items-center gap-2 shrink-0">
+          {/* AI에게 묻기 — 경기 밖에서 예측 데이터를 자연어로(플로팅 챗봇을 연다) */}
+          <AskAiButton />
           {/* 검색 — 아이콘만, 클릭 시 /search (입력창이 헤더 폭을 밀어 배지가 세로로 꺾이던 문제) */}
           <Link
             href="/search"

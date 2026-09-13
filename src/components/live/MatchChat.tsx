@@ -2,6 +2,7 @@
 // 경기 상세 페이지 우하단 플로팅 AI 챗. 버튼을 누르면 패널이 열리고, 그 경기 데이터로 답한다.
 
 import { useEffect, useState } from "react";
+import { OPEN_CHAT_EVENT } from "@/lib/open-chat-event";
 import { useMe } from "@/components/use-me";
 import { setMatchChatMounted } from "./match-chat-presence";
 
@@ -59,6 +60,13 @@ export default function MatchChat({
 
   // 전역 플로팅 챗봇(layout)에게 자리를 넘겨받는다 — 우하단이 겹치기 때문.
   // 비회원이라 이 챗봇이 안 뜨면 false 를 보내 전역 챗봇이 그대로 남게 한다.
+  // 헤더 "AI에게 묻기" — 경기 상세에선 전역 챗봇이 비켜 있으므로 이 챗봇이 그 이벤트를 받는다.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener(OPEN_CHAT_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, onOpen);
+  }, []);
+
   useEffect(() => {
     setMatchChatMounted(visible);
     return () => setMatchChatMounted(false);
