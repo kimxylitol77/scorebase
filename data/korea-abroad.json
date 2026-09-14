@@ -1584,12 +1584,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Midtjylland",
-        "apps": 6,
-        "starts": 4,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 352,
-        "rating": 6.39,
+        "apps": 7,
+        "starts": 5,
+        "goals": 1,
+        "assists": 1,
+        "minutes": 442,
+        "rating": 6.56,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-13T22:20:17.327Z"
+  "currentUpdatedAt": "2026-09-14T22:20:18.303Z"
 }
