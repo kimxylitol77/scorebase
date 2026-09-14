@@ -13,6 +13,7 @@ import { settleFlatUnits, fmtRoiPct, fmtUnits, type FlatRoiResult } from "@/lib/
 import { roiClaim } from "@/lib/predict/model-vs-market";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
+import { Bot } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "승부예측 — 나 vs AI | Scorebase",
@@ -60,6 +61,25 @@ export default async function PicksPage() {
       ? prisma.matchVote.findMany({ where: { userId, matchId: { in: ids } }, select: { matchId: true, market: true, pick: true } })
       : Promise.resolve([]),
   ]);
+  // 회원 봇(/lab) 픽 — 카드마다 "누가 어디에 걸었나" 한 줄. 1X2 만 생성되므로 그대로.
+  const activeBots = await prisma.memberBot.findMany({ where: { isActive: true }, select: { id: true, name: true, userId: true } });
+  const botById = new Map(activeBots.map((b) => [b.id, b]));
+  const botPicks = ids.length && activeBots.length
+    ? await prisma.memberBotPick.findMany({
+        where: { matchId: { in: ids }, botId: { in: activeBots.map((b) => b.id) }, market: "1X2" },
+        select: { matchId: true, botId: true, pick: true },
+      })
+    : [];
+  const botPicksByMatch = new Map<number, { name: string; pick: string }[]>();
+  for (const p of botPicks) {
+    const b = botById.get(p.botId);
+    if (!b) continue;
+    const arr = botPicksByMatch.get(p.matchId) ?? [];
+    arr.push({ name: b.name, pick: p.pick });
+    botPicksByMatch.set(p.matchId, arr);
+  }
+  const BOT_PICK_KO: Record<string, string> = { HOME: "홈", DRAW: "무", AWAY: "원정" };
+
   // 내 픽 — 매치 → 시장 → 픽
   const myPicksByMatch = new Map<number, Partial<Record<VoteMarket, string>>>();
   for (const v of myVotes) {
@@ -111,6 +131,32 @@ export default async function PicksPage() {
       })
     : [];
   const userById = new Map(boardUsers.map((u) => [u.id, u]));
+  // 회원 봇도 같은 잣대(채점 3표 이상·적중률순)로 랭킹에 섞는다. 봇은 1X2 만 픽하므로 시장별 줄 대신 소유자 표기.
+  const botBoard = activeBots.length
+    ? await prisma.$queryRaw<{ botId: string; total: number; hit: number }[]>`
+        SELECT "botId", COUNT(*)::int AS total, SUM(CASE WHEN correct THEN 1 ELSE 0 END)::int AS hit
+        FROM "MemberBotPick"
+        WHERE "botId" IN (${Prisma.join(activeBots.map((b) => b.id))}) AND correct IS NOT NULL AND market = '1X2'
+        GROUP BY "botId"
+        HAVING COUNT(*) >= 3`
+    : [];
+  const botOwnerIds = [...new Set(activeBots.map((b) => b.userId))];
+  const botOwners = botOwnerIds.length
+    ? await prisma.user.findMany({ where: { id: { in: botOwnerIds } }, select: { id: true, nickname: true } })
+    : [];
+  const ownerNick = new Map(botOwners.map((u) => [u.id, u.nickname]));
+  type BoardRow =
+    | { kind: "user"; key: string; userId: string; total: number; hit: number }
+    | { kind: "bot"; key: string; botId: string; name: string; owner: string; total: number; hit: number };
+  const rows: BoardRow[] = [
+    ...board.map((b): BoardRow => ({ kind: "user", key: `u:${b.userId}`, userId: b.userId, total: b.total, hit: b.hit })),
+    ...botBoard.map((b): BoardRow => {
+      const bot = botById.get(b.botId)!;
+      return { kind: "bot", key: `b:${b.botId}`, botId: b.botId, name: bot.name, owner: ownerNick.get(bot.userId) ?? "회원", total: b.total, hit: b.hit };
+    }),
+  ]
+    .sort((a, b) => b.hit / b.total - a.hit / a.total || b.total - a.total)
+    .slice(0, 20);
   // 시장별 적중(승부·핸디·오버언더) — 랭커마다 어느 시장에 강한지 한 줄 보조 표기.
   const perMarket = board.length
     ? await prisma.$queryRaw<{ userId: string; market: string; total: number; hit: number }[]>`
@@ -217,6 +263,21 @@ export default async function PicksPage() {
                   <div className="mb-2 truncate text-sm font-semibold text-neutral-900 dark:text-white">
                     {home} <span className="font-normal text-neutral-400">vs</span> {away}
                   </div>
+                  {(() => {
+                    const bp = botPicksByMatch.get(m.id);
+                    if (!bp?.length) return null;
+                    return (
+                      <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+                        <Bot className="h-3 w-3 text-violet-500" aria-hidden="true" />
+                        <span className="font-medium">회원 봇</span>
+                        {bp.map((p) => (
+                          <span key={p.name} className="tabular-nums">
+                            {p.name} <span className="font-semibold text-neutral-700 dark:text-neutral-200">{BOT_PICK_KO[p.pick] ?? p.pick}</span>
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   <MatchVoteButtons
                     matchId={m.id}
                     homeName={home}
@@ -236,8 +297,8 @@ export default async function PicksPage() {
       {/* 랭킹 */}
       <section className="mt-8">
         <h2 className="text-sm font-bold text-neutral-900 dark:text-white">적중 랭킹</h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다.</p>
-        {board.length === 0 ? (
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">회원 봇</Link>도 승부 픽 기준으로 같은 순위에 섞여 오릅니다.</p>
+        {rows.length === 0 ? (
           <p className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
             아직 랭커가 없습니다. 첫 경기가 끝나면 채점이 시작됩니다 — 1위를 선점하세요.
           </p>
@@ -253,14 +314,37 @@ export default async function PicksPage() {
                 </tr>
               </thead>
               <tbody>
-                {board.map((b, i) => {
+                {rows.map((b, i) => {
+                  const rankCls = i === 0 ? "text-amber-500" : i === 1 ? "text-neutral-400" : i === 2 ? "text-amber-700" : "text-neutral-900 dark:text-white";
+                  if (b.kind === "bot") {
+                    return (
+                      <tr key={b.key} className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60">
+                        <td className={`px-3 py-2.5 font-bold tabular-nums ${rankCls}`}>{i + 1}</td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-2.5">
+                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                              <Bot className="h-4 w-4" aria-hidden="true" />
+                            </span>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <Link href="/lab" className="truncate font-medium text-neutral-800 hover:underline dark:text-neutral-100">{b.name}</Link>
+                                <span className="shrink-0 rounded-full bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600 dark:text-violet-300">회원 봇</span>
+                              </div>
+                              <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">{b.owner} 의 봇 · 승부 픽만</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600 dark:text-neutral-300">{b.hit}/{b.total}</td>
+                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-neutral-900 dark:text-white">{Math.round((b.hit / b.total) * 100)}%</td>
+                      </tr>
+                    );
+                  }
                   const u = userById.get(b.userId);
                   const g = u ? displayGrade(u.level, u.badge) : null;
                   const avatar = u ? resolveAvatar(u.avatarUrl, u.nickname, u.level, u.badge) : null;
                   const mk = (marketByUser.get(b.userId) ?? []).filter((r) => r.total > 0);
-                  const rankCls = i === 0 ? "text-amber-500" : i === 1 ? "text-neutral-400" : i === 2 ? "text-amber-700" : "text-neutral-900 dark:text-white";
                   return (
-                  <tr key={b.userId} className={`border-b border-neutral-100 last:border-0 dark:border-neutral-800/60 ${b.userId === userId ? "bg-rose-500/5" : ""}`}>
+                  <tr key={b.key} className={`border-b border-neutral-100 last:border-0 dark:border-neutral-800/60 ${b.userId === userId ? "bg-rose-500/5" : ""}`}>
                     <td className={`px-3 py-2.5 font-bold tabular-nums ${rankCls}`}>{i + 1}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2.5">
