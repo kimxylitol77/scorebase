@@ -8,6 +8,7 @@
 // 마운트 전(SSR·hydration 직후)에는 종전 반응형 클래스를 그대로 써서 첫 그림이 튀지 않게 한다.
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const WIDE_QUERY = "(min-width: 40rem)"; // Tailwind sm
 
@@ -48,11 +49,24 @@ function TeamLogo({ url, name }: { url: string | null; name: string }) {
   );
 }
 
+/** 팀명 — 팀 페이지가 있으면 링크. summary 안이라 클릭이 펼침으로 새지 않게 막는다. */
+function TeamName({ href, className, children }: { href: string | null; className: string; children: string }) {
+  if (!href) return <span className={className}>{children}</span>;
+  return (
+    <Link href={href} onClick={(e) => e.stopPropagation()} className={`${className} hover:underline`}>
+      {children}
+    </Link>
+  );
+}
+
 type Props = {
   homeLogo: string | null;
   homeName: string;
+  /** 팀 페이지 경로(/teams/{id}). 못 풀면 null → 그냥 글자 */
+  homeHref: string | null;
   awayLogo: string | null;
   awayName: string;
+  awayHref: string | null;
   winAllot: number | null;
   drawAllot: number | null;
   loseAllot: number | null;
@@ -97,7 +111,7 @@ export default function BetmanTeamsRow(p: Props) {
     <div className={cls.row}>
       <div className={cls.home}>
         <TeamLogo url={p.homeLogo} name={p.homeName} />
-        <span className={cls.homeName}>{teamLabel(p.homeName)}</span>
+        <TeamName href={p.homeHref} className={cls.homeName}>{teamLabel(p.homeName)}</TeamName>
       </div>
       <div className={cls.odds}>
         <span className="min-w-[46px] rounded-md bg-rose-50 px-2 py-1 text-center text-[14px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
@@ -117,9 +131,9 @@ export default function BetmanTeamsRow(p: Props) {
       </div>
       <div className={cls.away}>
         <TeamLogo url={p.awayLogo} name={p.awayName} />
-        <span className="truncate text-[14px] text-neutral-800 dark:text-neutral-100">
+        <TeamName href={p.awayHref} className="truncate text-[14px] text-neutral-800 dark:text-neutral-100">
           {teamLabel(p.awayName)}
-        </span>
+        </TeamName>
       </div>
     </div>
   );

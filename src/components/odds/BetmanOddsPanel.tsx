@@ -300,8 +300,10 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
                 <BetmanTeamsRow
                   homeLogo={m.homeLogo}
                   homeName={m.homeName}
+                  homeHref={m.homeTeamId != null ? `/teams/${m.homeTeamId}` : null}
                   awayLogo={m.awayLogo}
                   awayName={m.awayName}
+                  awayHref={m.awayTeamId != null ? `/teams/${m.awayTeamId}` : null}
                   winAllot={m.winAllot}
                   drawAllot={m.drawAllot}
                   loseAllot={m.loseAllot}

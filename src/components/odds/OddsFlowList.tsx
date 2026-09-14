@@ -3,6 +3,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import OddsSportTabs from "./OddsSportTabs";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, LineChart, Table2 } from "lucide-react";
 import TeamBadge from "@/components/TeamBadge";
@@ -29,6 +30,40 @@ export type OutcomeOdds = {
   sampleCount: number;
 };
 
+/** 팀명 → 팀 페이지. 펼침 버튼 밖에서 쓰는 진짜 링크. id 를 못 풀면 글자만. */
+function TeamLink({ id, className, children }: { id: number | null; className: string; children: string }) {
+  if (id == null) return <span className={className}>{children}</span>;
+  return (
+    <Link href={`/teams/${id}`} className={`${className} hover:underline`}>
+      {children}
+    </Link>
+  );
+}
+
+/** 펼침 버튼 안에 놓이는 팀명 — a 를 button 에 넣을 수 없어 클릭을 가로채 라우터로 보낸다(펼침은 안 일어남). */
+function NestedTeamLink({ id, className, children }: { id: number | null; className: string; children: string }) {
+  const router = useRouter();
+  if (id == null) return <span className={className}>{children}</span>;
+  const go = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    router.push(`/teams/${id}`);
+  };
+  return (
+    <span
+      role="link"
+      tabIndex={0}
+      className={`${className} cursor-pointer hover:underline`}
+      onClick={go}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") go(e);
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export type FlowMatch = {
   id: number;
   league: string;
@@ -36,6 +71,9 @@ export type FlowMatch = {
   startTime: number;
   homeKo: string;
   awayKo: string;
+  /** 우리 Team.id — 팀 페이지(/teams/{id}) 링크용 */
+  homeId: number | null;
+  awayId: number | null;
   homeLogo: string | null;
   awayLogo: string | null;
   /** 리그 로고(api-football/ESPN). 없으면 국기 이모지로 */
@@ -662,7 +700,7 @@ function OddsRadarTable({
                       </td>
                       <td className="h-[76px] px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <span className="truncate text-[15px] font-medium text-neutral-800 dark:text-neutral-100">{m.homeKo}</span>
+                          <TeamLink id={m.homeId} className="truncate text-[15px] font-medium text-neutral-800 dark:text-neutral-100">{m.homeKo}</TeamLink>
                           <TeamBadge logoUrl={m.homeLogo} size={20} />
                         </div>
                       </td>
@@ -678,7 +716,7 @@ function OddsRadarTable({
                           className="flex h-full w-full items-center gap-2 px-2 text-left text-neutral-800 hover:text-neutral-950 dark:text-neutral-100 dark:hover:text-white"
                         >
                           <TeamBadge logoUrl={m.awayLogo} size={20} />
-                          <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{m.awayKo}</span>
+                          <NestedTeamLink id={m.awayId} className="min-w-0 flex-1 truncate text-[15px] font-medium">{m.awayKo}</NestedTeamLink>
                           {expanded ? <ChevronUp className="h-4 w-4 flex-none text-neutral-400" /> : <ChevronDown className="h-4 w-4 flex-none text-neutral-400" />}
                         </button>
                       </td>
@@ -736,11 +774,11 @@ function OddsRadarTable({
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-800 dark:text-neutral-100">
                     <TeamBadge logoUrl={m.homeLogo} size={15} />
-                    <span className="truncate">{m.homeKo}</span>
+                    <NestedTeamLink id={m.homeId} className="truncate">{m.homeKo}</NestedTeamLink>
                   </span>
                   <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-neutral-500 dark:text-neutral-400">
                     <TeamBadge logoUrl={m.awayLogo} size={15} />
-                    <span className="truncate">{m.awayKo}</span>
+                    <NestedTeamLink id={m.awayId} className="truncate">{m.awayKo}</NestedTeamLink>
                   </span>
                 </span>
                 {expanded ? <ChevronUp className="h-4 w-4 flex-none text-neutral-400" /> : <ChevronDown className="h-4 w-4 flex-none text-neutral-400" />}
@@ -783,11 +821,11 @@ function Hero({ m, hasDraw }: { m: FlowMatch; hasDraw: boolean }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-2xl font-medium leading-tight sm:text-[26px]">
             <TeamBadge logoUrl={m.homeLogo} size={22} />
-            <span className="truncate">{m.homeKo}</span>
+            <TeamLink id={m.homeId} className="truncate">{m.homeKo}</TeamLink>
           </div>
           <div className="mt-1 flex items-center gap-2 text-lg text-neutral-400">
             <TeamBadge logoUrl={m.awayLogo} size={18} />
-            <span className="truncate">{m.awayKo}</span>
+            <TeamLink id={m.awayId} className="truncate">{m.awayKo}</TeamLink>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px] text-neutral-400">
             <span className="inline-flex items-center gap-1.5">
@@ -961,11 +999,11 @@ function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw:
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[16px] font-medium leading-snug">
             <TeamBadge logoUrl={m.homeLogo} size={17} />
-            <span className="truncate">{m.homeKo}</span>
+            <NestedTeamLink id={m.homeId} className="truncate">{m.homeKo}</NestedTeamLink>
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[16px] leading-snug text-neutral-400">
             <TeamBadge logoUrl={m.awayLogo} size={15} />
-            <span className="truncate">{m.awayKo}</span>
+            <NestedTeamLink id={m.awayId} className="truncate">{m.awayKo}</NestedTeamLink>
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px]" style={{ color: dim ? undefined : color }}>
             <span>{nar.text}</span>

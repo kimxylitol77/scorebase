@@ -42,6 +42,9 @@ export interface BetmanMatch extends BetmanLine {
   awayName: string;
   homeLogo: string | null;
   awayLogo: string | null;
+  /** 우리 Team.id — 팀 페이지 링크용. 연결된 경기(matchId) 우선, 없으면 사전에서 종목이 맞는 id. 못 풀면 null. */
+  homeTeamId: number | null;
+  awayTeamId: number | null;
   lines: BetmanLine[];
 }
 
@@ -139,6 +142,39 @@ async function buildLogoLookup(): Promise<(name: string) => string | null> {
 }
 
 /**
+ * 베트맨 경기 → 우리 홈·원정 Team.id. 팀 페이지 링크용.
+ * 1순위 = link-betman-matches 가 채운 matchId 의 경기(종목·방향 검증 끝난 정본).
+ * 2순위 = 사전(TEAM_MAP) 후보 중 베트맨 종목 코드와 리그 종목이 맞는 id 하나("한국_남자" 처럼 종목별 배열 대비).
+ */
+async function buildTeamIdLookup(
+  rows: Array<{ matchId: number | null; homeName: string; awayName: string }>,
+): Promise<(r: { matchId: number | null; homeName: string; awayName: string; itemCode: string | null }) => { home: number | null; away: number | null }> {
+  const matchIds = [...new Set(rows.map((r) => r.matchId).filter((v): v is number => v != null))];
+  const candidateIds = [...new Set(rows.flatMap((r) => [...idsOf(r.homeName), ...idsOf(r.awayName)]))];
+  const [matches, teams] = await Promise.all([
+    matchIds.length
+      ? prisma.match.findMany({ where: { id: { in: matchIds } }, select: { id: true, homeTeamId: true, awayTeamId: true } })
+      : [],
+    candidateIds.length
+      ? prisma.team.findMany({ where: { id: { in: candidateIds } }, select: { id: true, league: true } })
+      : [],
+  ]);
+  const byMatch = new Map(matches.map((m) => [m.id, m]));
+  const leagueOf = new Map(teams.map((t) => [t.id, t.league]));
+  const pick = (name: string, itemCode: string | null): number | null => {
+    const ids = idsOf(name);
+    if (ids.length === 1) return ids[0];
+    const fit = ids.filter((id) => betmanItemCodeForLeague(leagueOf.get(id) ?? "") === itemCode);
+    return fit.length === 1 ? fit[0] : null;
+  };
+  return (r) => {
+    const m = r.matchId != null ? byMatch.get(r.matchId) : undefined;
+    if (m) return { home: m.homeTeamId, away: m.awayTeamId };
+    return { home: pick(r.homeName, r.itemCode), away: pick(r.awayName, r.itemCode) };
+  };
+}
+
+/**
  * 발매 중인 경기를 시각순으로. 각 경기에 기본형 배당을 세우고 나머지 유형은 lines 에 담는다.
  * 같은 경기가 발매중·직전 회차에 중복 편성되므로 회차 내림차순으로 받아 최신 것만 남긴다.
  */
@@ -152,7 +188,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
     orderBy: [{ gameDate: "asc" }, { gmTs: "desc" }],
     select: {
       id: true, gmTs: true, matchSeq: true, gameDate: true, itemCode: true, leagueName: true,
-      homeName: true, awayName: true,
+      homeName: true, awayName: true, matchId: true,
       betNm: true, betTypNm: true, handi: true, winHandi: true, loseHandi: true,
       winAllot: true, drawAllot: true, loseAllot: true,
       winVotes: true, drawVotes: true, loseVotes: true,
@@ -172,12 +208,14 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
   }
 
   const logoOf = await buildLogoLookup();
+  const teamIdsOf = await buildTeamIdLookup(rows);
   const out: BetmanMatch[] = [];
   for (const [key, g] of groups) {
     // 대표 = 기본형 중 배당이 매겨진 것. 없으면 이 경기는 보여줄 게 없다.
     // 전반 승무패/승패는 betTypNm 이 같아 대표로 뽑히면 풀타임 배당처럼 보인다(2026-09-12 실측 김천 vs 강원) — 대표에서 제외.
     const base = g.rows.find((r) => BASE_TYPES.has(r.betTypNm ?? "") && r.winAllot != null && !(r.betNm ?? "").includes("전반"));
     if (!base) continue;
+    const teamIds = teamIdsOf(base);
     const lines: BetmanLine[] = g.rows
       .filter((r) => r.id !== base.id && r.winAllot != null)
       .sort((a, b) => lineRank(a) - lineRank(b))
@@ -199,6 +237,8 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
       awayName: base.awayName,
       homeLogo: logoOf(base.homeName),
       awayLogo: logoOf(base.awayName),
+      homeTeamId: teamIds.home,
+      awayTeamId: teamIds.away,
       id: base.id,
       betNm: base.betNm, betTypNm: base.betTypNm,
       handi: base.handi, winHandi: base.winHandi, loseHandi: base.loseHandi,

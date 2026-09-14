@@ -210,6 +210,8 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
         startTime: kickoff,
         homeKo: toKoreanTeamName(m.homeTeam.name, m.league),
         awayKo: toKoreanTeamName(m.awayTeam.name, m.league),
+        homeId: m.homeTeamId,
+        awayId: m.awayTeamId,
         homeLogo: m.homeTeam.logoUrl ?? null,
         awayLogo: m.awayTeam.logoUrl ?? null,
         // 리그 마크 — api-football/ESPN 로고, 없으면 화면이 국기로 폴백
