@@ -39,8 +39,40 @@ const init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?up
 if (!init.ok) throw new Error(`업로드 세션 실패 ${init.status}: ${await init.text()}`);
 const uploadUrl = init.headers.get("location");
 if (!uploadUrl) throw new Error("업로드 URL 없음");
-const up = await fetch(uploadUrl, { method: "PUT", headers: { ...auth, "content-type": "video/mp4", "content-length": String(size) }, body: readFileSync(mp4) });
-if (!up.ok) throw new Error(`업로드 실패 ${up.status}: ${await up.text()}`);
-const v = (await up.json()) as { id: string; status?: { uploadStatus?: string; privacyStatus?: string } };
+// 본문 PUT 은 08:00 노트북 wake 직후 Wi-Fi 가 흔들려 EPIPE 로 끊긴다(09-13·14 실측: 세션만 생기고 바이트 0 →
+// 유튜브에 "곧 처리" 좀비 영상). 끊기면 세션 상태를 물어 받은 오프셋부터 이어 올린다(resumable), 최대 6회.
+const buf = readFileSync(mp4);
+type Uploaded = { id: string; status?: { uploadStatus?: string; privacyStatus?: string } };
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const offsetFromRange = (range: string | null) => (range ? Number(range.split("-")[1]) + 1 : 0);
+async function putResumable(): Promise<Uploaded> {
+  let offset = 0;
+  let lastErr = "";
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      const res = await fetch(uploadUrl!, {
+        method: "PUT",
+        headers: { ...auth, "content-type": "video/mp4", "content-length": String(size - offset), ...(offset ? { "content-range": `bytes ${offset}-${size - 1}/${size}` } : {}) },
+        body: buf.subarray(offset),
+      });
+      if (res.ok) return (await res.json()) as Uploaded;
+      if (res.status === 308) { offset = offsetFromRange(res.headers.get("range")); lastErr = "308 partial"; continue; }
+      if (res.status >= 500 || res.status === 429) { lastErr = `${res.status}`; await sleep(5000 * (attempt + 1)); continue; }
+      throw new Error(`업로드 실패 ${res.status}: ${await res.text()}`);
+    } catch (e) {
+      lastErr = (e as Error).message;
+      await sleep(5000 * (attempt + 1));
+      // 세션에 얼마나 도착했는지 조회 → 그 지점부터 재개
+      try {
+        const st = await fetch(uploadUrl!, { method: "PUT", headers: { ...auth, "content-length": "0", "content-range": `bytes */${size}` } });
+        if (st.ok) return (await st.json()) as Uploaded;
+        if (st.status === 308) offset = offsetFromRange(st.headers.get("range"));
+      } catch { /* 상태 조회도 실패 — 다음 시도에서 처음부터 */ }
+      console.error(`  재시도 ${attempt + 1}/6 (offset=${offset}): ${lastErr.split("\n")[0].slice(0, 120)}`);
+    }
+  }
+  throw new Error(`업로드 6회 실패: ${lastErr}`);
+}
+const v = await putResumable();
 console.log(`https://youtube.com/shorts/${v.id}`);
 console.error(`업로드 완료 id=${v.id} privacy=${v.status?.privacyStatus} status=${v.status?.uploadStatus} title="${title}"`);
