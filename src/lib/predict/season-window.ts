@@ -225,6 +225,7 @@ export const NO_SEASON_BOUNDARY: ReadonlySet<string> = new Set([
   "AFC_CUP",
   "AFC_U23",
   "ASEAN_CHAMP",
+  "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W", // 아시안게임 축구 — 4년 1회 단일 대회 (2026-09-14)
   "CANADA_CHAMP", // 캐나다 국내 녹아웃 컵 — 연 1회 단판 토너먼트
   "CLUB_FRIENDLY",
   "CLUB_WORLD_CUP",

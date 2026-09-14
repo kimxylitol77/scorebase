@@ -204,6 +204,9 @@ export const collectors: Record<League, MatchCollector> = {
   // 2026-08-11 — 7m 재대조 확장 (ts 전용, af id 미등록 → collector 는 graceful no-op 백스톱)
   LEAGUES_CUP: buildApiFootballCollector("LEAGUES_CUP"),
   CANADA_CHAMP: buildApiFootballCollector("CANADA_CHAMP"),
+  // 2026-09-14 아시안게임 축구 — TheSports 전용(TS_COVERED 라 af 수집 호출 자체가 없다)
+  ASIAN_GAMES_FB: buildApiFootballCollector("ASIAN_GAMES_FB"),
+  ASIAN_GAMES_FB_W: buildApiFootballCollector("ASIAN_GAMES_FB_W"),
   ELSALVADOR_PD: buildApiFootballCollector("ELSALVADOR_PD"),
   NICARAGUA_PD: buildApiFootballCollector("NICARAGUA_PD"),
   ARGENTINA_PL: buildApiFootballCollector("ARGENTINA_PL"),

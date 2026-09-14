@@ -1370,5 +1370,21 @@
     "tsEn": "Canadian Championship",
     "tsKo": "캐나다 챔피언십",
     "tsSeasonId": "1l4rjnh6yn4m7vx"
+  },
+  {
+    "code": "ASIAN_GAMES_FB",
+    "ourLabel": "아시안게임 남자축구",
+    "tsId": "p3glrw7hv1qdyjv",
+    "tsEn": "OCA Asian Games",
+    "tsKo": "아시안게임",
+    "tsSeasonId": "vjxm8gh44gzr6od"
+  },
+  {
+    "code": "ASIAN_GAMES_FB_W",
+    "ourLabel": "아시안게임 여자축구",
+    "tsId": "9vjxm8ghzjr6odg",
+    "tsEn": "OCA Women's Asian Games",
+    "tsKo": "여자 아시안게임",
+    "tsSeasonId": "x7lm7phkkolm2wd"
   }
 ]

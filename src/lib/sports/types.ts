@@ -241,7 +241,10 @@ export type League =
   | "NICARAGUA_PD"
   // 2026-08-11 — 7m 재대조 확장 (회원 이탈 신고 대응)
   | "LEAGUES_CUP" // 리그스컵 (MLS×리가 MX) — TheSports 전용
-  | "CANADA_CHAMP"; // 캐나다 챔피언십 (컵) — TheSports 전용
+  | "CANADA_CHAMP" // 캐나다 챔피언십 (컵) — TheSports 전용
+  // 2026-09-14 아시안게임 (베트맨 발매엔 있는데 우리 경기가 없던 것) — TheSports 전용, 표시 전용
+  | "ASIAN_GAMES_FB" // 아시안게임 남자축구 (U-23)
+  | "ASIAN_GAMES_FB_W"; // 아시안게임 여자축구
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [

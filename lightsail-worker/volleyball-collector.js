@@ -58,6 +58,8 @@ const UTID_TO_LEAGUE = {
   "jw2r0nhl3d6qz84": "VB_U17_WC_W",
   "gy0or58h4onrwzv": "VB_EURO_W",
   "9k82redh967qepz": "VB_ASIAN_W",
+  // 2026-09-14 아시안게임 여자배구 — 베트맨 발매 대회, utid 는 unique_tournament/list "Asian Games Women"
+  "gpxwrxdh137myk0": "VB_ASIAN_GAMES_W",
   "965mkdh73y8r1ge": "VB_NORCECA_W",
   "p3glrwjh1n4qdyj": "VB_PANAM",
   "vjxm8lh46vlq6od": "VB_COPA_AM",

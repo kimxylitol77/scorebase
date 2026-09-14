@@ -13,6 +13,7 @@ interface SportMeta {
 // 모든 리그 묶음 — `all` 처리용 (URL 호환성, sportTab 노출 X)
 export const ALL_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W", // 2026-09-14 아시안게임 축구 (남 U-23·여)
   "K_LEAGUE_1", "K_LEAGUE_2", "K3_LEAGUE", "K4_LEAGUE",
   // J3 제외 (2026-08-08 사용자 결정) — 3부라 한국 독자 관심이 낮은데, ts 수집이 붙다 말아
   // 라운드의 절반만 DB 에 들어오고 나머지는 af orphan 카드로만 뜨는 반쪽 상태였다.
@@ -74,6 +75,8 @@ export const ALL_LEAGUES = [
   "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
   // 2026-09-04 아시아선수권 (남) — utid 8y39mpwh5wlqojx, ts 대회명 "Asian Championship"·베트맨 라벨 일치
   "VB_ASIAN",
+  // 2026-09-14 아시안게임 여자배구 — utid gpxwrxdh137myk0 (베트맨 발매 대회)
+  "VB_ASIAN_GAMES_W",
   // 2026-09-04 8월 보류분 3개 — ts unique_tournament/list 인가로 이름 확정. 중미·카리브 게임(여)·SEA V리그(여)·필리핀 PVL(여)
   "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W",
   // 2026-05-24 추가
@@ -134,6 +137,7 @@ export const SPORTS: SportMeta[] = [
       "LEAGUES_CUP", "CANADA_CHAMP", // 2026-08-11 — 7m 재대조 확장
       "CSL", "A_LEAGUE", "SAUDI_PL",
       "CLUB_WORLD_CUP", "WORLD_CUP",
+      "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W", // 2026-09-14 아시안게임 축구
       // 국가대표 토너 / 예선 / 친선
       "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
       "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
@@ -199,6 +203,7 @@ export const SPORTS: SportMeta[] = [
       "VB_U17_WC", "VB_U17_WC_W", "VB_EURO_W", "VB_ASIAN_W",
       "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
       "VB_ASIAN", // 2026-09-04 아시아선수권 (남)
+      "VB_ASIAN_GAMES_W", // 2026-09-14 아시안게임 (여)
       "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W", // 2026-09-04 8월 보류분 3개
     ],
   },
@@ -344,6 +349,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵 2026",
+  ASIAN_GAMES_FB: "아시안게임 남자축구",
+  ASIAN_GAMES_FB_W: "아시안게임 여자축구",
   K_LEAGUE_1: "K리그 1",
   K_LEAGUE_2: "K리그 2",
   J1_LEAGUE: "J1 리그",
@@ -513,6 +520,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   VB_EURO_W: "유럽선수권 (여)",
   VB_ASIAN_W: "아시아선수권 (여)",
   VB_ASIAN: "아시아선수권 (남)",
+  VB_ASIAN_GAMES_W: "아시안게임 여자배구",
   VB_CAC_GAMES_W: "중미·카리브 게임 (여)",
   VB_SEA_V_W: "SEA V리그 (여)",
   PVL_W: "필리핀 PVL (여)",
@@ -696,6 +704,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   SAUDI_PL: 16.5,
   CLUB_WORLD_CUP: 17,
   WORLD_CUP: 18,
+  ASIAN_GAMES_FB: 18.6, ASIAN_GAMES_FB_W: 18.7, // 아시안게임 축구 (2026-09-14)
   // 청소년 대표 — WORLD_CUP 다음 그룹
   UEFA_U21_Q: 18.1,
   UEFA_U21: 18.2,
@@ -795,6 +804,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   EGL_W: 25.2,
   VB_ASIAN_W: 25.21, // 아시아선수권 (여) — 한국 여자대표팀 출전, 배구 대회 중 국내 수요 최상위
   VB_ASIAN: 25.215, // 아시아선수권 (남) — 한국 남자대표팀 출전 (2026-09-04)
+  VB_ASIAN_GAMES_W: 25.216, // 아시안게임 (여) — 한국 여자대표팀 출전 (2026-09-14)
   VB_SEA_V_W: 25.26, // SEA V리그 (여) — 동남아 4개국
   PVL_W: 25.27, // 필리핀 PVL (여) — 주 1~2회 클럽 리그
   VB_CAC_GAMES_W: 25.28, // 중미·카리브 게임 (여) — 4년 주기
@@ -932,6 +942,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   COPA_SUD: "국제",
   CLUB_WORLD_CUP: "국제",
   WORLD_CUP: "국제",
+  ASIAN_GAMES_FB: "국제", ASIAN_GAMES_FB_W: "국제",
   // 자국 컵 — 리그와 동일 국가
   FA_CUP: "잉글랜드",
   EFL_CUP: "잉글랜드",
