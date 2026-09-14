@@ -124,11 +124,13 @@ async function main() {
   console.log(`경기 대조: ${bm.length}건 → 확정 ${matched} / 모호 ${ambiguous} / 후보없음 ${noCand}`);
 
   // 기존 사전 병합 — 이번 회차에 안 나온 팀을 잃지 않는다.
-  const out: Record<string, number> = fs.existsSync(OUT)
+  // 값이 배열인 항목은 종목별 국대(수동 관리) — 경기 대조 결과로 덮지 않는다.
+  const out: Record<string, number | number[]> = fs.existsSync(OUT)
     ? JSON.parse(fs.readFileSync(OUT, "utf8"))
     : {};
   let auto = 0;
   for (const [name, v] of votes) {
+    if (Array.isArray(out[name])) continue;
     const [teamId] = [...v.entries()].sort((a, b) => b[1] - a[1])[0];
     if (out[name] !== teamId) auto++;
     out[name] = teamId;
@@ -136,14 +138,15 @@ async function main() {
   for (const [name, id] of Object.entries(MANUAL)) out[name] = id;
 
   // 로고 없는 팀을 가리키면 사전에 있어도 화면엔 안 나온다 — 미리 알린다.
-  const ids = [...new Set(Object.values(out))];
+  const ids = [...new Set(Object.values(out).flat())];
   const teams = await prisma.team.findMany({
     where: { id: { in: ids } },
     select: { id: true, name: true, logoUrl: true },
   });
   const meta = new Map(teams.map((t) => [t.id, t]));
-  const noLogo = Object.entries(out).filter(([, id]) => !meta.get(id)?.logoUrl);
-  const dangling = Object.entries(out).filter(([, id]) => !meta.has(id));
+  const flat = (v: number | number[]) => (Array.isArray(v) ? v : [v]);
+  const noLogo = Object.entries(out).filter(([, v]) => flat(v).some((id) => !meta.get(id)?.logoUrl));
+  const dangling = Object.entries(out).filter(([, v]) => flat(v).some((id) => !meta.has(id)));
 
   fs.writeFileSync(OUT, JSON.stringify(out, null, 1) + "\n");
   console.log(`✓ ${OUT} — 총 ${Object.keys(out).length}개 (경기 대조 ${auto} 갱신 + 수동 ${Object.keys(MANUAL).length})`);

@@ -884,7 +884,7 @@ export default async function GenericLivePage({ params }: Props) {
     // 베트맨 한 줄 — 국내 합법 배당 + 투표 분포를 해외 평균보다 먼저. 발매 없으면 null 로 자동 생략.
     const betmanLine =
       match.status !== "FINISHED"
-        ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime, match.id).catch(() => null)
+        ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime, match.id, lg).catch(() => null)
         : null;
     const oddsTab = (
       <div className="space-y-4">
@@ -1531,7 +1531,7 @@ async function renderBaseballPage(args: {
   // 베트맨 한 줄 — 축구 분기에만 있던 카드를 야구에도(사전은 52/52 있었는데 SC 필터로 한 번도 안 떴다, 2026-09-11).
   const betmanLine =
     match.status !== "FINISHED"
-      ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime, match.id).catch(() => null)
+      ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime, match.id, lg).catch(() => null)
       : null;
   const detailLive = match.theSportsCache?.detailLive as
     | { players?: unknown; stats?: unknown; score?: unknown[] }

@@ -8,8 +8,14 @@
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import rawTeamMap from "../../data/betman-team-map.json";
+import { betmanItemCodeForLeague } from "@/lib/odds/betman";
 
-const TEAM_MAP = rawTeamMap as Record<string, number>;
+// 값이 배열이면 종목마다 다른 팀(국대 표기 충돌) — 후보 매치의 종목이 베트맨 itemCode 와 맞는 것만 잇는다.
+const TEAM_MAP = rawTeamMap as Record<string, number | number[]>;
+const idsOf = (name: string): number[] => {
+  const v = TEAM_MAP[name];
+  return v == null ? [] : Array.isArray(v) ? v : [v];
+};
 const WINDOW_MS = 3 * 3600 * 1000;
 
 export async function runLinkBetmanMatches(opts: { days?: number; dryRun?: boolean } = {}): Promise<{ games: number; linked: number; rows: number }> {
@@ -17,39 +23,41 @@ export async function runLinkBetmanMatches(opts: { days?: number; dryRun?: boole
   const since = new Date(Date.now() - days * 86400e3);
   const rows = await prisma.betmanOdds.findMany({
     where: { matchId: null, gameDate: { gte: since } },
-    select: { gmTs: true, matchSeq: true, gameDate: true, homeName: true, awayName: true },
+    select: { gmTs: true, matchSeq: true, gameDate: true, homeName: true, awayName: true, itemCode: true },
   });
   // 경기 단위로 접는다 — 유형별 행이 같은 경기를 가리킨다.
-  const games = new Map<string, { gmTs: number; matchSeq: number; gameDate: Date; homeName: string; awayName: string }>();
+  const games = new Map<string, { gmTs: number; matchSeq: number; gameDate: Date; homeName: string; awayName: string; itemCode: string | null }>();
   for (const r of rows) games.set(`${r.gmTs}-${r.matchSeq}`, r);
 
   // 경기당 쿼리 하나씩이면 1,800경기에 5분이 넘는다(첫 실행 실측) — 사전에 있는 팀 쌍의 우리 경기를 기간째 한 번에 받아 메모리에서 맞춘다.
-  const wanted = [...games.values()].filter((g) => TEAM_MAP[g.homeName] && TEAM_MAP[g.awayName]);
+  const wanted = [...games.values()].filter((g) => idsOf(g.homeName).length && idsOf(g.awayName).length);
   let linked = 0;
   let touched = 0;
   if (wanted.length === 0) {
     console.log(`[betman-link] 대상 ${games.size}경기 → 사전에 있는 팀 쌍 0`);
     return { games: games.size, linked: 0, rows: 0 };
   }
-  const teamIds = [...new Set(wanted.flatMap((g) => [TEAM_MAP[g.homeName], TEAM_MAP[g.awayName]]))];
+  const teamIds = [...new Set(wanted.flatMap((g) => [...idsOf(g.homeName), ...idsOf(g.awayName)]))];
   const minT = Math.min(...wanted.map((g) => g.gameDate.getTime())) - WINDOW_MS;
   const maxT = Math.max(...wanted.map((g) => g.gameDate.getTime())) + WINDOW_MS;
   const candidates = await prisma.match.findMany({
     where: { homeTeamId: { in: teamIds }, awayTeamId: { in: teamIds }, startTime: { gte: new Date(minT), lte: new Date(maxT) } },
-    select: { id: true, homeTeamId: true, awayTeamId: true, startTime: true },
+    select: { id: true, homeTeamId: true, awayTeamId: true, startTime: true, league: true },
   });
-  const byPair = new Map<string, Array<{ id: number; t: number }>>();
+  const byPair = new Map<string, Array<{ id: number; t: number; itemCode: string | null }>>();
   for (const m of candidates) {
     const k = `${m.homeTeamId}-${m.awayTeamId}`;
-    (byPair.get(k) ?? byPair.set(k, []).get(k)!).push({ id: m.id, t: m.startTime.getTime() });
+    (byPair.get(k) ?? byPair.set(k, []).get(k)!).push({ id: m.id, t: m.startTime.getTime(), itemCode: betmanItemCodeForLeague(m.league) });
   }
   // 행 단위 updateMany 는 Neon 왕복 0.5s × 8천 행 = 1시간(첫 실행 실측) — id(=gmTs-matchSeq) 로 VALUES 조인 일괄 UPDATE.
   const pairs: Array<[string, number]> = [];
   for (const g of wanted) {
-    const list = byPair.get(`${TEAM_MAP[g.homeName]}-${TEAM_MAP[g.awayName]}`);
-    if (!list) continue;
+    const list = idsOf(g.homeName).flatMap((h) => idsOf(g.awayName).flatMap((a) => byPair.get(`${h}-${a}`) ?? []));
+    if (!list.length) continue;
     const t = g.gameDate.getTime();
-    const m = list.filter((c) => Math.abs(c.t - t) <= WINDOW_MS).sort((a, b) => Math.abs(a.t - t) - Math.abs(b.t - t))[0];
+    const m = list
+      .filter((c) => Math.abs(c.t - t) <= WINDOW_MS && (!g.itemCode || !c.itemCode || c.itemCode === g.itemCode))
+      .sort((a, b) => Math.abs(a.t - t) - Math.abs(b.t - t))[0];
     if (!m) continue;
     linked++;
     pairs.push([`${g.gmTs}-${g.matchSeq}`, m.id]);

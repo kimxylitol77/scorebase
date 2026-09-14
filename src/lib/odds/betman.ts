@@ -4,6 +4,7 @@
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawTeamMap from "../../../data/betman-team-map.json";
+import { SOCCER_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 /** 한 베팅 라인 (승무패·핸디캡·언더오버·홀짝 각각 한 줄) */
 export interface BetmanLine {
@@ -74,7 +75,21 @@ function koKey(name: string, league: string): string | null {
  * 킥오프 시각으로 우리 경기와 대조해 만든 것이라 이름 표기 차이("한신 타이거즈" vs
  * "타이거스")에 영향받지 않는다. 새 리그가 발매에 들어오면 스크립트를 재실행한다.
  */
-const TEAM_MAP = rawTeamMap as Record<string, number>;
+// 값이 배열이면 같은 베트맨 표기가 종목마다 다른 팀("한국_남자" = 농구 국대·축구 U23 국대). 2026-09-14 아시안게임 온보딩에서 충돌 발견.
+const TEAM_MAP = rawTeamMap as Record<string, number | number[]>;
+const idsOf = (name: string): number[] => {
+  const v = TEAM_MAP[name];
+  return v == null ? [] : Array.isArray(v) ? v : [v];
+};
+
+/** 우리 리그 코드 → 베트맨 종목 코드. 종목을 모르면 null(필터 생략). */
+export function betmanItemCodeForLeague(league: string): string | null {
+  if (SOCCER_LEAGUES.has(league)) return "SC";
+  if (BASEBALL_LEAGUES.has(league)) return "BS";
+  if (BASKETBALL_LEAGUES.has(league)) return "BK";
+  if (VOLLEYBALL_LEAGUES.has(league)) return "VL";
+  return null;
+}
 
 /**
  * 베트맨 한글 팀명 → 우리 Team.logoUrl.
@@ -107,8 +122,7 @@ async function buildLogoLookup(): Promise<(name: string) => string | null> {
   const entries = [...byKey.entries()];
 
   return (name: string) => {
-    const mapped = TEAM_MAP[name];
-    if (mapped != null) {
+    for (const mapped of idsOf(name)) {
       const logo = byId.get(mapped);
       if (logo) return logo;
     }
@@ -243,8 +257,11 @@ export async function getBetmanLineForMatch(
   awayTeamId: number,
   startTime: Date,
   matchId?: number,
+  league?: string,
 ): Promise<BetmanMatchLine | null> {
-  const base = { betTypNm: { in: [...BASE_TYPES] }, winAllot: { not: null } };
+  // 종목 필터 — 국대 표기가 종목 간 같아서(농구 "한국_남자" = 축구 "한국_남자") 리그를 알면 그 종목 라인만 본다.
+  const itemCode = league ? betmanItemCodeForLeague(league) : null;
+  const base = { betTypNm: { in: [...BASE_TYPES] }, winAllot: { not: null }, ...(itemCode ? { itemCode } : {}) };
   if (matchId != null) {
     const r = await prisma.betmanOdds.findFirst({ where: { matchId, ...base }, orderBy: { gmTs: "desc" }, select: LINE_SELECT });
     if (r) return toLine(r);
@@ -252,9 +269,10 @@ export async function getBetmanLineForMatch(
   // 사전 역인덱스: Team.id → 베트맨 표기들 (한 팀이 여러 표기를 가질 수 있다)
   const homeNames = new Set<string>();
   const awayNames = new Set<string>();
-  for (const [name, id] of Object.entries(TEAM_MAP)) {
-    if (id === homeTeamId) homeNames.add(name);
-    if (id === awayTeamId) awayNames.add(name);
+  for (const name of Object.keys(TEAM_MAP)) {
+    const ids = idsOf(name);
+    if (ids.includes(homeTeamId)) homeNames.add(name);
+    if (ids.includes(awayTeamId)) awayNames.add(name);
   }
   if (homeNames.size === 0 || awayNames.size === 0) return null;
   const r = await prisma.betmanOdds.findFirst({
