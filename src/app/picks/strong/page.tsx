@@ -17,7 +17,8 @@ import {
   type MarketAccuracy,
   type StrongPickMatch,
 } from "./_data";
-import { ComboCards, DailyNavChart, PickCard } from "./_components";
+import { buildStrongParlays, ComboCards, DailyNavChart, PickCard } from "./_components";
+import type { Parlay } from "@/lib/predict/parlay";
 
 export const dynamic = "force-dynamic"; // 회원 여부에 따라 갈리는 화면
 
@@ -77,7 +78,11 @@ export default async function StrongPicksPage({
             <PickList matches={matches} acc={acc} date={date} />
           </div>
         ) : (
-          <GuestGate matchCount={matches.length} pickCount={pickCount} />
+          <GuestGate
+            matchCount={matches.length}
+            pickCount={pickCount}
+            parlays={buildStrongParlays(matches, acc.byMarket, false)}
+          />
         )}
       </div>
 
@@ -201,7 +206,17 @@ function PickList({
 }
 
 // ── 비회원 — 몇 건인지까지만 알리고 내용은 가입 후 ──
-function GuestGate({ matchCount, pickCount }: { matchCount: number; pickCount: number }) {
+//   조합 픽도 "몇 개·몇 레그·조합 확률" 까지만 보여 준다(경기·픽은 가림). 회원이 보는 조합 카드와 같은
+//   buildStrongParlays 결과라 로그인 뒤 개수가 달라지지 않는다 (2026-09-14 사용자 요청 — 조합 픽이 있다는 걸 알려야 가입 동기가 된다).
+function GuestGate({
+  matchCount,
+  pickCount,
+  parlays,
+}: {
+  matchCount: number;
+  pickCount: number;
+  parlays: Parlay[];
+}) {
   return (
     <div className="rounded-2xl border border-black/5 bg-white/60 p-6 text-center dark:border-white/10 dark:bg-white/[0.04]">
       <Lock className="mx-auto h-5 w-5 text-neutral-400" aria-hidden />
@@ -211,9 +226,42 @@ function GuestGate({ matchCount, pickCount }: { matchCount: number; pickCount: n
           : "지금은 기준을 넘는 픽이 없습니다"}
       </p>
       <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-neutral-500 break-keep">
-        어떤 경기의 어떤 픽인지, 그리고 지난 픽이 실제로 맞았는지는 회원에게만 공개합니다.
-        가입은 무료이고, 로그인하면 바로 보입니다.
+        어떤 경기의 어떤 픽인지, 조합 픽에 어떤 경기가 묶였는지, 그리고 지난 픽이 실제로 맞았는지는
+        회원에게만 공개합니다. 가입은 무료이고, 로그인하면 바로 보입니다.
       </p>
+
+      {parlays.length > 0 ? (
+        <div className="mx-auto mt-4 max-w-md rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3 text-left dark:bg-emerald-500/[0.08]">
+          <p className="text-xs font-semibold break-keep">
+            조합 픽 {parlays.length}개도 준비돼 있습니다
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-neutral-500 break-keep">
+            앞으로 72시간 고확신 픽을 다른 경기끼리 2~3개 묶었습니다. 어떤 경기인지는 로그인 후 보입니다.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {parlays.map((c) => (
+              <li
+                key={c.key}
+                className="flex items-center justify-between gap-2 rounded-lg bg-white/70 px-2.5 py-1.5 text-xs dark:bg-white/[0.05]"
+              >
+                <span className="flex min-w-0 items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
+                  <Lock className="h-3 w-3 shrink-0 text-neutral-400" aria-hidden />
+                  <span className="truncate">
+                    {c.label} · {[...new Set(c.legs.map((l) => l.league))].join("·")}
+                  </span>
+                </span>
+                <span className="shrink-0 font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  조합 확률 {(c.prob * 100).toFixed(0)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : pickCount > 0 ? (
+        <p className="mx-auto mt-3 max-w-md text-[11px] leading-relaxed text-neutral-500 break-keep">
+          고확신 픽이 서로 다른 경기에서 2건 이상 모이면 2~3개씩 묶은 조합 픽도 회원에게 보입니다.
+        </p>
+      ) : null}
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         <Link
           href="/signup?from=/picks/strong"

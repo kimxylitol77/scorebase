@@ -332,7 +332,7 @@ export function PickCard({
 }
 
 // ── 오늘의 조합 — 고확신 픽 2~3레그 자동 조합(Dimers Parlay Picker 벤치마크, 2026-09-13). 조합 로직은 lib/predict/parlay ──
-import { buildParlays, type ParlayLeg } from "@/lib/predict/parlay";
+import { buildParlays, type Parlay, type ParlayLeg } from "@/lib/predict/parlay";
 
 /** 매치 목록을 조합 레그로 편다. 앞으로 볼 날(date=null)은 종료 경기 제외 — 이미 끝난 픽을 "오늘의 조합"에 넣으면 안 된다. */
 export function toParlayLegs(matches: StrongPickMatch[], includeFinished: boolean): ParlayLeg[] {
@@ -354,6 +354,18 @@ export function toParlayLegs(matches: StrongPickMatch[], includeFinished: boolea
     );
 }
 
+/** 매치 목록 → 조합 픽. 회원 카드(ComboCards)와 비회원 게이트의 "조합 N개" 티저가 같은 결과를 보도록 한 곳에. */
+export function buildStrongParlays(
+  matches: StrongPickMatch[],
+  byMarket: Record<StrongMarket, MarketAccuracy>,
+  past: boolean,
+): Parlay[] {
+  const rate = Object.fromEntries(
+    (Object.keys(byMarket) as StrongMarket[]).map((k) => [k, byMarket[k].total > 0 ? byMarket[k].rate / 100 : 0]),
+  ) as Partial<Record<StrongMarket, number>>;
+  return buildParlays(toParlayLegs(matches, past), rate);
+}
+
 export function ComboCards({
   matches,
   byMarket,
@@ -364,10 +376,7 @@ export function ComboCards({
   /** 지난 날짜 — 종료 레그 포함·결과 표시 */
   past: boolean;
 }) {
-  const rate = Object.fromEntries(
-    (Object.keys(byMarket) as StrongMarket[]).map((k) => [k, byMarket[k].total > 0 ? byMarket[k].rate / 100 : 0]),
-  ) as Partial<Record<StrongMarket, number>>;
-  const parlays = buildParlays(toParlayLegs(matches, past), rate);
+  const parlays = buildStrongParlays(matches, byMarket, past);
   if (parlays.length === 0) return null;
 
   return (
