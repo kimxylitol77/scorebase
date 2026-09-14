@@ -574,5 +574,113 @@
     "tsId": "kn54ql7ty45rvy9",
     "tsName": "Houston Rockets",
     "matchType": "created"
+  },
+  {
+    "ourId": 615466,
+    "ourName": "Qatar",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "9vjxm8xt6poq6od",
+    "tsId": "9vjxm8xt6poq6od",
+    "tsName": "Qatar",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615467,
+    "ourName": "Kazakhstan",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "gy0or5gtkgyqwzv",
+    "tsId": "gy0or5gtkgyqwzv",
+    "tsName": "Kazakhstan",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615468,
+    "ourName": "Indonesia",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "kn54ql7t6j0rvy9",
+    "tsId": "kn54ql7t6j0rvy9",
+    "tsName": "Indonesia",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615469,
+    "ourName": "Jordan",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "4zp5rzkt9xnr82w",
+    "tsId": "4zp5rzkt9xnr82w",
+    "tsName": "Jordan",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615470,
+    "ourName": "South Korea",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "j1l4rjzt0kvm7vx",
+    "tsId": "j1l4rjzt0kvm7vx",
+    "tsName": "South Korea",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615471,
+    "ourName": "Chinese Taipei",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "l965mk8txz4m1ge",
+    "tsId": "l965mk8txz4m1ge",
+    "tsName": "Chinese Taipei",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615472,
+    "ourName": "Japan",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "8y39mp4tn9jmojx",
+    "tsId": "8y39mp4tn9jmojx",
+    "tsName": "Japan",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615473,
+    "ourName": "Iran",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "z8yomovtoz1q0j6",
+    "tsId": "z8yomovtoz1q0j6",
+    "tsName": "Iran",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615474,
+    "ourName": "Philippines",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "56ypq3kto1kmd7o",
+    "tsId": "56ypq3kto1kmd7o",
+    "tsName": "Philippines",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615475,
+    "ourName": "China",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "gx7lm73teper2wd",
+    "tsId": "gx7lm73teper2wd",
+    "tsName": "China",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615476,
+    "ourName": "Saudi Arabia",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "gpxwrx5t8k5qyk0",
+    "tsId": "gpxwrx5t8k5qyk0",
+    "tsName": "Saudi Arabia",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615477,
+    "ourName": "Bahrain",
+    "ourLeague": "ASIAN_GAMES_BK",
+    "ourExternalId": "p3glrwyt87yqdyj",
+    "tsId": "p3glrwyt87yqdyj",
+    "tsName": "Bahrain",
+    "matchType": "national"
   }
 ]

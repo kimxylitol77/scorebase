@@ -50,6 +50,7 @@ const VALID_LEAGUES = [
   "WORLD_CUP",
   "NBA",
   "NBA_SL",
+  "ASIAN_GAMES_BK",
   "KBL",
   "WKBL",
   "NHL",
@@ -188,6 +189,12 @@ const LEAGUE_INFO: Partial<Record<
     subtitle: "NBA Summer League",
     gradient: "from-orange-500 via-amber-500 to-yellow-500",
     copy: "매년 7월 라스베이거스에서 열리는 NBA 유망주 무대. 신인·2년차 선수의 여름 리그 일정과 결과.",
+  },
+  ASIAN_GAMES_BK: {
+    name: "아시안게임 남자농구",
+    subtitle: "Asian Games Men's Basketball",
+    gradient: "from-red-500 via-orange-500 to-amber-500",
+    copy: "2026 아이치·나고야 아시안게임 남자농구. 한국·일본·중국·이란 등 12개국 일정과 결과.",
   },
   NHL: {
     name: "NHL",
