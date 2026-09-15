@@ -13,7 +13,11 @@ import { toKoreanTeamName } from "../../src/lib/team-names";
 // 선발 JSON 파싱·사진 URL 은 사이트(/predictions/starters)와 같은 헬퍼를 쓴다
 import { parseStarter, pitcherPhoto } from "../../src/lib/predict/starter-card";
 // 축구 주간 베스트 XI — 화요일 글(weekly-xi cron)과 같은 산식·같은 7일 창
-import { getWeeklyBestXi } from "../../src/lib/soccer/weekly-best-xi";
+import { getWeeklyBestXi, WEEKLY_XI_LEAGUES } from "../../src/lib/soccer/weekly-best-xi";
+// 오늘의 경기 분석 — Threads 프리뷰 카드와 같은 적응형 3칸(승률 필수 + H2H/폼/배당/순위)
+import { buildPreviewCard } from "../../src/lib/predict/preview-card";
+import { strongPickThreshold } from "../../src/lib/predict/strong-pick";
+import { LEAGUE_DISPLAY } from "../../src/lib/sports/sport-leagues";
 
 const OV = rawOv as Record<string, { nameKo?: string }>;
 const SHORTS = "/Users/kimss/scorebase-shorts";
@@ -872,7 +876,8 @@ async function buildStarterBoard(league: "KBO") {
 // 표본이 부족하면(개막 주·A매치 브레이크) throw → daily-shorts.sh 가 soccer-cards 로 폴백한다.
 async function buildSoccerWeeklyXi() {
   const ROTATION = ["LALIGA", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "EPL"]; // 일~토
-  const league = process.argv[3] || ROTATION[new Date(Date.now() + 9 * 3600000).getUTCDay()];
+  const argLeague = process.argv[3];
+  const league = argLeague && (WEEKLY_XI_LEAGUES as readonly string[]).includes(argLeague) ? argLeague : ROTATION[new Date(Date.now() + 9 * 3600000).getUTCDay()];
   const LEAGUE_KO: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에A", LIGUE_1: "리그1" };
   const LEAGUE_COLOR: Record<string, string> = { EPL: "#37003c", LALIGA: "#ee8707", BUNDESLIGA: "#d3010c", SERIE_A: "#024494", LIGUE_1: "#091c3e" };
   const POS_KO: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
@@ -930,6 +935,66 @@ async function buildSoccerWeeklyXi() {
   save("soccer-weekly-xi", "SoccerCards", { title: `${leagueKo} · ${range}`, subtitle: "이번 주 평점 베스트 5", cta: "scorebase.kr/soccer", cards, hookFace }, text);
 }
 
+// ─────────────────────────── 오늘의 경기 분석 (AI 승률 + 데이터 2칸 + 픽) ───────────────────────────
+// argv[3] = 대상: KBO | MLB | NPB | BASEBALL | EPL | LALIGA | BUNDESLIGA | SERIE_A | LIGUE_1 | SOCCER.
+// 1차 = 그 리그, 없으면 같은 종목 그룹(야구 3리그 / 빅5+UCL+UEL)으로 넓힌다. 그래도 없으면 throw → daily-shorts.sh 폴백.
+// 경기 선택 = Strong Pick 우선, 없으면 최고 확률이 가장 높은(결론이 선명한) 경기.
+async function buildMatchAnalysis() {
+  const target = (process.argv[3] || "SOCCER").toUpperCase();
+  const BASEBALL = ["KBO", "MLB", "NPB"];
+  const SOCCER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL"];
+  const group = BASEBALL.includes(target) || target === "BASEBALL" ? BASEBALL : SOCCER;
+  const tiers = target === "BASEBALL" || target === "SOCCER" ? [group] : [[target], group];
+  const now = new Date();
+  let pick: { id: number; league: string } | null = null;
+  for (const leagues of tiers) {
+    const ms = await p.match.findMany({
+      where: { status: "SCHEDULED", league: { in: leagues }, startTime: { gte: now, lte: new Date(now.getTime() + 30 * 36e5) }, predHome: { not: null } },
+      select: { id: true, league: true, predHome: true, predDraw: true, predAway: true },
+    });
+    if (!ms.length) continue;
+    const maxP = (m: (typeof ms)[number]) => Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
+    const strong = ms.filter((m) => maxP(m) >= strongPickThreshold(m.league)).sort((a, b) => maxP(b) - maxP(a));
+    pick = strong[0] ?? [...ms].sort((a, b) => maxP(b) - maxP(a))[0];
+    break;
+  }
+  if (!pick) throw new Error(`[${target}] 30시간 내 예측 보유 경기 없음`);
+  const card = await buildPreviewCard(pick.id);
+  if (!card) throw new Error(`[${target}] 카드 데이터 없음 (match ${pick.id})`);
+  card.leagueLabel = LEAGUE_DISPLAY[pick.league] ?? card.leagueLabel;
+  const m = await p.match.findUniqueOrThrow({
+    where: { id: pick.id },
+    select: { predHome: true, predDraw: true, predAway: true, homeTeam: { select: { id: true, logoUrl: true } }, awayTeam: { select: { id: true, logoUrl: true } } },
+  });
+  const dl = async (t: { id: number; logoUrl: string | null }) => {
+    if (!t.logoUrl) return "";
+    const f = `tlogo-${t.id}.png`;
+    return (await download(t.logoUrl, f)) ? f : "";
+  };
+  const homeLogo = await dl(m.homeTeam), awayLogo = await dl(m.awayTeam);
+  const ph = Math.round((m.predHome ?? 0) * 100), pd = Math.round((m.predDraw ?? 0) * 100), pa = Math.round((m.predAway ?? 0) * 100);
+  const isStrong = Math.max(ph, pd, pa) / 100 >= strongPickThreshold(pick.league);
+  const favorite = ph >= pa ? card.home : card.away;
+  const favPct = Math.max(ph, pa);
+  const props = {
+    matchId: pick.id, league: pick.league, leagueLabel: card.leagueLabel, sport: group === BASEBALL ? "baseball" : "soccer",
+    home: card.home, away: card.away, homeLogo, awayLogo, kickoffKst: card.kickoffKst,
+    predHome: ph, predDraw: pd, predAway: pa, favorite, favPct, isStrong,
+    stats: card.stats.slice(1, 3), verdict: card.verdict,
+  };
+  const lines = card.stats.map((s) => `${s.label} ${s.value} — ${s.note}`).join("\n");
+  const title = `${card.home} vs ${card.away}, AI 승률 ${favPct}% · 오늘의 경기 분석`;
+  const text: PublishText = {
+    youtube: {
+      title,
+      description: `${card.leagueLabel} ${card.kickoffKst} KST · ${card.home} vs ${card.away}\n\n${lines}\n\n${card.verdict}\n\n결과는 경기 후 자동 채점됩니다. AI 성적표: https://www.scorebase.kr/predictions/scorecard\n오늘 전 경기 예측: https://www.scorebase.kr/picks\n\n* 예측은 통계 모델의 확률이며 결과를 보장하지 않습니다.${FOOTER}`,
+      tags: `${card.home},${card.away},${card.leagueLabel},경기 분석,승부 예측,AI 예측,${group === BASEBALL ? "야구 분석,프로야구" : "축구 분석,해외축구"},스코어베이스`,
+    },
+    instagram: { caption: `${card.home} vs ${card.away}\n${card.leagueLabel} 오늘 ${card.kickoffKst}\n\n${card.stats.map((s) => `${s.label} ${s.value}`).join("\n")}\n\n${card.verdict}\n여러분 픽은? 댓글로 👇\n\nscorebase.kr/picks\n#스코어베이스 #AI픽 #${card.leagueLabel.replace(/\s/g, "")}` },
+  };
+  save("match-analysis", "MatchAnalysis", props, text);
+}
+
 (async () => {
   const topic = process.argv[2];
   const builders: Record<string, () => Promise<void>> = {
@@ -939,6 +1004,7 @@ async function buildSoccerWeeklyXi() {
     "mlb-cards": () => buildBaseballCards("MLB"),
     "soccer-cards": buildSoccerCards,
     "soccer-weekly-xi": buildSoccerWeeklyXi,
+    "match-analysis": buildMatchAnalysis,
     "mlb-avg-cards": buildMlbAvgCards,
     "ai-battle": buildAiBattle,
     "starter-kbo": () => buildStarterDuel("KBO"),
