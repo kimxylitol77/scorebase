@@ -27,6 +27,8 @@ import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
 import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
+import BullpenFatigueCard from "@/components/live/BullpenFatigueCard";
+import { loadBullpenReport, localGameDate } from "@/lib/sports/baseball/bullpen-fatigue";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
 import BaseballBatterStats from "@/components/live/BaseballBatterStats";
@@ -117,7 +119,8 @@ export default async function NpbLivePage({ params }: Props) {
   const detailLivePlayers =
     (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
   // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
-  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar] =
+  const gameDate = localGameDate(match.startTime, "NPB");
+  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar, bullpenHome, bullpenAway] =
     await Promise.all([
       homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
       awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
@@ -126,6 +129,8 @@ export default async function NpbLivePage({ params }: Props) {
       buildPlayerNameMap(detailLivePlayers),
       buildPlayerPhotoMap(detailLivePlayers),
       getOpeningSimilarStats(match),
+      match.homeTeam.shortName ? loadBullpenReport("NPB", match.homeTeam.shortName, gameDate) : Promise.resolve(null),
+      match.awayTeam.shortName ? loadBullpenReport("NPB", match.awayTeam.shortName, gameDate) : Promise.resolve(null),
     ]);
 
   const detailLive = match.theSportsCache?.detailLive as
@@ -309,8 +314,14 @@ export default async function NpbLivePage({ params }: Props) {
         match={match}
         homeStarterPhoto={homeStarterPhoto}
         awayStarterPhoto={awayStarterPhoto}
-        extraTabs={
-          openingSimilar
+        extraTabs={[
+          {
+            key: "bullpen",
+            label: "불펜 피로도",
+            enabled: !!(bullpenHome || bullpenAway),
+            content: <BullpenFatigueCard homeName={homeShort} awayName={awayShort} home={bullpenHome} away={bullpenAway} />,
+          },
+          ...(openingSimilar
             ? [
                 {
                   key: "opening-similar",
@@ -319,8 +330,8 @@ export default async function NpbLivePage({ params }: Props) {
                   content: <OpeningOddsSimilarCard stats={openingSimilar} />,
                 },
               ]
-            : undefined
-        }
+            : []),
+        ]}
         teamStatsContent={
           detailLive?.stats ? (
             <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">

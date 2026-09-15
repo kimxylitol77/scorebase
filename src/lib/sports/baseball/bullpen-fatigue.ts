@@ -1,10 +1,11 @@
-// 불펜 피로도 트래커 — MLB(statsapi 박스스코어 투구수)·KBO(KboPlayerGameLog 등판·이닝·타자수)를 같은 틀로 요약.
+// 불펜 피로도 트래커 — MLB(statsapi 박스스코어 투구수)·KBO(KboPlayerGameLog 등판·이닝·타자수)·NPB(NpbPlayerGameLog 투구수)를 같은 틀로 요약.
 // 판정은 순수함수(assessPitcher)로 두고, 데이터 적재만 종목별 loader 가 맡는다.
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { fetchMlbTeamPitchingLog, mlbIpToInnings } from "@/lib/sports/mlb-stats-api";
+import { npbPlayerKo } from "@/lib/sports/npb-player-ko";
 
-/** 한 투수의 하루 등판. pitches 는 MLB 만(KBO 공식 기록엔 투구수가 없다). */
+/** 한 투수의 하루 등판. pitches 는 MLB·NPB 만(KBO 공식 기록엔 투구수가 없다). */
 export interface PitcherUsage {
   date: string;
   pitches: number | null;
@@ -168,16 +169,50 @@ async function loadKboBullpenRaw(teamName: string, asOf: string): Promise<Bullpe
   return finishReport(teamName, days, pitchers, false);
 }
 
-/** 경기 시작 시각 → 그 리그 현지 날짜(YYYY-MM-DD). MLB 는 동부, KBO 는 KST. */
-export function localGameDate(startTime: Date, league: "MLB" | "KBO"): string {
+/** NPB Team.shortName → 경기 로그 team 표기. 로그는 npb.jp 박스스코어를 한국어 약칭으로 적는데 두 팀만 표기가 다르다. */
+export const npbLogTeam = (shortName: string) => ({ 요코하마: "DeNA", 지바롯데: "롯데" })[shortName] ?? shortName;
+
+/** NPB — KBO 와 같은 로그 패턴이되 투구수가 있어 MLB 식 판정. 이름은 pid 카나 사전으로 한글화(없으면 박스스코어 원문). */
+async function loadNpbBullpenRaw(shortName: string, asOf: string): Promise<BullpenTeamReport | null> {
+  const days = windowDays(asOf);
+  const rows = await prisma.npbPlayerGameLog.findMany({
+    where: {
+      role: "P",
+      team: npbLogTeam(shortName),
+      date: { gte: new Date(`${days[0]}T00:00:00Z`), lte: new Date(`${days[days.length - 1]}T00:00:00Z`) },
+    },
+    select: { npbId: true, name: true, date: true, roleDetail: true, ip: true, pitches: true, tbf: true, er: true },
+  });
+  const starters = new Set(rows.filter((r) => r.roleDetail === "선발").map((r) => r.npbId));
+  const byPid = new Map<string, { name: string; usage: PitcherUsage[] }>();
+  for (const r of rows) {
+    if (starters.has(r.npbId)) continue;
+    const e = byPid.get(r.npbId) ?? { name: npbPlayerKo(r.npbId, r.name ?? r.npbId), usage: [] };
+    e.usage.push({ date: r.date.toISOString().slice(0, 10), pitches: r.pitches, innings: kboIpToInnings(r.ip), tbf: r.tbf, er: r.er });
+    byPid.set(r.npbId, e);
+  }
+  const pitchers = [...byPid.entries()].map(([pid, e]) =>
+    assessPitcher({ pid, name: e.name, href: `/players/${pid}?league=NPB` }, e.usage, days),
+  );
+  return finishReport(shortName, days, pitchers, true);
+}
+
+export type BullpenLeague = "MLB" | "KBO" | "NPB";
+
+/** 경기 시작 시각 → 그 리그 현지 날짜(YYYY-MM-DD). MLB 는 동부, KBO·NPB 는 KST(일본과 같은 시간대). */
+export function localGameDate(startTime: Date, league: BullpenLeague): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: league === "MLB" ? "America/New_York" : "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(startTime);
 }
 
-/** 팀·기준일 단위 1시간 캐시 — statsapi 박스스코어 6콜을 렌더마다 치지 않게. */
+/** 팀·기준일 단위 1시간 캐시 — statsapi 박스스코어 6콜을 렌더마다 치지 않게. NPB 는 teamName 자리에 shortName. */
 export const loadBullpenReport = unstable_cache(
-  async (league: "MLB" | "KBO", teamName: string, asOf: string): Promise<BullpenTeamReport | null> => {
+  async (league: BullpenLeague, teamName: string, asOf: string): Promise<BullpenTeamReport | null> => {
     try {
-      return league === "MLB" ? await loadMlbBullpenRaw(teamName, asOf) : await loadKboBullpenRaw(teamName, asOf);
+      return league === "MLB"
+        ? await loadMlbBullpenRaw(teamName, asOf)
+        : league === "NPB"
+          ? await loadNpbBullpenRaw(teamName, asOf)
+          : await loadKboBullpenRaw(teamName, asOf);
     } catch (e) {
       console.warn(`[bullpen] ${league} ${teamName} ${asOf} 실패:`, (e as Error).message);
       return null;
