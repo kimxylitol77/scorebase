@@ -9,4 +9,9 @@
 - [x] `src/app/lab/page.tsx` — 회원 구역에 빌더 배치, 비회원 소개 카드 문구
 - [x] tsc·lint·테스트 통과 → dev 실렌더(회원 쿠키) → 커밋·push
 - [x] 프로덕션 확인 — API 서버 처리 2.0초·전송 5.1초·1.6MB, /lab 비회원 소개 문구 반영(2026-09-15)
-- [ ] 2단계(미착수): 저장(MemberBot knobs 에 kind=rules)·매일 픽 cron 편입·/picks 랭킹 합류
+- [x] 2단계 저장 — /api/member-bot body.rules → knobs={kind:"rules",side,conds}, 조건식 한도 3개 별도
+- [x] 2단계 매일 픽 — generate-member-bot-picks 조건식 분기(직전 60일 폼·조건 평가·모델 확률), 실측 9건 생성
+- [x] 2단계 /lab 목록 — 저장·수정·중지·삭제·공유·오늘 픽, 봇별 30건 표시 버그 수정
+- [x] 2단계 공유 문안 — community/new 조건 표
+- [x] /picks 카드·랭킹 자동 합류 확인(카드 4장)
+- [ ] 프로덕션 확인(배포 후 저장 API·13:30 cron 픽 생성)

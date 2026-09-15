@@ -271,3 +271,45 @@ export function scoreRuleSystem(
   total.roi = settleFlatUnits(allBets);
   return { total, byLeague };
 }
+
+// ── 저장 형식 — MemberBot.knobs 에 { kind: "rules", side, conds } 로 싣는다(스키마 무변경). league 는 MemberBot.league 컬럼. ──
+
+export const RULE_KNOBS_KIND = "rules";
+
+export function isRuleKnobs(raw: unknown): boolean {
+  return !!raw && typeof raw === "object" && (raw as { kind?: unknown }).kind === RULE_KNOBS_KIND;
+}
+
+/** 임의 JSON → 검증된 조건식(리그는 호출자가 컬럼에서 채움). 형식이 어긋나면 null. */
+export function parseRuleKnobs(raw: unknown, league = "ALL"): RuleSystem | null {
+  if (!isRuleKnobs(raw)) return null;
+  const o = raw as { side?: unknown; conds?: unknown };
+  if (o.side !== "HOME" && o.side !== "DRAW" && o.side !== "AWAY") return null;
+  if (!Array.isArray(o.conds) || o.conds.length > MAX_CONDS) return null;
+  const conds: RuleCond[] = [];
+  for (const c of o.conds) {
+    if (!c || typeof c !== "object") return null;
+    const { field, op, value } = c as { field?: unknown; op?: unknown; value?: unknown };
+    if (typeof field !== "string" || !(RULE_FIELD_KEYS as string[]).includes(field)) return null;
+    if (op !== ">=" && op !== "<=") return null;
+    if (typeof value !== "number" || !Number.isFinite(value)) return null;
+    conds.push({ field: field as RuleFieldKey, op, value: Math.round(value * 100) / 100 });
+  }
+  return { side: o.side, league, conds };
+}
+
+export function ruleSystemToKnobs(system: RuleSystem): { kind: typeof RULE_KNOBS_KIND; side: RuleSide; conds: RuleCond[] } {
+  return { kind: RULE_KNOBS_KIND, side: system.side, conds: system.conds };
+}
+
+const RULE_SIDE_LABEL: Record<RuleSide, string> = { HOME: "홈 승", DRAW: "무승부", AWAY: "원정 승" };
+const FIELD_LABEL = Object.fromEntries(RULE_FIELDS.map((f) => [f.key, f])) as Record<RuleFieldKey, (typeof RULE_FIELDS)[number]>;
+
+/** 사람이 읽는 조건 한 줄 — "원정 승 · 원정 승 배당 ≥ 2 · 원정팀 최근 5경기 승률 ≥ 60%" */
+export function describeRuleSystem(system: RuleSystem): string {
+  const parts = system.conds.map((c) => {
+    const m = FIELD_LABEL[c.field];
+    return `${m.label} ${c.op === ">=" ? "≥" : "≤"} ${c.value}${m.unit}`;
+  });
+  return [RULE_SIDE_LABEL[system.side], ...(parts.length ? parts : ["조건 없음"])].join(" · ");
+}

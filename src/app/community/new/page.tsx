@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { TIERS } from "@/lib/dream-team/tiers";
 import { clampKnobs, type BotKnobs } from "@/lib/predict/member-bot";
 import { KNOB_METAS } from "@/app/lab/knobs-meta";
+import { describeRuleSystem, parseRuleKnobs, RULE_FIELDS } from "@/lib/predict/rule-system";
 import SignupGateCard from "@/components/SignupGateCard";
 import BoardForm from "./BoardForm";
 import { buildStarterShareText, buildPitcherShareText } from "@/lib/predict/starter-card-share";
@@ -16,16 +17,46 @@ export const dynamic = "force-dynamic";
 /** /lab "게시판에 공유" 프리필 — 봇 이름·손잡이 표·백테스트 성적·참고용 문구·/lab 링크 */
 function buildBotShareText(bot: {
   name: string;
+  league: string;
   knobs: unknown;
   backtestCache: unknown;
 }): { title: string; content: string } {
-  const knobs = clampKnobs(bot.knobs as Partial<BotKnobs> | null);
   const bt = (bot.backtestCache ?? null) as {
     n?: number;
     acc?: number;
     vsModel?: number;
+    roi?: number;
+    modelAcc?: number;
   } | null;
 
+  // 조건식 시스템 — 손잡이 표 대신 조건 표
+  const rules = parseRuleKnobs(bot.knobs, bot.league);
+  if (rules) {
+    const fieldOf = Object.fromEntries(RULE_FIELDS.map((f) => [f.key, f]));
+    const lines: string[] = [
+      `[예측 실험실](/lab)에서 만든 조건식 시스템 **${bot.name}** 을 공유합니다. 픽 방향과 조건은 다음과 같습니다.`,
+      "",
+      `- 요약: ${describeRuleSystem(rules)}`,
+      `- 리그: ${rules.league === "ALL" ? "전체" : rules.league}`,
+      "",
+      "| 조건 | 기준 |",
+      "| --- | --- |",
+      ...rules.conds.map((c) => `| ${fieldOf[c.field].label} | ${c.op === ">=" ? "이상" : "이하"} ${c.value}${fieldOf[c.field].unit} |`),
+    ];
+    if (bt?.acc != null && bt?.n != null) {
+      lines.push(
+        "",
+        "**저장 시점 백테스트** (최근 1년, 조건에 걸린 종료 경기)",
+        `- 표본 ${bt.n.toLocaleString()}경기 · 적중률 ${(bt.acc * 100).toFixed(1)}%` +
+          (bt.roi != null ? ` · 플랫 유닛 수익률 ${bt.roi > 0 ? "+" : ""}${(bt.roi * 100).toFixed(1)}%` : "") +
+          (bt.modelAcc != null ? ` · 같은 경기 우리 모델 ${(bt.modelAcc * 100).toFixed(1)}%` : ""),
+      );
+    }
+    lines.push("", "통계 모델 기반 참고용 정보이며, 과거 성적이 미래 적중을 보장하지 않습니다.", "", "나만의 시스템 만들기 → https://www.scorebase.kr/lab");
+    return { title: `[내 조건식] ${bot.name} — 조건 공유`, content: lines.join("\n") };
+  }
+
+  const knobs = clampKnobs(bot.knobs as Partial<BotKnobs> | null);
   const lines: string[] = [
     `[예측 실험실](/lab)에서 만든 커스텀 예측 봇 **${bot.name}** 의 손잡이 설정을 공유합니다.`,
     "",
@@ -93,7 +124,7 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
   if (user && botId) {
     const myBot = await prisma.memberBot.findFirst({
       where: { id: botId, userId: user.id },
-      select: { name: true, knobs: true, backtestCache: true },
+      select: { name: true, league: true, knobs: true, backtestCache: true },
     });
     if (myBot) botPrefill = buildBotShareText(myBot);
   }

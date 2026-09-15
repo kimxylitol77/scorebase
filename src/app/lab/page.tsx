@@ -12,7 +12,8 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { KNOB_METAS } from "./knobs-meta";
 import LabClient, { type LabBot, type LabBotPick, type LabMatch } from "./LabClient";
 import LabLeaderboard from "./LabLeaderboard";
-import RuleBuilderClient from "./RuleBuilderClient";
+import RuleBuilderClient, { type LabRuleSystem } from "./RuleBuilderClient";
+import { isRuleKnobs, parseRuleKnobs } from "@/lib/predict/rule-system";
 import { loadBotLeaderboard, LEADERBOARD_MIN_N } from "./leaderboard";
 
 export const dynamic = "force-dynamic";
@@ -179,7 +180,18 @@ async function LabMember({
   ]);
   const telegramLinked = Boolean(me?.telegramChatId);
 
-  const bots: LabBot[] = botRows.map((b) => ({
+  // 조건식 시스템은 같은 테이블(knobs.kind="rules") — 손잡이 봇 목록에서 분리
+  const ruleSystems: LabRuleSystem[] = botRows
+    .filter((b) => isRuleKnobs(b.knobs))
+    .map((b) => ({
+      id: b.id,
+      name: b.name,
+      system: parseRuleKnobs(b.knobs, b.league)!,
+      backtestCache: (b.backtestCache as LabRuleSystem["backtestCache"]) ?? null,
+      isActive: b.isActive,
+    }))
+    .filter((r) => r.system);
+  const bots: LabBot[] = botRows.filter((b) => !isRuleKnobs(b.knobs)).map((b) => ({
     id: b.id,
     name: b.name,
     league: b.league,
@@ -192,11 +204,12 @@ async function LabMember({
   // 오늘 내 봇 픽 — cron 이 생성한 미시작 경기 픽 (매치는 manual join)
   let todayPicks: LabBotPick[] = [];
   if (botRows.length > 0) {
+    // 최근 3일 생성분만 — 전 리그 봇 하나가 하루 350건을 만들어 id 상위 N 으로 자르면 다른 봇(조건식) 픽이 밀려난다(2026-09-15 실측 9→3).
     const pickRows = await prisma.memberBotPick.findMany({
-      where: { botId: { in: botRows.map((b) => b.id) }, market: "1X2" },
+      where: { botId: { in: botRows.map((b) => b.id) }, market: "1X2", createdAt: { gte: new Date(Date.now() - 3 * 86_400_000) } },
       select: { botId: true, matchId: true, pick: true, prob: true },
       orderBy: { id: "desc" },
-      take: 120,
+      take: 1500,
     });
     const matchIds = [...new Set(pickRows.map((p) => p.matchId))];
     if (matchIds.length > 0) {
@@ -227,8 +240,14 @@ async function LabMember({
             startKst: kstLabel(m.startTime),
           };
         })
-        .sort((a, b) => a.startMs - b.startMs)
-        .slice(0, 30);
+        .sort((a, b) => a.startMs - b.startMs);
+      // 봇별 30건 — 전체 30건으로 자르면 전 리그 봇이 이른 경기 자리를 다 차지해 다른 봇 픽이 사라진다(2026-09-15 실측).
+      const perBot = new Map<string, number>();
+      todayPicks = todayPicks.filter((p) => {
+        const n = (perBot.get(p.botId) ?? 0) + 1;
+        perBot.set(p.botId, n);
+        return n <= 30;
+      });
     }
   }
 
@@ -241,8 +260,8 @@ async function LabMember({
         preselectMatchId={preselectId}
         telegramLinked={telegramLinked}
       />
-      {/* 조건식 시스템 빌더 — 손잡이 봇과 별개. 1단계는 백테스트·예정 경기 연결까지(저장은 2단계). */}
-      <RuleBuilderClient />
+      {/* 조건식 시스템 빌더 — 손잡이 봇과 같은 테이블에 저장, 픽·랭킹은 봇 배관 공유 */}
+      <RuleBuilderClient initialSystems={ruleSystems} todayPicks={todayPicks.filter((p) => ruleSystems.some((r) => r.id === p.botId))} />
     </div>
   );
 }

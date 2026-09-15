@@ -1,15 +1,18 @@
 // /api/member-bot — 회원 커스텀 예측 봇 CRUD (로그인 세션 필수, 계정당 최대 3개).
 // GET 내 봇 목록 · POST 생성 · PATCH 수정(이름/손잡이/활성/백테스트 캐시) · DELETE 삭제.
+// 조건식 시스템은 같은 테이블에 knobs={kind:"rules",side,conds} 로 저장(body.rules) — 손잡이 봇과 개수 한도를 따로 센다.
 import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/current-user";
 import { clampKnobs, type BotKnobs } from "@/lib/predict/member-bot";
+import { parseRuleKnobs, ruleSystemToKnobs, RULE_KNOBS_KIND } from "@/lib/predict/rule-system";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_BOTS_PER_USER = 3;
+const MAX_RULE_SYSTEMS_PER_USER = 3;
 
 const BOT_SELECT = {
   id: true,
@@ -41,7 +44,7 @@ function validBacktest(raw: unknown): Record<string, number> | null {
   if (raw == null || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const out: Record<string, number> = {};
-  for (const k of ["n", "hits", "acc", "brier", "vsModel"]) {
+  for (const k of ["n", "hits", "acc", "brier", "vsModel", "roi", "modelAcc"]) {
     const v = o[k];
     if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
   }
@@ -66,7 +69,7 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return NextResponse.json({ ok: false, error: "로그인이 필요합니다." }, { status: 401 });
   }
-  let body: { name?: unknown; knobs?: unknown; league?: unknown; backtest?: unknown };
+  let body: { name?: unknown; knobs?: unknown; rules?: unknown; league?: unknown; backtest?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -85,15 +88,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid league" }, { status: 400 });
   }
 
-  const count = await prisma.memberBot.count({ where: { userId } });
-  if (count >= MAX_BOTS_PER_USER) {
-    return NextResponse.json(
-      { ok: false, error: `봇은 계정당 최대 ${MAX_BOTS_PER_USER}개까지 만들 수 있습니다.` },
-      { status: 409 },
-    );
+  // 조건식 시스템 — body.rules 가 오면 손잡이 대신 조건식을 knobs 에 싣는다
+  let knobs: Prisma.InputJsonValue;
+  if (body.rules !== undefined) {
+    const system = parseRuleKnobs({ kind: RULE_KNOBS_KIND, ...(body.rules as object) }, league);
+    if (!system) return NextResponse.json({ ok: false, error: "조건식 형식이 올바르지 않습니다." }, { status: 400 });
+    const ruleCount = await prisma.memberBot.count({ where: { userId, knobs: { path: ["kind"], equals: RULE_KNOBS_KIND } } });
+    if (ruleCount >= MAX_RULE_SYSTEMS_PER_USER) {
+      return NextResponse.json(
+        { ok: false, error: `조건식 시스템은 계정당 최대 ${MAX_RULE_SYSTEMS_PER_USER}개까지 저장할 수 있습니다.` },
+        { status: 409 },
+      );
+    }
+    knobs = ruleSystemToKnobs(system) as unknown as Prisma.InputJsonValue;
+  } else {
+    const count = await prisma.memberBot.count({ where: { userId, NOT: { knobs: { path: ["kind"], equals: RULE_KNOBS_KIND } } } });
+    if (count >= MAX_BOTS_PER_USER) {
+      return NextResponse.json(
+        { ok: false, error: `봇은 계정당 최대 ${MAX_BOTS_PER_USER}개까지 만들 수 있습니다.` },
+        { status: 409 },
+      );
+    }
+    knobs = clampKnobs(body.knobs as Partial<BotKnobs> | null) as unknown as Prisma.InputJsonValue;
   }
-
-  const knobs: BotKnobs = clampKnobs(body.knobs as Partial<BotKnobs> | null);
   const backtest = validBacktest(body.backtest);
 
   const bot = await prisma.memberBot.create({
@@ -101,7 +118,7 @@ export async function POST(req: NextRequest) {
       userId,
       name,
       league,
-      knobs: knobs as unknown as Prisma.InputJsonValue,
+      knobs,
       backtestCache: backtest ? { ...backtest, savedAt: new Date().toISOString() } : undefined,
     },
     select: BOT_SELECT,
@@ -118,6 +135,8 @@ export async function PATCH(req: NextRequest) {
     id?: unknown;
     name?: unknown;
     knobs?: unknown;
+    rules?: unknown;
+    league?: unknown;
     isActive?: unknown;
     notifyTelegram?: unknown;
     backtest?: unknown;
@@ -131,11 +150,12 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ ok: false, error: "id 필요" }, { status: 400 });
 
   // 소유 확인 — 남의 봇 id 로 update 시도 차단
-  const owned = await prisma.memberBot.findFirst({ where: { id, userId }, select: { id: true } });
+  const owned = await prisma.memberBot.findFirst({ where: { id, userId }, select: { id: true, league: true } });
   if (!owned) return NextResponse.json({ ok: false, error: "bot not found" }, { status: 404 });
 
   const data: {
     name?: string;
+    league?: string;
     knobs?: Prisma.InputJsonValue;
     isActive?: boolean;
     notifyTelegram?: boolean;
@@ -151,7 +171,16 @@ export async function PATCH(req: NextRequest) {
     }
     data.name = name;
   }
-  if (body.knobs !== undefined) {
+  if (body.league !== undefined) {
+    const league = validLeague(body.league);
+    if (!league) return NextResponse.json({ ok: false, error: "invalid league" }, { status: 400 });
+    data.league = league;
+  }
+  if (body.rules !== undefined) {
+    const system = parseRuleKnobs({ kind: RULE_KNOBS_KIND, ...(body.rules as object) }, data.league ?? owned.league);
+    if (!system) return NextResponse.json({ ok: false, error: "조건식 형식이 올바르지 않습니다." }, { status: 400 });
+    data.knobs = ruleSystemToKnobs(system) as unknown as Prisma.InputJsonValue;
+  } else if (body.knobs !== undefined) {
     data.knobs = clampKnobs(
       body.knobs as Partial<BotKnobs> | null,
     ) as unknown as Prisma.InputJsonValue;

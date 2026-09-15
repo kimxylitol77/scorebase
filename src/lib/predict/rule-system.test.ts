@@ -66,3 +66,17 @@ test("튜플 왕복", () => {
   assert.equal(back.v.oddsHome, 1.23);
   assert.equal(back.v.hWin5, null);
 });
+
+test("저장 형식 파싱 — kind·side·conds 검증, 어긋나면 null", () => {
+  const { parseRuleKnobs, ruleSystemToKnobs, describeRuleSystem, isRuleKnobs } = require("./rule-system") as typeof import("./rule-system");
+  const sys = { side: "AWAY" as const, league: "KBO", conds: [{ field: "oddsAway" as const, op: ">=" as const, value: 2.004 }] };
+  const knobs = ruleSystemToKnobs(sys);
+  assert.equal(isRuleKnobs(knobs), true);
+  assert.equal(isRuleKnobs({ elo: 1 }), false);
+  const back = parseRuleKnobs(knobs, "KBO");
+  assert.deepEqual(back, { side: "AWAY", league: "KBO", conds: [{ field: "oddsAway", op: ">=", value: 2 }] });
+  assert.equal(parseRuleKnobs({ kind: "rules", side: "UP", conds: [] }), null);
+  assert.equal(parseRuleKnobs({ kind: "rules", side: "HOME", conds: [{ field: "nope", op: ">=", value: 1 }] }), null);
+  assert.equal(parseRuleKnobs({ kind: "rules", side: "HOME", conds: [{ field: "oddsHome", op: ">", value: 1 }] }), null);
+  assert.equal(describeRuleSystem(back!), "원정 승 · 원정 승 배당 ≥ 2");
+});

@@ -1,10 +1,12 @@
 "use client";
 // /lab 조건식 시스템 빌더 — 픽 방향·리그·조건(최대 5개)을 조합하면 최근 1년 백테스트(적중률·플랫 ROI·모델 기준선)와
 // 앞으로 48시간 안에 조건에 걸리는 경기를 즉석으로 보여준다. 피처는 /api/rule-backtest 1회 로드, 재채점은 rule-system.ts 순수함수.
+// 저장은 /api/member-bot(body.rules) — 손잡이 봇과 같은 테이블이라 매일 픽·채점·리더보드·/picks 랭킹이 그대로 따라온다.
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Filter, Plus, Trash2, Sparkles } from "lucide-react";
+import { Filter, Plus, Trash2, Sparkles, Save, Power, Share2, Pencil } from "lucide-react";
+import type { LabBotPick } from "./LabClient";
 import RoiCard from "@/components/predictions/RoiCard";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import {
@@ -20,7 +22,17 @@ import {
   type RuleFieldKey,
   type RuleSide,
   type RuleSystem,
+  describeRuleSystem,
 } from "@/lib/predict/rule-system";
+
+/** 서버(page.tsx)가 내려주는 저장된 조건식 시스템 */
+export interface LabRuleSystem {
+  id: string;
+  name: string;
+  system: RuleSystem;
+  backtestCache: { n?: number; acc?: number; roi?: number; modelAcc?: number; savedAt?: string } | null;
+  isActive: boolean;
+}
 
 interface Payload {
   ok: boolean;
@@ -51,10 +63,18 @@ const kst = (iso: string) => {
   return `${k.getUTCMonth() + 1}/${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
 };
 
-export default function RuleBuilderClient() {
+const MAX_SYSTEMS = 3;
+
+export default function RuleBuilderClient({ initialSystems, todayPicks }: { initialSystems: LabRuleSystem[]; todayPicks: LabBotPick[] }) {
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [system, setSystem] = useState<RuleSystem>(PRESETS[0].system);
+  const [saved, setSaved] = useState<LabRuleSystem[]>(initialSystems);
+  /** 수정 중인 저장 시스템 id — null 이면 새로 저장 */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -86,6 +106,69 @@ export default function RuleBuilderClient() {
   const removeCond = (i: number) => setSystem((s) => ({ ...s, conds: s.conds.filter((_, j) => j !== i) }));
 
   const leagueOptions = data ? data.leagues.map((l) => l.league) : [];
+
+  const backtestSummary = score
+    ? { n: score.total.n, hits: score.total.hits, acc: score.total.acc, roi: score.total.roi.roi, modelAcc: score.total.modelN ? score.total.modelHits / score.total.modelN : undefined }
+    : undefined;
+
+  async function save() {
+    const nm = name.trim();
+    if (!nm) return setMsg("이름을 1~20자로 적어 주세요.");
+    setBusy(true);
+    setMsg(null);
+    try {
+      const isUpdate = !!editingId;
+      const r = await fetch("/api/member-bot", {
+        method: isUpdate ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(isUpdate ? { id: editingId } : {}),
+          name: nm,
+          league: system.league,
+          rules: { side: system.side, conds: system.conds },
+          backtest: backtestSummary,
+        }),
+      });
+      const j = (await r.json()) as { ok: boolean; error?: string; bot?: { id: string; name: string; league: string; backtestCache: LabRuleSystem["backtestCache"]; isActive: boolean } };
+      if (!j.ok || !j.bot) return setMsg(j.error ?? "저장에 실패했습니다.");
+      const row: LabRuleSystem = { id: j.bot.id, name: j.bot.name, system: { ...system, league: j.bot.league }, backtestCache: j.bot.backtestCache, isActive: j.bot.isActive };
+      setSaved((list) => (isUpdate ? list.map((x) => (x.id === row.id ? row : x)) : [...list, row]));
+      setEditingId(row.id);
+      setMsg(isUpdate ? "수정했습니다. 다음 픽 생성부터 반영됩니다." : "저장했습니다. 다음 픽 생성(13:30·01:30) 부터 매일 조건에 걸리는 경기를 픽하고, /picks 랭킹에도 오릅니다.");
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function toggleActive(row: LabRuleSystem) {
+    const r = await fetch("/api/member-bot", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: row.id, isActive: !row.isActive }) });
+    const j = (await r.json()) as { ok: boolean };
+    if (j.ok) setSaved((list) => list.map((x) => (x.id === row.id ? { ...x, isActive: !x.isActive } : x)));
+  }
+  async function remove(row: LabRuleSystem) {
+    if (!confirm(`「${row.name}」을 삭제할까요? 픽 기록도 함께 지워집니다.`)) return;
+    const r = await fetch(`/api/member-bot?id=${encodeURIComponent(row.id)}`, { method: "DELETE" });
+    const j = (await r.json()) as { ok: boolean };
+    if (j.ok) {
+      setSaved((list) => list.filter((x) => x.id !== row.id));
+      if (editingId === row.id) {
+        setEditingId(null);
+        setName("");
+      }
+    }
+  }
+  function loadForEdit(row: LabRuleSystem) {
+    setSystem(row.system);
+    setName(row.name);
+    setEditingId(row.id);
+    setMsg(null);
+  }
+  function startNew() {
+    setEditingId(null);
+    setName("");
+    setMsg(null);
+  }
   const thin = !score || score.total.n < RULE_MIN_N;
   const topLeagues = score ? Object.entries(score.byLeague).sort((a, b) => b[1].n - a[1].n).slice(0, 8) : [];
 
@@ -293,6 +376,82 @@ export default function RuleBuilderClient() {
           </>
         )}
       </div>
+      {/* 저장 — 이름 + 저장/수정. 저장하면 손잡이 봇과 같은 배관(매일 픽·채점·리더보드·/picks 랭킹)을 탄다 */}
+      <div className="mt-5 rounded-xl border border-dashed border-neutral-300 p-3 dark:border-neutral-700">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={20}
+            placeholder={editingId ? "시스템 이름" : "새 시스템 이름 (1~20자)"}
+            className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-[12px] dark:border-neutral-700 dark:bg-neutral-900"
+          />
+          <button
+            type="button"
+            onClick={save}
+            disabled={busy || !data || (!editingId && saved.length >= MAX_SYSTEMS)}
+            className="inline-flex items-center gap-1 rounded-lg bg-sky-600 px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40"
+          >
+            <Save className="h-3.5 w-3.5" aria-hidden /> {editingId ? "수정 저장" : "시스템 저장"}
+          </button>
+          {editingId && (
+            <button type="button" onClick={startNew} className="rounded-lg px-2 py-1.5 text-[12px] text-neutral-500 hover:underline">
+              새로 만들기
+            </button>
+          )}
+          <span className="text-[10px] text-neutral-400 tabular-nums">{saved.length}/{MAX_SYSTEMS}</span>
+        </div>
+        {msg && <p className="mt-2 text-[11px] text-neutral-600 dark:text-neutral-300">{msg}</p>}
+        {!editingId && saved.length >= MAX_SYSTEMS && <p className="mt-2 text-[11px] text-neutral-400">계정당 {MAX_SYSTEMS}개까지 저장할 수 있습니다. 기존 시스템을 수정하거나 삭제해 주세요.</p>}
+      </div>
+
+      {/* 저장된 시스템 목록 + 오늘 픽 */}
+      {saved.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <span className="text-[12px] font-semibold text-neutral-700 dark:text-neutral-200">내 조건식 시스템</span>
+          {saved.map((row) => {
+            const picks = todayPicks.filter((p) => p.botId === row.id);
+            const bt = row.backtestCache;
+            return (
+              <div key={row.id} className={`rounded-xl border p-3 ${editingId === row.id ? "border-sky-400 dark:border-sky-500/60" : "border-neutral-200 dark:border-neutral-700"} ${row.isActive ? "" : "opacity-60"}`}>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-[13px] font-bold text-neutral-900 dark:text-white">{row.name}</span>
+                  <span className="text-[10px] text-neutral-400">{row.system.league === "ALL" ? "전체 리그" : LEAGUE_DISPLAY[row.system.league] ?? row.system.league}</span>
+                  {!row.isActive && <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300">중지</span>}
+                  <span className="ml-auto flex items-center gap-1">
+                    <button type="button" onClick={() => loadForEdit(row)} title="불러와서 수정" className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"><Pencil className="h-3.5 w-3.5" aria-hidden /></button>
+                    <button type="button" onClick={() => toggleActive(row)} title={row.isActive ? "매일 픽 중지" : "매일 픽 재개"} className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"><Power className="h-3.5 w-3.5" aria-hidden /></button>
+                    <Link href={`/community/new?bot=${encodeURIComponent(row.id)}`} title="게시판에 공유" className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"><Share2 className="h-3.5 w-3.5" aria-hidden /></Link>
+                    <button type="button" onClick={() => remove(row)} title="삭제" className="rounded-lg p-1.5 text-neutral-400 hover:bg-rose-500/10 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" aria-hidden /></button>
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">{describeRuleSystem(row.system)}</p>
+                {bt?.n != null && bt.acc != null && (
+                  <p className="mt-0.5 text-[10px] tabular-nums text-neutral-400">
+                    저장 시점 백테스트 {bt.n}경기 · 적중 {(bt.acc * 100).toFixed(1)}%{bt.roi != null && ` · 수익률 ${bt.roi >= 0 ? "+" : ""}${(bt.roi * 100).toFixed(1)}%`}{bt.modelAcc != null && ` · 같은 경기 모델 ${(bt.modelAcc * 100).toFixed(1)}%`}
+                  </p>
+                )}
+                {picks.length > 0 ? (
+                  <ul className="mt-1.5 space-y-0.5 text-[11px]">
+                    {picks.slice(0, 8).map((p) => (
+                      <li key={p.matchId} className="flex items-center gap-2">
+                        <span className="w-12 shrink-0 text-neutral-400">{LEAGUE_DISPLAY[p.league] ?? p.league}</span>
+                        <span className="min-w-0 flex-1 truncate text-neutral-700 dark:text-neutral-200">{p.home} vs {p.away}</span>
+                        <span className="text-neutral-400 tabular-nums">{p.startKst}</span>
+                        <span className="rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300">{p.pick === "HOME" ? "홈" : p.pick === "AWAY" ? "원정" : "무"}</span>
+                      </li>
+                    ))}
+                    {picks.length > 8 && <li className="text-[10px] text-neutral-400">외 {picks.length - 8}경기</li>}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-[10px] text-neutral-400">{row.isActive ? "오늘 픽은 다음 생성 시각(13:30·01:30) 이후 표시됩니다." : "중지 상태 — 매일 픽을 만들지 않습니다."}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <p className="mt-4 text-[10px] leading-relaxed text-neutral-400">
         백테스트는 마감 배당 기준이라 실제 구매 시점 배당과 다를 수 있고, 조건이 좁을수록 과거에 맞춘 결과일 가능성이 큽니다. 참고용이며 베팅을 권유하지 않습니다.
       </p>
