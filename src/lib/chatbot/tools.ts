@@ -445,7 +445,13 @@ async function getRecentResults(leagueRaw?: string, days = 3): Promise<string> {
       m.predCorrect === true ? "✓적중"
       : m.predCorrect === false ? "✗오답"
       : "-";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} ${score} ${toKoreanTeamName(m.awayTeam.name, m.league)} · 모델 1X2: ${correct} · ${matchUrl(m.league, m.externalId)}`;
+    // 홈/원정 라벨과 승자를 줄에 명시 — "0:2 제문 승리" 처럼 상대 이름 뒤에 승리를 붙여 반대로 읽히던 오답 방지.
+    const winner =
+      m.homeScore == null || m.awayScore == null ? ""
+      : m.homeScore > m.awayScore ? ` · 홈 ${toKoreanTeamName(m.homeTeam.name, m.league)} 승`
+      : m.homeScore < m.awayScore ? ` · 원정 ${toKoreanTeamName(m.awayTeam.name, m.league)} 승`
+      : " · 무승부";
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)}(홈) ${score} ${toKoreanTeamName(m.awayTeam.name, m.league)}(원정)${winner} · 모델 1X2: ${correct} · ${matchUrl(m.league, m.externalId)}`;
   });
   return lines.join("\n");
 }
@@ -842,12 +848,17 @@ async function getTopPicks(leagueRaw?: string): Promise<string> {
     })
     .sort((a, b) => b.top - a.top)
     .slice(0, 6);
-  return ranked
-    .map(
+  // 첫 줄에 판정 기준을 박아 둔다 — 모델이 "확률 높은 순" 목록 전체를 Strong Pick 이라 부른 오답
+  //  방지(2026-09-10 KBO 54.2% 를 "Strong Pick TOP 6" 으로 낸 로그). 표시가 있는 줄만 Strong Pick.
+  const strongCount = ranked.filter((r) => r.strong).length;
+  const header = `Strong Pick 판정 기준: 리그별 임계(기본 65% · MLB 58% · NPB 56% · NBA 75%). 아래 ${ranked.length}경기 중 "(Strong Pick)" 표시가 붙은 ${strongCount}경기만 Strong Pick 이고 나머지는 확률 순 후보일 뿐이다.`;
+  return [
+    header,
+    ...ranked.map(
       ({ m, top, strong, pickName }) =>
         `${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${pickName} ${pct(top)}${strong ? " (Strong Pick)" : ""} · ${matchUrl(m.league, m.externalId)}`,
-    )
-    .join("\n");
+    ),
+  ].join("\n");
 }
 
 // ============================================================
