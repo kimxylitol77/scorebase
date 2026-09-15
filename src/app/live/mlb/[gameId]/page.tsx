@@ -39,6 +39,8 @@ import {
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
 import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
+import BullpenFatigueCard from "@/components/live/BullpenFatigueCard";
+import { loadBullpenReport, localGameDate } from "@/lib/sports/baseball/bullpen-fatigue";
 import {
   fetchMlbFullBoxscore,
   findMlbGamePk,
@@ -173,7 +175,8 @@ export default async function MlbLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames, openingSimilar] =
+  const gameDate = localGameDate(match.startTime, "MLB");
+  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames, openingSimilar, bullpenHome, bullpenAway] =
     await Promise.all([
       fetchMatchExtras(match),
       loadBaseballOdds(match.id),
@@ -181,6 +184,8 @@ export default async function MlbLivePage({ params }: Props) {
       getBaseballSeasonAnalysis(match),
       getBaseballRecentGames(match),
       getOpeningSimilarStats(match),
+      loadBullpenReport("MLB", match.homeTeam.name, gameDate),
+      loadBullpenReport("MLB", match.awayTeam.name, gameDate),
     ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
 
@@ -349,8 +354,14 @@ export default async function MlbLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
-        extraTabs={
-          openingSimilar
+        extraTabs={[
+          {
+            key: "bullpen",
+            label: "불펜 피로도",
+            enabled: !!(bullpenHome || bullpenAway),
+            content: <BullpenFatigueCard homeName={homeShort} awayName={awayShort} home={bullpenHome} away={bullpenAway} />,
+          },
+          ...(openingSimilar
             ? [
                 {
                   key: "opening-similar",
@@ -359,8 +370,8 @@ export default async function MlbLivePage({ params }: Props) {
                   content: <OpeningOddsSimilarCard stats={openingSimilar} />,
                 },
               ]
-            : undefined
-        }
+            : []),
+        ]}
         teamStatsContent={
           <MlbTeamStatsLive
             gameId={gameId}

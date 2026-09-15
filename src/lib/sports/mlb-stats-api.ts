@@ -167,6 +167,73 @@ export async function fetchMlbBoxscoreBullpen(gamePk: number): Promise<{
   return result;
 }
 
+export interface MlbPitchingAppearance {
+  pid: number;
+  name: string;
+  /** officialDate (ET 기준 YYYY-MM-DD) */
+  date: string;
+  /** 그 경기 등판 순서 0 = 선발 */
+  order: number;
+  pitches: number | null;
+  ip: string | null;
+  tbf: number | null;
+  er: number | null;
+}
+
+/**
+ * 한 팀의 기간 내 투수 등판 전부 — 불펜 피로도 트래커용.
+ * schedule(teamId, startDate~endDate) 로 경기(gamePk) 를 얻고 boxscore 를 경기마다 읽는다(경기당 1콜).
+ * 종료·진행 중 경기만 포함. 팀 이름을 statsapi id 로 못 풀면 null.
+ */
+export async function fetchMlbTeamPitchingLog(
+  teamName: string,
+  startDate: string,
+  endDate: string,
+): Promise<MlbPitchingAppearance[] | null> {
+  const teamId = await getMlbStatsTeamId(teamName);
+  if (!teamId) return null;
+  const { data } = await client.get("/schedule", { params: { sportId: 1, teamId, startDate, endDate } });
+  const games: Array<{ gamePk: number; date: string }> = [];
+  for (const d of data?.dates ?? []) {
+    for (const g of d.games ?? []) {
+      const state: string | undefined = g.status?.abstractGameState;
+      if (state !== "Final" && state !== "Live") continue;
+      games.push({ gamePk: g.gamePk, date: g.officialDate ?? d.date });
+    }
+  }
+  const out: MlbPitchingAppearance[] = [];
+  for (const g of games) {
+    let box: { teams?: Record<string, { team?: { id: number }; pitchers?: number[]; players?: Record<string, { person?: { fullName?: string }; position?: { abbreviation?: string }; stats?: { pitching?: Record<string, unknown> } }> }> };
+    try {
+      box = (await client.get(`/game/${g.gamePk}/boxscore`)).data;
+    } catch {
+      continue;
+    }
+    const side = box.teams?.home?.team?.id === teamId ? "home" : "away";
+    const t = box.teams?.[side];
+    (t?.pitchers ?? []).forEach((pid, order) => {
+      const p = t?.players?.[`ID${pid}`];
+      const st = p?.stats?.pitching;
+      if (!st) return;
+      // 대패 때 마운드에 오른 야수(포수 등)는 불펜이 아니다 — 투수·투타겸업만.
+      const pos = p?.position?.abbreviation;
+      if (pos && pos !== "P" && pos !== "TWP") return;
+      const num = (v: unknown) => (v == null || v === "" ? null : Number(v));
+      out.push({
+        pid,
+        name: p?.person?.fullName ?? String(pid),
+        date: g.date,
+        order,
+        pitches: num(st.numberOfPitches),
+        ip: st.inningsPitched == null ? null : String(st.inningsPitched),
+        tbf: num(st.battersFaced),
+        er: num(st.earnedRuns),
+      });
+    });
+  }
+  return out;
+}
+
 /**
  * 야구 IP 표기 → 실수 이닝. MLB/KBO 공통 dot 표기 — ".1"=1/3, ".2"=2/3.
  *   "5.2" → 5 + 2/3

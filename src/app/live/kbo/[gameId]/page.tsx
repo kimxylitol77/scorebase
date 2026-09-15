@@ -26,6 +26,8 @@ import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
 import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
+import BullpenFatigueCard from "@/components/live/BullpenFatigueCard";
+import { loadBullpenReport, localGameDate } from "@/lib/sports/baseball/bullpen-fatigue";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 import { getBaseballCity } from "@/lib/baseball-city";
 import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
@@ -107,12 +109,15 @@ export default async function KboLivePage({ params }: Props) {
 
   const detailLivePlayers =
     (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
-  const [extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar] = await Promise.all([
+  const gameDate = localGameDate(match.startTime, "KBO");
+  const [extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar, bullpenHome, bullpenAway] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
     buildPlayerNameMap(detailLivePlayers),
     buildPlayerPhotoMap(detailLivePlayers),
     getOpeningSimilarStats(match),
+    loadBullpenReport("KBO", match.homeTeam.name, gameDate),
+    loadBullpenReport("KBO", match.awayTeam.name, gameDate),
   ]);
 
   const detailLive = match.theSportsCache?.detailLive as
@@ -294,8 +299,14 @@ export default async function KboLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
-        extraTabs={
-          openingSimilar
+        extraTabs={[
+          {
+            key: "bullpen",
+            label: "불펜 피로도",
+            enabled: !!(bullpenHome || bullpenAway),
+            content: <BullpenFatigueCard homeName={homeShort} awayName={awayShort} home={bullpenHome} away={bullpenAway} />,
+          },
+          ...(openingSimilar
             ? [
                 {
                   key: "opening-similar",
@@ -304,8 +315,8 @@ export default async function KboLivePage({ params }: Props) {
                   content: <OpeningOddsSimilarCard stats={openingSimilar} />,
                 },
               ]
-            : undefined
-        }
+            : []),
+        ]}
         teamStatsContent={
           detailLive?.stats ? (
             <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">
