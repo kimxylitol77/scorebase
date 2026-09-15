@@ -12,6 +12,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { KNOB_METAS } from "./knobs-meta";
 import LabClient, { type LabBot, type LabBotPick, type LabMatch } from "./LabClient";
 import LabLeaderboard from "./LabLeaderboard";
+import RuleBuilderClient from "./RuleBuilderClient";
 import { loadBotLeaderboard, LEADERBOARD_MIN_N } from "./leaderboard";
 
 export const dynamic = "force-dynamic";
@@ -232,13 +233,17 @@ async function LabMember({
   }
 
   return (
-    <LabClient
-      matches={matches}
-      initialBots={bots}
-      todayPicks={todayPicks}
-      preselectMatchId={preselectId}
-      telegramLinked={telegramLinked}
-    />
+    <div className="space-y-6">
+      <LabClient
+        matches={matches}
+        initialBots={bots}
+        todayPicks={todayPicks}
+        preselectMatchId={preselectId}
+        telegramLinked={telegramLinked}
+      />
+      {/* 조건식 시스템 빌더 — 손잡이 봇과 별개. 1단계는 백테스트·예정 경기 연결까지(저장은 2단계). */}
+      <RuleBuilderClient />
+    </div>
   );
 }
 
@@ -256,7 +261,7 @@ function LabGuest() {
           {
             Icon: LineChart,
             title: "즉석 백테스트",
-            desc: "최근 1년 실제 경기로 슬라이더를 움직일 때마다 적중률 즉시 재계산",
+            desc: "최근 1년 실제 경기로 슬라이더를 움직일 때마다 적중률 즉시 재계산. 배당·시장 변동·팀 폼 조건을 쌓는 조건식 시스템도 같은 잣대로 검증",
           },
           {
             Icon: Bot,
