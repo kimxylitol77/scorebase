@@ -875,12 +875,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Grasshopper",
-        "apps": 4,
-        "starts": 1,
+        "apps": 5,
+        "starts": 2,
         "goals": 2,
         "assists": 0,
-        "minutes": 154,
-        "rating": 7.04,
+        "minutes": 221,
+        "rating": 6.92,
         "yellow": 0,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-14T22:20:18.303Z"
+  "currentUpdatedAt": "2026-09-15T22:20:20.009Z"
 }
