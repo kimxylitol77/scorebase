@@ -62,7 +62,8 @@ export const CRON_REGISTRY: {
   { name: "preview", label: "AI 프리뷰 발행", maxAgeH: 12 },
   // 위클리 — 기대 168h + 유예 12h = 180h
   { name: "fetch-salaries", label: "선수 연봉", maxAgeH: 180 },
-  { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
+  // blog-weekly(이적시장 위클리)는 여름 이적시장 마감으로 2026-09-15 cron 해제(사용자 결정) — 감시도 함께 뺀다.
+  //  겨울 이적시장(1월) 재개 시 vercel.json 의 "0 0 * * 1" 항목과 이 줄을 같이 되살릴 것.
   { name: "weekly-xi", label: "축구 주간 베스트 XI (빅5)", maxAgeH: 180 },
   { name: "soccer-weekly-review", label: "축구 주간 리뷰 (빅5, MVP 선수·감독)", maxAgeH: 180 },
   { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },

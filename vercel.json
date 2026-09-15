@@ -285,10 +285,6 @@
       "schedule": "0 8,14 * * *"
     },
     {
-      "path": "/api/cron/blog-weekly",
-      "schedule": "0 0 * * 1"
-    },
-    {
       "path": "/api/cron/volleyball-predict",
       "schedule": "15 * * * *"
     },
