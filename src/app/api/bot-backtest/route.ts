@@ -1,10 +1,11 @@
 // GET /api/bot-backtest — 회원 커스텀 봇 백테스트용 피처 벡터 API.
 // 과거 채점 완료(predCorrect not null) 경기의 as-of 신호 배열을 1회 반환하고,
 // 클라이언트가 손잡이를 바꿀 때마다 member-bot.ts scoreBacktest 로 즉석 재채점한다.
-// ?league=MLB (선택, 기본 전 리그) &days=365 (30~730). 로그인 불필요, rate limit 적용.
+// ?league=MLB (선택, 기본 전 리그) &days=365 (30~730). 로그인 필수(2026-09-17)·회원당 분당 5회 + IP 제한.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { getCurrentUserId } from "@/lib/current-user";
 import type { PredictMatch } from "@/lib/predict/types";
 import {
   buildLeagueFeatures,
@@ -20,6 +21,16 @@ export const maxDuration = 60;
 const DEFAULT_DAYS = 365;
 
 export async function GET(req: NextRequest) {
+  // 로그인 회원 전용 — 1년치 모델 확률·시장 확률·배당 피처를 한 번에 내려주는 라우트라 비회원 스크래핑 문턱을 둔다(2026-09-17).
+  // /lab 화면 자체가 회원 전용이라 UX 영향 없음. 회원당 분당 5회.
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ ok: false, error: "로그인이 필요합니다." }, { status: 401 });
+  }
+  const userRl = rateLimit(`bot-backtest:user:${userId}`, { max: 5, windowMs: 60_000, lockMs: 60_000 });
+  if (!userRl.allowed) {
+    return NextResponse.json({ ok: false, error: "too many requests" }, { status: 429 });
+  }
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   // 전 리그 응답은 무겁다 — match-sim(30/분)보다 보수적으로

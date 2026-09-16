@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { detectBot } from "@/lib/bot-detect";
 import { rateLimit } from "@/lib/rate-limit";
+import { isProtectedApiPath, isSameSiteRequest } from "@/lib/api-same-origin";
 
 // /admin 경로 보호 — cookie 존재만 체크 (검증은 page/action 에서).
 // /admin/login 은 누구나 접근 가능.
@@ -74,6 +75,12 @@ export function middleware(req: NextRequest) {
         });
       }
     }
+  }
+
+  // ── 내부용 JSON API 같은 출처 검사 — 화면이 쓰는 라우트를 외부 스크립트가 직접 긁는 것을 거절(2026-09-17).
+  // 공개 라우트(public/·embed/·v1/·live/scores)와 내부 워커(Bearer INTERNAL_API_TOKEN)는 통과. 헤더 위조는 가능하니 문턱이다.
+  if (isProtectedApiPath(path) && !isSameSiteRequest(req.headers, process.env.INTERNAL_API_TOKEN)) {
+    return NextResponse.json({ ok: false, error: "이 API 는 스코어베이스 화면 안에서만 쓸 수 있습니다." }, { status: 403 });
   }
 
   // ── /live/{league} 대소문자 정규화 — canonical·내부링크는 대문자인데 소문자 URL 이

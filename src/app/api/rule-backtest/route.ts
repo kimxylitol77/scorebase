@@ -1,9 +1,10 @@
 // GET /api/rule-backtest — /lab 조건식 시스템 빌더용 피처 튜플.
 // 최근 1년 채점 완료 경기(백테스트) + 앞으로 48시간 예정 경기(해당 경기 연결)를 한 번에 돌려주고,
-// 클라이언트가 조건을 바꿀 때마다 rule-system.ts 순수함수로 즉석 재채점한다. 로그인 불필요, rate limit 적용.
+// 클라이언트가 조건을 바꿀 때마다 rule-system.ts 순수함수로 즉석 재채점한다. 로그인 필수(2026-09-17)·회원당 분당 5회 + IP 제한.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { getCurrentUserId } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { buildRuleFeatures, ruleFeatureToTuple, type RuleFeatureTuple, type RuleMatchInput } from "@/lib/predict/rule-system";
 
@@ -40,6 +41,16 @@ function matchHref(m: { id: number; league: string; externalId: string | null })
 }
 
 export async function GET(req: NextRequest) {
+  // 로그인 회원 전용 — 1년치 모델 확률·시장 확률·배당 피처를 한 번에 내려주는 라우트라 비회원 스크래핑 문턱을 둔다(2026-09-17).
+  // /lab 화면 자체가 회원 전용이라 UX 영향 없음. 회원당 분당 5회.
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ ok: false, error: "로그인이 필요합니다." }, { status: 401 });
+  }
+  const userRl = rateLimit(`rule-backtest:user:${userId}`, { max: 5, windowMs: 60_000, lockMs: 60_000 });
+  if (!userRl.allowed) {
+    return NextResponse.json({ ok: false, error: "too many requests" }, { status: 429 });
+  }
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const rl = rateLimit(`rule-backtest:${ip}`, { max: 10, windowMs: 60_000, lockMs: 60_000 });
   if (!rl.allowed) return NextResponse.json({ ok: false, error: "too many requests" }, { status: 429 });
