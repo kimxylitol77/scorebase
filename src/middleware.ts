@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { detectBot } from "@/lib/bot-detect";
-import { rateLimit } from "@/lib/rate-limit";
+import { onceShared, rateLimitShared } from "@/lib/rate-limit-shared";
 import { isProtectedApiPath, isSameSiteRequest } from "@/lib/api-same-origin";
 
 // /admin 경로 보호 — cookie 존재만 체크 (검증은 page/action 에서).
@@ -22,7 +22,7 @@ const SCOREBASE_COM_HOSTS = ["스코어베이스.com", "xn--9k3b13iba842abwcsvs.
 // IP 변경 시 갱신 — TheSports whitelist 에 등록된 집 IP 와 같은 값.
 const RATE_LIMIT_EXEMPT_IPS = new Set(["86.38.94.116"]);
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const path = req.nextUrl.pathname;
   const host = (req.headers.get("host") || "").toLowerCase();
   const isScoreboard = SCOREBOARD_HOSTS.some((h) => host.includes(h));
@@ -40,8 +40,12 @@ export function middleware(req: NextRequest) {
   const isPrefetch =
     req.headers.get("next-router-prefetch") === "1" ||
     (req.headers.get("purpose") || req.headers.get("sec-purpose") || "").includes("prefetch");
+  // 내부 워커·미들웨어 알림 — Bearer INTERNAL_API_TOKEN 이 맞으면 우리 자신이다. 스크래퍼 제한을 우리 봇에 걸지 않는다(2026-09-17 실측: 429 알림 fetch 가 자기 자신에게 429).
+  const internalToken = process.env.INTERNAL_API_TOKEN;
+  const isInternalCall = !!internalToken && req.headers.get("authorization") === `Bearer ${internalToken}`;
   const exemptFromLimit =
     isPrefetch ||
+    isInternalCall ||
     // 라인업 캡처용 이미지 프록시는 정적 성격(한 보드에 11~22장) — rate limit 면제.
     path.startsWith("/api/lineup/img") ||
     (bot.isBot &&
@@ -55,7 +59,8 @@ export function middleware(req: NextRequest) {
       req.headers.get("x-real-ip") ||
       "unknown";
     if (!RATE_LIMIT_EXEMPT_IPS.has(ip)) {
-      const { allowed, retryAfterSec } = rateLimit(`scrape:${ip}`, {
+      // Redis(Upstash) 가 설정돼 있으면 인스턴스와 무관하게 정확히 센다. 없으면 메모리(best-effort).
+      const { allowed, retryAfterSec, backend } = await rateLimitShared(`scrape:${ip}`, {
         // 통신사 NAT — 모바일은 공인 IP 하나를 다수 사용자가 공유한다. 라이브 시청자는
         // 10초 새로고침 + PiP 5초 폴링로 1인당 분당 ~20요청이라, 같은 IP 뒤 시청자
         // 열몇 명이면 200 을 합산 초과 → 전원 잠금 (2026-07-28 실사용 이탈 발생).
@@ -66,9 +71,10 @@ export function middleware(req: NextRequest) {
       });
       if (!allowed) {
         // 누가 걸렸는지 Vercel 로그로 진단 가능하게 — 사람 오탐이면 IP 면제·임계 조정 근거가 된다.
-        console.warn(
-          `[rate-limit] 429 ip=${ip} path=${path} ua=${(req.headers.get("user-agent") || "-").slice(0, 90)}`,
-        );
+        const ua = (req.headers.get("user-agent") || "-").slice(0, 90);
+        console.warn(`[rate-limit] 429 ip=${ip} path=${path} ua=${ua} backend=${backend}`);
+        // 폭주 알림 — IP 당 1시간에 한 번만 텔레그램(스크래퍼·오탐 사람 둘 다 운영자가 바로 봐야 한다).
+        event.waitUntil(alertScrapeBurst(req.nextUrl.origin, ip, path, ua, backend));
         return new NextResponse("Too Many Requests", {
           status: 429,
           headers: { "Retry-After": String(retryAfterSec) },
@@ -164,6 +170,32 @@ export function middleware(req: NextRequest) {
     res.headers.set("X-Frame-Options", "DENY");
   }
   return res;
+}
+
+/** 429 발동 알림 — /api/internal/notify(Bearer INTERNAL_API_TOKEN) 로 텔레그램. 토큰 없으면 조용히 건너뛴다. */
+async function alertScrapeBurst(origin: string, ip: string, path: string, ua: string, backend: string) {
+  const token = process.env.INTERNAL_API_TOKEN;
+  if (!token) return;
+  try {
+    if (!(await onceShared(`scrape-alert:${ip}`, 3600))) return;
+    await fetch(`${origin}/api/internal/notify`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        source: "scrape-guard",
+        severity: "WARN",
+        title: "스크래핑 속도 제한 발동",
+        message: `ip=${ip}\npath=${path}\nua=${ua}\ncounter=${backend}`,
+        what: `IP ${ip} 가 분당 600요청을 넘겨 30초 차단됐습니다.`,
+        when: new Date().toISOString(),
+        impact: "이 IP 만 잠시 429. 통신사 NAT 뒤 사람이면 오탐일 수 있습니다.",
+        action: "admin/stats 봇 트래픽에서 UA·경로 확인. 사람 오탐이면 middleware RATE_LIMIT_EXEMPT_IPS 검토.",
+      }),
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch {
+    // 알림 실패는 본 요청에 영향 없음
+  }
 }
 
 export const config = {

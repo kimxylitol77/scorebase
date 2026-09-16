@@ -150,6 +150,7 @@ THESPORTS_PROXY_URL THESPORTS_PROXY_TOKEN  # Vercel→ts 화이트리스트 우�
 ADMIN_USERNAME ADMIN_PASSWORD ADMIN_SECRET
 SITE_URL=https://www.scorebase.kr SITE_NAME=Scorebase
 CRON_SECRET
+UPSTASH_REDIS_REST_URL UPSTASH_REDIS_REST_TOKEN  # 속도 제한 공유 카운터(middleware) — 없으면 인스턴스 메모리 폴백
 ```
 
 ## 사용자 작업 스타일
