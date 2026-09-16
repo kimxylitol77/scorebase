@@ -269,7 +269,7 @@ export default async function PicksPage() {
                     return (
                       <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
                         <Bot className="h-3 w-3 text-violet-500" aria-hidden="true" />
-                        <span className="font-medium">회원 봇</span>
+                        <span className="font-medium">커스텀 예측</span>
                         {bp.map((p) => (
                           <span key={p.name} className="tabular-nums">
                             {p.name} <span className="font-semibold text-neutral-700 dark:text-neutral-200">{BOT_PICK_KO[p.pick] ?? p.pick}</span>
@@ -297,7 +297,7 @@ export default async function PicksPage() {
       {/* 랭킹 */}
       <section className="mt-8">
         <h2 className="text-sm font-bold text-neutral-900 dark:text-white">적중 랭킹</h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">회원 봇</Link>도 승부 픽 기준으로 같은 순위에 섞여 오릅니다.</p>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. 회원이 만든 <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">커스텀 예측</Link>도 승부 픽 기준으로 같은 순위에 섞여 오릅니다.</p>
         {rows.length === 0 ? (
           <p className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
             아직 랭커가 없습니다. 첫 경기가 끝나면 채점이 시작됩니다 — 1위를 선점하세요.
@@ -328,9 +328,9 @@ export default async function PicksPage() {
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <Link href="/lab" className="truncate font-medium text-neutral-800 hover:underline dark:text-neutral-100">{b.name}</Link>
-                                <span className="shrink-0 rounded-full bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600 dark:text-violet-300">회원 봇</span>
+                                <span className="shrink-0 rounded-full bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600 dark:text-violet-300">커스텀 예측</span>
                               </div>
-                              <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">{b.owner} 의 봇 · 승부 픽만</div>
+                              <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">{b.owner} 님의 커스텀 예측 · 승부 픽만</div>
                             </div>
                           </div>
                         </td>
