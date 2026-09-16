@@ -2076,12 +2076,12 @@
         "status": "played",
         "season": "2026-27",
         "team": "Atletico Madrid",
-        "apps": 5,
-        "starts": 4,
-        "goals": 1,
+        "apps": 6,
+        "starts": 5,
+        "goals": 2,
         "assists": 1,
-        "minutes": 290,
-        "rating": 6.89,
+        "minutes": 380,
+        "rating": 7.11,
         "yellow": 1,
         "red": 0
       }
@@ -2744,5 +2744,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-15T22:20:20.009Z"
+  "currentUpdatedAt": "2026-09-16T22:20:19.508Z"
 }
