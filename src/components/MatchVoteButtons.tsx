@@ -247,6 +247,16 @@ export default function MatchVoteButtons(init: VoteInit) {
             로그인하면 적중률·랭킹에 기록돼요 →
           </a>
         )}
+        {/* 내 승부예측을 게시판 글로 — 새 글 화면이 내 투표·배당·AI 픽을 DB 에서 다시 읽어 채운다 */}
+        {voted && loggedIn && !m.result && (
+          <a
+            href={`/community/new?pick=${init.matchId}`}
+            className="ml-auto font-medium text-blue-600 hover:underline dark:text-blue-400"
+            onClick={(e) => e.stopPropagation()}
+          >
+            게시판에 올리기 →
+          </a>
+        )}
       </div>
     </div>
   );
