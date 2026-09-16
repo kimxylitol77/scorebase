@@ -3,6 +3,8 @@
 // 종료: 컨텍스트 박스 숨김, 이닝 박스만.
 // 예정: 둘 다 숨김, 매치업 + KST 시간.
 
+import EdgeBadgeChips from "@/components/scores/EdgeBadgeChips";
+import type { EdgeBadge } from "@/lib/scores/edge-badges";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { postponedLabel } from "@/lib/sports/sport-leagues";
@@ -30,6 +32,8 @@ export interface BaseballLiveCardProps {
   baseballCtx?: BaseballContext | null;
   homeStarter?: string | null;
   awayStarter?: string | null;
+  /** 요소 우세 칩(선발·불펜·모델·순위) — 예정·진행 중만 표시 */
+  edgeBadges?: EdgeBadge[] | null;
   href?: string | null;
   actions?: ReactNode;
   /** Ollama (Mac mini) 생성 라이브 코멘터리 — LIVE 매치에만 표시 */
@@ -86,6 +90,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
     baseballCtx,
     homeStarter,
     awayStarter,
+    edgeBadges,
     href,
     actions,
     liveCommentary,
@@ -93,6 +98,8 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
   } = props;
 
   const isLive = status === "live";
+
+  const showEdge = (status === "scheduled" || status === "live") && !!edgeBadges?.length;
   const isFinished = status === "finished";
   const isScheduled = status === "scheduled";
   const isPostponed = status === "postponed";
@@ -232,6 +239,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
                   [{away.position}]
                 </span>
               )}
+              {showEdge && <EdgeBadgeChips badges={edgeBadges ?? []} side="away" className="ml-1 align-middle" />}
             </div>
             {awayStarter && (
               <div className="truncate text-[10px] text-neutral-500 dark:text-neutral-500">
@@ -269,6 +277,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
                   [{home.position}]
                 </span>
               )}
+              {showEdge && <EdgeBadgeChips badges={edgeBadges ?? []} side="home" className="ml-1 align-middle" />}
             </div>
             {homeStarter && (
               <div className="truncate text-[10px] text-neutral-500 dark:text-neutral-500">

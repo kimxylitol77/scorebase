@@ -31,6 +31,7 @@ import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { calcStandings } from "@/lib/predict/standings";
+import { computeEdgeBadges, type EdgeBadge } from "@/lib/scores/edge-badges";
 import { currentSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
@@ -1166,6 +1167,13 @@ export default async function ScoresPage({ searchParams }: Props) {
         marketBookmakers: true,
         oddsBookmakers: true,
         predWinner: true,
+        // 요소 우세 칩(edge-badges) 재료 — 불펜 3일 집계(MLB)·골리(NHL)·마진 제거 시장 확률
+        homeBullpen: true,
+        awayBullpen: true,
+        homeGoalie: true,
+        awayGoalie: true,
+        marketHome: true,
+        marketAway: true,
       },
       orderBy: { startTime: "asc" },
     }),
@@ -1437,6 +1445,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       liveStatusLabel: isLive ? dm.statusLabel : null,
       homeStarter: null,
       awayStarter: null,
+      edgeBadges: [],
       soccerCtx: isLive ? parseSoccerStatus(dm.statusLabel) : null,
       soccerGoals: null,
       soccerCards: null,
@@ -1711,6 +1720,19 @@ export default async function ScoresPage({ searchParams }: Props) {
       awayStarter: isBaseball
         ? localizeStarter(parseStarter(m.awayStarter), m.league)
         : null,
+      edgeBadges: computeEdgeBadges({
+        status: m.status,
+        homeStarter: isBaseball ? m.homeStarter : null,
+        awayStarter: isBaseball ? m.awayStarter : null,
+        homeBullpen: m.homeBullpen,
+        awayBullpen: m.awayBullpen,
+        homeGoalie: m.homeGoalie,
+        awayGoalie: m.awayGoalie,
+        predHome: m.predHome,
+        predAway: m.predAway,
+        marketHome: m.marketHome,
+        marketAway: m.marketAway,
+      }),
       soccerCtx:
         sport_ === "soccer"
           ? parseSoccerStatus(
@@ -2702,6 +2724,7 @@ function SoccerRowLayout({
         awayShort={m.away.abbr ?? m.away.name}
         previewSlug={m.preview ?? null}
         recapSlug={m.recap ?? null}
+        edgeBadges={m.edgeBadges}
         href={m.href}
         homePosition={m.home.position ?? null}
         awayPosition={m.away.position ?? null}
@@ -3125,6 +3148,8 @@ type NormalizedMatch = {
   liveStatusLabel: string | null;
   homeStarter: string | null;
   awayStarter: string | null;
+  /** 요소 우세 칩 — 선발·불펜·골리·모델 vs 시장 (순위 칩은 컴포넌트가 position 으로 붙임) */
+  edgeBadges: EdgeBadge[];
   soccerCtx: SoccerContext | null;
   soccerGoals: SoccerGoal[] | null;
   soccerCards: SoccerCard[] | null;
@@ -3236,6 +3261,7 @@ function renderCard(m: NormalizedMatch) {
       esportsCtx={m.esportsCtx}
       homeStarter={m.homeStarter}
       awayStarter={m.awayStarter}
+      edgeBadges={m.edgeBadges}
       href={m.href}
       actions={actionsFor(m)}
       liveCommentary={m.liveCommentary}

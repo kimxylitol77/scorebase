@@ -14,6 +14,8 @@
 
 "use client";
 
+import { rankBadge, type EdgeBadge } from "@/lib/scores/edge-badges";
+import EdgeBadgeChips from "../EdgeBadgeChips";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
@@ -61,6 +63,8 @@ export interface SoccerLiveRowProps {
   href?: string | null;
   /** 리그 순위 (TheSportsStandingsCache 기반) — 팀명 옆 [14] 표시. null 이면 미표시 */
   homePosition?: number | null;
+  /** 요소 우세 칩(모델 vs 시장 등) — 순위 칩은 position 으로 여기서 붙인다. 예정·진행 중만 표시. */
+  edgeBadges?: EdgeBadge[] | null;
   awayPosition?: number | null;
   /** FIFA 국가 랭킹 — 국가대항(친선/예선/대륙컵) 매치에서 리그 순위 대신 표시.
       position 이 우선, position 이 없을 때만 FIFA 랭킹 노출 ("FIFA N" 배지). */
@@ -118,6 +122,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     recapSlug,
     href,
     homePosition,
+    edgeBadges,
     awayPosition,
     homeFifaRank,
     awayFifaRank,
@@ -196,6 +201,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
+  // 요소 우세 칩 — 서버 계산분(모델 vs 시장 등) + 순위 칩. 좁은 칸이라 팀당 1개만, 예정·진행 중만.
+  const rankChip = rankBadge(homePosition, awayPosition);
+  const allBadges: EdgeBadge[] = [...(edgeBadges ?? []), ...(rankChip ? [rankChip] : [])];
+  const showEdge = !isFinished && !isPostponed && allBadges.length > 0;
 
   // 득점 감지 — LIVE 축구는 항상 켬. flashSide(골 임팩트)만 사용 — 점수 뒤 원형 halo 는 제거 (2026-08-30 사용자: 반복 발화 거슬림).
   const { flashSide } = useScoreFlash(
@@ -328,6 +337,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                 {fifaRank}
               </button>
             ) : null}
+            {showEdge && <EdgeBadgeChips badges={allBadges} side={awayFirst ? "away" : "home"} max={1} className="hidden shrink-0 sm:inline-flex" />}
             {showHomeBadge && (
               <span className="shrink-0 text-[9px] font-bold tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/15 rounded px-1 py-px">
                 홈
@@ -468,6 +478,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                 {fifaRank}
               </button>
             ) : null}
+            {showEdge && <EdgeBadgeChips badges={allBadges} side={awayFirst ? "home" : "away"} max={1} className="hidden shrink-0 sm:inline-flex" />}
             {isFlash && (
               <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
                 ⚽ GOAL

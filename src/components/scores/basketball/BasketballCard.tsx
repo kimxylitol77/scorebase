@@ -3,6 +3,8 @@
 // 종료: 쿼터별 점수 표만.
 // 예정: 매치업 + KST 시간만.
 
+import EdgeBadgeChips from "@/components/scores/EdgeBadgeChips";
+import type { EdgeBadge } from "@/lib/scores/edge-badges";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PeriodLinescore as PeriodData } from "@/lib/sports/live-scores";
@@ -21,6 +23,8 @@ export interface BasketballCardProps {
   /** "3Q 8:42" / "1Q" / "LIVE" 등 */
   liveStatusLabel?: string | null;
   periodLinescore?: PeriodData | null;
+  /** 요소 우세 칩(모델·순위) — 예정·진행 중만 표시 */
+  edgeBadges?: EdgeBadge[] | null;
   href?: string | null;
   actions?: ReactNode;
 }
@@ -63,11 +67,14 @@ export default function BasketballCard(props: BasketballCardProps) {
     timeLabel,
     liveStatusLabel,
     periodLinescore,
+    edgeBadges,
     href,
     actions,
   } = props;
 
   const isLive = status === "live";
+
+  const showEdge = (status === "scheduled" || status === "live") && !!edgeBadges?.length;
   const isFinished = status === "finished";
   const isScheduled = status === "scheduled";
   const isPostponed = status === "postponed";
@@ -199,6 +206,7 @@ export default function BasketballCard(props: BasketballCardProps) {
                 [{away.position}]
               </span>
             )}
+            {showEdge && <EdgeBadgeChips badges={edgeBadges ?? []} side="away" className="ml-1 align-middle" />}
           </div>
         </TeamNameCell>
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
@@ -236,6 +244,7 @@ export default function BasketballCard(props: BasketballCardProps) {
                 [{home.position}]
               </span>
             )}
+            {showEdge && <EdgeBadgeChips badges={edgeBadges ?? []} side="home" className="ml-1 align-middle" />}
           </div>
           <Logo url={home.logo} name={home.name} />
         </TeamNameCell>

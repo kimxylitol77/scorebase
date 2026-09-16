@@ -3,6 +3,8 @@
 
 "use client";
 
+import { rankBadge, type EdgeBadge } from "@/lib/scores/edge-badges";
+import EdgeBadgeChips from "./EdgeBadgeChips";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
@@ -65,6 +67,8 @@ export interface MatchCardProps {
   /** 야구 선발투수 */
   homeStarter?: string | null;
   awayStarter?: string | null;
+  /** 요소 우세 칩(선발·불펜·골리·모델) — 순위 칩은 position 으로 여기서 붙인다 */
+  edgeBadges?: EdgeBadge[] | null;
   /** 매치 클릭 시 이동할 url (LIVE 매치는 라이브 상세, 글 있으면 글) */
   href?: string | null;
   /** 우측 액션 (프리뷰/리뷰 칩 등) */
@@ -225,6 +229,7 @@ export default function MatchCard(props: MatchCardProps) {
     soccerCtx,
     esportsCtx,
     homeStarter,
+    edgeBadges,
     awayStarter,
     href,
     actions,
@@ -239,6 +244,9 @@ export default function MatchCard(props: MatchCardProps) {
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
+  // 요소 우세 칩 — 서버 계산분(선발·불펜·골리·모델) + 순위 칩(position 은 여기서만 안다)
+  const rank = rankBadge(home.position, away.position);
+  const allBadges: EdgeBadge[] = [...(edgeBadges ?? []), ...(rank ? [rank] : [])];
   // 시작 전 경기는 점수를 안 그린다 — 일부 소스가 예정 경기를 0-0 으로 실어 보낸다.
   const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   // 골 임팩트(축구) = 점수 기반 flashSide(6초). 긴 incident 윈도우(recentGoalSide, ~3분
@@ -267,6 +275,7 @@ export default function MatchCard(props: MatchCardProps) {
         baseballCtx={baseballCtx}
         homeStarter={homeStarter}
         awayStarter={awayStarter}
+        edgeBadges={allBadges}
         href={href}
         actions={actions}
         liveCommentary={liveCommentary}
@@ -279,6 +288,7 @@ export default function MatchCard(props: MatchCardProps) {
   if (sport === "basketball") {
     return (
       <BasketballCard
+        edgeBadges={allBadges}
         matchId={matchId}
         status={status}
         league={league}
@@ -317,6 +327,7 @@ export default function MatchCard(props: MatchCardProps) {
   if (sport === "hockey") {
     return (
       <HockeyCard
+        edgeBadges={allBadges}
         matchId={matchId}
         status={status}
         league={league}
@@ -443,6 +454,7 @@ export default function MatchCard(props: MatchCardProps) {
               {homeStarter}
             </div>
           )}
+          {!isFinished && !isPostponed && <EdgeBadgeChips badges={allBadges} side="home" />}
           {sport === "mma" && mma?.home.nickname && (
             <div className="truncate text-[10px] italic text-neutral-500 w-full">
               &lsquo;{mma.home.nickname}&rsquo;
@@ -491,6 +503,7 @@ export default function MatchCard(props: MatchCardProps) {
               {awayStarter}
             </div>
           )}
+          {!isFinished && !isPostponed && <EdgeBadgeChips badges={allBadges} side="away" />}
           {sport === "mma" && mma?.away.nickname && (
             <div className="truncate text-[10px] italic text-neutral-500 w-full">
               &lsquo;{mma.away.nickname}&rsquo;
