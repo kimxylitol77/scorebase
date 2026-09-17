@@ -8,6 +8,10 @@ import { predictMatchById, type PredictionResult } from "@/lib/predictionEngine"
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { aggregateVotes } from "@/lib/analysis/vote-ranking";
+import { buildVoteDigest } from "@/lib/vote-digest";
+import { isVoteMarket } from "@/lib/vote-markets";
 
 const KICKOFF_WINDOW_MIN = 35; // 킥오프 이 분 이내면 발송 (크론 주기보다 넉넉히)
 const LINEUP_WINDOW_MIN = 180; // 선발 라인업은 보통 킥오프 1시간 전 — 창을 넉넉히 잡고 로그로 1회 제한
@@ -103,9 +107,10 @@ export async function dispatchTelegramAlerts() {
   // 여러 개 있어서, 뒤에 두면 즐겨찾기가 없거나 대상 경기가 없는 날 통째로 건너뛴다.
   const followPickSent = await dispatchFollowPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
   const botDigestSent = await dispatchMyBotPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
+  const voteResultSent = await dispatchVoteResults(now, users, () => sent < MAX_SENDS, (n) => { sent += n; });
   const oddsSent = await dispatchOddsMoves(now, users, followersByTeam, followersByMatch, () => sent < MAX_SENDS, (n) => { sent += n; });
   const oddsDigestSent = await dispatchOddsDigest(now, users, () => sent < MAX_SENDS, (n) => { sent += n; });
-  const indep = { followPick: followPickSent, botDigest: botDigestSent, oddsMove: oddsSent, oddsDigest: oddsDigestSent };
+  const indep = { followPick: followPickSent, botDigest: botDigestSent, voteResult: voteResultSent, oddsMove: oddsSent, oddsDigest: oddsDigestSent };
 
   if (teamIds.length === 0 && followedMatchIds.length === 0) {
     return { users: users.length, follows: 0, ...indep, sent };
@@ -677,6 +682,110 @@ async function dispatchFollowPicks(
     }
   }
   return sent;
+}
+
+/**
+ * 승부예측 채점 결과 다이제스트 — 회원의 표가 채점(correct 채움)된 뒤 한 번, 표별로 ✅/❌ 와 누적·투표 랭킹 순위.
+ * 중복 방지 = TelegramAlertLog(kind="VOTE_RESULT", matchId="vote:{voteId}") — 표 단위라 어떤 주기로 돌아도 두 번 안 간다.
+ * 대상 = 텔레그램 연결 회원의 최근 3일 킥오프 경기 표. dryRun 이면 발송·기록 없이 문안만 돌려준다(검증용).
+ */
+export async function dispatchVoteResults(
+  now: Date,
+  users: Array<{ id: string; telegramChatId: string | null }>,
+  canSend: () => boolean,
+  addSent: (n: number) => void,
+  opts: { dryRun?: boolean } = {},
+): Promise<number | Array<{ userId: string; text: string }>> {
+  const chatOf = new Map(users.filter((u) => u.telegramChatId).map((u) => [u.id, u.telegramChatId!]));
+  if (chatOf.size === 0) return opts.dryRun ? [] : 0;
+  const since = new Date(now.getTime() - 3 * 86_400_000);
+  const scored = await prisma.matchVote.findMany({
+    where: { userId: { in: [...chatOf.keys()] }, correct: { not: null }, createdAt: { gte: new Date(now.getTime() - 14 * 86_400_000) } },
+    select: { id: true, userId: true, matchId: true, market: true, pick: true, line: true, correct: true },
+  });
+  if (scored.length === 0) return opts.dryRun ? [] : 0;
+  const matches = await prisma.match.findMany({
+    where: { id: { in: [...new Set(scored.map((v) => v.matchId))] }, startTime: { gte: since, lte: now } },
+    select: { id: true, league: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+  });
+  const matchOf = new Map(matches.map((m) => [m.id, m]));
+  const recent = scored.filter((v) => matchOf.has(v.matchId));
+  if (recent.length === 0) return opts.dryRun ? [] : 0;
+  const logged = new Set(
+    (
+      await prisma.telegramAlertLog.findMany({
+        where: { kind: "VOTE_RESULT", matchId: { in: recent.map((v) => `vote:${v.id}`) } },
+        select: { matchId: true },
+      })
+    ).map((l) => l.matchId),
+  );
+  const pending = recent.filter((v) => !logged.has(`vote:${v.id}`));
+  if (pending.length === 0) return opts.dryRun ? [] : 0;
+
+  // 누적·순위 — 전체 채점 표로 한 번만 집계(투표 랭킹과 같은 산식)
+  const allScored = await prisma.matchVote.findMany({
+    where: { userId: { not: null }, correct: { not: null } },
+    select: { userId: true, market: true, correct: true, pickOdds: true, clv: true, createdAt: true },
+  });
+  const toInput = (rows: typeof allScored) => rows.map((v) => ({ userId: v.userId!, market: v.market, correct: v.correct!, pickOdds: v.pickOdds, clv: v.clv, at: v.createdAt }));
+  const rankAll = aggregateVotes(toInput(allScored));
+  const kst = new Date(now.getTime() + 9 * 3600_000);
+  const monthStart = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), 1) - 9 * 3600_000);
+  const rankMonth = aggregateVotes(toInput(allScored.filter((v) => v.createdAt >= monthStart)));
+  const posAll = new Map(rankAll.map((r, i) => [r.userId, i + 1]));
+  const posMonth = new Map(rankMonth.map((r, i) => [r.userId, i + 1]));
+  const cum = new Map<string, { total: number; hit: number }>();
+  for (const v of allScored) {
+    const c = cum.get(v.userId!) ?? { total: 0, hit: 0 };
+    c.total++;
+    if (v.correct) c.hit++;
+    cum.set(v.userId!, c);
+  }
+
+  const byUser = new Map<string, typeof pending>();
+  for (const v of pending) (byUser.get(v.userId!) ?? byUser.set(v.userId!, []).get(v.userId!)!).push(v);
+  const previews: Array<{ userId: string; text: string }> = [];
+  let sentN = 0;
+  for (const [userId, votes] of byUser) {
+    const chatId = chatOf.get(userId);
+    if (!chatId) continue;
+    if (!opts.dryRun && !canSend()) break;
+    const text = buildVoteDigest({
+      votes: votes.map((v) => {
+        const m = matchOf.get(v.matchId)!;
+        return {
+          league: m.league,
+          home: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
+          away: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+          market: isVoteMarket(v.market) ? v.market : "1X2",
+          pick: v.pick,
+          line: v.line,
+          correct: v.correct!,
+        };
+      }),
+      totalAll: cum.get(userId)?.total ?? 0,
+      hitAll: cum.get(userId)?.hit ?? 0,
+      rankAll: posAll.get(userId) ?? null,
+      rankedCount: rankAll.length,
+      rankMonth: posMonth.get(userId) ?? null,
+      siteUrl: SITE_URL,
+      leagueLabel: (lg) => LEAGUE_DISPLAY[lg] ?? lg,
+      esc,
+    });
+    if (opts.dryRun) {
+      previews.push({ userId, text });
+      continue;
+    }
+    const ok = await sendTelegramTo(chatId, text);
+    if (!ok) continue;
+    await prisma.telegramAlertLog.createMany({
+      data: votes.map((v) => ({ userId, matchId: `vote:${v.id}`, kind: "VOTE_RESULT" })),
+      skipDuplicates: true,
+    });
+    sentN++;
+    addSent(1);
+  }
+  return opts.dryRun ? previews : sentN;
 }
 
 /**
