@@ -6,11 +6,14 @@
 //
 // 접힘/펼침은 <details>/<summary> — 상태가 하나뿐이라 client 컴포넌트로 만들 이유가 없다.
 // 펼치면 같은 경기의 핸디캡·언더오버·홀짝·승N패 라인이 나온다.
+//
+// 카드는 한 줄형(2026-09-17 개편, 머니볼랩스 참고): 왼쪽 [홈 로고·이름][승·무·패 배당][원정], 오른쪽 [투표 막대 + 우세 표시 + 배당 확률].
+// sm: 덮어쓰기를 무력화하는 윈도우 환경 실사례(8/16·8/22) 때문에 반응형 변형 대신 flex-wrap + basis 로 접는다.
 
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { betmanRenderNow, type BetmanMatch, type BetmanLine } from "@/lib/odds/betman";
-import BetmanTeamsRow from "./BetmanTeamsRow";
+import TeamName from "./BetmanTeamName";
 
 const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구", VL: "배구" };
 
@@ -34,26 +37,79 @@ function votePct(line: BetmanLine) {
   return { w: (w / total) * 100, d: (d / total) * 100, l: (l / total) * 100, total };
 }
 
-/** 국내 투표 분포 — 이 화면의 주인공이라 굵게 잡고 % 를 막대 안에 박는다. */
-function VoteBar({ pct, hasDraw }: { pct: { w: number; d: number; l: number }; hasDraw: boolean }) {
-  const seg = [
-    { v: pct.w, cls: "bg-rose-500" },
-    ...(hasDraw ? [{ v: pct.d, cls: "bg-neutral-400 dark:bg-neutral-500" }] : []),
-    { v: pct.l, cls: "bg-blue-500" },
-  ];
+/** 베트맨 원본에 "일본_여자" 처럼 언더스코어가 섞여 온다 — 표시할 때만 공백으로 편다. */
+const teamLabel = (s: string) => s.replace(/_/g, " ");
+
+function TeamLogo({ url, name }: { url: string | null; name: string }) {
+  if (url) {
+    return (
+      // 외부 도메인 로고가 섞여 있어 next/image 최적화 대상이 아니다 (/scores 팀로고와 동일).
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={url} alt="" loading="lazy" className="h-7 w-7 shrink-0 rounded bg-white object-contain p-0.5" />
+    );
+  }
   return (
-    <div className="flex h-6 w-full overflow-hidden rounded-md bg-neutral-100 dark:bg-neutral-800">
-      {seg.map((s, i) => (
-        <div
-          key={i}
-          style={{ width: `${s.v}%` }}
-          className={`flex items-center justify-center text-[11px] font-bold text-white ${s.cls}`}
-        >
-          {/* 좁은 조각에 숫자를 넣으면 깨진다 — 12% 미만은 숫자 생략 */}
-          {s.v >= 12 ? `${Math.round(s.v)}%` : ""}
-        </div>
-      ))}
+    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-bold text-neutral-400 dark:bg-neutral-800">
+      {name.slice(0, 1)}
+    </span>
+  );
+}
+
+/**
+ * 국내 투표 분포 — 이 화면의 주인공. 막대 위에 홈·무·원정 % 를 두고 가장 큰 쪽에 ▲.
+ * 배당 확률(마진 제거)을 바로 아래 같은 순서로 놓아 "여론 vs 시장" 이 한눈에 비교된다.
+ */
+function VotePanel({ pct, imp, hasDraw, total }: { pct: { w: number; d: number; l: number } | null; imp: { w: number; d: number; l: number } | null; hasDraw: boolean; total: number | null }) {
+  const cols = hasDraw ? (["w", "d", "l"] as const) : (["w", "l"] as const);
+  const label = { w: "홈", d: "무", l: "원정" } as const;
+  const tone = { w: "text-rose-600 dark:text-rose-400", d: "text-amber-600 dark:text-amber-400", l: "text-blue-600 dark:text-blue-400" } as const;
+  const bar = { w: "bg-rose-500", d: "bg-amber-400", l: "bg-blue-500" } as const;
+  const top = pct ? cols.reduce((a, k) => (pct[k] > pct[a] ? k : a), cols[0]) : null;
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <div className="flex items-center justify-between gap-2 text-[11px] font-semibold tabular-nums">
+        {cols.map((k) => (
+          <span key={k} className={`${tone[k]} ${k === "d" ? "text-center" : k === "l" ? "text-right" : ""}`}>
+            {k === "l" && top === k && "▲ "}
+            {label[k]} {pct ? `${Math.round(pct[k])}%` : "—"}
+            {k !== "l" && top === k && " ▲"}
+          </span>
+        ))}
+      </div>
+      <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+        {pct
+          ? cols.map((k) => <div key={k} style={{ width: `${pct[k]}%` }} className={`rounded-full ${bar[k]}`} />)
+          : null}
+      </div>
+      <div className="flex items-center justify-between gap-2 text-[10px] tabular-nums text-neutral-400">
+        <span>{pct && total != null ? `국내 투표 ${total.toLocaleString()}표` : "투표 집계 없음"}</span>
+        {imp && (
+          <span title="배당을 확률로 바꾼 값(마진 제거). 투표 비율과 벌어진 경기가 여론과 시장이 다르게 보는 경기">
+            배당 확률 {cols.map((k) => Math.round(imp[k])).join(" · ")}%
+          </span>
+        )}
+      </div>
     </div>
+  );
+}
+
+const ODDS_TONE = { w: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", d: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300", l: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" } as const;
+
+/** 승·무·패 배당 알약 — 팀 사이에 놓인다. */
+function OddsPills({ m }: { m: BetmanMatch }) {
+  const hasDraw = m.drawAllot != null;
+  const pill = (k: "w" | "d" | "l", v: number | null, lab: string) => (
+    <span key={k} className={`inline-flex min-w-[52px] flex-col items-center rounded-md px-1.5 py-1 leading-none ${ODDS_TONE[k]}`}>
+      <span className="text-[9px] font-medium opacity-70">{lab}</span>
+      <span className="mt-0.5 text-[13px] font-bold tabular-nums">{fmtOdds(v)}</span>
+    </span>
+  );
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1">
+      {pill("w", m.winAllot, "승")}
+      {hasDraw && pill("d", m.drawAllot, "무")}
+      {pill("l", m.loseAllot, "패")}
+    </span>
   );
 }
 
@@ -249,7 +305,7 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
               key={m.key}
               className="group overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
             >
-              <summary className="cursor-pointer list-none px-3 py-3 [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer list-none px-3.5 py-2.5 [&::-webkit-details-marker]:hidden">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
                   {/* 프로토 경기번호 — 한국 구매자는 팀명이 아니라 이 번호로 경기를 찾는다(2026-09-11). */}
                   <span className="rounded bg-neutral-900 px-1.5 py-px font-bold tabular-nums text-white dark:bg-white dark:text-neutral-900">
@@ -295,40 +351,26 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
                   )}
                 </div>
 
-                {/* 팀 + 배당. 레이아웃은 BetmanTeamsRow 가 JS(matchMedia)로 고른다 —
-                    일부 윈도우 환경이 sm: 덮어쓰기를 무력화하는 실사례 2건(8/16 grid, 8/22 flex-row). */}
-                <BetmanTeamsRow
-                  homeLogo={m.homeLogo}
-                  homeName={m.homeName}
-                  homeHref={m.homeTeamId != null ? `/teams/${m.homeTeamId}` : null}
-                  awayLogo={m.awayLogo}
-                  awayName={m.awayName}
-                  awayHref={m.awayTeamId != null ? `/teams/${m.awayTeamId}` : null}
-                  winAllot={m.winAllot}
-                  drawAllot={m.drawAllot}
-                  loseAllot={m.loseAllot}
-                />
-
-                {/* 국내 투표 분포 — 이 화면의 주인공 */}
-                <div className="mt-2.5">
-                  {pct ? (
-                    <>
-                      <VoteBar pct={pct} hasDraw={hasDraw} />
-                      <div className="mt-1 flex items-center gap-2 text-[10px] tabular-nums text-neutral-400">
-                        <span className="font-semibold text-neutral-500 dark:text-neutral-400">
-                          국내 투표 {pct.total.toLocaleString()}표
-                        </span>
-                        {imp && (
-                          <span className="ml-auto">
-                            배당 기준 확률 {Math.round(imp.w)}
-                            {hasDraw ? ` · ${Math.round(imp.d)}` : ""} · {Math.round(imp.l)}%
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-[10px] text-neutral-400">투표 집계 없음</div>
-                  )}
+                {/* 본체 — 왼쪽 [홈][배당 알약][원정], 오른쪽 [투표 막대]. flex-wrap + basis 로 좁으면 세로로 접힌다(sm: 변형 없음). */}
+                <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-3">
+                  <div className="flex min-w-0 grow basis-[300px] items-center gap-2">
+                    <div className="flex min-w-0 flex-1 items-center justify-end gap-2 text-right">
+                      <TeamName href={m.homeTeamId != null ? `/teams/${m.homeTeamId}` : null} className="line-clamp-2 break-keep text-[13px] font-semibold leading-tight text-neutral-800 dark:text-neutral-100">
+                        {teamLabel(m.homeName)}
+                      </TeamName>
+                      <TeamLogo url={m.homeLogo} name={m.homeName} />
+                    </div>
+                    <OddsPills m={m} />
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <TeamLogo url={m.awayLogo} name={m.awayName} />
+                      <TeamName href={m.awayTeamId != null ? `/teams/${m.awayTeamId}` : null} className="line-clamp-2 break-keep text-[13px] font-semibold leading-tight text-neutral-800 dark:text-neutral-100">
+                        {teamLabel(m.awayName)}
+                      </TeamName>
+                    </div>
+                  </div>
+                  <div className="min-w-0 grow basis-[240px]">
+                    <VotePanel pct={pct} imp={imp} hasDraw={hasDraw} total={pct?.total ?? null} />
+                  </div>
                 </div>
               </summary>
 
