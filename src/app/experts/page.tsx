@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getOverallRanking, getMonthlyRanking, getFollowRanking, type RankRow } from "@/lib/analysis/ranking";
 import { prisma } from "@/lib/db";
 import ExpertRow from "@/components/experts/ExpertRow";
+import VoteRankRow from "@/components/experts/VoteRankRow";
+import { getVoteRanking, VOTE_RANK_MIN, type VoteRankRow as VoteRow } from "@/lib/analysis/vote-ranking";
 import AiBenchmark from "@/components/experts/AiBenchmark";
 import { Trophy, Target } from "lucide-react";
 
@@ -19,12 +21,15 @@ export const metadata: Metadata = {
 };
 
 interface Props {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; period?: string }>;
 }
 
 export default async function ExpertsPage({ searchParams }: Props) {
-  const { tab } = await searchParams;
+  const { tab, period } = await searchParams;
   const monthly = tab === "monthly";
+  // 투표 랭킹 — /picks 승부예측 투표(승부·핸디캡·오버언더)의 채점 결과. 예측글을 안 쓰는 회원도 클릭 한 번으로 순위에 오른다(2026-09-17).
+  const votesTab = tab === "votes";
+  const votePeriod = period === "month" ? "month" : "all";
 
   // 팔로워 수 — 보조 지표 (0이면 행에서 숨김). 주 랭킹은 Wilson 적중률 유지.
   const followCounts = await prisma.userAnalystFollow.groupBy({
@@ -39,11 +44,14 @@ export default async function ExpertsPage({ searchParams }: Props) {
   const showFollowTab = totalFollows >= FOLLOW_TAB_MIN;
   const followTab = tab === "follow" && showFollowTab;
 
-  const rows: RankRow[] = followTab
-    ? await getFollowRanking(100)
-    : monthly
-      ? await getMonthlyRanking(100)
-      : await getOverallRanking(100);
+  const rows: RankRow[] = votesTab
+    ? []
+    : followTab
+      ? await getFollowRanking(100)
+      : monthly
+        ? await getMonthlyRanking(100)
+        : await getOverallRanking(100);
+  const voteRows: VoteRow[] = votesTab ? await getVoteRanking(votePeriod, 100) : [];
 
   return (
     <main className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
@@ -100,7 +108,7 @@ export default async function ExpertsPage({ searchParams }: Props) {
         <Link
           href="/experts"
           className={`flex-1 text-center py-2.5 rounded-full text-sm font-bold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            !monthly && !followTab
+            !monthly && !followTab && !votesTab
               ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
               : "bg-white/60 text-neutral-500 ring-black/10 hover:bg-white dark:bg-white/5 dark:ring-white/15 dark:hover:bg-white/10"
           }`}
@@ -117,6 +125,16 @@ export default async function ExpertsPage({ searchParams }: Props) {
         >
           월간 랭킹
         </Link>
+        <Link
+          href="/experts?tab=votes"
+          className={`flex-1 text-center py-2.5 rounded-full text-sm font-bold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            votesTab
+              ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
+              : "bg-white/60 text-neutral-500 ring-black/10 hover:bg-white dark:bg-white/5 dark:ring-white/15 dark:hover:bg-white/10"
+          }`}
+        >
+          투표 랭킹
+        </Link>
         {showFollowTab && (
           <Link
             href="/experts?tab=follow"
@@ -131,7 +149,35 @@ export default async function ExpertsPage({ searchParams }: Props) {
         )}
       </div>
 
-      {rows.length === 0 ? (
+      {votesTab && (
+        <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+          <span className="text-neutral-500">
+            <Link href="/picks" className="font-semibold text-rose-600 hover:underline dark:text-rose-400">승부예측</Link>에서 투표한 승부·핸디캡·오버언더 픽의 채점 결과. 채점 {VOTE_RANK_MIN}표 이상.
+          </span>
+          <span className="flex shrink-0 gap-1">
+            {(["all", "month"] as const).map((p) => (
+              <Link
+                key={p}
+                href={p === "all" ? "/experts?tab=votes" : "/experts?tab=votes&period=month"}
+                className={`rounded-full px-2.5 py-1 font-semibold ring-1 ${votePeriod === p ? "bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900 dark:ring-white" : "text-neutral-500 ring-black/10 dark:ring-white/15"}`}
+              >
+                {p === "all" ? "전체" : "이번 달"}
+              </Link>
+            ))}
+          </span>
+        </div>
+      )}
+      {votesTab ? (
+        voteRows.length === 0 ? (
+          <p className="text-sm text-neutral-500 py-20 text-center">아직 채점된 투표가 {VOTE_RANK_MIN}표 이상인 회원이 없습니다. 승부예측에서 오늘 경기에 투표해 보세요.</p>
+        ) : (
+          <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] divide-y divide-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:divide-white/5 dark:shadow-none">
+            {voteRows.map((r, i) => (
+              <VoteRankRow key={r.userId} row={r} index={i} />
+            ))}
+          </div>
+        )
+      ) : rows.length === 0 ? (
         <p className="text-sm text-neutral-500 py-20 text-center">
           {followTab
             ? "아직 팔로워가 있는 분석가가 없습니다. 마음에 드는 분석가의 프로필에서 팔로우해 보세요."
@@ -151,7 +197,9 @@ export default async function ExpertsPage({ searchParams }: Props) {
       )}
 
       <p className="mt-4 text-xs text-neutral-400 text-center">
-        {followTab
+        {votesTab
+          ? "적중률은 표본을 반영한 윌슨 보정으로 정렬 · 수익률은 픽 시점 배당에 1표 1유닛 · 참고용이며 베팅을 권유하지 않습니다"
+          : followTab
           ? "팔로워 수 기준 · 팔로우하면 새 픽을 텔레그램으로 받아봅니다"
           : monthly
             ? "이번 달 채점 완료된 예측 기준"
