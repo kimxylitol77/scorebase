@@ -344,6 +344,15 @@ model PageView {
 /// 현재 접속 상태 — PageView와 분리된 탭 heartbeat.
 /// 한 사용자가 여러 탭을 열 수 있으므로 tabId를 PK로 두고, 관리자 집계에서는
 /// sessionId로 중복 제거한다. 오래된 row는 lastSeenAt 윈도우 밖이면 자동 제외된다.
+/// 일별 사람 트래픽 — 봇·위장 스크레이퍼 제외(lib/traffic-filter dailyCleanStats, 그날 PV 만으로 판정).
+/// /admin/stats 일별 표와 오늘·어제 KPI 의 단일 출처. cron daily-traffic 이 매일 어제·그제분을 채운다.
+model DailyTraffic {
+  day       String   @id // KST YYYY-MM-DD
+  visitors  Int
+  pv        Int
+  updatedAt DateTime @updatedAt
+}
+
 model ActivePresence {
   tabId       String   @id
   sessionId   String

@@ -325,6 +325,10 @@
       "schedule": "0 23 * * 0"
     },
     {
+      "path": "/api/cron/daily-traffic",
+      "schedule": "10 15 * * *"
+    },
+    {
       "path": "/api/cron/indexnow",
       "schedule": "0 1 * * *"
     },

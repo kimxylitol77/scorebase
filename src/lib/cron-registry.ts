@@ -73,6 +73,7 @@ export const CRON_REGISTRY: {
   { name: "player-match-logs", label: "선수 경기별 출전 로그", maxAgeH: 28, zeroAlertAfter: 4 },
   { name: "indexnow", label: "IndexNow 색인", maxAgeH: 28 },
   { name: "presence-cleanup", label: "실시간 접속 만료 정리", maxAgeH: 28 },
+  { name: "daily-traffic", label: "일별 사람 트래픽 저장 (admin/stats)", maxAgeH: 28 },
   // ── 2026-08-19 전수 스캔으로 발견된 미등록분 — vercel 에 살아 있는데 죽어도 알림이 없었다.
   //    player-match-logs 가 이 상태로 한 달 침묵했던 것과 같은 클래스(감시 사각).
   { name: "telegram-alerts", label: "회원 텔레그램 경기 알림", maxAgeH: 2 }, // 2분 주기

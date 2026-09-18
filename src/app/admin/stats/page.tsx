@@ -21,6 +21,7 @@ import {
 import { computeRangeStats } from "@/lib/admin/stats-range";
 import { detectBot, type BotCategory } from "@/lib/bot-detect";
 import { suspiciousSessionIds } from "@/lib/traffic-filter";
+import { getDailyTraffic } from "@/lib/admin/daily-traffic";
 import {
   classifyLanding,
   CHANNEL_META,
@@ -69,7 +70,7 @@ export default async function StatsPage() {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, totalAll, landing14Raw, memberPvRaw, allUsers, gsc, bing, dayUaAgg, hourUaAgg, landingAgg, initialStats] = await Promise.all([
+  const [recent30Raw, totalAll, landing14Raw, memberPvRaw, allUsers, gsc, bing, dayUaAgg, hourUaAgg, landingAgg, initialStats, dailyTraffic] = await Promise.all([
     // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
     // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
     // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전. 30일 차트는 2026-09-12 부터 SQL 집계(dayUaAgg)라 잘림 무관.
@@ -100,9 +101,10 @@ export default async function StatsPage() {
     getGscOverview(),
     getBingOverview(),
     // 항상 전체 기간(첫 기록 2026-05-09 부터, 8.8k 그룹·1.8s) — 카드 안 탭이 7일·30일·전체를 즉시 바꾼다(페이지 재요청 없음).
-    prisma.$queryRaw<Array<{ day: string; ua: string | null; pv: number; visitors: number }>>`
+    // 봇 일별 차트용 — 사람 쪽은 getDailyTraffic(봇·위장 스크레이퍼 제외)이 정본이다.
+    prisma.$queryRaw<Array<{ day: string; ua: string | null; pv: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day, "userAgent" AS ua,
-             count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
+             count(*)::int AS pv
       FROM "PageView" GROUP BY 1, 2`,
     prisma.$queryRaw<Array<{ hour: string; ua: string | null; pv: number; visitors: number }>>`
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'HH24') AS hour, "userAgent" AS ua,
@@ -117,6 +119,8 @@ export default async function StatsPage() {
       FROM "PageView" WHERE "isLanding" = true GROUP BY 1, 2, 3, 4`,
     // 기간 카드 초기값(7일) — 나머지 기간은 클라이언트가 API 로 받는다. 계산은 lib/admin/stats-range 한 곳.
     computeRangeStats(range),
+    // 일별 사람 방문자·PV — 봇·위장 스크레이퍼 제외. 위 KPI 의 오늘·어제와 같은 출처.
+    getDailyTraffic(now),
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -154,12 +158,12 @@ export default async function StatsPage() {
     botByDay.set(d, 0);
   }
   for (const g of dayUaAgg) {
-    if (detectBot(g.ua).isBot) {
-      if (botByDay.has(g.day)) botByDay.set(g.day, (botByDay.get(g.day) ?? 0) + g.pv);
-      continue;
-    }
-    const b = humanByDay.get(g.day);
-    if (b) { b.views += g.pv; b.visitors += g.visitors; }
+    if (detectBot(g.ua).isBot && botByDay.has(g.day)) botByDay.set(g.day, (botByDay.get(g.day) ?? 0) + g.pv);
+  }
+  // 사람 — 봇 UA 만 거르던 (일, UA) 합계는 위장 스크레이퍼까지 세어 KPI 와 갈렸다(2026-09-17 어제 1,875 vs 420).
+  for (const [d, v] of dailyTraffic) {
+    const b = humanByDay.get(d);
+    if (b) { b.views = v.pv; b.visitors = v.visitors; }
   }
   const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
   const allDaily = Array.from(humanByDay.entries()).map(([d, v]) => ({
@@ -357,7 +361,7 @@ export default async function StatsPage() {
 
         <DeviceCard />
 
-        <SectionCard title="방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇 제외) · 방문자 = 그날 고유 세션(날짜별 합이라 위 KPI 의 기간 고유 방문자보다 큼)">
+        <SectionCard title="방문자 · 페이지뷰" subtitle="일별 · 사람만 (봇·위장 스크레이퍼 제외, 위 KPI 오늘·어제와 같은 값) · 방문자 = 그날 고유 세션(날짜별 합이라 위 KPI 의 기간 고유 방문자보다 큼)">
           <SectionRangeTabs
             id="daily"
             panels={{ "7d": <DailyPanel p={dailyPanels["7d"]} />, "30d": <DailyPanel p={dailyPanels["30d"]} />, all: <DailyPanel p={dailyPanels.all} /> }}

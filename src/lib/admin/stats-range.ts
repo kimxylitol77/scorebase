@@ -7,6 +7,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
 import { suspiciousSessionIds, concurrentSeries, concurrentByDay } from "@/lib/traffic-filter";
+import { getDailyTraffic } from "@/lib/admin/daily-traffic";
 import { detectDevice, type DeviceType } from "@/lib/device-detect";
 import { classifyLanding, extractSearchQuery, aiServiceOf, AI_SERVICES, type TrafficChannel } from "@/lib/referrer-channel";
 
@@ -76,7 +77,7 @@ export async function computeRangeStats(range: StatsRange): Promise<RangeStats> 
   // (2026-09 실측 30d 27만·전체 48만 — 30d·전체는 잘린다. 잘리지 않는 카드는 page.tsx 의 SQL 집계 쪽으로 옮기는 중.)
   const rangeWhere = range === "all" ? {} : { ts: { gte: range === "30d" ? last30 : last7 } };
   const rangeTake = range === "all" ? 300000 : range === "30d" ? 200000 : 100000;
-  const [rangeRaw, landingRaw, aiSvcRaw] = await Promise.all([
+  const [rangeRaw, landingRaw, aiSvcRaw, dailyTraffic] = await Promise.all([
     prisma.pageView.findMany({
       where: rangeWhere,
       select: { ts: true, path: true, userAgent: true, sessionId: true, host: true },
@@ -103,6 +104,8 @@ export async function computeRangeStats(range: StatsRange): Promise<RangeStats> 
       take: 20000,
       orderBy: { ts: "desc" },
     }),
+    // 오늘·어제 KPI — 일별 표와 같은 출처(그날 PV 만으로 판정). 탭(7일·30일·전체)과 무관하게 같은 값.
+    getDailyTraffic(now),
   ]);
 
   const humansRange = rangeRaw.filter((r) => !detectBot(r.userAgent).isBot);
@@ -131,12 +134,8 @@ export async function computeRangeStats(range: StatsRange): Promise<RangeStats> 
     });
   })();
 
-  const countIn = (from: Date, to?: Date) => humansClean.filter((r) => r.ts >= from && (!to || r.ts < to)).length;
-  const uniqueIn = (from: Date, to?: Date) => {
-    const ids = new Set<string>();
-    for (const r of humansClean) if (r.ts >= from && (!to || r.ts < to) && r.sessionId) ids.add(r.sessionId);
-    return ids.size;
-  };
+  const todayT = dailyTraffic.get(dayKeyKst(today00KST)) ?? { visitors: 0, pv: 0 };
+  const yesterdayT = dailyTraffic.get(dayKeyKst(yesterday00KST)) ?? { visitors: 0, pv: 0 };
 
   // 실제 체류·이탈률 — sessionId 는 영구 방문자 ID 라 30분 공백을 세션 경계로 쓴다. 이탈 = PV 1개짜리 세션.
   const SESSION_GAP_MS = 30 * 60 * 1000;
@@ -255,10 +254,10 @@ export async function computeRangeStats(range: StatsRange): Promise<RangeStats> 
   return {
     range,
     label: STATS_RANGE_LABEL[range],
-    todayPV: countIn(today00KST),
-    todayUnique: uniqueIn(today00KST),
-    yesterdayPV: countIn(yesterday00KST, today00KST),
-    yesterdayUnique: uniqueIn(yesterday00KST, today00KST),
+    todayPV: todayT.pv,
+    todayUnique: todayT.visitors,
+    yesterdayPV: yesterdayT.pv,
+    yesterdayUnique: yesterdayT.visitors,
     rangePV: humansClean.length,
     rangeUnique: new Set(humansClean.map((r) => r.sessionId).filter(Boolean)).size,
     sessionCount,
