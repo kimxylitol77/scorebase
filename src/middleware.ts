@@ -29,6 +29,11 @@ const RATE_LIMIT_EXEMPT_IPS = new Set(["86.38.94.116"]);
 // 이 데이터센터에서 올 일은 없어 /16 째로 막는다. 대역을 옮겨 오면 여기에 추가한다.
 const BLOCKED_IP_PREFIXES = ["43.119.", "47.82."];
 
+// 위장 스크레이퍼의 헤더 지문 — IP 를 바꿔 와도 잡는다. 진짜 크롬은 sec-ch-ua-platform 을 따옴표 포함
+// "macOS" 로 보낸다(Safari·Firefox 는 아예 안 보냄). 따옴표 없는 Mac OS X 는 사람이 손으로 적은 값이다.
+// 2026-09-18 실측: 알리바바 대역 차단 뒤 같은 UA(Mac Chrome/145)가 다른 IP 로 돌아와 실시간 접속 38세션을 만들었다.
+const FAKE_CLIENT_HINT_PLATFORMS = new Set(["Mac OS X"]);
+
 export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const path = req.nextUrl.pathname;
   const host = (req.headers.get("host") || "").toLowerCase();
@@ -36,13 +41,19 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const isScoreBaseCom = SCOREBASE_COM_HOSTS.some((h) => host.includes(h));
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
-  if (BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
-    // 추적 표식(canary) — 403 대신 표식이 든 미끼 페이지를 준다. 이 대역만 받으므로 사람·검색엔진은
+  const fakeHint = FAKE_CLIENT_HINT_PLATFORMS.has(req.headers.get("sec-ch-ua-platform") ?? "");
+  if (fakeHint || BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
+    // 추적 표식(canary) — 403 대신 표식이 든 미끼 페이지를 준다. 차단 대역·가짜 지문만 받으므로 사람·검색엔진은
     // 보지 않고, DB 를 안 쓰는 고정 응답이라 비용은 403 과 같다(이 봇은 403 에도 초당 20건을 계속 보냈다).
     // 표식은 /24 대역마다 달라 어디에 다시 올라왔는지 찾으면 어느 대역이 가져갔는지까지 역산된다.
-    // 역산: "SBTR" 뒤 문자열을 36진수로 읽어 a*65536+b*256+c → a.b.c.0/24.
-    const [a, b, c] = clientIp.split(".").map(Number);
-    const mark = `SBTR${(a * 65536 + b * 256 + c).toString(36).toUpperCase()}`;
+    // 역산: "SBTR" 뒤 문자열을 36진수로 읽어 a*65536+b*256+c → a.b.c.0/24. IPv6 는 "SBTR6" + 앞 3그룹(/48).
+    const oct = clientIp.split(".").map(Number);
+    const mark =
+      oct.length === 4 && oct.every((n) => Number.isInteger(n))
+        ? `SBTR${(oct[0] * 65536 + oct[1] * 256 + oct[2]).toString(36).toUpperCase()}`
+        : `SBTR6${clientIp.split(":").slice(0, 3).join("").toUpperCase()}`;
+    // 임시 진단(2026-09-18) — 알리바바 차단 뒤 옮겨 간 IP 확인용. 확인 후 제거.
+    if (fakeHint) console.warn(`[fake-hint] ip=${clientIp} path=${path} mark=${mark}`);
     return new NextResponse(
       `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>스코어베이스 경기 데이터 ${mark}</title></head>` +
         `<body><h1>스코어베이스 경기 데이터</h1><p>오늘의 경기 분석 데이터 참조번호 ${mark}. 출처 scorebase.kr</p></body></html>`,
