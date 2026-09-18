@@ -1,19 +1,15 @@
 // 기타 종목 허브 — 하키·배구·e스포츠·테니스·골프·F1·UFC 진입점.
 // 축구·야구·농구는 각자 허브(/soccer·/baseball·/basketball)가 있고, 나머지 종목은
 // 개별 허브가 없거나(배구·테니스·골프·F1) 메뉴에서 빠져 있어 한 곳에 모은다.
-// 각 카드 = 라이브 스코어 + 그 종목의 심화 콘텐츠(순위·랭킹·트래커) 링크.
+// 각 카드 = 라이브 스코어 + 그 종목의 심화 콘텐츠(순위·일정·선수·랭킹) 링크. 일정은 리그 페이지 일정 탭이 맡는다.
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
-import TeamBadge from "@/components/TeamBadge";
 import { SITE_URL } from "@/lib/site-url";
-import { prisma } from "@/lib/db";
-import { toKoreanTeamName } from "@/lib/team-names";
-import { LEAGUE_DISPLAY, leaguesForSport, LOL_LEAGUES, type SportCode } from "@/lib/sports/sport-leagues";
 
-// LIVE 스코어가 섞이는 일정 섹션이라 1시간은 너무 낡는다 — 10분.
-export const revalidate = 600;
+// 정적 카드만 남았다(일정 섹션은 2026-09-18 제거 — 일정은 각 리그 페이지 일정 탭으로). 1시간.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "기타 종목 — 하키·배구·e스포츠·테니스·골프·F1·UFC",
@@ -37,160 +33,6 @@ interface SportCard {
   /** 부가 링크 — 심화 콘텐츠 */
   links: { label: string; href: string }[];
   accent: string;
-  /** DB 매치가 있는 종목 — 아래 "다가오는 일정" 섹션의 종목 앵커로 점프 링크를 단다 */
-  sport?: SportCode;
-}
-
-// 다가오는 일정 — 리그 페이지 "일정" 탭(LeagueFixtures 폴백 경로)과 같은 형식.
-// 종목 → KST 날짜별 그룹 → 매치 행(홈 우측정렬 · vs/스코어 · 원정 좌측 · 시간).
-// 테니스·골프·F1 은 ESPN 표시 전용(DB 수집 없음)이라 대상에서 뺀다.
-const SCHEDULE_SPORTS: { code: SportCode; label: string }[] = [
-  { code: "hockey", label: "하키" },
-  { code: "volleyball", label: "배구" },
-  { code: "esports", label: "e스포츠" },
-  { code: "mma", label: "UFC" },
-];
-
-interface FixtureRow {
-  id: number;
-  externalId: string;
-  league: string;
-  leagueLabel: string;
-  status: string;
-  homeScore: number | null;
-  awayScore: number | null;
-  time: string;
-  home: string;
-  away: string;
-  homeLogo: string | null;
-  awayLogo: string | null;
-}
-
-interface DateGroup {
-  label: string;
-  rows: FixtureRow[];
-}
-
-const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
-
-function kstParts(d: Date) {
-  const k = new Date(d.getTime() + 9 * 3600_000);
-  return {
-    dateKey: `${k.getUTCFullYear()}-${k.getUTCMonth() + 1}-${k.getUTCDate()}`,
-    label: `${k.getUTCMonth() + 1}/${k.getUTCDate()} (${DAYS[k.getUTCDay()]})`,
-    time: `${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`,
-  };
-}
-
-// 표기 우선순위 — UFC 는 파이터 음역(MmaFighter.nameKo) 우선,
-// 일반 팀은 교정 사전(매핑 있을 때만) > TheSports 공식 한글명 > 원본. /scores 와 동일 규칙.
-function teamLabel(
-  t: { name: string; nameKo: string | null; mmaFighter: { nameKo: string | null } | null },
-  league: string,
-) {
-  if (t.mmaFighter?.nameKo) return t.mmaFighter.nameKo;
-  const dict = toKoreanTeamName(t.name, league);
-  if (dict && dict !== t.name) return dict;
-  return t.nameKo || t.name;
-}
-
-// 라이브 상세 링크 — /scores 의 종목별 라우트 규칙과 동일.
-// e스포츠 전 리그는 /live/lol, UFC 는 DB id 기반 전용 라우트, 나머지는 범용 라우트.
-function liveHref(m: { league: string; externalId: string; id: number }): string | null {
-  if (LOL_LEAGUES.has(m.league)) return m.externalId ? `/live/lol/${m.externalId}` : null;
-  if (m.league === "UFC") return `/live/ufc/${m.id}`;
-  return m.externalId ? `/live/${m.league}/${m.externalId}` : null;
-}
-
-async function upcomingBySport(): Promise<Map<SportCode, DateGroup[]>> {
-  const leagueToSport = new Map<string, SportCode>();
-  for (const s of SCHEDULE_SPORTS)
-    for (const lg of leaguesForSport(s.code)) leagueToSport.set(lg, s.code);
-
-  const now = new Date();
-  const matches = await prisma.match.findMany({
-    where: {
-      league: { in: [...leagueToSport.keys()] },
-      status: { in: ["SCHEDULED", "LIVE"] },
-      // 진행 중 경기(-3h)부터 향후 7일까지
-      startTime: { gte: new Date(now.getTime() - 3 * 3600_000), lte: new Date(now.getTime() + 7 * 24 * 3600_000) },
-    },
-    orderBy: { startTime: "asc" },
-    select: {
-      id: true,
-      externalId: true,
-      league: true,
-      startTime: true,
-      status: true,
-      homeScore: true,
-      awayScore: true,
-      homeTeam: { select: { name: true, nameKo: true, logoUrl: true, mmaFighter: { select: { nameKo: true } } } },
-      awayTeam: { select: { name: true, nameKo: true, logoUrl: true, mmaFighter: { select: { nameKo: true } } } },
-    },
-    take: 600,
-  });
-
-  const out = new Map<SportCode, DateGroup[]>();
-  for (const m of matches) {
-    const sport = leagueToSport.get(m.league);
-    if (!sport) continue;
-    const { label, time } = kstParts(m.startTime);
-    const groups = out.get(sport) ?? [];
-    if (groups.length === 0 || groups[groups.length - 1].label !== label) {
-      groups.push({ label, rows: [] });
-    }
-    groups[groups.length - 1].rows.push({
-      id: m.id,
-      externalId: m.externalId,
-      league: m.league,
-      leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
-      status: m.status,
-      homeScore: m.homeScore,
-      awayScore: m.awayScore,
-      time,
-      home: teamLabel(m.homeTeam, m.league),
-      away: teamLabel(m.awayTeam, m.league),
-      homeLogo: m.homeTeam.logoUrl,
-      awayLogo: m.awayTeam.logoUrl,
-    });
-    out.set(sport, groups);
-  }
-  return out;
-}
-
-/** 매치 한 행 — LeagueFixtures 폴백 경로 renderRow 와 동일 레이아웃 (친선·국기 제외) */
-function FixtureRowView({ m }: { m: FixtureRow }) {
-  const live = m.status === "LIVE";
-  const center = live ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
-  const inner = (
-    <span className="flex items-center gap-2 text-sm px-3 py-2.5">
-      <span className="flex-1 flex items-center justify-end gap-1.5 min-w-0 font-medium">
-        <span className="truncate">{m.home}</span>
-        <TeamBadge logoUrl={m.homeLogo} size={20} className="bg-white rounded-sm" />
-      </span>
-      <span className={`w-14 text-center tabular-nums font-bold shrink-0 ${live ? "text-rose-600 dark:text-rose-400" : "text-neutral-400 font-normal"}`}>
-        {center}
-      </span>
-      <span className="flex-1 flex items-center gap-1.5 min-w-0 font-medium">
-        <TeamBadge logoUrl={m.awayLogo} size={20} className="bg-white rounded-sm" />
-        <span className="truncate">{m.away}</span>
-      </span>
-      <span className="ml-auto flex items-center gap-1.5 shrink-0">
-        <span className="hidden sm:inline text-[10px] text-neutral-400">{m.leagueLabel}</span>
-        <span className={`text-xs tabular-nums whitespace-nowrap ${live ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-neutral-400"}`}>
-          {live ? "🔴 LIVE" : m.time}
-        </span>
-      </span>
-    </span>
-  );
-  const href = liveHref(m);
-  return href ? (
-    <Link href={href} prefetch={false} className="block hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition">
-      {inner}
-    </Link>
-  ) : (
-    <div>{inner}</div>
-  );
 }
 
 const SPORTS: SportCard[] = [
@@ -198,7 +40,6 @@ const SPORTS: SportCard[] = [
     emoji: "🏒",
     title: "하키",
     sub: "NHL · KHL · 유럽 리그 · IIHF 세계선수권 — 순위·선수·플레이오프 예측",
-    sport: "hockey",
     href: "/hockey",
     hrefLabel: "하키 허브",
     // 2026-09-18 KHL·유럽 6개 리그 공식 순위 온보딩 — KHL 은 선수 기록·로스터까지
@@ -206,6 +47,7 @@ const SPORTS: SportCard[] = [
       { label: "라이브 스코어", href: "/scores?sport=hockey" },
       { label: "NHL 순위", href: "/standings/NHL" },
       { label: "KHL 순위·선수 기록", href: "/standings/KHL" },
+      { label: "KHL 일정", href: "/leagues/KHL?view=fixtures" },
       { label: "핀란드 리가", href: "/standings/LIIGA" },
       { label: "스위스 NL", href: "/standings/SWISS_NL" },
       { label: "체코", href: "/standings/CZECH_EXTRALIGA" },
@@ -219,7 +61,6 @@ const SPORTS: SportCard[] = [
     emoji: "🏐",
     title: "배구",
     sub: "V-리그 남·여(10월 31일 개막) 순위·선수·기록 · VNL 국가대항 — 세트 스코어",
-    sport: "volleyball",
     href: "/leagues/V_LEAGUE",
     hrefLabel: "V-리그 남자부",
     // 2026-09-18 V-리그 리그 페이지 완성(순위·선수 기록·일정·역사, 선수 상세 227명)
@@ -227,6 +68,8 @@ const SPORTS: SportCard[] = [
       { label: "V-리그 여자부", href: "/leagues/V_LEAGUE_W" },
       { label: "남자부 선수 기록", href: "/leagues/V_LEAGUE?view=stats" },
       { label: "여자부 선수 기록", href: "/leagues/V_LEAGUE_W?view=stats" },
+      { label: "남자부 일정", href: "/leagues/V_LEAGUE?view=fixtures" },
+      { label: "여자부 일정", href: "/leagues/V_LEAGUE_W?view=fixtures" },
       { label: "라이브 스코어", href: "/scores?sport=volleyball" },
       { label: "VNL 순위", href: "/standings/VNL" },
       { label: "VNL 여자 순위", href: "/standings/VNL_W" },
@@ -237,11 +80,11 @@ const SPORTS: SportCard[] = [
     emoji: "🎮",
     title: "e스포츠",
     sub: "LCK 리그 오브 레전드 · 국제 대회 — 세트 스코어·순위",
-    sport: "esports",
     href: "/scores?sport=esports",
     hrefLabel: "e스포츠 라이브 스코어",
     links: [
       { label: "LCK 순위·선수", href: "/standings/LOL" },
+      { label: "LCK 일정", href: "/leagues/LOL?view=fixtures" },
       { label: "전체 순위표", href: "/standings" },
     ],
     accent: "from-fuchsia-600 to-indigo-600",
@@ -290,7 +133,6 @@ const SPORTS: SportCard[] = [
     emoji: "🥊",
     title: "UFC",
     sub: "종합격투기 — 체급별 랭킹·파이터 프로필·이벤트 결과",
-    sport: "mma",
     href: "/rankings/ufc",
     hrefLabel: "UFC 랭킹",
     links: [
@@ -301,8 +143,7 @@ const SPORTS: SportCard[] = [
   },
 ];
 
-export default async function OtherSportsPage() {
-  const upcoming = await upcomingBySport().catch(() => new Map<SportCode, DateGroup[]>());
+export default function OtherSportsPage() {
   return (
     <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
@@ -336,15 +177,6 @@ export default async function OtherSportsPage() {
             </p>
 
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {/* 다가오는 일정 앵커 — 아래 일정 섹션의 해당 종목으로 점프. 일정이 있을 때만. */}
-              {s.sport && (upcoming.get(s.sport)?.length ?? 0) > 0 && (
-                <a
-                  href={`#schedule-${s.sport}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-rose-500/20 dark:text-rose-400"
-                >
-                  다가오는 일정 ↓
-                </a>
-              )}
               {s.links.map((l) => (
                 <Link
                   key={l.href}
@@ -366,33 +198,7 @@ export default async function OtherSportsPage() {
         ))}
       </div>
 
-      {/* 다가오는 일정 — 종목별 · KST 날짜별 그룹. 리그 페이지 일정 탭과 같은 행 형식. */}
-      {[...upcoming.values()].some((g) => g.length > 0) && (
-        <section id="schedule" className="space-y-6 pt-4 scroll-mt-20">
-          <h2 className="text-xl font-bold tracking-tight">다가오는 일정</h2>
-          {SCHEDULE_SPORTS.map((s) => {
-            const groups = upcoming.get(s.code);
-            if (!groups || groups.length === 0) return null;
-            return (
-              // scroll-mt — 카드의 앵커 점프 시 고정 헤더에 제목이 가리지 않게
-              <div key={s.code} id={`schedule-${s.code}`} className="space-y-3 scroll-mt-20">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500">{s.label}</h3>
-                {groups.map((g) => (
-                  <div key={g.label}>
-                    <h4 className="text-xs font-bold text-neutral-500 mb-1.5 px-1">{g.label}</h4>
-                    <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-                      {g.rows.map((m) => (
-                        <FixtureRowView key={m.id} m={m} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-          <p className="text-[11px] text-neutral-400">한국시간 · 향후 7일 일정. 테니스·골프·F1 일정은 각 카드의 라이브 스코어에서 확인하세요.</p>
-        </section>
-      )}
+
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         축구·야구·농구는 각 종목 허브에서 확인하세요. 테니스·골프·F1 데이터 출처 ESPN,
