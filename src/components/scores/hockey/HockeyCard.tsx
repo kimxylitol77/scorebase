@@ -1,4 +1,4 @@
-// /scores 하키 (NHL) 매치 카드 — Scorebase LiveCard v2.
+// /scores 하키 (NHL·KHL·유럽 리그) 매치 카드 — Scorebase LiveCard v2. 팀명 옆 [순위] 는 공식 표(hockey-table) position.
 // LIVE: 큰 피리어드/클럭 컨텍스트 + 피리어드별 점수 (P1-P3 + OT/SO + T).
 // 종료: 피리어드별 점수만.
 // 예정: 매치업 + KST 시간만.
@@ -17,8 +17,8 @@ export interface HockeyCardProps {
   status: "live" | "finished" | "scheduled" | "postponed";
   league: string;
   leagueLabel?: string;
-  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
-  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
+  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
   timeLabel: string;
   /** "2P 12:34" / "1P" / "LIVE" 등 */
   liveStatusLabel?: string | null;
@@ -186,6 +186,9 @@ export default function HockeyCard(props: HockeyCardProps) {
           <Logo url={away.logo} name={away.name} />
           <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
             <span data-teamname>{away.name}</span>
+            {away.position != null && (
+              <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums align-middle">[{away.position}]</span>
+            )}
             {showEdge && <EdgeBadgeChips badges={edgeBadges ?? []} side="away" className="ml-1 align-middle" />}
           </div>
         </TeamNameCell>
@@ -219,6 +222,9 @@ export default function HockeyCard(props: HockeyCardProps) {
         <TeamNameCell className="min-w-0 flex items-center gap-2 justify-end text-right">
           <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
             <span data-teamname>{home.name}</span>
+            {home.position != null && (
+              <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums align-middle">[{home.position}]</span>
+            )}
             {showEdge && <EdgeBadgeChips badges={edgeBadges ?? []} side="home" className="ml-1 align-middle" />}
           </div>
           <Logo url={home.logo} name={home.name} />
