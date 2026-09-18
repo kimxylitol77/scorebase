@@ -19,7 +19,18 @@ export interface KhlPlayer {
   natKo?: string;
 }
 
-const FILE = raw as { meta?: { updatedAt?: string }; players: Record<string, Omit<KhlPlayer, "id">> };
+export interface KhlInjury {
+  playerId: string;
+  teamId: number;
+  /** ts 원본(reason·start_time·end_time 등). 실데이터가 들어오면 여기서 라벨을 뽑는다. */
+  raw: Record<string, unknown>;
+}
+
+const FILE = raw as {
+  meta?: { updatedAt?: string; injuries?: number; injuriesCheckedAt?: string };
+  players: Record<string, Omit<KhlPlayer, "id">>;
+  injuries?: KhlInjury[];
+};
 const BY_ID = new Map<string, KhlPlayer>();
 const BY_TEAM = new Map<number, KhlPlayer[]>();
 for (const [id, p] of Object.entries(FILE.players ?? {})) {
@@ -30,6 +41,32 @@ for (const [id, p] of Object.entries(FILE.players ?? {})) {
 }
 
 export const KHL_PLAYERS_UPDATED_AT = FILE.meta?.updatedAt ?? null;
+
+const INJURY_BY_PLAYER = new Map<string, KhlInjury>();
+const INJURY_BY_TEAM = new Map<number, KhlInjury[]>();
+for (const i of FILE.injuries ?? []) {
+  INJURY_BY_PLAYER.set(i.playerId, i);
+  if (!INJURY_BY_TEAM.has(i.teamId)) INJURY_BY_TEAM.set(i.teamId, []);
+  INJURY_BY_TEAM.get(i.teamId)!.push(i);
+}
+
+/** 팀 부상자 (TheSports team/injury/list 주간 스냅샷). 비어 있으면 "부상자 없음"이 아니라 "제공 데이터 없음"일 수 있다. */
+export function khlInjuries(teamId: number): KhlInjury[] {
+  return INJURY_BY_TEAM.get(teamId) ?? [];
+}
+
+export function khlInjuryOf(playerId: string): KhlInjury | null {
+  return INJURY_BY_PLAYER.get(playerId) ?? null;
+}
+
+/** ts 부상 원본에서 표시 문구 — reason/type/injury 중 문자열 첫 것, 없으면 "부상" */
+export function khlInjuryLabel(i: KhlInjury): string {
+  for (const k of ["reason", "type", "injury", "description"]) {
+    const v = i.raw[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "부상";
+}
 
 /** ts player_id → 선수 (없으면 null) */
 export function khlPlayerInfo(id: string | null | undefined): KhlPlayer | null {

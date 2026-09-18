@@ -21,7 +21,7 @@ import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
-import { khlRoster, khlPlayerName, khlAge } from "@/lib/sports/khl-players";
+import { khlRoster, khlPlayerName, khlAge, khlInjuryOf, khlInjuryLabel } from "@/lib/sports/khl-players";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
@@ -1084,7 +1084,7 @@ export default async function TeamPage({ params }: Props) {
         {/* KHL 로스터 — TheSports 스쿼드·프로필(khl-players.json). 포지션별, 등번호·키·몸무게·나이·국적 */}
         {khlPlayers.length > 0 && (
           <section>
-            <SectionH title="🏒 로스터" subtitle={`${khlPlayers.length}명 · TheSports · 주간 갱신`} />
+            <SectionH title="🏒 로스터" subtitle={`${khlPlayers.length}명 · TheSports · 주간 갱신${khlPlayers.filter((p) => khlInjuryOf(p.id)).length ? ` · 부상 ${khlPlayers.filter((p) => khlInjuryOf(p.id)).length}명` : ""}`} />
             {([["F", "공격수"], ["D", "수비수"], ["G", "골리"]] as const).map(([g, label]) => {
               const ps = khlPlayers.filter((p) => p.pos === g);
               if (!ps.length) return null;
@@ -1093,6 +1093,7 @@ export default async function TeamPage({ params }: Props) {
                   <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {ps.map((p) => {
+                      const injury = khlInjuryOf(p.id);
                       const age = khlAge(p.birth);
                       const meta = [
                         p.no ? `#${p.no}` : null,
@@ -1115,8 +1116,15 @@ export default async function TeamPage({ params }: Props) {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-sm truncate">{khlPlayerName(p)}</div>
-                            <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta}</div>
+                            <div className="font-semibold text-sm truncate flex items-center gap-1.5">
+                              <span className="truncate">{khlPlayerName(p)}</span>
+                              {injury && (
+                                <span className="shrink-0 rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400" title={khlInjuryLabel(injury)}>
+                                  부상
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-neutral-500 tabular-nums truncate">{injury ? `${khlInjuryLabel(injury)} · ${meta}` : meta}</div>
                           </div>
                         </div>
                       );

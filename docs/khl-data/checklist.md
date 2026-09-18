@@ -18,6 +18,11 @@
 ## C. 선수 기록
 - [x] KHL 리더보드 집계(캐시 players → LeagueLeader GOAL/ASSIST/POINT/SAVE) + 일일 잡 편입
 - [x] /standings/KHL 리더보드 섹션
+## B-2. 부상자 (2026-09-18 추가 — 사용자 결정 "1번")
+- [x] build-khl-players.ts — team/injury/list 22팀 조회 → json `injuries[]` (원본 필드 보존)
+- [x] khl-players.ts — khlInjuries/khlInjuryOf/khlInjuryLabel, 팀 페이지 로스터 "부상" 배지 + 소제목 카운트 (가짜 1건 주입 실렌더 확인)
+- 실측: 22팀 전부 0건. 다른 부상 API(injury/list·match/injury/list·player/injury/list)는 미인가. KHL 공식 사이트는 구조화 명단 없음 + 자동 추출 금지 약관.
+
 ## D. 마무리
 - [ ] tsc·테스트·실렌더(dev+prod) → 커밋·push → 메모리 갱신(season/table 인가 정정)
 

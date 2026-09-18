@@ -6,6 +6,8 @@
 //   3) /v1/ice_hockey/player/list?uuid={player_id} → 영문명·사진·생년월일·키·몸무게·국적
 //      (기존 json 에 프로필이 있으면 재조회 생략 — 멱등, 스쿼드 소속만 매 실행 갱신)
 //   4) 한글명 없는 선수만 Haiku 음역 (NHL 선례 build-nhl-player-names-haiku 와 같은 방식)
+//   5) /v1/ice_hockey/team/injury/list?uuid={tsTeamId} → 부상자 (2026-09-18 실측 22팀 전부 빈 배열 — 권한은 열려 있어
+//      데이터가 들어오기 시작하면 팀 페이지 로스터에 자동 표시. 구조는 미확인이라 원본 필드를 그대로 보존한다)
 // 소비처: 팀 페이지 로스터 · KHL 리더보드(선수명·사진) · 라이브 골 타임라인/박스스코어(nhl-live-names 폴백)
 // 실행: env -u ANTHROPIC_API_KEY npx tsx scripts/build-khl-players.ts   (weekly-static-refresh ⑪-b)
 import dotenv from "dotenv";
@@ -46,9 +48,16 @@ export interface KhlPlayerEntry {
   nat?: string; // 국적 영문
   natKo?: string;
 }
+export interface KhlInjuryEntry {
+  playerId: string;
+  teamId: number; // 우리 Team.id
+  /** ts 원본 필드(reason·start_time·end_time 등 — 실데이터 확인 전이라 그대로 보존) */
+  raw: Record<string, unknown>;
+}
 interface OutFile {
-  meta: { updatedAt: string; teams: number; players: number };
+  meta: { updatedAt: string; teams: number; players: number; injuries: number; injuriesCheckedAt: string };
   players: Record<string, KhlPlayerEntry>;
+  injuries: KhlInjuryEntry[];
 }
 
 const COUNTRY_KO: Record<string, string> = {
@@ -100,6 +109,7 @@ async function tsGet<T>(path: string, uuid: string): Promise<T | null> {
 }
 
 interface SquadRes { id: string; squad: Array<{ player_id: string; position?: string; shirt_number?: number }> }
+interface InjuryRes { id: string; injury?: Array<Record<string, unknown>>; updated_at?: number }
 interface PlayerRes {
   id: string; name?: string; short_name?: string; logo?: string; birthday?: number;
   height?: number; weight?: number; position?: string; country_id?: string;
@@ -191,6 +201,21 @@ async function main() {
   }
   console.log(`▶ 스쿼드 합계 ${Object.keys(players).length}명 · 프로필 신규 조회 ${fetched}`);
 
+  // 부상자 — 팀 단위. 빈 배열이 정상 상태(2026-09-18 기준)라 0건이어도 실패가 아니다.
+  const injuries: KhlInjuryEntry[] = [];
+  let injuryErr = 0;
+  for (const t of teams) {
+    const res = await tsGet<InjuryRes[]>("team/injury/list", t.tsId);
+    await sleep(CALL_GAP_MS);
+    if (!res) { injuryErr++; continue; }
+    for (const i of res[0]?.injury ?? []) {
+      const pid = String(i.player_id ?? "");
+      if (!pid) continue;
+      injuries.push({ playerId: pid, teamId: t.ourId, raw: i });
+    }
+  }
+  console.log(`▶ 부상자 ${injuries.length}건 (조회 실패 ${injuryErr}팀)`);
+
   // 한글명 — 없는 선수만 Haiku
   const need = Object.entries(players).filter(([, p]) => !p.ko && p.en).map(([id, p]) => ({ id, en: p.en }));
   if (need.length > 0 && !ANTHROPIC_KEY) {
@@ -211,8 +236,12 @@ async function main() {
   }
 
   const out: OutFile = {
-    meta: { updatedAt: new Date().toISOString(), teams: teams.length, players: Object.keys(players).length },
+    meta: {
+      updatedAt: new Date().toISOString(), teams: teams.length, players: Object.keys(players).length,
+      injuries: injuries.length, injuriesCheckedAt: new Date().toISOString(),
+    },
     players,
+    injuries,
   };
   writeFileSync(outPath, JSON.stringify(out, null, 1) + "\n");
   // 슬림 사전 — 라이브 골 타임라인·박스스코어(클라이언트 번들)용. 프로필 없이 이름·포지션만.

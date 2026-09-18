@@ -1,8 +1,10 @@
 {
  "meta": {
-  "updatedAt": "2026-09-18T03:06:12.917Z",
+  "updatedAt": "2026-09-18T05:10:43.073Z",
   "teams": 22,
-  "players": 630
+  "players": 630,
+  "injuries": 0,
+  "injuriesCheckedAt": "2026-09-18T05:10:43.073Z"
  },
  "players": {
   "23xmv0bgz0krg8n": {
@@ -4184,7 +4186,8 @@
    "natKo": "캐나다",
    "no": 14,
    "teamTs": "dj2ry0bewdlq1zp",
-   "teamId": 612696
+   "teamId": 612696,
+   "ko": "킹 벤"
   },
   "318q6wbn9v3mo9j": {
    "ko": "메이슨 밀먼",
@@ -6910,7 +6913,8 @@
    "natKo": "벨라루스",
    "no": 86,
    "teamTs": "l7oqd2b85p6r510",
-   "teamId": 612777
+   "teamId": 612777,
+   "ko": "미로슬라프 미할료프"
   },
   "k82reebep7wrepz": {
    "ko": "드미트리 쿠즈민",
@@ -9470,5 +9474,6 @@
    "teamId": 612841,
    "natKo": "미국"
   }
- }
+ },
+ "injuries": []
 }
