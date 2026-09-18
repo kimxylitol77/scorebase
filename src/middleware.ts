@@ -22,11 +22,23 @@ const SCOREBASE_COM_HOSTS = ["스코어베이스.com", "xn--9k3b13iba842abwcsvs.
 // IP 변경 시 갱신 — TheSports whitelist 에 등록된 집 IP 와 같은 값.
 const RATE_LIMIT_EXEMPT_IPS = new Set(["86.38.94.116"]);
 
+// 위장 스크레이퍼 데이터센터 대역 — 요청 자체를 막는다.
+// 2026-09-18 실측: Mac Chrome/145 UA 로 12분 13,693요청(초당 19건)·IP 700개를 돌려가며 사이트 전체를
+// 긁었는데 98% 가 알리바바 클라우드 두 대역(43.119.x 320개·47.82.x 288개)이었다. IP 당 분당 ~100요청으로
+// 쪼개 rate limit(600)을 피했고, JS 까지 실행해 실시간 접속 숫자를 부풀렸다. 한국 소비자 트래픽이
+// 이 데이터센터에서 올 일은 없어 /16 째로 막는다. 대역을 옮겨 오면 여기에 추가한다.
+const BLOCKED_IP_PREFIXES = ["43.119.", "47.82."];
+
 export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const path = req.nextUrl.pathname;
   const host = (req.headers.get("host") || "").toLowerCase();
   const isScoreboard = SCOREBOARD_HOSTS.some((h) => host.includes(h));
   const isScoreBaseCom = SCOREBASE_COM_HOSTS.some((h) => host.includes(h));
+
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
+  if (BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
 
   // ── Rate limit — 단일 IP 의 공격적 스크래핑 속도 제한 ──
   // 검색·SNS·모니터 봇 + AI 검색·인용봇(aiSearch)은 면제 — SEO 색인·공유 미리보기·헬스체크 +
@@ -58,14 +70,6 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       "unknown";
-    // 임시 진단(2026-09-18) — 실시간 접속을 부풀린 위장 스크레이퍼의 IP 분포 확인용. 확인 후 제거.
-    if (
-      !path.startsWith("/api/") &&
-      req.headers.get("user-agent") ===
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    ) {
-      console.warn(`[scraper-ip] ip=${ip} path=${path}`);
-    }
     if (!RATE_LIMIT_EXEMPT_IPS.has(ip)) {
       // Redis(Upstash) 가 설정돼 있으면 인스턴스와 무관하게 정확히 센다. 없으면 메모리(best-effort).
       const { allowed, retryAfterSec, backend } = await rateLimitShared(`scrape:${ip}`, {
