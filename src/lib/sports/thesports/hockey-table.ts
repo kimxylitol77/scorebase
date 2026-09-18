@@ -1,4 +1,4 @@
-// 아이스하키(KHL) 시즌 순위 — TheSports ice_hockey season/table/detail (공식 순위), DB 캐시 경유.
+// 아이스하키(KHL·유럽 리그) 시즌 순위 — TheSports ice_hockey season/table/detail (공식 순위), DB 캐시 경유.
 // ⚠️ Vercel 은 ts 직접 호출 불가 → Vultr standings-poller(HOCKEY_SEASONS) 가 fetch → POST
 //   /api/internal/thesports-standings → TheSportsStandingsCache(league=KHL) upsert. 여기서는 캐시만 읽는다.
 // KHL 은 표 7개가 한 payload 로 온다 — 전체("KHL 26/27") 1 + 컨퍼런스 2 + 디비전 4.
@@ -16,7 +16,11 @@ for (const e of rawMapping as MapEntry[]) {
 }
 
 /** 공식 표를 캐시로 받는 하키 리그 — standings-poller HOCKEY_SEASONS 와 짝. */
-export const HOCKEY_TS_TABLE_LEAGUES = new Set(["KHL"]);
+export const HOCKEY_TS_TABLE_LEAGUES = new Set([
+  "KHL",
+  // 2026-09-18 — 유럽 6개, 전부 단일 표(전체 순위만). CHL 은 리그 페이즈 24팀 표.
+  "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL",
+]);
 
 const STALE_AFTER_MS = 6 * 60 * 60 * 1000; // poller 10분 주기 → 6h+ 면 stale(표는 그대로 내되 라벨용)
 

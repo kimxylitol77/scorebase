@@ -155,6 +155,16 @@ export default async function HockeyHub() {
       select: { id: true, name: true, logoUrl: true },
     }),
   ]);
+  // 유럽 6개 리그 — ts 공식 표 Top3 (2026-09-18). 실패·미수집이면 빈 배열(블록은 링크만).
+  const EURO_HOCKEY: Array<{ code: string; name: string; note: string }> = [
+    { code: "CHL_HOCKEY", name: "챔피언스 하키 리그", note: "유럽 클럽 대항전 · 리그 페이즈 24팀" },
+    { code: "LIIGA", name: "핀란드 리가", note: "핀란드 1부 · 17팀" },
+    { code: "SWISS_NL", name: "스위스 내셔널리그", note: "스위스 1부 · 14팀" },
+    { code: "CZECH_EXTRALIGA", name: "체코 엑스트라리가", note: "체코 1부 · 14팀" },
+    { code: "SLOVAK_EXTRALIGA", name: "슬로바키아 엑스트라리가", note: "슬로바키아 1부 · 12팀" },
+    { code: "DENMARK_METAL", name: "덴마크 메탈리가엔", note: "덴마크 1부 · 9팀" },
+  ];
+  const euroTop3 = await Promise.all(EURO_HOCKEY.map((l) => officialTop3(l.code).catch(() => [] as Top3Row[])));
 
   // NHL 팀 → 각 팀 페이지의 로스터로. 한글 팀명 가나다 정렬.
   const nhlTeamCards = nhlTeams
@@ -227,6 +237,17 @@ export default async function HockeyHub() {
         { label: "글·분석", href: "/leagues/KHL" },
       ],
     },
+    ...EURO_HOCKEY.map((l, i) => ({
+      code: l.code,
+      name: l.name,
+      note: l.note,
+      top3: euroTop3[i],
+      links: [
+        { label: "순위", href: `/standings/${l.code}` },
+        { label: "일정·결과", href: `/leagues/${l.code}?view=fixtures` },
+        { label: "글·분석", href: `/leagues/${l.code}` },
+      ],
+    })),
     {
       code: "IIHF_WC",
       name: "세계선수권",

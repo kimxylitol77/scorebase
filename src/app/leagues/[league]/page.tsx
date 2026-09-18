@@ -36,6 +36,7 @@ import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
 import CupBracket from "@/components/leagues/CupBracket";
 import HockeyTsStandingsTable from "@/components/hockey/HockeyTsStandingsTable";
+import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +59,7 @@ const VALID_LEAGUES = [
   "WKBL",
   "NHL",
   "KHL",
+  "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL",
   "MLB",
   "KBO",
   "NPB",
@@ -623,6 +625,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     NHL: ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"],
     // KHL — 순위(ts 공식 표 + 경기 캐시 리더보드)·일정·글. 예측·역사는 데이터 없음.
     KHL: ["standings", "fixtures", "articles"],
+    CHL_HOCKEY: ["standings", "fixtures", "articles"],
+    LIIGA: ["standings", "fixtures", "articles"],
+    SWISS_NL: ["standings", "fixtures", "articles"],
+    CZECH_EXTRALIGA: ["standings", "fixtures", "articles"],
+    SLOVAK_EXTRALIGA: ["standings", "fixtures", "articles"],
+    DENMARK_METAL: ["standings", "fixtures", "articles"],
     LOL: ["standings", "predictions", "power", "fixtures", "history", "articles"],
     // NBA — 순위(ESPN 공식, 2026-08 중복 팀 정리 후 개방) + 일정(서머리그 + 지난 시즌 접기).
     NBA: ["standings", "predictions", "fixtures", "history", "articles"],
@@ -867,9 +875,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <NhlStandingsTable withLastLeaders />
         </div>
       )}
-      {!isSoccer && view === "standings" && upper === "KHL" && (
+      {!isSoccer && view === "standings" && HOCKEY_TS_TABLE_LEAGUES.has(upper) && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <HockeyTsStandingsTable league="KHL" withLeaders />
+          <HockeyTsStandingsTable league={upper} withLeaders />
         </div>
       )}
       {!isSoccer && view === "standings" && upper === "NBA" && (

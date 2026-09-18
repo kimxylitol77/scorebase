@@ -13,6 +13,7 @@ export const STANDINGS_VALID = new Set<string>([
   "WKBL",
   "NHL",
   "KHL", // 2026-09-18 — ts ice_hockey season/table/detail 인가 확인, 공식 표(hockey-table.ts)
+  "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL",
   "KBO",
   "NPB",
   "MLB",

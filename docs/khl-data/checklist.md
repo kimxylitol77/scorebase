@@ -31,3 +31,11 @@
 - 선수 사전: 630명, 한글명 625, 사진 573, 생년월일 628, 키 462, 국적 567(러시아 426·캐나다 51·카자흐 28·벨라루스 27·미국 24)
 - 리더보드: 종료 53경기·545명 집계 — 골 베일리 5, 도움 골도빈 11, 포인트 골도빈 12, SV% 오졸린 .969(94/97)
 - 페이지: /standings/KHL·/hockey·/leagues/KHL?view=standings·/standings·/teams/612861 모두 200, 한글 팀명 22 적용
+
+## E. /scores 하키 순위 칩 + AI 예측 (2026-09-18 오후, 사용자 요청)
+- [x] 유럽 6개 리그 공식 표 실측(CHL·리가·스위스NL·체코·슬로바키아·덴마크 전부 code=0, 매핑 100%·체코 10/14) → poller HOCKEY_SEASONS 7개, HOCKEY_TS_TABLE_LEAGUES 7개, Vultr 배포(ok 164→170)
+- [x] 체코 미매핑 4팀(스파르타 프라하·마운트필드·파르두비체·올로모우츠) — 기존 Team row 재사용, 매핑 JSON 두 사본 + TeamSourceId + 라벨 갱신, 워커 사본 scp·재시작
+- [x] /scores 카드 [순위] 칩 — 하키 공식 표 리그는 fetchHockeyTable 전체 순위 (rankChipPromise 분기)
+- [x] /standings 허브 카드 6장·하키 허브 블록 6개(공식 Top3)·/leagues/{code} 순위 탭·STANDINGS_VALID
+- [x] 예측 — pick-readiness 골리 게이트를 NHL 로 한정. predict-upcoming --apply 로 KHL 3건 생성
+- [ ] 자연 해소 대기 — MIN_PRIOR(팀당 종료 5경기) 미달이 대부분(유럽 리그 개막 1~2주차). 팀이 5경기를 채우면 03·13시 UTC 크론이 자동 생성. 임계는 낮추지 않는다(cup-prediction-prior-gap 메모리)

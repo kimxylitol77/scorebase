@@ -56,6 +56,12 @@ const LEAGUES: LeagueCard[] = [
   { code: "WKBL", sport: "basketball", name: "WKBL", subtitle: "한국 여자 프로농구", flag: "🇰🇷", gradient: "from-purple-600 via-violet-600 to-indigo-600" },
   { code: "NHL", sport: "hockey", name: "NHL", subtitle: "북미 아이스하키", flag: "🏒", gradient: "from-cyan-500 via-blue-600 to-indigo-700" },
   { code: "KHL", sport: "hockey", name: "KHL", subtitle: "러시아 콘티넨탈 하키 리그", flag: "🇷🇺", gradient: "from-red-600 via-rose-600 to-blue-700" },
+  { code: "CHL_HOCKEY", sport: "hockey", name: "챔피언스 하키 리그", subtitle: "유럽 클럽 대항전 · 리그 페이즈", flag: "🏒", gradient: "from-indigo-600 via-violet-600 to-purple-700" },
+  { code: "LIIGA", sport: "hockey", name: "리가", subtitle: "핀란드 아이스하키", flag: "🇫🇮", gradient: "from-sky-600 via-blue-600 to-indigo-600" },
+  { code: "SWISS_NL", sport: "hockey", name: "내셔널리그", subtitle: "스위스 아이스하키", flag: "🇨🇭", gradient: "from-red-600 via-rose-500 to-red-700" },
+  { code: "CZECH_EXTRALIGA", sport: "hockey", name: "체코 엑스트라리가", subtitle: "체코 아이스하키", flag: "🇨🇿", gradient: "from-blue-700 via-sky-600 to-red-600" },
+  { code: "SLOVAK_EXTRALIGA", sport: "hockey", name: "슬로바키아 엑스트라리가", subtitle: "슬로바키아 아이스하키", flag: "🇸🇰", gradient: "from-blue-600 via-indigo-600 to-red-600" },
+  { code: "DENMARK_METAL", sport: "hockey", name: "덴마크 메탈리가엔", subtitle: "덴마크 아이스하키 1부", flag: "🇩🇰", gradient: "from-red-600 via-rose-600 to-red-700" },
   // V-리그 — 비시즌엔 지난 시즌(2025-26) 최종 순위를 라벨 붙여 노출. 10월 개막 후 subtitle 갱신.
   { code: "V_LEAGUE", sport: "volleyball", name: "V-리그 남자부", subtitle: "KOVO · 2025-26 최종 순위", flag: "🇰🇷", gradient: "from-sky-600 via-blue-600 to-indigo-600" },
   { code: "V_LEAGUE_W", sport: "volleyball", name: "V-리그 여자부", subtitle: "KOVO · 2025-26 최종 순위", flag: "🇰🇷", gradient: "from-rose-500 via-pink-500 to-fuchsia-600" },

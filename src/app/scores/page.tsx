@@ -30,6 +30,7 @@ import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper"
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { fetchHockeyTable, HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { calcStandings } from "@/lib/predict/standings";
 import { computeEdgeBadges, type EdgeBadge } from "@/lib/scores/edge-badges";
 import { currentSeasonStart } from "@/lib/predict/season-window";
@@ -1508,7 +1509,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     new Set(
       matches
         .map((m) => m.league)
-        .filter((lg) => lg === "KBO" || lg === "NPB" || RANK_CHIP_CALC_LEAGUES.has(lg)),
+        .filter((lg) => lg === "KBO" || lg === "NPB" || RANK_CHIP_CALC_LEAGUES.has(lg) || HOCKEY_TS_TABLE_LEAGUES.has(lg)),
     ),
   );
   const rankChipPromise = Promise.all(
@@ -1520,6 +1521,9 @@ export default async function ScoresPage({ searchParams }: Props) {
             const pos = Number(r.position);
             if (Number.isFinite(pos) && pos > 0) posMap.set(r.ourTeamId, pos);
           }
+        } else if (HOCKEY_TS_TABLE_LEAGUES.has(lg)) {
+          // 하키(KHL·유럽) = ts 공식 표 전체 순위 (/standings/{league} 와 같은 정본, 2026-09-18)
+          for (const r of (await fetchHockeyTable(lg))?.overall ?? []) posMap.set(r.ourTeamId, r.position);
         } else {
           for (const [teamId, pos] of Object.entries(await fetchSeasonRankChipCached(lg))) {
             posMap.set(Number(teamId), pos);

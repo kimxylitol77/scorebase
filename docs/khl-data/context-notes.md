@@ -38,3 +38,11 @@ Haiku 자동 생성 금지 원칙(친선 249팀)은 유지. KHL 22팀은 국내 
 TheSports `team/injury/list` 는 열려 있지만 22팀 전부 빈 배열(9/18). ESPN 은 KHL 미커버, khl.ru 는 뉴스뿐이고 자동 추출 금지 약관.
 그래서 주간 빌드가 매번 조회해 json 에 싣고, 팀 페이지는 있으면 배지를 붙이는 구조로만 뒀다. 부상 원본 구조를 못 봐서 `raw` 를 그대로 저장하고
 라벨은 reason/type/injury/description 순으로 뽑는다 — 실데이터가 들어오면 그때 필드를 확정할 것. "0건 = 부상자 없음"으로 읽지 말 것.
+
+## /scores 하키 순위 칩 — 카드 순위는 공식 표 정본
+카드 [순위] 는 야구처럼 종목별 정본을 쓴다. 하키는 `fetchHockeyTable(lg).overall` 의 position. 자체 계산(calcStandings)은 축구 승점식이라
+연장패 1점을 못 세므로 쓰지 않았다. 유럽 6개 리그도 같은 경로에 얹어 순위·순위표·허브 카드가 한 번에 생겼다.
+
+## 하키 AI 예측이 비어 있던 이유는 둘
+1. `pick-readiness` 가 하키 전체에 골리 확정을 요구했는데 골리 데이터는 NHL 공식 API 뿐 → NHL 로 한정.
+2. `computePrediction` 의 MIN_PRIOR=5 (팀당 종료 5경기). 개막 1~2주차라 대부분 미달 → 시간이 해결. KHL 은 3건부터 시작.

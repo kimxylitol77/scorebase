@@ -185,7 +185,14 @@ const VOLLEYBALL_SEASONS = [
 // season_id 는 unique_tournament/list?uuid={utid} 의 cur_season_id (KHL utid 9vjxm87bywlr6od).
 // 다른 유럽 하키 리그(Liiga·스위스NL 등)도 같은 방식으로 한 줄씩 추가하면 붙는다.
 const HOCKEY_SEASONS = [
-  { code: "KHL", seasonId: "ednm95bvekxryox" }, // KHL 2026-27
+  { code: "KHL", seasonId: "ednm95bvekxryox" }, // KHL 2026-27 (표 7개: 전체·컨퍼런스·디비전)
+  // 2026-09-18 유럽 6개 — 전부 단일 표, 팀 매핑 100%(체코만 10/14). season_id 는 unique_tournament/list 의 cur_season_id.
+  { code: "CHL_HOCKEY", seasonId: "n54ql0b8jlvqvy9" }, // Champions Hockey League 26/27 (리그 페이즈 24팀)
+  { code: "LIIGA", seasonId: "4wyrn9b49zlm86p" }, // Liiga 26/27
+  { code: "SWISS_NL", seasonId: "n54ql0b8d5vqvy9" }, // National League 26/27
+  { code: "CZECH_EXTRALIGA", seasonId: "l7oqd2b0l5gr510" }, // Extraliga 26/27
+  { code: "SLOVAK_EXTRALIGA", seasonId: "8yomodbvz83q0j6" }, // Tipos Extraliga 26/27
+  { code: "DENMARK_METAL", seasonId: "vjxm87b82j2r6od" }, // Superisligaen(구 Metal Ligaen) 26/27
 ];
 
 async function fetchHockeyStandings(seasonId) {

@@ -3994,5 +3994,41 @@
     "tsId": "dn1m15bp58kqoep",
     "tsName": "Rytiri Kladno",
     "matchType": "diary"
+  },
+  {
+    "ourId": 612731,
+    "ourName": "HC Sparta Prague",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "dj2ry0bewnlq1zp",
+    "tsId": "dj2ry0bewnlq1zp",
+    "tsName": "HC Sparta Prague",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612707,
+    "ourName": "Mountfield HK",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "2y8m43bw2zvrl07",
+    "tsId": "2y8m43bw2zvrl07",
+    "tsName": "Mountfield HK",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612867,
+    "ourName": "Dynamo Pardubice",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "l7oqd2b8vlor510",
+    "tsId": "l7oqd2b8vlor510",
+    "tsName": "Dynamo Pardubice",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 612823,
+    "ourName": "HC Olomouc",
+    "ourLeague": "CZECH_EXTRALIGA",
+    "ourExternalId": "l5erg6blz8dq8k0",
+    "tsId": "l5erg6blz8dq8k0",
+    "tsName": "HC Olomouc",
+    "matchType": "diary"
   }
 ]

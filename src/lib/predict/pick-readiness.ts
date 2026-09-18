@@ -46,7 +46,9 @@ export function pickReadiness(
     return { ready: true };
   }
   if (HOCKEY_LEAGUES.has(m.league)) {
-    if (!m.homeGoalie || !m.awayGoalie) return { ready: false, reason: "골리 미확정" };
+    // 골리 데이터는 NHL 공식 API 뿐이다. KHL·유럽 리그까지 골리를 기다리면 영원히 픽이 안 나온다
+    // (2026-09-18 실측 — 유럽 하키 예정 경기 예측 0건). NHL 만 골리 확정을 기다린다.
+    if (m.league === "NHL" && (!m.homeGoalie || !m.awayGoalie)) return { ready: false, reason: "골리 미확정" };
     return { ready: true };
   }
   if (!opts?.startersOnly && SOCCER_LEAGUES.has(m.league)) {
