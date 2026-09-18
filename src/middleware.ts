@@ -37,6 +37,11 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
   if (BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
+    // 임시 진단(2026-09-18) — 차단된 스크레이퍼의 운영 주체 단서(언어 설정·클라이언트 힌트) 수집. 확인 후 제거.
+    const hd = (k: string) => (req.headers.get(k) || "-").slice(0, 120);
+    console.warn(
+      `[blocked-hdr] ip=${clientIp} path=${path} al=${hd("accept-language")} ch-ua=${hd("sec-ch-ua")} plat=${hd("sec-ch-ua-platform")} mob=${hd("sec-ch-ua-mobile")} sfs=${hd("sec-fetch-site")} sfm=${hd("sec-fetch-mode")} ref=${hd("referer")} names=${[...req.headers.keys()].join(",").slice(0, 400)}`,
+    );
     return new NextResponse("Forbidden", { status: 403 });
   }
 
