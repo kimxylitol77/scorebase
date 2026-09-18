@@ -4656,6 +4656,29 @@ const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 const HOCKEY_CLUB_OVERRIDES: Record<string, string> = {
   "Red Bull Salzburg": "EC 레드불 잘츠부르크", // 축구는 FC —
   "Slovan Bratislava": "HC 슬로반 브라티슬라바", // 축구는 SK —
+  // KHL 22팀 (2026-09-18, 순위표·로스터 온보딩) — 국내 매체 관용 표기. ts Team.name 기준.
+  "AK Bars Kazan": "아크 바르스 카잔",
+  "Admiral Vladivostok": "아드미랄 블라디보스토크",
+  "Amur Khabarovsk": "아무르 하바롭스크",
+  "Avangard Omsk": "아방가르드 옴스크",
+  "Avtomobilist Yekaterinburg": "아프토모빌리스트 예카테린부르크",
+  "Barys Astana": "바리스 아스타나",
+  "CSKA Moscow": "CSKA 모스크바",
+  "Dinamo Minsk": "디나모 민스크",
+  "Dynamo Moscow": "디나모 모스크바",
+  "HC Sochi": "HC 소치",
+  "Lada Togliatti": "라다 톨리야티",
+  "Lokomotiv Yaroslavl": "로코모티프 야로슬라블",
+  "Metallurg Magnitogorsk": "메탈루르크 마그니토고르스크",
+  "Neftekhimik Nizhnekamsk": "네프테히미크 니즈네캄스크",
+  "SKA Saint Petersburg": "SKA 상트페테르부르크",
+  "Salavat Yulaev Ufa": "살라바트 율라예프 우파",
+  "Severstal Cherepovets": "세베르스탈 체레포베츠",
+  "Shanghai Dragon": "상하이 드래곤스",
+  "Sibir Novosibirsk": "시비르 노보시비르스크",
+  "Spartak Moscow": "스파르타크 모스크바",
+  "Torpedo Nizhny Novgorod": "토르페도 니즈니노브고로드",
+  "Traktor Chelyabinsk": "트락토르 첼랴빈스크",
 };
 const HOCKEY_OVERRIDE_LEAGUES = [
   "HOCKEY_FRIENDLY", "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",

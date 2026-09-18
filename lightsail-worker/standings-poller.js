@@ -1,4 +1,4 @@
-// standings-poller.js — TheSports season/table/detail → Scorebase API push
+// standings-poller.js — TheSports season/table/detail → Scorebase API push (축구·배구·야구·하키)
 // 10분 주기.
 //
 // ⚠ 실행 위치는 Vultr Seoul(64.176.230.240) `/home/ubuntu/scorebase-worker/src/` 다.
@@ -180,6 +180,23 @@ const VOLLEYBALL_SEASONS = [
   { code: "PVL_W", seasonId: "3glrwjhyon0qdyj" },
 ];
 
+// 아이스하키 — ice_hockey season/table/detail. 2026-09-18 실측으로 인가가 열렸다(8월엔 미인가).
+// KHL 은 전체 표 1 + 컨퍼런스 2 + 디비전 4 = tables 7개가 한 payload 로 온다(읽기 쪽 hockey-table.ts 가 이름으로 가른다).
+// season_id 는 unique_tournament/list?uuid={utid} 의 cur_season_id (KHL utid 9vjxm87bywlr6od).
+// 다른 유럽 하키 리그(Liiga·스위스NL 등)도 같은 방식으로 한 줄씩 추가하면 붙는다.
+const HOCKEY_SEASONS = [
+  { code: "KHL", seasonId: "ednm95bvekxryox" }, // KHL 2026-27
+];
+
+async function fetchHockeyStandings(seasonId) {
+  const { data } = await axios.get(`${TS_BASE}/v1/ice_hockey/season/table/detail`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
+    timeout: 30_000,
+  });
+  if (data.code !== 0) throw new Error(`ts code=${data.code} err=${data.err ?? ""}`);
+  return data.results;
+}
+
 async function fetchVolleyballStandings(seasonId) {
   const { data } = await axios.get(`${TS_BASE}/v1/volleyball/season/table/detail`, {
     params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
@@ -310,6 +327,26 @@ async function poll() {
       const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
       failed.push(`${v.code}:${String(msg).slice(0, 60)}`);
       console.error(`  ✗ ${v.code} (${v.seasonId}): ${msg}`);
+    }
+    await sleep(CALL_GAP_MS);
+  }
+
+  // 아이스하키 (KHL) — ice_hockey season/table/detail → 같은 postCache
+  for (const h of HOCKEY_SEASONS) {
+    try {
+      const payload = await fetchHockeyStandings(h.seasonId);
+      if (!payload || !Array.isArray(payload.tables)) {
+        empty++;
+        console.warn(`  skip ${h.code} — empty payload`);
+        continue;
+      }
+      await postCache(h.code, h.seasonId, payload);
+      ok++;
+    } catch (e) {
+      err++;
+      const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      failed.push(`${h.code}:${String(msg).slice(0, 60)}`);
+      console.error(`  ✗ ${h.code} (${h.seasonId}): ${msg}`);
     }
     await sleep(CALL_GAP_MS);
   }

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { calcStandings } from "@/lib/predict/standings";
+import { fetchHockeyTable } from "@/lib/sports/thesports/hockey-table";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
 import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, Award, Swords, Activity, type LucideIcon } from "lucide-react";
@@ -29,6 +30,25 @@ const sel = {
   id: true, league: true, status: true,
   homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true, startTime: true,
 } as const;
+
+// KHL — ts 공식 표(hockey-table) Top3. 승점 기준(승 2·연장패 1)이라 W-L 계산과 달리 정식 순위와 일치한다.
+async function officialTop3(league: string): Promise<Top3Row[]> {
+  const t = await fetchHockeyTable(league);
+  const top = (t?.overall ?? []).slice(0, 3);
+  if (top.length === 0) return [];
+  const teams = await prisma.team.findMany({
+    where: { id: { in: top.map((r) => r.ourTeamId) } },
+    select: { id: true, name: true },
+  });
+  const nameById = new Map(teams.map((t) => [t.id, t.name] as const));
+  return top.map((r) => ({
+    teamId: r.ourTeamId,
+    position: r.position,
+    name: toKoreanTeamName(nameById.get(r.ourTeamId) ?? String(r.ourTeamId), league),
+    // LeagueBlock 미리보기가 "N승" 으로 표기하므로 승점이 아니라 승수(연장·승부치기 승 포함)를 넣는다.
+    points: r.wins + r.otWins,
+  }));
+}
 
 async function standingsTop3(league: string): Promise<Top3Row[]> {
   const seasonStart = currentSeasonStart(league);
@@ -98,7 +118,7 @@ export default async function HockeyHub() {
   const startUtc = new Date(midnightUtcMs);
   const endUtc = new Date(midnightUtcMs + 24 * 3600_000);
 
-  const [games, nhlTop3, iihfTop3, spMatches, nhlTeams] = await Promise.all([
+  const [games, nhlTop3, iihfTop3, spMatches, nhlTeams, khlTop3, khlTeams] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: HOCKEY },
@@ -129,11 +149,20 @@ export default async function HockeyHub() {
       where: { league: "NHL" },
       select: { id: true, name: true, logoUrl: true },
     }),
+    officialTop3("KHL").catch(() => []),
+    prisma.team.findMany({
+      where: { league: "KHL" },
+      select: { id: true, name: true, logoUrl: true },
+    }),
   ]);
 
   // NHL 팀 → 각 팀 페이지의 로스터로. 한글 팀명 가나다 정렬.
   const nhlTeamCards = nhlTeams
     .map((t) => ({ id: t.id, logoUrl: t.logoUrl, name: toKoreanTeamName(t.name, "NHL") || t.name }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  // KHL 팀 → 팀 페이지 로스터(ts 스쿼드·프로필). 한글명 없는 팀은 영문 그대로.
+  const khlTeamCards = khlTeams
+    .map((t) => ({ id: t.id, logoUrl: t.logoUrl, name: toKoreanTeamName(t.name, "KHL") || t.name }))
     .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
   // 하키 Strong Pick(리그별 임계) 적중률
@@ -187,6 +216,18 @@ export default async function HockeyHub() {
       ],
     },
     {
+      code: "KHL",
+      name: "KHL",
+      note: "러시아 콘티넨탈 하키 리그 · 22팀 · 공식 순위·선수",
+      top3: khlTop3,
+      links: [
+        { label: "순위", href: "/standings/KHL" },
+        { label: "선수 기록", href: "/standings/KHL#leaderboard" },
+        { label: "일정·결과", href: "/leagues/KHL?view=fixtures" },
+        { label: "글·분석", href: "/leagues/KHL" },
+      ],
+    },
+    {
       code: "IIHF_WC",
       name: "세계선수권",
       note: "IIHF 국가대표 · 경기·스코어 커버",
@@ -227,7 +268,7 @@ export default async function HockeyHub() {
             </svg>
             하키
           </h1>
-          <span className="text-sm text-neutral-400">NHL · 세계선수권 · 호주 · 뉴질랜드</span>
+          <span className="text-sm text-neutral-400">NHL · KHL · 유럽 리그 · 세계선수권 · 호주 · 뉴질랜드</span>
         </div>
         <p className="text-sm text-neutral-500 break-keep">
           오늘 경기부터 리그 순위·선수 기록·AI 예측·부상자 명단까지 한 페이지에서.
@@ -268,6 +309,28 @@ export default async function HockeyHub() {
           <p className="text-[11px] text-neutral-400 -mt-1">팀을 누르면 전체 선수 명단(로스터)과 시즌 성적을 볼 수 있습니다.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {nhlTeamCards.map((t) => (
+              <Link
+                key={t.id}
+                href={`/teams/${t.id}`}
+                className="flex items-center gap-2 rounded-2xl bg-white p-3 ring-1 ring-black/5 shadow-[0_12px_40px_-24px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
+              >
+                <TeamBadge logoUrl={t.logoUrl} size={24} className="bg-white rounded shrink-0" />
+                <span className="truncate text-sm font-medium text-zinc-900 dark:text-neutral-200">{t.name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* KHL 팀 — 팀 페이지 로스터(TheSports 스쿼드 · 선수 프로필) 진입 */}
+      {khlTeamCards.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500">
+            KHL 팀 · 로스터
+          </h2>
+          <p className="text-[11px] text-neutral-400 -mt-1">팀을 누르면 선수 명단(포지션·등번호·키·몸무게·국적)과 시즌 성적을 볼 수 있습니다.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {khlTeamCards.map((t) => (
               <Link
                 key={t.id}
                 href={`/teams/${t.id}`}

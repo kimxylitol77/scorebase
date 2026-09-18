@@ -6,6 +6,7 @@
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
+//   - KHL: 경기 캐시(detailLive.players) 시즌 누적 집계 (ts 시즌 선수 통계 API 미인가)
 //   - MLB: MLB Stats API /v1/stats/leaders (타격 4 + 투구 4)
 //   - KBO: koreabaseball.com (시즌 hitter/pitcher basic — ajax JSON)
 //   - NPB: npb.jp/bis/{Y}/stats/{bat,pit}_{c,p}.html (양리그 합산 TOP)
@@ -44,6 +45,7 @@ import { thesportsGet } from "@/lib/sports/thesports/client";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
 import { TS_SHARED_SEASON_LEAGUES } from "@/lib/sports/season-calendar";
+import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
 
 const TOP_N = 10;
 
@@ -719,6 +721,103 @@ export async function runNba(seasonStartYear: number) {
 }
 
 /* ============================================================
+ * KHL — 시즌 선수 통계 API 가 미인가라 경기 캐시(detailLive.players)를 시즌 누적 집계.
+ *   stat 코드는 HockeyBoxScore 와 동일: 20(1골리/2스케이터) 26골 27도움 56+/- 28유효슛 24세이브 25SV%.
+ *   골리 SV% = Σ세이브 / Σ슛(경기별 세이브÷SV% 로 역산) — 경기별 % 단순평균보다 정확.
+ *   선수→팀은 가장 최근 출전 경기의 홈/원정 쪽 Team. 이름·사진은 khl-players.json(주간 빌드).
+ * ==========================================================*/
+
+const KHL_MIN_GOALIE_SHOTS = 60; // 두 경기치 — 한 경기 100% 가 1위 되는 것 방지
+
+export async function runKhl(seasonLabel: string) {
+  const startYear = Number(seasonLabel.slice(0, 4));
+  const seasonStart = new Date(Date.UTC(startYear, 7, 1)); // 8/1 — KHL 정규시즌은 9월 개막
+  const matches = await prisma.match.findMany({
+    where: { league: "KHL", status: "FINISHED", startTime: { gte: seasonStart }, theSportsCache: { isNot: null } },
+    select: {
+      startTime: true, homeTeamId: true, awayTeamId: true,
+      theSportsCache: { select: { detailLive: true } },
+    },
+    orderBy: { startTime: "asc" },
+  });
+  interface Row { id: string; stats: Array<[number, number]> }
+  interface Acc { gp: number; g: number; a: number; pm: number; sog: number; saves: number; shots: number; goalie: boolean; teamId: number }
+  const acc = new Map<string, Acc>();
+  const stat = (r: Row, k: number) => r.stats.find(([s]) => s === k)?.[1];
+  for (const m of matches) {
+    const dl = m.theSportsCache?.detailLive as { players?: { home?: Row[]; away?: Row[] } } | null;
+    if (!dl?.players) continue;
+    for (const side of ["home", "away"] as const) {
+      const teamId = side === "home" ? m.homeTeamId : m.awayTeamId;
+      for (const r of dl.players[side] ?? []) {
+        if (!r?.id || !Array.isArray(r.stats)) continue;
+        const cur = acc.get(r.id) ?? { gp: 0, g: 0, a: 0, pm: 0, sog: 0, saves: 0, shots: 0, goalie: false, teamId };
+        cur.teamId = teamId; // 최근 경기 기준
+        if (stat(r, 20) === 1) {
+          const saves = stat(r, 24) ?? 0;
+          const pct = stat(r, 25) ?? 0;
+          if (saves > 0 && pct > 0) {
+            cur.goalie = true;
+            cur.gp++;
+            cur.saves += saves;
+            cur.shots += Math.round(saves / (pct > 1 ? pct / 100 : pct));
+          }
+        } else {
+          cur.gp++;
+          cur.g += stat(r, 26) ?? 0;
+          cur.a += stat(r, 27) ?? 0;
+          cur.pm += stat(r, 56) ?? 0;
+          cur.sog += stat(r, 28) ?? 0;
+        }
+        acc.set(r.id, cur);
+      }
+    }
+  }
+  if (acc.size === 0) return { season: seasonLabel, result: {} as Record<string, number>, matches: matches.length };
+
+  const teamIds = [...new Set([...acc.values()].map((a) => a.teamId))];
+  const teams = await prisma.team.findMany({ where: { id: { in: teamIds } }, select: { id: true, name: true } });
+  const teamName = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name, "KHL") || t.name]));
+  const summary: Record<string, number> = {};
+  const write = async (
+    code: string, unit: string,
+    rows: Array<{ id: string; value: number; gp: number; sub?: string }>,
+  ) => {
+    const top = rows.slice(0, TOP_N);
+    for (let i = 0; i < top.length; i++) {
+      const r = top[i];
+      const info = khlPlayerInfo(r.id);
+      const en = info?.en ?? r.id;
+      await upsertLeader({
+        league: "KHL", category: code, rank: i + 1,
+        playerName: info ? khlPlayerName(info) : en,
+        playerNameEn: en,
+        externalId: r.id,
+        teamName: teamName.get(acc.get(r.id)!.teamId) ?? "",
+        value: r.value, unit, appearances: r.gp, subLabel: r.sub,
+        photoUrl: info?.photo,
+        season: seasonLabel,
+      });
+    }
+    await clearOldRanks("KHL", code, seasonLabel, top.length);
+    summary[code] = top.length;
+  };
+  const skaters = [...acc.entries()].filter(([, a]) => !a.goalie);
+  const byDesc = (f: (a: Acc) => number) =>
+    skaters.map(([id, a]) => ({ id, value: f(a), gp: a.gp, a })).filter((x) => x.value > 0)
+      .sort((x, y) => y.value - x.value || y.a.g + y.a.a - (x.a.g + x.a.a) || x.gp - y.gp);
+  await write("GOAL_NHL", "골", byDesc((a) => a.g).map((x) => ({ ...x, sub: `유효슛 ${x.a.sog}` })));
+  await write("ASSIST_NHL", "도움", byDesc((a) => a.a));
+  await write("POINTS", "포인트", byDesc((a) => a.g + a.a).map((x) => ({ ...x, sub: `${x.a.g}골 ${x.a.a}도움` })));
+  const goalies = [...acc.entries()]
+    .filter(([, a]) => a.goalie && a.shots >= KHL_MIN_GOALIE_SHOTS)
+    .map(([id, a]) => ({ id, value: Math.round((a.saves / a.shots) * 1000) / 1000, gp: a.gp, sub: `세이브 ${a.saves}/${a.shots}` }))
+    .sort((x, y) => y.value - x.value);
+  await write("SAVE_PCT", "세이브%", goalies);
+  return { season: seasonLabel, result: summary, matches: matches.length, players: acc.size };
+}
+
+/* ============================================================
  * NHL (공식 API)
  * ==========================================================*/
 
@@ -1311,6 +1410,7 @@ export async function runFetchLeagueLeaders(opts?: {
   if (!sport || sport === "soccer") await safe("soccer", () => runSoccer());
   if (!sport || sport === "basketball") await safe("nba", () => runNba(nbaSeason));
   if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
+  if (!sport || sport === "hockey") await safe("khl", () => runKhl(nhlSeasonLabel));
   if (!sport || sport === "baseball") {
     await safe("mlb", () => runMlb(yearNow));
     await safe("kbo", () => runKbo(yearNow));

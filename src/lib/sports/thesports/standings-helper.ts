@@ -11,6 +11,7 @@
 
 import { prisma } from "@/lib/db";
 import teamIdMapping from "./team-id-mapping.json";
+import { HOCKEY_TS_TABLE_LEAGUES, fetchHockeyTable } from "./hockey-table";
 import { PROVIDER_TS, afSeasonYear, getActiveSeason, registrySeasonYear } from "../season-registry";
 import {
   afCacheUsable,
@@ -117,6 +118,14 @@ export async function getStandingsPositions(
   }
 
   const positionByOurTeamId = new Map<number, number>();
+
+  // 하키(KHL) — 공식 표 캐시는 ice_hockey 매핑을 써야 해서 축구 매핑 기반 일반 경로를 타면 조용히 0건이 된다.
+  if (HOCKEY_TS_TABLE_LEAGUES.has(league)) {
+    const t = await fetchHockeyTable(league);
+    for (const r of t?.overall ?? []) positionByOurTeamId.set(r.ourTeamId, r.position);
+    cache.set(league, { fetchedAt: now, positionByOurTeamId });
+    return positionByOurTeamId.size > 0 ? positionByOurTeamId : null;
+  }
 
   // J1/J2 2026 그룹 포맷(East/West) — 매치 카드 칩의 단일 [순위] 는 그룹상대순위라
   // East-3·West-3 가 둘 다 [3] 으로 모호하고, 중복 Team row 합산으로 한 position 에 여러 팀이
@@ -265,6 +274,21 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
 
   const out: StandingsRow[] = [];
   const seen = new Set<number>();
+
+  // 하키(KHL) — 공식 표(hockey-table) 전체 순위. 승=연장승 포함, 패=연장패 포함(무승부 없음).
+  if (HOCKEY_TS_TABLE_LEAGUES.has(league)) {
+    const t = await fetchHockeyTable(league);
+    for (const r of t?.overall ?? []) {
+      out.push({
+        teamId: r.ourTeamId, position: r.position, points: r.points,
+        won: r.wins + r.otWins, draw: 0, loss: r.losses + r.otLosses,
+        goalsFor: r.goalsFor, goalsAgainst: r.goalsAgainst, goalDiff: r.goalsFor - r.goalsAgainst,
+      });
+    }
+    fullCache.set(league, { fetchedAt: now, rows: out });
+    return out;
+  }
+
   const gate = await seasonGate(league);
 
   // 0) J1/J2 2026 그룹 포맷 — af(깨끗한 group 필드 + 전팀 매핑) 우선. ts 는 stage_id 가

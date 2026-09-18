@@ -35,6 +35,7 @@ import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
 import CupBracket from "@/components/leagues/CupBracket";
+import HockeyTsStandingsTable from "@/components/hockey/HockeyTsStandingsTable";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +57,7 @@ const VALID_LEAGUES = [
   "KBL",
   "WKBL",
   "NHL",
+  "KHL",
   "MLB",
   "KBO",
   "NPB",
@@ -215,6 +217,12 @@ const LEAGUE_INFO: Partial<Record<
     subtitle: "National Hockey League",
     gradient: "from-cyan-500 via-blue-600 to-indigo-700",
     copy: "북미 프로 아이스하키 NHL 의 경기 결과와 분석.",
+  },
+  KHL: {
+    name: "KHL",
+    subtitle: "Kontinental Hockey League",
+    gradient: "from-red-600 via-rose-600 to-blue-700",
+    copy: "러시아·벨라루스·카자흐스탄·중국 22개 구단이 겨루는 콘티넨탈 하키 리그. 공식 순위·선수 명단·경기 결과.",
   },
   MLB: {
     name: "MLB",
@@ -613,6 +621,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"],
+    // KHL — 순위(ts 공식 표 + 경기 캐시 리더보드)·일정·글. 예측·역사는 데이터 없음.
+    KHL: ["standings", "fixtures", "articles"],
     LOL: ["standings", "predictions", "power", "fixtures", "history", "articles"],
     // NBA — 순위(ESPN 공식, 2026-08 중복 팀 정리 후 개방) + 일정(서머리그 + 지난 시즌 접기).
     NBA: ["standings", "predictions", "fixtures", "history", "articles"],
@@ -855,6 +865,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           {/* withLastLeaders — 리그 탭엔 별도 리더보드 섹션이 없어 개막 전 접기에 같이 넣는다.
               (/standings/NHL 은 자체 "시즌 리더보드" 섹션이 있어 끈 상태가 맞다.) */}
           <NhlStandingsTable withLastLeaders />
+        </div>
+      )}
+      {!isSoccer && view === "standings" && upper === "KHL" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <HockeyTsStandingsTable league="KHL" withLeaders />
         </div>
       )}
       {!isSoccer && view === "standings" && upper === "NBA" && (

@@ -33,6 +33,8 @@ import LolSimpleStandings from "@/components/LolSimpleStandings";
 import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
+import HockeyTsStandingsTable from "@/components/hockey/HockeyTsStandingsTable";
+import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
 import KoreanBasketballTable from "@/components/basketball/KoreanBasketballTable";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
@@ -143,6 +145,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description:
         "NHL 정규시즌 순위표. 동부·서부 컨퍼런스 32팀의 경기·승·패·연장패·승점 전체 순위를 NHL 공식 기록으로 매일 자동 갱신.",
       alternates: { canonical: "https://www.scorebase.kr/standings/NHL", ...enAlt(upper) },
+    };
+  }
+  if (upper === "KHL") {
+    return {
+      title: "KHL 순위표 — 러시아 하키 전체·컨퍼런스·디비전 순위",
+      description:
+        "KHL(콘티넨탈 하키 리그) 2026-27 정규시즌 순위표. 22팀의 경기·승·연장승·연장패·승점을 전체·동서부 컨퍼런스·4개 디비전으로 정리하고, 골·도움·포인트·세이브율 리더보드까지 매일 자동 갱신.",
+      alternates: { canonical: "https://www.scorebase.kr/standings/KHL" },
     };
   }
   // KBO — 빙 최대 노출 페이지인데 CTR 0.33% (2026-08-14 실측: 노출 16,787·클릭 55).
@@ -321,6 +331,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // NHL 은 승점 체계(승 2·연장패 1) + OTL 컬럼이 축구식과 달라 — 공식 순위 전용 렌더
   if (upper === "NHL") return <NhlStandings name={name} />;
+
+  // KHL — ts 공식 표(전체·컨퍼런스·디비전) + 경기 캐시 집계 리더보드
+  if (HOCKEY_TS_TABLE_LEAGUES.has(upper)) return <HockeyTsStandings league={upper} name={name} />;
 
   // LOL(LCK) — ts table/list JSON 백필(data/lol-standings.json) 정적 렌더
   if (upper === "LOL") return <LolStandings name={name} />;
@@ -1395,6 +1408,28 @@ async function KoreanBasketballStandings({ league, name }: { league: string; nam
           />
         </CollapseSection>
       )}
+    </div>
+  );
+}
+
+async function HockeyTsStandings({ league, name }: { league: string; name: string }) {
+  return (
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=hockey" className="hover:underline">라이브 스코어</Link>
+        <span>›</span>
+        <Link href={`/leagues/${league}`} className="hover:underline">{name}</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">순위표</span>
+      </nav>
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+      </header>
+      <HockeyTsStandingsTable league={league} withLeaders />
     </div>
   );
 }

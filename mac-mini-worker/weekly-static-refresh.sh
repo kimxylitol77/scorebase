@@ -75,6 +75,8 @@ log "⑩ MLB 부상자(IL) 한글명 (Haiku, BDL+ESPN union — 박스스코어 
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-mlb-injury-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑪ NHL 선수 한글명 (Haiku, NHL 매치 cache player_id → TheSports 영문 — 골타임라인·박스스코어)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-player-names-haiku.ts' 2>&1 | tail -2 || true
+log "⑪-b KHL 선수 사전 (ts squad+player 프로필 → data/khl-players.json, Haiku 한글명 — 팀 로스터·리더보드·라이브 이름)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-khl-players.ts' 2>&1 | tail -2 || true
 log "⑫ NHL 부상자 한글명 (Haiku, ESPN injuries — /injuries/NHL)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-injury-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑬ KBO·NPB 로스터 (koreabaseball·npb scrape — 支配下 1군)"

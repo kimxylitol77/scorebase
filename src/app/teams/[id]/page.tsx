@@ -21,6 +21,7 @@ import TransfersSection from "@/components/teams/TransfersSection";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
+import { khlRoster, khlPlayerName, khlAge } from "@/lib/sports/khl-players";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
@@ -622,6 +623,9 @@ export default async function TeamPage({ params }: Props) {
     nhlRoster = await fetchNhlRoster(team.shortName, `${ny}${ny + 1}`);
   }
 
+  // KHL 로스터 — 정적 사전(data/khl-players.json, ts squad+player 프로필·주간 빌드). 선수 페이지는 아직 없어 링크 없음.
+  const khlPlayers = team.league === "KHL" ? khlRoster(team.id) : [];
+
   // MLB 로스터 (MLB Stats API, person.id=mlbStatsId) → /players/{id}?league=MLB 선수페이지 연결.
   let mlbRoster: MlbRosterPlayer[] = [];
   if (team.league === "MLB") mlbRoster = await fetchMlbRoster(team.name);
@@ -1070,6 +1074,53 @@ export default async function TeamPage({ params }: Props) {
                         </div>
                       </Link>
                     ))}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
+        {/* KHL 로스터 — TheSports 스쿼드·프로필(khl-players.json). 포지션별, 등번호·키·몸무게·나이·국적 */}
+        {khlPlayers.length > 0 && (
+          <section>
+            <SectionH title="🏒 로스터" subtitle={`${khlPlayers.length}명 · TheSports · 주간 갱신`} />
+            {([["F", "공격수"], ["D", "수비수"], ["G", "골리"]] as const).map(([g, label]) => {
+              const ps = khlPlayers.filter((p) => p.pos === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => {
+                      const age = khlAge(p.birth);
+                      const meta = [
+                        p.no ? `#${p.no}` : null,
+                        p.height ? `${p.height}cm` : null,
+                        p.weight ? `${p.weight}kg` : null,
+                        age != null ? `${age}세` : null,
+                        p.natKo ?? p.nat ?? null,
+                      ].filter(Boolean).join(" · ");
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                            {p.photo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={p.photo} alt={khlPlayerName(p)} className="w-full h-full object-cover" loading="lazy" />
+                            ) : (
+                              <span className="text-xs font-bold text-neutral-500">{p.en.slice(0, 1)}</span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm truncate">{khlPlayerName(p)}</div>
+                            <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
