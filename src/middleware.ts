@@ -58,6 +58,14 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       "unknown";
+    // 임시 진단(2026-09-18) — 실시간 접속을 부풀린 위장 스크레이퍼의 IP 분포 확인용. 확인 후 제거.
+    if (
+      !path.startsWith("/api/") &&
+      req.headers.get("user-agent") ===
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+    ) {
+      console.warn(`[scraper-ip] ip=${ip} path=${path}`);
+    }
     if (!RATE_LIMIT_EXEMPT_IPS.has(ip)) {
       // Redis(Upstash) 가 설정돼 있으면 인스턴스와 무관하게 정확히 센다. 없으면 메모리(best-effort).
       const { allowed, retryAfterSec, backend } = await rateLimitShared(`scrape:${ip}`, {
