@@ -18,9 +18,9 @@ export const revalidate = 600;
 export const metadata: Metadata = {
   title: "기타 종목 — 하키·배구·e스포츠·테니스·골프·F1·UFC",
   description:
-    "NHL 하키, 배구(VNL·V리그), LCK e스포츠, 테니스 ATP·WTA, 골프 PGA·LPGA, F1, UFC 까지. 라이브 스코어와 순위·랭킹·한국 선수 성적을 한국어로 한 곳에서 — 스코어베이스.",
+    "NHL·KHL·유럽 하키, 배구 V-리그 남·여·VNL, LCK e스포츠, 테니스 ATP·WTA, 골프 PGA·LPGA, F1, UFC 까지. 라이브 스코어와 순위·선수 기록·랭킹·한국 선수 성적을 한국어로 한 곳에서 — 스코어베이스.",
   keywords: [
-    "하키 라이브스코어", "NHL 순위", "배구 라이브스코어", "VNL",
+    "하키 라이브스코어", "NHL 순위", "KHL 순위", "배구 라이브스코어", "V리그 순위", "V리그 선수 기록", "VNL",
     "LCK 순위", "테니스 세계랭킹", "ATP 랭킹", "골프 한국 선수", "LPGA",
     "F1 순위", "포뮬러1 챔피언십", "UFC 랭킹", "UFC 대회 일정",
   ],
@@ -197,13 +197,19 @@ const SPORTS: SportCard[] = [
   {
     emoji: "🏒",
     title: "하키",
-    sub: "NHL · IIHF 세계선수권 — 순위·선수·플레이오프 예측",
+    sub: "NHL · KHL · 유럽 리그 · IIHF 세계선수권 — 순위·선수·플레이오프 예측",
     sport: "hockey",
     href: "/hockey",
     hrefLabel: "하키 허브",
+    // 2026-09-18 KHL·유럽 6개 리그 공식 순위 온보딩 — KHL 은 선수 기록·로스터까지
     links: [
       { label: "라이브 스코어", href: "/scores?sport=hockey" },
       { label: "NHL 순위", href: "/standings/NHL" },
+      { label: "KHL 순위·선수 기록", href: "/standings/KHL" },
+      { label: "핀란드 리가", href: "/standings/LIIGA" },
+      { label: "스위스 NL", href: "/standings/SWISS_NL" },
+      { label: "체코", href: "/standings/CZECH_EXTRALIGA" },
+      { label: "챔피언스 하키 리그", href: "/standings/CHL_HOCKEY" },
       { label: "연봉 랭킹", href: "/salaries/nhl" },
       { label: "부상자", href: "/injuries/NHL" },
     ],
@@ -212,14 +218,18 @@ const SPORTS: SportCard[] = [
   {
     emoji: "🏐",
     title: "배구",
-    sub: "VNL 국가대항 · 10월 V-리그(KOVO) 개막 — 세트 스코어",
+    sub: "V-리그 남·여(10월 31일 개막) 순위·선수·기록 · VNL 국가대항 — 세트 스코어",
     sport: "volleyball",
-    href: "/scores?sport=volleyball",
-    hrefLabel: "배구 라이브 스코어",
+    href: "/leagues/V_LEAGUE",
+    hrefLabel: "V-리그 남자부",
+    // 2026-09-18 V-리그 리그 페이지 완성(순위·선수 기록·일정·역사, 선수 상세 227명)
     links: [
+      { label: "V-리그 여자부", href: "/leagues/V_LEAGUE_W" },
+      { label: "남자부 선수 기록", href: "/leagues/V_LEAGUE?view=stats" },
+      { label: "여자부 선수 기록", href: "/leagues/V_LEAGUE_W?view=stats" },
+      { label: "라이브 스코어", href: "/scores?sport=volleyball" },
       { label: "VNL 순위", href: "/standings/VNL" },
       { label: "VNL 여자 순위", href: "/standings/VNL_W" },
-      { label: "전체 순위표", href: "/standings" },
     ],
     accent: "from-amber-500 to-orange-600",
   },
