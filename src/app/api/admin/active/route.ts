@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { COOKIE_NAME, readSessionCookie } from "@/lib/auth";
 import { detectBot } from "@/lib/bot-detect";
+import { automatedUaMatcher } from "@/lib/traffic-filter";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -45,7 +46,19 @@ export async function GET() {
     }),
   ]);
 
-  const humans = presenceRows.filter((r) => !detectBot(r.userAgent).isBot);
+  // 위장 스크레이퍼 제외 — detectBot 은 UA 에 봇 표시가 있을 때만 거른다. 평범한 크롬 UA 로
+  // JS 까지 실행해 heartbeat 를 보내는 자동화는 통과하므로 admin/stats 와 같은 traffic-filter
+  // 규칙으로 한 번 더 거른다. 판정 근거는 지금 접속 중인 UA 들의 최근 3시간 PV.
+  const presenceUas = [...new Set(presenceRows.map((r) => r.userAgent).filter((u): u is string => !!u))];
+  const recentPv = presenceUas.length
+    ? await prisma.pageView.findMany({
+        where: { ts: { gte: new Date(now - 3 * 3600 * 1000) }, sessionId: { not: null }, userAgent: { in: presenceUas } },
+        select: { ts: true, sessionId: true, userAgent: true },
+        take: 50000,
+      })
+    : [];
+  const isAutomated = automatedUaMatcher(recentPv.filter((r) => !detectBot(r.userAgent).isBot));
+  const humans = presenceRows.filter((r) => !detectBot(r.userAgent).isBot && !isAutomated(r.userAgent));
   const visibleRows = humans.filter(
     (r) => r.visibility === "visible" && r.lastSeenAt >= visibleCutoff,
   );
@@ -85,7 +98,7 @@ export async function GET() {
   let pv1 = 0;
   const last1 = new Date(now - 60 * 1000);
   for (const r of pageViews) {
-    if (detectBot(r.userAgent).isBot) continue;
+    if (detectBot(r.userAgent).isBot || isAutomated(r.userAgent)) continue;
     pv5++;
     if (r.ts >= last1) {
       pv1++;

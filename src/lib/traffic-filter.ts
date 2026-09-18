@@ -25,7 +25,7 @@ export function filterHumans<T extends { userAgent: string | null }>(rows: T[]):
 }
 
 const ENTRY_PATHS = new Set(["/", "/scores", "/landing"]);
-const isDesktopLinuxUa = (ua: string | null) => /X11; Linux/.test(ua ?? "");
+export const isDesktopLinuxUa = (ua: string | null) => /X11; Linux/.test(ua ?? "");
 
 /**
  * 위장 스크레이퍼 세션 — 사람 UA 를 쓰지만 사람이 아닌 것들. 세 규칙의 합집합이다.
@@ -59,6 +59,13 @@ export function suspiciousSessionIds(humans: TrafficRow[], landings: LandingRow[
   for (const r of humans) if (r.sessionId && isDesktopLinuxUa(r.userAgent)) sus.add(r.sessionId);
   for (const l of landings) if (l.sessionId && isDesktopLinuxUa(l.userAgent)) sus.add(l.sessionId);
   // C
+  const autoUas = automatedUserAgents(humans);
+  for (const r of humans) if (r.sessionId && autoUas.has(r.userAgent ?? "")) sus.add(r.sessionId);
+  return sus;
+}
+
+/** 규칙 C 의 UA 판정 — 세션 15개 이상인데 세션당 PV 가 1.0 인 UA 문자열 집합. */
+export function automatedUserAgents(humans: TrafficRow[]): Set<string> {
   const byUa = new Map<string, { pv: number; sessions: Set<string> }>();
   for (const r of humans) {
     if (!r.sessionId) continue;
@@ -68,12 +75,23 @@ export function suspiciousSessionIds(humans: TrafficRow[], landings: LandingRow[
     e.sessions.add(r.sessionId);
     byUa.set(key, e);
   }
-  for (const [, e] of byUa) {
-    if (e.sessions.size >= 15 && e.pv / e.sessions.size < 1.05) {
-      for (const s of e.sessions) sus.add(s);
-    }
+  const out = new Set<string>();
+  for (const [ua, e] of byUa) {
+    if (e.sessions.size >= 15 && e.pv / e.sessions.size < 1.05) out.add(ua);
   }
-  return sus;
+  return out;
+}
+
+/**
+ * 실시간 접속(ActivePresence) 용 — B·C 로 자동화 UA 를 가려내는 판정 함수를 만든다.
+ * A 는 빼는 이유. A 는 "기간 내 PV 1건" 으로 판정하는데, 방금 들어온 사람은 아직 1PV 라
+ * 실시간에서는 사람도 걸린다. B·C 는 UA 단위라 들어온 지 얼마 안 된 세션도 바로 판정된다
+ * (2026-09-18 실측: Mac Chrome/145 한 UA 가 3시간 2,399세션·세션당 1.00PV 로 JS heartbeat 까지
+ * 보내 "현재 접속" 을 126 중 114 로 부풀림).
+ */
+export function automatedUaMatcher(recentHumans: TrafficRow[]): (ua: string | null) => boolean {
+  const autoUas = automatedUserAgents(recentHumans);
+  return (ua) => isDesktopLinuxUa(ua) || autoUas.has(ua ?? "");
 }
 
 /** 봇·위장 스크레이퍼를 모두 뺀 사람 PV. 트래픽 지표는 전부 이걸 기준으로 센다. */
