@@ -54,14 +54,24 @@ export const LEAGUE_SPORT_MAP: Record<string, SportType> = {
   MLS: "soccer",
   UCL: "soccer",
   WORLD_CUP: "soccer",
-  // 농구
+  // 농구 — 미등록 리그는 팀 페이지 제목이 "축구 팀 순위…"로 나간다(2026-09-18 KBL 실측). 비축구 리그를 붙이면 여기도 등록.
   NBA: "basketball",
+  WNBA: "basketball",
+  KBL: "basketball",
+  WKBL: "basketball",
   // 야구
   MLB: "baseball",
   KBO: "baseball",
   NPB: "baseball",
   // 하키
   NHL: "hockey",
+  KHL: "hockey",
+  CHL_HOCKEY: "hockey",
+  LIIGA: "hockey",
+  SWISS_NL: "hockey",
+  CZECH_EXTRALIGA: "hockey",
+  SLOVAK_EXTRALIGA: "hockey",
+  DENMARK_METAL: "hockey",
 };
 
 export function getSportFromLeague(league: string): SportType {
