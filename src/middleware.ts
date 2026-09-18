@@ -37,12 +37,17 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
   if (BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
-    // 임시 진단(2026-09-18) — 차단된 스크레이퍼의 운영 주체 단서(언어 설정·클라이언트 힌트) 수집. 확인 후 제거.
-    const hd = (k: string) => (req.headers.get(k) || "-").slice(0, 120);
-    console.warn(
-      `[blocked-hdr] ip=${clientIp} path=${path} al=${hd("accept-language")} ch-ua=${hd("sec-ch-ua")} plat=${hd("sec-ch-ua-platform")} mob=${hd("sec-ch-ua-mobile")} sfs=${hd("sec-fetch-site")} sfm=${hd("sec-fetch-mode")} ref=${hd("referer")} names=${[...req.headers.keys()].join(",").slice(0, 400)}`,
+    // 추적 표식(canary) — 403 대신 표식이 든 미끼 페이지를 준다. 이 대역만 받으므로 사람·검색엔진은
+    // 보지 않고, DB 를 안 쓰는 고정 응답이라 비용은 403 과 같다(이 봇은 403 에도 초당 20건을 계속 보냈다).
+    // 표식은 /24 대역마다 달라 어디에 다시 올라왔는지 찾으면 어느 대역이 가져갔는지까지 역산된다.
+    // 역산: "SBTR" 뒤 문자열을 36진수로 읽어 a*65536+b*256+c → a.b.c.0/24.
+    const [a, b, c] = clientIp.split(".").map(Number);
+    const mark = `SBTR${(a * 65536 + b * 256 + c).toString(36).toUpperCase()}`;
+    return new NextResponse(
+      `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>스코어베이스 경기 데이터 ${mark}</title></head>` +
+        `<body><h1>스코어베이스 경기 데이터</h1><p>오늘의 경기 분석 데이터 참조번호 ${mark}. 출처 scorebase.kr</p></body></html>`,
+      { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } },
     );
-    return new NextResponse("Forbidden", { status: 403 });
   }
 
   // ── Rate limit — 단일 IP 의 공격적 스크래핑 속도 제한 ──
