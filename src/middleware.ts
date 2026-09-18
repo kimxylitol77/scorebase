@@ -52,8 +52,6 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
       oct.length === 4 && oct.every((n) => Number.isInteger(n))
         ? `SBTR${(oct[0] * 65536 + oct[1] * 256 + oct[2]).toString(36).toUpperCase()}`
         : `SBTR6${clientIp.split(":").slice(0, 3).join("").toUpperCase()}`;
-    // 임시 진단(2026-09-18) — 알리바바 차단 뒤 옮겨 간 IP 확인용. 확인 후 제거.
-    if (fakeHint) console.warn(`[fake-hint] ip=${clientIp} path=${path} mark=${mark}`);
     return new NextResponse(
       `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>스코어베이스 경기 데이터 ${mark}</title></head>` +
         `<body><h1>스코어베이스 경기 데이터</h1><p>오늘의 경기 분석 데이터 참조번호 ${mark}. 출처 scorebase.kr</p></body></html>`,
