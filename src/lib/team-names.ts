@@ -4686,6 +4686,28 @@ const HOCKEY_OVERRIDE_LEAGUES = [
 ];
 
 const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
+  // ── 국내 농구 (2026-09-18, KBL 리그 페이지 완성) — DB Team.name(ts 영문, 일부 옛 구단명) → 공식 한글 구단명.
+  //    "Wonju Dongbu Promy" 처럼 ts 가 옛 이름을 주는 팀도 현재 공식명으로 표기한다.
+  KBL: {
+    "Seoul Samsung Thunders": "서울 삼성 썬더스",
+    "Busan KCC Egis": "부산 KCC 이지스",
+    "Changwon LG Sakers": "창원 LG 세이커스",
+    "Seoul SK Knights": "서울 SK 나이츠",
+    "Ulsan Mobis Phoebus": "울산 현대모비스 피버스",
+    "Wonju Dongbu Promy": "원주 DB 프로미",
+    "Suwon KT Sonicboom": "수원 KT 소닉붐",
+    "Daegu KOGAS Pegasus": "대구 한국가스공사 페가수스",
+    "Anyang JungKwanJang Red Boosters": "안양 정관장 레드부스터스",
+    "Goyang Sono Skygunners": "고양 소노 스카이거너스",
+  },
+  WKBL: {
+    "BNK Sum Women": "부산 BNK 썸",
+    "Sinhan Bank S-Birds": "인천 신한은행 에스버드",
+    "Bucheon Keb Hanabank": "부천 하나은행",
+    "Woori Bank Wibee": "아산 우리은행 우리WON",
+    "Samsunglife Blueminx": "용인 삼성생명 블루밍스",
+    "KB Stars": "청주 KB스타즈",
+  },
   ...Object.fromEntries(HOCKEY_OVERRIDE_LEAGUES.map((lg) => [lg, HOCKEY_CLUB_OVERRIDES])),
   // ── 국제 클럽 친선 (프리시즌, af 667) — haiku 음역 자동 생성 (2026-07-06, 801팀). 스코어 피드 전용.
   CLUB_FRIENDLY: {

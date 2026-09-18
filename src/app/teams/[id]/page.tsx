@@ -22,6 +22,7 @@ import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
 import { khlRoster, khlPlayerName, khlAge, khlInjuryOf, khlInjuryLabel } from "@/lib/sports/khl-players";
+import { kblRoster, kblPosKo, kblAge } from "@/lib/sports/kbl-players";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
@@ -625,6 +626,8 @@ export default async function TeamPage({ params }: Props) {
 
   // KHL 로스터 — 정적 사전(data/khl-players.json, ts squad+player 프로필·주간 빌드). 선수 페이지는 아직 없어 링크 없음.
   const khlPlayers = team.league === "KHL" ? khlRoster(team.id) : [];
+  // KBL 로스터 — 정적 사전(data/kbl-players.json, KBL 공식 API 등록 선수·주간 빌드) → /players/{playerNo}?league=KBL
+  const kblPlayers = team.league === "KBL" ? kblRoster(team.id) : [];
 
   // MLB 로스터 (MLB Stats API, person.id=mlbStatsId) → /players/{id}?league=MLB 선수페이지 연결.
   let mlbRoster: MlbRosterPlayer[] = [];
@@ -1127,6 +1130,50 @@ export default async function TeamPage({ params }: Props) {
                             <div className="text-[11px] text-neutral-500 tabular-nums truncate">{injury ? `${khlInjuryLabel(injury)} · ${meta}` : meta}</div>
                           </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
+        {/* KBL 로스터 — KBL 공식 등록 선수(kbl-players.json). 클릭 → 선수 상세(/players/{playerNo}?league=KBL) */}
+        {kblPlayers.length > 0 && (
+          <section>
+            <SectionH title="🏀 로스터" subtitle={`${kblPlayers.length}명 · KBL 공식 등록 선수 · 클릭 시 상세`} />
+            {([["GD", "가드"], ["FD", "포워드"], ["C", "센터"]] as const).map(([g, label]) => {
+              const ps = kblPlayers.filter((p) => p.pos === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => {
+                      const age = kblAge(p.birth);
+                      const meta = [
+                        p.no != null ? `#${p.no}` : null,
+                        p.height ? `${p.height}cm` : null,
+                        p.weight ? `${p.weight}kg` : null,
+                        age != null ? `${age}세` : null,
+                        p.country && p.country !== "대한민국" ? p.country : null,
+                      ].filter(Boolean).join(" · ");
+                      return (
+                        <Link
+                          key={p.id}
+                          href={`/players/${p.id}?league=KBL`}
+                          className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-top" loading="lazy" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm truncate">{p.name}</div>
+                            <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta || kblPosKo(p.pos)}</div>
+                          </div>
+                        </Link>
                       );
                     })}
                   </div>

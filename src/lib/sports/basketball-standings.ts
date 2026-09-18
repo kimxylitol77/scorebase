@@ -38,7 +38,7 @@ export function isCompleteStandings(league: string, rows: BasketballStandingRow[
   return expected == null ? rows.length > 0 : rows.length === expected;
 }
 
-const KBL_TEAM_IDS: Record<string, number> = {
+export const KBL_TEAM_IDS: Record<string, number> = {
   "35": 607775,
   "60": 607776,
   "50": 607777,

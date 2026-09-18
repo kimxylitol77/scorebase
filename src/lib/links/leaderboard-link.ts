@@ -12,6 +12,7 @@ import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page"
 const PLAYER_PAGE_LEAGUES = new Set([
   ...SOCCER_PLAYER_PAGE_LEAGUE_SET,
   "KBO", "NPB", "MLB", "NBA", "NHL", "LOL",
+  "KBL", // 2026-09-18 — /players/{playerNo}?league=KBL (KblViews)
 ]);
 
 /** af player id 는 숫자, TheSports player id 는 영숫자 혼합. 링크 분기의 기준. */

@@ -4,6 +4,7 @@
 //   - 축구: ts season/recent/player/stat 라이브 (TS_PLAYER_STAT_LEAGUES) — 소스 1순위 원칙
 //   - 축구 잔여(AFC_U23 등): API-Football topscorers fallback — 2026-06 말부터 사망 상태
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
+//   - KBL: KBL 공식 api-stats 전체 선수 시즌 평균 (규정 경기수 충족) — 로컬 정렬 TOP10
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
 //   - KHL: 경기 캐시(detailLive.players) 시즌 누적 집계 (ts 시즌 선수 통계 API 미인가)
@@ -46,6 +47,7 @@ import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
 import { TS_SHARED_SEASON_LEAGUES } from "@/lib/sports/season-calendar";
 import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
+import { fetchKblRecentSeason, fetchKblSeasonPlayerAverages, kblPlayerPhotoUrl, kblSeasonLabel } from "@/lib/sports/kbl-api";
 
 const TOP_N = 10;
 
@@ -718,6 +720,48 @@ export async function runNba(seasonStartYear: number) {
     await clearFutureSeasons("NBA", seasonLabel);
   }
   return { season: seasonLabel, result: summary };
+}
+
+/* ============================================================
+ * KBL — 공식 API(api-stats.kbl.or.kr) 전체 선수 시즌 평균 1콜 → 로컬 정렬 (규정 경기수 충족 선수만).
+ *   시즌은 recent-seasons 가 주는 "가장 최근 진행 시즌" — 개막 전엔 직전 시즌이라 지난 시즌 행을 갱신할 뿐
+ *   (fetch-kr-league-leaders 백필과 같은 라벨·같은 unique 키라 멱등). 카테고리는 NBA 와 공유(PTS·REB·AST·STL·BLK).
+ * ==========================================================*/
+
+const KBL_CATS = [
+  { key: "score", code: "PTS", unit: "평균 득점" },
+  { key: "rb", code: "REB", unit: "평균 리바운드" },
+  { key: "aS", code: "AST", unit: "평균 어시스트" },
+  { key: "sT", code: "STL", unit: "평균 스틸" },
+  { key: "bS", code: "BLK", unit: "평균 블록" },
+] as const;
+
+export async function runKbl() {
+  const recent = await fetchKblRecentSeason();
+  if (!recent) return { season: null, result: {} as Record<string, number> };
+  const seasonLabel = kblSeasonLabel(recent.seasonName);
+  const players = await fetchKblSeasonPlayerAverages(recent.seasonCode, { ruleCk: 1 });
+  const summary: Record<string, number> = {};
+  if (players.length === 0) return { season: seasonLabel, result: summary };
+  for (const c of KBL_CATS) {
+    const top = [...players].sort((a, b) => Number(b[c.key]) - Number(a[c.key])).slice(0, TOP_N);
+    for (let i = 0; i < top.length; i++) {
+      const p = top[i];
+      await upsertLeader({
+        league: "KBL", category: c.code, rank: i + 1,
+        playerName: p.kname, playerNameEn: undefined,
+        externalId: String(p.playerNo),
+        teamName: p.teamName1, teamShort: undefined,
+        value: Math.round(Number(p[c.key]) * 10) / 10, unit: c.unit,
+        appearances: Number(p.gameCount) || undefined,
+        photoUrl: kblPlayerPhotoUrl(p.playerNo),
+        season: seasonLabel,
+      });
+    }
+    await clearOldRanks("KBL", c.code, seasonLabel, top.length);
+    summary[c.code] = top.length;
+  }
+  return { season: seasonLabel, result: summary, players: players.length };
 }
 
 /* ============================================================
@@ -1409,6 +1453,7 @@ export async function runFetchLeagueLeaders(opts?: {
   };
   if (!sport || sport === "soccer") await safe("soccer", () => runSoccer());
   if (!sport || sport === "basketball") await safe("nba", () => runNba(nbaSeason));
+  if (!sport || sport === "basketball") await safe("kbl", () => runKbl());
   if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
   if (!sport || sport === "hockey") await safe("khl", () => runKhl(nhlSeasonLabel));
   if (!sport || sport === "baseball") {
