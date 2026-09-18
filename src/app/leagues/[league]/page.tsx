@@ -36,6 +36,7 @@ import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
 import CupBracket from "@/components/leagues/CupBracket";
 import HockeyTsStandingsTable from "@/components/hockey/HockeyTsStandingsTable";
+import VolleyballLeagueTable from "@/components/volleyball/VolleyballLeagueTable";
 import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 
@@ -59,6 +60,7 @@ const VALID_LEAGUES = [
   "WKBL",
   "NHL",
   "KHL",
+  "V_LEAGUE", "V_LEAGUE_W",
   "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL",
   "MLB",
   "KBO",
@@ -225,6 +227,18 @@ const LEAGUE_INFO: Partial<Record<
     subtitle: "Women's Korean Basketball League",
     gradient: "from-purple-600 via-violet-600 to-indigo-600",
     copy: "한국 여자 프로농구 WKBL 6개 구단의 순위·선수 기록·일정·역사. 등록 선수 프로필과 시즌별 기록·개인 최고 기록까지.",
+  },
+  V_LEAGUE: {
+    name: "V-리그 남자부",
+    subtitle: "KOVO V-League Men",
+    gradient: "from-sky-600 via-blue-600 to-indigo-600",
+    copy: "한국 프로배구 V-리그 남자부 7개 구단의 순위·선수 기록·일정·역사. 현역 선수 프로필과 시즌별 기록·기록 상세까지.",
+  },
+  V_LEAGUE_W: {
+    name: "V-리그 여자부",
+    subtitle: "KOVO V-League Women",
+    gradient: "from-rose-500 via-pink-500 to-fuchsia-600",
+    copy: "한국 프로배구 V-리그 여자부 8개 구단의 순위·선수 기록·일정·역사. 현역 선수 프로필과 시즌별 기록·기록 상세까지.",
   },
   NHL: {
     name: "NHL",
@@ -650,6 +664,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     // KBL — 순위(공식 승률표)·선수 기록(공식 API 리더보드)·일정·역사(챔프전 우승)·글 (2026-09-18)
     KBL: ["standings", "stats", "fixtures", "history", "articles"],
     WKBL: ["standings", "stats", "fixtures", "history", "articles"],
+    // V-리그 — 순위(ts 공식 표)·선수 기록(KOVO 공식)·일정·역사(챔프전 우승)·글 (2026-09-18)
+    V_LEAGUE: ["standings", "stats", "fixtures", "history", "articles"],
+    V_LEAGUE_W: ["standings", "stats", "fixtures", "history", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
     KBO: ["predictions", "power", "fixtures", "history", "articles"],
     MLB: ["predictions", "power", "fixtures", "history", "articles"],
@@ -704,7 +721,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const hasOverUnder = isSoccer ? (await leaguesWithOverUnderPage([upper])).includes(upper) : false;
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
-  const showStats = isSoccer || upper === "NHL" || upper === "KBL" || upper === "WKBL" || cupHasLeaders;
+  const showStats = isSoccer || upper === "NHL" || upper === "KBL" || upper === "WKBL" || upper === "V_LEAGUE" || upper === "V_LEAGUE_W" || cupHasLeaders;
   const leaderboard = showStats && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
   // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
   // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).
@@ -886,6 +903,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           {/* withLastLeaders — 리그 탭엔 별도 리더보드 섹션이 없어 개막 전 접기에 같이 넣는다.
               (/standings/NHL 은 자체 "시즌 리더보드" 섹션이 있어 끈 상태가 맞다.) */}
           <NhlStandingsTable withLastLeaders />
+        </div>
+      )}
+      {!isSoccer && view === "standings" && (upper === "V_LEAGUE" || upper === "V_LEAGUE_W") && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <VolleyballLeagueTable league={upper} />
         </div>
       )}
       {!isSoccer && view === "standings" && HOCKEY_TS_TABLE_LEAGUES.has(upper) && (

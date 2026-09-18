@@ -24,6 +24,8 @@ import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
 import { khlRoster, khlPlayerName, khlAge, khlInjuryOf, khlInjuryLabel } from "@/lib/sports/khl-players";
 import { kblRoster, kblPosKo, kblAge } from "@/lib/sports/kbl-players";
 import { wkblRoster, wkblPosKo } from "@/lib/sports/wkbl-players";
+import { kovoRoster, kovoPosKo } from "@/lib/sports/kovo-players";
+import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
@@ -166,6 +168,8 @@ interface Props {
 
 // 종목별 검색 의도 키워드 — "다저스 순위", "양키스 로스터" 등 한국 검색 수요를 title·description 에 반영.
 function teamIntentKeywords(league: string): string {
+  // 배구는 players/types 의 SportType 밖이라 예외로 처리 — 안 하면 "축구 팀 순위…"가 나간다(2026-09-18 V-리그 실측).
+  if (VOLLEYBALL_LEAGUES.has(league)) return "순위·일정·로스터·선수 기록";
   let sport: string;
   try {
     sport = getSportFromLeague(league);
@@ -631,6 +635,8 @@ export default async function TeamPage({ params }: Props) {
   const kblPlayers = team.league === "KBL" ? kblRoster(team.id) : [];
   // WKBL 로스터 — 정적 사전(data/wkbl-players.json, wkbl.or.kr 등록 선수·주간 빌드) → /players/{pno}?league=WKBL
   const wkblPlayers = team.league === "WKBL" ? wkblRoster(team.id) : [];
+  // V-리그 로스터 — 정적 사전(data/kovo-players.json, KOVO user-api 팀 로스터·주간 빌드) → /players/{code}?league=V_LEAGUE(_W)
+  const kovoPlayers = team.league === "V_LEAGUE" || team.league === "V_LEAGUE_W" ? kovoRoster(team.id) : [];
 
   // MLB 로스터 (MLB Stats API, person.id=mlbStatsId) → /players/{id}?league=MLB 선수페이지 연결.
   let mlbRoster: MlbRosterPlayer[] = [];
@@ -1213,6 +1219,46 @@ export default async function TeamPage({ params }: Props) {
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-sm truncate">{p.name}</div>
                             <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta || wkblPosKo(p.pos)}</div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
+        {/* V-리그 로스터 — KOVO 현역 선수(kovo-players.json). 클릭 → 선수 상세(/players/{code}?league=V_LEAGUE·V_LEAGUE_W) */}
+        {kovoPlayers.length > 0 && (
+          <section>
+            <SectionH title="🏐 로스터" subtitle={`${kovoPlayers.length}명 · KOVO 공식 · 클릭 시 상세`} />
+            {([["S", "세터"], ["OH", "아웃사이드 히터"], ["OP", "아포짓"], ["MB", "미들 블로커"], ["L", "리베로"]] as const).map(([g, label]) => {
+              const ps = kovoPlayers.filter((p) => p.pos === g || (g === "L" && p.pos === "Li"));
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => {
+                      const age = kblAge(p.birth);
+                      const meta = [p.no != null ? `#${p.no}` : null, p.height ? `${p.height}cm` : null, age != null ? `${age}세` : null].filter(Boolean).join(" · ");
+                      return (
+                        <Link
+                          key={p.id}
+                          href={`/players/${p.id}?league=${team.league}`}
+                          className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                            {p.photo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-top" loading="lazy" />
+                            ) : <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm truncate">{p.name}</div>
+                            <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta || kovoPosKo(p.pos)}</div>
                           </div>
                         </Link>
                       );

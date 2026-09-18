@@ -79,6 +79,8 @@ log "⑪-c KBL 등록 선수 사전 (kbl-api.sports2i 목록+프로필 → data/
 npx tsx --env-file=.env.local scripts/build-kbl-players.ts 2>&1 | tail -2 || true
 log "⑪-d WKBL 등록 선수 사전 (wkbl.or.kr 목록+상세 → data/wkbl-players.json — 팀 로스터·선수 페이지)"
 npx tsx --env-file=.env.local scripts/build-wkbl-players.ts 2>&1 | tail -2 || true
+log "⑪-e V-리그 현역 선수 사전 (KOVO user-api 팀 로스터+프로필 → data/kovo-players.json — 팀 로스터·선수 페이지)"
+npx tsx --env-file=.env.local scripts/build-kovo-players.ts 2>&1 | tail -2 || true
 log "⑪-b KHL 선수 사전 (ts squad+player 프로필 → data/khl-players.json, Haiku 한글명 — 팀 로스터·리더보드·라이브 이름)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-khl-players.ts' 2>&1 | tail -2 || true
 log "⑫ NHL 부상자 한글명 (Haiku, ESPN injuries — /injuries/NHL)"

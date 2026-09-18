@@ -6,6 +6,7 @@
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - KBL: KBL 공식 api-stats 전체 선수 시즌 평균 (규정 경기수 충족) — 로컬 정렬 TOP10
 //   - WKBL: wkbl.or.kr 부문별 순위 ajax HTML 표 5부문
+//   - V-리그: KOVO user-api 부문별 순위 6부문 (남·여)
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
 //   - KHL: 경기 캐시(detailLive.players) 시즌 누적 집계 (ts 시즌 선수 통계 API 미인가)
@@ -51,6 +52,7 @@ import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
 import { fetchKblRecentSeason, fetchKblSeasonPlayerAverages, kblPlayerPhotoUrl, kblSeasonLabel } from "@/lib/sports/kbl-api";
 import { fetchWkblCurrentSeasonGu, fetchWkblPartRank, wkblPhotoUrl, wkblSeasonLabel } from "@/lib/sports/wkbl-api";
 import { wkblFindByName } from "@/lib/sports/wkbl-players";
+import { fetchKovoCurrentSeason, fetchKovoPlayerRank, fetchKovoSeasonList, kovoSeasonLabel } from "@/lib/sports/kovo-api";
 
 const TOP_N = 10;
 
@@ -811,6 +813,52 @@ export async function runWkbl() {
 }
 
 /* ============================================================
+ * V-리그 (KOVO user-api 부문별 순위) — 남·여. 시즌은 /main/game/season(개막 전에도 새 코드) → 빈 표면 직전 시즌.
+ *   부문: 득점 합계·공격 성공률·블로킹/서브/세트 세트당·리시브 효율. externalId = pcode(선수 페이지 링크), 사진 = image.
+ * ==========================================================*/
+
+const KOVO_PARTS = [
+  { category: "VB_POINTS", rpart: "point", unit: "득점" },
+  { category: "VB_ATTACK", rpart: "at", unit: "성공률 %" },
+  { category: "VB_BLOCK", rpart: "b", unit: "세트당" },
+  { category: "VB_SERVE", rpart: "s", unit: "세트당" },
+  { category: "VB_SET", rpart: "set", unit: "세트당" },
+  { category: "VB_RECEIVE", rpart: "r", unit: "효율 %" },
+] as const;
+
+export async function runKovo() {
+  const cur = await fetchKovoCurrentSeason();
+  if (!cur) return { season: null, result: {} as Record<string, number> };
+  const seasons = await fetchKovoSeasonList();
+  const labelOf = (code: string) => { const m = seasons.find((x) => x.seasonCode === code); return m ? kovoSeasonLabel(m.ryear) : code; };
+  const prev = String(Number(cur) - 1).padStart(3, "0");
+  const summary: Record<string, number> = {};
+  for (const [league, gender] of [["V_LEAGUE", 1], ["V_LEAGUE_W", 2]] as const) {
+    let seasonCode = cur;
+    let first = await fetchKovoPlayerRank(seasonCode, gender, "point");
+    if (first.length === 0) { seasonCode = prev; first = await fetchKovoPlayerRank(seasonCode, gender, "point"); }
+    if (first.length === 0) continue;
+    const seasonLabel = labelOf(seasonCode);
+    for (const c of KOVO_PARTS) {
+      const rows = (c.rpart === "point" ? first : await fetchKovoPlayerRank(seasonCode, gender, c.rpart)).slice(0, TOP_N);
+      for (const r of rows) {
+        await upsertLeader({
+          league, category: c.category, rank: r.rank,
+          playerName: r.pname, externalId: r.pcode ? String(r.pcode) : undefined,
+          teamName: r.tsname, value: Number(r.sup), unit: c.unit,
+          appearances: Number(r.g_count) || undefined, photoUrl: r.image ?? undefined,
+          season: seasonLabel,
+        });
+      }
+      await clearOldRanks(league, c.category, seasonLabel, rows.length);
+      summary[`${league}:${c.category}`] = rows.length;
+      await new Promise((res) => setTimeout(res, 150));
+    }
+  }
+  return { season: labelOf(cur), result: summary };
+}
+
+/* ============================================================
  * KHL — 시즌 선수 통계 API 가 미인가라 경기 캐시(detailLive.players)를 시즌 누적 집계.
  *   stat 코드는 HockeyBoxScore 와 동일: 20(1골리/2스케이터) 26골 27도움 56+/- 28유효슛 24세이브 25SV%.
  *   골리 SV% = Σ세이브 / Σ슛(경기별 세이브÷SV% 로 역산) — 경기별 % 단순평균보다 정확.
@@ -1501,6 +1549,8 @@ export async function runFetchLeagueLeaders(opts?: {
   if (!sport || sport === "basketball") await safe("nba", () => runNba(nbaSeason));
   if (!sport || sport === "basketball") await safe("kbl", () => runKbl());
   if (!sport || sport === "basketball") await safe("wkbl", () => runWkbl());
+  // 배구는 sport 파라미터 union 밖 — 전체 실행(파라미터 없음) 때만 돈다
+  if (!sport) await safe("kovo", () => runKovo());
   if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
   if (!sport || sport === "hockey") await safe("khl", () => runKhl(nhlSeasonLabel));
   if (!sport || sport === "baseball") {

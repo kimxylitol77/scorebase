@@ -32,3 +32,9 @@ wkbl.or.kr 는 ASP 서버 렌더라 HTML 파싱(cheerio). 탭 데이터는 `/pla
 `ajax_detail_season` 은 season_gu 를 무시하고 최근 시즌만 준다(045 로 보내도 046 결과). 경기별 기록은 사이트에 없어 탭을 두지 않았다.
 UA 문자열에 "bot" 이 있으면 403 — 일반 브라우저 UA 로 부른다. 현재 시즌 코드는 메인 nav `scheduleb1.asp?season_gu=NNN` 최댓값(047 = 2026-27, 1979+code).
 부문별 순위 표엔 이름·팀만 있어 리더보드 externalId 는 선수 사전 이름 매칭으로 채운다.
+
+## V-리그 — KOVO user-api 가 가장 깔끔하다
+kovo.co.kr SPA 가 부르는 `user-api.kovo.co.kr` 은 JSON 이고 인증이 없다. 선수 상세는 구단 서브도메인(vixtorm.kovo.co.kr 등)에서 렌더되지만 API 는 공통.
+경기별 기록 endpoint 는 없다(season-records 가 경기구분별 시즌 합계까지). 현재 시즌 `/main/game/season` 은 개막 전에도 새 코드(023)를 주므로 순위 API 가 비면 직전 시즌으로 폴백.
+페퍼저축은행(2007)은 2026-27 로스터 0명, SOOP(2008)이 광주 연고로 등장 — 같은 프랜차이즈로 보고 Team row 를 이어 썼다(지난 시즌 순위표에 SOOP 이름이 붙는 건 감수).
+2025-26 남자부 우승은 위키에 없어 KOVO 개막 보도(디펜딩 챔피언 대한항공)로 확정, 2019-20·2021-22 는 출처 미확인이라 비웠다.

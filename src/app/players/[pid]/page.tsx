@@ -32,6 +32,8 @@ const fetchSoccerProfileCached = fetchSoccerPlayerProfileCached;
 import { NbaPlayerView } from "./NbaViews";
 import { KblPlayerView } from "./KblViews";
 import { WkblPlayerView } from "./WkblViews";
+import { KovoPlayerView } from "./KovoViews";
+import { kovoPlayer, kovoPosKo } from "@/lib/sports/kovo-players";
 import { wkblPlayer, wkblPosKo } from "@/lib/sports/wkbl-players";
 import { kblPlayer, kblPosKo } from "@/lib/sports/kbl-players";
 import { NhlPlayerView } from "./NhlViews";
@@ -175,6 +177,19 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       alternates: { canonical },
     };
   }
+  if (league === "V_LEAGUE" || league === "V_LEAGUE_W") {
+    const info = kovoPlayer(pid);
+    const lg = league === "V_LEAGUE_W" ? "V-리그 여자부" : "V-리그 남자부";
+    if (!info) return { title: `선수 — ${lg}`, description: `${lg} 선수 프로필 · 시즌별 기록 · 기록 상세.`, alternates: { canonical } };
+    const who = [info.team, kovoPosKo(info.pos)].filter(Boolean).join(" ");
+    const noBit = info.no != null ? ` 등번호 ${info.no}번` : "";
+    return {
+      title: `${info.name} — ${who || lg}${noBit} · 프로필·기록`,
+      description: `${lg} ${who ? `${who} ` : ""}${info.name} 프로필 — 시즌 득점·공격 성공률·블로킹·서브·디그와 리그 순위, 시즌별 기록, 신장·체중·출신학교·소속 이력. 스코어베이스.`,
+      keywords: [info.name, `${info.name} 프로필`, `${info.name} 기록`, `${info.name} 배구`, "V리그", "프로배구"],
+      alternates: { canonical },
+    };
+  }
   if (league && ["NBA", "NHL", "LOL"].includes(league)) {
     // NBA 는 정적 사전(nba-players.json)으로 API 호출 없이 이름·포지션·팀 확보 —
     // 제네릭 "선수 — NBA" 제목은 선수명 검색에 아예 안 실렸다(빙 실측 NBA 노출 0).
@@ -275,6 +290,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (league === "NBA") return <NbaPlayerView pid={pid} />;
   if (league === "KBL") return <KblPlayerView pid={pid} />;
   if (league === "WKBL") return <WkblPlayerView pid={pid} />;
+  if (league === "V_LEAGUE" || league === "V_LEAGUE_W") return <KovoPlayerView pid={pid} league={league} />;
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
   if (league === "LOL") return <LolPlayerView pid={pid} />;
   // 축구 8개 리그

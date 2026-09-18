@@ -32,3 +32,10 @@
 - [x] build-wkbl-players.ts → data/wkbl-players.json 86명(6팀 13~17), 사진 /static/images/player/pimg/np_{pno}.png, weekly ⑪-d
 - [x] /players/{pno}?league=WKBL (WkblViews 개요/시즌별/최고 기록) · 팀 로스터 · /leagues/WKBL 순위·통계·일정·역사 · runWkbl 리더보드(TOP10, 이름→pno 매칭 1건 미매칭) · 우승 연혁 36개(여름·겨울리그 포함)
 - 함정: UA 에 "bot" 들어가면 403 · 경기별 기록 endpoint 없음 · season 탭 ajax 는 season_gu 무시(최근 시즌만)
+
+## G. V-리그 남·여 (2026-09-18, "같은 방식으로")
+- [x] kovo-api.ts — user-api.kovo.co.kr(인증 없음) 팀 로스터·선수 프로필·시즌별(season-records)·리그 순위(rankings)·기록 상세(season-record-detail)·소속 이력·시즌 목록·부문별 순위
+- [x] build-kovo-players.ts → data/kovo-players.json 227명(남 7팀·여 8팀, 키·사진 전원), weekly ⑪-e
+- [x] /players/{code}?league=V_LEAGUE(_W) (KovoViews 개요/시즌별/기록 상세) · 팀 로스터(세터/OH/OP/MB/리베로) · /leagues/V_LEAGUE(_W) 순위(VolleyballLeagueTable)·통계·일정·역사 · runKovo 리더보드 6부문 · 우승 연혁 남·여 20개
+- [x] 2026-27 신생 SOOP 소퍼스 = 페퍼저축은행 프랜차이즈(광주) → Team row 612685 이름·로고만 교체(ts id 유지)
+- 함정: 팀 페이지 제목 종목 판정이 SportType(배구 없음)에 의존 → teamIntentKeywords 에 배구 예외 · 리더보드 sport 파라미터 union 에 배구 없어 전체 실행 때만
