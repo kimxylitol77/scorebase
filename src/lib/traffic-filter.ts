@@ -106,9 +106,14 @@ export function cleanHumanRows<T extends TrafficRow>(rows: T[], landings: Landin
  * 이 함수 하나를 쓴다(2026-09-18: 표는 봇 UA 만 걸러 어제 1,875명, KPI 는 420명으로 갈렸다).
  * 판정 창을 그날로 고정해 두면 확정된 날의 값이 나중에 바뀌지 않는다.
  */
-export function dailyCleanStats(dayRows: TrafficRow[], dayLandings: LandingRow[]): { visitors: number; pv: number } {
-  const clean = cleanHumanRows(dayRows, dayLandings);
-  return { pv: clean.length, visitors: new Set(clean.map((r) => r.sessionId).filter(Boolean)).size };
+export function dailyCleanStats(
+  dayRows: TrafficRow[],
+  dayLandings: LandingRow[],
+): { visitors: number; pv: number; suspicious: number } {
+  const humans = filterHumans(dayRows);
+  const sus = suspiciousSessionIds(humans, dayLandings);
+  const clean = humans.filter((r) => !r.sessionId || !sus.has(r.sessionId));
+  return { pv: clean.length, visitors: new Set(clean.map((r) => r.sessionId).filter(Boolean)).size, suspicious: sus.size };
 }
 
 export interface ConcurrentBucket {
