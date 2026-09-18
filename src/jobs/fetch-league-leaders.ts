@@ -5,6 +5,7 @@
 //   - 축구 잔여(AFC_U23 등): API-Football topscorers fallback — 2026-06 말부터 사망 상태
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - KBL: KBL 공식 api-stats 전체 선수 시즌 평균 (규정 경기수 충족) — 로컬 정렬 TOP10
+//   - WKBL: wkbl.or.kr 부문별 순위 ajax HTML 표 5부문
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
 //   - KHL: 경기 캐시(detailLive.players) 시즌 누적 집계 (ts 시즌 선수 통계 API 미인가)
@@ -48,6 +49,8 @@ import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
 import { TS_SHARED_SEASON_LEAGUES } from "@/lib/sports/season-calendar";
 import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
 import { fetchKblRecentSeason, fetchKblSeasonPlayerAverages, kblPlayerPhotoUrl, kblSeasonLabel } from "@/lib/sports/kbl-api";
+import { fetchWkblCurrentSeasonGu, fetchWkblPartRank, wkblPhotoUrl, wkblSeasonLabel } from "@/lib/sports/wkbl-api";
+import { wkblFindByName } from "@/lib/sports/wkbl-players";
 
 const TOP_N = 10;
 
@@ -765,6 +768,49 @@ export async function runKbl() {
 }
 
 /* ============================================================
+ * WKBL — wkbl.or.kr 부문별 순위 ajax(HTML 표) 5부문. 시즌은 메인 nav 의 최신 season_gu, 개막 전(빈 표)이면 직전 시즌.
+ *   표엔 이름·팀만 있어 pno 는 wkbl-players.json 이름 매칭(externalId → 선수 페이지 링크). 카테고리는 NBA 와 공유.
+ * ==========================================================*/
+
+const WKBL_PARTS = [
+  { part: "point", code: "PTS", unit: "평균 득점" },
+  { part: "rebound", code: "REB", unit: "평균 리바운드" },
+  { part: "assist", code: "AST", unit: "평균 어시스트" },
+  { part: "steal", code: "STL", unit: "평균 스틸" },
+  { part: "block", code: "BLK", unit: "평균 블록" },
+] as const;
+
+export async function runWkbl() {
+  const latest = await fetchWkblCurrentSeasonGu();
+  if (!latest) return { season: null, result: {} as Record<string, number> };
+  const prev = String(Number(latest) - 1).padStart(3, "0");
+  const summary: Record<string, number> = {};
+  let seasonGu = latest;
+  let first = await fetchWkblPartRank(seasonGu, "point");
+  if (first.length === 0) { seasonGu = prev; first = await fetchWkblPartRank(seasonGu, "point"); }
+  if (first.length === 0) return { season: wkblSeasonLabel(seasonGu), result: summary };
+  const seasonLabel = wkblSeasonLabel(seasonGu);
+  for (const c of WKBL_PARTS) {
+    const rows = (c.part === "point" ? first : await fetchWkblPartRank(seasonGu, c.part)).slice(0, TOP_N);
+    for (const r of rows) {
+      const p = wkblFindByName(r.playerName, r.teamName);
+      await upsertLeader({
+        league: "WKBL", category: c.code, rank: r.rank,
+        playerName: r.playerName, playerNameEn: p?.ename || undefined,
+        externalId: p?.id,
+        teamName: r.teamName, value: r.value, unit: c.unit,
+        appearances: r.games ?? undefined,
+        photoUrl: p ? wkblPhotoUrl(p.id) : undefined,
+        season: seasonLabel,
+      });
+    }
+    await clearOldRanks("WKBL", c.code, seasonLabel, rows.length);
+    summary[c.code] = rows.length;
+  }
+  return { season: seasonLabel, result: summary };
+}
+
+/* ============================================================
  * KHL — 시즌 선수 통계 API 가 미인가라 경기 캐시(detailLive.players)를 시즌 누적 집계.
  *   stat 코드는 HockeyBoxScore 와 동일: 20(1골리/2스케이터) 26골 27도움 56+/- 28유효슛 24세이브 25SV%.
  *   골리 SV% = Σ세이브 / Σ슛(경기별 세이브÷SV% 로 역산) — 경기별 % 단순평균보다 정확.
@@ -1454,6 +1500,7 @@ export async function runFetchLeagueLeaders(opts?: {
   if (!sport || sport === "soccer") await safe("soccer", () => runSoccer());
   if (!sport || sport === "basketball") await safe("nba", () => runNba(nbaSeason));
   if (!sport || sport === "basketball") await safe("kbl", () => runKbl());
+  if (!sport || sport === "basketball") await safe("wkbl", () => runWkbl());
   if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
   if (!sport || sport === "hockey") await safe("khl", () => runKhl(nhlSeasonLabel));
   if (!sport || sport === "baseball") {

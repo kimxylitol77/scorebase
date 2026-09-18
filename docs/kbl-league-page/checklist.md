@@ -26,3 +26,9 @@
 - 리더보드 runKbl: 규정 충족 101명 → PTS/REB/AST/STL/BLK 각 10 (2025-26, 워니 23.2·마레이 14.2·허훈 6.9)
 - 렌더: /players/291001?league=KBL(개요 15부문+리그 순위·시즌별 9시즌·경기별 33경기) · /teams/607780 로스터 19명 · /leagues/KBL 순위·통계·일정·역사
 - 함정: api-stats listCn 은 tinyint(128 이상 500) → 120 페이지 · 팀명 사전 없어 영문 노출 → team-names KBL/WKBL 추가
+
+## F. WKBL (2026-09-18, "같은 방식으로")
+- [x] wkbl-api.ts — wkbl.or.kr 서버 렌더 HTML cheerio 파서 (목록 86명·상세 프로필+최근 시즌+시즌 랭킹·통산 sumUp·개인최고 personal·부문별 순위 ajax)
+- [x] build-wkbl-players.ts → data/wkbl-players.json 86명(6팀 13~17), 사진 /static/images/player/pimg/np_{pno}.png, weekly ⑪-d
+- [x] /players/{pno}?league=WKBL (WkblViews 개요/시즌별/최고 기록) · 팀 로스터 · /leagues/WKBL 순위·통계·일정·역사 · runWkbl 리더보드(TOP10, 이름→pno 매칭 1건 미매칭) · 우승 연혁 36개(여름·겨울리그 포함)
+- 함정: UA 에 "bot" 들어가면 403 · 경기별 기록 endpoint 없음 · season 탭 ajax 는 season_gu 무시(최근 시즌만)

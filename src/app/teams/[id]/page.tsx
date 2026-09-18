@@ -23,6 +23,7 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
 import { khlRoster, khlPlayerName, khlAge, khlInjuryOf, khlInjuryLabel } from "@/lib/sports/khl-players";
 import { kblRoster, kblPosKo, kblAge } from "@/lib/sports/kbl-players";
+import { wkblRoster, wkblPosKo } from "@/lib/sports/wkbl-players";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
@@ -628,6 +629,8 @@ export default async function TeamPage({ params }: Props) {
   const khlPlayers = team.league === "KHL" ? khlRoster(team.id) : [];
   // KBL 로스터 — 정적 사전(data/kbl-players.json, KBL 공식 API 등록 선수·주간 빌드) → /players/{playerNo}?league=KBL
   const kblPlayers = team.league === "KBL" ? kblRoster(team.id) : [];
+  // WKBL 로스터 — 정적 사전(data/wkbl-players.json, wkbl.or.kr 등록 선수·주간 빌드) → /players/{pno}?league=WKBL
+  const wkblPlayers = team.league === "WKBL" ? wkblRoster(team.id) : [];
 
   // MLB 로스터 (MLB Stats API, person.id=mlbStatsId) → /players/{id}?league=MLB 선수페이지 연결.
   let mlbRoster: MlbRosterPlayer[] = [];
@@ -1172,6 +1175,44 @@ export default async function TeamPage({ params }: Props) {
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-sm truncate">{p.name}</div>
                             <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta || kblPosKo(p.pos)}</div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
+        {/* WKBL 로스터 — WKBL 공식 등록 선수(wkbl-players.json). 클릭 → 선수 상세(/players/{pno}?league=WKBL) */}
+        {wkblPlayers.length > 0 && (
+          <section>
+            <SectionH title="🏀 로스터" subtitle={`${wkblPlayers.length}명 · WKBL 공식 등록 선수 · 클릭 시 상세`} />
+            {([["G", "가드"], ["F", "포워드"], ["C", "센터"]] as const).map(([g, label]) => {
+              const ps = wkblPlayers.filter((p) => p.pos === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => {
+                      const age = kblAge(p.birth);
+                      const meta = [p.no != null ? `#${p.no}` : null, p.height ? `${p.height}cm` : null, age != null ? `${age}세` : null].filter(Boolean).join(" · ");
+                      return (
+                        <Link
+                          key={p.id}
+                          href={`/players/${p.id}?league=WKBL`}
+                          className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.photo} alt={p.name} className="w-full h-full object-cover object-top" loading="lazy" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm truncate">{p.name}</div>
+                            <div className="text-[11px] text-neutral-500 tabular-nums truncate">{meta || wkblPosKo(p.pos)}</div>
                           </div>
                         </Link>
                       );

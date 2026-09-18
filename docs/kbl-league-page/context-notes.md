@@ -26,3 +26,9 @@ loadLeagueLeaderboard 는 최신 시즌만 보여준다. `currentSeasonLabel("KB
 
 ## 팀명
 DB Team.name 은 ts 영문이고 일부는 옛 구단명("Wonju Dongbu Promy"). 화면 표기는 team-names RAW_BY_LEAGUE.KBL 이 정본, 선수 사전엔 공식 API 의 짧은 한글명("원주 DB")을 따로 둔다.
+
+## WKBL — 같은 틀, 다른 소스
+wkbl.or.kr 는 ASP 서버 렌더라 HTML 파싱(cheerio). 탭 데이터는 `/player/ajax/ajax_detail_{sumUp|personal}.asp` POST(season_gu·player_no·active_yn).
+`ajax_detail_season` 은 season_gu 를 무시하고 최근 시즌만 준다(045 로 보내도 046 결과). 경기별 기록은 사이트에 없어 탭을 두지 않았다.
+UA 문자열에 "bot" 이 있으면 403 — 일반 브라우저 UA 로 부른다. 현재 시즌 코드는 메인 nav `scheduleb1.asp?season_gu=NNN` 최댓값(047 = 2026-27, 1979+code).
+부문별 순위 표엔 이름·팀만 있어 리더보드 externalId 는 선수 사전 이름 매칭으로 채운다.

@@ -31,6 +31,8 @@ import { fetchSoccerPlayerProfileCached } from "@/lib/players/soccer-player-cach
 const fetchSoccerProfileCached = fetchSoccerPlayerProfileCached;
 import { NbaPlayerView } from "./NbaViews";
 import { KblPlayerView } from "./KblViews";
+import { WkblPlayerView } from "./WkblViews";
+import { wkblPlayer, wkblPosKo } from "@/lib/sports/wkbl-players";
 import { kblPlayer, kblPosKo } from "@/lib/sports/kbl-players";
 import { NhlPlayerView } from "./NhlViews";
 import { LolPlayerView } from "./LolViews";
@@ -161,6 +163,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       alternates: { canonical },
     };
   }
+  if (league === "WKBL") {
+    const info = wkblPlayer(pid);
+    if (!info) return { title: "선수 — WKBL", description: "WKBL 선수 프로필 · 시즌 기록 · 통산 기록.", alternates: { canonical } };
+    const who = [info.team, wkblPosKo(info.pos)].filter(Boolean).join(" ");
+    const noBit = info.no != null ? ` 등번호 ${info.no}번` : "";
+    return {
+      title: `${info.name} — ${who || "WKBL 선수"}${noBit} · 프로필·기록`,
+      description: `${who ? `${who} ` : "WKBL "}${info.name}(${info.ename}) 프로필 — 시즌 평균 득점·리바운드·어시스트와 리그 순위, 시즌별 통산 기록, 개인 최고 기록, 신장·드래프트. 스코어베이스.`,
+      keywords: [info.name, `${info.name} 프로필`, `${info.name} 기록`, `${info.name} 농구`, "WKBL", "여자프로농구"],
+      alternates: { canonical },
+    };
+  }
   if (league && ["NBA", "NHL", "LOL"].includes(league)) {
     // NBA 는 정적 사전(nba-players.json)으로 API 호출 없이 이름·포지션·팀 확보 —
     // 제네릭 "선수 — NBA" 제목은 선수명 검색에 아예 안 실렸다(빙 실측 NBA 노출 0).
@@ -260,6 +274,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   }
   if (league === "NBA") return <NbaPlayerView pid={pid} />;
   if (league === "KBL") return <KblPlayerView pid={pid} />;
+  if (league === "WKBL") return <WkblPlayerView pid={pid} />;
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
   if (league === "LOL") return <LolPlayerView pid={pid} />;
   // 축구 8개 리그

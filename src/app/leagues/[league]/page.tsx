@@ -220,6 +220,12 @@ const LEAGUE_INFO: Partial<Record<
     gradient: "from-red-600 via-rose-600 to-orange-500",
     copy: "한국 프로농구 KBL 10개 구단의 순위·선수 기록·일정·역사. 등록 선수 프로필과 시즌별·경기별 기록까지.",
   },
+  WKBL: {
+    name: "WKBL",
+    subtitle: "Women's Korean Basketball League",
+    gradient: "from-purple-600 via-violet-600 to-indigo-600",
+    copy: "한국 여자 프로농구 WKBL 6개 구단의 순위·선수 기록·일정·역사. 등록 선수 프로필과 시즌별 기록·개인 최고 기록까지.",
+  },
   NHL: {
     name: "NHL",
     subtitle: "National Hockey League",
@@ -643,7 +649,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
     // KBL — 순위(공식 승률표)·선수 기록(공식 API 리더보드)·일정·역사(챔프전 우승)·글 (2026-09-18)
     KBL: ["standings", "stats", "fixtures", "history", "articles"],
-    WKBL: ["standings", "fixtures", "articles"],
+    WKBL: ["standings", "stats", "fixtures", "history", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
     KBO: ["predictions", "power", "fixtures", "history", "articles"],
     MLB: ["predictions", "power", "fixtures", "history", "articles"],
@@ -698,7 +704,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const hasOverUnder = isSoccer ? (await leaguesWithOverUnderPage([upper])).includes(upper) : false;
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
-  const showStats = isSoccer || upper === "NHL" || upper === "KBL" || cupHasLeaders;
+  const showStats = isSoccer || upper === "NHL" || upper === "KBL" || upper === "WKBL" || cupHasLeaders;
   const leaderboard = showStats && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
   // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
   // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).

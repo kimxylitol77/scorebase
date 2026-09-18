@@ -30,5 +30,5 @@ test("비축구 리그는 문자열 id 여도 /players 자체 뷰로 간다", ()
 
 test("갈 데가 없으면 null — 링크 대신 평문", () => {
   assert.equal(leaderPlayerHref("EPL", null, true), null);
-  assert.equal(leaderPlayerHref("WKBL", "12345", false), null); // 선수 페이지 미구현 (KBL 은 2026-09-18 개통)
+  assert.equal(leaderPlayerHref("V_LEAGUE", "12345", false), null); // 선수 페이지 미구현 (KBL·WKBL 은 2026-09-18 개통)
 });

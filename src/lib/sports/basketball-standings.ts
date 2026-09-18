@@ -51,7 +51,7 @@ export const KBL_TEAM_IDS: Record<string, number> = {
   "66": 607784,
 };
 
-const WKBL_TEAM_IDS: Array<[RegExp, number]> = [
+export const WKBL_TEAM_IDS: Array<[RegExp, number]> = [
   [/BNK/, 607785],
   [/신한은행/, 607786],
   [/하나은행/, 607787],
