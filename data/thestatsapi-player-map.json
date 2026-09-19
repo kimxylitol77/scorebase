@@ -8710,5 +8710,14 @@
   "competitionId": "comp_6240",
   "seasonId": "sn_2960779",
   "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "x7lm7phoj0vm2wd": {
+  "statsId": "pl_9784249",
+  "teamId": "tm_73673",
+  "teamName": "Real Madrid",
+  "name": "Antonio Rüdiger",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  }
 }
