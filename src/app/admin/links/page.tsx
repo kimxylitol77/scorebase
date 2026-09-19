@@ -36,6 +36,21 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    // 영어 전용 예측 자매 사이트 — 2026-09-19 개설. 설계·결정 로그 = docs/sportspredictions/.
+    title: "자매 사이트 — sportspredictions.live (영어 예측)",
+    emoji: "🌐",
+    links: [
+      { name: "sportspredictions.live 홈", url: "https://sportspredictions.live", desc: "영어 전용 · 오늘 예측 카드 · 강한 픽. 같은 Vercel 앱, host 로 /sp/* rewrite", ext: true },
+      { name: "Accuracy report", url: "https://sportspredictions.live/accuracy", desc: "7모델 리더보드 + 리그별 적중률 (accuracy-stats 단일 출처)", ext: true },
+      { name: "Vercel Domains (scorebase)", url: "https://vercel.com/scorebase1/scorebase/settings/domains", desc: "apex=Production · www=308→apex · GSC TXT 레코드는 여기 DNS Records 에", ext: true },
+      { name: "Namecheap 도메인 관리", url: "https://ap.www.namecheap.com/domains/list/", desc: "등록 2026-09-18 · 만료 2027-09-18 · NS=ns1/ns2.vercel-dns.com · 자동갱신 확인", ext: true },
+      { name: "GSC (sportspredictions.live)", url: "https://search.google.com/search-console?resource_id=sc-domain:sportspredictions.live", desc: "도메인 속성 · 옛 URL 410 제거 확인 · 백링크→disavow", ext: true },
+      { name: "설계 문서 (plan · checklist · notes)", url: "https://github.com/kimxylitol77/scorebase/tree/main/docs/sportspredictions", desc: "예측 전용 · 도박 문구 금지 · 한 방향 링크(자매→스코어베이스)", ext: true },
+      { name: "이전 사이트 이력 (Wayback)", url: "https://web.archive.org/web/2026*/sportspredictions.live", desc: "2023-06~2026-05 베팅 팁 WP 사이트 · 옛 URL 전부 410 처리 근거", ext: true },
+      { name: "디자인 레퍼런스 (Predictify)", url: "https://predictifysports.com/", desc: "사용자 지정 스타일 원본 · 다크 네이비+라임 · Sora/Jakarta/JetBrains", ext: true },
+    ],
+  },
+  {
     title: "데이터 API",
     emoji: "🔌",
     links: [
