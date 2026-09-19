@@ -64,3 +64,13 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 - 전체 경기 목록은 /today 한 페이지로 이동(색인 허용, 단일 URL).
 - 근거. 옛 도메인이 자동 생성 경기 글 수만 개로 굴려진 스팸성 사이트였다. 같은 패턴을 반복하면 옛 분류를 벗어나지 못한다.
 - 미결. "핵심 경기 글" 에 LLM 생성 영어 프리뷰 본문을 붙일지(현재는 데이터+패널 픽만). 비용·품질 판단 후 결정.
+
+**결정 11 (사용자 지시 "만들어줘" 2026-09-19). 핵심 경기 영어 프리뷰 파이프라인.**
+- 생성 = 기존 `generate()`(claude-haiku-4-5, 재시도·비용집계 내장) + `buildMatchContext`/`enrichContextWithApiFootball`(폼·순위·H2H·부상·시장) + AI 패널 픽. 프롬프트·게이트 = `src/lib/sp/preview.ts`.
+- 게이트. 본문 % 는 프롬프트에 실린 값(±1)만 허용 · 베팅 어휘(bet/stake/wager/parlay/bookie/tipster…) 금지 · 1,800자 이상 · "# 헤드라인" + "Prediction:" 줄 필수. 실패 시 사유 붙여 1회 재생성, 또 실패면 발행 안 함.
+- 저장 = Article(type=SP_PREVIEW, status=SP_PUBLISHED, slug=sp-preview-{matchId}). status 를 PUBLISHED 로 두지 않는 이유 = 한국어 검색(/search)·/articles/[slug]·IndexNow 가 type 조건 없이 PUBLISHED 만 본다 → 새는 걸 status 로 차단. 스키마 변경 없음(db push 금지 원칙).
+- cron = /api/cron/sp-preview, 05:20·17:20 UTC(핵심 경기 창이 24h 롤링이라 하루 2회). 등록 = cron-registry "sp-preview" maxAgeH 16. 비용 게이트 env SP_PREVIEW=off. 하루 최대 5편 × Haiku ≈ 수 센트.
+- 수동 = `npm run sp-preview -- [limit]`.
+- 노출 = /match/[id](프리뷰 카드 + NewsArticle JSON-LD, title/description 을 프리뷰로 교체), 홈 "Today's previews" 제목+리드.
+- 첫 생성 실측(09-19). 게이트 첫 시도 통과, 3,700자. 오류 1건 = "23팀 42경기 97점" — calcStandings 가 시즌을 안 잘라 지난 시즌이 섞임. `selectSeasonMatches` 로 순위·전적은 이번 시즌만, Elo 는 전체 누적으로 덮어써 해결(재생성 후 "4경기 7점 6위" 정상). 한국어 프리뷰(generate-previews.ts)도 같은 경로라 동일 오류 가능성 — 별도 확인 필요(이 작업 범위 밖).
+- 수동 스크립트(tsx)에서는 af 부상·득점왕 보강이 `unstable_cache` 미지원으로 건너뛴다(경고만). cron(Next 런타임)에서는 정상.

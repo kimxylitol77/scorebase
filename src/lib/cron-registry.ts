@@ -43,6 +43,8 @@ export const CRON_REGISTRY: {
   { name: "league-sim-snapshot", label: "시즌 시뮬", maxAgeH: 28 },
   { name: "evaluate", label: "적중률 평가", maxAgeH: 28 },
   { name: "gpt-predictions", label: "멀티 AI 성적표", maxAgeH: 28 },
+  // 하루 2회(05,17 UTC) — 영어 자매 사이트 핵심 경기 프리뷰. SP_PREVIEW=off 면 0건 기록.
+  { name: "sp-preview", label: "영어 핵심경기 프리뷰 (sportspredictions.live)", maxAgeH: 16 },
   { name: "transfer-briefs", label: "AI 이적 브리핑", maxAgeH: 28 },
   { name: "daily-thread", label: "오늘의 픽 스레드", maxAgeH: 28 },
   { name: "data-freshness", label: "선수 데이터 결손 감시", maxAgeH: 28 },

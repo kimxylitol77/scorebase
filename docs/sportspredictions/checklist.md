@@ -44,7 +44,8 @@
 - [x] 홈 → 키워드 랜딩 (FAQ·JSON-LD FAQPage) + 핵심 경기 ≤5
 - [x] `fetchKeyMatches()` 선정 규칙 + /match noindex 게이트 + 사이트맵 핵심 경기만
 - [x] /today 전체 목록 페이지
-- [ ] 핵심 경기 영어 프리뷰 본문(LLM) 여부 결정
+- [x] 핵심 경기 영어 프리뷰 파이프라인 (lib/sp/preview.ts · cron sp-preview · 게이트 · /match 렌더 · 홈 리드)
+- [ ] 첫 실행 결과 확인(게이트 통과율·본문 품질) → 프롬프트 조정
 
 ## Phase 4. SEO
 - [x] 페이지별 metadata: title·description·canonical(spUrl)·OG

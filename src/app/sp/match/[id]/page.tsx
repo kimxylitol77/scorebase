@@ -10,6 +10,8 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 import LocalTime from "@/components/sp/LocalTime";
 import ProbBar from "@/components/sp/ProbBar";
 import { pickLabel } from "@/components/sp/MatchCard";
+import SpMarkdown from "@/components/sp/SpMarkdown";
+import { fetchSpPreview } from "@/lib/sp/preview";
 
 export const revalidate = 300;
 
@@ -22,11 +24,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!m) return {};
   const lg = leagueByCode(m.league);
   // 하루 핵심 경기(최대 5)만 색인. 나머지 경기 페이지는 열리지만 noindex — 대량 발행 금지(2026-09-19).
-  const isKey = (await fetchKeyMatches()).some((k) => k.id === m.id);
+  const [keys, pv] = await Promise.all([fetchKeyMatches(), fetchSpPreview(m.id)]);
+  const isKey = keys.some((k) => k.id === m.id);
   return {
     robots: isKey ? { index: true, follow: true } : { index: false, follow: true },
-    title: `${m.home.name} vs ${m.away.name} Prediction — ${lg?.name ?? m.league}`,
-    description: m.probs
+    title: pv ? pv.title : `${m.home.name} vs ${m.away.name} Prediction — ${lg?.name ?? m.league}`,
+    description: pv ? pv.lead.slice(0, 160) : m.probs
       ? `AI prediction: ${m.home.name} ${pct(m.probs.home)}${m.probs.draw != null ? `, draw ${pct(m.probs.draw)}` : ""}, ${m.away.name} ${pct(m.probs.away)}. Pick: ${pickLabel(m)}.`
       : `AI prediction for ${m.home.name} vs ${m.away.name}.`,
     alternates: { canonical: spUrl(`/match/${m.id}`) },
@@ -43,7 +46,7 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
   const { id } = await params;
   const m = await fetchMatch(Number(id));
   if (!m) notFound();
-  const [panel, keys] = await Promise.all([fetchPanelPicks(m.id), fetchKeyMatches()]);
+  const [panel, keys, preview] = await Promise.all([fetchPanelPicks(m.id), fetchKeyMatches(), fetchSpPreview(m.id)]);
   const isKey = keys.some((k) => k.id === m.id);
   const lg = leagueByCode(m.league);
   const finished = m.status === "FINISHED" && m.homeScore != null;
@@ -60,9 +63,19 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
     publisher: { "@type": "Organization", name: "Sports Predictions", url: SP_URL },
   };
   const markets: PanelPick["market"][] = ["1X2", "HANDICAP", "OU"];
+  const articleLd = preview
+    ? {
+        "@context": "https://schema.org", "@type": "NewsArticle", headline: preview.title, description: preview.lead.slice(0, 200),
+        datePublished: preview.publishedAt?.toISOString(), inLanguage: "en", isAccessibleForFree: true,
+        author: { "@type": "Organization", name: "Sports Predictions", url: SP_URL },
+        publisher: { "@type": "Organization", name: "Sports Predictions", url: SP_URL },
+        mainEntityOfPage: spUrl(`/match/${m.id}`), about: { "@type": "SportsEvent", name: `${m.home.name} vs ${m.away.name}`, startDate: m.startTime },
+      }
+    : null;
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
+      {articleLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(articleLd) }} />}
       <nav className="pt-6 text-xs" style={{ color: "var(--sp-fg-dim)" }} aria-label="Breadcrumb">
         <Link href="/" className="hover:underline">Predictions</Link> / {lg ? <Link href={`/${lg.slug}`} className="hover:underline">{lg.name}</Link> : m.league}
       </nav>
@@ -131,6 +144,15 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
           </div>
         </div>
       </section>
+
+      {preview && (
+        <article className="sp-card mt-10 p-6 sm:p-8">
+          <p className="sp-eyebrow">Match preview</p>
+          <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">{preview.title}</h2>
+          {preview.publishedAt && <p className="sp-mono mt-2 text-xs" style={{ color: "var(--sp-fg-dim)" }}>Written {preview.publishedAt.toISOString().slice(0, 10)} · before kick-off · from the data above</p>}
+          <div className="mt-4"><SpMarkdown>{preview.content}</SpMarkdown></div>
+        </article>
+      )}
 
       {panel.length > 0 && (
         <section className="mt-10">

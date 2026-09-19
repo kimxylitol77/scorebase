@@ -99,3 +99,13 @@
 @media (prefers-reduced-motion: reduce) {
   .sp-root * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* 프리뷰 본문 */
+.sp-prose { font-size: 16px; line-height: 1.75; color: var(--sp-fg-muted); }
+.sp-prose h2 { margin: 28px 0 8px; font-size: 20px; font-weight: 800; color: var(--sp-fg); }
+.sp-prose h3 { margin: 20px 0 6px; font-size: 17px; font-weight: 700; color: var(--sp-fg); }
+.sp-prose p { margin: 0 0 14px; }
+.sp-prose strong { color: var(--sp-fg); font-weight: 700; }
+.sp-prose ul, .sp-prose ol { margin: 0 0 14px 20px; }
+.sp-prose li { margin-bottom: 4px; }
+.sp-prose a { color: var(--sp-lime); text-decoration: underline; }

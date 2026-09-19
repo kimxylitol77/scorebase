@@ -371,6 +371,10 @@
     {
       "path": "/api/cron/betman-link",
       "schedule": "0 1,13 * * *"
+    },
+    {
+      "path": "/api/cron/sp-preview",
+      "schedule": "20 5,17 * * *"
     }
   ]
 }

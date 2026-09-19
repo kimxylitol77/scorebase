@@ -7,6 +7,7 @@ import { SP_LEAGUES } from "@/lib/sp/leagues";
 import { SP_NAME, SP_URL, spUrl } from "@/lib/sp/site";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import MatchCard from "@/components/sp/MatchCard";
+import { fetchSpPreviews } from "@/lib/sp/preview";
 
 export const revalidate = 600;
 
@@ -34,6 +35,7 @@ const pct = (r: number) => `${Math.round(r * 100)}%`;
 
 export default async function SpHome() {
   const [key, graded, acc] = await Promise.all([fetchKeyMatches(), fetchRecentGraded({ take: 4 }), fetchLeagueAccuracy()]);
+  const previews = await fetchSpPreviews(key.map((k) => k.id));
   const evaluated = acc.reduce((a, x) => a + x.stat.oneXTwo.evaluated, 0);
   const correct = acc.reduce((a, x) => a + x.stat.oneXTwo.correct, 0);
   const overall = evaluated ? correct / evaluated : null;
@@ -80,6 +82,20 @@ export default async function SpHome() {
           <p className="sp-card p-6 text-sm" style={{ color: "var(--sp-fg-muted)" }}>No key matches in the next 24 hours. The full fixture list is on the <Link href="/today" className="underline">today page</Link>.</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{key.map((m) => <MatchCard key={m.id} m={m} />)}</div>
+        )}
+        {previews.size > 0 && (
+          <div className="mt-6 grid gap-3">
+            <p className="sp-eyebrow">Today&apos;s previews</p>
+            {key.filter((k) => previews.has(k.id)).map((k) => {
+              const p = previews.get(k.id)!;
+              return (
+                <Link key={k.id} href={`/match/${k.id}`} className="sp-card block p-5 transition-colors hover:border-[var(--sp-border-strong)]">
+                  <h3 className="text-lg font-extrabold">{p.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--sp-fg-muted)" }}>{p.lead}</p>
+                </Link>
+              );
+            })}
+          </div>
         )}
         <p className="mt-3 text-xs" style={{ color: "var(--sp-fg-dim)" }}>Selected automatically: big-league fixtures first, then strong model picks, AI-panel coverage and market data. At most {KEY_MATCH_LIMIT} per day.</p>
       </section>
