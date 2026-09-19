@@ -1171,9 +1171,12 @@ export default function OddsFlowList({
   const displayMatches = filteredMatches.length
     ? filteredMatches
     : matches.filter((m) => (!leagueFilter || m.league === leagueFilter) && (!dayFilter || kstDayKey(m.startTime) === dayFilter));
-  const hero = displayMatches[0];
+  // 리그 칩(전체 날짜 기준 상위 14개)과 날짜 칩을 같이 고르면 그 조합에 경기가 0개일 수 있다 —
+  //  그때 displayMatches 가 비어 hero 가 undefined 인 채 .points 를 읽어 페이지가 죽었다
+  //  (2026-09-19 /odds?sport=soccer 클라이언트 에러). 빈 조합은 아래 안내문으로 처리한다.
+  const hero: FlowMatch | undefined = displayMatches[0];
   const rest = displayMatches.slice(1);
-  const heroMoves = hero.points.length >= 2 && Math.abs(hero.deltaPct) >= 3;
+  const heroMoves = !!hero && hero.points.length >= 2 && Math.abs(hero.deltaPct) >= 3;
 
   return (
     <div>
@@ -1243,7 +1246,9 @@ export default function OddsFlowList({
 
       {!filteredMatches.length && (
         <p className="mt-4 rounded-lg border border-dashed border-neutral-200 px-4 py-3 text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
-          이 기준에 맞는 큰 변동은 아직 없습니다. 전체 경기로 보여드릴게요.
+          {displayMatches.length
+            ? "이 기준에 맞는 큰 변동은 아직 없습니다. 전체 경기로 보여드릴게요."
+            : "선택한 리그와 날짜 조합에는 예정 경기가 없습니다. 다른 날짜나 리그를 골라 주세요."}
         </p>
       )}
 
@@ -1268,7 +1273,7 @@ export default function OddsFlowList({
             <span className="text-neutral-400">굵은 선 = 가장 크게 움직인 결과</span>
           </div>
 
-          {heroMoves && (
+          {heroMoves && hero && (
             <div className="mt-5">
               <Hero m={hero} hasDraw={hasDraw} />
             </div>
