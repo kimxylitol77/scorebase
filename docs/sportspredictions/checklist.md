@@ -5,7 +5,7 @@
 ## Phase 0. 준비
 - [x] 도메인 점검 (WHOIS·DNS·Wayback·블랙리스트·세이프브라우징) — 09-19
 - [x] plan.md / checklist.md / context-notes.md 작성
-- [ ] (사용자) Namecheap 네임서버 → Custom DNS: ns1.vercel-dns.com / ns2.vercel-dns.com. 리디렉션 도메인 항목 삭제
+- [x] (사용자) Namecheap 네임서버 → Custom DNS ns1/ns2.vercel-dns.com — 09-19 저녁 입력, 19:04 레지스트리 반영
 - [x] Vercel 프로젝트에 sportspredictions.live(Production) + www(308 → apex) 추가 — 09-19 크롬으로 완료
 - [ ] (사용자) Google Search Console 도메인 속성 추가 (DNS TXT)
 - [ ] (사용자) Bing Webmaster 추가 (GSC 가져오기)
@@ -57,7 +57,7 @@
 
 ## Phase 5. 배포·검증
 - [x] `npx tsc --noEmit` (origin/main 기준 worktree 에서 통과)
-- [~] 프로덕션 curl — scorebase.kr/sp 404(text/plain) 확인으로 배포 반영 확인(6f115a7). 홈·410·sitemap 은 네임서버 반영 후
+- [x] 프로덕션 curl — 홈 200(랜딩) · www 308→apex · /vip-betting-tips 410 · /2023/* 410 · sitemap 23 URL · robots OK · noindex 헤더 없음 · /match/1160829 200 (09-19 19:10)
 - [ ] Lighthouse 모바일 접근성 ≥ 90
 - [ ] GSC URL 검사 → 색인 요청 (홈·accuracy)
 - [ ] ROADMAP.md 항목 추가

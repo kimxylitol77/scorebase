@@ -74,3 +74,6 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 - 노출 = /match/[id](프리뷰 카드 + NewsArticle JSON-LD, title/description 을 프리뷰로 교체), 홈 "Today's previews" 제목+리드.
 - 첫 생성 실측(09-19). 게이트 첫 시도 통과, 3,700자. 오류 1건 = "23팀 42경기 97점" — calcStandings 가 시즌을 안 잘라 지난 시즌이 섞임. `selectSeasonMatches` 로 순위·전적은 이번 시즌만, Elo 는 전체 누적으로 덮어써 해결(재생성 후 "4경기 7점 6위" 정상). 한국어 프리뷰(generate-previews.ts)도 같은 경로라 동일 오류 가능성 — 별도 확인 필요(이 작업 범위 밖).
 - 수동 스크립트(tsx)에서는 af 부상·득점왕 보강이 `unstable_cache` 미지원으로 건너뛴다(경고만). cron(Next 런타임)에서는 정상.
+
+**도메인 라이브 (2026-09-19 19:04 UTC+9 기준 저녁).** 네임칩 저장 후 레지스트리 반영까지 약 2시간. Vercel 이 apex·www 모두 Valid 판정, 인증서 자동 발급. 프로덕션 전 경로 검증 통과. 함정 = `dig @ns1.vercel-dns.com` 직접 조회는 apex A 가 빈 응답으로 나오지만(Vercel DNS 의 anycast/EDNS 특성), 공용 리졸버(1.1.1.1·8.8.8.8)는 216.150.1.x 로 정상 응답. 로컬 리졸버 네거티브 캐시 때문에 잠시 "Could not resolve" 가 날 수 있음 — `--resolve` 로 검증.
+남은 사용자 작업 = GSC 도메인 속성(TXT 는 Vercel DNS Records 에) · Bing Webmaster.
