@@ -4,6 +4,7 @@ import { SP_NAME } from "@/lib/sp/site";
 
 const NAV = [
   { href: "/", label: "Predictions" },
+  { href: "/today", label: "Today" },
   { href: "/accuracy", label: "Accuracy" },
   { href: "/methodology", label: "Methodology" },
   { href: "/about", label: "About" },

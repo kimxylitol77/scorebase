@@ -244,3 +244,54 @@ export async function fetchLeagueAccuracy(): Promise<LeagueAccuracy[]> {
   const stats = await Promise.all(SP_LEAGUES.map((l) => statForLeague(l.code)));
   return SP_LEAGUES.map((l, i) => ({ code: l.code, name: l.name, stat: stats[i] })).filter((x) => x.stat.oneXTwo.evaluated > 0);
 }
+
+// ── 핵심 경기 선정 — 하루에 발행(색인)하는 경기를 소수로 제한한다 (2026-09-19 사용자 지시).
+// 빅리그 가중치 + 강한 픽 + AI 패널 참여 수 + 시장 배당 유무로 점수화. 24시간 창에서 최대 5경기, 리그당 2경기.
+const LEAGUE_WEIGHT: Record<string, number> = {
+  EPL: 10, UCL: 10, LALIGA: 8, NBA: 8, BUNDESLIGA: 7, SERIE_A: 7, MLB: 6,
+  LIGUE_1: 5, NHL: 5, MLS: 4, K_LEAGUE_1: 4, KBO: 4, NPB: 3,
+};
+export const KEY_MATCH_LIMIT = 5;
+const KEY_PER_LEAGUE = 2;
+export const KEY_WINDOW_HOURS = 24;
+
+export interface KeyMatch extends SpMatch {
+  panelModels: number;
+  keyScore: number;
+}
+
+export function selectKeyMatches(matches: SpMatch[], panelCount: Map<number, number>): KeyMatch[] {
+  const scored: KeyMatch[] = matches
+    .filter((m) => m.probs)
+    .map((m) => {
+      const panelModels = panelCount.get(m.id) ?? 0;
+      const gap = Math.abs(m.valueGap ?? 0);
+      const keyScore =
+        (LEAGUE_WEIGHT[m.league] ?? 2) + (m.strong ? 4 : 0) + Math.min(panelModels, 7) * 0.7 + (m.market ? 2 : 0) + (gap >= 0.08 ? 2 : 0);
+      return { ...m, panelModels, keyScore };
+    })
+    .sort((a, b) => b.keyScore - a.keyScore || a.startTime.localeCompare(b.startTime));
+  const out: KeyMatch[] = [];
+  const perLeague = new Map<string, number>();
+  for (const m of scored) {
+    if (out.length >= KEY_MATCH_LIMIT) break;
+    const n = perLeague.get(m.league) ?? 0;
+    if (n >= KEY_PER_LEAGUE) continue;
+    perLeague.set(m.league, n + 1);
+    out.push(m);
+  }
+  return out.sort((a, b) => a.startTime.localeCompare(b.startTime));
+}
+
+/** 앞으로 24시간의 핵심 경기 — 홈·사이트맵·경기 페이지 색인 판정이 전부 이 함수를 쓴다. */
+export async function fetchKeyMatches(): Promise<KeyMatch[]> {
+  const upcoming = await fetchUpcoming({ hours: KEY_WINDOW_HOURS, take: 200 });
+  if (upcoming.length === 0) return [];
+  const rows = await prisma.aiPrediction.groupBy({
+    by: ["matchId"],
+    where: { matchId: { in: upcoming.map((m) => m.id) }, published: true, market: "1X2" },
+    _count: { _all: true },
+  });
+  const panelCount = new Map(rows.map((r) => [r.matchId, r._count._all]));
+  return selectKeyMatches(upcoming, panelCount);
+}

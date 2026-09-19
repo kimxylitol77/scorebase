@@ -55,3 +55,12 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 - Vercel(팀 scorebase1 / 프로젝트 scorebase) Domains 에 sportspredictions.live = Production, www.sportspredictions.live = 308 → apex 추가. "apex→www 리다이렉트" 체크는 해제(우리 canonical 은 apex. next.config 의 www→apex 308 과 방향 일치, 켰으면 루프).
 - Vercel 이 안내하는 값: 네임서버 ns1/ns2.vercel-dns.com. A 레코드 방식이면 216.150.1.1 (예전 76.76.21.21 이 아님 — 문서 갱신).
 - 남은 사용자 작업 = 네임칩 네임서버 변경(사용자가 직접 하겠다고 선택) → 반영 후 GSC/Bing 등록(TXT 는 Vercel DNS 에).
+
+**결정 10 (사용자 지시 2026-09-19). 대량 발행 금지 — 하루 핵심 경기만.**
+"글을 한번에 많이 쓰지 마, 핵심 경기만 오늘부터, 랜딩페이지부터 만들어 키워드 올리자."
+- 홈 = 키워드 랜딩(H1 "AI sports predictions for today's key matches", 축구/미국리그/확률 설명/적중률/FAQ 6문항 + FAQPage JSON-LD). 경기 카드는 핵심 경기 ≤5 만.
+- 핵심 경기 선정 = `fetchKeyMatches()` 단일 함수. 24h 창, 리그 가중치(EPL·UCL 10 … NPB 3) + 강한 픽 4 + 패널 모델 수×0.7 + 시장 배당 2 + 갭≥8pt 2. 최대 5, 리그당 2.
+- 경기 페이지 색인 = 핵심 경기만 index. 나머지는 열리되 noindex,follow. 사이트맵도 핵심 경기만(정적 5 + 리그 13 + 핵심 ≤5 ≈ 23 URL).
+- 전체 경기 목록은 /today 한 페이지로 이동(색인 허용, 단일 URL).
+- 근거. 옛 도메인이 자동 생성 경기 글 수만 개로 굴려진 스팸성 사이트였다. 같은 패턴을 반복하면 옛 분류를 벗어나지 못한다.
+- 미결. "핵심 경기 글" 에 LLM 생성 영어 프리뷰 본문을 붙일지(현재는 데이터+패널 픽만). 비용·품질 판단 후 결정.

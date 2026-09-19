@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TeamBadge from "@/components/TeamBadge";
-import { fetchMatch, fetchPanelPicks, type PanelPick } from "@/lib/sp/data";
+import { fetchKeyMatches, fetchMatch, fetchPanelPicks, type PanelPick } from "@/lib/sp/data";
 import { leagueByCode } from "@/lib/sp/leagues";
 import { SCOREBASE_EN, SP_URL, spUrl } from "@/lib/sp/site";
 import { jsonLdScript } from "@/lib/seo/jsonld";
@@ -21,7 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const m = await fetchMatch(Number(id));
   if (!m) return {};
   const lg = leagueByCode(m.league);
+  // 하루 핵심 경기(최대 5)만 색인. 나머지 경기 페이지는 열리지만 noindex — 대량 발행 금지(2026-09-19).
+  const isKey = (await fetchKeyMatches()).some((k) => k.id === m.id);
   return {
+    robots: isKey ? { index: true, follow: true } : { index: false, follow: true },
     title: `${m.home.name} vs ${m.away.name} Prediction — ${lg?.name ?? m.league}`,
     description: m.probs
       ? `AI prediction: ${m.home.name} ${pct(m.probs.home)}${m.probs.draw != null ? `, draw ${pct(m.probs.draw)}` : ""}, ${m.away.name} ${pct(m.probs.away)}. Pick: ${pickLabel(m)}.`
@@ -40,7 +43,8 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
   const { id } = await params;
   const m = await fetchMatch(Number(id));
   if (!m) notFound();
-  const panel = await fetchPanelPicks(m.id);
+  const [panel, keys] = await Promise.all([fetchPanelPicks(m.id), fetchKeyMatches()]);
+  const isKey = keys.some((k) => k.id === m.id);
   const lg = leagueByCode(m.league);
   const finished = m.status === "FINISHED" && m.homeScore != null;
   const ld = {
@@ -65,6 +69,7 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
       <section className="py-8">
         <div className="mb-3 flex flex-wrap items-center gap-3 text-sm" style={{ color: "var(--sp-fg-muted)" }}>
           <span className="font-bold uppercase tracking-wide">{lg?.name ?? m.league}</span>
+          {isKey && <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ background: "var(--sp-lime-soft)", color: "var(--sp-lime)" }}>Key match</span>}
           <span aria-hidden>·</span>
           <LocalTime iso={m.startTime} />
           {!finished && <LocalTime iso={m.startTime} mode="startsIn" className="sp-mono font-bold" />}

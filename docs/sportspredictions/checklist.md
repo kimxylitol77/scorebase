@@ -40,6 +40,12 @@
 - [x] 404 페이지 (sp 전용, 영어)
 - [ ] 모바일 375px 확인(가로 스크롤 0), 터치 타깃 44px
 
+## Phase 3b. 랜딩 + 핵심 경기 제한 (09-19 지시)
+- [x] 홈 → 키워드 랜딩 (FAQ·JSON-LD FAQPage) + 핵심 경기 ≤5
+- [x] `fetchKeyMatches()` 선정 규칙 + /match noindex 게이트 + 사이트맵 핵심 경기만
+- [x] /today 전체 목록 페이지
+- [ ] 핵심 경기 영어 프리뷰 본문(LLM) 여부 결정
+
 ## Phase 4. SEO
 - [x] 페이지별 metadata: title·description·canonical(spUrl)·OG
 - [x] JSON-LD: WebSite+Organization(/), SportsEvent(/match), Dataset(/accuracy)
