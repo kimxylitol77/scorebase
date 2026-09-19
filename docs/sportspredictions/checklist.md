@@ -27,24 +27,24 @@
 - [x] `src/components/sp/SpHeader.tsx` (로고 텍스트 · Predictions · Accuracy · Methodology · About)
 - [x] `src/components/sp/SpFooter.tsx` ("Data by Scorebase" 링크, 18+ 문구 없음, 도박 유도 문구 없음)
 - [x] SiteChromeHeader/Footer/EmbedHidden: useSelectedLayoutSegment()==="sp" 면 null (SSR 정확)
-- [ ] 검증: `grep -rP '[가-힣]' src/app/sp src/components/sp` = 0
+- [x] 검증: `grep -rP '[가-힣]' src/app/sp src/components/sp` = 0
 
 ## Phase 3. 페이지
-- [ ] `ProbBar` (3분할, 라벨 병기) · `MatchPredCard` · `LeagueChips` · `ModelTable` 컴포넌트
-- [ ] `/` 오늘·내일 예측 (EN_PREDICTION_LEAGUES 13개, 발행 게이트 통과분만)
-- [ ] `/[league]` 리그별 예측 + 최근 30경기 적중률
-- [ ] `/match/[id]` 1X2·O/U·핸디캡·시장 갭·7모델 픽(published=true) · 스코어베이스 /en 딥링크
-- [ ] `/accuracy` 리더보드(7모델) + 리그별 표 + ReliabilityCurveChart 재사용
-- [ ] `/methodology` 정적
-- [ ] `/about` 정적
-- [ ] 404 페이지 (sp 전용, 영어)
+- [x] `ProbBar` (3분할, 라벨 병기) · `MatchPredCard` · `LeagueChips` · `ModelTable` 컴포넌트
+- [x] `/` 오늘·내일 예측 (EN_PREDICTION_LEAGUES 13개, 발행 게이트 통과분만)
+- [x] `/[league]` 리그별 예측 + 최근 30경기 적중률
+- [x] `/match/[id]` 1X2·O/U·핸디캡·시장 갭·7모델 픽(published=true) · 스코어베이스 /en 딥링크
+- [x] `/accuracy` 리더보드(7모델) + 리그별 표 (신뢰도 곡선은 보류)
+- [x] `/methodology` 정적
+- [x] `/about` 정적
+- [x] 404 페이지 (sp 전용, 영어)
 - [ ] 모바일 375px 확인(가로 스크롤 0), 터치 타깃 44px
 
 ## Phase 4. SEO
-- [ ] 페이지별 metadata: title·description·canonical(spUrl)·OG
-- [ ] JSON-LD: WebSite+Organization(/), SportsEvent(/match), Dataset(/accuracy)
-- [ ] `/sp/robots.txt` route handler (Allow all, Sitemap: https://sportspredictions.live/sitemap.xml, AI 크롤러 허용)
-- [ ] `/sp/sitemap.xml` route handler (/, 리그 13, accuracy, methodology, about, 최근 7일 match)
+- [x] 페이지별 metadata: title·description·canonical(spUrl)·OG
+- [x] JSON-LD: WebSite+Organization(/), SportsEvent(/match), Dataset(/accuracy)
+- [x] `/sp/robots.txt` route handler (Allow all, Sitemap: https://sportspredictions.live/sitemap.xml, AI 크롤러 허용)
+- [x] `/sp/sitemap.xml` route handler (/, 리그 13, accuracy, methodology, about, 최근 7일 match)
 - [ ] 기존 `src/app/sitemap.ts`·`robots.ts` 에 sp 경로 미포함 확인
 - [ ] Rich Results Test 통과
 

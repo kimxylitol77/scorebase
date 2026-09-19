@@ -40,3 +40,12 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 - next.config `redirects()` 는 host 무관(apex→www 만 host 조건). `/teams`, `/live` 등 소스 경로가 sp 호스트에도 적용되나 sp 라우트와 충돌 없음. www.sportspredictions.live → apex 308 추가.
 - 로컬 검증 = `sp.localhost:3000` (NODE_ENV≠production 에서만 SP_HOSTS 에 포함).
 - `npx tsc` 에 `src/app/api/vote/route.ts` 오류 3건이 **기존부터** 있음(MatchVote 복합 unique 이름 불일치, Prisma generate 필요 추정). 이 작업과 무관, 미수정.
+
+**Phase 3·4 결정.**
+- 데이터 새 계산 없음. `src/lib/sp/data.ts` 는 Match.pred*·AiPrediction·accuracy-stats.statForLeague 를 그대로 읽어 영어 shape 로만 바꾼다. 리더보드 집계는 /en/predictions/scorecard 규칙(발행·킥오프 전·FINISHED 만 채점·gpt 통합) 복제.
+- 발행 게이트(shouldPublishPick)는 목록에 적용하지 않음 — 확률은 전부 보여주고 "strong" 만 strongPickThreshold 로 표시. 근거 = 이 사이트의 주장은 "픽 판매" 가 아니라 "확률 공개+채점".
+- 리그 URL = 영어 슬러그(`/premier-league`, `/k-league` …). 라우트는 `[...slug]` catch-all 로 두어 깊은 경로도 sp 전용 404 가 뜬다(단일 세그먼트만 리그로 해석).
+- 킥오프 시각 = LocalTime 클라이언트 컴포넌트. SSR 은 UTC 문자열, 마운트 후 로컬 시간. hydration TZ 불일치(#418) 회피.
+- 스코어베이스 딥링크 = /en/teams/{id}·/en/predictions/{code}·/en/benchmark/method 만. /en 에 live 경기 페이지가 없어 경기 단위 링크는 없음.
+- 남은 한글 1건 = 루트 layout head 의 RSS `<link title="스코어베이스 블로그 RSS">`. 본문 아님, 방치.
+- sitemap 117 URL(정적 4 + 리그 13 + 7일 경기 100). 검증일 홈 48h 경기 21건, 리더보드 7모델 전부 표시.

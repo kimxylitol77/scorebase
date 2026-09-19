@@ -12,11 +12,11 @@ const NAV = [
 export default function SpHeader() {
   return (
     <header className="sticky top-0 z-40 border-b" style={{ borderColor: "var(--sp-border)", background: "rgba(6,10,30,0.85)", backdropFilter: "blur(10px)" }}>
-      <div className="sp-container flex h-16 items-center justify-between gap-4">
+      <div className="sp-container flex flex-col gap-2 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0">
         <Link href="/" className="sp-display text-lg font-extrabold tracking-tight" aria-label={SP_NAME}>
           SPORTS<span style={{ color: "var(--sp-lime)" }}>PREDICTIONS</span>
         </Link>
-        <nav aria-label="Primary" className="flex items-center gap-1 overflow-x-auto">
+        <nav aria-label="Primary" className="-mx-3 flex items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none]">
           {NAV.map((n) => (
             <Link
               key={n.href}
