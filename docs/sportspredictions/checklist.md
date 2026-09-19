@@ -1,0 +1,61 @@
+# sportspredictions.live 체크리스트
+
+범례. `[x]` 완료 · `[~]` 막힘(사유) · `[ ]` 할 일
+
+## Phase 0. 준비
+- [x] 도메인 점검 (WHOIS·DNS·Wayback·블랙리스트·세이프브라우징) — 09-19
+- [x] plan.md / checklist.md / context-notes.md 작성
+- [ ] (사용자) Namecheap 포워딩 해제, DNS A 76.76.21.21 + CNAME www → cname.vercel-dns.com
+- [ ] (사용자) Vercel 프로젝트에 sportspredictions.live + www 추가
+- [ ] (사용자) Google Search Console 도메인 속성 추가 (DNS TXT)
+- [ ] (사용자) Bing Webmaster 추가 (GSC 가져오기)
+
+## Phase 1. 라우팅 골격
+- [ ] `src/middleware.ts` SP_HOSTS 상수 + isSp 판정
+- [ ] sp 호스트: `/robots.txt`, `/sitemap.xml` → `/sp/robots.txt`, `/sp/sitemap.xml` rewrite
+- [ ] sp 호스트: 옛 URL 410 (`/20\d\d/`, `/page/`, `/vip-betting-tips`, `/mega-combo-tips`, `/premium-tipsters`, `/refund-policy`, `/terms-and-conditions`, `/privacy-policy`, `/wp-*`, `/feed`, `/category/`, `/tag/`, `/author/`)
+- [ ] sp 호스트: 나머지 → `/sp{path}` rewrite (URL 유지)
+- [ ] scorebase.kr 등 다른 호스트에서 `/sp/*` 직접 접근 → 404
+- [ ] sp 호스트는 X-Robots-Tag noindex 분기(L152)에서 제외 확인
+- [ ] `src/lib/sp/site.ts` (SP_URL, spUrl)
+- [ ] `src/app/sp/layout.tsx` 빈 껍데기 + `/sp/page.tsx` "hello" → 검증 curl 3종
+
+## Phase 2. 디자인 토큰·크롬
+- [ ] `src/app/sp/sp.css` 토큰 (plan §5 표) light/dark 양쪽 정의, 컴포넌트 raw hex 0건
+- [ ] layout.tsx 인라인 스크립트: sp 호스트 강제 light 추가
+- [ ] Inter next/font (sp layout 한정), 숫자 Geist Mono tabular-nums
+- [ ] `src/components/sp/SpHeader.tsx` (로고 텍스트 · Predictions · Accuracy · Methodology · About)
+- [ ] `src/components/sp/SpFooter.tsx` ("Data by Scorebase" 링크, 18+ 문구 없음, 도박 유도 문구 없음)
+- [ ] SiteChromeHeader/Footer: `/sp` 접두면 null 반환
+- [ ] 검증: `grep -rP '[가-힣]' src/app/sp src/components/sp` = 0
+
+## Phase 3. 페이지
+- [ ] `ProbBar` (3분할, 라벨 병기) · `MatchPredCard` · `LeagueChips` · `ModelTable` 컴포넌트
+- [ ] `/` 오늘·내일 예측 (EN_PREDICTION_LEAGUES 13개, 발행 게이트 통과분만)
+- [ ] `/[league]` 리그별 예측 + 최근 30경기 적중률
+- [ ] `/match/[id]` 1X2·O/U·핸디캡·시장 갭·7모델 픽(published=true) · 스코어베이스 /en 딥링크
+- [ ] `/accuracy` 리더보드(7모델) + 리그별 표 + ReliabilityCurveChart 재사용
+- [ ] `/methodology` 정적
+- [ ] `/about` 정적
+- [ ] 404 페이지 (sp 전용, 영어)
+- [ ] 모바일 375px 확인(가로 스크롤 0), 터치 타깃 44px
+
+## Phase 4. SEO
+- [ ] 페이지별 metadata: title·description·canonical(spUrl)·OG
+- [ ] JSON-LD: WebSite+Organization(/), SportsEvent(/match), Dataset(/accuracy)
+- [ ] `/sp/robots.txt` route handler (Allow all, Sitemap: https://sportspredictions.live/sitemap.xml, AI 크롤러 허용)
+- [ ] `/sp/sitemap.xml` route handler (/, 리그 13, accuracy, methodology, about, 최근 7일 match)
+- [ ] 기존 `src/app/sitemap.ts`·`robots.ts` 에 sp 경로 미포함 확인
+- [ ] Rich Results Test 통과
+
+## Phase 5. 배포·검증
+- [ ] `npx tsc --noEmit`
+- [ ] 프로덕션 curl: 홈 200 / 옛 URL 410 / robots·sitemap 호스트 확인 / scorebase.kr/sp 404
+- [ ] Lighthouse 모바일 접근성 ≥ 90
+- [ ] GSC URL 검사 → 색인 요청 (홈·accuracy)
+- [ ] ROADMAP.md 항목 추가
+
+## Phase 6. 사후 (배포 후 1~4주)
+- [ ] GSC 링크 리포트에서 백링크 확인 → 도박·스팸 도메인 disavow
+- [ ] GSC 커버리지: 옛 URL "410" 처리 확인
+- [ ] 30일 노출·클릭 기록 → context-notes
