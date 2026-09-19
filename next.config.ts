@@ -94,6 +94,13 @@ const nextConfig: NextConfig = {
         destination: "https://www.scorebase.kr/:path*",
         permanent: true,
       },
+      // sportspredictions.live — canonical 은 apex. www 는 308 로 합친다 (docs/sportspredictions).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.sportspredictions.live" }],
+        destination: "https://sportspredictions.live/:path*",
+        permanent: true,
+      },
       // 해외 브리핑 보드 → 독립 뉴스 게시판. 같은 목록이 두 URL 로 존재하면
       // 카니발라이제이션이 나므로 308 로 하나에 몰아준다. 개별 글 URL(/analysis/{id})은
       // 이미 색인돼 있어 그대로 둔다 — 목록만 이전. (2026-08-19)

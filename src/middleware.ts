@@ -17,6 +17,18 @@ const SCOREBOARD_HOSTS = ["스코어보드.kr", "xn--hy1bm7m1yevrd8pq.kr"];
 // 한글 도메인은 브라우저가 punycode(xn--) host 헤더로 전송 → 둘 다 매칭.
 const SCOREBASE_COM_HOSTS = ["스코어베이스.com", "xn--9k3b13iba842abwcsvs.com"];
 
+// sportspredictions.live — 영어 전용 예측 자매 사이트. 같은 Vercel 앱 공유, 전 경로를 /sp/* 로
+// rewrite 해 src/app/sp/** 트리가 서빙한다 (URL 은 sportspredictions.live 유지). 색인 대상이라
+// 아래 noindex 분기에서 제외. 설계 = docs/sportspredictions/plan.md.
+const SP_HOSTS = [
+  "sportspredictions.live",
+  // 로컬 검증용 — 브라우저는 *.localhost 를 127.0.0.1 로 푼다 (Host 헤더 없이 자매 사이트 열람).
+  ...(process.env.NODE_ENV === "production" ? [] : ["sp.localhost"]),
+];
+// 이전 소유자(2023-06~2026-05 워드프레스 베팅 팁 사이트) URL — 콘텐츠 연속성 없음 → 410 으로 색인 제거.
+const SP_GONE_RE =
+  /^\/(20\d\d\/|page\/|wp-|feed|category\/|tag\/|author\/|vip-betting-tips|mega-combo-tips|premium-tipsters|free-sports-predictions|refund-policy|terms-and-conditions|privacy-policy|contact-us)/;
+
 // 운영자 집 IP — 본인 브라우저·맥북 작업·맥미니 봇이 한 IP 를 공유해 봇 합산 트래픽으로
 // 200/분을 넘는 순간 운영자 브라우저까지 1분 잠기던 것 면제 (2026-07-19 실측).
 // IP 변경 시 갱신 — TheSports whitelist 에 등록된 집 IP 와 같은 값.
@@ -39,6 +51,21 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const host = (req.headers.get("host") || "").toLowerCase();
   const isScoreboard = SCOREBOARD_HOSTS.some((h) => host.includes(h));
   const isScoreBaseCom = SCOREBASE_COM_HOSTS.some((h) => host.includes(h));
+  const isSp = SP_HOSTS.some((h) => host.includes(h));
+
+  // sportspredictions.live 의 내부 트리(/sp/*)는 다른 호스트에서 직접 열리면 안 된다 — 중복 색인 방지.
+  if (!isSp && (path === "/sp" || path.startsWith("/sp/"))) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+  if (isSp) {
+    if (SP_GONE_RE.test(path)) {
+      return new NextResponse("Gone", { status: 410 });
+    }
+    // 로그인·API 는 자매 사이트에 없다 — 열람 전용.
+    if (path === "/login" || path === "/signup" || path.startsWith("/api/auth")) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+  }
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
   const fakeHint = FAKE_CLIENT_HINT_PLATFORMS.has(req.headers.get("sec-ch-ua-platform") ?? "");
@@ -179,6 +206,11 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
     // 스코어베이스.com 루트 → 랜딩(/landing) 내용으로 rewrite (URL 은 스코어베이스.com 유지).
     const url = req.nextUrl.clone();
     url.pathname = "/landing";
+    res = NextResponse.rewrite(url, { request: { headers: reqHeaders } });
+  } else if (isSp && !path.startsWith("/_next") && !path.startsWith("/api/")) {
+    // sportspredictions.live 전 경로 → /sp/* 트리. robots·sitemap 도 자매 사이트 전용 핸들러로.
+    const url = req.nextUrl.clone();
+    url.pathname = path === "/" ? "/sp" : `/sp${path}`;
     res = NextResponse.rewrite(url, { request: { headers: reqHeaders } });
   } else {
     res = NextResponse.next({ request: { headers: reqHeaders } });

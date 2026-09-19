@@ -11,22 +11,22 @@
 - [ ] (사용자) Bing Webmaster 추가 (GSC 가져오기)
 
 ## Phase 1. 라우팅 골격
-- [ ] `src/middleware.ts` SP_HOSTS 상수 + isSp 판정
-- [ ] sp 호스트: `/robots.txt`, `/sitemap.xml` → `/sp/robots.txt`, `/sp/sitemap.xml` rewrite
-- [ ] sp 호스트: 옛 URL 410 (`/20\d\d/`, `/page/`, `/vip-betting-tips`, `/mega-combo-tips`, `/premium-tipsters`, `/refund-policy`, `/terms-and-conditions`, `/privacy-policy`, `/wp-*`, `/feed`, `/category/`, `/tag/`, `/author/`)
-- [ ] sp 호스트: 나머지 → `/sp{path}` rewrite (URL 유지)
-- [ ] scorebase.kr 등 다른 호스트에서 `/sp/*` 직접 접근 → 404
-- [ ] sp 호스트는 X-Robots-Tag noindex 분기(L152)에서 제외 확인
-- [ ] `src/lib/sp/site.ts` (SP_URL, spUrl)
-- [ ] `src/app/sp/layout.tsx` 빈 껍데기 + `/sp/page.tsx` "hello" → 검증 curl 3종
+- [x] `src/middleware.ts` SP_HOSTS 상수 + isSp 판정
+- [x] sp 호스트: `/robots.txt`, `/sitemap.xml` → `/sp/robots.txt`, `/sp/sitemap.xml` rewrite
+- [x] sp 호스트: 옛 URL 410 (`/20\d\d/`, `/page/`, `/vip-betting-tips`, `/mega-combo-tips`, `/premium-tipsters`, `/refund-policy`, `/terms-and-conditions`, `/privacy-policy`, `/wp-*`, `/feed`, `/category/`, `/tag/`, `/author/`)
+- [x] sp 호스트: 나머지 → `/sp{path}` rewrite (URL 유지)
+- [x] scorebase.kr 등 다른 호스트에서 `/sp/*` 직접 접근 → 404
+- [x] sp 호스트는 X-Robots-Tag noindex 분기(L152)에서 제외 확인
+- [x] `src/lib/sp/site.ts` (SP_URL, spUrl)
+- [x] `src/app/sp/layout.tsx` 빈 껍데기 + `/sp/page.tsx` "hello" → 검증 curl 3종
 
 ## Phase 2. 디자인 토큰·크롬
-- [ ] `src/app/sp/sp.css` 토큰 (plan §5 표) light/dark 양쪽 정의, 컴포넌트 raw hex 0건
-- [ ] layout.tsx 인라인 스크립트: sp 호스트 강제 light 추가
-- [ ] Inter next/font (sp layout 한정), 숫자 Geist Mono tabular-nums
-- [ ] `src/components/sp/SpHeader.tsx` (로고 텍스트 · Predictions · Accuracy · Methodology · About)
-- [ ] `src/components/sp/SpFooter.tsx` ("Data by Scorebase" 링크, 18+ 문구 없음, 도박 유도 문구 없음)
-- [ ] SiteChromeHeader/Footer: `/sp` 접두면 null 반환
+- [x] `src/app/sp/sp.css` 토큰 (plan §5 표, 항상 다크), 컴포넌트 raw hex 0건
+- [x] layout.tsx 인라인 스크립트: sp 호스트 강제 dark (predictify 스타일로 변경)
+- [x] Sora + Plus Jakarta Sans + JetBrains Mono next/font (sp layout 한정), 숫자 tabular-nums
+- [x] `src/components/sp/SpHeader.tsx` (로고 텍스트 · Predictions · Accuracy · Methodology · About)
+- [x] `src/components/sp/SpFooter.tsx` ("Data by Scorebase" 링크, 18+ 문구 없음, 도박 유도 문구 없음)
+- [x] SiteChromeHeader/Footer/EmbedHidden: useSelectedLayoutSegment()==="sp" 면 null (SSR 정확)
 - [ ] 검증: `grep -rP '[가-힣]' src/app/sp src/components/sp` = 0
 
 ## Phase 3. 페이지

@@ -53,33 +53,34 @@ scorebase.kr 에서 /sp/* 직접 접근 → middleware 404 (내부 경로 노출
 
 JSON-LD. `/` WebSite+Organization, `/match/[id]` SportsEvent, `/accuracy` Dataset. hreflang 없음(영어 단일). canonical = spUrl.
 
-## 5. 디자인 방향 (ui-ux-pro-max 실측 + 참고 사이트)
+## 5. 디자인 방향 (사용자 지정 2026-09-19. predictifysports.com 스타일)
 
-참고 사이트.
-- **Kickoff.ai** (kickoff.ai/matches) — 1순위. 흰 배경, 한 줄에 팀·3분할 확률 바·시간. 이 밀도를 그대로 따른다.
-- **Opta Analyst** (theanalyst.com) — 에디토리얼 톤·신뢰감. 상단 라이브 티커 아이디어만 차용.
-- **Dimers** (dimers.com) — 리그 칩 가로 스크롤·카드 구조는 참고, 도박 CTA·네이비 히어로는 반면교사.
+참고 사이트 = **predictifysports.com** (직접 실측). 다크 네이비 배경, 유리 느낌 카드, 라임 포인트, 큰 굵은 제목.
+Kickoff.ai 의 "한 줄 확률 바" 밀도는 카드 내부 레이아웃에만 차용.
 
-스타일. 라이트 기본, Exaggerated Minimalism 축소판(큰 숫자·여백, 장식 없음). 카드 테두리 1px, 그림자 없음.
+실측 토큰 (`src/app/sp/sp.css`, 컴포넌트에 raw hex 금지).
+| 역할 | 값 | 출처 |
+|---|---|---|
+| bg | #060A1E | body 배경 |
+| bg-elev (카드) | rgba(15,23,42,.8) + 1px rgba(255,255,255,.06) + radius 12 + blur | .glass-card |
+| fg / muted / dim | #F1F5F9 / #94A3B8 / #52637A | 텍스트 3단 |
+| lime (포인트·CTA) | #A4FF00, 라인 rgba(164,255,0,.25) | 강조 카드 테두리·버튼 |
+| indigo | #493EE5 | 보조 강조 |
+| green / amber / red | #10B77F / #D4A043 / #EF4444 | 적중·주의·실패 |
+| home / draw / away | green / amber / #627EEA | 3분할 확률 바 |
 
-토큰(`src/app/sp/sp.css`, 컴포넌트에 raw hex 금지).
-| 역할 | 값 |
-|---|---|
-| background | #FAFAFA |
-| foreground | #09090B |
-| muted-fg | #64748B |
-| border | #E4E4E7 |
-| home (홈 승) | #059669 |
-| draw | #A16207 |
-| away | #2563EB |
-| accent (CTA·링크) | #1E40AF |
-| correct / wrong | #16A34A / #DC2626 |
+폰트 (next/font, sp layout 한정). 제목 **Sora** 800, 본문 **Plus Jakarta Sans**, 숫자 **JetBrains Mono** tabular-nums.
 
-폰트. 제목·본문 Inter, 숫자 Geist Mono `font-variant-numeric: tabular-nums`.
-확률 바. 3분할 스택 바(home/draw/away), 숫자는 바 위에 %로. 색만으로 구분하지 않도록 라벨 병기.
-리더보드. 정렬 가능한 테이블, 1위 강조는 굵기만. 모바일은 카드 전환.
-모션. 스크롤 리빌 y 8px 300ms 이하, prefers-reduced-motion 존중. 그 외 애니메이션 없음.
-금지. 이모지 아이콘, 네온·글래스, 배당 강조, "Sure win" 배지.
+구성 (predictify 홈 골격을 따르되 도박 요소 제거).
+1. 히어로 = 상태 배지("AI models active" + 라이브 점) · 큰 H1 · 부제 · CTA 2개(Today's picks / How it works)
+2. Coming up = 다가오는 경기 가로 카드 스트립(킥오프 카운트다운)
+3. Top predictions = 확신 높은 픽 카드(% 크게, 팀명, 시작까지 남은 시간)
+4. 리그 칩 마키 = EPL ◆ LaLiga ◆ … (가로 스크롤)
+5. 통계 3칸 = 리그 수 / 매일 갱신 / 무료·가입 없음
+6. "Honest accuracy" 문단 + 성적표 링크
+
+금지. 이모지 아이콘(SVG·텍스트로), 베팅 보너스 배너, 18+ 배지, "Value bets/Parlay" 메뉴, 확률 과장.
+모션. 카운트다운 숫자 갱신·스크롤 페이드(≤300ms)만. prefers-reduced-motion 존중.
 
 ## 6. 단계
 

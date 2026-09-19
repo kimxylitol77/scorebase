@@ -29,3 +29,14 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 **보류.** 자매 사이트 자체 블로그(영어 분석 글). 옛 분류 해소·색인 안정 후 판단. 우선 데이터 페이지만.
 
 **사용자 할 일.** Namecheap DNS, Vercel 도메인 추가, GSC·Bing 등록. 코드 작업은 이 셋과 독립적으로 진행 가능(로컬은 Host 헤더로 검증).
+
+**결정 9 (사용자 지정). 디자인 = predictifysports.com 스타일.** 결정 7 의 라이트/Kickoff.ai 안은 폐기.
+실측(JS computed style). body #060A1E, 텍스트 #F1F5F9/#94A3B8, glass-card rgba(15,23,42,.8)+1px white/6%+radius 12, 라임 #A4FF00, 폰트 Sora/Plus Jakarta Sans/JetBrains Mono, Next.js+Tailwind. 이모지 메뉴·베팅 보너스 배너·18+ 는 우리 사이트에서 제외(결정 8 유지).
+
+**Phase 1 실측 함정.**
+- middleware rewrite(`/` → `/sp`) 에서는 `usePathname()` 이 브라우저 URL(`/`)을 준다. 루트 크롬의 `/sp` 검사가 SSR 에서 실패해 한국어 헤더·푸터가 HTML 에 실렸다(한글 3,337자). 렌더 트리 기준인 `useSelectedLayoutSegment() === "sp"` 로 교체 → SSR 에서도 정확.
+- 중첩 layout 의 `title.default` 는 루트 템플릿("%s | Scorebase")을 탄다. `title.absolute` 로 끊음.
+- 옛 URL 이 trailing slash(`/vip-betting-tips/`)면 Next 가 middleware 전에 308 로 슬래시를 떼고, 그 다음 요청이 410. 2단계지만 구글은 최종 410 으로 처리하므로 허용.
+- next.config `redirects()` 는 host 무관(apex→www 만 host 조건). `/teams`, `/live` 등 소스 경로가 sp 호스트에도 적용되나 sp 라우트와 충돌 없음. www.sportspredictions.live → apex 308 추가.
+- 로컬 검증 = `sp.localhost:3000` (NODE_ENV≠production 에서만 SP_HOSTS 에 포함).
+- `npx tsc` 에 `src/app/api/vote/route.ts` 오류 3건이 **기존부터** 있음(MatchVote 복합 unique 이름 불일치, Prisma generate 필요 추정). 이 작업과 무관, 미수정.

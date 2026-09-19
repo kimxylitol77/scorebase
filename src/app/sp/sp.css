@@ -1,0 +1,101 @@
+/* sportspredictions.live 디자인 토큰 — predictifysports.com 실측(2026-09-19) 기반 다크 네이비 + 라임 포인트.
+   컴포넌트는 raw hex 금지, 여기 변수만 사용. 루트 .dark 클래스와 무관하게 항상 다크. */
+.sp-root {
+  --sp-bg: #060a1e;
+  --sp-bg-elev: rgba(15, 23, 42, 0.8);
+  --sp-fg: #f1f5f9;
+  --sp-fg-muted: #94a3b8;
+  --sp-fg-dim: #52637a;
+  --sp-border: rgba(255, 255, 255, 0.06);
+  --sp-border-strong: rgba(255, 255, 255, 0.12);
+  --sp-lime: #a4ff00;
+  --sp-lime-soft: rgba(164, 255, 0, 0.12);
+  --sp-lime-line: rgba(164, 255, 0, 0.25);
+  --sp-indigo: #493ee5;
+  --sp-green: #10b77f;
+  --sp-green-soft: rgba(16, 183, 127, 0.12);
+  --sp-amber: #d4a043;
+  --sp-red: #ef4444;
+  --sp-home: #10b77f;
+  --sp-draw: #d4a043;
+  --sp-away: #627eea;
+
+  font-family: var(--sp-font-body), system-ui, sans-serif;
+  background: var(--sp-bg);
+  color: var(--sp-fg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+.sp-root h1, .sp-root h2, .sp-root h3, .sp-display {
+  font-family: var(--sp-font-display), var(--sp-font-body), sans-serif;
+  letter-spacing: -0.02em;
+}
+.sp-mono {
+  font-family: var(--sp-font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.sp-container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 16px;
+  flex: 1;
+}
+.sp-card {
+  background: var(--sp-bg-elev);
+  border: 1px solid var(--sp-border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+.sp-card-accent { border-color: var(--sp-lime-line); }
+.sp-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sp-fg-muted);
+}
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.sp-btn-primary { background: var(--sp-lime); color: #0a1400; }
+.sp-btn-primary:hover { background: #b9ff33; }
+.sp-btn-ghost { border: 1px solid var(--sp-border-strong); color: var(--sp-fg); }
+.sp-btn-ghost:hover { border-color: var(--sp-lime-line); }
+.sp-root a:focus-visible, .sp-root button:focus-visible {
+  outline: 2px solid var(--sp-lime);
+  outline-offset: 2px;
+}
+.sp-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-border-strong);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sp-fg-muted);
+  white-space: nowrap;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.sp-chip:hover { color: var(--sp-fg); border-color: var(--sp-lime-line); }
+.sp-chip-active { color: #0a1400; background: var(--sp-lime); border-color: var(--sp-lime); }
+.sp-live-dot {
+  width: 8px; height: 8px; border-radius: 999px; background: var(--sp-green);
+  box-shadow: 0 0 0 4px var(--sp-green-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-root * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
