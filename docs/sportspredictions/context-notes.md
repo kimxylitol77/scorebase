@@ -49,3 +49,9 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 - 스코어베이스 딥링크 = /en/teams/{id}·/en/predictions/{code}·/en/benchmark/method 만. /en 에 live 경기 페이지가 없어 경기 단위 링크는 없음.
 - 남은 한글 1건 = 루트 layout head 의 RSS `<link title="스코어베이스 블로그 RSS">`. 본문 아님, 방치.
 - sitemap 117 URL(정적 4 + 리그 13 + 7일 경기 100). 검증일 홈 48h 경기 21건, 리더보드 7모델 전부 표시.
+
+**배포·도메인 (2026-09-19 저녁).**
+- 로컬 체크아웃이 origin 보다 ~200커밋 뒤라 push 거부 → 격리 worktree(origin/main)에 cherry-pick 3건 후 push(6f115a7). middleware.ts 는 상류 변경(rate-limit 공유 카운터)과 겹쳤지만 자동 병합. 로컬 main 은 타 세션 미커밋 파일(data/pages-inventory.json) 때문에 origin 에 못 맞춤 — `git reset --keep` 실패. 그대로 둠.
+- Vercel(팀 scorebase1 / 프로젝트 scorebase) Domains 에 sportspredictions.live = Production, www.sportspredictions.live = 308 → apex 추가. "apex→www 리다이렉트" 체크는 해제(우리 canonical 은 apex. next.config 의 www→apex 308 과 방향 일치, 켰으면 루프).
+- Vercel 이 안내하는 값: 네임서버 ns1/ns2.vercel-dns.com. A 레코드 방식이면 216.150.1.1 (예전 76.76.21.21 이 아님 — 문서 갱신).
+- 남은 사용자 작업 = 네임칩 네임서버 변경(사용자가 직접 하겠다고 선택) → 반영 후 GSC/Bing 등록(TXT 는 Vercel DNS 에).
