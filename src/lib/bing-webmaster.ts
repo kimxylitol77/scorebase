@@ -38,16 +38,28 @@ export interface BingOverview {
   /** 기회 검색어 — 노출은 많은데 순위가 낮아(4위 밖) 클릭을 못 받는 것, 노출순.
    *  콘텐츠/타이틀 보강으로 순위를 끌어올릴 타겟. */
   opportunities: BingQueryRow[];
-  /** 전체 합계 (TOP 외 포함) */
+  /** 최근 4주 합계 (TOP 외 포함) */
   totals: { clicks: number; impressions: number } | null;
+  /** 직전 4주 합계 — 증감 비교용. 데이터가 8주 미만이면 null. */
+  prevTotals: { clicks: number; impressions: number } | null;
+  /** 최근 4주 창 — 빙 주간 버킷 기준(start = 첫 버킷 주의 시작일, end = 마지막 버킷 날짜). weeks = 실제 담긴 주 수. */
+  window: { start: string; end: string; weeks: number } | null;
 }
 
-// GetQueryStats 응답 한 행 — 검색어 × 날짜 단위 (Date 는 ASP.NET /Date(ms)/ 형식, 합산만 하므로 무시).
+// GetQueryStats 응답 한 행 — 검색어 × 주간 버킷. Date 는 ASP.NET /Date(ms)/ 형식이고 그 주의 마지막 날
+// (2026-09-15 실측: 일별 데이터가 9/13 까지인데 9/11 버킷 존재 → 9/5~9/11). 검색어 하나가 주마다 한 행.
 interface RawQueryStat {
   Query: string;
+  Date?: string;
   Clicks: number;
   Impressions: number;
   AvgImpressionPosition: number;
+}
+
+/** ASP.NET "/Date(1789694062979-0700)/" → "YYYY-MM-DD" (UTC). 못 읽으면 null. */
+function parseBingDate(s: string | undefined): string | null {
+  const m = /\/Date\((-?\d+)/.exec(s ?? "");
+  return m ? new Date(Number(m[1])).toISOString().slice(0, 10) : null;
 }
 
 function bingSiteUrl(): string {
@@ -98,6 +110,11 @@ export async function fetchBingPathCoverage(
 /** 빙 전체 검색어(검색어별 집계, 노출순). 캐시 없음 — 호출부(UI 캐시·주간 job)에서 관리.
  *  GetQueryStats 행은 검색어×날짜라 검색어 기준 합산(position 은 노출 가중 평균). */
 export async function fetchAllBingQueries(): Promise<BingQueryRow[]> {
+  return aggregateBingQueries(await fetchBingQueryRows());
+}
+
+/** GetQueryStats 원시 행(검색어 × 주간 버킷). 전 기간(연동 후 ~12주)이 한 번에 온다. */
+async function fetchBingQueryRows(): Promise<RawQueryStat[]> {
   const key = process.env.BING_WEBMASTER_API_KEY!;
   const site = bingSiteUrl();
   const url = `${API_BASE}/GetQueryStats?siteUrl=${encodeURIComponent(site)}&apikey=${encodeURIComponent(key)}`;
@@ -110,7 +127,11 @@ export async function fetchAllBingQueries(): Promise<BingQueryRow[]> {
     throw new Error(`Bing API ${res.status}: ${body.slice(0, 200)}`);
   }
   const data = (await res.json()) as { d?: RawQueryStat[] };
-  const rows = data.d ?? [];
+  return data.d ?? [];
+}
+
+/** 검색어 기준 합산(position 은 노출 가중 평균), 노출 내림차순. */
+function aggregateBingQueries(rows: RawQueryStat[]): BingQueryRow[] {
   const map = new Map<string, { clicks: number; impressions: number; posW: number }>();
   for (const r of rows) {
     const q = (r.Query ?? "").trim();
@@ -132,9 +153,31 @@ export async function fetchAllBingQueries(): Promise<BingQueryRow[]> {
     .sort((a, b) => b.impressions - a.impressions);
 }
 
+/** 최근 N 주 버킷 / 그 직전 N 주 버킷으로 가른다. 버킷 날짜 = 그 주의 마지막 날. */
+export function splitBingWeeks(rows: RawQueryStat[], weeks = 4) {
+  const dated = rows.map((r) => ({ r, day: parseBingDate(r.Date) })).filter((x): x is { r: RawQueryStat; day: string } => !!x.day);
+  const buckets = [...new Set(dated.map((x) => x.day))].sort().reverse();
+  const recentDays = new Set(buckets.slice(0, weeks));
+  const prevDays = new Set(buckets.slice(weeks, weeks * 2));
+  const recent = dated.filter((x) => recentDays.has(x.day)).map((x) => x.r);
+  const prev = dated.filter((x) => prevDays.has(x.day)).map((x) => x.r);
+  const last = buckets[0];
+  const first = buckets[Math.min(weeks, buckets.length) - 1];
+  const start = first ? new Date(new Date(first + "T00:00:00Z").getTime() - 6 * 86400000).toISOString().slice(0, 10) : null;
+  return {
+    recent,
+    prev: prevDays.size === weeks ? prev : null,
+    window: last && start ? { start, end: last, weeks: recentDays.size } : null,
+  };
+}
+
 const fetchBingOverviewCached = unstable_cache(
   async (): Promise<Omit<BingOverview, "configured" | "error">> => {
-    const all = await fetchAllBingQueries();
+    // 전 기간 누적으로 보여주던 것을 최근 4주로 바꿨다(2026-09-19). 빙은 주 단위 버킷을 2~6일 늦게 주므로
+    // 12주 누적이면 새 주가 얹혀도 순위·숫자가 안 움직여 "매일 똑같은 화면"이 됐다. 직전 4주와 비교해 증감을 보인다.
+    const split = splitBingWeeks(await fetchBingQueryRows(), 4);
+    const all = aggregateBingQueries(split.recent);
+    const prevAll = split.prev ? aggregateBingQueries(split.prev) : null;
     const queries = [...all]
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 30);
@@ -151,16 +194,20 @@ const fetchBingOverviewCached = unstable_cache(
         clicks: all.reduce((s, r) => s + r.clicks, 0),
         impressions: all.reduce((s, r) => s + r.impressions, 0),
       },
+      prevTotals: prevAll
+        ? { clicks: prevAll.reduce((s, r) => s + r.clicks, 0), impressions: prevAll.reduce((s, r) => s + r.impressions, 0) }
+        : null,
+      window: split.window,
     };
   },
-  ["bing-overview-v3"],
+  ["bing-overview-v4"],
   { revalidate: 3600 }, // 1시간 캐시 — quota 보호
 );
 
 /** /admin/stats 진입점 — 미설정/실패 모두 throw 없이 상태로 반환. */
 export async function getBingOverview(): Promise<BingOverview> {
   if (!process.env.BING_WEBMASTER_API_KEY) {
-    return { configured: false, error: null, siteUrl: null, queries: [], topImpressions: [], opportunities: [], totals: null };
+    return { configured: false, error: null, siteUrl: null, queries: [], topImpressions: [], opportunities: [], totals: null, prevTotals: null, window: null };
   }
   try {
     const data = await fetchBingOverviewCached();
@@ -174,6 +221,8 @@ export async function getBingOverview(): Promise<BingOverview> {
       topImpressions: [],
       opportunities: [],
       totals: null,
+      prevTotals: null,
+      window: null,
     };
   }
 }

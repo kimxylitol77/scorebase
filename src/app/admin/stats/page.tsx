@@ -57,6 +57,14 @@ const RANGE_LABEL: Record<Range, string> = {
   "all": "전체",
 };
 
+// 빙 KPI 증감 문구 — 직전 4주 대비. 이전 값이 없으면 빈 문자열(카드 sub 미표시).
+function bingDelta(cur: number | undefined, prev: number | undefined): string | undefined {
+  if (cur == null || prev == null) return undefined;
+  const diff = cur - prev;
+  const pct = prev > 0 ? ` (${diff >= 0 ? "+" : ""}${Math.round((diff / prev) * 100)}%)` : "";
+  return `직전 4주 ${prev.toLocaleString()} → ${diff >= 0 ? "+" : ""}${diff.toLocaleString()}${pct}`;
+}
+
 export default async function StatsPage() {
   // 기간(7일·30일·전체)은 카드마다 탭으로 고른다 — 초기값은 7일, 나머지는 클라이언트가 /api/admin/stats-range 로 받는다.
   const range: Range = "7d";
@@ -614,7 +622,7 @@ export default async function StatsPage() {
           <SearchCompareColumn
             emoji="🔷"
             label="빙"
-            sub="Bing Webmaster"
+            sub={bing.window ? `Bing Webmaster · 최근 ${bing.window.weeks}주` : "Bing Webmaster"}
             metricLabel="클릭"
             summary={
               bing.totals
@@ -691,7 +699,7 @@ export default async function StatsPage() {
 
           <SectionCard
             title="🔷 빙 기회 검색어"
-            subtitle={`Bing Webmaster · ${bing.opportunities.length}개`}
+            subtitle={`Bing Webmaster · 최근 ${bing.window?.weeks ?? 4}주 · ${bing.opportunities.length}개`}
           >
             {!bing.configured ? (
               <EmptyHint message="빙 연동 대기 — 아래 '빙 검색 성과' 섹션 참고." />
@@ -875,11 +883,17 @@ export default async function StatsPage() {
           </SectionCard>
         ) : (
           <>
+            {bing.window && (
+              <p className="text-xs text-neutral-500">
+                최근 {bing.window.weeks}주 ({bing.window.start} ~ {bing.window.end}) · 빙은 주 단위로 2~6일 늦게 집계하므로 이 창은 매주 한 번 앞으로 밉니다
+                {bing.prevTotals ? " · 괄호는 직전 4주 대비" : ""}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3">
-              <KpiCard label="클릭 (빙)" value={bing.totals?.clicks ?? 0} accent />
-              <KpiCard label="노출 (빙)" value={bing.totals?.impressions ?? 0} />
+              <KpiCard label="클릭 (빙)" value={bing.totals?.clicks ?? 0} accent sub={bingDelta(bing.totals?.clicks, bing.prevTotals?.clicks)} />
+              <KpiCard label="노출 (빙)" value={bing.totals?.impressions ?? 0} sub={bingDelta(bing.totals?.impressions, bing.prevTotals?.impressions)} />
             </div>
-            <SectionCard title="빙 검색어 TOP 30" subtitle="클릭순 · Bing Webmaster Tools 집계">
+            <SectionCard title="빙 검색어 TOP 30" subtitle={`클릭순 · 최근 ${bing.window?.weeks ?? 4}주`}>
               {bing.queries.length === 0 ? (
                 <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
               ) : (
@@ -895,7 +909,7 @@ export default async function StatsPage() {
                 />
               )}
             </SectionCard>
-            <SectionCard title="노출 많은 키워드 TOP 30" subtitle="노출순 · 클릭 여부와 무관">
+            <SectionCard title="노출 많은 키워드 TOP 30" subtitle={`노출순 · 최근 ${bing.window?.weeks ?? 4}주 · 클릭 여부와 무관`}>
               {bing.topImpressions.length === 0 ? (
                 <EmptyHint message="빙 노출 데이터가 아직 없습니다." />
               ) : (
