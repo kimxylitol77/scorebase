@@ -51,6 +51,18 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    // 같은 Vercel 앱을 host 로 분기하는 한글 부가 도메인 2개 — middleware.ts SCOREBOARD_HOSTS / SCOREBASE_COM_HOSTS.
+    title: "부가 도메인 — 스코어보드.kr · 스코어베이스.com",
+    emoji: "🇰🇷",
+    links: [
+      { name: "스코어보드.kr", url: "https://스코어보드.kr", desc: "라이브 스코어 전용(루트=/scores, sb-mode 간결뷰) · 전 경로 noindex · punycode xn--hy1bm7m1yevrd8pq.kr", ext: true },
+      { name: "스코어보드.kr 등록 (아이네임즈)", url: "https://www.inames.co.kr", desc: "등록 2026-05-27 · 만료 2028-05-27 · NS=ns77/78.domaincontrol.com(GoDaddy DNS) · Vercel 'DNS Change Recommended' 상태", ext: true },
+      { name: "스코어베이스.com", url: "https://스코어베이스.com", desc: "브랜드 랜딩 전용(루트=/landing, 색인 허용) · 그 외 경로 noindex · punycode xn--9k3b13iba842abwcsvs.com", ext: true },
+      { name: "스코어베이스.com DNS (GoDaddy)", url: "https://dcc.godaddy.com/control/dnsmanagement?domainName=xn--9k3b13iba842abwcsvs.com", desc: "등록 2026-06-08 · 만료 2029-06-08 · NS=ns41/42.domaincontrol.com · Vercel Valid", ext: true },
+      { name: "Vercel Domains (전체 6+2개)", url: "https://vercel.com/scorebase1/scorebase/settings/domains", desc: "scorebase.kr·www / 스코어보드.kr·www / 스코어베이스.com·www / sportspredictions.live·www", ext: true },
+    ],
+  },
+  {
     title: "데이터 API",
     emoji: "🔌",
     links: [
