@@ -27,7 +27,7 @@ const MANUAL = path.join(__dirname, "..", "data", "korea-abroad-names.json");
 
 // 대상 = 한국 선수가 뛰는(뛸 수 있는) 해외 리그. K리그는 해외파 정의상 제외.
 // season: 유럽 시즌제 = 2025(25-26) / 캘린더제(MLS·J리그) = 2026
-export const LEAGUES: Array<{ code: string; afId: number; season: number; label: string; country: string; calendarSeason?: string }> = [
+export const LEAGUES: Array<{ code: string; afId: number; season: number; label: string; country: string; calendarSeason?: string; current?: number }> = [
   { code: "EPL", afId: 39, season: 2025, label: "프리미어리그", country: "잉글랜드" },
   { code: "CHAMPIONSHIP", afId: 40, season: 2025, label: "챔피언십", country: "잉글랜드" },
   { code: "LEAGUE_ONE", afId: 41, season: 2025, label: "리그 원", country: "잉글랜드" },
@@ -63,7 +63,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // af 호출 — 일시적 네트워크 에러는 백오프 재시도. 800콜 중 1회 끊김에 전체가 죽으면 안 된다.
 interface AfKoreaStat {
-  league?: { id?: number };
+  league?: { id?: number; country?: string };
   team?: { id?: number; name?: string; logo?: string | null };
   games?: { position?: string; appearences?: number | null; lineups?: number | null; minutes?: number | null; rating?: string | number | null };
   goals?: { total?: number | null; assists?: number | null; saves?: number | null; conceded?: number | null };
@@ -127,7 +127,9 @@ async function resolveSeasons(targets: typeof LEAGUES): Promise<void> {
   for (const lg of targets) {
     try {
       const res = await af(`/leagues?id=${lg.afId}`);
-      const seasons = (res?.response?.[0] as { seasons?: Array<{ year: number; coverage?: { players?: boolean } }> } | undefined)?.seasons ?? [];
+      const seasons = (res?.response?.[0] as { seasons?: Array<{ year: number; current?: boolean; coverage?: { players?: boolean } }> } | undefined)?.seasons ?? [];
+      // 진행 중 시즌(current=true). 스캔 시즌이 이것과 같으면 지난 시즌 기록은 따로 조회해야 한다 → backfillPreviousSeason
+      lg.current = seasons.find((s) => s.current)?.year;
       const covered = seasons.filter((s) => s.coverage?.players).map((s) => s.year);
       if (!covered.length) continue;
       const best = Math.max(...covered);
@@ -194,6 +196,141 @@ export interface SeasonStat {
 
 // af games.position → 기존 시즌스탯의 coarse 1글자 표기
 const POS_CODE: Record<string, string> = { Goalkeeper: "G", Defender: "D", Midfielder: "M", Attacker: "A" };
+
+/** af 시즌 연도 → 표시 라벨. 유럽 시즌제 2025 → "2025-26", 캘린더제(MLS) 2026 → "2026" */
+function seasonLabel(lg: { calendarSeason?: string }, year: number): string {
+  return lg.calendarSeason != null ? String(year) : `${year}-${String(year + 1).slice(-2)}`;
+}
+
+function toStats(st: AfKoreaStat): KoreaAbroadPlayer["stats"] {
+  return {
+    apps: num(st.games?.appearences),
+    starts: num(st.games?.lineups),
+    minutes: num(st.games?.minutes),
+    goals: num(st.goals?.total),
+    assists: num(st.goals?.assists),
+    rating: st.games?.rating ? Number(Number(st.games.rating).toFixed(2)) : null,
+    shots: numOrNull(st.shots?.total),
+    sot: numOrNull(st.shots?.on),
+    yellow: num(st.cards?.yellow),
+    red: num(st.cards?.red),
+    saves: numOrNull(st.goals?.saves),
+    conceded: numOrNull(st.goals?.conceded),
+  };
+}
+
+function toSeasonStat(st: AfKoreaStat, lg: string, season: string): SeasonStat {
+  return {
+    lg,
+    season,
+    team: st.team?.name ?? "",
+    pos: POS_CODE[st.games?.position ?? ""] ?? null,
+    matches: num(st.games?.appearences),
+    starts: num(st.games?.lineups),
+    goals: num(st.goals?.total),
+    assists: num(st.goals?.assists),
+    minutes: num(st.games?.minutes),
+    shots: numOrNull(st.shots?.total),
+    sot: numOrNull(st.shots?.on),
+    keyPasses: numOrNull(st.passes?.key),
+    passAcc: numOrNull(st.passes?.accuracy),
+    tackles: numOrNull(st.tackles?.total),
+    interceptions: numOrNull(st.tackles?.interceptions),
+    blocks: numOrNull(st.tackles?.blocks),
+    dribbles: numOrNull(st.dribbles?.success),
+    dribbleAtt: numOrNull(st.dribbles?.attempts),
+    dribbledPast: numOrNull(st.dribbles?.past),
+    duelsWon: numOrNull(st.duels?.won),
+    duelsTotal: numOrNull(st.duels?.total),
+    foulsDrawn: numOrNull(st.fouls?.drawn),
+    foulsCommitted: numOrNull(st.fouls?.committed),
+    penScored: numOrNull(st.penalty?.scored),
+    penWon: numOrNull(st.penalty?.won),
+    penMissed: numOrNull(st.penalty?.missed),
+    rating: st.games?.rating ? Number(Number(st.games.rating).toFixed(2)) : null,
+    yellow: num(st.cards?.yellow),
+    red: num(st.cards?.red),
+    saves: numOrNull(st.goals?.saves),
+    cleanSheets: null,
+    conceded: numOrNull(st.goals?.conceded),
+  };
+}
+
+/** 소속(spell)별 stats 합산 — 평점은 출전 시간 가중 */
+function totalsOf(spells: KoreaAbroadPlayer["stats"][]) {
+  const sum = (pick: (s: KoreaAbroadPlayer["stats"]) => number) => spells.reduce((a, s) => a + pick(s), 0);
+  const rated = spells.filter((s) => s.rating != null && s.minutes > 0);
+  const ratingMin = rated.reduce((a, s) => a + s.minutes, 0);
+  return {
+    apps: sum((s) => s.apps),
+    starts: sum((s) => s.starts),
+    minutes: sum((s) => s.minutes),
+    goals: sum((s) => s.goals),
+    assists: sum((s) => s.assists),
+    rating: ratingMin ? Number((rated.reduce((a, s) => a + s.rating! * s.minutes, 0) / ratingMin).toFixed(2)) : null,
+    yellow: sum((s) => s.yellow),
+    red: sum((s) => s.red),
+    saves: sum((s) => s.saves ?? 0) || null,
+    conceded: sum((s) => s.conceded ?? 0) || null,
+  };
+}
+
+/**
+ * 개막 후엔 리그 스캔이 진행 중 시즌으로 올라타(resolveSeasons) seasonStat·totals 가 현재 시즌 숫자가 된다.
+ * 그걸 "2025-26" 으로 달면 거짓 라벨이다(2026-09-20 실측 — 33명 중 23명이 2026-27 숫자를 지난 시즌으로 달고 있었다).
+ * 스캔 시즌이 af current 시즌인 리그의 선수만 직전 시즌을 한 번 더 조회한다(선수당 1콜, 20~30콜).
+ * 직전 시즌 행은 우리 대상 리그 행을 전부 합산(임대로 두 리그면 둘 다) — 없으면 대표팀·유럽대항전(country "World")을
+ * 뺀 최다 출전 행. 그것도 없으면(신인·af 미등록) 현재 시즌 숫자를 현재 라벨 그대로 둔다 — 페이지가 같은 라벨이면 현재값으로 통일한다.
+ */
+async function backfillPreviousSeason(
+  players: Array<{
+    afId: number;
+    nameKo: string;
+    league: string;
+    team: { afId: number; name: string; logo: string | null };
+    seasonTeam: { afId: number; name: string; logo: string | null } | null;
+    seasonStat: SeasonStat;
+    totals: ReturnType<typeof totalsOf>;
+    spells: unknown;
+  }>,
+): Promise<void> {
+  const targets = players.filter((p) => {
+    const lg = LEAGUES.find((l) => l.code === p.league);
+    return lg && lg.current != null && lg.season === lg.current;
+  });
+  if (!targets.length) return;
+  console.log(`\n직전 시즌 기록 보강 — 진행 중 시즌으로 스캔된 ${targets.length}명 (선수당 1콜)`);
+  for (const p of targets) {
+    const lg = LEAGUES.find((l) => l.code === p.league)!;
+    const prevYear = lg.season - 1;
+    try {
+      const res = await af(`/players?id=${p.afId}&season=${prevYear}`);
+      const rows = (res?.response?.[0]?.statistics ?? []).filter((st) => num(st.games?.appearences) > 0);
+      const inTarget = rows
+        .filter((st) => LEAGUES.some((l) => l.afId === st.league?.id))
+        .sort((a, b) => num(b.games?.minutes) - num(a.games?.minutes));
+      const picked = inTarget.length
+        ? inTarget
+        : rows.filter((st) => st.league?.country !== "World").sort((a, b) => num(b.games?.appearences) - num(a.games?.appearences)).slice(0, 1);
+      if (!picked.length) {
+        console.log(`  · ${p.nameKo} ${prevYear} 기록 없음 — 현재 시즌 숫자·라벨 유지`);
+        continue;
+      }
+      const main = picked[0];
+      const mainLg = LEAGUES.find((l) => l.afId === main.league?.id);
+      p.seasonStat = toSeasonStat(main, mainLg?.code ?? p.league, seasonLabel(mainLg ?? lg, prevYear));
+      p.totals = totalsOf(picked.map(toStats));
+      p.spells = null;
+      // 지난 시즌을 다른 팀에서 쌓았으면 그 팀을 밝힌다(표의 "25-26: 옛팀" 표기)
+      if (main.team?.id && main.team.id !== p.team.afId) {
+        p.seasonTeam = { afId: main.team.id, name: main.team.name ?? "", logo: main.team.logo ?? null };
+      }
+    } catch (e) {
+      console.warn(`  · ${p.nameKo} 직전 시즌 조회 실패 — 현재 시즌 숫자·라벨 유지: ${(e as Error).message}`);
+    }
+  }
+}
+
 
 function toks(name: string): string[] {
   return name
@@ -347,54 +484,8 @@ async function main() {
           country: lg.country,
           pos: st.games?.position ?? null,
           team: { afId: st.team?.id ?? 0, name: st.team?.name ?? "", logo: st.team?.logo ?? null },
-          stats: {
-            apps: num(st.games?.appearences),
-            starts: num(st.games?.lineups),
-            minutes: num(st.games?.minutes),
-            goals: num(st.goals?.total),
-            assists: num(st.goals?.assists),
-            rating: st.games?.rating ? Number(Number(st.games.rating).toFixed(2)) : null,
-            shots: numOrNull(st.shots?.total),
-            sot: numOrNull(st.shots?.on),
-            yellow: num(st.cards?.yellow),
-            red: num(st.cards?.red),
-            saves: numOrNull(st.goals?.saves),
-            conceded: numOrNull(st.goals?.conceded),
-          },
-          seasonStat: {
-            lg: lg.code,
-            season: lg.calendarSeason ?? "2025-26",
-            team: st.team?.name ?? "",
-            pos: POS_CODE[st.games?.position ?? ""] ?? null,
-            matches: num(st.games?.appearences),
-            starts: num(st.games?.lineups),
-            goals: num(st.goals?.total),
-            assists: num(st.goals?.assists),
-            minutes: num(st.games?.minutes),
-            shots: numOrNull(st.shots?.total),
-            sot: numOrNull(st.shots?.on),
-            keyPasses: numOrNull(st.passes?.key),
-            passAcc: numOrNull(st.passes?.accuracy),
-            tackles: numOrNull(st.tackles?.total),
-            interceptions: numOrNull(st.tackles?.interceptions),
-            blocks: numOrNull(st.tackles?.blocks),
-            dribbles: numOrNull(st.dribbles?.success),
-            dribbleAtt: numOrNull(st.dribbles?.attempts),
-            dribbledPast: numOrNull(st.dribbles?.past),
-            duelsWon: numOrNull(st.duels?.won),
-            duelsTotal: numOrNull(st.duels?.total),
-            foulsDrawn: numOrNull(st.fouls?.drawn),
-            foulsCommitted: numOrNull(st.fouls?.committed),
-            penScored: numOrNull(st.penalty?.scored),
-            penWon: numOrNull(st.penalty?.won),
-            penMissed: numOrNull(st.penalty?.missed),
-            rating: st.games?.rating ? Number(Number(st.games.rating).toFixed(2)) : null,
-            yellow: num(st.cards?.yellow),
-            red: num(st.cards?.red),
-            saves: numOrNull(st.goals?.saves),
-            cleanSheets: null,
-            conceded: numOrNull(st.goals?.conceded),
-          },
+          stats: toStats(st),
+          seasonStat: toSeasonStat(st, lg.code, seasonLabel(lg, lg.season)),
         });
         hits++;
       }
@@ -416,9 +507,6 @@ async function main() {
   const players = [...byPlayer.values()].map((spells) => {
     spells.sort((a, b) => b.stats.minutes - a.stats.minutes);
     const m = spells[0];
-    const sum = (pick: (s: KoreaAbroadPlayer) => number) => spells.reduce((a, s) => a + pick(s), 0);
-    const rated = spells.filter((s) => s.stats.rating != null && s.stats.minutes > 0);
-    const ratingMin = rated.reduce((a, s) => a + s.stats.minutes, 0);
     return {
       afId: m.afId,
       tsId: m.tsId,
@@ -438,25 +526,13 @@ async function main() {
       seasonTeam: null as { afId: number; name: string; logo: string | null } | null,
       transferredAt: null as string | null,
       seasonStat: m.seasonStat,
-      totals: {
-        apps: sum((s) => s.stats.apps),
-        starts: sum((s) => s.stats.starts),
-        minutes: sum((s) => s.stats.minutes),
-        goals: sum((s) => s.stats.goals),
-        assists: sum((s) => s.stats.assists),
-        rating: ratingMin
-          ? Number((rated.reduce((a, s) => a + s.stats.rating! * s.stats.minutes, 0) / ratingMin).toFixed(2))
-          : null,
-        yellow: sum((s) => s.stats.yellow),
-        red: sum((s) => s.stats.red),
-        saves: sum((s) => s.stats.saves ?? 0) || null,
-        conceded: sum((s) => s.stats.conceded ?? 0) || null,
-      },
+      totals: totalsOf(spells.map((s) => s.stats)),
       // 리그가 둘 이상일 때만 남긴다 — 단일 소속은 team/league 로 충분
       spells: spells.length > 1 ? spells.map((s) => ({ league: s.league, leagueLabel: s.leagueLabel, country: s.country, team: s.team, stats: s.stats })) : null,
     };
   });
   players.sort((a, b) => b.totals.minutes - a.totals.minutes);
+  await backfillPreviousSeason(players);
 
   if (!only) {
     await applyTransfers(players);
@@ -466,9 +542,12 @@ async function main() {
     players.sort((a, b) => b.totals.minutes - a.totals.minutes);
   }
 
+  // 페이지의 "지난 시즌" 탭 라벨. 선수별 seasonStat.season 의 다수값(유럽 시즌제가 다수라 "2025-26" 꼴)
+  const labelCount = new Map<string, number>();
+  for (const p of players) labelCount.set(p.seasonStat.season, (labelCount.get(p.seasonStat.season) ?? 0) + 1);
   const out = {
     updatedAt: new Date().toISOString(),
-    season: "2025-26",
+    season: [...labelCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "2025-26",
     players,
   };
   // 단일 리그 테스트 실행은 기존 파일을 덮지 않는다
