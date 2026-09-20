@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { postponedLabel } from "@/lib/sports/sport-leagues";
 import CountUp from "./CountUp";
 import LeagueBadge from "./LeagueBadge";
+import { useFavorites } from "./scores/useFavorites";
 import {
   readFavIds,
   readFavMeta,
@@ -110,16 +111,23 @@ function PipLogo({ url, name, size }: { url: string | null; name: string; size: 
   );
 }
 
-// 오늘(KST) 이전에 시작한 경기인지 — /scores "내 경기"(오늘 데이터 ∩ 즐겨찾기)와
-// 목록을 맞추기 위해 지난 종료 경기는 PiP 에서 숨긴다. 시작시각 미상도 숨김(내 경기에 없음).
-function startedBeforeTodayKst(iso?: string | null): boolean {
-  if (!iso) return true;
-  const t = new Date(iso).getTime();
-  if (!Number.isFinite(t)) return true;
-  const DAY = 86_400_000;
-  const KST = 9 * 3_600_000;
-  const kstMidnightUtc = Math.floor((Date.now() + KST) / DAY) * DAY - KST;
-  return t < kstMidnightUtc;
+// 종료 경기는 숨기지 않는다 — 별표를 해제할 때까지 최종 점수(FT)를 유지한다(2026-09-21 사용자 요청:
+// "끝나면 바로 사라진다"). 예전엔 /scores "내 경기"(오늘 데이터)와 맞추려 어제 시작한 종료 경기를
+// 지웠는데, 자정 넘겨 끝나는 유럽 경기가 종료 직후 사라졌다. 해제는 행의 ✕ 버튼.
+
+/** 행 우측 ✕ — 즐겨찾기 해제(종료 경기는 이 버튼으로만 목록에서 빠진다). */
+function UnfavButton({ onClick, dark }: { onClick: () => void; dark?: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-label="즐겨찾기 해제"
+      title="즐겨찾기 해제"
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded text-[10px] leading-none transition ${dark ? "text-white/40 hover:bg-white/15 hover:text-white" : "text-neutral-300 hover:bg-neutral-200 hover:text-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"}`}
+    >
+      ✕
+    </button>
+  );
 }
 
 // Document PiP 지원 브라우저(Chrome·Edge)의 window 확장 타입.
@@ -149,6 +157,7 @@ export function setPipOn(on: boolean): void {
 export default function LivePipScore() {
   const [on, setOn] = useState(false);
   const [matches, setMatches] = useState<LiveMatch[]>([]);
+  const { toggle: unfavorite } = useFavorites();
   const [favIds, setFavIds] = useState<Set<string>>(new Set());
   const [favMeta, setFavMeta] = useState<Record<string, FavMeta>>({});
   // DB 매치(숫자 id) 현재 상태 — 라이브 API 에 없는 종료·예정 경기의 점수·상태 최신화.
@@ -417,8 +426,6 @@ export default function LivePipScore() {
       if (b) {
         const state: PipRow["state"] =
           b.status === "LIVE" ? "live" : b.status === "SCHEDULED" ? "scheduled" : "done";
-        // 지난 종료 경기 — "내 경기" 목록과 불일치 방지 (오늘 종료 경기는 유지)
-        if (state === "done" && startedBeforeTodayKst(b.startTime)) return null;
         const kickoff = new Date(b.startTime).toLocaleTimeString("ko-KR", {
           hour: "2-digit",
           minute: "2-digit",
@@ -452,8 +459,6 @@ export default function LivePipScore() {
           : meta.status === "scheduled"
             ? "scheduled"
             : "done";
-      // 지난 종료 경기 — "내 경기" 목록과 불일치 방지 (오늘 종료 경기는 유지)
-      if (state === "done" && startedBeforeTodayKst(meta.startTime)) return null;
       return {
         id,
         league: meta.league,
@@ -622,9 +627,12 @@ export default function LivePipScore() {
                 <PipLogo url={m.awayLogo} name={m.away} size={size === "lg" ? 28 : 22} />
                 <span className={`truncate font-bold ${size === "lg" ? "text-base" : "text-[13px]"}`}>{m.away}</span>
               </div>
-              <div className={`mt-0.5 text-center font-bold tabular-nums ${size === "lg" ? "text-sm" : "text-[12px]"} ${m.state === "live" ? "text-emerald-400" : "text-white/60"}`}>
-                {m.state === "live" && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-rose-500 align-middle animate-pulse" aria-hidden />}
-                {m.statusLabel}
+              <div className={`mt-0.5 flex items-center justify-center gap-2 font-bold tabular-nums ${size === "lg" ? "text-sm" : "text-[12px]"} ${m.state === "live" ? "text-emerald-400" : "text-white/60"}`}>
+                <span>
+                  {m.state === "live" && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-rose-500 align-middle animate-pulse" aria-hidden />}
+                  {m.statusLabel}
+                </span>
+                <UnfavButton onClick={() => unfavorite(m.id)} dark />
               </div>
             </li>
           ))}
@@ -661,13 +669,14 @@ export default function LivePipScore() {
                 {m.away}
               </span>
               <span
-                className={`whitespace-nowrap text-right text-[10px] font-semibold tabular-nums ${
+                className={`flex items-center justify-end gap-1 whitespace-nowrap text-right text-[10px] font-semibold tabular-nums ${
                   m.state === "live"
                     ? "text-rose-600 dark:text-rose-400"
                     : "text-neutral-400"
                 }`}
               >
                 {m.statusLabel}
+                <UnfavButton onClick={() => unfavorite(m.id)} />
               </span>
             </li>
           ))}

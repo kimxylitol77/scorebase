@@ -26,6 +26,7 @@ import {
   FAV_SOUND_CHANGE_EVENT,
 } from "@/lib/sound/fav-sound";
 import { useClientValue, subscribeToStorage } from "@/lib/use-client-value";
+import { useOtherDayFavorites, OtherDayFavoriteRows } from "./OtherDayFavorites";
 import { postponedLabel } from "@/lib/sports/sport-leagues";
 
 interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
@@ -101,6 +102,8 @@ const subscribeFavSound = subscribeToStorage(FAV_SOUND_CHANGE_EVENT);
 
 export default function FavoriteMatches({ matches }: Props) {
   const { ids, mounted, clear } = useFavorites();
+  // 오늘 목록에 없는 즐겨찾기(어제 종료·다른 날 예정) — /api/matches/by-ids 로 최신 점수·상태, 해제 전까지 유지
+  const otherDay = useOtherDayFavorites(ids, matches.map((m) => m.id));
   // 브라우저 전용 값 3개. 원본이 localStorage·host 라 setState 로 복제하지 않는다.
   const view = useClientValue<ViewMode>(readView, "large", subscribeView);
   const favSound = useClientValue(readFavSound, false, subscribeFavSound);
@@ -153,19 +156,22 @@ export default function FavoriteMatches({ matches }: Props) {
 
   if (fav.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-amber-300/50 dark:border-amber-500/30 p-4 text-center text-xs text-neutral-500">
-        ⭐ 즐겨찾기한 경기가 오늘 일정에 없습니다.
-        <button
-          type="button"
-          onClick={handleClearAll}
-          className="ml-2 text-rose-600 dark:text-rose-400 hover:underline"
-        >
-          전체 해제
-        </button>
+      <div className="space-y-2">
+        {/* 오늘 목록 밖 즐겨찾기(종료·다른 날) — 별표를 해제할 때까지 최종 점수 유지 */}
+        {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="⭐ 내 경기" />}
+        <div className="rounded-2xl border border-dashed border-amber-300/50 dark:border-amber-500/30 p-4 text-center text-xs text-neutral-500">
+          ⭐ {otherDay.length > 0 ? "오늘 일정에 있는 즐겨찾기 경기는 없습니다." : "즐겨찾기한 경기가 오늘 일정에 없습니다."}
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="ml-2 text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            전체 해제
+          </button>
+        </div>
       </div>
     );
   }
-
   // 종목별 그룹화 — 그룹 안에선 이미 sortKey (LIVE→예정→종료) 순.
   const grouped = new Map<string, MatchEntry[]>();
   for (const m of fav) {
@@ -297,6 +303,7 @@ export default function FavoriteMatches({ matches }: Props) {
           </div>
         );
       })}
+      {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="지난·다른 날 경기" />}
     </section>
   );
 }
