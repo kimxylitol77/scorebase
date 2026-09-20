@@ -26,6 +26,9 @@ const SP_HOSTS = [
   ...(process.env.NODE_ENV === "production" ? [] : ["sp.localhost"]),
 ];
 // 이전 소유자(2023-06~2026-05 워드프레스 베팅 팁 사이트) URL — 콘텐츠 연속성 없음 → 410 으로 색인 제거.
+// 정적 자산(확장자 있는 파일)은 그대로 앱 루트에서 서빙. robots.txt·sitemap.xml·manifest.webmanifest 는
+// 자매 사이트 전용 핸들러(src/app/sp/**)가 있으므로 예외적으로 rewrite 대상에 남긴다.
+const SP_STATIC_RE = /^(?!\/(robots\.txt|sitemap\.xml|manifest\.webmanifest)$).*\.(png|ico|svg|jpe?g|webp|gif|txt|xml|json|webmanifest|woff2?)$/i;
 const SP_GONE_RE =
   /^\/(20\d\d\/|page\/|wp-|feed|category\/|tag\/|author\/|vip-betting-tips|mega-combo-tips|premium-tipsters|free-sports-predictions|refund-policy|terms-and-conditions|privacy-policy|contact-us)/;
 
@@ -207,8 +210,9 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
     const url = req.nextUrl.clone();
     url.pathname = "/landing";
     res = NextResponse.rewrite(url, { request: { headers: reqHeaders } });
-  } else if (isSp && !path.startsWith("/_next") && !path.startsWith("/api/")) {
-    // sportspredictions.live 전 경로 → /sp/* 트리. robots·sitemap 도 자매 사이트 전용 핸들러로.
+  } else if (isSp && !path.startsWith("/_next") && !path.startsWith("/api/") && !SP_STATIC_RE.test(path)) {
+    // sportspredictions.live 전 경로 → /sp/* 트리. robots·sitemap·manifest 도 자매 사이트 전용 핸들러로.
+    // 아이콘·이미지 같은 정적 자산은 rewrite 하지 않는다 — /icon.png 가 /sp/icon.png 로 가서 404 나던 것(2026-09-20 파비콘 실측).
     const url = req.nextUrl.clone();
     url.pathname = path === "/" ? "/sp" : `/sp${path}`;
     res = NextResponse.rewrite(url, { request: { headers: reqHeaders } });
