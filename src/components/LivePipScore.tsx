@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
-import { postponedLabel } from "@/lib/sports/sport-leagues";
+import { postponedLabel, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import CountUp from "./CountUp";
 import LeagueBadge from "./LeagueBadge";
 import { useFavorites } from "./scores/useFavorites";
@@ -23,8 +23,10 @@ const PIP_ON_KEY = "scorebase:pip-on";
 const PIP_POS_KEY = "scorebase:pip-pos";
 const PIP_SIZE_KEY = "scorebase:pip-size";
 // 표시 스타일 — list(기존 행 목록) | broadcast(방송형 스코어바: 검은 패널·큰 점수·아래 경기 시간, 2026-08-23 사용자)
+//   | tv(중계 스코어보드형: 보라색 상단 바 "프리미어리그 5R" + 흰 점수 박스, 2026-09-21 사용자 캡처). 상단 바 클릭 → "· 스코어베이스" 브랜딩 토글.
 const PIP_STYLE_KEY = "scorebase:pip-style";
-type PipStyle = "list" | "broadcast";
+type PipStyle = "list" | "broadcast" | "tv";
+const PIP_BRAND_KEY = "scorebase:pip-brand"; // 중계형 상단 바 브랜딩 on/off
 // 새로고침 직전에 Document PiP 분리 상태를 남기는 sessionStorage 플래그 —
 // 브라우저가 opener unload 때 분리 창을 강제로 닫으므로, 다음 로드의 첫 클릭에서 재분리.
 const PIP_DOC_RESTORE_KEY = "scorebase:pip-doc-restore";
@@ -55,6 +57,7 @@ interface BriefMatch {
   id: number;
   league: string;
   status: string; // "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED"
+  round?: number | null; // 축구 정규 라운드(중계형 상단 바)
   startTime: string;
   homeName: string;
   awayName: string;
@@ -78,6 +81,7 @@ interface PipRow {
   statusLabel: string;
   /** live=0 → scheduled=1 → finished/postponed=2 (정렬·색상) */
   state: "live" | "scheduled" | "done";
+  round?: number | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -165,6 +169,7 @@ export default function LivePipScore() {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [size, setSize] = useState<"sm" | "lg">("sm"); // 기본 작게
   const [pipStyle, setPipStyle] = useState<PipStyle>("list");
+  const [pipBrand, setPipBrand] = useState(false);
   const [mounted, setMounted] = useState(false);
   // Document PiP 분리 창 — null 이면 인페이지 플로팅 카드로 렌더.
   const [docWin, setDocWin] = useState<Window | null>(null);
@@ -193,7 +198,8 @@ export default function LivePipScore() {
       if (sz === "sm" || sz === "lg") setSize(sz);
       try {
         const st = localStorage.getItem(PIP_STYLE_KEY);
-        if (st === "broadcast" || st === "list") setPipStyle(st);
+        if (st === "broadcast" || st === "list" || st === "tv") setPipStyle(st);
+        setPipBrand(localStorage.getItem(PIP_BRAND_KEY) === "1");
       } catch {
         // ignore
       }
@@ -450,6 +456,7 @@ export default function LivePipScore() {
                   ? "LIVE" // 라이브 API 커버 밖(af 미추적 등) — DB 점수로라도 표시
                   : kickoff,
           state,
+          round: b.round ?? null,
         };
       }
       if (!meta) return null; // 스냅샷 없는 옛 즐겨찾기 — 라이브일 때만 표시(기존 동작)
@@ -488,8 +495,15 @@ export default function LivePipScore() {
     setOn(false);
   }
 
+  function toggleBrand() {
+    const next = !pipBrand;
+    setPipBrand(next);
+    try { localStorage.setItem(PIP_BRAND_KEY, next ? "1" : "0"); } catch { /* ignore */ }
+  }
+
   function toggleStyle() {
-    const next: PipStyle = pipStyle === "list" ? "broadcast" : "list";
+    // 목록 → 자세히(방송형) → 중계형 → 목록
+    const next: PipStyle = pipStyle === "list" ? "broadcast" : pipStyle === "broadcast" ? "tv" : "list";
     setPipStyle(next);
     try {
       localStorage.setItem(PIP_STYLE_KEY, next);
@@ -602,6 +616,36 @@ export default function LivePipScore() {
           <br />
           경기 카드의 별표를 눌러보세요.
         </p>
+      ) : pipStyle === "tv" ? (
+        // 중계형 — TV 스코어보드: 보라 상단 바(리그·라운드, 클릭 시 "· 스코어베이스"), 흰 점수 박스 두 칸
+        <ul className="space-y-1.5">
+          {rows.map((m) => (
+            <li key={m.id} className={`overflow-hidden rounded-md shadow-sm ${m.state === "done" ? "opacity-80" : ""}`}>
+              <div className="flex items-center bg-[#5b2a86] text-white">
+                <button
+                  type="button"
+                  onClick={toggleBrand}
+                  title={pipBrand ? "스코어베이스 표기 끄기" : "스코어베이스 표기 켜기"}
+                  className={`min-w-0 flex-1 truncate px-2 text-center font-semibold tracking-wide ${size === "lg" ? "py-1 text-[12px]" : "py-0.5 text-[10px]"}`}
+                >
+                  {LEAGUE_DISPLAY[m.league] ?? m.league}{m.round ? ` ${m.round}R` : ""}{pipBrand ? " · 스코어베이스" : ""}
+                </button>
+                <span className={`shrink-0 pr-1 font-semibold tabular-nums ${size === "lg" ? "text-[11px]" : "text-[9px]"} ${m.state === "live" ? "text-emerald-300" : "text-white/70"}`}>{m.statusLabel}</span>
+                <UnfavButton onClick={() => unfavorite(m.id)} dark />
+              </div>
+              <div className="grid grid-cols-[1fr_auto_auto_1fr] items-stretch bg-[#4a1f70] text-white">
+                <span className={`truncate self-center px-2 text-right font-bold ${size === "lg" ? "py-1.5 text-base" : "py-1 text-[13px]"}`}>{m.home}</span>
+                <span className={`flex items-center justify-center bg-white font-black tabular-nums text-neutral-900 ${size === "lg" ? "min-w-9 px-2 text-xl" : "min-w-7 px-1.5 text-base"}`}>
+                  {m.homeScore != null ? <CountUp value={m.homeScore} className="tabular-nums" /> : "-"}
+                </span>
+                <span className={`flex items-center justify-center border-l border-neutral-300 bg-white font-black tabular-nums text-neutral-900 ${size === "lg" ? "min-w-9 px-2 text-xl" : "min-w-7 px-1.5 text-base"}`}>
+                  {m.awayScore != null ? <CountUp value={m.awayScore} className="tabular-nums" /> : "-"}
+                </span>
+                <span className={`truncate self-center px-2 font-bold ${size === "lg" ? "py-1.5 text-base" : "py-1 text-[13px]"}`}>{m.away}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : pipStyle === "broadcast" ? (
         // 방송형 — 유튜브 중계 오버레이처럼 검은 패널 위 큰 점수, 아래 경기 시간
         <ul className="space-y-1.5">
@@ -717,16 +761,16 @@ export default function LivePipScore() {
         <button
           type="button"
           onClick={toggleStyle}
-          aria-pressed={pipStyle === "broadcast"}
-          aria-label={pipStyle === "broadcast" ? "간단히 보기" : "자세히 보기 (로고·큰 점수·경기 시간)"}
-          title={pipStyle === "broadcast" ? "간단히 보기" : "자세히 보기 — 로고·큰 점수·경기 시간"}
+          aria-pressed={pipStyle !== "list"}
+          aria-label={pipStyle === "list" ? "자세히 보기 (로고·큰 점수·경기 시간)" : pipStyle === "broadcast" ? "중계형 보기 (상단 바 + 점수 박스)" : "간단히 보기"}
+          title={pipStyle === "list" ? "자세히 보기 — 로고·큰 점수·경기 시간" : pipStyle === "broadcast" ? "중계형 — 리그·라운드 바 + 흰 점수 박스" : "간단히 보기"}
           className={`mr-0.5 rounded-md px-1.5 py-1 text-[10px] font-bold transition ${
-            pipStyle === "broadcast"
+            pipStyle !== "list"
               ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
               : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
           }`}
         >
-          {pipStyle === "broadcast" ? "간단히" : "자세히"}
+          {pipStyle === "list" ? "자세히" : pipStyle === "broadcast" ? "중계형" : "간단히"}
         </button>
         <button
           type="button"

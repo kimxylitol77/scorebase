@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { parseRound } from "@/lib/sports/fixture-rounds";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
     where: { id: { in: ids } },
     select: {
       id: true, league: true, externalId: true, status: true, startTime: true,
-      homeScore: true, awayScore: true,
+      homeScore: true, awayScore: true, raw: true,
       homeTeam: { select: { name: true, logoUrl: true } },
       awayTeam: { select: { name: true, logoUrl: true } },
     },
@@ -42,6 +43,8 @@ export async function GET(req: Request) {
     awayLogo: m.awayTeam.logoUrl ?? null,
     homeScore: m.homeScore,
     awayScore: m.awayScore,
+    // 라운드(축구 정규 라운드만) — PiP 중계형 상단 바 "프리미어리그 5R"
+    round: parseRound(typeof m.raw === "string" ? m.raw : m.raw == null ? null : JSON.stringify(m.raw)),
   }));
   return NextResponse.json({ matches });
 }
