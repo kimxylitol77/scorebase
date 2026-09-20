@@ -27,6 +27,7 @@ const PIP_SIZE_KEY = "scorebase:pip-size";
 const PIP_STYLE_KEY = "scorebase:pip-style";
 type PipStyle = "list" | "broadcast" | "tv";
 const PIP_BRAND_KEY = "scorebase:pip-brand"; // 중계형 상단 바 브랜딩 on/off
+const PIP_HEADER_KEY = "scorebase:pip-header"; // "0" = "내 경기" 헤더 숨김(2026-09-21 사용자 캡처 요청) — 우상단 ≡ 로 복원
 // 새로고침 직전에 Document PiP 분리 상태를 남기는 sessionStorage 플래그 —
 // 브라우저가 opener unload 때 분리 창을 강제로 닫으므로, 다음 로드의 첫 클릭에서 재분리.
 const PIP_DOC_RESTORE_KEY = "scorebase:pip-doc-restore";
@@ -170,6 +171,7 @@ export default function LivePipScore() {
   const [size, setSize] = useState<"sm" | "lg">("sm"); // 기본 작게
   const [pipStyle, setPipStyle] = useState<PipStyle>("list");
   const [pipBrand, setPipBrand] = useState(true); // 기본 켬 — 사용자 요청("스코어베이스라고 나와야지")
+  const [headerHidden, setHeaderHidden] = useState(false);
   const [mounted, setMounted] = useState(false);
   // Document PiP 분리 창 — null 이면 인페이지 플로팅 카드로 렌더.
   const [docWin, setDocWin] = useState<Window | null>(null);
@@ -200,6 +202,7 @@ export default function LivePipScore() {
         const st = localStorage.getItem(PIP_STYLE_KEY);
         if (st === "broadcast" || st === "list" || st === "tv") setPipStyle(st);
         setPipBrand(localStorage.getItem(PIP_BRAND_KEY) !== "0");
+        setHeaderHidden(localStorage.getItem(PIP_HEADER_KEY) === "0");
       } catch {
         // ignore
       }
@@ -495,6 +498,11 @@ export default function LivePipScore() {
     setOn(false);
   }
 
+  function setHeader(shown: boolean) {
+    setHeaderHidden(!shown);
+    try { localStorage.setItem(PIP_HEADER_KEY, shown ? "1" : "0"); } catch { /* ignore */ }
+  }
+
   function toggleBrand() {
     const next = !pipBrand;
     setPipBrand(next);
@@ -731,16 +739,35 @@ export default function LivePipScore() {
     </div>
   );
 
-  const header = (isDocMode: boolean) => (
+  // 헤더 숨김 상태(2026-09-21 사용자: "마우스 가지고 가면 나오게") — 평소엔 얇은 잡이만, 카드에 마우스를 올리면
+  // 헤더가 위에 겹쳐 나타난다(group-hover). 터치 기기는 잡이를 탭하면 토글.
+  const hiddenBar = (isDocMode: boolean) => (
+    <div className="relative">
+      <div
+        onPointerDown={isDocMode ? undefined : onDragStart}
+        onClick={() => { if (window.matchMedia?.("(hover: none)").matches) setHeader(true); }}
+        title="마우스를 올리면 헤더가 나옵니다"
+        className={`flex h-3 items-center justify-center rounded-t-2xl ${isDocMode ? "" : "cursor-grab active:cursor-grabbing"}`}
+      >
+        <span className="h-1 w-8 rounded-full bg-neutral-200 dark:bg-neutral-700" aria-hidden />
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
+        {header(isDocMode, true)}
+      </div>
+    </div>
+  );
+
+  const header = (isDocMode: boolean, overlay = false) => (
     <div
       onPointerDown={isDocMode ? undefined : onDragStart}
-      className={`flex items-center gap-2 rounded-t-2xl border-b border-neutral-100 px-3 py-2 dark:border-neutral-800 ${isDocMode ? "" : "cursor-grab active:cursor-grabbing"}`}
+      // 겹침 헤더는 버튼이 하나 늘어 좁은 창(256px)에서 두 줄로 접혔다 → 줄바꿈 금지 + 작은 창에선 "내 경기" 글자 생략
+      className={`flex items-center gap-2 whitespace-nowrap rounded-t-2xl border-b border-neutral-100 px-3 py-2 dark:border-neutral-800 ${isDocMode ? "" : "cursor-grab active:cursor-grabbing"} ${overlay ? "bg-white/95 shadow-md backdrop-blur dark:bg-neutral-900/95" : ""}`}
     >
       <span className="relative inline-flex h-2 w-2">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-500 opacity-75" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
       </span>
-      <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+      <span className={`text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 ${overlay && size === "sm" ? "hidden" : ""}`}>
         내 경기
       </span>
       <span className="ml-auto flex items-center">
@@ -760,6 +787,16 @@ export default function LivePipScore() {
             밖으로
           </button>
         )}
+        <button
+          type="button"
+          onClick={() => setHeader(overlay)}
+          aria-pressed={overlay}
+          aria-label={overlay ? "헤더 항상 보이기" : "헤더 숨기기"}
+          title={overlay ? "헤더 항상 보이기" : "헤더 숨기기 — 마우스를 올리면 다시 나옵니다"}
+          className={`mr-0.5 rounded-md px-1.5 py-1 text-[10px] font-bold transition ${overlay ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900" : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"}`}
+        >
+          {overlay ? "헤더 고정" : "헤더 숨김"}
+        </button>
         <button
           type="button"
           onClick={toggleStyle}
@@ -815,8 +852,8 @@ export default function LivePipScore() {
   // Document PiP 모드 — 분리 창의 body 에 포털 렌더 (인페이지 카드는 숨김).
   if (docWin && !docWin.closed) {
     return createPortal(
-      <div className="relative flex h-screen flex-col bg-white dark:bg-neutral-900">
-        {header(true)}
+      <div className="group relative flex h-screen flex-col bg-white dark:bg-neutral-900">
+        {headerHidden ? hiddenBar(true) : header(true)}
         {body(true)}
         {/* 안쪽 가장자리 리사이즈 핸들 — OS 창 테두리는 잡기 어렵다(사용자 지적: 모서리만 됨).
             좌·우·아래 8px 띠를 끌면 resizeBy 로 창이 커진다. */}
@@ -837,11 +874,11 @@ export default function LivePipScore() {
     <div
       ref={cardRef}
       style={style}
-      className={`fixed z-[60] ${size === "lg" ? "w-80" : "w-64"} rounded-2xl border border-neutral-200 bg-white/95 shadow-[0_24px_70px_-20px_rgba(15,23,30,0.35)] backdrop-blur dark:border-neutral-700 dark:bg-neutral-900/95`}
+      className={`group fixed z-[60] ${size === "lg" ? "w-80" : "w-64"} rounded-2xl border border-neutral-200 bg-white/95 shadow-[0_24px_70px_-20px_rgba(15,23,30,0.35)] backdrop-blur dark:border-neutral-700 dark:bg-neutral-900/95`}
       role="dialog"
       aria-label="즐겨찾기 라이브 스코어 PiP"
     >
-      {header(false)}
+      {headerHidden ? hiddenBar(false) : header(false)}
       {restoreArmed && (
         <p className="border-b border-rose-100 bg-rose-50/60 px-3 py-1.5 text-[10px] font-semibold text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400">
           화면 아무 곳이나 클릭하면 미니 창이 다시 밖으로 빠집니다
