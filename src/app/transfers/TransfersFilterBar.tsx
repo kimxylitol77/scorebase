@@ -21,7 +21,7 @@ interface Props {
   mode: string; // 최신 이적: "" = 주요(기본) | "all" = 전체 이력
   ttype: string; // 최신 이적 유형 필터: "" | "fee" | "loan"
   age: string; // 유망주: "" = U21 | "23" = U23
-  gmode: string; // 상승률: "" | "pct" | "abs" | "down"
+  gmode: string; // 상승률: "" | "pct" | "abs" | "down" · 폼: "hot" | "cold"
   leagues: { code: string; label: string; logo?: string | null }[];
   // 시장가치 기반 뷰(팀 가치) 리그 범위 — PMV 커버리지 얇은 확장 리그 제외(빅5)
   valueLeagues: { code: string; label: string; logo?: string | null }[];
@@ -35,6 +35,10 @@ const RANK_CATS = [
   { key: "power", label: "종합" },
   { key: "prospects", label: "유망주" },
   { key: "growth", label: "상승률" },
+  { key: "bargain", label: "가성비" },
+  { key: "form", label: "폼" },
+  { key: "trophies", label: "트로피" },
+  { key: "contracts", label: "계약 만료" },
 ];
 const VALUE_SUBS = [
   { key: "league", label: "리그별" },
@@ -43,7 +47,7 @@ const VALUE_SUBS = [
   { key: "pos", label: "포지션별" },
 ];
 const VALUE_VIEWS = ["all", "league", "team", "country", "pos"];
-const RANKING_VIEWS = ["power", "prospects", "growth"];
+const RANKING_VIEWS = ["power", "prospects", "growth", "bargain", "form", "trophies", "contracts"];
 // 이적시장 묶음
 const MARKET_CATS = [
   { key: "latest", label: "최신 이적" },
@@ -276,6 +280,13 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
               <button onClick={() => go({ view, league, pos })} className={subchip(gmode !== "abs" && gmode !== "down")}>상승률</button>
               <button onClick={() => go({ view, league, pos, g: "abs" })} className={subchip(gmode === "abs")}>상승액</button>
               <button onClick={() => go({ view, league, pos, g: "down" })} className={subchip(gmode === "down")}>하락</button>
+            </>
+          )}
+          {view === "form" && (
+            <>
+              <span className="hidden sm:block w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-0.5" aria-hidden />
+              <button onClick={() => go({ view, league, pos })} className={subchip(gmode !== "cold")}>핫</button>
+              <button onClick={() => go({ view, league, pos, g: "cold" })} className={subchip(gmode === "cold")}>콜드</button>
             </>
           )}
         </div>

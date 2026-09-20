@@ -25,12 +25,15 @@ import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import PlayerRankingTable, { type RankRowData } from "./PlayerRankingTable";
 import {
   getSeasonPlayerStats, computePowerRanking, computeProspectRanking, computeGrowthRanking,
-  POWER_MIN_MINUTES, POWER_MIN_RATED, PROSPECT_MIN_MINUTES, type GrowthMode, type RankInput, type SeasonPlayerStat,
+  computeBargainRanking, computeFormRanking, computeTrophyRanking, computeContractRanking, getBig5TrophyWinners, trophyKo,
+  POWER_MIN_MINUTES, POWER_MIN_RATED, PROSPECT_MIN_MINUTES, BARGAIN_MIN_VALUE, FORM_MIN_RECENT,
+  type GrowthMode, type FormMode, type RankInput, type SeasonPlayerStat,
 } from "@/lib/transfers/player-rankings";
+import rawContract from "../../../data/player-contract.json";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
-import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap, Newspaper, Gem, Award, Gauge, Star, TrendingUp } from "lucide-react";
+import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap, Newspaper, Gem, Award, Gauge, Star, TrendingUp, Gem as GemIcon, Flame, Trophy, FileClock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +56,22 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title = "선수 몸값 상승률 랭킹 · 1년 새 가장 오른 선수";
     description = "유럽 빅5 리그 선수의 1년 전 대비 시장가치 상승률·상승액·하락 랭킹. 몸값 이력 스파크라인과 함께 — 스코어베이스 이적시장.";
     canonical = "/transfers?view=growth";
+  } else if (sp.view === "bargain") {
+    title = "가성비 선수 랭킹 · 몸값 대비 시즌 성과";
+    description = "유럽 빅5 리그에서 종합 지수에 비해 몸값이 낮은 선수 랭킹. 몸값 백분위 대비 성과 백분위 차이로 산출 — 스코어베이스.";
+    canonical = "/transfers?view=bargain";
+  } else if (sp.view === "form") {
+    title = "폼 랭킹 · 최근 5경기 평점 핫·콜드";
+    description = "유럽 빅5 리그 선수의 최근 5경기 평균 평점 랭킹과 시즌 평균 대비 변화. 지금 뜨는 선수와 식은 선수 — 스코어베이스.";
+    canonical = "/transfers?view=form";
+  } else if (sp.view === "trophies") {
+    title = "현역 트로피 랭킹 · 우승 경력 점수";
+    description = "유럽 빅5 리그 현역 선수의 우승 경력을 대회 급별 점수(월드컵 12·챔피언스리그 10·리그 6 등)로 합산한 커리어 랭킹 — 스코어베이스.";
+    canonical = "/transfers?view=trophies";
+  } else if (sp.view === "contracts") {
+    title = "계약 만료 예정 선수 · 다음 여름 FA 후보 몸값 순";
+    description = "유럽 빅5 리그에서 다음 여름 계약이 끝나는 선수를 몸값 순으로. 재계약·이적 이슈의 출발점 — 스코어베이스 이적시장.";
+    canonical = "/transfers?view=contracts";
   } else if (sp.view === "team" && sp.team && Number.isFinite(Number(sp.team))) {
     // 팀 스쿼드 — "맨유 스쿼드" 류 검색 수요 타깃. 팀명 DB 조회.
     const t = await prisma.team.findUnique({ where: { id: Number(sp.team) }, select: { name: true } });
@@ -503,14 +522,19 @@ export default async function TransfersPage({
   searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string; q?: string; mode?: string; t?: string; age?: string; g?: string }>;
 }) {
   const sp = await searchParams;
-  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout", "squads", "rumors", "power", "prospects", "growth"].includes(sp.view || "") ? sp.view! : "all";
+  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout", "squads", "rumors", "power", "prospects", "growth", "bargain", "form", "trophies", "contracts"].includes(sp.view || "") ? sp.view! : "all";
   // 랭킹 뷰(2026-09-20) — 몸값 표와 같은 후보 풀(enriched) 위에서 시즌 기록·몸값 이력로 순위를 다시 매긴다.
   const isPower = view === "power";
   const isProspects = view === "prospects";
   const isGrowth = view === "growth";
-  const isRanking = isPower || isProspects || isGrowth;
+  const isBargain = view === "bargain";
+  const isForm = view === "form";
+  const isTrophies = view === "trophies";
+  const isContracts = view === "contracts";
+  const isRanking = isPower || isProspects || isGrowth || isBargain || isForm || isTrophies || isContracts;
   const prospectAge = isProspects && sp.age === "23" ? 23 : 21;
   const growthMode: GrowthMode = isGrowth && (sp.g === "abs" || sp.g === "down") ? sp.g : "pct";
+  const formMode: FormMode = isForm && sp.g === "cold" ? "cold" : "hot";
   const isLatest = view === "latest";
   const isBigdeals = view === "bigdeals";
   const isRumors = view === "rumors"; // 임박·루머 — TransferRumor(Tier1 소스+검증 게이트) 피드, 몸값 파이프라인 안 탐
@@ -682,7 +706,18 @@ export default async function TransfersPage({
   const powerRows = isPower ? computePowerRanking(rankInputs) : [];
   const prospectRows = isProspects ? computeProspectRanking(rankInputs, prospectAge) : [];
   const growthRows = isGrowth ? computeGrowthRanking(rankInputs, growthMode) : [];
-  const rankingTotal = isPower ? powerRows.length : isProspects ? prospectRows.length : isGrowth ? growthRows.length : 0;
+  const bargainRows = isBargain ? computeBargainRanking(rankInputs) : [];
+  const formRows = isForm ? computeFormRanking(rankInputs, formMode) : [];
+  const trophyRows = isTrophies ? computeTrophyRanking(await getBig5TrophyWinners(), new Set(rankInputs.map((r) => r.id))) : [];
+  // 계약 만료 — 다음 여름(7/1) 이전 만료. 지금이 7월 이후면 내년 7/1, 아니면 올해 7/1.
+  // 서버 컴포넌트 — 요청마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다(위 cutoff 와 동일).
+  // eslint-disable-next-line react-hooks/purity
+  const nowSec = Math.floor(Date.now() / 1000);
+  const nowD = new Date();
+  const nextSummer = Date.UTC(nowD.getUTCMonth() >= 6 ? nowD.getUTCFullYear() + 1 : nowD.getUTCFullYear(), 6, 1) / 1000;
+  const contractRows = isContracts ? computeContractRanking(rankInputs, rawContract as Record<string, number>, nextSummer, nowSec) : [];
+  const rankingTotal = isPower ? powerRows.length : isProspects ? prospectRows.length : isGrowth ? growthRows.length
+    : isBargain ? bargainRows.length : isForm ? formRows.length : isTrophies ? trophyRows.length : isContracts ? contractRows.length : 0;
 
   // ── 팀별 IN/OUT (view=inout) — 이적창 윈도우 내 빅5 팀 영입·방출 집계 ──
   interface InOutRow { teamId: number; name: string; logo: string | null; league: string; inCnt: number; inFee: number; outCnt: number; outFee: number; rank: number }
@@ -968,7 +1003,30 @@ export default async function TransfersPage({
             const b = toRankRow(r.id, i);
             return b ? [{ ...b, v1y: r.v1y, deltaPct: r.pct, deltaAbs: r.abs }] : [];
           })
-        : [];
+        : isBargain
+          ? pageSlice(bargainRows).flatMap((r, i) => {
+              const b = toRankRow(r.id, i);
+              return b ? [{ ...b, score: r.score, power: r.power, parts: [{ label: "몸값", pct: r.valuePct }] }] : [];
+            })
+          : isForm
+            ? pageSlice(formRows).flatMap((r, i) => {
+                const b = toRankRow(r.id, i);
+                return b ? [{ ...b, recent5: r.recent5, formDelta: r.delta }] : [];
+              })
+            : isTrophies
+              ? pageSlice(trophyRows).flatMap((r, i) => {
+                  const b = toRankRow(r.id, i);
+                  return b ? [{ ...b, trophyPts: r.pts, trophyN: r.n, trophyTop: r.top.map(trophyKo) }] : [];
+                })
+              : isContracts
+                ? pageSlice(contractRows).flatMap((r, i) => {
+                    const b = toRankRow(r.id, i);
+                    // ts 계약 만료는 UTC+8 자정 epoch(6/30 00:00 → UTC 6/29 16:00) — KST 로 읽어 날짜가 하루 밀리지 않게.
+                    const d = new Date((r.until + 9 * 3600) * 1000);
+                    const months = Math.max(0, Math.round((r.until - nowSec) / (30.44 * 86400)));
+                    return b ? [{ ...b, contractUntil: `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`, contractMonths: months }] : [];
+                  })
+                : [];
 
   // ── 이적 피드 (latest 주요=메모리 / latest 전체·bigdeals=DB 페이지네이션) ──
   let transferData: TransferCard[] = [];
@@ -1077,6 +1135,14 @@ export default async function TransfersPage({
       ? `유망주 랭킹 U${prospectAge}`
       : isGrowth
         ? growthMode === "down" ? "몸값 하락 랭킹" : "몸값 상승 랭킹"
+        : isBargain
+          ? "가성비 선수 랭킹"
+          : isForm
+            ? formMode === "cold" ? "폼 랭킹 · 콜드" : "폼 랭킹 · 핫"
+            : isTrophies
+              ? "현역 트로피 랭킹"
+              : isContracts
+                ? "계약 만료 예정"
         : isBigdeals
     ? `${win.label} 빅딜`
     : isInout
@@ -1099,6 +1165,14 @@ export default async function TransfersPage({
       ? Star
       : isGrowth
         ? TrendingUp
+        : isBargain
+          ? GemIcon
+          : isForm
+            ? Flame
+            : isTrophies
+              ? Trophy
+              : isContracts
+                ? FileClock
         : isBigdeals
     ? Banknote
     : isInout
@@ -1126,6 +1200,7 @@ export default async function TransfersPage({
     if (tFilter) params.set("t", tFilter);
     if (isProspects && prospectAge === 23) params.set("age", "23");
     if (isGrowth && growthMode !== "pct") params.set("g", growthMode);
+    if (isForm && formMode === "cold") params.set("g", "cold");
     if (n !== 1) params.set("page", String(n));
     const qs = params.toString();
     return `/transfers${qs ? `?${qs}` : ""}`;
@@ -1183,6 +1258,14 @@ export default async function TransfersPage({
           <>{prospectAge}세 이하 · <strong className="text-neutral-700 dark:text-neutral-300">몸값·평점·출전</strong> 백분위에 나이 보정 · {PROSPECT_MIN_MINUTES}분 이상 출전 · {totalCount}명.</>
         ) : isGrowth ? (
           <>1년 전 대비 <strong className="text-neutral-700 dark:text-neutral-300">{growthMode === "down" ? "몸값 하락" : growthMode === "abs" ? "몸값 상승액" : "몸값 상승률"}</strong> · 유럽 빅5 리그 · {totalCount}명.</>
+        ) : isBargain ? (
+          <><strong className="text-neutral-700 dark:text-neutral-300">종합 지수 − 몸값 백분위</strong> · 값이 클수록 몸값 대비 성과가 높음 · 종합 자격 충족·몸값 €{BARGAIN_MIN_VALUE}M 이상 · {totalCount}명.</>
+        ) : isForm ? (
+          <><strong className="text-neutral-700 dark:text-neutral-300">최근 {FORM_MIN_RECENT}경기 평균 평점</strong>{formMode === "cold" ? " 낮은 순" : " 높은 순"} · 시즌 평균 대비 변화 병기 · {totalCount}명.</>
+        ) : isTrophies ? (
+          <>우승 경력을 <strong className="text-neutral-700 dark:text-neutral-300">대회 급별 점수</strong>(월드컵 12 · 챔피언스리그 10 · 유로·코파 8 · 빅5 리그 6 · 유로파 5 · 국내컵 3 · 슈퍼컵 1)로 합산 · 유스·친선 제외 · {totalCount}명.</>
+        ) : isContracts ? (
+          <>다음 여름(<strong className="text-neutral-700 dark:text-neutral-300">{new Date(nextSummer * 1000).getUTCFullYear()}년 6월 30일</strong>)까지 계약이 끝나는 선수 · 몸값 순 · {totalCount}명.</>
         ) : (
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
         )}
@@ -1215,7 +1298,7 @@ export default async function TransfersPage({
           mode={latestAll ? "all" : ""}
           ttype={tFilter}
           age={isProspects && prospectAge === 23 ? "23" : ""}
-          gmode={isGrowth ? growthMode : ""}
+          gmode={isGrowth ? growthMode : isForm ? formMode : ""}
           leagues={LEAGUE_LIST}
           valueLeagues={LEAGUE_LIST.filter((l) => FIVE.includes(l.code))}
           teams={teamOptions}
@@ -1766,9 +1849,9 @@ export default async function TransfersPage({
         )
       ) : isRanking ? (
         <PlayerRankingTable
-          kind={isPower ? "power" : isProspects ? "prospects" : "growth"}
+          kind={isPower ? "power" : isProspects ? "prospects" : isGrowth ? "growth" : isBargain ? "bargain" : isForm ? "form" : isTrophies ? "trophies" : "contracts"}
           rows={rankingData}
-          emptyText={isPower ? `아직 ${POWER_MIN_MINUTES}분·평점 ${POWER_MIN_RATED}경기를 채운 선수가 없습니다. 시즌이 진행되면 자동으로 채워집니다.` : isProspects ? "조건에 맞는 유망주가 없습니다." : "조건에 맞는 선수가 없습니다."}
+          emptyText={isPower || isBargain ? `아직 ${POWER_MIN_MINUTES}분·평점 ${POWER_MIN_RATED}경기를 채운 선수가 없습니다. 시즌이 진행되면 자동으로 채워집니다.` : isForm ? `평점 있는 경기 ${FORM_MIN_RECENT}경기를 채운 선수가 아직 없습니다.` : isProspects ? "조건에 맞는 유망주가 없습니다." : "조건에 맞는 선수가 없습니다."}
         />
       ) : data.length === 0 ? (
         <p className="text-sm text-neutral-500 py-20 text-center">{qSearch ? `"${qSearch}" 검색 결과가 없습니다.` : "조건에 맞는 선수가 없습니다."}</p>

@@ -1,4 +1,4 @@
-// /transfers 랭킹 뷰(종합·유망주·상승률) 공용 표 — 모바일 카드 + PC 컬럼. 행 클릭 → /transfers/[id].
+// /transfers 랭킹 뷰(종합·유망주·상승률·가성비·폼·트로피·계약) 공용 표 — 모바일 카드 + PC 컬럼. 행 클릭 → /transfers/[id].
 import Link from "next/link";
 
 export interface RankRowData {
@@ -24,9 +24,21 @@ export interface RankRowData {
   v1y?: number;
   deltaPct?: number;
   deltaAbs?: number;
+  // 가성비
+  power?: number;
+  // 폼
+  recent5?: number;
+  formDelta?: number | null;
+  // 트로피
+  trophyPts?: number;
+  trophyN?: number;
+  trophyTop?: string[];
+  // 계약
+  contractUntil?: string; // YYYY-MM-DD
+  contractMonths?: number;
 }
 
-export type RankKind = "power" | "prospects" | "growth";
+export type RankKind = "power" | "prospects" | "growth" | "bargain" | "form" | "trophies" | "contracts";
 
 function Spark({ data }: { data: number[] }) {
   if (data.length < 2) return <svg width={70} height={26} className="shrink-0" aria-hidden />;
@@ -77,6 +89,42 @@ function StatLine({ stat }: { stat: RankRowData["stat"] }) {
   );
 }
 
+function Signed({ v, digits = 1, suffix = "" }: { v: number; digits?: number; suffix?: string }) {
+  const up = v >= 0;
+  return <span className={`font-bold tabular-nums ${up ? "text-emerald-500" : "text-rose-500"}`}>{up ? "+" : "−"}{Math.abs(v).toFixed(digits)}{suffix}</span>;
+}
+
+function FormCell({ p }: { p: RankRowData }) {
+  return (
+    <div className="leading-tight">
+      <div className="font-bold tabular-nums text-cyan-600 dark:text-cyan-400">{(p.recent5 ?? 0).toFixed(2)}</div>
+      <div className="text-[11px] text-neutral-500 tabular-nums">
+        시즌 {p.stat?.rating != null ? p.stat.rating.toFixed(2) : "—"}{p.formDelta != null ? <> · <Signed v={p.formDelta} digits={2} /></> : null}
+      </div>
+    </div>
+  );
+}
+
+function TrophyCell({ p, compact }: { p: RankRowData; compact?: boolean }) {
+  return (
+    <div className="leading-tight min-w-0">
+      <div className="font-bold tabular-nums text-cyan-600 dark:text-cyan-400">{p.trophyPts ?? 0}점 <span className="text-[11px] font-semibold text-neutral-500">· {p.trophyN ?? 0}회</span></div>
+      {!compact && p.trophyTop && p.trophyTop.length > 0 && <div className="text-[11px] text-neutral-500 truncate">{p.trophyTop.join(" · ")}</div>}
+    </div>
+  );
+}
+
+function ContractCell({ p }: { p: RankRowData }) {
+  const m = p.contractMonths ?? 0;
+  const tone = m <= 6 ? "text-rose-500" : m <= 12 ? "text-amber-500" : "text-neutral-600 dark:text-neutral-300";
+  return (
+    <div className="leading-tight">
+      <div className={`font-bold tabular-nums ${tone}`}>{p.contractUntil}</div>
+      <div className="text-[11px] text-neutral-500 tabular-nums">{m <= 0 ? "만료 임박" : `${m}개월 남음`}</div>
+    </div>
+  );
+}
+
 function Delta({ pct, abs }: { pct: number; abs: number }) {
   const up = abs >= 0;
   return (
@@ -114,12 +162,29 @@ export default function PlayerRankingTable({ kind, rows, emptyText }: { kind: Ra
                 <span className="truncate">{p.teamName}</span>
               </div>
               <div className="text-[11px] text-neutral-500 mt-0.5 truncate">
-                {isGrowth ? <>€{p.v1y}M → €{p.value}M</> : <StatLine stat={p.stat} />}
+                {isGrowth ? <>€{p.v1y}M → €{p.value}M</>
+                  : kind === "trophies" ? (p.trophyTop?.join(" · ") || "—")
+                  : kind === "bargain" ? <>종합 {(p.power ?? 0).toFixed(1)} · <StatLine stat={p.stat} /></>
+                  : <StatLine stat={p.stat} />}
               </div>
             </div>
             <div className="w-[96px] shrink-0 text-right leading-tight">
               {isGrowth ? (
                 <Delta pct={p.deltaPct ?? 0} abs={p.deltaAbs ?? 0} />
+              ) : kind === "form" ? (
+                <FormCell p={p} />
+              ) : kind === "trophies" ? (
+                <TrophyCell p={p} compact />
+              ) : kind === "contracts" ? (
+                <>
+                  <ContractCell p={p} />
+                  <div className="text-[11px] text-neutral-500 tabular-nums mt-0.5">€{p.value}M</div>
+                </>
+              ) : kind === "bargain" ? (
+                <>
+                  <div className="font-bold tabular-nums text-cyan-600 dark:text-cyan-400"><Signed v={p.score ?? 0} /></div>
+                  <div className="text-[11px] text-neutral-500 tabular-nums mt-0.5">€{p.value}M</div>
+                </>
               ) : (
                 <>
                   <ScoreBar score={p.score ?? 0} />
@@ -143,6 +208,30 @@ export default function PlayerRankingTable({ kind, rows, emptyText }: { kind: Ra
               <div className="w-[76px] shrink-0 text-center">추이</div>
               <div className="w-36 shrink-0 text-right">1년 전 → 현재</div>
               <div className="w-36 shrink-0 text-right">변동</div>
+            </>
+          ) : kind === "form" ? (
+            <>
+              <div className="w-52 shrink-0">이번 시즌</div>
+              <div className="w-40 shrink-0">최근 5경기 평점</div>
+              <div className="w-20 shrink-0 text-right">몸값</div>
+            </>
+          ) : kind === "trophies" ? (
+            <>
+              <div className="w-72 shrink-0">주요 우승</div>
+              <div className="w-28 shrink-0 text-right">트로피 점수</div>
+              <div className="w-20 shrink-0 text-right">몸값</div>
+            </>
+          ) : kind === "contracts" ? (
+            <>
+              <div className="w-52 shrink-0">이번 시즌</div>
+              <div className="w-36 shrink-0">계약 만료</div>
+              <div className="w-20 shrink-0 text-right">몸값</div>
+            </>
+          ) : kind === "bargain" ? (
+            <>
+              <div className="w-52 shrink-0">이번 시즌</div>
+              <div className="w-44 shrink-0">가성비 (종합 − 몸값)</div>
+              <div className="w-20 shrink-0 text-right">몸값</div>
             </>
           ) : (
             <>
@@ -197,6 +286,33 @@ export default function PlayerRankingTable({ kind, rows, emptyText }: { kind: Ra
                   €{p.v1y}M → <span className="font-bold text-cyan-600 dark:text-cyan-400">€{p.value}M</span>
                 </div>
                 <div className="w-36 shrink-0 text-right"><Delta pct={p.deltaPct ?? 0} abs={p.deltaAbs ?? 0} /></div>
+              </>
+            ) : kind === "form" ? (
+              <>
+                <div className="w-52 shrink-0 text-xs text-neutral-500"><StatLine stat={p.stat} /></div>
+                <div className="w-40 shrink-0"><FormCell p={p} /></div>
+                <div className="w-20 shrink-0 text-right font-bold tabular-nums text-neutral-600 dark:text-neutral-300">€{p.value}M</div>
+              </>
+            ) : kind === "trophies" ? (
+              <>
+                <div className="w-72 shrink-0 text-xs text-neutral-600 dark:text-neutral-300 truncate">{p.trophyTop?.join(" · ") || "—"}</div>
+                <div className="w-28 shrink-0 text-right"><TrophyCell p={p} compact /></div>
+                <div className="w-20 shrink-0 text-right font-bold tabular-nums text-neutral-600 dark:text-neutral-300">€{p.value}M</div>
+              </>
+            ) : kind === "contracts" ? (
+              <>
+                <div className="w-52 shrink-0 text-xs text-neutral-500"><StatLine stat={p.stat} /></div>
+                <div className="w-36 shrink-0"><ContractCell p={p} /></div>
+                <div className="w-20 shrink-0 text-right font-bold tabular-nums text-neutral-600 dark:text-neutral-300">€{p.value}M</div>
+              </>
+            ) : kind === "bargain" ? (
+              <>
+                <div className="w-52 shrink-0 text-xs text-neutral-500"><StatLine stat={p.stat} /></div>
+                <div className="w-44 shrink-0 leading-tight">
+                  <div className="text-base"><Signed v={p.score ?? 0} /></div>
+                  <div className="text-[11px] text-neutral-500 tabular-nums">종합 {(p.power ?? 0).toFixed(1)} · 몸값 백분위 {Math.round(p.parts?.[0]?.pct ?? 0)}</div>
+                </div>
+                <div className="w-20 shrink-0 text-right font-bold tabular-nums text-neutral-600 dark:text-neutral-300">€{p.value}M</div>
               </>
             ) : (
               <>
