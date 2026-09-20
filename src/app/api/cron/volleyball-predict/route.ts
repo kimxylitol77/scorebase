@@ -55,7 +55,7 @@ export async function GET(req: Request) {
 
     let updated = 0;
     const sample: Array<{ id: number; vs: string; elo: number; market: number | null; pred: number }> = [];
-    const updates: Array<{ id: number; data: Record<string, number | null> }> = [];
+    const updates: Array<{ id: number; data: Record<string, number | string | null> }> = [];
     for (const m of targets) {
       const pElo = vbEloWinProb(ratings, {
         league: m.league, homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId,
@@ -78,6 +78,9 @@ export async function GET(req: Request) {
           predHome: pred,
           predAway: 1 - pred,
           predDraw: null,
+          // 채점 잡은 predWinner 가 있어야 "보여준 픽" 그대로 채점한다. 이게 비어 있어 배구 294건이
+          //  미채점으로 쌓이고, 채점된 건 축구식 재계산 픽으로 덮어써졌다(2026-09-20 실측).
+          predWinner: pred >= 0.5 ? "HOME" : "AWAY",
           marketHome: pMarket,
           marketAway: pMarket != null ? 1 - pMarket : null,
         },

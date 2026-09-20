@@ -267,7 +267,11 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
     //   제외분을 cron 누락으로 오해하지 않는다 (2026-08-03).
     // 월드컵은 외부 시드 Elo(eloratings.net) 라 prior 0 이어도 1500 random 이 아님 → 가드 면제.
     // (이 가드가 본선 경기를 전부 걸러 predCorrect 가 안 채워지던 문제, 2026-06-17.)
-    if (m.league !== "WORLD_CUP" && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
+    // 저장된 픽(predWinner)이 있으면 표본 게이트를 걸지 않는다 — 게이트는 "채점 시점에 새로 계산할
+    //  근거가 부족한가" 를 보는 것이라, 이미 사용자에게 보여준 픽을 채점하는 데는 필요 없다.
+    //  배구 국가대항전(팀당 이전 경기 5건 미만)이 여기서 영구 skip 돼 294건이 미채점으로 남았다.
+    const hasStoredPick = m.predWinner != null;
+    if (!hasStoredPick && m.league !== "WORLD_CUP" && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
 
     const ctx = buildMatchContext(
       all,
@@ -276,7 +280,12 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
       m.awayTeamId,
       m.startTime,
     );
-    const baseWp = ctx.winProb;
+    // 저장 픽이 있는데 재계산 근거가 없으면(배구 등 축구식 Elo 컨텍스트 밖 종목) 저장 확률을 그대로 쓴다.
+    const storedWp =
+      m.predHome != null
+        ? { home: m.predHome, draw: m.predDraw ?? 0, away: m.predAway ?? 0 }
+        : null;
+    const baseWp = ctx.winProb ?? (hasStoredPick ? storedWp : null);
     if (!baseWp) continue;
 
     // MLB 선발 투수 / NHL 골리 가중치
@@ -347,8 +356,10 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
     // 베팅사 3개 미만이면 시장 합의가 약해 Value Bet 판정 신뢰 불가 (NPB "0개사인데
     // Value Bet" 사례 차단). marketBookmakers >= 3 일 때만 평가.
     if (m.marketHome != null && m.marketAway != null && (m.marketBookmakers ?? 0) >= 3) {
+      // 저장 픽을 채점할 땐 밸류 판정도 저장 확률 기준 — 재계산 확률과 섞으면 픽과 근거가 어긋난다.
+      const probSrc = useStored && storedWp ? storedWp : wp;
       const modelProb =
-        winner === "HOME" ? wp.home : winner === "AWAY" ? wp.away : wp.draw;
+        winner === "HOME" ? probSrc.home : winner === "AWAY" ? probSrc.away : probSrc.draw;
       const marketProb =
         winner === "HOME"
           ? m.marketHome
