@@ -11,9 +11,10 @@
 - 최근 경기는 people/{id}/stats?stats=gameLog 로 옴(메이저·마이너 모두 sportId 지정).
 
 ## 작업
-- [ ] scripts/build-baseball-korea.ts → data/baseball-korea.json (명단·레벨·팀·포지션·나이·한글명, 제외 목록)
-- [ ] src/lib/sports/baseball-korea.ts — 시즌 성적(레벨별)·최근 5경기 런타임 fetch, unstable_cache 3h
-- [ ] /baseball/korea 페이지 — 히어로·주요 선수(메이저) 카드·전체 표(메이저→마이너)·소속팀 다음/최근 경기(MLB 만)·메타·JSON-LD
-- [ ] 진입: /baseball 허브 카드, 축구 해외파 페이지에서 야구 해외파 상호 링크
-- [ ] mac-mini weekly-static-refresh.sh 에 명단 재빌드 추가
-- [ ] tsc·eslint, dev 실렌더, 커밋·배포·프로덕션 검증, 메모리
+- [x] scripts/build-baseball-korea.ts → data/baseball-korea.json (명단·레벨·팀·포지션·나이·한글명, 제외 목록)
+- [x] src/lib/sports/baseball-korea.ts — 시즌 성적(레벨별)·최근 5경기 런타임 fetch, unstable_cache 3h
+- [x] /baseball/korea 페이지 — 히어로·주요 선수(메이저) 카드·전체 표(메이저→마이너)·소속팀 다음/최근 경기(MLB 만)·메타·JSON-LD
+- [x] 진입: /baseball 허브 카드, 축구 해외파 페이지에서 야구 해외파 상호 링크
+- [x] mac-mini weekly-static-refresh.sh 에 명단 재빌드 추가
+- [x] tsc·eslint, dev 실렌더(14명, 다음 경기 6·최근 경기 18행), 커밋 be8fecc·배포·프로덕션 200 확인
+- [ ] 메모리

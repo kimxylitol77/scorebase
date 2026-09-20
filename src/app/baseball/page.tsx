@@ -401,6 +401,23 @@ export default async function BaseballHub() {
           </p>
         </Card>
 
+        {/* 선수 랭킹 (2026-09-20) — 종합·가성비·폼 */}
+        <Card title="선수 랭킹" Icon={Award} badge="KBO·MLB·NPB" href="/baseball/rankings" hrefLabel="종합 랭킹 보기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep mb-3">
+            시즌 성적 백분위를 합친 타자·투수 종합 지수, 연봉 대비 가성비, 최근 경기 폼. 순위 변동은 매일 스냅샷 대비.
+          </p>
+          <ul className="space-y-1.5 text-sm">
+            {[
+              { l: "KBO 타자 종합", h: "/baseball/rankings" },
+              { l: "KBO 투수 종합", h: "/baseball/rankings?role=pit" },
+              { l: "KBO 가성비", h: "/baseball/rankings?view=bargain" },
+              { l: "MLB 타자 종합", h: "/baseball/rankings?league=MLB" },
+              { l: "NPB 폼(최근 10경기)", h: "/baseball/rankings?league=NPB&view=form" },
+            ].map((x) => (
+              <li key={x.h}><Link href={x.h} className="hover:underline hover:text-rose-600 dark:hover:text-rose-400">{x.l}</Link></li>
+            ))}
+          </ul>
+        </Card>
         {/* 해외파 한국 야구 선수 (2026-09-20) */}
         <Card title="해외파 한국 선수" Icon={Star} badge="MLB·마이너" href="/baseball/korea" hrefLabel="전원 성적 보기">
           <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
