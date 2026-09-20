@@ -401,6 +401,12 @@ export default async function BaseballHub() {
           </p>
         </Card>
 
+        {/* 해외파 한국 야구 선수 (2026-09-20) */}
+        <Card title="해외파 한국 선수" Icon={Star} badge="MLB·마이너" href="/baseball/korea" hrefLabel="전원 성적 보기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+            이정후·김하성·송성문부터 마이너리그 유망주까지, MLB 공식 데이터로 매주 갱신하는 한국 선수 시즌 성적·최근 5경기·소속 구단 다음 경기.
+          </p>
+        </Card>
         {/* MLB Statcast 리더보드 */}
         <Card title="Statcast 리더보드" Icon={Radar} badge="MLB" href="/baseball/statcast" hrefLabel="전체 순위 보기">
           <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">

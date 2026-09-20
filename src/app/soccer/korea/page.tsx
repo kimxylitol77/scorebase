@@ -575,6 +575,13 @@ export default async function KoreaAbroadPage() {
       )}
 
       <p className="text-xs text-neutral-500">
+        야구 해외파는{" "}
+        <Link href="/baseball/korea" className="underline underline-offset-2">
+          MLB·마이너리그 한국 선수
+        </Link>
+        에서 볼 수 있습니다.
+      </p>
+      <p className="text-xs text-neutral-500">
         더 깊은 선수 기록은{" "}
         <Link href="/transfers" className="underline underline-offset-2">
           이적시장 선수 페이지

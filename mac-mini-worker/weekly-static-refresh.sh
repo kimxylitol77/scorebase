@@ -62,6 +62,8 @@ npx tsx --env-file=.env.local scripts/link-korea-abroad-players.ts 2>&1 | tail -
 npx tsx --env-file=.env.local scripts/apply-korea-abroad-stats.ts 2>&1 | tail -2 || true
 npx tsx --env-file=.env.local scripts/collect-korea-abroad-match-logs.ts --days=10 2>&1 | tail -2 || true
 npx tsx --env-file=.env.local scripts/collect-korea-abroad-positions.ts --recent=20 2>&1 | tail -3 || true
+# 야구 해외파 명단 (MLB Stats API 출생국 스캔, 2026-09-20)
+npx tsx --env-file=.env.local scripts/build-baseball-korea.ts 2>&1 | tail -3 || true
 # 해외파 grid 가 afgrid 에 병합된 뒤라 detail 을 다시 도출한다(⑦-b 는 해외파 수집 전에 돈다)
 npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
 

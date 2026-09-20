@@ -1,0 +1,360 @@
+{
+ "meta": {
+  "updatedAt": "2026-09-20T10:41:46.634Z",
+  "season": 2026,
+  "source": "statsapi.mlb.com birthCountry"
+ },
+ "players": [
+  {
+   "id": 673490,
+   "nameEn": "Ha-Seong Kim",
+   "nameKo": "김하성",
+   "pos": "SS",
+   "posType": "Infielder",
+   "age": 30,
+   "birthDate": "1995-10-17",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": "2021-04-01",
+   "sportId": 1,
+   "level": "MLB",
+   "team": {
+    "id": 144,
+    "name": "Atlanta Braves",
+    "parentOrg": null,
+    "abbr": "ATL"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1,
+    11,
+    12,
+    16
+   ]
+  },
+  {
+   "id": 823550,
+   "nameEn": "Sung-Mun Song",
+   "nameKo": "송성문",
+   "pos": "2B",
+   "posType": "Infielder",
+   "age": 30,
+   "birthDate": "1996-08-29",
+   "bats": "L",
+   "throws": "R",
+   "mlbDebut": "2026-04-26",
+   "sportId": 1,
+   "level": "MLB",
+   "team": {
+    "id": 135,
+    "name": "San Diego Padres",
+    "parentOrg": null,
+    "abbr": "SD"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1,
+    11
+   ]
+  },
+  {
+   "id": 808982,
+   "nameEn": "Jung Hoo Lee",
+   "nameKo": "이정후",
+   "pos": "RF",
+   "posType": "Outfielder",
+   "age": 28,
+   "birthDate": "1998-08-20",
+   "bats": "L",
+   "throws": "R",
+   "mlbDebut": "2024-03-28",
+   "sportId": 1,
+   "level": "MLB",
+   "team": {
+    "id": 137,
+    "name": "San Francisco Giants",
+    "parentOrg": null,
+    "abbr": "SF"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1
+   ]
+  },
+  {
+   "id": 808970,
+   "nameEn": "Woo-Suk Go",
+   "nameKo": "고우석",
+   "pos": "P",
+   "posType": "Pitcher",
+   "age": 28,
+   "birthDate": "1998-08-06",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": "2026-07-09",
+   "sportId": 11,
+   "level": "AAA",
+   "team": {
+    "id": 1960,
+    "name": "St. Paul Saints",
+    "parentOrg": "Minnesota Twins",
+    "abbr": "STP"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1,
+    11,
+    12
+   ]
+  },
+  {
+   "id": 808975,
+   "nameEn": "Hyeseong Kim",
+   "nameKo": "김혜성",
+   "pos": "SS",
+   "posType": "Infielder",
+   "age": 27,
+   "birthDate": "1999-01-27",
+   "bats": "L",
+   "throws": "R",
+   "mlbDebut": "2025-05-03",
+   "sportId": 11,
+   "level": "AAA",
+   "team": {
+    "id": 238,
+    "name": "Oklahoma City Comets",
+    "parentOrg": "Los Angeles Dodgers",
+    "abbr": "OKC"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1,
+    11
+   ]
+  },
+  {
+   "id": 678225,
+   "nameEn": "Jihwan Bae",
+   "nameKo": "배지환",
+   "pos": "CF",
+   "posType": "Outfielder",
+   "age": 27,
+   "birthDate": "1999-07-26",
+   "bats": "L",
+   "throws": "R",
+   "mlbDebut": "2022-09-23",
+   "sportId": 11,
+   "level": "AAA",
+   "team": {
+    "id": 556,
+    "name": "Nashville Sounds",
+    "parentOrg": "Milwaukee Brewers",
+    "abbr": "NAS"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1,
+    11
+   ]
+  },
+  {
+   "id": 805870,
+   "nameEn": "Hyungchan Um",
+   "nameKo": "엄형찬",
+   "pos": "C",
+   "posType": "Catcher",
+   "age": 22,
+   "birthDate": "2004-04-24",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 12,
+   "level": "AA",
+   "team": {
+    "id": 1350,
+    "name": "Northwest Arkansas Naturals",
+    "parentOrg": "Kansas City Royals",
+    "abbr": "NWA"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "id": 800231,
+   "nameEn": "Won-Bin Cho",
+   "nameKo": "조원빈",
+   "pos": "OF",
+   "posType": "Outfielder",
+   "age": 23,
+   "birthDate": "2003-08-20",
+   "bats": "L",
+   "throws": "L",
+   "mlbDebut": null,
+   "sportId": 12,
+   "level": "AA",
+   "team": {
+    "id": 440,
+    "name": "Springfield Cardinals",
+    "parentOrg": "St. Louis Cardinals",
+    "abbr": "SPR"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    12,
+    13
+   ]
+  },
+  {
+   "id": 815794,
+   "nameEn": "Hyun-Seok Jang",
+   "nameKo": "장현석",
+   "pos": "P",
+   "posType": "Pitcher",
+   "age": 22,
+   "birthDate": "2004-03-14",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 13,
+   "level": "High-A",
+   "team": {
+    "id": 456,
+    "name": "Great Lakes Loons",
+    "parentOrg": "Los Angeles Dodgers",
+    "abbr": "GL"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    13,
+    14
+   ]
+  },
+  {
+   "id": 834605,
+   "nameEn": "Seong-Jun Kim",
+   "nameKo": "김성준",
+   "pos": "SS",
+   "posType": "Infielder",
+   "age": 19,
+   "birthDate": "2007-05-01",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 14,
+   "level": "Single-A",
+   "team": {
+    "id": 448,
+    "name": "Hickory Crawdads",
+    "parentOrg": "Texas Rangers",
+    "abbr": "HIC"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    14,
+    16
+   ]
+  },
+  {
+   "id": 836688,
+   "nameEn": "Seojun Moon",
+   "nameKo": "문서준",
+   "pos": "P",
+   "posType": "Pitcher",
+   "age": 19,
+   "birthDate": "2007-05-13",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 16,
+   "level": "Rookie",
+   "team": {
+    "id": 1390,
+    "name": "FCL Blue Jays",
+    "parentOrg": "Toronto Blue Jays",
+    "abbr": "F-BLU"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    16
+   ]
+  },
+  {
+   "id": 807149,
+   "nameEn": "Jun-Seok Shim",
+   "nameKo": "심준석",
+   "pos": "P",
+   "posType": "Pitcher",
+   "age": 22,
+   "birthDate": "2004-04-09",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 16,
+   "level": "Rookie",
+   "team": {
+    "id": 468,
+    "name": "FCL Mets",
+    "parentOrg": "New York Mets",
+    "abbr": "F-MET"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    16
+   ]
+  },
+  {
+   "id": 829748,
+   "nameEn": "Hyun Seung Lee",
+   "nameKo": "이현승",
+   "pos": "IF",
+   "posType": "Infielder",
+   "age": 18,
+   "birthDate": "2008-02-14",
+   "bats": "L",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 16,
+   "level": "Rookie",
+   "team": {
+    "id": 467,
+    "name": "FCL Marlins",
+    "parentOrg": "Miami Marlins",
+    "abbr": "F-MRL"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    14,
+    16
+   ]
+  },
+  {
+   "id": 806739,
+   "nameEn": "Jayden Kim",
+   "nameKo": "제이든 김",
+   "pos": "SS",
+   "posType": "Infielder",
+   "age": 20,
+   "birthDate": "2006-08-02",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 16,
+   "level": "Rookie",
+   "team": {
+    "id": 470,
+    "name": "FCL Pirates",
+    "parentOrg": "Pittsburgh Pirates",
+    "abbr": "F-PIR"
+   },
+   "onFortyMan": false,
+   "sportIds": [
+    14,
+    16
+   ]
+  }
+ ]
+}
