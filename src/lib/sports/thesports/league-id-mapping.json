@@ -466,7 +466,8 @@
     "ourLabel": "모로코 보톨라 프로",
     "tsId": "z318q66hokoqo9j",
     "tsEn": "The Botola Pro",
-    "tsKo": "모로코 보톨라 리그"
+    "tsKo": "모로코 보톨라 리그",
+    "tsSeasonId": "l7oqdehnn2wr510"
   },
   {
     "code": "NORWAY_1L",
@@ -938,7 +939,7 @@
     "tsId": "gpxwrxlhzzryk0j",
     "tsEn": "Copa del Rey",
     "tsKo": "코파 델 레이",
-    "tsSeasonId": "kjw2r09h8dorz84"
+    "tsSeasonId": "y39mp1h3308mojx"
   },
   {
     "code": "COPPA_ITALIA",
@@ -1034,7 +1035,7 @@
     "tsId": "d23xmvkhoxqg8ny",
     "tsEn": "UEFA European U17 Football Championship",
     "tsKo": "UEFA U17 챔피언십",
-    "tsSeasonId": ""
+    "tsSeasonId": "k82rekhvz45repz"
   },
   {
     "code": "UEFA_WCL",
