@@ -8,7 +8,7 @@ import { RankDelta } from "@/app/transfers/PlayerRankingTable";
 import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import {
-  BB_LEAGUES, getBbLeagueData, computeBatPower, computePitPower, computeBbBargain, computeBbForm,
+  BB_LEAGUES, getBbLeagueData, computeBatPower, computePitPower, computeBbBargain, computeBbForm, SALARY_BUCKET,
   POWER_MIN_GAMES_RATIO, POWER_MIN_IP, FORM_BAT_GAMES, FORM_BAT_MIN_AB, FORM_PIT_GAMES, FORM_PIT_MIN_IP, MLB_FORM_DAYS,
   type BbLeague, type BbRole, type BbPlayerRow, type BbForm,
 } from "@/lib/sports/baseball/player-rankings";
@@ -69,8 +69,13 @@ function statLine(r: BbPlayerRow, role: BbRole): string {
   if (role === "bat") return `${r.games}경기 · ${r.avg?.toFixed(3) ?? "-"} · ${r.hr ?? 0}홈런 ${r.rbi ?? 0}타점 · OPS ${r.ops?.toFixed(3) ?? "-"}`;
   return `${r.games}경기 ${fmtIp(r.ip)}이닝 · ERA ${r.era?.toFixed(2) ?? "-"} · WHIP ${r.whip?.toFixed(2) ?? "-"} · ${r.so ?? 0}K · ${r.w ?? 0}승${r.sv ? ` ${r.sv}세` : ""}`;
 }
-const salaryLabel = (league: BbLeague, v: number | null | undefined) =>
-  v == null ? "-" : league === "MLB" ? `$${(v / 1e6).toFixed(1)}M` : `${(v / 1e4).toLocaleString()}만원`;
+/** 연봉 표기 — MLB 달러, KBO 만원 단위(42억 = 420000) → "42억" · "2억 5,000만원" · "9,000만원". */
+const salaryLabel = (league: BbLeague, v: number | null | undefined) => {
+  if (v == null) return "-";
+  if (league === "MLB") return `$${(v / 1e6).toFixed(1)}M`;
+  const eok = Math.floor(v / 10000), rem = v % 10000;
+  return eok > 0 && rem > 0 ? `${eok}억 ${rem.toLocaleString()}만원` : eok > 0 ? `${eok}억원` : `${v.toLocaleString()}만원`;
+};
 
 export default async function BaseballRankingsPage({ searchParams }: { searchParams: Promise<SP> }) {
   const { league, view, role, page } = parse(await searchParams);
@@ -79,7 +84,7 @@ export default async function BaseballRankingsPage({ searchParams }: { searchPar
   const power = role === "bat" ? computeBatPower(data.rows) : computePitPower(data.rows);
   const ranked: Array<{ key: string; score?: number; parts?: { label: string; pct: number }[]; power?: number; salaryPct?: number; form?: BbForm; season?: number | null; delta?: number | null }> =
     view === "power" ? power
-      : view === "bargain" ? computeBbBargain(power, data.rows)
+      : view === "bargain" ? computeBbBargain(power, data.rows, SALARY_BUCKET[league])
         : computeBbForm(data.rows, data.form, role);
   const total = ranked.length;
   const totalPages = Math.max(1, Math.ceil(total / PER));

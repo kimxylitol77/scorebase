@@ -3,6 +3,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { percentiles } from "@/lib/transfers/player-rankings";
+import { getKboSalaries } from "@/lib/sports/kbo-salaries";
 
 export type BbLeague = "KBO" | "MLB" | "NPB";
 export type BbRole = "bat" | "pit";
@@ -17,7 +18,7 @@ export interface BbPlayerRow {
   games: number;
   avg: number | null; hits: number | null; hr: number | null; rbi: number | null; ops: number | null;
   era: number | null; whip: number | null; ip: number | null; so: number | null; w: number | null; l: number | null; sv: number | null;
-  salary: number | null; // 원(KBO)·달러(MLB) — 리그 안에서만 비교
+  salary: number | null; // 만원(KBO, 국내 선수만)·달러(MLB) — 리그 안에서만 비교
   /** 경기별 로그 연결 id (KBO kboId · NPB npbId) */
   logId: string | null;
 }
@@ -86,12 +87,15 @@ export function computePitPower(rows: BbPlayerRow[]): BbPowerRow[] {
 
 export interface BbBargainRow { key: string; score: number; power: number; salaryPct: number }
 
-/** 가성비 = 종합 지수 − 연봉 백분위(종합 자격 + 연봉 있는 선수 풀 안 log 연봉). */
-export function computeBbBargain(power: BbPowerRow[], rows: BbPlayerRow[]): BbBargainRow[] {
+/** 연봉 구간 폭 — 이 단위로 반올림한 뒤 백분위를 매겨, 최저연봉 근처의 몇만 달러 차이가 순위를 가르지 않게 한다(동률은 종합 지수로). */
+export const SALARY_BUCKET: Record<BbLeague, number> = { MLB: 100_000, KBO: 1_000, NPB: 1_000 }; // MLB 달러 · KBO 만원 단위(1천만원)
+
+/** 가성비 = 종합 지수 − 연봉 백분위(종합 자격 + 연봉 있는 선수 풀 안 log 연봉, 구간 반올림). */
+export function computeBbBargain(power: BbPowerRow[], rows: BbPlayerRow[], bucket = 1): BbBargainRow[] {
   const byKey = new Map(rows.map((r) => [r.key, r]));
   const elig = power.filter((p) => (byKey.get(p.key)?.salary ?? 0) > 0);
   if (elig.length === 0) return [];
-  const salPct = percentiles(elig.map((p) => [p.key, Math.log(byKey.get(p.key)!.salary!)]));
+  const salPct = percentiles(elig.map((p) => [p.key, Math.log(Math.max(bucket, Math.round(byKey.get(p.key)!.salary! / bucket) * bucket))]));
   return elig
     .map((p) => ({ key: p.key, score: Math.round((p.score - (salPct.get(p.key) ?? 0)) * 10) / 10, power: p.score, salaryPct: salPct.get(p.key) ?? 0 }))
     .sort((a, b) => b.score - a.score || b.power - a.power);
@@ -187,10 +191,15 @@ export const getBbLeagueData = unstable_cache(
   async (league: BbLeague): Promise<BbLeagueData> => {
     const season = String(new Date().getUTCFullYear());
     const stats = await prisma.baseballPlayerSeasonStats.findMany({ where: { league, season } });
-    // 연봉 — KBO 는 한글명, MLB 는 영문명으로 이름 매칭(같은 이름 둘이면 첫 행)
-    const sal = league === "NPB" ? [] : await prisma.playerSalary.findMany({ where: { league }, select: { playerName: true, salary: true } });
+    // 연봉 — KBO 는 공식 연봉 JSON 을 kboId 로 직결(동명이인 44건 회피, 외국인은 달러 공시라 제외), MLB 는 영문명 매칭
     const salByName = new Map<string, number>();
-    for (const s of sal) if (!salByName.has(s.playerName)) salByName.set(s.playerName, s.salary);
+    const salById = new Map<string, number>();
+    if (league === "MLB") {
+      const sal = await prisma.playerSalary.findMany({ where: { league }, select: { playerName: true, salary: true } });
+      for (const s of sal) if (!salByName.has(s.playerName)) salByName.set(s.playerName, s.salary);
+    } else if (league === "KBO") {
+      for (const s of getKboSalaries()) if (!salById.has(s.kboId)) salById.set(s.kboId, s.salary);
+    }
     // 경기별 로그 → 폼 (KBO id 직결, NPB 는 팀+성(로그 이름이 성만) 유일 매칭)
     let form: Record<string, BbForm> = {};
     let logIdOf: (r: (typeof stats)[number]) => string | null = () => null;
@@ -237,12 +246,12 @@ export const getBbLeagueData = unstable_cache(
       avg: s.avg, hits: s.hits, hr: s.homeRuns, rbi: s.rbi, ops: s.ops,
       // MLB 는 이닝을 야구 표기 그대로(166.1 = 166⅓) 저장하고 KBO·NPB 는 소수(72.667)로 저장한다 — 소수로 통일
       era: s.era, whip: s.whip, ip: s.ip == null ? null : league === "MLB" ? ipToNumber(s.ip.toFixed(1)) : s.ip, so: s.so, w: s.wins, l: s.losses, sv: s.saves,
-      salary: salByName.get(league === "MLB" ? (s.playerNameEn ?? s.playerName) : s.playerName) ?? null,
+      salary: league === "KBO" ? (s.externalId ? salById.get(s.externalId) ?? null : null) : salByName.get(s.playerNameEn ?? s.playerName) ?? null,
       logId: logIdOf(s),
     }));
     const salaryCoverage = rows.filter((r) => r.salary != null).length;
     return { league, season, rows, form, salaryCoverage };
   },
-  ["baseball-rankings-league-data-v4"],
+  ["baseball-rankings-league-data-v5"],
   { revalidate: 6 * 3600, tags: ["baseball-rankings"] },
 );

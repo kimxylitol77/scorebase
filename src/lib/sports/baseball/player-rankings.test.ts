@@ -59,3 +59,12 @@ test("폼 집계 — 타자 OPS(HBP 포함 OBP)·투수 ERA, 컷 미달 제외",
   const pit = computeBbForm([row("p", { era: 4 })], { p: { n: 5, ip: 30, era: 3 } }, "pit");
   assert.equal(pit[0].delta, -1);
 });
+
+test("가성비 — 연봉 구간 반올림: 최저연봉 근처 차이는 무시하고 종합 지수로 가른다", () => {
+  const rows = [row("ace", { salary: 800_000 }), row("rookie", { salary: 760_000 }), row("star", { salary: 30_000_000 })];
+  const power = [{ key: "ace", score: 97, parts: [] }, { key: "rookie", score: 88, parts: [] }, { key: "star", score: 99, parts: [] }];
+  // 구간 없이는 76만 달러가 80만 달러보다 싸서 rookie 가 위
+  assert.equal(computeBbBargain(power, rows)[0].key, "rookie");
+  // 10만 달러 구간이면 둘 다 80만 → 종합 97 인 ace 가 위, star 는 연봉 백분위 100 이라 맨 아래
+  assert.deepEqual(computeBbBargain(power, rows, 100_000).map((r) => r.key), ["ace", "rookie", "star"]);
+});
