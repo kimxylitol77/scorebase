@@ -385,6 +385,19 @@ function SalaryHeader({ season, subtitle }: { season: string; subtitle: string }
       <p className="text-sm text-neutral-500 leading-relaxed break-keep">
         {season} 시즌 {subtitle} · 데이터 Spotrac.
       </p>
+      {/* 선수 랭킹·해외파(2026-09-20) — 연봉 페이지에서 바로 */}
+      <div className="flex flex-wrap gap-2 pt-1 text-xs">
+        {[
+          { label: "타자 종합 랭킹", href: "/baseball/rankings?league=MLB" },
+          { label: "투수 종합 랭킹", href: "/baseball/rankings?league=MLB&role=pit" },
+          { label: "가성비 랭킹", href: "/baseball/rankings?league=MLB&view=bargain" },
+          { label: "해외파 한국 선수", href: "/baseball/korea" },
+        ].map((x) => (
+          <Link key={x.href} href={x.href} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
+            {x.label}
+          </Link>
+        ))}
+      </div>
     </header>
   );
 }

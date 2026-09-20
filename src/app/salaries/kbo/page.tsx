@@ -142,6 +142,17 @@ export default async function KboSalariesPage({
           <Link href="/leagues/KBO" className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
             <Trophy className="h-3.5 w-3.5" aria-hidden /> KBO 경기·순위
           </Link>
+          {/* 선수 랭킹(2026-09-20) — 연봉 페이지에서 종합·가성비·폼으로 바로 */}
+          {[
+            { label: "타자 종합 랭킹", href: "/baseball/rankings" },
+            { label: "투수 종합 랭킹", href: "/baseball/rankings?role=pit" },
+            { label: "가성비 랭킹", href: "/baseball/rankings?view=bargain" },
+            { label: "폼 랭킹", href: "/baseball/rankings?view=form" },
+          ].map((x) => (
+            <Link key={x.href} href={x.href} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
+              {x.label}
+            </Link>
+          ))}
         </div>
       </header>
 
