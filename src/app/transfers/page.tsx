@@ -22,7 +22,9 @@ import rawCoachPhotos from "../../../data/coach-photos.json";
 import { currentTsTeamId, squadPlayerIds } from "@/lib/transfers/current-team";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
-import PlayerRankingTable, { type RankRowData } from "./PlayerRankingTable";
+import PlayerRankingTable, { RankDelta, type RankRowData } from "./PlayerRankingTable";
+import { after } from "next/server";
+import { kstToday, writeRankSnapshot, getRankBaseline, baselineRankMap, prevRankOf, type SnapshotRow } from "@/lib/transfers/rank-snapshots";
 import {
   getSeasonPlayerStats, computePowerRanking, computeProspectRanking, computeGrowthRanking,
   computeBargainRanking, computeFormRanking, computeTrophyRanking, computeContractRanking, getBig5TrophyWinners, trophyKo,
@@ -719,6 +721,35 @@ export default async function TransfersPage({
   const rankingTotal = isPower ? powerRows.length : isProspects ? prospectRows.length : isGrowth ? growthRows.length
     : isBargain ? bargainRows.length : isForm ? formRows.length : isTrophies ? trophyRows.length : isContracts ? contractRows.length : 0;
 
+  // ── 순위 변동(스냅샷) — 목록 키, 오늘자 저장(무필터·검색 없음·1페이지일 때만), 직전 스냅샷 기준선 ──
+  const snapshotList: string | null = isPower ? "power" : isProspects ? `prospects:${prospectAge}` : isGrowth ? `growth:${growthMode}`
+    : isBargain ? "bargain" : isForm ? `form:${formMode}` : isTrophies ? "trophies" : isContracts ? "contracts"
+    : view === "all" ? "value" : null;
+  const enrichedByIdForSnap = new Map(enriched.map((e) => [e.id, e]));
+  const snapRows = (ids: string[], scores?: Map<string, number>): SnapshotRow[] =>
+    ids.flatMap((id, i) => {
+      const e = enrichedByIdForSnap.get(id);
+      return e ? [{ playerId: id, rank: i + 1, league: e.league ?? null, posCode: e.posCode, score: scores?.get(id) ?? null }] : [];
+    });
+  const fullRanked: SnapshotRow[] = isPower ? snapRows(powerRows.map((r) => r.id), new Map(powerRows.map((r) => [r.id, r.score])))
+    : isProspects ? snapRows(prospectRows.map((r) => r.id), new Map(prospectRows.map((r) => [r.id, r.score])))
+    : isGrowth ? snapRows(growthRows.map((r) => r.id), new Map(growthRows.map((r) => [r.id, r.pct])))
+    : isBargain ? snapRows(bargainRows.map((r) => r.id), new Map(bargainRows.map((r) => [r.id, r.score])))
+    : isForm ? snapRows(formRows.map((r) => r.id), new Map(formRows.map((r) => [r.id, r.recent5])))
+    : isTrophies ? snapRows(trophyRows.map((r) => r.id), new Map(trophyRows.map((r) => [r.id, r.pts])))
+    : isContracts ? snapRows(contractRows.map((r) => r.id))
+    : view === "all" ? snapRows(enriched.map((e) => e.id), new Map(enriched.map((e) => [e.id, e.value])))
+    : [];
+  const today = kstToday();
+  if (snapshotList && !league && !pos && !qSearch && page === 1 && fullRanked.length > 0) {
+    // 렌더 응답 뒤에 저장 — 이미 오늘자가 있으면 조용히 건너뛴다.
+    after(async () => {
+      try { await writeRankSnapshot(snapshotList, fullRanked, today); } catch { /* 스냅샷 실패는 화면과 무관 */ }
+    });
+  }
+  const baseline = snapshotList ? await getRankBaseline(snapshotList, today.toISOString()) : null;
+  const prevRankMap = baselineRankMap(baseline, { league: league || undefined, pos: pos || undefined });
+
   // ── 팀별 IN/OUT (view=inout) — 이적창 윈도우 내 빅5 팀 영입·방출 집계 ──
   interface InOutRow { teamId: number; name: string; logo: string | null; league: string; inCnt: number; inFee: number; outCnt: number; outFee: number; rank: number }
   let inoutData: InOutRow[] = [];
@@ -971,7 +1002,7 @@ export default async function TransfersPage({
   squadsData = squadsData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
   const data = isFeed || isInout || isSquads || isRanking
     ? []
-    : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1, stat: seasonStats[e.id] ?? null }));
+    : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1, stat: seasonStats[e.id] ?? null, prevRank: prevRankOf(prevRankMap, e.id) }));
   // 랭킹 뷰 페이지 행 — 표기(이름·팀·사진)는 enriched 그대로, 점수·구성은 계산 결과에서.
   const enrichedById = new Map(enriched.map((e) => [e.id, e]));
   const toRankRow = (id: string, i: number): RankRowData | null => {
@@ -983,6 +1014,7 @@ export default async function TransfersPage({
       leagueName: e.league ? LEAGUES[e.league] ?? e.league : null, leagueLogo: e.league ? leagueLogoUrl(e.league) : null,
       posCode: e.posCode, age: e.age, countryFlag: e.countryFlag, country: e.country, value: e.value, hist: e.hist,
       stat: st ? { n: st.n, g: st.g, a: st.a, rating: st.rating } : null,
+      prevRank: prevRankOf(prevRankMap, id),
     };
   };
   const pageSlice = <T,>(arr: T[]) => arr.slice((safePage - 1) * PER, safePage * PER);
@@ -1268,6 +1300,9 @@ export default async function TransfersPage({
           <>다음 여름(<strong className="text-neutral-700 dark:text-neutral-300">{new Date(nextSummer * 1000).getUTCFullYear()}년 6월 30일</strong>)까지 계약이 끝나는 선수 · 몸값 순 · {totalCount}명.</>
         ) : (
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
+        )}
+        {baseline && (
+          <span className="ml-1 text-xs text-neutral-400">순위 변동은 {baseline.day} 스냅샷 대비.</span>
         )}
       </p>
 
@@ -1869,7 +1904,10 @@ export default async function TransfersPage({
                   href={`/transfers/${p.id}`}
                   className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 >
-                  <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+                  <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>
+                    {p.rank}
+                    <RankDelta rank={p.rank} prev={p.prevRank} />
+                  </div>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                     {p.photo ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -1952,8 +1990,11 @@ export default async function TransfersPage({
                   href={`/transfers/${p.id}`}
                   className="flex items-center gap-3 px-5 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 >
-                  {/* 순위 */}
-                  <div className={`w-12 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+                  {/* 순위 (+직전 스냅샷 대비 변동) */}
+                  <div className={`w-12 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>
+                    {p.rank}
+                    <RankDelta rank={p.rank} prev={p.prevRank} />
+                  </div>
                   {/* 이름 (+사진) */}
                   <div className="flex-1 min-w-0 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">

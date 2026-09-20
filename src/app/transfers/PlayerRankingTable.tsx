@@ -36,6 +36,21 @@ export interface RankRowData {
   // 계약
   contractUntil?: string; // YYYY-MM-DD
   contractMonths?: number;
+  // 순위 변동 — undefined 기준선 없음 · null 기준선에 없던 선수(NEW) · 숫자 이전 순위
+  prevRank?: number | null;
+}
+
+/** 순위 변동 배지 — 직전 스냅샷 대비. 몸값 표(page.tsx)도 같이 쓴다. */
+export function RankDelta({ rank, prev }: { rank: number; prev: number | null | undefined }) {
+  if (prev === undefined) return null;
+  if (prev === null) return <div className="text-[10px] font-bold text-sky-500 leading-none mt-0.5">NEW</div>;
+  const d = prev - rank;
+  if (d === 0) return <div className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-none mt-0.5">–</div>;
+  return (
+    <div className={`text-[10px] font-bold tabular-nums leading-none mt-0.5 ${d > 0 ? "text-emerald-500" : "text-rose-500"}`}>
+      {d > 0 ? "▲" : "▼"}{Math.abs(d)}
+    </div>
+  );
 }
 
 export type RankKind = "power" | "prospects" | "growth" | "bargain" | "form" | "trophies" | "contracts";
@@ -147,7 +162,10 @@ export default function PlayerRankingTable({ kind, rows, emptyText }: { kind: Ra
       <div className={`lg:hidden ${CARD}`}>
         {rows.map((p) => (
           <Link key={p.id} href={`/transfers/${p.id}`} className={ROW}>
-            <div className={`w-6 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+            <div className={`w-6 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>
+              {p.rank}
+              <RankDelta rank={p.rank} prev={p.prevRank} />
+            </div>
             <Photo p={p} />
             <div className="flex-1 min-w-0">
               {/* 이름은 한 줄 통째로 — 포지션·나이는 둘째 줄(375px 에서 이름 잘림 방지) */}
@@ -243,7 +261,10 @@ export default function PlayerRankingTable({ kind, rows, emptyText }: { kind: Ra
         </div>
         {rows.map((p) => (
           <Link key={p.id} href={`/transfers/${p.id}`} className={ROW}>
-            <div className={`w-12 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+            <div className={`w-12 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>
+              {p.rank}
+              <RankDelta rank={p.rank} prev={p.prevRank} />
+            </div>
             <div className="flex-1 min-w-0 flex items-center gap-3">
               <Photo p={p} />
               <div className="min-w-0">

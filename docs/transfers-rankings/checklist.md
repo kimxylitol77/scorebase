@@ -28,3 +28,12 @@
 - [x] 실렌더: 가성비 1위 파스칼 그로스(+75.0) · 폼 핫 1위 야말 8.90 · 콜드 1위 브레토네스 6.01 · 트로피 1위 노이어 138점 33회 · 계약 만료 1위 케인 2027-06-30
 - [x] 커밋·배포·프로덕션 검증 (1fc4ccf, 5개 뷰 20행·1위 dev 와 동일)
 - 정정 2건: 폼 창에 0~9분 출전 행(1점대 평점)이 들어와 콜드가 오염 → 10분 이상만 · 계약 만료 epoch 가 UTC+8 자정이라 UTC 로 읽으면 6/29 → KST 로 표기
+
+## 3단계 — 순위 변동 화살표 (2026-09-20, "순위변동 화살표 넣어줘")
+- [x] prisma `PlayerRankSnapshot`(list·day·playerId unique, league·posCode·score) — db push 로 테이블 생성(신규 테이블이라 락 없음)
+- [x] lib `rank-snapshots.ts` — kstToday·writeRankSnapshot(오늘자 있으면 skip)·getRankBaseline(오늘 이전 최근 스냅샷, 1h 캐시)·baselineRankMap(리그·포지션 필터면 재번호)·prevRankOf·prune(14일) + 테스트 3건
+- [x] 페이지: 무필터·검색 없음·1페이지 렌더 시 after() 로 오늘자 저장(몸값 전체 포함 13개 목록), 모든 행에 prevRank → RankDelta(▲n·▼n·–·NEW), 부제에 "순위 변동은 {날짜} 스냅샷 대비"
+- [x] cron `/api/cron/player-rank-snapshot` 03:40 KST — 목록 URL 12개 self-fetch 로 렌더 유도 + 14일 정리, CRON_REGISTRY 등록
+- [x] dev 검증: 종합 렌더 → power 2026-09-20 1,104행 저장 · 가짜 어제 기준선(트로피)으로 ▲n·NEW 렌더 · 라리가 필터에서 ▲548 → ▲27 로 재번호 확인 · 가짜 행 삭제 완료
+- 함정 실측: 씨앗을 넣기 전에 렌더한 목록은 기준선 null 이 1h 캐시돼 화살표가 안 뜬다(가성비로 먼저 시도해 헛발)
+- [ ] 커밋·배포·프로덕션 검증(오늘자 스냅샷 적재), 메모리 갱신

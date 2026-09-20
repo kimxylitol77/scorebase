@@ -85,6 +85,7 @@ export const CRON_REGISTRY: {
   // 이벤트는 이적창 비수기에도 몸값 재평가·부상으로 매일 생긴다 — 연속 0 은 af 쿼터 기아 신호
   { name: "player-events", label: "선수 근황 이벤트", maxAgeH: 28, zeroAlertAfter: 4 },
   { name: "player-trophies", label: "선수 트로피", maxAgeH: 28 }, // 수상은 드물어 0 이 정상 — zeroAlert 금지
+  { name: "player-rank-snapshot", label: "선수 랭킹 순위 스냅샷", maxAgeH: 28 }, // count=렌더 유도 성공 목록 수(12)
   { name: "capture-injuries", label: "부상 스냅샷", maxAgeH: 28 },
   { name: "predict-upcoming", label: "다가올 매치 예측", maxAgeH: 16 }, // 하루 2회(3,13시)
   // 하루 2회(3:50,15:50 UTC). 감시형이라 0건이 정상 — zeroAlertAfter 를 붙이지 말 것.

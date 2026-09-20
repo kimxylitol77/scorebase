@@ -1390,6 +1390,21 @@ model PlayerTrophy {
 }
 
 /// 트로피 sync 커서 — 선수별 마지막 동기 시각 (오래된 순으로 daily 250명 순환)
+// /transfers 랭킹 순위 일별 스냅샷 — 순위 변동 화살표 기준선. 목록(list)·KST 날짜·선수 unique, 14일 보존.
+model PlayerRankSnapshot {
+  id       Int      @id @default(autoincrement())
+  list     String // value | power | prospects:21 | prospects:23 | growth:pct|abs|down | bargain | form:hot|cold | trophies | contracts
+  day      DateTime @db.Date
+  playerId String // ts player id
+  rank     Int
+  league   String?
+  posCode  String?
+  score    Float?
+
+  @@unique([list, day, playerId])
+  @@index([list, day])
+}
+
 model PlayerTrophySync {
   playerId String   @id // ts player id
   syncedAt DateTime @default(now())

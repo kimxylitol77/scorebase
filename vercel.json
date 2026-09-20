@@ -375,6 +375,7 @@
     {
       "path": "/api/cron/sp-preview",
       "schedule": "20 5,17 * * *"
-    }
+    },
+    { "path": "/api/cron/player-rank-snapshot", "schedule": "40 18 * * *" }
   ]
 }
