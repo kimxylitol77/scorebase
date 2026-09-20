@@ -68,6 +68,8 @@ const SPORTS: SportCard[] = [
       { label: "V-리그 여자부", href: "/leagues/V_LEAGUE_W" },
       { label: "남자부 선수 기록", href: "/leagues/V_LEAGUE?view=stats" },
       { label: "여자부 선수 기록", href: "/leagues/V_LEAGUE_W?view=stats" },
+      { label: "남자부 선수 명단", href: "/leagues/V_LEAGUE?view=players" },
+      { label: "여자부 선수 명단", href: "/leagues/V_LEAGUE_W?view=players" },
       { label: "남자부 일정", href: "/leagues/V_LEAGUE?view=fixtures" },
       { label: "여자부 일정", href: "/leagues/V_LEAGUE_W?view=fixtures" },
       { label: "라이브 스코어", href: "/scores?sport=volleyball" },

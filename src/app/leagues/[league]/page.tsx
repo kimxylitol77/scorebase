@@ -37,6 +37,7 @@ import championsData from "../../../../data/league-champions.json";
 import CupBracket from "@/components/leagues/CupBracket";
 import HockeyTsStandingsTable from "@/components/hockey/HockeyTsStandingsTable";
 import VolleyballLeagueTable from "@/components/volleyball/VolleyballLeagueTable";
+import DomesticLeaguePlayers, { DOMESTIC_PLAYER_LEAGUES, type DomesticPlayerLeague } from "@/components/leagues/DomesticLeaguePlayers";
 import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 
@@ -238,7 +239,7 @@ const LEAGUE_INFO: Partial<Record<
     name: "V-리그 여자부",
     subtitle: "KOVO V-League Women",
     gradient: "from-rose-500 via-pink-500 to-fuchsia-600",
-    copy: "한국 프로배구 V-리그 여자부 8개 구단의 순위·선수 기록·일정·역사. 현역 선수 프로필과 시즌별 기록·기록 상세까지.",
+    copy: "한국 프로배구 V-리그 여자부 7개 구단의 순위·선수 기록·일정·역사. 현역 선수 프로필과 시즌별 기록·기록 상세까지.",
   },
   NHL: {
     name: "NHL",
@@ -422,7 +423,8 @@ function kstMonthDay(d: Date): string {
 // predictions(시즌 시뮬 요약)은 예측 지원 리그(PREDICTION_LEAGUE_SET)에만 — 아래 dataViewsAll 에서 거른다.
 const VIEW_KEYS = ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"] as const;
 // bracket 은 컵 전용이라 VIEW_KEYS(축구 리그 기본 탭)에 넣지 않는다.
-type ViewKey = (typeof VIEW_KEYS)[number] | "bracket";
+// players 는 국내 농구·배구(선수 사전 보유 리그) 전용이라 VIEW_KEYS 에 넣지 않는다.
+type ViewKey = (typeof VIEW_KEYS)[number] | "bracket" | "players";
 const VIEW_LABEL: Record<ViewKey, string> = {
   standings: "순위",
   predictions: "예측",
@@ -432,6 +434,7 @@ const VIEW_LABEL: Record<ViewKey, string> = {
   history: "역사",
   articles: "글",
   bracket: "대진표",
+  players: "선수",
 };
 
 // 컵 대회 — 1라운드부터 녹아웃이라 순위표·득점왕 집계·파워랭킹이 성립하지 않는다.
@@ -484,6 +487,17 @@ export async function generateMetadata({
     return { title: "Not Found" };
   }
   const info = buildLeagueInfo(upper);
+  // 선수 명단 탭 — 팀별 등록 선수 프로필 허브. "KBL 선수" 류 검색어에 맞춘 별도 제목.
+  if ((sp.view ?? "").toLowerCase() === "players" && DOMESTIC_PLAYER_LEAGUES.has(upper)) {
+    const title = `${info.name} 선수 명단`;
+    const description = `${info.name} 전 구단 등록 선수 명단. 팀별 프로필(등번호·포지션·키·나이)과 선수별 시즌 기록 페이지로 바로 이동.`;
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: { title, description, images: ogPageImage({ title, tag: upper }) },
+    };
+  }
   const type = (sp.type?.toUpperCase() ?? "ALL") as FilterType;
   const validType = VALID_TYPES.includes(type) ? type : "ALL";
   const titleSuffix =
@@ -662,11 +676,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     NBA: ["standings", "predictions", "fixtures", "history", "articles"],
     // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
     // KBL — 순위(공식 승률표)·선수 기록(공식 API 리더보드)·일정·역사(챔프전 우승)·글 (2026-09-18)
-    KBL: ["standings", "stats", "fixtures", "history", "articles"],
-    WKBL: ["standings", "stats", "fixtures", "history", "articles"],
+    // 선수 탭(2026-09-20) — 공식 등록 선수 사전을 팀별 명단으로, 선수 상세 진입 허브.
+    KBL: ["standings", "stats", "players", "fixtures", "history", "articles"],
+    WKBL: ["standings", "stats", "players", "fixtures", "history", "articles"],
     // V-리그 — 순위(ts 공식 표)·선수 기록(KOVO 공식)·일정·역사(챔프전 우승)·글 (2026-09-18)
-    V_LEAGUE: ["standings", "stats", "fixtures", "history", "articles"],
-    V_LEAGUE_W: ["standings", "stats", "fixtures", "history", "articles"],
+    V_LEAGUE: ["standings", "stats", "players", "fixtures", "history", "articles"],
+    V_LEAGUE_W: ["standings", "stats", "players", "fixtures", "history", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
     KBO: ["predictions", "power", "fixtures", "history", "articles"],
     MLB: ["predictions", "power", "fixtures", "history", "articles"],
@@ -992,6 +1007,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           ) : (
             <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
           )}
+        </div>
+      )}
+      {view === "players" && DOMESTIC_PLAYER_LEAGUES.has(upper) && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <DomesticLeaguePlayers league={upper as DomesticPlayerLeague} />
         </div>
       )}
       {view === "history" && (

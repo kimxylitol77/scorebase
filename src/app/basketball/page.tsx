@@ -189,14 +189,14 @@ export default async function BasketballHub() {
       name: "KBL",
       note: "국내 남자프로농구 · 데이터 수집 시작",
       top3: kblTop3,
-      links: [{ label: "순위", href: "/leagues/KBL" }],
+      links: [{ label: "순위", href: "/leagues/KBL" }, { label: "선수 기록", href: "/leagues/KBL?view=stats" }, { label: "선수 명단", href: "/leagues/KBL?view=players" }],
     },
     {
       code: "WKBL",
       name: "WKBL",
       note: "국내 여자프로농구 · 준비 중",
       top3: wkblTop3,
-      links: [{ label: "순위", href: "/leagues/WKBL" }],
+      links: [{ label: "순위", href: "/leagues/WKBL" }, { label: "선수 기록", href: "/leagues/WKBL?view=stats" }, { label: "선수 명단", href: "/leagues/WKBL?view=players" }],
     },
   ];
 

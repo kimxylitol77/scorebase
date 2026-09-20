@@ -39,3 +39,10 @@
 - [x] /players/{code}?league=V_LEAGUE(_W) (KovoViews 개요/시즌별/기록 상세) · 팀 로스터(세터/OH/OP/MB/리베로) · /leagues/V_LEAGUE(_W) 순위(VolleyballLeagueTable)·통계·일정·역사 · runKovo 리더보드 6부문 · 우승 연혁 남·여 20개
 - [x] 2026-27 신생 SOOP 소퍼스 = 페퍼저축은행 프랜차이즈(광주) → Team row 612685 이름·로고만 교체(ts id 유지)
 - 함정: 팀 페이지 제목 종목 판정이 SportType(배구 없음)에 의존 → teamIntentKeywords 에 배구 예외 · 리더보드 sport 파라미터 union 에 배구 없어 전체 실행 때만
+
+## H. 선수 명단 탭 (2026-09-20, "국내리그 선수페이지 만들자 농구 배구 남자 여자")
+- [x] components/leagues/DomesticLeaguePlayers.tsx — KBL·WKBL·V_LEAGUE·V_LEAGUE_W 공통. 정적 선수 사전(kbl/wkbl/kovo-players.json)을 팀별로 펼치고 Team row(로고·한글명)와 합쳐 렌더, 카드 → /players/{id}?league=
+- [x] /leagues/{리그}?view=players — ViewKey "players"·라벨 "선수", NON_SOCCER_VIEWS 4개 리그(순위·통계·선수·일정·역사·글), 메타 제목 "{리그} 선수 명단"
+- [x] 진입 링크 — /basketball KBL·WKBL 카드에 선수 기록·선수 명단, /other 배구 카드에 남자부·여자부 선수 명단
+- [x] 실렌더: KBL 10팀 170명 · WKBL 6팀 86명 · V-리그 남 7팀 120명 · 여 7팀 107명(SOOP 포함), 사진 lazy 로드 정상
+- 정정: V-리그 여자부 LEAGUE_INFO copy "8개 구단" → 7개(2026-27 도로공사·현대건설·GS·흥국·IBK·정관장·SOOP)
