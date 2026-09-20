@@ -1,10 +1,10 @@
 {
  "meta": {
-  "updatedAt": "2026-09-18T05:10:43.073Z",
+  "updatedAt": "2026-09-20T12:38:39.109Z",
   "teams": 22,
   "players": 630,
   "injuries": 0,
-  "injuriesCheckedAt": "2026-09-18T05:10:43.073Z"
+  "injuriesCheckedAt": "2026-09-20T12:38:39.109Z"
  },
  "players": {
   "23xmv0bgz0krg8n": {
@@ -1229,7 +1229,8 @@
    "natKo": "러시아",
    "no": 57,
    "teamTs": "6ypq3vb7267rd7o",
-   "teamId": 612806
+   "teamId": 612806,
+   "ko": "아르템 시베츠-로고보이"
   },
   "y39mp9bk86orojx": {
    "ko": "블라디슬라프 포디아폴스키",

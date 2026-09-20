@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-20T12:03:48.803Z",
+  "updatedAt": "2026-09-20T12:31:03.109Z",
   "season": "2025-26",
   "players": [
     {
@@ -69,20 +69,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Birmingham City",
-        "apps": 8,
-        "starts": 4,
-        "goals": 1,
-        "assists": 0,
-        "minutes": 378,
-        "rating": 6.47,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 357286,
@@ -151,24 +138,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Stoke City",
-        "apps": 5,
-        "starts": 3,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 293,
-        "rating": 6.24,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 197985,
-      "tsId": null,
+      "tsId": "y39mp1hjo87dmoj",
       "nameKo": "설영우",
       "nameEn": "Seol Young-Woo",
       "age": 27,
@@ -237,24 +211,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "FC Augsburg",
-        "apps": 4,
-        "starts": 0,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 48,
-        "rating": 6.25,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 237220,
-      "tsId": null,
+      "tsId": "8yomo4h2121pq0j",
       "nameKo": "이태석",
       "nameEn": "Lee Tae-Seok",
       "age": 23,
@@ -319,20 +280,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Austria Vienna",
-        "apps": 6,
-        "starts": 6,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 516,
-        "rating": 6.39,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 2910,
@@ -401,20 +349,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Alanyaspor",
-        "apps": 6,
-        "starts": 4,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 276,
-        "rating": 5.33,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 237050,
@@ -483,20 +418,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Swansea City",
-        "apps": 6,
-        "starts": 3,
-        "goals": 2,
-        "assists": 2,
-        "minutes": 294,
-        "rating": 7.19,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 397941,
@@ -569,24 +491,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Rangers F.C.",
-        "apps": 5,
-        "starts": 4,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 297,
-        "rating": 6.8,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 237218,
-      "tsId": null,
+      "tsId": "2y8m4zhg5g5yql0",
       "nameKo": "이한범",
       "nameEn": "Lee Han-Beom",
       "age": 23,
@@ -655,24 +564,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Club Brugge",
-        "apps": 6,
-        "starts": 6,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 540,
-        "rating": 7.08,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 34710,
-      "tsId": null,
+      "tsId": "3glrw7hj4nydqdy",
       "nameKo": "오현규",
       "nameEn": "Oh Hyeon-Gyu",
       "age": 24,
@@ -741,20 +637,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Besiktas JK",
-        "apps": 5,
-        "starts": 2,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 198,
-        "rating": 6.59,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 2906,
@@ -823,24 +706,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "1. FSV Mainz 05",
-        "apps": 4,
-        "starts": 4,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 266,
-        "rating": 6.53,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 304958,
-      "tsId": null,
+      "tsId": "4wyrn4h49374q86",
       "nameKo": "양현준",
       "nameEn": "Yang Hyun-Jun",
       "age": 23,
@@ -905,20 +775,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Celtic FC",
-        "apps": 5,
-        "starts": 5,
-        "goals": 2,
-        "assists": 0,
-        "minutes": 377,
-        "rating": 7.05,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 355171,
@@ -987,20 +844,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "FC Arouca",
-        "apps": 3,
-        "starts": 3,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 204,
-        "rating": 6.46,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 2897,
@@ -1069,20 +913,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "FC Bayern Munich",
-        "apps": 3,
-        "starts": 2,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 219,
-        "rating": 6.8,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 927,
@@ -1155,24 +986,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Atletico Madrid",
-        "apps": 6,
-        "starts": 5,
-        "goals": 2,
-        "assists": 1,
-        "minutes": 380,
-        "rating": 7.11,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 224669,
-      "tsId": null,
+      "tsId": "dj2ryohjldw8q1z",
       "nameKo": "이강희",
       "nameEn": "Lee Kang-Hee",
       "age": 24,
@@ -1237,20 +1055,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Austria Vienna",
-        "apps": 7,
-        "starts": 4,
-        "goals": 1,
-        "assists": 0,
-        "minutes": 451,
-        "rating": 6.39,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 24888,
@@ -1323,20 +1128,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Schalke 04",
-        "apps": 1,
-        "starts": 0,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 10,
-        "rating": 6.75,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 304972,
@@ -1409,24 +1201,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "SV Darmstadt 98",
-        "apps": 6,
-        "starts": 2,
-        "goals": 2,
-        "assists": 0,
-        "minutes": 231,
-        "rating": 6.82,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 34211,
-      "tsId": null,
+      "tsId": "zp5rzghzg9dzq82",
       "nameKo": "조규성",
       "nameEn": "Cho Gue-Sung",
       "age": 28,
@@ -1491,20 +1270,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Midtjylland",
-        "apps": 8,
-        "starts": 6,
-        "goals": 1,
-        "assists": 1,
-        "minutes": 514,
-        "rating": 6.52,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 356237,
@@ -1659,20 +1425,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "1. FC Union Berlin",
-        "apps": 4,
-        "starts": 2,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 205,
-        "rating": 5.96,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 423709,
@@ -1880,20 +1633,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "none",
-        "season": "2026-27",
-        "team": "Midtjylland",
-        "apps": 0,
-        "starts": 0,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 0,
-        "rating": null,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 364597,
@@ -2048,20 +1788,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026",
-        "team": "Los Angeles FC",
-        "apps": 25,
-        "starts": 23,
-        "goals": 6,
-        "assists": 10,
-        "minutes": 2024,
-        "rating": 7.16,
-        "yellow": 2,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 51103,
@@ -2130,20 +1857,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026",
-        "team": "Seattle Sounders",
-        "apps": 7,
-        "starts": 4,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 345,
-        "rating": 6.57,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 34598,
@@ -2216,24 +1930,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Nacional da Madeira",
-        "apps": 2,
-        "starts": 1,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 90,
-        "rating": 6.42,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 2901,
-      "tsId": null,
+      "tsId": "1l4rjnhz2lw3m7v",
       "nameKo": "황인범",
       "nameEn": "Hwang In-Beom",
       "age": 29,
@@ -2302,24 +2003,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "FC Porto",
-        "apps": 5,
-        "starts": 1,
-        "goals": 0,
-        "assists": 1,
-        "minutes": 164,
-        "rating": 6.73,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 237047,
-      "tsId": null,
+      "tsId": "x7lm7ph0jpwwm2w",
       "nameKo": "정상빈",
       "nameEn": "Jeong Sang-Bin",
       "age": 23,
@@ -2384,20 +2072,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026",
-        "team": "St. Louis City SC",
-        "apps": 19,
-        "starts": 14,
-        "goals": 2,
-        "assists": 1,
-        "minutes": 959,
-        "rating": 6.7,
-        "yellow": 1,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 137296,
@@ -2487,7 +2162,7 @@
     },
     {
       "afId": 423708,
-      "tsId": null,
+      "tsId": "y39mp1hy764emoj",
       "nameKo": "양민혁",
       "nameEn": "Yang Min-Hyeok",
       "age": 19,
@@ -2556,24 +2231,11 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "KVC Westerlo",
-        "apps": 2,
-        "starts": 0,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 50,
-        "rating": 6.56,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 308648,
-      "tsId": null,
+      "tsId": "ednm9whvvyn0ryo",
       "nameKo": "이영준",
       "nameEn": "Lee Young-Jun",
       "age": 22,
@@ -2638,20 +2300,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Grasshopper",
-        "apps": 6,
-        "starts": 2,
-        "goals": 2,
-        "assists": 1,
-        "minutes": 250,
-        "rating": 6.9,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 34708,
@@ -2802,20 +2451,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "played",
-        "season": "2026-27",
-        "team": "Crvena Zvezda",
-        "apps": 2,
-        "starts": 0,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 30,
-        "rating": 6.75,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 547433,
@@ -2888,20 +2524,7 @@
         "saves": null,
         "conceded": null
       },
-      "spells": null,
-      "current": {
-        "status": "none",
-        "season": "2026-27",
-        "team": "FC Arouca",
-        "apps": 0,
-        "starts": 0,
-        "goals": 0,
-        "assists": 0,
-        "minutes": 0,
-        "rating": null,
-        "yellow": 0,
-        "red": 0
-      }
+      "spells": null
     },
     {
       "afId": 423714,
@@ -2985,7 +2608,5 @@
         "red": 0
       }
     }
-  ],
-  "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-20T12:04:04.256Z"
+  ]
 }
