@@ -49,7 +49,7 @@ export default async function LeaguePage({ params }: { params: Promise<Params> }
         <LeagueChips active={lg.code} />
         <p className="sp-eyebrow mt-8">{lg.sport}</p>
         <h1 className="mt-1 text-3xl font-extrabold sm:text-5xl">{lg.name} predictions</h1>
-        <p className="mt-3 max-w-2xl" style={{ color: "var(--sp-fg-muted)" }}>Upcoming {lg.name} fixtures with model win probabilities. Standings, form and full analysis live on <a className="underline" href={`${SCOREBASE_EN}/predictions/${lg.code}`}>Scorebase</a>.</p>
+        <p className="mt-3 max-w-2xl" style={{ color: "var(--sp-fg-muted)" }}>Upcoming {lg.name} fixtures with model win probabilities. Standings, form and full analysis live on <a className="underline" href={`${SCOREBASE_EN}/predictions/${lg.code}`} target="_blank" rel="noopener noreferrer">Scorebase</a>.</p>
       </section>
       <section className="mb-10 grid gap-3 sm:grid-cols-3">
         {cells.map(([label, r]) => (

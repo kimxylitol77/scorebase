@@ -12,7 +12,7 @@ export default function SpFooter() {
         <nav aria-label="Footer" className="flex flex-wrap gap-4">
           <Link href="/methodology" className="hover:underline">Methodology</Link>
           <Link href="/about" className="hover:underline">About</Link>
-          <a href={SCOREBASE_EN} className="hover:underline" rel="noopener">
+          <a href={SCOREBASE_EN} className="hover:underline" target="_blank" rel="noopener noreferrer">
             Data &amp; full analysis by Scorebase
           </a>
         </nav>

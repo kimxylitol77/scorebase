@@ -34,7 +34,7 @@ export default function MethodologyPage() {
           </li>
         ))}
       </ol>
-      <p className="mt-8 text-sm" style={{ color: "var(--sp-fg-muted)" }}>Full benchmark notes, calibration curves and data sources are published on <a className="underline" href={`${SCOREBASE_EN}/benchmark/method`}>Scorebase</a>, which runs the models.</p>
+      <p className="mt-8 text-sm" style={{ color: "var(--sp-fg-muted)" }}>Full benchmark notes, calibration curves and data sources are published on <a className="underline" href={`${SCOREBASE_EN}/benchmark/method`} target="_blank" rel="noopener noreferrer">Scorebase</a>, which runs the models.</p>
     </>
   );
 }

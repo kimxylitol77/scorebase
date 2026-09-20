@@ -137,9 +137,9 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
           <div className="sp-card p-5 text-sm">
             <p className="sp-eyebrow mb-2">Go deeper on Scorebase</p>
             <div className="flex flex-col gap-1">
-              <a className="underline" href={`${SCOREBASE_EN}/teams/${m.home.id}`}>{m.home.name} team page</a>
-              <a className="underline" href={`${SCOREBASE_EN}/teams/${m.away.id}`}>{m.away.name} team page</a>
-              {lg && <a className="underline" href={`${SCOREBASE_EN}/predictions/${lg.code}`}>{lg.name} season projections</a>}
+              <a className="underline" href={`${SCOREBASE_EN}/teams/${m.home.id}`} target="_blank" rel="noopener noreferrer">{m.home.name} team page</a>
+              <a className="underline" href={`${SCOREBASE_EN}/teams/${m.away.id}`} target="_blank" rel="noopener noreferrer">{m.away.name} team page</a>
+              {lg && <a className="underline" href={`${SCOREBASE_EN}/predictions/${lg.code}`} target="_blank" rel="noopener noreferrer">{lg.name} season projections</a>}
             </div>
           </div>
         </div>

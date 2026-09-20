@@ -16,7 +16,7 @@ export default function AboutPage() {
         <h1 className="mt-1 text-3xl font-extrabold sm:text-5xl">Free predictions from a data site, not a tipster.</h1>
       </section>
       <div className="sp-card max-w-3xl p-6 text-sm leading-relaxed sm:p-8" style={{ color: "var(--sp-fg-muted)" }}>
-        <p>{SP_NAME} publishes the match predictions produced by <a className="underline" href={SCOREBASE_EN}>Scorebase</a>, a sports data and analysis site covering live scores, standings, player stats and AI projections for football, baseball, basketball and hockey leagues.</p>
+        <p>{SP_NAME} publishes the match predictions produced by <a className="underline" href={SCOREBASE_EN} target="_blank" rel="noopener noreferrer">Scorebase</a>, a sports data and analysis site covering live scores, standings, player stats and AI projections for football, baseball, basketball and hockey leagues.</p>
         <p className="mt-4">This site exists so English-speaking readers can see today&apos;s probabilities and the public accuracy record without the rest of the Korean-language site. Everything here is free and requires no account.</p>
         <p className="mt-4">We do not sell picks, take bets, run affiliate bonus offers or promise returns. A probability is an estimate of how often an outcome happens in similar situations. It can be wrong on any single match.</p>
         <p className="mt-4">Questions or data issues: contact Scorebase through the links on its site.</p>
