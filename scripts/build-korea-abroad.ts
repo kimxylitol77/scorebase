@@ -24,6 +24,13 @@ const OUT = path.join(__dirname, "..", "data", "korea-abroad.json");
 const MAP = path.join(__dirname, "..", "data", "ts-af-player-map.json");
 // 자동 매칭이 못 푼 한글명을 사람이 확정해 두는 파일. { "af 영문명": "한글명" }
 const MANUAL = path.join(__dirname, "..", "data", "korea-abroad-names.json");
+// af 국적이 틀리거나 비어 있어 국적 스캔이 놓치는 한국 선수(2026-09-20 실측 — 김민수 "Spain"·김예건 null)와,
+// af→ts 매핑이 없어 현재 시즌 기록이 안 붙는 선수의 ts id 보정. 키 = af player id.
+const INCLUDE_FILE = path.join(__dirname, "..", "data", "korea-abroad-include.json");
+const INCLUDE: Record<string, { name?: string; tsId?: string | null }> = fs.existsSync(INCLUDE_FILE)
+  ? JSON.parse(fs.readFileSync(INCLUDE_FILE, "utf8"))
+  : {};
+delete INCLUDE._note;
 
 // 대상 = 한국 선수가 뛰는(뛸 수 있는) 해외 리그. K리그는 해외파 정의상 제외.
 // season: 유럽 시즌제 = 2025(25-26) / 캘린더제(MLS·J리그) = 2026
@@ -463,11 +470,13 @@ async function main() {
       if (rows.length === 0 && page === 1) break;
       for (const row of rows) {
         const p = row.player;
-        if (!p?.nationality || !KOREA.has(p.nationality)) continue;
+        if (!p) continue;
+        const forced = p.id != null ? INCLUDE[String(p.id)] : undefined;
+        if (!forced && (!p.nationality || !KOREA.has(p.nationality))) continue;
         // 해당 리그 통계행만 (컵대회·대표팀 행 제외)
         const st = (row.statistics ?? []).find((s) => s?.league?.id === lg.afId) ?? row.statistics?.[0];
         if (!st) continue;
-        const tsId = afToTs[String(p.id)] ?? null;
+        const tsId = afToTs[String(p.id)] ?? forced?.tsId ?? null;
         found.push({
           afId: p.id ?? 0,
           tsId,

@@ -270,7 +270,7 @@ async function main() {
       if (r.player?.id && matchedTsIds.has(r.player.id)) continue;
       const key = nameKey(r.player?.name ?? "");
       if (data.players.some((p) => p.league === code && nameKey(p.nameEn) === key)) continue;
-      unknown.push(`${r.player?.name} (${code}, ${r.team?.name}, ${r.court ?? 0}출전)`);
+      unknown.push(`${r.player?.name} [ts ${r.player?.id}] (${code}, ${r.team?.name}, ${r.court ?? 0}출전)`);
     }
   }
 
@@ -290,7 +290,7 @@ async function main() {
     console.log(`개막했는데 기록 없는 선수 ${noneNames.length}명 — ${noneNames.join(" · ")}`);
   }
   if (unknown.length) {
-    console.log(`명단 밖 ts 한국 선수 ${unknown.length}명 — build-korea-abroad 다음 실행에서 편입 대상`);
+    console.log(`명단 밖 ts 한국 선수 ${unknown.length}명 — af 국적 스캔이 못 잡으면 data/korea-abroad-include.json 에 af id·ts id 등록`);
     for (const u of unknown.slice(0, 20)) console.log(`   ${u}`);
   }
 

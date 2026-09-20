@@ -1,0 +1,15 @@
+{
+  "_note": "af 국적이 틀리거나 비어 있어 국적 스캔이 놓치는 한국 선수 강제 편입 + af→ts id 보정. 키 = af player id. 후보는 refresh-korea-abroad-current 의 '명단 밖 ts 한국 선수' 로그([ts id] 표기). 근거 = ts nationality KOR.",
+  "397941": {
+    "name": "Minsu Kim (김민수, 지로나→레인저스 임대, af 국적 Spain 오기)",
+    "tsId": "4wyrn4hvo7vwq86"
+  },
+  "606918": {
+    "name": "Kim Ye-geon (김예건, 츠르베나 즈베즈다, af 국적 null)",
+    "tsId": "l5ergphnv36vr8k"
+  },
+  "547433": {
+    "name": "S. Park (박시후, 아로우카 — 국적은 맞지만 ts 매핑 없음)",
+    "tsId": "318q66hjp0p9qo9"
+  }
+}
