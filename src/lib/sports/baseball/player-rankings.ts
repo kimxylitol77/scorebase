@@ -4,6 +4,10 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { percentiles } from "@/lib/transfers/player-rankings";
 import { getKboSalaries } from "@/lib/sports/kbo-salaries";
+import npbNameIdsRaw from "../../../../data/npb-name-ids.json";
+
+// NPB 한자 이름+구단 → npb.jp id (scripts/build-npb-name-ids.ts, 주간). 시즌 성적엔 id 가 없어 이걸로 사진·상세·경기 로그를 잇는다.
+const NPB_NAME_IDS = (npbNameIdsRaw as { ids: Record<string, string> }).ids;
 
 export type BbLeague = "KBO" | "MLB" | "NPB";
 export type BbRole = "bat" | "pit";
@@ -185,7 +189,7 @@ async function fetchMlbRecentForm(season: number): Promise<Record<string, BbForm
   return out;
 }
 
-const stripJp = (s: string | null | undefined) => (s ?? "").replace(/[\s　*]/g, "");
+const stripJp = (s: string | null | undefined) => (s ?? "").replace(/[\s　*+]/g, "");
 
 export const getBbLeagueData = unstable_cache(
   async (league: BbLeague): Promise<BbLeagueData> => {
@@ -232,6 +236,10 @@ export const getBbLeagueData = unstable_cache(
       }
       logIdOf = (r) => {
         const full = stripJp(r.playerNameEn);
+        // 1순위: 로스터 사전(구단|한자) 직결 — 실측 731명 중 723명
+        const direct = NPB_NAME_IDS[`${r.teamName}|${full}`];
+        if (direct) return direct;
+        // 2순위(이적 등 사전 미등재): 경기 로그의 (구단, 성) 유일 매칭
         let hit: string | null = null;
         for (const [k, ids] of cand) {
           const [team, nm] = k.split("|");
@@ -252,6 +260,6 @@ export const getBbLeagueData = unstable_cache(
     const salaryCoverage = rows.filter((r) => r.salary != null).length;
     return { league, season, rows, form, salaryCoverage };
   },
-  ["baseball-rankings-league-data-v5"],
+  ["baseball-rankings-league-data-v6"],
   { revalidate: 6 * 3600, tags: ["baseball-rankings"] },
 );

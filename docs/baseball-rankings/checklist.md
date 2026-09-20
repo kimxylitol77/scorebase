@@ -19,4 +19,5 @@ KBO·MLB·NPB 시즌 성적(BaseballPlayerSeasonStats)으로 타자·투수 종�
 - 실측 함정: NPB 로그 이름이 성만 있어 팀+성 유일 매칭(98→더 많이), NPB 시즌 stats 의 games 가 일부 1 로 잘못 적재된 행 존재(수집 쪽 확인 필요)
 - [x] MLB 투수 수집 수정(2026-09-20, "MLB 투수는 수집 바로 수정해줘") — fetch-baseball-season-stats MLB 분기가 투수 지표를 upsertPlayer(타격 컬럼만 저장)에 spread 로 넘겨 era·ip 가 버려지던 것 → 타자 upsertPlayer / 투수 upsertPitcher 분리, 잡 수동 실행으로 즉시 적재, 랭킹 페이지의 MLB 투수 안내 제거
 - [x] MLB 폼(2026-09-20, "이것도 넣어줘") — 경기별 로그 대신 statsapi `stats?stats=byDateRange` 리그 전체 집계(타자·투수 각 1콜, 최근 14일)로 폼 산출, 라벨은 리그별 문구(formWindow), 캐시 키 v4, 연봉·허브 링크에 폼 추가
-- 범위 밖: 상승률(연봉 이력 1시즌), 트로피·계약·유망주(재료 없음), NPB 가성비(연봉 없음)
+- [x] NPB 채우기(2026-09-20, "npb도 채워줘") — 로스터 12팀에서 한자 이름+구단→npb.jp id 사전(data/npb-name-ids.json 842명, weekly) 을 만들어 시즌 성적 731명 중 723명 연결 → 사진·투수 상세 링크·경기 로그 폼을 id 로 직결(성 매칭은 폴백)
+- 범위 밖: 상승률(연봉 이력 1시즌), 트로피·계약·유망주(재료 없음), NPB 가성비 — NPB 는 연봉을 공식 발표하지 않고 언론 추정치(스포츠나비·baseball-data 등)뿐이라 넣지 않음(사용자 판단 대기)
