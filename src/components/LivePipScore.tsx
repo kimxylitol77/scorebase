@@ -629,19 +629,23 @@ export default function LivePipScore() {
         <ul className="space-y-1.5">
           {rows.map((m) => (
             <li key={m.id} className={`overflow-hidden rounded-md shadow-sm ${m.state === "done" ? "opacity-80" : ""}`}>
-              <div className="flex items-center bg-[#5b2a86] text-white">
+              {/* 좌우 같은 폭(1fr) 3칸 — 오른쪽 상태·✕ 폭만큼 글자가 왼쪽으로 밀리던 것을 바 전체 기준 가운데로 */}
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center bg-[#5b2a86] text-white">
+                <span aria-hidden />
                 {/* 리그명만 줄어들고 "스코어베이스"는 항상 보이게 — 한 덩어리로 truncate 하면 브랜드부터 잘렸다 */}
                 <button
                   type="button"
                   onClick={toggleBrand}
                   title={pipBrand ? "스코어베이스 표기 끄기" : "스코어베이스 표기 켜기"}
-                  className={`flex min-w-0 flex-1 items-center justify-center gap-1 px-1.5 font-semibold tracking-wide ${size === "lg" ? "py-1 text-[12px]" : "py-0.5 text-[10px]"}`}
+                  className={`flex min-w-0 items-center justify-center gap-1 px-1.5 font-semibold tracking-wide ${size === "lg" ? "py-1 text-[12px]" : "py-0.5 text-[10px]"}`}
                 >
                   <span className="min-w-0 truncate">{LEAGUE_DISPLAY[m.league] ?? m.league}{m.round ? ` ${m.round}R` : ""}</span>
                   {pipBrand && <span className="shrink-0 whitespace-nowrap text-white/90">· 스코어베이스</span>}
                 </button>
-                <span className={`shrink-0 pr-1 font-semibold tabular-nums ${size === "lg" ? "text-[11px]" : "text-[9px]"} ${m.state === "live" ? "text-emerald-300" : "text-white/70"}`}>{m.statusLabel}</span>
-                <UnfavButton onClick={() => unfavorite(m.id)} dark />
+                <span className="flex min-w-0 items-center justify-end">
+                  <span className={`truncate pr-1 font-semibold tabular-nums ${size === "lg" ? "text-[11px]" : "text-[9px]"} ${m.state === "live" ? "text-emerald-300" : "text-white/70"}`}>{m.statusLabel}</span>
+                  <UnfavButton onClick={() => unfavorite(m.id)} dark />
+                </span>
               </div>
               <div className="grid grid-cols-[1fr_auto_auto_1fr] items-stretch bg-[#4a1f70] text-white">
                 <span className={`truncate self-center px-2 text-right font-bold ${size === "lg" ? "py-1.5 text-base" : "py-1 text-[13px]"}`}>{m.home}</span>
