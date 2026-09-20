@@ -1,6 +1,7 @@
 // 야구 해외파(MLB·마이너) 한국 선수 — 명단은 data/baseball-korea.json(주간 빌드), 시즌 성적·최근 경기는 MLB Stats API 런타임 3h 캐시.
 import { unstable_cache } from "next/cache";
 import raw from "../../../data/baseball-korea.json";
+import manualRaw from "../../../data/baseball-korea-manual.json";
 
 export interface BaseballKoreaPlayer {
   id: number; nameEn: string; nameKo: string; pos: string | null; posType: string | null; age: number | null; birthDate: string | null;
@@ -97,3 +98,7 @@ export const getBaseballKoreaSeasons = unstable_cache(
 export function mlbClubOf(p: BaseballKoreaPlayer): string | null {
   return p.sportId === 1 ? p.team.name || null : p.team.parentOrg;
 }
+
+/** 수동 명단(NPB 등) — data/baseball-korea-manual.json. 비어 있으면 페이지가 해당 구간을 숨긴다. */
+export interface ManualNpbPlayer { npbId?: string; nameKo: string; nameEn: string; team: string; pos: string; status?: string; note?: string }
+export const BASEBALL_KOREA_NPB_MANUAL: ManualNpbPlayer[] = (manualRaw as { npb?: ManualNpbPlayer[] }).npb ?? [];

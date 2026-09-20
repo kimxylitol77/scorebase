@@ -18,3 +18,4 @@
 - [x] mac-mini weekly-static-refresh.sh 에 명단 재빌드 추가
 - [x] tsc·eslint, dev 실렌더(14명, 다음 경기 6·최근 경기 18행), 커밋 be8fecc·배포·프로덕션 200 확인
 - [x] 메모리(baseball-korea-and-rankings)
+- [x] NPB 수동 명단 슬롯(data/baseball-korea-manual.json, 비면 숨김) — 2026 한국 국적 NPB 선수 없음 확인, 항목 0

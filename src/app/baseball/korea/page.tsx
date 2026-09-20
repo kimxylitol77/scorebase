@@ -12,8 +12,9 @@ import { SITE_URL } from "@/lib/site-url";
 import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
 import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
 import {
-  BASEBALL_KOREA_PLAYERS, BASEBALL_KOREA_META, getBaseballKoreaSeasons, mlbClubOf, type BaseballKoreaPlayer, type PlayerSeason,
+  BASEBALL_KOREA_PLAYERS, BASEBALL_KOREA_META, BASEBALL_KOREA_NPB_MANUAL, getBaseballKoreaSeasons, mlbClubOf, type BaseballKoreaPlayer, type PlayerSeason,
 } from "@/lib/sports/baseball-korea";
+import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
 
 export const revalidate = 3600;
 
@@ -162,6 +163,13 @@ export default async function BaseballKoreaPage() {
   const teamKo = (t: { name: string; nameKo: string | null }) => toKoreanTeamName(t.name, "MLB") || t.nameKo || t.name;
   const clubTeam = (p: BaseballKoreaPlayer) => { const c = mlbClubOf(p); return c ? teamByName.get(c) : undefined; };
 
+  // NPB 수동 명단 — 성적은 NPB 시즌 성적 테이블에서 이름(공백 제거)·구단으로 찾는다
+  const npbManual = BASEBALL_KOREA_NPB_MANUAL;
+  const strip = (x: string | null | undefined) => (x ?? "").replace(/[\s\u3000*]/g, "");
+  const npbStats = npbManual.length
+    ? await prisma.baseballPlayerSeasonStats.findMany({ where: { league: "NPB", season: String(SEASON), teamName: { in: [...new Set(npbManual.map((m) => m.team))] } } })
+    : [];
+  const npbStatOf = (m: (typeof npbManual)[number]) => npbStats.find((r) => r.teamName === m.team && (strip(r.playerNameEn) === strip(m.nameEn) || r.playerName === m.nameKo));
   const majors = players.filter((p) => p.sportId === 1);
   const minors = players.filter((p) => p.sportId !== 1);
   const featured = [...majors, ...minors.filter((p) => p.onFortyMan)];
@@ -258,6 +266,50 @@ export default async function BaseballKoreaPage() {
       <Table rows={majors} title="메이저리그" seasons={seasons} clubOf={clubTeam} />
       <Table rows={minors} title="마이너리그" seasons={seasons} clubOf={clubTeam} note="현재 소속 레벨의 시즌 성적입니다. 같은 시즌에 여러 레벨을 오간 선수는 현재 레벨 기록만 표시합니다." />
 
+      {npbManual.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-bold text-neutral-900 dark:text-white">일본프로야구 <span className="text-neutral-400 font-normal">{npbManual.length}명 · 수동 명단</span></h2>
+          <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-[11px] text-neutral-500 dark:bg-white/[0.03]">
+                <tr><th className="px-3 py-2 text-left font-semibold">선수</th><th className="px-2 py-2 text-left font-semibold">구단 · 신분</th><th className="px-2 py-2 text-left font-semibold">포지션</th><th className="px-2 py-2 text-right font-semibold">{SEASON} 시즌</th></tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                {npbManual.map((m) => {
+                  const st = npbStatOf(m);
+                  const photo = m.npbId ? npbPlayerPhoto(m.npbId) : undefined;
+                  const href = m.npbId && m.pos.includes("투수") ? `/players/${m.npbId}?league=NPB` : null;
+                  const line = !st ? "기록 없음"
+                    : st.era != null ? `${st.games ?? 0}경기 ERA ${st.era.toFixed(2)} · ${st.so ?? 0}K · ${st.wins ?? 0}승${st.saves ? ` ${st.saves}세` : ""}`
+                      : `${st.games ?? 0}경기 · ${st.avg?.toFixed(3) ?? "-"} · ${st.homeRuns ?? 0}홈런 ${st.rbi ?? 0}타점 · OPS ${st.ops?.toFixed(3) ?? "-"}`;
+                  return (
+                    <tr key={m.nameKo + m.team}>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="h-8 w-8 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center">
+                            {photo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={photo} alt="" className="h-full w-full object-cover" loading="lazy" />
+                            ) : <span className="text-xs font-bold text-neutral-500">{m.nameKo.slice(0, 1)}</span>}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold truncate">{href ? <Link href={href} className="hover:underline underline-offset-4">{m.nameKo}</Link> : m.nameKo}</div>
+                            <div className="text-[11px] text-neutral-500 truncate">{m.nameEn}{m.note ? ` · ${m.note}` : ""}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 text-xs">{m.team}{m.status ? ` · ${m.status}` : ""}</td>
+                      <td className="px-2 py-2 text-xs text-neutral-600 dark:text-neutral-300">{m.pos}</td>
+                      <td className="px-2 py-2 text-right text-xs tabular-nums">{line}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {recentRows.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-neutral-900 dark:text-white">소속 구단 최근 경기</h2>
@@ -279,7 +331,7 @@ export default async function BaseballKoreaPage() {
         </section>
       )}
       <p className="text-xs text-neutral-500">
-        출처 MLB Stats API(statsapi.mlb.com). 명단 갱신 {BASEBALL_KOREA_META.updatedAt.slice(0, 10)}. NPB 한국 선수는 공식 국적 데이터가 없어 이 페이지에 포함하지 않습니다.
+        출처 MLB Stats API(statsapi.mlb.com). 명단 갱신 {BASEBALL_KOREA_META.updatedAt.slice(0, 10)}. NPB 는 공식 국적 데이터가 없어 수동 명단으로 관리하며, {SEASON}년 기준 한국 국적 NPB 선수는 없습니다.
       </p>
     </main>
   );

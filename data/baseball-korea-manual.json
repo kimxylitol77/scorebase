@@ -1,0 +1,4 @@
+{
+ "_readme": "NPB 등 출생국 API 가 없는 리그의 한국 선수 수동 명단. 항목: npbId(npb.jp 선수 id, 있으면 사진·투수 상세 링크), nameKo, nameEn(공식 표기, 성적 매칭용 — BaseballPlayerSeasonStats.playerNameEn 과 공백 제거 비교), team(한글 구단명, 성적 테이블 teamName 과 동일 표기), pos(투수·내야수 등), status(1군·2군·육성), note. 2026-09-20 기준 한국 국적 NPB 선수 없음(2016 년 이후 1군 무).",
+ "npb": []
+}
