@@ -743,19 +743,25 @@ export default function LivePipScore() {
     </div>
   );
 
-  // 헤더 숨김 상태(2026-09-21 사용자: "마우스 가지고 가면 나오게") — 평소엔 얇은 잡이만, 카드에 마우스를 올리면
-  // 헤더가 위에 겹쳐 나타난다(group-hover). 터치 기기는 잡이를 탭하면 토글.
+  // 헤더 숨김 상태(2026-09-21 사용자 요청) — 스코어보드만 남기고 메뉴 줄을 없앤다.
+  //   인페이지 카드: 얇은 잡이(드래그)만 남고 카드에 마우스를 올리면 헤더가 겹쳐 나온다.
+  //   분리 창(밖으로): 창 전체가 카드라 아무 데나 올려도 메뉴가 떠서 "안 숨겨진다"고 보였다 →
+  //   맨 위 얇은 띠(strip)에 마우스를 올릴 때만 겹쳐 나온다. 터치 기기는 띠를 탭하면 복원.
   const hiddenBar = (isDocMode: boolean) => (
-    <div className="relative">
+    <div className="group/strip relative">
       <div
         onPointerDown={isDocMode ? undefined : onDragStart}
         onClick={() => { if (window.matchMedia?.("(hover: none)").matches) setHeader(true); }}
-        title="마우스를 올리면 헤더가 나옵니다"
+        title="맨 위 띠에 마우스를 올리면 메뉴가 나옵니다"
         className={`flex h-3 items-center justify-center rounded-t-2xl ${isDocMode ? "" : "cursor-grab active:cursor-grabbing"}`}
       >
-        <span className="h-1 w-8 rounded-full bg-neutral-200 dark:bg-neutral-700" aria-hidden />
+        <span className="h-1 w-8 rounded-full bg-neutral-200/70 dark:bg-neutral-700/70" aria-hidden />
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
+      <div
+        className={`pointer-events-none absolute inset-x-0 top-0 z-20 opacity-0 transition-opacity duration-150 focus-within:pointer-events-auto focus-within:opacity-100 group-hover/strip:pointer-events-auto group-hover/strip:opacity-100 ${
+          isDocMode ? "" : "group-hover:pointer-events-auto group-hover:opacity-100"
+        }`}
+      >
         {header(isDocMode, true)}
       </div>
     </div>
