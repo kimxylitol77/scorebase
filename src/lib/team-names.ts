@@ -4637,8 +4637,12 @@ export function koTeamNameToEnglish(ko: string): string | null {
 
 export function searchTeamNamesByKo(q: string, limit = 30): string[] {
   const out: string[] = [];
+  // 띄어쓰기 무시 — 챗봇 질의 "레알마드리드"·"고어헤드이글" 이 사전의 "레알 마드리드"·"고 어헤드 이글스" 와
+  //  안 맞아 0건이었다(2026-09-20 로그). 양쪽 공백을 지우고 비교한다.
+  const needle = q.replace(/\s+/g, "");
+  if (!needle) return out;
   for (const [en, ko] of Object.entries(RAW)) {
-    if (ko.includes(q)) {
+    if (ko.replace(/\s+/g, "").includes(needle)) {
       out.push(en);
       if (out.length >= limit) break;
     }

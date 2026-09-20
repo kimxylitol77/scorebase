@@ -9,7 +9,7 @@ import { sendTelegram } from "@/lib/notify/telegram";
 import { toKoreanTeamName, searchTeamNamesByKo } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
-import { ALL_LEAGUES, SOCCER_LEAGUES as SOCCER_LEAGUES_ALL } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LEAGUE_DISPLAY, SOCCER_LEAGUES as SOCCER_LEAGUES_ALL } from "@/lib/sports/sport-leagues";
 import { CATEGORIES_BY_LEAGUE, LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
 import { calcStandings } from "@/lib/predict/standings";
@@ -54,9 +54,23 @@ function normalizeLeague(input?: string): League | undefined {
     프로야구: "KBO",
     일본프로야구: "NPB",
     메이저리그: "MLB",
+    미국야구: "MLB",
+    미국_야구: "MLB",
+    미국프로야구: "MLB",
+    일본야구: "NPB",
+    일본_야구: "NPB",
+    한국야구: "KBO",
+    한국_야구: "KBO",
   };
   if (map[u]) return map[u];
-  return (ALLOWED_LEAGUES as readonly string[]).includes(u) ? (u as League) : undefined;
+  if ((ALLOWED_LEAGUES as readonly string[]).includes(u)) return u as League;
+  // 표시명("K리그 1", "세리에 A", "분데스리가 2" …)으로도 받는다 — 모델이 코드 대신 한글 리그명을
+  //  넘기면 필터가 통째로 실패해 "데이터 없음" 으로 나갔다(2026-09-16 "미국 야구" → MLB 0건 로그).
+  const compact = u.replace(/_/g, "");
+  for (const [code, label] of Object.entries(LEAGUE_DISPLAY)) {
+    if (label.replace(/\s+/g, "").toUpperCase() === compact) return code as League;
+  }
+  return undefined;
 }
 
 // KST(UTC+9) 기준 오늘 0시 ~ 다음 0시를 UTC Date 로 환산.
@@ -467,6 +481,10 @@ const TEAM_NICKNAMES: Record<string, string> = {
   뮌헨: "Bayern Munich",
   돌문: "Borussia Dortmund",
   아틀레티코: "Atletico Madrid",
+  // 커뮤니티 표기 — 2026-09-20 로그 "at마드리드 대 레알마드리드" 를 못 찾았다.
+  at마드리드: "Atletico Madrid",
+  AT마드리드: "Atletico Madrid",
+  알레티: "Atletico Madrid",
 };
 
 /**
@@ -493,11 +511,13 @@ async function findMatch(teamsRaw: string): Promise<string> {
       ...(TEAM_NICKNAMES[tok] ? [TEAM_NICKNAMES[tok]] : []),
       ...searchTeamNamesByKo(tok, 12),
     ];
+    // 한글 토큰도 DB name 부분일치를 건다 — NPB·KBO·K리그 Team.name 자체가 한글("요미우리 자이언츠")이라
+    //  사전(RAW)만 보면 0건이었다(2026-09-18 "요미우리 주니치" 로그). 영문 토큰은 기존대로.
     const rows = await prisma.team.findMany({
       where: {
         OR: [
           ...(en.length ? [{ name: { in: en } }] : []),
-          ...(/^[a-zA-Z]/.test(tok) ? [{ name: { contains: tok, mode: "insensitive" as const } }] : []),
+          { name: { contains: tok, mode: "insensitive" as const } },
         ],
       },
       select: { id: true },
@@ -852,11 +872,19 @@ async function getTopPicks(leagueRaw?: string): Promise<string> {
   //  방지(2026-09-10 KBO 54.2% 를 "Strong Pick TOP 6" 으로 낸 로그). 표시가 있는 줄만 Strong Pick.
   const strongCount = ranked.filter((r) => r.strong).length;
   const header = `Strong Pick 판정 기준: 리그별 임계(기본 65% · MLB 58% · NPB 56% · NBA 75%). 아래 ${ranked.length}경기 중 "(Strong Pick)" 표시가 붙은 ${strongCount}경기만 Strong Pick 이고 나머지는 확률 순 후보일 뿐이다.`;
+  // 오버언더·핸디캡도 같이 준다 — "핸디캡 언오버 포함" 요청에 "상세 페이지에서 보라" 로만 답하던 것(2026-09-14 로그).
+  const extra = (m: (typeof ranked)[number]["m"]) => {
+    const parts: string[] = [];
+    if (m.predOverPick && m.predOverProb != null) parts.push(`OU: ${m.predOverPick} ${pct(m.predOverProb)}`);
+    if (m.predHcPick && m.predHcProb != null)
+      parts.push(`핸디: ${m.predHcPick === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league) : toKoreanTeamName(m.awayTeam.name, m.league)} ${m.predHcLine != null ? (m.predHcLine > 0 ? "+" : "") + m.predHcLine : ""} ${pct(m.predHcProb)}`);
+    return parts.length ? ` · ${parts.join(" · ")}` : "";
+  };
   return [
     header,
     ...ranked.map(
       ({ m, top, strong, pickName }) =>
-        `${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${pickName} ${pct(top)}${strong ? " (Strong Pick)" : ""} · ${matchUrl(m.league, m.externalId)}`,
+        `${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${pickName} ${pct(top)}${strong ? " (Strong Pick)" : ""}${extra(m)} · ${matchUrl(m.league, m.externalId)}`,
     ),
   ].join("\n");
 }
