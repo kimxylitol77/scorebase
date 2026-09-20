@@ -194,13 +194,14 @@ export const getBbLeagueData = unstable_cache(
       key: s.externalId ?? `${s.playerName}|${s.teamName}`,
       externalId: s.externalId, name: s.playerName, nameEn: s.playerNameEn, team: s.teamName, games: s.games ?? 0,
       avg: s.avg, hits: s.hits, hr: s.homeRuns, rbi: s.rbi, ops: s.ops,
-      era: s.era, whip: s.whip, ip: s.ip, so: s.so, w: s.wins, l: s.losses, sv: s.saves,
+      // MLB 는 이닝을 야구 표기 그대로(166.1 = 166⅓) 저장하고 KBO·NPB 는 소수(72.667)로 저장한다 — 소수로 통일
+      era: s.era, whip: s.whip, ip: s.ip == null ? null : league === "MLB" ? ipToNumber(s.ip.toFixed(1)) : s.ip, so: s.so, w: s.wins, l: s.losses, sv: s.saves,
       salary: salByName.get(league === "MLB" ? (s.playerNameEn ?? s.playerName) : s.playerName) ?? null,
       logId: logIdOf(s),
     }));
     const salaryCoverage = rows.filter((r) => r.salary != null).length;
     return { league, season, rows, form, salaryCoverage };
   },
-  ["baseball-rankings-league-data-v1"],
+  ["baseball-rankings-league-data-v3"],
   { revalidate: 6 * 3600, tags: ["baseball-rankings"] },
 );

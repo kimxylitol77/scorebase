@@ -319,37 +319,17 @@ async function runMlb(season: string) {
         // 타석도 이닝도 없으면 이번 시즌 기록이 없는 선수 — 넣어봐야 분모만 흐린다
         if (ab <= 0 && !(ip && ip > 0)) continue;
         const nameKo = toKoreanPlayerName(person.fullName) || person.fullName;
-        await upsertPlayer({
-          league: "MLB",
-          season,
-          teamName,
-          playerName: nameKo,
-          playerNameEn: person.fullName,
-          externalId: person.id ? String(person.id) : undefined,
-          // 타자 지표 — 타석 있는 선수만
-          ...(ab > 0
-            ? {
-                avg: flt(h?.avg),
-                hits: int(h?.hits),
-                rbi: int(h?.rbi),
-                ops: flt(h?.ops),
-                homeRuns: int(h?.homeRuns),
-              }
-            : {}),
-          // 투수 지표 — 이닝 있는 선수만
-          ...(ip && ip > 0
-            ? {
-                ip,
-                era: flt(p?.era),
-                whip: flt(p?.whip),
-                so: int(p?.strikeOuts),
-                wins: int(p?.wins),
-                losses: int(p?.losses),
-                saves: int(p?.saves),
-              }
-            : {}),
-          games: int(h?.gamesPlayed ?? p?.gamesPlayed),
-        });        summary.players++;
+        const base = { league: "MLB", season, teamName, playerName: nameKo, playerNameEn: person.fullName, externalId: person.id ? String(person.id) : undefined };
+        // 타자 지표 — 타석 있는 선수만. 투수 지표는 upsertPitcher 로 따로 써야 한다 —
+        // 예전엔 한 객체에 spread 해 upsertPlayer 에 넘겼는데 그 함수는 타격 컬럼만 저장해
+        // MLB 투수 행이 era·ip 없이 사라졌다(2026-09-20 실측 era 행 0건). 투타겸업은 두 번 upsert(컬럼 불가침).
+        if (ab > 0) {
+          await upsertPlayer({ ...base, avg: flt(h?.avg), hits: int(h?.hits), rbi: int(h?.rbi), ops: flt(h?.ops), homeRuns: int(h?.homeRuns), games: int(h?.gamesPlayed) });
+        }
+        if (ip && ip > 0) {
+          await upsertPitcher({ ...base, ip, era: flt(p?.era), whip: flt(p?.whip), so: int(p?.strikeOuts), wins: int(p?.wins), losses: int(p?.losses), saves: int(p?.saves), games: int(p?.gamesPlayed) });
+        }
+        summary.players++;
       }
     } catch (err) {
       console.warn(`[bb-season/mlb] roster ${tid}`, (err as Error).message);

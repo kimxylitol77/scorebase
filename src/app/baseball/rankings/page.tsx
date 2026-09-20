@@ -116,8 +116,7 @@ export default async function BaseballRankingsPage({ searchParams }: { searchPar
   const unavailable =
     view === "bargain" && league === "NPB" ? "NPB 는 연봉 데이터가 없어 가성비 랭킹을 만들 수 없습니다."
       : view === "form" && league === "MLB" ? "MLB 는 경기별 기록을 수집하지 않아 폼 랭킹이 없습니다."
-        : view === "power" && role === "pit" && league === "MLB" ? "MLB 투수 시즌 성적이 아직 적재되지 않았습니다(수집 잡 보완 예정)."
-          : null;
+        : null;
   const subtitle = view === "power"
     ? role === "bat" ? `OPS·홈런·타점·타율·안타 리그 백분위 합성 100점 · 최다 출장의 ${POWER_MIN_GAMES_RATIO * 100}% 이상 출장 · ${total}명`
       : `ERA·WHIP·탈삼진·이닝·승+세이브 백분위 합성 100점 · ${POWER_MIN_IP}이닝 이상 · ${total}명`
