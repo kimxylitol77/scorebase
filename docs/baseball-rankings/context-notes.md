@@ -4,3 +4,4 @@
 - 가성비 = 종합 − 연봉 백분위(리그 내 log 연봉). 이름 매칭은 KBO 한글명 exact, MLB 영문명 exact.
 - 폼 = 타자 최근 10경기 OPS(25타수 이상), 투수 최근 5등판 ERA(10이닝 이상). KBO 로그엔 HBP 가 없어 OBP 분모는 AB+BB 로 근사.
 - 선수 링크: KBO /players/{kboId}?league=KBO, MLB /players/{mlbamId}, NPB 는 투수만 /players/{npbId}?league=NPB(타자 상세 없음). 사진은 MLB headshot 만.
+- MLB 폼은 '최근 N경기'가 아니라 '최근 14일' — byDateRange 가 선수별 경기 수를 잘라주지 않아 기간으로 통일. 컷(25타수·10이닝)은 KBO·NPB 와 같다. 투타겸업은 타자·투수 split 을 한 항목에 합친다.

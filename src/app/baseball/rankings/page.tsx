@@ -8,7 +8,7 @@ import { RankDelta } from "@/app/transfers/PlayerRankingTable";
 import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
 import {
   BB_LEAGUES, getBbLeagueData, computeBatPower, computePitPower, computeBbBargain, computeBbForm,
-  POWER_MIN_GAMES_RATIO, POWER_MIN_IP, FORM_BAT_GAMES, FORM_BAT_MIN_AB, FORM_PIT_GAMES, FORM_PIT_MIN_IP,
+  POWER_MIN_GAMES_RATIO, POWER_MIN_IP, FORM_BAT_GAMES, FORM_BAT_MIN_AB, FORM_PIT_GAMES, FORM_PIT_MIN_IP, MLB_FORM_DAYS,
   type BbLeague, type BbRole, type BbPlayerRow, type BbForm,
 } from "@/lib/sports/baseball/player-rankings";
 import { kstToday, writeRankSnapshot, getRankBaseline, baselineRankMap, prevRankOf } from "@/lib/transfers/rank-snapshots";
@@ -24,6 +24,9 @@ const VIEW_KO: Record<View, string> = { power: "종합", bargain: "가성비", f
 const ROLE_KO: Record<BbRole, string> = { bat: "타자", pit: "투수" };
 type SP = { league?: string; view?: string; role?: string; page?: string };
 
+/** 폼 창 문구 — KBO·NPB 는 경기 수, MLB 는 기간 집계. */
+const formWindow = (league: BbLeague, role: BbRole) =>
+  league === "MLB" ? `최근 ${MLB_FORM_DAYS}일` : role === "bat" ? `최근 ${FORM_BAT_GAMES}경기` : `최근 ${FORM_PIT_GAMES}등판`;
 function parse(sp: SP) {
   const league = (BB_LEAGUES as string[]).includes(sp.league ?? "") ? (sp.league as BbLeague) : "KBO";
   const view = (VIEWS as readonly string[]).includes(sp.view ?? "") ? (sp.view as View) : "power";
@@ -50,7 +53,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const description = view === "power"
     ? `${lg} ${ROLE_KO[role]}를 ${role === "bat" ? "OPS·홈런·타점·타율·안타" : "ERA·WHIP·탈삼진·이닝·승과 세이브"} 리그 백분위로 합성한 100점 종합 지수 랭킹 — 스코어베이스 야구.`
     : view === "bargain" ? `${lg} ${ROLE_KO[role]} 종합 지수에서 연봉 백분위를 뺀 가성비 랭킹. 몸값 대비 성과가 높은 선수 — 스코어베이스 야구.`
-      : `${lg} ${ROLE_KO[role]}의 최근 ${role === "bat" ? `${FORM_BAT_GAMES}경기 OPS` : `${FORM_PIT_GAMES}등판 ERA`} 랭킹과 시즌 대비 변화 — 스코어베이스 야구.`;
+      : `${lg} ${ROLE_KO[role]}의 ${formWindow(league, role)} ${role === "bat" ? "OPS" : "ERA"} 랭킹과 시즌 대비 변화 — 스코어베이스 야구.`;
   return { title, description, alternates: { canonical: url({ league, view, role }) }, openGraph: { title, description } };
 }
 
@@ -115,14 +118,13 @@ export default async function BaseballRankingsPage({ searchParams }: { searchPar
 
   const unavailable =
     view === "bargain" && league === "NPB" ? "NPB 는 연봉 데이터가 없어 가성비 랭킹을 만들 수 없습니다."
-      : view === "form" && league === "MLB" ? "MLB 는 경기별 기록을 수집하지 않아 폼 랭킹이 없습니다."
         : null;
   const subtitle = view === "power"
     ? role === "bat" ? `OPS·홈런·타점·타율·안타 리그 백분위 합성 100점 · 최다 출장의 ${POWER_MIN_GAMES_RATIO * 100}% 이상 출장 · ${total}명`
       : `ERA·WHIP·탈삼진·이닝·승+세이브 백분위 합성 100점 · ${POWER_MIN_IP}이닝 이상 · ${total}명`
     : view === "bargain" ? `종합 지수 − 연봉 백분위 · 값이 클수록 연봉 대비 성과가 높음 · 연봉 매칭 ${data.salaryCoverage}명 중 자격 ${total}명`
-      : role === "bat" ? `최근 ${FORM_BAT_GAMES}경기 OPS 높은 순 · ${FORM_BAT_MIN_AB}타수 이상 · 시즌 OPS 대비 변화 병기 · ${total}명`
-        : `최근 ${FORM_PIT_GAMES}등판 ERA 낮은 순 · ${FORM_PIT_MIN_IP}이닝 이상 · 시즌 ERA 대비 변화 병기 · ${total}명`;
+      : role === "bat" ? `${formWindow(league, role)} OPS 높은 순 · ${FORM_BAT_MIN_AB}타수 이상 · 시즌 OPS 대비 변화 병기 · ${total}명`
+        : `${formWindow(league, role)} ERA 낮은 순 · ${FORM_PIT_MIN_IP}이닝 이상 · 시즌 ERA 대비 변화 병기 · ${total}명`;
   const chip = (on: boolean) => `px-3.5 py-1.5 rounded-full text-sm font-bold border transition ${on ? "bg-cyan-600 text-white border-cyan-600" : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"}`;
   const sub = (on: boolean) => `px-2.5 py-1 rounded-full text-xs font-semibold border transition ${on ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white" : "border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"}`;
 
@@ -167,7 +169,7 @@ export default async function BaseballRankingsPage({ searchParams }: { searchPar
             <div className="w-12 text-center shrink-0">순위</div>
             <div className="flex-1 min-w-0">선수</div>
             <div className="w-72 shrink-0">이번 시즌</div>
-            <div className="w-44 shrink-0 text-right">{view === "power" ? "종합 지수" : view === "bargain" ? "가성비 · 연봉" : role === "bat" ? `최근 ${FORM_BAT_GAMES}경기 OPS` : `최근 ${FORM_PIT_GAMES}등판 ERA`}</div>
+            <div className="w-44 shrink-0 text-right">{view === "power" ? "종합 지수" : view === "bargain" ? "가성비 · 연봉" : `${formWindow(league, role)} ${role === "bat" ? "OPS" : "ERA"}`}</div>
           </div>
           {rows.map((p) => (
             <div key={p.key} className="flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">

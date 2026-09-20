@@ -412,6 +412,7 @@ export default async function BaseballHub() {
               { l: "KBO 투수 종합", h: "/baseball/rankings?role=pit" },
               { l: "KBO 가성비", h: "/baseball/rankings?view=bargain" },
               { l: "MLB 타자 종합", h: "/baseball/rankings?league=MLB" },
+              { l: "MLB 폼(최근 14일)", h: "/baseball/rankings?league=MLB&view=form" },
               { l: "NPB 폼(최근 10경기)", h: "/baseball/rankings?league=NPB&view=form" },
             ].map((x) => (
               <li key={x.h}><Link href={x.h} className="hover:underline hover:text-rose-600 dark:hover:text-rose-400">{x.l}</Link></li>

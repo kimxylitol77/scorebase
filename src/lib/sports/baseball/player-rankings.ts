@@ -46,6 +46,7 @@ export const FORM_BAT_GAMES = 10;
 export const FORM_BAT_MIN_AB = 25;
 export const FORM_PIT_GAMES = 5;
 export const FORM_PIT_MIN_IP = 10;
+export const MLB_FORM_DAYS = 14; // MLB 는 경기별 로그가 없어 공식 API 기간 집계(최근 14일)로 폼을 잰다
 export const BAT_WEIGHTS = { ops: 40, hr: 20, rbi: 15, avg: 15, hits: 10 } as const;
 export const PIT_WEIGHTS = { era: 35, whip: 25, so: 20, ip: 10, wsv: 10 } as const;
 
@@ -143,6 +144,43 @@ export function aggregateForm(lines: LogLine[]): Record<string, BbForm> {
 
 // ── 로더 (6h 캐시) ─────────────────────────────────────────────────────────
 
+interface MlbRangeSplit { player?: { id?: number }; stat: Record<string, unknown> }
+/** MLB 최근 14일 폼 — statsapi byDateRange 리그 전체 집계(타자·투수 각 1콜). 키 = mlbam id. */
+async function fetchMlbRecentForm(season: number): Promise<Record<string, BbForm>> {
+  const end = new Date();
+  const start = new Date(end.getTime() - MLB_FORM_DAYS * 86400_000);
+  const d = (x: Date) => x.toISOString().slice(0, 10);
+  const out: Record<string, BbForm> = {};
+  for (const group of ["hitting", "pitching"] as const) {
+    try {
+      const r = await fetch(
+        `https://statsapi.mlb.com/api/v1/stats?stats=byDateRange&group=${group}&sportId=1&season=${season}&startDate=${d(start)}&endDate=${d(end)}&limit=3000&playerPool=all`,
+        { cache: "no-store", headers: { "user-agent": "scorebase-baseball-rankings" } },
+      );
+      if (!r.ok) continue;
+      const j = (await r.json()) as { stats?: Array<{ splits?: MlbRangeSplit[] }> };
+      for (const x of j.stats?.[0]?.splits ?? []) {
+        const id = x.player?.id;
+        if (!id) continue;
+        const st = x.stat;
+        const n = Number(st.gamesPlayed ?? 0) || 0;
+        if (group === "hitting") {
+          const ab = Number(st.atBats ?? 0) || 0;
+          const ops = st.ops == null ? null : Number(st.ops);
+          const avg = st.avg == null ? null : Number(st.avg);
+          out[String(id)] = { n, ab, ops: Number.isFinite(ops as number) ? ops : null, avg: Number.isFinite(avg as number) ? avg : null };
+        } else {
+          const ip = ipToNumber(String(st.inningsPitched ?? "0"));
+          const era = st.era == null ? null : Number(st.era);
+          // 같은 선수가 타자로도 잡힌 투타겸업은 투수 폼으로 덮지 않고 합친다
+          out[String(id)] = { ...(out[String(id)] ?? { n }), n: out[String(id)]?.n ?? n, ip: Math.round(ip * 10) / 10, era: Number.isFinite(era as number) ? era : null };
+        }
+      }
+    } catch { /* 한 그룹 실패는 그 역할만 빈다 */ }
+  }
+  return out;
+}
+
 const stripJp = (s: string | null | undefined) => (s ?? "").replace(/[\s　*]/g, "");
 
 export const getBbLeagueData = unstable_cache(
@@ -164,6 +202,9 @@ export const getBbLeagueData = unstable_cache(
           FROM "KboPlayerGameLog" WHERE season = ${Number(season)}
         ) SELECT id, role, ab, h, d2b, d3b, hr, bb, hbp, ip, er FROM l WHERE (role = 'B' AND rn <= ${FORM_BAT_GAMES}) OR (role = 'P' AND rn <= ${FORM_PIT_GAMES})`;
       form = aggregateForm(lines);
+      logIdOf = (r) => r.externalId;
+    } else if (league === "MLB") {
+      form = await fetchMlbRecentForm(Number(season));
       logIdOf = (r) => r.externalId;
     } else if (league === "NPB") {
       const lines = await prisma.$queryRaw<(LogLine & { name: string | null; team: string | null })[]>`
@@ -202,6 +243,6 @@ export const getBbLeagueData = unstable_cache(
     const salaryCoverage = rows.filter((r) => r.salary != null).length;
     return { league, season, rows, form, salaryCoverage };
   },
-  ["baseball-rankings-league-data-v3"],
+  ["baseball-rankings-league-data-v4"],
   { revalidate: 6 * 3600, tags: ["baseball-rankings"] },
 );

@@ -391,6 +391,7 @@ function SalaryHeader({ season, subtitle }: { season: string; subtitle: string }
           { label: "타자 종합 랭킹", href: "/baseball/rankings?league=MLB" },
           { label: "투수 종합 랭킹", href: "/baseball/rankings?league=MLB&role=pit" },
           { label: "가성비 랭킹", href: "/baseball/rankings?league=MLB&view=bargain" },
+          { label: "폼 랭킹", href: "/baseball/rankings?league=MLB&view=form" },
           { label: "해외파 한국 선수", href: "/baseball/korea" },
         ].map((x) => (
           <Link key={x.href} href={x.href} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
