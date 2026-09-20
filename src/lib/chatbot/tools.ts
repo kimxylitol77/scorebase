@@ -877,7 +877,8 @@ async function getTopPicks(leagueRaw?: string): Promise<string> {
     const parts: string[] = [];
     if (m.predOverPick && m.predOverProb != null) parts.push(`OU: ${m.predOverPick} ${pct(m.predOverProb)}`);
     if (m.predHcPick && m.predHcProb != null)
-      parts.push(`핸디: ${m.predHcPick === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league) : toKoreanTeamName(m.awayTeam.name, m.league)} ${m.predHcLine != null ? (m.predHcLine > 0 ? "+" : "") + m.predHcLine : ""} ${pct(m.predHcProb)}`);
+      // 라인 부호 규약(margin=home-away)이 화면 표기와 달라 부호는 빼고 절대값만 준다 — 잘못된 +/- 가 나가면 픽 의미가 뒤집힌다.
+      parts.push(`핸디${m.predHcLine != null ? `(라인 ${Math.abs(m.predHcLine)})` : ""}: ${m.predHcPick === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league) : toKoreanTeamName(m.awayTeam.name, m.league)} ${pct(m.predHcProb)}`);
     return parts.length ? ` · ${parts.join(" · ")}` : "";
   };
   return [
