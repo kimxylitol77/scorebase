@@ -20,6 +20,8 @@ interface Props {
   search: string;
   mode: string; // 최신 이적: "" = 주요(기본) | "all" = 전체 이력
   ttype: string; // 최신 이적 유형 필터: "" | "fee" | "loan"
+  age: string; // 유망주: "" = U21 | "23" = U23
+  gmode: string; // 상승률: "" | "pct" | "abs" | "down"
   leagues: { code: string; label: string; logo?: string | null }[];
   // 시장가치 기반 뷰(팀 가치) 리그 범위 — PMV 커버리지 얇은 확장 리그 제외(빅5)
   valueLeagues: { code: string; label: string; logo?: string | null }[];
@@ -27,20 +29,31 @@ interface Props {
   countries: CountryOpt[];
 }
 
-const CATS = [
-  { key: "all", label: "전체" },
+// 랭킹 묶음 — 몸값(하위: 리그별·팀별·국가별·포지션별) / 종합 / 유망주 / 상승률 (2026-09-20 재편)
+const RANK_CATS = [
+  { key: "all", label: "몸값" },
+  { key: "power", label: "종합" },
+  { key: "prospects", label: "유망주" },
+  { key: "growth", label: "상승률" },
+];
+const VALUE_SUBS = [
   { key: "league", label: "리그별" },
   { key: "team", label: "팀별" },
   { key: "country", label: "국가별" },
   { key: "pos", label: "포지션별" },
+];
+const VALUE_VIEWS = ["all", "league", "team", "country", "pos"];
+const RANKING_VIEWS = ["power", "prospects", "growth"];
+// 이적시장 묶음
+const MARKET_CATS = [
   { key: "latest", label: "최신 이적" },
   { key: "rumors", label: "⚡ 임박·루머" },
   { key: "bigdeals", label: "💸 빅딜" },
   { key: "inout", label: "IN/OUT" },
   { key: "squads", label: "🏟️ 팀 가치" },
 ];
-// 이적 피드형·집계형 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
-const FEED_VIEWS = ["latest", "rumors", "bigdeals", "inout", "squads"];
+// 이적 피드형·집계형·랭킹 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
+const FEED_VIEWS = ["latest", "rumors", "bigdeals", "inout", "squads", ...RANKING_VIEWS];
 // 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
 const POSITIONS = [
   { code: "GK", label: "GK" },
@@ -53,7 +66,7 @@ const POSITIONS = [
   { code: "ST", label: "ST" },
 ];
 
-function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string; q?: string; mode?: string; t?: string }): string {
+function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string; q?: string; mode?: string; t?: string; age?: string; g?: string }): string {
   const params = new URLSearchParams();
   if (o.view && o.view !== "all") params.set("view", o.view);
   if (o.league) params.set("league", o.league);
@@ -63,11 +76,13 @@ function buildUrl(o: { view?: string; league?: string; team?: string; pos?: stri
   if (o.q) params.set("q", o.q);
   if (o.mode) params.set("mode", o.mode);
   if (o.t) params.set("t", o.t);
+  if (o.age) params.set("age", o.age);
+  if (o.g) params.set("g", o.g);
   const qs = params.toString();
   return `/transfers${qs ? `?${qs}` : ""}`;
 }
 
-export default function TransfersFilterBar({ view, league, team, pos, country, search, mode, ttype, leagues, valueLeagues, teams, countries }: Props) {
+export default function TransfersFilterBar({ view, league, team, pos, country, search, mode, ttype, age, gmode, leagues, valueLeagues, teams, countries }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState<null | "team" | "country">(null);
   const [q, setQ] = useState("");
@@ -143,6 +158,12 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
     router.push(buildUrl(o));
   };
 
+  const subchip = (active: boolean) =>
+    `px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+      active
+        ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white"
+        : "border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+    }`;
   const chip = (active: boolean) =>
     `px-3.5 py-1.5 rounded-full text-sm font-bold border transition ${
       active
@@ -198,14 +219,67 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
 
   return (
     <div ref={wrapRef} className="space-y-3">
-      {/* 카테고리 탭 */}
-      <div className="flex flex-wrap gap-2">
-        {CATS.map((c) => (
-          <button key={c.key} onClick={() => go({ view: c.key })} className={chip(view === c.key)}>
-            {c.label}
-          </button>
-        ))}
+      {/* 카테고리 — 랭킹 줄(몸값·종합·유망주·상승률 + 몸값 하위) / 이적시장 줄 */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-14 shrink-0 text-[11px] font-bold uppercase tracking-wider text-neutral-400">랭킹</span>
+          {RANK_CATS.map((c) => (
+            <button key={c.key} onClick={() => go({ view: c.key })} className={chip(c.key === "all" ? VALUE_VIEWS.includes(view) : view === c.key)}>
+              {c.label}
+            </button>
+          ))}
+          {VALUE_VIEWS.includes(view) && (
+            <>
+              <span className="hidden sm:block w-px h-5 bg-neutral-200 dark:bg-neutral-800" aria-hidden />
+              {VALUE_SUBS.map((c) => (
+                <button key={c.key} onClick={() => go({ view: c.key })} className={subchip(view === c.key)}>
+                  {c.label}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-14 shrink-0 text-[11px] font-bold uppercase tracking-wider text-neutral-400">이적시장</span>
+          {MARKET_CATS.map((c) => (
+            <button key={c.key} onClick={() => go({ view: c.key })} className={chip(view === c.key)}>
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
+      {/* 랭킹 뷰 하위 필터 — 리그(빅5)·포지션, 유망주 나이 상한, 상승률 모드 */}
+      {RANKING_VIEWS.includes(view) && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button onClick={() => go({ view, pos, age, g: gmode })} className={chip(!league)}>빅5 전체</button>
+          {valueLeagues.map((l) => (
+            <button key={l.code} onClick={() => go({ view, league: l.code, pos, age, g: gmode })} className={chip(league === l.code)}>
+              {leagueChip(l)}
+            </button>
+          ))}
+          <span className="hidden sm:block w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-0.5" aria-hidden />
+          {POSITIONS.map((p) => (
+            <button key={p.code} onClick={() => go({ view, league, pos: pos === p.code ? undefined : p.code, age, g: gmode })} className={subchip(pos === p.code)}>
+              {p.label}
+            </button>
+          ))}
+          {view === "prospects" && (
+            <>
+              <span className="hidden sm:block w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-0.5" aria-hidden />
+              <button onClick={() => go({ view, league, pos })} className={subchip(age !== "23")}>U21</button>
+              <button onClick={() => go({ view, league, pos, age: "23" })} className={subchip(age === "23")}>U23</button>
+            </>
+          )}
+          {view === "growth" && (
+            <>
+              <span className="hidden sm:block w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-0.5" aria-hidden />
+              <button onClick={() => go({ view, league, pos })} className={subchip(gmode !== "abs" && gmode !== "down")}>상승률</button>
+              <button onClick={() => go({ view, league, pos, g: "abs" })} className={subchip(gmode === "abs")}>상승액</button>
+              <button onClick={() => go({ view, league, pos, g: "down" })} className={subchip(gmode === "down")}>하락</button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* 선수·팀 검색 — 자동완성 (한 글자·초성부터 매칭) */}
       <form ref={formRef} onSubmit={submitSearch} className="relative max-w-xs">
