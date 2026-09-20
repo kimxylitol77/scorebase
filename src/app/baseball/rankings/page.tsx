@@ -6,6 +6,7 @@ import { after } from "next/server";
 import AmbientGlow from "@/components/AmbientGlow";
 import { RankDelta } from "@/app/transfers/PlayerRankingTable";
 import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
+import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import {
   BB_LEAGUES, getBbLeagueData, computeBatPower, computePitPower, computeBbBargain, computeBbForm,
   POWER_MIN_GAMES_RATIO, POWER_MIN_IP, FORM_BAT_GAMES, FORM_BAT_MIN_AB, FORM_PIT_GAMES, FORM_PIT_MIN_IP, MLB_FORM_DAYS,
@@ -97,10 +98,12 @@ export default async function BaseballRankingsPage({ searchParams }: { searchPar
   const baseline = await getRankBaseline(list, today.toISOString());
   const prevMap = baselineRankMap(baseline, {});
 
+  // 사진 — KBO 는 선수 상세와 같은 네이버 CDN(kboPhotoUrl), MLB 는 midfield spots, NPB 는 로그 id 로 매칭된 선수만 사전 사진
   const photoOf = (r: BbPlayerRow) =>
-    league === "MLB" && r.externalId ? `https://midfield.mlbstatic.com/v1/people/${r.externalId}/spots/120`
-      : league === "NPB" && r.logId ? npbPlayerPhoto(r.logId) ?? null
-        : null;
+    league === "KBO" && r.externalId ? kboPhotoUrl(r.externalId)
+      : league === "MLB" && r.externalId ? `https://midfield.mlbstatic.com/v1/people/${r.externalId}/spots/120`
+        : league === "NPB" && r.logId ? npbPlayerPhoto(r.logId) ?? null
+          : null;
   const hrefOf = (r: BbPlayerRow) =>
     league === "KBO" && r.externalId ? `/players/${r.externalId}?league=KBO`
       : league === "MLB" && r.externalId ? `/players/${r.externalId}`
