@@ -2,7 +2,9 @@
 Description=Scorebase Job Timer: weekly-static-refresh
 
 [Timer]
-OnCalendar=Sun *-*-* 05:30:00 Asia/Seoul
+# 2026-09-20 — 05:30 은 daily-dup-cleanup(매시 :30)과 겹쳐 git index.lock 으로 9/12·9/19 연속 실패했다.
+# 정각 30분을 피한다(dup-cleanup 은 8초 안에 끝난다).
+OnCalendar=Sun *-*-* 05:40:00 Asia/Seoul
 Persistent=true
 
 [Install]

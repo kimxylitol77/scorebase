@@ -2,7 +2,8 @@
 Description=Scorebase Job Timer: daily-official-korean
 
 [Timer]
-OnCalendar=*-*-* 03:30:00 Asia/Seoul
+# 2026-09-20 — :30 은 daily-dup-cleanup(매시 :30)과 겹쳐 index.lock 으로 9/6·9/7 실패. 10분 비킴.
+OnCalendar=*-*-* 03:40:00 Asia/Seoul
 Persistent=true
 
 [Install]
