@@ -17,4 +17,4 @@
 - [x] 진입: /baseball 허브 카드, 축구 해외파 페이지에서 야구 해외파 상호 링크
 - [x] mac-mini weekly-static-refresh.sh 에 명단 재빌드 추가
 - [x] tsc·eslint, dev 실렌더(14명, 다음 경기 6·최근 경기 18행), 커밋 be8fecc·배포·프로덕션 200 확인
-- [ ] 메모리
+- [x] 메모리(baseball-korea-and-rankings)
