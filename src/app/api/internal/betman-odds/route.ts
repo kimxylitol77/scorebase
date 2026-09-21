@@ -2,7 +2,8 @@
 // Vultr worker (betman-odds-cron) 가 베트맨 gameInfoInq.do 응답을 그대로 push.
 // Bearer auth: INTERNAL_API_TOKEN.
 //
-// body: { gmTs, compSchedules: { keys, datas }, voteStatus: [...] } — 베트맨 원본 그대로.
+// body: { gmTs, compSchedules: { keys, datas }, voteStatus: [...], tooltipList: [...] } — 베트맨 원본 그대로.
+// tooltipList = 회차 시작 이후 배당 변동 이력(변경 전/후 x100 정수) → BetmanOddsChange (2026-09-21).
 // 파싱·정규화·upsert 는 여기서 한다 (워커는 받아서 넘기기만 — 다른 수집 잡과 같은 구조).
 //
 // ⚠️ compSchedules 는 컬럼형(keys + datas 배열의 배열)이다. keys 로 인덱스를 만들어 읽고
@@ -11,6 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { oddsX100, parseChgDtm } from "@/lib/odds/betman-result";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +22,7 @@ interface Body {
   gmTs?: number;
   compSchedules?: { keys?: string[]; datas?: unknown[][] };
   voteStatus?: Array<{ GM_SEQ?: number; W_BET_CNT?: number; D_BET_CNT?: number; L_BET_CNT?: number }>;
+  tooltipList?: Array<Record<string, unknown>>;
 }
 
 /** 승패형은 무 배당이 0.0 으로 온다 — 0 은 "배당 없음" 이지 값이 아니다. */
@@ -95,7 +98,7 @@ export async function POST(req: NextRequest) {
       ${num(col(row, "handi"))}, ${num(col(row, "winHandi"))}, ${num(col(row, "loseHandi"))},
       ${allot(col(row, "winAllot"))}, ${allot(col(row, "drawAllot"))}, ${allot(col(row, "loseAllot"))},
       ${v?.w ?? null}, ${v?.d ?? null}, ${v?.l ?? null},
-      ${str(col(row, "protoStatus"))}, ${str(col(row, "gameResult"))},
+      ${str(col(row, "protoStatus"))}, ${str(col(row, "gameResult"))}, ${str(col(row, "mchScore"))},
       ${col(row, "sgl") == null ? null : String(col(row, "sgl")) === "1"}, ${num(col(row, "endDate")) != null ? new Date(num(col(row, "endDate"))!) : null},
       ${now}, ${now}
     )`);
@@ -117,7 +120,7 @@ export async function POST(req: NextRequest) {
         "handi","winHandi","loseHandi",
         "winAllot","drawAllot","loseAllot",
         "winVotes","drawVotes","loseVotes",
-        "protoStatus","gameResult","sgl","endDate","fetchedAt","updatedAt"
+        "protoStatus","gameResult","mchScore","sgl","endDate","fetchedAt","updatedAt"
       ) VALUES ${Prisma.join(chunk)}
       ON CONFLICT ("id") DO UPDATE SET
         "gameDate"=EXCLUDED."gameDate",
@@ -128,12 +131,40 @@ export async function POST(req: NextRequest) {
         "handi"=EXCLUDED."handi","winHandi"=EXCLUDED."winHandi","loseHandi"=EXCLUDED."loseHandi",
         "winAllot"=EXCLUDED."winAllot","drawAllot"=EXCLUDED."drawAllot","loseAllot"=EXCLUDED."loseAllot",
         "winVotes"=EXCLUDED."winVotes","drawVotes"=EXCLUDED."drawVotes","loseVotes"=EXCLUDED."loseVotes",
-        "protoStatus"=EXCLUDED."protoStatus","gameResult"=EXCLUDED."gameResult",
+        "protoStatus"=EXCLUDED."protoStatus","gameResult"=EXCLUDED."gameResult","mchScore"=EXCLUDED."mchScore",
         "sgl"=EXCLUDED."sgl","endDate"=EXCLUDED."endDate",
         "fetchedAt"=EXCLUDED."fetchedAt","updatedAt"=EXCLUDED."updatedAt"
     `;
     // matchId 는 갱신 대상에서 뺀다 — 나중에 붙일 Match 매핑을 재수집이 지우면 안 된다.
   }
 
-  return NextResponse.json({ ok: true, gmTs, upserted, skipped });
+  // 배당 변동 이력 — 같은 변경이 매 수집마다 다시 오므로 (gmTs, seq, 시각) 자연키로 DO NOTHING.
+  const changeRows: Prisma.Sql[] = [];
+  for (const t of body.tooltipList ?? []) {
+    const seq = num(t.GM_SEQ);
+    const at = parseChgDtm(typeof t.CHG_DTM === "string" ? t.CHG_DTM : null);
+    if (seq == null || !at) continue;
+    const roundOf = num(t.GM_TS) ?? gmTs;
+    changeRows.push(Prisma.sql`(
+      ${`${roundOf}-${seq}-${String(t.CHG_DTM).slice(0, 14)}`}, ${roundOf}, ${seq}, ${at},
+      ${oddsX100(t.BCHG_W_ODDS)}, ${oddsX100(t.ACHG_W_ODDS)},
+      ${oddsX100(t.BCHG_D_ODDS)}, ${oddsX100(t.ACHG_D_ODDS)},
+      ${oddsX100(t.BCHG_L_ODDS)}, ${oddsX100(t.ACHG_L_ODDS)},
+      ${num(t.BCHG_W_HANDI_RT)}, ${num(t.ACHG_W_HANDI_RT)},
+      ${num(t.BCHG_L_HANDI_RT)}, ${num(t.ACHG_L_HANDI_RT)}
+    )`);
+  }
+  let changes = 0;
+  for (let i = 0; i < changeRows.length; i += CHUNK) {
+    changes += await prisma.$executeRaw`
+      INSERT INTO "BetmanOddsChange" (
+        "id","gmTs","matchSeq","changedAt",
+        "beforeWin","afterWin","beforeDraw","afterDraw","beforeLose","afterLose",
+        "beforeWinHandi","afterWinHandi","beforeLoseHandi","afterLoseHandi"
+      ) VALUES ${Prisma.join(changeRows.slice(i, i + CHUNK))}
+      ON CONFLICT ("id") DO NOTHING
+    `;
+  }
+
+  return NextResponse.json({ ok: true, gmTs, upserted, skipped, changes });
 }

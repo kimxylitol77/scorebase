@@ -1819,6 +1819,30 @@ model AdBanner {
 /// 한 경기가 베팅 유형(승패·승N패·핸디캡)마다 다른 matchSeq 로 오므로 자연키는 경기가 아니라
 /// {gmTs}-{matchSeq} 다. 전 종목·전 유형을 그대로 쌓고 노출 시점에 필터한다.
 /// 상세·함정은 reports/plans/betman-odds/context-notes.md.
+/// 베트맨 배당 변동 이력 — gameInfoInq.do 응답 tooltipList(회차 시작 이후 전 변경) 그대로. 변경 전/후 배당·핸디 라인.
+/// 2026-09-21 raw SQL 생성(prisma/sql/20260921-betman-change.sql). 화면은 "회차 첫 배당 → 현재" 방향 요약(lib/odds/betman-result.ts).
+model BetmanOddsChange {
+  id        String   @id // "{gmTs}-{matchSeq}-{CHG_DTM 14자리}"
+  gmTs      Int
+  matchSeq  Int
+  changedAt DateTime // CHG_DTM(KST) → UTC
+
+  beforeWin       Float?
+  afterWin        Float?
+  beforeDraw      Float?
+  afterDraw       Float?
+  beforeLose      Float?
+  afterLose       Float?
+  beforeWinHandi  Float?
+  afterWinHandi   Float?
+  beforeLoseHandi Float?
+  afterLoseHandi  Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([gmTs, matchSeq])
+}
+
 model BetmanOdds {
   id       String @id // "{gmTs}-{matchSeq}"
   gmTs     Int // 회차 (예 260096)
@@ -1855,7 +1879,8 @@ model BetmanOdds {
   sgl         Boolean?
   endDate     DateTime?
   protoStatus String? // 발매 상태
-  gameResult  String? // 결과 (확정 전 null)
+  gameResult  String? // 결과 (확정 전 null) — 0 승 · 1 무 · 2 패 · 4 적특
+  mchScore    String? // 판정 스코어("0:3", 핸디 적용 "2.5:3") — 2026-09-21 raw SQL 추가(prisma/sql/20260921-betman-change.sql)
   matchId     Int? // 우리 Match 연결 — 매핑 붙이기 전까지 null
 
   fetchedAt DateTime @default(now())

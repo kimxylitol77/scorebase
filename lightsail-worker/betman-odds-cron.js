@@ -84,10 +84,11 @@ async function pushRound(gmTs) {
   }
   const { data } = await axios.post(
     `${SITE_URL}/api/internal/betman-odds`,
-    { gmTs, compSchedules: res.compSchedules, voteStatus: res.voteStatus ?? [] },
+    // tooltipList = 배당 변동 이력(회차 시작 이후 전 변경). 서버가 BetmanOddsChange 로 쌓는다 (2026-09-21).
+    { gmTs, compSchedules: res.compSchedules, voteStatus: res.voteStatus ?? [], tooltipList: res.tooltipList ?? [] },
     { headers: SITE_HEADERS, timeout: 120_000, maxContentLength: 50 * 1024 * 1024 },
   );
-  console.log(`  · ${gmTs} 경기 ${rows}건 → upserted ${data.upserted} / skipped ${data.skipped}`);
+  console.log(`  · ${gmTs} 경기 ${rows}건 → upserted ${data.upserted} / skipped ${data.skipped} / 변동 ${data.changes ?? 0}`);
   return { gmTs, rows, upserted: data.upserted ?? 0, skipped: data.skipped ?? 0 };
 }
 
