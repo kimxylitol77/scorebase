@@ -89,6 +89,14 @@ export default function EnFooter() {
           them responsibly. The full experience, including articles and live scores, is available on
           the Korean site.
         </p>
+        {/* 자매 사이트 — 영어 전용 예측 사이트(sportspredictions.live). 새 도메인이 구글에 발견되는 경로가 이 링크 하나뿐이라
+            (자매 사이트 → 스코어베이스는 한 방향) 영어판 푸터에만 둔다. docs/sportspredictions/context-notes.md 결정 12. */}
+        <p className="text-xs">
+          Daily key-match previews in English:{" "}
+          <a href="https://sportspredictions.live" className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
+            sportspredictions.live
+          </a>
+        </p>
         <p className="text-xs">© {new Date().getFullYear()} Scorebase — scorebase.kr</p>
       </div>
     </footer>

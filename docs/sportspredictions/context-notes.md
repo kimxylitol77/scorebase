@@ -77,3 +77,6 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 
 **도메인 라이브 (2026-09-19 19:04 UTC+9 기준 저녁).** 네임칩 저장 후 레지스트리 반영까지 약 2시간. Vercel 이 apex·www 모두 Valid 판정, 인증서 자동 발급. 프로덕션 전 경로 검증 통과. 함정 = `dig @ns1.vercel-dns.com` 직접 조회는 apex A 가 빈 응답으로 나오지만(Vercel DNS 의 anycast/EDNS 특성), 공용 리졸버(1.1.1.1·8.8.8.8)는 216.150.1.x 로 정상 응답. 로컬 리졸버 네거티브 캐시 때문에 잠시 "Could not resolve" 가 날 수 있음 — `--resolve` 로 검증.
 남은 사용자 작업 = GSC 도메인 속성(TXT 는 Vercel DNS Records 에) · Bing Webmaster.
+
+**결정 12 (2026-09-21, 사용자 승인). 스코어베이스 /en 푸터 → sportspredictions.live 링크 1개.**
+사이트맵 제출 후 며칠째 "가져올 수 없음". 서버·DNS·인증서·방화벽·robots 전부 정상, PageSpeed(구글 인프라) SEO 100 → 구글이 못 가져오는 게 아니라 크롤을 안 시작한 것(만료·재등록 도메인 저우선순위 추정). 결정 1 의 "한 방향 링크" 는 링크 네트워크 회피가 목적이었고, 운영 사이트 영어판 푸터의 자매 사이트 링크 1개는 정상 구조라 예외. 한국어판 푸터에는 넣지 않음.
