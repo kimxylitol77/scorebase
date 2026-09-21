@@ -119,6 +119,12 @@ async function main() {
     await sleep(3000);
   }
 
+  // 전멸 가드 — Capology 가 워커 IP 를 403 으로 막으면(2026-09-20 Vultr 실측 전 리그 0명) 빈 파일을 쓰게 되고,
+  // weekly-static-refresh 의 크기 가드가 그걸 잡아 그 주의 다른 산출물까지 통째로 버린다. 0명이면 기존 파일을 지킨다.
+  if (Object.keys(wages).length === 0) {
+    console.warn(`[wages] 매칭 0명 — 소스 전면 실패로 보고 기존 data/football-wages.json 유지`, JSON.stringify(stats));
+    return;
+  }
   const out = { fetchedAt: new Date().toISOString(), players: wages };
   writeFileSync(path.join(process.cwd(), "data/football-wages.json"), JSON.stringify(out));
   console.log(`저장: data/football-wages.json — 총 ${Object.keys(wages).length}명`, JSON.stringify(stats));
