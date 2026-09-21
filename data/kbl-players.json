@@ -1,7 +1,7 @@
 {
  "meta": {
-  "updatedAt": "2026-09-20T12:36:02.529Z",
-  "players": 170
+  "updatedAt": "2026-09-21T05:39:48.631Z",
+  "players": 169
  },
  "players": {
   "290284": {
@@ -595,22 +595,6 @@
    "country": "대한민국",
    "school": "고려대",
    "photo": "https://kbl.or.kr/files/kbl/players-photo/290985.png"
-  },
-  "290993": {
-   "name": "최준용",
-   "ename": "CHOI JUN YONG",
-   "teamCode": "60",
-   "teamId": 607776,
-   "team": "부산 KCC",
-   "no": 2,
-   "pos": "FD",
-   "height": 200,
-   "weight": 95,
-   "draft": "2016 1R 2순위",
-   "birth": "1994-04-04",
-   "country": "대한민국",
-   "school": "연세대",
-   "photo": "https://kbl.or.kr/files/kbl/players-photo/290993.png"
   },
   "290996": {
    "name": "정인덕",

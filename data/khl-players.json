@@ -1,10 +1,10 @@
 {
  "meta": {
-  "updatedAt": "2026-09-20T12:38:39.109Z",
+  "updatedAt": "2026-09-21T05:41:19.866Z",
   "teams": 22,
   "players": 630,
   "injuries": 0,
-  "injuriesCheckedAt": "2026-09-20T12:38:39.109Z"
+  "injuriesCheckedAt": "2026-09-21T05:41:19.866Z"
  },
  "players": {
   "23xmv0bgz0krg8n": {
@@ -8822,7 +8822,8 @@
    "natKo": "카자흐스탄",
    "no": 87,
    "teamTs": "k82reeb05x0repz",
-   "teamId": 612692
+   "teamId": 612692,
+   "ko": "jelal-ad-din 아미르베코프"
   },
   "n54ql0bz69gqvy9": {
    "ko": "예고르 체즈가노프",
