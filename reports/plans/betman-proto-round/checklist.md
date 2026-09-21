@@ -14,7 +14,7 @@
 - [x] `route.ts` — `mchScore` upsert 컬럼 추가, `tooltipList` → `BetmanOddsChange` ON CONFLICT DO NOTHING
 - [x] `lightsail-worker/betman-odds-cron.js` — body 에 `tooltipList` 동봉
 - [x] 로컬 검증: 실제 260112 응답(scratchpad bm112.json)으로 dev 라우트 POST → 변경 36건 적재
-- [ ] Vultr 배포 (scp → chown → node --check) · 수동 1회 실행 로그
+- [x] Vultr 배포 (scp → chown → node --check) · 수동 1회 실행 — 260112 변동 13 · 260111 변동 419 적재
 
 ## 3. 라이브러리
 - [x] `src/lib/odds/betman-result.ts` (순수) — 결과 코드→라벨, AI 판정, 회차 집계, 변동 요약
@@ -35,5 +35,5 @@
 - [x] 모바일 폭 스크린샷 — 칩이 카드 밖으로 안 나감
 
 ## 6. 마무리
-- [ ] 커밋(의미 단위 3~4개) → main push → Vercel 배포 확인
-- [ ] 운영 렌더 재확인 · 메모리 갱신(`betman-proto-strengthen-plan`)
+- [x] 커밋 3개(d13e9b7·6000f40·4f09ffa) → main push → Vercel 배포 확인(~3분, 회차 페이지 title)
+- [x] 운영 렌더 재확인(260111: AI 적중 101·빗나감 92 = scored 193 일치) · 메모리 갱신(`betman-proto-strengthen-plan`)
