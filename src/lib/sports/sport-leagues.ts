@@ -52,7 +52,7 @@ export const ALL_LEAGUES = [
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
-  "NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
+  "NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
   // 2026-08-04 오세아니아 하키 — NHL 오프시즌(6~9월) 하키 탭을 채우는 남반구 정규시즌
   "AIHL", "NZIHL",
   // 2026-08-16 하키 클럽 친선 — 유럽 리그 프리시즌(8월). 9월 정규시즌 팀 시드를 겸한다
@@ -189,7 +189,7 @@ export const SPORTS: SportMeta[] = [
     code: "basketball",
     label: "농구",
     emoji: "🏀",
-    leagues: ["NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK"],
+    leagues: ["NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W"],
   },
   {
     code: "volleyball",
@@ -489,6 +489,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   WNBA: "WNBA",
   NBA_SL: "NBA 서머리그",
   ASIAN_GAMES_BK: "아시안게임 남자농구", // 2026-09-14 — 베트맨 발매엔 있는데 우리 경기가 없던 것. ts comp kjw2r02t0xqz84o, 표시 전용
+  ASIAN_GAMES_BK_W: "아시안게임 여자농구", // 2026-09-21 — 베트맨 여자농구 52행이 이을 경기가 없던 것. ts comp vl7oqd4t30q510j, 표시 전용
   NHL: "NHL",
   IIHF_WC: "세계선수권",
   AIHL: "호주 아이스하키",
@@ -778,6 +779,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   NBA: 20,
   NBA_SL: 20.5,
   ASIAN_GAMES_BK: 20.6,
+  ASIAN_GAMES_BK_W: 20.7,
   NHL: 21,
   KHL: 21.5, // NHL 다음가는 리그 — 세계선수권보다 앞
   CHL_HOCKEY: 21.7,
@@ -971,6 +973,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   WNBA: "미국",
   NBA_SL: "미국",
   ASIAN_GAMES_BK: "국제",
+  ASIAN_GAMES_BK_W: "국제",
   NHL: "미국",
   IIHF_WC: "국제",
   AIHL: "호주",

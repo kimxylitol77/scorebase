@@ -40,6 +40,7 @@ const COMP_TO_LEAGUE = {
   "kn54ql7t28rvy9d": "WKBL",
   "p3glrwyt7pqdyjv": "NBA_SL", // NBA 서머리그 (7월 한시) — 팀 tsId 는 정규 NBA 30팀과 동일, 표시 전용
   "kjw2r02t0xqz84o": "ASIAN_GAMES_BK", // 아시안게임 남자농구 (2026-09-14) — diary 실 competition_id 확인, 국대 12팀 매핑 추가
+  "vl7oqd4t30q510j": "ASIAN_GAMES_BK_W", // 아시안게임 여자농구 (2026-09-21) — diary 실 competition_id 확인(9/18~22 12경기·11개국)
 };
 
 // TheSports basketball status_id — src/lib/sports/thesports/status-codes.ts 의 mapBasketballStatus 와 단일 진실.

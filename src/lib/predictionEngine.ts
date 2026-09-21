@@ -65,7 +65,7 @@ function nationalTeamElo(name: string): number {
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
 // 예측·적중률에서 제외하는 표시 전용 리그 (NBA 서머리그 = 유망주 리그, Elo 무의미).
-const DISPLAY_ONLY_LEAGUES = new Set(["NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W"]); // 아시안게임 남농(2026-09-14) — 국대 단기 대회, Elo 이력 없어 예측 제외
+const DISPLAY_ONLY_LEAGUES = new Set(["NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W", "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W"]); // 아시안게임 남농(2026-09-14) — 국대 단기 대회, Elo 이력 없어 예측 제외
 const HOCKEY_LEAGUES = new Set([
   "NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY",
   "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",

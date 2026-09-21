@@ -80,7 +80,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.scorebase.kr/basketball" },
 };
 
-const BASKETBALL = ["NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK"];
+const BASKETBALL = ["NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W"];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default async function BasketballHub() {

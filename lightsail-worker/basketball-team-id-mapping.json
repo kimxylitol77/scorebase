@@ -682,5 +682,104 @@
     "tsId": "p3glrwyt87yqdyj",
     "tsName": "Bahrain",
     "matchType": "national"
+  },
+  {
+    "ourId": 615791,
+    "ourName": "South Korea Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "gx7lm73td4nr2wd",
+    "tsId": "gx7lm73td4nr2wd",
+    "tsName": "South Korea Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615792,
+    "ourName": "Japan Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "4zp5rzkte85r82w",
+    "tsId": "4zp5rzkte85r82w",
+    "tsName": "Japan Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615793,
+    "ourName": "China Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "j1l4rjztpv9m7vx",
+    "tsId": "j1l4rjztpv9m7vx",
+    "tsName": "China Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615794,
+    "ourName": "Chinese Taipei Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "d23xmv1tz7pmg8n",
+    "tsId": "d23xmv1tz7pmg8n",
+    "tsName": "Chinese Taipei Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615795,
+    "ourName": "Hong Kong China Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "z8yomovtjn2q0j6",
+    "tsId": "z8yomovtjn2q0j6",
+    "tsName": "Hong Kong China Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615796,
+    "ourName": "Thailand Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "gy0or5gtd76qwzv",
+    "tsId": "gy0or5gtd76qwzv",
+    "tsName": "Thailand Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615797,
+    "ourName": "Malaysia Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "kn54ql7tyvzrvy9",
+    "tsId": "kn54ql7tyvzrvy9",
+    "tsName": "Malaysia Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615798,
+    "ourName": "Kazakhstan Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "kn54ql7tgjorvy9",
+    "tsId": "kn54ql7tgjorvy9",
+    "tsName": "Kazakhstan Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615799,
+    "ourName": "Indonesia Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "z8yomovtp37q0j6",
+    "tsId": "z8yomovtp37q0j6",
+    "tsName": "Indonesia Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615800,
+    "ourName": "Mongolia Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "d23xmv1tn82mg8n",
+    "tsId": "d23xmv1tn82mg8n",
+    "tsName": "Mongolia Women",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615801,
+    "ourName": "Philippines Women",
+    "ourLeague": "ASIAN_GAMES_BK_W",
+    "ourExternalId": "gx7lm73ty9yr2wd",
+    "tsId": "gx7lm73ty9yr2wd",
+    "tsName": "Philippines Women",
+    "matchType": "national"
   }
 ]

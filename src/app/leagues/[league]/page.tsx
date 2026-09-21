@@ -57,6 +57,7 @@ const VALID_LEAGUES = [
   "NBA",
   "NBA_SL",
   "ASIAN_GAMES_BK",
+  "ASIAN_GAMES_BK_W",
   "KBL",
   "WKBL",
   "NHL",
@@ -216,6 +217,12 @@ const LEAGUE_INFO: Partial<Record<
     subtitle: "Asian Games Men's Basketball",
     gradient: "from-red-500 via-orange-500 to-amber-500",
     copy: "2026 아이치·나고야 아시안게임 남자농구. 한국·일본·중국·이란 등 12개국 일정과 결과.",
+  },
+  ASIAN_GAMES_BK_W: {
+    name: "아시안게임 여자농구",
+    subtitle: "Asian Games Women's Basketball",
+    gradient: "from-red-500 via-orange-500 to-amber-500",
+    copy: "2026 아이치·나고야 아시안게임 여자농구. 한국·일본·중국·대만 등 11개국 일정과 결과.",
   },
   KBL: {
     name: "KBL",
