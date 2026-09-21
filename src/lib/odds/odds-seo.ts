@@ -45,6 +45,20 @@ export function betmanMetadata(round: number | null, matchCount: number, days: n
   };
 }
 
+/** 베트맨 회차 아카이브 메타데이터 — `/odds?sport=betman&round=260111` */
+export function betmanRoundMetadata(r: { gmTs: number; label: string; games: number; settled: boolean }, ai: { hit: number; scored: number } | null) {
+  const pct = ai && ai.scored > 0 ? `${Math.round((ai.hit / ai.scored) * 1000) / 10}%` : null;
+  const no = r.gmTs % 10000;
+  return {
+    title: `프로토 ${no}회차 결과·배당·AI 적중 — ${r.label} | 스코어베이스`,
+    description: `베트맨 프로토 승부식 ${r.label} 발매 경기 ${r.games}건의 배당과 국내 투표 분포, 베트맨 공식 판정 결과(승무패·핸디캡·언더오버·홀짝), 회차 첫 배당 대비 변동, 그리고 경기 전 저장된 스코어베이스 AI 1X2 픽의 적중 여부${pct ? ` (적중 ${pct}, ${ai!.hit}/${ai!.scored})` : ""}.${r.settled ? "" : " 판정 진행 중."}`,
+    keywords: [`프로토 ${no}회차`, `프로토 ${no}회차 결과`, `베트맨 ${no}회차`, "프로토 승부식 결과", "프로토 배당 변동", "프로토 AI 예측", "베트맨 배당", "스포츠토토"],
+    canonical: `${SITE_URL}/odds?sport=betman&round=${r.gmTs}`,
+    ogTitle: `프로토 ${no}회차 결과·배당·AI 적중`,
+    ogSubtitle: `${r.label} · ${r.games}경기${pct ? ` · AI ${pct}` : ""}`,
+  };
+}
+
 export function flowJsonLd(sport: OddsSportKey) {
   const m = ODDS_SPORT_META[sport];
   return [

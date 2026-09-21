@@ -16,27 +16,37 @@ import {
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
 import NoVigCalculator from "@/components/odds/NoVigCalculator";
 import BetmanOddsPanel from "@/components/odds/BetmanOddsPanel";
+import BetmanRoundBar from "@/components/odds/BetmanRoundBar";
+import BetmanRoundScorecard from "@/components/odds/BetmanRoundScorecard";
 import OddsSportTabs from "@/components/odds/OddsSportTabs";
 import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
-import { getBetmanMatches, type BetmanMatch } from "@/lib/odds/betman";
+import { getBetmanMatches, getBetmanRounds, getBetmanRoundScorecard, type BetmanMatch } from "@/lib/odds/betman";
 import type { Metadata } from "next";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 import { ogPageImage } from "@/lib/seo/og";
 import OddsSeoSection from "@/components/odds/OddsSeoSection";
-import { betmanFaq, betmanJsonLd, betmanMetadata, faqJsonLd, flowFaq, flowJsonLd, flowMetadata, type OddsSportKey } from "@/lib/odds/odds-seo";
+import { betmanFaq, betmanJsonLd, betmanMetadata, betmanRoundMetadata, faqJsonLd, flowFaq, flowJsonLd, flowMetadata, type OddsSportKey } from "@/lib/odds/odds-seo";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // 베트맨 목록 — 메타데이터와 본문이 같은 캐시를 읽는다(회차·경기 수를 설명에 넣기 위해).
 const getBetmanCached = unstable_cache(() => getBetmanMatches(600), ["odds-betman-matches", "all"], { revalidate: 600 });
+// 회차 아카이브 — 회차별 캐시. 지난 회차는 결과가 굳어 있어 10분 캐시면 충분하고, 발매중 회차는 수집이 하루 2회.
+const getBetmanRoundCached = (gmTs: number) =>
+  unstable_cache(() => getBetmanMatches(2000, gmTs), ["odds-betman-round", String(gmTs)], { revalidate: 600 })();
+const getBetmanRoundsCached = unstable_cache(() => getBetmanRounds(12), ["odds-betman-rounds"], { revalidate: 600 });
+const getBetmanScorecardCached = (ids: number[]) =>
+  unstable_cache(() => getBetmanRoundScorecard(ids), ["odds-betman-scorecard", ids.join(",")], { revalidate: 600 })();
+/** ?round=260111 → 260111. 여섯 자리 숫자만 받는다 — 그 외는 발매중 뷰로. */
+const parseRound = (v: string | undefined): number | null => (v && /^\d{6}$/.test(v) ? Number(v) : null);
 const betmanDays = (rows: BetmanMatch[]) => new Set(rows.map((r) => new Date(new Date(r.gameDate).getTime() + 9 * 3600_000).toISOString().slice(0, 10))).size;
 
 // 종목·베트맨 탭마다 제목·설명·canonical·OG 를 나눈다. 실측 숫자(흐름 적중 비율·회차·경기 수)를 설명에 박는다 — force-dynamic 이라 낡지 않는다.
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ sport?: string }>;
+  searchParams: Promise<{ sport?: string; round?: string }>;
 }): Promise<Metadata> {
   const sp = await searchParams;
   const build = (m: { title: string; description: string; keywords: string[]; canonical: string; ogTitle: string; ogSubtitle: string }): Metadata => ({
@@ -48,6 +58,12 @@ export async function generateMetadata({
     twitter: { card: "summary_large_image", title: m.ogTitle, description: m.description },
   });
   if (sp?.sport === "betman") {
+    const gmTs = parseRound(sp.round);
+    if (gmTs != null) {
+      const [rounds, cards] = await Promise.all([getBetmanRoundsCached().catch(() => []), getBetmanScorecardCached([gmTs]).catch(() => [])]);
+      const r = rounds.find((x) => x.gmTs === gmTs);
+      if (r) return build(betmanRoundMetadata(r, cards[0] ? { hit: cards[0].summary.hit, scored: cards[0].summary.scored } : null));
+    }
     const rows = await getBetmanCached().catch(() => [] as BetmanMatch[]);
     return build(betmanMetadata(rows[0]?.gmTs ?? null, rows.length, betmanDays(rows)));
   }
@@ -264,7 +280,7 @@ function getFlowMatchesCached(sport: Sport): Promise<FlowMatch[]> {
 export default async function OddsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sport?: string; date?: string; item?: string }>;
+  searchParams: Promise<{ sport?: string; date?: string; item?: string; round?: string }>;
 }) {
   const sp = await searchParams;
 
@@ -272,17 +288,26 @@ export default async function OddsPage({
   if (sp?.sport === "betman") {
     // 하루 2회 적재라 10분 캐시로 충분. 발매 중인 경기 전부(보통 2~3일치 100~150경기)를 날짜별로 묶어 보인다 —
     // 60건 상한이 있을 땐 내일 후반·모레 경기가 통째로 잘렸다(2026-09-12 제보: 오늘 26·내일 77·모레 40경기 중 60건만).
-    const rows = await getBetmanCached();
-    const round = rows[0]?.gmTs ?? null;
+    // 회차 아카이브(?round=) — 지난 회차 전 경기 + 결과·AI 판정. 회차 목록·성적표는 두 뷰가 같이 쓴다.
+    const gmTs = parseRound(sp.round);
+    const rounds = await getBetmanRoundsCached();
+    const selected = gmTs != null ? rounds.find((r) => r.gmTs === gmTs) ?? null : null;
+    const [rows, cards] = await Promise.all([
+      selected ? getBetmanRoundCached(selected.gmTs) : getBetmanCached(),
+      getBetmanScorecardCached(rounds.slice(0, 8).map((r) => r.gmTs)),
+    ]);
+    const round = selected?.gmTs ?? rows[0]?.gmTs ?? null;
     const faq = betmanFaq(round, rows.length);
     return (
       <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
         {[...betmanJsonLd(), faqJsonLd(faq)].map((ld, i) => (
           <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
         ))}
-        <h1 className="text-2xl font-medium">베트맨 배당</h1>
+        <h1 className="text-2xl font-medium">{selected ? `베트맨 배당 — ${selected.label}` : "베트맨 배당"}</h1>
         <OddsSportTabs sport="betman" />
-        <BetmanOddsPanel matches={rows} date={sp.date} item={sp.item} />
+        <BetmanRoundBar rounds={rounds} current={selected?.gmTs ?? null} />
+        <BetmanRoundScorecard cards={cards} current={selected?.gmTs ?? null} />
+        <BetmanOddsPanel matches={rows} date={sp.date} item={sp.item} round={selected} />
         <OddsSeoSection
           heading="베트맨 배당 페이지 읽는 법"
           intro={[

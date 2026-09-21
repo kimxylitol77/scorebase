@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawTeamMap from "../../../data/betman-team-map.json";
 import { SOCCER_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { aiVerdict, roundLabel, summarizeChanges, summarizeRound, type AiVerdict, type ChangeRow, type ChangeSummary, type RoundSummary } from "./betman-result";
 
 /** 한 베팅 라인 (승무패·핸디캡·언더오버·홀짝 각각 한 줄) */
 export interface BetmanLine {
@@ -24,6 +25,12 @@ export interface BetmanLine {
   single: boolean | null;
   /** 발매 마감 시각(ISO) — 베트맨 endDate. 없으면 null */
   endDate: string | null;
+  /** 베트맨 공식 판정 — 0 승(win 쪽)·1 무·2 패·4 적특. 미판정 null. 라벨은 betman-result.resultLabel */
+  gameResult: string | null;
+  /** 판정 스코어("0:3", 핸디 적용 "2.5:3"). 워커가 직전 1회차까지만 받아 옛 회차는 null → 경기엔 matchScore 폴백 */
+  score: string | null;
+  /** 배당 변동 요약(회차 첫 배당 → 현재). 이력 없으면 null */
+  change: ChangeSummary | null;
 }
 
 /** 경기 한 건 — 기본형(승무패/승패)을 대표로 세우고, 나머지 유형은 lines 로 접어 둔다. */
@@ -45,6 +52,11 @@ export interface BetmanMatch extends BetmanLine {
   /** 우리 Team.id — 팀 페이지 링크용. 연결된 경기(matchId) 우선, 없으면 사전에서 종목이 맞는 id. 못 풀면 null. */
   homeTeamId: number | null;
   awayTeamId: number | null;
+  /** 우리 1X2 픽(연결된 Match.predWinner)과 베트맨 판정 대조 — 기본형만. 픽 없으면 null */
+  aiPick: "HOME" | "DRAW" | "AWAY" | null;
+  aiVerdict: AiVerdict | null;
+  /** 우리 Match 점수("2:1") — mchScore 가 없을 때 폴백. 둘 다 없으면 null */
+  matchScore: string | null;
   lines: BetmanLine[];
 }
 
@@ -177,13 +189,14 @@ async function buildTeamIdLookup(
 /**
  * 발매 중인 경기를 시각순으로. 각 경기에 기본형 배당을 세우고 나머지 유형은 lines 에 담는다.
  * 같은 경기가 발매중·직전 회차에 중복 편성되므로 회차 내림차순으로 받아 최신 것만 남긴다.
+ * @param gmTs 회차를 주면 그 회차 전부(끝난 경기가 본체 — 결과·AI 판정 포함). 없으면 발매 중 뷰.
  */
-export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
+export async function getBetmanMatches(take = 60, gmTs?: number): Promise<BetmanMatch[]> {
   const rows = await prisma.betmanOdds.findMany({
     where: {
       itemCode: { in: ITEM_CODES },
-      // 이미 끝난 경기는 뺀다. 진행 중(3h 이내 시작)은 남겨 배당을 볼 수 있게.
-      gameDate: { gt: new Date(Date.now() - 3 * 3600 * 1000) },
+      // 발매중 뷰는 이미 끝난 경기를 뺀다(진행 중 3h 이내는 남김). 회차 뷰는 그 회차 전부.
+      ...(gmTs != null ? { gmTs } : { gameDate: { gt: new Date(Date.now() - 3 * 3600 * 1000) } }),
     },
     orderBy: [{ gameDate: "asc" }, { gmTs: "desc" }],
     select: {
@@ -193,6 +206,7 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
       winAllot: true, drawAllot: true, loseAllot: true,
       winVotes: true, drawVotes: true, loseVotes: true,
       sgl: true, endDate: true,
+      gameResult: true, mchScore: true,
     },
     take: 3000,
   });
@@ -209,6 +223,30 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
 
   const logoOf = await buildLogoLookup();
   const teamIdsOf = await buildTeamIdLookup(rows);
+  // 우리 픽·점수 — 연결된 Match. 판정은 베트맨 gameResult 가 정본이고 점수는 mchScore 가 없을 때만 쓴다.
+  const matchIds = [...new Set(rows.map((r) => r.matchId).filter((v): v is number => v != null))];
+  const matchInfo = new Map(
+    (matchIds.length
+      ? await prisma.match.findMany({ where: { id: { in: matchIds } }, select: { id: true, predWinner: true, homeScore: true, awayScore: true, status: true } })
+      : []
+    ).map((m) => [m.id, m]),
+  );
+  // 배당 변동 이력 — (회차, 경기번호) 단위로 모아 "첫 배당 → 현재" 로 요약.
+  const roundIds = [...new Set(rows.map((r) => r.gmTs))];
+  const changeMap = new Map<string, ChangeRow[]>();
+  if (roundIds.length) {
+    const ch = await prisma.betmanOddsChange.findMany({
+      where: { gmTs: { in: roundIds } },
+      select: { gmTs: true, matchSeq: true, changedAt: true, beforeWin: true, afterWin: true, beforeDraw: true, afterDraw: true, beforeLose: true, afterLose: true, beforeWinHandi: true, afterWinHandi: true },
+    });
+    for (const c of ch) {
+      const k = `${c.gmTs}-${c.matchSeq}`;
+      const arr = changeMap.get(k) ?? [];
+      arr.push({ ...c, changedAt: c.changedAt.toISOString() });
+      changeMap.set(k, arr);
+    }
+  }
+  const changeOf = (r: { gmTs: number; matchSeq: number }) => summarizeChanges(changeMap.get(`${r.gmTs}-${r.matchSeq}`) ?? []);
   const out: BetmanMatch[] = [];
   for (const [key, g] of groups) {
     // 대표 = 기본형 중 배당이 매겨진 것. 없으면 이 경기는 보여줄 게 없다.
@@ -225,7 +263,10 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
         winAllot: r.winAllot, drawAllot: r.drawAllot, loseAllot: r.loseAllot,
         winVotes: r.winVotes, drawVotes: r.drawVotes, loseVotes: r.loseVotes,
         single: r.sgl, endDate: r.endDate ? r.endDate.toISOString() : null,
+        gameResult: r.gameResult, score: r.mchScore, change: changeOf(r),
       }));
+    const mi = base.matchId != null ? matchInfo.get(base.matchId) : undefined;
+    const pick = mi?.predWinner === "HOME" || mi?.predWinner === "DRAW" || mi?.predWinner === "AWAY" ? mi.predWinner : null;
     out.push({
       key,
       gmTs: g.gmTs,
@@ -245,6 +286,10 @@ export async function getBetmanMatches(take = 60): Promise<BetmanMatch[]> {
       winAllot: base.winAllot, drawAllot: base.drawAllot, loseAllot: base.loseAllot,
       winVotes: base.winVotes, drawVotes: base.drawVotes, loseVotes: base.loseVotes,
       single: base.sgl, endDate: base.endDate ? base.endDate.toISOString() : null,
+      gameResult: base.gameResult, score: base.mchScore, change: changeOf(base),
+      aiPick: pick,
+      aiVerdict: aiVerdict(pick, base.gameResult),
+      matchScore: mi && mi.status === "FINISHED" && mi.homeScore != null && mi.awayScore != null ? `${mi.homeScore}:${mi.awayScore}` : null,
       lines,
     });
     if (out.length >= take) break;
@@ -329,4 +374,68 @@ export async function getBetmanLineForMatch(
     select: LINE_SELECT,
   });
   return r ? toLine(r) : null;
+}
+
+/** 회차 한 줄 — 회차 바·성적표용 */
+export interface BetmanRound {
+  gmTs: number;
+  /** "2026년 111회차" */
+  label: string;
+  /** 경기 수(기본형 기준, 전반 제외) */
+  games: number;
+  /** 첫·마지막 경기 시각(ISO) */
+  from: string;
+  to: string;
+  /** 발매예정·발매중 라인이 하나라도 있으면 true */
+  onSale: boolean;
+  /** 전 경기 판정 완료 */
+  settled: boolean;
+}
+
+/** 최근 회차 목록(최신순). 기본형 라인만 세고 전반 라인은 뺀다. */
+export async function getBetmanRounds(limit = 12): Promise<BetmanRound[]> {
+  const rows = await prisma.$queryRaw<Array<{ gmTs: number; games: number; d0: Date; d1: Date; onsale: number; pending: number }>>`
+    SELECT "gmTs",
+      count(distinct ("gameDate"::text || '|' || "homeName" || '|' || "awayName"))::int AS games,
+      min("gameDate") AS d0, max("gameDate") AS d1,
+      sum(case when "protoStatus" in ('1','2') then 1 else 0 end)::int AS onsale,
+      sum(case when "gameResult" is null then 1 else 0 end)::int AS pending
+    FROM "BetmanOdds"
+    WHERE "betTypNm" IN ('승무패','일반 승패') AND "itemCode" IN ('SC','BS','BK','VL') AND coalesce("betNm",'') NOT LIKE '%전반%'
+    GROUP BY 1 ORDER BY 1 DESC LIMIT ${limit}`;
+  return rows.map((r) => ({
+    gmTs: r.gmTs,
+    label: roundLabel(r.gmTs),
+    games: r.games,
+    from: r.d0.toISOString(),
+    to: r.d1.toISOString(),
+    onSale: r.onsale > 0,
+    settled: r.pending === 0,
+  }));
+}
+
+export interface BetmanRoundScore {
+  gmTs: number;
+  label: string;
+  summary: RoundSummary;
+}
+
+/**
+ * 회차별 AI 적중 집계 — 기본형(승무패·승패) 라인 × 연결된 Match.predWinner 를 베트맨 판정으로 채점.
+ * 적특·미판정은 분모 제외(summarizeRound). 픽이 없는 회차는 total 0 으로 돌아온다.
+ */
+export async function getBetmanRoundScorecard(rounds: number[]): Promise<BetmanRoundScore[]> {
+  if (rounds.length === 0) return [];
+  const rows = await prisma.$queryRaw<Array<{ gmTs: number; itemCode: string | null; predWinner: string | null; gameResult: string | null }>>`
+    SELECT b."gmTs", b."itemCode", m."predWinner", b."gameResult"
+    FROM "BetmanOdds" b LEFT JOIN "Match" m ON m.id = b."matchId"
+    WHERE b."gmTs" = ANY(${rounds}) AND b."betTypNm" IN ('승무패','일반 승패') AND b."itemCode" IN ('SC','BS','BK','VL')
+      AND b."winAllot" IS NOT NULL AND coalesce(b."betNm",'') NOT LIKE '%전반%'`;
+  const byRound = new Map<number, typeof rows>();
+  for (const r of rows) {
+    const arr = byRound.get(r.gmTs) ?? [];
+    arr.push(r);
+    byRound.set(r.gmTs, arr);
+  }
+  return rounds.map((g) => ({ gmTs: g, label: roundLabel(g), summary: summarizeRound(byRound.get(g) ?? []) }));
 }

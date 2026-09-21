@@ -12,7 +12,8 @@
 
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { betmanRenderNow, type BetmanMatch, type BetmanLine } from "@/lib/odds/betman";
+import { betmanRenderNow, type BetmanMatch, type BetmanLine, type BetmanRound } from "@/lib/odds/betman";
+import { lineKind, resultLabel, type SideMove } from "@/lib/odds/betman-result";
 import TeamName from "./BetmanTeamName";
 
 const SPORT_LABEL: Record<string, string> = { SC: "축구", BS: "야구", BK: "농구", VL: "배구" };
@@ -95,26 +96,94 @@ function VotePanel({ pct, imp, hasDraw, total }: { pct: { w: number; d: number; 
 
 const ODDS_TONE = { w: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400", d: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300", l: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" } as const;
 
-/** 승·무·패 배당 알약 — 팀 사이에 놓인다. */
+/**
+ * 배당 변동 화살표 — 회차 첫 배당 대비 현재. 오른 쪽 ▲(rose)·내린 쪽 ▼(blue)는 국내 관행(와이즈토토 ↑↓)과 같다.
+ * 이전 값은 title 로만 — 알약이 좁다.
+ */
+function MoveArrow({ move, count }: { move: SideMove | null | undefined; count?: number }) {
+  if (!move || move.dir === "flat") return null;
+  return (
+    <span
+      className={`text-[9px] font-bold leading-none ${move.dir === "up" ? "text-rose-500" : "text-blue-500"}`}
+      title={`회차 첫 배당 ${move.from.toFixed(2)} → ${move.to.toFixed(2)}${count ? ` (변경 ${count}회)` : ""}`}
+      aria-label={move.dir === "up" ? "배당 상승" : "배당 하락"}
+    >
+      {move.dir === "up" ? "▲" : "▼"}
+    </span>
+  );
+}
+
+/** 승·무·패 배당 알약 — 팀 사이에 놓인다. 변동이 있으면 값 옆에 ▲▼. */
 function OddsPills({ m }: { m: BetmanMatch }) {
   const hasDraw = m.drawAllot != null;
-  const pill = (k: "w" | "d" | "l", v: number | null, lab: string) => (
+  const pill = (k: "w" | "d" | "l", v: number | null, lab: string, move: SideMove | null | undefined) => (
     <span key={k} className={`inline-flex min-w-[52px] flex-col items-center rounded-md px-1.5 py-1 leading-none ${ODDS_TONE[k]}`}>
       <span className="text-[9px] font-medium opacity-70">{lab}</span>
-      <span className="mt-0.5 text-[13px] font-bold tabular-nums">{fmtOdds(v)}</span>
+      <span className="mt-0.5 inline-flex items-center gap-0.5 text-[13px] font-bold tabular-nums">
+        {fmtOdds(v)}
+        <MoveArrow move={move} count={m.change?.count} />
+      </span>
     </span>
   );
   return (
     <span className="inline-flex shrink-0 items-center gap-1">
-      {pill("w", m.winAllot, "승")}
-      {hasDraw && pill("d", m.drawAllot, "무")}
-      {pill("l", m.loseAllot, "패")}
+      {pill("w", m.winAllot, "승", m.change?.win)}
+      {hasDraw && pill("d", m.drawAllot, "무", m.change?.draw)}
+      {pill("l", m.loseAllot, "패", m.change?.lose)}
+    </span>
+  );
+}
+
+const RESULT_TONE = {
+  win: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30",
+  draw: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30",
+  lose: "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30",
+  void: "bg-neutral-100 text-neutral-500 ring-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-700",
+} as const;
+
+/** 베트맨 공식 판정 칩 — "홈승 2:1" / "언더" / "적특". 미판정이면 아무것도 안 그린다. */
+function ResultChip({ line, score }: { line: BetmanLine; score: string | null }) {
+  const r = resultLabel(line.gameResult, lineKind(line.betTypNm, line.betNm), line.betNm);
+  if (!r) return null;
+  return (
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded px-1.5 py-px text-[10px] font-bold ring-1 ${RESULT_TONE[r.side]}`} title="베트맨 공식 판정">
+      {r.text}
+      {score && r.side !== "void" && <span className="font-semibold tabular-nums opacity-80">{score}</span>}
+    </span>
+  );
+}
+
+const PICK_KO = { HOME: "홈", DRAW: "무", AWAY: "원정" } as const;
+
+/** 우리 AI 1X2 픽 도장 — 판정 전엔 "AI 픽 홈", 판정 후엔 적중/빗나감. 픽이 없으면 없음. */
+function AiStamp({ m }: { m: BetmanMatch }) {
+  if (!m.aiPick || !m.aiVerdict) return null;
+  const pick = PICK_KO[m.aiPick];
+  if (m.aiVerdict === "pending") {
+    return (
+      <span className="whitespace-nowrap rounded px-1.5 py-px text-[10px] font-bold text-indigo-600 ring-1 ring-indigo-300 dark:text-indigo-300 dark:ring-indigo-500/40" title="경기 전 저장된 우리 1X2 픽">
+        AI 픽 {pick}
+      </span>
+    );
+  }
+  if (m.aiVerdict === "void") return null; // 적특은 결과 칩이 이미 말한다
+  const hit = m.aiVerdict === "hit";
+  return (
+    <span
+      className={`whitespace-nowrap rounded px-1.5 py-px text-[10px] font-bold ring-1 ${
+        hit
+          ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300"
+          : "bg-neutral-100 text-neutral-500 ring-neutral-200 line-through decoration-neutral-400 dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-700"
+      }`}
+      title={`우리 픽 ${pick} — 베트맨 판정과 ${hit ? "일치" : "불일치"}`}
+    >
+      AI {pick} {hit ? "적중" : "빗나감"}
     </span>
   );
 }
 
 /** 펼침 영역의 한 줄 — 핸디캡/언더오버/홀짝. 기준선(핸디 라인)을 같이 보여줘야 뜻이 통한다. */
-function LineRow({ line }: { line: BetmanLine }) {
+function LineRow({ line, fallbackScore }: { line: BetmanLine; fallbackScore: string | null }) {
   const hasDraw = line.drawAllot != null;
   const pct = votePct(line);
   const imp = impliedPct(line.winAllot, line.drawAllot, line.loseAllot);
@@ -139,16 +208,28 @@ function LineRow({ line }: { line: BetmanLine }) {
             {lineLabel}
           </span>
         )}
-      </div>
-      <div className="flex items-center gap-2.5 text-[13px] tabular-nums">
-        <span className="font-semibold text-rose-600 dark:text-rose-400">
-          {isOverUnder && <span className="mr-0.5 text-[10px] font-medium opacity-70">오버</span>}
-          {fmtOdds(line.winAllot)}
+        {/* 판정 — 핸디 라인은 베트맨 mchScore 가 핸디 적용 점수("2.5:3")라 그대로 보여준다 */}
+        <span className="ml-1.5 inline-flex align-middle">
+          <ResultChip line={line} score={line.score ?? (isOverUnder || lineKind(line.betTypNm, line.betNm) === "oddeven" ? null : fallbackScore)} />
         </span>
-        {hasDraw && <span className="text-neutral-500">{fmtOdds(line.drawAllot)}</span>}
-        <span className="font-semibold text-blue-600 dark:text-blue-400">
+      </div>
+      {/* 언더오버는 win 쪽이 언더, lose 쪽이 오버(베트맨 winTxt 실측 2026-09-21) — 예전엔 반대로 붙어 있었다 */}
+      <div className="flex items-center gap-2.5 text-[13px] tabular-nums">
+        <span className="inline-flex items-center gap-0.5 font-semibold text-rose-600 dark:text-rose-400">
           {isOverUnder && <span className="mr-0.5 text-[10px] font-medium opacity-70">언더</span>}
+          {fmtOdds(line.winAllot)}
+          <MoveArrow move={line.change?.win} count={line.change?.count} />
+        </span>
+        {hasDraw && (
+          <span className="inline-flex items-center gap-0.5 text-neutral-500">
+            {fmtOdds(line.drawAllot)}
+            <MoveArrow move={line.change?.draw} count={line.change?.count} />
+          </span>
+        )}
+        <span className="inline-flex items-center gap-0.5 font-semibold text-blue-600 dark:text-blue-400">
+          {isOverUnder && <span className="mr-0.5 text-[10px] font-medium opacity-70">오버</span>}
           {fmtOdds(line.loseAllot)}
+          <MoveArrow move={line.change?.lose} count={line.change?.count} />
         </span>
       </div>
       <div className="col-span-2 sm:col-span-1">
@@ -203,12 +284,13 @@ const chip = (active: boolean) =>
 /**
  * @param date  KST 날짜 키(YYYY-MM-DD) — 그 날만. 없으면 발매 중 전부를 날짜별로 묶어 보인다.
  * @param item  SC/BS/BK/VL — 종목 필터. 없으면 전 종목.
+ * @param round 회차 뷰(아카이브)면 그 회차. 결과 칩·AI 도장이 본체가 되고, 날짜·종목 칩 링크에 round 가 붙는다.
  */
-export default function BetmanOddsPanel({ matches, date, item }: { matches: BetmanMatch[]; date?: string; item?: string }) {
+export default function BetmanOddsPanel({ matches, date, item, round }: { matches: BetmanMatch[]; date?: string; item?: string; round?: BetmanRound | null }) {
   if (matches.length === 0) {
     return (
       <p className="mt-6 rounded-xl border border-neutral-200 px-4 py-8 text-center text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
-        표시할 발매 경기가 없습니다. 베트맨 배당은 하루 두 번(09:00·21:00) 갱신됩니다.
+        {round ? `${round.label}에 표시할 경기가 없습니다.` : "표시할 발매 경기가 없습니다. 베트맨 배당은 하루 두 번(09:00·21:00) 갱신됩니다."}
       </p>
     );
   }
@@ -227,7 +309,7 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
   const itemSel = item && itemCounts.has(item) ? item : null;
   const shown = matches.filter((m) => (!dateSel || kstDayKey(m.gameDate) === dateSel) && (!itemSel || m.itemCode === itemSel));
   const href = (d: string | null, it: string | null) =>
-    `/odds?sport=betman${d ? `&date=${d}` : ""}${it ? `&item=${it}` : ""}`;
+    `/odds?sport=betman${round ? `&round=${round.gmTs}` : ""}${d ? `&date=${d}` : ""}${it ? `&item=${it}` : ""}`;
   // 날짜별 묶음 — 같은 날 안에서는 프로토 경기번호 순
   const groups = new Map<string, BetmanMatch[]>();
   for (const m of shown) {
@@ -276,8 +358,15 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
         ))}
       </div>
       <p className="mb-3 text-[12px] leading-relaxed text-neutral-500 dark:text-neutral-400">
-        프로토 승부식 배당과 <strong className="font-semibold">국내 구매자 투표 분포</strong>입니다
-        {matches[0]?.gmTs ? ` (${matches[0].gmTs} 회차 기준)` : ""}. 막대는 실제 투표 비율,
+        {round ? (
+          <>
+            <strong className="font-semibold">{round.label}</strong> 발매 경기 {matches.length}건과 베트맨 공식 판정,
+            경기 전 저장된 <strong className="font-semibold">우리 AI 1X2 픽</strong>의 적중 여부입니다. 배당 옆 ▲▼는 회차 첫 배당 대비 변동.{" "}
+          </>
+        ) : (
+          <>프로토 승부식 배당과 <strong className="font-semibold">국내 구매자 투표 분포</strong>입니다{matches[0]?.gmTs ? ` (${matches[0].gmTs} 회차 기준)` : ""}. </>
+        )}
+        막대는 실제 투표 비율,
         오른쪽 <strong className="font-semibold">배당 기준 확률</strong>은 배당을 확률로 바꾼
         값입니다 — 둘이 벌어진 경기가 여론과 시장이 다르게 보는 경기입니다.
         경기를 누르면 핸디캡·언더오버 배당이 펼쳐집니다. <strong className="font-semibold">단폭</strong>은 1경기만 단독으로 살 수 있는 유형,
@@ -316,6 +405,8 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
                     {SPORT_LABEL[m.itemCode ?? ""] ?? "-"}
                   </span>
                   <span className="truncate">{m.leagueName}</span>
+                  <ResultChip line={m} score={m.score ?? m.matchScore} />
+                  <AiStamp m={m} />
                   {/* 단폭 — 1경기만 단독 구매 가능(베트맨 sgl). 조합이 기본인 승부식에서 실구매자가 먼저 보는 표시 */}
                   {m.single && (
                     <span className="rounded bg-emerald-500/10 px-1.5 py-px text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-500/30">
@@ -380,7 +471,7 @@ export default function BetmanOddsPanel({ matches, date, item }: { matches: Betm
                     같은 경기의 다른 배당
                   </div>
                   {m.lines.map((l) => (
-                    <LineRow key={l.id} line={l} />
+                    <LineRow key={l.id} line={l} fallbackScore={m.score ?? m.matchScore} />
                   ))}
                 </div>
               )}
