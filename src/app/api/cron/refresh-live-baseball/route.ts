@@ -1,12 +1,13 @@
 // GET /api/cron/refresh-live-baseball
 // 모든 KBO/NPB/MLB LIVE 매치의 라이브 API endpoint 호출 → 자동 DB upsert.
 // /api/live/baseball/[gameId] 가 응답 시 prisma.match.updateMany 로 점수 동기화.
-// 매 2분 vercel cron — list 페이지의 SSR 도 stale 안 됨.
+// 매 5분 vercel cron — list 페이지의 SSR 도 stale 안 됨. NHL ESPN id 매치 동기화도 여기서(nhl-espn-live-sync).
 
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runFetchMlbStartersLive } from "@/jobs/fetch-mlb-starters";
+import { syncNhlEspnLive } from "@/lib/sports/nhl-espn-live-sync";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -49,11 +50,19 @@ export async function GET(req: Request) {
     }
   }
 
+  // NHL ESPN id 매치(프리시즌 등 ts 캐시 없는 행) 라이브 동기화 — 같은 5분 주기에 얹는다(2026-09-21 LIVE 고착 사고).
+  let nhl: Awaited<ReturnType<typeof syncNhlEspnLive>> | null = null;
+  try {
+    nhl = await syncNhlEspnLive();
+  } catch (e) {
+    console.warn("[refresh-live-baseball] NHL ESPN 동기화 실패:", (e as Error).message);
+  }
   return NextResponse.json({
     ok: true,
     total: matches.length,
     refreshed: ok,
     failed: fail,
+    nhl,
     leagues: matches.reduce<Record<string, number>>((acc, m) => {
       acc[m.league] = (acc[m.league] ?? 0) + 1;
       return acc;
