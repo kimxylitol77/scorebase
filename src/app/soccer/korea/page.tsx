@@ -425,6 +425,12 @@ export default async function KoreaAbroadPage() {
           {new Date(DATA.currentUpdatedAt ?? DATA.updatedAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })} 갱신
           · 리그 경기 기준(컵대회 제외) · 개막 전 리그는 {DATA.season} 탭에서
         </p>
+        {/* 종목별 해외파 허브 상호 링크 — /baseball/korea 와 같은 칩 */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Link href="/baseball/korea" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">야구 해외파</Link>
+          <Link href="/golf/korea" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">골프 한국 선수</Link>
+          <Link href="/soccer" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">축구 허브</Link>
+        </div>
       </header>
 
       {/* 요약 */}
