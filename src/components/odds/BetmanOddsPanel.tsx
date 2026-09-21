@@ -431,10 +431,20 @@ export default function BetmanOddsPanel({ matches, date, item, round }: { matche
                       </span>
                     );
                   })()}
+                  {/* 우리 경기 상세로 — 배당 페이지에서 라인업·AI 확률·해외 배당 흐름으로 이어지는 유일한 동선(2026-09-21 사용자 지적).
+                      summary 안이라 클릭이 펼침으로 새지 않게 TeamName(client, stopPropagation)을 쓴다. */}
+                  {m.matchHref && (
+                    <TeamName
+                      href={m.matchHref}
+                      className="ml-auto inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-neutral-100 px-2.5 py-1 text-[12px] font-bold text-neutral-700 ring-1 ring-neutral-200 transition hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:ring-white/10 dark:hover:bg-white/[0.12]"
+                    >
+                      경기 상세 →
+                    </TeamName>
+                  )}
                   {m.lines.length > 0 && (
                     // 펼칠 수 있다는 걸 알아볼 수 있어야 한다 — 회색 10px 로는 안 보인다.
                     // 색 있는 알약 + 닫힘/열림 문구 교체(CSS group-open, JS 불필요).
-                    <span className="ml-auto inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-indigo-50 px-2.5 py-1 text-[12px] font-bold text-indigo-600 ring-1 ring-indigo-200 transition group-hover:bg-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-500/30 dark:group-hover:bg-indigo-500/25">
+                    <span className={`${m.matchHref ? "" : "ml-auto "}inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-indigo-50 px-2.5 py-1 text-[12px] font-bold text-indigo-600 ring-1 ring-indigo-200 transition group-hover:bg-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-500/30 dark:group-hover:bg-indigo-500/25`}>
                       <span className="group-open:hidden">핸디·오버언더 {m.lines.length}종</span>
                       <span className="hidden group-open:inline">접기</span>
                       <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" aria-hidden="true" />

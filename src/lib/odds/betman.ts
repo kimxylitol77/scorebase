@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawTeamMap from "../../../data/betman-team-map.json";
 import { SOCCER_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import { aiVerdict, roundLabel, summarizeChanges, summarizeRound, type AiVerdict, type ChangeRow, type ChangeSummary, type RoundSummary } from "./betman-result";
 
 /** 한 베팅 라인 (승무패·핸디캡·언더오버·홀짝 각각 한 줄) */
@@ -57,6 +58,8 @@ export interface BetmanMatch extends BetmanLine {
   aiVerdict: AiVerdict | null;
   /** 우리 Match 점수("2:1") — mchScore 가 없을 때 폴백. 둘 다 없으면 null */
   matchScore: string | null;
+  /** 우리 경기 상세(/live/...) 경로 — 연결된 경기만. 없으면 null */
+  matchHref: string | null;
   lines: BetmanLine[];
 }
 
@@ -227,7 +230,7 @@ export async function getBetmanMatches(take = 60, gmTs?: number): Promise<Betman
   const matchIds = [...new Set(rows.map((r) => r.matchId).filter((v): v is number => v != null))];
   const matchInfo = new Map(
     (matchIds.length
-      ? await prisma.match.findMany({ where: { id: { in: matchIds } }, select: { id: true, predWinner: true, homeScore: true, awayScore: true, status: true } })
+      ? await prisma.match.findMany({ where: { id: { in: matchIds } }, select: { id: true, predWinner: true, homeScore: true, awayScore: true, status: true, league: true, externalId: true } })
       : []
     ).map((m) => [m.id, m]),
   );
@@ -290,6 +293,7 @@ export async function getBetmanMatches(take = 60, gmTs?: number): Promise<Betman
       aiPick: pick,
       aiVerdict: aiVerdict(pick, base.gameResult),
       matchScore: mi && mi.status === "FINISHED" && mi.homeScore != null && mi.awayScore != null ? `${mi.homeScore}:${mi.awayScore}` : null,
+      matchHref: mi?.externalId ? matchLiveHref(mi.league, mi.externalId) : null,
       lines,
     });
     if (out.length >= take) break;

@@ -58,3 +58,4 @@ BCHG_W_HANDI_RT/ACHG_W_HANDI_RT (핸디 라인 변경), L_HANDI 동일
 ## 결정 이력
 
 - 9/21 경쟁 실측: 와이즈토토(회차 셀렉터·결과 칩·↑↓·계산기), 정배당(유사검색·AI 6봇·2단계 정산·적특 제외), 픽센터(회차 프레임·적중 도장). 메모리 `betman-proto-strengthen-plan`.
+- 9/21 후속(사용자 지적): 베트맨 카드 → 우리 경기 상세 링크가 없었다. 연결된 matchId 의 league·externalId 로 `matchLiveHref` 경로를 실어 헤더 오른쪽 "경기 상세 →" 칩(BetmanTeamName, summary 안 stopPropagation). 실측: 클릭 시 펼침 안 되고 /live/npb/184829 이동.
