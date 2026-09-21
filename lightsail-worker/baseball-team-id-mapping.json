@@ -700,5 +700,77 @@
     "tsId": "318q63sozjz8qo9",
     "tsName": "Queretaro",
     "matchType": "ts-only"
+  },
+  {
+    "ourId": 615802,
+    "ourName": "대한민국",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "gx7lm7xsegwr2wd",
+    "tsId": "gx7lm7xsegwr2wd",
+    "tsName": "South Korea",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615803,
+    "ourName": "대만",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "p3glrw5s5k1rdyj",
+    "tsId": "p3glrw5s5k1rdyj",
+    "tsName": "Chinese Taipei",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615804,
+    "ourName": "일본",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "gy0or56skxgmwzv",
+    "tsId": "gy0or56skxgmwzv",
+    "tsName": "Japan",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615805,
+    "ourName": "중국",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "9vjxm8ws6vjm6od",
+    "tsId": "9vjxm8ws6vjm6od",
+    "tsName": "China",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615806,
+    "ourName": "홍콩",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "d23xmv7sjvgmg8n",
+    "tsId": "d23xmv7sjvgmg8n",
+    "tsName": "Hong Kong",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615807,
+    "ourName": "태국",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "4zp5rzvs9y0q82w",
+    "tsId": "4zp5rzvs9y0q82w",
+    "tsName": "Thailand",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615808,
+    "ourName": "필리핀",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "23xmv7sny1gmg8n",
+    "tsId": "23xmv7sny1gmg8n",
+    "tsName": "Philippines",
+    "matchType": "national"
+  },
+  {
+    "ourId": 615809,
+    "ourName": "팔레스타인",
+    "ourLeague": "ASIAN_GAMES_BB",
+    "ourExternalId": "zp5rzvsjxp18q82",
+    "tsId": "zp5rzvsjxp18q82",
+    "tsName": "Palestine",
+    "matchType": "national"
   }
 ]
