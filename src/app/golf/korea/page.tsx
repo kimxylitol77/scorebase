@@ -97,6 +97,11 @@ export default async function GolfKoreaPage({
             ? "공식 세계골프랭킹(OWGR) 남자 top100 을 한국어로. 한국 선수는 색으로 강조했습니다."
             : `${DATA.year} PGA·LPGA 투어에 출전한 한국 선수들의 우승·톱10·출전 기록을 한 곳에 모았습니다. 대회가 끝날 때마다 갱신됩니다.`}
         </p>
+        {/* 종목별 해외파 허브 상호 링크 — /soccer/korea·/baseball/korea 와 같은 칩 */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Link href="/soccer/korea" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">축구 해외파</Link>
+          <Link href="/baseball/korea" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">야구 해외파</Link>
+        </div>
       </header>
 
       {/* 뷰 전환 — 한국 선수 / 세계랭킹 */}
