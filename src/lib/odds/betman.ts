@@ -312,6 +312,10 @@ export interface BetmanMatchLine {
   gmTs: number;
   /** 회차 내 프로토 경기번호 */
   matchSeq: number;
+  /** 회차 첫 배당(BetmanOddsChange 최초 변경 전 값). 변동이 없었으면 null — 현재가 곧 초기 */
+  opening: { win: number | null; draw: number | null; lose: number | null } | null;
+  /** 변동 횟수 */
+  changeCount: number;
 }
 
 const LINE_SELECT = {
@@ -334,7 +338,22 @@ function toLine(r: {
     gameDate: r.gameDate.toISOString(),
     gmTs: r.gmTs,
     matchSeq: r.matchSeq,
+    opening: null,
+    changeCount: 0,
   };
+}
+
+/** 회차 첫 배당 — 변동 이력의 시각순 첫 "변경 전" 값. 이력이 없으면 그대로(현재=초기). */
+async function withOpening(line: BetmanMatchLine | null): Promise<BetmanMatchLine | null> {
+  if (!line) return null;
+  const ch = await prisma.betmanOddsChange.findMany({
+    where: { gmTs: line.gmTs, matchSeq: line.matchSeq },
+    orderBy: { changedAt: "asc" },
+    select: { beforeWin: true, beforeDraw: true, beforeLose: true },
+  });
+  if (ch.length === 0) return line;
+  const f = ch[0];
+  return { ...line, opening: { win: f.beforeWin, draw: f.beforeDraw, lose: f.beforeLose }, changeCount: ch.length };
 }
 
 /**
@@ -353,7 +372,7 @@ export async function getBetmanLineForMatch(
   const base = { betTypNm: { in: [...BASE_TYPES] }, winAllot: { not: null }, ...(itemCode ? { itemCode } : {}) };
   if (matchId != null) {
     const r = await prisma.betmanOdds.findFirst({ where: { matchId, ...base }, orderBy: { gmTs: "desc" }, select: LINE_SELECT });
-    if (r) return toLine(r);
+    if (r) return withOpening(toLine(r));
   }
   // 사전 역인덱스: Team.id → 베트맨 표기들 (한 팀이 여러 표기를 가질 수 있다)
   const homeNames = new Set<string>();
@@ -377,7 +396,7 @@ export async function getBetmanLineForMatch(
     orderBy: { gmTs: "desc" },
     select: LINE_SELECT,
   });
-  return r ? toLine(r) : null;
+  return r ? withOpening(toLine(r)) : null;
 }
 
 /** 회차 한 줄 — 회차 바·성적표용 */

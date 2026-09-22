@@ -68,7 +68,7 @@ import MatchSummaryCard from "@/components/live/MatchSummaryCard";
 import BetmanLineCard from "@/components/live/BetmanLineCard";
 import OddsMarketsGrid from "@/components/live/OddsMarketsGrid";
 import { isLiveOddsSupported } from "@/lib/odds/live-odds";
-import { getBetmanLineForMatch } from "@/lib/odds/betman";
+import { getBetmanCardData } from "@/lib/odds/betman-card-data";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -882,15 +882,15 @@ export default async function GenericLivePage({ params }: Props) {
       />
     );
     // 베트맨 한 줄 — 국내 합법 배당 + 투표 분포를 해외 평균보다 먼저. 발매 없으면 null 로 자동 생략.
-    const betmanLine =
-      match.status !== "FINISHED"
-        ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime, match.id, lg).catch(() => null)
-        : null;
+    const betmanCard = await getBetmanCardData({ id: match.id, homeTeamId: match.homeTeam.id, awayTeamId: match.awayTeam.id, startTime: match.startTime, status: match.status, league: lg });
+    const betmanLine = betmanCard?.line ?? null;
+    const betmanBand = betmanCard?.band ?? null;
     const oddsTab = (
       <div className="space-y-4">
         {betmanLine && (
           <BetmanLineCard
             line={betmanLine}
+            band={betmanBand}
             homeNameKo={homeKo}
             awayNameKo={awayKo}
             overseas={
@@ -1530,10 +1530,9 @@ async function renderBaseballPage(args: {
     getBaseballRecentGames(match),
   ]);
   // 베트맨 한 줄 — 축구 분기에만 있던 카드를 야구에도(사전은 52/52 있었는데 SC 필터로 한 번도 안 떴다, 2026-09-11).
-  const betmanLine =
-    match.status !== "FINISHED"
-      ? await getBetmanLineForMatch(match.homeTeam.id, match.awayTeam.id, match.startTime, match.id, lg).catch(() => null)
-      : null;
+  const betmanCard = await getBetmanCardData({ id: match.id, homeTeamId: match.homeTeam.id, awayTeamId: match.awayTeam.id, startTime: match.startTime, status: match.status, league: lg });
+  const betmanLine = betmanCard?.line ?? null;
+  const betmanBand = betmanCard?.band ?? null;
   const detailLive = match.theSportsCache?.detailLive as
     | { players?: unknown; stats?: unknown; score?: unknown[] }
     | null;
@@ -1665,6 +1664,7 @@ async function renderBaseballPage(args: {
               {betmanLine && (
                 <BetmanLineCard
                   line={betmanLine}
+                  band={betmanBand}
                   homeNameKo={homeKo}
                   awayNameKo={awayKo}
                   overseas={

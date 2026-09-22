@@ -14,6 +14,8 @@ import MatchVoteCard from "@/components/MatchVoteCard";
 import NextUpCard from "@/components/live/NextUpCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
+import BetmanLineCard from "@/components/live/BetmanLineCard";
+import { getBetmanCardData } from "@/lib/odds/betman-card-data";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -111,6 +113,8 @@ export default async function NpbLivePage({ params }: Props) {
 
   const homeKo = toKoreanTeamName(match.homeTeam.name, "NPB");
   const awayKo = toKoreanTeamName(match.awayTeam.name, "NPB");
+  // 베트맨 승부식 한 줄(초기·현재·투표·해외) + 이 배당대 역대 결과 — 라이브 배당 탭 맨 위. 발매 없거나 종료면 null.
+  const betman = await getBetmanCardData({ id: match.id, homeTeamId: match.homeTeam.id, awayTeamId: match.awayTeam.id, startTime: match.startTime, status: match.status, league: "NPB" });
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
@@ -344,15 +348,32 @@ export default async function NpbLivePage({ params }: Props) {
           ) : null
         }
         liveOddsContent={
-          baseballOdds?.odds ? (
-            <LiveOddsCard
-              odds={baseballOdds.odds}
-              homeNameKo={homeKo}
-              awayNameKo={awayKo}
-              hasDraw={false}
-              matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
-              oddsHistory={baseballOdds.history}
-            />
+          betman || baseballOdds?.odds ? (
+            <div className="space-y-4">
+              {betman && (
+                <BetmanLineCard
+                  line={betman.line}
+                  band={betman.band}
+                  homeNameKo={homeKo}
+                  awayNameKo={awayKo}
+                  overseas={
+                    match.oddsHome != null
+                      ? { home: match.oddsHome, draw: null, away: match.oddsAway ?? null, books: match.marketBookmakers ?? null }
+                      : null
+                  }
+                />
+              )}
+              {baseballOdds?.odds && (
+                <LiveOddsCard
+                  odds={baseballOdds.odds}
+                  homeNameKo={homeKo}
+                  awayNameKo={awayKo}
+                  hasDraw={false}
+                  matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+                  oddsHistory={baseballOdds.history}
+                />
+              )}
+            </div>
           ) : null
         }
       />

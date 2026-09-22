@@ -33,6 +33,21 @@ const BANDS: Array<{ label: string; max: number }> = [
 ];
 export const LEAGUE_MIN_SAMPLE = 30;
 
+/** 인기픽 배당 → 구간 라벨 (BANDS 와 동일 경계). 1 이하는 null. */
+export function bandLabelFor(favOdds: number): string | null {
+  if (!Number.isFinite(favOdds) || favOdds <= 1) return null;
+  return BANDS[BANDS.findIndex((b) => favOdds < b.max)].label;
+}
+
+/** 승·무·패 배당 중 최저(인기픽)의 구간 행. 경기 카드 "이 배당대 역대 결과" 한 줄용 — 표본 100 미만은 null. */
+export function bandRowForOdds(stats: OddsBandStats, odds: Array<number | null | undefined>): OddsBandRow | null {
+  const valid = odds.filter((v): v is number => v != null && Number.isFinite(v) && v > 1);
+  if (valid.length < 2) return null;
+  const label = bandLabelFor(Math.min(...valid));
+  const row = label ? stats.bands.find((b) => b.band === label) : undefined;
+  return row && row.evaluated >= 100 ? row : null;
+}
+
 export async function oddsBandStats(): Promise<OddsBandStats> {
   const rows = await prisma.match.findMany({
     where: { predCorrect: { not: null }, oddsHome: { gt: 1 }, oddsAway: { gt: 1 }, homeScore: { not: null }, awayScore: { not: null } },
