@@ -30160,5 +30160,275 @@
     "tsId": "1l4rjnhz9yxm7vx",
     "tsName": "Bac Ninh",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615491,
+    "ourName": "Hong Kong U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "zp5rzghx0gyq82w",
+    "tsId": "zp5rzghx0gyq82w",
+    "tsName": "Hong Kong U23",
+    "tsKo": "홍콩",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615501,
+    "ourName": "Japan Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "965mkyh7e0or1ge",
+    "tsId": "965mkyh7e0or1ge",
+    "tsName": "Japan Women",
+    "tsKo": "일본 우먼",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615502,
+    "ourName": "Thailand Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "965mkyh7g41r1ge",
+    "tsId": "965mkyh7g41r1ge",
+    "tsName": "Thailand Women",
+    "tsKo": "태국 여자축구",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615503,
+    "ourName": "South Korea Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "pxwrxlhg5pwryk0",
+    "tsId": "pxwrxlhg5pwryk0",
+    "tsName": "South Korea Women",
+    "tsKo": "한국 여자축구팀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615504,
+    "ourName": "Myanmar Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "pxwrxlhg7lyryk0",
+    "tsId": "pxwrxlhg7lyryk0",
+    "tsName": "Myanmar Women",
+    "tsKo": "미얀마 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615479,
+    "ourName": "Philippines U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "965mkyh79jzr1ge",
+    "tsId": "965mkyh79jzr1ge",
+    "tsName": "Philippines U23",
+    "tsKo": "필리핀 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615480,
+    "ourName": "Vietnam U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "x7lm7phkplym2wd",
+    "tsId": "x7lm7phkplym2wd",
+    "tsName": "Vietnam U23",
+    "tsKo": "베트남 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615482,
+    "ourName": "Qatar U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "4zp5rzgh98vq82w",
+    "tsId": "4zp5rzgh98vq82w",
+    "tsName": "Qatar U23",
+    "tsKo": "카타르 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615483,
+    "ourName": "South Korea U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "2y8m4zh3zj1ql07",
+    "tsId": "2y8m4zh3zj1ql07",
+    "tsName": "South Korea U23",
+    "tsKo": "코리아 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615484,
+    "ourName": "United Arab Emirates U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "n54qllh2k9kqvy9",
+    "tsId": "n54qllh2k9kqvy9",
+    "tsName": "United Arab Emirates U23",
+    "tsKo": "유나아티드 아랍 에미리트 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615485,
+    "ourName": "Iran U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "ednm9whkl25ryox",
+    "tsId": "ednm9whkl25ryox",
+    "tsName": "Iran U23",
+    "tsKo": "이란 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615486,
+    "ourName": "Thailand U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "dj2ryohk4jvq1zp",
+    "tsId": "dj2ryohk4jvq1zp",
+    "tsName": "Thailand U23",
+    "tsKo": "태국 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615487,
+    "ourName": "Kyrgyzstan U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "k82rekhvvngrepz",
+    "tsId": "k82rekhvvngrepz",
+    "tsName": "Kyrgyzstan U23",
+    "tsKo": "키르기스스탄 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615488,
+    "ourName": "China U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "dj2ryohk5xgq1zp",
+    "tsId": "dj2ryohk5xgq1zp",
+    "tsName": "China U23",
+    "tsKo": "중국 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615490,
+    "ourName": "Japan U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "j1l4rjnhw50m7vx",
+    "tsId": "j1l4rjnhw50m7vx",
+    "tsName": "Japan U23",
+    "tsKo": "일본 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615492,
+    "ourName": "Saudi Arabia U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "zp5rzghj204q82w",
+    "tsId": "zp5rzghj204q82w",
+    "tsName": "Saudi Arabia U23",
+    "tsKo": "사우디아라비아 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615495,
+    "ourName": "Chinese Taipei Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "6ypq3nh0llvmd7o",
+    "tsId": "6ypq3nh0llvmd7o",
+    "tsName": "Chinese Taipei Women",
+    "tsKo": "대만 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615496,
+    "ourName": "Vietnam Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "3glrw7hw044qdyj",
+    "tsId": "3glrw7hw044qdyj",
+    "tsName": "Vietnam Women",
+    "tsKo": "베트남 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615497,
+    "ourName": "North Korea Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "23xmvkh3oxgqg8n",
+    "tsId": "23xmvkh3oxgqg8n",
+    "tsName": "North Korea Women",
+    "tsKo": "북한 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615498,
+    "ourName": "Bangladesh Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "gy0or5jhv7zqwzv",
+    "tsId": "gy0or5jhv7zqwzv",
+    "tsName": "Bangladesh Women",
+    "tsKo": "방글라데시 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615499,
+    "ourName": "China Hong Kong Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "y0or5jhl7w5qwzv",
+    "tsId": "y0or5jhl7w5qwzv",
+    "tsName": "China Hong Kong Women",
+    "tsKo": "홍콩 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615500,
+    "ourName": "China Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "kn54qllhv57qvy9",
+    "tsId": "kn54qllhv57qvy9",
+    "tsName": "China Women",
+    "tsKo": "중국 우먼",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615478,
+    "ourName": "Uzbekistan U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "y0or5jhl0j1qwzv",
+    "tsId": "y0or5jhl0j1qwzv",
+    "tsName": "Uzbekistan U23",
+    "tsKo": "우즈베키스탄 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615481,
+    "ourName": "Kuwait U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "l7oqdehnl60r510",
+    "tsId": "l7oqdehnl60r510",
+    "tsName": "Kuwait U23",
+    "tsKo": "쿠웨이트 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615489,
+    "ourName": "North Korea U23",
+    "ourLeague": "ASIAN_GAMES_FB",
+    "ourExternalId": "8yomo4h7xz5q0j6",
+    "tsId": "8yomo4h7xz5q0j6",
+    "tsName": "North Korea U23",
+    "tsKo": "북한 U23",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615493,
+    "ourName": "Philippines Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "vl7oqdehvk9r510",
+    "tsId": "vl7oqdehvk9r510",
+    "tsName": "Philippines Women",
+    "tsKo": "필리핀 여",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615494,
+    "ourName": "Uzbekistan Women",
+    "ourLeague": "ASIAN_GAMES_FB_W",
+    "ourExternalId": "2y8m4zh3d53ql07",
+    "tsId": "2y8m4zh3d53ql07",
+    "tsName": "Uzbekistan Women",
+    "tsKo": "우즈베키스탄 우먼",
+    "matchType": "ts-external-id"
   }
 ]

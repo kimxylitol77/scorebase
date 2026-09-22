@@ -64,10 +64,15 @@ async function main() {
     ourByLeague.get(e.ourLeague)!.add(e.ourId);
   }
 
+  // --league 로 지정한 리그는 접두 없는 ts id("2y8m4zh3zj1ql07")도 받는다 — 아시안게임 온보딩 스크립트가 만든 팀은
+  // "ts-" 접두 없이 ts 팀 id 를 externalId 로 갖고 있어 이 백필이 영영 건너뛰었다(2026-09-22, 폴러·순위 모두 그 리그를 못 봄).
   const teams = await prisma.team.findMany({
-    where: { externalId: { startsWith: "ts-" } },
+    where: only
+      ? { OR: [{ externalId: { startsWith: "ts-" } }, { league: { in: [...only] } }] }
+      : { externalId: { startsWith: "ts-" } },
     select: { id: true, league: true, externalId: true, name: true, nameKo: true },
   });
+  const TS_ID = /^[a-z0-9]{10,24}$/;
 
   const added: Entry[] = [];
   const skipped: { reason: string; league: string; name: string }[] = [];
@@ -78,8 +83,10 @@ async function main() {
       continue;
     }
     if (only && !only.has(t.league)) continue;
-    const tsId = t.externalId.slice(3);
-    if (!tsId) continue;
+    const ext = t.externalId ?? "";
+    const tsId = ext.startsWith("ts-") ? ext.slice(3) : ext;
+    // 접두 없는 값은 ts id 모양(소문자+숫자, 숫자만은 af/ESPN id)일 때만 — 아니면 추측이므로 건너뜀
+    if (!tsId || !TS_ID.test(tsId) || /^\d+$/.test(tsId)) continue;
     if (tsByLeague.get(t.league)?.has(tsId)) continue; // 이미 매핑됨
     if (ourByLeague.get(t.league)?.has(t.id)) {
       // 같은 팀이 그 리그에서 다른 ts id 로 이미 매핑됨 — 자동 판단하지 않는다.
