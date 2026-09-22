@@ -41,6 +41,8 @@ const IMMINENT_MAX = 10;
 const IMMINENT_BEFORE_MIN = 75;
 const IMMINENT_AFTER_MIN = 20; // 킥오프 지연·ts status 갱신 지연 흡수
 let imminentCursor = 0;
+// coverage.lineup=0 인 임박 매치용 커서 — 플래그가 늦게 켜지는 대회(아시안게임 실측 2026-09-22) 대비.
+let imminentNoFlagCursor = 0;
 // 순회 커서 — 매 cycle 앞에서부터 자르면 상한 밖 매치가 영영 처리되지 않는다.
 // 프로세스 재시작 시 0 으로 돌아가지만, 회전 자체가 목적이라 영속화 불필요.
 let restCursor = 0;
@@ -371,23 +373,36 @@ async function poll() {
     //    호출량은 그대로 — 보는 순서만 바뀐다. 임박 매치는 status 1 이라 analysis+lineup
     //    2콜뿐이어서 rate 예산도 오히려 가볍다.
     const nowMs = Date.now();
+    // 임박 판정은 coverage.lineup 을 보지 않는다. 아시안게임은 이 플래그가 경기 전엔 0 이고 뒤늦게 1 로 바뀌어
+    // (2026-09-22 실측: 킥오프 22분 전에도 0), 플래그 조건 때문에 29경기 전부 킥오프 3~6시간 뒤 rest 회전에서야 저장됐다.
+    // 플래그 1 인 매치를 먼저 채우고, 0 인 매치는 남는 임박 슬롯만 쓴다 — 총 슬롯·호출량은 그대로.
     const isImminent = (p) => {
       if (p.ts.status_id !== 1) return false; // 예정만 — LIVE 는 아래 티어가 담당
       if (p.our.hasLineup) return false; // 이미 저장됨 — 슬롯 양보 (endpoint hasLineup)
-      if (p.ts.coverage?.lineup !== 1) return false; // 라인업 미제공 매치는 창이 무의미
       const mins = (new Date(p.our.startTime).getTime() - nowMs) / 60_000;
       return mins <= IMMINENT_BEFORE_MIN && mins >= -IMMINENT_AFTER_MIN;
     };
-    const imminentList = pairs.filter(isImminent);
+    const imminentFlag = pairs.filter((p) => isImminent(p) && p.ts.coverage?.lineup === 1);
+    const imminentNoFlag = pairs.filter((p) => isImminent(p) && p.ts.coverage?.lineup !== 1);
+    const imminentList = [...imminentFlag, ...imminentNoFlag];
     const liveList = pairs.filter((p) => isLiveStatus(p.ts.status_id));
     const restList = pairs.filter((p) => !isLiveStatus(p.ts.status_id) && !isImminent(p));
     const slice = [];
-    if (imminentList.length > 0) {
-      const taken = Math.min(IMMINENT_MAX, imminentList.length);
-      const start = imminentCursor % imminentList.length;
-      for (let i = 0; i < taken; i++) slice.push(imminentList[(start + i) % imminentList.length]);
+    // 플래그와 무관하게 lineup/detail 을 두드릴 매치 — 임박 전부 + 라인업 미저장 LIVE (빈 응답이면 그냥 넘어간다)
+    const tryLineup = new Set();
+    if (imminentFlag.length > 0) {
+      const taken = Math.min(IMMINENT_MAX, imminentFlag.length);
+      const start = imminentCursor % imminentFlag.length;
+      for (let i = 0; i < taken; i++) slice.push(imminentFlag[(start + i) % imminentFlag.length]);
       imminentCursor = start + taken;
     }
+    if (imminentNoFlag.length > 0 && slice.length < IMMINENT_MAX) {
+      const taken = Math.min(IMMINENT_MAX - slice.length, imminentNoFlag.length);
+      const start = imminentNoFlagCursor % imminentNoFlag.length;
+      for (let i = 0; i < taken; i++) slice.push(imminentNoFlag[(start + i) % imminentNoFlag.length]);
+      imminentNoFlagCursor = start + taken;
+    }
+    for (const p of slice) tryLineup.add(p.ts.id);
     if (liveList.length > 0 && slice.length < MAX_MATCHES_PER_POLL) {
       const liveTaken = Math.min(MAX_MATCHES_PER_POLL - slice.length, liveList.length);
       const start = liveCursor % liveList.length;
@@ -419,8 +434,8 @@ async function poll() {
 
         // detail_live (score/incidents/stats/tlive) 는 football-fast-poller 가 2초 cycle 로 담당 — 여기서 제거.
 
-        // coverage.lineup=1: lineup/detail (예정·LIVE 매치)
-        if (tsMatch.coverage?.lineup === 1) {
+        // coverage.lineup=1 이거나, 임박/라인업 미저장 LIVE 매치면 플래그와 무관하게 lineup/detail (빈 응답 = 미제공, 건너뜀)
+        if (tsMatch.coverage?.lineup === 1 || tryLineup.has(tsMatch.id) || (isLiveStatus(tsMatch.status_id) && !our.hasLineup)) {
           const lineup = await fetchTsLineup(tsMatch.id);
           if (lineup) {
             payload.lineup = lineup;
@@ -456,7 +471,7 @@ async function poll() {
 
     console.log(
       `    summary: cached=${cached}/${slice.length}, lineup=${lineupCount}, errors=${errors}` +
-        ` (imminent=${imminentList.length} live=${liveList.length} rest=${restTaken}/${restList.length} cursor=${restCursor})`,
+        ` (imminent=${imminentList.length}[noflag=${imminentNoFlag.length}] live=${liveList.length} rest=${restTaken}/${restList.length} cursor=${restCursor})`,
     );
   } catch (err) {
     console.error(`[${ts}] ❌ poll error: ${err.message}`);
