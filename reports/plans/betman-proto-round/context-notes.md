@@ -59,3 +59,4 @@ BCHG_W_HANDI_RT/ACHG_W_HANDI_RT (핸디 라인 변경), L_HANDI 동일
 
 - 9/21 경쟁 실측: 와이즈토토(회차 셀렉터·결과 칩·↑↓·계산기), 정배당(유사검색·AI 6봇·2단계 정산·적특 제외), 픽센터(회차 프레임·적중 도장). 메모리 `betman-proto-strengthen-plan`.
 - 9/21 후속(사용자 지적): 베트맨 카드 → 우리 경기 상세 링크가 없었다. 연결된 matchId 의 league·externalId 로 `matchLiveHref` 경로를 실어 헤더 오른쪽 "경기 상세 →" 칩(BetmanTeamName, summary 안 stopPropagation). 실측: 클릭 시 펼침 안 되고 /live/npb/184829 이동.
+- 9/22 2차(톡티 벳스코어 대응): ① 배당대 역대 결과는 해외 평균 배당 기준 채점(oddsBandStats)을 베트맨 인기픽 배당 구간에 대입 — 마진 차이(베트맨 14% vs 해외 6%)로 구간이 한 칸 어긋날 수 있어 문구에 "해외 평균 배당 기준 채점" 명시. ② 초기 배당은 `BetmanOddsChange` 최초 행의 변경 전 값 — 이력이 없으면 열 자체를 숨긴다(현재=초기). ③ 계산기는 순수 산술·서버 없음, 1조합 1,000원은 톡티·베트맨 동일 규칙. `/tools` 는 예전에 KBO 계산기로 리다이렉트돼 있었음(next.config) — 인덱스가 생겨 제거.

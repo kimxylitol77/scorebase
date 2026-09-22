@@ -37,3 +37,9 @@
 ## 6. 마무리
 - [x] 커밋 3개(d13e9b7·6000f40·4f09ffa) → main push → Vercel 배포 확인(~3분, 회차 페이지 title)
 - [x] 운영 렌더 재확인(260111: AI 적중 101·빗나감 92 = scored 193 일치) · 메모리 갱신(`betman-proto-strengthen-plan`)
+
+## 7. 2차 (9/22, 톡티 벳스코어 대응 3종)
+- [x] 경기 상세 베트맨 카드 "이 배당대 역대 결과" 한 줄 — `bandRowForOdds`(odds-band-stats) + 1h unstable_cache, 표본 100 미만 생략
+- [x] 베트맨 카드 초기·현재·해외 3열 — `getBetmanLineForMatch` 가 BetmanOddsChange 첫 변경 전 값을 `opening` 으로 동봉, ▲▼
+- [x] /tools 인덱스 + 프로토 조합 계산기 + 토토 복식 조합 계산기(승무패·승1패·승5패, 1조합 1,000원) · 네비(배당 메뉴)·푸터·사이트맵 · `/tools` 임시 리다이렉트 제거
+- [ ] dev 검증(계산기 상호작용 OK) → 상세 카드 실렌더 → 커밋·푸시·운영 확인
