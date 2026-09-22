@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import DriverAvatar from "@/components/scores/f1/DriverAvatar";
+import CountryMark from "@/components/golf/CountryMark";
 import GolfWorldRanking from "@/components/golf/GolfWorldRanking";
 import { golfEventKo } from "@/lib/sports/golf-events-ko";
 import { SITE_URL } from "@/lib/site-url";
@@ -203,10 +204,11 @@ export default async function GolfKoreaPage({
                   <span className="flex items-center gap-2 min-w-0">
                     <DriverAvatar
                       photo={p.id ? `https://a.espncdn.com/i/headshots/golf/players/full/${p.id}.png` : null}
-                      flag="https://a.espncdn.com/i/teamlogos/countries/500/kor.png"
+                      flag={null}
                       country="대한민국"
                       name={p.nameKo ?? p.name}
                     />
+                    <CountryMark code2="KR" country="대한민국" />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
                         {p.nameKo ?? p.name}

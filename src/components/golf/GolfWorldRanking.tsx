@@ -2,6 +2,7 @@
 // 여자(Rolex) 는 서버 접근 가능한 안정 소스 미확보로 "준비 중" 안내만.
 
 import DriverAvatar from "@/components/scores/f1/DriverAvatar";
+import CountryMark from "@/components/golf/CountryMark";
 import worldData from "../../../data/golf-world-rankings.json";
 
 interface WorldPlayer {
@@ -41,23 +42,6 @@ const COUNTRY_KO: Record<string, string> = {
   Chile: "칠레",
   Colombia: "콜롬비아",
 };
-
-// 영국 구성국은 ISO2 가 없어 유니코드 지역기(subdivision) 로 별도 처리.
-const SPECIAL_FLAG: Record<string, string> = {
-  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
-  "Northern Ireland": "🇬🇧",
-};
-
-function flagEmoji(code2: string, country: string): string {
-  if (SPECIAL_FLAG[country]) return SPECIAL_FLAG[country];
-  if (!/^[A-Za-z]{2}$/.test(code2)) return "🏳️";
-  const cc = code2.toUpperCase();
-  return String.fromCodePoint(
-    ...[...cc].map((ch) => 0x1f1e6 + (ch.charCodeAt(0) - 65)),
-  );
-}
 
 // 전주 대비 등락 — 양수=상승. lastWeekRank 없으면(신규 진입) null.
 function movement(rank: number, lastWeek: number | null): number | null {
@@ -130,11 +114,9 @@ export default function GolfWorldRanking() {
                     country={p.country}
                     name={p.nameKo ?? p.name}
                   />
+                  <CountryMark code2={p.code2} country={p.country} />
                   <span className="min-w-0">
                   <span className="flex items-center gap-1.5">
-                    <span className="text-base leading-none" aria-hidden>
-                      {flagEmoji(p.code2, p.country)}
-                    </span>
                     <span
                       className={`truncate text-sm font-semibold ${
                         kr
