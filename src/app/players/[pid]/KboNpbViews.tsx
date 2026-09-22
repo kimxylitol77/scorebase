@@ -12,6 +12,8 @@ import {
   fetchKboPitcherProfile,
   fetchKboHitterStats,
   fetchKboHitterProfile,
+  fetchKboFuturesHitterStats,
+  fetchKboFuturesPitcherStats,
   kboPhotoUrl,
   calcK9,
   type KboPitcherRecentGame,
@@ -20,6 +22,7 @@ import {
   type KboPitcherProfile,
   type KboHitterProfile,
   type KboHitterStats,
+  type KboPitcherStats,
 } from "@/lib/sports/kbo-official";
 import {
   fetchNpbHitterStats,
@@ -517,11 +520,14 @@ async function KboPitcherView({
   profile,
   stats,
   recent,
+  farm,
 }: {
   pid: string;
   profile: KboPitcherProfile;
   stats: Awaited<ReturnType<typeof fetchKboPitcherDetail>>["stats"];
   recent: KboPitcherRecentGame[];
+  /** 1군 기록이 없을 때의 퓨처스(2군) 시즌 기록 — 맥락 표기용 */
+  farm?: KboPitcherStats | null;
 }) {
   const [yearly, splits, leaderRanks, daily, pastLogs] = await Promise.all([
     getKboPitcherYearly(pid),
@@ -543,6 +549,23 @@ async function KboPitcherView({
 
   const overview = (
     <>
+      {!stats && (
+        // 올해 1군 등판이 없는 투수 — 예전엔 섹션이 통째로 사라져 "왜 비었는지" 알 수 없었다
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">
+            {season} 시즌
+            <span className="ml-2 normal-case tracking-normal font-medium text-neutral-400">· 올해 1군 등판 기록 없음</span>
+          </h2>
+          {farm && (
+            <p className="mt-2 text-xs text-neutral-500">
+              {season} 퓨처스(2군): {farm.g ?? "—"}경기
+              {farm.wins != null && farm.losses != null ? ` · ${farm.wins}승 ${farm.losses}패` : ""}
+              {farm.ip ? ` · ${farm.ip}이닝` : ""}
+              {farm.era != null ? ` · ERA ${farm.era.toFixed(2)}` : ""}
+            </p>
+          )}
+        </section>
+      )}
       {stats && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
@@ -685,10 +708,13 @@ async function KboHitterView({
   pid,
   profile,
   stats,
+  farm,
 }: {
   pid: string;
   profile: KboHitterProfile;
   stats: KboHitterStats;
+  /** 1군 기록이 없을 때의 퓨처스(2군) 시즌 기록 — 맥락 표기용 */
+  farm?: KboHitterStats | null;
 }) {
   const [yearly, splits, leaderRanks, daily, pastLogs] = await Promise.all([
     getKboHitterYearly(pid),
@@ -714,7 +740,19 @@ async function KboHitterView({
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
           {season} 시즌
+          {Object.keys(stats).length === 0 && (
+            // 올해 1군 타석이 없는 야수(육성·부상·2군) — 대시만 늘어놓지 않고 이유를 적는다
+            <span className="ml-2 normal-case tracking-normal font-medium text-neutral-400">· 올해 1군 타석 기록 없음</span>
+          )}
         </h2>
+        {farm && (
+          <p className="-mt-1 mb-3 text-xs text-neutral-500">
+            {season} 퓨처스(2군): {farm.g ?? "—"}경기
+            {farm.avg ? ` · 타율 ${farm.avg.replace(/^0/, "")}` : ""}
+            {farm.hr != null ? ` · ${farm.hr}홈런` : ""}
+            {farm.rbi != null ? ` · ${farm.rbi}타점` : ""}
+          </p>
+        )}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           <Stat label="타율" value={stats.avg ?? "—"} accent />
           <Stat label="OPS" value={ops} accent />
@@ -862,15 +900,18 @@ export async function KboPlayerView({ pid }: { pid: string }) {
   // 없는 야수(2군·부상, 2026-09-22 김석환 실측)가 투수 뷰로 떨어진다.
   const [hitter, hitterProfile] = await Promise.all([fetchKboHitterStats(pid), fetchKboHitterProfile(pid)]);
   if (isKboHitter(hitter, hitterProfile)) {
-    return <KboHitterView pid={pid} profile={hitterProfile} stats={hitter ?? {}} />;
+    // 1군 기록이 없으면 퓨처스(2군) 기록을 맥락으로 (NPB farm 과 같은 취지)
+    const farm = hitter ? null : await fetchKboFuturesHitterStats(pid);
+    return <KboHitterView pid={pid} profile={hitterProfile} stats={hitter ?? {}} farm={farm} />;
   }
   const [detail, profile] = await Promise.all([
     fetchKboPitcherDetail(pid),
     fetchKboPitcherProfile(pid),
   ]);
   if (!profile.name && !detail.stats) notFound();
+  const farm = detail.stats ? null : await fetchKboFuturesPitcherStats(pid);
   return (
-    <KboPitcherView pid={pid} profile={profile} stats={detail.stats} recent={detail.recent} />
+    <KboPitcherView pid={pid} profile={profile} stats={detail.stats} recent={detail.recent} farm={farm} />
   );
 }
 

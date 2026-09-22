@@ -1023,7 +1023,36 @@ export async function fetchKboHitterStats(
       timeout: 10000,
       responseType: "text",
     });
-    const $ = cheerio.load(r.data);
+    return parseKboHitterStatsHtml(r.data);
+  } catch {
+    return null;
+  }
+}
+
+/** 퓨처스(2군) 시즌 타격 — /Futures/Player/HitterDetail.aspx, 표 구조는 1군 Basic 과 같다.
+ *  1군 기록이 없는 선수(육성·부상·2군, 2026-09-22 김석환 실측)에 맥락으로 붙이는 용도. 기록 없으면 null. */
+export async function fetchKboFuturesHitterStats(kboId: string): Promise<KboHitterStats | null> {
+  try {
+    const r = await axios.get<string>(`${BASE}/Futures/Player/HitterDetail.aspx?playerId=${kboId}`, { headers: HEADERS, timeout: 10000, responseType: "text" });
+    return parseKboHitterStatsHtml(r.data);
+  } catch {
+    return null;
+  }
+}
+
+/** 퓨처스(2군) 시즌 투구 — /Futures/Player/PitcherDetail.aspx (타자와 동일 취지). */
+export async function fetchKboFuturesPitcherStats(kboId: string): Promise<KboPitcherStats | null> {
+  try {
+    const r = await axios.get<string>(`${BASE}/Futures/Player/PitcherDetail.aspx?playerId=${kboId}`, { headers: HEADERS, timeout: 10000, responseType: "text" });
+    return parseKboPitcherStatsHtml(r.data, kboId);
+  } catch {
+    return null;
+  }
+}
+
+function parseKboHitterStatsHtml(html: string): KboHitterStats | null {
+  {
+    const $ = cheerio.load(html);
     // 페이지 상단 2 개 표 (table[0]·table[1]) 가 시즌 누적
     const out: KboHitterStats = {};
     const tables = $("#tabAvg, .tData, table").toArray();
@@ -1061,8 +1090,6 @@ export async function fetchKboHitterStats(
       }
     }
     return Object.keys(out).length > 0 ? out : null;
-  } catch {
-    return null;
   }
 }
 
