@@ -270,6 +270,8 @@ export interface NpbPitcherStats {
   era?: number; // 防御率
   whip?: number; // 직접 계산 (NPB 표 없음)
   k9?: number; // 직접 계산
+  /** 올해 1군 기록이 없고 2군(팜) 기록만 있을 때 — season 은 작년 그대로, 이 줄로 맥락만 붙인다 */
+  farm?: { season: number; g?: number; wins?: number; losses?: number; ip?: string; era?: number };
 }
 
 function toNum(s: string | undefined): number | undefined {
@@ -303,75 +305,136 @@ function parseInningCell(
  * Raw — 페이지에서는 unstable_cache wrapper (npb-cache.ts) 통해 호출.
  * cron 잡은 직접 호출 가능.
  */
-/** 리그 투수 성적표에서 이름으로 한 시즌 줄을 읽는다 — 규정 이닝 달성(idp1)·미달(idp2) × 세(s)·파(p) 4장.
- *  표 한 개(table.tablefix2), 첫 열이 選手, 投球回 셀은 span.integer + span.decimal.
- *  이름은 공백(전각 포함) 제거 후 정확 일치, 동명이인이면 null. 시즌 전(표 404)이면 null. */
-export async function fetchNpbLeaguePitcherLine(
+/** npb.jp 구단별 성적표의 구단 코드 — /bis/{season}/stats/id{p|b}{1|2}_{code}.html (1=1군, 2=2군 팜). 키는 pc_v_team 풀명. */
+const NPB_TEAM_CODE: Record<string, string> = {
+  読売ジャイアンツ: "g", 阪神タイガース: "t", 横浜DeNAベイスターズ: "db", 広島東洋カープ: "c",
+  東京ヤクルトスワローズ: "s", 中日ドラゴンズ: "d", 福岡ソフトバンクホークス: "h", 北海道日本ハムファイターズ: "f",
+  埼玉西武ライオンズ: "l", 東北楽天ゴールデンイーグルス: "e", 千葉ロッテマリーンズ: "m", "オリックス・バファローズ": "b",
+};
+
+/** 구단별 성적표(투수 idp·타자 idb, 1=1군·2=2군)에서 이름으로 한 시즌 줄을 찾는다.
+ *  ⚠ 숫자는 규정 달성/미달이 아니라 1군/2군이다 — 2026-09 石山泰稚 실측: idp2_s 의 6경기는 야쿠르트 2군
+ *  기록이었고 1군 표(idp1_s)엔 없었다. 2군 줄을 시즌 스탯으로 올리면 안 된다.
+ *  표 한 개(table.tablefix2), 첫 열이 選手. 이름은 공백(전각 포함) 제거 후 정확 일치, 동명이인이면 null.
+ *  시즌 전(404)이면 null. 반환은 열 라벨 → 셀 텍스트 (投球回 은 span.integer+decimal 을 "6.2" 꼴로 합침). */
+async function findNpbTeamStatLine(
+  kind: "idp" | "idb",
+  level: 1 | 2,
+  teamCode: string,
   name: string,
   season: number,
-): Promise<Omit<NpbPitcherStats, "pid" | "season" | "kana" | "team"> | null> {
+): Promise<Map<string, string> | null> {
   const key = name.replace(/\s+/g, "");
-  const pages = ["idp1_s", "idp2_s", "idp1_p", "idp2_p"];
-  const htmls = await Promise.all(
-    pages.map(async (pg) => {
-      try {
-        const r = await axios.get<string>(`${BASE}/bis/${season}/stats/${pg}.html`, { headers: HEADERS, timeout: 12000, responseType: "text" });
-        return r.data;
-      } catch {
-        return null;
-      }
-    }),
-  );
-  const hits: Array<Omit<NpbPitcherStats, "pid" | "season" | "kana" | "team">> = [];
-  for (const html of htmls) {
-    if (!html) continue;
-    const $ = cheerio.load(html);
-    const table = $("table.tablefix2").first();
-    const headers = table.find("thead th").map((_, th) => $(th).text().trim()).get();
-    const ipIdx = headers.indexOf("投球回");
-    if (ipIdx < 0) continue;
-    table.find("tbody tr").each((_, tr) => {
-      const cells = $(tr).find("> td");
-      if (cells.length !== headers.length) return;
-      if (cells.eq(0).text().replace(/\s+/g, "") !== key) return;
-      const get = (label: string): string | undefined => {
-        const i = headers.indexOf(label);
-        return i < 0 ? undefined : cells.eq(i).text().trim() || undefined;
-      };
-      const ipCell = cells.eq(ipIdx);
-      const whole = ipCell.find("span.integer").text().trim() || ipCell.text().trim();
-      const frac = ipCell.find("span.decimal").text().trim();
-      const ip = whole ? (frac ? `${whole}${frac}` : whole) : undefined;
-      const innings = ipToInnings(ip);
-      const bb = toNum(get("四球"));
-      const hitsN = toNum(get("安打"));
-      const k = toNum(get("三振"));
-      hits.push({
-        g: toNum(get("登板")),
-        wins: toNum(get("勝利")),
-        losses: toNum(get("敗北")),
-        saves: toNum(get("セーブ")),
-        cg: toNum(get("完投")),
-        sho: toNum(get("完封勝")),
-        wpct: toNum(get("勝率")),
-        tbf: toNum(get("打者")),
-        ip,
-        hits: hitsN,
-        hra: toNum(get("本塁打")),
-        bb,
-        hbp: toNum(get("死球")),
-        k,
-        wp: toNum(get("暴投")),
-        bk: toNum(get("ボーク")),
-        r: toNum(get("失点")),
-        er: toNum(get("自責点")),
-        era: toNum(get("防御率")),
-        whip: innings && innings > 0 && bb != null && hitsN != null ? (bb + hitsN) / innings : undefined,
-        k9: innings && innings > 0 && k != null ? (k * 9) / innings : undefined,
-      });
-    });
+  let html: string;
+  try {
+    const r = await axios.get<string>(`${BASE}/bis/${season}/stats/${kind}${level}_${teamCode}.html`, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return null;
   }
+  const $ = cheerio.load(html);
+  const table = $("table.tablefix2").first();
+  const headers = table.find("thead th").map((_, th) => $(th).text().trim()).get();
+  if (headers.length === 0) return null;
+  const hits: Map<string, string>[] = [];
+  table.find("tbody tr").each((_, tr) => {
+    const cells = $(tr).find("> td");
+    if (cells.length !== headers.length) return;
+    if (cells.eq(0).text().replace(/\s+/g, "") !== key) return;
+    const m = new Map<string, string>();
+    headers.forEach((h, i) => {
+      const cell = cells.eq(i);
+      if (h === "投球回") {
+        const whole = cell.find("span.integer").text().trim() || cell.text().trim();
+        const frac = cell.find("span.decimal").text().trim();
+        if (whole) m.set(h, frac ? `${whole}${frac}` : whole);
+      } else {
+        const v = cell.text().trim();
+        if (v) m.set(h, v);
+      }
+    });
+    hits.push(m);
+  });
   return hits.length === 1 ? hits[0] : null;
+}
+
+function pitcherLineFromMap(m: Map<string, string>): Omit<NpbPitcherStats, "pid" | "season" | "kana" | "team" | "farm"> {
+  const get = (label: string) => m.get(label);
+  const ip = get("投球回");
+  const innings = ipToInnings(ip);
+  const bb = toNum(get("四球"));
+  const hitsN = toNum(get("安打"));
+  const k = toNum(get("三振"));
+  return {
+    g: toNum(get("登板")),
+    wins: toNum(get("勝利")),
+    losses: toNum(get("敗北")),
+    saves: toNum(get("セーブ")),
+    cg: toNum(get("完投")),
+    sho: toNum(get("完封勝")),
+    wpct: toNum(get("勝率")),
+    tbf: toNum(get("打者")),
+    ip,
+    hits: hitsN,
+    hra: toNum(get("本塁打")),
+    bb,
+    hbp: toNum(get("死球")),
+    k,
+    wp: toNum(get("暴投")),
+    bk: toNum(get("ボーク")),
+    r: toNum(get("失点")),
+    er: toNum(get("自責点")),
+    era: toNum(get("防御率")),
+    whip: innings && innings > 0 && bb != null && hitsN != null ? (bb + hitsN) / innings : undefined,
+    k9: innings && innings > 0 && k != null ? (k * 9) / innings : undefined,
+  };
+}
+
+function hitterLineFromMap(m: Map<string, string>): Omit<NpbHitterStats, "pid" | "season" | "team" | "farm"> {
+  const get = (label: string) => m.get(label);
+  const slg = toNum(get("長打率"));
+  const obp = toNum(get("出塁率"));
+  return {
+    g: toNum(get("試合")),
+    pa: toNum(get("打席")),
+    ab: toNum(get("打数")),
+    runs: toNum(get("得点")),
+    hits: toNum(get("安打")),
+    d2b: toNum(get("二塁打")),
+    d3b: toNum(get("三塁打")),
+    hr: toNum(get("本塁打")),
+    tb: toNum(get("塁打")),
+    rbi: toNum(get("打点")),
+    sb: toNum(get("盗塁")),
+    cs: toNum(get("盗塁刺")),
+    sh: toNum(get("犠打")),
+    sf: toNum(get("犠飛")),
+    bb: toNum(get("四球")),
+    ibb: toNum(get("故意四")),
+    hbp: toNum(get("死球")),
+    so: toNum(get("三振")),
+    gdp: toNum(get("併殺打")),
+    avg: toNum(get("打率")),
+    slg,
+    obp,
+    ops: slg != null && obp != null ? slg + obp : undefined,
+  };
+}
+
+/** 선수 페이지 연도 표가 올해 행이 없을 때(시즌 중 갱신 지연) 구단 1군 표에서 올해 줄을, 없으면 2군 표 줄을 찾는다.
+ *  반환: { first: 1군 줄 } 또는 { farm: 2군 줄 } 또는 null. */
+async function findNpbCurrentSeasonLine(
+  kind: "idp" | "idb",
+  teamJp: string | undefined,
+  name: string,
+  season: number,
+): Promise<{ first?: Map<string, string>; farm?: Map<string, string> } | null> {
+  const code = teamJp ? NPB_TEAM_CODE[teamJp.replace(/\s+/g, "")] : undefined;
+  if (!code || !name) return null;
+  const first = await findNpbTeamStatLine(kind, 1, code, name, season);
+  if (first) return { first };
+  const farm = await findNpbTeamStatLine(kind, 2, code, name, season);
+  return farm ? { farm } : null;
 }
 
 export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats | null> {
@@ -411,10 +474,14 @@ export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats
   // 선수 페이지의 연도 표는 시즌 중 갱신이 늦다 — 2026-09 石山泰稚 실측: 리그 성적표엔 6경기가 있는데
   // 페이지엔 2026 행이 없어 "2025 시즌" 이 현재처럼 보였다. 올해 줄을 리그 성적표에서 찾아 대신 쓴다.
   const thisYear = new Date().getUTCFullYear();
+  let farm: NpbPitcherStats["farm"];
   if (season < thisYear) {
-    const name = $("li#pc_v_name").text().trim();
-    const line = name ? await fetchNpbLeaguePitcherLine(name, thisYear) : null;
-    if (line) return { pid, season: thisYear, kana, team: teamRaw, ...line };
+    const found = await findNpbCurrentSeasonLine("idp", $("li#pc_v_team").text().trim(), $("li#pc_v_name").text().trim(), thisYear);
+    if (found?.first) return { pid, season: thisYear, kana, team: teamRaw, ...pitcherLineFromMap(found.first) };
+    if (found?.farm) {
+      const f = pitcherLineFromMap(found.farm);
+      farm = { season: thisYear, g: f.g, wins: f.wins, losses: f.losses, ip: f.ip, era: f.era };
+    }
   }
   const ip = parseInningCell(cells.eq(ipIdx));
   const innings = ipToInnings(ip);
@@ -432,6 +499,7 @@ export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats
     season,
     kana,
     team: teamRaw,
+    farm,
     g: toNum(get("登板")),
     wins: toNum(get("勝利")),
     losses: toNum(get("敗北")),
@@ -587,6 +655,8 @@ export interface NpbHitterStats {
   slg?: number; // 長打率
   obp?: number; // 出塁率
   ops?: number;
+  /** 올해 1군 기록이 없고 2군(팜) 기록만 있을 때 (투수와 동일) */
+  farm?: { season: number; g?: number; avg?: number; hr?: number; rbi?: number };
 }
 
 export async function fetchNpbHitterStats(pid: string): Promise<NpbHitterStats | null> {
@@ -621,10 +691,22 @@ export async function fetchNpbHitterStats(pid: string): Promise<NpbHitterStats |
     };
     const season = Number(get("年度")) || new Date().getUTCFullYear();
     const team = get("所属球団")?.replace(/\s+/g, "");
+    // 선수 페이지 연도 표 갱신 지연 — 최근 시즌이 작년이면 리그 타자 성적표의 올해 줄로 대체 (투수 파서와 동일)
+    const thisYear = new Date().getUTCFullYear();
+    let farm: NpbHitterStats["farm"];
+    if (season < thisYear) {
+      const found = await findNpbCurrentSeasonLine("idb", $("li#pc_v_team").text().trim(), $("li#pc_v_name").text().trim(), thisYear);
+      if (found?.first) return { pid, season: thisYear, team, ...hitterLineFromMap(found.first) };
+      if (found?.farm) {
+        const f = hitterLineFromMap(found.farm);
+        farm = { season: thisYear, g: f.g, avg: f.avg, hr: f.hr, rbi: f.rbi };
+      }
+    }
     return {
       pid,
       season,
       team,
+      farm,
       g: toNum(get("試合")),
       pa: toNum(get("打席")),
       ab: toNum(get("打数")),

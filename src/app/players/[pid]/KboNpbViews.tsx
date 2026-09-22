@@ -1198,6 +1198,15 @@ async function NpbPitcherView({
               <span className="ml-2 normal-case tracking-normal font-medium text-neutral-400">· 올해 1군 등판 기록 없음 (최근 시즌)</span>
             )}
           </h2>
+          {stats.farm && (
+            // 올해 1군 기록은 없지만 2군(팜) 기록이 있는 투수 — 작년 1군 값 옆에 맥락으로만 붙인다
+            <p className="-mt-1 mb-3 text-xs text-neutral-500">
+              {stats.farm.season} 2군(팜): {stats.farm.g ?? "—"}경기
+              {stats.farm.wins != null && stats.farm.losses != null ? ` · ${stats.farm.wins}승 ${stats.farm.losses}패` : ""}
+              {stats.farm.ip ? ` · ${stats.farm.ip}이닝` : ""}
+              {stats.farm.era != null ? ` · ERA ${stats.farm.era.toFixed(2)}` : ""}
+            </p>
+          )}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             <Stat label="ERA" value={fmtNum(stats.era, 2)} accent />
             <Stat label="WHIP" value={fmtNum(stats.whip, 2)} accent />
@@ -1331,7 +1340,19 @@ async function NpbHitterView({
       <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
           {stats.season} 시즌
+          {stats.season < new Date().getUTCFullYear() && (
+            // 올해 줄이 선수 페이지·리그 성적표 어디에도 없는 타자 — 작년 값을 현재처럼 보이게 두지 않는다
+            <span className="ml-2 normal-case tracking-normal font-medium text-neutral-400">· 올해 1군 타석 기록 없음 (최근 시즌)</span>
+          )}
         </h2>
+        {stats.farm && (
+          <p className="-mt-1 mb-3 text-xs text-neutral-500">
+            {stats.farm.season} 2군(팜): {stats.farm.g ?? "—"}경기
+            {stats.farm.avg != null ? ` · 타율 ${stats.farm.avg.toFixed(3).replace(/^0/, "")}` : ""}
+            {stats.farm.hr != null ? ` · ${stats.farm.hr}홈런` : ""}
+            {stats.farm.rbi != null ? ` · ${stats.farm.rbi}타점` : ""}
+          </p>
+        )}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           <Stat label="타율" value={stats.avg != null ? stats.avg.toFixed(3) : "—"} accent />
           <Stat label="OPS" value={ops} accent />
