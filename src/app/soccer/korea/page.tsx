@@ -247,13 +247,13 @@ export default async function KoreaAbroadPage() {
           <img
             src={p.photo}
             alt=""
-            width={28}
-            height={28}
+            width={48}
+            height={48}
             loading="lazy"
-            className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
+            className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-800"
           />
         ) : (
-          <span className="h-7 w-7 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-900" />
+          <span className="h-12 w-12 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-900" />
         )}
         <span className="min-w-0">
           {playerHref(p) ? (

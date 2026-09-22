@@ -112,7 +112,7 @@ return (
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={mlbHeadshotUrl(p.id)} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
+                    <img src={mlbHeadshotUrl(p.id)} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
                     <div className="min-w-0">
                       <div className="font-bold truncate">{href ? <Link href={href} className="hover:underline underline-offset-4">{p.nameKo}</Link> : p.nameKo}</div>
                       <div className="text-[11px] text-neutral-500 truncate">{p.nameEn}{p.age ? ` · ${p.age}세` : ""}</div>
@@ -286,11 +286,11 @@ export default async function BaseballKoreaPage() {
                     <tr key={m.nameKo + m.team}>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="h-8 w-8 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center">
+                          <div className="h-12 w-12 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center">
                             {photo ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={photo} alt="" className="h-full w-full object-cover" loading="lazy" />
-                            ) : <span className="text-xs font-bold text-neutral-500">{m.nameKo.slice(0, 1)}</span>}
+                            ) : <span className="text-base font-bold text-neutral-500">{m.nameKo.slice(0, 1)}</span>}
                           </div>
                           <div className="min-w-0">
                             <div className="font-bold truncate">{href ? <Link href={href} className="hover:underline underline-offset-4">{m.nameKo}</Link> : m.nameKo}</div>
