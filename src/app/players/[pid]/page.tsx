@@ -19,8 +19,12 @@ import { MlbHitterView, MlbPitcherView } from "./MlbViews";
 import PlayerRelatedArticles from "@/components/players/PlayerRelatedArticles";
 import { fetchKboPitcherProfile, fetchKboHitterProfile, fetchKboHitterStats } from "@/lib/sports/kbo-official";
 import { npbTeamJpToKor } from "@/lib/sports/npb-official";
-import { fetchNpbPitcherProfileCached as fetchNpbPitcherProfile } from "@/lib/sports/npb-cache";
-import { KboPlayerView, NpbPlayerView, npbDisplayName, isKboHitter } from "./KboNpbViews";
+import {
+  fetchNpbPitcherProfileCached as fetchNpbPitcherProfile,
+  fetchNpbPitcherStatsCached as fetchNpbPitcherStats,
+} from "@/lib/sports/npb-cache";
+import { fetchNpbHitterStats } from "@/lib/sports/npb-official";
+import { KboPlayerView, NpbPlayerView, npbDisplayName, isKboHitter, isNpbHitter } from "./KboNpbViews";
 import { type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
 import { fetchSoccerPlayerProfileCached } from "@/lib/players/soccer-player-cache";
 
@@ -100,10 +104,26 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     };
   }
   if (league === "NPB") {
-    const info = await fetchNpbPitcherProfile(pid);
+    // 타자·투수 판정은 본문(NpbPlayerView)과 같은 isNpbHitter — 예전엔 항상 투수 문구였다.
+    const [info, pStats, hStats] = await Promise.all([
+      fetchNpbPitcherProfile(pid),
+      fetchNpbPitcherStats(pid).catch(() => null),
+      fetchNpbHitterStats(pid).catch(() => null),
+    ]);
     if (!info.name) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     const koName = npbDisplayName(info.name, info.kana);
     const teamKo = npbTeamJpToKor(info.team) ?? info.team ?? "NPB";
+    if (isNpbHitter(info, pStats, hStats)) {
+      return {
+        title: `${koName} 성적 — ${teamKo} 타자 타율·홈런·최근 경기 (NPB)`,
+        description: `${teamKo} ${koName}의 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
+        alternates: { canonical },
+        openGraph: {
+          title: `${koName} — NPB 타자 통계`,
+          images: ogPageImage({ title: koName, subtitle: "NPB 타자 시즌 통계·최근 경기", tag: "NPB" }),
+        },
+      };
+    }
     return {
       title: `${koName} 성적 — ${teamKo} 투수 ERA·최근 등판 (NPB)`,
       description: `${teamKo} ${koName}의 시즌 ERA(평균자책)·WHIP·IP·승패·최근 등판.`,

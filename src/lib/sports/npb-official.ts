@@ -390,6 +390,7 @@ export interface NpbPitcherProfile {
   weight?: string; // "85kg"
   birthday?: string; // "2000年4月4日"
   age?: number;
+  position?: string; // "投手" | "捕手" | "内野手" | "外野手" — 타자·투수 판정 근거(기록 없는 선수용)
 }
 
 function calcAgeJp(birthday: string | undefined): number | undefined {
@@ -463,6 +464,7 @@ export async function fetchNpbPitcherProfile(pid: string): Promise<NpbPitcherPro
       name,
       kana,
       team,
+      position: fields.get("ポジション") || undefined,
       hand: parseHandJp(tt),
       bats: parseBatsJp(tt),
       height: h || undefined,

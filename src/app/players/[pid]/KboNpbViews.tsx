@@ -1421,20 +1421,31 @@ async function NpbHitterView({
   );
 }
 
+/** NPB 타자 판정 — 메타(page.tsx)와 본문이 같이 쓴다.
+ *  ① 투수 데이터(이닝/방어율)가 있으면 투수. NPB 투수는 tablefix_b 에 타격이 채워지는 변칙이 있어
+ *     타격 유무로 먼저 판정하면 투수가 타자로 오분류된다.
+ *  ② 타격 스탯이 있으면 타자.
+ *  ③ 둘 다 없으면 프로필 포지션(ポジション)이 投手가 아닐 때 타자 — 올해 1군 기록 없는 야수
+ *     (2026-09-22 KBO 김석환과 같은 문제, NPB 源田壮亮 실측). */
+export function isNpbHitter(
+  profile: { position?: string },
+  pStats: { ip?: string; era?: number | null } | null,
+  hStats: { avg?: number; hr?: number; hits?: number } | null,
+): boolean {
+  if (pStats && (!!pStats.ip || pStats.era != null)) return false;
+  if (hStats && (hStats.avg != null || hStats.hr != null || hStats.hits != null)) return true;
+  return !!profile.position && profile.position !== "投手";
+}
+
 export async function NpbPlayerView({ pid }: { pid: string }) {
-  const [profile, pStats] = await Promise.all([
+  const [profile, pStats, hitter] = await Promise.all([
     fetchNpbPitcherProfile(pid),
     fetchNpbPitcherStats(pid),
+    fetchNpbHitterStats(pid),
   ]);
-  // NPB 투수는 tablefix_b 에 타격이 채워지는 변칙이 있어, 타격 유무로 판정하면
-  // 투수가 타자로 오분류된다 → 투수 데이터(이닝/방어율) 우선.
-  const isPitcher = !!pStats && (!!pStats.ip || pStats.era != null);
-  if (!isPitcher) {
-    const hitter = await fetchNpbHitterStats(pid);
-    if (hitter && (hitter.avg != null || hitter.hr != null || hitter.hits != null)) {
-      const photo = await fetchNpbPhotoUrl(pid);
-      return <NpbHitterView pid={pid} profile={profile} stats={hitter} photo={photo} />;
-    }
+  if (isNpbHitter(profile, pStats, hitter)) {
+    const photo = await fetchNpbPhotoUrl(pid);
+    return <NpbHitterView pid={pid} profile={profile} stats={hitter ?? { pid, season: new Date().getUTCFullYear() }} photo={photo} />;
   }
   if (!profile.name && !pStats) notFound();
   const photo = await fetchNpbPhotoUrl(pid);
