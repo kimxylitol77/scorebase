@@ -98,6 +98,16 @@ export function lookupNbaPlayerByBdlId(bdlId: number): NbaPlayerLocal | null {
   return { name: e.name, ko: e.ko || e.name, pos: e.pos, number: e.number ?? null, team: e.team ?? null };
 }
 
+/** ESPN athlete id → bdlId. ESPN 부상자 명단(id 만 옴)을 /players/{bdlId}?league=NBA 로 잇는 용도. */
+let ESPN_ID_INDEX: Map<string, number> | null = null;
+export function lookupNbaBdlIdByEspnId(espnId: string | number): number | null {
+  if (!ESPN_ID_INDEX) {
+    ESPN_ID_INDEX = new Map();
+    for (const e of Object.values(INDEX)) if (e.bdlId != null && e.espnId) ESPN_ID_INDEX.set(String(e.espnId), e.bdlId);
+  }
+  return ESPN_ID_INDEX.get(String(espnId)) ?? null;
+}
+
 export interface NbaRosterPlayer {
   ko: string;
   name: string;

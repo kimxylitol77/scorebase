@@ -12,6 +12,7 @@ import { toEnglishTeamName, enLeagueName } from "@/lib/i18n/en";
 import { EN_INJURY_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page";
+import { lookupNbaBdlIdByEspnId } from "@/lib/sports/nba-players";
 import { assertSportConsistency } from "@/lib/players/sanityCheck";
 import { calcStandings } from "@/lib/predict/standings";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -715,12 +716,17 @@ export default async function InjuriesByLeague({
         href: upper === "NBA" && i.playerId > 0 ? `/players/${i.playerId}?league=NBA` : undefined,
       }));
     } else if (isEspn) {
-      raw = getTeamEspnInjuries(allEspn, t.name, undefined, 30).map((i) => ({
-        playerId: i.playerId,
-        playerName: i.playerName,
-        reason: i.reason,
-        fixtureDate: i.fixtureDate,
-      }));
+      raw = getTeamEspnInjuries(allEspn, t.name, undefined, 30).map((i) => {
+        // ESPN athlete id 는 선수 페이지 id 가 아니다. NBA 만 로스터 사전(espnId→bdlId)으로 잇는다 (실측 76명 중 62명).
+        const bdlId = upper === "NBA" ? lookupNbaBdlIdByEspnId(i.playerId) : null;
+        return {
+          playerId: i.playerId,
+          playerName: i.playerName,
+          reason: i.reason,
+          fixtureDate: i.fixtureDate,
+          href: bdlId != null ? `/players/${bdlId}?league=NBA` : undefined,
+        };
+      });
     } else if (upper === "KBO") {
       const list = getTeamKboInjuries(allKbo, t.name);
       raw = list.map((i, idx) => ({
