@@ -42,4 +42,4 @@
 - [x] 경기 상세 베트맨 카드 "이 배당대 역대 결과" 한 줄 — `bandRowForOdds`(odds-band-stats) + 1h unstable_cache, 표본 100 미만 생략
 - [x] 베트맨 카드 초기·현재·해외 3열 — `getBetmanLineForMatch` 가 BetmanOddsChange 첫 변경 전 값을 `opening` 으로 동봉, ▲▼
 - [x] /tools 인덱스 + 프로토 조합 계산기 + 토토 복식 조합 계산기(승무패·승1패·승5패, 1조합 1,000원) · 네비(배당 메뉴)·푸터·사이트맵 · `/tools` 임시 리다이렉트 제거
-- [ ] dev 검증(계산기 상호작용 OK) → 상세 카드 실렌더 → 커밋·푸시·운영 확인
+- [x] dev 검증(계산기 6조합 6,000원·프로토 6.29/62,900원, KBO 카드 초기 1.54→1.38▼·배당대 1.30~1.59 66.2%) → 커밋 3개 → main 푸시 → 운영 /tools·/tools/proto-calculator·/tools/toto-combination 200
