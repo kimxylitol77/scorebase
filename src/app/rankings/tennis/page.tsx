@@ -157,10 +157,6 @@ export default async function TennisRankingsPage({
 
                   {/* 국적 */}
                   <span className="hidden sm:flex items-center gap-1.5 min-w-0">
-                    {r.flag && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={r.flag} alt="" className="w-4 h-3 shrink-0 object-cover rounded-[2px]" />
-                    )}
                     <span className="truncate text-[12px] text-neutral-500">
                       {r.countryKo ?? r.countryEn ?? ""}
                     </span>
