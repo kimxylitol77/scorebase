@@ -6,6 +6,7 @@ import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import TeamBadge from "@/components/TeamBadge";
 import DriverAvatar from "@/components/scores/f1/DriverAvatar";
+import CountryMark from "@/components/golf/CountryMark";
 import { fetchF1Championship, F1_TEAM_LOGO } from "@/lib/sports/espn-f1";
 import { SITE_URL } from "@/lib/site-url";
 import { koEnLanguages } from "@/lib/i18n/en";
@@ -184,10 +185,11 @@ export default async function F1RankingsPage({
                   />
                   <DriverAvatar
                     photo={`https://a.espncdn.com/i/headshots/rpm/players/full/${d.athleteId}.png`}
-                    flag={d.flag}
+                    flag={null}
                     country={d.countryEn}
                     name={d.nameKo ?? d.name}
                   />
+                  <CountryMark src={d.flag} country={d.countryEn} />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
                       {d.nameKo ?? d.name}

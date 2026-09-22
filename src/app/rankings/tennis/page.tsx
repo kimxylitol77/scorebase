@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import DriverAvatar from "@/components/scores/f1/DriverAvatar";
+import CountryMark from "@/components/golf/CountryMark";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { SITE_URL } from "@/lib/site-url";
 import { koEnLanguages } from "@/lib/i18n/en";
@@ -139,10 +140,11 @@ export default async function TennisRankingsPage({
                   <span className="flex items-center gap-2 min-w-0">
                     <DriverAvatar
                       photo={r.headshot}
-                      flag={r.flag}
+                      flag={null}
                       country={r.countryEn}
                       name={r.nameKo ?? r.name}
                     />
+                    <CountryMark src={r.flag} country={r.countryEn} />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
                         {r.nameKo ?? r.name}
