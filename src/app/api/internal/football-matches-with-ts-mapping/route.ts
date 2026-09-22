@@ -75,12 +75,25 @@ export async function GET(req: NextRequest) {
       startTime: true,
       homeTeamId: true,
       awayTeamId: true,
-      homeTeam: { select: { name: true } },
-      awayTeam: { select: { name: true } },
+      homeTeam: { select: { name: true, externalId: true } },
+      awayTeam: { select: { name: true, externalId: true } },
       lineupHome: true,
     },
     orderBy: { startTime: "asc" },
   });
+
+  // ts 가 직접 만든 매치(externalId "ts-…")의 팀은 Team.externalId 가 곧 ts 팀 id 다. 정적 사전(team-id-mapping.json)은
+  // af 팀↔ts 팀을 경기 대조로 짝지은 것이라 af 에 없는 대회(아시안게임 U23·여자 등)의 팀이 영영 안 실린다 —
+  // 그래서 폴러가 그 대회를 통째로 못 봤다(2026-09-22 실측: 임박 라인업 0, 사후 회전만). 사전 → ts-네이티브 id 순으로 푼다.
+  const tsNative = (m: { externalId: string | null }) => (m.externalId ?? "").startsWith("ts-");
+  // Team.externalId 는 수집기 세대에 따라 "ts-<id>"(collector) 또는 "<id>"(아시안게임 온보딩 스크립트) — 둘 다 받는다.
+  const bareTsId = (v: string | null | undefined): string | null => {
+    if (!v) return null;
+    const id = v.startsWith("ts-") ? v.slice(3) : v;
+    return /^[a-z0-9]{10,24}$/.test(id) && !/^\d+$/.test(id) ? id : null;
+  };
+  const tsTeamIdOf = (m: { externalId: string | null }, teamId: number, teamExt: string | null) =>
+    teamMap.get(teamId) ?? (tsNative(m) ? bareTsId(teamExt) : null);
 
   const result = matches.map((m) => ({
     matchId: m.id,
@@ -94,11 +107,11 @@ export async function GET(req: NextRequest) {
     hasLineup: m.lineupHome != null,
     home: {
       name: m.homeTeam.name,
-      tsTeamId: teamMap.get(m.homeTeamId) ?? null,
+      tsTeamId: tsTeamIdOf(m, m.homeTeamId, m.homeTeam.externalId),
     },
     away: {
       name: m.awayTeam.name,
-      tsTeamId: teamMap.get(m.awayTeamId) ?? null,
+      tsTeamId: tsTeamIdOf(m, m.awayTeamId, m.awayTeam.externalId),
     },
   }));
 
