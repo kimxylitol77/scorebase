@@ -122,6 +122,8 @@ export function tsInjurySeverity(reason: string, missedMatches: number): Sev {
 // 페이지의 RawInjury 와 동일 구조 (playerId 음수 = resolvePlayerNames 우회).
 export interface TSInjuryRaw {
   playerId: number;
+  /** TheSports 선수 id — 선수 페이지(/transfers/{id}) 링크용 */
+  tsPlayerId?: string;
   playerName: string;
   reason: string;
   fixtureDate?: string;
@@ -225,6 +227,7 @@ export async function getTheSportsInjuriesByTeam(
       teamId,
       list.map((x) => ({
         playerId: fake--,
+        tsPlayerId: x.id || undefined,
         playerName: (x.id ? nameById.get(x.id) : null) || x.name || "선수",
         reason: x.reason ?? "",
         fixtureDate: x.start_time ? new Date(x.start_time * 1000).toISOString() : undefined,
@@ -310,6 +313,7 @@ async function injuriesFromPlayerEvents(ourTeamIds: number[], fakeStart: number)
       ...(out.get(ourId) ?? []),
       {
         playerId: fake--,
+        tsPlayerId: e.playerId,
         playerName: nameById.get(e.playerId) || "선수",
         reason: raw,
         fixtureDate: e.occurredAt.toISOString(),

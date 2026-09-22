@@ -370,7 +370,7 @@
       "      // 영어판 — resolvePlayerNames 는 한글명을 만든다. 원본(영문)을 그대로 쓴다.\n      const r = { ko: i.playerName };"
     ],
     [
-      "      const tsRaw = tsInjByTeam.get(t.id);\n      if (tsRaw) {\n        raw = tsRaw; // TheSports lineup.injury (한글 사유 override 포함)\n        teamSource.set(t.id, \"ts\");\n      } else {",
+      "      const tsRaw = tsInjByTeam.get(t.id);\n      if (tsRaw) {\n        // TheSports lineup.injury (한글 사유 override 포함). ts 선수 id → /transfers 선수 페이지.\n        raw = tsRaw.map((i) => ({ ...i, href: i.tsPlayerId ? `/transfers/${i.tsPlayerId}` : undefined }));\n        teamSource.set(t.id, \"ts\");\n      } else {",
       "      // 영어판 — TheSports 캐시는 선수명·사유가 한글이라 쓰지 않고 api-football(영문)만 쓴다.\n      const tsRaw = null as (typeof tsInjByTeam extends Map<number, infer V> ? V : never) | null;\n      if (tsRaw) {\n        raw = tsRaw;\n        teamSource.set(t.id, \"ts\");\n      } else {"
     ],
     [

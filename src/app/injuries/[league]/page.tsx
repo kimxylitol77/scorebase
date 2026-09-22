@@ -11,6 +11,7 @@ import { Clock, CheckCircle2 } from "lucide-react";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { EN_INJURY_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
+import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page";
 import { assertSportConsistency } from "@/lib/players/sanityCheck";
 import { calcStandings } from "@/lib/predict/standings";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -422,6 +423,8 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
 interface EnrichedInjury {
   playerId: number;
   playerName: string;
+  /** 선수 페이지 링크 (원천 id 가 있는 소스만) */
+  href?: string;
   reasonKo: string;
   reasonRaw: string;
   severity: Severity;
@@ -781,6 +784,8 @@ export default async function InjuriesByLeague({
   type RawInjury = {
     playerId: number;
     playerName: string;
+    /** 선수 페이지 링크 — 원천 id 가 선수 페이지 id 체계와 같은 소스만 채움 */
+    href?: string;
     reason: string;
     fixtureDate?: string;
     description?: string;
@@ -803,7 +808,8 @@ export default async function InjuriesByLeague({
     if (isSoccer) {
       const tsRaw = tsInjByTeam.get(t.id);
       if (tsRaw) {
-        raw = tsRaw; // TheSports lineup.injury (한글 사유 override 포함)
+        // TheSports lineup.injury (한글 사유 override 포함). ts 선수 id → /transfers 선수 페이지.
+        raw = tsRaw.map((i) => ({ ...i, href: i.tsPlayerId ? `/transfers/${i.tsPlayerId}` : undefined }));
         teamSource.set(t.id, "ts");
       } else {
         // 명단을 못 읽은 팀 → api-football 보강. af 응답 자체가 비었으면 보강이 아니라 결손이다.
@@ -812,6 +818,8 @@ export default async function InjuriesByLeague({
           playerName: i.playerName,
           reason: i.reason,
           fixtureDate: i.fixtureDate,
+          // af 선수 id 는 /players/{afId}?league= 가 받는다 (ts 매핑 있으면 그쪽에서 /transfers 로 넘김)
+          href: i.playerId > 0 && SOCCER_PLAYER_PAGE_LEAGUE_SET.has(upper) ? `/players/${i.playerId}?league=${upper}` : undefined,
         }));
         teamSource.set(t.id, allInjuries.length > 0 ? "af" : "unknown");
       }
@@ -823,6 +831,8 @@ export default async function InjuriesByLeague({
         fixtureDate: i.fixtureDate,
         description: i.description,
         returnDate: i.returnDate,
+        // NBA 선수 페이지만 BALLDONTLIE id 체계. MLB(statsapi)·NHL(공식 api) 는 bdl id 와 달라 링크 없음.
+        href: upper === "NBA" && i.playerId > 0 ? `/players/${i.playerId}?league=NBA` : undefined,
       }));
     } else if (isEspn) {
       raw = getTeamEspnInjuries(allEspn, t.name, undefined, 30).map((i) => ({
@@ -845,6 +855,7 @@ export default async function InjuriesByLeague({
       const list = getTeamNpbInjuries(allNpb, t.name);
       raw = list.map((i, idx) => ({
         playerId: i.pid ? Number(i.pid) : -(t.id * 1000 + idx),
+        href: i.pid ? `/players/${i.pid}?league=NPB` : undefined,
         playerName: npbInjuryDisplayName(i.playerName),
         reason: `1군 엔트리 제외 · ${i.positionKo}`,
         fixtureDate: i.date,
@@ -916,6 +927,7 @@ export default async function InjuriesByLeague({
       return {
         playerId: i.playerId > 0 ? i.playerId : -(team.id * 1000 + idx),
         playerName: r.ko,
+        href: i.href,
         reasonKo: i.overrideKo ?? translateReason(i.reason),
         reasonRaw: i.reason,
         severity: i.overrideSev ?? classifySeverity(i.reason),
@@ -1775,7 +1787,17 @@ function TeamInjuryCard({
                 >
                   {SEVERITY_META[p.severity].icon}
                 </span>
-                <span className="font-medium truncate">{p.playerName}</span>
+                {p.href ? (
+                  <Link
+                    href={p.href}
+                    prefetch={false}
+                    className="font-medium truncate hover:text-blue-600 dark:hover:text-blue-400 hover:underline"
+                  >
+                    {p.playerName}
+                  </Link>
+                ) : (
+                  <span className="font-medium truncate">{p.playerName}</span>
+                )}
               </div>
               <span className="text-xs text-neutral-500 shrink-0">
                 {p.reasonKo}
