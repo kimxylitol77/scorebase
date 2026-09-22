@@ -15,6 +15,9 @@ import { resolve } from "node:path";
 const YEAR = process.argv[2] ?? String(new Date().getFullYear());
 const OUT = "data/golf-korea-season.json";
 const NAME_DICT = "data/golf-player-names.json";
+// ESPN 선수 id 사전(이름 → id). 시즌 스코어보드엔 athlete.id 가 없어 core API 로 한 번 풀고 여기 캐시한다.
+//   id 가 있어야 헤드샷(a.espncdn.com/i/headshots/golf/players/full/{id}.png)이 뜬다.
+const ID_DICT = "data/golf-espn-ids.json";
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
@@ -47,6 +50,7 @@ async function getJson<T>(url: string): Promise<T | null> {
 
 interface ScoreboardResp {
   events?: Array<{
+    id?: string;
     name?: string;
     date?: string;
     status?: { type?: { state?: string } };
@@ -63,6 +67,9 @@ interface ScoreboardResp {
     }>;
   }>;
 }
+
+// id 해결용 증거 — 선수가 나온 (투어, 대회 id, 순위). core competitors 는 순위(order)만 주므로 이걸로 맞춘다.
+const evidence = new Map<string, Array<{ tour: string; eventId: string; order: number }>>();
 
 async function collect(): Promise<KoreanPlayer[]> {
   const agg = new Map<string, KoreanPlayer>();
@@ -102,6 +109,9 @@ async function collect(): Promise<KoreanPlayer[]> {
             (c.athlete.links ?? []).find((l) => (l.rel ?? []).some((r) => /playercard|athlete/.test(r)))
               ?.href ?? "";
           p.id = href.match(/\/id\/(\d+)/)?.[1] ?? null;
+        }
+        if (e.id && order != null) {
+          (evidence.get(key) ?? evidence.set(key, []).get(key)!).push({ tour, eventId: e.id, order });
         }
         p.recent.push({
           event: e.name ?? "",
@@ -201,6 +211,54 @@ async function buildNames(players: KoreanPlayer[]): Promise<Record<string, strin
   return prev;
 }
 
+/**
+ * ESPN 선수 id — 시즌 스코어보드(site API)엔 athlete.id 가 없다(2026-09-22 실측 56명 전원 null → 사진 0장).
+ * core API 의 대회 competitors 는 athlete id 와 순위(order)를 주므로, 선수가 나온 대회 하나를 골라 같은 순위의
+ * 후보를 찾고, 동순위가 여럿이면 athlete 를 열어 이름을 대조한다. 결과는 ID_DICT 에 캐시(이름 → id)해 재실행 시 안 푼다.
+ */
+async function resolveEspnIds(players: KoreanPlayer[]): Promise<void> {
+  const dictPath = resolve(ID_DICT);
+  const dict: Record<string, string> = existsSync(dictPath) ? JSON.parse(readFileSync(dictPath, "utf8")) : {};
+  for (const p of players) if (!p.id && dict[p.name]) p.id = dict[p.name];
+  const need = players.filter((p) => !p.id);
+  console.log(`ESPN id: 사전 ${Object.keys(dict).length} / 신규 필요 ${need.length}`);
+  if (need.length === 0) return;
+
+  type Comp = { items?: Array<{ id?: string; order?: number; athlete?: { $ref?: string } }> };
+  const compCache = new Map<string, Comp["items"]>();
+  const competitors = async (tour: string, eventId: string) => {
+    const k = `${tour}|${eventId}`;
+    if (!compCache.has(k)) {
+      const j = await getJson<Comp>(
+        `https://sports.core.api.espn.com/v2/sports/golf/leagues/${tour}/events/${eventId}/competitions/${eventId}/competitors?limit=200`,
+      );
+      compCache.set(k, j?.items ?? []);
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    return compCache.get(k) ?? [];
+  };
+
+  let solved = 0;
+  for (const p of need) {
+    const ev = evidence.get(`${p.tour.toLowerCase()}|${p.name}`) ?? [];
+    for (const e of ev) {
+      const cands = (await competitors(e.tour, e.eventId)).filter((c) => c.order === e.order && c.id);
+      let hit: string | null = null;
+      if (cands.length === 1) hit = cands[0].id!;
+      else if (cands.length > 1) {
+        // 동순위(공동 순위) — 이름으로 가른다
+        for (const c of cands) {
+          const a = c.athlete?.$ref ? await getJson<{ displayName?: string }>(c.athlete.$ref) : null;
+          if (a?.displayName === p.name) { hit = c.id!; break; }
+        }
+      }
+      if (hit) { p.id = hit; dict[p.name] = hit; solved++; break; }
+    }
+  }
+  writeFileSync(dictPath, JSON.stringify(dict, null, 2) + "\n");
+  console.log(`  해결 ${solved}/${need.length} — 미해결: ${need.filter((p) => !p.id).map((p) => p.name).join(", ") || "없음"}`);
+}
+
 async function main() {
   console.log(`골프 한국 선수 집계 — ${YEAR} 시즌`);
   const players = await collect();
@@ -210,6 +268,7 @@ async function main() {
   }
   console.log(`한국 선수 ${players.length}명 (PGA ${players.filter((p) => p.tour === "PGA").length} / LPGA ${players.filter((p) => p.tour === "LPGA").length})`);
 
+  await resolveEspnIds(players);
   const names = await buildNames(players);
   const withKo = players.map((p) => ({ ...p, nameKo: names[p.name] ?? null }));
 
