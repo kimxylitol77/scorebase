@@ -967,11 +967,62 @@ function actualWinner(home: number, away: number): Winner {
   return "DRAW";
 }
 
+const GRADE_SELECT = {
+  id: true,
+  pick: true,
+  market: true,
+  line: true,
+  correct: true,
+  match: {
+    select: {
+      league: true,
+      homeScore: true,
+      awayScore: true,
+      theSportsCache: { select: { detailLive: true } },
+    },
+  },
+} as const;
+
+type GradeRow = {
+  pick: string;
+  market: string;
+  line: number | null;
+  match: { league: string; homeScore: number | null; awayScore: number | null; theSportsCache: { detailLive: unknown } | null };
+};
+
+/** 현재 Match 점수로 픽 1건의 적중 여부. 채점 불가(라인 없음 등)면 null. */
+function gradePrediction(p: GradeRow): boolean | null {
+  const m = p.match;
+  let home = m.homeScore!;
+  let away = m.awayScore!;
+  if (SOCCER_LEAGUES_FOR_MARKETS.has(m.league) || m.league === "WORLD_CUP") {
+    const fs = parseTsFootballScore(m.theSportsCache?.detailLive);
+    if (fs) {
+      home = fs.regHome;
+      away = fs.regAway;
+    }
+  }
+  // 시장별 채점 — 핸디/OU 는 저장된 line 으로(양 모델 동일 라인). line 없으면 스킵.
+  if (p.market === "HANDICAP") {
+    if (p.line == null || (p.pick !== "HOME" && p.pick !== "AWAY")) return null;
+    return handicapCorrect(p.pick, p.line, home, away);
+  }
+  if (p.market === "OU") {
+    if (p.line == null) return null;
+    return overActual(home, away, p.line) === p.pick;
+  }
+  return p.pick === actualWinner(home, away);
+}
+
+// 재채점 창 — 이 기간 안에 갱신된 종료 경기는 이미 채점된 픽도 현재 점수로 다시 맞춰 본다.
+const REGRADE_WINDOW_MS = 48 * 3_600_000;
+
 /**
  * 종료된 경기의 AiPrediction(우리 모델·GPT 양쪽)을 채점 — pick == 실제 승자면 correct.
  * 축구는 정규시간 점수로 채점(승부차기·연장 오염 제거) — evaluate 와 동일 기준.
+ * opts.regradeSince — 재채점 대상 경기의 updatedAt 하한(기본 48시간 전). 일회성 전수 보정용.
  */
-export async function runEvaluateAiPredictions() {
+export async function runEvaluateAiPredictions(opts?: { regradeSince?: Date }) {
   // 자가치유 — 잠깐 FINISHED 로 잡혀 채점된 뒤 POSTPONED·재편성으로 되돌아간 경기(야구 우천 취소 패턴)의
   // 채점값을 되돌린다. 남겨두면 성적표 피드에 "-:-" 경기가 채점된 것으로 뜬다(2026-09-05 실측 43행).
   // 다시 FINISHED 되면 아래 pending 루프가 정상 재채점한다.
@@ -984,6 +1035,26 @@ export async function runEvaluateAiPredictions() {
   });
   if (healed.count > 0) console.log(`[gpt-pred] 종료 아닌 경기의 채점값 리셋 — ${healed.count}건`);
 
+  // 재채점 — 채점 뒤 점수가 바뀐 종료 경기(야구 9회 진행 중 조기 FINISHED 채점, 우천취소 0-0 FINISHED 가
+  // 같은 row 로 재편성 경기 점수를 받는 패턴). pending 루프는 correct IS NULL 만 보므로 여기서 맞춘다.
+  // 2026-09-22 오픈 데이터셋 전수 대조에서 야구 6경기 50행 불일치 실측.
+  const since = opts?.regradeSince ?? new Date(Date.now() - REGRADE_WINDOW_MS);
+  const graded0 = await prisma.aiPrediction.findMany({
+    where: {
+      correct: { not: null },
+      match: { status: "FINISHED", homeScore: { not: null }, awayScore: { not: null }, updatedAt: { gte: since } },
+    },
+    select: GRADE_SELECT,
+  });
+  let regraded = 0;
+  for (const p of graded0) {
+    const correct = gradePrediction(p);
+    if (correct === null || correct === p.correct) continue;
+    await prisma.aiPrediction.update({ where: { id: p.id }, data: { correct } });
+    regraded++;
+  }
+  if (regraded > 0) console.log(`[gpt-pred] 점수 변경 경기 재채점 — ${regraded}건 (검사 ${graded0.length})`);
+
   const pending = await prisma.aiPrediction.findMany({
     where: {
       correct: null,
@@ -993,45 +1064,13 @@ export async function runEvaluateAiPredictions() {
         awayScore: { not: null },
       },
     },
-    select: {
-      id: true,
-      pick: true,
-      market: true,
-      line: true,
-      match: {
-        select: {
-          league: true,
-          homeScore: true,
-          awayScore: true,
-          theSportsCache: { select: { detailLive: true } },
-        },
-      },
-    },
+    select: GRADE_SELECT,
   });
 
   let graded = 0;
   for (const p of pending) {
-    const m = p.match;
-    let home = m.homeScore!;
-    let away = m.awayScore!;
-    if (SOCCER_LEAGUES_FOR_MARKETS.has(m.league) || m.league === "WORLD_CUP") {
-      const fs = parseTsFootballScore(m.theSportsCache?.detailLive);
-      if (fs) {
-        home = fs.regHome;
-        away = fs.regAway;
-      }
-    }
-    // 시장별 채점 — 핸디/OU 는 저장된 line 으로(양 모델 동일 라인). line 없으면 스킵.
-    let correct: boolean;
-    if (p.market === "HANDICAP") {
-      if (p.line == null || (p.pick !== "HOME" && p.pick !== "AWAY")) continue;
-      correct = handicapCorrect(p.pick, p.line, home, away);
-    } else if (p.market === "OU") {
-      if (p.line == null) continue;
-      correct = overActual(home, away, p.line) === p.pick;
-    } else {
-      correct = p.pick === actualWinner(home, away);
-    }
+    const correct = gradePrediction(p);
+    if (correct === null) continue;
     await prisma.aiPrediction.update({
       where: { id: p.id },
       data: { correct },
@@ -1039,7 +1078,7 @@ export async function runEvaluateAiPredictions() {
     graded++;
   }
   console.log(`[gpt-pred] 채점 완료 — ${graded}건`);
-  return { graded };
+  return { graded, regraded };
 }
 
 /**
