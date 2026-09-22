@@ -14,8 +14,9 @@ if (!cid || !sec || !rt) throw new Error("GSC_OAUTH_CLIENT_ID / GSC_OAUTH_CLIENT
 const yt = JSON.parse(readFileSync(dataJson, "utf8")).text.youtube as { title: string; description: string; tags: string };
 // 제목 100자 제한 · #shorts 없으면 붙인다 (세로 60초 미만이면 없어도 쇼츠 분류되지만 검색용)
 let title = yt.title.trim();
-if (!/#shorts/i.test(title)) title = `${title} #shorts`;
-if (title.length > 100) title = title.slice(0, 92).trimEnd() + " #shorts";
+// 롱폼(가로) 업로드는 NO_SHORTS_TAG=1 — #shorts 를 붙이면 쇼츠 피드로 오분류될 수 있다
+if (!/#shorts/i.test(title) && process.env.NO_SHORTS_TAG !== "1") title = `${title} #shorts`;
+if (title.length > 100) title = process.env.NO_SHORTS_TAG === "1" ? title.slice(0, 100).trimEnd() : title.slice(0, 92).trimEnd() + " #shorts";
 const tags = yt.tags.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 30);
 
 const tok = await fetch("https://oauth2.googleapis.com/token", {
