@@ -291,7 +291,7 @@ export default async function KoreaAbroadPage() {
           {nameCell(p, false)}
           <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
             <span className="flex items-center gap-1.5">
-              <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
+              <TeamBadge logoUrl={teamLogo(p.team.afId)} size={48} />
               <span className="truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
             </span>
             <span className="block truncate text-[11px] text-neutral-400">
@@ -330,7 +330,7 @@ export default async function KoreaAbroadPage() {
         {nameCell(p, true)}
         <td className="px-2 py-2.5 text-neutral-600 dark:text-neutral-400">
           <span className="flex items-center gap-1.5">
-            <TeamBadge logoUrl={teamLogo(p.team.afId)} size={18} />
+            <TeamBadge logoUrl={teamLogo(p.team.afId)} size={48} />
             <span className="truncate">{toKoreanTeamName(p.team.name) || p.team.name}</span>
             {p.seasonTeam && (
               <span className="shrink-0 rounded bg-sky-500/10 px-1 py-0.5 text-[10px] font-semibold text-sky-600 dark:text-sky-400">
@@ -501,7 +501,7 @@ export default async function KoreaAbroadPage() {
                       )}
                     </p>
                     <p className="flex items-center gap-1.5 truncate text-xs text-neutral-500">
-                      <TeamBadge logoUrl={teamLogo(p.team.afId)} size={16} />
+                      <TeamBadge logoUrl={teamLogo(p.team.afId)} size={48} />
                       <span className="truncate">
                         {toKoreanTeamName(p.team.name) || p.team.name} · {p.leagueLabel}
                       </span>

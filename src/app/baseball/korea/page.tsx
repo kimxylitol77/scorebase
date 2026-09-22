@@ -122,7 +122,7 @@ return (
                 <td className="px-2 py-2">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ring-1 ${levelCls(p.level)}`}>{p.level}</span>
-                    <TeamBadge logoUrl={club?.logoUrl} size={16} />
+                    <TeamBadge logoUrl={club?.logoUrl} size={48} />
                     <span className="truncate text-xs">{p.sportId === 1 ? clubKo(p.team.name) : `${p.team.name}${p.team.parentOrg ? ` (${clubKo(p.team.parentOrg)})` : ""}`}</span>
                   </div>
                   {p.onFortyMan && p.sportId !== 1 && <div className="text-[10px] text-neutral-400 mt-0.5">40인 로스터</div>}
@@ -224,7 +224,7 @@ export default async function BaseballKoreaPage() {
                       <span className="ml-1.5 align-middle text-[10px] font-bold text-neutral-400">{p.pos ? (POS_KO[p.pos] ?? p.pos) : ""}</span>
                     </p>
                     <p className="flex items-center gap-1.5 truncate text-xs text-neutral-500">
-                      <TeamBadge logoUrl={club?.logoUrl} size={16} />
+                      <TeamBadge logoUrl={club?.logoUrl} size={48} />
                       <span className="truncate">{p.sportId === 1 ? clubKo(p.team.name) : `${p.team.name} · ${clubKo(p.team.parentOrg)} 산하`}</span>
                     </p>
                   </div>
