@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hasProtectedResult, isFutureSourceCancel } from "./baseball-source-cancel";
+import { hasProtectedResult, isFutureSourceCancel, unplayedFinishedStatus } from "./baseball-source-cancel";
 
 const NOW = new Date("2026-07-29T03:00:00Z"); // 12:00 KST
 const future = (days: number) =>
@@ -82,4 +82,28 @@ test("점수가 아예 없으면 종목과 무관하게 보호 대상이 아니�
 test("한쪽만 있는 반쪽 점수는 보호한다 — 수집 중간 상태를 지우지 않는다", () => {
   assert.equal(hasProtectedResult("KBO", 0, null), true);
   assert.equal(hasProtectedResult("EPL", null, 2), true);
+});
+
+test("종료 0-0 고착 해제 — 소스가 연기·미시작이라고 말할 때만", () => {
+  const base = { league: "KBO", homeScore: 0, awayScore: 0, startTime: past(20) };
+  // 2026-08-27 KBO #2592 — raw POST 인데 FINISHED 0-0
+  assert.equal(unplayedFinishedStatus({ ...base, rawShort: "POST" }, NOW), "POSTPONED");
+  // ts 14(취소)만 있어도 푼다
+  assert.equal(unplayedFinishedStatus({ ...base, tsStatusId: 14 }, NOW), "POSTPONED");
+  // 재편성 — KBO #2304 raw NS·킥오프 미래 → SCHEDULED
+  assert.equal(unplayedFinishedStatus({ ...base, startTime: future(1), rawShort: "NS" }, NOW), "SCHEDULED");
+  // 무점수(null)도 같은 취급
+  assert.equal(unplayedFinishedStatus({ ...base, homeScore: null, awayScore: null, rawShort: "POST" }, NOW), "POSTPONED");
+});
+
+test("종료 0-0 고착 해제 — 건드리면 안 되는 경우", () => {
+  const base = { league: "KBO", homeScore: 0, awayScore: 0, startTime: past(20) };
+  // 소스가 FT 이거나 근거가 없으면 유지 (3월 시범경기 raw FT 0-0 등)
+  assert.equal(unplayedFinishedStatus({ ...base, rawShort: "FT" }, NOW), null);
+  assert.equal(unplayedFinishedStatus({ ...base, tsStatusId: 100 }, NOW), null);
+  assert.equal(unplayedFinishedStatus(base, NOW), null);
+  // 득점이 있는 결과는 소스가 뭐라 해도 보호 (KBO #2218 0-1 ABD)
+  assert.equal(unplayedFinishedStatus({ ...base, homeScore: 0, awayScore: 1, rawShort: "ABD" }, NOW), null);
+  // 축구 0-0 은 정당한 무승부 — 대상 아님
+  assert.equal(unplayedFinishedStatus({ ...base, league: "EPL", rawShort: "POST" }, NOW), null);
 });

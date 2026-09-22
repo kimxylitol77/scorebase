@@ -57,3 +57,41 @@ export function hasProtectedResult(
   if (BASEBALL.has(league) && homeScore === 0 && awayScore === 0) return false;
   return true;
 }
+
+// ─────────────────────────────────────────────────────────────
+// 이미 "종료 0-0" 으로 굳은 취소 경기를 풀어주는 판정 (2026-09-22).
+//
+// hasProtectedResult 는 collect 가 그 경기를 다시 수집할 때만 작동한다. collect 는 오늘 이후
+// 창만 보므로, 경기일이 지난 뒤 다른 경로가 FINISHED 0-0 을 찍으면 아무도 되돌리지 않는다.
+// 실측 (2026-09-22, 3월 이후 야구 FINISHED 0-0). 소스가 POST 인데 종료로 남은 25건,
+// 재편성돼 킥오프가 미래(소스 NS)인데 종료로 남은 6건. 재편성 경기가 열리면 그 점수가
+// 같은 row 로 들어와, 옛 날짜에 채점된 AI 픽(무승부 판정)이 낡은 채로 남았다(KBO 5경기).
+//
+// 소스(api-baseball raw 또는 TheSports status_id)가 "안 치러졌다"고 말할 때만 푼다.
+// 소스가 FT 거나 판단 근거가 없으면 null — 건드리지 않는다.
+
+const RAW_UNPLAYED = new Set(["POST", "CANC", "ABD", "SUSP", "NS"]);
+const TS_UNPLAYED = new Set([14, 19]);
+
+/**
+ * 야구 FINISHED row 가 실제로는 치러지지 않은 경기면 되돌릴 status, 아니면 null.
+ * 킥오프가 미래면 SCHEDULED(재편성), 지났으면 POSTPONED.
+ */
+export function unplayedFinishedStatus(
+  m: {
+    league: string;
+    homeScore: number | null;
+    awayScore: number | null;
+    startTime: Date;
+    rawShort?: string | null;
+    tsStatusId?: number | null;
+  },
+  now: Date = new Date(),
+): "SCHEDULED" | "POSTPONED" | null {
+  if (!BASEBALL.has(m.league)) return null;
+  if (hasProtectedResult(m.league, m.homeScore, m.awayScore)) return null;
+  const rawSays = RAW_UNPLAYED.has((m.rawShort ?? "").toUpperCase());
+  const tsSays = m.tsStatusId != null && TS_UNPLAYED.has(m.tsStatusId);
+  if (!rawSays && !tsSays) return null;
+  return m.startTime.getTime() > now.getTime() ? "SCHEDULED" : "POSTPONED";
+}

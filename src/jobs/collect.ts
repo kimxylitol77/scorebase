@@ -162,13 +162,23 @@ function parseArgs(): { leagues: League[]; date: string } {
 // 점수가 있는 FINISHED 는 종전대로 강력 보호 — 역행 차단 목적 그대로.
 // "점수 없음" 판정은 hasProtectedResult 가 맡는다 — `!= null` 로 재면 0-0 이 점수 있음으로
 // 읽혀 같은 고착이 재현된다 (2026-08-25 KBO 18·NPB 5 실측). 야구의 0-0 은 결과가 아니다.
+// 재편성도 같다 — 소스가 같은 경기를 새 날짜의 NS 로 주면 SCHEDULED 로 푼다. 막으면 row 가
+// 미래 킥오프인 채 "종료 0-0" 으로 남았다가 재편성 경기 점수를 받아, 옛 날짜에 채점된 AI 픽이
+// 낡은 채 남는다 (2026-09-22 KBO 5경기 실측, 대기 중 6건).
 function mergeStatus(
   existing: MatchStatus | null | undefined,
   incoming: MatchStatus,
   existingHasScore = true,
+  incomingStart?: Date,
 ): MatchStatus {
   if (existing === "FINISHED" && incoming === "POSTPONED" && !existingHasScore) {
     return "POSTPONED";
+  }
+  if (
+    existing === "FINISHED" && incoming === "SCHEDULED" && !existingHasScore &&
+    incomingStart != null && incomingStart.getTime() > Date.now()
+  ) {
+    return "SCHEDULED";
   }
   if (existing === "FINISHED") return "FINISHED";
   return incoming;
@@ -419,24 +429,24 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
     // POSTPONED 는 기존 탈출 규칙 유지 (existing/incoming 어느 쪽이든 자유 전이).
     const DEDUP_RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
     const exStatus = existing.status as MatchStatus;
+    const exProtected = hasProtectedResult(m.league, existing.homeScore, existing.awayScore);
     const allowStatusUpdate =
       exStatus === "POSTPONED" ||
       m.status === "POSTPONED" ||
+      // 재편성 해제 — 무점수 FINISHED 만. 미래 킥오프 여부는 mergeStatus 가 가린다.
+      (exStatus === "FINISHED" && !exProtected && m.status === "SCHEDULED") ||
       (DEDUP_RANK[m.status] ?? 0) >= (DEDUP_RANK[exStatus] ?? 0);
+    const nextStatus = allowStatusUpdate
+      ? mergeStatus(exStatus, m.status, exProtected, m.startTime)
+      : exStatus;
+    // 종료 0-0 을 예정으로 풀 때는 0-0 도 지운다 — 남기면 예정 카드가 "0:0" 을 결과처럼 보인다.
+    const releasedToScheduled = exStatus === "FINISHED" && nextStatus === "SCHEDULED";
     await prisma.match.update({
       where: { id: existing.id },
       data: {
-        homeScore: sameDirection ? (m.homeScore ?? undefined) : (m.awayScore ?? undefined),
-        awayScore: sameDirection ? (m.awayScore ?? undefined) : (m.homeScore ?? undefined),
-        ...(allowStatusUpdate
-          ? {
-              status: mergeStatus(
-                exStatus,
-                m.status,
-                hasProtectedResult(m.league, existing.homeScore, existing.awayScore),
-              ),
-            }
-          : {}),
+        homeScore: releasedToScheduled ? null : sameDirection ? (m.homeScore ?? undefined) : (m.awayScore ?? undefined),
+        awayScore: releasedToScheduled ? null : sameDirection ? (m.awayScore ?? undefined) : (m.homeScore ?? undefined),
+        ...(allowStatusUpdate ? { status: nextStatus } : {}),
         startTime: m.startTime,
         ...(sameDirection ? { raw: JSON.stringify(m.raw) } : {}),
       },
@@ -486,6 +496,7 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
     current?.status as MatchStatus | undefined,
     m.status,
     current != null && hasProtectedResult(m.league, current.homeScore, current.awayScore),
+    m.startTime,
   );
 
   await prisma.match.upsert({

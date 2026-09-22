@@ -21,6 +21,7 @@ import {
 } from "@/lib/sports/espn-basketball-verify";
 import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES, HOCKEY_LEAGUES } from "@/lib/sports/sport-leagues";
 import { tsFinishEvidence } from "@/lib/sports/thesports/finish-evidence";
+import { hasProtectedResult, unplayedFinishedStatus } from "@/lib/sports/baseball-source-cancel";
 import type { League } from "@/lib/sports/types";
 import { TS_COVERED_EXCEPTIONS } from "@/lib/sports/ts-covered-exceptions";
 
@@ -501,6 +502,42 @@ export async function GET(req: NextRequest) {
     futureLiveRolledBack = futureLive.length;
   }
 
+  // 1c) 야구 "종료 0-0" 고착 해제 — 소스(api-baseball raw·TheSports status_id)가 연기·취소·미시작
+  // 이라고 말하는데 FINISHED 0-0 으로 남은 경기. collect 는 오늘 이후만 다시 보므로 경기일이 지난
+  // 뒤 굳은 row 는 여기서만 풀린다. 풀리면 AI 채점 자가치유가 옛 채점값을 지운다.
+  // 판정 근거·실측은 baseball-source-cancel.ts unplayedFinishedStatus 참고.
+  const scorelessFinished = await prisma.match.findMany({
+    where: {
+      league: { in: [...BASEBALL_LEAGUES] },
+      status: "FINISHED",
+      startTime: { gte: new Date(Date.now() - 120 * 86400 * 1000) },
+      OR: [{ homeScore: 0, awayScore: 0 }, { homeScore: null, awayScore: null }],
+    },
+    select: {
+      id: true, league: true, startTime: true, homeScore: true, awayScore: true, raw: true,
+      theSportsCache: { select: { detailLive: true } },
+    },
+  });
+  let scorelessReleased = 0;
+  for (const m of scorelessFinished) {
+    let rawShort: string | null = null;
+    try {
+      rawShort = (JSON.parse(m.raw ?? "null") as { status?: { short?: string } } | null)?.status?.short ?? null;
+    } catch {
+      // raw 가 JSON 이 아니면 ts 근거만으로 판정
+    }
+    const tsScore = (m.theSportsCache?.detailLive as { score?: unknown[] } | null)?.score;
+    const tsStatusId = Array.isArray(tsScore) && typeof tsScore[1] === "number" ? tsScore[1] : null;
+    const next = unplayedFinishedStatus({ ...m, rawShort, tsStatusId });
+    if (!next) continue;
+    await prisma.match.update({
+      where: { id: m.id },
+      data: { status: next, homeScore: null, awayScore: null },
+    });
+    scorelessReleased++;
+    console.log(`[cleanup-stale-scheduled] 종료 0-0 고착 해제 ${m.league} #${m.id} raw=${rawShort} ts=${tsStatusId} → ${next}`);
+  }
+
   // 2) stale SCHEDULED 매치 처리
   //    api-football cover 리그는 fixture status 외부 verify → 잘못된 POSTPONED 차단.
   const stale = await prisma.match.findMany({
@@ -658,7 +695,8 @@ export async function GET(req: NextRequest) {
     //   ※ ts- 야구 매치(NPB/LMB 등)는 mac-mini worker(stale-ts-verify)가 baseball diary 로
     //     status_id 까지 확인해 POSTPONED 확정 — Vercel 은 IP 화이트리스트로 TheSports 호출 불가.
     if (BASEBALL_LEAGUES.has(m.league as League)) {
-      if (m.homeScore != null && m.awayScore != null) {
+      // 0-0 은 점수가 아니다 — 취소 경기에 남은 0-0 이 "종료" 로 확정되던 구멍 (hasProtectedResult).
+      if (hasProtectedResult(m.league, m.homeScore, m.awayScore)) {
         await prisma.match.update({
           where: { id: m.id },
           data: { status: "FINISHED" },
