@@ -16,6 +16,9 @@ export const CLUB_XI_LEAGUES = new Set<string>([
   "UCL", "UEL",
   "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_2",
   "MLS", "BRASILEIRAO", "LIGA_MX", "SAUDI_PL",
+  // 2026-09-22 아시안게임 남·여 — ts 는 라인업을 킥오프 11분 전에야 내므로 경기 전 페이지가
+  // 비어 있었다. 재료는 대회 안 확정 XI(전 경기 적재) 로 충분해 클럽과 같은 빌더로 예상 XI 노출.
+  "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W",
 ]);
 
 const normTeam = (s: string) =>
