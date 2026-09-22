@@ -16,6 +16,7 @@ import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
 import { LEAGUE_DISPLAY, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { SOCCER_LEAGUES as SOCCER_LEAGUE_SET } from "@/lib/sports/sport-leagues";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
@@ -356,7 +357,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
-  const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper);
+  // types.ts 배열(af 수집·영어 라벨 기준)에 없는 ts 단독 대회(아시안게임 축구)도 축구다 — sport-leagues 집합과 합집합.
+  //  배열만 보면 ts 표(조별 4개)가 캐시돼 있어도 "축구 아님" 으로 자체 계산 15팀 표가 나왔다(2026-09-22).
+  const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper) || SOCCER_LEAGUE_SET.has(upper);
   const tsStandings = isSoccerLeague ? await fetchStandingsForLeague(upper) : null;
   // 야구(KBO/NPB) 순위는 TheSports season/table/detail 공식 순위 사용 (DB 매치 계산보다 정확).
   const baseballTable =
@@ -436,17 +439,30 @@ export default async function StandingsPage({ params }: Props) {
     points: number;
     promotionColor?: string;
     promotionName?: string;
+    /** 조별 대회면 "A조" — 표를 조마다 따로 그린다 */
+    group?: string;
   }>;
   let source: "ts" | "calc" = "calc";
 
   if (tsStandings && tsStandings.tables.length > 0 && (!tsAllZero || tsPlaceholderOk)) {
-    // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
+    // ts 결과 사용 — 일반 리그는 첫 번째 table. 조별 대회(아시안게임 등)는 group 번호가 있는 표 전부를
+    // 조 라벨과 함께 — 라벨은 표 순서(A·B·C…), standings-helper 와 같은 규칙(ts group 번호는 남·여가 이어져 5·6·7·0 로 온다).
+    // 예전엔 tables[0] 만 써서 조별 대회가 4팀짜리 반쪽 표가 되거나(매핑 전엔) 대회 전체 자체 계산 15팀 표로 떨어졌다(2026-09-22).
     const promoMap = new Map(tsStandings.promotions.map((p) => [p.id, p]));
-    const tsRows = tsStandings.tables[0].rows
-      .filter((r) => r.ourTeamId != null) // 미매핑 ts 팀 제거
-      .map((r) => {
+    const groupTables = tsStandings.tables.filter((t) => Number.isInteger(Number(t.group)));
+    const grouped = tsStandings.tables.length >= 2 && groupTables.length >= 2;
+    const srcTables = grouped ? groupTables : [tsStandings.tables[0]];
+    const seenTeam = new Set<number>(); // 조 3위 비교표 같은 부속 표엔 같은 팀이 다시 나온다 — 첫 표만
+    const tsRows = srcTables
+      .flatMap((t, gi) =>
+        t.rows
+          .filter((r) => r.ourTeamId != null && !seenTeam.has(r.ourTeamId) && (seenTeam.add(r.ourTeamId), true)) // 미매핑 ts 팀 제거
+          .map((r) => ({ r, group: grouped ? `${String.fromCharCode(65 + gi)}조` : undefined })),
+      )
+      .map(({ r, group }) => {
         const promo = r.promotion_id ? promoMap.get(r.promotion_id) : undefined;
         return {
+          group,
           position: r.position,
           teamId: r.ourTeamId!,
           played: r.total,
@@ -461,7 +477,7 @@ export default async function StandingsPage({ params }: Props) {
           promotionName: promo?.name,
         };
       })
-      .sort((a, b) => a.position - b.position);
+      .sort((a, b) => (a.group ?? "").localeCompare(b.group ?? "") || a.position - b.position);
     if (tsRows.length > 0) {
       rows = tsRows;
       source = "ts";
@@ -633,6 +649,15 @@ export default async function StandingsPage({ params }: Props) {
         </div>
       </header>
 
+      {/* 조별 대회는 조마다 표 하나 — 한 표로 합치면 1위가 조 수만큼 겹친다 */}
+      {(() => {
+        const groupLabels = [...new Set(rows!.map((r) => r.group).filter((g): g is string => !!g))];
+        const sections = groupLabels.length >= 2
+          ? groupLabels.map((g) => ({ label: g, list: rows!.filter((r) => r.group === g) }))
+          : [{ label: null as string | null, list: rows! }];
+        return sections.map((sec) => (
+      <div key={sec.label ?? "all"}>
+      {sec.label && <h2 className="mb-2 mt-4 text-base font-bold tracking-tight">{sec.label}</h2>}
       <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
         <div className="overflow-x-auto">
         <table className="w-full text-sm border-separate border-spacing-0">
@@ -663,7 +688,7 @@ export default async function StandingsPage({ params }: Props) {
             </tr>
           </thead>
           <tbody>
-            {rows!.map((r) => {
+            {sec.list.map((r) => {
               const t = teamMap.get(r.teamId);
               if (!t) return null;
               const ko = toKoreanTeamName(t.name, upper);
@@ -735,9 +760,12 @@ export default async function StandingsPage({ params }: Props) {
         </table>
         </div>
       </div>
+      </div>
+        ));
+      })()}
 
       <div className="text-[11px] text-neutral-400 text-center pt-2">
-        ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외.
+        {source === "ts" ? "ⓘ 공식 순위표 기준. 조별 대회는 조마다 표시." : "ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외."}
       </div>
 
       {poOdds && (

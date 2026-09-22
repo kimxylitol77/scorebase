@@ -15,6 +15,7 @@ import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { SOCCER_LEAGUES as SOCCER_LEAGUE_SET } from "@/lib/sports/sport-leagues";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
@@ -255,7 +256,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
-  const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper);
+  // types.ts 배열(af 수집·영어 라벨 기준)에 없는 ts 단독 대회(아시안게임 축구)도 축구다 — sport-leagues 집합과 합집합.
+  //  배열만 보면 ts 표(조별 4개)가 캐시돼 있어도 "축구 아님" 으로 자체 계산 15팀 표가 나왔다(2026-09-22).
+  const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper) || SOCCER_LEAGUE_SET.has(upper);
   const tsStandings = isSoccerLeague ? await fetchStandingsForLeague(upper) : null;
   // 야구(KBO/NPB) 순위는 TheSports season/table/detail 공식 순위 사용 (DB 매치 계산보다 정확).
   const baseballTable =
