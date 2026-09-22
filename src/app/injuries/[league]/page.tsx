@@ -13,6 +13,7 @@ import { EN_INJURY_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page";
 import { lookupNbaBdlIdByEspnId } from "@/lib/sports/nba-players";
+import { normPlayerKey, resolveMlbPlayerIds, resolveNhlPlayerIds, resolveKboPlayerId, searchKboPlayerId } from "@/lib/players/injury-player-ids";
 import { assertSportConsistency } from "@/lib/players/sanityCheck";
 import { calcStandings } from "@/lib/predict/standings";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -851,6 +852,11 @@ export default async function InjuriesByLeague({
       const list = getTeamKboInjuries(allKbo, t.name);
       raw = list.map((i, idx) => ({
         playerId: -(t.id * 1000 + idx), // KBO API 가 player id 미노출
+        // 정적 로스터(data/baseball-rosters.json)에서 같은 팀·같은 이름이 한 명일 때만 잇는다
+        href: (() => {
+          const pid = resolveKboPlayerId(t.id, i.playerName);
+          return pid ? `/players/${pid}?league=KBO` : undefined;
+        })(),
         playerName: i.position ? `${i.playerName}(${i.position})` : i.playerName,
         reason: `${i.type} · ${i.duration}`,
         fixtureDate: i.date,
@@ -880,6 +886,42 @@ export default async function InjuriesByLeague({
     });
     return { team: t, raw };
   });
+
+  // MLB·NHL — 원천(ESPN·BDL) id 는 선수 페이지 id 가 아니라 이름+팀으로 공식 API 에서 찾는다
+  //  (injury-player-ids.ts). 못 찾으면 텍스트 그대로.
+  if (upper === "MLB") {
+    const ids = await resolveMlbPlayerIds(
+      rawByTeam.flatMap((x) => x.raw.map((i) => ({ name: i.playerName, teamName: x.team.name }))),
+    ).catch(() => new Map<string, number>());
+    for (const x of rawByTeam) {
+      for (const i of x.raw) {
+        const id = ids.get(`${normPlayerKey(i.playerName)}|${x.team.name.toLowerCase()}`);
+        if (id != null && !i.href) i.href = `/players/${id}`; // MLB 는 bare 가 정본
+      }
+    }
+  } else if (upper === "NHL") {
+    const ids = await resolveNhlPlayerIds(
+      rawByTeam.flatMap((x) => x.raw.map((i) => ({ name: i.playerName, teamAbbr: x.team.shortName }))),
+    ).catch(() => new Map<string, number>());
+    for (const x of rawByTeam) {
+      for (const i of x.raw) {
+        const id = ids.get(`${normPlayerKey(i.playerName)}|${x.team.shortName ?? ""}`);
+        if (id != null && !i.href) i.href = `/players/${id}?league=NHL`;
+      }
+    }
+  } else if (upper === "KBO") {
+    // 정적 로스터에서 못 이은 선수(로스터 밖·동명이인) → KBO 공식 검색. playerName 은 "이름(포지션)" 꼴.
+    const pending = rawByTeam.flatMap((x) => x.raw.filter((i) => !i.href).map((i) => ({ x, i })));
+    for (let k = 0; k < pending.length; k += 5) {
+      await Promise.all(
+        pending.slice(k, k + 5).map(async ({ x, i }) => {
+          const m = /^(.*?)(?:\((.*)\))?$/.exec(i.playerName);
+          const pid = await searchKboPlayerId(m?.[1] ?? i.playerName, x.team.name, m?.[2] ?? null).catch(() => null);
+          if (pid) i.href = `/players/${pid}?league=KBO`;
+        }),
+      );
+    }
+  }
 
   // sport sanity 점검 (다른 종목 선수 ID 혼입 차단) — 축구만 (Supabase 매핑 보유)
   if (isSoccer) {
