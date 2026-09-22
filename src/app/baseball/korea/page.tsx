@@ -319,9 +319,9 @@ export default async function BaseballKoreaPage() {
                 <span className="w-16 shrink-0 truncate text-xs font-semibold text-sky-600 dark:text-sky-400">{p.nameKo}</span>
                 <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-neutral-700 dark:text-neutral-300">
                   <span className="truncate">{teamKo(m.homeTeam)}</span>
-                  <TeamBadge logoUrl={m.homeTeam.logoUrl} size={16} />
+                  <TeamBadge logoUrl={m.homeTeam.logoUrl} size={48} />
                   <span className="shrink-0 font-black tabular-nums text-neutral-900 dark:text-white">{m.homeScore ?? "-"}-{m.awayScore ?? "-"}</span>
-                  <TeamBadge logoUrl={m.awayTeam.logoUrl} size={16} />
+                  <TeamBadge logoUrl={m.awayTeam.logoUrl} size={48} />
                   <span className="truncate">{teamKo(m.awayTeam)}</span>
                 </span>
                 <span className="shrink-0 text-[11px] text-neutral-400">MLB · {fmtKST(m.startTime)}</span>
