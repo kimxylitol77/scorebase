@@ -206,6 +206,7 @@ export default async function GolfKoreaPage({
                       flag="https://a.espncdn.com/i/teamlogos/countries/500/kor.png"
                       country="대한민국"
                       name={p.nameKo ?? p.name}
+                      size="lg"
                     />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">

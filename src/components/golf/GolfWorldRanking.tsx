@@ -129,6 +129,7 @@ export default function GolfWorldRanking() {
                     flag={null}
                     country={p.country}
                     name={p.nameKo ?? p.name}
+                    size="lg"
                   />
                   <span className="min-w-0">
                   <span className="flex items-center gap-1.5">
