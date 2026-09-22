@@ -122,11 +122,12 @@ export const AI_CATEGORY: NavCategory = {
 export const ODDS_CATEGORY: NavCategory = {
   label: "배당",
   href: "/odds?sport=soccer",
-  owns: ["/odds", "/value-bets", "/predictions/accuracy"],
+  owns: ["/odds", "/value-bets", "/predictions/accuracy", "/tools"],
   items: [
     { href: "/odds?sport=soccer", label: "배당 흐름", desc: "오픈 대비 변동 · 돈이 몰리는 방향" },
     { href: "/value-bets", label: "밸류 베트", desc: "모델이 시장보다 자신 있는 경기" },
     { href: "/odds?sport=betman", label: "베트맨 승부식", desc: "국내 합법 · 프로토 배당·투표 분포" },
+    { href: "/tools", label: "계산기", desc: "프로토 조합 · 토토 복식 · 승리확률" },
     { href: "/predictions/accuracy", label: "수익률 보드", desc: "실배당 채점 — 적중률·유닛 수익률" },
   ],
 };

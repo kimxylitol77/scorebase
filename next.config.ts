@@ -119,7 +119,7 @@ const nextConfig: NextConfig = {
       { source: "/salaries", destination: "/salaries/kbo", permanent: false },
       { source: "/coaches", destination: "/transfers", permanent: false },
       { source: "/h2h", destination: "/scores", permanent: false },
-      { source: "/tools", destination: "/tools/kbo-win-probability", permanent: false },
+      // /tools 인덱스 페이지가 생겨(2026-09-22 계산기 묶음) KBO 승리확률로 보내던 임시 리다이렉트 제거
       { source: "/transactions", destination: "/transactions/nba", permanent: false },
       // 크로스소스 중복 row 를 정리하며 같은 경기에 두 편이 된 글 — 대표 글로 영구 이전.
       // 글 페이지는 status !== PUBLISHED 를 404 로 처리해서(articles/[slug]) 비공개 전환이

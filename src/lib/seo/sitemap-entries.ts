@@ -77,6 +77,9 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/predictions/fifa-ranking`, changeFrequency: "weekly", priority: 0.75 }, // "FIFA 랭킹" 검색 수요
     { url: `${base}/predictions/fifa-ranking-women`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/tools`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/tools/proto-calculator`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/tools/toto-combination`, changeFrequency: "monthly", priority: 0.75 },
     { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/mlb-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/npb-win-probability`, changeFrequency: "monthly", priority: 0.75 },
