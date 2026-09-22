@@ -1193,6 +1193,10 @@ async function NpbPitcherView({
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
             {season} 시즌
+            {season < new Date().getUTCFullYear() && (
+              // 올해 줄이 선수 페이지·리그 성적표 어디에도 없는 선수 — 작년 값을 현재처럼 보이게 두지 않는다
+              <span className="ml-2 normal-case tracking-normal font-medium text-neutral-400">· 올해 1군 등판 기록 없음 (최근 시즌)</span>
+            )}
           </h2>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             <Stat label="ERA" value={fmtNum(stats.era, 2)} accent />
@@ -1269,7 +1273,7 @@ async function NpbPitcherView({
         weight={profile.weight ?? null}
         statLine={
           stats?.era != null
-            ? `${season} 시즌 평균자책점 ${stats.era}${stats.wins != null && stats.losses != null ? `, ${stats.wins}승 ${stats.losses}패` : ""}를 기록 중이다.`
+            ? `${season} 시즌 평균자책점 ${stats.era.toFixed(2)}${stats.wins != null && stats.losses != null ? `, ${stats.wins}승 ${stats.losses}패` : ""}를 기록 중이다.`
             : null
         }
       />

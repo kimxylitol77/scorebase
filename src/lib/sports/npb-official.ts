@@ -303,6 +303,77 @@ function parseInningCell(
  * Raw — 페이지에서는 unstable_cache wrapper (npb-cache.ts) 통해 호출.
  * cron 잡은 직접 호출 가능.
  */
+/** 리그 투수 성적표에서 이름으로 한 시즌 줄을 읽는다 — 규정 이닝 달성(idp1)·미달(idp2) × 세(s)·파(p) 4장.
+ *  표 한 개(table.tablefix2), 첫 열이 選手, 投球回 셀은 span.integer + span.decimal.
+ *  이름은 공백(전각 포함) 제거 후 정확 일치, 동명이인이면 null. 시즌 전(표 404)이면 null. */
+export async function fetchNpbLeaguePitcherLine(
+  name: string,
+  season: number,
+): Promise<Omit<NpbPitcherStats, "pid" | "season" | "kana" | "team"> | null> {
+  const key = name.replace(/\s+/g, "");
+  const pages = ["idp1_s", "idp2_s", "idp1_p", "idp2_p"];
+  const htmls = await Promise.all(
+    pages.map(async (pg) => {
+      try {
+        const r = await axios.get<string>(`${BASE}/bis/${season}/stats/${pg}.html`, { headers: HEADERS, timeout: 12000, responseType: "text" });
+        return r.data;
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const hits: Array<Omit<NpbPitcherStats, "pid" | "season" | "kana" | "team">> = [];
+  for (const html of htmls) {
+    if (!html) continue;
+    const $ = cheerio.load(html);
+    const table = $("table.tablefix2").first();
+    const headers = table.find("thead th").map((_, th) => $(th).text().trim()).get();
+    const ipIdx = headers.indexOf("投球回");
+    if (ipIdx < 0) continue;
+    table.find("tbody tr").each((_, tr) => {
+      const cells = $(tr).find("> td");
+      if (cells.length !== headers.length) return;
+      if (cells.eq(0).text().replace(/\s+/g, "") !== key) return;
+      const get = (label: string): string | undefined => {
+        const i = headers.indexOf(label);
+        return i < 0 ? undefined : cells.eq(i).text().trim() || undefined;
+      };
+      const ipCell = cells.eq(ipIdx);
+      const whole = ipCell.find("span.integer").text().trim() || ipCell.text().trim();
+      const frac = ipCell.find("span.decimal").text().trim();
+      const ip = whole ? (frac ? `${whole}${frac}` : whole) : undefined;
+      const innings = ipToInnings(ip);
+      const bb = toNum(get("四球"));
+      const hitsN = toNum(get("安打"));
+      const k = toNum(get("三振"));
+      hits.push({
+        g: toNum(get("登板")),
+        wins: toNum(get("勝利")),
+        losses: toNum(get("敗北")),
+        saves: toNum(get("セーブ")),
+        cg: toNum(get("完投")),
+        sho: toNum(get("完封勝")),
+        wpct: toNum(get("勝率")),
+        tbf: toNum(get("打者")),
+        ip,
+        hits: hitsN,
+        hra: toNum(get("本塁打")),
+        bb,
+        hbp: toNum(get("死球")),
+        k,
+        wp: toNum(get("暴投")),
+        bk: toNum(get("ボーク")),
+        r: toNum(get("失点")),
+        er: toNum(get("自責点")),
+        era: toNum(get("防御率")),
+        whip: innings && innings > 0 && bb != null && hitsN != null ? (bb + hitsN) / innings : undefined,
+        k9: innings && innings > 0 && k != null ? (k * 9) / innings : undefined,
+      });
+    });
+  }
+  return hits.length === 1 ? hits[0] : null;
+}
+
 export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats | null> {
   const url = `${BASE}/bis/players/${pid}.html`;
   let html: string;
@@ -337,6 +408,14 @@ export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats
   const season = Number(get("年度")) || new Date().getUTCFullYear();
   const teamRaw = get("所属球団")?.replace(/\s+/g, "") || undefined;
   const kana = $("li#pc_v_kana").text().trim() || undefined;
+  // 선수 페이지의 연도 표는 시즌 중 갱신이 늦다 — 2026-09 石山泰稚 실측: 리그 성적표엔 6경기가 있는데
+  // 페이지엔 2026 행이 없어 "2025 시즌" 이 현재처럼 보였다. 올해 줄을 리그 성적표에서 찾아 대신 쓴다.
+  const thisYear = new Date().getUTCFullYear();
+  if (season < thisYear) {
+    const name = $("li#pc_v_name").text().trim();
+    const line = name ? await fetchNpbLeaguePitcherLine(name, thisYear) : null;
+    if (line) return { pid, season: thisYear, kana, team: teamRaw, ...line };
+  }
   const ip = parseInningCell(cells.eq(ipIdx));
   const innings = ipToInnings(ip);
   const bb = toNum(get("四球"));
