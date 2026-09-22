@@ -858,6 +858,13 @@ export async function fetchKboHitterDailySeason(
   return html ? parseHitterDailyHtml(html) : [];
 }
 
+/** 선수 상세 상단 `<h4><span class='emb'>…</span>KIA 타이거즈</h4>` → "KIA". 없으면 undefined. */
+function parseKboTeamFromHeader($: cheerio.CheerioAPI): string | undefined {
+  const h4 = $("h4").filter((_, el) => $(el).find("span.emb").length > 0).first();
+  const full = h4.clone().children().remove().end().text().trim();
+  return full.split(/\s+/)[0] || undefined;
+}
+
 export interface KboPitcherProfile {
   name?: string;
   team?: string;
@@ -936,6 +943,9 @@ export async function fetchKboPitcherProfile(kboId: string): Promise<KboPitcherP
         if (i >= 0) team = cells[i] || undefined;
       }
     });
+    // 시즌 기록이 없는 선수(2군·부상)는 기록표가 비어 팀명이 안 잡힌다 → 상단 엠블럼 h4 ("KIA 타이거즈") 의
+    // 첫 토큰으로 폴백. 기록표 팀명과 같은 약칭 꼴("KIA"·"삼성").
+    team ??= parseKboTeamFromHeader($);
     const position = fields.get("포지션");
     const birthday = fields.get("생년월일");
     return {
@@ -1318,6 +1328,7 @@ export async function fetchKboHitterProfile(
         if (i >= 0) team = cells[i] || undefined;
       }
     });
+    team ??= parseKboTeamFromHeader($); // 기록 없는 선수 — 상단 엠블럼 h4 폴백 (투수 파서와 동일)
     const position = fields.get("포지션");
     const birthday = fields.get("생년월일");
     return {

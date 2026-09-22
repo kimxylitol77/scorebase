@@ -848,11 +848,21 @@ async function KboHitterView({
   );
 }
 
+/** 타자 판정 — 타격 스탯 보유 또는 포지션이 "투수" 로 시작하지 않음. 메타(page.tsx)와 본문이 같이 쓴다. */
+export function isKboHitter(
+  stats: { avg?: string; hr?: number; h?: number } | null,
+  profile: { position?: string },
+): boolean {
+  if (stats && (stats.avg != null || stats.hr != null || stats.h != null)) return true;
+  return !!profile.position && !profile.position.startsWith("투수");
+}
+
 export async function KboPlayerView({ pid }: { pid: string }) {
-  const hitter = await fetchKboHitterStats(pid);
-  if (hitter && (hitter.avg != null || hitter.hr != null || hitter.h != null)) {
-    const profile = await fetchKboHitterProfile(pid);
-    return <KboHitterView pid={pid} profile={profile} stats={hitter} />;
+  // 타자 판정 = 타격 스탯이 있거나, 프로필 포지션이 투수가 아닌 경우. 스탯만 보면 올해 1군 기록이
+  // 없는 야수(2군·부상, 2026-09-22 김석환 실측)가 투수 뷰로 떨어진다.
+  const [hitter, hitterProfile] = await Promise.all([fetchKboHitterStats(pid), fetchKboHitterProfile(pid)]);
+  if (isKboHitter(hitter, hitterProfile)) {
+    return <KboHitterView pid={pid} profile={hitterProfile} stats={hitter ?? {}} />;
   }
   const [detail, profile] = await Promise.all([
     fetchKboPitcherDetail(pid),

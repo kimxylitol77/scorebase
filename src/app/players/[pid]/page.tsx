@@ -17,10 +17,10 @@ import {
 } from "@/lib/sports/mlb-cache";
 import { MlbHitterView, MlbPitcherView } from "./MlbViews";
 import PlayerRelatedArticles from "@/components/players/PlayerRelatedArticles";
-import { fetchKboPitcherProfile } from "@/lib/sports/kbo-official";
+import { fetchKboPitcherProfile, fetchKboHitterProfile, fetchKboHitterStats } from "@/lib/sports/kbo-official";
 import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchNpbPitcherProfileCached as fetchNpbPitcherProfile } from "@/lib/sports/npb-cache";
-import { KboPlayerView, NpbPlayerView, npbDisplayName } from "./KboNpbViews";
+import { KboPlayerView, NpbPlayerView, npbDisplayName, isKboHitter } from "./KboNpbViews";
 import { type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
 import { fetchSoccerPlayerProfileCached } from "@/lib/players/soccer-player-cache";
 
@@ -71,6 +71,21 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   //  단 MLB 는 bare(/players/{pid}) 가 정본 — ?league=MLB 로 들어와도 같은 페이지라 자기중복 방지.
   const canonical = league && league !== "MLB" ? `/players/${pid}?league=${league}` : `/players/${pid}`;
   if (league === "KBO") {
+    // 타자·투수 판정은 본문(KboPlayerView)과 같은 isKboHitter — 타격 스탯 또는 포지션.
+    //  예전엔 투수 프로필만 읽어 야수도 "투수 ERA" 제목이 붙었다(2026-09-22 김석환 실측).
+    const [hitterStats, hp] = await Promise.all([fetchKboHitterStats(pid).catch(() => null), fetchKboHitterProfile(pid)]);
+    if (isKboHitter(hitterStats, hp)) {
+      if (!hp.name) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
+      return {
+        title: `${hp.name} 성적 — ${hp.team ?? "KBO"} 타자 타율·홈런·최근 경기 (KBO)`,
+        description: `${hp.team ?? "KBO"} ${hp.name}의 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
+        alternates: { canonical },
+        openGraph: {
+          title: `${hp.name} — KBO 타자 통계`,
+          images: ogPageImage({ title: hp.name, subtitle: "KBO 타자 시즌 통계·최근 경기", tag: "KBO" }),
+        },
+      };
+    }
     const info = await fetchKboPitcherProfile(pid);
     if (!info.name) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     return {
