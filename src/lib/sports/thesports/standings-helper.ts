@@ -376,13 +376,17 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[]; group?: number | string | null }> };
     tsTableCount = (payload?.tables ?? []).length;
     const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
+    // 조별 대회(ASEAN 챔피언십·아시안게임 등) — tables 2+ 이고 group 번호가 있으면 "A조/B조" 라벨.
+    //  flatten 하면 조별 1~N위가 섞여 순위가 중복돼 보이던 것 해소 (표시층은 group 지원 기존재).
+    //  라벨은 ts group 번호가 아니라 **표 순서**로 매긴다 — 아시안게임 여자부는 남자부 뒤에 이어 5·6·7·0 으로 와서
+    //  번호→알파벳이면 E·F·G조가 되고 0 은 라벨을 잃는다(2026-09-22 실측). 표 순서는 조 순서와 같다.
+    const groupTables = (payload?.tables ?? []).filter((t) => Number.isInteger(Number(t.group)));
+    const groupIndex = new Map(groupTables.map((t, i) => [t, i]));
     for (const t of payload?.tables ?? []) {
-      // 조별 대회(ASEAN 챔피언십 등) — tables 2+ 이고 group 번호가 있으면 "A조/B조" 라벨.
-      //  flatten 하면 조별 1~N위가 섞여 순위가 중복돼 보이던 것 해소 (표시층은 group 지원 기존재).
-      const gNum = Number(t.group);
+      const gi = groupIndex.get(t);
       const groupLabel =
-        tsTableCount >= 2 && Number.isInteger(gNum) && gNum >= 1 && gNum <= 26
-          ? `${String.fromCharCode(64 + gNum)}조`
+        tsTableCount >= 2 && groupTables.length >= 2 && gi != null && gi < 26
+          ? `${String.fromCharCode(65 + gi)}조`
           : null;
       for (const r of t.rows ?? []) {
         if (!r.team_id || r.position == null) continue;

@@ -92,6 +92,7 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const useOfficial = !!(oH && oA && oH.goalsFor != null && oA.goalsFor != null) && !anyFallback;
   const toStand = (r: NonNullable<typeof oH>) => ({
     position: r.position,
+    group: r.group ?? null,
     points: r.points,
     played: r.won + r.draw + r.loss,
     wins: r.won,
@@ -166,6 +167,7 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
     name: homeKo,
     form: homeForm.results,
     position: homeStand.position,
+    group: useOfficial ? oH!.group ?? null : null,
     seasonPoints: match.homeSeasonPoints ?? homeStand.points,
     totalTeams,
     played: homeStand.played,
@@ -196,6 +198,7 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
     name: awayKo,
     form: awayForm.results,
     position: awayStand.position,
+    group: useOfficial ? oA!.group ?? null : null,
     seasonPoints: match.awaySeasonPoints ?? awayStand.points,
     totalTeams,
     played: awayStand.played,

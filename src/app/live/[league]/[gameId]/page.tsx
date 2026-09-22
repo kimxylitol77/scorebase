@@ -1062,10 +1062,11 @@ export default async function GenericLivePage({ params }: Props) {
   const conclFactors: KeyFactor[] = [];
   if (cHS && cAS) {
     if (cHS.position && cAS.position) {
+      // 조별 대회는 조 안 순위 — "A조 1위" 로 조를 밝힌다(대회 전체 8위처럼 읽히지 않게)
       conclFactors.push({
-        label: "리그순위",
-        home: `${cHS.position}위`,
-        away: `${cAS.position}위`,
+        label: cHS.group || cAS.group ? "조 순위" : "리그순위",
+        home: `${cHS.group ? `${cHS.group} ` : ""}${cHS.position}위`,
+        away: `${cAS.group ? `${cAS.group} ` : ""}${cAS.position}위`,
         edge: cHS.position < cAS.position ? "home" : cHS.position > cAS.position ? "away" : "even",
       });
     }

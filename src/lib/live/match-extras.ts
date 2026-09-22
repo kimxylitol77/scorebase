@@ -24,6 +24,8 @@ export interface StandingLite {
   goalsFor: number;
   goalsAgainst: number;
   position: number;
+  /** 조별 대회면 "A조" — position 이 조 안 순위라는 뜻. 단일표 리그는 null */
+  group?: string | null;
 }
 
 export interface MatchExtras {
@@ -257,6 +259,7 @@ async function fetchMatchExtrasInner(match: {
             goalsFor: r.goalsFor,
             goalsAgainst: r.goalsAgainst,
             position: r.position,
+            group: r.group ?? null,
           }
         : null;
     officialHome = toLite(hRow);

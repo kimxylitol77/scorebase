@@ -9,6 +9,8 @@ export interface TeamSide {
   form: FormResult[];
   // 시즌
   position: number;
+  /** 조별 대회면 "A조" — 순위 행을 "A조 1위" 로 보인다 */
+  group?: string | null;
   /** 시즌 누적 승점 — 글 스냅샷 값(있으면) 또는 실시간 standings.points */
   seasonPoints: number;
   totalTeams: number;
@@ -99,9 +101,9 @@ export default function TeamMatchup({ home, away, showDraw = true, sections = "a
       <Group label="시즌 전체">
         {!hideRank && (
         <CompareRow
-          label="리그순위"
-          home={`${home.position}`}
-          away={`${away.position}`}
+          label={home.group || away.group ? "조 순위" : "리그순위"}
+          home={`${home.group ? `${home.group} ` : ""}${home.position}`}
+          away={`${away.group ? `${away.group} ` : ""}${away.position}`}
           highlight={
             home.position < away.position
               ? "home"
