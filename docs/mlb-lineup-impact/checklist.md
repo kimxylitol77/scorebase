@@ -5,6 +5,6 @@
 - [x] LineupImpactCard — 게이지 2 + 워터폴 9×2 + 필 세그먼트 + 표본 게이트 라벨, 라이트/다크
 - [x] page.tsx MatchInsight 탭 "라인업 임팩트" (양 팀 9명 확정 시 enabled)
 - [x] 로컬 실렌더 검증: 확정 라인업 경기 1·미확정 경기 1(탭 비활성)·종료 경기 1
-- [ ] tsc·테스트 통과 → 커밋 → main push → 운영 확인 → 메모리
+- [x] tsc·테스트 통과(322/322) → 커밋 b1a2123 → main push → 운영 /live/mlb/401817030 확인 → 메모리 mlb-lineup-impact-tab
 - [ ] (보류) 2단계 WOWY 원형: 출전/결장 경기 팀 R/G — gameLog 18콜 캐시 설계 후
 - [ ] (후속) KBO 이식
