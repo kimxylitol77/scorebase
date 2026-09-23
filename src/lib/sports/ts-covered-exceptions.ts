@@ -65,4 +65,8 @@ export const TS_COVERED_EXCEPTIONS = new Set<League>([
   // TS_COVERED 로 분류돼 af 매치 수집이 끊긴다. J2 매치는 지금까지 전부 af 생성(종료 350건)
   // 이라 소스를 옮기면 공백이 생긴다 — 위 2부·컵과 같이 id 는 순위표 전용으로만 쓴다.
   "J2_LEAGUE",
+  // INTL_FRIENDLY (2026-09-23): ts 매핑에 시즌 id 가 있어 TS_COVERED 로 분류됐지만 ts 는 국대 친선
+  // 매치를 지금까지 한 건도 안 만들었다(DB 403건 전부 af, 5/24 백필이 마지막). af 로 수집한다 —
+  // 청소년·여자대표 fixture 는 collector 가 거른다.
+  "INTL_FRIENDLY",
 ]);

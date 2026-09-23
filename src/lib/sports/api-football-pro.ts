@@ -133,6 +133,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // 국가대표 토너 / 예선 / 친선
   AFCON: 6, // Africa Cup of Nations
   UEFA_NL: 5, // UEFA Nations League
+  GULF_CUP: 25, // Gulf Cup of Nations (아라비안 걸프컵)
   WC_QUAL: 32, // World Cup Qualifying — UEFA (32), 다른 지역 id 별개
   EURO_QUAL: 960, // Euro Qualifying
   CONCACAF_GOLD: 22, // CONCACAF Gold Cup

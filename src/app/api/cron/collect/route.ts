@@ -49,6 +49,13 @@ const ALL_LEAGUES: League[] = [
   "AFC_CL_TWO",
   "AFC_U23",
   "ASEAN_CHAMP",
+  // 국가대표 — 2026-09-23. UEFA_NL 은 한 번도 수집된 적이 없었고(주석엔 "af 계속 사용"이라 적혀 있었으나 목록엔 없음),
+  //  INTL_FRIENDLY 는 5/24 월드컵 대비 백필 이후 0건(ts 매핑에 시즌 id 가 있어 TS_COVERED 로 분류돼 af 가 skip 했는데
+  //  ts 는 실제로 매치를 하나도 안 만들었다 → TS_COVERED_EXCEPTIONS 에 등재). 베트맨 발매 경기(A매치·네이션스리그·걸프컵)
+  //  연결이 이 수집에 걸려 있다.
+  "UEFA_NL",
+  "INTL_FRIENDLY",
+  "GULF_CUP",
   "CSL",
   "A_LEAGUE",
   "EREDIVISIE",

@@ -39,7 +39,7 @@ export const ALL_LEAGUES = [
   "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
   // 국가대표 토너 / 예선 / 친선
-  "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
+  "AFCON", "UEFA_NL", "GULF_CUP", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
   "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
   "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
   "CLUB_FRIENDLY", // 국제 클럽 친선 (프리시즌) — 스코어 피드 전용
@@ -139,7 +139,7 @@ export const SPORTS: SportMeta[] = [
       "CLUB_WORLD_CUP", "WORLD_CUP",
       "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W", // 2026-09-14 아시안게임 축구
       // 국가대표 토너 / 예선 / 친선
-      "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
+      "AFCON", "UEFA_NL", "GULF_CUP", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
       "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
       "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
       "CLUB_FRIENDLY", // 국제 클럽 친선 (프리시즌) — 스코어 피드 전용
@@ -295,7 +295,7 @@ export const LOL_LEAGUES = new Set(
 // 국가대표 대회 리그 — 이 리그 소속 Team 은 클럽 페이지(/teams) 대신
 // 국가대표 페이지(/national-teams)가 단일 진실 (팀 페이지 이원화 방지).
 export const NATIONAL_TEAM_LEAGUES = new Set([
-  "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON",
+  "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "GULF_CUP", "AFCON",
   "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
 ]);
 
@@ -455,6 +455,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   VIETNAM_VL2: "베트남 V-리그 2",
   AFCON: "아프리카 네이션스컵",
   UEFA_NL: "UEFA 네이션스 리그",
+  GULF_CUP: "아라비안 걸프컵",
   WC_QUAL: "월드컵 예선",
   EURO_QUAL: "유로 예선",
   CONCACAF_GOLD: "CONCACAF 골드컵",
@@ -1013,6 +1014,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   // 국제 대회
   AFCON: "국제",
   UEFA_NL: "국제",
+  GULF_CUP: "국제",
   WC_QUAL: "국제",
   EURO_QUAL: "국제",
   CONCACAF_GOLD: "국제",

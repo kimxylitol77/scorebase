@@ -157,6 +157,7 @@ export type League =
   // 국가대표 토너 / 예선 / 친선
   | "AFCON" // Africa Cup of Nations
   | "UEFA_NL" // UEFA Nations League
+  | "GULF_CUP" // Arabian Gulf Cup (걸프컵, af 25) — 2026-09-23 베트맨 발매 연결용
   | "WC_QUAL" // 월드컵 예선 (지역 묶음)
   | "EURO_QUAL" // 유로 예선
   | "CONCACAF_GOLD" // CONCACAF 골드컵
@@ -356,6 +357,7 @@ export const SOCCER_LEAGUES = [
   "BOLIVIA_PD",
   "AFCON",
   "UEFA_NL",
+  "GULF_CUP",
   "WC_QUAL",
   "EURO_QUAL",
   "CONCACAF_GOLD",

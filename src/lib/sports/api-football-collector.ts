@@ -90,6 +90,7 @@ function seasonFor(league: League, date: string): number {
   if (league === "ASEAN_CHAMP") return 2025; // 2026 대회를 api-football 이 season 2025 로 표기
   // 토너 단발성 — 매년/격년 업데이트
   if (league === "AFCON") return 2025;
+  if (league === "GULF_CUP") return 2026; // 걸프컵 27회 (2026-09~10). 다음 대회 시작 시 업데이트
   if (league === "CONCACAF_GOLD") return 2025;
   if (league === "U20_WC") return 2025;
   if (league === "U17_WC") return 2025;
@@ -152,7 +153,13 @@ export function buildApiFootballCollector(league: League): MatchCollector {
       const { data } = await client().get("/fixtures", {
         params: { league: effectiveId, season, date },
       });
-      const arr = (data?.response ?? []) as ApiFixture[];
+      let arr = (data?.response ?? []) as ApiFixture[];
+      // af 의 International Friendlies(10) 는 U18·U23·여자대표 경기가 섞여 온다 — A매치만 남긴다.
+      // (5/24 백필 remap_intl_friendly_teams 의 SKIP_TOKENS 와 같은 기준)
+      if (league === "INTL_FRIENDLY") {
+        const youthOrWomen = /\bU-?\d{2}\b|\bW$|Women/;
+        arr = arr.filter((f) => !youthOrWomen.test(f.teams.home.name) && !youthOrWomen.test(f.teams.away.name));
+      }
       return arr.map((f) => toNormalized(league, f));
     },
   };

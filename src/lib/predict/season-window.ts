@@ -222,6 +222,7 @@ export function seasonWindowForLabel(league: string, label: string): { from: Dat
  */
 export const NO_SEASON_BOUNDARY: ReadonlySet<string> = new Set([
   "AFCON",
+  "GULF_CUP",
   "AFC_CUP",
   "AFC_U23",
   "ASEAN_CHAMP",

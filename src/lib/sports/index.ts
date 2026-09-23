@@ -215,6 +215,7 @@ export const collectors: Record<League, MatchCollector> = {
   BOLIVIA_PD: buildApiFootballCollector("BOLIVIA_PD"),
   AFCON: buildApiFootballCollector("AFCON"),
   UEFA_NL: buildApiFootballCollector("UEFA_NL"),
+  GULF_CUP: buildApiFootballCollector("GULF_CUP"),
   WC_QUAL: buildApiFootballCollector("WC_QUAL"),
   EURO_QUAL: buildApiFootballCollector("EURO_QUAL"),
   CONCACAF_GOLD: buildApiFootballCollector("CONCACAF_GOLD"),
