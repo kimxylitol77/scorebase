@@ -10,7 +10,7 @@ import { calcStandings } from "@/lib/predict/standings";
 import { fetchHockeyTable } from "@/lib/sports/thesports/hockey-table";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
-import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, Award, Swords, Activity, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, Award, Swords, Activity, type LucideIcon, Table2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import TeamBadge from "@/components/TeamBadge";
 
@@ -430,6 +430,7 @@ export default async function HockeyHub() {
       {/* 기능 바로가기 */}
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/standings/NHL" Icon={ListOrdered} label="NHL 순위표" />
+        <FnChip href="/hockey/stats" Icon={Table2} label="NHL 선수 스탯 표" />
         <FnChip href="/salaries/nhl" Icon={Coins} label="NHL 연봉 랭킹" />
         <FnChip href="/injuries/NHL" Icon={HeartPulse} label="NHL 부상자 명단" />
         <FnChip href="/compare?sport=NHL" Icon={GitCompare} label="선수 비교" />

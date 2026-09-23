@@ -8,7 +8,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
-import { Clock, ListOrdered, Target, ArrowLeftRight, Coins, GitCompare, Award, Swords, Activity, HeartPulse, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, ArrowLeftRight, Coins, GitCompare, Award, Swords, Activity, HeartPulse, type LucideIcon, Table2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 300;
@@ -314,6 +314,7 @@ export default async function BasketballHub() {
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/transactions/nba" Icon={ArrowLeftRight} label="NBA 트랜잭션 · 트레이드·FA" />
         <FnChip href="/salaries/nba" Icon={Coins} label="NBA 연봉 랭킹" />
+        <FnChip href="/basketball/stats" Icon={Table2} label="KBL 선수 스탯 표" />
         <FnChip href="/compare?sport=NBA" Icon={GitCompare} label="선수 비교" />
         <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
         <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표" />
