@@ -26,8 +26,7 @@ import {
   Banknote,
   ClipboardList,
   Footprints,
-  type LucideIcon,
-} from "lucide-react";
+  type LucideIcon, Table2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import championsData from "../../../data/league-champions.json";
 
@@ -265,6 +264,7 @@ export default async function SoccerHub() {
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/scores?sport=soccer" Icon={Radio} label="라이브 스코어" />
         <FnChip href="/soccer/sub-impact" Icon={Repeat} label="교체 임팩트" />
+        <FnChip href="/soccer/stats" Icon={Table2} label="선수 스탯 표" />
         <FnChip href="/standings" Icon={ListOrdered} label="전체 순위표" />
         <FnChip href="/previews" Icon={Newspaper} label="AI 매치 프리뷰" />
         <FnChip href="/transfers" Icon={ArrowLeftRight} label="이적시장 · 몸값 랭킹" />
