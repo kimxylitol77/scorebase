@@ -6,6 +6,9 @@ export type HockeyUnit = "total" | "pergame";
 
 export interface HockeySeasonRow {
   playerId: number;
+  /** ts 집계 리그의 원본 선수 id (해시). NHL 은 없음 */
+  tsId?: string;
+  photo?: string | null;
   name: string;
   team: string;
   pos: string; // C/L/R/D/G
@@ -47,8 +50,15 @@ export const GOALIE_COLUMNS: StatColumn[] = [
 ];
 export const QUAL_GP_RATIO = 0.4;
 
-export function columnsForRole(role: HockeyRole): StatColumn[] {
-  return role === "goalie" ? GOALIE_COLUMNS : SKATER_COLUMNS;
+/** ts 경기 캐시로 집계하는 리그(KHL)는 코드가 골·도움·유효슛·+/-·TOI·세이브·선방률뿐이라 열 부분집합 */
+const TS_SKATER_KEYS = new Set(["gp", "toiPerGame", "goals", "assists", "points", "shots", "shootingPct", "plusMinus"]);
+const TS_GOALIE_KEYS = new Set(["gp", "gs", "gaa", "savePct", "saves", "shotsAgainst"]);
+
+export function columnsForRole(role: HockeyRole, source: "nhl" | "ts" = "nhl"): StatColumn[] {
+  const base = role === "goalie" ? GOALIE_COLUMNS : SKATER_COLUMNS;
+  if (source === "nhl") return base;
+  const keep = role === "goalie" ? TS_GOALIE_KEYS : TS_SKATER_KEYS;
+  return base.filter((c) => keep.has(c.key));
 }
 
 export function hockeyValue(r: HockeySeasonRow, col: StatColumn, unit: HockeyUnit): number | null {
@@ -58,8 +68,7 @@ export function hockeyValue(r: HockeySeasonRow, col: StatColumn, unit: HockeyUni
   return v;
 }
 
-export function buildHockeyStatRows(rows: HockeySeasonRow[], role: HockeyRole, unit: HockeyUnit): { rows: StatRow[]; qualifiedCount: number; minGp: number } {
-  const cols = columnsForRole(role);
+export function buildHockeyStatRows(rows: HockeySeasonRow[], role: HockeyRole, unit: HockeyUnit, cols: StatColumn[] = columnsForRole(role)): { rows: StatRow[]; qualifiedCount: number; minGp: number } {
   const pool = rows.filter((r) => (role === "goalie" ? r.pos === "G" : r.pos !== "G"));
   const maxGp = pool.reduce((m, r) => Math.max(m, role === "goalie" ? (r.gs ?? 0) : r.gp), 0);
   const minGp = Math.ceil(maxGp * QUAL_GP_RATIO);
@@ -74,7 +83,8 @@ export function buildHockeyStatRows(rows: HockeySeasonRow[], role: HockeyRole, u
       const v = hockeyValue(r, c, unit);
       cells[c.key] = { value: v, pct: q && v != null ? percentile(poolValues[c.key], v, c.lowerIsBetter) : null };
     }
-    return { key: String(r.playerId), name: r.name, nameEn: null, team: r.team, externalId: String(r.playerId), logId: null, qualified: q, cells };
+    const key = r.tsId ?? String(r.playerId);
+    return { key, name: r.name, nameEn: null, team: r.team, externalId: key, logId: null, qualified: q, cells };
   });
   return { rows: out, qualifiedCount: qual.length, minGp };
 }
