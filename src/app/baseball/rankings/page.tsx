@@ -149,6 +149,7 @@ export default async function BaseballRankingsPage({ searchParams }: { searchPar
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link href="/baseball" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">야구 허브</Link>
+          <Link href={`/baseball/stats?league=${league}&role=${role}`} className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">스탯 표</Link>
           <Link href="/transfers?view=power" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">축구 선수 랭킹</Link>
           <Link href={league === "NPB" ? "/salaries/mlb" : `/salaries/${league.toLowerCase()}`} className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.06]">연봉 랭킹</Link>
         </div>

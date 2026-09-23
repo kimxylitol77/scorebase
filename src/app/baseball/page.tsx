@@ -414,6 +414,7 @@ export default async function BaseballHub() {
               { l: "MLB 타자 종합", h: "/baseball/rankings?league=MLB" },
               { l: "MLB 폼(최근 14일)", h: "/baseball/rankings?league=MLB&view=form" },
               { l: "NPB 폼(최근 10경기)", h: "/baseball/rankings?league=NPB&view=form" },
+              { l: "스탯 표 (전 선수·리그 백분위)", h: "/baseball/stats" },
             ].map((x) => (
               <li key={x.h}><Link href={x.h} className="hover:underline hover:text-rose-600 dark:hover:text-rose-400">{x.l}</Link></li>
             ))}

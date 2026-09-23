@@ -112,6 +112,20 @@
     "group": "menu"
   },
   {
+    "route": "/baseball/korea",
+    "desc": "야구 해외파 한국 선수 허브 — MLB·마이너리그 한국 선수 시즌 성적 + 소속 구단 다음/최근 경기 (축구 /soccer/korea 의 야구판). 명단: scripts/build-baseball-korea.ts → data/baseball-korea.json (MLB Stats API 출생국 스캔, 주간) 성적·최근 경기: src/lib/sports/baseball-korea.ts (MLB Stats API 런타임 3h 캐시, 레벨별 split) 다음·최근 경기: 우리 Match(league=MLB) — 메이저는 본인 팀, 마이너는 모구단 기준.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/baseball/rankings",
+    "desc": "야구 선수 랭킹 — KBO·MLB·NPB 타자/투수 종합 지수·가성비(연봉 대비)·폼(최근 경기), 순위 변동 화살표(일별 스냅샷). 계산: src/lib/sports/baseball/player-rankings.ts · 스냅샷: src/lib/transfers/rank-snapshots.ts (list = bb:{리그}:{뷰}:{역할})",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/baseball/statcast",
     "desc": "MLB Statcast 리더보드 페이지 — Baseball Savant 공개 데이터로 타구질(배럴·타구속도·하드히트·xwOBA) 상위. 선수 페이지 percentile 과 같은 소스를 리그 전체 순위로 확장.",
     "inMenu": false,
@@ -743,7 +757,7 @@
   },
   {
     "route": "/other",
-    "desc": "기타 종목 허브 — 하키·배구·e스포츠·테니스·골프·F1·UFC 진입점. 축구·야구·농구는 각자 허브(/soccer·/baseball·/basketball)가 있고, 나머지 종목은 개별 허브가 없거나(배구·테니스·골프·F1) 메뉴에서 빠져 있어 한 곳에 모은다. 각 카드 = 라이브 스코어 + 그 종목의 심화 콘텐츠(순위·랭킹·트래커) 링크.",
+    "desc": "기타 종목 허브 — 하키·배구·e스포츠·테니스·골프·F1·UFC 진입점. 축구·야구·농구는 각자 허브(/soccer·/baseball·/basketball)가 있고, 나머지 종목은 개별 허브가 없거나(배구·테니스·골프·F1) 메뉴에서 빠져 있어 한 곳에 모은다. 각 카드 = 라이브 스코어 + 그 종목의 심화 콘텐츠(순위·일정·선수·랭킹) 링크. 일정은 리그 페이지 일정 탭이 맡는다.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -764,14 +778,14 @@
   },
   {
     "route": "/picks",
-    "desc": "승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)",
+    "desc": "승부예측 허브 = 내 픽 기록장: 오늘·내일 경기 원클릭 투표(픽 시점 배당 저장) + 적중률·유닛 수익률 + 회원 랭킹",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
   },
   {
     "route": "/picks/me",
-    "desc": "회원 전용 내 예측 리포트: 요약·나 vs AI·리그별·월별·최근 기록 (MatchVote 집계)",
+    "desc": "회원 전용 내 예측 리포트: 요약(적중률·유닛 수익률·CLV)·수익률 기준선(모델·시장)·리그별·월별·최근 기록 (MatchVote 집계)",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
@@ -1043,6 +1057,55 @@
     "group": "other"
   },
   {
+    "route": "/sp",
+    "desc": "sportspredictions.live 홈 = 키워드 랜딩페이지. 오늘의 핵심 경기(최대 5)만 노출하고, 나머지는 /today. 검색 의도별 섹션(football predictions today · NBA/MLB/NHL · win probability · accuracy · FAQ)으로 구성.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/sp/[...slug]",
+    "desc": "리그별 예측 목록 + 최근 채점 + 적중률. 알 수 없는 슬러그·깊은 경로는 sp 404.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/sp/about",
+    "desc": "무료·데이터 기반·스코어베이스 운영 명시. 베팅 서비스 아님.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/sp/accuracy",
+    "desc": "모델 리더보드(7모델) + 리그별 스코어베이스 모델 적중률. 숫자 출처 = src/lib/predict/*.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/sp/match/[id]",
+    "desc": "한 경기의 예측 근거: 1X2 확률·시장 대비 갭·O/U·핸디캡·AI 패널 픽·결과.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/sp/methodology",
+    "desc": "모델 설명(정적). 숫자는 없고 방법만. 상세 벤치마크는 스코어베이스 /en/benchmark/method 링크.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/sp/today",
+    "desc": "앞으로 48시간 전체 경기 목록(단일 페이지). 홈은 핵심 경기만 보여주므로 나머지는 여기서.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/standings",
     "desc": "/standings 인덱스 — 순위 허브: 종목별 섹션(축구·야구·농구·하키·배구·e스포츠) + 종목 칩 앵커. (2026-06-12 역할 분리 — /predictions 는 예측 요약, 순위 전체는 여기가 정본) (2026-06-20 종목 재편 — 종목 무관 16개 나열 → 종목 섹션. 각 리그 상세에 시즌 리더보드 추가)",
     "inMenu": true,
@@ -1099,6 +1162,13 @@
     "group": "other"
   },
   {
+    "route": "/tools",
+    "desc": "도구 모음 — 승리확률 계산기(야구 3종)·프로토 조합·토토 복식 조합·공정 배당. 계산만 하는 페이지들의 입구.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/tools/kbo-win-probability",
     "desc": "KBO 승리확률 계산기 — 상황별 WE + 전술 손익 (국내 최초 KBO 전용).",
     "inMenu": false,
@@ -1115,6 +1185,20 @@
   {
     "route": "/tools/npb-win-probability",
     "desc": "NPB 승리확률 계산기 — 상황별 WE + 전술 손익.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/tools/proto-calculator",
+    "desc": "프로토 승부식 조합 계산기 페이지 — 합성 배당·예상 적중금. 계산은 클라이언트 컴포넌트.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/tools/toto-combination",
+    "desc": "토토 복식 조합 계산기 페이지 — 승무패·승1패·승5패 14경기 조합 수·구매금액. 계산은 클라이언트 컴포넌트.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
