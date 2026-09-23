@@ -9,4 +9,6 @@
 - 09-23 MLB 확장. `stats?stats=season&group=hitting|pitching&sportId=1&limit=3000&playerPool=ALL` 이 전 선수 성분을 한 번에 준다(타격 750·투구 864). 조인 키 = externalId(=statsapi person id). 다른 리그는 성분이 없어 열 자체를 안 만든다(columnsFor).
 - BB%·K% 는 역할에 따라 타격/투구 성분을 골라야 한다(투타 겸업 오타니가 두 표에 모두 있음) → advancedValue 에 role 인자.
 - 백분위 모집단이 1명이면 0 이 나온다(자기 자신뿐). 실서비스 모집단은 수백 명이라 무시. FIP 상수 3.15 고정.
+- 09-23 2차(databallr 인터페이스). 열 메타(group·desc·headline·noLeader)를 StatColumn 에 두고 공통 컴포넌트 4개(src/components/stats/)가 야구·축구 둘 다 쓴다. 뷰는 view=table|cards|leaders|scatter 쿼리, 산점도 축은 x·y 쿼리(서버 SVG, 규정 선수만, 비교 담긴 선수 강조·양 축 상위 4명 이름). 카드 헤드라인은 열 headline 3개(없으면 2~4번째 열).
+- 선수 열 sticky left 는 thead·td 둘 다 bg/backdrop 을 줘야 겹침이 안 보인다.
 

@@ -8,13 +8,18 @@ import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { formatStat, sortStatRows, type StatColumn, type StatRow } from "@/lib/sports/baseball/stats-table";
 import { buildSoccerStatRows, columnsForPos, type SoccerPos, type SoccerUnit } from "@/lib/sports/soccer/stats-table";
 import { getSoccerStatsData, SOCCER_STATS_LEAGUES, type SoccerStatsLeague } from "@/lib/sports/soccer/stats-data";
+import StatsGlossary from "@/components/stats/StatsGlossary";
+import StatsLeaders from "@/components/stats/StatsLeaders";
+import StatsCards from "@/components/stats/StatsCards";
+import StatsScatter from "@/components/stats/StatsScatter";
+import { columnGroups, STATS_VIEW_KO, type StatsView, type StatsViewRow } from "@/components/stats/types";
 
 export const dynamic = "force-dynamic";
 
 const PER = 50;
 const POS_KO: Record<SoccerPos, string> = { ALL: "필드 전체", G: "GK", D: "DF", M: "MF", F: "FW" };
 const UNIT_KO: Record<SoccerUnit, string> = { total: "합계", per90: "90분당" };
-type SP = { league?: string; pos?: string; unit?: string; team?: string; q?: string; sort?: string; dir?: string; page?: string; qual?: string; cmp?: string };
+type SP = { league?: string; pos?: string; unit?: string; team?: string; q?: string; sort?: string; dir?: string; page?: string; qual?: string; cmp?: string; view?: string; x?: string; y?: string };
 
 function parse(sp: SP) {
   const league: SoccerStatsLeague = (SOCCER_STATS_LEAGUES as readonly string[]).includes(sp.league ?? "") ? (sp.league as SoccerStatsLeague) : "EPL";
@@ -28,7 +33,10 @@ function parse(sp: SP) {
   const page = Math.max(1, parseInt(sp.page ?? "1") || 1);
   const qual = sp.qual !== "0";
   const cmp = (sp.cmp ?? "").split(",").filter(Boolean).slice(0, 2);
-  return { league, pos, unit, team: sp.team ?? "", q: (sp.q ?? "").trim(), sort, dir, page, qual, cmp, defaultSort };
+  const view: StatsView = (["cards", "leaders", "scatter"] as string[]).includes(sp.view ?? "") ? (sp.view as StatsView) : "table";
+  const x = cols.some((c) => c.key === sp.x) ? (sp.x as string) : pos === "G" ? "saves" : "shots";
+  const y = cols.some((c) => c.key === sp.y) ? (sp.y as string) : pos === "G" ? "conceded" : "goals";
+  return { league, pos, unit, team: sp.team ?? "", q: (sp.q ?? "").trim(), sort, dir, page, qual, cmp, defaultSort, view, x, y };
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SP> }): Promise<Metadata> {
@@ -63,6 +71,8 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
     const qs = new URLSearchParams();
     qs.set("league", n.league);
     if (n.pos !== "ALL") qs.set("pos", n.pos);
+    if (n.view !== "table") qs.set("view", n.view);
+    if (n.view === "scatter") { qs.set("x", n.x); qs.set("y", n.y); }
     if (n.unit !== "total") qs.set("unit", n.unit);
     if (n.team) qs.set("team", n.team);
     if (n.q) qs.set("q", n.q);
@@ -76,6 +86,11 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
   };
   const photoOf = (r: StatRow) => data.rows.find((x) => x.playerId === r.key)?.photo ?? null;
   const posOf = (r: StatRow) => data.rows.find((x) => x.playerId === r.key)?.pos ?? null;
+
+  const unitB = p.unit === "per90" ? "pergame" : "total";
+  const viewRows: StatsViewRow[] = rows.map((r) => ({ ...r, photo: photoOf(r), href: `/transfers/${r.key}`, sub: `${r.team}${posOf(r) ? ` · ${posOf(r)}` : ""}` }));
+  const pageViewRows = viewRows.slice((safePage - 1) * PER, safePage * PER);
+  const groups = columnGroups(cols);
 
   const chip = (on: boolean) =>
     `rounded-full px-3 py-1 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${on ? "bg-neutral-900 text-white shadow-sm dark:bg-white dark:text-neutral-900" : "text-neutral-600 hover:bg-white dark:text-neutral-300 dark:hover:bg-white/10"}`;
@@ -111,7 +126,9 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
           <div className="inline-flex rounded-full bg-neutral-100 p-1 dark:bg-white/10">{(["ALL", "F", "M", "D", "G"] as SoccerPos[]).map((x) => <Link key={x} href={url({ pos: x, sort: x === "G" ? "saves" : "goals", page: 1, cmp: [] })} className={chip(x === p.pos)}>{POS_KO[x]}</Link>)}</div>
           <div className="inline-flex rounded-full bg-neutral-100 p-1 dark:bg-white/10">{(["total", "per90"] as SoccerUnit[]).map((u) => <Link key={u} href={url({ unit: u, page: 1 })} className={chip(u === p.unit)}>{UNIT_KO[u]}</Link>)}</div>
           <Link href={url({ qual: !p.qual, page: 1 })} className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition ${p.qual ? "bg-rose-500/10 text-rose-600 ring-rose-500/20 dark:text-rose-400" : "text-neutral-500 ring-black/10 dark:ring-white/15"}`}>{p.qual ? "규정 선수만" : "전체 선수"}</Link>
+          <div className="inline-flex rounded-full bg-neutral-100 p-1 dark:bg-white/10">{(Object.keys(STATS_VIEW_KO) as StatsView[]).map((v) => <Link key={v} href={url({ view: v, page: 1 })} className={chip(v === p.view)}>{STATS_VIEW_KO[v]}</Link>)}</div>
         </div>
+        <StatsGlossary cols={cols} note={`백분위는 같은 리그·같은 포지션 그룹의 규정 선수(${built.qualifiedCount}명) 안에서 나보다 못한 값의 비율. 동률은 절반만 센다.`} />
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <form action="/soccer/stats" className="flex items-center gap-1.5">
             <input type="hidden" name="league" value={p.league} />
@@ -156,12 +173,22 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
           </section>
         )}
 
+        {p.view === "leaders" && <StatsLeaders rows={viewRows} cols={cols} unit={unitB} />}
+        {p.view === "cards" && <StatsCards rows={pageViewRows} cols={cols} unit={unitB} startRank={(safePage - 1) * PER + 1} />}
+        {p.view === "scatter" && <StatsScatter rows={viewRows} cols={cols} x={p.x} y={p.y} unit={unitB} highlight={p.cmp} url={(o) => url({ view: "scatter", ...o })} />}
+
+        {p.view === "table" && (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <table className="w-full min-w-[860px] text-sm">
             <thead className="sticky top-0 z-10 bg-white/95 text-[11px] tracking-wide text-neutral-500 backdrop-blur dark:bg-neutral-950/90">
+              <tr className="text-[10px] tracking-[0.15em] text-neutral-400">
+                <th colSpan={2} className="px-2 pt-2 text-left font-semibold">{data.season} · {lgName}</th>
+                {groups.map((g) => <th key={g.group} colSpan={g.cols.length} className="border-l border-neutral-100 px-2 pt-2 text-center font-semibold dark:border-white/10">{g.group}</th>)}
+                <th />
+              </tr>
               <tr>
                 <th className="w-8 px-2 py-2.5 text-right font-semibold">#</th>
-                <th className="px-2 py-2.5 text-left font-semibold"><SortLink label="선수" k="name" p={p} url={url} /></th>
+                <th className="sticky left-0 z-20 bg-white/95 px-2 py-2.5 text-left font-semibold backdrop-blur dark:bg-neutral-950/90"><SortLink label="선수" k="name" p={p} url={url} /></th>
                 {cols.map((c) => <th key={c.key} className="px-2 py-2.5 text-right font-semibold"><SortLink label={c.label} k={c.key} p={p} url={url} col={c} /></th>)}
                 <th className="w-14 px-2 py-2.5" />
               </tr>
@@ -172,7 +199,7 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
                 return (
                   <tr key={r.key} className={`${inCmp ? "bg-rose-50/60 dark:bg-white/[0.05]" : "hover:bg-neutral-50 dark:hover:bg-white/[0.03]"} ${r.qualified ? "" : "opacity-70"}`}>
                     <td className="px-2 py-1.5 text-right text-xs tabular-nums text-neutral-400">{(safePage - 1) * PER + i + 1}</td>
-                    <td className="px-2 py-1.5">
+                    <td className="sticky left-0 z-[1] bg-white/95 px-2 py-1.5 backdrop-blur dark:bg-neutral-950/90">
                       <div className="flex items-center gap-2.5">
                         <span className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10">{photo && <img src={photo} alt="" className="h-full w-full object-cover object-top" loading="lazy" />}</span>
                         <span className="min-w-0 leading-tight">
@@ -200,8 +227,9 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
             </tbody>
           </table>
         </div>
+        )}
 
-        {pages > 1 && (
+        {pages > 1 && (p.view === "table" || p.view === "cards") && (
           <div className="mt-4 flex flex-wrap justify-center gap-1.5">
             {Array.from({ length: pages }, (_, i) => i + 1).filter((n) => n === 1 || n === pages || Math.abs(n - safePage) <= 2).map((n, i, arr) => (
               <span key={n} className="flex items-center gap-1.5">

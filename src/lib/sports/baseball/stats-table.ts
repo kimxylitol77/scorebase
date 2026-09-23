@@ -17,28 +17,36 @@ export interface StatColumn {
   stripLeadingZero?: boolean;
   /** 경기당 단위에서 값이 바뀌는 열 (합계 계열). false 면 비율 지표라 그대로 */
   perGame?: boolean;
+  /** 표 위 열 묶음 헤더 (프로필·타격·투구·확장 …) */
+  group?: string;
+  /** 용어·산식 한 줄 설명 (Glossary) */
+  desc?: string;
+  /** 카드 뷰 헤드라인 3지표 */
+  headline?: boolean;
+  /** 리더 보드에서 제외 (출장 수 같은 프로필 열) */
+  noLeader?: boolean;
 }
 
 export const BAT_COLUMNS: StatColumn[] = [
-  { key: "games", label: "G", decimals: 0 },
-  { key: "avg", label: "AVG", decimals: 3, stripLeadingZero: true },
-  { key: "ops", label: "OPS", decimals: 3, stripLeadingZero: true },
-  { key: "hits", label: "H", decimals: 0, perGame: true },
-  { key: "hr", label: "HR", decimals: 0, perGame: true },
-  { key: "rbi", label: "RBI", decimals: 0, perGame: true },
+  { key: "games", label: "G", decimals: 0, group: "프로필", desc: "출장 경기 수", noLeader: true },
+  { key: "avg", label: "AVG", decimals: 3, stripLeadingZero: true, group: "타격", desc: "타율 = 안타 ÷ 타수", headline: true },
+  { key: "ops", label: "OPS", decimals: 3, stripLeadingZero: true, group: "타격", desc: "출루율 + 장타율", headline: true },
+  { key: "hits", label: "H", decimals: 0, perGame: true, group: "타격", desc: "안타" },
+  { key: "hr", label: "HR", decimals: 0, perGame: true, group: "타격", desc: "홈런", headline: true },
+  { key: "rbi", label: "RBI", decimals: 0, perGame: true, group: "타격", desc: "타점" },
 ];
 /** MLB 확장 열 — statsapi 성분에서 파생. 다른 리그는 성분이 없어 열 자체가 없다. */
 export const BAT_ADV_COLUMNS: StatColumn[] = [
-  { key: "woba", label: "wOBA", decimals: 3, stripLeadingZero: true },
-  { key: "iso", label: "ISO", decimals: 3, stripLeadingZero: true },
-  { key: "bbPct", label: "BB%", decimals: 1 },
-  { key: "kPct", label: "K%", decimals: 1, lowerIsBetter: true },
+  { key: "woba", label: "wOBA", decimals: 3, stripLeadingZero: true, group: "확장", desc: "가중 출루율 — 볼넷 .69 · 사구 .72 · 1루타 .89 · 2루타 1.27 · 3루타 1.62 · 홈런 2.10 가중 (FanGraphs)" },
+  { key: "iso", label: "ISO", decimals: 3, stripLeadingZero: true, group: "확장", desc: "순장타율 = 장타율 − 타율 (2루타+2×3루타+3×홈런) ÷ 타수" },
+  { key: "bbPct", label: "BB%", decimals: 1, group: "확장", desc: "볼넷률 = 고의사구 제외 볼넷 ÷ 타석" },
+  { key: "kPct", label: "K%", decimals: 1, lowerIsBetter: true, group: "확장", desc: "삼진율 = 삼진 ÷ 타석" },
 ];
 export const PIT_ADV_COLUMNS: StatColumn[] = [
-  { key: "fip", label: "FIP", decimals: 2, lowerIsBetter: true },
-  { key: "kPct", label: "K%", decimals: 1 },
-  { key: "bbPct", label: "BB%", decimals: 1, lowerIsBetter: true },
-  { key: "hr9", label: "HR/9", decimals: 2, lowerIsBetter: true },
+  { key: "fip", label: "FIP", decimals: 2, lowerIsBetter: true, group: "확장", desc: "수비 무관 평균자책 = (13×홈런 + 3×(볼넷+사구) − 2×삼진) ÷ 이닝 + 3.15" },
+  { key: "kPct", label: "K%", decimals: 1, group: "확장", desc: "삼진율 = 삼진 ÷ 상대 타자" },
+  { key: "bbPct", label: "BB%", decimals: 1, lowerIsBetter: true, group: "확장", desc: "볼넷률 = 볼넷 ÷ 상대 타자" },
+  { key: "hr9", label: "HR/9", decimals: 2, lowerIsBetter: true, group: "확장", desc: "9이닝당 피홈런" },
 ];
 /** FIP 상수 — 리그 ERA 와 FIP 평균을 맞추는 값. 시즌마다 3.1~3.2 라 고정값 사용(상대 비교 목적). */
 export const FIP_CONSTANT = 3.15;
@@ -70,15 +78,15 @@ export function advancedValue(r: BbPlayerRow, key: string, adv: AdvancedInput | 
 }
 
 export const PIT_COLUMNS: StatColumn[] = [
-  { key: "games", label: "G", decimals: 0 },
-  { key: "era", label: "ERA", decimals: 2, lowerIsBetter: true },
-  { key: "whip", label: "WHIP", decimals: 2, lowerIsBetter: true },
-  { key: "ip", label: "IP", decimals: 1, perGame: true },
-  { key: "so", label: "SO", decimals: 0, perGame: true },
-  { key: "k9", label: "K/9", decimals: 2 },
-  { key: "w", label: "W", decimals: 0, perGame: true },
-  { key: "l", label: "L", decimals: 0, lowerIsBetter: true, perGame: true },
-  { key: "sv", label: "SV", decimals: 0, perGame: true },
+  { key: "games", label: "G", decimals: 0, group: "프로필", desc: "등판 경기 수", noLeader: true },
+  { key: "era", label: "ERA", decimals: 2, lowerIsBetter: true, group: "투구", desc: "평균자책점 = 자책점 × 9 ÷ 이닝", headline: true },
+  { key: "whip", label: "WHIP", decimals: 2, lowerIsBetter: true, group: "투구", desc: "이닝당 출루 허용 = (피안타 + 볼넷) ÷ 이닝", headline: true },
+  { key: "ip", label: "IP", decimals: 1, perGame: true, group: "투구", desc: "투구 이닝" },
+  { key: "so", label: "SO", decimals: 0, perGame: true, group: "투구", desc: "탈삼진", headline: true },
+  { key: "k9", label: "K/9", decimals: 2, group: "투구", desc: "9이닝당 탈삼진" },
+  { key: "w", label: "W", decimals: 0, perGame: true, group: "투구", desc: "승" },
+  { key: "l", label: "L", decimals: 0, lowerIsBetter: true, perGame: true, group: "투구", desc: "패" },
+  { key: "sv", label: "SV", decimals: 0, perGame: true, group: "투구", desc: "세이브" },
 ];
 
 export interface StatCell {

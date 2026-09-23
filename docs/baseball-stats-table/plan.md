@@ -22,3 +22,11 @@
 - `src/app/baseball/stats/page.tsx`
 - 랭킹 페이지·야구 허브에 진입 링크, sitemap 등록 확인
 - 후속: MLB statsapi 확장 지표(wOBA·BB%·K%), 축구 표
+
+## 2차 (09-23) — databallr 인터페이스 이식 (야구·축구 표 공통)
+- 열 묶음 헤더(PROFILE/COUNTING 식): 프로필·타격/투구·확장 / 출전·공격·수비·기타·GK.
+- 용어·산식 설명(Stats Glossary): 접이식, 열 메타 desc 로 생성.
+- 뷰 전환 필: 표 / 카드(Showcase 식 순위 배지·사진·헤드라인 3지표+백분위) / 리더(열별 상위 5) / 산점도(두 열 x·y, SVG, 규정 선수, 비교 선수 강조).
+- 모바일: 선수 열 sticky.
+- 공통 컴포넌트 `src/components/stats/`(StatsViewRow 입력). 클라이언트 JS 없음 유지.
+
