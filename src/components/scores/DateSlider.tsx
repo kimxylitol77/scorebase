@@ -25,6 +25,10 @@ function dateQuery(d: Date): string {
   return k.toISOString().slice(0, 10);
 }
 
+// 새로고침 되돌리기는 문서 로드당 한 번만. PerformanceNavigationTiming.type 은 문서 단위라 새로고침 뒤
+// 날짜 칩을 눌러 소프트 내비게이션해도 계속 "reload" 로 남는다 → 25일을 눌러도 오늘로 튕기던 버그(사용자 신고 2026-09-24).
+let reloadChecked = false;
+
 export default function DateSlider({
   selectedDate,
   todayKst,
@@ -38,6 +42,8 @@ export default function DateSlider({
   // 어제 켜 둔 탭(?date=어제)을 다음 날 새로고침하면 어제 경기가 그대로 보이던 것(사용자 신고 2026-09-06).
   // 날짜 칩·뒤로가기 등 사용자가 고른 이동은 reload 가 아니라 건드리지 않는다.
   useEffect(() => {
+    if (reloadChecked) return;
+    reloadChecked = true;
     if (selectedDate === todayKst) return;
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
     if (nav?.type !== "reload") return;
