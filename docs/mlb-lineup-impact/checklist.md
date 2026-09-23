@@ -6,5 +6,5 @@
 - [x] page.tsx MatchInsight 탭 "라인업 임팩트" (양 팀 9명 확정 시 enabled)
 - [x] 로컬 실렌더 검증: 확정 라인업 경기 1·미확정 경기 1(탭 비활성)·종료 경기 1
 - [x] tsc·테스트 통과(322/322) → 커밋 b1a2123 → main push → 운영 /live/mlb/401817030 확인 → 메모리 mlb-lineup-impact-tab
-- [ ] (보류) 2단계 WOWY 원형: 출전/결장 경기 팀 R/G — gameLog 18콜 캐시 설계 후
+- [x] 2단계 WOWY 원형: 출전/결장 경기 팀 R/G — 선수별 gameLog 대신 팀 schedule?hydrate=lineups,linescore 한 콜(6h 캐시), 이 경기 제외, 어느 쪽이든 10G 미만이면 차이 숨김
 - [ ] (후속) KBO 이식

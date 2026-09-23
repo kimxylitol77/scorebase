@@ -133,3 +133,37 @@ export function computeLineupImpact(lineup: LineupBatter[], bench: BattingCompon
   const xr = lg.rpg + players.reduce((a, p) => a + (p.paPerGame * (p.woba - lg.woba)) / WOBA_SCALE, 0);
   return { xr, vsLeague: xr - lg.rpg, benchWoba, benchFallback, players };
 }
+
+// ───────── 2단계: WOWY 원형 — 선발 출전 경기 vs 결장 경기의 팀 득점 ─────────
+export interface WowyGame {
+  runsFor: number;
+  lineupIds: number[];
+}
+export interface WowySplit {
+  gpWith: number;
+  rpgWith: number | null;
+  gpWithout: number;
+  rpgWithout: number | null;
+  /** 출전 − 결장. 어느 쪽이든 WOWY_MIN_GAMES 미만이면 null (표본 부족) */
+  diff: number | null;
+}
+/** 경기가 이보다 적으면 차이를 숫자로 내지 않는다 — 5경기 평균은 소음이다 */
+export const WOWY_MIN_GAMES = 10;
+
+/** 선수별 출전/결장 경기 팀 득점 평균. 출전 = 그 경기 선발 라인업에 있음. */
+export function computeWowy(pids: number[], games: WowyGame[]): Record<number, WowySplit> {
+  const out: Record<number, WowySplit> = {};
+  for (const pid of pids) {
+    let gw = 0, rw = 0, go = 0, ro = 0;
+    for (const g of games) {
+      if (g.lineupIds.includes(pid)) { gw++; rw += g.runsFor; } else { go++; ro += g.runsFor; }
+    }
+    const rpgWith = gw > 0 ? rw / gw : null;
+    const rpgWithout = go > 0 ? ro / go : null;
+    out[pid] = {
+      gpWith: gw, rpgWith, gpWithout: go, rpgWithout,
+      diff: rpgWith != null && rpgWithout != null && gw >= WOWY_MIN_GAMES && go >= WOWY_MIN_GAMES ? rpgWith - rpgWithout : null,
+    };
+  }
+  return out;
+}

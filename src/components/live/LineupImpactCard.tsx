@@ -2,7 +2,8 @@
 // 라인업 임팩트 탭 — 확정 타순의 기대득점(xR) 게이지 + 선수별 교체 Δ 워터폴. databallr 의 게이지·워터폴 문법을
 // 우리 토큰(라이트 로즈 / 다크 elevated)으로. 산식은 src/lib/sports/baseball/lineup-impact.ts, 계산은 서버(page.tsx)에서.
 import { useState } from "react";
-import type { LineupImpact, PlayerImpact } from "@/lib/sports/baseball/lineup-impact";
+import type { LineupImpact, PlayerImpact, WowySplit } from "@/lib/sports/baseball/lineup-impact";
+import { WOWY_MIN_GAMES } from "@/lib/sports/baseball/lineup-impact";
 
 export interface LineupImpactSide {
   teamName: string;
@@ -15,6 +16,8 @@ interface Props {
   league: { rpg: number; woba: number; fallback: boolean };
   /** MLB pid → 한글 선수명 (page.tsx buildMlbPlayerNameKoMap, 사전에 있는 선수만) */
   nameKoBy?: Record<number, string>;
+  /** pid → 출전/결장 경기 팀 득점 (2단계 WOWY). 없으면 줄 생략 */
+  wowy?: Record<number, WowySplit>;
 }
 
 type Unit = "game" | "pa";
@@ -50,7 +53,29 @@ function Gauge({ label, xr, rpg, accent }: { label: string; xr: number; rpg: num
 }
 
 /** 워터폴 — 타순 순서로 Δ 를 누적. 점선이 누적합. */
-function Waterfall({ players, unit, nameKoBy, accent }: { players: PlayerImpact[]; unit: Unit; nameKoBy?: Record<number, string>; accent: boolean }) {
+/** 출전/결장 팀 득점 한 줄 — 표본이 적으면 차이를 숫자로 내지 않는다 */
+function WowyLine({ w }: { w: WowySplit | undefined }) {
+  if (!w || w.rpgWith == null) return null;
+  const diffCls = w.diff == null ? "text-neutral-400" : w.diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
+  return (
+    <span className="block text-[10px] leading-snug tabular-nums text-neutral-400 break-keep" title="이 선수가 선발일 때와 아닐 때 팀 경기당 득점 (올 시즌, 이 경기 제외)">
+      출전 {w.rpgWith.toFixed(2)}
+      <span className="text-neutral-300 dark:text-neutral-600">({w.gpWith}G)</span>
+      {w.rpgWithout != null ? (
+        <>
+          {" · 결장 "}{w.rpgWithout.toFixed(2)}
+          <span className="text-neutral-300 dark:text-neutral-600">({w.gpWithout}G)</span>
+          {" "}
+          <span className={`font-semibold ${diffCls}`}>{w.diff == null ? `표본 ${WOWY_MIN_GAMES}G 미만` : fmt(w.diff)}</span>
+        </>
+      ) : (
+        <span> · 결장 없음</span>
+      )}
+    </span>
+  );
+}
+
+function Waterfall({ players, unit, nameKoBy, accent, wowy }: { players: PlayerImpact[]; unit: Unit; nameKoBy?: Record<number, string>; accent: boolean; wowy?: Record<number, WowySplit> }) {
   const vals = players.map((p) => (unit === "game" ? p.delta : p.delta / p.paPerGame));
   const max = Math.max(0.05, ...vals.map((v) => Math.abs(v)));
   let run = 0;
@@ -66,7 +91,7 @@ function Waterfall({ players, unit, nameKoBy, accent }: { players: PlayerImpact[
           const pos = v >= 0;
           const hi = i === best;
           return (
-            <li key={p.pid} className={`grid grid-cols-[1.5rem_minmax(0,1.25fr)_minmax(0,1fr)_3.4rem] items-center gap-2 px-2 py-1.5 text-sm ${hi ? "rounded-lg bg-rose-50/70 dark:bg-white/[0.05]" : ""}`}>
+            <li key={p.pid} className={`grid grid-cols-[1.5rem_minmax(0,1.7fr)_minmax(0,1fr)_3.4rem] items-center gap-2 px-2 py-1.5 text-sm ${hi ? "rounded-lg bg-rose-50/70 dark:bg-white/[0.05]" : ""}`}>
               <span className="text-[11px] font-bold tabular-nums text-neutral-400">{p.slot}</span>
               <span className="min-w-0 leading-tight">
                 <span className={`block truncate ${hi ? "font-semibold" : ""}`}>{nameKoBy?.[p.pid] ?? p.name}</span>
@@ -74,6 +99,7 @@ function Waterfall({ players, unit, nameKoBy, accent }: { players: PlayerImpact[
                   wOBA {fmtWoba(p.woba)}
                   {p.shrunk && <span className="ml-1 rounded bg-neutral-100 px-1 text-neutral-500 dark:bg-white/10" title={`시즌 ${p.pa}타석 — 표본 부족, 리그 평균 쪽으로 보정`}>표본 {p.pa}</span>}
                 </span>
+                <WowyLine w={wowy?.[p.pid]} />
               </span>
               <span className="relative h-3">
                 <span className="absolute inset-y-0 left-1/2 w-px bg-neutral-300 dark:bg-white/20" />
@@ -97,7 +123,7 @@ function Waterfall({ players, unit, nameKoBy, accent }: { players: PlayerImpact[
   );
 }
 
-export default function LineupImpactCard({ home, away, league, nameKoBy }: Props) {
+export default function LineupImpactCard({ home, away, league, nameKoBy, wowy }: Props) {
   const [unit, setUnit] = useState<Unit>("game");
   const sides: Array<{ side: LineupImpactSide; accent: boolean }> = [
     { side: away, accent: false },
@@ -146,7 +172,7 @@ export default function LineupImpactCard({ home, away, league, nameKoBy }: Props
                 {side.impact.benchFallback && <span className="ml-1 text-neutral-400">(리그 평균 대체)</span>}
               </span>
             </div>
-            <Waterfall players={side.impact.players} unit={unit} nameKoBy={nameKoBy} accent={accent} />
+            <Waterfall players={side.impact.players} unit={unit} nameKoBy={nameKoBy} accent={accent} wowy={wowy} />
           </section>
         ))}
       </div>
@@ -155,6 +181,7 @@ export default function LineupImpactCard({ home, away, league, nameKoBy }: Props
         wOBA 가중치 uBB .69 · HBP .72 · 1B .89 · 2B 1.27 · 3B 1.62 · HR 2.10, 득점 환산 스케일 1.2. 타석수는 타순 기준(1번 4.65 → 9번 3.77).
         시즌 50타석 미만은 리그 평균 쪽으로 보정. 리그 기준 R/G {league.rpg.toFixed(2)} · wOBA {fmtWoba(league.woba)}
         {league.fallback ? " (고정값)" : " (시즌 30팀 합계)"}. 수비·투수·구장은 반영하지 않는다.
+        {wowy && " 출전·결장 득점은 올 시즌 선발 라인업 기준이며 이 경기는 제외, 어느 쪽이든 10경기 미만이면 차이를 표시하지 않는다."}
       </p>
     </div>
   );

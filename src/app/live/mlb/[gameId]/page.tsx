@@ -44,7 +44,7 @@ import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarC
 import BullpenFatigueCard from "@/components/live/BullpenFatigueCard";
 import LineupImpactCard from "@/components/live/LineupImpactCard";
 import { buildMlbLineupImpact } from "@/lib/sports/baseball/lineup-impact-mlb";
-import { fetchMlbLeagueHittingContextCached } from "@/lib/sports/mlb-cache";
+import { fetchMlbLeagueHittingContextCached, fetchMlbTeamGameLineupsCached } from "@/lib/sports/mlb-cache";
 import { loadBullpenReport, localGameDate } from "@/lib/sports/baseball/bullpen-fatigue";
 import {
   fetchMlbFullBoxscore,
@@ -197,10 +197,18 @@ export default async function MlbLivePage({ params }: Props) {
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
   // 라인업 임팩트 — 양 팀 타순 9명 확정 시에만. 리그 기준선은 1일 캐시, 실패하면 고정값(카드가 "고정값" 표기).
   const lineupImpact = mlbBoxscore
-    ? buildMlbLineupImpact(
-        mlbBoxscore,
-        await fetchMlbLeagueHittingContextCached(match.startTime.getUTCFullYear()).catch(() => null),
-      )
+    ? await (async () => {
+        const season = match.startTime.getUTCFullYear();
+        const [lg, homeGames, awayGames] = await Promise.all([
+          fetchMlbLeagueHittingContextCached(season).catch(() => null),
+          mlbBoxscore.homeTeamId ? fetchMlbTeamGameLineupsCached(mlbBoxscore.homeTeamId, season).catch(() => []) : Promise.resolve([]),
+          mlbBoxscore.awayTeamId ? fetchMlbTeamGameLineupsCached(mlbBoxscore.awayTeamId, season).catch(() => []) : Promise.resolve([]),
+        ]);
+        // 오늘 경기는 시즌 기록에서 뺀다 — 종료 경기의 결과가 "출전 평균" 에 섞이면 사후 편향
+        const drop = (gs: typeof homeGames) => gs.filter((g) => g.gamePk !== mlbBoxscore.gamePk);
+        const games = homeGames.length || awayGames.length ? { home: drop(homeGames), away: drop(awayGames) } : undefined;
+        return buildMlbLineupImpact(mlbBoxscore, lg, games);
+      })()
     : null;
 
   // 결론 3카드 데이터 — 승률은 Match.pred* 스냅샷(단일소스 = MatchInsight 동일값).
@@ -384,6 +392,7 @@ export default async function MlbLivePage({ params }: Props) {
                 home={{ teamName: homeShort, impact: lineupImpact.home }}
                 away={{ teamName: awayShort, impact: lineupImpact.away }}
                 league={lineupImpact.league}
+                wowy={lineupImpact.wowy}
                 nameKoBy={playerNameKoBy}
               />
             ) : null,

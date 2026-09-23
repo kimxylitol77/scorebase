@@ -1,7 +1,7 @@
 // 라인업 임팩트 산식 회귀 — 리그 평균 라인업은 xR = lgR/G, 강타자 교체는 Δ 양수, 표본 부족은 수축.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeLineupImpact, paForSlot, woba, shrinkWoba, type BattingComponents } from "./lineup-impact";
+import { computeLineupImpact, computeWowy, paForSlot, woba, shrinkWoba, type BattingComponents } from "./lineup-impact";
 
 const avg: BattingComponents = { pa: 600, ab: 540, h: 140, d2b: 28, d3b: 3, hr: 18, bb: 50, ibb: 2, hbp: 5, sf: 5 };
 const star: BattingComponents = { pa: 600, ab: 500, h: 150, d2b: 30, d3b: 4, hr: 40, bb: 90, ibb: 10, hbp: 6, sf: 4 };
@@ -46,4 +46,18 @@ test("벤치가 없으면 리그 평균으로 대체하고 플래그", () => {
   const r = computeLineupImpact(lineup, [], { rpg: 4.5, woba: lgW });
   assert.equal(r.benchFallback, true);
   assert.equal(shrinkWoba(0.4, 0, 0.3), 0.3);
+});
+
+test("WOWY: 출전/결장 평균과 표본 게이트", () => {
+  const games = [
+    ...Array.from({ length: 12 }, () => ({ runsFor: 6, lineupIds: [1, 2] })),
+    ...Array.from({ length: 12 }, () => ({ runsFor: 3, lineupIds: [2] })),
+    ...Array.from({ length: 4 }, () => ({ runsFor: 9, lineupIds: [1] })),
+  ];
+  const r = computeWowy([1, 2, 3], games);
+  assert.equal(r[1].gpWith, 16); assert.equal(r[1].gpWithout, 12);
+  assert.ok(Math.abs(r[1].rpgWith! - 6.75) < 1e-9); assert.equal(r[1].rpgWithout, 3);
+  assert.ok(Math.abs(r[1].diff! - 3.75) < 1e-9);
+  assert.equal(r[2].gpWithout, 4); assert.equal(r[2].diff, null); // 결장 4경기 → 표본 부족
+  assert.equal(r[3].gpWith, 0); assert.equal(r[3].rpgWith, null); assert.equal(r[3].diff, null);
 });

@@ -886,6 +886,9 @@ export interface MlbFullBoxscore {
   gamePk: number;
   home: MlbFullBoxscoreSide;
   away: MlbFullBoxscoreSide;
+  /** MLB Stats 팀 id — 팀 스케줄(라인업 임팩트 WOWY) 조회용. 구버전 캐시엔 없을 수 있다. */
+  homeTeamId?: number;
+  awayTeamId?: number;
 }
 
 interface BoxPlayer {
@@ -1032,6 +1035,8 @@ export async function fetchMlbFullBoxscore(
       gamePk,
       home: extractSide(data?.teams?.home),
       away: extractSide(data?.teams?.away),
+      homeTeamId: data?.teams?.home?.team?.id,
+      awayTeamId: data?.teams?.away?.team?.id,
     };
   } catch {
     return null;
@@ -1144,3 +1149,43 @@ export async function fetchMlbLeagueHittingContext(season: number): Promise<{ rp
   }
 }
 
+/** 팀의 시즌 종료 경기 — 경기별 선발 라인업 9명 id + 득점. WOWY(출전/결장 경기 팀 득점) 재료.
+ *  schedule?hydrate=lineups,linescore 한 호출(약 1.3MB). 라인업 없는 경기(2026-09 실측 160 중 3)는 뺀다. */
+export interface MlbTeamGameLineup {
+  gamePk: number;
+  date: string;
+  isHome: boolean;
+  runsFor: number;
+  runsAgainst: number;
+  lineupIds: number[];
+}
+export async function fetchMlbTeamGameLineups(teamId: number, season: number): Promise<MlbTeamGameLineup[]> {
+  try {
+    const params = new URLSearchParams({ sportId: "1", teamId: String(teamId), season: String(season), gameType: "R", hydrate: "lineups,linescore" });
+    const r = await fetch(`${BASE_URL}/schedule?${params}`, { signal: AbortSignal.timeout(20000) });
+    if (!r.ok) return [];
+    const d = (await r.json()) as {
+      dates?: Array<{ games?: Array<{
+        gamePk: number; officialDate?: string; status?: { abstractGameState?: string };
+        teams?: { home?: { team?: { id?: number }; score?: number }; away?: { team?: { id?: number }; score?: number } };
+        lineups?: { homePlayers?: Array<{ id: number }>; awayPlayers?: Array<{ id: number }> };
+      }> }>;
+    };
+    const out: MlbTeamGameLineup[] = [];
+    for (const dt of d.dates ?? []) {
+      for (const g of dt.games ?? []) {
+        if (g.status?.abstractGameState !== "Final") continue;
+        const isHome = g.teams?.home?.team?.id === teamId;
+        const ids = (isHome ? g.lineups?.homePlayers : g.lineups?.awayPlayers)?.map((p) => p.id) ?? [];
+        if (ids.length === 0) continue;
+        const rf = isHome ? g.teams?.home?.score : g.teams?.away?.score;
+        const ra = isHome ? g.teams?.away?.score : g.teams?.home?.score;
+        if (rf == null || ra == null) continue;
+        out.push({ gamePk: g.gamePk, date: g.officialDate ?? "", isHome, runsFor: rf, runsAgainst: ra, lineupIds: ids });
+      }
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}

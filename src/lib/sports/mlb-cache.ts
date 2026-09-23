@@ -10,6 +10,7 @@
 import { unstable_cache } from "next/cache";
 import {
   fetchMlbLeagueHittingContext,
+  fetchMlbTeamGameLineups,
   fetchPitcherProfile as fetchPitcherProfileRaw,
   fetchPitcherRecent as fetchPitcherRecentRaw,
   fetchHitterProfile as fetchHitterProfileRaw,
@@ -38,6 +39,13 @@ export const fetchMlbLeagueHittingContextCached = unstable_cache(
   fetchMlbLeagueHittingContext,
   ["mlb-league-hitting-context"],
   { revalidate: 86400, tags: ["mlb-league"] },
+);
+
+/** 팀 경기별 선발 라인업·득점 6시간 캐시 — 라인업 임팩트 WOWY. 팀당 한 호출이라 경기 페이지가 공유한다. */
+export const fetchMlbTeamGameLineupsCached = unstable_cache(
+  fetchMlbTeamGameLineups,
+  ["mlb-team-game-lineups"],
+  { revalidate: 6 * 3600, tags: ["mlb-league"] },
 );
 
 export const fetchHitterProfileCached = unstable_cache(
