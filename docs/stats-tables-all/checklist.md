@@ -18,5 +18,5 @@
 - [x] 5페이지 BreadcrumbList + Dataset JSON-LD, openGraph, keywords
 - [x] sitemap 29 URL (canonical 과 동일)
 - [x] 헤더 네비 5링크, 리그 페이지 데이터 칩, llms.txt 섹션
-- [ ] 배포·운영 확인
+- [x] 배포·운영 확인 (9/23 운영 5페이지 JSON-LD·OG·keywords, sitemap 29, llms, 네비 5, LOL 칩)
 
