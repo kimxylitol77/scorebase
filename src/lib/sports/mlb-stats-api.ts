@@ -852,6 +852,8 @@ export interface MlbBoxBatter {
   seasonHr: number;
   seasonRbi: number;
   seasonOps: string;
+  /** 시즌 타격 성분 (wOBA 산식용, 라인업 임팩트 탭). boxscore seasonStats.batting 그대로. */
+  seasonComp?: { pa: number; ab: number; h: number; d2b: number; d3b: number; hr: number; bb: number; ibb: number; hbp: number; sf: number };
 }
 
 export interface MlbBoxPitcher {
@@ -876,6 +878,8 @@ export interface MlbBoxPitcher {
 export interface MlbFullBoxscoreSide {
   batters: MlbBoxBatter[];
   pitchers: MlbBoxPitcher[];
+  /** 벤치 야수 — 이 경기 타순에 없고 투수도 아닌 로스터 (라인업 임팩트의 교체 기준). 구버전 캐시엔 없을 수 있다. */
+  bench?: MlbBoxBatter[];
 }
 
 export interface MlbFullBoxscore {
@@ -950,7 +954,18 @@ function extractSide(team: BoxTeam | undefined): MlbFullBoxscoreSide {
     pitchers.push(toPitcher(p, i === 0));
   }
 
-  return { batters, pitchers };
+  // 3) 벤치 — 타순에 없고 투수도 아닌 사람. 라인업 임팩트가 "이 선수 대신 벤치 평균" 을 셀 때 쓴다.
+  const pitcherIdSet = new Set(pitcherIds);
+  const bench: MlbBoxBatter[] = [];
+  for (const key of Object.keys(players)) {
+    const p = players[key];
+    const pid = p.person?.id;
+    if (!pid || batterIdSet.has(pid) || pitcherIdSet.has(pid) || p.battingOrder) continue;
+    if (p.position?.abbreviation === "P") continue;
+    bench.push(toBatter(p, null, false));
+  }
+
+  return { batters, pitchers, bench };
 }
 
 function toBatter(
@@ -978,6 +993,10 @@ function toBatter(
     seasonHr: num(s.homeRuns),
     seasonRbi: num(s.rbi),
     seasonOps: str(s.ops, "-"),
+    seasonComp: {
+      pa: num(s.plateAppearances), ab: num(s.atBats), h: num(s.hits), d2b: num(s.doubles), d3b: num(s.triples),
+      hr: num(s.homeRuns), bb: num(s.baseOnBalls), ibb: num(s.intentionalWalks), hbp: num(s.hitByPitch), sf: num(s.sacFlies),
+    },
   };
 }
 
@@ -1087,3 +1106,41 @@ export async function fetchMlbRoster(teamName: string): Promise<MlbRosterPlayer[
     return [];
   }
 }
+
+/** 리그 타격 맥락 — 30팀 시즌 합계로 팀당 경기당 득점과 리그 wOBA. 라인업 임팩트의 기준선. 실패 시 null. */
+export async function fetchMlbLeagueHittingContext(season: number): Promise<{ rpg: number; woba: number; teams: number } | null> {
+  try {
+    const r = await fetch(
+      `${BASE_URL}/teams/stats?sportIds=1&season=${season}&group=hitting&stats=season`,
+      { signal: AbortSignal.timeout(10000) },
+    );
+    if (!r.ok) return null;
+    const d = (await r.json()) as { stats?: Array<{ splits?: Array<{ stat: Record<string, number | string> }> }> };
+    const splits = d.stats?.[0]?.splits ?? [];
+    if (splits.length === 0) return null;
+    const sum = { g: 0, runs: 0, ab: 0, h: 0, d2b: 0, d3b: 0, hr: 0, bb: 0, ibb: 0, hbp: 0, sf: 0 };
+    for (const { stat } of splits) {
+      sum.g += Number(stat.gamesPlayed) || 0;
+      sum.runs += Number(stat.runs) || 0;
+      sum.ab += Number(stat.atBats) || 0;
+      sum.h += Number(stat.hits) || 0;
+      sum.d2b += Number(stat.doubles) || 0;
+      sum.d3b += Number(stat.triples) || 0;
+      sum.hr += Number(stat.homeRuns) || 0;
+      sum.bb += Number(stat.baseOnBalls) || 0;
+      sum.ibb += Number(stat.intentionalWalks) || 0;
+      sum.hbp += Number(stat.hitByPitch) || 0;
+      sum.sf += Number(stat.sacFlies) || 0;
+    }
+    if (sum.g === 0) return null;
+    const singles = sum.h - sum.d2b - sum.d3b - sum.hr;
+    const ubb = sum.bb - sum.ibb;
+    const denom = sum.ab + ubb + sum.sf + sum.hbp;
+    if (denom <= 0) return null;
+    const woba = (0.69 * ubb + 0.72 * sum.hbp + 0.89 * singles + 1.27 * sum.d2b + 1.62 * sum.d3b + 2.1 * sum.hr) / denom;
+    return { rpg: sum.runs / sum.g, woba, teams: splits.length };
+  } catch {
+    return null;
+  }
+}
+

@@ -42,6 +42,9 @@ import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
 import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
 import BullpenFatigueCard from "@/components/live/BullpenFatigueCard";
+import LineupImpactCard from "@/components/live/LineupImpactCard";
+import { buildMlbLineupImpact } from "@/lib/sports/baseball/lineup-impact-mlb";
+import { fetchMlbLeagueHittingContextCached } from "@/lib/sports/mlb-cache";
 import { loadBullpenReport, localGameDate } from "@/lib/sports/baseball/bullpen-fatigue";
 import {
   fetchMlbFullBoxscore,
@@ -192,6 +195,13 @@ export default async function MlbLivePage({ params }: Props) {
       loadBullpenReport("MLB", match.awayTeam.name, gameDate),
     ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
+  // 라인업 임팩트 — 양 팀 타순 9명 확정 시에만. 리그 기준선은 1일 캐시, 실패하면 고정값(카드가 "고정값" 표기).
+  const lineupImpact = mlbBoxscore
+    ? buildMlbLineupImpact(
+        mlbBoxscore,
+        await fetchMlbLeagueHittingContextCached(match.startTime.getUTCFullYear()).catch(() => null),
+      )
+    : null;
 
   // 결론 3카드 데이터 — 승률은 Match.pred* 스냅샷(단일소스 = MatchInsight 동일값).
   // 적중/빗나감 — 종료 경기는 최종 스코어로 직접 판정(평가잡 미반영 대비), 그 외엔 저장값.
@@ -364,6 +374,19 @@ export default async function MlbLivePage({ params }: Props) {
             label: "불펜 피로도",
             enabled: !!(bullpenHome || bullpenAway),
             content: <BullpenFatigueCard homeName={homeShort} awayName={awayShort} home={bullpenHome} away={bullpenAway} />,
+          },
+          {
+            key: "lineup-impact",
+            label: "라인업 임팩트",
+            enabled: !!lineupImpact,
+            content: lineupImpact ? (
+              <LineupImpactCard
+                home={{ teamName: homeShort, impact: lineupImpact.home }}
+                away={{ teamName: awayShort, impact: lineupImpact.away }}
+                league={lineupImpact.league}
+                nameKoBy={playerNameKoBy}
+              />
+            ) : null,
           },
           ...(openingSimilar
             ? [

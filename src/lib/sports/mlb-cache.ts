@@ -9,6 +9,7 @@
 
 import { unstable_cache } from "next/cache";
 import {
+  fetchMlbLeagueHittingContext,
   fetchPitcherProfile as fetchPitcherProfileRaw,
   fetchPitcherRecent as fetchPitcherRecentRaw,
   fetchHitterProfile as fetchHitterProfileRaw,
@@ -30,6 +31,13 @@ export const fetchPitcherRecentCached = unstable_cache(
   fetchPitcherRecentRaw,
   ["mlb-pitcher-recent"],
   { revalidate: RECENT_TTL, tags: ["mlb-player"] },
+);
+
+/** 리그 타격 맥락(팀당 R/G·리그 wOBA) 1일 캐시 — 라인업 임팩트 기준선. */
+export const fetchMlbLeagueHittingContextCached = unstable_cache(
+  fetchMlbLeagueHittingContext,
+  ["mlb-league-hitting-context"],
+  { revalidate: 86400, tags: ["mlb-league"] },
 );
 
 export const fetchHitterProfileCached = unstable_cache(

@@ -4,3 +4,7 @@
 - 재료: 박스스코어 seasonStats.batting 에 wOBA 성분 전부 있음(9/22 gamePk 823543 실측). 리그 R/G 는 teams/stats 로 4.484(9/23). 추가 API 없음.
 - 탭 자리는 MlbBoxscoreTabs(클라이언트 7탭)가 아니라 page.tsx MatchInsight tabs(불펜 피로도와 같은 SSR 자리). 이유: 서버에서 이미 받은 mlbBoxscore 로 계산해 JS 를 안 늘린다.
 - 이 워크트리의 원래 브랜치는 main 보다 300+ 커밋 뒤라 origin/main 에서 feat/mlb-lineup-impact 를 새로 땄다.
+- 09-23 구현. 실측(로컬, 9/22 CIN@ATL 401817030): CIN xR 4.14 / ATL 4.21, 리그 4.48(30팀 합계 wOBA .318). 예정 경기(401817035)는 타순 미확정이라 탭 비활성으로 정상.
+- 한글 선수명 맵은 pid 키(buildMlbPlayerNameKoMap) — 이름 키로 찾다가 영문으로 나온 것을 고침. 워터폴 누적 표시는 점선 원이 새로고침 아이콘처럼 보여 세로 눈금으로 교체.
+- 단위 전환(경기당/타석당)만 클라이언트 상태. 계산은 page.tsx 서버에서 mlbBoxscore 로 끝냄.
+
