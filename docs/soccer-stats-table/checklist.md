@@ -4,4 +4,4 @@
 - [x] /soccer/stats page.tsx — 리그·포지션·단위·규정 필, 팀 칩·검색, 정렬, 비교 2명
 - [x] 진입 링크(축구 허브·야구 스탯 표 상단 칩)
 - [x] 로컬 실렌더: EPL 필드·EPL GK·K리그1(평점 없음)·MLS 90분당·비교
-- [ ] tsc·테스트 → 커밋 → main push → 운영 확인 → 메모리
+- [x] tsc·테스트(2/2) → 커밋 976199d → main push → 운영 /soccer/stats 확인(EPL 217명·K1·GK 200) → 메모리 soccer-stats-table
