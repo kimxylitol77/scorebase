@@ -3,4 +3,4 @@
 - [x] /baseball/stats page.tsx — 필터·정렬·표·비교 바·페이지네이션, 라이트/다크
 - [x] 진입 링크(랭킹 페이지·야구 허브)·sitemap 확인
 - [x] 로컬 실렌더: KBO 타자 정렬·MLB 투수 경기당·NPB 검색·비교 2명·규정 토글
-- [ ] tsc·테스트 → 커밋 → main push → 운영 확인 → 메모리
+- [x] tsc·테스트(4/4) → 커밋 61c665c → main push → 운영 /baseball/stats 확인 → 메모리 baseball-stats-table
