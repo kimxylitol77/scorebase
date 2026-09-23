@@ -2,6 +2,8 @@
 //   입력은 player-rankings.getBbLeagueData 의 BbPlayerRow. 규정 기준은 랭킹 페이지 POWER 와 같다
 //   (타자 = 리그 최다 출장의 50% 이상, 투수 = 30이닝 이상) — 두 페이지가 다른 "규정" 을 말하지 않게.
 import { POWER_MIN_GAMES_RATIO, POWER_MIN_IP, type BbPlayerRow, type BbRole } from "./player-rankings";
+import { woba as wobaOf } from "./lineup-impact";
+import type { MlbAdvHitting, MlbAdvPitching } from "@/lib/sports/mlb-stats-api";
 
 export type StatUnit = "total" | "pergame";
 
@@ -25,6 +27,48 @@ export const BAT_COLUMNS: StatColumn[] = [
   { key: "hr", label: "HR", decimals: 0, perGame: true },
   { key: "rbi", label: "RBI", decimals: 0, perGame: true },
 ];
+/** MLB 확장 열 — statsapi 성분에서 파생. 다른 리그는 성분이 없어 열 자체가 없다. */
+export const BAT_ADV_COLUMNS: StatColumn[] = [
+  { key: "woba", label: "wOBA", decimals: 3, stripLeadingZero: true },
+  { key: "iso", label: "ISO", decimals: 3, stripLeadingZero: true },
+  { key: "bbPct", label: "BB%", decimals: 1 },
+  { key: "kPct", label: "K%", decimals: 1, lowerIsBetter: true },
+];
+export const PIT_ADV_COLUMNS: StatColumn[] = [
+  { key: "fip", label: "FIP", decimals: 2, lowerIsBetter: true },
+  { key: "kPct", label: "K%", decimals: 1 },
+  { key: "bbPct", label: "BB%", decimals: 1, lowerIsBetter: true },
+  { key: "hr9", label: "HR/9", decimals: 2, lowerIsBetter: true },
+];
+/** FIP 상수 — 리그 ERA 와 FIP 평균을 맞추는 값. 시즌마다 3.1~3.2 라 고정값 사용(상대 비교 목적). */
+export const FIP_CONSTANT = 3.15;
+
+export function columnsFor(role: BbRole, league: string): StatColumn[] {
+  const base = role === "bat" ? BAT_COLUMNS : PIT_COLUMNS;
+  return league === "MLB" ? [...base, ...(role === "bat" ? BAT_ADV_COLUMNS : PIT_ADV_COLUMNS)] : base;
+}
+
+export interface AdvancedInput { hitting: Record<string, MlbAdvHitting>; pitching: Record<string, MlbAdvPitching> }
+
+/** 확장 열 값 — externalId 로 성분을 찾아 파생. 표본(PA·BF) 0 이면 null. 타자 표에선 타격 성분, 투수 표에선 투구 성분. */
+export function advancedValue(r: BbPlayerRow, key: string, adv: AdvancedInput | undefined, role: BbRole = r.era != null && r.avg == null ? "pit" : "bat"): number | null {
+  if (!adv || !r.externalId) return null;
+  const h = adv.hitting[r.externalId], p = adv.pitching[r.externalId];
+  switch (key) {
+    case "woba": return h && h.pa > 0 ? wobaOf(h) : null;
+    case "iso": return h && h.ab > 0 ? (h.d2b + 2 * h.d3b + 3 * h.hr) / h.ab : null;
+    case "bbPct":
+      if (role === "bat") return h && h.pa > 0 ? (100 * (h.bb - h.ibb)) / h.pa : null;
+      return p && p.bf > 0 ? (100 * p.bb) / p.bf : null;
+    case "kPct":
+      if (role === "bat") return h && h.pa > 0 ? (100 * h.so) / h.pa : null;
+      return p && p.bf > 0 ? (100 * p.so) / p.bf : null;
+    case "fip": return p && p.ip > 0 ? (13 * p.hr + 3 * (p.bb + p.hbp) - 2 * p.so) / p.ip + FIP_CONSTANT : null;
+    case "hr9": return p && p.ip > 0 ? (9 * p.hr) / p.ip : null;
+    default: return null;
+  }
+}
+
 export const PIT_COLUMNS: StatColumn[] = [
   { key: "games", label: "G", decimals: 0 },
   { key: "era", label: "ERA", decimals: 2, lowerIsBetter: true },
@@ -64,7 +108,8 @@ export function isQualified(r: BbPlayerRow, role: BbRole, maxGames: number): boo
 }
 
 /** 열 값 — 파생(K/9)·경기당 환산 포함. */
-export function statValue(r: BbPlayerRow, col: StatColumn, unit: StatUnit): number | null {
+export function statValue(r: BbPlayerRow, col: StatColumn, unit: StatUnit, adv?: AdvancedInput, role?: BbRole): number | null {
+  if (["woba", "iso", "bbPct", "kPct", "fip", "hr9"].includes(col.key)) return advancedValue(r, col.key, adv, role);
   const base: Record<string, number | null> = {
     games: r.games, avg: r.avg, ops: r.ops, hits: r.hits, hr: r.hr, rbi: r.rbi,
     era: r.era, whip: r.whip, ip: r.ip, so: r.so, w: r.w, l: r.l, sv: r.sv,
@@ -87,23 +132,23 @@ export function percentile(values: number[], v: number, lowerIsBetter = false): 
   return Math.round(((worse + (tie - 1) / 2) / values.length) * 100);
 }
 
-export function buildStatRows(rows: BbPlayerRow[], role: BbRole, unit: StatUnit): { rows: StatRow[]; qualifiedCount: number; minGames: number } {
-  const cols = role === "bat" ? BAT_COLUMNS : PIT_COLUMNS;
+export function buildStatRows(rows: BbPlayerRow[], role: BbRole, unit: StatUnit, cols: StatColumn[] = role === "bat" ? BAT_COLUMNS : PIT_COLUMNS, adv?: AdvancedInput): { rows: StatRow[]; qualifiedCount: number; minGames: number } {
   const pool = rowsForRole(rows, role);
   const maxGames = pool.reduce((m, r) => Math.max(m, r.games), 0);
   const minGames = Math.ceil(maxGames * POWER_MIN_GAMES_RATIO);
   const qual = pool.filter((r) => isQualified(r, role, maxGames));
   // 열별 규정 표본 값 (백분위 모집단)
   const poolValues: Record<string, number[]> = {};
-  for (const c of cols) poolValues[c.key] = qual.map((r) => statValue(r, c, unit)).filter((v): v is number => v != null);
+  for (const c of cols) poolValues[c.key] = qual.map((r) => statValue(r, c, unit, adv, role)).filter((v): v is number => v != null);
   const out: StatRow[] = pool.map((r) => {
     const q = isQualified(r, role, maxGames);
     const cells: Record<string, StatCell> = {};
     for (const c of cols) {
-      const v = statValue(r, c, unit);
+      const v = statValue(r, c, unit, adv, role);
       cells[c.key] = { value: v, pct: q && v != null ? percentile(poolValues[c.key], v, c.lowerIsBetter) : null };
     }
-    return { key: r.key, name: r.name, nameEn: r.nameEn, team: r.team, externalId: r.externalId, logId: r.logId, qualified: q, cells };
+    // 시즌 중 이적 선수는 팀별 행이 따로 있어 externalId 만으론 키가 겹친다(MLB 실측 669330·621345) → 팀을 붙인다
+    return { key: `${r.key}@${r.team}`, name: r.name, nameEn: r.nameEn, team: r.team, externalId: r.externalId, logId: r.logId, qualified: q, cells };
   });
   return { rows: out, qualifiedCount: qual.length, minGames };
 }

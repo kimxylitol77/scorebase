@@ -1,7 +1,7 @@
 // 스탯 마스터 표 회귀 — 규정 판정·반전 백분위·경기당·NPB 투수 타율 제외·정렬 null 뒤로.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildStatRows, percentile, rowsForRole, sortStatRows, statValue, BAT_COLUMNS, PIT_COLUMNS } from "./stats-table";
+import { buildStatRows, percentile, rowsForRole, sortStatRows, statValue, advancedValue, columnsFor, BAT_COLUMNS, PIT_COLUMNS, FIP_CONSTANT } from "./stats-table";
 import type { BbPlayerRow } from "./player-rankings";
 
 const base = (o: Partial<BbPlayerRow>): BbPlayerRow => ({
@@ -52,4 +52,26 @@ test("정렬: 값 없음은 항상 뒤", () => {
   const t = buildStatRows([base({ name: "A", games: 10, avg: 0.3 }), base({ name: "B", games: 10, avg: null, hits: 1 }), base({ name: "C", games: 10, avg: 0.2 })], "bat", "total");
   assert.deepEqual(sortStatRows(t.rows, "avg", "desc").map((r) => r.name), ["A", "C"]);
   assert.deepEqual(sortStatRows(t.rows, "avg", "asc").map((r) => r.name), ["C", "A"]);
+});
+
+test("MLB 확장 열: wOBA·ISO·BB%·K%·FIP·HR/9 파생, 다른 리그는 열 없음", () => {
+  const adv = {
+    hitting: { "1": { pa: 100, ab: 80, h: 24, d2b: 6, d3b: 1, hr: 5, bb: 15, ibb: 2, hbp: 2, sf: 3, so: 20 } },
+    pitching: { "2": { ip: 90, bf: 360, so: 100, bb: 30, hbp: 5, hr: 9, er: 30 } },
+  };
+  const hitter = base({ name: "H", externalId: "1", games: 30, avg: 0.3 });
+  const pitcher = base({ name: "P", externalId: "2", games: 15, era: 3.0, ip: 90 });
+  assert.ok(Math.abs(advancedValue(hitter, "iso", adv, "bat")! - (6 + 2 + 15) / 80) < 1e-9);
+  assert.ok(Math.abs(advancedValue(hitter, "bbPct", adv, "bat")! - 13) < 1e-9);
+  assert.ok(Math.abs(advancedValue(hitter, "kPct", adv, "bat")! - 20) < 1e-9);
+  assert.ok(advancedValue(hitter, "woba", adv, "bat")! > 0.3);
+  assert.ok(Math.abs(advancedValue(pitcher, "fip", adv, "pit")! - ((13 * 9 + 3 * 35 - 200) / 90 + FIP_CONSTANT)) < 1e-9);
+  assert.ok(Math.abs(advancedValue(pitcher, "hr9", adv, "pit")! - 0.9) < 1e-9);
+  assert.ok(Math.abs(advancedValue(pitcher, "kPct", adv, "pit")! - 100 / 3.6) < 1e-9);
+  assert.equal(advancedValue(base({ name: "N", externalId: "9" }), "woba", adv), null);
+  assert.equal(columnsFor("bat", "MLB").length, BAT_COLUMNS.length + 4);
+  assert.equal(columnsFor("bat", "KBO").length, BAT_COLUMNS.length);
+  const t = buildStatRows([hitter, base({ name: "H2", externalId: "3", games: 30, avg: 0.2 })], "bat", "total", columnsFor("bat", "MLB"), adv);
+  assert.equal(t.rows.find((r) => r.name === "H")!.cells.woba.pct, 0); // 모집단 1명(자기 자신뿐) → 나보다 못한 값 0
+  assert.equal(t.rows.find((r) => r.name === "H2")!.cells.woba.value, null);
 });

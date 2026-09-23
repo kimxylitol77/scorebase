@@ -1189,3 +1189,32 @@ export async function fetchMlbTeamGameLineups(teamId: number, season: number): P
     return [];
   }
 }
+
+/** 시즌 타격·투구 성분 전 선수 — 스탯 표의 MLB 확장 열(wOBA·BB%·K%·ISO / K%·BB%·HR/9·FIP) 재료.
+ *  stats?stats=season&playerPool=ALL 한 호출씩(타격 750·투구 864, 2026-09 실측). 키 = person id. */
+export interface MlbAdvHitting { pa: number; ab: number; h: number; d2b: number; d3b: number; hr: number; bb: number; ibb: number; hbp: number; sf: number; so: number }
+export interface MlbAdvPitching { ip: number; bf: number; so: number; bb: number; hbp: number; hr: number; er: number }
+export async function fetchMlbSeasonAdvanced(season: number): Promise<{ hitting: Record<string, MlbAdvHitting>; pitching: Record<string, MlbAdvPitching> }> {
+  const get = async (group: "hitting" | "pitching") => {
+    const params = new URLSearchParams({ stats: "season", group, season: String(season), sportId: "1", limit: "3000", playerPool: "ALL" });
+    const r = await fetch(`${BASE_URL}/stats?${params}`, { signal: AbortSignal.timeout(20000) });
+    if (!r.ok) return [];
+    const d = (await r.json()) as { stats?: Array<{ splits?: Array<{ player?: { id?: number }; stat: Record<string, number | string> }> }> };
+    return d.stats?.[0]?.splits ?? [];
+  };
+  const n = (v: unknown) => (typeof v === "number" ? v : Number(v) || 0);
+  const [h, p] = await Promise.all([get("hitting").catch(() => []), get("pitching").catch(() => [])]);
+  const hitting: Record<string, MlbAdvHitting> = {};
+  for (const s of h) {
+    if (!s.player?.id) continue;
+    const t = s.stat;
+    hitting[String(s.player.id)] = { pa: n(t.plateAppearances), ab: n(t.atBats), h: n(t.hits), d2b: n(t.doubles), d3b: n(t.triples), hr: n(t.homeRuns), bb: n(t.baseOnBalls), ibb: n(t.intentionalWalks), hbp: n(t.hitByPitch), sf: n(t.sacFlies), so: n(t.strikeOuts) };
+  }
+  const pitching: Record<string, MlbAdvPitching> = {};
+  for (const s of p) {
+    if (!s.player?.id) continue;
+    const t = s.stat;
+    pitching[String(s.player.id)] = { ip: mlbIpToInnings(String(t.inningsPitched ?? "0")), bf: n(t.battersFaced), so: n(t.strikeOuts), bb: n(t.baseOnBalls), hbp: n(t.hitByPitch), hr: n(t.homeRuns), er: n(t.earnedRuns) };
+  }
+  return { hitting, pitching };
+}

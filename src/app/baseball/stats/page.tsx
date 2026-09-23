@@ -6,7 +6,8 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, Table2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { BB_LEAGUES, getBbLeagueData, type BbLeague, type BbRole } from "@/lib/sports/baseball/player-rankings";
-import { BAT_COLUMNS, PIT_COLUMNS, buildStatRows, formatStat, sortStatRows, type StatColumn, type StatRow, type StatUnit } from "@/lib/sports/baseball/stats-table";
+import { buildStatRows, columnsFor, formatStat, sortStatRows, type StatColumn, type StatRow, type StatUnit } from "@/lib/sports/baseball/stats-table";
+import { fetchMlbSeasonAdvancedCached } from "@/lib/sports/mlb-cache";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
 
@@ -21,7 +22,7 @@ function parse(sp: SP) {
   const league: BbLeague = (BB_LEAGUES as string[]).includes(sp.league ?? "") ? (sp.league as BbLeague) : "KBO";
   const role: BbRole = sp.role === "pit" ? "pit" : "bat";
   const unit: StatUnit = sp.unit === "pergame" ? "pergame" : "total";
-  const cols = role === "bat" ? BAT_COLUMNS : PIT_COLUMNS;
+  const cols = columnsFor(role, league);
   const defaultSort = role === "bat" ? "ops" : "era";
   const sort = cols.some((c) => c.key === sp.sort) || sp.sort === "name" ? (sp.sort as string) : defaultSort;
   const sortCol = cols.find((c) => c.key === sort);
@@ -45,8 +46,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function BaseballStatsPage({ searchParams }: { searchParams: Promise<SP> }) {
   const p = parse(await searchParams);
   const data = await getBbLeagueData(p.league);
-  const cols = p.role === "bat" ? BAT_COLUMNS : PIT_COLUMNS;
-  const built = buildStatRows(data.rows, p.role, p.unit);
+  const cols = columnsFor(p.role, p.league);
+  // MLB 만 statsapi 성분으로 확장 열(wOBA·ISO·BB%·K% / FIP·K%·BB%·HR/9). 실패하면 열은 남고 값은 "—".
+  const adv = p.league === "MLB" ? await fetchMlbSeasonAdvancedCached(Number(data.season)).catch(() => undefined) : undefined;
+  const built = buildStatRows(data.rows, p.role, p.unit, cols, adv);
   const teams = [...new Set(built.rows.map((r) => r.team))].sort((a, b) => a.localeCompare(b, "ko"));
   let rows = built.rows;
   if (p.qual) rows = rows.filter((r) => r.qualified);
@@ -238,6 +241,7 @@ export default async function BaseballStatsPage({ searchParams }: { searchParams
         <p className="mt-6 text-[11px] leading-relaxed text-neutral-400 break-keep">
           출처: KBO·NPB 공식, MLB Stats API (매일 갱신). 백분위는 같은 리그·같은 역할의 규정 선수끼리 비교한 값이며, 규정 미달 선수는 표에 남기되 백분위를 매기지 않는다.
           경기당은 합계 계열(안타·홈런·타점·이닝·탈삼진·승·패·세이브)만 출장 경기로 나눈 값이다.
+          {p.league === "MLB" && " MLB 확장 열 wOBA(FanGraphs 선형가중치)·ISO·BB%·K% / FIP(상수 3.15 고정)·K%·BB%·HR/9 는 MLB Stats API 시즌 성분에서 계산."}
         </p>
       </div>
     </div>

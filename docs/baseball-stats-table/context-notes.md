@@ -6,4 +6,7 @@
 - NPB 투수 row 에 타율이 실려 와 타자 표에서 "10이닝 이상·안타 20 미만" 은 제외(투타 겸업은 남김). 백분위 동률은 절반만 센다.
 - 메타 title 에 "| Scorebase" 를 넣으면 레이아웃 템플릿과 겹쳐 두 번 붙는다 — 페이지 title 은 사이트명 없이.
 - 비교는 cmp=key,key 쿼리(최대 2)·서버 렌더. 첫 열 클릭은 "좋은 순"(ERA·WHIP·패는 오름차순).
+- 09-23 MLB 확장. `stats?stats=season&group=hitting|pitching&sportId=1&limit=3000&playerPool=ALL` 이 전 선수 성분을 한 번에 준다(타격 750·투구 864). 조인 키 = externalId(=statsapi person id). 다른 리그는 성분이 없어 열 자체를 안 만든다(columnsFor).
+- BB%·K% 는 역할에 따라 타격/투구 성분을 골라야 한다(투타 겸업 오타니가 두 표에 모두 있음) → advancedValue 에 role 인자.
+- 백분위 모집단이 1명이면 0 이 나온다(자기 자신뿐). 실서비스 모집단은 수백 명이라 무시. FIP 상수 3.15 고정.
 

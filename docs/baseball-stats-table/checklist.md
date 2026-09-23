@@ -4,3 +4,6 @@
 - [x] 진입 링크(랭킹 페이지·야구 허브)·sitemap 확인
 - [x] 로컬 실렌더: KBO 타자 정렬·MLB 투수 경기당·NPB 검색·비교 2명·규정 토글
 - [x] tsc·테스트(4/4) → 커밋 61c665c → main push → 운영 /baseball/stats 확인 → 메모리 baseball-stats-table
+- [x] MLB 확장 열(wOBA·ISO·BB%·K% / FIP·K%·BB%·HR/9) — statsapi stats?stats=season&playerPool=ALL 타격·투구 한 콜씩, 1일 캐시, 테스트 5/5
+- [ ] 축구 선수 스탯 표 — 별도 계획(docs/soccer-stats-table)
+

@@ -11,6 +11,7 @@ import { unstable_cache } from "next/cache";
 import {
   fetchMlbLeagueHittingContext,
   fetchMlbTeamGameLineups,
+  fetchMlbSeasonAdvanced,
   fetchPitcherProfile as fetchPitcherProfileRaw,
   fetchPitcherRecent as fetchPitcherRecentRaw,
   fetchHitterProfile as fetchHitterProfileRaw,
@@ -46,6 +47,13 @@ export const fetchMlbTeamGameLineupsCached = unstable_cache(
   fetchMlbTeamGameLineups,
   ["mlb-team-game-lineups"],
   { revalidate: 6 * 3600, tags: ["mlb-league"] },
+);
+
+/** 시즌 타격·투구 성분 전 선수 1일 캐시 — /baseball/stats MLB 확장 열. */
+export const fetchMlbSeasonAdvancedCached = unstable_cache(
+  fetchMlbSeasonAdvanced,
+  ["mlb-season-advanced"],
+  { revalidate: 86400, tags: ["mlb-league"] },
 );
 
 export const fetchHitterProfileCached = unstable_cache(
