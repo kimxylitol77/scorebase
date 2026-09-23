@@ -29,6 +29,7 @@ import LeaguePredictionsPanel from "@/components/leagues/LeaguePredictionsPanel"
 import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
 import { leaguesWithOverUnderPage } from "@/lib/stats/over-under";
 import { LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
+import { statsTableHref } from "@/lib/stats/stats-table-links";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
@@ -1410,6 +1411,8 @@ function LeagueDataDirectory({ league, hasInjuries, hasOverUnder }: { league: st
   const chips: { href: string; label: string }[] = [];
   if (STANDINGS_VALID.has(league) && !NO_TABLE_LEAGUES.has(league)) chips.push({ href: `/standings/${league}`, label: "순위표 전체" });
   if (hasInjuries) chips.push({ href: `/injuries/${league}`, label: "부상자 명단" });
+  const statsHref = statsTableHref(league);
+  if (statsHref) chips.push({ href: statsHref, label: "선수 스탯 표" });
   if (TRANSFER_LEAGUES.has(league)) chips.push({ href: `/transfers?league=${league}`, label: "이적·몸값" });
   if (hasOverUnder) chips.push({ href: `/over-under/${league}`, label: "오버·언더 통계" });
   if (sport && ODDS_SPORT[sport]) chips.push({ href: `/odds?sport=${ODDS_SPORT[sport]}`, label: "배당 흐름" });

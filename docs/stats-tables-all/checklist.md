@@ -13,3 +13,10 @@
 - [x] dev 4개 뷰 렌더 확인 (표·리더·카드·골리)
 - [x] 배포·운영 확인 (9/23 운영 KHL 표·골리·리더 200, 69경기 403명)
 
+## 추가 (2026-09-23) — 진입 연결·SEO·GEO
+- [x] 링크 정본 stats-table-links.ts (리그 칩·sitemap 공용)
+- [x] 5페이지 BreadcrumbList + Dataset JSON-LD, openGraph, keywords
+- [x] sitemap 29 URL (canonical 과 동일)
+- [x] 헤더 네비 5링크, 리그 페이지 데이터 칩, llms.txt 섹션
+- [ ] 배포·운영 확인
+

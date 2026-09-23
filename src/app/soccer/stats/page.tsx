@@ -1,6 +1,7 @@
 // 축구 선수 스탯 마스터 표 — 15개 리그 ts 시즌 아카이브. 데이터·열·규정만 정하고 화면은 StatsExplorer 공용.
 // 계산: src/lib/sports/soccer/stats-table.ts · 로더: stats-data.ts
 import type { Metadata } from "next";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import StatsExplorer from "@/components/stats/StatsExplorer";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import type { StatRow } from "@/lib/sports/baseball/stats-table";
@@ -26,6 +27,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title: `${lg} ${POS_KO[pos]} 선수 스탯 표 — 시즌 기록·리그 백분위${unit === "per90" ? " (90분당)" : ""}`,
     description: `${lg} 선수 전원의 시즌 골·도움·슈팅·키패스·태클·평점을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 축구 스탯 표.`,
     alternates: { canonical: `/soccer/stats?league=${league}${pos !== "ALL" ? `&pos=${pos}` : ""}` },
+    keywords: [`${lg} 선수 스탯`, `${lg} 선수 기록`, `${lg} 득점 도움 순위`, "축구 선수 스탯 표", "리그 백분위"],
+    openGraph: { title: `${lg} ${POS_KO[pos]} 선수 스탯 표`, description: `${lg} 선수 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
   };
 }
 
@@ -43,6 +46,10 @@ export default async function SoccerStatsPage({ searchParams }: { searchParams: 
   return (
     <StatsExplorer
       basePath="/soccer/stats"
+      jsonLd={[
+        breadcrumbLd([{ name: "홈", path: "/" }, { name: "축구", path: "/soccer" }, { name: "선수 스탯 표", path: "/soccer/stats" }, { name: lgName, path: `/soccer/stats?league=${league}` }]),
+        datasetLd({ name: `${lgName} ${data.season} 시즌 선수 스탯 표`, description: `${lgName} 선수 ${data.rows.length}명의 ${data.season} 시즌 골·도움·슈팅·키패스·태클·평점과 리그 백분위(규정 ${built.qualifiedCount}명).`, path: `/soccer/stats?league=${league}`, variableMeasured: cols.map((c) => c.label), temporalCoverage: data.season }),
+      ]}
       eyebrow="Player Stats"
       title="축구 선수 스탯"
       subtitle={`${data.season} 시즌 ${lgName} ${POS_KO[pos]}. 셀 아래 숫자는 규정 표본 안 리그 백분위(높을수록 상위, 실점·경고는 낮을수록 상위). 규정 = 리그 최다 출전 분의 40% 이상(${built.minMinutes}분, ${built.qualifiedCount}명).${data.ratingCoverage === 0 ? " 이 리그는 경기 로그 평점이 없어 평점 열이 비어 있다." : ""}`}

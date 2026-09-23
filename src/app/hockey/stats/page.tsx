@@ -1,6 +1,7 @@
 // 하키(NHL) 선수 스탯 마스터 표 — 스케이터/골리, 셀마다 리그 백분위, 합계·경기당. 화면은 StatsExplorer 공용.
 // 계산: src/lib/sports/hockey/stats-table.ts · 로더: stats-data.ts (NHL 공식 stats API)
 import type { Metadata } from "next";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import StatsExplorer from "@/components/stats/StatsExplorer";
 import type { StatRow } from "@/lib/sports/baseball/stats-table";
 import { buildHockeyStatRows, columnsForRole, type HockeyRole, type HockeyUnit } from "@/lib/sports/hockey/stats-table";
@@ -24,6 +25,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title: `${league} ${ROLE_KO[role]} 스탯 표 — 시즌 기록·리그 백분위${unit === "pergame" ? " (경기당)" : ""}`,
     description: `${league} ${ROLE_KO[role]} 전원의 시즌 골·어시스트·포인트·+/-·히트·블록 (골리 GAA·세이브율)을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 하키 스탯 표.`,
     alternates: { canonical: `/hockey/stats?league=${league}&role=${role}` },
+    keywords: [`${league} ${ROLE_KO[role]} 기록`, `${league} 선수 스탯`, `${league} ${role === "goalie" ? "골리 세이브율 순위" : "득점 포인트 순위"}`, "하키 선수 스탯 표", "리그 백분위"],
+    openGraph: { title: `${league} ${ROLE_KO[role]} 스탯 표`, description: `${league} ${ROLE_KO[role]} 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
   };
 }
 
@@ -47,6 +50,10 @@ export default async function HockeyStatsPage({ searchParams }: { searchParams: 
   return (
     <StatsExplorer
       basePath="/hockey/stats"
+      jsonLd={[
+        breadcrumbLd([{ name: "홈", path: "/" }, { name: "하키", path: "/hockey" }, { name: "선수 스탯 표", path: "/hockey/stats" }, { name: `${league} ${ROLE_KO[role]}`, path: `/hockey/stats?league=${league}&role=${role}` }]),
+        datasetLd({ name: `${league} ${data.seasonLabel} 시즌 ${ROLE_KO[role]} 스탯 표`, description: `${league} ${ROLE_KO[role]} ${data.rows.length}명의 ${data.seasonLabel} 시즌 기록과 리그 백분위(규정 ${built.qualifiedCount}명).`, path: `/hockey/stats?league=${league}&role=${role}`, variableMeasured: cols.map((c) => c.label), temporalCoverage: data.seasonLabel }),
+      ]}
       eyebrow="Player Stats"
       title="하키 선수 스탯"
       subtitle={`${league} ${data.seasonLabel} 시즌${data.final ? "(최종, 새 시즌 개막 전)" : ""}${!isNhl ? ` (종료 ${(data as { games?: number }).games ?? 0}경기 집계)` : ""} ${ROLE_KO[role]} 전원. 셀 아래 숫자는 규정 표본 안 리그 백분위(높을수록 상위, PIM·패·GAA 는 낮을수록 상위). 규정 = ${role === "goalie" ? "선발" : "출전"} 최다의 40% 이상(${built.minGp}경기, ${built.qualifiedCount}명).`}

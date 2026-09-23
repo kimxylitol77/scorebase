@@ -8,6 +8,7 @@ import { resolveSeasonYear } from "@/lib/sports/season-registry";
 import { EN_PREDICTION_LEAGUES, EN_STANDINGS_LEAGUE_SET } from "@/lib/i18n/en";
 import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 import { getAllLeaguesOverUnder, leaguesWithOverUnderPage } from "@/lib/stats/over-under";
+import { statsTableSitemapPaths } from "@/lib/stats/stats-table-links";
 import rawCanonical from "../../../data/player-canonical-redirects.json";
 import rawTeamCoaches from "../../../data/team-coaches.json";
 import rawCoachLegends from "../../../data/coach-legends.json";
@@ -73,6 +74,8 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     { url: `${base}/transfers`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/soccer/korea`, changeFrequency: "daily", priority: 0.85 }, // 해외파 한국 선수 — "손흥민 기록" 류 검색 수요
     { url: `${base}/rankings/ufc`, changeFrequency: "weekly", priority: 0.8 },
+    // 스탯 마스터 표 5종(2026-09-23) — 리그·역할별 canonical 만 등록(정렬·뷰·페이지 파라미터는 canonical 이 흡수)
+    ...statsTableSitemapPaths().map((p) => ({ url: `${base}${p}`, changeFrequency: "daily" as const, priority: 0.75 })),
     { url: `${base}/rankings/value-clubs`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/predictions/fifa-ranking`, changeFrequency: "weekly", priority: 0.75 }, // "FIFA 랭킹" 검색 수요

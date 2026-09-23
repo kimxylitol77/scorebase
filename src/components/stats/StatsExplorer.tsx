@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, Table2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { formatStat, sortStatRows, type StatColumn, type StatRow, type StatUnit } from "@/lib/sports/baseball/stats-table";
+import { jsonLdScript } from "@/lib/seo/jsonld";
 import StatsGlossary from "./StatsGlossary";
 import StatsLeaders from "./StatsLeaders";
 import StatsCards from "./StatsCards";
@@ -45,6 +46,8 @@ export interface StatsExplorerProps {
   qualifiedCount: number;
   glossaryNote?: string;
   footnote: string;
+  /** 페이지가 만든 JSON-LD(BreadcrumbList·Dataset) — 검색·AI 인용용 */
+  jsonLd?: unknown[];
   /** 표 좌상단 라벨 (시즌 · 리그) */
   corner: string;
 }
@@ -103,6 +106,7 @@ export default function StatsExplorer(p: StatsExplorerProps) {
 
   return (
     <div className="relative min-h-screen">
+      {p.jsonLd?.map((d, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(d) }} />)}
       <AmbientGlow />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">

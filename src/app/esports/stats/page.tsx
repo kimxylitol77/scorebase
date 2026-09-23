@@ -1,6 +1,7 @@
 // e스포츠(LoL) 선수 스탯 마스터 표 — LCK·LPL·LEC·LCS 세트 집계, 셀마다 리그 백분위. 화면은 StatsExplorer 공용.
 // 계산: src/lib/sports/esports/stats-table.ts · 로더: stats-data.ts (경기 기록 lolGames 집계)
 import type { Metadata } from "next";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import StatsExplorer from "@/components/stats/StatsExplorer";
 import type { StatRow } from "@/lib/sports/baseball/stats-table";
 import { buildLolStatRows, LOL_COLUMNS, type EsportsUnit } from "@/lib/sports/esports/stats-table";
@@ -21,6 +22,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title: `${LOL_LEAGUE_KO[league]} 선수 스탯 표 — 시즌 KDA·CS·승률·리그 백분위`,
     description: `${LOL_LEAGUE_KO[league]} 선수 전원의 시즌 킬·데스·어시스트·KDA·CS·승률을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 e스포츠 스탯 표.`,
     alternates: { canonical: `/esports/stats?league=${league}` },
+    keywords: [`${LOL_LEAGUE_KO[league]} 선수 스탯`, `${LOL_LEAGUE_KO[league]} KDA 순위`, `${LOL_LEAGUE_KO[league]} 선수 기록`, "롤 프로 선수 스탯 표", "리그 백분위"],
+    openGraph: { title: `${LOL_LEAGUE_KO[league]} 선수 스탯 표`, description: `${LOL_LEAGUE_KO[league]} 선수 전원의 시즌 KDA·CS·승률과 리그 백분위를 한 표에서.` },
   };
 }
 
@@ -36,6 +39,10 @@ export default async function EsportsStatsPage({ searchParams }: { searchParams:
   return (
     <StatsExplorer
       basePath="/esports/stats"
+      jsonLd={[
+        breadcrumbLd([{ name: "홈", path: "/" }, { name: "LCK", path: "/leagues/LOL" }, { name: "선수 스탯 표", path: "/esports/stats" }, { name: LOL_LEAGUE_KO[league], path: `/esports/stats?league=${league}` }]),
+        datasetLd({ name: `${LOL_LEAGUE_KO[league]} ${data.season} 시즌 선수 스탯 표`, description: `${LOL_LEAGUE_KO[league]} 선수 ${data.rows.length}명의 ${data.season} 시즌 킬·데스·어시스트·KDA·CS·승률과 리그 백분위(규정 ${built.qualifiedCount}명).`, path: `/esports/stats?league=${league}`, variableMeasured: LOL_COLUMNS.map((c) => c.label), temporalCoverage: String(data.season) }),
+      ]}
       eyebrow="Player Stats"
       title="e스포츠 선수 스탯"
       subtitle={`${LOL_LEAGUE_KO[league]} ${data.season} 시즌 전 선수(세트 기준). 셀 아래 숫자는 규정 표본 안 리그 백분위(높을수록 상위, 데스는 낮을수록 상위). 규정 = 출전 세트 최다의 40% 이상(${built.minGames}세트, ${built.qualifiedCount}명).`}

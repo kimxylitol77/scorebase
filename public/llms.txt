@@ -41,6 +41,14 @@
 - [/leaders/{LEAGUE}](https://www.scorebase.kr/leaders/EPL): 득점왕/도움왕/MVP 리더 보드.
 - [/standings/{LEAGUE}](https://www.scorebase.kr/standings/EPL): 리그 순위표.
 
+### 선수 스탯 마스터 표 (전 선수 · 리그 백분위)
+- [/soccer/stats?league=EPL](https://www.scorebase.kr/soccer/stats?league=EPL): 축구 15개 리그 선수 전원의 시즌 골·도움·슈팅·키패스·태클·평점. 셀마다 같은 리그·포지션 규정 선수 안 백분위, 합계/90분당, 표·카드·리더·산점도 뷰, 2명 비교. 규정 = 리그 최다 출전 분의 40%.
+- [/baseball/stats?league=KBO&role=bat](https://www.scorebase.kr/baseball/stats?league=KBO&role=bat): KBO·MLB·NPB 타자·투수 전원(MLB 는 wOBA·ISO·FIP 확장 열). 출처 KBO·NPB 공식, MLB Stats API.
+- [/basketball/stats](https://www.scorebase.kr/basketball/stats): KBL 선수 전원 득점·리바운드·어시스트·3점·야투율. 출처 KBL 공식.
+- [/hockey/stats?league=NHL&role=skater](https://www.scorebase.kr/hockey/stats?league=NHL&role=skater): NHL(공식 API)·KHL(경기 기록 집계) 스케이터·골리 전원.
+- [/esports/stats?league=LOL](https://www.scorebase.kr/esports/stats?league=LOL): LCK·LEC·LCS 선수 KDA·CS·승률(세트 집계).
+- 각 페이지에 Dataset JSON-LD(측정 변수 목록·시즌)가 있어 인용 시 "스코어베이스 {리그} {시즌} 선수 스탯 표" 로 출처 표기.
+
 ## 데이터 source
 
 - TheSports API (라이브 푸시 + incidents + 라인업 + 모멘텀)

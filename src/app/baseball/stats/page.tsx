@@ -1,6 +1,7 @@
 // 야구 선수 스탯 마스터 표 — KBO·MLB·NPB. 데이터·열·규정만 여기서 정하고 화면은 StatsExplorer 공용.
 // 계산: src/lib/sports/baseball/stats-table.ts · 데이터: player-rankings.getBbLeagueData (매일 갱신)
 import type { Metadata } from "next";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import StatsExplorer from "@/components/stats/StatsExplorer";
 import { BB_LEAGUES, getBbLeagueData, type BbLeague, type BbRole } from "@/lib/sports/baseball/player-rankings";
 import { buildStatRows, columnsFor, type StatRow, type StatUnit } from "@/lib/sports/baseball/stats-table";
@@ -26,6 +27,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title: `${league} ${ROLE_KO[role]} 스탯 표 — 시즌 기록·리그 백분위${unit === "pergame" ? " (경기당)" : ""}`,
     description: `${league} ${ROLE_KO[role]} 전원의 시즌 기록을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 야구 스탯 표.`,
     alternates: { canonical: `/baseball/stats?league=${league}&role=${role}` },
+    keywords: [`${league} ${ROLE_KO[role]} 기록`, `${league} 선수 스탯`, `${league} ${role === "bat" ? "타율 OPS 순위" : "평균자책 순위"}`, "야구 선수 스탯 표", "리그 백분위"],
+    openGraph: { title: `${league} ${ROLE_KO[role]} 스탯 표`, description: `${league} ${ROLE_KO[role]} 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
   };
 }
 
@@ -47,6 +50,10 @@ export default async function BaseballStatsPage({ searchParams }: { searchParams
   return (
     <StatsExplorer
       basePath="/baseball/stats"
+      jsonLd={[
+        breadcrumbLd([{ name: "홈", path: "/" }, { name: "야구", path: "/baseball" }, { name: "선수 스탯 표", path: "/baseball/stats" }, { name: `${league} ${ROLE_KO[role]}`, path: `/baseball/stats?league=${league}&role=${role}` }]),
+        datasetLd({ name: `${league} ${data.season} 시즌 ${ROLE_KO[role]} 스탯 표`, description: `${league} ${ROLE_KO[role]} ${data.rows.length}명의 ${data.season} 시즌 기록과 리그 백분위(규정 ${built.qualifiedCount}명).`, path: `/baseball/stats?league=${league}&role=${role}`, variableMeasured: cols.map((c) => c.label), temporalCoverage: String(data.season) }),
+      ]}
       eyebrow="Player Stats"
       title="야구 선수 스탯"
       subtitle={`${data.season} 시즌 ${league} ${ROLE_KO[role]} 전원. 셀 아래 숫자는 규정 표본 안 리그 백분위(높을수록 상위, ERA·WHIP·패는 낮을수록 상위). 규정 = ${role === "bat" ? `${built.minGames}경기 이상 출장` : "30이닝 이상"} (${built.qualifiedCount}명).`}
