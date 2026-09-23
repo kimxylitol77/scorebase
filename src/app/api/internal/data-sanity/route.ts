@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { BASEBALL_LEAGUES, MMA_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchSoccerLive } from "@/lib/sports/live-scores";
+import { fetchEspnNhlByDate } from "@/lib/sports/espn-nhl";
 import { GROUPED_STANDINGS_LEAGUES } from "@/lib/sports/thesports/standings-helper";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
@@ -223,6 +224,19 @@ export async function GET(req: NextRequest) {
     return afLiveIdsPromise;
   };
 
+  // ESPN NHL 스코어보드에서 진행 중(LIVE)인 이벤트 id set — NHL stale 의심이 나올 때만 lazy.
+  // NHL 은 ts cache 가 원래 없고 Match.updatedAt 은 점수 변동시만 갱신이라 인터미션·무득점
+  // 30분이면 매번 오탐(2026-09-23 #12357741·#12357742: ESPN in 상태·점수 일치). ESPN 은 미국
+  // 동부 날짜로 묶어 UTC 자정 넘긴 경기가 전날 키에 들어가므로 당일·전일 두 날짜를 합친다.
+  // (NBA 는 externalId 가 ESPN id 가 아닌 합성 id 라 같은 방식 불가 — 대상 아님.)
+  let espnNhlLiveIdsPromise: Promise<Set<string>> | null = null;
+  const getEspnNhlLiveIds = () => {
+    espnNhlLiveIdsPromise ??= Promise.all(
+      [0, 1].map((d) => fetchEspnNhlByDate(new Date(now - d * 86400e3).toISOString()).catch(() => [])),
+    ).then((lists) => new Set(lists.flat().filter((e) => e.status === "LIVE").map((e) => e.externalId)));
+    return espnNhlLiveIdsPromise;
+  };
+
   for (const m of matches) {
     const matchInfo = {
       matchId: m.id,
@@ -269,6 +283,11 @@ export async function GET(req: NextRequest) {
           const afLiveIds = await getAfLiveFixtureIds();
           const fid = m.apiFixtureId != null ? String(m.apiFixtureId) : m.externalId;
           if (afLiveIds.has(fid)) continue;
+        }
+        // NHL(ESPN 소스) — 위 af 면제와 같은 구조. ESPN 에서 사라졌는데 LIVE 잔류면 진짜 stuck.
+        if (!cacheUpdatedAt && m.league === "NHL") {
+          const espnLive = await getEspnNhlLiveIds();
+          if (espnLive.has(m.externalId)) continue;
         }
         issues.push({
           ...matchInfo,
