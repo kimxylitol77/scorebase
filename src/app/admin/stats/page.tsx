@@ -20,10 +20,8 @@ import {
 } from "@/components/admin/RangeStats";
 import { computeRangeStats } from "@/lib/admin/stats-range";
 import { detectBot, type BotCategory } from "@/lib/bot-detect";
-import { suspiciousSessionIds } from "@/lib/traffic-filter";
 import { getDailyTraffic } from "@/lib/admin/daily-traffic";
 import {
-  classifyLanding,
   CHANNEL_META,
   CHANNEL_ORDER,
   type TrafficChannel,
@@ -71,14 +69,12 @@ export default async function StatsPage() {
   const now = new Date();
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const last7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const last14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
   const today00KST = new Date(dayKey(now) + "T00:00:00+09:00");
   const yesterday00KST = new Date(today00KST.getTime() - 24 * 60 * 60 * 1000);
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, totalAll, landing14Raw, memberPvRaw, allUsers, gsc, bing, dayUaAgg, hourUaAgg, landingAgg, initialStats, dailyTraffic] = await Promise.all([
+  const [recent30Raw, totalAll, memberPvRaw, allUsers, gsc, bing, dayUaAgg, hourUaAgg, initialStats, dailyTraffic] = await Promise.all([
     // ⚠️ orderBy 필수 — 30일 PV 가 take 를 넘으면(2026-08-01 실측 107k > 100k) 정렬 없는
     // findMany 는 임의 서브셋을 줘서 최신(오늘) 행이 잘렸다 → 오늘 KPI 가 1/5 로 축소 표시.
     // desc 로 최신부터 담으면 오늘·어제 KPI 는 항상 온전. 30일 차트는 2026-09-12 부터 SQL 집계(dayUaAgg)라 잘림 무관.
@@ -89,14 +85,6 @@ export default async function StatsPage() {
       orderBy: { ts: "desc" },
     }),
     prisma.pageView.count(),
-    // 유입 채널 주간 비교용 — range 와 무관하게 14일 고정(이번 주 7일 + 지난주 7일).
-    // 위 landingRaw 와 같은 랜딩 1행 원칙, ts 만 추가로 가져와 코드에서 주 분리.
-    prisma.pageView.findMany({
-      where: { isLanding: true, ts: { gte: last14 } },
-      select: { ts: true, referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
-      take: 100000,
-      orderBy: { ts: "desc" },
-    }),
     // 회원 이탈 분석용 — 로그인 상태 PV 전체 (userId 는 2026-07-28 이후 수집분만 존재).
     // range 와 무관하게 전체 기간 — 잠수 판정은 "마지막 접속이 언제냐" 라 절대 시점 기준.
     prisma.pageView.findMany({
@@ -118,13 +106,6 @@ export default async function StatsPage() {
       SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'HH24') AS hour, "userAgent" AS ua,
              count(*)::int AS pv, count(DISTINCT "sessionId")::int AS visitors
       FROM "PageView" WHERE ts >= ${last24h} GROUP BY 1, 2`,
-    // 유입 채널 카드 — 랜딩 행 33만(30일만 21만)이라 take 10만은 잘린다. (일, referrer 호스트, utm, UA) 로 접어
-    // 12k 그룹·2.8s. classifyLanding 은 호스트만 보므로 "https://host/" 로 되살려 넘긴다. 봇 판정은 detectBot(UA).
-    prisma.$queryRaw<Array<{ day: string; host: string; utm: string | null; ua: string | null; n: number; sessions: number }>>`
-      SELECT to_char(ts AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day,
-             split_part(split_part(coalesce(referrer, ''), '://', 2), '/', 1) AS host,
-             "utmSource" AS utm, "userAgent" AS ua, count(*)::int AS n, count(DISTINCT "sessionId")::int AS sessions
-      FROM "PageView" WHERE "isLanding" = true GROUP BY 1, 2, 3, 4`,
     // 기간 카드 초기값(7일) — 나머지 기간은 클라이언트가 API 로 받는다. 계산은 lib/admin/stats-range 한 곳.
     computeRangeStats(range),
     // 일별 사람 방문자·PV — 봇·위장 스크레이퍼 제외. 위 KPI 의 오늘·어제와 같은 출처.
@@ -138,15 +119,10 @@ export default async function StatsPage() {
     userAgent: string | null;
     sessionId: string | null;
   };
-  const humans30: Row[] = [];
   const bots30: Array<Row & { botCategory: BotCategory; botName: string }> = [];
   for (const r of recent30Raw) {
     const info = detectBot(r.userAgent);
-    if (info.isBot && info.category && info.name) {
-      bots30.push({ ...r, botCategory: info.category, botName: info.name });
-    } else {
-      humans30.push(r);
-    }
+    if (info.isBot && info.category && info.name) bots30.push({ ...r, botCategory: info.category, botName: info.name });
   }
   // 봇 오늘·어제 — 30일 원본(bots30) 기준, 기간과 무관.
   const inRange = (rows: Row[], from: Date, to?: Date) => rows.filter((r) => r.ts >= from && (!to || r.ts < to)).length;
@@ -199,21 +175,28 @@ export default async function StatsPage() {
   const botDailyAll = Array.from(botByDay.entries()).map(([d, v]) => ({ date: shortDay(new Date(d + "T12:00:00Z")), views: v }));
   const botDailyPanels = { "7d": botDailyAll.slice(-7), "30d": botDailyAll.slice(-30), all: botDailyAll } as const;
 
-  // 유입 채널 — 세 기간 각각 채널별 유입·방문자(고유 세션). 같은 세션이 채널 안에서 다른 호스트로 두 번 랜딩하면 방문자가 1 더 세질 수 있다(드묾).
-  const channelFor = (k: RangeKey) => {
-    const cutoff = k === "all" ? "" : dayKey(new Date(now.getTime() - (RANGE_DAYS[k] - 1) * 24 * 60 * 60 * 1000));
+  // 유입 채널 — 일별 저장값(DailyTraffic.channels: 그날 판정으로 봇·위장 스크레이퍼를 뺀 랜딩)의 합.
+  // 원본 랜딩을 매 요청 다시 판정하면 잘리거나(take) 기간당 6~41초 걸린다(2026-09-24 실측). 판정 규칙은
+  // traffic-filter dailyCleanStats 하나라 일별 방문자 표와 같은 기준이다.
+  // 방문자 = 일별 고유 세션의 합 — 여러 날 들어온 같은 세션은 날마다 1씩 센다.
+  const sumChannels = (fromDay: string, toDay: string) => {
     const agg = new Map<TrafficChannel, { count: number; unique: number }>();
     let total = 0;
-    for (const g of landingAgg) {
-      if (g.day < cutoff) continue;
-      if (detectBot(g.ua).isBot) continue;
-      const { channel } = classifyLanding(g.host ? `https://${g.host}/` : null, g.utm, g.ua);
-      const e = agg.get(channel) ?? { count: 0, unique: 0 };
-      e.count += g.n;
-      e.unique += g.sessions;
-      agg.set(channel, e);
-      total += g.n;
+    for (const [d, v] of dailyTraffic) {
+      if (d < fromDay || d > toDay) continue;
+      for (const [c, e] of Object.entries(v.channels) as Array<[TrafficChannel, { count: number; unique: number }]>) {
+        const cur = agg.get(c) ?? { count: 0, unique: 0 };
+        cur.count += e.count;
+        cur.unique += e.unique;
+        agg.set(c, cur);
+        total += e.count;
+      }
     }
+    return { total, agg };
+  };
+  const dayAgo = (n: number) => dayKey(new Date(now.getTime() - n * 24 * 60 * 60 * 1000));
+  const channelFor = (k: RangeKey) => {
+    const { total, agg } = sumChannels(k === "all" ? "" : dayAgo(RANGE_DAYS[k] - 1), dayKey(now));
     return { total, rows: CHANNEL_ORDER.map((c) => ({ channel: c, count: agg.get(c)?.count ?? 0, unique: agg.get(c)?.unique ?? 0 })) };
   };
   const channelPanels = { "7d": channelFor("7d"), "30d": channelFor("30d"), all: channelFor("all") } as const;
@@ -286,32 +269,16 @@ export default async function StatsPage() {
   const naverDaumQueries = initialStats.searchQueries
     .filter((q) => q.channel === "naver" || q.channel === "daum")
     .slice(0, 10);
-  // === 유입 채널 지난주 대비 — 이번 주(최근 7일) vs 지난주(그 전 7일), range 무관 고정 ===
-  // 집계 원칙은 위 채널 집계와 동일(봇 제외·의심 스크레이퍼 제외·classifyLanding) — 기간 축만 주 단위.
-  // 의심 봇 휴리스틱의 "기간 내 PV 1개" 판정이 기간 종속이라, 전역 suspiciousSids 대신
-  // 각 주 윈도우 기준으로 같은 휴리스틱을 재계산한다 (사람 PV 는 humans30 이 14일을 포함).
-  const aggChannelWeek = (from: Date, to: Date) => {
-    const weekHumans = humans30.filter((r) => r.ts >= from && r.ts < to);
-    const weekRows = landing14Raw.filter((l) => l.ts >= from && l.ts < to);
-    const suspiciousWeek = suspiciousSessionIds(weekHumans, weekRows);
-    const counts = new Map<TrafficChannel, number>();
-    let total = 0;
-    for (const l of weekRows) {
-      if (detectBot(l.userAgent).isBot) continue;
-      if (l.sessionId && suspiciousWeek.has(l.sessionId)) continue;
-      const { channel } = classifyLanding(l.referrer, l.utmSource, l.userAgent);
-      counts.set(channel, (counts.get(channel) ?? 0) + 1);
-      total++;
-    }
-    return { counts, total };
-  };
-  const weekCur = aggChannelWeek(last7, now);
-  const weekPrev = aggChannelWeek(last14, last7);
+  // === 유입 채널 지난주 대비 — 이번 주 = 어제까지 7일, 지난주 = 그 전 7일 (온전한 날끼리), range 무관 고정 ===
+  // 오늘을 넣으면 반나절치 이번 주를 온전한 7일 지난주와 비교하게 된다. 집계는 위 채널 막대와 같은 일별 저장값.
+  // 전엔 최근 14일 랜딩을 take 10만으로 읽어 지난주가 1/3 만 담겨 +312% 로 부풀었다(2026-09-24, 실제 +43%).
+  const weekCur = sumChannels(dayAgo(7), dayAgo(1));
+  const weekPrev = sumChannels(dayAgo(14), dayAgo(8));
   // 양주 모두 0 인 채널도 행 유지 (위 channelData 와 동일 이유).
   const weekChannelRows = CHANNEL_ORDER.map((c) => ({
     channel: c,
-    cur: weekCur.counts.get(c) ?? 0,
-    prev: weekPrev.counts.get(c) ?? 0,
+    cur: weekCur.agg.get(c)?.count ?? 0,
+    prev: weekPrev.agg.get(c)?.count ?? 0,
   }));
 
   // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
@@ -506,7 +473,7 @@ export default async function StatsPage() {
           </span>
         </div>
 
-        <SectionCard title="어디서 들어왔나" subtitle="랜딩 기준 · 봇 제외 · 방문자 = 고유 세션">
+        <SectionCard title="어디서 들어왔나" subtitle="랜딩 기준 · 봇·위장 스크레이퍼 제외 · 방문자 = 일별 고유 세션 합">
           <SectionRangeTabs
             id="channels"
             panels={{ "7d": <ChannelPanel p={channelPanels["7d"]} />, "30d": <ChannelPanel p={channelPanels["30d"]} />, all: <ChannelPanel p={channelPanels.all} /> }}
@@ -517,7 +484,7 @@ export default async function StatsPage() {
 
         <SectionCard
           title="지난주 대비"
-          subtitle="이번 주 = 최근 7일 · 지난주 = 그 전 7일 (기간 선택과 무관)"
+          subtitle="이번 주 = 어제까지 7일 · 지난주 = 그 전 7일 (기간 선택과 무관)"
         >
           {weekCur.total === 0 && weekPrev.total === 0 ? (
             <EmptyHint message="최근 14일 랜딩 유입이 없어 비교할 데이터가 없습니다." />

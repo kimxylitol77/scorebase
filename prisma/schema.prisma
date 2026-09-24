@@ -352,6 +352,8 @@ model DailyTraffic {
   pv        Int
   /// 그날 의심(위장 스크레이퍼) 세션 수 — 급증 알림이 직전 14일 중앙값과 비교한다.
   suspicious Int     @default(0)
+  /// 그날 채널별 사람 랜딩 {channel: {count, unique}} — 같은 판정(봇·위장 스크레이퍼 제외). admin/stats 유입 채널 카드가 합산한다.
+  channels  Json?
   updatedAt DateTime @updatedAt
 }
 

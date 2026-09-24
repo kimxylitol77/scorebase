@@ -4,9 +4,10 @@
 // 지난 날짜는 DailyTraffic 에 저장해 두고(cron daily-traffic 이 매일 00:10 KST 에 어제·그제분 저장),
 // 오늘과 아직 저장되지 않은 어제만 즉석 계산한다.
 import { prisma } from "@/lib/db";
-import { automatedUserAgents, dailyCleanStats, filterHumans } from "@/lib/traffic-filter";
+import { automatedUserAgents, dailyCleanStats, filterHumans, type ChannelCounts } from "@/lib/traffic-filter";
 
-export type DayTraffic = { visitors: number; pv: number; suspicious: number };
+/** channels — 그날 채널별 사람 랜딩(유입 채널 카드 합산 재료). 저장 전 날짜는 빈 객체. */
+export type DayTraffic = { visitors: number; pv: number; suspicious: number; channels: ChannelCounts };
 /** 그날 세션을 가장 많이 만든 자동화 UA(traffic-filter 규칙 C) — 스크레이퍼 급증 알림 재료. */
 export type TopAutomated = { ua: string; sessions: number; topPaths: Array<{ path: string; pv: number }> };
 
@@ -54,7 +55,7 @@ export async function computeDayTraffic(day: string): Promise<DayTraffic & { top
 
 export async function storeDayTraffic(day: string) {
   const v = await computeDayTraffic(day);
-  const row = { visitors: v.visitors, pv: v.pv, suspicious: v.suspicious };
+  const row = { visitors: v.visitors, pv: v.pv, suspicious: v.suspicious, channels: v.channels };
   await prisma.dailyTraffic.upsert({ where: { day }, create: { day, ...row }, update: row });
   return v;
 }
@@ -63,10 +64,12 @@ export async function storeDayTraffic(day: string) {
 export async function getDailyTraffic(now: Date = new Date()): Promise<Map<string, DayTraffic>> {
   const today = kstDayKey(now);
   const yesterday = kstDayKey(new Date(now.getTime() - 24 * 3600 * 1000));
-  const stored = await prisma.dailyTraffic.findMany({ select: { day: true, visitors: true, pv: true, suspicious: true } });
-  const map = new Map<string, DayTraffic>(stored.map((r) => [r.day, { visitors: r.visitors, pv: r.pv, suspicious: r.suspicious }]));
+  const stored = await prisma.dailyTraffic.findMany({ select: { day: true, visitors: true, pv: true, suspicious: true, channels: true } });
+  const map = new Map<string, DayTraffic>(
+    stored.map((r) => [r.day, { visitors: r.visitors, pv: r.pv, suspicious: r.suspicious, channels: (r.channels as ChannelCounts | null) ?? {} }]),
+  );
   const live = [today, ...(map.has(yesterday) ? [] : [yesterday])];
   const vals = await Promise.all(live.map((d) => computeDayTraffic(d)));
-  live.forEach((d, i) => map.set(d, { visitors: vals[i].visitors, pv: vals[i].pv, suspicious: vals[i].suspicious }));
+  live.forEach((d, i) => map.set(d, { visitors: vals[i].visitors, pv: vals[i].pv, suspicious: vals[i].suspicious, channels: vals[i].channels }));
   return map;
 }

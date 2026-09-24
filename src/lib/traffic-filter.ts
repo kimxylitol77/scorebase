@@ -4,6 +4,7 @@
 // 다른 규칙으로 세면 화면 숫자와 보고가 어긋난다(2026-08-22 실측: 8/22 방문자가 407·298·293
 // 세 갈래). 이 파일 밖에서 트래픽 지표를 새로 정의하지 말 것 — 여기 함수만 쓴다.
 import { detectBot } from "@/lib/bot-detect";
+import { classifyLanding, type TrafficChannel } from "@/lib/referrer-channel";
 
 export interface TrafficRow {
   ts: Date;
@@ -101,19 +102,38 @@ export function cleanHumanRows<T extends TrafficRow>(rows: T[], landings: Landin
   return humans.filter((r) => !r.sessionId || !sus.has(r.sessionId));
 }
 
+/** 채널별 사람 랜딩 — count 는 랜딩 수, unique 는 고유 세션 수. */
+export type ChannelCounts = Partial<Record<TrafficChannel, { count: number; unique: number }>>;
+
 /**
  * 하루치 사람 방문자·PV — 그날 PV·랜딩만 넣어 판정한다. admin/stats 의 일별 표와 오늘·어제 KPI 가
  * 이 함수 하나를 쓴다(2026-09-18: 표는 봇 UA 만 걸러 어제 1,875명, KPI 는 420명으로 갈렸다).
  * 판정 창을 그날로 고정해 두면 확정된 날의 값이 나중에 바뀌지 않는다.
+ *
+ * channels 는 같은 판정을 통과한 랜딩의 유입 채널별 수 — 유입 채널 카드가 이 일별값을 합산한다.
+ * 전엔 카드가 원본 랜딩을 직접 읽었는데, take 잘림으로 지난주가 1/3 만 담겨 +312%(실제 +43%)가 나왔고
+ * 막대 쪽은 봇 UA 만 걸러 위장 크롤러 1만 건이 "직접" 에 섞였다(2026-09-24).
  */
 export function dailyCleanStats(
   dayRows: TrafficRow[],
   dayLandings: LandingRow[],
-): { visitors: number; pv: number; suspicious: number } {
+): { visitors: number; pv: number; suspicious: number; channels: ChannelCounts } {
   const humans = filterHumans(dayRows);
   const sus = suspiciousSessionIds(humans, dayLandings);
   const clean = humans.filter((r) => !r.sessionId || !sus.has(r.sessionId));
-  return { pv: clean.length, visitors: new Set(clean.map((r) => r.sessionId).filter(Boolean)).size, suspicious: sus.size };
+  const byChannel = new Map<TrafficChannel, { count: number; sessions: Set<string> }>();
+  for (const l of dayLandings) {
+    if (detectBot(l.userAgent).isBot) continue;
+    if (l.sessionId && sus.has(l.sessionId)) continue;
+    const { channel } = classifyLanding(l.referrer, l.utmSource, l.userAgent);
+    const e = byChannel.get(channel) ?? { count: 0, sessions: new Set<string>() };
+    e.count++;
+    if (l.sessionId) e.sessions.add(l.sessionId);
+    byChannel.set(channel, e);
+  }
+  const channels: ChannelCounts = {};
+  for (const [c, e] of byChannel) channels[c] = { count: e.count, unique: e.sessions.size };
+  return { pv: clean.length, visitors: new Set(clean.map((r) => r.sessionId).filter(Boolean)).size, suspicious: sus.size, channels };
 }
 
 export interface ConcurrentBucket {
