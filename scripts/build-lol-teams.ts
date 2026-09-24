@@ -34,7 +34,17 @@ async function page(p: number): Promise<TsTeam[] | null> {
       for (const s of d.sets ?? []) for (const side of [s.red, s.blue]) if (side?.id) wanted.add(side.id);
     } catch { /* 깨진 행은 건너뛴다 */ }
   }
-  console.log(`경기 기록 등장 팀: ${wanted.size}개`);
+  // 순위 JSON 도 같은 ts 팀 id 를 쓴다. LPL 은 lolGames 미수집이라 여기서만 잡힌다
+  // (LPL 순위 팀명이 영어판에 한글로 남던 원인). LPL 만 그룹(part_stage) 중첩이라 한 겹 더 들어간다.
+  type Row = { teamId?: string };
+  for (const f of ["data/lol-standings.json", "data/lol-standings-LEC.json", "data/lol-standings-LCS.json", "data/lol-standings-LPL.json"]) {
+    if (!fs.existsSync(f)) continue;
+    const d = JSON.parse(fs.readFileSync(f, "utf8")) as { standings?: Row[]; groups?: Array<{ standings?: Row[] }> };
+    for (const t of [...(d.standings ?? []), ...(d.groups ?? []).flatMap((g) => g.standings ?? [])]) {
+      if (t.teamId) wanted.add(t.teamId);
+    }
+  }
+  console.log(`경기 기록·순위 등장 팀: ${wanted.size}개`);
 
   const teams: Record<string, { name: string; abbr?: string; logo?: string }> = {};
   for (let p = 1; p <= 15; p++) {

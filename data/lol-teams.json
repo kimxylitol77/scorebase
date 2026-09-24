@@ -1,6 +1,11 @@
 {
-  "updatedAt": "2026-09-24T07:10:04.863Z",
+  "updatedAt": "2026-09-24T07:38:42.006Z",
   "teams": {
+    "23xmvxjt319zrg8": {
+      "name": "EDward Gaming",
+      "abbr": "EDG",
+      "logo": "https://eimg.thesports.com/lol/team/2f6a16771b9e8f03507e7f8a7307ab4e.png"
+    },
     "zp5rz5pfjv49r82": {
       "name": "Cloud9",
       "abbr": "C9",
@@ -20,6 +25,26 @@
       "name": "Bilibili Gaming",
       "abbr": "BLG",
       "logo": "https://eimg.thesports.com/lol/team/FuQ-HVlJW08a3QSsFNrwgDSrV-kn"
+    },
+    "8yomow3t7l4xr0j": {
+      "name": "LGD Gaming",
+      "abbr": "LGD",
+      "logo": "https://eimg.thesports.com/lol/team/Fg_MRnJU_nJIN_fhBFBAoLoAscP5"
+    },
+    "6ypq3e3u0ynnmd7": {
+      "name": "Invictus Gaming",
+      "abbr": "IG",
+      "logo": "https://eimg.thesports.com/lol/team/8e0be89305eafd6f37503187a6fc4c53.png"
+    },
+    "pxwrx81ug83xqyk": {
+      "name": "Team WE",
+      "abbr": "WE",
+      "logo": "https://eimg.thesports.com/lol/team/a5e8b721fa3495424ab2f7f813ccfd9e.png"
+    },
+    "23xmvxjt310zrg8": {
+      "name": "LNG Esports",
+      "abbr": "LNG",
+      "logo": "https://eimg.thesports.com/lol/team/5b00639e9203f5adac6655d783e11d88.png"
     },
     "zp5rz5pfjvw9r82": {
       "name": "JD Gaming",
@@ -41,6 +66,11 @@
       "abbr": "FNC",
       "logo": "https://eimg.thesports.com/lol/team/FrCa25cDJVB_9-p2TJuiDysDDTlk"
     },
+    "965mk6zt7d83q1g": {
+      "name": "Top Esports",
+      "abbr": "TES",
+      "logo": "https://eimg.thesports.com/lol/team/1139c61f11e06147a05b9180b9ce064a.png"
+    },
     "2y8m4exu3yv5ql0": {
       "name": "FlyQuest",
       "abbr": "FLY",
@@ -55,6 +85,11 @@
       "name": "GAM Esports",
       "abbr": "GAM",
       "logo": "https://eimg.thesports.com/lol/team/FlILBcHMX4Rlg0hrt3BvGPeC3Eiw"
+    },
+    "pxwrx81ug8nkqyk": {
+      "name": "Ninjas in Pyjamas",
+      "abbr": "NIP",
+      "logo": "https://eimg.thesports.com/lol/team/FqCjTdpLzs0aJwMyocEK7zI1DTOi"
     },
     "1l4rjevu6o0km7v": {
       "name": "Movistar KOI",
@@ -111,10 +146,20 @@
       "abbr": "TS",
       "logo": "https://eimg.thesports.com/lol/team/FsWDvr9s1qwVIIKATJeNZ9CBn9cU"
     },
+    "8yomow3t7d7zr0j": {
+      "name": "ThunderTalk Gaming",
+      "abbr": "TT",
+      "logo": "https://eimg.thesports.com/lol/team/Fi06LtV6yXZji05FCa8wywt68Zzm"
+    },
     "318q6g8to50vro9": {
       "name": "Karmine Corp",
       "abbr": "KC",
       "logo": "https://eimg.thesports.com/lol/team/FpvzFLOCAur7cd59-22EEQlzsSw0"
+    },
+    "pxwrx81ugk2oqyk": {
+      "name": "Weibo Gaming",
+      "abbr": "WBG",
+      "logo": "https://eimg.thesports.com/lol/team/FsGLCKNVEaNUowzakjbT75oqQIsY"
     },
     "n54qleou2okvmvy": {
       "name": "Anyone's Legend",

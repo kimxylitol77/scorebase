@@ -7,6 +7,7 @@ import LolForeignTabs, {
   type ForeignChampRow,
 } from "@/components/en/LolForeignTabs";
 import { aggregateLolPlayers, aggregateLolChampions } from "@/lib/sports/lol-player-stats";
+import { lolTeamNameEn } from "@/lib/sports/lol-teams";
 import lecData from "../../../data/lol-standings-LEC.json";
 import lcsData from "../../../data/lol-standings-LCS.json";
 import lolHeroes from "../../../data/lol-heroes.json";
@@ -115,7 +116,7 @@ export default async function LolSimpleStandings({ league, name }: { league: str
         ))}
       </div>
 
-      <LolForeignTabs league={league} standings={data.standings} players={players} champs={champs} />
+      <LolForeignTabs league={league} standings={data.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name }))} players={players} champs={champs} />
 
       <p className="text-[11px] text-neutral-400 text-center pt-1">
         ⓘ Regular split standings · player and champion stats from collected games · updated after each match

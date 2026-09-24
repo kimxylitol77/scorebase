@@ -1,6 +1,15 @@
 {
   "header": "LolSimpleStandings (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
-  "preReplace": [],
+  "preReplace": [
+    [
+      "import { aggregateLolPlayers, aggregateLolChampions } from \"@/lib/sports/lol-player-stats\";",
+      "import { aggregateLolPlayers, aggregateLolChampions } from \"@/lib/sports/lol-player-stats\";\nimport { lolTeamNameEn } from \"@/lib/sports/lol-teams\";"
+    ],
+    [
+      "standings={data.standings}",
+      "standings={data.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name }))}"
+    ]
+  ],
   "dict": {
     "유럽 · League of Legends EMEA Championship": "Europe · League of Legends EMEA Championship",
     "북미 · League of Legends Championship Series": "North America · League of Legends Championship Series",

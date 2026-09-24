@@ -1,6 +1,15 @@
 {
   "header": "LolLplStandings (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
-  "preReplace": [],
+  "preReplace": [
+    [
+      "import LolLplTabs, { type LplGroup } from \"@/components/LolLplTabs\";",
+      "import LolLplTabs, { type LplGroup } from \"@/components/LolLplTabs\";\nimport { lolTeamNameEn } from \"@/lib/sports/lol-teams\";"
+    ],
+    [
+      "groups={data.groups}",
+      "groups={data.groups.map((g) => ({ ...g, standings: g.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name })) }))}"
+    ]
+  ],
   "dict": {
     "e스포츠 라이브": "Esports live",
     "순위": "Standings",

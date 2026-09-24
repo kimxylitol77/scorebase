@@ -334,11 +334,13 @@ export const EN_STANDINGS_LEAGUE_SET = new Set<string>([
 const TEAM_NAME_EN: Record<string, string> = {
   // LoL 해외 팀 (DB Team.name 이 한글)
   "G2 e스포츠": "G2 Esports",
+  "GAM e스포츠": "GAM Esports",
   "JD 게이밍": "JD Gaming",
   "LGD 게이밍": "LGD Gaming",
   "LNG e스포츠": "LNG Esports",
   "나투스 빈케레": "Natus Vincere",
   "닌자 인 파자마스": "Ninjas in Pyjamas",
+  "딥 크로스 게이밍": "Deep Cross Gaming",
   "리옹": "LYON",
   "빌리빌리 게이밍": "Bilibili Gaming",
   "쇼피파이 리벨리온": "Shopify Rebellion",
@@ -348,12 +350,16 @@ const TEAM_NAME_EN: Record<string, string> = {
   "웨이보 게이밍": "Weibo Gaming",
   "인빅터스 게이밍": "Invictus Gaming",
   "자이언트엑스": "GIANTX",
+  "징동 게이밍": "JD Gaming",
+  "카르민 코프": "Karmine Corp",
   "클라우드9": "Cloud9",
   "탑 e스포츠": "Top Esports",
   "팀 WE": "Team WE",
   "팀 리퀴드": "Team Liquid",
   "팀 바이탈리티": "Team Vitality",
+  "팀 시크릿": "Team Secret",
   "팀 헤레틱스": "Team Heretics",
+  "푸리아": "FURIA Esports",
   // MLB (mlb-player-extras 의 teamLabel 이 한국어 축약형)
   "애리조나": "Diamondbacks",
   "애틀랜타": "Braves",
@@ -480,7 +486,6 @@ const TEAM_NAME_EN: Record<string, string> = {
   "입스위치": "Ipswich Town",
   "헐 시티": "Hull City",
   "디트로이트 피스턴스": "Detroit Pistons",
-  "카르민 코프": "Kapfenberger SV",
 };
 
 export function toEnglishTeamName(name: string): string {
