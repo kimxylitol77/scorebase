@@ -12,6 +12,7 @@ import { getRecentForm } from "@/lib/predict/recent-form";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { afGroupLabel } from "@/lib/sports/af-group-label";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
 import { LEAGUE_DISPLAY, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
@@ -442,7 +443,9 @@ export default async function StandingsPage({ params }: Props) {
     /** 조별 대회면 "A조" — 표를 조마다 따로 그린다 */
     group?: string;
   }>;
-  let source: "ts" | "calc" = "calc";
+  // "af" = api-football 조별 표(ts 표가 없는 대회). 공식 표라는 점은 ts 와 같지만
+  // 화면에 출처를 그대로 적어야 해서 값을 나눈다 — ts 로 뭉뚱그리면 없는 출처를 표기하게 된다.
+  let source: "ts" | "af" | "calc" = "calc";
 
   if (tsStandings && tsStandings.tables.length > 0 && (!tsAllZero || tsPlaceholderOk)) {
     // ts 결과 사용 — 일반 리그는 첫 번째 table. 조별 대회(아시안게임 등)는 group 번호가 있는 표 전부를
@@ -501,6 +504,64 @@ export default async function StandingsPage({ params }: Props) {
       promotionName: undefined,
     }));
     source = "ts";
+  }
+
+  // api-football 조별 표 — ts 표가 아예 없는 조별 대회용(UEFA_NL 실측: ts 0표 / af 14조 54팀).
+  // ts 다음·자체 계산 앞에 둔다. ts 가 있으면 여기 오지 않으므로 기존 리그는 영향이 없다.
+  // 팀 연결은 TeamSourceId(source="api-football") — 국가대표 Team row 는 INTL_FRIENDLY 라벨에
+  // 살기 때문에 league 라벨로 찾으면 못 찾는다(UEFA_NL 라벨은 3개뿐이었다).
+  if (source === "calc" && isSoccerLeague) {
+    const afRow = await prisma.apiFootballStandingsCache.findUnique({
+      where: { league: upper },
+      select: { rows: true },
+    });
+    const afRows =
+      (afRow?.rows as unknown as Array<{
+        teamExternalId: string;
+        position: number;
+        points: number;
+        won?: number;
+        draw?: number;
+        loss?: number;
+        goalsFor?: number;
+        goalsAgainst?: number;
+        group?: string;
+      }>) ?? [];
+    const afGroups = new Set(afRows.map((r) => r.group).filter(Boolean));
+    // 조가 2개 이상일 때만 — 단일 표는 기존 경로(ts·calc)가 이미 처리한다.
+    if (afRows.length > 0 && afGroups.size >= 2) {
+      const srcIds = await prisma.teamSourceId.findMany({
+        where: { league: upper, source: "api-football", externalId: { in: afRows.map((r) => r.teamExternalId) } },
+        select: { externalId: true, teamId: true },
+      });
+      const extToId = new Map(srcIds.map((s) => [s.externalId, s.teamId]));
+      const afMapped = afRows
+        .filter((r) => extToId.has(r.teamExternalId))
+        .map((r) => {
+          const gf = r.goalsFor ?? 0;
+          const ga = r.goalsAgainst ?? 0;
+          return {
+            group: afGroupLabel(r.group ?? ""),
+            position: r.position,
+            teamId: extToId.get(r.teamExternalId)!,
+            played: (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0),
+            wins: r.won ?? 0,
+            draws: r.draw ?? 0,
+            losses: r.loss ?? 0,
+            goalsFor: gf,
+            goalsAgainst: ga,
+            goalDiff: gf - ga,
+            points: r.points,
+            promotionColor: undefined,
+            promotionName: undefined,
+          };
+        });
+      // 한 조라도 통째로 미매핑이면 반쪽 표가 된다 — 전부 실으거나 아예 안 쓴다.
+      if (afMapped.length === afRows.length) {
+        rows = afMapped;
+        source = "af";
+      }
+    }
   }
 
   if (source === "calc") {
@@ -632,7 +693,11 @@ export default async function StandingsPage({ params }: Props) {
         <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
         <p className="text-sm text-neutral-500 mt-2 break-keep">
           {rows!.length}팀 · {showingLastSeason ? "지난 시즌 최종 순위" : "시즌 진행 중"} ·{" "}
-          {source === "ts" ? "TheSports 실시간 갱신" : "FINISHED 매치 기반 계산"}
+          {source === "ts"
+            ? "TheSports 실시간 갱신"
+            : source === "af"
+              ? "api-football 공식 순위표"
+              : "FINISHED 매치 기반 계산"}
         </p>
         {isBaseball && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
@@ -765,7 +830,7 @@ export default async function StandingsPage({ params }: Props) {
       })()}
 
       <div className="text-[11px] text-neutral-400 text-center pt-2">
-        {source === "ts" ? "ⓘ 공식 순위표 기준. 조별 대회는 조마다 표시." : "ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외."}
+        {source !== "calc" ? "ⓘ 공식 순위표 기준. 조별 대회는 조마다 표시." : "ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외."}
       </div>
 
       {poOdds && (

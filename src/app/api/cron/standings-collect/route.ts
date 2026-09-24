@@ -54,7 +54,13 @@ interface AfStandingsResp {
           rank: number;
           team: { id: number; name: string };
           points: number;
-          all?: { played?: number; win?: number; draw?: number; lose?: number };
+          all?: {
+            played?: number;
+            win?: number;
+            draw?: number;
+            lose?: number;
+            goals?: { for?: number; against?: number };
+          };
           group?: string;
         }>
       >;
@@ -69,6 +75,10 @@ interface RowOut {
   won: number;
   draw: number;
   loss: number;
+  /** 득실 — ts 표가 없는 대회에서 af 를 순위 소스로 그대로 렌더할 때 필요(UEFA_NL 등).
+   *  기존 캐시 행에는 없다 — 읽는 쪽이 undefined 를 견뎌야 한다. */
+  goalsFor?: number;
+  goalsAgainst?: number;
   group?: string;
 }
 
@@ -100,6 +110,8 @@ async function fetchStandings(
           won: r.all?.win ?? 0,
           draw: r.all?.draw ?? 0,
           loss: r.all?.lose ?? 0,
+          goalsFor: r.all?.goals?.for,
+          goalsAgainst: r.all?.goals?.against,
           group: r.group,
         });
       }

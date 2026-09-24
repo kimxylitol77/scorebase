@@ -130,6 +130,9 @@ export const STAGED_COMPETITIONS = new Set([
   "UCL", "UEL", "UECL", "UEFA_WCL",
   "AFC_CL", "AFC_CL_TWO", "COPA_LIB", "COPA_SUD",
   "WORLD_CUP", "CLUB_WORLD_CUP", "AFCON", "CONCACAF_GOLD", "GULF_CUP",
+  // 2026-09-24 추가 — 리그페이즈(A~D, 14개조) → 파이널스 단계 대회. 빠져 있어서 af 조별 표를
+  // 못 쓸 때 자체 계산으로 떨어졌고, UEFA_NL 라벨 Team row 3개만 잡혀 "3팀 0경기" 표가 나갔다.
+  "UEFA_NL",
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "LEVAIN_CUP",
   "SUI_CUP", "SVENSKA_CUPEN", "SCO_LEAGUE_CUP", "CONCACAF_CCUP", "AFC_CUP",
