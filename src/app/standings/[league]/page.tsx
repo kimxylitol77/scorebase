@@ -692,12 +692,10 @@ export default async function StandingsPage({ params }: Props) {
         </span>
         <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
         <p className="text-sm text-neutral-500 mt-2 break-keep">
-          {rows!.length}팀 · {showingLastSeason ? "지난 시즌 최종 순위" : "시즌 진행 중"} ·{" "}
-          {source === "ts"
-            ? "TheSports 실시간 갱신"
-            : source === "af"
-              ? "api-football 공식 순위표"
-              : "FINISHED 매치 기반 계산"}
+          {rows!.length}팀 · {showingLastSeason ? "지난 시즌 최종 순위" : "시즌 진행 중"}
+          {/* 공식 표는 출처명을 적지 않는다(사용자 요청 2026-09-24). 자체 계산만 단서를 남긴다 —
+              지우면 우리가 계산한 값이 공식 순위표처럼 보인다. */}
+          {source === "calc" ? " · FINISHED 매치 기반 계산" : ""}
         </p>
         {isBaseball && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
