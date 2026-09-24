@@ -78,3 +78,10 @@ test("뚜렷한 정확 일치 — 3이닝 이상 투수는 자책까지 같아�
   assert.ok(isDistinctiveExact(bat("b", 5, 3), ob("p", "NC", "KT", 5, 3)));
   assert.ok(!isDistinctiveExact(bat("b", 3, 1), ob("p", "NC", "KT", 3, 1)));
 });
+
+test("한 경기에 두 번 나오는 ts id 는 잇지 않는다", () => {
+  const dup = { home: [bat("t1", 4, 2, 1), bat("t2", 3, 0), bat("dup", 1, 0)], away: [bat("t6", 4, 1, 0, 1), bat("dup", 4, 3, 2)] };
+  const m = matchByStatLine(dup, official, new Set(), new Set());
+  assert.equal(m.dup, undefined);
+  assert.equal(m.t1, "p1");
+});

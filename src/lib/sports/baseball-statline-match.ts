@@ -86,10 +86,14 @@ export function matchByStatLine(
   if (!pair || bestScore < Math.max(3, total / 2)) return {};
 
   // 2) 배정 — 남은 ts 선수만, 이름으로 쓰인 번호를 뺀 후보 중 기록 줄이 유일하게 같은 선수.
+  //  ts 가 이름 없는 선수 둘에 같은 id 를 주는 일이 있다(9/23 KT·NC 양쪽 한 명씩) — 링크·이름이 id 단위라
+  //  한쪽 결과가 다른 팀 행에도 붙으므로, 한 경기에 두 번 나오는 id 는 잇지 않는다.
+  const idCount = new Map<string, number>();
+  for (const r of [...sides.home, ...sides.away]) idCount.set(r.playerId, (idCount.get(r.playerId) ?? 0) + 1);
   const assign = (rows: PlayerStatRow[], pool: OfficialLine[], into: Map<string, string>) => {
     const free = pool.filter((o) => !takenPids.has(o.pid));
     for (const ts of rows) {
-      if (skipTsIds.has(ts.playerId)) continue;
+      if (skipTsIds.has(ts.playerId) || (idCount.get(ts.playerId) ?? 0) > 1) continue;
       const pids = new Set(free.filter((o) => sameLine(ts, o)).map((o) => o.pid));
       if (pids.size === 1) into.set(ts.playerId, [...pids][0]);
     }
