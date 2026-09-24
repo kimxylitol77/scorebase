@@ -5,7 +5,8 @@ import rawPlayers from "../../../../data/lol-players.json";
 import type { LolSeasonRow } from "./stats-table";
 
 const PLAYERS = (rawPlayers as { players?: Record<string, { name?: string; photo?: string; position?: number; teamId?: string }> }).players ?? {};
-const POS: Record<number, string> = { 1: "TOP", 2: "MID", 3: "JGL", 4: "ADC", 5: "SUP" };
+// ts position 코드 실측(2026-09-24): 1 원딜·2 미드·3 탑·4 정글·5 서폿. 선수 페이지 POSITION_KO 와 같은 정본.
+const POS: Record<number, string> = { 1: "ADC", 2: "MID", 3: "TOP", 4: "JGL", 5: "SUP" };
 /** 세트 기록(lolGames)이 쌓이는 리그만 — LPL 은 일정만 있어 제외(2026 실측 LOL 182·LEC 106·LCS 60경기) */
 export const LOL_STATS_LEAGUES = ["LOL", "LEC", "LCS"] as const;
 export const LOL_LEAGUE_KO: Record<string, string> = { LOL: "LCK", LPL: "LPL", LEC: "LEC", LCS: "LCS" };

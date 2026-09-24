@@ -42,6 +42,7 @@ import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import rawTeamHistory from "../../../../data/team-history.json";
 import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistory";
 import LolTeamRoster from "@/components/LolTeamRoster";
+import LolTeamMetaStats from "@/components/teams/LolTeamMetaStats";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse, Shirt } from "lucide-react";
 import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
@@ -1406,6 +1407,11 @@ export default async function TeamPage({ params }: Props) {
 
         {/* LOL 로스터 + 팀 통계 — lolGames 집계(선수 KDA·승률)·lol-players(사진) */}
         {team.league === "LOL" && <LolTeamRoster teamId={team.id} />}
+
+        {/* LoL 오브젝트·교전 지표 — ts team/stats(최근 10~50경기). 사전에 없는 팀은 컴포넌트가 스스로 숨는다. */}
+        {(team.league === "LOL" || team.league === "LEC" || team.league === "LCS") && (
+          <LolTeamMetaStats teamId={team.id} />
+        )}
 
         {/* 부상·결장 명단 바로가기(정확한 통합 소스 = /injuries) + 핵심 선수 */}
         {(INJURY_LEAGUES.has(team.league) || keyPlayers.length > 0) && (

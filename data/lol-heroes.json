@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-21T03:41:30.321Z",
+  "updatedAt": "2026-09-24T05:17:06.886Z",
   "heroes": {
     "Annie": "https://eimg.thesports.com/lol/hero/6b0fb89cd7df4757aeb239450eed7971.png",
     "Olaf": "https://eimg.thesports.com/lol/hero/988ebca1ab3b7755704dfea15f7d1dd4.png",
@@ -174,6 +174,725 @@
     "Ambessa": "https://eimg.thesports.com/lol/hero/FvglJzUaqxztNNoYimvLpny4_nBo",
     "Mel": "https://eimg.thesports.com/lol/hero/FpI768L983uGx-W0vJO5XsExF-0J",
     "Yunara": "https://eimg.thesports.com/lol/hero/FsQb7iP6kVKZWm6_toOT5tRzTbRo",
-    "Zaahen": "https://eimg.thesports.com/lol/hero/FkBzO7yG1IrOHSa09SgAwlTnj0G3"
+    "Zaahen": "https://eimg.thesports.com/lol/hero/FkBzO7yG1IrOHSa09SgAwlTnj0G3",
+    "Locke": "https://eimg.thesports.com/lol/hero/FjIYCRV-U-6pnbpd4sftzYqliJ6D"
+  },
+  "byId": {
+    "p3glrwwotwrdyjv": {
+      "name": "Annie",
+      "logo": "https://eimg.thesports.com/lol/hero/6b0fb89cd7df4757aeb239450eed7971.png"
+    },
+    "9vjxm89jbgq6odg": {
+      "name": "Olaf",
+      "logo": "https://eimg.thesports.com/lol/hero/988ebca1ab3b7755704dfea15f7d1dd4.png"
+    },
+    "gx7lm797b0r2wdk": {
+      "name": "Galio",
+      "logo": "https://eimg.thesports.com/lol/hero/70a70093dfa60cbba0be48775b94c2e9.png"
+    },
+    "gy0or59wb3mwzv3": {
+      "name": "TwistedFate",
+      "logo": "https://eimg.thesports.com/lol/hero/d6ead18248a69f7a1d4563c8aa2845ef.png"
+    },
+    "kn54qleoujmvy9d": {
+      "name": "XinZhao",
+      "logo": "https://eimg.thesports.com/lol/hero/FkqZDJNo4O3nruQgeLHdCdGo1yGp"
+    },
+    "d23xmvxjtxrg8ny": {
+      "name": "Urgot",
+      "logo": "https://eimg.thesports.com/lol/hero/f950edd8f34dea75f74d62014673b15a.png"
+    },
+    "4zp5rz5pf2r82w1": {
+      "name": "Leblanc",
+      "logo": "https://eimg.thesports.com/lol/hero/FjB56VxB1Zt9RuLtLpDOYmxOix8l"
+    },
+    "j1l4rjevu2m7vx5": {
+      "name": "Vladimir",
+      "logo": "https://eimg.thesports.com/lol/hero/bb8c4ea7cf5280e98ebc851a8d254486.png"
+    },
+    "p4jwq2ekupq0veo": {
+      "name": "Fiddlesticks",
+      "logo": "https://eimg.thesports.com/lol/hero/FrwW8dfZfJae7n6-sHbwuTK2Q_LA"
+    },
+    "jednm926h0ryox8": {
+      "name": "Kayle",
+      "logo": "https://eimg.thesports.com/lol/hero/Fl1WVw91AiqkPhZwiEBbAf1_nkJG"
+    },
+    "l965mk6zt2q1ge4": {
+      "name": "MasterYi",
+      "logo": "https://eimg.thesports.com/lol/hero/cf612492344682026ced4c24c397bb55.png"
+    },
+    "8y39mp8xuzqojxg": {
+      "name": "Alistar",
+      "logo": "https://eimg.thesports.com/lol/hero/decd262f19ad844bfd43d830bc20a1f5.png"
+    },
+    "9k82repjtgqepzj": {
+      "name": "Ryze",
+      "logo": "https://eimg.thesports.com/lol/hero/aea634e71de8cd58fe39a9f9ec82d098.png"
+    },
+    "z318q6g8t8ro9jd": {
+      "name": "Sion",
+      "logo": "https://eimg.thesports.com/lol/hero/ce1addfc0468a7f64c7308d690531d34.png"
+    },
+    "9dn1m1ekuxqoepl": {
+      "name": "Sivir",
+      "logo": "https://eimg.thesports.com/lol/hero/FnIasSXCmmGI9JrE0mOQhkMP7nPb"
+    },
+    "e4wyrnxyt5m86pv": {
+      "name": "Soraka",
+      "logo": "https://eimg.thesports.com/lol/hero/3cc8e7324ef8b7dd76b4515cc6aa1d1e.png"
+    },
+    "yl5erg5efjm8k0o": {
+      "name": "Teemo",
+      "logo": "https://eimg.thesports.com/lol/hero/Fl2nN4zzI9HIT4d4n_XTjZOBS_5g"
+    },
+    "kjw2r08kuvqz84o": {
+      "name": "Tristana",
+      "logo": "https://eimg.thesports.com/lol/hero/ab9598449ced6237b549c64bbf8d375d.png"
+    },
+    "vl7oqd9kbwm510j": {
+      "name": "Warwick",
+      "logo": "https://eimg.thesports.com/lol/hero/FuecDsJZi6Fu12GTdhtdztM91iUt"
+    },
+    "kdj2ryy6tor1zpg": {
+      "name": "Nunu",
+      "logo": "https://eimg.thesports.com/lol/hero/dfc740c21ede2d3b67f168e21c18ee13.png"
+    },
+    "v2y8m4exukql074": {
+      "name": "MissFortune",
+      "logo": "https://eimg.thesports.com/lol/hero/959cafe231b0a030987b915f0fd79dcc.png"
+    },
+    "z8yomow3twr0j6l": {
+      "name": "Ashe",
+      "logo": "https://eimg.thesports.com/lol/hero/2143285d1f35ac822fe8fe0eca8e5988.png"
+    },
+    "56ypq3e3uxmd7oj": {
+      "name": "Tryndamere",
+      "logo": "https://eimg.thesports.com/lol/hero/3d2c62cb3eedfb02c94fdef8f9d16246.png"
+    },
+    "gpxwrx81ugpqyk0": {
+      "name": "Jax",
+      "logo": "https://eimg.thesports.com/lol/hero/FvSstybYEJaR8THnV0IwTWEo9c7y"
+    },
+    "p3glrwwotwwrdyj": {
+      "name": "Morgana",
+      "logo": "https://eimg.thesports.com/lol/hero/Fvq2BFyWNuMBUh6hYgbq2Zo__bv9"
+    },
+    "9vjxm89jb4gq6od": {
+      "name": "Zilean",
+      "logo": "https://eimg.thesports.com/lol/hero/c296b0a52fbf8aefb35eb8e1f923cf87.png"
+    },
+    "gx7lm797bk0r2wd": {
+      "name": "Singed",
+      "logo": "https://eimg.thesports.com/lol/hero/9e7ecd9b987ea6d7ea4fdc435d276806.png"
+    },
+    "gy0or59wbl3mwzv": {
+      "name": "Evelynn",
+      "logo": "https://eimg.thesports.com/lol/hero/f8a9fc232cec9348d9f4ce8ed6736e0a.png"
+    },
+    "kn54qleou2jmvy9": {
+      "name": "Twitch",
+      "logo": "https://eimg.thesports.com/lol/hero/cf985576523c5829550fb0743ad29f4d.png"
+    },
+    "d23xmvxjt3xrg8n": {
+      "name": "Karthus",
+      "logo": "https://eimg.thesports.com/lol/hero/baf5d54abbd83ee6abc4e1f76baca0c1.png"
+    },
+    "4zp5rz5pfj2r82w": {
+      "name": "Chogath",
+      "logo": "https://eimg.thesports.com/lol/hero/3c52a96ebf6e596a9f680041b6d28d37.png"
+    },
+    "j1l4rjevu62m7vx": {
+      "name": "Amumu",
+      "logo": "https://eimg.thesports.com/lol/hero/1aaabe7f385692ec00784965c36a76dc.png"
+    },
+    "p4jwq2eku4pq0ve": {
+      "name": "Rammus",
+      "logo": "https://eimg.thesports.com/lol/hero/f32e36651673e248edb13c4a4e55e14c.png"
+    },
+    "jednm926hk0ryox": {
+      "name": "Anivia",
+      "logo": "https://eimg.thesports.com/lol/hero/651a86424637241bca1d36886d3b211a.png"
+    },
+    "l965mk6zt72q1ge": {
+      "name": "Shaco",
+      "logo": "https://eimg.thesports.com/lol/hero/a41fa2ae34b92f329691d197deb697cf.png"
+    },
+    "8y39mp8xu3zqojx": {
+      "name": "DrMundo",
+      "logo": "https://eimg.thesports.com/lol/hero/Fu1xk1mj4DYllD4jgnKyo8Puo7Ds"
+    },
+    "9k82repjtvgqepz": {
+      "name": "Sona",
+      "logo": "https://eimg.thesports.com/lol/hero/e6b79a6a552f2740a41cf56e5a2ffa3d.png"
+    },
+    "z318q6g8to8ro9j": {
+      "name": "Kassadin",
+      "logo": "https://eimg.thesports.com/lol/hero/FgCyd5dqZ_WUTlTYH-CYEFGSsj8P"
+    },
+    "9dn1m1eku4xqoep": {
+      "name": "Irelia",
+      "logo": "https://eimg.thesports.com/lol/hero/0dd86d1480a8ac2f04c633d682242c5d.png"
+    },
+    "e4wyrnxyt85m86p": {
+      "name": "Janna",
+      "logo": "https://eimg.thesports.com/lol/hero/eb6969db8be2422a1707aa0199cc6eb3.png"
+    },
+    "yl5erg5efojm8k0": {
+      "name": "Gangplank",
+      "logo": "https://eimg.thesports.com/lol/hero/d333a054f3d4defda1084bab662a4462.png"
+    },
+    "kjw2r08kulvqz84": {
+      "name": "Corki",
+      "logo": "https://eimg.thesports.com/lol/hero/5f8dbf3f6fcce6efa04505ee619075ab.png"
+    },
+    "vl7oqd9kbnwm510": {
+      "name": "Karma",
+      "logo": "https://eimg.thesports.com/lol/hero/dbd7b48b7993888e7a649b42fbb13184.png"
+    },
+    "kdj2ryy6tkor1zp": {
+      "name": "Taric",
+      "logo": "https://eimg.thesports.com/lol/hero/98c2fcef6da1eaaca899a4256c20a0b7.png"
+    },
+    "v2y8m4exu3kql07": {
+      "name": "Veigar",
+      "logo": "https://eimg.thesports.com/lol/hero/c6a45145f8a2bbe6a4a81e45a8c78c9a.png"
+    },
+    "z8yomow3t7wr0j6": {
+      "name": "Trundle",
+      "logo": "https://eimg.thesports.com/lol/hero/9a803e77d1f51844708542109ce90009.png"
+    },
+    "56ypq3e3u0xmd7o": {
+      "name": "Swain",
+      "logo": "https://eimg.thesports.com/lol/hero/FlWSAo2q2Af324DJ8fRLFKvC0xwV"
+    },
+    "gpxwrx81u1pqyk0": {
+      "name": "Caitlyn",
+      "logo": "https://eimg.thesports.com/lol/hero/6a978c325cb5846ed603833262881785.png"
+    },
+    "p3glrwwot1wrdyj": {
+      "name": "Blitzcrank",
+      "logo": "https://eimg.thesports.com/lol/hero/83c159b6f0370dd47dd7e550288ea3a3.png"
+    },
+    "9vjxm89jbggq6od": {
+      "name": "Malphite",
+      "logo": "https://eimg.thesports.com/lol/hero/f8d111d37c307ac36015b7aa42a08262.png"
+    },
+    "gx7lm797bo0r2wd": {
+      "name": "Katarina",
+      "logo": "https://eimg.thesports.com/lol/hero/2f91a55c87a3a27c370b4910eab952c8.png"
+    },
+    "gy0or59wb43mwzv": {
+      "name": "Nocturne",
+      "logo": "https://eimg.thesports.com/lol/hero/008a3e17fbbf64b6ebe96681ed4a5e90.png"
+    },
+    "kn54qleouejmvy9": {
+      "name": "Maokai",
+      "logo": "https://eimg.thesports.com/lol/hero/7e31f95a8223c30de4c78dbbb100fe1b.png"
+    },
+    "d23xmvxjtoxrg8n": {
+      "name": "Renekton",
+      "logo": "https://eimg.thesports.com/lol/hero/678cb7b7ee3c38662677ded61991f409.png"
+    },
+    "4zp5rz5pf72r82w": {
+      "name": "JarvanIV",
+      "logo": "https://eimg.thesports.com/lol/hero/c9796553febdd2cb3236b1d6eb166b54.png"
+    },
+    "j1l4rjevu12m7vx": {
+      "name": "Elise",
+      "logo": "https://eimg.thesports.com/lol/hero/e41733baf42850b8eac8fa033b2a6e4f.png"
+    },
+    "p4jwq2ekukpq0ve": {
+      "name": "Orianna",
+      "logo": "https://eimg.thesports.com/lol/hero/FnJkcR7e8aWt2y3Z-bVMY168-GLq"
+    },
+    "jednm926h90ryox": {
+      "name": "MonkeyKing",
+      "logo": "https://eimg.thesports.com/lol/hero/a8ca2fbeff0d10a76295c17d68d9bd4e.png"
+    },
+    "l965mk6zt42q1ge": {
+      "name": "Brand",
+      "logo": "https://eimg.thesports.com/lol/hero/96a4928611e9e654f9c0b341c079d348.png"
+    },
+    "8y39mp8xu5zqojx": {
+      "name": "LeeSin",
+      "logo": "https://eimg.thesports.com/lol/hero/ff68e32e64943df7d7d8ca502dd911f7.png"
+    },
+    "9k82repjt9gqepz": {
+      "name": "Vayne",
+      "logo": "https://eimg.thesports.com/lol/hero/d13d2b41c9ac26e24192628adb87e1b9.png"
+    },
+    "z318q6g8t08ro9j": {
+      "name": "Rumble",
+      "logo": "https://eimg.thesports.com/lol/hero/0c3515772695849931f2e882f1b2e673.png"
+    },
+    "9dn1m1ekuexqoep": {
+      "name": "Cassiopeia",
+      "logo": "https://eimg.thesports.com/lol/hero/62313016526c63f7559d92c7126ea410.png"
+    },
+    "e4wyrnxyte5m86p": {
+      "name": "Skarner",
+      "logo": "https://eimg.thesports.com/lol/hero/FqoTfTRsDqrujd5HUYHwJ98rDjsh"
+    },
+    "yl5erg5ef3jm8k0": {
+      "name": "Heimerdinger",
+      "logo": "https://eimg.thesports.com/lol/hero/e46f0e4ac1e0d1f68b960face5b554e0.png"
+    },
+    "kjw2r08kunvqz84": {
+      "name": "Nasus",
+      "logo": "https://eimg.thesports.com/lol/hero/7bd35a1bdfadf42a3be41e8596597302.png"
+    },
+    "vl7oqd9kb6wm510": {
+      "name": "Nidalee",
+      "logo": "https://eimg.thesports.com/lol/hero/781d6fd89c4cfbeb493bf1f5d8cf422a.png"
+    },
+    "kdj2ryy6tyor1zp": {
+      "name": "Udyr",
+      "logo": "https://eimg.thesports.com/lol/hero/Fv_q5gibfe7doI1xmCZqZGP50l7x"
+    },
+    "v2y8m4exujkql07": {
+      "name": "Poppy",
+      "logo": "https://eimg.thesports.com/lol/hero/23ee34bb57d89ee3ba331fcbdf2af944.png"
+    },
+    "z8yomow3tkwr0j6": {
+      "name": "Gragas",
+      "logo": "https://eimg.thesports.com/lol/hero/d83a38e6dbed52219247a95867e5ce90.png"
+    },
+    "56ypq3e3u5xmd7o": {
+      "name": "Pantheon",
+      "logo": "https://eimg.thesports.com/lol/hero/2045c82e0e0dcaa40597b7d56a7dbd08.png"
+    },
+    "gpxwrx81u9pqyk0": {
+      "name": "Ezreal",
+      "logo": "https://eimg.thesports.com/lol/hero/fb6fceaa01409e26bf31c2e69121b97b.png"
+    },
+    "p3glrwwotjwrdyj": {
+      "name": "Mordekaiser",
+      "logo": "https://eimg.thesports.com/lol/hero/30d9ccb953045e100ad62c72186057d5.png"
+    },
+    "9vjxm89jbjgq6od": {
+      "name": "Yorick",
+      "logo": "https://eimg.thesports.com/lol/hero/5d6b6330a52c5cd3b6562214d61bb569.png"
+    },
+    "gx7lm797b00r2wd": {
+      "name": "Akali",
+      "logo": "https://eimg.thesports.com/lol/hero/254171517c5418e10285bba695dfa951.png"
+    },
+    "gy0or59wbe3mwzv": {
+      "name": "Kennen",
+      "logo": "https://eimg.thesports.com/lol/hero/c8e1cf53c37864ceb3c6d2e0c38d1a73.png"
+    },
+    "kn54qleouxjmvy9": {
+      "name": "Garen",
+      "logo": "https://eimg.thesports.com/lol/hero/bbe58f2a1be03288210fce7152d37f61.png"
+    },
+    "d23xmvxjtdxrg8n": {
+      "name": "Leona",
+      "logo": "https://eimg.thesports.com/lol/hero/6ede0813ee71662b0aa22517028a0446.png"
+    },
+    "4zp5rz5pfz2r82w": {
+      "name": "Malzahar",
+      "logo": "https://eimg.thesports.com/lol/hero/ecd2065f9020f1d4c7a208ee520d5ef5.png"
+    },
+    "j1l4rjevuz2m7vx": {
+      "name": "Talon",
+      "logo": "https://eimg.thesports.com/lol/hero/67e3626633d8f1d8ad350d0c95ce510d.png"
+    },
+    "p4jwq2ekuvpq0ve": {
+      "name": "Riven",
+      "logo": "https://eimg.thesports.com/lol/hero/afc404a99a37638959cd926d7b0b2a26.png"
+    },
+    "jednm926hz0ryox": {
+      "name": "KogMaw",
+      "logo": "https://eimg.thesports.com/lol/hero/8cfa0a412737ec9db1a64cdc13955d2d.png"
+    },
+    "l965mk6zt32q1ge": {
+      "name": "Shen",
+      "logo": "https://eimg.thesports.com/lol/hero/d8fee9035012dd85c9c92ae6d843cbae.png"
+    },
+    "8y39mp8xujzqojx": {
+      "name": "Lux",
+      "logo": "https://eimg.thesports.com/lol/hero/1447c64ba1d3a848c61892ca42bb1490.png"
+    },
+    "9k82repjtygqepz": {
+      "name": "Xerath",
+      "logo": "https://eimg.thesports.com/lol/hero/fc3b0912c8ac43c7c8219f56c9178dcb.png"
+    },
+    "z318q6g8tv8ro9j": {
+      "name": "Shyvana",
+      "logo": "https://eimg.thesports.com/lol/hero/3c491c3edc4d31356bcdfa60b5522dde.png"
+    },
+    "9dn1m1ekunxqoep": {
+      "name": "Ahri",
+      "logo": "https://eimg.thesports.com/lol/hero/4979c17972899770e5199844b846875a.png"
+    },
+    "e4wyrnxytd5m86p": {
+      "name": "Graves",
+      "logo": "https://eimg.thesports.com/lol/hero/30d41068c0084c9894231c7b67920dd4.png"
+    },
+    "yl5erg5efvjm8k0": {
+      "name": "Fizz",
+      "logo": "https://eimg.thesports.com/lol/hero/2b79716e2f03a094d99c34ffac1a3496.png"
+    },
+    "kjw2r08kuxvqz84": {
+      "name": "Volibear",
+      "logo": "https://eimg.thesports.com/lol/hero/f7ca66dc9ea336dbcc751da649311049.png"
+    },
+    "vl7oqd9kb4wm510": {
+      "name": "Rengar",
+      "logo": "https://eimg.thesports.com/lol/hero/ed35ffc23ef5ecc151bca616112bd0b6.png"
+    },
+    "kdj2ryy6tjor1zp": {
+      "name": "Varus",
+      "logo": "https://eimg.thesports.com/lol/hero/ea68c04514d0c016b227b49502307d60.png"
+    },
+    "v2y8m4exugkql07": {
+      "name": "Nautilus",
+      "logo": "https://eimg.thesports.com/lol/hero/26b2619b55c96a7c76b565d9d9cee56a.png"
+    },
+    "z8yomow3t2wr0j6": {
+      "name": "Viktor",
+      "logo": "https://eimg.thesports.com/lol/hero/FkmH20dEjnAX6IE0R-xcMKwsG_ey"
+    },
+    "56ypq3e3uzxmd7o": {
+      "name": "Sejuani",
+      "logo": "https://eimg.thesports.com/lol/hero/0cf13203e1caa1104aa0a1ac4c2542af.png"
+    },
+    "gpxwrx81ujpqyk0": {
+      "name": "Fiora",
+      "logo": "https://eimg.thesports.com/lol/hero/6b314c081b42320ba08f18d492d9d6bf.png"
+    },
+    "p3glrwwotywrdyj": {
+      "name": "Ziggs",
+      "logo": "https://eimg.thesports.com/lol/hero/0ddf9c360ca96888942d2c4525464bf2.png"
+    },
+    "9vjxm89jb8gq6od": {
+      "name": "Lulu",
+      "logo": "https://eimg.thesports.com/lol/hero/37fa52cb991e1c422fcf63ed77fa3dbb.png"
+    },
+    "gx7lm797bw0r2wd": {
+      "name": "Draven",
+      "logo": "https://eimg.thesports.com/lol/hero/6111a4deac8bb1d82a650d9520af9fe6.png"
+    },
+    "gy0or59wb33mwzv": {
+      "name": "Hecarim",
+      "logo": "https://eimg.thesports.com/lol/hero/d96a2b5e1052d062415997befbf4533e.png"
+    },
+    "gpxwrx81ujzqyk0": {
+      "name": "Khazix",
+      "logo": "https://eimg.thesports.com/lol/hero/02c87bf43d7d4070f805c6a17d143a80.png"
+    },
+    "p3glrwwotyordyj": {
+      "name": "Darius",
+      "logo": "https://eimg.thesports.com/lol/hero/198e0a394ed92d41644197b30cc23bc1.png"
+    },
+    "9vjxm89jb82q6od": {
+      "name": "Jayce",
+      "logo": "https://eimg.thesports.com/lol/hero/b4cf28674fbb715354392c2ab90b8e06.png"
+    },
+    "gx7lm797bwnr2wd": {
+      "name": "Lissandra",
+      "logo": "https://eimg.thesports.com/lol/hero/5e73225fb36c93a967b549f9ec807b23.png"
+    },
+    "gy0or59wb36mwzv": {
+      "name": "Diana",
+      "logo": "https://eimg.thesports.com/lol/hero/e1eee656d3fe2a2ea579a7ae1931ddf9.png"
+    },
+    "kn54qleou8zmvy9": {
+      "name": "Quinn",
+      "logo": "https://eimg.thesports.com/lol/hero/dd3b16b693414d04de0c1c0a2e8153ff.png"
+    },
+    "d23xmvxjtkprg8n": {
+      "name": "Syndra",
+      "logo": "https://eimg.thesports.com/lol/hero/FtVFZlkC-J46xsEkxvR-wbaA4e26"
+    },
+    "4zp5rz5pfp5r82w": {
+      "name": "AurelionSol",
+      "logo": "https://eimg.thesports.com/lol/hero/80a31dca4711bb0554542da4561a9383.png"
+    },
+    "j1l4rjevux9m7vx": {
+      "name": "Kayn",
+      "logo": "https://eimg.thesports.com/lol/hero/6cbcfa7fe45a75a4335e3cd923e6328b.png"
+    },
+    "p4jwq2ekuxgq0ve": {
+      "name": "Zoe",
+      "logo": "https://eimg.thesports.com/lol/hero/b1afb17415b357bb300bb65e6d875c4c.png"
+    },
+    "jednm926hvoryox": {
+      "name": "Zyra",
+      "logo": "https://eimg.thesports.com/lol/hero/b22c7bac57222abc9531a6325ec57378.png"
+    },
+    "l965mk6zte0q1ge": {
+      "name": "Kaisa",
+      "logo": "https://eimg.thesports.com/lol/hero/7e53e171be7d86ed373d38a0b3a551e3.png"
+    },
+    "8y39mp8xuy8qojx": {
+      "name": "Gnar",
+      "logo": "https://eimg.thesports.com/lol/hero/c53cd67eff39a3e4e14eda403f5b9a0b.png"
+    },
+    "9k82repjto4qepz": {
+      "name": "Zac",
+      "logo": "https://eimg.thesports.com/lol/hero/be587623c9eb247f764de9044321d730.png"
+    },
+    "z318q6g8t4yro9j": {
+      "name": "Yasuo",
+      "logo": "https://eimg.thesports.com/lol/hero/6a92187616925e5d85ffbda7a80567ff.png"
+    },
+    "9dn1m1eku3jqoep": {
+      "name": "Velkoz",
+      "logo": "https://eimg.thesports.com/lol/hero/e157438fc5add69a5bb07a5117dadee0.png"
+    },
+    "e4wyrnxyt4km86p": {
+      "name": "Taliyah",
+      "logo": "https://eimg.thesports.com/lol/hero/5a52a36c7401002a63d620a3d720da01.png"
+    },
+    "yl5erg5efezm8k0": {
+      "name": "Camille",
+      "logo": "https://eimg.thesports.com/lol/hero/FmdRtNnmH--DiVYfTXfWK8UlJRcK"
+    },
+    "kjw2r08kuj8qz84": {
+      "name": "Braum",
+      "logo": "https://eimg.thesports.com/lol/hero/c96546c36d753a6d8b8b00ef0852ae91.png"
+    },
+    "vl7oqd9kblym510": {
+      "name": "Jhin",
+      "logo": "https://eimg.thesports.com/lol/hero/37ca280987a9a599a90d4c7ab98b5905.png"
+    },
+    "kdj2ryy6tnkr1zp": {
+      "name": "Kindred",
+      "logo": "https://eimg.thesports.com/lol/hero/2dfb1412b6d0894786bb50cf6fd56048.png"
+    },
+    "v2y8m4exuzjql07": {
+      "name": "Jinx",
+      "logo": "https://eimg.thesports.com/lol/hero/0d742e7f5ff3a8d1e98294e7bcf68d8b.png"
+    },
+    "z8yomow3t02r0j6": {
+      "name": "TahmKench",
+      "logo": "https://eimg.thesports.com/lol/hero/65efdeb9e697b6e68132446ea827d725.png"
+    },
+    "56ypq3e3ulwmd7o": {
+      "name": "Lucian",
+      "logo": "https://eimg.thesports.com/lol/hero/2a46c6b60b7fdd0a56dcd6388b8ad6c8.png"
+    },
+    "gpxwrx81uzzqyk0": {
+      "name": "Zed",
+      "logo": "https://eimg.thesports.com/lol/hero/97f20459ffdab004a1e921eb9e917604.png"
+    },
+    "p3glrwwotzordyj": {
+      "name": "Kled",
+      "logo": "https://eimg.thesports.com/lol/hero/b641f117eb7064571376850f7d769455.png"
+    },
+    "9vjxm89jbp2q6od": {
+      "name": "Ekko",
+      "logo": "https://eimg.thesports.com/lol/hero/1e66e699c634afe62c544f696c381d62.png"
+    },
+    "gx7lm797b9nr2wd": {
+      "name": "Vi",
+      "logo": "https://eimg.thesports.com/lol/hero/f8103148c6ee24a6ef086ad9c3cd27e8.png"
+    },
+    "gy0or59wbg6mwzv": {
+      "name": "Aatrox",
+      "logo": "https://eimg.thesports.com/lol/hero/df4f3e50d7a305a78b48e6e012679ac7.png"
+    },
+    "kn54qleoujzmvy9": {
+      "name": "Nami",
+      "logo": "https://eimg.thesports.com/lol/hero/ed2100b90158ebfd32f942fe81523d5d.png"
+    },
+    "d23xmvxjt4prg8n": {
+      "name": "Azir",
+      "logo": "https://eimg.thesports.com/lol/hero/c63dfba265e7c2fce24fcb9d63113f10.png"
+    },
+    "4zp5rz5pfx5r82w": {
+      "name": "Thresh",
+      "logo": "https://eimg.thesports.com/lol/hero/4b691640eccf5a82d1c37548ce4d7a2f.png"
+    },
+    "j1l4rjevuk9m7vx": {
+      "name": "Illaoi",
+      "logo": "https://eimg.thesports.com/lol/hero/8fdbec5ec20e912debf35207e6fac206.png"
+    },
+    "p4jwq2eku7gq0ve": {
+      "name": "RekSai",
+      "logo": "https://eimg.thesports.com/lol/hero/18a8ce39fcc847881840f3f0cbfd8f0a.png"
+    },
+    "jednm926hgoryox": {
+      "name": "Ivern",
+      "logo": "https://eimg.thesports.com/lol/hero/5ea1878b5b08faa58b73cf00df330f86.png"
+    },
+    "l965mk6ztn0q1ge": {
+      "name": "Kalista",
+      "logo": "https://eimg.thesports.com/lol/hero/8b6cefd2301c822c0867b069c9768ca9.png"
+    },
+    "8y39mp8xu18qojx": {
+      "name": "Bard",
+      "logo": "https://eimg.thesports.com/lol/hero/b8a206c28ed6ed6eb6c38651659af520.png"
+    },
+    "9k82repjt34qepz": {
+      "name": "Rakan",
+      "logo": "https://eimg.thesports.com/lol/hero/ca6c5f43072db779dcb003d61b3d05f2.png"
+    },
+    "z318q6g8tjyro9j": {
+      "name": "Xayah",
+      "logo": "https://eimg.thesports.com/lol/hero/1cc5dde149711568fc0253729d625186.png"
+    },
+    "9dn1m1eku8jqoep": {
+      "name": "Ornn",
+      "logo": "https://eimg.thesports.com/lol/hero/b259a534591d6cc5e41d9d25e1651094.png"
+    },
+    "e4wyrnxytvkm86p": {
+      "name": "Sylas",
+      "logo": "https://eimg.thesports.com/lol/hero/f71f2b20ad8b043358b3e4806254b729.png"
+    },
+    "yl5erg5efnzm8k0": {
+      "name": "Neeko",
+      "logo": "https://eimg.thesports.com/lol/hero/9aba9b1c170187adae325e8c8f8e7c20.png"
+    },
+    "kjw2r08kuw8qz84": {
+      "name": "Pyke",
+      "logo": "https://eimg.thesports.com/lol/hero/8f65362dbdf8b443f5bedad24a27a130.png"
+    },
+    "kdj2ryy6t2kr1zp": {
+      "name": "Morgana",
+      "logo": "https://eimg.thesports.com/lol/hero/7fa5c5fd7fb48e626d2202b7838b911f.png"
+    },
+    "v2y8m4exu1jql07": {
+      "name": "Kayle",
+      "logo": "https://eimg.thesports.com/lol/hero/Fl1WVw91AiqkPhZwiEBbAf1_nkJG"
+    },
+    "z8yomow3tz2r0j6": {
+      "name": "The Unshackled",
+      "logo": "https://eimg.thesports.com/lol/hero/f71f2b20ad8b043358b3e4806254b729.png"
+    },
+    "56ypq3e3u1wmd7o": {
+      "name": "the Blade Dancer",
+      "logo": "https://eimg.thesports.com/lol/hero/6df903ad3f683d40b1079c5c0ec13c62.png"
+    },
+    "9vjxm89jbx2q6od": {
+      "name": "Yuumi",
+      "logo": "https://eimg.thesports.com/lol/hero/d5eb5c576e413c134674965c42f192d7.png"
+    },
+    "gx7lm797bpnr2wd": {
+      "name": "Qiyana",
+      "logo": "https://eimg.thesports.com/lol/hero/f04a83276939b8cb877e2cfb39dc44d0.png"
+    },
+    "x7lm797bkjyr2wd": {
+      "name": "Pantheon",
+      "logo": "https://eimg.thesports.com/lol/hero/2045c82e0e0dcaa40597b7d56a7dbd08.png"
+    },
+    "y0or59wbl8pmwzv": {
+      "name": "Senna",
+      "logo": "https://eimg.thesports.com/lol/hero/8f448f569bc040fbeaf36de3805ed2eb.png"
+    },
+    "pxwrx81ugykqyk0": {
+      "name": "Aphelios",
+      "logo": "https://eimg.thesports.com/lol/hero/c6f53f936872b479144f7210e0845ec0.png"
+    },
+    "vjxm89jb4eyq6od": {
+      "name": "Mordekaiser",
+      "logo": "https://eimg.thesports.com/lol/hero/c3ecf5286183812cdc9699d4069bf3bb.png"
+    },
+    "y0or59wbl9lmwzv": {
+      "name": "Sett",
+      "logo": "https://eimg.thesports.com/lol/hero/8377bf3860c094267ea218362f71d5b3.png"
+    },
+    "n54qleou24emvy9": {
+      "name": "Lillia",
+      "logo": "https://eimg.thesports.com/lol/hero/03d5cba2e61cc5d0dc411db46126ee1e.png"
+    },
+    "23xmvxjt3ydrg8n": {
+      "name": "Yone",
+      "logo": "https://eimg.thesports.com/lol/hero/5b5006046d300b532887aa8c26e1df0c.png"
+    },
+    "zp5rz5pfj3pr82w": {
+      "name": "Samira",
+      "logo": "https://eimg.thesports.com/lol/hero/80e65f985ff36b1e73b3967ebe873017.png"
+    },
+    "4jwq2eku4g1q0ve": {
+      "name": "rell",
+      "logo": "https://eimg.thesports.com/lol/hero/6e4c0a2aed0f6630be7543662fb77b24.png"
+    },
+    "ednm926hk5dryox": {
+      "name": "Seraphine",
+      "logo": "https://eimg.thesports.com/lol/hero/596326c80f939f6cafdb73d9e5917311.png"
+    },
+    "965mk6zt781q1ge": {
+      "name": "Gwen",
+      "logo": "https://eimg.thesports.com/lol/hero/a7483c3b14ed866fecd8726a1046187b.png"
+    },
+    "y39mp8xu3dwqojx": {
+      "name": "Viego",
+      "logo": "https://eimg.thesports.com/lol/hero/cbc53ec5b2ef342a710ba2c56ca13915.png"
+    },
+    "k82repjtv2xqepz": {
+      "name": "Akshan",
+      "logo": "https://eimg.thesports.com/lol/hero/Fhjjk0ty0yitNkp3lDMakwHcJxpy"
+    },
+    "318q6g8to86ro9j": {
+      "name": "Vex",
+      "logo": "https://eimg.thesports.com/lol/hero/FglXL9IOaNsJwYwZD5yAmpPwvsdU"
+    },
+    "4wyrnxyt8y6m86p": {
+      "name": "Zeri",
+      "logo": "https://eimg.thesports.com/lol/hero/Fu84HeIHkAy8erFA3VzCZWftSIdN"
+    },
+    "l5erg5efokkm8k0": {
+      "name": "Renata Glasc",
+      "logo": "https://eimg.thesports.com/lol/hero/Fh923l2r0NViHzKElsj12r0YkOBe"
+    },
+    "jw2r08kul53qz84": {
+      "name": "Bel'Veth",
+      "logo": "https://eimg.thesports.com/lol/hero/FqPQxtV0y5wdQIu5K-ZxQWuzioMc"
+    },
+    "l7oqd9kbnj9m510": {
+      "name": "Nilah",
+      "logo": "https://eimg.thesports.com/lol/hero/FmIc0dbu3lNRDHP5BxPtiACR_MLq"
+    },
+    "dj2ryy6tk73r1zp": {
+      "name": "K'Sante",
+      "logo": "https://eimg.thesports.com/lol/hero/FjxyvQUSR5ZtUMsHu_m363JURAem"
+    },
+    "8yomow3t7ylr0j6": {
+      "name": "Milio",
+      "logo": "https://eimg.thesports.com/lol/hero/FspY3MTs6eOqyM8AwQ4uoE1eX9Ms"
+    },
+    "6ypq3e3u0k9md7o": {
+      "name": "Naafiri",
+      "logo": "https://eimg.thesports.com/lol/hero/FveCY-gx4AeV8b1ietBCjelYoI9G"
+    },
+    "pxwrx81uglkqyk0": {
+      "name": "Briar",
+      "logo": "https://eimg.thesports.com/lol/hero/Fv8BjYrFR8h3t5i7JjV0NXTR5691"
+    },
+    "3glrwwotw4xrdyj": {
+      "name": "Hwei",
+      "logo": "https://eimg.thesports.com/lol/hero/Fivm90TYEyWWlcgbJDkYWEkUmAux"
+    },
+    "vjxm89jb4kyq6od": {
+      "name": "smolder",
+      "logo": "https://eimg.thesports.com/lol/hero/FhSXz8CnoWVFlJoHmCUnmm4OzBuL"
+    },
+    "x7lm797bkvgr2wd": {
+      "name": "Aurora",
+      "logo": "https://eimg.thesports.com/lol/hero/FuKF-sv0lsD9JaEtodb8vaYsHSvw"
+    },
+    "y0or59wbl5lmwzv": {
+      "name": "Ambessa",
+      "logo": "https://eimg.thesports.com/lol/hero/FvglJzUaqxztNNoYimvLpny4_nBo"
+    },
+    "n54qleou23emvy9": {
+      "name": "Mel",
+      "logo": "https://eimg.thesports.com/lol/hero/FpI768L983uGx-W0vJO5XsExF-0J"
+    },
+    "23xmvxjt32drg8n": {
+      "name": "Yunara",
+      "logo": "https://eimg.thesports.com/lol/hero/FsQb7iP6kVKZWm6_toOT5tRzTbRo"
+    },
+    "zp5rz5pfjopr82w": {
+      "name": "Zaahen",
+      "logo": "https://eimg.thesports.com/lol/hero/FkBzO7yG1IrOHSa09SgAwlTnj0G3"
+    },
+    "1l4rjevu6gkm7vx": {
+      "name": "Locke",
+      "logo": "https://eimg.thesports.com/lol/hero/FjIYCRV-U-6pnbpd4sftzYqliJ6D"
+    }
   }
 }
