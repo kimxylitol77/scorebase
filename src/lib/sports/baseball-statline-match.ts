@@ -18,9 +18,11 @@ export interface OfficialLine {
   er: number | null;
 }
 
-/** 공식 이닝 표기 → 아웃 수. "5 2/3"=17, "2/3"=2, "5"=15. 해석 불가면 null. */
+/** 공식 이닝 표기 → 아웃 수. KBO "5 2/3"=17·"2/3"=2, NPB "5.2"=17·"0.1"=1, 정수 "5"=15. 해석 불가면 null. */
 export function officialIpToOuts(ip: string | null): number | null {
   if (!ip) return null;
+  const dec = ip.trim().match(/^(\d+)\.([012])\+?$/);
+  if (dec) return Number(dec[1]) * 3 + Number(dec[2]);
   const m = ip.trim().match(/^(?:(\d+)\s*)?(?:([12])\/3)?\+?$/);
   if (!m || (m[1] == null && m[2] == null)) return null;
   return Number(m[1] ?? 0) * 3 + Number(m[2] ?? 0);
@@ -52,6 +54,13 @@ function sameLine(ts: PlayerStatRow, o: OfficialLine): boolean {
   return PITCHER_KEYS.every(([id, k]) => ts.stats[id] == null || o[k] == null || ts.stats[id] === o[k]);
 }
 
+/** 출전량만 같은가 — 투수는 아웃 수, 타자는 타수. 이름 관문과 함께만 쓴다. */
+function sameVolume(ts: PlayerStatRow, o: OfficialLine): boolean {
+  if (ts.role === "batter") return o.role === "B" && ts.stats[614] != null && ts.stats[614] === o.ab;
+  const outs = tsIpToOuts(ts.stats[634]);
+  return o.role === "P" && outs != null && outs === officialIpToOuts(o.ip);
+}
+
 /**
  * 그 날짜 공식 기록 중에서 이 경기 두 팀을 찾아(팀 이름 매핑 없이 — 맞는 줄이 가장 많은 홈·원정 팀 쌍),
  * 아직 이어지지 않은 ts 선수를 기록 줄이 **유일하게** 같은 공식 선수에 잇는다.
@@ -65,6 +74,8 @@ export function matchByStatLine(
   official: OfficialLine[],
   skipTsIds: Set<string>,
   takenPids: Set<string>,
+  /** 이름 유사도(0~1) — 후보가 여럿일 때 가려내고(0.5+), 기록 줄이 조금 어긋난 선수를 살리는 데(0.75+) 쓴다. */
+  nameScore?: (tsId: string, pid: string) => number,
 ): Record<string, string> {
   const byTeam = new Map<string, OfficialLine[]>();
   for (const o of official) {
@@ -94,8 +105,15 @@ export function matchByStatLine(
     const free = pool.filter((o) => !takenPids.has(o.pid));
     for (const ts of rows) {
       if (skipTsIds.has(ts.playerId) || (idCount.get(ts.playerId) ?? 0) > 1) continue;
-      const pids = new Set(free.filter((o) => sameLine(ts, o)).map((o) => o.pid));
-      if (pids.size === 1) into.set(ts.playerId, [...pids][0]);
+      let pids = [...new Set(free.filter((o) => sameLine(ts, o)).map((o) => o.pid))];
+      // 같은 줄이 둘 이상(1이닝 1피안타 1삼진 같은 흔한 구원)이면 이름으로 가린다.
+      if (pids.length > 1 && nameScore) pids = pids.filter((pid) => nameScore(ts.playerId, pid) >= 0.5);
+      // 줄이 하나도 안 맞으면 — ts 피안타·타점 오차(NPB 실측) — 같은 이닝(타자는 같은 타수)에 이름이 거의 같은 선수.
+      //  0.5 로는 성이 같은 팀 동료(야나기타 유키·야나기마치 타츠루)가 서로 바뀌어 0.75 로 조인다(9/24 교차 검증).
+      if (pids.length === 0 && nameScore) {
+        pids = [...new Set(free.filter((o) => sameVolume(ts, o) && nameScore(ts.playerId, o.pid) >= 0.75).map((o) => o.pid))];
+      }
+      if (pids.length === 1) into.set(ts.playerId, pids[0]);
     }
   };
   const found = new Map<string, string>();
@@ -116,11 +134,16 @@ export function matchByStatLine(
  * 전혀 다른 이름(후지이 겐토/안상현)은 막는다. 한쪽이 한글이 아니면 판단 불가 → false.
  */
 export function namesLikelySame(a: string | null | undefined, b: string | null | undefined): boolean {
+  return nameSimilarity(a, b) >= 0.5;
+}
+
+/** 두 한글 이름의 글자 겹침 비율(0~1, 한쪽이 다른 쪽을 포함하면 1). 한글이 아니면 0. */
+export function nameSimilarity(a: string | null | undefined, b: string | null | undefined): number {
   const norm = (s: string) => s.replace(/[\s·・.\-]/g, "");
   const x = norm(a ?? "");
   const y = norm(b ?? "");
-  if (!/^[가-힣]{2,}$/.test(x) || !/^[가-힣]{2,}$/.test(y)) return false;
-  if (x.includes(y) || y.includes(x)) return true;
+  if (!/^[가-힣]{2,}$/.test(x) || !/^[가-힣]{2,}$/.test(y)) return 0;
+  if (x.includes(y) || y.includes(x)) return 1;
   const pool = [...y];
   let common = 0;
   for (const ch of x) {
@@ -130,7 +153,7 @@ export function namesLikelySame(a: string | null | undefined, b: string | null |
       pool.splice(i, 1);
     }
   }
-  return common / Math.min(x.length, y.length) >= 0.5;
+  return common / Math.min(x.length, y.length);
 }
 
 /**

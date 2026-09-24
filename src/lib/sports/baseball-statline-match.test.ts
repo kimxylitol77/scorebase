@@ -1,7 +1,7 @@
 // 기록 줄 매칭 테스트 — 이닝 환산, 이름 관문, 경기 식별·유일성·이미 쓰인 번호 제외
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isDistinctiveExact, matchByStatLine, namesLikelySame, officialIpToOuts, tsIpToOuts, type OfficialLine } from "./baseball-statline-match";
+import { isDistinctiveExact, matchByStatLine, nameSimilarity, namesLikelySame, officialIpToOuts, tsIpToOuts, type OfficialLine } from "./baseball-statline-match";
 import type { PlayerStatRow } from "./thesports/baseball-stats";
 
 test("이닝 표기 환산", () => {
@@ -12,6 +12,8 @@ test("이닝 표기 환산", () => {
   assert.equal(tsIpToOuts(5.2), 17);
   assert.equal(tsIpToOuts(0.1), 1);
   assert.equal(tsIpToOuts(7), 21);
+  assert.equal(officialIpToOuts("0.1"), 1);
+  assert.equal(officialIpToOuts("5.2"), 17);
 });
 
 test("이름 관문 — 오기·풀네임·음역차는 통과, 다른 사람은 막음", () => {
@@ -84,4 +86,33 @@ test("한 경기에 두 번 나오는 ts id 는 잇지 않는다", () => {
   const m = matchByStatLine(dup, official, new Set(), new Set());
   assert.equal(m.dup, undefined);
   assert.equal(m.t1, "p1");
+});
+
+test("같은 기록 줄 후보가 둘이면 이름으로 가리고, 줄이 어긋나도 같은 이닝+비슷한 이름이면 잇는다", () => {
+  const names: Record<string, string> = { t1: "후지하라 쇼마", t2: "마쓰오카 코우키" };
+  const ko: Record<string, string> = { a: "후지히라 쇼마", b: "유니오르 마르테", c: "마츠오카 코키" };
+  const nameScore = (ts: string, pid: string) => nameSimilarity(names[ts], ko[pid]);
+  const lines = [
+    op("a", "라쿠텐", "닛폰햄", "1", 1, 0), op("b", "라쿠텐", "닛폰햄", "1", 1, 0),
+    op("c", "닛폰햄", "라쿠텐", "1", 2, 2), ob("x", "라쿠텐", "닛폰햄", 4, 2), ob("y", "닛폰햄", "라쿠텐", 3, 1), ob("z", "닛폰햄", "라쿠텐", 4, 0),
+  ];
+  const m = matchByStatLine(
+    { home: [pit("t1", 1, 1, 0), bat("h1", 4, 2)], away: [pit("t2", 1, 3, 2), bat("a1", 3, 1), bat("a2", 4, 0)] },
+    lines, new Set(), new Set(), nameScore,
+  );
+  assert.equal(m.t1, "a");
+  assert.equal(m.t2, "c");
+});
+
+test("기록 줄이 어긋난 2차 매칭은 성만 같은 동료로 바꿔 잇지 않는다", () => {
+  assert.ok(nameSimilarity("야나기타 유키", "야나기마치 타츠루") < 0.75);
+  assert.ok(nameSimilarity("마쓰오카 코우키", "마츠오카 코키") >= 0.75);
+  const names: Record<string, string> = { t1: "야나기타 유키" };
+  const ko: Record<string, string> = { a: "야나기마치 타츠루" };
+  const m = matchByStatLine(
+    { home: [bat("t1", 4, 1), bat("h2", 3, 2, 1), bat("h3", 5, 3)], away: [bat("a1", 4, 0)] },
+    [ob("a", "A", "B", 4, 2), ob("x", "A", "B", 3, 2, 1), ob("y", "A", "B", 5, 3), ob("z", "B", "A", 4, 0)],
+    new Set(), new Set(), (ts, pid) => nameSimilarity(names[ts], ko[pid]),
+  );
+  assert.equal(m.t1, undefined);
 });

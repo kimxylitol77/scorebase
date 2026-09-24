@@ -3,7 +3,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { PlayerStatRow } from "@/lib/sports/thesports/baseball-stats";
-import { isDistinctiveExact, matchByStatLine, namesLikelySame, type OfficialLine } from "./baseball-statline-match";
+import { isDistinctiveExact, matchByStatLine, nameSimilarity, type OfficialLine } from "./baseball-statline-match";
 import { npbPlayerKo } from "./npb-player-ko";
 
 type League = "KBO" | "NPB";
@@ -45,17 +45,19 @@ export async function statLinePlayerLinks(opts: {
   }
   if (official.length === 0) return empty;
   const taken = new Set(Object.values(opts.rosterHrefs).map((h) => h.match(/\/players\/([^?]+)/)?.[1]).filter((x): x is string => !!x));
-  const matched = matchByStatLine(opts.sides, official, new Set(Object.keys(opts.rosterHrefs)), taken);
   const nameByPid = new Map(official.map((o) => [o.pid, o.name]));
+  // 공식 한글명 — KBO 는 로그의 등록명, NPB 는 번호→카나 음역(1군 로스터 밖이면 일본어가 남아 관문에서 탈락).
+  const officialKoOf = (pid: string) => (opts.league === "KBO" ? nameByPid.get(pid) ?? null : npbPlayerKo(pid, ""));
+  const nameScore = (tsId: string, pid: string) => nameSimilarity(opts.tsNames[tsId], officialKoOf(pid));
+  const matched = matchByStatLine(opts.sides, official, new Set(Object.keys(opts.rosterHrefs)), taken, nameScore);
   const tsById = new Map([...opts.sides.home, ...opts.sides.away].map((r) => [r.playerId, r]));
   const hrefs: Record<string, string> = {};
   const names: Record<string, string> = {};
   for (const [tsId, pid] of Object.entries(matched)) {
-    // 공식 한글명 — KBO 는 로그의 등록명, NPB 는 번호→카나 음역(1군 로스터 밖이면 일본어가 남아 관문에서 탈락).
-    const officialKo = opts.league === "KBO" ? nameByPid.get(pid) ?? null : npbPlayerKo(pid, "");
+    const officialKo = officialKoOf(pid);
     const ts = tsById.get(tsId);
     const distinctive = !!ts && official.some((o) => o.pid === pid && isDistinctiveExact(ts, o));
-    if (!namesLikelySame(opts.tsNames[tsId], officialKo) && !distinctive) continue;
+    if (nameScore(tsId, pid) < 0.5 && !distinctive) continue;
     hrefs[tsId] = `/players/${pid}?league=${opts.league}`;
     if (opts.league === "KBO" && officialKo) names[tsId] = officialKo;
   }
