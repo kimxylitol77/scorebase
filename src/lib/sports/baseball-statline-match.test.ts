@@ -1,7 +1,7 @@
 // 기록 줄 매칭 테스트 — 이닝 환산, 이름 관문, 경기 식별·유일성·이미 쓰인 번호 제외
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { matchByStatLine, namesLikelySame, officialIpToOuts, tsIpToOuts, type OfficialLine } from "./baseball-statline-match";
+import { isDistinctiveExact, matchByStatLine, namesLikelySame, officialIpToOuts, tsIpToOuts, type OfficialLine } from "./baseball-statline-match";
 import type { PlayerStatRow } from "./thesports/baseball-stats";
 
 test("이닝 표기 환산", () => {
@@ -59,4 +59,22 @@ test("이름으로 이미 이어진 선수와 그 번호는 건너뛴다", () =>
 test("맞는 줄이 절반 미만이면 다른 경기로 보고 잇지 않는다", () => {
   const m = matchByStatLine(sides, [ob("x1", "LG", "두산", 4, 2, 1), ob("x2", "두산", "LG", 4, 3, 2)], new Set(), new Set());
   assert.deepEqual(m, {});
+});
+
+test("투수 자책점이 어긋나도 이닝·피안타·볼넷·삼진이 같으면 잇는다", () => {
+  const m = matchByStatLine(
+    { home: [pit("t1", 5, 8, 4), bat("t2", 4, 1), bat("t3", 3, 2, 1)], away: [bat("t4", 4, 0)] },
+    [op("p1", "KT", "NC", "5", 8, 5), ob("p2", "KT", "NC", 4, 1), ob("p3", "KT", "NC", 3, 2, 1), ob("p4", "NC", "KT", 4, 0)],
+    new Set(),
+    new Set(),
+  );
+  assert.equal(m.t1, "p1");
+});
+
+test("뚜렷한 정확 일치 — 3이닝 이상 투수는 자책까지 같아야, 짧은 등판은 아니다", () => {
+  assert.ok(isDistinctiveExact(pit("a", 6, 8, 3), op("p", "NC", "KT", "6", 8, 3)));
+  assert.ok(!isDistinctiveExact(pit("a", 6, 8, 4), op("p", "NC", "KT", "6", 8, 3)));
+  assert.ok(!isDistinctiveExact(pit("a", 0.2, 1, 0), op("p", "NC", "KT", "2/3", 1, 0)));
+  assert.ok(isDistinctiveExact(bat("b", 5, 3), ob("p", "NC", "KT", 5, 3)));
+  assert.ok(!isDistinctiveExact(bat("b", 3, 1), ob("p", "NC", "KT", 3, 1)));
 });

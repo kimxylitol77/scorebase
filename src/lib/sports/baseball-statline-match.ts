@@ -38,7 +38,8 @@ export function tsIpToOuts(v: number | undefined): number | null {
 const BATTER_KEYS: Array<[number, keyof OfficialLine]> = [
   [614, "ab"], [616, "h"], [617, "rbi"], [615, "r"], [621, "hr"], [651, "bb"], [650, "so"],
 ];
-const PITCHER_KEYS: Array<[number, keyof OfficialLine]> = [[635, "h"], [636, "er"], [637, "bb"], [638, "so"]];
+// 투수 자책점(636)은 비교에서 뺀다 — ts 가 구원 투수끼리 자책을 뒤섞는 일이 잦다(9/23 KT 로건 ts 4·공식 5, 주권·문용익 맞바뀜).
+const PITCHER_KEYS: Array<[number, keyof OfficialLine]> = [[635, "h"], [637, "bb"], [638, "so"]];
 
 function sameLine(ts: PlayerStatRow, o: OfficialLine): boolean {
   if (ts.role === "batter") {
@@ -126,4 +127,16 @@ export function namesLikelySame(a: string | null | undefined, b: string | null |
     }
   }
   return common / Math.min(x.length, y.length) >= 0.5;
+}
+
+/**
+ * 이름이 달라도 믿을 만큼 뚜렷한 일치인가 — ts 이름 사전이 이름 자체를 틀리게 준 경우(9/23 NC 라일리를 "벤자민 톰슨")를 살린다.
+ * 투수 3이닝 이상, 타자 4타수 이상 + 안타 2개 이상이고, 비교에서 뺀 자책점까지 공식과 같을 때만.
+ */
+export function isDistinctiveExact(ts: PlayerStatRow, o: OfficialLine): boolean {
+  if (ts.role === "pitcher") {
+    const outs = tsIpToOuts(ts.stats[634]);
+    return outs != null && outs >= 9 && ts.stats[636] != null && ts.stats[636] === o.er;
+  }
+  return (ts.stats[614] ?? 0) >= 4 && (ts.stats[616] ?? 0) >= 2;
 }
