@@ -2,7 +2,10 @@
 // LIVE: 큰 피리어드/클럭 컨텍스트 + 피리어드별 점수 (P1-P3 + OT/SO + T).
 // 종료: 피리어드별 점수만.
 // 예정: 매치업 + KST 시간만.
+// 리그명은 리그 페이지로 가는 버튼(카드 전체가 경기 링크라 클릭 전파를 막는다), NHL 프리시즌은 칩으로 표시.
+"use client";
 
+import { useRouter } from "next/navigation";
 import EdgeBadgeChips from "@/components/scores/EdgeBadgeChips";
 import type { EdgeBadge } from "@/lib/scores/edge-badges";
 import Link from "next/link";
@@ -10,7 +13,7 @@ import type { ReactNode } from "react";
 import type { PeriodLinescore as PeriodData } from "@/lib/sports/live-scores";
 import FavoriteStar from "../FavoriteStar";
 import TeamNameCell from "../TeamNameCell";
-import { getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 export interface HockeyCardProps {
   matchId?: string | number;
@@ -27,6 +30,8 @@ export interface HockeyCardProps {
   edgeBadges?: EdgeBadge[] | null;
   href?: string | null;
   actions?: ReactNode;
+  /** 프리시즌(시범경기) — 리그명 옆 칩 */
+  preseason?: boolean;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -69,7 +74,10 @@ export default function HockeyCard(props: HockeyCardProps) {
     edgeBadges,
     href,
     actions,
+    preseason,
   } = props;
+  const router = useRouter();
+  const leagueHref = (ALL_LEAGUES as readonly string[]).includes(league) ? `/leagues/${league}` : null;
 
   const isLive = status === "live";
 
@@ -105,7 +113,7 @@ export default function HockeyCard(props: HockeyCardProps) {
 
   const statusBadge = isLive ? (
     <span
-      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold tracking-wider"
       style={{ background: "rgba(239,68,68,.18)", color: "#fca5a5" }}
     >
       <span
@@ -116,21 +124,21 @@ export default function HockeyCard(props: HockeyCardProps) {
     </span>
   ) : isFinished ? (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold tracking-wider"
       style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
     >
       종료
     </span>
   ) : isPostponed ? (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold tracking-wider"
       style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
     >
       연기
     </span>
   ) : (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider tabular-nums"
+      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold tracking-wider tabular-nums"
       style={{ background: "rgba(59,130,246,.12)", color: "#60a5fa" }}
     >
       {timeLabel}
@@ -142,12 +150,41 @@ export default function HockeyCard(props: HockeyCardProps) {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {statusBadge}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-            {getLeagueFlag(league) && (
-              <span className="mr-1 normal-case" aria-hidden>{getLeagueFlag(league)}</span>
-            )}
-            {leagueLabel ?? league}
-          </span>
+          {(() => {
+            const inner = (
+              <>
+                {getLeagueFlag(league) && (
+                  <span className="mr-1 normal-case" aria-hidden>{getLeagueFlag(league)}</span>
+                )}
+                {leagueLabel ?? league}
+              </>
+            );
+            const cls = "text-xs sm:text-[13px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400";
+            return leagueHref ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(leagueHref);
+                }}
+                className={`${cls} rounded hover:text-neutral-900 hover:underline underline-offset-2 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
+                title={`${leagueLabel ?? league} 리그 페이지`}
+              >
+                {inner}
+              </button>
+            ) : (
+              <span className={cls}>{inner}</span>
+            );
+          })()}
+          {preseason && (
+            <span
+              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold"
+              style={{ background: "rgba(245,158,11,.14)", color: "#d97706" }}
+            >
+              프리시즌
+            </span>
+          )}
           {isLive && periodText && (
             <span className="text-[11px] font-bold tabular-nums" style={{ color: "#22c55e" }}>
               {periodText}

@@ -1214,6 +1214,18 @@ export default async function ScoresPage({ searchParams }: Props) {
       if (parsed) periodMap[r.externalId] = parsed;
     }
   }
+  // NHL 프리시즌 — ESPN 원본의 season.slug 로 판정(달력 추정 금지). raw 는 메인 select 밖이라 NHL 만 id 조회.
+  const nhlMatchIds = matches.filter((m) => m.league === "NHL").map((m) => m.id);
+  const preseasonIds = new Set(
+    nhlMatchIds.length > 0
+      ? (
+          await prisma.match.findMany({
+            where: { id: { in: nhlMatchIds }, raw: { contains: '"slug":"preseason"' } },
+            select: { id: true },
+          })
+        ).map((r) => r.id)
+      : [],
+  );
 
   // TheSportsMatchCache 한 번에 조회 — 축구 골/카드(incidents) + 야구 베이스/아웃(extra)
   // 두 source 동시 사용. 이전: soccer + baseball 별도 두 round-trip → 합쳐서 한 round-trip
@@ -1705,6 +1717,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         sport_ === "mma" && m.resultMethod
           ? { method: m.resultMethod, round: m.resultRound, clock: m.resultClock }
           : null,
+      preseason: preseasonIds.has(m.id),
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
       liveStatusLabel:
@@ -3183,6 +3196,8 @@ type NormalizedMatch = {
   /** UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null) */
   mma: { category: string | null; home: MmaTale; away: MmaTale } | null;
   mmaResult: { method: string | null; round: number | null; clock: string | null } | null;
+  /** NHL 프리시즌(시범경기) — ESPN season.slug */
+  preseason?: boolean;
 };
 
 // 야구 라인업 cover 리그 — MLB 만 풍부한 boxscore 라인업 (MLB Stats API).
@@ -3274,6 +3289,7 @@ function renderCard(m: NormalizedMatch) {
       doubleHeader={m.doubleHeader}
       mma={m.mma}
       mmaResult={m.mmaResult}
+      preseason={m.preseason}
     />
   );
 }

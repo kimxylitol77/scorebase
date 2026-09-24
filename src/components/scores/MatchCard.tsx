@@ -88,6 +88,8 @@ export interface MatchCardProps {
   } | null;
   /** UFC 승리 방법/라운드 (종료 mma 카드 전용) — ESPN athlete result */
   mmaResult?: { method: string | null; round: number | null; clock: string | null } | null;
+  /** NHL 프리시즌(시범경기) — 하키 카드 리그명 옆 칩 */
+  preseason?: boolean;
 }
 
 function Logo({ url, name, big }: { url?: string | null; name: string; big?: boolean }) {
@@ -239,6 +241,7 @@ export default function MatchCard(props: MatchCardProps) {
     penaltyAway,
     mma,
     mmaResult,
+    preseason,
   } = props;
 
   const isLive = status === "live";
@@ -327,6 +330,7 @@ export default function MatchCard(props: MatchCardProps) {
   if (sport === "hockey") {
     return (
       <HockeyCard
+        preseason={preseason}
         edgeBadges={allBadges}
         matchId={matchId}
         status={status}
