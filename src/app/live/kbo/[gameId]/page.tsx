@@ -274,6 +274,8 @@ export default async function KboLivePage({ params }: Props) {
         awayLogo={match.awayTeam.logoUrl ?? null}
         homeStarter={parseStarter(match.homeStarter)}
         awayStarter={parseStarter(match.awayStarter)}
+        homeStarterHref={homeStarterInfo?.pid != null ? `/players/${homeStarterInfo.pid}?league=KBO` : null}
+        awayStarterHref={awayStarterInfo?.pid != null ? `/players/${awayStarterInfo.pid}?league=KBO` : null}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         liveCommentary={

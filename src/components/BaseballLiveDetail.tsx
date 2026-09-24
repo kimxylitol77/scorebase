@@ -78,6 +78,9 @@ interface Props {
   /** 양팀 선발투수 (DB Match.{home,away}Starter, 이미 JSON parse 된 이름) */
   homeStarter?: string | null;
   awayStarter?: string | null;
+  /** 선발투수 선수 페이지 — 있으면 헤더 "선발 ○○" 을 링크로 (선발 매치업 카드와 같은 주소). */
+  homeStarterHref?: string | null;
+  awayStarterHref?: string | null;
   /** 약자 (LG, 두산 등) — DB Team.shortName */
   homeAbbr?: string | null;
   awayAbbr?: string | null;
@@ -124,6 +127,22 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 const POLL_LIVE_MS = 2_000;
 const POLL_FINAL_MS = 60_000;
 
+/** 헤더 "선발 ○○" — 팀 링크(<a>) 안에 두면 링크 중첩이라 팀 블록 밖에 따로 둔다. */
+function StarterLine({ name, href }: { name: string; href?: string | null }) {
+  return (
+    <div className="text-[10px] text-neutral-400 mt-0.5 truncate text-center">
+      선발{" "}
+      {href ? (
+        <Link href={href} className="hover:text-neutral-200 hover:underline">
+          {name}
+        </Link>
+      ) : (
+        name
+      )}
+    </div>
+  );
+}
+
 function TeamWrap({
   teamId,
   children,
@@ -151,6 +170,8 @@ export default function BaseballLiveDetail({
   awayNameKo,
   homeStarter,
   awayStarter,
+  homeStarterHref,
+  awayStarterHref,
   homeAbbr,
   awayAbbr,
   homeLogo,
@@ -373,20 +394,18 @@ export default function BaseballLiveDetail({
 
         {/* 양팀 + 점수 */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <TeamWrap teamId={awayTeamId}>
-            <TeamLogo url={awayLogo} name={awayNameKo} />
-            {awayShort && (
-              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-                {awayShort}
-              </div>
-            )}
-            <div className="font-bold truncate">{awayNameKo}</div>
-            {awayStarter && (
-              <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
-                선발 {awayStarter}
-              </div>
-            )}
-          </TeamWrap>
+          <div className="min-w-0">
+            <TeamWrap teamId={awayTeamId}>
+              <TeamLogo url={awayLogo} name={awayNameKo} />
+              {awayShort && (
+                <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+                  {awayShort}
+                </div>
+              )}
+              <div className="font-bold truncate">{awayNameKo}</div>
+            </TeamWrap>
+            {awayStarter && <StarterLine name={awayStarter} href={awayStarterHref} />}
+          </div>
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
             <span
               style={{
@@ -412,19 +431,17 @@ export default function BaseballLiveDetail({
               <CountUp value={homeScore} />
             </span>
           </div>
-          <TeamWrap teamId={homeTeamId}>
-            <TeamLogo url={homeLogo} name={homeNameKo} />
-            <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-              {homeShort ?? ""}
-              <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 ml-1">홈</span>
-            </div>
-            <div className="font-bold truncate">{homeNameKo}</div>
-            {homeStarter && (
-              <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
-                선발 {homeStarter}
+          <div className="min-w-0">
+            <TeamWrap teamId={homeTeamId}>
+              <TeamLogo url={homeLogo} name={homeNameKo} />
+              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+                {homeShort ?? ""}
+                <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 ml-1">홈</span>
               </div>
-            )}
-          </TeamWrap>
+              <div className="font-bold truncate">{homeNameKo}</div>
+            </TeamWrap>
+            {homeStarter && <StarterLine name={homeStarter} href={homeStarterHref} />}
+          </div>
         </div>
 
         {/* 이닝 박스 + R/H/E */}

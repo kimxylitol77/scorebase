@@ -287,6 +287,8 @@ export default async function NpbLivePage({ params }: Props) {
         awayLogo={match.awayTeam.logoUrl ?? null}
         homeStarter={parseStarter(match.homeStarter)}
         awayStarter={parseStarter(match.awayStarter)}
+        homeStarterHref={homeStarterFull?.pid != null ? `/players/${homeStarterFull.pid}?league=NPB` : null}
+        awayStarterHref={awayStarterFull?.pid != null ? `/players/${awayStarterFull.pid}?league=NPB` : null}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         liveCommentary={
