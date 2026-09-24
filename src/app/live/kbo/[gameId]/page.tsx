@@ -22,6 +22,7 @@ import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import { buildBaseballPlayerHrefs } from "@/lib/sports/baseball-player-link";
+import { statLinePlayerLinks } from "@/lib/sports/baseball-player-link-logs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
@@ -130,6 +131,16 @@ export default async function KboLivePage({ params }: Props) {
   const playerStats = detailLive?.players
     ? extractPlayerStats(detailLive.players)
     : { home: [], away: [] };
+  // 선수 링크 — ① 두 팀 로스터 이름 일치 ② 못 이은 선수는 그 경기 공식 기록 줄(+이름 관문)로.
+  //  공식 기록은 다음 날 새벽 수집이라 라이브·당일 경기는 ①만 적용된다.
+  const rosterHrefs = buildBaseballPlayerHrefs({ league: "KBO", teamIds: [match.homeTeam.id, match.awayTeam.id], playerNameById });
+  const statLineLinks = await statLinePlayerLinks({
+    league: "KBO",
+    date: gameDate,
+    sides: playerStats,
+    rosterHrefs,
+    tsNames: playerNameById,
+  });
   const batterColumns = playerStatColumns("batter");
   const pitcherColumns = playerStatColumns("pitcher");
   const wpaSeries = computeWpaFromDetailLive(detailLive);
@@ -407,8 +418,8 @@ export default async function KboLivePage({ params }: Props) {
           playerStats={playerStats}
           batterColumns={batterColumns}
           pitcherColumns={pitcherColumns}
-          playerNameById={playerNameById}
-          playerHrefById={buildBaseballPlayerHrefs({ league: "KBO", teamIds: [match.homeTeam.id, match.awayTeam.id], playerNameById })}
+          playerNameById={{ ...playerNameById, ...statLineLinks.names }}
+          playerHrefById={{ ...statLineLinks.hrefs, ...rosterHrefs }}
           playerPhotoById={playerPhotoById}
           initialOdds={baseballOdds}
           wpaSeries={wpaSeries}

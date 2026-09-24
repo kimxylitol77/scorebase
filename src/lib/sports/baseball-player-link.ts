@@ -7,6 +7,8 @@
 //     build-npb-player-link 가 카나를 수집해 만든 사전(ts id → 공식 pid)을 그대로 쓴다.
 import rosters from "../../../data/baseball-rosters.json";
 import npbLink from "../../../data/npb-player-link.json";
+import { npbPlayerToKorean } from "./npb-player-names";
+import { npbPlayerKo } from "./npb-player-ko";
 
 interface RosterPlayer {
   id: string;
@@ -49,4 +51,34 @@ export function buildBaseballPlayerHrefs(opts: {
     if (hits && hits.length === 1) out[tsId] = `/players/${hits[0]}?league=${opts.league}`;
   }
   return out;
+}
+
+/**
+ * NPB 한글 표시명 → 공식 pid (그 팀 1군 로스터 안에서만). 시즌 스탯("타자 전력")은 번호 없이 한자→한글 이름만
+ * 저장돼 있어서, 같은 변환(npbPlayerToKorean)과 로스터 표시 변환(npbPlayerKo)을 로스터 한자명에 돌려 역색인한다.
+ * 같은 한글명이 둘이면 뺀다(오연결 방지).
+ */
+export function npbPidByKoreanName(teamId: number | null | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  const dup = new Set<string>();
+  if (teamId == null) return out;
+  for (const p of (rosters as Record<string, RosterPlayer[]>)[String(teamId)] ?? []) {
+    for (const ko of new Set([npbPlayerToKorean(p.name), npbPlayerKo(p.id, p.name)])) {
+      const k = norm(ko);
+      if (!/[가-힣]/.test(k) || dup.has(k)) continue;
+      if (out.has(k) && out.get(k) !== p.id) {
+        out.delete(k);
+        dup.add(k);
+        continue;
+      }
+      out.set(k, p.id);
+    }
+  }
+  return out;
+}
+
+/** NPB 시즌 스탯 타자 목록에 번호를 채운다 — 이미 있거나 못 찾으면 그대로. */
+export function withNpbExternalIds<T extends { playerName: string; externalId: string | null }>(batters: T[], teamId: number | null | undefined): T[] {
+  const idx = npbPidByKoreanName(teamId);
+  return batters.map((b) => (b.externalId ? b : { ...b, externalId: idx.get(norm(b.playerName)) ?? null }));
 }

@@ -9,7 +9,7 @@ import { useState } from "react";
 import type { BaseballBatter } from "@/lib/live/baseball-season-analysis";
 
 interface Props {
-  /** 선수 페이지 주소 규칙용 — MLB 는 번호 그대로, KBO 는 ?league=KBO, NPB 는 번호가 없어 링크 없음. */
+  /** 선수 페이지 주소 규칙용 — MLB 는 번호 그대로, KBO·NPB 는 ?league=… (NPB 번호는 페이지가 로스터로 채운다). */
   league: "MLB" | "KBO" | "NPB";
   homeNameKo: string;
   awayNameKo: string;
@@ -20,8 +20,7 @@ interface Props {
 function playerHref(league: Props["league"], externalId: string | null): string | null {
   if (!externalId) return null;
   if (league === "MLB") return `/players/${externalId}`;
-  if (league === "KBO") return `/players/${externalId}?league=KBO`;
-  return null;
+  return `/players/${externalId}?league=${league}`;
 }
 
 function fmt(n: number | null, digits: number): string {
