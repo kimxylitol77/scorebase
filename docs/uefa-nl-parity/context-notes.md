@@ -22,3 +22,12 @@
 - 핸디·OU 는 10경기 중 5경기만 — 나머지는 월드컵 본선국(포르투갈·노르웨이·오스트리아·네덜란드·독일) 경기.
   원인 = 같은 af id 로 Team row 가 둘(WORLD_CUP 라벨 행에 A매치 이력, INTL_FRIENDLY 라벨 행에 네이션스리그 경기).
 - tsc 통과, npm test 387/387.
+
+## 국대 Team row 중복 병합 (2026-09-24 적용)
+- 원인: 9/23 국대 수집 재개 때 WC 행(#36xx~37xx)엔 api-football 대응표가 없어(thesports·world-cup 만) team-resolver
+  3단계(cross-league 재사용)가 실패 → 4단계에서 INTL_FRIENDLY 라벨 새 행(#5996xx~5997xx) 생성. unique 가 (league, externalId)라 막히지 않았다.
+  이후 네이션스리그·친선·걸프컵 경기가 새 행에 붙어 이력이 끊겼다(한국도 #3671 이력 / #599719 새 경기).
+- 처리: canonical = WORLD_CUP 라벨 행. 경기 135 이동·TeamSourceId 67 재지정(충돌 0)·감독 보관 2·ts 매핑 JSON 2·빈 행 49 삭제, 한 트랜잭션.
+  대응표를 옮겼으니 수집기는 1단계 직접 매핑으로 canonical 을 받는다 → 재발 없음.
+- 백업: 세션 scratchpad nat-dedup-backup-apply.json (Team·경기 원래 팀 id·대응표·보관 행).
+- 사라진 주소: /national-teams/5997xx (생긴 지 하루).
