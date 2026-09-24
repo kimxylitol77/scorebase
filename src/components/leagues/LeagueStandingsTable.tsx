@@ -12,6 +12,8 @@ import { leaderPlayerHref } from "@/lib/links/leaderboard-link";
 import { linkableTsPlayerIds } from "@/lib/links/player-link";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
+import championsData from "../../../data/league-champions.json";
 
 // 대륙 컵 — 국내 리그용 전환 감지(참가팀 16+ · 마지막 종료 40일+)가 성립하지 않는다.
 // 예선이 여름 내내 lastFinished 를 리셋하고 참가팀 수도 유동적이라, season-watch 와 같은
@@ -215,7 +217,14 @@ export default async function LeagueStandingsTable({ league }: { league: string 
   // 전환기: 새 시즌 표(메인) + 지난 시즌 최종 순위(접기).
   if (inTransition && newRows.length > 0) {
     // 팩트카드 — 빈 0-0-0 표의 공백을 채우는 3줄 (SofaScore 패턴): 디펜딩 챔피언·직전 득점왕·승격/신규팀.
-    const champion = liveRows.find((r) => r.position === 1) ?? null;
+    // 단계 대회(예선·조별 → 녹아웃)는 "지난 시즌 표 1위 = 우승팀"이 성립하지 않는다 — AFCON 예선 표
+    // 1위 부룬디가 "디펜딩 챔피언"으로 나가던 오보(2026-09-24). 토너먼트는 실제 우승 기록이 있을 때만,
+    // 없으면 카드를 뺀다. "승격·새 얼굴"도 리그 승강 개념이라 토너먼트엔 내지 않는다.
+    const staged = STAGED_COMPETITIONS.has(league);
+    const recordedChampion = staged
+      ? ((championsData as Record<string, { champions?: { season: string; ko: string }[] }>)[league]?.champions?.[0] ?? null)
+      : null;
+    const champion = staged ? null : (liveRows.find((r) => r.position === 1) ?? null);
     const liveIdSet = new Set(liveRows.map((r) => r.teamId));
     const promoted = newRows.filter((r) => !liveIdSet.has(r.teamId));
     const topScorer = labels
@@ -244,6 +253,13 @@ export default async function LeagueStandingsTable({ league }: { league: string 
         sub: `${labels?.old} 우승`,
         href: `/teams/${champion.teamId}`,
       },
+      recordedChampion && {
+        label: "디펜딩 챔피언",
+        img: null,
+        main: recordedChampion.ko,
+        sub: `${recordedChampion.season} 우승`,
+        href: null,
+      },
       topScorer && {
         label: "직전 시즌 득점왕",
         img: topScorer.photoUrl,
@@ -251,7 +267,7 @@ export default async function LeagueStandingsTable({ league }: { league: string 
         sub: `${topScorer.teamName} · ${Math.round(topScorer.value)}골`,
         href: topScorerHref,
       },
-      promoted.length > 0 && {
+      !staged && promoted.length > 0 && {
         label: "승격·새 얼굴",
         img: null,
         main: promoted.map((t) => t.teamName).slice(0, 3).join(" · "),
