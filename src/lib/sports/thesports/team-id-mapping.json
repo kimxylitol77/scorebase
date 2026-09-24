@@ -30430,5 +30430,514 @@
     "tsName": "Uzbekistan Women",
     "tsKo": "우즈베키스탄 우먼",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615944,
+    "ourName": "Kitchee",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-2y8m4zh38y3ql07",
+    "tsId": "2y8m4zh38y3ql07",
+    "tsName": "Kitchee",
+    "tsKo": "킷치",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615945,
+    "ourName": "Phnom Penh Crown FC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-2y8m4zh3egxql07",
+    "tsId": "2y8m4zh3egxql07",
+    "tsName": "Phnom Penh Crown FC",
+    "tsKo": "프놈 펜 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615946,
+    "ourName": "Kuching City FC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-vjxm8ghgzx3r6od",
+    "tsId": "vjxm8ghgzx3r6od",
+    "tsName": "Kuching City FC",
+    "tsKo": "쿠칭 시티 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615955,
+    "ourName": "San Marino U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-9dn1m1ghwexmoep",
+    "tsId": "9dn1m1ghwexmoep",
+    "tsName": "San Marino U21",
+    "tsKo": "산마리노 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615957,
+    "ourName": "Iceland U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-9k82rekhpn0repz",
+    "tsId": "9k82rekhpn0repz",
+    "tsName": "Iceland U21",
+    "tsKo": "아이슬란드 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615958,
+    "ourName": "Romania U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-l965mkyh642r1ge",
+    "tsId": "l965mkyh642r1ge",
+    "tsName": "Romania U21",
+    "tsKo": "루마니아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615960,
+    "ourName": "Czechia Republic U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-9vjxm8gh696r6od",
+    "tsId": "9vjxm8gh696r6od",
+    "tsName": "Czechia Republic U21",
+    "tsKo": "체코 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615963,
+    "ourName": "Slovakia U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-9k82rekhlw0repz",
+    "tsId": "9k82rekhlw0repz",
+    "tsName": "Slovakia U21",
+    "tsKo": "슬로바키아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615970,
+    "ourName": "Ukraine U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-yl5ergphggor8k0",
+    "tsId": "yl5ergphggor8k0",
+    "tsName": "Ukraine U21",
+    "tsKo": "우크라이나 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615951,
+    "ourName": "Andorra U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-y39mp1h37pnmojx",
+    "tsId": "y39mp1h37pnmojx",
+    "tsName": "Andorra U21",
+    "tsKo": "안도라 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615961,
+    "ourName": "Scotland U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gpxwrxlh8x9ryk0",
+    "tsId": "gpxwrxlh8x9ryk0",
+    "tsName": "Scotland U21",
+    "tsKo": "스코틀랜드 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615965,
+    "ourName": "North Macedonia U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-kjw2r09hd84rz84",
+    "tsId": "kjw2r09hd84rz84",
+    "tsName": "North Macedonia U21",
+    "tsKo": "북마케도니아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615967,
+    "ourName": "Armenia U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-z318q66h508qo9j",
+    "tsId": "z318q66h508qo9j",
+    "tsName": "Armenia U21",
+    "tsKo": "아르메니아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615971,
+    "ourName": "Italy U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-p3glrw7hd86qdyj",
+    "tsId": "p3glrw7hd86qdyj",
+    "tsName": "Italy U21",
+    "tsKo": "이탈리아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615974,
+    "ourName": "Gibraltar U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-965mkyh46v5r1ge",
+    "tsId": "965mkyh46v5r1ge",
+    "tsName": "Gibraltar U21",
+    "tsKo": "지브롤터 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615977,
+    "ourName": "Azerbaijan U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gy0or5jhkjpqwzv",
+    "tsId": "gy0or5jhkjpqwzv",
+    "tsName": "Azerbaijan U21",
+    "tsKo": "아제르바이잔 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615979,
+    "ourName": "Austria U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-3glrw7hwl55qdyj",
+    "tsId": "3glrw7hwl55qdyj",
+    "tsName": "Austria U21",
+    "tsKo": "오스트리아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615981,
+    "ourName": "Denmark U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-jednm9why66ryox",
+    "tsId": "jednm9why66ryox",
+    "tsName": "Denmark U21",
+    "tsKo": "덴마크 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615954,
+    "ourName": "Finland U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-yl5ergphjzgr8k0",
+    "tsId": "yl5ergphjzgr8k0",
+    "tsName": "Finland U21",
+    "tsKo": "핀란드 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615962,
+    "ourName": "Switzerland U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-8y39mp1hgp4mojx",
+    "tsId": "8y39mp1hgp4mojx",
+    "tsName": "Switzerland U21",
+    "tsKo": "스위스 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615976,
+    "ourName": "Cyprus U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-vl7oqdehpg0r510",
+    "tsId": "vl7oqdehpg0r510",
+    "tsName": "Cyprus U21",
+    "tsKo": "키프로스 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615984,
+    "ourName": "Turkiye U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-dn1m1gh4vn3moep",
+    "tsId": "dn1m1gh4vn3moep",
+    "tsName": "Turkiye U21",
+    "tsKo": "터키 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615949,
+    "ourName": "Ashanti Gold",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-ednm9whkox9ryox",
+    "tsId": "ednm9whkox9ryox",
+    "tsName": "Ashanti Gold",
+    "tsKo": "아샨티 골드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615968,
+    "ourName": "Bosnia and Herzegovina U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-p4jwq2ghj14m0ve",
+    "tsId": "p4jwq2ghj14m0ve",
+    "tsName": "Bosnia and Herzegovina U21",
+    "tsKo": "보스니아 헤르체고비나 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615983,
+    "ourName": "Slovenia U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gy0or5jh7w0qwzv",
+    "tsId": "gy0or5jh7w0qwzv",
+    "tsName": "Slovenia U21",
+    "tsKo": "슬로베니아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615972,
+    "ourName": "Montenegro U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-3glrw7hw746qdyj",
+    "tsId": "3glrw7hw746qdyj",
+    "tsName": "Montenegro U21",
+    "tsKo": "몬테네그로 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615938,
+    "ourName": "Al-Arabi SC (Kuwait)",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-pxwrxlhg1n0ryk0",
+    "tsId": "pxwrxlhg1n0ryk0",
+    "tsName": "Al-Arabi SC (Kuwait)",
+    "tsKo": "알 아라비",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615939,
+    "ourName": "Gol Gohar FC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-ednm9whknnwryox",
+    "tsId": "ednm9whknnwryox",
+    "tsName": "Gol Gohar FC",
+    "tsKo": "골 고하르 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615940,
+    "ourName": "Al Nahda SC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-23xmvkh3403qg8n",
+    "tsId": "23xmvkh3403qg8n",
+    "tsName": "Al Nahda SC",
+    "tsKo": "알 나흐다 SC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615941,
+    "ourName": "Al Kuwait SC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-jw2r09hl21grz84",
+    "tsId": "jw2r09hl21grz84",
+    "tsName": "Al Kuwait SC",
+    "tsKo": "알 쿠웨이트 SC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615942,
+    "ourName": "Al-Faisaly Amman",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-jw2r09hl4lprz84",
+    "tsId": "jw2r09hl4lprz84",
+    "tsName": "Al-Faisaly Amman",
+    "tsKo": "알 파이살리 암만",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615943,
+    "ourName": "Preah Khan Reach Svay Rieng FC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-vjxm8ghg80kr6od",
+    "tsId": "vjxm8ghg80kr6od",
+    "tsName": "Preah Khan Reach Svay Rieng FC",
+    "tsKo": "스바이 리엥 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615953,
+    "ourName": "Estonia U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-8yomo4h7e4dq0j6",
+    "tsId": "8yomo4h7e4dq0j6",
+    "tsName": "Estonia U21",
+    "tsKo": "에스토니아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615985,
+    "ourName": "Luxembourg U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gx7lm7phenym2wd",
+    "tsId": "gx7lm7phenym2wd",
+    "tsName": "Luxembourg U21",
+    "tsKo": "룩셈부르크 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615986,
+    "ourName": "Germany U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-8y39mp1h25zmojx",
+    "tsId": "8y39mp1h25zmojx",
+    "tsName": "Germany U21",
+    "tsKo": "독일 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615950,
+    "ourName": "Kazakhstan U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-dj2ryohkgzvq1zp",
+    "tsId": "dj2ryohkgzvq1zp",
+    "tsName": "Kazakhstan U21",
+    "tsKo": "카자흐스탄 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615952,
+    "ourName": "Faroe Islands U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-8yomo4h7z0oq0j6",
+    "tsId": "8yomo4h7z0oq0j6",
+    "tsName": "Faroe Islands U21",
+    "tsKo": "페로 제도 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615956,
+    "ourName": "Belarus U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-j1l4rjnh0eym7vx",
+    "tsId": "j1l4rjnh0eym7vx",
+    "tsName": "Belarus U21",
+    "tsKo": "벨라루스 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615959,
+    "ourName": "Kosovo U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-n54qllh2xgxqvy9",
+    "tsId": "n54qllh2xgxqvy9",
+    "tsName": "Kosovo U21",
+    "tsKo": "코소보 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615973,
+    "ourName": "Bulgaria U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-l965mkyhxz3r1ge",
+    "tsId": "l965mkyhxz3r1ge",
+    "tsName": "Bulgaria U21",
+    "tsKo": "불가리아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615975,
+    "ourName": "Spain U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-318q66hozvvqo9j",
+    "tsId": "318q66hozvvqo9j",
+    "tsName": "Spain U21",
+    "tsKo": "스페인 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615978,
+    "ourName": "England U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-p3glrw7h23yqdyj",
+    "tsId": "p3glrw7h23yqdyj",
+    "tsName": "England U21",
+    "tsKo": "잉글랜드 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615982,
+    "ourName": "Norway U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-x7lm7phkgp1m2wd",
+    "tsId": "x7lm7phkgp1m2wd",
+    "tsName": "Norway U21",
+    "tsKo": "노르웨이 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615988,
+    "ourName": "France U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-p4jwq2ghd3wm0ve",
+    "tsId": "p4jwq2ghd3wm0ve",
+    "tsName": "France U21",
+    "tsKo": "프랑스 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615987,
+    "ourName": "Latvia U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gx7lm7ph42pm2wd",
+    "tsId": "gx7lm7ph42pm2wd",
+    "tsName": "Latvia U21",
+    "tsKo": "라트비아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615947,
+    "ourName": "Debibi United",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-y0or5jhg055qwzv",
+    "tsId": "y0or5jhg055qwzv",
+    "tsName": "Debibi United",
+    "tsKo": "데비비 유나이티드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615948,
+    "ourName": "Port City",
+    "ourLeague": "GHANA_PL",
+    "ourExternalId": "ts-y0or5jh125pqwzv",
+    "tsId": "y0or5jh125pqwzv",
+    "tsName": "Port City",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615980,
+    "ourName": "Wales U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-vjxm8gh426dr6od",
+    "tsId": "vjxm8gh426dr6od",
+    "tsName": "Wales U21",
+    "tsKo": "웨일즈 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615964,
+    "ourName": "Poland U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gx7lm7phy3km2wd",
+    "tsId": "gx7lm7phy3km2wd",
+    "tsName": "Poland U21",
+    "tsKo": "폴란드 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615969,
+    "ourName": "Lithuania U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-8y39mp1hgj1mojx",
+    "tsId": "8y39mp1hgj1mojx",
+    "tsName": "Lithuania U21",
+    "tsKo": "리투아니아 U21",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 615966,
+    "ourName": "Sweden U21",
+    "ourLeague": "UEFA_U21_Q",
+    "ourExternalId": "ts-gy0or5jhyz4qwzv",
+    "tsId": "gy0or5jhyz4qwzv",
+    "tsName": "Sweden U21",
+    "tsKo": "스웨덴 U21",
+    "matchType": "ts-external-id"
   }
 ]
