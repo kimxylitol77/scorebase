@@ -680,7 +680,7 @@
   },
   {
     "route": "/live/lol/[matchId]",
-    "desc": "LCK 매치 라이브 상세 페이지. matchId = BALLDONTLIE match id (= 우리 Match.externalId).",
+    "desc": "LCK 매치 라이브 상세 페이지. matchId = 우리 Match.externalId — BDL(숫자) 또는 TheSports(영숫자) 둘 다 온다.",
     "inMenu": false,
     "dynamic": true,
     "group": "live"

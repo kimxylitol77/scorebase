@@ -1,5 +1,5 @@
 // /live/lol/[matchId] — LCK 매치 라이브 상세 페이지.
-// matchId = BALLDONTLIE match id (= 우리 Match.externalId).
+// matchId = 우리 Match.externalId — BDL(숫자) 또는 TheSports(영숫자) 둘 다 온다.
 
 import type { Metadata } from "next";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
@@ -94,7 +94,8 @@ export default async function LolLivePage({ params }: Props) {
     Math.max(match.homeScore ?? 0, match.awayScore ?? 0) >= 3 ? 5 : 3;
   const lolPlayed = (match.homeScore ?? 0) + (match.awayScore ?? 0);
   const initialLive: LolLive = {
-    matchId: Number(matchId),
+    // LolLive.matchId 는 BDL 숫자 id 필드 — ts 영숫자 externalId 면 대응값이 없어 0.
+    matchId: /^\d+$/.test(matchId) ? Number(matchId) : 0,
     status: match.status === "FINISHED" ? "FINAL" : match.status === "LIVE" ? "LIVE" : "PRE",
     bestOf: lolBestOf,
     homeScore: match.homeScore ?? 0,
@@ -208,7 +209,7 @@ export default async function LolLivePage({ params }: Props) {
       )}
 
       <LolLiveDetail
-        matchId={Number(matchId)}
+        matchId={matchId}
         date={date}
         homeNameKo={homeKo}
         awayNameKo={awayKo}

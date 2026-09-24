@@ -25,7 +25,8 @@ export interface LolLive {
 }
 
 interface Props {
-  matchId: number;
+  /** Match.externalId — BDL(숫자) 또는 TheSports(영숫자). 라이브 fetch 는 BDL 숫자만 가능. */
+  matchId: string;
   date: string;
   homeNameKo: string;
   awayNameKo: string;
@@ -38,7 +39,7 @@ interface Props {
   games?: LolGamesData | null;
   /** DB 기반 초기 시리즈 (BDL 죽어도 점수 표시). BDL fetch 성공 시 갱신. */
   initial?: LolLive | null;
-  /** DB Match.id — 헤더 관심경기 별표용. matchId prop 은 BDL externalId 라 별표 키로 못 쓴다
+  /** DB Match.id — 헤더 관심경기 별표용. matchId prop 은 externalId 라 별표 키로 못 쓴다
       (/scores 별표와 같은 저장소 = DB id 기준). 없으면 별표 미표시. */
   favMatchId?: number | null;
   /** 별표 저장 시 함께 남길 매치 링크 (PiP 가 되돌아올 주소) */
@@ -72,6 +73,11 @@ export default function LolLiveDetail({
   }, [live]);
 
   useEffect(() => {
+    // /api/live/lol 은 BDL 숫자 match id 만 조회할 수 있다. TheSports 영숫자 externalId
+    // (LEC·LCS·EWC 전량, LOL 일부) 는 BDL 에 대응 매치가 없어 폴링 자체를 건너뛴다.
+    // 이 가드 없이 넘기면 매 로드마다 /api/live/lol/NaN → 400 만 반복한다.
+    if (!/^\d+$/.test(matchId)) return;
+
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let lastEtag: string | null = null;
