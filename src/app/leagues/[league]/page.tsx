@@ -34,6 +34,8 @@ import LolTournamentStrip from "@/components/lol/LolTournamentStrip";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import NationsLeagueHub from "@/components/leagues/nations-league/NationsLeagueHub";
+import AfconHub from "@/components/leagues/afcon/AfconHub";
+import GulfCupHub from "@/components/leagues/gulf-cup/GulfCupHub";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
@@ -143,6 +145,8 @@ const VALID_LEAGUES = [
   // 2026-09-24 — ALL_LEAGUES 에는 있는데 여기 없어 StandingsOnlyView 로 빠지고 있었다.
   // 리그페이즈(A~D · 14개조 · 54팀) → 파이널스. 조별 표는 af 경로가 준다.
   "UEFA_NL",
+  // 2026-09-24 — 같은 이유(ALL_LEAGUES 에만 있어 StandingsOnlyView "수집 중" 화면). 조별 2조 → 4강·결승.
+  "GULF_CUP",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -315,6 +319,13 @@ const LEAGUE_INFO: Partial<Record<
     copy:
       "북중미(미국·캐나다·멕시코) 공동 개최 2026 FIFA 월드컵의 조별예선부터 결승까지의 매치 프리뷰·결과·분석.",
   },
+  GULF_CUP: {
+    name: "걸프컵",
+    subtitle: "Arabian Gulf Cup",
+    gradient: "from-emerald-700 via-teal-600 to-sky-600",
+    copy:
+      "걸프 지역 8개국이 겨루는 아라비안 걸프컵. 2026년 제27회는 사우디아라비아 제다에서 조별리그 두 조를 거쳐 4강·결승까지 치른다.",
+  },
   UEFA_NL: {
     name: "UEFA 네이션스 리그",
     subtitle: "UEFA Nations League",
@@ -471,7 +482,7 @@ const CUP_LEAGUES = new Set<string>([
   "UEFA_WCL", "LEAGUES_CUP", "CANADA_CHAMP",
   "AFCON", "CONCACAF_GOLD",
   // 2026-09-24 — 리그페이즈(조별) + 파이널스. NO_TABLE 에 없으므로 순위 탭도 함께 나간다.
-  "UEFA_NL",
+  "UEFA_NL", "GULF_CUP",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
@@ -919,8 +930,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
       {(isSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {/* 네이션스리그는 리그 A~D·14개 조라 평면 표 대신 허브(빅매치 + 등급 토글 + 조별 카드) */}
-          {upper === "UEFA_NL" ? <NationsLeagueHub /> : <LeagueStandingsTable league={upper} />}
+          {/* 조별리그 국가대표 대회는 평면 표 대신 빅매치 허브(빅매치 + 레일 + 조 토글 + 조별 카드).
+              네이션스리그 = 리그 A~D·14개 조, AFCON = 예선 12개 조(개최국 조 규칙 별도). */}
+          {upper === "UEFA_NL" ? (
+            <NationsLeagueHub />
+          ) : upper === "AFCON" ? (
+            <AfconHub />
+          ) : upper === "GULF_CUP" ? (
+            <GulfCupHub />
+          ) : (
+            <LeagueStandingsTable league={upper} />
+          )}
         </div>
       )}
       {isSoccer && view === "power" && (
@@ -1426,7 +1446,9 @@ const ODDS_SPORT: Record<string, string> = { SOCCER: "soccer", BASEBALL: "baseba
 function LeagueDataDirectory({ league, hasInjuries, hasOverUnder }: { league: string; hasInjuries: boolean; hasOverUnder: boolean }) {
   const sport = LEAGUE_TO_SPORT[league];
   const chips: { href: string; label: string }[] = [];
-  if (STANDINGS_VALID.has(league) && !NO_TABLE_LEAGUES.has(league)) chips.push({ href: `/standings/${league}`, label: "순위표 전체" });
+  // 걸프컵은 순위표 소스(af·ts)가 없어 /standings 가 "단일 순위표로 표시하지 않습니다" 안내만 낸다.
+  // 리그 페이지 허브가 종료 경기로 직접 계산한 조별 표가 전부라, 빈 페이지로 보내는 칩을 뺀다.
+  if (STANDINGS_VALID.has(league) && !NO_TABLE_LEAGUES.has(league) && league !== "GULF_CUP") chips.push({ href: `/standings/${league}`, label: "순위표 전체" });
   if (hasInjuries) chips.push({ href: `/injuries/${league}`, label: "부상자 명단" });
   const statsHref = statsTableHref(league);
   if (statsHref) chips.push({ href: statsHref, label: "선수 스탯 표" });

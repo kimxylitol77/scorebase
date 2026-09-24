@@ -2369,6 +2369,22 @@ const RAW: Record<string, string> = {
   // ===== 국가대표 (2026-05-29 추가) — INTL_FRIENDLY 등 국대 리그 공통 =====
   "Albania": "알바니아",
   "Angola": "앙골라",
+  // 2026-09-24 — AFCON 2027 예선 조별리그 48팀 중 영문으로 남던 13팀(표준 국가명 표기).
+  "Lesotho": "레소토",
+  "Gabon": "가봉",
+  "South Sudan": "남수단",
+  "Somalia": "소말리아",
+  "Eritrea": "에리트레아",
+  "Sierra Leone": "시에라리온",
+  "Namibia": "나미비아",
+  "Republic of the Congo": "콩고",
+  "Democratic Republic of the Congo": "콩고민주공화국",
+  "Uganda": "우간다",
+  "Mozambique": "모잠비크",
+  "Tanzania": "탄자니아",
+  "Cabo Verde": "카보베르데",
+  // 2026-09-24 — 걸프컵 B조.
+  "Yemen": "예멘",
   "Armenia": "아르메니아",
   "Aruba": "아루바",
   "Azerbaijan": "아제르바이잔",
