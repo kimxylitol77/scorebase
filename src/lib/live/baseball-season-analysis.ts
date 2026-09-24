@@ -88,9 +88,11 @@ async function loadBatters(
   season: string,
   teamName: string,
 ): Promise<BaseballBatter[]> {
+  // 투수 전용 행(타격 컬럼 null)은 뺀다 — Postgres DESC 는 NULL 을 맨 앞에 둬서 투수가 "타자 전력" 맨 위에
+  // "-" 로 깔렸다(2026-09-24 WSH 페랄레스·그레이 등, MLB 926·KBO 277 행이 투수 전용).
   const rows = await prisma.baseballPlayerSeasonStats.findMany({
-    where: { league, season, teamName },
-    orderBy: [{ hits: "desc" }, { rbi: "desc" }],
+    where: { league, season, teamName, OR: [{ hits: { not: null } }, { avg: { not: null } }] },
+    orderBy: [{ hits: { sort: "desc", nulls: "last" } }, { rbi: { sort: "desc", nulls: "last" } }],
     take: MAX_BATTERS,
   });
   return rows.map((r) => ({
