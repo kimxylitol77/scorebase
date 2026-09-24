@@ -31,7 +31,7 @@ import { calibrateHomeWinProb, hasHomeCalibration } from "./predict/home-calibra
 import { calcRecentTrend } from "./predict/recent-trend";
 import { rollingXgStrength, xgMomentumShift } from "./predict/rolling-xg";
 import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
-import { BASEBALL_LEAGUES, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, historyLeaguesFor, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "./predict/types";
 import {
   computeStarterAdjustment,
@@ -558,7 +558,9 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
   // 시즌 매치 (1년 window)
   const seasonMatches = await prisma.match.findMany({
     where: {
-      league: match.league,
+      // 성인 국대는 A매치 전체 이력(historyLeaguesFor) — 대회 단위로 읽으면 네이션스리그처럼 종료 0건인 대회가
+      //  빈 이력으로 득점 모델을 돌려 리그 평균 확률이 섞였다(2026-09-24 포르투갈-웨일스 저장 61% vs 계산 80%).
+      league: { in: historyLeaguesFor(match.league) },
       startTime: {
         gte: new Date(match.startTime.getTime() - 365 * 24 * 3600 * 1000),
         lt: match.startTime,
@@ -612,8 +614,10 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     : getElo(eloTable, match.awayTeamId);
 
   // 축구 Dixon-Coles 득점모델 (Elo 와 0.7 블렌드). 실패 시 Elo only fallback.
+  // 성인 국대는 건너뛴다 — 팀당 A매치가 몇 경기뿐이라 공격·수비 계수가 흔들리고, 전력의 뼈대는 외부 시드 Elo 다.
+  //  저장 예측 경로(compute-prediction → buildMatchContext)도 Elo+시장이라 두 경로가 같은 기준이 된다.
   let dc: { home: number; draw: number; away: number } | undefined;
-  if (sport === "football") {
+  if (sport === "football" && !isNationalTeam) {
     try {
       const s = fitDixonColes(seasonMatchesTyped as unknown as DcMatch[], match.startTime);
       const p = predictDixonColes(s, match.homeTeamId, match.awayTeamId);
