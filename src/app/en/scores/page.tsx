@@ -2830,12 +2830,14 @@ function SoccerRowLayout({
       {label}
     </div>
   );
+  // h2 — 다른 종목이 쓰는 Section 과 같은 급. div 로 두면 H1 다음 제목이 사이드바 H3 뿐이라
+  // 축구 뷰의 제목 계층이 H1 → H3 으로 건너뛴다.
   const statusHeader = (label: string, color: string, size: "sm" | "md") => (
-    <div
+    <h2
       className={`flex items-center gap-2 px-1 ${size === "sm" ? "text-[12px]" : "text-[13px]"} font-bold ${color}`}
     >
       <span>{label}</span>
-    </div>
+    </h2>
   );
 
   // 🏆 월드컵 섹션 헤더 (모바일/데스크탑 공용) — LIVE 카운트 + 우승 시뮬 링크

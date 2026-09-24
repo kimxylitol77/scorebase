@@ -101,9 +101,13 @@ export default function SoccerLeagueSidebar({
       className="hidden lg:block w-48 shrink-0 sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden"
       aria-label="축구 리그 목록"
     >
+      {/* 목록 안 구획 제목이 H3 라 H2 부모가 필요하다 — 시각적으론 aria-label 로 충분해 sr-only. */}
+      <h2 className="sr-only">축구 리그 목록</h2>
+
       {/* 전체 */}
       <Link
         href={buildHref(date, status, null, sort)}
+        prefetch={false}
         className={!activeLeague ? itemActiveClass : itemClass}
       >
         <span className="text-[14px] leading-none">⚽</span>
