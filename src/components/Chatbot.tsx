@@ -92,6 +92,25 @@ export default function Chatbot() {
   // 경기 상세의 경기 전용 챗봇과 우하단 자리가 겹친다 — 그쪽이 떠 있으면 이 챗봇은 비켜준다.
   // 그 페이지에선 경기 데이터를 미리 주입한 전용 챗봇이 더 정확하게 답한다.
   const matchChatMounted = useMatchChatMounted();
+  // 스크롤 중에는 버튼을 숨긴다 — /scores 처럼 목록이 긴 화면에서 우하단에 고정돼 있으면
+  // 경기 행 오른쪽 끝(점수 칸)을 계속 덮는다. 위로 올려봐야 덮는 행만 바뀔 뿐이라
+  // 읽는 동안 비키고, 손을 멈추면 돌아오는 쪽으로. (2026-09-24 /scores 점검)
+  const [scrolling, setScrolling] = useState(false);
+
+  useEffect(() => {
+    if (open) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      setScrolling(true);
+      clearTimeout(timer);
+      timer = setTimeout(() => setScrolling(false), 600);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(timer);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -158,8 +177,12 @@ export default function Chatbot() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="챗봇 열기"
+        aria-hidden={scrolling}
+        tabIndex={scrolling ? -1 : undefined}
         style={{ bottom: "1.25rem", right: "1.25rem", top: "auto", left: "auto" }}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-lg transition hover:scale-105 dark:bg-white dark:text-neutral-900"
+        className={`fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-lg transition hover:scale-105 dark:bg-white dark:text-neutral-900 ${
+          scrolling ? "pointer-events-none translate-y-3 opacity-0" : ""
+        }`}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
