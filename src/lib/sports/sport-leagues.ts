@@ -335,6 +335,17 @@ export function leaguesForSport(code: SportCode): string[] {
   return SPORTS.find((s) => s.code === code)?.leagues ?? ALL_LEAGUES;
 }
 
+// 리그 → 종목 역인덱스 — SPORTS 단일 진실에서 빌드 (inline 매핑 금지).
+const SPORT_BY_LEAGUE: Record<string, Exclude<SportCode, "all">> = Object.fromEntries(
+  SPORTS.flatMap((s) => s.leagues.map((l) => [l, s.code as Exclude<SportCode, "all">])),
+);
+
+// 모르는 리그는 null — 종목을 추정하지 않는다. 화면·메타 문구에서 추정한 종목명은
+// 그대로 색인된다(2026-09-24 실측: LOL 팀 T1 제목이 "T1 축구 팀 순위").
+export function sportCodeForLeague(league: string): Exclude<SportCode, "all"> | null {
+  return SPORT_BY_LEAGUE[league.toUpperCase()] ?? null;
+}
+
 export const LEAGUE_DISPLAY: Record<string, string> = {
   ATP: "ATP 투어",
   WTA: "WTA 투어",

@@ -12,7 +12,7 @@ import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
-import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES, sportCodeForLeague } from "@/lib/sports/sport-leagues";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
@@ -25,7 +25,6 @@ import { khlRoster, khlPlayerName, khlAge, khlInjuryOf, khlInjuryLabel } from "@
 import { kblRoster, kblPosKo, kblAge } from "@/lib/sports/kbl-players";
 import { wkblRoster, wkblPosKo } from "@/lib/sports/wkbl-players";
 import { kovoRoster, kovoPosKo } from "@/lib/sports/kovo-players";
-import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
@@ -168,28 +167,43 @@ interface Props {
 }
 
 // 종목별 검색 의도 키워드 — "다저스 순위", "양키스 로스터" 등 한국 검색 수요를 title·description 에 반영.
+// 종목 판정은 sportCodeForLeague(SPORTS 단일 진실). getSportFromLeague 는 15개 리그만 알아
+// 나머지를 전부 축구로 폴백했고, 그 결과 LOL·배구·하키·UFC 팀까지 "축구 팀" 으로 색인됐다
+// (2026-09-24 실측: /teams/22590 T1 → "T1 축구 팀 순위·일정·이적·라인업").
+// ⚠️ 각 문구는 "일정" 토큰을 그대로 둔다 — 아래 description 이 replace("일정", "경기 일정") 한다.
 function teamIntentKeywords(league: string): string {
-  // 배구는 players/types 의 SportType 밖이라 예외로 처리 — 안 하면 "축구 팀 순위…"가 나간다(2026-09-18 V-리그 실측).
-  if (VOLLEYBALL_LEAGUES.has(league)) return "순위·일정·로스터·선수 기록";
-  let sport: string;
-  try {
-    sport = getSportFromLeague(league);
-  } catch {
-    sport = "soccer";
-  }
-  switch (sport) {
+  switch (sportCodeForLeague(league)) {
     case "baseball":
       // 빙 실측 "삼성 라이온즈 팀 순위 야구" 류 롱테일 — "야구"·"팀 순위" 토큰 정확 매칭.
       return "야구 팀 순위·일정·로스터·선수 통계";
     case "basketball":
-      return "순위·일정·로스터·선수 기록";
+      return "농구 팀 순위·일정·로스터·선수 기록";
     case "hockey":
-      return "순위·일정·로스터";
-    default:
+      return "하키 팀 순위·일정·로스터";
+    case "volleyball":
+      return "배구 팀 순위·일정·로스터";
+    case "esports":
+      // e스포츠 팀 페이지는 전부 LoL(LCK·LPL·LEC·LCS·EWC) — 검색어도 "T1 일정" 처럼 종목명 대신 LoL.
+      return "LoL 팀 순위·일정·로스터";
+    case "mma":
+      // UFC 는 Team row 가 파이터다 — 순위·로스터 개념이 없다.
+      return "UFC 파이터 전적·일정";
+    case "soccer":
       // 빙 실측 "맨체스터 유나이티드 팀 순위 축구" 168·"레알 마드리드 팀 순위 축구" 135·
       // "아스널 fc 축구 팀" 172 노출에 클릭 0 — 야구와 같이 "축구"·"팀 순위" 토큰을 정확 매칭한다.
-      return "축구 팀 순위·일정·이적·라인업"; // soccer
+      return "축구 팀 순위·일정·이적·라인업";
+    default:
+      // SPORTS 미등록 리그(워커가 먼저 만든 ASIAN_GAMES_* 등)·표시 전용 개인 종목 —
+      // 종목명을 추정해 붙이면 틀린 종목이 색인된다. 종목 없는 중립 문구로 간다.
+      return "팀 순위·일정·로스터";
   }
+}
+
+// 앞 글자 받침에 맞춘 조사 — 종목마다 키워드 끝이 달라(라인업/로스터) 고정 "과" 는 "로스터과" 가 된다.
+function waGwa(s: string): string {
+  const code = s.charCodeAt(s.length - 1) - 0xac00;
+  const hasJongseong = code >= 0 && code <= 11171 && code % 28 !== 0;
+  return hasJongseong ? "과" : "와";
 }
 
 // 축구 클럽의 현재 리그 순위 — 순위표 페이지와 같은 ts 캐시를 본다.
@@ -221,7 +235,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const intent = teamIntentKeywords(team.league);
   const enName = ko === team.name ? "" : `(${team.name})`;
   let title = `${ko} ${intent}`;
-  let description = `${team.league} ${ko}${enName} ${intent} 정보. 현재 순위와 최근 폼, 다음 경기 일정, 주요 선수와 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
+  // UFC 는 Team row 가 파이터라 "현재 순위"·"주요 선수" 가 없는 약속이 된다 — 전적·다음 경기로 간다.
+  let description =
+    sportCodeForLeague(team.league) === "mma"
+      ? `${team.league} ${ko}${enName} ${intent} 정보. 최근 전적과 다음 경기 일정, AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`
+      : `${team.league} ${ko}${enName} ${intent} 정보. 현재 순위와 최근 폼, 다음 경기 일정, 주요 선수와 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
   // 야구(KBO/NPB) — 빙 "{구단} 팀 순위 야구" 패턴이 노출 1,256에 클릭 2 (2026-08-08 실측).
   // 순위표 페이지(67491a5)에서 먹힌 방식 그대로: 검색어를 앞세우고 현재 순위·날짜를 동적 삽입해
   // SERP 에서 "지금 몇 위인지 바로 보이는" 제목으로 클릭 유인. 캐시 stale 이면 정적 제목 유지.
@@ -364,9 +382,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           ? `${todayLabel} ${ko}${enName} ${rankLabel}, ${rank.total}경기 승점 ${rank.points}.`
           : `${ko}${enName} ${nextLabel}.`;
         const rest = [rank && nextLabel ? nextLabel : "", form].filter(Boolean).join(" · ");
+        const tail = intent.replace("일정", "경기 일정");
         description =
           `${head}${rest ? ` ${rest}.` : ""} ` +
-          `${team.league} ${intent.replace("일정", "경기 일정")}과 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
+          `${team.league} ${tail}${waGwa(tail)} AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
       }
     } catch {
       // 매치 조회 불가 시 정적 폴백 유지

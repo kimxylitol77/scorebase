@@ -12,7 +12,7 @@ import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/en/FavoriteTeamButton";
-import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES, sportCodeForLeague } from "@/lib/sports/sport-leagues";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import TeamAbout from "@/components/en/teams/TeamAbout";
 import TransfersSection from "@/components/en/teams/TransfersSection";
@@ -158,24 +158,30 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-// 종목별 검색 의도 키워드 — "다저스 순위", "양키스 로스터" 등 한국 검색 수요를 title·description 에 반영.
+// 종목별 검색 의도 키워드 — 한국어판과 같은 종목 판정(sportCodeForLeague, SPORTS 단일 진실).
+// 이전 getSportFromLeague 폴백은 LOL·배구·하키·UFC 팀까지 축구 문구로 내보냈다 (2026-09-24 실측).
 function teamIntentKeywords(league: string): string {
-  let sport: string;
-  try {
-    sport = getSportFromLeague(league);
-  } catch {
-    sport = "soccer";
-  }
-  switch (sport) {
+  switch (sportCodeForLeague(league)) {
     case "baseball":
       // 빙 실측 "삼성 라이온즈 팀 순위 야구" 류 롱테일 — "야구"·"팀 순위" 토큰 정확 매칭.
       return "baseball standings, fixtures, roster and player stats";
     case "basketball":
-      return "standings, fixtures, roster and player records";
+      return "basketball standings, fixtures, roster and player records";
     case "hockey":
-      return "standings, fixtures and roster";
+      return "hockey standings, fixtures and roster";
+    case "volleyball":
+      return "volleyball standings, fixtures and roster";
+    case "esports":
+      // e스포츠 팀은 전부 LoL (LCK·LPL·LEC·LCS·EWC)
+      return "LoL standings, schedule and roster";
+    case "mma":
+      // UFC 는 Team row 가 파이터다 — 순위·로스터 개념이 없다.
+      return "UFC fight record and schedule";
+    case "soccer":
+      return "standings, fixtures, transfers and line-ups";
     default:
-      return "standings, fixtures, transfers and line-ups"; // soccer
+      // SPORTS 미등록 리그 — 종목명을 추정하지 않는다.
+      return "standings, fixtures and roster";
   }
 }
 
@@ -187,7 +193,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const intent = teamIntentKeywords(team.league);
   const enName = ko === team.name ? "" : `(${team.name})`;
   let title = `${ko} ${intent}`;
-  let description = `${team.league} ${ko}${enName} ${intent} — current standing, recent form, next fixture, key players and AI predictions on one page.`;
+  // UFC 는 Team row 가 파이터라 "standing"·"key players" 가 없는 약속이 된다.
+  let description =
+    sportCodeForLeague(team.league) === "mma"
+      ? `${team.league} ${ko}${enName} ${intent} — recent results, next fight and AI predictions on one page.`
+      : `${team.league} ${ko}${enName} ${intent} — current standing, recent form, next fixture, key players and AI predictions on one page.`;
   // 야구(KBO/NPB) — 빙 "{구단} 팀 순위 야구" 패턴이 노출 1,256에 클릭 2 (2026-08-08 실측).
   // 순위표 페이지(67491a5)에서 먹힌 방식 그대로: 검색어를 앞세우고 현재 순위·날짜를 동적 삽입해
   // SERP 에서 "지금 몇 위인지 바로 보이는" 제목으로 클릭 유인. 캐시 stale 이면 정적 제목 유지.
