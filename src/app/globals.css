@@ -824,3 +824,15 @@ body.sb-mode [data-scores-root] {
   padding-left: 0.75rem !important;
   padding-right: 1rem !important;
 }
+
+/* 리그 그룹 카드 — 화면 밖 카드는 레이아웃·페인트를 건너뛴다.
+   /scores 는 리그 카드 48장·경기 행 188개를 가상화 없이 한 번에 렌더한다(ROW_CAP·LEAGUE_CAP
+   으로 이미 상한은 걸려 있고, 그 위에서 남는 비용을 브라우저가 걷어내게 하는 층).
+   contain-intrinsic-size 의 auto = 한 번 렌더한 실제 높이를 기억 → 두 번째 스크롤부터는
+   추정 높이가 아니라 실측값을 쓴다(스크롤바 튐 방지). 120px = 헤더 50 + 행 45 + 여유,
+   카드 대부분이 1경기짜리라는 실측(행 슬롯 중앙값 45px)에서 잡은 초기 추정치.
+   DOM 에는 그대로 남으므로 검색엔진·찾기·접근성 트리는 영향 없음. */
+[data-sgroup] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}

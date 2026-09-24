@@ -48,6 +48,7 @@ export default function LeagueGroupCard({
   );
   return (
     <section
+      data-sgroup
       className={`rounded-2xl border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-28px_rgba(15,23,42,0.20)] overflow-hidden dark:bg-white/[0.045] dark:shadow-none ${
         accent === "wc"
           ? "border-amber-400/70 dark:border-amber-500/40"
