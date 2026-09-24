@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { fetchMlbTeamPitchingLog, mlbIpToInnings } from "@/lib/sports/mlb-stats-api";
 import { npbPlayerKo } from "@/lib/sports/npb-player-ko";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 /** 한 투수의 하루 등판. pitches 는 MLB·NPB 만(KBO 공식 기록엔 투구수가 없다). */
 export interface PitcherUsage {
@@ -131,7 +132,8 @@ async function loadMlbBullpenRaw(teamName: string, asOf: string): Promise<Bullpe
   const byPid = new Map<number, { name: string; usage: PitcherUsage[] }>();
   for (const a of log) {
     if (starters.has(a.pid)) continue;
-    const e = byPid.get(a.pid) ?? { name: a.name, usage: [] };
+    // 선수 페이지와 같은 사전(toKoreanPlayerName)으로 한글화 — 탭은 영문·클릭하면 한글이던 불일치(사용자 신고 2026-09-24)
+    const e = byPid.get(a.pid) ?? { name: toKoreanPlayerName(a.name) || a.name, usage: [] };
     e.usage.push({ date: a.date, pitches: a.pitches, innings: mlbIpToInnings(a.ip ?? undefined), tbf: a.tbf, er: a.er });
     byPid.set(a.pid, e);
   }
