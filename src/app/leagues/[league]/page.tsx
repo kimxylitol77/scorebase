@@ -36,6 +36,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import NationsLeagueHub from "@/components/leagues/nations-league/NationsLeagueHub";
 import AfconHub from "@/components/leagues/afcon/AfconHub";
 import GulfCupHub from "@/components/leagues/gulf-cup/GulfCupHub";
+import CupJourney from "@/components/leagues/cup-journey/CupJourney";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
@@ -485,6 +486,13 @@ const CUP_LEAGUES = new Set<string>([
   "UEFA_NL", "GULF_CUP",
 ]);
 
+// 대회 여정 카드를 첫 화면에 올리는 녹아웃 컵 — 조별리그가 있는 컵(UEFA_WCL·LEAGUES_CUP·CANADA_CHAMP·
+// AFCON·CONCACAF_GOLD·UEFA_NL·GULF_CUP)과 1~3경기짜리 슈퍼컵은 뺀다. 라운드 이름이 없는 컵은 카드가 안 나온다.
+const CUP_JOURNEY_LEAGUES = new Set<string>([
+  "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE",
+  "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
+]);
+
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
 const BRACKET_CTA_LABEL: Record<string, string> = {
   NHL: "플레이오프 브래킷",
@@ -926,6 +934,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {/* 컵도 포함 — cupViews 가 NO_TABLE 이 아닌 컵에 순위 탭을 주는데(조별리그·리그페이즈)
           이 블록이 isSoccer 전용이면 탭만 있고 표가 없는 빈 화면이 된다. 2026-08-21 실측:
           LEAGUES_CUP·UEFA_WCL 을 VALID_LEAGUES 로 옮기면서 폴백 경로가 그리던 표를 잃었다. */}
+      {/* 녹아웃 컵 첫 화면 — 대회 여정(진행 라운드·빅클럽 합류·우승 기록·라운드별 결과).
+          조별리그 대회(네이션스리그·AFCON·걸프컵 등)는 순위 탭의 빅매치 허브가 맡는다. */}
+      {CUP_JOURNEY_LEAGUES.has(upper) && view === dataViews[0] && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+          <CupJourney league={upper} leagueName={info.name} />
+        </div>
+      )}
       {view === "predictions" && <LeaguePredictionsPanel league={upper} />}
 
       {(isSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
