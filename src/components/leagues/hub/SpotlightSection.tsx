@@ -11,6 +11,7 @@ export default function SpotlightSection({
   eyebrow,
   note,
   matchdays,
+  trackLabels,
   left,
   right,
 }: {
@@ -21,6 +22,8 @@ export default function SpotlightSection({
   note: string;
   /** 라운드 진행 트랙 칸 수 */
   matchdays: number;
+  /** 트랙 칸 이름(조별 1R … 결승) — 있으면 "N/총" 대신 현재 칸 이름을 쓴다 */
+  trackLabels?: readonly string[];
   left: { title: string; items: HubMatch[] };
   right: { title: string; items: HubMatch[] };
 }) {
@@ -33,7 +36,7 @@ export default function SpotlightSection({
       {/* items-start — 레일 경기 수가 양쪽 다를 수 있어 가운데 정렬하면 머리글이 어긋난다.
           위로 붙여 세 머리글(레일 둘 + 빅매치)을 한 줄에 둔다. */}
       <div className="relative grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)]">
-        <FeaturedCard m={featured} eyebrow={eyebrow} note={note} matchdays={matchdays} />
+        <FeaturedCard m={featured} eyebrow={eyebrow} note={note} matchdays={matchdays} trackLabels={trackLabels} />
         <Rail title={left.title} items={left.items} className="lg:order-1" />
         <Rail title={right.title} items={right.items} className="lg:order-3" />
       </div>
@@ -41,7 +44,7 @@ export default function SpotlightSection({
   );
 }
 
-function FeaturedCard({ m, eyebrow, note, matchdays }: { m: HubMatch; eyebrow: string; note: string; matchdays: number }) {
+function FeaturedCard({ m, eyebrow, note, matchdays, trackLabels }: { m: HubMatch; eyebrow: string; note: string; matchdays: number; trackLabels?: readonly string[] }) {
   const scored = (m.status === "LIVE" || m.status === "FINISHED") && m.homeScore != null && m.awayScore != null;
   return (
     <div className="lg:order-2">
@@ -83,7 +86,7 @@ function FeaturedCard({ m, eyebrow, note, matchdays }: { m: HubMatch; eyebrow: s
             {m.status === "FINISHED" ? "종료" : kstKickoff(m.startTime)}
             <span className="font-normal text-zinc-400 dark:text-white/40">KST</span>
           </span>
-          <MatchdayTrack current={m.matchday} total={matchdays} />
+          <MatchdayTrack current={m.matchday} total={matchdays} labels={trackLabels} />
         </div>
       </Link>
       <p className="mt-3 text-center text-[12px] text-zinc-500 break-keep dark:text-white/45">{note}</p>
@@ -114,10 +117,11 @@ function Side({ t }: { t: HubTeam }) {
 }
 
 /** 라운드 진행 — 지난 라운드는 채움, 현재는 로즈, 남은 라운드는 빈 칸. */
-function MatchdayTrack({ current, total }: { current: number; total: number }) {
+function MatchdayTrack({ current, total, labels }: { current: number; total: number; labels?: readonly string[] }) {
+  const name = labels?.[current - 1];
   return (
-    <span className="inline-flex items-center gap-2" aria-label={`${total}라운드 중 ${current}라운드`}>
-      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400 dark:text-white/40">라운드</span>
+    <span className="inline-flex items-center gap-2" aria-label={name ? `진행 단계 ${name}` : `${total}라운드 중 ${current}라운드`}>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400 dark:text-white/40">{name ? "단계" : "라운드"}</span>
       <span className="flex gap-1" aria-hidden>
         {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
           <span
@@ -129,7 +133,7 @@ function MatchdayTrack({ current, total }: { current: number; total: number }) {
         ))}
       </span>
       <span className="text-[12px] font-bold tabular-nums text-zinc-700 dark:text-white/75">
-        {current}/{total}
+        {name ?? `${current}/${total}`}
       </span>
     </span>
   );

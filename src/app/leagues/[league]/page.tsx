@@ -36,6 +36,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import NationsLeagueHub from "@/components/leagues/nations-league/NationsLeagueHub";
 import AfconHub from "@/components/leagues/afcon/AfconHub";
 import GulfCupHub from "@/components/leagues/gulf-cup/GulfCupHub";
+import AsianGamesHub from "@/components/leagues/asian-games/AsianGamesHub";
 import CupJourney from "@/components/leagues/cup-journey/CupJourney";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
@@ -484,6 +485,8 @@ const CUP_LEAGUES = new Set<string>([
   "AFCON", "CONCACAF_GOLD",
   // 2026-09-24 — 리그페이즈(조별) + 파이널스. NO_TABLE 에 없으므로 순위 탭도 함께 나간다.
   "UEFA_NL", "GULF_CUP",
+  // 2026-09-25 — 아시안게임 축구(남 U-23·여). 조별리그 + 8강부터 녹아웃 — 순위 탭은 빅매치 허브, 대진표 탭은 8강부터.
+  "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W",
 ]);
 
 // 대회 여정 카드를 첫 화면에 올리는 녹아웃 컵 — 조별리그가 있는 컵(UEFA_WCL·LEAGUES_CUP·CANADA_CHAMP·
@@ -953,6 +956,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             <AfconHub />
           ) : upper === "GULF_CUP" ? (
             <GulfCupHub />
+          ) : upper === "ASIAN_GAMES_FB" || upper === "ASIAN_GAMES_FB_W" ? (
+            <AsianGamesHub league={upper} />
           ) : (
             <LeagueStandingsTable league={upper} />
           )}
