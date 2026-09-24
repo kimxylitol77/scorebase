@@ -7,7 +7,7 @@
     ],
     [
       "groups={data.groups}",
-      "groups={data.groups.map((g) => ({ ...g, standings: g.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name })) }))}"
+      "groups={data.groups.map((g) => ({ ...g, name: g.name.replace(/^그룹 /, \"Group \"), standings: g.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name })) }))}"
     ]
   ],
   "dict": {

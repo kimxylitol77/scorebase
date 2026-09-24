@@ -17,6 +17,11 @@ export interface Override {
   preReplace?: [string, string][];
   replace?: [string, string][];
   header?: string;
+  /** 렌더 한글이 없어도 미러를 만든다. 자기 자신은 영문인데 **한글을 든 자식을 감싸는**
+   *  래퍼가 대상 — 재사용으로 판정되면 /en 페이지가 한국어 자식을 그대로 끌고 간다
+   *  (LolStandings 가 en/LolStandingsTabs 를 두고도 한국어판을 써서 /en/standings/LOL 이
+   *  통째로 한국어였다, 2026-09-24 실측). */
+  forceMirror?: boolean;
 }
 
 // ---------- 로딩 ----------
@@ -116,7 +121,8 @@ export function collectPlan(pageFiles: string[]): Plan {
       if (!abs) { console.warn(`  [해석 실패] ${spec}`); continue; }
       if (abs.includes(`${path.sep}components${path.sep}en${path.sep}`)) continue; // 이미 영어 전용
       const csrc = fs.readFileSync(abs, "utf8");
-      if (hasHangul(csrc, abs)) mirrorComponents.set(spec, abs);
+      const forced = loadOverride(path.relative(SRC, abs).split(path.sep).join("/")).forceMirror;
+      if (forced || hasHangul(csrc, abs)) mirrorComponents.set(spec, abs);
       else reused.add(spec);
       walk(abs);
     }

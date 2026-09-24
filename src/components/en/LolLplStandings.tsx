@@ -60,7 +60,7 @@ export default function LolLplStandings({ name }: { name: string }) {
         ))}
       </div>
 
-      <LolLplTabs groups={data.groups.map((g) => ({ ...g, standings: g.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name })) }))} />
+      <LolLplTabs groups={data.groups.map((g) => ({ ...g, name: g.name.replace(/^그룹 /, "Group "), standings: g.standings.map((t) => ({ ...t, name: lolTeamNameEn(t.teamId) ?? t.name })) }))} />
 
       <p className="text-[11px] text-neutral-400 text-center pt-1">
         ⓘ LPL splits are ranked by group · each group starts from first · updated after each match

@@ -1,0 +1,23 @@
+{
+  "header": "LolStandings (영어판). scripts/en-mirror 로 자동 생성 — 직접 수정하지 말 것.",
+  "forceMirror": true,
+  "preReplace": [
+    [
+      "import LolStandingsTabs from \"./LolStandingsTabs\";",
+      "import LolStandingsTabs from \"./LolStandingsTabs\";\nimport { lolTeamNameEn } from \"@/lib/sports/lol-teams\";"
+    ],
+    [
+      "teamName: team?.name ?? \"\",",
+      "teamName: lolTeamNameEn(p.teamId) ?? team?.name ?? \"\","
+    ],
+    [
+      "    name: t.name,",
+      "    name: lolTeamNameEn(t.teamId) ?? t.name,"
+    ],
+    [
+      "    name: r.name,",
+      "    name: lolTeamNameEn(r.teamId) ?? r.name,"
+    ]
+  ],
+  "dict": {}
+}

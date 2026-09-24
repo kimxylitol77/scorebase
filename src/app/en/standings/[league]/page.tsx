@@ -28,7 +28,7 @@ import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/en/LeagueLeaderBoard";
 import { EN_STANDINGS_LEAGUE_SET, koEnLanguages } from "@/lib/i18n/en";
 import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
-import LolStandings from "@/components/LolStandings";
+import LolStandings from "@/components/en/LolStandings";
 import LolSimpleStandings from "@/components/en/LolSimpleStandings";
 import LolLplStandings from "@/components/en/LolLplStandings";
 import EwcStandings from "@/components/en/EwcStandings";
