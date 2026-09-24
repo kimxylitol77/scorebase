@@ -19663,13 +19663,13 @@
     "matchType": "audit-auto"
   },
   {
-    "ourId": 290184,
-    "ourName": "Ha Noi",
+    "ourId": 290185,
+    "ourName": "Công An Nhân Dân",
     "ourLeague": "VIETNAM_VL1",
-    "ourExternalId": "3670",
+    "ourExternalId": "16400",
     "tsId": "23xmvkho9w9qg8n",
     "tsName": "Cong An Ha Noi FC",
-    "matchType": "audit-auto"
+    "matchType": "manual-review"
   },
   {
     "ourId": 290182,
