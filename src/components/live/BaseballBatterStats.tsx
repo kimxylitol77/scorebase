@@ -4,14 +4,24 @@
 // 데이터: getBaseballSeasonAnalysis (BaseballPlayerSeasonStats). 안타 내림차순 정렬됨.
 // MLB 는 로스터 ~13명, KBO/NPB 는 규정타석 ~3명(공식 페이지 제약).
 
+import Link from "next/link";
 import { useState } from "react";
 import type { BaseballBatter } from "@/lib/live/baseball-season-analysis";
 
 interface Props {
+  /** 선수 페이지 주소 규칙용 — MLB 는 번호 그대로, KBO 는 ?league=KBO, NPB 는 번호가 없어 링크 없음. */
+  league: "MLB" | "KBO" | "NPB";
   homeNameKo: string;
   awayNameKo: string;
   homeBatters: BaseballBatter[];
   awayBatters: BaseballBatter[];
+}
+
+function playerHref(league: Props["league"], externalId: string | null): string | null {
+  if (!externalId) return null;
+  if (league === "MLB") return `/players/${externalId}`;
+  if (league === "KBO") return `/players/${externalId}?league=KBO`;
+  return null;
 }
 
 function fmt(n: number | null, digits: number): string {
@@ -20,6 +30,7 @@ function fmt(n: number | null, digits: number): string {
 }
 
 export default function BaseballBatterStats({
+  league,
   homeNameKo,
   awayNameKo,
   homeBatters,
@@ -79,10 +90,18 @@ export default function BaseballBatterStats({
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200/70 dark:divide-neutral-800/70">
-              {batters.map((b, i) => (
+              {batters.map((b, i) => {
+                const href = playerHref(league, b.externalId);
+                return (
                 <tr key={`${b.playerName}-${i}`}>
                   <td className="text-left py-2.5 px-3 font-medium truncate max-w-[40vw]">
-                    {b.playerName}
+                    {href ? (
+                      <Link href={href} className="hover:underline">
+                        {b.playerName}
+                      </Link>
+                    ) : (
+                      b.playerName
+                    )}
                   </td>
                   <td className="text-right py-2.5 px-2 tabular-nums">
                     {fmt(b.avg, 3)}
@@ -97,7 +116,8 @@ export default function BaseballBatterStats({
                     {fmt(b.ops, 3)}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

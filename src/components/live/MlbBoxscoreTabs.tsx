@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import BaseballTeamStatsCard from "./BaseballTeamStatsCard";
 import BaseballWpaChart from "./BaseballWpaChart";
 import LiveOddsCard from "./LiveOddsCard";
+import { mlbPidByName } from "@/lib/sports/baseball/mlb-pid-by-name";
 
 interface BoxBatter {
   pid: number;
@@ -302,6 +303,10 @@ export default function MlbBoxscoreTabs({
   const team = box ? (side === "home" ? box.home : box.away) : null;
   const koName = (pid: number, fallback: string) =>
     playerNameKoBy?.[pid] ?? fallback;
+  // 중계(ESPN 문자중계)는 번호 없이 이름만 준다 — 박스스코어 이름으로 번호를 찾아 선수 페이지에 잇는다.
+  const pidByName = box
+    ? mlbPidByName([...box.home.batters, ...box.home.pitchers, ...box.away.batters, ...box.away.pitchers], playerNameKoBy)
+    : {};
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
@@ -350,6 +355,7 @@ export default function MlbBoxscoreTabs({
             homeNameKo={homeNameKo}
             awayNameKo={awayNameKo}
             isLive={pbp.status === "LIVE"}
+            pidByName={pidByName}
           />
         ) : activeTab === "lineup" && team ? (
           <LineupList batters={team.batters} koName={koName} />
@@ -743,6 +749,7 @@ function PbpView({
   homeNameKo,
   awayNameKo,
   isLive,
+  pidByName,
 }: {
   plays: PbpPlay[];
   currentInning: number;
@@ -750,6 +757,7 @@ function PbpView({
   homeNameKo: string;
   awayNameKo: string;
   isLive: boolean;
+  pidByName: Record<string, number>;
 }) {
   const halves = groupPbp(plays);
   // 진행된 이닝 set
@@ -814,6 +822,7 @@ function PbpView({
             homeNameKo={homeNameKo}
             awayNameKo={awayNameKo}
             highlight={isLive && b.inning === currentInning && b.half === currentHalf}
+            pidByName={pidByName}
           />
         ))
       )}
@@ -826,11 +835,13 @@ function HalfSection({
   homeNameKo,
   awayNameKo,
   highlight,
+  pidByName,
 }: {
   block: HalfBlock;
   homeNameKo: string;
   awayNameKo: string;
   highlight: boolean;
+  pidByName: Record<string, number>;
 }) {
   const attackTeam = block.half === "top" ? awayNameKo : homeNameKo;
   const halfLabel = block.half === "top" ? "초" : "말";
@@ -849,29 +860,49 @@ function HalfSection({
       </div>
       <div className="space-y-2">
         {block.batterCards.map((c, i) => (
-          <BatterCardView key={i} card={c} />
+          <BatterCardView key={i} card={c} pid={pidByName[c.batter]} />
         ))}
       </div>
     </section>
   );
 }
 
-function BatterCardView({ card }: { card: BatterCard }) {
+function BatterCardView({ card, pid }: { card: BatterCard; pid?: number }) {
   const [open, setOpen] = useState(true);
   const hasPitches = card.pitches.length > 0;
+  const toggle = () => setOpen((v) => !v);
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
       {/* 헤더 — 타자명 + 결과. 모바일 좁은 width 에서 이름 1글자 truncate 방지:
           이름/타석 라벨/chevron 은 한 줄, 결과는 새 줄 (모바일) / 한 줄 (sm+) */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full px-3 sm:px-4 py-2.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
+      {/* 헤더 전체가 펼침 토글이고 그 안에 선수 링크가 있다 — <button> 안에 <a> 는 HTML 위반이라 role=button div 로 둔다. */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
+        }}
+        className="w-full cursor-pointer px-3 sm:px-4 py-2.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
       >
         <div className="flex items-center sm:items-baseline gap-2">
-          <span className="text-base font-bold truncate min-w-0 shrink">
-            {card.batter}
-          </span>
+          {pid ? (
+            <Link
+              href={`/players/${pid}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-base font-bold truncate min-w-0 shrink hover:underline"
+            >
+              {card.batter}
+            </Link>
+          ) : (
+            <span className="text-base font-bold truncate min-w-0 shrink">
+              {card.batter}
+            </span>
+          )}
           <span className="text-xs text-neutral-500 shrink-0">타석</span>
           {/* desktop: 같은 줄 결과 */}
           {card.resultText ? (
@@ -921,7 +952,7 @@ function BatterCardView({ card }: { card: BatterCard }) {
             진행 중…
           </div>
         )}
-      </button>
+      </div>
       {/* body — pitches + pickoffs */}
       {open && hasPitches ? (
         <div className="px-3 sm:px-4 pb-3 pt-1 border-t border-neutral-100 dark:border-neutral-900">

@@ -393,6 +393,7 @@ export default async function NpbLivePage({ params }: Props) {
                 away={seasonAnalysis.away.team}
               />
               <BaseballBatterStats
+                league="NPB"
                 homeNameKo={homeKo}
                 awayNameKo={awayKo}
                 homeBatters={seasonAnalysis.home.batters}

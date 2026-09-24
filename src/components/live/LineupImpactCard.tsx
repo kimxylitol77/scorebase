@@ -1,6 +1,7 @@
 "use client";
 // 라인업 임팩트 탭 — 확정 타순의 기대득점(xR) 게이지 + 선수별 교체 Δ 워터폴. databallr 의 게이지·워터폴 문법을
 // 우리 토큰(라이트 로즈 / 다크 elevated)으로. 산식은 src/lib/sports/baseball/lineup-impact.ts, 계산은 서버(page.tsx)에서.
+import Link from "next/link";
 import { useState } from "react";
 import type { LineupImpact, PlayerImpact, WowySplit } from "@/lib/sports/baseball/lineup-impact";
 import { WOWY_MIN_GAMES } from "@/lib/sports/baseball/lineup-impact";
@@ -94,7 +95,7 @@ function Waterfall({ players, unit, nameKoBy, accent, wowy }: { players: PlayerI
             <li key={p.pid} className={`grid grid-cols-[1.5rem_minmax(0,1.7fr)_minmax(0,1fr)_3.4rem] items-center gap-2 px-2 py-1.5 text-sm ${hi ? "rounded-lg bg-rose-50/70 dark:bg-white/[0.05]" : ""}`}>
               <span className="text-[11px] font-bold tabular-nums text-neutral-400">{p.slot}</span>
               <span className="min-w-0 leading-tight">
-                <span className={`block truncate ${hi ? "font-semibold" : ""}`}>{nameKoBy?.[p.pid] ?? p.name}</span>
+                <Link href={`/players/${p.pid}`} className={`block truncate hover:underline ${hi ? "font-semibold" : ""}`}>{nameKoBy?.[p.pid] ?? p.name}</Link>
                 <span className="block truncate text-[10px] tabular-nums text-neutral-400">
                   wOBA {fmtWoba(p.woba)}
                   {p.shrunk && <span className="ml-1 rounded bg-neutral-100 px-1 text-neutral-500 dark:bg-white/10" title={`시즌 ${p.pa}타석 — 표본 부족, 리그 평균 쪽으로 보정`}>표본 {p.pa}</span>}

@@ -182,6 +182,18 @@ interface Props {
   favMatchId?: number | null;
   /** 별표 저장 시 함께 남길 매치 링크 (PiP 가 되돌아올 주소) */
   favHref?: string;
+  /** 선수 이름(영문·한글) → MLB 번호 — ESPN 은 이름만 주므로 박스스코어로 찾아 선수 페이지에 잇는다. 없는 이름은 글자만. */
+  playerPidByName?: Record<string, number>;
+}
+
+function PlayerName({ name, pidByName }: { name: string; pidByName?: Record<string, number> }) {
+  const pid = pidByName?.[name.trim()];
+  if (!pid) return <>{name}</>;
+  return (
+    <Link href={`/players/${pid}`} className="hover:underline">
+      {name}
+    </Link>
+  );
 }
 
 const POLL_LIVE_MS = 2_000;
@@ -202,6 +214,7 @@ export default function MlbLiveDetail({
   venueWeatherAt,
   favMatchId,
   favHref,
+  playerPidByName,
 }: Props) {
   const [live, setLive] = useState<MlbLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -436,7 +449,7 @@ export default function MlbLiveDetail({
                 <>
                   <span className="text-neutral-600 dark:text-neutral-400">선발 </span>
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                    {live.startingPitchers.away}
+                    <PlayerName name={live.startingPitchers.away} pidByName={playerPidByName} />
                   </span>
                 </>
               ) : null}
@@ -446,7 +459,7 @@ export default function MlbLiveDetail({
                 <>
                   <span className="text-neutral-600 dark:text-neutral-400">선발 </span>
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                    {live.startingPitchers.home}
+                    <PlayerName name={live.startingPitchers.home} pidByName={playerPidByName} />
                   </span>
                 </>
               ) : null}
@@ -483,7 +496,7 @@ export default function MlbLiveDetail({
                       투수
                     </span>
                     <div className="font-semibold">
-                      {live.situation.pitcherName}
+                      <PlayerName name={live.situation.pitcherName} pidByName={playerPidByName} />
                     </div>
                   </div>
                 )}
@@ -493,7 +506,7 @@ export default function MlbLiveDetail({
                       타자
                     </span>
                     <div className="font-semibold">
-                      {live.situation.batterName}
+                      <PlayerName name={live.situation.batterName} pidByName={playerPidByName} />
                     </div>
                   </div>
                 )}

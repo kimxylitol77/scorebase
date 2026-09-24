@@ -378,6 +378,7 @@ export default async function KboLivePage({ params }: Props) {
                 away={seasonAnalysis.away.team}
               />
               <BaseballBatterStats
+                league="KBO"
                 homeNameKo={homeKo}
                 awayNameKo={awayKo}
                 homeBatters={seasonAnalysis.home.batters}

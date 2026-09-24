@@ -43,6 +43,7 @@ import { getOpeningSimilarStats } from "@/lib/predict/opening-odds-similar";
 import OpeningOddsSimilarCard from "@/components/predictions/OpeningOddsSimilarCard";
 import BullpenFatigueCard from "@/components/live/BullpenFatigueCard";
 import LineupImpactCard from "@/components/live/LineupImpactCard";
+import { mlbPidByName } from "@/lib/sports/baseball/mlb-pid-by-name";
 import { buildMlbLineupImpact } from "@/lib/sports/baseball/lineup-impact-mlb";
 import { fetchMlbLeagueHittingContextCached, fetchMlbTeamGameLineupsCached } from "@/lib/sports/mlb-cache";
 import { loadBullpenReport, localGameDate } from "@/lib/sports/baseball/bullpen-fatigue";
@@ -195,6 +196,13 @@ export default async function MlbLivePage({ params }: Props) {
       loadBullpenReport("MLB", match.awayTeam.name, gameDate),
     ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
+  // 헤더 선발·현재 투수/타자는 ESPN 이 이름만 준다 — 박스스코어 이름으로 MLB 번호를 찾아 선수 페이지에 잇는다.
+  const playerPidByName = mlbBoxscore
+    ? mlbPidByName(
+        [mlbBoxscore.home, mlbBoxscore.away].flatMap((s) => [...s.batters, ...s.pitchers, ...(s.bench ?? [])]),
+        playerNameKoBy,
+      )
+    : undefined;
   // 라인업 임팩트 — 양 팀 타순 9명 확정 시에만. 리그 기준선은 1일 캐시, 실패하면 고정값(카드가 "고정값" 표기).
   const lineupImpact = mlbBoxscore
     ? await (async () => {
@@ -334,6 +342,7 @@ export default async function MlbLivePage({ params }: Props) {
         }
         favMatchId={match.id}
         favHref={`/live/mlb/${gameId}`}
+        playerPidByName={playerPidByName}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}
@@ -461,6 +470,7 @@ export default async function MlbLivePage({ params }: Props) {
                 away={seasonAnalysis.away.team}
               />
               <BaseballBatterStats
+                league="MLB"
                 homeNameKo={homeKo}
                 awayNameKo={awayKo}
                 homeBatters={seasonAnalysis.home.batters}
