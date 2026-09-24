@@ -32,6 +32,7 @@ import { LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { statsTableHref } from "@/lib/stats/stats-table-links";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
+import NationsLeagueHub from "@/components/leagues/nations-league/NationsLeagueHub";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
 import championsData from "../../../../data/league-champions.json";
@@ -915,7 +916,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
       {(isSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <LeagueStandingsTable league={upper} />
+          {/* 네이션스리그는 리그 A~D·14개 조라 평면 표 대신 허브(빅매치 + 등급 토글 + 조별 카드) */}
+          {upper === "UEFA_NL" ? <NationsLeagueHub /> : <LeagueStandingsTable league={upper} />}
         </div>
       )}
       {isSoccer && view === "power" && (
