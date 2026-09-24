@@ -17,5 +17,7 @@ log "▶ 시작"
 git fetch origin main -q && git reset --hard origin/main -q
 
 npx tsx --env-file=.env.local src/jobs/collect-fa-cup.ts --past 3 --future 14 2>&1 | tail -6
+# 코파 델 레이 — 같은 구조(초반 라운드가 하부리그 팀, 워커 push 로는 전량 skip). 2026-09-24 추가.
+npx tsx --env-file=.env.local src/jobs/collect-fa-cup.ts --league COPA_DEL_REY --past 3 --future 14 2>&1 | tail -6
 
 log "✓ 종료"

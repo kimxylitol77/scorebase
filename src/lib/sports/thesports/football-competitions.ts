@@ -126,6 +126,8 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   // 2026-08-11 — FA컵 예선 포함 수집(사용자 결정). 예선은 비리그 팀이라 push 경로(팀 미생성)로는
   // 전량 skippedNoTeam — 팀을 자동 생성하는 collect-fa-cup 잡(collect-friendlies 패턴)이 담당.
   FA_CUP: "9vjxm8gh8gr6odg",
+  // 2026-09-24 — 코파 델 레이도 같은 구조(초반 라운드가 하부리그 팀)라 같은 잡(collect-fa-cup --league)이 담당.
+  COPA_DEL_REY: "gpxwrxlhzzryk0j",
   // 2026-09-14 아시안게임 — additional/list 검색 + diary 실 competition_id 확인
   ASIAN_GAMES_FB: "p3glrw7hv1qdyjv", // OCA Asian Games (남, U-23)
   ASIAN_GAMES_FB_W: "9vjxm8ghzjr6odg", // OCA Women's Asian Games
