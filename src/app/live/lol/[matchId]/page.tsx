@@ -18,6 +18,8 @@ import RecentGamesCard from "@/components/live/BaseballRecentGames";
 import { getBaseballRecentGames } from "@/lib/live/baseball-season-analysis";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import { LOL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { lolTournamentOfMatch } from "@/lib/sports/lol-tournaments";
+import LolTournamentBadge from "@/components/lol/LolTournamentBadge";
 import ConclusionCards, {
   type ConclusionPred,
   type KeyFactor,
@@ -69,6 +71,8 @@ export default async function LolLivePage({ params }: Props) {
   if (!match) notFound();
 
   const leagueLabel = LEAGUE_DISPLAY[match.league] ?? match.league;
+  // 대회(LCK 2026 / LCK Cup / KeSPA Cup) — ts 수집 매치만 raw.tournament_id 를 갖는다
+  const tournament = lolTournamentOfMatch(match.raw);
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
@@ -181,9 +185,10 @@ export default async function LolLivePage({ params }: Props) {
             {homeKo}
           </Link>
         </h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          {leagueLabel} · 시리즈 점수 자동 갱신
-        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
+          {tournament ? <LolTournamentBadge tournament={tournament} /> : <span>{leagueLabel}</span>}
+          <span>시리즈 점수 자동 갱신</span>
+        </div>
       </header>
       <MatchArticleLinks
         previewSlug={extras.previewSlug}

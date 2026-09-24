@@ -42,3 +42,22 @@
 - `tournament/list` 로 대회 로고·커버 — 리그/대회 페이지 비주얼.
 - 선수 사전(60명)을 ts `player/list` 의 우리 팀 소속 전원으로 확장.
 - 팀 메타 지표 LEC 10/19·LCS 8/15 — 나머지는 lolGames 미수집 팀이라 경기가 쌓이면 자동 연결된다.
+
+## 대회 로고 (2026-09-24 2차)
+
+`/v1/lol/tournament/list` 827개 전부 로고·커버 보유. `scripts/build-lol-tournaments.ts` → `data/lol-tournaments.json`
+(로고 827/827. `prize_pool: "0"` 은 미공개라 안 싣는다 — 0달러로 보이면 오보).
+
+**연결은 이미 돼 있었다.** 수집기 변경이 필요 없다 — `Match.raw` 에 `tournament_id` 가 들어 있다.
+2026 커버리지 실측: LOL 226/226 · LEC 106/106 · LCS 71/71 해석. LPL 은 수집 경로가 달라 `tournament_id` 0건.
+
+**왜 가치가 있나.** 우리 리그 코드 하나에 서로 다른 대회가 섞인다.
+`LOL` = LCK 2026(148) + LCK Cup 2026(40) + KeSPA Cup 2026(38) 인데 화면엔 전부 "LCK"로만 보였다.
+
+**붙인 자리 두 곳.**
+- `/live/lol/[matchId]` 헤더 — 대회 배지(로고 + 이름). 기존 "LCK · 시리즈 점수 자동 갱신" 을 대체.
+- `/leagues/{LOL,LEC,LCS}` 허브 — "올해 대회" 줄. 최근 경기 순 정렬, 대회별 경기 수 표기. 1시간 캐시.
+
+**미해결(별건).** `src/app/live/lol/[matchId]/page.tsx:211` 이 `matchId={Number(matchId)}` 로 넘기는데
+LoL 라우트 파라미터는 ts 문자열 id("xwrx81u3wkkjqyk")라 항상 `NaN` → 매 페이지 로드마다
+`/api/live/lol/NaN` 400. 인게임 패널이 뜬 적이 없다는 뜻. 커밋 55aacc65 부터의 기존 버그라 별도 처리.

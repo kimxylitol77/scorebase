@@ -30,6 +30,7 @@ import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
 import { leaguesWithOverUnderPage } from "@/lib/stats/over-under";
 import { LEAGUE_TO_SPORT } from "@/components/leaderboard-categories";
 import { statsTableHref } from "@/lib/stats/stats-table-links";
+import LolTournamentStrip from "@/components/lol/LolTournamentStrip";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import NationsLeagueHub from "@/components/leagues/nations-league/NationsLeagueHub";
@@ -848,6 +849,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             </div>
           )}
           <LeagueDataDirectory league={upper} hasInjuries={INJURY_LEAGUES.has(upper)} hasOverUnder={hasOverUnder} />
+          {/* LoL 은 리그 코드 하나에 정규·컵이 섞여 있어 대회를 따로 보여준다(대회 없는 리그면 컴포넌트가 스스로 숨는다) */}
+          {["LOL", "LEC", "LCS"].includes(upper) && <LolTournamentStrip league={upper} />}
 
           {r1x2.evaluated > 0 && (
             <div className="mt-5">
