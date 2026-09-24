@@ -380,7 +380,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵 2026",
-  ASIAN_GAMES_FB: "아시안게임 남자축구",
+  ASIAN_GAMES_FB: "아시안게임 남자축구 U-23", // 남자는 23세 이하 대회 — 여자는 연령 제한 없음
   ASIAN_GAMES_FB_W: "아시안게임 여자축구",
   K_LEAGUE_1: "K리그 1",
   K_LEAGUE_2: "K리그 2",
