@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 import { planTwinAbsorb } from "@/lib/matches/absorb-plan";
+import { isAfFixtureRaw, planPostponedReverify } from "@/lib/matches/postponed-reverify";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
 import { afGoalsExcludingShootout } from "@/lib/sports/api-football-pro";
 import {
@@ -536,6 +537,89 @@ export async function GET(req: NextRequest) {
     });
     scorelessReleased++;
     console.log(`[cleanup-stale-scheduled] 종료 0-0 고착 해제 ${m.league} #${m.id} raw=${rawShort} ts=${tsStatusId} → ${next}`);
+  }
+
+  // 1.5) POSTPONED 로 고착된 af 축구 행 재확인 (2026-09-24).
+  //    TS_COVERED 리그의 af 행은 collect 가 건너뛰고, POSTPONED 가 되면 thesports-cache 는 푸시를
+  //    무시하고 아래 stale 처리는 SCHEDULED·LIVE 만 본다 — 되돌릴 경로가 없어 실제로 치른 경기가
+  //    "연기"로, 재편성 경기가 옛 날짜에 남았다(실측 88경기). af 가 종료면 확정, 미래로 옮겼으면
+  //    추종한다. ?postponedDays=N 으로 과거 재고를 한 번에 정리할 수 있다(기본 45일).
+  const postponedDays = Math.min(Number(req.nextUrl.searchParams.get("postponedDays")) || 45, 180);
+  const postponedRows = await prisma.match.findMany({
+    where: {
+      status: "POSTPONED",
+      league: { in: [...SOCCER_LEAGUES] },
+      startTime: { gte: new Date(Date.now() - postponedDays * 864e5) },
+      NOT: { externalId: { startsWith: "ts-" } },
+    },
+    select: { id: true, league: true, externalId: true, homeTeamId: true, awayTeamId: true, raw: true },
+    orderBy: { startTime: "desc" },
+    take: 200,
+  });
+  const afPostponed = postponedRows.filter(
+    (m) => /^\d+$/.test(m.externalId) && isAfFixtureRaw(m.raw, m.externalId),
+  );
+  const postponedVerify = await fetchApiFootballStatuses(afPostponed.map((m) => m.externalId));
+  let ppFinished = 0;
+  let ppRescheduled = 0;
+  let ppAbsorbed = 0;
+  let ppHeld = 0;
+  for (const m of afPostponed) {
+    const v = postponedVerify.get(m.externalId);
+    if (!v) continue;
+    const plan = planPostponedReverify(v, new Date());
+    if (plan.kind === "keep") continue;
+    const twin = await findCrossSourceTwin(m, plan.startTime);
+    if (twin) {
+      if (await absorbIntoTwin(m.id, twin)) ppAbsorbed++;
+      else ppHeld++;
+      continue;
+    }
+    // 팀 행이 갈린 쌍둥이(같은 구단 두 Team row)는 위 탐지가 못 본다. 옮겨갈 시각 ±3h 에
+    // 한 팀이라도 겹치는 다른 경기가 있으면 같은 경기일 수 있어 사람 판단으로 남긴다.
+    const overlap = await prisma.match.count({
+      where: {
+        id: { not: m.id },
+        league: m.league,
+        status: { not: "POSTPONED" },
+        startTime: {
+          gte: new Date(plan.startTime.getTime() - 3 * 3600_000),
+          lte: new Date(plan.startTime.getTime() + 3 * 3600_000),
+        },
+        OR: [
+          { homeTeamId: { in: [m.homeTeamId, m.awayTeamId] } },
+          { awayTeamId: { in: [m.homeTeamId, m.awayTeamId] } },
+        ],
+      },
+    });
+    if (overlap > 0) {
+      ppHeld++;
+      console.warn(`[cleanup-stale-scheduled] POSTPONED 재확인 보류 ${m.league} #${m.id} — ${plan.startTime.toISOString()} ±3h 에 겹치는 경기 ${overlap}건`);
+      continue;
+    }
+    await prisma.match.update({
+      where: { id: m.id },
+      data:
+        plan.kind === "finish"
+          ? { status: "FINISHED", homeScore: plan.homeScore, awayScore: plan.awayScore, startTime: plan.startTime }
+          : { status: "SCHEDULED", homeScore: null, awayScore: null, startTime: plan.startTime },
+    });
+    if (plan.kind === "finish") ppFinished++;
+    else ppRescheduled++;
+  }
+  if (ppFinished + ppRescheduled + ppAbsorbed + ppHeld > 0) {
+    console.log(
+      `[cleanup-stale-scheduled] POSTPONED 재확인 — 종료 ${ppFinished} · 재편성 ${ppRescheduled} · 흡수 ${ppAbsorbed} · 보류 ${ppHeld} (대상 ${afPostponed.length})`,
+    );
+    await prisma.healthCheck.create({
+      data: {
+        severity: ppHeld > 0 ? "MED" : "LOW",
+        category: "stale-cleanup",
+        key: "postponed-reverify",
+        message: `POSTPONED af 행 재확인 — 종료 ${ppFinished} · 재편성 ${ppRescheduled} · 흡수 ${ppAbsorbed} · 보류 ${ppHeld}`,
+        metadata: { ppFinished, ppRescheduled, ppAbsorbed, ppHeld, checked: afPostponed.length, postponedDays },
+      },
+    });
   }
 
   // 2) stale SCHEDULED 매치 처리

@@ -200,7 +200,10 @@ export async function POST(req: NextRequest) {
               ? mapBasketballStatus(tsStatusId)
               : VOLLEYBALL_LEAGUES.has(currentMatch.league)
                 ? mapVolleyballStatus(tsStatusId)
-                : mapFootballStatus(tsStatusId);
+                : // 킥오프를 넘겨야 9(지연)·10(중단)이 킥오프 6h 전까지 SCHEDULED 로 남는다. 빠지면
+                  // "킥오프 후 무한대"로 계산돼 예정 경기가 즉시 POSTPONED → 아래 POSTPONED 무시 가드에
+                  // 막혀 종료 신호를 영영 못 받았다 (2026-09 SPL·EREDIVISIE 등 52경기 "연기" 고착).
+                  mapFootballStatus(tsStatusId, currentMatch.startTime);
         // 단조 progression — FINISHED 에서 LIVE/SCHEDULED 로 역행 안 함.
         // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
         const currentRank = STATUS_RANK[currentMatch.status as MatchStatus] ?? 0;
