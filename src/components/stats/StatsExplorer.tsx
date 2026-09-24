@@ -195,8 +195,8 @@ export default function StatsExplorer(p: StatsExplorerProps) {
                 </tr>
                 <tr>
                   <th className="w-8 px-2 py-2.5 text-right font-semibold">#</th>
-                  <th className="sticky left-0 z-20 bg-white/95 px-2 py-2.5 text-left font-semibold backdrop-blur dark:bg-neutral-950/90"><SortLink label="선수" k="name" sort={sort} dir={dir} url={url} /></th>
-                  {p.cols.map((c) => <th key={c.key} className="px-2 py-2.5 text-right font-semibold"><SortLink label={c.label} k={c.key} sort={sort} dir={dir} url={url} col={c} /></th>)}
+                  <th className="sticky left-0 z-20 w-[8.5rem] max-w-[8.5rem] bg-white/95 px-2 py-2.5 text-left font-semibold backdrop-blur sm:w-auto sm:max-w-none dark:bg-neutral-950/90"><SortLink label="선수" k="name" sort={sort} dir={dir} url={url} /></th>
+                  {p.cols.map((c) => <th key={c.key} className="min-w-[2.75rem] px-2 py-2.5 text-right font-semibold"><SortLink label={c.label} k={c.key} sort={sort} dir={dir} url={url} col={c} /></th>)}
                   <th className="w-14 px-2 py-2.5" />
                 </tr>
               </thead>
@@ -206,9 +206,9 @@ export default function StatsExplorer(p: StatsExplorerProps) {
                   return (
                     <tr key={r.key} className={`${inCmp ? "bg-rose-50/60 dark:bg-white/[0.05]" : "hover:bg-neutral-50 dark:hover:bg-white/[0.03]"} ${r.qualified ? "" : "opacity-70"}`}>
                       <td className="px-2 py-1.5 text-right text-xs tabular-nums text-neutral-400">{(safePage - 1) * PER + i + 1}</td>
-                      <td className="sticky left-0 z-[1] bg-white/95 px-2 py-1.5 backdrop-blur dark:bg-neutral-950/90">
-                        <div className="flex items-center gap-2.5">
-                          <span className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-neutral-100 dark:bg-white/10">{r.photo && <img src={r.photo} alt="" className="h-full w-full object-cover object-top" loading="lazy" />}</span>
+                      <td className="sticky left-0 z-[1] w-[8.5rem] max-w-[8.5rem] bg-white/95 px-2 py-1.5 backdrop-blur sm:w-auto sm:max-w-none dark:bg-neutral-950/90">
+                        <div className="flex items-center gap-2 sm:gap-2.5">
+                          <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-neutral-100 sm:h-8 sm:w-8 dark:bg-white/10">{r.photo && <img src={r.photo} alt="" className="h-full w-full object-cover object-top" loading="lazy" />}</span>
                           <span className="min-w-0 leading-tight">
                             <span className="block truncate font-semibold">{r.href ? <Link href={r.href} className="hover:underline underline-offset-4">{r.name}</Link> : r.name}</span>
                             <span className="block truncate text-[11px] text-neutral-500">{r.sub}{!r.qualified && " · 규정 미달"}</span>
