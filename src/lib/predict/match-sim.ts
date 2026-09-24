@@ -6,7 +6,7 @@
 // 회원 봇 손잡이(knobs) 전달 시에만 리그 히스토리를 로드해 커스텀 확률로 주사위를 던진다.
 
 import { prisma } from "@/lib/db";
-import { leagueHasDraw } from "@/lib/sports/sport-leagues";
+import { historyLeaguesFor, leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { buildScoreDistribution } from "./score-distribution";
 import { calculateInningScoreProbs } from "./baseball-poisson";
 import { getSportProfile } from "./markets";
@@ -98,7 +98,7 @@ export async function simulateMatch(
   let used = { home: m.predHome, draw: m.predDraw, away: m.predAway };
   if (knobs && !isDefaultKnobs(knobs)) {
     const all = (await prisma.match.findMany({
-      where: { league: m.league },
+      where: { league: { in: historyLeaguesFor(m.league) } }, // 성인 국대는 A매치 전체
       select: {
         id: true,
         league: true,

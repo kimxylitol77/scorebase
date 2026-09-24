@@ -6,7 +6,7 @@ import MatchVoteButtons, { type MarketInit } from "./MatchVoteButtons";
 
 // 무승부가 실제로 존재하는 리그 (승부 종목은 홈/원정 2버튼)
 const DRAW_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "UEFA_NL",
   "WORLD_CUP", "CLUB_WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE",
   "CHAMPIONSHIP", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "SAUDI_PL", "BRASILEIRAO",
   "LIGA_MX", "CSL", "A_LEAGUE", "KBO", "NPB",

@@ -4,12 +4,13 @@
 import { cache } from "react";
 import { prisma } from "@/lib/db";
 import type { PredictMatch } from "@/lib/predict/types";
+import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
 
 /** 리그 전체 매치 (Elo/standings/폼 계산용) — 요청당 1회 조회. */
 export const getLeagueMatches = cache(
   async (league: string): Promise<PredictMatch[]> => {
     const rows = await prisma.match.findMany({
-      where: { league },
+      where: { league: { in: historyLeaguesFor(league) } },
       select: {
         id: true,
         league: true,

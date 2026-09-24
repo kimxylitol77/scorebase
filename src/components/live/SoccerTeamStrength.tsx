@@ -4,7 +4,7 @@
 
 import { getLeagueMatches, getLeagueTeamNames, getTeamMatches } from "@/lib/predict/league-data";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { leagueHasDraw, NO_STANDINGS_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { isSeniorNationalLeague, leagueHasDraw, NO_STANDINGS_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
 import { calcSeasonStats, calcSeasonForm } from "@/lib/predict/season-stats";
@@ -46,7 +46,8 @@ function flipResults(results: FormResult[]): FormResult[] {
 }
 
 export default async function SoccerTeamStrength({ match, h2h }: Props) {
-  const matches = await getLeagueMatches(match.league);
+  // 이 카드는 순위 중심이라 그 대회 경기만 — 공용 이력은 성인 국대면 A매치 전체라 걸러 쓴다(종전과 동일 결과).
+  const matches = (await getLeagueMatches(match.league)).filter((m) => m.league === match.league);
   const referenceTime = match.startTime;
   const beforeMatches = matches.filter(
     (m) => m.startTime.getTime() < referenceTime.getTime(),
@@ -104,9 +105,8 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const homeStand = useOfficial ? toStand(oH!) : homeRow;
   const awayStand = useOfficial ? toStand(oA!) : awayRow;
 
-  // 국가대항(월드컵·친선)은 클럽 히스토리가 없어 시드 Elo fallback (MatchInsight 동일)
-  const isNationalLeague =
-    match.league === "WORLD_CUP" || match.league === "INTL_FRIENDLY";
+  // 국가대항(성인 국대 대회)은 클럽 히스토리가 없어 시드 Elo fallback (MatchInsight 동일)
+  const isNationalLeague = isSeniorNationalLeague(match.league);
   const homeElo =
     match.eloHome ??
     (isNationalLeague

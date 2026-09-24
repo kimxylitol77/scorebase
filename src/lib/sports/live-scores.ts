@@ -134,6 +134,7 @@ const LEAGUE_LABEL: Record<string, string> = {
   UCL: "UCL",
   UEL: "UEL",
   UECL: "UECL",
+  UEFA_NL: "네이션스리그",
   WORLD_CUP: "월드컵",
   KBO: "KBO",
   NPB: "NPB",

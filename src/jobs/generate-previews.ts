@@ -73,6 +73,7 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsAnalysisForPreview } from "@/lib/sports/thesports/preview-analysis";
 import { readFileSync } from "fs";
 import path from "path";
+import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
 
 const TS_SOCCER_LEAGUES = new Set([
   "EPL",
@@ -253,7 +254,7 @@ export async function runPreview(opts?: {
   const leagueMatches: Record<string, PredictMatch[]> = {};
   for (const lg of leagues) {
     const list = await prisma.match.findMany({
-      where: { league: lg },
+      where: { league: { in: historyLeaguesFor(lg) } }, // 성인 국대는 A매치 전체
       select: {
         id: true,
         league: true,

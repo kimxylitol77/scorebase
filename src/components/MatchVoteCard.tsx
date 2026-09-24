@@ -15,6 +15,7 @@ const DRAW_LEAGUES = new Set([
   "WORLD_CUP", "CLUB_WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE",
   "CHAMPIONSHIP", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "SAUDI_PL", "BRASILEIRAO",
   "LIGA_MX", "CSL", "A_LEAGUE", "KBO", "NPB",
+  "UEFA_NL", // 2026-09-24 — 빠져 있어 홈/원정 2버튼으로 나왔다
 ]);
 
 export const VOTE_MATCH_SELECT = {

@@ -24,15 +24,15 @@ export const dynamic = "force-dynamic";
 // 투표 대상 리그 — 예측 모델이 돌고 한국 수요가 있는 주요 리그
 const PICK_LEAGUES = [
   "WORLD_CUP", "KBO", "MLB", "NPB", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "MLS", "UCL", "UEL", "UECL", "CLUB_WORLD_CUP", "K_LEAGUE_1", "NBA", "NHL",
+  "MLS", "UCL", "UEL", "UECL", "UEFA_NL", "CLUB_WORLD_CUP", "K_LEAGUE_1", "NBA", "NHL",
 ];
 const DRAW_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "WORLD_CUP",
-  "CLUB_WORLD_CUP", "K_LEAGUE_1", "KBO", "NPB",
+  "CLUB_WORLD_CUP", "K_LEAGUE_1", "KBO", "NPB", "UEFA_NL",
 ]);
 const LEAGUE_KO: Record<string, string> = {
   WORLD_CUP: "월드컵", KBO: "KBO", MLB: "MLB", NPB: "NPB", EPL: "EPL", LALIGA: "라리가",
-  BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS", UCL: "UCL", UEL: "UEL", UECL: "UECL",
+  BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS", UCL: "UCL", UEL: "UEL", UECL: "UECL", UEFA_NL: "네이션스리그",
   CLUB_WORLD_CUP: "클럽 월드컵", K_LEAGUE_1: "K리그1", NBA: "NBA", NHL: "NHL",
 };
 

@@ -4,7 +4,7 @@
 import { prisma } from "@/lib/db";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { leagueHasDraw, NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
+import { isSeniorNationalLeague, leagueHasDraw, NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
 import {
   fitDixonColes,
   predictDixonColes,
@@ -201,6 +201,8 @@ export default async function MatchInsight({
   const dbMatches = await getLeagueMatches(match.league);
 
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
+  // 순위·시즌 통계용 — 그 대회 경기만. 성인 국대는 이력(matches)이 A매치 전체라 그대로 쓰면 국가 전체 서열이 된다.
+  const compMatches = matches.filter((m) => m.league === match.league);
   const referenceTime = match.startTime;
 
   // === 모든 통계 계산 ===
@@ -254,8 +256,7 @@ export default async function MatchInsight({
   // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
   // 국가대항(월드컵·친선)은 클럽 매치 히스토리가 없어 calcEloTable 이 전원 1500 —
   // build-context/predictionEngine 과 동일하게 국가대표 시드 Elo 로 fallback.
-  const isNationalLeague =
-    match.league === "WORLD_CUP" || match.league === "INTL_FRIENDLY";
+  const isNationalLeague = isSeniorNationalLeague(match.league);
   const homeElo =
     match.eloHome ??
     (isNationalLeague
@@ -440,7 +441,7 @@ export default async function MatchInsight({
   const awayHistory = history.get(match.awayTeamId) ?? [];
 
   // 시즌 산점도용 모든 팀 통계
-  const seasonStats = calcSeasonStats(matches, referenceTime);
+  const seasonStats = calcSeasonStats(compMatches, referenceTime);
   const teams = (await getLeagueTeamNames(match.league)).filter((t) =>
     seasonStats.has(t.id),
   );
@@ -509,7 +510,7 @@ export default async function MatchInsight({
   );
 
   // 시즌 순위 + 공격/수비 랭킹
-  const standings = calcStandings(matches, referenceTime);
+  const standings = calcStandings(compMatches, referenceTime);
   const homeRow = standings.byTeam.get(match.homeTeamId);
   const awayRow = standings.byTeam.get(match.awayTeamId);
   const totalTeams = standings.rows.length;

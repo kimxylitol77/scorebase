@@ -25,7 +25,7 @@ const MIN_CONFIDENCE_PCT = 60;
 // 크롤러가 보내는 리그 코드 화이트리스트 (우리 축구 리그 중 예측·배당 데이터 보유 리그).
 const SOCCER_PICK_LEAGUES = new Set([
   "EPL", "CHAMPIONSHIP", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "MLS", "UCL", "UEL", "UECL", "K_LEAGUE_1", "J1_LEAGUE",
+  "MLS", "UCL", "UEL", "UECL", "UEFA_NL", "K_LEAGUE_1", "J1_LEAGUE",
 ]);
 
 /** 봇(가상 작성자) 계정 보장 — 없으면 생성, 닉네임 바뀌었으면 동기화. */

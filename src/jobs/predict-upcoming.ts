@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import { computePrediction, type PredictionInput } from "@/lib/predict/compute-prediction";
 import type { PredictMatch } from "@/lib/predict/types";
 import { pickReadiness } from "@/lib/predict/pick-readiness";
+import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
 
 export interface PredictUpcomingResult {
   scanned: number;
@@ -46,6 +47,7 @@ export async function runPredictUpcoming(opts?: {
       marketHome: true, marketDraw: true, marketAway: true, marketBookmakers: true,
       predHome: true, predHcProb: true,
       homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
     },
     orderBy: { startTime: "asc" },
   });
@@ -60,7 +62,7 @@ export async function runPredictUpcoming(opts?: {
   const cache = new Map<string, PredictMatch[]>();
   for (const lg of new Set(pending.map((m) => m.league))) {
     const list = await prisma.match.findMany({
-      where: { league: lg },
+      where: { league: { in: historyLeaguesFor(lg) } }, // 성인 국대는 A매치 전체
       select: {
         id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
         homeScore: true, awayScore: true, startTime: true,

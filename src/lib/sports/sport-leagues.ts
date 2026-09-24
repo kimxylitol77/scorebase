@@ -299,6 +299,26 @@ export const NATIONAL_TEAM_LEAGUES = new Set([
   "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
 ]);
 
+// 성인 국가대표 대회 — 국가명 Elo(nationalElo)와 A매치 이력이 유효한 범위.
+// 전엔 "WORLD_CUP ‖ INTL_FRIENDLY" 가 네 군데 하드코딩돼 네이션스리그·예선이 클럽식 Elo(이력 0 → 전원 1500)로
+// 떨어졌다(2026-09-24 안도라-몰타 "데이터 누적 중 (0경기)"). U20·U17·올림픽은 성인 대표 전력이 아니라 뺀다.
+export const SENIOR_NATIONAL_LEAGUES = new Set(
+  [...NATIONAL_TEAM_LEAGUES].filter((l) => l !== "U20_WC" && l !== "U17_WC" && l !== "OLYMPICS_FOOTBALL"),
+);
+
+export function isSeniorNationalLeague(league: string): boolean {
+  return SENIOR_NATIONAL_LEAGUES.has(league);
+}
+
+/**
+ * 예측 이력(폼·득점 평균·Elo 재료)으로 읽을 리그. 성인 국대 대회는 A매치 전체 —
+ * 국대 Team row 는 대회와 무관하게 하나(INTL_FRIENDLY 라벨)라 팀 id 로 친선·월드컵 이력이 이어진다.
+ * 네이션스리그처럼 대회 자체 종료 경기가 0건이어도 폼·득점이 비지 않는다.
+ */
+export function historyLeaguesFor(league: string): string[] {
+  return isSeniorNationalLeague(league) ? [...SENIOR_NATIONAL_LEAGUES] : [league];
+}
+
 // 순위 개념이 없는 대회 — 공식 순위표도, DB 자체 산출 폴백도 쓰면 안 된다.
 // 친선은 상대·경기 수가 제각각이라 자체 계산이 "90위 / 147팀" 같은 무의미한 서열을 만든다.
 // 컵(녹아웃·조별)도 같다 — 자체 산출은 조 구분 없이 한 표로 합쳐 실제 대진과 어긋난다.

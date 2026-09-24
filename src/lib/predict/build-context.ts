@@ -10,8 +10,7 @@ import {
   blendLeaguePrior,
   priorWeight,
 } from "./league-prior";
-import { getWorldCupSeedElo } from "./world-cup-elos";
-import { getFifaRank } from "@/lib/sports/fifa-rankings";
+import { nationalElo } from "./national-elo";
 import { buildScoreDistribution } from "./score-distribution";
 
 const SOCCER_LEAGUES = new Set([
@@ -24,9 +23,10 @@ const SOCCER_LEAGUES = new Set([
   "UCL",
   "UEL",
   "UECL",
+  "UEFA_NL", // 2026-09-24 5대 리그 급
   "WORLD_CUP",
 ]);
-import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
 import { calcStandings } from "./standings";
@@ -71,16 +71,8 @@ export function starterEraFromJson(s: string | null | undefined): number | undef
   }
 }
 
-// 국가대표 Elo (친선·월드컵 winProb 용) — world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산.
-// 친선은 클럽 Elo(calcEloTable)가 주전 결장·결과 변동으로 평준화돼 부정확하므로 별도 소스 사용.
-// export — MatchInsight 위젯도 국가대항 매치 Elo 표시·fallback 계산에 동일 소스 사용.
-export function nationalElo(name: string): number {
-  const seed = getWorldCupSeedElo(name);
-  if (seed != null) return seed;
-  const rank = getFifaRank(name);
-  if (rank != null) return Math.max(1300, 2050 - 250 * Math.log10(rank));
-  return 1500;
-}
+// 국가대표 Elo — 단일 출처는 national-elo.ts. 기존 import 경로(MatchInsight·SoccerTeamStrength)를 위해 다시 내보낸다.
+export { nationalElo };
 
 /** winProb 최고 확률 → 신뢰도 등급 (코드 단일 소스 — 본문·위젯 동일값).
  *  "high" 컷은 Strong Pick 리그별 임계와 동일 — 배지와 신뢰도 라벨이 어긋나지 않게. */
@@ -161,10 +153,10 @@ export function buildMatchContext(
   );
   // 국가대항(친선·월드컵 본선)은 클럽 Elo 부정확 → 국가대표 Elo(world-cup-elos + FIFA랭킹) 사용.
   // WORLD_CUP: 본선 매치 히스토리가 적어 calcEloTable 이 전원 1500 — 글이 "동점 Elo" 오판.
-  // predictionEngine 의 NATIONAL_TEAM_LEAGUES 처리와 동일하게 시드 Elo (글-위젯 정합, 2026-06-11).
+  // predictionEngine 과 같은 기준(isSeniorNationalLeague + nationalElo)으로 시드 Elo (글-위젯 정합, 2026-06-11).
   let homeElo: number, awayElo: number;
   let eloTable: EloTable | null = null;
-  if ((league === "INTL_FRIENDLY" || league === "WORLD_CUP") && homeName && awayName) {
+  if (isSeniorNationalLeague(league) && homeName && awayName) {
     homeElo = nationalElo(homeName);
     awayElo = nationalElo(awayName);
   } else {
@@ -207,7 +199,8 @@ export function buildMatchContext(
     ? predictBttsMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
     : null;
 
-  const standings = calcStandings(matches, referenceTime);
+  // 순위는 그 대회 경기만 — 국대는 이력 풀이 A매치 전체라 그대로 계산하면 "국가 전체 중 N위" 같은 서열이 나온다.
+  const standings = calcStandings(isSeniorNationalLeague(league) ? matches.filter((m) => m.league === league) : matches, referenceTime);
   const homeRow = standings.byTeam.get(homeTeamId);
   const awayRow = standings.byTeam.get(awayTeamId);
 

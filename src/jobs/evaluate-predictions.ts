@@ -32,6 +32,7 @@ import { blendWithMarket } from "@/lib/predict/market-blend";
 import { calibrateHomeWinProb, hasHomeCalibration } from "@/lib/predict/home-calibration";
 import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
+import { historyLeaguesFor, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
 
 /**
  * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡/BTTS 모두 90분(정규시간) 기준.
@@ -184,6 +185,7 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
     include: {
       theSportsCache: { select: { detailLive: true } },
       homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
     },
   });
   const seen = new Set(pendingPriority.map((m) => m.id));
@@ -203,6 +205,7 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
             include: {
       theSportsCache: { select: { detailLive: true } },
       homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
     },
           })
         ).filter((m) => !seen.has(m.id)).slice(0, limit - pendingPriority.length)
@@ -221,7 +224,7 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
   const cache = new Map<string, PredictMatch[]>();
   for (const lg of leagues) {
     const list = await prisma.match.findMany({
-      where: { league: lg },
+      where: { league: { in: historyLeaguesFor(lg) } }, // 성인 국대는 A매치 전체
       select: {
         id: true,
         league: true,
@@ -271,7 +274,8 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
     //  근거가 부족한가" 를 보는 것이라, 이미 사용자에게 보여준 픽을 채점하는 데는 필요 없다.
     //  배구 국가대항전(팀당 이전 경기 5건 미만)이 여기서 영구 skip 돼 294건이 미채점으로 남았다.
     const hasStoredPick = m.predWinner != null;
-    if (!hasStoredPick && m.league !== "WORLD_CUP" && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
+    // 성인 국대 대회 전체로 면제 확대(2026-09-24) — compute-prediction 과 같은 기준이어야 사전 픽과 사후 채점이 맞는다.
+    if (!hasStoredPick && !isSeniorNationalLeague(m.league) && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
 
     const ctx = buildMatchContext(
       all,
@@ -279,6 +283,8 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
       m.homeTeamId,
       m.awayTeamId,
       m.startTime,
+      m.homeTeam?.name,
+      m.awayTeam?.name,
     );
     // 저장 픽이 있는데 재계산 근거가 없으면(배구 등 축구식 Elo 컨텍스트 밖 종목) 저장 확률을 그대로 쓴다.
     const storedWp =

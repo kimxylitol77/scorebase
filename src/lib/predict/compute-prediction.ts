@@ -9,6 +9,7 @@
 //   "사전에 보여준 픽"과 "사후 채점된 픽"이 어긋나 적중률이 실제와 달라진다.
 //   순서: buildMatchContext → 선발/골리 보정 → 시장 블렌드 → home calibration.
 import { buildMatchContext } from "./build-context";
+import { isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
 import {
   bestDoubleChance,
   predictTotalMarket,
@@ -40,6 +41,8 @@ export interface PredictionInput {
   marketAway: number | null;
   marketBookmakers: number | null;
   homeTeam?: { name: string } | null;
+  /** 원정팀 이름 — 성인 국대 대회는 이름으로 국대 Elo(nationalElo)를 찾는다(홈팀과 함께 있어야 적용). */
+  awayTeam?: { name: string } | null;
 }
 
 export interface ComputedPrediction {
@@ -84,14 +87,16 @@ export function computePrediction(
   m: PredictionInput,
   all: PredictMatch[],
 ): ComputedPrediction | null {
-  // 월드컵은 외부 시드 Elo 라 prior 0 이어도 1500 random 이 아니다 → 가드 면제.
-  if (m.league !== "WORLD_CUP") {
+  // 성인 국대 대회는 외부 시드 Elo(nationalElo)라 prior 0 이어도 1500 random 이 아니다 → 가드 면제.
+  //  (예전엔 월드컵만 — 네이션스리그 소국은 A매치 이력이 5경기 미만이라 여기서 전부 빠졌다.)
+  if (!isSeniorNationalLeague(m.league)) {
     const homePrior = priorCount(all, m.homeTeamId, m.startTime);
     const awayPrior = priorCount(all, m.awayTeamId, m.startTime);
     if (Math.min(homePrior, awayPrior) < MIN_PRIOR) return null;
   }
 
-  const ctx = buildMatchContext(all, m.league, m.homeTeamId, m.awayTeamId, m.startTime);
+  // 이름을 넘겨야 국대 대회가 시드 Elo 를 쓴다 — 안 넘기면 클럽식 Elo(A매치 이력 기반)로 떨어진다.
+  const ctx = buildMatchContext(all, m.league, m.homeTeamId, m.awayTeamId, m.startTime, m.homeTeam?.name, m.awayTeam?.name);
   let wp = ctx.winProb;
   if (!wp) return null;
 

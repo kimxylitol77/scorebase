@@ -19,7 +19,7 @@ import {
   LOOKAHEAD_HOURS,
   type MarketLines,
 } from "@/jobs/fetch-gpt-predictions";
-import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, historyLeaguesFor } from "@/lib/sports/sport-leagues";
 
 // AiPrediction.model 키 — panelists.ts 의 ollama 패널 key 와 반드시 일치.
 export const QWEN_MODEL = "qwen2.5-32b";
@@ -68,7 +68,7 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
   const poolByLeague = new Map<string, PredictMatch[]>();
   for (const lg of leagues) {
     const pool = await prisma.match.findMany({
-      where: { league: lg },
+      where: { league: { in: historyLeaguesFor(lg) } }, // 성인 국대는 A매치 전체
       select: {
         id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
         homeScore: true, awayScore: true, startTime: true,

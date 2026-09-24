@@ -21,7 +21,7 @@ import { hasTacticalData, hasTsFormations } from "@/lib/tactical/data-gate";
 import { tacticalFactGateReason } from "@/lib/tactical/fact-gate";
 import { insertShapeTokens, linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
 
-const TARGET_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL"];
+const TARGET_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL", "UEFA_NL"];
 const LOOKBACK_DAYS = 5; // 최근 종료 경기만 (라이브 운영 시 새 시즌 기준)
 const PER_RUN_CAP = 4; // 한 번에 생성할 최대 편수 (양산 방지)
 const MIN_TACTICAL_LENGTH = 1500;

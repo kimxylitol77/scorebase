@@ -17,6 +17,7 @@ const LEAGUE_GROUPS: Array<{ sport: string; leagues: Array<{ code: string; label
       { code: "UCL", label: "챔피언스리그" },
       { code: "UEL", label: "유로파리그" },
       { code: "UECL", label: "컨퍼런스리그" },
+      { code: "UEFA_NL", label: "네이션스리그" },
       { code: "MLS", label: "MLS" },
     ],
   },

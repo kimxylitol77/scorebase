@@ -10,7 +10,7 @@ import { backfillMajorCornersMapped } from "@/lib/sports/api-football-corners";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MAJOR = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL", "UEL", "UECL"];
+const MAJOR = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL", "UEL", "UECL", "UEFA_NL"];
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

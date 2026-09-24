@@ -38,7 +38,7 @@ import { jsonLdScript } from "@/lib/seo/jsonld";
 export const revalidate = 3600; // 1시간 ISR
 
 const LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "UEFA_NL",
   "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
 ] as const;
 
@@ -52,6 +52,7 @@ const LEAGUE_NAME: Record<string, string> = {
   UCL: "챔피언스리그",
   UEL: "유로파리그",
   UECL: "유로파 컨퍼런스리그",
+  UEFA_NL: "UEFA 네이션스리그",
   NBA: "NBA",
   NHL: "NHL",
   MLB: "MLB",

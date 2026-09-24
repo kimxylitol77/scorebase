@@ -443,6 +443,7 @@ export const ARTICLE_LEAGUES: readonly League[] = [
  * 2026-06-03 사용자 결정: 8개 핵심. 되돌리려면 generate-previews 가 다시 ARTICLE_LEAGUES 를 쓰게. */
 export const PREVIEW_LEAGUES: readonly League[] = [
   "EPL", "LALIGA", "UCL", "UEL", "UECL", // 축구 빅 (UEL 2026-07-30 추가 — 7·8월 예선은 isUefaQualifierMatch 로 계속 제외)
+  "UEFA_NL", // 2026-09-24 네이션스리그 5대 리그 급 — 국대 Elo(nationalElo)+A매치 이력으로 승무패·마켓 산출
   "KBO", "MLB", // 야구
   "NBA", // 농구
   "K_LEAGUE_1", // 한국 축구

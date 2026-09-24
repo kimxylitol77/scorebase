@@ -93,6 +93,7 @@ export async function runAnalysis() {
     "UCL",
     "UEL",
     "UECL",
+    "UEFA_NL", // 2026-09-24
     "K_LEAGUE_1",
     "J1_LEAGUE",
     "AFC_CL",

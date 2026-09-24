@@ -32,7 +32,7 @@ const NEAR_MS = 3 * 3600 * 1000;
 
 // 티어 0 = 지시서 "빅5·K리그·UCL 우선", 1 = 나머지 주요 리그, 2 = 화이트리스트 잔여
 const TIER0 = new Set(["UCL", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1"]);
-const TIER1 = new Set(["KBO", "MLB", "NPB", "NBA", "NHL", "UEL", "UECL", "WORLD_CUP", "MLS", "J1_LEAGUE"]);
+const TIER1 = new Set(["KBO", "MLB", "NPB", "NBA", "NHL", "UEL", "UECL", "UEFA_NL", "WORLD_CUP", "MLS", "J1_LEAGUE"]);
 export function leagueTier(league: string): number {
   return TIER0.has(league) ? 0 : TIER1.has(league) ? 1 : 2;
 }

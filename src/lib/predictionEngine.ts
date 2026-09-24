@@ -31,7 +31,7 @@ import { calibrateHomeWinProb, hasHomeCalibration } from "./predict/home-calibra
 import { calcRecentTrend } from "./predict/recent-trend";
 import { rollingXgStrength, xgMomentumShift } from "./predict/rolling-xg";
 import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
-import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "./predict/types";
 import {
   computeStarterAdjustment,
@@ -48,19 +48,8 @@ import {
   type Motivation,
 } from "./predict/schedule-context";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
-import { getWorldCupSeedElo } from "./predict/world-cup-elos";
-import { getFifaRank } from "@/lib/sports/fifa-rankings";
+import { nationalElo } from "./predict/national-elo";
 
-// 국가대표 Elo — 클럽 시즌 Elo 가 없는 국가대항(WC·친선)용.
-// world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산 (build-context 와 동일 공식).
-const NATIONAL_TEAM_LEAGUES = new Set(["WORLD_CUP", "INTL_FRIENDLY"]);
-function nationalTeamElo(name: string): number {
-  const seed = getWorldCupSeedElo(name);
-  if (seed != null) return seed;
-  const rank = getFifaRank(name);
-  if (rank != null) return Math.max(1300, 2050 - 250 * Math.log10(rank));
-  return 1500;
-}
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
@@ -75,6 +64,7 @@ const FOOTBALL_LEAGUES_DRAW = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
   "UCL", "UEL", "MLS", "K_LEAGUE_1", "K_LEAGUE_2",
   "J1_LEAGUE", "WORLD_CUP",
+  "UEFA_NL", // 2026-09-24 — 5대 리그 급 편입(승·무·패). 빠지면 classifySport 가 "other" 로 떨어져 무승부 확률이 없다
 ]);
 
 export type SportKind = "baseball" | "basketball" | "hockey" | "football" | "other";
@@ -612,12 +602,13 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
   // Elo — 국가대항(WC·친선)은 클럽 시즌 매치가 없어 calcEloTable 이 전팀 1500 으로
   // 평준화됨 (2026-06-10: WC 매치 predHome null 원인) → 국가대표 Elo 로 대체.
   const eloTable = calcEloTable(seasonMatchesTyped);
-  const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(match.league);
+  // 국대 Elo 는 build-context nationalElo 단일 출처(시드 → FIFA 랭킹 환산 → 1500).
+  const isNationalTeam = isSeniorNationalLeague(match.league);
   const eloHome = isNationalTeam
-    ? nationalTeamElo(match.homeTeam.name)
+    ? nationalElo(match.homeTeam.name)
     : getElo(eloTable, match.homeTeamId);
   const eloAway = isNationalTeam
-    ? nationalTeamElo(match.awayTeam.name)
+    ? nationalElo(match.awayTeam.name)
     : getElo(eloTable, match.awayTeamId);
 
   // 축구 Dixon-Coles 득점모델 (Elo 와 0.7 블렌드). 실패 시 Elo only fallback.
@@ -724,7 +715,9 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     dc,
     lineupAdj,
     leaguePrior: (() => {
-      // Elo 분산 작은 리그 베이스레이트 후퇴 — buildMatchContext(cron 경로)와 동일 보정
+      // Elo 분산 작은 리그 베이스레이트 후퇴 — buildMatchContext(cron 경로)와 동일 보정.
+      // 국대는 시드 Elo 라 클럽 풀 분포와 무관 → build-context 처럼 생략.
+      if (isNationalTeam) return undefined;
       const base = calcLeagueBaseRate(seasonMatchesTyped, match.startTime);
       const w = priorWeight(eloSpread(eloTable));
       return base && w > 0 ? { ...base, weight: w } : undefined;

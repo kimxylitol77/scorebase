@@ -66,6 +66,9 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   // UECL — DB 484경기 실측: 평균 2.75골(std 1.65)·평균마진 0.47(std 1.96)·O2.5 53.7%.
   // 셋 중 표본이 가장 크다. 득점은 UEL 보다 조금 높고 마진 분산도 그만큼 넓다.
   UECL: { overLine: 2.5, totalStd: 1.7, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  // UEFA_NL — 대회 자체 종료 0건(2026-09-24)이라 A매치 실측으로 잡는다: 친선 377·월드컵 104·골드컵 45·아프리카컵 12,
+  // 평균 약 2.8골(std 1.7~1.9)·평균마진 약 0.5(std 2.0)·무 24%. 전력 격차 큰 D리그(산마리노·지브롤터)까지 있어 마진 분산은 UECL 수준.
+  UEFA_NL: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
   // 농구 — NBA 평균 222점/매치, std 약 18, margin std 약 14
   NBA: { overLine: 220.5, totalStd: 18, marginStd: 14, handicapLine: 5.5, homeBoost: 1.025 },
   // 아이스하키 — NHL 평균 6.0골, std 2.5, margin std 2.4
@@ -595,4 +598,5 @@ export const SOCCER_LEAGUES_FOR_MARKETS = new Set([
   "UCL",
   "UEL", // 2026-07-30 — UCL 급 승격 (BTTS/DC·Skellam·연장 정규화 동일 적용)
   "UECL", // 2026-07-30 — UEL 과 같은 기준으로 승격
+  "UEFA_NL", // 2026-09-24 — 5대 리그 급 편입(BTTS/DC·Skellam·연장 정규화). SPORT_PROFILE 도 같이 넣어야 마켓이 나온다
 ]);
