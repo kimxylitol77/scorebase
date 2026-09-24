@@ -12,7 +12,7 @@ import { getRecentForm } from "@/lib/predict/recent-form";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { afGroupLabel } from "@/lib/sports/af-group-label";
+import { getAfGroupedRows } from "@/lib/standings/af-grouped";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
 import { LEAGUE_DISPLAY, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
@@ -507,60 +507,27 @@ export default async function StandingsPage({ params }: Props) {
   }
 
   // api-football 조별 표 — ts 표가 아예 없는 조별 대회용(UEFA_NL 실측: ts 0표 / af 14조 54팀).
-  // ts 다음·자체 계산 앞에 둔다. ts 가 있으면 여기 오지 않으므로 기존 리그는 영향이 없다.
-  // 팀 연결은 TeamSourceId(source="api-football") — 국가대표 Team row 는 INTL_FRIENDLY 라벨에
-  // 살기 때문에 league 라벨로 찾으면 못 찾는다(UEFA_NL 라벨은 3개뿐이었다).
+  // ts 다음·자체 계산 앞. ts 가 있으면 여기 오지 않으므로 기존 리그는 영향이 없다.
+  // 규칙은 lib/standings/af-grouped 단일 출처 — 리그 페이지 탭(getFullStandings)도 같은 함수를 쓴다.
   if (source === "calc" && isSoccerLeague) {
-    const afRow = await prisma.apiFootballStandingsCache.findUnique({
-      where: { league: upper },
-      select: { rows: true },
-    });
-    const afRows =
-      (afRow?.rows as unknown as Array<{
-        teamExternalId: string;
-        position: number;
-        points: number;
-        won?: number;
-        draw?: number;
-        loss?: number;
-        goalsFor?: number;
-        goalsAgainst?: number;
-        group?: string;
-      }>) ?? [];
-    const afGroups = new Set(afRows.map((r) => r.group).filter(Boolean));
-    // 조가 2개 이상일 때만 — 단일 표는 기존 경로(ts·calc)가 이미 처리한다.
-    if (afRows.length > 0 && afGroups.size >= 2) {
-      const srcIds = await prisma.teamSourceId.findMany({
-        where: { league: upper, source: "api-football", externalId: { in: afRows.map((r) => r.teamExternalId) } },
-        select: { externalId: true, teamId: true },
-      });
-      const extToId = new Map(srcIds.map((s) => [s.externalId, s.teamId]));
-      const afMapped = afRows
-        .filter((r) => extToId.has(r.teamExternalId))
-        .map((r) => {
-          const gf = r.goalsFor ?? 0;
-          const ga = r.goalsAgainst ?? 0;
-          return {
-            group: afGroupLabel(r.group ?? ""),
-            position: r.position,
-            teamId: extToId.get(r.teamExternalId)!,
-            played: (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0),
-            wins: r.won ?? 0,
-            draws: r.draw ?? 0,
-            losses: r.loss ?? 0,
-            goalsFor: gf,
-            goalsAgainst: ga,
-            goalDiff: gf - ga,
-            points: r.points,
-            promotionColor: undefined,
-            promotionName: undefined,
-          };
-        });
-      // 한 조라도 통째로 미매핑이면 반쪽 표가 된다 — 전부 실으거나 아예 안 쓴다.
-      if (afMapped.length === afRows.length) {
-        rows = afMapped;
-        source = "af";
-      }
+    const afGrouped = await getAfGroupedRows(upper);
+    if (afGrouped.length > 0) {
+      rows = afGrouped.map((r) => ({
+        group: r.group,
+        position: r.position,
+        teamId: r.teamId,
+        played: r.won + r.draw + r.loss,
+        wins: r.won,
+        draws: r.draw,
+        losses: r.loss,
+        goalsFor: r.goalsFor,
+        goalsAgainst: r.goalsAgainst,
+        goalDiff: r.goalDiff,
+        points: r.points,
+        promotionColor: undefined,
+        promotionName: undefined,
+      }));
+      source = "af";
     }
   }
 

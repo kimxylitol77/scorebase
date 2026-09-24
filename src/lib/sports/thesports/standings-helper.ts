@@ -10,6 +10,7 @@
 // 캐싱: in-process 5분. /scores 페이지 한 요청에서 여러 매치 카드 호출 시 효율.
 
 import { prisma } from "@/lib/db";
+import { getAfGroupedRows } from "@/lib/standings/af-grouped";
 import teamIdMapping from "./team-id-mapping.json";
 import { HOCKEY_TS_TABLE_LEAGUES, fetchHockeyTable } from "./hockey-table";
 import { PROVIDER_TS, afSeasonYear, getActiveSeason, registrySeasonYear } from "../season-registry";
@@ -258,7 +259,12 @@ export interface StandingsRow {
  * — J1 은 이행기 18경기 East 표, J2 는 전 항목 0 인 개막 전 placeholder.
  * 다시 그룹제로 가는 대회가 생기면 여기에 코드를 넣으면 된다.
  */
-export const GROUPED_STANDINGS_LEAGUES = new Set<string>([]);
+export const GROUPED_STANDINGS_LEAGUES = new Set<string>([
+  // 2026-09-24 — 리그페이즈 A~D · 14개조 · 54팀. ts 는 이 대회 표가 0개라 af 가 유일한 소스다.
+  // 매치 카드 [순위] 칩도 함께 꺼진다(위 getStandingsPositions) — 리그 A 1위와 리그 D 1위가
+  // 똑같이 [1] 로 보이면 오해를 부르므로 의도한 동작이다.
+  "UEFA_NL",
+]);
 
 const fullCache = new Map<string, { fetchedAt: number; rows: StandingsRow[] }>();
 
@@ -291,57 +297,34 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
 
   const gate = await seasonGate(league);
 
-  // 0) J1/J2 2026 그룹 포맷 — af(깨끗한 group 필드 + 전팀 매핑) 우선. ts 는 stage_id 가
-  //    opaque 라 East/West 라벨 불가 + flatten 시 1~N위 중복. af 로 그룹별 표 구성.
+  // 0) 조별 포맷 — af(깨끗한 group 필드 + 전팀 매핑)를 주 소스로. ts 는 stage_id 가 opaque 라
+  //    조 라벨을 만들 수 없고 flatten 하면 1~N위가 조마다 중복된다.
+  //    팀 연결·조 라벨 규칙은 lib/standings/af-grouped 단일 출처 — /standings/[league] 도 같은
+  //    함수를 쓴다. 양쪽에 규칙을 두면 한쪽만 고쳐져 리그 탭과 순위표 화면이 갈라진다.
   if (GROUPED_STANDINGS_LEAGUES.has(league)) {
     try {
-      const afGRow = await prisma.apiFootballStandingsCache.findUnique({
-        where: { league },
-        select: { rows: true, season: true },
-      });
-      const afG = afGRow && gate.afOk(afGRow.season) ? afGRow : null;
-      const gr =
-        (afG?.rows as unknown as Array<{
-          teamExternalId: string;
-          position: number;
-          points: number;
-          won?: number;
-          draw?: number;
-          loss?: number;
-          group?: string;
-        }>) ?? [];
-      if (gr.length > 0) {
-        const ext = gr.map((r) => r.teamExternalId);
-        const teamsG = await prisma.team.findMany({
-          where: { league, externalId: { in: ext } },
-          select: { id: true, externalId: true },
+      const gr = await getAfGroupedRows(league, gate.afOk);
+      for (const r of gr) {
+        if (seen.has(r.teamId)) continue;
+        seen.add(r.teamId);
+        out.push({
+          teamId: r.teamId,
+          position: r.position,
+          points: r.points,
+          won: r.won,
+          draw: r.draw,
+          loss: r.loss,
+          goalsFor: r.goalsFor,
+          goalsAgainst: r.goalsAgainst,
+          goalDiff: r.goalDiff,
+          group: r.group,
         });
-        const e2o = new Map(teamsG.map((t) => [t.externalId, t.id]));
-        for (const r of gr) {
-          const ourId = e2o.get(r.teamExternalId);
-          if (ourId == null || seen.has(ourId)) continue;
-          seen.add(ourId);
-          out.push({
-            teamId: ourId,
-            position: r.position,
-            points: typeof r.points === "number" ? r.points : 0,
-            won: r.won ?? 0,
-            draw: r.draw ?? 0,
-            loss: r.loss ?? 0,
-            group: r.group ?? null,
-          });
-        }
-        if (out.length > 0) {
-          out.sort(
-            (a, b) =>
-              (a.group ?? "").localeCompare(b.group ?? "") ||
-              a.position - b.position,
-          );
-          fullCache.set(league, { fetchedAt: now, rows: out });
-          return out;
-        }
       }
-      // af 비면 아래 일반(ts) 경로로 fallback (그룹 라벨은 없지만 표시는 됨)
+      if (out.length > 0) {
+        fullCache.set(league, { fetchedAt: now, rows: out });
+        return out;
+      }
+      // af 비면 아래 일반(ts) 경로로 fallback (조 라벨은 없지만 표시는 됨)
     } catch (e) {
       console.warn(
         `[standings-helper] grouped af fail league=${league}:`,

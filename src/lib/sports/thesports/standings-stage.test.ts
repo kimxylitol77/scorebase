@@ -75,8 +75,10 @@ test("빈 표는 0경기가 아니라 표 없음 — 폴백 대상이라 여기�
   assert.equal(isUnplayedTable([]), false);
 });
 
-test("그룹 순위 예외 세트는 현재 비어 있다 — 2026-27 단일표 복귀", () => {
-  // d957798 에서 J1/J2 예외 해제. 세트를 다시 채우면 이 assert 가 깨진다 —
-  // 그때는 새 그룹제 대회에 맞는지 관련 규칙을 점검하고 기대값을 갱신하라.
-  assert.equal(GROUPED_STANDINGS_LEAGUES.size, 0);
+test("그룹 순위 예외 세트는 UEFA_NL 뿐 — 세트가 바뀌면 관련 규칙을 같이 봐야 한다", () => {
+  // d957798 에서 J1/J2 예외 해제(2026-27 단일표 복귀) 후 한동안 비어 있었다.
+  // 2026-09-24 UEFA_NL 추가 — ts 가 이 대회 표를 0개 주고 af 만 14개 조를 준다.
+  // 세트를 또 바꾸면 이 assert 가 깨진다. 그때는 새 대회가 (a) standings-collect 의
+  // af-primary 규칙과 (b) getFullStandings 의 af 우선 분기에 맞는지 점검하고 갱신하라.
+  assert.deepEqual([...GROUPED_STANDINGS_LEAGUES].sort(), ["UEFA_NL"]);
 });

@@ -71,7 +71,10 @@ test("그룹 순위 리그는 af 가 주 소스라 ts 가 신선해도 항상 �
 
 test("그룹 순위 리그 목록이 바뀌면 이 규칙도 같이 봐야 한다", () => {
   // d957798 에서 비움 — J1/J2 의 2026 이행기 그룹제(East/West)가 끝나고 단일표로 복귀.
-  // 이 assert 가 깨졌다면 누군가 세트를 다시 채운 것 — standings-collect 의 af-primary
-  // 규칙과 getFullStandings 의 af 우선 분기가 새 리그에 맞는지 확인하고 기대값을 갱신하라.
-  assert.deepEqual([...GROUPED_STANDINGS_LEAGUES].sort(), []);
+  // 2026-09-24 UEFA_NL 추가. 위 "af 가 주 소스라 ts 가 신선해도 항상 갱신한다" 테스트가
+  // 이 세트를 순회하므로 af-primary 규칙은 그쪽에서 이미 검증된다. ts 는 이 대회 표를
+  // 0개 주고 af 만 14개 조(리그 A~D)를 줘서 af 가 유일한 소스다.
+  // 이 assert 가 또 깨졌다면 세트가 바뀐 것 — standings-collect 의 af-primary 규칙과
+  // getFullStandings 의 af 우선 분기가 새 리그에 맞는지 확인하고 기대값을 갱신하라.
+  assert.deepEqual([...GROUPED_STANDINGS_LEAGUES].sort(), ["UEFA_NL"]);
 });

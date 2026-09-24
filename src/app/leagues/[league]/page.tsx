@@ -138,6 +138,9 @@ const VALID_LEAGUES = [
   // AFCON 2027 예선 12경기·12개조 · CONCACAF_GOLD 2025 45경기·4개조.
   "AFCON",
   "CONCACAF_GOLD",
+  // 2026-09-24 — ALL_LEAGUES 에는 있는데 여기 없어 StandingsOnlyView 로 빠지고 있었다.
+  // 리그페이즈(A~D · 14개조 · 54팀) → 파이널스. 조별 표는 af 경로가 준다.
+  "UEFA_NL",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -310,6 +313,13 @@ const LEAGUE_INFO: Partial<Record<
     copy:
       "북중미(미국·캐나다·멕시코) 공동 개최 2026 FIFA 월드컵의 조별예선부터 결승까지의 매치 프리뷰·결과·분석.",
   },
+  UEFA_NL: {
+    name: "UEFA 네이션스 리그",
+    subtitle: "UEFA Nations League",
+    gradient: "from-sky-700 via-blue-600 to-indigo-500",
+    copy:
+      "유럽 55개 협회가 실력별로 리그 A~D 로 나뉘어 겨루는 UEFA 네이션스 리그. 조별 리그페이즈부터 파이널스·승강 플레이오프까지 일정·순위·결과.",
+  },
   KBO: {
     name: "KBO 리그",
     subtitle: "한국프로야구 (Korea Baseball Organization)",
@@ -458,6 +468,8 @@ const CUP_LEAGUES = new Set<string>([
   // 2026-08-21 — 조별리그가 있는 둘은 위 cupViews 가 순위 탭을 함께 준다.
   "UEFA_WCL", "LEAGUES_CUP", "CANADA_CHAMP",
   "AFCON", "CONCACAF_GOLD",
+  // 2026-09-24 — 리그페이즈(조별) + 파이널스. NO_TABLE 에 없으므로 순위 탭도 함께 나간다.
+  "UEFA_NL",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
