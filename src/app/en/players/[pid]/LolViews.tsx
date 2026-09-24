@@ -9,6 +9,8 @@ import {
   type LolPlayerGame,
   type LolPlayerChamp,
 } from "@/lib/sports/lol-player-stats";
+import { lolPlayerCareer, type LolCareerLine, type LolCareerChamp } from "@/lib/sports/lol-career";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import PlayerTabs from "../../../players/[pid]/PlayerTabs";
 import LolSeasonOverview from "./LolSeasonOverview";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -89,6 +91,96 @@ function LolGames({ games }: { games: LolPlayerGame[] }) {
   );
 }
 
+/* ---------- 통산 탭 ---------- */
+
+const pct = (n: number) => `${Math.round(n * 100)}%`;
+/** 폼 구간 라벨 — en-mirror 사전이 통짜로 치환하도록 창 크기별 문자열을 따로 둔다 */
+const WINDOW_KO: Record<number, string> = {
+  10: "Last 10 games", 20: "Last 20 games", 30: "Last 30 games", 40: "Last 40 games", 50: "Last 50 games",
+};
+
+function StatBox({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+      <div className="text-[11px] text-neutral-500">{label}</div>
+      <div className="text-lg font-bold tabular-nums leading-tight">{value}</div>
+      {sub && <div className="text-[11px] text-neutral-400 tabular-nums">{sub}</div>}
+    </div>
+  );
+}
+
+function LolCareer({ career, champs, form }: { career: LolCareerLine; champs: LolCareerChamp[]; form: Array<{ window: number; line: LolCareerLine }> }) {
+  return (
+    <div className="space-y-5">
+      <section>
+        <h3 className="mb-2 text-sm font-semibold">Career totals</h3>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <StatBox label="Career record" value={`${career.win}W ${career.lose}L`} sub={`Win rate ${pct(career.winRate)}`} />
+          <StatBox label="KDA" value={career.kda.toFixed(2)} sub={`${d1(career.k)} / ${d1(career.d)} / ${d1(career.a)}`} />
+          <StatBox label="Kill participation" value={pct(career.part)} />
+          <StatBox label="CS per min" value={d1(career.csPerMin)} />
+          <StatBox label="Gold per min" value={Math.round(career.goldPerMin).toLocaleString()} />
+          <StatBox label="Damage per min" value={Math.round(career.dmgPerMin).toLocaleString()} />
+        </div>
+      </section>
+
+      {form.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-sm font-semibold">Recent form</h3>
+          <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-xs text-neutral-500 dark:bg-white/[0.04]">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Span</th>
+                  <th className="px-2 py-2 text-right font-medium">Record</th>
+                  <th className="px-2 py-2 text-right font-medium">Win %</th>
+                  <th className="px-2 py-2 text-right font-medium">Average K/D/A</th>
+                  <th className="px-2 py-2 text-right font-medium">KDA</th>
+                  <th className="px-3 py-2 text-right font-medium">KP</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                {form.map((f) => (
+                  <tr key={f.window}>
+                    <td className="px-3 py-2 font-medium">{WINDOW_KO[f.window] ?? `Last ${f.window}G`}</td>
+                    <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{f.line.win}-{f.line.lose}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{pct(f.line.winRate)}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{d1(f.line.k)}/{d1(f.line.d)}/{d1(f.line.a)}</td>
+                    <td className="px-2 py-2 text-right font-semibold tabular-nums text-blue-600 dark:text-blue-400">{f.line.kda.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{pct(f.line.part)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {champs.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-sm font-semibold">Career champion pool</h3>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {champs.map((c) => (
+              <div key={c.id} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+                {c.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.logo} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-neutral-100 object-cover dark:bg-neutral-900" loading="lazy" />
+                ) : (
+                  <div className="h-9 w-9 shrink-0 rounded-lg bg-neutral-100 dark:bg-neutral-900" />
+                )}
+                <div className="min-w-0 leading-tight">
+                  <div className="truncate text-xs font-semibold">{c.name}</div>
+                  <div className="text-[11px] tabular-nums text-neutral-500">{c.played} games · {pct(c.winRate)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
 /* ---------- 챔피언 탭 ---------- */
 
 function LolChamps({ champs }: { champs: LolPlayerChamp[] }) {
@@ -130,6 +222,10 @@ function LolChamps({ champs }: { champs: LolPlayerChamp[] }) {
 export async function LolPlayerView({ pid }: { pid: string }) {
   const profile = (lolPlayersData as { players: Record<string, LolProfile> }).players[pid];
   const detail = await getLolPlayerDetail(pid);
+  const careerData = lolPlayerCareer(pid);
+  // 리그 라벨은 경기 기록에서 뽑는다 — LCK 고정이면 LEC·LCS 선수 페이지가 전부 "LCK"로 나온다
+  const league = detail?.league ?? "LOL";
+  const leagueLabel = LEAGUE_DISPLAY[league] ?? league;
   if (!profile && !detail) notFound();
 
   const agg = detail?.agg;
@@ -152,10 +248,10 @@ export async function LolPlayerView({ pid }: { pid: string }) {
       <AmbientGlow />
       <header className="space-y-3">
         <Link
-          href="/leagues/LOL"
+          href={`/leagues/${league}`}
           className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
         >
-          <ChevronLeft className="h-3 w-3" aria-hidden /> LCK
+          <ChevronLeft className="h-3 w-3" aria-hidden /> {leagueLabel}
         </Link>
         <div className="flex items-center gap-4 flex-wrap">
           {profile?.photo ? (
@@ -182,7 +278,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
               <ShareCardButton />
             </div>
             {profile?.realName && <div className="text-sm text-neutral-500">{profile.realName}</div>}
-            <div className="text-sm text-neutral-500">LCK · {games}Sets played</div>
+            <div className="text-sm text-neutral-500">{leagueLabel} · {games} sets played</div>
             <div className="text-[11px] text-neutral-400">TheSports (per-set scoreboard totals)</div>
           </div>
         </div>
@@ -191,6 +287,11 @@ export async function LolPlayerView({ pid }: { pid: string }) {
       <PlayerTabs
         tabs={tabsOf([
           { key: "overview", label: "Overview", content: overview },
+          careerData && {
+            key: "career",
+            label: "Career",
+            content: <LolCareer career={careerData.career} champs={careerData.champs} form={careerData.form} />,
+          },
           detail && detail.games.length > 0 && {
             key: "games",
             label: "G",
@@ -205,7 +306,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
       />
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ Data source: TheSports LoL (per-set scoreboard totals). Covers the LCK matches we have collected.
+        ⓘ Data source: TheSports LoL. The Overview, Games and Champion tabs come from per-set scoreboards we collect, so they cover recent seasons only. The Career tab uses TheSports career totals (record and champion pool since debut, plus last 10-50 game form).
       </p>
     </article>
   );

@@ -96,6 +96,10 @@ function LolGames({ games }: { games: LolPlayerGame[] }) {
 /* ---------- 통산 탭 ---------- */
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
+/** 폼 구간 라벨 — en-mirror 사전이 통짜로 치환하도록 창 크기별 문자열을 따로 둔다 */
+const WINDOW_KO: Record<number, string> = {
+  10: "최근 10경기", 20: "최근 20경기", 30: "최근 30경기", 40: "최근 40경기", 50: "최근 50경기",
+};
 
 function StatBox({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -140,7 +144,7 @@ function LolCareer({ career, champs, form }: { career: LolCareerLine; champs: Lo
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {form.map((f) => (
                   <tr key={f.window}>
-                    <td className="px-3 py-2 font-medium">최근 {f.window}경기</td>
+                    <td className="px-3 py-2 font-medium">{WINDOW_KO[f.window] ?? `최근 ${f.window}경기`}</td>
                     <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{f.line.win}-{f.line.lose}</td>
                     <td className="px-2 py-2 text-right tabular-nums">{pct(f.line.winRate)}</td>
                     <td className="px-2 py-2 text-right tabular-nums">{d1(f.line.k)}/{d1(f.line.d)}/{d1(f.line.a)}</td>
