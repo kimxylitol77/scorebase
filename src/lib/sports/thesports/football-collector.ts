@@ -26,6 +26,8 @@ import {
   TS_FOOTBALL_LEAGUE_BY_COMPETITION,
   hasFootballMapping,
 } from "./football-competitions";
+import { tsStageName } from "./stage-names";
+import { STAGED_COMPETITIONS } from "../season-calendar";
 
 /** 매핑된 35개 League 중 하나의 collector 빌더 */
 export function buildTheSportsFootballCollector(
@@ -65,6 +67,11 @@ export function buildTheSportsFootballCollector(
             `[ts-football] league mismatch skip: expected=${league} got=${normalized.league} comp=${m.competition_id} match=${m.id}`,
           );
           continue;
+        }
+        // 토너먼트는 라운드 이름을 raw 에 붙인다 — 대회 여정·컵 대진표가 이름으로 라운드를 세운다.
+        // collect 는 매번 raw 를 새로 쓰므로 여기서 넣어야 백필이 다음 수집에 지워지지 않는다.
+        if (STAGED_COMPETITIONS.has(league) && m.round?.stage_id && !m.round.stageName) {
+          m.round.stageName = await tsStageName(m.round.stage_id);
         }
         matches.push(normalized);
       }

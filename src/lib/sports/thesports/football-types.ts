@@ -45,6 +45,8 @@ export interface TSFootballMatch {
     stage_id?: string;
     round_num?: number;
     group_num?: number;
+    /** 우리가 수집 때 붙이는 라운드 이름(ts stage/list) — ts 응답엔 없다. 토너먼트만 채운다. */
+    stageName?: string | null;
   };
   environment?: {
     weather?: number;
