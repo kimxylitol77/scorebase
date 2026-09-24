@@ -116,3 +116,27 @@ export function hasUsableRounds(rows: { round: number | null }[]): boolean {
   if (withRound.length / rows.length < 0.8) return false;
   return new Set(withRound.map((r) => r.round)).size >= 2;
 }
+
+/** 라운드가 없는 리그(NHL)의 프리시즌 묶음 키 — 정규시즌 주차는 1부터. */
+export const PRESEASON_KEY = 0;
+
+const kstDayMs = (d: Date) => {
+  const k = new Date(d.getTime() + 9 * 3600_000);
+  return Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate());
+};
+
+/**
+ * 정규시즌 주차 — 개막일(한국시간) 부터 7일 단위, 1주차부터.
+ * NHL 처럼 라운드가 없는 리그의 일정 탭을 축구 라운드 네비와 같은 방식으로 나누려고 쓴다.
+ */
+export function seasonWeek(start: Date, opening: Date): number {
+  return Math.max(1, Math.floor((kstDayMs(start) - kstDayMs(opening)) / (7 * 86400_000)) + 1);
+}
+
+/** N주차의 한국시간 날짜 범위 라벨 — "9/30~10/6". */
+export function seasonWeekRange(week: number, opening: Date): string {
+  const from = new Date(kstDayMs(opening) + (week - 1) * 7 * 86400_000);
+  const to = new Date(from.getTime() + 6 * 86400_000);
+  const md = (d: Date) => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+  return `${md(from)}~${md(to)}`;
+}

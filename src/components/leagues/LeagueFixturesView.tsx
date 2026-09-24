@@ -27,6 +27,8 @@ export interface FixtureRow {
   homeLogo: string | null;
   awayLogo: string | null;
   isFriendly: boolean;
+  /** NHL 프리시즌(시범경기) — 우측 배지 */
+  isPreseason?: boolean;
 }
 
 function kstParts(iso: string) {
@@ -64,9 +66,9 @@ function MatchRow({ m, league }: { m: FixtureRow; league: string }) {
         <span className="truncate">{m.awayName}</span>
       </span>
       <span className="ml-auto flex items-center gap-1.5 shrink-0">
-        {m.isFriendly && (
+        {(m.isFriendly || m.isPreseason) && (
           <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-400">
-            친선
+            {m.isFriendly ? "친선" : "프리시즌"}
           </span>
         )}
         <span
@@ -125,6 +127,7 @@ export default function LeagueFixturesView({
   rounds,
   initialRound,
   teams,
+  roundNames,
 }: {
   league: string;
   rows: FixtureRow[];
@@ -132,6 +135,8 @@ export default function LeagueFixturesView({
   rounds: number[];
   initialRound: number;
   teams: { id: number; name: string }[];
+  /** 라운드 대신 쓰는 이름(NHL 주차·프리시즌) — chip 은 칩·요약, option 은 선택 상자. 없으면 "N라운드". */
+  roundNames?: Record<number, { chip: string; option: string }>;
 }) {
   const [round, setRound] = useState(initialRound);
   const [teamId, setTeamId] = useState<number | null>(null);
@@ -145,7 +150,7 @@ export default function LeagueFixturesView({
   }, [rows, round, teamId]);
 
   const idx = rounds.indexOf(round);
-  const label = (r: number) => (r === FRIENDLY_KEY ? "친선" : `${r}R`);
+  const label = (r: number) => roundNames?.[r]?.chip ?? (r === FRIENDLY_KEY ? "친선" : `${r}R`);
 
   return (
     <div className="space-y-4">
@@ -170,7 +175,7 @@ export default function LeagueFixturesView({
             >
               {rounds.map((r) => (
                 <option key={r} value={r}>
-                  {r === FRIENDLY_KEY ? "프리시즌 친선" : `${r}라운드`}
+                  {roundNames?.[r]?.option ?? (r === FRIENDLY_KEY ? "프리시즌 친선" : `${r}라운드`)}
                 </option>
               ))}
             </select>
