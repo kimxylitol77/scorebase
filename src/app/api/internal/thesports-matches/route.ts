@@ -24,6 +24,7 @@
 
 import { readFileSync } from "fs";
 import { placeholderKickoffTimes } from "@/lib/sports/thesports/placeholder-kickoff";
+import { pickClosestCandidate } from "@/lib/sports/split-squad";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
@@ -406,14 +407,10 @@ export async function POST(req: NextRequest) {
         if (Math.abs(c.startTime.getTime() - startMs) <= NEAR_MS) return true;
         return c.homeTeamId === homeId && c.awayTeamId === awayId;
       });
+      // 시각이 같으면 방향이 같은 쪽 — 스플릿 스쿼드(당일 A@B·B@A, 킥오프 동일) 두 row 중
+      // 아무거나 잡으면 남의 경기에 점수가 들어간다.
       let existingNonTs: { id: number; externalId: string; startTime?: Date } | null =
-        usable.length
-          ? usable.reduce((best, c) =>
-              Math.abs(c.startTime.getTime() - startMs) < Math.abs(best.startTime.getTime() - startMs)
-                ? c
-                : best,
-            )
-          : null;
+        pickClosestCandidate(usable, { homeTeamId: homeId, awayTeamId: awayId, startMs });
 
       // fallback: team-id 매칭 실패 시 이름 normalize 매칭. Team 중복 row 케이스
       // (LALIGA Barcelona 4 row, EPL Team.externalId 시스템 mismatch) 잡음. 2026-05-25.

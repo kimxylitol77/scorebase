@@ -17,6 +17,7 @@ import { LOL_LEAGUES, MMA_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-lea
 /** 홈/원정이 구장이 아니라 소스의 팀 순서일 뿐인 종목 — 반전 가드 대상에서 뺀다. */
 const NO_VENUE_LEAGUES = new Set<string>([...LOL_LEAGUES, ...MMA_LEAGUES]);
 import { hasProtectedResult } from "@/lib/sports/baseball-source-cancel";
+import { isSplitSquadSibling } from "@/lib/sports/split-squad";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
 import { sendTelegram } from "@/lib/notify/telegram";
@@ -258,7 +259,14 @@ async function alertHomeAwayFlip(m: NormalizedMatch, matchId: number, source: st
 // EPL 처럼 primary=football-data 인 리그에 api-football 데이터를 넣을 때 반드시 명시할 것.
 // 소스 라벨이 거짓이면 (league, source, ext) 매핑이 다른 체계의 팀을 가리켜 Team 이름
 // 덮어쓰기 오염 발생 (2026-07-09 EPL Arsenal→Ipswich 사고).
-export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }) {
+export async function upsertMatch(
+  m: NormalizedMatch,
+  opts?: {
+    source?: string;
+    /** 같은 소스 응답에 함께 실린 externalId 들 — 역방향 스플릿 스쿼드 짝을 dedup 에서 빼는 데 쓴다. */
+    batchExternalIds?: ReadonlySet<string>;
+  },
+) {
   // TBD placeholder skip — NBA/NHL 컨퍼런스 파이널 차기 라운드 매치업 미정 시 ESPN 이
   // "TBD vs TBD" 로 placeholder 매치 제공. 실제 매치업 확정 시 별도 매치로 등장하므로
   // placeholder 는 DB 에 저장 안 함 (페이지 노출 방지 + LIVE 잘못된 status 회피).
@@ -304,7 +312,10 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
     SOCCER_LEAGUES.has(m.league) && m.league !== "CLUB_FRIENDLY"
       ? 150 * 60 * 1000
       : 30 * 60 * 1000;
-  let existing = await prisma.match.findFirst({
+  // 같은 소스가 이번 응답에 따로 실은 역방향 이벤트는 별개 경기(스플릿 스쿼드 당일 2연전 —
+  // 2026-09-23 NHL OTT@TOR·TOR@OTT 둘 다 23:00Z)라 후보에서 뺀다. 빼지 않으면 두 번째 경기가
+  // 첫 row 에 점수만 뒤집혀 덮이고 자기 row 는 영영 안 생긴다.
+  const dedupCandidates = await prisma.match.findMany({
     where: {
       league: m.league,
       externalId: { not: m.externalId },
@@ -317,8 +328,12 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
         { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
       ],
     },
-    select: { id: true, externalId: true, homeTeamId: true, status: true, homeScore: true, awayScore: true },
+    select: { id: true, externalId: true, homeTeamId: true, awayTeamId: true, status: true, homeScore: true, awayScore: true },
   });
+  let existing: { id: number; externalId: string; homeTeamId: number; status: string; homeScore: number | null; awayScore: number | null } | null =
+    dedupCandidates.find(
+      (c) => !isSplitSquadSibling(c, { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id }, opts?.batchExternalIds),
+    ) ?? null;
   let dedupSameDirection = existing ? existing.homeTeamId === homeTeam.id : true;
 
   // 이름 fallback (축구 한정, 2026-07-11): af/ts 팀 resolve 가 다른 Team row 로 갈리면
@@ -613,7 +628,8 @@ export async function runCollect(opts?: {
       let total = 0;
       for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
         const matches = await collectors[league].fetchByDate(d);
-        for (const m of matches) await upsertMatch(m);
+        const batchExternalIds = new Set(matches.map((x) => x.externalId));
+        for (const m of matches) await upsertMatch(m, { batchExternalIds });
         total += matches.length;
         if (isRange) await new Promise((r) => setTimeout(r, 80));
       }
