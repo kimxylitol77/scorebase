@@ -1,5 +1,6 @@
 // LOL 시즌 집계 — DB lolGames 파싱 → 선수·챔피언·팀·밴 통계. 선수랭킹·선수카드·강화 통계 공용.
 import { prisma } from "@/lib/db";
+import { lolTeamNameEn } from "@/lib/sports/lol-teams";
 import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export interface LolPlayerAgg {
@@ -188,6 +189,8 @@ export async function aggregateLolTeams(league: string = "LOL"): Promise<LolTeam
 export interface LolPlayerGame {
   date: Date;
   opponent: string;
+  /** 상대팀 영문명 — /en 화면용. lolGames 의 팀명이 한국어라 영어판이 그대로 쓰면 한글이 샌다. */
+  opponentEn: string | null;
   champ: string;
   k: number;
   d: number;
@@ -259,7 +262,7 @@ export async function getLolPlayerDetail(
     if (win) wins++;
     champsSet.add(me.champ);
     const opp = s.red.id === me.teamId ? s.blue : s.red;
-    gameLog.push({ date: s.date, opponent: opp.name, champ: me.champ, k: me.k, d: me.d, a: me.a, cs: me.cs, win, durationSec: s.durationSec });
+    gameLog.push({ date: s.date, opponent: opp.name, opponentEn: lolTeamNameEn(opp.id), champ: me.champ, k: me.k, d: me.d, a: me.a, cs: me.cs, win, durationSec: s.durationSec });
     if (me.champ && me.champ !== "?") {
       const c = champMap.get(me.champ) ?? { games: 0, k: 0, d: 0, a: 0, wins: 0 };
       c.games++;

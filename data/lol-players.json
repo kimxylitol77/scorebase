@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-24T06:02:22.730Z",
+  "updatedAt": "2026-09-24T07:12:49.740Z",
   "players": {
     "318q6g8t8wl4ro9": {
       "name": "ShowMaker",
@@ -1620,6 +1620,96 @@
       "birthday": null,
       "teamId": "4jwq2eku42pkq0v",
       "countryId": "gx7lm797b0r2wdk"
+    },
+    "8yomow3tyjo2r0j": {
+      "name": "Jojo",
+      "realName": "Gabriel Dzelme de Oliveira",
+      "photo": "https://eimg.thesports.com/lol/player/Fh7N_pPIl0mwrHoDh7XmUyVLT1bC",
+      "position": 5,
+      "birthday": 910771125,
+      "teamId": "4jwq2eku42deq0v",
+      "countryId": "8y39mp8xuzqojxg"
+    },
+    "jw2r08ku5y8gqz8": {
+      "name": "Guigo",
+      "realName": "Guilherme Araújo Ruiz",
+      "photo": "https://eimg.thesports.com/lol/player/FvlarUEA1xaBxY8fTSHZ60lxrKUH",
+      "position": 3,
+      "birthday": 1012203600,
+      "teamId": "4jwq2eku42deq0v",
+      "countryId": "8y39mp8xuzqojxg"
+    },
+    "y0or59wb9k6xmwz": {
+      "name": "Tutsz",
+      "realName": "Arthur Peixoto Machado",
+      "photo": "https://eimg.thesports.com/lol/player/FvPgOcQUW8SZXpjjOC-nu9HbZ7Gm",
+      "position": 2,
+      "birthday": 1040021027,
+      "teamId": "4jwq2eku42deq0v",
+      "countryId": "8y39mp8xuzqojxg"
+    },
+    "3glrwwot4xvlrdy": {
+      "name": "Tatu",
+      "realName": "Pedro Seixas",
+      "photo": "https://eimg.thesports.com/lol/player/FpGsK9lNZoI-Ov8amlTTAq_fDEIu",
+      "position": 4,
+      "birthday": 1150180956,
+      "teamId": "4jwq2eku42deq0v",
+      "countryId": "8y39mp8xuzqojxg"
+    },
+    "ednm926h51yjryo": {
+      "name": "Ayu",
+      "realName": "Andrey Saraiva",
+      "photo": "https://eimg.thesports.com/lol/player/Flz2RZdfOgpAqf43PDE2aPSc-woa",
+      "position": 1,
+      "birthday": null,
+      "teamId": "4jwq2eku42deq0v",
+      "countryId": "8y39mp8xuzqojxg"
+    },
+    "l5erg5efkwnpm8k": {
+      "name": "knight",
+      "realName": "Zhuo Ding (卓定)",
+      "photo": "https://eimg.thesports.com/lol/player/FmDCY6RTP-mQ3e3gO42cC052Hhj7",
+      "position": 2,
+      "birthday": 958924800,
+      "teamId": "4wyrnxyt8pldm86",
+      "countryId": "p3glrwwotwrdyjv"
+    },
+    "y0or59wb9nvkmwz": {
+      "name": "Viper",
+      "realName": "Park Do-hyeon (박도현)",
+      "photo": "https://eimg.thesports.com/lol/player/Fhkln6cJZ-8Y3-fuQUug-UOwoy5x",
+      "position": 1,
+      "birthday": 971932739,
+      "teamId": "4wyrnxyt8pldm86",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "l7oqd9kbjj4xm51": {
+      "name": "Bin",
+      "realName": "Chen Ze-Bin (陈泽彬)",
+      "photo": "https://eimg.thesports.com/lol/player/FrANI0Eey2YqIGCah73UqpKLvWhx",
+      "position": 3,
+      "birthday": 1033171769,
+      "teamId": "4wyrnxyt8pldm86",
+      "countryId": "p3glrwwotwrdyjv"
+    },
+    "l5erg5efkdg1m8k": {
+      "name": "ON",
+      "realName": "Luo Wen-Jun (骆文俊)",
+      "photo": "https://eimg.thesports.com/lol/player/Fs_Ubb8CeAczEHNXEUv9gA3ZL9Oq",
+      "position": 5,
+      "birthday": 1052698892,
+      "teamId": "4wyrnxyt8pldm86",
+      "countryId": "p3glrwwotwrdyjv"
+    },
+    "l5erg5efk61em8k": {
+      "name": "XUN",
+      "realName": "Peng Li-Xun (彭立勋)",
+      "photo": "https://eimg.thesports.com/lol/player/FsMgdhX93zwDjEdoWpl3y0pubwGE",
+      "position": 4,
+      "birthday": 1012877279,
+      "teamId": "4wyrnxyt8pldm86",
+      "countryId": "p3glrwwotwrdyjv"
     }
   }
 }

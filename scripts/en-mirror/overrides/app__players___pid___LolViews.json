@@ -54,5 +54,11 @@
     "판 ·": " games ·",
     "패": "L",
     "평균 K/D/A": "Average K/D/A"
-  }
+  },
+  "replace": [
+    [
+      "{g.opponent}",
+      "{g.opponentEn ?? g.opponent}"
+    ]
+  ]
 }

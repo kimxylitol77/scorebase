@@ -6,6 +6,7 @@ import { thesportsGet } from "@/lib/sports/thesports/client";
 import { prisma } from "@/lib/db";
 import fs from "node:fs";
 import rawPlayers from "../data/lol-players.json";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 interface TsPlayerStat {
   player_id: string; match_count: number;
@@ -82,12 +83,12 @@ const teamLine = (r: TsTeamStat): LolTeamLine => ({
  */
 async function buildTeamBridge(): Promise<Map<number, string>> {
   const teams = await prisma.team.findMany({
-    where: { league: { in: ["LOL", "LEC", "LCS", "LPL"] } },
+    where: { league: { in: [...LOL_LEAGUES] } },
     select: { id: true, name: true },
   });
   const byName = new Map(teams.map((t) => [t.name.trim().toLowerCase(), t.id]));
   const matches = await prisma.match.findMany({
-    where: { league: { in: ["LOL", "LEC", "LCS", "LPL"] }, lolGames: { not: null } },
+    where: { league: { in: [...LOL_LEAGUES] }, lolGames: { not: null } },
     select: { lolGames: true },
   });
   const bridge = new Map<number, string>();

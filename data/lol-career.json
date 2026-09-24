@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-24T06:04:41.453Z",
+  "updatedAt": "2026-09-24T07:19:09.002Z",
   "players": {
     "l5erg5efkl2nm8k": {
       "form": {
@@ -935,6 +935,274 @@
             "kdj2ryy6tkor1zp",
             20,
             15
+          ]
+        ]
+      }
+    },
+    "l5erg5efkwnpm8k": {
+      "form": {
+        "10": {
+          "k": 4.5,
+          "d": 1.9,
+          "a": 5.4,
+          "kda": 5.21,
+          "part": 0.669,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "csPerMin": 9.3,
+          "dmgPerMin": 620.5,
+          "goldPerMin": 427.5
+        },
+        "20": {
+          "k": 5.1,
+          "d": 2,
+          "a": 6.3,
+          "kda": 5.7,
+          "part": 0.659,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 8.9,
+          "dmgPerMin": 695.6,
+          "goldPerMin": 435.7
+        },
+        "30": {
+          "k": 5.3,
+          "d": 2.4,
+          "a": 7.1,
+          "kda": 5.17,
+          "part": 0.671,
+          "win": 20,
+          "lose": 10,
+          "winRate": 0.667,
+          "csPerMin": 9.1,
+          "dmgPerMin": 704.5,
+          "goldPerMin": 441.1
+        },
+        "40": {
+          "k": 5.3,
+          "d": 2.2,
+          "a": 6.8,
+          "kda": 5.5,
+          "part": 0.664,
+          "win": 28,
+          "lose": 12,
+          "winRate": 0.7,
+          "csPerMin": 9.2,
+          "dmgPerMin": 581.5,
+          "goldPerMin": 361.8
+        },
+        "50": {
+          "k": 5.5,
+          "d": 2.2,
+          "a": 6.9,
+          "kda": 5.64,
+          "part": 0.673,
+          "win": 34,
+          "lose": 16,
+          "winRate": 0.68,
+          "csPerMin": 9.2,
+          "dmgPerMin": 537.9,
+          "goldPerMin": 326.4
+        }
+      },
+      "career": {
+        "k": 4.9,
+        "d": 2,
+        "a": 6.2,
+        "kda": 5.55,
+        "part": 0.694,
+        "win": 847,
+        "lose": 427,
+        "winRate": 0.665,
+        "csPerMin": 8.9,
+        "dmgPerMin": 631.6,
+        "goldPerMin": 420.7,
+        "champs": [
+          [
+            "p4jwq2ekukpq0ve",
+            58,
+            34
+          ],
+          [
+            "9dn1m1ekunxqoep",
+            65,
+            23
+          ],
+          [
+            "d23xmvxjtkprg8n",
+            57,
+            17
+          ],
+          [
+            "e4wyrnxyt4km86p",
+            46,
+            22
+          ],
+          [
+            "9k82repjtgqepzj",
+            45,
+            19
+          ],
+          [
+            "kjw2r08kulvqz84",
+            44,
+            18
+          ],
+          [
+            "4zp5rz5pf2r82w1",
+            30,
+            22
+          ],
+          [
+            "p4jwq2ekuxgq0ve",
+            35,
+            17
+          ],
+          [
+            "z8yomow3t2wr0j6",
+            28,
+            20
+          ],
+          [
+            "gx7lm797b00r2wd",
+            32,
+            15
+          ]
+        ]
+      }
+    },
+    "l7oqd9kbjj4xm51": {
+      "form": {
+        "10": {
+          "k": 2.5,
+          "d": 2.6,
+          "a": 4.8,
+          "kda": 2.81,
+          "part": 0.493,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "csPerMin": 8.3,
+          "dmgPerMin": 476,
+          "goldPerMin": 386.8
+        },
+        "20": {
+          "k": 2.8,
+          "d": 2.8,
+          "a": 4.8,
+          "kda": 2.71,
+          "part": 0.484,
+          "win": 13,
+          "lose": 7,
+          "winRate": 0.65,
+          "csPerMin": 8.3,
+          "dmgPerMin": 478,
+          "goldPerMin": 364.2
+        },
+        "30": {
+          "k": 3,
+          "d": 2.9,
+          "a": 5.6,
+          "kda": 2.97,
+          "part": 0.506,
+          "win": 19,
+          "lose": 11,
+          "winRate": 0.633,
+          "csPerMin": 8.5,
+          "dmgPerMin": 531.5,
+          "goldPerMin": 379.3
+        },
+        "40": {
+          "k": 2.8,
+          "d": 2.7,
+          "a": 5.4,
+          "kda": 3.04,
+          "part": 0.481,
+          "win": 27,
+          "lose": 13,
+          "winRate": 0.675,
+          "csPerMin": 8.7,
+          "dmgPerMin": 540.7,
+          "goldPerMin": 385.5
+        },
+        "50": {
+          "k": 3,
+          "d": 2.6,
+          "a": 6,
+          "kda": 3.46,
+          "part": 0.514,
+          "win": 35,
+          "lose": 15,
+          "winRate": 0.7,
+          "csPerMin": 8.6,
+          "dmgPerMin": 584.4,
+          "goldPerMin": 393.2
+        }
+      },
+      "career": {
+        "k": 3.2,
+        "d": 2.5,
+        "a": 5.2,
+        "kda": 3.36,
+        "part": 0.528,
+        "win": 683,
+        "lose": 398,
+        "winRate": 0.632,
+        "csPerMin": 8.4,
+        "dmgPerMin": 514.1,
+        "goldPerMin": 398,
+        "champs": [
+          [
+            "d23xmvxjtoxrg8n",
+            79,
+            49
+          ],
+          [
+            "8y39mp8xuy8qojx",
+            73,
+            35
+          ],
+          [
+            "gpxwrx81ugpqyk0",
+            75,
+            33
+          ],
+          [
+            "965mk6zt781q1ge",
+            50,
+            24
+          ],
+          [
+            "dj2ryy6tk73r1zp",
+            35,
+            29
+          ],
+          [
+            "z318q6g8t08ro9j",
+            40,
+            20
+          ],
+          [
+            "yl5erg5efezm8k0",
+            36,
+            23
+          ],
+          [
+            "gy0or59wbg6mwzv",
+            28,
+            26
+          ],
+          [
+            "9vjxm89jb82q6od",
+            30,
+            21
+          ],
+          [
+            "z318q6g8t8ro9jd",
+            25,
+            17
           ]
         ]
       }
@@ -6031,6 +6299,140 @@
         ]
       }
     },
+    "y0or59wb9nvkmwz": {
+      "form": {
+        "10": {
+          "k": 5,
+          "d": 2.3,
+          "a": 6.7,
+          "kda": 5.09,
+          "part": 0.791,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "csPerMin": 10.6,
+          "dmgPerMin": 790.4,
+          "goldPerMin": 511.6
+        },
+        "20": {
+          "k": 5.4,
+          "d": 2,
+          "a": 6.8,
+          "kda": 6.1,
+          "part": 0.708,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 10.6,
+          "dmgPerMin": 821.8,
+          "goldPerMin": 521.3
+        },
+        "30": {
+          "k": 5.7,
+          "d": 2.4,
+          "a": 6.9,
+          "kda": 5.25,
+          "part": 0.683,
+          "win": 20,
+          "lose": 10,
+          "winRate": 0.667,
+          "csPerMin": 10.3,
+          "dmgPerMin": 893.6,
+          "goldPerMin": 517
+        },
+        "40": {
+          "k": 5.5,
+          "d": 2.4,
+          "a": 6.8,
+          "kda": 5.13,
+          "part": 0.672,
+          "win": 28,
+          "lose": 12,
+          "winRate": 0.7,
+          "csPerMin": 10.1,
+          "dmgPerMin": 723.2,
+          "goldPerMin": 421.7
+        },
+        "50": {
+          "k": 5.4,
+          "d": 2.4,
+          "a": 6.9,
+          "kda": 5.13,
+          "part": 0.665,
+          "win": 34,
+          "lose": 16,
+          "winRate": 0.68,
+          "csPerMin": 10.1,
+          "dmgPerMin": 653.6,
+          "goldPerMin": 377.2
+        }
+      },
+      "career": {
+        "k": 4.3,
+        "d": 1.8,
+        "a": 5.4,
+        "kda": 5.39,
+        "part": 0.687,
+        "win": 695,
+        "lose": 421,
+        "winRate": 0.623,
+        "csPerMin": 9.7,
+        "dmgPerMin": 649.1,
+        "goldPerMin": 444.5,
+        "champs": [
+          [
+            "gpxwrx81u9pqyk0",
+            81,
+            44
+          ],
+          [
+            "l965mk6zte0q1ge",
+            72,
+            40
+          ],
+          [
+            "kdj2ryy6tjor1zp",
+            48,
+            30
+          ],
+          [
+            "pxwrx81ugykqyk0",
+            38,
+            39
+          ],
+          [
+            "z318q6g8tjyro9j",
+            49,
+            25
+          ],
+          [
+            "4wyrnxyt8y6m86p",
+            40,
+            29
+          ],
+          [
+            "56ypq3e3ulwmd7o",
+            39,
+            23
+          ],
+          [
+            "l965mk6ztn0q1ge",
+            30,
+            22
+          ],
+          [
+            "z8yomow3twr0j6l",
+            38,
+            13
+          ],
+          [
+            "vl7oqd9kblym510",
+            28,
+            18
+          ]
+        ]
+      }
+    },
     "dn1m1eku9l48qoe": {
       "form": {
         "10": {
@@ -6299,6 +6701,140 @@
         ]
       }
     },
+    "l5erg5efkdg1m8k": {
+      "form": {
+        "10": {
+          "k": 0.4,
+          "d": 2.4,
+          "a": 11.9,
+          "kda": 5.13,
+          "part": 0.831,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "csPerMin": 1.2,
+          "dmgPerMin": 182.5,
+          "goldPerMin": 274.5
+        },
+        "20": {
+          "k": 0.7,
+          "d": 2.8,
+          "a": 13.2,
+          "kda": 4.96,
+          "part": 0.801,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 1,
+          "dmgPerMin": 210,
+          "goldPerMin": 286.5
+        },
+        "30": {
+          "k": 0.6,
+          "d": 3.4,
+          "a": 13.6,
+          "kda": 4.18,
+          "part": 0.77,
+          "win": 20,
+          "lose": 10,
+          "winRate": 0.667,
+          "csPerMin": 1.1,
+          "dmgPerMin": 222.6,
+          "goldPerMin": 285.3
+        },
+        "40": {
+          "k": 1,
+          "d": 3.6,
+          "a": 12.9,
+          "kda": 3.86,
+          "part": 0.76,
+          "win": 28,
+          "lose": 12,
+          "winRate": 0.7,
+          "csPerMin": 1.1,
+          "dmgPerMin": 185,
+          "goldPerMin": 235.5
+        },
+        "50": {
+          "k": 0.9,
+          "d": 3.8,
+          "a": 12.7,
+          "kda": 3.58,
+          "part": 0.736,
+          "win": 34,
+          "lose": 16,
+          "winRate": 0.68,
+          "csPerMin": 1.1,
+          "dmgPerMin": 171.6,
+          "goldPerMin": 210.1
+        }
+      },
+      "career": {
+        "k": 0.9,
+        "d": 3.2,
+        "a": 10.6,
+        "kda": 3.59,
+        "part": 0.709,
+        "win": 609,
+        "lose": 338,
+        "winRate": 0.643,
+        "csPerMin": 1.2,
+        "dmgPerMin": 201.7,
+        "goldPerMin": 252,
+        "champs": [
+          [
+            "9k82repjt34qepz",
+            90,
+            35
+          ],
+          [
+            "v2y8m4exugkql07",
+            52,
+            32
+          ],
+          [
+            "8y39mp8xuzqojxg",
+            56,
+            26
+          ],
+          [
+            "4jwq2eku4g1q0ve",
+            45,
+            25
+          ],
+          [
+            "d23xmvxjtdxrg8n",
+            27,
+            27
+          ],
+          [
+            "l5erg5efokkm8k0",
+            30,
+            19
+          ],
+          [
+            "9vjxm89jb8gq6od",
+            29,
+            16
+          ],
+          [
+            "8y39mp8xu18qojx",
+            22,
+            15
+          ],
+          [
+            "4zp5rz5pfx5r82w",
+            19,
+            16
+          ],
+          [
+            "kn54qleoujzmvy9",
+            24,
+            9
+          ]
+        ]
+      }
+    },
     "4wyrnxytynkdm86": {
       "form": {
         "10": {
@@ -6429,6 +6965,140 @@
             "v2y8m4exuzjql07",
             9,
             14
+          ]
+        ]
+      }
+    },
+    "l5erg5efk61em8k": {
+      "form": {
+        "10": {
+          "k": 2.4,
+          "d": 2.7,
+          "a": 8.8,
+          "kda": 4.15,
+          "part": 0.757,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "csPerMin": 6.8,
+          "dmgPerMin": 391.5,
+          "goldPerMin": 386.3
+        },
+        "20": {
+          "k": 3.3,
+          "d": 2.5,
+          "a": 8.9,
+          "kda": 4.88,
+          "part": 0.705,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 7.1,
+          "dmgPerMin": 415.5,
+          "goldPerMin": 404.7
+        },
+        "30": {
+          "k": 3.7,
+          "d": 2.8,
+          "a": 9.3,
+          "kda": 4.64,
+          "part": 0.701,
+          "win": 20,
+          "lose": 10,
+          "winRate": 0.667,
+          "csPerMin": 7.1,
+          "dmgPerMin": 464.9,
+          "goldPerMin": 408.5
+        },
+        "40": {
+          "k": 3.6,
+          "d": 2.6,
+          "a": 9.2,
+          "kda": 4.92,
+          "part": 0.708,
+          "win": 28,
+          "lose": 12,
+          "winRate": 0.7,
+          "csPerMin": 7.2,
+          "dmgPerMin": 377.1,
+          "goldPerMin": 336.5
+        },
+        "50": {
+          "k": 3.8,
+          "d": 2.7,
+          "a": 9.5,
+          "kda": 4.93,
+          "part": 0.714,
+          "win": 34,
+          "lose": 16,
+          "winRate": 0.68,
+          "csPerMin": 7.2,
+          "dmgPerMin": 336.4,
+          "goldPerMin": 301.8
+        }
+      },
+      "career": {
+        "k": 3.6,
+        "d": 2.7,
+        "a": 7.5,
+        "kda": 4.11,
+        "part": 0.707,
+        "win": 521,
+        "lose": 335,
+        "winRate": 0.609,
+        "csPerMin": 6.3,
+        "dmgPerMin": 392.6,
+        "goldPerMin": 355.6,
+        "champs": [
+          [
+            "gx7lm797b9nr2wd",
+            64,
+            38
+          ],
+          [
+            "kn54qleoujmvy9d",
+            46,
+            41
+          ],
+          [
+            "jednm926h90ryox",
+            49,
+            30
+          ],
+          [
+            "kdj2ryy6tnkr1zp",
+            40,
+            16
+          ],
+          [
+            "4zp5rz5pf72r82w",
+            28,
+            18
+          ],
+          [
+            "8y39mp8xu5zqojx",
+            32,
+            12
+          ],
+          [
+            "x7lm797bkjyr2wd",
+            27,
+            17
+          ],
+          [
+            "vl7oqd9kb6wm510",
+            23,
+            21
+          ],
+          [
+            "56ypq3e3uzxmd7o",
+            22,
+            18
+          ],
+          [
+            "6ypq3e3u0k9md7o",
+            21,
+            13
           ]
         ]
       }
@@ -6697,6 +7367,140 @@
             "8y39mp8xu18qojx",
             2,
             9
+          ]
+        ]
+      }
+    },
+    "y0or59wb9k6xmwz": {
+      "form": {
+        "10": {
+          "k": 4.6,
+          "d": 1.8,
+          "a": 5.5,
+          "kda": 5.61,
+          "part": 0.687,
+          "win": 7,
+          "lose": 3,
+          "winRate": 0.7,
+          "csPerMin": 8.9,
+          "dmgPerMin": 752.9,
+          "goldPerMin": 429.1
+        },
+        "20": {
+          "k": 3.8,
+          "d": 2,
+          "a": 6.2,
+          "kda": 5,
+          "part": 0.663,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 8.8,
+          "dmgPerMin": 692.7,
+          "goldPerMin": 412.4
+        },
+        "30": {
+          "k": 3.4,
+          "d": 2.7,
+          "a": 5.2,
+          "kda": 3.19,
+          "part": 0.635,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "csPerMin": 8.7,
+          "dmgPerMin": 636.3,
+          "goldPerMin": 397.8
+        },
+        "40": {
+          "k": 3.4,
+          "d": 2.6,
+          "a": 5.8,
+          "kda": 3.54,
+          "part": 0.649,
+          "win": 22,
+          "lose": 18,
+          "winRate": 0.55,
+          "csPerMin": 8.5,
+          "dmgPerMin": 625.9,
+          "goldPerMin": 396.4
+        },
+        "50": {
+          "k": 3.3,
+          "d": 2.7,
+          "a": 6.2,
+          "kda": 3.52,
+          "part": 0.648,
+          "win": 28,
+          "lose": 22,
+          "winRate": 0.56,
+          "csPerMin": 8.5,
+          "dmgPerMin": 624.6,
+          "goldPerMin": 397.2
+        }
+      },
+      "career": {
+        "k": 3.4,
+        "d": 2.4,
+        "a": 6.4,
+        "kda": 4.08,
+        "part": 0.682,
+        "win": 188,
+        "lose": 165,
+        "winRate": 0.533,
+        "csPerMin": 8.5,
+        "dmgPerMin": 566.1,
+        "goldPerMin": 365.8,
+        "champs": [
+          [
+            "9dn1m1ekunxqoep",
+            20,
+            17
+          ],
+          [
+            "p4jwq2ekukpq0ve",
+            18,
+            15
+          ],
+          [
+            "d23xmvxjtkprg8n",
+            14,
+            14
+          ],
+          [
+            "d23xmvxjt4prg8n",
+            15,
+            13
+          ],
+          [
+            "9k82repjtgqepzj",
+            11,
+            13
+          ],
+          [
+            "e4wyrnxyt4km86p",
+            15,
+            7
+          ],
+          [
+            "gx7lm797b00r2wd",
+            13,
+            6
+          ],
+          [
+            "z8yomow3t2wr0j6",
+            7,
+            10
+          ],
+          [
+            "p3glrwwotwrdyjv",
+            7,
+            9
+          ],
+          [
+            "4zp5rz5pf2r82w1",
+            6,
+            10
           ]
         ]
       }
@@ -7501,6 +8305,140 @@
             "8yomow3t7ylr0j6",
             7,
             7
+          ]
+        ]
+      }
+    },
+    "8yomow3tyjo2r0j": {
+      "form": {
+        "10": {
+          "k": 0.9,
+          "d": 1.5,
+          "a": 9.4,
+          "kda": 6.87,
+          "part": 0.701,
+          "win": 7,
+          "lose": 3,
+          "winRate": 0.7,
+          "csPerMin": 1.1,
+          "dmgPerMin": 233.5,
+          "goldPerMin": 272.6
+        },
+        "20": {
+          "k": 0.8,
+          "d": 1.4,
+          "a": 10.6,
+          "kda": 8.14,
+          "part": 0.757,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 1.1,
+          "dmgPerMin": 213.6,
+          "goldPerMin": 269.5
+        },
+        "30": {
+          "k": 0.7,
+          "d": 2.7,
+          "a": 9.6,
+          "kda": 3.81,
+          "part": 0.757,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "csPerMin": 1,
+          "dmgPerMin": 210.7,
+          "goldPerMin": 260.7
+        },
+        "40": {
+          "k": 0.7,
+          "d": 2.4,
+          "a": 10.3,
+          "kda": 4.58,
+          "part": 0.77,
+          "win": 22,
+          "lose": 18,
+          "winRate": 0.55,
+          "csPerMin": 1.1,
+          "dmgPerMin": 205.4,
+          "goldPerMin": 262.2
+        },
+        "50": {
+          "k": 0.7,
+          "d": 2.3,
+          "a": 10.7,
+          "kda": 4.96,
+          "part": 0.781,
+          "win": 28,
+          "lose": 22,
+          "winRate": 0.56,
+          "csPerMin": 1,
+          "dmgPerMin": 209.3,
+          "goldPerMin": 263.6
+        }
+      },
+      "career": {
+        "k": 1.2,
+        "d": 2.8,
+        "a": 9.8,
+        "kda": 3.93,
+        "part": 0.729,
+        "win": 272,
+        "lose": 215,
+        "winRate": 0.559,
+        "csPerMin": 2.1,
+        "dmgPerMin": 235.2,
+        "goldPerMin": 254.5,
+        "champs": [
+          [
+            "9k82repjt34qepz",
+            34,
+            15
+          ],
+          [
+            "d23xmvxjtdxrg8n",
+            29,
+            18
+          ],
+          [
+            "v2y8m4exugkql07",
+            19,
+            26
+          ],
+          [
+            "8y39mp8xuzqojxg",
+            23,
+            15
+          ],
+          [
+            "4jwq2eku4g1q0ve",
+            18,
+            18
+          ],
+          [
+            "9vjxm89jb8gq6od",
+            15,
+            12
+          ],
+          [
+            "kn54qleoujzmvy9",
+            14,
+            7
+          ],
+          [
+            "ednm926hk5dryox",
+            15,
+            5
+          ],
+          [
+            "vl7oqd9kbnwm510",
+            11,
+            6
+          ],
+          [
+            "l5erg5efokkm8k0",
+            8,
+            4
           ]
         ]
       }
@@ -12191,6 +13129,140 @@
             "965mk6zt781q1ge",
             7,
             3
+          ]
+        ]
+      }
+    },
+    "jw2r08ku5y8gqz8": {
+      "form": {
+        "10": {
+          "k": 2.7,
+          "d": 2.8,
+          "a": 4.9,
+          "kda": 2.71,
+          "part": 0.517,
+          "win": 7,
+          "lose": 3,
+          "winRate": 0.7,
+          "csPerMin": 8.5,
+          "dmgPerMin": 552.2,
+          "goldPerMin": 404.8
+        },
+        "20": {
+          "k": 3.1,
+          "d": 3,
+          "a": 4.8,
+          "kda": 2.63,
+          "part": 0.533,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 8.4,
+          "dmgPerMin": 606.5,
+          "goldPerMin": 410.1
+        },
+        "30": {
+          "k": 2.8,
+          "d": 3.4,
+          "a": 4.2,
+          "kda": 2.06,
+          "part": 0.517,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "csPerMin": 8.3,
+          "dmgPerMin": 595,
+          "goldPerMin": 391.9
+        },
+        "40": {
+          "k": 2.6,
+          "d": 3.1,
+          "a": 4.9,
+          "kda": 2.42,
+          "part": 0.53,
+          "win": 22,
+          "lose": 18,
+          "winRate": 0.55,
+          "csPerMin": 8.3,
+          "dmgPerMin": 581.4,
+          "goldPerMin": 389.5
+        },
+        "50": {
+          "k": 2.7,
+          "d": 3,
+          "a": 5.2,
+          "kda": 2.63,
+          "part": 0.536,
+          "win": 28,
+          "lose": 22,
+          "winRate": 0.56,
+          "csPerMin": 8.3,
+          "dmgPerMin": 577,
+          "goldPerMin": 389.7
+        }
+      },
+      "career": {
+        "k": 3.3,
+        "d": 3.3,
+        "a": 5.9,
+        "kda": 2.79,
+        "part": 0.591,
+        "win": 231,
+        "lose": 172,
+        "winRate": 0.573,
+        "csPerMin": 7.8,
+        "dmgPerMin": 572.3,
+        "goldPerMin": 373.3,
+        "champs": [
+          [
+            "965mk6zt781q1ge",
+            26,
+            11
+          ],
+          [
+            "dj2ryy6tk73r1zp",
+            16,
+            20
+          ],
+          [
+            "8y39mp8xuy8qojx",
+            16,
+            17
+          ],
+          [
+            "yl5erg5efezm8k0",
+            21,
+            7
+          ],
+          [
+            "gpxwrx81ugpqyk0",
+            16,
+            12
+          ],
+          [
+            "d23xmvxjtoxrg8n",
+            15,
+            13
+          ],
+          [
+            "9dn1m1eku8jqoep",
+            19,
+            8
+          ],
+          [
+            "z318q6g8t8ro9jd",
+            15,
+            12
+          ],
+          [
+            "gy0or59wbg6mwzv",
+            12,
+            9
+          ],
+          [
+            "y0or59wbl5lmwzv",
+            11,
+            8
           ]
         ]
       }
@@ -17421,6 +18493,140 @@
         ]
       }
     },
+    "3glrwwot4xvlrdy": {
+      "form": {
+        "10": {
+          "k": 3.1,
+          "d": 1.2,
+          "a": 8,
+          "kda": 9.25,
+          "part": 0.703,
+          "win": 9,
+          "lose": 1,
+          "winRate": 0.9,
+          "csPerMin": 7.9,
+          "dmgPerMin": 401.7,
+          "goldPerMin": 422.1
+        },
+        "20": {
+          "k": 3.2,
+          "d": 2.1,
+          "a": 7.5,
+          "kda": 5.1,
+          "part": 0.71,
+          "win": 13,
+          "lose": 7,
+          "winRate": 0.65,
+          "csPerMin": 7.2,
+          "dmgPerMin": 444.7,
+          "goldPerMin": 401.6
+        },
+        "30": {
+          "k": 3.5,
+          "d": 2.3,
+          "a": 7.2,
+          "kda": 4.65,
+          "part": 0.729,
+          "win": 17,
+          "lose": 13,
+          "winRate": 0.567,
+          "csPerMin": 7,
+          "dmgPerMin": 435.5,
+          "goldPerMin": 399.5
+        },
+        "40": {
+          "k": 4,
+          "d": 2.2,
+          "a": 7,
+          "kda": 5,
+          "part": 0.703,
+          "win": 26,
+          "lose": 14,
+          "winRate": 0.65,
+          "csPerMin": 7.1,
+          "dmgPerMin": 450.6,
+          "goldPerMin": 403.5
+        },
+        "50": {
+          "k": 3.9,
+          "d": 2.2,
+          "a": 7.4,
+          "kda": 5.14,
+          "part": 0.721,
+          "win": 32,
+          "lose": 18,
+          "winRate": 0.64,
+          "csPerMin": 7.1,
+          "dmgPerMin": 464.8,
+          "goldPerMin": 404.6
+        }
+      },
+      "career": {
+        "k": 3.2,
+        "d": 2.4,
+        "a": 8.2,
+        "kda": 4.75,
+        "part": 0.74,
+        "win": 171,
+        "lose": 111,
+        "winRate": 0.606,
+        "csPerMin": 6.3,
+        "dmgPerMin": 425.9,
+        "goldPerMin": 368.9,
+        "champs": [
+          [
+            "jednm926h90ryox",
+            16,
+            16
+          ],
+          [
+            "kn54qleoujmvy9d",
+            20,
+            10
+          ],
+          [
+            "56ypq3e3uzxmd7o",
+            18,
+            8
+          ],
+          [
+            "kn54qleouejmvy9",
+            16,
+            7
+          ],
+          [
+            "e4wyrnxyte5m86p",
+            17,
+            5
+          ],
+          [
+            "gx7lm797b9nr2wd",
+            8,
+            14
+          ],
+          [
+            "x7lm797bkjyr2wd",
+            9,
+            6
+          ],
+          [
+            "y39mp8xu3dwqojx",
+            9,
+            4
+          ],
+          [
+            "4zp5rz5pf72r82w",
+            5,
+            4
+          ],
+          [
+            "n54qleou24emvy9",
+            5,
+            4
+          ]
+        ]
+      }
+    },
     "1l4rjevun8lxm7v": {
       "form": {
         "10": {
@@ -19427,6 +20633,140 @@
             "9dn1m1eku8jqoep",
             12,
             5
+          ]
+        ]
+      }
+    },
+    "ednm926h51yjryo": {
+      "form": {
+        "10": {
+          "k": 4,
+          "d": 1.7,
+          "a": 4.8,
+          "kda": 5.18,
+          "part": 0.599,
+          "win": 7,
+          "lose": 3,
+          "winRate": 0.7,
+          "csPerMin": 9.8,
+          "dmgPerMin": 706.2,
+          "goldPerMin": 483.7
+        },
+        "20": {
+          "k": 4.3,
+          "d": 1.9,
+          "a": 5.3,
+          "kda": 5.05,
+          "part": 0.647,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "csPerMin": 9.6,
+          "dmgPerMin": 727.3,
+          "goldPerMin": 483.5
+        },
+        "30": {
+          "k": 3.8,
+          "d": 2.2,
+          "a": 5,
+          "kda": 4,
+          "part": 0.65,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "csPerMin": 9.3,
+          "dmgPerMin": 706.5,
+          "goldPerMin": 456.5
+        },
+        "40": {
+          "k": 4,
+          "d": 2.1,
+          "a": 5.4,
+          "kda": 4.48,
+          "part": 0.661,
+          "win": 22,
+          "lose": 18,
+          "winRate": 0.55,
+          "csPerMin": 9.3,
+          "dmgPerMin": 726.9,
+          "goldPerMin": 464.4
+        },
+        "50": {
+          "k": 4.4,
+          "d": 2.1,
+          "a": 5.3,
+          "kda": 4.62,
+          "part": 0.665,
+          "win": 28,
+          "lose": 22,
+          "winRate": 0.56,
+          "csPerMin": 9.4,
+          "dmgPerMin": 756.5,
+          "goldPerMin": 476.3
+        }
+      },
+      "career": {
+        "k": 3.8,
+        "d": 2,
+        "a": 6.1,
+        "kda": 4.95,
+        "part": 0.696,
+        "win": 137,
+        "lose": 118,
+        "winRate": 0.537,
+        "csPerMin": 8.5,
+        "dmgPerMin": 656.6,
+        "goldPerMin": 430.1,
+        "champs": [
+          [
+            "gpxwrx81u9pqyk0",
+            14,
+            14
+          ],
+          [
+            "z8yomow3twr0j6l",
+            19,
+            8
+          ],
+          [
+            "kdj2ryy6tjor1zp",
+            10,
+            8
+          ],
+          [
+            "v2y8m4exukql074",
+            11,
+            5
+          ],
+          [
+            "56ypq3e3ulwmd7o",
+            9,
+            6
+          ],
+          [
+            "23xmvxjt32drg8n",
+            11,
+            3
+          ],
+          [
+            "kjw2r08kulvqz84",
+            6,
+            8
+          ],
+          [
+            "l965mk6zte0q1ge",
+            5,
+            8
+          ],
+          [
+            "4wyrnxyt8y6m86p",
+            3,
+            10
+          ],
+          [
+            "vl7oqd9kblym510",
+            4,
+            8
           ]
         ]
       }
@@ -26167,6 +27507,638 @@
           "deathsPerMatch": 0,
           "assistsPerMatch": 0,
           "avgSeconds": 1943,
+          "goldPerMin": 0
+        }
+      }
+    },
+    "609503": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 4,
+          "lose": 6,
+          "winRate": 0.4,
+          "firstBlood": 0.7,
+          "firstTower": 0.3,
+          "firstDragon": 0.6,
+          "firstBaron": 0.3,
+          "killsPerMatch": 13.4,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2054,
+          "goldPerMin": 0
+        },
+        "20": {
+          "matches": 20,
+          "win": 7,
+          "lose": 13,
+          "winRate": 0.35,
+          "firstBlood": 0.55,
+          "firstTower": 0.25,
+          "firstDragon": 0.65,
+          "firstBaron": 0.3,
+          "killsPerMatch": 13.65,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1996,
+          "goldPerMin": 0
+        },
+        "30": {
+          "matches": 30,
+          "win": 11,
+          "lose": 19,
+          "winRate": 0.367,
+          "firstBlood": 0.5,
+          "firstTower": 0.3,
+          "firstDragon": 0.7,
+          "firstBaron": 0.367,
+          "killsPerMatch": 14,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1937,
+          "goldPerMin": 0
+        },
+        "40": {
+          "matches": 40,
+          "win": 17,
+          "lose": 23,
+          "winRate": 0.425,
+          "firstBlood": 0.5,
+          "firstTower": 0.375,
+          "firstDragon": 0.65,
+          "firstBaron": 0.375,
+          "killsPerMatch": 13.725,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1899,
+          "goldPerMin": 0
+        },
+        "50": {
+          "matches": 50,
+          "win": 24,
+          "lose": 26,
+          "winRate": 0.48,
+          "firstBlood": 0.52,
+          "firstTower": 0.42,
+          "firstDragon": 0.64,
+          "firstBaron": 0.46,
+          "killsPerMatch": 14.88,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1889,
+          "goldPerMin": 0
+        }
+      }
+    },
+    "611024": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 7,
+          "lose": 3,
+          "winRate": 0.7,
+          "firstBlood": 0.5,
+          "firstTower": 0.7,
+          "firstDragon": 0.5,
+          "firstBaron": 0.7,
+          "killsPerMatch": 14.7,
+          "deathsPerMatch": 11,
+          "assistsPerMatch": 11,
+          "avgSeconds": 1989,
+          "goldPerMin": 1550.8
+        },
+        "20": {
+          "matches": 20,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "firstBlood": 0.5,
+          "firstTower": 0.7,
+          "firstDragon": 0.5,
+          "firstBaron": 0.7,
+          "killsPerMatch": 15,
+          "deathsPerMatch": 9.3,
+          "assistsPerMatch": 39.7,
+          "avgSeconds": 1941,
+          "goldPerMin": 1131.5
+        },
+        "30": {
+          "matches": 30,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "firstBlood": 0.533,
+          "firstTower": 0.5,
+          "firstDragon": 0.533,
+          "firstBaron": 0.467,
+          "killsPerMatch": 13.6,
+          "deathsPerMatch": 11,
+          "assistsPerMatch": 11,
+          "avgSeconds": 1919,
+          "goldPerMin": 505.4
+        },
+        "40": {
+          "matches": 40,
+          "win": 22,
+          "lose": 18,
+          "winRate": 0.55,
+          "firstBlood": 0.525,
+          "firstTower": 0.525,
+          "firstDragon": 0.55,
+          "firstBaron": 0.55,
+          "killsPerMatch": 14.25,
+          "deathsPerMatch": 11,
+          "assistsPerMatch": 11,
+          "avgSeconds": 1967,
+          "goldPerMin": 505.4
+        },
+        "50": {
+          "matches": 50,
+          "win": 28,
+          "lose": 22,
+          "winRate": 0.56,
+          "firstBlood": 0.5,
+          "firstTower": 0.54,
+          "firstDragon": 0.54,
+          "firstBaron": 0.58,
+          "killsPerMatch": 14.62,
+          "deathsPerMatch": 11,
+          "assistsPerMatch": 11,
+          "avgSeconds": 1995,
+          "goldPerMin": 505.4
+        }
+      }
+    },
+    "611025": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "firstBlood": 0.4,
+          "firstTower": 0.5,
+          "firstDragon": 0.5,
+          "firstBaron": 0.7,
+          "killsPerMatch": 14.8,
+          "deathsPerMatch": 20.5,
+          "assistsPerMatch": 28,
+          "avgSeconds": 1805,
+          "goldPerMin": 1673.6
+        },
+        "20": {
+          "matches": 20,
+          "win": 14,
+          "lose": 6,
+          "winRate": 0.7,
+          "firstBlood": 0.45,
+          "firstTower": 0.65,
+          "firstDragon": 0.5,
+          "firstBaron": 0.8,
+          "killsPerMatch": 17.3,
+          "deathsPerMatch": 20.5,
+          "assistsPerMatch": 28,
+          "avgSeconds": 1911,
+          "goldPerMin": 1673.6
+        },
+        "30": {
+          "matches": 30,
+          "win": 20,
+          "lose": 10,
+          "winRate": 0.667,
+          "firstBlood": 0.333,
+          "firstTower": 0.633,
+          "firstDragon": 0.533,
+          "firstBaron": 0.767,
+          "killsPerMatch": 18.5333,
+          "deathsPerMatch": 20.5,
+          "assistsPerMatch": 28,
+          "avgSeconds": 1906,
+          "goldPerMin": 1673.6
+        },
+        "40": {
+          "matches": 40,
+          "win": 28,
+          "lose": 12,
+          "winRate": 0.7,
+          "firstBlood": 0.275,
+          "firstTower": 0.7,
+          "firstDragon": 0.575,
+          "firstBaron": 0.75,
+          "killsPerMatch": 18.225,
+          "deathsPerMatch": 20.5,
+          "assistsPerMatch": 28,
+          "avgSeconds": 1921,
+          "goldPerMin": 1673.6
+        },
+        "50": {
+          "matches": 50,
+          "win": 34,
+          "lose": 16,
+          "winRate": 0.68,
+          "firstBlood": 0.34,
+          "firstTower": 0.66,
+          "firstDragon": 0.6,
+          "firstBaron": 0.78,
+          "killsPerMatch": 18.54,
+          "deathsPerMatch": 20.5,
+          "assistsPerMatch": 28,
+          "avgSeconds": 1941,
+          "goldPerMin": 1673.6
+        }
+      }
+    },
+    "611026": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 3,
+          "lose": 7,
+          "winRate": 0.3,
+          "firstBlood": 0.7,
+          "firstTower": 0.6,
+          "firstDragon": 0.6,
+          "firstBaron": 0.4,
+          "killsPerMatch": 12,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2055,
+          "goldPerMin": 0
+        },
+        "20": {
+          "matches": 20,
+          "win": 7,
+          "lose": 13,
+          "winRate": 0.35,
+          "firstBlood": 0.7,
+          "firstTower": 0.65,
+          "firstDragon": 0.55,
+          "firstBaron": 0.35,
+          "killsPerMatch": 14.05,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1960,
+          "goldPerMin": 0
+        },
+        "30": {
+          "matches": 30,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "firstBlood": 0.667,
+          "firstTower": 0.6,
+          "firstDragon": 0.6,
+          "firstBaron": 0.533,
+          "killsPerMatch": 15.9667,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2007,
+          "goldPerMin": 0
+        },
+        "40": {
+          "matches": 40,
+          "win": 19,
+          "lose": 21,
+          "winRate": 0.475,
+          "firstBlood": 0.65,
+          "firstTower": 0.575,
+          "firstDragon": 0.55,
+          "firstBaron": 0.525,
+          "killsPerMatch": 15.75,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1993,
+          "goldPerMin": 0
+        },
+        "50": {
+          "matches": 50,
+          "win": 24,
+          "lose": 26,
+          "winRate": 0.48,
+          "firstBlood": 0.66,
+          "firstTower": 0.54,
+          "firstDragon": 0.56,
+          "firstBaron": 0.5,
+          "killsPerMatch": 15.38,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1949,
+          "goldPerMin": 0
+        }
+      }
+    },
+    "611027": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 4,
+          "lose": 6,
+          "winRate": 0.4,
+          "firstBlood": 0.6,
+          "firstTower": 0.3,
+          "firstDragon": 0.3,
+          "firstBaron": 0.5,
+          "killsPerMatch": 15.5,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2027,
+          "goldPerMin": 0
+        },
+        "20": {
+          "matches": 20,
+          "win": 9,
+          "lose": 11,
+          "winRate": 0.45,
+          "firstBlood": 0.6,
+          "firstTower": 0.4,
+          "firstDragon": 0.35,
+          "firstBaron": 0.65,
+          "killsPerMatch": 15.9,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2095,
+          "goldPerMin": 0
+        },
+        "30": {
+          "matches": 30,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "firstBlood": 0.567,
+          "firstTower": 0.433,
+          "firstDragon": 0.3,
+          "firstBaron": 0.633,
+          "killsPerMatch": 16.9,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2049,
+          "goldPerMin": 0
+        },
+        "40": {
+          "matches": 40,
+          "win": 20,
+          "lose": 20,
+          "winRate": 0.5,
+          "firstBlood": 0.55,
+          "firstTower": 0.425,
+          "firstDragon": 0.275,
+          "firstBaron": 0.65,
+          "killsPerMatch": 16.6,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1994,
+          "goldPerMin": 0
+        },
+        "50": {
+          "matches": 50,
+          "win": 25,
+          "lose": 25,
+          "winRate": 0.5,
+          "firstBlood": 0.5,
+          "firstTower": 0.38,
+          "firstDragon": 0.3,
+          "firstBaron": 0.58,
+          "killsPerMatch": 16.14,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1974,
+          "goldPerMin": 0
+        }
+      }
+    },
+    "611028": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "firstBlood": 0.7,
+          "firstTower": 0.7,
+          "firstDragon": 0.3,
+          "firstBaron": 0.7,
+          "killsPerMatch": 15.9,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1915,
+          "goldPerMin": 0
+        },
+        "20": {
+          "matches": 20,
+          "win": 10,
+          "lose": 10,
+          "winRate": 0.5,
+          "firstBlood": 0.65,
+          "firstTower": 0.55,
+          "firstDragon": 0.45,
+          "firstBaron": 0.45,
+          "killsPerMatch": 13.45,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1975,
+          "goldPerMin": 0
+        },
+        "30": {
+          "matches": 30,
+          "win": 16,
+          "lose": 14,
+          "winRate": 0.533,
+          "firstBlood": 0.6,
+          "firstTower": 0.633,
+          "firstDragon": 0.467,
+          "firstBaron": 0.5,
+          "killsPerMatch": 14.4333,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1971,
+          "goldPerMin": 0
+        },
+        "40": {
+          "matches": 40,
+          "win": 22,
+          "lose": 18,
+          "winRate": 0.55,
+          "firstBlood": 0.625,
+          "firstTower": 0.575,
+          "firstDragon": 0.475,
+          "firstBaron": 0.525,
+          "killsPerMatch": 15.775,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1988,
+          "goldPerMin": 0
+        },
+        "50": {
+          "matches": 50,
+          "win": 30,
+          "lose": 20,
+          "winRate": 0.6,
+          "firstBlood": 0.64,
+          "firstTower": 0.56,
+          "firstDragon": 0.46,
+          "firstBaron": 0.54,
+          "killsPerMatch": 16.28,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 2006,
+          "goldPerMin": 0
+        }
+      }
+    },
+    "611029": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 4,
+          "lose": 6,
+          "winRate": 0.4,
+          "firstBlood": 0.7,
+          "firstTower": 0.8,
+          "firstDragon": 0.6,
+          "firstBaron": 0.2,
+          "killsPerMatch": 13.3,
+          "deathsPerMatch": 11,
+          "assistsPerMatch": 18.2,
+          "avgSeconds": 1925,
+          "goldPerMin": 1725.4
+        },
+        "20": {
+          "matches": 20,
+          "win": 9,
+          "lose": 11,
+          "winRate": 0.45,
+          "firstBlood": 0.45,
+          "firstTower": 0.75,
+          "firstDragon": 0.6,
+          "firstBaron": 0.45,
+          "killsPerMatch": 14.95,
+          "deathsPerMatch": 11,
+          "assistsPerMatch": 18.2,
+          "avgSeconds": 1942,
+          "goldPerMin": 1725.4
+        },
+        "30": {
+          "matches": 30,
+          "win": 14,
+          "lose": 16,
+          "winRate": 0.467,
+          "firstBlood": 0.567,
+          "firstTower": 0.733,
+          "firstDragon": 0.533,
+          "firstBaron": 0.433,
+          "killsPerMatch": 14.6333,
+          "deathsPerMatch": 16,
+          "assistsPerMatch": 22.7,
+          "avgSeconds": 1909,
+          "goldPerMin": 1124.6
+        },
+        "40": {
+          "matches": 40,
+          "win": 21,
+          "lose": 19,
+          "winRate": 0.525,
+          "firstBlood": 0.6,
+          "firstTower": 0.7,
+          "firstDragon": 0.5,
+          "firstBaron": 0.425,
+          "killsPerMatch": 15.15,
+          "deathsPerMatch": 21.5,
+          "assistsPerMatch": 22.5,
+          "avgSeconds": 1885,
+          "goldPerMin": 1640.9
+        },
+        "50": {
+          "matches": 50,
+          "win": 24,
+          "lose": 26,
+          "winRate": 0.48,
+          "firstBlood": 0.66,
+          "firstTower": 0.68,
+          "firstDragon": 0.48,
+          "firstBaron": 0.42,
+          "killsPerMatch": 14.62,
+          "deathsPerMatch": 21.5,
+          "assistsPerMatch": 22.5,
+          "avgSeconds": 1920,
+          "goldPerMin": 1640.9
+        }
+      }
+    },
+    "611030": {
+      "form": {
+        "10": {
+          "matches": 10,
+          "win": 6,
+          "lose": 4,
+          "winRate": 0.6,
+          "firstBlood": 0.6,
+          "firstTower": 0.7,
+          "firstDragon": 0.4,
+          "firstBaron": 0.5,
+          "killsPerMatch": 14.1,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1853,
+          "goldPerMin": 0
+        },
+        "20": {
+          "matches": 20,
+          "win": 15,
+          "lose": 5,
+          "winRate": 0.75,
+          "firstBlood": 0.5,
+          "firstTower": 0.7,
+          "firstDragon": 0.3,
+          "firstBaron": 0.65,
+          "killsPerMatch": 17.65,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1890,
+          "goldPerMin": 0
+        },
+        "30": {
+          "matches": 30,
+          "win": 22,
+          "lose": 8,
+          "winRate": 0.733,
+          "firstBlood": 0.5,
+          "firstTower": 0.667,
+          "firstDragon": 0.333,
+          "firstBaron": 0.633,
+          "killsPerMatch": 17.5667,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1931,
+          "goldPerMin": 0
+        },
+        "40": {
+          "matches": 40,
+          "win": 27,
+          "lose": 13,
+          "winRate": 0.675,
+          "firstBlood": 0.5,
+          "firstTower": 0.575,
+          "firstDragon": 0.35,
+          "firstBaron": 0.6,
+          "killsPerMatch": 17.3,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1920,
+          "goldPerMin": 0
+        },
+        "50": {
+          "matches": 50,
+          "win": 34,
+          "lose": 16,
+          "winRate": 0.68,
+          "firstBlood": 0.5,
+          "firstTower": 0.6,
+          "firstDragon": 0.32,
+          "firstBaron": 0.6,
+          "killsPerMatch": 16.58,
+          "deathsPerMatch": 0,
+          "assistsPerMatch": 0,
+          "avgSeconds": 1918,
           "goldPerMin": 0
         }
       }

@@ -6,9 +6,8 @@ import { prisma } from "@/lib/db";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import fs from "node:fs";
 import type { TsPlayerRow } from "./_external-api-types";
-
-/** lolGames 가 쌓이는 LoL 리그 전부 — LCK 만 훑으면 LEC·LCS 선수가 통째로 빠진다(2026-09-24 실측 사진 58/180). */
-const LOL_LEAGUES = ["LOL", "LEC", "LCS", "LPL"];
+// 리그 목록은 정본(SPORTS.esports.leagues)을 쓴다 — 손으로 적으면 LCK_CL·EWC 가 빠진다(실측 사고).
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 interface StoredPlayer {
   name: string; realName: string; photo: string;
@@ -48,7 +47,7 @@ function toStored(x: TsPlayerRow): StoredPlayer {
 
 (async () => {
   const matches = await prisma.match.findMany({
-    where: { league: { in: LOL_LEAGUES }, lolGames: { not: null } },
+    where: { league: { in: [...LOL_LEAGUES] }, lolGames: { not: null } },
     select: { lolGames: true },
   });
   const pids = new Set<string>();
@@ -58,7 +57,7 @@ function toStored(x: TsPlayerRow): StoredPlayer {
       for (const s of d.sets ?? []) for (const p of s.players ?? []) if (p.playerId) pids.add(p.playerId);
     } catch { /* 깨진 행은 건너뛴다 */ }
   }
-  console.log(`lolGames 등장 선수: ${pids.size}명 (리그 ${LOL_LEAGUES.join("/")})`);
+  console.log(`lolGames 등장 선수: ${pids.size}명 (리그 ${[...LOL_LEAGUES].join("/")})`);
 
   // 전량 순회 1회로 색인 — uuid 단건 호출은 선수 수만큼 왕복이라 느리고 끊기기 쉽다.
   const index = new Map<string, TsPlayerRow>();

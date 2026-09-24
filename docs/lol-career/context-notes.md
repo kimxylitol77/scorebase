@@ -103,3 +103,21 @@ page.tsx·KboNpbViews 도 재생성됐다. 새 세 파일은 한국어가 236~35
 
 **남은 것(별건).** 영어판 경기 탭의 상대팀 이름이 한국어다(무비스타 코이·카르민 코프…).
 lolGames 가 한국어 팀명을 저장해서다. 통산 탭은 한글 0건.
+
+## 영어판 팀명 영문화 (2026-09-24 5차)
+
+**문제.** `/en` LoL 선수 페이지 경기 탭의 상대팀이 한국어였다(무비스타 코이·카르민 코프…, Caps 기준 고유 10건).
+`Match.lolGames` 의 `red`/`blue.name` 이 한국어 팀명이라서다.
+
+**해결.** `scripts/build-lol-teams.ts` → `data/lol-teams.json` (ts 팀 id → 영문명·약어·로고, 경기 기록 등장 팀만).
+`getLolPlayerDetail` 의 게임 로그에 `opponentEn` 을 추가하고, en-mirror 오버라이드의 **replace 규칙**
+`{g.opponent}` → `{g.opponentEn ?? g.opponent}` 로 영어판만 영문명을 쓰게 했다(한국어판은 그대로).
+
+**사고 — 리그 목록 하드코딩.** 수집기 셋 다 `["LOL","LEC","LCS","LPL"]` 로 손수 적어 뒀는데
+정본은 `LOL_LEAGUES`(= `SPORTS.esports.leagues`) = **LOL·LCK_CL·LPL·LEC·LCS·EWC** 였다.
+LCK_CL·EWC 가 빠져 EWC 팀(FURIA Esports)이 사전에서 누락 → 영어판에 "푸리아" 한 건이 계속 남았다.
+셋 다 `[...LOL_LEAGUES]` 로 교체하고 재생성하니 팀 28→36 · 선수 180→190 · 사진 167→177 · 통산 179→189.
+**새 LoL 수집기는 리그 목록을 손으로 적지 말 것.**
+
+**검증.** 영어판 Caps·Zven 한글 0건, ShowMaker 1건은 본명 "Heo Su (허수)" 라 정상.
+한국어판은 상대팀이 한국어 그대로. `/en/teams/22590` 회귀 0건.

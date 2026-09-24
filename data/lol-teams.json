@@ -1,0 +1,184 @@
+{
+  "updatedAt": "2026-09-24T07:10:04.863Z",
+  "teams": {
+    "zp5rz5pfjv49r82": {
+      "name": "Cloud9",
+      "abbr": "C9",
+      "logo": "https://eimg.thesports.com/lol/team/Fsw76FPPLryV8TsUo53l1ThEsgN3"
+    },
+    "965mk6zt7d5jq1g": {
+      "name": "Hanwha Life Esports",
+      "abbr": "HLE",
+      "logo": "https://eimg.thesports.com/lol/team/FosSfN6KzBxq4oiU_Xi7z_DJ4rMF"
+    },
+    "k82repjtvpxzqep": {
+      "name": "Gen.G Esports",
+      "abbr": "GEN",
+      "logo": "https://eimg.thesports.com/lol/team/FmS7NLx8b7zRARpNmDkvDrhjKx0w"
+    },
+    "4wyrnxyt8pldm86": {
+      "name": "Bilibili Gaming",
+      "abbr": "BLG",
+      "logo": "https://eimg.thesports.com/lol/team/FuQ-HVlJW08a3QSsFNrwgDSrV-kn"
+    },
+    "zp5rz5pfjvw9r82": {
+      "name": "JD Gaming",
+      "abbr": "JDG",
+      "logo": "https://eimg.thesports.com/lol/team/FjTJM1hEw1EE9T_fTiz7W2efVrxU"
+    },
+    "y39mp8xu3g6yqoj": {
+      "name": "Team Liquid Alienware",
+      "abbr": "TLAW",
+      "logo": "https://eimg.thesports.com/lol/team/FtU4aOsGU2gBGd2Bbh-XFeRTV9R4"
+    },
+    "4wyrnxyt8p60m86": {
+      "name": "Dignitas",
+      "abbr": "DIG",
+      "logo": "https://eimg.thesports.com/lol/team/Fjq9FFhFaCyNAE1BcnFfzxb3TngN"
+    },
+    "l5erg5efox4ym8k": {
+      "name": "Fnatic",
+      "abbr": "FNC",
+      "logo": "https://eimg.thesports.com/lol/team/FrCa25cDJVB_9-p2TJuiDysDDTlk"
+    },
+    "2y8m4exu3yv5ql0": {
+      "name": "FlyQuest",
+      "abbr": "FLY",
+      "logo": "https://eimg.thesports.com/lol/team/FkhLkeyYqwGAz4KtVYQF2WIko0iX"
+    },
+    "l5erg5efoxdym8k": {
+      "name": "Lyon Gaming",
+      "abbr": "LYON",
+      "logo": "https://eimg.thesports.com/lol/team/FqK-TIHWghskhdl64vtXoHPLrVJ0"
+    },
+    "dj2ryy6tk6p1r1z": {
+      "name": "GAM Esports",
+      "abbr": "GAM",
+      "logo": "https://eimg.thesports.com/lol/team/FlILBcHMX4Rlg0hrt3BvGPeC3Eiw"
+    },
+    "1l4rjevu6o0km7v": {
+      "name": "Movistar KOI",
+      "abbr": "MKOI",
+      "logo": "https://eimg.thesports.com/lol/team/FoyVZW9gn_9VOl5znxsz4F-jDwRq"
+    },
+    "965mk6zt7dvkq1g": {
+      "name": "SK Gaming",
+      "abbr": "SK",
+      "logo": "https://eimg.thesports.com/lol/team/FuLdUgOfQ3cPQGwVnVbuwev51wpV"
+    },
+    "ednm926hky17ryo": {
+      "name": "Fredit BRION",
+      "abbr": "BRO",
+      "logo": "https://eimg.thesports.com/lol/team/FlFdQU07TgJrOF4wvMOGFRJzg8KK"
+    },
+    "vjxm89jb412kq6o": {
+      "name": "Nongshim RedForce",
+      "abbr": "NS",
+      "logo": "https://eimg.thesports.com/lol/team/FgXx-XxZb5L3_QPcFFJAFKWVrHhE"
+    },
+    "4jwq2eku42pkq0v": {
+      "name": "T1",
+      "abbr": "T1",
+      "logo": "https://eimg.thesports.com/lol/team/FvlF-KaNF_aUW28gaY0-Uw5ITFoW"
+    },
+    "ednm926hknxzryo": {
+      "name": "G2 Esports",
+      "abbr": "G2",
+      "logo": "https://eimg.thesports.com/lol/team/Fn8KDMp7ktyLFpTuoe4B7-WCxOAb"
+    },
+    "dn1m1eku4j7kqoe": {
+      "name": "KT Rolster",
+      "abbr": "KT",
+      "logo": "https://eimg.thesports.com/lol/team/Fqw0V_AbDcoKj78Xxm1tbGMYP0o2"
+    },
+    "6ypq3e3u09epmd7": {
+      "name": "Team Vitality",
+      "abbr": "VIT",
+      "logo": "https://eimg.thesports.com/lol/team/Foqt6-SaT1Zx6VcY0og9gEM4MMm7"
+    },
+    "y0or59wblpd4mwz": {
+      "name": "Kiwoom DRX",
+      "abbr": "KRX",
+      "logo": "https://eimg.thesports.com/lol/team/FhZQRx64xWdpNt6ZWsmVG2d4XWyu"
+    },
+    "4jwq2eku42deq0v": {
+      "name": "FURIA Esports",
+      "abbr": "FUR",
+      "logo": "https://eimg.thesports.com/lol/team/Fvf1ddjsQwkosJUfvondE1DNSS_o"
+    },
+    "318q6g8toepdro9": {
+      "name": "Team Secret",
+      "abbr": "TS",
+      "logo": "https://eimg.thesports.com/lol/team/FsWDvr9s1qwVIIKATJeNZ9CBn9cU"
+    },
+    "318q6g8to50vro9": {
+      "name": "Karmine Corp",
+      "abbr": "KC",
+      "logo": "https://eimg.thesports.com/lol/team/FpvzFLOCAur7cd59-22EEQlzsSw0"
+    },
+    "n54qleou2okvmvy": {
+      "name": "Anyone's Legend",
+      "abbr": "AL",
+      "logo": "https://eimg.thesports.com/lol/team/FjrHFvRBMig3usi4JEERm5J5XDoZ"
+    },
+    "l5erg5efo92lm8k": {
+      "name": "Team Heretics",
+      "abbr": "THRT",
+      "logo": "https://eimg.thesports.com/lol/team/FjUxNX1hCw0weLAFpDjuBphIwo5N"
+    },
+    "2y8m4exu3kx7ql0": {
+      "name": "Deep Cross Gaming",
+      "abbr": "DCG",
+      "logo": "https://eimg.thesports.com/lol/team/FvoIo9QMK8gFby_e2GafGA_971_j"
+    },
+    "23xmvxjt3nj2rg8": {
+      "name": "Dplus",
+      "abbr": "DK",
+      "logo": "https://eimg.thesports.com/lol/team/Fg1Z7jhh5zluHsCcrWC2vOiiEo7s"
+    },
+    "l7oqd9kbn5v0m51": {
+      "name": "Disguised",
+      "logo": "https://eimg.thesports.com/lol/team/FpVXO3Vcgv6d7DZrC8NTSPcMroJx"
+    },
+    "y39mp8xu3x35qoj": {
+      "name": "MIBR.LOS",
+      "abbr": "ML",
+      "logo": "https://eimg.thesports.com/lol/team/Fts2CUJ_8yCRRDk9gXLp5jq-uZmu"
+    },
+    "x7lm797bkl0lr2w": {
+      "name": "GIANTX",
+      "abbr": "GX",
+      "logo": "https://eimg.thesports.com/lol/team/FtWMTXjgkQnUmEq5zZ9NhXMK5zue"
+    },
+    "4jwq2eku48xxq0v": {
+      "name": "Shopify Rebellion",
+      "abbr": "SR",
+      "logo": "https://eimg.thesports.com/lol/team/Fj25P-2Jj7VteNObnG_siQ8xkGuv"
+    },
+    "965mk6zt7jezq1g": {
+      "name": "BNK FearX",
+      "abbr": "BFX",
+      "logo": "https://eimg.thesports.com/lol/team/FlycExNPh_FPU6tqsmvMotdwigIt"
+    },
+    "2y8m4exu32pkql0": {
+      "name": "DN SOOPers",
+      "abbr": "DNS",
+      "logo": "https://eimg.thesports.com/lol/team/FiREL-9p9kEsrBd0LMbO_gmBv6qC"
+    },
+    "n54qleou2l33mvy": {
+      "name": "Natus Vincere",
+      "abbr": "NAVI",
+      "logo": "https://eimg.thesports.com/lol/team/FlnX65PdxHfOuzVgTINE3CsooFku"
+    },
+    "y39mp8xu3xexqoj": {
+      "name": "Shifters",
+      "abbr": "Shifters",
+      "logo": "https://eimg.thesports.com/lol/team/FsXALvZzwk09wnpYEQ-1SAy1jR29"
+    },
+    "y0or59wblvd9mwz": {
+      "name": "Sentinels",
+      "abbr": "SEN",
+      "logo": "https://eimg.thesports.com/lol/team/FuNY6_Z7GLK1__dP2dzvr3Lo2k8X"
+    }
+  }
+}

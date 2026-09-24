@@ -73,7 +73,7 @@ function LolGames({ games }: { games: LolPlayerGame[] }) {
           {games.map((g, i) => (
             <tr key={i}>
               <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{fmtDate(g.date)}</td>
-              <td className="px-2 py-2 truncate max-w-[120px]">{g.opponent}</td>
+              <td className="px-2 py-2 truncate max-w-[120px]">{g.opponentEn ?? g.opponent}</td>
               <td className="px-2 py-2 font-medium truncate max-w-[110px]">{g.champ}</td>
               <td className="px-2 py-2 text-right tabular-nums font-semibold">
                 {g.k}/{g.d}/{g.a}
