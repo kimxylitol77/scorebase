@@ -1,97 +1,94 @@
 "use client";
-// 네이션스리그 리그 A~D 토글 + 조별 카드. 네 등급 데이터가 모두 서버 HTML 에 실리고 여기선 보이는 것만 고른다.
+// 빅매치 허브 하단 — 세그먼트 토글 + 조별 카드 그리드. 모든 세그먼트 데이터가 서버 HTML 에 실리고
+// 여기선 보이는 것만 고른다(검색엔진은 전 팀을 본다).
 import { useState } from "react";
 import Link from "next/link";
-import type { NlTier } from "@/lib/sports/nations-league";
+import type { HubGroupView, HubSegmentView, HubZone } from "./types";
 
-export interface NlRowView {
-  teamId: number;
-  position: number;
-  name: string;
-  flag: string;
-  played: number;
-  goalDiff: number;
-  points: number;
-  zone: "qf" | "promo" | null;
-}
-export interface NlGroupView {
-  no: number;
-  /** 조에서 한 경기라도 치렀나 — 아니면 순위가 아직 의미 없다 */
-  played: boolean;
-  rows: NlRowView[];
-  next: { href: string; home: string; away: string; when: string; live: boolean } | null;
-}
-export interface NlTierView {
-  tier: NlTier;
-  teams: number;
-  rule: string;
-  groups: NlGroupView[];
-}
+const ZONE_LABEL: Record<HubZone, string> = {
+  qf: "8강 진출권",
+  sf: "4강 진출권",
+  promo: "승격권",
+  qualify: "본선 진출권",
+  host: "개최국 자동 진출",
+};
 
-const ZONE_LABEL = { qf: "8강 진출권", promo: "승격권" } as const;
-
-export default function NationsLeagueTiers({ tiers }: { tiers: NlTierView[] }) {
-  const [active, setActive] = useState<NlTier>(tiers[0].tier);
-  const cur = tiers.find((t) => t.tier === active) ?? tiers[0];
+export default function GroupSegments({
+  segments,
+  ariaLabel,
+  unplayedNote,
+  note,
+}: {
+  segments: HubSegmentView[];
+  ariaLabel: string;
+  /** 아직 경기 전일 때만 덧붙이는 안내 */
+  unplayedNote: string;
+  /** 항상 보이는 안내(조 간 비교로 정해지는 하위권 등) */
+  note?: string;
+}) {
+  const [active, setActive] = useState(segments[0].key);
+  const cur = segments.find((s) => s.key === active) ?? segments[0];
   const anyPlayed = cur.groups.some((g) => g.played);
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-        <div
-          role="group"
-          aria-label="리그 등급"
-          className="inline-flex rounded-full bg-zinc-100 p-1 ring-1 ring-black/5 dark:bg-white/[0.05] dark:ring-white/10"
-        >
-          {tiers.map((t) => {
-            const on = t.tier === active;
-            return (
-              <button
-                key={t.tier}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setActive(t.tier)}
-                className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 motion-reduce:transition-none sm:px-4 ${
-                  on
-                    ? "bg-white text-zinc-950 shadow-[0_6px_16px_-8px_rgba(244,63,94,0.55)] dark:bg-white/[0.12] dark:text-white"
-                    : "text-zinc-500 hover:text-zinc-800 dark:text-white/50 dark:hover:text-white/80"
-                }`}
-              >
-                리그 {t.tier}
-                <span className={`ml-1 text-[11px] font-semibold tabular-nums ${on ? "text-rose-600 dark:text-rose-400" : "text-zinc-400 dark:text-white/35"}`}>
-                  {t.teams}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {segments.length > 1 && (
+          <div
+            role="group"
+            aria-label={ariaLabel}
+            className="inline-flex max-w-full overflow-x-auto rounded-full bg-zinc-100 p-1 ring-1 ring-black/5 dark:bg-white/[0.05] dark:ring-white/10"
+          >
+            {segments.map((s) => {
+              const on = s.key === active;
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setActive(s.key)}
+                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 motion-reduce:transition-none sm:px-4 ${
+                    on
+                      ? "bg-white text-zinc-950 shadow-[0_6px_16px_-8px_rgba(244,63,94,0.55)] dark:bg-white/[0.12] dark:text-white"
+                      : "text-zinc-500 hover:text-zinc-800 dark:text-white/50 dark:hover:text-white/80"
+                  }`}
+                >
+                  {s.label}
+                  <span className={`ml-1 text-[11px] font-semibold tabular-nums ${on ? "text-rose-600 dark:text-rose-400" : "text-zinc-400 dark:text-white/35"}`}>
+                    {s.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
         <p className="inline-flex items-center gap-2 text-[13px] text-zinc-600 break-keep dark:text-white/60">
-          <span className="h-2.5 w-1 rounded-full bg-emerald-500" aria-hidden />
+          <span className="h-2.5 w-1 shrink-0 rounded-full bg-emerald-500" aria-hidden />
           {cur.rule}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {cur.groups.map((g) => (
-          <GroupCard key={`${cur.tier}-${g.no}`} tier={cur.tier} g={g} />
+          <GroupCard key={`${cur.key}-${g.key}`} g={g} />
         ))}
       </div>
 
       <p className="text-[12px] leading-relaxed text-zinc-500 break-keep dark:text-white/45">
-        {anyPlayed ? "" : "아직 경기 전이라 순위가 정해지지 않았습니다. 첫 경기가 끝나면 자동으로 갱신됩니다. "}
-        하위권 강등과 승강 플레이오프는 조끼리 성적을 비교해 리그페이즈가 끝난 뒤 확정됩니다.
+        {anyPlayed ? "" : `${unplayedNote} `}
+        {note ?? ""}
       </p>
     </div>
   );
 }
 
-function GroupCard({ tier, g }: { tier: NlTier; g: NlGroupView }) {
+function GroupCard({ g }: { g: HubGroupView }) {
   return (
     <article className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <header className="flex items-baseline justify-between px-5 pt-5">
         <h3 className="flex items-baseline gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-white/40">리그 {tier}</span>
-          <span className="text-xl font-black tracking-tight text-zinc-950 dark:text-white">{g.no}조</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-white/40">{g.eyebrow}</span>
+          <span className="text-xl font-black tracking-tight text-zinc-950 dark:text-white">{g.title}</span>
         </h3>
       </header>
       <table className="mt-2 w-full text-[13px]">
@@ -108,10 +105,9 @@ function GroupCard({ tier, g }: { tier: NlTier; g: NlGroupView }) {
           {g.rows.map((r) => (
             <tr key={r.teamId} className="border-t border-black/[0.04] dark:border-white/[0.06]">
               <td className="relative py-2.5 pl-5 tabular-nums text-zinc-500 dark:text-white/50">
-                {r.zone && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-emerald-500" aria-hidden />
-                )}
-                {r.position}
+                {r.zone && <span className="absolute bottom-1.5 left-0 top-1.5 w-1 rounded-r-full bg-emerald-500" aria-hidden />}
+                {/* 경기 전 조는 순서가 임의(소스 기본 순서·자체 계산 전원 동률)라 순위 숫자를 내지 않는다 */}
+                {g.played ? r.position : <span aria-label="순위 미정">–</span>}
                 {r.zone && <span className="sr-only"> ({ZONE_LABEL[r.zone]})</span>}
               </td>
               <td className="py-2.5">
@@ -128,6 +124,11 @@ function GroupCard({ tier, g }: { tier: NlTier; g: NlGroupView }) {
                   <span className="truncate font-semibold text-zinc-900 transition-colors hover:text-rose-600 dark:text-white/90 dark:hover:text-rose-400">
                     {r.name}
                   </span>
+                  {r.badge && (
+                    <span className="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-400">
+                      {r.badge}
+                    </span>
+                  )}
                 </Link>
               </td>
               <td className="py-2.5 text-right tabular-nums text-zinc-500 dark:text-white/50">{r.played}</td>

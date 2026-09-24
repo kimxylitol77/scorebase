@@ -1,5 +1,7 @@
 // UEFA 네이션스리그 허브용 순수 규칙 — 라운드 해석·빅매치 선정·확정 구역·한국시간 표기.
 // prisma 를 들이지 않는다(테스트가 DB 없이 돌아야 한다). 데이터 조회는 NationsLeagueHub 가 한다.
+// 빅매치 선정·KST 표기는 tournament-hub 공용 규칙을 쓴다(AFCON 허브와 같은 규칙).
+import { kstKickoff, pickSpotlight, type HubMatchLite } from "./tournament-hub";
 
 export type NlTier = "A" | "B" | "C" | "D";
 export const NL_TIERS: readonly NlTier[] = ["A", "B", "C", "D"];
@@ -43,48 +45,13 @@ export function nlZone(tier: NlTier, position: number, groupPlayed: boolean): "q
   return position <= rule.advanceUpTo ? rule.zone : null;
 }
 
-export interface NlMatchLite {
-  id: number;
+export interface NlMatchLite extends HubMatchLite {
   tier: NlTier;
-  matchday: number;
-  status: string;
-  startTime: Date;
-  /** 양 팀 FIFA 순위 합 — 모르면 null */
-  rankSum: number | null;
 }
 
-/**
- * 빅매치 한 경기 — 리그 A 에서 고른다.
- *  1) 진행 중 경기가 있으면 가장 먼저 시작한 것
- *  2) 없으면 아직 안 치른 가장 이른 라운드에서 FIFA 순위 합이 가장 작은(=강팀끼리) 경기
- *  3) 리그페이즈가 끝났으면 마지막으로 끝난 경기
- * 시계(Date.now)를 보지 않는다 — 상태는 수집기가 관리하는 status 가 정본이다.
- */
+/** 빅매치 — 리그 A 경기 중에서 공용 규칙(pickSpotlight)으로 고른다. */
 export function pickFeatured<T extends NlMatchLite>(matches: T[]): T | null {
-  const a = matches.filter((m) => m.tier === "A");
-  if (a.length === 0) return null;
-  const byStart = (x: T, y: T) => x.startTime.getTime() - y.startTime.getTime();
-
-  const live = a.filter((m) => m.status === "LIVE").sort(byStart);
-  if (live.length > 0) return live[0];
-
-  const upcoming = a.filter((m) => m.status === "SCHEDULED");
-  if (upcoming.length > 0) {
-    const md = Math.min(...upcoming.map((m) => m.matchday));
-    const pool = upcoming.filter((m) => m.matchday === md);
-    return pool.sort((x, y) => (x.rankSum ?? 999) - (y.rankSum ?? 999) || byStart(x, y))[0];
-  }
-
-  const done = a.filter((m) => m.status === "FINISHED").sort(byStart);
-  return done.length > 0 ? done[done.length - 1] : null;
+  return pickSpotlight(matches.filter((m) => m.tier === "A"));
 }
 
-const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
-
-/** 한국시간 "9/25 (금) 03:45" — 서버 TZ 와 무관하게 KST 로 고정. */
-export function kstKickoff(d: Date): string {
-  const k = new Date(d.getTime() + 9 * 3600_000);
-  const hh = String(k.getUTCHours()).padStart(2, "0");
-  const mm = String(k.getUTCMinutes()).padStart(2, "0");
-  return `${k.getUTCMonth() + 1}/${k.getUTCDate()} (${WEEKDAY[k.getUTCDay()]}) ${hh}:${mm}`;
-}
+export { kstKickoff };

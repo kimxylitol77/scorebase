@@ -28,7 +28,7 @@ test("개막 전(조 0경기)엔 구역을 칠하지 않는다 — 순서가 임
 });
 
 const m = (o: Partial<NlMatchLite> & { id: number }): NlMatchLite => ({
-  tier: "A", matchday: 1, status: "SCHEDULED", startTime: new Date("2026-09-25T18:45:00Z"), rankSum: null, ...o,
+  tier: "A", matchday: 1, status: "SCHEDULED", startTime: new Date("2026-09-25T18:45:00Z"), rankSum: null, rankWorst: null, ...o,
 });
 
 test("빅매치 — 진행 중 경기가 최우선", () => {
@@ -36,12 +36,12 @@ test("빅매치 — 진행 중 경기가 최우선", () => {
   assert.equal(f?.id, 2);
 });
 
-test("빅매치 — 가장 이른 미진행 라운드에서 FIFA 순위 합이 가장 작은 경기", () => {
+test("빅매치 — 가장 이른 미진행 라운드에서 두 팀 다 강한 경기", () => {
   const f = pickFeatured([
-    m({ id: 1, matchday: 2, rankSum: 3 }),  // 더 늦은 라운드라 제외
-    m({ id: 2, matchday: 1, rankSum: 40 }),
-    m({ id: 3, matchday: 1, rankSum: 19 }),
-    m({ id: 4, matchday: 1, tier: "B", rankSum: 1 }), // 리그 A 만
+    m({ id: 1, matchday: 2, rankSum: 3, rankWorst: 2 }),  // 더 늦은 라운드라 제외
+    m({ id: 2, matchday: 1, rankSum: 40, rankWorst: 30 }),
+    m({ id: 3, matchday: 1, rankSum: 19, rankWorst: 12 }),
+    m({ id: 4, matchday: 1, tier: "B", rankSum: 1, rankWorst: 1 }), // 리그 A 만
   ]);
   assert.equal(f?.id, 3);
 });
