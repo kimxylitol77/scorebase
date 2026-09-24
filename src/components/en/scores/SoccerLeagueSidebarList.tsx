@@ -58,7 +58,8 @@ function LeagueRow({
   const size = small ? 14 : 16;
   return (
     <li className="relative">
-      <Link href={item.href} className={`${active ? itemActiveClass : itemClass} pr-6`}>
+      {/* prefetch 끔 — 사이드바 리그가 수십 개라 뷰포트 진입만으로 RSC 요청이 그 수만큼 터진다. */}
+      <Link href={item.href} prefetch={false} className={`${active ? itemActiveClass : itemClass} pr-6`}>
         {item.logo ? (
           <Image
             src={item.logo}

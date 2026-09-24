@@ -81,6 +81,7 @@ export default function LeagueDropdown({
           <ul className="py-1">
             <li>
               <Link
+                prefetch={false}
                 href={baseHref}
                 onClick={() => setOpen(false)}
                 className={`block px-4 py-2 text-sm transition ${
@@ -99,6 +100,7 @@ export default function LeagueDropdown({
               return (
                 <li key={l}>
                   <Link
+                    prefetch={false}
                     href={`${baseHref}&league=${l}`}
                     onClick={() => setOpen(false)}
                     className={`block px-4 py-2 text-sm transition ${

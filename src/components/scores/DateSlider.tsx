@@ -85,6 +85,7 @@ export default function DateSlider({
         }`;
         return (
           <Link
+            prefetch={false}
             key={ds}
             ref={active ? activeRef : undefined}
             // 오늘 칩은 date 를 안 붙인다 — 오늘에 둔 탭이 날짜가 바뀌어도 새로고침만으로 새 오늘을 따라온다.

@@ -24,6 +24,7 @@ export default function SportTabs({ activeSport, liveCounts, date }: Props) {
         const active = s.code === activeSport;
         return (
           <Link
+            prefetch={false}
             key={s.code}
             href={date ? `/en/scores?sport=${s.code}&date=${date}` : `/en/scores?sport=${s.code}`}
             className={`sport-tab ${active ? "active" : ""}`}

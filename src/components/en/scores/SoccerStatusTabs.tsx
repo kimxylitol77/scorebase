@@ -57,6 +57,7 @@ export default function SoccerStatusTabs({ active, counts, date, league, sort }:
           : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700";
         return (
           <Link
+            prefetch={false}
             key={item.key}
             href={buildHref(date, league, item.key, sort)}
             className={`${baseClass} ${stateClass}`}

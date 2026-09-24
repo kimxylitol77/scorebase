@@ -43,6 +43,7 @@ export default function SoccerSortToggle({ active, date, league, status }: Props
           <Link
             key={item.key}
             href={buildHref(date, league, status, item.key)}
+            prefetch={false}
             className={`inline-flex items-center px-3 py-1.5 rounded-md text-[12px] font-semibold whitespace-nowrap transition-colors ${
               isActive
                 ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"

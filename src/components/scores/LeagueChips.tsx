@@ -30,6 +30,7 @@ export default function LeagueChips({
       aria-label="리그 필터 (가로 스크롤)"
     >
       <Link
+        prefetch={false}
         href={baseHref}
         className={`league-chip ${!activeLeague ? "active" : ""}`}
       >
@@ -37,6 +38,7 @@ export default function LeagueChips({
       </Link>
       {leagues.map((l) => (
         <Link
+          prefetch={false}
           key={l}
           href={`${baseHref}&league=${l}`}
           className={`league-chip ${activeLeague === l ? "active" : ""}`}
