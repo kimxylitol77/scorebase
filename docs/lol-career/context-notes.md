@@ -61,3 +61,27 @@
 **미해결(별건).** `src/app/live/lol/[matchId]/page.tsx:211` 이 `matchId={Number(matchId)}` 로 넘기는데
 LoL 라우트 파라미터는 ts 문자열 id("xwrx81u3wkkjqyk")라 항상 `NaN` → 매 페이지 로드마다
 `/api/live/lol/NaN` 400. 인게임 패널이 뜬 적이 없다는 뜻. 커밋 55aacc65 부터의 기존 버그라 별도 처리.
+
+## 선수 사진 전 리그 확장 (2026-09-24 3차)
+
+**문제.** 사전 `data/lol-players.json` 이 60명뿐이라 사진이 58/180 (32%) 였다.
+원인은 `build-lol-players.ts` 가 `where: { league: "LOL" }` 로 LCK 만 훑은 것 — LEC 57명·LCS 44명이 통째로 0명,
+LCK 안에서도 79명 중 60명만 들어와 있었다.
+
+**고친 것.**
+- 대상 리그를 LOL/LEC/LCS/LPL 로 확장.
+- 수집 방식을 `player/list?uuid=` 선수당 왕복 → **전량 순회 1회 색인(8,894명)** 후 대조로 교체. 못 찾은 선수만 uuid 보충.
+- 기존 사전을 보존하고 덮어쓰기만 한다 — 한 번 실패한 선수의 사진을 잃지 않게(NBA 사전 사고와 같은 교훈).
+- `position`·`birthday` 는 ts 타입 선언이 string 인데 실제는 숫자라 강제 변환.
+
+**결과.** 프로필 180/180 · 사진 167/180 (93%). 나머지 13명은 ts 에 사진이 없다.
+통산 사전도 재생성해 179명으로 늘었다(LEC·LCS 선수도 통산 탭이 열린다).
+사전을 읽는 15개 소비처(스탯 표·선수 페이지·팀 로스터·리더보드·비교·영어판)가 한 번에 같이 좋아진다.
+
+**곁가지 2건.**
+- 포지션 미상(null) 선수가 생기며 JSON 추론형이 바뀌어 소비처 4곳의 `position?: number` 가 깨졌다 → `number | null` 로 전수 수정.
+- LEC·LCS 선수 페이지가 전부 "LCK" 라벨·`/leagues/LOL` 링크였다(기존 버그, 사진이 붙으며 눈에 띔).
+  `getLolPlayerDetail` 이 세트가 가장 많은 리그를 돌려주게 해 라벨을 맞췄다 (Caps→LEC · Zven→LCS · ShowMaker→LCK).
+
+**남은 것.** 영어판 `src/app/en/players/[pid]/LolViews.tsx` 는 여전히 "LCK" 하드코딩이고 통산 탭도 없다.
+en-mirror 재생성이 필요해 별건으로 둔다.

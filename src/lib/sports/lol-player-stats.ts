@@ -211,22 +211,22 @@ export interface LolPlayerChamp {
 // 날짜(Match.startTime) 포함 세트 로더 — 경기 로그용.
 // 선수 상세는 region 무관(LCK/LEC/LCS 어느 리그 선수든 같은 /players/[pid]?league=LOL 로 들어옴)
 // 이라 전 LoL 리그 세트를 로드한다. LCK 전용으로 두면 LEC/LCS 선수가 404 가 된다.
-async function loadSetsWithDate(): Promise<Array<GameSet & { date: Date }>> {
+async function loadSetsWithDate(): Promise<Array<GameSet & { date: Date; league: string }>> {
   const matches = await prisma.match.findMany({
     where: { league: { in: [...LOL_LEAGUES] }, lolGames: { not: null } },
-    select: { startTime: true, lolGames: true },
+    select: { startTime: true, lolGames: true, league: true },
   });
-  const out: Array<GameSet & { date: Date }> = [];
+  const out: Array<GameSet & { date: Date; league: string }> = [];
   for (const m of matches) {
     const d = JSON.parse(m.lolGames!) as { sets: GameSet[] };
-    for (const s of d.sets) out.push({ ...s, date: m.startTime });
+    for (const s of d.sets) out.push({ ...s, date: m.startTime, league: m.league });
   }
   return out;
 }
 
 export async function getLolPlayerDetail(
   playerId: string,
-): Promise<{ agg: LolPlayerAgg; games: LolPlayerGame[]; champs: LolPlayerChamp[] } | null> {
+): Promise<{ agg: LolPlayerAgg; games: LolPlayerGame[]; champs: LolPlayerChamp[]; league: string } | null> {
   const sets = await loadSetsWithDate();
   let name = "";
   let teamId = "";
@@ -238,6 +238,8 @@ export async function getLolPlayerDetail(
     sec = 0,
     wins = 0;
   const champsSet = new Set<string>();
+  // 선수의 주 리그 — LCK/LEC/LCS 선수가 같은 경로로 들어오므로 세트가 가장 많은 리그를 라벨로 쓴다
+  const leagueCount = new Map<string, number>();
   const gameLog: LolPlayerGame[] = [];
   const champMap = new Map<string, { games: number; k: number; d: number; a: number; wins: number }>();
 
@@ -246,6 +248,7 @@ export async function getLolPlayerDetail(
     if (!me) continue;
     name = me.name;
     teamId = me.teamId;
+    leagueCount.set(s.league, (leagueCount.get(s.league) ?? 0) + 1);
     const win = s.winnerId === me.teamId;
     games++;
     kills += me.k;
@@ -298,5 +301,6 @@ export async function getLolPlayerDetail(
     }))
     .sort((x, y) => y.games - x.games);
 
-  return { agg, games: gameLog, champs };
+  const league = [...leagueCount.entries()].sort((x, y) => y[1] - x[1])[0]?.[0] ?? "LOL";
+  return { agg, games: gameLog, champs, league };
 }

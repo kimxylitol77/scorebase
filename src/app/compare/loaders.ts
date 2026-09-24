@@ -10,7 +10,7 @@ import { toNbaRadarAxes, toNhlRadarAxes, toLolRadarAxes } from "@/lib/sport-rada
 import type { RadarAxis } from "@/lib/player-radar";
 import lolPlayersData from "../../../data/lol-players.json";
 
-const LOL_PROFILES = (lolPlayersData as { players: Record<string, { name?: string; realName?: string; photo?: string; position?: number }> }).players;
+const LOL_PROFILES = (lolPlayersData as { players: Record<string, { name?: string; realName?: string; photo?: string; position?: number | null }> }).players;
 
 export interface RadarComparePlayer {
   id: string;

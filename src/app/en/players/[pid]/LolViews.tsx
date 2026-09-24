@@ -21,7 +21,7 @@ interface LolProfile {
   name: string;
   realName?: string;
   photo?: string;
-  position?: number;
+  position?: number | null;
   birthday?: number | null; // unix sec (일부 선수 null)
   teamId?: string;
   countryId?: string;

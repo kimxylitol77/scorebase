@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-21T02:38:07.332Z",
+  "updatedAt": "2026-09-24T06:02:22.730Z",
   "players": {
     "318q6g8t8wl4ro9": {
       "name": "ShowMaker",
@@ -124,7 +124,7 @@
       "photo": "https://eimg.thesports.com/lol/player/FgBxz4cDPpUCe_9vtTnNJTjk4ocb",
       "position": 1,
       "birthday": 1012974492,
-      "teamId": "965mk6zt7d5jq1g",
+      "teamId": "ednm926hkj88ryo",
       "countryId": "gx7lm797b0r2wdk"
     },
     "k82repjt22y6qep": {
@@ -142,7 +142,7 @@
       "photo": "https://eimg.thesports.com/lol/player/FgmhlSRv5ESqn2TjgKUCH19uaEkd",
       "position": 2,
       "birthday": 1038457530,
-      "teamId": "965mk6zt7d5jq1g",
+      "teamId": "ednm926hkj88ryo",
       "countryId": "gx7lm797b0r2wdk"
     },
     "x7lm797bxy16r2w": {
@@ -151,7 +151,7 @@
       "photo": "https://eimg.thesports.com/lol/player/Fjek-AOARU-S3y83Nib4PScTfMAf",
       "position": 3,
       "birthday": 1075538928,
-      "teamId": "965mk6zt7d5jq1g",
+      "teamId": "ednm926hkj88ryo",
       "countryId": "gx7lm797b0r2wdk"
     },
     "k82repjt25d2qep": {
@@ -196,7 +196,7 @@
       "photo": "https://eimg.thesports.com/lol/player/Fgk2tpP7lbqrkszGZMs6O66FdtTd",
       "position": 2,
       "birthday": 831398400,
-      "teamId": "4jwq2eku42pkq0v",
+      "teamId": "ednm926hkj88ryo",
       "countryId": "gx7lm797b0r2wdk"
     },
     "vjxm89jbkl80q6o": {
@@ -214,7 +214,7 @@
       "photo": "https://eimg.thesports.com/lol/player/Fga_zF900ZwrJq-TRCX8bVk7wunV",
       "position": 5,
       "birthday": 1034585736,
-      "teamId": "4jwq2eku42pkq0v",
+      "teamId": "ednm926hkj88ryo",
       "countryId": "gx7lm797b0r2wdk"
     },
     "y39mp8xudz75qoj": {
@@ -403,7 +403,7 @@
       "photo": "https://eimg.thesports.com/lol/player/FtsfAAp0m3letVpn66Fk1QZ1iSNh",
       "position": 4,
       "birthday": 992793600,
-      "teamId": "k82repjtvpxzqep",
+      "teamId": "ednm926hkj88ryo",
       "countryId": "gx7lm797b0r2wdk"
     },
     "l5erg5efk9zzm8k": {
@@ -481,7 +481,7 @@
     "vjxm89jb0jn3q6o": {
       "name": "FenRir",
       "realName": "Park Kang-jun (박강준)",
-      "photo": "",
+      "photo": "https://eimg.thesports.com/lol/player/FuuQAKAGi-UU-byHZ9X83bP1oVZc",
       "position": 1,
       "birthday": null,
       "teamId": "",
@@ -500,7 +500,7 @@
       "name": "Enosh",
       "realName": "",
       "photo": "",
-      "position": 0,
+      "position": null,
       "birthday": null,
       "teamId": "",
       "countryId": ""
@@ -539,6 +539,1086 @@
       "position": 2,
       "birthday": null,
       "teamId": "ednm926hky17ryo",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "3glrwwot4gxzrdy": {
+      "name": "Carzzy",
+      "realName": "Matyáš Orság",
+      "photo": "https://eimg.thesports.com/lol/player/Fu60N6HvHMR9X6qlBwUh9XIkshy5",
+      "position": 1,
+      "birthday": 1012406400,
+      "teamId": "6ypq3e3u09epmd7",
+      "countryId": "p4jwq2ekukpq0ve"
+    },
+    "23xmvxjtyydorg8": {
+      "name": "Humanoid",
+      "realName": "Marek Brázda",
+      "photo": "https://eimg.thesports.com/lol/player/FnlRbT3jeEAf4mOVzlUkiHAIEypi",
+      "position": 2,
+      "birthday": 952963200,
+      "teamId": "6ypq3e3u09epmd7",
+      "countryId": "p4jwq2ekukpq0ve"
+    },
+    "l5erg5efk6p4m8k": {
+      "name": "Canna",
+      "realName": "Kim Chang-dong (김창동)",
+      "photo": "https://eimg.thesports.com/lol/player/Fssd2QQX8w_I7oKQuJmNY-bUsEKC",
+      "position": 3,
+      "birthday": 950247372,
+      "teamId": "318q6g8to50vro9",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "pxwrx81ul4g6qyk": {
+      "name": "Lyncas",
+      "realName": "Linas Nauncikas",
+      "photo": "https://eimg.thesports.com/lol/player/FqYNsRX8uNA4q8kMFdrikOIckuWY",
+      "position": 4,
+      "birthday": 1070985600,
+      "teamId": "6ypq3e3u09epmd7",
+      "countryId": "l965mk6zt72q1ge"
+    },
+    "8yomow3typv7r0j": {
+      "name": "Yike",
+      "realName": "Martin Sundelin",
+      "photo": "https://eimg.thesports.com/lol/player/Fuv1nqitCAkvy4ewJOtLvLJAT5ig",
+      "position": 4,
+      "birthday": null,
+      "teamId": "318q6g8to50vro9",
+      "countryId": "8y39mp8xu3zqojx"
+    },
+    "ednm926h5340ryo": {
+      "name": "Busio",
+      "realName": "Alan Cwalina",
+      "photo": "https://eimg.thesports.com/lol/player/Fn12Fe9SgP-V8j5vk4YSFxjjO_O1",
+      "position": 5,
+      "birthday": null,
+      "teamId": "318q6g8to50vro9",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "4jwq2ekug3lgq0v": {
+      "name": "Fleshy",
+      "realName": "Kadir Kemiksiz",
+      "photo": "https://eimg.thesports.com/lol/player/FhHDMd1b-VKNO1LhcUIGO4xbbxNb",
+      "position": 5,
+      "birthday": null,
+      "teamId": "6ypq3e3u09epmd7",
+      "countryId": "jednm926h0ryox8"
+    },
+    "6ypq3e3uk2d6md7": {
+      "name": "Naak Nako",
+      "realName": "Kaan Okan",
+      "photo": "https://eimg.thesports.com/lol/player/FjBurwzb9QnZXL03KD1f5xyTBzZ3",
+      "position": 3,
+      "birthday": null,
+      "teamId": "6ypq3e3u09epmd7",
+      "countryId": "jednm926h0ryox8"
+    },
+    "3glrwwot4doxrdy": {
+      "name": "Caliste",
+      "realName": "Caliste Henry-Hennebert",
+      "photo": "https://eimg.thesports.com/lol/player/FrWTF93CF7ecVGtBdn3gQgkXo15V",
+      "position": 1,
+      "birthday": null,
+      "teamId": "318q6g8to50vro9",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "vjxm89jbkyl8q6o": {
+      "name": "Kyeahoo",
+      "realName": "Kang Ye-hoo (강예후)",
+      "photo": "https://eimg.thesports.com/lol/player/FtXl2dx1Onyke8V7UbnmUDEJq_ou",
+      "position": 2,
+      "birthday": null,
+      "teamId": "318q6g8to50vro9",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "dj2ryy6t7059r1z": {
+      "name": "Elyoya",
+      "realName": "Javier Prades Batalla",
+      "photo": "https://eimg.thesports.com/lol/player/Fo5bJ1oshOD0TRIJsjaBE5QtrEd3",
+      "position": 4,
+      "birthday": 952932095,
+      "teamId": "1l4rjevu6o0km7v",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "jw2r08ku5v75qz8": {
+      "name": "Supa",
+      "realName": "David Martínez García",
+      "photo": "https://eimg.thesports.com/lol/player/FlbuY3Sed2oqF3afFPR2l_9zmm6P",
+      "position": 1,
+      "birthday": 972275092,
+      "teamId": "1l4rjevu6o0km7v",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "4wyrnxytynkdm86": {
+      "name": "SamD",
+      "realName": "Lee Jae-hoon (이재훈)",
+      "photo": "https://eimg.thesports.com/lol/player/Fru27RHqWUZi1zJ4sCqlzVll3jcI",
+      "position": 1,
+      "birthday": 984533385,
+      "teamId": "n54qleou2l33mvy",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "x7lm797bxl0jr2w": {
+      "name": "Jojopyun",
+      "realName": "Joseph Joon Pyun",
+      "photo": "https://eimg.thesports.com/lol/player/FunllHwZfV7uurY4CCnmnPTrQCii",
+      "position": 2,
+      "birthday": 1096621650,
+      "teamId": "1l4rjevu6o0km7v",
+      "countryId": "kdj2ryy6tkor1zp"
+    },
+    "k82repjt2kx7qep": {
+      "name": "Maynter",
+      "realName": "Vladimir  Sorokin",
+      "photo": "https://eimg.thesports.com/lol/player/FnzXDYDjasaL1W_t9h2HP9WQ4S8U",
+      "position": 3,
+      "birthday": null,
+      "teamId": "n54qleou2l33mvy",
+      "countryId": "v2y8m4exukql074"
+    },
+    "l7oqd9kbj5d0m51": {
+      "name": "Myrwn",
+      "realName": "Alex Pastor Villarejo",
+      "photo": "https://eimg.thesports.com/lol/player/FhKaDjQQi8wyz_8KdC08ILP7nCT1",
+      "position": 3,
+      "birthday": 1055477920,
+      "teamId": "1l4rjevu6o0km7v",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "n54qleou4oyjmvy": {
+      "name": "Parus",
+      "realName": "Polat Furkan Çiçek",
+      "photo": "https://eimg.thesports.com/lol/player/FotCYxWp1HEC3m_7BIwvYxDW1H3T",
+      "position": 5,
+      "birthday": null,
+      "teamId": "n54qleou2l33mvy",
+      "countryId": "jednm926h0ryox8"
+    },
+    "jw2r08ku5o88qz8": {
+      "name": "Poby",
+      "realName": "Yoon Sung-won (윤성원)",
+      "photo": "https://eimg.thesports.com/lol/player/FhwYRwHUBFdAQY5YRRpmjRi5Ua7b",
+      "position": 2,
+      "birthday": null,
+      "teamId": "n54qleou2l33mvy",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "3glrwwot4xpvrdy": {
+      "name": "Alvaro",
+      "realName": "Álvaro Fernández del Amo",
+      "photo": "https://eimg.thesports.com/lol/player/Fi-5DSsHrWm_RWX0jp7qF_KjBooN",
+      "position": 5,
+      "birthday": 1058243255,
+      "teamId": "1l4rjevu6o0km7v",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "n54qleou4voymvy": {
+      "name": "Rhilech",
+      "realName": "Enes Uçan",
+      "photo": "https://eimg.thesports.com/lol/player/FokYnJnG85n92XXzFDvZcoU_gzoC",
+      "position": 4,
+      "birthday": null,
+      "teamId": "n54qleou2l33mvy",
+      "countryId": "jednm926h0ryox8"
+    },
+    "zp5rz5pf36lor82": {
+      "name": "Upset",
+      "realName": "Elias Lipp",
+      "photo": "https://eimg.thesports.com/lol/player/Fngl_QsEsV3Pmit9oiULl7v-64uN",
+      "position": 1,
+      "birthday": 945273600,
+      "teamId": "l5erg5efox4ym8k",
+      "countryId": "kdj2ryy6tor1zpg"
+    },
+    "dn1m1eku9dp0qoe": {
+      "name": "Razork",
+      "realName": "Iván Martín Díaz",
+      "photo": "https://eimg.thesports.com/lol/player/FuU-A7yKo1AYB-ihLzHc2OX0bqO5",
+      "position": 4,
+      "birthday": 970890930,
+      "teamId": "l5erg5efox4ym8k",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "l5erg5efk1jlm8k": {
+      "name": "Empyros",
+      "realName": "Panagiotis Tantis",
+      "photo": "https://eimg.thesports.com/lol/player/FjpnWST1RViOX-ZLmp7Or28EXavu",
+      "position": 3,
+      "birthday": 1080748800,
+      "teamId": "l5erg5efox4ym8k",
+      "countryId": "z318q6g8to8ro9j"
+    },
+    "965mk6zt86y7q1g": {
+      "name": "Lospa",
+      "realName": "Park Joon-hyeong (박준형)",
+      "photo": "https://eimg.thesports.com/lol/player/FgdRMEWO7qmPHelPhYxILuREhfJN",
+      "position": 5,
+      "birthday": null,
+      "teamId": "l5erg5efox4ym8k",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "k82repjt272nqep": {
+      "name": "Vladi",
+      "realName": "Vladimiros Kourtidis",
+      "photo": "https://eimg.thesports.com/lol/player/FvV0TbWeh370rc-jKwos4VghV0e2",
+      "position": 2,
+      "birthday": null,
+      "teamId": "l5erg5efox4ym8k",
+      "countryId": "z318q6g8to8ro9j"
+    },
+    "8yomow3tyg94r0j": {
+      "name": "Mikyx",
+      "realName": "Mihael Mehle",
+      "photo": "https://eimg.thesports.com/lol/player/FuYMEio7H5MyU2MUrn42mmxYJaNU",
+      "position": 5,
+      "birthday": 909936000,
+      "teamId": "965mk6zt7dvkq1g",
+      "countryId": "9k82repjt9gqepz"
+    },
+    "zp5rz5pf362vr82": {
+      "name": "Wunder",
+      "realName": "Martin Hansen",
+      "photo": "https://eimg.thesports.com/lol/player/Fu_b9nKGT5nLm5o-K03He0_te9A-",
+      "position": 3,
+      "birthday": 910540800,
+      "teamId": "965mk6zt7dvkq1g",
+      "countryId": "e4wyrnxyt5m86pv"
+    },
+    "6ypq3e3ukogymd7": {
+      "name": "Skeanz",
+      "realName": "Duncan Marquet",
+      "photo": "https://eimg.thesports.com/lol/player/FkHEfPaClXS9nuO9sxsBD0MAFZNC",
+      "position": 4,
+      "birthday": 969811200,
+      "teamId": "965mk6zt7dvkq1g",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "x7lm797bxjler2w": {
+      "name": "LIDER",
+      "realName": "Adam Ilyasov",
+      "photo": "https://eimg.thesports.com/lol/player/0f2407a676c9d90e8443e9159eefee15.png",
+      "position": 2,
+      "birthday": 930931200,
+      "teamId": "",
+      "countryId": "kn54qleoujmvy9d"
+    },
+    "k82repjt2kw9qep": {
+      "name": "Jopa",
+      "realName": "Jopa",
+      "photo": "https://eimg.thesports.com/lol/player/FsNCYd92ui7uVn2lfr60gu8bJojl",
+      "position": 1,
+      "birthday": 1067788800,
+      "teamId": "965mk6zt7dvkq1g",
+      "countryId": ""
+    },
+    "8yomow3tyo4nr0j": {
+      "name": "Serin",
+      "realName": "Tolga Ölmez",
+      "photo": "https://eimg.thesports.com/lol/player/Fov7e6Lcu1TJ1XMVfusYXzHfUn4B",
+      "position": 2,
+      "birthday": 1018424177,
+      "teamId": "l5erg5efo92lm8k",
+      "countryId": "jednm926h0ryox8"
+    },
+    "y39mp8xudo7oqoj": {
+      "name": "Ice",
+      "realName": "Yoon Sang-hoon",
+      "photo": "https://eimg.thesports.com/lol/player/FqkiFW3oKVcmi1otbHcJWYg1P6SG",
+      "position": 1,
+      "birthday": 986797215,
+      "teamId": "dn1m1eku4we3qoe",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "318q6g8t857lro9": {
+      "name": "Sheo",
+      "realName": "Théo Borile",
+      "photo": "https://eimg.thesports.com/lol/player/Ft3YRkVtlLRfNNwNaVFz-qnn-Sut",
+      "position": 4,
+      "birthday": 994262400,
+      "teamId": "l5erg5efo92lm8k",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "23xmvxjtyy3org8": {
+      "name": "Way",
+      "realName": "Han Gil",
+      "photo": "https://eimg.thesports.com/lol/player/Fov1vZ1wBaaSY11xlVvvdmlhKvOV",
+      "position": 5,
+      "birthday": 1025340496,
+      "teamId": "y0or59wbl2edmwz",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "x7lm797bx13dr2w": {
+      "name": "Tracyn",
+      "realName": "Sebastian Wojtoń",
+      "photo": "https://eimg.thesports.com/lol/player/FlPt11Yl7BYM0Pb72VkVTgT2aubS",
+      "position": 3,
+      "birthday": null,
+      "teamId": "l5erg5efo92lm8k",
+      "countryId": "p4jwq2eku4pq0ve"
+    },
+    "965mk6zt8x44q1g": {
+      "name": "Trymbi",
+      "realName": "Adrian Trybus",
+      "photo": "https://eimg.thesports.com/lol/player/FlGo-p-1mR0kilfkQsxaBOhZ6-la",
+      "position": 5,
+      "birthday": 972027022,
+      "teamId": "y39mp8xu3xexqoj",
+      "countryId": "p4jwq2eku4pq0ve"
+    },
+    "jw2r08ku5zngqz8": {
+      "name": "Nuc",
+      "realName": "Ilias Bizriken",
+      "photo": "https://eimg.thesports.com/lol/player/FlTr8gCNH7aS5dHYCZxBZemq3N5j",
+      "position": 2,
+      "birthday": 1033488000,
+      "teamId": "y39mp8xu3xexqoj",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "pxwrx81ul416qyk": {
+      "name": "Boukada",
+      "realName": "Mehdi Lahlou",
+      "photo": "https://eimg.thesports.com/lol/player/FjxktUN048KOkJ1NHIf_FsZsvRka",
+      "position": 4,
+      "birthday": 1033401600,
+      "teamId": "y39mp8xu3xexqoj",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "n54qleou4v7kmvy": {
+      "name": "Paduck",
+      "realName": "Park Seok-hyeon (박석현)",
+      "photo": "https://eimg.thesports.com/lol/player/FkEiGYRWyCTL4P_guq5quAy6ZB1N",
+      "position": 2,
+      "birthday": null,
+      "teamId": "y39mp8xu3xexqoj",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "4wyrnxytykjkm86": {
+      "name": "Rooster",
+      "realName": "Shin Yun-hwan (신윤환)",
+      "photo": "https://eimg.thesports.com/lol/player/Fi1OHN8YBHt-UM7p56r6jcnru9FQ",
+      "position": 3,
+      "birthday": null,
+      "teamId": "y39mp8xu3xexqoj",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "2y8m4exuv6jpql0": {
+      "name": "Hans sama",
+      "realName": "Steven Liv",
+      "photo": "https://eimg.thesports.com/lol/player/Fn9wodwIHE3NzqEqc1Wk9fd6FITL",
+      "position": 1,
+      "birthday": 936201600,
+      "teamId": "ednm926hknxzryo",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "1l4rjevun4xwm7v": {
+      "name": "Caps",
+      "realName": "Rasmus Borregaard Winther",
+      "photo": "https://eimg.thesports.com/lol/player/Fnufs6eyrApVL3GlgaY1QXuLExa7",
+      "position": 2,
+      "birthday": 942768000,
+      "teamId": "ednm926hknxzryo",
+      "countryId": "e4wyrnxyt5m86pv"
+    },
+    "8yomow3typ9zr0j": {
+      "name": "BrokenBlade",
+      "realName": "Sergen Çelik",
+      "photo": "https://eimg.thesports.com/lol/player/Fr8-Q4enhYoqKMa9BLccbzePld4w",
+      "position": 3,
+      "birthday": 948261377,
+      "teamId": "ednm926hknxzryo",
+      "countryId": "kdj2ryy6tor1zpg"
+    },
+    "dj2ryy6t79wvr1z": {
+      "name": "Labrov",
+      "realName": "Labros Papoutsakis",
+      "photo": "https://eimg.thesports.com/lol/player/Fu-PgK-yPxbkLELJIPhlp3Dnar1a",
+      "position": 5,
+      "birthday": 1013443200,
+      "teamId": "ednm926hknxzryo",
+      "countryId": "z318q6g8to8ro9j"
+    },
+    "2y8m4exuvl15ql0": {
+      "name": "SkewMond",
+      "realName": "Rudy Semaan",
+      "photo": "https://eimg.thesports.com/lol/player/FlkZBLs6fu-jNlB_aWzx1qmy7PND",
+      "position": 4,
+      "birthday": 1092034238,
+      "teamId": "ednm926hknxzryo",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "zp5rz5pf3vlyr82": {
+      "name": "Noah",
+      "realName": "Oh  Hyeon-taek",
+      "photo": "https://eimg.thesports.com/lol/player/FlsNON9jhAp_Bk8KT9GplgDI9l11",
+      "position": 1,
+      "birthday": 1002124800,
+      "teamId": "x7lm797bkl0lr2w",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "y39mp8xudlv4qoj": {
+      "name": "Jun",
+      "realName": "Se-joon Yoon",
+      "photo": "https://eimg.thesports.com/lol/player/FnJKK3TYe4l_1jTiupSetgem7RzO",
+      "position": 5,
+      "birthday": 965196341,
+      "teamId": "x7lm797bkl0lr2w",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "pxwrx81ul4ddqyk": {
+      "name": "Jackies",
+      "realName": "Adam Jeřábek",
+      "photo": "https://eimg.thesports.com/lol/player/FtnfnTynI2sjx30G9pQT-R3R1RDT",
+      "position": 2,
+      "birthday": 1097035436,
+      "teamId": "x7lm797bkl0lr2w",
+      "countryId": "p4jwq2ekukpq0ve"
+    },
+    "n54qleou4opgmvy": {
+      "name": "Isma",
+      "realName": "Ismaïl Boualem",
+      "photo": "https://eimg.thesports.com/lol/player/FurJqcTooPjjTjuvONmolUP59hrB",
+      "position": 4,
+      "birthday": null,
+      "teamId": "x7lm797bkl0lr2w",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "23xmvxjtynzxrg8": {
+      "name": "Lot",
+      "realName": "Eren Yıldız",
+      "photo": "https://eimg.thesports.com/lol/player/FnWP9UWM2y3Ix99vDDAKlr6HNfEI",
+      "position": 3,
+      "birthday": null,
+      "teamId": "x7lm797bkl0lr2w",
+      "countryId": "jednm926h0ryox8"
+    },
+    "965mk6zt868zq1g": {
+      "name": "Daglas",
+      "realName": "205974",
+      "photo": "https://eimg.thesports.com/lol/player/FhZaFuwGi4_NgWwOvVHOWK2Tmmrr",
+      "position": 4,
+      "birthday": 1130050845,
+      "teamId": "y39mp8xu3l8oqoj",
+      "countryId": "p4jwq2eku4pq0ve"
+    },
+    "l5erg5efkl2nm8k": {
+      "name": "Zven",
+      "realName": "Jesper Svenningsen",
+      "photo": "https://eimg.thesports.com/lol/player/FjW7Ms3mvzGJF2yWzD6--qfiYPee",
+      "position": 1,
+      "birthday": 867081600,
+      "teamId": "zp5rz5pfjv49r82",
+      "countryId": "e4wyrnxyt5m86pv"
+    },
+    "y0or59wb984kmwz": {
+      "name": "Dhokla",
+      "realName": "Niship Doshi",
+      "photo": "https://eimg.thesports.com/lol/player/FqBXf0fl3Me0F68wjMwLSQYUc_yM",
+      "position": 3,
+      "birthday": 869124097,
+      "teamId": "l5erg5efoxdym8k",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "jw2r08ku5k28qz8": {
+      "name": "Vulcan",
+      "realName": "Philippe Laflamme",
+      "photo": "https://eimg.thesports.com/lol/player/FrAHQCnGx3iU4kltSOcR9y_euyw7",
+      "position": 5,
+      "birthday": 924537600,
+      "teamId": "zp5rz5pfjv49r82",
+      "countryId": "kdj2ryy6tkor1zp"
+    },
+    "4wyrnxyty6xkm86": {
+      "name": "Blaber",
+      "realName": "Robert Huang",
+      "photo": "https://eimg.thesports.com/lol/player/FjSWvl5SeBLqbcoeb9FhhUN-CJvP",
+      "position": 4,
+      "birthday": 946915200,
+      "teamId": "zp5rz5pfjv49r82",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "x7lm797bxvlkr2w": {
+      "name": "Inspired",
+      "realName": "Kacper Słoma",
+      "photo": "https://eimg.thesports.com/lol/player/FuEL2JdQn0cAEGwv7HqLf2EGC1bD",
+      "position": 4,
+      "birthday": 1011857404,
+      "teamId": "l5erg5efoxdym8k",
+      "countryId": "p4jwq2eku4pq0ve"
+    },
+    "8yomow3tyov1r0j": {
+      "name": "Isles",
+      "realName": "Jonah Rosario",
+      "photo": "https://eimg.thesports.com/lol/player/FrVdeMvp8Hf6VYAMPV9BxaYuOo3_",
+      "position": 5,
+      "birthday": 983952172,
+      "teamId": "l5erg5efoxdym8k",
+      "countryId": "vl7oqd9kbnwm510"
+    },
+    "1l4rjevunow6m7v": {
+      "name": "Berserker",
+      "realName": "Kim  Min-cheol（김민철）",
+      "photo": "https://eimg.thesports.com/lol/player/FnYmi1zA7SRnonZEnm7bcw94aHW-",
+      "position": 1,
+      "birthday": 1053854688,
+      "teamId": "l5erg5efoxdym8k",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "zp5rz5pf3kyxr82": {
+      "name": "Thanatos",
+      "realName": "Park Seung-gyu",
+      "photo": "https://eimg.thesports.com/lol/player/FrQIRXqMWuVAanMyNnp9LwVfkx-d",
+      "position": 3,
+      "birthday": 1083340800,
+      "teamId": "zp5rz5pfjv49r82",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "vjxm89jbk1o1q6o": {
+      "name": "APA",
+      "realName": "Eain Stearns",
+      "photo": "https://eimg.thesports.com/lol/player/Fm9Tsql52Jb4NNTAqT0qEY73jbbe",
+      "position": 2,
+      "birthday": 1015257600,
+      "teamId": "zp5rz5pfjv49r82",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "y39mp8xud7zdqoj": {
+      "name": "Saint",
+      "realName": "Kang Sung-in (강성인)",
+      "photo": "https://eimg.thesports.com/lol/player/FoAi_iK8yV-Ejsen-N5YEJfV23Vb",
+      "position": 2,
+      "birthday": null,
+      "teamId": "l5erg5efoxdym8k",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "y0or59wb9zj2mwz": {
+      "name": "CoreJJ",
+      "realName": "Jo Yong-in (조용인)",
+      "photo": "https://eimg.thesports.com/lol/player/FtFdaCEKCQYmttEDeZ42ec9e_yKX",
+      "position": 5,
+      "birthday": 772214400,
+      "teamId": "y39mp8xu3g6yqoj",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "x7lm797bxdgzr2w": {
+      "name": "Josedeodo",
+      "realName": "Brandon Joel Villegas",
+      "photo": "https://eimg.thesports.com/lol/player/FtIIiHGpMiEa4Fa88XnupI11KIGm",
+      "position": 4,
+      "birthday": 958924800,
+      "teamId": "y39mp8xu3g6yqoj",
+      "countryId": "p4jwq2ekupq0veo"
+    },
+    "4jwq2ekugg79q0v": {
+      "name": "Morgan",
+      "realName": "Park Gi-tae (박기태)",
+      "photo": "https://eimg.thesports.com/lol/player/FiS0fclNEX_iE27x9Pcj8mNmqMHz",
+      "position": 3,
+      "birthday": 1001492064,
+      "teamId": "y39mp8xu3g6yqoj",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "x7lm797bxe94r2w": {
+      "name": "Quad",
+      "realName": "Song Su-hyeong (송수형)",
+      "photo": "https://eimg.thesports.com/lol/player/FlbuyF6swKfkdVkp64SPHOO4uHuT",
+      "position": 2,
+      "birthday": 1030256776,
+      "teamId": "2y8m4exu3yv5ql0",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "zp5rz5pf3kzwr82": {
+      "name": "Yeon",
+      "realName": "Sean Sung",
+      "photo": "https://eimg.thesports.com/lol/player/FsOvzG2CScKlJs6ijKo0QUHhFoqm",
+      "position": 1,
+      "birthday": 1010332800,
+      "teamId": "y39mp8xu3g6yqoj",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "vjxm89jbkz6gq6o": {
+      "name": "Quid",
+      "realName": "Lim Hyeon-seung",
+      "photo": "https://eimg.thesports.com/lol/player/Fl2nFU0bNcOG-keUTd8KKCkBhk6u",
+      "position": 2,
+      "birthday": 1083050995,
+      "teamId": "y39mp8xu3g6yqoj",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "2y8m4exuv2g4ql0": {
+      "name": "Gryffinn",
+      "realName": "Johnson Le",
+      "photo": "https://eimg.thesports.com/lol/player/FlIWfJgODmqFpAWEkS4mJMGKQlL8",
+      "position": 4,
+      "birthday": null,
+      "teamId": "2y8m4exu3yv5ql0",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "4wyrnxytygd0m86": {
+      "name": "Massu",
+      "realName": "Fahad Abdulmalek",
+      "photo": "https://eimg.thesports.com/lol/player/Fh9d2gJ3D3Y9L5XhXH5sJ7y1_8IW",
+      "position": 1,
+      "birthday": 1101626314,
+      "teamId": "2y8m4exu3yv5ql0",
+      "countryId": "kdj2ryy6tkor1zp"
+    },
+    "l5erg5efdo59m8k": {
+      "name": "Gakgos",
+      "realName": "İbrahim Samet Bulut",
+      "photo": "https://eimg.thesports.com/lol/player/FuP4P6oCJMy601E36uEtwKb4G3Wf",
+      "position": 3,
+      "birthday": null,
+      "teamId": "2y8m4exu3yv5ql0",
+      "countryId": "jednm926h0ryox8"
+    },
+    "y39mp8xuoj4yqoj": {
+      "name": "Cryogen",
+      "realName": "Michael Luu",
+      "photo": "https://eimg.thesports.com/lol/player/FpmsungvMwdEkcFBFoPFqUkqT3fo",
+      "position": 5,
+      "birthday": 1169272768,
+      "teamId": "2y8m4exu3yv5ql0",
+      "countryId": "4zp5rz5pf2r82w1"
+    },
+    "ednm926h52lwryo": {
+      "name": "IgNar",
+      "realName": "Lee Dong-geun (이동근)",
+      "photo": "https://eimg.thesports.com/lol/player/FiI04BRVBaIImuYVZdzM5PwZxfcX",
+      "position": 5,
+      "birthday": 848419200,
+      "teamId": "4wyrnxyt8p60m86",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "y39mp8xudz13qoj": {
+      "name": "Contractz",
+      "realName": "Juan Arturo Garcia",
+      "photo": "https://eimg.thesports.com/lol/player/FuseQiPhdtBtNH4B5YPLLv4_RDli",
+      "position": 4,
+      "birthday": 935510400,
+      "teamId": "4jwq2eku48xxq0v",
+      "countryId": "e4wyrnxyt5m86pv"
+    },
+    "3glrwwot442erdy": {
+      "name": "FBI",
+      "realName": "Ian Victor Huang",
+      "photo": "https://eimg.thesports.com/lol/player/FjThBSt4rGMqvO2u2R2dxjcqibAC",
+      "position": 1,
+      "birthday": 918717167,
+      "teamId": "4wyrnxyt8p60m86",
+      "countryId": "j1l4rjevu2m7vx5"
+    },
+    "dn1m1eku92v6qoe": {
+      "name": "Bvoy",
+      "realName": "Joo Young-hoon (주영훈)",
+      "photo": "https://eimg.thesports.com/lol/player/FkGLupUvTZn6_c3m8fGhNbukk2_n",
+      "position": 1,
+      "birthday": 882374400,
+      "teamId": "4jwq2eku48xxq0v",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "jw2r08ku5dd8qz8": {
+      "name": "Ceos",
+      "realName": "Denilson Oliveira",
+      "photo": "https://eimg.thesports.com/lol/player/FiWPSZsnOA_NUp2z9tOS1nymrzLl",
+      "position": 5,
+      "birthday": 902505600,
+      "teamId": "4jwq2eku48xxq0v",
+      "countryId": "8y39mp8xuzqojxg"
+    },
+    "k82repjt2d2gqep": {
+      "name": "Palafox",
+      "realName": "Cristian Palafox",
+      "photo": "https://eimg.thesports.com/lol/player/FtQzkX2bDcbIdKnr60rPc0G9iYLk",
+      "position": 2,
+      "birthday": 931418556,
+      "teamId": "4wyrnxyt8p60m86",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "pxwrx81ul0z7qyk": {
+      "name": "Fudge",
+      "realName": "Ibrahim Allami",
+      "photo": "https://eimg.thesports.com/lol/player/FgL2HSjuc8uxpUYd8Fjjw5NApMEt",
+      "position": 3,
+      "birthday": 1022083200,
+      "teamId": "4jwq2eku48xxq0v",
+      "countryId": "j1l4rjevu2m7vx5"
+    },
+    "dj2ryy6t7ol4r1z": {
+      "name": "Photon",
+      "realName": "Kyeong Gyu-tae",
+      "photo": "https://eimg.thesports.com/lol/player/FqwjC-yrPGKI0AiH-ZalONESlQu_",
+      "position": 3,
+      "birthday": 1007049600,
+      "teamId": "4wyrnxyt8p60m86",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "jw2r08ku5o27qz8": {
+      "name": "eXyu",
+      "realName": "Lawrence Lin Xu",
+      "photo": "https://eimg.thesports.com/lol/player/FteW5GU7dpZPk8LzExfdvlHAYDq_",
+      "position": 4,
+      "birthday": 1613288991,
+      "teamId": "4wyrnxyt8p60m86",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "vjxm89jb04w5q6o": {
+      "name": "Zinie",
+      "realName": "Yoo Baek-jin (유백진)",
+      "photo": "https://eimg.thesports.com/lol/player/Fsd8t4aodKp6fF9pgwUgehinE310",
+      "position": 2,
+      "birthday": null,
+      "teamId": "4jwq2eku48xxq0v",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "965mk6zt8d6eq1g": {
+      "name": "Castle",
+      "realName": "Cho Hyeon-seong",
+      "photo": "https://eimg.thesports.com/lol/player/FlFw41B53g0D3IpZDAdFxkjrOI3T",
+      "position": 3,
+      "birthday": 1034064468,
+      "teamId": "l7oqd9kbn5v0m51",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "dj2ryy6t7wder1z": {
+      "name": "LYONZ",
+      "realName": "Pedro Luis Peralta",
+      "photo": "https://eimg.thesports.com/lol/player/FnA4ooXkb_BACU_YP_6ZzAn4k6pT",
+      "position": 5,
+      "birthday": 1006963200,
+      "teamId": "l7oqd9kbn5v0m51",
+      "countryId": "p4jwq2ekupq0veo"
+    },
+    "l7oqd9kbjv23m51": {
+      "name": "callme",
+      "realName": "Oh Ji-hoon",
+      "photo": "https://eimg.thesports.com/lol/player/FjfcFPuMskzdI44c8lzxB_nCWJZu",
+      "position": 2,
+      "birthday": 1054301702,
+      "teamId": "l7oqd9kbn5v0m51",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "1l4rjevug634m7v": {
+      "name": "Sajed",
+      "realName": "Sajed Ziade",
+      "photo": "https://eimg.thesports.com/lol/player/FpejBHa0r-dknCNQqYY0KrjI-kfT",
+      "position": 1,
+      "birthday": null,
+      "teamId": "l7oqd9kbn5v0m51",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "pxwrx81un1v3qyk": {
+      "name": "KryRa",
+      "realName": "Christian Rahaian",
+      "photo": "",
+      "position": 4,
+      "birthday": null,
+      "teamId": "l7oqd9kbn5v0m51",
+      "countryId": "kdj2ryy6tkor1zp"
+    },
+    "l7oqd9kbj81em51": {
+      "name": "Impact",
+      "realName": "Jeong Eon-young (정언영)",
+      "photo": "https://eimg.thesports.com/lol/player/Fpfk_1BWz6TYnaQTEXVpNTirb6nh",
+      "position": 3,
+      "birthday": 794505600,
+      "teamId": "y0or59wblvd9mwz",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "8yomow3tyg54r0j": {
+      "name": "huhi",
+      "realName": "Choi Jae-hyun (최재현)",
+      "photo": "https://eimg.thesports.com/lol/player/FpB_7D8rugE6Ewt2G_7Ox8NeyYzZ",
+      "position": 5,
+      "birthday": 796838400,
+      "teamId": "y0or59wblvd9mwz",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "dj2ryy6t7o37r1z": {
+      "name": "DarkWings",
+      "realName": "Isaac Chou",
+      "photo": "https://eimg.thesports.com/lol/player/Fmk2S-o4soRSKcvSbq9swHXNfHEl",
+      "position": 2,
+      "birthday": 947520000,
+      "teamId": "y0or59wblvd9mwz",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "965mk6zt86lwq1g": {
+      "name": "Rahel",
+      "realName": "Cho Min-seong (조민성)",
+      "photo": "https://eimg.thesports.com/lol/player/FvxJT2hSVJ7qQUFy8CEMn2hzzY4V",
+      "position": 1,
+      "birthday": 1076662620,
+      "teamId": "y0or59wblvd9mwz",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "k82repjt270yqep": {
+      "name": "HamBak",
+      "realName": "Ham Yoo-jin",
+      "photo": "https://eimg.thesports.com/lol/player/Fl62sh-6DsSvxYc_8GqacF1BQHwz",
+      "position": 4,
+      "birthday": 1012205018,
+      "teamId": "y0or59wblvd9mwz",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "x7lm797bx6d1r2w": {
+      "name": "Srtty",
+      "realName": "Jett Joye",
+      "photo": "",
+      "position": 3,
+      "birthday": 1010764800,
+      "teamId": "k82repjtv7edqep",
+      "countryId": "j1l4rjevu2m7vx5"
+    },
+    "l5erg5efdop9m8k": {
+      "name": "Slayer",
+      "realName": "Kim Jin-young",
+      "photo": "",
+      "position": 1,
+      "birthday": null,
+      "teamId": "965mk6zt7jezq1g",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "6ypq3e3ukxy1md7": {
+      "name": "Daystar",
+      "realName": "Yoo Ji-myeong (유지명)",
+      "photo": "https://eimg.thesports.com/lol/player/FuSDuc-0K9tjJ2hLQReFuIzQMCIO",
+      "position": 2,
+      "birthday": 1069061290,
+      "teamId": "965mk6zt7jezq1g",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "4wyrnxyty3zym86": {
+      "name": "Sylvie",
+      "realName": "Lee Seung-bok (이승복)",
+      "photo": "https://eimg.thesports.com/lol/player/FhqrqSJ8kFjJXyRg7cNSow4dtKVr",
+      "position": 4,
+      "birthday": 1038992888,
+      "teamId": "jw2r08kuloxpqz8",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "zp5rz5pf3nwzr82": {
+      "name": "Pollu",
+      "realName": "Oh Dong-gyu",
+      "photo": "https://eimg.thesports.com/lol/player/FqwRph3wgeWfT8RlwF9eqn8av3eI",
+      "position": 5,
+      "birthday": 1136621191,
+      "teamId": "dn1m1eku4j7kqoe",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "2y8m4exuv693ql0": {
+      "name": "FIESTA",
+      "realName": "Hyeon-seo An",
+      "photo": "https://eimg.thesports.com/lol/player/FqV0oI61wWF88nw1SHHGeWfIfSdX",
+      "position": 2,
+      "birthday": 1052039367,
+      "teamId": "pxwrx81ugk8eqyk",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "dj2ryy6t70yer1z": {
+      "name": "Flakked",
+      "realName": "Victor Lirola Tortosa",
+      "photo": "https://eimg.thesports.com/lol/player/Fgnf8mobCArtrEZPO_S7y9gPemXf",
+      "position": 1,
+      "birthday": 988188853,
+      "teamId": "",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "3glrwwot45ygrdy": {
+      "name": "Oscarinin",
+      "realName": "",
+      "photo": "https://eimg.thesports.com/lol/player/FvHxKj50zrtDm2VQQJJD767qLUnD",
+      "position": 3,
+      "birthday": null,
+      "teamId": "",
+      "countryId": "yl5erg5efojm8k0"
+    },
+    "3glrwwot4n3ordy": {
+      "name": "Zeyzal",
+      "realName": "Tristan Stidam",
+      "photo": "https://eimg.thesports.com/lol/player/Fv3exJAFc8pB4Pr5T6jamH8rgduN",
+      "position": 5,
+      "birthday": 931335823,
+      "teamId": "",
+      "countryId": "e4wyrnxyt5m86pv"
+    },
+    "dj2ryy6t7oo6r1z": {
+      "name": "SlowQ",
+      "realName": "Seo Ye-bit",
+      "photo": "",
+      "position": 2,
+      "birthday": null,
+      "teamId": "n54qleou2oy1mvy",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "318q6g8t85w4ro9": {
+      "name": "Stend",
+      "realName": "Paul Lardin",
+      "photo": "https://eimg.thesports.com/lol/player/FgXnGokwHL627unlO-lPq460dRxT",
+      "position": 5,
+      "birthday": null,
+      "teamId": "l5erg5efo92lm8k",
+      "countryId": "z8yomow3twr0j6l"
+    },
+    "ednm926h5y0lryo": {
+      "name": "Wayne",
+      "realName": "Hwang Seo-hyeon（황서현）",
+      "photo": "https://eimg.thesports.com/lol/player/FhQQs1_sLc02ImZOggA5fl4iArYa",
+      "position": 1,
+      "birthday": 1054026869,
+      "teamId": "jw2r08kuloyxqz8",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "ednm926h5308ryo": {
+      "name": "Loopy",
+      "realName": "",
+      "photo": "",
+      "position": null,
+      "birthday": null,
+      "teamId": "x7lm797bk686r2w",
+      "countryId": ""
+    },
+    "vjxm89jbkn3oq6o": {
+      "name": "Luon",
+      "realName": "\tLee Hyeon-ho",
+      "photo": "",
+      "position": 5,
+      "birthday": null,
+      "teamId": "",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "8yomow3tywnxr0j": {
+      "name": "MG",
+      "realName": "",
+      "photo": "",
+      "position": null,
+      "birthday": null,
+      "teamId": "k82repjtv5ynqep",
+      "countryId": ""
+    },
+    "8yomow3t8e0pr0j": {
+      "name": "Grizzly",
+      "realName": "",
+      "photo": "https://eimg.thesports.com/lol/player/FqCSHXGg4tjQ-7SQS4l-IpvXNgBr",
+      "position": 4,
+      "birthday": null,
+      "teamId": "",
+      "countryId": ""
+    },
+    "pxwrx81unpwyqyk": {
+      "name": "Kangin",
+      "realName": "",
+      "photo": "",
+      "position": 3,
+      "birthday": null,
+      "teamId": "jw2r08kuloxpqz8",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "vjxm89jb0g1jq6o": {
+      "name": "Garden",
+      "realName": "Seo Jeong-won (서정원)",
+      "photo": "",
+      "position": 1,
+      "birthday": null,
+      "teamId": "jw2r08kuloyxqz8",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "l5erg5efd364m8k": {
+      "name": "Jaehyuk",
+      "realName": "",
+      "photo": "",
+      "position": 3,
+      "birthday": null,
+      "teamId": "jw2r08kuloyxqz8",
+      "countryId": ""
+    },
+    "zp5rz5pf38kvr82": {
+      "name": "Solid",
+      "realName": "",
+      "photo": "",
+      "position": null,
+      "birthday": null,
+      "teamId": "",
+      "countryId": ""
+    },
+    "jw2r08ku5z2pqz8": {
+      "name": "Hype",
+      "realName": "Jeong-hyeon Byeon ",
+      "photo": "https://eimg.thesports.com/lol/player/FoU0F4bIonrKvZ6UAWgujQnXx7Sk",
+      "position": 1,
+      "birthday": 1063036800,
+      "teamId": "",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "8yomow3tygo7r0j": {
+      "name": "Dardoch",
+      "realName": "Joshua Hartnett",
+      "photo": "https://eimg.thesports.com/lol/player/b6c5e1f728dfc2b176cbd23c316e5d1f.png",
+      "position": 4,
+      "birthday": 892137600,
+      "teamId": "1l4rjevu68kzm7v",
+      "countryId": "e4wyrnxyt5m86pv"
+    },
+    "318q6g8t1od4ro9": {
+      "name": "Denathor",
+      "realName": "Noah Erikson",
+      "photo": "",
+      "position": 3,
+      "birthday": null,
+      "teamId": "4jwq2eku4396q0v",
+      "countryId": "gy0or59wb3mwzv3"
+    },
+    "y0or59wb97n1mwz": {
+      "name": "Frog",
+      "realName": "",
+      "photo": "https://eimg.thesports.com/lol/player/FlCkDQnnFe0Gp45AUMt23PGRTM7f",
+      "position": 3,
+      "birthday": null,
+      "teamId": "318q6g8to5vvro9",
+      "countryId": ""
+    },
+    "2y8m4exuv2d2ql0": {
+      "name": "Guti",
+      "realName": "",
+      "photo": "https://eimg.thesports.com/lol/player/FrhgblOdmIQRWkV15IlPEo__G50V",
+      "position": 2,
+      "birthday": null,
+      "teamId": "",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "6ypq3e3u86d3md7": {
+      "name": "Cypher",
+      "realName": "Kim Yu-jun (김유준)",
+      "photo": "https://eimg.thesports.com/lol/player/FhDQSHLYiS3chhD2zwg9e_G730uN",
+      "position": 1,
+      "birthday": null,
+      "teamId": "y0or59wbl2zemwz",
+      "countryId": "gx7lm797b0r2wdk"
+    },
+    "l5erg5efd3j4m8k": {
+      "name": "HaeTae",
+      "realName": "",
+      "photo": "https://eimg.thesports.com/lol/player/FuGmHt9_YBva9gYM5TkJORyTY9xq",
+      "position": 3,
+      "birthday": null,
+      "teamId": "y0or59wbl2zemwz",
+      "countryId": ""
+    },
+    "y39mp8xudzj3qoj": {
+      "name": "Cloud ",
+      "realName": "Hu Zhen-Wei (胡振威)",
+      "photo": "https://eimg.thesports.com/lol/player/cff1de16b3423f2a0ace0de379d4f712.png",
+      "position": 5,
+      "birthday": 775411200,
+      "teamId": "",
+      "countryId": "p3glrwwotwrdyjv"
+    },
+    "pxwrx81un9d2qyk": {
+      "name": "Painter",
+      "realName": "Kim Eun-hu（김은후）",
+      "photo": "https://eimg.thesports.com/lol/player/FpHulKOLILrllJhHpxjGMFHtcuHC",
+      "position": 4,
+      "birthday": null,
+      "teamId": "4jwq2eku42pkq0v",
       "countryId": "gx7lm797b0r2wdk"
     }
   }

@@ -12,6 +12,7 @@ import {
   type LolPlayerChamp,
 } from "@/lib/sports/lol-player-stats";
 import { lolPlayerCareer, type LolCareerLine, type LolCareerChamp } from "@/lib/sports/lol-career";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import PlayerTabs from "./PlayerTabs";
 import LolSeasonOverview from "./LolSeasonOverview";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -24,7 +25,7 @@ interface LolProfile {
   name: string;
   realName?: string;
   photo?: string;
-  position?: number;
+  position?: number | null;
   birthday?: number | null; // unix sec (일부 선수 null)
   teamId?: string;
   countryId?: string;
@@ -220,6 +221,9 @@ export async function LolPlayerView({ pid }: { pid: string }) {
   const profile = (lolPlayersData as { players: Record<string, LolProfile> }).players[pid];
   const detail = await getLolPlayerDetail(pid);
   const careerData = lolPlayerCareer(pid);
+  // 리그 라벨은 경기 기록에서 뽑는다 — LCK 고정이면 LEC·LCS 선수 페이지가 전부 "LCK"로 나온다
+  const league = detail?.league ?? "LOL";
+  const leagueLabel = LEAGUE_DISPLAY[league] ?? league;
   if (!profile && !detail) notFound();
 
   const agg = detail?.agg;
@@ -242,10 +246,10 @@ export async function LolPlayerView({ pid }: { pid: string }) {
       <AmbientGlow />
       <header className="space-y-3">
         <Link
-          href="/leagues/LOL"
+          href={`/leagues/${league}`}
           className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
         >
-          <ChevronLeft className="h-3 w-3" aria-hidden /> LCK
+          <ChevronLeft className="h-3 w-3" aria-hidden /> {leagueLabel}
         </Link>
         <div className="flex items-center gap-4 flex-wrap">
           {profile?.photo ? (
@@ -272,7 +276,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
               <ShareCardButton />
             </div>
             {profile?.realName && <div className="text-sm text-neutral-500">{profile.realName}</div>}
-            <div className="text-sm text-neutral-500">LCK · {games}세트 출전</div>
+            <div className="text-sm text-neutral-500">{leagueLabel} · {games}세트 출전</div>
             <div className="text-[11px] text-neutral-400">TheSports (세트별 스코어보드 집계)</div>
           </div>
         </div>
