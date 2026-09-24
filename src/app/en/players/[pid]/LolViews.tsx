@@ -142,7 +142,7 @@ function LolCareer({ career, champs, form }: { career: LolCareerLine; champs: Lo
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {form.map((f) => (
                   <tr key={f.window}>
-                    <td className="px-3 py-2 font-medium">{WINDOW_KO[f.window] ?? `Last ${f.window}G`}</td>
+                    <td className="px-3 py-2 font-medium">{WINDOW_KO[f.window] ?? `Last ${f.window} games`}</td>
                     <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{f.line.win}-{f.line.lose}</td>
                     <td className="px-2 py-2 text-right tabular-nums">{pct(f.line.winRate)}</td>
                     <td className="px-2 py-2 text-right tabular-nums">{d1(f.line.k)}/{d1(f.line.d)}/{d1(f.line.a)}</td>
@@ -294,7 +294,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
           },
           detail && detail.games.length > 0 && {
             key: "games",
-            label: "G",
+            label: "Games",
             content: <LolGames games={detail.games} />,
           },
           detail && detail.champs.length > 0 && {
