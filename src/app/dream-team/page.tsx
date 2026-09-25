@@ -11,7 +11,7 @@ import DreamTeamNav from "./DreamTeamNav";
 import WcEventBanner from "./WcEventBanner";
 
 export const metadata: Metadata = {
-  title: "드림팀 빌더 | Scorebase",
+  title: "드림팀 빌더",
   description: "빅5 현역 선수로 나만의 드림팀을 구성하고 다른 팀과 경기하세요.",
 };
 

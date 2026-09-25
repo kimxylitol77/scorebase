@@ -35,7 +35,7 @@ async function loadTeams(idRaw: string, oppRaw: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, oppId } = await params;
   const t = await loadTeams(id, oppId);
-  if (!t) return { title: "상대전적 | Scorebase" };
+  if (!t) return { title: "상대전적" };
   const aKo = toKoreanTeamName(t.a.name, t.a.league);
   const bKo = toKoreanTeamName(t.b.name, t.b.league);
   const title = `${aKo} vs ${bKo} 상대전적 · 역대 맞대결`;

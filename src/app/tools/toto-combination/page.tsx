@@ -4,7 +4,7 @@ import Link from "next/link";
 import TotoCombinationCalculator from "@/components/tools/TotoCombinationCalculator";
 
 export const metadata: Metadata = {
-  title: "토토 복식 조합 계산기 — 축구 승무패·야구 승1패·농구 승5패 | 스코어베이스",
+  title: "토토 복식 조합 계산기 — 축구 승무패·야구 승1패·농구 승5패",
   description: "축구토토 승무패, 야구토토 승1패, 농구토토 승5패 14경기에서 경기마다 고른 결과 수로 복식 조합 수와 구매금액(1조합 1,000원)을 계산합니다.",
   alternates: { canonical: "/tools/toto-combination" },
 };

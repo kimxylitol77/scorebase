@@ -40,13 +40,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { matchId, side } = await params;
   const d = await load(matchId, side);
-  if (!d) return { title: "선발 투수 카드 | Scorebase", robots: { index: false, follow: true } };
+  if (!d) return { title: "선발 투수 카드", robots: { index: false, follow: true } };
 
   const title = `${d.name} — ${d.m.league} 선발 카드`;
   const description = `${d.name} (${d.team}) 선발 기록 — ERA · WHIP · K/9 와 최근 3등판 폼을 한 장으로.`;
   const image = `/api/og/pitcher-card?m=${d.m.id}&s=${d.side}`;
   return {
-    title: `${title} | Scorebase`,
+    title,
     description,
     robots: { index: false, follow: true },
     alternates: { canonical: `/predictions/starters/${d.m.id}/${d.side}` },

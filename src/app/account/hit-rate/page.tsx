@@ -13,7 +13,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "내 팀 AI 적중률 · 스코어베이스",
+  title: "내 팀 AI 적중률",
   robots: { index: false, follow: false },
 };
 

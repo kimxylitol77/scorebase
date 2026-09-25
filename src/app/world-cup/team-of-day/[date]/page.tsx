@@ -15,13 +15,13 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function generateMetadata({ params }: { params: Promise<{ date: string }> }): Promise<Metadata> {
   const { date } = await params;
-  if (!DATE_RE.test(date)) return { title: "월드컵 베스트 XI | Scorebase" };
+  if (!DATE_RE.test(date)) return { title: "월드컵 베스트 XI" };
   const tod = await getTeamOfDay(date);
-  if (!tod) return { title: "월드컵 베스트 XI | Scorebase" };
+  if (!tod) return { title: "월드컵 베스트 XI" };
   const stars = tod.xi.slice(0, 3).map(koName).join(", ");
   const dk = fmtDateKo(date);
   return {
-    title: `${dk} 월드컵 베스트 XI — ${stars} | Scorebase`,
+    title: `${dk} 월드컵 베스트 XI — ${stars}`,
     description: `2026 북중미 월드컵 ${dk} ${tod.matchCount}경기 최고 평점 11인. TheSports 경기 평점 기반 4-2-3-1 팀 오브 더 데이. ${stars} 등 ${dk} 베스트 XI.`,
     keywords: ["월드컵 베스트XI", "팀오브더데이", `${dk} 월드컵`, "2026 월드컵", "월드컵 평점", "스코어베이스"],
     alternates: { canonical: `/world-cup/team-of-day/${date}` },

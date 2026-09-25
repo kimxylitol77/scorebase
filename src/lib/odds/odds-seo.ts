@@ -24,7 +24,7 @@ export function flowMetadata(sport: OddsSportKey, hr: FlowHitrate | null, matchC
   const m = ODDS_SPORT_META[sport];
   const stat = hr && hr.hitPct != null && hr.total >= 30 ? ` 최근 ${hr.windowDays}일 ${hr.total.toLocaleString()}경기에서 배당이 내려간(돈 몰린) 쪽이 실제로 이긴 비율 ${pct1(hr.hitPct)}.` : "";
   return {
-    title: `${m.title} | 스코어베이스`,
+    title: `${m.title}`,
     description: `${m.leagues} ${m.label} 경기 배당이 오픈 대비 어느 쪽으로 움직였는지 시계열로 봅니다. 하락·상승 필터, 리그·날짜 칩, 우리 AI 모델 확률과 시장 내재확률 비교.${stat} 현재 ${matchCount}경기.`,
     keywords: [`${m.label} 배당 흐름`, "배당 변동", "배당 하락", "라인 무브먼트", "line movement", "돈 몰리는 쪽", "배당 흐름 적중률", "AI 예측 vs 배당", "스코어베이스"],
     canonical: `${SITE_URL}/odds?sport=${sport}`,
@@ -36,7 +36,7 @@ export function flowMetadata(sport: OddsSportKey, hr: FlowHitrate | null, matchC
 /** 베트맨 탭 메타데이터 */
 export function betmanMetadata(round: number | null, matchCount: number, days: number) {
   return {
-    title: "베트맨 배당 — 프로토 승부식 배당·국내 투표 분포 | 스코어베이스",
+    title: "베트맨 배당 — 프로토 승부식 배당·국내 투표 분포",
     description: `베트맨(스포츠토토) 프로토 승부식 배당과 국내 구매자 투표 분포를 오늘·내일·모레 날짜별로 봅니다. 배당이 매긴 확률과 실제 투표 비율을 나란히, 핸디캡·언더오버·전반 라인, 단폭 가능 여부와 발매 마감 시각.${round ? ` ${round} 회차` : ""} 발매 중 ${matchCount}경기 · ${days}일치.`,
     keywords: ["베트맨 배당", "프로토 승부식", "프로토 배당", "베트맨 투표율", "국내 투표 분포", "단폭", "프로토 마감시간", "핸디캡 배당", "언더오버 배당", "스포츠토토"],
     canonical: `${SITE_URL}/odds?sport=betman`,
@@ -50,7 +50,7 @@ export function betmanRoundMetadata(r: { gmTs: number; label: string; games: num
   const pct = ai && ai.scored > 0 ? `${Math.round((ai.hit / ai.scored) * 1000) / 10}%` : null;
   const no = r.gmTs % 10000;
   return {
-    title: `프로토 ${no}회차 결과·배당·AI 적중 — ${r.label} | 스코어베이스`,
+    title: `프로토 ${no}회차 결과·배당·AI 적중 — ${r.label}`,
     description: `베트맨 프로토 승부식 ${r.label} 발매 경기 ${r.games}건의 배당과 국내 투표 분포, 베트맨 공식 판정 결과(승무패·핸디캡·언더오버·홀짝), 회차 첫 배당 대비 변동, 그리고 경기 전 저장된 스코어베이스 AI 1X2 픽의 적중 여부${pct ? ` (적중 ${pct}, ${ai!.hit}/${ai!.scored})` : ""}.${r.settled ? "" : " 판정 진행 중."}`,
     keywords: [`프로토 ${no}회차`, `프로토 ${no}회차 결과`, `베트맨 ${no}회차`, "프로토 승부식 결과", "프로토 배당 변동", "프로토 AI 예측", "베트맨 배당", "스포츠토토"],
     canonical: `${SITE_URL}/odds?sport=betman&round=${r.gmTs}`,

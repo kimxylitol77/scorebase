@@ -4,7 +4,7 @@ import Link from "next/link";
 import ProtoComboCalculator from "@/components/tools/ProtoComboCalculator";
 
 export const metadata: Metadata = {
-  title: "프로토 승부식 조합 계산기 — 합성 배당·예상 적중금 | 스코어베이스",
+  title: "프로토 승부식 조합 계산기 — 합성 배당·예상 적중금",
   description: "프로토 승부식 경기별 배당을 넣으면 합성 배당(곱, 둘째 자리 절사)과 구매금액 기준 예상 적중금, 배당이 말하는 확률을 바로 계산합니다. 최대 10경기.",
   alternates: { canonical: "/tools/proto-calculator" },
 };

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     where: { id },
     include: { user: { select: { nickname: true } } },
   });
-  if (!team) return { title: "드림팀 | Scorebase" };
+  if (!team) return { title: "드림팀" };
   const tierName = TIERS[team.tier]?.name ?? team.tier;
   const site = process.env.SITE_URL ?? "https://www.scorebase.kr";
   const title = `${team.name} · ${tierName} 드림팀`;

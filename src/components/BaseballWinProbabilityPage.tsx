@@ -23,7 +23,7 @@ export const WP_LEAGUES: Record<string, LeagueCfg> = {
 
 export function buildWpMetadata(slug: string): Metadata {
   const c = WP_LEAGUES[slug];
-  const title = `${c.label} 승리확률 계산기 — 상황별 승률·전술 손익 | 스코어베이스`;
+  const title = `${c.label} 승리확률 계산기 — 상황별 승률·전술 손익`;
   const description = `이닝·점수차·아웃·주자만 입력하면 ${c.ko} 경기 상황별 승리확률(Win Expectancy)을 즉시 계산합니다. 번트·도루·고의4구 등 전술이 승률을 얼마나 바꾸는지까지 보여주는 ${c.label} 전용 전략 계산기.`;
   return {
     title,

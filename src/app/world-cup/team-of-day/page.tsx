@@ -12,11 +12,11 @@ export const revalidate = 1800;
 
 export async function generateMetadata(): Promise<Metadata> {
   const tod = await getTeamOfDay();
-  if (!tod) return { title: "월드컵 오늘의 베스트 XI | Scorebase" };
+  if (!tod) return { title: "월드컵 오늘의 베스트 XI" };
   const stars = tod.xi.slice(0, 3).map(koName).join(", ");
   const dk = fmtDateKo(tod.date);
   return {
-    title: `${dk} 월드컵 베스트 XI — ${stars} | Scorebase`,
+    title: `${dk} 월드컵 베스트 XI — ${stars}`,
     description: `2026 북중미 월드컵 ${dk} ${tod.matchCount}경기 최고 평점 11인. TheSports 경기 평점 기반 4-2-3-1 팀 오브 더 데이. ${stars} 등 오늘의 베스트 XI — 매일 자동 갱신.`,
     keywords: ["월드컵 베스트XI", "팀오브더데이", "오늘의 베스트11", "2026 월드컵", "월드컵 평점", "스코어베이스"],
     alternates: { canonical: "/world-cup/team-of-day" },

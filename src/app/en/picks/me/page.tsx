@@ -10,7 +10,7 @@ import { settleFlatUnits, fmtRoiPct, fmtUnits } from "@/lib/predict/flat-roi";
 import { flatUnitRoiStats } from "@/lib/predict/model-vs-market";
 
 export const metadata: Metadata = {
-  title: "My prediction report · Scorebase",
+  title: "My prediction report",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";

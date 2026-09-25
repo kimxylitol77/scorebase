@@ -42,11 +42,11 @@ export async function generateMetadata({ params }: { params: Promise<{ group: st
   const { group } = await params;
   const g = group.toUpperCase();
   const d = load(g);
-  if (!d) return { title: "월드컵 조별 베스트11 | Scorebase" };
+  if (!d) return { title: "월드컵 조별 베스트11" };
   const cs = d.countries.map((c) => ctyKo(c.name)).join("·");
   const stars = d.xi.slice(0, 3).map((p) => koOf(p)).join(", ");
   return {
-    title: `2026 월드컵 ${g}조 통합 베스트11 — ${cs} | Scorebase`,
+    title: `2026 월드컵 ${g}조 통합 베스트11 — ${cs}`,
     description: `2026 북중미 월드컵 ${g}조(${cs}) 통합 베스트 11. TheSports 경기 평점·시장가치 기반 4-2-3-1. ${stars} 등 ${g}조 최고의 11인 — 순위·평점 매일 갱신.`,
     keywords: ["2026 월드컵", `월드컵 ${g}조`, "통합 베스트11", "베스트XI", ...d.countries.map((c) => ctyKo(c.name) + " 대표팀"), "스코어베이스"],
     alternates: { canonical: `/world-cup/best-xi/${group.toLowerCase()}` },

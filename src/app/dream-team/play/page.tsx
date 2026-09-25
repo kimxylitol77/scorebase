@@ -14,7 +14,7 @@ import DreamTeamNav from "../DreamTeamNav";
 import WcEventBanner from "../WcEventBanner";
 import LeaderboardAside from "../LeaderboardAside";
 
-export const metadata: Metadata = { title: "드림팀 경기 | Scorebase" };
+export const metadata: Metadata = { title: "드림팀 경기" };
 
 export default async function PlayPage() {
   const userId = await getCurrentUserId();

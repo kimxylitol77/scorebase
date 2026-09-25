@@ -22,7 +22,7 @@ const PHOTOS = rawPhotos as Record<string, string>;
 export const revalidate = 21600;
 
 export const metadata: Metadata = {
-  title: "2026 K리그 트레이딩 카드 선수 데이터 — 카드 속 선수 실제 성적 | 스코어베이스",
+  title: "2026 K리그 트레이딩 카드 선수 데이터 — 카드 속 선수 실제 성적",
   description:
     "2026 K리그 공식 트레이딩 카드(파니니·세븐일레븐)에 담긴 K리그1 선수들의 실제 2026 시즌 성적을 한눈에. 팀별 전 선수의 경기·득점·도움·출전 데이터와 개인 상세 페이지를 연결합니다. 카드 속 그 선수, 실제로 얼마나 잘하고 있을까?",
   keywords: [

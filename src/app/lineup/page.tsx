@@ -16,7 +16,7 @@ import { parseLineupSport, SPORT_LABEL, type LineupSport } from "@/lib/lineup/sp
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const metadata: Metadata = {
-  title: "라인업 전술판 | Scorebase",
+  title: "라인업 전술판",
   description: "포메이션 보드에 실제 클럽 스쿼드를 불러와 나만의 베스트 11과 맞대결 라인업을 만들고 이미지 카드로 공유하세요.",
 };
 

@@ -6,7 +6,7 @@ import DreamTeamNav from "../DreamTeamNav";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const metadata: Metadata = {
-  title: "자유 드림팀 구성 | Scorebase",
+  title: "자유 드림팀 구성",
   description: "예산·제약 없이 빅5 현역 선수를 마음껏 골라 나만의 환상 라인업을 구성하세요.",
 };
 

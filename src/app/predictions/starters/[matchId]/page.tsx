@@ -37,13 +37,13 @@ async function getMatch(param: string): Promise<StarterMatch | null> {
 export async function generateMetadata({ params }: { params: Promise<{ matchId: string }> }): Promise<Metadata> {
   const { matchId } = await params;
   const m = await getMatch(matchId);
-  if (!m) return { title: "선발 매치업 | Scorebase", robots: { index: false, follow: true } };
+  if (!m) return { title: "선발 매치업", robots: { index: false, follow: true } };
 
   const title = starterCardTitle(m);
   const description = `${title.split(" — ")[0]} 선발 맞대결 — ERA · WHIP · K/9 와 최근 3등판 폼, AI 승률까지 한 장으로.`;
   const image = `/api/og/starter-card?m=${m.id}`;
   return {
-    title: `${title} | Scorebase`,
+    title,
     description,
     robots: { index: false, follow: true },
     alternates: { canonical: `/predictions/starters/${m.id}` },

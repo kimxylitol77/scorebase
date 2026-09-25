@@ -28,7 +28,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "내 정보 · 스코어베이스",
+  title: "내 정보",
   robots: { index: false, follow: false },
 };
 

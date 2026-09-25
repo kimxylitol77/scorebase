@@ -10,7 +10,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 export const revalidate = 600; // ISR — 선발은 cron(12:00·12:30) 갱신, 10분 캐시로 충분
 
 export const metadata: Metadata = {
-  title: "오늘의 선발 투수 매치업 — KBO·MLB·NPB | Scorebase",
+  title: "오늘의 선발 투수 매치업 — KBO·MLB·NPB",
   description:
     "오늘과 내일 KBO·MLB·NPB 선발 투수 맞대결을 한눈에 — ERA·WHIP·K/9·최근 3등판 폼 비교와 AI 승률까지. 매일 자동 갱신되는 선발 매치업 보드.",
   keywords: ["KBO 선발 투수", "MLB 선발 투수", "오늘 선발 라인업", "선발 매치업", "투수 맞대결", "스코어베이스"],

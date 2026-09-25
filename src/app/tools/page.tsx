@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "스포츠 계산기 모음 — 승리확률·프로토 조합·토토 복식·공정 배당 | 스코어베이스",
+  title: "스포츠 계산기 모음 — 승리확률·프로토 조합·토토 복식·공정 배당",
   description:
     "KBO·MLB·NPB 상황별 승리확률 계산기, 프로토 승부식 합성 배당·예상 적중금 계산기, 축구 승무패·야구 승1패·농구 승5패 복식 조합 수 계산기, 마진 제거 공정 배당 계산기.",
   alternates: { canonical: "/tools" },

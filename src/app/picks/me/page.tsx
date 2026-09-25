@@ -10,7 +10,7 @@ import { settleFlatUnits, fmtRoiPct, fmtUnits } from "@/lib/predict/flat-roi";
 import { flatUnitRoiStats } from "@/lib/predict/model-vs-market";
 
 export const metadata: Metadata = {
-  title: "내 예측 리포트 · 스코어베이스",
+  title: "내 예측 리포트",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";

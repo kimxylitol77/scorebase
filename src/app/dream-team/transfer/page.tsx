@@ -10,7 +10,7 @@ import TransferClient from "./TransferClient";
 import DreamTeamNav from "../DreamTeamNav";
 import WcEventBanner from "../WcEventBanner";
 
-export const metadata: Metadata = { title: "드림팀 이적 시장 | Scorebase" };
+export const metadata: Metadata = { title: "드림팀 이적 시장" };
 
 export default async function TransferPage() {
   const userId = await getCurrentUserId();

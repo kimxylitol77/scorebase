@@ -9,7 +9,7 @@ import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
-  title: "드림팀 리더보드 | Scorebase",
+  title: "드림팀 리더보드",
   description: "드림팀 레이팅 전체 순위.",
 };
 

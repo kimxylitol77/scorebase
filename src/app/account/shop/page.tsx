@@ -14,7 +14,7 @@ import ShopGrid from "./ShopGrid";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "포인트 상점 · 스코어베이스",
+  title: "포인트 상점",
   robots: { index: false, follow: false },
 };
 

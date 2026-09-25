@@ -12,7 +12,7 @@ import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
-  title: "드림팀 월드컵 판타지 | Scorebase",
+  title: "드림팀 월드컵 판타지",
   description: "내 드림팀 선발 11명의 월드컵 실경기 활약이 판타지 포인트가 됩니다. 팀 랭킹과 폼 보너스 선수.",
 };
 

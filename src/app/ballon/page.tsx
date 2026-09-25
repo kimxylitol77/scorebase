@@ -7,7 +7,7 @@ import BallonWinners from "./BallonWinners";
 export const revalidate = 1800; // 30분 ISR — LeagueLeader 매일 갱신이라 충분.
 
 export const metadata: Metadata = {
-  title: "발롱도르 순위 지수 계산기 | Scorebase",
+  title: "발롱도르 순위 지수 계산기",
   description:
     "골·도움·리그 난이도·선수 평점·팀 성적·월드컵 성적을 가중치로 조절해 실시간으로 2026 발롱도르 후보 순위를 계산합니다. 스탯 기반 지수.",
   alternates: { canonical: "https://www.scorebase.kr/ballon" },

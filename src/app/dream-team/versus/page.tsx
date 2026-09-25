@@ -13,7 +13,7 @@ import VersusClient from "./VersusClient";
 import DreamTeamNav from "../DreamTeamNav";
 import LeaderboardAside from "../LeaderboardAside";
 
-export const metadata: Metadata = { title: "드림팀 유저 대전 | Scorebase" };
+export const metadata: Metadata = { title: "드림팀 유저 대전" };
 
 function squadOvr(squad: SquadMember[], lineup: LineupSlot[]): number {
   const members = lineupMembers(squad, lineup);

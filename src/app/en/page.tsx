@@ -41,7 +41,8 @@ const CANONICAL = "https://www.scorebase.kr";
 
 // 정적 기본값 — description 류는 아래 generateMetadata 가 수익률 주장으로 덧씌운다(주장 재료가 없으면 이 값 그대로).
 const baseMetadata: Metadata = {
-  title: "Scorebase — AI sports analysis built on statistics",
+  // absolute — 브랜드로 시작하는 제목이라 en 레이아웃 템플릿("%s | Scorebase")이 붙으면 이름이 두 번 나온다.
+  title: { absolute: "Scorebase — AI sports analysis built on statistics" },
   description:
     "Matches read in numbers, not hunches. Premier League, LaLiga, Bundesliga, Serie A, Ligue 1, Champions League, MLS, KBO, NBA, MLB, NHL and the 2026 FIFA World Cup — an Elo model and multiple AI systems working through global sports data every day.",
   keywords: [

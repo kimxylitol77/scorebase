@@ -15,7 +15,7 @@ import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
-  title: "Predictions — You vs AI | Scorebase",
+  title: "Predictions — You vs AI",
   description: "Predict today’s and tomorrow’s matches in one click; the odds at pick time are saved and every pick is scored for hit rate and unit return. Member rankings included.",
 };
 export const dynamic = "force-dynamic";

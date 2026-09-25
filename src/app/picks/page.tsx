@@ -17,7 +17,7 @@ import { Bot } from "lucide-react";
 import { LEAGUE_DISPLAY, LEAGUE_ORDER, getLeagueFlag, sportCodeForLeague } from "@/lib/sports/sport-leagues";
 
 export const metadata: Metadata = {
-  title: "승부예측 — 나 vs AI | Scorebase",
+  title: "승부예측 — 나 vs AI",
   description: "오늘·내일 경기를 원클릭으로 예측하면 픽 시점 배당이 저장되고, 종료 후 적중률과 유닛 수익률로 채점됩니다. 회원 랭킹 제공.",
 };
 export const dynamic = "force-dynamic";
