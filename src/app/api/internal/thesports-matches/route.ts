@@ -24,6 +24,7 @@
 
 import { readFileSync } from "fs";
 import { placeholderKickoffTimes } from "@/lib/sports/thesports/placeholder-kickoff";
+import { recordUnmapped, type UnmappedMatch } from "@/lib/schedule-watch/unmapped";
 import { pickClosestCandidate } from "@/lib/sports/split-squad";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
@@ -111,6 +112,8 @@ interface MatchPayload {
 interface Body {
   sport: "football" | "baseball" | "ice_hockey" | "basketball" | "volleyball";
   matches: MatchPayload[];
+  /** 워커가 팀 매핑이 없어 보내지 않은 경기 — schedule-watch 가 "아직도 없는 경기"를 알리는 데 쓴다 */
+  unmapped?: UnmappedMatch[];
 }
 
 interface TeamMapEntry { ourId: number; tsId: string; ourLeague?: string }
@@ -305,6 +308,8 @@ export async function POST(req: NextRequest) {
     }
   }
   let skippedPlaceholder = 0;
+  // 팀을 못 찾아 버리는 경기 — 대체 행에 캐시만 이은 경우는 빠진 게 아니라 제외
+  const noTeam: UnmappedMatch[] = [];
 
   for (const m of body.matches) {
     if (skipTimes.get(m.league)?.has(new Date(m.startTime).getTime())) {
@@ -337,6 +342,9 @@ export async function POST(req: NextRequest) {
         // EPL 시즌 마지막 라운드 10경기 동시 같은 케이스는 모호해서 skip.
         // 2026-06-13: 이 경로는 팀 매핑 실패 시의 blind 추측이라, 이미 다른 tsMatchId 로
         // 연결된 cache 를 덮어쓰면 안 됨 (매핑 경로/이전 연결이 우선). cache 부재 시에만 신규 연결.
+        if (candidates.length !== 1) {
+          noTeam.push({ league: m.league, tsMatchId: m.tsMatchId, startTime: m.startTime, tsHomeTeamId: m.tsHomeTeamId, tsAwayTeamId: m.tsAwayTeamId });
+        }
         if (candidates.length === 1) {
           const existed = await prisma.theSportsMatchCache.findUnique({
             where: { matchId: candidates[0].id },
@@ -713,6 +721,10 @@ export async function POST(req: NextRequest) {
       console.warn(`[ts-matches] logo fill fail: ${(e as Error).message}`);
     }
   }
+
+  await recordUnmapped(body.sport, [...noTeam, ...(Array.isArray(body.unmapped) ? body.unmapped : [])]).catch((e) =>
+    console.warn(`[ts-matches] unmapped 기록 실패: ${(e as Error).message}`),
+  );
 
   return NextResponse.json({
     ok: true,

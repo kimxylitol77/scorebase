@@ -22,6 +22,7 @@ import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 import { isAfFixtureRaw } from "@/lib/matches/postponed-reverify";
 import type { League } from "@/lib/sports/types";
 import { findDbMatch, type AfFixtureLite, type DbRowLite } from "./match";
+import { loadUnmapped } from "./unmapped";
 
 const DAY = 86400_000;
 const H = 3600_000;
@@ -52,6 +53,7 @@ export type WatchKind =
   | "missing-ts" // TheSports 담당 리그에서 빠진 경기 — 팀 매핑·조/시즌 이름 문제
   | "heal-exhausted" // af 리그 누락을 3회 재수집해도 안 생김
   | "drift-held" // 미래 날짜 교정이 겹치는 경기 때문에 보류
+  | "ts-unmapped" // TheSports 가 준 경기인데 팀 매핑이 없어 버려짐(전 종목) — 워커·라우트 기록 기준
   | "double-booked"; // 한 팀이 3시간 안에 다른 상대와 두 경기 — 팀 오매핑 신호
 
 export interface WatchFinding {
@@ -233,6 +235,9 @@ export async function runScheduleWatch(now = new Date(), dryRun = false): Promis
   const driftSample: string[] = [];
   const driftFixed = await healFutureDrift(now, findings, dryRun, driftSample);
 
+  // ── 4') 팀 매핑 없어 버려진 TheSports 경기(전 종목) — 워커·수신 라우트가 남긴 기록 중 아직도 없는 것
+  await checkUnmapped(now, findings);
+
   // ── 5) 오매핑 신호 — 한 팀이 3시간 안에 다른 상대와 두 경기
   const dbl = await prisma.$queryRawUnsafe<Array<{ league: string; team: number; name: string; a: string; b: string; at: Date }>>(`
     WITH s AS (
@@ -285,6 +290,43 @@ export async function runScheduleWatch(now = new Date(), dryRun = false): Promis
     },
   });
   return report;
+}
+
+const UNMAPPED_HINT: Record<string, string> = {
+  football: "npm run backfill:cup-teams -- --league {L} --season (dry-run 의 '신규'는 기존 팀과 대조 후 --write)",
+};
+const UNMAPPED_HINT_DEFAULT =
+  "Team·TeamSourceId 추가 + lightsail-worker 의 {sport} 팀 매핑 JSON(웹 사본 동일) 갱신 후 Vultr 배포 — 9/25 하키 친선 방식";
+
+async function checkUnmapped(now: Date, findings: WatchFinding[]) {
+  const flagged = new Set(findings.filter((f) => f.kind === "missing-ts").map((f) => f.league));
+  for (const u of await loadUnmapped(now)) {
+    if (flagged.has(u.league)) continue; // af 대조가 이미 같은 리그를 알렸다
+    const recent = u.matches.filter((m) => {
+      const t = Date.parse(m.startTime);
+      return t >= now.getTime() - 3 * DAY && t <= now.getTime() + FUTURE_DAYS * DAY;
+    });
+    if (!recent.length) continue;
+    const ids = recent.map((m) => m.tsMatchId);
+    const [tsRows, caches] = await Promise.all([
+      prisma.match.findMany({ where: { externalId: { in: ids.map((i) => `ts-${i}`) } }, select: { externalId: true } }),
+      prisma.theSportsMatchCache.findMany({ where: { tsMatchId: { in: ids } }, select: { tsMatchId: true } }),
+    ]);
+    const have = new Set([...tsRows.map((r) => r.externalId.slice(3)), ...caches.map((c) => c.tsMatchId)]);
+    const still = recent.filter((m) => !have.has(m.tsMatchId));
+    if (!still.length) continue;
+    const teamIds = [...new Set(still.flatMap((m) => [m.tsHomeTeamId, m.tsAwayTeamId]))];
+    const mapped = new Set(
+      (await prisma.teamSourceId.findMany({ where: { source: "thesports", externalId: { in: teamIds } }, select: { externalId: true } }))
+        .map((x) => x.externalId),
+    );
+    const missingTeams = teamIds.filter((t) => !mapped.has(t));
+    const hint = (UNMAPPED_HINT[u.sport] ?? UNMAPPED_HINT_DEFAULT).replace("{L}", u.league).replace("{sport}", u.sport);
+    findings.push({
+      kind: "ts-unmapped", key: u.league, league: u.league,
+      text: `${u.league}(${u.sport}) ${still.length}경기 — 팀 매핑 없는 ts 팀 ${missingTeams.length}개(${missingTeams.slice(0, 4).join(", ")}${missingTeams.length > 4 ? " …" : ""}). ${hint}`,
+    });
+  }
 }
 
 function countBy(xs: string[]) {

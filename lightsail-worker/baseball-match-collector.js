@@ -81,6 +81,16 @@ async function fetchDiary(tsp) {
   return Array.isArray(data.results) ? data.results : [];
 }
 
+// 팀 매핑이 없어 거른 경기 보고 — 사이트가 리그별로 기록하고 schedule-watch 가 "팀 매핑 필요"로 알린다.
+// 거르기만 하면 조용히 사라진다(2026-09-25 하키 친선 144경기가 한 달간 무음 누락). 수집 동작은 그대로.
+async function postUnmapped(unmapped) {
+  await axios.post(
+    `${SITE_URL}/api/internal/thesports-matches`,
+    { sport: "baseball", matches: [], unmapped: unmapped.slice(0, 300) },
+    { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 60_000 },
+  );
+}
+
 async function postBatch(matches) {
   if (matches.length === 0) return { ok: true, upserted: 0, skippedNoTeam: 0 };
   const res = await axios.post(
@@ -108,6 +118,7 @@ async function poll() {
 
   const seen = new Set();
   const batch = [];
+  const unmapped = [];
   for (const offset of SWEEP_DAYS) {
     const tsp = Math.floor(Date.now() / 1000) + offset * 86400;
     let raw;
@@ -123,7 +134,13 @@ async function poll() {
       const league = COMP_TO_LEAGUE[m.competition_id] || COMP_TO_LEAGUE[m.unique_tournament_id];
       if (!league) continue;
       if (!m.home_team_id || !m.away_team_id) continue;
-      if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) continue;
+      if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) {
+        unmapped.push({
+          league, tsMatchId: m.id, startTime: new Date((m.match_time || 0) * 1000).toISOString(),
+          tsHomeTeamId: m.home_team_id, tsAwayTeamId: m.away_team_id,
+        });
+        continue;
+      }
       const status = mapStatus(m.status_id);
       // diary 응답 scores.ft = [ts_home_str, ts_away_str] — 2026-05-27 CPBL 검증 정정.
       // baseball-live.ts 의 KBO 5매치 네이버 검증과 일치 ([home, away]).
@@ -163,6 +180,10 @@ async function poll() {
     }
   }
   console.log(`    summary: upserted=${totalUp} skippedNoTeam=${totalSkip}`);
+  if (unmapped.length) {
+    try { await postUnmapped(unmapped); console.log(`    unmapped 보고 ${unmapped.length}건`); }
+    catch (e) { console.error(`    ✗ unmapped 보고: ${e.message}`); }
+  }
 }
 
 console.log(`🚀 baseball-match-collector started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);

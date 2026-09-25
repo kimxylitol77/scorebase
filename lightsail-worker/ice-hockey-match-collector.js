@@ -85,6 +85,16 @@ async function fetchDiary(ymd) {
   return Array.isArray(data.results) ? data.results : [];
 }
 
+// 팀 매핑이 없어 거른 경기 보고 — 사이트가 리그별로 기록하고 schedule-watch 가 "팀 매핑 필요"로 알린다.
+// 거르기만 하면 조용히 사라진다(2026-09-25 하키 친선 144경기가 한 달간 무음 누락). 수집 동작은 그대로.
+async function postUnmapped(unmapped) {
+  await axios.post(
+    `${SITE_URL}/api/internal/thesports-matches`,
+    { sport: "ice_hockey", matches: [], unmapped: unmapped.slice(0, 300) },
+    { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 60_000 },
+  );
+}
+
 async function postBatch(matches) {
   if (matches.length === 0) return { ok: true, upserted: 0, skippedNoTeam: 0 };
   const res = await axios.post(
@@ -117,6 +127,7 @@ async function poll() {
 
   const seen = new Set();
   const batch = [];
+  const unmapped = [];
   for (const offset of SWEEP_DAYS) {
     let raw;
     try {
@@ -135,7 +146,13 @@ async function poll() {
       const league = COMP_TO_LEAGUE[m.unique_tournament_id];
       if (!league) continue;
       if (!m.home_team_id || !m.away_team_id) continue;
-      if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) continue;
+      if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) {
+        unmapped.push({
+          league, tsMatchId: m.id, startTime: new Date((m.match_time || 0) * 1000).toISOString(),
+          tsHomeTeamId: m.home_team_id, tsAwayTeamId: m.away_team_id,
+        });
+        continue;
+      }
       const status = mapStatus(m.status_id);
       let hs, as;
       if (status === "LIVE" || status === "FINISHED") {
@@ -168,6 +185,10 @@ async function poll() {
     }
   }
   console.log(`    summary: upserted=${totalUp} skippedNoTeam=${totalSkip}`);
+  if (unmapped.length) {
+    try { await postUnmapped(unmapped); console.log(`    unmapped 보고 ${unmapped.length}건`); }
+    catch (e) { console.error(`    ✗ unmapped 보고: ${e.message}`); }
+  }
 }
 
 console.log(`🚀 ice-hockey-match-collector started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);

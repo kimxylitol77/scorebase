@@ -14,6 +14,7 @@ const SECTION: Record<WatchKind, string> = {
   "missing-ts": "TheSports 리그 누락 (팀 매핑 추정)",
   "heal-exhausted": "자동 재수집 3회 실패 (사람 확인)",
   "drift-held": "날짜 교정 보류 (겹치는 경기)",
+  "ts-unmapped": "팀 매핑 없어 버려진 경기 (전 종목)",
   "double-booked": "팀 오매핑 의심 (한 팀 3시간 내 두 경기)",
 };
 
