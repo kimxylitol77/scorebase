@@ -34,22 +34,33 @@ export default async function NationsLeagueHub() {
       where: { league: LEAGUE },
       orderBy: { startTime: "asc" },
       select: {
-        id: true, externalId: true, status: true, startTime: true, homeScore: true, awayScore: true, raw: true, homeTeamId: true,
+        id: true, externalId: true, status: true, startTime: true, homeScore: true, awayScore: true, raw: true, homeTeamId: true, awayTeamId: true,
         homeTeam: { select: { name: true, logoUrl: true } },
         awayTeam: { select: { name: true, logoUrl: true } },
       },
     }),
   ]);
 
-  // 팀 → 조. 경기 raw 엔 조가 없어 순위표에서 역으로 붙인다(한 조의 두 팀끼리만 붙는다).
-  const groupOf = new Map<number, { tier: NlTier; group: number }>();
-  for (const r of rows) {
-    const g = parseNlGroup(r.rawGroup);
-    if (g) groupOf.set(r.teamId, g);
+  // 이번 시즌 경기만 — 지난 시즌(2024-25)도 같은 "League A - 1" 라운드라 섞이면 빅매치·레일이 옛 경기를 고른다.
+  //  시즌 경계 = 150일 넘게 빈 곳(리그페이즈 9~11월, 파이널 3·6월, 다음 시즌 이듬해 9월).
+  const nlMatches = rawMatches.filter((m) => parseNlRound(m.raw));
+  let seasonFrom = 0;
+  for (let i = 1; i < nlMatches.length; i++) {
+    if (nlMatches[i].startTime.getTime() - nlMatches[i - 1].startTime.getTime() > 150 * 86400_000) seasonFrom = i;
   }
+  const seasonMatches = nlMatches.slice(seasonFrom);
+
+  // 팀 → 조. 경기 raw 엔 조가 없어 순위표에서 역으로 붙인다(한 조의 두 팀끼리만 붙는다).
+  // 새 형식(리그 글자 없는 조 이름)은 로더(af-grouped)가 이미 "League X, Group N" 으로 맞춰 준다.
+  const groupOf = new Map<number, { tier: NlTier; group: number }>();
+  const grouped = rows.flatMap((r) => {
+    const g = parseNlGroup(r.rawGroup);
+    return g ? [{ ...r, ...g }] : [];
+  });
+  for (const r of grouped) groupOf.set(r.teamId, { tier: r.tier, group: r.group });
 
   const matches: NlHubMatch[] = [];
-  for (const m of rawMatches) {
+  for (const m of seasonMatches) {
     const round = parseNlRound(m.raw);
     if (!round) continue;
     const home = team(m.homeTeam);
@@ -73,17 +84,14 @@ export default async function NationsLeagueHub() {
     });
   }
 
-  const teamIds = [...new Set(rows.map((r) => r.teamId))];
+  const teamIds = [...new Set(grouped.map((r) => r.teamId))];
   const teams = teamIds.length ? await prisma.team.findMany({ where: { id: { in: teamIds } }, select: { id: true, name: true } }) : [];
   const nameOf = new Map(teams.map((t) => [t.id, t.name]));
 
   const segments: HubSegmentView[] = NL_TIERS.map((tier) => {
-    const groupNos = [...new Set(rows.map((r) => parseNlGroup(r.rawGroup)).filter((g) => g?.tier === tier).map((g) => g!.group))].sort((a, b) => a - b);
+    const groupNos = [...new Set(grouped.filter((r) => r.tier === tier).map((r) => r.group))].sort((a, b) => a - b);
     const groups = groupNos.map((no) => {
-      const gRows = rows.filter((r) => {
-        const g = parseNlGroup(r.rawGroup);
-        return g?.tier === tier && g.group === no;
-      });
+      const gRows = grouped.filter((r) => r.tier === tier && r.group === no).sort((a, b) => a.position - b.position);
       const played = gRows.some((r) => r.won + r.draw + r.loss > 0);
       const next = matches.find((m) => m.tier === tier && m.group === no && (m.status === "SCHEDULED" || m.status === "LIVE"));
       return {

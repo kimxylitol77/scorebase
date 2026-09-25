@@ -9,6 +9,7 @@
 
 import { prisma } from "@/lib/db";
 import { afGroupLabel } from "@/lib/sports/af-group-label";
+import { assignNlGroups, parseNlRound, type NlTier } from "@/lib/sports/nations-league";
 
 export interface AfGroupedRow {
   teamId: number;
@@ -53,7 +54,10 @@ export async function getAfGroupedRows(
   if (!cache) return [];
   if (seasonOk && !seasonOk(cache.season)) return [];
 
-  const raw = (cache.rows as unknown as CachedAfRow[]) ?? [];
+  // 조가 아닌 부속 표(2026-27 네이션스리그 "Ranking of third-placed teams" 4행)는 뺀다 — 이미 조에 있는
+  //  팀이 다시 나와 아래 "전부 붙을 때만" 검사가 54≠58 로 표 전체를 버렸다(2026-09-25 실측).
+  const all = (cache.rows as unknown as CachedAfRow[]) ?? [];
+  const raw = all.some((r) => /\bGroup\b/i.test(r.group ?? "")) ? all.filter((r) => /\bGroup\b/i.test(r.group ?? "")) : all;
   if (raw.length === 0) return [];
   // 조가 2개 이상일 때만 — 단일 표는 기존 ts·자체계산 경로가 담당한다.
   const groups = new Set(raw.map((r) => r.group).filter(Boolean));
@@ -99,6 +103,36 @@ export async function getAfGroupedRows(
   }
   // 한 팀이라도 못 붙으면 그 조가 반쪽이 된다 — 전부 붙을 때만 쓴다.
   if (rows.length !== raw.length) return [];
-  rows.sort((a, b) => a.rawGroup.localeCompare(b.rawGroup) || a.position - b.position);
-  return rows;
+  const out = league === "UEFA_NL" ? await splitNlTiers(league, rows) : rows;
+  out.sort((a, b) => a.rawGroup.localeCompare(b.rawGroup) || a.position - b.position);
+  return out;
+}
+
+/**
+ * 네이션스리그 — 2026-27 부터 af 조 이름에 리그 글자가 빠져 리그 A~D 의 같은 번호 조가 한 덩어리로 온다
+ * ("Group 1" 15팀). 이번 시즌 경기 라운드("League A - 1")로 팀 등급을 얻어 조를 가르고 조 안에서 다시 순위를
+ * 매긴다(규칙은 nations-league.assignNlGroups). 라벨·원문은 옛 형식으로 맞춰 호출부가 그대로 읽게 한다.
+ */
+async function splitNlTiers(league: string, rows: AfGroupedRow[]): Promise<AfGroupedRow[]> {
+  const matches = await prisma.match.findMany({
+    where: { league, homeTeamId: { in: rows.map((r) => r.teamId) } },
+    orderBy: { startTime: "asc" },
+    select: { raw: true, homeTeamId: true, awayTeamId: true },
+  });
+  // 오름차순으로 덮어써 가장 최근 시즌 등급이 남는다(승강으로 등급이 바뀐다).
+  const tierOfTeam = new Map<number, NlTier>();
+  for (const m of matches) {
+    const t = parseNlRound(m.raw)?.tier;
+    if (!t) continue;
+    tierOfTeam.set(m.homeTeamId, t);
+    tierOfTeam.set(m.awayTeamId, t);
+  }
+  const split = assignNlGroups(rows, tierOfTeam);
+  // 등급을 못 정한 팀이 있으면 조가 반쪽이 된다 — 표를 통째로 쓰지 않는다(위와 같은 원칙).
+  if (split.length !== rows.length) return [];
+  return split.map(({ tier, group, ...r }) => ({
+    ...r,
+    rawGroup: `UEFA Nations League, League ${tier}, Group ${group}`,
+    group: `리그 ${tier} · ${group}조`,
+  }));
 }

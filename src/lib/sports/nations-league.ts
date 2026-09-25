@@ -38,6 +38,50 @@ export function parseNlGroup(rawGroup: string): { tier: NlTier; group: number } 
   return { tier: t[1].toUpperCase() as NlTier, group: Number(g[1]) };
 }
 
+export interface NlGroupRowIn {
+  teamId: number;
+  position: number;
+  points: number;
+  goalDiff: number;
+  goalsFor: number;
+  rawGroup: string;
+}
+
+/**
+ * 순위 행마다 등급·조·조 안 순위를 붙인다.
+ * 2026-27 부터 af 조 이름에 리그 글자가 빠졌다("Group 1") — 리그 A~D 의 1조가 15팀 한 덩어리로 온다
+ * (2026-09-25 실측). 그땐 경기 라운드("League A - 1")에서 얻은 팀 등급(tierOfTeam)으로 조를 가르고,
+ * 섞인 덩어리의 af 순위는 의미가 없으니 조 안에서 승점 → 득실 → 다득점 → af 순위로 다시 매긴다.
+ * 리그 글자가 있는 옛 형식은 af 순위를 그대로 쓴다. 조를 못 정하는 행(3위 비교표 등)은 버린다.
+ */
+export function assignNlGroups<T extends NlGroupRowIn>(
+  rows: T[],
+  tierOfTeam: ReadonlyMap<number, NlTier>,
+): Array<T & { tier: NlTier; group: number }> {
+  const out: Array<T & { tier: NlTier; group: number }> = [];
+  const reranked: Array<T & { tier: NlTier; group: number }> = [];
+  for (const r of rows) {
+    const full = parseNlGroup(r.rawGroup);
+    if (full) {
+      out.push({ ...r, ...full });
+      continue;
+    }
+    const g = r.rawGroup.match(/^\s*Group\s+(\d+)\s*$/i);
+    const tier = tierOfTeam.get(r.teamId);
+    if (g && tier) reranked.push({ ...r, tier, group: Number(g[1]) });
+  }
+  const buckets = new Map<string, Array<T & { tier: NlTier; group: number }>>();
+  for (const r of reranked) {
+    const k = `${r.tier}-${r.group}`;
+    buckets.set(k, [...(buckets.get(k) ?? []), r]);
+  }
+  for (const b of buckets.values()) {
+    b.sort((x, y) => y.points - x.points || y.goalDiff - x.goalDiff || y.goalsFor - x.goalsFor || x.position - y.position);
+    b.forEach((r, i) => out.push({ ...r, position: i + 1 }));
+  }
+  return out;
+}
+
 /** 이 순위가 확정 구역(8강·승격)인가. 조에서 한 경기라도 치러지기 전엔 순서가 임의라 칠하지 않는다. */
 export function nlZone(tier: NlTier, position: number, groupPlayed: boolean): "qf" | "promo" | null {
   if (!groupPlayed) return null;

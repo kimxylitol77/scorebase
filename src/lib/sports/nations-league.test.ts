@@ -1,7 +1,7 @@
 // 네이션스리그 허브 규칙 — 라운드 해석·빅매치 선정·확정 구역·한국시간.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { kstKickoff, nlZone, parseNlGroup, parseNlRound, pickFeatured, type NlMatchLite } from "./nations-league";
+import { assignNlGroups, kstKickoff, nlZone, parseNlGroup, parseNlRound, pickFeatured, type NlMatchLite } from "./nations-league";
 
 test("af raw 의 round 에서 등급·라운드를 읽는다", () => {
   assert.deepEqual(parseNlRound('{"league":{"round":"League A - 3"}}'), { tier: "A", matchday: 3 });
@@ -61,4 +61,24 @@ test("리그 A 경기가 없으면 null", () => {
 test("한국시간 표기는 서버 시간대와 무관", () => {
   assert.equal(kstKickoff(new Date("2026-09-24T18:45:00Z")), "9/25 (금) 03:45");
   assert.equal(kstKickoff(new Date("2026-09-24T16:00:00Z")), "9/25 (금) 01:00");
+});
+
+test("리그 글자 없는 새 형식(\"Group 1\") — 경기 등급으로 조를 가르고 조 안에서 다시 순위", () => {
+  const row = (teamId: number, position: number, points: number, goalDiff: number, rawGroup: string) =>
+    ({ teamId, position, points, goalDiff, goalsFor: Math.max(goalDiff, 0), rawGroup });
+  const tiers = new Map<number, "A" | "B">([[1, "A"], [2, "A"], [3, "B"], [4, "B"]]);
+  const out = assignNlGroups(
+    [row(1, 1, 0, 0, "Group 1"), row(3, 2, 3, 2, "Group 1"), row(2, 3, 3, 1, "Group 1"), row(4, 4, 0, -2, "Group 1"), row(9, 1, 0, 0, "Ranking of third-placed teams")],
+    tiers,
+  );
+  const by = new Map(out.map((r) => [r.teamId, r]));
+  assert.equal(out.length, 4); // 3위 비교표·등급 모르는 팀은 버린다
+  assert.deepEqual([by.get(2)!.tier, by.get(2)!.group, by.get(2)!.position], ["A", 1, 1]);
+  assert.equal(by.get(1)!.position, 2);
+  assert.deepEqual([by.get(3)!.tier, by.get(3)!.position], ["B", 1]);
+});
+
+test("옛 형식(리그 글자 있음)은 af 순위 그대로", () => {
+  const out = assignNlGroups([{ teamId: 5, position: 3, points: 7, goalDiff: 1, goalsFor: 4, rawGroup: "UEFA Nations League , League C, Group 2" }], new Map());
+  assert.deepEqual([out[0].tier, out[0].group, out[0].position], ["C", 2, 3]);
 });
