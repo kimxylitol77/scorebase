@@ -5,7 +5,7 @@ import { isSeniorNationalLeague, WOMEN_NATIONAL_LEAGUES, YOUTH_NATIONAL_LEAGUES 
 
 /**
  * 국대는 클럽 시즌 이력이 없어 calcEloTable 이 전원 1500 으로 평준화된다.
- * eloratings.net 시드(월드컵 본선국 실제 Elo) 우선, 없으면 FIFA 랭킹 환산(2050 − 250·log10 순위, 하한 1300), 둘 다 없으면 1500.
+ * eloratings.net 시드(월드컵 본선국 실제 Elo) 우선, 없으면 FIFA 랭킹 환산(2251 − 347·log10 순위, 하한 1300), 둘 다 없으면 1500.
  */
 export function nationalElo(name: string): number {
   const seed = getWorldCupSeedElo(name);
@@ -15,7 +15,10 @@ export function nationalElo(name: string): number {
   return 1500;
 }
 
-const rankToElo = (rank: number) => Math.max(1300, 2050 - 250 * Math.log10(rank));
+// FIFA 순위 → Elo. 시드 49개국(eloratings 2026-05 스냅샷)에 최소제곱 적합한 식(2026-09-25).
+// 옛 식 2050 − 250·log10 은 시드 대비 평균 +71 과소(상위권일수록 심함, 이탈리아 1756)·rmse 116 → 적합식 rmse 82.
+// 하위권(150위 전후)은 두 식이 거의 같다(1496 vs 1506).
+const rankToElo = (rank: number) => Math.max(1300, 2251 - 347 * Math.log10(rank));
 
 // 연령별 대표는 성인 전력 순서를 따르지만 격차가 작다 — 성인 Elo 편차를 이만큼만 쓴다.
 const YOUTH_SHRINK = 0.7;
