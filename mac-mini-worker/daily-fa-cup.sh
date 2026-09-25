@@ -19,5 +19,8 @@ git fetch origin main -q && git reset --hard origin/main -q
 npx tsx --env-file=.env.local src/jobs/collect-fa-cup.ts --past 3 --future 14 2>&1 | tail -6
 # 코파 델 레이 — 같은 구조(초반 라운드가 하부리그 팀, 워커 push 로는 전량 skip). 2026-09-24 추가.
 npx tsx --env-file=.env.local src/jobs/collect-fa-cup.ts --league COPA_DEL_REY --past 3 --future 14 2>&1 | tail -6
+# ts 리그 시즌 전체 일정 — 워커 diary 는 7일 앞까지만 봐서 A매치 휴식기에 "다가오는 경기 0" 이 됐다(2026-09-25).
+# 새로 나온 일정·킥오프 변경만 보낸다(리그당 ts 1콜). 맨 뒤에 둬 컵 수집이 먼저 끝나게 한다.
+npx tsx --env-file=.env.local src/jobs/sync-season-fixtures.ts 2>&1 | tail -4
 
 log "✓ 종료"
