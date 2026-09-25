@@ -552,7 +552,8 @@ export default async function KoreaAbroadPage() {
           <h2 className="text-sm font-bold text-neutral-900 dark:text-white">소속팀 최근 경기</h2>
           <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-950">
             {recentRows.slice(0, 8).map(({ p, m }) => (
-              <li key={m.id} className="flex items-center gap-3 px-3 py-2.5 text-sm">
+              <li key={m.id} className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 px-3 py-2.5 text-sm sm:grid-cols-[4rem_minmax(0,1fr)_12rem]">
+                {/* 선수·경기·리그 칸 폭을 고정해야 가운데 점수 줄이 행마다 같은 x 에 선다. 좁은 화면은 리그·날짜를 아랫줄로 */}
                 <span className="w-16 shrink-0 truncate text-xs font-semibold text-sky-600 dark:text-sky-400">
                   {playerHref(p) ? (
                     <Link href={playerHref(p)!} className="hover:underline underline-offset-4">
@@ -562,16 +563,21 @@ export default async function KoreaAbroadPage() {
                     p.nameKo
                   )}
                 </span>
-                <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-neutral-700 dark:text-neutral-300">
-                  <span className="truncate">{teamKo(m.homeTeam)}</span>
-                  <TeamBadge logoUrl={m.homeTeam.logoUrl} size={48} />
-                  <span className="shrink-0 font-black tabular-nums text-neutral-900 dark:text-white">
+                {/* 홈 | 점수 | 원정 3칸 — 팀명 길이와 무관하게 점수가 한 세로줄에 선다 */}
+                <span className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,1fr)] items-center gap-1.5 text-neutral-700 dark:text-neutral-300">
+                  <span className="flex min-w-0 items-center justify-end gap-1.5">
+                    <span className="truncate">{teamKo(m.homeTeam)}</span>
+                    <TeamBadge logoUrl={m.homeTeam.logoUrl} size={48} className="!h-7 !w-7 sm:!h-12 sm:!w-12" />
+                  </span>
+                  <span className="text-center font-black tabular-nums text-neutral-900 dark:text-white">
                     {m.homeScore ?? "-"}-{m.awayScore ?? "-"}
                   </span>
-                  <TeamBadge logoUrl={m.awayTeam.logoUrl} size={48} />
-                  <span className="truncate">{teamKo(m.awayTeam)}</span>
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <TeamBadge logoUrl={m.awayTeam.logoUrl} size={48} className="!h-7 !w-7 sm:!h-12 sm:!w-12" />
+                    <span className="truncate">{teamKo(m.awayTeam)}</span>
+                  </span>
                 </span>
-                <span className="shrink-0 text-[11px] text-neutral-400">
+                <span className="col-start-2 truncate text-[11px] text-neutral-400 sm:col-start-auto sm:text-right">
                   {LEAGUE_DISPLAY[m.league] ?? m.league} · {fmtKST(m.startTime)}
                 </span>
               </li>
