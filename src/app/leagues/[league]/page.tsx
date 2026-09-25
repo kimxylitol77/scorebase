@@ -23,7 +23,8 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
-import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LEAGUE_DISPLAY, SOCCER_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { NO_TABLE_LEAGUES, STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import LeaguePredictionsPanel from "@/components/leagues/LeaguePredictionsPanel";
 import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
@@ -151,6 +152,9 @@ const VALID_LEAGUES = [
   "GULF_CUP",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
+// 축구 리그는 전부 정식 리그 페이지 — VALID_LEAGUES 에 없던 122개가 "순위표만 + 예측 준비 중" 대체 화면이었다
+// (2026-09-25 전수 실측). 탭은 데이터가 있는 것만 연다(아래 genericSoccerViews).
+const hasLeaguePage = (code: string) => VALID_LEAGUES.includes(code as ValidLeague) || SOCCER_LEAGUES.has(code);
 
 type ArticleType = "PREVIEW" | "RECAP" | "ANALYSIS";
 type FilterType = "ALL" | ArticleType;
@@ -514,7 +518,7 @@ export async function generateMetadata({
   const upper = league.toUpperCase();
   // type 필터 뷰는 base 리그 페이지로 canonical — 탭은 부분집합이라 중복 신호 방지
   const canonical = `/leagues/${upper}`;
-  if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
+  if (!hasLeaguePage(upper)) {
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
       const name = LEAGUE_DISPLAY[upper] ?? upper;
       return {
@@ -581,7 +585,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const { league } = await params;
   const sp = await searchParams;
   const upper = league.toUpperCase();
-  if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
+  if (!hasLeaguePage(upper)) {
     // e스포츠(LEC·LCS·LPL·EWC) — ts 축구식 순위 캐시가 없어 StandingsOnlyView 로 빠지면
     // "순위 데이터를 수집 중입니다" 만 나온다(2026-09-05 실측). 정작 /standings/LEC 에는
     // 같은 데이터가 정상으로 떠 있었다 — 리그 페이지만 연결이 빠져 있던 것.
@@ -763,11 +767,37 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     "articles",
   ];
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
+  // 그 밖의 축구 리그(2026-09-25 정식 페이지 승격) — 빈 탭을 만들지 않게 데이터가 있는 탭만.
+  const isGenericSoccer = !isSoccer && !CUP_LEAGUES.has(upper) && !NON_SOCCER_VIEWS[upper] && SOCCER_LEAGUES.has(upper);
+  let genericSoccerViews: ViewKey[] = [];
+  if (isGenericSoccer) {
+    const since = new Date(Date.now() - 180 * 86400_000);
+    const [table, recentFinished, anyMatch, leaders] = await Promise.all([
+      getFullStandings(upper).catch(() => []),
+      prisma.match.count({ where: { league: upper, status: "FINISHED", startTime: { gte: since } } }),
+      prisma.match.count({ where: { league: upper } }),
+      prisma.leagueLeader.count({ where: { league: upper } }),
+    ]);
+    genericSoccerViews = [
+      ...(table.length > 0 ? (["standings"] as ViewKey[]) : []),
+      "predictions",
+      // 파워랭킹은 순위표가 있는 리그전만(친선·예선은 의미가 없다), 이번 시즌 경기가 쌓여야 선다.
+      ...(table.length > 0 && recentFinished >= 20 ? (["power"] as ViewKey[]) : []),
+      ...(anyMatch > 0 ? (["fixtures"] as ViewKey[]) : []),
+      ...(leaders > 0 ? (["stats"] as ViewKey[]) : []),
+      ...(((championsData as Record<string, { champions: unknown[] }>)[upper]?.champions?.length ?? 0) > 0
+        ? (["history"] as ViewKey[])
+        : []),
+      "articles",
+    ];
+  }
   const dataViewsAll: ViewKey[] = (isSoccer
     ? [...VIEW_KEYS]
     : CUP_LEAGUES.has(upper)
       ? cupViews
-      : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
+      : isGenericSoccer
+        ? genericSoccerViews
+        : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
   ).filter((v) => v !== "predictions" || PREDICTION_LEAGUE_SET.has(upper));
   // 글이 한 건도 없는 리그는 글 탭을 빼 빈 목록으로 가는 길을 없앤다. 데이터 탭이 하나도 없는
   // 리그는 글 탭이 유일한 화면이라 남긴다(빈 안내가 404 보다 낫다).
@@ -777,10 +807,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       : dataViewsAll;
   const hasDataTabs = dataViews.some((v) => v !== "articles");
   // 데이터 디렉터리 — 오버·언더 페이지는 표본 있는 축구 리그만 열린다(404 링크 방지)
-  const hasOverUnder = isSoccer ? (await leaguesWithOverUnderPage([upper])).includes(upper) : false;
+  const hasOverUnder = isSoccer || isGenericSoccer ? (await leaguesWithOverUnderPage([upper])).includes(upper) : false;
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
-  const showStats = isSoccer || upper === "NHL" || upper === "KBL" || upper === "WKBL" || upper === "V_LEAGUE" || upper === "V_LEAGUE_W" || cupHasLeaders;
+  const showStats = isSoccer || isGenericSoccer || upper === "NHL" || upper === "KBL" || upper === "WKBL" || upper === "V_LEAGUE" || upper === "V_LEAGUE_W" || cupHasLeaders;
   const leaderboard = showStats && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
   // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
   // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).
@@ -946,7 +976,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {view === "predictions" && <LeaguePredictionsPanel league={upper} />}
 
-      {(isSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
+      {(isSoccer || isGenericSoccer || CUP_LEAGUES.has(upper)) && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {/* 조별리그 국가대표 대회는 평면 표 대신 빅매치 허브(빅매치 + 레일 + 조 토글 + 조별 카드).
               네이션스리그 = 리그 A~D·14개 조, AFCON = 예선 12개 조(개최국 조 규칙 별도). */}
@@ -963,7 +993,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           )}
         </div>
       )}
-      {isSoccer && view === "power" && (
+      {(isSoccer || isGenericSoccer) && view === "power" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeaguePowerRanking league={upper} leagueName={info.name} />
         </div>
