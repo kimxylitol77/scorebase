@@ -23,7 +23,7 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
-import { ALL_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, HOCKEY_LEAGUES, LEAGUE_DISPLAY, SOCCER_LEAGUES, VOLLEYBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, HOCKEY_LEAGUES, LEAGUE_DISPLAY, LOL_LEAGUES, SOCCER_LEAGUES, VOLLEYBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { getFullStandings, getStandingsState } from "@/lib/sports/thesports/standings-helper";
 import { NO_TABLE_LEAGUES, STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import LeaguePredictionsPanel from "@/components/leagues/LeaguePredictionsPanel";
@@ -157,8 +157,9 @@ type ValidLeague = (typeof VALID_LEAGUES)[number];
 // 2026-09-25 — 야구·농구·하키·배구도 같은 이유로(35개가 대체 화면) 전부 정식 페이지. 탭은 genericOtherViews.
 const OTHER_SPORT_LEAGUES = (code: string) =>
   BASEBALL_LEAGUES.has(code) || BASKETBALL_LEAGUES.has(code) || HOCKEY_LEAGUES.has(code) || VOLLEYBALL_LEAGUES.has(code);
+// e스포츠(LCK CL·LPL·LEC·LCS·EWC)도 같은 날 — 순위 전용 화면만 있고 일정 탭이 없었다. 탭은 NON_SOCCER_VIEWS.
 const hasLeaguePage = (code: string) =>
-  VALID_LEAGUES.includes(code as ValidLeague) || SOCCER_LEAGUES.has(code) || OTHER_SPORT_LEAGUES(code);
+  VALID_LEAGUES.includes(code as ValidLeague) || SOCCER_LEAGUES.has(code) || OTHER_SPORT_LEAGUES(code) || LOL_LEAGUES.has(code);
 
 type ArticleType = "PREVIEW" | "RECAP" | "ANALYSIS";
 type FilterType = "ALL" | ArticleType;
@@ -724,6 +725,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     SLOVAK_EXTRALIGA: ["standings", "fixtures", "articles"],
     DENMARK_METAL: ["standings", "fixtures", "articles"],
     LOL: ["standings", "predictions", "power", "fixtures", "history", "articles"],
+    // 해외 LoL·국제전 — 순위는 리그별 전용 컴포넌트(자체 순위·로스터·통계 탭), 일정·결과는 공용 목록.
+    // LCK CL 은 순위 원천이 없고 ts 대회 id 에 플레이오프가 섞여 경기 결과로 표를 만들면 틀려 일정만.
+    LEC: ["standings", "fixtures", "articles"],
+    LCS: ["standings", "fixtures", "articles"],
+    LPL: ["standings", "fixtures", "articles"],
+    EWC: ["standings", "fixtures", "articles"],
+    LCK_CL: ["fixtures", "articles"],
     // NBA — 순위(ESPN 공식, 2026-08 중복 팀 정리 후 개방) + 일정(서머리그 + 지난 시즌 접기).
     NBA: ["standings", "predictions", "fixtures", "history", "articles"],
     // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
@@ -1085,6 +1093,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {!isSoccer && view === "standings" && (upper === "KBL" || upper === "WKBL") && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <KoreanBasketballTable league={upper} withLastLeaders />
+        </div>
+      )}
+      {view === "standings" && (upper === "LEC" || upper === "LCS" || upper === "LPL" || upper === "EWC") && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {upper === "LPL" ? (
+            <LolLplStandings name={LEAGUE_DISPLAY[upper] ?? upper} />
+          ) : upper === "EWC" ? (
+            <EwcStandings name={LEAGUE_DISPLAY[upper] ?? upper} />
+          ) : (
+            <LolSimpleStandings league={upper} name={LEAGUE_DISPLAY[upper] ?? upper} />
+          )}
         </div>
       )}
       {isGenericOther && !isBasketball && view === "standings" && (
