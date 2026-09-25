@@ -20,6 +20,7 @@ test("FA컵 예선 이름은 소스 이름 그대로 옮긴다", () => {
   // ts 는 16강을 "1/8 finals" 라고 부른다 — "final" 이 들어갔다고 결승이 아니다
   assert.equal(stageKo("1/8 finals"), "16강");
   assert.equal(stageKo("1/4-finals"), "8강");
+  assert.equal(stageKo("1/128-finals"), "예비라운드"); // af 컵 첫 라운드 — 256강이 아니다
   assert.equal(stageKo("Final"), "결승");
   assert.equal(stageKo("Group Stage"), "조별리그");
 });
@@ -40,6 +41,7 @@ test("라운드는 첫 경기 날짜 순, 지금 단계는 치른 가장 늦은 
 test("시즌 라벨 — 가을 개막 컵과 달력 시즌 컵", () => {
   assert.equal(seasonLabel(at("2026-08-09"), false), "2026-27");
   assert.equal(seasonLabel(at("2027-01-10"), false), "2026-27");
+  assert.equal(seasonLabel(at("2026-05-26"), false), "2026-27"); // 스웨덴컵 새 대회 1라운드
   assert.equal(seasonLabel(at("2026-03-01"), true), "2026");
   assert.equal(previousSeason("2026-27"), "2025-26");
   assert.equal(previousSeason("2026"), "2025");

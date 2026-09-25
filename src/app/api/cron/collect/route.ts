@@ -119,6 +119,8 @@ const ALL_LEAGUES: League[] = [
   "CANADA_PL",
   // 2026-05-24 추가 (4개)
   "SUI_CUP",
+  // KFA컵 (2026-09-25) — af 294 매핑·컬렉터는 있었는데 이 목록에 없어 한 번도 수집되지 않았다(DB 0건).
+  "KFA_CUP",
   "LEAGUE_ONE",
   "LATVIA_VL",
   "BELARUS_PL",

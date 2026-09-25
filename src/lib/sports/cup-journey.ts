@@ -40,6 +40,8 @@ export function stageKo(label: string): string {
   const proper = s.match(/^(first|second|third|fourth|fifth|sixth) round proper$/);
   if (proper) return `본선 ${ORD[proper[1]]}라운드`;
   // "1/8 finals" = 16강. "final" 이 들어갔다고 결승으로 옮기면 틀린다(코파 두 브라질 16강이 "결승 16경기"로 나왔다).
+  // af 는 컵 첫 예비 라운드를 "1/128-finals" 로 부른다(코파 델 레이 20경기·KFA컵 4경기) — 256강이 아니다.
+  if (/^1\/128[\s-]*finals?$/.test(s)) return "예비라운드";
   const frac = s.match(/^1\/(\d+)[\s-]*finals?$/);
   if (frac) return `${Number(frac[1]) * 2}강`;
   if (/^group stage$|^group [a-z]$/.test(s)) return "조별리그";
@@ -88,7 +90,9 @@ export function currentStage(stages: JourneyStage[]): JourneyStage | null {
 export function seasonLabel(firstMatch: Date, calendarYear: boolean): string {
   const y = firstMatch.getUTCFullYear();
   if (calendarYear) return String(y);
-  const start = firstMatch.getUTCMonth() >= 6 ? y : y - 1;
+  // 5월부터 새 대회 — 스웨덴컵은 5월 말에 새 대회(2026-27) 1라운드를 연다. 7월 경계면 2025-26 으로 읽혀
+  // 직전 대회 우승 기록(2025-26 미엘뷔)과 겹쳐 "이번 시즌 우승"으로 잘못 나갔다(2026-09-25).
+  const start = firstMatch.getUTCMonth() >= 4 ? y : y - 1;
   return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
 }
 
