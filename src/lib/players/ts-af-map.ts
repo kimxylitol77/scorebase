@@ -31,6 +31,16 @@ export function afPlayerToTs(afId: number | string): string | null {
   return load()?.afToTs[String(afId)] ?? null;
 }
 
+/**
+ * 왕복이 맞을 때만 af id — af 하나에 ts 선수 둘이 붙은 매핑(2026-09-25 실측 134건)은
+ * afToTs 가 한쪽만 가리켜, af id 로 저장하면 읽는 쪽(af→ts)이 딴 선수로 연결한다
+ * (CHAMPIONSHIP Kavuma-McQueen → af 395762 → ts Mathis Amougou). 저장용 id 는 이걸 쓴다.
+ */
+export function tsPlayerToAfExact(tsId: string): number | null {
+  const af = tsPlayerToAf(tsId);
+  return af != null && afPlayerToTs(af) === tsId ? af : null;
+}
+
 /** 매핑 전체 [tsId, afId][] — 전 선수 순회 잡(트로피 수집 등)용. */
 export function tsAfEntries(): [string, number][] {
   return Object.entries(load()?.tsToAf ?? {});

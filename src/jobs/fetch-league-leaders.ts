@@ -42,7 +42,7 @@ import {
 import { getWorldCupPlayerStats } from "@/lib/sports/thesports/world-cup-player-stats";
 import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
 import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
-import { tsPlayerToAf } from "@/lib/players/ts-af-map";
+import { tsPlayerToAfExact } from "@/lib/players/ts-af-map";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
@@ -135,7 +135,7 @@ async function clearFutureSeasons(league: string, currentSeason: string) {
  *
  * api-football 키 만료(2026-07)로 클럽리그 리더를 TheSports 시즌통계로 이관.
  * predictions/[league] 가 이미 빅5 리더보드에 쓰는 것과 동일 소스·동일 이름 규칙.
- * - externalId 는 af id 우선(tsPlayerToAf) — 매핑 없으면 ts id. ballon 병합·평점 조회 위해.
+ * - externalId 는 af id 우선(tsPlayerToAfExact — 왕복 일치분만) — 없으면 ts id. ballon 병합·평점 조회 위해.
  * - 저장 시즌 라벨은 데이터 자체의 s.season 사용 → 8월 2026-27 전환 시 자동 정합.
  *   (2025-26 최종 데이터는 시즌별 보존 — 과거 시즌 삭제 없음, ballon 심사창·위키 축적 겸용.)
  * - 커버리지가 충분한 리그만(allowlist), 그중 카테고리당 리더 <5 면 skip → 기존 데이터 보존.
@@ -542,7 +542,7 @@ async function syncLeagueFromTsPlayerStat(
     for (let i = 0; i < top.length; i++) {
       const r = top[i];
       const pid = r.player?.id ?? "";
-      const af = pid ? tsPlayerToAf(pid) : null;
+      const af = pid ? tsPlayerToAfExact(pid) : null;
       const koName = ov[pid]?.nameKo || nm.get(pid)?.nameKo || r.player?.name || "(미상)";
       ops.push(
         leaderUpsertOp({
@@ -592,7 +592,7 @@ async function syncWorldCupFromTheSports(seasonLabel: string): Promise<Record<st
       .slice(0, TOP_N);
     for (let i = 0; i < top.length; i++) {
       const s = top[i];
-      const af = tsPlayerToAf(s.id);
+      const af = tsPlayerToAfExact(s.id);
       await upsertLeader({
         league: "WORLD_CUP",
         category: c.cat,
