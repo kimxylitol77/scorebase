@@ -113,7 +113,7 @@ const nextConfig: NextConfig = {
       // 인덱스 page 가 없는 상위 경로 — 주소창 직접 입력·외부 링크 404 방지 (2026-07 감사).
       // 추후 진짜 인덱스 페이지가 생길 수 있어 permanent: false.
       { source: "/live", destination: "/scores", permanent: false },
-      { source: "/leagues", destination: "/standings", permanent: false },
+      // /leagues 는 2026-09-25 리그 전체 목록 페이지가 생겨 redirect 제거.
       { source: "/articles", destination: "/previews", permanent: false },
       { source: "/teams", destination: "/standings", permanent: false },
       { source: "/salaries", destination: "/salaries/kbo", permanent: false },

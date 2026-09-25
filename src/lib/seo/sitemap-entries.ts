@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
-import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LOL_LEAGUES, sportCodeForLeague } from "@/lib/sports/sport-leagues";
+import { EMPTY_FACTS, getLeaguePageFacts } from "@/lib/seo/league-page-facts";
+import { isRichLeague } from "@/lib/seo/league-seo-copy";
+import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { resolveSeasonYear } from "@/lib/sports/season-registry";
@@ -513,6 +516,22 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     });
   }
 
+  // 리그 전체 목록 + 내용이 채워진 리그 페이지(2026-09-25 정식 페이지 승격분). 위 SITEMAP_LEAGUES 의
+  // thin 제외 정책은 유지하되, 선수 기록이 있고 최근 반년 30경기 이상인 리그는 순위·일정·기록 탭이 차 있어
+  // thin 이 아니다(isRichLeague). 매시간 사실이 바뀌면 자동으로 들고 난다.
+  const facts = await getLeaguePageFacts().catch(() => ({}) as Record<string, typeof EMPTY_FACTS>);
+  const PAGE_SPORTS = new Set(["soccer", "baseball", "basketball", "hockey", "volleyball", "esports"]);
+  const richExtra = (ALL_LEAGUES as readonly string[]).filter(
+    (lg) => !SITEMAP_LEAGUES.includes(lg) && PAGE_SPORTS.has(sportCodeForLeague(lg) ?? "") && isRichLeague(facts[lg] ?? EMPTY_FACTS),
+  );
+  const richLeaguePages: MetadataRoute.Sitemap = [
+    { url: `${base}/leagues`, changeFrequency: "daily", priority: 0.8 },
+    ...richExtra.map((lg) => ({ url: `${base}/leagues/${lg}`, changeFrequency: "daily" as const, priority: 0.6 })),
+    ...richExtra
+      .filter((lg) => PREDICTION_LEAGUE_SET.has(lg))
+      .map((lg) => ({ url: `${base}/predictions/${lg}`, changeFrequency: "daily" as const, priority: 0.6 })),
+  ];
+
   // ── lean(구글) / full(빙) 분리 ──
   // lean 제외 근거: live·h2h 는 구글용 noindex(lib/seo-robots GOOGLE_NOINDEX) 라 광고하면 모순,
   // 선수 프로필은 몸값 상위 600 만(8/08 확장 전 정책으로 복귀 — 5,200 전량은 크롤 예산 희석),
@@ -524,11 +543,11 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     return !!m && leaderKeys.has(`${m[2] ?? "MLB"}:${m[1]}`);
   });
   const lean: MetadataRoute.Sitemap = [
-    ...staticPages, ...standingsPages, ...nationalTeamPagesKo, ...todDatePages, ...articlePages, ...noticePages,
+    ...staticPages, ...richLeaguePages, ...standingsPages, ...nationalTeamPagesKo, ...todDatePages, ...articlePages, ...noticePages,
     ...blogPages, ...leanPlayerPages, ...coachPages, ...squadPages, ...teamPages, ...leanBaseballPlayerPages,
   ];
   const full: MetadataRoute.Sitemap = [
-    ...staticPages, ...standingsPages, ...nationalTeamPagesKo, ...nationalTeamPagesEn, ...todDatePages, ...h2hPages,
+    ...staticPages, ...richLeaguePages, ...standingsPages, ...nationalTeamPagesKo, ...nationalTeamPagesEn, ...todDatePages, ...h2hPages,
     ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...coachPages, ...squadPages,
     ...teamPages, ...ufcFighterPages, ...baseballPlayerPages, ...enBaseballPlayerPages,
   ];

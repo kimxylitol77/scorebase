@@ -34,6 +34,13 @@
 ### 도구 (인터랙티브)
 - [/tools/kbo-win-probability](https://www.scorebase.kr/tools/kbo-win-probability): KBO 야구 상황별 승리확률 계산기 — 이닝·점수차·아웃·주자별 승률 + 번트·도루·고의4구 전술 손익(마르코프 + 몬테카를로). MLB(/tools/mlb-win-probability)·NPB(/tools/npb-win-probability) 버전도 제공.
 
+### 리그 페이지 (종목·국가별 250여 개)
+- [/leagues](https://www.scorebase.kr/leagues): 리그 전체 목록 — 축구(1·2부·컵·국가대항전)·야구·농구·하키·배구·e스포츠 리그를 종목·국가별로. 경기나 선수 기록이 있는 리그만 싣는다.
+- [/leagues/{LEAGUE}](https://www.scorebase.kr/leagues/EKSTRAKLASA): 리그 허브 — 데이터가 있는 탭만 연다. 순위(표가 있는 리그전), 일정(시즌 전체 · 라운드/주차별, 한국시간), 통계(선수 득점·도움·기록 순위), 예측(시즌 시뮬레이션 리그), 역사(역대 우승), 대진표(컵), 글. 예: ?view=fixtures · ?view=stats.
+- UEFA 클럽대회(UCL·UEL·UECL)는 예측이 리그페이즈 36팀 기준(16강 직행 1~8위·탈락 25위 이하 확률) — "우승 확률"이 아니다.
+- 네이션스리그·AFCON·아시안게임 등 조별 국가대항전은 순위 탭이 빅매치 허브(조별 표 + 주목 경기), 녹아웃 컵(FA컵 등)은 "대회 여정"(진행 라운드·우승 기록·라운드별 결과).
+- 각 리그 페이지에 SportsOrganization·BreadcrumbList·Dataset JSON-LD — 인용 시 "스코어베이스 {리그} {데이터}" 로 출처 표기.
+
 ### 선수/팀 데이터
 - [/teams/{teamId}](https://www.scorebase.kr/teams/1554): 팀 페이지 — 시즌 성적, 최근 매치, 선수 명단.
 - [/players/{playerId}](https://www.scorebase.kr/players): 선수 프로필 + 시즌 stats + 폼.

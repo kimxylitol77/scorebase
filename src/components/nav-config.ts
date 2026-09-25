@@ -37,6 +37,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·강등 확률" },
       { href: "/world-cup", label: "FIFA 월드컵 2026", desc: "북중미 · 일정·우승 확률" },
       { href: "/standings", label: "리그 순위", desc: "EPL·라리가·K리그 등" },
+      { href: "/leagues", label: "리그 전체", desc: "종목·국가별 230여 개 리그 페이지" },
       { href: "/soccer/korea", label: "해외파 한국 선수", desc: "유럽·MLS 시즌 성적 · 다음 경기" },
       { href: "/soccer/stats", label: "선수 스탯 표", desc: "15개 리그 전 선수 · 리그 백분위·산점도" },
       { href: "/transfers", label: "몸값·가치 랭킹", desc: "선수 이적가치 · 가성비 구단" },
@@ -86,6 +87,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/golf/korea", label: "골프 한국 선수", desc: "PGA·LPGA 우승·톱10 시즌 집계" },
       { href: "/rankings/f1", label: "F1 챔피언십", desc: "드라이버·컨스트럭터 포인트" },
       { href: "/standings", label: "리그 순위", desc: "NHL·VNL·LCK 등 전 종목" },
+      { href: "/leagues", label: "리그 전체", desc: "종목·국가별 230여 개 리그 페이지" },
     ],
   },
 ];
