@@ -1,9 +1,10 @@
-// 축구 종목 허브 — 빅5 리그 선택(순위 Top3 미리보기) + UCL·월드컵·이적·비교 입구.
+// 축구 종목 허브 — 빅5 리그 선택(순위 Top3 미리보기) + 지금 열리는 국가 대항전 + UCL·월드컵·이적·비교 입구.
 // 기존 데이터/페이지 재사용(중복 구현 X). 각 리그 카드는 /leagues/{code} 상세로 연결되는 "입구".
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import { safeFetchTop3 } from "@/lib/sports/standings-overview";
+import { prisma } from "@/lib/db";
 import {
   Trophy,
   ArrowLeftRight,
@@ -72,10 +73,63 @@ const CUP_WORLD = [
   { code: "AFC_CUP", name: "AFC컵" },
 ];
 
+// 국가 대항전 후보 — 이 중 "지금 경기가 있는" 대회만 허브에 뜬다(대회가 끝나면 자동으로 빠짐).
+const NATIONAL_COMPS = [
+  { code: "WORLD_CUP", name: "FIFA 월드컵" },
+  { code: "WC_QUAL", name: "월드컵 예선" },
+  { code: "UEFA_NL", name: "UEFA 네이션스리그" },
+  { code: "EURO_QUAL", name: "유로 예선" },
+  { code: "INTL_FRIENDLY", name: "A매치 친선" },
+  { code: "ASIAN_GAMES_FB", name: "아시안게임 남자축구" },
+  { code: "ASIAN_GAMES_FB_W", name: "아시안게임 여자축구" },
+  { code: "AFCON", name: "아프리카 네이션스컵" },
+  { code: "CONCACAF_GOLD", name: "CONCACAF 골드컵" },
+  { code: "GULF_CUP", name: "걸프컵" },
+  { code: "OLYMPICS_FOOTBALL", name: "올림픽 축구" },
+  { code: "U20_WC", name: "U-20 월드컵" },
+  { code: "U17_WC", name: "U-17 월드컵" },
+  { code: "UEFA_U21_Q", name: "U-21 유로 예선" },
+  { code: "UEFA_U21", name: "U-21 유로" },
+  { code: "UEFA_U19", name: "U-19 유로" },
+  { code: "UEFA_U17", name: "U-17 유로" },
+];
+
+type ActiveComp = { code: string; name: string; live: number; upcoming: number; next: Date | null; last: Date | null };
+
+// 최근 2일~앞으로 14일 안에 경기가 있는 대회 = "지금 열리는" 대회.
+async function fetchActiveNationalComps(): Promise<ActiveComp[]> {
+  const now = Date.now();
+  const rows = await prisma.match.findMany({
+    where: {
+      league: { in: NATIONAL_COMPS.map((c) => c.code) },
+      startTime: { gte: new Date(now - 2 * 864e5), lte: new Date(now + 14 * 864e5) },
+      status: { not: "POSTPONED" },
+    },
+    select: { league: true, startTime: true, status: true },
+  });
+  return NATIONAL_COMPS.flatMap((c) => {
+    const ms = rows.filter((m) => m.league === c.code);
+    if (ms.length === 0) return [];
+    const ahead = ms.filter((m) => m.status === "SCHEDULED" && m.startTime.getTime() > now);
+    const done = ms.filter((m) => m.status === "FINISHED");
+    return [{
+      ...c,
+      live: ms.filter((m) => m.status === "LIVE").length,
+      upcoming: ahead.length,
+      next: ahead.length ? new Date(Math.min(...ahead.map((m) => m.startTime.getTime()))) : null,
+      last: done.length ? new Date(Math.max(...done.map((m) => m.startTime.getTime()))) : null,
+    }];
+  });
+}
+
+const kstMD = (d: Date) =>
+  new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" }).format(d);
+
 export default async function SoccerHub() {
-  const top3s = await Promise.all(
-    LEAGUES.map((l) => safeFetchTop3(l.code).catch(() => [])),
-  );
+  const [top3s, nationalComps] = await Promise.all([
+    Promise.all(LEAGUES.map((l) => safeFetchTop3(l.code).catch(() => []))),
+    fetchActiveNationalComps().catch(() => [] as ActiveComp[]),
+  ]);
 
   const tabs = [
     { label: "리그", href: "/soccer", active: true },
@@ -109,7 +163,7 @@ export default async function SoccerHub() {
             </svg>
             축구
           </h1>
-          <span className="text-sm text-neutral-400">빅5 · K리그 · 유럽 대항전 · 월드컵 · 랭킹</span>
+          <span className="text-sm text-neutral-400">빅5 · K리그 · 유럽 대항전 · 국가 대항전 · 랭킹</span>
         </div>
         <p className="text-sm text-neutral-500 break-keep">
           리그를 선택해 순위·일정·AI 예측을 확인하세요. 이적시장·선수 비교도 한 곳에서.
@@ -130,6 +184,8 @@ export default async function SoccerHub() {
           ))}
         </nav>
       </header>
+
+      {nationalComps.length > 0 && <NationalCompsCard comps={nationalComps} />}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {LEAGUES.map((lg, i) => (
@@ -336,6 +392,47 @@ function Card({
       >
         {hrefLabel} →
       </Link>
+    </section>
+  );
+}
+
+// 지금 열리는 국가 대항전 — 대회마다 리그 페이지로 바로 가는 행.
+function NationalCompsCard({ comps }: { comps: ActiveComp[] }) {
+  return (
+    <section className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-semibold flex items-center gap-1.5 text-zinc-950 dark:text-white">
+          <Flag className="w-4 h-4 text-zinc-700 dark:text-white/70" aria-hidden />
+          지금 열리는 국가 대항전
+        </span>
+        <span className="text-[11px] text-zinc-500 dark:text-white/45">{comps.length}개 대회</span>
+      </div>
+      <ul className="grid gap-2 sm:grid-cols-2">
+        {comps.map((c) => (
+          <li key={c.code}>
+            <Link
+              href={`/leagues/${c.code}`}
+              className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 dark:border-white/10 px-3 py-2.5 text-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-400"
+            >
+              <span className="font-medium truncate">{c.name}</span>
+              <span className="shrink-0 flex items-center gap-2 text-xs text-neutral-500">
+                {c.live > 0 ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" aria-hidden />
+                    LIVE {c.live}
+                  </span>
+                ) : c.next ? (
+                  <span className="tabular-nums">다음 {kstMD(c.next)}</span>
+                ) : c.last ? (
+                  <span className="tabular-nums">최근 {kstMD(c.last)}</span>
+                ) : null}
+                {c.upcoming > 0 && <span className="tabular-nums text-neutral-400">예정 {c.upcoming}</span>}
+                <span aria-hidden>→</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
