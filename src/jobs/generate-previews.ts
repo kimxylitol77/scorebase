@@ -11,6 +11,7 @@ import { humanizeArticle } from "@/lib/articles/humanize";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
 import { parseKnockoutRound } from "@/lib/predict/wc-bracket";
+import { stageKo, stageLabelFromRaw } from "@/lib/sports/cup-journey";
 import { pickReadiness } from "@/lib/predict/pick-readiness";
 import {
   fetchCurrentLolPatch,
@@ -330,6 +331,11 @@ export async function runPreview(opts?: {
           const round = parseKnockoutRound(j?.league?.round ?? null);
           if (round) context.wcKnockoutRound = round;
         } catch {}
+      } else {
+        // 그 밖의 대회 넉아웃(아시안게임 8강 등) — 소스 라운드 이름이 16강·8강·4강·결승·3·4위전일 때만.
+        const label = stageLabelFromRaw(m.raw);
+        const ko = label ? stageKo(label) : null;
+        if (ko && /^(\d+강|결승|3·4위전)$/.test(ko)) context.knockoutRoundKo = ko;
       }
 
       // TheSports analysis 보강 (축구만) — 모든 대회 H2H + 양 팀 최근 7경기 + 시간대별 골 분포.

@@ -331,6 +331,28 @@ export const NATIONAL_SOCCER_COMPS: readonly string[] = [
   ...NATIONAL_TEAM_LEAGUES, ...YOUTH_NATIONAL_LEAGUES, ...WOMEN_NATIONAL_LEAGUES,
 ].filter((l, i, a) => a.indexOf(l) === i);
 
+/**
+ * 한 곳(또는 몇 나라)에서 몰아 치르는 대회 — 표기상 홈팀은 대진표 형식일 뿐이고 개최국만 실제 홈이다.
+ * 홈 어드밴티지(win-probability)와 프리뷰 프롬프트의 중립 구장 가드가 같은 표를 쓴다.
+ * hosts 는 팀 영문명 정규화 키(소문자·공백/기호 제거, U23·Women 접미사 제거).
+ */
+export const HOSTED_TOURNAMENTS: Record<string, { event: string; hostKo: string; hosts: string[] }> = {
+  WORLD_CUP: { event: "2026 FIFA 월드컵", hostKo: "미국·캐나다·멕시코", hosts: ["usa", "unitedstates", "mexico", "canada"] },
+  // 2026-09-25 — 아시안게임은 일본 아이치·나고야, 걸프컵은 사우디(제다) 개최. 전엔 표기상 홈팀에 +70 이 붙고 글이 "홈 이점"을 썼다.
+  ASIAN_GAMES_FB: { event: "2026 아이치·나고야 아시안게임", hostKo: "일본", hosts: ["japan"] },
+  ASIAN_GAMES_FB_W: { event: "2026 아이치·나고야 아시안게임", hostKo: "일본", hosts: ["japan"] },
+  GULF_CUP: { event: "2026 걸프컵", hostKo: "사우디아라비아", hosts: ["saudiarabia"] },
+};
+
+/** 개최 대회에서 이 팀이 개최국인가. 개최 대회가 아니면 null(= 평소 홈/원정). */
+export function isTournamentHost(league: string, teamName?: string): boolean | null {
+  const t = HOSTED_TOURNAMENTS[league];
+  if (!t) return null;
+  if (!teamName) return false;
+  const key = teamName.replace(/\s+(U-?\d{2}|Women|W)$/i, "").toLowerCase().replace(/[\s.&-]/g, "");
+  return t.hosts.includes(key);
+}
+
 /** 팀 전력을 클럽식 Elo 가 아니라 나라 시드(nationalEloFor)로 잡는 대회. */
 export function usesNationalElo(league: string): boolean {
   return isSeniorNationalLeague(league) || YOUTH_NATIONAL_LEAGUES.has(league) || WOMEN_NATIONAL_LEAGUES.has(league);

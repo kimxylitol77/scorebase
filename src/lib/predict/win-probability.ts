@@ -11,6 +11,7 @@ import {
   BASKETBALL_LEAGUES,
   HOCKEY_LEAGUES,
   leagueHasDraw,
+  isTournamentHost,
 } from "@/lib/sports/sport-leagues";
 import { hasHomeCalibration } from "./home-calibration";
 
@@ -34,16 +35,13 @@ const HOME_ADVANTAGE_SOCCER = 70;
 // 2026 월드컵 — 북중미 3개국 공동개최라 대부분 중립 구장. 개최국 자국 경기만 실제 홈
 // (eloratings.net 동일 관행). 팀명 미전달 호출부는 중립(0) 디폴트 — 한국·체코 같은
 // 비개최국 "홈"팀이 +100 받아 시장 대비 과대평가되던 것 수정 (2026-06-11).
-const WC_HOST_NATIONS = new Set(["usa", "unitedstates", "mexico", "canada"]);
+// 2026-09-25 — 아시안게임(일본)·걸프컵(사우디)까지 같은 규칙. 개최국 표는 sport-leagues HOSTED_TOURNAMENTS.
 
 // export — member-bot 피처 벡터가 리그 HA 상수를 그대로 기록하기 위해 (로직 동일).
 export function homeAdvantageFor(league: string, homeTeamName?: string): number {
   if (LOL_LEAGUES.has(league)) return 0;
-  if (league === "WORLD_CUP") {
-    if (!homeTeamName) return 0;
-    const norm = homeTeamName.toLowerCase().replace(/[\s.&-]/g, "");
-    return WC_HOST_NATIONS.has(norm) ? HOME_ADVANTAGE_SOCCER : 0;
-  }
+  const host = isTournamentHost(league, homeTeamName);
+  if (host != null) return host ? HOME_ADVANTAGE_SOCCER : 0;
   // 축구(무승부 존재 종목)는 calibration 적용한 70
   if (leagueHasDraw(league)) return HOME_ADVANTAGE_SOCCER;
   if (BASKETBALL_LEAGUES.has(league)) return HOME_ADVANTAGE_BASKETBALL;
@@ -99,7 +97,7 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
 };
 
 export interface WinProbOpts {
-  /** 홈팀 이름 — WORLD_CUP 중립 구장 판정용 (개최국 USA/Mexico/Canada 만 홈 +100) */
+  /** 홈팀 이름 — 개최 대회(월드컵·아시안게임·걸프컵) 중립 구장 판정용 (개최국만 홈 +70) */
   homeTeamName?: string;
 }
 

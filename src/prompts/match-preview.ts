@@ -3,7 +3,7 @@
 import type { NormalizedMatch } from "@/lib/sports/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { WC_ROUND_LABEL, type WcRound } from "@/lib/predict/wc-bracket";
-import { SOCCER_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { SOCCER_LEAGUES, BASEBALL_LEAGUES, HOSTED_TOURNAMENTS, isTournamentHost } from "@/lib/sports/sport-leagues";
 
 /** LoL 로스터 1인 — BDL/Leaguepedia 양쪽 호환 */
 export interface LolRosterPlayer {
@@ -56,6 +56,8 @@ export interface PreviewContext {
   handicapMarket?: { pick: "HOME" | "AWAY"; line: number; prob: number };
   /** 월드컵 넉아웃 라운드 (조별리그·비월드컵이면 undefined) — 조별리그 개념 서술 환각 차단 가드용. */
   wcKnockoutRound?: WcRound;
+  /** 월드컵 밖 대회의 넉아웃 라운드 한글명("8강"·"결승" 등, 조별·리그전이면 undefined) — 같은 조별리그 서술 가드. */
+  knockoutRoundKo?: string;
   /** 더블찬스 모델 확정값(축구). pick: 1X=홈/무, X2=무/원정, 12=홈/원정. */
   doubleChance?: { pick: "1X" | "X2" | "12"; prob: number };
   /** BTTS(양 팀 모두 득점) 모델 확정값(축구·하키). */
@@ -362,9 +364,26 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     }
   }
 
+  // 개최 대회(아시안게임·걸프컵 등) — 월드컵과 같은 중립 구장 가드. 2026-09-25 아시안게임 8강 한국-베트남 프리뷰가
+  // 일본 개최인데 "홈 이점"을, 걸프컵(사우디 제다) 쿠웨이트-이라크 프리뷰가 "쿠웨이트의 홈 이점"을 썼다.
+  const hosted = match.league !== "WORLD_CUP" ? HOSTED_TOURNAMENTS[match.league] : undefined;
+  if (hosted) {
+    const homeIsHost = isTournamentHost(match.league, match.homeTeam.name);
+    const awayIsHost = isTournamentHost(match.league, match.awayTeam.name);
+    const hostSide = homeIsHost ? home : awayIsHost ? away : null;
+    ctxLines.push(
+      `- ⚠️ 대회 사실(반드시 준수): ${hosted.event}은(는) ${hosted.hostKo}에서 열리는 개최 대회다. ${hostSide ? `개최국 ${hostSide}만 실제 홈 이점이 있다.` : `${home}·${away} 모두 개최국이 아니므로 이 경기는 중립 구장 경기다 — "홈 이점", "홈 구장", "홈 관중", "원정 부담" 같은 서술 절대 금지. 표기상 홈팀은 대진표 형식일 뿐이다.`}`,
+    );
+  }
+  if (context.knockoutRoundKo) {
+    ctxLines.push(
+      `- ⚠️ 대회 단계(반드시 준수): 이 경기는 조별리그가 아니라 ${context.knockoutRoundKo} 단판 넉아웃 경기다. "조별 리그", "조 1위 경쟁", "승점", "조별 순위" 같은 조별리그 개념 서술 절대 금지. 90분 무승부면 연장·승부차기로 승자를 가린다. "시즌 함의" 섹션은 "${context.knockoutRoundKo}에서 이기면 다음 라운드 진출, 지면 탈락"의 토너먼트 관점으로만 서술하라(우승/강등/플레이오프 확률 언급 금지).`,
+    );
+  }
+
   // 넉아웃 매치는 순위·승점 라인 생략 — calcStandings 가 넉아웃 승점까지 합산한 값(조별 최대 9점 초과)이라
   // "조별리그 성적" 으로 라벨링할 수 없고, 48팀 통합 순위는 오서술만 유발한다.
-  if (context.position && !(match.league === "WORLD_CUP" && context.wcKnockoutRound)) {
+  if (context.position && !(match.league === "WORLD_CUP" && context.wcKnockoutRound) && !context.knockoutRoundKo) {
     if (isBaseball && context.record) {
       // 야구는 승점이 아니라 승패로 순위를 읽는다. 3/1/0 환산 "152점" 을 주면 축구 순위표로 오독한다.
       // NPB 는 calcStandings 가 센트럴·퍼시픽을 합친 12팀 표라 리그 내 순위가 아님을 명시한다.
