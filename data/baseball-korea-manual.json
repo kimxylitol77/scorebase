@@ -1,5 +1,5 @@
 {
- "_readme": "일본 야구(NPB·독립리그) 한국 선수 수동 명단 — 출생국 API 가 없어 사람이 관리. 항목: nameKo, nameEn(공식 영문 표기), nameJa(공식 일본어 표기 — npb.jp 성적표 이름 매칭용), league(표시 라벨), team(한글 구단명, NPB 는 성적 테이블 teamName 과 동일 표기), pos, status, note, npbId(npb.jp 선수 id), profileUrl(공식 프로필), stats(성적 원천: {src:'npb-farm',team:npb.jp 팀코드,label} 또는 {src:'bcl',team:bc-l-data 팀id,id:선수id,label}). 2026-09-25 전수 대조: NPB 12구단+하야테·오이식스 명단, BC리그 12팀, 시코쿠 IL 4팀(롯데 자이언츠 파견팀 5/19~6/25 종료 제외). 규슈 아시아리그는 공식 명단 미확인.",
+ "_readme": "일본 야구(NPB·독립리그) 한국 선수 수동 명단 — 출생국 API 가 없어 사람이 관리. 항목: nameKo, nameEn(공식 영문 표기), nameJa(공식 일본어 표기 — npb.jp 성적표 이름 매칭용), league(표시 라벨), team(한글 구단명, NPB 는 성적 테이블 teamName 과 동일 표기), pos, status, note, npbId(npb.jp 선수 id), profileUrl(공식 프로필), statsUrl(stats 가 없을 때 성적 대신 링크할 공식 기록 페이지), stats(성적 원천: {src:'npb-farm',team:npb.jp 팀코드,label} 또는 {src:'bcl',team:bc-l-data 팀id,id:선수id,label}). 2026-09-25 전수 대조: NPB 12구단+하야테·오이식스 명단, BC리그 12팀, 시코쿠 IL 4팀(롯데 자이언츠 파견팀 5/19~6/25 종료 제외). 규슈 아시아리그 5팀은 9/25 Omyutech(一球速報) 명단 대조 — 대회별 성적 수치가 서로 안 맞아(입단 전 등판 집계 등) stats 미연결, statsUrl 로 공식 기록 링크만.",
  "japan": [
   {
    "nameKo": "이건희",
@@ -13,8 +13,16 @@
    "npbId": "47545152",
    "profileUrl": "https://npb.jp/bis/players/47545152.html",
    "stats": [
-    { "src": "npb-farm", "team": "g", "label": "요미우리 2군" },
-    { "src": "npb-farm", "team": "v", "label": "하야테 2군(이적 전)" }
+    {
+     "src": "npb-farm",
+     "team": "g",
+     "label": "요미우리 2군"
+    },
+    {
+     "src": "npb-farm",
+     "team": "v",
+     "label": "하야테 2군(이적 전)"
+    }
    ]
   },
   {
@@ -27,7 +35,14 @@
    "status": "독립리그",
    "note": "재일교포 · 도카이대 중퇴 · 2년차",
    "profileUrl": "https://www.ibaraki-planets.jp/team/kim_hangeun/index.html",
-   "stats": [{ "src": "bcl", "team": 894, "id": 2118950, "label": "BC리그 공식전" }]
+   "stats": [
+    {
+     "src": "bcl",
+     "team": 894,
+     "id": 2118950,
+     "label": "BC리그 공식전"
+    }
+   ]
   },
   {
    "nameKo": "오정훈",
@@ -39,7 +54,14 @@
    "status": "독립리그",
    "note": "서울컨벤션고 · 1년차",
    "profileUrl": "https://www.ibaraki-planets.jp/team/oh_jeonghun/index.html",
-   "stats": [{ "src": "bcl", "team": 894, "id": 2123487, "label": "BC리그 공식전" }]
+   "stats": [
+    {
+     "src": "bcl",
+     "team": 894,
+     "id": 2123487,
+     "label": "BC리그 공식전"
+    }
+   ]
   },
   {
    "nameKo": "정태원",
@@ -51,7 +73,50 @@
    "status": "독립리그",
    "note": "용인시야구단 출신 · 1년차",
    "profileUrl": "https://www.ibaraki-planets.jp/team/jeong_taewon/index.html",
-   "stats": [{ "src": "bcl", "team": 894, "id": 2123488, "label": "BC리그 공식전" }]
+   "stats": [
+    {
+     "src": "bcl",
+     "team": 894,
+     "id": 2123488,
+     "label": "BC리그 공식전"
+    }
+   ]
+  },
+  {
+   "nameKo": "김윤범",
+   "nameEn": "Kim Yoonbum",
+   "nameJa": "キム ユンボム",
+   "team": "사가 아시아드림즈",
+   "pos": "내야수",
+   "note": "경기도리그 출신(2023 타점왕) · 1년차",
+   "league": "규슈 아시아리그",
+   "status": "독립리그",
+   "profileUrl": "https://giseleweb.com/prtimes/c147725_r14/",
+   "statsUrl": "https://baseball.omyutech.com/teamMember.action?teamId=129610"
+  },
+  {
+   "nameKo": "윤창유",
+   "nameEn": "Yun Changyu",
+   "nameJa": "ユン チャンユ",
+   "team": "사가 아시아드림즈",
+   "pos": "내야수",
+   "note": "한글 표기는 영문 공식 표기 기준",
+   "league": "규슈 아시아리그",
+   "status": "독립리그",
+   "profileUrl": "https://giseleweb.com/prtimes/c147725_r14/",
+   "statsUrl": "https://baseball.omyutech.com/teamMember.action?teamId=129610"
+  },
+  {
+   "nameKo": "김신욱",
+   "nameEn": "Kim Shin-wook",
+   "nameJa": "金　信旭",
+   "team": "미야자키 선샤인즈",
+   "pos": "투수",
+   "note": "대구고 · 8/28 입단",
+   "league": "규슈 아시아리그",
+   "status": "독립리그",
+   "profileUrl": "https://kabl.co.jp/2026/08/28/%E5%AE%AE%E5%B4%8E%E3%82%B5%E3%83%B3%E3%82%B7%E3%83%A3%E3%82%A4%E3%83%B3%E3%82%BA%E3%80%80%E6%96%B0%E5%85%A5%E5%9B%A3%E9%81%B8%E6%89%8B%E3%81%AE%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B-4/",
+   "statsUrl": "https://baseball.omyutech.com/teamMember.action?teamId=115156"
   }
  ]
 }

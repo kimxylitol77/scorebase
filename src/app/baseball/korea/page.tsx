@@ -281,7 +281,7 @@ export default async function BaseballKoreaPage() {
       {japan.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-neutral-900 dark:text-white">일본 야구 <span className="text-neutral-400 font-normal">{japan.length}명 · NPB·독립리그</span></h2>
-          <p className="text-[11px] text-neutral-500 break-keep">일본은 공식 국적 데이터가 없어 구단 명단을 직접 대조해 관리합니다. 성적은 NPB·BC리그 공식 기록 기준입니다.</p>
+          <p className="text-[11px] text-neutral-500 break-keep">일본은 공식 국적 데이터가 없어 구단 명단을 직접 대조해 관리합니다. 성적은 NPB·BC리그 공식 기록 기준이며, 규슈 아시아리그는 공식 기록 페이지로 연결합니다.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {japan.map((m, i) => {
               const lines = [npbFirstLine(m), ...japanLines[i]].filter((x) => x != null);
@@ -308,7 +308,11 @@ export default async function BaseballKoreaPage() {
                   </div>
                   {m.note && <p className="mt-2 text-[11px] text-neutral-500 break-keep">{m.nameEn} · {m.note}</p>}
                   <ul className="mt-2 space-y-0.5 border-t border-neutral-100 pt-2 text-xs tabular-nums text-neutral-700 dark:border-neutral-800 dark:text-neutral-200">
-                    {lines.length === 0 ? <li className="text-neutral-400">{SEASON} 시즌 기록 없음</li> : lines.map((l) => (
+                    {lines.length === 0 ? (
+                      <li className="text-neutral-400">
+                        {m.statsUrl ? <>성적 자동 연결 전 · <a href={m.statsUrl} target="_blank" rel="nofollow noopener" className="underline underline-offset-2 hover:text-neutral-600 dark:hover:text-neutral-200">공식 기록 보기</a></> : `${SEASON} 시즌 기록 없음`}
+                      </li>
+                    ) : lines.map((l) => (
                       <li key={l.label} className="break-keep"><span className="text-neutral-400">{l.label}</span> {l.text}</li>
                     ))}
                   </ul>

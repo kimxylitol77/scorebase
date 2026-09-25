@@ -103,6 +103,6 @@ export function mlbClubOf(p: BaseballKoreaPlayer): string | null {
 /** 일본 야구(NPB·독립리그) 수동 명단 — data/baseball-korea-manual.json. 비어 있으면 페이지가 해당 구간을 숨긴다. */
 export interface ManualJapanPlayer {
   npbId?: string; nameKo: string; nameEn: string; nameJa?: string; league: string; team: string; pos: string;
-  status?: string; note?: string; profileUrl?: string; stats?: JapanStatSource[];
+  status?: string; note?: string; profileUrl?: string; statsUrl?: string; stats?: JapanStatSource[];
 }
 export const BASEBALL_KOREA_JAPAN: ManualJapanPlayer[] = (manualRaw as { japan?: ManualJapanPlayer[] }).japan ?? [];
