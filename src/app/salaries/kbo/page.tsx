@@ -16,7 +16,7 @@ import { CircleDollarSign, Trophy } from "lucide-react";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "KBO 연봉 순위 — 2026 선수 연봉 랭킹",
+  title: "KBO 선수 연봉 랭킹 — 2026",
   description:
     "2026 KBO 프로야구 연봉 순위 — 국내 선수 TOP 100(양의지 42억 역대 최고, 고영표·최정·류현진 순)과 외국인 선수 달러 연봉(네일 160만 달러) 별도 집계. 10개 구단 전 선수 KBO 공식 공시 기준.",
   alternates: { canonical: "https://www.scorebase.kr/salaries/kbo" },
