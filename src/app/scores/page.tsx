@@ -855,20 +855,26 @@ const SPORT_KEYWORDS: Record<string, string[]> = {
     "오늘 경기", "오늘 스포츠", "스포츠 라이브", "전 종목 라이브 스코어",
   ],
   soccer: [
+    "스포츠 라이브스코어", "실시간 라이브스코어", "축구 라이브스코어", "오늘 축구 경기 결과",
     "축구 라이브 스코어", "축구 중계", "축구 일정", "오늘 축구",
     "EPL 라이브", "프리미어리그 일정", "K리그 일정", "J리그 일정",
     "UCL 라이브", "AFC 챔피언스리그",
   ],
   baseball: [
+    "프로야구 경기 결과", "오늘 프로야구 결과", "야구 실시간 스코어",
     "야구 라이브 스코어", "야구 중계", "오늘 야구",
     "KBO 라이브", "KBO 일정", "KBO 라이브 스코어",
     "MLB 라이브", "NPB 라이브", "프로야구 일정", "프로야구 중계", "오늘 KBO",
   ],
   basketball: [
+    "농구 라이브스코어", "농구 실시간 스코어",
     "농구 라이브 스코어", "NBA 라이브", "NBA 일정", "오늘 NBA", "KBL 라이브",
   ],
   hockey: [
-    "하키 라이브 스코어", "NHL 라이브", "NHL 일정",
+    "하키 라이브스코어", "하키 라이브 스코어", "NHL 라이브", "NHL 일정",
+  ],
+  volleyball: [
+    "배구 라이브스코어", "배구 실시간 스코어", "V리그 라이브",
   ],
   esports: [
     "LCK 라이브", "LCK 일정", "LCK 스코어",
@@ -890,10 +896,38 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   // "라이브스코어"(붙임형)가 실제 검색 형태(월 183만) — 빙 키워드 리포트(8/8)에 이 계열
   // 노출 0 = 헤드 키워드 미진입. keywords 배열에만 있고 title 에 없으면 exact-match 에서
   // 지는 패턴(NPB/MLB f16f915 와 동일)이라 검색어를 제목 맨 앞으로 올린다.
-  const title = `${sportKo} 라이브스코어 — ${dateKo} 실시간 점수 · 일정 · 결과`;
+  // 종목마다 사람들이 부르는 말이 다르다(구글·한국, 2026-09-25 Keyword Tool).
+  // 기본(축구) /scores 는 종목 없는 헤드 — 스포츠 라이브스코어 18,100·실시간 라이브스코어 14,800 —
+  // 를 받고, 야구는 "야구 라이브스코어"(480)가 아니라 "프로야구 경기 결과"(8,100)·"오늘 프로야구 결과"
+  // (4,400)로 찾는다. 색인되는 건 날짜 없는 종목 base URL(=오늘) 뿐이라 "오늘" 이 틀리지 않는다.
+  const TAIL = "Elo 모델 승률 추정·Value Bet·평균 2-3초 갱신. 스코어베이스.";
+  const HEAD: Partial<Record<SportCode, { title: string; description: string }>> = {
+    soccer: {
+      title: "실시간 스포츠 라이브스코어 — 오늘 축구 점수·경기 결과",
+      description: `실시간 스포츠 라이브스코어 — ${dateKo} 축구 경기 일정·실시간 점수·경기 결과. ${leagueBlurb} 통합, 야구·농구·배구·하키도 한 화면에서. ${TAIL}`,
+    },
+    baseball: {
+      title: "오늘 프로야구 경기 결과·실시간 스코어 — 야구 라이브스코어",
+      description: `오늘 프로야구 경기 결과와 실시간 스코어 — ${dateKo} ${leagueBlurb} 경기 일정·점수·결과. ${TAIL}`,
+    },
+    basketball: {
+      title: `농구 라이브스코어·실시간 스코어 — ${leagueBlurb} 경기 결과`,
+      description: `농구 라이브스코어·실시간 스코어 — ${dateKo} ${leagueBlurb} 경기 일정·점수·결과. ${TAIL}`,
+    },
+    volleyball: {
+      title: "배구 라이브스코어·실시간 스코어 — 경기 결과",
+      description: `배구 라이브스코어·실시간 스코어 — ${dateKo} ${leagueBlurb} 경기 일정·점수·결과. ${TAIL}`,
+    },
+    hockey: {
+      title: "하키 라이브스코어·실시간 스코어 — NHL·KHL 경기 결과",
+      description: `하키 라이브스코어·실시간 스코어 — ${dateKo} ${leagueBlurb} 경기 일정·점수·결과. ${TAIL}`,
+    },
+  };
+  const head = HEAD[sportCode];
+  const title = head ? `${head.title} · ${dateKo}` : `${sportKo} 라이브스코어 — ${dateKo} 실시간 점수 · 일정 · 결과`;
   const description =
-    `${sportKo} 라이브스코어 — ${dateKo} 경기 일정·실시간 점수·종료 결과. ` +
-    `${leagueBlurb} 통합 라이브 스코어. Elo 모델 승률 추정·Value Bet·평균 2-3초 갱신. 스코어베이스.`;
+    head?.description ??
+    `${sportKo} 라이브스코어 — ${dateKo} 경기 일정·실시간 점수·종료 결과. ${leagueBlurb} 통합 라이브 스코어. ${TAIL}`;
 
   const keywords = [
     `${dateKo} ${sportKo}`,
