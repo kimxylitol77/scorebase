@@ -122,8 +122,10 @@ async function fetchActiveNationalComps(): Promise<ActiveComp[]> {
   });
 }
 
-const kstMD = (d: Date) =>
-  new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" }).format(d);
+const kstMD = (d: Date) => {
+  const k = new Date(d.getTime() + 9 * 3600e3);
+  return `${k.getUTCMonth() + 1}/${k.getUTCDate()}`;
+};
 
 export default async function SoccerHub() {
   const [top3s, nationalComps] = await Promise.all([
