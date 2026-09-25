@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import { UEFA_DIRECT_R16, UEFA_LEAGUE_PHASE, UEFA_PLAYOFF_LAST } from "@/lib/sports/uefa-league-phase";
+import { REGULAR_SEASON_TITLE_LEAGUES, relegationCountOf } from "@/lib/predict/prediction-leagues";
 import { getLeagueSeasonSim, SIM_MIN_FINISHED } from "@/lib/predict/league-season-sim";
 import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import type { MonteCarloRow } from "@/lib/predict/monte-carlo";
@@ -47,7 +48,7 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
   const champions = rows.filter((r) => r.champion >= 0.001).sort((a, b) => b.champion - a.champion).slice(0, 8);
   const second: { title: string; value: (r: MonteCarloRow) => number } | null = uefa
     ? { title: `16강 직행 확률 (1~${UEFA_DIRECT_R16}위)`, value: (r) => r.topN?.[UEFA_DIRECT_R16] ?? 0 }
-    : soccer
+    : soccer && relegationCountOf(league) > 0 // 예측 페이지와 같은 조건 — 챔스 진출 칸 수가 다른 리그엔 "Top 4" 가 틀린 말
       ? { title: "Top 4 (UCL) 진출 확률", value: (r) => r.top4 }
       : league === "KBO"
         ? { title: "포스트시즌(5위 이내) 진출 확률", value: (r) => r.top5 }
@@ -101,7 +102,7 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <section>
-            <h3 className="text-sm font-bold mb-2">{league === "MLS" ? "정규리그 1위 확률" : uefa ? "리그페이즈 1위 확률" : "우승 확률"}</h3>
+            <h3 className="text-sm font-bold mb-2">{REGULAR_SEASON_TITLE_LEAGUES.has(league) ? "정규리그 1위 확률" : uefa ? "리그페이즈 1위 확률" : "우승 확률"}</h3>
             <MonteCarloBar data={champions.map((r) => ({ name: label(r.teamId), value: pct(r.champion) }))} />
           </section>
           {second && secondRows.length > 0 && (

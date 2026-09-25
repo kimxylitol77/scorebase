@@ -7,6 +7,11 @@ export const PREDICTION_LEAGUES = [
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL",
   "WNBA", // 2026-05-21 — 미국 여자 농구
   "UEL", "UECL", // 2026-05-21 — UEFA 유로파·컨퍼런스
+  // 2026-09-25 — 정식 리그 페이지에 예측 탭이 없던 유럽·아시아·남미 1·2부 14개(전수 실측). 공용 시뮬(getLeagueSeasonSim) 그대로.
+  //  강등 팀 수는 리그·시즌마다 달라 확인 전엔 넣지 않는다(RELEGATION_COUNT 미정의 = 강등 확률 비표시).
+  //  리가 MX 는 아페르투라·클라우수라가 한 시즌 창에 섞여 제외.
+  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL", "SAUDI_PL", "BRASILEIRAO", "CSL",
+  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
 ] as const;
 export type PredictionLeague = (typeof PREDICTION_LEAGUES)[number];
 export const PREDICTION_LEAGUE_SET: ReadonlySet<string> = new Set(PREDICTION_LEAGUES);
@@ -16,3 +21,6 @@ export const RELEGATION_COUNT: Record<string, number> = {
   EPL: 3, LALIGA: 3, BUNDESLIGA: 3, SERIE_A: 3, LIGUE_1: 2, J1_LEAGUE: 3, J2_LEAGUE: 2, K_LEAGUE_1: 1,
 };
 export const relegationCountOf = (league: string) => RELEGATION_COUNT[league] ?? 0;
+
+/** 리그 1위가 곧 우승이 아닌 리그 — 플레이오프로 우승을 가린다. 화면은 "정규리그 1위"라고 부른다. */
+export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL"]);

@@ -74,7 +74,7 @@ function displayTeamName(name: string | undefined | null, league?: string): stri
 const VALID = PREDICTION_LEAGUES;
 type ValidLeague = PredictionLeague;
 
-const LEAGUE_INFO: Record<
+const LEAGUE_INFO: Partial<Record<
   ValidLeague,
   {
     name: string;
@@ -83,7 +83,7 @@ const LEAGUE_INFO: Record<
     relegationCount: number;
     showDraw: boolean;
   }
-> = {
+>> = {
   EPL: {
     name: "Premier League",
     subtitle: "English Premier League — season simulation",
@@ -240,6 +240,11 @@ const LEAGUE_INFO: Record<
   },
 };
 
+/** LEAGUE_INFO entries missing for prediction leagues added 2026-09-25 — generic defaults, relegation hidden. */
+function defaultLeagueInfo(code: string) {
+  return { name: code, subtitle: `${code} — season simulation`, gradient: "from-slate-600 via-slate-700 to-slate-900", relegationCount: 0, showDraw: true };
+}
+
 interface Props {
   params: Promise<{ league: string }>;
 }
@@ -268,7 +273,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
     return { title: "Not found" };
   }
-  const info = LEAGUE_INFO[upper as ValidLeague];
+  const info = LEAGUE_INFO[upper as ValidLeague] ?? defaultLeagueInfo(upper);
   // NPB·MLB — 빙 검색어는 "예측"이 아니라 "분석"("npb경기분석" 330·5.8위, "mlb분석" 157·5.4위,
   // 둘 다 CTR 0%대). 순위는 이미 1페이지인데 title 에 분석 단어가 없어 exact-match 에서 밀렸다.
   // KBO 순위 페이지(67491a5)와 같은 방식으로 검색어를 앞세우고 날짜를 동적 삽입한다.
@@ -374,7 +379,7 @@ export default async function LeaguePredictions({ params }: Props) {
     }
     notFound();
   }
-  const info = LEAGUE_INFO[upper as ValidLeague];
+  const info = LEAGUE_INFO[upper as ValidLeague] ?? defaultLeagueInfo(upper);
 
   // 시즌 경계 하한 — 지난 시즌까지 합산되던 버그 수정 (KBO 승점 231, 2026-07-02 감사 A2).
   // 새 시즌 개막 직후·오프시즌(완료 <10)은 직전 시즌 창으로 폴백 — 두 시즌이 섞이는 일은 없음.

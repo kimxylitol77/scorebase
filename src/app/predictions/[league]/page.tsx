@@ -14,7 +14,7 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
-import { PREDICTION_LEAGUES, type PredictionLeague } from "@/lib/predict/prediction-leagues";
+import { PREDICTION_LEAGUES, REGULAR_SEASON_TITLE_LEAGUES, type PredictionLeague } from "@/lib/predict/prediction-leagues";
 import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
@@ -76,7 +76,7 @@ function displayTeamName(name: string | undefined | null, league?: string): stri
 const VALID = PREDICTION_LEAGUES;
 type ValidLeague = PredictionLeague;
 
-const LEAGUE_INFO: Record<
+const LEAGUE_INFO: Partial<Record<
   ValidLeague,
   {
     name: string;
@@ -85,7 +85,7 @@ const LEAGUE_INFO: Record<
     relegationCount: number;
     showDraw: boolean;
   }
-> = {
+>> = {
   EPL: {
     name: "프리미어리그",
     subtitle: "잉글랜드 프리미어리그 — 시즌 시뮬레이션",
@@ -242,6 +242,12 @@ const LEAGUE_INFO: Record<
   },
 };
 
+/** LEAGUE_INFO 미정의 예측 리그(2026-09-25 추가분) — 한글 표시명으로 기본값. 강등은 확인 전엔 0(비표시). */
+function defaultLeagueInfo(code: string) {
+  const name = LEAGUE_DISPLAY[code] ?? code;
+  return { name, subtitle: `${name} — 시즌 시뮬레이션`, gradient: "from-slate-600 via-slate-700 to-slate-900", relegationCount: 0, showDraw: true };
+}
+
 interface Props {
   params: Promise<{ league: string }>;
 }
@@ -270,7 +276,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
     return { title: "찾을 수 없음" };
   }
-  const info = LEAGUE_INFO[upper as ValidLeague];
+  const info = LEAGUE_INFO[upper as ValidLeague] ?? defaultLeagueInfo(upper);
   // NPB·MLB — 빙 검색어는 "예측"이 아니라 "분석"("npb경기분석" 330·5.8위, "mlb분석" 157·5.4위,
   // 둘 다 CTR 0%대). 순위는 이미 1페이지인데 title 에 분석 단어가 없어 exact-match 에서 밀렸다.
   // KBO 순위 페이지(67491a5)와 같은 방식으로 검색어를 앞세우고 날짜를 동적 삽입한다.
@@ -376,7 +382,7 @@ export default async function LeaguePredictions({ params }: Props) {
     }
     notFound();
   }
-  const info = LEAGUE_INFO[upper as ValidLeague];
+  const info = LEAGUE_INFO[upper as ValidLeague] ?? defaultLeagueInfo(upper);
 
   // 시즌 경계 하한 — 지난 시즌까지 합산되던 버그 수정 (KBO 승점 231, 2026-07-02 감사 A2).
   // 새 시즌 개막 직후·오프시즌(완료 <10)은 직전 시즌 창으로 폴백 — 두 시즌이 섞이는 일은 없음.
@@ -485,11 +491,14 @@ export default async function LeaguePredictions({ params }: Props) {
   // 표 1위 = 트로피가 아닌 리그는 제목에서 "우승"이라 쓰지 않는다.
   // UEFA 클럽대회 — 공용 시뮬이 리그페이즈(36팀)만 돌린다. 1위는 트로피가 아니다(우승은 녹아웃).
   const isUefaLp = !!UEFA_LEAGUE_PHASE[upper];
-  const championLabel = upper === "MLS" ? "정규리그 1위 확률" : isUefaLp ? "리그페이즈 1위 확률" : "우승 확률";
+  const regularTitle = REGULAR_SEASON_TITLE_LEAGUES.has(upper);
+  const championLabel = regularTitle ? "정규리그 1위 확률" : isUefaLp ? "리그페이즈 1위 확률" : "우승 확률";
   const championSubtitle =
     upper === "MLS"
       ? "정규리그 1위(서포터스 실드) 가능성 — MLS 컵 우승은 플레이오프에서 가려집니다"
-      : isUefaLp
+      : regularTitle
+        ? "정규리그를 1위로 마칠 가능성 — 우승은 플레이오프에서 가려집니다"
+        : isUefaLp
         ? "36팀 리그페이즈를 1위로 마칠 가능성 — 우승은 16강부터 녹아웃에서 가려집니다"
         : "시즌 종료 시점 1위 차지 가능성";
 
@@ -1347,6 +1356,7 @@ export default async function LeaguePredictions({ params }: Props) {
                 }
                 relegationCount={isUefaLp ? Math.max(0, mc.length - UEFA_PLAYOFF_LAST) : info.relegationCount}
                 uefa={isUefaLp}
+                regularTitle={regularTitle}
                 formByTeamId={formByTeamId}
               />
             </section>
@@ -1752,6 +1762,8 @@ interface ProjectionsTableProps {
   showChampion?: boolean;
   /** UEFA 리그페이즈 — 마지막 열을 "16강 직행 %"로, 범례를 16강 직행·탈락으로 */
   uefa?: boolean;
+  /** 1위가 우승이 아닌 리그(플레이오프) — 마지막 열을 "1위 %"로 */
+  regularTitle?: boolean;
 }
 
 function ProjectionsTable({
@@ -1761,6 +1773,7 @@ function ProjectionsTable({
   formByTeamId,
   showChampion = true,
   uefa = false,
+  regularTitle = false,
 }: ProjectionsTableProps) {
   const total = rows.length;
   const relegationStartIdx = relegationCount > 0 ? total - relegationCount : total;
@@ -1775,7 +1788,7 @@ function ProjectionsTable({
             <th className="text-right px-3 py-2 font-medium">승점</th>
             <th className="text-right px-3 py-2 font-medium">예상 승점</th>
             {showChampion && (
-              <th className="text-right px-3 py-2 font-medium">{uefa ? "16강 직행 %" : "우승 %"}</th>
+              <th className="text-right px-3 py-2 font-medium">{uefa ? "16강 직행 %" : regularTitle ? "1위 %" : "우승 %"}</th>
             )}
           </tr>
         </thead>
