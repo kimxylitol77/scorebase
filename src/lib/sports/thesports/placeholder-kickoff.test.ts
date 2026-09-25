@@ -18,7 +18,11 @@ test("정상 매치데이는 걸리지 않는다 — 한 시각 최대 9경기",
   assert.equal(placeholderKickoffTimes(day).size, 0);
 });
 
-test("경계 — 17경기는 통과, 18경기부터 자리표시자", () => {
+test("리그페이즈 마지막 라운드 18경기 동시 킥오프는 정상 일정 — 2026-27 UCL 1/27 실측", () => {
+  assert.equal(placeholderKickoffTimes(at("2027-01-27T20:00:00Z", 18)).size, 0);
+});
+
+test("경계 — 임계 미만은 통과, 임계부터 자리표시자", () => {
   assert.equal(placeholderKickoffTimes(at("2026-10-20T19:00:00Z", PLACEHOLDER_MIN_SAME_KICKOFF - 1)).size, 0);
   assert.equal(placeholderKickoffTimes(at("2026-10-20T19:00:00Z", PLACEHOLDER_MIN_SAME_KICKOFF)).size, 1);
 });
