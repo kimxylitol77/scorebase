@@ -18,9 +18,10 @@
 - [ ] 배포(push) — thesports-cache 수정·재확인 안전망은 배포돼야 재발이 막힌다
 - [ ] 보류 7건 — 쌍둥이 3건(CSL #302955·BOLIVIA #314289·LALIGA #1221374)은 배포 후 cron 흡수, KAZAKHSTAN_PL 4건은 10/17 옛 행과 겹침(사람 확인)
 
-## 결정 필요 (사용자)
-- [ ] 노출 중이나 DB 수집 없는 12개 리그(af orphan 카드 전용) — 수집 온보딩 여부
-- [ ] HOCKEY_FRIENDLY 소규모 클럽 친선 40경기 — 팀 매핑 없음(프리시즌 종료)
+## 결정 → 처리 (2026-09-25)
+- [x] 12개 리그 DB 수집 — af 9개(ETTAN N/S·NORWAY_2D G1/G2·WSL·UEFA_WCL·VIETNAM_VL2·K3·SVENSKA_CUPEN)는 전용 collect cron(하루 4회) + 시즌 일정 백필, UEFA_WCL 은 TS_COVERED 예외 등록. KAKKONEN A/B/C 는 af 로 넣으면 팀명 불일치로 조당 6~7팀 중복 행이 생겨 ts 유지 — 워커 STAGE_SPLIT 에 2라운드 조(Promotion/Relegation of Group X) 추가·Vultr 배포, 지난 2라운드 79경기 백필
+- [x] HOCKEY_FRIENDLY — 신규 123팀 시드·144경기 복구(6022dae8), Vultr 워커 JSON 반영
+- [x] 계정 페이지 점수 정렬(9fed317f) · 카자흐 1부 미래 af 행 24개 날짜 교정 + 연기 4건 복귀(DB)
 
 ## 보고만 (범위 밖)
 - 크로스소스 중복 행: CHAMPIONSHIP Cardiff 2건(팀 행 중복 #600015/#610511), CYPRUS_1D Aris, ECUADOR_LP 7/05

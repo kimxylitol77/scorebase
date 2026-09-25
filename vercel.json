@@ -65,6 +65,10 @@
       "schedule": "0 13,22 * * *"
     },
     {
+      "path": "/api/cron/collect?leagues=ETTAN_NORRA,ETTAN_SODRA,NORWAY_2D_G1,NORWAY_2D_G2,WSL,UEFA_WCL,VIETNAM_VL2,K3_LEAGUE,SVENSKA_CUPEN",
+      "schedule": "45 3,9,15,21 * * *"
+    },
+    {
       "path": "/api/cron/odds",
       "schedule": "0 */2 * * *"
     },

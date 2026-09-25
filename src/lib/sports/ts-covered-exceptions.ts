@@ -69,4 +69,7 @@ export const TS_COVERED_EXCEPTIONS = new Set<League>([
   // 매치를 지금까지 한 건도 안 만들었다(DB 403건 전부 af, 5/24 백필이 마지막). af 로 수집한다 —
   // 청소년·여자대표 fixture 는 collector 가 거른다.
   "INTL_FRIENDLY",
+  // UEFA_WCL (2026-09-25): 순위용 tsSeasonId 가 있어 TS_COVERED 인데 ts 는 이 대회 매치를 한 번도
+  // 안 만들었다(DB 153건 전부 af, 5/23 이 마지막). 새 시즌 리그 스테이지가 통째로 비어 있었다.
+  "UEFA_WCL",
 ]);
