@@ -4030,5 +4030,1112 @@
     "tsId": "l5erg6blz8dq8k0",
     "tsName": "HC Olomouc",
     "matchType": "diary"
+  },
+  {
+    "ourId": 616034,
+    "ourName": "Slovan",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wb691dmo9j",
+    "tsId": "318q6wb691dmo9j",
+    "tsName": "Slovan",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616035,
+    "ourName": "HC Stadion Vrchlabi",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "4jwq2lbz8ddr0ve",
+    "tsId": "4jwq2lbz8ddr0ve",
+    "tsName": "HC Stadion Vrchlabi",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616036,
+    "ourName": "VSK Technika Hokej Brno",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wbwzegmo9j",
+    "tsId": "318q6wbwzegmo9j",
+    "tsName": "VSK Technika Hokej Brno",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616037,
+    "ourName": "HC Zdar Nad Sazavou",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l5erg6blzk1q8k0",
+    "tsId": "l5erg6blzk1q8k0",
+    "tsName": "HC Zdar Nad Sazavou",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616038,
+    "ourName": "HC Yugra",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "x7lm78bzkw8q2wd",
+    "tsId": "x7lm78bzkw8q2wd",
+    "tsName": "HC Yugra",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616039,
+    "ourName": "Jokerit U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "2y8m43b603erl07",
+    "tsId": "2y8m43b603erl07",
+    "tsName": "Jokerit U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616040,
+    "ourName": "Tappara U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "4wyrn9boj3zm86p",
+    "tsId": "4wyrn9boj3zm86p",
+    "tsName": "Tappara U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616041,
+    "ourName": "IHK Sparta Sarpsborg",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "x7lm78b3lovq2wd",
+    "tsId": "x7lm78b3lovq2wd",
+    "tsName": "IHK Sparta Sarpsborg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616042,
+    "ourName": "Manglerud Star",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb3x1nqdyj",
+    "tsId": "3glrwdb3x1nqdyj",
+    "tsName": "Manglerud Star",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616043,
+    "ourName": "Ski Ishockey Elite",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "k82reebkyl1repz",
+    "tsId": "k82reebkyl1repz",
+    "tsName": "Ski Ishockey Elite",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616044,
+    "ourName": "Skalica",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb3xknqdyj",
+    "tsId": "3glrwdb3xknqdyj",
+    "tsName": "Skalica",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616045,
+    "ourName": "MHK Martin",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95b2jp4ryox",
+    "tsId": "ednm95b2jp4ryox",
+    "tsName": "MHK Martin",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616046,
+    "ourName": "TuTo U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l7oqd2b8vp4r510",
+    "tsId": "l7oqd2b8vp4r510",
+    "tsName": "TuTo U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616047,
+    "ourName": "Koovee U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "965mknbw8j8m1ge",
+    "tsId": "965mknbw8j8m1ge",
+    "tsName": "Koovee U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616048,
+    "ourName": "Stjernen",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "965mknb2powm1ge",
+    "tsId": "965mknb2powm1ge",
+    "tsName": "Stjernen",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616049,
+    "ourName": "Crimmitschau",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "x7lm78b3lxpq2wd",
+    "tsId": "x7lm78b3lxpq2wd",
+    "tsName": "Crimmitschau",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616050,
+    "ourName": "Blue Devils Weiden",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "zp5rzyb5y15q82w",
+    "tsId": "zp5rzyb5y15q82w",
+    "tsName": "Blue Devils Weiden",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616051,
+    "ourName": "MHC Sokol Kyiv",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dj2ry0b1kdyq1zp",
+    "tsId": "dj2ry0b1kdyq1zp",
+    "tsName": "MHC Sokol Kyiv",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616052,
+    "ourName": "Grizzly Wolfsburg",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wb696wmo9j",
+    "tsId": "318q6wb696wmo9j",
+    "tsName": "Grizzly Wolfsburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616053,
+    "ourName": "Jokp",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "23xmv0bpejyrg8n",
+    "tsId": "23xmv0bpejyrg8n",
+    "tsName": "Jokp",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616054,
+    "ourName": "K-Vantaa",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y39mp9b0xy1rojx",
+    "tsId": "y39mp9b0xy1rojx",
+    "tsName": "K-Vantaa",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616055,
+    "ourName": "Vaxjo Lakers U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dj2ry0b9wjkq1zp",
+    "tsId": "dj2ry0b9wjkq1zp",
+    "tsName": "Vaxjo Lakers U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616056,
+    "ourName": "Malmo Redhawks U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "2y8m43b79g9rl07",
+    "tsId": "2y8m43b79g9rl07",
+    "tsName": "Malmo Redhawks U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616057,
+    "ourName": "TKH Torun",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wb69p9mo9j",
+    "tsId": "318q6wb69p9mo9j",
+    "tsName": "TKH Torun",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616058,
+    "ourName": "Comet",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y0or5xbzvknmwzv",
+    "tsId": "y0or5xbzvknmwzv",
+    "tsName": "Comet",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616059,
+    "ourName": "Huddinge",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l7oqd2b8v4er510",
+    "tsId": "l7oqd2b8v4er510",
+    "tsName": "Huddinge",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616060,
+    "ourName": "Vallentuna",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wbwzv8mo9j",
+    "tsId": "318q6wbwzv8mo9j",
+    "tsName": "Vallentuna",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616061,
+    "ourName": "EV Landshut",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "k82reeb0500repz",
+    "tsId": "k82reeb0500repz",
+    "tsName": "EV Landshut",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616062,
+    "ourName": "Lowen Frankfurt",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "zp5rzyb5yj7q82w",
+    "tsId": "zp5rzyb5yj7q82w",
+    "tsName": "Lowen Frankfurt",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616063,
+    "ourName": "Spartiates",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "8yomodb3ewoq0j6",
+    "tsId": "8yomodb3ewoq0j6",
+    "tsName": "Spartiates",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616064,
+    "ourName": "Briancon",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "1l4rj1bjwvgr7vx",
+    "tsId": "1l4rj1bjwvgr7vx",
+    "tsName": "Briancon",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616065,
+    "ourName": "Guelph",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wbwznymo9j",
+    "tsId": "318q6wbwznymo9j",
+    "tsName": "Guelph",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616066,
+    "ourName": "Peterborough",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0b5pezryk0",
+    "tsId": "pxwrx0b5pezryk0",
+    "tsName": "Peterborough",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616067,
+    "ourName": "Stjernen Hockey U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dn1m15byg33qoep",
+    "tsId": "dn1m15byg33qoep",
+    "tsName": "Stjernen Hockey U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616068,
+    "ourName": "Kongsvinger IL",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dn1m15b4885oqoe",
+    "tsId": "dn1m15b4885oqoe",
+    "tsName": "Kongsvinger IL",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616069,
+    "ourName": "Fischtown Pinguins",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l7oqd2b8v8zr510",
+    "tsId": "l7oqd2b8v8zr510",
+    "tsName": "Fischtown Pinguins",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616070,
+    "ourName": "Lorenskog IK U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wbyk63mo9j",
+    "tsId": "318q6wbyk63mo9j",
+    "tsName": "Lorenskog IK U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616071,
+    "ourName": "Manglerud Star U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "k82reebp878repz",
+    "tsId": "k82reebp878repz",
+    "tsName": "Manglerud Star U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616072,
+    "ourName": "Owen Sound",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb36ewrd7o",
+    "tsId": "6ypq3vb36ewrd7o",
+    "tsName": "Owen Sound",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616073,
+    "ourName": "Oshawa",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "2y8m43b60xjrl07",
+    "tsId": "2y8m43b60xjrl07",
+    "tsName": "Oshawa",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616074,
+    "ourName": "HC TWK Innsbruck",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "23xmv0bpex7rg8n",
+    "tsId": "23xmv0bpex7rg8n",
+    "tsName": "HC TWK Innsbruck",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616075,
+    "ourName": "HC Panter",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "1l4rj1bg0xkr7vx",
+    "tsId": "1l4rj1bg0xkr7vx",
+    "tsName": "HC Panter",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616076,
+    "ourName": "Riga",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "n54ql0bpv44qvy9",
+    "tsId": "n54ql0bpv44qvy9",
+    "tsName": "Riga",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616077,
+    "ourName": "Barrie",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y39mp9bzvp8rojx",
+    "tsId": "y39mp9bzvp8rojx",
+    "tsName": "Barrie",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616078,
+    "ourName": "Brantford Bulldogs",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95b780oryox",
+    "tsId": "ednm95b780oryox",
+    "tsName": "Brantford Bulldogs",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616079,
+    "ourName": "Eisbaren Regensburg",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y39mp9b0x04rojx",
+    "tsId": "y39mp9b0x04rojx",
+    "tsName": "Eisbaren Regensburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616080,
+    "ourName": "Augsburger Panther",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb72wprd7o",
+    "tsId": "6ypq3vb72wprd7o",
+    "tsName": "Augsburger Panther",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616081,
+    "ourName": "Lausitzer Fuchse",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95b2j26ryox",
+    "tsId": "ednm95b2j26ryox",
+    "tsName": "Lausitzer Fuchse",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616082,
+    "ourName": "Krefeld Pinguine",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bx6jwryk0",
+    "tsId": "pxwrx0bx6jwryk0",
+    "tsName": "Krefeld Pinguine",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616083,
+    "ourName": "Dusseldorfer EG",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "zp5rzyb6nxyq82w",
+    "tsId": "zp5rzyb6nxyq82w",
+    "tsName": "Dusseldorfer EG",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616084,
+    "ourName": "Morrum Gois",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb3xjnqdyj",
+    "tsId": "3glrwdb3xjnqdyj",
+    "tsName": "Morrum Gois",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616085,
+    "ourName": "Nurnberg Ice Tigers",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "n54ql0bpl8lqvy9",
+    "tsId": "n54ql0bpl8lqvy9",
+    "tsName": "Nurnberg Ice Tigers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616086,
+    "ourName": "Rosenheim",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l5erg6blzd1q8k0",
+    "tsId": "l5erg6blzd1q8k0",
+    "tsName": "Rosenheim",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616087,
+    "ourName": "Gruner",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "23xmv0bpeojrg8n",
+    "tsId": "23xmv0bpeojrg8n",
+    "tsName": "Gruner",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616088,
+    "ourName": "Rapaces de Gap",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bxdzdryk0",
+    "tsId": "pxwrx0bxdzdryk0",
+    "tsName": "Rapaces de Gap",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616089,
+    "ourName": "Mississauga",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "jw2r0ob2478rz84",
+    "tsId": "jw2r0ob2478rz84",
+    "tsName": "Mississauga",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616090,
+    "ourName": "North Bay",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dj2ry0b1v4kq1zp",
+    "tsId": "dj2ry0b1v4kq1zp",
+    "tsName": "North Bay",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616091,
+    "ourName": "Cherepovets Almaz",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l7oqd2b8vw4r510",
+    "tsId": "l7oqd2b8vw4r510",
+    "tsName": "Cherepovets Almaz",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616092,
+    "ourName": "Hhk Velke Mezirici",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dn1m15bp619qoep",
+    "tsId": "dn1m15bp619qoep",
+    "tsName": "Hhk Velke Mezirici",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616093,
+    "ourName": "Jestrabi Prostejov",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y39mp9b0xoorojx",
+    "tsId": "y39mp9b0xoorojx",
+    "tsName": "Jestrabi Prostejov",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616094,
+    "ourName": "Basel",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "8yomodbgwz8q0j6",
+    "tsId": "8yomodbgwz8q0j6",
+    "tsName": "Basel",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616095,
+    "ourName": "Tranaas",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb72z7rd7o",
+    "tsId": "6ypq3vb72z7rd7o",
+    "tsName": "Tranaas",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616096,
+    "ourName": "Djurgarden Hockey U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb95jxqdyj",
+    "tsId": "3glrwdb95jxqdyj",
+    "tsName": "Djurgarden Hockey U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616097,
+    "ourName": "Sodertalje SK U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "1l4rj1bg90yr7vx",
+    "tsId": "1l4rj1bg90yr7vx",
+    "tsName": "Sodertalje SK U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616098,
+    "ourName": "Ketterae",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "8yomodbgdn0q0j6",
+    "tsId": "8yomodbgdn0q0j6",
+    "tsName": "Ketterae",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616099,
+    "ourName": "Pyry",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "k82reebwzk6repz",
+    "tsId": "k82reebwzk6repz",
+    "tsName": "Pyry",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616100,
+    "ourName": "Keupa",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "965mknb26dxm1ge",
+    "tsId": "965mknb26dxm1ge",
+    "tsName": "Keupa",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616101,
+    "ourName": "Slezan Opava",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "vjxm87b5nepr6od",
+    "tsId": "vjxm87b5nepr6od",
+    "tsName": "Slezan Opava",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616102,
+    "ourName": "HC Koprivnice",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y0or5xbz2vzmwzv",
+    "tsId": "y0or5xbz2vzmwzv",
+    "tsName": "HC Koprivnice",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616103,
+    "ourName": "HC Pribram",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "8yomodbgn0dq0j6",
+    "tsId": "8yomodbgn0dq0j6",
+    "tsName": "HC Pribram",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616104,
+    "ourName": "Schwenninger Wild Wings",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y0or5xbzv32mwzv",
+    "tsId": "y0or5xbzv32mwzv",
+    "tsName": "Schwenninger Wild Wings",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616105,
+    "ourName": "Sparta Sarpsborg U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "8yomodbdgp9q0j6",
+    "tsId": "8yomodbdgp9q0j6",
+    "tsName": "Sparta Sarpsborg U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616106,
+    "ourName": "Valerenga Elite U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bkx83ryk0",
+    "tsId": "pxwrx0bkx83ryk0",
+    "tsName": "Valerenga Elite U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616107,
+    "ourName": "Niagara",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l7oqd2boy2yr510",
+    "tsId": "l7oqd2boy2yr510",
+    "tsName": "Niagara",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616108,
+    "ourName": "DVTK Jegesmedvek",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dn1m15bpw55qoep",
+    "tsId": "dn1m15bpw55qoep",
+    "tsName": "DVTK Jegesmedvek",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616109,
+    "ourName": "Valerenga",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y0or5xbzv4wmwzv",
+    "tsId": "y0or5xbzv4wmwzv",
+    "tsName": "Valerenga",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616110,
+    "ourName": "Boraas",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "965mknbyln2m1ge",
+    "tsId": "965mknbyln2m1ge",
+    "tsName": "Boraas",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616111,
+    "ourName": "Narvik",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb36verd7o",
+    "tsId": "6ypq3vb36verd7o",
+    "tsName": "Narvik",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616112,
+    "ourName": "Bad Nauheim",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb7j21rd7o",
+    "tsId": "6ypq3vb7j21rd7o",
+    "tsName": "Bad Nauheim",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616113,
+    "ourName": "Hannover",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "zp5rzyb5y25q82w",
+    "tsId": "zp5rzyb5y25q82w",
+    "tsName": "Hannover",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616114,
+    "ourName": "Freiburg",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l5erg6blzldq8k0",
+    "tsId": "l5erg6blzldq8k0",
+    "tsName": "Freiburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616115,
+    "ourName": "Belfast Giants",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95b23nlryox",
+    "tsId": "ednm95b23nlryox",
+    "tsName": "Belfast Giants",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616116,
+    "ourName": "Franches-Montagnes",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "jw2r0ob24e5rz84",
+    "tsId": "jw2r0ob24e5rz84",
+    "tsName": "Franches-Montagnes",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616117,
+    "ourName": "Winterthur",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb3xgyqdyj",
+    "tsId": "3glrwdb3xgyqdyj",
+    "tsName": "Winterthur",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616118,
+    "ourName": "Kongsvinger",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb7k43qdyj",
+    "tsId": "3glrwdb7k43qdyj",
+    "tsName": "Kongsvinger",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616119,
+    "ourName": "Dubendorf",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bx609ryk0",
+    "tsId": "pxwrx0bx609ryk0",
+    "tsName": "Dubendorf",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616120,
+    "ourName": "Thun",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "zp5rzyb6n9oq82w",
+    "tsId": "zp5rzyb6n9oq82w",
+    "tsName": "Thun",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616121,
+    "ourName": "Nottingham",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95b231lryox",
+    "tsId": "ednm95b231lryox",
+    "tsName": "Nottingham",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616122,
+    "ourName": "Cardiff",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "n54ql0bpo07qvy9",
+    "tsId": "n54ql0bpo07qvy9",
+    "tsName": "Cardiff",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616123,
+    "ourName": "Chemnitz Chrashers",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb5dy6qdyj",
+    "tsId": "3glrwdb5dy6qdyj",
+    "tsName": "Chemnitz Chrashers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616124,
+    "ourName": "Saginaw",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "vjxm87blv32r6od",
+    "tsId": "vjxm87blv32r6od",
+    "tsName": "Saginaw",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616125,
+    "ourName": "Erie",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "k82reebwzn4repz",
+    "tsId": "k82reebwzn4repz",
+    "tsName": "Erie",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616126,
+    "ourName": "Manchester S.",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "l5erg6blz0nq8k0",
+    "tsId": "l5erg6blz0nq8k0",
+    "tsName": "Manchester S.",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616127,
+    "ourName": "Sheffield",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bx6p5ryk0",
+    "tsId": "pxwrx0bx6p5ryk0",
+    "tsName": "Sheffield",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616128,
+    "ourName": "Coventry",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y0or5xbz2pzmwzv",
+    "tsId": "y0or5xbz2pzmwzv",
+    "tsName": "Coventry",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616129,
+    "ourName": "Guildford Flames",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "x7lm78bzgnnq2wd",
+    "tsId": "x7lm78bzgnnq2wd",
+    "tsName": "Guildford Flames",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616130,
+    "ourName": "Duisburg",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "k82reebwz14repz",
+    "tsId": "k82reebwz14repz",
+    "tsName": "Duisburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616131,
+    "ourName": "Hamm",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb3066rd7o",
+    "tsId": "6ypq3vb3066rd7o",
+    "tsName": "Hamm",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616132,
+    "ourName": "Kitchener",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "4wyrn9bxz0km86p",
+    "tsId": "4wyrn9bxz0km86p",
+    "tsName": "Kitchener",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616133,
+    "ourName": "Hodonin",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bxkd2ryk0",
+    "tsId": "pxwrx0bxkd2ryk0",
+    "tsName": "Hodonin",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616134,
+    "ourName": "HC Děčín",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "pxwrx0bx6y9ryk0",
+    "tsId": "pxwrx0bx6y9ryk0",
+    "tsName": "HC Děčín",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616135,
+    "ourName": "HC Bobri Valasske Mezirici",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95bnkeyryox",
+    "tsId": "ednm95bnkeyryox",
+    "tsName": "HC Bobri Valasske Mezirici",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616136,
+    "ourName": "Novy Jicin",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "1l4rj1bj8gjr7vx",
+    "tsId": "1l4rj1bj8gjr7vx",
+    "tsName": "Novy Jicin",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616137,
+    "ourName": "Enkopings",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "vjxm87blv8gr6od",
+    "tsId": "vjxm87blv8gr6od",
+    "tsName": "Enkopings",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616138,
+    "ourName": "Hanvikens SK",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y39mp9bzvyzrojx",
+    "tsId": "y39mp9bzvyzrojx",
+    "tsName": "Hanvikens SK",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616139,
+    "ourName": "Passau",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "23xmv0b8vjnrg8n",
+    "tsId": "23xmv0b8vjnrg8n",
+    "tsName": "Passau",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616140,
+    "ourName": "Storhamar Hockey U20",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vbj79erd7o",
+    "tsId": "6ypq3vbj79erd7o",
+    "tsName": "Storhamar Hockey U20",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616141,
+    "ourName": "Mjolby",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "318q6wbwz3jmo9j",
+    "tsId": "318q6wbwz3jmo9j",
+    "tsName": "Mjolby",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616142,
+    "ourName": "Huttwil",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "vjxm87b5n6wr6od",
+    "tsId": "vjxm87b5n6wr6od",
+    "tsName": "Huttwil",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616143,
+    "ourName": "Langenthal",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "6ypq3vb727jrd7o",
+    "tsId": "6ypq3vb727jrd7o",
+    "tsName": "Langenthal",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616144,
+    "ourName": "Lyss",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "x7lm78bzkgwq2wd",
+    "tsId": "x7lm78bzkgwq2wd",
+    "tsName": "Lyss",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616145,
+    "ourName": "Wings Arlanda",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "3glrwdb7kywqdyj",
+    "tsId": "3glrwdb7kywqdyj",
+    "tsName": "Wings Arlanda",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616146,
+    "ourName": "Visp",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "x7lm78b3lzkq2wd",
+    "tsId": "x7lm78b3lzkq2wd",
+    "tsName": "Visp",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616147,
+    "ourName": "EHC Arosa",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "4jwq2lbe4vwr0ve",
+    "tsId": "4jwq2lbe4vwr0ve",
+    "tsName": "EHC Arosa",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616148,
+    "ourName": "Memmingen Indians",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "965mknb95edm1ge",
+    "tsId": "965mknb95edm1ge",
+    "tsName": "Memmingen Indians",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616149,
+    "ourName": "Ravensburg",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y0or5xbzv90mwzv",
+    "tsId": "y0or5xbzv90mwzv",
+    "tsName": "Ravensburg",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616150,
+    "ourName": "Hannover",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "y39mp9bzvojrojx",
+    "tsId": "y39mp9bzvojrojx",
+    "tsName": "Hannover",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616151,
+    "ourName": "Bietigheim Steelers",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "4wyrn9bojoym86p",
+    "tsId": "4wyrn9bojoym86p",
+    "tsName": "Bietigheim Steelers",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616152,
+    "ourName": "Kassel",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "8yomodbgwv8q0j6",
+    "tsId": "8yomodbgwv8q0j6",
+    "tsName": "Kassel",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616153,
+    "ourName": "Dalen",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dn1m15b2v3xqoep",
+    "tsId": "dn1m15b2v3xqoep",
+    "tsName": "Dalen",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616154,
+    "ourName": "Kristianstad",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "1l4rj1bj8z7r7vx",
+    "tsId": "1l4rj1bj8z7r7vx",
+    "tsName": "Kristianstad",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616155,
+    "ourName": "Jarfalla",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "dn1m15b2vd1qoep",
+    "tsId": "dn1m15b2vd1qoep",
+    "tsName": "Jarfalla",
+    "matchType": "diary"
+  },
+  {
+    "ourId": 616156,
+    "ourName": "Sollentuna",
+    "ourLeague": "HOCKEY_FRIENDLY",
+    "ourExternalId": "ednm95b78v0ryox",
+    "tsId": "ednm95b78v0ryox",
+    "tsName": "Sollentuna",
+    "matchType": "diary"
   }
 ]

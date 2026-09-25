@@ -4676,6 +4676,12 @@ const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 const HOCKEY_CLUB_OVERRIDES: Record<string, string> = {
   "Red Bull Salzburg": "EC 레드불 잘츠부르크", // 축구는 FC —
   "Slovan Bratislava": "HC 슬로반 브라티슬라바", // 축구는 SK —
+  // 하키 친선 신규 클럽 (2026-09-25) — ts 가 도시명만 줘서 축구 클럽 한글명(노팅엄 포리스트 등)이 붙었다.
+  // 구단 별칭(팬서스·데블스·블레이즈)은 짐작하지 않고 도시명만 쓴다.
+  "Nottingham": "노팅엄",
+  "Cardiff": "카디프",
+  "Coventry": "코번트리",
+  "Kongsvinger": "콩스빙에르",
   // KHL 22팀 (2026-09-18, 순위표·로스터 온보딩) — 국내 매체 관용 표기. ts Team.name 기준.
   "AK Bars Kazan": "아크 바르스 카잔",
   "Admiral Vladivostok": "아드미랄 블라디보스토크",
