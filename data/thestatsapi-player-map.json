@@ -8719,5 +8719,23 @@
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
+ },
+ "jw2r09hx6oj3rz8": {
+  "statsId": "pl_45112978",
+  "teamId": "tm_3498",
+  "teamName": "Crystal Palace",
+  "name": "Evann Guessand",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_8406098",
+  "seasonLabel": "2026-27 EPL"
+ },
+ "x7lm7ph07zjpm2w": {
+  "statsId": "pl_96327772",
+  "teamId": "tm_7938",
+  "teamName": "Newcastle United",
+  "name": "Anthony Elanga",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_8406098",
+  "seasonLabel": "2026-27 EPL"
  }
 }
