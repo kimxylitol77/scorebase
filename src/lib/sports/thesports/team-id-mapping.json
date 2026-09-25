@@ -30939,5 +30939,954 @@
     "tsName": "Sweden U21",
     "tsKo": "스웨덴 U21",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616192,
+    "ourName": "Forssa",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-z318q66hy9vqo9j",
+    "tsId": "z318q66hy9vqo9j",
+    "tsName": "Forssa",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616185,
+    "ourName": "IFK Trelleborg",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-l5ergpho8n2r8k0",
+    "tsId": "l5ergpho8n2r8k0",
+    "tsName": "IFK Trelleborg",
+    "tsKo": "IFK 트렐레보리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616031,
+    "ourName": "Stjarnan Gardabaer",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-n54qllh28xnqvy9",
+    "tsId": "n54qllh28xnqvy9",
+    "tsName": "Stjarnan Gardabaer",
+    "tsKo": "스탸르난",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616032,
+    "ourName": "Zimbru Chisinau",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-dj2ryohkg8nq1zp",
+    "tsId": "dj2ryohkg8nq1zp",
+    "tsName": "Zimbru Chisinau",
+    "tsKo": "진브루 키시나우",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616033,
+    "ourName": "KAA Gent",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-l965mkyh99yr1ge",
+    "tsId": "l965mkyh99yr1ge",
+    "tsName": "KAA Gent",
+    "tsKo": "KAA 헨트",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616208,
+    "ourName": "Eskilsminne IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-n54qllh2v1pqvy9",
+    "tsId": "n54qllh2v1pqvy9",
+    "tsName": "Eskilsminne IF",
+    "tsKo": "에스킬스민네 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616195,
+    "ourName": "IFK Ostersunds",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-4wyrn4he908q86p",
+    "tsId": "4wyrn4he908q86p",
+    "tsName": "IFK Ostersunds",
+    "tsKo": "외스순드 IFK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616157,
+    "ourName": "BK Olympic",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-n54qllh295xqvy9",
+    "tsId": "n54qllh295xqvy9",
+    "tsName": "BK Olympic",
+    "tsKo": "BK 올림픽",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616158,
+    "ourName": "Ariana",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-2y8m4zhz0lpql07",
+    "tsId": "2y8m4zhz0lpql07",
+    "tsName": "Ariana",
+    "tsKo": "아리아나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616160,
+    "ourName": "Vasalunds IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-l965mkyhdjlr1ge",
+    "tsId": "l965mkyhdjlr1ge",
+    "tsName": "Vasalunds IF",
+    "tsKo": "바사룬드 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616161,
+    "ourName": "Hudiksvalls ABK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-3glrw7hwyp2qdyj",
+    "tsId": "3glrw7hwyp2qdyj",
+    "tsName": "Hudiksvalls ABK",
+    "tsKo": "후딕스발스 ABK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616164,
+    "ourName": "FC Trollhattan",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-yl5ergphxxor8k0",
+    "tsId": "yl5ergphxxor8k0",
+    "tsName": "FC Trollhattan",
+    "tsKo": "FC 트롤해탄",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616165,
+    "ourName": "Savedalens IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-x7lm7phkzv2m2wd",
+    "tsId": "x7lm7phkzv2m2wd",
+    "tsName": "Savedalens IF",
+    "tsKo": "사베달렌",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616167,
+    "ourName": "PollZ",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-6ypq3nhw0jlmd7o",
+    "tsId": "6ypq3nhw0jlmd7o",
+    "tsName": "PollZ",
+    "tsKo": "폴즈",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616169,
+    "ourName": "IF Viken",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-318q66ho0k1qo9j",
+    "tsId": "318q66ho0k1qo9j",
+    "tsName": "IF Viken",
+    "tsKo": "IF 비켄",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616171,
+    "ourName": "Utsiktens BK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-jw2r09hl7jorz84",
+    "tsId": "jw2r09hl7jorz84",
+    "tsName": "Utsiktens BK",
+    "tsKo": "우트식켄스 BK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616196,
+    "ourName": "Kubikenborgs IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-23xmvkh3odgqg8n",
+    "tsId": "23xmvkh3odgqg8n",
+    "tsName": "Kubikenborgs IF",
+    "tsKo": "쿠비켄보르크 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616176,
+    "ourName": "Vaxjo Norra IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-gx7lm7phlvgm2wd",
+    "tsId": "gx7lm7phlvgm2wd",
+    "tsName": "Vaxjo Norra IF",
+    "tsKo": "벡셰 노라 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616162,
+    "ourName": "Friska Viljor",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-kjw2r09hvelrz84",
+    "tsId": "kjw2r09hvelrz84",
+    "tsName": "Friska Viljor",
+    "tsKo": "프리스카 빌요르 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616180,
+    "ourName": "Pitea IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-l965mkyh6w4r1ge",
+    "tsId": "l965mkyh6w4r1ge",
+    "tsName": "Pitea IF",
+    "tsKo": "피테아 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616197,
+    "ourName": "IFK Stocksund",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-l7oqdeh6vnvr510",
+    "tsId": "l7oqdeh6vnvr510",
+    "tsName": "IFK Stocksund",
+    "tsKo": "스톡순드 IFK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616205,
+    "ourName": "Falu BS",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-gy0or5jh2yxqwzv",
+    "tsId": "gy0or5jh2yxqwzv",
+    "tsName": "Falu BS",
+    "tsKo": "팔루 BS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616202,
+    "ourName": "A.F.C Eskilstuna",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-23xmvkho4jvqg8n",
+    "tsId": "23xmvkho4jvqg8n",
+    "tsName": "A.F.C Eskilstuna",
+    "tsKo": "에스킬스투나 AFC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616207,
+    "ourName": "FBK Balkan",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-pxwrxlh922jryk0",
+    "tsId": "pxwrxlh922jryk0",
+    "tsName": "FBK Balkan",
+    "tsKo": "발칸 FBK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616204,
+    "ourName": "FBK Karlstad",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-dn1m1ghew5lmoep",
+    "tsId": "dn1m1ghew5lmoep",
+    "tsName": "FBK Karlstad",
+    "tsKo": "칼스타드 FBK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616198,
+    "ourName": "Stockholm Internazionale",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-23xmvkhoy00qg8n",
+    "tsId": "23xmvkhoy00qg8n",
+    "tsName": "Stockholm Internazionale",
+    "tsKo": "스톡홀름 인터나치오날 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616200,
+    "ourName": "Haninge",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-y39mp1h5dd2mojx",
+    "tsId": "y39mp1h5dd2mojx",
+    "tsName": "Haninge",
+    "tsKo": "하닝게",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616206,
+    "ourName": "Gefle IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-kdj2ryoh041q1zp",
+    "tsId": "kdj2ryoh041q1zp",
+    "tsName": "Gefle IF",
+    "tsKo": "게플레 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616233,
+    "ourName": "Jarfalla",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-x7lm7phw8n0m2wd",
+    "tsId": "x7lm7phw8n0m2wd",
+    "tsName": "Jarfalla",
+    "tsKo": "자팔라",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616235,
+    "ourName": "IFK Skovde FK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-1l4rjnh1603m7vx",
+    "tsId": "1l4rjnh1603m7vx",
+    "tsName": "IFK Skovde FK",
+    "tsKo": "쇼브데 IFK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616236,
+    "ourName": "Jonkopings Sodra IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-zp5rzghjy9dq82w",
+    "tsId": "zp5rzghjy9dq82w",
+    "tsName": "Jonkopings Sodra IF",
+    "tsKo": "옌쇼핑스 쉬드라 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616237,
+    "ourName": "IK Oddevold",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-4wyrn4h8e7jq86p",
+    "tsId": "4wyrn4h8e7jq86p",
+    "tsName": "IK Oddevold",
+    "tsKo": "아이크 오드볼드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616238,
+    "ourName": "Elfsborg",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-56ypq3nhdvymd7o",
+    "tsId": "56ypq3nhdvymd7o",
+    "tsName": "Elfsborg",
+    "tsKo": "엘프스보리",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616239,
+    "ourName": "Sandvikens IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-jednm9why31ryox",
+    "tsId": "jednm9why31ryox",
+    "tsName": "Sandvikens IF",
+    "tsKo": "산드비켄",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616240,
+    "ourName": "Ljungskile",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-6ypq3nh05o8md7o",
+    "tsId": "6ypq3nh05o8md7o",
+    "tsName": "Ljungskile",
+    "tsKo": "융스킬레",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616241,
+    "ourName": "Kalmar",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-4zp5rzghvyvq82w",
+    "tsId": "4zp5rzghvyvq82w",
+    "tsName": "Kalmar",
+    "tsKo": "칼마르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616242,
+    "ourName": "AIK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-9vjxm8gh6nkr6od",
+    "tsId": "9vjxm8gh6nkr6od",
+    "tsName": "AIK",
+    "tsKo": "AIK 솔나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616243,
+    "ourName": "Orgryte",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-yl5ergph1k3r8k0",
+    "tsId": "yl5ergph1k3r8k0",
+    "tsName": "Orgryte",
+    "tsKo": "오르그리테",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616244,
+    "ourName": "IK Sirius FK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-p4jwq2gh8vwm0ve",
+    "tsId": "p4jwq2gh8vwm0ve",
+    "tsName": "IK Sirius FK",
+    "tsKo": "IK 시리우스 FK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616245,
+    "ourName": "Halmstads",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-gy0or5jhk6pqwzv",
+    "tsId": "gy0or5jhk6pqwzv",
+    "tsName": "Halmstads",
+    "tsKo": "할름스타드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616246,
+    "ourName": "Nordic United FC",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-23xmvkhk38oqg8n",
+    "tsId": "23xmvkhk38oqg8n",
+    "tsName": "Nordic United FC",
+    "tsKo": "노르딕 유나이티드 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616247,
+    "ourName": "Brommapojkarna",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-9k82rekhk98repz",
+    "tsId": "9k82rekhk98repz",
+    "tsName": "Brommapojkarna",
+    "tsKo": "브롬마포캬르나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616248,
+    "ourName": "Djurgardens",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-9k82rekh4ozrepz",
+    "tsId": "9k82rekh4ozrepz",
+    "tsName": "Djurgardens",
+    "tsKo": "위르가르덴",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616229,
+    "ourName": "Landvetter IS",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-1l4rjnh1g39m7vx",
+    "tsId": "1l4rjnh1g39m7vx",
+    "tsName": "Landvetter IS",
+    "tsKo": "란드베터 IS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616232,
+    "ourName": "Angelholms FF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-8yomo4h7keoq0j6",
+    "tsId": "8yomo4h7keoq0j6",
+    "tsName": "Angelholms FF",
+    "tsKo": "안헬홀름 FF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616234,
+    "ourName": "Arlanda",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-4wyrn4hege8q86p",
+    "tsId": "4wyrn4hege8q86p",
+    "tsName": "Arlanda",
+    "tsKo": "알란다 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616214,
+    "ourName": "Husqvarna",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-3glrw7hjzdnqdyj",
+    "tsId": "3glrw7hjzdnqdyj",
+    "tsName": "Husqvarna",
+    "tsKo": "허스크바나",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616226,
+    "ourName": "Gute",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-k82rekhvxnorepz",
+    "tsId": "k82rekhvxnorepz",
+    "tsName": "Gute",
+    "tsKo": "FC 구테",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616219,
+    "ourName": "Lindo FF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-y39mp1h34pjmojx",
+    "tsId": "y39mp1h34pjmojx",
+    "tsName": "Lindo FF",
+    "tsKo": "린도 FF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616014,
+    "ourName": "FC Vardar Skopje",
+    "ourLeague": "UCL",
+    "ourExternalId": "ts-kdj2ryoh38yq1zp",
+    "tsId": "kdj2ryoh38yq1zp",
+    "tsName": "FC Vardar Skopje",
+    "tsKo": "FC 바르다르 스코페",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616015,
+    "ourName": "Floriana F.C.",
+    "ourLeague": "UCL",
+    "ourExternalId": "ts-l7oqdehnd8dr510",
+    "tsId": "l7oqdehnd8dr510",
+    "tsName": "Floriana F.C.",
+    "tsKo": "플로리아나 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616016,
+    "ourName": "CS Petrocub",
+    "ourLeague": "UCL",
+    "ourExternalId": "ts-y0or5jhl7n5qwzv",
+    "tsId": "y0or5jhl7n5qwzv",
+    "tsName": "CS Petrocub",
+    "tsKo": "페트로쿠브 CS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616017,
+    "ourName": "SP La Fiorita",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-4wyrn4h8x0pq86p",
+    "tsId": "4wyrn4h8x0pq86p",
+    "tsName": "SP La Fiorita",
+    "tsKo": "SP 라 피오리타",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616018,
+    "ourName": "KS Elbasani",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-dj2ryohkje5q1zp",
+    "tsId": "dj2ryohkje5q1zp",
+    "tsName": "KS Elbasani",
+    "tsKo": "엘바사니",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616019,
+    "ourName": "Ilves Tampere",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-yl5ergphxonr8k0",
+    "tsId": "yl5ergphxonr8k0",
+    "tsName": "Ilves Tampere",
+    "tsKo": "일베스 탐페레",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616020,
+    "ourName": "FC Ballkani",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-23xmvkhd0e1qg8n",
+    "tsId": "23xmvkhd0e1qg8n",
+    "tsName": "FC Ballkani",
+    "tsKo": "발칸 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616021,
+    "ourName": "Atletic Club d'Escaldes",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-dn1m1gheo9gmoep",
+    "tsId": "dn1m1gheo9gmoep",
+    "tsName": "Atletic Club d'Escaldes",
+    "tsKo": "에스칼데스 아틀레틱 클럽",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616022,
+    "ourName": "SS Virtus",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-n54qllh2n4gqvy9",
+    "tsId": "n54qllh2n4gqvy9",
+    "tsName": "SS Virtus",
+    "tsKo": "버투스 SS",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616023,
+    "ourName": "Marsaxlokk FC",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-3glrw7hw137qdyj",
+    "tsId": "3glrw7hw137qdyj",
+    "tsName": "Marsaxlokk FC",
+    "tsKo": "마르삭슬로크",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616024,
+    "ourName": "FC Pyunik",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-8y39mp1h218mojx",
+    "tsId": "8y39mp1h218mojx",
+    "tsName": "FC Pyunik",
+    "tsKo": "FC 푸니크",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616025,
+    "ourName": "FK Velez Mostar",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-3glrw7hwj00qdyj",
+    "tsId": "3glrw7hwj00qdyj",
+    "tsName": "FK Velez Mostar",
+    "tsKo": "FK 벨레주 모스타르",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616026,
+    "ourName": "FC Milsami",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-dj2ryohyv00q1zp",
+    "tsId": "dj2ryohyv00q1zp",
+    "tsName": "FC Milsami",
+    "tsKo": "밀사미 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616027,
+    "ourName": "College Europa",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-jw2r09hl27orz84",
+    "tsId": "jw2r09hl27orz84",
+    "tsName": "College Europa",
+    "tsKo": "유로파 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616028,
+    "ourName": "Glentoran FC",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-vl7oqdehw6er510",
+    "tsId": "vl7oqdehw6er510",
+    "tsName": "Glentoran FC",
+    "tsKo": "글렌토런 FC",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616029,
+    "ourName": "FC Dinamo City",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-9dn1m1ghz6nmoep",
+    "tsId": "9dn1m1ghz6nmoep",
+    "tsName": "FC Dinamo City",
+    "tsKo": "FC 디나모 시티",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616030,
+    "ourName": "Sarajevo",
+    "ourLeague": "UECL",
+    "ourExternalId": "ts-gy0or5jhv5lqwzv",
+    "tsId": "gy0or5jhv5lqwzv",
+    "tsName": "Sarajevo",
+    "tsKo": "사라예보",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616183,
+    "ourName": "Hogaborgs BK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-j1l4rjnhv9em7vx",
+    "tsId": "j1l4rjnhv9em7vx",
+    "tsName": "Hogaborgs BK",
+    "tsKo": "휴가보르스 BK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616187,
+    "ourName": "Viggbyholms",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-jw2r09hw9pprz84",
+    "tsId": "jw2r09hw9pprz84",
+    "tsName": "Viggbyholms",
+    "tsKo": "빅비홀름",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616190,
+    "ourName": "Sollentuna United",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-3glrw7hw5w8qdyj",
+    "tsId": "3glrw7hw5w8qdyj",
+    "tsName": "Sollentuna United",
+    "tsKo": "솔렌투나 유나이티드",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616194,
+    "ourName": "IK Franke",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-ednm9wh92peryox",
+    "tsId": "ednm9wh92peryox",
+    "tsName": "IK Franke",
+    "tsKo": "프랑케 IK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616159,
+    "ourName": "Assyriska FF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-dn1m1gh48evmoep",
+    "tsId": "dn1m1gh48evmoep",
+    "tsName": "Assyriska FF",
+    "tsKo": "아시리아 FF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616163,
+    "ourName": "Vastkurd",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-4wyrn4h9pvlq86p",
+    "tsId": "4wyrn4h9pvlq86p",
+    "tsName": "Vastkurd",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616173,
+    "ourName": "Hovshaga",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-k82rekh1p8wrepz",
+    "tsId": "k82rekh1p8wrepz",
+    "tsName": "Hovshaga",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616178,
+    "ourName": "Ostra Ersboda",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-318q66hky7xqo9j",
+    "tsId": "318q66hky7xqo9j",
+    "tsName": "Ostra Ersboda",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616203,
+    "ourName": "IK Sturehov",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-dj2ryohkxvkq1zp",
+    "tsId": "dj2ryohkxvkq1zp",
+    "tsName": "IK Sturehov",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616199,
+    "ourName": "Vendelso IK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-2y8m4zhgdy5ql07",
+    "tsId": "2y8m4zhgdy5ql07",
+    "tsName": "Vendelso IK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616201,
+    "ourName": "Konyaspor KIF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-dj2ryohyk8vq1zp",
+    "tsId": "dj2ryohyk8vq1zp",
+    "tsName": "Konyaspor KIF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616209,
+    "ourName": "Eker Orebro",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-pxwrxlhvzo6ryk0",
+    "tsId": "pxwrxlhvzo6ryk0",
+    "tsName": "Eker Orebro",
+    "tsKo": "외레브로 에케",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616210,
+    "ourName": "IF Karlstad Fotboll",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-l5ergph3o99r8k0",
+    "tsId": "l5ergph3o99r8k0",
+    "tsName": "IF Karlstad Fotboll",
+    "tsKo": "칼스타드 축구팀",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616211,
+    "ourName": "Lidkopings FK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-318q66h072jqo9j",
+    "tsId": "318q66h072jqo9j",
+    "tsName": "Lidkopings FK",
+    "tsKo": "리드쾨핑 FK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616212,
+    "ourName": "Skovde AIK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-9dn1m1gh666moep",
+    "tsId": "9dn1m1gh666moep",
+    "tsName": "Skovde AIK",
+    "tsKo": "쇼브데 AIK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616213,
+    "ourName": "Malmslatts AIK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-jw2r09hn50erz84",
+    "tsId": "jw2r09hn50erz84",
+    "tsName": "Malmslatts AIK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616215,
+    "ourName": "Primetime",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-1l4rjnheo44m7vx",
+    "tsId": "1l4rjnheo44m7vx",
+    "tsName": "Primetime",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616216,
+    "ourName": "Karlskrona AIF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-965mkyh7764r1ge",
+    "tsId": "965mkyh7764r1ge",
+    "tsName": "Karlskrona AIF",
+    "tsKo": "칼스크로나 AIF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616217,
+    "ourName": "Unik FK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-1l4rjnh6l10m7vx",
+    "tsId": "1l4rjnh6l10m7vx",
+    "tsName": "Unik FK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616218,
+    "ourName": "Karlbergs BK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-1l4rjnh6579m7vx",
+    "tsId": "1l4rjnh6579m7vx",
+    "tsName": "Karlbergs BK",
+    "tsKo": "칼버리스 BK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616220,
+    "ourName": "Studenterna",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-y39mp1h9g6emojx",
+    "tsId": "y39mp1h9g6emojx",
+    "tsName": "Studenterna",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616221,
+    "ourName": "Vastra Frolunda",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-kdj2ryoh0ojq1zp",
+    "tsId": "kdj2ryoh0ojq1zp",
+    "tsName": "Vastra Frolunda",
+    "tsKo": "베스트라 프로룬다",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616222,
+    "ourName": "Onsala BK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-y39mp1h345xmojx",
+    "tsId": "y39mp1h345xmojx",
+    "tsName": "Onsala BK",
+    "tsKo": "온살라 BK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616223,
+    "ourName": "Ragsveds IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-8yomo4hvkl0q0j6",
+    "tsId": "8yomo4hvkl0q0j6",
+    "tsName": "Ragsveds IF",
+    "tsKo": "락스베드 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616224,
+    "ourName": "Enkoping",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-4jwq2gh4686m0ve",
+    "tsId": "4jwq2gh4686m0ve",
+    "tsName": "Enkoping",
+    "tsKo": "엔쇼핑",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616225,
+    "ourName": "Bollstanas SK",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-l965mkyhpk5r1ge",
+    "tsId": "l965mkyhpk5r1ge",
+    "tsName": "Bollstanas SK",
+    "tsKo": "볼스타네스 SK",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616227,
+    "ourName": "Rappe GOIF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-pxwrxlh1y36ryk0",
+    "tsId": "pxwrxlh1y36ryk0",
+    "tsName": "Rappe GOIF",
+    "tsKo": "라페 GOIF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616228,
+    "ourName": "Hassleholms IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-pxwrxlh1zkdryk0",
+    "tsId": "pxwrxlh1zkdryk0",
+    "tsName": "Hassleholms IF",
+    "tsKo": "하슬레홀름 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616230,
+    "ourName": "Dalstorps IF",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-zp5rzgh7je1q82w",
+    "tsId": "zp5rzgh7je1q82w",
+    "tsName": "Dalstorps IF",
+    "tsKo": "달스톱스 IF",
+    "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 616231,
+    "ourName": "BK Astrio",
+    "ourLeague": "SVENSKA_CUPEN",
+    "ourExternalId": "ts-23xmvkh309oqg8n",
+    "tsId": "23xmvkh309oqg8n",
+    "tsName": "BK Astrio",
+    "tsKo": "BK 아스트리오",
+    "matchType": "ts-external-id"
   }
 ]
