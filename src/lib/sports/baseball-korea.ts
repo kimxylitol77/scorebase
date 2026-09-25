@@ -2,6 +2,7 @@
 import { unstable_cache } from "next/cache";
 import raw from "../../../data/baseball-korea.json";
 import manualRaw from "../../../data/baseball-korea-manual.json";
+import type { JapanStatSource } from "./japan-korea-stats";
 
 export interface BaseballKoreaPlayer {
   id: number; nameEn: string; nameKo: string; pos: string | null; posType: string | null; age: number | null; birthDate: string | null;
@@ -99,6 +100,9 @@ export function mlbClubOf(p: BaseballKoreaPlayer): string | null {
   return p.sportId === 1 ? p.team.name || null : p.team.parentOrg;
 }
 
-/** 수동 명단(NPB 등) — data/baseball-korea-manual.json. 비어 있으면 페이지가 해당 구간을 숨긴다. */
-export interface ManualNpbPlayer { npbId?: string; nameKo: string; nameEn: string; team: string; pos: string; status?: string; note?: string }
-export const BASEBALL_KOREA_NPB_MANUAL: ManualNpbPlayer[] = (manualRaw as { npb?: ManualNpbPlayer[] }).npb ?? [];
+/** 일본 야구(NPB·독립리그) 수동 명단 — data/baseball-korea-manual.json. 비어 있으면 페이지가 해당 구간을 숨긴다. */
+export interface ManualJapanPlayer {
+  npbId?: string; nameKo: string; nameEn: string; nameJa?: string; league: string; team: string; pos: string;
+  status?: string; note?: string; profileUrl?: string; stats?: JapanStatSource[];
+}
+export const BASEBALL_KOREA_JAPAN: ManualJapanPlayer[] = (manualRaw as { japan?: ManualJapanPlayer[] }).japan ?? [];

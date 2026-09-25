@@ -1,4 +1,57 @@
 {
- "_readme": "NPB 등 출생국 API 가 없는 리그의 한국 선수 수동 명단. 항목: npbId(npb.jp 선수 id, 있으면 사진·투수 상세 링크), nameKo, nameEn(공식 표기, 성적 매칭용 — BaseballPlayerSeasonStats.playerNameEn 과 공백 제거 비교), team(한글 구단명, 성적 테이블 teamName 과 동일 표기), pos(투수·내야수 등), status(1군·2군·육성), note. 2026-09-20 기준 한국 국적 NPB 선수 없음(2016 년 이후 1군 무).",
- "npb": []
+ "_readme": "일본 야구(NPB·독립리그) 한국 선수 수동 명단 — 출생국 API 가 없어 사람이 관리. 항목: nameKo, nameEn(공식 영문 표기), nameJa(공식 일본어 표기 — npb.jp 성적표 이름 매칭용), league(표시 라벨), team(한글 구단명, NPB 는 성적 테이블 teamName 과 동일 표기), pos, status, note, npbId(npb.jp 선수 id), profileUrl(공식 프로필), stats(성적 원천: {src:'npb-farm',team:npb.jp 팀코드,label} 또는 {src:'bcl',team:bc-l-data 팀id,id:선수id,label}). 2026-09-25 전수 대조: NPB 12구단+하야테·오이식스 명단, BC리그 12팀, 시코쿠 IL 4팀(롯데 자이언츠 파견팀 5/19~6/25 종료 제외). 규슈 아시아리그는 공식 명단 미확인.",
+ "japan": [
+  {
+   "nameKo": "이건희",
+   "nameEn": "Lee Kun-hee",
+   "nameJa": "李　健熙",
+   "league": "NPB",
+   "team": "요미우리",
+   "pos": "포수",
+   "status": "육성",
+   "note": "NC 불펜포수 출신 · 7/14 하야테→요미우리 육성 계약",
+   "npbId": "47545152",
+   "profileUrl": "https://npb.jp/bis/players/47545152.html",
+   "stats": [
+    { "src": "npb-farm", "team": "g", "label": "요미우리 2군" },
+    { "src": "npb-farm", "team": "v", "label": "하야테 2군(이적 전)" }
+   ]
+  },
+  {
+   "nameKo": "김한근",
+   "nameEn": "Kim Hangeun",
+   "nameJa": "金　韓根",
+   "league": "BC리그",
+   "team": "이바라키 아스트로플래닛츠",
+   "pos": "투수",
+   "status": "독립리그",
+   "note": "재일교포 · 도카이대 중퇴 · 2년차",
+   "profileUrl": "https://www.ibaraki-planets.jp/team/kim_hangeun/index.html",
+   "stats": [{ "src": "bcl", "team": 894, "id": 2118950, "label": "BC리그 공식전" }]
+  },
+  {
+   "nameKo": "오정훈",
+   "nameEn": "Oh Jeong-hun",
+   "nameJa": "オ・ジョンフン",
+   "league": "BC리그",
+   "team": "이바라키 아스트로플래닛츠",
+   "pos": "투수",
+   "status": "독립리그",
+   "note": "서울컨벤션고 · 1년차",
+   "profileUrl": "https://www.ibaraki-planets.jp/team/oh_jeonghun/index.html",
+   "stats": [{ "src": "bcl", "team": 894, "id": 2123487, "label": "BC리그 공식전" }]
+  },
+  {
+   "nameKo": "정태원",
+   "nameEn": "Jeong Tae-won",
+   "nameJa": "鄭　泰源",
+   "league": "BC리그",
+   "team": "이바라키 아스트로플래닛츠",
+   "pos": "포수",
+   "status": "독립리그",
+   "note": "용인시야구단 출신 · 1년차",
+   "profileUrl": "https://www.ibaraki-planets.jp/team/jeong_taewon/index.html",
+   "stats": [{ "src": "bcl", "team": 894, "id": 2123488, "label": "BC리그 공식전" }]
+  }
+ ]
 }
