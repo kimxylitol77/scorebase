@@ -42,6 +42,9 @@ const SLOW_HIGH_MS = 8_000;
 // "지속 지연"으로 보고돼 알림이 그대로 나간다(첫 배포 때 40 으로 뒀다가 80건 중 절반이 그렇게 샜다).
 // 200 이면 사실상 전수. 이걸 넘길 만큼 후보가 많다면 그건 사이트 전체가 느린 것이라 알려야 맞다.
 const SLOW_RECHECK_MAX = 200;
+// 5xx·네트워크 오류 재확인 — 잠깐 쉬었다 1회 재요청. 상한을 넘기면 사이트가 통째로 죽은 것이라 그대로 보고.
+const ERR_RECHECK_MAX = 200;
+const ERR_RECHECK_DELAY_MS = 10_000;
 
 if (!TOKEN) {
   console.error("❌ INTERNAL_API_TOKEN 미설정 — .env 확인");
@@ -252,6 +255,27 @@ async function runOnce() {
     } else {
       merged.set(r.url, { ...r, src: "bfs" });
     }
+  }
+  // ── 5xx·네트워크 오류 재확인 게이트 ──
+  // 크롤 중 한 번 난 500(함수 콜드 타임아웃)·연결 끊김이 그대로 "긴급"으로 나갔다. 2026-09-25 실측:
+  // 알림의 5xx 1·net 33건을 곧바로 다시 요청하니 전부 200(/transfers 600개 전수 최대 0.48s).
+  // 느림 게이트와 같은 원리로 1회 재요청해 여전히 실패하는 것만 보고한다. 404 는 결정적이라 재확인하지 않는다.
+  const failCandidates = [...merged.values()].filter((r) => r.kind === "5xx" || r.kind === "error");
+  if (failCandidates.length > 0) {
+    console.log(`  오류 후보 ${failCandidates.length}건 재확인 (일시 오류 판별)`);
+    await new Promise((resolve) => setTimeout(resolve, ERR_RECHECK_DELAY_MS));
+    const rechecked = await fetchPool(failCandidates.slice(0, ERR_RECHECK_MAX).map((r) => r.url));
+    let transient = 0;
+    for (const again of rechecked) {
+      const prev = merged.get(again.url);
+      if (again.kind === "5xx" || again.kind === "error") {
+        console.log(`    ✗ ${again.url.replace(SITE, "")} — ${again.status || again.error}`);
+        continue;
+      }
+      merged.set(again.url, { ...again, src: prev.src }); // 회복(또는 404 등 다른 판정)은 재요청 결과로
+      transient++;
+    }
+    console.log(`  → 일시 오류 ${transient}건 제외 · 지속 오류 ${failCandidates.length - transient}건`);
   }
   const all = [...merged.values()];
 
