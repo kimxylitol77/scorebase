@@ -51,7 +51,9 @@ import { SOCCER_LEAGUES } from "../src/lib/sports/sport-leagues";
 
 const TS_BASE = "https://api.thesports.com/v1/football";
 const CALL_GAP_MS = 250;
-const POST_CHUNK = 100;
+// 100건씩 보내면 라우트가 시간 제한에 걸려 한 묶음이 통째로 빠졌다(2026-09-25 UCL·UEL·UECL 리그페이즈 마지막
+// 라운드 18경기씩 누락 — 응답 코드를 안 봐서 "upserted 0"으로 조용히 넘어갔다).
+const POST_CHUNK = 25;
 
 // ESPN/api-football 이 수집을 담당하는 대회 — ts 로 넣으면 크로스소스 중복이 된다.
 // lightsail-worker/football-match-collector.js 의 SKIP_LEAGUES 와 반드시 동기 유지.
@@ -93,7 +95,7 @@ interface DiaryMatch {
   status_id: number;
   home_scores?: unknown[];
   away_scores?: unknown[];
-  round?: { stage_id?: string };
+  round?: { stage_id?: string; round_num?: number; group_num?: number };
 }
 
 // home_scores/away_scores: [0]=정규시간, [5]=연장 포함 총점, [6]=승부차기(절대 합산 금지).
@@ -117,6 +119,25 @@ async function tsGet(path: string, params: Record<string, string>): Promise<unkn
   if (!r.ok) throw new Error(`ts ${path} HTTP ${r.status}`);
   const j = (await r.json()) as { results?: unknown[] };
   return Array.isArray(j.results) ? j.results : [];
+}
+
+// 라운드 — 워커(football-match-collector roundOf)와 같은 형식으로 싣는다. 빠뜨리면 raw 가 비어
+// 일정 탭 라운드 네비·대진표·리그페이즈 판정이 이 경기들을 못 읽는다(2026-09-25 UCL 리그페이즈 108경기 실측).
+const stageNames = new Map<string, string | null>();
+async function roundOf(m: DiaryMatch) {
+  const r = m.round;
+  if (!r) return {};
+  let stageName: string | null = null;
+  if (r.stage_id) {
+    if (!stageNames.has(r.stage_id)) {
+      const rows = (await tsGet("stage/list", { uuid: r.stage_id }).catch(() => [])) as Array<{ name?: string }>;
+      stageNames.set(r.stage_id, rows[0]?.name?.trim() || null);
+    }
+    stageName = stageNames.get(r.stage_id) ?? null;
+  }
+  return {
+    round: { stageId: r.stage_id || null, roundNum: Number(r.round_num) || 0, groupNum: Number(r.group_num) || 0, stageName },
+  };
 }
 
 type Action =
@@ -321,7 +342,8 @@ async function processLeague(
 
   // 4. 검증 — 컬렉터와 같은 형식으로 내부 라우트에 POST (다음 주기를 기다리지 않는다)
   const site = (process.env.SITE_URL || "https://www.scorebase.kr").replace("://scorebase.kr", "://www.scorebase.kr");
-  const payload = matches.map((m) => ({
+  const payload = [];
+  for (const m of matches) payload.push({
     league: code,
     tsMatchId: m.id,
     tsHomeTeamId: m.home_team_id!,
@@ -332,20 +354,28 @@ async function processLeague(
     // 스코어를 알아서 버리므로 항상 실어 보내면 된다(컬렉터와 동일).
     homeScore: finalScore(m.home_scores),
     awayScore: finalScore(m.away_scores),
-  }));
+    ...(await roundOf(m)),
+  });
   let upserted = 0;
   let skippedNoTeam = 0;
+  let failed = 0;
   for (let i = 0; i < payload.length; i += POST_CHUNK) {
     const r = await fetch(`${site}/api/internal/thesports-matches`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` },
       body: JSON.stringify({ sport: "football", matches: payload.slice(i, i + POST_CHUNK) }),
     });
+    const chunk = Math.min(POST_CHUNK, payload.length - i);
+    if (!r.ok) {
+      failed += chunk;
+      console.log(`  ⚠ POST 실패 HTTP ${r.status} — ${i}~${i + chunk - 1}번째 ${chunk}경기`);
+      continue;
+    }
     const j = (await r.json()) as { upserted?: number; skippedNoTeam?: number };
     upserted += j.upserted ?? 0;
     skippedNoTeam += j.skippedNoTeam ?? 0;
   }
-  console.log(`  검증 POST — upserted ${upserted} · skippedNoTeam ${skippedNoTeam}${skippedNoTeam > 0 ? " ⚠ 보류·충돌 팀의 매치" : " ✓"}`);
+  console.log(`  검증 POST — upserted ${upserted} · skippedNoTeam ${skippedNoTeam}${failed > 0 ? ` · 실패 ${failed}경기 ⚠ 다시 실행` : ""}${skippedNoTeam > 0 ? " ⚠ 보류·충돌 팀의 매치" : failed > 0 ? "" : " ✓"}`);
 }
 
 async function main() {
