@@ -43,6 +43,7 @@ import { getWorldCupPlayerStats } from "@/lib/sports/thesports/world-cup-player-
 import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
 import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { tsPlayerToAfExact } from "@/lib/players/ts-af-map";
+import { mergeSeasonPlayerStatRows } from "@/lib/sports/thesports/merge-season-player-stat";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
@@ -447,6 +448,10 @@ async function syncLeagueFromTsPlayerStat(
     console.log(`[league-leaders/${league}] 다른 티어 선수 ${before - rows.length}행 제외 (남은 ${rows.length}행)`);
     if (rows.length === 0) return out;
   }
+
+  // 시즌 중 이적생은 팀마다 한 행 — 선수 단위로 합쳐야 기록이 쪼개지지 않고 중복 등재도 없다.
+  // 위 티어 필터 뒤에 합쳐 다른 대회 팀에서 쌓은 기록은 섞지 않는다.
+  rows = mergeSeasonPlayerStatRows(rows);
 
   // 평점은 비율 스탯이라 출전 게이트 필수 — 1경기 8.0 이 시즌 1위가 되지 않게.
   // 개막 직후에도 표가 서도록 절대값(5) 대신 리그 최다 출전의 절반(최소 2)으로 적응형.
