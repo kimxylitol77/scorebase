@@ -241,6 +241,9 @@ const TS_PLAYER_STAT_LEAGUES = new Set([
   "RUSSIA_FNL", "ROMANIA_L2",
   "COSTA_RICA_PD", "GUATEMALA_LN", "HONDURAS_LN",
   "UZBEKISTAN_SL", "MEXICO_2", "CHINA_3", "COPA_DO_BRASIL",
+  // 2026-09-25 국가대항전 — 리그 페이지 통계 탭이 없었다(사용자 지적: 네이션스리그 선수 통계). ts 실측(행·득점자):
+  // 네이션스리그 2026-27 367·20, 걸프컵 184·6, AFCON 예선 361·22, 아시안게임 남자 349·47.
+  "UEFA_NL", "GULF_CUP", "AFCON", "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W",
   // 2026-08-02 2차 — 리더보드가 아예 없던 리그 59개 (사용자 지적: /predictions/SWISS_SL 빈 화면).
   // ts 시즌 선수통계 전수 실측(득점자 5명 이상)으로 선별. 컵 대회는 시즌 라벨 체계가 리그와
   // 달라 오적재 위험이 있어 이번 배치에서 제외(FA컵·코파 델 레이 등).
@@ -404,6 +407,14 @@ async function ourTsTeamIds(league: string): Promise<Set<string>> {
   return ids;
 }
 
+// 선수 통계에만 쓰는 ts 시즌 id — 일반 매핑(league-id-mapping)에 tsSeasonId 를 넣으면 TS_COVERED 로 분류돼
+// af 매치 수집이 끊기고 ts 순위 폴러까지 붙는다(네이션스리그는 ts 조 id 가 불투명해 조별 표가 깨진다).
+// 대회가 바뀌면(네이션스리그 2028-29 등) 여기 id 를 갈아 끼운다 — ts diary 의 season_id 가 출처.
+const TS_PLAYER_STAT_SEASON_ONLY: Record<string, string> = {
+  UEFA_NL: "1l4rjnh6yj3m7vx", // UEFA Nations League 2026-2027 (competition d23xmvkh43oqg8n)
+  GULF_CUP: "23xmvkh33wxqg8n", // WAFF Arabian Gulf Cup 2026 (competition gpxwrxlhkgryk0j)
+};
+
 // 축구 리더 주 경로 = ts season/recent/player/stat 직접 호출 (리그당 1콜) — 항상 최신.
 // 한글 선수명은 TheSportsPlayer DB 에 있으면 쓰고, 없으면 ts 영문명 그대로 (하부리그는 미등재 다수).
 async function syncLeagueFromTsPlayerStat(
@@ -411,9 +422,10 @@ async function syncLeagueFromTsPlayerStat(
   fallbackSeasonLabel: string,
 ): Promise<Record<string, number>> {
   const out: Record<string, number> = {};
-  const entry = (tsLeagueMap as Array<{ code: string; tsSeasonId?: string }>).find(
+  const mapped = (tsLeagueMap as Array<{ code: string; tsSeasonId?: string }>).find(
     (e) => e.code === league,
   );
+  const entry = mapped?.tsSeasonId ? mapped : TS_PLAYER_STAT_SEASON_ONLY[league] ? { tsSeasonId: TS_PLAYER_STAT_SEASON_ONLY[league] } : null;
   if (!entry?.tsSeasonId) return out;
 
   // 라벨은 ts 시즌 메타의 연도가 정본 — 달력 공식은 메타 조회 실패 시 폴백.
