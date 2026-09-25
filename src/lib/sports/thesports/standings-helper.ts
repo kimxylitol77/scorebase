@@ -20,6 +20,7 @@ import {
   isSeasonGated,
   hideStageStandings,
   isUnplayedTable,
+  currentStageTables,
   standingsState,
   type StandingsState,
 } from "./standings-gate";
@@ -54,6 +55,38 @@ for (const e of teamIdMapping as TeamIdEntry[]) {
     TS_TO_OUR_BY_LEAGUE.set(e.ourLeague, new Map());
   }
   TS_TO_OUR_BY_LEAGUE.get(e.ourLeague)!.set(e.tsId, e.ourId);
+}
+
+/**
+ * ts 팀 id → 우리 Team.id. 정적 JSON 에 없는 팀은 DB 매핑(TeamSourceId thesports · Team.externalId "ts-")으로 채운다.
+ * 컵·국대 대회 팀은 경기 수집 때 DB 에만 매핑이 생겨서, JSON 만 보면 순위표에서 소리 없이 빠졌다
+ * (2026-09-25 실측: UCL 36팀 중 18·UEL 9·UECL 5·ACL 엘리트 11/24 만 표시, 빠진 팀 전부 DB 에는 매핑 있음).
+ * JSON 에 있는 팀은 그대로 둔다 — 기존 표의 팀 연결을 바꾸지 않는다.
+ */
+async function tsTeamMap(league: string, tsIds: string[]): Promise<Map<string, number>> {
+  const map = new Map(TS_TO_OUR_BY_LEAGUE.get(league) ?? []);
+  const missing = [...new Set(tsIds)].filter((id) => !map.has(id));
+  if (missing.length === 0) return map;
+  try {
+    const [src, ext] = await Promise.all([
+      prisma.teamSourceId.findMany({
+        where: { league, source: "thesports", externalId: { in: missing } },
+        select: { externalId: true, teamId: true },
+      }),
+      prisma.team.findMany({
+        where: { league, externalId: { in: missing.map((id) => `ts-${id}`) } },
+        select: { id: true, externalId: true },
+      }),
+    ]);
+    for (const r of src) map.set(r.externalId, r.teamId);
+    for (const t of ext) {
+      const tsId = t.externalId.slice(3);
+      if (!map.has(tsId)) map.set(tsId, t.id);
+    }
+  } catch (e) {
+    console.warn(`[standings-helper] ts DB 팀 매핑 조회 실패 league=${league}:`, (e as Error).message);
+  }
+  return map;
 }
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -166,11 +199,11 @@ export async function getStandingsPositions(
       cache.set(league, { fetchedAt: now, positionByOurTeamId });
       return null;
     }
-    const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
+    const leagueMap = await tsTeamMap(league, tsRows.flatMap((r) => (r.team_id ? [r.team_id] : [])));
     for (const t of payload?.tables ?? []) {
       for (const r of t.rows ?? []) {
         if (!r.team_id || r.position == null) continue;
-        const ourId = leagueMap?.get(r.team_id);
+        const ourId = leagueMap.get(r.team_id);
         if (ourId != null) positionByOurTeamId.set(ourId, r.position);
       }
     }
@@ -356,9 +389,15 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
       goals_against?: number;
       goal_diff?: number;
     }
-    const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[]; group?: number | string | null }> };
-    tsTableCount = (payload?.tables ?? []).length;
-    const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
+    const rawPayload = ts.payload as unknown as {
+      tables?: Array<{ rows?: TsRow[]; group?: number | string | null }>;
+    };
+    const payload = { tables: currentStageTables(rawPayload?.tables ?? []) };
+    tsTableCount = (rawPayload?.tables ?? []).length; // af 병합 제외 판정은 원본 표 수 그대로(단계 거르기 전 동작 유지)
+    const leagueMap = await tsTeamMap(
+      league,
+      (payload?.tables ?? []).flatMap((t) => (t.rows ?? []).flatMap((r) => (r.team_id ? [r.team_id] : []))),
+    );
     // 조별 대회(ASEAN 챔피언십·아시안게임 등) — tables 2+ 이고 group 번호가 있으면 "A조/B조" 라벨.
     //  flatten 하면 조별 1~N위가 섞여 순위가 중복돼 보이던 것 해소 (표시층은 group 지원 기존재).
     //  라벨은 ts group 번호가 아니라 **표 순서**로 매긴다 — 아시안게임 여자부는 남자부 뒤에 이어 5·6·7·0 으로 와서
@@ -373,7 +412,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
           : null;
       for (const r of t.rows ?? []) {
         if (!r.team_id || r.position == null) continue;
-        const ourId = leagueMap?.get(r.team_id);
+        const ourId = leagueMap.get(r.team_id);
         if (ourId == null || seen.has(ourId)) continue;
         seen.add(ourId);
         const gf = Array.isArray(r.goals) ? r.goals[0]

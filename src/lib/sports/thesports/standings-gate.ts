@@ -160,3 +160,25 @@ export function standingsState(
   if (!hasPlayed && firstFixtureAt && firstFixtureAt.getTime() > now.getTime()) return "PRESEASON";
   return "MISSING";
 }
+
+/**
+ * 단계가 이어진 표(전기·후기, 정규리그·스플릿)에서 지금 단계 표만 남긴다.
+ * ts 는 한 시즌의 단계별 표를 한 payload 에 앞 단계부터 같이 준다. 앞 표부터 그리면 끝난 전기 순위가
+ * 현재 순위로 보이고(2026-09-25 실측: 페루·콜롬비아·파라과이·아르헨티나·니카라과), 뒤 표의 신규 팀만
+ * "B조"로 따로 떴다(니카라과 San Marcos 1팀).
+ * 판정: 어떤 표의 팀 절반 이상이 뒤쪽 표들에 다시 나오면 끝난 단계라 버린다. 스플릿(핀란드 6+6)·
+ * 승강 플레이오프(중국 3부 8+8+8)처럼 지금 단계가 여러 표여도 서로 안 겹쳐 함께 남고,
+ * 조별 대회(팀이 겹치지 않는 표)는 그대로다.
+ * 최근 경기의 stageId 로 가리지 않는 이유 — 핀란드처럼 경기가 af 로 들어오는 리그는 stageId 가 없다.
+ */
+export function currentStageTables<T extends { rows?: Array<{ team_id?: string }> }>(tables: T[]): T[] {
+  if (tables.length < 2) return tables;
+  const sets = tables.map((t) => new Set((t.rows ?? []).flatMap((r) => (r.team_id ? [r.team_id] : []))));
+  const kept = tables.filter((_, i) => {
+    if (sets[i].size === 0) return true;
+    const later = new Set(sets.slice(i + 1).flatMap((st) => [...st]));
+    const again = [...sets[i]].filter((id) => later.has(id)).length;
+    return again / sets[i].size < 0.5;
+  });
+  return kept.length > 0 ? kept : tables;
+}

@@ -1,7 +1,7 @@
 // 유럽 대항전 단계 가드 + 그룹 순위 예외 세트 상태 고정.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hideStageStandings, isUnplayedTable } from "./standings-gate";
+import { currentStageTables, hideStageStandings, isUnplayedTable } from "./standings-gate";
 import { GROUPED_STANDINGS_LEAGUES } from "./standings-helper";
 
 const played = (n: number) => ({ won: n, draw: 0, loss: 0 });
@@ -81,4 +81,34 @@ test("그룹 순위 예외 세트는 UEFA_NL 뿐 — 세트가 바뀌면 관련 
   // 세트를 또 바꾸면 이 assert 가 깨진다. 그때는 새 대회가 (a) standings-collect 의
   // af-primary 규칙과 (b) getFullStandings 의 af 우선 분기에 맞는지 점검하고 갱신하라.
   assert.deepEqual([...GROUPED_STANDINGS_LEAGUES].sort(), ["UEFA_NL"]);
+});
+
+// ── 단계가 이어진 표 — 끝난 단계를 버리고 지금 단계만 (2026-09-25 남미 전기 순위 노출) ──
+const tbl = (name: string, ids: string[]) => ({ name, rows: ids.map((team_id) => ({ team_id })) });
+const names = (ts: Array<{ name: string }>) => ts.map((t) => t.name);
+
+test("전기·후기 — 같은 팀들의 앞 표(끝난 전기)는 버린다", () => {
+  const teams = ["a", "b", "c", "d"];
+  assert.deepEqual(names(currentStageTables([tbl("전기", teams), tbl("후기", teams)])), ["후기"]);
+});
+
+test("승격팀이 섞여도 절반 이상 다시 나오면 끝난 단계 — 신규 1팀만 따로 뜨지 않는다", () => {
+  const prev = ["a", "b", "c", "d", "old"];
+  const cur = ["a", "b", "c", "d", "new"];
+  assert.deepEqual(names(currentStageTables([tbl("전기", prev), tbl("후기", cur)])), ["후기"]);
+});
+
+test("정규리그 → 스플릿 두 그룹 — 스플릿은 서로 안 겹쳐 둘 다 남는다", () => {
+  const reg = ["a", "b", "c", "d", "e", "f"];
+  const r = currentStageTables([tbl("정규", reg), tbl("상위", ["a", "b", "c"]), tbl("하위", ["d", "e", "f"])]);
+  assert.deepEqual(names(r), ["상위", "하위"]);
+});
+
+test("조별 대회 — 팀이 겹치지 않으면 그대로, 3위 비교표처럼 일부만 겹쳐도 그대로", () => {
+  const groups = [tbl("A", ["a1", "a2", "a3", "a4"]), tbl("B", ["b1", "b2", "b3", "b4"]), tbl("3위", ["a3", "b3"])];
+  assert.deepEqual(names(currentStageTables(groups)), ["A", "B", "3위"]);
+});
+
+test("표가 하나면 그대로", () => {
+  assert.deepEqual(names(currentStageTables([tbl("리그", ["a", "b"])])), ["리그"]);
 });
