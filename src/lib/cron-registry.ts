@@ -50,6 +50,8 @@ export const CRON_REGISTRY: {
   { name: "data-freshness", label: "선수 데이터 결손 감시", maxAgeH: 28 },
   // 6h 주기 — 기대 6h + 유예 4h = 10h
   { name: "football-season-watch", label: "축구 시즌 전환 감시", maxAgeH: 10 },
+  // 감시형 — count=새 알림 수라 0 이 정상. zeroAlertAfter 붙이지 말 것.
+  { name: "schedule-watch", label: "일정 감시·자동 복구", maxAgeH: 10 },
   // 2h 주기 — 기대 2h + 유예 4h = 6h
   { name: "news-briefing", label: "해외 브리핑", maxAgeH: 6 },
   { name: "llm-cost-watch", label: "LLM 비용 감시", maxAgeH: 6 },

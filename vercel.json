@@ -273,6 +273,10 @@
       "schedule": "30 21 * * *"
     },
     {
+      "path": "/api/cron/schedule-watch",
+      "schedule": "50 1,7,13,19 * * *"
+    },
+    {
       "path": "/api/cron/llm-cost-watch",
       "schedule": "10 */2 * * *"
     },
