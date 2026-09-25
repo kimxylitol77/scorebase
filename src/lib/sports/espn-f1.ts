@@ -324,3 +324,62 @@ export const fetchF1DriverDetail = unstable_cache(
   ["espn-f1-driver-detail"],
   { revalidate: 1800, tags: ["f1-championship"] },
 );
+
+// 시즌 그랑프리 일정·결과 — ESPN scoreboard?dates={연도} 1콜에 25개 대회가 세션(FP·예선·레이스)째 온다(2026-09-25 실측).
+// 한글 대회명 사전이 없어 서킷 국가로 "{국가} 그랑프리"를 만들고 도시를 곁들인다(미국·스페인은 한 해 여러 대회).
+export interface F1GrandPrix {
+  id: string;
+  /** ESPN 원문(스폰서 포함) */
+  name: string;
+  countryKo: string | null;
+  city: string | null;
+  /** 레이스 세션 시각(없으면 대회 시작) ISO */
+  raceTime: string;
+  status: "final" | "scheduled" | "canceled" | "live";
+  winner: { name: string; nameKo: string | null } | null;
+  /** 폴 포지션(예선 1위) */
+  pole: { name: string; nameKo: string | null } | null;
+}
+
+interface SbCompetitor { order?: number; winner?: boolean; athlete?: { id?: string; displayName?: string } }
+interface SbCompetition { date?: string; type?: { abbreviation?: string }; competitors?: SbCompetitor[] }
+interface SbEvent {
+  id: string; name: string; date: string;
+  status?: { type?: { name?: string } };
+  circuit?: { address?: { city?: string; country?: string } };
+  competitions?: SbCompetition[];
+}
+
+function sessionTop(c: SbCompetition | undefined): { name: string; nameKo: string | null } | null {
+  const top = c?.competitors?.find((x) => x.order === 1) ?? c?.competitors?.find((x) => x.winner);
+  const name = top?.athlete?.displayName;
+  if (!name) return null;
+  return { name, nameKo: (top?.athlete?.id && NAMES[top.athlete.id]) || null };
+}
+
+export const fetchF1Season = unstable_cache(
+  async (year: string): Promise<F1GrandPrix[]> => {
+    const d = await getJson<{ events?: SbEvent[] }>(`https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard?dates=${year}`);
+    return (d?.events ?? []).map((e) => {
+      const race = e.competitions?.find((c) => c.type?.abbreviation === "Race");
+      const qual = e.competitions?.find((c) => c.type?.abbreviation === "Qual");
+      const s = e.status?.type?.name ?? "";
+      const status: F1GrandPrix["status"] =
+        s === "STATUS_FINAL" ? "final" : s === "STATUS_CANCELED" ? "canceled" : s === "STATUS_IN_PROGRESS" ? "live" : "scheduled";
+      const country = e.circuit?.address?.country ?? null;
+      return {
+        id: e.id,
+        name: e.name,
+        countryKo: country ? fifaCountryKo(country) ?? country : null,
+        city: e.circuit?.address?.city ?? null,
+        raceTime: race?.date ?? e.date,
+        status,
+        // 결과 문구는 레이스가 끝난 대회만 — 진행 중·예정 대회의 세션 1위를 우승처럼 쓰지 않는다.
+        winner: status === "final" ? sessionTop(race) : null,
+        pole: status === "final" || status === "live" ? sessionTop(qual) : null,
+      };
+    });
+  },
+  ["f1-season"],
+  { revalidate: 1800, tags: ["f1-championship"] },
+);
