@@ -23,7 +23,11 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
-import { ALL_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, HOCKEY_LEAGUES, LEAGUE_DISPLAY, LOL_LEAGUES, SOCCER_LEAGUES, VOLLEYBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, COUNTRY_BY_LEAGUE, HOCKEY_LEAGUES, LEAGUE_DISPLAY, LOL_LEAGUES, SOCCER_LEAGUES, SPORTS, VOLLEYBALL_LEAGUES, getLeagueFlag, sportCodeForLeague } from "@/lib/sports/sport-leagues";
+import { EMPTY_FACTS, getLeaguePageFacts } from "@/lib/seo/league-page-facts";
+import { leagueSeoCopy, shouldNoindex } from "@/lib/seo/league-seo-copy";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
+import { SITE_URL } from "@/lib/site-url";
 import { getFullStandings, getStandingsState } from "@/lib/sports/thesports/standings-helper";
 import { NO_TABLE_LEAGUES, STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import LeaguePredictionsPanel from "@/components/leagues/LeaguePredictionsPanel";
@@ -553,6 +557,33 @@ export async function generateMetadata({
   }
   const type = (sp.type?.toUpperCase() ?? "ALL") as FilterType;
   const validType = VALID_TYPES.includes(type) ? type : "ALL";
+  // 2026-09-25 — 정식 페이지로 올린 리그 대부분은 글이 없다. "경기 프리뷰·분석" 을 약속하지 않고
+  //  실제로 있는 데이터(순위·일정·선수 기록)로 제목·설명을 만든다. 경기·기록·글이 모두 없으면 noindex.
+  const [facts, articleCount] = await Promise.all([
+    getLeaguePageFacts().then((f) => f[upper] ?? EMPTY_FACTS).catch(() => EMPTY_FACTS),
+    prisma.article.count({ where: { league: upper, status: "PUBLISHED" } }).catch(() => 1),
+  ]);
+  const robots = shouldNoindex(facts, articleCount) ? { index: false, follow: true } : undefined;
+  if (articleCount === 0 && validType === "ALL") {
+    const sportCode = sportCodeForLeague(upper);
+    const copy = leagueSeoCopy({
+      name: info.name,
+      country: COUNTRY_BY_LEAGUE[upper] ?? null,
+      sportLabel: SPORTS.find((s) => s.code === sportCode)?.label ?? "스포츠",
+      // 야구는 /standings 전용, 친선·예선·LCK CL 은 표가 없다(리그 페이지 탭 규칙과 같다)
+      hasTable: !BASEBALL_LEAGUES.has(upper) && !/FRIENDLY/.test(upper) && !NO_TABLE_LEAGUES.has(upper) && upper !== "LCK_CL",
+      facts,
+      articles: articleCount,
+      now: new Date(),
+    });
+    return {
+      title: copy.title,
+      description: copy.description,
+      alternates: { canonical },
+      ...(robots ? { robots } : {}),
+      openGraph: { title: copy.title, description: copy.description, images: ogPageImage({ title: info.name, subtitle: copy.title.replace(`${info.name} `, ""), tag: upper }) },
+    };
+  }
   const titleSuffix =
     validType === "ALL"
       ? ""
@@ -578,6 +609,7 @@ export async function generateMetadata({
     title: `${baseTitle}${titleSuffix}`,
     description: todayLine + TYPE_DESC[validType] + " — " + info.copy,
     alternates: { canonical },
+    ...(robots ? { robots } : {}),
     openGraph: {
       title: baseTitle,
       description: info.copy,
@@ -887,8 +919,44 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     countMap.set(key, (countMap.get(key) ?? 0) + c._count._all);
   }
 
+  // 구조화 데이터 — 리그 엔티티·빵부스러기·데이터셋(검색·AI 가 "무엇의 어떤 데이터"인지 읽게). 탭 목록이 곧 데이터 목록.
+  const sportCode = sportCodeForLeague(upper);
+  const sportMeta = SPORTS.find((s) => s.code === sportCode);
+  const SPORT_HUB: Record<string, string> = { soccer: "/soccer", baseball: "/baseball", basketball: "/basketball", hockey: "/hockey", esports: "/esports", volleyball: "/other" };
+  const SCHEMA_SPORT: Record<string, string> = { soccer: "Soccer", baseball: "Baseball", basketball: "Basketball", hockey: "Ice Hockey", volleyball: "Volleyball", esports: "Esports" };
+  const VIEW_DATA: Record<string, string> = { standings: "순위표", predictions: "시즌 시뮬레이션 확률", power: "파워랭킹", bracket: "대진표", fixtures: "경기 일정·결과", stats: "선수 기록 순위", history: "역대 우승", players: "선수 명단", articles: "경기 분석 글" };
+  const leagueJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsOrganization",
+      "@id": `${SITE_URL}/leagues/${upper}#league`,
+      name: info.name,
+      alternateName: info.subtitle !== info.name ? info.subtitle : undefined,
+      url: `${SITE_URL}/leagues/${upper}`,
+      ...(sportCode && SCHEMA_SPORT[sportCode] ? { sport: SCHEMA_SPORT[sportCode] } : {}),
+      ...(COUNTRY_BY_LEAGUE[upper] ? { location: { "@type": "Country", name: COUNTRY_BY_LEAGUE[upper] } } : {}),
+    },
+    breadcrumbLd([
+      { name: "홈", path: "/" },
+      ...(sportCode && SPORT_HUB[sportCode] ? [{ name: sportMeta?.label ?? sportCode, path: SPORT_HUB[sportCode] }] : []),
+      { name: "리그 전체", path: "/leagues" },
+      { name: info.name, path: `/leagues/${upper}` },
+    ]),
+    ...(hasDataTabs
+      ? [
+          datasetLd({
+            name: `${info.name} ${dataViews.filter((v) => v !== "articles").map((v) => VIEW_DATA[v]).filter(Boolean).join("·")}`,
+            description: `스코어베이스가 매일 자동 갱신하는 ${info.name} 데이터 — ${dataViews.map((v) => VIEW_DATA[v]).filter(Boolean).join(", ")}. 한국시간 기준.`,
+            path: `/leagues/${upper}`,
+            variableMeasured: dataViews.map((v) => VIEW_DATA[v]).filter(Boolean),
+          }),
+        ]
+      : []),
+  ];
+
   return (
     <div className="relative">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(leagueJsonLd).replace(/</g, "\\u003c") }} />
       <AmbientGlow />
       {/* 히어로 */}
       <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
