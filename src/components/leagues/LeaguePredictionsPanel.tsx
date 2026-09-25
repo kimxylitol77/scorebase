@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
+import { UEFA_DIRECT_R16, UEFA_LEAGUE_PHASE, UEFA_PLAYOFF_LAST } from "@/lib/sports/uefa-league-phase";
 import { getLeagueSeasonSim, SIM_MIN_FINISHED } from "@/lib/predict/league-season-sim";
 import { getKboSeasonSim } from "@/lib/predict/postseason-odds";
 import type { MonteCarloRow } from "@/lib/predict/monte-carlo";
@@ -40,14 +41,18 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
   const label = (id: number) => nameOf.get(id) ?? `팀 ${id}`;
 
   const soccer = SOCCER_LEAGUES.has(league);
+  // UEFA 클럽대회 — 공용 시뮬이 리그페이즈만 돌린다. 1위는 트로피가 아니고, 4위 선은 의미가 없다.
+  const uefa = !!UEFA_LEAGUE_PHASE[league];
   const showChampion = !!meta && meta.canSimulate && meta.trustworthy && rows.length > 0;
   const champions = rows.filter((r) => r.champion >= 0.001).sort((a, b) => b.champion - a.champion).slice(0, 8);
-  const second = soccer
-    ? { title: "Top 4 (UCL) 진출 확률", key: "top4" as const }
-    : league === "KBO"
-      ? { title: "포스트시즌(5위 이내) 진출 확률", key: "top5" as const }
-      : null;
-  const secondRows = second ? [...rows].sort((a, b) => b[second.key] - a[second.key]).filter((r) => r[second.key] >= 0.01).slice(0, 8) : [];
+  const second: { title: string; value: (r: MonteCarloRow) => number } | null = uefa
+    ? { title: `16강 직행 확률 (1~${UEFA_DIRECT_R16}위)`, value: (r) => r.topN?.[UEFA_DIRECT_R16] ?? 0 }
+    : soccer
+      ? { title: "Top 4 (UCL) 진출 확률", value: (r) => r.top4 }
+      : league === "KBO"
+        ? { title: "포스트시즌(5위 이내) 진출 확률", value: (r) => r.top5 }
+        : null;
+  const secondRows = second ? [...rows].sort((a, b) => second.value(b) - second.value(a)).filter((r) => second.value(r) >= 0.01).slice(0, 8) : [];
   const relegation = meta && meta.relegationCount > 0 ? [...rows].sort((a, b) => b.relegation - a.relegation).filter((r) => r.relegation >= 0.02).slice(0, 6) : [];
   // 지난 시즌 결산 링크 — 시즌 경계가 있는 리그만. 지금 지난 시즌 폴백 중이면 결산이 곧 현재 화면이라 생략.
   const start = currentSeasonStart(league);
@@ -96,18 +101,18 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <section>
-            <h3 className="text-sm font-bold mb-2">{league === "MLS" ? "정규리그 1위 확률" : "우승 확률"}</h3>
+            <h3 className="text-sm font-bold mb-2">{league === "MLS" ? "정규리그 1위 확률" : uefa ? "리그페이즈 1위 확률" : "우승 확률"}</h3>
             <MonteCarloBar data={champions.map((r) => ({ name: label(r.teamId), value: pct(r.champion) }))} />
           </section>
           {second && secondRows.length > 0 && (
             <section>
               <h3 className="text-sm font-bold mb-2">{second.title}</h3>
-              <MonteCarloBar data={secondRows.map((r) => ({ name: label(r.teamId), value: pct(r[second.key]) }))} />
+              <MonteCarloBar data={secondRows.map((r) => ({ name: label(r.teamId), value: pct(second.value(r)) }))} />
             </section>
           )}
           {relegation.length > 0 && (
             <section>
-              <h3 className="text-sm font-bold mb-2">강등 확률 (하위 {meta!.relegationCount}팀)</h3>
+              <h3 className="text-sm font-bold mb-2">{uefa ? `탈락 확률 (${UEFA_PLAYOFF_LAST + 1}위 이하)` : `강등 확률 (하위 ${meta!.relegationCount}팀)`}</h3>
               <MonteCarloBar variant="danger" data={relegation.map((r) => ({ name: label(r.teamId), value: pct(r.relegation) }))} />
             </section>
           )}

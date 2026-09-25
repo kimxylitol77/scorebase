@@ -27,7 +27,7 @@ export interface MonteCarloOptions {
   iterations?: number;
   /** 강등권 기준 (기본 3 — EPL) */
   relegationCount?: number;
-  /** Top N 진출권 (기본 [4, 6] — 챔스/유로파) */
+  /** 추가 순위 구간 — 지정하면 결과 행의 topN[N] 에 "N위 이내" 확률을 싣는다(UEFA 리그페이즈 8·24). */
   topCutoffs?: number[];
   /** 시드 (재현성 X — Math.random) */
   /**
@@ -47,6 +47,8 @@ export interface MonteCarloRow {
   top5: number;
   top6: number;
   relegation: number;
+  /** options.topCutoffs 로 요청한 "N위 이내" 확률 — 요청 안 하면 없음 */
+  topN?: Record<number, number>;
   /** 평균 최종 승점 */
   expectedPoints: number;
   /** 평균 최종 순위 (1-based, 낮을수록 좋음) */
@@ -72,6 +74,7 @@ export function runMonteCarlo(
 ): MonteCarloRow[] {
   const iterations = options.iterations ?? 5000;
   const relegationCount = options.relegationCount ?? 3;
+  const topCutoffs = options.topCutoffs ?? [];
 
   // 야구 올스타전(KBO 드림·나눔 / MLB All-Stars / NPB 센트럴·퍼시픽)은 정규 팀이 아니라
   // 여기 들어오면 KBO 가 10팀이 아닌 12팀 표로 잡혀 잔여 경기 수·expectedPosition·강등권이
@@ -141,6 +144,7 @@ export function runMonteCarlo(
   const accTop5 = new Map<number, number>();
   const accTop6 = new Map<number, number>();
   const accRelegation = new Map<number, number>();
+  const accTopN = new Map(topCutoffs.map((n) => [n, new Map<number, number>()] as const));
   const accPoints = new Map<number, number>();
   const accPosition = new Map<number, number>();
 
@@ -229,6 +233,7 @@ export function runMonteCarlo(
       if (pos <= 5) inc(accTop5, row.teamId);
       if (pos <= 6) inc(accTop6, row.teamId);
       if (pos > finalRows.length - relegationCount) inc(accRelegation, row.teamId);
+      for (const n of topCutoffs) if (pos <= n) inc(accTopN.get(n)!, row.teamId);
     });
   }
 
@@ -250,6 +255,9 @@ export function runMonteCarlo(
       top5: Math.min(0.999, (accTop5.get(teamId) ?? 0) / iterations),
       top6: Math.min(0.999, (accTop6.get(teamId) ?? 0) / iterations),
       relegation: Math.min(0.999, (accRelegation.get(teamId) ?? 0) / iterations),
+      ...(topCutoffs.length
+        ? { topN: Object.fromEntries(topCutoffs.map((n) => [n, Math.min(0.999, (accTopN.get(n)!.get(teamId) ?? 0) / iterations)])) }
+        : {}),
       expectedPoints: (accPoints.get(teamId) ?? 0) / iterations,
       expectedPosition: (accPosition.get(teamId) ?? 0) / iterations,
       currentPoints: currentRow?.points ?? 0,

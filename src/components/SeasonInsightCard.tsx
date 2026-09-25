@@ -11,6 +11,7 @@ import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { formatChampionPct } from "@/lib/format";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
+import { UEFA_LEAGUE_PHASE } from "@/lib/sports/uefa-league-phase";
 
 // 정규시즌 1위 ≠ 최종 우승(플레이오프) 인 리그 — "1위" 를 "정규시즌 1위" 로 구분 표기.
 const PLAYOFF_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL", "KBO", "MLB", "NPB", "CPBL", "LMB", "MLS"]);
@@ -63,7 +64,13 @@ export default async function SeasonInsightCard({ league }: Props) {
   // 올스타전 제외 — MLB All-Stars 가 순위표에 정규팀처럼 끼어든다
   const allMatches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
   // 순위·시뮬은 이번 시즌만(예측 페이지와 같은 규칙). 전체 경기로 계산하면 지난 시즌 우승팀이 1위로 남는다.
-  const { season: matches, isPreviousSeason } = selectSeasonMatches(allMatches, league);
+  const { season: seasonMatches, isPreviousSeason } = selectSeasonMatches(allMatches, league);
+  // UEFA 클럽대회 — 순위는 리그페이즈 팀끼리만. 예선을 섞으면 예선을 여러 라운드 치른 팀이 1위로 뜬다.
+  const uefa = !!UEFA_LEAGUE_PHASE[league];
+  const lpIds = uefa ? new Set((await getLeagueSeasonSim(league).catch(() => null))?.rows.map((r) => r.teamId) ?? []) : null;
+  const matches = lpIds && lpIds.size > 0
+    ? seasonMatches.filter((m) => lpIds.has(m.homeTeamId) && lpIds.has(m.awayTeamId))
+    : seasonMatches;
 
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;
@@ -109,7 +116,7 @@ export default async function SeasonInsightCard({ league }: Props) {
   }
 
   const top1Elo = getElo(eloTable, top1.teamId);
-  const rankLabel = PLAYOFF_LEAGUES.has(league) ? "정규시즌 1위" : "1위";
+  const rankLabel = PLAYOFF_LEAGUES.has(league) ? "정규시즌 1위" : uefa ? "리그페이즈 1위" : "1위";
 
   return (
     <Link
@@ -144,7 +151,7 @@ export default async function SeasonInsightCard({ league }: Props) {
         {topChampPct && (
           <div className="border-t border-black/5 pt-2 dark:border-white/10">
             <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-white/45">
-              우승 확률
+              {uefa ? "리그페이즈 1위 확률" : "우승 확률"}
             </div>
             <div className="flex items-baseline justify-between">
               <span className="truncate text-xs font-medium text-zinc-700 dark:text-white/80">

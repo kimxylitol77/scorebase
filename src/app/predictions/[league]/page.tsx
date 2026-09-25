@@ -49,6 +49,7 @@ import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
 import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { UEFA_DIRECT_R16, UEFA_LEAGUE_PHASE, UEFA_PLAYOFF_LAST } from "@/lib/sports/uefa-league-phase";
 import AmbientGlow from "@/components/AmbientGlow";
 import StandingsSeasonNav from "@/components/standings/StandingsSeasonNav";
 import { CircleDot, BookOpen } from "lucide-react";
@@ -482,11 +483,15 @@ export default async function LeaguePredictions({ params }: Props) {
   const showChampion = scheduleIntegrity.trustworthy;
   // MLS 는 정규 1위가 우승이 아니라 서포터스 실드다 (우승은 플레이오프 MLS 컵).
   // 표 1위 = 트로피가 아닌 리그는 제목에서 "우승"이라 쓰지 않는다.
-  const championLabel = upper === "MLS" ? "정규리그 1위 확률" : "우승 확률";
+  // UEFA 클럽대회 — 공용 시뮬이 리그페이즈(36팀)만 돌린다. 1위는 트로피가 아니다(우승은 녹아웃).
+  const isUefaLp = !!UEFA_LEAGUE_PHASE[upper];
+  const championLabel = upper === "MLS" ? "정규리그 1위 확률" : isUefaLp ? "리그페이즈 1위 확률" : "우승 확률";
   const championSubtitle =
     upper === "MLS"
       ? "정규리그 1위(서포터스 실드) 가능성 — MLS 컵 우승은 플레이오프에서 가려집니다"
-      : "시즌 종료 시점 1위 차지 가능성";
+      : isUefaLp
+        ? "36팀 리그페이즈를 1위로 마칠 가능성 — 우승은 16강부터 녹아웃에서 가려집니다"
+        : "시즌 종료 시점 1위 차지 가능성";
 
   // 다가오는 경기 (다음 7일 — 월드컵은 개막까지 한 달 가까이 남아 14일로 확장)
   const now = new Date();
@@ -1141,7 +1146,17 @@ export default async function LeaguePredictions({ params }: Props) {
         )}
 
         {/* 일반 리그 — Monte Carlo 결과 (UCL·NBA 제외) */}
-        {canSimulate && !isWorldCup && !isUcl && !isNba && (
+        {/* UEFA 리그페이즈 — 첫 라운드가 끝나기 전엔 시뮬을 돌리지 않는다(빈 막대 대신 안내) */}
+        {isUefaLp && mc.length === 0 && (
+          <section>
+            <Heading title="리그페이즈 순위 예측" subtitle="36팀 · 1~8위 16강 직행 · 9~24위 녹아웃 플레이오프" />
+            <div className="sm:max-w-xl rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
+              리그페이즈 첫 라운드가 끝나면 16강 직행·탈락 확률을 계산해 여기에 보여줍니다. 일정은{" "}
+              <Link href={`/leagues/${upper}?view=fixtures`} className="font-semibold underline underline-offset-2">일정 탭</Link>에서 볼 수 있습니다.
+            </div>
+          </section>
+        )}
+        {canSimulate && !isWorldCup && (!isUcl || isUefaLp) && !isNba && (!isUefaLp || mc.length > 0) && (
           <>
             {/* 우승 확률 — 일정이 잘린 리그는 숨기고 사유를 밝힌다 */}
             {showChampion ? (
@@ -1221,6 +1236,37 @@ export default async function LeaguePredictions({ params }: Props) {
               </section>
             )}
 
+            {/* UEFA 리그페이즈 — 16강 직행(1~8위)·탈락(25위 이하) */}
+            {isUefaLp && (
+              <>
+                <section>
+                  <Heading title={`16강 직행 확률 (1~${UEFA_DIRECT_R16}위)`} subtitle={`${UEFA_DIRECT_R16 + 1}~${UEFA_PLAYOFF_LAST}위는 녹아웃 플레이오프를 거쳐 16강에 오릅니다`} />
+                  <div className="sm:max-w-xl">
+                    <MonteCarloBar
+                      data={mc
+                        .filter((r) => (r.topN?.[UEFA_DIRECT_R16] ?? 0) >= 0.01)
+                        .sort((a, b) => (b.topN?.[UEFA_DIRECT_R16] ?? 0) - (a.topN?.[UEFA_DIRECT_R16] ?? 0))
+                        .slice(0, 14)
+                        .map((r) => ({ name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`, value: (r.topN?.[UEFA_DIRECT_R16] ?? 0) * 100 }))}
+                    />
+                  </div>
+                </section>
+                <section>
+                  <Heading title={`탈락 확률 (${UEFA_PLAYOFF_LAST + 1}위 이하)`} subtitle="리그페이즈에서 대회를 마칠 가능성" />
+                  <div className="sm:max-w-xl">
+                    <MonteCarloBar
+                      data={mc
+                        .filter((r) => r.relegation >= 0.01)
+                        .sort((a, b) => b.relegation - a.relegation)
+                        .slice(0, 12)
+                        .map((r) => ({ name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`, value: r.relegation * 100 }))}
+                      variant="danger"
+                    />
+                  </div>
+                </section>
+              </>
+            )}
+
             {/* 챔스(Top 4) 확률 */}
             {info.relegationCount > 0 && (
               <section>
@@ -1276,6 +1322,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   externalStandings={externalStandings}
                   mc={mc}
                   teamKoNameById={teamKoNameById}
+                  {...(isUefaLp ? { topLabel: "상위 5팀 — 리그페이즈 선두 경쟁" } : {})}
                 />
               </section>
             )}
@@ -1296,9 +1343,10 @@ export default async function LeaguePredictions({ params }: Props) {
                 }))}
                 top4Cutoff={
                   // UCL 진출권 4팀 — 무승부 있는 (축구) + 강등 있는 (1부) 리그만 노출.
-                  info.showDraw && info.relegationCount > 0 ? 4 : 0
+                  isUefaLp ? UEFA_DIRECT_R16 : info.showDraw && info.relegationCount > 0 ? 4 : 0
                 }
-                relegationCount={info.relegationCount}
+                relegationCount={isUefaLp ? Math.max(0, mc.length - UEFA_PLAYOFF_LAST) : info.relegationCount}
+                uefa={isUefaLp}
                 formByTeamId={formByTeamId}
               />
             </section>
@@ -1684,6 +1732,8 @@ interface ProjectionRow {
   logoUrl?: string | null;
   champion: number;
   top4: number;
+  /** UEFA 리그페이즈 — topN[8] = 16강 직행 */
+  topN?: Record<number, number>;
   expectedPoints: number;
   expectedPosition: number;
   currentPoints: number;
@@ -1700,6 +1750,8 @@ interface ProjectionsTableProps {
   formByTeamId?: Map<number, Array<{ result: "W" | "D" | "L"; startTime: Date }>>;
   /** false 면 우승 % 열을 통째로 감춘다 (일정 결손 리그). */
   showChampion?: boolean;
+  /** UEFA 리그페이즈 — 마지막 열을 "16강 직행 %"로, 범례를 16강 직행·탈락으로 */
+  uefa?: boolean;
 }
 
 function ProjectionsTable({
@@ -1708,6 +1760,7 @@ function ProjectionsTable({
   relegationCount = 0,
   formByTeamId,
   showChampion = true,
+  uefa = false,
 }: ProjectionsTableProps) {
   const total = rows.length;
   const relegationStartIdx = relegationCount > 0 ? total - relegationCount : total;
@@ -1722,7 +1775,7 @@ function ProjectionsTable({
             <th className="text-right px-3 py-2 font-medium">승점</th>
             <th className="text-right px-3 py-2 font-medium">예상 승점</th>
             {showChampion && (
-              <th className="text-right px-3 py-2 font-medium">우승 %</th>
+              <th className="text-right px-3 py-2 font-medium">{uefa ? "16강 직행 %" : "우승 %"}</th>
             )}
           </tr>
         </thead>
@@ -1774,9 +1827,10 @@ function ProjectionsTable({
                 </td>
                 {showChampion && (
                   <td className="px-3 py-2 text-right tabular-nums">
-                    {r.champion >= 0.001
-                      ? `${(r.champion * 100).toFixed(1)}%`
-                      : "<0.1%"}
+                    {(() => {
+                      const p = uefa ? (r.topN?.[UEFA_DIRECT_R16] ?? 0) : r.champion;
+                      return p >= 0.001 ? `${(p * 100).toFixed(1)}%` : "<0.1%";
+                    })()}
                   </td>
                 )}
               </tr>
@@ -1790,13 +1844,13 @@ function ProjectionsTable({
           {top4Cutoff > 0 && (
             <span className="inline-flex items-center gap-1.5">
               <span className="inline-block w-3 h-3 rounded bg-emerald-500/30 border-l-2 border-emerald-500" />
-              <span>Top {top4Cutoff} (UCL 권)</span>
+              <span>{uefa ? `1~${top4Cutoff}위 16강 직행` : `Top ${top4Cutoff} (UCL 권)`}</span>
             </span>
           )}
           {relegationCount > 0 && (
             <span className="inline-flex items-center gap-1.5">
               <span className="inline-block w-3 h-3 rounded bg-rose-500/30 border-l-2 border-rose-500" />
-              <span>강등권 (하위 {relegationCount}팀)</span>
+              <span>{uefa ? `${total - relegationCount + 1}위 이하 탈락` : `강등권 (하위 ${relegationCount}팀)`}</span>
             </span>
           )}
         </div>
@@ -1944,10 +1998,13 @@ function CurrentVsPredictionCard({
   externalStandings,
   mc,
   teamKoNameById,
+  topLabel = "상위 5팀 — 우승 경쟁",
 }: {
   externalStandings: Array<{ teamId: number; position: number; points: number }>;
   mc: Array<{ teamId: number; expectedPosition: number; expectedPoints: number }>;
   teamKoNameById: Map<number, string>;
+  /** 상위 묶음 제목 — UEFA 리그페이즈는 1위가 트로피가 아니라 "선두 경쟁" */
+  topLabel?: string;
 }) {
   const mcByTeamId = new Map(mc.map((r) => [r.teamId, r]));
   // 격차 = 현재 순위 - 예측 순위. + 면 우리가 더 높게 예상 (상승), - 면 낮게 (하락).
@@ -2013,7 +2070,7 @@ function CurrentVsPredictionCard({
     <div className="grid sm:grid-cols-2 gap-4">
       <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-hidden">
         <div className="px-3 py-2 text-xs font-bold border-b border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04]">
-          상위 5팀 — 우승 경쟁
+          {topLabel}
         </div>
         <table className="w-full text-sm">
           <thead>
