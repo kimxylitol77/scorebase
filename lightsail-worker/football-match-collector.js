@@ -53,8 +53,15 @@ const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 // (지금까지는 팀이 YKKONEN 네임스페이스에 없어 skippedNoTeam 으로 조용히 버려졌다).
 // ⚠ Group D 는 넣지 않는다 — YKKONEN 매치는 af 가 정본이라 ts 로도 만들면 크로스소스 중복.
 // ⚠ stage_id 는 시즌마다 바뀌므로 절대 박아두지 않는다. 이름으로 매칭한다.
+// 정규 라운드(Group A/B/C, 8/22 종료) 뒤 2라운드는 "Promotion of Group X"·"Relegation of Group X"
+// 로 stage 이름이 바뀐다 — 옛 이름만 알면 2라운드 경기가 통째로 버려진다(2026-09-25 실측 79경기).
+// Group D 의 승강 조는 YKKONEN(af 정본)이라 여기서도 넣지 않는다.
 const STAGE_SPLIT = {
-  gpxwrxlh7zryk0j: { "Group A": "KAKKONEN_A", "Group B": "KAKKONEN_B", "Group C": "KAKKONEN_C" },
+  gpxwrxlh7zryk0j: {
+    "Group A": "KAKKONEN_A", "Group B": "KAKKONEN_B", "Group C": "KAKKONEN_C",
+    "Promotion of Group A": "KAKKONEN_A", "Promotion of Group B": "KAKKONEN_B", "Promotion of Group C": "KAKKONEN_C",
+    "Relegation of Group A": "KAKKONEN_A", "Relegation of Group B": "KAKKONEN_B", "Relegation of Group C": "KAKKONEN_C",
+  },
 };
 const stageNameCache = new Map();
 async function stageNameOf(stageId) {
