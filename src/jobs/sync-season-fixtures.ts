@@ -11,6 +11,10 @@
 //  - ts 대회 id 를 다른 리그와 나눠 쓰는 리그: 한 대회를 stage 로 가르는 경우(핀란드 카코넨) 잘못 들어간다.
 //  - 워커가 제외하는 국가대표 대회(football-match-collector SKIP_LEAGUES 와 같은 목록).
 //
+// 농구(NBA·WNBA·KBL·WKBL)도 같은 이유로 — 새 시즌 일정이 개막 7일 전에야 들어와 리그 페이지 일정·예측이 비었다.
+//  농구는 대회 목록(competition/list)의 cur_season_id 로 시즌을 찾는다(대회 id 는 워커 COMP_TO_LEAGUE 와 같은 값).
+//  배구는 ts 시즌 일정 API 가 미인가라 여기서 다루지 않는다(워커 diary 가 맡는다).
+//
 //   실행: npx tsx --env-file=.env.local src/jobs/sync-season-fixtures.ts [--league EKSTRAKLASA,J1_LEAGUE] [--dry]
 import "@/lib/env";
 import { prisma } from "@/lib/db";
@@ -25,6 +29,13 @@ const OTHER_SOURCE_HORIZON_DAYS = 21;
 /** 이보다 가까운 경기는 워커 diary(7일)가 맡는다 */
 const WORKER_HORIZON_MS = 86400_000;
 const POST_CHUNK = 25;
+/** lightsail-worker/basketball-match-collector.js COMP_TO_LEAGUE 와 같은 값(정규 리그만) */
+const BASKETBALL_COMPS: Record<string, string> = {
+  NBA: "49vjxm8xt4q6odg",
+  WNBA: "0gx7lm73tor2wdk",
+  KBL: "9d23xmv1t4mg8ny",
+  WKBL: "kn54ql7t28rvy9d",
+};
 
 interface TsSeasonMatch {
   id: string;
@@ -123,8 +134,60 @@ export async function syncSeasonFixtures(opts: { leagues?: string[]; dry?: boole
         (placeholder ? ` · 자리표시자 ${placeholder}` : "") + (failed ? ` · 실패 ${failed} ⚠` : ""),
     );
   }
+  totalSent += await syncBasketball(opts, now, site, summary);
   for (const s of summary) console.log(`  ${s}`);
-  console.log(`[sync-season-fixtures] ${targets.length}개 리그 · 저장 ${totalSent}경기${opts.dry ? " (dry)" : ""}`);
+  console.log(`[sync-season-fixtures] ${targets.length}개 축구 리그 + 농구 · 저장 ${totalSent}경기${opts.dry ? " (dry)" : ""}`);
+}
+
+async function syncBasketball(opts: { leagues?: string[]; dry?: boolean }, now: number, site: string, summary: string[]): Promise<number> {
+  let saved = 0;
+  for (const [league, comp] of Object.entries(BASKETBALL_COMPS)) {
+    if (opts.leagues && !opts.leagues.includes(league)) continue;
+    let rows: TsSeasonMatch[];
+    try {
+      const c = await thesportsGet<{ code: number; results?: Array<{ cur_season_id?: string }> }>("/v1/basketball/competition/list", { uuid: comp });
+      const sid = c.results?.[0]?.cur_season_id;
+      if (!sid) { summary.push(`${league}: 현재 시즌 id 없음`); continue; }
+      rows = (await thesportsGet<{ code: number; results?: TsSeasonMatch[] }>("/v1/basketball/match/season/recent", { uuid: sid })).results ?? [];
+    } catch (err) {
+      summary.push(`${league}: ts 조회 실패 ${(err as Error).message.slice(0, 60)}`);
+      continue;
+    }
+    // 농구 status: 0=숨김·15=시간 미정(워커와 같이 제외), 1=예정
+    const future = rows.filter((m) => m.status_id === 1 && m.match_time * 1000 > now + WORKER_HORIZON_MS && m.home_team_id && m.away_team_id);
+    if (future.length === 0) { summary.push(`${league}: 미래 경기 0`); continue; }
+    const have = await prisma.match.findMany({
+      where: { league, externalId: { in: future.map((m) => `ts-${m.id}`) } },
+      select: { externalId: true, startTime: true },
+    });
+    const haveBy = new Map(have.map((h) => [h.externalId, h.startTime.getTime()]));
+    const todo = future.filter((m) => haveBy.get(`ts-${m.id}`) !== m.match_time * 1000);
+    if (todo.length === 0) { summary.push(`${league}: 최신(${future.length})`); continue; }
+    const payload = todo.map((m) => ({
+      league,
+      tsMatchId: m.id,
+      tsHomeTeamId: m.home_team_id!,
+      tsAwayTeamId: m.away_team_id!,
+      startTime: new Date(m.match_time * 1000).toISOString(),
+      status: "SCHEDULED" as const,
+    }));
+    if (opts.dry) { summary.push(`${league}: 보낼 경기 ${payload.length} (dry)`); continue; }
+    let upserted = 0, noTeam = 0, failed = 0;
+    for (let i = 0; i < payload.length; i += POST_CHUNK) {
+      const r = await fetch(`${site}/api/internal/thesports-matches`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` },
+        body: JSON.stringify({ sport: "basketball", matches: payload.slice(i, i + POST_CHUNK) }),
+      });
+      if (!r.ok) { failed += Math.min(POST_CHUNK, payload.length - i); continue; }
+      const j = (await r.json()) as { upserted?: number; skippedNoTeam?: number };
+      upserted += j.upserted ?? 0;
+      noTeam += j.skippedNoTeam ?? 0;
+    }
+    saved += upserted;
+    summary.push(`${league}: 보냄 ${payload.length} · 저장 ${upserted}` + (noTeam ? ` · 팀 미매핑 ${noTeam}` : "") + (failed ? ` · 실패 ${failed} ⚠` : ""));
+  }
+  return saved;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
