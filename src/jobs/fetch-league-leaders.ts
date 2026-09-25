@@ -677,19 +677,26 @@ interface EspnNbaLeaderEntry {
 }
 
 export async function runNba(seasonStartYear: number) {
-  const seasonLabel = `${seasonStartYear}-${String(seasonStartYear + 1).slice(2)}`;
-  const summary: Record<string, number> = {};
   // ESPN season 파라미터는 시즌 종료 연도 (2026-27 → 2027). seasontype=2 = 정규시즌
   // (생략 시 포스트시즌 중엔 플레이오프 리더가 나옴). 오프시즌에 미래 시즌 요청 시
   // categories 빈 배열 → 아래서 자연 skip.
-  const espnSeason = seasonStartYear + 1;
+  return runEspnBasketballLeaders("NBA", "nba", seasonStartYear + 1, `${seasonStartYear}-${String(seasonStartYear + 1).slice(2)}`);
+}
+
+/** WNBA — 달력 연도 시즌(5~9월 정규). ESPN 이 NBA 와 같은 형식으로 준다(2026-09-25 실측). */
+export async function runWnba(year: number) {
+  return runEspnBasketballLeaders("WNBA", "wnba", year, String(year));
+}
+
+async function runEspnBasketballLeaders(league: "NBA" | "WNBA", espnPath: string, espnSeason: number, seasonLabel: string) {
+  const summary: Record<string, number> = {};
   try {
     const r = await fetch(
-      `https://site.api.espn.com/apis/site/v3/sports/basketball/nba/leaders?season=${espnSeason}&seasontype=2`,
+      `https://site.api.espn.com/apis/site/v3/sports/basketball/${espnPath}/leaders?season=${espnSeason}&seasontype=2`,
       { cache: "no-store", signal: AbortSignal.timeout(15000) },
     );
     if (!r.ok) {
-      console.warn(`[leaders/nba] ESPN leaders HTTP ${r.status} — skip`);
+      console.warn(`[leaders/${espnPath}] ESPN leaders HTTP ${r.status} — skip`);
       return { season: seasonLabel, result: summary };
     }
     const data = (await r.json()) as {
@@ -698,7 +705,7 @@ export async function runNba(seasonStartYear: number) {
     };
     // 응답 시즌이 요청과 다르면(폴백) 이전 시즌 데이터가 새 라벨로 저장되는 사고 방지
     if (data.requestedSeason?.year && data.requestedSeason.year !== espnSeason) {
-      console.warn(`[leaders/nba] season mismatch: requested ${espnSeason}, got ${data.requestedSeason.year} — skip`);
+      console.warn(`[leaders/${espnPath}] season mismatch: requested ${espnSeason}, got ${data.requestedSeason.year} — skip`);
       return { season: seasonLabel, result: summary };
     }
     const categories = data.leaders?.categories ?? [];
@@ -708,16 +715,16 @@ export async function runNba(seasonStartYear: number) {
         const d = top[i];
         const fullName = (d.athlete?.displayName ?? d.athlete?.fullName ?? "").trim();
         if (!fullName) continue;
-        // /players/[pid]?league=NBA 는 BDL id 기대 → 정적 사전(nba-players.json)으로 역매핑
-        const bdlId = lookupNbaPlayer(fullName)?.bdlId;
+        // /players/[pid]?league=NBA 는 BDL id 기대 → 정적 사전(nba-players.json)으로 역매핑(WNBA 는 사전 없음)
+        const bdlId = league === "NBA" ? lookupNbaPlayer(fullName)?.bdlId : undefined;
         await upsertLeader({
-          league: "NBA",
+          league,
           category: cat.code,
           rank: i + 1,
           playerName: toKoreanPlayerName(fullName) || fullName,
           playerNameEn: fullName,
           externalId: bdlId != null ? String(bdlId) : undefined,
-          teamName: toKoreanTeamName(d.team?.displayName ?? "") || d.team?.displayName || "",
+          teamName: toKoreanTeamName(d.team?.displayName ?? "", league) || d.team?.displayName || "",
           teamShort: d.team?.abbreviation,
           value: d.value,
           unit: cat.unit,
@@ -726,16 +733,16 @@ export async function runNba(seasonStartYear: number) {
         });
       }
       if (top.length > 0) {
-        await clearOldRanks("NBA", cat.code, seasonLabel, top.length);
+        await clearOldRanks(league, cat.code, seasonLabel, top.length);
       }
       summary[cat.code] = top.length;
     }
   } catch (e) {
-    console.warn("[leaders/nba] ESPN leaders", (e as Error).message);
+    console.warn(`[leaders/${espnPath}] ESPN leaders`, (e as Error).message);
   }
   // 오프시즌 빈 응답이면 삭제 없이 skip — 데이터 확보 시에만 stale 시즌 정리
   if (Object.values(summary).some((n) => n > 0)) {
-    await clearFutureSeasons("NBA", seasonLabel);
+    await clearFutureSeasons(league, seasonLabel);
   }
   return { season: seasonLabel, result: summary };
 }
@@ -1560,6 +1567,7 @@ export async function runFetchLeagueLeaders(opts?: {
   };
   if (!sport || sport === "soccer") await safe("soccer", () => runSoccer());
   if (!sport || sport === "basketball") await safe("nba", () => runNba(nbaSeason));
+  if (!sport || sport === "basketball") await safe("wnba", () => runWnba(yearNow));
   if (!sport || sport === "basketball") await safe("kbl", () => runKbl());
   if (!sport || sport === "basketball") await safe("wkbl", () => runWkbl());
   // 배구는 sport 파라미터 union 밖 — 전체 실행(파라미터 없음) 때만 돈다
