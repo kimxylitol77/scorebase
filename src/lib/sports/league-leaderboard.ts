@@ -11,6 +11,7 @@ import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch"
 import type { LeaderRow } from "@/components/LeagueLeaderBoard";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 import { isStaleSeason } from "@/lib/sports/current-season-label";
+import { STAGED_COMPETITIONS } from "@/lib/sports/season-calendar";
 
 // LeagueLeaderBoard 가 리그 이름만 보고 /transfers/{id} 로 링크하는 리그.
 // leagueLeader 테이블의 externalId 는 api-football player id 인데 /transfers 페이지는 TheSports
@@ -31,6 +32,10 @@ const isAfId = (id: string) => /^\d+$/.test(id);
  */
 async function isPreSeasonZeroTable(league: string): Promise<boolean> {
   if (!SOCCER_LEAGUES.has(league)) return false;
+  // 단계 대회(예선 → 조별/리그페이즈)는 조별 표가 0전적이어도 같은 대회 앞 단계 기록이 이미 이번 시즌이다
+  // (2026-09-25 AFCON — 조별 개막일에 예비예선 득점 기록이 "지난 시즌 최종 기록"으로 접혔다).
+  // 지난 시즌 잔재는 아래 isStaleSeason 이 따로 거른다.
+  if (STAGED_COMPETITIONS.has(league)) return false;
   const ts = await fetchStandingsForLeague(league);
   const t0 = ts?.tables?.[0];
   if (!t0 || t0.rows.length === 0) return false;
