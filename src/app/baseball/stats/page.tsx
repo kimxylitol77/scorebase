@@ -21,14 +21,30 @@ function parse(sp: SP) {
   return { league, role, unit };
 }
 
+// 구글 검색어(한국, 2026-09 Keyword Tool) — 사람들은 "스탯 표"가 아니라 "타율 순위"로 찾는다.
+// 프로야구 타율 순위 880·2026 프로야구 타율 순위 480·KBO 타율 순위 320·MLB 타율 순위 1,300·
+// 메이저리그 타율 순위 1,300·프로야구 타격 순위 3,600. 투수는 평균자책점(방어율) 순위.
+const LG_KO: Record<BbLeague, string> = { KBO: "프로야구", MLB: "MLB", NPB: "일본프로야구" };
+const LG_SUB: Record<BbLeague, string> = { KBO: "KBO", MLB: "메이저리그", NPB: "NPB" };
+
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SP> }): Promise<Metadata> {
   const { league, role, unit } = parse(await searchParams);
+  // 시즌은 데이터에서 — 달력으로 추정하면 개막 전 두 달간 틀린 연도가 나간다.
+  const season = (await getBbLeagueData(league).catch(() => null))?.season ?? "";
+  const yr = season ? `${season} ` : "";
+  const head = role === "bat" ? "타율 순위·홈런·OPS" : "평균자책점 순위·탈삼진";
   return {
-    title: `${league} ${ROLE_KO[role]} 스탯 표 — 시즌 기록·리그 백분위${unit === "pergame" ? " (경기당)" : ""}`,
-    description: `${league} ${ROLE_KO[role]} 전원의 시즌 기록을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 야구 스탯 표.`,
+    title: `${yr}${LG_KO[league]} ${head} — ${LG_SUB[league]} ${ROLE_KO[role]} 기록${unit === "pergame" ? " (경기당)" : ""}`,
+    description:
+      role === "bat"
+        ? `${yr}${LG_KO[league]} 타율 순위·홈런 순위·타격 순위를 한 표에서. ${LG_SUB[league]} 타자 전원의 시즌 기록을 정렬·검색하고 셀마다 리그 백분위를 확인하세요.`
+        : `${yr}${LG_KO[league]} 평균자책점(방어율) 순위·탈삼진·다승을 한 표에서. ${LG_SUB[league]} 투수 전원의 시즌 기록을 정렬·검색하고 셀마다 리그 백분위를 확인하세요.`,
     alternates: { canonical: `/baseball/stats?league=${league}&role=${role}` },
-    keywords: [`${league} ${ROLE_KO[role]} 기록`, `${league} 선수 스탯`, `${league} ${role === "bat" ? "타율 OPS 순위" : "평균자책 순위"}`, "야구 선수 스탯 표", "리그 백분위"],
-    openGraph: { title: `${league} ${ROLE_KO[role]} 스탯 표`, description: `${league} ${ROLE_KO[role]} 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
+    keywords:
+      role === "bat"
+        ? [`${yr}${LG_KO[league]} 타율 순위`, `${league} 타율 순위`, `${LG_SUB[league]} 타율 순위`, `${LG_KO[league]} 홈런 순위`, `${LG_KO[league]} 타격 순위`, `${league} 타자 기록`]
+        : [`${yr}${LG_KO[league]} 방어율 순위`, `${league} 평균자책점 순위`, `${LG_KO[league]} 탈삼진 순위`, `${league} 투수 기록`],
+    openGraph: { title: `${yr}${LG_KO[league]} ${head}`, description: `${LG_SUB[league]} ${ROLE_KO[role]} 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
   };
 }
 

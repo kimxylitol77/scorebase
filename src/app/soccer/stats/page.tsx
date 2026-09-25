@@ -20,15 +20,34 @@ function parse(sp: SP) {
   return { league, pos, unit };
 }
 
+// 구글 검색어(한국, 2026-09 Keyword Tool) — "스탯 표"가 아니라 "득점 순위"로 찾는다.
+// EPL 득점 순위 1,000·프리미어리그 득점 순위 880·라리가 득점 순위 720·MLS 득점 순위 720.
+// 득점 순위를 앞세우는 건 필드 전체·FW 표만 — GK·DF·MF 표는 득점이 주제가 아니다.
+const SHORT: Record<string, string> = { EPL: "EPL" };
+
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SP> }): Promise<Metadata> {
   const { league, pos, unit } = parse(await searchParams);
   const lg = LEAGUE_DISPLAY[league] ?? league;
+  const canonical = `/soccer/stats?league=${league}${pos !== "ALL" ? `&pos=${pos}` : ""}`;
+  const per90 = unit === "per90" ? " (90분당)" : "";
+  if (pos !== "ALL" && pos !== "F") {
+    return {
+      title: `${lg} ${POS_KO[pos]} 선수 스탯 표 — 시즌 기록·리그 백분위${per90}`,
+      description: `${lg} 선수 전원의 시즌 골·도움·슈팅·키패스·태클·평점을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 축구 스탯 표.`,
+      alternates: { canonical },
+      keywords: [`${lg} 선수 스탯`, `${lg} 선수 기록`, `${lg} 득점 도움 순위`, "축구 선수 스탯 표", "리그 백분위"],
+      openGraph: { title: `${lg} ${POS_KO[pos]} 선수 스탯 표`, description: `${lg} 선수 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
+    };
+  }
+  // 시즌은 데이터에서(2026-27 유럽형·2026 달력형이 리그마다 다르다).
+  const season = (await getSoccerStatsData(league).catch(() => null))?.season ?? "";
+  const yr = season ? ` ${season}` : "";
   return {
-    title: `${lg} ${POS_KO[pos]} 선수 스탯 표 — 시즌 기록·리그 백분위${unit === "per90" ? " (90분당)" : ""}`,
-    description: `${lg} 선수 전원의 시즌 골·도움·슈팅·키패스·태클·평점을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 축구 스탯 표.`,
-    alternates: { canonical: `/soccer/stats?league=${league}${pos !== "ALL" ? `&pos=${pos}` : ""}` },
-    keywords: [`${lg} 선수 스탯`, `${lg} 선수 기록`, `${lg} 득점 도움 순위`, "축구 선수 스탯 표", "리그 백분위"],
-    openGraph: { title: `${lg} ${POS_KO[pos]} 선수 스탯 표`, description: `${lg} 선수 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
+    title: `${lg} 득점 순위·도움 순위${yr} — ${SHORT[league] ?? lg} ${pos === "F" ? "공격수" : "선수"} 기록${per90}`,
+    description: `${lg}${yr} 득점 순위·도움 순위와 선수 전원의 골·도움·슈팅·키패스·태클·평점을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하세요.`,
+    alternates: { canonical },
+    keywords: [`${lg} 득점 순위`, `${SHORT[league] ?? lg} 득점 순위`, `${lg} 도움 순위`, `${lg} 득점왕`, `${lg} 선수 기록`],
+    openGraph: { title: `${lg} 득점 순위·도움 순위${yr}`, description: `${lg} 선수 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
   };
 }
 

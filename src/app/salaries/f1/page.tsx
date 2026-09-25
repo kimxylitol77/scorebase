@@ -20,7 +20,7 @@ export const revalidate = 3600;
 const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)
 
 export const metadata: Metadata = {
-  title: "F1 드라이버 연봉 랭킹 — 추정 연봉 순위 (한화)",
+  title: "F1 연봉 순위 — 드라이버 추정 연봉 랭킹 (한화)",
   description:
     "2026 F1 드라이버 연봉 순위를 달러·원화로. 페르스타펀·해밀턴·르클레르 등 드라이버별 추정 기본급과 소속 팀을 한국어로 — 공식 발표가 없어 미디어 종합 추정치 기준.",
   keywords: ["F1 연봉", "F1 드라이버 연봉", "페르스타펀 연봉", "해밀턴 연봉", "F1 연봉 순위", "포뮬러1 연봉"],

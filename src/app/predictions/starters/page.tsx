@@ -5,17 +5,51 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import StarterMatchupCard from "@/components/predictions/StarterMatchupCard";
+import { parseStarter, starterName } from "@/lib/predict/starter-card";
+import { toKoreanTeamName } from "@/lib/team-names";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 600; // ISR — 선발은 cron(12:00·12:30) 갱신, 10분 캐시로 충분
 
-export const metadata: Metadata = {
-  title: "오늘의 선발 투수 매치업 — KBO·MLB·NPB",
-  description:
-    "오늘과 내일 KBO·MLB·NPB 선발 투수 맞대결을 한눈에 — ERA·WHIP·K/9·최근 3등판 폼 비교와 AI 승률까지. 매일 자동 갱신되는 선발 매치업 보드.",
-  keywords: ["KBO 선발 투수", "MLB 선발 투수", "오늘 선발 라인업", "선발 매치업", "투수 맞대결", "스코어베이스"],
-  alternates: { canonical: "/predictions/starters" },
-};
+// 구글 검색어(한국, 2026-09 Keyword Tool) — 프로야구 오늘 선발투수 1,600·오늘 선발투수 1,600·
+// 프로야구 오늘 선발투수 예고 1,300·프로야구 선발투수 예고 880. 팀별로도 "오늘삼성 선발투수" 880·
+// "한화 대 롯데 선발투수" 880 처럼 찾아서, 오늘 KBO 매치업을 설명 머리에 넣는다.
+export async function generateMetadata(): Promise<Metadata> {
+  const kst = new Date(Date.now() + 9 * 3600_000);
+  const today = kst.toISOString().slice(0, 10);
+  const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
+  let matchups = "";
+  try {
+    const rows = await prisma.match.findMany({
+      where: { league: "KBO", startTime: { gte: new Date(`${today}T00:00:00+09:00`), lte: new Date(`${today}T23:59:59+09:00`) } },
+      select: { homeStarter: true, awayStarter: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+      orderBy: { startTime: "asc" },
+      take: 5,
+    });
+    matchups = rows
+      .map((m) => {
+        const a = starterName("KBO", parseStarter(m.awayStarter));
+        const h = starterName("KBO", parseStarter(m.homeStarter));
+        if (!a || !h) return null;
+        const at = toKoreanTeamName(m.awayTeam.name, "KBO") || m.awayTeam.name;
+        const ht = toKoreanTeamName(m.homeTeam.name, "KBO") || m.homeTeam.name;
+        return `${at} ${a} vs ${ht} ${h}`;
+      })
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(" · ");
+  } catch {
+    // 선발 조회 실패 — 날짜만 넣은 문구로
+  }
+  return {
+    title: `프로야구 오늘 선발투수 예고 (${dateLabel}) — KBO·MLB·NPB 선발 매치업`,
+    description:
+      (matchups ? `${dateLabel} KBO 선발: ${matchups}. ` : "") +
+      "오늘과 내일 KBO·MLB·NPB 선발투수 예고와 맞대결을 한눈에 — ERA·WHIP·K/9·최근 3등판 폼 비교와 AI 승률까지.",
+    keywords: ["프로야구 오늘 선발투수", "오늘 선발투수", "프로야구 선발투수 예고", "선발투수 예고", "KBO 선발투수", "MLB 선발투수", "NPB 선발투수"],
+    alternates: { canonical: "/predictions/starters" },
+  };
+}
 
 const LEAGUES = ["KBO", "MLB", "NPB"] as const;
 const LEAGUE_LABEL: Record<string, string> = { KBO: "KBO", MLB: "MLB", NPB: "NPB" };

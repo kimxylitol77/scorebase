@@ -13,7 +13,7 @@ import { ogPageImage } from "@/lib/seo/og";
 const PAGE_URL = `${SITE_URL}/ai-sports-prediction`;
 
 export const metadata: Metadata = {
-  title: "AI 스포츠 분석·예측 사이트 — 적중률 공개",
+  title: "무료 AI 스포츠 분석 사이트 — 적중률 공개 승부 예측",
   description:
     "스코어베이스는 축구·야구·농구·아이스하키 경기를 AI로 분석·승부예측하고, 실제 적중률을 그대로 공개하는 스포츠 분석·예측 사이트입니다. EPL·MLB·KBO·NBA·NHL 경기별 예측과 13개 리그 백테스트 적중률, GPT-5.6와의 정면 비교 성적표, 승리확률 계산기까지 한 곳에서.",
   keywords: [
