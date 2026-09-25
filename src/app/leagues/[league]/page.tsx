@@ -799,6 +799,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         ? genericSoccerViews
         : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
   ).filter((v) => v !== "predictions" || PREDICTION_LEAGUE_SET.has(upper));
+  // 순위표가 없는 대회(끝난 AFC U23·개막 전 UEFA 여자 챔스)는 순위 탭이 "수집 중" 안내만 남는다 — 탭을 뺀다.
+  //  허브 대회(네이션스리그·AFCON·걸프컵·아시안게임)는 허브가 경기에서 직접 표를 만들어 여기서 판정하지 않는다.
+  const HUB_STANDINGS = new Set(["UEFA_NL", "AFCON", "GULF_CUP", "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W"]);
+  if (
+    (isSoccer || CUP_LEAGUES.has(upper)) &&
+    !HUB_STANDINGS.has(upper) &&
+    dataViewsAll.includes("standings") &&
+    (await getFullStandings(upper).catch(() => [])).length === 0
+  ) {
+    dataViewsAll.splice(dataViewsAll.indexOf("standings"), 1);
+  }
   // 글이 한 건도 없는 리그는 글 탭을 빼 빈 목록으로 가는 길을 없앤다. 데이터 탭이 하나도 없는
   // 리그는 글 탭이 유일한 화면이라 남긴다(빈 안내가 404 보다 낫다).
   const dataViews: ViewKey[] =
