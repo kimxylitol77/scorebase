@@ -189,6 +189,10 @@ function UefaFixtures({ league, matches, now }: { league: string; matches: Match
   );
 }
 
+/** 날짜 목록 경로의 지난 결과 — 마지막 경기 기준 이 기간 안은 전부(대회 하나가 통째로 들어가게), 최대 PAST_MAX 경기 */
+const PAST_WINDOW_DAYS = 45;
+const PAST_MAX = 120;
+
 export default async function LeagueFixtures({ league }: { league: string }) {
   const now = new Date();
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
@@ -310,7 +314,7 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     prisma.match.findMany({
       where: { league, status: "FINISHED" },
       orderBy: { startTime: "desc" },
-      take: 18,
+      take: PAST_MAX,
       select: sel,
     }),
     prisma.match.findMany({
@@ -331,8 +335,11 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     ...prepare(upcoming, false),
     ...prepare(friendlyRows.slice(0, 12), true),
   ]);
-  // 지난 경기 결과 = 기본 접힘(<details>), 최신순.
-  const pastRows: Row[] = dedupeFixtures(prepare(recent, false)).reverse();
+  // 지난 경기 결과 = 기본 접힘(<details>), 최신순. 마지막 경기 기준 PAST_WINDOW_DAYS 안은 전부 —
+  // 예전엔 최근 18경기로 잘라 아시안게임(23경기)은 첫 5경기가, 월드컵(104경기)은 대부분이 빠졌다(2026-09-25).
+  const lastFinished = recent[0]?.startTime.getTime() ?? 0;
+  const inWindow = recent.filter((m) => m.startTime.getTime() >= lastFinished - PAST_WINDOW_DAYS * 86400_000);
+  const pastRows: Row[] = dedupeFixtures(prepare(inWindow, false)).reverse();
 
   if (upcomingRows.length === 0 && pastRows.length === 0) {
     return (
