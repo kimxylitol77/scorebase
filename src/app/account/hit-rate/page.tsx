@@ -168,16 +168,21 @@ export default async function HitRatePage() {
               <h2 className="text-sm font-semibold text-neutral-500 mb-3">최근 채점 경기</h2>
               <ul className="divide-y divide-neutral-100 dark:divide-white/5">
                 {data.recent.map((m) => (
-                  <li key={m.matchId} className="flex items-center gap-3 py-2.5 text-sm">
-                    <span className="w-9 shrink-0 text-[11px] text-neutral-400 tabular-nums">{kst(m.startTime)}</span>
-                    <span className="min-w-0 flex-1 truncate">
-                      {m.home} <span className="text-neutral-400">vs</span> {m.away}
-                      {m.homeScore != null && m.awayScore != null && (
-                        <span className="ml-1.5 font-bold tabular-nums">{m.homeScore}-{m.awayScore}</span>
+                  <li key={m.matchId} className="grid grid-cols-[2.25rem_minmax(0,1fr)_3.25rem] items-center gap-x-3 gap-y-0.5 py-2.5 text-sm sm:grid-cols-[2.25rem_minmax(0,1fr)_6.5rem_3.25rem]">
+                    {/* 날짜·경기·픽·결과 칸 폭을 고정해야 가운데 점수 줄이 행마다 같은 x 에 선다(픽은 팀명이라 길이가 제각각).
+                        좁은 화면은 픽을 경기 아랫줄로 내려 팀명 칸을 확보한다. */}
+                    <span className="text-[11px] text-neutral-400 tabular-nums">{kst(m.startTime)}</span>
+                    <span className="grid min-w-0 grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] items-center gap-1.5">
+                      <span className="truncate text-right">{m.home}</span>
+                      {m.homeScore != null && m.awayScore != null ? (
+                        <span className="text-center font-bold tabular-nums">{m.homeScore}-{m.awayScore}</span>
+                      ) : (
+                        <span className="text-center text-neutral-400">vs</span>
                       )}
+                      <span className="truncate">{m.away}</span>
                     </span>
-                    <span className="shrink-0 text-[11px] text-neutral-500">AI 픽 <span className="font-medium text-neutral-800 dark:text-neutral-200">{m.pick}</span></span>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.correct ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-neutral-200/70 text-neutral-500 dark:bg-white/10"}`}>
+                    <span className="col-start-2 row-start-2 truncate text-center text-[11px] text-neutral-500 sm:col-start-auto sm:row-start-auto sm:text-right">AI 픽 <span className="font-medium text-neutral-800 dark:text-neutral-200">{m.pick}</span></span>
+                    <span className={`justify-self-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.correct ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-neutral-200/70 text-neutral-500 dark:bg-white/10"}`}>
                       {m.correct ? "적중" : "빗나감"}
                     </span>
                   </li>

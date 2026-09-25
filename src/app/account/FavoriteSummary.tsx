@@ -138,17 +138,21 @@ export default function FavoriteSummary() {
                   className="flex items-center gap-2.5 rounded-2xl bg-neutral-50 dark:bg-white/[0.04] px-3 py-2"
                 >
                   <div className="min-w-0 flex-1">
+                    {/* 홈 | 점수(또는 vs) | 원정 3칸 — 팀명 길이와 무관하게 점수가 한 세로줄에 선다 */}
                     <Link
                       href={href}
                       prefetch={false}
-                      className="block truncate text-sm font-medium hover:underline"
+                      className="grid grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] items-center gap-1.5 text-sm font-medium hover:underline"
                     >
-                      {home} <span className="text-neutral-400">vs</span> {away}
-                      {scored && (
-                        <span className="ml-1.5 font-bold tabular-nums">
+                      <span className="truncate text-right">{home}</span>
+                      {scored ? (
+                        <span className="text-center font-bold tabular-nums">
                           {m.homeScore}-{m.awayScore}
                         </span>
+                      ) : (
+                        <span className="text-center text-neutral-400">vs</span>
                       )}
+                      <span className="truncate">{away}</span>
                     </Link>
                     <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-neutral-400">
                       {league && <span className="font-medium">{league}</span>}
