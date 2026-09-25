@@ -4,7 +4,7 @@
 
 import { getLeagueMatches, getLeagueTeamNames, getTeamMatches } from "@/lib/predict/league-data";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { isSeniorNationalLeague, leagueHasDraw, NO_STANDINGS_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { usesNationalElo, leagueHasDraw, NO_STANDINGS_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
 import { calcSeasonStats, calcSeasonForm } from "@/lib/predict/season-stats";
@@ -13,7 +13,7 @@ import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcRecentTrend } from "@/lib/predict/recent-trend";
-import { nationalElo } from "@/lib/predict/build-context";
+import { nationalEloFor } from "@/lib/predict/national-elo";
 import type { FormResult } from "@/lib/predict/types";
 import type { H2HResult } from "@/lib/live/match-extras";
 import EloMeter from "../EloMeter";
@@ -106,17 +106,14 @@ export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const awayStand = useOfficial ? toStand(oA!) : awayRow;
 
   // 국가대항(성인 국대 대회)은 클럽 히스토리가 없어 시드 Elo fallback (MatchInsight 동일)
-  const isNationalLeague = isSeniorNationalLeague(match.league);
   const homeElo =
     match.eloHome ??
-    (isNationalLeague
-      ? nationalElo(match.homeTeam.name)
-      : getElo(eloTable, match.homeTeam.id));
+    nationalEloFor(match.league, match.homeTeam.name, getElo(eloTable, match.homeTeam.id)) ??
+    getElo(eloTable, match.homeTeam.id);
   const awayElo =
     match.eloAway ??
-    (isNationalLeague
-      ? nationalElo(match.awayTeam.name)
-      : getElo(eloTable, match.awayTeam.id));
+    nationalEloFor(match.league, match.awayTeam.name, getElo(eloTable, match.awayTeam.id)) ??
+    getElo(eloTable, match.awayTeam.id);
 
   const homeKo = toKoreanTeamName(match.homeTeam.name, match.league);
   const awayKo = toKoreanTeamName(match.awayTeam.name, match.league);

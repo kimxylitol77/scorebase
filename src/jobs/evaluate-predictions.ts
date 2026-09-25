@@ -32,7 +32,7 @@ import { blendWithMarket } from "@/lib/predict/market-blend";
 import { calibrateHomeWinProb, hasHomeCalibration } from "@/lib/predict/home-calibration";
 import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
-import { historyLeaguesFor, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
+import { historyLeaguesFor, usesNationalElo } from "@/lib/sports/sport-leagues";
 
 /**
  * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡/BTTS 모두 90분(정규시간) 기준.
@@ -275,7 +275,7 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
     //  배구 국가대항전(팀당 이전 경기 5건 미만)이 여기서 영구 skip 돼 294건이 미채점으로 남았다.
     const hasStoredPick = m.predWinner != null;
     // 성인 국대 대회 전체로 면제 확대(2026-09-24) — compute-prediction 과 같은 기준이어야 사전 픽과 사후 채점이 맞는다.
-    if (!hasStoredPick && !isSeniorNationalLeague(m.league) && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
+    if (!hasStoredPick && !usesNationalElo(m.league) && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
 
     const ctx = buildMatchContext(
       all,

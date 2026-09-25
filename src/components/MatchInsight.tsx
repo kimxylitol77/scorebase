@@ -4,7 +4,7 @@
 import { prisma } from "@/lib/db";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { isSeniorNationalLeague, leagueHasDraw, NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
+import { usesNationalElo, leagueHasDraw, NO_STANDINGS_LEAGUES } from "@/lib/sports/sport-leagues";
 import {
   fitDixonColes,
   predictDixonColes,
@@ -51,7 +51,7 @@ import {
   applyGoalieToWinProb,
 } from "@/lib/predict/goalie-adjust";
 import { blendWithMarket } from "@/lib/predict/market-blend";
-import { nationalElo } from "@/lib/predict/build-context";
+import { nationalEloFor } from "@/lib/predict/national-elo";
 import { getLeagueMatches, getLeagueTeamNames } from "@/lib/predict/league-data";
 import type { PredictMatch } from "@/lib/predict/types";
 import type { ReactNode } from "react";
@@ -256,17 +256,16 @@ export default async function MatchInsight({
   // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
   // 국가대항(월드컵·친선)은 클럽 매치 히스토리가 없어 calcEloTable 이 전원 1500 —
   // build-context/predictionEngine 과 동일하게 국가대표 시드 Elo 로 fallback.
-  const isNationalLeague = isSeniorNationalLeague(match.league);
+  //  연령별·여자 대표는 나라 전력 시드 + 대회 성적(nationalEloFor, 2026-09-25).
+  const isNationalLeague = usesNationalElo(match.league);
   const homeElo =
     match.eloHome ??
-    (isNationalLeague
-      ? nationalElo(match.homeTeam.name)
-      : getElo(eloTable, match.homeTeamId));
+    nationalEloFor(match.league, match.homeTeam.name, getElo(eloTable, match.homeTeamId)) ??
+    getElo(eloTable, match.homeTeamId);
   const awayElo =
     match.eloAway ??
-    (isNationalLeague
-      ? nationalElo(match.awayTeam.name)
-      : getElo(eloTable, match.awayTeamId));
+    nationalEloFor(match.league, match.awayTeam.name, getElo(eloTable, match.awayTeamId)) ??
+    getElo(eloTable, match.awayTeamId);
 
   const homeForm = calcForm(matches, match.homeTeamId, referenceTime, 5);
   const awayForm = calcForm(matches, match.awayTeamId, referenceTime, 5);
@@ -582,8 +581,8 @@ export default async function MatchInsight({
               </div>
               {isNationalLeague && (
                 <p className="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-white/45">
-                  ⓘ 국가대표 Elo — World Football Elo Ratings 기반 시드값으로, 본선 경기
-                  결과가 쌓이면 자동 갱신됩니다.
+                  ⓘ 국가대표 Elo — World Football Elo Ratings·FIFA 랭킹 기반 시드값(연령별·여자
+                  대표는 나라 전력 기준)으로, 대회 경기 결과가 쌓이면 자동 갱신됩니다.
                 </p>
               )}
             </Section>

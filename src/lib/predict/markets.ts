@@ -4,6 +4,7 @@
 import type { PredictMatch } from "./types";
 import { calculateInningScoreProbs } from "./baseball-poisson";
 import { getParkFactor } from "./park-factors";
+import { NATIONAL_SOCCER_COMPS } from "@/lib/sports/sport-leagues";
 
 /* =====================================================================
  * Double Chance — winProb (1X2) 데이터 그대로. 무승부 있는 종목(축구)만 의미.
@@ -69,6 +70,25 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   // UEFA_NL — 대회 자체 종료 0건(2026-09-24)이라 A매치 실측으로 잡는다: 친선 377·월드컵 104·골드컵 45·아프리카컵 12,
   // 평균 약 2.8골(std 1.7~1.9)·평균마진 약 0.5(std 2.0)·무 24%. 전력 격차 큰 D리그(산마리노·지브롤터)까지 있어 마진 분산은 UECL 수준.
   UEFA_NL: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  // 국가 대항전 전체 (2026-09-25, 종료 경기 실측). 성인 대회는 네이션스리그와 같은 A매치 분포를 쓴다 —
+  // 친선 382경기 2.77골(std 1.69)·마진 std 1.95·무 25%, 월드컵 104 2.99골·마진 std 2.02, 골드컵 45 2.93골·마진 std 2.14.
+  INTL_FRIENDLY: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  WORLD_CUP: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  WC_QUAL: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  EURO_QUAL: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  AFCON: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  CONCACAF_GOLD: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
+  GULF_CUP: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.0 }, // 한 나라 개최(중립)
+  // 연령별 — U-21 유로 예선 174경기: 3.09골(std 2.03)·마진 std 3.02(산마리노·지브롤터 대량 실점)·무 18%.
+  UEFA_U21_Q: { overLine: 2.5, totalStd: 2.0, marginStd: 3.0, handicapLine: 0.5, homeBoost: 1.1 },
+  UEFA_U21: { overLine: 2.5, totalStd: 1.8, marginStd: 2.2, handicapLine: 0.5, homeBoost: 1.0 },
+  // 아시안게임 남(U-23) 21경기: 3.10골(std 1.97)·마진 std 2.71·무 19%, 중립 개최.
+  ASIAN_GAMES_FB: { overLine: 2.5, totalStd: 2.0, marginStd: 2.7, handicapLine: 0.5, homeBoost: 1.0 },
+  // 아시안게임 여 18경기: 4.22골(std 2.94)·마진 std 4.76 — 전력 격차가 커 기준선을 한 칸씩 올린다.
+  ASIAN_GAMES_FB_W: { overLine: 3.5, totalStd: 2.9, marginStd: 4.5, handicapLine: 1.5, homeBoost: 1.0 },
+  OLYMPICS_FOOTBALL: { overLine: 2.5, totalStd: 1.8, marginStd: 2.2, handicapLine: 0.5, homeBoost: 1.0 },
+  U20_WC: { overLine: 2.5, totalStd: 1.8, marginStd: 2.2, handicapLine: 0.5, homeBoost: 1.0 },
+  U17_WC: { overLine: 2.5, totalStd: 2.0, marginStd: 2.5, handicapLine: 0.5, homeBoost: 1.0 },
   // 농구 — NBA 평균 222점/매치, std 약 18, margin std 약 14
   NBA: { overLine: 220.5, totalStd: 18, marginStd: 14, handicapLine: 5.5, homeBoost: 1.025 },
   // 아이스하키 — NHL 평균 6.0골, std 2.5, margin std 2.4
@@ -599,4 +619,5 @@ export const SOCCER_LEAGUES_FOR_MARKETS = new Set([
   "UEL", // 2026-07-30 — UCL 급 승격 (BTTS/DC·Skellam·연장 정규화 동일 적용)
   "UECL", // 2026-07-30 — UEL 과 같은 기준으로 승격
   "UEFA_NL", // 2026-09-24 — 5대 리그 급 편입(BTTS/DC·Skellam·연장 정규화). SPORT_PROFILE 도 같이 넣어야 마켓이 나온다
+  ...NATIONAL_SOCCER_COMPS, // 2026-09-25 — 국가 대항전 전체(프로파일 없는 UEFA_U19·U17 은 getSportProfile null 로 OU·핸디만 빠진다)
 ]);

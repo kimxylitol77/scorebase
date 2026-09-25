@@ -444,6 +444,9 @@ export const ARTICLE_LEAGUES: readonly League[] = [
 export const PREVIEW_LEAGUES: readonly League[] = [
   "EPL", "LALIGA", "UCL", "UEL", "UECL", // 축구 빅 (UEL 2026-07-30 추가 — 7·8월 예선은 isUefaQualifierMatch 로 계속 제외)
   "UEFA_NL", // 2026-09-24 네이션스리그 5대 리그 급 — 국대 Elo(nationalElo)+A매치 이력으로 승무패·마켓 산출
+  // 2026-09-25 국가 대항전 확대 — 걸프컵(베트맨 발매)·아시안게임 남녀(한국 수요). 아프리카컵·U-21 예선은 경기 수가 많아
+  //  프리뷰 처리량(300초 3~4건)을 잠식하므로 예측·마켓·투표까지만.
+  "GULF_CUP", "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W",
   "KBO", "MLB", // 야구
   "NBA", // 농구
   "K_LEAGUE_1", // 한국 축구

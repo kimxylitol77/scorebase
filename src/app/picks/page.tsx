@@ -14,6 +14,7 @@ import { roiClaim } from "@/lib/predict/model-vs-market";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 import { Bot } from "lucide-react";
+import { LEAGUE_DISPLAY, NATIONAL_SOCCER_COMPS } from "@/lib/sports/sport-leagues";
 
 export const metadata: Metadata = {
   title: "승부예측 — 나 vs AI | Scorebase",
@@ -25,10 +26,12 @@ export const dynamic = "force-dynamic";
 const PICK_LEAGUES = [
   "WORLD_CUP", "KBO", "MLB", "NPB", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
   "MLS", "UCL", "UEL", "UECL", "UEFA_NL", "CLUB_WORLD_CUP", "K_LEAGUE_1", "NBA", "NHL",
-];
+  ...NATIONAL_SOCCER_COMPS, // 2026-09-25 국가 대항전 전체
+].filter((l, i, a) => a.indexOf(l) === i);
 const DRAW_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "WORLD_CUP",
   "CLUB_WORLD_CUP", "K_LEAGUE_1", "KBO", "NPB", "UEFA_NL",
+  ...NATIONAL_SOCCER_COMPS,
 ]);
 const LEAGUE_KO: Record<string, string> = {
   WORLD_CUP: "월드컵", KBO: "KBO", MLB: "MLB", NPB: "NPB", EPL: "EPL", LALIGA: "라리가",
@@ -257,7 +260,7 @@ export default async function PicksPage() {
               return (
                 <div key={m.id} className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-white/10 dark:bg-white/[0.04]">
                   <div className="mb-2 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
-                    <span className="font-medium">{LEAGUE_KO[lg] ?? lg}</span>
+                    <span className="font-medium">{LEAGUE_KO[lg] ?? LEAGUE_DISPLAY[lg] ?? lg}</span>
                     <span className="tabular-nums">{kstTime(m.startTime)}</span>
                   </div>
                   <div className="mb-2 truncate text-sm font-semibold text-neutral-900 dark:text-white">

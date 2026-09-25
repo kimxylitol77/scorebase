@@ -31,7 +31,7 @@ import { calibrateHomeWinProb, hasHomeCalibration } from "./predict/home-calibra
 import { calcRecentTrend } from "./predict/recent-trend";
 import { rollingXgStrength, xgMomentumShift } from "./predict/rolling-xg";
 import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
-import { BASEBALL_LEAGUES, historyLeaguesFor, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, historyLeaguesFor, NATIONAL_SOCCER_COMPS, usesNationalElo } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "./predict/types";
 import {
   computeStarterAdjustment,
@@ -48,13 +48,14 @@ import {
   type Motivation,
 } from "./predict/schedule-context";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
-import { nationalElo } from "./predict/national-elo";
+import { nationalEloFor } from "./predict/national-elo";
 
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
 // 예측·적중률에서 제외하는 표시 전용 리그 (NBA 서머리그 = 유망주 리그, Elo 무의미).
-const DISPLAY_ONLY_LEAGUES = new Set(["NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W", "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W"]); // 아시안게임 남농(2026-09-14) — 국대 단기 대회, Elo 이력 없어 예측 제외
+// 아시안게임 농구(2026-09-14) — 국대 단기 대회, Elo 이력 없어 예측 제외. 축구는 2026-09-25 나라 전력 시드(nationalEloFor)로 예측 편입.
+const DISPLAY_ONLY_LEAGUES = new Set(["NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W"]);
 const HOCKEY_LEAGUES = new Set([
   "NHL", "IIHF_WC", "AIHL", "NZIHL", "HOCKEY_FRIENDLY",
   "KHL", "CHL_HOCKEY", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA",
@@ -65,6 +66,7 @@ const FOOTBALL_LEAGUES_DRAW = new Set([
   "UCL", "UEL", "MLS", "K_LEAGUE_1", "K_LEAGUE_2",
   "J1_LEAGUE", "WORLD_CUP",
   "UEFA_NL", // 2026-09-24 — 5대 리그 급 편입(승·무·패). 빠지면 classifySport 가 "other" 로 떨어져 무승부 확률이 없다
+  ...NATIONAL_SOCCER_COMPS, // 2026-09-25 — 국가 대항전 전체(친선·아프리카컵·걸프컵·연령별·여자)
 ]);
 
 export type SportKind = "baseball" | "basketball" | "hockey" | "football" | "other";
@@ -605,13 +607,14 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
   // 평준화됨 (2026-06-10: WC 매치 predHome null 원인) → 국가대표 Elo 로 대체.
   const eloTable = calcEloTable(seasonMatchesTyped);
   // 국대 Elo 는 build-context nationalElo 단일 출처(시드 → FIFA 랭킹 환산 → 1500).
-  const isNationalTeam = isSeniorNationalLeague(match.league);
-  const eloHome = isNationalTeam
-    ? nationalElo(match.homeTeam.name)
-    : getElo(eloTable, match.homeTeamId);
-  const eloAway = isNationalTeam
-    ? nationalElo(match.awayTeam.name)
-    : getElo(eloTable, match.awayTeamId);
+  //  연령별·여자 대표는 나라 전력 시드 + 대회 자체 Elo 편차.
+  const isNationalTeam = usesNationalElo(match.league);
+  const eloHome =
+    nationalEloFor(match.league, match.homeTeam.name, getElo(eloTable, match.homeTeamId)) ??
+    getElo(eloTable, match.homeTeamId);
+  const eloAway =
+    nationalEloFor(match.league, match.awayTeam.name, getElo(eloTable, match.awayTeamId)) ??
+    getElo(eloTable, match.awayTeamId);
 
   // 축구 Dixon-Coles 득점모델 (Elo 와 0.7 블렌드). 실패 시 Elo only fallback.
   // 성인 국대는 건너뛴다 — 팀당 A매치가 몇 경기뿐이라 공격·수비 계수가 흔들리고, 전력의 뼈대는 외부 시드 Elo 다.

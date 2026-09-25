@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { aiPickOf, resolveLines, resultPick, type VoteMarket } from "@/lib/vote-markets";
 import MatchVoteButtons, { type MarketInit } from "./MatchVoteButtons";
+import { NATIONAL_SOCCER_COMPS } from "@/lib/sports/sport-leagues";
 
 // 무승부가 실제로 존재하는 리그 (승부 종목은 홈/원정 2버튼)
 const DRAW_LEAGUES = new Set([
@@ -16,6 +17,7 @@ const DRAW_LEAGUES = new Set([
   "CHAMPIONSHIP", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "SAUDI_PL", "BRASILEIRAO",
   "LIGA_MX", "CSL", "A_LEAGUE", "KBO", "NPB",
   "UEFA_NL", // 2026-09-24 — 빠져 있어 홈/원정 2버튼으로 나왔다
+  ...NATIONAL_SOCCER_COMPS, // 2026-09-25 — 국가 대항전 전체
 ]);
 
 export const VOTE_MATCH_SELECT = {

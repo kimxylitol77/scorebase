@@ -319,6 +319,23 @@ export function historyLeaguesFor(league: string): string[] {
   return isSeniorNationalLeague(league) ? [...SENIOR_NATIONAL_LEAGUES] : [league];
 }
 
+// 연령별·여자 국가대표 대회 — 성인 국대 Elo 는 못 쓰지만 나라 전력으로 시드를 잡는다(national-elo nationalEloFor).
+// 이력 풀은 그 대회만(historyLeaguesFor 는 성인만 A매치 전체).
+export const YOUTH_NATIONAL_LEAGUES = new Set([
+  "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL", "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17", "ASIAN_GAMES_FB",
+]);
+export const WOMEN_NATIONAL_LEAGUES = new Set(["ASIAN_GAMES_FB_W"]);
+
+/** 축구 국가 대항전 전체(성인·연령별·여자) — 무승부·마켓·투표 목록이 이 하나를 펼쳐 쓴다(2026-09-25). */
+export const NATIONAL_SOCCER_COMPS: readonly string[] = [
+  ...NATIONAL_TEAM_LEAGUES, ...YOUTH_NATIONAL_LEAGUES, ...WOMEN_NATIONAL_LEAGUES,
+].filter((l, i, a) => a.indexOf(l) === i);
+
+/** 팀 전력을 클럽식 Elo 가 아니라 나라 시드(nationalEloFor)로 잡는 대회. */
+export function usesNationalElo(league: string): boolean {
+  return isSeniorNationalLeague(league) || YOUTH_NATIONAL_LEAGUES.has(league) || WOMEN_NATIONAL_LEAGUES.has(league);
+}
+
 // 순위 개념이 없는 대회 — 공식 순위표도, DB 자체 산출 폴백도 쓰면 안 된다.
 // 친선은 상대·경기 수가 제각각이라 자체 계산이 "90위 / 147팀" 같은 무의미한 서열을 만든다.
 // 컵(녹아웃·조별)도 같다 — 자체 산출은 조 구분 없이 한 표로 합쳐 실제 대진과 어긋난다.

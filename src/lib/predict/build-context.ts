@@ -10,7 +10,7 @@ import {
   blendLeaguePrior,
   priorWeight,
 } from "./league-prior";
-import { nationalElo } from "./national-elo";
+import { nationalElo, nationalEloFor } from "./national-elo";
 import { buildScoreDistribution } from "./score-distribution";
 
 const SOCCER_LEAGUES = new Set([
@@ -25,8 +25,9 @@ const SOCCER_LEAGUES = new Set([
   "UECL",
   "UEFA_NL", // 2026-09-24 5대 리그 급
   "WORLD_CUP",
+  ...NATIONAL_SOCCER_COMPS, // 2026-09-25 국가 대항전 전체
 ]);
-import { BASEBALL_LEAGUES, isSeniorNationalLeague } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, isSeniorNationalLeague, NATIONAL_SOCCER_COMPS, usesNationalElo } from "@/lib/sports/sport-leagues";
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
 import { calcStandings } from "./standings";
@@ -156,9 +157,11 @@ export function buildMatchContext(
   // predictionEngine 과 같은 기준(isSeniorNationalLeague + nationalElo)으로 시드 Elo (글-위젯 정합, 2026-06-11).
   let homeElo: number, awayElo: number;
   let eloTable: EloTable | null = null;
-  if (isSeniorNationalLeague(league) && homeName && awayName) {
-    homeElo = nationalElo(homeName);
-    awayElo = nationalElo(awayName);
+  if (usesNationalElo(league) && homeName && awayName) {
+    // 연령별·여자는 대회 자체 Elo 편차를 더한다(성인은 tableElo 무시).
+    const t = isSeniorNationalLeague(league) ? null : calcEloTable(before);
+    homeElo = nationalEloFor(league, homeName, t ? getElo(t, homeTeamId) : 1500)!;
+    awayElo = nationalEloFor(league, awayName, t ? getElo(t, awayTeamId) : 1500)!;
   } else {
     eloTable = calcEloTable(before);
     homeElo = getElo(eloTable, homeTeamId);

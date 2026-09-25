@@ -81,6 +81,7 @@ const ENGLISH_ALIASES: Record<string, string> = {
   "Rep of Ireland": "Republic of Ireland",
   Ireland: "Republic of Ireland",
   "Hong Kong": "Hong Kong, China",
+  "China Hong Kong": "Hong Kong, China", // af 여자 대표 표기 (아시안게임 2026-09)
   Kyrgyzstan: "Kyrgyz Republic",
   China: "China PR",
   // 흔한 영문 변형 (방어적)
@@ -94,6 +95,7 @@ const ENGLISH_ALIASES: Record<string, string> = {
   Turkiye: "Turkey",
   Czechia: "Czechia",
   "Czech Republic": "Czechia",
+  "Czechia Republic": "Czechia", // af U-21 표기
   "United States": "USA",
   "United States of America": "USA",
   "Ivory Coast": "Côte d'Ivoire",
@@ -256,6 +258,19 @@ for (const [alias, canonical] of [
 ]) {
   const rank = RANK_BY_KEY.get(normalizeKey(canonical));
   if (rank != null) RANK_BY_KEY.set(normalizeKey(alias), rank);
+}
+
+// 여자 랭킹도 같은 canonical 표기라 별칭을 그대로 공유한다.
+const RANK_BY_KEY_WOMEN = new Map<string, number>();
+for (const entry of FIFA_RANKINGS_WOMEN) RANK_BY_KEY_WOMEN.set(normalizeKey(entry.name), entry.rank);
+for (const [alias, canonical] of [...Object.entries(ENGLISH_ALIASES), ...Object.entries(KOREAN_ALIASES)]) {
+  const rank = RANK_BY_KEY_WOMEN.get(normalizeKey(canonical));
+  if (rank != null) RANK_BY_KEY_WOMEN.set(normalizeKey(alias), rank);
+}
+
+/** 국가명 → FIFA 여자 랭킹(1-based). 매칭 실패 시 null. */
+export function getFifaRankWomen(nameEn: string | null | undefined): number | null {
+  return nameEn ? RANK_BY_KEY_WOMEN.get(normalizeKey(nameEn)) ?? null : null;
 }
 
 /**
