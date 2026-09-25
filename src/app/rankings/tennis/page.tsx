@@ -8,6 +8,7 @@ import DriverAvatar from "@/components/scores/f1/DriverAvatar";
 import CountryMark from "@/components/golf/CountryMark";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { SITE_URL } from "@/lib/site-url";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600;
@@ -46,8 +47,23 @@ export default async function TennisRankingsPage({
   const tour: Tour = sp?.tour === "wta" ? "WTA" : "ATP";
   const rows = await fetchTennisRankings(tour);
 
+  // 구조화 데이터 — 빵부스러기 + 데이터셋(랭킹·포인트). 2026-09-25 투어 종목 SEO.
+  const jsonLd = [
+    breadcrumbLd([
+      { name: "홈", path: "/" },
+      { name: "기타 종목", path: "/other" },
+      { name: `${tour} 세계랭킹`, path: `/rankings/tennis${tour === "WTA" ? "?tour=wta" : ""}` },
+    ]),
+    datasetLd({
+      name: `${tour === "WTA" ? "WTA 여자" : "ATP 남자"} 테니스 세계랭킹 (한글 선수명)`,
+      description: `스코어베이스가 ESPN 랭킹으로 갱신하는 ${tour} 단식 세계랭킹 상위 150명 — 순위·포인트·한글 선수명.`,
+      path: `/rankings/tennis${tour === "WTA" ? "?tour=wta" : ""}`,
+      variableMeasured: ["순위", "랭킹 포인트", "선수명", "국적"],
+    }),
+  ];
   return (
     <main className="relative max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <AmbientGlow />
 
       <header className="space-y-3">

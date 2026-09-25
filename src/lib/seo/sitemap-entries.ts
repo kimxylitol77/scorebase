@@ -526,6 +526,12 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
   );
   const richLeaguePages: MetadataRoute.Sitemap = [
     { url: `${base}/leagues`, changeFrequency: "daily", priority: 0.8 },
+    // 테니스·골프·F1 — DB 없는 투어 종목이라 리그 페이지 대신 전용 페이지가 정본(한국어판은 사이트맵에 빠져 있었다)
+    ...[
+      "/rankings/tennis", "/rankings/tennis?tour=wta", "/tennis/draw",
+      "/golf/korea", "/golf/korea?tour=pga", "/golf/korea?view=world",
+      "/rankings/f1", "/rankings/f1?view=team", "/rankings/f1?view=calendar",
+    ].map((path) => ({ url: `${base}${path}`, changeFrequency: "daily" as const, priority: 0.7 })),
     ...richExtra.map((lg) => ({ url: `${base}/leagues/${lg}`, changeFrequency: "daily" as const, priority: 0.6 })),
     ...richExtra
       .filter((lg) => PREDICTION_LEAGUE_SET.has(lg))

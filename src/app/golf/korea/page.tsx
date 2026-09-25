@@ -10,6 +10,7 @@ import CountryMark from "@/components/golf/CountryMark";
 import GolfWorldRanking from "@/components/golf/GolfWorldRanking";
 import { golfEventKo } from "@/lib/sports/golf-events-ko";
 import { SITE_URL } from "@/lib/site-url";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import seasonData from "../../../../data/golf-korea-season.json";
 
 export const revalidate = 3600;
@@ -81,8 +82,27 @@ export default async function GolfKoreaPage({
   const totalWins = players.reduce((s, p) => s + p.wins, 0);
   const totalTop10 = players.reduce((s, p) => s + p.top10, 0);
 
+  // 구조화 데이터 — 빵부스러기 + 데이터셋(한국 선수 시즌 집계 / 세계랭킹). 2026-09-25 투어 종목 SEO.
+  const path = view === "world" ? "/golf/korea?view=world" : `/golf/korea${tour === "PGA" ? "?tour=pga" : ""}`;
+  const jsonLd = [
+    breadcrumbLd([
+      { name: "홈", path: "/" },
+      { name: "기타 종목", path: "/other" },
+      { name: view === "world" ? "골프 세계랭킹" : `${tour} 한국 선수 성적`, path },
+    ]),
+    datasetLd({
+      name: view === "world" ? "골프 남자 세계랭킹(OWGR)" : `${tour} 한국 선수 시즌 성적`,
+      description:
+        view === "world"
+          ? "스코어베이스가 갱신하는 남자 골프 세계랭킹(OWGR)."
+          : `스코어베이스가 ${tour} 시즌 대회 리더보드를 집계한 한국 선수별 출전·우승·톱10·최고 성적.`,
+      path,
+      variableMeasured: view === "world" ? ["순위", "평균 포인트", "선수명"] : ["출전", "우승", "톱10", "최고 순위"],
+    }),
+  ];
   return (
     <main className="relative max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <AmbientGlow />
 
       <header className="space-y-3">

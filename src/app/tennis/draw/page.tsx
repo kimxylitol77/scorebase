@@ -5,6 +5,7 @@ import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import { listTennisDraws } from "@/lib/sports/tennis-draw";
 import { SITE_URL } from "@/lib/site-url";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
 
 export const revalidate = 300;
 
@@ -21,8 +22,14 @@ export default async function TennisDrawHubPage() {
   const atp = draws.filter((d) => d.tour === "ATP");
   const wta = draws.filter((d) => d.tour === "WTA");
 
+  const jsonLd = breadcrumbLd([
+    { name: "홈", path: "/" },
+    { name: "기타 종목", path: "/other" },
+    { name: "테니스 대진표", path: "/tennis/draw" },
+  ]);
   return (
     <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <AmbientGlow />
 
       <header className="space-y-3">

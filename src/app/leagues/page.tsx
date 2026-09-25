@@ -19,11 +19,38 @@ export const revalidate = 3600;
 const PAGE_SPORTS = ["soccer", "baseball", "basketball", "hockey", "volleyball", "esports"] as const;
 
 export const metadata: Metadata = {
-  title: "리그 전체 — 축구·야구·농구·하키·배구·e스포츠 리그 순위·일정",
+  title: "리그 전체 — 축구·야구·농구·하키·배구·e스포츠·테니스·골프·F1",
   description:
     "스코어베이스가 다루는 전 세계 리그 목록. 축구 1·2부와 컵 대회, KBO·MLB·NPB, NBA·KBL, NHL·KHL, V-리그, LCK까지 리그별 순위표·경기 일정·결과·선수 기록 페이지로 바로 이동.",
   alternates: { canonical: "/leagues" },
 };
+
+// 테니스·골프·F1 — DB 에 경기가 없는 ESPN 표시 종목이라 리그 페이지 대신 전용 페이지로 잇는다.
+const TOUR_PAGES: Array<{ sport: string; items: Array<{ name: string; path: string; desc: string }> }> = [
+  {
+    sport: "테니스",
+    items: [
+      { name: "ATP 남자 세계랭킹", path: "/rankings/tennis", desc: "150위 · 한글 선수명" },
+      { name: "WTA 여자 세계랭킹", path: "/rankings/tennis?tour=wta", desc: "150위 · 한글 선수명" },
+      { name: "테니스 대진표", path: "/tennis/draw", desc: "진행·최근 ATP·WTA 대회 드로우" },
+    ],
+  },
+  {
+    sport: "골프",
+    items: [
+      { name: "PGA 한국 선수 성적", path: "/golf/korea?tour=pga", desc: "우승·톱10 시즌 집계" },
+      { name: "LPGA 한국 선수 성적", path: "/golf/korea", desc: "우승·톱10 시즌 집계" },
+      { name: "골프 세계랭킹", path: "/golf/korea?view=world", desc: "남자 OWGR" },
+    ],
+  },
+  {
+    sport: "F1",
+    items: [
+      { name: "F1 챔피언십 순위", path: "/rankings/f1", desc: "드라이버·컨스트럭터 포인트" },
+      { name: "F1 그랑프리 일정·결과", path: "/rankings/f1?view=calendar", desc: "한국시간 · 우승자·폴" },
+    ],
+  },
+];
 
 const kstMd = (iso: string) => {
   const k = new Date(new Date(iso).getTime() + 9 * 3600_000);
@@ -60,7 +87,10 @@ export default async function LeaguesIndexPage() {
     ]),
     itemListLd({
       name: "스코어베이스 리그 전체",
-      items: sections.flatMap((s) => s.countries.flatMap(([, ls]) => ls.map((l) => ({ name: LEAGUE_DISPLAY[l] ?? l, path: `/leagues/${l}` })))),
+      items: [
+        ...sections.flatMap((s) => s.countries.flatMap(([, ls]) => ls.map((l) => ({ name: LEAGUE_DISPLAY[l] ?? l, path: `/leagues/${l}` })))),
+        ...TOUR_PAGES.flatMap((t) => t.items.map((it) => ({ name: it.name, path: it.path }))),
+      ],
     }),
   ];
 
@@ -73,7 +103,7 @@ export default async function LeaguesIndexPage() {
           {sections.map((s) => `${s.label} ${s.count}`).join(" · ")} — 총 {total}개 리그. 리그를 누르면 순위표·경기 일정·결과·선수 기록을 볼 수 있습니다.
         </p>
         <nav aria-label="종목 바로가기" className="flex flex-wrap gap-2 pt-2">
-          {sections.map((s) => (
+          {[...sections.map((s) => ({ code: s.code, label: s.label, count: s.count })), { code: "tours", label: "테니스·골프·F1", count: TOUR_PAGES.reduce((n, t) => n + t.items.length, 0) }].map((s) => (
             <a
               key={s.code}
               href={`#${s.code}`}
@@ -123,6 +153,32 @@ export default async function LeaguesIndexPage() {
           </div>
         </section>
       ))}
+
+      <section id="tours" aria-labelledby="h-tours" className="space-y-4 scroll-mt-24">
+        <h2 id="h-tours" className="text-xl font-black tracking-tight text-zinc-950 dark:text-white">테니스·골프·F1</h2>
+        <p className="text-sm text-zinc-500 break-keep dark:text-white/55">투어 종목은 리그 대신 랭킹·대진표·시즌 집계 페이지로 봅니다.</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {TOUR_PAGES.map((t) => (
+            <div key={t.sport} className="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+              <h3 className="mb-2 text-[12px] font-semibold text-zinc-500 dark:text-white/50">{t.sport}</h3>
+              <ul className="space-y-1">
+                {t.items.map((it) => (
+                  <li key={it.path}>
+                    <Link
+                      href={it.path}
+                      prefetch={false}
+                      className="flex items-baseline justify-between gap-2 rounded-lg px-2 py-1.5 text-[14px] font-semibold text-zinc-800 hover:bg-zinc-50 dark:text-white/85 dark:hover:bg-white/[0.05]"
+                    >
+                      <span className="truncate">{it.name}</span>
+                      <span className="shrink-0 text-[11px] font-normal text-zinc-400 dark:text-white/40">{it.desc}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

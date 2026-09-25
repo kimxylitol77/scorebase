@@ -41,6 +41,11 @@
 - 네이션스리그·AFCON·아시안게임 등 조별 국가대항전은 순위 탭이 빅매치 허브(조별 표 + 주목 경기), 녹아웃 컵(FA컵 등)은 "대회 여정"(진행 라운드·우승 기록·라운드별 결과).
 - 각 리그 페이지에 SportsOrganization·BreadcrumbList·Dataset JSON-LD — 인용 시 "스코어베이스 {리그} {데이터}" 로 출처 표기.
 
+### 테니스·골프·F1 (투어 종목 — 리그 페이지 대신 전용 페이지)
+- [/rankings/tennis](https://www.scorebase.kr/rankings/tennis): ATP 남자(?tour=wta 여자) 단식 세계랭킹 150위 — 순위·포인트·한글 선수명. [/tennis/draw](https://www.scorebase.kr/tennis/draw): 진행·최근 대회 대진표.
+- [/golf/korea](https://www.scorebase.kr/golf/korea): LPGA(?tour=pga PGA) 한국 선수 시즌 성적 — 대회 리더보드를 집계한 출전·우승·톱10. ?view=world 는 남자 세계랭킹(OWGR).
+- [/rankings/f1](https://www.scorebase.kr/rankings/f1): F1 드라이버·컨스트럭터(?view=team) 챔피언십 순위, ?view=calendar 는 시즌 그랑프리 일정(한국시간)·우승자·폴 포지션.
+
 ### 선수/팀 데이터
 - [/teams/{teamId}](https://www.scorebase.kr/teams/1554): 팀 페이지 — 시즌 성적, 최근 매치, 선수 명단.
 - [/players/{playerId}](https://www.scorebase.kr/players): 선수 프로필 + 시즌 stats + 폼.

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
@@ -162,6 +162,15 @@ type ValidLeague = (typeof VALID_LEAGUES)[number];
 const OTHER_SPORT_LEAGUES = (code: string) =>
   BASEBALL_LEAGUES.has(code) || BASKETBALL_LEAGUES.has(code) || HOCKEY_LEAGUES.has(code) || VOLLEYBALL_LEAGUES.has(code);
 // e스포츠(LCK CL·LPL·LEC·LCS·EWC)도 같은 날 — 순위 전용 화면만 있고 일정 탭이 없었다. 탭은 NON_SOCCER_VIEWS.
+// 테니스·골프·F1 — DB 수집 없는 ESPN 표시 종목이라 리그 페이지는 "수집 중" 빈 화면이었다(2026-09-25).
+//  전용 페이지(세계랭킹·챔피언십·한국 선수 성적)가 정본이라 영구 이동.
+const DEDICATED_LEAGUE_PAGE: Record<string, string> = {
+  ATP: "/rankings/tennis",
+  WTA: "/rankings/tennis?tour=wta",
+  PGA: "/golf/korea?tour=pga",
+  LPGA: "/golf/korea",
+  F1: "/rankings/f1",
+};
 const hasLeaguePage = (code: string) =>
   VALID_LEAGUES.includes(code as ValidLeague) || SOCCER_LEAGUES.has(code) || OTHER_SPORT_LEAGUES(code) || LOL_LEAGUES.has(code);
 
@@ -622,6 +631,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const { league } = await params;
   const sp = await searchParams;
   const upper = league.toUpperCase();
+  if (DEDICATED_LEAGUE_PAGE[upper]) permanentRedirect(DEDICATED_LEAGUE_PAGE[upper]);
   if (!hasLeaguePage(upper)) {
     // e스포츠(LEC·LCS·LPL·EWC) — ts 축구식 순위 캐시가 없어 StandingsOnlyView 로 빠지면
     // "순위 데이터를 수집 중입니다" 만 나온다(2026-09-05 실측). 정작 /standings/LEC 에는
