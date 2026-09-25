@@ -23,8 +23,8 @@ import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
-import { ALL_LEAGUES, LEAGUE_DISPLAY, SOCCER_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
-import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { ALL_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, HOCKEY_LEAGUES, LEAGUE_DISPLAY, SOCCER_LEAGUES, VOLLEYBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { getFullStandings, getStandingsState } from "@/lib/sports/thesports/standings-helper";
 import { NO_TABLE_LEAGUES, STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import LeaguePredictionsPanel from "@/components/leagues/LeaguePredictionsPanel";
 import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
@@ -154,7 +154,11 @@ const VALID_LEAGUES = [
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 // 축구 리그는 전부 정식 리그 페이지 — VALID_LEAGUES 에 없던 122개가 "순위표만 + 예측 준비 중" 대체 화면이었다
 // (2026-09-25 전수 실측). 탭은 데이터가 있는 것만 연다(아래 genericSoccerViews).
-const hasLeaguePage = (code: string) => VALID_LEAGUES.includes(code as ValidLeague) || SOCCER_LEAGUES.has(code);
+// 2026-09-25 — 야구·농구·하키·배구도 같은 이유로(35개가 대체 화면) 전부 정식 페이지. 탭은 genericOtherViews.
+const OTHER_SPORT_LEAGUES = (code: string) =>
+  BASEBALL_LEAGUES.has(code) || BASKETBALL_LEAGUES.has(code) || HOCKEY_LEAGUES.has(code) || VOLLEYBALL_LEAGUES.has(code);
+const hasLeaguePage = (code: string) =>
+  VALID_LEAGUES.includes(code as ValidLeague) || SOCCER_LEAGUES.has(code) || OTHER_SPORT_LEAGUES(code);
 
 type ArticleType = "PREVIEW" | "RECAP" | "ANALYSIS";
 type FilterType = "ALL" | ArticleType;
@@ -791,13 +795,43 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       "articles",
     ];
   }
+  // 야구·농구·하키·배구 중 탭 설정이 없던 리그 — 데이터 있는 탭만(순위=공용 순위 상태 READY, 일정=경기, 통계=리더보드,
+  //  역사=우승 기록, 예측=예측 리그). 설정이 있는 리그(KBO·KHL 등)에도 리더보드가 있으면 통계 탭을 붙인다.
+  const isGenericOther = !isSoccer && !CUP_LEAGUES.has(upper) && !NON_SOCCER_VIEWS[upper] && OTHER_SPORT_LEAGUES(upper);
+  const otherLeaders = OTHER_SPORT_LEAGUES(upper) ? await prisma.leagueLeader.count({ where: { league: upper } }) : 0;
+  let genericOtherViews: ViewKey[] = [];
+  if (isGenericOther) {
+    const [st, anyMatch] = await Promise.all([
+      getStandingsState(upper).catch(() => ({ rows: [] as unknown[] })),
+      prisma.match.count({ where: { league: upper } }),
+    ]);
+    genericOtherViews = [
+      // 야구는 순위를 /standings 전용 페이지로(KBO·MLB·NPB 와 같은 규칙) — 공용 표는 승점·무승부 축구식 열이라 틀린다.
+      ...(st.rows.length > 0 && !BASEBALL_LEAGUES.has(upper) ? (["standings"] as ViewKey[]) : []),
+      "predictions",
+      ...(anyMatch > 0 ? (["fixtures"] as ViewKey[]) : []),
+      ...(otherLeaders > 0 ? (["stats"] as ViewKey[]) : []),
+      ...(((championsData as Record<string, { champions: unknown[] }>)[upper]?.champions?.length ?? 0) > 0
+        ? (["history"] as ViewKey[])
+        : []),
+      "articles",
+    ];
+  }
+  const configuredOther = NON_SOCCER_VIEWS[upper];
+  if (configuredOther && otherLeaders > 0 && !configuredOther.includes("stats")) {
+    // 순서 유지 — 일정 뒤(없으면 글 앞)에 통계
+    const at = configuredOther.indexOf("fixtures");
+    configuredOther.splice(at >= 0 ? at + 1 : Math.max(0, configuredOther.indexOf("articles")), 0, "stats");
+  }
   const dataViewsAll: ViewKey[] = (isSoccer
     ? [...VIEW_KEYS]
     : CUP_LEAGUES.has(upper)
       ? cupViews
       : isGenericSoccer
         ? genericSoccerViews
-        : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
+        : isGenericOther
+          ? genericOtherViews
+          : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
   ).filter((v) => v !== "predictions" || PREDICTION_LEAGUE_SET.has(upper));
   // 순위표가 없는 대회(끝난 AFC U23·개막 전 UEFA 여자 챔스)는 순위 탭이 "수집 중" 안내만 남는다 — 탭을 뺀다.
   //  허브 대회(네이션스리그·AFCON·걸프컵·아시안게임)는 허브가 경기에서 직접 표를 만들어 여기서 판정하지 않는다.
@@ -821,7 +855,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const hasOverUnder = isSoccer || isGenericSoccer ? (await leaguesWithOverUnderPage([upper])).includes(upper) : false;
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
-  const showStats = isSoccer || isGenericSoccer || upper === "NHL" || upper === "KBL" || upper === "WKBL" || upper === "V_LEAGUE" || upper === "V_LEAGUE_W" || cupHasLeaders;
+  const showStats = isSoccer || isGenericSoccer || otherLeaders > 0 || upper === "NHL" || upper === "KBL" || upper === "WKBL" || upper === "V_LEAGUE" || upper === "V_LEAGUE_W" || cupHasLeaders;
   const leaderboard = showStats && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
   // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
   // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).
@@ -1051,6 +1085,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {!isSoccer && view === "standings" && (upper === "KBL" || upper === "WKBL") && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <KoreanBasketballTable league={upper} withLastLeaders />
+        </div>
+      )}
+      {isGenericOther && !isBasketball && view === "standings" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <StandingsOnlyView league={upper} embedded />
         </div>
       )}
       {!isSoccer && view === "standings" && isBasketball && upper !== "NBA" && upper !== "KBL" && upper !== "WKBL" && (
