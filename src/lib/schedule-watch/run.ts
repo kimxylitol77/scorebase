@@ -298,13 +298,20 @@ const UNMAPPED_HINT: Record<string, string> = {
 const UNMAPPED_HINT_DEFAULT =
   "Team·TeamSourceId 추가 + lightsail-worker 의 {sport} 팀 매핑 JSON(웹 사본 동일) 갱신 후 Vultr 배포 — 9/25 하키 친선 방식";
 
+// 킥오프 36h 이내만 알린다 — 녹아웃의 "Winner QF1" 같은 자리표시 팀은 그 전에 실제 팀으로 바뀐다
+// (9/25 아시안게임 4강·결승 6경기가 자리표시였다). 36h 전 알림이면 고칠 시간도 충분하다.
+const UNMAPPED_ALERT_AHEAD_MS = 36 * H;
+
 async function checkUnmapped(now: Date, findings: WatchFinding[]) {
   const flagged = new Set(findings.filter((f) => f.kind === "missing-ts").map((f) => f.league));
   for (const u of await loadUnmapped(now)) {
     if (flagged.has(u.league)) continue; // af 대조가 이미 같은 리그를 알렸다
+    if (WATCH_EXCLUDE.has(u.league)) continue; // 소규모 클럽 친선은 설계상 수집 대상 아님
+    // af/ESPN 으로 수집하는 리그는 ts 쪽에서 버려도 af 행이 있다 — af 대조가 감시한다(9/25 UEFA_WCL)
+    if (collectable(u.league) && u.league in API_FOOTBALL_LEAGUE_ID) continue;
     const recent = u.matches.filter((m) => {
       const t = Date.parse(m.startTime);
-      return t >= now.getTime() - 3 * DAY && t <= now.getTime() + FUTURE_DAYS * DAY;
+      return t >= now.getTime() - 3 * DAY && t <= now.getTime() + UNMAPPED_ALERT_AHEAD_MS;
     });
     if (!recent.length) continue;
     const ids = recent.map((m) => m.tsMatchId);
