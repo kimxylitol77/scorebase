@@ -2,6 +2,7 @@
 // 라운드를 읽을 수 있는 리그(빅5 등)는 시즌 전체를 라운드별로 보여주고(LeagueFixturesView),
 // 라운드 정보가 없는 리그(MLS·컵 등)는 기존대로 최근 결과 + 다음 일정 목록으로 보여준다.
 // NHL 은 라운드 대신 프리시즌 + 정규시즌 주차로 나눈다(NhlWeeklyFixtures).
+// UEFA 클럽대회(UCL·UEL·UECL)는 예선 + 리그페이즈 라운드 + 녹아웃으로 나눈다(UefaFixtures).
 // 어느 경로든 크로스소스 중복 매치는 dedupeFixtures 로 접어 카드가 두 장 뜨는 것을 막는다.
 import Link from "next/link";
 import { prisma } from "@/lib/db";
@@ -10,6 +11,7 @@ import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import { SOCCER_LEAGUES, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
 import { currentSeasonStart } from "@/lib/predict/season-window";
 import { parseRound, dedupeFixtures, hasUsableRounds, PRESEASON_KEY, seasonWeek, seasonWeekRange } from "@/lib/sports/fixture-rounds";
+import { UEFA_LEAGUE_PHASE, UEFA_QUALIFYING_KEY, uefaFixtureKey, uefaFixtureKeyName, uefaStage } from "@/lib/sports/uefa-league-phase";
 import TeamBadge from "@/components/TeamBadge";
 import LeagueFixturesView, { FRIENDLY_KEY, type FixtureRow } from "./LeagueFixturesView";
 
@@ -128,6 +130,65 @@ function NhlWeeklyFixtures({ league, matches, preseasonIds, now }: { league: str
   );
 }
 
+/**
+ * UEFA 클럽대회 — 라운드 키는 uefaFixtureKey(예선 0 · 리그페이즈 1~8 · 녹아웃 9~).
+ * 예선은 af·ts 두 소스가 같은 경기를 실은 적이 있어 dedupeFixtures 로 접는다(같은 팀쌍 + 같은 키).
+ * 단계를 못 읽는 경기(라운드 정보 없는 행)는 목록에서 빠진다 — 수집기가 라운드를 채우면 다시 보인다.
+ */
+function UefaFixtures({ league, matches, now }: { league: string; matches: MatchRow[]; now: Date }) {
+  const staged = matches.map((m) => ({ m, stage: uefaStage(m.raw) }));
+  const lp = staged.filter((x) => x.stage?.leagueRound);
+  const lpStart = lp.length ? lp.reduce((a, x) => (x.m.startTime < a ? x.m.startTime : a), lp[0].m.startTime) : null;
+  const prepared = dedupeFixtures(
+    staged
+      .map(({ m, stage }) => ({ ...m, round: uefaFixtureKey(stage, m.startTime, lpStart), isApiFootball: !!m.raw && /^\s*\{\s*"fixture"\s*:/.test(m.raw) }))
+      .filter((m): m is typeof m & { round: number } => m.round != null),
+  );
+  const rows: FixtureRow[] = prepared.map((m) => ({
+    id: m.id,
+    externalId: m.externalId,
+    startTime: m.startTime.toISOString(),
+    status: m.status,
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    round: m.round,
+    homeTeamId: m.homeTeamId,
+    awayTeamId: m.awayTeamId,
+    homeName: toKoreanTeamName(m.homeTeam.name, league),
+    awayName: toKoreanTeamName(m.awayTeam.name, league),
+    homeFlag: "",
+    awayFlag: "",
+    homeLogo: m.homeTeam.logoUrl,
+    awayLogo: m.awayTeam.logoUrl,
+    isFriendly: false,
+  }));
+  const rounds = [...new Set(rows.map((r) => r.round!))].sort((x, y) => x - y);
+  const roundNames = Object.fromEntries(rounds.map((r) => [r, uefaFixtureKeyName(r)]));
+  // 기본 = 아직 안 끝난 가장 이른 경기의 묶음(지금 열리는 라운드). 다 끝났으면 마지막 묶음.
+  const next = prepared.find((m) => m.status !== "FINISHED" && m.startTime >= now);
+  const initialRound = next?.round ?? rounds[rounds.length - 1];
+  // 팀 필터 — 리그페이즈 팀만(예선 탈락팀까지 넣으면 80팀이 넘는다). 리그페이즈 전이면 전체.
+  const pool = prepared.filter((m) => m.round !== UEFA_QUALIFYING_KEY);
+  const teamMap = new Map<number, string>();
+  for (const m of pool.length ? pool : prepared) {
+    teamMap.set(m.homeTeamId, toKoreanTeamName(m.homeTeam.name, league));
+    teamMap.set(m.awayTeamId, toKoreanTeamName(m.awayTeam.name, league));
+  }
+  const teams = [...teamMap.entries()]
+    .map(([id, name]) => ({ id, name }))
+    .sort((x, y) => x.name.localeCompare(y.name, "ko"));
+  return (
+    <LeagueFixturesView
+      league={league}
+      rows={rows}
+      rounds={rounds}
+      initialRound={initialRound}
+      teams={teams}
+      roundNames={roundNames}
+    />
+  );
+}
+
 export default async function LeagueFixtures({ league }: { league: string }) {
   const now = new Date();
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
@@ -155,6 +216,14 @@ export default async function LeagueFixtures({ league }: { league: string }) {
 
   // ── 라운드 경로 — 시즌 전체를 한 번에 읽어 라운드별로 나눈다.
   const seasonStart = currentSeasonStart(league);
+  if (seasonStart && UEFA_LEAGUE_PHASE[league]) {
+    const matches = await prisma.match.findMany({
+      where: { league, startTime: { gte: seasonStart } },
+      orderBy: { startTime: "asc" },
+      select: sel,
+    });
+    if (matches.length > 0) return <UefaFixtures league={league} matches={matches} now={now} />;
+  }
   if (seasonStart && league === "NHL") {
     const { raw: _raw, ...lite } = sel;
     void _raw;
