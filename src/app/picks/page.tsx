@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { getCurrentUserId } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MatchVoteButtons from "@/components/MatchVoteButtons";
-import { buildVoteMarkets, loadVoteDists, VOTE_MATCH_SELECT } from "@/components/MatchVoteCard";
+import { buildVoteMarkets, loadVoteDists, voteHasDraw, VOTE_MATCH_SELECT } from "@/components/MatchVoteCard";
 import { MARKET_LABEL, type VoteMarket } from "@/lib/vote-markets";
 import { displayGrade } from "@/lib/user-level";
 import { settleFlatUnits, fmtRoiPct, fmtUnits, type FlatRoiResult } from "@/lib/predict/flat-roi";
@@ -14,7 +14,7 @@ import { roiClaim } from "@/lib/predict/model-vs-market";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 import { Bot } from "lucide-react";
-import { LEAGUE_DISPLAY, NATIONAL_SOCCER_COMPS } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, LEAGUE_ORDER, getLeagueFlag, sportCodeForLeague } from "@/lib/sports/sport-leagues";
 
 export const metadata: Metadata = {
   title: "승부예측 — 나 vs AI | Scorebase",
@@ -22,22 +22,21 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-// 투표 대상 리그 — 예측 모델이 돌고 한국 수요가 있는 주요 리그
-const PICK_LEAGUES = [
-  "WORLD_CUP", "KBO", "MLB", "NPB", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "MLS", "UCL", "UEL", "UECL", "UEFA_NL", "CLUB_WORLD_CUP", "K_LEAGUE_1", "NBA", "NHL",
-  ...NATIONAL_SOCCER_COMPS, // 2026-09-25 국가 대항전 전체
-].filter((l, i, a) => a.indexOf(l) === i);
-const DRAW_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "WORLD_CUP",
-  "CLUB_WORLD_CUP", "K_LEAGUE_1", "KBO", "NPB", "UEFA_NL",
-  ...NATIONAL_SOCCER_COMPS,
-]);
-const LEAGUE_KO: Record<string, string> = {
-  WORLD_CUP: "월드컵", KBO: "KBO", MLB: "MLB", NPB: "NPB", EPL: "EPL", LALIGA: "라리가",
-  BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS", UCL: "UCL", UEL: "UEL", UECL: "UECL", UEFA_NL: "네이션스리그",
-  CLUB_WORLD_CUP: "클럽 월드컵", K_LEAGUE_1: "K리그1", NBA: "NBA", NHL: "NHL",
+// 투표 대상 종목 — DB 에 경기가 쌓이는 종목 전부(테니스·골프·F1 은 ESPN 표시 전용이라 경기 행이 없다).
+// 2026-09-25 — 리그 17개 화이트리스트 + 40경기 상한 때문에 48시간 내 406경기 중 40경기만 보였다.
+const PICK_SPORTS = ["soccer", "baseball", "basketball", "hockey", "volleyball", "esports", "mma"] as const;
+type PickSport = (typeof PICK_SPORTS)[number];
+const SPORT_LABEL: Record<PickSport, string> = {
+  soccer: "축구", baseball: "야구", basketball: "농구", hockey: "하키", volleyball: "배구", esports: "e스포츠", mma: "UFC",
 };
+/** 전체 탭에서 종목마다 먼저 보여주는 경기 수(리그당 2경기까지) — 나머지는 종목 탭에서 전부 */
+const ALL_TAB_PER_SPORT = 8;
+const ALL_TAB_PER_LEAGUE = 2;
+// 국가대표 대회 — LEAGUE_ORDER 에 없거나(네이션스리그·친선) 뒤쪽이라 A매치 주간에 3·4부 클럽 리그 밑으로 깔렸다
+// (2026-09-25 실측: 빅리그 휴식 주에 J2·잉글랜드 4부가 맨 위). 경기가 있으면 맨 앞.
+const PICKS_FIRST = ["ASIAN_GAMES_FB", "UEFA_NL", "INTL_FRIENDLY", "ASIAN_GAMES_FB_W"];
+/** 종목 탭 한 화면 경기 수 — 카드 1장 ≈ 4.5KB 라 축구 271경기를 다 그리면 1.4MB. 넘는 리그는 리그 칩으로 연다. */
+const SPORT_TAB_BUDGET = 60;
 
 function kstTime(d: Date): string {
   const k = new Date(d.getTime() + 9 * 3600 * 1000);
@@ -45,17 +44,89 @@ function kstTime(d: Date): string {
   return `${k.getUTCMonth() + 1}/${k.getUTCDate()}(${day}) ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
 }
 
-export default async function PicksPage() {
+function LeagueChip({ href, label, n, active }: { href: string; label: string; n: number; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={active ? "page" : undefined}
+      className={`rounded-md px-2 py-1 text-[12px] font-medium ring-1 ${
+        active
+          ? "bg-neutral-900 text-white ring-neutral-900 dark:bg-white dark:text-neutral-900 dark:ring-white"
+          : "bg-white text-neutral-600 ring-neutral-200 hover:bg-neutral-50 dark:bg-white/[0.03] dark:text-neutral-300 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+      }`}
+    >
+      {label} <span className={`tabular-nums ${active ? "opacity-70" : "text-neutral-400 dark:text-neutral-500"}`}>{n}</span>
+    </Link>
+  );
+}
+
+export default async function PicksPage({ searchParams }: { searchParams: Promise<{ sport?: string; league?: string }> }) {
+  const sp = await searchParams;
+  const tab: PickSport | "all" = (PICK_SPORTS as readonly string[]).includes(sp.sport ?? "") ? (sp.sport as PickSport) : "all";
+  // 리그 칩 — 종목 탭 안에서 그 리그 경기만 전부
+  const leagueSel = tab !== "all" && sp.league && sportCodeForLeague(sp.league) === tab ? sp.league.toUpperCase() : null;
   const userId = await getCurrentUserId();
   const now = new Date();
   const until = new Date(now.getTime() + 48 * 3600 * 1000);
 
-  const matches = await prisma.match.findMany({
-    where: { league: { in: PICK_LEAGUES }, status: "SCHEDULED", startTime: { gt: now, lte: until } },
+  const upcoming = await prisma.match.findMany({
+    where: { status: "SCHEDULED", startTime: { gt: now, lte: until } },
     select: VOTE_MATCH_SELECT,
     orderBy: { startTime: "asc" },
-    take: 40,
   });
+  // 종목 → 리그 → 경기. 리그 순서는 PICKS_FIRST → AI 예측이 붙은 리그(투표 후 AI 픽 공개가 이 페이지의 재미)
+  // → /scores 와 같은 LEAGUE_ORDER(한국 수요 우선) → 먼저 킥오프하는 리그.
+  const leagueRank = (lg: string, ms: PickMatch[]) => {
+    const i = PICKS_FIRST.indexOf(lg);
+    return i >= 0 ? i : ms.some((m) => m.predHome != null) ? 10 : 20;
+  };
+  type PickMatch = (typeof upcoming)[number];
+  const bySport = new Map<PickSport, Map<string, PickMatch[]>>();
+  for (const m of upcoming) {
+    const sport = sportCodeForLeague(m.league ?? "") as PickSport | null;
+    if (!sport || !(PICK_SPORTS as readonly string[]).includes(sport)) continue;
+    const leagues = bySport.get(sport) ?? new Map<string, PickMatch[]>();
+    leagues.set(m.league, [...(leagues.get(m.league) ?? []), m]);
+    bySport.set(sport, leagues);
+  }
+  const sportCount = (s: PickSport) => [...(bySport.get(s)?.values() ?? [])].reduce((n, ms) => n + ms.length, 0);
+  const leagueGroups = (s: PickSport) =>
+    [...(bySport.get(s)?.entries() ?? [])].sort(
+      (a, b) =>
+        leagueRank(a[0], a[1]) - leagueRank(b[0], b[1]) ||
+        (LEAGUE_ORDER[a[0]] ?? 999) - (LEAGUE_ORDER[b[0]] ?? 999) ||
+        a[1][0].startTime.getTime() - b[1][0].startTime.getTime(),
+    );
+  // 화면에 그릴 묶음 — 전체 탭은 종목마다 우선 리그부터 리그당 ALL_TAB_PER_LEAGUE·종목당 ALL_TAB_PER_SPORT 경기, 종목 탭은 리그 단위로
+  // SPORT_TAB_BUDGET 까지(첫 리그는 넘어도 통째), 리그 칩을 고르면 그 리그 전부.
+  const sections = (tab === "all" ? PICK_SPORTS.filter((s) => sportCount(s) > 0) : [tab]).map((sport) => {
+    const all = leagueGroups(sport);
+    const groups: Array<[string, PickMatch[]]> = [];
+    if (leagueSel) {
+      groups.push(...all.filter(([lg]) => lg === leagueSel));
+    } else if (tab === "all") {
+      let budget = ALL_TAB_PER_SPORT;
+      for (const [lg, ms] of all) {
+        if (budget <= 0) break;
+        const take = ms.slice(0, Math.min(budget, ALL_TAB_PER_LEAGUE));
+        groups.push([lg, take]);
+        budget -= take.length;
+      }
+    } else {
+      let shown = 0;
+      for (const [lg, ms] of all) {
+        if (groups.length > 0 && shown + ms.length > SPORT_TAB_BUDGET) break; // 우선순위를 건너뛰어 뒤 리그로 채우지 않는다
+        groups.push([lg, ms]);
+        shown += ms.length;
+      }
+    }
+    const shownLeagues = new Set(groups.map(([lg]) => lg));
+    const hidden = all.filter(([lg]) => !shownLeagues.has(lg));
+    return { sport, total: sportCount(sport), groups, leagues: all.map(([lg, ms]) => [lg, ms.length] as const), hidden };
+  });
+  const matches = sections.flatMap((s) => s.groups.flatMap(([, ms]) => ms));
+  const totalAll = PICK_SPORTS.reduce((n, s) => n + sportCount(s), 0);
   const ids = matches.map((m) => m.id);
 
   const [distByMatch, myVotes] = await Promise.all([
@@ -243,57 +314,124 @@ export default async function PicksPage() {
         </div>
       )}
 
-      {/* 투표 목록 */}
+      {/* 투표 목록 — 종목 탭 + 리그별 묶음 */}
       <section className="mt-7">
-        <h2 className="text-sm font-bold text-neutral-900 dark:text-white">투표 가능한 경기 · {matches.length}</h2>
+        <h2 className="text-sm font-bold text-neutral-900 dark:text-white">투표 가능한 경기 · 48시간 내 {totalAll}</h2>
+        <nav aria-label="종목" className="mt-2 flex flex-wrap gap-1.5">
+          {([["all", "전체", totalAll], ...PICK_SPORTS.map((s) => [s, SPORT_LABEL[s], sportCount(s)] as const)] as const).map(([code, label, n]) => {
+            const active = tab === code;
+            return (
+              <Link
+                key={code}
+                href={code === "all" ? "/picks" : `/picks?sport=${code}`}
+                scroll={false}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ring-1 transition-colors ${
+                  active
+                    ? "bg-rose-600 text-white ring-rose-600 dark:bg-rose-500 dark:ring-rose-500"
+                    : n > 0
+                      ? "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50 dark:bg-white/[0.04] dark:text-neutral-200 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+                      : "bg-white text-neutral-400 ring-neutral-200 dark:bg-white/[0.02] dark:text-neutral-500 dark:ring-white/10"
+                }`}
+              >
+                {label} <span className={`tabular-nums ${active ? "text-white/80" : "text-neutral-400 dark:text-neutral-500"}`}>{n}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        {tab !== "all" && sections[0].leagues.length > 1 && (
+          <nav aria-label="리그" className="mt-2 flex flex-wrap gap-1">
+            <LeagueChip href={`/picks?sport=${tab}`} label="주요 리그" n={sections[0].groups.reduce((n, [, ms]) => n + ms.length, 0)} active={!leagueSel} />
+            {sections[0].leagues.map(([lg, n]) => (
+              <LeagueChip key={lg} href={`/picks?sport=${tab}&league=${lg}`} label={LEAGUE_DISPLAY[lg] ?? lg} n={n} active={leagueSel === lg} />
+            ))}
+          </nav>
+        )}
         {matches.length === 0 ? (
-          <p className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
-            48시간 내 예정 경기가 없습니다. 잠시 후 다시 확인해주세요.
+          <p className="mt-3 rounded-xl border border-neutral-200 bg-white px-4 py-10 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
+            48시간 내 예정된 {tab === "all" ? "" : `${SPORT_LABEL[tab]} `}경기가 없습니다.
+            {tab !== "all" && totalAll > 0 && (
+              <Link href="/picks" className="ml-1 text-rose-600 hover:underline dark:text-rose-400">전체 종목 보기</Link>
+            )}
           </p>
         ) : (
-          <div className="mt-2 grid gap-2.5 sm:grid-cols-2">
-            {matches.map((m) => {
-              const lg = m.league ?? "";
-              const home = toKoreanTeamName(m.homeTeam.name, lg) || m.homeTeam.name;
-              const away = toKoreanTeamName(m.awayTeam.name, lg) || m.awayTeam.name;
-              const markets = buildVoteMarkets(m, distByMatch.get(m.id) ?? {}, myPicksByMatch.get(m.id) ?? {});
-              return (
-                <div key={m.id} className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-white/10 dark:bg-white/[0.04]">
-                  <div className="mb-2 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
-                    <span className="font-medium">{LEAGUE_KO[lg] ?? LEAGUE_DISPLAY[lg] ?? lg}</span>
-                    <span className="tabular-nums">{kstTime(m.startTime)}</span>
-                  </div>
-                  <div className="mb-2 truncate text-sm font-semibold text-neutral-900 dark:text-white">
-                    {home} <span className="font-normal text-neutral-400">vs</span> {away}
-                  </div>
-                  {(() => {
-                    const bp = botPicksByMatch.get(m.id);
-                    if (!bp?.length) return null;
-                    return (
-                      <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
-                        <Bot className="h-3 w-3 text-violet-500" aria-hidden="true" />
-                        <span className="font-medium">커스텀 예측</span>
-                        {bp.map((p) => (
-                          <span key={p.name} className="tabular-nums">
-                            {p.name} <span className="font-semibold text-neutral-700 dark:text-neutral-200">{BOT_PICK_KO[p.pick] ?? p.pick}</span>
-                          </span>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                  <MatchVoteButtons
-                    matchId={m.id}
-                    homeName={home}
-                    awayName={away}
-                    hasDraw={DRAW_LEAGUES.has(lg)}
-                    closed={false}
-                    markets={markets}
-                    loggedIn={!!userId}
-                  />
+          sections.map(({ sport, total, groups, leagues, hidden }) => (
+            <div key={sport} className="mt-5">
+              {tab === "all" && (
+                <div className="mb-2 flex items-baseline justify-between gap-2">
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                    {SPORT_LABEL[sport]} <span className="text-xs font-semibold tabular-nums text-neutral-400">{total}경기</span>
+                  </h3>
+                  {total > ALL_TAB_PER_SPORT && (
+                    <Link href={`/picks?sport=${sport}`} scroll={false} className="text-xs font-semibold text-rose-600 hover:underline dark:text-rose-400">
+                      {SPORT_LABEL[sport]} {total}경기 모두 보기 →
+                    </Link>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              )}
+              <div className="space-y-4">
+                {groups.map(([lg, ms]) => (
+                  <div key={lg}>
+                    <h4 className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-neutral-500 dark:text-neutral-400">
+                      {getLeagueFlag(lg) && <span aria-hidden>{getLeagueFlag(lg)}</span>}
+                      <Link href={`/leagues/${lg}`} prefetch={false} className="hover:underline">{LEAGUE_DISPLAY[lg] ?? lg}</Link>
+                      <span className="tabular-nums text-neutral-400 dark:text-neutral-500">{leagues.find(([l]) => l === lg)?.[1] ?? ms.length}경기</span>
+                    </h4>
+                    <div className="grid gap-2.5 sm:grid-cols-2">
+                      {ms.map((m) => {
+                        const home = toKoreanTeamName(m.homeTeam.name, lg) || m.homeTeam.name;
+                        const away = toKoreanTeamName(m.awayTeam.name, lg) || m.awayTeam.name;
+                        const markets = buildVoteMarkets(m, distByMatch.get(m.id) ?? {}, myPicksByMatch.get(m.id) ?? {});
+                        const bp = botPicksByMatch.get(m.id);
+                        return (
+                          <div key={m.id} className="rounded-2xl border border-neutral-200/80 bg-white p-3.5 dark:border-white/10 dark:bg-white/[0.04]">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <span className="truncate text-sm font-semibold text-neutral-900 dark:text-white">
+                                {home} <span className="font-normal text-neutral-400">vs</span> {away}
+                              </span>
+                              <span className="shrink-0 text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">{kstTime(m.startTime)}</span>
+                            </div>
+                            {bp?.length ? (
+                              <div className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                <Bot className="h-3 w-3 text-violet-500" aria-hidden="true" />
+                                <span className="font-medium">커스텀 예측</span>
+                                {bp.map((p) => (
+                                  <span key={p.name} className="tabular-nums">
+                                    {p.name} <span className="font-semibold text-neutral-700 dark:text-neutral-200">{BOT_PICK_KO[p.pick] ?? p.pick}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                            <MatchVoteButtons
+                              matchId={m.id}
+                              homeName={home}
+                              awayName={away}
+                              hasDraw={voteHasDraw(lg)}
+                              closed={false}
+                              markets={markets}
+                              loggedIn={!!userId}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {tab !== "all" && !leagueSel && hidden.length > 0 && (
+                <div className="mt-5 rounded-xl border border-dashed border-neutral-300 p-3 dark:border-white/15">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    다른 리그 {hidden.length}개 · {hidden.reduce((n, [, ms]) => n + ms.length, 0)}경기 — 리그를 누르면 그 리그 경기를 모두 볼 수 있습니다.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {hidden.map(([lg, ms]) => (
+                      <LeagueChip key={lg} href={`/picks?sport=${sport}&league=${lg}`} label={LEAGUE_DISPLAY[lg] ?? lg} n={ms.length} active={false} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </section>
 
