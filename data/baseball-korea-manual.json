@@ -1,5 +1,5 @@
 {
- "_readme": "일본 야구(NPB·독립리그) 한국 선수 수동 명단 — 출생국 API 가 없어 사람이 관리. 항목: nameKo, nameEn(공식 영문 표기), nameJa(공식 일본어 표기 — npb.jp 성적표 이름 매칭용), league(표시 라벨), team(한글 구단명, NPB 는 성적 테이블 teamName 과 동일 표기), pos, status, note, npbId(npb.jp 선수 id), profileUrl(공식 프로필), statsUrl(stats 가 없을 때 성적 대신 링크할 공식 기록 페이지), stats(성적 원천: {src:'npb-farm',team:npb.jp 팀코드,label} 또는 {src:'bcl',team:bc-l-data 팀id,id:선수id,label}). 2026-09-25 전수 대조: NPB 12구단+하야테·오이식스 명단, BC리그 12팀, 시코쿠 IL 4팀(롯데 자이언츠 파견팀 5/19~6/25 종료 제외). 규슈 아시아리그 5팀은 9/25 Omyutech(一球速報) 명단 대조 — 대회별 성적 수치가 서로 안 맞아(입단 전 등판 집계 등) stats 미연결, statsUrl 로 공식 기록 링크만.",
+ "_readme": "일본 야구(NPB·독립리그) 한국 선수 수동 명단 — 출생국 API 가 없어 사람이 관리. 항목: nameKo, nameEn(공식 영문 표기), nameJa(공식 일본어 표기 — npb.jp 성적표 이름 매칭용), league(표시 라벨), team(한글 구단명, NPB 는 성적 테이블 teamName 과 동일 표기), pos, status, note, npbId(npb.jp 선수 id), profileUrl(공식 프로필), statsUrl(stats 가 없을 때 성적 대신 링크할 공식 기록 페이지), stats(성적 원천: {src:'npb-farm',team:npb.jp 팀코드,label} 또는 {src:'bcl',team:bc-l-data 팀id,id:선수id,label}). 2026-09-25 전수 대조: NPB 12구단+하야테·오이식스 명단, BC리그 12팀, 시코쿠 IL 4팀(롯데 자이언츠 파견팀 5/19~6/25 종료 제외). 규슈 아시아리그 5팀은 9/25 Omyutech(一球速報) 명단 대조 — 대회별 성적 수치가 서로 안 맞아(입단 전 등판 집계 등) stats 미연결, statsUrl 로 공식 기록 링크만. 홋카이도 프론티어리그 4팀·일본해리그 3팀도 Omyutech 명단 대조, 간사이리그는 kandok.jp 기록 명단, HBL 은 2026 기록 사이트 없어 시즌 전 입단 공시(독립리그 공시 note)로만 확인.",
  "japan": [
   {
    "nameKo": "이건희",
@@ -117,6 +117,18 @@
    "status": "독립리그",
    "profileUrl": "https://kabl.co.jp/2026/08/28/%E5%AE%AE%E5%B4%8E%E3%82%B5%E3%83%B3%E3%82%B7%E3%83%A3%E3%82%A4%E3%83%B3%E3%82%BA%E3%80%80%E6%96%B0%E5%85%A5%E5%9B%A3%E9%81%B8%E6%89%8B%E3%81%AE%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B-4/",
    "statsUrl": "https://baseball.omyutech.com/teamMember.action?teamId=115156"
+  },
+  {
+   "nameKo": "임원묵",
+   "nameEn": "Lim Won-muk",
+   "nameJa": "イム・ウォンムク",
+   "league": "일본해리그",
+   "team": "이시카와 밀리언스타즈",
+   "pos": "투수",
+   "status": "독립리그",
+   "note": "인천동산고·호원대·연천 미라클 · 8/14 입단",
+   "profileUrl": "https://www.m-stars.jp/4281/",
+   "statsUrl": "https://baseball.omyutech.com/teamMember.action?teamId=31133"
   }
  ]
 }
