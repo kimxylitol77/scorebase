@@ -57,6 +57,8 @@
 - [/soccer/stats?league=EPL](https://www.scorebase.kr/soccer/stats?league=EPL): 축구 15개 리그 선수 전원의 시즌 골·도움·슈팅·키패스·태클·평점. 셀마다 같은 리그·포지션 규정 선수 안 백분위, 합계/90분당, 표·카드·리더·산점도 뷰, 2명 비교. 규정 = 리그 최다 출전 분의 40%.
 - [/baseball/stats?league=KBO&role=bat](https://www.scorebase.kr/baseball/stats?league=KBO&role=bat): KBO·MLB·NPB 타자·투수 전원(MLB 는 wOBA·ISO·FIP 확장 열). 출처 KBO·NPB 공식, MLB Stats API.
 - [/baseball/mlb-postseason](https://www.scorebase.kr/baseball/mlb-postseason): MLB 포스트시즌 대진표 — 와일드카드·디비전·챔피언십·월드시리즈 12팀 시드·한국시간 일정·시리즈 스코어, 자체 Elo 시리즈 승리 확률, 한국 선수 소속팀 진출 현황. 출처 MLB Stats API, 5분 갱신.
+- [/baseball/kbo-postseason](https://www.scorebase.kr/baseball/kbo-postseason): KBO 포스트시즌 대진표 — 와일드카드 결정전(4위 1승 어드밴티지)·준플레이오프·플레이오프·한국시리즈 계단식, 현재 순위 기준 시드·진출 확정 현황, 시리즈 스코어, 자체 Elo 시리즈 승리 확률. 5분 갱신.
+- [/baseball/npb-postseason](https://www.scorebase.kr/baseball/npb-postseason): NPB 포스트시즌 대진표 — 센트럴·퍼시픽 클라이맥스 시리즈(퍼스트·파이널 스테이지, 1위 1승 어드밴티지)와 일본시리즈, 시드·한국시간 일정·시리즈 스코어, 자체 Elo 시리즈 승리 확률. 출처 NPB 공식 순위·npb.jp 일정, 5분 갱신.
 - [/baseball/postseason/stats](https://www.scorebase.kr/baseball/postseason/stats?league=MLB): 야구 포스트시즌 선수 통계 — MLB(와일드카드~월드시리즈)·KBO(와일드카드 결정전~한국시리즈)·NPB(클라이맥스 시리즈~일본시리즈) 가을야구 기록만 모은 타자·투수 표, 시즌별(최근 5시즌) 보존, 포스트시즌 규정 선수 백분위. 출처 MLB Stats API·KBO 공식 기록실·npb.jp 박스스코어.
 - [/basketball/stats](https://www.scorebase.kr/basketball/stats): KBL 선수 전원 득점·리바운드·어시스트·3점·야투율. 출처 KBL 공식.
 - [/hockey/stats?league=NHL&role=skater](https://www.scorebase.kr/hockey/stats?league=NHL&role=skater): NHL(공식 API)·KHL(경기 기록 집계) 스케이터·골리 전원.

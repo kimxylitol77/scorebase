@@ -524,9 +524,11 @@ const BRACKET_CTA_LABEL: Record<string, string> = {
   NBA: "플레이오프 브래킷",
   UCL: "토너먼트 브래킷",
   MLB: "포스트시즌 대진표",
+  KBO: "포스트시즌 대진표",
+  NPB: "포스트시즌 대진표",
 };
 // 대진표가 /predictions/[league] 가 아니라 전용 페이지에 있는 리그
-const BRACKET_CTA_HREF: Record<string, string> = { MLB: "/baseball/mlb-postseason" };
+const BRACKET_CTA_HREF: Record<string, string> = { MLB: "/baseball/mlb-postseason", KBO: "/baseball/kbo-postseason", NPB: "/baseball/npb-postseason" };
 
 const PAGE_SIZE = 24;
 

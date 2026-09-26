@@ -426,6 +426,17 @@ export default async function BaseballHub() {
             와일드카드부터 월드시리즈까지 12팀 대진·시드·한국시간 일정, AI 시리즈 승리 확률과 한국 선수 소속팀 진출 현황.
           </p>
         </Card>
+        {/* KBO·NPB 포스트시즌 대진표 (2026-09-26) */}
+        <Card title="KBO 포스트시즌 대진표" Icon={Trophy} badge="KBO" href="/baseball/kbo-postseason" hrefLabel="대진표 보기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+            와일드카드 결정전부터 한국시리즈까지 계단식 대진·시드 경쟁·진출 확정 현황과 AI 시리즈 승리 확률.
+          </p>
+        </Card>
+        <Card title="NPB 포스트시즌 대진표" Icon={Trophy} badge="NPB" href="/baseball/npb-postseason" hrefLabel="대진표 보기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+            센트럴·퍼시픽 클라이맥스 시리즈와 일본시리즈 대진·한국시간 일정·시리즈 스코어, AI 시리즈 승리 확률.
+          </p>
+        </Card>
         {/* 해외파 한국 야구 선수 (2026-09-20) */}
         <Card title="해외파 한국 선수" Icon={Star} badge="MLB·마이너" href="/baseball/korea" hrefLabel="전원 성적 보기">
           <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">

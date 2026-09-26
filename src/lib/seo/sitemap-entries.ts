@@ -98,6 +98,8 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     { url: `${base}/soccer`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/baseball`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/baseball/mlb-postseason`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/baseball/kbo-postseason`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/baseball/npb-postseason`, changeFrequency: "daily", priority: 0.8 },
     ...(["MLB", "KBO", "NPB"] as const).map((lg) => ({ url: `${base}/baseball/postseason/stats?league=${lg}`, changeFrequency: "daily" as const, priority: 0.7 })),
     { url: `${base}/basketball`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/hockey`, changeFrequency: "daily", priority: 0.8 },

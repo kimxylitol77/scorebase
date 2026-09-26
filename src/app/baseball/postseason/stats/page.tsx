@@ -111,7 +111,7 @@ export default async function PostseasonStatsPage({ searchParams }: { searchPara
       title={`${season} ${lg} 포스트시즌 선수 통계`}
       subtitle={`${lead} 셀 아래 숫자는 포스트시즌 규정 선수 안 백분위(높을수록 상위, ERA·WHIP·패 등은 낮을수록 상위). 규정 = ${rule} (${built.qualifiedCount}명).`}
       links={[
-        ...(league === "MLB" ? [{ href: "/baseball/mlb-postseason", label: "포스트시즌 대진표" }] : []),
+        { href: `/baseball/${league.toLowerCase()}-postseason`, label: "포스트시즌 대진표" },
         { href: `/baseball/stats?league=${league}`, label: "정규시즌 스탯 표" },
         { href: "/baseball", label: "야구 허브" },
       ]}
