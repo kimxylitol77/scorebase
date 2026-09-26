@@ -12,7 +12,7 @@ import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
-import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES, sportCodeForLeague } from "@/lib/sports/sport-leagues";
+import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES, sportCodeForLeague, leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
@@ -46,6 +46,8 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { Globe, Landmark, Goal, Users, Target, Star, HeartPulse, Shirt } from "lucide-react";
 import TeamRecentLineup, { type LineupPlayer } from "@/components/teams/TeamRecentLineup";
 import TeamSeasonPanel, { type SeasonSlice, type PanelTeamStat, type PanelXgItem } from "@/components/teams/TeamSeasonPanel";
+import TeamRadarSection, { type RadarOpponent } from "@/components/teams/TeamRadarSection";
+import { computeLeagueRadars } from "@/lib/predict/team-radar";
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { parseFixtureXg } from "@/lib/xg/outcome";
 import rawCoaches from "../../../../data/team-coaches.json";
@@ -514,10 +516,31 @@ export default async function TeamPage({ params }: Props) {
   // 순위·폼·스트릭·홈원정은 현재 시즌만 (지난 시즌 접기·롤오버 자동, 구시즌/중복 매치 합산 방지).
   // Elo 는 시즌을 넘어 누적돼야 하므로 전체 매치 유지 (윈도잉하면 시즌마다 레이팅 리셋되는 회귀).
   const seasonStart = currentSeasonStart(team.league);
-  let seasonMatches = seasonStart ? matches.filter((m) => m.startTime >= seasonStart) : matches;
+  // 프리시즌·시범경기 제외 — ESPN 원본 season.slug 로 판정(/scores 와 같은 기준, 달력 추정 금지).
+  // 섞이면 NHL 은 프리시즌 경기가 "이번 시즌" 순위·폼이 되고 MLB 는 시범경기가 시즌 성적에 들어갔다
+  // (2026-09-26 실측 NHL 169·NBA 71·MLB 451경기). raw 는 메인 select 밖이라 이 3개 리그만 id 조회.
+  const preseasonIds =
+    seasonStart && (team.league === "NHL" || team.league === "NBA" || team.league === "MLB")
+      ? new Set(
+          (
+            await prisma.match.findMany({
+              where: {
+                league: team.league,
+                startTime: { gte: previousSeasonStart(seasonStart) },
+                raw: { contains: '"slug":"preseason"' },
+              },
+              select: { id: true },
+            })
+          ).map((r) => r.id),
+        )
+      : new Set<number>();
+  const regular = preseasonIds.size > 0 ? matches.filter((m) => !preseasonIds.has(m.id)) : matches;
+  let seasonMatches = seasonStart ? regular.filter((m) => m.startTime >= seasonStart) : regular;
+  let onPrevSeason = false;
   if (seasonStart && seasonMatches.filter((m) => m.status === "FINISHED").length < 10) {
     const prev = previousSeasonStart(seasonStart);
-    seasonMatches = matches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+    seasonMatches = regular.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+    onPrevSeason = true;
   }
 
   // 승격팀 폴백 — 위 매치는 전부 team.league 기준이라, 이번에 올라온 팀은 지난 시즌으로 물러나도
@@ -539,6 +562,31 @@ export default async function TeamPage({ params }: Props) {
   const ha = calcHomeAway(formMatches, teamId);
   const attackRank = standings.attackRank.get(teamId);
   const defenseRank = standings.defenseRank.get(teamId);
+
+  // 팀 능력치 레이더 — 리그 전 팀 5축 백분위(같은 seasonMatches·Elo 재사용, 추가 조회 없음).
+  // 다음 경기 상대(같은 리그)도 같은 표에서 꺼내 겹쳐 그린다.
+  const radarSport = sportCodeForLeague(team.league);
+  const radars = computeLeagueRadars(seasonMatches, (id) => getElo(eloTable, id), {
+    hasDraw: leagueHasDraw(team.league),
+    unit: radarSport === "soccer" || radarSport === "hockey" ? "골" : radarSport === "volleyball" || radarSport === "esports" ? "세트" : "점",
+  });
+  const myRadar = radars.get(teamId) ?? null;
+  let radarOpponent: RadarOpponent | null = null;
+  const nextGame = upcoming[0];
+  if (myRadar && nextGame) {
+    const oppHome = nextGame.homeTeamId !== teamId;
+    const opp = oppHome ? nextGame.homeTeam : nextGame.awayTeam;
+    const oppRadar = radars.get(opp.id);
+    if (oppRadar) {
+      const kst = new Date(nextGame.startTime.getTime() + 9 * 3600_000);
+      radarOpponent = {
+        name: toKoreanTeamName(opp.name, team.league) || opp.name,
+        radar: oppRadar,
+        href: matchLiveHref(team.league, nextGame.externalId),
+        dateLabel: `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`,
+      };
+    }
+  }
 
   // 부상자 + 핵심 선수 (api-football Pro, 축구 리그만)
   let keyPlayers: Awaited<ReturnType<typeof getTeamKeyPlayers>> = [];
@@ -999,6 +1047,16 @@ export default async function TeamPage({ params }: Props) {
 
         {/* 시즌 통계 + 팀 시즌 통계 + xG 추이 — 시즌 칩으로 접는 패널 (현재 시즌 기본, 과거 시즌 아카이브) */}
         <TeamSeasonPanel seasons={seasonSlices} />
+
+        {/* 팀 능력치 레이더 — 리그 안 순위 5축. 리그가 조건(8팀·5경기)에 못 미치면 섹션째 생략 */}
+        {radars.size > 0 && (
+          <TeamRadarSection
+            teamName={toKoreanTeamName(team.name, team.league) || team.name}
+            radar={myRadar}
+            opponent={radarOpponent}
+            seasonNote={onPrevSeason ? "지난 시즌 경기 기준 — 이번 시즌 리그 경기가 쌓이면 바뀝니다" : null}
+          />
+        )}
 
         {/* 폼 + Streak + 홈/원정 */}
         <section className="grid sm:grid-cols-3 gap-4">
