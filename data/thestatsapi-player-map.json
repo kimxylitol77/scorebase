@@ -8872,5 +8872,50 @@
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
+ },
+ "jw2r09hwn938rz8": {
+  "statsId": "pl_98810648",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Abdoul Karim Coulibaly",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "1l4rjnhz5e8em7v": {
+  "statsId": "pl_45104520",
+  "teamId": "tm_64584",
+  "teamName": "Hamburger SV",
+  "name": "Fábio Vieira",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "3glrw7hj7egqdyj": {
+  "statsId": "pl_3172242",
+  "teamId": "tm_160814",
+  "teamName": "RB Leipzig",
+  "name": "Benjamin Henrichs",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "n54qllhx9jzqvy9": {
+  "statsId": "pl_5233312",
+  "teamId": "tm_37804",
+  "teamName": "Borussia M'gladbach",
+  "name": "Franck Honorat",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "l7oqdeh09knwr51": {
+  "statsId": "pl_62299059",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Jonas Adjetey Adjei",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  }
 }
