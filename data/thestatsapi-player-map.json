@@ -2074,9 +2074,9 @@
   "teamId": "tm_3809",
   "teamName": "West Ham United",
   "name": "Jarrod Bowen",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
  "318q66hve3pdqo9": {
   "statsId": "pl_62884104",
@@ -8917,5 +8917,455 @@
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "l7oqdeh4e76wr51": {
+  "statsId": "pl_84734423",
+  "teamId": "tm_0586",
+  "teamName": "Wrexham",
+  "name": "Anthony Patterson",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dj2ryoh2gz3q1zp": {
+  "statsId": "pl_13606489",
+  "teamId": "tm_3809",
+  "teamName": "West Ham United",
+  "name": "Mads Hermansen",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "zp5rzghzzpv6q82": {
+  "statsId": "pl_45411474",
+  "teamId": "tm_4893",
+  "teamName": "Southampton",
+  "name": "Daniel Peretz",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dn1m1gh1n30moep": {
+  "statsId": "pl_96284727",
+  "teamId": "tm_0196",
+  "teamName": "Watford",
+  "name": "Federico Ravaglia",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "2y8m4zh45k2ql07": {
+  "statsId": "pl_57472325",
+  "teamId": "tm_4513",
+  "teamName": "Sheffield United",
+  "name": "Japhet Tanganga",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dj2ryohjx908q1z": {
+  "statsId": "pl_84734955",
+  "teamId": "tm_8651",
+  "teamName": "Bristol City",
+  "name": "Jason Knight",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "jw2r09hxgp2orz8": {
+  "statsId": "pl_29206909",
+  "teamId": "tm_3759",
+  "teamName": "Derby County",
+  "name": "Sondre Langas",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "y39mp1h10kpmojx": {
+  "statsId": "pl_13649681",
+  "teamId": "tm_6387",
+  "teamName": "Middlesbrough",
+  "name": "Callum Brittain",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "k82rekh3d58repz": {
+  "statsId": "pl_13694367",
+  "teamId": "tm_8814",
+  "teamName": "West Bromwich Albion",
+  "name": "Callum Styles",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "ednm9whz2z7eryo": {
+  "statsId": "pl_2589713",
+  "teamId": "tm_7348",
+  "teamName": "Stoke City",
+  "name": "Ethan Galbraith",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "6ypq3nhz9ywmd7o": {
+  "statsId": "pl_1798113",
+  "teamId": "tm_0016",
+  "teamName": "Swansea City",
+  "name": "Lawrence Vigouroux",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4jwq2gh72n1m0ve": {
+  "statsId": "pl_84035566",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "Phil Neumann",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "8yomo4hv282oq0j": {
+  "statsId": "pl_31506530",
+  "teamId": "tm_0196",
+  "teamName": "Watford",
+  "name": "Kevin Keben",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "1l4rjnhzv3jm7vx": {
+  "statsId": "pl_61849000",
+  "teamId": "tm_4893",
+  "teamName": "Southampton",
+  "name": "James Bree",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "pxwrxlh1898ryk0": {
+  "statsId": "pl_2510531",
+  "teamId": "tm_3759",
+  "teamName": "Derby County",
+  "name": "Charlie Taylor",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "y0or5jh0g25qwzv": {
+  "statsId": "pl_45767685",
+  "teamId": "tm_4830",
+  "teamName": "Bolton Wanderers",
+  "name": "Josh Sheehan",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "1l4rjnhz97pdm7v": {
+  "statsId": "pl_74119341",
+  "teamId": "tm_8814",
+  "teamName": "West Bromwich Albion",
+  "name": "Isaac Price",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dj2ryohgx5yq1zp": {
+  "statsId": "pl_13004814",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "Tomoki Iwata",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "6ypq3nh09x4md7o": {
+  "statsId": "pl_6123624",
+  "teamId": "tm_5188",
+  "teamName": "Norwich City",
+  "name": "Kenny McLean",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "6ypq3nh1eypmd7o": {
+  "statsId": "pl_57442333",
+  "teamId": "tm_0016",
+  "teamName": "Swansea City",
+  "name": "Stephen Welsh",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "318q66hvwndzqo9": {
+  "statsId": "pl_83265653",
+  "teamId": "tm_5188",
+  "teamName": "Norwich City",
+  "name": "Jose Cordoba",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4jwq2ghve3d9m0v": {
+  "statsId": "pl_30436206",
+  "teamId": "tm_2814",
+  "teamName": "Cardiff City",
+  "name": "Jack Moylan",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "318q66hk2d0qo9j": {
+  "statsId": "pl_61993302",
+  "teamId": "tm_7348",
+  "teamName": "Stoke City",
+  "name": "Ben Wilmot",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "pxwrxlhj524oryk": {
+  "statsId": "pl_58796569",
+  "teamId": "tm_6573",
+  "teamName": "Burnley",
+  "name": "Max Alleyne",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "965mkyh3253pr1g": {
+  "statsId": "pl_57915636",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "Alex Cochrane",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4wyrn4hd0o29q86": {
+  "statsId": "pl_30223855",
+  "teamId": "tm_3169",
+  "teamName": "Charlton Athletic",
+  "name": "Conor Coventry",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "965mkyhe0klr1ge": {
+  "statsId": "pl_72953221",
+  "teamId": "tm_0586",
+  "teamName": "Wrexham",
+  "name": "Dominic Hyam",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "zp5rzghpldv0q82": {
+  "statsId": "pl_36243535",
+  "teamId": "tm_8651",
+  "teamName": "Bristol City",
+  "name": "Rio Cardines",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "zp5rzgh2vx3q82w": {
+  "statsId": "pl_13759956",
+  "teamId": "tm_6917",
+  "teamName": "Blackburn Rovers",
+  "name": "Todd Cantwell",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "1l4rjnhe5elm7vx": {
+  "statsId": "pl_57441334",
+  "teamId": "tm_3809",
+  "teamName": "West Ham United",
+  "name": "Manor Solomon",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l5ergphp9o6r8k0": {
+  "statsId": "pl_13614887",
+  "teamId": "tm_4893",
+  "teamName": "Southampton",
+  "name": "Flynn Downes",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "23xmvkhd023gqg8": {
+  "statsId": "pl_84704020",
+  "teamId": "tm_3759",
+  "teamName": "Derby County",
+  "name": "Jacob Widell Zetterström",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dn1m1ghnwl1nmoe": {
+  "statsId": "pl_25319357",
+  "teamId": "tm_3169",
+  "teamName": "Charlton Athletic",
+  "name": "Arthur Okonkwo",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "3glrw7hj973gqdy": {
+  "statsId": "pl_29298329",
+  "teamId": "tm_6387",
+  "teamName": "Middlesbrough",
+  "name": "Aidan Morris",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "pxwrxlh24ydryk0": {
+  "statsId": "pl_96418808",
+  "teamId": "tm_7348",
+  "teamName": "Stoke City",
+  "name": "Ben Johnson",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l7oqdeh4g41er51": {
+  "statsId": "pl_13818549",
+  "teamId": "tm_0016",
+  "teamName": "Swansea City",
+  "name": "Marko Stamenić",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4wyrn4h0eo1q86p": {
+  "statsId": "pl_13769158",
+  "teamId": "tm_2814",
+  "teamName": "Cardiff City",
+  "name": "Gabriel Osho",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "965mkyh3k7xgr1g": {
+  "statsId": "pl_30432621",
+  "teamId": "tm_3809",
+  "teamName": "West Ham United",
+  "name": "Arne Engels",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "k82rekhoxnd0rep": {
+  "statsId": "pl_25979951",
+  "teamId": "tm_0196",
+  "teamName": "Watford",
+  "name": "Iker Bravo",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "6ypq3nhwwyvvmd7": {
+  "statsId": "pl_01873497",
+  "teamId": "tm_9756",
+  "teamName": "Portsmouth",
+  "name": "Adrian Segecic",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "23xmvkh4py8qg8n": {
+  "statsId": "pl_96208632",
+  "teamId": "tm_3809",
+  "teamName": "West Ham United",
+  "name": "Konstantinos Mavropanos",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4jwq2ghxvxwdm0v": {
+  "statsId": "pl_74134956",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "Carlos Vicente",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dn1m1ghn5wlpmoe": {
+  "statsId": "pl_62845595",
+  "teamId": "tm_9756",
+  "teamName": "Portsmouth",
+  "name": "Abu Kamara",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "vjxm8gh82evr6od": {
+  "statsId": "pl_72933740",
+  "teamId": "tm_4893",
+  "teamName": "Southampton",
+  "name": "Cyle Larin",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dn1m1gh321gnmoe": {
+  "statsId": "pl_74207327",
+  "teamId": "tm_8651",
+  "teamName": "Bristol City",
+  "name": "Lisav Naif Eissat",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4jwq2gh7klyzm0v": {
+  "statsId": "pl_62080841",
+  "teamId": "tm_6917",
+  "teamName": "Blackburn Rovers",
+  "name": "Tom Atcheson",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "318q66hv77goqo9": {
+  "statsId": "pl_29860227",
+  "teamId": "tm_2949",
+  "teamName": "Queens Park Rangers",
+  "name": "Jimmy Dunne",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4wyrn4h48v64q86": {
+  "statsId": "pl_25760990",
+  "teamId": "tm_4893",
+  "teamName": "Southampton",
+  "name": "Léo Scienza",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "ednm9whzxewjryo": {
+  "statsId": "pl_29781781",
+  "teamId": "tm_6917",
+  "teamName": "Blackburn Rovers",
+  "name": "Oladapo Afolayan",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "dj2ryohgee8kq1z": {
+  "statsId": "pl_01832045",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "August Priske",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  }
 }
