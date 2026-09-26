@@ -53,6 +53,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
     items: [
       { href: "/baseball", label: "야구 허브", desc: "오늘 경기·순위·예측·선수 한눈에" },
       { href: "/predictions/starters", label: "선발 매치업", desc: "선발 투수 맞대결 비교" },
+      { href: "/baseball/mlb-postseason", label: "MLB 포스트시즌", desc: "와일드카드~월드시리즈 대진표" },
       { href: "/predictions/KBO", label: "시즌 예측", desc: "KBO·MLB·NPB 우승 확률" },
       { href: "/standings", label: "리그 순위", desc: "KBO·MLB·NPB" },
       { href: "/salaries/kbo", label: "연봉 랭킹", desc: "KBO·MLB 선수 연봉 (페이지 탭 전환)" },

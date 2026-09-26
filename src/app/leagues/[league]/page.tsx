@@ -523,7 +523,10 @@ const BRACKET_CTA_LABEL: Record<string, string> = {
   NHL: "플레이오프 브래킷",
   NBA: "플레이오프 브래킷",
   UCL: "토너먼트 브래킷",
+  MLB: "포스트시즌 대진표",
 };
+// 대진표가 /predictions/[league] 가 아니라 전용 페이지에 있는 리그
+const BRACKET_CTA_HREF: Record<string, string> = { MLB: "/baseball/mlb-postseason" };
 
 const PAGE_SIZE = 24;
 
@@ -1022,7 +1025,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               )}
               {BRACKET_CTA_LABEL[upper] && (
                 <Link
-                  href={`/predictions/${upper}`}
+                  href={BRACKET_CTA_HREF[upper] ?? `/predictions/${upper}`}
                   className="inline-flex items-center gap-1.5 rounded-full bg-neutral-900/5 px-4 py-2 text-sm font-bold text-neutral-800 ring-1 ring-black/10 transition hover:bg-neutral-900/10 dark:bg-white/[0.06] dark:text-white dark:ring-white/15"
                 >
                   {BRACKET_CTA_LABEL[upper]}

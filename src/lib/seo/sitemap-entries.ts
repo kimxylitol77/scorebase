@@ -96,6 +96,7 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     // 노출 3,127 인데 sitemap 밖 → 크롤 신호 손해). 2026-08-18 추가.
     { url: `${base}/soccer`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/baseball`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/baseball/mlb-postseason`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/basketball`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/hockey`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/previews`, changeFrequency: "hourly", priority: 0.9 },
