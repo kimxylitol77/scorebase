@@ -54,7 +54,7 @@ function SkaterTable({ rows }: { rows: HockeyPlayerRow[] }) {
           <th className="text-center py-1.5 px-1 font-semibold w-7">골</th>
           <th className="text-center py-1.5 px-1 font-semibold w-7">도움</th>
           <th className="text-center py-1.5 px-1 font-semibold w-8">+/-</th>
-          <th className="text-center py-1.5 px-1 font-semibold w-8">유효슛</th>
+          <th className="text-center py-1.5 px-1 font-semibold w-8 whitespace-nowrap">유효슛</th>
           <th className="text-right py-1.5 pr-1 font-semibold w-12">출전</th>
         </tr>
       </thead>

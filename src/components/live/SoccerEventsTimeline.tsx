@@ -214,20 +214,22 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
             </div>
           );
           // 골/카드: 단일 아바타. 교체: in (player) + out (assist) 두 아바타.
+          // 모바일은 반쪽 칸(≈145px)에 교체 아웃·인 두 선수를 가로로 넣으면 이름이 한 글자씩 세로로 깨져
+          // (2026-09-26 실측 21~38px 칸) 세로로 쌓는다. sm+ 는 기존 가로 배치.
           const homeBlock = ev.side === "home" && (
-            <div className="flex items-center gap-2 justify-end">
+            <div className="flex flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
               {ev.type === "subst" && assistKo && (
                 <span className="flex items-center gap-1 text-[11px] text-neutral-500" title={`${assistKo} 교체 아웃`}>
-                  <span className="text-right leading-tight">
+                  <span className="text-right leading-tight break-keep">
                     <span className="block">{shortName(assistKo)}</span>
                     <span className="block text-[10px] font-semibold text-rose-500">OUT</span>
                   </span>
                   <PlayerAvatar id={ev.assistId} name={ev.assistName} logoById={playerLogoById} />
                 </span>
               )}
-              <div className="flex items-center gap-1.5">
+              <div className="flex min-w-0 items-center gap-1.5">
                 <PlayerAvatar id={ev.playerId} name={ev.playerName} logoById={playerLogoById} />
-                <div className="text-right">
+                <div className="min-w-0 text-right break-keep">
                   <div className="text-sm font-bold leading-tight">
                     <span className="mr-1">{meta.icon}</span>
                     {shortName(playerKo)}
@@ -238,10 +240,10 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
             </div>
           );
           const awayBlock = ev.side === "away" && (
-            <div className="flex items-center gap-2 justify-start">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-start sm:gap-2">
+              <div className="flex min-w-0 items-center gap-1.5">
                 <PlayerAvatar id={ev.playerId} name={ev.playerName} logoById={playerLogoById} />
-                <div className="text-left">
+                <div className="min-w-0 text-left break-keep">
                   <div className="text-sm font-bold leading-tight">
                     <span className="mr-1">{meta.icon}</span>
                     {shortName(playerKo)}
@@ -252,7 +254,7 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
               {ev.type === "subst" && assistKo && (
                 <span className="flex items-center gap-1 text-[11px] text-neutral-500" title={`${assistKo} 교체 아웃`}>
                   <PlayerAvatar id={ev.assistId} name={ev.assistName} logoById={playerLogoById} />
-                  <span className="text-left leading-tight">
+                  <span className="text-left leading-tight break-keep">
                     <span className="block">{shortName(assistKo)}</span>
                     <span className="block text-[10px] font-semibold text-rose-500">OUT</span>
                   </span>
@@ -265,11 +267,11 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
               key={i}
               className="grid grid-cols-[1fr_auto_1fr] gap-1 items-start py-2 text-sm"
             >
-              <div>{homeBlock}</div>
+              <div className="min-w-0">{homeBlock}</div>
               <div className="px-2 text-xs tabular-nums font-bold text-neutral-500 min-w-[44px] text-center self-center">
                 {timeLabel(ev)}
               </div>
-              <div>{awayBlock}</div>
+              <div className="min-w-0">{awayBlock}</div>
             </li>
           );
         })}

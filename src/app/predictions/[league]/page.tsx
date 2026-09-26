@@ -1786,7 +1786,7 @@ function ProjectionsTable({
             <th className="text-left px-3 py-2 font-medium">팀</th>
             <th className="text-left px-3 py-2 font-medium hidden sm:table-cell w-32">최근 5</th>
             <th className="text-right px-3 py-2 font-medium">승점</th>
-            <th className="text-right px-3 py-2 font-medium">예상 승점</th>
+            <th className="text-right px-3 py-2 font-medium whitespace-nowrap">예상 승점</th>
             {showChampion && (
               <th className="text-right px-3 py-2 font-medium">{uefa ? "16강 직행 %" : regularTitle ? "1위 %" : "우승 %"}</th>
             )}

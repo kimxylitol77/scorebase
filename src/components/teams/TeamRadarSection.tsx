@@ -164,7 +164,7 @@ export default function TeamRadarSection({
               <div className="text-sm text-zinc-700 break-keep dark:text-white/80">
                 <span className="text-xs text-zinc-500 dark:text-white/50">다음 경기 {opponent.dateLabel} · </span>
                 vs <span className="font-semibold">{opponent.name}</span>
-                <span className="ml-2 font-bold tabular-nums text-rose-600 dark:text-rose-400">5개 축 중 {ahead}개 우세</span>
+                <span className="ml-2 inline-block whitespace-nowrap font-bold tabular-nums text-rose-600 dark:text-rose-400">5개 축 중 {ahead}개 우세</span>
               </div>
               <Link
                 href={opponent.href}

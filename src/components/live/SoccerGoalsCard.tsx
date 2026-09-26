@@ -117,7 +117,7 @@ export default function SoccerGoalsCard({
                   <span className="text-emerald-600 dark:text-emerald-400 text-base">⚽</span>
                   <span className="font-semibold truncate">{playerKo}</span>
                   {label && (
-                    <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium ml-1">
+                    <span className="ml-1 shrink-0 whitespace-nowrap text-[10px] text-rose-600 dark:text-rose-400 font-medium">
                       {label}
                     </span>
                   )}
@@ -149,7 +149,7 @@ export default function SoccerGoalsCard({
                     <div className="text-right min-w-0">
                       <div className="flex items-center gap-1.5 justify-end">
                         {label && (
-                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">
+                          <span className="shrink-0 whitespace-nowrap text-[10px] text-rose-600 dark:text-rose-400 font-medium">
                             {label}
                           </span>
                         )}

@@ -42,7 +42,7 @@ export default function PlayerCareerTable({ groups }: { groups: CareerGroup[] })
       )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
+          <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500 whitespace-nowrap">
             <tr>
               <th className="text-left px-3 py-2 font-medium">시즌</th>
               <th className="text-left px-2 py-2 font-medium">팀</th>

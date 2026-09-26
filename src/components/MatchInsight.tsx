@@ -1380,7 +1380,7 @@ function MarketCompareTable({
     <div>
       <div className="overflow-hidden rounded-[1rem] ring-1 ring-black/5 dark:ring-white/10">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500 dark:bg-white/[0.04] dark:text-white/45">
+          <thead className="whitespace-nowrap bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500 dark:bg-white/[0.04] dark:text-white/45">
             <tr>
               <th className="px-2.5 py-2 text-left font-semibold">결과</th>
               {showBase && <th className="px-2 py-2 text-right font-semibold">순수 Elo</th>}

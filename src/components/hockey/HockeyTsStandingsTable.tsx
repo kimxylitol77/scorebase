@@ -49,7 +49,7 @@ export default async function HockeyTsStandingsTable({
   const renderTable = (g: HockeyTableGroup, opts: { form: boolean; compact: boolean }) => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-white/[0.06] text-[11px] text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.06] text-[11px] text-neutral-500 whitespace-nowrap">
           <tr>
             <th className="text-right px-2 py-2 font-medium w-8">#</th>
             <th className="text-left px-2 py-2 font-medium">팀</th>

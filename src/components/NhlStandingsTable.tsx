@@ -87,7 +87,7 @@ export default async function NhlStandingsTable({
   const tableEl = (
     <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-x-auto dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-white/[0.06] text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.06] text-xs text-neutral-500 whitespace-nowrap">
           <tr>
             <th className="text-right px-3 py-2 font-medium w-10">#</th>
             <th className="text-left px-3 py-2 font-medium">팀</th>

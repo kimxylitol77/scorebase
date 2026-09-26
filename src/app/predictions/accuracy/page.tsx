@@ -499,7 +499,7 @@ export default async function AccuracyPage() {
                   <div key={o.label}>
                     <div className="text-[11px] text-neutral-500">{o.label}</div>
                     <div className="text-lg font-bold">{o.picks > 0 ? `${Math.round((o.hits / o.picks) * 100)}%` : "—"}</div>
-                    <div className="text-[10px] text-neutral-400">{o.hits}/{o.picks}픽 · 실제 {o.actual}회</div>
+                    <div className="text-[10px] text-neutral-400"><span className="whitespace-nowrap">{o.hits}/{o.picks}픽</span> · <span className="whitespace-nowrap">실제 {o.actual}회</span></div>
                   </div>
                 ))}
               </div>
@@ -713,7 +713,7 @@ function HeadToHeadSection({ data }: { data: HeadToHeadStat }) {
 
 function OddsBandSection({ data }: { data: OddsBandStats }) {
   const pct = (a: number, b: number) => (b > 0 ? `${((a / b) * 100).toFixed(1)}%` : "–");
-  const th = "py-2 pr-3 font-semibold text-right";
+  const th = "py-2 pr-3 font-semibold text-right whitespace-nowrap";
   return (
     <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
       <h2 className="text-lg font-semibold mb-1">인기픽은 얼마나 맞나 — 배당 구간별 · 리그별</h2>

@@ -187,7 +187,7 @@ export default function StatsExplorer(p: StatsExplorerProps) {
         {view === "table" && (
           <div className="mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
             <table className="w-full min-w-[760px] text-sm">
-              <thead className="sticky top-0 z-10 bg-white/95 text-[11px] tracking-wide text-neutral-500 backdrop-blur dark:bg-neutral-950/90">
+              <thead className="sticky top-0 z-10 whitespace-nowrap bg-white/95 text-[11px] tracking-wide text-neutral-500 backdrop-blur dark:bg-neutral-950/90">
                 <tr className="text-[10px] tracking-[0.15em] text-neutral-400">
                   <th colSpan={2} className="px-2 pt-2 text-left font-semibold">{p.corner}</th>
                   {groups.map((g) => <th key={g.group} colSpan={g.cols.length} className="border-l border-neutral-100 px-2 pt-2 text-center font-semibold dark:border-white/10">{g.group}</th>)}

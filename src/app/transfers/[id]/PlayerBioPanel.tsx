@@ -166,7 +166,7 @@ export default function PlayerBioPanel({
                 {valueRank.leagueLabel} 몸값 <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.rank}위</span>
                 <span className="text-neutral-400"> / {valueRank.total}명</span>
                 {valueRank.posRank != null && valueRank.posLabel && (
-                  <span> · {valueRank.posLabel} <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.posRank}위</span></span>
+                  <span className="whitespace-nowrap"> · {valueRank.posLabel} <span className="font-bold text-neutral-700 dark:text-neutral-200">{valueRank.posRank}위</span></span>
                 )}
               </div>
             )}
