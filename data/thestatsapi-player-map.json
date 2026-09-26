@@ -937,12 +937,12 @@
  },
  "vjxm8ghxj52r6od": {
   "statsId": "pl_08329998",
-  "teamId": "tm_98476",
-  "teamName": "Milan",
+  "teamId": "tm_26919",
+  "teamName": "Galatasaray",
   "name": "Rafael Leão",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
  },
  "k82rekhon2drepz": {
   "statsId": "pl_96184009",
@@ -2785,9 +2785,9 @@
   "teamId": "tm_10361",
   "teamName": "Beşiktaş",
   "name": "Kassoum Ouattara",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
  },
  "jw2r09hx6ledrz8": {
   "statsId": "pl_57938156",
@@ -3487,9 +3487,9 @@
   "teamId": "tm_10361",
   "teamName": "Beşiktaş",
   "name": "Dušan Vlahović",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
  },
  "6ypq3nhwgwjlmd7": {
   "statsId": "pl_19334409",
@@ -12829,6 +12829,609 @@
   "teamId": "tm_91646",
   "teamName": "Fenerbahçe",
   "name": "Nélson Semedo",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "x7lm7ph5d2em2wd": {
+  "statsId": "pl_29898183",
+  "teamId": "tm_26919",
+  "teamName": "Galatasaray",
+  "name": "Ismail Jakobs",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4jwq2ghxpegm0ve": {
+  "statsId": "pl_9630433",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Daniel Agyei",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "zp5rzghz0w1oq82": {
+  "statsId": "pl_84724298",
+  "teamId": "tm_52738",
+  "teamName": "Samsunspor",
+  "name": "Yalçın Kayan",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "k82rekhy29jlrep": {
+  "statsId": "pl_45400786",
+  "teamId": "tm_7246939",
+  "teamName": "Çorum FK",
+  "name": "Mohammed Diomande",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "vjxm8gh2lx4r6od": {
+  "statsId": "pl_84433084",
+  "teamId": "tm_47092",
+  "teamName": "Konyaspor",
+  "name": "Yhoan Andzouana",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "y39mp1h165yzmoj": {
+  "statsId": "pl_89740556",
+  "teamId": "tm_55893",
+  "teamName": "Kasımpaşa",
+  "name": "Adem Arous",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "vjxm8ghpwx7r6od": {
+  "statsId": "pl_84024229",
+  "teamId": "tm_63286",
+  "teamName": "Başakşehir FK",
+  "name": "Muhammed Şengezer",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "n54qllhkg3xqvy9": {
+  "statsId": "pl_29808085",
+  "teamId": "tm_55893",
+  "teamName": "Kasımpaşa",
+  "name": "Ali Yavuz Kol",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "2y8m4zhgp6pyql0": {
+  "statsId": "pl_08535790",
+  "teamId": "tm_7246939",
+  "teamName": "Çorum FK",
+  "name": "Alexandros Kyziridis",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "n54qllh80z63qvy": {
+  "statsId": "pl_97487124",
+  "teamId": "tm_04892",
+  "teamName": "Göztepe",
+  "name": "Richard Akonnor",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "jw2r09hj7x67rz8": {
+  "statsId": "pl_36520413",
+  "teamId": "tm_04892",
+  "teamName": "Göztepe",
+  "name": "Novatus Miroshi",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "vjxm8gh2v1or6od": {
+  "statsId": "pl_84622738",
+  "teamId": "tm_47528",
+  "teamName": "Kocaelispor",
+  "name": "Makana Baku",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "3glrw7hyynpqdyj": {
+  "statsId": "pl_57268694",
+  "teamId": "tm_134619",
+  "teamName": "Eyüpspor",
+  "name": "Bilal Boutobba",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "y0or5jhen2wxqwz": {
+  "statsId": "pl_61062995",
+  "teamId": "tm_26983",
+  "teamName": "Trabzonspor",
+  "name": "Aral Simsir",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "x7lm7ph03z5m2wd": {
+  "statsId": "pl_0312203",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Vedat Muriqi",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dj2ryohg1gknq1z": {
+  "statsId": "pl_01831337",
+  "teamId": "tm_47528",
+  "teamName": "Kocaelispor",
+  "name": "Mahamadou Susoho",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4hdlxgvq86": {
+  "statsId": "pl_61501955",
+  "teamId": "tm_55893",
+  "teamName": "Kasımpaşa",
+  "name": "Andri Fannar Baldursson",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "965mkyhenp1er1g": {
+  "statsId": "pl_74179207",
+  "teamId": "tm_63286",
+  "teamName": "Başakşehir FK",
+  "name": "Abbosbek Fayzullaev",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "3glrw7hzpl8qdyj": {
+  "statsId": "pl_96206048",
+  "teamId": "tm_04892",
+  "teamName": "Göztepe",
+  "name": "Luka Gugeshashvili",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "3glrw7hzopwqdyj": {
+  "statsId": "pl_29620928",
+  "teamId": "tm_26919",
+  "teamName": "Galatasaray",
+  "name": "Victor Osimhen",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "965mkyh31ozdr1g": {
+  "statsId": "pl_72023099",
+  "teamId": "tm_10361",
+  "teamName": "Beşiktaş",
+  "name": "Emirhan Topçu",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "l7oqdeh4nd5r510": {
+  "statsId": "pl_6409425",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "İrfan Can Kahveci",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "y39mp1h5lk6mojx": {
+  "statsId": "pl_4041951",
+  "teamId": "tm_47092",
+  "teamName": "Konyaspor",
+  "name": "Arthur Masuaku",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "vjxm8ghj80dnr6o": {
+  "statsId": "pl_36575644",
+  "teamId": "tm_47528",
+  "teamName": "Kocaelispor",
+  "name": "Matej Maglica",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dj2ryoh5n7xq1zp": {
+  "statsId": "pl_72000343",
+  "teamId": "tm_47092",
+  "teamName": "Konyaspor",
+  "name": "Rayyan Baniya",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4h4wodzq86": {
+  "statsId": "pl_25579812",
+  "teamId": "tm_10361",
+  "teamName": "Beşiktaş",
+  "name": "Umit Akdag",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "l7oqdeh4k86r510": {
+  "statsId": "pl_9406496",
+  "teamId": "tm_51897",
+  "teamName": "NK Celje",
+  "name": "Žan Žužek",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4jwq2ghxj1om0ve": {
+  "statsId": "pl_08433021",
+  "teamId": "tm_47092",
+  "teamName": "Konyaspor",
+  "name": "Chidozie Awaziem",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "965mkyhnow0r1ge": {
+  "statsId": "pl_96206478",
+  "teamId": "tm_99419",
+  "teamName": "Alanyaspor",
+  "name": "Fatih Aksoy",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8yomo4h21y51q0j": {
+  "statsId": "pl_08919882",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Kerem Aktürkoğlu",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dj2ryohjk5wq1zp": {
+  "statsId": "pl_9832888",
+  "teamId": "tm_2066285",
+  "teamName": "Amed Sportif Faaliyetler",
+  "name": "Furkan Soyalp",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dj2ryohjd7okq1z": {
+  "statsId": "pl_13833700",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Ismail Yuksek",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "k82rekholk5jrep": {
+  "statsId": "pl_25907716",
+  "teamId": "tm_55893",
+  "teamName": "Kasımpaşa",
+  "name": "Marcus Rafferty",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "1l4rjnhxx24m7vx": {
+  "statsId": "pl_61409609",
+  "teamId": "tm_7246939",
+  "teamName": "Çorum FK",
+  "name": "Cengiz Ünder",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "l5ergph3z3ylr8k": {
+  "statsId": "pl_29835882",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Florin Stefan",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "vjxm8ghj33vlr6o": {
+  "statsId": "pl_13716955",
+  "teamId": "tm_52738",
+  "teamName": "Samsunspor",
+  "name": "Elliot Watt",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "ednm9whzeowjryo": {
+  "statsId": "pl_45159862",
+  "teamId": "tm_10361",
+  "teamName": "Beşiktaş",
+  "name": "Tiago Djaló",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "318q66h7on1qo9j": {
+  "statsId": "pl_57367237",
+  "teamId": "tm_79223",
+  "teamName": "Vitória SC",
+  "name": "Toni Borevković",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "l7oqdeh48ndr510": {
+  "statsId": "pl_0385439",
+  "teamId": "tm_26919",
+  "teamName": "Galatasaray",
+  "name": "Mario Lemina",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "6ypq3nhl4023md7": {
+  "statsId": "pl_83457200",
+  "teamId": "tm_26983",
+  "teamName": "Trabzonspor",
+  "name": "Noah Saviolo",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4hdv26q86p": {
+  "statsId": "pl_3867832",
+  "teamId": "tm_26983",
+  "teamName": "Trabzonspor",
+  "name": "Ozan Tufan",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dn1m1ghed5z4moe": {
+  "statsId": "pl_45112297",
+  "teamId": "tm_87298",
+  "teamName": "Gaziantep FK",
+  "name": "Halil Dervisoglu",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "6ypq3nhgl62md7o": {
+  "statsId": "pl_61553186",
+  "teamId": "tm_47092",
+  "teamName": "Konyaspor",
+  "name": "Ebrima Colley",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "1l4rjnhxv7wem7v": {
+  "statsId": "pl_97777722",
+  "teamId": "tm_47092",
+  "teamName": "Konyaspor",
+  "name": "Deniz Ertas",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8yomo4hvywyq0j6": {
+  "statsId": "pl_84502247",
+  "teamId": "tm_04892",
+  "teamName": "Göztepe",
+  "name": "Efkan Bekiroğlu",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "y39mp1hk8dxmojx": {
+  "statsId": "pl_61519680",
+  "teamId": "tm_134619",
+  "teamName": "Eyüpspor",
+  "name": "Lenny Pintor",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8yomo4hv3o6yq0j": {
+  "statsId": "pl_62521584",
+  "teamId": "tm_87298",
+  "teamName": "Gaziantep FK",
+  "name": "trivante stewart",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4hdv769q86": {
+  "statsId": "pl_30237107",
+  "teamId": "tm_52738",
+  "teamName": "Samsunspor",
+  "name": "Strahinja Erakovic",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "3glrw7ho3ypqdyj": {
+  "statsId": "pl_61996243",
+  "teamId": "tm_04892",
+  "teamName": "Göztepe",
+  "name": "Alexis Antunes",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4jwq2ghv61ynm0v": {
+  "statsId": "pl_57359183",
+  "teamId": "tm_47798",
+  "teamName": "Olympiacos FC",
+  "name": "Marius Mouandilmadji",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8yomo4hvgopq0j6": {
+  "statsId": "pl_08442257",
+  "teamId": "tm_55893",
+  "teamName": "Kasımpaşa",
+  "name": "Fousseni Diabaté",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dn1m1gh30yl1moe": {
+  "statsId": "pl_01971788",
+  "teamId": "tm_10361",
+  "teamName": "Beşiktaş",
+  "name": "Taylan Bulut",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "l5ergphv8py2r8k": {
+  "statsId": "pl_57944163",
+  "teamId": "tm_26919",
+  "teamName": "Galatasaray",
+  "name": "Eren Elmalı",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "pxwrxlhjonjyryk": {
+  "statsId": "pl_36132031",
+  "teamId": "tm_26919",
+  "teamName": "Galatasaray",
+  "name": "Aleksey Batrakov",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "318q66h09dxqo9j": {
+  "statsId": "pl_1598613",
+  "teamId": "tm_26983",
+  "teamName": "Trabzonspor",
+  "name": "Ruslan Malinovskyi",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "ednm9whgpg9ryox": {
+  "statsId": "pl_57472319",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Mert Müldür",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8yomo4h7dp5q0j6": {
+  "statsId": "pl_5716755",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Romelu Lukaku",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "1l4rjnhkn419m7v": {
+  "statsId": "pl_51496461",
+  "teamId": "tm_2066285",
+  "teamName": "Amed Sportif Faaliyetler",
+  "name": "Amadou Cissé",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "dj2ryohg273q1zp": {
+  "statsId": "pl_29605506",
+  "teamId": "tm_87298",
+  "teamName": "Gaziantep FK",
+  "name": "Juninho Bacuna",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "4wyrn4h4oj24q86": {
+  "statsId": "pl_62144490",
+  "teamId": "tm_04854",
+  "teamName": "Çaykur Rizespor",
+  "name": "Adedire Mebude",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "l7oqdeh4djnor51": {
+  "statsId": "pl_84748762",
+  "teamId": "tm_47528",
+  "teamName": "Kocaelispor",
+  "name": "Metehan Altunbas",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "1l4rjnhxy5d1m7v": {
+  "statsId": "pl_40999870",
+  "teamId": "tm_52738",
+  "teamName": "Samsunspor",
+  "name": "Yunus Emre Cift",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "n54qllh8depqvy9": {
+  "statsId": "pl_45769142",
+  "teamId": "tm_10361",
+  "teamName": "Beşiktaş",
+  "name": "Wilfred Ndidi",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "8yomo4hkdppq0j6": {
+  "statsId": "pl_3701057",
+  "teamId": "tm_63286",
+  "teamName": "Başakşehir FK",
+  "name": "Davie Selke",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "n54qllhd01zqvy9": {
+  "statsId": "pl_08350402",
+  "teamId": "tm_7246939",
+  "teamName": "Çorum FK",
+  "name": "Markus Karlsbakk",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "3glrw7hj2p4qdyj": {
+  "statsId": "pl_0987853",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Marco Asensio",
+  "competitionId": "comp_9235",
+  "seasonId": "sn_1361088",
+  "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "6ypq3nhz791kmd7": {
+  "statsId": "pl_83295007",
+  "teamId": "tm_91646",
+  "teamName": "Fenerbahçe",
+  "name": "Levent Mercan",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
