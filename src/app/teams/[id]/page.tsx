@@ -1595,16 +1595,25 @@ export default async function TeamPage({ params }: Props) {
                     const myProb = isHome ? wp.home : wp.away;
                     return (
                       <tr key={m.id} className="transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
-                        <td className="px-4 py-3 text-xs text-neutral-500 tabular-nums w-32">
-                          {m.startTime.toLocaleString("ko-KR", {
-                            month: "2-digit",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            timeZone: "Asia/Seoul",
-                          })}
+                        <td className="px-2 sm:px-4 py-3 text-xs text-neutral-500 tabular-nums whitespace-nowrap sm:w-32">
+                          {/* 모바일은 짧게(10/10 20:30) — 긴 표기가 좁은 칸에서 4줄로 깨졌다(2026-09-26) */}
+                          <span className="sm:hidden">
+                            {(() => {
+                              const k = new Date(m.startTime.getTime() + 9 * 3600_000);
+                              return `${k.getUTCMonth() + 1}/${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
+                            })()}
+                          </span>
+                          <span className="hidden sm:inline">
+                            {m.startTime.toLocaleString("ko-KR", {
+                              month: "2-digit",
+                              day: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              timeZone: "Asia/Seoul",
+                            })}
+                          </span>
                         </td>
-                        <td className="px-2 py-3 text-xs">
+                        <td className="px-1 sm:px-2 py-3 text-xs whitespace-nowrap">
                           <span className="text-neutral-400">{isHome ? "🏠 vs" : "✈ at"}</span>
                         </td>
                         <td className="px-2 py-3 font-medium">
@@ -1616,8 +1625,8 @@ export default async function TeamPage({ params }: Props) {
                             <span className="truncate">{toKoreanTeamName(opp.name, m.league)}</span>
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-right text-xs whitespace-nowrap">
-                          <span className="text-neutral-500">승률 추정 </span>
+                        <td className="px-2 sm:px-4 py-3 text-right text-xs whitespace-nowrap">
+                          <span className="hidden text-neutral-500 sm:inline">승률 추정 </span>
                           <strong>{Math.round(myProb * 100)}%</strong>
                           {/* 경기 상세(프리뷰·배당·라인업) 링크 — 최근 경기와 동일 아이콘 */}
                           <Link

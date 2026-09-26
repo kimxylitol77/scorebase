@@ -53,6 +53,23 @@ export default function Markdown({ children, disableAutoLink, selfHref }: Props)
             // eslint-disable-next-line @next/next/no-img-element
             return <img src={s} alt={alt ?? ""} loading="lazy" className="rounded-xl" />;
           },
+          // 표 — 모바일에서 화면 폭에 맞춰 열을 짜부라뜨리면 60px 칸에 문장이 16줄로 깨졌다(2026-09-26).
+          // 가로 스크롤 래퍼 + 칸 최소 폭 + 머리글 한 줄. GFM 정렬(style.textAlign)은 그대로 넘긴다.
+          table: ({ children }) => (
+            <div className="my-6 overflow-x-auto">
+              <table className="!my-0">{children}</table>
+            </div>
+          ),
+          th: ({ children, style }) => (
+            <th style={style} className="whitespace-nowrap">
+              {children}
+            </th>
+          ),
+          td: ({ children, style }) => (
+            <td style={style} className="min-w-[6.5em]">
+              {children}
+            </td>
+          ),
         }}
       >
         {processed}

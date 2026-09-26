@@ -94,7 +94,8 @@ return (
     <h2 className="text-sm font-bold text-neutral-900 dark:text-white">{title} <span className="text-neutral-400 font-normal">{rows.length}명</span></h2>
     {note && <p className="text-[11px] text-neutral-500">{note}</p>}
     <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-      <table className="w-full text-sm">
+      {/* min-w-max — 모바일에서 열을 짜부라뜨리지 않고 가로 스크롤("유격수"가 한 글자씩 세로로 깨졌다, 2026-09-26) */}
+      <table className="w-full min-w-max text-sm">
         <thead className="bg-neutral-50 text-[11px] text-neutral-500 dark:bg-white/[0.03]">
           <tr>
             <th className="px-3 py-2 text-left font-semibold">선수</th>

@@ -22,11 +22,11 @@ function PitcherRow({ p, days, hasPitchCounts }: { p: PitcherReport; days: strin
     <tr className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60">
       <td className="px-2 py-1.5">
         {p.href ? (
-          <Link href={p.href} className="font-medium text-neutral-800 hover:underline dark:text-neutral-100">{p.name}</Link>
+          <Link href={p.href} className="whitespace-nowrap font-medium text-neutral-800 hover:underline dark:text-neutral-100">{p.name}</Link>
         ) : (
-          <span className="font-medium text-neutral-800 dark:text-neutral-100">{p.name}</span>
+          <span className="whitespace-nowrap font-medium text-neutral-800 dark:text-neutral-100">{p.name}</span>
         )}
-        <div className="text-[10px] text-neutral-400">{p.note}</div>
+        <div className="whitespace-nowrap text-[10px] text-neutral-400">{p.note}</div>
       </td>
       {days.map((d) => {
         const u = byDate.get(d);
@@ -34,7 +34,7 @@ function PitcherRow({ p, days, hasPitchCounts }: { p: PitcherReport; days: strin
           <td key={d} className="px-1 py-1.5 text-center tabular-nums">
             {u ? (
               <span
-                className={`inline-block min-w-[30px] rounded px-1 py-0.5 text-[11px] font-semibold ${
+                className={`inline-block min-w-[30px] whitespace-nowrap rounded px-1 py-0.5 text-[11px] font-semibold ${
                   (u.er ?? 0) > 0 ? "bg-rose-500/10 text-rose-600 dark:text-rose-300" : "bg-neutral-100 text-neutral-700 dark:bg-white/[0.08] dark:text-neutral-200"
                 }`}
                 title={`${fmtInnings(u.innings)}이닝${u.tbf != null ? ` · ${u.tbf}타자` : ""}${u.er != null ? ` · 자책 ${u.er}` : ""}`}
@@ -86,7 +86,8 @@ function TeamBlock({ name, report }: { name: string; report: BullpenTeamReport |
         <p className="px-3 py-6 text-center text-sm text-neutral-500">최근 6일 구원 등판 기록이 없습니다.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-[12px]">
+          {/* min-w-max — 모바일에서 열을 짜부라뜨리지 않고 가로 스크롤(투수명이 한 글자씩 세로로 깨졌다, 2026-09-26) */}
+          <table className="w-full min-w-max text-[12px]">
             <thead>
               <tr className="border-b border-neutral-200 text-[10px] text-neutral-500 dark:border-neutral-800">
                 <th className="px-2 py-1.5 text-left font-medium">투수</th>

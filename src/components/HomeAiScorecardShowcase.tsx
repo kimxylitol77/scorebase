@@ -152,8 +152,8 @@ export default async function HomeAiScorecardShowcase() {
       </div>
 
       {graded.length >= 5 && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm dark:border-neutral-800 dark:bg-neutral-900/50">
-          <span className="text-neutral-500">같은 {graded.length}경기 적중률</span>
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm dark:border-neutral-800 dark:bg-neutral-900/50">
+          <span className="whitespace-nowrap text-neutral-500">같은 {graded.length}경기 적중률</span>
           <span className={`font-bold tabular-nums ${leader === "sb" ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-white/70"}`}>
             우리 {sbRate.toFixed(0)}%
           </span>

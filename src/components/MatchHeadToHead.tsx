@@ -248,8 +248,8 @@ export default function MatchHeadToHead(props: Props) {
           <div className="text-base font-black text-neutral-300 dark:text-neutral-700">
             VS
           </div>
-          <div className="text-[11px] text-neutral-500">상대전적</div>
-          <div className="text-[11px] text-neutral-500">최근 {h2hHome.results.length}경기</div>
+          <div className="whitespace-nowrap text-[11px] text-neutral-500">상대전적</div>
+          <div className="whitespace-nowrap text-[11px] text-neutral-500">최근 {h2hHome.results.length}경기</div>
         </div>
         <div className="text-center space-y-2">
           <Link

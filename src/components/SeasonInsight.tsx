@@ -201,11 +201,11 @@ export default async function SeasonInsight({ league }: Props) {
           {info.subtitle}
           {seasonLabel && ` · ${seasonLabel} 시즌`}
         </div>
-        <div className="mt-1 flex items-baseline justify-between">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+        <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 break-keep dark:text-white">
             {info.name} 인사이트
           </h2>
-          <div className="text-xs tabular-nums text-zinc-500 dark:text-white/45">
+          <div className="whitespace-nowrap text-xs tabular-nums text-zinc-500 dark:text-white/45">
             {isPreviousSeason && <span className="mr-1 text-amber-600 dark:text-amber-400">지난 시즌</span>}
             {finishedCount} / {totalRounds}경기 진행
           </div>

@@ -448,10 +448,10 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04] dark:text-neutral-400">
-                  <th className="px-3 py-2 font-medium">순위</th>
+                  <th className="whitespace-nowrap px-3 py-2 font-medium">순위</th>
                   <th className="px-3 py-2 font-medium">회원</th>
-                  <th className="px-3 py-2 text-right font-medium">적중</th>
-                  <th className="px-3 py-2 text-right font-medium">적중률</th>
+                  <th className="whitespace-nowrap px-3 py-2 text-right font-medium">적중</th>
+                  <th className="whitespace-nowrap px-3 py-2 text-right font-medium">적중률</th>
                 </tr>
               </thead>
               <tbody>

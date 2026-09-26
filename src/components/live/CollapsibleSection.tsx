@@ -34,15 +34,15 @@ export default function CollapsibleSection({
         >
           <path d="M6 4l4 4-4 4" />
         </svg>
-        <span className="text-sm sm:text-base font-black tracking-tight">
+        <span className="shrink-0 whitespace-nowrap text-sm sm:text-base font-black tracking-tight">
           {title}
         </span>
         {hint && (
-          <span className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate">
+          <span className="min-w-0 truncate text-[11px] text-neutral-400 dark:text-neutral-500">
             {hint}
           </span>
         )}
-        <span className="ml-auto text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
+        <span className="ml-auto shrink-0 whitespace-nowrap text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
           <span className="group-open:hidden">펼치기</span>
           <span className="hidden group-open:inline">접기</span>
         </span>

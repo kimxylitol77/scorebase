@@ -311,7 +311,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                           </div>
                         )}
                       </td>
-                      <td className="px-2 py-2.5 text-neutral-500">
+                      <td className="px-2 py-2.5 text-neutral-500 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
                           {teamLogo && (
                             // eslint-disable-next-line @next/next/no-img-element
