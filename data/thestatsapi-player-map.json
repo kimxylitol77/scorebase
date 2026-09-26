@@ -2773,12 +2773,12 @@
  },
  "dj2ryohj5x2q1zp": {
   "statsId": "pl_3824415",
-  "teamId": "tm_58813",
-  "teamName": "AS Monaco",
+  "teamId": "tm_52627",
+  "teamName": "AFC Ajax",
   "name": "Thilo Kehrer",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  },
  "k82rekhodok0rep": {
   "statsId": "pl_83062273",
@@ -11371,6 +11371,510 @@
   "teamId": "tm_10401",
   "teamName": "Sparta Rotterdam",
   "name": "Milan Zonneveld",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohnvg1wq1z": {
+  "statsId": "pl_83682544",
+  "teamId": "tm_63899",
+  "teamName": "ADO Den Haag",
+  "name": "Othniël Raterink",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohgx1j3q1z": {
+  "statsId": "pl_83496299",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Paul Wanner",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "1l4rjnhzwjdvm7v": {
+  "statsId": "pl_19470766",
+  "teamId": "tm_85290",
+  "teamName": "FC Utrecht",
+  "name": "Yoann Cathline",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1ghnl43xmoe": {
+  "statsId": "pl_96936778",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Casper Terho",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "23xmvkh4kdd5qg8": {
+  "statsId": "pl_97336929",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Nick Verschuren",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "zp5rzghp89oeq82": {
+  "statsId": "pl_97303177",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Clement Bischoff",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "2y8m4zh8ej2lql0": {
+  "statsId": "pl_13176351",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Ryan Flamingo",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "8yomo4h73k8q0j6": {
+  "statsId": "pl_598225",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Bryan Linssen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "965mkyhg4zxr1ge": {
+  "statsId": "pl_57379823",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Darko Nejašmić",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "jw2r09hw56vkrz8": {
+  "statsId": "pl_73077932",
+  "teamId": "tm_91047",
+  "teamName": "SC Telstar",
+  "name": "Jelani Seedorf",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohnj29kq1z": {
+  "statsId": "pl_97908024",
+  "teamId": "tm_10474",
+  "teamName": "SC Cambuur",
+  "name": "Iwan Henstra",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y39mp1hyxpezmoj": {
+  "statsId": "pl_36458856",
+  "teamId": "tm_38512",
+  "teamName": "Excelsior",
+  "name": "Aymen sliti",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "1l4rjnhxo72dm7v": {
+  "statsId": "pl_36206012",
+  "teamId": "tm_04732",
+  "teamName": "SC Heerenveen",
+  "name": "Nolhan courtens",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y39mp1h50wxmojx": {
+  "statsId": "pl_7432671",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Filip Bednarek",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "zp5rzghp1253q82": {
+  "statsId": "pl_40941297",
+  "teamId": "tm_52627",
+  "teamName": "AFC Ajax",
+  "name": "Anton Gaaei",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "zp5rzghpopkzq82": {
+  "statsId": "pl_25562639",
+  "teamId": "tm_10474",
+  "teamName": "SC Cambuur",
+  "name": "Billy van Duijl",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "x7lm7ph0jjwzm2w": {
+  "statsId": "pl_30352258",
+  "teamId": "tm_38581",
+  "teamName": "Fortuna Sittard",
+  "name": "Anthony Descotte",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "x7lm7phwny32m2w": {
+  "statsId": "pl_10398889",
+  "teamId": "tm_38512",
+  "teamName": "Excelsior",
+  "name": "Ágúst Orri Thorsteinsson",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jhg0vlwqwz": {
+  "statsId": "pl_74766943",
+  "teamId": "tm_52627",
+  "teamName": "AFC Ajax",
+  "name": "Aaron Bouwman",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1ghe586moep": {
+  "statsId": "pl_4609097",
+  "teamId": "tm_47976",
+  "teamName": "FC Twente",
+  "name": "Marko Pjaca",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "4wyrn4h4vwgwq86": {
+  "statsId": "pl_51646376",
+  "teamId": "tm_04732",
+  "teamName": "SC Heerenveen",
+  "name": "marcus linday",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "zp5rzghxpo3dq82": {
+  "statsId": "pl_25226055",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "kasper boogaard",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8gh8vx9zr6o": {
+  "statsId": "pl_25373362",
+  "teamId": "tm_79196",
+  "teamName": "Feyenoord",
+  "name": "Oussama Targhalline",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "n54qllhj2o5qvy9": {
+  "statsId": "pl_13089470",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Jamiro Monteiro",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8ghp5y11r6o": {
+  "statsId": "pl_20766567",
+  "teamId": "tm_79196",
+  "teamName": "Feyenoord",
+  "name": "Gaoussou Kyassou Diarra",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y39mp1hy01gmojx": {
+  "statsId": "pl_29665792",
+  "teamId": "tm_52627",
+  "teamName": "AFC Ajax",
+  "name": "Kasper Dolberg",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "318q66hjx51dqo9": {
+  "statsId": "pl_01055485",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Eser Gürbüz",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "pxwrxlh989keryk": {
+  "statsId": "pl_13178369",
+  "teamId": "tm_47976",
+  "teamName": "FC Twente",
+  "name": "Daan Rots",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohne54kq1z": {
+  "statsId": "pl_02385074",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Per van Loon",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "8yomo4h2z888q0j": {
+  "statsId": "pl_84605626",
+  "teamId": "tm_38581",
+  "teamName": "Fortuna Sittard",
+  "name": "Ole Romeny",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "4jwq2gh17gkm0ve": {
+  "statsId": "pl_13607936",
+  "teamId": "tm_10458",
+  "teamName": "AZ Alkmaar",
+  "name": "Calvin Stengs",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "6ypq3nhz757vmd7": {
+  "statsId": "pl_57938845",
+  "teamId": "tm_58884",
+  "teamName": "Lille",
+  "name": "Ayase Ueda",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jh36gx3qwz": {
+  "statsId": "pl_62582814",
+  "teamId": "tm_38512",
+  "teamName": "Excelsior",
+  "name": "Eric da Silva Moreira",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "965mkyhe6yn4r1g": {
+  "statsId": "pl_89860773",
+  "teamId": "tm_10474",
+  "teamName": "SC Cambuur",
+  "name": "Fabian Kvam",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "4wyrn4hdld80q86": {
+  "statsId": "pl_29176536",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Sven Mijnans",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "6ypq3nhz49wnmd7": {
+  "statsId": "pl_61029158",
+  "teamId": "tm_38581",
+  "teamName": "Fortuna Sittard",
+  "name": "Syb Van Ottele",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "x7lm7phwvwxem2w": {
+  "statsId": "pl_97660202",
+  "teamId": "tm_26389",
+  "teamName": "PEC Zwolle",
+  "name": "Ibrahim Cissoko",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jhekw75qwz": {
+  "statsId": "pl_61659504",
+  "teamId": "tm_85290",
+  "teamName": "FC Utrecht",
+  "name": "Guus Offerhaus",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "318q66hv6x67qo9": {
+  "statsId": "pl_08594011",
+  "teamId": "tm_52627",
+  "teamName": "AFC Ajax",
+  "name": "Tolu Arokodare",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "3glrw7hzgp8vqdy": {
+  "statsId": "pl_64954449",
+  "teamId": "tm_52627",
+  "teamName": "AFC Ajax",
+  "name": "Abdellah Ouazane",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "x7lm7ph097gm2wd": {
+  "statsId": "pl_3867285",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Michael Brouwer",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "23xmvkhd9xyjqg8": {
+  "statsId": "pl_45291871",
+  "teamId": "tm_85290",
+  "teamName": "FC Utrecht",
+  "name": "Nikolas Panagiotou",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jh1gxlqwzv": {
+  "statsId": "pl_72595414",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Lutsharel Geertruida",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "l7oqdeh0lvnpr51": {
+  "statsId": "pl_40085005",
+  "teamId": "tm_85290",
+  "teamName": "FC Utrecht",
+  "name": "Adrian Blake",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "l5ergphox7kr8k0": {
+  "statsId": "pl_1338973",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Bram Nuytinck",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "jw2r09hn3jvrz84": {
+  "statsId": "pl_7496456",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Tonny Vilhena",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "3glrw7hynj40qdy": {
+  "statsId": "pl_58881948",
+  "teamId": "tm_79196",
+  "teamName": "Feyenoord",
+  "name": "Nacho Ferri",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "zp5rzgh7jl6q82w": {
+  "statsId": "pl_1379347",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Jens Toornstra",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "jw2r09h1jpyrz84": {
+  "statsId": "pl_30188550",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Kaj Sierhuis",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "318q66hvx150qo9": {
+  "statsId": "pl_61618992",
+  "teamId": "tm_38581",
+  "teamName": "Fortuna Sittard",
+  "name": "Yassin Oukili",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "pxwrxlhzdjpryk0": {
+  "statsId": "pl_84038525",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Alessandro Ciranni",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8ghpk27r6od": {
+  "statsId": "pl_61986666",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Justin Hoogma",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "965mkyh3ok3nr1g": {
+  "statsId": "pl_84730876",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Nikolas Polster",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "23xmvkhk2xlkqg8": {
+  "statsId": "pl_19743180",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Almugera Kabar",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "l5ergphe4vvyr8k": {
+  "statsId": "pl_36037458",
+  "teamId": "tm_91026",
+  "teamName": "NEC Nijmegen",
+  "name": "Deveron Fonville",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "2y8m4zhz95egql0": {
+  "statsId": "pl_63130511",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Robin van Cruijsen",
   "competitionId": "comp_3809",
   "seasonId": "sn_5744954",
   "seasonLabel": "2026-27 EREDIVISIE"
