@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import { MARKET_LABEL, VOTE_MARKETS, aiPickOf, pickLabel, type VoteMarket } from "@/lib/vote-markets";
 
 const kst = (d: Date) => {
@@ -16,7 +17,7 @@ export async function buildPickShareText(matchId: number, userId: string): Promi
     prisma.match.findUnique({
       where: { id: matchId },
       select: {
-        id: true, league: true, startTime: true, status: true,
+        id: true, league: true, externalId: true, startTime: true, status: true,
         predHome: true, predDraw: true, predAway: true, predHcPick: true, predHcProb: true, predOverPick: true, predOverProb: true,
         homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
       },
@@ -52,7 +53,7 @@ export async function buildPickShareText(matchId: number, userId: string): Promi
     "",
     "",
     "통계 모델 기반 참고용 정보이며 베팅을 권유하지 않습니다.",
-    `경기 보기 → https://www.scorebase.kr/live/${match.league.toLowerCase()}/${match.id}`,
+    `경기 보기 → https://www.scorebase.kr${matchLiveHref(match.league, match.externalId, match.id)}`,
   ].join("\n");
   return { title: `[승부예측] ${home} vs ${away} — ${summary.join(" · ")}`.slice(0, 90), content };
 }

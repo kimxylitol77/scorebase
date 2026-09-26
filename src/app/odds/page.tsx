@@ -14,6 +14,7 @@ import {
   MMA_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import NoVigCalculator from "@/components/odds/NoVigCalculator";
 import BetmanOddsPanel from "@/components/odds/BetmanOddsPanel";
 import BetmanRoundBar from "@/components/odds/BetmanRoundBar";
@@ -222,6 +223,7 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
       return {
         id: m.id,
         league: m.league,
+        href: matchLiveHref(m.league, m.externalId, m.id),
         status: m.status,
         startTime: kickoff,
         homeKo: toKoreanTeamName(m.homeTeam.name, m.league),
@@ -272,7 +274,7 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
 function getFlowMatchesCached(sport: Sport): Promise<FlowMatch[]> {
   return unstable_cache(
     () => buildFlowMatches(sport),
-    ["odds-flow-matches", sport],
+    ["odds-flow-matches-v2", sport],
     { revalidate: 120 },
   )();
 }

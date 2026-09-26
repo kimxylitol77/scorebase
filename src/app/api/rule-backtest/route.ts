@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { getCurrentUserId } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import { buildRuleFeatures, ruleFeatureToTuple, type RuleFeatureTuple, type RuleMatchInput } from "@/lib/predict/rule-system";
 
 export const runtime = "nodejs";
@@ -37,7 +38,7 @@ const MATCH_SELECT = {
 const BASEBALL = new Set(["KBO", "NPB", "MLB"]);
 function matchHref(m: { id: number; league: string; externalId: string | null }): string {
   if (BASEBALL.has(m.league)) return m.externalId && /^\d+$/.test(m.externalId) ? `/live/${m.league.toLowerCase()}/${m.externalId}` : `/leagues/${m.league}`;
-  return `/live/${m.league.toLowerCase()}/${m.id}`;
+  return m.externalId ? matchLiveHref(m.league, m.externalId, m.id) : `/leagues/${m.league}`;
 }
 
 export async function GET(req: NextRequest) {

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import TeamBadge from "@/components/TeamBadge";
 import CollapsibleSection from "@/components/live/CollapsibleSection";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 import {
   basketballSeasonLabelFromStart,
   basketballSeasonStartYear,
@@ -106,7 +107,7 @@ function renderGroups(matches: Row[], displayLeague: string) {
               );
               // 서머리그는 전용 라이브 라우트가 없어 링크 미연결. 정규 경기만 상세로.
               return m.externalId && !isSummer ? (
-                <Link key={m.id} href={`/live/${displayLeague.toLowerCase()}/${m.externalId}`} prefetch={false} className="block hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition">
+                <Link key={m.id} href={matchLiveHref(displayLeague, m.externalId)} prefetch={false} className="block hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition">
                   {inner}
                 </Link>
               ) : (

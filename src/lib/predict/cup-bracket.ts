@@ -20,6 +20,8 @@ export interface CupTeam {
 
 export interface CupLeg {
   matchId: number;
+  /** 경기 상세 링크용 — /live 라우트는 내부 id 가 아니라 externalId 로 찾는다(내부 id 링크는 404). */
+  externalId: string;
   startTime: Date;
   status: string;
   homeTeamId: number;
@@ -177,6 +179,7 @@ export function buildCupBracket(matches: MatchWithTeams[]): CupRound[] {
     const pen = raw.score?.penalty;
     tie.legs.push({
       matchId: m.id,
+      externalId: m.externalId,
       startTime: m.startTime,
       status: m.status,
       homeTeamId: m.homeTeamId,

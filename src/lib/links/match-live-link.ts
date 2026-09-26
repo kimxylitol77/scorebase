@@ -11,7 +11,9 @@ const BASEBALL_SELF_ROUTE = new Set(["KBO", "NPB", "MLB"]);
  * `/live/{대문자}` 로 나가는데, 동적 라우트의 지원 리그 집합에 e스포츠가 없어 404 가 된다.
  * 리그 이름을 나열하지 말고 LOL_LEAGUES 집합으로 판정해야 리그가 늘어도 링크가 안 끊긴다.
  */
-export function matchLiveHref(league: string, externalId: string): string {
+export function matchLiveHref(league: string, externalId: string, matchId?: number): string {
+  // UFC 라우트만 Match.id(숫자)로 찾는다 — externalId(hash)는 404 (sitemap-entries 와 같은 규칙).
+  if (league === "UFC" && matchId != null) return `/live/ufc/${matchId}`;
   if (BASEBALL_SELF_ROUTE.has(league)) return `/live/${league.toLowerCase()}/${externalId}`;
   if (LOL_LEAGUES.has(league)) return `/live/lol/${externalId}`;
   return `/live/${league}/${externalId}`;

@@ -67,6 +67,8 @@ function NestedTeamLink({ id, className, children }: { id: number | null; classN
 export type FlowMatch = {
   id: number;
   league: string;
+  /** 경기 상세 경로 — matchLiveHref(league, externalId). 내부 id 로 만들면 404 라 서버에서 정한다. */
+  href: string;
   status: string;
   startTime: number;
   homeKo: string;
@@ -732,7 +734,7 @@ function OddsRadarTable({
                             <Detail m={m} sport={sport} hasDraw={hasDraw} />
                             <div className="flex items-center justify-between gap-3 px-3 pb-3 pt-2 text-[11px] text-neutral-400">
                               <span suppressHydrationWarning>{relativeTime(m.lastUpdatedAt)} · {m.books.length}개 업체</span>
-                              <Link href={`/live/${m.league.toLowerCase()}/${m.id}`} className="font-medium hover:text-neutral-700 dark:hover:text-neutral-200">
+                              <Link href={m.href} className="font-medium hover:text-neutral-700 dark:hover:text-neutral-200">
                                 경기 상세 보기
                               </Link>
                             </div>
@@ -793,7 +795,7 @@ function OddsRadarTable({
                   <Detail m={m} sport={sport} hasDraw={hasDraw} />
                   <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-2 text-[11px] text-neutral-400">
                     <span suppressHydrationWarning>{relativeTime(m.lastUpdatedAt)} · {m.books.length}개 업체</span>
-                    <Link href={`/live/${m.league.toLowerCase()}/${m.id}`} className="font-medium">경기 상세 보기</Link>
+                    <Link href={m.href} className="font-medium">경기 상세 보기</Link>
                   </div>
                 </div>
               )}
@@ -1042,7 +1044,7 @@ function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw:
           <div className="px-3 pb-3 pt-1">
             <div suppressHydrationWarning className="mb-2 text-[11px] text-neutral-400">{relativeTime(m.lastUpdatedAt)} · 최고 배당은 초록색으로 표시됩니다.</div>
             <Link
-              href={`/live/${m.league.toLowerCase()}/${m.id}`}
+              href={m.href}
               className="text-[12px] text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
             >
               이 경기 자세히 보기 — 승·무·패 변동 + 업체별 배당 →

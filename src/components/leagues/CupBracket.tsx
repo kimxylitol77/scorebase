@@ -4,6 +4,7 @@
 import Link from "next/link";
 import type { CupRound, CupTie } from "@/lib/predict/cup-bracket";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 export default function CupBracket({
   rounds,
@@ -161,7 +162,7 @@ function TieFooter({ tie, league }: { tie: CupTie; league: string }) {
         {twoLeg && ` · ${tie.legs.length}차전 합산`}
       </span>
       <Link
-        href={`/live/${league}/${first.matchId}`}
+        href={matchLiveHref(league, first.externalId)}
         className="hover:text-rose-500 transition-colors"
       >
         경기 →
