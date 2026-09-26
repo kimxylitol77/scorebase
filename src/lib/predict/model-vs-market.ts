@@ -5,6 +5,8 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { ACCURACY_LEAGUES } from "@/lib/predict/accuracy-stats";
 import { isSaneOdds, settleFlatUnits, type FlatBet } from "@/lib/predict/flat-roi";
+import { getSportProfile } from "@/lib/predict/markets";
+import { hcBetOf, ouBetOf } from "@/lib/predict/market-roi";
 
 export interface HeadToHeadLeagueRow {
   league: string;
@@ -210,6 +212,71 @@ export const flatUnitRoiStats = unstable_cache(computeFlatUnitRoiStats, ["flat-u
   revalidate: 3600,
   tags: ["flat-unit-roi"],
 });
+
+export type RoiMarket = "1X2" | "HANDICAP" | "OU";
+
+export interface MarketRoiStat {
+  markets: Record<RoiMarket, { all: RoiWindow; d30: RoiWindow }>;
+  asOf: string;
+}
+
+/**
+ * 마켓별 모델 픽 수익률 — /predictions/accuracy·/value-bets 배지. 승부(1X2)는 flatUnitRoiStats 값을
+ * 그대로 쓰고(같은 캐시라 두 섹션 숫자가 안 갈린다), 핸디캡·오버언더는 킥오프 직전 저장 배당 중
+ * 시장 기준선이 모델 기준선과 같은 경기만 정산한다(market-roi.ts). 표본 게이트는 화면이 정한다.
+ */
+async function computeMarketRoiStats(): Promise<MarketRoiStat | null> {
+  const flat = await flatUnitRoiStats();
+  const ms = await prisma.match.findMany({
+    where: {
+      league: { in: [...ACCURACY_LEAGUES] },
+      status: "FINISHED",
+      homeScore: { not: null },
+      awayScore: { not: null },
+      OR: [
+        { predOverPick: { not: null }, oddsTotalLine: { not: null } },
+        { predHcPick: { not: null }, oddsHcLine: { not: null } },
+      ],
+    },
+    select: {
+      league: true, startTime: true, homeScore: true, awayScore: true,
+      predOverPick: true, predHcPick: true, predHcLine: true,
+      oddsTotalLine: true, oddsOver: true, oddsUnder: true,
+      oddsHcLine: true, oddsHcHome: true, oddsHcAway: true, oddsBookmakers: true,
+    },
+  });
+  const d30Cut = Date.now() - 30 * 86400_000;
+  const bets = { HANDICAP: { all: [] as FlatBet[], d30: [] as FlatBet[] }, OU: { all: [] as FlatBet[], d30: [] as FlatBet[] } };
+  for (const m of ms) {
+    const src = { ...m, homeScore: m.homeScore!, awayScore: m.awayScore! };
+    const recent = m.startTime.getTime() >= d30Cut;
+    const ou = ouBetOf(src, getSportProfile(m.league)?.overLine);
+    const hc = hcBetOf(src);
+    if (ou) { bets.OU.all.push(ou); if (recent) bets.OU.d30.push(ou); }
+    if (hc) { bets.HANDICAP.all.push(hc); if (recent) bets.HANDICAP.d30.push(hc); }
+  }
+  const win = (b: FlatBet[]): RoiWindow => {
+    const s = settleFlatUnits(b);
+    return { evaluated: s.evaluated, wins: s.wins, units: s.units, roi: s.roi };
+  };
+  const empty: RoiWindow = { evaluated: 0, wins: 0, units: 0, roi: 0 };
+  return {
+    markets: {
+      "1X2": flat ? flat.model : { all: empty, d30: empty },
+      HANDICAP: { all: win(bets.HANDICAP.all), d30: win(bets.HANDICAP.d30) },
+      OU: { all: win(bets.OU.all), d30: win(bets.OU.d30) },
+    },
+    asOf: new Date().toISOString(),
+  };
+}
+
+export const marketRoiStats = unstable_cache(computeMarketRoiStats, ["market-roi"], {
+  revalidate: 3600,
+  tags: ["flat-unit-roi"],
+});
+
+/** 마켓 배지를 수익률로 말하는 최소 표본 — 미달이면 숫자 대신 "표본 N경기 · 집계 중". */
+export const MARKET_ROI_MIN_SAMPLE = 100;
 
 /** 홈 히어로·meta 가 수익률 주장을 내보내는 최소 표본 — accuracy 페이지 섹션 게이트(100)와 같은 값. */
 export const ROI_CLAIM_MIN_SAMPLE = 100;

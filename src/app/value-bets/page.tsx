@@ -14,6 +14,8 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
 import { matchLiveHref } from "@/lib/links/match-live-link";
 import ValueBetList from "@/components/value-bets/ValueBetList";
+import MarketRoiBadges from "@/components/predictions/MarketRoiBadges";
+import { marketRoiStats } from "@/lib/predict/model-vs-market";
 
 export const revalidate = 60; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
@@ -185,7 +187,7 @@ function sideLabel(side: "HOME" | "DRAW" | "AWAY", home: string, away: string): 
 }
 
 export default async function ValueBetsPage() {
-  const bets = await fetchValueBets();
+  const [bets, marketRoi] = await Promise.all([fetchValueBets(), marketRoiStats().catch(() => null)]);
 
   return (
     <main className="relative mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
@@ -210,6 +212,15 @@ export default async function ValueBetsPage() {
           ⓘ 베팅 권유 X — 모델 cross-check 용. 종료된 매치는 적중률 보드 별도 페이지에서.
         </div>
       </header>
+
+      {marketRoi && (
+        <section aria-labelledby="market-roi-h">
+          <h2 id="market-roi-h" className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+            이 마켓, 모델 픽을 믿어도 될까 — 마켓별 누적 수익률
+          </h2>
+          <MarketRoiBadges data={marketRoi} linkToBoard />
+        </section>
+      )}
 
       {bets.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center dark:border-white/10 dark:bg-white/[0.02]">

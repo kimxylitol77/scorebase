@@ -25,6 +25,8 @@ import {
 import {
   headToHeadStats,
   flatUnitRoiStats,
+  marketRoiStats,
+  type MarketRoiStat,
   type HeadToHeadStat,
   type FlatUnitRoiStat,
 } from "@/lib/predict/model-vs-market";
@@ -32,6 +34,7 @@ import { oddsBandStats, type OddsBandStats } from "@/lib/predict/odds-band-stats
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { koEnLanguages } from "@/lib/i18n/en";
 import RoiCard from "@/components/predictions/RoiCard";
+import MarketRoiBadges from "@/components/predictions/MarketRoiBadges";
 import { fmtRoiPct } from "@/lib/predict/flat-roi";
 import { jsonLdScript } from "@/lib/seo/jsonld";
 
@@ -257,7 +260,7 @@ async function reliabilitySeries(): Promise<{
 }
 
 export default async function AccuracyPage() {
-  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi, oddsBand] = await Promise.all([
+  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi, oddsBand, marketRoi] = await Promise.all([
     Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
     valueBetStats(),
     cumulativeAccuracySeries(),
@@ -265,6 +268,7 @@ export default async function AccuracyPage() {
     headToHeadStats(),
     flatUnitRoiStats(),
     oddsBandStats().catch(() => null),
+    marketRoiStats().catch(() => null),
   ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
@@ -510,7 +514,7 @@ export default async function AccuracyPage() {
       )}
 
       {/* 플랫 유닛 ROI — 실배당(vig 포함) 후행 시뮬레이션 */}
-      {flatRoi && flatRoi.model.all.evaluated >= 100 && <FlatRoiSection data={flatRoi} />}
+      {flatRoi && flatRoi.model.all.evaluated >= 100 && <FlatRoiSection data={flatRoi} marketRoi={marketRoi} />}
 
       {/* 인기픽 배당 구간별 성적 + 리그별 인기픽 적중률 — "낮은 배당이 얼마나 맞나" 를 종목·리그별로 */}
       {oddsBand && oddsBand.evaluated >= 100 && <OddsBandSection data={oddsBand} />}
@@ -774,7 +778,7 @@ function OddsBandSection({ data }: { data: OddsBandStats }) {
   );
 }
 
-function FlatRoiSection({ data }: { data: FlatUnitRoiStat }) {
+function FlatRoiSection({ data, marketRoi }: { data: FlatUnitRoiStat; marketRoi: MarketRoiStat | null }) {
   const rows = data.leagues.filter((l) => l.evaluated >= ROI_LEAGUE_MIN);
   const edge = data.model.all.roi - data.marketFav.all.roi;
   // 카드는 공용 RoiCard(/picks/me·/lab 과 동일) — 회원 픽·봇 백테스트가 모델과 같은 잣대임을 같은 모양으로 보인다.
@@ -807,6 +811,12 @@ function FlatRoiSection({ data }: { data: FlatUnitRoiStat }) {
           <p className="text-[11px] text-neutral-500 mt-1">동일 표본 · 동일 배당 기준</p>
         </div>
       </div>
+      {marketRoi && (
+        <div id="market-roi" className="mb-4 scroll-mt-24">
+          <h3 className="mb-2 text-sm font-semibold">마켓별 모델 수익률</h3>
+          <MarketRoiBadges data={marketRoi} />
+        </div>
+      )}
       {rows.length > 0 && (
         <p className="text-[11px] text-neutral-500 break-keep">
           리그 구성 (표본 {ROI_LEAGUE_MIN}경기 이상):{" "}
