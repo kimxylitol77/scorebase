@@ -6538,9 +6538,9 @@
   "teamId": "tm_79214",
   "teamName": "Sporting Braga",
   "name": "Jovan Milosevic",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
  },
  "1l4rjnhz4l37m7v": {
   "statsId": "pl_72662193",
@@ -11878,5 +11878,518 @@
   "competitionId": "comp_3809",
   "seasonId": "sn_5744954",
   "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "jw2r09hjn4d8rz8": {
+  "statsId": "pl_01812575",
+  "teamId": "tm_26936",
+  "teamName": "Sporting",
+  "name": "Sergi Altimira",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "x7lm7phod4w4m2w": {
+  "statsId": "pl_13753146",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Leandro Barreiro",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "ednm9whvlp82ryo": {
+  "statsId": "pl_36013846",
+  "teamId": "tm_91602",
+  "teamName": "FC Porto",
+  "name": "Alberto Costa",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "4jwq2ghv6n71m0v": {
+  "statsId": "pl_72614742",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Georgios Liavas",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "6ypq3nhzk13xmd7": {
+  "statsId": "pl_57917692",
+  "teamId": "tm_79214",
+  "teamName": "Sporting Braga",
+  "name": "Gustaf Lagerbielke",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "gpxwrxlh8v6ryk0": {
+  "statsId": "pl_960006",
+  "teamId": "tm_79214",
+  "teamName": "Sporting Braga",
+  "name": "João Moutinho",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "zp5rzghp9y5gq82": {
+  "statsId": "pl_58628313",
+  "teamId": "tm_487248",
+  "teamName": "Casa Pia",
+  "name": "Pedro Silva Rosas",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "8yomo4hv2d57q0j": {
+  "statsId": "pl_97604720",
+  "teamId": "tm_26936",
+  "teamName": "Sporting",
+  "name": "Zeno Debast",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "dj2ryohjz901q1z": {
+  "statsId": "pl_61610389",
+  "teamId": "tm_8932260",
+  "teamName": "FC Alverca",
+  "name": "Francisco Chiquinho",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "zp5rzghp10k1q82": {
+  "statsId": "pl_74176497",
+  "teamId": "tm_17364",
+  "teamName": "Estoril Praia",
+  "name": "Andre Filipe Ferreira Lacximicant",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "2y8m4zh8p55pql0": {
+  "statsId": "pl_58791457",
+  "teamId": "tm_79223",
+  "teamName": "Vitória SC",
+  "name": "Lohann Doucet",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "k82rekhoew8yrep": {
+  "statsId": "pl_58847458",
+  "teamId": "tm_04880",
+  "teamName": "Moreirense",
+  "name": "Manuel Mendonça",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "pxwrxlhv9j8ryk0": {
+  "statsId": "pl_61945206",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Alexander Bah",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "y39mp1h1d7gemoj": {
+  "statsId": "pl_15804884",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Gustavo Mancha",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "jw2r09hjp8y8rz8": {
+  "statsId": "pl_61063358",
+  "teamId": "tm_10330",
+  "teamName": "Gil Vicente",
+  "name": "Andreas Lausen",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "n54qllhx5lgjqvy": {
+  "statsId": "pl_57365311",
+  "teamId": "tm_446779",
+  "teamName": "MAS de Fès",
+  "name": "Diogo Calila",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "2y8m4zhgyl3ql07": {
+  "statsId": "pl_9462681",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "João Palhinha",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "x7lm7phwoy8vm2w": {
+  "statsId": "pl_29152676",
+  "teamId": "tm_52779",
+  "teamName": "CD Nacional",
+  "name": "Williams Kokolo",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "dj2ryohn3kvlq1z": {
+  "statsId": "pl_46762922",
+  "teamId": "tm_91673",
+  "teamName": "Académico Viseu FC",
+  "name": "Lorougnon Gohi",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "6ypq3nhz4yd6md7": {
+  "statsId": "pl_45200461",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Roland Galcik",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "965mkyh372o2r1g": {
+  "statsId": "pl_08931041",
+  "teamId": "tm_17364",
+  "teamName": "Estoril Praia",
+  "name": "Jordan Holsgrove",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "318q66h77pnqo9j": {
+  "statsId": "pl_72047276",
+  "teamId": "tm_8932260",
+  "teamName": "FC Alverca",
+  "name": "Nabil Touaizi",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "23xmvkhkdp0zqg8": {
+  "statsId": "pl_97023700",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Andreas Schjelderup",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "23xmvkhd84jwqg8": {
+  "statsId": "pl_13870605",
+  "teamId": "tm_91602",
+  "teamName": "FC Porto",
+  "name": "Zaidu Sanusi",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "x7lm7phwlp0gm2w": {
+  "statsId": "pl_74612703",
+  "teamId": "tm_10330",
+  "teamName": "Gil Vicente",
+  "name": "David Moreira",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "dj2ryohn4e7q1zp": {
+  "statsId": "pl_13011533",
+  "teamId": "tm_17364",
+  "teamName": "Estoril Praia",
+  "name": "Rafik Guitane",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "4jwq2gh75k97m0v": {
+  "statsId": "pl_89526524",
+  "teamId": "tm_487248",
+  "teamName": "Casa Pia",
+  "name": "Domingos José Gabriel Bandeira",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "1l4rjnhkdkym7vx": {
+  "statsId": "pl_61913548",
+  "teamId": "tm_216266",
+  "teamName": "Famalicão",
+  "name": "Tom Van De Looi",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "965mkyh3yp6lr1g": {
+  "statsId": "pl_96339297",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Diogo Nascimento",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "6ypq3nhz3k40md7": {
+  "statsId": "pl_62845396",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Enzo Barrenechea",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "8yomo4h26vg3q0j": {
+  "statsId": "pl_57579825",
+  "teamId": "tm_91673",
+  "teamName": "Académico Viseu FC",
+  "name": "Alvaro Zamora",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "n54qllh8oyjoqvy": {
+  "statsId": "pl_62155312",
+  "teamId": "tm_04880",
+  "teamName": "Moreirense",
+  "name": "Mateja Stjepanović",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "l5ergphed32dr8k": {
+  "statsId": "pl_58653138",
+  "teamId": "tm_8932260",
+  "teamName": "FC Alverca",
+  "name": "Diogo Spencer",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "ednm9whz7llpryo": {
+  "statsId": "pl_96339137",
+  "teamId": "tm_373760",
+  "teamName": "FC Arouca",
+  "name": "Pablo Gozálbez",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "zp5rzghzx32vq82": {
+  "statsId": "pl_19447458",
+  "teamId": "tm_487248",
+  "teamName": "Casa Pia",
+  "name": "Ivan Mandic",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "vjxm8ghxj5gr6od": {
+  "statsId": "pl_61945592",
+  "teamId": "tm_487248",
+  "teamName": "Casa Pia",
+  "name": "Abdu Conte",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "pxwrxlh9ykklryk": {
+  "statsId": "pl_96391001",
+  "teamId": "tm_79214",
+  "teamName": "Sporting Braga",
+  "name": "Adrian Bajrami",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "dn1m1ghnp576moe": {
+  "statsId": "pl_29181150",
+  "teamId": "tm_26936",
+  "teamName": "Sporting",
+  "name": "Eduardo Quaresma",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "3glrw7hy313kqdy": {
+  "statsId": "pl_19307108",
+  "teamId": "tm_216266",
+  "teamName": "Famalicão",
+  "name": "Tamás Szűcs",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "23xmvkhk0v69qg8": {
+  "statsId": "pl_83494384",
+  "teamId": "tm_79214",
+  "teamName": "Sporting Braga",
+  "name": "Diogo Martins Travassos",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "8yomo4hvn08jq0j": {
+  "statsId": "pl_62222262",
+  "teamId": "tm_216266",
+  "teamName": "Famalicão",
+  "name": "Roméo Beney",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "y0or5jh3k3l9qwz": {
+  "statsId": "pl_30424403",
+  "teamId": "tm_83625",
+  "teamName": "Santos Laguna",
+  "name": "Facundo Cáseres",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "965mkyh3y307r1g": {
+  "statsId": "pl_72606949",
+  "teamId": "tm_52779",
+  "teamName": "CD Nacional",
+  "name": "Matchoi Djaló",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "x7lm7ph07115m2w": {
+  "statsId": "pl_84764947",
+  "teamId": "tm_91602",
+  "teamName": "FC Porto",
+  "name": "Francisco Moura",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "4wyrn4hdo7e5q86": {
+  "statsId": "pl_97643438",
+  "teamId": "tm_26936",
+  "teamName": "Sporting",
+  "name": "Georgios Vagiannidis",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "dn1m1gh89jjmoep": {
+  "statsId": "pl_30100770",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Pedro Amaral",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "965mkyhnz065r1g": {
+  "statsId": "pl_73027241",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Daniel Banjaqui",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "l5ergphny2pr8k0": {
+  "statsId": "pl_08400754",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Dario Špikić",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "l5ergphvwn6xr8k": {
+  "statsId": "pl_30446836",
+  "teamId": "tm_91602",
+  "teamName": "FC Porto",
+  "name": "Borja Sainz",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "zp5rzghx702kq82": {
+  "statsId": "pl_97343041",
+  "teamId": "tm_487248",
+  "teamName": "Casa Pia",
+  "name": "Benjamin Pauwels",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "l5ergphv28e1r8k": {
+  "statsId": "pl_72002121",
+  "teamId": "tm_91673",
+  "teamName": "Académico Viseu FC",
+  "name": "Andre Ceitil",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "k82rekho61kerep": {
+  "statsId": "pl_58773395",
+  "teamId": "tm_91673",
+  "teamName": "Académico Viseu FC",
+  "name": "Igor Milioransa",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "vjxm8ghj4k3r6od": {
+  "statsId": "pl_0255115",
+  "teamId": "tm_63118",
+  "teamName": "Benfica",
+  "name": "Fredrik Aursnes",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "2y8m4zh8wj47ql0": {
+  "statsId": "pl_36078038",
+  "teamId": "tm_26936",
+  "teamName": "Sporting",
+  "name": "Nestory Irankunda",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "23xmvkhkd60vqg8": {
+  "statsId": "pl_01538048",
+  "teamId": "tm_373760",
+  "teamName": "FC Arouca",
+  "name": "Dylan Nandín",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "1l4rjnhzjw6ym7v": {
+  "statsId": "pl_7245764",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Welinton",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
+ },
+ "8yomo4hv285nq0j": {
+  "statsId": "pl_36550317",
+  "teamId": "tm_63134",
+  "teamName": "Rio Ave",
+  "name": "Malik Sellouki",
+  "competitionId": "comp_8385",
+  "seasonId": "sn_6190962",
+  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
  }
 }
