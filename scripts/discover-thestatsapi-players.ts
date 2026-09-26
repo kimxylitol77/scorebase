@@ -142,7 +142,9 @@ async function main() {
   for (const r of rows) {
     const prev = out[r.id];
     if (prev?.seasonId === COMP.seasonId) { console.log(`  = ${r.name} (기존 매핑)`); continue; }
-    if (prev) {
+    // 시즌만 바뀐 같은 리그일 때만 콜 없이 갈아끼운다. 리그가 바뀌었으면(이적·강등) 팀 id 가 옛 팀으로
+    // 남아 새 리그 경기 목록이 비므로 다시 검색한다(2026-09-26 볼테마데 세리에A 라벨 + 뉴캐슬 팀 10명).
+    if (prev && prev.seasonLabel.split(" ").slice(1).join(" ") === argLeague) {
       out[r.id] = { ...prev, ...COMP };
       reseasoned++;
       console.log(`  ↻ ${r.name} — 시즌 교체 ${COMP.seasonLabel}`);
