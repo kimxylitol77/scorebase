@@ -54,6 +54,41 @@ export function buildCardsByHeading(d: BaseballWeeklyReviewData): Map<string, st
   return out;
 }
 
+const PLAYER_KIND_KO: Record<string, string> = { mvp: "이주의 선수 — 주간 최고 타자·투수", hitters: "주간 타자 TOP 10 OPS·타율·홈런·타점", pitchers: "주간 투수 TOP 8 평균자책점·이닝·탈삼진" };
+
+/** 주간 선수 카드(api/og/baseball-weekly-card) markdown — endKst 는 창 종료일(KST). */
+export function playerCardMd(league: string, endKst: string, kind: "mvp" | "hitters" | "pitchers"): string {
+  const lg = LEAGUE_LABEL[league] ?? league;
+  const p = new URLSearchParams({ league, end: endKst, kind });
+  return `![${lg} ${PLAYER_KIND_KO[kind]} ${endKst}](${SITE_URL}/api/og/baseball-weekly-card?${p.toString()})`;
+}
+
+/**
+ * 선수 카드 삽입 — "이번 주 핫이슈" 아래 이주의 선수, "팀 타격·투구 지표" 아래 타자·투수 TOP.
+ * 순위 카드가 같은 헤딩에 이미 붙어 있으면 그 뒤에 온다. 헤딩이 없으면 글 끝에.
+ */
+export function insertPlayerCards(content: string, league: string, endKst: string): string {
+  const blocks: [string, string][] = [
+    ["이번 주 핫이슈", playerCardMd(league, endKst, "mvp")],
+    ["팀 타격·투구 지표", `${playerCardMd(league, endKst, "hitters")}\n\n${playerCardMd(league, endKst, "pitchers")}`],
+  ];
+  let out = content;
+  const tail: string[] = [];
+  for (const [heading, md] of blocks) {
+    const re = new RegExp(`^##\\s+${heading}\\s*$`, "m");
+    const m = out.match(re);
+    if (!m || m.index == null) { tail.push(md); continue; }
+    // 헤딩 다음 줄이 순위 카드(![..](..baseball-standings..))면 그 뒤에 붙인다
+    let at = m.index + m[0].length;
+    const rest = out.slice(at);
+    const card = rest.match(/^\n\n!\[[^\]]*\]\([^)]*baseball-standings[^)]*\)/);
+    if (card) at += card[0].length;
+    out = `${out.slice(0, at)}\n\n${md}${out.slice(at)}`;
+  }
+  if (tail.length) out = `${out.trimEnd()}\n\n${tail.join("\n\n")}\n`;
+  return out;
+}
+
 /** 본문의 지정 ## 헤딩 직후에 순위 카드 이미지를 삽입한 새 본문 반환. */
 export function insertStandingsCards(content: string, d: BaseballWeeklyReviewData): string {
   const cards = buildCardsByHeading(d);

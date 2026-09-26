@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildBaseballWeeklyReview } from "@/lib/sports/baseball/weekly-review";
-import { insertStandingsCards } from "@/lib/sports/baseball/weekly-review-cards";
+import { insertStandingsCards, insertPlayerCards } from "@/lib/sports/baseball/weekly-review-cards";
 import { buildBaseballWeeklyReviewPrompt } from "@/prompts/baseball-weekly-review";
 
 const DEFAULT_LEAGUES = ["KBO", "NPB", "MLB"] as const;
@@ -74,7 +74,11 @@ export async function runBaseballWeeklyReview(opts: RunOpts = {}) {
       }
 
       const title = extractTitle(content);
-      const withCards = insertStandingsCards(content, data); // 순위 카드 이미지 삽입(롱테일 alt)
+      // 순위 카드 + 주간 선수 카드(이주의 선수·타자·투수 TOP) — 모두 우리 데이터 렌더, alt 는 롱테일 키워드
+      const endKst = new Date(refDate.getTime() + 9 * 3600000).toISOString().slice(0, 10);
+      // MLB 는 주간 베스트 선수 전용 글(generate-mlb-weekly-players)이 따로 있어 팀 주간엔 순위 카드만
+      const withStandings = insertStandingsCards(content, data);
+      const withCards = league === "MLB" ? withStandings : insertPlayerCards(withStandings, league, endKst);
       const article = await prisma.article.create({
         data: {
           type: "ANALYSIS",

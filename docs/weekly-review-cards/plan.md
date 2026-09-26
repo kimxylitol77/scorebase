@@ -16,3 +16,9 @@
 - 로컬 dev 에서 EPL 2026-09-22 카드 3종 렌더 → PNG 육안 확인.
 - `npx tsc --noEmit` 통과.
 - 잡 `?dry=1` 로 본문에 이미지 3줄 + 팩트 게이트 통과 확인.
+
+## 2단계 — 야구 (2026-09-26)
+- `/api/og/baseball-weekly-card?league=KBO|NPB|MLB&end=&kind=mvp|hitters|pitchers` — 이주의 선수(OPS 1위 타자 + ERA 1위 투수), 주간 타자 TOP 10, 주간 투수 TOP 8.
+- 집계 `src/lib/sports/baseball/weekly-players.ts` — KBO·NPB 는 경기별 선수 로그 합산, MLB 는 statsapi 주간 스플릿 빌더 재사용.
+- 삽입: KBO·NPB 주간 리뷰(핫이슈 아래 이주의 선수, 팀 지표 아래 타자·투수), MLB 주간 베스트 선수 글(MVP·타자·투수 섹션). MLB 팀 주간은 순위 카드만(전용 선수 글이 있어 중복 방지).
+- 공용 프레임 `src/components/og/weekly-frame.tsx` 로 축구·야구 카드 헤더·아바타·타일 통일.

@@ -18,6 +18,7 @@ import {
   buildMlbWeeklyPlayersPrompt,
   MLB_WEEKLY_PLAYERS_RUBRIC,
 } from "@/prompts/baseball-weekly-players";
+import { playerCardMd } from "@/lib/sports/baseball/weekly-review-cards";
 import { judgeArticle, formatJudgeVerdict, type JudgeResult } from "@/lib/ai/article-judge";
 
 function extractTitle(md: string): string {
@@ -41,8 +42,27 @@ interface RunOpts {
 }
 
 /** 게이트 통과 본문을 발행용으로 가공 — 선수명 링크화 + 상단 MVP 카드 마커. */
+/** 섹션 헤딩 아래 주간 선수 카드(api/og/baseball-weekly-card) 삽입 — 헤딩이 없으면 글 끝. */
+function insertMlbPlayerCards(content: string, data: MlbWeeklyPlayersData): string {
+  const blocks: [RegExp, string][] = [
+    [/^##\s+이주의 MVP\s*$/m, playerCardMd("MLB", data.endDate, "mvp")],
+    [/^##\s+주간 베스트 타자\s*$/m, playerCardMd("MLB", data.endDate, "hitters")],
+    [/^##\s+주간 베스트 투수\s*$/m, playerCardMd("MLB", data.endDate, "pitchers")],
+  ];
+  let out = content;
+  const tail: string[] = [];
+  for (const [re, md] of blocks) {
+    const m = out.match(re);
+    if (!m || m.index == null) { tail.push(md); continue; }
+    const at = m.index + m[0].length;
+    out = `${out.slice(0, at)}\n\n${md}${out.slice(at)}`;
+  }
+  if (tail.length) out = `${out.trimEnd()}\n\n${tail.join("\n\n")}\n`;
+  return out;
+}
+
 function toPublishContent(content: string, data: MlbWeeklyPlayersData): string {
-  const body = linkifyMlbPlayers(content, data);
+  const body = insertMlbPlayerCards(linkifyMlbPlayers(content, data), data);
   const marker = buildMvpMarker(data);
   return marker ? `${marker}\n\n${body}` : body;
 }
