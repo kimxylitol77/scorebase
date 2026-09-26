@@ -153,9 +153,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
+  // 종료 경기는 검색어가 "결과"로 바뀐다 — 축구·하키(/live/[league])와 같은 상태별 제목(2026-09-26 동종 페이지 통일).
+  const finished = match.status === "FINISHED";
   return {
-    title: `${away} vs ${home} 라이브 — MLB`,
-    description: `${away} vs ${home} MLB 라이브 스코어 · 이닝별 점수 · 베이스 상황 · 볼/스트라이크/아웃 · 현재 투수/타자.`,
+    title: finished ? `${away} vs ${home} 결과·스코어 — MLB` : `${away} vs ${home} 라이브 — MLB`,
+    description: finished
+      ? `${away} vs ${home} MLB 경기 결과 — 최종 스코어와 이닝별 점수 · 양팀 투수·타자 기록.`
+      : `${away} vs ${home} MLB 라이브 스코어 · 이닝별 점수 · 베이스 상황 · 볼/스트라이크/아웃 · 현재 투수/타자.`,
     alternates: { canonical: `https://www.scorebase.kr/live/mlb/${match.externalId}` },
     robots: GOOGLE_NOINDEX,
   };

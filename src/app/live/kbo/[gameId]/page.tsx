@@ -89,9 +89,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
+  // 종료 경기는 검색어가 "결과"로 바뀐다 — 축구·하키(/live/[league])와 같은 상태별 제목(2026-09-26 동종 페이지 통일).
+  const finished = match.status === "FINISHED";
   return {
-    title: `${away} vs ${home} 라이브 — KBO`,
-    description: `${away} vs ${home} KBO 라이브 스코어 · 이닝별 점수 · 안타·실책 · 양팀 선발투수.`,
+    title: finished ? `${away} vs ${home} 결과·스코어 — KBO` : `${away} vs ${home} 라이브 — KBO`,
+    description: finished
+      ? `${away} vs ${home} KBO 경기 결과 — 최종 스코어와 이닝별 점수 · 안타·실책 · 양팀 선발투수.`
+      : `${away} vs ${home} KBO 라이브 스코어 · 이닝별 점수 · 안타·실책 · 양팀 선발투수.`,
     alternates: { canonical: `https://www.scorebase.kr/live/kbo/${gameId}` },
     robots: GOOGLE_NOINDEX,
   };
