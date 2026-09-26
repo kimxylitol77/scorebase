@@ -243,6 +243,7 @@ async function computeMarketRoiStats(): Promise<MarketRoiStat | null> {
       predOverPick: true, predHcPick: true, predHcLine: true,
       oddsTotalLine: true, oddsOver: true, oddsUnder: true,
       oddsHcLine: true, oddsHcHome: true, oddsHcAway: true, oddsBookmakers: true,
+      oddsHome: true, oddsAway: true,
     },
   });
   const d30Cut = Date.now() - 30 * 86400_000;

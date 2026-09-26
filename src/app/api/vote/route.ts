@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       id: true, league: true, status: true, startTime: true,
       predHcLine: true,
       oddsHome: true, oddsDraw: true, oddsAway: true,
-      oddsHcLine: true, oddsHcHome: true, oddsHcAway: true,
+      oddsHcLine: true, oddsHcHome: true, oddsHcAway: true, oddsBookmakers: true,
       oddsTotalLine: true, oddsOver: true, oddsUnder: true,
     },
   });

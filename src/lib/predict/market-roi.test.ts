@@ -1,7 +1,7 @@
 // 마켓별 수익률 배지 — 기준선이 같은 내기만 정산하는지 고정.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hcBetOf, marketHomeHcPoint, ouBetOf } from "./market-roi";
+import { hcBetOf, ouBetOf } from "./market-roi";
 
 const ou = (x: Partial<Parameters<typeof ouBetOf>[0]>) => ({
   homeScore: 2, awayScore: 1, predOverPick: "OVER", oddsTotalLine: 2.5, oddsOver: 1.9, oddsUnder: 1.95, ...x,
@@ -20,16 +20,10 @@ test("오버언더 — 기준선이 다르면 다른 내기라 제외, 총점이
 
 const books = (...hl: number[]) => ({ books: hl.map((h) => ({ hl: h })) });
 
-test("시장 홈 핸디 부호 — 그 기준선을 쓴 업체 다수결", () => {
-  assert.equal(marketHomeHcPoint(books(-1.5, -1.5, 1.5), 1.5), -1.5);
-  assert.equal(marketHomeHcPoint(books(1.5, 1.5, -2.5), 1.5), 1.5);
-  assert.equal(marketHomeHcPoint(books(-1.5, 1.5), 1.5), null);
-  assert.equal(marketHomeHcPoint(null, 1.5), null);
-});
-
 const hc = (x: Partial<Parameters<typeof hcBetOf>[0]>) => ({
   homeScore: 3, awayScore: 1, predHcPick: "HOME", predHcLine: 1.5,
-  oddsHcLine: 1.5, oddsHcHome: 2.1, oddsHcAway: 1.75, oddsBookmakers: books(-1.5, -1.5), ...x,
+  oddsHcLine: 1.5, oddsHcHome: 2.1, oddsHcAway: 1.75, oddsBookmakers: books(-1.5, -1.5),
+  oddsHome: null as number | null, oddsAway: null as number | null, ...x,
 });
 
 test("핸디캡 — 홈이 같은 기준선으로 핸디를 줄 때만 정산", () => {

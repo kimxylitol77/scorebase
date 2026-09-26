@@ -5,6 +5,7 @@
 // 디자인·폰트 처리(자동 CJK 글리프)는 /api/og/daily 와 동일 컨셉.
 
 import { ImageResponse } from "next/og";
+import { marketHomeHcPoint } from "@/lib/odds/hc-direction";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -65,6 +66,7 @@ export async function GET(req: Request) {
           oddsHcLine: true,
           oddsHcHome: true,
           oddsHcAway: true,
+          oddsBookmakers: true,
           homeStarter: true,
           awayStarter: true,
           homeTeam: { select: { name: true } },
@@ -135,8 +137,11 @@ export async function GET(req: Request) {
       : null;
 
   // 배당 셀 — 마켓별. 해당 마켓 배당이 없으면 1X2 로 폴백 (빈 카드 방지).
-  const fmtHc = (line: number, side: "H" | "A") => {
-    const v = side === "H" ? line : -line;
+  // oddsHcLine 은 절댓값이라 부호는 시장 방향 판정으로 — 예전엔 홈을 늘 "+line" 으로 적어 홈이 핸디를 줄 때 뒤집혔다.
+  const fmtHc = (side: "H" | "A") => {
+    const hp = match ? marketHomeHcPoint(match) : null;
+    if (hp == null) return `±${Math.abs(match?.oddsHcLine ?? 0)}`;
+    const v = side === "H" ? hp : -hp;
     return v > 0 ? `+${v}` : `${v}`;
   };
   let oddsCells: { k: string; v: number }[] = [];
@@ -147,8 +152,8 @@ export async function GET(req: Request) {
     ];
   } else if (mkt === "HANDICAP" && match.oddsHcLine != null && match.oddsHcHome != null && match.oddsHcAway != null) {
     oddsCells = [
-      { k: `홈 ${fmtHc(match.oddsHcLine, "H")}`, v: match.oddsHcHome },
-      { k: `원정 ${fmtHc(match.oddsHcLine, "A")}`, v: match.oddsHcAway },
+      { k: `홈 ${fmtHc("H")}`, v: match.oddsHcHome },
+      { k: `원정 ${fmtHc("A")}`, v: match.oddsHcAway },
     ];
   } else if (match.oddsHome != null) {
     oddsCells = [

@@ -1,6 +1,7 @@
 // 승부예측 투표 시장(1X2·핸디캡·오버언더) 단일 소스 — 라인 결정·픽 검증·라벨·채점·픽 배당.
 // API 라우트·투표 카드·/picks·채점 잡이 전부 여기만 본다(각자 규칙을 두면 채점과 화면이 어긋난다).
 import { getSportProfile, handicapCorrect, overActual } from "@/lib/predict/markets";
+import { homeGivesLineOdds } from "@/lib/odds/hc-direction";
 
 export type VoteMarket = "1X2" | "HANDICAP" | "OU";
 export const VOTE_MARKETS: readonly VoteMarket[] = ["1X2", "HANDICAP", "OU"];
@@ -74,13 +75,11 @@ export function pickOddsOf(
   market: VoteMarket,
   pick: string,
   line: number | null,
-  m: { oddsHome: number | null; oddsDraw: number | null; oddsAway: number | null; oddsHcLine: number | null; oddsHcHome: number | null; oddsHcAway: number | null; oddsTotalLine: number | null; oddsOver: number | null; oddsUnder: number | null },
+  m: { oddsHome: number | null; oddsDraw: number | null; oddsAway: number | null; oddsHcLine: number | null; oddsHcHome: number | null; oddsHcAway: number | null; oddsTotalLine: number | null; oddsOver: number | null; oddsUnder: number | null; oddsBookmakers: unknown },
 ): number | null {
   if (market === "1X2") return pick === "home" ? m.oddsHome : pick === "draw" ? m.oddsDraw : m.oddsAway;
-  if (market === "HANDICAP") {
-    if (line == null || m.oddsHcLine == null || Math.abs(m.oddsHcLine) !== line) return null;
-    return pick === "home" ? m.oddsHcHome : m.oddsHcAway;
-  }
+  // 투표 핸디는 "홈 −line" — 시장도 홈이 같은 기준선으로 핸디를 줄 때만 같은 내기(원정이 주면 null).
+  if (market === "HANDICAP") return homeGivesLineOdds(m, line, pick === "home" ? "HOME" : "AWAY");
   if (line == null || m.oddsTotalLine !== line) return null;
   return pick === "over" ? m.oddsOver : m.oddsUnder;
 }

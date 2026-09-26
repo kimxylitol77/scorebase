@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
+import { homeGivesLineOdds } from "@/lib/odds/hc-direction";
 import {
   GPT_SCORECARD_ACTIVE_MODEL,
   GPT_SCORECARD_LEGACY_MODELS,
@@ -274,8 +275,9 @@ export async function GET(req: Request) {
         if (!thresholdPassed) continue;
 
         const currentLine = market === "HANDICAP" ? match.oddsHcLine : match.oddsTotalLine;
+        // 핸디 픽은 "홈 −line" — 시장도 홈이 같은 기준선으로 핸디를 줄 때만 같은 내기의 배당이다.
         const lineOdds = market === "HANDICAP"
-          ? pick === "HOME" ? match.oddsHcHome : match.oddsHcAway
+          ? homeGivesLineOdds(match, line, pick === "HOME" ? "HOME" : "AWAY")
           : pick === "OVER" ? match.oddsOver : match.oddsUnder;
         if (freshMarket && linesMatch(line, currentLine) && lineOdds != null) {
           selectedOdds = lineOdds;
