@@ -14,5 +14,5 @@
 - [x] `baseball-weekly-card` 라우트 mvp / hitters / pitchers
 - [x] 공용 프레임 추출 + 축구 라우트 회귀 렌더
 - [x] 잡 삽입 (야구 주간 리뷰 · MLB 주간 선수) + URL 추출기 확장(절대 URL·순위 카드 포함)
-- [ ] 이번 주 발행분 백필 (kbo-weekly-2026-09-21 · mlb-players-weekly-2026-09-21)
+- [x] 이번 주 발행분 백필 (kbo-weekly-2026-09-21 · mlb-players-weekly-2026-09-21) — 9/26 적용
 - [ ] 화·월 자동 발행 후 실렌더 확인
