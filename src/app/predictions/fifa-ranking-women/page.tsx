@@ -58,6 +58,14 @@ const JSONLD = {
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "예측", item: `${SITE_URL}/predictions` },
+        { "@type": "ListItem", position: 3, name: "FIFA 여자 국가 랭킹", item: `${SITE_URL}/predictions/fifa-ranking-women` },
+      ],
+    },
+    {
       "@type": "ItemList",
       name: "FIFA 여자 국가 랭킹",
       description: `${FIFA_RANKING_DATE_WOMEN} 기준 FIFA 여자 국가대표 랭킹 ${FIFA_RANKINGS_WOMEN.length}개국.`,
