@@ -111,8 +111,8 @@ export function rowsForRole(rows: BbPlayerRow[], role: BbRole): BbPlayerRow[] {
   return rows.filter((r) => r.avg != null && r.games > 0 && !((r.ip ?? 0) >= 10 && (r.hits ?? 0) < 20));
 }
 
-export function isQualified(r: BbPlayerRow, role: BbRole, maxGames: number): boolean {
-  return role === "pit" ? (r.ip ?? 0) >= POWER_MIN_IP : maxGames > 0 && r.games >= maxGames * POWER_MIN_GAMES_RATIO;
+export function isQualified(r: BbPlayerRow, role: BbRole, maxGames: number, minIp = POWER_MIN_IP): boolean {
+  return role === "pit" ? (r.ip ?? 0) >= minIp : maxGames > 0 && r.games >= maxGames * POWER_MIN_GAMES_RATIO;
 }
 
 /** 열 값 — 파생(K/9)·경기당 환산 포함. */
@@ -140,16 +140,17 @@ export function percentile(values: number[], v: number, lowerIsBetter = false): 
   return Math.round(((worse + (tie - 1) / 2) / values.length) * 100);
 }
 
-export function buildStatRows(rows: BbPlayerRow[], role: BbRole, unit: StatUnit, cols: StatColumn[] = role === "bat" ? BAT_COLUMNS : PIT_COLUMNS, adv?: AdvancedInput): { rows: StatRow[]; qualifiedCount: number; minGames: number } {
+/** minIp — 투수 규정 이닝. 기본은 정규시즌 30이닝, 포스트시즌처럼 표본이 짧은 표는 따로 넘긴다. */
+export function buildStatRows(rows: BbPlayerRow[], role: BbRole, unit: StatUnit, cols: StatColumn[] = role === "bat" ? BAT_COLUMNS : PIT_COLUMNS, adv?: AdvancedInput, minIp = POWER_MIN_IP): { rows: StatRow[]; qualifiedCount: number; minGames: number } {
   const pool = rowsForRole(rows, role);
   const maxGames = pool.reduce((m, r) => Math.max(m, r.games), 0);
   const minGames = Math.ceil(maxGames * POWER_MIN_GAMES_RATIO);
-  const qual = pool.filter((r) => isQualified(r, role, maxGames));
+  const qual = pool.filter((r) => isQualified(r, role, maxGames, minIp));
   // 열별 규정 표본 값 (백분위 모집단)
   const poolValues: Record<string, number[]> = {};
   for (const c of cols) poolValues[c.key] = qual.map((r) => statValue(r, c, unit, adv, role)).filter((v): v is number => v != null);
   const out: StatRow[] = pool.map((r) => {
-    const q = isQualified(r, role, maxGames);
+    const q = isQualified(r, role, maxGames, minIp);
     const cells: Record<string, StatCell> = {};
     for (const c of cols) {
       const v = statValue(r, c, unit, adv, role);

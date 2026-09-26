@@ -119,6 +119,20 @@
     "group": "other"
   },
   {
+    "route": "/baseball/mlb-postseason",
+    "desc": "MLB 포스트시즌 대진표 — 와일드카드·디비전·챔피언십·월드시리즈 트리(월드컵 브래킷 문법) + 시드 경쟁 + 한국 선수 소속팀. 데이터: MLB 공식 statsapi(순위표·포스트시즌 시리즈·시즌 날짜) + 우리 Elo·로고·경기 링크 — lib/sports/mlb-postseason.ts",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/baseball/mlb-postseason/stats",
+    "desc": "MLB 포스트시즌 선수 통계 — 가을야구 기록만 모은 스탯 표(타자·투수). 화면은 StatsExplorer 공용, 규정만 포스트시즌용. 데이터: statsapi gameType=P — lib/sports/baseball/mlb-postseason-stats.ts (10분 캐시, 올해 기록 없으면 지난 시즌)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/baseball/rankings",
     "desc": "야구 선수 랭킹 — KBO·MLB·NPB 타자/투수 종합 지수·가성비(연봉 대비)·폼(최근 경기), 순위 변동 화살표(일별 스냅샷). 계산: src/lib/sports/baseball/player-rankings.ts · 스냅샷: src/lib/transfers/rank-snapshots.ts (list = bb:{리그}:{뷰}:{역할})",
     "inMenu": false,
@@ -133,8 +147,22 @@
     "group": "other"
   },
   {
+    "route": "/baseball/stats",
+    "desc": "야구 선수 스탯 마스터 표 — KBO·MLB·NPB. 데이터·열·규정만 여기서 정하고 화면은 StatsExplorer 공용. 계산: src/lib/sports/baseball/stats-table.ts · 데이터: player-rankings.getBbLeagueData (매일 갱신)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/basketball",
     "desc": "농구 종목 허브 — 오늘 경기·리그별 순위/예측/글/역사·AI 예측을 한 페이지에. 축구(/soccer)·야구(/baseball) 허브와 동일 패턴. 국내(KBL/WKBL)는 데이터 수집 시작 단계라 순위만 graceful.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/basketball/stats",
+    "desc": "농구(KBL) 선수 스탯 마스터 표 — 시즌 평균 전 선수, 셀마다 리그 백분위. 화면은 StatsExplorer 공용. 계산: src/lib/sports/basketball/stats-table.ts · 로더: stats-data.ts (KBL 공식 통계 API)",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -581,6 +609,13 @@
     "group": "detail"
   },
   {
+    "route": "/esports/stats",
+    "desc": "e스포츠(LoL) 선수 스탯 마스터 표 — LCK·LPL·LEC·LCS 세트 집계, 셀마다 리그 백분위. 화면은 StatsExplorer 공용. 계산: src/lib/sports/esports/stats-table.ts · 로더: stats-data.ts (경기 기록 lolGames 집계)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/experts",
     "desc": "예측 전문가 순위 — 분석가·회원 적중률 랭킹(Wilson 점수 하한 정렬).",
     "inMenu": false,
@@ -611,6 +646,13 @@
   {
     "route": "/hockey",
     "desc": "하키 종목 허브 — 오늘 경기·리그별 순위/예측/글·역사·AI 예측을 한 페이지에. 농구(/basketball)·야구(/baseball) 허브와 동일 패턴. NHL 은 공식 API 로 순위/선수/예측 완비, IIHF 세계선수권(국제)은 경기·스코어만 커버돼 Top3 미리보기 + /scores 링크만 노출.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/hockey/stats",
+    "desc": "하키(NHL) 선수 스탯 마스터 표 — 스케이터/골리, 셀마다 리그 백분위, 합계·경기당. 화면은 StatsExplorer 공용. 계산: src/lib/sports/hockey/stats-table.ts · 로더: stats-data.ts (NHL 공식 stats API)",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -649,6 +691,13 @@
     "inMenu": false,
     "dynamic": false,
     "group": "other"
+  },
+  {
+    "route": "/leagues",
+    "desc": "리그 전체 목록 — 종목·국가별로 데이터가 있는 리그 페이지를 한곳에 모은다(검색·AI 크롤러의 리그 페이지 진입 경로). 2026-09-25 축구 외 종목까지 리그 페이지를 정식으로 올리면서, /scores 외엔 들어갈 길이 없던 리그들의 허브.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
   },
   {
     "route": "/leagues/[league]",
@@ -1037,7 +1086,7 @@
   },
   {
     "route": "/soccer",
-    "desc": "축구 종목 허브 — 빅5 리그 선택(순위 Top3 미리보기) + UCL·월드컵·이적·비교 입구. 기존 데이터/페이지 재사용(중복 구현 X). 각 리그 카드는 /leagues/{code} 상세로 연결되는 \"입구\".",
+    "desc": "축구 종목 허브 — 빅5 리그 선택(순위 Top3 미리보기) + 지금 열리는 국가 대항전 + UCL·월드컵·이적·비교 입구. 기존 데이터/페이지 재사용(중복 구현 X). 각 리그 카드는 /leagues/{code} 상세로 연결되는 \"입구\".",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -1045,6 +1094,13 @@
   {
     "route": "/soccer/korea",
     "desc": "해외파 한국 선수 허브 — 유럽·MLS에서 뛰는 한국 선수 시즌 성적 + 다음/최근 경기. 명단·지난 시즌 성적: scripts/build-korea-abroad.ts → data/korea-abroad.json (af 국적 스캔) 현재 시즌 성적: scripts/refresh-korea-abroad-current.ts (ts 리그당 1콜) → players[].current   두 시즌은 섞지 않는다 — 표 위 시즌 탭으로 갈라 보여준다. 이적한 선수의 지난 기록이   새 소속 옆에 붙어 현재 성적처럼 읽히던 문제(이강인 PSG 27경기)를 이 구조로 막는다. 다음·최근 경기: 우리 Match 테이블 (af 팀 id → TeamSourceId → Team) — 챔피언십·SPL·덴마크까지 커버된다.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/soccer/stats",
+    "desc": "축구 선수 스탯 마스터 표 — 15개 리그 ts 시즌 아카이브. 데이터·열·규정만 정하고 화면은 StatsExplorer 공용. 계산: src/lib/sports/soccer/stats-table.ts · 로더: stats-data.ts",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
