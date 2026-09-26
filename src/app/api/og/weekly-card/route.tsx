@@ -133,7 +133,7 @@ export async function GET(req: Request) {
     }
     const sub = heat.source === "match"
       ? heat.matches.map((m) => `${Number(m.date.slice(5, 7))}/${Number(m.date.slice(8))} vs ${toKoreanTeamName(m.opp) || m.opp} (${m.ha}) ${m.score.replace("-", ":")} ${m.result}`).join(" · ")
-      : `${heat.seasonLabel} 시즌 누적 ${heat.seasonMatches}경기 — 이번 주 경기 좌표는 아직 수집 전`;
+      : `${heat.seasonLabel.replace(/\b([A-Z_0-9]+)$/, (c) => LEAGUE_DISPLAY[c] ?? c)} 시즌 누적 ${heat.seasonMatches}경기 — 이번 주 경기 좌표는 아직 수집 전`;
     return new ImageResponse(
       <Frame grad={grad} leagueKo={leagueKo} range={fmtRange(data.from, data.to)} title="주간 MVP 활동 히트맵" sub={sub}>
         <HeatBody p={mvp} photo={photo} heat={heat} />
