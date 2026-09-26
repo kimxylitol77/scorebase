@@ -9367,5 +9367,95 @@
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "6ypq3nhz5y75md7": {
+  "statsId": "pl_61554865",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Matěj Kovář",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1ghnpyjjmoe": {
+  "statsId": "pl_62882189",
+  "teamId": "tm_04732",
+  "teamName": "SC Heerenveen",
+  "name": "Vasilios Zagaritis",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8gh8dp82r6o": {
+  "statsId": "pl_62963889",
+  "teamId": "tm_26302",
+  "teamName": "FC Groningen",
+  "name": "Thom Van Bergen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohg7vk1q1z": {
+  "statsId": "pl_25596721",
+  "teamId": "tm_10474",
+  "teamName": "SC Cambuur",
+  "name": "Rafik El Arguioui",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8gh8oy72r6o": {
+  "statsId": "pl_74119037",
+  "teamId": "tm_91047",
+  "teamName": "SC Telstar",
+  "name": "Patrick Brouwer",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohgglz0q1z": {
+  "statsId": "pl_40911514",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Devin Haen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jhepg8qwzv": {
+  "statsId": "pl_8648038",
+  "teamId": "tm_38512",
+  "teamName": "Excelsior",
+  "name": "Stijn van Gassel",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "23xmvkhd12d7qg8": {
+  "statsId": "pl_61650031",
+  "teamId": "tm_38512",
+  "teamName": "Excelsior",
+  "name": "Rick Meissen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1ghn555nmoe": {
+  "statsId": "pl_97083684",
+  "teamId": "tm_10474",
+  "teamName": "SC Cambuur",
+  "name": "Thijs Jansen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "ednm9whz6086ryo": {
+  "statsId": "pl_13743733",
+  "teamId": "tm_10474",
+  "teamName": "SC Cambuur",
+  "name": "Nicky Souren",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  }
 }
