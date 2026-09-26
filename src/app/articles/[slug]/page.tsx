@@ -20,6 +20,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { formatDateKo } from "@/lib/format";
 import { getExternalLinks } from "@/lib/external-links";
+import { extractOgCardUrls } from "@/lib/seo/og-card-urls";
 import AdminEditLink from "@/components/AdminEditLink";
 import { SITE_URL } from "@/lib/site-url";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -645,7 +646,8 @@ export default async function ArticlePage({ params }: Props) {
     "@type": "NewsArticle",
     headline: article.title,
     description: desc,
-    image: [`${SITE_URL}/articles/${slug}/opengraph-image`],
+    // 본문 인포그래픽 카드(주간 리뷰 /api/og/weekly-card)도 함께 — 구글 이미지 색인 대상으로 명시.
+    image: [`${SITE_URL}/articles/${slug}/opengraph-image`, ...extractOgCardUrls(article.content).map((u) => `${SITE_URL}${u}`)],
     // 자동 발행 글의 저자는 조직이 정직하다(실체 없는 "분석팀" 대신 단일 @id 조직). publisher 도 같은 @id.
     author: orgRef(),
     publisher: {

@@ -24,6 +24,8 @@ export interface WeeklyMatchRow {
 }
 
 export interface WeeklyTeamRow {
+  /** Team.id — 카드(api/og/weekly-card)에서 로고 조회용 */
+  teamId: number;
   teamKo: string;
   played: number;
   won: number;
@@ -99,7 +101,7 @@ export async function buildSoccerWeeklyReview(
     let t = teamAgg.get(id);
     if (!t) {
       t = {
-        teamKo: ko(name), played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0,
+        teamId: id, teamKo: ko(name), played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0,
         points: 0, expectedPoints: 0, overPerf: null, coachKo: coachByTeamId.get(id) ?? null, expCnt: 0,
       };
       teamAgg.set(id, t);

@@ -12,9 +12,11 @@ function toXml(entries: Awaited<ReturnType<typeof buildSitemapEntries>>["full"])
       : "";
     const freq = e.changeFrequency ? `<changefreq>${e.changeFrequency}</changefreq>` : "";
     const pri = e.priority != null ? `<priority>${e.priority}</priority>` : "";
-    return `<url><loc>${e.url}</loc>${lastmod}${freq}${pri}</url>`;
+    // 이미지 사이트맵 확장 — 주간 리뷰 카드. URL 의 & 는 XML 이스케이프.
+    const imgs = (e.images ?? []).map((u) => `<image:image><image:loc>${u.replace(/&/g, "&amp;")}</image:loc></image:image>`).join("");
+    return `<url><loc>${e.url}</loc>${lastmod}${freq}${pri}${imgs}</url>`;
   });
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rows.join("\n")}\n</urlset>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${rows.join("\n")}\n</urlset>`;
 }
 
 export async function GET() {

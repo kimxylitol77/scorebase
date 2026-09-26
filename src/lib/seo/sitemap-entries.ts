@@ -6,6 +6,7 @@ import { isBaseballAllStarTeam } from "@/lib/sports/baseball/allstar";
 import { EMPTY_FACTS, getLeaguePageFacts } from "@/lib/seo/league-page-facts";
 import { isRichLeague } from "@/lib/seo/league-seo-copy";
 import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
+import { extractOgCardUrls } from "@/lib/seo/og-card-urls";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { resolveSeasonYear } from "@/lib/sports/season-registry";
@@ -307,12 +308,23 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     select: { slug: true, publishedAt: true, updatedAt: true },
   });
 
-  const articlePages: MetadataRoute.Sitemap = articles.map((a) => ({
-    url: `${base}/articles/${a.slug}`,
-    lastModified: a.updatedAt ?? a.publishedAt ?? now,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  // 주간 리뷰 글의 본문 인포그래픽 카드 — 이미지 사이트맵(images) 으로 구글 이미지 색인 유도.
+  const weeklyReviews = await prisma.article.findMany({
+    where: { status: "PUBLISHED", slug: { contains: "-weekly-review-" }, publishedAt: { gte: articleHorizon } },
+    select: { slug: true, content: true },
+  });
+  const cardsBySlug = new Map(weeklyReviews.map((a) => [a.slug, extractOgCardUrls(a.content).map((u) => `${base}${u}`)]));
+
+  const articlePages: MetadataRoute.Sitemap = articles.map((a) => {
+    const images = cardsBySlug.get(a.slug);
+    return {
+      url: `${base}/articles/${a.slug}`,
+      lastModified: a.updatedAt ?? a.publishedAt ?? now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+      ...(images?.length ? { images } : {}),
+    };
+  });
 
   // 공지사항
   const notices = await prisma.notice.findMany({

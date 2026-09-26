@@ -1,0 +1,11 @@
+# 컨텍스트 노트
+- 2026-09-26 시작. 참고 이미지: transfermarkt 스쿼드 가치 랭킹·Squawka 드리블 TOP10·LiveScore 존별 성공/시도.
+- 카드 크기 1080×1350(4:5) — `api/og/team-of-day` 와 같은 규격. 인스타·스레드 재사용 가능.
+- 폰트는 `api/og/soccer-player` 와 같이 로컬 Noto Sans KR + Oswald 를 직접 로드(자동 글리프 의존 X).
+- 수치는 `buildSoccerWeeklyReview`·`getWeeklyBestXi` 를 그대로 읽는다 — 글 본문과 카드 수치가 절대 어긋나지 않게(주간 리뷰 정합 원칙).
+- 존별 드리블 카드(참고 3번)는 ts 매치 `playerStats` 에 dribble/dribble_succ 는 있으나 존 좌표가 없어 이번 범위 밖. 히트맵 JSON 은 시즌 단위라 주간 카드엔 부적합.
+- `TodPlayer.logo` 는 선수 사진이고 팀 로고는 `WeeklyBestXi.logoByTeam[영문팀명]` — 처음에 팀 로고 자리에 얼굴이 들어가서 고침.
+- satori 는 border 삼각형 트릭이 안 먹힌다(네모로 렌더). ▲▼ 글리프(Noto Sans KR 포함)로 대체.
+- 카드 URL 은 `?league=&end=&kind=` 쿼리형. 팩트 게이트 정규식(`\d{1,2}[:대-]\d{1,2}`)에 날짜가 안 걸리는 건 확인했지만 삽입은 게이트 통과 뒤에 한다.
+- dev 서버 첫 요청 때 홈 화면이 Neon 커넥션 풀(29)을 다 써서 카드가 폴백으로 떨어졌다 — 로컬 검증 시 홈 탭을 먼저 닫을 것. 운영은 CDN 캐시(1일)라 무관.
+- 참고 이미지의 존별 드리블 카드는 이번 범위 밖(존 좌표 없음). 후보로 남김.

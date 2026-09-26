@@ -7,6 +7,7 @@ import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildSoccerWeeklyReview, type SoccerWeeklyReviewData } from "@/lib/soccer/weekly-review";
 import { buildSoccerWeeklyReviewPrompt } from "@/prompts/soccer-weekly-review";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 const LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] as const;
 const MIN_WEEK_MATCHES = 3;
@@ -41,6 +42,44 @@ export function checkWeeklyReviewFacts(content: string, d: SoccerWeeklyReviewDat
     errors.push(`MVP 감독 ${d.mvpCoach.coachKo} 미언급`);
   }
   return errors;
+}
+
+/**
+ * 인포그래픽 카드 삽입 — 본문 섹션 아래에 /api/og/weekly-card 3장(승점표·MVP·평점 TOP10).
+ * 카드는 글과 같은 빌더를 읽어 수치가 어긋나지 않는다. 팩트 게이트 통과 후에 넣는다(URL 의 날짜가 게이트 정규식에 걸리지 않게).
+ * 섹션 제목이 없으면 글 끝에 붙인다 — 카드가 빠지는 일은 없어야 구글 이미지 색인이 안정된다.
+ */
+export function insertWeeklyCards(content: string, league: string, end: string): string {
+  const leagueKo = LEAGUE_DISPLAY[league] ?? league;
+  const url = (kind: string) => `/api/og/weekly-card?league=${league}&end=${end}&kind=${kind}`;
+  const img = (kind: string, alt: string) => `![${alt}](${url(kind)})`;
+  const table = img("table", `${leagueKo} 주간 승점 순위 ${end} — 팀별 승무패·득실·시장 기대 승점 대비`);
+  const mvp = img("mvp", `${leagueKo} 주간 MVP ${end} — 평점·골·도움·몸값`);
+  const top = img("top", `${leagueKo} 주간 평점 TOP 10 ${end}`);
+
+  let out = content;
+  const after = (re: RegExp, block: string) => {
+    const m = out.match(re);
+    if (!m || m.index == null) return false;
+    const at = m.index + m[0].length;
+    out = `${out.slice(0, at)}\n\n${block}${out.slice(at)}`;
+    return true;
+  };
+  const okTable = after(/^## 이번 주 흐름[^\n]*$/m, table);
+  const okMvp = after(/^## 주간 MVP( 선수)?[^\n]*$/m, mvp);
+  // 평점 TOP10 은 MVP 섹션 끝(다음 ## 직전). MVP 섹션이 없으면 끝에.
+  let okTop = false;
+  const mvpIdx = out.search(/^## 주간 MVP( 선수)?[^\n]*$/m);
+  if (mvpIdx >= 0) {
+    const next = out.indexOf("\n## ", mvpIdx + 1);
+    if (next >= 0) {
+      out = `${out.slice(0, next)}\n\n${top}\n${out.slice(next)}`;
+      okTop = true;
+    }
+  }
+  const tail = [!okTable && table, !okMvp && mvp, !okTop && top].filter(Boolean) as string[];
+  if (tail.length) out = `${out.trimEnd()}\n\n${tail.join("\n\n")}\n`;
+  return out;
 }
 
 interface RunOpts {
@@ -109,7 +148,7 @@ export async function runSoccerWeeklyReview(opts: RunOpts = {}): Promise<number>
           league,
           title: extractTitle(content),
           slug,
-          content,
+          content: insertWeeklyCards(content, league, end),
           status: "PUBLISHED",
           publishedAt: new Date(),
         },
