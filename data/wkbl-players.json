@@ -1,9 +1,37 @@
 {
  "meta": {
-  "updatedAt": "2026-09-20T12:37:22.429Z",
-  "players": 86
+  "updatedAt": "2026-09-26T22:11:28.837Z",
+  "players": 99
  },
  "players": {
+  "095937": {
+   "name": "가네다 마나",
+   "ename": "KANEDA M.",
+   "team": "신한은행",
+   "teamFull": "신한은행 에스버드",
+   "teamId": 607786,
+   "no": 3,
+   "pos": "G",
+   "height": 176,
+   "birth": "1998-07-09",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095937.png"
+  },
+  "096259": {
+   "name": "가네미츠 아야네",
+   "ename": "KANEMITSU A.",
+   "team": "삼성생명",
+   "teamFull": "삼성생명 블루밍스",
+   "teamId": 607789,
+   "no": 32,
+   "pos": "F",
+   "height": 159,
+   "birth": "2002-05-26",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096259.png"
+  },
   "095450": {
    "name": "강계리",
    "ename": "KANG KYE LEE",
@@ -12,7 +40,7 @@
    "teamId": 607788,
    "no": 1,
    "pos": "G",
-   "height": 164,
+   "height": 167,
    "birth": "1993-11-04",
    "school": "춘천여자고등학교",
    "draft": "2014 WKBL 신입선수 선발회 / 2라운드 / 1순위 (전체 7순위) / 삼성생명 블루밍스",
@@ -20,7 +48,7 @@
   },
   "095713": {
    "name": "강유림",
-   "ename": "KANG YOO RIM",
+   "ename": "KANG YOO LIM",
    "team": "삼성생명",
    "teamFull": "삼성생명 블루밍스",
    "teamId": 607789,
@@ -130,6 +158,20 @@
    "draft": "2024~2025 WKBL 신인선수 드래프트 / 1라운드 / 2순위 (전체 2순위) / BNK 썸",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096001.png"
   },
+  "096263": {
+   "name": "김리혜",
+   "ename": "KIM RIHYE",
+   "team": "우리은행",
+   "teamFull": "우리은행 우리WON",
+   "teamId": 607788,
+   "no": 22,
+   "pos": "F",
+   "height": 176,
+   "birth": "2002-05-22",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096263.png"
+  },
   "096137": {
    "name": "김민경",
    "ename": "KIM MIN KYUNG",
@@ -166,7 +208,7 @@
    "teamId": 607790,
    "no": 8,
    "pos": "F",
-   "height": 181,
+   "height": 180,
    "birth": "1994-05-03",
    "school": "춘천여자고등학교",
    "draft": "2013 WKBL 신입선수 선발회 / 2라운드 / 1순위 (전체 7순위) / KB스타즈",
@@ -320,11 +362,25 @@
    "teamId": 607790,
    "no": 38,
    "pos": "F",
-   "height": 172,
+   "height": 173,
    "birth": "1998-08-20",
    "school": "분당경영고등학교",
    "draft": "2017 WKBL 신입선수선발회 / 1라운드 / 3순위 (전체 3순위) / 우리은행 우리WON",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095543.png"
+  },
+  "096265": {
+   "name": "노구치 사쿠라",
+   "ename": "NOGUCHI S.",
+   "team": "신한은행",
+   "teamFull": "신한은행 에스버드",
+   "teamId": 607786,
+   "no": 5,
+   "pos": "F",
+   "height": 182,
+   "birth": "2001-02-24",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096265.png"
   },
   "095918": {
    "name": "미야사카 모모나",
@@ -339,6 +395,20 @@
    "school": null,
    "draft": "2024-2025 WKBL 아시아쿼터선수 드래프트 / 1라운드 / 6순위 (전체 6순위) / 우리은행 우리WON",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095918.png"
+  },
+  "096262": {
+   "name": "바네사 데 헤수스",
+   "ename": "DE JESUS V.",
+   "team": "BNK 썸",
+   "teamFull": "BNK 썸",
+   "teamId": 607785,
+   "no": 2,
+   "pos": "G",
+   "height": 173,
+   "birth": "2002-01-17",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096262.png"
   },
   "095900": {
    "name": "박다원",
@@ -396,20 +466,6 @@
    "draft": "2021~2022 WKBL 신입선수선발회 / 1라운드 / 2순위 (전체 2순위) / 하나은행",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095788.png"
   },
-  "095533": {
-   "name": "박지수",
-   "ename": "PARK JI SU",
-   "team": "KB스타즈",
-   "teamFull": "KB스타즈",
-   "teamId": 607790,
-   "no": 7,
-   "pos": "C",
-   "height": 193,
-   "birth": "1998-12-06",
-   "school": "분당경영고등학교",
-   "draft": "2017 WKBL 신입선수선발회 / 1라운드 / 1순위 (전체 1순위) / KB스타즈",
-   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095533.png"
-  },
   "096136": {
    "name": "박지수",
    "ename": "PARK JI SU",
@@ -423,6 +479,20 @@
    "school": "단국대학교",
    "draft": "2025~2026 WKBL 신인선수 드래프트 / 2라운드 / 3순위 (전체 9순위) / BNK 썸",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096136.png"
+  },
+  "095533": {
+   "name": "박지수",
+   "ename": "PARK JI SU",
+   "team": "KB스타즈",
+   "teamFull": "KB스타즈",
+   "teamId": 607790,
+   "no": 7,
+   "pos": "C",
+   "height": 194,
+   "birth": "1998-12-06",
+   "school": "분당경영고등학교",
+   "draft": "2017 WKBL 신입선수선발회 / 1라운드 / 1순위 (전체 1순위) / KB스타즈",
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095533.png"
   },
   "095832": {
    "name": "박진영",
@@ -446,7 +516,7 @@
    "teamId": 607785,
    "no": 7,
    "pos": "G",
-   "height": 179,
+   "height": 180,
    "birth": "1990-07-22",
    "school": "삼천포여자고등학교",
    "draft": "2009 WKBL 신입선수 선발회 / 1라운드 / 1순위 (전체 1순위) / 우리은행 우리WON",
@@ -496,7 +566,7 @@
   },
   "096033": {
    "name": "사카이 사라",
-   "ename": "SAKAI SARA",
+   "ename": "SAKAI S.",
    "team": "KB스타즈",
    "teamFull": "KB스타즈",
    "teamId": 607790,
@@ -614,7 +684,7 @@
    "teamId": 607786,
    "no": 6,
    "pos": "G",
-   "height": 168,
+   "height": 165,
    "birth": "2003-06-20",
    "school": "숭의여자고등학교",
    "draft": "2022~2023 WKBL 신입선수선발회 / 1라운드 / 4순위 (전체 4순위) / 신한은행 에스버드",
@@ -633,6 +703,20 @@
    "school": "동주여자고등학교",
    "draft": "2015 WKBL 신입선수 선발회 / 1라운드 / 1순위 (전체 1순위) / KDB생명 위너스",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095484.png"
+  },
+  "096261": {
+   "name": "알렉시스 파나",
+   "ename": "ALEXIS P.",
+   "team": "KB스타즈",
+   "teamFull": "KB스타즈",
+   "teamId": 607790,
+   "no": 25,
+   "pos": "F",
+   "height": 175,
+   "birth": "1998-08-23",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096261.png"
   },
   "095259": {
    "name": "양인영",
@@ -690,6 +774,20 @@
    "draft": "2019~2020 WKBL 신입선수선발회 / 1라운드 / 5순위 (전체 5순위) / 우리은행 우리WON",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095707.png"
   },
+  "096260": {
+   "name": "원이아나",
+   "ename": "WON E.",
+   "team": "KB스타즈",
+   "teamFull": "KB스타즈",
+   "teamId": 607790,
+   "no": 21,
+   "pos": "G",
+   "height": 169,
+   "birth": "2001-12-10",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096260.png"
+  },
   "096003": {
    "name": "유하은",
    "ename": "YOO HA EUN",
@@ -710,7 +808,7 @@
    "team": "KB스타즈",
    "teamFull": "KB스타즈",
    "teamId": 607790,
-   "no": 32,
+   "no": 4,
    "pos": "G",
    "height": 180,
    "birth": "1997-04-16",
@@ -782,7 +880,7 @@
    "teamId": 607788,
    "no": 20,
    "pos": "F",
-   "height": 175,
+   "height": 173,
    "birth": "1996-09-05",
    "school": "단국대학교",
    "draft": "2019~2020 WKBL 신입선수선발회 / 3라운드 / 6순위 (전체 18순위) / 삼성생명 블루밍스",
@@ -801,6 +899,20 @@
    "school": "숙명여자고등학교",
    "draft": "2024~2025 WKBL 신인선수 드래프트 / 1라운드 / 6순위 (전체 6순위) / 우리은행 우리WON",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096005.png"
+  },
+  "096268": {
+   "name": "이소희",
+   "ename": "LEE SO HEE",
+   "team": "삼성생명",
+   "teamFull": "삼성생명 블루밍스",
+   "teamId": 607789,
+   "no": 77,
+   "pos": "F",
+   "height": 178,
+   "birth": "2008-06-18",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096268.png"
   },
   "095636": {
    "name": "이소희",
@@ -1026,6 +1138,20 @@
    "draft": "2020~2021 WKBL 신입선수선발회 / 1라운드 / 2순위 (전체 2순위) / 삼성생명 블루밍스",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095749.png"
   },
+  "096267": {
+   "name": "조우",
+   "ename": "CHO W.",
+   "team": "삼성생명",
+   "teamFull": "삼성생명 블루밍스",
+   "teamId": 607789,
+   "no": 42,
+   "pos": "G",
+   "height": 159,
+   "birth": "2004-09-02",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096267.png"
+  },
   "095499": {
    "name": "진안",
    "ename": "JIN AN",
@@ -1042,7 +1168,7 @@
   },
   "096002": {
    "name": "최예슬",
-   "ename": "CHOI YE SEUL",
+   "ename": "CHOI YE SEL",
    "team": "삼성생명",
    "teamFull": "삼성생명 블루밍스",
    "teamId": 607789,
@@ -1062,7 +1188,7 @@
    "teamId": 607788,
    "no": 3,
    "pos": "F",
-   "height": 177,
+   "height": 178,
    "birth": "2007-10-31",
    "school": "삼천포여자고등학교",
    "draft": "2025~2026 WKBL 신인선수 드래프트 / 1라운드 / 6순위 (전체 6순위) / 우리은행 우리WON",
@@ -1074,7 +1200,7 @@
    "team": "BNK 썸",
    "teamFull": "BNK 썸",
    "teamId": 607785,
-   "no": 6,
+   "no": 9,
    "pos": "F",
    "height": 182,
    "birth": "1994-08-17",
@@ -1096,6 +1222,20 @@
    "draft": null,
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096156.png"
   },
+  "095911": {
+   "name": "타니무라 리카",
+   "ename": "TANIMURA R.",
+   "team": "BNK 썸",
+   "teamFull": "BNK 썸",
+   "teamId": 607785,
+   "no": 11,
+   "pos": "C",
+   "height": 185,
+   "birth": "1993-07-31",
+   "school": null,
+   "draft": "2024-2025 WKBL 아시아쿼터선수 드래프트 / 1라운드 / 1순위 (전체 1순위) / 신한은행 에스버드",
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095911.png"
+  },
   "096007": {
    "name": "하지윤",
    "ename": "HA JI YOON",
@@ -1109,6 +1249,20 @@
    "school": "선일여자고등학교",
    "draft": "2024~2025 WKBL 신인선수 드래프트 / 2라운드 / 4순위 (전체 10순위) / 하나은행",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096007.png"
+  },
+  "095807": {
+   "name": "한야은",
+   "ename": "HAN YA EN",
+   "team": "삼성생명",
+   "teamFull": "삼성생명 블루밍스",
+   "teamId": 607789,
+   "no": 13,
+   "pos": "F",
+   "height": 180,
+   "birth": "1995-01-01",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095807.png"
   },
   "095528": {
    "name": "한연우",
@@ -1180,6 +1334,20 @@
    "draft": "2024~2025 WKBL 신인선수 드래프트 / 1라운드 / 1순위 (전체 1순위) / 신한은행 에스버드",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095972.png"
   },
+  "096264": {
+   "name": "황샹팅",
+   "ename": "HUANG H.",
+   "team": "신한은행",
+   "teamFull": "신한은행 에스버드",
+   "teamId": 607786,
+   "no": 26,
+   "pos": "C",
+   "height": 182,
+   "birth": "1993-01-26",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096264.png"
+  },
   "096146": {
    "name": "황윤서",
    "ename": "HWANG YOON SEO",
@@ -1207,6 +1375,20 @@
    "school": "온양여자고등학교",
    "draft": "2025~2026 WKBL 신인선수 드래프트 / 2라운드 / 1순위 (전체 7순위) / 신한은행 에스버드",
    "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_096142.png"
+  },
+  "095881": {
+   "name": "후지모토 마코",
+   "ename": "FUJIMOTO M.",
+   "team": "우리은행",
+   "teamFull": "우리은행 우리WON",
+   "teamId": 607788,
+   "no": 18,
+   "pos": "F",
+   "height": 179,
+   "birth": "1999-10-01",
+   "school": null,
+   "draft": null,
+   "photo": "https://www.wkbl.or.kr/static/images/player/pimg/np_095881.png"
   }
  }
 }
