@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
 import { ALL_LEAGUES, LOL_LEAGUES, sportCodeForLeague } from "@/lib/sports/sport-leagues";
+import { isBaseballAllStarTeam } from "@/lib/sports/baseball/allstar";
 import { EMPTY_FACTS, getLeaguePageFacts } from "@/lib/seo/league-page-facts";
 import { isRichLeague } from "@/lib/seo/league-seo-copy";
 import { PREDICTION_LEAGUE_SET } from "@/lib/predict/prediction-leagues";
@@ -459,6 +460,13 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
   for (const r of teamMatchRows) {
     activeTeamIds.add(r.homeTeamId);
     activeTeamIds.add(r.awayTeamId);
+  }
+  // 올스타·미정 자리표시 팀(KBO 드림·나눔, MLB 올스타, NBA TBD·Team Stars 등)은 경기가 있어도 팀 페이지가
+  //  일정·로스터 없는 빈 껍데기라 색인 대상에서 뺀다(2026-09-26 동종 페이지 비교에서 10건 발견).
+  const NBA_PLACEHOLDER_TEAMS = new Set(["TBD", "Team Stars", "Team Stripes", "World", "Team LeBron", "Team Durant", "Team Giannis"]);
+  const activeTeamNames = await prisma.team.findMany({ where: { id: { in: [...activeTeamIds] } }, select: { id: true, name: true } });
+  for (const t of activeTeamNames) {
+    if (isBaseballAllStarTeam(t.name) || NBA_PLACEHOLDER_TEAMS.has(t.name)) activeTeamIds.delete(t.id);
   }
   const teamPages: MetadataRoute.Sitemap = [...activeTeamIds].map((id) => ({
     url: `${base}/teams/${id}`,
