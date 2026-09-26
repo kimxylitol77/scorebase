@@ -8,6 +8,7 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildSoccerWeeklyReview, type SoccerWeeklyReviewData } from "@/lib/soccer/weekly-review";
 import { buildSoccerWeeklyReviewPrompt } from "@/prompts/soccer-weekly-review";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { hasMvpHeat } from "@/lib/soccer/mvp-heat";
 
 const LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] as const;
 const MIN_WEEK_MATCHES = 3;
@@ -49,12 +50,14 @@ export function checkWeeklyReviewFacts(content: string, d: SoccerWeeklyReviewDat
  * 카드는 글과 같은 빌더를 읽어 수치가 어긋나지 않는다. 팩트 게이트 통과 후에 넣는다(URL 의 날짜가 게이트 정규식에 걸리지 않게).
  * 섹션 제목이 없으면 글 끝에 붙인다 — 카드가 빠지는 일은 없어야 구글 이미지 색인이 안정된다.
  */
-export function insertWeeklyCards(content: string, league: string, end: string): string {
+export function insertWeeklyCards(content: string, league: string, end: string, opts: { heat?: boolean } = {}): string {
   const leagueKo = LEAGUE_DISPLAY[league] ?? league;
   const url = (kind: string) => `/api/og/weekly-card?league=${league}&end=${end}&kind=${kind}`;
   const img = (kind: string, alt: string) => `![${alt}](${url(kind)})`;
   const table = img("table", `${leagueKo} 주간 승점 순위 ${end} — 팀별 승무패·득실·시장 기대 승점 대비`);
-  const mvp = img("mvp", `${leagueKo} 주간 MVP ${end} — 평점·골·도움·몸값`);
+  const mvpCard = img("mvp", `${leagueKo} 주간 MVP ${end} — 평점·골·도움·몸값`);
+  // 히트맵은 MVP 의 좌표가 있을 때만(없으면 라우트가 폴백 이미지를 내므로 아예 안 넣는다)
+  const mvp = opts.heat ? `${mvpCard}\n\n${img("heat", `${leagueKo} 주간 MVP 활동 히트맵 ${end} — 터치 위치·3선 분포`)}` : mvpCard;
   const top = img("top", `${leagueKo} 주간 평점 TOP 10 ${end}`);
 
   let out = content;
@@ -148,7 +151,9 @@ export async function runSoccerWeeklyReview(opts: RunOpts = {}): Promise<number>
           league,
           title: extractTitle(content),
           slug,
-          content: insertWeeklyCards(content, league, end),
+          content: insertWeeklyCards(content, league, end, {
+            heat: data.mvpPlayer ? hasMvpHeat(data.mvpPlayer.id, data.from, data.to) : false,
+          }),
           status: "PUBLISHED",
           publishedAt: new Date(),
         },

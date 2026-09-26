@@ -4,6 +4,7 @@
 - [x] 로컬 렌더 3종 확인 (EPL 2026-09-22)
 - [x] 주간 리뷰 잡 본문에 카드 삽입 (`insertWeeklyCards`, 팩트 게이트 뒤)
 - [x] JSON-LD image + 이미지 사이트맵 (sitemap.ts images · sitemap-full.xml image:image)
+- [x] `kind=heat` 주간 MVP 활동 히트맵 (경기 좌표 → 시즌 누적 폴백, MVP 카드 뒤 삽입)
 - [x] tsc 통과
 - [ ] 기존 9/22 발행분 5리그 백필 (사용자 확인 후)
 - [ ] 화 11:00 첫 자동 발행 후 실렌더·GSC 이미지 색인 추적

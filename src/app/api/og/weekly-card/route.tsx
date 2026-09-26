@@ -4,6 +4,7 @@
 //   mvp   — 주간 MVP 선수 히어로(사진·평점·골·도움·몸값)
 //   top   — 주간 평점 TOP 10 리더보드 + MVP 사진
 //   table — 팀 주간 승점표(로고·승무패·득실·승점·시장 기대 대비 ▲▼)
+//   heat  — 주간 MVP 활동 히트맵(경기 터치 좌표 10×10 + 3×3 존 비율, 창 안 경기 없으면 시즌 누적)
 // satori 주의 — 모든 컨테이너 display:flex, 고정폭 요소 flexShrink:0.
 import { ImageResponse } from "next/og";
 import { readFile } from "fs/promises";
@@ -13,6 +14,8 @@ import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { buildSoccerWeeklyReview, type SoccerWeeklyReviewData } from "@/lib/soccer/weekly-review";
 import { getWeeklyBestXi, type WeeklyBestXi } from "@/lib/soccer/weekly-best-xi";
 import type { TodPlayer } from "@/lib/sports/thesports/team-of-day";
+import { getMvpHeat, SMOOTH_X, SMOOTH_Y, type MvpHeat } from "@/lib/soccer/mvp-heat";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export const runtime = "nodejs";
 
@@ -118,6 +121,22 @@ export async function GET(req: Request) {
     return new ImageResponse(
       <Frame grad={grad} leagueKo={leagueKo} range={fmtRange(data.from, data.to)} title="주간 평점 TOP 10" sub={`이번 주 ${data.matchCount}경기 · 경기 평점 순`}>
         <TopBody players={top} logos={logos} photo={photo} />
+      </Frame>,
+      opts,
+    );
+  }
+
+  if (kind === "heat") {
+    const heat = getMvpHeat(mvp.id, data.from, data.to);
+    if (!heat) {
+      return new ImageResponse(<Fallback league={league} />, { ...opts, headers: { "Cache-Control": "public, max-age=60" } });
+    }
+    const sub = heat.source === "match"
+      ? heat.matches.map((m) => `${Number(m.date.slice(5, 7))}/${Number(m.date.slice(8))} vs ${toKoreanTeamName(m.opp) || m.opp} (${m.ha}) ${m.score.replace("-", ":")} ${m.result}`).join(" · ")
+      : `${heat.seasonLabel} 시즌 누적 ${heat.seasonMatches}경기 — 이번 주 경기 좌표는 아직 수집 전`;
+    return new ImageResponse(
+      <Frame grad={grad} leagueKo={leagueKo} range={fmtRange(data.from, data.to)} title="주간 MVP 활동 히트맵" sub={sub}>
+        <HeatBody p={mvp} photo={photo} heat={heat} />
       </Frame>,
       opts,
     );
@@ -344,6 +363,82 @@ function TableBody({ rows, logos }: { rows: SoccerWeeklyReviewData["teams"]; log
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ---------- heat ----------
+
+// 선수 페이지 HeatPitch 와 같은 램프 — 연두 → 노랑 → 주황 → 빨강.
+function heatColor(t: number): string {
+  const mix = (a: number[], b: number[], k: number) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const c = t < 0.3 ? mix([168, 224, 60], [252, 220, 48], t / 0.3)
+    : t < 0.62 ? mix([252, 220, 48], [252, 130, 28], (t - 0.3) / 0.32)
+    : mix([252, 130, 28], [226, 38, 40], (t - 0.62) / 0.38);
+  return `rgba(${c[0]},${c[1]},${c[2]},${(0.35 + t * 0.55).toFixed(2)})`;
+}
+
+function HeatBody({ p, photo, heat }: { p: TodPlayer; photo: string | null; heat: MvpHeat }) {
+  const PW = 968;
+  const PH = 660;
+  const cw = PW / SMOOTH_X;
+  const ch = PH / SMOOTH_Y;
+  const line = "2px solid rgba(255,255,255,0.55)";
+  const ZONE_X = ["수비", "중원", "공격"];
+  const zonePct = (v: number) => (heat.total ? Math.round((v / heat.total) * 100) : 0);
+  const lead = heat.lanes[0] >= heat.lanes[1] && heat.lanes[0] >= heat.lanes[2] ? "왼쪽" : heat.lanes[2] >= heat.lanes[1] ? "오른쪽" : "중앙";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "18px", marginBottom: "18px" }}>
+        <Avatar src={photo} size={72} ring={ratingColor(p.rating)} />
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span style={{ fontSize: "34px", fontWeight: 900, lineHeight: 1.1 }}>{p.name}</span>
+          <span style={{ fontSize: "20px", opacity: 0.65 }}>{p.countryKo || p.country} · {POS_KO[p.pos] ?? p.pos} · 평점 {p.rating.toFixed(2)} · {p.goals}골 {p.assists}도움</span>
+        </div>
+      </div>
+
+      {/* 피치 — 공격 방향 오른쪽 */}
+      <div style={{ position: "relative", display: "flex", width: PW, height: PH, borderRadius: "18px", overflow: "hidden", background: "#1c4a2a", flexShrink: 0 }}>
+        {/* KDE 격자 — HeatPitch 와 같은 임계(0.28)·램프. 차가운 곳은 잔디 그대로 */}
+        {heat.smooth.map((col, xi) => col.map((v, yi) => {
+          if (v < 0.28) return null;
+          const t = (v - 0.28) / 0.72;
+          return <div key={`${xi}-${yi}`} style={{ position: "absolute", left: xi * cw, top: yi * ch, width: cw + 1, height: ch + 1, background: heatColor(t) }} />;
+        }))}
+        {/* 라인 */}
+        <div style={{ position: "absolute", left: 18, top: 18, width: PW - 36, height: PH - 36, border: line }} />
+        <div style={{ position: "absolute", left: PW / 2 - 1, top: 18, width: 2, height: PH - 36, background: "rgba(255,255,255,0.55)" }} />
+        <div style={{ position: "absolute", left: PW / 2 - 70, top: PH / 2 - 70, width: 140, height: 140, borderRadius: "999px", border: line }} />
+        <div style={{ position: "absolute", left: 18, top: PH / 2 - 135, width: 130, height: 270, border: line }} />
+        <div style={{ position: "absolute", left: PW - 148, top: PH / 2 - 135, width: 130, height: 270, border: line }} />
+        <div style={{ position: "absolute", left: 18, top: PH / 2 - 72, width: 48, height: 144, border: line }} />
+        <div style={{ position: "absolute", left: PW - 66, top: PH / 2 - 72, width: 48, height: 144, border: line }} />
+        {/* 3×3 존 비율 */}
+        {heat.zones.map((lanes, ti) => lanes.map((v, li) => (
+          <div key={`z${ti}${li}`} style={{ position: "absolute", left: (ti + 0.5) * (PW / 3) - 44, top: (li + 0.5) * (PH / 3) - 22, width: 88, height: 44, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "rgba(2,6,23,0.62)", fontSize: "26px", fontFamily: "Oswald", color: "white" }}>
+            {zonePct(v)}%
+          </div>
+        )))}
+        <div style={{ position: "absolute", right: 26, bottom: 22, display: "flex", fontSize: "18px", opacity: 0.7 }}>공격 방향 →</div>
+      </div>
+
+      {/* 3선 분포 + 요약 */}
+      <div style={{ display: "flex", gap: "14px", marginTop: "22px" }}>
+        {heat.thirds.map((v, i) => (
+          <div key={i} style={{ display: "flex", flexDirection: "column", flex: 1, padding: "16px 0", borderRadius: "16px", background: "rgba(255,255,255,0.08)", alignItems: "center" }}>
+            <span style={{ fontSize: "18px", opacity: 0.65 }}>{ZONE_X[i]} 진영</span>
+            <span style={{ fontSize: "40px", fontFamily: "Oswald", lineHeight: 1.1, marginTop: "2px" }}>{v}%</span>
+          </div>
+        ))}
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: "16px 0", borderRadius: "16px", background: "rgba(255,255,255,0.08)", alignItems: "center" }}>
+          <span style={{ fontSize: "18px", opacity: 0.65 }}>터치</span>
+          <span style={{ fontSize: "40px", fontFamily: "Oswald", lineHeight: 1.1, marginTop: "2px" }}>{heat.total}</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1.3, padding: "16px 0", borderRadius: "16px", background: "rgba(255,255,255,0.08)", alignItems: "center" }}>
+          <span style={{ fontSize: "18px", opacity: 0.65 }}>평균 위치 · 주 활동 폭</span>
+          <span style={{ fontSize: "40px", fontFamily: "Oswald", lineHeight: 1.1, marginTop: "2px" }}>{Math.round(heat.avgX)}% · {lead}</span>
+        </div>
+      </div>
     </div>
   );
 }
