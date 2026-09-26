@@ -36,6 +36,7 @@ import { rateOf, type MarketRate } from "@/lib/predict/accuracy-stats";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { breadcrumbLd, datasetLd, jsonLdScript } from "@/lib/seo/jsonld";
 import { attachLeaderTeamLogos } from "@/lib/leaderboard-logos";
 import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -774,6 +775,32 @@ export default async function LeaguePredictions({ params }: Props) {
 
   return (
     <div className="relative">
+      {/* 구조 데이터 — 리그 예측 38쪽만 JSON-LD 가 없었다(순위·리그 페이지는 Dataset+경로 보유, 2026-09-26 동종 페이지 비교). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: "AI 예측", path: "/predictions" },
+              { name: `${info.name} 예측`, path: `/predictions/${upper}` },
+            ]),
+          ),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            datasetLd({
+              name: `${info.name} 시즌 시뮬레이션·AI 예측`,
+              description: `${info.name} 남은 일정을 Elo 기반 몬테카를로로 반복 시뮬레이션한 팀별 우승·순위 확률과 예상 최종 순위.`,
+              path: `/predictions/${upper}`,
+              variableMeasured: ["우승 확률", "예상 승점", "예상 최종 순위", "경기별 승리 확률"],
+            }),
+          ),
+        }}
+      />
       <AmbientGlow />
       {/* 히어로 */}
       <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">

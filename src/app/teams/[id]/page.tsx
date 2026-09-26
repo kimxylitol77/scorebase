@@ -71,7 +71,7 @@ import {
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
 import FormDots from "@/components/FormDots";
-import { jsonLdScript } from "@/lib/seo/jsonld";
+import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 
 // ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
 export const revalidate = 300;
@@ -892,6 +892,19 @@ export default async function TeamPage({ params }: Props) {
             ...(team.logoUrl ? { logo: team.logoUrl } : {}),
             memberOf: { "@type": "SportsOrganization", name: team.league },
           }),
+        }}
+      />
+      {/* 경로 데이터 — 리그·선수·국가대표 페이지는 다 있는데 팀 239쪽만 빠져 있었다(2026-09-26 동종 페이지 비교). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: LEAGUE_DISPLAY[team.league] ?? team.league, path: `/leagues/${team.league}` },
+              { name: toKoreanTeamName(team.name, team.league), path: `/teams/${team.id}` },
+            ]),
+          ),
         }}
       />
       <AmbientGlow />

@@ -10,6 +10,7 @@ import { ArrowLeft, Trophy, Award, ShoppingBag, UserRound } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import AmbientGlow from "@/components/AmbientGlow";
+import { athleteLd, breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
@@ -408,8 +409,26 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
   const coachTimeline = [...tlRows].reverse(); // 최신 위
   const individualHonors = honors.filter((h) => h.club === "Individual");
 
+  // 구조 데이터 — 선수 프로필(Person+경로)과 같은 형태. 감독 325쪽만 JSON-LD 가 전무했다(2026-09-26 동종 페이지 비교).
+  const personLd = athleteLd({
+    name,
+    path: `/coaches/${id}`,
+    image: snap.logo,
+    nationality: career?.country ?? null,
+    jobTitle: "축구 감독",
+    team:
+      teamName && ourTeamId != null
+        ? { name: teamName, url: teamLeague && NATL.has(teamLeague) ? `/national-teams/${ourTeamId}` : `/teams/${ourTeamId}` }
+        : null,
+  });
+  const crumbLd = breadcrumbLd([
+    { name: "홈", path: "/" }, { name: "이적시장", path: "/transfers" }, { name: `${name} 감독`, path: `/coaches/${id}` },
+  ]);
+
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(personLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(crumbLd) }} />
       <AmbientGlow />
       <Link
         href={
