@@ -1379,3 +1379,44 @@ export async function fetchKboHitterProfile(
     return {};
   }
 }
+
+/** KBO 포스트시즌 시리즈 코드 (기록 페이지 ddlSeries 값) — 와일드카드·준플레이오프·플레이오프·한국시리즈 */
+export const KBO_POSTSEASON_SERIES = [
+  { code: "4", label: "와일드카드" },
+  { code: "3", label: "준플레이오프" },
+  { code: "5", label: "플레이오프" },
+  { code: "7", label: "한국시리즈" },
+] as const;
+
+/**
+ * 포스트시즌 선수 기록 표 — 시리즈를 고르면 공식 사이트가 스크립트로 BasicOld.aspx 로 옮겨 가므로 처음부터 그 페이지에 보낸다
+ * (Basic1.aspx 에 시리즈를 POST 하면 조용히 정규시즌 표가 온다 — 2026-09-26 실측).
+ * 순서: GET → 시즌 변경 → 시리즈 변경 → (팀 변경) → 2페이지 이후. 팀 없이는 규정 선수만, 팀을 고르면 출장 선수 전원.
+ * 타자 열: AVG G PA AB H 2B 3B HR RBI SB CS BB HBP SO GDP E / 투수 열: ERA G CG SHO W L SV HLD WPCT TBF IP H HR BB HBP SO R ER
+ */
+export async function fetchKboPostseasonTable(
+  kind: "hitter" | "pitcher",
+  season: string,
+  series: string,
+  team = "",
+): Promise<KboRecordRow[]> {
+  const url = `${BASE}/Record/Player/${kind === "hitter" ? "HitterBasic" : "PitcherBasic"}/BasicOld.aspx`;
+  const getRes = await axios.get<string>(url, { headers: HEADERS, timeout: 15000, responseType: "text" });
+  const cookie = (getRes.headers["set-cookie"] ?? []).map((c) => c.split(";")[0]).join("; ");
+  const $get = cheerio.load(getRes.data);
+  const hfVal = (suffix: string) => $get(`input[name$='${suffix}']`).attr("value") ?? "";
+  const P = KBO_CTL_PREFIX;
+  const fields = (sr: string, t: string): Record<string, string> => ({
+    [`${P}ddlSeason$ddlSeason`]: season,
+    [`${P}ddlSeries$ddlSeries`]: sr,
+    [`${P}ddlTeam$ddlTeam`]: t,
+    [`${P}hfPage`]: "1",
+    [`${P}hfOrderByCol`]: hfVal("hfOrderByCol"),
+    [`${P}hfOrderBy`]: hfVal("hfOrderBy"),
+  });
+  let html = await postKboDropdown(url, cookie, extractHidden(getRes.data), `${P}ddlSeason$ddlSeason`, fields("0", ""));
+  html = await postKboDropdown(url, cookie, extractHidden(html), `${P}ddlSeries$ddlSeries`, fields(series, ""));
+  if (team) html = await postKboDropdown(url, cookie, extractHidden(html), `${P}ddlTeam$ddlTeam`, fields(series, team));
+  const rest = await fetchKboIndexRestPages(url, cookie, html, fields(series, team));
+  return [html, ...rest].flatMap((h) => parseKboRecordTable(h));
+}

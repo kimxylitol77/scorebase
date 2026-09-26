@@ -217,6 +217,10 @@
       "schedule": "40 20 * * *"
     },
     {
+      "path": "/api/cron/baseball-postseason-stats",
+      "schedule": "10 21 * * *"
+    },
+    {
       "path": "/api/cron/mlb-starters",
       "schedule": "0 12 * * *"
     },

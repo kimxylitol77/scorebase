@@ -73,7 +73,7 @@ export default async function BaseballStatsPage({ searchParams }: { searchParams
       eyebrow="Player Stats"
       title="야구 선수 스탯"
       subtitle={`${data.season} 시즌 ${league} ${ROLE_KO[role]} 전원. 셀 아래 숫자는 규정 표본 안 리그 백분위(높을수록 상위, ERA·WHIP·패는 낮을수록 상위). 규정 = ${role === "bat" ? `${built.minGames}경기 이상 출장` : "30이닝 이상"} (${built.qualifiedCount}명).`}
-      links={[{ href: "/baseball/rankings", label: "선수 랭킹" }, { href: "/baseball", label: "야구 허브" }, { href: "/soccer/stats", label: "축구 스탯 표" }, { href: "/hockey/stats", label: "하키 스탯 표" }]}
+      links={[{ href: `/baseball/postseason/stats?league=${league}`, label: "포스트시즌 기록" }, { href: "/baseball/rankings", label: "선수 랭킹" }, { href: "/baseball", label: "야구 허브" }, { href: "/soccer/stats", label: "축구 스탯 표" }, { href: "/hockey/stats", label: "하키 스탯 표" }]}
       pills={[
         { param: "league", options: BB_LEAGUES.map((l) => ({ value: l, label: l })), value: league, resets: ["team"] },
         { param: "role", options: [{ value: "bat", label: "타자" }, { value: "pit", label: "투수" }], value: role },

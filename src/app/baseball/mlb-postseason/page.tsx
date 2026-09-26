@@ -125,7 +125,7 @@ export default async function MlbPostseasonPage() {
         </h1>
         <p className="max-w-3xl text-sm text-neutral-600 break-keep dark:text-neutral-400">{status}</p>
         <Link
-          href="/baseball/mlb-postseason/stats"
+          href="/baseball/postseason/stats?league=MLB"
           className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-400"
         >
           <BarChart3 className="h-4 w-4" aria-hidden /> 포스트시즌 선수 통계
@@ -265,7 +265,7 @@ export default async function MlbPostseasonPage() {
           </li>
         </ul>
         <div className="mt-4 flex flex-wrap gap-2 text-xs">
-          <Link href="/baseball/mlb-postseason/stats" className="rounded-full bg-neutral-100 px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:hover:bg-white/10">포스트시즌 선수 통계</Link>
+          <Link href="/baseball/postseason/stats?league=MLB" className="rounded-full bg-neutral-100 px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:hover:bg-white/10">포스트시즌 선수 통계</Link>
           <Link href="/leagues/MLB" className="rounded-full bg-neutral-100 px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:hover:bg-white/10">MLB 리그 페이지</Link>
           <Link href="/baseball/korea" className="rounded-full bg-neutral-100 px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:hover:bg-white/10">해외파 한국 야구 선수</Link>
           <Link href="/baseball" className="rounded-full bg-neutral-100 px-3 py-1.5 font-medium text-neutral-700 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:hover:bg-white/10">야구 허브</Link>

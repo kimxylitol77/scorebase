@@ -29,6 +29,7 @@ export const CRON_REGISTRY: {
   { name: "baseball-season-stats", label: "야구 시즌스탯", maxAgeH: 28 },
   { name: "kbo-player-logs", label: "KBO 경기별 선수 로그", maxAgeH: 28 },
   { name: "npb-player-logs", label: "NPB 경기별 선수 로그", maxAgeH: 28 },
+  { name: "baseball-postseason-stats", label: "KBO·NPB 포스트시즌 선수 기록", maxAgeH: 28 },
   { name: "verify-baseball-postponed", label: "야구 미래 POSTPONED 재대조", maxAgeH: 28 },
   { name: "fetch-transactions", label: "이적 거래", maxAgeH: 28 },
   { name: "league-leaders", label: "리그 리더", maxAgeH: 28 },

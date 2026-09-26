@@ -67,6 +67,11 @@ export function buildPostseasonRows(
     adv.pitching[String(s.player.id)] = { ip, bf: int(t.battersFaced), so: int(t.strikeOuts), bb: int(t.baseOnBalls), hbp: int(t.hitByPitch), hr: int(t.homeRuns), er: int(t.earnedRuns) };
   }
 
+  return { bat, pit, adv, minIp: postseasonMinIp(pit) };
+}
+
+/** 투수 규정 이닝 (최다 이닝 × 25%, 올림, 최소 1) — MLB·KBO·NPB 포스트시즌 표 공통 */
+export function postseasonMinIp(pit: BbPlayerRow[]): number {
   const maxIp = pit.reduce((m, r) => Math.max(m, r.ip ?? 0), 0);
-  return { bat, pit, adv, minIp: Math.max(1, Math.ceil(maxIp * PS_MIN_IP_RATIO)) };
+  return Math.max(1, Math.ceil(maxIp * PS_MIN_IP_RATIO));
 }
