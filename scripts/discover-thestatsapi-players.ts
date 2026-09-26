@@ -150,7 +150,10 @@ async function main() {
       if (reseasoned % 10 === 0) writeFileSync(OUT, JSON.stringify(out, null, 1));
       continue;
     }
-    const token = norm(r.name).split(" ").pop()!; // 검색어도 악센트 제거 (Fernández → fernandez)
+    // 검색어도 악센트 제거 (Fernández → fernandez). 뒤에서부터 3글자 이상 토큰 — 검색 API 가 2글자를 400 으로
+    // 거절해 "… Jr"·"Ko"·"Sa" 한 명이 발굴 단계 전체를 죽였다(2026-09-26 챔피언십·에레디비시·포르투갈·J1).
+    const token = norm(r.name).split(" ").reverse().find((t) => t.length >= 3 && !/^(jr|sr|ii|iii)$/.test(t));
+    if (!token) { console.log(`  ✗ ${r.name} — 검색 가능한 이름 토큰 없음`); skipped++; continue; }
     const res = (await api(`/football/players?search=${encodeURIComponent(token)}&per_page=50`)) as { data: ApiPlayer[] } | null;
     await new Promise((s) => setTimeout(s, 1000)); // 분당 60회 — 한도 120(2026-09-26 x-ratelimit-limit 실측)의 절반. 예전 6초(trial 12회)는 주간 잡이 12h 에 SIGKILL 되는 원인이었다
     const all = res?.data ?? [];
