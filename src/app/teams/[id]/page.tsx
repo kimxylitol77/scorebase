@@ -14,6 +14,7 @@ import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES, BASEBALL_LEAGUES, sportCodeForLeague, leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
+import { fetchMlbTeamRank } from "@/lib/sports/mlb-team-rank";
 import { getKboPostseasonOdds } from "@/lib/predict/postseason-odds";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import TeamAbout from "@/components/teams/TeamAbout";
@@ -247,15 +248,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // SERP 에서 "지금 몇 위인지 바로 보이는" 제목으로 클릭 유인. 캐시 stale 이면 정적 제목 유지.
   if (BASEBALL_LEAGUES.has(team.league)) {
     try {
-      const rows = await fetchBaseballTable(team.league);
-      const r = rows.find((x) => x.ourTeamId === team.id);
+      // MLB 는 ts 순위 캐시가 없어 statsapi 지구 순위를 쓴다(지구 라벨이 division 에 담겨 온다).
+      const r =
+        team.league === "MLB"
+          ? await fetchMlbTeamRank(team.name)
+          : (await fetchBaseballTable(team.league)).find((x) => x.ourTeamId === team.id);
       if (r) {
         const kst = new Date(Date.now() + 9 * 3600_000);
         const dateLabel = `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`;
         const pct = (r.wins / Math.max(r.wins + r.losses, 1)).toFixed(3);
         // 순위는 배열 인덱스가 아니라 ts 가 준 position 을 쓴다 — 매핑 결손·복수 표(NPB 양대 리그)
         // 에서 인덱스는 실제 순위와 어긋난다(2026-08-27 KIA 4위 → "7위" 오표기 사고).
-        const divLabel = npbDivisionKo(r.division); // NPB 만 "센트럴/퍼시픽", KBO 는 빈 문자열
+        const divLabel = team.league === "MLB" ? r.division : npbDivisionKo(r.division); // MLB "NL 서부"·NPB "센트럴/퍼시픽"·KBO 빈 문자열
         const rankLabel = `${team.league}${divLabel ? ` ${divLabel}` : ""} ${r.position}위`;
         // 순위 문구는 부가 조회보다 먼저 확정한다 — 아래 조회가 실패해도 순위까지 잃지 않는다.
         title = `${ko} 팀 순위 (${dateLabel}) — ${rankLabel} · 야구 일정·로스터·통계`;
