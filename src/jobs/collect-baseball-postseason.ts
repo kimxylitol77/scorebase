@@ -75,14 +75,16 @@ async function collectNpb(season: number): Promise<{ bat: BbPlayerRow[]; pit: Bb
   const logs = await prisma.npbPlayerGameLog.findMany({ where: { season, date: { in: dates } }, orderBy: [{ date: "asc" }, { seq: "asc" }] });
   const bat: PsBatLine[] = [];
   const pit: PsPitLine[] = [];
+  const played = new Set<string>(); // 우천 순연 경기는 일정에 빈 박스가 남는다(2024 일본시리즈 11/2) — 로그 있는 경기만 센다
   for (const l of logs) {
     const mmdd = l.date.toISOString().slice(5, 10).replace("-", "");
     if (!l.team || !keys.has(`${mmdd}|${l.team}`)) continue;
+    played.add(`${mmdd}|${l.team}`);
     const name = npbPlayerKo(l.npbId, l.name ?? l.npbId);
     if (l.role === "B") bat.push({ id: l.npbId, name, team: l.team, g: 1, ab: l.ab ?? 0, h: l.h ?? 0, d2b: l.d2b ?? 0, d3b: l.d3b ?? 0, hr: l.hr ?? 0, rbi: l.rbi ?? 0, bb: l.bb ?? 0, hbp: l.hbp ?? 0 });
     else if (l.role === "P") pit.push({ id: l.npbId, name, team: l.team, g: 1, w: l.result === "W" ? 1 : 0, l: l.result === "L" ? 1 : 0, sv: l.result === "S" ? 1 : 0, ip: npbIpToNumber(l.ip), h: l.h ?? 0, bb: l.bb ?? 0, so: l.so ?? 0, er: l.er ?? 0 });
   }
-  return { bat: sumBatLines(bat, "logId"), pit: sumPitLines(pit, "logId"), series: [`${keys.size / 2}경기`] };
+  return { bat: sumBatLines(bat, "logId"), pit: sumPitLines(pit, "logId"), series: [`${played.size / 2}경기`] };
 }
 
 /** 한 시즌 교체 저장 — playerId 는 "bat:{id}"·"pit:{id}" (투타 겸업이 두 줄). */
