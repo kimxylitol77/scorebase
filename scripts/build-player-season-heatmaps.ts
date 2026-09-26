@@ -1,8 +1,9 @@
 // TheStatsAPI 시즌 히트맵(가중 좌표) → 개요 탭 시즌 활동 카드 데이터 (data/player-heatmap-analysis.json)
 // 선수당 1콜. 좌표를 10x10 셀로 집계하고 3선/좌우 분포 요약을 계산해 PlayerHeatmapData 스키마로 저장.
 // 경기수/출전분은 우리 data/player-season-stats.json 에서 가져온다 (없으면 0).
-//   실행: THESTATSAPI_KEY=... npx tsx scripts/build-player-season-heatmaps.ts [--refresh]
-//   기본은 미수집 선수만 (--refresh 면 전원 재수집).
+//   실행: THESTATSAPI_KEY=... npx tsx scripts/build-player-season-heatmaps.ts [--league=EPL] [--refresh]
+//   기본은 미수집 선수 + 카드 이후 경기가 늘어난 선수만 (--refresh 면 전원 재수집).
+//   --league 를 주면 그 리그 매핑만 돈다 (파이프라인이 리그마다 전원을 반복 조회하던 것 방지).
 import { readFileSync, writeFileSync, existsSync } from "fs";
 
 const KEY = process.env.THESTATSAPI_KEY;
@@ -12,6 +13,7 @@ const MAP_PATH = new URL("../data/thestatsapi-player-map.json", import.meta.url)
 const OUT = new URL("../data/player-heatmap-analysis.json", import.meta.url).pathname;
 const SEASON_STATS = new URL("../data/player-season-stats.json", import.meta.url).pathname;
 const REFRESH = process.argv.includes("--refresh");
+const LEAGUE = process.argv.find((a) => a.startsWith("--league="))?.slice("--league=".length) ?? null;
 
 async function api(path: string): Promise<unknown | null> {
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -52,15 +54,20 @@ async function main() {
   const out = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
 
   for (const [ourId, m] of Object.entries(map)) {
+    if (LEAGUE && m.seasonLabel.split(" ").slice(1).join(" ") !== LEAGUE) continue;
     // 이미 수집된 선수는 헛콜 방지 (--refresh 로 재수집).
     // 단 매핑 시즌이 바뀌었으면 다시 받는다 — 시즌만 비교 안 하면 26/27 로 갈아탄 뒤에도
     // 25/26 카드가 그대로 남아 "매핑은 새 시즌, 카드는 지난 시즌"으로 어긋난다.
-    if (out[ourId]?.seasonId === m.seasonId && !REFRESH) continue;
+    // 시즌 중에는 경기 수가 늘었을 때도 다시 받는다 — 같은 시즌이면 영영 건너뛰어 카드가
+    // 첫 경기 값에 멈춰 있었다(2026-09-26 브루노 "1경기·90분", 실제 5경기 · 빅5 399명).
+    const prev = out[ourId];
+    const nowMatches = seasonStats[ourId]?.matches ?? 0;
+    if (prev?.seasonId === m.seasonId && !REFRESH && (prev.matches ?? 0) >= nowMatches) continue;
     try {
       const res = (await api(
         `/football/players/${m.statsId}/competitions/${m.competitionId}/seasons/${m.seasonId}/heatmap`,
       )) as { data: { points: Array<{ x: number; y: number; count: number }> } } | null;
-      await new Promise((r) => setTimeout(r, 6000)); // trial 분당 12회
+      await new Promise((r) => setTimeout(r, 1000)); // 분당 60회 — 한도 120(2026-09-26 x-ratelimit-limit 실측)의 절반. 예전 6초(trial 12회)는 주간 잡이 12h 에 SIGKILL 되는 원인이었다
       const points = res?.data?.points ?? [];
       if (points.length === 0) { console.log(`  ✗ ${m.name} — 시즌 데이터 없음`); continue; }
 

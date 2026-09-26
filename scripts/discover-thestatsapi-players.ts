@@ -156,7 +156,7 @@ async function main() {
     }
     const token = norm(r.name).split(" ").pop()!; // 검색어도 악센트 제거 (Fernández → fernandez)
     const res = (await api(`/football/players?search=${encodeURIComponent(token)}&per_page=50`)) as { data: ApiPlayer[] } | null;
-    await new Promise((s) => setTimeout(s, 6000)); // trial 분당 12회
+    await new Promise((s) => setTimeout(s, 1000)); // 분당 60회 — 한도 120(2026-09-26 x-ratelimit-limit 실측)의 절반. 예전 6초(trial 12회)는 주간 잡이 12h 에 SIGKILL 되는 원인이었다
     const all = res?.data ?? [];
     const sameTeam = (p: ApiPlayer) => {
       if (!r.team || !p.current_team) return false;
