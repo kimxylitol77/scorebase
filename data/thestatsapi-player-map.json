@@ -373,9 +373,9 @@
   "teamId": "tm_7938",
   "teamName": "Newcastle United",
   "name": "Nick Woltemade",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "jw2r09hwgw0rz84": {
   "statsId": "pl_45857110",
@@ -688,9 +688,9 @@
   "teamId": "tm_8531",
   "teamName": "Chelsea",
   "name": "Trevoh Chalobah",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "23xmvkhkdj1qg8n": {
   "statsId": "pl_08812443",
@@ -1651,9 +1651,9 @@
   "teamId": "tm_74493",
   "teamName": "RC Strasbourg",
   "name": "Diego Moreira",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "23xmvkhojvpjqg8": {
   "statsId": "pl_08941198",
@@ -1687,9 +1687,9 @@
   "teamId": "tm_5130",
   "teamName": "Tottenham Hotspur",
   "name": "Djed Spence",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "l5ergph5xk8r8k0": {
   "statsId": "pl_84696945",
@@ -5602,18 +5602,18 @@
   "teamId": "tm_37201",
   "teamName": "Juventus",
   "name": "Kerim Alajbegovic",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "l7oqdeh0y33jr51": {
   "statsId": "pl_40098028",
   "teamId": "tm_98487",
   "teamName": "Roma",
   "name": "Konstantinos Koulierakis",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "2y8m4zhgvxpzql0": {
   "statsId": "pl_72679211",
@@ -5935,9 +5935,9 @@
   "teamId": "tm_02978",
   "teamName": "Eintracht Frankfurt",
   "name": "Arthur Theate",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  },
  "l7oqdeh4dy38r51": {
   "statsId": "pl_13136541",
@@ -8746,5 +8746,131 @@
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
+ },
+ "3glrw7hljwyqdyj": {
+  "statsId": "pl_61950502",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Randal Kolo Muani",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "pxwrxlhzv3pryk0": {
+  "statsId": "pl_13015316",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Samuel Chukwueze",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "n54qllh8ovp8qvy": {
+  "statsId": "pl_74264223",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Alphadjo Cissè",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "n54qllhj8kozqvy": {
+  "statsId": "pl_01300511",
+  "teamId": "tm_73052",
+  "teamName": "Cagliari",
+  "name": "Alessandro romano",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "2y8m4zh8pen9ql0": {
+  "statsId": "pl_83454566",
+  "teamId": "tm_51921",
+  "teamName": "Sassuolo",
+  "name": "Vasilije Adzic",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "ednm9whvy46eryo": {
+  "statsId": "pl_36461657",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Alieu Njie",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "y0or5jh3klzzqwz": {
+  "statsId": "pl_83653538",
+  "teamId": "tm_20175",
+  "teamName": "Frosinone",
+  "name": "Farès Ghedjemis",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "y39mp1h1d637moj": {
+  "statsId": "pl_64395319",
+  "teamId": "tm_64529",
+  "teamName": "Torino",
+  "name": "Alessio Cacciamani",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "y0or5jh0kggqwzv": {
+  "statsId": "pl_72049313",
+  "teamId": "tm_64513",
+  "teamName": "Atalanta",
+  "name": "Gianluca Gaetano",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "y39mp1hyejjgmoj": {
+  "statsId": "pl_15697165",
+  "teamId": "tm_51388",
+  "teamName": "Fiorentina",
+  "name": "Viery",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "x7lm7ph049pm2wd": {
+  "statsId": "pl_61844490",
+  "teamId": "tm_37201",
+  "teamName": "Juventus",
+  "name": "Guglielmo Vicario",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "pxwrxlhzzwdnryk": {
+  "statsId": "pl_73194296",
+  "teamId": "tm_98476",
+  "teamName": "Milan",
+  "name": "Christian Comotto",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "k82rekhy61wkrep": {
+  "statsId": "pl_29862256",
+  "teamId": "tm_20175",
+  "teamName": "Frosinone",
+  "name": "Tomas Bobcek",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
+ },
+ "4wyrn4hv4557q86": {
+  "statsId": "pl_36233524",
+  "teamId": "tm_02924",
+  "teamName": "Como",
+  "name": "Mattia Liberali",
+  "competitionId": "comp_5840",
+  "seasonId": "sn_6199313",
+  "seasonLabel": "2026-27 SERIE_A"
  }
 }
