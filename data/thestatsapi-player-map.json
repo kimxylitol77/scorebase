@@ -129,7 +129,7 @@
   "statsId": "pl_30427522",
   "teamId": "tm_4643",
   "teamName": "Manchester United",
-  "name": "Benjamin Šeško",
+  "name": "Benjamin \u0160e\u0161ko",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -138,7 +138,7 @@
   "statsId": "pl_30477667",
   "teamId": "tm_9145",
   "teamName": "Arsenal",
-  "name": "Martín Zubimendi",
+  "name": "Mart\u00edn Zubimendi",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -165,7 +165,7 @@
   "statsId": "pl_96943618",
   "teamId": "tm_0406",
   "teamName": "Liverpool",
-  "name": "Hugo Ekitiké",
+  "name": "Hugo Ekitik\u00e9",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -192,7 +192,7 @@
   "statsId": "pl_72695512",
   "teamId": "tm_8531",
   "teamName": "Chelsea",
-  "name": "João Pedro",
+  "name": "Jo\u00e3o Pedro",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -201,7 +201,7 @@
   "statsId": "pl_46997904",
   "teamId": "tm_8531",
   "teamName": "Chelsea",
-  "name": "Estêvão Willian Almeida de Oliveira Gonçalves",
+  "name": "Est\u00eav\u00e3o Willian Almeida de Oliveira Gon\u00e7alves",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -210,7 +210,7 @@
   "statsId": "pl_45277146",
   "teamId": "tm_8531",
   "teamName": "Chelsea",
-  "name": "Enzo Fernández",
+  "name": "Enzo Fern\u00e1ndez",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -219,7 +219,7 @@
   "statsId": "pl_96242662",
   "teamId": "tm_9145",
   "teamName": "Arsenal",
-  "name": "Gabriel dos Santos Magalhães",
+  "name": "Gabriel dos Santos Magalh\u00e3es",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -255,7 +255,7 @@
   "statsId": "pl_72642911",
   "teamId": "tm_9145",
   "teamName": "Arsenal",
-  "name": "Jurriën Timber",
+  "name": "Jurri\u00ebn Timber",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -273,7 +273,7 @@
   "statsId": "pl_72501523",
   "teamId": "tm_7938",
   "teamName": "Newcastle United",
-  "name": "Bruno Guimarães",
+  "name": "Bruno Guimar\u00e3es",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -318,7 +318,7 @@
   "statsId": "pl_84500047",
   "teamId": "tm_9145",
   "teamName": "Arsenal",
-  "name": "Viktor Gyökeres",
+  "name": "Viktor Gy\u00f6keres",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -327,7 +327,7 @@
   "statsId": "pl_72501523",
   "teamId": "tm_7938",
   "teamName": "Newcastle United",
-  "name": "Bruno Guimarães",
+  "name": "Bruno Guimar\u00e3es",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -367,15 +367,6 @@
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
- },
- "23xmvkhd064vqg8": {
-  "statsId": "pl_57942727",
-  "teamId": "tm_7938",
-  "teamName": "Newcastle United",
-  "name": "Nick Woltemade",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
  },
  "jw2r09hwgw0rz84": {
   "statsId": "pl_45857110",
@@ -426,7 +417,7 @@
   "statsId": "pl_30434127",
   "teamId": "tm_9145",
   "teamName": "Arsenal",
-  "name": "Piero Hincapié",
+  "name": "Piero Hincapi\u00e9",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -570,7 +561,7 @@
   "statsId": "pl_45744651",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Ibrahima Konaté",
+  "name": "Ibrahima Konat\u00e9",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -683,15 +674,6 @@
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
  },
- "zp5rzghx4wjq82w": {
-  "statsId": "pl_08400189",
-  "teamId": "tm_8531",
-  "teamName": "Chelsea",
-  "name": "Trevoh Chalobah",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
- },
  "23xmvkhkdj1qg8n": {
   "statsId": "pl_08812443",
   "teamId": "tm_0406",
@@ -714,7 +696,7 @@
   "statsId": "pl_57255528",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Kylian Mbappé",
+  "name": "Kylian Mbapp\u00e9",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -750,7 +732,7 @@
   "statsId": "pl_62832591",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Arda Güler",
+  "name": "Arda G\u00fcler",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -758,8 +740,8 @@
  "318q66hvngwvqo9": {
   "statsId": "pl_61566040",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
-  "name": "Julián Álvarez",
+  "teamName": "Atl\u00e9tico Madrid",
+  "name": "Juli\u00e1n \u00c1lvarez",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -768,7 +750,7 @@
   "statsId": "pl_58439158",
   "teamId": "tm_37445",
   "teamName": "Barcelona",
-  "name": "Pau Cubarsí",
+  "name": "Pau Cubars\u00ed",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -795,7 +777,7 @@
   "statsId": "pl_96200411",
   "teamId": "tm_37445",
   "teamName": "Barcelona",
-  "name": "Jules Koundé",
+  "name": "Jules Kound\u00e9",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -804,7 +786,7 @@
   "statsId": "pl_25300637",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Álvaro Fernández Carreras",
+  "name": "\u00c1lvaro Fern\u00e1ndez Carreras",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -875,7 +857,7 @@
  "x7lm7ph95eym2wd": {
   "statsId": "pl_13016698",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
+  "teamName": "Atl\u00e9tico Madrid",
   "name": "Ademola Lookman",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -912,7 +894,7 @@
   "statsId": "pl_45856981",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Brahim Díaz",
+  "name": "Brahim D\u00edaz",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -920,8 +902,8 @@
  "4wyrn4hv995q86p": {
   "statsId": "pl_29689360",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
-  "name": "Dávid Hancko",
+  "teamName": "Atl\u00e9tico Madrid",
+  "name": "D\u00e1vid Hancko",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -957,7 +939,7 @@
   "statsId": "pl_08329998",
   "teamId": "tm_98476",
   "teamName": "Milan",
-  "name": "Rafael Leão",
+  "name": "Rafael Le\u00e3o",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -975,7 +957,7 @@
   "statsId": "pl_6513183",
   "teamId": "tm_37262",
   "teamName": "Inter",
-  "name": "Nicolò Barella",
+  "name": "Nicol\u00f2 Barella",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -1119,7 +1101,7 @@
   "statsId": "pl_25929251",
   "teamId": "tm_98487",
   "teamName": "Roma",
-  "name": "Niccolò Pisilli",
+  "name": "Niccol\u00f2 Pisilli",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -1136,7 +1118,7 @@
  "y0or5jhe6zx2qwz": {
   "statsId": "pl_84704697",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Michael Olise",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1145,7 +1127,7 @@
  "3glrw7hj7vjoqdy": {
   "statsId": "pl_29232822",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Jamal Musiala",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1163,7 +1145,7 @@
  "jw2r09hjk38rz84": {
   "statsId": "pl_57223262",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Dayot Upamecano",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1172,7 +1154,7 @@
  "ednm9wh9z22ryox": {
   "statsId": "pl_7269793",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Harry Kane",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1281,7 +1263,7 @@
   "statsId": "pl_58546625",
   "teamId": "tm_7938",
   "teamName": "Newcastle United",
-  "name": "Bazoumana Touré",
+  "name": "Bazoumana Tour\u00e9",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -1307,7 +1289,7 @@
  "pxwrxlh9d3xvryk": {
   "statsId": "pl_40555426",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Tom Bischof",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1343,7 +1325,7 @@
  "23xmvkh457jqg8n": {
   "statsId": "pl_45808088",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Alphonso Davies",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1388,7 +1370,7 @@
  "n54qllhxdy6qvy9": {
   "statsId": "pl_3878734",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Joshua Kimmich",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1406,7 +1388,7 @@
  "965mkyh3xoxr1ge": {
   "statsId": "pl_9406236",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Konrad Laimer",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -1425,7 +1407,7 @@
   "statsId": "pl_40574267",
   "teamId": "tm_01119",
   "teamName": "Paris Saint-Germain",
-  "name": "Désiré Doue",
+  "name": "D\u00e9sir\u00e9 Doue",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -1434,7 +1416,7 @@
   "statsId": "pl_08459257",
   "teamId": "tm_01119",
   "teamName": "Paris Saint-Germain",
-  "name": "Ousmane Dembélé",
+  "name": "Ousmane Demb\u00e9l\u00e9",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -1461,7 +1443,7 @@
   "statsId": "pl_40176909",
   "teamId": "tm_0406",
   "teamName": "Liverpool",
-  "name": "Jérémy Jacquet",
+  "name": "J\u00e9r\u00e9my Jacquet",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -1542,7 +1524,7 @@
   "statsId": "pl_40849627",
   "teamId": "tm_74493",
   "teamName": "RC Strasbourg",
-  "name": "Joaquín Panichelli",
+  "name": "Joaqu\u00edn Panichelli",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -1569,7 +1551,7 @@
   "statsId": "pl_45288258",
   "teamId": "tm_25550",
   "teamName": "Olympique de Marseille",
-  "name": "Igor Paixão",
+  "name": "Igor Paix\u00e3o",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -1646,15 +1628,6 @@
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
  },
- "dn1m1gh3p4llmoe": {
-  "statsId": "pl_58716949",
-  "teamId": "tm_74493",
-  "teamName": "RC Strasbourg",
-  "name": "Diego Moreira",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
- },
  "23xmvkhojvpjqg8": {
   "statsId": "pl_08941198",
   "teamId": "tm_5130",
@@ -1681,15 +1654,6 @@
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
- },
- "pxwrxlh97xnpryk": {
-  "statsId": "pl_84724956",
-  "teamId": "tm_5130",
-  "teamName": "Tottenham Hotspur",
-  "name": "Djed Spence",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
  },
  "l5ergph5xk8r8k0": {
   "statsId": "pl_84696945",
@@ -2069,15 +2033,6 @@
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
  },
- "l7oqdeh476zr510": {
-  "statsId": "pl_08721293",
-  "teamId": "tm_3809",
-  "teamName": "West Ham United",
-  "name": "Jarrod Bowen",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
  "318q66hve3pdqo9": {
   "statsId": "pl_62884104",
   "teamId": "tm_5290",
@@ -2199,7 +2154,7 @@
   "statsId": "pl_08530510",
   "teamId": "tm_2674",
   "teamName": "Sunderland",
-  "name": "Enzo Le Fée",
+  "name": "Enzo Le F\u00e9e",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -2217,7 +2172,7 @@
   "statsId": "pl_84045220",
   "teamId": "tm_0836",
   "teamName": "Nottingham Forest",
-  "name": "Nikola Milenković",
+  "name": "Nikola Milenkovi\u0107",
   "competitionId": "comp_3039",
   "seasonId": "sn_8406098",
   "seasonLabel": "2026-27 EPL"
@@ -2424,7 +2379,7 @@
   "statsId": "pl_01813815",
   "teamId": "tm_58884",
   "teamName": "Lille",
-  "name": "Hákon Arnar Haraldsson",
+  "name": "H\u00e1kon Arnar Haraldsson",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2460,7 +2415,7 @@
   "statsId": "pl_57953296",
   "teamId": "tm_74493",
   "teamName": "RC Strasbourg",
-  "name": "Guéla Doué",
+  "name": "Gu\u00e9la Dou\u00e9",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2496,7 +2451,7 @@
   "statsId": "pl_08580314",
   "teamId": "tm_74434",
   "teamName": "Olympique Lyonnais",
-  "name": "Pavel Šulc",
+  "name": "Pavel \u0160ulc",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2532,7 +2487,7 @@
   "statsId": "pl_19686075",
   "teamId": "tm_83394",
   "teamName": "RC Lens",
-  "name": "Ismaëlo Ganiou",
+  "name": "Isma\u00eblo Ganiou",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2658,7 +2613,7 @@
   "statsId": "pl_84970228",
   "teamId": "tm_74434",
   "teamName": "Olympique Lyonnais",
-  "name": "Moussa Niakhaté",
+  "name": "Moussa Niakhat\u00e9",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2766,7 +2721,7 @@
   "statsId": "pl_98183789",
   "teamId": "tm_62238",
   "teamName": "Lorient",
-  "name": "Arsène Kouassi",
+  "name": "Ars\u00e8ne Kouassi",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2811,7 +2766,7 @@
   "statsId": "pl_61968089",
   "teamId": "tm_51322",
   "teamName": "Genoa",
-  "name": "Leo Østigård",
+  "name": "Leo \u00d8stig\u00e5rd",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2828,7 +2783,7 @@
  "k82rekhodok0rep": {
   "statsId": "pl_83062273",
   "teamId": "tm_10361",
-  "teamName": "Beşiktaş",
+  "teamName": "Be\u015fikta\u015f",
   "name": "Kassoum Ouattara",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
@@ -2847,7 +2802,7 @@
   "statsId": "pl_84554706",
   "teamId": "tm_83394",
   "teamName": "RC Lens",
-  "name": "Odsonne Édouard",
+  "name": "Odsonne \u00c9douard",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2865,7 +2820,7 @@
   "statsId": "pl_46996228",
   "teamId": "tm_83353",
   "teamName": "Stade Rennais",
-  "name": "Abdelhamid Aït Boudlal",
+  "name": "Abdelhamid A\u00eft Boudlal",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2910,7 +2865,7 @@
   "statsId": "pl_57418751",
   "teamId": "tm_83353",
   "teamName": "Stade Rennais",
-  "name": "Sebastian Szymański",
+  "name": "Sebastian Szyma\u0144ski",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -2955,7 +2910,7 @@
   "statsId": "pl_08328407",
   "teamId": "tm_58884",
   "teamName": "Lille",
-  "name": "Berke Özer",
+  "name": "Berke \u00d6zer",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3054,7 +3009,7 @@
   "statsId": "pl_83659239",
   "teamId": "tm_83353",
   "teamName": "Stade Rennais",
-  "name": "Djaoui Cissé",
+  "name": "Djaoui Ciss\u00e9",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3089,7 +3044,7 @@
  "8yomo4h286l1q0j": {
   "statsId": "pl_57475476",
   "teamId": "tm_10361",
-  "teamName": "Beşiktaş",
+  "teamName": "Be\u015fikta\u015f",
   "name": "Amir Murillo",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
@@ -3180,7 +3135,7 @@
   "statsId": "pl_97638406",
   "teamId": "tm_01158",
   "teamName": "Angers",
-  "name": "Jacques Ekomié",
+  "name": "Jacques Ekomi\u00e9",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3189,7 +3144,7 @@
   "statsId": "pl_62934043",
   "teamId": "tm_62226",
   "teamName": "Auxerre",
-  "name": "Clément Akpa",
+  "name": "Cl\u00e9ment Akpa",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3270,7 +3225,7 @@
   "statsId": "pl_84780664",
   "teamId": "tm_83353",
   "teamName": "Stade Rennais",
-  "name": "Issa Soumaré",
+  "name": "Issa Soumar\u00e9",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3297,7 +3252,7 @@
   "statsId": "pl_01970988",
   "teamId": "tm_83394",
   "teamName": "RC Lens",
-  "name": "Andrija Bulatović",
+  "name": "Andrija Bulatovi\u0107",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3351,7 +3306,7 @@
   "statsId": "pl_01813815",
   "teamId": "tm_58884",
   "teamName": "Lille",
-  "name": "Hákon Arnar Haraldsson",
+  "name": "H\u00e1kon Arnar Haraldsson",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3396,7 +3351,7 @@
   "statsId": "pl_19781549",
   "teamId": "tm_25567",
   "teamName": "Nice",
-  "name": "Moïse Bombito",
+  "name": "Mo\u00efse Bombito",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3477,7 +3432,7 @@
   "statsId": "pl_58438391",
   "teamId": "tm_83394",
   "teamName": "RC Lens",
-  "name": "Nidal Čelik",
+  "name": "Nidal \u010celik",
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
@@ -3486,7 +3441,7 @@
   "statsId": "pl_58628595",
   "teamId": "tm_37262",
   "teamName": "Inter",
-  "name": "Petar Sučić",
+  "name": "Petar Su\u010di\u0107",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -3530,8 +3485,8 @@
  "6ypq3nhlvv3md7o": {
   "statsId": "pl_84027040",
   "teamId": "tm_10361",
-  "teamName": "Beşiktaş",
-  "name": "Dušan Vlahović",
+  "teamName": "Be\u015fikta\u015f",
+  "name": "Du\u0161an Vlahovi\u0107",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -3603,7 +3558,7 @@
   "statsId": "pl_61916869",
   "teamId": "tm_64513",
   "teamName": "Atalanta",
-  "name": "Nikola Krstović",
+  "name": "Nikola Krstovi\u0107",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -3621,7 +3576,7 @@
   "statsId": "pl_98194340",
   "teamId": "tm_51388",
   "teamName": "Fiorentina",
-  "name": "Christ Inao Oulaï",
+  "name": "Christ Inao Oula\u00ef",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -3666,7 +3621,7 @@
   "statsId": "pl_13635463",
   "teamId": "tm_74434",
   "teamName": "Olympique Lyonnais",
-  "name": "Loïs Openda",
+  "name": "Lo\u00efs Openda",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -3729,7 +3684,7 @@
   "statsId": "pl_08955908",
   "teamId": "tm_73047",
   "teamName": "Lazio",
-  "name": "Nicolò Rovella",
+  "name": "Nicol\u00f2 Rovella",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4044,7 +3999,7 @@
   "statsId": "pl_1997398",
   "teamId": "tm_37262",
   "teamName": "Inter",
-  "name": "Hakan Çalhanoğlu",
+  "name": "Hakan \u00c7alhano\u011flu",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4143,7 +4098,7 @@
   "statsId": "pl_08951857",
   "teamId": "tm_46156",
   "teamName": "Bologna",
-  "name": "Torbjørn Heggem",
+  "name": "Torbj\u00f8rn Heggem",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4287,7 +4242,7 @@
   "statsId": "pl_45198899",
   "teamId": "tm_51322",
   "teamName": "Genoa",
-  "name": "Johan Vásquez",
+  "name": "Johan V\u00e1squez",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4314,7 +4269,7 @@
   "statsId": "pl_84642874",
   "teamId": "tm_37201",
   "teamName": "Juventus",
-  "name": "Zeki Çelik",
+  "name": "Zeki \u00c7elik",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4530,7 +4485,7 @@
   "statsId": "pl_6583356",
   "teamId": "tm_64529",
   "teamName": "Torino",
-  "name": "Nikola Vlašić",
+  "name": "Nikola Vla\u0161i\u0107",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4557,7 +4512,7 @@
   "statsId": "pl_4065558",
   "teamId": "tm_37262",
   "teamName": "Inter",
-  "name": "Piotr Zieliński",
+  "name": "Piotr Zieli\u0144ski",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4593,7 +4548,7 @@
   "statsId": "pl_40211",
   "teamId": "tm_9103469",
   "teamName": "No team",
-  "name": "Pavel Nedvěd",
+  "name": "Pavel Nedv\u011bd",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -4610,7 +4565,7 @@
  "8yomo4hkjwj9q0j": {
   "statsId": "pl_29852262",
   "teamId": "tm_20721",
-  "teamName": "1. FC Köln",
+  "teamName": "1. FC K\u00f6ln",
   "name": "Thijs Dallinga",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
@@ -4754,7 +4709,7 @@
  "y39mp1hjn3wmojx": {
   "statsId": "pl_8087960",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
+  "teamName": "Atl\u00e9tico Madrid",
   "name": "Marcos Llorente",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -4773,19 +4728,10 @@
   "statsId": "pl_89285393",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Carlos Espí",
+  "name": "Carlos Esp\u00ed",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
- },
- "jw2r09hjn4d8rz8": {
-  "statsId": "pl_01812575",
-  "teamId": "tm_26936",
-  "teamName": "Sporting",
-  "name": "Sergi Altimira",
-  "competitionId": "comp_8385",
-  "seasonId": "sn_6190962",
-  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
  },
  "x7lm7ph0y9yym2w": {
   "statsId": "pl_74210560",
@@ -4799,7 +4745,7 @@
  "ednm9whz21g5ryo": {
   "statsId": "pl_72607446",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
+  "teamName": "Atl\u00e9tico Madrid",
   "name": "Johnny Cardoso",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -4818,7 +4764,7 @@
   "statsId": "pl_45466621",
   "teamId": "tm_02555",
   "teamName": "Real Sociedad",
-  "name": "Orri Steinn Óskarsson",
+  "name": "Orri Steinn \u00d3skarsson",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -4835,7 +4781,7 @@
  "vjxm8gh2l3xr6od": {
   "statsId": "pl_29603752",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
+  "teamName": "Atl\u00e9tico Madrid",
   "name": "Robin Le Normand",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -4854,7 +4800,7 @@
   "statsId": "pl_72973451",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Éder Militão",
+  "name": "\u00c9der Milit\u00e3o",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -4863,7 +4809,7 @@
   "statsId": "pl_57952149",
   "teamId": "tm_37445",
   "teamName": "Barcelona",
-  "name": "Marc Casadó",
+  "name": "Marc Casad\u00f3",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -4980,7 +4926,7 @@
   "statsId": "pl_61618421",
   "teamId": "tm_73725",
   "teamName": "Levante UD",
-  "name": "Carlos Álvarez",
+  "name": "Carlos \u00c1lvarez",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -4989,7 +4935,7 @@
   "statsId": "pl_61022064",
   "teamId": "tm_51959",
   "teamName": "Sevilla",
-  "name": "Lucien Agoumé",
+  "name": "Lucien Agoum\u00e9",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5015,7 +4961,7 @@
  "n54qllh2gzwqvy9": {
   "statsId": "pl_8440692",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
+  "teamName": "Atl\u00e9tico Madrid",
   "name": "Jan Oblak",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -5052,7 +4998,7 @@
   "statsId": "pl_13137680",
   "teamId": "tm_51959",
   "teamName": "Sevilla",
-  "name": "José Ángel Carmona",
+  "name": "Jos\u00e9 \u00c1ngel Carmona",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5105,7 +5051,7 @@
  "1l4rjnhex35m7vx": {
   "statsId": "pl_96218931",
   "teamId": "tm_46488",
-  "teamName": "Deportivo Alavés",
+  "teamName": "Deportivo Alav\u00e9s",
   "name": "Antonio Blanco",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -5142,7 +5088,7 @@
   "statsId": "pl_61089660",
   "teamId": "tm_02555",
   "teamName": "Real Sociedad",
-  "name": "Luka Sučić",
+  "name": "Luka Su\u010di\u0107",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5151,7 +5097,7 @@
   "statsId": "pl_96303098",
   "teamId": "tm_20116",
   "teamName": "Celta Vigo",
-  "name": "Ferrán Jutglà",
+  "name": "Ferr\u00e1n Jutgl\u00e0",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5159,7 +5105,7 @@
  "x7lm7ph0y0pm2wd": {
   "statsId": "pl_9404316",
   "teamId": "tm_91646",
-  "teamName": "Fenerbahçe",
+  "teamName": "Fenerbah\u00e7e",
   "name": "Sofyan Amrabat",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -5178,7 +5124,7 @@
   "statsId": "pl_57213659",
   "teamId": "tm_02555",
   "teamName": "Real Sociedad",
-  "name": "Álex Remiro",
+  "name": "\u00c1lex Remiro",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5213,8 +5159,8 @@
  "k82rekhygo2repz": {
   "statsId": "pl_4878018",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
-  "name": "José María Giménez",
+  "teamName": "Atl\u00e9tico Madrid",
+  "name": "Jos\u00e9 Mar\u00eda Gim\u00e9nez",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5232,7 +5178,7 @@
   "statsId": "pl_9786141",
   "teamId": "tm_37445",
   "teamName": "Barcelona",
-  "name": "João Cancelo",
+  "name": "Jo\u00e3o Cancelo",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5286,7 +5232,7 @@
   "statsId": "pl_45802821",
   "teamId": "tm_02201",
   "teamName": "Columbus Crew",
-  "name": "Brais Méndez",
+  "name": "Brais M\u00e9ndez",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5304,7 +5250,7 @@
   "statsId": "pl_84030372",
   "teamId": "tm_73664",
   "teamName": "Villarreal",
-  "name": "Santi Comesaña",
+  "name": "Santi Comesa\u00f1a",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5403,7 +5349,7 @@
   "statsId": "pl_57916311",
   "teamId": "tm_64056",
   "teamName": "Real Betis",
-  "name": "Álvaro Vallés",
+  "name": "\u00c1lvaro Vall\u00e9s",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5447,7 +5393,7 @@
  "jw2r09hxz97rz84": {
   "statsId": "pl_0911834",
   "teamId": "tm_46488",
-  "teamName": "Deportivo Alavés",
+  "teamName": "Deportivo Alav\u00e9s",
   "name": "Antonio Sivera",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
@@ -5475,7 +5421,7 @@
   "statsId": "pl_74020643",
   "teamId": "tm_51959",
   "teamName": "Sevilla",
-  "name": "Andrés Castrín",
+  "name": "Andr\u00e9s Castr\u00edn",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5484,7 +5430,7 @@
   "statsId": "pl_61183134",
   "teamId": "tm_73664",
   "teamName": "Villarreal",
-  "name": "Nicolas Pépé",
+  "name": "Nicolas P\u00e9p\u00e9",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -5492,8 +5438,8 @@
  "x7lm7phw7govm2w": {
   "statsId": "pl_25903111",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
-  "name": "Aleksandar Pavlović",
+  "teamName": "FC Bayern M\u00fcnchen",
+  "name": "Aleksandar Pavlovi\u0107",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -5510,7 +5456,7 @@
  "ednm9whz7ln3ryo": {
   "statsId": "pl_36550037",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Ismael Saibari",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -5519,8 +5465,8 @@
  "x7lm7phnwd2m2wd": {
   "statsId": "pl_30227086",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
-  "name": "Josip Stanišić",
+  "teamName": "FC Bayern M\u00fcnchen",
+  "name": "Josip Stani\u0161i\u0107",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -5596,24 +5542,6 @@
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
- },
- "4jwq2ghxgnp3m0v": {
-  "statsId": "pl_62512218",
-  "teamId": "tm_37201",
-  "teamName": "Juventus",
-  "name": "Kerim Alajbegovic",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
- },
- "l7oqdeh0y33jr51": {
-  "statsId": "pl_40098028",
-  "teamId": "tm_98487",
-  "teamName": "Roma",
-  "name": "Konstantinos Koulierakis",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
  },
  "2y8m4zhgvxpzql0": {
   "statsId": "pl_72679211",
@@ -5718,7 +5646,7 @@
   "statsId": "pl_29711667",
   "teamId": "tm_37258",
   "teamName": "VfB Stuttgart",
-  "name": "Ermedin Demirović",
+  "name": "Ermedin Demirovi\u0107",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -5736,7 +5664,7 @@
   "statsId": "pl_30886322",
   "teamId": "tm_20832",
   "teamName": "Bayer 04 Leverkusen",
-  "name": "Aleix García",
+  "name": "Aleix Garc\u00eda",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -5825,7 +5753,7 @@
  "2y8m4zhjodnql07": {
   "statsId": "pl_3755577",
   "teamId": "tm_64681",
-  "teamName": "Atlético Madrid",
+  "teamName": "Atl\u00e9tico Madrid",
   "name": "Alejandro Grimaldo",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -5843,7 +5771,7 @@
  "y39mp1hypk9emoj": {
   "statsId": "pl_36006318",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Jonas Urbig",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -5871,7 +5799,7 @@
   "statsId": "pl_72934421",
   "teamId": "tm_37258",
   "teamName": "VfB Stuttgart",
-  "name": "Maximilian Mittelstädt",
+  "name": "Maximilian Mittelst\u00e4dt",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -5888,7 +5816,7 @@
  "dj2ryohyzo0q1zp": {
   "statsId": "pl_5174655",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Serge Gnabry",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -5929,15 +5857,6 @@
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
- },
- "x7lm7ph03n08m2w": {
-  "statsId": "pl_84794746",
-  "teamId": "tm_02978",
-  "teamName": "Eintracht Frankfurt",
-  "name": "Arthur Theate",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
  },
  "l7oqdeh4dy38r51": {
   "statsId": "pl_13136541",
@@ -6078,7 +5997,7 @@
   "statsId": "pl_13748197",
   "teamId": "tm_37258",
   "teamName": "VfB Stuttgart",
-  "name": "Chris Führich",
+  "name": "Chris F\u00fchrich",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6105,7 +6024,7 @@
   "statsId": "pl_97633721",
   "teamId": "tm_20832",
   "teamName": "Bayer 04 Leverkusen",
-  "name": "Jeanuël Belocian",
+  "name": "Jeanu\u00ebl Belocian",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6114,7 +6033,7 @@
   "statsId": "pl_97219297",
   "teamId": "tm_15641",
   "teamName": "FC Augsburg",
-  "name": "Mert Kömür",
+  "name": "Mert K\u00f6m\u00fcr",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6194,20 +6113,11 @@
  "3glrw7hy401qdyj": {
   "statsId": "pl_45860171",
   "teamId": "tm_98394",
-  "teamName": "Deportivo La Coruña",
-  "name": "Angeliño",
+  "teamName": "Deportivo La Coru\u00f1a",
+  "name": "Angeli\u00f1o",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
- },
- "dn1m1gh342pmoep": {
-  "statsId": "pl_96096036",
-  "teamId": "tm_10361",
-  "teamName": "Beşiktaş",
-  "name": "Alexander Nübel",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
  },
  "y39mp1h526vmojx": {
   "statsId": "pl_2099582",
@@ -6302,7 +6212,7 @@
  "n54qllhxow8dqvy": {
   "statsId": "pl_83492775",
   "teamId": "tm_98299",
-  "teamName": "FC Bayern München",
+  "teamName": "FC Bayern M\u00fcnchen",
   "name": "Arijon Ibrahimovic",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -6312,7 +6222,7 @@
   "statsId": "pl_45254861",
   "teamId": "tm_73909",
   "teamName": "TSG Hoffenheim",
-  "name": "Robin Hranáč",
+  "name": "Robin Hran\u00e1\u010d",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6330,7 +6240,7 @@
   "statsId": "pl_29152313",
   "teamId": "tm_73909",
   "teamName": "TSG Hoffenheim",
-  "name": "Adam Hložek",
+  "name": "Adam Hlo\u017eek",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6420,7 +6330,7 @@
   "statsId": "pl_25715295",
   "teamId": "tm_160814",
   "teamName": "RB Leipzig",
-  "name": "Andrija Maksimović",
+  "name": "Andrija Maksimovi\u0107",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6456,7 +6366,7 @@
   "statsId": "pl_30407630",
   "teamId": "tm_37885",
   "teamName": "1. FC Union Berlin",
-  "name": "Andrej Ilić",
+  "name": "Andrej Ili\u0107",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6492,7 +6402,7 @@
   "statsId": "pl_36483636",
   "teamId": "tm_89592",
   "teamName": "SC Freiburg",
-  "name": "Cyriaque Irié",
+  "name": "Cyriaque Iri\u00e9",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6510,7 +6420,7 @@
   "statsId": "pl_08542415",
   "teamId": "tm_64584",
   "teamName": "Hamburger SV",
-  "name": "Nicolás Capaldo",
+  "name": "Nicol\u00e1s Capaldo",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -6644,7 +6554,7 @@
  "4wyrn4hdl7xnq86": {
   "statsId": "pl_96322101",
   "teamId": "tm_08959",
-  "teamName": "FC København",
+  "teamName": "FC K\u00f8benhavn",
   "name": "Diant Ramaj",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
@@ -6731,24 +6641,6 @@
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
- "2y8m4zhgx643ql0": {
-  "statsId": "pl_86522",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Míchel Salgado",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "318q66hojk4qo9j": {
-  "statsId": "pl_920467",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Miguel Britos",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
  "3glrw7hy7lvkqdy": {
   "statsId": "pl_25728335",
   "teamId": "tm_3809",
@@ -6758,182 +6650,11 @@
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
- "4jwq2gh74lo3m0v": {
-  "statsId": "pl_37527033",
-  "teamId": "tm_3809",
-  "teamName": "West Ham United",
-  "name": "Joshua Ajala",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "4wyrn4hd269eq86": {
-  "statsId": "pl_62585694",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Yildiray Basturk",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "4zp5rzghee0q82w": {
-  "statsId": "pl_30663",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Peter Crouch",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "6ypq3nhwn61pmd7": {
-  "statsId": "pl_58717666",
-  "teamId": "tm_3809",
-  "teamName": "West Ham United",
-  "name": "Kaelan Casey",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "8yomo4hv26zeq0j": {
-  "statsId": "pl_72797991",
-  "teamId": "tm_1552",
-  "teamName": "Brighton & Hove Albion",
-  "name": "Yasin ayari",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "965mkyh35ky4r1g": {
-  "statsId": "pl_084219",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Teddy Sheringham",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
  "965mkyhe94gzr1g": {
   "statsId": "pl_40885090",
   "teamId": "tm_6387",
   "teamName": "Middlesbrough",
   "name": "will lankshear",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "965mkyhez592r1g": {
-  "statsId": "pl_08990431",
-  "teamId": "tm_6115",
-  "teamName": "Hull City",
-  "name": "Ryan Giles",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "dj2ryohj418oq1z": {
-  "statsId": "pl_7623",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Emile Heskey",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "dn1m1ghn72j0moe": {
-  "statsId": "pl_84234",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Rio Ferdinand",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "dn1m1ghn7ldpmoe": {
-  "statsId": "pl_36456",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Hidetoshi Nakata",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "ednm9whzx7j0ryo": {
-  "statsId": "pl_01979085",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Kieron Dyer",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "jednm9wh38gryox": {
-  "statsId": "pl_085711",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Víctor Valdés",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "k82rekh3vlvvrep": {
-  "statsId": "pl_15418153",
-  "teamId": "tm_3809",
-  "teamName": "West Ham United",
-  "name": "Ezra Mayers",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "k82rekho009drep": {
-  "statsId": "pl_58717894",
-  "teamId": "tm_6573",
-  "teamName": "Burnley",
-  "name": "Jaydon Banel",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "k82rekhy6gzgrep": {
-  "statsId": "pl_85282",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Vincenzo Grella",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "l5ergphvy4d4r8k": {
-  "statsId": "pl_572161",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Shaka Hislop",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "n54qllh8377jqvy": {
-  "statsId": "pl_36666673",
-  "teamId": "tm_6573",
-  "teamName": "Burnley",
-  "name": "Enock Agyei",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "p4jwq2ghjp4m0ve": {
-  "statsId": "pl_52791",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Patrice Evra",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "pxwrxlh9e5kpryk": {
-  "statsId": "pl_60986",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Nicolas Anelka",
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
@@ -6965,101 +6686,11 @@
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
- "y39mp1hjwzxzmoj": {
-  "statsId": "pl_57636",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jermaine Jenas",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "z8yomo4hwenq0j6": {
-  "statsId": "pl_360730",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Álvaro Arbeloa",
-  "competitionId": "comp_8321",
-  "seasonId": "sn_3014533",
-  "seasonLabel": "2026-27 CHAMPIONSHIP"
- },
- "2y8m4zhgx6p1ql0": {
-  "statsId": "pl_58156",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jon Dahl Tomasson",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
  "3glrw7hj63d2qdy": {
   "statsId": "pl_62580419",
   "teamId": "tm_9103469",
   "teamName": "No team",
   "name": "Joris Mathijsen",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "8yomo4h2x685q0j": {
-  "statsId": "pl_456796",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Bonaventure Kalou",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "dn1m1gh8d8y6moe": {
-  "statsId": "pl_46620",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Mark van Bommel",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "k82rekhy6wjyrep": {
-  "statsId": "pl_36284",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jan Kromkamp",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "l7oqdeh42x5dr51": {
-  "statsId": "pl_19576",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jaap Stam",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "p3glrw7h5j7qdyj": {
-  "statsId": "pl_20301",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Dirk Kuyt",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "vjxm8ghjx3ynr6o": {
-  "statsId": "pl_131649",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Giovanni van Bronckhorst",
-  "competitionId": "comp_3809",
-  "seasonId": "sn_5744954",
-  "seasonLabel": "2026-27 EREDIVISIE"
- },
- "y39mp1h3yjlmojx": {
-  "statsId": "pl_381048",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Arjen Robben",
   "competitionId": "comp_3809",
   "seasonId": "sn_5744954",
   "seasonLabel": "2026-27 EREDIVISIE"
@@ -7073,105 +6704,6 @@
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
  },
- "9k82rekh4pkrepz": {
-  "statsId": "pl_09203",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Iker Casillas",
-  "competitionId": "comp_8385",
-  "seasonId": "sn_6190962",
-  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
- },
- "dj2ryohky83q1zp": {
-  "statsId": "pl_020301",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Fábio Coentrão",
-  "competitionId": "comp_8385",
-  "seasonId": "sn_6190962",
-  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
- },
- "ednm9whzexjeryo": {
-  "statsId": "pl_292328",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Maniche",
-  "competitionId": "comp_8385",
-  "seasonId": "sn_6190962",
-  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
- },
- "kdj2ryoh62lq1zp": {
-  "statsId": "pl_66638",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Eliseu",
-  "competitionId": "comp_8385",
-  "seasonId": "sn_6190962",
-  "seasonLabel": "2026-27 PRIMEIRA_LIGA"
- },
- "4jwq2ghvp5wjm0v": {
-  "statsId": "pl_04044",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Tony Sylva",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "4wyrn4h87n2q86p": {
-  "statsId": "pl_272793",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jean-Jacques Gosso",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "4wyrn4hdvpzpq86": {
-  "statsId": "pl_45119007",
-  "teamId": "tm_98487",
-  "teamName": "Roma",
-  "name": "Devis Vasquez",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "8y39mp1hly0mojx": {
-  "statsId": "pl_614699",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Serdar Taşçı",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "9vjxm8gh6per6od": {
-  "statsId": "pl_89038",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Georgios Samaras",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "ednm9whzyz3yryo": {
-  "statsId": "pl_08095714",
-  "teamId": "tm_91646",
-  "teamName": "Fenerbahçe",
-  "name": "Jayden oosterwolde",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "k82rekhy6wvwrep": {
-  "statsId": "pl_83627058",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Tomas Ujfalusi",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
  "n54qllhx49wyqvy": {
   "statsId": "pl_96338062",
   "teamId": "tm_47528",
@@ -7180,114 +6712,6 @@
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
- },
- "pxwrxlh9ey1zryk": {
-  "statsId": "pl_5348",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Emmanuel Eboué",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "z318q66heznqo9j": {
-  "statsId": "pl_456625",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Cédric Carrasso",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "zp5rzghz45n2q82": {
-  "statsId": "pl_99264",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Raúl Meireles",
-  "competitionId": "comp_9235",
-  "seasonId": "sn_1361088",
-  "seasonLabel": "2026-27 SUPER_LIG"
- },
- "2y8m4zhzxp7ql07": {
-  "statsId": "pl_08301453",
-  "teamId": "tm_896909",
-  "teamName": "Marbella FC",
-  "name": "Zinho Vanheusden",
-  "competitionId": "comp_8531",
-  "seasonId": "sn_6195301",
-  "seasonLabel": "2026-27 JUPILER_PL"
- },
- "n54qllhx68poqvy": {
-  "statsId": "pl_29286973",
-  "teamId": "tm_694184",
-  "teamName": "Patro Eisden Maasmechelen",
-  "name": "Isaias Delpupo",
-  "competitionId": "comp_8531",
-  "seasonId": "sn_6195301",
-  "seasonLabel": "2026-27 JUPILER_PL"
- },
- "x7lm7ph08v12m2w": {
-  "statsId": "pl_36254003",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Peter van der Heyden",
-  "competitionId": "comp_8531",
-  "seasonId": "sn_6195301",
-  "seasonLabel": "2026-27 JUPILER_PL"
- },
- "y0or5jhe68dxqwz": {
-  "statsId": "pl_45707",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Geert De Vlieger",
-  "competitionId": "comp_8531",
-  "seasonId": "sn_6195301",
-  "seasonLabel": "2026-27 JUPILER_PL"
- },
- "zp5rzghxnglnq82": {
-  "statsId": "pl_0114",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Nico Van Kerckhoven",
-  "competitionId": "comp_8531",
-  "seasonId": "sn_6195301",
-  "seasonLabel": "2026-27 JUPILER_PL"
- },
- "dn1m1ghn7ll1moe": {
-  "statsId": "pl_72515",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "David Weir",
-  "competitionId": "comp_6387",
-  "seasonId": "sn_8406037",
-  "seasonLabel": "2026-27 SPL"
- },
- "jednm9whnn8ryox": {
-  "statsId": "pl_720922",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Niko Kranjčar",
-  "competitionId": "comp_6387",
-  "seasonId": "sn_8406037",
-  "seasonLabel": "2026-27 SPL"
- },
- "kdj2ryoh3l9q1zp": {
-  "statsId": "pl_57392433",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Alex Bruce",
-  "competitionId": "comp_6387",
-  "seasonId": "sn_8406037",
-  "seasonLabel": "2026-27 SPL"
- },
- "p3glrw7he81qdyj": {
-  "statsId": "pl_47555982",
-  "teamId": "tm_20507",
-  "teamName": "East Stirlingshire",
-  "name": "James McFadden",
-  "competitionId": "comp_6387",
-  "seasonId": "sn_8406037",
-  "seasonLabel": "2026-27 SPL"
  },
  "23xmvkhdw2j3qg8": {
   "statsId": "pl_29860695",
@@ -7329,7 +6753,7 @@
   "statsId": "pl_29872896",
   "teamId": "tm_08347503",
   "teamName": "Al-Diraiyah Club",
-  "name": "Darwin Nuñez",
+  "name": "Darwin Nu\u00f1ez",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7374,7 +6798,7 @@
   "statsId": "pl_98063903",
   "teamId": "tm_466902",
   "teamName": "Al-Hilal",
-  "name": "Mohamed Kader Meïté",
+  "name": "Mohamed Kader Me\u00eft\u00e9",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7383,16 +6807,7 @@
   "statsId": "pl_72019302",
   "teamId": "tm_754497",
   "teamName": "Al-Ahli",
-  "name": "Roger Ibañez",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "8yomo4hvw953q0j": {
-  "statsId": "pl_25890293",
-  "teamId": "tm_466902",
-  "teamName": "Al-Hilal",
-  "name": "Saimon Bouabre",
+  "name": "Roger Iba\u00f1ez",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7410,7 +6825,7 @@
   "statsId": "pl_97726296",
   "teamId": "tm_480982",
   "teamName": "Al-Ittihad",
-  "name": "Jan-Carlo Simić",
+  "name": "Jan-Carlo Simi\u0107",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7420,15 +6835,6 @@
   "teamId": "tm_754497",
   "teamName": "Al-Ahli",
   "name": "Merih Demiral",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "965mkyh3d48r1ge": {
-  "statsId": "pl_6585568",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Franck Kessié",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7460,20 +6866,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "y0or5jh3d52xqwz": {
-  "statsId": "pl_62953949",
-  "teamId": "tm_480982",
-  "teamName": "Al-Ittihad",
-  "name": "Mahamadou Doumbia",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "1l4rjnhz03gm7vx": {
   "statsId": "pl_8622694",
   "teamId": "tm_2221233",
   "teamName": "Neom SC",
-  "name": "Saïd Benrahma",
+  "name": "Sa\u00efd Benrahma",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7505,15 +6902,6 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "vjxm8ghgjejr6od": {
-  "statsId": "pl_1386931",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Marcelo Brozović",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "6ypq3nh146gmd7o": {
   "statsId": "pl_08340218",
   "teamId": "tm_548644",
@@ -7527,7 +6915,7 @@
   "statsId": "pl_5414655",
   "teamId": "tm_803264",
   "teamName": "Al-Ettifaq",
-  "name": "Moussa Dembélé",
+  "name": "Moussa Demb\u00e9l\u00e9",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7536,7 +6924,7 @@
   "statsId": "pl_3702564",
   "teamId": "tm_480982",
   "teamName": "Al-Ittihad",
-  "name": "Predrag Rajković",
+  "name": "Predrag Rajkovi\u0107",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7545,16 +6933,7 @@
   "statsId": "pl_40422297",
   "teamId": "tm_2221233",
   "teamName": "Neom SC",
-  "name": "Amadou Koné",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "l7oqdeh4g363r51": {
-  "statsId": "pl_72713160",
-  "teamId": "tm_51322",
-  "teamName": "Genoa",
-  "name": "Mario Mitaj",
+  "name": "Amadou Kon\u00e9",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7582,24 +6961,6 @@
   "teamId": "tm_548644",
   "teamName": "Al-Shabab",
   "name": "Yannick Carrasco",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "3glrw7h1evyqdyj": {
-  "statsId": "pl_5837688",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Riyad Mahrez",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "vjxm8ghg4gpr6od": {
-  "statsId": "pl_4581625",
-  "teamId": "tm_2221233",
-  "teamName": "Neom SC",
-  "name": "Abdoulaye Doucouré",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7649,15 +7010,6 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "4jwq2ghx91wm0ve": {
-  "statsId": "pl_96110420",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Vincent Sierro",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "y39mp1h3g8wmojx": {
   "statsId": "pl_3004778",
   "teamId": "tm_338426",
@@ -7676,29 +7028,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "4jwq2gh15w7m0ve": {
-  "statsId": "pl_72563416",
-  "teamId": "tm_311845",
-  "teamName": "Platense",
-  "name": "Juan Cozzani",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "2y8m4zhgkygql07": {
   "statsId": "pl_84227076",
   "teamId": "tm_803264",
   "teamName": "Al-Ettifaq",
-  "name": "Álvaro Medrán",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "6ypq3nhl2xomd7o": {
-  "statsId": "pl_30163038",
-  "teamId": "tm_2221233",
-  "teamName": "Neom SC",
-  "name": "Luis Maximiano",
+  "name": "\u00c1lvaro Medr\u00e1n",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7707,7 +7041,7 @@
   "statsId": "pl_08729837",
   "teamId": "tm_9103469",
   "teamName": "No team",
-  "name": "Carlos Júnior",
+  "name": "Carlos J\u00fanior",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7735,15 +7069,6 @@
   "teamId": "tm_803264",
   "teamName": "Al-Ettifaq",
   "name": "Ondrej Duda",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "jw2r09hxvzgrz84": {
-  "statsId": "pl_0979710",
-  "teamId": "tm_803264",
-  "teamName": "Al-Ettifaq",
-  "name": "Marek Rodák",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7793,47 +7118,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "n54qllhepk3qvy9": {
-  "statsId": "pl_4065712",
-  "teamId": "tm_6209912",
-  "teamName": "Al-Hazem",
-  "name": "Bruno Varela",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "k82rekh959jrepz": {
-  "statsId": "pl_4654176",
-  "teamId": "tm_226188",
-  "teamName": "Al-Raed",
-  "name": "Khaled Narey",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "x7lm7phnov8m2wd": {
   "statsId": "pl_13765665",
   "teamId": "tm_7951491",
   "teamName": "Al-Kholood",
   "name": "Edgaras Utkus",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "3glrw7hzpz9qdyj": {
-  "statsId": "pl_72511737",
-  "teamId": "tm_2885215",
-  "teamName": "Al-Najma SC",
-  "name": "David Tijanič",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "2y8m4zhjzjyql07": {
-  "statsId": "pl_3031843",
-  "teamId": "tm_47798",
-  "teamName": "Olympiacos FC",
-  "name": "Kostas Fortounis",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7847,20 +7136,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "4jwq2ghk8nvm0ve": {
-  "statsId": "pl_0212543",
-  "teamId": "tm_6209912",
-  "teamName": "Al-Hazem",
-  "name": "Fábio Martins",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "y0or5jh3ll6qwzv": {
   "statsId": "pl_96031482",
   "teamId": "tm_6431885",
   "teamName": "Damac FC",
-  "name": "Valentín Vada",
+  "name": "Valent\u00edn Vada",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7870,24 +7150,6 @@
   "teamId": "tm_466902",
   "teamName": "Al-Hilal",
   "name": "Murad Al Hawsawi",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "965mkyh4xlxer1g": {
-  "statsId": "pl_45171462",
-  "teamId": "tm_754497",
-  "teamName": "Al-Ahli",
-  "name": "Ali Majrashi",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "3glrw7hyynpqdyj": {
-  "statsId": "pl_57268694",
-  "teamId": "tm_134619",
-  "teamName": "Eyüpspor",
-  "name": "Bilal Boutobba",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -7919,33 +7181,6 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "zp5rzghz3nwq82w": {
-  "statsId": "pl_5431673",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Wesley Hoedt",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "jw2r09h74g2rz84": {
-  "statsId": "pl_45174485",
-  "teamId": "tm_2885215",
-  "teamName": "Al-Najma SC",
-  "name": "Nabil Donga",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "3glrw7hjogl6qdy": {
-  "statsId": "pl_29102780",
-  "teamId": "tm_6431885",
-  "teamName": "Damac FC",
-  "name": "Jamal Harkass",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "8yomo4hkjdp5q0j": {
   "statsId": "pl_29712671",
   "teamId": "tm_8370045",
@@ -7964,29 +7199,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "4wyrn4he5xdq86p": {
-  "statsId": "pl_0134858",
-  "teamId": "tm_57428783",
-  "teamName": "Al Qabila FC",
-  "name": "Alejandro Pozuelo",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "k82rekhvw91repz": {
-  "statsId": "pl_215607",
-  "teamId": "tm_0153318",
-  "teamName": "Al-Fayha",
-  "name": "Chris Smalling",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "8yomo4hv0loq0j6": {
   "statsId": "pl_84592403",
   "teamId": "tm_0153318",
   "teamName": "Al-Fayha",
-  "name": "Silvère Ganvoula",
+  "name": "Silv\u00e8re Ganvoula",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -8000,33 +7217,6 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "y0or5jhekxlqwzv": {
-  "statsId": "pl_9293602",
-  "teamId": "tm_6431885",
-  "teamName": "Damac FC",
-  "name": "Yakou Meite",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "zp5rzghp868vq82": {
-  "statsId": "pl_58919431",
-  "teamId": "tm_480982",
-  "teamName": "Al-Ittihad",
-  "name": "Talal Haji",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "n54qllhx9k15qvy": {
-  "statsId": "pl_30301157",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Abdulrahman Ghareeb",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "23xmvkhg3jeqg8n": {
   "statsId": "pl_57368793",
   "teamId": "tm_0153318",
@@ -8036,47 +7226,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "vjxm8ghg6gwr6od": {
-  "statsId": "pl_5831668",
-  "teamId": "tm_2221233",
-  "teamName": "Neom SC",
-  "name": "Ahmed Hegazy",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "ednm9wh9pydryox": {
-  "statsId": "pl_8306052",
-  "teamId": "tm_0153318",
-  "teamName": "Al-Fayha",
-  "name": "Yassine Benzia",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "4wyrn4hd93yvq86": {
   "statsId": "pl_96361437",
   "teamId": "tm_1986637",
   "teamName": "Abha",
   "name": "Loreintz Rosier",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "3glrw7h152pqdyj": {
-  "statsId": "pl_4029284",
-  "teamId": "tm_775396",
-  "teamName": "Tochigi City FC",
-  "name": "Tokmac Chol Nguen",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "3glrw7hl9ndqdyj": {
-  "statsId": "pl_72561539",
-  "teamId": "tm_6431885",
-  "teamName": "Damac FC",
-  "name": "Nabil Alioui",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -8108,33 +7262,6 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "3glrw7hj8p8qdyj": {
-  "statsId": "pl_0911014",
-  "teamId": "tm_61938060",
-  "teamName": "Al Ula",
-  "name": "Yoann Barbet",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "2y8m4zhg335ql07": {
-  "statsId": "pl_6401689",
-  "teamId": "tm_7951491",
-  "teamName": "Al-Kholood",
-  "name": "Norbert Gyömbér",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "pxwrxlhzn8vryk0": {
-  "statsId": "pl_72529237",
-  "teamId": "tm_0153318",
-  "teamName": "Al-Fayha",
-  "name": "Mikel Villanueva",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "pxwrxlhz981ryk0": {
   "statsId": "pl_30844555",
   "teamId": "tm_466902",
@@ -8144,38 +7271,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "vjxm8ghgeevr6od": {
-  "statsId": "pl_6246212",
-  "teamId": "tm_1118811",
-  "teamName": "Al Jubail",
-  "name": "Fayçal Fajr",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "965mkyh31wovr1g": {
-  "statsId": "pl_45270509",
-  "teamId": "tm_2018659",
-  "teamName": "Hatta",
-  "name": "Juan Pedroza",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "l5ergphvw12r8k0": {
   "statsId": "pl_4879515",
   "teamId": "tm_8370045",
   "teamName": "Al-Riyadh",
   "name": "Victor Lekhal",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "318q66h4y2o2qo9": {
-  "statsId": "pl_20739507",
-  "teamId": "tm_803264",
-  "teamName": "Al-Ettifaq",
-  "name": "Mohau Nkota",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -8198,15 +7298,6 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "l7oqdeh143wr510": {
-  "statsId": "pl_96284484",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Myziane Maolida",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "4wyrn4hv62ovq86": {
   "statsId": "pl_02583218",
   "teamId": "tm_6209912",
@@ -8225,29 +7316,11 @@
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
  },
- "965mkyhe9k28r1g": {
-  "statsId": "pl_74559697",
-  "teamId": "tm_8422749",
-  "teamName": "Espérance Tunis",
-  "name": "Elias Mokwana",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "pxwrxlhz1x4wryk": {
   "statsId": "pl_74195194",
   "teamId": "tm_466902",
   "teamName": "Al-Hilal",
   "name": "Mohammed Mahzari",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
- "pxwrxlh1gwdryk0": {
-  "statsId": "pl_1373447",
-  "teamId": "tm_8375958",
-  "teamName": "Al-Khaleej",
-  "name": "Bart Schenkeveld",
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
@@ -8288,47 +7361,11 @@
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
- "4jwq2ghvpgwzm0v": {
-  "statsId": "pl_45876250",
-  "teamId": "tm_9794082",
-  "teamName": "CDC Montalegre",
-  "name": "Isaac Boakye",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
  "4wyrn4hvz83wq86": {
   "statsId": "pl_15444084",
   "teamId": "tm_02484",
   "teamName": "VfL Wolfsburg",
   "name": "Jakub Zielinski",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "6ypq3nh1o61md7o": {
-  "statsId": "pl_29781781",
-  "teamId": "tm_6917",
-  "teamName": "Blackburn Rovers",
-  "name": "Oladapo Afolayan",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "6ypq3nhl2vjemd7": {
-  "statsId": "pl_8480",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jörg Böhme",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "8yomo4hv6y6q0j6": {
-  "statsId": "pl_72953465",
-  "teamId": "tm_64315",
-  "teamName": "FC St. Pauli",
-  "name": "Dimitar Mitov",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
@@ -8342,38 +7379,11 @@
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
- "e4wyrn4h1l7q86p": {
-  "statsId": "pl_5166",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Miso Brecko",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
  "jw2r09hjw1oorz8": {
   "statsId": "pl_36041475",
   "teamId": "tm_64315",
   "teamName": "FC St. Pauli",
   "name": "Samuel Klein",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "l5ergpho4jwr8k0": {
-  "statsId": "pl_766391",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Mensur Mujdža",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "l7oqdeh0yl1dr51": {
-  "statsId": "pl_19449569",
-  "teamId": "tm_5768",
-  "teamName": "Leyton Orient",
-  "name": "Fin Stevens",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
@@ -8387,15 +7397,6 @@
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
- "n54qllh85e1qvy9": {
-  "statsId": "pl_96046797",
-  "teamId": "tm_64346",
-  "teamName": "Alemannia Aachen",
-  "name": "Steve Kroll",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
  "y0or5jh0pyjqwzv": {
   "statsId": "pl_30287345",
   "teamId": "tm_02484",
@@ -8405,281 +7406,11 @@
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
- "y0or5jhe6d06qwz": {
-  "statsId": "pl_25831323",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Jacek Krzynówek",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "y39mp1h10wynmoj": {
-  "statsId": "pl_37537518",
-  "teamId": "tm_02484",
-  "teamName": "VfL Wolfsburg",
-  "name": "Bruno Katz",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "y39mp1hyl81omoj": {
-  "statsId": "pl_02717473",
-  "teamId": "tm_64315",
-  "teamName": "FC St. Pauli",
-  "name": "Marwin Reiner Ian Schmitz",
-  "competitionId": "comp_0406",
-  "seasonId": "sn_6190936",
-  "seasonLabel": "2026-27 BUNDESLIGA_2"
- },
- "1l4rjnhkn749m7v": {
-  "statsId": "pl_46267017",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Giacomo Maucci",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "23xmvkhdp56gqg8": {
-  "statsId": "pl_61050829",
-  "teamId": "tm_51921",
-  "teamName": "Sassuolo",
-  "name": "Josh Doig",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "2y8m4zh8lj36ql0": {
-  "statsId": "pl_40207990",
-  "teamId": "tm_20809",
-  "teamName": "Hellas Verona",
-  "name": "Davide De Battisti",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "318q66hvg655qo9": {
-  "statsId": "pl_13867899",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Nicholas Bonfanti",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "3glrw7hj82oqdyj": {
-  "statsId": "pl_0910815",
-  "teamId": "tm_20131",
-  "teamName": "Cremonese",
-  "name": "Fabio Gerli",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "3glrw7hz7vzkqdy": {
-  "statsId": "pl_58723954",
-  "teamId": "tm_20131",
-  "teamName": "Cremonese",
-  "name": "Dachi Lordkipanidze",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "4jwq2gh74e9pm0v": {
-  "statsId": "pl_25989320",
-  "teamId": "tm_20131",
-  "teamName": "Cremonese",
-  "name": "Eddy cabianca",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "4jwq2ghvwpx4m0v": {
-  "statsId": "pl_29299625",
-  "teamId": "tm_0805527",
-  "teamName": "Caronnese",
-  "name": "Alessandro Curci",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "6ypq3nh59pnmd7o": {
-  "statsId": "pl_4044708",
-  "teamId": "tm_20131",
-  "teamName": "Cremonese",
-  "name": "Marco Festa",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "6ypq3nhzj1domd7": {
-  "statsId": "pl_30208537",
-  "teamId": "tm_98418",
-  "teamName": "Bari",
-  "name": "Giuseppe Sibilli",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "8yomo4h29xp8q0j": {
-  "statsId": "pl_29822193",
-  "teamId": "tm_89673",
-  "teamName": "Lumezzane",
-  "name": "Giacomo Drago",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "8yomo4hv1lyvq0j": {
-  "statsId": "pl_01181282",
-  "teamId": "tm_20809",
-  "teamName": "Hellas Verona",
-  "name": "Leorat bega",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "8yomo4hv39z5q0j": {
-  "statsId": "pl_36287555",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Ichem Ferrah",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "965mkyh3z0knr1g": {
-  "statsId": "pl_29102102",
-  "teamId": "tm_20809",
-  "teamName": "Hellas Verona",
-  "name": "Mattia Compagnon",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "965mkyhn0z40r1g": {
-  "statsId": "pl_89973988",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Louis Buffon",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "965mkyhnx7dkr1g": {
-  "statsId": "pl_91676966",
-  "teamId": "tm_20809",
-  "teamName": "Hellas Verona",
-  "name": "andrea le borgne",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "dn1m1gh833v4moe": {
-  "statsId": "pl_58378939",
-  "teamId": "tm_20809",
-  "teamName": "Hellas Verona",
-  "name": "Nicolo Calabrese",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "dn1m1ghnk7jkmoe": {
-  "statsId": "pl_72612237",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Simone Zanon",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "ednm9whg91vpryo": {
-  "statsId": "pl_36207373",
-  "teamId": "tm_20131",
-  "teamName": "Cremonese",
-  "name": "Adrian Lickunas",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "p4jwq2ghdlwm0ve": {
-  "statsId": "pl_36738",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Antonio Cassano",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "vjxm8ghp4zzr6od": {
-  "statsId": "pl_96137717",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Nicola Guglielmelli",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "y0or5jh3j17vqwz": {
-  "statsId": "pl_13819393",
-  "teamId": "tm_20809",
-  "teamName": "Hellas Verona",
-  "name": "Daniel Oyegoke",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "y0or5jhgex7nqwz": {
-  "statsId": "pl_19358457",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Tommaso Marras",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "y0or5jhgz5yjqwz": {
-  "statsId": "pl_02378484",
-  "teamId": "tm_37240",
-  "teamName": "Pisa",
-  "name": "Andrea Primasso",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
- "y39mp1hjvw62moj": {
-  "statsId": "pl_08495138",
-  "teamId": "tm_73615",
-  "teamName": "Benevento",
-  "name": "Leonardo Sernicola",
-  "competitionId": "comp_5450",
-  "seasonId": "sn_3025358",
-  "seasonLabel": "2026-27 SERIE_B"
- },
  "dj2ryohyk2gq1zp": {
   "statsId": "pl_7256190",
   "teamId": "tm_722937",
   "teamName": "Jeju SK",
   "name": "Tobias Figueiredo",
-  "competitionId": "comp_1646",
-  "seasonId": "sn_6133361",
-  "seasonLabel": "2026 K_LEAGUE_1"
- },
- "x7lm7pho4d0m2wd": {
-  "statsId": "pl_8957754",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Modou Barrow",
-  "competitionId": "comp_1646",
-  "seasonId": "sn_6133361",
-  "seasonLabel": "2026 K_LEAGUE_1"
- },
- "dn1m1ghn7l3jmoe": {
-  "statsId": "pl_297799",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Ki Hyeon Seol",
   "competitionId": "comp_1646",
   "seasonId": "sn_6133361",
   "seasonLabel": "2026 K_LEAGUE_1"
@@ -8702,20 +7433,11 @@
   "seasonId": "sn_6133361",
   "seasonLabel": "2026 K_LEAGUE_1"
  },
- "318q66hv2354qo9": {
-  "statsId": "pl_63562",
-  "teamId": "tm_9103469",
-  "teamName": "No team",
-  "name": "Koji Nakata",
-  "competitionId": "comp_6240",
-  "seasonId": "sn_2960779",
-  "seasonLabel": "2026 J1_LEAGUE"
- },
  "x7lm7phoj0vm2wd": {
   "statsId": "pl_9784249",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
-  "name": "Antonio Rüdiger",
+  "name": "Antonio R\u00fcdiger",
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
@@ -8769,7 +7491,7 @@
   "statsId": "pl_74264223",
   "teamId": "tm_98476",
   "teamName": "Milan",
-  "name": "Alphadjo Cissè",
+  "name": "Alphadjo Ciss\u00e8",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -8805,7 +7527,7 @@
   "statsId": "pl_83653538",
   "teamId": "tm_20175",
   "teamName": "Frosinone",
-  "name": "Farès Ghedjemis",
+  "name": "Far\u00e8s Ghedjemis",
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
@@ -8886,7 +7608,7 @@
   "statsId": "pl_45104520",
   "teamId": "tm_64584",
   "teamName": "Hamburger SV",
-  "name": "Fábio Vieira",
+  "name": "F\u00e1bio Vieira",
   "competitionId": "comp_4643",
   "seasonId": "sn_0835912",
   "seasonLabel": "2026-27 BUNDESLIGA"
@@ -9201,7 +7923,7 @@
   "statsId": "pl_84704020",
   "teamId": "tm_3759",
   "teamName": "Derby County",
-  "name": "Jacob Widell Zetterström",
+  "name": "Jacob Widell Zetterstr\u00f6m",
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
@@ -9237,7 +7959,7 @@
   "statsId": "pl_13818549",
   "teamId": "tm_0016",
   "teamName": "Swansea City",
-  "name": "Marko Stamenić",
+  "name": "Marko Stameni\u0107",
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
@@ -9345,7 +8067,7 @@
   "statsId": "pl_25760990",
   "teamId": "tm_4893",
   "teamName": "Southampton",
-  "name": "Léo Scienza",
+  "name": "L\u00e9o Scienza",
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
@@ -9372,7 +8094,7 @@
   "statsId": "pl_61554865",
   "teamId": "tm_91010",
   "teamName": "PSV Eindhoven",
-  "name": "Matěj Kovář",
+  "name": "Mat\u011bj Kov\u00e1\u0159",
   "competitionId": "comp_3809",
   "seasonId": "sn_5744954",
   "seasonLabel": "2026-27 EREDIVISIE"
@@ -9489,7 +8211,7 @@
   "statsId": "pl_72631206",
   "teamId": "tm_373760",
   "teamName": "FC Arouca",
-  "name": "Jose Fontán",
+  "name": "Jose Font\u00e1n",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9497,7 +8219,7 @@
  "l7oqdeh6vww0r51": {
   "statsId": "pl_08977358",
   "teamId": "tm_216266",
-  "teamName": "Famalicão",
+  "teamName": "Famalic\u00e3o",
   "name": "Lazar Carevic",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9533,7 +8255,7 @@
  "4jwq2ghxkdegm0v": {
   "statsId": "pl_96903278",
   "teamId": "tm_79223",
-  "teamName": "Vitória SC",
+  "teamName": "Vit\u00f3ria SC",
   "name": "Oliwier zych",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9543,7 +8265,7 @@
   "statsId": "pl_36532023",
   "teamId": "tm_47570",
   "teamName": "CF Estrela Amadora",
-  "name": "Léo Linck",
+  "name": "L\u00e9o Linck",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9551,7 +8273,7 @@
  "zp5rzghz0530q82": {
   "statsId": "pl_30205506",
   "teamId": "tm_91673",
-  "teamName": "Académico Viseu FC",
+  "teamName": "Acad\u00e9mico Viseu FC",
   "name": "Anthony Correia",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9587,7 +8309,7 @@
  "8yomo4h23ky7q0j": {
   "statsId": "pl_08558305",
   "teamId": "tm_216266",
-  "teamName": "Famalicão",
+  "teamName": "Famalic\u00e3o",
   "name": "Rodrigo Pinheiro",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9605,7 +8327,7 @@
  "l5ergphv5nl9r8k": {
   "statsId": "pl_29230675",
   "teamId": "tm_91673",
-  "teamName": "Académico Viseu FC",
+  "teamName": "Acad\u00e9mico Viseu FC",
   "name": "Soufiane Messeguem",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9623,7 +8345,7 @@
  "318q66hj0jv2qo9": {
   "statsId": "pl_62094940",
   "teamId": "tm_216266",
-  "teamName": "Famalicão",
+  "teamName": "Famalic\u00e3o",
   "name": "Mathias De Amorim",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9632,7 +8354,7 @@
  "1l4rjnhz5vykm7v": {
   "statsId": "pl_96327487",
   "teamId": "tm_91673",
-  "teamName": "Académico Viseu FC",
+  "teamName": "Acad\u00e9mico Viseu FC",
   "name": "Robinho",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9642,7 +8364,7 @@
   "statsId": "pl_57974735",
   "teamId": "tm_373760",
   "teamName": "FC Arouca",
-  "name": "Näis Djouahra",
+  "name": "N\u00e4is Djouahra",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9669,7 +8391,7 @@
   "statsId": "pl_13480596",
   "teamId": "tm_63118",
   "teamName": "Benfica",
-  "name": "Clément Lenglet",
+  "name": "Cl\u00e9ment Lenglet",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9705,7 +8427,7 @@
   "statsId": "pl_63833341",
   "teamId": "tm_26997",
   "teamName": "Santa Clara",
-  "name": "José Tavares",
+  "name": "Jos\u00e9 Tavares",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9713,7 +8435,7 @@
  "vjxm8ghje15vr6o": {
   "statsId": "pl_30436267",
   "teamId": "tm_216266",
-  "teamName": "Famalicão",
+  "teamName": "Famalic\u00e3o",
   "name": "Georgios Koutsias",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9740,7 +8462,7 @@
  "l7oqdeh1j5gr510": {
   "statsId": "pl_84072949",
   "teamId": "tm_38000",
-  "teamName": "Marítimo",
+  "teamName": "Mar\u00edtimo",
   "name": "Alfonso Pastor",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9750,7 +8472,7 @@
   "statsId": "pl_61069438",
   "teamId": "tm_26936",
   "teamName": "Sporting",
-  "name": "Gonçalo Inácio",
+  "name": "Gon\u00e7alo In\u00e1cio",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9777,7 +8499,7 @@
   "statsId": "pl_61099341",
   "teamId": "tm_10330",
   "teamName": "Gil Vicente",
-  "name": "Lucão",
+  "name": "Luc\u00e3o",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9821,8 +8543,8 @@
  "ednm9wh6v96ryox": {
   "statsId": "pl_61555392",
   "teamId": "tm_91673",
-  "teamName": "Académico Viseu FC",
-  "name": "André Clóvis",
+  "teamName": "Acad\u00e9mico Viseu FC",
+  "name": "Andr\u00e9 Cl\u00f3vis",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9840,7 +8562,7 @@
   "statsId": "pl_1953079",
   "teamId": "tm_26997",
   "teamName": "Santa Clara",
-  "name": "Gonçalo Paciência",
+  "name": "Gon\u00e7alo Paci\u00eancia",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
   "seasonLabel": "2026-27 PRIMEIRA_LIGA"
@@ -9848,7 +8570,7 @@
  "y0or5jh3vkp1qwz": {
   "statsId": "pl_25191189",
   "teamId": "tm_79223",
-  "teamName": "Vitória SC",
+  "teamName": "Vit\u00f3ria SC",
   "name": "Tony Strata",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9893,7 +8615,7 @@
  "318q66hjx29qo9j": {
   "statsId": "pl_45892097",
   "teamId": "tm_91673",
-  "teamName": "Académico Viseu FC",
+  "teamName": "Acad\u00e9mico Viseu FC",
   "name": "Cihan Kahraman",
   "competitionId": "comp_8385",
   "seasonId": "sn_6190962",
@@ -9912,7 +8634,7 @@
   "statsId": "pl_84592347",
   "teamId": "tm_26983",
   "teamName": "Trabzonspor",
-  "name": "André Onana",
+  "name": "Andr\u00e9 Onana",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
@@ -9947,8 +8669,8 @@
  "318q66h40d5qo9j": {
   "statsId": "pl_84420086",
   "teamId": "tm_966479",
-  "teamName": "Gençlerbirliği",
-  "name": "İrfan Can Eğribayat",
+  "teamName": "Gen\u00e7lerbirli\u011fi",
+  "name": "\u0130rfan Can E\u011fribayat",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
@@ -9956,7 +8678,7 @@
  "6ypq3nhz1v5md7o": {
   "statsId": "pl_3876034",
   "teamId": "tm_966479",
-  "teamName": "Gençlerbirliği",
+  "teamName": "Gen\u00e7lerbirli\u011fi",
   "name": "Dimitris Goutas",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
@@ -9965,7 +8687,7 @@
  "zp5rzghz59xpq82": {
   "statsId": "pl_57995929",
   "teamId": "tm_63286",
-  "teamName": "Başakşehir FK",
+  "teamName": "Ba\u015fak\u015fehir FK",
   "name": "Emin Bayram",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
@@ -10020,7 +8742,7 @@
   "statsId": "pl_4508874",
   "teamId": "tm_26983",
   "teamName": "Trabzonspor",
-  "name": "Stefan Savić",
+  "name": "Stefan Savi\u0107",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
@@ -10028,7 +8750,7 @@
  "8yomo4hv4zzwq0j": {
   "statsId": "pl_25967208",
   "teamId": "tm_7246939",
-  "teamName": "Çorum FK",
+  "teamName": "\u00c7orum FK",
   "name": "Andrei Borza",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
@@ -10037,7 +8759,7 @@
  "2y8m4zh8nk9gql0": {
   "statsId": "pl_40999169",
   "teamId": "tm_04892",
-  "teamName": "Göztepe",
+  "teamName": "G\u00f6ztepe",
   "name": "Arda Kurtulan",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
@@ -10046,7 +8768,7 @@
  "23xmvkhgj9zqg8n": {
   "statsId": "pl_72047166",
   "teamId": "tm_04854",
-  "teamName": "Çaykur Rizespor",
+  "teamName": "\u00c7aykur Rizespor",
   "name": "Modibo Sagnan",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
@@ -10056,7 +8778,7 @@
   "statsId": "pl_96129922",
   "teamId": "tm_52738",
   "teamName": "Samsunspor",
-  "name": "Celil Yüksel",
+  "name": "Celil Y\u00fcksel",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
@@ -10064,7 +8786,7 @@
  "y0or5jh4dlzqwzv": {
   "statsId": "pl_8306884",
   "teamId": "tm_55893",
-  "teamName": "Kasımpaşa",
+  "teamName": "Kas\u0131mpa\u015fa",
   "name": "Claudio Winck",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
@@ -10082,26 +8804,17 @@
  "8yomo4hvex5zq0j": {
   "statsId": "pl_96961426",
   "teamId": "tm_10361",
-  "teamName": "Beşiktaş",
+  "teamName": "Be\u015fikta\u015f",
   "name": "Emmanuel Agbadou",
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
  },
- "x7lm7ph0xvpnm2w": {
-  "statsId": "pl_29250808",
-  "teamId": "tm_40658",
-  "teamName": "Stade Brestois",
-  "name": "Mathieu Patouillet",
-  "competitionId": "comp_45025",
-  "seasonId": "sn_4515588",
-  "seasonLabel": "2026-27 SAUDI_PL"
- },
  "y0or5jh4kxozqwz": {
   "statsId": "pl_45110867",
   "teamId": "tm_46190",
   "teamName": "1. FC Kaiserslautern",
-  "name": "Naatan Skyttä",
+  "name": "Naatan Skytt\u00e4",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
@@ -10163,7 +8876,7 @@
  "vjxm8ghj3ydvr6o": {
   "statsId": "pl_29170373",
   "teamId": "tm_51271",
-  "teamName": "1. FC Nürnberg",
+  "teamName": "1. FC N\u00fcrnberg",
   "name": "Finn Ole Becker",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
@@ -10173,7 +8886,7 @@
   "statsId": "pl_8982367",
   "teamId": "tm_20622",
   "teamName": "1. FC Magdeburg",
-  "name": "Barış Atik",
+  "name": "Bar\u0131\u015f Atik",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
@@ -10307,7 +9020,7 @@
  "4wyrn4hev9pq86p": {
   "statsId": "pl_1317139",
   "teamId": "tm_20666",
-  "teamName": "SpVgg Greuther Fürth",
+  "teamName": "SpVgg Greuther F\u00fcrth",
   "name": "Felix Klaus",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
@@ -10316,7 +9029,7 @@
  "3glrw7hz8nxqdyj": {
   "statsId": "pl_96271208",
   "teamId": "tm_51271",
-  "teamName": "1. FC Nürnberg",
+  "teamName": "1. FC N\u00fcrnberg",
   "name": "Julian Justvan",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
@@ -10352,7 +9065,7 @@
  "pxwrxlhg5e9ryk0": {
   "statsId": "pl_426792",
   "teamId": "tm_51271",
-  "teamName": "1. FC Nürnberg",
+  "teamName": "1. FC N\u00fcrnberg",
   "name": "Adriano Grimaldi",
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
@@ -10379,7 +9092,7 @@
  "vjxm8ghjy2nwr6o": {
   "statsId": "pl_25999862",
   "teamId": "tm_83365",
-  "teamName": "Saint-Étienne",
+  "teamName": "Saint-\u00c9tienne",
   "name": "Julien Le Cardinal",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
@@ -10389,7 +9102,7 @@
   "statsId": "pl_8477806",
   "teamId": "tm_01125",
   "teamName": "Guingamp",
-  "name": "Adrián Ortolá",
+  "name": "Adri\u00e1n Ortol\u00e1",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
   "seasonLabel": "2026-27 LIGUE_2"
@@ -10442,7 +9155,7 @@
  "vjxm8gh8nwor6od": {
   "statsId": "pl_61353033",
   "teamId": "tm_83365",
-  "teamName": "Saint-Étienne",
+  "teamName": "Saint-\u00c9tienne",
   "name": "Gautier Larsonneur",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
@@ -10451,7 +9164,7 @@
  "dj2ryohjl1j8q1z": {
   "statsId": "pl_84825904",
   "teamId": "tm_25099",
-  "teamName": "US Boulogne Côte-d'Opale",
+  "teamName": "US Boulogne C\u00f4te-d'Opale",
   "name": "Blondy Nna Noukeu",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
@@ -10496,7 +9209,7 @@
  "318q66h0d5ylqo9": {
   "statsId": "pl_30816637",
   "teamId": "tm_83365",
-  "teamName": "Saint-Étienne",
+  "teamName": "Saint-\u00c9tienne",
   "name": "Maxime Bernauer",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
@@ -10506,7 +9219,7 @@
   "statsId": "pl_0120232",
   "teamId": "tm_62204",
   "teamName": "Dijon",
-  "name": "Mickaël Barreto",
+  "name": "Micka\u00ebl Barreto",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
   "seasonLabel": "2026-27 LIGUE_2"
@@ -10533,7 +9246,7 @@
   "statsId": "pl_9234932",
   "teamId": "tm_007490",
   "teamName": "Red Star FC",
-  "name": "Saîf-Eddine Khaoui",
+  "name": "Sa\u00eef-Eddine Khaoui",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
   "seasonLabel": "2026-27 LIGUE_2"
@@ -10541,7 +9254,7 @@
  "4wyrn4h4dnzq86p": {
   "statsId": "pl_96677292",
   "teamId": "tm_83365",
-  "teamName": "Saint-Étienne",
+  "teamName": "Saint-\u00c9tienne",
   "name": "Irvin Cardona",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
@@ -10560,7 +9273,7 @@
   "statsId": "pl_40521446",
   "teamId": "tm_19977",
   "teamName": "Clermont Foot",
-  "name": "Maïdine Douane",
+  "name": "Ma\u00efdine Douane",
   "competitionId": "comp_9777",
   "seasonId": "sn_7255696",
   "seasonLabel": "2026-27 LIGUE_2"
