@@ -1,5 +1,5 @@
 // MLB 포스트시즌 선수 기록 조회 — statsapi stats?gameType=P(타격·투구 각 1콜) + 정규시즌 표의 한글 이름, 10분 캐시.
-//   올해 포스트시즌 기록이 아직 없으면(개막 전) 지난 시즌 포스트시즌을 돌려준다 — 페이지가 "지난 시즌" 라벨을 붙인다.
+//   시즌별로 따로 조회한다(덮어쓰는 저장 없음). 기록이 없는 시즌(포스트시즌 시작 전)은 null — 기본 시즌 고르기는 페이지가 한다.
 import { unstable_cache } from "next/cache";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { getBbLeagueData } from "./player-rankings";
@@ -19,31 +19,27 @@ export interface MlbPostseasonStats extends PostseasonRows {
   season: number;
 }
 
-async function load(season: number): Promise<MlbPostseasonStats | null> {
-  let yr = season;
-  let [h, p] = await Promise.all([splits(yr, "hitting"), splits(yr, "pitching")]);
-  if (h.length === 0 && p.length === 0) {
-    yr = season - 1;
-    [h, p] = await Promise.all([splits(yr, "hitting"), splits(yr, "pitching")]);
-  }
-  if (h.length === 0 && p.length === 0) return null;
-  // 한글 이름 — 정규시즌 MLB 표(externalId = statsapi 선수 id). 이름은 시즌이 바뀌어도 같다.
+/** 공식 기록만 캐시 — 기록이 없는 시즌은 null. statsapi 실패는 throw 라 캐시에 남지 않는다. */
+const getSplits = unstable_cache(
+  async (season: number) => {
+    const [hitting, pitching] = await Promise.all([splits(season, "hitting"), splits(season, "pitching")]);
+    return hitting.length === 0 && pitching.length === 0 ? null : { hitting, pitching };
+  },
+  ["mlb-postseason-splits-v1"],
+  { revalidate: 600 },
+);
+
+export async function getMlbPostseasonStats(season: number): Promise<MlbPostseasonStats | null> {
+  const raw = await getSplits(season).catch((e: Error) => {
+    console.warn("[mlb-postseason-stats] 조회 실패:", e.message);
+    return null;
+  });
+  if (!raw) return null;
+  // 한글 이름은 캐시 밖에서 붙인다 — DB 가 잠깐 막혀 영문 이름으로 떨어져도 그 결과가 10분간 굳지 않게.
+  // 정규시즌 MLB 표(externalId = statsapi 선수 id, 자체 6시간 캐시). 이름은 시즌이 바뀌어도 같다.
   const reg = await getBbLeagueData("MLB").catch(() => null);
   const nameKo = new Map<string, string>();
   for (const r of reg?.rows ?? []) if (r.externalId) nameKo.set(r.externalId, r.name);
-  const built = buildPostseasonRows(h, p, (id) => nameKo.get(id), (name) => toKoreanTeamName(name, "MLB") || name);
-  return { season: yr, ...built };
+  const built = buildPostseasonRows(raw.hitting, raw.pitching, (id) => nameKo.get(id), (name) => toKoreanTeamName(name, "MLB") || name);
+  return { season, ...built };
 }
-
-export const getMlbPostseasonStats = unstable_cache(
-  async (season: number) => {
-    try {
-      return await load(season);
-    } catch (e) {
-      console.warn("[mlb-postseason-stats] 조회 실패:", (e as Error).message);
-      return null;
-    }
-  },
-  ["mlb-postseason-stats-v1"],
-  { revalidate: 600 },
-);

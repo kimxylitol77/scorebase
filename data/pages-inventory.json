@@ -127,7 +127,7 @@
   },
   {
     "route": "/baseball/mlb-postseason/stats",
-    "desc": "MLB 포스트시즌 선수 통계 — 가을야구 기록만 모은 스탯 표(타자·투수). 화면은 StatsExplorer 공용, 규정만 포스트시즌용. 데이터: statsapi gameType=P — lib/sports/baseball/mlb-postseason-stats.ts (10분 캐시, 올해 기록 없으면 지난 시즌)",
+    "desc": "MLB 포스트시즌 선수 통계 — 가을야구 기록만 모은 스탯 표(타자·투수). 화면은 StatsExplorer 공용, 규정만 포스트시즌용. 데이터: statsapi gameType=P — lib/sports/baseball/mlb-postseason-stats.ts (10분 캐시). 시즌은 ?season= 으로 따로 —   새 포스트시즌이 시작돼도 지난 시즌 표는 그대로 남는다. 기본은 기록이 있는 가장 최근 시즌.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
