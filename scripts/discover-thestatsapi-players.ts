@@ -104,24 +104,20 @@ async function main() {
     take: TOP_N,
     select: { id: true, currentValue: true },
   });
-  // 몸값 유니버스가 없는 리그는 우리 DB 팀 스쿼드로 대신한다.
+  // 몸값 유니버스가 없는 리그는 이번 시즌 그 리그에서 실제로 뛴 선수(player-season-stats)로 대신한다.
   // PlayerMarketValue 는 빅5·MLS·사우디·K리그만 채워져 있어(2026-08-28 실측) 그 밖의 리그는
-  // 이 폴백이 없으면 대상 0명으로 조용히 끝난다. 몸값순 정렬이 없으니 TOP_N 은 "상위"가
-  // 아니라 "앞에서 N명"이 되는데, 하위 리그는 어차피 전원 대상이라 무해하다.
+  // 폴백이 없으면 대상 0명으로 조용히 끝난다. 예전 폴백은 팀 스쿼드(TheSportsPlayer.teamId)였는데
+  // 은퇴 선수가 옛 팀에 남아 있어 카시야스·살가도·칼루가 현역으로 매핑됐다(2026-09-26). 출전 분 순.
   if (mv.length === 0) {
-    const teams = await prisma.team.findMany({ where: { league: argLeague }, select: { id: true } });
-    const src = await prisma.teamSourceId.findMany({
-      where: { teamId: { in: teams.map((t) => t.id) }, source: "thesports" },
-      select: { externalId: true },
-    });
-    mv = src.length
-      ? await prisma.theSportsPlayer.findMany({
-          where: { teamId: { in: src.map((x) => x.externalId) } },
-          take: TOP_N,
-          select: { id: true },
-        })
-      : [];
-    console.log(`${argLeague} 몸값 유니버스 없음 → 팀 스쿼드에서 ${mv.length}명`);
+    const stats = JSON.parse(
+      readFileSync(new URL("../data/player-season-stats.json", import.meta.url).pathname, "utf8"),
+    ) as Record<string, { lg?: string; season?: string; minutes?: number | null }>;
+    mv = Object.entries(stats)
+      .filter(([, s]) => s.lg === argLeague && s.season === SEASON_PREFIX && (s.minutes ?? 0) > 0)
+      .sort((a, b) => (b[1].minutes ?? 0) - (a[1].minutes ?? 0))
+      .slice(0, TOP_N)
+      .map(([id]) => ({ id }));
+    console.log(`${argLeague} 몸값 유니버스 없음 → 이번 시즌(${SEASON_PREFIX}) 출전 선수 ${mv.length}명`);
   }
   // 이름은 TheSportsPlayer 에서 (PlayerMarketValue 에는 이름 필드 없음)
   const names = new Map(

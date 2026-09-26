@@ -13,7 +13,9 @@ const BASE = "https://api.thestatsapi.com/api";
 const OUT = new URL("../data/player-match-heatmaps.json", import.meta.url).pathname;
 
 // 선수 매핑은 discover-thestatsapi-players.ts 가 생성하는 map 파일에서 로드.
-// 시즌 히트맵(analysis)이 없는 선수는 스킵 — 히트맵 미지원 리그/선수에 경기당 헛콜 38회를 막는 게이트.
+// 시즌 히트맵(analysis)이 없는 선수는 최근 종료 경기 PROBE_N 개만 찔러 보고 전부 비면 넘긴다 — 미지원 리그/선수의
+// 헛콜을 막는 게이트. 예전엔 통째로 건너뛰었는데, 공급자가 시즌 히트맵은 404 여도 경기 히트맵은 주는 선수가
+// 있어(2026-09-26 챔피언십 Ahmedhodzic 1/3 · 포르투갈 Isaac James 3/3) 빅5 밖이 전멸했다.
 const MAP_PATH = new URL("../data/thestatsapi-player-map.json", import.meta.url).pathname;
 const LEAGUE = process.argv.find((a) => a.startsWith("--league="))?.slice("--league=".length) ?? null;
 const ANALYSIS_PATH = new URL("../data/player-heatmap-analysis.json", import.meta.url).pathname;
@@ -27,12 +29,8 @@ const PLAYERS = Object.entries(
   >,
 )
   .map(([ourId, m]) => ({ ourId, ...m }))
-  .filter((p) => !LEAGUE || p.seasonLabel.split(" ").slice(1).join(" ") === LEAGUE)
-  .filter((p) => {
-    if (hasSeasonHeatmap.has(p.ourId)) return true;
-    console.log(`스킵(시즌 히트맵 없음): ${p.name}`);
-    return false;
-  });
+  .filter((p) => !LEAGUE || p.seasonLabel.split(" ").slice(1).join(" ") === LEAGUE);
+const PROBE_N = 3;
 
 // 국내 컵 + 유럽 대항전 — 리그 경기만 모으면 FA컵·챔스 경기가 통째로 빠진다.
 // 2026-08-28 실측: 5대 국내컵과 UCL 모두 히트맵을 준다(야말 UCL 24/25 529포인트).
@@ -155,8 +153,13 @@ async function main() {
 
       const rows: MatchHeatmap[] = out[p.ourId]?.matches ?? [];
       let added = 0, empty = 0;
+      const probeOnly = !hasSeasonHeatmap.has(p.ourId) && existing.size === 0;
       for (const m of finished) {
         if (existing.has(m.id)) continue;
+        if (probeOnly && added === 0 && empty >= PROBE_N) {
+          console.log(`  탐색 ${PROBE_N}경기 전부 무데이터 — 넘김 (${p.name})`);
+          break;
+        }
         const hm = (await api(`/football/matches/${m.id}/players/${p.statsId}/heatmap`)) as {
           data: { points: Array<{ x: number; y: number }> };
         } | null;
