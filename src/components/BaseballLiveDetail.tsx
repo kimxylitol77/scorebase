@@ -320,9 +320,10 @@ export default function BaseballLiveDetail({
         }`}
         style={{ position: "relative", overflow: "hidden" }}
       >
-        {/* 헤더 — LIVE/종료 배지 + 회/말 */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        {/* 헤더 — LIVE/종료 배지 + 회/말. 모바일은 두 줄(배지·관심경기 / 날씨·자동 갱신) — 한 줄에 몰면
+            "7회초"·"라이브 자동 갱신"이 글자 단위로 세로로 깨졌다(2026-09-26 iPhone 실측). sm+ 는 기존 한 줄. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <div className="order-1 flex items-center gap-2 whitespace-nowrap">
             {isLive ? (
               <span
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
@@ -350,14 +351,15 @@ export default function BaseballLiveDetail({
             </span>
             {isLive && inningText && (
               <span
-                className="text-[11px] font-bold tabular-nums"
+                className="whitespace-nowrap text-[11px] font-bold tabular-nums"
                 style={{ color: "#22c55e" }}
               >
                 {inningText}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          {(venueCity || isLive) && (
+          <div className="order-3 flex min-w-0 basis-full items-center gap-2 sm:order-2 sm:ml-auto sm:basis-auto">
             {venueCity && (
               <MatchWeather
                 city={venueCity}
@@ -367,8 +369,11 @@ export default function BaseballLiveDetail({
               />
             )}
             {isLive && (
-              <span className="text-[10px] text-neutral-500">라이브 자동 갱신</span>
+              <span className="whitespace-nowrap text-[10px] text-neutral-500">라이브 자동 갱신</span>
             )}
+          </div>
+          )}
+          <div className="order-2 ml-auto sm:order-3 sm:ml-0">
             {favMatchId != null && (
               <FavoriteStar
                 matchId={String(favMatchId)}
@@ -396,6 +401,7 @@ export default function BaseballLiveDetail({
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <div className="min-w-0">
             <TeamWrap teamId={awayTeamId}>
+              <div className="mb-1 h-5 sm:hidden" aria-hidden />
               <TeamLogo url={awayLogo} name={awayNameKo} />
               {awayShort && (
                 <div className="text-xs sm:text-sm font-semibold text-neutral-500">
@@ -433,10 +439,13 @@ export default function BaseballLiveDetail({
           </div>
           <div className="min-w-0">
             <TeamWrap teamId={homeTeamId}>
+              <div className="mb-1 flex h-5 justify-center sm:hidden">
+                <span className="inline-flex items-center rounded bg-zinc-700 px-1.5 text-xs leading-5 text-zinc-200">홈</span>
+              </div>
               <TeamLogo url={homeLogo} name={homeNameKo} />
-              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+              <div className={`text-xs sm:text-sm font-semibold text-neutral-500 ${homeShort ? "" : "hidden sm:block"}`}>
                 {homeShort ?? ""}
-                <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 ml-1">홈</span>
+                <span className="hidden sm:inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 ml-1">홈</span>
               </div>
               <div className="font-bold truncate">{homeNameKo}</div>
             </TeamWrap>
@@ -491,7 +500,8 @@ export default function BaseballLiveDetail({
               <ScoreRow
                 label={
                   <>
-                    <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>
+                    {/* 모바일은 팀 칸(w-9)이 좁아 칩이 팀명을 덮는다 — 홈 표시는 로고 위 배지가 맡는다 */}
+                    <span className="hidden sm:inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>
                     {homeLabel}
                   </>
                 }
