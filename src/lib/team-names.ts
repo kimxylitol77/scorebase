@@ -115,6 +115,7 @@ const RAW: Record<string, string> = {
   "Bayern Munich": "바이에른 뮌헨",
   "Bayern München": "바이에른 뮌헨",
   "FC Bayern München": "바이에른 뮌헨",
+  "FC Bayern Munich": "바이에른 뮌헨", // 선수 시즌 스탯(player-season-stats) 표기 — 선수 프로필 제목에 영문으로 새던 것(2026-09-26)
   "Borussia Dortmund": "도르트문트",
   "Borussia Dortmund FC": "도르트문트",
   "BV Borussia 09 Dortmund": "도르트문트",
@@ -269,6 +270,7 @@ const RAW: Record<string, string> = {
   "Nashville SC": "내슈빌 SC",
   "New England Revolution": "뉴잉글랜드 레볼루션",
   "New York City FC": "뉴욕 시티 FC",
+  "New York City": "뉴욕 시티 FC", // "New York City Football Club" 은 접미 제거 후 이 키로 온다
   "New York Red Bulls": "뉴욕 레드불스",
   "Orlando City SC": "올랜도 시티",
   "Philadelphia Union": "필라델피아 유니언",
@@ -350,6 +352,7 @@ const RAW: Record<string, string> = {
   "Wrexham": "렉섬",
   "Charlton": "찰턴",
   "Bolton": "볼턴",
+  "Bolton Wanderers": "볼턴",
   "Lincoln": "링컨 시티",
   // 독일 분데스리가 2 — 잔여 6팀
   "FC Schalke 04": "FC 샬케 04",
@@ -800,6 +803,7 @@ const RAW: Record<string, string> = {
   "Casa Pia": "카사 피아",
   "Moreirense": "모레이렌스",
   "Estrela": "에스트렐라",
+  "CF Estrela Amadora SAD": "에스트렐라",
   "Chaves": "샤베스",
   "Portimonense": "포르티모넨세",
   "Gil Vicente": "질 비센테",
@@ -1972,6 +1976,7 @@ const RAW: Record<string, string> = {
   "SpVgg Greuther Fürth": "그로이터 퓌르트",
   "SV Darmstadt 98": "다름슈타트",
   "SV Elversberg": "엘페르스베르크",
+  "SV 07 Elversberg": "엘페르스베르크",
   // ─── CHALLENGE_LEAGUE (TheSports 보강 2) ───
   "Bellinzona": "벨린초나",
   "Stade Nyonnais": "스타드 뇨나이",
@@ -2785,6 +2790,7 @@ const RAW: Record<string, string> = {
   // ===== 잔여 누락 보정 (2026-05-29 추가) — 메이저팀 위주 =====
   "Coritiba": "코리치바",
   "JEF United Chiba": "제프 유나이티드 지바",
+  "JEF United Ichihara Chiba": "제프 유나이티드 지바",
   "Las Palmas": "라스 팔마스",
   "Suwon Bluewings": "수원 블루윙즈",
   "Chindia Targoviste": "킨디아 트르고비슈테",
@@ -3254,6 +3260,8 @@ const RAW: Record<string, string> = {
   "Al Ahly": "알아흘리 SC",
   "Al Bataeh": "알바타에흐",
   "Al Diriyah": "알디리야",
+  "Diraiyah": "알디리야", // 선수 시즌 스탯 표기
+  "Al Faisaly": "알파이살리",
   "Al Hussein": "알후세인",
   "Al Kharaitiyat": "알카라이티야트",
   "Al Kholood": "알쿨루드",
@@ -4011,6 +4019,7 @@ const RAW: Record<string, string> = {
   "Zulte Waregem": "SV 쥘터 바레험",
   "Águilas Doradas": "아길라스 도라다스",
   "Çorum FK": "초룸",
+  "Corum FK": "초룸",
   "Şamaxı FK": "샤마흐 FK",
   "ŽNK Mura W": "무라 위민",
   "Železničar Pančevo": "젤레즈니차르 판체보",
@@ -5305,6 +5314,14 @@ export function toKoreanTeamName(
   // NPB 약자: league 인자 없이 호출돼도 풀네임→약자 적용 (MatchInsight 등 공통 컴포넌트).
   // 키가 고유한 한글 풀네임이라 타 리그와 충돌 없음.
   if (NPB_TEAM_SHORT_NAMES[trimmed]) return NPB_TEAM_SHORT_NAMES[trimmed];
+
+  // 브라질 클럽의 주(州) 접미 — ts 선수 스탯은 "São Paulo - SP"·"Vasco da Gama Saf - RJ" 처럼 붙여 온다.
+  //  본체가 사전에 있으면 본체 표기를 그대로 쓴다(브라질 13팀·선수 400여 명 제목이 영문으로 새던 것, 2026-09-26).
+  const br = trimmed.match(/^(.+?)(?:\s+SAF)?\s+-\s+[A-Z]{2}$/i);
+  if (br) {
+    const base = toKoreanTeamName(br[1], league);
+    if (/[가-힣]/.test(base)) return base;
+  }
 
   // 유스·2군·여자팀 접미 파생 — "Brazil U20"·"Celtic B"·"Aberdeen (R)"·"…Women" 처럼
   // 본체가 사전에 있으면 접미만 관행 표기로 바꿔 붙인다. 국대 유스 133팀이 전부 이 패턴이라
