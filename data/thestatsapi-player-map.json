@@ -10375,5 +10375,563 @@
   "competitionId": "comp_0406",
   "seasonId": "sn_6190936",
   "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "vjxm8ghjy2nwr6o": {
+  "statsId": "pl_25999862",
+  "teamId": "tm_83365",
+  "teamName": "Saint-Étienne",
+  "name": "Julien Le Cardinal",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "3glrw7h1jxeqdyj": {
+  "statsId": "pl_8477806",
+  "teamId": "tm_01125",
+  "teamName": "Guingamp",
+  "name": "Adrián Ortolá",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "965mkyhe17lr1ge": {
+  "statsId": "pl_84590423",
+  "teamId": "tm_97771",
+  "teamName": "Montpellier",
+  "name": "Julien Laporte",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "dj2ryohje6vvq1z": {
+  "statsId": "pl_29188025",
+  "teamId": "tm_97771",
+  "teamName": "Montpellier",
+  "name": "Simon Ngapandouetnbu",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "y0or5jhe8dwkqwz": {
+  "statsId": "pl_57578962",
+  "teamId": "tm_62204",
+  "teamName": "Dijon",
+  "name": "Lenny Lacroix",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "pxwrxlhj96oryk0": {
+  "statsId": "pl_96673412",
+  "teamId": "tm_01125",
+  "teamName": "Guingamp",
+  "name": "Erwin Koffi",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "dj2ryohgn5kq1zp": {
+  "statsId": "pl_84536567",
+  "teamId": "tm_19977",
+  "teamName": "Clermont Foot",
+  "name": "Yoann Salmier",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "vjxm8gh8nwor6od": {
+  "statsId": "pl_61353033",
+  "teamId": "tm_83365",
+  "teamName": "Saint-Étienne",
+  "name": "Gautier Larsonneur",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "dj2ryohjl1j8q1z": {
+  "statsId": "pl_84825904",
+  "teamId": "tm_25099",
+  "teamName": "US Boulogne Côte-d'Opale",
+  "name": "Blondy Nna Noukeu",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "23xmvkh49l4qg8n": {
+  "statsId": "pl_84588758",
+  "teamId": "tm_459777",
+  "teamName": "Rodez AF",
+  "name": "Quentin Braat",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "8yomo4h2902q0j6": {
+  "statsId": "pl_3822251",
+  "teamId": "tm_0238139",
+  "teamName": "Annecy FC",
+  "name": "Florian Escales",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "zp5rzghxj5dq82w": {
+  "statsId": "pl_84574273",
+  "teamId": "tm_25578",
+  "teamName": "Grenoble Foot 38",
+  "name": "Alexandre Olliero",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "l5ergphv2k2r8k0": {
+  "statsId": "pl_5297893",
+  "teamId": "tm_19977",
+  "teamName": "Clermont Foot",
+  "name": "Adrien Hunou",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "318q66h0d5ylqo9": {
+  "statsId": "pl_30816637",
+  "teamId": "tm_83365",
+  "teamName": "Saint-Étienne",
+  "name": "Maxime Bernauer",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "vjxm8ghgekpr6od": {
+  "statsId": "pl_0120232",
+  "teamId": "tm_62204",
+  "teamName": "Dijon",
+  "name": "Mickaël Barreto",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "dj2ryohgokzpq1z": {
+  "statsId": "pl_62522286",
+  "teamId": "tm_459777",
+  "teamName": "Rodez AF",
+  "name": "Antonin Cartillier",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "318q66ho282qo9j": {
+  "statsId": "pl_286250",
+  "teamId": "tm_36680",
+  "teamName": "Sochaux",
+  "name": "Mathieu Peybernes",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "k82rekhyje4repz": {
+  "statsId": "pl_9234932",
+  "teamId": "tm_007490",
+  "teamName": "Red Star FC",
+  "name": "Saîf-Eddine Khaoui",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "4wyrn4h4dnzq86p": {
+  "statsId": "pl_96677292",
+  "teamId": "tm_83365",
+  "teamName": "Saint-Étienne",
+  "name": "Irvin Cardona",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "3glrw7hjyep5qdy": {
+  "statsId": "pl_01955907",
+  "teamId": "tm_40020",
+  "teamName": "Pau FC",
+  "name": "Mathys Tourraine",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "8yomo4hvee58q0j": {
+  "statsId": "pl_40521446",
+  "teamId": "tm_19977",
+  "teamName": "Clermont Foot",
+  "name": "Maïdine Douane",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "4jwq2ghk868m0ve": {
+  "statsId": "pl_1593999",
+  "teamId": "tm_36680",
+  "teamName": "Sochaux",
+  "name": "Jonathan Mexique",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "n54qllhxgy8qvy9": {
+  "statsId": "pl_6512085",
+  "teamId": "tm_85366",
+  "teamName": "Gamba Osaka",
+  "name": "Shinnosuke Nakatani",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "y39mp1hy6jogmoj": {
+  "statsId": "pl_01174033",
+  "teamId": "tm_47016",
+  "teamName": "Sanfrecce Hiroshima",
+  "name": "Shuto Nakano",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "23xmvkhkdz70qg8": {
+  "statsId": "pl_19467948",
+  "teamId": "tm_04191",
+  "teamName": "Kashima Antlers",
+  "name": "Tomoki Hayakawa",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "y39mp1hyvwxemoj": {
+  "statsId": "pl_19967586",
+  "teamId": "tm_38621",
+  "teamName": "Yokohama F. Marinos",
+  "name": "Kosei Suwama",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "1l4rjnhx688jm7v": {
+  "statsId": "pl_40521699",
+  "teamId": "tm_47027",
+  "teamName": "Urawa Red Diamonds",
+  "name": "Yuta Miyamoto",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "pxwrxlh2ny6ryk0": {
+  "statsId": "pl_45829869",
+  "teamId": "tm_038983",
+  "teamName": "Fagiano Okayama",
+  "name": "Yugo Tatsuta",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "4jwq2ghxvjojm0v": {
+  "statsId": "pl_36513702",
+  "teamId": "tm_038983",
+  "teamName": "Fagiano Okayama",
+  "name": "Hiroshi Omori",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "l7oqdeh69p9r510": {
+  "statsId": "pl_4081156",
+  "teamId": "tm_26513",
+  "teamName": "Cerezo Osaka",
+  "name": "Kosuke Nakamura",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "2y8m4zhg5719ql0": {
+  "statsId": "pl_08070809",
+  "teamId": "tm_26513",
+  "teamName": "Cerezo Osaka",
+  "name": "Shunta Tanaka",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "318q66hvd2nnqo9": {
+  "statsId": "pl_83269898",
+  "teamId": "tm_26513",
+  "teamName": "Cerezo Osaka",
+  "name": "Rikito Inoue",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "k82rekhyld9repz": {
+  "statsId": "pl_61832808",
+  "teamId": "tm_26513",
+  "teamName": "Cerezo Osaka",
+  "name": "Dion Cools",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "l7oqdehlwdlr510": {
+  "statsId": "pl_30166827",
+  "teamId": "tm_10971",
+  "teamName": "Kashiwa Reysol",
+  "name": "Taiyo Koga",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "pxwrxlhvnzjryk0": {
+  "statsId": "pl_30145480",
+  "teamId": "tm_200306",
+  "teamName": "Mito Hollyhock",
+  "name": "Taishi Semba",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "k82rekhoydldrep": {
+  "statsId": "pl_97023269",
+  "teamId": "tm_200306",
+  "teamName": "Mito Hollyhock",
+  "name": "Konosuke Nishikawa",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "l7oqdehe96dr510": {
+  "statsId": "pl_08304829",
+  "teamId": "tm_52837",
+  "teamName": "Shimizu S-Pulse",
+  "name": "Togo Umeda",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "l7oqdeh430zgr51": {
+  "statsId": "pl_08534908",
+  "teamId": "tm_63253",
+  "teamName": "Nagoya Grampus",
+  "name": "Tomoki Takamine",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "965mkyhgd95r1ge": {
+  "statsId": "pl_30274073",
+  "teamId": "tm_63209",
+  "teamName": "Vissel Kobe",
+  "name": "Matheus Thuler",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "k82rekhn1d2repz": {
+  "statsId": "pl_30245867",
+  "teamId": "tm_34562",
+  "teamName": "Kawasaki Frontale",
+  "name": "Yasuto Wakizaka",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "965mkyh334wr1ge": {
+  "statsId": "pl_4794051",
+  "teamId": "tm_79406",
+  "teamName": "Tokyo Verdy",
+  "name": "Matheus Vidotto",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "4jwq2gh1w6nm0ve": {
+  "statsId": "pl_96236033",
+  "teamId": "tm_035272",
+  "teamName": "V-Varen Nagasaki",
+  "name": "Masaaki Goto",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "zp5rzghpg14nq82": {
+  "statsId": "pl_19386013",
+  "teamId": "tm_47016",
+  "teamName": "Sanfrecce Hiroshima",
+  "name": "Akito Suzuki",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "4jwq2ghkgjlm0ve": {
+  "statsId": "pl_0143445",
+  "teamId": "tm_700743",
+  "teamName": "Machida Zelvia",
+  "name": "Gen Shoji",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "965mkyh3xkjer1g": {
+  "statsId": "pl_08093128",
+  "teamId": "tm_035272",
+  "teamName": "V-Varen Nagasaki",
+  "name": "Motoki Hasegawa",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "4wyrn4hvw6g1q86": {
+  "statsId": "pl_89756382",
+  "teamId": "tm_10971",
+  "teamName": "Kashiwa Reysol",
+  "name": "Nobuteru Nakagawa",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "y39mp1hj2zxdmoj": {
+  "statsId": "pl_83227898",
+  "teamId": "tm_52837",
+  "teamName": "Shimizu S-Pulse",
+  "name": "Hidehiro Sugai",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "x7lm7ph0n2onm2w": {
+  "statsId": "pl_13844799",
+  "teamId": "tm_700743",
+  "teamName": "Machida Zelvia",
+  "name": "Yuki Soma",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "318q66h4799qo9j": {
+  "statsId": "pl_57214665",
+  "teamId": "tm_04191",
+  "teamName": "Kashima Antlers",
+  "name": "Ryoya Ogawa",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "8yomo4hv3149q0j": {
+  "statsId": "pl_62189866",
+  "teamId": "tm_63253",
+  "teamName": "Nagoya Grampus",
+  "name": "Yudai Kimura",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "y0or5jhe5jjyqwz": {
+  "statsId": "pl_96971721",
+  "teamId": "tm_34562",
+  "teamName": "Kawasaki Frontale",
+  "name": "Yuki Yamamoto",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "vjxm8ghg64jpr6o": {
+  "statsId": "pl_08358839",
+  "teamId": "tm_035272",
+  "teamName": "V-Varen Nagasaki",
+  "name": "Hijiri Onaga",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "n54qllhxo4dqvy9": {
+  "statsId": "pl_9419919",
+  "teamId": "tm_63209",
+  "teamName": "Vissel Kobe",
+  "name": "Yosuke Ideguchi",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "jw2r09hx6j63rz8": {
+  "statsId": "pl_57932125",
+  "teamId": "tm_63253",
+  "teamName": "Nagoya Grampus",
+  "name": "Katsuhiro Nakayama",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "x7lm7ph0vxzkm2w": {
+  "statsId": "pl_08017787",
+  "teamId": "tm_79406",
+  "teamName": "Tokyo Verdy",
+  "name": "Itsuki Someno",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "4jwq2ghv65kgm0v": {
+  "statsId": "pl_57337661",
+  "teamId": "tm_47016",
+  "teamName": "Sanfrecce Hiroshima",
+  "name": "Shunki Higashi",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "vjxm8ghg7z8r6od": {
+  "statsId": "pl_1967754",
+  "teamId": "tm_04191",
+  "teamName": "Kashima Antlers",
+  "name": "Naomichi Ueda",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "l5ergph386wr8k0": {
+  "statsId": "pl_0110502",
+  "teamId": "tm_38642",
+  "teamName": "FC Tokyo",
+  "name": "Alexander Scholz",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "318q66hvozkqo9j": {
+  "statsId": "pl_9836748",
+  "teamId": "tm_47016",
+  "teamName": "Sanfrecce Hiroshima",
+  "name": "Sho Sasaki",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "y39mp1hy6v3omoj": {
+  "statsId": "pl_58372154",
+  "teamId": "tm_38621",
+  "teamName": "Yokohama F. Marinos",
+  "name": "Kaina Tanimura",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "6ypq3nhw67wkmd7": {
+  "statsId": "pl_62890335",
+  "teamId": "tm_34562",
+  "teamName": "Kawasaki Frontale",
+  "name": "Kento Tachibanada",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "4jwq2gh0v4em0ve": {
+  "statsId": "pl_57367816",
+  "teamId": "tm_52837",
+  "teamName": "Shimizu S-Pulse",
+  "name": "Ryo Germain",
+  "competitionId": "comp_6240",
+  "seasonId": "sn_2960779",
+  "seasonLabel": "2026 J1_LEAGUE"
  }
 }
