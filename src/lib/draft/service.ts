@@ -104,6 +104,12 @@ export async function claimDraft(gameId: string, actor: Actor): Promise<boolean>
   return r.count > 0;
 }
 
+/** 백분위·반지는 저장값이 아니라 현재 기준선으로 다시 낸다 — 기준선을 재보정하면 옛 판에도 바로 반영된다 */
+function standing(mode: DraftMode, total: number): { percentile: number; rings: number } {
+  const percentile = percentileOf(total, getPool(mode).meta.quantiles);
+  return { percentile, rings: ringsOf(percentile) };
+}
+
 /** KST 오늘 0시 */
 function todayStart(): Date {
   const kst = new Date(Date.now() + 9 * 3600_000);
@@ -138,8 +144,7 @@ export async function getDraftResult(id: string): Promise<DraftResult | null> {
     id: row.id,
     mode: row.mode as DraftMode,
     total: row.total,
-    percentile: row.percentile ?? 0,
-    rings: row.rings ?? 0,
+    ...standing(row.mode as DraftMode, row.total),
     nickname: row.nickname,
     registered: !!row.userId,
     sessionId: row.sessionId,
@@ -183,7 +188,7 @@ export async function getLeaderboard(mode: DraftMode, period: "today" | "all", l
     id: r.id,
     nickname: r.nickname ?? "회원",
     total: r.total,
-    rings: r.rings ?? 0,
+    rings: standing(mode, r.total).rings,
     runs: Number(r.runs),
     snapshot: r.lineup as ResultSnapshot,
   }));

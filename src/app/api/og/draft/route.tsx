@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   const bonus: [string, number][] = [["풀 라인업", s.full], ["공수 균형", s.balance], ["내구성", s.durability], ["철벽 수비", s.lockdown]];
 
   const fontText =
-    `${head}${title}${top}상위 하위 점수 기여도 보너스 scorebase.kr/basketball/draft 0123456789+-.%·` +
+    `${head}${title}${top}상위 점수 기여도 보너스 scorebase.kr/basketball/draft 0123456789+-.%·` +
     rows.map((x) => x.label + (x.p ? x.p.name + x.p.teamName : "")).join("") +
     bonus.map(([k]) => k).join("");
   const [bold, regular] = await Promise.all([loadFont(fontText, 700), loadFont(fontText, 400)]);
