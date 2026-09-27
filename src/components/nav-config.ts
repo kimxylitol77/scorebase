@@ -108,7 +108,7 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/news", label: "해외 뉴스", desc: "BBC·Athletic·ESPN 등 공신력 소스 한국어 브리핑" },
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     // 게임은 허브 하나로 — 드림팀·커리어·블라인드 드래프트가 메뉴 한 줄씩 차지하던 것을 /games 로 모음(2026-09-27)
-    { href: "/games", label: "게임", desc: "블라인드 드래프트·축구선수 인생·드림팀" },
+    { href: "/games", label: "게임", desc: "역대 선수 드래프트·축구선수 인생·드림팀" },
   ],
 };
 

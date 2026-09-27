@@ -476,6 +476,7 @@ export default async function BaseballHub() {
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표 · 7모델 정면비교" />
         <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
+        <FnChip href="/baseball/draft" Icon={Trophy} label="블라인드 드래프트 게임" />
         <FnChip href="/odds?sport=baseball" Icon={Activity} label="배당 흐름" />
         <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
         <FnChip href="/predictions/accuracy" Icon={Trophy} label="적중률 리포트" />
