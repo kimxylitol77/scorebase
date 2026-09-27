@@ -91,6 +91,13 @@
     "group": "detail"
   },
   {
+    "route": "/asian-games",
+    "desc": "2026 아시안게임 허브 — 수집 중인 7개 대회(축구·농구·배구 남녀, 야구)를 한 페이지 ?view= 탭으로 묶는다. 기본 탭=한국 대표팀 성적. 메달 집계는 원천 데이터가 없어 하지 않는다. 5분 ISR.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/authors/[slug]",
     "desc": "저자 페이지 — 운영자 실체(Person JSON-LD·소개·최근 블로그 글). lib/seo/author 에 이름이 없으면 404.",
     "inMenu": false,
@@ -112,6 +119,13 @@
     "group": "menu"
   },
   {
+    "route": "/baseball/kbo-postseason",
+    "desc": "KBO 포스트시즌 대진표 — 와일드카드 결정전·준플레이오프·플레이오프·한국시리즈 계단식 + 시드 경쟁 + AI 시리즈 확률. 데이터: 공식 순위(ts 캐시)·우리 Match·자체 Elo — lib/sports/baseball/kbo-npb-postseason.ts, 본문은 LadderPostseasonView 공용.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/baseball/korea",
     "desc": "야구 해외파 한국 선수 허브 — MLB·마이너리그 한국 선수 시즌 성적 + 소속 구단 다음/최근 경기 (축구 /soccer/korea 의 야구판). 명단: scripts/build-baseball-korea.ts → data/baseball-korea.json (MLB Stats API 출생국 스캔, 주간) 성적·최근 경기: src/lib/sports/baseball-korea.ts (MLB Stats API 런타임 3h 캐시, 레벨별 split) 다음·최근 경기: 우리 Match(league=MLB) — 메이저는 본인 팀, 마이너는 모구단 기준.",
     "inMenu": false,
@@ -127,7 +141,21 @@
   },
   {
     "route": "/baseball/mlb-postseason/stats",
-    "desc": "MLB 포스트시즌 선수 통계 — 가을야구 기록만 모은 스탯 표(타자·투수). 화면은 StatsExplorer 공용, 규정만 포스트시즌용. 데이터: statsapi gameType=P — lib/sports/baseball/mlb-postseason-stats.ts (10분 캐시). 시즌은 ?season= 으로 따로 —   새 포스트시즌이 시작돼도 지난 시즌 표는 그대로 남는다. 기본은 기록이 있는 가장 최근 시즌.",
+    "desc": "옛 주소 — MLB 포스트시즌 선수 통계는 MLB·KBO·NPB 통합 페이지(/baseball/postseason/stats)로 옮겼다. 쿼리는 그대로 넘긴다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/baseball/npb-postseason",
+    "desc": "NPB 포스트시즌 대진표 — 센트럴·퍼시픽 클라이맥스 시리즈(퍼스트·파이널)·일본시리즈 + 시드 경쟁 + AI 시리즈 확률. 데이터: 공식 순위(ts 캐시)·npb.jp 일정·자체 Elo — lib/sports/baseball/kbo-npb-postseason.ts, 본문은 LadderPostseasonView 공용.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/baseball/postseason/stats",
+    "desc": "야구 포스트시즌 선수 통계 — MLB·KBO·NPB 가을야구 기록만 모은 스탯 표(타자·투수). 화면은 StatsExplorer 공용, 규정만 포스트시즌용. 데이터: MLB = statsapi gameType=P(mlb-postseason-stats.ts) · KBO·NPB = collect-baseball-postseason 잡이 쌓은 아카이브(postseason-archive.ts).   시즌은 ?season= 으로 따로 — 새 포스트시즌이 시작돼도 지난 시즌 표는 그대로 남는다. 기본은 기록이 있는 가장 최근 시즌.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
