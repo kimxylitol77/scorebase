@@ -2776,9 +2776,9 @@
   "teamId": "tm_52627",
   "teamName": "AFC Ajax",
   "name": "Thilo Kehrer",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  },
  "k82rekhodok0rep": {
   "statsId": "pl_83062273",
@@ -2875,9 +2875,9 @@
   "teamId": "tm_52627",
   "teamName": "AFC Ajax",
   "name": "Caio Henrique",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  },
  "x7lm7phw91wm2wd": {
   "statsId": "pl_45769008",
@@ -5971,9 +5971,9 @@
   "teamId": "tm_52627",
   "teamName": "AFC Ajax",
   "name": "Julian Brandt",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  },
  "vjxm8ghpl28r6od": {
   "statsId": "pl_96201440",
@@ -16297,5 +16297,194 @@
   "competitionId": "comp_8321",
   "seasonId": "sn_3014533",
   "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l7oqdeh0d72r510": {
+  "statsId": "pl_84596769",
+  "teamId": "tm_79161",
+  "teamName": "Go Ahead Eagles",
+  "name": "Kjetil Haug",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1gh3wpevmoe": {
+  "statsId": "pl_73174019",
+  "teamId": "tm_10401",
+  "teamName": "Sparta Rotterdam",
+  "name": "Marvin Young",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1gh4wyvmoep": {
+  "statsId": "pl_1391118",
+  "teamId": "tm_38581",
+  "teamName": "Fortuna Sittard",
+  "name": "Ivo Pinto",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jhen8gxqwz": {
+  "statsId": "pl_29115727",
+  "teamId": "tm_26373",
+  "teamName": "Willem II Tilburg",
+  "name": "Nathan Tjoe-A-On",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "pxwrxlhz6d8ryk0": {
+  "statsId": "pl_84038480",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Guus Til",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y39mp1hy42wmojx": {
+  "statsId": "pl_45775176",
+  "teamId": "tm_26302",
+  "teamName": "FC Groningen",
+  "name": "Pelle Clement",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "6ypq3nhwe494md7": {
+  "statsId": "pl_74134642",
+  "teamId": "tm_91047",
+  "teamName": "SC Telstar",
+  "name": "Tyrone owusu",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "jw2r09hj8nx9rz8": {
+  "statsId": "pl_46911215",
+  "teamId": "tm_10458",
+  "teamName": "AZ Alkmaar",
+  "name": "Mateo Chávez",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "ednm9whd417ryox": {
+  "statsId": "pl_29803163",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Sergiño Dest",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dn1m1gh36w36moe": {
+  "statsId": "pl_36271410",
+  "teamId": "tm_26302",
+  "teamName": "FC Groningen",
+  "name": "Tygo Land",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "zp5rzghpvlk2q82": {
+  "statsId": "pl_36271082",
+  "teamId": "tm_63899",
+  "teamName": "ADO Den Haag",
+  "name": "Yannick Fereira Eduardo",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "318q66h48205qo9": {
+  "statsId": "pl_97780847",
+  "teamId": "tm_47976",
+  "teamName": "FC Twente",
+  "name": "Sondre Holmlund Orjasaeter",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y0or5jhe44ewqwz": {
+  "statsId": "pl_72073614",
+  "teamId": "tm_91047",
+  "teamName": "SC Telstar",
+  "name": "Rui Mendes",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "965mkyhekn0zr1g": {
+  "statsId": "pl_01174803",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Kodai Sano",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "y39mp1hjd4vmojx": {
+  "statsId": "pl_2771796",
+  "teamId": "tm_26389",
+  "teamName": "PEC Zwolle",
+  "name": "Ryan Thomas",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "dj2ryohjl8vzq1z": {
+  "statsId": "pl_84840502",
+  "teamId": "tm_04732",
+  "teamName": "SC Heerenveen",
+  "name": "Maxence Rivera",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "vjxm8ghjgog2r6o": {
+  "statsId": "pl_30276436",
+  "teamId": "tm_79161",
+  "teamName": "Go Ahead Eagles",
+  "name": "Stefán Ingi Sigurdarson",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "8yomo4h2157eq0j": {
+  "statsId": "pl_13846565",
+  "teamId": "tm_63899",
+  "teamName": "ADO Den Haag",
+  "name": "Sekou Sylla",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "k82rekhyneydrep": {
+  "statsId": "pl_96222466",
+  "teamId": "tm_26389",
+  "teamName": "PEC Zwolle",
+  "name": "Elias Sörensen",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "1l4rjnhk4010m7v": {
+  "statsId": "pl_51252148",
+  "teamId": "tm_91010",
+  "teamName": "PSV Eindhoven",
+  "name": "Noah Fernandez",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
+ },
+ "318q66h4jg73qo9": {
+  "statsId": "pl_25317177",
+  "teamId": "tm_63899",
+  "teamName": "ADO Den Haag",
+  "name": "Jonas Jensen-Abbew",
+  "competitionId": "comp_3809",
+  "seasonId": "sn_5744954",
+  "seasonLabel": "2026-27 EREDIVISIE"
  }
 }
