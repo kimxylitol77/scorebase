@@ -1311,13 +1311,13 @@ export default async function ScoresPage({ searchParams }: Props) {
   const soccerMatchIds = needsSoccerGoals
     ? matches.filter((m) => SOCCER_LEAGUES.has(m.league)).map((m) => m.id)
     : [];
-  // KBO/NPB/MLB + CPBL/LMB. cache.detailLive 의 bases/outs/inning(LIVE) +
-  // 이닝별 점수표(LIVE/종료) 추출. CPBL/LMB 는 api-baseball 매핑이 없어 종료 경기
-  // 이닝표가 TheSports cache 가 유일 소스 → SCHEDULED 만 제외(이닝 없음).
+  // 야구 전 리그(SPORTS.baseball 단일 출처). cache.detailLive 의 bases/outs/inning(LIVE) +
+  // 이닝별 점수표(LIVE/종료) 추출. KBO·MLB 외 리그는 TheSports cache 가 유일 소스 → SCHEDULED 만 제외(이닝 없음).
+  // 예전엔 KBO/NPB/MLB/CPBL/LMB 5개로 고정돼 아시안게임·WBC 등은 폴러가 이닝을 받아 두고도 카드에 점수만 떴다(2026-09-27).
   const baseballLiveDbIds = matches
     .filter(
       (m) =>
-        ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(m.league) &&
+        BASEBALL_LEAGUES.has(m.league) &&
         m.status !== "SCHEDULED",
     )
     .map((m) => m.id);

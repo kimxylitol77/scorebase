@@ -3,6 +3,7 @@
 // 베이스 상황·볼카운트·현재 투수/타자는 api-sports 미제공 (안 A 범위).
 // Edge runtime · ETag/304 · CDN 15s + SWR 45s.
 
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
@@ -188,12 +189,9 @@ export async function GET(
           awayTeam: { select: { name: true } },
         },
       });
-      if (
-        ourMatch &&
-        (ourMatch.league === "KBO" ||
-          ourMatch.league === "NPB" ||
-          ourMatch.league === "MLB")
-      ) {
+      // 야구 전 리그 — 폴러가 SPORTS.baseball 전부를 캐시에 담는다. KBO/NPB/MLB 로만 막아 두면
+      // 아시안게임·WBC 등 ts- 전용 경기는 2차(api-sports, 숫자 id 전용)로 떨어져 404 → 상세가 "불러오는 중" 고착(2026-09-27).
+      if (ourMatch && BASEBALL_LEAGUES.has(ourMatch.league)) {
         const cache = await prisma.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
           select: { detailLive: true },
@@ -206,7 +204,7 @@ export async function GET(
             dbAwayScore: ourMatch.awayScore,
             homeName: ourMatch.homeTeam.name,
             awayName: ourMatch.awayTeam.name,
-            league: ourMatch.league as "KBO" | "NPB" | "MLB",
+            league: ourMatch.league,
           });
           if (converted) {
             live = converted as BaseballLive;

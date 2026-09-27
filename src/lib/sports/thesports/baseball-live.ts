@@ -27,6 +27,7 @@
 // (이전 commit 97a5f02 의 [away, home] 정정은 KIA vs SSG 한 케이스만 보고 잘못 결론.
 //  사실 그 매치는 DB.home/away team 매핑 자체가 거꾸로 들어와서 그렇게 보였던 것.)
 
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import type { MatchStatus } from "../types";
 
 // /api/live/baseball/[gameId] route.ts 의 BaseballLive 와 동일 (import 순환 회피 위해 재선언).
@@ -98,7 +99,8 @@ export function convertCacheToBaseballLive(opts: {
   dbAwayScore: number | null;
   homeName: string;
   awayName: string;
-  league: "KBO" | "NPB" | "MLB";
+  /** KBO·NPB·MLB 외(아시안게임·WBC 등)는 api-sports id 가 없어 0 · 리그 코드 그대로 */
+  league: string;
 }): BaseballLiveCompat | null {
   const dl = opts.detailLive as TSCacheDetailLive | null;
   if (!dl || typeof dl !== "object") return null;
@@ -205,7 +207,10 @@ export function convertCacheToBaseballLive(opts: {
       hits: hitsAway,
       errors: errAway,
     },
-    league: { id: LEAGUE_AB_ID[opts.league], name: LEAGUE_AB_NAME[opts.league] },
+    league: {
+      id: LEAGUE_AB_ID[opts.league as keyof typeof LEAGUE_AB_ID] ?? 0,
+      name: LEAGUE_AB_NAME[opts.league as keyof typeof LEAGUE_AB_NAME] ?? LEAGUE_DISPLAY[opts.league] ?? opts.league,
+    },
     liveContext,
   };
 }
