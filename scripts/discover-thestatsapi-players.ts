@@ -1,5 +1,5 @@
 // 우리 DB 상위 몸값 EPL 선수 → TheStatsAPI 선수 id 매핑 발굴 → data/thestatsapi-player-map.json
-// API 검색은 다중 단어 불가 → 성(마지막 토큰)으로 조회 후 2단 확정.
+// API 검색은 부분 일치·한 페이지 50명 → 전체 이름·성·이름 순으로 조회하며 2단 확정.
 //   1) 전체 이름 정규화 일치 (동명 다수면 소속팀으로 판별)
 //   2) 이름 부분 일치 + 소속팀 일치 (우리 season-stats 의 영문 팀명 vs API current_team)
 //      — "Estêvão"(API) vs 풀네임(우리), "João Pedro" 동명 7명 같은 케이스를 자동 해결
@@ -55,8 +55,13 @@ if (!CFG) { console.error(`지원 리그: ${Object.keys(LEAGUE_CFG).join(", ")}`
 
 const prisma = new PrismaClient();
 
+// NFD 로 안 쪼개지는 글자는 직접 옮긴다 — 안 하면 "Ødegaard" 가 "degaard" 가 된다.
+const TRANSLIT: Record<string, string> = { ø: "o", æ: "ae", œ: "oe", ß: "ss", ł: "l", đ: "d", ð: "d", þ: "th", ı: "i" };
+function fold(s: string): string {
+  return s.toLowerCase().replace(/[øæœßłđðþı]/g, (ch) => TRANSLIT[ch]).normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
 function norm(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]/g, "").trim();
+  return fold(s).replace(/[^a-z ]/g, "").trim();
 }
 
 async function api(path: string): Promise<unknown | null> {
@@ -98,20 +103,39 @@ async function main() {
   const COMP = { competitionId: CFG.competitionId, seasonId: season.id, seasonLabel: `${SEASON_PREFIX} ${argLeague}` };
   console.log(`${argLeague} → ${CFG.competitionId} / ${season.id} (${season.name})`);
 
+  const stats = JSON.parse(
+    readFileSync(new URL("../data/player-season-stats.json", import.meta.url).pathname, "utf8"),
+  ) as Record<string, { lg?: string; season?: string; minutes?: number | null }>;
+  // 이번 시즌 출전 기록이 가리키는 리그 — 몸값 테이블의 league 태그보다 정본이다(강등·이적이 늦게 반영됨).
+  const playedIn = (id: string) => (stats[id]?.season === SEASON_PREFIX ? stats[id]?.lg ?? null : null);
+
   let mv: { id: string }[] = await prisma.playerMarketValue.findMany({
     where: { league: argLeague },
     orderBy: { currentValue: "desc" },
     take: TOP_N,
     select: { id: true, currentValue: true },
   });
+  if (mv.length > 0) {
+    // 몸값 테이블 리그 태그가 낡아 강등·이적 선수가 옛 리그로 매핑됐다(2026-09-26 보웬 EPL←웨스트햄 챔피언십,
+    // 뉘벨 분데스←베식타스). 이번 시즌 다른 리그에서 뛰는 선수는 빼고, 태그는 다른 리그인데 이번 시즌 여기서
+    // 뛰는 선수(이적해 온 선수)는 더한다. 출전 기록이 없는 선수는 몸값 태그를 그대로 믿는다.
+    const before = mv.length;
+    mv = mv.filter((r) => { const lg = playedIn(r.id); return !lg || lg === argLeague; });
+    const moved = before - mv.length;
+    const inIds = Object.keys(stats).filter((id) => playedIn(id) === argLeague && (stats[id].minutes ?? 0) > 0);
+    const have = new Set(mv.map((r) => r.id));
+    const arrivals = await prisma.playerMarketValue.findMany({
+      where: { id: { in: inIds.filter((id) => !have.has(id)) }, league: { not: argLeague } },
+      select: { id: true },
+    });
+    mv.push(...arrivals);
+    console.log(`${argLeague} 몸값 유니버스 — 다른 리그로 떠난 ${moved}명 제외, 이적해 온 ${arrivals.length}명 추가`);
+  }
   // 몸값 유니버스가 없는 리그는 이번 시즌 그 리그에서 실제로 뛴 선수(player-season-stats)로 대신한다.
   // PlayerMarketValue 는 빅5·MLS·사우디·K리그만 채워져 있어(2026-08-28 실측) 그 밖의 리그는
   // 폴백이 없으면 대상 0명으로 조용히 끝난다. 예전 폴백은 팀 스쿼드(TheSportsPlayer.teamId)였는데
   // 은퇴 선수가 옛 팀에 남아 있어 카시야스·살가도·칼루가 현역으로 매핑됐다(2026-09-26). 출전 분 순.
   if (mv.length === 0) {
-    const stats = JSON.parse(
-      readFileSync(new URL("../data/player-season-stats.json", import.meta.url).pathname, "utf8"),
-    ) as Record<string, { lg?: string; season?: string; minutes?: number | null }>;
     mv = Object.entries(stats)
       .filter(([, s]) => s.lg === argLeague && s.season === SEASON_PREFIX && (s.minutes ?? 0) > 0)
       .sort((a, b) => (b[1].minutes ?? 0) - (a[1].minutes ?? 0))
@@ -152,25 +176,36 @@ async function main() {
       if (reseasoned % 10 === 0) writeFileSync(OUT, JSON.stringify(out, null, 1));
       continue;
     }
-    // 검색어도 악센트 제거 (Fernández → fernandez). 뒤에서부터 3글자 이상 토큰 — 검색 API 가 2글자를 400 으로
-    // 거절해 "… Jr"·"Ko"·"Sa" 한 명이 발굴 단계 전체를 죽였다(2026-09-26 챔피언십·에레디비시·포르투갈·J1).
-    const token = norm(r.name).split(" ").reverse().find((t) => t.length >= 3 && !/^(jr|sr|ii|iii)$/.test(t));
-    if (!token) { console.log(`  ✗ ${r.name} — 검색 가능한 이름 토큰 없음`); skipped++; continue; }
-    const res = (await api(`/football/players?search=${encodeURIComponent(token)}&per_page=50`)) as { data: ApiPlayer[] } | null;
-    await new Promise((s) => setTimeout(s, 1000)); // 분당 60회 — 한도 120(2026-09-26 x-ratelimit-limit 실측)의 절반. 예전 6초(trial 12회)는 주간 잡이 12h 에 SIGKILL 되는 원인이었다
-    const all = res?.data ?? [];
-    const sameTeam = (p: ApiPlayer) => {
-      if (!r.team || !p.current_team) return false;
-      const a = norm(p.current_team.name), b = norm(r.team);
-      return a === b || a.includes(b) || b.includes(a);
+    // 검색어 후보를 차례로 — ① 전체 이름 ② 성 ③ 이름. 검색은 부분 일치에 한 페이지 50명이라 성 하나로는
+    // "James"(630명)·"Anderson"(291명)에서 본인이 밀려났다(2026-09-27 EPL 주전 43명 누락: 리스 제임스·에제·
+    // 외데고르·깁스화이트). 여러 단어·하이픈 검색은 된다("van de ven" 6명, "gibbs-white" 1명).
+    // 2글자 토큰은 검색 API 가 400 으로 거절한다(… Jr·Ko·Sa 한 명이 발굴 단계 전체를 죽였다, 2026-09-26).
+    const full = fold(r.name).replace(/[^a-z -]/g, "").replace(/\s+/g, " ").trim(); // "van de ven" 은 de 까지 그대로
+    const words = full.split(" ").filter((t) => t.length >= 3 && !/^(jr|sr|ii|iii)$/.test(t));
+    const queries = [...new Set([full, words[words.length - 1], words[0]].filter((q): q is string => !!q && q.length >= 3))];
+    if (queries.length === 0) { console.log(`  ✗ ${r.name} — 검색 가능한 이름 토큰 없음`); skipped++; continue; }
+    const pickCandidates = (all: ApiPlayer[]): ApiPlayer[] => {
+      const sameTeam = (p: ApiPlayer) => {
+        if (!r.team || !p.current_team) return false;
+        const a = norm(p.current_team.name), b = norm(r.team);
+        return a === b || a.includes(b) || b.includes(a);
+      };
+      // 1단: 전체 이름 일치 (동명 다수면 팀으로 판별)
+      let found = all.filter((p) => norm(p.name) === norm(r.name));
+      if (found.length > 1) found = found.filter(sameTeam);
+      // 2단: 이름 부분 일치(후보 이름 토큰이 우리 이름에 모두 포함) + 팀 일치
+      if (found.length !== 1) {
+        const ourTokens = new Set(norm(r.name).split(" "));
+        found = all.filter((p) => sameTeam(p) && norm(p.name).split(" ").every((t) => ourTokens.has(t)));
+      }
+      return found;
     };
-    // 1단: 전체 이름 일치 (동명 다수면 팀으로 판별)
-    let cands = all.filter((p) => norm(p.name) === norm(r.name));
-    if (cands.length > 1) cands = cands.filter(sameTeam);
-    // 2단: 이름 부분 일치(후보 이름 토큰이 우리 이름에 모두 포함) + 팀 일치
-    if (cands.length !== 1) {
-      const ourTokens = new Set(norm(r.name).split(" "));
-      cands = all.filter((p) => sameTeam(p) && norm(p.name).split(" ").every((t) => ourTokens.has(t)));
+    let cands: ApiPlayer[] = [];
+    for (const q of queries) {
+      const res = (await api(`/football/players?search=${encodeURIComponent(q)}&per_page=50`)) as { data: ApiPlayer[] } | null;
+      await new Promise((s) => setTimeout(s, 1000)); // 분당 60회 — 한도 120(2026-09-26 x-ratelimit-limit 실측)의 절반. 예전 6초(trial 12회)는 주간 잡이 12h 에 SIGKILL 되는 원인이었다
+      cands = pickCandidates(res?.data ?? []);
+      if (cands.length === 1) break;
     }
     const c = cands[0];
     const team = c?.current_team;
