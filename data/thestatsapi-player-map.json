@@ -1615,9 +1615,9 @@
   "teamId": "tm_36675",
   "teamName": "Nantes",
   "name": "Tylel Tati",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
  },
  "318q66h4w4yyqo9": {
   "statsId": "pl_83454924",
@@ -2929,9 +2929,9 @@
   "teamId": "tm_25506",
   "teamName": "Metz",
   "name": "Believe Munongo",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
  },
  "l7oqdehledg1r51": {
   "statsId": "pl_89648706",
@@ -3019,9 +3019,9 @@
   "teamId": "tm_36675",
   "teamName": "Nantes",
   "name": "Louis Leroux",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
  },
  "vjxm8ghp4kw3r6o": {
   "statsId": "pl_58914535",
@@ -3367,12 +3367,12 @@
  },
  "4wyrn4hv4zn0q86": {
   "statsId": "pl_36146205",
-  "teamId": "tm_36675",
-  "teamName": "Nantes",
+  "teamId": "tm_46651",
+  "teamName": "Young Boys",
   "name": "Bahereba Guirassy",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
  },
  "l7oqdeh0vkw5r51": {
   "statsId": "pl_58769126",
@@ -3415,9 +3415,9 @@
   "teamId": "tm_36675",
   "teamName": "Nantes",
   "name": "Johann Lepenant",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
  },
  "965mkyh4x7edr1g": {
   "statsId": "pl_72055616",
@@ -19573,5 +19573,176 @@
   "competitionId": "comp_0976",
   "seasonId": "sn_1368511",
   "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "8yomo4h5ozvq0j6": {
+  "statsId": "pl_30261036",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Jessy Deminguet",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "2y8m4zhjd1xql07": {
+  "statsId": "pl_3614880",
+  "teamId": "tm_62204",
+  "teamName": "Dijon",
+  "name": "Quentin Bernard",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "dn1m1ghn0wz9moe": {
+  "statsId": "pl_72602375",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Giorgi Abuashvili",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "vjxm8gh84v6yr6o": {
+  "statsId": "pl_13144187",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Jonathan Fischer",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "4jwq2gh4n2xm0ve": {
+  "statsId": "pl_600912",
+  "teamId": "tm_0238139",
+  "teamName": "Annecy FC",
+  "name": "Ahmed Kashi",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "l7oqdehng7wr510": {
+  "statsId": "pl_211183",
+  "teamId": "tm_62204",
+  "teamName": "Dijon",
+  "name": "Paul Delecroix",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "965mkyh3v92r1ge": {
+  "statsId": "pl_1797813",
+  "teamId": "tm_36675",
+  "teamName": "Nantes",
+  "name": "Frédéric Guilbert",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "vjxm8gh878pr6od": {
+  "statsId": "pl_57248166",
+  "teamId": "tm_36675",
+  "teamName": "Nantes",
+  "name": "Kelvin Amian",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "x7lm7phod1pm2wd": {
+  "statsId": "pl_5837622",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Bouna Sarr",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "dj2ryohnepyq1zp": {
+  "statsId": "pl_57461832",
+  "teamId": "tm_36675",
+  "teamName": "Nantes",
+  "name": "Ibrahima Sissoko",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "vjxm8ghgx7zr6od": {
+  "statsId": "pl_0175757",
+  "teamId": "tm_25099",
+  "teamName": "US Boulogne Côte-d'Opale",
+  "name": "Jonas Martin",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "2y8m4zhz7w70ql0": {
+  "statsId": "pl_63119605",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Nathan Mbala",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "jw2r09hxz1owrz8": {
+  "statsId": "pl_29296125",
+  "teamId": "tm_459777",
+  "teamName": "Rodez AF",
+  "name": "Ryan Ponti",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "4jwq2ghk614m0ve": {
+  "statsId": "pl_4057414",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Maxime Colin",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "vjxm8gh8o91kr6o": {
+  "statsId": "pl_01397347",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Urie-Michel Mboula",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "4jwq2gh7xwdjm0v": {
+  "statsId": "pl_62638039",
+  "teamId": "tm_73701",
+  "teamName": "Royal Antwerp FC",
+  "name": "Bahmed Deuff",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "23xmvkhkn3ojqg8": {
+  "statsId": "pl_74061512",
+  "teamId": "tm_25506",
+  "teamName": "Metz",
+  "name": "Pape Sy",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "jw2r09hw038rz84": {
+  "statsId": "pl_96206412",
+  "teamId": "tm_97749",
+  "teamName": "Stade de Reims",
+  "name": "Sergio Akieme",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
+ },
+ "pxwrxlh9l74wryk": {
+  "statsId": "pl_30441264",
+  "teamId": "tm_324570",
+  "teamName": "Sumqayıt FK",
+  "name": "Mamady Bangre",
+  "competitionId": "comp_9777",
+  "seasonId": "sn_7255696",
+  "seasonLabel": "2026-27 LIGUE_2"
  }
 }
