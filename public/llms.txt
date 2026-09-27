@@ -61,6 +61,7 @@
 - [/baseball/npb-postseason](https://www.scorebase.kr/baseball/npb-postseason): NPB 포스트시즌 대진표 — 센트럴·퍼시픽 클라이맥스 시리즈(퍼스트·파이널 스테이지, 1위 1승 어드밴티지)와 일본시리즈, 시드·한국시간 일정·시리즈 스코어, 자체 Elo 시리즈 승리 확률. 출처 NPB 공식 순위·npb.jp 일정, 5분 갱신.
 - [/baseball/postseason/stats](https://www.scorebase.kr/baseball/postseason/stats?league=MLB): 야구 포스트시즌 선수 통계 — MLB(와일드카드~월드시리즈)·KBO(와일드카드 결정전~한국시리즈)·NPB(클라이맥스 시리즈~일본시리즈) 가을야구 기록만 모은 타자·투수 표, 시즌별(최근 5시즌) 보존, 포스트시즌 규정 선수 백분위. 출처 MLB Stats API·KBO 공식 기록실·npb.jp 박스스코어.
 - [/basketball/stats](https://www.scorebase.kr/basketball/stats): KBL 선수 전원 득점·리바운드·어시스트·3점·야투율. 출처 KBL 공식.
+- [/games](https://www.scorebase.kr/games): 게임 허브 — 농구 블라인드 드래프트, 축구선수 인생 살아보기, 드림팀 빌더, 라인업 전술판, 승부예측 투표 진입점.
 - [/basketball/draft](https://www.scorebase.kr/basketball/draft): 농구 블라인드 드래프트 게임 — NBA(1994~)·KBL(1997~) 역대 선수-시즌 카드를 이름·시즌·포지션만 보고 5명 뽑아 숨겨진 기여도 합으로 순위를 겨룬다. 회원가입 없이 플레이.
 - [/hockey/stats?league=NHL&role=skater](https://www.scorebase.kr/hockey/stats?league=NHL&role=skater): NHL(공식 API)·KHL(경기 기록 집계) 스케이터·골리 전원.
 - [/esports/stats?league=LOL](https://www.scorebase.kr/esports/stats?league=LOL): LCK·LEC·LCS 선수 KDA·CS·승률(세트 집계).

@@ -191,9 +191,9 @@
   {
     "route": "/basketball/draft",
     "desc": "농구 블라인드 드래프트 — NBA·KBL 역대 선수-시즌을 이름만 보고 5명 뽑는 게임. 로그인 없이 시작.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/basketball/draft/result/[id]",
@@ -233,9 +233,9 @@
   {
     "route": "/career",
     "desc": "축구선수 인생 시뮬레이터 — 로그인 없이 즐기는 커리어 게임 (게임 진행은 전부 클라이언트)",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/career/result",
@@ -289,9 +289,9 @@
   {
     "route": "/dream-team",
     "desc": "드림팀 빌더 페이지 — 회원이 티어 예산 안에서 11명 스쿼드를 구성",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/dream-team/fantasy",
@@ -670,6 +670,13 @@
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
+  },
+  {
+    "route": "/games",
+    "desc": "게임 허브 — 사이트 안의 게임·놀거리 진입점. 헤더 「커뮤니티 > 게임」이 여기로 온다. 게임마다 메뉴 한 줄씩 차지하던 것을 한 곳에 모았다. 새 게임은 GAMES 에 한 항목 추가하면 된다.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
   },
   {
     "route": "/golf/korea",

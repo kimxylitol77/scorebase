@@ -107,9 +107,8 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     // 해외 뉴스는 봇 발행 전용이라 성격이 달라 메뉴에 따로 노출 (BoardTabs 로도 오갈 수 있음)
     { href: "/news", label: "해외 뉴스", desc: "BBC·Athletic·ESPN 등 공신력 소스 한국어 브리핑" },
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
-    { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
-    { href: "/career", label: "축구선수 인생 살아보기", desc: "유스부터 은퇴까지 · 회원가입 없이" },
-    { href: "/basketball/draft", label: "농구 블라인드 드래프트", desc: "NBA·KBL 역대 선수로 최강 5인 · 회원가입 없이" },
+    // 게임은 허브 하나로 — 드림팀·커리어·블라인드 드래프트가 메뉴 한 줄씩 차지하던 것을 /games 로 모음(2026-09-27)
+    { href: "/games", label: "게임", desc: "블라인드 드래프트·축구선수 인생·드림팀" },
   ],
 };
 

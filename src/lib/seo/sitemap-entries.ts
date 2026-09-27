@@ -93,6 +93,7 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     { url: `${base}/tools/npb-win-probability`, changeFrequency: "monthly", priority: 0.75 },
     // 미니게임 — 로그인 없이 도는 커리어 시뮬. /dream-team 은 로그인 벽 + sitemap 누락으로
     // 아무도 못 찾았다(회원 117명 중 팀 3개). 같은 실수를 반복하지 않으려고 등록한다.
+    { url: `${base}/games`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/career`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/basketball/draft`, changeFrequency: "monthly", priority: 0.7 },
     // 종목 허브 — 5/23 sitemap 청소 이후 신설돼 등록 누락됐던 페이지들 (빙 실측: /baseball
