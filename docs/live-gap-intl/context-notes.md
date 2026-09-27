@@ -3,3 +3,4 @@
 - ts 배구 lineup·player_stats·trend·tlive·incidents 는 미인가. match/live/history 는 인가(종료 최종값).
 - 아시안게임 야구 detail_live 는 players:{}·extra:{} — 박스스코어·볼카운트는 원천 한계.
 - AI 코멘터리(맥미니 narrator) 제외 — 사용자 지시.
+- 백필 실측(9/27): 폴러 final=2/2 정상. 지난 7일 결손 7경기는 live/history 에도 stats 가 없어 복구 불가(원천 결손).
