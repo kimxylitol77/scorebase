@@ -1914,3 +1914,25 @@ model ClientReport {
 
   @@index([kind, createdAt])
 }
+
+/// 농구 블라인드 드래프트 한 판 — 진행 상태·결과·리더보드·공유를 한 테이블이 맡는다.
+/// 테이블은 raw SQL 로 생성(prisma/sql/create-draft-game.sql) — 관계 없이 userId 문자열만 보관.
+model DraftGame {
+  id         String    @id @default(cuid())
+  mode       String // "nba" | "kbl"
+  sessionId  String // 비회원 식별 (draft_sid 쿠키)
+  userId     String? // 로그인 회원 — 리더보드 등재 조건
+  nickname   String? // 등재 시점 닉네임
+  state      Json // 엔진 GameState
+  done       Boolean   @default(false)
+  total      Float?
+  percentile Int?
+  rings      Int?
+  lineup     Json? // 결과 스냅샷 (카드 5장 + 점수 내역)
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([mode, done, total])
+  @@index([mode, finishedAt])
+  @@index([sessionId])
+}
