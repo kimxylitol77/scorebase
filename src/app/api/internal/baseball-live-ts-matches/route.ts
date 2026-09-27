@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +28,8 @@ export async function GET(req: NextRequest) {
 
   const rows = await prisma.match.findMany({
     where: {
-      league: { in: ["KBO", "NPB", "MLB"] },
+      // 야구 전 리그 — KBO/NPB/MLB 로만 두면 아시안게임 등은 ts 에 in-play 배당이 있어도 한 줄도 안 쌓였다(2026-09-27).
+      league: { in: [...BASEBALL_LEAGUES] },
       status: { in: ["SCHEDULED", "LIVE"] },
       startTime: { gte: start, lt: end },
       theSportsCache: { isNot: null },

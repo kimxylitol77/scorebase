@@ -347,7 +347,8 @@ export default function BaseballLiveDetail({
               </span>
             )}
             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              {league}
+              {/* KBO·NPB·MLB 는 코드 그대로, 그 밖(아시안게임 등)은 API 가 주는 한글 대회명 — 코드가 그대로 노출되던 것 */}
+              {["KBO", "NPB", "MLB"].includes(league) ? league : live.league?.name ?? league}
             </span>
             {isLive && inningText && (
               <span

@@ -259,7 +259,7 @@ interface ScoresCacheDerived {
   volleyballPeriod: Record<number, PeriodLinescoreData>;
   volleyballStatusLabel: Record<number, string>;
   baseballCtx: Record<string, {
-    bases: [boolean, boolean, boolean];
+    bases: [boolean, boolean, boolean] | null;
     outs: number | null;
     inning: number | null;
     half: "top" | "bottom" | null;
@@ -389,11 +389,14 @@ const fetchCacheDerivedCached = unstable_cache(
         const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
         const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
         if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
+          // 서브권 — 진행 중(세트 라벨 있음)일 때만. ts score[2]: 1=홈·2=원정·0=없음
+          const ts2 = Number(dl.score[2]);
           out.volleyballPeriod[c.matchId] = {
             homePeriods: homeSets,
             awayPeriods: awaySets,
             homeScore: ftH,
             awayScore: ftA,
+            serving: vlabel && (ts2 === 1 || ts2 === 2) ? (ts2 === 1 ? "home" : "away") : null,
           };
         }
       }
@@ -479,8 +482,9 @@ const fetchCacheDerivedCached = unstable_cache(
       // _swap=true 면 ts perspective 가 우리와 반대 → 우리 home/away 로 변환.
       if (baseballIdSet.has(c.matchId)) {
         const extraBase = dl.extra?.base;
+        // extra.base 가 없으면(국제대회 등 ts 가 extra:{} 로 줌) 주자 정보 없음 — "000" 으로 채우면 가짜 "주자 없음" 이 된다.
         const baseStr =
-          typeof extraBase === "string" && /^[01]{3}$/.test(extraBase) ? extraBase : "000";
+          typeof extraBase === "string" && /^[01]{3}$/.test(extraBase) ? extraBase : null;
         const ext = idToExt.get(c.matchId);
         const swap = (dl as { _swap?: boolean })?._swap === true;
         let inning: number | null = null;
@@ -544,7 +548,7 @@ const fetchCacheDerivedCached = unstable_cache(
         }
         if (ext) {
           out.baseballCtx[ext] = {
-            bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
+            bases: baseStr ? [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"] : null,
             outs: typeof dl.extra?.out === "number" ? dl.extra.out : null,
             inning,
             half,
@@ -1295,7 +1299,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   const volleyballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
   const volleyballStatusLabelByMatchId = new Map<number, string>();
   const baseballCacheCtx = new Map<string, {
-    bases: [boolean, boolean, boolean];
+    bases: [boolean, boolean, boolean] | null;
     outs: number | null;
     inning: number | null;
     half: "top" | "bottom" | null;

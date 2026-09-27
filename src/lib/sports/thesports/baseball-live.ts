@@ -181,8 +181,9 @@ export function convertCacheToBaseballLive(opts: {
     statusLabel = "Not Started";
   }
 
-  // liveContext (KBO/NPB 베이스 + B/S/O)
-  const liveContext = dl.extra
+  // liveContext (KBO/NPB 베이스 + B/S/O). 국제대회는 ts 가 extra:{} 를 준다 — 빈 객체를 참으로 보면
+  // "주자 없음·0아웃" 가짜 다이아몬드가 그려진다(2026-09-27 아시안게임 한일전). base 가 있을 때만.
+  const liveContext = typeof dl.extra?.base === "string"
     ? {
         bases: dl.extra.base ?? "000",
         outs: dl.extra.out ?? 0,

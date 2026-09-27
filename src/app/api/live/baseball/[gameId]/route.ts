@@ -275,7 +275,7 @@ export async function GET(
               select: { detailLive: true },
             });
             const dl = cache?.detailLive as { extra?: { base?: string; out?: number; good?: number; bad?: number } } | null;
-            if (dl?.extra) {
+            if (typeof dl?.extra?.base === "string") {
               live.liveContext = {
                 bases: typeof dl.extra.base === "string" ? dl.extra.base : "000",
                 outs: typeof dl.extra.out === "number" ? dl.extra.out : 0,

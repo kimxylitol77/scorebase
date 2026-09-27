@@ -5,6 +5,7 @@
 //   NBA/NHL = ESPN id, 축구 = api-football fixture id,
 //   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).
 
+import VolleyballStatsCard from "@/components/live/VolleyballStatsCard";
 import type { Metadata } from "next";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { cache } from "react";
@@ -1543,6 +1544,43 @@ async function renderBaseballPage(args: {
   const pitcherColumns = playerStatColumns("pitcher");
   const wpaSeries = computeWpaFromDetailLive(detailLive);
 
+
+  // 결론 3카드 — KBO 라우트와 같은 카드. 국제대회(아시안게임·WBC 등)는 선발 소스가 없어 예측이 영영 저장되지
+  // 않았다(pick-readiness 예외, 2026-09-27). 야구는 무승부 없이 승패 두 칸.
+  let bbPred: ConclusionPred | null = null;
+  if (match.predHome != null && match.predAway != null) {
+    const favored = match.predHome >= match.predAway ? "home" : "away";
+    let correct: boolean | null = match.predCorrect ?? null;
+    if (match.status === "FINISHED" && match.homeScore != null && match.awayScore != null && match.homeScore !== match.awayScore) {
+      correct = (match.homeScore > match.awayScore ? "home" : "away") === favored;
+    }
+    bbPred = { favored, pct: Math.min(99, Math.round(Math.max(match.predHome, match.predAway) * 100)), correct };
+  }
+  const bbFactors: KeyFactor[] = [];
+  const bHS = extras.homeStanding;
+  const bAS = extras.awayStanding;
+  if (bHS && bAS) {
+    if (bHS.position && bAS.position) {
+      bbFactors.push({
+        label: bHS.group || bAS.group ? "조 순위" : "리그순위",
+        home: `${bHS.group ? `${bHS.group} ` : ""}${bHS.position}위`,
+        away: `${bAS.group ? `${bAS.group} ` : ""}${bAS.position}위`,
+        edge: bHS.position < bAS.position ? "home" : bHS.position > bAS.position ? "away" : "even",
+      });
+    }
+    if (bHS.played > 0 && bAS.played > 0) {
+      const hw = bHS.wins / bHS.played;
+      const aw = bAS.wins / bAS.played;
+      bbFactors.push({ label: "승률", home: `${(hw * 100).toFixed(1)}%`, away: `${(aw * 100).toFixed(1)}%`, edge: hw > aw ? "home" : hw < aw ? "away" : "even" });
+      const hr = bHS.goalsFor / bHS.played;
+      const ar = bAS.goalsFor / bAS.played;
+      bbFactors.push({ label: "경기당 득점", home: hr.toFixed(1), away: ar.toFixed(1), edge: hr > ar ? "home" : hr < ar ? "away" : "even" });
+      const hra = bHS.goalsAgainst / bHS.played;
+      const ara = bAS.goalsAgainst / bAS.played;
+      bbFactors.push({ label: "경기당 실점", home: hra.toFixed(1), away: ara.toFixed(1), edge: hra < ara ? "home" : hra > ara ? "away" : "even" });
+    }
+  }
+
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -1585,6 +1623,15 @@ async function renderBaseballPage(args: {
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
         league={lg}
       />
+      {(bbPred || bbFactors.length > 0) && (
+        <ConclusionCards
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          pred={bbPred}
+          factors={bbFactors}
+        />
+      )}
       <BaseballLiveDetail
         gameId={gameId}
         league={lg}
@@ -1609,6 +1656,7 @@ async function renderBaseballPage(args: {
         homeStanding={extras.homeStanding}
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
+        swapSides
       />
       {recentGames?.hasData && (
         <CollapsibleSection
@@ -1640,8 +1688,8 @@ async function renderBaseballPage(args: {
           awayKo={awayKo}
           predictions={match.aiPredictions}
           marketHome={match.marketHome}
-          marketDraw={match.marketDraw}
           marketAway={match.marketAway}
+          allowDraw={false}
         />
       )}
       <MatchVoteCard matchId={match.id} />
@@ -2006,63 +2054,3 @@ function VolleyballOddsCard({
 
 // 배구 기술통계 — detail_live.stats = [[type(0=풀코트, n=세트), [[statId, home, away], ...]], ...]
 // statId 코드표 (TheSports docs, 2026-06-12 사용자 제공)
-const VB_STAT_KO: Record<number, string> = {
-  1: "에이스",
-  2: "연속 최다 득점",
-  3: "득점",
-  4: "서브 에러",
-  5: "타임아웃",
-  6: "서브 득점 성공",
-  7: "서브 시도",
-  8: "서브 성공률 (%)",
-  9: "리시브 성공",
-  10: "리시브 시도",
-  11: "리시브 성공률 (%)",
-};
-
-function VolleyballStatsCard({
-  stats,
-  homeKo,
-  awayKo,
-}: {
-  stats?: unknown[] | null;
-  homeKo: string;
-  awayKo: string;
-}) {
-  if (!Array.isArray(stats)) return null;
-  // 풀코트(type 0) 항목만 — 세트별은 표가 길어져 v1 생략
-  const full = stats.find((s) => Array.isArray(s) && Number(s[0]) === 0) as
-    | [number, unknown[]]
-    | undefined;
-  if (!full || !Array.isArray(full[1]) || full[1].length === 0) return null;
-  const rows = full[1]
-    .filter((r): r is [number, number, number] => Array.isArray(r) && r.length >= 3)
-    .map(([id, h, a]) => ({ id, label: VB_STAT_KO[id] ?? `#${id}`, h, a }))
-    .filter((r) => VB_STAT_KO[r.id]);
-  if (rows.length === 0) return null;
-  return (
-    <div className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-2">
-        기술 통계 (풀코트)
-      </div>
-      <table className="w-full text-sm tabular-nums">
-        <thead>
-          <tr className="text-[11px] text-neutral-500">
-            <th className="text-left font-medium pb-2 truncate max-w-[100px]">{homeKo}</th>
-            <th className="text-center font-medium pb-2">항목</th>
-            <th className="text-right font-medium pb-2 truncate max-w-[100px]">{awayKo}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-t border-black/5 dark:border-white/5">
-              <td className={`py-1.5 text-left font-bold ${r.h > r.a ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{r.h}</td>
-              <td className="py-1.5 text-center text-neutral-500 text-xs">{r.label}</td>
-              <td className={`py-1.5 text-right font-bold ${r.a > r.h ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{r.a}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}

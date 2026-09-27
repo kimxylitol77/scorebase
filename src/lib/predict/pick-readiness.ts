@@ -12,6 +12,9 @@
 //   그 외(농구·LOL 등) — 기다릴 선발 정보가 없어 그대로 낸다.
 import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 
+/** 선발 투수 소스가 없는 야구 국제대회 — 선발 확정을 기다리지 않는다 */
+export const NO_STARTER_SOURCE_BASEBALL = new Set(["WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB"]);
+
 /** 축구는 킥오프 이만큼 앞에서부터 픽을 낸다 (부상자 명단 확정 시점) */
 export const SOCCER_LEAD_HOURS = 24;
 
@@ -42,6 +45,9 @@ export function pickReadiness(
   opts?: { startersOnly?: boolean },
 ): PickReadiness {
   if (BASEBALL_LEAGUES.has(m.league)) {
+    // 선발 소스가 아예 없는 국제대회는 기다리면 영원히 픽이 안 나온다(2026-09-27 아시안게임 22경기 예측 0건 —
+    // 유럽 하키 골리와 같은 구조). 국제대회만 선발 없이 낸다. CPBL·퓨처스 등은 원칙 그대로 둔다.
+    if (NO_STARTER_SOURCE_BASEBALL.has(m.league)) return { ready: true };
     if (!m.homeStarter || !m.awayStarter) return { ready: false, reason: "선발 미확정" };
     return { ready: true };
   }
