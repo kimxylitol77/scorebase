@@ -2695,9 +2695,9 @@
   "teamId": "tm_5104",
   "teamName": "Wolverhampton",
   "name": "Marshall Munetsi",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
  "y0or5jhgkl2zqwz": {
   "statsId": "pl_63881038",
@@ -3136,9 +3136,9 @@
   "teamId": "tm_0586",
   "teamName": "Wrexham",
   "name": "Jacques Ekomié",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
  "23xmvkhd5kxyqg8": {
   "statsId": "pl_62934043",
@@ -5224,9 +5224,9 @@
   "teamId": "tm_6573",
   "teamName": "Burnley",
   "name": "Largie Ramazani",
-  "competitionId": "comp_8814",
-  "seasonId": "sn_8407970",
-  "seasonLabel": "2026-27 LALIGA"
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
  "x7lm7ph50gpm2wd": {
   "statsId": "pl_45802821",
@@ -9652,9 +9652,9 @@
   "teamId": "tm_3809",
   "teamName": "West Ham United",
   "name": "Jarrod Bowen",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  },
  "318q66h467olqo9": {
   "statsId": "pl_01827090",
@@ -16009,5 +16009,293 @@
   "competitionId": "comp_0256",
   "seasonId": "sn_3011424",
   "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "l7oqdeh65vzr510": {
+  "statsId": "pl_19463401",
+  "teamId": "tm_3169",
+  "teamName": "Charlton Athletic",
+  "name": "Lloyd Jones",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "2y8m4zh8yvk9ql0": {
+  "statsId": "pl_36015687",
+  "teamId": "tm_2949",
+  "teamName": "Queens Park Rangers",
+  "name": "Pierce Charles",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l5ergphpzynr8k0": {
+  "statsId": "pl_13406393",
+  "teamId": "tm_7348",
+  "teamName": "Stoke City",
+  "name": "Viktor Johansson",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "vjxm8gh89exr6od": {
+  "statsId": "pl_61349684",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "Bright Osayi-Samuel",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "3glrw7h01ovqdyj": {
+  "statsId": "pl_57348295",
+  "teamId": "tm_8814",
+  "teamName": "West Bromwich Albion",
+  "name": "Nathaniel Phillips",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "x7lm7ph04778m2w": {
+  "statsId": "pl_25993010",
+  "teamId": "tm_6573",
+  "teamName": "Burnley",
+  "name": "Max Weiß",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "y0or5jhg8v2kqwz": {
+  "statsId": "pl_83776439",
+  "teamId": "tm_5104",
+  "teamName": "Wolverhampton",
+  "name": "Fer López",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l5ergph52o9r8k0": {
+  "statsId": "pl_29860227",
+  "teamId": "tm_2949",
+  "teamName": "Queens Park Rangers",
+  "name": "Jimmy Dunne",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "965mkyh7oygr1ge": {
+  "statsId": "pl_095858",
+  "teamId": "tm_6573",
+  "teamName": "Burnley",
+  "name": "Kyle Walker",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "zp5rzghzxg4q82w": {
+  "statsId": "pl_7949533",
+  "teamId": "tm_5104",
+  "teamName": "Wolverhampton",
+  "name": "José Sá",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l7oqdeh0zxywr51": {
+  "statsId": "pl_19661639",
+  "teamId": "tm_0016",
+  "teamName": "Swansea City",
+  "name": "Moussa Kounfolo Yeo",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "2y8m4zhzv86gql0": {
+  "statsId": "pl_37108473",
+  "teamId": "tm_5104",
+  "teamName": "Wolverhampton",
+  "name": "Mateus Mane",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "vjxm8gh8v3e1r6o": {
+  "statsId": "pl_57561645",
+  "teamId": "tm_5104",
+  "teamName": "Wolverhampton",
+  "name": "Rodrigo Gomes",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "y39mp1hypn2mojx": {
+  "statsId": "pl_08429231",
+  "teamId": "tm_2949",
+  "teamName": "Queens Park Rangers",
+  "name": "Jake Clarke-Salter",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "3glrw7hzlwvqdyj": {
+  "statsId": "pl_45747974",
+  "teamId": "tm_3809",
+  "teamName": "West Ham United",
+  "name": "Kyle Walker-Peters",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l7oqdeh4dg85r51": {
+  "statsId": "pl_84759350",
+  "teamId": "tm_5104",
+  "teamName": "Wolverhampton",
+  "name": "Toti Gomes",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "l5ergphvkv04r8k": {
+  "statsId": "pl_29255233",
+  "teamId": "tm_5188",
+  "teamName": "Norwich City",
+  "name": "Mohamed Toure",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "x7lm7ph0ev6m2wd": {
+  "statsId": "pl_1740758",
+  "teamId": "tm_6917",
+  "teamName": "Blackburn Rovers",
+  "name": "Yuri Ribeiro",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4wyrn4hdlvo9q86": {
+  "statsId": "pl_96427074",
+  "teamId": "tm_0196",
+  "teamName": "Watford",
+  "name": "Haktab Omar Traore",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "2y8m4zhzy0jpql0": {
+  "statsId": "pl_73990079",
+  "teamId": "tm_9756",
+  "teamName": "Portsmouth",
+  "name": "Ryan Kavuma-McQueen",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "vjxm8ghgn50r6od": {
+  "statsId": "pl_9877931",
+  "teamId": "tm_5104",
+  "teamName": "Wolverhampton",
+  "name": "Raúl Jiménez",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "8yomo4h5lx4q0j6": {
+  "statsId": "pl_29806083",
+  "teamId": "tm_4023",
+  "teamName": "Millwall",
+  "name": "Jordi Osei-Tutu",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "4jwq2ghvnv5em0v": {
+  "statsId": "pl_84787407",
+  "teamId": "tm_0016",
+  "teamName": "Swansea City",
+  "name": "Eom Ji-Sung",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "pxwrxlhj01zvryk": {
+  "statsId": "pl_74410034",
+  "teamId": "tm_7348",
+  "teamName": "Stoke City",
+  "name": "Bae Jun-ho",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "3glrw7hy1llyqdy": {
+  "statsId": "pl_01341517",
+  "teamId": "tm_3169",
+  "teamName": "Charlton Athletic",
+  "name": "Millenic Alli",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "jw2r09hxwnzdrz8": {
+  "statsId": "pl_72036035",
+  "teamId": "tm_6115",
+  "teamName": "Hull City",
+  "name": "Sorba Thomas",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "ednm9whzwoxdryo": {
+  "statsId": "pl_72659261",
+  "teamId": "tm_6387",
+  "teamName": "Middlesbrough",
+  "name": "Myles Peart-Harris",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "2y8m4zh8py9ql07": {
+  "statsId": "pl_61331995",
+  "teamId": "tm_6573",
+  "teamName": "Burnley",
+  "name": "Marcus Edwards",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "k82rekh8p5jrepz": {
+  "statsId": "pl_84698008",
+  "teamId": "tm_4513",
+  "teamName": "Sheffield United",
+  "name": "Rhys Norrington-Davies",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "jw2r09hj9vy4rz8": {
+  "statsId": "pl_97672630",
+  "teamId": "tm_6387",
+  "teamName": "Middlesbrough",
+  "name": "Amario Cozier-Duberry",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "8yomo4h2lggq0j6": {
+  "statsId": "pl_6518904",
+  "teamId": "tm_7218",
+  "teamName": "Birmingham City",
+  "name": "Patrick Roberts",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
+ },
+ "y0or5jh34jnkqwz": {
+  "statsId": "pl_58646691",
+  "teamId": "tm_8651",
+  "teamName": "Bristol City",
+  "name": "Gibson Osahumen Yah",
+  "competitionId": "comp_8321",
+  "seasonId": "sn_3014533",
+  "seasonLabel": "2026-27 CHAMPIONSHIP"
  }
 }
