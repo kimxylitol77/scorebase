@@ -1,7 +1,7 @@
 // GET /api/og/draft?id= — 농구 블라인드 드래프트 결과 공유 카드(1200×630)
 // 카톡·스레드 URL unfurl 용 og:image (basketball/draft/result 의 generateMetadata 가 지정).
 import { ImageResponse } from "next/og";
-import { RING_TITLE, SLOT_LABELS, seasonLabel, signed } from "@/lib/draft/labels";
+import { RING_TITLE, SLOT_LABELS, rankLabel, seasonLabel, signed } from "@/lib/draft/labels";
 import { MODE_LABEL } from "@/lib/draft/pool";
 import { getDraftResult } from "@/lib/draft/service";
 
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
   const title = RING_TITLE[r.rings];
   const head = `${MODE_LABEL[r.mode]} 블라인드 드래프트`;
-  const top = `상위 ${Math.max(1, 100 - r.percentile)}%`;
+  const top = rankLabel(r.percentile);
   const rows = SLOT_LABELS.map((label, i) => ({ label, p: r.snapshot.picks.find((x) => x.slot === i) }));
   const extra = r.snapshot.picks.filter((x) => x.slot < 0);
   extra.forEach((p) => {
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   const bonus: [string, number][] = [["풀 라인업", s.full], ["공수 균형", s.balance], ["내구성", s.durability], ["철벽 수비", s.lockdown]];
 
   const fontText =
-    `${head}${title}${top}점수 기여도 보너스 scorebase.kr/basketball/draft 0123456789+-.%·` +
+    `${head}${title}${top}상위 하위 점수 기여도 보너스 scorebase.kr/basketball/draft 0123456789+-.%·` +
     rows.map((x) => x.label + (x.p ? x.p.name + x.p.teamName : "")).join("") +
     bonus.map(([k]) => k).join("");
   const [bold, regular] = await Promise.all([loadFont(fontText, 700), loadFont(fontText, 400)]);
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(135deg, #0b0b12 0%, #1a1626 100%)", padding: "48px 56px", color: "#fff", fontFamily: "Noto Sans KR" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(135deg, #0b0b12 0%, #1a1626 100%)", padding: "40px 56px", color: "#fff", fontFamily: "Noto Sans KR" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 430 }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 24, color: "#fb7185", fontWeight: 700 }}>{head}</div>
@@ -76,7 +76,7 @@ export async function GET(req: Request) {
         <div style={{ display: "flex", flexDirection: "column", flex: 1, marginLeft: 40, justifyContent: "space-between" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {rows.map((x, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: "12px 20px", marginBottom: 10, borderLeft: `8px solid ${x.p?.color ?? "#3f3f46"}` }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: "8px 20px", marginBottom: 8, borderLeft: `8px solid ${x.p?.color ?? "#3f3f46"}` }}>
                 <div style={{ display: "flex", width: 84, fontSize: 20, color: "#a1a1aa" }}>{x.label}</div>
                 <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                   <div style={{ display: "flex", fontSize: 30, fontWeight: 700 }}>{x.p?.name ?? "-"}</div>

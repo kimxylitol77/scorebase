@@ -47,7 +47,7 @@ export default function LineupPanel({ mode, picks, score, lockdownAt }: Props) {
             key={p?.id ?? `empty-${i}`}
             className="flex items-center gap-2.5 rounded-xl bg-neutral-100 px-2.5 py-2 dark:bg-white/[0.04]"
           >
-            <span className={`w-10 shrink-0 text-[11px] font-medium ${p && p.slot < 0 ? "text-rose-600 dark:text-rose-400" : "text-neutral-500 dark:text-neutral-400"}`}>
+            <span className={`w-12 shrink-0 whitespace-nowrap text-[11px] font-medium ${p && p.slot < 0 ? "text-rose-600 dark:text-rose-400" : "text-neutral-500 dark:text-neutral-400"}`}>
               {i < SLOT_LABELS.length ? SLOT_LABELS[i] : "자리 없음"}
             </span>
             {p ? (

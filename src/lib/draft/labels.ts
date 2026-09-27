@@ -13,4 +13,9 @@ export const SLOT_LABELS = ["가드", "가드", "포워드", "포워드", "센�
 
 export const RING_TITLE = ["반지 없음", "반지 1개", "반지 2개", "반지 3개", "반지 4개", "반지 5개", "반지 6개"];
 
+/** 백분위 0~100 → "상위 12%" / "하위 30%" */
+export function rankLabel(percentile: number): string {
+  return percentile >= 50 ? `상위 ${Math.max(1, 100 - percentile)}%` : `하위 ${Math.max(1, percentile)}%`;
+}
+
 export const signed = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;

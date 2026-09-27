@@ -8,7 +8,7 @@ import LineupPanel from "@/components/draft/LineupPanel";
 import ResultActions from "@/components/draft/ResultActions";
 import Rings from "@/components/draft/Rings";
 import { getCurrentUserId } from "@/lib/current-user";
-import { RING_TITLE, signed } from "@/lib/draft/labels";
+import { RING_TITLE, rankLabel, signed } from "@/lib/draft/labels";
 import { MODE_LABEL, getPool } from "@/lib/draft/pool";
 import { getDraftResult } from "@/lib/draft/service";
 
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const r = await getDraftResult(id).catch(() => null);
   if (!r) return { title: "드래프트 결과", robots: { index: false, follow: false } };
   const title = `${MODE_LABEL[r.mode]} 블라인드 드래프트 ${signed(r.total)} · ${RING_TITLE[r.rings]}`;
-  const description = `${r.snapshot.picks.map((p) => p.name).join(", ")} — 상위 ${Math.max(1, 100 - r.percentile)}%`;
+  const description = `${r.snapshot.picks.map((p) => p.name).join(", ")} — ${rankLabel(r.percentile)}`;
   return {
     title,
     description,
@@ -41,7 +41,6 @@ export default async function DraftResultPage({ params }: Props) {
   if (!r) notFound();
   const [jar, userId] = await Promise.all([cookies(), getCurrentUserId()]);
   const mine = jar.get("draft_sid")?.value === r.sessionId;
-  const top = Math.max(1, 100 - r.percentile);
   const playHref = r.mode === "nba" ? "/basketball/draft" : `/basketball/draft?mode=${r.mode}`;
 
   return (
@@ -66,7 +65,7 @@ export default async function DraftResultPage({ params }: Props) {
             </div>
             <div className="rounded-2xl bg-white/[0.06] py-3">
               <dt className="text-[11px] text-white/60">백분위</dt>
-              <dd className="text-xl font-bold tabular-nums">상위 {top}%</dd>
+              <dd className="text-xl font-bold tabular-nums">{rankLabel(r.percentile)}</dd>
             </div>
             <div className="rounded-2xl bg-white/[0.06] py-3">
               <dt className="text-[11px] text-white/60">오늘 순위</dt>
