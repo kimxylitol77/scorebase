@@ -189,6 +189,20 @@
     "group": "menu"
   },
   {
+    "route": "/basketball/draft",
+    "desc": "농구 블라인드 드래프트 — NBA·KBL 역대 선수-시즌을 이름만 보고 5명 뽑는 게임. 로그인 없이 시작.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/basketball/draft/result/[id]",
+    "desc": "드래프트 결과·공유 페이지 — 다섯 명과 점수 내역, 백분위·반지, 오늘 순위. 조합이 무한해 색인은 막는다.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/basketball/stats",
     "desc": "농구(KBL) 선수 스탯 마스터 표 — 시즌 평균 전 선수, 셀마다 리그 백분위. 화면은 StatsExplorer 공용. 계산: src/lib/sports/basketball/stats-table.ts · 로더: stats-data.ts (KBL 공식 통계 API)",
     "inMenu": true,

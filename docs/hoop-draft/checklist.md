@@ -7,31 +7,38 @@
 - [x] 작업 브랜치를 origin/main 으로 맞춤
 
 ## 1. 데이터
-- [ ] `scripts/build-draft-pool.ts` — NBA(ESPN byathlete) 수집
-- [ ] KBL(공식 API) 수집 + 구단 계보 매핑 + 포지션
-- [ ] 기여도(공격/수비) 산식 + 시즌 내 표준화
-- [ ] `data/draft-pool-nba.json`, `data/draft-pool-kbl.json` 생성·검증
-- [ ] NBA 옛 선수 한글 이름
+- [x] `scripts/build-draft-pool.ts` — NBA(ESPN byathlete) 수집
+- [x] KBL(공식 API) 수집 + 구단 계보 매핑 + 포지션
+- [x] 기여도(공격/수비) 산식 + 시즌 내 표준화
+- [x] `data/draft-pool-nba.json`, `data/draft-pool-kbl.json` 생성·검증
+- [x] NBA 옛 선수 한글 이름
 
 ## 2. 엔진
-- [ ] 타입·시드 난수·판 생성
-- [ ] 슬롯 배치 규칙
-- [ ] 찬스 7종
-- [ ] 채점·보너스·반지
-- [ ] 단위 테스트
+- [x] 타입·시드 난수·판 생성
+- [x] 슬롯 배치 규칙
+- [x] 찬스 7종
+- [x] 채점·보너스·반지
+- [x] 단위 테스트
 
 ## 3. 저장·API
-- [ ] `DraftGame` 모델 (prod 테이블 생성은 사용자 확인 후)
-- [ ] `/api/draft` 라우트
-- [ ] 응답에 미공개 수치 누출 없음 확인
+- [x] `DraftGame` 모델 + prod 테이블 생성 (사용자 확인 후 2026-09-27 실행)
+- [x] `/api/draft` 라우트
+- [x] 응답에 미공개 수치 누출 없음 확인
 
 ## 4. 화면
-- [ ] 로비 + 게임 화면 (`/basketball/draft`)
-- [ ] 결과·공유 페이지 + OG 카드
-- [ ] 리더보드 (오늘·역대, 회원만 등재)
-- [ ] 모바일 375px 확인
+- [x] 로비 + 게임 화면 (`/basketball/draft`)
+- [x] 결과·공유 페이지 + OG 카드
+- [x] 리더보드 (오늘·역대, 회원만 등재)
+- [x] 모바일 375px 확인
 
 ## 5. 동선·마무리
-- [ ] 농구 허브·네비·sitemap 연결
-- [ ] `npm test`, `tsc`
-- [ ] 로컬 완주 검증
+- [x] 농구 허브·네비·sitemap 연결
+- [x] `npm test`, `tsc`
+- [x] 로컬 완주 검증
+
+## 6. 남은 일 (2차)
+- [ ] 배포 (main 병합·push) — 사용자 확인 후
+- [ ] 반지 기준을 실제 플레이 분포로 재보정 (지금은 모의 1만 판 기준)
+- [ ] 일일 도전 (모두 같은 판)
+- [ ] NBA 영문 잔여 이름 8명, 음역 오기 점검 (예. Dan Majerle)
+- [ ] 영어판 /en 미러
