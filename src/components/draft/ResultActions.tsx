@@ -1,9 +1,9 @@
 "use client";
-// 드래프트 결과 화면의 동작 버튼 — 공유(Web Share·클립보드), 순위 등록(회원), 로그인 유도(비회원)
+// 드래프트 결과 화면의 동작 버튼 — 공유(Web Share·클립보드), 게시판에 올리기, 순위 등록(회원), 로그인 유도(비회원)
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Share2 } from "lucide-react";
+import { PenLine, Share2 } from "lucide-react";
 
 interface Props {
   gameId: string;
@@ -55,6 +55,13 @@ export default function ResultActions({ gameId, url, text, mine, registered, log
         <Share2 className="h-4 w-4" aria-hidden />
         {copied ? "링크를 복사했습니다" : mine ? "결과 자랑하기" : "이 결과 공유"}
       </button>
+      <Link
+        href={`/community/new?draft=${gameId}`}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-neutral-900 ring-1 ring-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:ring-rose-500/50 dark:bg-white/[0.06] dark:text-white dark:ring-white/10"
+      >
+        <PenLine className="h-4 w-4" aria-hidden />
+        게시판에 올리기
+      </Link>
       {mine && !registered && loggedIn && (
         <button
           type="button"

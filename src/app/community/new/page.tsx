@@ -12,6 +12,7 @@ import SignupGateCard from "@/components/SignupGateCard";
 import BoardForm from "./BoardForm";
 import { buildStarterShareText, buildPitcherShareText } from "@/lib/predict/starter-card-share";
 import { buildPickShareText } from "@/lib/predict/pick-share";
+import { buildDraftShareText } from "@/lib/draft/share";
 
 export const dynamic = "force-dynamic";
 
@@ -87,9 +88,11 @@ function buildBotShareText(bot: {
   };
 }
 
-export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string; bot?: string; starter?: string; side?: string; stitle?: string; spath?: string; pick?: string }> }) {
+export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string; bot?: string; starter?: string; side?: string; stitle?: string; spath?: string; pick?: string; draft?: string }> }) {
   // 전술판 "게시판에 올리기" 진입 — ?lineup={d코드} 를 폼에 미리 채움 (로그인 리다이렉트에도 보존)
-  const { lineup, bot, starter, side, stitle, spath, pick } = await searchParams;
+  const { lineup, bot, starter, side, stitle, spath, pick, draft } = await searchParams;
+  // 블라인드 드래프트 결과 "게시판에 올리기" 진입 — ?draft={DraftGame.id cuid}
+  const draftId = draft && /^[a-z0-9]{10,40}$/.test(draft) ? draft : null;
   // /picks "게시판에 올리기" 진입 — ?pick={matchId}. 내 투표를 DB 에서 다시 읽어 채운다(로그인 필요).
   const pickMatchId = pick && /^\d{1,10}$/.test(pick) ? Number(pick) : null;
   const lineupCode = lineup && /^[A-Za-z0-9_\-~.%]+$/.test(lineup) && lineup.length <= 4000 ? lineup : null;
@@ -117,6 +120,7 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
   if (starter && starterId) qs.set("starter", String(starterId));
   if (starter && starterId && starterSide) qs.set("side", starterSide);
   if (pickMatchId) qs.set("pick", String(pickMatchId));
+  if (draftId) qs.set("draft", draftId);
   if (shareTitle) qs.set("stitle", shareTitle);
   if (sharePath) qs.set("spath", sharePath);
   const qsStr = qs.toString();
@@ -136,8 +140,11 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
   // 승부예측 프리필 — 내 투표가 있는 경기만
   const pickPrefill = !botPrefill && user && pickMatchId ? await buildPickShareText(pickMatchId, user.id) : null;
 
+  // 드래프트 결과 프리필 — 끝난 판만 (로그인 뒤에만 조회)
+  const draftPrefill = !botPrefill && !pickPrefill && user && draftId ? await buildDraftShareText(draftId) : null;
+
   // 선발 카드 프리필 — matchId 로 DB 재조회 (수치는 전부 DB 실측). side 가 있으면 투수 개인 카드.
-  const starterPrefill = !botPrefill && !pickPrefill && starterId
+  const starterPrefill = !botPrefill && !pickPrefill && !draftPrefill && starterId
     ? starterSide
       ? await buildPitcherShareText(starterId, starterSide)
       : await buildStarterShareText(starterId)
@@ -145,7 +152,7 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
 
   // 페이지 공유 프리필 — 제목 + 본문에 사이트 내 링크 (봇·선발 카드 프리필이 있으면 그쪽 우선)
   const sharePrefill =
-    !botPrefill && !pickPrefill && !starterPrefill && (shareTitle || sharePath)
+    !botPrefill && !pickPrefill && !draftPrefill && !starterPrefill && (shareTitle || sharePath)
       ? {
           title: shareTitle ? `[공유] ${shareTitle}` : "",
           content: sharePath ? `https://www.scorebase.kr${sharePath}\n\n` : "",
@@ -181,8 +188,8 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
         <BoardForm
           myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null}
           defaultLineup={lineupCode}
-          defaultTitle={botPrefill?.title ?? pickPrefill?.title ?? starterPrefill?.title ?? sharePrefill?.title}
-          defaultContent={botPrefill?.content ?? pickPrefill?.content ?? starterPrefill?.content ?? sharePrefill?.content}
+          defaultTitle={botPrefill?.title ?? pickPrefill?.title ?? draftPrefill?.title ?? starterPrefill?.title ?? sharePrefill?.title}
+          defaultContent={botPrefill?.content ?? pickPrefill?.content ?? draftPrefill?.content ?? starterPrefill?.content ?? sharePrefill?.content}
         />
       ) : (
         <SignupGateCard from={backTo} />
