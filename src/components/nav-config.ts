@@ -28,22 +28,19 @@ export interface NavCategory {
   owns?: string[];
 }
 
+// 2026-09-27 정리(54→34) — 같은 링크는 한 메뉴에만(리그 순위=축구, 배당 흐름=배당 메뉴, 리그 전체=기타종목 허브),
+// 14일 방문이 한 자릿수인 항목은 각 종목 허브의 "기능 모음"으로 옮겼다. 뺀 항목도 허브에서 반드시 닿는다.
 export const SPORT_CATEGORIES: NavCategory[] = [
   {
     label: "축구",
     href: "/soccer",
     items: [
-      { href: "/soccer", label: "축구 허브", desc: "빅5 리그·순위·예측 한눈에" },
-      { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·강등 확률" },
+      { href: "/soccer", label: "축구 허브", desc: "리그·순위·예측·선수 기록 전부 한곳에" },
       { href: "/asian-games", label: "2026 아시안게임", desc: "축구·농구·배구·야구 · 한국 경기" },
-      { href: "/standings", label: "리그 순위", desc: "EPL·라리가·K리그 등" },
-      { href: "/leagues", label: "리그 전체", desc: "종목·국가별 230여 개 리그 페이지" },
+      { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·강등 확률" },
+      { href: "/standings", label: "리그 순위", desc: "축구·야구·농구·하키 등 전 종목" },
       { href: "/soccer/korea", label: "해외파 한국 선수", desc: "유럽·MLS 시즌 성적 · 다음 경기" },
-      { href: "/soccer/stats", label: "선수 스탯 표", desc: "15개 리그 전 선수 · 리그 백분위·산점도" },
       { href: "/transfers", label: "몸값·가치 랭킹", desc: "선수 이적가치 · 가성비 구단" },
-      { href: "/over-under", label: "오버·언더 통계", desc: "리그·팀별 오버 2.5 비율 · 하부리그까지" },
-      { href: "/odds?sport=soccer", label: "배당 흐름", desc: "밸류 베트 · 시장 움직임 실시간" },
-      // 커뮤니티 메뉴를 둘로 나누며 이리로 옮김 — 야구는 부상자 데이터가 없어 사실상 축구 전용이다
       { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
     ],
   },
@@ -51,46 +48,34 @@ export const SPORT_CATEGORIES: NavCategory[] = [
     label: "야구",
     href: "/baseball",
     items: [
-      { href: "/baseball", label: "야구 허브", desc: "오늘 경기·순위·예측·선수 한눈에" },
+      { href: "/baseball", label: "야구 허브", desc: "오늘 경기·순위·예측·선수 기록 한곳에" },
       { href: "/predictions/starters", label: "선발 매치업", desc: "선발 투수 맞대결 비교" },
-      { href: "/baseball/mlb-postseason", label: "MLB 포스트시즌", desc: "와일드카드~월드시리즈 대진표" },
-      { href: "/baseball/kbo-postseason", label: "KBO 포스트시즌", desc: "와일드카드 결정전~한국시리즈 대진표" },
-      { href: "/baseball/npb-postseason", label: "NPB 포스트시즌", desc: "클라이맥스 시리즈~일본시리즈 대진표" },
+      { href: "/baseball/kbo-postseason", label: "포스트시즌 대진표", desc: "KBO·MLB·NPB 탭 전환" },
       { href: "/predictions/KBO", label: "시즌 예측", desc: "KBO·MLB·NPB 우승 확률" },
-      { href: "/standings", label: "리그 순위", desc: "KBO·MLB·NPB" },
-      { href: "/salaries/kbo", label: "연봉 랭킹", desc: "KBO·MLB 선수 연봉 (페이지 탭 전환)" },
+      { href: "/salaries/kbo", label: "연봉 랭킹", desc: "KBO·MLB 선수 연봉" },
       { href: "/baseball/stats", label: "선수 스탯 표", desc: "KBO·MLB·NPB 전 선수 · 리그 백분위" },
-      { href: "/odds?sport=baseball", label: "배당 흐름", desc: "머니라인이 움직이는 방향" },
     ],
   },
   {
     label: "농구",
     href: "/basketball",
     items: [
-      { href: "/basketball", label: "농구 허브", desc: "NBA·WNBA·KBL 순위·예측·기록 한눈에" },
-      { href: "/predictions/NBA", label: "시즌 예측", desc: "NBA·WNBA 우승·플레이오프 확률" },
-      { href: "/standings", label: "리그 순위", desc: "NBA·WNBA 컨퍼런스 순위" },
-      { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드·FA·방출" },
+      { href: "/basketball", label: "농구 허브", desc: "NBA·WNBA·KBL 순위·예측·기록 한곳에" },
       { href: "/salaries/nba", label: "NBA 연봉 랭킹", desc: "선수별 연봉 순위" },
-      { href: "/basketball/stats", label: "KBL 선수 스탯 표", desc: "전 선수 시즌 기록 · 리그 백분위" },
-      { href: "/odds?sport=basketball", label: "배당 흐름", desc: "머니라인이 움직이는 방향" },
+      { href: "/predictions/NBA", label: "시즌 예측", desc: "NBA·WNBA 우승·플레이오프 확률" },
+      { href: "/standings/NBA", label: "NBA 순위", desc: "동부·서부 컨퍼런스" },
     ],
   },
   {
     label: "기타종목",
     href: "/other",
     items: [
-      { href: "/other", label: "기타 종목 허브", desc: "하키·배구·e스포츠·테니스·골프·F1 한눈에" },
-      { href: "/hockey", label: "하키 허브", desc: "NHL·세계선수권 순위·선수·예측" },
-      { href: "/scores?sport=volleyball", label: "배구", desc: "VNL 발리볼 네이션스리그" },
+      { href: "/other", label: "기타 종목 허브", desc: "하키·배구·e스포츠·테니스·골프·F1·UFC" },
+      { href: "/hockey", label: "하키 허브", desc: "NHL·KHL·세계선수권 순위·선수·예측" },
+      { href: "/scores?sport=volleyball", label: "배구", desc: "V-리그·국제대회 라이브 스코어" },
       { href: "/standings/LOL", label: "LCK", desc: "리그 오브 레전드 한국 · 순위·선수" },
-      { href: "/hockey/stats", label: "하키 선수 스탯 표", desc: "NHL·KHL 전 선수 · 리그 백분위" },
-      { href: "/esports/stats", label: "LoL 선수 스탯 표", desc: "LCK·LEC·LCS KDA·CS·승률" },
       { href: "/rankings/tennis", label: "테니스 세계랭킹", desc: "ATP·WTA 150위 · 한국어 선수명" },
-      { href: "/golf/korea", label: "골프 한국 선수", desc: "PGA·LPGA 우승·톱10 시즌 집계" },
       { href: "/rankings/f1", label: "F1 챔피언십", desc: "드라이버·컨스트럭터 포인트" },
-      { href: "/standings", label: "리그 순위", desc: "NHL·VNL·LCK 등 전 종목" },
-      { href: "/leagues", label: "리그 전체", desc: "종목·국가별 230여 개 리그 페이지" },
     ],
   },
 ];

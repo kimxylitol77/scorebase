@@ -142,9 +142,9 @@
   {
     "route": "/baseball/mlb-postseason",
     "desc": "MLB 포스트시즌 대진표 — 와일드카드·디비전·챔피언십·월드시리즈 트리(월드컵 브래킷 문법) + 시드 경쟁 + 한국 선수 소속팀. 데이터: MLB 공식 statsapi(순위표·포스트시즌 시리즈·시즌 날짜) + 우리 Elo·로고·경기 링크 — lib/sports/mlb-postseason.ts",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/baseball/mlb-postseason/stats",
@@ -156,9 +156,9 @@
   {
     "route": "/baseball/npb-postseason",
     "desc": "NPB 포스트시즌 대진표 — 센트럴·퍼시픽 클라이맥스 시리즈(퍼스트·파이널)·일본시리즈 + 시드 경쟁 + AI 시리즈 확률. 데이터: 공식 순위(ts 캐시)·npb.jp 일정·자체 Elo — lib/sports/baseball/kbo-npb-postseason.ts, 본문은 LadderPostseasonView 공용.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/baseball/postseason/stats",
@@ -212,9 +212,9 @@
   {
     "route": "/basketball/stats",
     "desc": "농구(KBL) 선수 스탯 마스터 표 — 시즌 평균 전 선수, 셀마다 리그 백분위. 화면은 StatsExplorer 공용. 계산: src/lib/sports/basketball/stats-table.ts · 로더: stats-data.ts (KBL 공식 통계 API)",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/blog",
@@ -667,9 +667,9 @@
   {
     "route": "/esports/stats",
     "desc": "e스포츠(LoL) 선수 스탯 마스터 표 — LCK·LPL·LEC·LCS 세트 집계, 셀마다 리그 백분위. 화면은 StatsExplorer 공용. 계산: src/lib/sports/esports/stats-table.ts · 로더: stats-data.ts (경기 기록 lolGames 집계)",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/experts",
@@ -695,9 +695,9 @@
   {
     "route": "/golf/korea",
     "desc": "골프 한국 선수 시즌 성적 트래커 — PGA·LPGA 시즌 대회를 집계한 정적 JSON 렌더. ESPN 에 세계랭킹·선수통계가 없어(docs/golf-korea-tracker) 대회 리더보드를 자체 집계한 결과. 데이터 생성: scripts/build-golf-korea-season.ts → data/golf-korea-season.json",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/h2h/[pair]",
@@ -716,9 +716,9 @@
   {
     "route": "/hockey/stats",
     "desc": "하키(NHL) 선수 스탯 마스터 표 — 스케이터/골리, 셀마다 리그 백분위, 합계·경기당. 화면은 StatsExplorer 공용. 계산: src/lib/sports/hockey/stats-table.ts · 로더: stats-data.ts (NHL 공식 stats API)",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/injuries",
@@ -758,9 +758,9 @@
   {
     "route": "/leagues",
     "desc": "리그 전체 목록 — 종목·국가별로 데이터가 있는 리그 페이지를 한곳에 모은다(검색·AI 크롤러의 리그 페이지 진입 경로). 2026-09-25 축구 외 종목까지 리그 페이지를 정식으로 올리면서, /scores 외엔 들어갈 길이 없던 리그들의 허브.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/leagues/[league]",
@@ -863,9 +863,9 @@
   {
     "route": "/odds",
     "desc": "배당 흐름 — 종목(축구/야구/농구/하키)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/other",
@@ -877,9 +877,9 @@
   {
     "route": "/over-under",
     "desc": "오버/언더 통계 허브 — 축구 전 리그(하부리그 포함)를 오버 2.5 비율로 세운다. 각 행에서 리그별 상세 페이지로 들어간다.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/over-under/[league]",
@@ -1171,9 +1171,9 @@
   {
     "route": "/soccer/stats",
     "desc": "축구 선수 스탯 마스터 표 — 15개 리그 ts 시즌 아카이브. 데이터·열·규정만 정하고 화면은 StatsExplorer 공용. 계산: src/lib/sports/soccer/stats-table.ts · 로더: stats-data.ts",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
-    "group": "menu"
+    "group": "other"
   },
   {
     "route": "/soccer/sub-impact",
