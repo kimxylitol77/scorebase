@@ -60,6 +60,8 @@ const UTID_TO_LEAGUE = {
   "9k82redh967qepz": "VB_ASIAN_W",
   // 2026-09-14 아시안게임 여자배구 — 베트맨 발매 대회, utid 는 unique_tournament/list "Asian Games Women"
   "gpxwrxdh137myk0": "VB_ASIAN_GAMES_W",
+  // 2026-09-27 아시안게임 남자배구 — 여자만 등록돼 남자 16개국 경기가 통째로 빠졌다. ts 대회명 "Asian Games"
+  "56ypq3xh5n4qd7o": "VB_ASIAN_GAMES",
   "965mkdh73y8r1ge": "VB_NORCECA_W",
   "p3glrwjh1n4qdyj": "VB_PANAM",
   "vjxm8lh46vlq6od": "VB_COPA_AM",

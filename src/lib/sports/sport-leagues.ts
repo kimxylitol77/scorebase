@@ -77,6 +77,8 @@ export const ALL_LEAGUES = [
   "VB_ASIAN",
   // 2026-09-14 아시안게임 여자배구 — utid gpxwrxdh137myk0 (베트맨 발매 대회)
   "VB_ASIAN_GAMES_W",
+  // 2026-09-27 아시안게임 남자배구 — utid 56ypq3xh5n4qd7o
+  "VB_ASIAN_GAMES",
   // 2026-09-04 8월 보류분 3개 — ts unique_tournament/list 인가로 이름 확정. 중미·카리브 게임(여)·SEA V리그(여)·필리핀 PVL(여)
   "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W",
   // 2026-05-24 추가
@@ -204,6 +206,7 @@ export const SPORTS: SportMeta[] = [
       "VB_NORCECA_W", "VB_PANAM", "VB_COPA_AM",
       "VB_ASIAN", // 2026-09-04 아시아선수권 (남)
       "VB_ASIAN_GAMES_W", // 2026-09-14 아시안게임 (여)
+      "VB_ASIAN_GAMES", // 2026-09-27 아시안게임 (남)
       "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W", // 2026-09-04 8월 보류분 3개
     ],
   },
@@ -593,6 +596,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   VB_ASIAN_W: "아시아선수권 (여)",
   VB_ASIAN: "아시아선수권 (남)",
   VB_ASIAN_GAMES_W: "아시안게임 여자배구",
+  VB_ASIAN_GAMES: "아시안게임 남자배구",
   VB_CAC_GAMES_W: "중미·카리브 게임 (여)",
   VB_SEA_V_W: "SEA V리그 (여)",
   PVL_W: "필리핀 PVL (여)",
@@ -878,6 +882,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   VB_ASIAN_W: 25.21, // 아시아선수권 (여) — 한국 여자대표팀 출전, 배구 대회 중 국내 수요 최상위
   VB_ASIAN: 25.215, // 아시아선수권 (남) — 한국 남자대표팀 출전 (2026-09-04)
   VB_ASIAN_GAMES_W: 25.216, // 아시안게임 (여) — 한국 여자대표팀 출전 (2026-09-14)
+  VB_ASIAN_GAMES: 25.2165, // 아시안게임 (남) — 한국 남자대표팀 출전 (2026-09-27)
   VB_SEA_V_W: 25.26, // SEA V리그 (여) — 동남아 4개국
   PVL_W: 25.27, // 필리핀 PVL (여) — 주 1~2회 클럽 리그
   VB_CAC_GAMES_W: 25.28, // 중미·카리브 게임 (여) — 4년 주기

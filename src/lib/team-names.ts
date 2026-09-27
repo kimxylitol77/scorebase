@@ -5072,6 +5072,25 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "China Hong Kong Women": "홍콩",
   },
   // 2026-09-14 아시안게임 여자배구 (VB_ASIAN_W 사전 + 몽골·네팔·필리핀·카타르)
+  // 2026-09-27 아시안게임 남자배구 16개국
+  VB_ASIAN_GAMES: {
+    "South Korea": "대한민국",
+    "Japan": "일본",
+    "China": "중국",
+    "Chinese Taipei": "대만",
+    "Iran": "이란",
+    "India": "인도",
+    "Qatar": "카타르",
+    "Thailand": "태국",
+    "Hong Kong": "홍콩",
+    "Indonesia": "인도네시아",
+    "Kazakhstan": "카자흐스탄",
+    "Kyrgyzstan": "키르기스스탄",
+    "Pakistan": "파키스탄",
+    "Philippines": "필리핀",
+    "Uzbekistan": "우즈베키스탄",
+    "Vietnam": "베트남",
+  },
   VB_ASIAN_GAMES_W: {
     "South Korea Women": "대한민국",
     "Japan Women": "일본",
