@@ -2161,12 +2161,12 @@
  },
  "pxwrxlh9vp08ryk": {
   "statsId": "pl_84737904",
-  "teamId": "tm_0836",
-  "teamName": "Nottingham Forest",
+  "teamId": "tm_58884",
+  "teamName": "Lille",
   "name": "Dilane Bakwa",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  },
  "n54qllhj3ypqvy9": {
   "statsId": "pl_84045220",
@@ -3622,9 +3622,9 @@
   "teamId": "tm_74434",
   "teamName": "Olympique Lyonnais",
   "name": "Loïs Openda",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  },
  "n54qllh8gllqvy9": {
   "statsId": "pl_29683089",
@@ -4018,9 +4018,9 @@
   "teamId": "tm_74434",
   "teamName": "Olympique Lyonnais",
   "name": "Zachary Athekame",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  },
  "vjxm8gh8lxndr6o": {
   "statsId": "pl_19434304",
@@ -5698,12 +5698,12 @@
  },
  "l7oqdeh06woer51": {
   "statsId": "pl_25381528",
-  "teamId": "tm_02484",
-  "teamName": "VfL Wolfsburg",
+  "teamId": "tm_25567",
+  "teamName": "Nice",
   "name": "Mohamed El Amine Amoura",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  },
  "965mkyhelgwjr1g": {
   "statsId": "pl_36571808",
@@ -5842,12 +5842,12 @@
  },
  "dn1m1gh36d9ymoe": {
   "statsId": "pl_62020390",
-  "teamId": "tm_160814",
-  "teamName": "RB Leipzig",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
   "name": "Conrad Harder",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  },
  "pxwrxlh9y9g2ryk": {
   "statsId": "pl_57959413",
@@ -7600,9 +7600,9 @@
   "teamId": "tm_74493",
   "teamName": "RC Strasbourg",
   "name": "Abdoul Karim Coulibaly",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  },
  "1l4rjnhz5e8em7v": {
   "statsId": "pl_45104520",
@@ -15667,5 +15667,347 @@
   "competitionId": "comp_5840",
   "seasonId": "sn_6199313",
   "seasonLabel": "2026-27 SERIE_A"
+ },
+ "dn1m1gh30vw3moe": {
+  "statsId": "pl_97686102",
+  "teamId": "tm_01119",
+  "teamName": "Paris Saint-Germain",
+  "name": "Warren Zaire-Emery",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "l5ergphvlzwor8k": {
+  "statsId": "pl_84767693",
+  "teamId": "tm_01119",
+  "teamName": "Paris Saint-Germain",
+  "name": "Nuno Mendes",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "23xmvkhkl50kqg8": {
+  "statsId": "pl_62930394",
+  "teamId": "tm_58813",
+  "teamName": "AS Monaco",
+  "name": "Lamine Camara",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "318q66h4jjyqo9j": {
+  "statsId": "pl_45708694",
+  "teamId": "tm_01119",
+  "teamName": "Paris Saint-Germain",
+  "name": "Fabián Ruiz",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "pxwrxlhjw9egryk": {
+  "statsId": "pl_83078934",
+  "teamId": "tm_58813",
+  "teamName": "AS Monaco",
+  "name": "Mamadou Coulibaly",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "ednm9whvyn4vryo": {
+  "statsId": "pl_36207364",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Lucas Høgsberg",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "4wyrn4hd34pwq86": {
+  "statsId": "pl_40999760",
+  "teamId": "tm_6115",
+  "teamName": "Hull City",
+  "name": "Mohamed Ali Cho",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "x7lm7phovw0m2wd": {
+  "statsId": "pl_5829792",
+  "teamId": "tm_25550",
+  "teamName": "Olympique de Marseille",
+  "name": "Pierre-Emile Højbjerg",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "1l4rjnhz251km7v": {
+  "statsId": "pl_08900828",
+  "teamId": "tm_25567",
+  "teamName": "Nice",
+  "name": "Sofiane Diop",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "l5ergphn3886r8k": {
+  "statsId": "pl_58358351",
+  "teamId": "tm_58813",
+  "teamName": "AS Monaco",
+  "name": "Sadibou Sane",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "dn1m1gh8od72moe": {
+  "statsId": "pl_04785423",
+  "teamId": "tm_01158",
+  "teamName": "Angers",
+  "name": "Prosper Peter",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "318q66hv2jeoqo9": {
+  "statsId": "pl_45169459",
+  "teamId": "tm_0256",
+  "teamName": "Leeds United",
+  "name": "Melvin Bard",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "y0or5jh4d228qwz": {
+  "statsId": "pl_29867790",
+  "teamId": "tm_83353",
+  "teamName": "Stade Rennais",
+  "name": "Mahdi Camara",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "dn1m1gh8oklemoe": {
+  "statsId": "pl_40451062",
+  "teamId": "tm_83394",
+  "teamName": "RC Lens",
+  "name": "Kyllian Antonio",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "23xmvkhkzepvqg8": {
+  "statsId": "pl_01729311",
+  "teamId": "tm_58884",
+  "teamName": "Lille",
+  "name": "Tiago Santos",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "1l4rjnhzxwylm7v": {
+  "statsId": "pl_45169459",
+  "teamId": "tm_0256",
+  "teamName": "Leeds United",
+  "name": "Melvin Bard",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "dn1m1gh3yeg5moe": {
+  "statsId": "pl_36143854",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Pape Demba Diop",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "x7lm7phodk7m2wd": {
+  "statsId": "pl_3612335",
+  "teamId": "tm_25550",
+  "teamName": "Olympique de Marseille",
+  "name": "Emerson Palmieri",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "965mkyhed57zr1g": {
+  "statsId": "pl_01354928",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Samuel Amo-Ameyaw",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "jw2r09hx2j2jrz8": {
+  "statsId": "pl_61001021",
+  "teamId": "tm_97714",
+  "teamName": "Le Havre",
+  "name": "Rassoul Ndiaye",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "3glrw7hzykz1qdy": {
+  "statsId": "pl_62613053",
+  "teamId": "tm_97714",
+  "teamName": "Le Havre",
+  "name": "Rayan Fofana",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "6ypq3nhzydwwmd7": {
+  "statsId": "pl_84868639",
+  "teamId": "tm_01158",
+  "teamName": "Angers",
+  "name": "Ousmane Camara",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "2y8m4zh89wg7ql0": {
+  "statsId": "pl_62950029",
+  "teamId": "tm_25581",
+  "teamName": "Toulouse",
+  "name": "Thomas Jorgensen",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "pxwrxlh1g17ryk0": {
+  "statsId": "pl_8406975",
+  "teamId": "tm_01119",
+  "teamName": "Paris Saint-Germain",
+  "name": "Lucas Digne",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "l7oqdeh47jdr510": {
+  "statsId": "pl_13404886",
+  "teamId": "tm_25550",
+  "teamName": "Olympique de Marseille",
+  "name": "Ulisses Garcia",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "8yomo4h029xq0j6": {
+  "statsId": "pl_72960195",
+  "teamId": "tm_62226",
+  "teamName": "Auxerre",
+  "name": "Axel Tuanzebe",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "4jwq2gh1x09m0ve": {
+  "statsId": "pl_57421594",
+  "teamId": "tm_01119",
+  "teamName": "Paris Saint-Germain",
+  "name": "Ferrán Torres",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "l7oqdeh18zwr510": {
+  "statsId": "pl_29789290",
+  "teamId": "tm_25550",
+  "teamName": "Olympique de Marseille",
+  "name": "Angel Gomes",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "4jwq2ghv6pv1m0v": {
+  "statsId": "pl_13899186",
+  "teamId": "tm_83353",
+  "teamName": "Stade Rennais",
+  "name": "Boulaye Dia",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "vjxm8ghj9388r6o": {
+  "statsId": "pl_30455170",
+  "teamId": "tm_83394",
+  "teamName": "RC Lens",
+  "name": "Jean-Clair Todibo",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "318q66hvny6pqo9": {
+  "statsId": "pl_72079199",
+  "teamId": "tm_25567",
+  "teamName": "Nice",
+  "name": "Niels Nkounkou",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "y39mp1hjo21pmoj": {
+  "statsId": "pl_61646148",
+  "teamId": "tm_25550",
+  "teamName": "Olympique de Marseille",
+  "name": "Faris Moumbagna",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "4wyrn4hdppoyq86": {
+  "statsId": "pl_57984379",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Filip Jørgensen",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "x7lm7phwx8o7m2w": {
+  "statsId": "pl_36302528",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Fábio Baldé",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "pxwrxlhj8vlkryk": {
+  "statsId": "pl_01309715",
+  "teamId": "tm_97782",
+  "teamName": "Troyes",
+  "name": "Hugo Picard",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "x7lm7ph05zzm2wd": {
+  "statsId": "pl_5225997",
+  "teamId": "tm_25550",
+  "teamName": "Olympique de Marseille",
+  "name": "Neal Maupay",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "y0or5jhl11xqwzv": {
+  "statsId": "pl_928329",
+  "teamId": "tm_25567",
+  "teamName": "Nice",
+  "name": "Axel Witsel",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
+ },
+ "3glrw7hyyxx2qdy": {
+  "statsId": "pl_62801908",
+  "teamId": "tm_74493",
+  "teamName": "RC Strasbourg",
+  "name": "Dario Essugo",
+  "competitionId": "comp_0256",
+  "seasonId": "sn_3011424",
+  "seasonLabel": "2026-27 LIGUE_1"
  }
 }
