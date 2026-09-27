@@ -23,7 +23,7 @@ export default function ResultActions({ gameId, url, text, mine, registered, log
   async function share() {
     if (navigator.share) {
       try {
-        await navigator.share({ title: "농구 블라인드 드래프트", text, url });
+        await navigator.share({ title: "블라인드 드래프트", text, url });
       } catch {
         // 공유 시트를 닫음 — 무시
       }
@@ -74,7 +74,7 @@ export default function ResultActions({ gameId, url, text, mine, registered, log
       )}
       {mine && !registered && !loggedIn && (
         <Link
-          href={`/login?from=/basketball/draft/result/${gameId}`}
+          href={`/login?from=/draft/result/${gameId}`}
           className="block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 ring-1 ring-black/10 transition hover:ring-rose-500/50 dark:bg-white/[0.06] dark:text-white dark:ring-white/10"
         >
           로그인하고 순위에 등록

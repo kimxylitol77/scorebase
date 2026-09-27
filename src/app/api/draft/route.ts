@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getCurrentUser } from "@/lib/current-user";
 import { DraftError, type Lifeline } from "@/lib/draft/engine";
-import { isDraftMode } from "@/lib/draft/pool";
+import { isDraftMode } from "@/lib/draft/modes";
+import { availableModes } from "@/lib/draft/pool";
 import { actDraft, claimDraft, resumeDraft, startDraft, type Actor } from "@/lib/draft/service";
 import type { Pos } from "@/lib/draft/types";
 
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
     switch (body.action) {
       case "start":
       case "resume": {
-        if (!isDraftMode(body.mode)) return NextResponse.json({ error: "없는 모드입니다" }, { status: 400 });
+        if (!isDraftMode(body.mode) || !availableModes().includes(body.mode)) return NextResponse.json({ error: "없는 모드입니다" }, { status: 400 });
         const view = body.action === "start" ? await startDraft(body.mode, actor) : await resumeDraft(body.mode, sessionId);
         payload = { view };
         break;
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
         payload = { view: await actDraft(str("gameId"), actor, { action: "next" }) };
         break;
       case "lifeline": {
-        const pos = ["G", "F", "C"].includes(str("pos")) ? (str("pos") as Pos) : undefined;
+        const pos: Pos | undefined = str("pos") || undefined; // 유효성은 엔진이 모드 슬롯으로 검사
         payload = { view: await actDraft(str("gameId"), actor, { action: "lifeline", kind: str("kind") as Lifeline, pos }) };
         break;
       }

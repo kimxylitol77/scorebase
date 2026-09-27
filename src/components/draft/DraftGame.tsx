@@ -1,11 +1,12 @@
 "use client";
-// 농구 블라인드 드래프트 게임 화면 — 로비에서 시작해 5판을 뽑고 결과 페이지로 보낸다. 수치는 서버가 공개한 것만 받는다.
+// 블라인드 드래프트 게임 화면(전 종목 공용) — 로비에서 시작해 라인업을 다 뽑으면 결과 페이지로 보낸다. 수치는 서버가 공개한 것만 받는다.
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, Filter, Play, Plus, RefreshCw, Repeat, Search, Shuffle, Zap } from "lucide-react";
 import LineupPanel from "@/components/draft/LineupPanel";
 import PlayerFace from "@/components/draft/PlayerFace";
-import { POS_LABEL, seasonLabel, signed } from "@/lib/draft/labels";
+import { posLabel, seasonLabel, signed } from "@/lib/draft/labels";
+import { MODES, resultPath } from "@/lib/draft/modes";
 import type { Lifeline } from "@/lib/draft/engine";
 import type { CardView, GameView } from "@/lib/draft/view";
 import type { DraftMode, Pos } from "@/lib/draft/types";
@@ -13,7 +14,7 @@ import type { DraftMode, Pos } from "@/lib/draft/types";
 const LIFELINE_UI: Array<{ kind: Lifeline; label: string; desc: string; Icon: typeof Eye }> = [
   { kind: "redeal", label: "다시 뽑기", desc: "같은 팀에서 새 선수 21명", Icon: Shuffle },
   { kind: "swap", label: "팀 바꾸기", desc: "이 판을 버리고 다른 팀으로", Icon: Repeat },
-  { kind: "position", label: "포지션", desc: "고른 포지션 선수만 12명", Icon: Filter },
+  { kind: "position", label: "포지션", desc: "고른 포지션 선수만", Icon: Filter },
   { kind: "double", label: "더블 픽", desc: "이 판에서 2명 뽑기", Icon: Plus },
   { kind: "reveal", label: "전체 공개", desc: "이 판의 수치를 모두 보기", Icon: Eye },
   { kind: "flash", label: "시즌 섞기", desc: "같은 선수들, 다른 시즌으로", Icon: Zap },
@@ -28,7 +29,7 @@ async function call(body: Record<string, unknown>): Promise<{ view?: GameView | 
   }
 }
 
-export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; modeLabel: string }) {
+export default function DraftGame({ mode, modeLabel }: { mode: DraftMode; modeLabel: string }) {
   const router = useRouter();
   const [view, setView] = useState<GameView | null>(null);
   const [saved, setSaved] = useState<GameView | null>(null);
@@ -53,7 +54,7 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
       if (r.error) setError(r.error);
       else if (r.view) {
         if (r.view.done) {
-          router.push(`/basketball/draft/result/${r.view.id}`);
+          router.push(resultPath(r.view.id));
           return; // 이동 중에는 버튼을 잠근 채로 둔다
         }
         setView(r.view);
@@ -83,7 +84,7 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
             onClick={() => setView(saved)}
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-4 text-sm font-semibold text-neutral-900 ring-1 ring-black/10 transition-all duration-300 hover:-translate-y-0.5 dark:bg-white/[0.06] dark:text-white dark:ring-white/10"
           >
-            하던 판 이어하기 ({saved.picks.length}/5)
+            하던 판 이어하기 ({saved.picks.length}/{saved.rounds})
           </button>
         )}
         {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
@@ -91,7 +92,9 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
     );
   }
 
-  const left = 5 - view.picks.length;
+  const left = view.rounds - view.picks.length;
+  const cfg = MODES[view.mode];
+  const positions = [...new Set(cfg.slots)];
   const canLifeline = !view.boardFinished && view.cards.every((c) => !c.picked);
   const lastPick = view.cards.filter((c) => c.picked).at(-1);
   const waitingSecond = view.picksAllowed === 2 && !view.boardFinished && view.cards.some((c) => c.picked);
@@ -114,7 +117,7 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
           </div>
           <div className="shrink-0 text-right lg:hidden">
             <div className="text-xl font-bold tabular-nums text-neutral-900 dark:text-white">{signed(view.score.total)}</div>
-            <div className="text-[11px] text-neutral-500 dark:text-neutral-400">{view.picks.length}/5명</div>
+            <div className="text-[11px] text-neutral-500 dark:text-neutral-400">{view.picks.length}/{view.rounds}명</div>
           </div>
         </div>
 
@@ -143,8 +146,8 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
           })}
         </div>
         {posOpen && canLifeline && (
-          <div className="mt-2 flex gap-1.5">
-            {(["G", "F", "C"] as Pos[]).map((p) => (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {positions.map((p: Pos) => (
               <button
                 key={p}
                 type="button"
@@ -152,7 +155,7 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
                 onClick={() => run({ action: "lifeline", gameId: view.id, kind: "position", pos: p })}
                 className="flex-1 rounded-xl bg-amber-400 px-3 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-300"
               >
-                {POS_LABEL[p]}
+                {posLabel(view.mode, p)}
               </button>
             ))}
           </div>
@@ -200,6 +203,7 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
               key={c.id}
               c={c}
               mode={view.mode}
+              labels={[cfg.offLabel, cfg.defLabel]}
               color={view.team.color}
               locked={view.boardFinished || busy}
               canSpy={!view.boardFinished && view.spyLeft > 0 && !busy}
@@ -218,9 +222,9 @@ export default function DraftClient({ mode, modeLabel }: { mode: DraftMode; mode
 }
 
 function Card({
-  c, mode, color, locked, canSpy, onPick, onSpy,
+  c, mode, labels, color, locked, canSpy, onPick, onSpy,
 }: {
-  c: CardView; mode: DraftMode; color: string; locked: boolean; canSpy: boolean; onPick: () => void; onSpy: () => void;
+  c: CardView; mode: DraftMode; labels: [string, string]; color: string; locked: boolean; canSpy: boolean; onPick: () => void; onSpy: () => void;
 }) {
   const s = c.stats;
   return (
@@ -240,7 +244,7 @@ function Card({
           </div>
           <div className="text-sm font-semibold leading-tight break-keep text-neutral-900 dark:text-white">{c.name}</div>
           <div className="mt-0.5 truncate text-[11px] text-neutral-500 dark:text-neutral-400">
-            {c.pos.map((p) => POS_LABEL[p]).join("·")} · {c.teamName}
+            {c.pos.map((p) => posLabel(mode, p)).join("·")} · {c.teamName}
           </div>
         </div>
       </div>
@@ -248,16 +252,16 @@ function Card({
       {s ? (
         <>
           <dl className="mt-2.5 grid grid-cols-3 gap-1 text-center">
-            {([["공격", s.off], ["수비", s.def], ["합계", s.total]] as const).map(([k, v]) => (
+            {([[labels[0], s.off], [labels[1], s.def], ["합계", s.total]] as const).map(([k, v]) => (
               <div key={k} className="rounded-lg bg-neutral-100 py-1 dark:bg-white/[0.06]">
                 <dt className="text-[10px] text-neutral-500 dark:text-neutral-400">{k}</dt>
                 <dd className={`text-xs font-semibold tabular-nums ${v < 0 ? "text-rose-600 dark:text-rose-400" : "text-neutral-900 dark:text-white"}`}>{signed(v)}</dd>
               </div>
             ))}
           </dl>
-          <p className="mt-1.5 text-center text-[10px] tabular-nums text-neutral-400 dark:text-neutral-500">
-            {s.pts}점 · {s.reb}리바 · {s.ast}어시
-          </p>
+          {s.line && (
+            <p className="mt-1.5 text-center text-[10px] tabular-nums break-keep text-neutral-400 dark:text-neutral-500">{s.line}</p>
+          )}
         </>
       ) : null}
 

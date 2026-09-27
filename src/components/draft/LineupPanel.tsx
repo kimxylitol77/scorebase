@@ -1,7 +1,8 @@
 "use client";
-// 내 라인업 패널 — 가드2·포워드2·센터1 슬롯과 점수·보너스 내역. 게임 중과 결과 화면이 함께 쓴다.
+// 내 라인업 패널 — 모드별 자리와 점수·보너스 내역. 게임 중과 결과 화면이 함께 쓴다.
 import PlayerFace from "./PlayerFace";
-import { SLOT_LABELS, seasonLabel, signed } from "@/lib/draft/labels";
+import { seasonLabel, signed, slotLabels } from "@/lib/draft/labels";
+import { MODES } from "@/lib/draft/modes";
 import type { Score } from "@/lib/draft/scoring";
 import type { PickView } from "@/lib/draft/view";
 import type { DraftMode } from "@/lib/draft/types";
@@ -16,19 +17,21 @@ interface Props {
 const tone = (v: number) => (v > 0 ? "text-emerald-600 dark:text-emerald-400" : v < 0 ? "text-rose-600 dark:text-rose-400" : "text-neutral-400");
 
 export default function LineupPanel({ mode, picks, score, lockdownAt }: Props) {
+  const cfg = MODES[mode];
+  const SLOT_LABELS = slotLabels(mode);
   const bySlot = SLOT_LABELS.map((_, i) => picks.find((p) => p.slot === i));
   const extra = picks.filter((p) => p.slot < 0);
   const bonuses: [string, number, string][] = [
-    ["풀 라인업", score.full, "가드 2·포워드 2·센터 1"],
-    ["공수 균형", score.balance, "-2.0 ~ +2.0"],
+    ["풀 라인업", score.full, "모든 자리를 포지션에 맞게"],
+    [`${cfg.offLabel}·${cfg.defLabel} 균형`, score.balance, "-2.0 ~ +2.0"],
     ["내구성", score.durability, "출전 시간, -1.5 ~ +1.5"],
-    ["철벽 수비", score.lockdown, `수비 합 ${lockdownAt} 초과`],
+    [cfg.lockdownLabel, score.lockdown, `${cfg.defLabel} 합 ${lockdownAt} 초과`],
   ];
   return (
     <div className="rounded-[1.75rem] bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:shadow-none dark:ring-white/10">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">내 라인업</h2>
-        <span className="text-xs text-neutral-500 dark:text-neutral-400">{picks.length}/5</span>
+        <span className="text-xs text-neutral-500 dark:text-neutral-400">{picks.length}/{SLOT_LABELS.length}</span>
       </div>
       <div className="mt-2 flex items-end justify-between">
         <div>
@@ -36,8 +39,8 @@ export default function LineupPanel({ mode, picks, score, lockdownAt }: Props) {
           <div className="text-[11px] text-neutral-500 dark:text-neutral-400">기여도 {signed(score.impact)} · 보너스 {signed(score.bonus)}</div>
         </div>
         <div className="text-right text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">
-          <div>공격 <b className="text-neutral-900 dark:text-white">{signed(score.off)}</b></div>
-          <div>수비 <b className="text-neutral-900 dark:text-white">{signed(score.def)}</b></div>
+          <div>{cfg.offLabel} <b className="text-neutral-900 dark:text-white">{signed(score.off)}</b></div>
+          <div>{cfg.defLabel} <b className="text-neutral-900 dark:text-white">{signed(score.def)}</b></div>
         </div>
       </div>
 

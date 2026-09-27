@@ -1,7 +1,9 @@
 // 드래프트 리더보드 — 회원만 등재, 회원당 최고 기록 1건. 오늘·역대 두 표를 나란히.
 import Link from "next/link";
 import Rings from "./Rings";
-import { seasonLabel, signed } from "@/lib/draft/labels";
+import { signed } from "@/lib/draft/labels";
+import { MODES, resultPath } from "@/lib/draft/modes";
+import { recordLabel } from "@/lib/draft/season";
 import type { LeaderRow } from "@/lib/draft/service";
 import type { DraftMode } from "@/lib/draft/types";
 
@@ -15,7 +17,7 @@ function Table({ title, rows, mode }: { title: string; rows: LeaderRow[]; mode: 
         <ol className="mt-2 divide-y divide-neutral-100 dark:divide-white/5">
           {rows.map((r, i) => (
             <li key={r.id}>
-              <Link href={`/basketball/draft/result/${r.id}`} className="flex items-center gap-3 py-2.5 transition hover:opacity-80">
+              <Link href={resultPath(r.id)} className="flex items-center gap-3 py-2.5 transition hover:opacity-80">
                 <span className="w-5 shrink-0 text-center text-sm font-semibold tabular-nums text-neutral-400">{i + 1}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
@@ -23,7 +25,7 @@ function Table({ title, rows, mode }: { title: string; rows: LeaderRow[]; mode: 
                     <Rings count={r.rings} size={12} />
                   </span>
                   <span className="block truncate text-[11px] text-neutral-500 dark:text-neutral-400">
-                    {r.snapshot.picks.map((p) => `${p.name} ${seasonLabel(mode, p.season)}`).join(" · ")}
+                    {recordLabel(r.season, MODES[mode].draws)} · {r.snapshot.picks.map((p) => p.name).join(" · ")}
                   </span>
                 </span>
                 <span className="shrink-0 text-right">
