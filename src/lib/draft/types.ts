@@ -1,6 +1,8 @@
-// 농구 블라인드 드래프트 공용 타입 — 선수-시즌 카드·풀 파일·게임 상태
-export type DraftMode = "nba" | "kbl";
-export type Pos = "G" | "F" | "C";
+// 드래프트 공용 타입 — 선수-시즌 카드·풀 파일
+import type { DraftMode } from "./modes";
+export type { DraftMode } from "./modes";
+/** 포지션 코드 — 모드 설정(modes.ts)의 slots 에 나오는 값 */
+export type Pos = string;
 
 /** 선수-시즌 카드 한 장 (data/draft-pool-*.json) */
 export interface PoolCard {
@@ -13,14 +15,11 @@ export interface PoolCard {
   pos: Pos[];
   off: number;
   def: number;
-  dur: number; // 0~1, 시즌 내 총 출전 시간 백분위
-  gp: number;
-  mpg: number;
-  pts: number;
-  reb: number;
-  ast: number;
-  stl: number;
-  blk: number;
+  dur: number; // 0~1, 시즌 내 출전량 백분위
+  /** 공개 뒤 보여줄 기록 한 줄 — "27.2점 · 5.7리바 · 6.7어시" */
+  line: string;
+  /** 이름값 — 기준선 모의 플레이어가 "잘해 보이는" 정도로 쓰는 값 (풀 안에서 표준화된 z) */
+  fame: number;
   photo: string | null;
 }
 
@@ -37,7 +36,9 @@ export interface PoolFile {
     updatedAt: string;
     seasons: [number, number];
     cards: number;
-    lockdown: number; // 철벽 수비 보너스 기준 (수비 합)
+    lockdown: number; // 철벽 보너스 기준 (수비 합)
+    /** 공수 균형을 잴 때 공격 합·수비 합을 나누는 눈금 */
+    norm: { off: number; def: number };
     quantiles: number[]; // 모의 1만 판 점수의 0~100 백분위 (길이 101)
   };
   teams: PoolTeam[];

@@ -3,7 +3,9 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { DraftError, nextBoard, pick, spy, startGame, applyLifeline, LIFELINES, type GameState, type Lifeline } from "./engine";
+import { MODES } from "./modes";
 import { getPool } from "./pool";
+import { simulateSeason, type SeasonRecord } from "./season";
 import { percentileOf, ringsOf } from "./scoring";
 import { pickViews, toView, type GameView, type ResultSnapshot } from "./view";
 import { indexOf } from "./engine";
@@ -70,9 +72,9 @@ export async function actDraft(gameId: string, actor: Actor, a: DraftAction): Pr
   }
   if (next.done) {
     const cards = next.picks.map((id) => indexOf(pool).byId.get(id)!);
-    const score = scoreLineup(cards, pool.meta.lockdown);
+    const score = scoreLineup(cards, pool.meta, MODES[mode].slots);
     const percentile = percentileOf(score.total, pool.meta.quantiles);
-    const snapshot: ResultSnapshot = { picks: pickViews(pool, next.picks), score };
+    const snapshot: ResultSnapshot = { picks: pickViews(pool, next.picks, MODES[mode].slots), score };
     await prisma.draftGame.update({
       where: { id: row.id },
       data: {
@@ -126,6 +128,7 @@ export interface DraftResult {
   registered: boolean;
   sessionId: string;
   snapshot: ResultSnapshot;
+  season: SeasonRecord;
   finishedAt: Date;
   rankToday: number;
   countToday: number;
@@ -149,6 +152,8 @@ export async function getDraftResult(id: string): Promise<DraftResult | null> {
     registered: !!row.userId,
     sessionId: row.sessionId,
     snapshot: row.lineup as unknown as ResultSnapshot,
+    // 시즌 성적도 읽을 때 낸다 — 게임 시드로 결정적이라 늘 같은 값, 기준선 재보정은 바로 반영
+    season: simulateSeason(row.mode as DraftMode, row.total, getPool(row.mode as DraftMode).meta.quantiles, (row.state as unknown as GameState).seed),
     finishedAt: row.finishedAt,
     // 오늘 끝난 판이 아니면 오늘 순위는 의미가 없다 — 그때는 0
     rankToday: row.finishedAt >= since ? above + 1 : 0,
@@ -163,15 +168,16 @@ export interface LeaderRow {
   rings: number;
   runs: number;
   snapshot: ResultSnapshot;
+  season: SeasonRecord;
 }
 
 /** 회원만 등재, 회원당 최고 기록 1건 */
 export async function getLeaderboard(mode: DraftMode, period: "today" | "all", limit = 20): Promise<LeaderRow[]> {
   const since = period === "today" ? todayStart() : new Date(0);
-  const rows = await prisma.$queryRaw<Array<{ id: string; nickname: string | null; total: number; rings: number | null; runs: bigint; lineup: unknown }>>`
-    SELECT b.id, b.nickname, b.total, b.rings, b.lineup, c.runs
+  const rows = await prisma.$queryRaw<Array<{ id: string; nickname: string | null; total: number; rings: number | null; runs: bigint; lineup: unknown; seed: number }>>`
+    SELECT b.id, b.nickname, b.total, b.rings, b.lineup, b.seed, c.runs
     FROM (
-      SELECT DISTINCT ON ("userId") id, "userId", nickname, total, rings, lineup
+      SELECT DISTINCT ON ("userId") id, "userId", nickname, total, rings, lineup, (state->>'seed')::float8 AS seed
       FROM "DraftGame"
       WHERE mode = ${mode} AND done = true AND "userId" IS NOT NULL AND "finishedAt" >= ${since}
       ORDER BY "userId", total DESC, "finishedAt" ASC
@@ -191,5 +197,6 @@ export async function getLeaderboard(mode: DraftMode, period: "today" | "all", l
     rings: standing(mode, r.total).rings,
     runs: Number(r.runs),
     snapshot: r.lineup as ResultSnapshot,
+    season: simulateSeason(mode, r.total, getPool(mode).meta.quantiles, r.seed),
   }));
 }

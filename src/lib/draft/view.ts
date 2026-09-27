@@ -1,6 +1,8 @@
 // 게임 상태 → 화면용 뷰. 공개되지 않은 카드의 수치는 여기서 빠진다 (누출 방지의 단일 관문).
-import { ROUNDS, boardFinished, indexOf, isVisible, type GameState, type Lifeline, type Pool } from "./engine";
+import { boardFinished, indexOf, isVisible, type GameState, type Lifeline, type Pool } from "./engine";
+import { MODES } from "./modes";
 import { assignSlots, scoreLineup, type Score } from "./scoring";
+import type { SeasonRecord } from "./season";
 import type { DraftMode, PoolCard, PoolFile, PoolTeam, Pos } from "./types";
 
 export interface CardView {
@@ -12,11 +14,11 @@ export interface CardView {
   photo: string | null;
   picked: boolean;
   /** 공개된 카드에만 붙는다 */
-  stats?: { off: number; def: number; total: number; pts: number; reb: number; ast: number; rank?: number };
+  stats?: { off: number; def: number; total: number; line?: string; rank?: number };
 }
 
 export interface PickView extends CardView {
-  slot: number; // SLOTS 색인, 자리 없으면 -1
+  slot: number; // 모드 slots 색인, 자리 없으면 -1
   color: string;
 }
 
@@ -44,13 +46,13 @@ function publicCard(c: PoolCard, picked: boolean): CardView {
   return { id: c.id, name: c.name, season: c.season, teamName: c.teamName, pos: c.pos, photo: c.photo, picked };
 }
 function openCard(c: PoolCard, picked: boolean, rank?: number): CardView {
-  return { ...publicCard(c, picked), stats: { off: c.off, def: c.def, total: r1(c.off + c.def), pts: c.pts, reb: c.reb, ast: c.ast, rank } };
+  return { ...publicCard(c, picked), stats: { off: c.off, def: c.def, total: r1(c.off + c.def), line: c.line, rank } };
 }
 
-export function pickViews(pool: Pool, ids: string[]): PickView[] {
+export function pickViews(pool: Pool, ids: string[], slotsOf: string[]): PickView[] {
   const idx = indexOf(pool);
   const cards = ids.map((id) => idx.byId.get(id)!);
-  const slots = assignSlots(cards);
+  const slots = assignSlots(cards, slotsOf);
   const color = new Map(pool.teams.map((t) => [t.key, t.color]));
   return cards.map((c, i) => ({ ...openCard(c, true), slot: slots[i], color: color.get(c.team) ?? "#444" }));
 }
@@ -65,18 +67,19 @@ export function toView(id: string, pool: PoolFile, s: GameState): GameView {
     isVisible(s, c.id) ? openCard(c, s.board.picked.includes(c.id), sorted ? i + 1 : undefined) : publicCard(c, false),
   );
   const mine = s.picks.map((cid) => idx.byId.get(cid)!);
+  const slots = MODES[s.mode].slots;
   return {
     id,
     mode: s.mode,
-    round: Math.min(s.round + 1, ROUNDS),
-    rounds: ROUNDS,
+    round: Math.min(s.picks.length + (boardFinished(s) ? 0 : 1), slots.length),
+    rounds: slots.length,
     team: { name: team.name, logo: team.logo, color: team.color },
     cards,
     boardFinished: boardFinished(s),
     sorted,
     picksAllowed: s.board.picksAllowed,
-    picks: pickViews(pool, s.picks),
-    score: scoreLineup(mine, pool.meta.lockdown),
+    picks: pickViews(pool, s.picks, slots),
+    score: scoreLineup(mine, pool.meta, slots),
     lockdownAt: pool.meta.lockdown,
     used: s.used,
     spyLeft: s.spyLeft,
@@ -89,3 +92,4 @@ export interface ResultSnapshot {
   picks: PickView[];
   score: Score;
 }
+export type { SeasonRecord };

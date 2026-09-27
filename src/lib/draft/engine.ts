@@ -1,12 +1,12 @@
 // 드래프트 게임 엔진 — 판 생성·픽·찬스. 순수 함수이고 상태는 JSON 으로 그대로 저장된다.
 import { pickOne, rngFor, weightedSample, type Rng } from "./rng";
-import { SLOTS } from "./scoring";
+import { MODES } from "./modes";
 import type { DraftMode, PoolCard, PoolTeam, Pos } from "./types";
 
 export const BOARD_SIZE = 21;
 export const POSITION_BOARD_SIZE = 12;
-export const ROUNDS = 5;
-export const SPY_CHARGES = 3;
+/** 판을 낼 수 있는 구단의 최소 선수 수 — 21명이 안 돼도 이만큼이면 적은 카드로 판을 연다 */
+export const MIN_TEAM_PLAYERS = 15;
 export const LIFELINES = ["redeal", "swap", "position", "double", "reveal", "flash"] as const;
 export type Lifeline = (typeof LIFELINES)[number];
 
@@ -72,9 +72,12 @@ function deal(pool: Pool, rng: Rng, team: string, exclude: Set<string>, size: nu
 
 function pickTeam(pool: Pool, rng: Rng, avoid: string[]): string {
   const idx = indexOf(pool);
-  const ok = pool.teams.filter((t) => !avoid.includes(t.key) && (idx.byTeam.get(t.key)?.size ?? 0) >= BOARD_SIZE);
-  if (!ok.length) throw new DraftError("뽑을 수 있는 구단이 없습니다");
-  return pickOne(rng, ok).key;
+  const ok = pool.teams.filter((t) => !avoid.includes(t.key) && (idx.byTeam.get(t.key)?.size ?? 0) >= MIN_TEAM_PLAYERS);
+  if (ok.length) return pickOne(rng, ok).key;
+  // 구단이 적은 리그(K리그)는 판 수만큼 돌면 남는 구단이 없다 — 직전 구단만 피해서 다시 쓴다
+  const again = pool.teams.filter((t) => t.key !== avoid.at(-1) && (idx.byTeam.get(t.key)?.size ?? 0) >= MIN_TEAM_PLAYERS);
+  if (!again.length) throw new DraftError("뽑을 수 있는 구단이 없습니다");
+  return pickOne(rng, again).key;
 }
 
 function pickedPids(pool: Pool, s: GameState): Set<string> {
@@ -107,15 +110,17 @@ export function startGame(pool: Pool, mode: DraftMode, seed: number): GameState 
     picks: [],
     usedTeams: [],
     used: [],
-    spyLeft: SPY_CHARGES,
+    spyLeft: MODES[mode].spyCharges,
     done: false,
   };
   return newBoard(pool, base, pickTeam(pool, rngFor(seed, 1000), []));
 }
 
+const lineupSize = (s: GameState) => MODES[s.mode].slots.length;
+
 /** 이 판에서 픽을 다 했는가 (다음 판으로 넘어갈 차례) */
 export function boardFinished(s: GameState): boolean {
-  return s.board.picked.length >= s.board.picksAllowed || s.picks.length >= SLOTS.length;
+  return s.board.picked.length >= s.board.picksAllowed || s.picks.length >= lineupSize(s);
 }
 
 export function pick(pool: Pool, s: GameState, cardId: string): GameState {
@@ -128,7 +133,7 @@ export function pick(pool: Pool, s: GameState, cardId: string): GameState {
 export function nextBoard(pool: Pool, s: GameState): GameState {
   if (s.done) throw new DraftError("이미 끝난 게임입니다");
   if (!boardFinished(s)) throw new DraftError("먼저 선수를 뽑아야 합니다");
-  if (s.picks.length >= SLOTS.length) return { ...s, done: true };
+  if (s.picks.length >= lineupSize(s)) return { ...s, done: true };
   const cleared = { ...s, round: s.round + 1, board: { ...s.board, picksAllowed: 1 } };
   return newBoard(pool, cleared, pickTeam(pool, rngFor(s.seed, 1000 + s.nonce), s.usedTeams));
 }
@@ -146,10 +151,10 @@ export function applyLifeline(pool: Pool, s: GameState, kind: Lifeline, pos?: Po
     case "swap":
       return newBoard(pool, { ...s, used }, pickTeam(pool, rngFor(s.seed, 2000 + s.nonce), s.usedTeams));
     case "position":
-      if (!pos) throw new DraftError("포지션을 골라야 합니다");
+      if (!pos || !MODES[s.mode].slots.includes(pos)) throw new DraftError("포지션을 골라야 합니다");
       return newBoard(pool, { ...s, used }, s.board.team, { pos });
     case "double":
-      if (SLOTS.length - s.picks.length < 2) throw new DraftError("빈자리가 2개 이상일 때만 쓸 수 있습니다");
+      if (lineupSize(s) - s.picks.length < 2) throw new DraftError("빈자리가 2개 이상일 때만 쓸 수 있습니다");
       return { ...s, used, board: { ...s.board, picksAllowed: 2 } };
     case "reveal":
       return { ...s, used, board: { ...s.board, revealed: true } };

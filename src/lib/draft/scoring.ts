@@ -1,9 +1,8 @@
 // 드래프트 라인업 채점 — 기여도 합 + 보너스 4종 + 반지
-import type { PoolCard, Pos } from "./types";
+import type { PoolCard, PoolFile } from "./types";
 
-export const SLOTS: Pos[] = ["G", "G", "F", "F", "C"];
-export const OFF_SCALE = 2.2;
-export const DEF_SCALE = 1.3;
+/** 채점에 필요한 풀 메타 */
+export type ScoreMeta = Pick<PoolFile["meta"], "lockdown" | "norm">;
 
 export interface Score {
   off: number;
@@ -19,13 +18,14 @@ export interface Score {
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
-/** 카드들을 가드2·포워드2·센터1 슬롯에 배치. 못 넣은 카드는 slot -1. 최대한 많이 채우는 배치를 찾는다. */
-export function assignSlots(cards: Array<Pick<PoolCard, "pos">>): number[] {
+/** 카드들을 라인업 자리(slots)에 배치. 못 넣은 카드는 slot -1. 최대한 많이 채우는 배치를 찾는다. */
+export function assignSlots(cards: Array<Pick<PoolCard, "pos">>, SLOTS: string[]): number[] {
   let best: number[] = cards.map(() => -1);
   let bestFilled = -1;
   const cur: number[] = cards.map(() => -1);
   const taken = SLOTS.map(() => false);
   const walk = (i: number, filled: number) => {
+    if (bestFilled === cards.length) return; // 이미 전원 배치 — 더 볼 필요 없다
     if (i === cards.length) {
       if (filled > bestFilled) {
         bestFilled = filled;
@@ -48,20 +48,20 @@ export function assignSlots(cards: Array<Pick<PoolCard, "pos">>): number[] {
   return best;
 }
 
-export function isFullLineup(cards: Array<Pick<PoolCard, "pos">>): boolean {
-  return cards.length === SLOTS.length && assignSlots(cards).every((s) => s >= 0);
+export function isFullLineup(cards: Array<Pick<PoolCard, "pos">>, slots: string[]): boolean {
+  return cards.length === slots.length && assignSlots(cards, slots).every((s) => s >= 0);
 }
 
-export function scoreLineup(cards: PoolCard[], lockdownAt: number): Score {
+export function scoreLineup(cards: PoolCard[], meta: ScoreMeta, slots: string[]): Score {
   const off = cards.reduce((a, c) => a + c.off, 0);
   const def = cards.reduce((a, c) => a + c.def, 0);
-  const full = isFullLineup(cards) ? 3 : 0;
+  const full = isFullLineup(cards, slots) ? 3 : 0;
   // 균형 — 공격·수비를 같은 눈금으로 놓고 작은 쪽÷큰 쪽. 한쪽이 0 이하면 최저.
-  const o = off / OFF_SCALE;
-  const d = def / DEF_SCALE;
+  const o = off / meta.norm.off;
+  const d = def / meta.norm.def;
   const balance = cards.length === 0 ? 0 : o <= 0 || d <= 0 ? -2 : -2 + 4 * (Math.min(o, d) / Math.max(o, d));
   const durability = cards.length ? (cards.reduce((a, c) => a + c.dur, 0) / cards.length - 0.5) * 3 : 0;
-  const lockdown = def > lockdownAt ? 4 : 0;
+  const lockdown = def > meta.lockdown ? 4 : 0;
   const bonus = full + balance + durability + lockdown;
   return {
     off: r1(off),
