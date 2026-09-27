@@ -12,6 +12,7 @@ import { displayGrade } from "@/lib/user-level";
 import { settleFlatUnits, fmtRoiPct, fmtUnits, type FlatRoiResult } from "@/lib/predict/flat-roi";
 import { roiClaim } from "@/lib/predict/model-vs-market";
 import { resolveAvatar } from "@/lib/analysis/analysts";
+import { wilsonLower } from "@/lib/analysis/wilson";
 import Avatar from "@/components/experts/Avatar";
 import { Bot } from "lucide-react";
 import { LEAGUE_DISPLAY, LEAGUE_ORDER, getLeagueFlag, sportCodeForLeague } from "@/lib/sports/sport-leagues";
@@ -189,15 +190,14 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
   // 기준선 — 모델 픽·시장 인기픽 플랫 ROI(홈 H1·accuracy 와 같은 캐시). 적중 수 비교("AI 를 이기는 중") 대신 수익률 잣대를 나란히.
   const baseline = await roiClaim();
 
-  // 회원 적중 랭킹 — 채점 3표 이상, 적중률순
+  // 회원 적중 랭킹 — 채점 3표 이상. 정렬은 JS 에서 Wilson 하한(스포츠픽 게시판 /analysis 와 같은 잣대).
+  // SQL 에서 적중률순 LIMIT 을 걸면 "적중률 상위 20명 안에서만" 다시 줄 세우게 되므로 후보는 전원 가져온다.
   const board = await prisma.$queryRaw<{ userId: string; total: number; hit: number }[]>`
     SELECT "userId", COUNT(*)::int AS total, SUM(CASE WHEN correct THEN 1 ELSE 0 END)::int AS hit
     FROM "MatchVote"
     WHERE "userId" IS NOT NULL AND correct IS NOT NULL
     GROUP BY "userId"
-    HAVING COUNT(*) >= 3
-    ORDER BY SUM(CASE WHEN correct THEN 1 ELSE 0 END)::float / COUNT(*) DESC, COUNT(*) DESC
-    LIMIT 20`;
+    HAVING COUNT(*) >= 3`;
   const boardUsers = board.length
     ? await prisma.user.findMany({
         where: { id: { in: board.map((b) => b.userId) } },
@@ -205,7 +205,7 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
       })
     : [];
   const userById = new Map(boardUsers.map((u) => [u.id, u]));
-  // 회원 봇도 같은 잣대(채점 3표 이상·적중률순)로 랭킹에 섞는다. 봇은 1X2 만 픽하므로 시장별 줄 대신 소유자 표기.
+  // 회원 봇도 같은 잣대(채점 3표 이상·Wilson 순)로 랭킹에 섞는다. 봇은 1X2 만 픽하므로 시장별 줄 대신 소유자 표기.
   const botBoard = activeBots.length
     ? await prisma.$queryRaw<{ botId: string; total: number; hit: number }[]>`
         SELECT "botId", COUNT(*)::int AS total, SUM(CASE WHEN correct THEN 1 ELSE 0 END)::int AS hit
@@ -229,7 +229,8 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
       return { kind: "bot", key: `b:${b.botId}`, botId: b.botId, name: bot.name, owner: ownerNick.get(bot.userId) ?? "회원", total: b.total, hit: b.hit };
     }),
   ]
-    .sort((a, b) => b.hit / b.total - a.hit / a.total || b.total - a.total)
+    // 단순 적중률순이면 2/3(67%)가 30/50(60%)보다 위에 선다(2026-09-28 사용자 지적). 표시는 실제 적중률 그대로.
+    .sort((a, b) => wilsonLower(b.hit, b.total) - wilsonLower(a.hit, a.total) || b.hit - a.hit || b.total - a.total)
     .slice(0, 20);
   // 시장별 적중(승부·핸디·오버언더) — 랭커마다 어느 시장에 강한지 한 줄 보조 표기.
   const perMarket = board.length
@@ -438,7 +439,7 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
       {/* 랭킹 */}
       <section className="mt-8">
         <h2 className="text-sm font-bold text-neutral-900 dark:text-white">적중 랭킹</h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. 회원이 만든 <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">커스텀 예측</Link>도 승부 픽 기준으로 같은 순위에 섞여 오릅니다.</p>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 순서는 단순 적중률이 아니라 표본 수를 반영한 신뢰도 보정(Wilson 점수 하한)으로 정해서, 몇 경기만 맞힌 100%가 무조건 1등이 되지 않습니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. 회원이 만든 <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">커스텀 예측</Link>도 승부 픽 기준으로 같은 순위에 섞여 오릅니다.</p>
         {rows.length === 0 ? (
           <p className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
             아직 랭커가 없습니다. 첫 경기가 끝나면 채점이 시작됩니다 — 1위를 선점하세요.
