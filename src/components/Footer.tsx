@@ -61,7 +61,7 @@ const COMMUNITY: Array<{ href: string; label: string }> = [
   { href: "/compare/live-score-apps", label: "라이브스코어 앱 비교" },
   { href: "/baseball", label: "야구 허브" },
   { href: "/basketball", label: "농구 허브" },
-  { href: "/world-cup", label: "FIFA 월드컵 2026" },
+  { href: "/asian-games", label: "2026 아시안게임" },
   { href: "/career", label: "축구선수 인생 살아보기" },
   { href: "/blog", label: "블로그" },
   { href: "/analysis", label: "스포츠 분석" },

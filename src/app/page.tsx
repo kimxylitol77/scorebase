@@ -21,7 +21,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { toKoreanTeamName } from "@/lib/team-names";
+import { getAgMatches, type AgMatch } from "@/lib/sports/asian-games-hub";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
@@ -351,8 +352,8 @@ export default async function Home() {
               KBO 순위
             </Link>
             와{" "}
-            <Link href="/world-cup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-              2026 월드컵 결산
+            <Link href="/asian-games" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              2026 아시안게임
             </Link>
             도 확인할 수 있습니다.
           </p>
@@ -580,73 +581,27 @@ function FeaturesSection() {
   );
 }
 
-// 월드컵 배너 카피 — 마지막 매치(=결승) DB 상태로 자동 판정 (날짜 짐작 금지, 1h ISR 갱신).
-// 결승 전 = 대진 예고 + AI 우위, 진행 중 = LIVE, 종료 = 실제 스코어 기반 우승팀 결산.
-async function wcBannerCopy(): Promise<{ badge: string; title: string; sub: string; href: string }> {
-  const final = await prisma.match.findFirst({
-    where: { league: "WORLD_CUP", status: { in: ["SCHEDULED", "LIVE", "FINISHED"] } },
-    orderBy: { startTime: "desc" },
-    select: {
-      status: true,
-      startTime: true,
-      homeScore: true,
-      awayScore: true,
-      predHome: true,
-      predAway: true,
-      homeTeam: { select: { name: true } },
-      awayTeam: { select: { name: true } },
-    },
-  });
-  const done = {
-    badge: "FIFA World Cup 2026",
-    title: "북중미 월드컵 결산",
-    sub: "최종 대진표·우승 확률 추이·조별 베스트 XI 다시 보기",
-    href: "/world-cup",
-  };
-  if (!final) return done;
-  const home = toKoreanTeamName(final.homeTeam.name, "WORLD_CUP");
-  const away = toKoreanTeamName(final.awayTeam.name, "WORLD_CUP");
-  if (final.status === "FINISHED") {
-    const winner =
-      final.homeScore != null && final.awayScore != null && final.homeScore !== final.awayScore
-        ? final.homeScore > final.awayScore
-          ? home
-          : away
-        : null;
-    return winner ? { ...done, title: `북중미 월드컵 결산 — ${winner} 우승` } : done;
+// 아시안게임 배너 카피 — 한국 경기 DB 상태로 판정 (진행 중 > 다음 경기 > 종료 요약, 날짜 짐작 금지).
+async function agBannerCopy(): Promise<{ badge: string; title: string; sub: string; href: string }> {
+  const matches = await getAgMatches();
+  const korea = matches.filter((m) => m.isKorea);
+  const base = { badge: "Asian Games 2026", sub: "축구·농구·배구·야구 7개 대회 한국 경기 일정·결과", href: "/asian-games" };
+  const label = (m: AgMatch) => LEAGUE_DISPLAY[m.league]?.replace("아시안게임 ", "") ?? "";
+  const opp = (m: AgMatch) => (m.home.isKorea ? m.away.nameKo : m.home.nameKo);
+  const live = korea.filter((m) => m.status === "LIVE");
+  if (live.length) {
+    return { ...base, badge: "Asian Games 2026 · LIVE", title: `${label(live[0])} 대한민국 vs ${opp(live[0])} 진행 중${live.length > 1 ? ` 외 ${live.length - 1}경기` : ""}` };
   }
-  if (final.status === "LIVE") {
-    return {
-      badge: "FIFA World Cup 2026 · FINAL",
-      title: `월드컵 결승 진행 중 — ${home} vs ${away}`,
-      sub: "라이브 스코어·AI 우승 확률 한눈에",
-      href: "/world-cup?view=bracket",
-    };
+  const next = korea.find((m) => m.status === "SCHEDULED");
+  if (next) {
+    const kst = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(next.startTime);
+    return { ...base, title: `다음 한국 경기 — ${label(next)} ${opp(next)}전`, sub: `${kst}(한국시간) · ${base.sub}` };
   }
-  const kst = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(final.startTime);
-  const favored =
-    final.predHome != null && final.predAway != null
-      ? final.predHome > final.predAway
-        ? `${home} ${Math.round(final.predHome * 100)}%`
-        : `${away} ${Math.round(final.predAway * 100)}%`
-      : null;
-  return {
-    badge: "FIFA World Cup 2026 · FINAL",
-    title: `월드컵 결승 — ${home} vs ${away}`,
-    sub: `${kst} 킥오프(한국시간)${favored ? ` · AI 예측 ${favored} 우위` : ""} — 대진표·우승 확률 한눈에`,
-    href: "/world-cup?view=bracket",
-  };
+  return { ...base, title: "2026 아시안게임 한국 대표팀 결산", sub: "7개 대회 전 경기 결과 다시 보기" };
 }
 
 async function LeagueDirectory() {
-  const wcBanner = await wcBannerCopy();
+  const agBanner = await agBannerCopy();
   const tiles = [
     { href: "/leagues/EPL", name: "프리미어리그", sub: "EPL · 잉글랜드" },
     { href: "/leagues/LALIGA", name: "라리가", sub: "스페인" },
@@ -669,9 +624,9 @@ async function LeagueDirectory() {
         subtitle="원하는 리그의 프리뷰·리뷰·시즌 분석으로 바로 이동"
       />
 
-      {/* 월드컵 강조 카드 — 대회 단계별 카피 (wcBannerCopy) */}
+      {/* 아시안게임 강조 카드 — 한국 경기 상태별 카피 (agBannerCopy) */}
       <Link
-        href={wcBanner.href}
+        href={agBanner.href}
         className="group relative mb-4 block overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       >
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600" />
@@ -680,13 +635,13 @@ async function LeagueDirectory() {
           <Trophy className="h-9 w-9 shrink-0 drop-shadow" aria-hidden />
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.25em] opacity-85">
-              {wcBanner.badge}
+              {agBanner.badge}
             </div>
             <div className="text-lg font-semibold tracking-tight sm:text-xl">
-              {wcBanner.title}
+              {agBanner.title}
             </div>
             <div className="mt-0.5 text-xs opacity-90 sm:text-sm">
-              {wcBanner.sub}
+              {agBanner.sub}
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm font-semibold sm:ml-auto">
