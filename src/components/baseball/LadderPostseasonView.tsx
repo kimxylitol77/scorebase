@@ -1,4 +1,5 @@
 // KBO·NPB 포스트시즌 대진표 페이지 본문(서버) — 헤더·라운드 일정·대진표·시드 현황·시리즈별 경기·방식 설명. MLB 대진표 페이지와 같은 구성.
+import PostseasonLeagueTabs from "@/components/baseball/PostseasonLeagueTabs";
 import Link from "next/link";
 import { CalendarDays, Info, Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -100,7 +101,8 @@ export default function LadderPostseasonView({ league, season, page, path }: { l
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <header className="space-y-3">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+        <PostseasonLeagueTabs current={league} />
+        <span className="flex w-fit items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> {c.eyebrow} {season}
         </span>
         <h1 className="flex items-center gap-2.5 text-3xl font-bold tracking-tight break-keep sm:text-4xl">

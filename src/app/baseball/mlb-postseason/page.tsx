@@ -1,5 +1,6 @@
 // MLB 포스트시즌 대진표 — 와일드카드·디비전·챔피언십·월드시리즈 트리(월드컵 브래킷 문법) + 시드 경쟁 + 한국 선수 소속팀.
 // 데이터: MLB 공식 statsapi(순위표·포스트시즌 시리즈·시즌 날짜) + 우리 Elo·로고·경기 링크 — lib/sports/mlb-postseason.ts
+import PostseasonLeagueTabs from "@/components/baseball/PostseasonLeagueTabs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BarChart3, CalendarDays, Info, Trophy } from "lucide-react";
@@ -116,7 +117,8 @@ export default async function MlbPostseasonPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <header className="space-y-3">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+        <PostseasonLeagueTabs current="MLB" />
+        <span className="flex w-fit items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> MLB Postseason {SEASON}
         </span>
         <h1 className="flex items-center gap-2.5 text-3xl font-bold tracking-tight break-keep sm:text-4xl">
