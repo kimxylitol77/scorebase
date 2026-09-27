@@ -682,6 +682,8 @@ export interface PeriodLinescore {
   awayPeriods: (number | null)[];
   homeScore: number;
   awayScore: number;
+  /** 배구 서브권 — 진행 중일 때만 (ts detail_live score[2]: 1=홈·2=원정) */
+  serving?: "home" | "away" | null;
 }
 
 /**

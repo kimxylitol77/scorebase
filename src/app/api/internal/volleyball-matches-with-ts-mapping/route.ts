@@ -36,18 +36,28 @@ export async function GET(req: NextRequest) {
     select: {
       id: true,
       externalId: true,
-      theSportsCache: { select: { tsMatchId: true } },
+      status: true,
+      theSportsCache: { select: { tsMatchId: true, detailLive: true } },
     },
   });
 
+  // needsFinal — 종료됐는데 캐시가 종료 상태(status_id 100)가 아니거나 통계가 비었다. 폴러는 detail_live 목록에
+  // 있는 동안만 저장해서 끝나기 직전 값에 멈추거나 통계가 비었다(아시안게임 여자 37경기 중 20경기만 통계, 2026-09-27).
+  // 폴러가 이 경기들을 match/live/history 로 최종값을 받아 덮는다. 배구만(하키는 구조가 다르다).
+  const isVolleyball = leagues === VOLLEYBALL_LEAGUES;
   const matches = rows
     .map((r) => {
       const tsMatchId =
         r.theSportsCache?.tsMatchId ??
         (r.externalId.startsWith("ts-") ? r.externalId.slice(3) : null);
-      return tsMatchId ? { matchId: r.id, tsMatchId } : null;
+      if (!tsMatchId) return null;
+      const dl = r.theSportsCache?.detailLive as { score?: unknown[]; stats?: unknown[] } | null | undefined;
+      const final = Array.isArray(dl?.score) && Number(dl!.score[1]) === 100;
+      const hasStats = Array.isArray(dl?.stats) && dl!.stats.length > 0;
+      const needsFinal = isVolleyball && r.status === "FINISHED" && (!final || !hasStats);
+      return { matchId: r.id, tsMatchId, needsFinal };
     })
-    .filter((m): m is { matchId: number; tsMatchId: string } => m !== null);
+    .filter((m): m is { matchId: number; tsMatchId: string; needsFinal: boolean } => m !== null);
 
   return NextResponse.json({ count: matches.length, matches });
 }

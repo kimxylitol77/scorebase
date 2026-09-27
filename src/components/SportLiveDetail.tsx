@@ -39,6 +39,8 @@ interface PeriodLinescore {
   awayPeriods: (number | null)[];
   homeScore: number;
   awayScore: number;
+  /** 배구 서브권 (진행 중일 때만) */
+  serving?: "home" | "away" | null;
 }
 
 interface SoccerGoal {
@@ -917,7 +919,10 @@ function PeriodTable({
           </thead>
           <tbody>
             <tr className="border-t border-neutral-100 dark:border-neutral-800">
-              <td className="py-1.5 font-semibold truncate max-w-[120px]">{homeNameKo}</td>
+              <td className="py-1.5 font-semibold truncate max-w-[120px]">
+                {homeNameKo}
+                {isVolleyball && linescore.serving === "home" && <ServeBadge />}
+              </td>
               {Array.from({ length: cols }, (_, i) => (
                 <td key={i} className="text-center px-1.5 sm:px-2">
                   {linescore.homePeriods[i] ?? "—"}
@@ -926,7 +931,10 @@ function PeriodTable({
               <td className="text-right pl-2 font-bold">{linescore.homeScore}</td>
             </tr>
             <tr className="border-t border-neutral-100 dark:border-neutral-800">
-              <td className="py-1.5 font-semibold truncate max-w-[120px]">{awayNameKo}</td>
+              <td className="py-1.5 font-semibold truncate max-w-[120px]">
+                {awayNameKo}
+                {isVolleyball && linescore.serving === "away" && <ServeBadge />}
+              </td>
               {Array.from({ length: cols }, (_, i) => (
                 <td key={i} className="text-center px-1.5 sm:px-2">
                   {linescore.awayPeriods[i] ?? "—"}
@@ -941,3 +949,11 @@ function PeriodTable({
   );
 }
 
+// 배구 서브권 표시 — 세트 점수표의 팀 이름 옆 (진행 중일 때만 값이 온다)
+function ServeBadge() {
+  return (
+    <span className="ml-1.5 inline-flex items-center rounded bg-emerald-500/15 px-1 py-px align-middle text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+      서브
+    </span>
+  );
+}

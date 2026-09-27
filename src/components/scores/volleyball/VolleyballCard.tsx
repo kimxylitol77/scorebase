@@ -219,6 +219,7 @@ export default function VolleyballCard(props: VolleyballCardProps) {
           <div className="text-sm font-black tabular-nums" style={{ color: "#22c55e" }}>
             {setText ?? "진행 중"}
             {points ? ` · ${points}` : ""}
+            {data?.serving ? ` · 서브 ${data.serving === "home" ? home.name : away.name}` : ""}
           </div>
         </div>
       )}

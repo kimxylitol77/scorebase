@@ -364,7 +364,13 @@ export async function GET(
           const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
           const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
           if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
-            out.periodLinescore = { homePeriods: homeSets, awayPeriods: awaySets, homeScore: ftH, awayScore: ftA };
+            // 서브권 — LIVE 세트(432~440)일 때만. ts score[2]: 1=홈·2=원정
+            const srv = Number(arr[2]);
+            const liveSet = sid >= 432 && sid <= 440;
+            out.periodLinescore = {
+              homePeriods: homeSets, awayPeriods: awaySets, homeScore: ftH, awayScore: ftA,
+              serving: liveSet && (srv === 1 || srv === 2) ? (srv === 1 ? "home" : "away") : null,
+            };
             out.homeScore = ftH;
             out.awayScore = ftA;
           }

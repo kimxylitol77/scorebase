@@ -28,9 +28,9 @@ if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); 
 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 
-async function fetchOurMatches() {
+async function fetchOurMatches(days = 2) {
   const { data } = await axios.get(`${SITE_URL}/api/internal/volleyball-matches-with-ts-mapping`, {
-    params: { days: 2 }, headers: SITE_HEADERS, timeout: 30_000,
+    params: { days }, headers: SITE_HEADERS, timeout: 30_000,
   });
   return data.matches || [];
 }
@@ -52,6 +52,40 @@ function extractScore(entry) {
   const a = parseInt(String(ft[1]), 10);
   if (!Number.isFinite(h) || !Number.isFinite(a)) return null;
   return { homeScore: h, awayScore: a };
+}
+
+// 종료 경기 최종값 — detail_live 와 같은 구조(score·stats, 세트별 통계 포함). 2026-09-27 인가 확인.
+async function fetchTsHistory(tsMatchId) {
+  const { data } = await axios.get(`${TS_BASE}/v1/volleyball/match/live/history`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId }, timeout: 30_000,
+  });
+  return data && data.results && typeof data.results === "object" && !Array.isArray(data.results) ? data.results : null;
+}
+
+// 백필 시도 기록 — 원천에도 통계가 없는 경기를 매분 다시 부르지 않게 30분 간격·최대 6회.
+const BACKFILL_PER_POLL = 5;
+const BACKFILL_RETRY_MS = 30 * 60_000;
+const BACKFILL_MAX_TRIES = 6;
+const backfillTries = new Map(); // tsMatchId → { n, at }
+
+async function backfillFinished(ourMatches, skipTsIds) {
+  const now = Date.now();
+  const todo = ourMatches.filter((m) => {
+    if (!m.needsFinal || skipTsIds.has(m.tsMatchId)) return false;
+    const t = backfillTries.get(m.tsMatchId);
+    return !t || (t.n < BACKFILL_MAX_TRIES && now - t.at >= BACKFILL_RETRY_MS);
+  }).slice(0, BACKFILL_PER_POLL);
+  let done = 0;
+  for (const m of todo) {
+    const t = backfillTries.get(m.tsMatchId) || { n: 0, at: 0 };
+    backfillTries.set(m.tsMatchId, { n: t.n + 1, at: now });
+    try {
+      const entry = await fetchTsHistory(m.tsMatchId);
+      if (entry && Array.isArray(entry.score)) { await postCache(m.matchId, m.tsMatchId, entry, extractScore(entry)); done++; }
+    } catch (e) { console.error(`    ✗ history id=${m.tsMatchId}: ${e.message}`); }
+    await new Promise((r) => setTimeout(r, 1200)); // 워커 IP 버스트 금지
+  }
+  return { todo: todo.length, done };
 }
 
 async function postCache(matchId, tsMatchId, detailLive, scoreObj) {
@@ -82,7 +116,9 @@ async function poll() {
     try { await postCache(matchId, entry.id, entry, extractScore(entry)); pushed++; }
     catch (e) { console.error(`    ✗ cache POST id=${entry.id}: ${e.message}`); }
   }
-  console.log(`[${ts}] 🏐 our=${ourMatches.length} live=${live.length} pushed=${pushed}`);
+  const liveIds = new Set(live.map((e) => e.id));
+  const bf = await backfillFinished(ourMatches, liveIds);
+  console.log(`[${ts}] 🏐 our=${ourMatches.length} live=${live.length} pushed=${pushed} final=${bf.done}/${bf.todo}`);
 }
 
 async function main() {

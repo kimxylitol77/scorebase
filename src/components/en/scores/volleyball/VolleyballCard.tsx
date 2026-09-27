@@ -217,6 +217,7 @@ export default function VolleyballCard(props: VolleyballCardProps) {
           <div className="text-sm font-black tabular-nums" style={{ color: "#22c55e" }}>
             {setText ?? "Live"}
             {points ? ` · ${points}` : ""}
+            {periodLinescore?.serving ? ` · Serve ${periodLinescore.serving === "home" ? home.name : away.name}` : ""}
           </div>
         </div>
       )}
