@@ -3,7 +3,8 @@
 # 워킹트리와 로컬 HEAD 를 건드리지 않아 실행 중인 백필 프로세스와 경합하지 않는다.
 # 맥미니 봇 12종이 수시로 git reset --hard origin/main 을 하므로, origin 에 올려두는 것이 유일한 보존책이다.
 set -o pipefail
-cd ~/dev/scorebase || exit 1
+# 백필은 전용 worktree 에서 돈다(heatmap-backfill.sh 가 HEATMAP_DIR 로 넘김). 단독 실행이면 공용 저장소.
+cd "${HEATMAP_DIR:-$HOME/dev/scorebase}" || exit 1
 export PATH="/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:$PATH"
 
 FILES=(data/thestatsapi-player-map.json data/player-heatmap-analysis.json data/player-match-heatmaps.json)

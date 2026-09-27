@@ -26,9 +26,22 @@ hb_trap mac-mini-heatmap-backfill /tmp/heatmap-backfill.log
 #   (리그1 24/25 2명 유실) 로그만 성공이었다. 이제 종료코드로 판정하고 실패면 봇이 운다.
 set -e          # hb-lib 전제 — set -e 없이 쓰면 용인된 실패에 ERR 가 조기 발사된다
 set -o pipefail
-cd ~/dev/scorebase
+# ── 전용 작업 폴더 — 공용 저장소는 다른 봇 16개가 수시로 `git reset --hard` 해서, 실행 중에 쓴
+#    매핑·히트맵 파일이 커밋 전에 되돌려졌다(2026-09-26 수동 재실행 매핑 185건 소실, 9/27 주간 잡
+#    1,796→1,769). 별도 git worktree 는 공용 폴더의 reset 이 닿지 않는다. 시작 때 origin 최신으로 맞춘다
+#    (중간 저장이 origin 에 올라가 있으므로 이어 달리기에 필요한 데이터는 거기 있다).
+MAIN=~/dev/scorebase
+WT=~/dev/scorebase-heatmap-wt
+if [ ! -e "$WT/.git" ]; then
+  git -C "$MAIN" worktree prune
+  git -C "$MAIN" worktree add --detach "$WT" origin/main -q
+fi
+git -C "$WT" fetch origin main -q && git -C "$WT" reset --hard origin/main -q
+for f in node_modules .env.local; do [ -e "$WT/$f" ] || ln -s "$MAIN/$f" "$WT/$f"; done
+cd "$WT"
+export HEATMAP_DIR="$WT"
 export PATH="/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:$PATH"
-if [ -f mac-mini-worker/.env ]; then set -a; . mac-mini-worker/.env; set +a; fi
+if [ -f "$MAIN/mac-mini-worker/.env" ]; then set -a; . "$MAIN/mac-mini-worker/.env"; set +a; fi
 # 이 맥의 IPv6 경로가 thestatsapi(Cloudflare)로 안 붙는다 — 1차 실행이 EHOSTUNREACH 로 죽었다.
 export NODE_OPTIONS="--dns-result-order=ipv4first"
 
