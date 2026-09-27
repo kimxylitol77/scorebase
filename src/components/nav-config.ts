@@ -36,6 +36,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/soccer", label: "축구 허브", desc: "빅5 리그·순위·예측 한눈에" },
       { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·강등 확률" },
       { href: "/world-cup", label: "FIFA 월드컵 2026", desc: "북중미 · 일정·우승 확률" },
+      { href: "/asian-games", label: "2026 아시안게임", desc: "축구·농구·배구·야구 · 한국 경기" },
       { href: "/standings", label: "리그 순위", desc: "EPL·라리가·K리그 등" },
       { href: "/leagues", label: "리그 전체", desc: "종목·국가별 230여 개 리그 페이지" },
       { href: "/soccer/korea", label: "해외파 한국 선수", desc: "유럽·MLS 시즌 성적 · 다음 경기" },
