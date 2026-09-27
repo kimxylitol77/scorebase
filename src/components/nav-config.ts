@@ -109,6 +109,7 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
     { href: "/career", label: "축구선수 인생 살아보기", desc: "유스부터 은퇴까지 · 회원가입 없이" },
+    { href: "/basketball/draft", label: "농구 블라인드 드래프트", desc: "NBA·KBL 역대 선수로 최강 5인 · 회원가입 없이" },
   ],
 };
 
