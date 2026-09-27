@@ -1332,7 +1332,7 @@
   {
     "route": "/world-cup",
     "desc": "2026 월드컵 허브 — 한 페이지 탭(조별리그·개요·예측·선수·xG). 애플 세그먼트 + lucide 라인 아이콘. 기본 탭=조별리그 실제 순위(승무패·득실·승점, DB 집계). 무거운 시뮬(5000회)은 개요·예측 탭에서만. 10분 ISR.",
-    "inMenu": true,
+    "inMenu": false,
     "dynamic": false,
     "group": "worldcup"
   },
