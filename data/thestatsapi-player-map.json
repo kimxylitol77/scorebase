@@ -451,12 +451,12 @@
  },
  "965mkyhggodr1ge": {
   "statsId": "pl_72022094",
-  "teamId": "tm_3039",
-  "teamName": "Manchester City",
+  "teamId": "tm_338426",
+  "teamName": "Al-Qadsiah",
   "name": "Tijjani Reijnders",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
  },
  "y0or5jh1p7xqwzv": {
   "statsId": "pl_08307983",
@@ -541,12 +541,12 @@
  },
  "x7lm7phn0pgm2wd": {
   "statsId": "pl_57344297",
-  "teamId": "tm_9145",
-  "teamName": "Arsenal",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
   "name": "Gabriel Martinelli",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
  },
  "k82rekh3wyxrepz": {
   "statsId": "pl_96201104",
@@ -1642,9 +1642,9 @@
   "teamId": "tm_466902",
   "teamName": "Al-Hilal",
   "name": "Crysencio Summerville",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
  },
  "23xmvkhdjow4qg8": {
   "statsId": "pl_72797991",
@@ -2461,9 +2461,9 @@
   "teamId": "tm_2221233",
   "teamName": "Neom SC",
   "name": "Malang Sarr",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
  },
  "l5ergphn46v7r8k": {
   "statsId": "pl_64516093",
@@ -6562,12 +6562,12 @@
  },
  "318q66hvnpj7qo9": {
   "statsId": "pl_61539504",
-  "teamId": "tm_338426",
-  "teamName": "Al-Qadsiah",
+  "teamId": "tm_051238",
+  "teamName": "Al Wasl",
   "name": "Cameron Puertas",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
  },
  "1l4rjnhz3jpom7v": {
   "statsId": "pl_72607464",
@@ -17359,5 +17359,779 @@
   "competitionId": "comp_9235",
   "seasonId": "sn_1361088",
   "seasonLabel": "2026-27 SUPER_LIG"
+ },
+ "y0or5jh3j3voqwz": {
+  "statsId": "pl_19334486",
+  "teamId": "tm_480982",
+  "teamName": "Al-Ittihad",
+  "name": "Roger Fernandes",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "n54qllh8d8pqvy9": {
+  "statsId": "pl_30875321",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Theo Hernandez",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "x7lm7phwvz0zm2w": {
+  "statsId": "pl_25962169",
+  "teamId": "tm_754497",
+  "teamName": "Al-Ahli",
+  "name": "Valentin Atangana Edoa",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "k82rekh3leorepz": {
+  "statsId": "pl_13654399",
+  "teamId": "tm_480982",
+  "teamName": "Al-Ittihad",
+  "name": "Youssef En-Nesyri",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "8yomo4hvw953q0j": {
+  "statsId": "pl_25890293",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Saimon Bouabre",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "x7lm7ph5k1ym2wd": {
+  "statsId": "pl_13746965",
+  "teamId": "tm_2221233",
+  "teamName": "Neom SC",
+  "name": "Marcin Bułka",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "k82rekhy2verepz": {
+  "statsId": "pl_3118138",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Sergej Milinković-Savić",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4jwq2ghxvk2wm0v": {
+  "statsId": "pl_25377305",
+  "teamId": "tm_01988",
+  "teamName": "Cruzeiro",
+  "name": "Luciano Rodríguez",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "y0or5jh3d52xqwz": {
+  "statsId": "pl_62953949",
+  "teamId": "tm_480982",
+  "teamName": "Al-Ittihad",
+  "name": "Mahamadou Doumbia",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "l7oqdeh43xw9r51": {
+  "statsId": "pl_84705284",
+  "teamId": "tm_338426",
+  "teamName": "Al-Qadsiah",
+  "name": "Gastón Álvarez",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghgjejr6od": {
+  "statsId": "pl_1386931",
+  "teamId": "tm_536229",
+  "teamName": "Al-Sadd",
+  "name": "Marcelo Brozović",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "pxwrxlhj64weryk": {
+  "statsId": "pl_19834786",
+  "teamId": "tm_548644",
+  "teamName": "Al-Shabab",
+  "name": "Ricardo Mathias",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "jw2r09hpx4orz84": {
+  "statsId": "pl_08332922",
+  "teamId": "tm_552949",
+  "teamName": "Al-Fateh",
+  "name": "Zaydou Youssouf",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4wyrn4hdz9xq86p": {
+  "statsId": "pl_0298392",
+  "teamId": "tm_156414",
+  "teamName": "Al-Nassr",
+  "name": "Sadio Mané",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "l7oqdeh4g363r51": {
+  "statsId": "pl_72713160",
+  "teamId": "tm_51322",
+  "teamName": "Genoa",
+  "name": "Mario Mitaj",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7h1evyqdyj": {
+  "statsId": "pl_5837688",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Riyad Mahrez",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghg4gpr6od": {
+  "statsId": "pl_4581625",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Abdoulaye Doucouré",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "y39mp1hy5j7mojx": {
+  "statsId": "pl_13418895",
+  "teamId": "tm_338426",
+  "teamName": "Al-Qadsiah",
+  "name": "Nahitan Nández",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "y39mp1hyjewgmoj": {
+  "statsId": "pl_19457481",
+  "teamId": "tm_7951491",
+  "teamName": "Al-Kholood",
+  "name": "Ramiro Enrique",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4jwq2ghv9l8m0ve": {
+  "statsId": "pl_8046989",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Santi Mina",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "pxwrxlhjxk5xryk": {
+  "statsId": "pl_40515679",
+  "teamId": "tm_89808",
+  "teamName": "Club Brugge KV",
+  "name": "Matteo Dams",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "n54qllhe65zyqvy": {
+  "statsId": "pl_30200787",
+  "teamId": "tm_754497",
+  "teamName": "Al-Ahli",
+  "name": "Firas Al-Buraikan",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4jwq2gh15w7m0ve": {
+  "statsId": "pl_72563416",
+  "teamId": "tm_311845",
+  "teamName": "Platense",
+  "name": "Juan Cozzani",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "6ypq3nhl2xomd7o": {
+  "statsId": "pl_30163038",
+  "teamId": "tm_2221233",
+  "teamName": "Neom SC",
+  "name": "Luis Maximiano",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "jw2r09hxvzgrz84": {
+  "statsId": "pl_0979710",
+  "teamId": "tm_803264",
+  "teamName": "Al-Ettifaq",
+  "name": "Marek Rodák",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "318q66hv2k73qo9": {
+  "statsId": "pl_84757023",
+  "teamId": "tm_803264",
+  "teamName": "Al-Ettifaq",
+  "name": "Khalid Al-Ghannam",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "965mkyhn3pk0r1g": {
+  "statsId": "pl_83008879",
+  "teamId": "tm_01988",
+  "teamName": "Cruzeiro",
+  "name": "Joao Costa",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "2y8m4zhjlekql07": {
+  "statsId": "pl_8957628",
+  "teamId": "tm_6206529",
+  "teamName": "Al Shamal SC",
+  "name": "Pablo Mari",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "n54qllhepk3qvy9": {
+  "statsId": "pl_4065712",
+  "teamId": "tm_6209912",
+  "teamName": "Al-Hazem",
+  "name": "Bruno Varela",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4wyrn4hv9lkq86p": {
+  "statsId": "pl_96198770",
+  "teamId": "tm_6431885",
+  "teamName": "Damac FC",
+  "name": "Morlaye Sylla",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "k82rekh959jrepz": {
+  "statsId": "pl_4654176",
+  "teamId": "tm_226188",
+  "teamName": "Al-Raed",
+  "name": "Khaled Narey",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7hzpz9qdyj": {
+  "statsId": "pl_72511737",
+  "teamId": "tm_2885215",
+  "teamName": "Al-Najma SC",
+  "name": "David Tijanič",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "965mkyhn797r1ge": {
+  "statsId": "pl_57297238",
+  "teamId": "tm_2665578",
+  "teamName": "Shabab Al-Ahli Dubai",
+  "name": "Jorge Fernandes",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "2y8m4zhjzjyql07": {
+  "statsId": "pl_3031843",
+  "teamId": "tm_47798",
+  "teamName": "Olympiacos FC",
+  "name": "Kostas Fortounis",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "jw2r09hw21zrz84": {
+  "statsId": "pl_61983532",
+  "teamId": "tm_156414",
+  "teamName": "Al-Nassr",
+  "name": "Sultan Al-Ghannam",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4jwq2ghk8nvm0ve": {
+  "statsId": "pl_0212543",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Fábio Martins",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "n54qllhx1zw7qvy": {
+  "statsId": "pl_13863343",
+  "teamId": "tm_338426",
+  "teamName": "Al-Qadsiah",
+  "name": "Waleed Al-Ahmed",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghxnp3r6od": {
+  "statsId": "pl_29720715",
+  "teamId": "tm_156414",
+  "teamName": "Al-Nassr",
+  "name": "Abdulelah Al-Amri",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "23xmvkhd266dqg8": {
+  "statsId": "pl_72746601",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Moteb Al-Harbi",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "965mkyh4xlxer1g": {
+  "statsId": "pl_45171462",
+  "teamId": "tm_754497",
+  "teamName": "Al-Ahli",
+  "name": "Ali Majrashi",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "1l4rjnhkznk4m7v": {
+  "statsId": "pl_19338148",
+  "teamId": "tm_480982",
+  "teamName": "Al-Ittihad",
+  "name": "Saad Al-Mousa",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8gh8j2o8r6o": {
+  "statsId": "pl_96387412",
+  "teamId": "tm_2221233",
+  "teamName": "Neom SC",
+  "name": "Faisal Al-Ghamdi",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "zp5rzghz3nwq82w": {
+  "statsId": "pl_5431673",
+  "teamId": "tm_10458",
+  "teamName": "AZ Alkmaar",
+  "name": "Wesley Hoedt",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "y39mp1h5532mojx": {
+  "statsId": "pl_2980359",
+  "teamId": "tm_8375958",
+  "teamName": "Al-Khaleej",
+  "name": "Joshua King",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4wyrn4henvvq86p": {
+  "statsId": "pl_5832316",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Salem Al-Dawsari",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "jw2r09h74g2rz84": {
+  "statsId": "pl_45174485",
+  "teamId": "tm_2885215",
+  "teamName": "Al-Najma SC",
+  "name": "Nabil Donga",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7hjogl6qdy": {
+  "statsId": "pl_29102780",
+  "teamId": "tm_4560072",
+  "teamName": "RS Berkane",
+  "name": "Jamal Harkass",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "l5ergphey12r8k0": {
+  "statsId": "pl_52627862",
+  "teamId": "tm_0",
+  "teamName": "",
+  "name": "Mamadou Sylla Diallo",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4wyrn4he5xdq86p": {
+  "statsId": "pl_0134858",
+  "teamId": "tm_57428783",
+  "teamName": "Al Qabila FC",
+  "name": "Alejandro Pozuelo",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "k82rekhvw91repz": {
+  "statsId": "pl_215607",
+  "teamId": "tm_0153318",
+  "teamName": "Al-Fayha",
+  "name": "Chris Smalling",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "y0or5jhekxlqwzv": {
+  "statsId": "pl_9293602",
+  "teamId": "tm_6431885",
+  "teamName": "Damac FC",
+  "name": "Yakou Meite",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "6ypq3nh483jmd7o": {
+  "statsId": "pl_30123337",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Nasser Al-Dawsari",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "4jwq2ghx6yp8m0v": {
+  "statsId": "pl_58779146",
+  "teamId": "tm_2766781",
+  "teamName": "FC Andorra",
+  "name": "Enes Sali",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "zp5rzghp868vq82": {
+  "statsId": "pl_58919431",
+  "teamId": "tm_803264",
+  "teamName": "Al-Ettifaq",
+  "name": "Talal Haji",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "n54qllhx9k15qvy": {
+  "statsId": "pl_30301157",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Abdulrahman Ghareeb",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghg6gwr6od": {
+  "statsId": "pl_5831668",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Ahmed Hegazy",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "ednm9wh9pydryox": {
+  "statsId": "pl_8306052",
+  "teamId": "tm_0153318",
+  "teamName": "Al-Fayha",
+  "name": "Yassine Benzia",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7h152pqdyj": {
+  "statsId": "pl_4029284",
+  "teamId": "tm_775396",
+  "teamName": "Tochigi City FC",
+  "name": "Tokmac Chol Nguen",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7hl9ndqdyj": {
+  "statsId": "pl_72561539",
+  "teamId": "tm_9732194",
+  "teamName": "Al Tai",
+  "name": "Nabil Alioui",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "pxwrxlhzg9dpryk": {
+  "statsId": "pl_62299511",
+  "teamId": "tm_338426",
+  "teamName": "Al-Qadsiah",
+  "name": "Abdulmalik Al-Jaber",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7hj8p8qdyj": {
+  "statsId": "pl_0911014",
+  "teamId": "tm_61938060",
+  "teamName": "Al Ula",
+  "name": "Yoann Barbet",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "2y8m4zhg335ql07": {
+  "statsId": "pl_6401689",
+  "teamId": "tm_7951491",
+  "teamName": "Al-Kholood",
+  "name": "Norbert Gyömbér",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "pxwrxlhzn8vryk0": {
+  "statsId": "pl_72529237",
+  "teamId": "tm_0153318",
+  "teamName": "Al-Fayha",
+  "name": "Mikel Villanueva",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghx5kzr6od": {
+  "statsId": "pl_72502974",
+  "teamId": "tm_156414",
+  "teamName": "Al-Nassr",
+  "name": "Abdullah Al-Khaibari",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghgeevr6od": {
+  "statsId": "pl_6246212",
+  "teamId": "tm_773955",
+  "teamName": "Moghreb Atlético Tetuán",
+  "name": "Fayçal Fajr",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8gh2vl2r6od": {
+  "statsId": "pl_29833013",
+  "teamId": "tm_0153318",
+  "teamName": "Al-Fayha",
+  "name": "Orlando Mosquera",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "965mkyh31wovr1g": {
+  "statsId": "pl_45270509",
+  "teamId": "tm_2018659",
+  "teamName": "Hatta",
+  "name": "Juan Pedroza",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "318q66h4y2o2qo9": {
+  "statsId": "pl_20739507",
+  "teamId": "tm_844562",
+  "teamName": "Orlando Pirates",
+  "name": "Mohau Nkota",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "l7oqdeh143wr510": {
+  "statsId": "pl_96284484",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Myziane Maolida",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "zp5rzghp109q82w": {
+  "statsId": "pl_84594303",
+  "teamId": "tm_480982",
+  "teamName": "Al-Ittihad",
+  "name": "Mukhtar Ali",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "3glrw7hjnd67qdy": {
+  "statsId": "pl_84840083",
+  "teamId": "tm_156414",
+  "teamName": "Al-Nassr",
+  "name": "Nawaf Al-Aqidi",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "965mkyhe9k28r1g": {
+  "statsId": "pl_74559697",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Elias Mokwana",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "pxwrxlh1gwdryk0": {
+  "statsId": "pl_1373447",
+  "teamId": "tm_8375958",
+  "teamName": "Al-Khaleej",
+  "name": "Bart Schenkeveld",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "x7lm7phodpvm2wd": {
+  "statsId": "pl_36204305",
+  "teamId": "tm_1644078",
+  "teamName": "CD Autol",
+  "name": "Francisco Calvo",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "x7lm7ph0xvpnm2w": {
+  "statsId": "pl_29250808",
+  "teamId": "tm_40658",
+  "teamName": "Stade Brestois",
+  "name": "Mathieu Patouillet",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "6ypq3nh5k8gmd7o": {
+  "statsId": "pl_4077195",
+  "teamId": "tm_1986637",
+  "teamName": "Abha",
+  "name": "Michy Batshuayi",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "y0or5jh45wyqwzv": {
+  "statsId": "pl_5846787",
+  "teamId": "tm_08347503",
+  "teamName": "Al-Diraiyah Club",
+  "name": "Berat Djimsiti",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "965mkyh4xelr1ge": {
+  "statsId": "pl_3627662",
+  "teamId": "tm_1986637",
+  "teamName": "Abha",
+  "name": "Donovan Leon",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "318q66hvxv1qo9j": {
+  "statsId": "pl_2766232",
+  "teamId": "tm_08347503",
+  "teamName": "Al-Diraiyah Club",
+  "name": "Nikola Vasilj",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "n54qllhxvk9qvy9": {
+  "statsId": "pl_61849099",
+  "teamId": "tm_466902",
+  "teamName": "Al-Hilal",
+  "name": "Ollie Watkins",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "k82rekhozl4repz": {
+  "statsId": "pl_61804629",
+  "teamId": "tm_548644",
+  "teamName": "Al-Shabab",
+  "name": "Mory Diaw",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "l5ergphno15r8k0": {
+  "statsId": "pl_61301010",
+  "teamId": "tm_552949",
+  "teamName": "Al-Fateh",
+  "name": "Adrian Šemper",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "l7oqdeh46jdr510": {
+  "statsId": "pl_9108731",
+  "teamId": "tm_08347503",
+  "teamName": "Al-Diraiyah Club",
+  "name": "Chancel Mbemba",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghggnlr6od": {
+  "statsId": "pl_25235321",
+  "teamId": "tm_46107",
+  "teamName": "Udinese",
+  "name": "Idrissa Gueye",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "8yomo4h235wq0j6": {
+  "statsId": "pl_8094620",
+  "teamId": "tm_548644",
+  "teamName": "Al-Shabab",
+  "name": "Thomas Partey",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "vjxm8ghjx9vr6od": {
+  "statsId": "pl_7931293",
+  "teamId": "tm_8375958",
+  "teamName": "Al-Khaleej",
+  "name": "Omar Mascarell",
+  "competitionId": "comp_45025",
+  "seasonId": "sn_4515588",
+  "seasonLabel": "2026-27 SAUDI_PL"
  }
 }
