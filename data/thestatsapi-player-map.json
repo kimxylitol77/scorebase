@@ -4846,9 +4846,9 @@
   "teamId": "tm_029137",
   "teamName": "Girona FC",
   "name": "Vladyslav Vanat",
-  "competitionId": "comp_8814",
-  "seasonId": "sn_8407970",
-  "seasonLabel": "2026-27 LALIGA"
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
  },
  "l5ergphejx2jr8k": {
   "statsId": "pl_58441394",
@@ -5215,9 +5215,9 @@
   "teamId": "tm_029137",
   "teamName": "Girona FC",
   "name": "Bryan Gil",
-  "competitionId": "comp_8814",
-  "seasonId": "sn_8407970",
-  "seasonLabel": "2026-27 LALIGA"
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
  },
  "n54qllhkg7lqvy9": {
   "statsId": "pl_61545214",
@@ -18781,5 +18781,797 @@
   "competitionId": "comp_5450",
   "seasonId": "sn_3025358",
   "seasonLabel": "2026-27 SERIE_B"
+ },
+ "y0or5jh1eo3qwzv": {
+  "statsId": "pl_96284297",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Mehdi Léris",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "l7oqdeh4dwxr510": {
+  "statsId": "pl_3847527",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Arturo Calabresi",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "y39mp1h1ewwmojx": {
+  "statsId": "pl_13636991",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Antoine Bernede",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "y39mp1hyov58moj": {
+  "statsId": "pl_40078589",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Isak Vural",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "pxwrxlh99vlxryk": {
+  "statsId": "pl_08391190",
+  "teamId": "tm_98434",
+  "teamName": "Cesena",
+  "name": "Gianluca Frabotta",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "ednm9whz609wryo": {
+  "statsId": "pl_96412779",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Abdou Harroui",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "3glrw7h1zl6qdyj": {
+  "statsId": "pl_6160826",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Antonio Caracciolo",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "4jwq2ghxlkl4m0v": {
+  "statsId": "pl_01773943",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Yuri Rocchetti",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "jw2r09hjknljrz8": {
+  "statsId": "pl_84798782",
+  "teamId": "tm_46171",
+  "teamName": "Palermo",
+  "name": "Niccolo Pierozzi",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "2y8m4zh1g8eql07": {
+  "statsId": "pl_29708510",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Manuel De Luca",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "2y8m4zh8vd9vql0": {
+  "statsId": "pl_58723299",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Rosen Bozhinov",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "318q66h4l4yxqo9": {
+  "statsId": "pl_62025395",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Francesco Coppola",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "l5ergphno73r8k0": {
+  "statsId": "pl_72962357",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Giuseppe Pezzella",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "965mkyh3kklwr1g": {
+  "statsId": "pl_08510381",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Tomas Suslov",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "dj2ryohj902q1zp": {
+  "statsId": "pl_8077837",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Stefano Moreo",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "2y8m4zh8ze6ql07": {
+  "statsId": "pl_45702622",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Federico Baschirotto",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "4jwq2ghv66ym0ve": {
+  "statsId": "pl_2681635",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Morten Thorsby",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "zp5rzghxenjq82w": {
+  "statsId": "pl_45809579",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Michele Collocolo",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "3glrw7hy5knlqdy": {
+  "statsId": "pl_62115391",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Tobias Slotsager",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "8yomo4hvnj1dq0j": {
+  "statsId": "pl_36051803",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Felipe Loyola",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "dn1m1ghewdkmoep": {
+  "statsId": "pl_4657018",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Alberto Grassi",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "965mkyh36kepr1g": {
+  "statsId": "pl_97002980",
+  "teamId": "tm_15838",
+  "teamName": "Mantova",
+  "name": "david wieser",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "3glrw7hz7vzkqdy": {
+  "statsId": "pl_58723954",
+  "teamId": "tm_20131",
+  "teamName": "Cremonese",
+  "name": "Dachi Lordkipanidze",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "l5ergphe2lelr8k": {
+  "statsId": "pl_84798083",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Gabriele Piccinini",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "3glrw7hj6394qdy": {
+  "statsId": "pl_13869943",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Tomás Esteves",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "k82rekh34p31rep": {
+  "statsId": "pl_51452755",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Fallou Cham",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "y0or5jhe85kzqwz": {
+  "statsId": "pl_58376942",
+  "teamId": "tm_64545",
+  "teamName": "Modena",
+  "name": "Francesco Folino",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "6ypq3nhz3ykmd7o": {
+  "statsId": "pl_7537403",
+  "teamId": "tm_64035",
+  "teamName": "Catanzaro",
+  "name": "Federico Di Francesco",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "n54qllh8g6pdqvy": {
+  "statsId": "pl_51446787",
+  "teamId": "tm_37240",
+  "teamName": "Pisa",
+  "name": "Daniel Denoon",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "8yomo4h2419dq0j": {
+  "statsId": "pl_72742021",
+  "teamId": "tm_20809",
+  "teamName": "Hellas Verona",
+  "name": "Daniel Mosquera",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "x7lm7phok31m2wd": {
+  "statsId": "pl_8408905",
+  "teamId": "tm_46171",
+  "teamName": "Palermo",
+  "name": "Jesse Joronen",
+  "competitionId": "comp_5450",
+  "seasonId": "sn_3025358",
+  "seasonLabel": "2026-27 SERIE_B"
+ },
+ "6ypq3nh5oozmd7o": {
+  "statsId": "pl_5896151",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Paulo Gazzaniga",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "8yomo4h2424q0j6": {
+  "statsId": "pl_5255654",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Álex Moreno",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "zp5rzghpvvvq82w": {
+  "statsId": "pl_30825072",
+  "teamId": "tm_89845",
+  "teamName": "Albacete Balompié",
+  "name": "Lluís Lopez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "k82rekhygy77rep": {
+  "statsId": "pl_30432313",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Alejandro Francés",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "vjxm8ghjwkvr6od": {
+  "statsId": "pl_9203768",
+  "teamId": "tm_64068",
+  "teamName": "Mallorca",
+  "name": "Martin Valjent",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "y0or5jh4jn1qwzv": {
+  "statsId": "pl_2598708",
+  "teamId": "tm_73719",
+  "teamName": "Eibar",
+  "name": "Anaitz Arbilla",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "8yomo4h2jpyq0j6": {
+  "statsId": "pl_6965351",
+  "teamId": "tm_20127",
+  "teamName": "Real Valladolid",
+  "name": "Iván Alejo",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "l7oqdehn03gr510": {
+  "statsId": "pl_630859",
+  "teamId": "tm_89830",
+  "teamName": "Almería",
+  "name": "Andrés Fernández",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "2y8m4zhj868ql07": {
+  "statsId": "pl_3030483",
+  "teamId": "tm_98969",
+  "teamName": "Sporting Gijón",
+  "name": "Rubén Yáñez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "318q66h0egeqo9j": {
+  "statsId": "pl_5853926",
+  "teamId": "tm_73736",
+  "teamName": "AD Ceuta",
+  "name": "Carlos Hernández",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "ednm9whz4kdryox": {
+  "statsId": "pl_9293829",
+  "teamId": "tm_98332",
+  "teamName": "CD Tenerife",
+  "name": "José León",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "y39mp1hkn56mojx": {
+  "statsId": "pl_13799050",
+  "teamId": "tm_98332",
+  "teamName": "CD Tenerife",
+  "name": "Dani Martín",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "2y8m4zh8dw14ql0": {
+  "statsId": "pl_01334837",
+  "teamId": "tm_32315",
+  "teamName": "CD Castellón",
+  "name": "Ousmane Camara",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "ednm9whze41ryox": {
+  "statsId": "pl_7939009",
+  "teamId": "tm_752314",
+  "teamName": "Granada",
+  "name": "Rubén Alcaraz",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "3glrw7hz96vqdyj": {
+  "statsId": "pl_08382733",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Fran Beltran",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "dj2ryohyn28q1zp": {
+  "statsId": "pl_3032317",
+  "teamId": "tm_219292",
+  "teamName": "CD Eldense",
+  "name": "Fidel",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "ednm9whdnoxryox": {
+  "statsId": "pl_29860821",
+  "teamId": "tm_89845",
+  "teamName": "Albacete Balompié",
+  "name": "Fran Gámez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "23xmvkho65yqg8n": {
+  "statsId": "pl_6238424",
+  "teamId": "tm_46455",
+  "teamName": "Leganés",
+  "name": "Ignasi Miquel",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "1l4rjnhz55xvm7v": {
+  "statsId": "pl_08909274",
+  "teamId": "tm_20127",
+  "teamName": "Real Valladolid",
+  "name": "Julien Ponceau",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "y0or5jh1vvnqwzv": {
+  "statsId": "pl_61969313",
+  "teamId": "tm_98969",
+  "teamName": "Sporting Gijón",
+  "name": "César Gelabert",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "23xmvkh4gzeqg8n": {
+  "statsId": "pl_13016004",
+  "teamId": "tm_752314",
+  "teamName": "Granada",
+  "name": "José Manuel Arnáiz",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "y0or5jhg6vjqwzv": {
+  "statsId": "pl_61988416",
+  "teamId": "tm_98332",
+  "teamName": "CD Tenerife",
+  "name": "Nacho Gil",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "23xmvkhk3wnqg8n": {
+  "statsId": "pl_84278029",
+  "teamId": "tm_73736",
+  "teamName": "AD Ceuta",
+  "name": "Yann Bodiger",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "4wyrn4he8zpq86p": {
+  "statsId": "pl_8406460",
+  "teamId": "tm_73719",
+  "teamName": "Eibar",
+  "name": "Juan Bernat",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "4wyrn4hd7n9q86p": {
+  "statsId": "pl_3811401",
+  "teamId": "tm_89830",
+  "teamName": "Almería",
+  "name": "Álex Muñoz",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "1l4rjnhe16wm7vx": {
+  "statsId": "pl_57412146",
+  "teamId": "tm_98332",
+  "teamName": "CD Tenerife",
+  "name": "Enric Gallego",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "pxwrxlh9ogkryk0": {
+  "statsId": "pl_9293278",
+  "teamId": "tm_73719",
+  "teamName": "Eibar",
+  "name": "Jon Bautista",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "dn1m1gh87k3moep": {
+  "statsId": "pl_57255638",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Abel Ruíz",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "4jwq2gh4yp2m0ve": {
+  "statsId": "pl_7225296",
+  "teamId": "tm_89845",
+  "teamName": "Albacete Balompié",
+  "name": "Diego Mariño",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "x7lm7phw7vym2wd": {
+  "statsId": "pl_96116109",
+  "teamId": "tm_15137",
+  "teamName": "Córdoba",
+  "name": "Álex Martín",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "23xmvkhde036qg8": {
+  "statsId": "pl_25303795",
+  "teamId": "tm_64068",
+  "teamName": "Mallorca",
+  "name": "Pablo Torre",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "k82rekhozzp7rep": {
+  "statsId": "pl_62116868",
+  "teamId": "tm_73719",
+  "teamName": "Eibar",
+  "name": "Jon Magunazelaia",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "dj2ryohjljd5q1z": {
+  "statsId": "pl_13815108",
+  "teamId": "tm_64068",
+  "teamName": "Mallorca",
+  "name": "Zito Luvumbo",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "dn1m1ghnggjmoep": {
+  "statsId": "pl_6900260",
+  "teamId": "tm_89830",
+  "teamName": "Almería",
+  "name": "Adrián Embarba",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "3glrw7hjd27jqdy": {
+  "statsId": "pl_36115242",
+  "teamId": "tm_73719",
+  "teamName": "Eibar",
+  "name": "Malcom Ares",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "pxwrxlh16xyryk0": {
+  "statsId": "pl_1599173",
+  "teamId": "tm_20127",
+  "teamName": "Real Valladolid",
+  "name": "Carlos Clerc",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "x7lm7phkn21m2wd": {
+  "statsId": "pl_4705004",
+  "teamId": "tm_1306654",
+  "teamName": "Jaguares de Córdoba",
+  "name": "Cristian Álvarez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "k82rekhy7w2repz": {
+  "statsId": "pl_1708890",
+  "teamId": "tm_02018",
+  "teamName": "Burgos Club de Fútbol",
+  "name": "Pablo Galdames",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "jw2r09hlxzgrz84": {
+  "statsId": "pl_1795937",
+  "teamId": "tm_73736",
+  "teamName": "AD Ceuta",
+  "name": "Pedro López",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "k82rekh9p6grepz": {
+  "statsId": "pl_4021707",
+  "teamId": "tm_89830",
+  "teamName": "Almería",
+  "name": "Rodrigo Ely",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "318q66hvj83qo9j": {
+  "statsId": "pl_3868426",
+  "teamId": "tm_89830",
+  "teamName": "Almería",
+  "name": "Léo Baptistão",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "l7oqdeh41ezr510": {
+  "statsId": "pl_5216772",
+  "teamId": "tm_46455",
+  "teamName": "Leganés",
+  "name": "Rubén Peña",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "vjxm8ghjdl1r6od": {
+  "statsId": "pl_1733901",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Donny van de Beek",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "n54qllhj1xnqvy9": {
+  "statsId": "pl_29860997",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Javier Ontiveros",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "ednm9whkv5xryox": {
+  "statsId": "pl_40294411",
+  "teamId": "tm_15137",
+  "teamName": "Córdoba",
+  "name": "Víctor Sánchez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "dj2ryohyz88q1zp": {
+  "statsId": "pl_3702850",
+  "teamId": "tm_305504",
+  "teamName": "Las Palmas",
+  "name": "Sandro Ramírez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "4wyrn4hd06g2q86": {
+  "statsId": "pl_45112912",
+  "teamId": "tm_02018",
+  "teamName": "Burgos Club de Fútbol",
+  "name": "Victor Mollejo",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "vjxm8gh9gder6od": {
+  "statsId": "pl_30217382",
+  "teamId": "tm_20127",
+  "teamName": "Real Valladolid",
+  "name": "Stanko Jurić",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "k82rekhylv0orep": {
+  "statsId": "pl_13134315",
+  "teamId": "tm_46455",
+  "teamName": "Leganés",
+  "name": "Álex Millán",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "dn1m1gho98emoep": {
+  "statsId": "pl_61948869",
+  "teamId": "tm_19977",
+  "teamName": "Clermont Foot",
+  "name": "Rominigue Kouame",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "y0or5jh3zz2qwzv": {
+  "statsId": "pl_72994771",
+  "teamId": "tm_98969",
+  "teamName": "Sporting Gijón",
+  "name": "Mamadou Loum",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "4wyrn4hdy00nq86": {
+  "statsId": "pl_72607734",
+  "teamId": "tm_2766781",
+  "teamName": "FC Andorra",
+  "name": "Jesús Owono",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "318q66ho95jqo9j": {
+  "statsId": "pl_0829524",
+  "teamId": "tm_98332",
+  "teamName": "CD Tenerife",
+  "name": "Marc Mateu",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "l7oqdeh4d2vzr51": {
+  "statsId": "pl_96304494",
+  "teamId": "tm_64068",
+  "teamName": "Mallorca",
+  "name": "Antonio Sánchez",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "4wyrn4h933xq86p": {
+  "statsId": "pl_57456246",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Mateu Morey",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "jw2r09hnl4orz84": {
+  "statsId": "pl_1367378",
+  "teamId": "tm_86496",
+  "teamName": "Cádiz",
+  "name": "Suso",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
+ },
+ "1l4rjnhzy2xm7vx": {
+  "statsId": "pl_6452065",
+  "teamId": "tm_029137",
+  "teamName": "Girona FC",
+  "name": "Portu",
+  "competitionId": "comp_0976",
+  "seasonId": "sn_1368511",
+  "seasonLabel": "2026-27 LALIGA_2"
  }
 }
