@@ -90,6 +90,8 @@ function toCards(rows: RawRow[]): PoolCard[] {
     const zd = z(def);
     const mins = q.map((r) => r.gp * r.mpg);
     q.forEach((r, i) => {
+      // 평균 이하 시즌은 카드로 만들지 않는다 — 판이 무명 선수로 채워지면 이름만 보고 고르는 재미가 없다
+      if (zo[i] * OFF_SCALE + zd[i] * DEF_SCALE < 0) return;
       const below = mins.filter((m) => m < mins[i]).length;
       out.push({
         id: `${r.pid}-${r.season}`,
