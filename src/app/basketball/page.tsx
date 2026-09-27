@@ -8,8 +8,9 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
-import { Clock, ListOrdered, Target, ArrowLeftRight, Coins, GitCompare, Award, Swords, Activity, HeartPulse, type LucideIcon, Table2, Trophy } from "lucide-react";
+import { Clock, ListOrdered, Target, ArrowLeftRight, Coins, GitCompare, Award, Swords, Activity, HeartPulse, type LucideIcon, Table2, Radio, Gamepad2, Medal } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import HubFeatureGrid, { type HubFeatureGroup } from "@/components/HubFeatureGrid";
 
 export const revalidate = 300;
 
@@ -82,6 +83,44 @@ export const metadata: Metadata = {
 
 const BASKETBALL = ["NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W"];
 const pad = (n: number) => String(n).padStart(2, "0");
+
+// 기능 모음 — 헤더 메뉴에서 뺀 페이지(NBA 트랜잭션·KBL 스탯 표·배당)도 여기서 닿는다.
+const FEATURES: HubFeatureGroup[] = [
+  {
+    title: "순위·기록",
+    items: [
+      { href: "/standings/NBA", label: "NBA 순위", desc: "동부·서부 컨퍼런스", Icon: ListOrdered },
+      { href: "/standings", label: "전체 순위표", desc: "WNBA·KBL 등 전 리그", Icon: ListOrdered },
+      { href: "/basketball/stats", label: "KBL 선수 스탯 표", desc: "전 선수 시즌 기록 · 백분위", Icon: Table2 },
+      { href: "/compare?sport=NBA", label: "선수 비교", desc: "두 선수 기록 나란히", Icon: GitCompare },
+    ],
+  },
+  {
+    title: "선수·구단",
+    items: [
+      { href: "/salaries/nba", label: "NBA 연봉 랭킹", desc: "선수별 연봉 순위", Icon: Coins },
+      { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드·FA·방출", Icon: ArrowLeftRight },
+      { href: "/injuries/NBA", label: "NBA 부상자", desc: "결장·복귀 예정", Icon: HeartPulse },
+    ],
+  },
+  {
+    title: "예측·배당",
+    items: [
+      { href: "/scores?sport=basketball", label: "라이브 스코어", desc: "오늘 경기 실시간", Icon: Radio },
+      { href: "/predictions/NBA", label: "시즌 예측", desc: "우승·플레이오프 확률", Icon: Target },
+      { href: "/predictions/scorecard", label: "AI 성적표", desc: "모델별 적중률 비교", Icon: Award },
+      { href: "/odds?sport=basketball", label: "배당 흐름", desc: "머니라인이 움직이는 방향", Icon: Activity },
+    ],
+  },
+  {
+    title: "참여·대회",
+    items: [
+      { href: "/picks", label: "승부예측 투표", desc: "원클릭 투표 · 수익률 채점", Icon: Swords },
+      { href: "/basketball/draft", label: "블라인드 드래프트", desc: "역대 선수로 팀 짜기", Icon: Gamepad2 },
+      { href: "/asian-games", label: "2026 아시안게임", desc: "농구 대표팀 포함 한국 경기", Icon: Medal },
+    ],
+  },
+];
 
 export default async function BasketballHub() {
   // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
@@ -238,6 +277,8 @@ export default async function BasketballHub() {
         </nav>
       </header>
 
+      <HubFeatureGrid groups={FEATURES} />
+
       {/* 리그별 — 순위·예측·글·역사·부상 모든 진입로 */}
       <section className="space-y-3">
         <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500">리그별</h2>
@@ -308,20 +349,6 @@ export default async function BasketballHub() {
             <Empty>오늘 예측 가능한 경기가 아직 없습니다.</Empty>
           )}
         </Card>
-      </div>
-
-      {/* 기능 바로가기 */}
-      <div className="flex flex-wrap gap-2 pt-1">
-        <FnChip href="/transactions/nba" Icon={ArrowLeftRight} label="NBA 트랜잭션 · 트레이드·FA" />
-        <FnChip href="/salaries/nba" Icon={Coins} label="NBA 연봉 랭킹" />
-        <FnChip href="/basketball/stats" Icon={Table2} label="KBL 선수 스탯 표" />
-        <FnChip href="/basketball/draft" Icon={Trophy} label="블라인드 드래프트 게임" />
-        <FnChip href="/compare?sport=NBA" Icon={GitCompare} label="선수 비교" />
-        <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
-        <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표" />
-        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
-        <FnChip href="/odds?sport=basketball" Icon={Activity} label="배당 흐름" />
-        <FnChip href="/injuries/NBA" Icon={HeartPulse} label="NBA 부상자" />
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
@@ -414,18 +441,6 @@ function Card({
         {hrefLabel} →
       </Link>
     </section>
-  );
-}
-
-function FnChip({ href, Icon, label }: { href: string; Icon: LucideIcon; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
-    >
-      <Icon className="w-3.5 h-3.5" aria-hidden />
-      {label}
-    </Link>
   );
 }
 

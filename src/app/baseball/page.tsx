@@ -8,8 +8,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { safeFetchTop3, type TopThreeEntry } from "@/lib/sports/standings-overview";
-import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, GitCompare, Trophy, Activity, Award, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, GitCompare, Trophy, Activity, Award, type LucideIcon, Table2, Banknote, Flag, Calculator, Radio, Newspaper, Medal, Gamepad2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import HubFeatureGrid, { type HubFeatureGroup } from "@/components/HubFeatureGrid";
 
 export const revalidate = 300;
 
@@ -80,6 +81,51 @@ const STARS = [
   { name: "양의지", sub: "KBO · 두산 포수", href: "/players/76232?league=KBO" },
   { name: "후안 소토", sub: "MLB · 메츠 외야수", href: "/players/665742" },
   { name: "도고 쇼세이", sub: "NPB · 요미우리 투수", href: "/players/41045138?league=NPB" },
+];
+
+// 기능 모음 — 헤더 메뉴에서 뺀 페이지(리그 순위·포스트시즌 MLB·NPB·배당)도 여기서 닿는다.
+const FEATURES: HubFeatureGroup[] = [
+  {
+    title: "순위·기록",
+    items: [
+      { href: "/standings", label: "리그 순위", desc: "KBO·MLB·NPB 순위표", Icon: ListOrdered },
+      { href: "/baseball/stats", label: "선수 스탯 표", desc: "전 선수 기록 · 리그 백분위", Icon: Table2 },
+      { href: "/baseball/rankings", label: "선수 랭킹", desc: "KBO·MLB·NPB 종합 순위", Icon: Award },
+      { href: "/baseball/statcast", label: "Statcast 리더보드", desc: "MLB 타구 속도·발사각", Icon: Radar },
+      { href: "/salaries/kbo", label: "연봉 랭킹", desc: "KBO·MLB 선수 연봉", Icon: Banknote },
+      { href: "/baseball/korea", label: "해외파 한국 선수", desc: "MLB·마이너·일본 성적", Icon: Flag },
+      { href: "/compare?sport=KBO", label: "선수 비교", desc: "두 선수 기록 나란히", Icon: GitCompare },
+    ],
+  },
+  {
+    title: "포스트시즌",
+    items: [
+      { href: "/baseball/kbo-postseason", label: "KBO 포스트시즌", desc: "와일드카드 결정전~한국시리즈", Icon: Trophy },
+      { href: "/baseball/mlb-postseason", label: "MLB 포스트시즌", desc: "와일드카드~월드시리즈", Icon: Trophy },
+      { href: "/baseball/npb-postseason", label: "NPB 포스트시즌", desc: "클라이맥스 시리즈~일본시리즈", Icon: Trophy },
+    ],
+  },
+  {
+    title: "예측·배당",
+    items: [
+      { href: "/scores?sport=baseball", label: "라이브 스코어", desc: "오늘 경기 실시간", Icon: Radio },
+      { href: "/predictions/starters", label: "선발 매치업", desc: "선발 투수 맞대결 비교", Icon: Swords },
+      { href: "/predictions/KBO", label: "시즌 예측", desc: "우승·가을야구 확률", Icon: Target },
+      { href: "/tools/kbo-win-probability", label: "승리확률 계산기", desc: "이닝·점수로 승리 확률", Icon: Calculator },
+      { href: "/predictions/scorecard", label: "AI 성적표", desc: "7개 모델 적중률 정면 비교", Icon: Award },
+      { href: "/odds?sport=baseball", label: "배당 흐름", desc: "머니라인이 움직이는 방향", Icon: Activity },
+      { href: "/value-bets", label: "밸류 베트", desc: "모델이 시장보다 자신 있는 경기", Icon: Coins },
+    ],
+  },
+  {
+    title: "참여·대회",
+    items: [
+      { href: "/picks", label: "승부예측 투표", desc: "원클릭 투표 · 수익률 채점", Icon: Newspaper },
+      { href: "/predictions/accuracy", label: "적중률 리포트", desc: "실배당 기준 수익률", Icon: Star },
+      { href: "/baseball/draft", label: "블라인드 드래프트", desc: "역대 선수로 팀 짜기", Icon: Gamepad2 },
+      { href: "/asian-games", label: "2026 아시안게임", desc: "야구 대표팀 포함 한국 경기", Icon: Medal },
+    ],
+  },
 ];
 
 export default async function BaseballHub() {
@@ -255,6 +301,8 @@ export default async function BaseballHub() {
           ))}
         </nav>
       </header>
+
+      <HubFeatureGrid groups={FEATURES} />
 
       {/* 리그별 — 순위·예측·글·분석·부상 모든 진입로 */}
       <section className="space-y-3">
@@ -472,16 +520,6 @@ export default async function BaseballHub() {
         </Card>
       </div>
 
-      {/* 기능 바로가기 — 야구 관련 전체 진입로 */}
-      <div className="flex flex-wrap gap-2 pt-1">
-        <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표 · 7모델 정면비교" />
-        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
-        <FnChip href="/baseball/draft" Icon={Trophy} label="블라인드 드래프트 게임" />
-        <FnChip href="/odds?sport=baseball" Icon={Activity} label="배당 흐름" />
-        <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
-        <FnChip href="/predictions/accuracy" Icon={Trophy} label="적중률 리포트" />
-      </div>
-
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         오늘 경기·예측은 5분마다 갱신됩니다. 각 카드의 링크에서 전체 데이터를 볼 수 있습니다. 데이터 출처 KBO 공식·MLB Stats API·api-baseball.
       </footer>
@@ -580,14 +618,3 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-neutral-400 py-2">{children}</p>;
 }
 
-function FnChip({ href, Icon, label }: { href: string; Icon: LucideIcon; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-white/10 px-3.5 py-2 text-[13px] font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-400"
-    >
-      <Icon className="w-4 h-4" aria-hidden />
-      {label}
-    </Link>
-  );
-}

@@ -52,6 +52,7 @@ const SPORTS: SportCard[] = [
       { label: "스위스 NL", href: "/standings/SWISS_NL" },
       { label: "체코", href: "/standings/CZECH_EXTRALIGA" },
       { label: "챔피언스 하키 리그", href: "/standings/CHL_HOCKEY" },
+      { label: "선수 스탯 표", href: "/hockey/stats" },
       { label: "연봉 랭킹", href: "/salaries/nhl" },
       { label: "부상자", href: "/injuries/NHL" },
     ],
@@ -87,7 +88,7 @@ const SPORTS: SportCard[] = [
     links: [
       { label: "LCK 순위·선수", href: "/standings/LOL" },
       { label: "LCK 일정", href: "/leagues/LOL?view=fixtures" },
-      { label: "전체 순위표", href: "/standings" },
+      { label: "LoL 선수 스탯 표", href: "/esports/stats" },
     ],
     accent: "from-fuchsia-600 to-indigo-600",
   },
@@ -160,6 +161,21 @@ export default function OtherSportsPage() {
         <p className="text-sm text-neutral-600 dark:text-neutral-400 break-keep">
           축구·야구·농구 외 종목의 다가오는 경기 일정과 라이브 스코어·순위·랭킹을 한 곳에서. 선수 이름과 팀명을 한국어로 봅니다.
         </p>
+        {/* 전 종목 공통 — 헤더 메뉴에서 이리로 모았다(2026-09-27) */}
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { label: "전 종목 순위표", href: "/standings" },
+            { label: "리그 전체 (230여 개)", href: "/leagues" },
+          ].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-200 dark:hover:bg-white/[0.1]"
+            >
+              {l.label} →
+            </Link>
+          ))}
+        </div>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

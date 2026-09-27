@@ -27,8 +27,9 @@ import {
   Banknote,
   ClipboardList,
   Footprints,
-  type LucideIcon, Table2 } from "lucide-react";
+  type LucideIcon, Table2, Medal, BarChart3 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import HubFeatureGrid, { type HubFeatureGroup } from "@/components/HubFeatureGrid";
 import championsData from "../../../data/league-champions.json";
 
 export const revalidate = 300;
@@ -127,6 +128,55 @@ const kstMD = (d: Date) => {
   return `${k.getUTCMonth() + 1}/${k.getUTCDate()}`;
 };
 
+// 기능 모음 — 헤더 메뉴에서 뺀 페이지(선수 스탯 표·오버·언더·리그 전체·배당)도 여기서 닿는다.
+const FEATURES: HubFeatureGroup[] = [
+  {
+    title: "순위·기록",
+    items: [
+      { href: "/standings", label: "전체 순위표", desc: "전 종목·전 리그 순위 한 페이지", Icon: ListOrdered },
+      { href: "/leagues", label: "리그 전체", desc: "종목·국가별 230여 개 리그 페이지", Icon: Globe },
+      { href: "/soccer/stats", label: "선수 스탯 표", desc: "15개 리그 전 선수 · 백분위·산점도", Icon: Table2 },
+      { href: "/over-under", label: "오버·언더 통계", desc: "리그·팀별 오버 2.5 비율", Icon: BarChart3 },
+      { href: "/soccer/sub-impact", label: "교체 임팩트", desc: "교체 투입 뒤 경기 흐름 변화", Icon: Repeat },
+      { href: "/k-league-cards", label: "K리그 카드 데이터", desc: "K리그 선수 카드 기록", Icon: IdCard },
+    ],
+  },
+  {
+    title: "선수·이적",
+    items: [
+      { href: "/soccer/korea", label: "해외파 한국 선수", desc: "유럽·MLS 시즌 성적 · 다음 경기", Icon: Flag },
+      { href: "/transfers", label: "이적시장·몸값 랭킹", desc: "선수 이적가치 · 이적 소식", Icon: ArrowLeftRight },
+      { href: "/salaries/soccer", label: "축구 연봉 랭킹", desc: "구단·선수별 주급·연봉", Icon: Banknote },
+      { href: "/rankings/value-clubs", label: "가성비 구단 랭킹", desc: "몸값 대비 성적", Icon: Gem },
+      { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 복귀 예정", Icon: HeartPulse },
+      { href: "/compare?sport=SOCCER", label: "선수 비교", desc: "두 선수 기록 나란히", Icon: GitCompare },
+      { href: "/ballon", label: "발롱도르 순위 지수", desc: "올 시즌 수상 경쟁 점수", Icon: Award },
+    ],
+  },
+  {
+    title: "예측·배당",
+    items: [
+      { href: "/scores?sport=soccer", label: "라이브 스코어", desc: "오늘 경기 실시간", Icon: Radio },
+      { href: "/predictions", label: "시즌 예측", desc: "우승·강등 확률 시뮬레이션", Icon: Target },
+      { href: "/previews", label: "AI 매치 프리뷰", desc: "경기 전 예측·분석 글", Icon: Newspaper },
+      { href: "/picks", label: "승부예측 투표", desc: "원클릭 투표 · 수익률 채점", Icon: Swords },
+      { href: "/odds?sport=soccer", label: "배당 흐름", desc: "오픈 대비 변동 · 시장 움직임", Icon: Activity },
+      { href: "/value-bets", label: "밸류 베트", desc: "모델이 시장보다 자신 있는 경기", Icon: Coins },
+    ],
+  },
+  {
+    title: "대회·게임",
+    items: [
+      { href: "/asian-games", label: "2026 아시안게임", desc: "한국 대표팀 경기 일정·결과", Icon: Medal },
+      { href: "/world-cup", label: "2026 월드컵 결산", desc: "조별리그·대진표·기록 아카이브", Icon: Trophy },
+      { href: "/dream-team", label: "드림팀 게임", desc: "예산 안에서 베스트 11 만들기", Icon: Users },
+      { href: "/soccer/draft", label: "블라인드 드래프트", desc: "역대 선수로 팀 짜기", Icon: Trophy },
+      { href: "/career", label: "축구선수 인생 살아보기", desc: "유망주부터 은퇴까지 시뮬", Icon: Footprints },
+      { href: "/lineup", label: "라인업 전술판", desc: "포메이션 배치 · 이미지 공유", Icon: ClipboardList },
+    ],
+  },
+];
+
 export default async function SoccerHub() {
   const [top3s, nationalComps] = await Promise.all([
     Promise.all(LEAGUES.map((l) => safeFetchTop3(l.code).catch(() => []))),
@@ -186,6 +236,8 @@ export default async function SoccerHub() {
           ))}
         </nav>
       </header>
+
+      <HubFeatureGrid groups={FEATURES} />
 
       {nationalComps.length > 0 && <NationalCompsCard comps={nationalComps} />}
 
@@ -318,30 +370,6 @@ export default async function SoccerHub() {
         </Card>
       </div>
 
-      {/* 기능 바로가기 — 축구 관련 전체 진입로 */}
-      <div className="flex flex-wrap gap-2 pt-1">
-        <FnChip href="/scores?sport=soccer" Icon={Radio} label="라이브 스코어" />
-        <FnChip href="/soccer/sub-impact" Icon={Repeat} label="교체 임팩트" />
-        <FnChip href="/soccer/stats" Icon={Table2} label="선수 스탯 표" />
-        <FnChip href="/standings" Icon={ListOrdered} label="전체 순위표" />
-        <FnChip href="/previews" Icon={Newspaper} label="AI 매치 프리뷰" />
-        <FnChip href="/transfers" Icon={ArrowLeftRight} label="이적시장 · 몸값 랭킹" />
-        <FnChip href="/injuries" Icon={HeartPulse} label="부상자 명단" />
-        <FnChip href="/salaries/soccer" Icon={Banknote} label="축구 연봉 랭킹" />
-        <FnChip href="/rankings/value-clubs" Icon={Gem} label="가성비 구단 랭킹" />
-        <FnChip href="/compare?sport=SOCCER" Icon={GitCompare} label="선수 비교" />
-        <FnChip href="/ballon" Icon={Award} label="발롱도르 순위 지수" />
-        <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
-        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
-        <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
-        <FnChip href="/odds?sport=soccer" Icon={Activity} label="배당 흐름" />
-        <FnChip href="/dream-team" Icon={Users} label="드림팀 게임" />
-        <FnChip href="/soccer/draft" Icon={Trophy} label="블라인드 드래프트 게임" />
-        <FnChip href="/career" Icon={Footprints} label="축구선수 인생 살아보기" />
-        <FnChip href="/lineup" Icon={ClipboardList} label="라인업 전술판" />
-        <FnChip href="/k-league-cards" Icon={IdCard} label="K리그 카드 선수 데이터" />
-      </div>
-
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         순위는 5분마다 갱신됩니다. 각 리그 카드에서 일정·통계·역사·AI 예측 글까지 볼 수 있습니다. 데이터 출처 api-football·TheSports.
       </footer>
@@ -437,18 +465,6 @@ function NationalCompsCard({ comps }: { comps: ActiveComp[] }) {
         ))}
       </ul>
     </section>
-  );
-}
-
-function FnChip({ href, Icon, label }: { href: string; Icon: LucideIcon; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
-    >
-      <Icon className="w-3.5 h-3.5" aria-hidden />
-      {label}
-    </Link>
   );
 }
 

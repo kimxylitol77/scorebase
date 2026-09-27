@@ -10,8 +10,9 @@ import { calcStandings } from "@/lib/predict/standings";
 import { fetchHockeyTable } from "@/lib/sports/thesports/hockey-table";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
-import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, Award, Swords, Activity, type LucideIcon, Table2 } from "lucide-react";
+import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, Award, Swords, Activity, type LucideIcon, Table2, Radio, Globe } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import HubFeatureGrid, { type HubFeatureGroup } from "@/components/HubFeatureGrid";
 import TeamBadge from "@/components/TeamBadge";
 
 export const revalidate = 300;
@@ -108,6 +109,41 @@ const HOCKEY = [
   "SLOVAK_EXTRALIGA", "DENMARK_METAL", "KAZAKHSTAN_CUP", "BELARUS_SALEI_CUP",
 ];
 const pad = (n: number) => String(n).padStart(2, "0");
+
+// 기능 모음 — 헤더 메뉴에서 뺀 하키 스탯 표 등도 여기서 닿는다.
+const FEATURES: HubFeatureGroup[] = [
+  {
+    title: "순위·기록",
+    items: [
+      { href: "/standings/NHL", label: "NHL 순위표", desc: "디비전·와일드카드", Icon: ListOrdered },
+      { href: "/standings/KHL", label: "KHL 순위·선수 기록", desc: "러시아 KHL 공식 순위", Icon: Globe },
+      { href: "/hockey/stats", label: "하키 선수 스탯 표", desc: "NHL·KHL 전 선수 · 백분위", Icon: Table2 },
+      { href: "/compare?sport=NHL", label: "선수 비교", desc: "두 선수 기록 나란히", Icon: GitCompare },
+    ],
+  },
+  {
+    title: "선수·구단",
+    items: [
+      { href: "/salaries/nhl", label: "NHL 연봉 랭킹", desc: "선수별 연봉 순위", Icon: Coins },
+      { href: "/injuries/NHL", label: "NHL 부상자 명단", desc: "결장·복귀 예정", Icon: HeartPulse },
+    ],
+  },
+  {
+    title: "예측·배당",
+    items: [
+      { href: "/scores?sport=hockey", label: "라이브 스코어", desc: "오늘 경기 실시간", Icon: Radio },
+      { href: "/predictions/NHL", label: "플레이오프 브래킷", desc: "NHL 시즌 예측", Icon: Users },
+      { href: "/predictions/scorecard", label: "AI 성적표", desc: "모델별 적중률 비교", Icon: Award },
+      { href: "/odds?sport=hockey", label: "배당 흐름", desc: "머니라인이 움직이는 방향", Icon: Activity },
+    ],
+  },
+  {
+    title: "참여",
+    items: [
+      { href: "/picks", label: "승부예측 투표", desc: "원클릭 투표 · 수익률 채점", Icon: Swords },
+    ],
+  },
+];
 
 export default async function HockeyHub() {
   // 서버 컴포넌트 — 요청(또는 revalidate)마다 1회 렌더라 클라이언트 렌더 순수성 규칙 대상이 아니다.
@@ -311,6 +347,8 @@ export default async function HockeyHub() {
         </nav>
       </header>
 
+      <HubFeatureGrid groups={FEATURES} />
+
       {/* 리그별 — 순위·예측·글·역사·부상 모든 진입로 */}
       <section className="space-y-3">
         <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500">리그별</h2>
@@ -427,19 +465,6 @@ export default async function HockeyHub() {
         </Card>
       </div>
 
-      {/* 기능 바로가기 */}
-      <div className="flex flex-wrap gap-2 pt-1">
-        <FnChip href="/standings/NHL" Icon={ListOrdered} label="NHL 순위표" />
-        <FnChip href="/hockey/stats" Icon={Table2} label="NHL 선수 스탯 표" />
-        <FnChip href="/salaries/nhl" Icon={Coins} label="NHL 연봉 랭킹" />
-        <FnChip href="/injuries/NHL" Icon={HeartPulse} label="NHL 부상자 명단" />
-        <FnChip href="/compare?sport=NHL" Icon={GitCompare} label="선수 비교" />
-        <FnChip href="/predictions/NHL" Icon={Users} label="NHL 플레이오프 브래킷" />
-        <FnChip href="/picks" Icon={Swords} label="승부예측 투표" />
-        <FnChip href="/odds?sport=hockey" Icon={Activity} label="배당 흐름" />
-        <FnChip href="/predictions/scorecard" Icon={Award} label="AI 성적표" />
-      </div>
-
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
         오늘 경기·예측은 5분마다 갱신됩니다. NHL 은 정규시즌 10월~4월, 유럽 리그(KHL·챔피언스 하키 리그·핀란드 리가·스위스 내셔널리그·체코/슬로바키아 엑스트라리가·덴마크 메탈리가엔)는 9월~4월, 세계선수권은 5월, 남반구 리그(호주 AIHL·뉴질랜드 NZIHL)는 4~9월에 열립니다. 데이터 출처 NHL 공식·ESPN·TheSports.
       </footer>
@@ -530,18 +555,6 @@ function Card({
         {hrefLabel} →
       </Link>
     </section>
-  );
-}
-
-function FnChip({ href, Icon, label }: { href: string; Icon: LucideIcon; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
-    >
-      <Icon className="w-3.5 h-3.5" aria-hidden />
-      {label}
-    </Link>
   );
 }
 
