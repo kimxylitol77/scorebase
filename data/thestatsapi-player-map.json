@@ -6232,9 +6232,9 @@
   "teamId": "tm_64315",
   "teamName": "FC St. Pauli",
   "name": "Joel Chima Fujita",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
  "2y8m4zhgnxw8ql0": {
   "statsId": "pl_29152313",
@@ -6394,9 +6394,9 @@
   "teamId": "tm_02484",
   "teamName": "VfL Wolfsburg",
   "name": "Kento Shiogai",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
  "23xmvkh432n0qg8": {
   "statsId": "pl_36483636",
@@ -6475,9 +6475,9 @@
   "teamId": "tm_02484",
   "teamName": "VfL Wolfsburg",
   "name": "Mattias Svanberg",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
  },
  "pxwrxlh975nryk0": {
   "statsId": "pl_7961246",
@@ -18133,5 +18133,473 @@
   "competitionId": "comp_45025",
   "seasonId": "sn_4515588",
   "seasonLabel": "2026-27 SAUDI_PL"
+ },
+ "8yomo4h28d5q0j6": {
+  "statsId": "pl_7507330",
+  "teamId": "tm_98181",
+  "teamName": "VfL Bochum 1848",
+  "name": "Philipp Hofmann",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4jwq2ghv9kxom0v": {
+  "statsId": "pl_30246466",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Jan Schoppner",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "x7lm7ph03vzm2wd": {
+  "statsId": "pl_6923305",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Jonas Föhrenbach",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "pxwrxlh931z4ryk": {
+  "statsId": "pl_30428816",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Ben Voll",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "8yomo4h29xx0q0j": {
+  "statsId": "pl_72633472",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "David Nemeth",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "x7lm7phw85p6m2w": {
+  "statsId": "pl_19395135",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Louis Oppie",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4jwq2ghv1dnpm0v": {
+  "statsId": "pl_29163770",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Arkadiusz Pyrka",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l5ergphvlnglr8k": {
+  "statsId": "pl_08917314",
+  "teamId": "tm_20611",
+  "teamName": "VfL Osnabrück",
+  "name": "Robin Meißner",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "k82rekh32k4repz": {
+  "statsId": "pl_08388215",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Mathias Rasmussen",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "pxwrxlh9zd5ryk0": {
+  "statsId": "pl_7946117",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Patrick Mainka",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "8yomo4h03vlq0j6": {
+  "statsId": "pl_96201202",
+  "teamId": "tm_20611",
+  "teamName": "VfL Osnabrück",
+  "name": "Patrick Kammerbauer",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "3glrw7hjlyl5qdy": {
+  "statsId": "pl_13178756",
+  "teamId": "tm_64302",
+  "teamName": "Darmstadt 98",
+  "name": "Noah Weisshaupt",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "8yomo4h0lnvq0j6": {
+  "statsId": "pl_08312437",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Joakim Maehle",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "1l4rjnh1ol2m7vx": {
+  "statsId": "pl_2518780",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Marnon Busch",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l5ergph3dnjr8k0": {
+  "statsId": "pl_8357955",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Budu Zivzivadze",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "vjxm8ghjn8yr6od": {
+  "statsId": "pl_84240575",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Eric Smith",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l7oqdeh00zj6r51": {
+  "statsId": "pl_01874189",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Tomoya Ando",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "318q66hv4j4dqo9": {
+  "statsId": "pl_61005205",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Kilian Fischer",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4wyrn4hde569q86": {
+  "statsId": "pl_13665933",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Martijn Kaars",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "x7lm7phwdk03m2w": {
+  "statsId": "pl_97660634",
+  "teamId": "tm_37810",
+  "teamName": "Eintracht Braunschweig",
+  "name": "Fabio Di Michele Sanchez",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "1l4rjnhzkpgm7vx": {
+  "statsId": "pl_3861241",
+  "teamId": "tm_98181",
+  "teamName": "VfL Bochum 1848",
+  "name": "Gerrit Holtmann",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "3glrw7hyv2pzqdy": {
+  "statsId": "pl_62029528",
+  "teamId": "tm_51223",
+  "teamName": "Karlsruher SC",
+  "name": "Shio Fukuda",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "23xmvkhgwnxqg8n": {
+  "statsId": "pl_13774106",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Taichi Hara",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "vjxm8gh8v0zr6od": {
+  "statsId": "pl_96043014",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Mathias Honsak",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "dn1m1ghnj1wemoe": {
+  "statsId": "pl_62114401",
+  "teamId": "tm_46190",
+  "teamName": "1. FC Kaiserslautern",
+  "name": "Paul Joly",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y39mp1h3z4omojx": {
+  "statsId": "pl_426879",
+  "teamId": "tm_51223",
+  "teamName": "Karlsruher SC",
+  "name": "Sebastian Jung",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y39mp1hp15emojx": {
+  "statsId": "pl_29886095",
+  "teamId": "tm_46190",
+  "teamName": "1. FC Kaiserslautern",
+  "name": "Simon Asta",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "8yomo4h0432vq0j": {
+  "statsId": "pl_20621616",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Abdoulie Ceesay",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l7oqdeh6wjyr510": {
+  "statsId": "pl_4022585",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Yannick Gerhardt",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "6ypq3nhzwpzlmd7": {
+  "statsId": "pl_96342223",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Tim Siersleben",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "318q66h4nzg1qo9": {
+  "statsId": "pl_97001806",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Julian niehues",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "2y8m4zhglppgql0": {
+  "statsId": "pl_74132164",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Frank Feller",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "pxwrxlh7ploryk0": {
+  "statsId": "pl_30283421",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Mikkel Kaufmann",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4wyrn4h4lnj5q86": {
+  "statsId": "pl_74226692",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Cleiton Santana dos Santos",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "vjxm8ghj51xor6o": {
+  "statsId": "pl_84766780",
+  "teamId": "tm_46190",
+  "teamName": "1. FC Kaiserslautern",
+  "name": "Erencan Yardimci",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "jw2r09hj13gzrz8": {
+  "statsId": "pl_57398598",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Christian Conteh",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "k82rekh355nrepz": {
+  "statsId": "pl_96279678",
+  "teamId": "tm_20611",
+  "teamName": "VfL Osnabrück",
+  "name": "Adrian Beck",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l5ergphpd59r8k0": {
+  "statsId": "pl_30140551",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Lars Ritzka",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "dn1m1gho97omoep": {
+  "statsId": "pl_30172270",
+  "teamId": "tm_51282",
+  "teamName": "F.C. Hansa Rostock",
+  "name": "David Kopacz",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "jw2r09hn56erz84": {
+  "statsId": "pl_7499139",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Maximilian Arnold",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "3glrw7hlk4oqdyj": {
+  "statsId": "pl_57366258",
+  "teamId": "tm_37810",
+  "teamName": "Eintracht Braunschweig",
+  "name": "Lino Tempelmann",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "l7oqdeh06kyxr51": {
+  "statsId": "pl_58648198",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Luca Kerber",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "vjxm8ghjw8kr6od": {
+  "statsId": "pl_2622109",
+  "teamId": "tm_46896",
+  "teamName": "SG Dynamo Dresden",
+  "name": "Lukas Boeder",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "4wyrn4h4oo4q86p": {
+  "statsId": "pl_30886388",
+  "teamId": "tm_64302",
+  "teamName": "Darmstadt 98",
+  "name": "Marco Richter",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "8yomo4h23494q0j": {
+  "statsId": "pl_72665424",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Ricky-Jade Jones",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "vjxm8gh8l271r6o": {
+  "statsId": "pl_52777568",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Adam Kölle",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "y39mp1hy6lxmojx": {
+  "statsId": "pl_61335645",
+  "teamId": "tm_752314",
+  "teamName": "Granada",
+  "name": "Benedikt Gimber",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "pxwrxlhj3o0lryk": {
+  "statsId": "pl_01978050",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Bence Dárdai",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "965mkyhn402dr1g": {
+  "statsId": "pl_47598418",
+  "teamId": "tm_44984",
+  "teamName": "1. FC Heidenheim",
+  "name": "Yannik Wagner",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "ednm9whvxgk0ryo": {
+  "statsId": "pl_25711571",
+  "teamId": "tm_20611",
+  "teamName": "VfL Osnabrück",
+  "name": "Luca Raimund",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "dj2ryohjne3q1zp": {
+  "statsId": "pl_5282717",
+  "teamId": "tm_64315",
+  "teamName": "FC St. Pauli",
+  "name": "Adam Dźwigała",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
+ },
+ "k82rekh916yrepz": {
+  "statsId": "pl_5863788",
+  "teamId": "tm_51235",
+  "teamName": "Holstein Kiel",
+  "name": "Steven Skrzybski",
+  "competitionId": "comp_0406",
+  "seasonId": "sn_6190936",
+  "seasonLabel": "2026-27 BUNDESLIGA_2"
  }
 }
