@@ -194,11 +194,9 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
             oddsHcLine: spread?.line ?? null,
             oddsHcHome: spread?.homeOdds ?? null,
             oddsHcAway: spread?.awayOdds ?? null,
-            oddsBttsYes: btts?.yes ?? null,
-            oddsBttsNo: btts?.no ?? null,
-            oddsDc1X: dc?.oneX ?? null,
-            oddsDc12: dc?.twelve ?? null,
-            oddsDcX2: dc?.xTwo ?? null,
+            // BTTS·더블찬스는 요금제상 이 API 로 오지 않고 af(runFetchAfSideOdds)가 채운다 — 없을 때 null 로 덮지 않는다
+            ...(btts ? { oddsBttsYes: btts.yes, oddsBttsNo: btts.no } : {}),
+            ...(dc ? { oddsDc1X: dc.oneX, oddsDc12: dc.twelve, oddsDcX2: dc.xTwo } : {}),
             oddsBookmakers: bmList.length
               ? ({
                   updatedAt: Date.now(),

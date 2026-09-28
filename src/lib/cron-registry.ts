@@ -17,6 +17,7 @@ export const CRON_REGISTRY: {
   // 데일리 — 기대 24h + 유예 4h = 28h
   { name: "odds", label: "베팅 배당", maxAgeH: 28 },
   { name: "af-odds", label: "확장 리그 배당 (api-football)", maxAgeH: 28 },
+  { name: "af-side-odds", label: "BTTS·더블찬스 배당 (api-football)", maxAgeH: 28 },
   // zeroAlertAfter 등록분 — 실측 마지막 처리량이 세 자리 이상이고, 비수기에도
   // 전 리그가 동시에 0 이 되기 어려운 잡만 넣었다. 운영하며 안전한 잡을 늘린다.
   // ⚠️ 감시형 cron(data-freshness·llm-cost-watch·news-briefing 등 count=발견/알림 수)은

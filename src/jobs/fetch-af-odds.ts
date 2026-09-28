@@ -1,12 +1,14 @@
 // api-football odds 로 The Odds API 미커버 리그(7m 확장 리그)의 1X2 배당을 Match 에 저장.
 // The Odds API 파이프(fetch-odds)와 동일 관례: 평균 implied(vig 제거)·in-play 가드·오프닝 1회 저장.
-// v1 은 1X2(bet=1)만 — market blend 가 소비하는 필드. OU/핸디 등 부가 마켓은 승격 시 확장.
+// 1X2 와 함께 BTTS·더블찬스도 저장한다. The Odds API 리그의 BTTS·더블찬스는 runFetchAfSideOdds 가 맡는다.
 
 import { apiSportsError } from "@/lib/sports/af-track";
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { isSplitYearLeague } from "@/lib/sports/season-calendar";
+import { SPORT_KEY } from "@/lib/odds/odds-api";
+import { sideMarketsFromAfBookmakers, sideMarketsPatch } from "@/lib/odds/af-side-markets";
 
 // 대상 리그 — The Odds API 축구 67종에 없는 확장 리그만 (2026-08-02 전수 실측).
 // RUSSIA_FNL 은 af 에도 부킹 0(제재) 실측이라 제외. The Odds API 커버 리그는 절대 넣지 말 것
@@ -149,88 +151,78 @@ function impliedFromAfBookmakers(
   };
 }
 
-export async function runFetchAfOdds(opts?: { leagues?: string[] }) {
-  const leagues = opts?.leagues ?? AF_ODDS_LEAGUES;
-  const now = new Date();
-  const tally: Record<string, number> = {};
-  console.log(`[af-odds] 시작 — leagues=${leagues.length}`);
+// 리그 하나 처리 — odds 페이지 순회 → af fixture 팀명 → DB SCHEDULED 매치 매칭 → 저장.
+// mode "full" = 1X2(market*/odds*) + 부가 마켓, "side" = BTTS·더블찬스만.
+// side 는 The Odds API 가 1X2 를 맡는 리그용이라 market* 를 절대 쓰지 않는다(이중 소스 경합 차단).
+async function collectLeague(league: string, now: Date, mode: "full" | "side"): Promise<number | null> {
+  const afId = API_FOOTBALL_LEAGUE_ID[league];
+  if (!afId) return null;
+  const season = seasonFor(league, now);
+  const horizon = new Date(now.getTime() + 10 * 86400_000);
 
-  for (const league of leagues) {
-    const afId = API_FOOTBALL_LEAGUE_ID[league];
-    if (!afId) continue;
-    const season = seasonFor(league, now);
-    try {
-      // 1) odds (bet=1) — 페이지 순회
-      const oddsByFixture = new Map<number, NonNullable<AfOddsResp["response"]>[number]>();
-      for (let page = 1; page <= 5; page++) {
-        const j = await afGet<AfOddsResp>(`/odds?league=${afId}&season=${season}&bet=1&page=${page}`);
-        for (const row of j.response ?? []) {
-          if (row.fixture?.id != null) oddsByFixture.set(row.fixture.id, row);
-        }
-        if (!j.paging?.total || page >= j.paging.total) break;
-      }
-      if (oddsByFixture.size === 0) { tally[league] = 0; continue; }
+  const dbMatches = await prisma.match.findMany({
+    where: { league, status: "SCHEDULED", startTime: { gte: now, lte: horizon } },
+    include: { homeTeam: true, awayTeam: true },
+  });
+  // 예정 경기가 없으면 af 를 부르지 않는다 — side 대상 리그 대부분이 비시즌일 때 쿼터 절약
+  if (dbMatches.length === 0) return 0;
 
-      // 2) 향후 10일 fixture 팀명 (af fixture id → 이름·시각)
-      const from = now.toISOString().slice(0, 10);
-      const to = new Date(now.getTime() + 10 * 86400_000).toISOString().slice(0, 10);
-      const fx = await afGet<AfFixturesResp>(`/fixtures?league=${afId}&season=${season}&from=${from}&to=${to}`);
-      const fixtures = (fx.response ?? [])
-        .filter((f) => f.fixture?.id != null && f.fixture.date && oddsByFixture.has(f.fixture.id!))
-        .map((f) => ({
-          id: f.fixture!.id!,
-          time: new Date(f.fixture!.date!).getTime(),
-          home: f.teams?.home?.name ?? "",
-          away: f.teams?.away?.name ?? "",
-        }));
+  // 1) odds — bet 필터 없이 받아 1X2(1)·BTTS(8)·더블찬스(12)를 한 번에. 호출 수는 bet=1 과 같다.
+  const oddsByFixture = new Map<number, NonNullable<AfOddsResp["response"]>[number]>();
+  for (let page = 1; page <= 5; page++) {
+    const j = await afGet<AfOddsResp>(`/odds?league=${afId}&season=${season}&page=${page}`);
+    for (const row of j.response ?? []) {
+      if (row.fixture?.id != null) oddsByFixture.set(row.fixture.id, row);
+    }
+    if (!j.paging?.total || page >= j.paging.total) break;
+  }
+  if (oddsByFixture.size === 0) return 0;
 
-      // 3) DB SCHEDULED 매치 매칭 — 킥오프 시각 우선(±30분), 동시 킥오프는 팀명 유사로 판별
-      const dbMatches = await prisma.match.findMany({
-        where: {
-          league,
-          status: "SCHEDULED",
-          startTime: { gte: now, lte: new Date(now.getTime() + 10 * 86400_000) },
-        },
-        include: { homeTeam: true, awayTeam: true },
-      });
+  // 2) 향후 10일 fixture 팀명 (af fixture id → 이름·시각)
+  const from = now.toISOString().slice(0, 10);
+  const to = horizon.toISOString().slice(0, 10);
+  const fx = await afGet<AfFixturesResp>(`/fixtures?league=${afId}&season=${season}&from=${from}&to=${to}`);
+  const fixtures = (fx.response ?? [])
+    .filter((f) => f.fixture?.id != null && f.fixture.date && oddsByFixture.has(f.fixture.id!))
+    .map((f) => ({
+      id: f.fixture!.id!,
+      time: new Date(f.fixture!.date!).getTime(),
+      home: f.teams?.home?.name ?? "",
+      away: f.teams?.away?.name ?? "",
+    }));
 
-      let matched = 0;
-      for (const m of dbMatches) {
-        // 컵 폴백 리그 — The Odds API 가 이미 채운 매치는 건드리지 않는다 (경합 차단)
-        if (CUP_FILL_ONLY.has(league) && m.marketHome != null) continue;
-        const t = m.startTime.getTime();
-        const window = fixtures.filter((f) => Math.abs(f.time - t) <= 30 * 60_000);
-        let pick: (typeof fixtures)[number] | null = null;
-        if (window.length === 1 && Math.abs(window[0].time - t) <= 5 * 60_000) {
-          // 단독 후보 + 킥오프 일치 — ts/af 팀명 표기가 아예 달라도 수용
-          pick = window[0];
-        }
-        if (!pick) {
-          // 복수 후보(라운드 동시 킥오프) — 팀명 유사 필수, 홈·원정 양쪽 신호로 단일화
-          const named = window.filter(
-            (f) => similar(f.home, m.homeTeam.name) && similar(f.away, m.awayTeam.name),
-          );
-          if (named.length === 1) pick = named[0];
-        }
-        if (!pick) continue;
+  // 3) DB 매치 매칭 — 킥오프 시각 우선(±30분), 동시 킥오프는 팀명 유사로 판별
+  let matched = 0;
+  for (const m of dbMatches) {
+    const t = m.startTime.getTime();
+    const window = fixtures.filter((f) => Math.abs(f.time - t) <= 30 * 60_000);
+    let pick: (typeof fixtures)[number] | null = null;
+    if (window.length === 1 && Math.abs(window[0].time - t) <= 5 * 60_000) {
+      // 단독 후보 + 킥오프 일치 — ts/af 팀명 표기가 아예 달라도 수용
+      pick = window[0];
+    }
+    if (!pick) {
+      // 복수 후보(라운드 동시 킥오프) — 팀명 유사 필수, 홈·원정 양쪽 신호로 단일화
+      const named = window.filter(
+        (f) => similar(f.home, m.homeTeam.name) && similar(f.away, m.awayTeam.name),
+      );
+      if (named.length === 1) pick = named[0];
+    }
+    if (!pick) continue;
 
-        const implied = impliedFromAfBookmakers(oddsByFixture.get(pick.id)?.bookmakers);
-        if (!implied) continue;
-        // in-play/정지 마켓 가드 — fetch-odds 와 동일 (정상 프리게임 최대 ~0.90)
-        if (Math.max(implied.home, implied.away) > 0.97) continue;
+    const bookmakers = oddsByFixture.get(pick.id)?.bookmakers;
+    const implied = impliedFromAfBookmakers(bookmakers);
+    // in-play/정지 마켓 가드 — fetch-odds 와 동일 (정상 프리게임 최대 ~0.90). 부가 마켓도 같은 스냅샷이라 함께 버린다.
+    if (implied && Math.max(implied.home, implied.away) > 0.97) continue;
+    const side = sideMarketsPatch(sideMarketsFromAfBookmakers(bookmakers));
 
-        const openingPatch =
-          m.openingMarketHome == null
-            ? {
-                openingMarketHome: implied.home,
-                openingMarketDraw: implied.draw,
-                openingMarketAway: implied.away,
-                openingCapturedAt: new Date(),
-              }
-            : {};
-        await prisma.match.update({
-          where: { id: m.id },
-          data: {
+    // 컵 폴백 리그 — The Odds API 가 이미 채운 매치는 1X2 를 건드리지 않는다 (경합 차단)
+    const writeMain = mode === "full" && implied != null && !(CUP_FILL_ONLY.has(league) && m.marketHome != null);
+    if (!writeMain && Object.keys(side).length === 0) continue;
+
+    const mainPatch =
+      writeMain && implied
+        ? {
             marketHome: implied.home,
             marketDraw: implied.draw,
             marketAway: implied.away,
@@ -239,23 +231,56 @@ export async function runFetchAfOdds(opts?: { leagues?: string[] }) {
             oddsHome: implied.rawHome,
             oddsDraw: implied.rawDraw,
             oddsAway: implied.rawAway,
-            ...openingPatch,
-          },
-        });
-        matched++;
-      }
-      tally[league] = matched;
-      console.log(`[af-odds/${league}] odds ${oddsByFixture.size}건 → 매칭 ${matched}/${dbMatches.length}`);
+            ...(m.openingMarketHome == null
+              ? {
+                  openingMarketHome: implied.home,
+                  openingMarketDraw: implied.draw,
+                  openingMarketAway: implied.away,
+                  openingCapturedAt: new Date(),
+                }
+              : {}),
+          }
+        : {};
+    await prisma.match.update({ where: { id: m.id }, data: { ...mainPatch, ...side } });
+    matched++;
+  }
+  console.log(`[af-odds/${mode}/${league}] odds ${oddsByFixture.size}건 → 매칭 ${matched}/${dbMatches.length}`);
+  return matched;
+}
+
+async function runLeagues(leagues: string[], mode: "full" | "side") {
+  const now = new Date();
+  const tally: Record<string, number> = {};
+  console.log(`[af-odds/${mode}] 시작 — leagues=${leagues.length}`);
+  for (const league of leagues) {
+    try {
+      const n = await collectLeague(league, now, mode);
+      if (n != null) tally[league] = n;
     } catch (e) {
-      console.error(`[af-odds/${league}] 실패:`, (e as Error).message);
+      console.error(`[af-odds/${mode}/${league}] 실패:`, (e as Error).message);
     }
   }
-  console.log(`[af-odds] 완료 —`, JSON.stringify(tally));
+  console.log(`[af-odds/${mode}] 완료 —`, JSON.stringify(tally));
   return tally;
 }
 
+export async function runFetchAfOdds(opts?: { leagues?: string[] }) {
+  return runLeagues(opts?.leagues ?? AF_ODDS_LEAGUES, "full");
+}
+
+// The Odds API 가 1X2 를 맡는 축구 리그 — BTTS·더블찬스만 af 로 채운다.
+// UEL·UECL 은 AF_ODDS_LEAGUES 에도 있지만 CUP_FILL_ONLY 라 본선 경기는 full 이 1X2 를 건너뛸 뿐
+// 부가 마켓은 이미 쓴다 → 여기서 뺀다.
+export const AF_SIDE_ODDS_LEAGUES: string[] = Object.entries(SPORT_KEY)
+  .filter(([lg, key]) => key.startsWith("soccer_") && API_FOOTBALL_LEAGUE_ID[lg] && !AF_ODDS_LEAGUES.includes(lg))
+  .map(([lg]) => lg);
+
+export async function runFetchAfSideOdds(opts?: { leagues?: string[] }) {
+  return runLeagues(opts?.leagues ?? AF_SIDE_ODDS_LEAGUES, "side");
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runFetchAfOdds()
+  (process.argv.includes("--side") ? runFetchAfSideOdds() : runFetchAfOdds())
     .catch((e) => {
       console.error(e);
       process.exit(1);
