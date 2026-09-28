@@ -1,4 +1,4 @@
-// 빅5 "이달의 감독" — 월간 자동 아티클 잡(리그별 1편). 직전 달 승점/경기 1위 팀(동률 시 xG 득실차)을 뽑아
+// 빅5 "이달의 감독" — 월간 자동 아티클 잡(리그별 1편). 직전 달 선정 점수(경기당 승점 + 예측 대비 초과 성과) 1위 팀을 뽑아
 // af 런타임 라인업 수집 + 월간 집계 + 웹 리서치(sonnet)로 TACTICAL DRAFT 저장.
 // cron /api/cron/manager-month (기본 OFF — MANAGER_MONTH_ENABLED=1). 시즌 개막(2026-08) 후 가동.
 //   npm run job:manager-month -- [--month=2026-09] [--league=LALIGA] [--dry-run]
@@ -9,6 +9,7 @@ import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { aggregateTeamSeason, type TacticalManagerContext, type BackfilledLineup } from "@/lib/tactical/manager-aggregate";
 import { fetchAfLineupsForRange } from "@/lib/tactical/af-lineup-fetch";
 import { dataBrief, enrichForRender, teamSlug } from "@/lib/tactical/manager-article";
+import { selectionTable } from "@/lib/tactical/manager-select";
 
 /** 대상 리그 — 빅5. runManagerMonth 는 리그별로 1편씩 낸다. */
 const MONTH_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] as const;
@@ -81,11 +82,13 @@ async function runManagerMonthForLeague(
     return;
   }
 
-  // 2) 팀별 월간 집계 → 이달의 감독 선정 (승점/경기 → xG 득실차)
-  const teamIds = [...new Set((await prisma.match.findMany({
-    where: { league: LEAGUE, status: "FINISHED", startTime: { gte: from, lte: to } },
-    select: { homeTeamId: true, awayTeamId: true },
-  })).flatMap((m) => [m.homeTeamId, m.awayTeamId]))];
+  // 2) 팀별 월간 집계 → 이달의 감독 선정 (경기당 승점 + 경기 전 예측 대비 초과 성과)
+  const monthMatches = await prisma.match.findMany({
+    where: { league: LEAGUE, status: "FINISHED", startTime: { gte: from, lte: to }, homeScore: { not: null }, awayScore: { not: null } },
+    select: { homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true, predHome: true, predDraw: true, predAway: true },
+  });
+  const table = selectionTable(monthMatches.map((m) => ({ ...m, homeScore: m.homeScore!, awayScore: m.awayScore! })));
+  const teamIds = table.map((r) => r.teamId);
 
   const candidates: TacticalManagerContext[] = [];
   for (const teamId of teamIds) {
@@ -102,18 +105,27 @@ async function runManagerMonthForLeague(
     console.log(`[manager-month] ${LEAGUE} 후보 없음 — skip`);
     return;
   }
-  const score = (c: TacticalManagerContext) => {
-    const r = c.record;
-    const xgDiff = c.matches.reduce((s, m) => s + (m.xgFor ?? 0) - (m.xgAgainst ?? 0), 0);
-    return r.points / r.played + xgDiff / r.played / 100; // 승점/경기 우선, xG 차는 동률 분리용 미세 가중
-  };
-  const winner = candidates.sort((a, b) => score(b) - score(a))[0];
+  // table 은 점수 내림차순 — 후보 자격(경기 수·감독 1명)을 통과한 첫 팀이 선정
+  const byTeam = new Map(candidates.map((c) => [c.team.id, c]));
+  const ranked = table.filter((t) => byTeam.has(t.teamId));
+  const winner = byTeam.get(ranked[0].teamId)!;
   await enrichForRender(winner);
   const r = winner.record;
   console.log(`[manager-month] 선정: ${winner.coach.nameKo}(${winner.team.nameKo}) — ${r.played}경기 ${r.w}승 ${r.d}무 ${r.l}패`);
+  const top = ranked[0];
+  const selectionBrief = [
+    `경기당 승점 ${top.ppg.toFixed(2)}`,
+    top.expectedPpg != null ? `경기 전 예측으로 본 기대 경기당 승점 ${top.expectedPpg.toFixed(2)} (초과 ${top.over >= 0 ? "+" : ""}${top.over.toFixed(2)})` : null,
+    `경기당 득실차 ${top.gdPerGame >= 0 ? "+" : ""}${top.gdPerGame.toFixed(2)}`,
+    ...ranked.slice(1, 4).map((t, i) => {
+      const c = byTeam.get(t.teamId)!;
+      return `경쟁 후보 ${i + 2}위 ${c.team.nameKo}(${c.coach.nameKo}) — 경기당 승점 ${t.ppg.toFixed(2)}${t.expectedPpg != null ? `, 기대 ${t.expectedPpg.toFixed(2)} (초과 ${t.over >= 0 ? "+" : ""}${t.over.toFixed(2)})` : ""}`;
+    }),
+  ].filter(Boolean).join("\n");
 
   if (opts.dryRun) {
     console.log(dataBrief(winner));
+    console.log(selectionBrief);
     return;
   }
 
@@ -132,6 +144,9 @@ async function runManagerMonthForLeague(
 ## 월간 데이터 (실측 — 그대로 인용)
 ${dataBrief(winner)}
 
+## 선정 근거 (실측 — 그대로 인용, 빼거나 더해 새 숫자를 만들지 말 것. 기대 승점은 경기 전 스코어베이스 예측 모델 확률로 계산한 값이며 상단 대시보드에는 나오지 않는다. 월간 데이터의 "N위"는 이 달 경기만 집계한 순위다 — 리그 순위로 쓰지 말 것)
+${selectionBrief}
+
 ## 경기 목록
 ${matchList}
 
@@ -139,7 +154,7 @@ ${matchList}
 ${researchNotes}
 
 ## 글 구조 (H2 섹션)
-1. 선정 이유 — 월간 성적과 내용(xG) 요약.
+1. 선정 이유 — 월간 성적과 기대 대비 초과 성과. 경쟁 후보와 견줘 왜 이 감독인지 밝힌다.
 2. 이번 달의 전술 — 포메이션 운용·평균 포지션에서 보이는 특징.
 3. 결정적 경기 — 경기 목록에서 2~3경기를 골라 흐름을 짚는다.
 4. 키 플레이어 — 최다 선발·리서치 노트 기반 1~2명.
