@@ -222,16 +222,22 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
   type BoardRow =
     | { kind: "user"; key: string; userId: string; total: number; hit: number }
     | { kind: "bot"; key: string; botId: string; name: string; owner: string; total: number; hit: number };
-  const rows: BoardRow[] = [
-    ...board.map((b): BoardRow => ({ kind: "user", key: `u:${b.userId}`, userId: b.userId, total: b.total, hit: b.hit })),
-    ...botBoard.map((b): BoardRow => {
+  // 단순 적중률순이면 2/3(67%)가 30/50(60%)보다 위에 선다(2026-09-28 사용자 지적). 표시는 실제 적중률 그대로.
+  const byWilson = (a: BoardRow, b: BoardRow) =>
+    wilsonLower(b.hit, b.total) - wilsonLower(a.hit, a.total) || b.hit - a.hit || b.total - a.total;
+  // 회원·커스텀 예측 봇은 표를 나눈다 — 봇은 경기마다 자동으로 픽해 수백~수천 건이 쌓여 Wilson 에서
+  // 사람을 밀어낸다(2026-09-28 상위 5 중 4개가 봇). 사람끼리의 경쟁이 보이게 따로 줄 세운다.
+  const userRows: BoardRow[] = board
+    .map((b): BoardRow => ({ kind: "user", key: `u:${b.userId}`, userId: b.userId, total: b.total, hit: b.hit }))
+    .sort(byWilson)
+    .slice(0, 20);
+  const botRows: BoardRow[] = botBoard
+    .map((b): BoardRow => {
       const bot = botById.get(b.botId)!;
       return { kind: "bot", key: `b:${b.botId}`, botId: b.botId, name: bot.name, owner: ownerNick.get(bot.userId) ?? "회원", total: b.total, hit: b.hit };
-    }),
-  ]
-    // 단순 적중률순이면 2/3(67%)가 30/50(60%)보다 위에 선다(2026-09-28 사용자 지적). 표시는 실제 적중률 그대로.
-    .sort((a, b) => wilsonLower(b.hit, b.total) - wilsonLower(a.hit, a.total) || b.hit - a.hit || b.total - a.total)
-    .slice(0, 20);
+    })
+    .sort(byWilson)
+    .slice(0, 10);
   // 시장별 적중(승부·핸디·오버언더) — 랭커마다 어느 시장에 강한지 한 줄 보조 표기.
   const perMarket = board.length
     ? await prisma.$queryRaw<{ userId: string; market: string; total: number; hit: number }[]>`
@@ -439,10 +445,16 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
       {/* 랭킹 */}
       <section className="mt-8">
         <h2 className="text-sm font-bold text-neutral-900 dark:text-white">적중 랭킹</h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 순서는 단순 적중률이 아니라 표본 수를 반영한 신뢰도 보정(Wilson 점수 하한)으로 정해서, 몇 경기만 맞힌 100%가 무조건 1등이 되지 않습니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. 회원이 만든 <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">커스텀 예측</Link>도 승부 픽 기준으로 같은 순위에 섞여 오릅니다.</p>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">채점된 투표 3개 이상인 회원만 집계됩니다. 순서는 단순 적중률이 아니라 표본 수를 반영한 신뢰도 보정(Wilson 점수 하한)으로 정해서, 몇 경기만 맞힌 100%가 무조건 1등이 되지 않습니다. 승부·핸디캡·오버언더 세 시장 합산이며, 시장별 적중은 이름 아래에 표시됩니다. 회원이 만든 <Link href="/lab" className="text-blue-600 hover:underline dark:text-blue-400">커스텀 예측</Link>은 경기마다 자동으로 픽해 표본이 훨씬 많아서 따로 순위를 매깁니다(승부 픽 기준).</p>
+        {[
+          { title: "회원 순위", who: "회원", rows: userRows, empty: "아직 랭커가 없습니다. 첫 경기가 끝나면 채점이 시작됩니다 — 1위를 선점하세요." },
+          { title: "커스텀 예측 봇 순위", who: "커스텀 예측", rows: botRows, empty: "" },
+        ].filter((t) => t.rows.length > 0 || t.empty).map(({ title, who, rows, empty }) => (
+        <div key={title} className="mt-4">
+        <h3 className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">{title}</h3>
         {rows.length === 0 ? (
           <p className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04]">
-            아직 랭커가 없습니다. 첫 경기가 끝나면 채점이 시작됩니다 — 1위를 선점하세요.
+            {empty}
           </p>
         ) : (
           <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
@@ -450,7 +462,7 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
               <thead>
                 <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs text-neutral-500 dark:border-neutral-800 dark:bg-white/[0.04] dark:text-neutral-400">
                   <th className="whitespace-nowrap px-3 py-2 font-medium">순위</th>
-                  <th className="px-3 py-2 font-medium">회원</th>
+                  <th className="px-3 py-2 font-medium">{who}</th>
                   <th className="whitespace-nowrap px-3 py-2 text-right font-medium">적중</th>
                   <th className="whitespace-nowrap px-3 py-2 text-right font-medium">적중률</th>
                 </tr>
@@ -517,6 +529,8 @@ export default async function PicksPage({ searchParams }: { searchParams: Promis
             </table>
           </div>
         )}
+        </div>
+        ))}
       </section>
     </main>
   );
