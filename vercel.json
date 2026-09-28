@@ -21,10 +21,6 @@
       "schedule": "40 20 * * *"
     },
     {
-      "path": "/api/cron/transfer-briefs",
-      "schedule": "0 5 * * *"
-    },
-    {
       "path": "/api/cron/lineup-post",
       "schedule": "*/10 * * * *"
     },

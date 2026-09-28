@@ -46,7 +46,9 @@ export const CRON_REGISTRY: {
   { name: "gpt-predictions", label: "멀티 AI 성적표", maxAgeH: 28 },
   // 하루 2회(05,17 UTC) — 영어 자매 사이트 핵심 경기 프리뷰. SP_PREVIEW=off 면 0건 기록.
   { name: "sp-preview", label: "영어 핵심경기 프리뷰 (sportspredictions.live)", maxAgeH: 16 },
-  { name: "transfer-briefs", label: "AI 이적 브리핑", maxAgeH: 28 },
+  // transfer-briefs(AI 이적 브리핑)도 이적시장 마감으로 2026-09-28 cron 해제(사용자 결정) — 최근 3회 연속 0건.
+  //  겨울 이적시장(1월) 재개 시 vercel.json 에 { "path": "/api/cron/transfer-briefs", "schedule": "0 5 * * *" } 와 아래 줄을 되살릴 것.
+  //  { name: "transfer-briefs", label: "AI 이적 브리핑", maxAgeH: 28 },
   { name: "daily-thread", label: "오늘의 픽 스레드", maxAgeH: 28 },
   { name: "data-freshness", label: "선수 데이터 결손 감시", maxAgeH: 28 },
   // 6h 주기 — 기대 6h + 유예 4h = 10h

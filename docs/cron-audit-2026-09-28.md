@@ -61,6 +61,7 @@
 - 제한 300초 안에 끝나도록 **시간 예산 230초**를 두고, **오래 못 쓴 리그부터** 돈다.
   한 회차에 5~6편, 시즌 중인 리그 18개가 약 3주에 한 번씩 돌아온다. 주 2편 → 주 5~6편.
 - 수동 실행은 하지 않았다. 다음 목요일 11:00 KST 회차부터 적용된다.
+- **transfer-briefs(AI 이적 브리핑)도 같은 날 해제** (최근 3회 연속 0건).
 - **transfer-daily·transfer-xi cron 해제.** vercel.json 에서 빼고 감시 등록도 주석 처리. 겨울 이적시장 때 되살리는 법은
   `src/lib/cron-registry.ts` 주석에 있다. 라우트와 잡 코드는 그대로 뒀다.
 - 남은 결정: evaluate 미채점 146건, tactical·manager-month env 게이트.
