@@ -10,6 +10,7 @@ import { aggregateTeamSeason, type TacticalManagerContext, type BackfilledLineup
 import { fetchAfLineupsForRange } from "@/lib/tactical/af-lineup-fetch";
 import { dataBrief, enrichForRender, teamSlug } from "@/lib/tactical/manager-article";
 import { selectionTable } from "@/lib/tactical/manager-select";
+import { insertManagerCards } from "@/lib/tactical/manager-cards-insert";
 
 /** 대상 리그 — 빅5. runManagerMonth 는 리그별로 1편씩 낸다. */
 const MONTH_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] as const;
@@ -183,7 +184,9 @@ ${researchNotes}
     },
   });
   const slug = `${slugKey}-${teamSlug(winner.team.name)}-${article.id}`;
-  await prisma.article.update({ where: { id: article.id }, data: { slug } });
+  // 카드 주소에 글 번호가 들어가므로 저장 뒤에 끼운다
+  const withCards = insertManagerCards(content, article.id, { coachKo: winner.coach.nameKo, teamKo: winner.team.nameKo, monthLabel: label });
+  await prisma.article.update({ where: { id: article.id }, data: { slug, content: withCards } });
   console.log(`[manager-month] DRAFT 저장: ${slug} (${content.length}자)`);
 }
 
