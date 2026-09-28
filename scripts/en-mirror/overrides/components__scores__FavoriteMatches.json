@@ -26,5 +26,11 @@
     "경기": " matches",
     "종료": "FT",
     "연기": "PP"
-  }
+  },
+  "replace": [
+    [
+      "<SoccerScoreboardTable sport={sport} showLegend={false}",
+      "<SoccerScoreboardTable lang=\"en\" oddsHref={null} leagueHref={(lg) => `/en/standings/${lg}`} sport={sport} showLegend={false}"
+    ]
+  ]
 }

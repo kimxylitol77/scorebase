@@ -4,6 +4,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import SoccerScoreboardTable, { type ScoreboardRow } from "@/components/scores/soccer/SoccerScoreboardTable";
 import MatchCard, { type MatchCardProps } from "./MatchCard";
 import SoccerLiveRow from "./soccer/SoccerLiveRow";
 import LeagueBadge from "../LeagueBadge";
@@ -50,6 +51,8 @@ interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
 
 interface Props {
   matches: MatchEntry[];
+  /** 스코어보드 보기일 때 — 즐겨찾기 전 종목을 같은 표로(2026-09-28). 표에 없는 종목·경기는 기존 카드 */
+  boardRows?: ScoreboardRow[];
 }
 
 // 종목 표시 순서 + 메타 (이모지 / 한국어 라벨)
@@ -91,7 +94,7 @@ function readIsScoreboard(): boolean {
 const subscribeView = subscribeToStorage(VIEW_CHANGE_EVENT);
 const subscribeFavSound = subscribeToStorage(FAV_SOUND_CHANGE_EVENT);
 
-export default function FavoriteMatches({ matches }: Props) {
+export default function FavoriteMatches({ matches, boardRows }: Props) {
   const { ids, mounted, clear } = useFavorites();
   // 브라우저 전용 값 3개. 원본이 localStorage·host 라 setState 로 복제하지 않는다.
   const view = useClientValue<ViewMode>(readView, "large", subscribeView);
@@ -274,7 +277,9 @@ export default function FavoriteMatches({ matches }: Props) {
                 {list.length} matches
               </span>
             </div>
-            {effectiveView === "large" ? (
+            {boardRows && boardRows.some((r) => r.sport === sport && ids.has(String(r.id))) ? (
+              <SoccerScoreboardTable lang="en" oddsHref={null} leagueHref={(lg) => `/en/standings/${lg}`} sport={sport} showLegend={false} rows={boardRows.filter((r) => r.sport === sport && ids.has(String(r.id)))} />
+            ) : effectiveView === "large" ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {list.map(renderMatchLarge)}
               </ul>

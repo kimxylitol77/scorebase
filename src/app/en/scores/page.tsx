@@ -1723,10 +1723,14 @@ export default async function ScoresPage({ searchParams }: Props) {
       soccerTeamStats: sport_ === "soccer" ? soccerTeamStatsByMatchId.get(m.id) ?? null : null,
       soccerHalfStats: sport_ === "soccer" ? soccerHalfStatsByMatchId.get(m.id) ?? null : null,
       soccerHalfScore: sport_ === "soccer" ? soccerHalfScoreByMatchId.get(m.id) ?? null : null,
+      // 스코어보드 표 AI 열 — 축구는 홈·무·원정, 그 외 종목은 무승부 없이 홈·원정(draw null)
       pred1x2:
-        sport_ === "soccer" && m.predHome != null && m.predAway != null
-          ? { home: m.predHome, draw: m.predDraw ?? 0, away: m.predAway }
+        m.predHome != null && m.predAway != null
+          ? { home: m.predHome, draw: sport_ === "soccer" ? m.predDraw ?? 0 : null, away: m.predAway }
           : null,
+      // 스코어보드 표 전용 2지선다 배당(야구·농구·하키) — odds 는 축구 카드 전용이라 따로 싣는다
+      boardOdds2:
+        sport_ !== "soccer" && m.oddsHome != null && m.oddsAway != null ? { home: m.oddsHome, away: m.oddsAway } : null,
       odds:
         sport_ === "soccer" && m.oddsHome != null
           ? {
@@ -2065,6 +2069,8 @@ export default async function ScoresPage({ searchParams }: Props) {
       .map((s) => s.trim())
       .filter(Boolean),
   );
+  // 즐겨찾기 "My matches"를 스코어보드 표로 — 축구 탭은 현재 보기, 다른 종목 탭은 마지막 선택(쿠키, 없으면 스코어보드)
+  const boardPref = sortMode === "board" || (sport !== "soccer" && sortCookie !== "time" && sortCookie !== "league");
   const favSource =
     favCookieIds.size === 0
       ? []
@@ -2438,6 +2444,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 />
                 <div className="min-w-0 space-y-6">
                 <FavoriteMatches
+                  boardRows={boardPref ? buildScoreboardRows(normalizedAll.filter((m) => favCookieIds.has(String(m.id)))) : undefined}
                   matches={favSource.map((m) => compactProps({
                     id: String(m.id),
                     sortKey:
@@ -2523,6 +2530,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           ) : (
             <div className="space-y-6">
               <FavoriteMatches
+                boardRows={boardPref ? buildScoreboardRows(normalizedAll.filter((m) => favCookieIds.has(String(m.id)))) : undefined}
                 matches={normalizedAll.filter((m) => favCookieIds.has(String(m.id))).map((m) => compactProps({
                   id: String(m.id),
                   sortKey:
@@ -2672,7 +2680,11 @@ function buildScoreboardRows(matches: NormalizedMatch[]): ScoreboardRow[] {
     awayScore: m.away.score,
     half: m.soccerHalfScore,
     pred: m.pred1x2 ?? null,
-    odds: m.odds ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null } : null,
+    odds: m.odds
+      ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null }
+      : m.boardOdds2
+        ? { home: m.boardOdds2.home, draw: 0, away: m.boardOdds2.away, trend: null }
+        : null,
     goals: m.soccerGoals ?? [],
     cards: m.soccerCards ?? [],
     teamStats: m.soccerTeamStats ?? [],
@@ -3172,7 +3184,9 @@ type NormalizedMatch = {
   awayStarter: string | null;
   soccerCtx: SoccerContext | null;
   /** 축구 1X2 AI 확률 — 스코어보드 보기(?sort=board) AI 열용 */
-  pred1x2?: { home: number; draw: number; away: number } | null;
+  pred1x2?: { home: number; draw: number | null; away: number } | null;
+  /** 스코어보드 표 전용 2지선다 배당(야구·농구·하키) */
+  boardOdds2?: { home: number; away: number } | null;
   soccerGoals: SoccerGoal[] | null;
   soccerCards: SoccerCard[] | null;
   soccerTeamStats: SoccerTeamStat[] | null;
