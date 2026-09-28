@@ -2,6 +2,22 @@
 // LLM 이 홈/원정을 뒤바꾸거나 없는 시간·퍼센트를 지어내는 사고(2026-09-05 #4600 실측)를 자동 발행에서 걸러내기 위한 것.
 // 통과 = null, 탈락 = 사유 문자열. 탈락 글은 버리지 않고 DRAFT 로 남긴다.
 
+/**
+ * 횟수 검사 — 본문의 "N회·N개·N골·N번"이 데이터 텍스트에 있는 수인지 본다. 전문가 구성은 숫자가 많아
+ * 모델이 두 값을 더하거나(태클 12 + 가로채기 3 → "15회") 비율을 새로 계산하는 일이 잦다(2026-09-28 dry-run 실측).
+ * 3 이하의 작은 수는 흔해서 거르지 않는다.
+ */
+export function countGateReason(content: string, dataText: string): string | null {
+  const known = new Set<number>();
+  for (const m of dataText.matchAll(/\d+/g)) known.add(Number(m[0]));
+  const body = content.replace(/^#.*$/m, "");
+  for (const m of body.matchAll(/(\d{1,4})\s*(회|개|골|번)(?!째)/g)) {
+    const v = Number(m[1]);
+    if (v > 3 && !known.has(v)) return `데이터에 없는 수 "${m[0]}"`;
+  }
+  return null;
+}
+
 export interface FactGateInput {
   /** 후처리(링크·토큰) 전후 무관 — 숫자만 본다. */
   content: string;
@@ -26,6 +42,12 @@ function allowedMinutes(dataText: string): Set<number> {
     }
   }
   for (const m of dataText.matchAll(/\((\d{1,3})분\)/g)) set.add(Number(m[1]));
+  // [경기 흐름]의 구간("61~75분")과 [골 장면]의 줄머리("- 29분 …")
+  for (const m of dataText.matchAll(/(\d{1,3})~(\d{1,3})분/g)) {
+    add(Number(m[1]));
+    add(Number(m[2]));
+  }
+  for (const m of dataText.matchAll(/^\s*- (\d{1,3})분 /gm)) add(Number(m[1]));
   return set;
 }
 

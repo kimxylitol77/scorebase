@@ -18,13 +18,15 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildTacticalContext, TS_TACTICAL_LEAGUES, type TacticalContext } from "@/lib/tactical/context";
 import { buildTacticalAnalysisPrompt } from "@/prompts/tactical-analysis";
 import { hasTacticalData, hasTsFormations } from "@/lib/tactical/data-gate";
-import { tacticalFactGateReason } from "@/lib/tactical/fact-gate";
-import { insertShapeTokens, linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
+import { countGateReason, tacticalFactGateReason } from "@/lib/tactical/fact-gate";
+import { insertInsightTokens, insertShapeTokens, linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
 
 const TARGET_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL", "UEFA_NL"];
 const LOOKBACK_DAYS = 5; // 최근 종료 경기만 (라이브 운영 시 새 시즌 기준)
 const PER_RUN_CAP = 4; // 한 번에 생성할 최대 편수 (양산 방지)
 const MIN_TACTICAL_LENGTH = 1500;
+// 전문가 구성은 숫자 비교·순서 추론이 많아 기본 모델(haiku)로는 "6회로 8회를 앞섰다" 같은 논리 오류가 난다(2026-09-28 실측).
+const PRO_MODEL = process.env.TACTICAL_PRO_MODEL || "claude-sonnet-5";
 
 // --league= 로 단일 리그를 돌릴 때의 lookback·cap. K리그1 은 매일 돌아 전날 경기를 전부 처리한다(라운드 최대 6경기).
 const LEAGUE_RUN: Record<string, { lookbackDays: number; cap: number }> = {
@@ -91,8 +93,10 @@ function decorate(content: string, ctx: TacticalContext): string {
   let out = linkNamesInMarkdown(insertSeriesKicker(content, ctx), ctx.links);
   // 좌표가 있을 때만 도식 토큰 — 글 페이지가 토큰 자리에 양 팀 셋업 도식을 그린다(없으면 토큰 제거).
   if (ctx.lineupCode) out = insertShapeTokens(out);
+  // 전문가 구성 — 스타일 비교·경기 흐름·골 장면 도식을 해당 섹션 끝에. 섹션이 없으면 넣지 않는다.
+  if (ctx.pro) out = insertInsightTokens(out, ctx.insights);
   if (ctx.lineupCode) {
-    out += `\n\n---\n\n[▶ ${ctx.home} vs ${ctx.away} 양 팀 선발 라인업을 전술판에서 열기](/lineup?d=${ctx.lineupCode}) — 실제 경기 평균 위치 좌표 그대로 불러옵니다. 선수를 끌어 옮기고 화살표를 그려 나만의 해석을 남겨 보세요.`;
+    out += `\n\n---\n\n[▶ ${ctx.home} vs ${ctx.away} 양 팀 선발 라인업을 전술판에서 열기](/lineup?d=${ctx.lineupCode}) — 선발 배치 좌표 그대로 불러옵니다. 선수를 끌어 옮기고 화살표를 그려 나만의 해석을 남겨 보세요.`;
   }
   return out;
 }
@@ -130,13 +134,31 @@ export async function runTactical(
       }
 
       const prompt = buildTacticalAnalysisPrompt(ctx);
-      const raw = await generateWithMinLength(prompt, {
+      const genOpts = {
         system: SYSTEM_PROMPT,
-        maxTokens: 4500,
+        // 한글 3,200자는 5천 토큰 안팎 — 6000 으로는 끝이 잘렸다(2026-09-28 실측). 넉넉히 준다.
+        maxTokens: ctx.pro ? 8192 : 4500,
         temperature: 0.6,
         minLength: MIN_TACTICAL_LENGTH,
         label: `tactical ${ctx.league} ${id}`,
-      });
+        ...(ctx.pro ? { model: PRO_MODEL, timeoutMs: 240_000 } : {}),
+      };
+      const gate = (text: string) =>
+        tacticalFactGateReason({ content: text, dataText: ctx.text, homeScore: ctx.homeScore, awayScore: ctx.awayScore }) ??
+        (ctx.pro ? countGateReason(text, ctx.text) : null);
+      let raw = await generateWithMinLength(prompt, genOpts);
+      // 전문가 구성은 사실 검증에 걸리면 사유를 알려 주고 한 번 다시 쓰게 한다. 그래도 걸리면 그 사유를 로그에 남기고 초안으로 둔다.
+      if (raw && ctx.pro) {
+        const reason = gate(raw);
+        if (reason) {
+          console.log(`[tactical] 매치 ${id} 사실 검증 탈락(${reason}) — 1회 재작성`);
+          const retry = await generateWithMinLength(
+            `${prompt}\n\n[재작성 지시]\n방금 쓴 글이 사실 검증에서 걸렸습니다. 사유는 "${reason}" 입니다. [경기 데이터]에 적힌 수와 분만 쓰고, 직접 계산한 값은 빼고 처음부터 다시 쓰세요.`,
+            genOpts,
+          );
+          if (retry) raw = retry;
+        }
+      }
       if (!raw) {
         console.log(`[tactical] 매치 ${id} 본문 길이 미달 — 스킵`);
         continue;
@@ -145,11 +167,10 @@ export async function runTactical(
       const title = extractTitle(content);
 
       // 자동 발행 리그는 결정적 팩트 게이트를 통과해야 PUBLISHED. 탈락은 DRAFT 로 남겨 검수 대상으로.
-      const factReason = AUTO_PUBLISH_LEAGUES.has(ctx.league)
-        ? tacticalFactGateReason({ content: raw, dataText: ctx.text, homeScore: ctx.homeScore, awayScore: ctx.awayScore })
-        : null;
+      const factReason = AUTO_PUBLISH_LEAGUES.has(ctx.league) || ctx.pro ? gate(raw) : null;
       const publish = AUTO_PUBLISH_LEAGUES.has(ctx.league) && factReason == null;
       if (factReason) console.log(`[tactical] 매치 ${id} 팩트 게이트 탈락 → DRAFT: ${factReason}`);
+      else if (ctx.pro) console.log(`[tactical] 매치 ${id} 사실 검증 통과 (전문가 구성, ${PRO_MODEL})`);
 
       if (dryRun) {
         console.log("\n" + "=".repeat(60));
