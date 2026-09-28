@@ -6,6 +6,7 @@
 - [x] 카드 form
 - [x] 카드 rivals
 - [x] 테마 3종
-- [x] 샘플 PNG 저장
+- [x] 카드 fut·pizza·bump·dumbbell·poster (2차)
+- [x] 샘플 PNG 저장 (17장)
 - [x] typecheck·테스트·린트
 - [ ] 사용자 선택 후 본문 삽입 (대기)

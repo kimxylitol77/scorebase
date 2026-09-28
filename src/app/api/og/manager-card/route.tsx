@@ -1,37 +1,18 @@
-// GET /api/og/manager-card?id=<글 번호>&kind=hero|ring|form|rivals&theme=club|dark|light — 감독 기록 그림 카드(1080×1350).
+// GET /api/og/manager-card?id=<글 번호>&kind=hero|ring|form|rivals|fut|pizza|bump|dumbbell|poster&theme=club|dark|light — 감독 기록 그림 카드(1080×1350).
 // 수치는 글에 저장된 집계와 같은 DB 경기에서 읽는다(loadManagerCard). satori 주의 — 모든 컨테이너 display:flex.
 //   hero   — 감독 사진 + 승무패 + 핵심 숫자
 //   ring   — 승점 획득률 원형 + 기록 목록
 //   form   — 경기별 상대·점수·결과
 //   rivals — 경기 전 예측 기대 승점 대비 실제, 상위 4팀
+//   fut·pizza·bump·dumbbell·poster — charts.tsx
 import { ImageResponse } from "next/og";
 import { toDataUri, loadCardFonts, CARD_W, CARD_H, CARD_CACHE } from "@/components/og/weekly-frame";
 import { loadManagerCard, type ManagerCardData } from "@/lib/tactical/manager-card-data";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { themeOf, Img, signed, RESULT_COLOR, RESULT_KO, type Theme } from "./parts";
+import { Fut, Pizza, Bump, Dumbbell, Poster } from "./charts";
 
 export const runtime = "nodejs";
-
-interface Theme { bg: string; fg: string; sub: string; panel: string; line: string; accent: string; track: string }
-const CLUB_TINT: Record<string, string> = { EPL: "#3b0764", LALIGA: "#7c2d12", BUNDESLIGA: "#713f12", SERIE_A: "#0c4a6e", LIGUE_1: "#881337" };
-function themeOf(name: string, league: string): Theme {
-  if (name === "light") return { bg: "linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)", fg: "#0f172a", sub: "#64748b", panel: "#ffffff", line: "#e2e8f0", accent: "#2563eb", track: "#e2e8f0" };
-  if (name === "dark") return { bg: "linear-gradient(180deg, #0b0f19 0%, #020617 100%)", fg: "#f8fafc", sub: "#94a3b8", panel: "rgba(255,255,255,0.05)", line: "rgba(255,255,255,0.10)", accent: "#34d399", track: "rgba(255,255,255,0.10)" };
-  return { bg: `linear-gradient(160deg, ${CLUB_TINT[league] ?? "#1e293b"} 0%, #0f172a 55%, #020617 100%)`, fg: "#ffffff", sub: "rgba(255,255,255,0.68)", panel: "rgba(255,255,255,0.08)", line: "rgba(255,255,255,0.14)", accent: "#fbbf24", track: "rgba(255,255,255,0.14)" };
-}
-const RESULT_COLOR = { W: "#22c55e", D: "#94a3b8", L: "#ef4444" } as const;
-const RESULT_KO = { W: "승", D: "무", L: "패" } as const;
-const signed = (n: number, digits = 2) => `${n >= 0 ? "+" : ""}${n.toFixed(digits)}`;
-
-function Img({ src, size, round, ring }: { src: string | null; size: number; round?: boolean; ring?: string }) {
-  return (
-    <div style={{ display: "flex", width: size, height: size, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: round ? "999px" : "0", overflow: "hidden", border: ring ? `5px solid ${ring}` : "none", background: round ? "rgba(148,163,184,0.18)" : "transparent" }}>
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} width={size} height={size} style={{ width: size, height: size, objectFit: round ? "cover" : "contain" }} alt="" />
-      ) : null}
-    </div>
-  );
-}
 
 function Shell({ t, d, title, sub, children }: { t: Theme; d: ManagerCardData; title: string; sub: string; children: React.ReactNode }) {
   return (
@@ -228,6 +209,21 @@ export async function GET(req: Request) {
   const r = d.monthRecord;
   const recordLine = `${r.played}경기 ${r.w}승 ${r.d}무 ${r.l}패 · 승점 ${r.points}`;
 
+  if (kind === "bump") {
+    const logos = await Promise.all(d.bump.teams.map((x) => toDataUri(x.logo)));
+    return new ImageResponse(<Shell t={t} d={d} title="시즌 순위 흐름" sub={`라운드별 순위 · 현재 상위 6팀 · ${d.team.nameKo} 강조`}><Bump t={t} d={d} logos={logos} /></Shell>, opts);
+  }
+  if (kind === "dumbbell") {
+    return new ImageResponse(<Shell t={t} d={d} title="기대와 실제" sub={`${d.monthLabel} 전 구단 · 경기 전 예측 기대 승점과 실제 경기당 승점`}><Dumbbell t={t} d={d} /></Shell>, opts);
+  }
+  if (kind === "fut" || kind === "pizza" || kind === "poster") {
+    const [photo, logo] = await Promise.all([toDataUri(d.coach.photo), toDataUri(d.team.logo)]);
+    if (kind === "pizza") {
+      return new ImageResponse(<Shell t={t} d={d} title={`${d.coach.nameKo} 지표`} sub={`${d.monthLabel} 리그 ${d.leagueMonth.length}팀 중 백분위 · 바깥일수록 상위`}><Pizza t={t} d={d} photo={photo} /></Shell>, opts);
+    }
+    if (kind === "poster") return new ImageResponse(<Poster t={t} d={d} photo={photo} logo={logo} />, opts);
+    return new ImageResponse(<Shell t={t} d={d} title="이달의 감독 카드" sub={`${d.monthLabel} · 능력치는 리그 내 백분위를 60~99 로 환산`}><Fut t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
+  }
   if (kind === "form") {
     const logos = await Promise.all(d.form.slice(-6).map((m) => toDataUri(m.opponentLogo)));
     return new ImageResponse(<Shell t={t} d={d} title={`${d.coach.nameKo}의 ${d.monthLabel.split(" ")[1]}`} sub={`${d.team.nameKo} · ${recordLine}`}><Form t={t} d={d} logos={logos} /></Shell>, opts);

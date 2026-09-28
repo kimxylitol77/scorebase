@@ -16,6 +16,14 @@ export interface ManagerCardData {
   monthRecord: CardRecord & { rank: number };
   season: CardRecord & { rank: number; teams: number };
   form: { date: string; opponentKo: string; opponentLogo: string | null; homeAway: "H" | "A"; gf: number; ga: number; result: "W" | "D" | "L" }[];
+  /** 이달 리그 전 팀 — 기대 대비 초과 성과 내림차순 */
+  leagueMonth: { nameKo: string; logo: string | null; ppg: number; expectedPpg: number | null; over: number; isWinner: boolean }[];
+  /** 선정 팀의 이달 지표 백분위(0~1, 높을수록 좋음) */
+  percentiles: { key: string; label: string; value: string; pct: number }[];
+  /** 시즌 라운드별 순위 — 현재 상위 6팀. ranks[k] = 각 팀의 첫 k+1경기까지 집계한 순위 */
+  bump: { rounds: number; teams: { nameKo: string; logo: string | null; isWinner: boolean; ranks: number[] }[] };
+  /** 시즌 현재 연승 수(마지막 경기부터 거슬러) */
+  winStreak: number;
   /** 선정 점수 상위 4팀. 첫 행이 선정 팀이 아닐 수 있어 isWinner 로 표시 */
   rivals: { nameKo: string; logo: string | null; ppg: number; expectedPpg: number | null; over: number; isWinner: boolean }[];
 }
@@ -77,8 +85,76 @@ export async function loadManagerCard(articleId: number): Promise<ManagerCardDat
       isWinner: t.teamId === ctx.team.id,
     }));
 
+  const monthTable = selectionTable(monthRows.map((r) => ({ ...r, homeScore: r.homeScore!, awayScore: r.awayScore! })));
+  const leagueMonth = [...monthTable]
+    .sort((x, y) => y.over - x.over)
+    .map((t) => ({
+      nameKo: teamInfo.get(t.teamId)?.nameKo ?? "", logo: teamInfo.get(t.teamId)?.logo ?? null,
+      ppg: t.ppg, expectedPpg: t.expectedPpg, over: t.over, isWinner: t.teamId === ctx.team.id,
+    }));
+
+  // 이달 팀별 득점·실점·무실점 → 백분위
+  const mStat = new Map<number, { n: number; gf: number; ga: number; cs: number }>();
+  const addM = (id: number, gf: number, ga: number) => {
+    const c = mStat.get(id) ?? { n: 0, gf: 0, ga: 0, cs: 0 };
+    c.n++; c.gf += gf; c.ga += ga; if (ga === 0) c.cs++;
+    mStat.set(id, c);
+  };
+  for (const row of monthRows) {
+    addM(row.homeTeamId, row.homeScore!, row.awayScore!);
+    addM(row.awayTeamId, row.awayScore!, row.homeScore!);
+  }
+  const selById = new Map(monthTable.map((t) => [t.teamId, t]));
+  const ids = [...mStat.keys()];
+  const metric = (id: number) => {
+    const c = mStat.get(id)!;
+    const t = selById.get(id);
+    return { ppg: t?.ppg ?? 0, gf: c.gf / c.n, ga: -c.ga / c.n, gd: (c.gf - c.ga) / c.n, cs: c.cs / c.n, over: t?.over ?? 0 };
+  };
+  const mine = metric(ctx.team.id);
+  const pctOf = (k: keyof typeof mine) => ids.filter((id) => metric(id)[k] <= mine[k]).length / ids.length;
+  const myM = mStat.get(ctx.team.id)!;
+  const percentiles = [
+    { key: "ppg", label: "경기당 승점", value: mine.ppg.toFixed(2), pct: pctOf("ppg") },
+    { key: "gf", label: "경기당 득점", value: mine.gf.toFixed(1), pct: pctOf("gf") },
+    { key: "ga", label: "경기당 실점", value: (myM.ga / myM.n).toFixed(1), pct: pctOf("ga") },
+    { key: "gd", label: "경기당 득실차", value: `${mine.gd >= 0 ? "+" : ""}${mine.gd.toFixed(1)}`, pct: pctOf("gd") },
+    { key: "cs", label: "무실점 경기", value: `${myM.cs}/${myM.n}`, pct: pctOf("cs") },
+    { key: "over", label: "기대 대비", value: `${mine.over >= 0 ? "+" : ""}${mine.over.toFixed(2)}`, pct: pctOf("over") },
+  ];
+
+  // 라운드별 순위 — 팀마다 첫 k경기까지 집계
+  const perTeam = new Map<number, { gf: number; ga: number }[]>();
+  for (const row of [...rows].sort((x, y) => x.startTime.getTime() - y.startTime.getTime())) {
+    (perTeam.get(row.homeTeamId) ?? perTeam.set(row.homeTeamId, []).get(row.homeTeamId)!).push({ gf: row.homeScore!, ga: row.awayScore! });
+    (perTeam.get(row.awayTeamId) ?? perTeam.set(row.awayTeamId, []).get(row.awayTeamId)!).push({ gf: row.awayScore!, ga: row.homeScore! });
+  }
+  const rounds = seasonRec.played;
+  const rankAt = (k: number) => {
+    const t = [...perTeam.entries()].map(([id, g]) => {
+      const part = g.slice(0, k);
+      const pts = part.reduce((a2, x) => a2 + (x.gf > x.ga ? 3 : x.gf === x.ga ? 1 : 0), 0);
+      const gf = part.reduce((a2, x) => a2 + x.gf, 0);
+      const ga = part.reduce((a2, x) => a2 + x.ga, 0);
+      return { id, pts, gd: gf - ga, gf };
+    }).sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf);
+    return new Map(t.map((x, i) => [x.id, i + 1]));
+  };
+  const rankMaps = Array.from({ length: rounds }, (_, i) => rankAt(i + 1));
+  const bump = {
+    rounds,
+    teams: sorted.slice(0, 6).map(([id]) => ({
+      nameKo: teamInfo.get(id)?.nameKo ?? "", logo: teamInfo.get(id)?.logo ?? null, isWinner: id === ctx.team.id,
+      ranks: rankMaps.map((mp) => mp.get(id) ?? sorted.length),
+    })),
+  };
+  const mineGames = perTeam.get(ctx.team.id) ?? [];
+  let winStreak = 0;
+  for (let i = mineGames.length - 1; i >= 0 && mineGames[i].gf > mineGames[i].ga; i--) winStreak++;
+
   const r = ctx.record;
   return {
+    leagueMonth, percentiles, bump, winStreak,
     league,
     month,
     monthLabel: `${y}년 ${m}월`,
