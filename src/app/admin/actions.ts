@@ -17,7 +17,7 @@ export async function approveAndPublish(formData: FormData) {
     throw new Error("필수 값이 누락되었습니다.");
   }
 
-  await prisma.article.update({
+  const updated = await prisma.article.update({
     where: { id },
     data: {
       title,
@@ -25,12 +25,13 @@ export async function approveAndPublish(formData: FormData) {
       status: "PUBLISHED",
       publishedAt: new Date(),
     },
+    select: { slug: true },
   });
 
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/articles");
-  revalidatePath(`/articles/${id}`);
+  revalidatePath(`/articles/${updated.slug}`);
   redirect("/admin");
 }
 
@@ -95,13 +96,15 @@ export async function unpublish(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
-  await prisma.article.update({
+  const updated = await prisma.article.update({
     where: { id },
     data: { status: "DRAFT", publishedAt: null },
+    select: { slug: true },
   });
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/articles");
+  revalidatePath(`/articles/${updated.slug}`);
 }
 
 /** 즉시 발행 (DRAFT/PENDING_REVIEW → PUBLISHED) */
@@ -109,13 +112,16 @@ export async function publish(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
-  await prisma.article.update({
+  const updated = await prisma.article.update({
     where: { id },
     data: { status: "PUBLISHED", publishedAt: new Date() },
+    select: { slug: true },
   });
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/articles");
+  // 초안일 때 열린 주소는 404 가 캐시에 남는다 — 글 주소를 비워야 발행 즉시 보인다
+  revalidatePath(`/articles/${updated.slug}`);
 }
 
 // ===== 새 글 직접 작성 =====
