@@ -132,7 +132,15 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
     }
 
     const verdict = settlePick(p.market, p.pick, p.line, h, a, p.sport);
-    if (verdict == null) continue; // 보류 — 다음 cron 에서 재시도
+    if (verdict == null) {
+      // 점수가 확정됐는데도 판정이 안 나오면 푸시(핸디캡·오버언더가 기준선과 정확히 같음)나 무승부 없는 종목의 동점이다.
+      // 다음 회차에도 결과는 같으므로 무효로 종결한다 — 그냥 넘기면 5분마다 영원히 다시 집힌다(2026-09-28 5건 적체).
+      if (h != null && a != null) {
+        await prisma.post.update({ where: { id: p.id }, data: { settledAt: new Date() } });
+        voided++;
+      }
+      continue; // 점수 미확정이면 보류 — 다음 cron 에서 재시도
+    }
 
     await prisma.post.update({
       where: { id: p.id },

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchBaseballStarters } from "@/jobs/fetch-baseball-starters";
 import { withLlmTag } from "@/lib/ai/usage-track";
 
@@ -12,11 +13,11 @@ export async function GET(req: Request) {
   }
   try {
     const r = await withLlmTag("baseball-starters", () => runFetchBaseballStarters());
+    await recordCronRun("baseball-starters", { count: r.updated });
     return NextResponse.json({ ok: true, ...r });
   } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: (e as Error).message },
-      { status: 500 },
-    );
+    const error = (e as Error).message;
+    await recordCronRun("baseball-starters", { ok: false, error }).catch(() => undefined);
+    return NextResponse.json({ ok: false, error }, { status: 500 });
   }
 }

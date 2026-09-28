@@ -125,6 +125,18 @@ export async function runFetchBaseballStarters(opts?: {
 }) {
   const horizonDays = opts?.horizonDays ?? 3;
   const regenerateArticles = opts?.regenerateArticles ?? true;
+
+  // 0) 옛 일정의 선발 걷어내기 — 우천 취소로 재편성된 경기는 원래 날짜에 받은 선발을 그대로 들고 온다.
+  //    선발 예고는 전날 나오므로, 경기 3일 이상 전에 받은 값은 지금 일정의 선발일 수 없다.
+  //    2026-09-28 실측: 9/29~10/5 예정 20경기가 6~8월에 받은 선발을 달고 있었다(화면 표시 + 예측 보정에 그대로 쓰임).
+  const cleared = await prisma.$executeRaw`
+    UPDATE "Match"
+    SET "homeStarter" = NULL, "awayStarter" = NULL, "startersUpdatedAt" = NULL
+    WHERE league IN ('KBO', 'NPB') AND status = 'SCHEDULED' AND "startTime" > now()
+      AND "startersUpdatedAt" IS NOT NULL
+      AND "startersUpdatedAt" < "startTime" - interval '3 days'
+  `;
+  if (cleared > 0) console.log(`[starters] 옛 일정 선발 ${cleared}경기 비움`);
   const forceRegen = opts?.forceRegen ?? false;
   const now = new Date();
   const horizon = new Date(now.getTime() + horizonDays * 86400 * 1000);

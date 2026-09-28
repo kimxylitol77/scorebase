@@ -76,6 +76,8 @@ export const CRON_REGISTRY: {
   // 2026-09-28 전수 점검에서 등록 — 셋 다 60초 제한에 잘려 조용히 빠지고 있었다(기록이 없어 감시 밖).
   { name: "baseball-weekly", label: "야구 주간 리뷰 (KBO·NPB·MLB)", maxAgeH: 180 },
   { name: "analysis", label: "리그 분석 글", maxAgeH: 180 },
+  // 하루 7회(10:30~17:00 KST) — 가장 긴 공백은 17.5h
+  { name: "baseball-starters", label: "KBO·NPB 선발 투수", maxAgeH: 20 },
   // 23:00 KST 1회 + 00:30~12:30 매시 — 가장 긴 공백이 10.5h
   { name: "api-football", label: "축구 라인업·예측·통계 (api-football)", maxAgeH: 12 },
   // 일간 증분(최근 10일 창) — 시즌 중 연속 0건은 비정상. from/to 누락 0건이 한 달 무감지였던 잡 (2026-08-19).
