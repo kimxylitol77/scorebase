@@ -13,12 +13,18 @@ const VARIANTS: Array<[string, Record<string, string>]> = [
   ["기본(UA 없음)", {}],
   ["옛 봇 UA", { "user-agent": "scorebase-health-bot/1" }],
   ["통과 UA", { "user-agent": selfUserAgent("selfcheck") }],
+  [
+    "통과 UA + 내부 토큰",
+    { "user-agent": selfUserAgent("selfcheck"), ...(process.env.INTERNAL_API_TOKEN ? { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` } : {}) },
+  ],
 ];
 
 export async function GET(req: Request) {
   if (!internalAuthorized(req)) return new NextResponse("Unauthorized", { status: 401 });
   const rows: Array<{ target: string; variant: string; status: number; mitigated: string | null }> = [];
-  for (const target of TARGETS) {
+  // ?path=/api/live/baseball/187486 처럼 특정 경로를 지정해 볼 수 있다 (우리 사이트 경로만)
+  const extra = new URL(req.url).searchParams.getAll("path").filter((p) => p.startsWith("/") && !p.startsWith("//"));
+  for (const target of extra.length ? extra : TARGETS) {
     for (const [variant, headers] of VARIANTS) {
       try {
         const r = await fetch(`${siteOrigin()}${target}`, { headers, cache: "no-store", signal: AbortSignal.timeout(15_000) });
@@ -30,5 +36,11 @@ export async function GET(req: Request) {
     }
   }
   const challenged = rows.filter((r) => r.mitigated === "challenge" || r.mitigated === "deny");
-  return NextResponse.json({ ok: !challenged.some((r) => r.variant === "통과 UA"), challenged: challenged.length, rows });
+  return NextResponse.json({
+    ok: !challenged.some((r) => r.variant.startsWith("통과 UA")),
+    challenged: challenged.length,
+    hasInternalToken: !!process.env.INTERNAL_API_TOKEN,
+    site: siteOrigin(),
+    rows,
+  });
 }
