@@ -839,33 +839,22 @@ body.sb-mode [data-scores-root] {
 
 /* 스코어보드 보기(?sort=board) 골 연출 — 카드 보기(호박색 링 pulse·chime)와 일부러 다른 "전광판" 연출.
    ScoreboardGoalRow 가 득점 후 6초간 data-goal="home|away" 를 단다. 소리는 기존 LiveScoresBar chime 그대로.
-   ① 줄 전체 초록 스윕(득점한 쪽에서 반대쪽으로) ② 팀명 옆 LED "GOAL" 표시 깜빡임 ③ 득점한 쪽 숫자 뒤집기. */
-.sb-row {
-  position: relative;
+   ① 줄 전체 초록 스윕(득점한 쪽에서 반대쪽으로, 6초 뒤 data-goal 이 빠지며 사라짐) ② 팀명 옆 LED "GOAL" 표시 깜빡임 ③ 득점한 쪽 숫자 뒤집기. */
+/* ⚠ z-index·position 을 쓰지 않는다 — 줄 안에 쌓임 맥락이 생기면 점수 hover 팝업(fixed z-50)이 그 줄에 갇혀
+   아래 줄이 팝업 위에 그려진다(2026-09-28 사용자 제보, 첫 구현의 ::before + z-index 가 원인). 스윕은 줄 배경 이미지로. */
+.sb-row[data-goal] {
+  background-image: linear-gradient(90deg, rgb(16 185 129 / 0.34) 0%, rgb(16 185 129 / 0.16) 60%, rgb(16 185 129 / 0.04) 100%);
+  background-repeat: no-repeat;
+  background-position: left center;
+  animation: sbGoalSweep 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-.sb-row > * {
-  position: relative;
-  z-index: 1;
-}
-.sb-row[data-goal]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgb(16 185 129 / 0.34) 0%, rgb(16 185 129 / 0.16) 60%, rgb(16 185 129 / 0.04) 100%);
-  transform-origin: left center;
-  animation: sbGoalSweep 6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-.sb-row[data-goal="away"]::before {
-  background: linear-gradient(270deg, rgb(16 185 129 / 0.34) 0%, rgb(16 185 129 / 0.16) 60%, rgb(16 185 129 / 0.04) 100%);
-  transform-origin: right center;
+.sb-row[data-goal="away"] {
+  background-image: linear-gradient(270deg, rgb(16 185 129 / 0.34) 0%, rgb(16 185 129 / 0.16) 60%, rgb(16 185 129 / 0.04) 100%);
+  background-position: right center;
 }
 @keyframes sbGoalSweep {
-  0% { transform: scaleX(0); opacity: 1; }
-  10% { transform: scaleX(1); opacity: 1; }
-  75% { transform: scaleX(1); opacity: 0.7; }
-  100% { transform: scaleX(1); opacity: 0; }
+  0% { background-size: 0% 100%; }
+  100% { background-size: 100% 100%; }
 }
 .sb-goal-tag {
   display: none;
@@ -922,7 +911,7 @@ body.sb-mode [data-scores-root] {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sb-row[data-goal]::before,
+  .sb-row[data-goal],
   .sb-row[data-goal] .sb-goal-tag,
   .sb-row[data-goal] .sb-digit-home,
   .sb-row[data-goal] .sb-digit-away {
