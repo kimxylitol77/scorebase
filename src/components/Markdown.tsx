@@ -50,6 +50,11 @@ export default function Markdown({ children, disableAutoLink, selfHref }: Props)
                 </span>
               );
             }
+            // 양 팀 감독 카드 짝(pair=1) — 넓은 화면에선 두 장을 나란히, 모바일에선 위아래로
+            if (s.startsWith("/api/og/manager-card") && s.includes("pair=1")) {
+              // eslint-disable-next-line @next/next/no-img-element
+              return <img src={s} alt={alt ?? ""} loading="lazy" className="rounded-xl !inline-block w-full align-top sm:w-[calc(50%-4px)]" />;
+            }
             // eslint-disable-next-line @next/next/no-img-element
             return <img src={s} alt={alt ?? ""} loading="lazy" className="rounded-xl" />;
           },

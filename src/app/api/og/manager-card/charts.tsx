@@ -103,7 +103,8 @@ export function Pizza({ t, d, photo }: { t: Theme; d: ManagerCardData; photo: st
         {d.percentiles.map((p, i) => {
           const mid = (i + 0.5) * step;
           const [lx, ly] = pt(cx, cy, R1 + 78, mid);
-          const [vx, vy] = pt(cx, cy, R0 + (R1 - R0) * Math.max(0.06, p.pct) - 44, mid);
+          // 값이 낮으면 조각이 짧아 숫자 칸이 가운데 사진을 덮는다 — 사진 밖으로 밀어낸다
+          const [vx, vy] = pt(cx, cy, Math.max(R0 + 62, R0 + (R1 - R0) * Math.max(0.06, p.pct) - 44), mid);
           return (
             <div key={p.key} style={{ display: "flex" }}>
               <div style={{ display: "flex", flexDirection: "column", position: "absolute", left: lx - 110, top: ly - 42, width: 220, alignItems: "center" }}>
@@ -229,7 +230,7 @@ export function Poster({ t, d, photo, logo }: { t: Theme; d: ManagerCardData; ph
       <div style={{ display: "flex", flexDirection: "column", position: "absolute", top: 56, left: 60, right: 60 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontSize: "30px", fontWeight: 900 }}>Scorebase</span>
-          <span style={{ fontSize: "26px", fontWeight: 700, color: t.sub }}>{d.monthLabel} 이달의 감독</span>
+          <span style={{ fontSize: "26px", fontWeight: 700, color: t.sub }}>{d.monthLabel} {d.tag}</span>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: "14px", marginTop: "10px" }}>
           <span style={{ fontSize: "430px", fontFamily: "Oswald", fontWeight: 700, lineHeight: 0.95, color: t.accent }}>{big[0]}</span>

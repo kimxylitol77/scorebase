@@ -27,3 +27,15 @@ test("이미 카드가 있으면 그대로 둔다", () => {
   const once = insertManagerCards(BODY, 5687, WHO);
   assert.equal(insertManagerCards(once, 5687, WHO), once);
 });
+
+test("경기 글 — 양 팀 카드가 짝으로, 순위 흐름·덤벨은 한 장씩", async () => {
+  const { insertMatchManagerCards } = await import("./manager-cards-insert");
+  const body = "# 제목\n\n## 두 팀의 설계\n\n가.\n\n## 골의 해부\n\n나.\n\n## 숫자가 가리킨 선수\n\n다.\n\n## 결론과 다음 경기\n\n라.\n";
+  const out = insertMatchManagerCards(body, 1160833, { homeKo: "맨체스터 시티", awayKo: "선덜랜드", homeCoachKo: "엔조 마레스카", awayCoachKo: "레지스 르브리" });
+  assert.deepEqual(kinds(out), ["poster", "poster", "pizza", "pizza", "bump", "dumbbell", "fut", "fut"]);
+  assert.equal((out.match(/side=away/g) ?? []).length, 3);
+  assert.equal((out.match(/pair=1/g) ?? []).length, 6);
+  assert.ok(out.indexOf("가.") < out.indexOf("kind=poster") && out.indexOf("kind=poster") < out.indexOf("## 골의 해부"));
+  assert.ok(out.indexOf("라.") < out.indexOf("kind=bump"));
+  assert.equal(insertMatchManagerCards(out, 1160833, { homeKo: "", awayKo: "", homeCoachKo: "", awayCoachKo: "" }), out);
+});

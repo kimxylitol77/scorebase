@@ -1,4 +1,4 @@
-// GET /api/og/manager-card?id=<글 번호>&kind=hero|ring|form|rivals|fut|pizza|bump|dumbbell|poster&theme=club|dark|light — 감독 기록 그림 카드(1080×1350).
+// GET /api/og/manager-card?id=<이달의 감독 글 번호> 또는 ?match=<경기 번호>&side=home|away, &kind=hero|ring|form|rivals|fut|pizza|bump|dumbbell|poster&theme=club|dark|light — 감독 기록 그림 카드(1080×1350).
 // 수치는 글에 저장된 집계와 같은 DB 경기에서 읽는다(loadManagerCard). satori 주의 — 모든 컨테이너 display:flex.
 //   hero   — 감독 사진 + 승무패 + 핵심 숫자
 //   ring   — 승점 획득률 원형 + 기록 목록
@@ -7,7 +7,7 @@
 //   fut·pizza·bump·dumbbell·poster — charts.tsx
 import { ImageResponse } from "next/og";
 import { toDataUri, loadCardFonts, CARD_W, CARD_H, CARD_CACHE } from "@/components/og/weekly-frame";
-import { loadManagerCard, type ManagerCardData } from "@/lib/tactical/manager-card-data";
+import { loadManagerCard, loadMatchManagerCard, type ManagerCardData } from "@/lib/tactical/manager-card-data";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { themeOf, Img, signed, RESULT_COLOR, RESULT_KO, type Theme } from "./parts";
 import { Fut, Pizza, Bump, Dumbbell, Poster } from "./charts";
@@ -38,7 +38,7 @@ function Shell({ t, d, title, sub, children }: { t: Theme; d: ManagerCardData; t
       </div>
       <div style={{ display: "flex", flexDirection: "column", flex: 1, marginTop: "30px" }}>{children}</div>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "18px", fontSize: "19px", color: t.sub }}>
-        <span>scorebase.kr · 이달의 감독</span>
+        <span>scorebase.kr · {d.tag}</span>
         <span>수치는 경기 종료 시점 집계</span>
       </div>
     </div>
@@ -197,10 +197,13 @@ export async function GET(req: Request) {
   const id = Number(sp.get("id"));
   const kind = sp.get("kind") ?? "hero";
   const fonts = await loadCardFonts();
-  const d = Number.isInteger(id) && id > 0 ? await loadManagerCard(id).catch(() => null) : null;
+  const matchId = Number(sp.get("match"));
+  const d = Number.isInteger(matchId) && matchId > 0
+    ? await loadMatchManagerCard(matchId, sp.get("side") === "away" ? "away" : "home").catch(() => null)
+    : Number.isInteger(id) && id > 0 ? await loadManagerCard(id).catch(() => null) : null;
   if (!d) {
     return new ImageResponse(
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0f172a", color: "white", fontFamily: "Noto", fontSize: "44px", fontWeight: 900 }}>Scorebase 이달의 감독</div>,
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0f172a", color: "white", fontFamily: "Noto", fontSize: "44px", fontWeight: 900 }}>Scorebase 감독 기록</div>,
       { width: CARD_W, height: CARD_H, fonts, headers: { "Cache-Control": "public, max-age=60" } },
     );
   }
@@ -211,7 +214,7 @@ export async function GET(req: Request) {
 
   if (kind === "bump") {
     const logos = await Promise.all(d.bump.teams.map((x) => toDataUri(x.logo)));
-    return new ImageResponse(<Shell t={t} d={d} title="시즌 순위 흐름" sub={`라운드별 순위 · 현재 상위 6팀 · ${d.team.nameKo} 강조`}><Bump t={t} d={d} logos={logos} /></Shell>, opts);
+    return new ImageResponse(<Shell t={t} d={d} title="시즌 순위 흐름" sub={`라운드별 순위 · 상위 6팀과 ${d.bump.teams.filter((x) => x.isWinner).map((x) => x.nameKo).join("·")} 강조`}><Bump t={t} d={d} logos={logos} /></Shell>, opts);
   }
   if (kind === "dumbbell") {
     return new ImageResponse(<Shell t={t} d={d} title="기대와 실제" sub={`${d.monthLabel} 전 구단 · 경기 전 예측 기대 승점과 실제 경기당 승점`}><Dumbbell t={t} d={d} /></Shell>, opts);
@@ -222,7 +225,7 @@ export async function GET(req: Request) {
       return new ImageResponse(<Shell t={t} d={d} title={`${d.coach.nameKo} 지표`} sub={`${d.monthLabel} 리그 ${d.leagueMonth.length}팀 중 백분위 · 바깥일수록 상위`}><Pizza t={t} d={d} photo={photo} /></Shell>, opts);
     }
     if (kind === "poster") return new ImageResponse(<Poster t={t} d={d} photo={photo} logo={logo} />, opts);
-    return new ImageResponse(<Shell t={t} d={d} title="이달의 감독 카드" sub={`${d.monthLabel} · 능력치는 리그 내 백분위를 60~99 로 환산`}><Fut t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
+    return new ImageResponse(<Shell t={t} d={d} title={d.tag === "이달의 감독" ? "이달의 감독 카드" : `${d.coach.nameKo} 감독 카드`} sub={`${d.monthLabel} · 능력치는 리그 내 백분위를 60~99 로 환산`}><Fut t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
   }
   if (kind === "form") {
     const logos = await Promise.all(d.form.slice(-6).map((m) => toDataUri(m.opponentLogo)));
@@ -234,7 +237,7 @@ export async function GET(req: Request) {
   }
   const [photo, logo] = await Promise.all([toDataUri(d.coach.photo), toDataUri(d.team.logo)]);
   if (kind === "ring") {
-    return new ImageResponse(<Shell t={t} d={d} title={d.coach.nameKo} sub={`${d.monthLabel} 이달의 감독 · ${d.team.nameKo}`}><Ring t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
+    return new ImageResponse(<Shell t={t} d={d} title={d.coach.nameKo} sub={`${d.monthLabel} ${d.tag} · ${d.team.nameKo}`}><Ring t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
   }
-  return new ImageResponse(<Shell t={t} d={d} title={d.coach.nameKo} sub={`${d.monthLabel} 이달의 감독 · ${recordLine}`}><Hero t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
+  return new ImageResponse(<Shell t={t} d={d} title={d.coach.nameKo} sub={`${d.monthLabel} ${d.tag} · ${recordLine}`}><Hero t={t} d={d} photo={photo} logo={logo} /></Shell>, opts);
 }

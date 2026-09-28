@@ -1,12 +1,16 @@
-// 감독 기록 그림 카드용 데이터 — 글에 저장된 집계(tacticalContext)에 시즌 기록·리그 순위·경쟁 후보를 덧붙인다.
+// 감독 기록 그림 카드용 데이터 — 이달의 감독 글(월말 기준)과 경기 전술 글(그 경기 종료 기준) 두 입구가 같은 집계를 쓴다.
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { selectionTable } from "@/lib/tactical/manager-select";
 import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
+import { coachById } from "@/lib/coach-photos";
+import { toKoreanCoachName } from "@/lib/coach-names";
 
 export interface CardRecord { played: number; w: number; d: number; l: number; gf: number; ga: number; points: number }
 
 export interface ManagerCardData {
+  /** 카드 꼬리표 — "이달의 감독" | "감독 기록" */
+  tag: string;
   league: string;
   /** "2026-09" */
   month: string;
@@ -28,18 +32,56 @@ export interface ManagerCardData {
   rivals: { nameKo: string; logo: string | null; ppg: number; expectedPpg: number | null; over: number; isWinner: boolean }[];
 }
 
+interface Base {
+  tag: string;
+  league: string;
+  teamId: number;
+  /** 강조할 팀 — 경기 글은 양 팀 */
+  highlight: number[];
+  /** 집계 상한(포함) */
+  to: Date;
+  coach: { nameKo: string; photo: string | null; formation: string | null };
+}
+
+/** 이달의 감독 글 — 그 달 말일까지 */
 export async function loadManagerCard(articleId: number): Promise<ManagerCardData | null> {
   const article = await prisma.article.findUnique({ where: { id: articleId }, select: { league: true, type: true, tacticalContext: true } });
   if (!article?.tacticalContext || article.type !== "TACTICAL" || !article.league) return null;
   const ctx = JSON.parse(article.tacticalContext) as TacticalManagerContext;
   if (!ctx.coach || !ctx.record || !ctx.matches?.length) return null; // 경기 전술 글(감독 집계 없음)
-  const league = article.league;
+  const [y, m] = ctx.matches[ctx.matches.length - 1].date.slice(0, 7).split("-").map(Number);
+  return build({
+    tag: "이달의 감독", league: article.league, teamId: ctx.team.id, highlight: [ctx.team.id],
+    to: new Date(Date.UTC(y, m, 0, 23, 59, 59)),
+    coach: { nameKo: ctx.coach.nameKo, photo: ctx.coachPhoto ?? ctx.coach.logo ?? null, formation: ctx.coach.preferredFormation },
+  });
+}
 
-  const last = ctx.matches[ctx.matches.length - 1].date;
-  const month = last.slice(0, 7);
-  const [y, m] = month.split("-").map(Number);
+/** 경기 전술 글 — 그 경기 종료 시점까지. 감독은 ts 라인업의 coach_id */
+export async function loadMatchManagerCard(matchId: number, side: "home" | "away"): Promise<ManagerCardData | null> {
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { league: true, status: true, startTime: true, homeTeamId: true, awayTeamId: true, theSportsCache: { select: { lineup: true } } },
+  });
+  if (!match || match.status !== "FINISHED") return null;
+  const lu = match.theSportsCache?.lineup as { coach_id?: { home?: string; away?: string }; home_formation?: string; away_formation?: string } | null | undefined;
+  const c = coachById(lu?.coach_id?.[side]);
+  const nameKo = c?.nameKo ?? toKoreanCoachName(c?.name);
+  if (!c || !nameKo) return null;
+  return build({
+    tag: "감독 기록", league: match.league, teamId: side === "home" ? match.homeTeamId : match.awayTeamId,
+    highlight: [match.homeTeamId, match.awayTeamId], to: match.startTime,
+    coach: { nameKo, photo: c.logo, formation: (side === "home" ? lu?.home_formation : lu?.away_formation) ?? null },
+  });
+}
+
+async function build(b: Base): Promise<ManagerCardData | null> {
+  const { league } = b;
+  const y = b.to.getUTCFullYear();
+  const m = b.to.getUTCMonth() + 1;
+  const month = `${y}-${String(m).padStart(2, "0")}`;
   const monthFrom = new Date(Date.UTC(y, m - 1, 1));
-  const monthTo = new Date(Date.UTC(y, m, 0, 23, 59, 59));
+  const monthTo = b.to;
   const seasonFrom = new Date(Date.UTC(m >= 7 ? y : y - 1, 6, 1));
 
   const rows = await prisma.match.findMany({
@@ -70,11 +112,10 @@ export async function loadManagerCard(articleId: number): Promise<ManagerCardDat
     add(r.awayTeamId, r.awayScore!, r.homeScore!);
   }
   const sorted = [...table.entries()].sort((a, b) => b[1].points - a[1].points || (b[1].gf - b[1].ga) - (a[1].gf - a[1].ga) || b[1].gf - a[1].gf);
-  const seasonRec = table.get(ctx.team.id);
+  const seasonRec = table.get(b.teamId);
   if (!seasonRec) return null;
 
   const monthRows = rows.filter((r) => r.startTime >= monthFrom);
-  const byId = new Map(rows.map((r) => [r.id, r]));
   const rivals = selectionTable(monthRows.map((r) => ({ ...r, homeScore: r.homeScore!, awayScore: r.awayScore! })))
     .filter((t) => t.played >= 3)
     .slice(0, 4)
@@ -82,7 +123,7 @@ export async function loadManagerCard(articleId: number): Promise<ManagerCardDat
       nameKo: teamInfo.get(t.teamId)?.nameKo ?? "",
       logo: teamInfo.get(t.teamId)?.logo ?? null,
       ppg: t.ppg, expectedPpg: t.expectedPpg, over: t.over,
-      isWinner: t.teamId === ctx.team.id,
+      isWinner: b.highlight.includes(t.teamId),
     }));
 
   const monthTable = selectionTable(monthRows.map((r) => ({ ...r, homeScore: r.homeScore!, awayScore: r.awayScore! })));
@@ -90,7 +131,7 @@ export async function loadManagerCard(articleId: number): Promise<ManagerCardDat
     .sort((x, y) => y.over - x.over)
     .map((t) => ({
       nameKo: teamInfo.get(t.teamId)?.nameKo ?? "", logo: teamInfo.get(t.teamId)?.logo ?? null,
-      ppg: t.ppg, expectedPpg: t.expectedPpg, over: t.over, isWinner: t.teamId === ctx.team.id,
+      ppg: t.ppg, expectedPpg: t.expectedPpg, over: t.over, isWinner: b.highlight.includes(t.teamId),
     }));
 
   // 이달 팀별 득점·실점·무실점 → 백분위
@@ -111,9 +152,9 @@ export async function loadManagerCard(articleId: number): Promise<ManagerCardDat
     const t = selById.get(id);
     return { ppg: t?.ppg ?? 0, gf: c.gf / c.n, ga: -c.ga / c.n, gd: (c.gf - c.ga) / c.n, cs: c.cs / c.n, over: t?.over ?? 0 };
   };
-  const mine = metric(ctx.team.id);
+  const mine = metric(b.teamId);
   const pctOf = (k: keyof typeof mine) => ids.filter((id) => metric(id)[k] <= mine[k]).length / ids.length;
-  const myM = mStat.get(ctx.team.id)!;
+  const myM = mStat.get(b.teamId)!;
   const percentiles = [
     { key: "ppg", label: "경기당 승점", value: mine.ppg.toFixed(2), pct: pctOf("ppg") },
     { key: "gf", label: "경기당 득점", value: mine.gf.toFixed(1), pct: pctOf("gf") },
@@ -143,30 +184,57 @@ export async function loadManagerCard(articleId: number): Promise<ManagerCardDat
   const rankMaps = Array.from({ length: rounds }, (_, i) => rankAt(i + 1));
   const bump = {
     rounds,
-    teams: sorted.slice(0, 6).map(([id]) => ({
-      nameKo: teamInfo.get(id)?.nameKo ?? "", logo: teamInfo.get(id)?.logo ?? null, isWinner: id === ctx.team.id,
+    // 상위 6팀 + 강조 팀(6위 밖이어도)
+    teams: sorted.filter(([id], i) => i < 6 || b.highlight.includes(id)).map(([id]) => ({
+      nameKo: teamInfo.get(id)?.nameKo ?? "", logo: teamInfo.get(id)?.logo ?? null, isWinner: b.highlight.includes(id),
       ranks: rankMaps.map((mp) => mp.get(id) ?? sorted.length),
     })),
   };
-  const mineGames = perTeam.get(ctx.team.id) ?? [];
+  const mineGames = perTeam.get(b.teamId) ?? [];
   let winStreak = 0;
   for (let i = mineGames.length - 1; i >= 0 && mineGames[i].gf > mineGames[i].ga; i--) winStreak++;
 
-  const r = ctx.record;
+  const monthSorted = [...mStat.entries()]
+    .map(([id, c]) => ({ id, pts: selById.get(id)!.ppg * c.n, gd: c.gf - c.ga, gf: c.gf }))
+    .sort((x, y2) => y2.pts - x.pts || y2.gd - x.gd || y2.gf - x.gf);
+  const mineRows = monthRows
+    .filter((row) => row.homeTeamId === b.teamId || row.awayTeamId === b.teamId)
+    .sort((x, y2) => x.startTime.getTime() - y2.startTime.getTime());
+  if (!mineRows.length) return null;
+  const form = mineRows.map((row) => {
+    const home = row.homeTeamId === b.teamId;
+    const gf = home ? row.homeScore! : row.awayScore!;
+    const ga = home ? row.awayScore! : row.homeScore!;
+    const opp = teamInfo.get(home ? row.awayTeamId : row.homeTeamId);
+    return {
+      date: row.startTime.toISOString().slice(0, 10), opponentKo: opp?.nameKo ?? "", opponentLogo: opp?.logo ?? null,
+      homeAway: (home ? "H" : "A") as "H" | "A", gf, ga, result: (gf > ga ? "W" : gf === ga ? "D" : "L") as "W" | "D" | "L",
+    };
+  });
+  const w = form.filter((f) => f.result === "W").length;
+  const dr = form.filter((f) => f.result === "D").length;
+
   return {
     leagueMonth, percentiles, bump, winStreak,
+    tag: b.tag,
     league,
     month,
     monthLabel: `${y}년 ${m}월`,
-    team: { nameKo: ctx.team.nameKo, logo: teamInfo.get(ctx.team.id)?.logo ?? null },
-    coach: { nameKo: ctx.coach.nameKo, photo: ctx.coachPhoto ?? ctx.coach.logo ?? null, formation: ctx.coach.preferredFormation },
-    monthRecord: { played: r.played, w: r.w, d: r.d, l: r.l, gf: r.gf, ga: r.ga, points: r.points, rank: r.rank },
-    season: { ...seasonRec, rank: sorted.findIndex(([id]) => id === ctx.team.id) + 1, teams: sorted.length },
-    form: ctx.matches.map((mt) => {
-      const row = byId.get(mt.matchId);
-      const opp = row ? (mt.homeAway === "H" ? row.awayTeam : row.homeTeam) : null;
-      return { date: mt.date, opponentKo: mt.opponentKo, opponentLogo: opp?.logoUrl ?? null, homeAway: mt.homeAway, gf: mt.gf, ga: mt.ga, result: mt.result };
-    }),
+    team: { nameKo: teamInfo.get(b.teamId)?.nameKo ?? "", logo: teamInfo.get(b.teamId)?.logo ?? null },
+    coach: b.coach,
+    monthRecord: {
+      played: form.length, w, d: dr, l: form.length - w - dr, gf: myM.gf, ga: myM.ga, points: w * 3 + dr,
+      rank: monthSorted.findIndex((x) => x.id === b.teamId) + 1,
+    },
+    season: { ...seasonRec, rank: sorted.findIndex(([id]) => id === b.teamId) + 1, teams: sorted.length },
+    form,
     rivals,
   };
+}
+
+/** 경기 글 카드 삽입용 이름 — 양 팀 모두 감독·기록이 잡힐 때만 돌려준다(한쪽이라도 없으면 카드가 폴백 그림이 된다). */
+export async function matchCardWho(matchId: number): Promise<{ homeKo: string; awayKo: string; homeCoachKo: string; awayCoachKo: string } | null> {
+  const [h, a] = await Promise.all([loadMatchManagerCard(matchId, "home"), loadMatchManagerCard(matchId, "away")]);
+  if (!h || !a) return null;
+  return { homeKo: h.team.nameKo, awayKo: a.team.nameKo, homeCoachKo: h.coach.nameKo, awayCoachKo: a.coach.nameKo };
 }

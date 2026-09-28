@@ -20,6 +20,8 @@ import { buildTacticalAnalysisPrompt } from "@/prompts/tactical-analysis";
 import { hasTacticalData, hasTsFormations } from "@/lib/tactical/data-gate";
 import { countGateReason, tacticalFactGateReason } from "@/lib/tactical/fact-gate";
 import { insertInsightTokens, insertShapeTokens, linkNamesInMarkdown } from "@/lib/tactical/ts-enrich";
+import { matchCardWho } from "@/lib/tactical/manager-card-data";
+import { insertMatchManagerCards } from "@/lib/tactical/manager-cards-insert";
 
 const TARGET_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL", "UEFA_NL"];
 const LOOKBACK_DAYS = 5; // 최근 종료 경기만 (라이브 운영 시 새 시즌 기준)
@@ -163,7 +165,9 @@ export async function runTactical(
         console.log(`[tactical] 매치 ${id} 본문 길이 미달 — 스킵`);
         continue;
       }
-      const content = decorate(raw, ctx);
+      // 양 팀 감독 기록 카드 — 감독·기록이 둘 다 잡힐 때만
+      const who = await matchCardWho(id).catch(() => null);
+      const content = who ? insertMatchManagerCards(decorate(raw, ctx), id, who) : decorate(raw, ctx);
       const title = extractTitle(content);
 
       // 자동 발행 리그는 결정적 팩트 게이트를 통과해야 PUBLISHED. 탈락은 DRAFT 로 남겨 검수 대상으로.
