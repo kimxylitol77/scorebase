@@ -6,6 +6,8 @@
 //   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).
 
 import VolleyballStatsCard from "@/components/live/VolleyballStatsCard";
+import VolleyballCourtLineup from "@/components/live/VolleyballCourtLineup";
+import { getKovoMatchLineup } from "@/lib/sports/kovo-lineup";
 import type { Metadata } from "next";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { cache } from "react";
@@ -1819,6 +1821,10 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
       where: { matchId: match.id, kind: "eu" },
       orderBy: { ts: "desc" },
     }));
+  // V-리그·KOVO컵만 — KOVO 기록지 선발(종료) 또는 예상 선발(예정). KOVO 팀이 아니면 null.
+  const kovoLineup = /^(V_LEAGUE|KOVO_CUP)(_W)?$/.test(lg)
+    ? await getKovoMatchLineup({ homeTeamId: match.homeTeam.id, awayTeamId: match.awayTeam.id, startTime: match.startTime }).catch(() => null)
+    : null;
   return (
     <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
       <AmbientGlow />
@@ -1873,6 +1879,10 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         playerLogoById={{}}
         favMatchId={match.id}
       />
+
+      {kovoLineup && (
+        <VolleyballCourtLineup home={kovoLineup.home} away={kovoLineup.away} homeKo={homeKo} awayKo={awayKo} />
+      )}
 
       <VolleyballRecentForm
         matches={recentMatches}

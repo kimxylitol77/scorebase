@@ -4,7 +4,7 @@
 const BASE = "https://user-api.kovo.co.kr";
 const HEADERS = { Origin: "https://kovo.co.kr", Referer: "https://kovo.co.kr/", "Accept-Language": "ko" };
 
-async function kovoGet<T>(path: string, revalidate = 3600): Promise<T | null> {
+export async function kovoGet<T>(path: string, revalidate = 3600): Promise<T | null> {
   try {
     const r = await fetch(`${BASE}${path}`, { headers: HEADERS, next: { revalidate }, signal: AbortSignal.timeout(10_000) });
     if (!r.ok) return null;
