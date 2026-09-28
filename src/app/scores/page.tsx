@@ -2729,25 +2729,24 @@ function Section({
   );
 }
 
-/** 스코어보드 보기 그룹 — 진행 중 경기가 있는 리그 먼저, 그다음 LEAGUE_ORDER(인기순), 리그 안은 진행 → 예정 → 종료 → 연기, 같은 상태는 시작 시각순. */
+/** 스코어보드 보기 그룹 — 시간순(사용자 지시 2026-09-28). 리그는 그 리그의 가장 이른 경기 시각순, 리그 안도 시작 시각순. */
 function buildScoreboardGroups(matches: NormalizedMatch[]): ScoreboardGroup[] {
-  const STATUS_RANK: Record<NormalizedMatch["status"], number> = { LIVE: 0, SCHEDULED: 1, FINISHED: 2, POSTPONED: 3 };
   const byLeague = new Map<string, NormalizedMatch[]>();
   for (const m of matches) {
     if (!byLeague.has(m.league)) byLeague.set(m.league, []);
     byLeague.get(m.league)!.push(m);
   }
+  const first = (ms: NormalizedMatch[]) => Math.min(...ms.map((m) => m.startTime.getTime()));
+  // 같은 시각에 시작하는 리그끼리는 인기순(LEAGUE_ORDER)
   const order = (lg: string) => (LEAGUE_ORDER as Record<string, number>)[lg] ?? 999;
-  // 진행 중인 경기가 있는 리그가 먼저 — 인기순만 쓰면 지금 뛰는 리그가 표 아래로 밀린다
-  const hasLive = (ms: NormalizedMatch[]) => (ms.some((m) => m.status === "LIVE") ? 0 : 1);
   return [...byLeague.entries()]
-    .sort(([a, am], [b, bm]) => hasLive(am) - hasLive(bm) || order(a) - order(b) || a.localeCompare(b))
+    .sort(([a, am], [b, bm]) => first(am) - first(bm) || order(a) - order(b) || a.localeCompare(b))
     .map(([league, ms]) => ({
       league,
       label: LEAGUE_DISPLAY[league] ?? league,
       flag: getLeagueFlag(league),
       rows: [...ms]
-        .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.startTime.getTime() - b.startTime.getTime())
+        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
         .map((m): ScoreboardRow => ({
           id: m.id,
           league: m.league,
