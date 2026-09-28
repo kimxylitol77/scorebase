@@ -31,11 +31,19 @@ export async function GET(req: Request) {
       try {
         const res = await fetch(`${SITE}/api/live/baseball/${m.externalId}`, {
           cache: "no-store",
+          // Bearer 는 화면 전용 API 보호(api-same-origin)의 내부 워커 통과용 — 2026-09-17 보호를 넣은 뒤
+          // 이 호출이 전부 403 으로 막혔는데 응답은 ok:true 라 11일간 아무도 몰랐다 (2026-09-28 실측 3건 중 0건 갱신).
           // user-agent 는 Vercel 방화벽 봇 검문 통과용 — src/lib/self-fetch.ts
-          headers: { "user-agent": selfUserAgent("refresh-live-baseball") },
+          headers: {
+            "user-agent": selfUserAgent("refresh-live-baseball"),
+            ...(process.env.INTERNAL_API_TOKEN ? { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` } : {}),
+          },
         });
         if (res.ok || res.status === 304) ok++;
-        else fail++;
+        else {
+          fail++;
+          console.warn(`[refresh-live-baseball] ${m.league} ${m.externalId} → ${res.status}`);
+        }
       } catch {
         fail++;
       }
@@ -61,7 +69,8 @@ export async function GET(req: Request) {
     console.warn("[refresh-live-baseball] NHL ESPN 동기화 실패:", (e as Error).message);
   }
   return NextResponse.json({
-    ok: true,
+    // 라이브 경기가 있는데 하나도 못 갱신했으면 실패다 — 늘 ok:true 면 막혀도 드러나지 않는다
+    ok: matches.length === 0 || ok > 0,
     total: matches.length,
     refreshed: ok,
     failed: fail,
