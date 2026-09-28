@@ -25,20 +25,25 @@ export async function GET(req: Request) {
   if (!authorized(req)) return new NextResponse("Unauthorized", { status: 401 });
   const results: Record<string, number> = {};
   let ok = 0;
+  let firstError = "";
   for (const q of LISTS) {
     const url = `${SITE}/transfers${q ? `?${q}` : ""}`;
     try {
       const r = await fetch(url, { cache: "no-store", headers: HEADERS, signal: AbortSignal.timeout(60_000) });
       results[q || "value"] = r.status;
       if (r.ok) ok++;
-      // 본문은 버린다 — 저장은 페이지의 after() 가 한다.
-      await r.arrayBuffer().catch(() => undefined);
+      // 본문은 버린다 — 저장은 페이지의 after() 가 한다. 실패면 누가 막았는지(플랫폼 방화벽·미들웨어) 첫 건만 남긴다.
+      const body = await r.text().catch(() => "");
+      if (!r.ok && !firstError) {
+        firstError = `${r.status} mitigated=${r.headers.get("x-vercel-mitigated") ?? "-"} server=${r.headers.get("server") ?? "-"} retry-after=${r.headers.get("retry-after") ?? "-"} body=${body.slice(0, 80).replace(/\s+/g, " ")}`;
+      }
     } catch (e) {
       results[q || "value"] = -1;
+      if (!firstError) firstError = (e as Error).message;
       console.error("[player-rank-snapshot] fetch fail", url, (e as Error).message);
     }
   }
   const pruned = await pruneRankSnapshots().catch(() => 0);
-  await recordCronRun("player-rank-snapshot", { count: ok, ok: ok === LISTS.length });
-  return NextResponse.json({ ok: ok === LISTS.length, fetched: ok, of: LISTS.length, pruned, results });
+  await recordCronRun("player-rank-snapshot", { count: ok, ok: ok === LISTS.length, ...(firstError ? { error: firstError } : {}) });
+  return NextResponse.json({ ok: ok === LISTS.length, fetched: ok, of: LISTS.length, pruned, results, firstError });
 }
