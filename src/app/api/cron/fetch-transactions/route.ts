@@ -11,7 +11,10 @@ import type { TxLeague } from "@/lib/sports/espn-transactions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 60 → 300 (2026-09-28). NHL 프리시즌 로스터 이동이 몰려 번역 대상이 하루 49건 → NHL 만 56초가 걸렸고,
+// 세 종목 합이 60초를 넘겨 함수가 강제 종료됐다. 종료되면 catch 도 못 타 기록이 안 남고, 번역분도 저장 전에
+// 날아가 다음 날 같은 번역을 또 한다(60시간 동안 반복). 제한은 넉넉히 두고 평소엔 20~30초에 끝난다.
+export const maxDuration = 300;
 
 export async function GET(req: NextRequest) {
   if (!isCronAuthorized(req)) {
