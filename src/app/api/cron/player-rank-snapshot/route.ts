@@ -14,6 +14,13 @@ const LISTS = [
   "view=bargain", "view=form", "view=form&g=cold", "view=trophies", "view=contracts",
 ];
 
+// 내부 호출 표시 — 없으면 미들웨어 속도 제한에 우리 배치가 걸린다. 서버리스 함수는 출구 IP 를 다른 요청과
+// 같이 써서 IP 당 한도를 넘기기 쉽다 (2026-09-23~27 닷새 연속 12개 목록 전부 429).
+const HEADERS: Record<string, string> = {
+  "user-agent": "scorebase-rank-snapshot",
+  ...(process.env.INTERNAL_API_TOKEN ? { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` } : {}),
+};
+
 export async function GET(req: Request) {
   if (!authorized(req)) return new NextResponse("Unauthorized", { status: 401 });
   const results: Record<string, number> = {};
@@ -21,7 +28,7 @@ export async function GET(req: Request) {
   for (const q of LISTS) {
     const url = `${SITE}/transfers${q ? `?${q}` : ""}`;
     try {
-      const r = await fetch(url, { cache: "no-store", headers: { "user-agent": "scorebase-rank-snapshot" }, signal: AbortSignal.timeout(60_000) });
+      const r = await fetch(url, { cache: "no-store", headers: HEADERS, signal: AbortSignal.timeout(60_000) });
       results[q || "value"] = r.status;
       if (r.ok) ok++;
       // 본문은 버린다 — 저장은 페이지의 after() 가 한다.

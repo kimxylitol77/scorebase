@@ -122,7 +122,24 @@ export async function fetchEspnMlbRange(
   from: string,
   to: string,
 ): Promise<NormalizedMatch[]> {
-  return fetchScoreboard(`${ymd(from)}-${ymd(to)}`);
+  try {
+    return await fetchScoreboard(`${ymd(from)}-${ymd(to)}`);
+  } catch (e) {
+    // 2026-09-28 실측: ESPN 이 범위 조회를 전 종목에서 400("Failed to get events endpoint")으로 거부했다.
+    // 하루 단위 조회는 정상이라 날짜별로 나눠 받는다. 400 이 아닌 오류(타임아웃 등)는 그대로 올린다.
+    if (!axios.isAxiosError(e) || e.response?.status !== 400) throw e;
+    const days: string[] = [];
+    for (let d = new Date(from + "T00:00:00Z"); d <= new Date(to + "T00:00:00Z"); d = new Date(d.getTime() + 86_400_000)) {
+      days.push(ymd(d));
+    }
+    const out = new Map<string, NormalizedMatch>();
+    for (let i = 0; i < days.length; i += 5) {
+      const chunk = await Promise.all(days.slice(i, i + 5).map((d) => fetchScoreboard(d)));
+      // ESPN 은 미국 날짜로 끊어 주므로 자정 근처 경기가 이틀에 걸쳐 올 수 있다 — id 로 합친다
+      for (const m of chunk.flat()) out.set(m.externalId, m);
+    }
+    return [...out.values()];
+  }
 }
 
 export const mlbCollectorEspn: MatchCollector = {
