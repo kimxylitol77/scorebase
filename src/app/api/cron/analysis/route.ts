@@ -19,7 +19,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, skipped: "GENERATE_DISABLED" });
   }
   try {
-    await withLlmTag("analysis", () => runAnalysis());
+    // 제한 300초 중 230초까지만 새 글을 시작한다 (한 편에 30~60초) — 넘기면 함수가 잘려 기록도 못 남긴다
+    await withLlmTag("analysis", () => runAnalysis({ budgetMs: 230_000 }));
     await recordCronRun("analysis");
     return NextResponse.json({ ok: true });
   } catch (e) {

@@ -90,8 +90,12 @@ export const CRON_REGISTRY: {
   //    player-match-logs 가 이 상태로 한 달 침묵했던 것과 같은 클래스(감시 사각).
   { name: "telegram-alerts", label: "회원 텔레그램 경기 알림", maxAgeH: 2 }, // 2분 주기
   { name: "lineup-post", label: "라인업 도착 발행", maxAgeH: 2 }, // 10분 주기
-  { name: "transfer-daily", label: "이적시장 일간 수집", maxAgeH: 28 },
-  { name: "transfer-xi", label: "이적 베스트XI", maxAgeH: 28 },
+  // transfer-daily(이적시장 데일리)·transfer-xi(이적 베스트XI)는 여름 이적시장 마감으로 2026-09-28 cron 해제(사용자 결정).
+  //  9/19~20 이후 산출이 0인데 매일 돌고 있었다. 겨울 이적시장(1월) 재개 시 vercel.json 에
+  //  { "path": "/api/cron/transfer-daily", "schedule": "0 0 * * *" } · { "path": "/api/cron/transfer-xi", "schedule": "0 1 * * *" }
+  //  와 아래 두 줄을 같이 되살릴 것. (blog-weekly 와 같은 방식)
+  //  { name: "transfer-daily", label: "이적시장 일간 수집", maxAgeH: 28 },
+  //  { name: "transfer-xi", label: "이적 베스트XI", maxAgeH: 28 },
   // 이벤트는 이적창 비수기에도 몸값 재평가·부상으로 매일 생긴다 — 연속 0 은 af 쿼터 기아 신호
   { name: "player-events", label: "선수 근황 이벤트", maxAgeH: 28, zeroAlertAfter: 4 },
   { name: "player-trophies", label: "선수 트로피", maxAgeH: 28 }, // 수상은 드물어 0 이 정상 — zeroAlert 금지

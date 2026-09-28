@@ -80,9 +80,11 @@ function isoWeek(d: Date): string {
   return `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
-export async function runAnalysis() {
+/** budgetMs — 이 시간을 넘기면 새 리그를 시작하지 않는다 (서버리스 제한 시간 안에 끝내려고). 맥미니는 제한 없이 돈다. */
+export async function runAnalysis(opts?: { budgetMs?: number }) {
   console.log("[analysis] 시작");
-  const leagues = [
+  const startedAt = Date.now();
+  const allLeagues = [
     "WORLD_CUP",
     "EPL",
     "LALIGA",
@@ -106,16 +108,34 @@ export async function runAnalysis() {
   ] as const;
   const thisWeek = isoWeek(new Date());
 
+  // 이 시리즈(slug "-analysis-")의 리그별 마지막 글 — 오래 못 쓴 리그부터 돈다.
+  // 서버리스 회차는 시간 안에 6편쯤만 쓰는데, 목록 순서대로만 돌면 뒤쪽 리그는 영영 차례가 안 온다.
+  const lastRows = await prisma.article.groupBy({
+    by: ["league"],
+    where: { type: "ANALYSIS", slug: { contains: "-analysis-" }, league: { in: [...allLeagues] } },
+    _max: { createdAt: true },
+  });
+  const lastAt = new Map(lastRows.map((r) => [r.league, r._max.createdAt?.getTime() ?? 0]));
+  const leagues = [...allLeagues].sort((a, b) => (lastAt.get(a) ?? 0) - (lastAt.get(b) ?? 0));
+
   for (const league of leagues) {
+    if (opts?.budgetMs && Date.now() - startedAt > opts.budgetMs) {
+      console.log(`[analysis] 시간 예산 소진 — ${league} 부터는 다음 회차로`);
+      break;
+    }
     try {
       // 최근 60시간 내 같은 리그 ANALYSIS 있으면 스킵 — 주 2회 운영(월 11시 맥미니 +
       // 목 11시 Vercel)용. 간격이 정확히 72h 라 3일(72h) 가드는 경계에서 막혀 60h 로.
       // ANALYSIS 는 유일하게 색인되는 글 타입 — 양산 방지 가드는 유지한다.
       const freshSince = new Date(Date.now() - 60 * 60 * 60 * 1000);
+      // 이 시리즈 글만 본다. type 전체로 보면 매일 나오는 kbo-featured-hitters·화요일 weekly-review·
+      // weekly-xi 가 늘 60h 안에 있어 빅5·KBO 는 한 번도 차례가 오지 않았다(2026-09-28 실측: 8/20 이후
+      // WORLD_CUP·MLS 만 발행, K리그1·J1·UCL·KBO·NPB 는 이 시리즈 글 0편).
       const existing = await prisma.article.findFirst({
         where: {
           league,
           type: "ANALYSIS",
+          slug: { contains: "-analysis-" },
           createdAt: { gte: freshSince },
         },
       });
