@@ -1,5 +1,5 @@
 // MLB 매치 상세 통합 탭 — 네이버 스타일.
-// 6탭: 중계 / 라인업 / 타자 기록 / 투수 기록 / 팀 스탯(TS) / 라이브 배당 / 승률 곡선.
+// 6탭: 중계 / 타자 기록 / 투수 기록 / 팀 스탯(TS) / 라이브 배당 / 승률 곡선. 라인업은 선발 매치업 아래 BaseballLineupCard.
 // "팀 통계" (ESPN) 는 MatchInsight 의 teamStatsContent 탭으로 흡수됨 (MlbTeamStatsLive).
 //
 // Polling 2개:
@@ -143,7 +143,6 @@ interface Props {
 
 type TabKey =
   | "pbp"
-  | "lineup"
   | "batting"
   | "pitching"
   | "ts-stats"
@@ -285,7 +284,6 @@ export default function MlbBoxscoreTabs({
 
   const tabs: { key: TabKey; label: string; enabled: boolean; withTeamToggle: boolean }[] = [
     { key: "pbp", label: "중계", enabled: hasPbp, withTeamToggle: false },
-    { key: "lineup", label: "라인업", enabled: hasLineup, withTeamToggle: true },
     { key: "batting", label: "타자 기록", enabled: hasLineup, withTeamToggle: true },
     { key: "pitching", label: "투수 기록", enabled: hasPitchers, withTeamToggle: true },
     { key: "ts-stats", label: "팀 스탯", enabled: hasTsStats, withTeamToggle: false },
@@ -357,8 +355,6 @@ export default function MlbBoxscoreTabs({
             isLive={pbp.status === "LIVE"}
             pidByName={pidByName}
           />
-        ) : activeTab === "lineup" && team ? (
-          <LineupList batters={team.batters} koName={koName} />
         ) : activeTab === "batting" && team ? (
           <BattingTable batters={team.batters} koName={koName} />
         ) : activeTab === "pitching" && team ? (
@@ -386,64 +382,6 @@ export default function MlbBoxscoreTabs({
         ) : null}
       </div>
     </section>
-  );
-}
-
-/* ---------- 탭 1: 라인업 (선수 사진 + 시즌 통계) ---------- */
-
-function LineupList({
-  batters,
-  koName,
-}: {
-  batters: BoxBatter[];
-  koName: (pid: number, fallback: string) => string;
-}) {
-  const starters = batters.filter((b) => b.isStarter).slice(0, 9);
-  if (starters.length === 0) {
-    return (
-      <p className="text-center text-xs text-neutral-500 py-6">
-        라인업 발표 전입니다.
-      </p>
-    );
-  }
-  return (
-    <ul className="divide-y divide-neutral-100 dark:divide-neutral-900">
-      {starters.map((b) => (
-        <li key={b.pid} className="flex items-center gap-3 py-2">
-          <span className="w-5 text-center text-xs font-bold tabular-nums text-neutral-400">
-            {b.order ?? ""}
-          </span>
-          <Headshot pid={b.pid} alt={b.name} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <Link
-                href={`/players/${b.pid}`}
-                className="text-sm font-semibold truncate hover:underline"
-              >
-                {koName(b.pid, b.name)}
-              </Link>
-              <span className="text-[10px] font-medium text-neutral-500 px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-900">
-                {b.position}
-              </span>
-            </div>
-            <div className="text-[11px] text-neutral-500 tabular-nums">
-              시즌 {b.seasonAvg} · HR {b.seasonHr} · RBI {b.seasonRbi}
-              {b.seasonOps !== "-" ? ` · OPS ${b.seasonOps}` : ""}
-            </div>
-          </div>
-          {b.ab > 0 || b.bb > 0 || b.so > 0 ? (
-            <div className="text-right shrink-0">
-              <div className="text-xs font-bold tabular-nums">
-                {b.h}-{b.ab}
-              </div>
-              <div className="text-[10px] text-neutral-500 tabular-nums">
-                {b.rbi}타점{b.hr > 0 ? ` · ${b.hr}홈런` : ""}
-              </div>
-            </div>
-          ) : null}
-        </li>
-      ))}
-    </ul>
   );
 }
 
