@@ -1,6 +1,7 @@
 // ESPN 비공식 NHL scoreboard API.
 // 무료, 인증 X. NBA 클라이언트와 같은 패턴.
 
+import { hasRealEspnTeams } from "./espn-placeholder";
 import axios from "axios";
 import type {
   MatchCollector,
@@ -50,7 +51,8 @@ export async function fetchEspnNhlByDate(
     { params: { dates: ymd(date) }, timeout: 15000 },
   );
 
-  const events = data?.events ?? [];
+  // 포스트시즌 자리표시자(음수 id 가짜 팀) 경기는 대진 확정 전까지 저장하지 않는다 — espn-placeholder.ts
+  const events = (data?.events ?? []).filter(hasRealEspnTeams);
   return events.map((e): NormalizedMatch => {
     const comp = e.competitions?.[0];
     const competitors = comp?.competitors ?? [];
