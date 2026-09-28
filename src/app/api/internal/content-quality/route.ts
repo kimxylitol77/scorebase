@@ -13,6 +13,7 @@
 //
 // 응답: { ok, checkedAt, issues: [{ kind, severity, league, detail, samples }] }
 
+import { selfUserAgent } from "@/lib/self-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
@@ -168,7 +169,8 @@ export async function GET(req: NextRequest) {
     let result = "triggered";
     try {
       const res = await fetch(`${site}/api/cron/${cronRoute}`, {
-        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+        // user-agent 는 Vercel 방화벽 봇 검문 통과용 — src/lib/self-fetch.ts
+        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}`, "user-agent": selfUserAgent("content-quality") },
         signal: ctrl.signal,
         cache: "no-store",
       });

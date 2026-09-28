@@ -3,6 +3,7 @@
 // /api/live/baseball/[gameId] 가 응답 시 prisma.match.updateMany 로 점수 동기화.
 // 매 5분 vercel cron — list 페이지의 SSR 도 stale 안 됨. NHL ESPN id 매치 동기화도 여기서(nhl-espn-live-sync).
 
+import { selfUserAgent } from "@/lib/self-fetch";
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
@@ -30,6 +31,8 @@ export async function GET(req: Request) {
       try {
         const res = await fetch(`${SITE}/api/live/baseball/${m.externalId}`, {
           cache: "no-store",
+          // user-agent 는 Vercel 방화벽 봇 검문 통과용 — src/lib/self-fetch.ts
+          headers: { "user-agent": selfUserAgent("refresh-live-baseball") },
         });
         if (res.ok || res.status === 304) ok++;
         else fail++;

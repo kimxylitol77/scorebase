@@ -3,6 +3,7 @@
 // Rule-based 체크가 미리 정의한 패턴만 잡는다면, AI 는 새로운 종류의 이상도 발견 가능.
 // 비용: 페이지 5개 × ~$0.001/페이지 = 약 $0.005/주.
 
+import { selfUserAgent } from "@/lib/self-fetch";
 import { generate } from "@/lib/ai/openai";
 import type { HealthFinding } from "./types";
 
@@ -54,7 +55,7 @@ async function reviewOnePage(siteUrl: string, page: (typeof PAGES)[number]): Pro
   // 페이지 fetch (server-side — production 도메인 호출)
   let bodyText: string;
   try {
-    const r = await fetch(url, { headers: { "user-agent": "scorebase-health-bot/1" } });
+    const r = await fetch(url, { headers: { "user-agent": selfUserAgent("health-bot") } }); // user-agent 는 Vercel 방화벽 봇 검문 통과용 — src/lib/self-fetch.ts
     if (!r.ok) {
       return [
         {

@@ -12,6 +12,7 @@
 //
 // Query: ?days=2 (기본 2일 — generate-previews horizonDays 기본값과 일치)
 
+import { selfUserAgent } from "@/lib/self-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { PREVIEW_LEAGUES, isUefaQualifierMatch } from "@/lib/sports/types";
@@ -146,7 +147,8 @@ export async function GET(req: NextRequest) {
       let result = "triggered";
       try {
         const res = await fetch(`${site}/api/cron/preview`, {
-          headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+          // user-agent 는 Vercel 방화벽 봇 검문 통과용 — src/lib/self-fetch.ts
+          headers: { Authorization: `Bearer ${process.env.CRON_SECRET}`, "user-agent": selfUserAgent("missing-previews") },
           signal: ctrl.signal,
           cache: "no-store",
         });

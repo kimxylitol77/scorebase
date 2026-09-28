@@ -18,6 +18,7 @@
 // ⚠️ 등록 금지 — 삭제·병합류(duplicate-match 등). 잘못 고치면 되돌릴 수 없는 액션은
 //    사람(맥미니 스크립트의 dry-run→--apply 절차)에 남긴다. 순수 fetch→upsert 멱등만 등록.
 
+import { selfUserAgent } from "@/lib/self-fetch";
 import { prisma } from "@/lib/db";
 import { runSingleHealthCheck } from "./index";
 import type { HealthFinding } from "./types";
@@ -141,7 +142,8 @@ async function callCron(route: string, timeoutMs: number): Promise<"ok" | "fail"
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(`${site}/api/cron/${route}`, {
-      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+      // user-agent 는 Vercel 방화벽 봇 검문 통과용 — src/lib/self-fetch.ts
+      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}`, "user-agent": selfUserAgent("self-heal") },
       signal: ctrl.signal,
       cache: "no-store",
     });

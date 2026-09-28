@@ -1,5 +1,6 @@
 // 선수 랭킹 순위 스냅샷 cron — 목록 URL 13개를 두드려 페이지가 오늘자 스냅샷을 남기게 하고, 14일 지난 행을 정리한다.
 // 순위 계산은 페이지(/transfers)에만 있어(후보 풀 구성이 페이지 모듈에 묶임) 자체 계산 대신 렌더를 유도한다.
+import { selfUserAgent } from "@/lib/self-fetch";
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
@@ -20,7 +21,7 @@ const LISTS = [
 //   (응답 헤더 x-vercel-mitigated: challenge). 규칙을 바꾸면 여기도 같이 볼 것.
 // - Bearer INTERNAL_API_TOKEN: 미들웨어 속도 제한(IP 당 분당 600)의 면제 경로.
 const HEADERS: Record<string, string> = {
-  "user-agent": "vercel-cron/1.0 (scorebase-rank-snapshot)",
+  "user-agent": selfUserAgent("rank-snapshot"),
   ...(process.env.INTERNAL_API_TOKEN ? { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` } : {}),
 };
 
