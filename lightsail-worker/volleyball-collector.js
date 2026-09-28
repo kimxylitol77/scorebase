@@ -27,10 +27,15 @@ const SWEEP_DAYS = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
 // --backfill=N → 일회성 광역 sweep ([-N .. +7]). 대회 개막 이전 결과 채우기용.
 const backfillArg = process.argv.slice(2).find((a) => a.startsWith("--backfill="));
 const BACKFILL_DAYS = backfillArg ? parseInt(backfillArg.split("=")[1], 10) : 0;
+// --ahead=N → 일회성 미래 sweep ([-1 .. +N]). 개막 전 일정 선반영용(ts diary 는 약 30일 앞까지만 준다).
+const aheadArg = process.argv.slice(2).find((a) => a.startsWith("--ahead="));
+const AHEAD_DAYS = aheadArg ? parseInt(aheadArg.split("=")[1], 10) : 0;
 const SWEEP =
   BACKFILL_DAYS > 0
     ? Array.from({ length: BACKFILL_DAYS + 8 }, (_, i) => i - BACKFILL_DAYS)
-    : SWEEP_DAYS;
+    : AHEAD_DAYS > 0
+      ? Array.from({ length: AHEAD_DAYS + 2 }, (_, i) => i - 1)
+      : SWEEP_DAYS;
 
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
@@ -188,8 +193,8 @@ async function poll() {
   }
 }
 
-if (BACKFILL_DAYS > 0) {
-  console.log(`🔁 일회성 backfill sweep — ${BACKFILL_DAYS}일 back (site=${SITE_URL})`);
+if (BACKFILL_DAYS > 0 || AHEAD_DAYS > 0) {
+  console.log(`🔁 일회성 sweep — backfill=${BACKFILL_DAYS} ahead=${AHEAD_DAYS} (site=${SITE_URL})`);
   poll()
     .then(() => process.exit(0))
     .catch((e) => { console.error(e.message); process.exit(1); });

@@ -37,5 +37,12 @@ TheSports 배구 lineup 은 미인가(2026-09-20 실측). 대안으로 KOVO 기�
 
 ## 남은 것
 
-- V_LEAGUE/KOVO_CUP Match 가 DB 에 들어와야 화면에 뜬다 — 수집기 시즌 편입(10월 개막 준비)은 별도 작업.
+- ~~V_LEAGUE/KOVO_CUP Match 0건~~ → 해결(아래).
+
+## 수집 (2026-09-28)
+
+- utid·팀 매핑은 8월에 이미 끝나 있었다. 0건 원인은 collector sweep 이 "오늘 +5일"까지라 KOVO컵(10/11~)이 아직 창 밖이었던 것.
+- ts diary 는 약 30일 앞까지만 준다(10/31 은 "Beyond the scope of account permissions").
+- collector 에 일회성 `--ahead=N` 추가 → Vultr 워커에서 `--ahead=30` 1회 실행, KOVO컵 조별 18경기 적재(공식 일정과 일치).
+  준결승·결승은 "A조 1위" 자리표시라 미적재 — 대진 확정 후 정규 sweep 이 잡는다. 정규리그는 10/26 전후 자동 유입.
 - KOVO컵 경기 자체의 기록지(시즌 코드 824 계열) 매칭은 미구현 — 컵 경기는 로스터 기반 예상만 나온다.
