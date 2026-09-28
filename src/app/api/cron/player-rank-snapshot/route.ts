@@ -14,10 +14,13 @@ const LISTS = [
   "view=bargain", "view=form", "view=form&g=cold", "view=trophies", "view=contracts",
 ];
 
-// 내부 호출 표시 — 없으면 미들웨어 속도 제한에 우리 배치가 걸린다. 서버리스 함수는 출구 IP 를 다른 요청과
-// 같이 써서 IP 당 한도를 넘기기 쉽다 (2026-09-23~27 닷새 연속 12개 목록 전부 429).
+// 우리 배치가 우리 사이트를 부를 때의 신분 표시.
+// - user-agent 의 "vercel-cron": Vercel 방화벽의 「우리 인프라 통과」 규칙이 이 문자열로 봇 검문을 건너뛰게 한다.
+//   2026-09-23 21:18 봇 검문을 challenge 로 올린 뒤 이 배치만 옛 UA 라 닷새 연속 12개 전부 429
+//   (응답 헤더 x-vercel-mitigated: challenge). 규칙을 바꾸면 여기도 같이 볼 것.
+// - Bearer INTERNAL_API_TOKEN: 미들웨어 속도 제한(IP 당 분당 600)의 면제 경로.
 const HEADERS: Record<string, string> = {
-  "user-agent": "scorebase-rank-snapshot",
+  "user-agent": "vercel-cron/1.0 (scorebase-rank-snapshot)",
   ...(process.env.INTERNAL_API_TOKEN ? { authorization: `Bearer ${process.env.INTERNAL_API_TOKEN}` } : {}),
 };
 
