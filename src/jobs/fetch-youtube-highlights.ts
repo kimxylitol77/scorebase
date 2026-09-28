@@ -84,7 +84,13 @@ async function fetchPlaylistFeed(playlistId: string): Promise<FeedEntry[]> {
 }
 
 /** 영상이 한국에서 임베드 재생 가능한지 — availableCountries 에 KR + playableInEmbed:true.
- *  지역차단(예: NBA 공식 풀하이라이트=쿠팡 중계권) 영상을 적재 전에 걸러내는 안전장치. */
+ *  지역차단(예: NBA 공식 풀하이라이트=쿠팡 중계권) 영상을 적재 전에 걸러내는 안전장치.
+ *
+ *  시청 페이지를 못 읽는 환경이 있다. 2026-09-28 실측: Vercel(데이터센터 IP)에서는 유튜브가 봇 확인 페이지를
+ *  줘서 두 필드가 아예 없고, 그래서 9월 초부터 후보 전부가 "재생 불가"로 떨어졌다(K리그 11건 중 0건 연결,
+ *  같은 코드를 집 IP 에서 돌리면 5건 연결). 필드가 없으면 "불가"가 아니라 "판정 불가"다 — 그때는 oEmbed 로
+ *  공개·임베드 허용만 확인한다. 지역차단은 oEmbed 로 알 수 없으므로, 재생목록을 등록할 때 KR 재생을 확인해 둔
+ *  목록(HIGHLIGHT_PLAYLISTS)만 쓴다는 전제에 기댄다. */
 async function isPlayableInKorea(videoId: string): Promise<boolean> {
   try {
     const r = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
@@ -96,11 +102,26 @@ async function isPlayableInKorea(videoId: string): Promise<boolean> {
       cache: "no-store",
       signal: AbortSignal.timeout(15000),
     });
-    if (!r.ok) return false;
-    const html = await r.text();
-    if (!/"playableInEmbed":true/.test(html)) return false;
-    const ac = html.match(/"availableCountries":\[[^\]]*\]/)?.[0] ?? "";
-    return ac.includes('"KR"');
+    if (r.ok) {
+      const html = await r.text();
+      const ac = html.match(/"availableCountries":\[[^\]]*\]/)?.[0];
+      // 필드가 있으면 그 값으로 확정한다
+      if (ac) return /"playableInEmbed":true/.test(html) && ac.includes('"KR"');
+    }
+  } catch {
+    /* 아래 oEmbed 로 */
+  }
+  return isEmbeddable(videoId);
+}
+
+/** oEmbed — 공개 + 임베드 허용이면 200, 임베드 금지는 401, 삭제·비공개는 404 */
+async function isEmbeddable(videoId: string): Promise<boolean> {
+  try {
+    const r = await fetch(
+      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`,
+      { cache: "no-store", signal: AbortSignal.timeout(15000) },
+    );
+    return r.ok;
   } catch {
     return false;
   }
