@@ -1,4 +1,5 @@
-// /scores 축구 "스코어보드" 보기 — 전 경기를 시작 시각순 한 줄로 세우고 리그가 바뀔 때마다 제목 줄을 끼운 표.
+// /scores "스코어보드" 보기 — 전 경기를 시작 시각순 한 줄로 세우고 리그가 바뀔 때마다 제목 줄을 끼운 표.
+// 축구 목록 + "내 경기"(즐겨찾기) 전 종목 공용. 야구는 원정이 왼쪽(기존 카드 규칙), 무승부 없는 종목은 AI·배당 2칸.
 // 리그별(카드)·시간순(한 줄 목록)에 이은 세 번째 보기(?sort=board). 새 정보를 더하지 않고 카드에 흩어진 값을 열로 정리한다.
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
@@ -9,6 +10,8 @@ import type { SoccerGoal, SoccerCard, SoccerTeamStat } from "@/lib/sports/live-s
 
 export interface ScoreboardRow {
   id: number | string;
+  /** soccer | baseball | basketball | hockey … — 즐겨찾기 별 meta·2지선다 판정 */
+  sport: string;
   league: string;
   leagueLabel: string;
   flag: string;
@@ -23,7 +26,8 @@ export interface ScoreboardRow {
   homeScore: number | null;
   awayScore: number | null;
   half: { home: number; away: number } | null;
-  pred: { home: number; draw: number; away: number } | null;
+  /** draw null = 무승부 없는 종목(2칸) */
+  pred: { home: number; draw: number | null; away: number } | null;
   odds: { home: number; draw: number; away: number; trend: { home: number; draw: number; away: number } | null } | null;
   /** 점수 hover 툴팁 — 시간순 목록과 같은 재료 */
   goals: SoccerGoal[];
@@ -62,10 +66,12 @@ function groupChronological(rows: ScoreboardRow[]): ScoreboardGroup[] {
 // 한·영 문구 — 영어판(/en/scores)도 같은 표를 쓴다
 const T = {
   ko: { time: "시간", home: "홈", score: "스코어", away: "원정", ai: "AI 예측 홈·무·원정", odds: "배당 홈·무·원정", table: "순위표",
+        ai2: "AI 예측 홈·원정", odds2: "배당 홈·원정", aiAH: "AI 예측 원정·홈", oddsAH: "배당 원정·홈", homeBadge: "홈",
         live: "LIVE", ft: "종료", pp: "연기", ht: "전", hit: "적중", miss: "빗나감", oddsTitle: "배당 흐름 보기",
         noPred: "예측 없음", noPredWhy: "전력 데이터 부족",
         foot: "AI 예측 막대는 파랑 홈 · 회색 무 · 주황 원정. 배당 화살표는 오픈 대비 변동(↓ 하락 · ↑ 상승). 배당을 누르면 배당 흐름으로 이동합니다." },
   en: { time: "Time", home: "Home", score: "Score", away: "Away", ai: "AI pick H·D·A", odds: "Odds H·D·A", table: "Table",
+        ai2: "AI pick H·A", odds2: "Odds H·A", aiAH: "AI pick A·H", oddsAH: "Odds A·H", homeBadge: "H",
         live: "LIVE", ft: "FT", pp: "PPD", ht: "HT", hit: "Hit", miss: "Miss", oddsTitle: "Match details",
         noPred: "No pick", noPredWhy: "not enough history",
         foot: "AI bar is blue home · gray draw · orange away. Odds arrows show movement since opening (↓ shortened · ↑ drifted)." },
@@ -95,14 +101,15 @@ function PredCell({ pred, result, compact = false, t }: { pred: ScoreboardRow["p
         <span className="block">{t.noPredWhy}</span>
       </span>
     );
-  const vals = [pred.home, pred.draw, pred.away];
+  const keys = pred.draw == null ? (["home", "away"] as const) : (["home", "draw", "away"] as const);
+  const vals = keys.map((k) => (k === "draw" ? pred.draw ?? 0 : pred[k]));
   const top = vals.indexOf(Math.max(...vals));
-  const topKey = (["home", "draw", "away"] as const)[top];
+  const topKey = keys[top];
   const pct = (v: number) => Math.round(v * 100);
   const bar = (
     <div className={`flex overflow-hidden rounded-full ${compact ? "h-[3px]" : "h-1.5"}`}>
       <i className="block bg-sky-500" style={{ width: `${pct(pred.home)}%` }} />
-      <i className="block bg-neutral-300 dark:bg-neutral-600" style={{ width: `${pct(pred.draw)}%` }} />
+      {pred.draw != null && <i className="block bg-neutral-300 dark:bg-neutral-600" style={{ width: `${pct(pred.draw)}%` }} />}
       <i className="block bg-orange-500" style={{ width: `${pct(pred.away)}%` }} />
     </div>
   );
@@ -128,13 +135,19 @@ function PredCell({ pred, result, compact = false, t }: { pred: ScoreboardRow["p
 
 function OddsCell({ odds, href, title }: { odds: ScoreboardRow["odds"]; href: string | null; title: string }) {
   if (!odds) return <span className="text-center text-[11px] text-neutral-400">-</span>;
-  const cells: [number, number | undefined][] = [
-    [odds.home, odds.trend?.home],
-    [odds.draw, odds.trend?.draw],
-    [odds.away, odds.trend?.away],
-  ];
+  const cells: [number, number | undefined][] =
+    odds.draw > 0
+      ? [
+          [odds.home, odds.trend?.home],
+          [odds.draw, odds.trend?.draw],
+          [odds.away, odds.trend?.away],
+        ]
+      : [
+          [odds.home, odds.trend?.home],
+          [odds.away, odds.trend?.away],
+        ];
   const grid = (
-    <div className="grid grid-cols-3 gap-1 text-center text-[11px] tabular-nums">
+    <div className={`grid ${cells.length === 3 ? "grid-cols-3" : "grid-cols-2"} gap-1 text-center text-[11px] tabular-nums`}>
       {cells.map(([v, t], i) => (
         <span key={i} className={`rounded border border-neutral-200 py-0.5 text-neutral-700 dark:border-white/10 dark:text-neutral-200 ${href ? "group-hover:border-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" : ""}`}>
           {v > 0 ? v.toFixed(2) : "-"}
@@ -161,7 +174,7 @@ function StatusCell({ r, t }: { r: ScoreboardRow; t: (typeof T)[Lang] }) {
   return <span className="text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300">{r.timeLabel}</span>;
 }
 
-function TeamCell({ team, side, href }: { team: ScoreboardRow["home"]; side: "home" | "away"; href: string | null }) {
+function TeamCell({ team, side, href, homeBadge }: { team: ScoreboardRow["home"]; side: "home" | "away"; href: string | null; homeBadge?: string | null }) {
   const name = (
     <span className="truncate text-[13px] font-medium text-neutral-800 dark:text-neutral-100">{team.name}</span>
   );
@@ -178,6 +191,9 @@ function TeamCell({ team, side, href }: { team: ScoreboardRow["home"]; side: "ho
     ) : (
       <>
         {logo}
+        {homeBadge && (
+          <span className="shrink-0 rounded bg-amber-500/15 px-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{homeBadge}</span>
+        )}
         {name}
         <span className="hidden sm:inline"><Rank n={team.position} /></span>
       </>
@@ -193,27 +209,62 @@ function TeamCell({ team, side, href }: { team: ScoreboardRow["home"]; side: "ho
 export default function SoccerScoreboardTable({
   rows,
   lang = "ko",
-  oddsHref = "/odds?sport=soccer",
+  oddsHref,
   leagueHref = (lg: string) => `/leagues/${lg}`,
+  sport = "soccer",
+  showLegend = true,
 }: {
   rows: ScoreboardRow[];
   lang?: Lang;
-  /** 배당 칸 링크 — null 이면 각 경기 상세(영어판) */
+  /** 배당 칸 링크 — 생략하면 그 종목 배당 흐름(/odds?sport=), null 이면 각 경기 상세(영어판) */
   oddsHref?: string | null;
   leagueHref?: (league: string) => string;
+  /** 즐겨찾기 표는 종목별로 그린다 — 야구는 원정이 왼쪽, 무승부 없는 종목은 2칸 */
+  sport?: string;
+  /** 표 아래 색·화살표 안내 — 즐겨찾기처럼 표가 여러 개면 끈다 */
+  showLegend?: boolean;
 }) {
   const t = T[lang];
   const groups = groupChronological(rows);
+  const awayFirst = sport === "baseball";
+  const twoWay = sport !== "soccer";
+  const leftLabel = awayFirst ? t.away : t.home;
+  const rightLabel = awayFirst ? t.home : t.away;
+  const aiLabel = !twoWay ? t.ai : awayFirst ? t.aiAH : t.ai2;
+  const oddsLabel = !twoWay ? t.odds : awayFirst ? t.oddsAH : t.odds2;
+  // 야구 — 원정을 왼쪽으로 뒤집어 그린다(점수·예측·배당도 같이). outcome·적중 판정은 뒤집힌 좌우 기준으로 일관
+  const view = (r: ScoreboardRow): ScoreboardRow =>
+    !awayFirst
+      ? r
+      : {
+          ...r,
+          home: r.away,
+          away: r.home,
+          homeScore: r.awayScore,
+          awayScore: r.homeScore,
+          half: r.half ? { home: r.half.away, away: r.half.home } : null,
+          pred: r.pred ? { home: r.pred.away, draw: r.pred.draw, away: r.pred.home } : null,
+          odds: r.odds
+            ? {
+                home: r.odds.away,
+                draw: r.odds.draw,
+                away: r.odds.home,
+                trend: r.odds.trend ? { home: r.odds.trend.away, draw: r.odds.trend.draw, away: r.odds.trend.home } : null,
+              }
+            : null,
+          homeShort: r.awayShort,
+          awayShort: r.homeShort,
+        };
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-white/10 dark:bg-white/[0.03]">
       <div className={`${GRID} border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-[10px] font-semibold text-neutral-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-400`}>
         <span />
         <span>{t.time}</span>
-        <span className="text-right">{t.home}</span>
+        <span className="text-right">{leftLabel}</span>
         <span className="text-center">{t.score}</span>
-        <span>{t.away}</span>
-        <span className="hidden sm:block">{t.ai}</span>
-        <span className="hidden text-center sm:block">{t.odds}</span>
+        <span>{rightLabel}</span>
+        <span className="hidden sm:block">{aiLabel}</span>
+        <span className="hidden text-center sm:block">{oddsLabel}</span>
       </div>
       {groups.map((g) => (
         <section key={g.key}>
@@ -227,7 +278,8 @@ export default function SoccerScoreboardTable({
               {t.table}
             </Link>
           </div>
-          {g.rows.map((r) => {
+          {g.rows.map((orig) => {
+            const r = view(orig);
             const scored = r.status === "live" || r.status === "finished";
             const result = r.status === "finished" ? outcome(r.homeScore, r.awayScore) : null;
             return (
@@ -239,13 +291,14 @@ export default function SoccerScoreboardTable({
                   <FavoriteStar
                     matchId={String(r.id)}
                     meta={{
-                      id: String(r.id),
-                      sport: "soccer",
-                      league: r.league,
-                      homeName: r.home.name,
-                      awayName: r.away.name,
-                      homeScore: r.homeScore,
-                      awayScore: r.awayScore,
+                      // 저장값은 뒤집기 전 원본 홈·원정 그대로
+                      id: String(orig.id),
+                      sport: orig.sport,
+                      league: orig.league,
+                      homeName: orig.home.name,
+                      awayName: orig.away.name,
+                      homeScore: orig.homeScore,
+                      awayScore: orig.awayScore,
                       status: r.status,
                       statusLabel: r.liveLabel ?? r.timeLabel,
                       href: r.href ?? undefined,
@@ -267,12 +320,12 @@ export default function SoccerScoreboardTable({
                     homeLabel={r.homeShort}
                     awayLabel={r.awayShort}
                   />
-                  <TeamCell team={r.away} side="away" href={r.href} />
+                  <TeamCell team={r.away} side="away" href={r.href} homeBadge={awayFirst ? t.homeBadge : null} />
                   <div className="hidden sm:block">
                     <PredCell pred={r.pred} result={result} t={t} />
                   </div>
                   <div className="hidden sm:block">
-                    <OddsCell odds={r.odds} href={oddsHref ?? r.href} title={t.oddsTitle} />
+                    <OddsCell odds={r.odds} href={oddsHref === undefined ? `/odds?sport=${sport}` : oddsHref ?? r.href} title={t.oddsTitle} />
                   </div>
                 </div>
                 {/* 모바일 — AI 예측을 줄 아래 얇은 막대로 */}
@@ -286,9 +339,11 @@ export default function SoccerScoreboardTable({
           })}
         </section>
       ))}
-      <p className="border-t border-neutral-200 px-3 py-2 text-[10px] text-neutral-400 dark:border-white/10">
-        {t.foot}
-      </p>
+      {showLegend && (
+        <p className="border-t border-neutral-200 px-3 py-2 text-[10px] text-neutral-400 dark:border-white/10">
+          {t.foot}
+        </p>
+      )}
     </div>
   );
 }

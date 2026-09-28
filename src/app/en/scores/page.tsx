@@ -2656,6 +2656,7 @@ function Section({
 function buildScoreboardRows(matches: NormalizedMatch[]): ScoreboardRow[] {
   return matches.map((m): ScoreboardRow => ({
     id: m.id,
+    sport: m.sport,
     league: m.league,
     leagueLabel: enLeagueName(m.league),
     flag: getLeagueFlag(m.league),

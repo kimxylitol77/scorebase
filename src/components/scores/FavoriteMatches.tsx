@@ -60,7 +60,7 @@ interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
 
 interface Props {
   matches: MatchEntry[];
-  /** 스코어보드 보기(?sort=board)일 때 — 축구 즐겨찾기도 같은 표로(2026-09-28). 없으면 기존 카드 */
+  /** 스코어보드 보기일 때 — 즐겨찾기 전 종목을 같은 표로(2026-09-28). 표에 없는 종목·경기는 기존 카드 */
   boardRows?: ScoreboardRow[];
 }
 
@@ -291,8 +291,8 @@ export default function FavoriteMatches({ matches, boardRows }: Props) {
                 {list.length}경기
               </span>
             </div>
-            {sport === "soccer" && boardRows && boardRows.some((r) => ids.has(String(r.id))) ? (
-              <SoccerScoreboardTable rows={boardRows.filter((r) => ids.has(String(r.id)))} />
+            {boardRows && boardRows.some((r) => r.sport === sport && ids.has(String(r.id))) ? (
+              <SoccerScoreboardTable sport={sport} showLegend={false} rows={boardRows.filter((r) => r.sport === sport && ids.has(String(r.id)))} />
             ) : effectiveView === "large" ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {list.map(renderMatchLarge)}
