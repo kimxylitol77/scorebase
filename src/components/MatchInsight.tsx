@@ -136,6 +136,8 @@ interface Props {
   awayStarterPhoto?: string;
   /** 팀 전력 탭 숨김 — 페이지 상단에 SoccerTeamStrength 로 이미 표시하는 경우 (축구 라이브) */
   hideMatchupTab?: boolean;
+  /** 선발 매치업 바로 아래에 붙는 라인업 카드 (KBO KboLineupCard) */
+  lineupContent?: ReactNode;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -196,6 +198,7 @@ export default async function MatchInsight({
   homeStarterPhoto,
   awayStarterPhoto,
   hideMatchupTab,
+  lineupContent,
 }: Props) {
   // 리그 전체 매치 — React cache 공유 (같은 요청의 SoccerTeamStrength 와 중복 쿼리 방지)
   const dbMatches = await getLeagueMatches(match.league);
@@ -697,7 +700,7 @@ export default async function MatchInsight({
   }
 
   // === 통합 탭 카드 (네이버 스타일) 용 sections 변수화 ===
-  const startersContent = (hasStarters || hasGoalies) ? (
+  const startersContent = (hasStarters || hasGoalies || lineupContent) ? (
     <>
       {hasStarters && (
         <StarterCard
@@ -718,6 +721,7 @@ export default async function MatchInsight({
           awayTeam={toKoreanTeamName(match.awayTeam.name, match.league)}
         />
       )}
+      {lineupContent && <div className="mt-3">{lineupContent}</div>}
     </>
   ) : null;
 
