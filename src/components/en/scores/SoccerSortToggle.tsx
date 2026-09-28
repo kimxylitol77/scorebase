@@ -32,9 +32,10 @@ function buildHref(
 
 export default function SoccerSortToggle({ active, date, league, status }: Props) {
   const items: { key: SoccerSortMode; label: string }[] = [
+    // 기본 보기(스코어보드)를 맨 앞에 — 2026-09-28
+    { key: "board", label: "Scoreboard" },
     { key: "league", label: "By league" },
     { key: "time", label: "By time" },
-    { key: "board", label: "Scoreboard" },
   ];
   return (
     <nav className="flex gap-1.5" aria-label="Sort order">

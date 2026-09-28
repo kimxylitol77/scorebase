@@ -975,7 +975,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       sp.status === "postponed")
       ? sp.status
       : "all";
-  // 축구 전용 정렬 방식 — league(리그별 그룹, 기본) | time(시간순 평면).
+  // 축구 전용 정렬 방식 — board(스코어보드, 기본) | league(리그별 그룹) | time(시간순 평면).
   // URL 파라미터가 최우선, 없으면 쿠키(마지막 선택 기억) — 스코어보드.kr 처럼 루트로
   // 재진입하는 사용 패턴에서 시간순 선택이 새로고침마다 풀리던 문제 해결 (2026-07-19).
   const sortCookie = (await cookies()).get("scores_sort")?.value;
@@ -987,9 +987,9 @@ export default async function ScoresPage({ searchParams }: Props) {
         ? sp.sort
         : sp.sort === "league"
           ? "league"
-          : sortCookie === "time" || sortCookie === "board"
+          : sortCookie === "time" || sortCookie === "league"
             ? sortCookie
-            : "league";
+            : "board"; // 기본 보기 = 스코어보드(2026-09-28 사용자 지시). 리그별·시간순을 고른 사람은 쿠키로 유지
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
