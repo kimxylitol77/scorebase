@@ -11,6 +11,7 @@ import LeagueBadge from "../LeagueBadge";
 import FavoriteStar from "./FavoriteStar";
 import PushAlertToggle from "./PushAlertToggle";
 import { useFavorites } from "../../scores/useFavorites";
+import { useOtherDayFavorites, OtherDayFavoriteRows } from "@/components/scores/OtherDayFavorites";
 import { setPipOn } from "../LivePipScore";
 import { useScoreFlash } from "../../scores/useScoreFlash";
 import { playChime, unlockAudio } from "@/lib/sound/chime";
@@ -96,6 +97,8 @@ const subscribeFavSound = subscribeToStorage(FAV_SOUND_CHANGE_EVENT);
 
 export default function FavoriteMatches({ matches, boardRows }: Props) {
   const { ids, mounted, clear } = useFavorites();
+  // 오늘 목록에 없는 즐겨찾기(어제 종료·다른 날 예정) — /api/matches/by-ids 로 최신 점수·상태, 해제 전까지 유지
+  const otherDay = useOtherDayFavorites(ids, matches.map((m) => m.id), "en");
   // 브라우저 전용 값 3개. 원본이 localStorage·host 라 setState 로 복제하지 않는다.
   const view = useClientValue<ViewMode>(readView, "large", subscribeView);
   const favSound = useClientValue(readFavSound, false, subscribeFavSound);
@@ -148,15 +151,19 @@ export default function FavoriteMatches({ matches, boardRows }: Props) {
 
   if (fav.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-amber-300/50 dark:border-amber-500/30 p-4 text-center text-xs text-neutral-500">
-        ⭐ None of your starred matches are on today's schedule.
-        <button
-          type="button"
-          onClick={handleClearAll}
-          className="ml-2 text-rose-600 dark:text-rose-400 hover:underline"
-        >
-          Clear all
-        </button>
+      <div className="space-y-2">
+        {/* 오늘 목록 밖 즐겨찾기(종료·다른 날) — 별표를 해제할 때까지 최종 점수 유지 */}
+        {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="⭐ My matches" board={!!boardRows} lang="en" />}
+        <div className="rounded-2xl border border-dashed border-amber-300/50 dark:border-amber-500/30 p-4 text-center text-xs text-neutral-500">
+          ⭐ {otherDay.length > 0 ? "No starred matches on today's schedule." : "None of your starred matches are on today's schedule."}
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="ml-2 text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            Clear all
+          </button>
+        </div>
       </div>
     );
   }
@@ -294,6 +301,7 @@ export default function FavoriteMatches({ matches, boardRows }: Props) {
           </div>
         );
       })}
+      {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="Past / other days" board={!!boardRows} lang="en" />}
     </section>
   );
 }

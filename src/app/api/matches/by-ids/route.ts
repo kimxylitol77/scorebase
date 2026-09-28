@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toEnglishTeamName } from "@/lib/i18n/en";
 import { parseRound } from "@/lib/sports/fixture-rounds";
 import { sportCodeForLeague, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { matchLiveHref } from "@/lib/links/match-live-link";
@@ -12,7 +13,12 @@ export const dynamic = "force-dynamic";
 const MAX_IDS = 50;
 
 export async function GET(req: Request) {
-  const raw = new URL(req.url).searchParams.get("ids") ?? "";
+  const sp = new URL(req.url).searchParams;
+  const raw = sp.get("ids") ?? "";
+  // 영어판(/en/scores) "Past / other days" — 팀명을 영문으로
+  const en = sp.get("lang") === "en";
+  const teamName = (name: string, league: string) =>
+    en ? toEnglishTeamName(name) : toKoreanTeamName(name, league) || name;
   const ids = Array.from(
     new Set(
       raw
@@ -40,8 +46,8 @@ export async function GET(req: Request) {
     externalId: m.externalId,
     status: m.status,
     startTime: m.startTime.toISOString(),
-    homeName: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
-    awayName: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+    homeName: teamName(m.homeTeam.name, m.league),
+    awayName: teamName(m.awayTeam.name, m.league),
     homeLogo: m.homeTeam.logoUrl ?? null,
     awayLogo: m.awayTeam.logoUrl ?? null,
     homeScore: m.homeScore,
