@@ -1,9 +1,9 @@
-// 축구 페이지 보기 방식 토글 — 리그별 그룹(기본) / 시간순 평면 (?sort=time).
+// 축구 페이지 보기 방식 토글 — 리그별 그룹(기본) / 시간순 평면 (?sort=time) / 스코어보드 표 (?sort=board).
 // SoccerStatusTabs 와 동일 칩 톤. sport=soccer 일 때만 노출.
 
 import Link from "next/link";
 
-export type SoccerSortMode = "league" | "time";
+export type SoccerSortMode = "league" | "time" | "board";
 
 interface Props {
   active: SoccerSortMode;
@@ -35,6 +35,7 @@ export default function SoccerSortToggle({ active, date, league, status }: Props
   const items: { key: SoccerSortMode; label: string }[] = [
     { key: "league", label: "리그별" },
     { key: "time", label: "시간순" },
+    { key: "board", label: "스코어보드" },
   ];
   return (
     <nav className="flex gap-1.5" aria-label="경기 정렬 방식">

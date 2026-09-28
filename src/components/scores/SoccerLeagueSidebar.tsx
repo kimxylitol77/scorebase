@@ -42,7 +42,7 @@ function buildHref(
   params.set("date", date);
   if (league) params.set("league", league);
   if (status && status !== "all") params.set("status", status);
-  if (sort === "time") params.set("sort", "time");
+  if (sort === "time" || sort === "board") params.set("sort", sort);
   return `/scores?${params.toString()}`;
 }
 

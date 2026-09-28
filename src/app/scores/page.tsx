@@ -19,6 +19,7 @@ import {
   leaguesForSport,
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
+  getLeagueFlag,
   POPULAR_SOCCER_LEAGUES,
   postponedLabel,
   type SportCode,
@@ -95,6 +96,7 @@ import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
 import SoccerCompactCard from "@/components/scores/soccer/SoccerCompactCard";
+import SoccerScoreboardTable, { type ScoreboardGroup, type ScoreboardRow } from "@/components/scores/soccer/SoccerScoreboardTable";
 import SoccerLiveRow from "@/components/scores/soccer/SoccerLiveRow";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
@@ -1021,15 +1023,16 @@ export default async function ScoresPage({ searchParams }: Props) {
   // URL 파라미터가 최우선, 없으면 쿠키(마지막 선택 기억) — 스코어보드.kr 처럼 루트로
   // 재진입하는 사용 패턴에서 시간순 선택이 새로고침마다 풀리던 문제 해결 (2026-07-19).
   const sortCookie = (await cookies()).get("scores_sort")?.value;
-  const sortMode: "league" | "time" =
+  // board = 스코어보드 표(리그 제목 줄 + 정렬된 열, 2026-09-28).
+  const sortMode: "league" | "time" | "board" =
     sport !== "soccer"
       ? "league"
-      : sp.sort === "time"
-        ? "time"
+      : sp.sort === "time" || sp.sort === "board"
+        ? sp.sort
         : sp.sort === "league"
           ? "league"
-          : sortCookie === "time"
-            ? "time"
+          : sortCookie === "time" || sortCookie === "board"
+            ? sortCookie
             : "league";
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
@@ -1800,6 +1803,10 @@ export default async function ScoresPage({ searchParams }: Props) {
       soccerTeamStats: sport_ === "soccer" ? soccerTeamStatsByMatchId.get(m.id) ?? null : null,
       soccerHalfStats: sport_ === "soccer" ? soccerHalfStatsByMatchId.get(m.id) ?? null : null,
       soccerHalfScore: sport_ === "soccer" ? soccerHalfScoreByMatchId.get(m.id) ?? null : null,
+      pred1x2:
+        sport_ === "soccer" && m.predHome != null && m.predAway != null
+          ? { home: m.predHome, draw: m.predDraw ?? 0, away: m.predAway }
+          : null,
       odds:
         sport_ === "soccer" && m.oddsHome != null
           ? {
@@ -2220,7 +2227,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   const extraQuery =
     (leagueFilter ? `&league=${leagueFilter}` : "") +
     (statusFilter !== "all" ? `&status=${statusFilter}` : "") +
-    (sortMode === "time" ? "&sort=time" : "");
+    (sortMode !== "league" ? `&sort=${sortMode}` : "");
 
   // SEO 동적 값 — generateMetadata 와 일치시킴.
   const sportKo = SPORT_NAMES_KO[sport] ?? "스포츠";
@@ -2472,11 +2479,11 @@ export default async function ScoresPage({ searchParams }: Props) {
                 }}
                 date={dateStr}
                 league={leagueFilter}
-                sort={sortMode === "time" ? "time" : null}
+                sort={sortMode !== "league" ? sortMode : null}
               />
               {/* 명시 선택은 쿠키로 기억 */}
               <SortPrefWriter
-                explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
+                explicitSort={sp.sort === "time" || sp.sort === "board" || sp.sort === "league" ? sp.sort : null}
               />
               {/* 즐겨찾기 id 를 쿠키로 미러 — 서버가 해당 매치만 props 로 내려보내게 한다 */}
               <FavPrefWriter />
@@ -2504,7 +2511,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   activeLeague={leagueFilter}
                   date={dateStr}
                   status={statusFilter}
-                  sort={sortMode === "time" ? "time" : null}
+                  sort={sortMode !== "league" ? sortMode : null}
                   matchCounts={leagueMatchCounts}
                   totalCount={soccerDayTotal}
                 />
@@ -2547,15 +2554,21 @@ export default async function ScoresPage({ searchParams }: Props) {
                     hasLineup: lineupMatchIdSet.has(Number(m.id)),
                   }))}
                 />
-                <SoccerRowLayout
-                  liveList={visibleLive}
-                  scheduledList={visibleScheduled}
-                  finishedList={visibleFinished}
-                  postponedList={visiblePostponed}
-                  lineupSet={lineupMatchIdSet}
-                  sortByTime={sortMode === "time"}
-                  showHighlights={!leagueFilter && statusFilter === "all" && sortMode !== "time"}
-                />
+                {sortMode === "board" ? (
+                  <SoccerScoreboardTable
+                    groups={buildScoreboardGroups([...visibleLive, ...visibleScheduled, ...visibleFinished, ...visiblePostponed])}
+                  />
+                ) : (
+                  <SoccerRowLayout
+                    liveList={visibleLive}
+                    scheduledList={visibleScheduled}
+                    finishedList={visibleFinished}
+                    postponedList={visiblePostponed}
+                    lineupSet={lineupMatchIdSet}
+                    sortByTime={sortMode === "time"}
+                    showHighlights={!leagueFilter && statusFilter === "all" && sortMode !== "time"}
+                  />
+                )}
                 </div>
               </div>
             )}
@@ -2714,6 +2727,43 @@ function Section({
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</ul>
     </section>
   );
+}
+
+/** 스코어보드 보기 그룹 — 진행 중 경기가 있는 리그 먼저, 그다음 LEAGUE_ORDER(인기순), 리그 안은 진행 → 예정 → 종료 → 연기, 같은 상태는 시작 시각순. */
+function buildScoreboardGroups(matches: NormalizedMatch[]): ScoreboardGroup[] {
+  const STATUS_RANK: Record<NormalizedMatch["status"], number> = { LIVE: 0, SCHEDULED: 1, FINISHED: 2, POSTPONED: 3 };
+  const byLeague = new Map<string, NormalizedMatch[]>();
+  for (const m of matches) {
+    if (!byLeague.has(m.league)) byLeague.set(m.league, []);
+    byLeague.get(m.league)!.push(m);
+  }
+  const order = (lg: string) => (LEAGUE_ORDER as Record<string, number>)[lg] ?? 999;
+  // 진행 중인 경기가 있는 리그가 먼저 — 인기순만 쓰면 지금 뛰는 리그가 표 아래로 밀린다
+  const hasLive = (ms: NormalizedMatch[]) => (ms.some((m) => m.status === "LIVE") ? 0 : 1);
+  return [...byLeague.entries()]
+    .sort(([a, am], [b, bm]) => hasLive(am) - hasLive(bm) || order(a) - order(b) || a.localeCompare(b))
+    .map(([league, ms]) => ({
+      league,
+      label: LEAGUE_DISPLAY[league] ?? league,
+      flag: getLeagueFlag(league),
+      rows: [...ms]
+        .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.startTime.getTime() - b.startTime.getTime())
+        .map((m): ScoreboardRow => ({
+          id: m.id,
+          league: m.league,
+          status: m.status === "LIVE" ? "live" : m.status === "FINISHED" ? "finished" : m.status === "POSTPONED" ? "postponed" : "scheduled",
+          timeLabel: m.timeLabel,
+          liveLabel: m.liveStatusLabel ?? null,
+          href: m.href,
+          home: { name: m.home.name, logo: m.home.logo ?? null, position: m.home.position ?? null },
+          away: { name: m.away.name, logo: m.away.logo ?? null, position: m.away.position ?? null },
+          homeScore: m.home.score,
+          awayScore: m.away.score,
+          half: m.soccerHalfScore,
+          pred: m.pred1x2 ?? null,
+          odds: m.odds ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null } : null,
+        })),
+    }));
 }
 
 /** 축구 row layout — named.com 스타일 한 줄 매치 표. */
@@ -3208,6 +3258,8 @@ type NormalizedMatch = {
   /** 요소 우세 칩 — 선발·불펜·골리·모델 vs 시장 (순위 칩은 컴포넌트가 position 으로 붙임) */
   edgeBadges: EdgeBadge[];
   soccerCtx: SoccerContext | null;
+  /** 축구 1X2 AI 확률 — 스코어보드 보기(?sort=board) AI 예측 열용. 예측 없으면 null */
+  pred1x2?: { home: number; draw: number; away: number } | null;
   soccerGoals: SoccerGoal[] | null;
   soccerCards: SoccerCard[] | null;
   soccerTeamStats: SoccerTeamStat[] | null;
