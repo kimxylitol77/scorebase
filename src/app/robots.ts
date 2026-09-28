@@ -28,6 +28,9 @@ const SEO_TOOL_BOTS = [
   // 렌더봇(YandexRenderResourcesBot)이 JS 까지 실행하며 크롤해 비용만 발생 (2026-08-01 실측).
   // "Yandex" 한 단어가 Yandex 계열 봇 전체에 적용된다 (Yandex robots 규격).
   "Yandex",
+  // Baidu — 중국 검색엔진. 2026-09-25~27 하루 7,700~8,300 PV 를 렌더봇(Baiduspider-render)으로 긁었는데
+  // 30일 바이두발 사람 유입은 0(유입 1,009건 중 944건이 UA "pc" 리퍼러 스팸). 방화벽에서도 UA 로 막는다.
+  "Baiduspider",
 ];
 
 // 인용·검색용 AI 봇 — 명시 허용. 지금까지는 `*` 규칙을 상속받아 열려 있었지만, 그 규칙을 바꾸는 순간
