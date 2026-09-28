@@ -16,12 +16,12 @@ export async function GET(req: Request) {
     const leaguesParam = new URL(req.url).searchParams.get("leagues");
     const leagues = leaguesParam?.split(",").map((s) => s.trim()).filter(Boolean);
     const tally = await runFetchAfOdds(leagues?.length ? { leagues } : undefined);
-    await recordCronRun("af-odds");
+    // 처리 건수를 같이 남긴다 — 없으면 "돌았지만 0건"을 구분할 수 없다
+    await recordCronRun("af-odds", { count: Object.values(tally).reduce((a, b) => a + (Number(b) || 0), 0) });
     return NextResponse.json({ ok: true, tally });
   } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: (e as Error).message },
-      { status: 500 },
-    );
+    const error = (e as Error).message;
+    await recordCronRun("af-odds", { ok: false, error }).catch(() => undefined);
+    return NextResponse.json({ ok: false, error }, { status: 500 });
   }
 }

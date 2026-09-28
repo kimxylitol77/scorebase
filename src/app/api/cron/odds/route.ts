@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const leaguesParam = new URL(req.url).searchParams.get("leagues");
     const leagues = leaguesParam?.split(",").map((s) => s.trim()).filter(Boolean);
     const tally = await runFetchOdds(leagues?.length ? { leagues } : undefined);
-    await recordCronRun("odds");
+    await recordCronRun("odds", { count: Object.values(tally).reduce((a, b) => a + (Number(b) || 0), 0) });
     return NextResponse.json({ ok: true, tally });
   } catch (e) {
     const error = (e as Error).message;

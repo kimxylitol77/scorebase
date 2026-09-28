@@ -172,6 +172,10 @@ export interface HighlightRunResult {
     {
       finished: number;
       matched: number;
+      /** 어디서 끊겼는지 — 피드 영상 수 / 제목이 맞은 경기 수 / 재생 확인에서 떨어진 수 */
+      feed: number;
+      candidates: number;
+      blocked: number;
       assigned: Array<{ matchId: number; home: string; away: string; title: string; videoId: string }>;
     }
   >;
@@ -202,6 +206,9 @@ export async function runYoutubeHighlights(opts?: {
     const out = {
       finished: matches.length,
       matched: 0,
+      feed: feed.length,
+      candidates: 0,
+      blocked: 0,
       assigned: [] as Array<{ matchId: number; home: string; away: string; title: string; videoId: string }>,
     };
 
@@ -222,11 +229,15 @@ export async function runYoutubeHighlights(opts?: {
         .sort((a, b) => dayDiff(localDate, a.td) - dayDiff(localDate, b.td));
 
       if (cands.length === 0) continue;
+      out.candidates += 1;
       const best = cands[0].e;
 
       // 한국 지역차단 영상 차단 — KR 가능 + 임베드 가능 확인 후에만 적재.
       // (NBA 공식 풀하이라이트는 한국 차단 → 자동 skip. K리그는 통과.)
-      if (!(await isPlayableInKorea(best.videoId))) continue;
+      if (!(await isPlayableInKorea(best.videoId))) {
+        out.blocked += 1;
+        continue;
+      }
 
       out.matched += 1;
       out.assigned.push({ matchId: m.id, home: m.homeTeam.name, away: m.awayTeam.name, title: best.title, videoId: best.videoId });

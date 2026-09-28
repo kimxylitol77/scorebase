@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   }
   try {
     const tally = await runFetchMlbStarters();
-    await recordCronRun("mlb-starters");
+    await recordCronRun("mlb-starters", { count: tally.updated });
     return NextResponse.json({ ok: true, ...tally });
   } catch (e) {
     const error = (e as Error).message;

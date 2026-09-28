@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const summary = await withLlmTag("fetch-transactions", () => runFetchTransactions(leagues));
-    await recordCronRun("fetch-transactions");
+    await recordCronRun("fetch-transactions", { count: summary.reduce((a, s) => a + s.upserted, 0) });
     return NextResponse.json({ ok: true, summary });
   } catch (e) {
     // 실패도 실행 기록으로 남긴다 — 안 남기면 cron-freshness 가 "30h째 미실행"으로

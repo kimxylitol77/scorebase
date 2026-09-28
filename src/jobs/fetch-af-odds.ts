@@ -2,6 +2,7 @@
 // The Odds API 파이프(fetch-odds)와 동일 관례: 평균 implied(vig 제거)·in-play 가드·오프닝 1회 저장.
 // v1 은 1X2(bet=1)만 — market blend 가 소비하는 필드. OU/핸디 등 부가 마켓은 승격 시 확장.
 
+import { apiSportsError } from "@/lib/sports/af-track";
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
@@ -75,7 +76,11 @@ async function afGet<T>(path: string): Promise<T> {
     headers: { "x-apisports-key": process.env.API_FOOTBALL_KEY ?? "" },
   });
   if (!r.ok) throw new Error(`af ${path.split("?")[0]} HTTP ${r.status}`);
-  return (await r.json()) as T;
+  const data = (await r.json()) as T;
+  // af 는 분당 한도·쿼터 소진을 HTTP 200 + errors 객체로 답한다 — 그대로 두면 "배당 없음(0건)"으로 읽힌다
+  const err = apiSportsError(data);
+  if (err) throw new Error(`af ${path.split("?")[0]} ${err.kind}: ${err.message}`);
+  return data;
 }
 
 // 발음부호 제거 — af 는 폴란드어·체코어 팀명을 발음부호까지 살려 주는데(Rakow/Hradec 등)
