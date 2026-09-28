@@ -166,9 +166,13 @@ export default async function AdminArticles({ searchParams }: Props) {
                         {a.title}
                       </Link>
                     ) : (
-                      <span className="font-medium truncate block">
+                      <Link
+                        href={`/admin/articles/preview/${a.id}`}
+                        className="font-medium hover:underline truncate block"
+                        title="발행 전 미리보기"
+                      >
                         {a.title}
-                      </span>
+                      </Link>
                     )}
                   </td>
                   <td className="px-3 py-2.5">
