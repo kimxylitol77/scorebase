@@ -71,6 +71,18 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   }
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
+  // [ua-probe] 임시 — 크롬 148~150 위장 수집기(2026-09-28, 하루 600세션·세션당 1PV·봇 검문 통과)의 지문 수집.
+  // 사람도 같은 버전을 쓰므로 여기서 막지 않고 기록만 한다. 지문을 찾아 방화벽에 넣은 뒤 지울 것.
+  const probeUa = req.headers.get("user-agent") ?? "";
+  if (/Chrome\/(14[89]|150)\.0\.0\.0 Safari\/537\.36$/.test(probeUa) && !path.startsWith("/api/")) {
+    const h = (k: string) => req.headers.get(k) ?? "-";
+    console.warn(
+      `[ua-probe] ip=${clientIp} ja4=${h("x-vercel-ja4-digest")} v=${probeUa.match(/Chrome\/(\d+)/)?.[1]} os=${probeUa.includes("Windows") ? "win" : "mac"}` +
+        ` path=${path} ref=${h("referer").slice(0, 60)} lang=${h("accept-language").slice(0, 30)} plat=${h("sec-ch-ua-platform")}` +
+        ` chua=${h("sec-ch-ua").slice(0, 80)} site=${h("sec-fetch-site")} mode=${h("sec-fetch-mode")} dest=${h("sec-fetch-dest")}` +
+        ` rsc=${h("rsc")} cookie=${req.headers.has("cookie") ? "y" : "n"} country=${h("x-vercel-ip-country")} asn=${h("x-vercel-ip-as-number")}`,
+    );
+  }
   const fakeHint = FAKE_CLIENT_HINT_PLATFORMS.has(req.headers.get("sec-ch-ua-platform") ?? "");
   if (fakeHint || BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
     // 추적 표식(canary) — 403 대신 표식이 든 미끼 페이지를 준다. 차단 대역·가짜 지문만 받으므로 사람·검색엔진은
