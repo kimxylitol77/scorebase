@@ -5,6 +5,7 @@ import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
 import TeamLogoImg from "@/components/TeamLogoImg";
 import ScoreboardScoreCell from "./ScoreboardScoreCell";
+import ScoreboardGoalRow from "./ScoreboardGoalRow";
 import { LEAGUE_ORDER } from "@/lib/sports/sport-leagues";
 import type { SoccerGoal, SoccerCard, SoccerTeamStat } from "@/lib/sports/live-scores";
 
@@ -176,8 +177,10 @@ function StatusCell({ r, t }: { r: ScoreboardRow; t: (typeof T)[Lang] }) {
 
 function TeamCell({ team, side, href, homeBadge }: { team: ScoreboardRow["home"]; side: "home" | "away"; href: string | null; homeBadge?: string | null }) {
   const name = (
-    <span className="truncate text-[13px] font-medium text-neutral-800 dark:text-neutral-100">{team.name}</span>
+    <span className={`sb-team-${side} truncate text-[13px] font-medium text-neutral-800 dark:text-neutral-100`}>{team.name}</span>
   );
+  // 득점 순간에만 보이는 전광판 "GOAL" 표시 — ScoreboardGoalRow 의 data-goal 로 켜진다(globals.css)
+  const goalTag = <span aria-hidden className={`sb-goal-tag sb-goal-tag-${side}`}>GOAL</span>;
   const logo = (
     <TeamLogoImg url={team.logo} name={team.name} size={16} className="h-4 w-4 shrink-0 object-contain" fallbackClassName="h-4 w-4 shrink-0" />
   );
@@ -185,6 +188,7 @@ function TeamCell({ team, side, href, homeBadge }: { team: ScoreboardRow["home"]
     side === "home" ? (
       <>
         <span className="hidden sm:inline"><Rank n={team.position} /></span>
+        {goalTag}
         {name}
         {logo}
       </>
@@ -195,6 +199,7 @@ function TeamCell({ team, side, href, homeBadge }: { team: ScoreboardRow["home"]
           <span className="shrink-0 rounded bg-amber-500/15 px-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{homeBadge}</span>
         )}
         {name}
+        {goalTag}
         <span className="hidden sm:inline"><Rank n={team.position} /></span>
       </>
     );
@@ -283,8 +288,11 @@ export default function SoccerScoreboardTable({
             const scored = r.status === "live" || r.status === "finished";
             const result = r.status === "finished" ? outcome(r.homeScore, r.awayScore) : null;
             return (
-              <div
+              <ScoreboardGoalRow
                 key={r.id}
+                live={r.status === "live"}
+                homeScore={r.homeScore}
+                awayScore={r.awayScore}
                 className={`border-b border-neutral-100 px-3 py-2 last:border-0 dark:border-white/[0.06] ${r.status === "live" ? "bg-rose-500/[0.06]" : ""}`}
               >
                 <div className={GRID}>
@@ -334,7 +342,7 @@ export default function SoccerScoreboardTable({
                     <PredCell pred={r.pred} result={null} compact t={t} />
                   </div>
                 )}
-              </div>
+              </ScoreboardGoalRow>
             );
           })}
         </section>

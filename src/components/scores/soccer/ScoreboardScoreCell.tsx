@@ -50,7 +50,14 @@ export default function ScoreboardScoreCell({
     >
       <Link href={href ?? "#"} prefetch={false} className="block">
         <span className={`block text-[15px] font-bold tabular-nums ${scored ? "text-neutral-900 dark:text-white" : "text-neutral-400"}`}>
-          {scored && homeScore != null && awayScore != null ? `${homeScore} - ${awayScore}` : "vs"}
+          {scored && homeScore != null && awayScore != null ? (
+            // 팀별 숫자를 나눠 둔다 — 득점한 쪽 숫자만 뒤집기 연출(globals.css [data-goal])
+            <>
+              <span className="sb-digit-home inline-block">{homeScore}</span> - <span className="sb-digit-away inline-block">{awayScore}</span>
+            </>
+          ) : (
+            "vs"
+          )}
         </span>
         {half && scored && (
           <span className="block text-[10px] tabular-nums text-neutral-400">

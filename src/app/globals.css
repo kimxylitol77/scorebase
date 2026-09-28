@@ -836,3 +836,96 @@ body.sb-mode [data-scores-root] {
   content-visibility: auto;
   contain-intrinsic-size: auto 120px;
 }
+
+/* 스코어보드 보기(?sort=board) 골 연출 — 카드 보기(호박색 링 pulse·chime)와 일부러 다른 "전광판" 연출.
+   ScoreboardGoalRow 가 득점 후 6초간 data-goal="home|away" 를 단다. 소리는 기존 LiveScoresBar chime 그대로.
+   ① 줄 전체 초록 스윕(득점한 쪽에서 반대쪽으로) ② 팀명 옆 LED "GOAL" 표시 깜빡임 ③ 득점한 쪽 숫자 뒤집기. */
+.sb-row {
+  position: relative;
+}
+.sb-row > * {
+  position: relative;
+  z-index: 1;
+}
+.sb-row[data-goal]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(16 185 129 / 0.34) 0%, rgb(16 185 129 / 0.16) 60%, rgb(16 185 129 / 0.04) 100%);
+  transform-origin: left center;
+  animation: sbGoalSweep 6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.sb-row[data-goal="away"]::before {
+  background: linear-gradient(270deg, rgb(16 185 129 / 0.34) 0%, rgb(16 185 129 / 0.16) 60%, rgb(16 185 129 / 0.04) 100%);
+  transform-origin: right center;
+}
+@keyframes sbGoalSweep {
+  0% { transform: scaleX(0); opacity: 1; }
+  10% { transform: scaleX(1); opacity: 1; }
+  75% { transform: scaleX(1); opacity: 0.7; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+.sb-goal-tag {
+  display: none;
+}
+.sb-row[data-goal="home"] .sb-goal-tag-home,
+.sb-row[data-goal="away"] .sb-goal-tag-away {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: #062a1c;
+  color: #4ade80;
+  font: 900 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.14em;
+  text-shadow: 0 0 4px rgb(74 222 128 / 0.9);
+  box-shadow: inset 0 0 0 1px rgb(74 222 128 / 0.35);
+  animation: sbGoalTagIn 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both, sbGoalTagBlink 0.5s steps(2, jump-none) 0.35s 5;
+}
+@keyframes sbGoalTagIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes sbGoalTagBlink {
+  0% { opacity: 1; }
+  100% { opacity: 0.25; }
+}
+.sb-row[data-goal="home"] .sb-team-home,
+.sb-row[data-goal="away"] .sb-team-away {
+  font-weight: 700;
+  color: #047857;
+}
+.dark .sb-row[data-goal="home"] .sb-team-home,
+.dark .sb-row[data-goal="away"] .sb-team-away {
+  color: #4ade80;
+}
+.sb-row[data-goal="home"] .sb-digit-home,
+.sb-row[data-goal="away"] .sb-digit-away {
+  color: #059669;
+  animation: sbDigitFlip 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.dark .sb-row[data-goal="home"] .sb-digit-home,
+.dark .sb-row[data-goal="away"] .sb-digit-away {
+  color: #4ade80;
+}
+@keyframes sbDigitFlip {
+  0% { transform: perspective(200px) rotateX(-90deg); }
+  60% { transform: perspective(200px) rotateX(15deg); }
+  100% { transform: perspective(200px) rotateX(0); }
+}
+/* 모바일 2열은 팀명 칸이 좁아 GOAL 표시가 이름을 "맨." 처럼 잘라 먹는다 — 스윕·초록 팀명·숫자로만 */
+@media (max-width: 639px) {
+  .sb-row[data-goal] .sb-goal-tag {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-row[data-goal]::before,
+  .sb-row[data-goal] .sb-goal-tag,
+  .sb-row[data-goal] .sb-digit-home,
+  .sb-row[data-goal] .sb-digit-away {
+    animation: none;
+  }
+}
