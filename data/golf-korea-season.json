@@ -1,6 +1,6 @@
 {
   "year": "2026",
-  "updatedAt": "2026-09-27T00:00:09.368Z",
+  "updatedAt": "2026-09-28T00:00:09.328Z",
   "players": [
     {
       "tour": "LPGA",
@@ -132,11 +132,17 @@
       "tour": "LPGA",
       "name": "Jenny Shin",
       "id": "8543",
-      "starts": 16,
+      "starts": 17,
       "wins": 1,
       "top10": 2,
       "best": 1,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 108,
+          "score": "E"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -160,12 +166,6 @@
           "date": "2026-07-23",
           "order": 1,
           "score": "-9"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 114,
-          "score": "+5"
         }
       ],
       "nameKo": "신지은"
@@ -174,11 +174,17 @@
       "tour": "LPGA",
       "name": "Mi Hyang Lee",
       "id": "8032",
-      "starts": 15,
+      "starts": 16,
       "wins": 1,
       "top10": 1,
       "best": 1,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 60,
+          "score": "-5"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -202,12 +208,6 @@
           "date": "2026-07-23",
           "order": 36,
           "score": "+6"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 101,
-          "score": "+3"
         }
       ],
       "nameKo": "이미향"
@@ -300,11 +300,17 @@
       "tour": "LPGA",
       "name": "Somi Lee",
       "id": "4939782",
-      "starts": 18,
+      "starts": 19,
       "wins": 0,
       "top10": 6,
       "best": 4,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 34,
+          "score": "-8"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -328,109 +334,25 @@
           "date": "2026-07-30",
           "order": 88,
           "score": "+6"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 143,
-          "score": "+10"
         }
       ],
       "nameKo": "이소미"
     },
     {
       "tour": "LPGA",
-      "name": "Ina Yoon",
-      "id": "5259423",
-      "starts": 15,
+      "name": "Jin Hee Im",
+      "id": "4612982",
+      "starts": 19,
       "wins": 0,
       "top10": 4,
       "best": 2,
       "recent": [
         {
-          "event": "FM Championship",
-          "date": "2026-08-27",
-          "order": 46,
-          "score": "E"
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 10,
+          "score": "-14"
         },
-        {
-          "event": "AIG Women's Open",
-          "date": "2026-07-30",
-          "order": 87,
-          "score": "+6"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 30,
-          "score": "+5"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 53,
-          "score": "-2"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 2,
-          "score": "-11"
-        }
-      ],
-      "nameKo": "윤이나"
-    },
-    {
-      "tour": "LPGA",
-      "name": "A Lim Kim",
-      "id": "4396037",
-      "starts": 16,
-      "wins": 0,
-      "top10": 3,
-      "best": 2,
-      "recent": [
-        {
-          "event": "FM Championship",
-          "date": "2026-08-27",
-          "order": 93,
-          "score": "+2"
-        },
-        {
-          "event": "AIG Women's Open",
-          "date": "2026-07-30",
-          "order": 95,
-          "score": "+7"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 2,
-          "score": "-7"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 31,
-          "score": "-6"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 11,
-          "score": "-6"
-        }
-      ],
-      "nameKo": "김아림"
-    },
-    {
-      "tour": "LPGA",
-      "name": "Jin Hee Im",
-      "id": "4612982",
-      "starts": 18,
-      "wins": 0,
-      "top10": 3,
-      "best": 2,
-      "recent": [
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -454,15 +376,135 @@
           "date": "2026-07-30",
           "order": 18,
           "score": "+1"
+        }
+      ],
+      "nameKo": "임진희"
+    },
+    {
+      "tour": "LPGA",
+      "name": "Ina Yoon",
+      "id": "5259423",
+      "starts": 16,
+      "wins": 0,
+      "top10": 4,
+      "best": 2,
+      "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 92,
+          "score": "-1"
+        },
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 46,
+          "score": "E"
+        },
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 87,
+          "score": "+6"
+        },
+        {
+          "event": "ISPS HANDA Women's Scottish Open",
+          "date": "2026-07-23",
+          "order": 30,
+          "score": "+5"
         },
         {
           "event": "The Amundi Evian Championship",
           "date": "2026-07-09",
-          "order": 4,
-          "score": "-15"
+          "order": 53,
+          "score": "-2"
         }
       ],
-      "nameKo": "임진희"
+      "nameKo": "윤이나"
+    },
+    {
+      "tour": "LPGA",
+      "name": "A Lim Kim",
+      "id": "4396037",
+      "starts": 17,
+      "wins": 0,
+      "top10": 3,
+      "best": 2,
+      "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 21,
+          "score": "-12"
+        },
+        {
+          "event": "FM Championship",
+          "date": "2026-08-27",
+          "order": 93,
+          "score": "+2"
+        },
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 95,
+          "score": "+7"
+        },
+        {
+          "event": "ISPS HANDA Women's Scottish Open",
+          "date": "2026-07-23",
+          "order": 2,
+          "score": "-7"
+        },
+        {
+          "event": "The Amundi Evian Championship",
+          "date": "2026-07-09",
+          "order": 31,
+          "score": "-6"
+        }
+      ],
+      "nameKo": "김아림"
+    },
+    {
+      "tour": "LPGA",
+      "name": "In Gee Chun",
+      "id": "9208",
+      "starts": 13,
+      "wins": 0,
+      "top10": 3,
+      "best": 4,
+      "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 4,
+          "score": "-16"
+        },
+        {
+          "event": "AIG Women's Open",
+          "date": "2026-07-30",
+          "order": 114,
+          "score": "+9"
+        },
+        {
+          "event": "ISPS HANDA Women's Scottish Open",
+          "date": "2026-07-23",
+          "order": 55,
+          "score": "+13"
+        },
+        {
+          "event": "KPMG Women's PGA Championship",
+          "date": "2026-06-25",
+          "order": 28,
+          "score": "-1"
+        },
+        {
+          "event": "Meijer LPGA Classic for Simply Give",
+          "date": "2026-06-18",
+          "order": 17,
+          "score": "-10"
+        }
+      ],
+      "nameKo": "전인지"
     },
     {
       "tour": "PGA",
@@ -510,11 +552,17 @@
       "tour": "LPGA",
       "name": "Hye-Jin Choi",
       "id": "9945",
-      "starts": 19,
+      "starts": 20,
       "wins": 0,
       "top10": 3,
       "best": 6,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 144,
+          "score": "E"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -538,67 +586,25 @@
           "date": "2026-07-30",
           "order": 112,
           "score": "+8"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 13,
-          "score": "+1"
         }
       ],
       "nameKo": "최혜진"
     },
     {
       "tour": "LPGA",
-      "name": "In Gee Chun",
-      "id": "9208",
-      "starts": 12,
-      "wins": 0,
-      "top10": 2,
-      "best": 4,
-      "recent": [
-        {
-          "event": "AIG Women's Open",
-          "date": "2026-07-30",
-          "order": 114,
-          "score": "+9"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 55,
-          "score": "+13"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 28,
-          "score": "-1"
-        },
-        {
-          "event": "Meijer LPGA Classic for Simply Give",
-          "date": "2026-06-18",
-          "order": 17,
-          "score": "-10"
-        },
-        {
-          "event": "U.S. Women's Open pres. by Ally",
-          "date": "2026-06-04",
-          "order": 4,
-          "score": "-6"
-        }
-      ],
-      "nameKo": "전인지"
-    },
-    {
-      "tour": "LPGA",
       "name": "Minji Kang",
       "id": "5195963",
-      "starts": 17,
+      "starts": 18,
       "wins": 0,
       "top10": 2,
       "best": 5,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 121,
+          "score": "+1"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -622,12 +628,6 @@
           "date": "2026-07-30",
           "order": 67,
           "score": "+13"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 107,
-          "score": "+10"
         }
       ],
       "nameKo": "강민지"
@@ -636,11 +636,17 @@
       "tour": "LPGA",
       "name": "Soo Bin Joo",
       "id": "5138914",
-      "starts": 16,
+      "starts": 17,
       "wins": 0,
       "top10": 2,
       "best": 7,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 66,
+          "score": "-4"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -664,12 +670,6 @@
           "date": "2026-07-30",
           "order": 21,
           "score": "+2"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 56,
-          "score": "+14"
         }
       ],
       "nameKo": "주수빈"
@@ -678,11 +678,17 @@
       "tour": "LPGA",
       "name": "Amy Yang",
       "id": "8807",
-      "starts": 15,
+      "starts": 16,
       "wins": 0,
       "top10": 1,
       "best": 2,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 19,
+          "score": "-12"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -706,12 +712,6 @@
           "date": "2026-07-23",
           "order": 15,
           "score": "+1"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 15,
-          "score": "-9"
         }
       ],
       "nameKo": "양희영"
@@ -720,11 +720,17 @@
       "tour": "LPGA",
       "name": "Jin Young Ko",
       "id": "9758",
-      "starts": 15,
+      "starts": 16,
       "wins": 0,
       "top10": 1,
       "best": 5,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 80,
+          "score": "-2"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -748,12 +754,6 @@
           "date": "2026-07-23",
           "order": 84,
           "score": "+8"
-        },
-        {
-          "event": "The Amundi Evian Championship",
-          "date": "2026-07-09",
-          "order": 120,
-          "score": "+6"
         }
       ],
       "nameKo": "고진영"
@@ -762,11 +762,17 @@
       "tour": "LPGA",
       "name": "Youmin Hwang",
       "id": "5141008",
-      "starts": 18,
+      "starts": 19,
       "wins": 0,
       "top10": 1,
       "best": 6,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 22,
+          "score": "-11"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -790,12 +796,6 @@
           "date": "2026-07-30",
           "order": 140,
           "score": "+13"
-        },
-        {
-          "event": "ISPS HANDA Women's Scottish Open",
-          "date": "2026-07-23",
-          "order": 42,
-          "score": "+9"
         }
       ],
       "nameKo": "황유민"
@@ -804,11 +804,17 @@
       "tour": "LPGA",
       "name": "Narin An",
       "id": "4708891",
-      "starts": 12,
+      "starts": 13,
       "wins": 0,
       "top10": 1,
       "best": 7,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 107,
+          "score": "E"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -832,12 +838,6 @@
           "date": "2026-07-09",
           "order": 127,
           "score": "+9"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 127,
-          "score": "+5"
         }
       ],
       "nameKo": "안나린"
@@ -846,11 +846,17 @@
       "tour": "LPGA",
       "name": "Jiwon Jeon",
       "id": "4425566",
-      "starts": 11,
+      "starts": 12,
       "wins": 0,
       "top10": 1,
       "best": 8,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 47,
+          "score": "-7"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -873,12 +879,6 @@
           "event": "The Amundi Evian Championship",
           "date": "2026-07-09",
           "order": 96,
-          "score": "+3"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 48,
           "score": "+3"
         }
       ],
@@ -930,11 +930,17 @@
       "tour": "LPGA",
       "name": "Chella Choi",
       "id": "7408",
-      "starts": 14,
+      "starts": 15,
       "wins": 0,
       "top10": 0,
       "best": 12,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 70,
+          "score": "-3"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -958,12 +964,6 @@
           "date": "2026-07-09",
           "order": 54,
           "score": "-2"
-        },
-        {
-          "event": "KPMG Women's PGA Championship",
-          "date": "2026-06-25",
-          "order": 94,
-          "score": "+3"
         }
       ],
       "nameKo": "최운정"
@@ -1050,11 +1050,17 @@
       "tour": "LPGA",
       "name": "Dongeun Lee",
       "id": "5295637",
-      "starts": 12,
+      "starts": 13,
       "wins": 0,
       "top10": 0,
       "best": 18,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 110,
+          "score": "E"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -1078,12 +1084,6 @@
           "date": "2026-06-25",
           "order": 23,
           "score": "-2"
-        },
-        {
-          "event": "Meijer LPGA Classic for Simply Give",
-          "date": "2026-06-18",
-          "order": 74,
-          "score": "-1"
         }
       ],
       "nameKo": "이동은"
@@ -1092,11 +1092,17 @@
       "tour": "LPGA",
       "name": "Jeongeun Lee6",
       "id": "11167",
-      "starts": 9,
+      "starts": 10,
       "wins": 0,
       "top10": 0,
       "best": 28,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 75,
+          "score": "-3"
+        },
         {
           "event": "CPKC Women's Open",
           "date": "2026-08-20",
@@ -1120,12 +1126,6 @@
           "date": "2026-06-04",
           "order": 88,
           "score": "+6"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 74,
-          "score": "+6"
         }
       ],
       "nameKo": "이정은"
@@ -1134,11 +1134,17 @@
       "tour": "LPGA",
       "name": "Juniper Jang",
       "id": "5141006",
-      "starts": 7,
+      "starts": 8,
       "wins": 0,
       "top10": 0,
       "best": 32,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 50,
+          "score": "-7"
+        },
         {
           "event": "The Standard Portland Classic",
           "date": "2026-08-13",
@@ -1162,12 +1168,6 @@
           "date": "2026-04-30",
           "order": 78,
           "score": "+3"
-        },
-        {
-          "event": "JM Eagle LA Championship pres. by Plastpro",
-          "date": "2026-04-16",
-          "order": 122,
-          "score": "+4"
         }
       ],
       "nameKo": "장주니퍼"
@@ -1176,11 +1176,17 @@
       "tour": "LPGA",
       "name": "Kumkang Park",
       "id": "4421539",
-      "starts": 11,
+      "starts": 12,
       "wins": 0,
       "top10": 0,
       "best": 33,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 101,
+          "score": "-1"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -1204,12 +1210,6 @@
           "date": "2026-06-18",
           "order": 77,
           "score": "-1"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 80,
-          "score": "+4"
         }
       ],
       "nameKo": "박금강"
@@ -1242,11 +1242,17 @@
       "tour": "LPGA",
       "name": "Jeongeun Lee5",
       "id": "8024",
-      "starts": 12,
+      "starts": 13,
       "wins": 0,
       "top10": 0,
       "best": 37,
       "recent": [
+        {
+          "event": "Walmart NW Arkansas Championship pres. by P&G",
+          "date": "2026-09-25",
+          "order": 126,
+          "score": "+2"
+        },
         {
           "event": "FM Championship",
           "date": "2026-08-27",
@@ -1269,12 +1275,6 @@
           "event": "Meijer LPGA Classic for Simply Give",
           "date": "2026-06-18",
           "order": 66,
-          "score": "+5"
-        },
-        {
-          "event": "ShopRite LPGA Classic powered by Wakefern",
-          "date": "2026-05-29",
-          "order": 70,
           "score": "+5"
         }
       ],

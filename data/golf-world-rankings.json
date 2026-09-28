@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-27T00:00:16.074Z",
+  "updatedAt": "2026-09-28T00:00:16.737Z",
   "source": "OWGR",
   "men": [
     {
@@ -10,7 +10,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 1,
-      "pointsAverage": 17.74,
+      "pointsAverage": 17.47,
       "espnId": "9478"
     },
     {
@@ -21,7 +21,7 @@
       "country": "Northern Ireland",
       "code2": "",
       "lastWeekRank": 2,
-      "pointsAverage": 8.98,
+      "pointsAverage": 8.81,
       "espnId": "3470"
     },
     {
@@ -32,7 +32,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 3,
-      "pointsAverage": 7.46,
+      "pointsAverage": 7.37,
       "espnId": "4425906"
     },
     {
@@ -43,7 +43,7 @@
       "country": "England",
       "code2": "",
       "lastWeekRank": 4,
-      "pointsAverage": 6.97,
+      "pointsAverage": 7.34,
       "espnId": "9037"
     },
     {
@@ -54,7 +54,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 5,
-      "pointsAverage": 6.65,
+      "pointsAverage": 6.58,
       "espnId": "11119"
     },
     {
@@ -65,7 +65,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 6,
-      "pointsAverage": 5.44,
+      "pointsAverage": 5.35,
       "espnId": "5409"
     },
     {
@@ -76,7 +76,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 7,
-      "pointsAverage": 5.38,
+      "pointsAverage": 5.31,
       "espnId": "4690755"
     },
     {
@@ -86,8 +86,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 9,
-      "pointsAverage": 5.29,
+      "lastWeekRank": 8,
+      "pointsAverage": 5.22,
       "espnId": "9938"
     },
     {
@@ -97,8 +97,8 @@
       "nameKo": null,
       "country": "England",
       "code2": "",
-      "lastWeekRank": 8,
-      "pointsAverage": 5.26,
+      "lastWeekRank": 9,
+      "pointsAverage": 5.18,
       "espnId": "5539"
     },
     {
@@ -109,7 +109,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 10,
-      "pointsAverage": 5.11,
+      "pointsAverage": 5.05,
       "espnId": "10140"
     },
     {
@@ -120,7 +120,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 11,
-      "pointsAverage": 5.07,
+      "pointsAverage": 4.99,
       "espnId": "10592"
     },
     {
@@ -130,8 +130,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 17,
-      "pointsAverage": 5,
+      "lastWeekRank": 12,
+      "pointsAverage": 4.92,
       "espnId": "10166"
     },
     {
@@ -141,8 +141,8 @@
       "nameKo": null,
       "country": "Norway",
       "code2": "NO",
-      "lastWeekRank": 12,
-      "pointsAverage": 4.99,
+      "lastWeekRank": 13,
+      "pointsAverage": 4.83,
       "espnId": "4364873"
     },
     {
@@ -152,8 +152,8 @@
       "nameKo": "김시우",
       "country": "South Korea",
       "code2": "KR",
-      "lastWeekRank": 13,
-      "pointsAverage": 4.7,
+      "lastWeekRank": 14,
+      "pointsAverage": 4.65,
       "espnId": "7081"
     },
     {
@@ -163,31 +163,31 @@
       "nameKo": null,
       "country": "Spain",
       "code2": "ES",
-      "lastWeekRank": 14,
-      "pointsAverage": 4.66,
+      "lastWeekRank": 15,
+      "pointsAverage": 4.59,
       "espnId": "9780"
     },
     {
       "rank": 16,
       "isTied": false,
-      "name": "Justin Rose",
-      "nameKo": null,
-      "country": "England",
-      "code2": "",
-      "lastWeekRank": 15,
-      "pointsAverage": 4.42,
-      "espnId": "569"
-    },
-    {
-      "rank": 17,
-      "isTied": false,
       "name": "Aaron Rai",
       "nameKo": null,
       "country": "England",
       "code2": "",
-      "lastWeekRank": 18,
-      "pointsAverage": 4.39,
+      "lastWeekRank": 17,
+      "pointsAverage": 4.43,
       "espnId": "10906"
+    },
+    {
+      "rank": 17,
+      "isTied": false,
+      "name": "Justin Rose",
+      "nameKo": null,
+      "country": "England",
+      "code2": "",
+      "lastWeekRank": 16,
+      "pointsAverage": 4.34,
+      "espnId": "569"
     },
     {
       "rank": 18,
@@ -196,8 +196,8 @@
       "nameKo": null,
       "country": "Sweden",
       "code2": "SE",
-      "lastWeekRank": 16,
-      "pointsAverage": 4.25,
+      "lastWeekRank": 18,
+      "pointsAverage": 4.16,
       "espnId": "4375972"
     },
     {
@@ -208,7 +208,7 @@
       "country": "Scotland",
       "code2": "",
       "lastWeekRank": 19,
-      "pointsAverage": 4.1,
+      "pointsAverage": 4.04,
       "espnId": "11378"
     },
     {
@@ -218,8 +218,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 29,
-      "pointsAverage": 4.04,
+      "lastWeekRank": 20,
+      "pointsAverage": 3.99,
       "espnId": "5054388"
     },
     {
@@ -229,31 +229,31 @@
       "nameKo": null,
       "country": "Sweden",
       "code2": "SE",
-      "lastWeekRank": 20,
-      "pointsAverage": 3.98,
+      "lastWeekRank": 21,
+      "pointsAverage": 3.92,
       "espnId": "3832"
     },
     {
       "rank": 22,
       "isTied": false,
-      "name": "Ryan Fox",
-      "nameKo": null,
-      "country": "New Zealand",
-      "code2": "NZ",
-      "lastWeekRank": 24,
-      "pointsAverage": 3.81,
-      "espnId": "4251"
-    },
-    {
-      "rank": 23,
-      "isTied": false,
       "name": "Ryan Gerard",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 21,
-      "pointsAverage": 3.8,
+      "lastWeekRank": 23,
+      "pointsAverage": 3.79,
       "espnId": "5076021"
+    },
+    {
+      "rank": 23,
+      "isTied": false,
+      "name": "Ryan Fox",
+      "nameKo": null,
+      "country": "New Zealand",
+      "code2": "NZ",
+      "lastWeekRank": 22,
+      "pointsAverage": 3.78,
+      "espnId": "4251"
     },
     {
       "rank": 24,
@@ -262,31 +262,31 @@
       "nameKo": null,
       "country": "England",
       "code2": "",
-      "lastWeekRank": 25,
-      "pointsAverage": 3.66,
+      "lastWeekRank": 24,
+      "pointsAverage": 3.59,
       "espnId": "5553"
     },
     {
       "rank": 25,
       "isTied": false,
-      "name": "Justin Thomas",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 22,
-      "pointsAverage": 3.66,
-      "espnId": "4848"
-    },
-    {
-      "rank": 26,
-      "isTied": false,
       "name": "Ben Griffin",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 23,
-      "pointsAverage": 3.64,
+      "lastWeekRank": 26,
+      "pointsAverage": 3.57,
       "espnId": "4404992"
+    },
+    {
+      "rank": 26,
+      "isTied": false,
+      "name": "Justin Thomas",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 25,
+      "pointsAverage": 3.57,
+      "espnId": "4848"
     },
     {
       "rank": 27,
@@ -295,8 +295,8 @@
       "nameKo": null,
       "country": "Japan",
       "code2": "JP",
-      "lastWeekRank": 26,
-      "pointsAverage": 3.61,
+      "lastWeekRank": 27,
+      "pointsAverage": 3.56,
       "espnId": "5860"
     },
     {
@@ -306,8 +306,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 27,
-      "pointsAverage": 3.56,
+      "lastWeekRank": 28,
+      "pointsAverage": 3.51,
       "espnId": "6007"
     },
     {
@@ -317,75 +317,75 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 28,
-      "pointsAverage": 3.39,
+      "lastWeekRank": 29,
+      "pointsAverage": 3.43,
       "espnId": "5579"
     },
     {
       "rank": 30,
-      "isTied": false,
-      "name": "Min Woo Lee",
-      "nameKo": null,
-      "country": "Australia",
-      "code2": "AU",
-      "lastWeekRank": 30,
-      "pointsAverage": 3.33,
-      "espnId": "4410932"
-    },
-    {
-      "rank": 31,
-      "isTied": false,
-      "name": "Tom Kim",
-      "nameKo": "김주형",
-      "country": "South Korea",
-      "code2": "KR",
-      "lastWeekRank": 31,
-      "pointsAverage": 3.29,
-      "espnId": "4602673"
-    },
-    {
-      "rank": 32,
-      "isTied": false,
-      "name": "Michael Brennan",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 32,
-      "pointsAverage": 3.25,
-      "espnId": "4921329"
-    },
-    {
-      "rank": 33,
       "isTied": false,
       "name": "Kristoffer Reitan",
       "nameKo": null,
       "country": "Norway",
       "code2": "NO",
       "lastWeekRank": 33,
-      "pointsAverage": 3.23,
+      "pointsAverage": 3.32,
       "espnId": "4348470"
     },
     {
-      "rank": 34,
+      "rank": 31,
       "isTied": false,
-      "name": "Akshay Bhatia",
+      "name": "Min Woo Lee",
+      "nameKo": null,
+      "country": "Australia",
+      "code2": "AU",
+      "lastWeekRank": 30,
+      "pointsAverage": 3.28,
+      "espnId": "4410932"
+    },
+    {
+      "rank": 32,
+      "isTied": false,
+      "name": "Tom Kim",
+      "nameKo": "김주형",
+      "country": "South Korea",
+      "code2": "KR",
+      "lastWeekRank": 31,
+      "pointsAverage": 3.26,
+      "espnId": "4602673"
+    },
+    {
+      "rank": 33,
+      "isTied": false,
+      "name": "Michael Brennan",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 34,
-      "pointsAverage": 3.14,
-      "espnId": "4419142"
+      "lastWeekRank": 32,
+      "pointsAverage": 3.22,
+      "espnId": "4921329"
     },
     {
-      "rank": 35,
+      "rank": 34,
       "isTied": false,
       "name": "Sepp Straka",
       "nameKo": null,
       "country": "Austria",
       "code2": "AT",
       "lastWeekRank": 35,
-      "pointsAverage": 3.1,
+      "pointsAverage": 3.09,
       "espnId": "8961"
+    },
+    {
+      "rank": 35,
+      "isTied": false,
+      "name": "Akshay Bhatia",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 34,
+      "pointsAverage": 3.09,
+      "espnId": "4419142"
     },
     {
       "rank": 36,
@@ -394,53 +394,53 @@
       "nameKo": null,
       "country": "Chile",
       "code2": "CL",
-      "lastWeekRank": 37,
-      "pointsAverage": 3.09,
+      "lastWeekRank": 36,
+      "pointsAverage": 3.06,
       "espnId": "11099"
     },
     {
       "rank": 37,
       "isTied": false,
-      "name": "J.T. Poston",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 38,
-      "pointsAverage": 3.02,
-      "espnId": "10505"
-    },
-    {
-      "rank": 38,
-      "isTied": false,
       "name": "Bryson DeChambeau",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 36,
-      "pointsAverage": 3.02,
+      "lastWeekRank": 38,
+      "pointsAverage": 2.97,
       "espnId": "10046"
     },
     {
+      "rank": 38,
+      "isTied": false,
+      "name": "J.T. Poston",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 37,
+      "pointsAverage": 2.97,
+      "espnId": "10505"
+    },
+    {
       "rank": 39,
+      "isTied": false,
+      "name": "Shane Lowry",
+      "nameKo": null,
+      "country": "Ireland",
+      "code2": "IE",
+      "lastWeekRank": 40,
+      "pointsAverage": 2.74,
+      "espnId": "4587"
+    },
+    {
+      "rank": 40,
       "isTied": false,
       "name": "Kurt Kitayama",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 39,
-      "pointsAverage": 2.76,
+      "pointsAverage": 2.71,
       "espnId": "10364"
-    },
-    {
-      "rank": 40,
-      "isTied": false,
-      "name": "Shane Lowry",
-      "nameKo": null,
-      "country": "Ireland",
-      "code2": "IE",
-      "lastWeekRank": 41,
-      "pointsAverage": 2.74,
-      "espnId": "4587"
     },
     {
       "rank": 41,
@@ -449,8 +449,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 40,
-      "pointsAverage": 2.71,
+      "lastWeekRank": 41,
+      "pointsAverage": 2.69,
       "espnId": "4425904"
     },
     {
@@ -460,8 +460,8 @@
       "nameKo": null,
       "country": "Denmark",
       "code2": "DK",
-      "lastWeekRank": 43,
-      "pointsAverage": 2.65,
+      "lastWeekRank": 42,
+      "pointsAverage": 2.61,
       "espnId": "11250"
     },
     {
@@ -471,31 +471,31 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 44,
-      "pointsAverage": 2.64,
+      "lastWeekRank": 43,
+      "pointsAverage": 2.61,
       "espnId": "3550"
     },
     {
       "rank": 44,
       "isTied": false,
-      "name": "Harris English",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 42,
-      "pointsAverage": 2.63,
-      "espnId": "5408"
-    },
-    {
-      "rank": 45,
-      "isTied": false,
       "name": "Adam Scott",
       "nameKo": null,
       "country": "Australia",
       "code2": "AU",
-      "lastWeekRank": 52,
-      "pointsAverage": 2.61,
+      "lastWeekRank": 45,
+      "pointsAverage": 2.58,
       "espnId": "388"
+    },
+    {
+      "rank": 45,
+      "isTied": false,
+      "name": "Harris English",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 44,
+      "pointsAverage": 2.57,
+      "espnId": "5408"
     },
     {
       "rank": 46,
@@ -505,7 +505,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 46,
-      "pointsAverage": 2.56,
+      "pointsAverage": 2.52,
       "espnId": "9484"
     },
     {
@@ -515,8 +515,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 45,
-      "pointsAverage": 2.56,
+      "lastWeekRank": 47,
+      "pointsAverage": 2.46,
       "espnId": "5338"
     },
     {
@@ -526,8 +526,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 47,
-      "pointsAverage": 2.49,
+      "lastWeekRank": 48,
+      "pointsAverage": 2.43,
       "espnId": "9530"
     },
     {
@@ -537,8 +537,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 48,
-      "pointsAverage": 2.44,
+      "lastWeekRank": 49,
+      "pointsAverage": 2.4,
       "espnId": "3702"
     },
     {
@@ -548,8 +548,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 49,
-      "pointsAverage": 2.4,
+      "lastWeekRank": 50,
+      "pointsAverage": 2.35,
       "espnId": "4513"
     },
     {
@@ -559,8 +559,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 50,
-      "pointsAverage": 2.38,
+      "lastWeekRank": 51,
+      "pointsAverage": 2.35,
       "espnId": "9843"
     },
     {
@@ -570,8 +570,8 @@
       "nameKo": null,
       "country": "Australia",
       "code2": "AU",
-      "lastWeekRank": 51,
-      "pointsAverage": 2.29,
+      "lastWeekRank": 52,
+      "pointsAverage": 2.27,
       "espnId": "10343"
     },
     {
@@ -592,53 +592,53 @@
       "nameKo": null,
       "country": "England",
       "code2": "",
-      "lastWeekRank": 55,
-      "pointsAverage": 2.15,
+      "lastWeekRank": 54,
+      "pointsAverage": 2.13,
       "espnId": "10548"
     },
     {
       "rank": 55,
-      "isTied": false,
-      "name": "Corey Conners",
-      "nameKo": null,
-      "country": "Canada",
-      "code2": "CA",
-      "lastWeekRank": 54,
-      "pointsAverage": 2.07,
-      "espnId": "9126"
-    },
-    {
-      "rank": 56,
-      "isTied": false,
-      "name": "Alex Fitzpatrick",
-      "nameKo": null,
-      "country": "England",
-      "code2": "",
-      "lastWeekRank": 56,
-      "pointsAverage": 2.05,
-      "espnId": "4364865"
-    },
-    {
-      "rank": 57,
-      "isTied": false,
-      "name": "Jackson Koivun",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 65,
-      "pointsAverage": 2.02,
-      "espnId": "5215013"
-    },
-    {
-      "rank": 58,
       "isTied": false,
       "name": "Eugenio Chacarra",
       "nameKo": null,
       "country": "Spain",
       "code2": "ES",
       "lastWeekRank": 58,
-      "pointsAverage": 2,
+      "pointsAverage": 2.1,
       "espnId": "4565467"
+    },
+    {
+      "rank": 56,
+      "isTied": false,
+      "name": "Corey Conners",
+      "nameKo": null,
+      "country": "Canada",
+      "code2": "CA",
+      "lastWeekRank": 55,
+      "pointsAverage": 2.03,
+      "espnId": "9126"
+    },
+    {
+      "rank": 57,
+      "isTied": false,
+      "name": "Alex Fitzpatrick",
+      "nameKo": null,
+      "country": "England",
+      "code2": "",
+      "lastWeekRank": 56,
+      "pointsAverage": 2.03,
+      "espnId": "4364865"
+    },
+    {
+      "rank": 58,
+      "isTied": false,
+      "name": "Jackson Koivun",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 57,
+      "pointsAverage": 2.01,
+      "espnId": "5215013"
     },
     {
       "rank": 59,
@@ -647,8 +647,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 57,
-      "pointsAverage": 1.96,
+      "lastWeekRank": 59,
+      "pointsAverage": 1.93,
       "espnId": "5467"
     },
     {
@@ -658,8 +658,8 @@
       "nameKo": "임성재",
       "country": "South Korea",
       "code2": "KR",
-      "lastWeekRank": 59,
-      "pointsAverage": 1.93,
+      "lastWeekRank": 60,
+      "pointsAverage": 1.91,
       "espnId": "11382"
     },
     {
@@ -669,42 +669,42 @@
       "nameKo": null,
       "country": "Colombia",
       "code2": "CO",
-      "lastWeekRank": 60,
-      "pointsAverage": 1.9,
+      "lastWeekRank": 61,
+      "pointsAverage": 1.87,
       "espnId": "4408316"
     },
     {
       "rank": 62,
-      "isTied": false,
-      "name": "Samuel Stevens",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 62,
-      "pointsAverage": 1.87,
-      "espnId": "4426181"
-    },
-    {
-      "rank": 63,
-      "isTied": false,
-      "name": "Daniel Berger",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 61,
-      "pointsAverage": 1.87,
-      "espnId": "9025"
-    },
-    {
-      "rank": 64,
       "isTied": false,
       "name": "Michael Kim",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 64,
-      "pointsAverage": 1.85,
+      "pointsAverage": 1.86,
       "espnId": "8974"
+    },
+    {
+      "rank": 63,
+      "isTied": false,
+      "name": "Samuel Stevens",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 62,
+      "pointsAverage": 1.84,
+      "espnId": "4426181"
+    },
+    {
+      "rank": 64,
+      "isTied": false,
+      "name": "Daniel Berger",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 63,
+      "pointsAverage": 1.83,
+      "espnId": "9025"
     },
     {
       "rank": 65,
@@ -713,8 +713,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 63,
-      "pointsAverage": 1.84,
+      "lastWeekRank": 65,
+      "pointsAverage": 1.8,
       "espnId": "1225"
     },
     {
@@ -724,8 +724,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 68,
-      "pointsAverage": 1.82,
+      "lastWeekRank": 66,
+      "pointsAverage": 1.8,
       "espnId": "5217048"
     },
     {
@@ -735,42 +735,42 @@
       "nameKo": null,
       "country": "Japan",
       "code2": "JP",
-      "lastWeekRank": 66,
-      "pointsAverage": 1.81,
+      "lastWeekRank": 67,
+      "pointsAverage": 1.78,
       "espnId": "4858572"
     },
     {
       "rank": 68,
       "isTied": false,
+      "name": "Casey Jarvis",
+      "nameKo": null,
+      "country": "South Africa",
+      "code2": "ZA",
+      "lastWeekRank": 70,
+      "pointsAverage": 1.74,
+      "espnId": "4610056"
+    },
+    {
+      "rank": 69,
+      "isTied": false,
       "name": "Harry Hall",
       "nameKo": null,
       "country": "England",
       "code2": "",
-      "lastWeekRank": 67,
-      "pointsAverage": 1.76,
+      "lastWeekRank": 68,
+      "pointsAverage": 1.74,
       "espnId": "4589438"
     },
     {
-      "rank": 69,
+      "rank": 70,
       "isTied": false,
       "name": "Pierceson Coody",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 70,
-      "pointsAverage": 1.76,
-      "espnId": "4837368"
-    },
-    {
-      "rank": 70,
-      "isTied": false,
-      "name": "Casey Jarvis",
-      "nameKo": null,
-      "country": "South Africa",
-      "code2": "ZA",
       "lastWeekRank": 69,
-      "pointsAverage": 1.76,
-      "espnId": "4610056"
+      "pointsAverage": 1.73,
+      "espnId": "4837368"
     },
     {
       "rank": 71,
@@ -780,7 +780,7 @@
       "country": "Australia",
       "code2": "AU",
       "lastWeekRank": 71,
-      "pointsAverage": 1.72,
+      "pointsAverage": 1.68,
       "espnId": "1680"
     },
     {
@@ -790,8 +790,8 @@
       "nameKo": null,
       "country": "Denmark",
       "code2": "DK",
-      "lastWeekRank": 76,
-      "pointsAverage": 1.67,
+      "lastWeekRank": 72,
+      "pointsAverage": 1.65,
       "espnId": "4858859"
     },
     {
@@ -801,31 +801,31 @@
       "nameKo": null,
       "country": "England",
       "code2": "",
-      "lastWeekRank": 77,
-      "pointsAverage": 1.67,
+      "lastWeekRank": 73,
+      "pointsAverage": 1.65,
       "espnId": "9506"
     },
     {
       "rank": 74,
-      "isTied": false,
-      "name": "Rasmus Hojgaard",
-      "nameKo": null,
-      "country": "Denmark",
-      "code2": "DK",
-      "lastWeekRank": 72,
-      "pointsAverage": 1.66,
-      "espnId": "11253"
-    },
-    {
-      "rank": 75,
       "isTied": false,
       "name": "Max Homa",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 75,
-      "pointsAverage": 1.66,
+      "pointsAverage": 1.64,
       "espnId": "8973"
+    },
+    {
+      "rank": 75,
+      "isTied": false,
+      "name": "Rasmus Hojgaard",
+      "nameKo": null,
+      "country": "Denmark",
+      "code2": "DK",
+      "lastWeekRank": 74,
+      "pointsAverage": 1.63,
+      "espnId": "11253"
     },
     {
       "rank": 76,
@@ -834,8 +834,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 73,
-      "pointsAverage": 1.65,
+      "lastWeekRank": 76,
+      "pointsAverage": 1.62,
       "espnId": "4901368"
     },
     {
@@ -845,8 +845,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 74,
-      "pointsAverage": 1.65,
+      "lastWeekRank": 77,
+      "pointsAverage": 1.62,
       "espnId": "8906"
     },
     {
@@ -857,7 +857,7 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 78,
-      "pointsAverage": 1.64,
+      "pointsAverage": 1.62,
       "espnId": "10522"
     },
     {
@@ -868,7 +868,7 @@
       "country": "Spain",
       "code2": "ES",
       "lastWeekRank": 79,
-      "pointsAverage": 1.63,
+      "pointsAverage": 1.6,
       "espnId": "4895429"
     },
     {
@@ -879,41 +879,41 @@
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 80,
-      "pointsAverage": 1.6,
+      "pointsAverage": 1.59,
       "espnId": "5147210"
     },
     {
       "rank": 81,
       "isTied": false,
-      "name": "Andrew Novak",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 82,
-      "pointsAverage": 1.58,
-      "espnId": "11332"
-    },
-    {
-      "rank": 82,
-      "isTied": false,
       "name": "Ricky Castillo",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 95,
-      "pointsAverage": 1.58,
+      "lastWeekRank": 82,
+      "pointsAverage": 1.56,
       "espnId": "4691931"
     },
     {
-      "rank": 83,
+      "rank": 82,
       "isTied": false,
       "name": "Steven Fisk",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
       "lastWeekRank": 83,
-      "pointsAverage": 1.57,
+      "pointsAverage": 1.56,
       "espnId": "4426182"
+    },
+    {
+      "rank": 83,
+      "isTied": false,
+      "name": "Andrew Novak",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 81,
+      "pointsAverage": 1.55,
+      "espnId": "11332"
     },
     {
       "rank": 84,
@@ -923,7 +923,7 @@
       "country": "Finland",
       "code2": "FI",
       "lastWeekRank": 84,
-      "pointsAverage": 1.55,
+      "pointsAverage": 1.52,
       "espnId": "4585548"
     },
     {
@@ -933,8 +933,8 @@
       "nameKo": null,
       "country": "Canada",
       "code2": "CA",
-      "lastWeekRank": 81,
-      "pointsAverage": 1.54,
+      "lastWeekRank": 85,
+      "pointsAverage": 1.51,
       "espnId": "3792"
     },
     {
@@ -944,8 +944,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 85,
-      "pointsAverage": 1.5,
+      "lastWeekRank": 86,
+      "pointsAverage": 1.48,
       "espnId": "10980"
     },
     {
@@ -955,8 +955,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 90,
-      "pointsAverage": 1.43,
+      "lastWeekRank": 87,
+      "pointsAverage": 1.4,
       "espnId": "11101"
     },
     {
@@ -966,64 +966,64 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 86,
-      "pointsAverage": 1.42,
+      "lastWeekRank": 88,
+      "pointsAverage": 1.4,
       "espnId": null
     },
     {
       "rank": 89,
+      "isTied": false,
+      "name": "Matti Schmid",
+      "nameKo": null,
+      "country": "Germany",
+      "code2": "DE",
+      "lastWeekRank": 90,
+      "pointsAverage": 1.4,
+      "espnId": "4566443"
+    },
+    {
+      "rank": 90,
+      "isTied": false,
+      "name": "Thomas Detry",
+      "nameKo": null,
+      "country": "Belgium",
+      "code2": "BE",
+      "lastWeekRank": 91,
+      "pointsAverage": 1.4,
+      "espnId": "4837"
+    },
+    {
+      "rank": 91,
       "isTied": false,
       "name": "Aldrich Potgieter",
       "nameKo": null,
       "country": "South Africa",
       "code2": "ZA",
       "lastWeekRank": 89,
-      "pointsAverage": 1.42,
+      "pointsAverage": 1.39,
       "espnId": "5080439"
     },
     {
-      "rank": 90,
-      "isTied": false,
-      "name": "Matti Schmid",
-      "nameKo": null,
-      "country": "Germany",
-      "code2": "DE",
-      "lastWeekRank": 87,
-      "pointsAverage": 1.42,
-      "espnId": "4566443"
-    },
-    {
-      "rank": 91,
-      "isTied": false,
-      "name": "Thomas Detry",
-      "nameKo": null,
-      "country": "Belgium",
-      "code2": "BE",
-      "lastWeekRank": 88,
-      "pointsAverage": 1.4,
-      "espnId": "4837"
-    },
-    {
       "rank": 92,
-      "isTied": false,
-      "name": "Jayden Schaper",
-      "nameKo": null,
-      "country": "South Africa",
-      "code2": "ZA",
-      "lastWeekRank": 93,
-      "pointsAverage": 1.39,
-      "espnId": "4604053"
-    },
-    {
-      "rank": 93,
       "isTied": false,
       "name": "Benjamin James",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 163,
+      "lastWeekRank": 93,
       "pointsAverage": 1.38,
       "espnId": "5077389"
+    },
+    {
+      "rank": 93,
+      "isTied": false,
+      "name": "Jayden Schaper",
+      "nameKo": null,
+      "country": "South Africa",
+      "code2": "ZA",
+      "lastWeekRank": 92,
+      "pointsAverage": 1.37,
+      "espnId": "4604053"
     },
     {
       "rank": 94,
@@ -1032,64 +1032,64 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 98,
-      "pointsAverage": 1.37,
+      "lastWeekRank": 94,
+      "pointsAverage": 1.35,
       "espnId": "4982182"
     },
     {
       "rank": 95,
       "isTied": false,
-      "name": "Denny McCarthy",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 91,
-      "pointsAverage": 1.35,
-      "espnId": "10054"
-    },
-    {
-      "rank": 96,
-      "isTied": false,
       "name": "Ben Kohles",
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 101,
-      "pointsAverage": 1.35,
+      "lastWeekRank": 96,
+      "pointsAverage": 1.34,
       "espnId": "6922"
     },
     {
-      "rank": 97,
-      "isTied": false,
-      "name": "Beau Hossler",
-      "nameKo": null,
-      "country": "United States",
-      "code2": "US",
-      "lastWeekRank": 92,
-      "pointsAverage": 1.35,
-      "espnId": "6011"
-    },
-    {
-      "rank": 98,
-      "isTied": false,
-      "name": "Daniel Hillier",
-      "nameKo": null,
-      "country": "New Zealand",
-      "code2": "NZ",
-      "lastWeekRank": 99,
-      "pointsAverage": 1.32,
-      "espnId": "4425899"
-    },
-    {
-      "rank": 99,
+      "rank": 96,
       "isTied": false,
       "name": "Keita Nakajima",
       "nameKo": null,
       "country": "Japan",
       "code2": "JP",
-      "lastWeekRank": 94,
-      "pointsAverage": 1.32,
+      "lastWeekRank": 99,
+      "pointsAverage": 1.33,
       "espnId": "4699418"
+    },
+    {
+      "rank": 97,
+      "isTied": false,
+      "name": "Denny McCarthy",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 95,
+      "pointsAverage": 1.33,
+      "espnId": "10054"
+    },
+    {
+      "rank": 98,
+      "isTied": false,
+      "name": "Beau Hossler",
+      "nameKo": null,
+      "country": "United States",
+      "code2": "US",
+      "lastWeekRank": 97,
+      "pointsAverage": 1.33,
+      "espnId": "6011"
+    },
+    {
+      "rank": 99,
+      "isTied": false,
+      "name": "Daniel Hillier",
+      "nameKo": null,
+      "country": "New Zealand",
+      "code2": "NZ",
+      "lastWeekRank": 98,
+      "pointsAverage": 1.3,
+      "espnId": "4425899"
     },
     {
       "rank": 100,
@@ -1098,8 +1098,8 @@
       "nameKo": null,
       "country": "United States",
       "code2": "US",
-      "lastWeekRank": 102,
-      "pointsAverage": 1.31,
+      "lastWeekRank": 100,
+      "pointsAverage": 1.3,
       "espnId": "5211425"
     }
   ]
