@@ -3,7 +3,7 @@
 // /api/live/baseball/[gameId] 가 응답 시 prisma.match.updateMany 로 점수 동기화.
 // 매 5분 vercel cron — list 페이지의 SSR 도 stale 안 됨. NHL ESPN id 매치 동기화도 여기서(nhl-espn-live-sync).
 
-import { selfUserAgent } from "@/lib/self-fetch";
+import { selfUserAgent, siteOrigin } from "@/lib/self-fetch";
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
@@ -13,7 +13,8 @@ import { syncNhlEspnLive } from "@/lib/sports/nhl-espn-live-sync";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const SITE = process.env.SITE_URL ?? "https://www.scorebase.kr";
+// www 로 정규화한 주소 — SITE_URL 이 apex 면 리다이렉트를 타면서 fetch 가 Authorization 을 떨어뜨려 다시 403 이 된다
+const SITE = siteOrigin();
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
