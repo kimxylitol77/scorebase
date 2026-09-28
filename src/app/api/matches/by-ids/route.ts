@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { parseRound } from "@/lib/sports/fixture-rounds";
+import { sportCodeForLeague, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { matchLiveHref } from "@/lib/links/match-live-link";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +28,7 @@ export async function GET(req: Request) {
     select: {
       id: true, league: true, externalId: true, status: true, startTime: true,
       homeScore: true, awayScore: true, raw: true,
+      predHome: true, predDraw: true, predAway: true, oddsHome: true, oddsDraw: true, oddsAway: true,
       homeTeam: { select: { name: true, logoUrl: true } },
       awayTeam: { select: { name: true, logoUrl: true } },
     },
@@ -43,6 +46,14 @@ export async function GET(req: Request) {
     awayLogo: m.awayTeam.logoUrl ?? null,
     homeScore: m.homeScore,
     awayScore: m.awayScore,
+    // /scores "내 경기" 스코어보드 표용(2026-09-28) — 종목·AI 확률·배당·상세 링크
+    sport: sportCodeForLeague(m.league),
+    href: matchLiveHref(m.league, m.externalId, m.id),
+    pred:
+      m.predHome != null && m.predAway != null
+        ? { home: m.predHome, draw: SOCCER_LEAGUES.has(m.league) ? m.predDraw ?? 0 : null, away: m.predAway }
+        : null,
+    odds: m.oddsHome != null && m.oddsAway != null ? { home: m.oddsHome, draw: m.oddsDraw ?? 0, away: m.oddsAway } : null,
     // 라운드(축구 정규 라운드만) — PiP 중계형 상단 바 "프리미어리그 5R"
     round: parseRound(typeof m.raw === "string" ? m.raw : m.raw == null ? null : JSON.stringify(m.raw)),
   }));

@@ -4,7 +4,8 @@
 import { useEffect, useState } from "react";
 import LeagueBadge from "../LeagueBadge";
 import FavoriteStar from "./FavoriteStar";
-import { postponedLabel } from "@/lib/sports/sport-leagues";
+import { postponedLabel, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import SoccerScoreboardTable, { type ScoreboardRow } from "./soccer/SoccerScoreboardTable";
 
 export interface OtherDayRow {
   id: string;
@@ -17,6 +18,11 @@ export interface OtherDayRow {
   awayLogo: string | null;
   homeScore: number | null;
   awayScore: number | null;
+  /** 스코어보드 표용(by-ids 가 2026-09-28 부터 실어 줌) */
+  sport?: string | null;
+  href?: string | null;
+  pred?: { home: number; draw: number | null; away: number } | null;
+  odds?: { home: number; draw: number; away: number } | null;
 }
 
 /** 오늘 목록(todayIds) 밖의 즐겨찾기 숫자 id 를 60초마다 by-ids 로 조회. 종료 → 예정 순, 최근 경기 먼저. */
@@ -63,7 +69,56 @@ function fmtKst(iso: string): string {
   return `${g("month")}/${g("day")} ${g("hour")}:${g("minute")}`;
 }
 
-export function OtherDayFavoriteRows({ rows, title }: { rows: OtherDayRow[]; title: string }) {
+function toBoardRow(m: OtherDayRow): ScoreboardRow {
+  return {
+    id: m.id,
+    sport: m.sport ?? "soccer",
+    league: m.league,
+    leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
+    flag: getLeagueFlag(m.league),
+    start: new Date(m.startTime).getTime(),
+    status: m.status === "LIVE" ? "live" : m.status === "FINISHED" ? "finished" : m.status === "POSTPONED" ? "postponed" : "scheduled",
+    // 다른 날 경기라 날짜까지 — "9/29 18:00"
+    timeLabel: fmtKst(m.startTime),
+    liveLabel: null,
+    href: m.href ?? null,
+    home: { name: m.homeName, logo: m.homeLogo, position: null },
+    away: { name: m.awayName, logo: m.awayLogo, position: null },
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    half: null,
+    pred: m.pred ?? null,
+    odds: m.odds ? { ...m.odds, trend: null } : null,
+    goals: [],
+    cards: [],
+    teamStats: [],
+    halfStats: [],
+    homeShort: m.homeName,
+    awayShort: m.awayName,
+  };
+}
+
+export function OtherDayFavoriteRows({ rows, title, board = false }: { rows: OtherDayRow[]; title: string; board?: boolean }) {
+  // 스코어보드 보기 — 오늘 표와 같은 모양으로 종목별 표(2026-09-28 사용자 요청)
+  if (board) {
+    const sports = [...new Set(rows.map((r) => r.sport ?? "soccer"))];
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 px-1">
+          <h3 className="text-[13px] font-semibold tracking-tight text-neutral-700 dark:text-neutral-300">{title}</h3>
+          <span className="text-[11px] text-neutral-400 tabular-nums">{rows.length}경기 · 별표를 해제할 때까지 유지</span>
+        </div>
+        {sports.map((sp) => (
+          <SoccerScoreboardTable
+            key={sp}
+            sport={sp}
+            showLegend={false}
+            rows={rows.filter((r) => (r.sport ?? "soccer") === sp).map(toBoardRow)}
+          />
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">

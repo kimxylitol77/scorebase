@@ -161,7 +161,7 @@ export default function FavoriteMatches({ matches, boardRows }: Props) {
     return (
       <div className="space-y-2">
         {/* 오늘 목록 밖 즐겨찾기(종료·다른 날) — 별표를 해제할 때까지 최종 점수 유지 */}
-        {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="⭐ 내 경기" />}
+        {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="⭐ 내 경기" board={!!boardRows} />}
         <div className="rounded-2xl border border-dashed border-amber-300/50 dark:border-amber-500/30 p-4 text-center text-xs text-neutral-500">
           ⭐ {otherDay.length > 0 ? "오늘 일정에 있는 즐겨찾기 경기는 없습니다." : "즐겨찾기한 경기가 오늘 일정에 없습니다."}
           <button
@@ -308,7 +308,7 @@ export default function FavoriteMatches({ matches, boardRows }: Props) {
           </div>
         );
       })}
-      {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="지난·다른 날 경기" />}
+      {otherDay.length > 0 && <OtherDayFavoriteRows rows={otherDay} title="지난·다른 날 경기" board={!!boardRows} />}
     </section>
   );
 }
