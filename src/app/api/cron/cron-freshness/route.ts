@@ -2,7 +2,7 @@
 // 각 등록 cron 의 마지막 실행(CronRun.lastRunAt)이 기대주기+유예를 넘겼거나, 마지막
 // 실행이 실패했으면 텔레그램 알림. "데이터 나이"가 아니라 "cron 실행 여부"를 봐서
 // 시즌종료·비수기의 0건 처리(실행은 됨)와 진짜 미실행을 구분한다.
-import { selfUserAgent } from "@/lib/self-fetch";
+import { selfUserAgent, siteOrigin } from "@/lib/self-fetch";
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
@@ -31,7 +31,7 @@ const MAX_RETRIES_PER_PASS = 2; // 한 pass 에서 과도한 연쇄 재실행 �
 
 /** 누락 cron 1회 재실행. ok=성공 / fail=명시 실패 / timeout=응답 초과(함수는 계속 돌 수 있음). */
 async function retryCron(name: string): Promise<"ok" | "fail" | "timeout"> {
-  const site = process.env.SITE_URL || "https://www.scorebase.kr";
+  const site = siteOrigin(); // www 정규화 — apex 리다이렉트는 Authorization 을 떨어뜨린다
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), RETRY_TIMEOUT_MS);
   try {
