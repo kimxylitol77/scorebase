@@ -17,7 +17,10 @@ function kindLabel(t: TeamLineup): string {
 function Marker({ slot, p }: { slot: LineupSlot; p: LineupPlayer | null }) {
   return (
     <div className="flex min-w-0 flex-col items-center gap-1">
-      <span className="text-[10px] font-black tracking-wider text-amber-700/80 dark:text-amber-300/80">{POS_LABEL[slot]}</span>
+      {/* 선수 본인 등록 포지션 우선 — 빈 자리를 다른 포지션 선수로 채운 경우(OH 3명 선발 등) 자리 이름으로 속이지 않는다 */}
+      <span className="text-[10px] font-black tracking-wider text-amber-700/80 dark:text-amber-300/80">
+        {p ? (p.position === "Li" ? "L" : p.position) : POS_LABEL[slot]}
+      </span>
       {p ? (
         p.image ? (
           // eslint-disable-next-line @next/next/no-img-element
