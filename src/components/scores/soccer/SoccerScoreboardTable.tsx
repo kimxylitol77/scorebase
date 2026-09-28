@@ -42,10 +42,14 @@ interface ScoreboardGroup {
   rows: ScoreboardRow[];
 }
 
-/** 시각순으로 세우고 연속한 같은 리그끼리만 묶는다 — 같은 리그가 시간대에 따라 여러 번 나올 수 있다(사용자 지시 2026-09-28). */
+/** 시각순으로 세우고 연속한 같은 리그끼리만 묶는다 — 같은 리그가 시간대에 따라 여러 번 나올 수 있다(사용자 지시 2026-09-28).
+ *  진행 중·예정 경기가 위(시작 빠른 순), 종료 경기는 그 아래, 연기는 맨 아래 — 끝난 경기가 위를 차지하지 않게. */
 function groupChronological(rows: ScoreboardRow[]): ScoreboardGroup[] {
   const order = (lg: string) => (LEAGUE_ORDER as Record<string, number>)[lg] ?? 999;
-  const sorted = [...rows].sort((a, b) => a.start - b.start || order(a.league) - order(b.league) || a.league.localeCompare(b.league));
+  const bucket = (r: ScoreboardRow) => (r.status === "finished" ? 1 : r.status === "postponed" ? 2 : 0);
+  const sorted = [...rows].sort(
+    (a, b) => bucket(a) - bucket(b) || a.start - b.start || order(a.league) - order(b.league) || a.league.localeCompare(b.league),
+  );
   const out: ScoreboardGroup[] = [];
   for (const r of sorted) {
     const last = out[out.length - 1];
