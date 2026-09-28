@@ -2352,6 +2352,9 @@ export default async function ScoresPage({ searchParams }: Props) {
 
       {/* 종목 탭 */}
       <SportTabs activeSport={sport} liveCounts={liveCounts} date={isToday ? undefined : dateStr} />
+      {/* 즐겨찾기 id 를 쿠키로 미러 — 서버가 해당 매치만 props 로 내려보내게 한다. 모든 종목 탭에 둔다:
+          축구 탭에만 있어 야구·배구 탭에서 누른 즐겨찾기가 쿠키에 안 실려 오늘 경기가 "지난·다른 날"로 빠졌다(2026-09-28). */}
+      <FavPrefWriter />
 
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} todayKst={todayKstStr} sport={sport} extraQuery={extraQuery} />
@@ -2491,8 +2494,6 @@ export default async function ScoresPage({ searchParams }: Props) {
               <SortPrefWriter
                 explicitSort={sp.sort === "time" || sp.sort === "board" || sp.sort === "league" ? sp.sort : null}
               />
-              {/* 즐겨찾기 id 를 쿠키로 미러 — 서버가 해당 매치만 props 로 내려보내게 한다 */}
-              <FavPrefWriter />
               <div className="shrink-0">
                 <SoccerSortToggle
                   active={sortMode}
