@@ -13,6 +13,7 @@
 // Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
 import { unstable_cache } from "next/cache";
 import { API_FOOTBALL_LEAGUE_ID, afGoalsExcludingShootout } from "./api-football-pro";
+import { afFixtureId } from "./af-match-ref";
 import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -2262,6 +2263,8 @@ export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
     if (!ts) return m;
     return { ...m, homeScore: ts.home, awayScore: ts.away };
   });
+  // 종료됐는데 DB 가 LIVE 로 남은 af 추적 경기 정리 — live=all 에서 빠진 경기만 id 로 확인(3분 간격)
+  await finalizeDroppedAfLive(new Set(soccer.map((m) => m.id.replace(/^af-/, ""))));
   // orphan LIVE 축구 병합 — af live=all 에 없는 클럽친선·군소 라이브. af-live 우선(중복 id 제외).
   // status 를 떼어 LiveMatch 로 변환(DatedMatch = LiveMatch + status).
   const liveIds = new Set(soccerMerged.map((m) => m.id));
@@ -2296,6 +2299,61 @@ function sportKeyOf(league: string): string {
   if (HOCKEY_LEAGUES.has(league)) return "hockey";
   if (LOL_LEAGUES.has(league)) return "esports";
   return "other";
+}
+
+/**
+ * 끝났는데 DB 에 LIVE 로 남은 af 추적 축구 경기를 FINISHED 로 정리한다.
+ * ts 워커가 추적하지 않는 경기(국가대표 친선·군소 리그)는 LIVE→FINISHED 경로가 collect cron(06·12시 KST)뿐이라
+ * 종료 후 몇 시간씩 LIVE 로 노출됐다(2026-09-29 키르기스스탄 5-0 몰디브, 23시 시작 → 자정 넘겨 종료 → stale_live).
+ * af live=all 에서 빠진 경기만 fixture id 로 직접 확인하므로 자정 넘김도 잡히고, 추가 af 호출은 경기가 끝날 때만 생긴다.
+ * 안전장치 — af id 는 Match.raw 에서만(afFixtureId: externalId 가 football-data 대역인 EPL 오염 방지),
+ * ts 캐시가 10분 안에 갱신된 경기는 워커 정본이라 제외, 시작 105분 전엔 판정 안 함, LIVE 인 행만 갱신.
+ */
+let lastAfLiveFinalizeAt = 0;
+async function finalizeDroppedAfLive(liveAfIds: Set<string>): Promise<void> {
+  if (Date.now() - lastAfLiveFinalizeAt < 3 * 60_000) return;
+  lastAfLiveFinalizeAt = Date.now();
+  const key = process.env.API_FOOTBALL_KEY;
+  if (!key) return;
+  try {
+    const { prisma } = await import("@/lib/db");
+    const now = Date.now();
+    const rows = await prisma.match.findMany({
+      where: {
+        status: "LIVE",
+        league: { in: [...SOCCER_LEAGUES] },
+        startTime: { lt: new Date(now - 105 * 60_000), gt: new Date(now - 12 * 3600_000) },
+      },
+      select: { id: true, raw: true, theSportsCache: { select: { updatedAt: true } } },
+      take: 50,
+    });
+    const byFid = new Map<number, number>();
+    for (const r of rows) {
+      if (r.theSportsCache && now - r.theSportsCache.updatedAt.getTime() < 10 * 60_000) continue;
+      const fid = afFixtureId(r);
+      if (fid != null && !liveAfIds.has(String(fid))) byFid.set(fid, r.id);
+    }
+    const fids = [...byFid.keys()];
+    for (let i = 0; i < fids.length; i += 20) {
+      const chunk = fids.slice(i, i + 20);
+      const data = await getJson<AFFixtureResp>(`${AF_BASE}/fixtures?ids=${chunk.join("-")}`, { "x-apisports-key": key });
+      for (const f of data.response ?? []) {
+        const short = f.fixture.status.short;
+        if (!["FT", "AET", "PEN", "AWD", "WO"].includes(short)) continue;
+        const matchId = byFid.get(f.fixture.id);
+        if (matchId == null) continue;
+        const g = afGoalsExcludingShootout(short, f.goals, f.score);
+        const res = await prisma.match.updateMany({
+          where: { id: matchId, status: "LIVE" },
+          data: { status: "FINISHED", ...(g.home != null && g.away != null ? { homeScore: g.home, awayScore: g.away } : {}) },
+        });
+        if (res.count) console.log(`[live-scores/af-finalize] #${matchId} af ${f.fixture.id} ${short} → FINISHED ${g.home}-${g.away}`);
+      }
+    }
+  } catch (e) {
+    // 정리 실패는 라이브 응답에 영향 없이 무시 — 다음 주기나 collect cron 이 마무리
+    console.warn("[live-scores/af-finalize]", (e as Error).message);
+  }
 }
 
 /**
