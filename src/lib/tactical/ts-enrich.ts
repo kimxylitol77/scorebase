@@ -9,6 +9,10 @@ import { toKoreanCoachName } from "@/lib/coach-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { encodeBoard, newUid, type BoardState, type Placed } from "@/lib/lineup/lineup-state";
 import type { Pos } from "@/lib/lineup/formations";
+import {
+  goalSequences, halfShifts, insightLines, momentum, teamStyle,
+  type HalfStats, type TacticalInsights, type TsGoalLine, type TsTeamStat, type TsTrend,
+} from "./insights";
 
 interface TsLineupPlayer {
   id?: string;
@@ -45,6 +49,7 @@ interface TsIncident {
 }
 interface TsPlayerStat {
   player_id?: string;
+  team_id?: string;
   minutes_played?: number;
   rating?: string | number;
   passes?: number;
@@ -104,6 +109,10 @@ export interface TsEnrichment {
   formations: { home: string | null; away: string | null };
   /** 선수별 실지표(패스·태클·슈팅·듀얼·키패스)가 하나라도 있는가. K리그1 ts 스탯은 rating 0.0 만 있는 껍데기라 false. */
   hasPlayerStats: boolean;
+  /** 코드가 계산한 전술 지표(스타일·전후반·흐름·골 장면) — 프롬프트 블록과 본문 도식이 같은 값을 쓴다. */
+  insights: TacticalInsights;
+  /** ts 선수 id → 한글 이름 (골 장면 도식 표기용) */
+  names: Record<string, string>;
 }
 
 /** ts 포지션(G/D/M/F) + 좌표 → 역할 약어. x 는 자기 팀 기준 좌→우 0~100, y 는 자기 골문 0. */
@@ -138,10 +147,13 @@ const rating = (v: string | number | undefined | null): number | null => {
 };
 
 export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo: string): Promise<TsEnrichment> {
-  const empty: TsEnrichment = { lines: [], links: [], lineupCode: null, shapes: [], formations: { home: null, away: null }, hasPlayerStats: false };
+  const empty: TsEnrichment = {
+    lines: [], links: [], lineupCode: null, shapes: [], formations: { home: null, away: null }, hasPlayerStats: false,
+    insights: { style: null, halves: [], momentum: null, goals: [] }, names: {},
+  };
   const cache = await prisma.theSportsMatchCache.findUnique({
     where: { matchId },
-    select: { lineup: true, detailLive: true, playerStats: true },
+    select: { lineup: true, detailLive: true, playerStats: true, teamStats: true, halfTeamStats: true, trend: true, goalLine: true },
   });
   if (!cache) return empty;
   const lu = (cache.lineup ?? null) as TsLineup | null;
@@ -361,6 +373,36 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
     });
   }
 
+  // ── 전술 지표 (팀 통계·전후반·흐름·골 장면) ──
+  // 팀 통계의 홈/원정은 team_id 로 가른다 — 선수 스탯에서 홈 선수가 속한 team_id 를 찾는다. 못 찾으면 배열 순서(홈 먼저).
+  const teamStats = (Array.isArray(cache.teamStats) ? cache.teamStats : []) as TsTeamStat[];
+  const homeTsTeam = stats.find((s) => s.player_id && homeIds.has(s.player_id) && s.team_id)?.team_id;
+  const hStat = (homeTsTeam ? teamStats.find((t) => t.team_id === homeTsTeam) : undefined) ?? teamStats[0];
+  const aStat = teamStats.find((t) => t !== hStat);
+  const hasTeamStats = !!hStat && !!aStat && (hStat.passes ?? 0) > 0 && (aStat.passes ?? 0) > 0;
+  const insights: TacticalInsights = {
+    style: hasTeamStats ? { home: teamStyle(hStat!), away: teamStyle(aStat!) } : null,
+    halves: hasTeamStats ? halfShifts(cache.halfTeamStats as HalfStats | null, hStat!, aStat!) : [],
+    momentum: momentum(cache.trend as TsTrend | null),
+    goals: goalSequences(cache.goalLine as TsGoalLine[] | null),
+  };
+  // 골 장면의 분은 타임라인(인시던트)의 표기를 따른다 — 좌표 쪽 시각은 초 단위라 1분씩 어긋나 본문과 도식이 달라진다.
+  // 골 수가 서로 같을 때만 순서대로 맞춘다(자책골·VAR 취소로 수가 다르면 손대지 않는다).
+  const goalIncidents = sorted.filter((i) => GOAL_TYPES[i.type ?? -1]);
+  const byTime = [...insights.goals].sort((a, b) => a.minute - b.minute || a.number - b.number);
+  if (goalIncidents.length === byTime.length) {
+    byTime.forEach((g, i) => {
+      const inc = goalIncidents[i];
+      if (inc.time != null) g.minute = inc.add_time ? inc.time - inc.add_time : inc.time;
+    });
+  }
+  const names: Record<string, string> = {};
+  for (const id of ids) {
+    const nm = nameOf(id);
+    if (nm && nm !== "선수") names[id] = nm;
+  }
+  lines.push(...insightLines(insights, homeKo, awayKo, (id) => (id ? names[id] ?? null : null)));
+
   const STAT_KEYS: (keyof TsPlayerStat)[] = ["passes", "key_passes", "tackles", "shots", "duels", "interceptions", "dribble"];
   const hasPlayerStats = stats.some((s) => rating(s.rating) != null || STAT_KEYS.some((k) => (num(s[k] as number) ?? 0) > 0));
 
@@ -371,12 +413,39 @@ export async function buildTsEnrichment(matchId: number, homeKo: string, awayKo:
     shapes,
     formations: { home: clean(lu?.home_formation) || null, away: clean(lu?.away_formation) || null },
     hasPlayerStats,
+    insights,
+    names,
   };
 }
 
 /** 본문에서 도식 자리를 표시하는 토큰 — 글 페이지가 이 토큰 위치에 TacticalShapeFigure 를 렌더한다. */
 export const SHAPE_TOKEN = { home: "{{tactical-shape:home}}", away: "{{tactical-shape:away}}" } as const;
 export const SHAPE_TOKEN_RE = /\{\{tactical-shape:(home|away)\}\}/g;
+/** 본문 도식 토큰 전체 — shape:home · shape:away · style · momentum · goal:N. 글 페이지가 이 정규식으로 본문을 쪼갠다. */
+export const TACTICAL_TOKEN_RE = /\{\{tactical-(shape:home|shape:away|style|momentum|goal:\d+)\}\}/g;
+
+/** 제목이 headingRe 에 맞는 ## 섹션 끝(다음 ## 직전)에 토큰들을 끼운다. 섹션이 없으면 넣지 않는다(엉뚱한 자리에 그림이 뜨지 않게). */
+function insertAfterSection(md: string, headingRe: RegExp, tokens: string[]): string {
+  if (tokens.length === 0) return md;
+  const lines = md.split("\n");
+  const start = lines.findIndex((l) => /^##\s/.test(l) && headingRe.test(l));
+  if (start === -1) return md;
+  let end = lines.findIndex((l, i) => i > start && /^##\s/.test(l));
+  if (end === -1) end = lines.length;
+  lines.splice(end, 0, "", ...tokens.flatMap((t) => [t, ""]));
+  return lines.join("\n");
+}
+
+/** 지표가 있는 도식만 해당 섹션 끝에 끼운다. 골 장면은 패스가 이어진 골 위주로 최대 3개. */
+export function insertInsightTokens(md: string, ins: TacticalInsights): string {
+  if (/\{\{tactical-(style|momentum|goal:\d+)\}\}/.test(md)) return md;
+  let out = md;
+  if (ins.style) out = insertAfterSection(out, /공을 가졌을 때/, ["{{tactical-style}}"]);
+  if (ins.momentum) out = insertAfterSection(out, /흐름/, ["{{tactical-momentum}}"]);
+  const picked = [...ins.goals].sort((a, b) => b.passes - a.passes || a.minute - b.minute).slice(0, 3).sort((a, b) => a.minute - b.minute);
+  out = insertAfterSection(out, /골의 해부/, picked.map((g) => `{{tactical-goal:${g.number}}}`));
+  return out;
+}
 
 /**
  * "## 두 감독의 셋업" 섹션 끝(다음 ## 직전)에 도식 토큰 두 개를 끼운다.
@@ -385,7 +454,7 @@ export const SHAPE_TOKEN_RE = /\{\{tactical-shape:(home|away)\}\}/g;
 export function insertShapeTokens(md: string): string {
   if (/\{\{tactical-shape:(home|away)\}\}/.test(md)) return md; // /g 정규식의 lastIndex 상태 회피
   const lines = md.split("\n");
-  let start = lines.findIndex((l) => /^##\s+두 감독의 셋업/.test(l));
+  let start = lines.findIndex((l) => /^##\s+(두 감독의 셋업|두 팀의 설계)/.test(l));
   if (start === -1) start = lines.findIndex((l) => /^##\s/.test(l));
   if (start === -1) return `${md}\n\n${SHAPE_TOKEN.home}\n\n${SHAPE_TOKEN.away}`;
   let end = lines.findIndex((l, i) => i > start && /^##\s/.test(l));

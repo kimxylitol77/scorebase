@@ -8,12 +8,15 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { hasTacticalData, parseFormation, parseXg } from "./data-gate";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { buildTsEnrichment, type NameLink } from "./ts-enrich";
+import type { TacticalInsights } from "./insights";
 
 /**
  * xG 없이 ts 캐시(양 팀 포메이션 + 타임라인)로 게이트하는 리그. K리그1 은 af 가 xG 를 안 주고
  * af 포메이션도 절반 이하지만 ts 라인업·인시던트는 전 경기 있다(2026-09-09 실측 47/47).
  */
-export const TS_TACTICAL_LEAGUES = new Set<string>(["K_LEAGUE_1"]);
+export const TS_TACTICAL_LEAGUES = new Set<string>(["K_LEAGUE_1", "EPL"]);
+// EPL 을 넣은 이유(2026-09-28) — af fixtureStats 에 xG(expectedGoals)가 오지 않아 기존 게이트(포메이션+xG)로는 후보가 0 이었다.
+// 대신 ts 에 팀 통계·분당 흐름·골 좌표·선수 스탯이 전 경기 있다(최근 10경기 실측 10/10, 골 좌표 9/10).
 
 export interface TacticalContext {
   matchId: number;
@@ -34,6 +37,10 @@ export interface TacticalContext {
   links: NameLink[];
   /** /lineup?d= 전술판 프리로드 코드. 좌표 결손이면 null. */
   lineupCode: string | null;
+  /** 전문가 구성으로 쓸 재료가 있는가 — 팀 스타일 지표 + 분당 흐름 + 선수 스탯이 모두 있을 때만. */
+  pro: boolean;
+  /** 코드가 계산한 전술 지표 — 본문 도식 토큰을 끼울 때 쓴다. */
+  insights: TacticalInsights;
 }
 
 /** 라인업 JSON 에서 감독명 추출 — coach 가 문자열이거나 {name} 객체인 두 형태 모두 대응. */
@@ -220,5 +227,7 @@ export async function buildTacticalContext(matchId: number): Promise<TacticalCon
     text: lines.join("\n"),
     links: ts.links,
     lineupCode: ts.lineupCode,
+    pro: !!ts.insights.style && !!ts.insights.momentum && ts.hasPlayerStats,
+    insights: ts.insights,
   };
 }
