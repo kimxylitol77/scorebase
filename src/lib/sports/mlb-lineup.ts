@@ -1,7 +1,7 @@
 // MLB 경기 라인업 — MLB Stats API 박스스코어(타순·포지션·벤치·불펜)와 선수 투타로 네이버형 2열 라인업 데이터를 만든다.
 // 발표 전에는 팀별 직전 종료 경기의 선발 타순을 예상 라인업으로 쓴다.
 import { unstable_cache } from "next/cache";
-import { findMlbGamePk, mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
+import { findMlbGamePk } from "@/lib/sports/mlb-stats-api";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { shortDate, type GameLineup, type LineupPlayer, type TeamLineup } from "@/lib/sports/baseball-lineup";
 
@@ -20,6 +20,11 @@ interface SchedGame {
   gamePk: number; officialDate: string; status: { abstractGameState: string; detailedState?: string };
   teams: Record<"home" | "away", { team: { id: number }; probablePitcher?: { id: number; fullName: string } }>;
 }
+
+// 라인업 원형 사진용 — 기본 헤드샷(213×320 세로)을 원에 cover 로 넣으면 모자·턱이 잘린다(9/28 사용자 제보).
+//  c_pad 로 세로 사진 전체를 정사각에 넣고 좌우를 사진 배경색(b_auto)으로 채운다. 얼굴 확대값 z_ 는 서버가 무시(실측).
+const lineupHeadshot = (pid: number) =>
+  `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_120,h_120,c_pad,b_auto,q_auto:best/v1/people/${pid}/headshot/67/current`;
 
 const POS_KO: Record<string, string> = {
   C: "포수", "1B": "1루수", "2B": "2루수", "3B": "3루수", SS: "유격수",
@@ -96,7 +101,7 @@ async function loadMlbGameLineup(homeName: string, awayName: string, startIso: s
 
   const mk = (id: number, fullName: string, position: string, h: string | null, order?: number): LineupPlayer => ({
     name: toKoreanPlayerName(fullName) || fullName, position, hand: h, order,
-    photo: mlbHeadshotUrl(id), href: `/players/${id}`,
+    photo: lineupHeadshot(id), href: `/players/${id}`,
   });
   const posKo = (abbr?: string) => (abbr ? POS_KO[abbr] ?? abbr : "");
 
@@ -134,6 +139,6 @@ async function loadMlbGameLineup(homeName: string, awayName: string, startIso: s
 
 /** 우리 MLB Match(영문 팀명·시작 시각) → 네이버형 라인업. 발표 전이면 confirmed=false(직전 경기 기준). 10분 캐시. */
 export async function getMlbGameLineup(homeName: string, awayName: string, startTime: Date): Promise<GameLineup | null> {
-  return unstable_cache(loadMlbGameLineup, ["mlb-game-lineup-v1"], { revalidate: 600 })(homeName, awayName, startTime.toISOString())
+  return unstable_cache(loadMlbGameLineup, ["mlb-game-lineup-v2"], { revalidate: 600 })(homeName, awayName, startTime.toISOString())
     .catch(() => null);
 }
