@@ -27,6 +27,17 @@ export interface ScoreboardGroup {
   rows: ScoreboardRow[];
 }
 
+// 한·영 문구 — 영어판(/en/scores)도 같은 표를 쓴다
+const T = {
+  ko: { time: "시간", home: "홈", score: "스코어", away: "원정", ai: "AI 예측 홈·무·원정", odds: "배당 홈·무·원정", table: "순위표",
+        live: "LIVE", ft: "종료", pp: "연기", ht: "전", hit: "적중", miss: "빗나감", oddsTitle: "배당 흐름 보기",
+        foot: "AI 예측 막대는 파랑 홈 · 회색 무 · 주황 원정. 배당 화살표는 오픈 대비 변동(↓ 하락 · ↑ 상승). 배당을 누르면 배당 흐름으로 이동합니다." },
+  en: { time: "Time", home: "Home", score: "Score", away: "Away", ai: "AI pick H·D·A", odds: "Odds H·D·A", table: "Table",
+        live: "LIVE", ft: "FT", pp: "PPD", ht: "HT", hit: "Hit", miss: "Miss", oddsTitle: "Match details",
+        foot: "AI bar is blue home · gray draw · orange away. Odds arrows show movement since opening (↓ shortened · ↑ drifted)." },
+} as const;
+type Lang = keyof typeof T;
+
 // 데스크톱 7열 / 모바일 5열 — 모든 줄이 같은 폭을 써서 세로로 정렬된다
 const GRID =
   "grid items-center gap-x-2 grid-cols-[20px_44px_minmax(0,1fr)_52px_minmax(0,1fr)] sm:grid-cols-[22px_60px_minmax(0,1fr)_64px_minmax(0,1fr)_132px_136px]";
@@ -41,7 +52,7 @@ function outcome(h: number | null, a: number | null): "home" | "draw" | "away" |
   return h > a ? "home" : h < a ? "away" : "draw";
 }
 
-function PredCell({ pred, result, compact = false }: { pred: ScoreboardRow["pred"]; result: ReturnType<typeof outcome>; compact?: boolean }) {
+function PredCell({ pred, result, compact = false, t }: { pred: ScoreboardRow["pred"]; result: ReturnType<typeof outcome>; compact?: boolean; t: (typeof T)[Lang] }) {
   if (!pred) return compact ? null : <span className="text-[11px] text-neutral-400">-</span>;
   const vals = [pred.home, pred.draw, pred.away];
   const top = vals.indexOf(Math.max(...vals));
@@ -67,24 +78,24 @@ function PredCell({ pred, result, compact = false }: { pred: ScoreboardRow["pred
       </div>
       {result && (
         <div className={`text-[10px] font-semibold ${result === topKey ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-400"}`}>
-          {result === topKey ? "적중" : "빗나감"}
+          {result === topKey ? t.hit : t.miss}
         </div>
       )}
     </div>
   );
 }
 
-function OddsCell({ odds }: { odds: ScoreboardRow["odds"] }) {
+function OddsCell({ odds, href, title }: { odds: ScoreboardRow["odds"]; href: string | null; title: string }) {
   if (!odds) return <span className="text-center text-[11px] text-neutral-400">-</span>;
   const cells: [number, number | undefined][] = [
     [odds.home, odds.trend?.home],
     [odds.draw, odds.trend?.draw],
     [odds.away, odds.trend?.away],
   ];
-  return (
+  const grid = (
     <div className="grid grid-cols-3 gap-1 text-center text-[11px] tabular-nums">
       {cells.map(([v, t], i) => (
-        <span key={i} className="rounded border border-neutral-200 py-0.5 text-neutral-700 dark:border-white/10 dark:text-neutral-200">
+        <span key={i} className={`rounded border border-neutral-200 py-0.5 text-neutral-700 dark:border-white/10 dark:text-neutral-200 ${href ? "group-hover:border-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" : ""}`}>
           {v > 0 ? v.toFixed(2) : "-"}
           {/* 오픈 대비 하락 = 돈이 몰림(빨강), 상승 = 초록 — 배당 흐름 화면과 같은 규칙 */}
           {t === -1 && <span className="text-rose-500">↓</span>}
@@ -93,13 +104,19 @@ function OddsCell({ odds }: { odds: ScoreboardRow["odds"] }) {
       ))}
     </div>
   );
+  // 배당을 누르면 배당 흐름 페이지로(사용자 요청 2026-09-28). 영어판은 배당 페이지가 없어 경기 상세로.
+  return href ? (
+    <Link href={href} prefetch={false} title={title} className="group block">{grid}</Link>
+  ) : (
+    grid
+  );
 }
 
-function StatusCell({ r }: { r: ScoreboardRow }) {
+function StatusCell({ r, t }: { r: ScoreboardRow; t: (typeof T)[Lang] }) {
   if (r.status === "live")
-    return <span className="text-[11px] font-bold leading-tight text-rose-600 dark:text-rose-400 break-keep">{r.liveLabel ?? "LIVE"}</span>;
-  if (r.status === "finished") return <span className="text-[11px] text-neutral-500">종료</span>;
-  if (r.status === "postponed") return <span className="text-[11px] text-neutral-400">연기</span>;
+    return <span className="text-[11px] font-bold leading-tight text-rose-600 dark:text-rose-400 break-keep">{r.liveLabel ?? t.live}</span>;
+  if (r.status === "finished") return <span className="text-[11px] text-neutral-500">{t.ft}</span>;
+  if (r.status === "postponed") return <span className="text-[11px] text-neutral-400">{t.pp}</span>;
   return <span className="text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300">{r.timeLabel}</span>;
 }
 
@@ -132,28 +149,40 @@ function TeamCell({ team, side, href }: { team: ScoreboardRow["home"]; side: "ho
   );
 }
 
-export default function SoccerScoreboardTable({ groups }: { groups: ScoreboardGroup[] }) {
+export default function SoccerScoreboardTable({
+  groups,
+  lang = "ko",
+  oddsHref = "/odds?sport=soccer",
+  leagueHref = (lg: string) => `/leagues/${lg}`,
+}: {
+  groups: ScoreboardGroup[];
+  lang?: Lang;
+  /** 배당 칸 링크 — null 이면 각 경기 상세(영어판) */
+  oddsHref?: string | null;
+  leagueHref?: (league: string) => string;
+}) {
+  const t = T[lang];
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-white/10 dark:bg-white/[0.03]">
       <div className={`${GRID} border-b border-neutral-200 bg-neutral-50 px-3 py-2 text-[10px] font-semibold text-neutral-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-400`}>
         <span />
-        <span>시간</span>
-        <span className="text-right">홈</span>
-        <span className="text-center">스코어</span>
-        <span>원정</span>
-        <span className="hidden sm:block">AI 예측 홈·무·원정</span>
-        <span className="hidden text-center sm:block">배당 홈·무·원정</span>
+        <span>{t.time}</span>
+        <span className="text-right">{t.home}</span>
+        <span className="text-center">{t.score}</span>
+        <span>{t.away}</span>
+        <span className="hidden sm:block">{t.ai}</span>
+        <span className="hidden text-center sm:block">{t.odds}</span>
       </div>
       {groups.map((g) => (
         <section key={g.league}>
           <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50/70 px-3 py-1.5 dark:border-white/10 dark:bg-white/[0.02]">
             {g.flag && <span aria-hidden className="text-[13px]">{g.flag}</span>}
-            <Link href={`/leagues/${g.league}`} prefetch={false} className="truncate text-[12px] font-bold text-neutral-800 hover:underline dark:text-neutral-100">
+            <Link href={leagueHref(g.league)} prefetch={false} className="truncate text-[12px] font-bold text-neutral-800 hover:underline dark:text-neutral-100">
               {g.label}
             </Link>
             <span className="text-[11px] text-neutral-400">{g.rows.length}</span>
-            <Link href={`/leagues/${g.league}`} prefetch={false} className="ml-auto shrink-0 text-[11px] text-blue-600 hover:underline dark:text-blue-400">
-              순위표
+            <Link href={leagueHref(g.league)} prefetch={false} className="ml-auto shrink-0 text-[11px] text-blue-600 hover:underline dark:text-blue-400">
+              {t.table}
             </Link>
           </div>
           {g.rows.map((r) => {
@@ -180,28 +209,28 @@ export default function SoccerScoreboardTable({ groups }: { groups: ScoreboardGr
                       href: r.href ?? undefined,
                     }}
                   />
-                  <StatusCell r={r} />
+                  <StatusCell r={r} t={t} />
                   <TeamCell team={r.home} side="home" href={r.href} />
                   <Link href={r.href ?? "#"} prefetch={false} className="text-center leading-tight">
                     <span className={`block text-[15px] font-bold tabular-nums ${scored ? "text-neutral-900 dark:text-white" : "text-neutral-400"}`}>
                       {scored && r.homeScore != null && r.awayScore != null ? `${r.homeScore} - ${r.awayScore}` : "vs"}
                     </span>
                     {r.half && scored && (
-                      <span className="block text-[10px] tabular-nums text-neutral-400">전 {r.half.home}-{r.half.away}</span>
+                      <span className="block text-[10px] tabular-nums text-neutral-400">{t.ht} {r.half.home}-{r.half.away}</span>
                     )}
                   </Link>
                   <TeamCell team={r.away} side="away" href={r.href} />
                   <div className="hidden sm:block">
-                    <PredCell pred={r.pred} result={result} />
+                    <PredCell pred={r.pred} result={result} t={t} />
                   </div>
                   <div className="hidden sm:block">
-                    <OddsCell odds={r.odds} />
+                    <OddsCell odds={r.odds} href={oddsHref ?? r.href} title={t.oddsTitle} />
                   </div>
                 </div>
                 {/* 모바일 — AI 예측을 줄 아래 얇은 막대로 */}
                 {r.pred && (
                   <div className="mt-1.5 pl-[72px] sm:hidden">
-                    <PredCell pred={r.pred} result={null} compact />
+                    <PredCell pred={r.pred} result={null} compact t={t} />
                   </div>
                 )}
               </div>
@@ -210,7 +239,7 @@ export default function SoccerScoreboardTable({ groups }: { groups: ScoreboardGr
         </section>
       ))}
       <p className="border-t border-neutral-200 px-3 py-2 text-[10px] text-neutral-400 dark:border-white/10">
-        AI 예측 막대는 파랑 홈 · 회색 무 · 주황 원정. 배당 화살표는 오픈 대비 변동(↓ 하락 · ↑ 상승).
+        {t.foot}
       </p>
     </div>
   );

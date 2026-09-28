@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-export type SoccerSortMode = "league" | "time";
+export type SoccerSortMode = "league" | "time" | "board";
 
 interface Props {
   active: SoccerSortMode;
@@ -34,6 +34,7 @@ export default function SoccerSortToggle({ active, date, league, status }: Props
   const items: { key: SoccerSortMode; label: string }[] = [
     { key: "league", label: "By league" },
     { key: "time", label: "By time" },
+    { key: "board", label: "Scoreboard" },
   ];
   return (
     <nav className="flex gap-1.5" aria-label="Sort order">
