@@ -129,6 +129,16 @@ export async function runAnalysis() {
       let prompt: string;
 
       if (league === "WORLD_CUP") {
+        // 대회 기간에만 — 앞뒤 45일 안에 경기가 없으면 건너뛴다. 가드가 없어 2026-07-19 결승 뒤에도
+        // 매주 "우승 확률 시뮬" 글이 나가고 있었다(2026-09-28 발견, 9/17·9/24 발행 확인).
+        const window = 45 * 24 * 3600 * 1000;
+        const nearby = await prisma.match.count({
+          where: { league: "WORLD_CUP", startTime: { gte: new Date(Date.now() - window), lte: new Date(Date.now() + window) } },
+        });
+        if (nearby === 0) {
+          console.log("[analysis] WORLD_CUP 대회 기간 아님 — 스킵");
+          continue;
+        }
         // 월드컵은 외부 시드 Elo 기반 토너먼트 시뮬 결과로 분석.
         // (클럽 매치 데이터 없으니 일반 시즌 분석 경로 안 탐)
         const teams = await prisma.team.findMany({

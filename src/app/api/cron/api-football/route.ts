@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runApiFootball } from "@/jobs/fetch-api-football";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 60 → 300 (2026-09-28 전수 점검). 제한에 걸리면 함수가 강제 종료돼 catch 도 못 타고 기록도 안 남는다 — 로그의 504 로만 보인다.
+export const maxDuration = 300;
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
@@ -11,11 +13,11 @@ export async function GET(req: Request) {
   }
   try {
     const result = await runApiFootball();
+    await recordCronRun("api-football", { count: result.predCount + result.statsCount });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: (e as Error).message },
-      { status: 500 },
-    );
+    const error = (e as Error).message;
+    await recordCronRun("api-football", { ok: false, error }).catch(() => undefined);
+    return NextResponse.json({ ok: false, error }, { status: 500 });
   }
 }
