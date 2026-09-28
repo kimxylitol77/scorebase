@@ -31888,5 +31888,15 @@
     "tsName": "BK Astrio",
     "tsKo": "BK 아스트리오",
     "matchType": "ts-external-id"
+  },
+  {
+    "ourId": 613470,
+    "ourName": "East Bengal FC",
+    "ourLeague": "AFC_CL_TWO",
+    "ourExternalId": "ts-4jwq2gh4g9om0ve",
+    "tsId": "4jwq2gh4g9om0ve",
+    "tsName": "East Bengal FC",
+    "tsKo": "이스트 벵골",
+    "matchType": "ts-external-id"
   }
 ]
