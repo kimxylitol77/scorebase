@@ -10,6 +10,7 @@
 
 "use client";
 
+import SoccerScoreboardTable, { type ScoreboardRow } from "@/components/scores/soccer/SoccerScoreboardTable";
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import MatchCard, { type MatchCardProps } from "./MatchCard";
@@ -59,6 +60,8 @@ interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
 
 interface Props {
   matches: MatchEntry[];
+  /** 스코어보드 보기(?sort=board)일 때 — 축구 즐겨찾기도 같은 표로(2026-09-28). 없으면 기존 카드 */
+  boardRows?: ScoreboardRow[];
 }
 
 // 종목 표시 순서 + 메타 (이모지 / 한국어 라벨)
@@ -100,7 +103,7 @@ function readIsScoreboard(): boolean {
 const subscribeView = subscribeToStorage(VIEW_CHANGE_EVENT);
 const subscribeFavSound = subscribeToStorage(FAV_SOUND_CHANGE_EVENT);
 
-export default function FavoriteMatches({ matches }: Props) {
+export default function FavoriteMatches({ matches, boardRows }: Props) {
   const { ids, mounted, clear } = useFavorites();
   // 오늘 목록에 없는 즐겨찾기(어제 종료·다른 날 예정) — /api/matches/by-ids 로 최신 점수·상태, 해제 전까지 유지
   const otherDay = useOtherDayFavorites(ids, matches.map((m) => m.id));
@@ -288,7 +291,9 @@ export default function FavoriteMatches({ matches }: Props) {
                 {list.length}경기
               </span>
             </div>
-            {effectiveView === "large" ? (
+            {sport === "soccer" && boardRows && boardRows.some((r) => ids.has(String(r.id))) ? (
+              <SoccerScoreboardTable rows={boardRows.filter((r) => ids.has(String(r.id)))} />
+            ) : effectiveView === "large" ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {list.map(renderMatchLarge)}
               </ul>

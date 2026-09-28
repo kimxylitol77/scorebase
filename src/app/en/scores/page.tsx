@@ -91,7 +91,7 @@ import FavoriteMatches from "@/components/en/scores/FavoriteMatches";
 import EmptyState from "@/components/en/scores/EmptyState";
 import LiveRefresher from "@/components/en/scores/LiveRefresher";
 import SoccerCompactCard from "@/components/en/scores/soccer/SoccerCompactCard";
-import SoccerScoreboardTable, { type ScoreboardGroup, type ScoreboardRow } from "@/components/scores/soccer/SoccerScoreboardTable";
+import SoccerScoreboardTable, { type ScoreboardRow } from "@/components/scores/soccer/SoccerScoreboardTable";
 import SoccerLiveRow from "@/components/en/scores/soccer/SoccerLiveRow";
 import type { SoccerContext } from "@/components/en/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/en/scores/BaseballLinescore";
@@ -2479,7 +2479,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                     lang="en"
                     oddsHref={null}
                     leagueHref={(lg) => `/en/standings/${lg}`}
-                    groups={buildScoreboardGroups([...visibleLive, ...visibleScheduled, ...visibleFinished, ...visiblePostponed])}
+                    rows={buildScoreboardRows([...visibleLive, ...visibleScheduled, ...visibleFinished, ...visiblePostponed])}
                   />
                 ) : (
                   <SoccerRowLayout
@@ -2652,40 +2652,32 @@ function Section({
   );
 }
 
-/** 스코어보드 보기 그룹 — 시간순(사용자 지시 2026-09-28). 리그는 그 리그의 가장 이른 경기 시각순, 리그 안도 시작 시각순. */
-function buildScoreboardGroups(matches: NormalizedMatch[]): ScoreboardGroup[] {
-  const byLeague = new Map<string, NormalizedMatch[]>();
-  for (const m of matches) {
-    if (!byLeague.has(m.league)) byLeague.set(m.league, []);
-    byLeague.get(m.league)!.push(m);
-  }
-  const first = (ms: NormalizedMatch[]) => Math.min(...ms.map((m) => m.startTime.getTime()));
-  // 같은 시각에 시작하는 리그끼리는 인기순(LEAGUE_ORDER)
-  const order = (lg: string) => (LEAGUE_ORDER as Record<string, number>)[lg] ?? 999;
-  return [...byLeague.entries()]
-    .sort(([a, am], [b, bm]) => first(am) - first(bm) || order(a) - order(b) || a.localeCompare(b))
-    .map(([league, ms]) => ({
-      league,
-      label: enLeagueName(league),
-      flag: getLeagueFlag(league),
-      rows: [...ms]
-        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-        .map((m): ScoreboardRow => ({
-          id: m.id,
-          league: m.league,
-          status: m.status === "LIVE" ? "live" : m.status === "FINISHED" ? "finished" : m.status === "POSTPONED" ? "postponed" : "scheduled",
-          timeLabel: m.timeLabel,
-          liveLabel: m.liveStatusLabel ?? null,
-          href: m.href,
-          home: { name: m.home.name, logo: m.home.logo ?? null, position: m.home.position ?? null },
-          away: { name: m.away.name, logo: m.away.logo ?? null, position: m.away.position ?? null },
-          homeScore: m.home.score,
-          awayScore: m.away.score,
-          half: m.soccerHalfScore,
-          pred: m.pred1x2 ?? null,
-          odds: m.odds ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null } : null,
-        })),
-    }));
+/** 스코어보드 보기 줄 — 정렬·리그 제목 줄 끼우기는 SoccerScoreboardTable 이 한다(시각순 + 리그 바뀔 때 제목). */
+function buildScoreboardRows(matches: NormalizedMatch[]): ScoreboardRow[] {
+  return matches.map((m): ScoreboardRow => ({
+    id: m.id,
+    league: m.league,
+    leagueLabel: enLeagueName(m.league),
+    flag: getLeagueFlag(m.league),
+    start: m.startTime.getTime(),
+    status: m.status === "LIVE" ? "live" : m.status === "FINISHED" ? "finished" : m.status === "POSTPONED" ? "postponed" : "scheduled",
+    timeLabel: m.timeLabel,
+    liveLabel: m.liveStatusLabel ?? null,
+    href: m.href,
+    home: { name: m.home.name, logo: m.home.logo ?? null, position: m.home.position ?? null },
+    away: { name: m.away.name, logo: m.away.logo ?? null, position: m.away.position ?? null },
+    homeScore: m.home.score,
+    awayScore: m.away.score,
+    half: m.soccerHalfScore,
+    pred: m.pred1x2 ?? null,
+    odds: m.odds ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null } : null,
+    goals: m.soccerGoals ?? [],
+    cards: m.soccerCards ?? [],
+    teamStats: m.soccerTeamStats ?? [],
+    halfStats: m.soccerHalfStats ?? [],
+    homeShort: m.home.abbr ?? m.home.name,
+    awayShort: m.away.abbr ?? m.away.name,
+  }));
 }
 
 /** 축구 row layout — named.com 스타일 한 줄 매치 표. */

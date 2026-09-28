@@ -797,7 +797,7 @@ export function StatBars({ stats }: { stats: SoccerTeamStat[] }) {
 /** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip.
  *  컨테이너(overflow-x-auto)가 absolute 팝업을 잘라서 fixed + 마우스 진입 시 계산된
  *  좌표로 띄운다 (가장자리 클램프 + 하단 공간 부족 시 위로 플립). */
-function GoalsTooltip({
+export function GoalsTooltip({
   goals,
   cards,
   teamStats,
