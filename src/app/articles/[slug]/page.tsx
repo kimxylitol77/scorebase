@@ -2,7 +2,6 @@
 import { prisma } from "@/lib/db";
 import { afFixtureId } from "@/lib/sports/af-match-ref";
 import Image from "next/image";
-import Markdown from "@/components/Markdown";
 import InningScoreChart from "@/components/InningScoreChart";
 import type { InningProb } from "@/lib/predict/baseball-poisson";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -227,8 +226,8 @@ const MATCH_DURATION_MIN: Record<string, number> = {
 // 리그별 country/city 매핑 + location 빌더는 공통 helper 로 이동.
 import { LEAGUE_COUNTRY, buildSportsEventLocation } from "@/lib/seo/sports-event-location";
 import { jsonLdScript, orgRef } from "@/lib/seo/jsonld";
-import { buildTsEnrichment, SHAPE_TOKEN_RE, type ShapeFigure } from "@/lib/tactical/ts-enrich";
-import TacticalShapeFigure from "@/components/tactical/TacticalShapeFigure";
+import { TACTICAL_TOKEN_RE } from "@/lib/tactical/ts-enrich";
+import TacticalBody from "@/components/tactical/TacticalBody";
 
 interface MatchForEvent {
   homeTeam: { name: string };
@@ -332,7 +331,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // MLB 주간 베스트 선수 글의 MVP 카드 마커가 meta description 으로 새지 않게 제거.
   if (slug.startsWith(MLB_WEEKLY_SLUG_PREFIX)) article.content = stripMvpMarker(article.content);
   // 전술 리뷰 도식 토큰도 description 에 새지 않게 제거.
-  article.content = article.content.replace(SHAPE_TOKEN_RE, "");
+  article.content = article.content.replace(TACTICAL_TOKEN_RE, "");
 
   const url = `${SITE_URL}/articles/${slug}`;
   const isLol = LCK_LEAGUES.has(article.league);
@@ -517,28 +516,19 @@ export default async function ArticlePage({ params }: Props) {
   const mlbMvp = parseMvpMarker(article.slug, article.content);
   if (mlbMvp) article.content = stripMvpMarker(article.content);
 
-  // 전술 리뷰(TACTICAL·경기 연결) — 본문 {{tactical-shape:home|away}} 토큰 자리에 셋업 도식을 렌더.
-  // 도식 데이터는 ts 캐시 좌표에서 만들고, 없으면 토큰만 지운다(빈 자리 없이 본문 이어짐).
-  let shapeByside: Partial<Record<"home" | "away", ShapeFigure>> = {};
-  if (article.type === "TACTICAL" && article.match && SOCCER_LEAGUES.has(article.league)) {
-    const en = await buildTsEnrichment(
-      article.match.id,
-      toKoreanTeamName(article.match.homeTeam.name, article.league) || article.match.homeTeam.name,
-      toKoreanTeamName(article.match.awayTeam.name, article.league) || article.match.awayTeam.name,
-    );
-    shapeByside = Object.fromEntries(en.shapes.map((f) => [f.side, f]));
-  }
-  // 토큰 기준 분할 — split 의 캡처 그룹이 "home"/"away" 문자열로 끼어 들어온다.
-  const bodyParts = article.content.split(SHAPE_TOKEN_RE);
-  const bodyNodes = bodyParts.map((part, i) => {
-    if (i % 2 === 1) {
-      const fig = shapeByside[part as "home" | "away"];
-      return fig ? <TacticalShapeFigure key={`shape-${i}`} fig={fig} /> : null;
-    }
-    return part.trim() ? <Markdown key={`md-${i}`}>{part}</Markdown> : null;
-  });
+  // 전술 리뷰(TACTICAL·경기 연결) — 본문의 도식 토큰({{tactical-shape:home}}·style·momentum·goal:N) 자리에 도식을 렌더.
+  // 도식 데이터는 ts 캐시에서 만들고, 없으면 토큰만 지운다(빈 자리 없이 본문 이어짐).
+  const tacticalMatch =
+    article.type === "TACTICAL" && article.match && SOCCER_LEAGUES.has(article.league)
+      ? {
+          id: article.match.id,
+          home: toKoreanTeamName(article.match.homeTeam.name, article.league) || article.match.homeTeam.name,
+          away: toKoreanTeamName(article.match.awayTeam.name, article.league) || article.match.awayTeam.name,
+        }
+      : null;
+  const bodyNodes = <TacticalBody content={article.content} match={tacticalMatch} />;
   // description·OG·표 파싱은 토큰 없는 본문을 쓴다.
-  article.content = article.content.replace(SHAPE_TOKEN_RE, "");
+  article.content = article.content.replace(TACTICAL_TOKEN_RE, "");
 
   const date = formatDateKo(article.publishedAt ?? article.createdAt);
   const url = `${SITE_URL}/articles/${slug}`;
