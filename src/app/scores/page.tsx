@@ -252,6 +252,8 @@ interface ScoresCacheDerived {
   soccerHalfStats: Record<number, SoccerTeamStat[]>;
   soccerHalfScore: Record<number, { home: number; away: number }>;
   footballScore: Record<number, TsFootballScoreParsed>;
+  /** footballScore 원천(TheSportsMatchCache)의 갱신 시각 ms — 신선하면 점수를 TheSports 우선으로 쓴다 */
+  footballScoreAt: Record<number, number>;
   /** 진행분 라벨 원료 — 렌더에서 tsFootballLiveLabel(sid, pts, Date.now()) 로 계산 */
   soccerLiveState: Record<number, { sid: number; pts: number }>;
   hockeyPeriod: Record<number, PeriodLinescoreData>;
@@ -287,7 +289,7 @@ const fetchCacheDerivedCached = unstable_cache(
   }): Promise<ScoresCacheDerived> => {
     const out: ScoresCacheDerived = {
       soccerGoals: {}, soccerCards: {}, soccerTeamStats: {}, soccerHalfStats: {},
-      soccerHalfScore: {}, footballScore: {}, soccerLiveState: {},
+      soccerHalfScore: {}, footballScore: {}, footballScoreAt: {}, soccerLiveState: {},
       hockeyPeriod: {}, hockeyStatusLabel: {},
       basketballPeriod: {}, basketballStatusLabel: {},
       volleyballPeriod: {}, volleyballStatusLabel: {},
@@ -308,7 +310,7 @@ const fetchCacheDerivedCached = unstable_cache(
 
     const caches = await prisma.theSportsMatchCache.findMany({
       where: { matchId: { in: cacheIds } },
-      select: { matchId: true, detailLive: true, teamStats: true, halfTeamStats: true },
+      select: { matchId: true, detailLive: true, teamStats: true, halfTeamStats: true, updatedAt: true },
     });
     // 골/카드 인시던트 선수 한글화 — 전 매치 incident player_id 수집 → nameKo 맵(1회 쿼리)
     const incidentNameById: Record<string, string> = {};
@@ -343,7 +345,10 @@ const fetchCacheDerivedCached = unstable_cache(
       // 축구 골/카드 + 승부차기/연장 점수 (score 배열은 incidents 없어도 존재)
       if (soccerIdSet.has(c.matchId)) {
         const fs = parseTsFootballScore(dl);
-        if (fs) out.footballScore[c.matchId] = fs;
+        if (fs) {
+          out.footballScore[c.matchId] = fs;
+          out.footballScoreAt[c.matchId] = c.updatedAt.getTime();
+        }
         // 진행분 라벨 원료 — score[1]=status_id, score[4]=페이즈 시작 ts
         {
           const sc = dl.score as unknown as unknown[] | undefined;
@@ -567,7 +572,7 @@ const fetchCacheDerivedCached = unstable_cache(
     }
     return out;
   },
-  ["scores-page-cache-derived"],
+  ["scores-page-cache-derived-v2"],
   { revalidate: 30, tags: ["live-scores"] },
 );
 
@@ -1284,6 +1289,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 축구 라인업(cache.lineup) 실제 존재 매치 — L 배지용 (리그 whitelist 대신 실제 유무).
   const lineupMatchIdSet = new Set<number>();
   const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
+  const footballScoreAtByMatchId = new Map<number, number>();
   // 축구 진행분 라벨 — af/ESPN 라이브 피드가 없는 ts 전용 경기(친선·카라바오·내셔널 등)가
   // 분 표시 없이 맨숭맨숭한 "LIVE" 로만 뜨던 것의 폴백 (2026-08-08 사용자 신고).
   // ts detailLive.score: [id, status_id, home[], away[], phase_start_ts] — score[4]는 "현재
@@ -1393,6 +1399,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     fill(derived.soccerHalfStats, soccerHalfStatsByMatchId);
     fill(derived.soccerHalfScore, soccerHalfScoreByMatchId);
     fill(derived.footballScore, footballScoreByMatchId);
+    fill(derived.footballScoreAt, footballScoreAtByMatchId);
     fill(derived.hockeyPeriod, hockeyPeriodByMatchId);
     fill(derived.hockeyStatusLabel, hockeyStatusLabelByMatchId);
     fill(derived.basketballPeriod, basketballPeriodByMatchId);
@@ -1654,12 +1661,17 @@ export default async function ScoresPage({ searchParams }: Props) {
       vals.filter((v): v is number => typeof v === "number");
     const homeCands = numsOf(fs?.mainHome, liveH, hasPens ? undefined : dbH);
     const awayCands = numsOf(fs?.mainAway, liveA, hasPens ? undefined : dbA);
+    // TheSports 우선 (2026-09-28 사용자 지시) — 최댓값은 VAR 골 취소를 못 내린다(한국-우루과이: ts 0-3 정정,
+    // af 는 취소 전 0-4 유지 → 0-4 노출). ts 캐시가 10분 안에 갱신됐으면(= 라이브 추적 중) 그 값을 그대로 쓰고,
+    // 멈춘 캐시(0-0 고착 등, 2026-06-14 독일-쿠라사오)일 때만 최댓값으로 보완한다.
+    const tsAt = footballScoreAtByMatchId.get(m.id);
+    const tsFresh = fs != null && tsAt != null && Date.now() - tsAt < 10 * 60_000;
     const homeScore = isBaseball
       ? (dbH ?? liveH ?? null)
-      : homeCands.length ? Math.max(...homeCands) : null;
+      : tsFresh ? fs!.mainHome : homeCands.length ? Math.max(...homeCands) : null;
     const awayScore = isBaseball
       ? (dbA ?? liveA ?? null)
-      : awayCands.length ? Math.max(...awayCands) : null;
+      : tsFresh ? fs!.mainAway : awayCands.length ? Math.max(...awayCands) : null;
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
 

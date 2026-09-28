@@ -301,8 +301,8 @@ async function fetchSoccerLiveUncached(): Promise<LiveMatch[]> {
 
 /**
  * 축구 라이브 ts 캐시 점수 — TheSports MQTT 캐시(워커가 1~2초 push)에서 LIVE 축구 매치의
- * 정규/연장 점수를 추출. fetchAllLiveScores 가 af-live(/fixtures?live=all, 자체 피드 지연)와
- * max 병합 → af 가 골을 늦게 반영해도 ts 가 추적 중이면 즉시 반영돼 골 임팩트(CountUp)·
+ * 정규/연장 점수를 추출. fetchAllLiveScores 가 af-live(/fixtures?live=all, 자체 피드 지연)보다
+ * 우선 적용 → af 가 골을 늦게 반영해도 ts 가 추적 중이면 즉시 반영돼 골 임팩트(CountUp)·
  * 사운드(chime) 지연이 짧아진다 (야구 fetchBaseballLive 와 동일 취지).
  *
  * 키 = af fixture id. af-live id 는 `af-{fixtureId}` 이므로 정합되게 apiFixtureId(ESPN 소스
@@ -2253,17 +2253,14 @@ export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
     withSportTimeout(fetchNhlLive(), [] as LiveMatch[]),
     withSportTimeout(fetchLolLive(), [] as LiveMatch[]),
   ]);
-  // 축구 — af-live 점수에 ts 캐시(빠른 MQTT) 점수를 max 병합. af 가 골을 늦게 반영해도
-  // ts 가 추적 중이면 즉시 반영돼 골 임팩트·사운드 지연이 짧아진다. 라이브엔 승부차기 없어
-  // max 안전(fs.main=정규/연장). ts 미추적 매치(이 키 없음)는 그대로 af-live.
+  // 축구 — ts 캐시(빠른 MQTT, 최근 5분 push 된 LIVE 만)가 있으면 그 점수를 그대로 쓴다(TheSports 우선).
+  // af 가 골을 늦게 반영해도 즉시 반영되고, VAR 골 취소도 ts 가 내리면 그대로 내려간다.
+  // 예전 max 병합은 취소를 못 내렸다(2026-09-28 한국-우루과이: ts 0-3 정정, af 0-4 유지 → 0-4 노출).
+  // ts 미추적 매치(이 키 없음)는 그대로 af-live.
   const soccerMerged = soccer.map((m) => {
     const ts = soccerTs.get(m.id.replace(/^af-/, ""));
     if (!ts) return m;
-    return {
-      ...m,
-      homeScore: Math.max(m.homeScore, ts.home),
-      awayScore: Math.max(m.awayScore, ts.away),
-    };
+    return { ...m, homeScore: ts.home, awayScore: ts.away };
   });
   // orphan LIVE 축구 병합 — af live=all 에 없는 클럽친선·군소 라이브. af-live 우선(중복 id 제외).
   // status 를 떼어 LiveMatch 로 변환(DatedMatch = LiveMatch + status).
