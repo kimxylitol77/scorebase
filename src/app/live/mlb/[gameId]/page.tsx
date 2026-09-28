@@ -25,6 +25,8 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import MlbBoxscoreTabs from "@/components/live/MlbBoxscoreTabs";
+import BaseballLineupCard from "@/components/live/BaseballLineupCard";
+import { getMlbGameLineup } from "@/lib/sports/mlb-lineup";
 import MlbTeamStatsLive from "@/components/live/MlbTeamStatsLive";
 import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
 import BaseballBatterStats from "@/components/live/BaseballBatterStats";
@@ -188,7 +190,7 @@ export default async function MlbLivePage({ params }: Props) {
   const awayShort = match.awayTeam.shortName || awayKo;
 
   const gameDate = localGameDate(match.startTime, "MLB");
-  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames, openingSimilar, bullpenHome, bullpenAway] =
+  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames, openingSimilar, bullpenHome, bullpenAway, mlbLineup] =
     await Promise.all([
       fetchMatchExtras(match),
       loadBaseballOdds(match.id),
@@ -198,6 +200,7 @@ export default async function MlbLivePage({ params }: Props) {
       getOpeningSimilarStats(match),
       loadBullpenReport("MLB", match.homeTeam.name, gameDate),
       loadBullpenReport("MLB", match.awayTeam.name, gameDate),
+      getMlbGameLineup(match.homeTeam.name, match.awayTeam.name, match.startTime),
     ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
   // 헤더 선발·현재 투수/타자는 ESPN 이 이름만 준다 — 박스스코어 이름으로 MLB 번호를 찾아 선수 페이지에 잇는다.
@@ -389,6 +392,7 @@ export default async function MlbLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
+        lineupContent={mlbLineup ? <BaseballLineupCard lineup={mlbLineup} homeTeam={homeKo} awayTeam={awayKo} /> : null}
         extraTabs={[
           {
             key: "bullpen",

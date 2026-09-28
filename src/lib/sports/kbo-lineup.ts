@@ -1,6 +1,8 @@
 // KBO 경기 라인업 — KBO 공식 게임센터(타순)·1군 등록 현황(사진 id·투타·후보·불펜)을 묶어 네이버형 2열 라인업 데이터를 만든다.
 // 근거·실측은 reports/plans/kbo-lineup/context-notes.md.
 import { unstable_cache } from "next/cache";
+import { kboPhotoUrl } from "@/lib/sports/kbo-official";
+import type { GameLineup, LineupPlayer, TeamLineup } from "@/lib/sports/baseball-lineup";
 
 const BASE = "https://www.koreabaseball.com";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Safari/605.1.15";
@@ -11,29 +13,6 @@ const WS_HEADERS = {
   "User-Agent": UA,
 };
 
-export interface KboLineupPlayer {
-  name: string;
-  playerId: string | null;
-  /** 타순 선수: "유격수" 등 / 후보: "포수"·"내야수"·"외야수" / 투수: "우완투수" 등 */
-  position: string;
-  /** "우타"·"좌타"·"양타" (타자) 또는 "우투"·"좌투"·"우언" (선발투수) */
-  hand: string | null;
-  order?: number;
-  war?: number | null;
-}
-export interface KboTeamLineup {
-  starter: KboLineupPlayer | null;
-  batters: KboLineupPlayer[];
-  bench: KboLineupPlayer[];
-  bullpen: KboLineupPlayer[];
-}
-export interface KboGameLineup {
-  gameId: string;
-  /** false = 발표 전(KBO 가 주는 최근 라인업 기준) */
-  confirmed: boolean;
-  home: KboTeamLineup;
-  away: KboTeamLineup;
-}
 
 interface KboGame {
   G_ID: string; G_TM: string; SR_ID: number; SEASON_ID: number;
@@ -85,13 +64,18 @@ function splitThrowBat(s: string): { throw: string | null; bat: string | null } 
   return m ? { throw: m[1], bat: m[2] } : { throw: null, bat: null };
 }
 const PITCHER_LABEL: Record<string, string> = { 우투: "우완투수", 좌투: "좌완투수", 우언: "우완언더", 좌언: "좌완언더" };
+const player = (name: string, pid: string | null, position: string, hand: string | null, order?: number): LineupPlayer => ({
+  name, position, hand, order,
+  photo: pid ? kboPhotoUrl(pid) : null,
+  href: pid ? `/players/${pid}?league=KBO` : null,
+});
 
-function parseOrderTable(raw: unknown): { order: number; position: string; name: string; war: number | null }[] {
+function parseOrderTable(raw: unknown): { order: number; position: string; name: string }[] {
   try {
     const t = JSON.parse(String(raw)) as { rows?: { row: { Text: string }[] }[] };
     return (t.rows ?? []).map((r) => {
-      const [o, pos, name, war] = r.row.map((c) => (c.Text ?? "").trim());
-      return { order: Number(o), position: pos, name, war: war && Number.isFinite(Number(war)) ? Number(war) : null };
+      const [o, pos, name] = r.row.map((c) => (c.Text ?? "").trim());
+      return { order: Number(o), position: pos, name };
     }).filter((r) => r.order >= 1 && r.name);
   } catch {
     return [];
@@ -103,26 +87,27 @@ function buildTeam(
   entry: Entry[],
   starterId: number | null,
   starterName: string,
-): KboTeamLineup {
+): TeamLineup {
   const byName = new Map(entry.map((e) => [e.name, e]));
   const byId = new Map(entry.map((e) => [e.playerId, e]));
   const batters = orderRows.map((r) => {
     const e = byName.get(r.name);
-    return { name: r.name, playerId: e?.playerId ?? null, position: r.position, hand: e ? splitThrowBat(e.throwBat).bat : null, order: r.order, war: r.war };
+    return player(r.name, e?.playerId ?? null, r.position, e ? splitThrowBat(e.throwBat).bat : null, r.order);
   });
-  const starterEntry = starterId != null ? byId.get(String(starterId)) : undefined;
+  const sid = starterId != null ? String(starterId) : null;
+  const starterEntry = sid ? byId.get(sid) : undefined;
   const starter = starterName.trim()
-    ? { name: starterName.trim(), playerId: starterId != null ? String(starterId) : null, position: "선발", hand: starterEntry ? splitThrowBat(starterEntry.throwBat).throw : null }
+    ? player(starterName.trim(), sid, "선발", starterEntry ? splitThrowBat(starterEntry.throwBat).throw : null)
     : null;
   const inLineup = new Set(batters.map((b) => b.name));
   const bench = entry
     .filter((e) => e.group !== "투수" && !inLineup.has(e.name))
-    .map((e) => ({ name: e.name, playerId: e.playerId, position: e.group, hand: splitThrowBat(e.throwBat).bat }));
+    .map((e) => player(e.name, e.playerId, e.group, splitThrowBat(e.throwBat).bat));
   const bullpen = entry
-    .filter((e) => e.group === "투수" && e.playerId !== starter?.playerId)
+    .filter((e) => e.group === "투수" && e.playerId !== sid)
     .map((e) => {
       const th = splitThrowBat(e.throwBat).throw;
-      return { name: e.name, playerId: e.playerId, position: th ? PITCHER_LABEL[th] : "투수", hand: null };
+      return player(e.name, e.playerId, th ? PITCHER_LABEL[th] : "투수", null);
     });
   return { starter, batters, bench, bullpen };
 }
@@ -132,7 +117,7 @@ const kstHm = (d: Date) => new Date(d.getTime() + 9 * 3600_000).toISOString().sl
 /** "두산 베어스" ↔ KBO 약칭 "두산", "KIA 타이거즈" ↔ "KIA" */
 const nameHas = (full: string, abbr: string) => full.replace(/\s+/g, "").toUpperCase().startsWith(abbr.replace(/\s+/g, "").toUpperCase());
 
-async function loadKboGameLineup(homeName: string, awayName: string, startIso: string): Promise<KboGameLineup | null> {
+async function loadKboGameLineup(homeName: string, awayName: string, startIso: string): Promise<GameLineup | null> {
   const start = new Date(startIso);
   const ymd = kstYmd(start);
   const list = await wsPost<{ game?: KboGame[] }>("/ws/Main.asmx/GetKboGameList", { leId: "1", srId: "0,1,3,4,5,6,7,8,9", date: ymd });
@@ -155,11 +140,11 @@ async function loadKboGameLineup(homeName: string, awayName: string, startIso: s
   const home = buildTeam(tableFor(g.HOME_ID), homeEntry, g.B_PIT_P_ID, g.B_PIT_P_NM ?? "");
   const away = buildTeam(tableFor(g.AWAY_ID), awayEntry, g.T_PIT_P_ID, g.T_PIT_P_NM ?? "");
   if (home.batters.length === 0 && away.batters.length === 0) return null;
-  return { gameId: g.G_ID, confirmed, home, away };
+  return { confirmed, note: confirmed ? "KBO 공식 · 금일 라인업" : "발표 전 · KBO 공식 최근 라인업 기준", home, away };
 }
 
 /** 우리 KBO Match(팀 한글 정식명·시작 시각) → 네이버형 라인업. 발표 전이면 confirmed=false(최근 라인업). 10분 캐시. */
-export async function getKboGameLineup(homeName: string, awayName: string, startTime: Date): Promise<KboGameLineup | null> {
+export async function getKboGameLineup(homeName: string, awayName: string, startTime: Date): Promise<GameLineup | null> {
   return unstable_cache(loadKboGameLineup, ["kbo-game-lineup-v1"], { revalidate: 600 })(homeName, awayName, startTime.toISOString())
     .catch(() => null);
 }

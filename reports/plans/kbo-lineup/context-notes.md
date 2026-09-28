@@ -35,3 +35,15 @@
 - 9/27 한화-롯데(확정): 선발·타순 9·포지션·타석·후보 10·불펜 14 가 네이버 라인업 탭과 일치.
 - 9/29 한화-삼성(발표 전): KBO 최근 라인업 + 경기일 등록 현황이 비어(미래 날짜) 최근 등록 현황으로 폴백.
 - 375px 말줄임 0(번호 칸·간격 축소 후), 다크·라이트 확인.
+
+## MLB·NPB 확장 (2026-09-28)
+
+- 공용 타입 `src/lib/sports/baseball-lineup.ts`, 카드 `BaseballLineupCard`(KboLineupCard 에서 이름 변경) — 사진·링크·기준 문구를 데이터로 받는다.
+- MLB `mlb-lineup.ts`: 오늘 박스스코어 battingOrder 9명이면 확정. 아니면 팀 직전 종료 경기 박스의 타순(취소·연기는
+  abstractGameState 가 Final 이라 detailedState 로 거른다 — 9/27 NYY 취소 실측). 경기 전 박스에도 26인(bench 14·bullpen 14)이 있다.
+  좌우 = /people?personIds 한 번. 선발 = 경기 시작 후 pitchers[0], 전엔 probablePitcher.
+- NPB `npb-lineup.ts`: npb.jp 는 경기 전 스타팅을 안 준다(9/28 경기 전 box·roster 모두 빈 값). 오늘 box 에 선발 9명이면 확정,
+  아니면 팀 직전 경기 box. 선발 판정 = 타순 칸 숫자 + 수비 칸이 "(遊)" 로 시작(경기 중 이동하면 "(中)左").
+  roster.html = 등번호·pid·투타. 사진은 npbPlayerPhoto 사전, 없으면 players_photo/{Y}/180/s/{등번호3자리}_{pid}.jpg.
+  예상 라인업의 투수 타순(센트럴 DH 없음)은 오늘 선발로 바꾼다.
+- MLB 한글 풀네임이 길어 375px 에서 잘려 이름은 break-keep 두 줄 허용(세로 깨짐 0 확인).

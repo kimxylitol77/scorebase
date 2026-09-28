@@ -17,6 +17,8 @@ import LiveOddsCard from "@/components/live/LiveOddsCard";
 import BetmanLineCard from "@/components/live/BetmanLineCard";
 import { getBetmanCardData } from "@/lib/odds/betman-card-data";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
+import { getNpbGameLineup } from "@/lib/sports/npb-lineup";
+import BaseballLineupCard from "@/components/live/BaseballLineupCard";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -129,7 +131,7 @@ export default async function NpbLivePage({ params }: Props) {
     (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
   // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
   const gameDate = localGameDate(match.startTime, "NPB");
-  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar, bullpenHome, bullpenAway] =
+  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById, playerPhotoById, openingSimilar, bullpenHome, bullpenAway, npbLineup] =
     await Promise.all([
       homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
       awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
@@ -140,6 +142,10 @@ export default async function NpbLivePage({ params }: Props) {
       getOpeningSimilarStats(match),
       match.homeTeam.shortName ? loadBullpenReport("NPB", match.homeTeam.shortName, gameDate) : Promise.resolve(null),
       match.awayTeam.shortName ? loadBullpenReport("NPB", match.awayTeam.shortName, gameDate) : Promise.resolve(null),
+      getNpbGameLineup(match.homeTeam.name, match.awayTeam.name, match.startTime, {
+        home: homeStarterFull ? { pid: homeStarterFull.pid != null ? String(homeStarterFull.pid) : undefined, name: homeStarterFull.name } : null,
+        away: awayStarterFull ? { pid: awayStarterFull.pid != null ? String(awayStarterFull.pid) : undefined, name: awayStarterFull.name } : null,
+      }),
     ]);
 
   const detailLive = match.theSportsCache?.detailLive as
@@ -333,6 +339,7 @@ export default async function NpbLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
+        lineupContent={npbLineup ? <BaseballLineupCard lineup={npbLineup} homeTeam={homeShort} awayTeam={awayShort} /> : null}
         homeStarterPhoto={homeStarterPhoto}
         awayStarterPhoto={awayStarterPhoto}
         extraTabs={[

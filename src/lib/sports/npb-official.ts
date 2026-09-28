@@ -75,7 +75,7 @@ export function npbTeamJpToKor(jp: string | undefined): string | undefined {
  * 12팀 NPB team code. 페이지 URL: /bis/teams/rst_{code}.html
  * 한국 풀네임은 npb-starters.ts 의 NPB_ABBR_TO_NAME 과 일치.
  */
-const NPB_TEAMS: { code: string; abbr: string; korName: string }[] = [
+export const NPB_TEAMS: { code: string; abbr: string; korName: string }[] = [
   { code: "g", abbr: "巨人", korName: "요미우리 자이언츠" },
   { code: "t", abbr: "阪神", korName: "한신 타이거스" },
   { code: "db", abbr: "DeNA", korName: "요코하마 디엔에이 베이스타스" },

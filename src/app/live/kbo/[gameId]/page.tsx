@@ -11,7 +11,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
-import KboLineupCard from "@/components/live/KboLineupCard";
+import BaseballLineupCard from "@/components/live/BaseballLineupCard";
 import { getKboGameLineup } from "@/lib/sports/kbo-lineup";
 import MatchVoteCard from "@/components/MatchVoteCard";
 import NextUpCard from "@/components/live/NextUpCard";
@@ -323,7 +323,7 @@ export default async function KboLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
-        lineupContent={kboLineup ? <KboLineupCard lineup={kboLineup} homeTeam={homeShort} awayTeam={awayShort} /> : null}
+        lineupContent={kboLineup ? <BaseballLineupCard lineup={kboLineup} homeTeam={homeShort} awayTeam={awayShort} /> : null}
         extraTabs={[
           {
             key: "bullpen",
