@@ -3,6 +3,8 @@
 export const PREDICTION_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
   "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
+  // 2026-09-30 — 시즌 전체 일정(750경기, ts match/season) 수집 후 개방. 그 전엔 125/748 로 잘린 일정이었다.
+  "KHL",
   // 2026-05-17 — 한국·아시아 5개 리그 추가 (DB 50건+)
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL",
   "WNBA", // 2026-05-21 — 미국 여자 농구
@@ -23,4 +25,4 @@ export const RELEGATION_COUNT: Record<string, number> = {
 export const relegationCountOf = (league: string) => RELEGATION_COUNT[league] ?? 0;
 
 /** 리그 1위가 곧 우승이 아닌 리그 — 플레이오프로 우승을 가린다. 화면은 "정규리그 1위"라고 부른다. */
-export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL"]);
+export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL"]);

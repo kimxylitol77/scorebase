@@ -49,7 +49,7 @@ import TeamFormBadges from "@/components/predictions/TeamFormBadges";
 import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
-import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, HOCKEY_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { UEFA_DIRECT_R16, UEFA_LEAGUE_PHASE, UEFA_PLAYOFF_LAST } from "@/lib/sports/uefa-league-phase";
 import AmbientGlow from "@/components/AmbientGlow";
 import StandingsSeasonNav from "@/components/standings/StandingsSeasonNav";
@@ -105,6 +105,13 @@ const LEAGUE_INFO: Partial<Record<
     name: "NHL",
     subtitle: "북미 아이스하키 — 시즌 시뮬레이션",
     gradient: "from-cyan-500 via-blue-600 to-indigo-700",
+    relegationCount: 0,
+    showDraw: false,
+  },
+  KHL: {
+    name: "KHL",
+    subtitle: "러시아 콘티넨탈 하키 리그 — 정규시즌 시뮬레이션",
+    gradient: "from-red-600 via-rose-600 to-blue-700",
     relegationCount: 0,
     showDraw: false,
   },
@@ -869,6 +876,7 @@ export default async function LeaguePredictions({ params }: Props) {
           <PredTab l="MLB" active={"MLB" === upper} />
           <CategoryDot />
           <PredTab l="NHL" active={"NHL" === upper} />
+          <PredTab l="KHL" active={"KHL" === upper} />
           <CategoryDot />
           <PredTab l="LOL" active={"LOL" === upper} />
         </div>
@@ -1371,6 +1379,7 @@ export default async function LeaguePredictions({ params }: Props) {
               />
               <ProjectionsTable
                 showChampion={showChampion}
+                winsOnly={HOCKEY_LEAGUES.has(upper)}
                 rows={mc.map((r) => ({
                   name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                   logoUrl: teamLogoById.get(r.teamId) ?? null,
@@ -1669,6 +1678,7 @@ const TAB_LABEL: Record<string, string> = {
   KBO: "KBO",
   NPB: "NPB",
   NHL: "NHL",
+  KHL: "KHL",
   LOL: "LCK",
   K_LEAGUE_1: "K리그1",
   K_LEAGUE_2: "K리그2",
@@ -1791,6 +1801,8 @@ interface ProjectionsTableProps {
   uefa?: boolean;
   /** 1위가 우승이 아닌 리그(플레이오프) — 마지막 열을 "1위 %"로 */
   regularTitle?: boolean;
+  /** 하키 — 시뮬 승점은 승 3점(무승부 0)이라 실제 리그 승점(승 2·연장패 1)과 다르다. 승수(=승점÷3)로 보여 준다. */
+  winsOnly?: boolean;
 }
 
 function ProjectionsTable({
@@ -1801,7 +1813,9 @@ function ProjectionsTable({
   showChampion = true,
   uefa = false,
   regularTitle = false,
+  winsOnly = false,
 }: ProjectionsTableProps) {
+  const pts = (p: number) => (winsOnly ? p / 3 : p);
   const total = rows.length;
   const relegationStartIdx = relegationCount > 0 ? total - relegationCount : total;
   return (
@@ -1812,8 +1826,8 @@ function ProjectionsTable({
             <th className="text-left px-3 py-2 font-medium w-10">#</th>
             <th className="text-left px-3 py-2 font-medium">팀</th>
             <th className="text-left px-3 py-2 font-medium hidden sm:table-cell w-32">최근 5</th>
-            <th className="text-right px-3 py-2 font-medium">승점</th>
-            <th className="text-right px-3 py-2 font-medium whitespace-nowrap">예상 승점</th>
+            <th className="text-right px-3 py-2 font-medium">{winsOnly ? "승" : "승점"}</th>
+            <th className="text-right px-3 py-2 font-medium whitespace-nowrap">{winsOnly ? "예상 승수" : "예상 승점"}</th>
             {showChampion && (
               <th className="text-right px-3 py-2 font-medium">{uefa ? "16강 직행 %" : regularTitle ? "1위 %" : "우승 %"}</th>
             )}
@@ -1860,10 +1874,10 @@ function ProjectionsTable({
                   <TeamFormBadges form={form} />
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums text-neutral-500">
-                  {r.currentPoints}
+                  {pts(r.currentPoints)}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums font-semibold">
-                  {r.expectedPoints.toFixed(1)}
+                  {pts(r.expectedPoints).toFixed(1)}
                 </td>
                 {showChampion && (
                   <td className="px-3 py-2 text-right tabular-nums">
