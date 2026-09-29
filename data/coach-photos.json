@@ -1,12 +1,13 @@
 {
  "vl7oqdehnz9r510": {
   "name": "Jeff Strasser",
-  "logo": "https://img.thesports.com/football/player/1616af640936bf195c72184106286911.png"
+  "logo": "https://img.thesports.com/football/player/1616af640936bf195c72184106286911.png",
+  "nameKo": "제프 슈트라서"
  },
  "kdj2ryohk33q1zp": {
   "name": "Marco Rose",
   "logo": "https://img.thesports.com/football/player/f82223842edf8ce5e7f32ae9dc7b4c8d.png",
-  "nameKo": "마르코 로즈"
+  "nameKo": "마르코 로제"
  },
  "v2y8m4zh3d9ql07": {
   "name": "Niko Kovac",
@@ -41,7 +42,7 @@
  "d23xmvkh3jwqg8n": {
   "name": "Gennaro Gattuso",
   "logo": "https://img.thesports.com/football/player/c2bda217f1adb9dd52ee64a0c6e088fb.png",
-  "nameKo": "제나로 가투소"
+  "nameKo": "젠나로 가투소"
  },
  "4zp5rzghj94q82w": {
   "name": "Filippo Inzaghi",
@@ -61,7 +62,7 @@
  "kdj2ryohk0wq1zp": {
   "name": "Oliver Glasner",
   "logo": "https://img.thesports.com/football/player/b59174db0bfb5094d792c5bfdde1b7c5.png",
-  "nameKo": "올리버 글래스너"
+  "nameKo": "올리버 글라스너"
  },
  "v2y8m4zh39lql07": {
   "name": "Mauricio Pochettino",
@@ -326,12 +327,12 @@
  "9k82rekhvlkrepz": {
   "name": "Ronald Koeman",
   "logo": "https://img.thesports.com/football/player/ed7412d047161c17c2c5ed5bdd64722c.png",
-  "nameKo": "로날드 쾨만"
+  "nameKo": "로날드 쿠만"
  },
  "z318q66hol5qo9j": {
   "name": "Manuel Pellegrini",
   "logo": "https://img.thesports.com/football/player/996e43587bd806561b986cb69aa991f0.png",
-  "nameKo": "마누엘 펠레그리니"
+  "nameKo": "마누엘 페예그리니"
  },
  "9dn1m1gh465moep": {
   "name": "Marcelino",
@@ -395,7 +396,7 @@
  "4zp5rzgh7j3q82w": {
   "name": "Gian Piero Gasperini",
   "logo": "https://img.thesports.com/football/player/c6a6feef7bca670887d150e40825dce0.png",
-  "nameKo": "지안피에로 가스페리니"
+  "nameKo": "잔 피에로 가스페리니"
  },
  "jednm9wh9klryox": {
   "name": "John Herdman",
@@ -405,7 +406,7 @@
  "9dn1m1ghe45moep": {
   "name": "Jorge Jesus",
   "logo": "https://img.thesports.com/football/player/06381c854eeb596f66345b81093f7c56.png",
-  "nameKo": "호르헤 예수스"
+  "nameKo": "조르제 제주스"
  },
  "v2y8m4zhjj8ql07": {
   "name": "Slaven Bilic",
@@ -459,7 +460,8 @@
  },
  "l965mkyh44pr1ge": {
   "name": "Vladimír Weiss",
-  "logo": "https://img.thesports.com/football/player/77a0eaa709e4fd833f405931ade833ee.png"
+  "logo": "https://img.thesports.com/football/player/77a0eaa709e4fd833f405931ade833ee.png",
+  "nameKo": "블라디미르 바이스"
  },
  "8y39mp1h5jvmojx": {
   "name": "Michel Der Zakarian",
@@ -474,7 +476,7 @@
  "p3glrw7h1jnqdyj": {
   "name": "Graham Arnold",
   "logo": "https://img.thesports.com/football/player/01808de47219d98cc630a31d9f58dfd9.png",
-  "nameKo": "그레이엄 아놀드"
+  "nameKo": "그레이엄 아널드"
  },
  "gy0or5jh4ewqwzv": {
   "name": "Gustavo Quinteros",
@@ -504,7 +506,7 @@
  "kjw2r09hnj1rz84": {
   "name": "Carlos Queiroz",
   "logo": "https://img.thesports.com/football/player/91db9808325a22742a7b01cc9777a15f.png",
-  "nameKo": "카를로스 케이로즈"
+  "nameKo": "카를로스 케이로스"
  },
  "56ypq3nh5w7md7o": {
   "name": "Vahid Halilhodzic",
@@ -651,7 +653,8 @@
  },
  "j1l4rjnh156m7vx": {
   "name": "Brendan Rodgers",
-  "logo": "https://img.thesports.com/football/player/86107eacd3340cae2c452aa9c5e9895f.png"
+  "logo": "https://img.thesports.com/football/player/86107eacd3340cae2c452aa9c5e9895f.png",
+  "nameKo": "브렌던 로저스"
  },
  "jednm9wh9xzryox": {
   "name": "John van den Brom",
@@ -1257,7 +1260,7 @@
  "kjw2r09hx0drz84": {
   "name": "Jesse Marsch",
   "logo": "https://img.thesports.com/football/player/e254cc42ce2cb5e1494d98c0e6c51d2c.png",
-  "nameKo": "제시 마시"
+  "nameKo": "제시 마쉬"
  },
  "56ypq3nhzn2md7o": {
   "name": "Cristian Bucchi",
@@ -1319,7 +1322,7 @@
  "e4wyrn4hdx3q86p": {
   "name": "Gheorghe Hagi",
   "logo": "https://img.thesports.com/football/player/1f157e4fbb687d6f74d3716e82e3de2c.png",
-  "nameKo": "게오르게 하기"
+  "nameKo": "게오르게 하지"
  },
  "z8yomo4h21kq0j6": {
   "name": "Ricardo Rodríguez",
@@ -1501,7 +1504,8 @@
  },
  "e4wyrn4hd38q86p": {
   "name": "Damir Buric",
-  "logo": "https://img.thesports.com/football/player/16547a8c648444bf89fc1cbbe6d086a3.png"
+  "logo": "https://img.thesports.com/football/player/16547a8c648444bf89fc1cbbe6d086a3.png",
+  "nameKo": "다미르 부리치"
  },
  "v2y8m4zhgo1ql07": {
   "name": "Marcin Brosz",
@@ -1544,7 +1548,8 @@
  },
  "jednm9whz18ryox": {
   "name": "Aliou Cissé",
-  "logo": "https://img.thesports.com/football/player/154bb68b957e5ec0b59d3fe21f0f7af9.png"
+  "logo": "https://img.thesports.com/football/player/154bb68b957e5ec0b59d3fe21f0f7af9.png",
+  "nameKo": "알리우 시세"
  },
  "8y39mp1hj75mojx": {
   "name": "Jorg Portmann",
@@ -1639,7 +1644,8 @@
  },
  "9vjxm8gh8xgr6od": {
   "name": "Stephen Constantine",
-  "logo": "https://img.thesports.com/football/player/141f529b0508a0ee14e0c96be55b1822.png"
+  "logo": "https://img.thesports.com/football/player/141f529b0508a0ee14e0c96be55b1822.png",
+  "nameKo": "스티븐 콘스탄틴"
  },
  "d23xmvkhkxxqg8n": {
   "name": "Le Huynh Duc",
@@ -1764,7 +1770,7 @@
  "56ypq3nhwdemd7o": {
   "name": "Hugo Broos",
   "logo": "https://img.thesports.com/football/player/6275330148964a09bba5402ae86ec039.png",
-  "nameKo": "위고 브루스"
+  "nameKo": "휘호 브로스"
  },
  "gx7lm7phwdjm2wd": {
   "name": "Mariano Soso",
@@ -1955,7 +1961,7 @@
  "p3glrw7hzwvqdyj": {
   "name": "Heimir Hallgrímsson",
   "logo": "https://img.thesports.com/football/player/c6b4809d636328d8ea40f237bdd1160d.png",
-  "nameKo": "하이미르 할그림손"
+  "nameKo": "헤이미르 하들그림손"
  },
  "gx7lm7ph9k4m2wd": {
   "name": "Mark Zimmermann",
@@ -2174,7 +2180,8 @@
  },
  "p4jwq2gh754m0ve": {
   "name": "Aykhan Abbasov",
-  "logo": "https://img.thesports.com/football/player/664721a9fa13823076a874aefa4ad19e.png"
+  "logo": "https://img.thesports.com/football/player/664721a9fa13823076a874aefa4ad19e.png",
+  "nameKo": "아이한 아바소프"
  },
  "e4wyrn4hv50q86p": {
   "name": "Vjatseslav Zahovaiko",
@@ -2422,7 +2429,7 @@
  "yl5ergphpynr8k0": {
   "name": "Raphael Wicky",
   "logo": "https://img.thesports.com/football/player/36138f5367d3448685b15cbb2b038330.png",
-  "nameKo": "라파엘 위키"
+  "nameKo": "라파엘 비키"
  },
  "vl7oqdeh12er510": {
   "name": "Jeaustin Campos",
@@ -2616,7 +2623,8 @@
  },
  "9vjxm8ghxzpr6od": {
   "name": "Benni McCarthy",
-  "logo": "https://img.thesports.com/football/player/de21fddbfaa9bf579f784d838597aeab.png"
+  "logo": "https://img.thesports.com/football/player/de21fddbfaa9bf579f784d838597aeab.png",
+  "nameKo": "베니 매카시"
  },
  "kn54qllhdo9qvy9": {
   "name": "Gavin Hunt",
@@ -2666,7 +2674,7 @@
  "p3glrw7hlkyqdyj": {
   "name": "Javier Aguirre",
   "logo": "https://img.thesports.com/football/player/6b5f95d016e24ec1b9206ba3bee28ace.png",
-  "nameKo": "하비에르 아게로"
+  "nameKo": "하비에르 아기레"
  },
  "9k82rekh897repz": {
   "name": "Paolo Bianco",
@@ -3241,7 +3249,8 @@
  },
  "4zp5rzgh0e5q82w": {
   "name": "Johnny McKinstry",
-  "logo": "https://img.thesports.com/football/player/1be6f5833fd79ec2035bee0ae255a03f.png"
+  "logo": "https://img.thesports.com/football/player/1be6f5833fd79ec2035bee0ae255a03f.png",
+  "nameKo": "조니 매킨스트리"
  },
  "p4jwq2gh6dgm0ve": {
   "name": "Bjarte Lunde Aarsheim",
@@ -3300,7 +3309,7 @@
  "v2y8m4zhnk4ql07": {
   "name": "Sébastien Desabre",
   "logo": "https://img.thesports.com/football/player/69e8ce9ad78007eae83f95edb4f5e4ab.png",
-  "nameKo": "세바스티앙 데사브르"
+  "nameKo": "세바스티앙 드사브르"
  },
  "p3glrw7h0xgqdyj": {
   "name": "Gerardo Seoane",
@@ -3720,7 +3729,7 @@
  "56ypq3nhex8md7o": {
   "name": "Sébastien Migné",
   "logo": "https://img.thesports.com/football/player/234cd49ad3e348758bd92c49de1dc4a3.png",
-  "nameKo": "세바스티앙 미뉴"
+  "nameKo": "세바스티앙 미녜"
  },
  "9vjxm8gh3y6r6od": {
   "name": "Frank Lampard",
@@ -3745,7 +3754,7 @@
  "8y39mp1h43wmojx": {
   "name": "Mark van Bommel",
   "logo": "https://img.thesports.com/football/player/b66678e7e8103fa88ff6e7dcb64dc7a4.png",
-  "nameKo": "마르크 판 봄멜"
+  "nameKo": "마르크 판 보멀"
  },
  "9k82rekhxvxrepz": {
   "name": "Fatih Cift",
@@ -3765,7 +3774,7 @@
  "9dn1m1gh0e2moep": {
   "name": "Carles Cuadrat",
   "logo": "https://img.thesports.com/football/player/c68baa20b46fffd3d8aba6205c221557.png",
-  "nameKo": "카를레스 쿠아드랏"
+  "nameKo": "카를레스 쿠아드라트"
  },
  "v2y8m4zhpj9ql07": {
   "name": "Gustavo Huerta",
@@ -4097,7 +4106,8 @@
  },
  "kdj2ryohel4q1zp": {
   "name": "Bruno Lage",
-  "logo": "https://img.thesports.com/football/player/b1d1ce4529dc88a5ae2008a59d877319.png"
+  "logo": "https://img.thesports.com/football/player/b1d1ce4529dc88a5ae2008a59d877319.png",
+  "nameKo": "브루누 라즈"
  },
  "z8yomo4hg1gq0j6": {
   "name": "Dario Fossi",
@@ -4136,7 +4146,8 @@
  },
  "l965mkyh2wnr1ge": {
   "name": "Giovanni Solinas",
-  "logo": "https://img.thesports.com/football/player/530fcd9a9eaf4bb48ef31ee489b084b1.png"
+  "logo": "https://img.thesports.com/football/player/530fcd9a9eaf4bb48ef31ee489b084b1.png",
+  "nameKo": "조반니 솔리나스"
  },
  "9dn1m1ghpx7moep": {
   "name": "Aleksandar Vukovic",
@@ -4281,7 +4292,8 @@
  },
  "vl7oqdeho00r510": {
   "name": "Jacob Friis",
-  "logo": "https://img.thesports.com/football/player/cc61da29c56e2fb48521062f180fff51.png"
+  "logo": "https://img.thesports.com/football/player/cc61da29c56e2fb48521062f180fff51.png",
+  "nameKo": "야콥 프리스"
  },
  "v2y8m4zh681ql07": {
   "name": "Mark Stimson",
@@ -4401,7 +4413,8 @@
  },
  "j1l4rjnh458m7vx": {
   "name": "Tarik Sektioui",
-  "logo": "https://img.thesports.com/football/player/6f29df20793d2081ae01456797adf618.png"
+  "logo": "https://img.thesports.com/football/player/6f29df20793d2081ae01456797adf618.png",
+  "nameKo": "타리크 섹티우이"
  },
  "l965mkyhyo7r1ge": {
   "name": "Jorge Araujo",
@@ -4504,7 +4517,7 @@
  "kjw2r09h23vrz84": {
   "name": "Corentin Martins",
   "logo": "https://img.thesports.com/football/player/c0172f2b391cc89bc4a533933df810a6.png",
-  "nameKo": "코랑탱 마르탱스"
+  "nameKo": "코랑탱 마르탱"
  },
  "vl7oqdehoxwr510": {
   "name": "Collin Benjamin",
@@ -4580,7 +4593,8 @@
  },
  "kdj2ryoh1zkq1zp": {
   "name": "Amir Abdou",
-  "logo": "https://img.thesports.com/football/player/a9054bf3ac1f0e382cc8f5eb4852f9a3.png"
+  "logo": "https://img.thesports.com/football/player/a9054bf3ac1f0e382cc8f5eb4852f9a3.png",
+  "nameKo": "아미르 압두"
  },
  "gx7lm7phz1nm2wd": {
   "name": "Raoul Savoy",
@@ -4662,7 +4676,7 @@
  "z8yomo4h1e9q0j6": {
   "name": "Ruben Amorim",
   "logo": "https://img.thesports.com/football/player/6f3353f1c283eea6bf09a31a795374c9.png",
-  "nameKo": "루벤 아모림"
+  "nameKo": "후벵 아모림"
  },
  "gpxwrxlhyp3ryk0": {
   "name": "Jim Goodwin",
@@ -4789,7 +4803,8 @@
  },
  "56ypq3nhvwkmd7o": {
   "name": "Gavin Joshua Lee Tse Peng",
-  "logo": "https://img.thesports.com/football/player/df09a0907da9bb680278a17c27ca4a17.png"
+  "logo": "https://img.thesports.com/football/player/df09a0907da9bb680278a17c27ca4a17.png",
+  "nameKo": "가빈 조슈아 리 체 펑"
  },
  "p3glrw7hnygqdyj": {
   "name": "Noh Alam Shah",
@@ -5101,7 +5116,7 @@
  "gy0or5jh9lpqwzv": {
   "name": "Eusebio Di Francesco",
   "logo": "https://img.thesports.com/football/player/85425721055138a324565b0ba7333f7b.png",
-  "nameKo": "유세비오 디 프란체스코"
+  "nameKo": "에우세비오 디 프란체스코"
  },
  "vl7oqdehj68r510": {
   "name": "Peter Cklamovski",
@@ -5290,7 +5305,8 @@
  },
  "gx7lm7phxx7m2wd": {
   "name": "Chencho Dorji",
-  "logo": "https://img.thesports.com/football/player/63f2dc1b8ab883466ddf35b3aa2dba2f.png"
+  "logo": "https://img.thesports.com/football/player/63f2dc1b8ab883466ddf35b3aa2dba2f.png",
+  "nameKo": "첸초 도르지"
  },
  "4zp5rzgh333q82w": {
   "name": "Pablo Sánchez",
@@ -5556,7 +5572,8 @@
  },
  "gy0or5jh5nnqwzv": {
   "name": "Zarko Lazetic",
-  "logo": "https://img.thesports.com/football/player/2a01f96f395610fd84f9363fda946793.png"
+  "logo": "https://img.thesports.com/football/player/2a01f96f395610fd84f9363fda946793.png",
+  "nameKo": "자르코 라제티치"
  },
  "4zp5rzgho5oq82w": {
   "name": "Nicolás Córdova",
@@ -6020,7 +6037,7 @@
  "kjw2r09hg37rz84": {
   "name": "Martin Demichelis",
   "logo": "https://img.thesports.com/football/player/335cd7acd348e3afe4368c3752b30585.png",
-  "nameKo": "마르틴 데미켈리스"
+  "nameKo": "마르틴 데미첼리스"
  },
  "p3glrw7hg98qdyj": {
   "name": "Ede Visinka",
@@ -6030,7 +6047,7 @@
  "9dn1m1ghgg0moep": {
   "name": "Vincent Kompany",
   "logo": "https://img.thesports.com/football/player/a83e7c8f6dec3c52a2a495c21e6b5a25.png",
-  "nameKo": "빈센트 콤파니"
+  "nameKo": "뱅상 콤파니"
  },
  "d23xmvkhlz3qg8n": {
   "name": "Ruaidhri Higgins",
@@ -6150,7 +6167,8 @@
  },
  "v2y8m4zhdgjql07": {
   "name": "Xavi",
-  "logo": "https://img.thesports.com/football/player/2a97d7c23289c4f1b2cda74c52e7d97a.png"
+  "logo": "https://img.thesports.com/football/player/2a97d7c23289c4f1b2cda74c52e7d97a.png",
+  "nameKo": "샤비"
  },
  "gpxwrxlhw9zryk0": {
   "name": "Hernán Losada",
@@ -6454,7 +6472,8 @@
  },
  "kjw2r09hv44rz84": {
   "name": "Juan Micha",
-  "logo": "https://img.thesports.com/football/player/37d78aa3ec58b8e9a6c1f6f33008230c.png"
+  "logo": "https://img.thesports.com/football/player/37d78aa3ec58b8e9a6c1f6f33008230c.png",
+  "nameKo": "후안 미차"
  },
  "4zp5rzgh9ygq82w": {
   "name": "Franclim Carvalho",
@@ -6638,7 +6657,8 @@
  },
  "j1l4rjnh04km7vx": {
   "name": "Jalel Kadri",
-  "logo": "https://img.thesports.com/football/player/ec6256a698cc458d0df5836a0c3a4d69.png"
+  "logo": "https://img.thesports.com/football/player/ec6256a698cc458d0df5836a0c3a4d69.png",
+  "nameKo": "잘렐 카드리"
  },
  "8y39mp1hnzwmojx": {
   "name": "Simon Dvorsak",
@@ -6681,7 +6701,7 @@
  "v2y8m4zh97lql07": {
   "name": "Rafa Márquez",
   "logo": "https://img.thesports.com/football/player/3d585156f3234948a2e1a47dffb7e181.png",
-  "nameKo": "라파 마르케스"
+  "nameKo": "라파엘 마르케스"
  },
  "z8yomo4ho6eq0j6": {
   "name": "Gao Wanguo",
@@ -7454,7 +7474,7 @@
  "9vjxm8gh124r6od": {
   "name": "Pepe Bordalás",
   "logo": "https://img.thesports.com/football/player/3ad1d3ad0a493ca3ba6268d9d984ae7b.png",
-  "nameKo": "페페 보르달라스"
+  "nameKo": "호세 보르달라스"
  },
  "gy0or5jhp0eqwzv": {
   "name": "Li Guoxu",
@@ -7798,7 +7818,8 @@
  },
  "d23xmvkhnkxqg8n": {
   "name": "Hubert Velud",
-  "logo": "https://img.thesports.com/football/player/c34f86d6695a93666e8eec30d4a6a06e.png"
+  "logo": "https://img.thesports.com/football/player/c34f86d6695a93666e8eec30d4a6a06e.png",
+  "nameKo": "위베르 벨뤼"
  },
  "v2y8m4zhk8kql07": {
   "name": "Franc Artiga",
@@ -8650,7 +8671,7 @@
  "yl5ergphgnnr8k0": {
   "name": "Ignazio Abate",
   "logo": "https://img.thesports.com/football/player/a6dbf6248abf81852d040fb98105dc82.png",
-  "nameKo": "이냐시오 아바테"
+  "nameKo": "이냐치오 아바테"
  },
  "z318q66hlk0qo9j": {
   "name": "Marius Johansen",
@@ -9098,7 +9119,7 @@
  "ednm9whk8w5ryox": {
   "name": "Arthur Papas",
   "logo": "https://img.thesports.com/football/player/d9b60e056521445e6486c710f177b14c.png",
-  "nameKo": "아르투르 파파스"
+  "nameKo": "아서 파파스"
  },
  "y0or5jhlx9jqwzv": {
   "name": "Karim Masmoudi",
@@ -9801,7 +9822,7 @@
  "vjxm8gh4j93r6od": {
   "name": "Emerse Faé",
   "logo": "https://img.thesports.com/football/player/6c36854d74fd0baadf818250185efbd5.png",
-  "nameKo": "에머스 파에"
+  "nameKo": "에메르스 파에"
  },
  "x7lm7phk0n7m2wd": {
   "name": "Jaroslaw Skrobacz",
@@ -10400,7 +10421,8 @@
  },
  "23xmvkh342pqg8n": {
   "name": "Shao Jiayi",
-  "logo": "https://img.thesports.com/football/player/4bd930f8ef3915e3d732f6d31cfd126c.png"
+  "logo": "https://img.thesports.com/football/player/4bd930f8ef3915e3d732f6d31cfd126c.png",
+  "nameKo": "사오자이"
  },
  "8yomo4h7062q0j6": {
   "name": "Florian Diel",
@@ -10822,7 +10844,8 @@
  },
  "pxwrxlhg221ryk0": {
   "name": "Adrián González",
-  "logo": null
+  "logo": null,
+  "nameKo": "아드리안 곤살레스"
  },
  "6ypq3nh04g0md7o": {
   "name": "José Faria",
@@ -10875,7 +10898,8 @@
  },
  "x7lm7phk577m2wd": {
   "name": "Éloge Enza-Yamissi",
-  "logo": "https://img.thesports.com/football/player/84548c0a4c0b9ca5b509953a7c0e66d3.png"
+  "logo": "https://img.thesports.com/football/player/84548c0a4c0b9ca5b509953a7c0e66d3.png",
+  "nameKo": "엘로주 엔자-야미시"
  },
  "23xmvkh3g06qg8n": {
   "name": "José Luis Meléndez",
@@ -11150,7 +11174,8 @@
  },
  "2y8m4zhj6znql07": {
   "name": "Callisto Pasuwa",
-  "logo": null
+  "logo": null,
+  "nameKo": "칼리스토 파수와"
  },
  "x7lm7phoz9xm2wd": {
   "name": "Daniel Bartolotta",
@@ -11341,7 +11366,8 @@
  },
  "zp5rzghzgp0q82w": {
   "name": "Yohannes Sahle",
-  "logo": "https://img.thesports.com/football/player/5f03b0e8c4318cbe5ceb85c7900439ff.png"
+  "logo": "https://img.thesports.com/football/player/5f03b0e8c4318cbe5ceb85c7900439ff.png",
+  "nameKo": "요하네스 살레"
  },
  "x7lm7ph0xk9m2wd": {
   "name": "Hugo Castillo",
@@ -12144,7 +12170,8 @@
  },
  "l7oqdeh1exwr510": {
   "name": "Patrick Sangwa",
-  "logo": null
+  "logo": null,
+  "nameKo": "파트릭 상와"
  },
  "x7lm7php5dnm2wd": {
   "name": "Maksims Rafalskis",
@@ -12255,7 +12282,8 @@
  },
  "y39mp1h9o9emojx": {
   "name": "Rudolph Speid",
-  "logo": "https://img.thesports.com/football/player/cc6a019ed5fc9d85bd8b40ff79449f06.png"
+  "logo": "https://img.thesports.com/football/player/cc6a019ed5fc9d85bd8b40ff79449f06.png",
+  "nameKo": "루돌프 스페이드"
  },
  "l5ergphpd29r8k0": {
   "name": "Masateru Tsujita",
@@ -12543,7 +12571,8 @@
  },
  "zp5rzgh222wq82w": {
   "name": "Emanuel Mesquita",
-  "logo": "https://img.thesports.com/football/player/8674a017a50ffd9d61318f7851eae3cf.png"
+  "logo": "https://img.thesports.com/football/player/8674a017a50ffd9d61318f7851eae3cf.png",
+  "nameKo": "에마누엘 메스키타"
  },
  "23xmvkhgg9yqg8n": {
   "name": "Nelson Valdez",
@@ -12850,7 +12879,8 @@
  },
  "pxwrxlh7990ryk0": {
   "name": "Morena Ramoreboli",
-  "logo": "https://img.thesports.com/football/player/d913e937f8e7acd5a709a56fe9e92d88.png"
+  "logo": "https://img.thesports.com/football/player/d913e937f8e7acd5a709a56fe9e92d88.png",
+  "nameKo": "모레나 라모레볼리"
  },
  "vjxm8gh9j2yr6od": {
   "name": "Mehdi Mrani Alaoui",
@@ -13914,7 +13944,8 @@
  },
  "318q66h2wogqo9j": {
   "name": "Tomokazu Myojin",
-  "logo": null
+  "logo": null,
+  "nameKo": "묘진 토모카즈"
  },
  "4wyrn4h2x8xq86p": {
   "name": "Yevgen Zadorozhniy",

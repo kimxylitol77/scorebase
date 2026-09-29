@@ -72,6 +72,10 @@ async function main() {
     if (c?.name && c.nameKo) legacyKo.set(c.name.trim().toLowerCase(), c.nameKo);
   }
 
+  // 정본(coach-name-canon.json)이 있으면 그 표기가 먼저다
+  const canon = JSON.parse(readFileSync("data/coach-name-canon.json", "utf-8")) as Record<string, string>;
+  for (const [name, ko] of Object.entries(canon)) legacyKo.set(name.trim().toLowerCase(), ko);
+
   let fromLegacy = 0;
   const need = new Set<string>();
   for (const e of Object.values(map)) {
