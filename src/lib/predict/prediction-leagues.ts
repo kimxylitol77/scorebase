@@ -25,4 +25,5 @@ export const RELEGATION_COUNT: Record<string, number> = {
 export const relegationCountOf = (league: string) => RELEGATION_COUNT[league] ?? 0;
 
 /** 리그 1위가 곧 우승이 아닌 리그 — 플레이오프로 우승을 가린다. 화면은 "정규리그 1위"라고 부른다. */
-export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL"]);
+// NHL(2026-09-30) — 우승은 스탠리컵 플레이오프. 정규시즌 시뮬 1위를 "우승 확률"로 부르고 있었다.
+export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL", "NHL"]);

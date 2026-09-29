@@ -352,7 +352,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
   return {
-    title: `${info.name} 예측 — 오늘 경기 승률·우승 확률 시뮬레이션`,
+    // 플레이오프로 우승을 가리는 리그(NHL·KHL·MLS 등)는 시뮬이 정규리그 1위만 낸다 — 검색 제목도 같은 말로.
+    title: `${info.name} 예측 — 오늘 경기 승률·${REGULAR_SEASON_TITLE_LEAGUES.has(upper) ? "정규리그 1위" : "우승"} 확률 시뮬레이션`,
     description: `${info.subtitle}. 매일 갱신하는 ${info.name} 경기별 승률(Elo+시장 배당 모델), Monte Carlo 시즌 시뮬레이션, 우승·플레이오프 확률까지 데이터로 제공.`,
     keywords: [
       `${info.name} 예측`,
@@ -1223,7 +1224,7 @@ export default async function LeaguePredictions({ params }: Props) {
               /* 남은 경기가 아예 없음 — 비시즌·시즌 종료의 정상 상태라 경고색을 쓰지 않는다.
                  (NBA·NHL 이 여름에 여기 들어온다. 끝난 시즌의 1위는 확률이 아니라 사실이다.) */
               <section>
-                <Heading title="우승 확률" subtitle="남은 경기가 없어 계산하지 않습니다" />
+                <Heading title={championLabel} subtitle="남은 경기가 없어 계산하지 않습니다" />
                 <div className="sm:max-w-xl rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-300">
                   <p className="leading-relaxed">
                     시즌이 끝났거나 다음 일정이 아직 등록되지 않았습니다. 남은 경기가 없으면
@@ -1236,7 +1237,7 @@ export default async function LeaguePredictions({ params }: Props) {
               </section>
             ) : (
               <section>
-                <Heading title="우승 확률" subtitle="이번 시즌은 아직 계산하지 않습니다" />
+                <Heading title={championLabel} subtitle="이번 시즌은 아직 계산하지 않습니다" />
                 <div className="sm:max-w-xl rounded-xl border border-amber-300/70 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
                   <p className="font-semibold">우승 확률을 표시하지 않습니다.</p>
                   <p className="mt-1 leading-relaxed">{scheduleIntegrity.reason}</p>

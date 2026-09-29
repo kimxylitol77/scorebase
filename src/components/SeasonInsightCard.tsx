@@ -153,7 +153,8 @@ export default async function SeasonInsightCard({ league }: Props) {
         {topChampPct && (
           <div className="border-t border-black/5 pt-2 dark:border-white/10">
             <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-white/45">
-              {uefa ? "리그페이즈 1위 확률" : "우승 확률"}
+              {/* 예측 페이지와 같은 목록 — 시뮬 1위를 우승이라 부르지 않는 리그(NHL·MLS 등) */}
+              {uefa ? "리그페이즈 1위 확률" : REGULAR_SEASON_TITLE_LEAGUES.has(league) ? "정규시즌 1위 확률" : "우승 확률"}
             </div>
             <div className="flex items-baseline justify-between">
               <span className="truncate text-xs font-medium text-zinc-700 dark:text-white/80">
