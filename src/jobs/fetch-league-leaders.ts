@@ -50,6 +50,7 @@ import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
 import { TS_SHARED_SEASON_LEAGUES } from "@/lib/sports/season-calendar";
 import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
+import { TS_HOCKEY_LEAGUES } from "@/lib/sports/hockey/ts-player-leagues";
 import { fetchKblRecentSeason, fetchKblSeasonPlayerAverages, kblPlayerPhotoUrl, kblSeasonLabel } from "@/lib/sports/kbl-api";
 import { fetchWkblCurrentSeasonGu, fetchWkblPartRank, wkblPhotoUrl, wkblSeasonLabel } from "@/lib/sports/wkbl-api";
 import { wkblFindByName } from "@/lib/sports/wkbl-players";
@@ -892,11 +893,12 @@ export async function runKovo() {
 
 const KHL_MIN_GOALIE_SHOTS = 60; // 두 경기치 — 한 경기 100% 가 1위 되는 것 방지
 
-export async function runKhl(seasonLabel: string) {
+/** league — KHL·유럽 하키(TS_HOCKEY_LEAGUES). 집계 규칙은 같고 이름은 합친 사전(khl-players)에서 찾는다. */
+export async function runKhl(seasonLabel: string, league: string = "KHL") {
   const startYear = Number(seasonLabel.slice(0, 4));
   const seasonStart = new Date(Date.UTC(startYear, 7, 1)); // 8/1 — KHL 정규시즌은 9월 개막
   const matches = await prisma.match.findMany({
-    where: { league: "KHL", status: "FINISHED", startTime: { gte: seasonStart }, theSportsCache: { isNot: null } },
+    where: { league: league, status: "FINISHED", startTime: { gte: seasonStart }, theSportsCache: { isNot: null } },
     select: {
       startTime: true, homeTeamId: true, awayTeamId: true,
       theSportsCache: { select: { detailLive: true } },
@@ -940,7 +942,7 @@ export async function runKhl(seasonLabel: string) {
 
   const teamIds = [...new Set([...acc.values()].map((a) => a.teamId))];
   const teams = await prisma.team.findMany({ where: { id: { in: teamIds } }, select: { id: true, name: true } });
-  const teamName = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name, "KHL") || t.name]));
+  const teamName = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name, league) || t.name]));
   const summary: Record<string, number> = {};
   const write = async (
     code: string, unit: string,
@@ -952,7 +954,7 @@ export async function runKhl(seasonLabel: string) {
       const info = khlPlayerInfo(r.id);
       const en = info?.en ?? r.id;
       await upsertLeader({
-        league: "KHL", category: code, rank: i + 1,
+        league: league, category: code, rank: i + 1,
         playerName: info ? khlPlayerName(info) : en,
         playerNameEn: en,
         externalId: r.id,
@@ -962,7 +964,7 @@ export async function runKhl(seasonLabel: string) {
         season: seasonLabel,
       });
     }
-    await clearOldRanks("KHL", code, seasonLabel, top.length);
+    await clearOldRanks(league, code, seasonLabel, top.length);
     summary[code] = top.length;
   };
   const skaters = [...acc.entries()].filter(([, a]) => !a.goalie);
@@ -1578,7 +1580,9 @@ export async function runFetchLeagueLeaders(opts?: {
   // 배구는 sport 파라미터 union 밖 — 전체 실행(파라미터 없음) 때만 돈다
   if (!sport) await safe("kovo", () => runKovo());
   if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
-  if (!sport || sport === "hockey") await safe("khl", () => runKhl(nhlSeasonLabel));
+  if (!sport || sport === "hockey") {
+    for (const lg of TS_HOCKEY_LEAGUES) await safe(lg === "KHL" ? "khl" : lg.toLowerCase(), () => runKhl(nhlSeasonLabel, lg));
+  }
   if (!sport || sport === "baseball") {
     await safe("mlb", () => runMlb(yearNow));
     await safe("kbo", () => runKbo(yearNow));

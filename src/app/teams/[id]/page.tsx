@@ -702,7 +702,8 @@ export default async function TeamPage({ params }: Props) {
   }
 
   // KHL 로스터 — 정적 사전(data/khl-players.json, ts squad+player 프로필·주간 빌드). 카드는 /players/{tsId}?league=KHL 로 간다.
-  const khlPlayers = team.league === "KHL" ? khlRoster(team.id) : [];
+  //   유럽 하키(hockey-eu-players.json)도 같은 사전 — Team.league 라벨이 대회마다 달라(CHL 전용 팀 등) 리그로 거르지 않고 팀 id 로 찾는다.
+  const khlPlayers = khlRoster(team.id);
   // KBL 로스터 — 정적 사전(data/kbl-players.json, KBL 공식 API 등록 선수·주간 빌드) → /players/{playerNo}?league=KBL
   const kblPlayers = team.league === "KBL" ? kblRoster(team.id) : [];
   // WKBL 로스터 — 정적 사전(data/wkbl-players.json, wkbl.or.kr 등록 선수·주간 빌드) → /players/{pno}?league=WKBL
@@ -1212,7 +1213,7 @@ export default async function TeamPage({ params }: Props) {
                       return (
                         <Link
                           key={p.id}
-                          href={`/players/${p.id}?league=KHL`}
+                          href={`/players/${p.id}?league=${p.league}`}
                           className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors"
                         >
                           <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">

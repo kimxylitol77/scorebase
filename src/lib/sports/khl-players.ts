@@ -1,6 +1,8 @@
-// KHL 선수 사전 — data/khl-players.json (scripts/build-khl-players.ts 주간 빌드) 읽기 전용 로더.
-// 팀 페이지 로스터(팀별 F/D/G)·리더보드 선수명·사진·라이브 이름 폴백이 이 파일을 본다. Vercel 은 ts 호출 없이 json 만 읽는다.
+// KHL·유럽 하키 선수 사전 — data/khl-players.json + hockey-eu-players.json (scripts/build-khl-players.ts [--eu] 주간 빌드) 읽기 전용 로더.
+// 팀 페이지 로스터(팀별 F/D/G)·리더보드 선수명·사진·라이브 이름 폴백·선수 페이지가 이 파일을 본다. Vercel 은 ts 호출 없이 json 만 읽는다.
+// ts player id 는 리그를 가리지 않고 유일해 두 사전을 한 맵으로 합친다.
 import raw from "../../../data/khl-players.json";
+import rawEu from "../../../data/hockey-eu-players.json";
 
 export interface KhlPlayer {
   id: string;
@@ -11,6 +13,8 @@ export interface KhlPlayer {
   no?: number;
   teamTs: string;
   teamId: number;
+  /** 소속 팀 리그 (KHL 사전은 "KHL") — 선수 페이지 정본 주소의 ?league= */
+  league: string;
   photo?: string;
   birth?: string; // YYYY-MM-DD
   height?: number;
@@ -26,18 +30,23 @@ export interface KhlInjury {
   raw: Record<string, unknown>;
 }
 
-const FILE = raw as {
+type PlayerFile = {
   meta?: { updatedAt?: string; injuries?: number; injuriesCheckedAt?: string };
-  players: Record<string, Omit<KhlPlayer, "id">>;
+  players: Record<string, Omit<KhlPlayer, "id" | "league"> & { league?: string }>;
   injuries?: KhlInjury[];
 };
+const FILE = raw as PlayerFile;
+const EU_FILE = rawEu as PlayerFile;
 const BY_ID = new Map<string, KhlPlayer>();
 const BY_TEAM = new Map<number, KhlPlayer[]>();
-for (const [id, p] of Object.entries(FILE.players ?? {})) {
-  const e: KhlPlayer = { id, ...p };
-  BY_ID.set(id, e);
-  if (!BY_TEAM.has(e.teamId)) BY_TEAM.set(e.teamId, []);
-  BY_TEAM.get(e.teamId)!.push(e);
+for (const f of [FILE, EU_FILE]) {
+  for (const [id, p] of Object.entries(f.players ?? {})) {
+    if (BY_ID.has(id)) continue; // KHL 사전 우선 (먼저 읽음)
+    const e: KhlPlayer = { id, ...p, league: p.league ?? "KHL" };
+    BY_ID.set(id, e);
+    if (!BY_TEAM.has(e.teamId)) BY_TEAM.set(e.teamId, []);
+    BY_TEAM.get(e.teamId)!.push(e);
+  }
 }
 
 export const KHL_PLAYERS_UPDATED_AT = FILE.meta?.updatedAt ?? null;

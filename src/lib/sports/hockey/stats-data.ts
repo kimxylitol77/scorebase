@@ -64,8 +64,7 @@ export function nhlHeadshot(seasonId: string, teamAbbr: string, playerId: number
   return `https://assets.nhle.com/mugs/nhl/${seasonId}/${teamAbbr}/${playerId}.png`;
 }
 
-/** ts 경기 캐시 집계 리그 — KHL 만(선수 이름 사전 보유). 리가·스위스·체코는 캐시는 있으나 이름 사전이 없어 후속. */
-export const TS_HOCKEY_LEAGUES = ["KHL"] as const;
+export { TS_HOCKEY_LEAGUES } from "./ts-player-leagues";
 
 /** KHL 시즌 표 — 종료 경기 캐시 detailLive.players 를 선수별 누적. 코드: 20 유형(1 골리·2 스케이터) 23 TOI초 24 세이브 25 선방률 26 골 27 도움 28 유효슛 56 +/-.
  *  fetch-league-leaders runKhl 과 같은 집계 규칙(리더보드 상위 N 대신 전원). 6시간 캐시. */

@@ -6,6 +6,7 @@ import StatsExplorer from "@/components/stats/StatsExplorer";
 import type { StatRow } from "@/lib/sports/baseball/stats-table";
 import { buildHockeyStatRows, columnsForRole, type HockeyRole, type HockeyUnit } from "@/lib/sports/hockey/stats-table";
 import { getNhlStatsData, getTsHockeyStatsData, TS_HOCKEY_LEAGUES } from "@/lib/sports/hockey/stats-data";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
 const ROLE_KO: Record<HockeyRole, string> = { skater: "스케이터", goalie: "골리" };
@@ -21,12 +22,13 @@ function parse(sp: SP) {
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SP> }): Promise<Metadata> {
   const { league, role, unit } = parse(await searchParams);
+  const name = LEAGUE_DISPLAY[league] ?? league; // 리가·스위스 등은 코드 대신 한글 리그명
   return {
-    title: `${league} ${ROLE_KO[role]} 스탯 표 — 시즌 기록·리그 백분위${unit === "pergame" ? " (경기당)" : ""}`,
-    description: `${league} ${ROLE_KO[role]} 전원의 시즌 골·어시스트·포인트·+/-·히트·블록 (골리 GAA·세이브율)을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 하키 스탯 표.`,
+    title: `${name} ${ROLE_KO[role]} 스탯 표 — 시즌 기록·리그 백분위${unit === "pergame" ? " (경기당)" : ""}`,
+    description: `${name} ${ROLE_KO[role]} 전원의 시즌 골·어시스트·포인트·+/-·히트·블록 (골리 GAA·세이브율)을 한 표에서 정렬·검색하고 셀마다 리그 백분위를 확인하는 스코어베이스 하키 스탯 표.`,
     alternates: { canonical: `/hockey/stats?league=${league}&role=${role}` },
-    keywords: [`${league} ${ROLE_KO[role]} 기록`, `${league} 선수 스탯`, `${league} ${role === "goalie" ? "골리 세이브율 순위" : "득점 포인트 순위"}`, "하키 선수 스탯 표", "리그 백분위"],
-    openGraph: { title: `${league} ${ROLE_KO[role]} 스탯 표`, description: `${league} ${ROLE_KO[role]} 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
+    keywords: [`${name} ${ROLE_KO[role]} 기록`, `${name} 선수 스탯`, `${name} ${role === "goalie" ? "골리 세이브율 순위" : "득점 포인트 순위"}`, "하키 선수 스탯 표", "리그 백분위"],
+    openGraph: { title: `${name} ${ROLE_KO[role]} 스탯 표`, description: `${name} ${ROLE_KO[role]} 전원의 시즌 기록과 리그 백분위를 한 표에서.` },
   };
 }
 
@@ -58,7 +60,7 @@ export default async function HockeyStatsPage({ searchParams }: { searchParams: 
       subtitle={`${league} ${data.seasonLabel} 시즌${data.final ? "(최종, 새 시즌 개막 전)" : ""}${!isNhl ? ` (종료 ${(data as { games?: number }).games ?? 0}경기 집계)` : ""} ${ROLE_KO[role]} 전원. 셀 아래 숫자는 규정 표본 안 리그 백분위(높을수록 상위, PIM·패·GAA 는 낮을수록 상위). 규정 = ${role === "goalie" ? "선발" : "출전"} 최다의 40% 이상(${built.minGp}경기, ${built.qualifiedCount}명).`}
       links={[{ href: "/baseball/stats", label: "야구 스탯 표" }, { href: "/soccer/stats", label: "축구 스탯 표" }, { href: "/standings/NHL", label: "NHL 순위표" }, { href: "/hockey", label: "하키 허브" }]}
       pills={[
-        { param: "league", options: LEAGUES.map((l) => ({ value: l, label: l })), value: league, resets: ["team"] },
+        { param: "league", options: LEAGUES.map((l) => ({ value: l, label: LEAGUE_DISPLAY[l] ?? l })), value: league, resets: ["team"] },
         { param: "role", options: [{ value: "skater", label: "스케이터" }, { value: "goalie", label: "골리" }], value: role },
         { param: "unit", options: [{ value: "total", label: "합계" }, { value: "pergame", label: "경기당" }], value: unit },
       ]}
@@ -74,7 +76,7 @@ export default async function HockeyStatsPage({ searchParams }: { searchParams: 
       corner={`${data.seasonLabel} · ${league}`}
       footnote={isNhl
         ? "출처: NHL 공식 통계 API(정규시즌, 6시간 캐시). 히트·블록은 리얼타임 리포트, 나머지는 요약 리포트. 백분위는 같은 역할(스케이터/골리)의 규정 선수끼리 비교한 값이며, 규정 미달 선수는 표에 남기되 백분위를 매기지 않는다. 경기당은 합계 계열만 출전 경기로 나눈 값이다."
-        : "출처: TheSports 경기별 선수 기록을 종료 경기마다 누적(시즌 8/1 이후, 6시간 캐시). 골·도움·유효슛·+/-·TOI 와 골리 세이브·선방률만 제공되며 피슈팅·실점은 세이브와 선방률에서 역산한 값이다. PIM·히트·블록·승패는 소스에 없다. 리가·스위스·체코는 경기 기록은 있으나 선수 이름 사전이 없어 아직 없다."}
+        : "출처: TheSports 경기별 선수 기록을 종료 경기마다 누적(시즌 8/1 이후, 6시간 캐시). 골·도움·유효슛·+/-·TOI 와 골리 세이브·선방률만 제공되며 피슈팅·실점은 세이브와 선방률에서 역산한 값이다. PIM·히트·블록·승패는 소스에 없다."}
     />
   );
 }

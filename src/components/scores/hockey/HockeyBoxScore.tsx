@@ -17,7 +17,7 @@ interface Props {
   players: { home?: HockeyPlayerRow[]; away?: HockeyPlayerRow[] };
   homeNameKo: string;
   awayNameKo: string;
-  /** 선수 페이지가 있는 리그면 이름에 /players/{id}?league= 링크 (현재 KHL 만 — ts id 체계가 같다) */
+  /** 선수 페이지가 있는 리그면 이름에 /players/{id}?league= 링크 (KHL·유럽 하키 — ts id 체계가 같다) */
   playerLinkLeague?: string;
 }
 

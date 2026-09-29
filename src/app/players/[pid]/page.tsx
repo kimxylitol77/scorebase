@@ -42,7 +42,9 @@ import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
 import { wkblPlayer, wkblPosKo } from "@/lib/sports/wkbl-players";
 import { kblPlayer, kblPosKo } from "@/lib/sports/kbl-players";
 import { NhlPlayerView } from "./NhlViews";
-import { KhlPlayerView } from "./KhlViews";
+import { HockeyTsPlayerView } from "./HockeyTsViews";
+import { HOCKEY_TS_PLAYER_LEAGUE_SET } from "@/lib/sports/hockey/ts-player-leagues";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { LolPlayerView } from "./LolViews";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -227,16 +229,19 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       alternates: { canonical },
     };
   }
-  if (league === "KHL") {
+  if (league && HOCKEY_TS_PLAYER_LEAGUE_SET.has(league)) {
+    const lgName = LEAGUE_DISPLAY[league] ?? league;
     const info = khlPlayerInfo(pid);
-    if (!info) return { title: "선수 — KHL", description: "KHL 선수 프로필 · 시즌 기록 · 경기별 기록.", alternates: { canonical } };
+    if (!info) return { title: `선수 — ${lgName}`, description: `${lgName} 선수 프로필 · 시즌 기록 · 경기별 기록.`, alternates: { canonical } };
     const name = khlPlayerName(info);
     const pos = ({ F: "포워드", D: "디펜스", G: "골리" } as Record<string, string>)[info.pos ?? ""] ?? "";
+    const homeName = LEAGUE_DISPLAY[info.league] ?? info.league;
     return {
-      title: `${name} — KHL ${pos || "선수"}${info.no != null ? ` 등번호 ${info.no}번` : ""} · 프로필·기록`,
-      description: `KHL ${name}(${info.en}) 프로필 — 이번 시즌 골·도움·포인트·+/-(골리는 선방률·세이브)와 리그 순위, 경기별 기록, 신장·체중·국적. 스코어베이스.`,
-      keywords: [name, info.en, `${name} 프로필`, `${name} 기록`, "KHL", "러시아 하키"],
-      alternates: { canonical },
+      title: `${name} — ${homeName} ${pos || "선수"}${info.no != null ? ` 등번호 ${info.no}번` : ""} · 프로필·기록`,
+      description: `${homeName} ${name}(${info.en}) 프로필 — 이번 시즌 골·도움·포인트·+/-(골리는 선방률·세이브)와 리그 순위, 경기별 기록, 신장·체중·국적. 스코어베이스.`,
+      keywords: [name, info.en, `${name} 프로필`, `${name} 기록`, homeName, "아이스하키"],
+      // 같은 선수가 소속 리그와 CHL 두 주소로 열린다 — 정본은 소속 리그
+      alternates: { canonical: `/players/${pid}?league=${info.league}` },
     };
   }
   if (league && ["NBA", "NHL", "LOL"].includes(league)) {
@@ -341,7 +346,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (league === "WKBL") return <WkblPlayerView pid={pid} />;
   if (league === "V_LEAGUE" || league === "V_LEAGUE_W") return <KovoPlayerView pid={pid} league={league} />;
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
-  if (league === "KHL") return <KhlPlayerView pid={pid} />;
+  if (league && HOCKEY_TS_PLAYER_LEAGUE_SET.has(league)) return <HockeyTsPlayerView pid={pid} league={league} />;
   if (league === "LOL") return <LolPlayerView pid={pid} />;
   // 축구 8개 리그
   if (league && SOCCER_PLAYER_PAGE_LEAGUE_SET.has(league)) {

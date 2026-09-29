@@ -5,6 +5,7 @@
 // 안 걸림)을 재현 테스트에서 못 잡았다. 판정이 두 곳에 있으면 감시가 화면을 못 따라간다.
 
 import { SOCCER_PLAYER_PAGE_LEAGUE_SET } from "@/lib/players/soccer-player-page";
+import { HOCKEY_TS_PLAYER_LEAGUES } from "@/lib/sports/hockey/ts-player-leagues";
 
 // /players/[pid] 페이지가 view 를 가진 리그.
 // 축구는 페이지가 지원하는 목록을 그대로 쓴다 — 여기만 좁으면 갈 데가 있는데도 링크가 안 걸린다
@@ -15,7 +16,8 @@ const PLAYER_PAGE_LEAGUES = new Set([
   "KBL", // 2026-09-18 — /players/{playerNo}?league=KBL (KblViews)
   "WKBL", // 2026-09-18 — /players/{pno}?league=WKBL (WkblViews)
   "V_LEAGUE", "V_LEAGUE_W", // 2026-09-18 — /players/{code}?league=V_LEAGUE(_W) (KovoViews)
-  "KHL", // 2026-09-29 — /players/{tsId}?league=KHL (KhlViews)
+  // KHL·유럽 하키 — /players/{tsId}?league=… (HockeyTsViews). KHL 2026-09-29, 유럽 6개 같은 날
+  ...HOCKEY_TS_PLAYER_LEAGUES,
 ]);
 
 /** af player id 는 숫자, TheSports player id 는 영숫자 혼합. 링크 분기의 기준. */

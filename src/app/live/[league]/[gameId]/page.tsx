@@ -79,6 +79,7 @@ import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
 import HockeyGoalTimeline, { type HockeyIncident } from "@/components/scores/hockey/HockeyGoalTimeline";
 import HockeyBoxScore, { type HockeyPlayerRow } from "@/components/scores/hockey/HockeyBoxScore";
+import { HOCKEY_TS_PLAYER_LEAGUE_SET } from "@/lib/sports/hockey/ts-player-leagues";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import ConclusionCards, {
   type ConclusionPred,
@@ -1369,7 +1370,7 @@ export default async function GenericLivePage({ params }: Props) {
                 />
               )}
               {dl.players && (
-                <HockeyBoxScore players={dl.players} homeNameKo={homeKo} awayNameKo={awayKo} playerLinkLeague={lg === "KHL" ? "KHL" : undefined} />
+                <HockeyBoxScore players={dl.players} homeNameKo={homeKo} awayNameKo={awayKo} playerLinkLeague={HOCKEY_TS_PLAYER_LEAGUE_SET.has(lg) ? lg : undefined} />
               )}
             </>
           );

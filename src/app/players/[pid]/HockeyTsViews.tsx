@@ -1,4 +1,5 @@
-// KHL 선수 상세 — 헤더(khl-players.json 프로필) + 2탭(개요=시즌 기록·리그 순위 / 경기별). 기록은 종료 경기 캐시 detailLive.players 집계.
+// KHL·유럽 하키 선수 상세 — 헤더(khl-players·hockey-eu-players 프로필) + 2탭(개요=시즌 기록·리그 순위 / 경기별). 기록은 종료 경기 캐시 detailLive.players 집계.
+// ?league= 의 리그 기록을 보여준다(리가 팀 선수를 CHL 로 열면 CHL 기록). 정본 주소는 소속 리그(page.tsx canonical).
 // ts 시즌 선수 통계 API 가 미인가라 /hockey/stats 와 같은 집계(getTsHockeyStatsData)를 쓰고, 경기별은 소속 팀 경기 캐시에서 이 선수 행만 뽑는다.
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { khlPlayerInfo, khlPlayerName, khlAge } from "@/lib/sports/khl-players";
 import { getTsHockeyStatsData } from "@/lib/sports/hockey/stats-data";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { matchLiveHref } from "@/lib/links/match-live-link";
 import AmbientGlow from "@/components/AmbientGlow";
 import ShareCardButton from "@/components/ShareCardButton";
@@ -42,10 +44,10 @@ interface GameRow {
 }
 
 /** 소속 팀의 이번 시즌 종료 경기 캐시에서 이 선수 행만 뽑는다 (이적 전 경기는 빠진다 — 시즌 합계는 리그 전체 집계라 포함). */
-async function khlGameLog(pid: string, teamId: number, seasonStart: Date): Promise<GameRow[]> {
+async function hockeyGameLog(league: string, pid: string, teamId: number, seasonStart: Date): Promise<GameRow[]> {
   const matches = await prisma.match.findMany({
     where: {
-      league: "KHL", status: "FINISHED", startTime: { gte: seasonStart }, theSportsCache: { isNot: null },
+      league, status: "FINISHED", startTime: { gte: seasonStart }, theSportsCache: { isNot: null },
       OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
     },
     select: {
@@ -69,7 +71,7 @@ async function khlGameLog(pid: string, teamId: number, seasonStart: Date): Promi
     const pctRaw = s(25);
     out.push({
       externalId: m.externalId, date: m.startTime, home,
-      oppKo: toKoreanTeamName(home ? m.awayTeam.name : m.homeTeam.name, "KHL"),
+      oppKo: toKoreanTeamName(home ? m.awayTeam.name : m.homeTeam.name, league),
       our: home ? m.homeScore : m.awayScore, opp: home ? m.awayScore : m.homeScore,
       goalie, g: s(26), a: s(27), pm: s(56), sog: s(28), toi: t, saves: s(24),
       svPct: pctRaw > 0 ? (pctRaw > 1 ? pctRaw / 100 : pctRaw) : null,
@@ -78,10 +80,11 @@ async function khlGameLog(pid: string, teamId: number, seasonStart: Date): Promi
   return out;
 }
 
-export async function KhlPlayerView({ pid }: { pid: string }) {
+export async function HockeyTsPlayerView({ pid, league }: { pid: string; league: string }) {
   if (!/^[a-z0-9]{10,20}$/.test(pid)) notFound();
   const info = khlPlayerInfo(pid);
-  const data = await getTsHockeyStatsData("KHL");
+  const data = await getTsHockeyStatsData(league);
+  const leagueName = LEAGUE_DISPLAY[league] ?? league;
   const rows = data.rows.filter((r) => r.tsId === pid);
   if (!info && rows.length === 0) notFound();
 
@@ -92,9 +95,9 @@ export async function KhlPlayerView({ pid }: { pid: string }) {
   const team = info?.teamId
     ? await prisma.team.findUnique({ where: { id: info.teamId }, select: { id: true, name: true, logoUrl: true } })
     : null;
-  const teamKo = team ? toKoreanTeamName(team.name, "KHL") : skater?.team ?? goalieRow?.team ?? "";
+  const teamKo = team ? toKoreanTeamName(team.name, league) : skater?.team ?? goalieRow?.team ?? "";
   const startYear = Number(data.seasonLabel.slice(0, 4));
-  const games = team ? await khlGameLog(pid, team.id, new Date(Date.UTC(startYear, 7, 1))) : [];
+  const games = team ? await hockeyGameLog(league, pid, team.id, new Date(Date.UTC(startYear, 7, 1))) : [];
 
   // 리그 순위 — 스케이터는 포인트·골·도움, 골리는 선방률(3경기 이상). 동률은 같은 순위.
   const rankOf = (pool: typeof data.rows, v: (r: (typeof data.rows)[number]) => number | null | undefined, mine: number | null | undefined) =>
@@ -139,7 +142,7 @@ export async function KhlPlayerView({ pid }: { pid: string }) {
           </table>
         </Card>
       ) : <p className="text-sm text-neutral-500">이번 시즌 출전 기록이 아직 없습니다.</p>}
-      <p className="text-[11px] text-neutral-400 break-keep">ⓘ 공식 시즌 통계가 아니라 경기별 기록을 합산한 값이라 KHL 공식 수치와 조금 다를 수 있습니다. 출처 TheSports.</p>
+      <p className="text-[11px] text-neutral-400 break-keep">ⓘ 공식 시즌 통계가 아니라 경기별 기록을 합산한 값이라 리그 공식 수치와 조금 다를 수 있습니다. 출처 TheSports.</p>
     </div>
   );
 
@@ -158,7 +161,7 @@ export async function KhlPlayerView({ pid }: { pid: string }) {
             return (
               <tr key={g.externalId}>
                 <Td left muted>{g.date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric", timeZone: "Asia/Seoul" })}</Td>
-                <Td left><Link href={matchLiveHref("KHL", g.externalId)} className="hover:underline">{g.home ? "vs" : "@"} {g.oppKo}</Link></Td>
+                <Td left><Link href={matchLiveHref(league, g.externalId)} className="hover:underline">{g.home ? "vs" : "@"} {g.oppKo}</Link></Td>
                 <Td>{res}</Td>
                 {isGoalie ? (
                   <><Td accent>{g.saves}</Td><Td>{g.svPct != null ? g.svPct.toFixed(3) : "—"}</Td><Td muted>{toi(g.toi)}</Td></>
@@ -178,7 +181,7 @@ export async function KhlPlayerView({ pid }: { pid: string }) {
       <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/hockey" className="hover:underline">하키</Link><span>›</span>
-        <Link href="/leagues/KHL" className="hover:underline">KHL</Link>
+        <Link href={`/leagues/${league}`} className="hover:underline">{leagueName}</Link>
         {team && (<><span>›</span><Link href={`/teams/${team.id}`} className="hover:underline">{teamKo}</Link></>)}
         <span>›</span><span className="text-neutral-700 dark:text-neutral-300">{name}</span>
       </nav>
@@ -191,7 +194,7 @@ export async function KhlPlayerView({ pid }: { pid: string }) {
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <Link href="/leagues/KHL" className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white"><ChevronLeft className="h-5 w-5" /></Link>
+            <Link href={`/leagues/${league}`} className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white"><ChevronLeft className="h-5 w-5" /></Link>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name}</h1>
             {info?.no != null && <span className="text-lg font-bold text-neutral-400 tabular-nums">No.{info.no}</span>}
             <ShareCardButton />
@@ -207,7 +210,7 @@ export async function KhlPlayerView({ pid }: { pid: string }) {
                 {teamKo}
               </Link>
             ) : <span>{teamKo}</span>}
-            <span>· KHL</span>
+            <span>· {leagueName}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-2xl">
             {facts.map(([k, v]) => (
