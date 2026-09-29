@@ -1,5 +1,6 @@
 // ice-hockey-match-collector.js — TheSports ice_hockey match/diary → Scorebase API push
 // 30분 주기. NHL 매치 자동 수집 (스케줄 + 점수).
+// + 시즌 전체 일정 (SEASON_SWEEP_LEAGUES, 하루 1회) — match/season?uuid={season_id} (2026-09-30, KHL)
 //
 // 흐름:
 //   1) ice-hockey-team-id-mapping.json 로드 → tsTeamId 화이트리스트
@@ -23,6 +24,12 @@ const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const POLL_INTERVAL_MS = 30 * 60 * 1000; // 30min
 const SWEEP_DAYS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+// 시즌 전체 일정을 받는 리그. diary 는 두 달 앞까지만 준다(2026-09-30 실측 KHL 12월 이후 0건) —
+// 그러면 일정 탭·시즌 시뮬이 잘린 일정을 본다. match/season 은 시즌 전 경기(KHL 750)를 한 번에 준다.
+// season_id 는 diary 에서 본 값을 쓴다 → 하드코딩 없이 다음 시즌으로 넘어간다.
+const SEASON_SWEEP_LEAGUES = new Set(["KHL"]);
+const SEASON_SWEEP_EVERY_MS = 24 * 3600_000;
+const lastSeasonSweep = new Map(); // season_id → 마지막 성공 시각(ms)
 
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
@@ -77,6 +84,15 @@ function finalScore(scores) {
   return { homeScore: h, awayScore: a };
 }
 
+async function fetchSeason(seasonId) {
+  const { data } = await axios.get(`${TS_BASE}/v1/ice_hockey/match/season`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
+    timeout: 60_000,
+  });
+  if (data?.code !== 0) throw new Error(data?.err || `code=${data?.code}`);
+  return Array.isArray(data.results) ? data.results : [];
+}
+
 async function fetchDiary(ymd) {
   const { data } = await axios.get(`${TS_BASE}/v1/ice_hockey/match/diary`, {
     params: { user: TS_USER, secret: TS_SECRET, date: ymd },
@@ -128,6 +144,42 @@ async function poll() {
   const seen = new Set();
   const batch = [];
   const unmapped = [];
+  const seasonIds = new Set();
+  // ts 경기 1건 → push 행 (diary·match/season 공용)
+  const take = (m) => {
+    if (!m.id || seen.has(m.id)) return;
+    seen.add(m.id);
+    // status_id=0 = ABNORMAL(Suggest Hiding) — TheSports 가 숨김 권장. 같은 경기의
+    // 중복/유령 entry 인 경우가 많아 매치 생성 skip (Sweden@Slovakia 중복 사고 2026-05-28).
+    if (m.status_id === 0) return;
+    if (m.status_id === 99) return; // TBD(시간 미정) — SCHEDULED 유령 row 방지 push 제외
+    const league = COMP_TO_LEAGUE[m.unique_tournament_id];
+    if (!league) return;
+    if (!m.home_team_id || !m.away_team_id) return;
+    if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) {
+      unmapped.push({
+        league, tsMatchId: m.id, startTime: new Date((m.match_time || 0) * 1000).toISOString(),
+        tsHomeTeamId: m.home_team_id, tsAwayTeamId: m.away_team_id,
+      });
+      return;
+    }
+    const status = mapStatus(m.status_id);
+    let hs, as;
+    if (status === "LIVE" || status === "FINISHED") {
+      const sc = finalScore(m.scores);
+      if (sc) { hs = sc.homeScore; as = sc.awayScore; }
+    }
+    batch.push({
+      league,
+      tsMatchId: m.id,
+      tsHomeTeamId: m.home_team_id,
+      tsAwayTeamId: m.away_team_id,
+      startTime: new Date((m.match_time || 0) * 1000).toISOString(),
+      status,
+      homeScore: hs,
+      awayScore: as,
+    });
+  };
   for (const offset of SWEEP_DAYS) {
     let raw;
     try {
@@ -137,41 +189,26 @@ async function poll() {
       continue;
     }
     for (const m of raw) {
-      if (!m.id || seen.has(m.id)) continue;
-      seen.add(m.id);
-      // status_id=0 = ABNORMAL(Suggest Hiding) — TheSports 가 숨김 권장. 같은 경기의
-      // 중복/유령 entry 인 경우가 많아 매치 생성 skip (Sweden@Slovakia 중복 사고 2026-05-28).
-      if (m.status_id === 0) continue;
-      if (m.status_id === 99) continue; // TBD(시간 미정) — SCHEDULED 유령 row 방지 push 제외
       const league = COMP_TO_LEAGUE[m.unique_tournament_id];
-      if (!league) continue;
-      if (!m.home_team_id || !m.away_team_id) continue;
-      if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) {
-        unmapped.push({
-          league, tsMatchId: m.id, startTime: new Date((m.match_time || 0) * 1000).toISOString(),
-          tsHomeTeamId: m.home_team_id, tsAwayTeamId: m.away_team_id,
-        });
-        continue;
-      }
-      const status = mapStatus(m.status_id);
-      let hs, as;
-      if (status === "LIVE" || status === "FINISHED") {
-        const sc = finalScore(m.scores);
-        if (sc) { hs = sc.homeScore; as = sc.awayScore; }
-      }
-      batch.push({
-        league,
-        tsMatchId: m.id,
-        tsHomeTeamId: m.home_team_id,
-        tsAwayTeamId: m.away_team_id,
-        startTime: new Date((m.match_time || 0) * 1000).toISOString(),
-        status,
-        homeScore: hs,
-        awayScore: as,
-      });
+      if (league && SEASON_SWEEP_LEAGUES.has(league) && m.season_id) seasonIds.add(m.season_id);
+      take(m);
     }
   }
   console.log(`    수집 ${batch.length}건`);
+
+  // 시즌 전체 일정 — 하루 한 번. diary 에서 이미 받은 경기는 seen 으로 건너뛴다.
+  for (const sid of seasonIds) {
+    if (Date.now() - (lastSeasonSweep.get(sid) ?? 0) < SEASON_SWEEP_EVERY_MS) continue;
+    try {
+      const before = batch.length;
+      const rows = await fetchSeason(sid);
+      for (const m of rows) take(m);
+      lastSeasonSweep.set(sid, Date.now());
+      console.log(`    시즌 일정 ${sid}: ${rows.length}경기 중 신규 push ${batch.length - before}건`);
+    } catch (e) {
+      console.error(`    ✗ match/season ${sid}: ${e.message}`);
+    }
+  }
 
   const CHUNK = 100;
   let totalUp = 0, totalSkip = 0;
