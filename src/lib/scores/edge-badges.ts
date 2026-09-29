@@ -109,7 +109,8 @@ export function computeEdgeBadges(m: EdgeInput): EdgeBadge[] {
   // 골리 — 세이브율이 높은 쪽.
   const hg = parseJson(m.homeGoalie);
   const ag = parseJson(m.awayGoalie);
-  if (hg && ag) {
+  // 추정 골리(KHL projected)는 누가 나올지 확정이 아니라 우세 칩을 달지 않는다.
+  if (hg && ag && !hg.projected && !ag.projected) {
     const hs2 = num(hg.savePctg), as2 = num(ag.savePctg);
     const hgp = num(hg.gamesPlayed) ?? 0, agp = num(ag.gamesPlayed) ?? 0;
     if (hs2 != null && as2 != null && hgp >= T.goalieMinGp && agp >= T.goalieMinGp && Math.abs(hs2 - as2) >= T.goalieSvGap) {

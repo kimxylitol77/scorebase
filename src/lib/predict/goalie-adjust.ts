@@ -10,6 +10,8 @@ interface GoalieStats {
   savePctg?: number;
   /** 등판 수 — 신뢰도 가중에 사용 */
   gamesPlayed?: number;
+  /** 발표가 아닌 추정 골리(KHL — 직전 경기 선발). 보정 계수가 NHL 기준이라 적용하지 않는다(fetch-khl-goalies). */
+  projected?: boolean;
 }
 
 export interface GoalieAdjustment {
@@ -22,6 +24,8 @@ export function computeGoalieAdjustment(
   awayGoalie: GoalieStats | null,
 ): GoalieAdjustment {
   if (!homeGoalie?.gaa || !awayGoalie?.gaa)
+    return { homeShift: 0, applied: false };
+  if (homeGoalie.projected || awayGoalie.projected)
     return { homeShift: 0, applied: false };
 
   const minGp = Math.min(

@@ -358,9 +358,9 @@ export default async function GenericLivePage({ params }: Props) {
   // 주심 카드 성향 (축구) — 리그 단위 6시간 캐시. 축구가 아니거나 표본 미달이면 null.
   const refereeStats = await getRefereeCardTendency(lg, match.referee);
 
-  // NHL 골리 (다른 리그는 null)
-  const homeGoalie = lg === "NHL" ? parseGoalie(match.homeGoalie) : null;
-  const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
+  // NHL 골리(공식) · KHL 예상 골리(fetch-khl-goalies) — 다른 리그는 null
+  const homeGoalie = lg === "NHL" || lg === "KHL" ? parseGoalie(match.homeGoalie) : null;
+  const awayGoalie = lg === "NHL" || lg === "KHL" ? parseGoalie(match.awayGoalie) : null;
 
   const isSoccer = SOCCER_LEAGUES.has(lg);
 
@@ -1343,7 +1343,8 @@ export default async function GenericLivePage({ params }: Props) {
       {/* 축구 카드(라인업·팀통계·하프타임·트렌드·골분포·H2H·구장·예측·시즌·다음경기)는
           아래 MatchInsight 탭(라인업·팀 통계·맞대결·경기 정보)으로 이동 — soccerTabs 참고. */}
 
-      {lg === "NHL" && (homeGoalie || awayGoalie) && (
+      {/* KHL 은 추정 골리라 경기 전에만 — 시작 뒤엔 아래 박스스코어가 실제 출전 골리를 보여 준다 */}
+      {(lg === "NHL" || (lg === "KHL" && match.status === "SCHEDULED")) && (homeGoalie || awayGoalie) && (
         <NhlGoalieInsight
           homeGoalie={homeGoalie}
           awayGoalie={awayGoalie}

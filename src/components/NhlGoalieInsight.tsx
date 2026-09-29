@@ -1,5 +1,6 @@
-// NHL 경기 시작 전/후 골리 매치업 카드 — 사진 + GAA/Save%/W-L/SO.
-// 데이터: DB Match.{home,away}Goalie JSON. /live/NHL/[gameId] 에서 사용.
+// NHL·KHL 경기 시작 전/후 골리 매치업 카드 — 사진 + GAA/Save%/W-L/SO.
+// 데이터: DB Match.{home,away}Goalie JSON. /live/NHL·/live/KHL 에서 사용.
+// KHL 은 발표 소스가 없어 직전 경기 선발 기준 추정(projected) — 제목·출처를 "예상" 으로 바꾼다.
 
 import Link from "next/link";
 
@@ -13,6 +14,12 @@ export interface GoalieInfo {
   gamesPlayed?: number | null;
   shutouts?: number | null;
   isBest?: boolean;
+  /** 사진 URL (KHL — ts 프로필). 없으면 NHL 헤드샷 규칙 */
+  photo?: string | null;
+  /** 선수 페이지 리그 (기본 NHL) */
+  league?: string;
+  /** 발표가 아닌 추정 (KHL 직전 경기 선발) */
+  projected?: boolean;
 }
 
 interface Props {
@@ -51,6 +58,7 @@ export default function NhlGoalieInsight({
     awayGoalie?.gaa != null &&
     awayGoalie.gaa < homeGoalie.gaa;
 
+  const projected = !!(homeGoalie?.projected || awayGoalie?.projected);
   if (!homeGoalie && !awayGoalie) {
     return (
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 text-center text-sm text-neutral-500">
@@ -63,10 +71,10 @@ export default function NhlGoalieInsight({
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-4">
       <div className="flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-neutral-500">
         <span>🥅</span>
-        <span>오늘의 선발 골리 매치업</span>
+        <span>{projected ? "예상 선발 골리" : "오늘의 선발 골리 매치업"}</span>
         <span className="text-neutral-300 dark:text-neutral-700">·</span>
         <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
-          NHL 공식
+          {projected ? "직전 경기 선발 기준" : "NHL 공식"}
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -86,6 +94,7 @@ export default function NhlGoalieInsight({
       {(homeGoalie?.gaa != null || awayGoalie?.gaa != null) && (
         <p className="text-[11px] text-neutral-500 leading-relaxed">
           ⓘ GAA(평균실점)는 낮을수록, Save%(세이브 성공률)는 높을수록 좋습니다.
+          {projected && " KHL 은 선발 골리 발표 자료가 없어 각 팀 직전 경기 선발을 보여 줍니다. 실제 선발은 다를 수 있고, 기록은 이번 시즌 경기 기록 합산입니다."}
         </p>
       )}
     </div>
@@ -113,8 +122,8 @@ function GoaliePanel({
       </div>
     );
   }
-  const photo = nhlHeadshot(goalie.pid);
-  const href = goalie.pid != null ? `/players/${goalie.pid}?league=NHL` : null;
+  const photo = goalie.photo ?? (goalie.league && goalie.league !== "NHL" ? null : nhlHeadshot(goalie.pid));
+  const href = goalie.pid != null ? `/players/${goalie.pid}?league=${goalie.league ?? "NHL"}` : null;
   const nameNode = href ? (
     <Link
       href={href}

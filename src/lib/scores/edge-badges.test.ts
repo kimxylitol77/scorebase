@@ -37,3 +37,9 @@ test("순위 칩과 이닝 파서", () => {
   assert.equal(roughInnings("66 2/3"), 66);
   assert.equal(roughInnings(null), null);
 });
+
+test("추정 골리(KHL projected)는 세이브율 차이가 커도 골리 칩을 달지 않는다", () => {
+  const g = (sv: number, projected?: boolean) => JSON.stringify({ savePctg: sv, gamesPlayed: 20, ...(projected ? { projected } : {}) });
+  assert.equal(computeEdgeBadges({ status: "SCHEDULED", homeGoalie: g(0.9), awayGoalie: g(0.93, true) }).length, 0);
+  assert.deepEqual(computeEdgeBadges({ status: "SCHEDULED", homeGoalie: g(0.9), awayGoalie: g(0.93) }).map((b) => b.key), ["goalie"]);
+});
