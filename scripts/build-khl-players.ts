@@ -1,4 +1,7 @@
-// KHL 선수 사전 빌드 — TheSports team/squad/list + player/list 프로필 → data/khl-players.json (+Haiku 한글명)
+// KHL·유럽 하키 선수 사전 빌드 — TheSports team/squad/list + player/list 프로필 → data/khl-players.json (+Haiku 한글명)
+//   --eu 면 유럽 6개 대회(리가·스위스·체코·슬로바키아·덴마크·CHL) 팀 → data/hockey-eu-players.json (2026-09-29)
+//     유럽 팀은 ts team/squad/list 가 빈 배열이라(2026-09-29 실측 79팀 전부) 이번 시즌 경기 캐시 detailLive.players 에
+//     나온 선수로 명단을 만든다. 소속 = 가장 최근 경기의 팀. 등번호는 소스에 없다.
 //
 // 흐름:
 //   1) ice-hockey-team-id-mapping.json 의 KHL 22팀(tsId→ourId)
@@ -9,7 +12,7 @@
 //   5) /v1/ice_hockey/team/injury/list?uuid={tsTeamId} → 부상자 (2026-09-18 실측 22팀 전부 빈 배열 — 권한은 열려 있어
 //      데이터가 들어오기 시작하면 팀 페이지 로스터에 자동 표시. 구조는 미확인이라 원본 필드를 그대로 보존한다)
 // 소비처: 팀 페이지 로스터 · KHL 리더보드(선수명·사진) · 라이브 골 타임라인/박스스코어(nhl-live-names 폴백)
-// 실행: env -u ANTHROPIC_API_KEY npx tsx scripts/build-khl-players.ts   (weekly-static-refresh ⑪-b)
+// 실행: env -u ANTHROPIC_API_KEY npx tsx scripts/build-khl-players.ts [--eu]   (weekly-static-refresh ⑪-b)
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local", override: true });
 dotenv.config();
@@ -17,9 +20,11 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import rawMapping from "../src/lib/sports/thesports/ice-hockey-team-id-mapping.json";
 
-const OUT = "data/khl-players.json";
-const SLIM_OUT = "data/khl-player-names.json";
-const LEAGUE = "KHL";
+const EU = process.argv.includes("--eu");
+const OUT = EU ? "data/hockey-eu-players.json" : "data/khl-players.json";
+const SLIM_OUT = EU ? "data/hockey-eu-player-names.json" : "data/khl-player-names.json";
+// CHL 은 각국 1부 팀이 모이는 대항전 — 국내 리그 팀과 tsId 가 겹치면 국내 리그 쪽을 소속으로 둔다(배열 순서 = 우선순위).
+const LEAGUES = EU ? ["LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL", "CHL_HOCKEY"] : ["KHL"];
 const TS_USER = process.env.THESPORTS_USER || "";
 const TS_SECRET = process.env.THESPORTS_SECRET || "";
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
@@ -40,6 +45,8 @@ export interface KhlPlayerEntry {
   no?: number;
   teamTs: string;
   teamId: number; // 우리 Team.id
+  /** 소속 팀의 리그 (EU 사전만 — KHL 사전은 생략 = KHL) */
+  league?: string;
   photo?: string;
   birth?: string; // YYYY-MM-DD
   height?: number;
@@ -85,7 +92,17 @@ async function loadHockeyCountries() {
 }
 
 interface MapEntry { ourId: number; ourName: string; ourLeague: string; tsId: string }
-const teams = (rawMapping as MapEntry[]).filter((m) => m.ourLeague === LEAGUE);
+const teams: MapEntry[] = [];
+for (const lg of LEAGUES)
+  for (const m of rawMapping as MapEntry[])
+    if (m.ourLeague === lg && !teams.some((t) => t.tsId === m.tsId)) teams.push(m);
+
+// 팀 로스터는 G·D·F 세 묶음 — 유럽 프로필엔 C·LW·RW·"F-D" 가 섞여 온다(2026-09-29 실측 135명). 공격수는 F 로.
+function normPos(p: string | undefined): string | undefined {
+  if (!p) return undefined;
+  if (p === "G" || p === "D") return p;
+  return /^(F|C|LW|RW|W)\b/.test(p) ? "F" : p;
+}
 
 function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
 
@@ -117,8 +134,11 @@ interface PlayerRes {
 
 async function haikuTranslate(batch: Array<{ id: string; en: string }>): Promise<Record<string, string>> {
   const prompt =
-    `다음 KHL(러시아 아이스하키) 선수 영문 이름을 한국 스포츠 미디어 표기로 변환해주세요.\n` +
-    `- 풀네임(이름 성). 러시아어 로마자 표기는 러시아어 발음 관용 표기로. "Alexander Ovechkin"→알렉산드르 오베치킨, "Nikita Gusev"→니키타 구세프, "Vadim Shipachyov"→바딤 시파초프\n` +
+    (EU
+      ? `다음 유럽 아이스하키 리그(핀란드·스위스·체코·슬로바키아·덴마크·스웨덴·독일 등) 선수 영문 이름을 한국 스포츠 미디어 표기로 변환해주세요.\n` +
+        `- 풀네임(이름 성). 선수 출신 나라의 발음 관용 표기로. "Patrik Laine"→파트리크 라이네, "David Pastrnak"→다비드 파스트르낙, "Nico Hischier"→니코 히시어\n`
+      : `다음 KHL(러시아 아이스하키) 선수 영문 이름을 한국 스포츠 미디어 표기로 변환해주세요.\n` +
+        `- 풀네임(이름 성). 러시아어 로마자 표기는 러시아어 발음 관용 표기로. "Alexander Ovechkin"→알렉산드르 오베치킨, "Nikita Gusev"→니키타 구세프, "Vadim Shipachyov"→바딤 시파초프\n`) +
     `- 북미·유럽 외국인 선수는 그 나라 관용 표기. "Josh Leivo"→조시 레이보, "Rob Hamilton"→롭 해밀턴\n` +
     `- 자신없으면 그 entry 제외 (틀린 음역보다 누락이 나음).\n\n` +
     `선수 list:\n` +
@@ -147,6 +167,39 @@ async function haikuTranslate(batch: Array<{ id: string; en: string }>): Promise
   } catch { return {}; }
 }
 
+/** EU — 이번 시즌 종료 경기 캐시에서 팀별 출전 선수 (tsTeamId → squad 꼴). 경기는 시간순이라 마지막 팀이 현 소속. */
+async function squadsFromBoxScores(): Promise<Map<string, SquadRes["squad"]>> {
+  const { prisma } = await import("../src/lib/db"); // Neon 콜드 스타트 재시도 포함
+  const now = new Date();
+  const seasonStart = new Date(Date.UTC(now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1, 7, 1));
+  const matches = await prisma.match.findMany({
+    where: { league: { in: LEAGUES }, status: "FINISHED", startTime: { gte: seasonStart }, theSportsCache: { isNot: null } },
+    select: { homeTeamId: true, awayTeamId: true, theSportsCache: { select: { detailLive: true } } },
+    orderBy: { startTime: "asc" },
+  });
+  await prisma.$disconnect();
+  const tsByOurId = new Map<number, string>();
+  for (const t of teams) if (!tsByOurId.has(t.ourId)) tsByOurId.set(t.ourId, t.tsId);
+  const latest = new Map<string, { teamTs: string; goalie: boolean }>();
+  for (const m of matches) {
+    const dl = m.theSportsCache?.detailLive as { players?: Record<"home" | "away", Array<{ id: string; stats?: Array<[number, number]> }> | undefined> } | null;
+    for (const side of ["home", "away"] as const) {
+      const teamTs = tsByOurId.get(side === "home" ? m.homeTeamId : m.awayTeamId);
+      if (!teamTs) continue;
+      for (const r of dl?.players?.[side] ?? []) {
+        if (r?.id) latest.set(r.id, { teamTs, goalie: r.stats?.find(([k]) => k === 20)?.[1] === 1 });
+      }
+    }
+  }
+  const out = new Map<string, SquadRes["squad"]>();
+  for (const [pid, v] of latest) {
+    if (!out.has(v.teamTs)) out.set(v.teamTs, []);
+    out.get(v.teamTs)!.push({ player_id: pid, position: v.goalie ? "G" : undefined });
+  }
+  console.log(`▶ 경기 캐시 ${matches.length}경기 · 출전 선수 ${latest.size}명`);
+  return out;
+}
+
 async function main() {
   const outPath = resolve(OUT);
   let existing: Record<string, KhlPlayerEntry> = {};
@@ -154,14 +207,19 @@ async function main() {
     try { existing = (JSON.parse(readFileSync(outPath, "utf8")) as OutFile).players ?? {}; } catch { existing = {}; }
   }
   await loadHockeyCountries();
-  console.log(`▶ KHL ${teams.length}팀 · 기존 사전 ${Object.keys(existing).length}명 · 국가 ${COUNTRY_NAME.size}`);
+  console.log(`▶ ${LEAGUES.join("·")} ${teams.length}팀 · 기존 사전 ${Object.keys(existing).length}명 · 국가 ${COUNTRY_NAME.size}`);
 
+  const euSquads = EU ? await squadsFromBoxScores() : null;
   const players: Record<string, KhlPlayerEntry> = {};
   let fetched = 0;
   for (const t of teams) {
-    const squad = await tsGet<SquadRes[]>("team/squad/list", t.tsId);
-    const list = squad?.[0]?.squad ?? [];
-    await sleep(CALL_GAP_MS);
+    let list: SquadRes["squad"];
+    if (euSquads) list = euSquads.get(t.tsId) ?? [];
+    else {
+      const squad = await tsGet<SquadRes[]>("team/squad/list", t.tsId);
+      list = squad?.[0]?.squad ?? [];
+      await sleep(CALL_GAP_MS);
+    }
     let n = 0;
     for (const s of list) {
       if (!s.player_id) continue;
@@ -190,10 +248,11 @@ async function main() {
       profile.natKo = nat ? COUNTRY_KO[nat] : undefined;
       players[s.player_id] = {
         ...(profile as KhlPlayerEntry),
-        pos: s.position || profile.pos,
+        pos: normPos(s.position || profile.pos),
         no: s.shirt_number || undefined,
         teamTs: t.tsId,
         teamId: t.ourId,
+        ...(EU ? { league: t.ourLeague } : {}),
       };
       n++;
     }
@@ -204,7 +263,7 @@ async function main() {
   // 부상자 — 팀 단위. 빈 배열이 정상 상태(2026-09-18 기준)라 0건이어도 실패가 아니다.
   const injuries: KhlInjuryEntry[] = [];
   let injuryErr = 0;
-  for (const t of teams) {
+  for (const t of EU ? [] : teams) {
     const res = await tsGet<InjuryRes[]>("team/injury/list", t.tsId);
     await sleep(CALL_GAP_MS);
     if (!res) { injuryErr++; continue; }

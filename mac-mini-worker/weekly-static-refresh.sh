@@ -89,6 +89,8 @@ log "⑪-e V-리그 현역 선수 사전 (KOVO user-api 팀 로스터+프로필 
 npx tsx --env-file=.env.local scripts/build-kovo-players.ts 2>&1 | tail -2 || true
 log "⑪-b KHL 선수 사전 (ts squad+player 프로필 → data/khl-players.json, Haiku 한글명 — 팀 로스터·리더보드·라이브 이름)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-khl-players.ts' 2>&1 | tail -2 || true
+log "⑪-f 유럽 하키 선수 사전 (리가·스위스·체코·슬로바키아·덴마크·CHL — 경기 캐시 출전 선수 + ts 프로필 → data/hockey-eu-players.json)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-khl-players.ts --eu' 2>&1 | tail -2 || true
 log "⑫ NHL 부상자 한글명 (Haiku, ESPN injuries — /injuries/NHL)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-injury-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑬ KBO·NPB 로스터 (koreabaseball·npb scrape — 支配下 1군)"
