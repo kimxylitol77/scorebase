@@ -1763,6 +1763,35 @@ model ChatLog {
   @@index([createdAt])
 }
 
+/// 챗봇 대화 하루(KST) 채점 결과 — /api/cron/chat-review 가 전날분을 upsert. 생성 SQL: prisma/sql/create-chat-review.sql
+model ChatReview {
+  id        Int      @id @default(autoincrement())
+  day       String   @unique // "2026-09-28" (KST)
+  total     Int      @default(0)
+  answered  Int      @default(0)
+  reasked   Int      @default(0) // 되물음(리그·경기 재질문)
+  failed    Int      @default(0) // 못 답함
+  suspect   Int      @default(0) // 근거 없는 단정 의심
+  /// { demands: [{label,count,examples}], cases: [{verdict,question,answer,note}], summary }
+  detail    Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// 챗봇 행동 규칙 — 채점기가 PROPOSED 로 제안, 관리자가 ACTIVE 로 승인하면 /api/chat 시스템 프롬프트에 들어간다.
+model ChatbotRule {
+  id        Int       @id @default(autoincrement())
+  text      String
+  reason    String    @default("")
+  examples  Json      @default("[]") // 근거가 된 질문들
+  status    String    @default("PROPOSED") // PROPOSED | ACTIVE | REJECTED | OFF
+  sourceDay String?
+  createdAt DateTime  @default(now())
+  decidedAt DateTime?
+
+  @@index([status])
+}
+
 /// 회원 커스텀 예측 봇 — 손잡이(가중치) 5종 저장. 확률 재계산·손잡이 정의는 src/lib/predict/member-bot.ts.
 /// 테이블은 raw SQL 로 생성(scripts/create-member-bot-tables.mjs — db push 금지 패턴).
 /// User 관계 없이 userId 만 기록(manual join — MatchVote 전례, 기존 모델 무변경).

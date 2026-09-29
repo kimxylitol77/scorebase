@@ -27,6 +27,7 @@ export const CRON_REGISTRY: {
   { name: "standings-collect", label: "축구 순위", maxAgeH: 28 },
   { name: "baseball-standings", label: "야구 순위", maxAgeH: 28 },
   { name: "archive-standings", label: "시즌 순위 아카이브", maxAgeH: 28 },
+  { name: "chat-review", label: "챗봇 대화 자동 점검", maxAgeH: 28 },
   { name: "baseball-season-stats", label: "야구 시즌스탯", maxAgeH: 28 },
   { name: "kbo-player-logs", label: "KBO 경기별 선수 로그", maxAgeH: 28 },
   { name: "npb-player-logs", label: "NPB 경기별 선수 로그", maxAgeH: 28 },

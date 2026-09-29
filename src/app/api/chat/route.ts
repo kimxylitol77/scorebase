@@ -7,6 +7,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { claude, CLAUDE_MODEL } from "@/lib/ai/claude";
 import { trackLlmUsage } from "@/lib/ai/usage-track";
 import { TOOL_DEFS, executeTool } from "@/lib/chatbot/tools";
+import { getActiveChatRulesBlock } from "@/lib/chatbot/rules";
 import { consumeChatQuota, limitMessage } from "@/lib/rate-limit-distributed";
 import { prisma } from "@/lib/db";
 import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -180,6 +181,9 @@ export async function POST(req: Request) {
       cache_control: { type: "ephemeral" },
     },
   ];
+  // 점검 루프에서 승인된 규칙 — 기본 프롬프트와 분리해 규칙이 바뀌어도 기본 캐시가 안 깨진다(조회 실패는 무시).
+  const rulesBlock = await getActiveChatRulesBlock().catch(() => null);
+  if (rulesBlock) systemBlocks.push({ type: "text", text: rulesBlock });
   // 경기 컨텍스트는 캐시된 프롬프트와 분리(경기마다 캐시 무효화 방지).
   if (matchContext) {
     systemBlocks.push({ type: "text", text: matchContext });

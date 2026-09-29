@@ -1,5 +1,6 @@
 // 챗봇 대화 로그 뷰어 — ChatLog 테이블 read 전용(과금 0). 요약·인기질문·최근 대화 목록.
 import { prisma } from "@/lib/db";
+import ChatReviewPanel from "./ChatReviewPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,8 @@ export default async function ChatLogsPage({
           전체 {total.toLocaleString()}건 · 최근 24시간 {recent24h.toLocaleString()}건
         </p>
       </header>
+
+      <ChatReviewPanel />
 
       <section>
         <h2 className="text-lg font-semibold mb-3">인기 질문 Top 20</h2>

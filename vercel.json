@@ -197,6 +197,10 @@
       "schedule": "15 21 * * *"
     },
     {
+      "path": "/api/cron/chat-review",
+      "schedule": "0 0 * * *"
+    },
+    {
       "path": "/api/cron/baseball-season-stats",
       "schedule": "30 19 * * *"
     },
