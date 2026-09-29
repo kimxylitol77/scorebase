@@ -14,6 +14,7 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { withoutPreseason } from "@/lib/predict/preseason";
 import { PREDICTION_LEAGUES, REGULAR_SEASON_TITLE_LEAGUES, type PredictionLeague } from "@/lib/predict/prediction-leagues";
 import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
@@ -411,7 +412,7 @@ export default async function LeaguePredictions({ params }: Props) {
     where: { league: upper },
     select: matchSelect,
   });
-  const seasonSel = selectSeasonMatches(allLeagueMatches, upper);
+  const seasonSel = selectSeasonMatches(await withoutPreseason(allLeagueMatches, upper), upper);
   const seasonStart = seasonSel.seasonStart;
   let dbMatches = seasonSel.season;
   // 야구 올스타전(드림·나눔 / All-Stars / 센트럴·퍼시픽)은 정규 팀이 아니라 시뮬·순위를 오염시킨다

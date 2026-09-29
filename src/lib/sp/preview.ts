@@ -5,6 +5,7 @@ import { generate } from "@/lib/ai/claude";
 import { buildMatchContext, enrichContextWithApiFootball } from "@/lib/predict/build-context";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { withoutPreseason } from "@/lib/predict/preseason";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import type { PreviewContext } from "@/prompts/match-preview";
 import { fetchKeyMatches, fetchPanelPicks, type KeyMatch, type PanelPick } from "./data";
@@ -158,7 +159,7 @@ export async function generateSpPreview(m: KeyMatch, opts: { leagueMatches?: Pre
   const leagueMatches = opts.leagueMatches ?? (await loadLeagueMatches(m.league));
   // 순위·전적·홈원정은 이번 시즌 경기만(calcStandings 는 시즌을 안 자른다 — 첫 생성에서 "23팀 42경기 97점" 오류 실측).
   // Elo 는 시즌을 넘어 누적돼야 하므로 전체 경기로 따로 계산해 덮어쓴다(season-matches.ts 주석과 같은 규칙).
-  const sel = selectSeasonMatches(leagueMatches, m.league, row.startTime);
+  const sel = selectSeasonMatches(await withoutPreseason(leagueMatches, m.league), m.league, row.startTime);
   let ctx = buildMatchContext(sel.season, m.league, row.homeTeamId, row.awayTeamId, row.startTime, row.homeTeam.name, row.awayTeam.name);
   const eloAll = calcEloTable(leagueMatches.filter((x) => x.startTime.getTime() < row.startTime.getTime()));
   ctx.elo = { home: getElo(eloAll, row.homeTeamId), away: getElo(eloAll, row.awayTeamId) };

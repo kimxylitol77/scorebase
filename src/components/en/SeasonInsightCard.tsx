@@ -6,6 +6,7 @@ import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { withoutPreseason } from "@/lib/predict/preseason";
 import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { toEnglishTeamName } from "@/lib/i18n/en";
 import { formatChampionPct } from "@/lib/format";
@@ -62,7 +63,7 @@ export default async function SeasonInsightCard({ league }: Props) {
   // 올스타전 제외 — MLB All-Stars 가 순위표에 정규팀처럼 끼어든다
   const allMatches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
   // 순위·시뮬은 이번 시즌만(예측 페이지와 같은 규칙). 전체 경기로 계산하면 지난 시즌 우승팀이 1위로 남는다.
-  const { season: matches, isPreviousSeason } = selectSeasonMatches(allMatches, league);
+  const { season: matches, isPreviousSeason } = selectSeasonMatches(await withoutPreseason(allMatches, league), league);
 
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;

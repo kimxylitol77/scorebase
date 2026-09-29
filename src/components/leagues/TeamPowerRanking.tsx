@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { calcEloTable, STARTING_ELO } from "@/lib/predict/elo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { withoutPreseason } from "@/lib/predict/preseason";
 import { toKoreanTeamName } from "@/lib/team-names";
 import TeamBadge from "@/components/TeamBadge";
 import CollapseSection from "@/components/CollapseSection";
@@ -42,10 +43,14 @@ export default async function TeamPowerRanking({ league, leagueName }: { league:
   const upper = league.toUpperCase();
   const cfg = CFG[upper] ?? CFG.NHL;
   const seasonStart = currentSeasonStart(upper);
-  let dbMatches = await prisma.match.findMany({
-    where: { league: upper, ...(seasonStart ? { startTime: { gte: seasonStart } } : {}) },
-    select: matchSelect,
-  });
+  // NHL 프리시즌은 빼고 센다 — 개막 전에 프리시즌 성적이 "이번 시즌" 파워랭킹이 되던 것 (preseason.ts)
+  let dbMatches = await withoutPreseason(
+    await prisma.match.findMany({
+      where: { league: upper, ...(seasonStart ? { startTime: { gte: seasonStart } } : {}) },
+      select: matchSelect,
+    }),
+    upper,
+  );
   // 전환기(완료 <10)엔 직전 시즌 폴백 — 문구는 지난 시즌 기준으로, 표는 접이식 아카이브.
   let prevSeasonMode = false;
   if (seasonStart && dbMatches.filter((m) => m.status === "FINISHED").length < 10) {

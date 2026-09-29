@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { runMonteCarlo, type MonteCarloRow } from "@/lib/predict/monte-carlo";
 import { checkScheduleIntegrity } from "@/lib/predict/schedule-integrity";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
+import { withoutPreseason } from "@/lib/predict/preseason";
 import { stripBaseballAllStarMatches } from "@/lib/sports/baseball/allstar";
 import { relegationCountOf } from "@/lib/predict/prediction-leagues";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -86,7 +87,7 @@ async function computeLeagueSeasonSim(league: string): Promise<LeagueSeasonSim> 
     where: { league },
     select: { id: true, league: true, status: true, homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true, startTime: true },
   });
-  const sel = selectSeasonMatches(all, league);
+  const sel = selectSeasonMatches(await withoutPreseason(all, league), league); // NHL 프리시즌 제외 (preseason.ts)
   let matches: PredictMatch[] = stripBaseballAllStarMatches(sel.season).map((m) => ({ ...m }));
   if (league === "NBA") {
     const teams = await prisma.team.findMany({ where: { league }, select: { id: true, shortName: true } });
