@@ -209,7 +209,10 @@ async function main() {
   await loadHockeyCountries();
   console.log(`▶ ${LEAGUES.join("·")} ${teams.length}팀 · 기존 사전 ${Object.keys(existing).length}명 · 국가 ${COUNTRY_NAME.size}`);
 
-  const euSquads = EU ? await squadsFromBoxScores() : null;
+  // EU 는 squad 가 비어 경기 캐시가 명단 전부. KHL 은 squad 가 정본이고, squad 에 없는 출전 선수(9/29 실측 45명 —
+  //  골리 카드·스탯 표에 원본 id 로 떴다)만 경기 캐시에서 보탠다.
+  const boxSquads = await squadsFromBoxScores();
+  const euSquads = EU ? boxSquads : null;
   const players: Record<string, KhlPlayerEntry> = {};
   let fetched = 0;
   for (const t of teams) {
@@ -219,6 +222,8 @@ async function main() {
       const squad = await tsGet<SquadRes[]>("team/squad/list", t.tsId);
       list = squad?.[0]?.squad ?? [];
       await sleep(CALL_GAP_MS);
+      const inSquad = new Set(list.map((x) => x.player_id));
+      list = [...list, ...(boxSquads.get(t.tsId) ?? []).filter((x) => !inSquad.has(x.player_id))];
     }
     let n = 0;
     for (const s of list) {

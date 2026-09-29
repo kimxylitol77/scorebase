@@ -1,10 +1,10 @@
 {
  "meta": {
-  "updatedAt": "2026-09-26T22:12:41.086Z",
+  "updatedAt": "2026-09-29T15:39:46.467Z",
   "teams": 22,
-  "players": 630,
+  "players": 685,
   "injuries": 0,
-  "injuriesCheckedAt": "2026-09-26T22:12:41.086Z"
+  "injuriesCheckedAt": "2026-09-29T15:39:46.467Z"
  },
  "players": {
   "23xmv0bgz0krg8n": {
@@ -389,6 +389,46 @@
    "birth": "2008-08-26",
    "pos": "F",
    "no": 17,
+   "teamTs": "n54ql0bplklqvy9",
+   "teamId": 612861
+  },
+  "pxwrx0b0n21ryk0": {
+   "ko": "막심 베레즈킨",
+   "en": "Maxim Berezkin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "M.Berezkin",
+   "photo": "https://img.thesports.com/v2/player/2c7def4f7091f912e142b66fcdea0ce6.png",
+   "birth": "2001-10-11",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "n54ql0bplklqvy9",
+   "teamId": 612861
+  },
+  "6ypq3vbdxkerd7o": {
+   "ko": "바딤 두도로프",
+   "en": "Vadim Dudorov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "V.Dudorov",
+   "birth": "2006-07-20",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "n54ql0bplklqvy9",
+   "teamId": 612861
+  },
+  "dj2ry0bd3nlq1zp": {
+   "ko": "다닐 로만체프",
+   "en": "Daniil Romantsev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "D.Romantsev",
+   "photo": "https://img.thesports.com/v2/player/c6bac5d62d0f6e826da209be019e45a1.png",
+   "birth": "1993-06-05",
+   "height": 191,
+   "weight": 96,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
    "teamTs": "n54ql0bplklqvy9",
    "teamId": 612861
   },
@@ -785,6 +825,18 @@
    "teamTs": "23xmv0bpey9rg8n",
    "teamId": 612748
   },
+  "l7oqd2bz7xlr510": {
+   "ko": "마르크 로디오노프",
+   "en": "Mark Rodionov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "M.Rodionov",
+   "birth": "2006-02-01",
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "23xmv0bpey9rg8n",
+   "teamId": 612748
+  },
   "dn1m15boze7qoep": {
    "ko": "알렉산드르 카데이킨",
    "en": "Alexander Kadeikin",
@@ -1165,6 +1217,46 @@
    "nat": "Canada",
    "natKo": "캐나다",
    "no": 10,
+   "teamTs": "965mknb2jlpm1ge",
+   "teamId": 612933
+  },
+  "jw2r0obd8d9rz84": {
+   "ko": "막심 타라소프",
+   "en": "Maxim Tarasov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "M.Tarasov",
+   "birth": "2006-04-04",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "965mknb2jlpm1ge",
+   "teamId": 612933
+  },
+  "x7lm78b2v59q2wd": {
+   "ko": "예고르 체르니코프",
+   "en": "Yegor Chernikov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "Y.Chernikov",
+   "photo": "https://img.thesports.com/v2/player/ec59da190a97d41edbf3d852fe40077b.png",
+   "birth": "2002-12-08",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "965mknb2jlpm1ge",
+   "teamId": 612933
+  },
+  "l5erg6b5jw1q8k0": {
+   "ko": "일리야 오브친니코프",
+   "en": "Ilya Ovchinnikov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "I.Ovchinnikov",
+   "photo": "https://img.thesports.com/v2/player/05f6943f2a7143ece3ebf55113643696.png",
+   "birth": "2001-10-31",
+   "height": 182,
+   "weight": 82,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
    "teamTs": "965mknb2jlpm1ge",
    "teamId": 612933
   },
@@ -1580,6 +1672,19 @@
    "birth": "2007-02-07",
    "pos": "F",
    "no": 27,
+   "teamTs": "6ypq3vb7267rd7o",
+   "teamId": 612806
+  },
+  "zp5rzybdd2wq82w": {
+   "ko": "니키타 코로스텔레프",
+   "en": "Nikita Korostelev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "N.Korostelev",
+   "photo": "https://img.thesports.com/v2/player/23d9da26708aa4c4af5535bdd6c191c6.png",
+   "birth": "1997-02-07",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
    "teamTs": "6ypq3vb7267rd7o",
    "teamId": 612806
   },
@@ -2078,6 +2183,69 @@
    "teamTs": "2y8m43bw24vrl07",
    "teamId": 612842
   },
+  "l5erg6bydz1q8k0": {
+   "ko": "조이 킨",
+   "en": "Joey Keane",
+   "natId": "9k82reeb91repzj",
+   "short": "J.Keane",
+   "photo": "https://img.thesports.com/v2/player/0d7c9c48dfce308336a7b5fdae7cbbe7.png",
+   "birth": "1999-07-01",
+   "height": 182,
+   "weight": 83,
+   "pos": "D",
+   "nat": "USA",
+   "natKo": "미국",
+   "teamTs": "2y8m43bw24vrl07",
+   "teamId": 612842
+  },
+  "965mknbg0xkm1ge": {
+   "ko": "알렉스 갤체뉴크",
+   "en": "Alex Galchenyuk",
+   "natId": "9k82reeb91repzj",
+   "short": "A.Galchenyuk",
+   "photo": "https://img.thesports.com/v2/player/06f283622fb2628d18858f78f5138e63.png",
+   "birth": "1994-02-11",
+   "height": 185,
+   "weight": 93,
+   "pos": "F",
+   "nat": "USA",
+   "natKo": "미국",
+   "teamTs": "2y8m43bw24vrl07",
+   "teamId": 612842
+  },
+  "4wyrn9b1g5em86p": {
+   "en": "Silanti Kozhushko",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "S.Kozhushko",
+   "birth": "2006-10-16",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "2y8m43bw24vrl07",
+   "teamId": 612842
+  },
+  "pxwrx0bgp542ryk": {
+   "ko": "니콜라이 드로노프",
+   "en": "Nikolai Dronov",
+   "short": "N.Dronov",
+   "birth": "2008-02-18",
+   "pos": "D",
+   "teamTs": "2y8m43bw24vrl07",
+   "teamId": 612842
+  },
+  "1l4rj1bd2v8r7vx": {
+   "ko": "드미트리 솔로비요프",
+   "en": "Dmitri Solovyov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "D.Solovyov",
+   "photo": "https://img.thesports.com/v2/player/ae633275854cf8b18b8e73833ef52836.png",
+   "birth": "2002-01-25",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "2y8m43bw24vrl07",
+   "teamId": 612842
+  },
   "965mknbgx4nm1ge": {
    "ko": "블라디미르 트카초프",
    "en": "Vladimir Tkachyov",
@@ -2218,9 +2386,8 @@
    "pos": "F",
    "nat": "Russia",
    "natKo": "러시아",
-   "no": 85,
-   "teamTs": "6ypq3vb72p5rd7o",
-   "teamId": 612934
+   "teamTs": "6ypq3vb724prd7o",
+   "teamId": 612831
   },
   "dn1m15body6qoep": {
    "ko": "세르게이 곤차룩",
@@ -2282,9 +2449,8 @@
    "pos": "F",
    "nat": "Russia",
    "natKo": "러시아",
-   "no": 13,
-   "teamTs": "6ypq3vb72p5rd7o",
-   "teamId": 612934
+   "teamTs": "jw2r0obo689rz84",
+   "teamId": 612699
   },
   "l5erg6b87zdq8k0": {
    "ko": "다닐라 주라블료프",
@@ -2468,6 +2634,97 @@
    "en": "Ronald Brickey",
    "pos": "D",
    "no": 8,
+   "teamTs": "6ypq3vb72p5rd7o",
+   "teamId": 612934
+  },
+  "4wyrn9bl334m86p": {
+   "ko": "예고르 비노그라도프",
+   "en": "Yegor Vinogradov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "Y.Vinogradov",
+   "photo": "https://img.thesports.com/v2/player/14a431204b50e9b5fdcbeb3bb17f2b06.png",
+   "birth": "2003-04-17",
+   "height": 189,
+   "weight": 82,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb72p5rd7o",
+   "teamId": 612934
+  },
+  "pxwrx0bklg9ryk0": {
+   "ko": "스쿠터 브릭키",
+   "en": "Scooter Brickey",
+   "short": "S.Brickey",
+   "photo": "https://img.thesports.com/v2/player/76ff30852b7472732da422d8e6b581c2.png",
+   "birth": "1999-05-26",
+   "pos": "D",
+   "teamTs": "6ypq3vb72p5rd7o",
+   "teamId": 612934
+  },
+  "x7lm78b2k9nq2wd": {
+   "ko": "키릴 스비시초프",
+   "en": "Kirill Svishchyov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "K.Svishchyov",
+   "photo": "https://img.thesports.com/v2/player/38fe31cce8ac3452bae5f09303eab50b.png",
+   "birth": "2005-07-30",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb72p5rd7o",
+   "teamId": 612934
+  },
+  "k82reebnn8orepz": {
+   "ko": "알렉세이 야콜레프",
+   "en": "Alexei Yakovlev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Yakovlev",
+   "photo": "https://img.thesports.com/v2/player/7434b5fca567bb97fcd356d9701c5139.png",
+   "birth": "1995-06-04",
+   "height": 184,
+   "weight": 83,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "no": 61,
+   "teamTs": "6ypq3vb724prd7o",
+   "teamId": 612831
+  },
+  "1l4rj1blp84r7vx": {
+   "ko": "알렉산드르 펠레빈",
+   "en": "Alexander Pelevin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Pelevin",
+   "photo": "https://img.thesports.com/v2/player/352fd4da864b9e455645ca136d42a1e5.png",
+   "birth": "2004-05-16",
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb72p5rd7o",
+   "teamId": 612934
+  },
+  "4jwq2lb0de0r0ve": {
+   "ko": "야로슬라프 디블렌코",
+   "en": "Yaroslav Dyblenko",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "Y.Dyblenko",
+   "photo": "https://img.thesports.com/v2/player/1cca04b23aa5019c4f263abf82af9e72.png",
+   "birth": "1993-12-28",
+   "height": 188,
+   "weight": 88,
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb72p5rd7o",
+   "teamId": 612934
+  },
+  "zp5rzybj7056q82": {
+   "ko": "얀 멜니코프",
+   "en": "Yan Melnikov",
+   "short": "Y.Melnikov",
+   "birth": "2007-09-15",
+   "pos": "F",
    "teamTs": "6ypq3vb72p5rd7o",
    "teamId": 612934
   },
@@ -2958,6 +3215,37 @@
    "teamTs": "3glrwdb3xl5qdyj",
    "teamId": 612910
   },
+  "23xmv0b0z9yrg8n": {
+   "ko": "안드레이 추르킨",
+   "en": "Andrei Churkin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Churkin",
+   "photo": "https://img.thesports.com/v2/player/a02ff73ade2f439c64c9c9175cf491bd.png",
+   "birth": "1996-07-11",
+   "height": 178,
+   "weight": 78,
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "3glrwdb3xl5qdyj",
+   "teamId": 612910
+  },
+  "n54ql0bk698qvy9": {
+   "ko": "니키타 포푸가예프",
+   "en": "Nikita A. Popugaev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "N.Popugaev",
+   "photo": "https://img.thesports.com/v2/player/cb53910d2d1aa86c23ba512aa4f92ec6.png",
+   "birth": "1998-11-20",
+   "height": 198,
+   "weight": 98,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "no": 81,
+   "teamTs": "dj2ry0bew78q1zp",
+   "teamId": 612778
+  },
   "2y8m43b4d70rl07": {
    "ko": "그리고리 파닌",
    "en": "Grigory Panin",
@@ -3364,6 +3652,46 @@
    "teamTs": "vjxm87b5n2dr6od",
    "teamId": 612697
   },
+  "4wyrn9b5wz0m86p": {
+   "ko": "다닐 알랄랴킨",
+   "en": "Danil Alalyakin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "D.Alalyakin",
+   "photo": "https://img.thesports.com/v2/player/30b8c5f88a7bbebef99987ae230682c6.png",
+   "birth": "2001-03-26",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "vjxm87b5n2dr6od",
+   "teamId": 612697
+  },
+  "ednm95b4k2zryox": {
+   "ko": "일리야 옐린",
+   "en": "Ilya Yelin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "I.Yelin",
+   "birth": "2005-09-07",
+   "pos": "G",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "vjxm87b5n2dr6od",
+   "teamId": 612697
+  },
+  "zp5rzybovwoq82w": {
+   "ko": "매튜 매지오",
+   "en": "Matthew Maggio",
+   "natId": "gpxwrx0b1wryk0j",
+   "short": "M.Maggio",
+   "photo": "https://img.thesports.com/v2/player/046db28d013a428ec31bc1bb857206ac.png",
+   "birth": "2002-11-05",
+   "height": 180,
+   "weight": 84,
+   "pos": "F",
+   "nat": "Canada",
+   "natKo": "캐나다",
+   "teamTs": "vjxm87b5n2dr6od",
+   "teamId": 612697
+  },
   "4wyrn9b7n23m86p": {
    "ko": "자하르 바르다코프",
    "en": "Zakhar Bardakov",
@@ -3754,6 +4082,32 @@
    "nat": "Sweden",
    "natKo": "스웨덴",
    "no": 13,
+   "teamTs": "pxwrx0bx62wryk0",
+   "teamId": 612800
+  },
+  "23xmv0bzonorg8n": {
+   "ko": "니키타 네도표이킨",
+   "en": "Nikita Nedopyokin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "N.Nedopyokin",
+   "photo": "https://img.thesports.com/v2/player/648eddd22dbd82f71ce6d2289268403f.png",
+   "birth": "2005-03-21",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "pxwrx0bx62wryk0",
+   "teamId": 612800
+  },
+  "y39mp9b8o77rojx": {
+   "ko": "이그나트 루트풀린",
+   "en": "Ignat Lutfullin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "I.Lutfullin",
+   "photo": "https://img.thesports.com/v2/player/e40e8c161056edf58c320a2c412eeddc.png",
+   "birth": "2005-02-10",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
    "teamTs": "pxwrx0bx62wryk0",
    "teamId": 612800
   },
@@ -4206,6 +4560,81 @@
    "teamTs": "dj2ry0bewdlq1zp",
    "teamId": 612696
   },
+  "l5erg6bdpn8q8k0": {
+   "ko": "다닐라 드야젠킨",
+   "en": "Danila Dyadenkin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "D.Dyadenkin",
+   "photo": "https://img.thesports.com/v2/player/0dacb8ca3e86c01576db7efc6cd5c816.png",
+   "birth": "2000-03-16",
+   "height": 184,
+   "weight": 76,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "dj2ry0bewdlq1zp",
+   "teamId": 612696
+  },
+  "k82reebnnx6repz": {
+   "ko": "블라디슬라프 체르보넨코",
+   "en": "Vladislav Chervonenko",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "V.Chervonenko",
+   "photo": "https://img.thesports.com/v2/player/17d2859f2d2b6974e7c583074487297a.png",
+   "birth": "1999-03-01",
+   "height": 174,
+   "weight": 77,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "dj2ry0bewdlq1zp",
+   "teamId": 612696
+  },
+  "l5erg6bdjxeq8k0": {
+   "ko": "예브게니 그로셰프",
+   "en": "Yevgeny Groshev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "Y.Groshev",
+   "photo": "https://img.thesports.com/v2/player/1ac24367053bdac812bc2b302e7dc855.png",
+   "birth": "1999-12-31",
+   "height": 179,
+   "weight": 86,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "dj2ry0bewdlq1zp",
+   "teamId": 612696
+  },
+  "ednm95b77n0ryox": {
+   "ko": "오스타프 사핀",
+   "en": "Ostap Safin",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "O.Safin",
+   "photo": "https://img.thesports.com/v2/player/bb9d8c77b8fc3a52a73d11b2f76b5d82.png",
+   "birth": "1999-02-11",
+   "height": 196,
+   "weight": 93,
+   "pos": "F",
+   "nat": "Czech",
+   "natKo": "체코",
+   "teamTs": "dj2ry0bewdlq1zp",
+   "teamId": 612696
+  },
+  "pxwrx0b2wo7ryk0": {
+   "ko": "니키타 로즈코프",
+   "en": "Nikita A. Rozhkov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "N.Rozhkov",
+   "photo": "https://img.thesports.com/v2/player/225c099f8540fd75949f9da0ae98c281.png",
+   "birth": "2000-02-18",
+   "height": 177,
+   "weight": 76,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "dj2ry0bewdlq1zp",
+   "teamId": 612696
+  },
   "vjxm87b26k5r6od": {
    "ko": "니키타 리암킨",
    "en": "Nikita Lyamkin",
@@ -4451,9 +4880,8 @@
    "pos": "F",
    "nat": "Belarus",
    "natKo": "벨라루스",
-   "no": 72,
-   "teamTs": "jw2r0obo689rz84",
-   "teamId": 612699
+   "teamTs": "l7oqd2b85p6r510",
+   "teamId": 612777
   },
   "4wyrn9b5wv6m86p": {
    "ko": "라빌 야쿠포프",
@@ -4582,21 +5010,41 @@
    "teamTs": "jw2r0obo689rz84",
    "teamId": 612699
   },
-  "k82reebnn8orepz": {
-   "ko": "알렉세이 야콜레프",
-   "en": "Alexei Yakovlev",
-   "natId": "kp3glrwdb5qdyjv",
-   "short": "A.Yakovlev",
-   "photo": "https://img.thesports.com/v2/player/7434b5fca567bb97fcd356d9701c5139.png",
-   "birth": "1995-06-04",
-   "height": 184,
-   "weight": 83,
+  "6ypq3vb00x5jrd7": {
+   "ko": "알렉산드르 이바노프",
+   "en": "Alexander Ivanov",
+   "short": "A.Ivanov",
+   "birth": "2008-08-02",
+   "pos": "D",
+   "teamTs": "jw2r0obo689rz84",
+   "teamId": 612699
+  },
+  "4wyrn9b71z4m86p": {
+   "ko": "케빈 헤이즈",
+   "en": "Kevin Hayes",
+   "natId": "9k82reeb91repzj",
+   "short": "K.Hayes",
+   "photo": "https://img.thesports.com/v2/player/8e5e3cd0791b8be79a8759587dd361ad.png",
+   "birth": "1992-05-07",
+   "height": 195,
+   "weight": 97,
    "pos": "F",
+   "nat": "USA",
+   "natKo": "미국",
+   "teamTs": "jw2r0obo689rz84",
+   "teamId": 612699
+  },
+  "2y8m43b93z8rl07": {
+   "ko": "안드레이 둘네프",
+   "en": "Andrei Dulnev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Dulnev",
+   "birth": "2007-01-30",
+   "pos": "D",
    "nat": "Russia",
    "natKo": "러시아",
-   "no": 61,
-   "teamTs": "6ypq3vb724prd7o",
-   "teamId": 612831
+   "teamTs": "jw2r0obo689rz84",
+   "teamId": 612699
   },
   "n54ql0bkyzxqvy9": {
    "ko": "안톤 크라소트킨",
@@ -5039,6 +5487,32 @@
    "teamTs": "6ypq3vb724prd7o",
    "teamId": 612831
   },
+  "k82reebdldorepz": {
+   "en": "Yanush Kheibatov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "Y.Kheibatov",
+   "birth": "2007-04-18",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb724prd7o",
+   "teamId": 612831
+  },
+  "4jwq2lbnplgr0ve": {
+   "ko": "이반 보로비요프",
+   "en": "Ivan Vorobyov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "I.Vorobyov",
+   "photo": "https://img.thesports.com/v2/player/ad719838882e1bd628a76acccca1e2f4.png",
+   "birth": "2002-03-11",
+   "height": 180,
+   "weight": 71,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb724prd7o",
+   "teamId": 612831
+  },
   "4jwq2lb0d6kr0ve": {
    "ko": "예고르 코롭킨",
    "en": "Yegor Korobkin",
@@ -5451,6 +5925,29 @@
    "birth": "2008-03-27",
    "pos": "G",
    "no": 85,
+   "teamTs": "8yomodbgw58q0j6",
+   "teamId": 612700
+  },
+  "1l4rj1b9558r7vx": {
+   "ko": "키릴 카디셰프",
+   "en": "Kirill Kadyshev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "K.Kadyshev",
+   "photo": "https://img.thesports.com/v2/player/dd81957b1430b3401e8b5a635f1c8ab1.png",
+   "birth": "2002-03-27",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "8yomodbgw58q0j6",
+   "teamId": 612700
+  },
+  "2y8m43b3029orl0": {
+   "ko": "안드레이 복미야닌",
+   "en": "Andrei Vokhmyanin",
+   "short": "A.Vokhmyanin",
+   "photo": "https://img.thesports.com/v2/player/68a025c73ff4b660d7fa44b24b585c2c.png",
+   "birth": "2007-05-17",
+   "pos": "F",
    "teamTs": "8yomodbgw58q0j6",
    "teamId": 612700
   },
@@ -5973,6 +6470,43 @@
    "teamTs": "zp5rzyb6n0yq82w",
    "teamId": 612695
   },
+  "x7lm78b2egnq2wd": {
+   "ko": "아르템 슈바레프",
+   "en": "Artyom Shvarev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Shvarev",
+   "photo": "https://img.thesports.com/v2/player/6e8968f0f3aaf562bfcfd362bbb189f9.png",
+   "birth": "2001-10-31",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "zp5rzyb6n0yq82w",
+   "teamId": 612695
+  },
+  "k82reeb84z9repz": {
+   "ko": "알렉세이 크루치닌",
+   "en": "Alexei Kruchinin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Kruchinin",
+   "photo": "https://img.thesports.com/v2/player/62b5aeedbc5f46a9020496d190a44db6.png",
+   "birth": "1991-06-09",
+   "height": 180,
+   "weight": 75,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "zp5rzyb6n0yq82w",
+   "teamId": 612695
+  },
+  "1l4rj1b61e8gr7v": {
+   "ko": "안드레이 크라소프스키",
+   "en": "Andrei Krasovsky",
+   "short": "A.Krasovsky",
+   "birth": "2007-10-19",
+   "pos": "F",
+   "teamTs": "zp5rzyb6n0yq82w",
+   "teamId": 612695
+  },
   "4jwq2lb0jxvr0ve": {
    "ko": "라파엘 빅물린",
    "en": "Rafael Bikmullin",
@@ -6369,6 +6903,33 @@
    "teamTs": "1l4rj1bj826r7vx",
    "teamId": 612937
   },
+  "dj2ry0b0vwwq1zp": {
+   "ko": "키릴 스톨리아로프",
+   "en": "Kirill Stolyarov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "K.Stolyarov",
+   "birth": "2007-12-13",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "1l4rj1bj826r7vx",
+   "teamId": 612937
+  },
+  "3glrwdbg180qdyj": {
+   "ko": "티무르 콜",
+   "en": "Timur Kol",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "T.Kol",
+   "photo": "https://img.thesports.com/v2/player/58308986c2a387d580fe901e64005998.png",
+   "birth": "2006-08-23",
+   "height": 190,
+   "weight": 90,
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "1l4rj1bj826r7vx",
+   "teamId": 612937
+  },
   "965mknbg9gem1ge": {
    "ko": "미하일 나우멘코프",
    "en": "Mikhail Naumenkov",
@@ -6508,22 +7069,6 @@
    "nat": "Russia",
    "natKo": "러시아",
    "no": 12,
-   "teamTs": "dj2ry0bew78q1zp",
-   "teamId": 612778
-  },
-  "n54ql0bk698qvy9": {
-   "ko": "니키타 포푸가예프",
-   "en": "Nikita A. Popugaev",
-   "natId": "kp3glrwdb5qdyjv",
-   "short": "N.Popugaev",
-   "photo": "https://img.thesports.com/v2/player/cb53910d2d1aa86c23ba512aa4f92ec6.png",
-   "birth": "1998-11-20",
-   "height": 198,
-   "weight": 98,
-   "pos": "F",
-   "nat": "Russia",
-   "natKo": "러시아",
-   "no": 81,
    "teamTs": "dj2ry0bew78q1zp",
    "teamId": 612778
   },
@@ -6770,6 +7315,18 @@
    "nat": "Canada",
    "natKo": "캐나다",
    "no": 6,
+   "teamTs": "dj2ry0bew78q1zp",
+   "teamId": 612778
+  },
+  "8yomodbx8opq0j6": {
+   "ko": "네이선 수세세",
+   "en": "Nathan Sucese",
+   "short": "N.Sucese",
+   "photo": "https://img.thesports.com/v2/player/dbe27e2c56d4e2589e9e5151539a1f60.png",
+   "birth": "1996-07-12",
+   "height": 175,
+   "weight": 79,
+   "pos": "F",
    "teamTs": "dj2ry0bew78q1zp",
    "teamId": 612778
   },
@@ -7277,6 +7834,45 @@
    "teamTs": "l7oqd2b85p6r510",
    "teamId": 612777
   },
+  "x7lm78b8vnvq2wd": {
+   "ko": "존 브래디 라일",
+   "en": "John Brady Lyle",
+   "natId": "gpxwrx0b1wryk0j",
+   "short": "J.Lyle",
+   "photo": "https://img.thesports.com/v2/player/2bfad71e693c3b0cab61e37246057be4.png",
+   "birth": "1999-06-06",
+   "height": 185,
+   "weight": 92,
+   "pos": "D",
+   "nat": "Canada",
+   "natKo": "캐나다",
+   "teamTs": "l7oqd2b85p6r510",
+   "teamId": 612777
+  },
+  "318q6wbozww6mo9": {
+   "ko": "아르세니 추흐라예프",
+   "en": "Arseniy Chukhraev",
+   "short": "A.Chukhraev",
+   "birth": "2007-02-28",
+   "pos": "F",
+   "teamTs": "l7oqd2b85p6r510",
+   "teamId": 612777
+  },
+  "l5erg6bl8voq8k0": {
+   "ko": "티모페이 코브고레냐",
+   "en": "Timofei Kovgorenya",
+   "natId": "jednm95bkzryox8",
+   "short": "T.Kovgorenya",
+   "photo": "https://img.thesports.com/v2/player/849123cde285caa20be522f0c0c6bddc.png",
+   "birth": "2003-02-13",
+   "height": 189,
+   "weight": 98,
+   "pos": "D",
+   "nat": "Belarus",
+   "natKo": "벨라루스",
+   "teamTs": "l7oqd2b85p6r510",
+   "teamId": 612777
+  },
   "jw2r0obpvwdrz84": {
    "ko": "다미르 샤립지야노프",
    "en": "Damir Sharipzyanov",
@@ -7679,6 +8275,56 @@
    "teamTs": "6ypq3vb30wlrd7o",
    "teamId": 612938,
    "natKo": "미국"
+  },
+  "zp5rzybj72wyq82": {
+   "ko": "다닐 차이카",
+   "en": "Daniil Chaika",
+   "short": "D.Chaika",
+   "photo": "https://img.thesports.com/v2/player/ebcbfb516ea9b907fcb43817ce4f881c.png",
+   "birth": "2002-10-21",
+   "pos": "D",
+   "teamTs": "6ypq3vb30wlrd7o",
+   "teamId": 612938
+  },
+  "x7lm78b2063q2wd": {
+   "ko": "비야체슬라프 말로프",
+   "en": "Vyacheslav Malov",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "V.Malov",
+   "photo": "https://img.thesports.com/v2/player/e6b6c4e0bd39813e978407643cc909be.png",
+   "birth": "2004-06-23",
+   "height": 172,
+   "weight": 80,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb30wlrd7o",
+   "teamId": 612938
+  },
+  "ednm95bl1pnryox": {
+   "ko": "로디온 카잔체프",
+   "en": "Rodion Kazantsev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "R.Kazantsev",
+   "birth": "2007-12-05",
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb30wlrd7o",
+   "teamId": 612938
+  },
+  "8yomodb68xeq0j6": {
+   "ko": "안톤 카자체크",
+   "en": "Anton Kazachek",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Kazachek",
+   "photo": "https://img.thesports.com/v2/player/278c3f3df0202250de90c4af12fe7f70.png",
+   "birth": "2003-04-23",
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "6ypq3vb30wlrd7o",
+   "teamId": 612938
   },
   "vjxm87b9k9dr6od": {
    "ko": "키릴 사빗스키",
@@ -8106,6 +8752,20 @@
    "teamId": 612701,
    "natKo": "미국"
   },
+  "4jwq2lb6lz8r0ve": {
+   "en": "Madi Dikhanbek",
+   "natId": "z8yomodb78q0j6l",
+   "short": "M.Dikhanbek",
+   "photo": "https://img.thesports.com/v2/player/45c311f2095dd2445a8cea818e0b4071.png",
+   "birth": "2001-01-11",
+   "height": 179,
+   "weight": 71,
+   "pos": "D",
+   "nat": "Kazakhstan",
+   "natKo": "카자흐스탄",
+   "teamTs": "2y8m43bwko8rl07",
+   "teamId": 612701
+  },
   "zp5rzyb2e3wq82w": {
    "ko": "파벨 카르나우호프",
    "en": "Pavel Karnaukhov",
@@ -8494,6 +9154,21 @@
    "birth": "2009-02-02",
    "pos": "G",
    "no": 30,
+   "teamTs": "x7lm78b3l56q2wd",
+   "teamId": 612931
+  },
+  "jw2r0ob93lzrz84": {
+   "ko": "드미트리 감진",
+   "en": "Dmitri Gamzin",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "D.Gamzin",
+   "photo": "https://img.thesports.com/v2/player/bd4f3ece69686dc092cfb723b480cf3b.png",
+   "birth": "2003-04-08",
+   "height": 190,
+   "weight": 76,
+   "pos": "G",
+   "nat": "Russia",
+   "natKo": "러시아",
    "teamTs": "x7lm78b3l56q2wd",
    "teamId": 612931
   },
@@ -8952,6 +9627,21 @@
    "nat": "Canada",
    "natKo": "캐나다",
    "no": 25,
+   "teamTs": "k82reeb05x0repz",
+   "teamId": 612692
+  },
+  "4wyrn9bx475m86p": {
+   "ko": "이반 얀첸코",
+   "en": "Ivan Yanchenko",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "I.Yanchenko",
+   "photo": "https://img.thesports.com/v2/player/aae51353ceb48cc78e426ea34d8107a5.png",
+   "birth": "2004-02-27",
+   "height": 186,
+   "weight": 89,
+   "pos": "F",
+   "nat": "Russia",
+   "natKo": "러시아",
    "teamTs": "k82reeb05x0repz",
    "teamId": 612692
   },
@@ -9475,6 +10165,31 @@
    "teamTs": "1l4rj1bj8ler7vx",
    "teamId": 612841,
    "natKo": "미국"
+  },
+  "4wyrn9b8e88km86": {
+   "ko": "일리야 니콜라예프",
+   "en": "Ilya Nikolayev",
+   "short": "I.Nikolayev",
+   "photo": "https://img.thesports.com/v2/player/0fe4074c41916a6217bf434d231f08a5.png",
+   "birth": "2001-07-08",
+   "pos": "D",
+   "teamTs": "1l4rj1bj8ler7vx",
+   "teamId": 612841
+  },
+  "dj2ry0bp00lq1zp": {
+   "ko": "아르템 구르예프",
+   "en": "Artem Guryev",
+   "natId": "kp3glrwdb5qdyjv",
+   "short": "A.Guryev",
+   "photo": "https://img.thesports.com/v2/player/fc8f0454f1c557bd0f1b3a783f237056.png",
+   "birth": "2003-05-17",
+   "height": 193,
+   "weight": 100,
+   "pos": "D",
+   "nat": "Russia",
+   "natKo": "러시아",
+   "teamTs": "1l4rj1bj8ler7vx",
+   "teamId": 612841
   }
  },
  "injuries": []
