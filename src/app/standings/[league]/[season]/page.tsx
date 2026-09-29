@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { HOCKEY_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { REGULAR_SEASON_TITLE_LEAGUES } from "@/lib/predict/prediction-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import TeamBadge from "@/components/TeamBadge";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -87,7 +88,8 @@ export default async function SeasonArchivePage({ params }: Props) {
   const hasGroup = rows.some((r) => r.group);
   const hasGoals = rows.some((r) => r.gf != null);
   const hasPoints = rows.some((r) => r.points != null);
-  const hasDraw = rows.some((r) => (r.draw ?? 0) > 0) || hasPoints; // 야구(무 거의 0·승점 없음)는 무 열 생략
+  // 야구(무 거의 0·승점 없음)는 무 열 생략. 하키는 승점이 있어도 무승부가 없어 생략(역사 탭과 같은 규칙).
+  const hasDraw = rows.some((r) => (r.draw ?? 0) > 0) || (hasPoints && !HOCKEY_LEAGUES.has(upper));
   const champ = rows.find((r) => r.position === 1 && !r.group);
 
   // 그 시즌 리더보드(득점왕 등) — 과거 시즌 백필분이 있으면 함께 노출
@@ -129,7 +131,7 @@ export default async function SeasonArchivePage({ params }: Props) {
           {champ && (
             <>
               {" "}
-              · 우승 <span className="font-semibold text-neutral-700 dark:text-neutral-300">{champ.ko ?? toKoreanTeamName(champ.name, upper)}</span>
+              · {REGULAR_SEASON_TITLE_LEAGUES.has(upper) ? "정규리그 1위" : "우승"} <span className="font-semibold text-neutral-700 dark:text-neutral-300">{champ.ko ?? toKoreanTeamName(champ.name, upper)}</span>
             </>
           )}
         </p>

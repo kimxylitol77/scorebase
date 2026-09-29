@@ -9,13 +9,16 @@ import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import TeamBadge from "@/components/TeamBadge";
 import { seasonLabelFor } from "@/lib/sports/season-calendar";
 import { resolveSeasonYear } from "@/lib/sports/season-registry";
+import { HOCKEY_LEAGUES } from "@/lib/sports/sport-leagues";
+import { REGULAR_SEASON_TITLE_LEAGUES } from "@/lib/predict/prediction-leagues";
 
 // article: 그 시즌 우승 기록(결산글) slug — 있으면 "우승 기록" 링크 노출.
 type Champ = { season: string; ko: string; en: string; article?: string };
 const DATA = championsData as Record<string, { champions: Champ[] }>;
 
 // 우승팀(위키데이터 풀네임) → DB 팀 매칭용 정규화. 영문=분음부호·축약(F.C. 등)·구두점 제거, 한글=공백 제거.
-const FOOTBALL_TOKENS = new Set(["fc", "afc", "cf", "sc", "ac", "cd", "ud", "as", "rcd", "sd", "ssc", "ss", "uc", "acf", "cfc", "fbc", "vfl", "vfb", "sv", "club"]);
+// hc = 하키 클럽(위키데이터 "HC CSKA Moscow" ↔ DB "CSKA Moscow", KHL 2026-09-30).
+const FOOTBALL_TOKENS = new Set(["fc", "afc", "cf", "sc", "ac", "cd", "ud", "as", "rcd", "sd", "ssc", "ss", "uc", "acf", "cfc", "fbc", "vfl", "vfb", "sv", "club", "hc"]);
 // 독·불 이름 번역차 보정(위키데이터 München ↔ DB Munich 등). 양쪽 normEn 을 같은 형태로 수렴.
 const NAME_ALIAS: [RegExp, string][] = [[/munchen/g, "munich"], [/koln/g, "cologne"], [/nurnberg/g, "nuremberg"], [/monchengladbach/g, "gladbach"]];
 const normEn = (s: string) => {
@@ -263,7 +266,8 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
             const hasGroup = s.rows.some((r) => r.group);
             const hasGoals = s.rows.some((r) => r.gf != null);
             const hasPoints = s.rows.some((r) => r.points != null);
-            const hasDraw = s.rows.some((r) => (r.draw ?? 0) > 0) || hasPoints; // 야구(무 거의 0·승점 없음)는 무 열 생략
+            // 야구(무 거의 0·승점 없음)는 무 열 생략. 하키는 승점이 있어도 무승부가 없어(연장·승부치기) 생략.
+            const hasDraw = s.rows.some((r) => (r.draw ?? 0) > 0) || (hasPoints && !HOCKEY_LEAGUES.has(league));
             return (
               <details key={s.seasonLabel} className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10">
                 <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer select-none list-none marker:hidden hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
@@ -273,7 +277,8 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
                     const champ = s.rows.find((r) => r.position === 1 && !r.group);
                     return champ ? (
                       <span className="ml-auto flex items-center gap-1.5 text-xs text-neutral-500">
-                        <span aria-hidden>🏆</span>
+                        {/* 플레이오프로 우승을 가리는 리그(KHL·MLS 등)는 표 1위가 우승팀이 아니다 — 우승 연표와 어긋나지 않게 */}
+                        {REGULAR_SEASON_TITLE_LEAGUES.has(league) ? <span>정규리그 1위</span> : <span aria-hidden>🏆</span>}
                         <TeamBadge logoUrl={champ.logo ?? null} size={16} className="bg-white rounded-sm" />
                         <span className="font-semibold">{champ.ko ?? toKoreanTeamName(champ.name, league)}</span>
                       </span>

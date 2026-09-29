@@ -763,9 +763,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"],
-    // KHL — 순위(ts 공식 표)·예측(시즌 시뮬, 2026-09-30 전체 일정 수집 후)·파워랭킹(Elo)·일정·글.
+    // KHL — 순위(ts 공식 표)·예측(시즌 시뮬, 2026-09-30 전체 일정 수집 후)·파워랭킹(Elo)·일정·역사·글.
+    //   역사 = 가가린컵 우승 17시즌(위키데이터 + ts 결승 확인) + 2008-09~ 시즌별 최종 순위(backfill-khl-standings-archive).
     //   선수 기록 탭은 리더보드가 있으면 아래에서 자동으로 붙는다.
-    KHL: ["standings", "predictions", "power", "fixtures", "articles"],
+    KHL: ["standings", "predictions", "power", "fixtures", "history", "articles"],
     CHL_HOCKEY: ["standings", "fixtures", "articles"],
     LIIGA: ["standings", "fixtures", "articles"],
     SWISS_NL: ["standings", "fixtures", "articles"],
