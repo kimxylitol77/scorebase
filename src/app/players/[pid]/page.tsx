@@ -38,9 +38,11 @@ import { KblPlayerView } from "./KblViews";
 import { WkblPlayerView } from "./WkblViews";
 import { KovoPlayerView } from "./KovoViews";
 import { kovoPlayer, kovoPosKo } from "@/lib/sports/kovo-players";
+import { khlPlayerInfo, khlPlayerName } from "@/lib/sports/khl-players";
 import { wkblPlayer, wkblPosKo } from "@/lib/sports/wkbl-players";
 import { kblPlayer, kblPosKo } from "@/lib/sports/kbl-players";
 import { NhlPlayerView } from "./NhlViews";
+import { KhlPlayerView } from "./KhlViews";
 import { LolPlayerView } from "./LolViews";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -225,6 +227,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       alternates: { canonical },
     };
   }
+  if (league === "KHL") {
+    const info = khlPlayerInfo(pid);
+    if (!info) return { title: "선수 — KHL", description: "KHL 선수 프로필 · 시즌 기록 · 경기별 기록.", alternates: { canonical } };
+    const name = khlPlayerName(info);
+    const pos = ({ F: "포워드", D: "디펜스", G: "골리" } as Record<string, string>)[info.pos ?? ""] ?? "";
+    return {
+      title: `${name} — KHL ${pos || "선수"}${info.no != null ? ` 등번호 ${info.no}번` : ""} · 프로필·기록`,
+      description: `KHL ${name}(${info.en}) 프로필 — 이번 시즌 골·도움·포인트·+/-(골리는 선방률·세이브)와 리그 순위, 경기별 기록, 신장·체중·국적. 스코어베이스.`,
+      keywords: [name, info.en, `${name} 프로필`, `${name} 기록`, "KHL", "러시아 하키"],
+      alternates: { canonical },
+    };
+  }
   if (league && ["NBA", "NHL", "LOL"].includes(league)) {
     // NBA 는 정적 사전(nba-players.json)으로 API 호출 없이 이름·포지션·팀 확보 —
     // 제네릭 "선수 — NBA" 제목은 선수명 검색에 아예 안 실렸다(빙 실측 NBA 노출 0).
@@ -327,6 +341,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (league === "WKBL") return <WkblPlayerView pid={pid} />;
   if (league === "V_LEAGUE" || league === "V_LEAGUE_W") return <KovoPlayerView pid={pid} league={league} />;
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
+  if (league === "KHL") return <KhlPlayerView pid={pid} />;
   if (league === "LOL") return <LolPlayerView pid={pid} />;
   // 축구 8개 리그
   if (league && SOCCER_PLAYER_PAGE_LEAGUE_SET.has(league)) {

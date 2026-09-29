@@ -1369,7 +1369,7 @@ export default async function GenericLivePage({ params }: Props) {
                 />
               )}
               {dl.players && (
-                <HockeyBoxScore players={dl.players} homeNameKo={homeKo} awayNameKo={awayKo} />
+                <HockeyBoxScore players={dl.players} homeNameKo={homeKo} awayNameKo={awayKo} playerLinkLeague={lg === "KHL" ? "KHL" : undefined} />
               )}
             </>
           );

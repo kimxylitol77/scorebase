@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { nhlPlayerInfo } from "@/lib/sports/nhl-live-names";
 
 export interface HockeyPlayerRow {
@@ -16,6 +17,13 @@ interface Props {
   players: { home?: HockeyPlayerRow[]; away?: HockeyPlayerRow[] };
   homeNameKo: string;
   awayNameKo: string;
+  /** 선수 페이지가 있는 리그면 이름에 /players/{id}?league= 링크 (현재 KHL 만 — ts id 체계가 같다) */
+  playerLinkLeague?: string;
+}
+
+function PlayerName({ id, ko, league }: { id: string; ko: string; league?: string }) {
+  if (!league) return <span className="font-semibold">{ko}</span>;
+  return <Link href={`/players/${id}?league=${league}`} className="font-semibold hover:underline">{ko}</Link>;
 }
 
 function stat(row: HockeyPlayerRow, id: number): number | undefined {
@@ -37,7 +45,7 @@ function name(id: string): { ko: string; pos?: string } {
   return { ko: info?.ko || info?.en || "선수", pos: info?.pos };
 }
 
-function SkaterTable({ rows }: { rows: HockeyPlayerRow[] }) {
+function SkaterTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: string }) {
   const skaters = rows
     .filter((r) => stat(r, 20) === 2)
     .sort(
@@ -65,7 +73,7 @@ function SkaterTable({ rows }: { rows: HockeyPlayerRow[] }) {
           return (
             <tr key={r.id} className="border-b border-neutral-100 dark:border-white/5">
               <td className="py-1.5 pl-1">
-                <span className="font-semibold">{n.ko}</span>
+                <PlayerName id={r.id} ko={n.ko} league={league} />
                 {n.pos && <span className="text-neutral-400 text-[10px] ml-1">{n.pos}</span>}
               </td>
               <td className="text-center py-1.5 px-1 tabular-nums font-bold">{stat(r, 26) ?? 0}</td>
@@ -85,7 +93,7 @@ function SkaterTable({ rows }: { rows: HockeyPlayerRow[] }) {
   );
 }
 
-function GoalieTable({ rows }: { rows: HockeyPlayerRow[] }) {
+function GoalieTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: string }) {
   const goalies = rows.filter((r) => stat(r, 20) === 1 && (stat(r, 23) ?? 0) > 0);
   if (goalies.length === 0) return null;
   return (
@@ -105,7 +113,7 @@ function GoalieTable({ rows }: { rows: HockeyPlayerRow[] }) {
             const n = name(r.id);
             return (
               <tr key={r.id} className="border-b border-neutral-100 dark:border-white/5">
-                <td className="py-1.5 pl-1 font-semibold">{n.ko}</td>
+                <td className="py-1.5 pl-1"><PlayerName id={r.id} ko={n.ko} league={league} /></td>
                 <td className="text-center py-1.5 px-1 tabular-nums">{stat(r, 24) ?? 0}</td>
                 <td className="text-center py-1.5 px-1 tabular-nums font-bold">{svPct(stat(r, 25))}</td>
                 <td className="text-right py-1.5 pr-1 tabular-nums text-neutral-500">{toi(stat(r, 23))}</td>
@@ -118,7 +126,7 @@ function GoalieTable({ rows }: { rows: HockeyPlayerRow[] }) {
   );
 }
 
-export default function HockeyBoxScore({ players, homeNameKo, awayNameKo }: Props) {
+export default function HockeyBoxScore({ players, homeNameKo, awayNameKo, playerLinkLeague }: Props) {
   const home = players?.home ?? [];
   const away = players?.away ?? [];
   const [tab, setTab] = useState<"home" | "away">("home");
@@ -153,8 +161,8 @@ export default function HockeyBoxScore({ players, homeNameKo, awayNameKo }: Prop
         })}
       </div>
 
-      <SkaterTable rows={rows} />
-      <GoalieTable rows={rows} />
+      <SkaterTable rows={rows} league={playerLinkLeague} />
+      <GoalieTable rows={rows} league={playerLinkLeague} />
     </section>
   );
 }

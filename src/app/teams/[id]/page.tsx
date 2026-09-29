@@ -701,7 +701,7 @@ export default async function TeamPage({ params }: Props) {
     nhlRoster = await fetchNhlRoster(team.shortName, `${ny}${ny + 1}`);
   }
 
-  // KHL 로스터 — 정적 사전(data/khl-players.json, ts squad+player 프로필·주간 빌드). 선수 페이지는 아직 없어 링크 없음.
+  // KHL 로스터 — 정적 사전(data/khl-players.json, ts squad+player 프로필·주간 빌드). 카드는 /players/{tsId}?league=KHL 로 간다.
   const khlPlayers = team.league === "KHL" ? khlRoster(team.id) : [];
   // KBL 로스터 — 정적 사전(data/kbl-players.json, KBL 공식 API 등록 선수·주간 빌드) → /players/{playerNo}?league=KBL
   const kblPlayers = team.league === "KBL" ? kblRoster(team.id) : [];
@@ -1210,9 +1210,10 @@ export default async function TeamPage({ params }: Props) {
                         p.natKo ?? p.nat ?? null,
                       ].filter(Boolean).join(" · ");
                       return (
-                        <div
+                        <Link
                           key={p.id}
-                          className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2"
+                          href={`/players/${p.id}?league=KHL`}
+                          className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors"
                         >
                           <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                             {p.photo ? (
@@ -1233,7 +1234,7 @@ export default async function TeamPage({ params }: Props) {
                             </div>
                             <div className="text-[11px] text-neutral-500 tabular-nums truncate">{injury ? `${khlInjuryLabel(injury)} · ${meta}` : meta}</div>
                           </div>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>

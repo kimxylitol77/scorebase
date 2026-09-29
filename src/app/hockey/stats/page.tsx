@@ -42,8 +42,7 @@ export default async function HockeyStatsPage({ searchParams }: { searchParams: 
   const byId = new Map(data.rows.map((r) => [r.tsId ?? String(r.playerId), r]));
   const decorate = (r: StatRow) => {
     const s = byId.get(r.key);
-    // KHL 은 선수 페이지가 없다(리더보드 hasPlayerPage false) → 링크 없음
-    return { photo: s?.photo ?? null, href: isNhl ? `/players/${r.key}?league=NHL` : null, sub: `${r.team}${s?.pos ? ` · ${s.pos}` : ""}` };
+    return { photo: s?.photo ?? null, href: `/players/${r.key}?league=${league}`, sub: `${r.team}${s?.pos ? ` · ${s.pos}` : ""}` };
   };
   const params: Record<string, string> = {};
   for (const [k, v] of Object.entries(sp)) if (v) params[k] = v;

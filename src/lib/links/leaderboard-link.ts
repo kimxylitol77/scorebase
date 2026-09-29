@@ -15,6 +15,7 @@ const PLAYER_PAGE_LEAGUES = new Set([
   "KBL", // 2026-09-18 — /players/{playerNo}?league=KBL (KblViews)
   "WKBL", // 2026-09-18 — /players/{pno}?league=WKBL (WkblViews)
   "V_LEAGUE", "V_LEAGUE_W", // 2026-09-18 — /players/{code}?league=V_LEAGUE(_W) (KovoViews)
+  "KHL", // 2026-09-29 — /players/{tsId}?league=KHL (KhlViews)
 ]);
 
 /** af player id 는 숫자, TheSports player id 는 영숫자 혼합. 링크 분기의 기준. */
