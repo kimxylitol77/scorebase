@@ -93,6 +93,11 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   NBA: { overLine: 220.5, totalStd: 18, marginStd: 14, handicapLine: 5.5, homeBoost: 1.025 },
   // 아이스하키 — NHL 평균 6.0골, std 2.5, margin std 2.4
   NHL: { overLine: 5.5, totalStd: 2.5, marginStd: 2.4, handicapLine: 1.5, homeBoost: 1.05 },
+  // KHL — 2026-27 종료 101경기 실측(2026-09-29): 평균 5.03골(std 2.26)·마진 0.20(std 2.56)·홈승 54.5%·O4.5 58%·O5.5 36%.
+  //  NHL(6.20골)보다 1골 이상 적어 NHL 값을 그대로 쓰면 오버로 쏠린다.
+  //  기준선 백테스트(같은 87경기): 5.5 면 모델 56.3% < 전부 언더 67.8%, 4.5 면 모델 56.3% = 전부 오버 → 4.5.
+  //  핸디 1.5 는 모델 67.8% vs 전부 원정+1.5 70.1% — 표본이 작아(87) 튜닝은 시즌 중반 재측정 후.
+  KHL: { overLine: 4.5, totalStd: 2.3, marginStd: 2.55, handicapLine: 1.5, homeBoost: 1.05 },
   // 야구 — MLB 평균 8.7런, std 4.0, margin std 3.5
   MLB: { overLine: 8.5, totalStd: 4.0, marginStd: 3.5, handicapLine: 1.5, homeBoost: 1.04 },
   // KBO 야구 — 한국 프로야구. 평균 9~10런 시즌.
