@@ -1,21 +1,23 @@
 // 리그 일정·결과 — 리그 페이지 "일정" 탭 콘텐츠.
 // 라운드를 읽을 수 있는 리그(빅5 등)는 시즌 전체를 라운드별로 보여주고(LeagueFixturesView),
 // 라운드 정보가 없는 리그(MLS·컵 등)는 기존대로 최근 결과 + 다음 일정 목록으로 보여준다.
-// NHL 은 라운드 대신 프리시즌 + 정규시즌 주차로 나눈다(NhlWeeklyFixtures).
+// NHL·KBO·NPB 는 라운드 대신 프리시즌(시범경기) + 정규시즌 주차로 나눈다(WeeklyFixtures).
 // UEFA 클럽대회(UCL·UEL·UECL)는 예선 + 리그페이즈 라운드 + 녹아웃으로 나눈다(UefaFixtures).
 // 어느 경로든 크로스소스 중복 매치는 dedupeFixtures 로 접어 카드가 두 장 뜨는 것을 막는다.
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
-import { SOCCER_LEAGUES, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
+import { SOCCER_LEAGUES, NATIONAL_TEAM_LEAGUES, postponedLabel } from "@/lib/sports/sport-leagues";
 import { currentSeasonStart } from "@/lib/predict/season-window";
-import { parseRound, dedupeFixtures, hasUsableRounds, PRESEASON_KEY, seasonWeek, seasonWeekRange } from "@/lib/sports/fixture-rounds";
+import { parseRound, dedupeFixtures, hasUsableRounds, PRESEASON_KEY, preseasonCutoff, seasonWeek, seasonWeekRange } from "@/lib/sports/fixture-rounds";
 import { UEFA_LEAGUE_PHASE, UEFA_QUALIFYING_KEY, uefaFixtureKey, uefaFixtureKeyName, uefaStage } from "@/lib/sports/uefa-league-phase";
 import TeamBadge from "@/components/TeamBadge";
 import LeagueFixturesView, { FRIENDLY_KEY, type FixtureRow } from "./LeagueFixturesView";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+/** 시즌 전체를 주차로 보여 주는 야구 리그. MLB 는 시즌 2,400경기라 넣지 않았다(화면 전송량). */
+const WEEKLY_BASEBALL = new Set(["KBO", "NPB"]);
 
 function kstParts(d: Date) {
   const k = new Date(d.getTime() + 9 * 3600_000);
@@ -69,13 +71,15 @@ function prepare(rows: MatchRow[], isFriendly: boolean): Prepared[] {
 }
 
 /**
- * NHL — 라운드가 없어 "프리시즌 + 정규시즌 주차(개막일부터 7일 단위)" 로 나눈다.
- * 프리시즌 판정은 ESPN 원본 season.slug — raw 가 경기당 17KB 라 시즌 전체를 싣지 않고 id 만 따로 받는다.
- * ESPN 단일 소스라 중복 접기는 하지 않는다
+ * NHL·KBO·NPB — 라운드가 없어 "프리시즌 + 정규시즌 주차(개막일부터 7일 단위)" 로 나눈다.
+ * 프리시즌 판정: NHL 은 ESPN 원본 season.slug(raw 가 경기당 17KB 라 id 만 따로 받는다),
+ * 야구는 원본에 표시가 없어 개막 전 공백으로 가른다(preseasonCutoff).
+ * 단일 소스라 중복 접기는 하지 않는다
  * (같은 홈/원정 연전이 사흘 안에 두 번 열리는 일이 있어 72시간 규칙이 진짜 경기를 지운다).
  */
 type NhlRow = Omit<MatchRow, "raw">;
-function NhlWeeklyFixtures({ league, matches, preseasonIds, now }: { league: string; matches: NhlRow[]; preseasonIds: Set<number>; now: Date }) {
+function WeeklyFixtures({ league, matches, preseasonIds, now, preLabel = "프리시즌" }: { league: string; matches: NhlRow[]; preseasonIds: Set<number>; now: Date; preLabel?: string }) {
+  const offLabel = postponedLabel(league);
   const isPre = (m: NhlRow) => preseasonIds.has(m.id);
   const openingRow = matches.find((m) => !isPre(m));
   const keyOf = (m: NhlRow) => (isPre(m) || !openingRow ? PRESEASON_KEY : seasonWeek(m.startTime, openingRow.startTime));
@@ -97,17 +101,21 @@ function NhlWeeklyFixtures({ league, matches, preseasonIds, now }: { league: str
     awayLogo: m.awayTeam.logoUrl,
     isFriendly: false,
     isPreseason: isPre(m),
+    preseasonLabel: preLabel,
+    // 야구 시범경기는 소스가 점수를 안 줘 0-0 으로 저장된다 — 야구에서 0-0 종료는 없으니 기록 없음으로 본다
+    noScore: WEEKLY_BASEBALL.has(league) && isPre(m) && m.status === "FINISHED" && !m.homeScore && !m.awayScore,
+    offLabel: m.status === "POSTPONED" || m.status === "CANCELLED" ? offLabel : undefined,
   }));
   const rounds = [...new Set(rows.map((r) => r.round!))].sort((x, y) => x - y);
   const roundNames: Record<number, { chip: string; option: string }> = {};
   for (const r of rounds) {
     roundNames[r] =
       r === PRESEASON_KEY
-        ? { chip: "프리시즌", option: "프리시즌" }
+        ? { chip: preLabel, option: preLabel }
         : { chip: `${r}주`, option: `${r}주차 (${seasonWeekRange(r, openingRow!.startTime)})` };
   }
   // 기본 = 아직 안 끝난 가장 이른 경기가 속한 묶음 — 개막 전이면 프리시즌이 지금 열리는 경기다.
-  const next = matches.find((m) => m.status !== "FINISHED" && m.startTime >= now);
+  const next = matches.find((m) => (m.status === "SCHEDULED" || m.status === "LIVE") && m.startTime >= now);
   const initialRound = next ? keyOf(next) : rounds[rounds.length - 1];
   const teamSource = matches.filter((m) => !isPre(m));
   const teamMap = new Map<number, string>();
@@ -239,7 +247,17 @@ export default async function LeagueFixtures({ league }: { league: string }) {
       }),
     ]);
     if (matches.length > 0) {
-      return <NhlWeeklyFixtures league={league} matches={matches} preseasonIds={new Set(pre.map((p) => p.id))} now={now} />;
+      return <WeeklyFixtures league={league} matches={matches} preseasonIds={new Set(pre.map((p) => p.id))} now={now} />;
+    }
+  }
+  if (seasonStart && WEEKLY_BASEBALL.has(league)) {
+    const { raw: _raw, ...lite } = sel;
+    void _raw;
+    const matches = await prisma.match.findMany({ where: { league, startTime: { gte: seasonStart } }, orderBy: { startTime: "asc" }, select: lite });
+    if (matches.length > 0) {
+      const cut = preseasonCutoff(matches.map((m) => m.startTime));
+      const pre = cut == null ? [] : matches.filter((m) => m.startTime.getTime() + 9 * 3600_000 < cut).map((m) => m.id);
+      return <WeeklyFixtures league={league} matches={matches} preseasonIds={new Set(pre)} now={now} preLabel="시범경기" />;
     }
   }
   if (seasonStart) {

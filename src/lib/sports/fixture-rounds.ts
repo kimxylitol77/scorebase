@@ -140,3 +140,21 @@ export function seasonWeekRange(week: number, opening: Date): string {
   const md = (d: Date) => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
   return `${md(from)}~${md(to)}`;
 }
+
+/**
+ * 시범경기 끝 판정 — 원본에 시범경기 표시가 없는 리그(KBO: api-sports 는 league.type 이 전부 "League")용.
+ * 시즌 첫 경기부터 21일 안에 경기 없는 날이 사흘 이상 이어지면 그 앞을 시범경기로 본다
+ * (2026 KBO: 시범 3/12~3/24, 개막 3/28). 그런 공백이 없으면 null — 시범경기 없음.
+ * 돌려주는 값은 개막일의 한국시간 자정(ms). 이 값보다 이른 경기가 시범경기다.
+ */
+export function preseasonCutoff(starts: Date[]): number | null {
+  const days = [...new Set(starts.map(kstDayMs))].sort((a, b) => a - b);
+  if (days.length < 2) return null;
+  const limit = days[0] + 21 * 86400_000;
+  // 시범경기 일정이 듬성해 공백이 여럿이면 마지막 공백이 개막 직전이다
+  let cut: number | null = null;
+  for (let i = 1; i < days.length && days[i - 1] <= limit; i++) {
+    if (days[i] - days[i - 1] >= 4 * 86400_000) cut = days[i];
+  }
+  return cut;
+}

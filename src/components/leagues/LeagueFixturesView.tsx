@@ -27,8 +27,14 @@ export interface FixtureRow {
   homeLogo: string | null;
   awayLogo: string | null;
   isFriendly: boolean;
-  /** NHL 프리시즌(시범경기) — 우측 배지 */
+  /** NHL 프리시즌·야구 시범경기 — 우측 배지 */
   isPreseason?: boolean;
+  /** 배지 문구 — 없으면 "프리시즌" */
+  preseasonLabel?: string;
+  /** 점수 기록이 없는 종료 경기 — 점수 자리에 "-" */
+  noScore?: boolean;
+  /** 연기·취소 경기의 우측 문구(야구 "취소", 그 외 "연기") — 있으면 시각 대신 표시 */
+  offLabel?: string;
 }
 
 function kstParts(iso: string) {
@@ -44,8 +50,8 @@ function MatchRow({ m, league }: { m: FixtureRow; league: string }) {
   const linkLeague = m.isFriendly ? "CLUB_FRIENDLY" : league;
   const live = m.status === "LIVE";
   const done = m.status === "FINISHED";
-  const center = live || done ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
-  const right = live ? "🔴 LIVE" : done ? "종료" : kstParts(m.startTime).time;
+  const center = m.noScore ? "-" : live || done ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
+  const right = live ? "🔴 LIVE" : done ? "종료" : m.offLabel ?? kstParts(m.startTime).time;
   const inner = (
     <span className="flex items-center gap-2 text-sm px-3 py-2.5">
       <span className="flex-1 flex items-center justify-end gap-1.5 min-w-0 font-medium">
@@ -68,7 +74,7 @@ function MatchRow({ m, league }: { m: FixtureRow; league: string }) {
       <span className="ml-auto flex items-center gap-1.5 shrink-0">
         {(m.isFriendly || m.isPreseason) && (
           <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-400">
-            {m.isFriendly ? "친선" : "프리시즌"}
+            {m.isFriendly ? "친선" : m.preseasonLabel ?? "프리시즌"}
           </span>
         )}
         <span
