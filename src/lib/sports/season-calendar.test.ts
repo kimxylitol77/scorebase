@@ -45,6 +45,12 @@ test("유럽 2부 신규 등록 리그도 7월 전환으로 분류된다", () =>
     assert.equal(isSplitYearLeague(lg), true, lg);
     assert.equal(computeSeasonYear(lg, at("2026-07-31T00:00:00Z")), 2026, lg);
   }
+  // 하키(KHL·유럽 ts 표 리그) — 9월 개막, 해를 넘겨 봄에 끝난다. 1월에도 같은 시즌이어야 한다.
+  for (const lg of ["KHL", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL", "CHL_HOCKEY"]) {
+    assert.equal(isSplitYearLeague(lg), true, lg);
+    assert.equal(computeSeasonYear(lg, at("2027-01-15T12:00:00Z")), 2026, lg);
+    assert.equal(seasonLabelFor(lg, 2026), "2026-27", lg);
+  }
   // 아일랜드 2부는 2~10월 달력 시즌 — 유럽이라고 싸잡아 분류하지 않는다.
   assert.equal(isSplitYearLeague("IRELAND_2"), false);
 });

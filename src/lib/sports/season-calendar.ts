@@ -56,6 +56,10 @@ const SPLIT_YEAR_LEAGUES = [
   //  개막(played 1~2) 확인. 달력형 오분류로 라벨이 "2025" 로 찍히던 것 교정 (아카이브 relabel 완료).
   //  SEASON_BOUNDARY 도 셋 다 6/15 여름 경계라 팀 페이지 시즌 창과 정합.
   "WALES_PL", "MONTENEGRO_1L", "LUXEMBOURG_ND",
+  // 2026-09-30 하키 ts 공식 표 리그 — 전부 9월 개막·이듬해 봄 종료(ts 표 이름 "26/27"). 달력형이면 순위 아카이브
+  //  라벨이 "2026" 으로 찍히고, 1월에 "2027" 로 넘어가며 시즌 도중 표가 "2026 최종 순위" 로 굳을 참이었다.
+  //  KHL 역사 탭·시즌 내비는 진행 중 시즌을 지난 시즌으로 내보냈다.
+  "KHL", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL", "CHL_HOCKEY",
 ] as const;
 
 /**
