@@ -9,3 +9,14 @@
 - 예상 골리 잡은 nhl-goalies 크론(매일 12:30 UTC)에 붙였다 — 크론 슬롯 추가 없음.
 - KHL 스쿼드에 없는 출전 선수가 45명(이적·콜업) → build 스크립트가 경기 캐시 출전 선수를 보탠다.
 - 선수 기록 탭은 이미 있었다(리그 페이지가 leagueLeader 행이 있으면 stats 를 자동 삽입).
+
+## 2단계 (2026-09-30)
+- 일정: ts diary 는 두 달 앞까지만(12월 이후 0건). `match/season?uuid={season_id}` 가 시즌 750경기를 한 번에 준다(schedule/season·season/recent 는 미인가).
+  수집기는 diary 에서 본 KHL season_id 로 하루 1회 받는다 → 다음 시즌도 자동. 22팀 전부 매핑돼 있었다.
+- 시뮬은 무승부 없는 하키도 승 3점으로 센다 → 표시만 "승·예상 승수"(÷3). NHL 에도 같이 적용(같은 표).
+- KHL 은 REGULAR_SEASON_TITLE_LEAGUES — 1위 ≠ 가가린컵. 역사 탭·시즌 순위 페이지도 "정규리그 1위" 로.
+- 우승 기록: 위키데이터 Q190001 은 2022-23 까지 11시즌. 빈 시즌은 ts 지난 시즌 경기의 마지막 시리즈 승수로 확인
+  (2022-23 CSKA 로 교차검증). 2019-20 은 3/12 중단 — 5승 팀이 나와 결승이 아님을 알 수 있다 → 넣지 않음.
+- 아카이브: 기존 archiveFootball(getFullStandings) 경로가 하키 7개도 9/18 부터 굳히고 있었다. 하키 전용 함수는 중복이라 되돌림.
+  대신 라벨이 달력형 "2026" 이었던 게 진짜 문제 → season-calendar SPLIT_YEAR 에 하키 7개 추가, "2026" 7행 삭제(백업: 세션 스크래치패드).
+- 지난 시즌 순위는 ts season/table/detail(과거 시즌도 열림) → scripts/backfill-khl-standings-archive.ts. 없어진 팀은 ts team/list 로 이름·로고.
