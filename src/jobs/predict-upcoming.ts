@@ -37,8 +37,11 @@ export async function runPredictUpcoming(opts?: {
   const force = opts?.force ?? false;
   const now = new Date();
 
+  // NHL 프리시즌은 예측하지 않는다 — 채점·적중률 통계도 정규시즌만 (preseason.ts)
+  const preIds = [...(await preseasonMatchIds("NHL"))];
   const pending = await prisma.match.findMany({
     where: {
+      ...(preIds.length ? { id: { notIn: preIds } } : {}),
       status: "SCHEDULED",
       startTime: { gte: now, lte: new Date(now.getTime() + hours * 3600_000) },
     },

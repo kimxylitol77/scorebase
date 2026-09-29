@@ -160,7 +160,13 @@ export async function runEvaluate(opts?: { limit?: number }) {
 // 적중률 페이지에 표본 2·4건으로 노출되던 원인. 9월 UCL/UEL/UECL 새 시즌 전환 때도 활용).
 export async function runEvaluateMatches(opts?: { limit?: number; leagues?: string[] }) {
   const limit = opts?.limit ?? 400;
-  const leagueFilter = opts?.leagues?.length ? { league: { in: opts.leagues } } : {};
+  // NHL 프리시즌은 채점하지 않는다 — 적중률 통계가 정규시즌 기준이 되게(2026-09-30, preseason.ts).
+  //  where 에서 빼야 한다: 루프에서 건너뛰면 미채점으로 남아 매 회차 limit 슬롯을 차지한다.
+  const preIds = [...(await preseasonMatchIds("NHL"))];
+  const leagueFilter = {
+    ...(opts?.leagues?.length ? { league: { in: opts.leagues } } : {}),
+    ...(preIds.length ? { id: { notIn: preIds } } : {}),
+  };
   console.log("[evaluate/match] 시작");
 
   // 최신 매치 먼저 채점 (desc). asc 면 평가불가 컵/여자/마이너 리그 매치(양팀 prior<5 → 아래

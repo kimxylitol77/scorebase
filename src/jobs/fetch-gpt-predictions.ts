@@ -773,8 +773,11 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     doneByPanel.set(p.key, new Set(done.map((d) => d.matchId)));
   }
 
+  // NHL 프리시즌은 AI 대결 대상이 아니다 — 성적표가 정규시즌 기준 (preseason.ts)
+  const preIds = [...(await preseasonMatchIds("NHL"))];
   const candidates = await prisma.match.findMany({
     where: {
+      ...(preIds.length ? { id: { notIn: preIds } } : {}),
       league: { in: MAJOR_LEAGUES },
       status: "SCHEDULED",
       startTime: { gte: now, lte: until },
