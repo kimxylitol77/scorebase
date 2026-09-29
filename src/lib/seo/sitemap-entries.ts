@@ -65,6 +65,7 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     { url: `${base}/predictions`, changeFrequency: "hourly", priority: 0.95 },
     { url: `${base}/predictions/accuracy`, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/predictions/scorecard`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/predictions/statistics`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/value-bets`, changeFrequency: "daily", priority: 0.85 },
     // 배당 흐름·베트맨 — 종목 탭마다 제목·설명·canonical 이 다른 독립 랜딩(2026-09-13 SEO 적용)
     { url: `${base}/odds?sport=soccer`, changeFrequency: "hourly", priority: 0.8 },

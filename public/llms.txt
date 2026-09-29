@@ -24,6 +24,7 @@
 - [/predictions/title-race](https://www.scorebase.kr/predictions/title-race): 우승 경쟁 hot 리그 모음.
 - [/predictions/accuracy](https://www.scorebase.kr/predictions/accuracy): 13개 리그 1X2·핸디캡·오버언더 시장별 실측 적중률(시즌 누적) + 플랫 유닛 수익률(경기 전 마지막 배당에 모델 픽 1유닛 후행 시뮬레이션, 시장 favorite 베팅을 기준선으로 나란히 공개). 홈 H1 의 수익률 수치가 이 페이지에서 나온다. 적중률·수익률의 단일 출처.
 - [/predictions/scorecard](https://www.scorebase.kr/predictions/scorecard): AI 예측 성적표 — 스코어베이스 통계 모델 vs GPT-5.5 가 같은 경기를 경기 전 예측하고 결과로 채점한 정면 비교(1X2·핸디·OU 시장별).
+- [/predictions/statistics](https://www.scorebase.kr/predictions/statistics): 인용용 스포츠 예측 통계 — 적중률·베팅시장 정면 비교·실배당 수익률·발행 픽의 마감 배당 비교(CLV)를 표본을 넣은 한 문장씩 매시간 DB 실측으로 재생성. 못 맞힌 숫자(시장에 지는 리그·마이너스 수익률)도 같은 규칙으로 싣는다. 출처(스코어베이스+링크) 표기 시 인용 가능.
 
 ### 배당·수익률 (베팅 중개·권유 없음 — 시장 예측치의 분석·검증)
 - [/odds?sport=soccer](https://www.scorebase.kr/odds?sport=soccer): 배당 흐름 — 해외 북메이커 평균 배당의 오픈 대비 변동(돈이 몰리는 방향), 하락 폭별 실제 적중 비율(최근 60일 실측), 표 마지막 열에 우리 AI 모델 확률 vs 시장 내재확률(±5%p 동의/신중 배지). 야구·농구·하키·배구·LOL·UFC 탭은 ?sport= 로.

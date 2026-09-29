@@ -37,6 +37,8 @@ import RoiCard from "@/components/predictions/RoiCard";
 import MarketRoiBadges from "@/components/predictions/MarketRoiBadges";
 import { fmtRoiPct } from "@/lib/predict/flat-roi";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { pickClvStats, type PickClvStat } from "@/lib/predict/pick-clv";
+import { honestLines, CLV_MIN } from "@/lib/predict/public-facts";
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -260,7 +262,7 @@ async function reliabilitySeries(): Promise<{
 }
 
 export default async function AccuracyPage() {
-  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi, oddsBand, marketRoi] = await Promise.all([
+  const [stats, valueBet, accSeries, reliability, headToHead, flatRoi, oddsBand, marketRoi, clv] = await Promise.all([
     Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
     valueBetStats(),
     cumulativeAccuracySeries(),
@@ -269,6 +271,7 @@ export default async function AccuracyPage() {
     flatUnitRoiStats(),
     oddsBandStats().catch(() => null),
     marketRoiStats().catch(() => null),
+    pickClvStats().catch(() => null),
   ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
@@ -310,6 +313,20 @@ export default async function AccuracyPage() {
   const rolling7 = sumRolling("rolling7");
   const rolling14 = sumRolling("rolling14");
   const rolling30 = sumRolling("rolling30");
+  const strongEvaluated = stats.reduce((s, x) => s + x.strong.evaluated, 0);
+  const strongCorrect = stats.reduce((s, x) => s + x.strong.correct, 0);
+
+  // 솔직한 요약 — 통계 페이지 인용 문장과 같은 빌더(public-facts). 부진·마이너스·시장 열세도 같은 규칙으로 들어간다.
+  const summary = honestLines({
+    leagueCount: LEAGUES.length,
+    oneXTwo: { evaluated: totalEvaluated, correct: totalCorrect, rate: overallRate },
+    rolling30,
+    strong: { evaluated: strongEvaluated, correct: strongCorrect, rate: strongEvaluated > 0 ? strongCorrect / strongEvaluated : 0 },
+    sinceLabel,
+    flatRoi,
+    headToHead,
+    clv,
+  });
 
   // 리그별 보드 — 기간별 집계는 이미 statForLeague 가 다 만들어 뒀고, 정렬·필터는 클라이언트에서.
   const boardRows: AccuracyLeagueRow[] = stats.map((s) => ({
@@ -379,6 +396,21 @@ export default async function AccuracyPage() {
           <span className="font-semibold text-emerald-700 dark:text-emerald-400">멀티 AI 성적표 보기 →</span>
         </Link>
       </header>
+
+      {/* 솔직한 요약 — 좋은 숫자만 고르지 않은 한 단락 (올림푸스 벳츠 track_record 벤치마크, 2026-09-29) */}
+      {summary.length > 0 && (
+        <section className="mb-8 rounded-2xl border-l-4 border-sky-500 bg-sky-500/[0.06] px-5 py-4 dark:bg-sky-400/[0.06]">
+          <h2 className="mb-1.5 text-sm font-semibold text-sky-800 dark:text-sky-300">한눈에 보는 솔직한 요약</h2>
+          <p className="text-sm leading-relaxed text-neutral-700 break-keep dark:text-neutral-300">{summary.join(" ")}</p>
+          <p className="mt-2 text-[11px] text-neutral-500">
+            매시간 같은 DB 에서 자동으로 다시 씁니다. 숫자별 인용 문장은{" "}
+            <Link href="/predictions/statistics" className="underline hover:text-neutral-900 dark:hover:text-white">
+              예측 통계
+            </Link>
+            에 모아 두었습니다.
+          </p>
+        </section>
+      )}
 
       {/* AI Strong Pick — 리그별 고신뢰 임계 초과 픽만의 적중률 (마케팅 강조) */}
       <StrongPickHero stats={stats} overallTotal={totalEvaluated} overallCorrect={totalCorrect} />
@@ -516,6 +548,9 @@ export default async function AccuracyPage() {
       {/* 플랫 유닛 ROI — 실배당(vig 포함) 후행 시뮬레이션 */}
       {flatRoi && flatRoi.model.all.evaluated >= 100 && <FlatRoiSection data={flatRoi} marketRoi={marketRoi} />}
 
+      {/* 발행 픽 마감 배당 비교 — 프리뷰 발행 시점 배당 vs 경기 직전 배당 */}
+      {clv && clv.n >= CLV_MIN && <ClvSection data={clv} />}
+
       {/* 인기픽 배당 구간별 성적 + 리그별 인기픽 적중률 — "낮은 배당이 얼마나 맞나" 를 종목·리그별로 */}
       {oddsBand && oddsBand.evaluated >= 100 && <OddsBandSection data={oddsBand} />}
 
@@ -604,6 +639,10 @@ export default async function AccuracyPage() {
         {" · "}
         <Link href="/predictions" className="underline hover:text-neutral-900 dark:hover:text-white">
           시즌 예측 대시보드
+        </Link>
+        {" · "}
+        <Link href="/predictions/statistics" className="underline hover:text-neutral-900 dark:hover:text-white">
+          인용용 예측 통계
         </Link>
       </p>
     </main>
@@ -828,6 +867,59 @@ function FlatRoiSection({ data, marketRoi }: { data: FlatUnitRoiStat; marketRoi:
             .join(" · ")}
           . 배당 수집이 야구 중심이라 표본이 야구에 치우쳐 있으며, 축구·농구 표본은
           쌓이는 대로 함께 공개합니다.
+        </p>
+      )}
+    </section>
+  );
+}
+
+// CLV 리그 행 최소 표본
+const CLV_LEAGUE_MIN = 30;
+
+function ClvSection({ data }: { data: PickClvStat }) {
+  const rows = data.leagues.filter((l) => l.n >= CLV_LEAGUE_MIN);
+  const other = data.n - data.beat;
+  const signed = (x: number) => `${x > 0 ? "+" : ""}${(x * 100).toFixed(2)}%`;
+  const rate = (a: number, b: number) => (b > 0 ? `${((a / b) * 100).toFixed(1)}%` : "–");
+  return (
+    <section id="clv" className="mb-10 scroll-mt-24 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
+      <h2 className="text-lg font-semibold mb-1">발행한 픽은 마감 배당보다 좋은 가격이었나</h2>
+      <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+        프리뷰 글이 발행된 순간의 평균 배당과 경기 직전 마지막 평균 배당을 픽 쪽에서 비교했습니다(CLV).
+        마감 배당은 가장 많은 정보가 반영된 가격이라, 발행 가격이 꾸준히 마감보다 좋다면 시장보다 먼저
+        움직였다는 뜻입니다. 50% 안팎이면 시장과 같은 수준이며, 결과와 상관없이 그대로 공개합니다.
+      </p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500 mb-1">마감보다 좋은 가격</p>
+          <div className="text-2xl font-bold tabular-nums">{rate(data.beat, data.n)}</div>
+          <p className="text-[11px] text-neutral-500 tabular-nums mt-1">{data.beat.toLocaleString()} / {data.n.toLocaleString()}픽</p>
+        </div>
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500 mb-1">평균 가격 차이</p>
+          <div className={`text-2xl font-bold tabular-nums ${data.avgClv > 0 ? "text-emerald-600 dark:text-emerald-400" : data.avgClv < 0 ? "text-rose-600 dark:text-rose-400" : ""}`}>
+            {signed(data.avgClv)}
+          </div>
+          <p className="text-[11px] text-neutral-500 mt-1">발행 배당 ÷ 마감 배당 − 1</p>
+        </div>
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500 mb-1">좋은 가격이던 픽 적중률</p>
+          <div className="text-2xl font-bold tabular-nums">{rate(data.beatWins, data.beat)}</div>
+          <p className="text-[11px] text-neutral-500 tabular-nums mt-1">{data.beat.toLocaleString()}픽</p>
+        </div>
+        <div className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] p-4">
+          <p className="text-xs text-neutral-500 mb-1">나머지 픽 적중률</p>
+          <div className="text-2xl font-bold tabular-nums">{rate(data.otherWins, other)}</div>
+          <p className="text-[11px] text-neutral-500 tabular-nums mt-1"><span className="whitespace-nowrap">{other.toLocaleString()}픽</span> <span className="whitespace-nowrap">(변동 없음 {data.same.toLocaleString()})</span></p>
+        </div>
+      </div>
+      {rows.length > 0 && (
+        <p className="text-[11px] text-neutral-500 break-keep">
+          리그별 (표본 {CLV_LEAGUE_MIN}픽 이상):{" "}
+          {rows
+            .map((l) => `${LEAGUE_NAME[l.league] ?? l.league} ${l.n.toLocaleString()}픽 ${rate(l.beat, l.n)} (${signed(l.avgClv)})`)
+            .join(" · ")}
+          . 발행 시각 이전 배당 기록이 없는 글은 제외했습니다.
         </p>
       )}
     </section>

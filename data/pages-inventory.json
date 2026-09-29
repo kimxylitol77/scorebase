@@ -994,6 +994,13 @@
     "group": "detail"
   },
   {
+    "route": "/predictions/statistics",
+    "desc": "인용용 스포츠 예측 통계 — 적중률·시장 비교·수익률·CLV 를 출처 표기 인용용 한 문장씩 매시간 DB 실측으로 다시 쓴다.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "predictions-deep"
+  },
+  {
     "route": "/predictions/title-race",
     "desc": "전 리그 우승 경쟁 trackerboard. 각 리그의 1~3위 + 격차 + 잔여 경기 + Elo 예측 우승 확률 횡단 표시.",
     "inMenu": false,

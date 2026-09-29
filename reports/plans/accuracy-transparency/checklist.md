@@ -1,0 +1,7 @@
+- [x] lib/predict/pick-clv.ts — 발행 픽 CLV 집계 (unstable_cache 1h)
+- [x] accuracy: 솔직한 요약 박스
+- [x] accuracy: CLV 섹션
+- [x] /predictions/statistics 페이지 + JSON-LD + CiteBox
+- [x] sitemap-entries·llms.txt·predictions 허브·accuracy 링크
+- [x] tsc + 로컬 렌더 확인 (375px 포함)
+- [x] 커밋
