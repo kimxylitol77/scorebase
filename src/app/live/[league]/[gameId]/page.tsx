@@ -1833,7 +1833,12 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
           배구 라이브 스코어
         </Link>
         <span>›</span>
-        <span className="text-neutral-700 dark:text-neutral-300">{label}</span>
+        {/* 친선은 대회 페이지가 없다(순위표 링크와 같은 제외) */}
+        {lg !== "VB_FRIENDLY" && lg !== "VB_FRIENDLY_W" ? (
+          <Link href={`/leagues/${lg}`} className="hover:underline text-neutral-700 dark:text-neutral-300">{label}</Link>
+        ) : (
+          <span className="text-neutral-700 dark:text-neutral-300">{label}</span>
+        )}
       </nav>
 
       <header>
@@ -1849,6 +1854,11 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
           {lg !== "VB_FRIENDLY" && lg !== "VB_FRIENDLY_W" && (
             <Link href={`/standings/${lg}`} className="font-bold text-amber-600 dark:text-amber-400 hover:underline">
               순위표 →
+            </Link>
+          )}
+          {(lg === "VB_ASIAN_GAMES" || lg === "VB_ASIAN_GAMES_W") && (
+            <Link href="/asian-games" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+              2026 아시안게임 한국 경기 →
             </Link>
           )}
         </p>
