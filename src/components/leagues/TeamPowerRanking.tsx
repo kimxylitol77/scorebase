@@ -19,6 +19,7 @@ const matchSelect = {
 // 종목별 라벨/지표 설정. against = 실점/경기(낮을수록 강함). null 이면 지표 컬럼 없음.
 const CFG: Record<string, { diffLabel: string; againstLabel: string | null; againstDigits: number; unit: string }> = {
   NHL: { diffLabel: "득실", againstLabel: "실점", againstDigits: 2, unit: "골" },
+  KHL: { diffLabel: "득실", againstLabel: "실점", againstDigits: 2, unit: "골" },
   WNBA: { diffLabel: "득실차", againstLabel: "실점", againstDigits: 1, unit: "점" },
   LOL: { diffLabel: "맵득실", againstLabel: null, againstDigits: 0, unit: "맵" },
 };

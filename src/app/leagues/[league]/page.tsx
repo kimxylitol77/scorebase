@@ -763,8 +763,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "predictions", "power", "fixtures", "stats", "history", "articles"],
-    // KHL — 순위(ts 공식 표 + 경기 캐시 리더보드)·일정·글. 예측·역사는 데이터 없음.
-    KHL: ["standings", "fixtures", "articles"],
+    // KHL — 순위(ts 공식 표)·파워랭킹(Elo, 2026-09-29)·일정·글. 선수 기록 탭은 리더보드가 있으면 아래에서 자동으로 붙는다.
+    //   시즌 예측은 일정이 시즌 일부(125/748)만 있어 잘린 일정 오보 위험 → 전체 일정 수집 후. 역사는 데이터 없음.
+    KHL: ["standings", "power", "fixtures", "articles"],
     CHL_HOCKEY: ["standings", "fixtures", "articles"],
     LIIGA: ["standings", "fixtures", "articles"],
     SWISS_NL: ["standings", "fixtures", "articles"],
@@ -1139,7 +1140,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <BaseballPowerRanking league={upper} leagueName={info.name} />
         </div>
       )}
-      {!isSoccer && view === "power" && ["NHL", "LOL"].includes(upper) && (
+      {!isSoccer && view === "power" && ["NHL", "KHL", "LOL"].includes(upper) && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <TeamPowerRanking league={upper} leagueName={info.name} />
         </div>
