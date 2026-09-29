@@ -73,6 +73,7 @@ import {
 } from "@/lib/sports/api-football-pro";
 import FormDots from "@/components/FormDots";
 import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
 // ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
 export const revalidate = 300;
@@ -559,7 +560,8 @@ export default async function TeamPage({ params }: Props) {
   // 통계
   const standings = calcStandings(seasonMatches);
   const row = standings.byTeam.get(teamId);
-  const eloTable = calcEloTable(matches); // 전체 — Elo 는 시즌 누적
+  // 전체 — Elo 는 시즌 누적. NHL 은 프리시즌만 뺀다(preseason.ts, 백테스트 중립). NBA·MLB 는 미검증이라 그대로.
+  const eloTable = calcEloTable(team.league === "NHL" ? await withoutPreseason(matches, "NHL") : matches);
   const elo = getElo(eloTable, teamId);
   const recentForm = calcForm(formMatches, teamId, undefined, 5);
   const streak = calcStreaks(formMatches, teamId);

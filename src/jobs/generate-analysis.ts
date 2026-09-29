@@ -16,6 +16,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { buildAbsChallengeSection } from "@/lib/sports/mlb-abs-challenges";
 import { buildTacticalPointsBlock } from "@/lib/tactical/weekly-points";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
 const RELEGATION_BY_LEAGUE: Record<string, number> = {
   EPL: 3,
@@ -190,7 +191,7 @@ export async function runAnalysis(opts?: { budgetMs?: number }) {
             startTime: true,
           },
         });
-        const allMatches = dbMatches as PredictMatch[];
+        const allMatches = (await withoutPreseason(dbMatches, league)) as PredictMatch[]; // NHL 프리시즌 제외 (preseason.ts)
 
         // 시즌 경계 필터 — 리그 전체를 합산하면 시즌 초 글이 지난 시즌 순위표("28승 7무 5패 91점,
         // 시즌 막바지")를 서술한다(2026-09-05 실측). predictions/[league] 와 같은 규칙:

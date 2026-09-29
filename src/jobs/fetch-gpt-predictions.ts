@@ -40,6 +40,7 @@ import {
   type MatchOddsCtx,
   type OuShadowStat,
 } from "@/lib/predict/publish-gate";
+import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 // 배구는 predHome(검증된 배구 Elo+시장 블렌드) 앵커, LoL 은 일반 Elo 파이프라인
@@ -817,7 +818,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
         homeScore: true, awayScore: true, startTime: true,
       },
     });
-    poolByLeague.set(lg, pool as PredictMatch[]);
+    poolByLeague.set(lg, (await withoutPreseason(pool, lg)) as PredictMatch[]); // NHL 프리시즌 제외 (preseason.ts)
   }
 
   let stored = 0, storedMarkets = 0, skipped = 0, failed = 0;
@@ -1128,7 +1129,7 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
         homeScore: true, awayScore: true, startTime: true,
       },
     });
-    poolByLeague.set(lg, pool as PredictMatch[]);
+    poolByLeague.set(lg, (await withoutPreseason(pool, lg)) as PredictMatch[]); // NHL 프리시즌 제외 (preseason.ts)
   }
 
   let added = 0;

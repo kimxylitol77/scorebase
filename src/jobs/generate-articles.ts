@@ -20,6 +20,7 @@ import {
 import { enrichBaseballContext } from "@/lib/predict/baseball-context";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
 function buildSlug(league: string, matchId: number): string {
   return `${league.toLowerCase()}-recap-${matchId}`;
@@ -82,7 +83,7 @@ export async function runRecap(opts?: {
         startTime: true,
       },
     });
-    leagueMatches[lg] = list as PredictMatch[];
+    leagueMatches[lg] = (await withoutPreseason(list, lg)) as PredictMatch[]; // NHL 프리시즌 제외 (preseason.ts)
   }
 
   for (const m of matches) {

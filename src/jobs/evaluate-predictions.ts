@@ -33,6 +33,7 @@ import { calibrateHomeWinProb, hasHomeCalibration } from "@/lib/predict/home-cal
 import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import { historyLeaguesFor, usesNationalElo } from "@/lib/sports/sport-leagues";
+import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 /**
  * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡/BTTS 모두 90분(정규시간) 기준.
@@ -236,7 +237,8 @@ export async function runEvaluateMatches(opts?: { limit?: number; leagues?: stri
         startTime: true,
       },
     });
-    cache.set(lg, list as PredictMatch[]);
+    // NHL 프리시즌은 Elo·폼 이력에서 뺀다 (preseason.ts — 백테스트 중립, 개막 전 성적 오염 방지)
+    cache.set(lg, (await withoutPreseason(list, lg)) as PredictMatch[]);
   }
 
   const tally: Record<string, number> = {};

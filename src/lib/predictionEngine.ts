@@ -49,6 +49,7 @@ import {
 } from "./predict/schedule-context";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { nationalEloFor } from "./predict/national-elo";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
 
 const CONFIDENCE_GATE = 58;
@@ -585,7 +586,8 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
   });
   // xG 추출 — af /fixtures/statistics 는 [home, away] 순서 고정 (2026-06-10 394/394 검증).
   // xG 없는 매치(아시아 리그·과거분)는 null → calcEloTable 이 기존 골 마진과 동일 동작.
-  const seasonMatchesTyped: PredictMatch[] = seasonMatches.map((m) => {
+  // NHL 프리시즌은 Elo·폼에서 뺀다 (preseason.ts)
+  const seasonMatchesTyped: PredictMatch[] = (await withoutPreseason(seasonMatches, match.league)).map((m) => {
     let xgHome: number | null = null;
     let xgAway: number | null = null;
     if (m.fixtureStats) {

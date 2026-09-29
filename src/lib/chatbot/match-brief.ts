@@ -9,6 +9,7 @@ import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import type { PredictMatch } from "@/lib/predict/types";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
 const pct = (x: number) => Math.round(x * 100);
 
@@ -82,7 +83,8 @@ export async function buildMatchBrief(matchId: number): Promise<MatchBrief | nul
       fixtureStats: true,
     },
   });
-  const seasonTyped: PredictMatch[] = seasonMatches.map((m) => {
+  // NHL 프리시즌은 Elo·폼에서 뺀다 (preseason.ts)
+  const seasonTyped: PredictMatch[] = (await withoutPreseason(seasonMatches, match.league)).map((m) => {
     let xgHome: number | null = null;
     let xgAway: number | null = null;
     if (m.fixtureStats) {

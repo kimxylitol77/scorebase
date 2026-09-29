@@ -75,6 +75,7 @@ import { parseTsAnalysisForPreview } from "@/lib/sports/thesports/preview-analys
 import { readFileSync } from "fs";
 import path from "path";
 import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
 const TS_SOCCER_LEAGUES = new Set([
   "EPL",
@@ -267,7 +268,7 @@ export async function runPreview(opts?: {
         startTime: true,
       },
     });
-    leagueMatches[lg] = list as PredictMatch[];
+    leagueMatches[lg] = (await withoutPreseason(list, lg)) as PredictMatch[]; // NHL 프리시즌 제외 (preseason.ts)
   }
 
   // 매치별 처리를 함수로 떼어 동시 여러 건 돌린다. 글 1건이 haiku 출력 ~3,000토큰이라 60~90초

@@ -112,9 +112,10 @@ export default async function SeasonInsight({ league }: Props) {
     },
   });
   // 올스타전 제외 — MLB All-Stars 가 순위표에 정규팀처럼 끼어든다
-  const allMatches: PredictMatch[] = stripBaseballAllStarMatches(dbMatches).map((m) => ({ ...m }));
+  // NHL 프리시즌은 순위·Elo 모두에서 뺀다 (preseason.ts)
+  const allMatches: PredictMatch[] = (await withoutPreseason(stripBaseballAllStarMatches(dbMatches), league)).map((m) => ({ ...m }));
   // 순위·시뮬·빅매치는 이번 시즌만(예측 페이지와 같은 규칙)
-  const { season: matches, isPreviousSeason, seasonLabel } = selectSeasonMatches(await withoutPreseason(allMatches, league), league);
+  const { season: matches, isPreviousSeason, seasonLabel } = selectSeasonMatches(allMatches, league);
 
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;

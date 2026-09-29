@@ -5,8 +5,9 @@ import { cache } from "react";
 import { prisma } from "@/lib/db";
 import type { PredictMatch } from "@/lib/predict/types";
 import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
+import { withoutPreseason } from "@/lib/predict/preseason";
 
-/** 리그 전체 매치 (Elo/standings/폼 계산용) — 요청당 1회 조회. */
+/** 리그 전체 매치 (Elo/standings/폼 계산용) — 요청당 1회 조회. NHL 프리시즌은 뺀다(친선과 같은 이유 — 로테이션). */
 export const getLeagueMatches = cache(
   async (league: string): Promise<PredictMatch[]> => {
     const rows = await prisma.match.findMany({
@@ -22,7 +23,7 @@ export const getLeagueMatches = cache(
         startTime: true,
       },
     });
-    return rows.map((m) => ({ ...m }));
+    return (await withoutPreseason(rows, league)).map((m) => ({ ...m }));
   },
 );
 
@@ -61,6 +62,8 @@ export const getTeamMatches = cache(
       orderBy: { startTime: "desc" },
       take: 80,
     });
-    return rows.map((m) => ({ ...m }));
+    // 하키 팀이면 NHL 프리시즌도 뺀다 (preseason.ts)
+    const kept = rows.some((m) => m.league === "NHL") ? await withoutPreseason(rows, "NHL") : rows;
+    return kept.map((m) => ({ ...m }));
   },
 );

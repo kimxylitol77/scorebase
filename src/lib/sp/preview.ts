@@ -156,10 +156,11 @@ async function loadLeagueMatches(league: string): Promise<PredictMatch[]> {
 export async function generateSpPreview(m: KeyMatch, opts: { leagueMatches?: PredictMatch[] } = {}): Promise<{ title: string; chars: number } | null> {
   const row = await prisma.match.findUnique({ where: { id: m.id }, select: { homeTeamId: true, awayTeamId: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } } });
   if (!row) return null;
-  const leagueMatches = opts.leagueMatches ?? (await loadLeagueMatches(m.league));
+  // NHL 프리시즌은 순위·Elo 모두에서 뺀다 (preseason.ts)
+  const leagueMatches = await withoutPreseason(opts.leagueMatches ?? (await loadLeagueMatches(m.league)), m.league);
   // 순위·전적·홈원정은 이번 시즌 경기만(calcStandings 는 시즌을 안 자른다 — 첫 생성에서 "23팀 42경기 97점" 오류 실측).
   // Elo 는 시즌을 넘어 누적돼야 하므로 전체 경기로 따로 계산해 덮어쓴다(season-matches.ts 주석과 같은 규칙).
-  const sel = selectSeasonMatches(await withoutPreseason(leagueMatches, m.league), m.league, row.startTime);
+  const sel = selectSeasonMatches(leagueMatches, m.league, row.startTime);
   let ctx = buildMatchContext(sel.season, m.league, row.homeTeamId, row.awayTeamId, row.startTime, row.homeTeam.name, row.awayTeam.name);
   const eloAll = calcEloTable(leagueMatches.filter((x) => x.startTime.getTime() < row.startTime.getTime()));
   ctx.elo = { home: getElo(eloAll, row.homeTeamId), away: getElo(eloAll, row.awayTeamId) };

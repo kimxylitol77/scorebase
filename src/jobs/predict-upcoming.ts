@@ -14,6 +14,7 @@ import { computePrediction, type PredictionInput } from "@/lib/predict/compute-p
 import type { PredictMatch } from "@/lib/predict/types";
 import { pickReadiness } from "@/lib/predict/pick-readiness";
 import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
+import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 export interface PredictUpcomingResult {
   scanned: number;
@@ -68,7 +69,8 @@ export async function runPredictUpcoming(opts?: {
         homeScore: true, awayScore: true, startTime: true,
       },
     });
-    cache.set(lg, list as PredictMatch[]);
+    // NHL 프리시즌은 Elo·폼 이력에서 뺀다 (preseason.ts — 백테스트 중립, 개막 전 성적 오염 방지)
+    cache.set(lg, (await withoutPreseason(list, lg)) as PredictMatch[]);
   }
 
   for (const m of pending) {
