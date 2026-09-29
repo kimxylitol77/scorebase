@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { insertManagerCards } from "./manager-cards-insert";
 
-const WHO = { coachKo: "엔조 마레스카", teamKo: "맨체스터 시티", monthLabel: "2026년 9월" };
+const WHO = { coachKo: "엔초 마레스카", teamKo: "맨체스터 시티", monthLabel: "2026년 9월" };
 const BODY = "# 제목\n\n## 선정 이유\n\n가.\n\n## 이번 달의 전술\n\n나.\n\n## 결정적 경기\n\n다.\n\n## 키 플레이어\n\n라.\n\n## 다음 달 관전 포인트\n\n마.\n";
 const kinds = (s: string) => [...s.matchAll(/kind=(\w+)/g)].map((m) => m[1]);
 
@@ -31,7 +31,7 @@ test("이미 카드가 있으면 그대로 둔다", () => {
 test("경기 글 — 양 팀 카드가 짝으로, 순위 흐름·덤벨은 한 장씩", async () => {
   const { insertMatchManagerCards } = await import("./manager-cards-insert");
   const body = "# 제목\n\n## 두 팀의 설계\n\n가.\n\n## 골의 해부\n\n나.\n\n## 숫자가 가리킨 선수\n\n다.\n\n## 결론과 다음 경기\n\n라.\n";
-  const out = insertMatchManagerCards(body, 1160833, { homeKo: "맨체스터 시티", awayKo: "선덜랜드", homeCoachKo: "엔조 마레스카", awayCoachKo: "레지스 르브리" });
+  const out = insertMatchManagerCards(body, 1160833, { homeKo: "맨체스터 시티", awayKo: "선덜랜드", homeCoachKo: "엔초 마레스카", awayCoachKo: "레지스 르브리" });
   assert.deepEqual(kinds(out), ["poster", "poster", "pizza", "pizza", "bump", "dumbbell", "fut", "fut"]);
   assert.equal((out.match(/side=away/g) ?? []).length, 3);
   assert.equal((out.match(/pair=1/g) ?? []).length, 6);

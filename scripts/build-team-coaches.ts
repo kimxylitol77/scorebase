@@ -89,6 +89,7 @@ const MANUAL_KO: Record<string, string> = {
   "Dino Toppmöller": "디노 토프묄러",
   "Frank Lampard": "프랭크 램파드",
   "Fabian Hürzeler": "파비안 휘르첼러",
+  "Enzo Maresca": "엔초 마레스카", // 사용자 결정 2026-09-29 — coach-photos.json 표기와 통일
   // K리그2 — ts 가 한국인 감독을 로마자로만 주는데 Haiku 가 원래 한글명을 복원하지 못한다.
   // 외국인 2명은 구단 공식 발표 표기를 따른다(누스=제라드, 퀸타=루이 — 음차 직역과 다름).
   "Jeong-un Ko": "고정운",       // 김포
