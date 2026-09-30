@@ -54,6 +54,13 @@ function pct(r: Rec) {
   return r.w + r.l > 0 ? r.w / (r.w + r.l) : 0;
 }
 
+export interface PlayoffSimOptions {
+  /** 정규시즌 종료 후 — 그룹별 최종 순위(공식 표 순서). 있으면 잔여 경기·동률 추첨 없이 이 순서로 시드 */
+  fixedRank?: Map<string, number[]>;
+  /** 실제 포스트시즌 시리즈 승수 — (a, b) 순서로 [a 승, b 승]. 없으면 null */
+  known?: (a: number, b: number) => [number, number] | null;
+}
+
 export function runPlayoffSim(
   format: PlayoffFormat,
   teams: SimTeam[],
@@ -61,6 +68,7 @@ export function runPlayoffSim(
   prob: GameProb,
   iterations = 3000,
   rand: () => number = Math.random,
+  opts: PlayoffSimOptions = {},
 ): PlayoffOdds[] {
   const sport = FORMAT_SPORT[format];
   const nStage = STAGES[format].length;
@@ -84,10 +92,12 @@ export function runPlayoffSim(
   };
   /** 시리즈 — top 이 상위 시드. pattern 은 top 기준 H/A. start=[top, bot] 선승 어드밴티지. 반환 승자 */
   const series = (top: number, bot: number, bestOf: number, pattern: string, start: [number, number] = [0, 0], topWinsTies = false): number => {
-    const need = Math.ceil(bestOf / 2) + (bestOf % 2 === 0 ? 1 : 0);
-    let a = start[0];
-    let b = start[1];
-    for (let g = 0; g < pattern.length && a < need && b < need; g++) {
+    const need = Math.ceil(bestOf / 2);
+    // 실제로 치른 경기 승수를 얹고, 홈 순서는 치른 경기 수만큼 건너뛴다
+    const k = opts.known?.(top, bot) ?? [0, 0];
+    let a = start[0] + k[0];
+    let b = start[1] + k[1];
+    for (let g = k[0] + k[1]; g < pattern.length && a < need && b < need; g++) {
       const topHome = pattern[g] !== "A";
       const res = topHome ? play(top, bot, sport === "baseball") : play(bot, top, sport === "baseball");
       if (res === 0) continue; // 야구 무승부 — 승수 없음
@@ -134,7 +144,7 @@ export function runPlayoffSim(
     const sortIds = (list: number[]) => [...list].sort((x, y) => key(y) - key(x));
     const groups = new Map<string, number[]>();
     for (const t of teams) groups.set(t.group, [...(groups.get(t.group) ?? []), t.id]);
-    const ranked = new Map([...groups].map(([g, list]) => [g, sortIds(list)]));
+    const ranked = opts.fixedRank ?? new Map([...groups].map(([g, list]) => [g, sortIds(list)]));
     for (const list of ranked.values()) list.forEach((id, i) => (rankSum[idx.get(id)!] += i + 1));
 
     const lvl = new Map<number, number>();

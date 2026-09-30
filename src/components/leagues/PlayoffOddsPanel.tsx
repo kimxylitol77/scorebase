@@ -51,7 +51,11 @@ export default async function PlayoffOddsPanel({ result }: { result: PlayoffOdds
       <span className="shrink-0 rounded-full bg-neutral-200 dark:bg-neutral-700" style={{ width: size, height: size }} />
     );
   };
-  const top = [...odds].sort((a, b) => b.stage[last] - a.stage[last]).slice(0, 4);
+  const post = result.phase === "post";
+  const champion = odds.find((o) => o.stage[last] >= 0.9995) ?? null;
+  const top = [...odds].filter((o) => o.stage[last] > 0).sort((a, b) => b.stage[last] - a.stage[last]).slice(0, 4);
+  // 포스트시즌 중 탈락 = 진출했는데 우승 가능성이 0 (이미 진 시리즈가 있다)
+  const out = (o: (typeof odds)[number]) => o.stage[0] < 0.001 || (post && o.stage[last] === 0);
   const groups = [...new Set(odds.map((o) => o.group))].sort();
 
   return (
@@ -59,15 +63,31 @@ export default async function PlayoffOddsPanel({ result }: { result: PlayoffOdds
       <div>
         <h2 className="text-lg font-bold tracking-tight">
           {TITLE[league]}
+          {post && (
+            <span className="ml-2 rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">{champion ? "시즌 종료" : "포스트시즌 진행 중"}</span>
+          )}
           {result.early && (
             <span className="ml-2 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">시즌 초반 · Elo 비중 큼</span>
           )}
         </h2>
         <p className="mt-1 text-xs text-neutral-500 break-keep">
-          남은 정규시즌 {result.remaining.toLocaleString()}경기를 Elo 로 3,000번 치르고, 그때마다 규정대로 시드를 정해 플레이오프를 끝까지 치른 결과입니다. {RULE[league]}
+          {post
+            ? "정규시즌이 끝나 공식 최종 순위로 시드를 고정했습니다. 끝난 시리즈는 결과, 진행 중인 시리즈는 현재 승수부터 남은 경기를 Elo 로 3,000번 치른 결과입니다. "
+            : `남은 정규시즌 ${result.remaining.toLocaleString()}경기를 Elo 로 3,000번 치르고, 그때마다 규정대로 시드를 정해 플레이오프를 끝까지 치른 결과입니다. `}
+          {RULE[league]}
         </p>
       </div>
 
+      {champion && (
+        <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 p-5 ring-1 ring-amber-300/60 dark:from-amber-950/30 dark:to-yellow-950/20 dark:ring-amber-700/40">
+          <Logo id={champion.teamId} size={44} />
+          <div>
+            <div className="text-xs font-bold text-amber-700 dark:text-amber-300">{stages[last - 1]} 우승</div>
+            <div className="text-2xl font-black">{nameOf(champion.teamId)}</div>
+          </div>
+        </div>
+      )}
+      {!champion && (
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {top.map((o, i) => (
           <div key={o.teamId} className="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
@@ -86,6 +106,7 @@ export default async function PlayoffOddsPanel({ result }: { result: PlayoffOdds
           </div>
         ))}
       </div>
+      )}
 
       <div className={`grid gap-4 ${groups.length > 1 ? "xl:grid-cols-2" : ""}`}>
         {groups.map((g) => {
@@ -105,7 +126,7 @@ export default async function PlayoffOddsPanel({ result }: { result: PlayoffOdds
                   </thead>
                   <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
                     {rows.map((o) => (
-                      <tr key={o.teamId} className={o.stage[0] < 0.001 ? "opacity-50" : ""}>
+                      <tr key={o.teamId} className={out(o) ? "opacity-50" : ""}>
                         <td className="max-w-[9.5rem] px-2 py-1.5 sm:max-w-none">
                           <Link href={`/teams/${o.teamId}`} prefetch={false} className="flex min-w-0 items-center gap-2 hover:underline">
                             <Logo id={o.teamId} size={22} />

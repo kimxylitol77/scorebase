@@ -41,3 +41,30 @@ for (const [format, groups, expected] of cases) {
     for (const o of odds) for (let k = 1; k < o.stage.length; k++) assert.ok(o.stage[k] <= o.stage[k - 1] + 1e-12);
   });
 }
+
+test("KBO 실제 포스트시즌 반영 — 2025 대진: WC 삼성(4위) 1승1패+어드밴티지 통과, 준PO 삼성 3승1패", () => {
+  // 1 LG · 2 한화 · 3 SSG · 4 삼성 · 5 NC
+  const [LG, HH, SSG, SS, NC] = [1, 2, 3, 4, 5];
+  const teams: SimTeam[] = [LG, HH, SSG, SS, NC, 6, 7, 8, 9, 10].map((id) => ({ id, group: "ALL", w: 0, l: 0, d: 0, otl: 0 }));
+  const pairs = new Map<string, [number, number]>([
+    [`${SS}-${NC}`, [1, 1]], // lo=SS(4) 1승, NC 1승
+    [`${SSG}-${SS}`, [1, 3]], // SSG 1승, 삼성 3승
+  ]);
+  const known = (a: number, b: number): [number, number] | null => {
+    const w = pairs.get(`${Math.min(a, b)}-${Math.max(a, b)}`);
+    return w ? (a < b ? w : [w[1], w[0]]) : null;
+  };
+  const prob = () => ({ home: 0.5, draw: 0, away: 0.5 });
+  const odds = runPlayoffSim("KBO", teams, [], prob, 500, Math.random, {
+    fixedRank: new Map([["ALL", [LG, HH, SSG, SS, NC, 6, 7, 8, 9, 10]]]),
+    known,
+  });
+  const o = (id: number) => odds.find((x) => x.teamId === id)!.stage;
+  assert.equal(o(NC)[1], 0); // 준PO 못 감
+  assert.equal(o(SS)[1], 1); // 준PO 진출
+  assert.equal(o(SSG)[2], 0); // PO 못 감
+  assert.equal(o(SS)[2], 1); // PO 진출
+  assert.equal(o(6)[0], 0); // 6위는 가을야구 0
+  assert.ok(Math.abs(odds.reduce((s, x) => s + x.stage[4], 0) - 1) < 1e-9);
+  assert.ok(o(LG)[3] === 1 && o(LG)[4] > 0.4); // 1위는 KS 직행, 우승 확률은 PO 승자보다 높다(동전 확률이라 대략 0.5)
+});

@@ -11,7 +11,7 @@ import { NHL_ABBR_TO_FULL } from "@/lib/sports/nhl-salaries";
 import { fetchHockeyTable } from "@/lib/sports/thesports/hockey-table";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import type { PredictMatch } from "@/lib/predict/types";
-import { runPlayoffSim, FORMAT_SPORT, type PlayoffFormat, type PlayoffOdds, type SimTeam } from "./engine";
+import { runPlayoffSim, FORMAT_SPORT, type PlayoffFormat, type PlayoffOdds, type PlayoffSimOptions, type SimTeam } from "./engine";
 
 export const PLAYOFF_FORMATS: ReadonlySet<string> = new Set<PlayoffFormat>(["KBO", "NPB", "NHL", "NBA", "KHL", "MLS", "KBL"]);
 
@@ -26,6 +26,8 @@ export interface PlayoffOddsResult {
   remaining: number;
   /** 완료 경기가 적어 Elo(지난 시즌까지) 비중이 큰 상태 */
   early: boolean;
+  /** regular = 정규시즌 시뮬 포함, post = 정규시즌 종료 후 실제 포스트시즌 대진·승수 반영(KBO·NPB) */
+  phase: "regular" | "post";
   computedAt: string;
 }
 
@@ -77,6 +79,8 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
   const groupOf = new Map<number, { group: string; division?: string }>();
   const groupLabel: Record<string, string> = { ALL: "" };
   const official = new Map<number, { w: number; l: number; otl: number; pts: number }>();
+  /** 야구 공식 표 순위 — 정규시즌 종료 후 시드 고정용 */
+  const positionOf = new Map<number, number>();
 
   if (league === "NBA" || league === "MLS") {
     for (const t of teamsDb) {
@@ -117,12 +121,14 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
       groupOf.set(r.ourTeamId, { group: r.division });
       groupLabel[r.division] = `${npbDivisionKo(r.division)} 리그`;
       official.set(r.ourTeamId, { w: r.wins, l: r.losses, otl: r.draws, pts: 0 });
+      positionOf.set(r.ourTeamId, r.position);
     }
   } else if (league === "KBO") {
     // KBO 현재 전적은 공식 표 — DB 경기로 세면 중복·재편성 경기가 섞여 KT 84승 12무(공식 82승 4무)가 됐다
     for (const r of await fetchBaseballTable("KBO")) {
       groupOf.set(r.ourTeamId, { group: "ALL" });
       official.set(r.ourTeamId, { w: r.wins, l: r.losses, otl: r.draws, pts: 0 });
+      positionOf.set(r.ourTeamId, r.position);
     }
     if (groupOf.size < EXPECTED_TEAMS.KBO) {
       groupOf.clear();
@@ -155,8 +161,49 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
   const remainingGames = season
     .filter((m) => m.status === "SCHEDULED" && groupOf.has(m.homeTeamId) && groupOf.has(m.awayTeamId))
     .map((m) => ({ home: m.homeTeamId, away: m.awayTeamId }));
-  // 정규시즌이 끝났으면 실제 포스트시즌 대진을 모르는 채로 처음부터 굴리게 된다 — 이 로더는 정규시즌 중에만
-  if (remainingGames.length === 0) return null;
+  // 정규시즌이 끝났으면 — KBO·NPB 는 공식 최종 순위로 시드를 고정하고 실제 포스트시즌 승수를 얹는다.
+  //   그 외 리그는 실제 대진 연동 전이라 비표시(처음부터 다시 굴리면 이미 끝난 시리즈를 무시하게 된다).
+  const baseballPost =
+    (league === "KBO" || league === "NPB") && remainingGames.length === 0 && positionOf.size >= EXPECTED_TEAMS[league];
+  if (remainingGames.length === 0 && !baseballPost) return null;
+  let simOpts: PlayoffSimOptions = {};
+  if (baseballPost) {
+    const fixedRank = new Map<string, number[]>();
+    for (const [id, g] of groupOf) fixedRank.set(g.group, [...(fixedRank.get(g.group) ?? []), id]);
+    for (const list of fixedRank.values()) list.sort((a, b) => (positionOf.get(a) ?? 99) - (positionOf.get(b) ?? 99));
+    const cut = league === "KBO" ? 5 : 3;
+    const inPo = new Set([...fixedRank.values()].flatMap((l) => l.slice(0, cut)));
+    // 포스트시즌 경기 = 탈락 팀이 마지막으로 뛴 날 이후 진출 팀끼리 경기. 와일드카드는 소스 라운드 라벨이 비어 라벨로 못 가른다(2025 실측).
+    const regularEnd = season
+      .filter((m) => m.status === "FINISHED" && (!inPo.has(m.homeTeamId) || !inPo.has(m.awayTeamId)))
+      .reduce((mx, m) => Math.max(mx, m.startTime.getTime()), 0);
+    const pairWins = new Map<string, [number, number]>();
+    const seen = new Set<string>();
+    for (const m of season) {
+      if (m.status !== "FINISHED" || m.homeScore == null || m.awayScore == null) continue;
+      if (m.startTime.getTime() <= regularEnd || !inPo.has(m.homeTeamId) || !inPo.has(m.awayTeamId)) continue;
+      const lo = Math.min(m.homeTeamId, m.awayTeamId);
+      const hi = Math.max(m.homeTeamId, m.awayTeamId);
+      // 같은 날 같은 대진·같은 점수 중복 행(소스 이중 수집) 한 번만
+      const dup = `${lo}-${hi}-${new Date(m.startTime.getTime() + 9 * 3600_000).toISOString().slice(0, 10)}-${m.homeScore}-${m.awayScore}`;
+      if (seen.has(dup)) continue;
+      seen.add(dup);
+      if (m.homeScore === m.awayScore) continue;
+      const winner = m.homeScore > m.awayScore ? m.homeTeamId : m.awayTeamId;
+      const w = pairWins.get(`${lo}-${hi}`) ?? [0, 0];
+      if (winner === lo) w[0]++;
+      else w[1]++;
+      pairWins.set(`${lo}-${hi}`, w);
+    }
+    simOpts = {
+      fixedRank,
+      known: (a, b) => {
+        const w = pairWins.get(`${Math.min(a, b)}-${Math.max(a, b)}`);
+        if (!w) return null;
+        return a < b ? w : [w[1], w[0]];
+      },
+    };
+  }
 
   const teams: SimTeam[] = [...groupOf.entries()].map(([id, g]) => {
     const o = official.get(id);
@@ -179,7 +226,7 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
     const d = c.draw > 0 ? c.draw + (1 - Math.abs(p - 0.5) * 2) * 0.05 : 0;
     return { home: p * (1 - d), draw: d, away: (1 - p) * (1 - d) };
   };
-  const odds = runPlayoffSim(league, teams, remainingGames, prob);
+  const odds = runPlayoffSim(league, teams, remainingGames, prob, 3000, Math.random, simOpts);
 
   const record: Record<number, string> = {};
   for (const t of teams) {
@@ -192,6 +239,7 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
   return {
     league, odds, groupLabel, record, finished, remaining: remainingGames.length,
     early: perTeam < 10,
+    phase: baseballPost ? "post" : "regular",
     computedAt: new Date().toISOString(),
   };
 }
@@ -201,6 +249,6 @@ export const getPlayoffOdds = unstable_cache(
     console.warn(`[playoff-odds] ${league}`, (e as Error).message);
     return null;
   }) : null),
-  ["playoff-odds-v2"],
+  ["playoff-odds-v3"],
   { revalidate: 3600, tags: ["playoff-odds"] },
 );
