@@ -3,7 +3,8 @@
 import Link from "next/link";
 import HockeyBoxScore from "./HockeyBoxScore";
 import { nhlPlayerInfo } from "@/lib/sports/nhl-live-names";
-import { hockeyPlayerPhoto } from "@/lib/sports/hockey/photos";
+import { hockeyPlayerHref, hockeyPlayerPhoto } from "@/lib/sports/hockey/photos";
+import { normPlayerKey, resolveNhlPlayerIds } from "@/lib/players/injury-player-ids";
 import { ratingColor } from "@/lib/sports/hockey/game-score";
 import {
   goalsAgainstOf, isGoalie, periodOf, ratingOf, statOf, teamStatRows,
@@ -49,11 +50,40 @@ function TeamLogo({ src, size = 18 }: { src: string | null; size?: number }) {
   return <img src={src} alt="" width={size} height={size} className="shrink-0 object-contain" style={{ width: size, height: size }} />;
 }
 
-function PlayerLink({ id, league, children }: { id: string; league?: string; children: React.ReactNode }) {
-  return league ? <Link href={`/players/${id}?league=${league}`} className="hover:underline">{children}</Link> : <>{children}</>;
+type Hrefs = Record<string, string>;
+
+function PlayerLink({ id, hrefs, children }: { id: string; hrefs: Hrefs; children: React.ReactNode }) {
+  const href = hrefs[id];
+  return href ? <Link href={href} className="hover:underline">{children}</Link> : <>{children}</>;
 }
 
-function ThreeStars({ props }: { props: Props }) {
+/** 이 경기 선수 전원의 상세 링크. NHL 은 정적 사전(nhl-players.json) 이름 매칭 → 못 찾은 선수(신인 등)만 NHL 공식 검색(이름당 캐시) */
+async function buildHrefs(props: Props): Promise<Hrefs> {
+  const ids = new Set<string>();
+  for (const r of [...(props.players.home ?? []), ...(props.players.away ?? [])]) ids.add(r.id);
+  for (const g of props.incidents) for (const id of [g.player_id, g.assists1_id, g.assists2_id]) if (id) ids.add(id);
+  const out: Hrefs = {};
+  const missing: Array<{ id: string; en: string }> = [];
+  for (const id of ids) {
+    const h = hockeyPlayerHref(id, props.league, !!props.playerLinkLeague);
+    if (h) out[id] = h;
+    else if (props.league === "NHL") {
+      const en = nhlPlayerInfo(id)?.en;
+      if (en) missing.push({ id, en });
+    }
+  }
+  if (missing.length > 0) {
+    // 팀 약어 없이 조회 — 동명이인이 여럿이면 링크를 걸지 않는다(오링크보다 무링크)
+    const found = await resolveNhlPlayerIds(missing.map((m) => ({ name: m.en, teamAbbr: null }))).catch(() => new Map<string, number>());
+    for (const m of missing) {
+      const nid = found.get(`${normPlayerKey(m.en)}|`);
+      if (nid != null) out[m.id] = `/players/${nid}?league=NHL`;
+    }
+  }
+  return out;
+}
+
+function ThreeStars({ props, hrefs }: { props: Props; hrefs: Hrefs }) {
   const all = [
     ...(props.players.home ?? []).map((r) => ({ r, side: props.home })),
     ...(props.players.away ?? []).map((r) => ({ r, side: props.away })),
@@ -78,7 +108,7 @@ function ThreeStars({ props }: { props: Props }) {
               <span className="absolute right-2 top-2"><TeamLogo src={side.logo} size={16} /></span>
               <Photo src={hockeyPlayerPhoto(r.id, props.league)} no={info?.no} size={56} ring={side.color} />
               <div className="mt-2 w-full truncate text-xs font-bold sm:text-sm">
-                <PlayerLink id={r.id} league={props.playerLinkLeague}>{nameOf(r.id)}</PlayerLink>
+                <PlayerLink id={r.id} hrefs={hrefs}>{nameOf(r.id)}</PlayerLink>
               </div>
               <div className="mt-0.5 whitespace-nowrap text-[10px] text-neutral-500">
                 {info?.pos ?? ""}{info?.no ? ` · #${info.no}` : ""}
@@ -97,7 +127,7 @@ function ThreeStars({ props }: { props: Props }) {
 
 const PERIOD_LABEL = ["", "1피리어드", "2피리어드", "3피리어드", "연장"];
 
-function ScoringSummary({ props }: { props: Props }) {
+function ScoringSummary({ props, hrefs }: { props: Props; hrefs: Hrefs }) {
   const goals = props.incidents.filter((i) => i.type === 2).sort((a, b) => (a.second ?? 0) - (b.second ?? 0));
   if (goals.length === 0) return null;
   const byPeriod = new Map<number, HockeyIncident[]>();
@@ -125,7 +155,7 @@ function ScoringSummary({ props }: { props: Props }) {
                       <div className="flex items-center gap-1.5">
                         <TeamLogo src={side.logo} size={14} />
                         <span className="truncate text-sm font-bold">
-                          {g.player_id ? <PlayerLink id={g.player_id} league={props.playerLinkLeague}>{nameOf(g.player_id)}</PlayerLink> : "—"}
+                          {g.player_id ? <PlayerLink id={g.player_id} hrefs={hrefs}>{nameOf(g.player_id)}</PlayerLink> : "—"}
                         </span>
                       </div>
                       <div className="truncate text-[11px] text-neutral-500">
@@ -190,12 +220,13 @@ function TeamStatBars({ props }: { props: Props }) {
   );
 }
 
-export default function HockeyGameCenter(props: Props) {
+export default async function HockeyGameCenter(props: Props) {
+  const hrefs = await buildHrefs(props);
   const hasPlayers = (props.players.home?.length ?? 0) + (props.players.away?.length ?? 0) > 0;
   return (
     <div className="space-y-4">
-      <ThreeStars props={props} />
-      <ScoringSummary props={props} />
+      <ThreeStars props={props} hrefs={hrefs} />
+      <ScoringSummary props={props} hrefs={hrefs} />
       <TeamStatBars props={props} />
       {hasPlayers && (
         <HockeyBoxScore
@@ -206,7 +237,7 @@ export default function HockeyGameCenter(props: Props) {
           awayLogo={props.away.logo}
           homeColor={props.home.color}
           awayColor={props.away.color}
-          playerLinkLeague={props.playerLinkLeague}
+          hrefs={hrefs}
         />
       )}
     </div>

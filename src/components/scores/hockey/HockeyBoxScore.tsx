@@ -22,8 +22,8 @@ interface Props {
   awayLogo?: string | null;
   homeColor?: string;
   awayColor?: string;
-  /** 선수 페이지가 있는 리그면 이름에 /players/{id}?league= 링크 (KHL·유럽 하키 — ts id 체계가 같다) */
-  playerLinkLeague?: string;
+  /** ts player_id → 선수 상세 링크 (서버에서 계산 — NHL 은 공식 id 매칭, KHL·유럽은 ts id). 없는 선수는 이름만 */
+  hrefs?: Record<string, string>;
 }
 
 const TH = "text-[10px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10 [&>th]:whitespace-nowrap [&>th]:py-1.5 [&>th]:font-semibold";
@@ -42,14 +42,15 @@ function RatingChip({ r }: { r: number | null }) {
   );
 }
 
-function NameCell({ id, league }: { id: string; league?: string }) {
+function NameCell({ id, hrefs }: { id: string; hrefs?: Record<string, string> }) {
   const n = name(id);
+  const href = hrefs?.[id];
   return (
     <td className="py-1.5 pl-1 max-w-0 w-full">
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="w-5 shrink-0 text-right text-[10px] tabular-nums text-neutral-400">{n.no ?? ""}</span>
         <span className="truncate font-semibold">
-          {league ? <Link href={`/players/${id}?league=${league}`} className="hover:underline">{n.ko}</Link> : n.ko}
+          {href ? <Link href={href} className="hover:underline">{n.ko}</Link> : n.ko}
         </span>
         {n.pos && <span className="shrink-0 rounded bg-neutral-100 px-1 text-[9px] font-bold text-neutral-500 dark:bg-white/10 dark:text-neutral-400">{n.pos}</span>}
       </div>
@@ -65,14 +66,14 @@ function GroupRow({ label, cols }: { label: string; cols: number }) {
   );
 }
 
-function SkaterRows({ rows, league }: { rows: HockeyPlayerRow[]; league?: string }) {
+function SkaterRows({ rows, hrefs }: { rows: HockeyPlayerRow[]; hrefs?: Record<string, string> }) {
   return (
     <>
       {rows.map((r) => {
         const pm = statOf(r, 56);
         return (
           <tr key={r.id} className="border-b border-neutral-100 dark:border-white/5">
-            <NameCell id={r.id} league={league} />
+            <NameCell id={r.id} hrefs={hrefs} />
             <td className="text-center py-1.5 px-1 tabular-nums font-bold">{statOf(r, 26) ?? 0}</td>
             <td className="text-center py-1.5 px-1 tabular-nums">{statOf(r, 27) ?? 0}</td>
             <td className={`text-center py-1.5 px-1 tabular-nums ${pm != null && pm > 0 ? "text-emerald-600 dark:text-emerald-400" : pm != null && pm < 0 ? "text-rose-500" : "text-neutral-500"}`}>
@@ -91,7 +92,7 @@ function SkaterRows({ rows, league }: { rows: HockeyPlayerRow[]; league?: string
   );
 }
 
-function SkaterTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: string }) {
+function SkaterTable({ rows, hrefs }: { rows: HockeyPlayerRow[]; hrefs?: Record<string, string> }) {
   const byPoints = (a: HockeyPlayerRow, b: HockeyPlayerRow) =>
     (statOf(b, 26) ?? 0) + (statOf(b, 27) ?? 0) - ((statOf(a, 26) ?? 0) + (statOf(a, 27) ?? 0)) ||
     (ratingOf(b) ?? 0) - (ratingOf(a) ?? 0);
@@ -117,15 +118,15 @@ function SkaterTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: strin
       </thead>
       <tbody>
         {forwards.length > 0 && <GroupRow label="공격수" cols={10} />}
-        <SkaterRows rows={forwards} league={league} />
+        <SkaterRows rows={forwards} hrefs={hrefs} />
         {defense.length > 0 && <GroupRow label="수비수" cols={10} />}
-        <SkaterRows rows={defense} league={league} />
+        <SkaterRows rows={defense} hrefs={hrefs} />
       </tbody>
     </table>
   );
 }
 
-function GoalieTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: string }) {
+function GoalieTable({ rows, hrefs }: { rows: HockeyPlayerRow[]; hrefs?: Record<string, string> }) {
   const goalies = rows.filter((r) => isGoalie(r) && (statOf(r, 23) ?? 0) > 0);
   if (goalies.length === 0) return null;
   return (
@@ -145,7 +146,7 @@ function GoalieTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: strin
           const pct = statOf(r, 25);
           return (
             <tr key={r.id} className="border-b border-neutral-100 dark:border-white/5">
-              <NameCell id={r.id} league={league} />
+              <NameCell id={r.id} hrefs={hrefs} />
               <td className="text-center py-1.5 px-1 tabular-nums">{statOf(r, 24) ?? 0}</td>
               <td className="text-center py-1.5 px-1 tabular-nums">{goalsAgainstOf(r) ?? "—"}</td>
               <td className="text-center py-1.5 px-1 tabular-nums font-bold">{pct == null ? "—" : `${(pct > 1 ? pct : pct * 100).toFixed(1)}%`}</td>
@@ -159,7 +160,7 @@ function GoalieTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: strin
   );
 }
 
-export default function HockeyBoxScore({ players, homeNameKo, awayNameKo, homeLogo, awayLogo, homeColor, awayColor, playerLinkLeague }: Props) {
+export default function HockeyBoxScore({ players, homeNameKo, awayNameKo, homeLogo, awayLogo, homeColor, awayColor, hrefs }: Props) {
   const home = players?.home ?? [];
   const away = players?.away ?? [];
   const [tab, setTab] = useState<"home" | "away">("home");
@@ -197,8 +198,8 @@ export default function HockeyBoxScore({ players, homeNameKo, awayNameKo, homeLo
         })}
       </div>
 
-      <SkaterTable rows={rows} league={playerLinkLeague} />
-      <GoalieTable rows={rows} league={playerLinkLeague} />
+      <SkaterTable rows={rows} hrefs={hrefs} />
+      <GoalieTable rows={rows} hrefs={hrefs} />
       <p className="mt-3 text-[10px] leading-relaxed text-neutral-500 break-keep">
         평점은 TheSports 가 주지 않아 스코어베이스가 NHL Game Score 방식(골·도움·유효슛·블록·페널티·+/-, 골리는 세이브·실점)으로
         계산했습니다. 6.3 이 보통, 경기 중에는 계속 바뀝니다.
