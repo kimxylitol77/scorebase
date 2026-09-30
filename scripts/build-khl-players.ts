@@ -309,8 +309,9 @@ async function main() {
   };
   writeFileSync(outPath, JSON.stringify(out, null, 1) + "\n");
   // 슬림 사전 — 라이브 골 타임라인·박스스코어(클라이언트 번들)용. 프로필 없이 이름·포지션만.
-  const slim: Record<string, { ko: string; en: string; pos?: string }> = {};
-  for (const [id, p] of Object.entries(players)) slim[id] = { ko: p.ko ?? "", en: p.en, pos: p.pos };
+  // 등번호(no)는 라이브 박스스코어 이름 앞 번호 — NHL 사전과 같은 모양 (2026-09-30)
+  const slim: Record<string, { ko: string; en: string; pos?: string; no?: number }> = {};
+  for (const [id, p] of Object.entries(players)) slim[id] = { ko: p.ko ?? "", en: p.en, pos: p.pos, ...(p.no ? { no: p.no } : {}) };
   writeFileSync(resolve(SLIM_OUT), JSON.stringify(slim) + "\n");
   console.log(`✔ ${OUT} — ${out.meta.players}명 (한글명 ${Object.values(players).filter((p) => p.ko).length})`);
 }
