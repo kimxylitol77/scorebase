@@ -16,6 +16,7 @@ import LeagueFixtures from "@/components/leagues/LeagueFixtures";
 import BasketballFixtures from "@/components/leagues/BasketballFixtures";
 import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
+import BaseballStandingsTable from "@/components/baseball/BaseballStandingsTable";
 import NbaStandingsTable from "@/components/NbaStandingsTable";
 import LolStandings from "@/components/LolStandings";
 import LolSimpleStandings from "@/components/LolSimpleStandings";
@@ -792,9 +793,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     V_LEAGUE: ["standings", "stats", "players", "fixtures", "history", "articles"],
     V_LEAGUE_W: ["standings", "stats", "players", "fixtures", "history", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
-    KBO: ["predictions", "power", "fixtures", "history", "articles"],
-    MLB: ["predictions", "power", "fixtures", "history", "articles"],
-    NPB: ["predictions", "power", "fixtures", "history", "articles"],
+    KBO: ["standings", "predictions", "power", "fixtures", "history", "articles"],
+    MLB: ["standings", "predictions", "power", "fixtures", "history", "articles"],
+    NPB: ["standings", "predictions", "power", "fixtures", "history", "articles"],
   };
   const isBasketball = ["NBA", "KBL", "WKBL", "WNBA"].includes(upper);
   // 컵 대진표 — 라운드를 읽을 수 있는 매치가 하나라도 있어야 탭을 연다(빈 탭 방지).
@@ -1163,6 +1164,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           {/* withLastLeaders — 리그 탭엔 별도 리더보드 섹션이 없어 개막 전 접기에 같이 넣는다.
               (/standings/NHL 은 자체 "시즌 리더보드" 섹션이 있어 끈 상태가 맞다.) */}
           <NhlStandingsTable withLastLeaders />
+        </div>
+      )}
+      {/* 야구 순위 — 리그 탭에 순위가 없어 예측 탭부터 열리던 것 (2026-09-30). MLB 는 지구·리그·와일드카드 */}
+      {view === "standings" && (upper === "MLB" || upper === "KBO" || upper === "NPB") && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <BaseballStandingsTable league={upper} />
         </div>
       )}
       {!isSoccer && view === "standings" && (upper === "V_LEAGUE" || upper === "V_LEAGUE_W") && (
