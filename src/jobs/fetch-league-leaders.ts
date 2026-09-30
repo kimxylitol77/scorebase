@@ -46,6 +46,7 @@ import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { fetchTsBasketballBox, type TsBox } from "@/lib/sports/basketball/ts-box";
 import kblPlayersRaw from "../../data/kbl-players.json";
 import wkblPlayersRaw from "../../data/wkbl-players.json";
+import asianGamesBkNames from "../../data/asian-games-bk-player-names.json";
 import { tsPlayerToAfExact } from "@/lib/players/ts-af-map";
 import { mergeSeasonPlayerStatRows } from "@/lib/sports/thesports/merge-season-player-stat";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
@@ -1607,7 +1608,8 @@ async function runLol(season: number) {
 /* ============================================================
  * 아시안게임 농구(남·녀) — ts 시즌 선수 통계가 미인가라 종료 경기 박스스코어(match/live/history)를 모아 평균을 낸다.
  *   박스는 한 번 받으면 TheSportsMatchCache.playerStats 에 저장하고 다시 받지 않는다(끝난 경기라 값이 안 바뀐다).
- *   규정 = 자기 팀 경기의 절반 이상 출전(FIBA 리더 기준). 한국 선수 이름은 KBL·WKBL 사전의 영문 표기로 한글 매칭.
+ *   규정 = 자기 팀 경기의 절반 이상 출전(FIBA 리더 기준). 한국 선수 이름은 KBL·WKBL 사전의 영문 표기로 한글 매칭,
+ *   외국 선수는 data/asian-games-bk-player-names.json(출전 250명 전원, 2026-10-01).
  * ==========================================================*/
 
 export const TS_BASKETBALL_TOURNAMENTS = ["ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W"] as const;
@@ -1696,7 +1698,9 @@ export async function runTsBasketballTournament(league: string) {
       .slice(0, TOP_N);
     if (top.length < MIN_LEADERS) continue;
     const ops = top.map((r, i) => {
-      const ko = (r.a.korean && koreanBasketballName(r.a.name)) || toKoreanPlayerName(r.a.name);
+      const ko = (r.a.korean && koreanBasketballName(r.a.name))
+        || (asianGamesBkNames as Record<string, string>)[r.a.name.trim()]
+        || toKoreanPlayerName(r.a.name);
       return leaderUpsertOp({
         league, category: c.code, rank: i + 1,
         playerName: ko || r.a.name, playerNameEn: r.a.name,
