@@ -12,6 +12,7 @@ import TeamNameCell from "../TeamNameCell";
 import { teamColor } from "@/lib/team-colors";
 import { useScoreFlash } from "../useScoreFlash";
 import { getLeagueBadge } from "./leagueBadge";
+import ScheduledTime from "../ScheduledTime";
 
 interface Props {
   matchId: string | number;
@@ -139,7 +140,7 @@ export default function SoccerCompactCard(props: Props) {
 
       {/* 시간/상태 — 리그명은 그룹 카드 헤더로 이동 (showLeague=시간순 평면 뷰만 배지 표시) */}
       <div className={`shrink-0 ${leagueBadge ? "w-14" : "w-12"} text-center leading-tight`}>
-        <div className={`text-[11px] ${leftClass}`}>{leftPrimary}</div>
+        <div className={`text-[11px] ${leftClass}`}><ScheduledTime label={leftPrimary} /></div>
         {leagueBadge && (
           <div
             className="mt-0.5 text-[9px] font-bold rounded-sm px-0.5 py-px truncate"

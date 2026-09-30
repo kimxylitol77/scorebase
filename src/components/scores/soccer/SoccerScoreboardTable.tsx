@@ -8,6 +8,7 @@ import ScoreboardScoreCell from "./ScoreboardScoreCell";
 import ScoreboardGoalRow from "./ScoreboardGoalRow";
 import { LEAGUE_ORDER } from "@/lib/sports/sport-leagues";
 import type { SoccerGoal, SoccerCard, SoccerTeamStat } from "@/lib/sports/live-scores";
+import ScheduledTime from "../ScheduledTime";
 
 export interface ScoreboardRow {
   id: number | string;
@@ -172,7 +173,7 @@ function StatusCell({ r, t }: { r: ScoreboardRow; t: (typeof T)[Lang] }) {
     return <span className="text-[11px] font-bold leading-tight text-rose-600 dark:text-rose-400 break-keep">{r.liveLabel ?? t.live}</span>;
   if (r.status === "finished") return <span className="text-[11px] text-neutral-500">{t.ft}</span>;
   if (r.status === "postponed") return <span className="text-[11px] text-neutral-400">{t.pp}</span>;
-  return <span className="text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300">{r.timeLabel}</span>;
+  return <ScheduledTime label={r.timeLabel} className="text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300" />;
 }
 
 function TeamCell({ team, side, href, homeBadge }: { team: ScoreboardRow["home"]; side: "home" | "away"; href: string | null; homeBadge?: string | null }) {

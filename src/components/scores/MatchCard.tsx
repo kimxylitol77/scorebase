@@ -34,6 +34,7 @@ import FavoriteStar from "./FavoriteStar";
 import TeamNameCell from "./TeamNameCell";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { useScoreFlash } from "./useScoreFlash";
+import ScheduledTime, { NO_COVERAGE_LABEL } from "./ScheduledTime";
 
 export interface MatchCardProps {
   /** localStorage 즐겨찾기 식별자 (DB Match.id) */
@@ -384,7 +385,7 @@ export default function MatchCard(props: MatchCardProps) {
     <span className="status-badge finished">종료</span>
   ) : (
     <span className="status-badge scheduled">
-      <span className="tabular-nums">{timeLabel}</span>
+      <ScheduledTime label={timeLabel} className="tabular-nums" />
     </span>
   );
 
@@ -548,7 +549,7 @@ export default function MatchCard(props: MatchCardProps) {
       )}
 
       {/* 푸터: 예정 시간 또는 actions */}
-      {!isLive && !isFinished && !isPostponed && (
+      {!isLive && !isFinished && !isPostponed && timeLabel !== NO_COVERAGE_LABEL && (
         <div className="px-3.5 sm:px-4 pb-2 text-center text-[10px] text-neutral-400">
           KST {timeLabel}
         </div>

@@ -104,6 +104,7 @@ import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
 import type { EsportsContext } from "@/components/scores/EsportsMiniBoard";
 import LiveSoundToggle from "@/components/LiveSoundToggle";
 import { jsonLdScript } from "@/lib/seo/jsonld";
+import { NO_COVERAGE_AFTER_MS, NO_COVERAGE_LABEL } from "@/components/scores/ScheduledTime";
 
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
@@ -1502,7 +1503,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       status: dm.status,
       home: { name: toKoreanTeamName(dm.homeName, dm.league), abbr: dm.homeShort, logo: dm.homeLogo ?? null, score: isScheduled ? null : dm.homeScore, teamId: -1, position: null, fifaRank: null },
       away: { name: toKoreanTeamName(dm.awayName, dm.league), abbr: dm.awayShort, logo: dm.awayLogo ?? null, score: isScheduled ? null : dm.awayScore, teamId: -1, position: null, fifaRank: null },
-      timeLabel: kstHHmm(st),
+      // 킥오프 15분이 지나도 소스가 "시작 전"이면 실시간 정보가 없는 경기(2026-09-30 미국 U18 vs 아일랜드 U18 —
+      //  af NS·ts 미정). "vs" 만 남아 고장처럼 보이던 것을 숨기지 않고 사유로 표시한다.
+      timeLabel: isScheduled && Date.now() - st.getTime() > NO_COVERAGE_AFTER_MS ? NO_COVERAGE_LABEL : kstHHmm(st),
       liveStatusLabel: isLive ? dm.statusLabel : null,
       homeStarter: null,
       awayStarter: null,

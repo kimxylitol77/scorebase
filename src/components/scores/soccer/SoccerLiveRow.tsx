@@ -25,6 +25,7 @@ import FavoriteStar from "../FavoriteStar";
 import TeamLogoImg from "../../TeamLogoImg";
 import { useScoreFlash } from "../useScoreFlash";
 import type { SoccerGoal, SoccerCard, SoccerTeamStat, MatchOdds } from "@/lib/sports/live-scores";
+import ScheduledTime from "../ScheduledTime";
 
 export interface SoccerLiveRowProps {
   matchId: string | number;
@@ -268,7 +269,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
       {/* 2. KST 시간 */}
       <div data-scell="time" className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
-        {timeLabel}
+        <ScheduledTime label={timeLabel} />
       </div>
 
       {/* 3. 상태 */}
