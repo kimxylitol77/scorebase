@@ -8,18 +8,21 @@ export default function ScoresViewToggle({
   sport,
   date,
   league,
+  lang = "ko",
 }: {
   active: ScoresOtherView;
   sport: string;
   date: string;
   league?: string | null;
+  /** 영어판(/en/scores) — 라벨·경로 */
+  lang?: "ko" | "en";
 }) {
   const items: { key: ScoresOtherView; label: string }[] = [
-    { key: "board", label: "스코어보드" },
-    { key: "card", label: "카드" },
+    { key: "board", label: lang === "en" ? "Scoreboard" : "스코어보드" },
+    { key: "card", label: lang === "en" ? "Cards" : "카드" },
   ];
   return (
-    <nav className="flex gap-1.5" aria-label="경기 보기 방식">
+    <nav className="flex gap-1.5" aria-label={lang === "en" ? "View mode" : "경기 보기 방식"}>
       {items.map((item) => {
         const params = new URLSearchParams({ sport, date });
         if (league) params.set("league", league);
@@ -29,7 +32,7 @@ export default function ScoresViewToggle({
         return (
           <Link
             key={item.key}
-            href={`/scores?${params.toString()}`}
+            href={`${lang === "en" ? "/en/scores" : "/scores"}?${params.toString()}`}
             prefetch={false}
             className={`inline-flex items-center px-3 py-1.5 rounded-md text-[12px] font-semibold whitespace-nowrap transition-colors ${
               isActive

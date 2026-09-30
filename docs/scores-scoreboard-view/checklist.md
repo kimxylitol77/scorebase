@@ -8,4 +8,4 @@
 - [x] 야구·농구·배구·하키·e스포츠·UFC 탭에 스코어보드 표(기본) + "스코어보드 | 카드" 토글(?view=, 쿠키 scores_view)
 - [x] UFC 점수 아래 승리 방법(1R · KO/TKO), 라벨 함수는 src/lib/sports/mma-result.ts 로 이동
 - [x] 득점 GOAL 연출은 축구·하키만, 2지선다 범례(foot2)
-- [ ] 영어판(/en/scores) 동일 적용 — 미착수
+- [x] 영어판(/en/scores) 동일 적용 — 리그 제목 링크는 STANDINGS_VALID 로 /en/standings 404 리그(19개)를 한국어 리그 페이지로

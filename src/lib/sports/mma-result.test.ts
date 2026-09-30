@@ -12,3 +12,8 @@ test("판정은 라운드 생략, 방법 없으면 null", () => {
   assert.equal(mmaResultLabel({ method: "Decision - Split", round: 3, clock: null }), "판정 (분할)");
   assert.equal(mmaResultLabel({ method: null, round: null, clock: null }), null);
 });
+
+test("영어판 라벨", () => {
+  assert.equal(mmaResultLabel({ method: "Submission (Rear Naked Choke)", round: 2, clock: null }, "en"), "2R · Submission");
+  assert.equal(mmaResultLabel({ method: "Decision - Unanimous", round: 3, clock: null }, "en"), "Decision (unanimous)");
+});

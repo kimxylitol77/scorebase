@@ -25,6 +25,7 @@ import {
 import { RANK_CHIP_CALC_LEAGUES, RANK_CHIP_TAG } from "@/lib/sports/rank-chip-cache";
 import { toEnglishTeamName, enLeagueName, enMatchStatus } from "@/lib/i18n/en";
 import { koEnLanguages } from "@/lib/i18n/en";
+import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
@@ -85,6 +86,9 @@ import type { ReactNode } from "react";
 import SoccerLeagueSidebar from "@/components/en/scores/SoccerLeagueSidebar";
 import SoccerSortToggle from "@/components/en/scores/SoccerSortToggle";
 import SortPrefWriter from "@/components/scores/SortPrefWriter";
+import ScoresViewToggle from "@/components/scores/ScoresViewToggle";
+import ViewPrefWriter from "@/components/scores/ViewPrefWriter";
+import { mmaResultLabel } from "@/lib/sports/mma-result";
 import FavPrefWriter from "@/components/scores/FavPrefWriter";
 import { cookies } from "next/headers";
 import FavoriteMatches from "@/components/en/scores/FavoriteMatches";
@@ -609,6 +613,8 @@ interface Props {
     status?: string;
     /** soccer 전용 — time(시간순 평면) | 미지정(리그별 그룹) */
     sort?: string;
+    /** 축구 외 종목 — board(스코어보드, 기본) | card(카드) */
+    view?: string;
   }>;
 }
 
@@ -995,6 +1001,16 @@ export default async function ScoresPage({ searchParams }: Props) {
           : sortCookie === "time" || sortCookie === "league"
             ? sortCookie
             : "board"; // 기본 보기 = 스코어보드(2026-09-28 사용자 지시). 리그별·시간순을 고른 사람은 쿠키로 유지
+  // 축구 외 종목 보기 — board(스코어보드 표, 기본) | card(카드 격자). 한국어판과 같은 쿠키(scores_view)를 쓴다(2026-10-01).
+  const viewCookie = (await cookies()).get("scores_view")?.value;
+  const otherView: "board" | "card" =
+    sport === "soccer"
+      ? "board"
+      : sp.view === "card" || sp.view === "board"
+        ? sp.view
+        : viewCookie === "card"
+          ? "card"
+          : "board";
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
@@ -2082,7 +2098,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       .filter(Boolean),
   );
   // 즐겨찾기 "My matches"를 스코어보드 표로 — 축구 탭은 현재 보기, 다른 종목 탭은 마지막 선택(쿠키, 없으면 스코어보드)
-  const boardPref = sortMode === "board" || (sport !== "soccer" && sortCookie !== "time" && sortCookie !== "league");
+  const boardPref = sortMode === "board" || (sport !== "soccer" && otherView === "board");
   const favSource =
     favCookieIds.size === 0
       ? []
@@ -2165,7 +2181,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const extraQuery =
     (leagueFilter ? `&league=${leagueFilter}` : "") +
     (statusFilter !== "all" ? `&status=${statusFilter}` : "") +
-    (sortMode !== "league" ? `&sort=${sortMode}` : "");
+    (sortMode !== "league" ? `&sort=${sortMode}` : "") +
+    (sport !== "soccer" && otherView === "card" ? "&view=card" : "");
 
   // SEO 동적 값 — generateMetadata 와 일치시킴.
   const sportKo = SPORT_NAMES_KO[sport] ?? "Sports";
@@ -2518,23 +2535,31 @@ export default async function ScoresPage({ searchParams }: Props) {
         </div>
       ) : (
         <>
-          {/* 리그 필터 — 야구 (12+ 리그) 는 드롭다운, 그 외는 가로 chip */}
-          {leaguesAll.length > 1 &&
-            (sport === "baseball" ? (
-              <LeagueDropdown
-                leagues={leaguesAll}
-                activeLeague={leagueFilter}
-                sport={sport}
-                date={dateStr}
-              />
-            ) : (
-              <LeagueChips
-                leagues={leaguesAll}
-                activeLeague={leagueFilter}
-                sport={sport}
-                date={dateStr}
-              />
-            ))}
+          {/* 리그 필터(야구 12+ 리그는 드롭다운, 그 외 가로 chip) + 보기 토글(Scoreboard/Cards) */}
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              {leaguesAll.length > 1 &&
+                (sport === "baseball" ? (
+                  <LeagueDropdown
+                    leagues={leaguesAll}
+                    activeLeague={leagueFilter}
+                    sport={sport}
+                    date={dateStr}
+                  />
+                ) : (
+                  <LeagueChips
+                    leagues={leaguesAll}
+                    activeLeague={leagueFilter}
+                    sport={sport}
+                    date={dateStr}
+                  />
+                ))}
+            </div>
+            <ViewPrefWriter explicitView={sp.view === "card" || sp.view === "board" ? sp.view : null} />
+            <div className="shrink-0">
+              <ScoresViewToggle lang="en" active={otherView} sport={sport} date={dateStr} league={leagueFilter} />
+            </div>
+          </div>
 
           {/* 매치 list — sport=all 은 축구 orphan 카드만 있는 날도 목록 렌더 */}
           {!hasAnyMatch ? (
@@ -2580,6 +2605,17 @@ export default async function ScoresPage({ searchParams }: Props) {
                   hasLineup: lineupMatchIdSet.has(Number(m.id)),
                 }))}
               />
+              {otherView === "board" ? (
+                // 스코어보드 표 — 한국어판·축구와 같은 부품
+                <SoccerScoreboardTable
+                  lang="en"
+                  sport={sport}
+                  oddsHref={null}
+                  leagueHref={enLeagueHref}
+                  rows={buildScoreboardRows([...(isToday ? liveList : []), ...scheduledList, ...finishedList, ...postponedList])}
+                />
+              ) : (
+              <>
               {isToday && liveList.length > 0 && (
                 <Section title="🔴 Live" count={liveList.length}>
                   {liveList.map((m) => renderCard(m))}
@@ -2599,6 +2635,8 @@ export default async function ScoresPage({ searchParams }: Props) {
                 <Section title={`🚫 ${postponedHeadLabel}`} count={postponedList.length}>
                   {postponedList.map((m) => renderCard(m))}
                 </Section>
+              )}
+              </>
               )}
             </div>
           )}
@@ -2673,6 +2711,12 @@ function Section({
   );
 }
 
+/** 스코어보드 리그 제목 링크 — /en/standings 라우트가 받는 리그(STANDINGS_VALID, 라우트의 notFound 기준)만 영어,
+ *  나머지는 한국어 리그 페이지. WBC·IIHF_WC·LCK_CL·UFC 등 19개 리그는 /en/standings 가 404(2026-10-01 전수 실측). */
+function enLeagueHref(league: string): string {
+  return STANDINGS_VALID.has(league) ? `/en/standings/${league}` : `/leagues/${league}`;
+}
+
 /** 스코어보드 보기 줄 — 정렬·리그 제목 줄 끼우기는 SoccerScoreboardTable 이 한다(시각순 + 리그 바뀔 때 제목). */
 function buildScoreboardRows(matches: NormalizedMatch[]): ScoreboardRow[] {
   return matches.map((m): ScoreboardRow => ({
@@ -2691,6 +2735,7 @@ function buildScoreboardRows(matches: NormalizedMatch[]): ScoreboardRow[] {
     homeScore: m.home.score,
     awayScore: m.away.score,
     half: m.soccerHalfScore,
+    sub: m.sport === "mma" && m.mmaResult ? mmaResultLabel(m.mmaResult, "en") : null,
     pred: m.pred1x2 ?? null,
     odds: m.odds
       ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null }

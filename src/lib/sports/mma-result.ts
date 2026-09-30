@@ -17,11 +17,21 @@ const MMA_METHOD_KO: Record<string, string> = {
   Decision: "판정",
 };
 
+const MMA_METHOD_EN: Record<string, string> = {
+  "KO/TKO": "KO/TKO",
+  Submission: "Submission",
+  "Decision - Unanimous": "Decision (unanimous)",
+  "Decision - Split": "Decision (split)",
+  "Decision - Majority": "Decision (majority)",
+  Decision: "Decision",
+};
+
 // "1R · KO/TKO" (피니시) / "판정 (만장)" (판정엔 라운드 생략 — 풀라운드).
 // "Submission (Rear Naked Choke)" 처럼 세부가 붙어 오는 값은 앞부분으로 한글화한다.
-export function mmaResultLabel(r: MmaResult): string | null {
+export function mmaResultLabel(r: MmaResult, lang: "ko" | "en" = "ko"): string | null {
   if (!r.method) return null;
   const base = r.method.replace(/\s*\(.*\)$/, "");
-  const ko = MMA_METHOD_KO[r.method] ?? MMA_METHOD_KO[base] ?? r.method;
+  const dict = lang === "en" ? MMA_METHOD_EN : MMA_METHOD_KO;
+  const ko = dict[r.method] ?? dict[base] ?? r.method;
   return r.method.startsWith("Decision") ? ko : r.round ? `${r.round}R · ${ko}` : ko;
 }
