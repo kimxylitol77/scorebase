@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import {
   fetchNhlScheduleByDate,
   fetchGameGoalies,
+  type NhlScheduledGame,
 } from "@/lib/sports/nhl-api";
 
 function daysAhead(start: Date, n: number): string[] {
@@ -24,6 +25,26 @@ function daysAhead(start: Date, n: number): string[] {
 
 function normName(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** 같은 경기로 볼 시작 시각 차이 — 일정 변경 여유. 같은 두 팀이 12시간 안에 두 번 붙지는 않는다. */
+const MATCH_WINDOW_MS = 12 * 3600_000;
+
+const teamOk = (dbName: string, name: string | undefined, abbrev: string) =>
+  (!!name && (normName(name).includes(normName(dbName)) || normName(dbName).includes(normName(name)))) ||
+  normName(dbName).endsWith(abbrev.toLowerCase());
+
+/** DB 경기 ↔ NHL 일정 경기 — 두 팀 이름 + 시작 시각 12시간 이내. */
+export function findScheduledGame(
+  dbm: { startTime: Date; homeTeam: { name: string }; awayTeam: { name: string } },
+  schedule: NhlScheduledGame[],
+): NhlScheduledGame | undefined {
+  return schedule.find(
+    (sg) =>
+      Math.abs(Date.parse(sg.startTimeUTC) - dbm.startTime.getTime()) < MATCH_WINDOW_MS &&
+      teamOk(dbm.homeTeam.name, sg.homeTeamName, sg.homeTeamAbbrev) &&
+      teamOk(dbm.awayTeam.name, sg.awayTeamName, sg.awayTeamAbbrev),
+  );
 }
 
 export async function runFetchNhlGoalies(opts?: {
@@ -57,12 +78,14 @@ export async function runFetchNhlGoalies(opts?: {
     }
     if (schedule.length === 0) continue;
 
-    const dayStart = new Date(`${date}T00:00:00.000Z`);
-    const dayEnd = new Date(`${date}T23:59:59.999Z`);
+    // DB 창은 일정 경기의 실제 시작 시각으로 잡는다. 일정 날짜는 미국 현지 날짜라 서부 경기(현지 밤 = UTC 다음날 새벽)가
+    //  UTC 하루 창에서 빠져 골리가 영영 안 붙었다(2026-09-30 실측: 9/25~10/3 NHL 42경기 중 21경기 골리 없음 → 예측 저장 8경기).
+    const times = schedule.map((sg) => Date.parse(sg.startTimeUTC)).filter(Number.isFinite);
+    if (times.length === 0) continue;
     const dbMatches = await prisma.match.findMany({
       where: {
         league: "NHL",
-        startTime: { gte: dayStart, lte: dayEnd },
+        startTime: { gte: new Date(Math.min(...times) - MATCH_WINDOW_MS), lte: new Date(Math.max(...times) + MATCH_WINDOW_MS) },
       },
       include: { homeTeam: true, awayTeam: true },
     });
@@ -74,23 +97,7 @@ export async function runFetchNhlGoalies(opts?: {
         continue;
       }
 
-      const matched = schedule.find((sg) => {
-        const homeOk =
-          (sg.homeTeamName &&
-            (normName(sg.homeTeamName).includes(normName(dbm.homeTeam.name)) ||
-              normName(dbm.homeTeam.name).includes(
-                normName(sg.homeTeamName),
-              ))) ||
-          normName(dbm.homeTeam.name).endsWith(sg.homeTeamAbbrev.toLowerCase());
-        const awayOk =
-          (sg.awayTeamName &&
-            (normName(sg.awayTeamName).includes(normName(dbm.awayTeam.name)) ||
-              normName(dbm.awayTeam.name).includes(
-                normName(sg.awayTeamName),
-              ))) ||
-          normName(dbm.awayTeam.name).endsWith(sg.awayTeamAbbrev.toLowerCase());
-        return homeOk && awayOk;
-      });
+      const matched = findScheduledGame(dbm, schedule);
       if (!matched) continue;
 
       const goalies = await fetchGameGoalies(matched.gamePk);
