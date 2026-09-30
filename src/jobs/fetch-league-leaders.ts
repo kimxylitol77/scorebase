@@ -32,6 +32,7 @@ import {
 } from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { NHL_ABBR_TO_FULL } from "@/lib/sports/nhl-salaries";
 import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import {
@@ -995,7 +996,29 @@ const NHL_GOALIE_CATS = [
   { cat: "savePctg", code: "SAVE_PCT", unit: "세이브%" },
 ] as const;
 
-async function runNhl(seasonLabel: string) {
+// NHL 영문명 → 한글 — 라이브 박스스코어용 ts 사전(32팀 스쿼드 전원, 2026-09-30)을 이름으로 재사용. 신인이 toKoreanPlayerName 에 없을 때 폴백
+let nhlKoByEn: Map<string, string> | null = null;
+function nhlKoFromLiveDict(en: string): string {
+  if (!nhlKoByEn) {
+    nhlKoByEn = new Map();
+    try {
+      const d = JSON.parse(readFileSync(path.join(process.cwd(), "data/nhl-player-names-haiku.json"), "utf8")) as Record<string, { ko?: string; en?: string }>;
+      for (const v of Object.values(d)) if (v.en && v.ko) nhlKoByEn.set(v.en.toLowerCase(), v.ko);
+    } catch { /* 사전 없으면 영문 */ }
+  }
+  return nhlKoByEn.get(en.toLowerCase()) ?? "";
+}
+/** toKoreanPlayerName 은 미매핑이면 입력을 그대로 돌려준다 → 그때만 라이브 사전 폴백 */
+function nhlKoName(fullName: string): string {
+  const ko = toKoreanPlayerName(fullName);
+  return ko && ko !== fullName ? ko : nhlKoFromLiveDict(fullName) || fullName;
+}
+
+export async function runNhl(seasonLabel: string, seasonId?: string) {
+  // ⚠️ 라벨 정본은 리더 응답 자체(current 가 리다이렉트된 /v1/…-stats-leaders/{seasonId}/2 URL)다.
+  //   standings/now 는 개막 전후 며칠 먼저 새 시즌으로 넘어가 리더(아직 직전 시즌)와 어긋난다 —
+  //   2026-09-30 실측: 25-26 최종값(매키넌 53골)이 "2026-27" 로 적재. 아래 standings/now 는 URL 에서 시즌을 못 읽을 때의 폴백.
+  //   seasonId("20252026") 를 주면 그 시즌을 명시 조회(개막 직후 지난 시즌 최종 기록 복구용).
   // 공식 API "current" 리더는 오프시즌엔 직전 시즌 최종값을 반환한다. 달력 공식(m>=7)
   // 라벨을 그대로 쓰면 8월에 2025-26 데이터가 "2026-27" 로 오적재된다(2026-08-16 실측
   // 40행 — 맥데이비드 90도움이 26-27 라벨). standings/now 의 seasonId(예 20252026)가
@@ -1011,6 +1034,7 @@ async function runNhl(seasonLabel: string) {
     /* 폴백: 인자로 받은 달력 공식 라벨 */
   }
   const summary: Record<string, number> = {};
+  let dataLabel = seasonLabel;
   const fetchOne = async (
     base: "skater" | "goalie",
     cats: ReadonlyArray<{ cat: string; code: string; unit: string }>,
@@ -1018,10 +1042,13 @@ async function runNhl(seasonLabel: string) {
     for (const c of cats) {
       try {
         const r = await fetch(
-          `https://api-web.nhle.com/v1/${base}-stats-leaders/current?categories=${c.cat}&limit=${TOP_N}`,
+          `https://api-web.nhle.com/v1/${base}-stats-leaders/${seasonId ? `${seasonId}/2` : "current"}?categories=${c.cat}&limit=${TOP_N}`,
           { cache: "no-store" },
         );
         if (!r.ok) continue;
+        const sid = /stats-leaders\/(\d{4})(\d{2})(\d{2})\//.exec(r.url);
+        const label = sid ? `${sid[1]}-${sid[3]}` : seasonLabel;
+        dataLabel = label;
         const data = (await r.json()) as Record<
           string,
           Array<{
@@ -1039,12 +1066,13 @@ async function runNhl(seasonLabel: string) {
         for (let i = 0; i < arr.length; i++) {
           const p = arr[i];
           const fullName = `${p.firstName?.default ?? ""} ${p.lastName?.default ?? ""}`.trim();
-          const team = p.teamName?.default ?? p.teamAbbrev ?? "";
+          // 2026-27 부터 teamName 이 "Maple Leafs" 같은 별칭만 와서 한글 변환이 안 된다 → 약어로 풀네임 먼저
+          const team = NHL_ABBR_TO_FULL[p.teamAbbrev] ?? p.teamName?.default ?? p.teamAbbrev ?? "";
           await upsertLeader({
             league: "NHL",
             category: c.code,
             rank: i + 1,
-            playerName: toKoreanPlayerName(fullName) || fullName,
+            playerName: nhlKoName(fullName),
             playerNameEn: fullName,
             externalId: String(p.id),
             teamName: toKoreanTeamName(team) || team,
@@ -1052,10 +1080,10 @@ async function runNhl(seasonLabel: string) {
             value: p.value,
             unit: c.unit,
             photoUrl: p.headshot,
-            season: seasonLabel,
+            season: label,
           });
         }
-        await clearOldRanks("NHL", c.code, seasonLabel, arr.length);
+        await clearOldRanks("NHL", c.code, label, arr.length);
         summary[c.code] = arr.length;
       } catch (e) {
         console.warn(`[leaders/nhl-${base}] ${c.cat}`, (e as Error).message);
@@ -1065,10 +1093,10 @@ async function runNhl(seasonLabel: string) {
   await fetchOne("skater", NHL_SKATER_CATS);
   await fetchOne("goalie", NHL_GOALIE_CATS);
   // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
-  if (Object.values(summary).some((n) => n > 0)) {
-    await clearFutureSeasons("NHL", seasonLabel);
+  if (!seasonId && Object.values(summary).some((n) => n > 0)) {
+    await clearFutureSeasons("NHL", dataLabel);
   }
-  return { season: seasonLabel, result: summary };
+  return { season: dataLabel, result: summary };
 }
 
 /* ============================================================

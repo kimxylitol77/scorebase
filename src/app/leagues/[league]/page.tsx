@@ -928,6 +928,18 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   // 지난 시즌 최종 기록 — 시즌을 명시하면 로더의 현재 시즌 가드를 건너뛴다.
   const lastSeasonLeaders = leaderPending ? await loadLeagueLeaderboard(upper, leaderboard!.staleSeason!) : null;
   const hasLastSeasonLeaders = Object.keys(lastSeasonLeaders?.rowsByCategory ?? {}).length > 0;
+  // 개막 직후 — 이번 시즌 행은 생겼지만 순위표(10명)가 아직 안 찬 동안엔 지난 시즌 최종 기록을 접기로 같이 준다.
+  //   (2026-09-30 NHL: 1경기 뒤 "골 1위 2골" 5명만 보이고 지난 시즌 기록은 어디서도 안 보였다)
+  const prevSeasonLabel = (() => {
+    const m = /^(\d{4})(?:-(\d{2}))?$/.exec(leaderboard?.season ?? "");
+    if (!m) return null;
+    const y = Number(m[1]) - 1;
+    return m[2] ? `${y}-${String((y + 1) % 100).padStart(2, "0")}` : String(y);
+  })();
+  const currentThin =
+    !!leaderboard && !leaderPending && Object.values(leaderboard.rowsByCategory).some((rows) => rows.length < 10);
+  const earlyPrevLeaders = currentThin && prevSeasonLabel ? await loadLeagueLeaderboard(upper, prevSeasonLabel) : null;
+  const hasEarlyPrevLeaders = Object.keys(earlyPrevLeaders?.rowsByCategory ?? {}).length > 0;
 
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
   for (const c of countsByType) {
@@ -1254,7 +1266,26 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               )}
             </div>
           ) : (
-            <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
+            <div className="space-y-4">
+              <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
+              {hasEarlyPrevLeaders && (
+                <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+                  <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
+                    <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+                    지난 시즌 최종 기록{" "}
+                    <span className="font-normal text-neutral-400">({prevSeasonLabel})</span>
+                  </summary>
+                  <div className="px-2 pb-3 pt-1">
+                    <LeagueLeaderBoard
+                      league={upper}
+                      season={prevSeasonLabel!}
+                      rowsByCategory={earlyPrevLeaders!.rowsByCategory}
+                      footer={`${prevSeasonLabel} 시즌 최종 기록`}
+                    />
+                  </div>
+                </details>
+              )}
+            </div>
           )}
         </div>
       )}

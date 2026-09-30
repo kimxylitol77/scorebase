@@ -24,7 +24,7 @@ export function nhlSeasonLabel(now: Date): string {
 }
 
 // CapWages tricode → DB Team(NHL) 풀네임. LAK/NJD/SJS/TBL 만 로고 약어와 다름.
-const ABBR_TO_FULL: Record<string, string> = {
+export const NHL_ABBR_TO_FULL: Record<string, string> = {
   ANA: "Anaheim Ducks", BOS: "Boston Bruins", BUF: "Buffalo Sabres", CAR: "Carolina Hurricanes",
   CBJ: "Columbus Blue Jackets", CGY: "Calgary Flames", CHI: "Chicago Blackhawks", COL: "Colorado Avalanche",
   DAL: "Dallas Stars", DET: "Detroit Red Wings", EDM: "Edmonton Oilers", FLA: "Florida Panthers",
@@ -151,7 +151,7 @@ export async function fetchNhlSalaries(): Promise<NormalizedSalary[]> {
     out.push({
       rank: 0,
       playerName: p.name,
-      teamName: ABBR_TO_FULL[p.tricode] ?? "",
+      teamName: NHL_ABBR_TO_FULL[p.tricode] ?? "",
       salary,
       photoUrl: photoByName.get(norm(p.name)),
     });

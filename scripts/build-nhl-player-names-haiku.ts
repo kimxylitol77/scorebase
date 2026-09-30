@@ -14,6 +14,7 @@ import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { prisma } from "../src/lib/db";
 import teamMapping from "../src/lib/sports/thesports/ice-hockey-team-id-mapping.json";
+import { toKoreanPlayerName } from "../src/lib/player-names";
 
 const BATCH = 50;
 const OUT = "data/nhl-player-names-haiku.json";
@@ -242,6 +243,15 @@ async function main() {
     console.log(`+${up} (누적 ${added})`);
     await new Promise((r) => setTimeout(r, 500));
   }
+
+  // 사이트 정본(위키 통일 사전 — toKoreanPlayerName)에 있는 선수는 그 표기로 덮는다.
+  // 안 덮으면 같은 선수가 경기 페이지(이 사전)와 리더보드·선수 페이지(정본)에서 다르게 쓰인다 (2026-09-30 실측 164명, 카리에/캐리어 등).
+  let canon = 0;
+  for (const [id, e] of Object.entries(merged)) {
+    const k = toKoreanPlayerName(e.en);
+    if (k && k !== e.en && k !== e.ko) { merged[id] = { ...e, ko: k }; canon++; }
+  }
+  console.log(`▶ 정본 표기 적용 ${canon}`);
 
   const sorted = Object.fromEntries(
     Object.entries(merged).sort((a, b) => (a[1].ko || a[1].en).localeCompare(b[1].ko || b[1].en)),
