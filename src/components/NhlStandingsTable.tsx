@@ -8,6 +8,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import StandingsViewTabs from "@/components/nhl/StandingsViewTabs";
 
 type Std = NonNullable<Awaited<ReturnType<typeof fetchNhlStandings>>>;
 
@@ -16,6 +17,11 @@ function nhlNormName(s: string): string {
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+
+// 컨퍼런스·지구 한글 (NHL API conferenceName·divisionName 영문 그대로 옴)
+const CONF_KO: Record<string, string> = { Eastern: "동부 컨퍼런스", Western: "서부 컨퍼런스" };
+const DIV_KO: Record<string, string> = { Atlantic: "애틀랜틱 지구", Metropolitan: "메트로폴리탄 지구", Central: "센트럴 지구", Pacific: "퍼시픽 지구" };
+const DIV_ORDER = ["Atlantic", "Metropolitan", "Central", "Pacific"];
 
 /** withLastLeaders — 개막 전 접기 안에 지난 시즌 리더보드를 같이 넣는다. 리그 탭 전용 opt-in:
  *  /standings/NHL 은 페이지가 자체 "시즌 리더보드" 섹션을 이미 렌더해 같은 표가 두 번 나온다. */
@@ -83,33 +89,60 @@ export default async function NhlStandingsTable({
   const oldLabel = `${endYear - 1}-${pad(endYear % 100)}`;
   const nextLabel = `${endYear}-${pad((endYear + 1) % 100)}`;
 
-  // 순위표(방금 축구 리그와 통일한 스타일) — 평시 본문 + 전환기 접기에서 재사용.
-  const tableEl = (
+  // 순위표(방금 축구 리그와 통일한 스타일) — 리그 전체·컨퍼런스·지구 보기에서 재사용.
+  // 플레이오프권 표시 — 지구 상위 3팀 직행(초록) + 컨퍼런스 나머지 중 상위 2팀 와일드카드(주황). 줄 위치로 긋지 않는다:
+  // 컨퍼런스 8위 안이라도 지구 4위가 다른 지구 3위보다 승점이 높으면 순서와 진출이 어긋난다.
+  const direct = new Set<string>();
+  const wild = new Set<string>();
+  if (std.rows.every((r) => r.division && r.conference)) {
+    for (const d of DIV_ORDER) std.rows.filter((r) => r.division === d).slice(0, 3).forEach((r) => direct.add(r.abbrev));
+    for (const c of ["Eastern", "Western"]) {
+      std.rows.filter((r) => r.conference === c && !direct.has(r.abbrev)).slice(0, 2).forEach((r) => wild.add(r.abbrev));
+    }
+  }
+  // 나눠 보는 표(지구·컨퍼런스)는 PC 두 칸 배치라 폭이 좁다 → 득점·실점은 빼고 득실만
+  const renderTable = (rows: Std["rows"], opts: { title?: string; marks?: boolean } = {}) => (
     <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-x-auto dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+      {opts.title && (
+        <div className="px-4 pt-3 pb-1 text-xs font-bold text-neutral-700 dark:text-neutral-200">{opts.title}</div>
+      )}
       <table className="w-full text-sm">
         <thead className="bg-neutral-50 dark:bg-white/[0.06] text-xs text-neutral-500 whitespace-nowrap">
           <tr>
-            <th className="text-right px-3 py-2 font-medium w-10">#</th>
-            <th className="text-left px-3 py-2 font-medium">팀</th>
-            <th className="text-right px-2 py-2 font-medium">경기</th>
-            <th className="text-right px-2 py-2 font-medium">승</th>
-            <th className="text-right px-2 py-2 font-medium">패</th>
-            <th className="text-right px-2 py-2 font-medium">연장패</th>
-            <th className="text-right px-2 py-2 font-medium hidden sm:table-cell">득점</th>
-            <th className="text-right px-2 py-2 font-medium hidden sm:table-cell">실점</th>
-            <th className="text-right px-2 py-2 font-medium hidden sm:table-cell">득실</th>
-            <th className="text-right px-3 py-2 font-medium">승점</th>
+            <th className="text-right px-2 sm:px-3 py-2 font-medium w-8 sm:w-10">#</th>
+            <th className="text-left px-2 sm:px-3 py-2 font-medium">팀</th>
+            <th className="text-right px-1.5 sm:px-2 py-2 font-medium">경기</th>
+            <th className="text-right px-1.5 sm:px-2 py-2 font-medium">승</th>
+            <th className="text-right px-1.5 sm:px-2 py-2 font-medium">패</th>
+            <th className="text-right px-1.5 sm:px-2 py-2 font-medium">연장패</th>
+            {!opts.marks && <th className="text-right px-1.5 sm:px-2 py-2 font-medium hidden sm:table-cell">득점</th>}
+            {!opts.marks && <th className="text-right px-1.5 sm:px-2 py-2 font-medium hidden sm:table-cell">실점</th>}
+            <th className="text-right px-1.5 sm:px-2 py-2 font-medium hidden sm:table-cell">득실</th>
+            <th className="text-right px-2 sm:px-3 py-2 font-medium">승점</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-          {std.rows.map((r, i) => {
+          {rows.map((r, i) => {
             const db = findTeam(r);
             const ko = db ? toKoreanTeamName(db.name, "NHL") : r.name;
             const gd = r.goalDiff;
             return (
-              <tr key={r.abbrev} className="hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
-                <td className="px-3 py-2 text-right tabular-nums font-semibold text-neutral-500">{i + 1}</td>
-                <td className="px-3 py-2 truncate">
+              <tr
+                key={r.abbrev}
+                className="hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
+              >
+                <td
+                  className={`px-2 sm:px-3 py-2 text-right tabular-nums font-semibold text-neutral-500 ${
+                    opts.marks && direct.has(r.abbrev)
+                      ? "shadow-[inset_3px_0_0_rgb(16_185_129)]"
+                      : opts.marks && wild.has(r.abbrev)
+                        ? "shadow-[inset_3px_0_0_rgb(245_158_11)]"
+                        : ""
+                  }`}
+                >
+                  {i + 1}
+                </td>
+                <td className="px-2 sm:px-3 py-2 truncate max-w-[9.5rem] sm:max-w-none">
                   {db ? (
                     <Link href={`/teams/${db.id}`} prefetch={false} className="group flex items-center gap-2 min-w-0">
                       {db.logoUrl ? (
@@ -124,14 +157,14 @@ export default async function NhlStandingsTable({
                     <span className="truncate">{ko}</span>
                   )}
                 </td>
-                <td className="px-2 py-2 text-right tabular-nums">{r.gamesPlayed}</td>
-                <td className="px-2 py-2 text-right tabular-nums">{r.wins}</td>
-                <td className="px-2 py-2 text-right tabular-nums">{r.losses}</td>
-                <td className="px-2 py-2 text-right tabular-nums">{r.otLosses}</td>
-                <td className="px-2 py-2 text-right tabular-nums hidden sm:table-cell">{r.goalFor}</td>
-                <td className="px-2 py-2 text-right tabular-nums hidden sm:table-cell">{r.goalAgainst}</td>
-                <td className="px-2 py-2 text-right tabular-nums hidden sm:table-cell">{gd > 0 ? `+${gd}` : gd}</td>
-                <td className="px-3 py-2 text-right tabular-nums font-bold">{r.points}</td>
+                <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums">{r.gamesPlayed}</td>
+                <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums">{r.wins}</td>
+                <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums">{r.losses}</td>
+                <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums">{r.otLosses}</td>
+                {!opts.marks && <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums hidden sm:table-cell">{r.goalFor}</td>}
+                {!opts.marks && <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums hidden sm:table-cell">{r.goalAgainst}</td>}
+                <td className="px-1.5 sm:px-2 py-2 text-right tabular-nums hidden sm:table-cell">{gd > 0 ? `+${gd}` : gd}</td>
+                <td className="px-2 sm:px-3 py-2 text-right tabular-nums font-bold">{r.points}</td>
               </tr>
             );
           })}
@@ -140,12 +173,43 @@ export default async function NhlStandingsTable({
     </div>
   );
 
+  const byDiv = (d: string) => std.rows.filter((r) => r.division === d);
+  const byConf = (c: string) => std.rows.filter((r) => r.conference === c);
+  const hasGroups = std.rows.every((r) => r.division && r.conference);
+  const tableEl = renderTable(std.rows);
+  const viewsEl = hasGroups ? (
+    <StandingsViewTabs
+      views={[
+        {
+          key: "div", label: "지구",
+          node: (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {DIV_ORDER.map((d) => <div key={d} className="min-w-0">{renderTable(byDiv(d), { title: DIV_KO[d] ?? d, marks: true })}</div>)}
+            </div>
+          ),
+        },
+        {
+          key: "conf", label: "동부·서부",
+          node: (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {["Eastern", "Western"].map((c) => <div key={c} className="min-w-0">{renderTable(byConf(c), { title: CONF_KO[c] ?? c, marks: true })}</div>)}
+            </div>
+          ),
+        },
+        { key: "all", label: "리그 전체", node: tableEl },
+      ]}
+    />
+  ) : tableEl;
+
   // 평시 — 시즌 진행 중이면 현재 순위 그대로.
   if (!inTransition) {
     return (
       <div className="space-y-2">
-        {tableEl}
-        <p className="text-[11px] text-neutral-400">승점 = 승 2점 + 연장·슛아웃 패 1점 · NHL 공식 기록 · 경기 종료 후 자동 갱신</p>
+        {viewsEl}
+        <p className="text-[11px] text-neutral-400">
+          승점 = 승 2점 + 연장·슛아웃 패 1점 · <span className="font-semibold text-emerald-600 dark:text-emerald-400">초록</span> 지구 3위 안(플레이오프 직행권) ·{" "}
+          <span className="font-semibold text-amber-600 dark:text-amber-400">주황</span> 컨퍼런스 와일드카드 2장 · 현재 순위 기준 · NHL 공식 기록 · 경기 종료 후 자동 갱신
+        </p>
       </div>
     );
   }
