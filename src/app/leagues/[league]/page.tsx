@@ -787,7 +787,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
     // KBL — 순위(공식 승률표)·선수 기록(공식 API 리더보드)·일정·역사(챔프전 우승)·글 (2026-09-18)
     // 선수 탭(2026-09-20) — 공식 등록 선수 사전을 팀별 명단으로, 선수 상세 진입 허브.
-    KBL: ["standings", "stats", "players", "fixtures", "history", "articles"],
+    KBL: ["standings", "predictions", "stats", "players", "fixtures", "history", "articles"],
     WKBL: ["standings", "stats", "players", "fixtures", "history", "articles"],
     // V-리그 — 순위(ts 공식 표)·선수 기록(KOVO 공식)·일정·역사(챔프전 우승)·글 (2026-09-18)
     V_LEAGUE: ["standings", "stats", "players", "fixtures", "history", "articles"],

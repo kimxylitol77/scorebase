@@ -14,6 +14,8 @@ import { seasonLabelFromStart } from "@/lib/predict/season-matches";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { currentMlbSeason, getMlbPostseason } from "@/lib/sports/mlb-postseason";
 import MlbPostseasonOdds from "@/components/leagues/MlbPostseasonOdds";
+import PlayoffOddsPanel from "@/components/leagues/PlayoffOddsPanel";
+import { PLAYOFF_FORMATS, getPlayoffOdds } from "@/lib/predict/playoff-sim/load";
 
 const pct = (v: number) => v * 100;
 
@@ -44,6 +46,8 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
     !!mlbPs?.postSeasonStart && new Date(mlbPs.postSeasonStart).getTime() - Date.now() < 14 * 86400_000;
   const showPs = !!mlbPs && mlbPs.data.odds.length === 12 && psStartSoon;
   const regularOver = showPs && !!mlbPs!.regularSeasonEnd && mlbPs!.regularSeasonEnd < today;
+  // 그 외 플레이오프 리그 — 남은 정규시즌 + 규정 브래킷 시뮬(정규시즌 중에만, 1h 캐시)
+  const playoff = PLAYOFF_FORMATS.has(league) ? await getPlayoffOdds(league) : null;
 
   const teamIds = rows.map((r) => r.teamId);
   const teams = teamIds.length
@@ -73,6 +77,7 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {showPs && <MlbPostseasonOdds page={mlbPs!} />}
+      {playoff && <PlayoffOddsPanel result={playoff} />}
       {regularOver ? (
         <p className="text-xs text-neutral-500 break-keep">
           정규시즌은 끝났습니다. 정규시즌 시뮬레이션·다가오는 경기 승률은{" "}
