@@ -12,6 +12,7 @@ export default function ScoreboardScoreCell({
   awayScore,
   half,
   htLabel,
+  sub,
   goals,
   cards,
   teamStats,
@@ -25,6 +26,7 @@ export default function ScoreboardScoreCell({
   awayScore: number | null;
   half: { home: number; away: number } | null;
   htLabel: string;
+  sub?: string | null;
   goals: SoccerGoal[];
   cards: SoccerCard[];
   teamStats: SoccerTeamStat[];
@@ -59,11 +61,13 @@ export default function ScoreboardScoreCell({
             "vs"
           )}
         </span>
-        {half && scored && (
+        {half && scored ? (
           <span className="block text-[10px] tabular-nums text-neutral-400">
             {htLabel} {half.home}-{half.away}
           </span>
-        )}
+        ) : sub && scored ? (
+          <span className="block whitespace-nowrap text-[10px] text-neutral-400">{sub}</span>
+        ) : null}
       </Link>
       {hasTip && (
         <GoalsTooltip

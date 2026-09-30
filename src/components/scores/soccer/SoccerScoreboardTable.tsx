@@ -28,6 +28,8 @@ export interface ScoreboardRow {
   homeScore: number | null;
   awayScore: number | null;
   half: { home: number; away: number } | null;
+  /** 점수 아래 보조 줄 — UFC 승리 방법("2R · KO/TKO") 등. 전반 점수가 있으면 그쪽이 우선 */
+  sub?: string | null;
   /** draw null = 무승부 없는 종목(2칸) */
   pred: { home: number; draw: number | null; away: number } | null;
   odds: { home: number; draw: number; away: number; trend: { home: number; draw: number; away: number } | null } | null;
@@ -71,12 +73,14 @@ const T = {
         ai2: "AI 예측 홈·원정", odds2: "배당 홈·원정", aiAH: "AI 예측 원정·홈", oddsAH: "배당 원정·홈", homeBadge: "홈",
         live: "LIVE", ft: "종료", pp: "연기", ht: "전", hit: "적중", miss: "빗나감", oddsTitle: "배당 흐름 보기",
         noPred: "예측 없음", noPredWhy: "전력 데이터 부족",
-        foot: "AI 예측 막대는 파랑 홈 · 회색 무 · 주황 원정. 배당 화살표는 오픈 대비 변동(↓ 하락 · ↑ 상승). 배당을 누르면 배당 흐름으로 이동합니다." },
+        foot: "AI 예측 막대는 파랑 홈 · 회색 무 · 주황 원정. 배당 화살표는 오픈 대비 변동(↓ 하락 · ↑ 상승). 배당을 누르면 배당 흐름으로 이동합니다.",
+        foot2: "AI 예측 막대는 파랑 홈 · 주황 원정. 배당 화살표는 오픈 대비 변동(↓ 하락 · ↑ 상승). 배당을 누르면 배당 흐름으로 이동합니다." },
   en: { time: "Time", home: "Home", score: "Score", away: "Away", ai: "AI pick H·D·A", odds: "Odds H·D·A", table: "Table",
         ai2: "AI pick H·A", odds2: "Odds H·A", aiAH: "AI pick A·H", oddsAH: "Odds A·H", homeBadge: "H",
         live: "LIVE", ft: "FT", pp: "PPD", ht: "HT", hit: "Hit", miss: "Miss", oddsTitle: "Match details",
         noPred: "No pick", noPredWhy: "not enough history",
-        foot: "AI bar is blue home · gray draw · orange away. Odds arrows show movement since opening (↓ shortened · ↑ drifted)." },
+        foot: "AI bar is blue home · gray draw · orange away. Odds arrows show movement since opening (↓ shortened · ↑ drifted).",
+        foot2: "AI bar is blue home · orange away. Odds arrows show movement since opening (↓ shortened · ↑ drifted)." },
 } as const;
 type Lang = keyof typeof T;
 
@@ -291,7 +295,8 @@ export default function SoccerScoreboardTable({
             return (
               <ScoreboardGoalRow
                 key={r.id}
-                live={r.status === "live"}
+                // 득점 연출(GOAL 전광판)은 골이 드문 종목만 — 농구·야구는 점수가 수시로 바뀌어 계속 번쩍인다
+                live={r.status === "live" && (sport === "soccer" || sport === "hockey")}
                 homeScore={r.homeScore}
                 awayScore={r.awayScore}
                 className={`border-b border-neutral-100 px-3 py-2 last:border-0 dark:border-white/[0.06] ${r.status === "live" ? "bg-rose-500/[0.06]" : ""}`}
@@ -322,6 +327,7 @@ export default function SoccerScoreboardTable({
                     awayScore={r.awayScore}
                     half={r.half}
                     htLabel={t.ht}
+                    sub={r.sub ?? null}
                     goals={r.goals}
                     cards={r.cards}
                     teamStats={r.teamStats}
@@ -350,7 +356,7 @@ export default function SoccerScoreboardTable({
       ))}
       {showLegend && (
         <p className="border-t border-neutral-200 px-3 py-2 text-[10px] text-neutral-400 dark:border-white/10">
-          {t.foot}
+          {twoWay ? t.foot2 : t.foot}
         </p>
       )}
     </div>

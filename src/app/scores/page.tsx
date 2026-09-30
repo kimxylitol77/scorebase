@@ -83,6 +83,7 @@ import SoccerStatusTabs, {
   type SoccerStatusFilter,
 } from "@/components/scores/SoccerStatusTabs";
 import MatchCard from "@/components/scores/MatchCard";
+import { mmaResultLabel } from "@/lib/sports/mma-result";
 import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import ShowMoreRows from "@/components/scores/ShowMoreRows";
 import { tsFootballLiveLabel } from "@/lib/sports/ts-football-live-label";
@@ -90,6 +91,8 @@ import type { ReactNode } from "react";
 import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import SoccerSortToggle from "@/components/scores/SoccerSortToggle";
 import SortPrefWriter from "@/components/scores/SortPrefWriter";
+import ScoresViewToggle from "@/components/scores/ScoresViewToggle";
+import ViewPrefWriter from "@/components/scores/ViewPrefWriter";
 import FavPrefWriter from "@/components/scores/FavPrefWriter";
 import { cookies } from "next/headers";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
@@ -615,6 +618,8 @@ interface Props {
     status?: string;
     /** soccer 전용 — time(시간순 평면) | 미지정(리그별 그룹) */
     sort?: string;
+    /** 축구 외 종목 — board(스코어보드, 기본) | card(카드) */
+    view?: string;
   }>;
 }
 
@@ -1040,6 +1045,17 @@ export default async function ScoresPage({ searchParams }: Props) {
           : sortCookie === "time" || sortCookie === "league"
             ? sortCookie
             : "board"; // 기본 보기 = 스코어보드(2026-09-28 사용자 지시). 리그별·시간순을 고른 사람은 쿠키로 유지
+  // 축구 외 종목 보기 — board(스코어보드 표, 기본) | card(카드 격자). 카드를 고른 사람은 쿠키로 유지(2026-10-01 사용자 지시).
+  // 축구의 scores_sort 와 쿠키를 나눈다 — 한쪽 선택이 다른 쪽 기본값을 바꾸지 않게.
+  const viewCookie = (await cookies()).get("scores_view")?.value;
+  const otherView: "board" | "card" =
+    sport === "soccer"
+      ? "board"
+      : sp.view === "card" || sp.view === "board"
+        ? sp.view
+        : viewCookie === "card"
+          ? "card"
+          : "board";
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
@@ -2165,7 +2181,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       .filter(Boolean),
   );
   // 즐겨찾기 "내 경기"를 스코어보드 표로 — 축구 탭은 현재 보기, 다른 종목 탭은 마지막으로 고른 보기(쿠키)를 따른다
-  const boardPref = sortMode === "board" || (sport !== "soccer" && sortCookie !== "time" && sortCookie !== "league");
+  const boardPref = sortMode === "board" || (sport !== "soccer" && otherView === "board");
   const favSource =
     favCookieIds.size === 0
       ? []
@@ -2248,7 +2264,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const extraQuery =
     (leagueFilter ? `&league=${leagueFilter}` : "") +
     (statusFilter !== "all" ? `&status=${statusFilter}` : "") +
-    (sortMode !== "league" ? `&sort=${sortMode}` : "");
+    (sortMode !== "league" ? `&sort=${sortMode}` : "") +
+    (sport !== "soccer" && otherView === "card" ? "&view=card" : "");
 
   // SEO 동적 값 — generateMetadata 와 일치시킴.
   const sportKo = SPORT_NAMES_KO[sport] ?? "스포츠";
@@ -2598,23 +2615,31 @@ export default async function ScoresPage({ searchParams }: Props) {
         </div>
       ) : (
         <>
-          {/* 리그 필터 — 야구 (12+ 리그) 는 드롭다운, 그 외는 가로 chip */}
-          {leaguesAll.length > 1 &&
-            (sport === "baseball" ? (
-              <LeagueDropdown
-                leagues={leaguesAll}
-                activeLeague={leagueFilter}
-                sport={sport}
-                date={dateStr}
-              />
-            ) : (
-              <LeagueChips
-                leagues={leaguesAll}
-                activeLeague={leagueFilter}
-                sport={sport}
-                date={dateStr}
-              />
-            ))}
+          {/* 리그 필터(야구 12+ 리그는 드롭다운, 그 외 가로 chip) + 보기 토글(스코어보드/카드) */}
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              {leaguesAll.length > 1 &&
+                (sport === "baseball" ? (
+                  <LeagueDropdown
+                    leagues={leaguesAll}
+                    activeLeague={leagueFilter}
+                    sport={sport}
+                    date={dateStr}
+                  />
+                ) : (
+                  <LeagueChips
+                    leagues={leaguesAll}
+                    activeLeague={leagueFilter}
+                    sport={sport}
+                    date={dateStr}
+                  />
+                ))}
+            </div>
+            <ViewPrefWriter explicitView={sp.view === "card" || sp.view === "board" ? sp.view : null} />
+            <div className="shrink-0">
+              <ScoresViewToggle active={otherView} sport={sport} date={dateStr} league={leagueFilter} />
+            </div>
+          </div>
 
           {/* 매치 list — sport=all 은 축구 orphan 카드만 있는 날도 목록 렌더 */}
           {!hasAnyMatch ? (
@@ -2660,6 +2685,14 @@ export default async function ScoresPage({ searchParams }: Props) {
                   hasLineup: lineupMatchIdSet.has(Number(m.id)),
                 }))}
               />
+              {otherView === "board" ? (
+                // 스코어보드 표 — 축구와 같은 부품. 시각순 한 줄 + 리그 바뀔 때 제목 줄, 종료는 아래(표가 정렬)
+                <SoccerScoreboardTable
+                  sport={sport}
+                  rows={buildScoreboardRows([...(isToday ? liveList : []), ...scheduledList, ...finishedList, ...postponedList])}
+                />
+              ) : (
+              <>
               {isToday && liveList.length > 0 && (
                 <Section title="🔴 진행 중" count={liveList.length}>
                   {liveList.map((m) => renderCard(m))}
@@ -2679,6 +2712,8 @@ export default async function ScoresPage({ searchParams }: Props) {
                 <Section title={`🚫 ${postponedHeadLabel}`} count={postponedList.length}>
                   {postponedList.map((m) => renderCard(m))}
                 </Section>
+              )}
+              </>
               )}
             </div>
           )}
@@ -2771,6 +2806,7 @@ function buildScoreboardRows(matches: NormalizedMatch[]): ScoreboardRow[] {
     homeScore: m.home.score,
     awayScore: m.away.score,
     half: m.soccerHalfScore,
+    sub: m.sport === "mma" && m.mmaResult ? mmaResultLabel(m.mmaResult) : null,
     pred: m.pred1x2 ?? null,
     odds: m.odds
       ? { home: m.odds.home, draw: m.odds.draw, away: m.odds.away, trend: m.odds.trend ?? null }

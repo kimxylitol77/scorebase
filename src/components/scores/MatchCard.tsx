@@ -3,6 +3,7 @@
 
 "use client";
 
+import { mmaResultLabel } from "@/lib/sports/mma-result";
 import { rankBadge, type EdgeBadge } from "@/lib/scores/edge-badges";
 import EdgeBadgeChips from "./EdgeBadgeChips";
 import Link from "next/link";
@@ -158,21 +159,6 @@ const WEIGHT_CLASS_KO: Record<string, string> = {
   Catchweight: "캐치웨이트",
 };
 
-// UFC 승리 방법 한글 (ESPN result.displayName → 한글). 세부 서브미션 종류는 ESPN 미제공.
-const MMA_METHOD_KO: Record<string, string> = {
-  "KO/TKO": "KO/TKO",
-  Submission: "서브미션",
-  "Decision - Unanimous": "판정 (만장)",
-  "Decision - Split": "판정 (분할)",
-  "Decision - Majority": "판정 (다수)",
-  Decision: "판정",
-};
-// "1R · KO/TKO" (피니시) / "판정 (만장)" (판정엔 라운드 생략 — 풀라운드).
-function mmaResultLabel(r: NonNullable<MatchCardProps["mmaResult"]>): string | null {
-  if (!r.method) return null;
-  const ko = MMA_METHOD_KO[r.method] ?? r.method;
-  return r.method.startsWith("Decision") ? ko : r.round ? `${r.round}R · ${ko}` : ko;
-}
 
 // UFC Tale of the Tape — 두 파이터 신체 비교 (체급 헤더 + 신장/체중/리치/스탠스).
 // 값이 하나라도 있는 행만 표시. 전부 비고 체급도 없으면 렌더 안 함.
