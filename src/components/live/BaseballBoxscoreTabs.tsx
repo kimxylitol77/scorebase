@@ -117,9 +117,11 @@ export default function BaseballBoxscoreTabs({
 
   // 시작 전 매치는 라이브 데이터 없음. 카드 자체는 띄우고 각 탭에 안내.
   // 단 배당이 없으면 모든 탭 비어있는 상태 — 그 경우만 hide.
+  // 끝났는데도 선수 기록이 없으면(국제대회 — ts 가 players 를 안 준다) 눌러도 빈 탭이라 숨긴다(2026-10-01 아시안게임 야구).
+  const finished = matchStatus === "FINISHED";
   const tabs: { key: TabKey; label: string; enabled: boolean; withTeamToggle: boolean }[] = [
-    { key: "batting", label: "타자 기록", enabled: true, withTeamToggle: true },
-    { key: "pitching", label: "투수 기록", enabled: true, withTeamToggle: true },
+    { key: "batting", label: "타자 기록", enabled: hasBatters || !finished, withTeamToggle: true },
+    { key: "pitching", label: "투수 기록", enabled: hasPitchers || !finished, withTeamToggle: true },
     { key: "odds", label: "라이브 배당", enabled: hasOdds, withTeamToggle: false },
     { key: "wpa", label: "승률 곡선", enabled: true, withTeamToggle: false },
   ];
