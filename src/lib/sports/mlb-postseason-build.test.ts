@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildMlbPostseason,
+  mlbAdvancementOdds,
   placeholderName,
   seriesWinProb,
   type ApiGame,
@@ -86,4 +87,36 @@ test("시리즈 승리 확률 — 동률 0.5, 승수 반영", () => {
   assert.equal(seriesWinProb("ws", 1, 1), 1);
   assert.ok(Math.abs(seriesWinProb("wc", 0.5, 0.5, 1, 0) - 0.75) < 1e-9);
   assert.ok(seriesWinProb("ds", 0.6, 0.5) > 0.55);
+});
+
+test("라운드 진출 확률 — 우승 합 1, 부전승 시드는 DS 100%, 끝난 시리즈 패자는 0·탈락", () => {
+  const mk = (lg: "AL" | "NL", base: number) =>
+    [1, 2, 3, 4, 5, 6].map((seed) => ({
+      seed, id: base + seed, name: `${lg}${seed}`, abbr: `${lg}${seed}`,
+      wins: 100 - seed * 3, losses: 62 + seed * 3, status: null, divisionWinner: seed <= 3,
+    }));
+  const seeds = { AL: mk("AL", 100), NL: mk("NL", 200) };
+  const elo = (id: number) => 1600 - (id % 100) * 10;
+  const noSeries = mlbAdvancementOdds(seeds, [], elo);
+  const sum = (k: "ds" | "lcs" | "ws" | "champ") => noSeries.reduce((a, o) => a + o[k], 0);
+  assert.equal(noSeries.length, 12);
+  assert.ok(Math.abs(sum("champ") - 1) < 1e-9);
+  assert.ok(Math.abs(sum("ws") - 2) < 1e-9);
+  assert.ok(Math.abs(sum("lcs") - 4) < 1e-9);
+  assert.ok(Math.abs(sum("ds") - 8) < 1e-9);
+  assert.equal(noSeries.find((o) => o.id === 101)!.ds, 1);
+
+  // AL 3v6 끝남(6번 시드 승) — 3번 시드는 모든 확률 0 + 탈락
+  const team = (id: number) => ({ id, name: String(id), abbr: String(id), seed: null, placeholder: false, projected: false, slotNote: null, korea: [] });
+  const done = [{
+    id: "x", round: "wc" as const, league: "AL" as const, bestOf: 3, top: team(103), bottom: team(106),
+    winsTop: 0, winsBottom: 2, state: "FINAL" as const, winnerId: 106, games: [], probTop: null,
+  }];
+  const after = mlbAdvancementOdds(seeds, done, elo);
+  const s3 = after.find((o) => o.id === 103)!;
+  assert.equal(s3.ds, 0);
+  assert.equal(s3.champ, 0);
+  assert.ok(s3.eliminated);
+  assert.equal(after.find((o) => o.id === 106)!.ds, 1);
+  assert.ok(Math.abs(after.reduce((a, o) => a + o.champ, 0) - 1) < 1e-9);
 });

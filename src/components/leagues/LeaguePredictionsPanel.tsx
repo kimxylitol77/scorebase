@@ -12,6 +12,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { seasonLabelFromStart } from "@/lib/predict/season-matches";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
+import { currentMlbSeason, getMlbPostseason } from "@/lib/sports/mlb-postseason";
+import MlbPostseasonOdds from "@/components/leagues/MlbPostseasonOdds";
 
 const pct = (v: number) => v * 100;
 
@@ -33,6 +35,15 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
       meta = sim;
     }
   }
+
+  // MLB 포스트시즌 — 개막 2주 전부터 대진 확률판을 맨 위에. 정규시즌이 끝났으면 정규시즌 시뮬(=1위 확률, 이미 결정)은 접는다.
+  //   (2026-09-30: 포스트시즌 중에 "우승 확률 밀워키 99.9%" 가 떴다 — 정규시즌 1위 시뮬을 우승으로 부르던 것)
+  const mlbPs = league === "MLB" ? await getMlbPostseason(currentMlbSeason()).catch(() => null) : null;
+  const today = new Date().toISOString().slice(0, 10);
+  const psStartSoon =
+    !!mlbPs?.postSeasonStart && new Date(mlbPs.postSeasonStart).getTime() - Date.now() < 14 * 86400_000;
+  const showPs = !!mlbPs && mlbPs.data.odds.length === 12 && psStartSoon;
+  const regularOver = showPs && !!mlbPs!.regularSeasonEnd && mlbPs!.regularSeasonEnd < today;
 
   const teamIds = rows.map((r) => r.teamId);
   const teams = teamIds.length
@@ -61,6 +72,14 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {showPs && <MlbPostseasonOdds page={mlbPs!} />}
+      {regularOver ? (
+        <p className="text-xs text-neutral-500 break-keep">
+          정규시즌은 끝났습니다. 정규시즌 시뮬레이션·다가오는 경기 승률은{" "}
+          <Link href={detailHref} className="font-semibold text-neutral-700 hover:underline dark:text-neutral-200">예측 페이지</Link>에서 볼 수 있습니다.
+        </p>
+      ) : (
+      <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold tracking-tight">
@@ -118,6 +137,9 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
             </section>
           )}
         </div>
+      )}
+
+      </>
       )}
 
       <p className="text-xs text-neutral-500 break-keep">

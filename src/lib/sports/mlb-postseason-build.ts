@@ -118,6 +118,18 @@ export interface SeedRow {
   status: string | null;
   divisionWinner: boolean;
 }
+export interface TeamOdds {
+  id: number;
+  league: League;
+  seed: number;
+  /** 디비전 시리즈 진출(1·2번 시드는 1) · 챔피언십 시리즈 · 월드시리즈 진출 · 우승 */
+  ds: number;
+  lcs: number;
+  ws: number;
+  champ: number;
+  /** 이미 떨어졌는지 — 확률 0 과 구분(아직 붙지도 않은 팀과 다르다) */
+  eliminated: boolean;
+}
 export interface ChaseRow {
   id: number;
   name: string;
@@ -133,6 +145,8 @@ export interface MlbPostseason {
   series: PsSeries[];
   /** 12팀이 전부 확정됐는지 — 아니면 화면에 "현재 순위 기준 예상" */
   fieldSet: boolean;
+  /** 팀별 라운드 진출·우승 확률 — 대진표 전체를 따라 합산(끝난 시리즈=결과, 진행 중=현재 승수부터) */
+  odds: TeamOdds[];
   champion: PsTeam | null;
 }
 
@@ -344,7 +358,91 @@ export function buildMlbPostseason(
     series.some((s) => s.round === "wc") &&
     series.filter((s) => s.round === "wc").every((s) => fixed(s.top) && fixed(s.bottom)) &&
     series.filter((s) => s.round === "ds").every((s) => fixed(s.top));
-  return { season, seeds, chase, series, fieldSet, champion };
+  const odds = mlbAdvancementOdds(seeds, series, opts.eloOf);
+  return { season, seeds, chase, series, fieldSet, champion, odds };
+}
+
+/**
+ * 라운드별 진출 확률 — 대진 구조(WC 3v6·4v5 → DS 1 vs 4/5·2 vs 3/6 → LCS → WS)를 따라 가능한 대진을 모두 확률로 합산한다.
+ * 실제 시리즈가 있으면 그 결과(끝남)·현재 승수(진행 중)를 쓰고, 아직 없는 대진은 Elo 로 가상 시리즈를 계산한다.
+ * 홈 어드밴티지: WC·DS·LCS 는 상위 시드, WS 는 정규시즌 승률이 높은 팀(2022~ 규정).
+ */
+export function mlbAdvancementOdds(
+  seeds: Record<League, SeedRow[]>,
+  series: PsSeries[],
+  eloOf: (teamId: number) => number | null,
+): TeamOdds[] {
+  const pctOf = new Map<number, number>();
+  const seedOf = new Map<number, number>();
+  for (const lg of ["AL", "NL"] as const) {
+    for (const s of seeds[lg]) {
+      pctOf.set(s.id, s.wins + s.losses > 0 ? s.wins / (s.wins + s.losses) : 0);
+      seedOf.set(s.id, s.seed);
+    }
+  }
+  /** top 이 홈 어드밴티지 쪽. top 이 이길 확률 */
+  const win = (round: MlbRound, top: number, bot: number): number => {
+    const real = series.find(
+      (s) => s.round === round && ((s.top.id === top && s.bottom.id === bot) || (s.top.id === bot && s.bottom.id === top)),
+    );
+    if (real) {
+      if (real.winnerId != null) return real.winnerId === top ? 1 : 0;
+      const et = eloOf(real.top.id!);
+      const eb = eloOf(real.bottom.id!);
+      const p = et != null && eb != null
+        ? seriesWinProb(round, expected(et + MLB_SERIES_HOME_ELO, eb), expected(et, eb + MLB_SERIES_HOME_ELO), real.winsTop, real.winsBottom)
+        : 0.5;
+      return real.top.id === top ? p : 1 - p;
+    }
+    const et = eloOf(top);
+    const eb = eloOf(bot);
+    if (et == null || eb == null) return 0.5;
+    return seriesWinProb(round, expected(et + MLB_SERIES_HOME_ELO, eb), expected(et, eb + MLB_SERIES_HOME_ELO));
+  };
+  type Dist = Map<number, number>;
+  const add = (d: Dist, id: number, p: number) => d.set(id, (d.get(id) ?? 0) + p);
+  /** 두 분포의 승자 분포 — homeFirst(a,b) 가 true 면 a 가 홈 */
+  const play = (round: MlbRound, A: Dist, B: Dist, homeFirst: (a: number, b: number) => boolean): Dist => {
+    const out: Dist = new Map();
+    for (const [a, pa] of A) for (const [b, pb] of B) {
+      if (pa * pb === 0) continue;
+      const aHome = homeFirst(a, b);
+      const pA = aHome ? win(round, a, b) : 1 - win(round, b, a);
+      add(out, a, pa * pb * pA);
+      add(out, b, pa * pb * (1 - pA));
+    }
+    return out;
+  };
+  const one = (id: number): Dist => new Map([[id, 1]]);
+  const bySeed = (a: number, b: number) => (seedOf.get(a) ?? 9) <= (seedOf.get(b) ?? 9);
+  const byRecord = (a: number, b: number) => (pctOf.get(a) ?? 0) >= (pctOf.get(b) ?? 0);
+
+  const res = new Map<number, TeamOdds>();
+  const champs: Partial<Record<League, Dist>> = {};
+  for (const lg of ["AL", "NL"] as const) {
+    const s = new Map(seeds[lg].map((r) => [r.seed, r.id]));
+    if (s.size < 6) return [];
+    const wc36 = play("wc", one(s.get(3)!), one(s.get(6)!), bySeed);
+    const wc45 = play("wc", one(s.get(4)!), one(s.get(5)!), bySeed);
+    const ds1 = play("ds", one(s.get(1)!), wc45, bySeed);
+    const ds2 = play("ds", one(s.get(2)!), wc36, bySeed);
+    const lcs = play("lcs", ds1, ds2, bySeed);
+    champs[lg] = lcs;
+    for (const r of seeds[lg]) {
+      const ds = r.seed <= 2 ? 1 : (wc36.get(r.id) ?? wc45.get(r.id) ?? 0);
+      res.set(r.id, { id: r.id, league: lg, seed: r.seed, ds, lcs: ds1.get(r.id) ?? ds2.get(r.id) ?? 0, ws: lcs.get(r.id) ?? 0, champ: 0, eliminated: false });
+    }
+  }
+  const title = play("ws", champs.AL!, champs.NL!, byRecord);
+  for (const [id, p] of title) res.get(id)!.champ = p;
+  // 떨어짐 = 실제로 진 시리즈가 있다
+  for (const s of series) {
+    if (s.winnerId == null) continue;
+    const loser = s.top.id === s.winnerId ? s.bottom.id : s.top.id;
+    const o = loser != null ? res.get(loser) : undefined;
+    if (o) o.eliminated = true;
+  }
+  return [...res.values()];
 }
 
 /**

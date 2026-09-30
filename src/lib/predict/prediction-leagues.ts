@@ -26,4 +26,6 @@ export const relegationCountOf = (league: string) => RELEGATION_COUNT[league] ??
 
 /** 리그 1위가 곧 우승이 아닌 리그 — 플레이오프로 우승을 가린다. 화면은 "정규리그 1위"라고 부른다. */
 // NHL(2026-09-30) — 우승은 스탠리컵 플레이오프. 정규시즌 시뮬 1위를 "우승 확률"로 부르고 있었다.
-export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL", "NHL"]);
+// MLB·NBA·KBO·NPB(2026-09-30) — 같은 이유. MLB 예측 탭이 포스트시즌 중에 "우승 확률 밀워키 99.9%"(= 정규시즌 1위)를 띄웠다.
+//   진짜 우승 확률은 MLB 포스트시즌 확률판(mlbAdvancementOdds)이 따로 낸다.
+export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL", "NHL", "MLB", "NBA", "KBO", "NPB"]);

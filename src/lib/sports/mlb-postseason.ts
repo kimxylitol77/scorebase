@@ -136,6 +136,6 @@ export const getMlbPostseason = unstable_cache(
       return null;
     }
   },
-  ["mlb-postseason-v2"],
+  ["mlb-postseason-v3"],
   { revalidate: 300 },
 );
