@@ -1,402 +1,4833 @@
 {
- "pxwrx0b2062ryk0": {
-  "ko": "가브리엘 란데스코그",
-  "en": "Gabriel Landeskog",
-  "pos": "LW"
- },
- "4wyrn9b753gm86p": {
-  "ko": "나젬 카드리",
-  "en": "Nazem Kadri",
-  "pos": "C"
- },
- "dn1m15bodvnqoep": {
-  "ko": "네이선 매키넌",
-  "en": "Nathan MacKinnon",
-  "pos": "C"
- },
- "318q6wb7p1lmo9j": {
-  "ko": "노아 도브슨",
-  "en": "Noah Dobson",
-  "pos": "D"
- },
- "x7lm78b52jgq2wd": {
-  "ko": "노아 해니핀",
-  "en": "Noah Hanifin",
-  "pos": "D"
- },
- "dj2ry0bd3k5q1zp": {
-  "ko": "니콜라 루아",
-  "en": "Nicolas Roy",
-  "pos": "C"
- },
- "23xmv0bgl8drg8n": {
-  "ko": "닉 서주키",
-  "en": "Nicholas Suzuki",
-  "pos": "C"
- },
- "23xmv0bgl9erg8n": {
-  "ko": "니콜라이 엘레르스",
-  "en": "Nikolaj Ehlers",
-  "pos": "LW"
- },
- "23xmv0bgzojrg8n": {
-  "ko": "닉 도우드",
-  "en": "Nic Dowd",
-  "pos": "C"
- },
- "6ypq3vb4p91rd7o": {
-  "ko": "데번 테이브스",
-  "en": "Devon Toews",
-  "pos": "D"
- },
- "l5erg6bypoeq8k0": {
-  "ko": "딜런 콕란",
-  "en": "Dylan Coghlan",
-  "pos": "D"
- },
- "x7lm78b527yq2wd": {
-  "ko": "라스무스 안데르손",
-  "en": "Rasmus Andersson",
-  "pos": "D"
- },
- "1l4rj1b3px6r7vx": {
-  "ko": "라일리 스미스",
-  "en": "Reilly Smith",
-  "pos": "RW"
- },
- "23xmv0bp0v9rg8n": {
-  "ko": "레인 허츠슨",
-  "en": "Lane Hutson",
-  "pos": "D"
- },
- "y0or5xbopywmwzv": {
-  "ko": "로건 스탠코븐",
-  "en": "Logan Stankoven",
-  "pos": "C"
- },
- "3glrwdbl59pqdyj": {
-  "ko": "로건 오코너",
-  "en": "Logan O'Connor",
-  "pos": "RW"
- },
- "zp5rzyb4ovxq82w": {
-  "ko": "로스 콜턴",
-  "en": "Ross Colton",
-  "pos": "C"
- },
- "y0or5xb0dewmwzv": {
-  "ko": "마르틴 네차스",
-  "en": "Martin Necas",
-  "pos": "C"
- },
- "pxwrx0b7jwvryk0": {
-  "ko": "마이크 매디슨",
-  "en": "Mike Matheson",
-  "pos": "D"
- },
- "x7lm78b5dovq2wd": {
-  "ko": "마크 스톤",
-  "en": "Mark Stone",
-  "pos": "RW"
- },
- "dj2ry0bd941q1zp": {
-  "ko": "마크 야노프스키",
-  "en": "Mark Jankowski",
-  "pos": "LW"
- },
- "n54ql0b986wqvy9": {
-  "ko": "매킨지 블랙우드",
-  "en": "Mackenzie Blackwood",
-  "pos": "G"
- },
- "jw2r0obpggzrz84": {
-  "ko": "미치 마너",
-  "en": "Mitchell Marner",
-  "pos": "RW"
- },
- "ednm95b27j9ryox": {
-  "ko": "브랜든 부시",
-  "en": "Brandon Bussi",
-  "pos": "G"
- },
- "vjxm87b2ogkr6od": {
-  "ko": "브레이든 맥나브",
-  "en": "Brayden McNabb",
-  "pos": "D"
- },
- "4jwq2lbd024r0ve": {
-  "ko": "브레이든 보우먼",
-  "en": "Braeden Bowman",
-  "pos": "F"
- },
- "965mknb1en4m1ge": {
-  "ko": "브렌트 번스",
-  "en": "Brent Burns",
-  "pos": "D"
- },
- "pxwrx0b205kryk0": {
-  "ko": "브렛 쿨락",
-  "en": "Brett Kulak",
-  "pos": "D"
- },
- "zp5rzyb0p99q82w": {
-  "ko": "브렛 하우든",
-  "en": "Brett Howden",
-  "pos": "C"
- },
- "zp5rzyb2de4q82w": {
-  "ko": "브록 넬슨",
-  "en": "Brock Nelson",
-  "pos": "C"
- },
- "vjxm87b0d9wr6od": {
-  "ko": "샘 말린스키",
-  "en": "Sam Malinski",
-  "pos": "D"
- },
- "23xmv0bgle6rg8n": {
-  "ko": "세바스티안 아호",
-  "en": "Sebastian Aho",
-  "pos": "C"
- },
- "4jwq2lb68xzr0ve": {
-  "ko": "세스 자비스",
-  "en": "Seth Jarvis",
-  "pos": "C"
- },
- "y39mp9bpy46rojx": {
-  "ko": "션 워커",
-  "en": "Sean Walker",
-  "pos": "D"
- },
- "y39mp9bk85vrojx": {
-  "ko": "셰인 고스티즈비어",
-  "en": "Shayne Gostisbehere",
-  "pos": "D"
- },
- "y39mp9bk8y1rojx": {
-  "ko": "셰이 시어도어",
-  "en": "Shea Theodore",
-  "pos": "D"
- },
- "8yomodb56glq0j6": {
-  "ko": "아르투리 레흐코넨",
-  "en": "Artturi Lehkonen",
-  "pos": "LW"
- },
- "8yomodb5jv8q0j6": {
-  "ko": "안드레이 스베치니코프",
-  "en": "Andrei Svechnikov",
-  "pos": "RW"
- },
- "318q6wb7dy9mo9j": {
-  "ko": "알렉산드르 니키신",
-  "en": "Alexander Nikishin",
-  "pos": "D"
- },
- "pxwrx0b7jkxryk0": {
-  "ko": "알렉상드르 카리에",
-  "en": "Alexandre Carrier",
-  "pos": "D"
- },
- "dn1m15bog92qoep": {
-  "ko": "알렉상드르 텍시에",
-  "en": "Alexandre Texier",
-  "pos": "C"
- },
- "l7oqd2bdvn9r510": {
-  "ko": "알렉스 뉴훅",
-  "en": "Alex Newhook",
-  "pos": "C"
- },
- "dj2ry0bp6p7q1zp": {
-  "ko": "야쿠프 도베스",
-  "en": "Jakub Dobes",
-  "pos": "G"
- },
- "8yomodb566eq0j6": {
-  "ko": "에릭 로빈슨",
-  "en": "Eric Robinson",
-  "pos": "LW"
- },
- "ednm95bdlzjryox": {
-  "ko": "윌리엄 칼손",
-  "en": "William Karlsson",
-  "pos": "C"
- },
- "dj2ry0bd3glq1zp": {
-  "ko": "윌리엄 캐리어",
-  "en": "William Carrier",
-  "pos": "LW"
- },
- "l5erg6b26kdq8k0": {
-  "ko": "유라이 슬라프코우스키",
-  "en": "Juraj Slafkovsky",
-  "pos": "LW"
- },
- "4jwq2lbz6n2r0ve": {
-  "ko": "이반 데미도프",
-  "en": "Ivan Demidov",
-  "pos": "F"
- },
- "318q6wb7p8lmo9j": {
-  "ko": "이반 바르바셰프",
-  "en": "Ivan Barbashev",
-  "pos": "C"
- },
- "jw2r0ob3vd1rz84": {
-  "ko": "재커리 볼두크",
-  "en": "Zachary Bolduc",
-  "pos": "C"
- },
- "vjxm87b2d5lr6od": {
-  "ko": "잭 드루리",
-  "en": "Jack Drury",
-  "pos": "C"
- },
- "ednm95b6v6eryox": {
-  "ko": "잭 아이클",
-  "en": "Jack Eichel",
-  "pos": "C"
- },
- "3glrwdb3pkyqdyj": {
-  "ko": "잭슨 블레이크",
-  "en": "Jackson Blake",
-  "pos": "RW"
- },
- "ednm95bdpjlryox": {
-  "ko": "제레미 로존",
-  "en": "Jeremy Lauzon",
-  "pos": "D"
- },
- "965mknb1j3km1ge": {
-  "ko": "제이든 스트루블",
-  "en": "Jayden Struble",
-  "pos": "D"
- },
- "6ypq3vb4d67rd7o": {
-  "ko": "제이컵 슬레이빈",
-  "en": "Jaccob Slavin",
-  "pos": "D"
- },
- "n54ql0bkw07qvy9": {
-  "ko": "제이크 에반스",
-  "en": "Jake Evans",
-  "pos": "C"
- },
- "dj2ry0b5gxzq1zp": {
-  "ko": "제일런 챗필드",
-  "en": "Jalen Chatfield",
-  "pos": "D"
- },
- "x7lm78b5yxjq2wd": {
-  "ko": "조 벨레노",
-  "en": "Joe Veleno",
-  "pos": "C"
- },
- "318q6wb7d47mo9j": {
-  "ko": "조던 마르티누크",
-  "en": "Jordan Martinook",
-  "pos": "LW"
- },
- "k82reeb8j5krepz": {
-  "ko": "조던 스톨",
-  "en": "Jordan Staal",
-  "pos": "C"
- },
- "pxwrx0beo3gryk0": {
-  "ko": "조시 맨슨",
-  "en": "Josh Manson",
-  "pos": "D"
- },
- "4jwq2lb6x07r0ve": {
-  "ko": "조시 앤더슨",
-  "en": "Josh Anderson",
-  "pos": "RW"
- },
- "k82reeb8425repz": {
-  "ko": "요엘 키비란타",
-  "en": "Joel Kiviranta",
-  "pos": "LW"
- },
- "dn1m15bodenqoep": {
-  "ko": "카터 하트",
-  "en": "Carter Hart",
-  "pos": "G"
- },
- "dj2ry0b4p90q1zp": {
-  "ko": "캔드레 밀러",
-  "en": "K'Andre Miller",
-  "pos": "D"
- },
- "dn1m15bogw5qoep": {
-  "ko": "케일 머카",
-  "en": "Cale Makar",
-  "pos": "D"
- },
- "ednm95bdpwdryox": {
-  "ko": "커비 닥",
-  "en": "Kirby Dach",
-  "pos": "C"
- },
- "2y8m43bn239rl07": {
-  "ko": "케이던 코르차크",
-  "en": "Kaedan Korczak",
-  "pos": "D"
- },
- "1l4rj1b28xlr7vx": {
-  "ko": "케이든 굴",
-  "en": "Kaiden Guhle",
-  "pos": "D"
- },
- "l7oqd2b2xl6r510": {
-  "ko": "콜 스미스",
-  "en": "Cole Smith",
-  "pos": "RW"
- },
- "6ypq3vbg209rd7o": {
-  "ko": "콜 카우필드",
-  "en": "Cole Caufield",
-  "pos": "RW"
- },
- "dn1m15boggdqoep": {
-  "ko": "콜턴 시손스",
-  "en": "Colton Sissons",
-  "pos": "C"
- },
- "dn1m15b714eqoep": {
-  "ko": "키건 콜레자르",
-  "en": "Keegan Kolesar",
-  "pos": "RW"
- },
- "vjxm87b27kyr6od": {
-  "ko": "테일러 홀",
-  "en": "Taylor Hall",
-  "pos": "LW"
- },
- "n54ql0b98k2qvy9": {
-  "ko": "토마스 허틀",
-  "en": "Tomas Hertl",
-  "pos": "C"
- },
- "k82reeb84o8repz": {
-  "ko": "파벨 도로페예프",
-  "en": "Pavel Dorofeyev",
-  "pos": "LW"
- },
- "l7oqd2b2x9zr510": {
-  "ko": "파커 켈리",
-  "en": "Parker Kelly",
-  "pos": "C"
- },
- "2y8m43b4ev9rl07": {
-  "ko": "프레데리크 안데르센",
-  "en": "Frederik Andersen",
-  "pos": "G"
- },
- "zp5rzyb2dw8q82w": {
-  "ko": "필립 다노",
-  "en": "Phillip Danault",
-  "pos": "C"
- }
+  "l5erg6b2ew6q8k0": {
+    "ko": "",
+    "en": "Alec-DUP Regula-DUP",
+    "pos": "D",
+    "no": 75
+  },
+  "y39mp9b8g26rojx": {
+    "ko": "",
+    "en": "Anton Frondell",
+    "pos": "C",
+    "no": 16
+  },
+  "dj2ry0bp6dgq1zp": {
+    "ko": "",
+    "en": "Ben Hemmerling",
+    "pos": "RW"
+  },
+  "jw2r0ob93jlrz84": {
+    "ko": "",
+    "en": "Brandt Brandt Clarke",
+    "pos": "D",
+    "no": 92
+  },
+  "k82reeb01gdrepz": {
+    "ko": "",
+    "en": "Charle-Edouard D'Astous",
+    "pos": "D",
+    "no": 51
+  },
+  "pxwrx0bkypkryk0": {
+    "ko": "",
+    "en": "Charles-Alexis Legault",
+    "pos": "D"
+  },
+  "965mknb909xm1ge": {
+    "ko": "",
+    "en": "Jack St.Ivany",
+    "pos": "D",
+    "no": 6
+  },
+  "4jwq2lb6nyzr0ve": {
+    "ko": "",
+    "en": "John-Jason Peterka",
+    "pos": "RW",
+    "no": 10
+  },
+  "6ypq3vbe8pjrd7o": {
+    "ko": "",
+    "en": "Jonathan Aspirot",
+    "pos": "D",
+    "no": 45
+  },
+  "jw2r0obpgzlrz84": {
+    "ko": "",
+    "en": "Jonathan Tanner Miller",
+    "pos": "LW",
+    "no": 10
+  },
+  "23xmv0bnp1lrg8n": {
+    "ko": "",
+    "en": "Justin Hryckowian",
+    "pos": "C",
+    "no": 49
+  },
+  "l7oqd2b9j3pr510": {
+    "ko": "",
+    "en": "Kai Uchacz",
+    "pos": "C",
+    "no": 77
+  },
+  "23xmv0bwxzvrg8n": {
+    "ko": "",
+    "en": "Leevi Merilainen",
+    "pos": "G",
+    "no": 31
+  },
+  "dj2ry0bd0g7q1zp": {
+    "ko": "",
+    "en": "Marat Khusnutdinov",
+    "pos": "C",
+    "no": 92
+  },
+  "965mknb03nem1ge": {
+    "ko": "",
+    "en": "Maveric Lamoureux",
+    "pos": "D",
+    "no": 10
+  },
+  "318q6wbgp38mo9j": {
+    "ko": "",
+    "en": "Maxim V. Shabanov",
+    "pos": "RW",
+    "no": 49
+  },
+  "pxwrx0b55gjryk0": {
+    "ko": "",
+    "en": "Michael Brandsegg-Nygard",
+    "pos": "RW",
+    "no": 28
+  },
+  "k82reebxjl0repz": {
+    "ko": "",
+    "en": "Michkov Matvei",
+    "pos": "RW",
+    "no": 39
+  },
+  "dn1m15b7xdlqoep": {
+    "ko": "",
+    "en": "Tanner Laczynski",
+    "pos": "C",
+    "no": 28
+  },
+  "zp5rzybnx9pq82w": {
+    "ko": "",
+    "en": "Tim Washe",
+    "pos": "C",
+    "no": 42
+  },
+  "ednm95b2wx7ryox": {
+    "ko": "",
+    "en": "Tye Kartye",
+    "pos": "LW",
+    "no": 24
+  },
+  "4wyrn9b17k0m86p": {
+    "ko": "",
+    "en": "Viking Gustafsson Nyberg",
+    "pos": "D",
+    "no": 6
+  },
+  "3glrwdblex4qdyj": {
+    "ko": "",
+    "en": "Yurov Danila",
+    "pos": "RW",
+    "no": 22
+  },
+  "zp5rzyb2d83q82w": {
+    "ko": "가넷 해서웨이",
+    "en": "Garnet Hathaway",
+    "pos": "RW",
+    "no": 21
+  },
+  "pxwrx0b2062ryk0": {
+    "ko": "가브리엘 란데스코그",
+    "en": "Gabriel Landeskog",
+    "pos": "LW",
+    "no": 92
+  },
+  "vjxm87b989nr6od": {
+    "ko": "가브리엘 빌라르디",
+    "en": "Gabriel Vilardi",
+    "pos": "C",
+    "no": 13
+  },
+  "965mknb0388m1ge": {
+    "ko": "가브리엘 페로",
+    "en": "Gabriel Perreault",
+    "pos": "F"
+  },
+  "zp5rzybde4lq82w": {
+    "ko": "개럿 윌슨",
+    "en": "Garrett Wilson",
+    "pos": "LW",
+    "no": 10
+  },
+  "4wyrn9b1wn1m86p": {
+    "ko": "게빈 맥케나",
+    "en": "Gavin McKenna",
+    "pos": "F"
+  },
+  "965mknbwxp5m1ge": {
+    "ko": "게오르기 메르쿨로프",
+    "en": "Georgii Merkulov",
+    "pos": "C",
+    "no": 49
+  },
+  "6ypq3vb2e3lrd7o": {
+    "ko": "게이브 페로",
+    "en": "Gabe Perreault",
+    "pos": "RW",
+    "no": 94
+  },
+  "n54ql0b9ljkqvy9": {
+    "ko": "게이지 곤잘베스",
+    "en": "Gage Goncalves",
+    "pos": "C",
+    "no": 93
+  },
+  "ednm95bx5x3ryox": {
+    "ko": "구스타프 포르슬링",
+    "en": "Gustav Forsling",
+    "pos": "D",
+    "no": 42
+  },
+  "3glrwdb0y71qdyj": {
+    "ko": "기욤 브리즈부아",
+    "en": "Guillaume Brisebois",
+    "pos": "D",
+    "no": 55
+  },
+  "4wyrn9b753gm86p": {
+    "ko": "나젬 카드리",
+    "en": "Nazem Kadri",
+    "pos": "C",
+    "no": 91
+  },
+  "dn1m15bodvnqoep": {
+    "ko": "네이선 매키넌",
+    "en": "Nathan MacKinnon",
+    "pos": "C",
+    "no": 29
+  },
+  "y39mp9bz18yrojx": {
+    "ko": "네이트 다니엘슨",
+    "en": "Nate Danielson",
+    "pos": "C",
+    "no": 29
+  },
+  "y0or5xb0wvzmwzv": {
+    "ko": "네이트 슈미트",
+    "en": "Nate Schmidt",
+    "pos": "D",
+    "no": 88
+  },
+  "318q6wb7p1lmo9j": {
+    "ko": "노아 도브슨",
+    "en": "Noah Dobson",
+    "pos": "D",
+    "no": 53
+  },
+  "l7oqd2b8344r510": {
+    "ko": "노아 라바",
+    "en": "Noah Laba",
+    "pos": "C",
+    "no": 42
+  },
+  "4wyrn9blp1jm86p": {
+    "ko": "노아 오스트룬드",
+    "en": "Noah Ostlund",
+    "pos": "C",
+    "no": 86
+  },
+  "y39mp9bpypprojx": {
+    "ko": "노아 율센",
+    "en": "Noah Juulsen",
+    "pos": "D",
+    "no": 47
+  },
+  "2y8m43b64xprl07": {
+    "ko": "노아 케이츠",
+    "en": "Noah Cates",
+    "pos": "LW",
+    "no": 27
+  },
+  "x7lm78b52jgq2wd": {
+    "ko": "노아 해니핀",
+    "en": "Noah Hanifin",
+    "pos": "D",
+    "no": 15
+  },
+  "6ypq3vb4py0rd7o": {
+    "ko": "노엘 아치아리",
+    "en": "Noel Acciari",
+    "pos": "C",
+    "no": 52
+  },
+  "pxwrx0bx3g9ryk0": {
+    "ko": "놀란 앨런",
+    "en": "Nolan Allan",
+    "pos": "D",
+    "no": 7
+  },
+  "318q6wb73e5mo9j": {
+    "ko": "니노 니더라이터",
+    "en": "Nino Niederreiter",
+    "pos": "RW",
+    "no": 62
+  },
+  "y0or5xbj36xmwzv": {
+    "ko": "니코 미콜라",
+    "en": "Niko Mikkola",
+    "pos": "D",
+    "no": 77
+  },
+  "l7oqd2be9z5r510": {
+    "ko": "니코 슈투름",
+    "en": "Nico Sturm",
+    "pos": "C",
+    "no": 78
+  },
+  "dn1m15bk35oqoep": {
+    "ko": "니코 히시어",
+    "en": "Nico Hischier",
+    "pos": "C",
+    "no": 13
+  },
+  "dj2ry0bd3k5q1zp": {
+    "ko": "니콜라 루아",
+    "en": "Nicolas Roy",
+    "pos": "C",
+    "no": 10
+  },
+  "965mknb1eggm1ge": {
+    "ko": "니콜라스 데슬로리에",
+    "en": "Nicolas Deslauriers",
+    "pos": "LW",
+    "no": 44
+  },
+  "965mknb1zpom1ge": {
+    "ko": "니콜라스 도스",
+    "en": "Nicolas Daws",
+    "pos": "G",
+    "no": 50
+  },
+  "pxwrx0b2001ryk0": {
+    "ko": "니콜라스 로버트슨",
+    "en": "Nicholas Robertson",
+    "pos": "LW",
+    "no": 14
+  },
+  "965mknb1zylm1ge": {
+    "ko": "니콜라스 마틴팔로",
+    "en": "Nikolas Matinpalo",
+    "pos": "D",
+    "no": 33
+  },
+  "1l4rj1b2xwor7vx": {
+    "ko": "니콜라스 폴",
+    "en": "Nicholas Paul",
+    "pos": "LW",
+    "no": 20
+  },
+  "l7oqd2b21n1r510": {
+    "ko": "니콜라스 헤이그",
+    "en": "Nicolas Hague",
+    "pos": "D",
+    "no": 41
+  },
+  "23xmv0bgl9erg8n": {
+    "ko": "니콜라이 엘레르스",
+    "en": "Nikolaj Ehlers",
+    "pos": "LW",
+    "no": 27
+  },
+  "1l4rj1bw0jdr7vx": {
+    "ko": "니키타 그레벤킨",
+    "en": "Nikita Grebenkin",
+    "pos": "RW",
+    "no": 17
+  },
+  "dn1m15b28ogqoep": {
+    "ko": "니키타 네스테렌코",
+    "en": "Nikita Nesterenko",
+    "pos": "C",
+    "no": 13
+  },
+  "4wyrn9b7184m86p": {
+    "ko": "니키타 자도로프",
+    "en": "Nikita Zadorov",
+    "pos": "D",
+    "no": 91
+  },
+  "jw2r0obpgolrz84": {
+    "ko": "니키타 쿠체로프",
+    "en": "Nikita Kucherov",
+    "pos": "RW",
+    "no": 86
+  },
+  "vjxm87b9y2wr6od": {
+    "ko": "닉 데시모네",
+    "en": "Nick DeSimone",
+    "pos": "D",
+    "no": 57
+  },
+  "23xmv0bgzojrg8n": {
+    "ko": "닉 도우드",
+    "en": "Nic Dowd",
+    "pos": "C",
+    "no": 26
+  },
+  "1l4rj1bp3kxr7vx": {
+    "ko": "닉 라디스",
+    "en": "Nick Lardis",
+    "pos": "LW",
+    "no": 76
+  },
+  "pxwrx0bxp70ryk0": {
+    "ko": "닉 블랭켄버그",
+    "en": "Nick Blankenburg",
+    "pos": "D",
+    "no": 3
+  },
+  "965mknb5x5ym1ge": {
+    "ko": "닉 비우그스타드",
+    "en": "Nick Bjugstad",
+    "pos": "C",
+    "no": 72
+  },
+  "23xmv0bgl8drg8n": {
+    "ko": "닉 서주키",
+    "en": "Nicholas Suzuki",
+    "pos": "C",
+    "no": 14
+  },
+  "965mknb1e6jm1ge": {
+    "ko": "닉 슈말츠",
+    "en": "Nick Schmaltz",
+    "pos": "C",
+    "no": 8
+  },
+  "3glrwdb0yp1qdyj": {
+    "ko": "닉 실러",
+    "en": "Nick Seeler",
+    "pos": "D",
+    "no": 24
+  },
+  "1l4rj1b3dwgr7vx": {
+    "ko": "닉 젠센",
+    "en": "Nick Jensen",
+    "pos": "D",
+    "no": 4
+  },
+  "zp5rzyb2ejvq82w": {
+    "ko": "닉 커즌스",
+    "en": "Nick Cousins",
+    "pos": "C",
+    "no": 21
+  },
+  "1l4rj1blve0r7vx": {
+    "ko": "닉 펄빅스",
+    "en": "Nick Perbix",
+    "pos": "D",
+    "no": 48
+  },
+  "x7lm78b5229q2wd": {
+    "ko": "닉 폴리뇨",
+    "en": "Nick Foligno",
+    "pos": "LW",
+    "no": 71
+  },
+  "dj2ry0bd9x1q1zp": {
+    "ko": "닐 피온크",
+    "en": "Neal Pionk",
+    "pos": "D",
+    "no": 4
+  },
+  "2y8m43b4yd6rl07": {
+    "ko": "닐스 룬드크비스트",
+    "en": "Nils Lundkvist",
+    "pos": "D",
+    "no": 5
+  },
+  "jw2r0obpyxvrz84": {
+    "ko": "닐스 호글란더",
+    "en": "Nils Hoglander",
+    "pos": "LW",
+    "no": 21
+  },
+  "n54ql0bkwzoqvy9": {
+    "ko": "다넬 너스",
+    "en": "Darnell Nurse",
+    "pos": "D",
+    "no": 25
+  },
+  "y0or5xb0dxwmwzv": {
+    "ko": "다니엘 블라다르",
+    "en": "Daniel Vladar",
+    "pos": "G",
+    "no": 80
+  },
+  "n54ql0bpkg0qvy9": {
+    "ko": "다닐 부트",
+    "en": "Daniil But",
+    "pos": "LW",
+    "no": 50
+  },
+  "zp5rzyb2evoq82w": {
+    "ko": "다닐 타라소프",
+    "en": "Danil Tarasov",
+    "pos": "G",
+    "no": 80
+  },
+  "vjxm87b981er6od": {
+    "ko": "다렌 래디시",
+    "en": "Darren Raddysh",
+    "pos": "D",
+    "no": 43
+  },
+  "965mknb1e2ym1ge": {
+    "ko": "다비드 구스타프손",
+    "en": "David Gustafsson",
+    "pos": "C",
+    "no": 13
+  },
+  "k82reebxk4vrepz": {
+    "ko": "다비드 스파체크",
+    "en": "David Spacek",
+    "pos": "D",
+    "no": 82
+  },
+  "2y8m43b4onnrl07": {
+    "ko": "다비드 이리체크",
+    "en": "David Jiricek",
+    "pos": "D",
+    "no": 5
+  },
+  "k82reeb8dzvrepz": {
+    "ko": "다비트 파스트르냐크",
+    "en": "David Pastrnak",
+    "pos": "RW",
+    "no": 88
+  },
+  "ednm95bdpo7ryox": {
+    "ko": "다시 켐퍼",
+    "en": "Darcy Kuemper",
+    "pos": "G",
+    "no": 35
+  },
+  "y0or5xb65p0mwzv": {
+    "ko": "달리보르 드보르스키",
+    "en": "Dalibor Dvorsky",
+    "pos": "RW",
+    "no": 15
+  },
+  "965mknb1e5ym1ge": {
+    "ko": "댄턴 하이넨",
+    "en": "Danton Heinen",
+    "pos": "LW",
+    "no": 58
+  },
+  "8yomodb5j24q0j6": {
+    "ko": "더기 해밀턴",
+    "en": "Dougie Hamilton",
+    "pos": "D",
+    "no": 7
+  },
+  "4wyrn9b0jenm86p": {
+    "ko": "더스틴 울프",
+    "en": "Dustin Wolf",
+    "pos": "G",
+    "no": 32
+  },
+  "y0or5xbngypmwzv": {
+    "ko": "데니스 힐데비",
+    "en": "Dennis Hildeby",
+    "pos": "G",
+    "no": 35
+  },
+  "6ypq3vb4p91rd7o": {
+    "ko": "데번 테이브스",
+    "en": "Devon Toews",
+    "pos": "D",
+    "no": 7
+  },
+  "dj2ry0b5wnwq1zp": {
+    "ko": "데본 레비",
+    "en": "Devon Levi",
+    "pos": "G",
+    "no": 27
+  },
+  "y0or5xbngjgmwzv": {
+    "ko": "데빈 쿨리",
+    "en": "Devin Cooley",
+    "pos": "G",
+    "no": 1
+  },
+  "l7oqd2bd0znr510": {
+    "ko": "데이먼 세버슨",
+    "en": "Damon Severson",
+    "pos": "D",
+    "no": 78
+  },
+  "x7lm78bnl99q2wd": {
+    "ko": "데이먼 헌트",
+    "en": "Daemon Hunt",
+    "pos": "D",
+    "no": 48
+  },
+  "l5erg6byd91q8k0": {
+    "ko": "데클란 칠솔름",
+    "en": "Declan Chisholm",
+    "pos": "D",
+    "no": 47
+  },
+  "965mknbwxj5m1ge": {
+    "ko": "데클란 칼라일",
+    "en": "Declan Carlile",
+    "pos": "D",
+    "no": 72
+  },
+  "l5erg6bdx0dq8k0": {
+    "ko": "덴버 바키",
+    "en": "Denver Barkey",
+    "pos": "C",
+    "no": 86
+  },
+  "3glrwdb9585qdyj": {
+    "ko": "덴톤 마테이추크",
+    "en": "Denton Mateychuk",
+    "pos": "D",
+    "no": 5
+  },
+  "n54ql0bz06yqvy9": {
+    "ko": "도미닉 제임스",
+    "en": "Dominic James",
+    "pos": "C",
+    "no": 17
+  },
+  "n54ql0b9l8kqvy9": {
+    "ko": "도슨 머서",
+    "en": "Dawson Mercer",
+    "pos": "C",
+    "no": 91
+  },
+  "k82reeb64xprepz": {
+    "ko": "드레이크 배더슨",
+    "en": "Drake Batherson",
+    "pos": "RW",
+    "no": 19
+  },
+  "23xmv0bwkxorg8n": {
+    "ko": "드루 다우티",
+    "en": "Drew Doughty",
+    "pos": "D",
+    "no": 8
+  },
+  "y0or5xbjv11mwzv": {
+    "ko": "드루 헬레손",
+    "en": "Drew Helleson",
+    "pos": "D",
+    "no": 14
+  },
+  "318q6wb2145mo9j": {
+    "ko": "드류 오코너",
+    "en": "Drew O'Connor",
+    "pos": "LW",
+    "no": 18
+  },
+  "pxwrx0b2ww7ryk0": {
+    "ko": "드미트리 보로ン코프",
+    "en": "Dmitri Voronkov",
+    "pos": "LW",
+    "no": 10
+  },
+  "zp5rzyb6p49q82w": {
+    "ko": "드미트리 시마셰프",
+    "en": "Dmitri Simashev",
+    "pos": "D",
+    "no": 26
+  },
+  "x7lm78b5dw6q2wd": {
+    "ko": "드미트리 올로프",
+    "en": "Dmitry Orlov",
+    "pos": "D",
+    "no": 9
+  },
+  "pxwrx0b2030ryk0": {
+    "ko": "드미트리 쿨리코프",
+    "en": "Dmitry Kulikov",
+    "pos": "D",
+    "no": 7
+  },
+  "4jwq2lb92d3r0ve": {
+    "ko": "딜런 귄터",
+    "en": "Dylan Guenther",
+    "pos": "RW",
+    "no": 11
+  },
+  "8yomodb563lq0j6": {
+    "ko": "딜런 데멜로",
+    "en": "Dylan DeMelo",
+    "pos": "D",
+    "no": 2
+  },
+  "n54ql0bkw7eqvy9": {
+    "ko": "딜런 뒤베",
+    "en": "Dillon Dube",
+    "pos": "C",
+    "no": 65
+  },
+  "965mknb1e1gm1ge": {
+    "ko": "딜런 라킨",
+    "en": "Dylan Larkin",
+    "pos": "C",
+    "no": 71
+  },
+  "dj2ry0b4p45q1zp": {
+    "ko": "딜런 매킬래스",
+    "en": "Dylan McIlrath",
+    "pos": "D",
+    "no": 52
+  },
+  "k82reeb6e7jrepz": {
+    "ko": "딜런 샘버그",
+    "en": "Dylan Samberg",
+    "pos": "D",
+    "no": 54
+  },
+  "l7oqd2be928r510": {
+    "ko": "딜런 스트롬",
+    "en": "Dylan Strome",
+    "pos": "C",
+    "no": 17
+  },
+  "y0or5xbjvllmwzv": {
+    "ko": "딜런 코젠스",
+    "en": "Dylan Cozens",
+    "pos": "C",
+    "no": 24
+  },
+  "l5erg6bypoeq8k0": {
+    "ko": "딜런 콕란",
+    "en": "Dylan Coghlan",
+    "pos": "D",
+    "no": 52
+  },
+  "4wyrn9b0jdnm86p": {
+    "ko": "딜런 홀로웨이",
+    "en": "Dylan Holloway",
+    "pos": "LW",
+    "no": 81
+  },
+  "l5erg6b5je8q8k0": {
+    "ko": "라데크 팍사",
+    "en": "Radek Faksa",
+    "pos": "C",
+    "no": 12
+  },
+  "4jwq2lb05l5r0ve": {
+    "ko": "라르스 엘러",
+    "en": "Lars Eller",
+    "pos": "C",
+    "no": 20
+  },
+  "zp5rzyb0pw0q82w": {
+    "ko": "라스무스 달린",
+    "en": "Rasmus Dahlin",
+    "pos": "D",
+    "no": 26
+  },
+  "l5erg6b2en4q8k0": {
+    "ko": "라스무스 리스톨라이넨",
+    "en": "Rasmus Ristolainen",
+    "pos": "D",
+    "no": 55
+  },
+  "1l4rj1b2x9nr7vx": {
+    "ko": "라스무스 산딘",
+    "en": "Rasmus Sandin",
+    "pos": "D",
+    "no": 38
+  },
+  "x7lm78b527yq2wd": {
+    "ko": "라스무스 안데르손",
+    "en": "Rasmus Andersson",
+    "pos": "D",
+    "no": 4
+  },
+  "965mknbg0jxm1ge": {
+    "ko": "라이언 그레이브스",
+    "en": "Ryan Graves",
+    "pos": "D",
+    "no": 27
+  },
+  "vjxm87bzyl5r6od": {
+    "ko": "라이언 그린",
+    "en": "Ryan Greene",
+    "pos": "C",
+    "no": 20
+  },
+  "zp5rzyb2d08q82w": {
+    "ko": "라이언 뉴전트홉킨스",
+    "en": "Ryan Nugent-Hopkins",
+    "pos": "C",
+    "no": 93
+  },
+  "ednm95b6v22ryox": {
+    "ko": "라이언 도나토",
+    "en": "Ryan Donato",
+    "pos": "C",
+    "no": 8
+  },
+  "dn1m15bd786qoep": {
+    "ko": "라이언 레너드",
+    "en": "Ryan Leonard",
+    "pos": "RW",
+    "no": 9
+  },
+  "23xmv0bwk0grg8n": {
+    "ko": "라이언 롬버그",
+    "en": "Ryan Lomberg",
+    "pos": "LW",
+    "no": 94
+  },
+  "1l4rj1b2x0or7vx": {
+    "ko": "라이언 린드그렌",
+    "en": "Ryan Lindgren",
+    "pos": "D",
+    "no": 55
+  },
+  "pxwrx0b2w15ryk0": {
+    "ko": "라이언 맥도나",
+    "en": "Ryan McDonagh",
+    "pos": "D",
+    "no": 27
+  },
+  "6ypq3vbg4oxrd7o": {
+    "ko": "라이언 맥클라우드",
+    "en": "Ryan McLeod",
+    "pos": "C",
+    "no": 71
+  },
+  "965mknb5wopm1ge": {
+    "ko": "라이언 셰이",
+    "en": "Ryan Shea",
+    "pos": "D",
+    "no": 6
+  },
+  "l5erg6b2ekgq8k0": {
+    "ko": "라이언 스트롬",
+    "en": "Ryan Strome",
+    "pos": "C",
+    "no": 22
+  },
+  "y39mp9bkeedrojx": {
+    "ko": "라이언 엘리스",
+    "en": "Ryan Ellis",
+    "pos": "D"
+  },
+  "y0or5xb5kj1mwzv": {
+    "ko": "라이언 오라일리",
+    "en": "Ryan O'Reilly",
+    "pos": "C",
+    "no": 90
+  },
+  "pxwrx0bx3p9ryk0": {
+    "ko": "라이언 우프코",
+    "en": "Ryan Ufko",
+    "pos": "D",
+    "no": 12
+  },
+  "n54ql0bw2jzqvy9": {
+    "ko": "라이언 윈터턴",
+    "en": "Ryan Winterton",
+    "pos": "C",
+    "no": 26
+  },
+  "n54ql0b98pdqvy9": {
+    "ko": "라이언 포일링",
+    "en": "Ryan Poehling",
+    "pos": "C",
+    "no": 25
+  },
+  "2y8m43b4e9lrl07": {
+    "ko": "라이언 퓰록",
+    "en": "Ryan Pulock",
+    "pos": "D",
+    "no": 6
+  },
+  "4jwq2lb05dzr0ve": {
+    "ko": "라이언 하트먼",
+    "en": "Ryan Hartman",
+    "pos": "RW",
+    "no": 38
+  },
+  "pxwrx0bnkznryk0": {
+    "ko": "라이커 에반스",
+    "en": "Ryker Evans",
+    "pos": "D",
+    "no": 41
+  },
+  "1l4rj1b3px6r7vx": {
+    "ko": "라일리 스미스",
+    "en": "Reilly Smith",
+    "pos": "RW"
+  },
+  "965mknbg9eem1ge": {
+    "ko": "라트코 구다스",
+    "en": "Radko Gudas",
+    "pos": "D",
+    "no": 6
+  },
+  "ednm95b6ek6ryox": {
+    "ko": "라파엘 라보아",
+    "en": "Raphael Lavoie",
+    "pos": "C",
+    "no": 36
+  },
+  "k82reeb0xzjrepz": {
+    "ko": "러저 맥그로어티",
+    "en": "Rutger Mcgroarty",
+    "pos": "RW",
+    "no": 2
+  },
+  "dj2ry0be15zq1zp": {
+    "ko": "레미 푸아리에",
+    "en": "Remi Poirier",
+    "pos": "G",
+    "no": 1
+  },
+  "pxwrx0b3o7lryk0": {
+    "ko": "레오 칼손",
+    "en": "Leo Carlsson",
+    "pos": "C",
+    "no": 91
+  },
+  "3glrwdblg3xqdyj": {
+    "ko": "레온 드라이자이틀",
+    "en": "Leon Draisaitl",
+    "pos": "C",
+    "no": 29
+  },
+  "3glrwdb3pwyqdyj": {
+    "ko": "레이드 셰이퍼",
+    "en": "Reid Schaefer",
+    "pos": "LW",
+    "no": 49
+  },
+  "23xmv0bp0v9rg8n": {
+    "ko": "레인 허츠슨",
+    "en": "Lane Hutson",
+    "pos": "D",
+    "no": 48
+  },
+  "2y8m43b7y77rl07": {
+    "ko": "로건 마유",
+    "en": "Logan Mailloux",
+    "pos": "D",
+    "no": 23
+  },
+  "zp5rzyb49w0q82w": {
+    "ko": "로건 스탠리",
+    "en": "Logan Stanley",
+    "pos": "D",
+    "no": 64
+  },
+  "y0or5xbopywmwzv": {
+    "ko": "로건 스탠코븐",
+    "en": "Logan Stankoven",
+    "pos": "C",
+    "no": 22
+  },
+  "3glrwdbl59pqdyj": {
+    "ko": "로건 오코너",
+    "en": "Logan O'Connor",
+    "pos": "RW",
+    "no": 25
+  },
+  "1l4rj1bl707r7vx": {
+    "ko": "로건 쿨리",
+    "en": "Logan Cooley",
+    "pos": "C",
+    "no": 92
+  },
+  "y39mp9bwoxorojx": {
+    "ko": "로건 톰프슨",
+    "en": "Logan Thompson",
+    "pos": "G",
+    "no": 48
+  },
+  "1l4rj1b3ddlr7vx": {
+    "ko": "로만 요지",
+    "en": "Roman Josi",
+    "pos": "D",
+    "no": 59
+  },
+  "jw2r0obpdn1rz84": {
+    "ko": "로버트 토머스",
+    "en": "Robert Thomas",
+    "pos": "C",
+    "no": 18
+  },
+  "dj2ry0bd0pnq1zp": {
+    "ko": "로스 존스턴",
+    "en": "Ross Johnston",
+    "pos": "LW",
+    "no": 49
+  },
+  "zp5rzyb4ovxq82w": {
+    "ko": "로스 콜턴",
+    "en": "Ross Colton",
+    "pos": "C",
+    "no": 79
+  },
+  "l5erg6b577xq8k0": {
+    "ko": "로슨 크라우스",
+    "en": "Lawson Crouse",
+    "pos": "LW",
+    "no": 67
+  },
+  "318q6wb7dz0mo9j": {
+    "ko": "로페 힌츠",
+    "en": "Roope Hintz",
+    "pos": "C",
+    "no": 24
+  },
+  "n54ql0b98ndqvy9": {
+    "ko": "루이 크르비에",
+    "en": "Louis Crevier",
+    "pos": "D",
+    "no": 46
+  },
+  "x7lm78bve66q2wd": {
+    "ko": "루카 델 벨 벨루츠",
+    "en": "Luca Del Bel Belluz",
+    "pos": "C",
+    "no": 93
+  },
+  "965mknbgvn9m1ge": {
+    "ko": "루카스 도스탈",
+    "en": "Lukas Dostal",
+    "pos": "G",
+    "no": 1
+  },
+  "y0or5xb0y99mwzv": {
+    "ko": "루카스 레이먼드",
+    "en": "Lucas Raymond",
+    "pos": "LW",
+    "no": 23
+  },
+  "23xmv0bwe4wrg8n": {
+    "ko": "루카스 코르미에",
+    "en": "Lukas Cormier",
+    "pos": "D",
+    "no": 51
+  },
+  "x7lm78b5evzq2wd": {
+    "ko": "루크 션",
+    "en": "Luke Schenn",
+    "pos": "D",
+    "no": 2
+  },
+  "pxwrx0bxx43ryk0": {
+    "ko": "루크 에반젤리스타",
+    "en": "Luke Evangelista",
+    "pos": "RW",
+    "no": 77
+  },
+  "dn1m15b58y2qoep": {
+    "ko": "루크 헤임스",
+    "en": "Luke Haymes",
+    "pos": "C",
+    "no": 37
+  },
+  "l7oqd2b3pker510": {
+    "ko": "루크 휴즈",
+    "en": "Luke Hughes",
+    "pos": "D",
+    "no": 43
+  },
+  "2y8m43bn81drl07": {
+    "ko": "리누스 울마르크",
+    "en": "Linus Ullmark",
+    "pos": "G",
+    "no": 35
+  },
+  "y0or5xbjgnzmwzv": {
+    "ko": "리누스 칼손",
+    "en": "Linus Karlsson",
+    "pos": "C",
+    "no": 94
+  },
+  "dn1m15b0glnqoep": {
+    "ko": "리안 빅셀",
+    "en": "Lian Bichsel",
+    "pos": "D",
+    "no": 6
+  },
+  "8yomodb4o93q0j6": {
+    "ko": "리암 오그렌",
+    "en": "Liam Ohgren",
+    "pos": "LW",
+    "no": 92
+  },
+  "dn1m15b7zjoqoep": {
+    "ko": "리엄 오브라이언",
+    "en": "Liam O'Brien",
+    "pos": "C",
+    "no": 38
+  },
+  "jw2r0ob7j15rz84": {
+    "ko": "리카르드 라켈",
+    "en": "Rickard Rakell",
+    "pos": "RW",
+    "no": 67
+  },
+  "8yomodb9d8xq0j6": {
+    "ko": "릿들리 그레이그",
+    "en": "Ridly Greig",
+    "pos": "C",
+    "no": 71
+  },
+  "4jwq2lb6xnwr0ve": {
+    "ko": "마르코 로시",
+    "en": "Marco Rossi",
+    "pos": "C",
+    "no": 23
+  },
+  "dn1m15bk53dqoep": {
+    "ko": "마르코 캐스퍼",
+    "en": "Marco Kasper",
+    "pos": "C",
+    "no": 92
+  },
+  "ednm95bdp09ryox": {
+    "ko": "마르쿠스 페터손",
+    "en": "Marcus Pettersson",
+    "pos": "D",
+    "no": 26
+  },
+  "y0or5xb0dewmwzv": {
+    "ko": "마르틴 네차스",
+    "en": "Martin Necas",
+    "pos": "C",
+    "no": 88
+  },
+  "ednm95bdl9jryox": {
+    "ko": "마르틴 페헤르바리",
+    "en": "Martin Fehervary",
+    "pos": "D",
+    "no": 42
+  },
+  "6ypq3vb4ydkrd7o": {
+    "ko": "마르틴 포스피실",
+    "en": "Martin Pospisil",
+    "pos": "C",
+    "no": 76
+  },
+  "23xmv0bwkpgrg8n": {
+    "ko": "마리오 페라로",
+    "en": "Mario Ferraro",
+    "pos": "D",
+    "no": 38
+  },
+  "k82reebno53repz": {
+    "ko": "마이크 라일리",
+    "en": "Mike Reilly",
+    "pos": "D",
+    "no": 6
+  },
+  "pxwrx0b7jwvryk0": {
+    "ko": "마이크 매디슨",
+    "en": "Mike Matheson",
+    "pos": "D",
+    "no": 8
+  },
+  "4jwq2lbpj9wr0ve": {
+    "ko": "마이클 디피에트로",
+    "en": "Michael DiPietro",
+    "pos": "G",
+    "no": 30
+  },
+  "4jwq2lbpj99r0ve": {
+    "ko": "마이클 라스무센",
+    "en": "Michael Rasmussen",
+    "pos": "C",
+    "no": 27
+  },
+  "ednm95b6vy3ryox": {
+    "ko": "마이클 맥캐론",
+    "en": "Michael McCarron",
+    "pos": "C",
+    "no": 47
+  },
+  "6ypq3vbd8o6rd7o": {
+    "ko": "마이클 미사",
+    "en": "Michael Misa",
+    "pos": "C",
+    "no": 77
+  },
+  "2y8m43bn8ndrl07": {
+    "ko": "마이클 아마디오",
+    "en": "Michael Amadio",
+    "pos": "RW",
+    "no": 22
+  },
+  "23xmv0b051jrg8n": {
+    "ko": "마이클 카르코네",
+    "en": "Michael Carcone",
+    "pos": "LW",
+    "no": 53
+  },
+  "zp5rzybovvjq82w": {
+    "ko": "마이클 케셀링",
+    "en": "Michael Kesselring",
+    "pos": "D",
+    "no": 8
+  },
+  "dn1m15b7z0wqoep": {
+    "ko": "마이키 아이시몬트",
+    "en": "Mikey Eyssimont",
+    "pos": "C",
+    "no": 81
+  },
+  "x7lm78bnwn4q2wd": {
+    "ko": "마이키 앤더슨",
+    "en": "Mikey Anderson",
+    "pos": "D",
+    "no": 44
+  },
+  "3glrwdblg5jqdyj": {
+    "ko": "마츠 수카렐로",
+    "en": "Mats Zuccarello",
+    "pos": "RW",
+    "no": 36
+  },
+  "pxwrx0b2042ryk0": {
+    "ko": "마커스 폴리뇨",
+    "en": "Marcus Foligno",
+    "pos": "LW",
+    "no": 17
+  },
+  "l5erg6bdxyoq8k0": {
+    "ko": "마크 개컴",
+    "en": "Marc Gatcomb",
+    "pos": "C",
+    "no": 17
+  },
+  "jw2r0ob7jw5rz84": {
+    "ko": "마크 샤이플리",
+    "en": "Mark Scheifele",
+    "pos": "C",
+    "no": 55
+  },
+  "x7lm78b5dovq2wd": {
+    "ko": "마크 스톤",
+    "en": "Mark Stone",
+    "pos": "RW",
+    "no": 61
+  },
+  "dj2ry0bd941q1zp": {
+    "ko": "마크 야노프스키",
+    "en": "Mark Jankowski",
+    "pos": "C",
+    "no": 77
+  },
+  "y0or5xb6kw5mwzv": {
+    "ko": "마크 카스텔릭",
+    "en": "Mark Kastelic",
+    "pos": "C",
+    "no": 47
+  },
+  "k82reebkxznrepz": {
+    "ko": "마트베이 그리딘",
+    "en": "Matvei Gridin",
+    "pos": "RW",
+    "no": 92
+  },
+  "x7lm78b56w8q2wd": {
+    "ko": "마티아스 마첼리",
+    "en": "Matias Maccelli",
+    "pos": "LW",
+    "no": 63
+  },
+  "2y8m43bx7dyrl07": {
+    "ko": "마티유 올리비에",
+    "en": "Mathieu Olivier",
+    "pos": "RW",
+    "no": 24
+  },
+  "pxwrx0b2w76ryk0": {
+    "ko": "막심 치플라코프",
+    "en": "Maxim Tsyplakov",
+    "pos": "RW",
+    "no": 72
+  },
+  "965mknb1jekm1ge": {
+    "ko": "매브릭 부르크",
+    "en": "Mavrik Bourque",
+    "pos": "C",
+    "no": 22
+  },
+  "dj2ry0bd9ojq1zp": {
+    "ko": "매슈 바질",
+    "en": "Mathew Barzal",
+    "pos": "C",
+    "no": 13
+  },
+  "l7oqd2be938r510": {
+    "ko": "매슈 커척",
+    "en": "Matthew Tkachuk",
+    "pos": "LW",
+    "no": 19
+  },
+  "vjxm87b27z3r6od": {
+    "ko": "매켄지 맥이천",
+    "en": "Mackenzie MacEachern",
+    "pos": "LW",
+    "no": 20
+  },
+  "l5erg6b576xq8k0": {
+    "ko": "매켄지 위거",
+    "en": "MacKenzie Weegar",
+    "pos": "D",
+    "no": 52
+  },
+  "dn1m15bgn8kqoep": {
+    "ko": "매클린 셀리브리니",
+    "en": "Macklin Celebrini",
+    "pos": "C",
+    "no": 71
+  },
+  "n54ql0b986wqvy9": {
+    "ko": "매킨지 블랙우드",
+    "en": "Mackenzie Blackwood",
+    "pos": "G",
+    "no": 39
+  },
+  "n54ql0bo6pnqvy9": {
+    "ko": "매튜 나이즈",
+    "en": "Matthew Knies",
+    "pos": "LW",
+    "no": 89
+  },
+  "dj2ry0bp080q1zp": {
+    "ko": "매튜 렘페",
+    "en": "Matthew Rempe",
+    "pos": "C",
+    "no": 73
+  },
+  "dj2ry0b5wk3q1zp": {
+    "ko": "매튜 로버트슨",
+    "en": "Matthew Robertson",
+    "pos": "D",
+    "no": 29
+  },
+  "zp5rzyb0np4q82w": {
+    "ko": "매튜 베니어스",
+    "en": "Matthew Beniers",
+    "pos": "C",
+    "no": 10
+  },
+  "23xmv0bwe3drg8n": {
+    "ko": "매튜 볼디",
+    "en": "Matthew Boldy",
+    "pos": "LW",
+    "no": 12
+  },
+  "8yomodb4po4q0j6": {
+    "ko": "매튜 사모스케비치",
+    "en": "Matthew Samoskevich",
+    "pos": "RW",
+    "no": 11
+  },
+  "x7lm78begdyq2wd": {
+    "ko": "매튜 셰이퍼",
+    "en": "Matthew Schaefer",
+    "pos": "D",
+    "no": 48
+  },
+  "318q6wb3vj7mo9j": {
+    "ko": "매튜 우드",
+    "en": "Matthew Wood",
+    "pos": "RW",
+    "no": 71
+  },
+  "l7oqd2bd03pr510": {
+    "ko": "매튜 조셉",
+    "en": "Mathieu Joseph",
+    "pos": "RW",
+    "no": 21
+  },
+  "2y8m43bpo9xrl07": {
+    "ko": "매튜 코로나토",
+    "en": "Matthew Coronato",
+    "pos": "RW",
+    "no": 27
+  },
+  "vjxm87blpw9r6od": {
+    "ko": "매튜 포아트라",
+    "en": "Matthew Poitras",
+    "pos": "C",
+    "no": 51
+  },
+  "3glrwdbleknqdyj": {
+    "ko": "매트 그젤치크",
+    "en": "Matt Grzelcyk",
+    "pos": "D",
+    "no": 48
+  },
+  "318q6wbn4g1mo9j": {
+    "ko": "매트 로이",
+    "en": "Matt Roy",
+    "pos": "D",
+    "no": 3
+  },
+  "x7lm78bv168q2wd": {
+    "ko": "매트 사보이",
+    "en": "Matt Savoie",
+    "pos": "C",
+    "no": 22
+  },
+  "318q6wb6weomo9j": {
+    "ko": "매트 케셀",
+    "en": "Matt Kessel",
+    "pos": "D",
+    "no": 4
+  },
+  "l5erg6by68gq8k0": {
+    "ko": "매티아스 사무엘손",
+    "en": "Mattias Samuelsson",
+    "pos": "D",
+    "no": 23
+  },
+  "965mknbg0ppm1ge": {
+    "ko": "매티아스 얀마르크",
+    "en": "Mattias Janmark",
+    "pos": "C",
+    "no": 13
+  },
+  "4jwq2lb055zr0ve": {
+    "ko": "매티아스 에콜름",
+    "en": "Mattias Ekholm",
+    "pos": "D",
+    "no": 14
+  },
+  "2y8m43bp9ekrl07": {
+    "ko": "매티아스 하벨리드",
+    "en": "Mattias Havelid",
+    "pos": "D",
+    "no": 25
+  },
+  "pxwrx0bnw4xryk0": {
+    "ko": "맥스 사손",
+    "en": "Max Sasson",
+    "pos": "C",
+    "no": 63
+  },
+  "n54ql0b98zdqvy9": {
+    "ko": "맥스 존스",
+    "en": "Max Jones",
+    "pos": "LW",
+    "no": 46
+  },
+  "k82reebe471repz": {
+    "ko": "맥스 크로지어",
+    "en": "Max Crozier",
+    "pos": "D",
+    "no": 24
+  },
+  "8yomodb561lq0j6": {
+    "ko": "맷 듀셰인",
+    "en": "Matt Duchene",
+    "pos": "C",
+    "no": 95
+  },
+  "8yomodb30xvq0j6": {
+    "ko": "메이슨 로레이",
+    "en": "Mason Lohrei",
+    "pos": "D",
+    "no": 6
+  },
+  "318q6wbn421mo9j": {
+    "ko": "메이슨 마치먼트",
+    "en": "Mason Marchment",
+    "pos": "LW",
+    "no": 27
+  },
+  "8yomodb4ojwq0j6": {
+    "ko": "메이슨 맥태비시",
+    "en": "Mason McTavish",
+    "pos": "C",
+    "no": 83
+  },
+  "965mknb1eoym1ge": {
+    "ko": "메이슨 애플턴",
+    "en": "Mason Appleton",
+    "pos": "C",
+    "no": 22
+  },
+  "6ypq3vb4d07rd7o": {
+    "ko": "모건 기키",
+    "en": "Morgan Geekie",
+    "pos": "C",
+    "no": 39
+  },
+  "zp5rzyb2d3pq82w": {
+    "ko": "모건 라일리",
+    "en": "Morgan Rielly",
+    "pos": "D",
+    "no": 44
+  },
+  "965mknb5xo9m1ge": {
+    "ko": "모건 배런",
+    "en": "Morgan Barron",
+    "pos": "C",
+    "no": 36
+  },
+  "l5erg6b2ezyq8k0": {
+    "ko": "모건 프로스트",
+    "en": "Morgan Frost",
+    "pos": "C",
+    "no": 16
+  },
+  "ednm95bdyyeryox": {
+    "ko": "모리츠 자이더",
+    "en": "Moritz Seider",
+    "pos": "D",
+    "no": 53
+  },
+  "1l4rj1b3dvgr7vx": {
+    "ko": "미로 헤이스카넨",
+    "en": "Miro Heiskanen",
+    "pos": "D",
+    "no": 4
+  },
+  "jw2r0obpggzrz84": {
+    "ko": "미치 마너",
+    "en": "Mitchell Marner",
+    "pos": "RW",
+    "no": 93
+  },
+  "965mknb1e89m1ge": {
+    "ko": "미카 지바네자드",
+    "en": "Mika Zibanejad",
+    "pos": "C",
+    "no": 93
+  },
+  "dj2ry0bd9l3q1zp": {
+    "ko": "미카엘 그란룬드",
+    "en": "Mikael Granlund",
+    "pos": "C",
+    "no": 64
+  },
+  "y0or5xb0w6pmwzv": {
+    "ko": "미카엘 백룬드",
+    "en": "Mikael Backlund",
+    "pos": "C",
+    "no": 11
+  },
+  "n54ql0bky8lqvy9": {
+    "ko": "미코 란타넨",
+    "en": "Mikko Rantanen",
+    "pos": "RW",
+    "no": 96
+  },
+  "4wyrn9b71e4m86p": {
+    "ko": "미하일 세르가체프",
+    "en": "Mikhail Sergachev",
+    "pos": "D",
+    "no": 98
+  },
+  "y39mp9b04o0rojx": {
+    "ko": "바비 맥만",
+    "en": "Bobby Mcmann",
+    "pos": "C",
+    "no": 74
+  },
+  "jw2r0ob7enzrz84": {
+    "ko": "바비 브링크",
+    "en": "Bobby Brink",
+    "pos": "RW",
+    "no": 10
+  },
+  "dn1m15bozk9qoep": {
+    "ko": "바실리 포드콜진",
+    "en": "Vasili Podkolzin",
+    "pos": "RW",
+    "no": 92
+  },
+  "3glrwdblejnqdyj": {
+    "ko": "바클레이 굿로우",
+    "en": "Barclay Goodrow",
+    "pos": "C",
+    "no": 23
+  },
+  "y39mp9bk8vvrojx": {
+    "ko": "발레리 니추슈킨",
+    "en": "Valeri Nichushkin",
+    "pos": "RW",
+    "no": 43
+  },
+  "y39mp9bknd2rojx": {
+    "ko": "배럿 헤이튼",
+    "en": "Barrett Hayton",
+    "pos": "C",
+    "no": 27
+  },
+  "k82reeb0xewrepz": {
+    "ko": "뱅상 데샤르네",
+    "en": "Vincent Desharnais",
+    "pos": "D",
+    "no": 73
+  },
+  "318q6wbd8jlmo9j": {
+    "ko": "버클리 캐튼",
+    "en": "Berkly Catton",
+    "pos": "C",
+    "no": 27
+  },
+  "23xmv0bjol4rg8n": {
+    "ko": "베냐민 킨델",
+    "en": "Benjamin Kindel",
+    "pos": "C",
+    "no": 81
+  },
+  "4wyrn9b1wjjm86p": {
+    "ko": "베킷 세네크",
+    "en": "Beckett Sennecke",
+    "pos": "RW",
+    "no": 45
+  },
+  "2y8m43bn862rl07": {
+    "ko": "벡 말렌스틴",
+    "en": "Beck Malenstyn",
+    "pos": "LW",
+    "no": 29
+  },
+  "8yomodb305nq0j6": {
+    "ko": "벤 마이어스",
+    "en": "Ben Meyers",
+    "pos": "C",
+    "no": 59
+  },
+  "965mknbg0o3m1ge": {
+    "ko": "벤 키아롯",
+    "en": "Ben Chiarot",
+    "pos": "D",
+    "no": 8
+  },
+  "l7oqd2be9k5r510": {
+    "ko": "보 호뱃",
+    "en": "Bo Horvat",
+    "pos": "C",
+    "no": 14
+  },
+  "x7lm78bnwjwq2wd": {
+    "ko": "보웬 바이럼",
+    "en": "Bowen Byram",
+    "pos": "D",
+    "no": 24
+  },
+  "4wyrn9b2w24m86p": {
+    "ko": "보콘지 이마마",
+    "en": "Bokondji Imama",
+    "pos": "LW",
+    "no": 14
+  },
+  "n54ql0bkw3eqvy9": {
+    "ko": "분 제너",
+    "en": "Boone Jenner",
+    "pos": "C",
+    "no": 22
+  },
+  "23xmv0b92gjrg8n": {
+    "ko": "브누아-올리비에 그룰르",
+    "en": "Benoit-Olivier Groulx",
+    "pos": "C",
+    "no": 29
+  },
+  "zp5rzyb2d48q82w": {
+    "ko": "브라이언 뒤물랭",
+    "en": "Brian Dumoulin",
+    "pos": "D",
+    "no": 2
+  },
+  "y0or5xb0wnlmwzv": {
+    "ko": "브라이언 러스트",
+    "en": "Bryan Rust",
+    "pos": "RW",
+    "no": 17
+  },
+  "y0or5xb0pylmwzv": {
+    "ko": "브래드 람베르",
+    "en": "Brad Lambert",
+    "pos": "C",
+    "no": 93
+  },
+  "4jwq2lb0dv3r0ve": {
+    "ko": "브래드 마숀드",
+    "en": "Brad Marchand",
+    "pos": "LW",
+    "no": 63
+  },
+  "23xmv0bgl76rg8n": {
+    "ko": "브래디 스키에이",
+    "en": "Brady Skjei",
+    "pos": "D",
+    "no": 76
+  },
+  "965mknbg9lpm1ge": {
+    "ko": "브래이든 셴",
+    "en": "Brayden Schenn",
+    "pos": "C",
+    "no": 10
+  },
+  "2y8m43bx75vrl07": {
+    "ko": "브랜던 뒤헴",
+    "en": "Brandon Duhaime",
+    "pos": "RW",
+    "no": 24
+  },
+  "6ypq3vbgw76rd7o": {
+    "ko": "브랜던 헤이글",
+    "en": "Brandon Hagel",
+    "pos": "LW",
+    "no": 38
+  },
+  "4jwq2lb6x67r0ve": {
+    "ko": "브랜든 몬투르",
+    "en": "Brandon Montour",
+    "pos": "D",
+    "no": 62
+  },
+  "ednm95b27j9ryox": {
+    "ko": "브랜든 부시",
+    "en": "Brandon Bussi",
+    "pos": "G",
+    "no": 32
+  },
+  "4jwq2lb0d7kr0ve": {
+    "ko": "브랜든 카를로",
+    "en": "Brandon Carlo",
+    "pos": "D",
+    "no": 25
+  },
+  "1l4rj1bjxy5r7vx": {
+    "ko": "브레넌 오스만",
+    "en": "Brennan Othmann",
+    "pos": "LW",
+    "no": 78
+  },
+  "vjxm87b2ogkr6od": {
+    "ko": "브레이든 맥나브",
+    "en": "Brayden McNabb",
+    "pos": "D",
+    "no": 3
+  },
+  "4jwq2lbd024r0ve": {
+    "ko": "브레이든 보우먼",
+    "en": "Braeden Bowman",
+    "pos": "RW",
+    "no": 42
+  },
+  "l5erg6b2zvxq8k0": {
+    "ko": "브레이든 슈나이더",
+    "en": "Braden Schneider",
+    "pos": "D",
+    "no": 4
+  },
+  "1l4rj1b5g8jr7vx": {
+    "ko": "브레이든 파칼",
+    "en": "Brayden Pachal",
+    "pos": "D",
+    "no": 94
+  },
+  "3glrwdblgv0qdyj": {
+    "ko": "브레이든 포인트",
+    "en": "Brayden Point",
+    "pos": "C",
+    "no": 21
+  },
+  "8yomodb9vwyq0j6": {
+    "ko": "브레이디 커척",
+    "en": "Brady Tkachuk",
+    "pos": "LW",
+    "no": 8
+  },
+  "318q6wb73w6mo9j": {
+    "ko": "브렌던 갤러거",
+    "en": "Brendan Gallagher",
+    "pos": "RW",
+    "no": 7
+  },
+  "4wyrn9b04yjm86p": {
+    "ko": "브렌던 스미스",
+    "en": "Brendan Smith",
+    "pos": "D",
+    "no": 7
+  },
+  "4jwq2lb0dxkr0ve": {
+    "ko": "브렌든 딜런",
+    "en": "Brenden Dillon",
+    "pos": "D",
+    "no": 5
+  },
+  "965mknb1en4m1ge": {
+    "ko": "브렌트 번스",
+    "en": "Brent Burns",
+    "pos": "D",
+    "no": 84
+  },
+  "1l4rj1b5gn6r7vx": {
+    "ko": "브렛 리즌",
+    "en": "Brett Leason",
+    "pos": "RW",
+    "no": 20
+  },
+  "pxwrx0b205kryk0": {
+    "ko": "브렛 쿨락",
+    "en": "Brett Kulak",
+    "pos": "D",
+    "no": 27
+  },
+  "4jwq2lb6xp9r0ve": {
+    "ko": "브렛 페스케",
+    "en": "Brett Pesce",
+    "pos": "D",
+    "no": 22
+  },
+  "zp5rzyb0p99q82w": {
+    "ko": "브렛 하우든",
+    "en": "Brett Howden",
+    "pos": "C",
+    "no": 21
+  },
+  "zp5rzyb2de4q82w": {
+    "ko": "브록 넬슨",
+    "en": "Brock Nelson",
+    "pos": "C",
+    "no": 11
+  },
+  "2y8m43b4eo8rl07": {
+    "ko": "브록 뵈저",
+    "en": "Brock Boeser",
+    "pos": "RW",
+    "no": 6
+  },
+  "vjxm87b9nx8r6od": {
+    "ko": "브록 페이버",
+    "en": "Brock Faber",
+    "pos": "D",
+    "no": 7
+  },
+  "y39mp9bkedwrojx": {
+    "ko": "블라디슬라프 가브리코프",
+    "en": "Vladislav Gavrikov",
+    "pos": "D",
+    "no": 44
+  },
+  "zp5rzyb2e7vq82w": {
+    "ko": "블라디슬라프 나메스트니코프",
+    "en": "Vladislav Namestnikov",
+    "pos": "C",
+    "no": 7
+  },
+  "318q6wbn461mo9j": {
+    "ko": "블레이크 리조트",
+    "en": "Blake Lizotte",
+    "pos": "C",
+    "no": 46
+  },
+  "8yomodb5je4q0j6": {
+    "ko": "블레이크 콜먼",
+    "en": "Blake Coleman",
+    "pos": "LW",
+    "no": 20
+  },
+  "3glrwdbw1jj5qdy": {
+    "ko": "빅고 비외르크",
+    "en": "Viggo Bjorck",
+    "pos": "C",
+    "no": 61
+  },
+  "vjxm87b7lyxr6od": {
+    "ko": "빅터 만치니",
+    "en": "Victor Mancini",
+    "pos": "D",
+    "no": 90
+  },
+  "pxwrx0b7j24ryk0": {
+    "ko": "빅터 올로프손",
+    "en": "Victor Olofsson",
+    "pos": "LW",
+    "no": 95
+  },
+  "x7lm78b52xgq2wd": {
+    "ko": "빅토르 아르비드손",
+    "en": "Viktor Arvidsson",
+    "pos": "LW",
+    "no": 33
+  },
+  "l7oqd2bzkg0r510": {
+    "ko": "빅토르 에클룬드",
+    "en": "Victor Eklund",
+    "pos": "LW",
+    "no": 73
+  },
+  "l5erg6b57z0q8k0": {
+    "ko": "빅토르 헤드만",
+    "en": "Victor Hedman",
+    "pos": "D",
+    "no": 77
+  },
+  "23xmv0bppelrg8n": {
+    "ko": "빈센트 이오리오",
+    "en": "Vincent Iorio",
+    "pos": "D",
+    "no": 6
+  },
+  "pxwrx0b2w95ryk0": {
+    "ko": "빈센트 트로첵",
+    "en": "Vincent Trocheck",
+    "pos": "C",
+    "no": 16
+  },
+  "965mknbg06xm1ge": {
+    "ko": "빈스 던",
+    "en": "Vince Dunn",
+    "pos": "D",
+    "no": 29
+  },
+  "zp5rzyb4ew2q82w": {
+    "ko": "빌레 오타바이넨",
+    "en": "Ville Ottavainen",
+    "pos": "D",
+    "no": 46
+  },
+  "vjxm87bwoe0r6od": {
+    "ko": "빌레 코이부넨",
+    "en": "Ville Koivunen",
+    "pos": "RW",
+    "no": 41
+  },
+  "l5erg6b51egq8k0": {
+    "ko": "빌레 하이놀라",
+    "en": "Ville Heinola",
+    "pos": "D",
+    "no": 14
+  },
+  "318q6wbn47gmo9j": {
+    "ko": "빌레 후소",
+    "en": "Ville Husso",
+    "pos": "G",
+    "no": 33
+  },
+  "jw2r0obpz9wrz84": {
+    "ko": "사무엘 헬레니우스",
+    "en": "Samuel Helenius",
+    "pos": "C",
+    "no": 79
+  },
+  "4wyrn9b7k8gm86p": {
+    "ko": "사무엘 혼젝",
+    "en": "Samuel Honzek",
+    "pos": "LW",
+    "no": 29
+  },
+  "2y8m43b4d3xrl07": {
+    "ko": "사뮈엘 지라르",
+    "en": "Samuel Girard",
+    "pos": "D",
+    "no": 49
+  },
+  "jw2r0ob6xeyrz84": {
+    "ko": "산디스 빌마니스",
+    "en": "Sandis Vilmanis",
+    "pos": "LW",
+    "no": 95
+  },
+  "k82reeb8kpxrepz": {
+    "ko": "새뮤얼 에르손",
+    "en": "Samuel Ersson",
+    "pos": "G",
+    "no": 30
+  },
+  "n54ql0bkwgkqvy9": {
+    "ko": "새처 뎀코",
+    "en": "Thatcher Demko",
+    "pos": "G",
+    "no": 35
+  },
+  "pxwrx0bw0n1ryk0": {
+    "ko": "샘 딕킨슨",
+    "en": "Sam Dickinson",
+    "pos": "D",
+    "no": 6
+  },
+  "x7lm78bnw54q2wd": {
+    "ko": "샘 라인하트",
+    "en": "Sam Reinhart",
+    "pos": "C",
+    "no": 13
+  },
+  "4jwq2lb5vger0ve": {
+    "ko": "샘 린젤",
+    "en": "Sam Rinzel",
+    "pos": "D",
+    "no": 6
+  },
+  "vjxm87b0d9wr6od": {
+    "ko": "샘 말린스키",
+    "en": "Sam Malinski",
+    "pos": "D",
+    "no": 70
+  },
+  "jw2r0ob7j75rz84": {
+    "ko": "샘 몬템보",
+    "en": "Sam Montembeault",
+    "pos": "G",
+    "no": 35
+  },
+  "965mknbg023m1ge": {
+    "ko": "샘 베넷",
+    "en": "Sam Bennett",
+    "pos": "C",
+    "no": 9
+  },
+  "y39mp9bpyw6rojx": {
+    "ko": "샘 스틸",
+    "en": "Sam Steel",
+    "pos": "C",
+    "no": 18
+  },
+  "ednm95bxoejryox": {
+    "ko": "샘 캐릭",
+    "en": "Sam Carrick",
+    "pos": "C",
+    "no": 10
+  },
+  "8yomodb9w0eq0j6": {
+    "ko": "샘 콜란젤로",
+    "en": "Sam Colangelo",
+    "pos": "RW",
+    "no": 12
+  },
+  "965mknbg96lm1ge": {
+    "ko": "샤키르 무하마둘린",
+    "en": "Shakir Mukhamadullin",
+    "pos": "D",
+    "no": 85
+  },
+  "8yomodb4ldxq0j6": {
+    "ko": "세르게이 무라쇼프",
+    "en": "Sergei Murashov",
+    "pos": "G",
+    "no": 1
+  },
+  "318q6wb73y5mo9j": {
+    "ko": "세르게이 보브롭스키",
+    "en": "Sergei Bobrovsky",
+    "pos": "G",
+    "no": 72
+  },
+  "pxwrx0b20o1ryk0": {
+    "ko": "세뮤혼 바를라모프",
+    "en": "Semyon Varlamov",
+    "pos": "G",
+    "no": 40
+  },
+  "23xmv0bgle6rg8n": {
+    "ko": "세바스티안 아호",
+    "en": "Sebastian Aho",
+    "pos": "C",
+    "no": 20
+  },
+  "jw2r0ob6x8yrz84": {
+    "ko": "세바스티안 코사",
+    "en": "Sebastian Cossa",
+    "pos": "G",
+    "no": 33
+  },
+  "4jwq2lb68xzr0ve": {
+    "ko": "세스 자비스",
+    "en": "Seth Jarvis",
+    "pos": "C",
+    "no": 24
+  },
+  "4jwq2lb05wzr0ve": {
+    "ko": "세스 존스",
+    "en": "Seth Jones",
+    "pos": "D",
+    "no": 3
+  },
+  "zp5rzyb4o4vq82w": {
+    "ko": "션 더르지",
+    "en": "Sean Durzi",
+    "pos": "D",
+    "no": 5
+  },
+  "y39mp9bpy46rojx": {
+    "ko": "션 워커",
+    "en": "Sean Walker",
+    "pos": "D",
+    "no": 26
+  },
+  "dn1m15bod8kqoep": {
+    "ko": "션 쿠랄리",
+    "en": "Sean Kuraly",
+    "pos": "C",
+    "no": 52
+  },
+  "n54ql0bky2yqvy9": {
+    "ko": "션 쿠투리에",
+    "en": "Sean Couturier",
+    "pos": "C",
+    "no": 14
+  },
+  "y39mp9bk8y1rojx": {
+    "ko": "셰이 시어도어",
+    "en": "Shea Theodore",
+    "pos": "D",
+    "no": 27
+  },
+  "y39mp9bk85vrojx": {
+    "ko": "셰인 고스티즈비어",
+    "en": "Shayne Gostisbehere",
+    "pos": "D",
+    "no": 4
+  },
+  "6ypq3vbg210rd7o": {
+    "ko": "셰인 라이트",
+    "en": "Shane Wright",
+    "pos": "C",
+    "no": 51
+  },
+  "23xmv0b9j1erg8n": {
+    "ko": "셰인 핀토",
+    "en": "Shane Pinto",
+    "pos": "C",
+    "no": 12
+  },
+  "l5erg6b57wkq8k0": {
+    "ko": "숀 모나한",
+    "en": "Sean Monahan",
+    "pos": "C",
+    "no": 23
+  },
+  "2y8m43b4dgxrl07": {
+    "ko": "스콧 로턴",
+    "en": "Scott Laughton",
+    "pos": "C",
+    "no": 21
+  },
+  "dj2ry0bd90wq1zp": {
+    "ko": "스콧 메이필드",
+    "en": "Scott Mayfield",
+    "pos": "D",
+    "no": 24
+  },
+  "y0or5xbdoo7mwzv": {
+    "ko": "스콧 모로우",
+    "en": "Scott Morrow",
+    "pos": "D",
+    "no": 60
+  },
+  "dn1m15b7xzlqoep": {
+    "ko": "스콧 사부랭",
+    "en": "Scott Sabourin",
+    "pos": "RW",
+    "no": 49
+  },
+  "3glrwdb0y57qdyj": {
+    "ko": "스콧 웨지우드",
+    "en": "Scott Wedgewood",
+    "pos": "G",
+    "no": 41
+  },
+  "318q6wb2p21mo9j": {
+    "ko": "스테판 뇌센",
+    "en": "Stefan Noesen",
+    "pos": "RW",
+    "no": 11
+  },
+  "965mknb1ekym1ge": {
+    "ko": "스튜어트 스키너",
+    "en": "Stuart Skinner",
+    "pos": "G",
+    "no": 74
+  },
+  "23xmv0bg133rg8n": {
+    "ko": "스티븐 스탬코스",
+    "en": "Steven Stamkos",
+    "pos": "C",
+    "no": 91
+  },
+  "k82reebd5nwrepz": {
+    "ko": "스티븐 할리데이",
+    "en": "Stephen Halliday",
+    "pos": "C",
+    "no": 34
+  },
+  "318q6wbn903mo9j": {
+    "ko": "스펜서 나이트",
+    "en": "Spencer Knight",
+    "pos": "G",
+    "no": 30
+  },
+  "318q6wb1dlkmo9j": {
+    "ko": "스펜서 스타스트니",
+    "en": "Spencer Stastney",
+    "pos": "D",
+    "no": 24
+  },
+  "pxwrx0b2070ryk0": {
+    "ko": "시드니 크로즈비",
+    "en": "Sidney Crosby",
+    "pos": "C",
+    "no": 87
+  },
+  "23xmv0bldy9rg8n": {
+    "ko": "시머스 케이시",
+    "en": "Seamus Casey",
+    "pos": "D",
+    "no": 24
+  },
+  "318q6wb73komo9j": {
+    "ko": "시몬 네메츠",
+    "en": "Simon Nemec",
+    "pos": "D",
+    "no": 71
+  },
+  "zp5rzyb4o2vq82w": {
+    "ko": "시몬 브누아",
+    "en": "Simon Benoit",
+    "pos": "D",
+    "no": 44
+  },
+  "4jwq2lb023zr0ve": {
+    "ko": "시몬 에드빈손",
+    "en": "Simon Edvinsson",
+    "pos": "D",
+    "no": 77
+  },
+  "n54ql0b9dxxqvy9": {
+    "ko": "시몬 홀름스트롬",
+    "en": "Simon Holmstrom",
+    "pos": "RW",
+    "no": 92
+  },
+  "dn1m15bog7oqoep": {
+    "ko": "아담 로우리",
+    "en": "Adam Lowry",
+    "pos": "C",
+    "no": 17
+  },
+  "vjxm87b5w90r6od": {
+    "ko": "아담 지리첵",
+    "en": "Adam Jiricek",
+    "pos": "D",
+    "no": 36
+  },
+  "vjxm87b98xnr6od": {
+    "ko": "아드리안 켐페",
+    "en": "Adrian Kempe",
+    "pos": "RW",
+    "no": 9
+  },
+  "318q6wb673zmo9j": {
+    "ko": "아르베르 제카이",
+    "en": "Arber Xhekaj",
+    "pos": "D",
+    "no": 72
+  },
+  "dj2ry0bd63eq1zp": {
+    "ko": "아르비드 쇠데르블롬",
+    "en": "Arvid Soderblom",
+    "pos": "G",
+    "no": 40
+  },
+  "n54ql0b3g1nqvy9": {
+    "ko": "아르샤딥 베인스",
+    "en": "Arshdeep Bains",
+    "pos": "LW",
+    "no": 13
+  },
+  "965mknbg925m1ge": {
+    "ko": "아르세니 그리츠유크",
+    "en": "Arseni Gritsyuk",
+    "pos": "RW",
+    "no": 81
+  },
+  "318q6wbn4xemo9j": {
+    "ko": "아르테미 파나린",
+    "en": "Artemi Panarin",
+    "pos": "LW",
+    "no": 10
+  },
+  "vjxm87b30ovr6od": {
+    "ko": "아르툠 주프",
+    "en": "Artem Zub",
+    "pos": "D",
+    "no": 2
+  },
+  "x7lm78b8672q2wd": {
+    "ko": "아르투르스 실로브스",
+    "en": "Arturs Silovs",
+    "pos": "G",
+    "no": 37
+  },
+  "8yomodb56glq0j6": {
+    "ko": "아르투리 레흐코넨",
+    "en": "Artturi Lehkonen",
+    "pos": "LW",
+    "no": 62
+  },
+  "jw2r0obd90prz84": {
+    "ko": "아르티옴 레프슈노프",
+    "en": "Artyom Levshunov",
+    "pos": "D",
+    "no": 55
+  },
+  "318q6wb1y6vmo9j": {
+    "ko": "아마데우스 롬바르디",
+    "en": "Amadeus Lombardi",
+    "pos": "C",
+    "no": 98
+  },
+  "zp5rzybdz3wq82w": {
+    "ko": "아이작 하워드",
+    "en": "Isaac Howard",
+    "pos": "LW",
+    "no": 53
+  },
+  "zp5rzybwkg4q82w": {
+    "ko": "아키라 슈미드",
+    "en": "Akira Schmid",
+    "pos": "G",
+    "no": 40
+  },
+  "23xmv0b929jrg8n": {
+    "ko": "아킬 토마스",
+    "en": "Akil Thomas",
+    "pos": "C",
+    "no": 44
+  },
+  "6ypq3vbg1pdrd7o": {
+    "ko": "아투 라티",
+    "en": "Aatu Raty",
+    "pos": "C",
+    "no": 54
+  },
+  "318q6wb64gomo9j": {
+    "ko": "악셀 산딘 펠리카",
+    "en": "Axel Sandin Pellika",
+    "pos": "D",
+    "no": 44
+  },
+  "965mknbg93pm1ge": {
+    "ko": "안드레 부라콥스키",
+    "en": "Andre Burakovsky",
+    "pos": "LW",
+    "no": 95
+  },
+  "vjxm87blp9jr6od": {
+    "ko": "안드레아스 엉글룬드",
+    "en": "Andreas Englund",
+    "pos": "D",
+    "no": 24
+  },
+  "23xmv0bgz3jrg8n": {
+    "ko": "안드레이 바실렙스키",
+    "en": "Andrei Vasilevskiy",
+    "pos": "G",
+    "no": 88
+  },
+  "8yomodb5jv8q0j6": {
+    "ko": "안드레이 스베치니코프",
+    "en": "Andrei Svechnikov",
+    "pos": "LW",
+    "no": 37
+  },
+  "l5erg6b56olq8k0": {
+    "ko": "안드레이 쿠즈멘코",
+    "en": "Andrei Kuzmenko",
+    "pos": "LW",
+    "no": 62
+  },
+  "ednm95bdyykryox": {
+    "ko": "안톤 룬델",
+    "en": "Anton Lundell",
+    "pos": "C",
+    "no": 15
+  },
+  "zp5rzyb01jxq82w": {
+    "ko": "안톤 요한손",
+    "en": "Anton Johansson",
+    "pos": "D",
+    "no": 42
+  },
+  "dn1m15bk31pqoep": {
+    "ko": "안톤 포르스베리",
+    "en": "Anton Forsberg",
+    "pos": "G",
+    "no": 31
+  },
+  "3glrwdb044yqdyj": {
+    "ko": "안티 투오미스토",
+    "en": "Antti Tuomisto",
+    "pos": "D",
+    "no": 6
+  },
+  "dj2ry0b4px5q1zp": {
+    "ko": "알렉산더 로마노프",
+    "en": "Alexander Romanov",
+    "pos": "D",
+    "no": 28
+  },
+  "ednm95bdpodryox": {
+    "ko": "알렉산더 웬베리",
+    "en": "Alexander Wennberg",
+    "pos": "C",
+    "no": 21
+  },
+  "6ypq3vb4pp0rd7o": {
+    "ko": "알렉산더 커풋",
+    "en": "Alexander Kerfoot",
+    "pos": "C",
+    "no": 14
+  },
+  "vjxm87b27y3r6od": {
+    "ko": "알렉산더 킬로른",
+    "en": "Alexander Killorn",
+    "pos": "LW",
+    "no": 17
+  },
+  "y39mp9bkgzxrojx": {
+    "ko": "알렉산더 홀츠",
+    "en": "Alexander Holtz",
+    "pos": "RW",
+    "no": 10
+  },
+  "1l4rj1b3d0lr7vx": {
+    "ko": "알렉산데르 바르코브",
+    "en": "Aleksander Barkov",
+    "pos": "C",
+    "no": 16
+  },
+  "318q6wb7dy9mo9j": {
+    "ko": "알렉산드르 니키신",
+    "en": "Alexander Nikishin",
+    "pos": "D"
+  },
+  "pxwrx0b2wg5ryk0": {
+    "ko": "알렉산드르 오베치킨",
+    "en": "Alex Ovechkin",
+    "pos": "LW",
+    "no": 8
+  },
+  "pxwrx0b7jkxryk0": {
+    "ko": "알렉상드르 카리에",
+    "en": "Alexandre Carrier",
+    "pos": "D",
+    "no": 45
+  },
+  "dn1m15bog92qoep": {
+    "ko": "알렉상드르 텍시에",
+    "en": "Alexandre Texier",
+    "pos": "LW",
+    "no": 85
+  },
+  "l5erg6b5jzpq8k0": {
+    "ko": "알렉세이 토로프첸코",
+    "en": "Alexey Toropchenko",
+    "pos": "RW",
+    "no": 13
+  },
+  "3glrwdbl53zqdyj": {
+    "ko": "알렉세이 프로타스",
+    "en": "Alexei Protas",
+    "pos": "C",
+    "no": 21
+  },
+  "dj2ry0b5g81q1zp": {
+    "ko": "알렉스 네델리코비치",
+    "en": "Alex Nedeljkovic",
+    "pos": "G",
+    "no": 33
+  },
+  "l7oqd2bdvn9r510": {
+    "ko": "알렉스 뉴훅",
+    "en": "Alex Newhook",
+    "pos": "C",
+    "no": 15
+  },
+  "zp5rzyb2dgpq82w": {
+    "ko": "알렉스 드브링캣",
+    "en": "Alex Debrincat",
+    "pos": "RW",
+    "no": 93
+  },
+  "8yomodb9voxq0j6": {
+    "ko": "알렉스 라이언",
+    "en": "Alex Lyon",
+    "pos": "G",
+    "no": 34
+  },
+  "jw2r0ob6kl3rz84": {
+    "ko": "알렉스 라페리에르",
+    "en": "Alex Laferriere",
+    "pos": "RW",
+    "no": 14
+  },
+  "4jwq2lbpwy0r0ve": {
+    "ko": "알렉스 바르-불레",
+    "en": "Alex Barre-Boulet",
+    "pos": "C",
+    "no": 16
+  },
+  "4jwq2lbd2o9r0ve": {
+    "ko": "알렉스 범프",
+    "en": "Alex Bump",
+    "pos": "LW",
+    "no": 20
+  },
+  "4wyrn9b0j86m86p": {
+    "ko": "알렉스 블라식",
+    "en": "Alex Vlasic",
+    "pos": "D",
+    "no": 72
+  },
+  "k82reebnox2repz": {
+    "ko": "알렉스 야팔로",
+    "en": "Alex Iafallo",
+    "pos": "LW",
+    "no": 9
+  },
+  "vjxm87b2ovkr6od": {
+    "ko": "알렉스 터치",
+    "en": "Alex Tuch",
+    "pos": "RW",
+    "no": 89
+  },
+  "jw2r0ob7el3rz84": {
+    "ko": "알렉스 투르콧",
+    "en": "Alex Turcotte",
+    "pos": "C",
+    "no": 15
+  },
+  "4wyrn9b2w5ym86p": {
+    "ko": "알렉스 포르멘턴",
+    "en": "Alex Formenton",
+    "pos": "LW",
+    "no": 26
+  },
+  "zp5rzyb2dk3q82w": {
+    "ko": "알렉스 피에트랑젤로",
+    "en": "Alex Pietrangelo",
+    "pos": "D",
+    "no": 7
+  },
+  "zp5rzyb0p88q82w": {
+    "ko": "알렉시스 라프레니에르",
+    "en": "Alexis Lafreniere",
+    "pos": "LW",
+    "no": 13
+  },
+  "y0or5xbdypxmwzv": {
+    "ko": "알베르츠 스미츠",
+    "en": "Alberts Smits",
+    "pos": "D"
+  },
+  "x7lm78b5y3jq2wd": {
+    "ko": "알베르트 요한손",
+    "en": "Albert Johansson",
+    "pos": "D",
+    "no": 20
+  },
+  "dj2ry0b1n4yq1zp": {
+    "ko": "앙드레 리",
+    "en": "Andre Lee",
+    "pos": "LW",
+    "no": 47
+  },
+  "dn1m15bozxvqoep": {
+    "ko": "애덤 고데트",
+    "en": "Adam Gaudette",
+    "pos": "RW",
+    "no": 81
+  },
+  "1l4rj1b2xexr7vx": {
+    "ko": "애덤 라르손",
+    "en": "Adam Larsson",
+    "pos": "D",
+    "no": 6
+  },
+  "ednm95bdnw9ryox": {
+    "ko": "애덤 시코라",
+    "en": "Adam Sykora",
+    "pos": "LW",
+    "no": 38
+  },
+  "pxwrx0b28jpryk0": {
+    "ko": "애덤 에드스트롬",
+    "en": "Adam Edstrom",
+    "pos": "C",
+    "no": 84
+  },
+  "4wyrn9bl36gm86p": {
+    "ko": "애덤 엥스트롬",
+    "en": "Adam Engstrom",
+    "pos": "D",
+    "no": 42
+  },
+  "vjxm87b2d8gr6od": {
+    "ko": "애덤 윌스비",
+    "en": "Adam Wilsby",
+    "pos": "D",
+    "no": 2
+  },
+  "zp5rzybwen6q82w": {
+    "ko": "애덤 클랩카",
+    "en": "Adam Klapka",
+    "pos": "RW",
+    "no": 43
+  },
+  "x7lm78b37kpq2wd": {
+    "ko": "애덤 팬틸리",
+    "en": "Adam Fantilli",
+    "pos": "C",
+    "no": 19
+  },
+  "l5erg6b57jxq8k0": {
+    "ko": "애덤 펠레크",
+    "en": "Adam Pelech",
+    "pos": "D",
+    "no": 3
+  },
+  "dj2ry0b5godq1zp": {
+    "ko": "애덤 폭스",
+    "en": "Adam Fox",
+    "pos": "D",
+    "no": 23
+  },
+  "4wyrn9b75wnm86p": {
+    "ko": "애딘 힐",
+    "en": "Adin Hill",
+    "pos": "G",
+    "no": 33
+  },
+  "k82reeb8j4erepz": {
+    "ko": "앤더스 리",
+    "en": "Anders Lee",
+    "pos": "LW",
+    "no": 72
+  },
+  "y39mp9bke4yrojx": {
+    "ko": "앤드루 콥",
+    "en": "Andrew Copp",
+    "pos": "C",
+    "no": 18
+  },
+  "n54ql0bkwneqvy9": {
+    "ko": "앤드류 맨자파네",
+    "en": "Andrew Mangiapane",
+    "pos": "LW",
+    "no": 26
+  },
+  "8yomodb9v4nq0j6": {
+    "ko": "앤드류 피크",
+    "en": "Andrew Peeke",
+    "pos": "D",
+    "no": 20
+  },
+  "y39mp9bwdgwrojx": {
+    "ko": "앤서니 뒤클레어",
+    "en": "Anthony Duclair",
+    "pos": "LW",
+    "no": 11
+  },
+  "dj2ry0b5g3yq1zp": {
+    "ko": "앤서니 디앤젤로",
+    "en": "Anthony DeAngelo",
+    "pos": "D",
+    "no": 77
+  },
+  "8yomodb9vxnq0j6": {
+    "ko": "앤서니 만타",
+    "en": "Anthony Mantha",
+    "pos": "RW",
+    "no": 39
+  },
+  "dn1m15bogddqoep": {
+    "ko": "앤서니 보빌리에",
+    "en": "Anthony Beauvillier",
+    "pos": "LW",
+    "no": 72
+  },
+  "dj2ry0b4pd5q1zp": {
+    "ko": "앤서니 스톨라즈",
+    "en": "Anthony Stolarz",
+    "pos": "G",
+    "no": 41
+  },
+  "jw2r0obpdj6rz84": {
+    "ko": "앤서니 시렐리",
+    "en": "Anthony Cirelli",
+    "pos": "C",
+    "no": 71
+  },
+  "4jwq2lb6x84r0ve": {
+    "ko": "앤서니 존 그리어",
+    "en": "Anthony John Greer",
+    "pos": "LW",
+    "no": 18
+  },
+  "l7oqd2bezner510": {
+    "ko": "야니 구르드",
+    "en": "Yanni Gourde",
+    "pos": "C",
+    "no": 37
+  },
+  "l7oqd2bdd0lr510": {
+    "ko": "야니스 제롬 모저",
+    "en": "Janis Jerome Moser",
+    "pos": "D",
+    "no": 90
+  },
+  "8yomodb5jjzq0j6": {
+    "ko": "야로슬라프 아스카로프",
+    "en": "Yaroslav Askarov",
+    "pos": "G",
+    "no": 30
+  },
+  "y0or5xbzevxmwzv": {
+    "ko": "야로슬라프 흐멜라르",
+    "en": "Jaroslav Chmelar",
+    "pos": "RW",
+    "no": 49
+  },
+  "zp5rzyb2941q82w": {
+    "ko": "야코프 트레닌",
+    "en": "Yakov Trenin",
+    "pos": "C",
+    "no": 13
+  },
+  "y39mp9bkeggrojx": {
+    "ko": "야콥 마크스트롬",
+    "en": "Jacob Markstrom",
+    "pos": "G",
+    "no": 25
+  },
+  "2y8m43b4e7lrl07": {
+    "ko": "야콥 키크룬",
+    "en": "Jakob Chychrun",
+    "pos": "D",
+    "no": 6
+  },
+  "dj2ry0bp6p7q1zp": {
+    "ko": "야쿠프 도베스",
+    "en": "Jakub Dobes",
+    "pos": "G",
+    "no": 75
+  },
+  "vjxm87bel8dr6od": {
+    "ko": "얀 쿠즈네초프",
+    "en": "Yan Kuznetsov",
+    "pos": "D",
+    "no": 37
+  },
+  "965mknbwd48m1ge": {
+    "ko": "에then 프랭크",
+    "en": "Ethen Frank",
+    "pos": "C",
+    "no": 53
+  },
+  "4jwq2lbzxo9r0ve": {
+    "ko": "에단 델 마스트로",
+    "en": "Ethan del Mastro",
+    "pos": "D",
+    "no": 38
+  },
+  "965mknbg09km1ge": {
+    "ko": "에런 엑블래드",
+    "en": "Aaron Ekblad",
+    "pos": "D",
+    "no": 5
+  },
+  "1l4rj1b3dplr7vx": {
+    "ko": "에리크 하울라",
+    "en": "Erik Haula",
+    "pos": "LW",
+    "no": 56
+  },
+  "3glrwdblgpeqdyj": {
+    "ko": "에릭 구스타프손",
+    "en": "Erik Gustafsson",
+    "pos": "D",
+    "no": 64
+  },
+  "318q6wbn48emo9j": {
+    "ko": "에릭 굳브란손",
+    "en": "Erik Gudbranson",
+    "pos": "D",
+    "no": 44
+  },
+  "8yomodb566eq0j6": {
+    "ko": "에릭 로빈슨",
+    "en": "Eric Robinson",
+    "pos": "LW",
+    "no": 50
+  },
+  "4wyrn9b7142m86p": {
+    "ko": "에릭 체르나크",
+    "en": "Erik Cernak",
+    "pos": "D",
+    "no": 81
+  },
+  "vjxm87b98pnr6od": {
+    "ko": "에릭 칼손",
+    "en": "Erik Karlsson",
+    "pos": "D",
+    "no": 65
+  },
+  "8yomodbxoe1q0j6": {
+    "ko": "에밀 마르티넨 릴레베리",
+    "en": "Emil Martinsen Lilleberg",
+    "pos": "D",
+    "no": 78
+  },
+  "2y8m43b4ollrl07": {
+    "ko": "에밀 안드레",
+    "en": "Emil Andrae",
+    "pos": "D",
+    "no": 36
+  },
+  "y39mp9bkg1zrojx": {
+    "ko": "에밀 하이네만",
+    "en": "Emil Heineman",
+    "pos": "LW",
+    "no": 51
+  },
+  "dj2ry0bp6xgq1zp": {
+    "ko": "에밋 피니",
+    "en": "Emmitt Finnie",
+    "pos": "C",
+    "no": 58
+  },
+  "6ypq3vbgwdlrd7o": {
+    "ko": "에반 로드리게스",
+    "en": "Evan Rodrigues",
+    "pos": "C",
+    "no": 17
+  },
+  "8yomodb9vyvq0j6": {
+    "ko": "에반 부샤르",
+    "en": "Evan Bouchard",
+    "pos": "D",
+    "no": 2
+  },
+  "3glrwdblgd0qdyj": {
+    "ko": "에사 린델",
+    "en": "Esa Lindell",
+    "pos": "D",
+    "no": 23
+  },
+  "3glrwdbl20oqdyj": {
+    "ko": "에투 루오스타리넨",
+    "en": "Eetu Luostarinen",
+    "pos": "C",
+    "no": 27
+  },
+  "6ypq3vb4ol2rd7o": {
+    "ko": "엘리 톨바넨",
+    "en": "Eeli Tolvanen",
+    "pos": "RW",
+    "no": 17
+  },
+  "vjxm87b27w6r6od": {
+    "ko": "엘리아스 린드홀름",
+    "en": "Elias Lindholm",
+    "pos": "C",
+    "no": 28
+  },
+  "8yomodb56p0q0j6": {
+    "ko": "엘리아스 페테르손",
+    "en": "Elias Pettersson",
+    "pos": "C",
+    "no": 40
+  },
+  "dn1m15b0jl5qoep": {
+    "ko": "엘리아스 페테르손",
+    "en": "Elias Pettersson",
+    "pos": "D",
+    "no": 25
+  },
+  "965mknb1nz1m1ge": {
+    "ko": "엘머 쇠데르블롬",
+    "en": "Elmer Soderblom",
+    "pos": "LW",
+    "no": 25
+  },
+  "1l4rj1b3023r7vx": {
+    "ko": "예고르 샤랑고비치",
+    "en": "Yegor Sharangovich",
+    "pos": "C",
+    "no": 17
+  },
+  "965mknbg988m1ge": {
+    "ko": "예고르 치나호프",
+    "en": "Yegor Chinakhov",
+    "pos": "RW",
+    "no": 59
+  },
+  "3glrwdblg0eqdyj": {
+    "ko": "예브게니 말킨",
+    "en": "Evgeni Malkin",
+    "pos": "C",
+    "no": 71
+  },
+  "1l4rj1b3o29r7vx": {
+    "ko": "예스퍼 발스테드트",
+    "en": "Jesper Wallstedt",
+    "pos": "G",
+    "no": 30
+  },
+  "2y8m43bn89nrl07": {
+    "ko": "예스페르 브라트",
+    "en": "Jesper Bratt",
+    "pos": "LW",
+    "no": 63
+  },
+  "965mknbg021m1ge": {
+    "ko": "예스페리 코트카니에미",
+    "en": "Jesperi Kotkaniemi",
+    "pos": "C",
+    "no": 82
+  },
+  "8yomodb90eyq0j6": {
+    "ko": "옌스퍼 보크비스트",
+    "en": "Jesper Boqvist",
+    "pos": "C",
+    "no": 70
+  },
+  "dn1m15boy7jqoep": {
+    "ko": "오스카르 백",
+    "en": "Oskar Back",
+    "pos": "C",
+    "no": 10
+  },
+  "y39mp9bkeodrojx": {
+    "ko": "오스턴 매슈스",
+    "en": "Auston Matthews",
+    "pos": "C",
+    "no": 34
+  },
+  "dn1m15bw6lvqoep": {
+    "ko": "오웬 마이클스",
+    "en": "Owen Michaels",
+    "pos": "C",
+    "no": 43
+  },
+  "y0or5xbj3zgmwzv": {
+    "ko": "오웬 티펫",
+    "en": "Owen Tippett",
+    "pos": "RW",
+    "no": 74
+  },
+  "zp5rzybwz08q82w": {
+    "ko": "오웬 파워",
+    "en": "Owen Power",
+    "pos": "D",
+    "no": 25
+  },
+  "23xmv0bgzk7rg8n": {
+    "ko": "온드레이 팔랏",
+    "en": "Ondrej Palat",
+    "pos": "LW",
+    "no": 81
+  },
+  "965mknbov9pm1ge": {
+    "ko": "올렌 첼베거",
+    "en": "Olen Zellweger",
+    "pos": "D",
+    "no": 8
+  },
+  "6ypq3vb4p79rd7o": {
+    "ko": "올리 매태",
+    "en": "Olli Maatta",
+    "pos": "D",
+    "no": 3
+  },
+  "k82reebd6n9repz": {
+    "ko": "올리버 무어",
+    "en": "Oliver Moore",
+    "pos": "C",
+    "no": 11
+  },
+  "k82reeb8jeerepz": {
+    "ko": "올리버 비욕스트란드",
+    "en": "Oliver Bjorkstrand",
+    "pos": "RW",
+    "no": 28
+  },
+  "dj2ry0bd973q1zp": {
+    "ko": "올리베르 에크만라르손",
+    "en": "Oliver Ekman-Larsson",
+    "pos": "D",
+    "no": 95
+  },
+  "pxwrx0beoxvryk0": {
+    "ko": "올리베르 카파넨",
+    "en": "Oliver Kapanen",
+    "pos": "C",
+    "no": 91
+  },
+  "l5erg6b816nq8k0": {
+    "ko": "와이어트 카이저",
+    "en": "Wyatt Kaiser",
+    "pos": "D",
+    "no": 44
+  },
+  "4wyrn9bo71em86p": {
+    "ko": "와이엇 존스턴",
+    "en": "Wyatt Johnston",
+    "pos": "C",
+    "no": 53
+  },
+  "1l4rj1bl0o2r7vx": {
+    "ko": "요나스 론드비에르그",
+    "en": "Jonas Rondbjerg",
+    "pos": "RW",
+    "no": 46
+  },
+  "y0or5xb0wk1mwzv": {
+    "ko": "요나스 브로딘",
+    "en": "Jonas Brodin",
+    "pos": "D",
+    "no": 25
+  },
+  "jw2r0obpdl1rz84": {
+    "ko": "요나스 지겐탈러",
+    "en": "Jonas Siegenthaler",
+    "pos": "D",
+    "no": 71
+  },
+  "318q6wb7333mo9j": {
+    "ko": "요나스 코르피살로",
+    "en": "Joonas Korpisalo",
+    "pos": "G",
+    "no": 70
+  },
+  "k82reeb8pjorepz": {
+    "ko": "요나탄 베리그렌",
+    "en": "Jonatan Berggren",
+    "pos": "RW",
+    "no": 29
+  },
+  "l7oqd2be989r510": {
+    "ko": "요엘 아르미아",
+    "en": "Joel Armia",
+    "pos": "RW",
+    "no": 40
+  },
+  "k82reeb8425repz": {
+    "ko": "요엘 키비란타",
+    "en": "Joel Kiviranta",
+    "pos": "LW",
+    "no": 22
+  },
+  "k82reeb87vkrepz": {
+    "ko": "우르호 바카나이넨",
+    "en": "Urho Vaakanainen",
+    "pos": "D",
+    "no": 18
+  },
+  "y39mp9bkl9nrojx": {
+    "ko": "우비스 야니스 발린스키스",
+    "en": "Uvis Janis Balinskis",
+    "pos": "D",
+    "no": 26
+  },
+  "4jwq2lb0221r0ve": {
+    "ko": "우코-페카 루코넨",
+    "en": "Ukko-pekka Luukkonen",
+    "pos": "G",
+    "no": 1
+  },
+  "965mknbg9nem1ge": {
+    "ko": "워렌 포겔레",
+    "en": "Warren Foegele",
+    "pos": "LW",
+    "no": 37
+  },
+  "4jwq2lb9244r0ve": {
+    "ko": "워커 두어",
+    "en": "Walker Duehr",
+    "pos": "RW",
+    "no": 71
+  },
+  "4jwq2lbpwx5r0ve": {
+    "ko": "윌 보르겐",
+    "en": "Will Borgen",
+    "pos": "D",
+    "no": 17
+  },
+  "318q6wb3v8dmo9j": {
+    "ko": "윌 스미스",
+    "en": "Will Smith",
+    "pos": "C",
+    "no": 2
+  },
+  "ednm95b0nllryox": {
+    "ko": "윌 카일",
+    "en": "Will Cuylle",
+    "pos": "LW",
+    "no": 50
+  },
+  "k82reeb8jjerepz": {
+    "ko": "윌리엄 닐란데르",
+    "en": "William Nylander",
+    "pos": "RW",
+    "no": 88
+  },
+  "l7oqd2b3we3r510": {
+    "ko": "윌리엄 에클룬드",
+    "en": "William Eklund",
+    "pos": "LW",
+    "no": 727
+  },
+  "2y8m43bnzg9rl07": {
+    "ko": "윌리엄 왈린더",
+    "en": "William Wallinder",
+    "pos": "D",
+    "no": 54
+  },
+  "ednm95bdlzjryox": {
+    "ko": "윌리엄 칼손",
+    "en": "William Karlsson",
+    "pos": "C",
+    "no": 71
+  },
+  "dj2ry0bd3glq1zp": {
+    "ko": "윌리엄 캐리어",
+    "en": "William Carrier",
+    "pos": "LW",
+    "no": 28
+  },
+  "8yomodb8l86q0j6": {
+    "ko": "윌리엄 트루도",
+    "en": "William Trudeau",
+    "pos": "D",
+    "no": 85
+  },
+  "l5erg6b26kdq8k0": {
+    "ko": "유라이 슬라프코우스키",
+    "en": "Juraj Slafkovsky",
+    "pos": "LW",
+    "no": 20
+  },
+  "zp5rzyb2do4q82w": {
+    "ko": "유세 사로스",
+    "en": "Juuse Saros",
+    "pos": "G",
+    "no": 74
+  },
+  "318q6wb7e2omo9j": {
+    "ko": "유스투스 안누넨",
+    "en": "Justus Annunen",
+    "pos": "G",
+    "no": 29
+  },
+  "4jwq2lb0w29r0ve": {
+    "ko": "이고르 셰스티오르킨",
+    "en": "Igor Shestyorkin",
+    "pos": "G"
+  },
+  "3glrwdb0ydeqdyj": {
+    "ko": "이고리 셰스툐르킨",
+    "en": "Igor Shesterkin",
+    "pos": "G",
+    "no": 31
+  },
+  "vjxm87b3o2zr6od": {
+    "ko": "이리 쿨리흐",
+    "en": "Jiri Kulich",
+    "pos": "C",
+    "no": 20
+  },
+  "4jwq2lbz6n2r0ve": {
+    "ko": "이반 데미도프",
+    "en": "Ivan Demidov",
+    "pos": "RW",
+    "no": 93
+  },
+  "l7oqd2b82oer510": {
+    "ko": "이반 미로슈니첸코",
+    "en": "Ivan Miroshnichenko",
+    "pos": "LW",
+    "no": 63
+  },
+  "318q6wb7p8lmo9j": {
+    "ko": "이반 바르바셰프",
+    "en": "Ivan Barbashev",
+    "pos": "LW",
+    "no": 49
+  },
+  "318q6wb7dj7mo9j": {
+    "ko": "이반 프로보로프",
+    "en": "Ivan Provorov",
+    "pos": "D",
+    "no": 9
+  },
+  "x7lm78bn979q2wd": {
+    "ko": "이삭 로센",
+    "en": "Isak Rosen",
+    "pos": "RW",
+    "no": 27
+  },
+  "n54ql0b7jgoqvy9": {
+    "ko": "이스턴 코완",
+    "en": "Easton Cowan",
+    "pos": "RW",
+    "no": 53
+  },
+  "l5erg6b5790q8k0": {
+    "ko": "이안 콜",
+    "en": "Ian Cole",
+    "pos": "D",
+    "no": 28
+  },
+  "4wyrn9bl3n4m86p": {
+    "ko": "이언 무어",
+    "en": "Ian Moore",
+    "pos": "D",
+    "no": 3
+  },
+  "n54ql0bk0okqvy9": {
+    "ko": "일리아 류부슈킨",
+    "en": "Ilya Lyubushkin",
+    "pos": "D",
+    "no": 46
+  },
+  "ednm95bdon2ryox": {
+    "ko": "일리야 소로킨",
+    "en": "Ilya Sorokin",
+    "pos": "G",
+    "no": 30
+  },
+  "3glrwdbw1ok1qdy": {
+    "ko": "일리야 프로타스",
+    "en": "Ilya Protas",
+    "pos": "LW",
+    "no": 62
+  },
+  "1l4rj1b3dnkr7vx": {
+    "ko": "일야 미하예프",
+    "en": "Ilya Mikheyev",
+    "pos": "RW",
+    "no": 95
+  },
+  "k82reeb8d00repz": {
+    "ko": "일야 솔로비요프",
+    "en": "Ilya Solovyov",
+    "pos": "D",
+    "no": 7
+  },
+  "l5erg6bdjgyq8k0": {
+    "ko": "자카리 뢰뢰",
+    "en": "Zachary L'Heureux",
+    "pos": "LW",
+    "no": 68
+  },
+  "4jwq2lb0525r0ve": {
+    "ko": "자크 보고시안",
+    "en": "Zach Bogosian",
+    "pos": "D",
+    "no": 24
+  },
+  "dn1m15bogzdqoep": {
+    "ko": "장-가브리엘 파조",
+    "en": "Jean-Gabriel Pageau",
+    "pos": "C",
+    "no": 44
+  },
+  "zp5rzyb2d6pq82w": {
+    "ko": "재러드 매캔",
+    "en": "Jared McCann",
+    "pos": "LW",
+    "no": 19
+  },
+  "zp5rzyb2d94q82w": {
+    "ko": "재러드 스퍼전",
+    "en": "Jared Spurgeon",
+    "pos": "D",
+    "no": 46
+  },
+  "23xmv0b84wgrg8n": {
+    "ko": "재커리 벤슨",
+    "en": "Zachary Benson",
+    "pos": "LW",
+    "no": 6
+  },
+  "jw2r0ob3vd1rz84": {
+    "ko": "재커리 볼두크",
+    "en": "Zachary Bolduc",
+    "pos": "RW",
+    "no": 76
+  },
+  "23xmv0b2149rg8n": {
+    "ko": "재크 메차",
+    "en": "Zach Metsa",
+    "pos": "D",
+    "no": 73
+  },
+  "2y8m43b4eelrl07": {
+    "ko": "재크 하이먼",
+    "en": "Zach Hyman",
+    "pos": "LW",
+    "no": 18
+  },
+  "vjxm87b2d5lr6od": {
+    "ko": "잭 드루리",
+    "en": "Jack Drury",
+    "pos": "C",
+    "no": 18
+  },
+  "l5erg6b57yyq8k0": {
+    "ko": "잭 로슬로빅",
+    "en": "Jack Roslovic",
+    "pos": "C",
+    "no": 96
+  },
+  "jw2r0obpgdzrz84": {
+    "ko": "잭 매큐언",
+    "en": "Zack MacEwen",
+    "pos": "C",
+    "no": 19
+  },
+  "4jwq2lb9l1yr0ve": {
+    "ko": "잭 맥베인",
+    "en": "Jack McBain",
+    "pos": "C",
+    "no": 22
+  },
+  "ednm95b6v6eryox": {
+    "ko": "잭 아이클",
+    "en": "Jack Eichel",
+    "pos": "C",
+    "no": 9
+  },
+  "x7lm78b8vekq2wd": {
+    "ko": "잭 아칸",
+    "en": "Jack Ahcan",
+    "pos": "D",
+    "no": 47
+  },
+  "4jwq2lb5nxlr0ve": {
+    "ko": "잭 오브라이언",
+    "en": "Jack O'Brien",
+    "pos": "C",
+    "no": 44
+  },
+  "2y8m43bwgl2rl07": {
+    "ko": "잭 오스탑추크",
+    "en": "Zack Ostapchuk",
+    "pos": "C",
+    "no": 63
+  },
+  "4wyrn9b755nm86p": {
+    "ko": "잭 워렌스키",
+    "en": "Zach Werenski",
+    "pos": "D",
+    "no": 8
+  },
+  "vjxm87bn530r6od": {
+    "ko": "잭 윌리엄스",
+    "en": "Jack Williams",
+    "pos": "RW",
+    "no": 92
+  },
+  "jw2r0ob7j6yrz84": {
+    "ko": "잭 퀸",
+    "en": "Jack Quinn",
+    "pos": "RW",
+    "no": 22
+  },
+  "l5erg6blvg6q8k0": {
+    "ko": "잭 톰슨",
+    "en": "Jack Thompson",
+    "pos": "D",
+    "no": 29
+  },
+  "y0or5xb0w2zmwzv": {
+    "ko": "잭 화이트클라우드",
+    "en": "Zach Whitecloud",
+    "pos": "D",
+    "no": 28
+  },
+  "vjxm87b98n6r6od": {
+    "ko": "잭 휴스",
+    "en": "Jack Hughes",
+    "pos": "C",
+    "no": 86
+  },
+  "x7lm78bnlw9q2wd": {
+    "ko": "잭슨 라콤",
+    "en": "Jackson LaCombe",
+    "pos": "D",
+    "no": 2
+  },
+  "3glrwdb3pkyqdyj": {
+    "ko": "잭슨 블레이크",
+    "en": "Jackson Blake",
+    "pos": "RW",
+    "no": 53
+  },
+  "vjxm87b27lyr6od": {
+    "ko": "잰슨 하킨스",
+    "en": "Jansen Harkins",
+    "pos": "C",
+    "no": 10
+  },
+  "6ypq3vb8yw5rd7o": {
+    "ko": "저드 콜필드",
+    "en": "Judd Caulfield",
+    "pos": "RW",
+    "no": 28
+  },
+  "318q6wb7pnxmo9j": {
+    "ko": "저스틴 댄포스",
+    "en": "Justin Danforth",
+    "pos": "RW",
+    "no": 15
+  },
+  "ednm95b6jv7ryox": {
+    "ko": "저스틴 배런",
+    "en": "Justin Barron",
+    "pos": "D",
+    "no": 20
+  },
+  "dj2ry0b4ydwq1zp": {
+    "ko": "저스틴 브라조",
+    "en": "Justin Brazeau",
+    "pos": "RW",
+    "no": 16
+  },
+  "965mknbov9xm1ge": {
+    "ko": "저스틴 수르디프",
+    "en": "Justin Sourdif",
+    "pos": "RW",
+    "no": 34
+  },
+  "l7oqd2be956r510": {
+    "ko": "저스틴 폭",
+    "en": "Justin Faulk",
+    "pos": "D",
+    "no": 72
+  },
+  "l7oqd2b83yvr510": {
+    "ko": "저캐리 딘",
+    "en": "Zachary Dean",
+    "pos": "C",
+    "no": 52
+  },
+  "y0or5xb65k4mwzv": {
+    "ko": "제러미 스웨이먼",
+    "en": "Jeremy Swayman",
+    "pos": "G",
+    "no": 1
+  },
+  "ednm95bdpjlryox": {
+    "ko": "제레미 로존",
+    "en": "Jeremy Lauzon",
+    "pos": "D",
+    "no": 5
+  },
+  "pxwrx0b20d2ryk0": {
+    "ko": "제이든 슈워츠",
+    "en": "Jaden Schwartz",
+    "pos": "C",
+    "no": 71
+  },
+  "965mknb1j3km1ge": {
+    "ko": "제이든 스트루블",
+    "en": "Jayden Struble",
+    "pos": "D",
+    "no": 47
+  },
+  "dn1m15bk3pgqoep": {
+    "ko": "제이미 드라이스데일",
+    "en": "Jamie Drysdale",
+    "pos": "D",
+    "no": 9
+  },
+  "dj2ry0bd9wjq1zp": {
+    "ko": "제이미 벤",
+    "en": "Jamie Benn",
+    "pos": "LW",
+    "no": 14
+  },
+  "k82reeb8d31repz": {
+    "ko": "제이미 올렉시악",
+    "en": "Jamie Oleksiak",
+    "pos": "D",
+    "no": 4
+  },
+  "4jwq2lb6x99r0ve": {
+    "ko": "제이슨 로버트슨",
+    "en": "Jason Robertson",
+    "pos": "LW",
+    "no": 21
+  },
+  "1l4rj1b3d5yr7vx": {
+    "ko": "제이슨 주커",
+    "en": "Jason Zucker",
+    "pos": "LW",
+    "no": 17
+  },
+  "6ypq3vb4d67rd7o": {
+    "ko": "제이컵 슬레이빈",
+    "en": "Jaccob Slavin",
+    "pos": "D",
+    "no": 74
+  },
+  "jw2r0obdllprz84": {
+    "ko": "제이콥 멜란슨",
+    "en": "Jacob Melanson",
+    "pos": "RW",
+    "no": 63
+  },
+  "pxwrx0b7j3gryk0": {
+    "ko": "제이콥 미들턴",
+    "en": "Jacob Middleton",
+    "pos": "D",
+    "no": 55
+  },
+  "y0or5xb6kypmwzv": {
+    "ko": "제이콥 버나드-도커",
+    "en": "Jacob Bernard-Docker",
+    "pos": "D",
+    "no": 25
+  },
+  "4jwq2lb6xwwr0ve": {
+    "ko": "제이콥 트루바",
+    "en": "Jacob Trouba",
+    "pos": "D",
+    "no": 65
+  },
+  "l5erg6b578yq8k0": {
+    "ko": "제이크 겐츨",
+    "en": "Jake Guentzel",
+    "pos": "C",
+    "no": 59
+  },
+  "2y8m43bx9wgrl07": {
+    "ko": "제이크 네이버스",
+    "en": "Jake Neighbours",
+    "pos": "LW",
+    "no": 63
+  },
+  "ednm95bdlgzryox": {
+    "ko": "제이크 드브루스크",
+    "en": "Jake DeBrusk",
+    "pos": "LW",
+    "no": 74
+  },
+  "dj2ry0b404zq1zp": {
+    "ko": "제이크 맥케이브",
+    "en": "Jake McCabe",
+    "pos": "D",
+    "no": 22
+  },
+  "l7oqd2bdv05r510": {
+    "ko": "제이크 샌더슨",
+    "en": "Jake Sanderson",
+    "pos": "D",
+    "no": 85
+  },
+  "jw2r0obpd41rz84": {
+    "ko": "제이크 앨런",
+    "en": "Jake Allen",
+    "pos": "G",
+    "no": 34
+  },
+  "n54ql0bkw07qvy9": {
+    "ko": "제이크 에반스",
+    "en": "Jake Evans",
+    "pos": "C",
+    "no": 71
+  },
+  "965mknbg94pm1ge": {
+    "ko": "제이크 오틴저",
+    "en": "Jake Oettinger",
+    "pos": "G",
+    "no": 29
+  },
+  "k82reebnow2repz": {
+    "ko": "제이크 월먼",
+    "en": "Jake Walman",
+    "pos": "D",
+    "no": 96
+  },
+  "y39mp9bwn4nrojx": {
+    "ko": "제이크 크리스티안센",
+    "en": "Jake Christiansen",
+    "pos": "D",
+    "no": 2
+  },
+  "x7lm78b5dgvq2wd": {
+    "ko": "제이티 컴퍼",
+    "en": "J.T. Compher",
+    "pos": "LW",
+    "no": 37
+  },
+  "jw2r0obd325rz84": {
+    "ko": "제인 파렉",
+    "en": "Zayne Parekh",
+    "pos": "D",
+    "no": 19
+  },
+  "dj2ry0b5gxzq1zp": {
+    "ko": "제일런 챗필드",
+    "en": "Jalen Chatfield",
+    "pos": "D",
+    "no": 5
+  },
+  "jw2r0obgx5orz84": {
+    "ko": "제임스 해겐스",
+    "en": "James Hagens",
+    "pos": "C",
+    "no": 44
+  },
+  "4jwq2lb9lkgr0ve": {
+    "ko": "제프 말롯",
+    "en": "Jeff Malott",
+    "pos": "LW",
+    "no": 39
+  },
+  "6ypq3vbe8x5rd7o": {
+    "ko": "제프리 비엘",
+    "en": "Jeffrey Viel",
+    "pos": "LW",
+    "no": 25
+  },
+  "dj2ry0b5g29q1zp": {
+    "ko": "젬구스 기르겐손스",
+    "en": "Zemgus Girgensons",
+    "pos": "C",
+    "no": 28
+  },
+  "965mknbopk4m1ge": {
+    "ko": "젯 그리브스",
+    "en": "Jet Greaves",
+    "pos": "G",
+    "no": 73
+  },
+  "x7lm78b5yxjq2wd": {
+    "ko": "조 벨레노",
+    "en": "Joe Veleno",
+    "pos": "C",
+    "no": 90
+  },
+  "1l4rj1b50lnr7vx": {
+    "ko": "조나 가조비치",
+    "en": "Jonah Gadjovich",
+    "pos": "LW",
+    "no": 12
+  },
+  "965mknby25dm1ge": {
+    "ko": "조나단 레케리마키",
+    "en": "Jonathan Lekkerimaki",
+    "pos": "RW",
+    "no": 88
+  },
+  "318q6wb215dmo9j": {
+    "ko": "조나단 코바체빅",
+    "en": "Johnathan Kovacevic",
+    "pos": "D",
+    "no": 8
+  },
+  "1l4rj1b3p17r7vx": {
+    "ko": "조나탕 마르셰소",
+    "en": "Jonathan Marchessault",
+    "pos": "RW",
+    "no": 81
+  },
+  "4wyrn9b75pgm86p": {
+    "ko": "조나탕 위베르도",
+    "en": "Jonathan Huberdeau",
+    "pos": "LW",
+    "no": 10
+  },
+  "zp5rzyb2dv4q82w": {
+    "ko": "조던 그린웨이",
+    "en": "Jordan Greenway",
+    "pos": "LW",
+    "no": 12
+  },
+  "318q6wb7d47mo9j": {
+    "ko": "조던 마르티누크",
+    "en": "Jordan Martinook",
+    "pos": "RW",
+    "no": 48
+  },
+  "zp5rzyb2dn3q82w": {
+    "ko": "조던 비닝턴",
+    "en": "Jordan Binnington",
+    "pos": "G",
+    "no": 50
+  },
+  "k82reeb8j5krepz": {
+    "ko": "조던 스톨",
+    "en": "Jordan Staal",
+    "pos": "C",
+    "no": 11
+  },
+  "dn1m15bk5ndqoep": {
+    "ko": "조던 스펜스",
+    "en": "Jordan Spence",
+    "pos": "D",
+    "no": 10
+  },
+  "dn1m15bogy5qoep": {
+    "ko": "조던 에버얼",
+    "en": "Jordan Eberle",
+    "pos": "RW",
+    "no": 7
+  },
+  "4jwq2lb0dk3r0ve": {
+    "ko": "조던 키루",
+    "en": "Jordan Kyrou",
+    "pos": "RW",
+    "no": 25
+  },
+  "8yomodb9v3nq0j6": {
+    "ko": "조셉 월",
+    "en": "Joseph Woll",
+    "pos": "G",
+    "no": 53
+  },
+  "l5erg6byd7dq8k0": {
+    "ko": "조시 노리스",
+    "en": "Josh Norris",
+    "pos": "C",
+    "no": 9
+  },
+  "dj2ry0b15knq1zp": {
+    "ko": "조시 도언",
+    "en": "Josh Doan",
+    "pos": "RW",
+    "no": 91
+  },
+  "3glrwdb69lnqdyj": {
+    "ko": "조시 마후라",
+    "en": "Josh Mahura",
+    "pos": "D",
+    "no": 28
+  },
+  "pxwrx0beo3gryk0": {
+    "ko": "조시 맨슨",
+    "en": "Josh Manson",
+    "pos": "D",
+    "no": 42
+  },
+  "965mknbg053m1ge": {
+    "ko": "조시 모리시",
+    "en": "Josh Morrissey",
+    "pos": "D",
+    "no": 44
+  },
+  "4jwq2lb6x07r0ve": {
+    "ko": "조시 앤더슨",
+    "en": "Josh Anderson",
+    "pos": "RW",
+    "no": 17
+  },
+  "4jwq2lb0585r0ve": {
+    "ko": "조엘 에드먼드슨",
+    "en": "Joel Edmundson",
+    "pos": "D",
+    "no": 6
+  },
+  "l7oqd2be9p6r510": {
+    "ko": "조엘 에릭손 에크",
+    "en": "Joel Eriksson Ek",
+    "pos": "C",
+    "no": 14
+  },
+  "dj2ry0bd3y5q1zp": {
+    "ko": "조엘 파라비",
+    "en": "Joel Farabee",
+    "pos": "LW",
+    "no": 86
+  },
+  "ednm95bd4oyryox": {
+    "ko": "조엘 한리",
+    "en": "Joel Hanley",
+    "pos": "D",
+    "no": 44
+  },
+  "8yomodbx8g8q0j6": {
+    "ko": "조엘 호퍼",
+    "en": "Joel Hofer",
+    "pos": "G",
+    "no": 30
+  },
+  "pxwrx0ben06ryk0": {
+    "ko": "조이 다코르",
+    "en": "Joey Daccord",
+    "pos": "G",
+    "no": 35
+  },
+  "l7oqd2bd01xr510": {
+    "ko": "존 깁슨",
+    "en": "John Gibson",
+    "pos": "G",
+    "no": 36
+  },
+  "2y8m43b4ep5rl07": {
+    "ko": "존 마리노",
+    "en": "John Marino",
+    "pos": "D",
+    "no": 6
+  },
+  "x7lm78b5dkvq2wd": {
+    "ko": "존 칼슨",
+    "en": "John Carlson",
+    "pos": "D",
+    "no": 74
+  },
+  "6ypq3vb4pk9rd7o": {
+    "ko": "존 타바레스",
+    "en": "John Tavares",
+    "pos": "C",
+    "no": 91
+  },
+  "318q6wb6gzdmo9j": {
+    "ko": "지미 스너그루드",
+    "en": "Jimmy Snuggerud",
+    "pos": "RW",
+    "no": 21
+  },
+  "l5erg6b7vk1q8k0": {
+    "ko": "지브 부움",
+    "en": "Zeev Buium",
+    "pos": "D",
+    "no": 8
+  },
+  "23xmv0bgl6drg8n": {
+    "ko": "찰리 린드그렌",
+    "en": "Charlie Lindgren",
+    "pos": "G",
+    "no": 79
+  },
+  "318q6wb7d00mo9j": {
+    "ko": "찰리 매커보이",
+    "en": "Charlie McAvoy",
+    "pos": "D",
+    "no": 73
+  },
+  "ednm95bdlvzryox": {
+    "ko": "찰리 코일",
+    "en": "Charlie Coyle",
+    "pos": "C",
+    "no": 3
+  },
+  "vjxm87b2ojkr6od": {
+    "ko": "챈들러 스티펜슨",
+    "en": "Chandler Stephenson",
+    "pos": "C",
+    "no": 9
+  },
+  "k82reebep67repz": {
+    "ko": "체이스 스틸먼",
+    "en": "Chase Stillman",
+    "pos": "RW",
+    "no": 49
+  },
+  "1l4rj1b3deor7vx": {
+    "ko": "카렐 베이멜카",
+    "en": "Karel Vejmelka",
+    "pos": "G",
+    "no": 70
+  },
+  "dj2ry0b4p00q1zp": {
+    "ko": "카메론 크로티",
+    "en": "Cameron Crotty",
+    "pos": "D",
+    "no": 5
+  },
+  "n54ql0bkw4eqvy9": {
+    "ko": "카스페리 카파넨",
+    "en": "Kasperi Kapanen",
+    "pos": "RW",
+    "no": 42
+  },
+  "1l4rj1b3dolr7vx": {
+    "ko": "카슨 수시",
+    "en": "Carson Soucy",
+    "pos": "D"
+  },
+  "x7lm78bvy73q2wd": {
+    "ko": "카일 맥클린",
+    "en": "Kyle MacLean",
+    "pos": "C",
+    "no": 32
+  },
+  "vjxm87b98o9r6od": {
+    "ko": "카일 카포비앙코",
+    "en": "Kyle Capobianco",
+    "pos": "D",
+    "no": 20
+  },
+  "3glrwdblg7xqdyj": {
+    "ko": "카일 코너",
+    "en": "Kyle Connor",
+    "pos": "LW",
+    "no": 81
+  },
+  "x7lm78b76v7q2wd": {
+    "ko": "카일 키저",
+    "en": "Kyle Keyser",
+    "pos": "G",
+    "no": 85
+  },
+  "4jwq2lb6xgwr0ve": {
+    "ko": "카일 팔미에리",
+    "en": "Kyle Palmieri",
+    "pos": "C",
+    "no": 21
+  },
+  "zp5rzyb2d5pq82w": {
+    "ko": "카일러 야마모토",
+    "en": "Kailer Yamamoto",
+    "pos": "RW",
+    "no": 56
+  },
+  "x7lm78b76evq2wd": {
+    "ko": "카터 매주르",
+    "en": "Carter Mazur",
+    "pos": "LW",
+    "no": 34
+  },
+  "pxwrx0b2wp5ryk0": {
+    "ko": "카터 베라이게",
+    "en": "Carter Verhaeghe",
+    "pos": "C",
+    "no": 23
+  },
+  "8yomodbj8dvq0j6": {
+    "ko": "카터 베어",
+    "en": "Carter Bear",
+    "pos": "LW",
+    "no": 41
+  },
+  "4jwq2lbdpd6r0ve": {
+    "ko": "카터 야켐추크",
+    "en": "Carter Yakemchuk",
+    "pos": "D",
+    "no": 26
+  },
+  "dn1m15bodenqoep": {
+    "ko": "카터 하트",
+    "en": "Carter Hart",
+    "pos": "G",
+    "no": 79
+  },
+  "6ypq3vbgw28rd7o": {
+    "ko": "카포 카코",
+    "en": "Kaapo Kakko",
+    "pos": "RW",
+    "no": 84
+  },
+  "23xmv0bw4gwrg8n": {
+    "ko": "칼 그룬드스트롬",
+    "en": "Carl Grundstrom",
+    "pos": "RW",
+    "no": 91
+  },
+  "n54ql0b136xqvy9": {
+    "ko": "캐머론 휴즈",
+    "en": "Cameron Hughes",
+    "pos": "C",
+    "no": 34
+  },
+  "dj2ry0b4p90q1zp": {
+    "ko": "캔드레 밀러",
+    "en": "K'Andre Miller",
+    "pos": "D",
+    "no": 19
+  },
+  "pxwrx0bn877ryk0": {
+    "ko": "캘럼 리치",
+    "en": "Calum Ritchie",
+    "pos": "C",
+    "no": 64
+  },
+  "1l4rj1b5dewr7vx": {
+    "ko": "캘빈 피카드",
+    "en": "Calvin Pickard",
+    "pos": "G",
+    "no": 31
+  },
+  "vjxm87bzye5r6od": {
+    "ko": "캠 룬드",
+    "en": "Cam Lund",
+    "pos": "C",
+    "no": 46
+  },
+  "zp5rzyb0njpq82w": {
+    "ko": "캠 요크",
+    "en": "Cam York",
+    "pos": "D",
+    "no": 8
+  },
+  "x7lm78b52zgq2wd": {
+    "ko": "캠 탤봇",
+    "en": "Cam Talbot",
+    "pos": "G",
+    "no": 33
+  },
+  "n54ql0b9880qvy9": {
+    "ko": "캠 파울러",
+    "en": "Cam Fowler",
+    "pos": "D",
+    "no": 17
+  },
+  "ednm95bdpwdryox": {
+    "ko": "커비 닥",
+    "en": "Kirby Dach",
+    "pos": "C",
+    "no": 77
+  },
+  "zp5rzyb6wywq82w": {
+    "ko": "커터 고티에",
+    "en": "Cutter Gauthier",
+    "pos": "LW",
+    "no": 61
+  },
+  "4jwq2lbwyjvr0ve": {
+    "ko": "커티스 더글러스",
+    "en": "Curtis Douglas",
+    "pos": "C",
+    "no": 42
+  },
+  "dj2ry0b5g59q1zp": {
+    "ko": "커티스 맥더미드",
+    "en": "Kurtis MacDermid",
+    "pos": "LW",
+    "no": 23
+  },
+  "1l4rj1b2x3xr7vx": {
+    "ko": "케빈 랑키넨",
+    "en": "Kevin Lankinen",
+    "pos": "G",
+    "no": 32
+  },
+  "1l4rj1b5g46r7vx": {
+    "ko": "케빈 발",
+    "en": "Kevin Bahl",
+    "pos": "D",
+    "no": 7
+  },
+  "dj2ry0bd3v5q1zp": {
+    "ko": "케빈 스텐룬드",
+    "en": "Kevin Stenlund",
+    "pos": "C",
+    "no": 82
+  },
+  "vjxm87b5w4pr6od": {
+    "ko": "케빈 코르친스키",
+    "en": "Kevin Korchinski",
+    "pos": "D",
+    "no": 14
+  },
+  "ednm95bdpl7ryox": {
+    "ko": "케빈 피알라",
+    "en": "Kevin Fiala",
+    "pos": "LW",
+    "no": 22
+  },
+  "2y8m43bn239rl07": {
+    "ko": "케이던 코르차크",
+    "en": "Kaedan Korczak",
+    "pos": "D",
+    "no": 6
+  },
+  "1l4rj1b28xlr7vx": {
+    "ko": "케이든 굴",
+    "en": "Kaiden Guhle",
+    "pos": "D",
+    "no": 21
+  },
+  "zp5rzyb0p60q82w": {
+    "ko": "케이든 프리모",
+    "en": "Cayden Primeau",
+    "pos": "G",
+    "no": 55
+  },
+  "y0or5xbj3p5mwzv": {
+    "ko": "케이시 드스미스",
+    "en": "Casey DeSmith",
+    "pos": "G",
+    "no": 1
+  },
+  "y0or5xb6971mwzv": {
+    "ko": "케이시 미텔슈타트",
+    "en": "Casey Mittelstadt",
+    "pos": "C",
+    "no": 11
+  },
+  "23xmv0bglzwrg8n": {
+    "ko": "케이시 시지카스",
+    "en": "Casey Cizikas",
+    "pos": "C",
+    "no": 53
+  },
+  "dn1m15bogw5qoep": {
+    "ko": "케일 머카",
+    "en": "Cale Makar",
+    "pos": "D",
+    "no": 8
+  },
+  "23xmv0bwk8grg8n": {
+    "ko": "케일 플뢰리",
+    "en": "Cale Fleury",
+    "pos": "D",
+    "no": 8
+  },
+  "1l4rj1bl7p7r7vx": {
+    "ko": "켄트 존슨",
+    "en": "Kent Johnson",
+    "pos": "C",
+    "no": 91
+  },
+  "318q6wb7386mo9j": {
+    "ko": "코너 갈랜드",
+    "en": "Conor Garland",
+    "pos": "RW",
+    "no": 83
+  },
+  "1l4rj1bgo01r7vx": {
+    "ko": "코너 기키",
+    "en": "Conor Geekie",
+    "pos": "C",
+    "no": 94
+  },
+  "vjxm87b30edr6od": {
+    "ko": "코너 듀어",
+    "en": "Connor Dewar",
+    "pos": "C",
+    "no": 19
+  },
+  "jw2r0obpg90rz84": {
+    "ko": "코너 맥데이비드",
+    "en": "Connor McDavid",
+    "pos": "C",
+    "no": 97
+  },
+  "6ypq3vbgwklrd7o": {
+    "ko": "코너 맥마이클",
+    "en": "Connor McMichael",
+    "pos": "C",
+    "no": 77
+  },
+  "pxwrx0b20xkryk0": {
+    "ko": "코너 머피",
+    "en": "Connor Murphy",
+    "pos": "D",
+    "no": 5
+  },
+  "318q6wbgep0mo9j": {
+    "ko": "코너 베다르",
+    "en": "Connor Bedard",
+    "pos": "C",
+    "no": 98
+  },
+  "dj2ry0b5g0dq1zp": {
+    "ko": "코너 브라운",
+    "en": "Connor Brown",
+    "pos": "RW",
+    "no": 16
+  },
+  "l5erg6b574kq8k0": {
+    "ko": "코너 셰어리",
+    "en": "Conor Sheary",
+    "pos": "LW",
+    "no": 43
+  },
+  "23xmv0bwekwrg8n": {
+    "ko": "코너 자리",
+    "en": "Connor Zary",
+    "pos": "C",
+    "no": 47
+  },
+  "y39mp9bk811rojx": {
+    "ko": "코너 클리프턴",
+    "en": "Connor Clifton",
+    "pos": "D",
+    "no": 75
+  },
+  "zp5rzyb29odq82w": {
+    "ko": "코너 팀스",
+    "en": "Conor Timmins",
+    "pos": "D",
+    "no": 21
+  },
+  "1l4rj1b3djyr7vx": {
+    "ko": "코너 헬러벅",
+    "en": "Connor Hellebuyck",
+    "pos": "G",
+    "no": 37
+  },
+  "ednm95bx402ryox": {
+    "ko": "코디 글래스",
+    "en": "Cody Glass",
+    "pos": "C",
+    "no": 12
+  },
+  "1l4rj1b3dglr7vx": {
+    "ko": "코디 체치",
+    "en": "Cody Ceci",
+    "pos": "D",
+    "no": 5
+  },
+  "n54ql0bkyxyqvy9": {
+    "ko": "코리 페리",
+    "en": "Corey Perry",
+    "pos": "RW",
+    "no": 90
+  },
+  "4wyrn9bo24gm86p": {
+    "ko": "콘스타 헬레니우스",
+    "en": "Konsta Helenius",
+    "pos": "C",
+    "no": 94
+  },
+  "l7oqd2b2xl6r510": {
+    "ko": "콜 스미스",
+    "en": "Cole Smith",
+    "pos": "RW",
+    "no": 22
+  },
+  "23xmv0b0j1xrg8n": {
+    "ko": "콜 실링거",
+    "en": "Cole Sillinger",
+    "pos": "C",
+    "no": 4
+  },
+  "6ypq3vbg209rd7o": {
+    "ko": "콜 카우필드",
+    "en": "Cole Caufield",
+    "pos": "RW",
+    "no": 13
+  },
+  "y0or5xbngnomwzv": {
+    "ko": "콜 쾨프케",
+    "en": "Cole Koepke",
+    "pos": "LW",
+    "no": 45
+  },
+  "l5erg6b2el6q8k0": {
+    "ko": "콜 퍼펫티",
+    "en": "Cole Perfetti",
+    "pos": "C",
+    "no": 91
+  },
+  "4jwq2lbdj9jr0ve": {
+    "ko": "콜 허슨",
+    "en": "Cole Hutson",
+    "pos": "D",
+    "no": 44
+  },
+  "l5erg6bjzx3q8k0": {
+    "ko": "콜린 그래프",
+    "en": "Collin Graf",
+    "pos": "RW",
+    "no": 51
+  },
+  "dj2ry0bexv8q1zp": {
+    "ko": "콜턴 닥",
+    "en": "Colton Dach",
+    "pos": "C",
+    "no": 34
+  },
+  "dn1m15boggdqoep": {
+    "ko": "콜턴 시손스",
+    "en": "Colton Sissons",
+    "pos": "C",
+    "no": 15
+  },
+  "1l4rj1b3d8gr7vx": {
+    "ko": "콜턴 퍼레이코",
+    "en": "Colton Parayko",
+    "pos": "D",
+    "no": 55
+  },
+  "4jwq2lbwjd3r0ve": {
+    "ko": "콜튼 엘리스",
+    "en": "Colten Ellis",
+    "pos": "G",
+    "no": 92
+  },
+  "6ypq3vb8ooprd7o": {
+    "ko": "퀜틴 머스티",
+    "en": "Quentin Musty",
+    "pos": "LW",
+    "no": 13
+  },
+  "4jwq2lb05yzr0ve": {
+    "ko": "퀸 휴스",
+    "en": "Quinn Hughes",
+    "pos": "D",
+    "no": 43
+  },
+  "4wyrn9b04o1m86p": {
+    "ko": "퀸턴 바이필드",
+    "en": "Quinton Byfield",
+    "pos": "RW",
+    "no": 55
+  },
+  "l5erg6b57lkq8k0": {
+    "ko": "크리스 러탱",
+    "en": "Kris Letang",
+    "pos": "D",
+    "no": 58
+  },
+  "4wyrn9b046jm86p": {
+    "ko": "크리스 크라이더",
+    "en": "Chris Kreider",
+    "pos": "LW",
+    "no": 22
+  },
+  "23xmv0bgljwrg8n": {
+    "ko": "크리스토퍼 타네프",
+    "en": "Christopher Tanev",
+    "pos": "D",
+    "no": 8
+  },
+  "dj2ry0bd99wq1zp": {
+    "ko": "크리스티안 드보라크",
+    "en": "Christian Dvorak",
+    "pos": "C",
+    "no": 22
+  },
+  "y39mp9bog5orojx": {
+    "ko": "클레이 스티븐슨",
+    "en": "Clay Stevenson",
+    "pos": "G",
+    "no": 33
+  },
+  "jw2r0obpg3zrz84": {
+    "ko": "클레이턴 켈러",
+    "en": "Clayton Keller",
+    "pos": "RW",
+    "no": 9
+  },
+  "6ypq3vb4d57rd7o": {
+    "ko": "클로드 지루",
+    "en": "Claude Giroux",
+    "pos": "RW",
+    "no": 28
+  },
+  "dn1m15b714eqoep": {
+    "ko": "키건 콜레자르",
+    "en": "Keegan Kolesar",
+    "pos": "RW",
+    "no": 55
+  },
+  "6ypq3vb4dx3rd7o": {
+    "ko": "키릴 마르첸코",
+    "en": "Kirill Marchenko",
+    "pos": "RW"
+  },
+  "1l4rj1b3g75r7vx": {
+    "ko": "키릴 카프리조프",
+    "en": "Kirill Kaprizov",
+    "pos": "LW",
+    "no": 97
+  },
+  "3glrwdblez5qdyj": {
+    "ko": "키릴 키르사노프",
+    "en": "Kirill Kirsanov",
+    "pos": "D",
+    "no": 78
+  },
+  "318q6wbn4w1mo9j": {
+    "ko": "키퍼 셔우드",
+    "en": "Kiefer Sherwood",
+    "pos": "LW",
+    "no": 44
+  },
+  "y0or5xb0p21mwzv": {
+    "ko": "타이 델란드레아",
+    "en": "Ty Dellandrea",
+    "pos": "C",
+    "no": 10
+  },
+  "y39mp9bzkgerojx": {
+    "ko": "타이 엠버슨",
+    "en": "Ty Emberson",
+    "pos": "D",
+    "no": 49
+  },
+  "zp5rzybov3kq82w": {
+    "ko": "타이럴 바우어",
+    "en": "Tyrel Bauer",
+    "pos": "D",
+    "no": 77
+  },
+  "4wyrn9bwp4pm86p": {
+    "ko": "타이슨 코작",
+    "en": "Tyson Kozak",
+    "pos": "C",
+    "no": 48
+  },
+  "6ypq3vbg2l0rd7o": {
+    "ko": "타이슨 포스터",
+    "en": "Tyson Foerster",
+    "pos": "RW",
+    "no": 71
+  },
+  "y0or5xb8n32mwzv": {
+    "ko": "타이슨 힌즈",
+    "en": "Tyson Hinds",
+    "pos": "D",
+    "no": 55
+  },
+  "3glrwdblgejqdyj": {
+    "ko": "타일러 마이어스",
+    "en": "Tyler Myers",
+    "pos": "D",
+    "no": 57
+  },
+  "y0or5xbj3jxmwzv": {
+    "ko": "타일러 베르투찌",
+    "en": "Tyler Bertuzzi",
+    "pos": "LW",
+    "no": 59
+  },
+  "dn1m15bogj5qoep": {
+    "ko": "타일러 세긴",
+    "en": "Tyler Seguin",
+    "pos": "C",
+    "no": 91
+  },
+  "3glrwdb0xzjqdyj": {
+    "ko": "타일러 클레븐",
+    "en": "Tyler Kleven",
+    "pos": "D",
+    "no": 43
+  },
+  "6ypq3vbe87prd7o": {
+    "ko": "타일러 터커",
+    "en": "Tyler Tucker",
+    "pos": "D",
+    "no": 75
+  },
+  "2y8m43b4971rl07": {
+    "ko": "타일러 토폴리",
+    "en": "Tyler Toffoli",
+    "pos": "C",
+    "no": 73
+  },
+  "4wyrn9b2w4gm86p": {
+    "ko": "태너 장노",
+    "en": "Tanner Jeannot",
+    "pos": "LW",
+    "no": 84
+  },
+  "n54ql0bw019qvy9": {
+    "ko": "테디 블루거",
+    "en": "Teddy Blueger",
+    "pos": "C",
+    "no": 73
+  },
+  "23xmv0b01lgrg8n": {
+    "ko": "테오 린드슈타인",
+    "en": "Theo Lindstein",
+    "pos": "D",
+    "no": 4
+  },
+  "6ypq3vb4px1rd7o": {
+    "ko": "테우보 테래배이넨",
+    "en": "Teuvo Teravainen",
+    "pos": "C",
+    "no": 86
+  },
+  "vjxm87b98wjr6od": {
+    "ko": "테이지 톰프슨",
+    "en": "Tage Thompson",
+    "pos": "C",
+    "no": 72
+  },
+  "jw2r0obe66prz84": {
+    "ko": "테일러 마카르",
+    "en": "Taylor Makar",
+    "pos": "LW",
+    "no": 16
+  },
+  "vjxm87b27kyr6od": {
+    "ko": "테일러 홀",
+    "en": "Taylor Hall",
+    "pos": "LW",
+    "no": 71
+  },
+  "6ypq3vbgwonrd7o": {
+    "ko": "토마스 샤보",
+    "en": "Thomas Chabot",
+    "pos": "D",
+    "no": 72
+  },
+  "n54ql0b98k2qvy9": {
+    "ko": "토마스 허틀",
+    "en": "Tomas Hertl",
+    "pos": "C",
+    "no": 48
+  },
+  "y39mp9bpy06rojx": {
+    "ko": "토머스 할리",
+    "en": "Thomas Harley",
+    "pos": "D",
+    "no": 55
+  },
+  "l5erg6bydn0q8k0": {
+    "ko": "토미 노박",
+    "en": "Tommy Novak",
+    "pos": "C",
+    "no": 18
+  },
+  "l5erg6bl5x2q8k0": {
+    "ko": "톰 윌란더",
+    "en": "Tom Willander",
+    "pos": "D",
+    "no": 5
+  },
+  "zp5rzyb2exyq82w": {
+    "ko": "톰 윌슨",
+    "en": "Tom Wilson",
+    "pos": "RW",
+    "no": 43
+  },
+  "y0or5xb0w7zmwzv": {
+    "ko": "트래비스 샌하임",
+    "en": "Travis Sanheim",
+    "pos": "D",
+    "no": 6
+  },
+  "1l4rj1b3pk6r7vx": {
+    "ko": "트래비스 코네츠니",
+    "en": "Travis Konecny",
+    "pos": "RW",
+    "no": 11
+  },
+  "3glrwdb0y0vqdyj": {
+    "ko": "트레버 무어",
+    "en": "Trevor Moore",
+    "pos": "LW",
+    "no": 12
+  },
+  "l5erg6b2zokq8k0": {
+    "ko": "트레버 제그라스",
+    "en": "Trevor Zegras",
+    "pos": "C",
+    "no": 46
+  },
+  "1l4rj1bpv90r7vx": {
+    "ko": "트레버 코넬리",
+    "en": "Trevor Connelly",
+    "pos": "LW",
+    "no": 24
+  },
+  "l7oqd2bezyer510": {
+    "ko": "트레버 판 림스다이크",
+    "en": "Trevor Van Riemsdyk",
+    "pos": "D",
+    "no": 57
+  },
+  "pxwrx0bnk13ryk0": {
+    "ko": "트렌트 마이너",
+    "en": "Trent Miner",
+    "pos": "G",
+    "no": 50
+  },
+  "k82reebno62repz": {
+    "ko": "트렌트 프레더릭",
+    "en": "Trent Frederic",
+    "pos": "C",
+    "no": 10
+  },
+  "vjxm87b27d8r6od": {
+    "ko": "트로이 스테처",
+    "en": "Troy Stecher",
+    "pos": "D",
+    "no": 28
+  },
+  "1l4rj1b2xl5r7vx": {
+    "ko": "트로이 테리",
+    "en": "Troy Terry",
+    "pos": "RW",
+    "no": 19
+  },
+  "dj2ry0b1ndzq1zp": {
+    "ko": "트리스탄 루노",
+    "en": "Tristan Luneau",
+    "pos": "D",
+    "no": 67
+  },
+  "6ypq3vb89zzrd7o": {
+    "ko": "트리스탄 베르투치",
+    "en": "Tristan Bertucci",
+    "pos": "D",
+    "no": 42
+  },
+  "1l4rj1b3djkr7vx": {
+    "ko": "트리스탄 재리",
+    "en": "Tristan Jarry",
+    "pos": "G",
+    "no": 35
+  },
+  "k82reebnon6repz": {
+    "ko": "티모 마이어",
+    "en": "Timo Meier",
+    "pos": "RW",
+    "no": 28
+  },
+  "y39mp9bpyz6rojx": {
+    "ko": "티모시 릴예그렌",
+    "en": "Timothy Liljegren",
+    "pos": "D",
+    "no": 37
+  },
+  "zp5rzybj71dpq82": {
+    "ko": "티제이 휴즈",
+    "en": "T.J. Hughes",
+    "pos": "RW",
+    "no": 13
+  },
+  "2y8m43bn1e7rl07": {
+    "ko": "팀 슈츨레",
+    "en": "Tim Stutzle",
+    "pos": "C",
+    "no": 18
+  },
+  "k82reeb84o8repz": {
+    "ko": "파벨 도로페예프",
+    "en": "Pavel Dorofeyev",
+    "pos": "RW",
+    "no": 16
+  },
+  "ednm95boygwryox": {
+    "ko": "파벨 민튜코프",
+    "en": "Pavel Mintyukov",
+    "pos": "D",
+    "no": 98
+  },
+  "zp5rzyb0pogq82w": {
+    "ko": "파벨 부크네비치",
+    "en": "Pavel Buchnevich",
+    "pos": "LW",
+    "no": 89
+  },
+  "ednm95b6vopryox": {
+    "ko": "파벨 자하",
+    "en": "Pavel Zacha",
+    "pos": "C",
+    "no": 18
+  },
+  "pxwrx0b7zjkryk0": {
+    "ko": "파비안 제터룬드",
+    "en": "Fabian Zetterlund",
+    "pos": "LW",
+    "no": 20
+  },
+  "l7oqd2b2x5vr510": {
+    "ko": "파커 워더스푼",
+    "en": "Parker Wotherspoon",
+    "pos": "D",
+    "no": 29
+  },
+  "l7oqd2b2x9zr510": {
+    "ko": "파커 켈리",
+    "en": "Parker Kelly",
+    "pos": "C",
+    "no": 17
+  },
+  "vjxm87blpl9r6od": {
+    "ko": "패트릭 자일스",
+    "en": "Patrick Giles",
+    "pos": "RW",
+    "no": 54
+  },
+  "8yomodb564yq0j6": {
+    "ko": "패트릭 케인",
+    "en": "Patrick Kane",
+    "pos": "RW",
+    "no": 88
+  },
+  "8yomodb4j07q0j6": {
+    "ko": "페도르 스베치코프",
+    "en": "Fedor Svechkov",
+    "pos": "C",
+    "no": 9
+  },
+  "1l4rj1b286kr7vx": {
+    "ko": "페이턴 크렙스",
+    "en": "Peyton Krebs",
+    "pos": "C",
+    "no": 19
+  },
+  "x7lm78bd23gq2wd": {
+    "ko": "포터 마르톤",
+    "en": "Porter Martone",
+    "pos": "RW",
+    "no": 94
+  },
+  "n54ql0bko27qvy9": {
+    "ko": "폰투스 홀름베리",
+    "en": "Pontus Holmberg",
+    "pos": "RW",
+    "no": 29
+  },
+  "ednm95bxojwryox": {
+    "ko": "폴 코터",
+    "en": "Paul Cotter",
+    "pos": "LW",
+    "no": 47
+  },
+  "4wyrn9b71xpm86p": {
+    "ko": "표트르 코체트코프",
+    "en": "Pyotr Kochetkov",
+    "pos": "G",
+    "no": 52
+  },
+  "n54ql0bwx49qvy9": {
+    "ko": "프랭크 나자르",
+    "en": "Frank Nazar",
+    "pos": "C",
+    "no": 91
+  },
+  "jw2r0ob93k6rz84": {
+    "ko": "프랭크 바트라노",
+    "en": "Frank Vatrano",
+    "pos": "RW",
+    "no": 77
+  },
+  "2y8m43b4ev9rl07": {
+    "ko": "프레데리크 안데르센",
+    "en": "Frederik Andersen",
+    "pos": "G",
+    "no": 30
+  },
+  "l5erg6byk8eq8k0": {
+    "ko": "프레데릭 고드로",
+    "en": "Frederick Gaudreau",
+    "pos": "C",
+    "no": 89
+  },
+  "4jwq2lbwjl0r0ve": {
+    "ko": "프레데릭 브뤼네",
+    "en": "Frederic Brunet",
+    "pos": "D",
+    "no": 42
+  },
+  "318q6wb2joymo9j": {
+    "ko": "프레이저 민턴",
+    "en": "Fraser Minten",
+    "pos": "C",
+    "no": 93
+  },
+  "6ypq3vbddd4rd7o": {
+    "ko": "플로리앙 제카즈",
+    "en": "Florian Xhekaj",
+    "pos": "LW",
+    "no": 63
+  },
+  "dj2ry0bd9pwq1zp": {
+    "ko": "피에르뤼크 뒤부아",
+    "en": "Pierre-Luc Dubois",
+    "pos": "LW",
+    "no": 80
+  },
+  "dj2ry0b5d3oq1zp": {
+    "ko": "피우스 수터",
+    "en": "Pius Suter",
+    "pos": "C",
+    "no": 22
+  },
+  "k82reeb8do1repz": {
+    "ko": "필리프 그루바워",
+    "en": "Philipp Grubauer",
+    "pos": "G",
+    "no": 31
+  },
+  "6ypq3vb497nrd7o": {
+    "ko": "필리프 흐로넥",
+    "en": "Filip Hronek",
+    "pos": "D",
+    "no": 17
+  },
+  "zp5rzyb2dw8q82w": {
+    "ko": "필립 다노",
+    "en": "Phillip Danault",
+    "pos": "C",
+    "no": 24
+  },
+  "3glrwdbl2ywqdyj": {
+    "ko": "필립 브로베리",
+    "en": "Philip Broberg",
+    "pos": "D",
+    "no": 6
+  },
+  "965mknb1ej3m1ge": {
+    "ko": "필립 키틸",
+    "en": "Filip Chytil",
+    "pos": "C",
+    "no": 77
+  },
+  "6ypq3vb4pv9rd7o": {
+    "ko": "필립 포르스베리",
+    "en": "Filip Forsberg",
+    "pos": "LW",
+    "no": 9
+  },
+  "965mknbgd50m1ge": {
+    "ko": "필립 할란더",
+    "en": "Filip Hallander",
+    "pos": "C",
+    "no": 11
+  },
+  "1l4rj1b8d98r7vx": {
+    "ko": "해리슨 스콧",
+    "en": "Harrison Scott",
+    "pos": "C",
+    "no": 37
+  },
+  "8yomodb9v0oq0j6": {
+    "ko": "햄푸스 린홀름",
+    "en": "Hampus Lindholm",
+    "pos": "D",
+    "no": 27
+  },
+  "k82reeb8j7krepz": {
+    "ko": "헤이든 플레우리",
+    "en": "Haydn Fleury",
+    "pos": "D",
+    "no": 24
+  },
+  "n54ql0b3gl8qvy9": {
+    "ko": "헤이든 하지슨",
+    "en": "Hayden Hodgson",
+    "pos": "RW",
+    "no": 42
+  },
+  "3glrwdb0y4lqdyj": {
+    "ko": "헨드릭스 라피에르",
+    "en": "Hendrix Lapierre",
+    "pos": "C",
+    "no": 22
+  }
 }

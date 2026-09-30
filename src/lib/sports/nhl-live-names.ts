@@ -8,9 +8,9 @@ import rawKhl from "../../../data/khl-player-names.json";
 // 유럽 하키(리가·스위스·체코·슬로바키아·덴마크·CHL) — build-khl-players --eu 가 내는 슬림 사전 (2026-09-29)
 import rawEu from "../../../data/hockey-eu-player-names.json";
 
-const MAP = raw as Record<string, { ko: string; en: string; pos?: string }>;
-const KHL_MAP = rawKhl as Record<string, { ko: string; en: string; pos?: string }>;
-const EU_MAP = rawEu as Record<string, { ko: string; en: string; pos?: string }>;
+const MAP = raw as Record<string, { ko: string; en: string; pos?: string; no?: number }>;
+const KHL_MAP = rawKhl as Record<string, { ko: string; en: string; pos?: string; no?: number }>;
+const EU_MAP = rawEu as Record<string, { ko: string; en: string; pos?: string; no?: number }>;
 
 /** player_id → 한글 이름 (없으면 영문, 둘 다 없으면 빈 문자열) */
 export function nhlPlayerKo(id: string | undefined | null): string {
@@ -22,7 +22,7 @@ export function nhlPlayerKo(id: string | undefined | null): string {
 /** player_id → 전체 정보 (한글·영문·포지션) */
 export function nhlPlayerInfo(
   id: string | undefined | null,
-): { ko: string; en: string; pos?: string } | null {
+): { ko: string; en: string; pos?: string; no?: number } | null {
   if (!id) return null;
   return MAP[id] ?? KHL_MAP[id] ?? EU_MAP[id] ?? null;
 }

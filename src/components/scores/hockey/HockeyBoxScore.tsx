@@ -1,12 +1,14 @@
 // 하키 선수 박스스코어 — TheSports detailLive.players (home/away).
-// 선수별 stat: 20(1골리/2스케이터)·26골·27어시·56(+/-)·28유효슛·23 TOI(초)·24세이브·25 SV%.
-// player_id → 한글(nhl-live-names). 홈/원정 탭 전환.
+// 선수별 stat: 20(1골리/2스케이터)·21포인트·22 PIM·23 TOI(초)·26골·27어시·28유효슛·29히트·30블록·32 FO%·56(+/-)
+//   ·78 턴오버·79 가로채기·24세이브·25 SV% (2026-09-30 ESPN 박스스코어와 선수별 대조로 확정).
+// player_id → 한글·포지션·등번호(nhl-live-names). 평점은 ts 미제공이라 자체 계산(lib/sports/hockey/game-score). 홈/원정 탭 전환.
 
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { nhlPlayerInfo } from "@/lib/sports/nhl-live-names";
+import { goalieRating, ratingColor, skaterRating } from "@/lib/sports/hockey/game-score";
 
 export interface HockeyPlayerRow {
   id: string;
@@ -40,9 +42,39 @@ function svPct(v?: number): string {
   return (v > 1 ? v : v * 100).toFixed(1) + "%";
 }
 
-function name(id: string): { ko: string; pos?: string } {
+function name(id: string): { ko: string; pos?: string; no?: number } {
   const info = nhlPlayerInfo(id);
-  return { ko: info?.ko || info?.en || "선수", pos: info?.pos };
+  return { ko: info?.ko || info?.en || "선수", pos: info?.pos, no: info?.no };
+}
+
+function RatingChip({ r }: { r: number }) {
+  return (
+    <span className="inline-block min-w-[2.1rem] rounded px-1 py-0.5 text-[11px] font-bold tabular-nums text-white" style={{ background: ratingColor(r) }}>
+      {r.toFixed(1)}
+    </span>
+  );
+}
+
+function NameCell({ id, league }: { id: string; league?: string }) {
+  const n = name(id);
+  return (
+    <td className="py-1.5 pl-1 max-w-0 w-full">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="w-5 shrink-0 text-right text-[10px] tabular-nums text-neutral-400">{n.no ?? ""}</span>
+        <span className="truncate"><PlayerName id={id} ko={n.ko} league={league} /></span>
+        {n.pos && <span className="shrink-0 rounded bg-neutral-100 px-1 text-[9px] font-bold text-neutral-500 dark:bg-white/10 dark:text-neutral-400">{n.pos}</span>}
+      </div>
+    </td>
+  );
+}
+
+function goalsAgainst(r: HockeyPlayerRow): number | null {
+  const sv = stat(r, 24);
+  const pct = stat(r, 25);
+  if (sv == null || pct == null) return null;
+  const p = pct > 1 ? pct / 100 : pct;
+  if (p <= 0) return null;
+  return Math.max(0, Math.round(sv / p - sv));
 }
 
 function SkaterTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: string }) {
@@ -57,25 +89,28 @@ function SkaterTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: strin
   return (
     <table className="w-full text-xs border-separate border-spacing-0">
       <thead>
-        <tr className="text-[10px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
+        <tr className="text-[10px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10 [&>th]:whitespace-nowrap">
           <th className="text-left py-1.5 pl-1 font-semibold">선수</th>
           <th className="text-center py-1.5 px-1 font-semibold w-7">골</th>
           <th className="text-center py-1.5 px-1 font-semibold w-7">도움</th>
           <th className="text-center py-1.5 px-1 font-semibold w-8">+/-</th>
-          <th className="text-center py-1.5 px-1 font-semibold w-8 whitespace-nowrap">유효슛</th>
-          <th className="text-right py-1.5 pr-1 font-semibold w-12">출전</th>
+          <th className="text-center py-1.5 px-1 font-semibold w-8">슈팅</th>
+          <th className="hidden sm:table-cell text-center py-1.5 px-1 font-semibold w-8">히트</th>
+          <th className="hidden sm:table-cell text-center py-1.5 px-1 font-semibold w-8">블록</th>
+          <th className="text-right py-1.5 px-1 font-semibold w-11">출전</th>
+          <th className="text-right py-1.5 pr-1 font-semibold w-11">평점</th>
         </tr>
       </thead>
       <tbody>
         {skaters.map((r) => {
-          const n = name(r.id);
           const pm = stat(r, 56);
+          const rating = skaterRating({
+            g: stat(r, 26) ?? 0, a: stat(r, 27) ?? 0, sog: stat(r, 28) ?? 0,
+            blk: stat(r, 30) ?? 0, pim: stat(r, 22) ?? 0, pm: pm ?? 0,
+          });
           return (
             <tr key={r.id} className="border-b border-neutral-100 dark:border-white/5">
-              <td className="py-1.5 pl-1">
-                <PlayerName id={r.id} ko={n.ko} league={league} />
-                {n.pos && <span className="text-neutral-400 text-[10px] ml-1">{n.pos}</span>}
-              </td>
+              <NameCell id={r.id} league={league} />
               <td className="text-center py-1.5 px-1 tabular-nums font-bold">{stat(r, 26) ?? 0}</td>
               <td className="text-center py-1.5 px-1 tabular-nums">{stat(r, 27) ?? 0}</td>
               <td
@@ -84,7 +119,10 @@ function SkaterTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: strin
                 {pm == null ? "—" : pm > 0 ? `+${pm}` : pm}
               </td>
               <td className="text-center py-1.5 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{stat(r, 28) ?? 0}</td>
-              <td className="text-right py-1.5 pr-1 tabular-nums text-neutral-500">{toi(stat(r, 23))}</td>
+              <td className="hidden sm:table-cell text-center py-1.5 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{stat(r, 29) ?? 0}</td>
+              <td className="hidden sm:table-cell text-center py-1.5 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{stat(r, 30) ?? 0}</td>
+              <td className="text-right py-1.5 px-1 tabular-nums text-neutral-500">{toi(stat(r, 23))}</td>
+              <td className="text-right py-1.5 pr-1"><RatingChip r={rating} /></td>
             </tr>
           );
         })}
@@ -101,22 +139,26 @@ function GoalieTable({ rows, league }: { rows: HockeyPlayerRow[]; league?: strin
       <h3 className="text-[11px] font-bold text-neutral-500 mb-1">골리</h3>
       <table className="w-full text-xs border-separate border-spacing-0">
         <thead>
-          <tr className="text-[10px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
+          <tr className="text-[10px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10 [&>th]:whitespace-nowrap">
             <th className="text-left py-1.5 pl-1 font-semibold">선수</th>
             <th className="text-center py-1.5 px-1 font-semibold w-10">세이브</th>
+            <th className="text-center py-1.5 px-1 font-semibold w-8">실점</th>
             <th className="text-center py-1.5 px-1 font-semibold w-12">선방률</th>
-            <th className="text-right py-1.5 pr-1 font-semibold w-12">출전</th>
+            <th className="text-right py-1.5 px-1 font-semibold w-11">출전</th>
+            <th className="text-right py-1.5 pr-1 font-semibold w-11">평점</th>
           </tr>
         </thead>
         <tbody>
           {goalies.map((r) => {
-            const n = name(r.id);
+            const ga = goalsAgainst(r);
             return (
               <tr key={r.id} className="border-b border-neutral-100 dark:border-white/5">
-                <td className="py-1.5 pl-1"><PlayerName id={r.id} ko={n.ko} league={league} /></td>
+                <NameCell id={r.id} league={league} />
                 <td className="text-center py-1.5 px-1 tabular-nums">{stat(r, 24) ?? 0}</td>
+                <td className="text-center py-1.5 px-1 tabular-nums">{ga ?? "—"}</td>
                 <td className="text-center py-1.5 px-1 tabular-nums font-bold">{svPct(stat(r, 25))}</td>
-                <td className="text-right py-1.5 pr-1 tabular-nums text-neutral-500">{toi(stat(r, 23))}</td>
+                <td className="text-right py-1.5 px-1 tabular-nums text-neutral-500">{toi(stat(r, 23))}</td>
+                <td className="text-right py-1.5 pr-1">{ga != null ? <RatingChip r={goalieRating(stat(r, 24) ?? 0, ga)} /> : "—"}</td>
               </tr>
             );
           })}
@@ -163,6 +205,10 @@ export default function HockeyBoxScore({ players, homeNameKo, awayNameKo, player
 
       <SkaterTable rows={rows} league={playerLinkLeague} />
       <GoalieTable rows={rows} league={playerLinkLeague} />
+      <p className="mt-3 text-[10px] leading-relaxed text-neutral-500 break-keep">
+        평점은 TheSports 가 주지 않아 스코어베이스가 NHL Game Score 방식(골·도움·유효슛·블록·페널티·+/-, 골리는 세이브·실점)으로
+        계산했습니다. 6.3 이 보통, 경기 중에는 계속 바뀝니다.
+      </p>
     </section>
   );
 }

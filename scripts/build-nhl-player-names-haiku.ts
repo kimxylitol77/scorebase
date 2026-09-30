@@ -1,6 +1,7 @@
 // NHL player_id → 한국어 선수명 사전 (Haiku 음역) — 라이브/종료 매치 골 타임라인·박스스코어용.
-// 소스: NHL 매치 cache(detailLive.incidents/players)에 등장한 player_id
-//   → TheSports player/list?uuid 영문 → Haiku 한글.
+// 소스: NHL 32팀 TheSports team/squad/list(등번호·포지션) + NHL 매치 cache(detailLive.incidents/players)에 등장한 player_id
+//   → TheSports player/list?uuid 영문 → data/nhl-players.json 한글명 재사용 → 없으면 Haiku 한글.
+//   (2026-09-30: cache 만 보던 때 사전이 80명뿐이라 개막 직후 라이브 박스스코어 이름이 전부 "선수"로 떴다 — 스쿼드로 전원 선확보)
 // 출력: data/nhl-player-names-haiku.json { player_id: { ko, en, pos } } (멱등 머지).
 //   data/*.json 이라 mac-mini weekly-static-refresh 가 자동 갱신·push (코드 사전과 달리 무인 자동화).
 //   라이브페이지(Vercel)는 이 json 만 읽음 — TheSports 호출 불필요(IP whitelist 회피).
@@ -12,6 +13,7 @@ dotenv.config();
 import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { prisma } from "../src/lib/db";
+import teamMapping from "../src/lib/sports/thesports/ice-hockey-team-id-mapping.json";
 
 const BATCH = 50;
 const OUT = "data/nhl-player-names-haiku.json";
@@ -34,7 +36,10 @@ interface Entry {
   ko: string;
   en: string;
   pos?: string;
+  /** 등번호 (스쿼드 기준) */
+  no?: number;
 }
+type SquadInfo = { pos?: string; no?: number };
 interface AnthropicResp {
   content?: Array<{ text?: string }>;
 }
@@ -53,6 +58,42 @@ async function tsPlayer(uuid: string): Promise<{ name: string; pos?: string } | 
   } catch {
     return null;
   }
+}
+
+/** NHL 32팀 스쿼드 — player_id → 포지션(C·LW·RW·D·G)·등번호 */
+async function collectSquads(): Promise<Map<string, SquadInfo>> {
+  const teams = (teamMapping as Array<{ ourLeague: string; tsId: string }>).filter((t) => t.ourLeague === "NHL");
+  const out = new Map<string, SquadInfo>();
+  for (const t of teams) {
+    const u = new URL("https://api.thesports.com/v1/ice_hockey/team/squad/list");
+    u.searchParams.set("user", TS_USER);
+    u.searchParams.set("secret", TS_SECRET);
+    u.searchParams.set("uuid", t.tsId);
+    try {
+      const r = await fetch(u.toString(), { signal: AbortSignal.timeout(15000) });
+      const d = (await r.json()) as { results?: Array<{ squad?: Array<{ player_id?: string; position?: string; shirt_number?: number }> }> };
+      for (const s of d.results?.[0]?.squad ?? []) {
+        if (s.player_id) out.set(s.player_id, { pos: s.position || undefined, no: s.shirt_number || undefined });
+      }
+    } catch {
+      console.warn(`  ! squad ${t.tsId} 실패`);
+    }
+    await new Promise((r) => setTimeout(r, 260));
+  }
+  console.log(`▶ NHL 스쿼드 ${teams.length}팀 · 선수 ${out.size}`);
+  return out;
+}
+
+/** data/nhl-players.json(NHL 공식 id) 에 이미 있는 한글명 — 영문 이름으로 재사용해 Haiku 호출·표기 흔들림을 줄인다 */
+function knownKoByEn(): Map<string, string> {
+  const m = new Map<string, string>();
+  try {
+    const d = JSON.parse(readFileSync(resolve("data/nhl-players.json"), "utf8")) as Record<string, { name?: string; ko?: string }>;
+    for (const v of Object.values(d)) {
+      if (v.name && v.ko && v.ko !== v.name && /[가-힣]/.test(v.ko)) m.set(v.name.toLowerCase(), v.ko);
+    }
+  } catch {}
+  return m;
 }
 
 /** NHL 매치 cache 의 incidents/players 에 등장한 모든 player_id 수집 */
@@ -133,6 +174,8 @@ async function haikuTranslate(batch: Array<{ id: string; en: string }>): Promise
 async function main() {
   const ids = await collectPlayerIds();
   console.log(`▶ NHL cache 등장 player_id: ${ids.size}`);
+  const squads = await collectSquads();
+  for (const id of squads.keys()) ids.add(id);
 
   const outPath = resolve(OUT);
   let existing: Record<string, Entry> = {};
@@ -141,40 +184,58 @@ async function main() {
       existing = JSON.parse(readFileSync(outPath, "utf8")) as Record<string, Entry>;
     } catch {}
   }
-  let todo = [...ids].filter((id) => !(id in existing));
-  console.log(`▶ 신규 대상 ${todo.length} (기존 ${Object.keys(existing).length})`);
+  // 기존 항목도 포지션·등번호는 매번 스쿼드 최신값으로 (이적·번호 변경)
+  const merged: Record<string, Entry> = { ...existing };
+  let squadUpdated = 0;
+  for (const [id, sq] of squads) {
+    const e = merged[id];
+    if (!e) continue;
+    const pos = sq.pos ?? e.pos;
+    const no = sq.no ?? e.no;
+    if (pos !== e.pos || no !== e.no) { merged[id] = { ...e, pos, no }; squadUpdated++; }
+  }
+  // 한글명 없이 영문만 저장된 항목도 재시도 대상
+  let todo = [...ids].filter((id) => !(id in existing) || !existing[id].ko);
+  console.log(`▶ 신규 대상 ${todo.length} (기존 ${Object.keys(existing).length}, 스쿼드 갱신 ${squadUpdated})`);
   if (LIMIT > 0 && todo.length > LIMIT) {
     todo = todo.slice(0, LIMIT);
     console.log(`  LIMIT=${LIMIT}`);
   }
-  if (todo.length === 0) {
-    console.log("✓ 신규 대상 없음 — 종료");
-    return;
-  }
 
   // 1. player_id → 영문 이름·포지션 (TheSports, rate limit ~230/min)
   console.log("▶ TheSports 영문 이름 조회...");
-  const enList: Array<{ id: string; en: string; pos?: string }> = [];
+  const enList: Array<{ id: string; en: string; pos?: string; no?: number }> = [];
   for (const id of todo) {
+    const prev = existing[id];
+    const sq = squads.get(id);
+    if (prev?.en) { enList.push({ id, en: prev.en, pos: sq?.pos ?? prev.pos, no: sq?.no ?? prev.no }); continue; }
     const p = await tsPlayer(id);
-    if (p) enList.push({ id, en: p.name, pos: p.pos });
+    if (p) enList.push({ id, en: p.name, pos: sq?.pos ?? p.pos, no: sq?.no });
     await new Promise((r) => setTimeout(r, 260));
   }
   console.log(`  영문 확보 ${enList.length}/${todo.length}`);
 
-  // 2. 영문 → Haiku 한글
-  const merged: Record<string, Entry> = { ...existing };
+  // 2. 영문 → 기존 한글명 재사용 → 나머지만 Haiku. 음역 실패도 영문으로 저장한다(화면은 영문 폴백 — "선수" 보다 낫다).
   let added = 0;
-  const totalBatch = Math.ceil(enList.length / BATCH);
-  for (let i = 0; i < enList.length; i += BATCH) {
-    const chunk = enList.slice(i, i + BATCH);
+  const known = knownKoByEn();
+  let reused = 0;
+  for (const e of enList) {
+    const ko = known.get(e.en.toLowerCase());
+    if (ko) { merged[e.id] = { ko, en: e.en, pos: e.pos, no: e.no }; reused++; }
+    else merged[e.id] = { ko: "", en: e.en, pos: e.pos, no: e.no };
+  }
+  console.log(`  한글명 재사용 ${reused}`);
+  const needKo = enList.filter((e) => !merged[e.id].ko);
+  const totalBatch = Math.ceil(needKo.length / BATCH);
+  for (let i = 0; i < needKo.length; i += BATCH) {
+    const chunk = needKo.slice(i, i + BATCH);
     process.stdout.write(`▶ batch ${i / BATCH + 1}/${totalBatch} (${chunk.length}명) `);
     const enToKo = await haikuTranslate(chunk);
     let up = 0;
     for (const e of chunk) {
       const ko = enToKo[e.en];
       if (!ko) continue;
-      merged[e.id] = { ko, en: e.en, pos: e.pos };
+      merged[e.id] = { ko, en: e.en, pos: e.pos, no: e.no };
       added++;
       up++;
     }
@@ -183,10 +244,10 @@ async function main() {
   }
 
   const sorted = Object.fromEntries(
-    Object.entries(merged).sort((a, b) => (a[1].ko || "").localeCompare(b[1].ko || "")),
+    Object.entries(merged).sort((a, b) => (a[1].ko || a[1].en).localeCompare(b[1].ko || b[1].en)),
   );
   writeFileSync(outPath, JSON.stringify(sorted, null, 2) + "\n");
-  console.log(`\n✓ wrote ${OUT} — total ${Object.keys(sorted).length} entries (+${added})`);
+  console.log(`\n✓ wrote ${OUT} — total ${Object.keys(sorted).length} entries (Haiku +${added}, 재사용 ${reused})`);
 }
 
 main()
