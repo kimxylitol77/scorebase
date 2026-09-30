@@ -3,6 +3,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
+import { calibrateElo } from "@/lib/predict/playoff-sim/calibrate";
 import { matchLiveHref } from "@/lib/links/match-live-link";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import { buildLadder, postseasonGames, REGULAR_GAMES, type LadderLeague, type LadderModel, type PsGameIn, type StandRow } from "./ladder-postseason";
@@ -76,7 +77,9 @@ async function load(league: LadderLeague, season: number): Promise<LadderPage | 
     games = await npbGames(season, regularDone);
   }
 
-  const model = buildLadder(league, season, table, games, { eloOf: (id) => getElo(elo, id) });
+  // 시리즈 확률은 예측 탭 플레이오프 확률판과 같은 보정 Elo — 원 Elo 는 폭이 넓어 두 화면 숫자가 어긋났다
+  const eff = calibrateElo(new Map(table.map((r) => [r.teamId, getElo(elo, r.teamId)])), "baseball");
+  const model = buildLadder(league, season, table, games, { eloOf: (id) => eff.get(id) ?? null });
   const logoById: Record<number, string> = {};
   for (const t of teams) if (t.logoUrl) logoById[t.id] = t.logoUrl;
   return { model, logoById, asOf: new Date().toISOString() };
@@ -91,6 +94,6 @@ export const getLadderPostseason = unstable_cache(
       return null;
     }
   },
-  ["ladder-postseason-v1"],
+  ["ladder-postseason-v2"],
   { revalidate: 300 },
 );

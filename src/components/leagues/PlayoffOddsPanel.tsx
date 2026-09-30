@@ -32,7 +32,7 @@ function pctText(p: number) {
   return `${(p * 100).toFixed(p < 0.1 ? 1 : 0)}%`;
 }
 
-export default async function PlayoffOddsPanel({ result }: { result: PlayoffOddsResult }) {
+export default async function PlayoffOddsPanel({ result, bracketHref }: { result: PlayoffOddsResult; bracketHref?: string }) {
   const { league, odds, groupLabel, record } = result;
   const stages = STAGES[league];
   const last = stages.length - 1;
@@ -60,6 +60,7 @@ export default async function PlayoffOddsPanel({ result }: { result: PlayoffOdds
 
   return (
     <section className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h2 className="text-lg font-bold tracking-tight">
           {TITLE[league]}
@@ -76,6 +77,15 @@ export default async function PlayoffOddsPanel({ result }: { result: PlayoffOdds
             : `남은 정규시즌 ${result.remaining.toLocaleString()}경기를 Elo 로 3,000번 치르고, 그때마다 규정대로 시드를 정해 플레이오프를 끝까지 치른 결과입니다. `}
           {RULE[league]}
         </p>
+      </div>
+      {bracketHref && (
+        <Link
+          href={bracketHref}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-rose-500/10 px-4 py-2 text-sm font-bold text-rose-600 ring-1 ring-rose-500/20 transition hover:bg-rose-500/15 dark:text-rose-400"
+        >
+          포스트시즌 대진표 →
+        </Link>
+      )}
       </div>
 
       {champion && (

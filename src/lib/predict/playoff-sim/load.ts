@@ -11,6 +11,8 @@ import { NHL_ABBR_TO_FULL } from "@/lib/sports/nhl-salaries";
 import { fetchHockeyTable } from "@/lib/sports/thesports/hockey-table";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import type { PredictMatch } from "@/lib/predict/types";
+import { CALIB, calibrateElo } from "./calibrate";
+import { getLadderPostseason } from "@/lib/sports/baseball/kbo-npb-postseason";
 import { runPlayoffSim, FORMAT_SPORT, type PlayoffFormat, type PlayoffOdds, type PlayoffSimOptions, type SimTeam } from "./engine";
 
 export const PLAYOFF_FORMATS: ReadonlySet<string> = new Set<PlayoffFormat>(["KBO", "NPB", "NHL", "NBA", "KHL", "MLS", "KBL"]);
@@ -46,19 +48,6 @@ const MLS_EAST = new Set([
   "CF Montréal", "Nashville SC", "New England Revolution", "New York City FC", "Red Bull New York", "Orlando City SC",
   "Philadelphia Union", "Toronto FC",
 ]);
-
-/**
- * 종목별 전력 폭(Elo 표준편차 목표)·홈 어드밴티지 — 경기 예측용 공용 Elo 는 분포가 넓고 홈 가산이 커서(야구·하키 100)
- * 시즌 전체를 굴리면 1위 팀 우승 60%(NHL) 같은 과신이 나온다(2026-09-30 실측: 1위 vs 평균 홈 승률 NHL 0.86·NBA 0.94·NPB 0.83).
- * 순서는 그대로 두고 폭만 종목 실측 승률 범위에 맞춘다: 최상위 팀 vs 평균 팀 홈 승률 약 야구 0.62·하키 0.65·농구 0.75.
- * z 는 ±2 로 자른다 — 팀 수가 적은 리그(KBL 10팀)에서 한 팀이 튀면 우승 91% 가 나왔다.
- */
-const CALIB: Record<string, { sd: number; home: number; draw: number }> = {
-  baseball: { sd: 40, home: 24, draw: 0 },
-  hockey: { sd: 40, home: 35, draw: 0 },
-  basketball: { sd: 70, home: 55, draw: 0 },
-  soccer: { sd: 55, home: 60, draw: 0.25 },
-};
 
 const EXPECTED_TEAMS: Record<PlayoffFormat, number> = { KBO: 10, NPB: 12, NHL: 32, NBA: 30, KHL: 20, MLS: 30, KBL: 10 };
 
@@ -171,29 +160,15 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
     const fixedRank = new Map<string, number[]>();
     for (const [id, g] of groupOf) fixedRank.set(g.group, [...(fixedRank.get(g.group) ?? []), id]);
     for (const list of fixedRank.values()) list.sort((a, b) => (positionOf.get(a) ?? 99) - (positionOf.get(b) ?? 99));
-    const cut = league === "KBO" ? 5 : 3;
-    const inPo = new Set([...fixedRank.values()].flatMap((l) => l.slice(0, cut)));
-    // 포스트시즌 경기 = 탈락 팀이 마지막으로 뛴 날 이후 진출 팀끼리 경기. 와일드카드는 소스 라운드 라벨이 비어 라벨로 못 가른다(2025 실측).
-    const regularEnd = season
-      .filter((m) => m.status === "FINISHED" && (!inPo.has(m.homeTeamId) || !inPo.has(m.awayTeamId)))
-      .reduce((mx, m) => Math.max(mx, m.startTime.getTime()), 0);
+    // 실제 시리즈 승수 = 대진표 로더와 같은 출처(KBO = 우리 경기, NPB = npb.jp 일정 — DB 엔 NPB 포스트시즌 경기가 없다)
+    const lad = await getLadderPostseason(league, new Date().getUTCFullYear());
     const pairWins = new Map<string, [number, number]>();
-    const seen = new Set<string>();
-    for (const m of season) {
-      if (m.status !== "FINISHED" || m.homeScore == null || m.awayScore == null) continue;
-      if (m.startTime.getTime() <= regularEnd || !inPo.has(m.homeTeamId) || !inPo.has(m.awayTeamId)) continue;
-      const lo = Math.min(m.homeTeamId, m.awayTeamId);
-      const hi = Math.max(m.homeTeamId, m.awayTeamId);
-      // 같은 날 같은 대진·같은 점수 중복 행(소스 이중 수집) 한 번만
-      const dup = `${lo}-${hi}-${new Date(m.startTime.getTime() + 9 * 3600_000).toISOString().slice(0, 10)}-${m.homeScore}-${m.awayScore}`;
-      if (seen.has(dup)) continue;
-      seen.add(dup);
-      if (m.homeScore === m.awayScore) continue;
-      const winner = m.homeScore > m.awayScore ? m.homeTeamId : m.awayTeamId;
-      const w = pairWins.get(`${lo}-${hi}`) ?? [0, 0];
-      if (winner === lo) w[0]++;
-      else w[1]++;
-      pairWins.set(`${lo}-${hi}`, w);
+    for (const sr of lad?.model.series ?? []) {
+      const t = sr.top.id;
+      const b = sr.bottom.id;
+      if (t == null || b == null || sr.top.placeholder || sr.bottom.placeholder) continue;
+      if (sr.winsTop + sr.winsBottom === 0) continue;
+      pairWins.set(`${Math.min(t, b)}-${Math.max(t, b)}`, t < b ? [sr.winsTop, sr.winsBottom] : [sr.winsBottom, sr.winsTop]);
     }
     simOpts = {
       fixedRank,
@@ -214,12 +189,9 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
       ? { id, group: g.group, division: g.division, w: o.w, l: o.l, d: 0, otl: o.otl, pts: o.pts }
       : { id, group: g.group, division: g.division, w: r.w, l: r.l, d: r.d, otl: 0 };
   });
-  const raw = new Map(teams.map((t) => [t.id, getElo(elo, t.id)]));
-  const vals = [...raw.values()];
-  const mean = vals.reduce((x, y) => x + y, 0) / vals.length;
-  const sd = Math.sqrt(vals.reduce((x, y) => x + (y - mean) ** 2, 0) / vals.length) || 1;
+  // 폭 보정 근거는 calibrate.ts — KBO·NPB 대진표 시리즈 확률도 같은 함수를 쓴다
+  const eff = calibrateElo(new Map(teams.map((t) => [t.id, getElo(elo, t.id)])), sport);
   const c = CALIB[sport];
-  const eff = new Map([...raw].map(([id, e]) => [id, 1500 + Math.max(-2, Math.min(2, (e - mean) / sd)) * c.sd]));
   const prob = (h: number, a: number) => {
     const p = 1 / (1 + Math.pow(10, (eff.get(a)! - eff.get(h)! - c.home) / 400));
     // 축구 무승부 — 전력이 비슷할수록 조금 더 많이(최대 +5%p)
@@ -249,6 +221,6 @@ export const getPlayoffOdds = unstable_cache(
     console.warn(`[playoff-odds] ${league}`, (e as Error).message);
     return null;
   }) : null),
-  ["playoff-odds-v3"],
+  ["playoff-odds-v4"],
   { revalidate: 3600, tags: ["playoff-odds"] },
 );

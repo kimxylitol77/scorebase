@@ -77,7 +77,12 @@ export default async function LeaguePredictionsPanel({ league }: { league: strin
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {showPs && <MlbPostseasonOdds page={mlbPs!} />}
-      {playoff && <PlayoffOddsPanel result={playoff} />}
+      {playoff && (
+        <PlayoffOddsPanel
+          result={playoff}
+          bracketHref={league === "KBO" ? "/baseball/kbo-postseason" : league === "NPB" ? "/baseball/npb-postseason" : undefined}
+        />
+      )}
       {regularOver ? (
         <p className="text-xs text-neutral-500 break-keep">
           정규시즌은 끝났습니다. 정규시즌 시뮬레이션·다가오는 경기 승률은{" "}

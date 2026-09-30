@@ -1,6 +1,7 @@
 // KBO·NPB 포스트시즌 대진표 페이지 본문(서버) — 헤더·라운드 일정·대진표·시드 현황·시리즈별 경기·방식 설명. MLB 대진표 페이지와 같은 구성.
 import PostseasonLeagueTabs from "@/components/baseball/PostseasonLeagueTabs";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { CalendarDays, Info, Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import TeamLogoImg from "@/components/TeamLogoImg";
@@ -49,7 +50,13 @@ const COPY: Record<LadderLeague, { title: string; eyebrow: string; rounds: Array
 
 const md = (iso: string) => new Intl.DateTimeFormat("ko-KR", { month: "numeric", day: "numeric", timeZone: "Asia/Seoul" }).format(new Date(iso)).replace(/\.\s?/g, "/").replace(/\/$/, "");
 
-export default function LadderPostseasonView({ league, season, page, path }: { league: LadderLeague; season: number; page: LadderPage | null; path: string }) {
+export default function LadderPostseasonView({
+  league, season, page, path, afterBracket,
+}: {
+  league: LadderLeague; season: number; page: LadderPage | null; path: string;
+  /** 대진표 바로 아래 — 라운드별 진출·우승 확률판(예측 탭과 같은 시뮬) */
+  afterBracket?: ReactNode;
+}) {
   const c = COPY[league];
   const model = page?.model;
   const series = model?.series ?? [];
@@ -129,6 +136,7 @@ export default function LadderPostseasonView({ league, season, page, path }: { l
           <LadderBracket model={model} logoById={page.logoById} />
         </section>
       )}
+      {afterBracket && <div>{afterBracket}</div>}
 
       {model && (
         <section aria-labelledby="seeds-h" className="space-y-3">

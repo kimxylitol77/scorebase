@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import LadderPostseasonView from "@/components/baseball/LadderPostseasonView";
 import { SITE_URL } from "@/lib/site-url";
 import { getLadderPostseason, ladderSeason } from "@/lib/sports/baseball/kbo-npb-postseason";
+import PlayoffOddsPanel from "@/components/leagues/PlayoffOddsPanel";
+import { getPlayoffOdds } from "@/lib/predict/playoff-sim/load";
 
 export const revalidate = 300;
 
@@ -19,6 +21,6 @@ export const metadata: Metadata = {
 };
 
 export default async function NpbPostseasonPage() {
-  const page = await getLadderPostseason("NPB", SEASON);
-  return <LadderPostseasonView league="NPB" season={SEASON} page={page} path={PATH} />;
+  const [page, odds] = await Promise.all([getLadderPostseason("NPB", SEASON), getPlayoffOdds("NPB")]);
+  return <LadderPostseasonView league="NPB" season={SEASON} page={page} path={PATH} afterBracket={odds ? <PlayoffOddsPanel result={odds} /> : null} />;
 }
