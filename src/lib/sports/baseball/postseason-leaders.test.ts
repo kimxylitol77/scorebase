@@ -21,3 +21,14 @@ test("타율은 최다 출장 절반 미만 제외, ERA 는 규정 이닝 미만
   assert.equal(r.RBI, undefined); // 타점 0 뿐 → 카테고리 제거
   assert.equal(r.WIN, undefined);
 });
+
+test("영어판 — 영문 이름·영문 보조 줄, 한글 전용 이름은 제외", () => {
+  const r = postseasonLeaderRows(
+    { bat: [{ ...bat("김선수", 2, 0.5, 1) }, { ...bat("Ben Rice", 2, 0.4, 1), nameEn: "Ben Rice" }], pit: [], minIp: 1 },
+    () => null,
+    (x) => x.externalId,
+    "en",
+  );
+  assert.deepEqual(r.BA.map((x) => x.playerName), ["Ben Rice"]);
+  assert.equal(r.BA[0].subLabel, "1 H");
+});

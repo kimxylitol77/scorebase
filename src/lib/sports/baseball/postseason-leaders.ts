@@ -2,6 +2,7 @@
 // 규정은 /baseball/postseason/stats 와 같다 — 타율은 최다 출장의 절반 이상, ERA 는 최다 이닝의 4분의 1 이상(minIp).
 import type { LeaderRow } from "@/components/LeagueLeaderBoard";
 import type { BbPlayerRow } from "./player-rankings";
+import { toEnglishTeamName } from "@/lib/i18n/en";
 
 export interface PostseasonInput {
   bat: BbPlayerRow[];
@@ -15,14 +16,17 @@ export function postseasonLeaderRows(
   ps: PostseasonInput,
   photoOf: (r: BbPlayerRow) => string | null,
   idOf: (r: BbPlayerRow) => string | null,
+  locale: "ko" | "en" = "ko",
 ): Record<string, LeaderRow[]> {
+  const en = locale === "en";
+  const ipLabel = (ip: number | null) => (ip == null ? null : `${Math.round(ip * 10) / 10}${en ? " IP" : "이닝"}`);
   const maxGames = ps.bat.reduce((m, r) => Math.max(m, r.games), 0);
   const minGames = Math.max(1, Math.ceil(maxGames * 0.5));
   const toRow = (r: BbPlayerRow, i: number, value: number, sub: string | null): LeaderRow => ({
     rank: i + 1,
-    playerName: r.name,
+    playerName: en ? (r.nameEn ?? r.name) : r.name,
     playerNameEn: r.nameEn,
-    teamName: r.team,
+    teamName: en ? toEnglishTeamName(r.team) : r.team,
     teamShort: null,
     value,
     unit: null,
@@ -40,7 +44,8 @@ export function postseasonLeaderRows(
     sub: (r: BbPlayerRow) => string | null,
   ): LeaderRow[] =>
     rows
-      .filter((r) => val(r) != null)
+      // 영어판 — 영문 이름이 없는 한글 전용 행은 낼 이름이 없어 뺀다(정규시즌 리더보드와 같은 규칙)
+      .filter((r) => val(r) != null && !(en && !r.nameEn && /[가-힣]/.test(r.name)))
       .sort((a, b) => (dir === "desc" ? val(b)! - val(a)! : val(a)! - val(b)!) || tie(b) - tie(a))
       .slice(0, TOP)
       .map((r, i) => toRow(r, i, val(r)!, sub(r)));
@@ -48,12 +53,12 @@ export function postseasonLeaderRows(
   const qualBat = ps.bat.filter((r) => r.games >= minGames);
   const qualPit = ps.pit.filter((r) => (r.ip ?? 0) >= ps.minIp);
   const out: Record<string, LeaderRow[]> = {
-    BA: pick(qualBat, (r) => r.avg, "desc", (r) => r.games, (r) => (r.hits != null ? `${r.hits}안타` : null)),
+    BA: pick(qualBat, (r) => r.avg, "desc", (r) => r.games, (r) => (r.hits != null ? `${r.hits}${en ? " H" : "안타"}` : null)),
     HR: pick(ps.bat.filter((r) => (r.hr ?? 0) > 0), (r) => r.hr, "desc", (r) => -r.games, () => null),
     RBI: pick(ps.bat.filter((r) => (r.rbi ?? 0) > 0), (r) => r.rbi, "desc", (r) => -r.games, () => null),
-    ERA: pick(qualPit, (r) => r.era, "asc", (r) => r.ip ?? 0, (r) => (r.ip != null ? `${Math.round(r.ip * 10) / 10}이닝` : null)),
-    WIN: pick(ps.pit.filter((r) => (r.w ?? 0) > 0), (r) => r.w, "desc", (r) => -(r.ip ?? 0), (r) => `${r.w}승 ${r.l ?? 0}패`),
-    K: pick(ps.pit.filter((r) => (r.so ?? 0) > 0), (r) => r.so, "desc", (r) => -(r.ip ?? 0), (r) => (r.ip != null ? `${Math.round(r.ip * 10) / 10}이닝` : null)),
+    ERA: pick(qualPit, (r) => r.era, "asc", (r) => r.ip ?? 0, (r) => ipLabel(r.ip)),
+    WIN: pick(ps.pit.filter((r) => (r.w ?? 0) > 0), (r) => r.w, "desc", (r) => -(r.ip ?? 0), (r) => (en ? `${r.w}-${r.l ?? 0}` : `${r.w}승 ${r.l ?? 0}패`)),
+    K: pick(ps.pit.filter((r) => (r.so ?? 0) > 0), (r) => r.so, "desc", (r) => -(r.ip ?? 0), (r) => ipLabel(r.ip)),
   };
   for (const k of Object.keys(out)) if (out[k].length === 0) delete out[k];
   return out;

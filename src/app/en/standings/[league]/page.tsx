@@ -44,6 +44,7 @@ import {
   playoffSeasonLabel,
 } from "@/lib/predict/playoff-bracket-loader";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import { loadPostseasonLeaders } from "@/lib/sports/baseball/postseason-leaders-load";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
 import { jsonLdScript } from "@/lib/seo/jsonld";
@@ -463,6 +464,8 @@ export default async function StandingsPage({ params }: Props) {
   const lastSeasonLeaders = leadersPending ? await loadLeagueLeaderboard(upper, leadersStaleSeason, "en") : null;
   const lastSeasonRows = lastSeasonLeaders?.rowsByCategory ?? {};
   const hasLeaders = Object.keys(leaderRows).length > 0 || leadersPending;
+  // 포스트시즌 진행 중이면 리더보드 맨 위에 이번 시즌 포스트시즌 리더(한국어 /leagues 통계 탭과 같은 원천, 2026-10-01)
+  const psLeaders = await loadPostseasonLeaders(upper, "en");
 
   // 야구 — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
@@ -723,6 +726,21 @@ export default async function StandingsPage({ params }: Props) {
       {hasLeaders && (
         // id — predictions/[league] 요약 카드의 "전체 리더보드 보기" 앵커 착지점 (해시 진입 시 자동 펼침)
         <CollapseSection id="leaderboard" title={`${name} season leaders`}>
+          {psLeaders && (
+            <div className="mb-6 space-y-3">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
+                <h3 className="text-base font-bold tracking-tight">{psLeaders.season} Postseason leaders</h3>
+                <span className="text-[12px] text-neutral-500">Postseason games only · AVG needs half the most games played, ERA a quarter of the most innings</span>
+              </div>
+              <LeagueLeaderBoard
+                league={upper}
+                season={String(psLeaders.season)}
+                rowsByCategory={psLeaders.rows}
+                footer={upper === "MLB" ? `${psLeaders.season} postseason · updated every 10 minutes` : `${psLeaders.season} postseason · updated daily`}
+              />
+              <h3 className="px-1 pt-4 text-base font-bold tracking-tight">{leaderSeason} regular season</h3>
+            </div>
+          )}
           {leadersPending ? (
             <div className="space-y-3">
               <p className="text-sm text-neutral-500 dark:text-neutral-400 break-keep">
