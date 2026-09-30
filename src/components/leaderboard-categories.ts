@@ -94,6 +94,9 @@ export const LEAGUE_TO_SPORT: Record<string, keyof typeof CATEGORIES_BY_LEAGUE> 
   // KBL/WKBL — NBA 와 같은 평균 스탯 카테고리(PTS/AST/REB/STL/BLK) 재사용
   KBL: "NBA",
   WKBL: "NBA",
+  // 아시안게임 농구 — 경기 박스스코어 집계 평균(fetch-league-leaders runTsBasketballTournament, 2026-10-01)
+  ASIAN_GAMES_BK: "NBA",
+  ASIAN_GAMES_BK_W: "NBA",
   WNBA: "NBA", // 2026-09-25 — ESPN WNBA 리더(평균 스탯, NBA 와 같은 카테고리)
   NHL: "NHL",
   // KHL — NHL 과 같은 하키 카테고리(골·어시·포인트·세이브%) 재사용. 값은 경기 캐시 집계(fetch-league-leaders runKhl).

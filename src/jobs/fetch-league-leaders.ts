@@ -43,6 +43,9 @@ import {
 import { getWorldCupPlayerStats } from "@/lib/sports/thesports/world-cup-player-stats";
 import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
 import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
+import { fetchTsBasketballBox, type TsBox } from "@/lib/sports/basketball/ts-box";
+import kblPlayersRaw from "../../data/kbl-players.json";
+import wkblPlayersRaw from "../../data/wkbl-players.json";
 import { tsPlayerToAfExact } from "@/lib/players/ts-af-map";
 import { mergeSeasonPlayerStatRows } from "@/lib/sports/thesports/merge-season-player-stat";
 import { fetchFootballSeasonPlayerStat } from "@/lib/sports/thesports/football-collector";
@@ -1601,6 +1604,118 @@ async function runLol(season: number) {
  * Entry
  * ==========================================================*/
 
+/* ============================================================
+ * 아시안게임 농구(남·녀) — ts 시즌 선수 통계가 미인가라 종료 경기 박스스코어(match/live/history)를 모아 평균을 낸다.
+ *   박스는 한 번 받으면 TheSportsMatchCache.playerStats 에 저장하고 다시 받지 않는다(끝난 경기라 값이 안 바뀐다).
+ *   규정 = 자기 팀 경기의 절반 이상 출전(FIBA 리더 기준). 한국 선수 이름은 KBL·WKBL 사전의 영문 표기로 한글 매칭.
+ * ==========================================================*/
+
+export const TS_BASKETBALL_TOURNAMENTS = ["ASIAN_GAMES_BK", "ASIAN_GAMES_BK_W"] as const;
+
+const TOURNAMENT_BK_CATS = [
+  { code: "PTS", unit: "평균 득점", key: "pts", total: "점" },
+  { code: "REB", unit: "평균 리바운드", key: "reb", total: "리바운드" },
+  { code: "AST", unit: "평균 어시스트", key: "ast", total: "어시스트" },
+  { code: "STL", unit: "평균 스틸", key: "stl", total: "스틸" },
+  { code: "BLK", unit: "평균 블록", key: "blk", total: "블록" },
+] as const;
+
+const letters = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+// 사전 표기가 달라(YU KISANG ↔ Yu Gi-sang) 안 붙거나 KBL 밖(해외·대학) 대표 선수 — 2026 아시안게임 남자 명단 실측
+const KOREA_BK_NAME_FIX: Record<string, string> = {
+  leehyunjung: "이현중", yeojunseok: "여준석", leeseunghyun: "이승현", choijunyong: "최준용",
+  byeonjunhyeong: "변준형", leewoosuk: "이우석", yugisang: "유기상", danieledi: "에디 다니엘",
+};
+let koreanBkNames: Map<string, string> | null = null;
+function koreanBasketballName(en: string): string | null {
+  if (!koreanBkNames) {
+    koreanBkNames = new Map();
+    for (const raw of [kblPlayersRaw, wkblPlayersRaw] as Array<{ players?: Record<string, { name?: string; ename?: string }> }>) {
+      for (const p of Object.values(raw.players ?? {})) if (p.ename && p.name) koreanBkNames.set(letters(p.ename), p.name);
+    }
+  }
+  return KOREA_BK_NAME_FIX[letters(en)] ?? koreanBkNames.get(letters(en)) ?? null;
+}
+
+export async function runTsBasketballTournament(league: string) {
+  const matches = await prisma.match.findMany({
+    where: { league, status: "FINISHED", externalId: { startsWith: "ts-" } },
+    select: {
+      id: true, externalId: true, homeScore: true, awayScore: true, startTime: true,
+      homeTeam: { select: { id: true, name: true, nameKo: true } }, awayTeam: { select: { id: true, name: true, nameKo: true } },
+      theSportsCache: { select: { playerStats: true } },
+    },
+    orderBy: { startTime: "asc" },
+  });
+  if (matches.length === 0) return { matches: 0 };
+  const season = String(matches[matches.length - 1].startTime.getUTCFullYear());
+
+  interface Acc { name: string; photo: string | null; teamId: number; teamName: string; korean: boolean; gp: number; pts: number; reb: number; ast: number; stl: number; blk: number }
+  const acc = new Map<string, Acc>();
+  const teamGames = new Map<number, number>();
+  let fetched = 0;
+  let missing = 0;
+  for (const m of matches) {
+    let box = m.theSportsCache?.playerStats as TsBox | null | undefined;
+    if (!box?.home) {
+      const tsId = m.externalId.slice(3);
+      box = await fetchTsBasketballBox(tsId).catch(() => null);
+      if (!box) { missing++; continue; }
+      fetched++;
+      await prisma.theSportsMatchCache.upsert({
+        where: { matchId: m.id },
+        update: { playerStats: box as unknown as Prisma.InputJsonValue },
+        create: { matchId: m.id, tsMatchId: tsId, playerStats: box as unknown as Prisma.InputJsonValue },
+      });
+    }
+    // ts 홈/원정이 우리 행과 뒤집힌 경기(개최지 이동) 방어 — 선수 득점 합으로 어느 쪽인지 확인
+    const sum = (ps: TsBox["home"]) => ps.reduce((s, p) => s + p.pts, 0);
+    const flipped = m.homeScore != null && m.awayScore != null && m.homeScore !== m.awayScore
+      && sum(box.home) === m.awayScore && sum(box.away) === m.homeScore;
+    for (const side of ["home", "away"] as const) {
+      const team = (side === "home") !== flipped ? m.homeTeam : m.awayTeam;
+      teamGames.set(team.id, (teamGames.get(team.id) ?? 0) + 1);
+      // 온보딩 때 넣은 nameKo("대한민국 여자")가 사전("대한민국 위민")보다 자연스럽다
+      const teamName = team.nameKo || toKoreanTeamName(team.name, league) || team.name;
+      for (const p of box[side]) {
+        if (p.min <= 0) continue;
+        const cur = acc.get(p.id) ?? { name: p.name, photo: p.photo, teamId: team.id, teamName, korean: teamName.startsWith("대한민국"), gp: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0 };
+        cur.gp++; cur.pts += p.pts; cur.reb += p.reb; cur.ast += p.ast; cur.stl += p.stl; cur.blk += p.blk;
+        acc.set(p.id, cur);
+      }
+    }
+  }
+
+  const qualified = [...acc.entries()].filter(([, a]) => a.gp >= Math.ceil((teamGames.get(a.teamId) ?? 1) / 2));
+  const summary: Record<string, number> = { matches: matches.length, fetched, missing, players: acc.size, qualified: qualified.length };
+  for (const c of TOURNAMENT_BK_CATS) {
+    const top = qualified
+      .map(([id, a]) => ({ id, a, avg: a[c.key] / a.gp }))
+      .filter((r) => r.a[c.key] > 0)
+      .sort((x, y) => y.avg - x.avg || y.a[c.key] - x.a[c.key])
+      .slice(0, TOP_N);
+    if (top.length < MIN_LEADERS) continue;
+    const ops = top.map((r, i) => {
+      const ko = (r.a.korean && koreanBasketballName(r.a.name)) || toKoreanPlayerName(r.a.name);
+      return leaderUpsertOp({
+        league, category: c.code, rank: i + 1,
+        playerName: ko || r.a.name, playerNameEn: r.a.name,
+        externalId: r.id,
+        teamName: r.a.teamName, teamShort: undefined,
+        value: Math.round(r.avg * 10) / 10, unit: c.unit,
+        appearances: r.a.gp,
+        subLabel: `총 ${r.a[c.key]}${c.total}`,
+        photoUrl: r.a.photo ?? undefined,
+        season,
+      });
+    });
+    await prisma.$transaction(ops);
+    await clearOldRanks(league, c.code, season, top.length);
+    summary[c.code] = top.length;
+  }
+  return summary;
+}
+
 export async function runFetchLeagueLeaders(opts?: {
   sport?: "soccer" | "baseball" | "basketball" | "hockey" | "esports";
 }) {
@@ -1630,6 +1745,9 @@ export async function runFetchLeagueLeaders(opts?: {
   if (!sport || sport === "basketball") await safe("wnba", () => runWnba(yearNow));
   if (!sport || sport === "basketball") await safe("kbl", () => runKbl());
   if (!sport || sport === "basketball") await safe("wkbl", () => runWkbl());
+  if (!sport || sport === "basketball") {
+    for (const lg of TS_BASKETBALL_TOURNAMENTS) await safe(lg.toLowerCase(), () => runTsBasketballTournament(lg));
+  }
   // 배구는 sport 파라미터 union 밖 — 전체 실행(파라미터 없음) 때만 돈다
   if (!sport) await safe("kovo", () => runKovo());
   if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
