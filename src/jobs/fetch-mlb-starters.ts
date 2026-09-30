@@ -73,7 +73,8 @@ export async function runFetchMlbStarters(opts?: {
   );
 
   const today = new Date();
-  const dates = daysAhead(today, days);
+  // 어제부터 — MLB schedule 의 date 는 미국 현지 날짜라 미국 저녁 경기(UTC 다음 날)가 전날 목록에 있다.
+  const dates = daysAhead(new Date(today.getTime() - 24 * 60 * 60 * 1000), days + 1);
   const season = today.getUTCFullYear();
 
   const cutoff = new Date(Date.now() - refreshHours * 60 * 60 * 1000);
@@ -82,29 +83,27 @@ export async function runFetchMlbStarters(opts?: {
   let skipped = 0;
   let noStarter = 0;
 
+  const scheduleGames: MlbScheduledGame[] = [];
   for (const date of dates) {
-    let scheduleGames;
     try {
-      scheduleGames = await fetchMlbScheduleWithStarters(date);
+      scheduleGames.push(...(await fetchMlbScheduleWithStarters(date)));
     } catch (e) {
       console.warn(`[mlb-starters] ${date} schedule 실패:`, (e as Error).message);
-      continue;
     }
+  }
 
-    if (scheduleGames.length === 0) continue;
+  // 우리 DB 의 향후 매치 — 예전엔 UTC 날짜 버킷 = 현지 날짜 목록으로 가정하고 팀 이름만으로 찾아,
+  // 같은 두 팀이 연일 붙는 시리즈에서 다음 날 경기의 선발(또는 미정)을 붙였다(2026-10-01 와일드카드 실측).
+  const dayStart = new Date(`${today.toISOString().slice(0, 10)}T00:00:00.000Z`);
+  const dbMatches = await prisma.match.findMany({
+    where: {
+      league: "MLB",
+      startTime: { gte: dayStart, lte: new Date(dayStart.getTime() + days * 24 * 60 * 60 * 1000 - 1) },
+    },
+    include: { homeTeam: true, awayTeam: true },
+  });
 
-    // 우리 DB 의 그 날짜 MLB 매치
-    const dayStart = new Date(`${date}T00:00:00.000Z`);
-    const dayEnd = new Date(`${date}T23:59:59.999Z`);
-    const dbMatches = await prisma.match.findMany({
-      where: {
-        league: "MLB",
-        startTime: { gte: dayStart, lte: dayEnd },
-      },
-      include: { homeTeam: true, awayTeam: true },
-    });
-    if (dbMatches.length === 0) continue;
-
+  {
     for (const dbm of dbMatches) {
       // 최근 갱신했으면 스킵
       if (dbm.startersUpdatedAt && dbm.startersUpdatedAt > cutoff) {
@@ -112,16 +111,25 @@ export async function runFetchMlbStarters(opts?: {
         continue;
       }
 
-      // home/away 팀 이름 매칭
-      const matched = scheduleGames.find((sg) => {
+      // home/away 팀 이름 + 시작 시각 매칭 — 같은 팀 경기 중 시각이 가장 가까운 것(±90분).
+      // 더블헤더 두 경기 간격은 220분 이상이라 구분된다. 시각이 크게 어긋난 유령 행(임시 시각)은 붙지 않는다.
+      const t = dbm.startTime.getTime();
+      let matched: MlbScheduledGame | undefined;
+      let bestGap = 90 * 60 * 1000;
+      for (const sg of scheduleGames) {
         const homeOk =
           normName(sg.homeTeamName).includes(normName(dbm.homeTeam.name)) ||
           normName(dbm.homeTeam.name).includes(normName(sg.homeTeamName));
         const awayOk =
           normName(sg.awayTeamName).includes(normName(dbm.awayTeam.name)) ||
           normName(dbm.awayTeam.name).includes(normName(sg.awayTeamName));
-        return homeOk && awayOk;
-      });
+        if (!homeOk || !awayOk) continue;
+        const gap = Math.abs(new Date(sg.date).getTime() - t);
+        if (gap <= bestGap) {
+          bestGap = gap;
+          matched = sg;
+        }
+      }
       if (!matched) continue;
 
       // LIVE/FINISHED 매치 — schedule probable 이 비어 있으면 boxscore 의 actual 로 보강
