@@ -190,6 +190,9 @@ async function poll() {
         playoffRound,
         playoffConference,
         playoffStageId,
+        // 프리시즌 — ts kind=3 (NBA 실측 2026-09-30: 10/4~17 kind 3, 10/21 개막부터 1). 사이트가 Match.raw 에 남기고
+        // 순위·시뮬·Elo·적중률에서 뺀다(lib/predict/preseason.ts). kind 의미를 NBA 에서만 확인해 NBA 한정.
+        ...(league === "NBA" && m.kind === 3 ? { preseason: true } : {}),
       });
     }
   }

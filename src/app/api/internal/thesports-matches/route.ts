@@ -76,10 +76,11 @@ function sameTeamName(a: string, b: string): boolean {
 }
 export const dynamic = "force-dynamic";
 
-/** diary round → Match.raw 문자열. round 가 없으면 null (raw 를 건드리지 않는다). */
-function tsRoundRaw(r: MatchPayload["round"]): string | null {
-  if (!r || (!r.roundNum && !r.stageName)) return null;
-  return JSON.stringify({ thesports: { round: r } });
+/** diary round·프리시즌 → Match.raw 문자열. 둘 다 없으면 null (raw 를 건드리지 않는다). */
+function tsRoundRaw(r: MatchPayload["round"], preseason?: boolean): string | null {
+  const round = r && (r.roundNum || r.stageName) ? r : null;
+  if (!round && !preseason) return null;
+  return JSON.stringify({ thesports: { ...(round ? { round } : {}), ...(preseason ? { preseason: true } : {}) } });
 }
 /** ts 가 아닌 소스의 raw 인가 — 비어 있거나 우리가 쓴 {"thesports":…} 면 false. */
 function hasForeignRaw(raw: string | null): boolean {
@@ -105,6 +106,9 @@ interface MatchPayload {
   // 라운드 — diary 의 round. 리그는 roundNum, 컵은 roundNum=0 이라 stageName("Round 1")이 정본.
   // Match.raw 에 {"thesports":{"round":…}} 로 남긴다 (일정 탭 라운드 네비·컵 대진표 소스).
   round?: { stageId: string | null; roundNum: number; groupNum: number; stageName: string | null };
+  // 프리시즌 — ts 농구 diary kind=3 (2026-09-30 NBA 실측: 10/4~17 kind 3, 10/21 개막부터 1).
+  // Match.raw 에 {"thesports":{"preseason":true}} 로 남긴다 — lib/predict/preseason.ts 가 순위·시뮬·Elo·적중률에서 뺀다.
+  preseason?: boolean;
   // 팀 로고 — diary results_extra.team 의 logo. 로고가 비어 있는 팀만 채운다(기존 로고 보존).
   homeLogo?: string;
   awayLogo?: string;
@@ -669,7 +673,7 @@ export async function POST(req: NextRequest) {
       if (m.playoffStageId) updateData.playoffStageId = m.playoffStageId;
       // 라운드는 raw 에 남긴다. api-football 원본({"fixture":…})이 이미 있으면 절대 덮지 않는다 —
       // 그 raw 는 라운드 외에 isApiFootball 판정·컵 대진표도 읽는다. ts 자체 raw 는 갱신 가능.
-      const tsRaw = tsRoundRaw(m.round);
+      const tsRaw = tsRoundRaw(m.round, m.preseason);
       if (tsRaw && !hasForeignRaw(existing?.raw ?? null)) updateData.raw = tsRaw;
 
       const savedMatch = await prisma.match.upsert({
