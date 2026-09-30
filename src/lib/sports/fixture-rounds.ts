@@ -73,7 +73,14 @@ function better<T extends DedupeInput>(a: T, b: T): T {
  * 같은 실제 경기를 가리키는 row 를 하나로 접는다.
  * 판정 = 같은 홈/원정 팀쌍 + (같은 라운드 | 킥오프 72시간 이내).
  * 리그전에서 같은 홈팀-원정팀 조합이 사흘 안에 두 번 열리는 일은 없어 오탐 위험이 낮다.
+ * 단 둘 다 끝났고 점수가 다르면 다른 경기다 — 단기 대회는 이틀 만에 재대결한다
+ * (2026 아시안게임 야구 9/25 일본 5-0 한국 → 9/27 결승 일본 1-3 한국, 결승이 목록에서 지워졌다).
  */
+const distinctFinished = (a: DedupeInput, b: DedupeInput) =>
+  a.status === "FINISHED" && b.status === "FINISHED" &&
+  a.homeScore != null && b.homeScore != null &&
+  (a.homeScore !== b.homeScore || a.awayScore !== b.awayScore);
+
 export function dedupeFixtures<T extends DedupeInput>(rows: T[]): T[] {
   const groups = new Map<string, T[]>();
   for (const m of rows) {
@@ -93,7 +100,7 @@ export function dedupeFixtures<T extends DedupeInput>(rows: T[]): T[] {
     for (const m of bucket.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())) {
       const hit = clusters.find((c) =>
         c.some((x) =>
-          m.round != null && x.round != null
+          distinctFinished(m, x) ? false : m.round != null && x.round != null
             ? m.round === x.round
             : Math.abs(x.startTime.getTime() - m.startTime.getTime()) <= DUP_WINDOW_MS,
         ),

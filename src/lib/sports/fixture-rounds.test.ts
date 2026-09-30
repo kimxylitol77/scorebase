@@ -1,7 +1,7 @@
 // 일정 탭 보조 — 라운드 없는 리그(NHL)의 정규시즌 주차 계산.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { preseasonCutoff, seasonWeek, seasonWeekRange } from "./fixture-rounds";
+import { dedupeFixtures, preseasonCutoff, seasonWeek, seasonWeekRange } from "./fixture-rounds";
 
 // NHL 2026-27 개막 — 현지 9/29 17:00 ET = 한국시간 9/30 06:00
 const opening = new Date("2026-09-29T21:00:00Z");
@@ -37,4 +37,18 @@ test("시범경기 끝 — 시즌 중반의 긴 휴식(올스타)은 보지 않�
   // 개막 후 3주는 이틀 간격으로 경기, 그 뒤 7월에 일주일 휴식
   const early = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2026, 2, 28 + i * 2, 9)));
   assert.equal(preseasonCutoff([...early, d("2026-07-10"), d("2026-07-17")]), null);
+});
+
+const fx = (id: number, iso: string, status: string, hs: number | null, as: number | null) => ({
+  id, startTime: new Date(iso), status, homeScore: hs, awayScore: as, homeTeamId: 1, awayTeamId: 2, round: null, isApiFootball: false,
+});
+
+test("중복 접기 — 이틀 만의 재대결(둘 다 종료·점수 다름)은 남긴다 (2026 아시안게임 야구 결승)", () => {
+  const kept = dedupeFixtures([fx(1, "2026-09-25T09:30:00Z", "FINISHED", 5, 0), fx(2, "2026-09-27T09:30:00Z", "FINISHED", 1, 3)]);
+  assert.deepEqual(kept.map((m) => m.id), [1, 2]);
+});
+
+test("중복 접기 — 같은 경기 두 행(예정 + 종료)은 종료 쪽 하나로", () => {
+  const kept = dedupeFixtures([fx(1, "2026-09-25T09:30:00Z", "SCHEDULED", null, null), fx(2, "2026-09-25T10:00:00Z", "FINISHED", 1, 3)]);
+  assert.deepEqual(kept.map((m) => m.id), [2]);
 });
