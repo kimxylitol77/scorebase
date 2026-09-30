@@ -22,6 +22,12 @@ import LolStandings from "@/components/LolStandings";
 import LolSimpleStandings from "@/components/LolSimpleStandings";
 import LolLplStandings from "@/components/LolLplStandings";
 import EwcStandings from "@/components/EwcStandings";
+import { getMlbPostseasonStats } from "@/lib/sports/baseball/mlb-postseason-stats";
+import { getArchivePostseason } from "@/lib/sports/baseball/postseason-archive";
+import { currentMlbSeason } from "@/lib/sports/mlb-postseason";
+import { postseasonLeaderRows } from "@/lib/sports/baseball/postseason-leaders";
+import { kboPhotoUrl } from "@/lib/sports/kbo-official";
+import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, COUNTRY_BY_LEAGUE, HOCKEY_LEAGUES, LEAGUE_DISPLAY, LOL_LEAGUES, SOCCER_LEAGUES, SPORTS, VOLLEYBALL_LEAGUES, getLeagueFlag, sportCodeForLeague } from "@/lib/sports/sport-leagues";
@@ -929,6 +935,29 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
   const showStats = isSoccer || isGenericSoccer || otherLeaders > 0 || upper === "NHL" || upper === "KBL" || upper === "WKBL" || upper === "V_LEAGUE" || upper === "V_LEAGUE_W" || cupHasLeaders;
   const leaderboard = showStats && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
+  // 포스트시즌 진행 중이면 통계 탭 맨 위에 이번 시즌 포스트시즌 리더 — 기록이 생긴 뒤에만(2026-10-01 사용자 요청).
+  // 원천은 /baseball/postseason/stats 와 같다(MLB statsapi gameType=P · KBO·NPB 아카이브).
+  const psLeaders =
+    view === "stats" && (upper === "MLB" || upper === "KBO" || upper === "NPB")
+      ? await (async () => {
+          const season = upper === "MLB" ? currentMlbSeason() : new Date().getFullYear();
+          const ps = upper === "MLB" ? await getMlbPostseasonStats(season).catch(() => null) : await getArchivePostseason(upper, season).catch(() => null);
+          if (!ps) return null;
+          const rows = postseasonLeaderRows(
+            ps,
+            (r) =>
+              upper === "MLB" && r.externalId
+                ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_120,q_auto:best/v1/people/${r.externalId}/headshot/67/current`
+                : upper === "KBO" && r.externalId
+                  ? kboPhotoUrl(r.externalId)
+                  : upper === "NPB" && r.logId
+                    ? npbPlayerPhoto(r.logId) ?? null
+                    : null,
+            (r) => (upper === "NPB" ? r.logId : r.externalId),
+          );
+          return Object.keys(rows).length ? { season, rows } : null;
+        })()
+      : null;
   // 이번 시즌 기록이 아직 없는 상태 — 개막 전(preSeason)이거나, 개막했지만 득점자 표본이
   // MIN_LEADERS 에 못 미쳐 leagueLeader 에 이번 시즌 행이 안 생긴 개막 직후(staleSeason).
   // 둘 다 "준비 안 됨"이 아니라 언제부터 집계되는지 + 지난 시즌 기록을 접기로 함께 준다.
@@ -1255,6 +1284,28 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {showStats && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {psLeaders && (
+            <section className="mb-8 space-y-3">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
+                <h2 className="text-base font-bold tracking-tight">{psLeaders.season} 포스트시즌 리더</h2>
+                <span className="text-[12px] text-neutral-500">가을야구 기록만 · 타율은 최다 출장의 절반, ERA 는 최다 이닝의 4분의 1 이상</span>
+                <Link
+                  href={`/baseball/postseason/stats?league=${upper}`}
+                  prefetch={false}
+                  className="ml-auto text-[13px] font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  포스트시즌 전체 기록 →
+                </Link>
+              </div>
+              <LeagueLeaderBoard
+                league={upper}
+                season={String(psLeaders.season)}
+                rowsByCategory={psLeaders.rows}
+                footer={upper === "MLB" ? `${psLeaders.season} 포스트시즌 · 10분마다 갱신` : `${psLeaders.season} 포스트시즌 · 매일 갱신`}
+              />
+              <h2 className="px-1 pt-4 text-base font-bold tracking-tight">{leaderboard.season} 정규시즌</h2>
+            </section>
+          )}
           {leaderPending ? (
             <div className="space-y-4">
               <section className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 px-4 py-8 text-center text-sm text-neutral-500 space-y-2">
