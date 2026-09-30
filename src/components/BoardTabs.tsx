@@ -1,4 +1,4 @@
-// 커뮤니티 보드 통합 탭 — 스포츠 분석·자유게시판·해외 뉴스·블로그·공지를 한 탭 바로 묶는다.
+// 커뮤니티 보드 통합 탭 — 스포츠 분석·자유게시판·인증샷·해외 뉴스·블로그·공지를 한 탭 바로 묶는다.
 // analysis/news/blog/notices 네 페이지가 공유해 어느 글에서든 나머지 보드로 넘나든다(헤더 메뉴 1개로 통일).
 
 import Link from "next/link";
@@ -6,6 +6,7 @@ import Link from "next/link";
 const TABS = [
   { key: "analysis", label: "스포츠 분석", href: "/analysis" },
   { key: "free", label: "자유게시판", href: "/analysis?board=free" },
+  { key: "proof", label: "인증샷", href: "/community/proof" },
   { key: "briefing", label: "해외 뉴스", href: "/news" },
   { key: "blog", label: "블로그", href: "/blog" },
   { key: "notices", label: "공지사항", href: "/notices" },

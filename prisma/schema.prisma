@@ -1965,3 +1965,16 @@ model DraftGame {
   @@index([mode, finishedAt])
   @@index([sessionId])
 }
+
+/// 운영자가 고른 SNS 공개 글(인스타그램·X·Threads) — /community/proof 에 공식 임베드로 노출. 사진은 저장하지 않고 주소만.
+/// prod 테이블은 raw SQL 로 생성(prisma/sql/create-sns-embed.sql, db push 금지).
+model SnsEmbed {
+  id        Int      @id @default(autoincrement())
+  platform  String // instagram | x | threads
+  url       String   @unique // 정규 주소 (parseSnsUrl)
+  note      String? // 운영자 메모 — 카드 아래 한 줄 설명
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([hidden, createdAt])
+}

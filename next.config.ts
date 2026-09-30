@@ -12,7 +12,8 @@ const isDev = process.env.NODE_ENV !== "production";
 //     inline 스크립트 때문. inline-script XSS 는 막지 못하나(차선) 외부 스크립트 주입은 차단.
 //   · 허용 origin 은 실제 클라이언트 로드 기준: jsdelivr(Pretendard 폰트·국기 woff2),
 //     googletagmanager/google-analytics(GTM·GA4), va.vercel-scripts(Vercel Analytics),
-//     youtube(-nocookie)/vimeo(하이라이트·블로그 영상 임베드). img 는 https 전역 허용(이미지 CDN 다수).
+//     youtube(-nocookie)/vimeo(하이라이트·블로그 영상 임베드),
+//     instagram/platform.twitter/threads(인증샷 모음 /community/proof 의 공식 임베드 iframe — 스크립트는 허용 안 함). img 는 https 전역 허용(이미지 CDN 다수).
 const cspValue = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com`,
@@ -20,7 +21,7 @@ const cspValue = [
   "img-src 'self' data: https:",
   "font-src 'self' data: https://cdn.jsdelivr.net",
   "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://va.vercel-scripts.com",
-  "frame-src 'self' https://www.googletagmanager.com https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://player.vimeo.com",
+  "frame-src 'self' https://www.googletagmanager.com https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://player.vimeo.com https://www.instagram.com https://platform.twitter.com https://www.threads.net https://www.threads.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
