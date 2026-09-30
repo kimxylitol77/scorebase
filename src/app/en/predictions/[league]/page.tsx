@@ -14,7 +14,7 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import { selectSeasonMatches } from "@/lib/predict/season-matches";
-import { withoutPreseason } from "@/lib/predict/preseason";
+import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 import { PREDICTION_LEAGUES, type PredictionLeague } from "@/lib/predict/prediction-leagues";
 import { getLeagueSeasonSim } from "@/lib/predict/league-season-sim";
 import { isAllStarMatchRow } from "@/lib/sports/baseball/allstar";
@@ -501,9 +501,12 @@ export default async function LeaguePredictions({ params }: Props) {
   const now = new Date();
   const horizonDays = isWorldCup ? 14 : 7;
   const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
+  // 프리시즌(NHL·NBA)은 예측하지 않는다 — 승률 추정 목록에서도 뺀다 (preseason.ts)
+  const upcomingPre = [...(await preseasonMatchIds(upper))];
   const upcoming = await prisma.match.findMany({
     where: {
       league: upper,
+      ...(upcomingPre.length ? { id: { notIn: upcomingPre } } : {}),
       status: "SCHEDULED",
       startTime: { gte: now, lte: horizon },
     },
