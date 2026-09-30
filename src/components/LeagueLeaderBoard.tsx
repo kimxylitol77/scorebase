@@ -95,7 +95,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 <Link
                   href={href}
                   prefetch={false}
-                  className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 ${rankBg} hover:bg-neutral-50 dark:hover:bg-white/[0.04] transition`}
+                  className={`group flex items-center gap-3 px-3 sm:px-4 py-2.5 ${rankBg} hover:bg-neutral-50 dark:hover:bg-white/[0.04] transition`}
                 >
                   {children}
                 </Link>
@@ -137,6 +137,10 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                     ? ` · ${r.appearances}경기`
                     : ""}
                 </div>
+                {/* 모바일: 보조 맥락은 왼쪽 셋째 줄 — 오른쪽 값 옆에 두면 폭을 먹어 이름이 "코너 맥데이…"로 잘렸다 (2026-09-30) */}
+                {r.subLabel && (
+                  <div className="sm:hidden text-[10px] text-neutral-400 tabular-nums truncate">{r.subLabel}</div>
+                )}
               </div>
               {/* PC: 이름 옆 빈 공간에 팀 로고·팀명·경기수 — 한 줄이 넓어 서브라인 대신 중앙 컬럼 */}
               <div className="hidden sm:flex items-center gap-1.5 min-w-0 flex-1 text-xs text-neutral-500">
@@ -159,7 +163,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 </div>
                 {/* 보조 맥락 — 전환율·성공률 등. 값의 의미를 한 줄로 (2026-08-30 사용자 요청) */}
                 {r.subLabel && (
-                  <div className="text-[10px] text-neutral-400 tabular-nums whitespace-nowrap">{r.subLabel}</div>
+                  <div className="hidden sm:block text-[10px] text-neutral-400 tabular-nums whitespace-nowrap">{r.subLabel}</div>
                 )}
               </div>
               <span

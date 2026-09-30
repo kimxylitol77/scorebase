@@ -49,11 +49,18 @@ export const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
     { key: "STL", label: "스틸", emoji: "🦅", decimals: 1 },
     { key: "BLK", label: "블락", emoji: "🛡️", decimals: 1 },
   ],
+  // 하키 — 빈 카테고리는 탭이 숨으니 KHL·유럽(경기 캐시 집계)도 같은 목록을 쓴다. +/-·PP골·히트·블록·실점률·승은 NHL 공식 통계(2026-09-30)
   NHL: [
     { key: "GOAL_NHL", label: "골", emoji: "🥅" },
     { key: "ASSIST_NHL", label: "어시", emoji: "🎯" },
     { key: "POINTS", label: "포인트", emoji: "📈" },
+    { key: "PLUS_MINUS", label: "+/-", emoji: "➕" },
+    { key: "PP_GOALS", label: "PP골", emoji: "⚡" },
+    { key: "HITS_NHL", label: "히트", emoji: "💥" },
+    { key: "BLOCKS_NHL", label: "블록", emoji: "🛡️" },
     { key: "SAVE_PCT", label: "세이브%", emoji: "🧤", decimals: 3 },
+    { key: "GAA_NHL", label: "실점률", emoji: "🥅", decimals: 2 },
+    { key: "WINS_NHL", label: "골리 승", emoji: "🏆" },
   ],
   LOL: [
     { key: "KDA", label: "KDA", emoji: "🎮", decimals: 2 },

@@ -907,7 +907,7 @@ export async function runKhl(seasonLabel: string, league: string = "KHL") {
     orderBy: { startTime: "asc" },
   });
   interface Row { id: string; stats: Array<[number, number]> }
-  interface Acc { gp: number; g: number; a: number; pm: number; sog: number; saves: number; shots: number; goalie: boolean; teamId: number }
+  interface Acc { gp: number; g: number; a: number; pm: number; sog: number; hits: number; blk: number; saves: number; shots: number; goalie: boolean; teamId: number }
   const acc = new Map<string, Acc>();
   const stat = (r: Row, k: number) => r.stats.find(([s]) => s === k)?.[1];
   for (const m of matches) {
@@ -917,7 +917,7 @@ export async function runKhl(seasonLabel: string, league: string = "KHL") {
       const teamId = side === "home" ? m.homeTeamId : m.awayTeamId;
       for (const r of dl.players[side] ?? []) {
         if (!r?.id || !Array.isArray(r.stats)) continue;
-        const cur = acc.get(r.id) ?? { gp: 0, g: 0, a: 0, pm: 0, sog: 0, saves: 0, shots: 0, goalie: false, teamId };
+        const cur = acc.get(r.id) ?? { gp: 0, g: 0, a: 0, pm: 0, sog: 0, hits: 0, blk: 0, saves: 0, shots: 0, goalie: false, teamId };
         cur.teamId = teamId; // 최근 경기 기준
         if (stat(r, 20) === 1) {
           const saves = stat(r, 24) ?? 0;
@@ -934,6 +934,8 @@ export async function runKhl(seasonLabel: string, league: string = "KHL") {
           cur.a += stat(r, 27) ?? 0;
           cur.pm += stat(r, 56) ?? 0;
           cur.sog += stat(r, 28) ?? 0;
+          cur.hits += stat(r, 29) ?? 0; // 29 히트·30 블록 — 2026-09-30 ESPN 박스스코어 대조
+          cur.blk += stat(r, 30) ?? 0;
         }
         acc.set(r.id, cur);
       }
@@ -975,6 +977,9 @@ export async function runKhl(seasonLabel: string, league: string = "KHL") {
   await write("GOAL_NHL", "골", byDesc((a) => a.g).map((x) => ({ ...x, sub: `유효슛 ${x.a.sog}` })));
   await write("ASSIST_NHL", "도움", byDesc((a) => a.a));
   await write("POINTS", "포인트", byDesc((a) => a.g + a.a).map((x) => ({ ...x, sub: `${x.a.g}골 ${x.a.a}도움` })));
+  await write("PLUS_MINUS", "+/-", byDesc((a) => a.pm).map((x) => ({ ...x, sub: `${x.a.g}골 ${x.a.a}도움` })));
+  await write("HITS_NHL", "히트", byDesc((a) => a.hits).map((x) => ({ ...x, sub: `경기당 ${(x.a.hits / x.gp).toFixed(1)}` })));
+  await write("BLOCKS_NHL", "블록", byDesc((a) => a.blk).map((x) => ({ ...x, sub: `경기당 ${(x.a.blk / x.gp).toFixed(1)}` })));
   const goalies = [...acc.entries()]
     .filter(([, a]) => a.goalie && a.shots >= KHL_MIN_GOALIE_SHOTS)
     .map(([id, a]) => ({ id, value: Math.round((a.saves / a.shots) * 1000) / 1000, gp: a.gp, sub: `세이브 ${a.saves}/${a.shots}` }))
@@ -987,14 +992,8 @@ export async function runKhl(seasonLabel: string, league: string = "KHL") {
  * NHL (공식 API)
  * ==========================================================*/
 
-const NHL_SKATER_CATS = [
-  { cat: "goals", code: "GOAL_NHL", unit: "골" },
-  { cat: "assists", code: "ASSIST_NHL", unit: "도움" },
-  { cat: "points", code: "POINTS", unit: "포인트" },
-] as const;
-const NHL_GOALIE_CATS = [
-  { cat: "savePctg", code: "SAVE_PCT", unit: "세이브%" },
-] as const;
+// 리더보드 최소 표본 — 개막 직후 1경기 100% 세이브 같은 착시를 막는다(골리는 팀 최다 출전의 40% 이상)
+const NHL_GOALIE_MIN_SHARE = 0.4;
 
 // NHL 영문명 → 한글 — 라이브 박스스코어용 ts 사전(32팀 스쿼드 전원, 2026-09-30)을 이름으로 재사용. 신인이 toKoreanPlayerName 에 없을 때 폴백
 let nhlKoByEn: Map<string, string> | null = null;
@@ -1014,89 +1013,115 @@ function nhlKoName(fullName: string): string {
   return ko && ko !== fullName ? ko : nhlKoFromLiveDict(fullName) || fullName;
 }
 
+type NhlSkaterSummary = {
+  playerId: number; skaterFullName: string; teamAbbrevs: string; positionCode: string; gamesPlayed: number;
+  goals: number; assists: number; points: number; plusMinus: number; shots: number; shootingPct: number | null;
+  ppGoals: number; ppPoints: number; penaltyMinutes: number; pointsPerGame: number | null;
+};
+type NhlSkaterRealtime = { playerId: number; hits: number | null; blockedShots: number | null; takeaways: number | null };
+type NhlGoalieSummary = {
+  playerId: number; goalieFullName: string; teamAbbrevs: string; gamesPlayed: number; wins: number;
+  savePct: number | null; goalsAgainstAverage: number | null; shutouts: number; saves: number; shotsAgainst: number;
+};
+
+async function nhlStats<T>(path: string, seasonId: string): Promise<T[]> {
+  const r = await fetch(
+    `https://api.nhle.com/stats/rest/en/${path}?limit=-1&cayenneExp=seasonId=${seasonId}%20and%20gameTypeId=2`,
+    { cache: "no-store" },
+  );
+  if (!r.ok) throw new Error(`${path} ${r.status}`);
+  return ((await r.json()) as { data?: T[] }).data ?? [];
+}
+
+/**
+ * NHL — 공식 통계 REST(api.nhle.com/stats) 로 시즌 전 선수를 받아 카테고리별 상위를 직접 뽑는다 (2026-09-30).
+ * 옛 /v1/*-stats-leaders 는 값 하나만 줘 경기 수·보조 기록을 못 붙였다(축구 리더보드와 격차).
+ * ⚠️ 시즌 라벨 정본은 리더 응답 시즌이다 — standings/now 는 개막 전후 먼저 새 시즌으로 넘어가
+ *   25-26 최종값(매키넌 53골)이 "2026-27" 로 적재된 적이 있다. current 리더 URL 이 리다이렉트되는 시즌을 쓴다.
+ * seasonId("20252026") 를 주면 그 시즌을 명시 집계(지난 시즌 최종 기록 복구용).
+ */
 export async function runNhl(seasonLabel: string, seasonId?: string) {
-  // ⚠️ 라벨 정본은 리더 응답 자체(current 가 리다이렉트된 /v1/…-stats-leaders/{seasonId}/2 URL)다.
-  //   standings/now 는 개막 전후 며칠 먼저 새 시즌으로 넘어가 리더(아직 직전 시즌)와 어긋난다 —
-  //   2026-09-30 실측: 25-26 최종값(매키넌 53골)이 "2026-27" 로 적재. 아래 standings/now 는 URL 에서 시즌을 못 읽을 때의 폴백.
-  //   seasonId("20252026") 를 주면 그 시즌을 명시 조회(개막 직후 지난 시즌 최종 기록 복구용).
-  // 공식 API "current" 리더는 오프시즌엔 직전 시즌 최종값을 반환한다. 달력 공식(m>=7)
-  // 라벨을 그대로 쓰면 8월에 2025-26 데이터가 "2026-27" 로 오적재된다(2026-08-16 실측
-  // 40행 — 맥데이비드 90도움이 26-27 라벨). standings/now 의 seasonId(예 20252026)가
-  // 리더 데이터와 같은 시즌을 가리키므로 그걸 라벨 정본으로, 실패 시 달력 공식 폴백.
-  try {
-    const r = await fetch("https://api-web.nhle.com/v1/standings/now", { cache: "no-store" });
-    if (r.ok) {
-      const body = (await r.json()) as { standings?: Array<{ seasonId?: number }> };
-      const sid = String(body.standings?.[0]?.seasonId ?? "");
-      if (/^\d{8}$/.test(sid)) seasonLabel = `${sid.slice(0, 4)}-${sid.slice(6)}`;
-    }
-  } catch {
-    /* 폴백: 인자로 받은 달력 공식 라벨 */
+  let sid = seasonId;
+  if (!sid) {
+    try {
+      const r = await fetch("https://api-web.nhle.com/v1/skater-stats-leaders/current?categories=goals&limit=1", { cache: "no-store" });
+      sid = /stats-leaders\/(\d{8})\//.exec(r.url)?.[1];
+    } catch { /* 아래 폴백 */ }
+    if (!sid) sid = `${seasonLabel.slice(0, 4)}20${seasonLabel.slice(5, 7)}`;
   }
+  const season = sid;
+  const label = `${season.slice(0, 4)}-${season.slice(6)}`;
+  const [skaters, realtime, goalies] = await Promise.all([
+    nhlStats<NhlSkaterSummary>("skater/summary", season),
+    nhlStats<NhlSkaterRealtime>("skater/realtime", season),
+    nhlStats<NhlGoalieSummary>("goalie/summary", season),
+  ]);
+  const rt = new Map(realtime.map((x) => [x.playerId, x]));
   const summary: Record<string, number> = {};
-  let dataLabel = seasonLabel;
-  const fetchOne = async (
-    base: "skater" | "goalie",
-    cats: ReadonlyArray<{ cat: string; code: string; unit: string }>,
+  const lastTeam = (t: string) => t.split(",").pop()?.trim() ?? "";
+  const pct1 = (x: number | null | undefined) => `${((x ?? 0) * 100).toFixed(1)}%`;
+
+  const write = async (
+    code: string, unit: string,
+    rows: Array<{ id: number; name: string; team: string; value: number; gp: number; sub?: string }>,
   ) => {
-    for (const c of cats) {
-      try {
-        const r = await fetch(
-          `https://api-web.nhle.com/v1/${base}-stats-leaders/${seasonId ? `${seasonId}/2` : "current"}?categories=${c.cat}&limit=${TOP_N}`,
-          { cache: "no-store" },
-        );
-        if (!r.ok) continue;
-        const sid = /stats-leaders\/(\d{4})(\d{2})(\d{2})\//.exec(r.url);
-        const label = sid ? `${sid[1]}-${sid[3]}` : seasonLabel;
-        dataLabel = label;
-        const data = (await r.json()) as Record<
-          string,
-          Array<{
-            id: number;
-            firstName: { default: string };
-            lastName: { default: string };
-            teamAbbrev: string;
-            teamName?: { default: string };
-            headshot?: string;
-            value: number;
-          }>
-        >;
-        const arr = data[c.cat];
-        if (!arr) continue;
-        for (let i = 0; i < arr.length; i++) {
-          const p = arr[i];
-          const fullName = `${p.firstName?.default ?? ""} ${p.lastName?.default ?? ""}`.trim();
-          // 2026-27 부터 teamName 이 "Maple Leafs" 같은 별칭만 와서 한글 변환이 안 된다 → 약어로 풀네임 먼저
-          const team = NHL_ABBR_TO_FULL[p.teamAbbrev] ?? p.teamName?.default ?? p.teamAbbrev ?? "";
-          await upsertLeader({
-            league: "NHL",
-            category: c.code,
-            rank: i + 1,
-            playerName: nhlKoName(fullName),
-            playerNameEn: fullName,
-            externalId: String(p.id),
-            teamName: toKoreanTeamName(team) || team,
-            teamShort: p.teamAbbrev,
-            value: p.value,
-            unit: c.unit,
-            photoUrl: p.headshot,
-            season: label,
-          });
-        }
-        await clearOldRanks("NHL", c.code, label, arr.length);
-        summary[c.code] = arr.length;
-      } catch (e) {
-        console.warn(`[leaders/nhl-${base}] ${c.cat}`, (e as Error).message);
-      }
+    const top = rows.slice(0, TOP_N);
+    for (let i = 0; i < top.length; i++) {
+      const r = top[i];
+      const full = NHL_ABBR_TO_FULL[r.team] ?? r.team;
+      await upsertLeader({
+        league: "NHL", category: code, rank: i + 1,
+        playerName: nhlKoName(r.name),
+        playerNameEn: r.name,
+        externalId: String(r.id),
+        teamName: toKoreanTeamName(full) || full,
+        teamShort: r.team,
+        value: r.value, unit, appearances: r.gp, subLabel: r.sub,
+        photoUrl: `https://assets.nhle.com/mugs/nhl/${season}/${r.team}/${r.id}.png`,
+        season: label,
+      });
     }
+    await clearOldRanks("NHL", code, label, top.length);
+    summary[code] = top.length;
   };
-  await fetchOne("skater", NHL_SKATER_CATS);
-  await fetchOne("goalie", NHL_GOALIE_CATS);
-  // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
-  if (!seasonId && Object.values(summary).some((n) => n > 0)) {
-    await clearFutureSeasons("NHL", dataLabel);
-  }
-  return { season: dataLabel, result: summary };
+
+  const sk = skaters.map((x) => ({ x, id: x.playerId, name: x.skaterFullName, team: lastTeam(x.teamAbbrevs), gp: x.gamesPlayed }));
+  const desc = (f: (x: NhlSkaterSummary) => number, tie: (x: NhlSkaterSummary) => number = (x) => x.points) =>
+    sk.map((s) => ({ ...s, value: f(s.x) })).filter((s) => s.value > 0)
+      .sort((a, b) => b.value - a.value || tie(b.x) - tie(a.x) || a.gp - b.gp);
+
+  await write("GOAL_NHL", "골", desc((x) => x.goals).map((s) => ({ ...s, sub: `슈팅 ${s.x.shots} · 성공률 ${pct1(s.x.shootingPct)}` })));
+  await write("ASSIST_NHL", "도움", desc((x) => x.assists).map((s) => ({ ...s, sub: `포인트 ${s.x.points}` })));
+  await write("POINTS", "포인트", desc((x) => x.points, (x) => x.goals).map((s) => ({
+    ...s, sub: `${s.x.goals}골 ${s.x.assists}도움${s.gp >= 5 && s.x.pointsPerGame != null ? ` · 경기당 ${s.x.pointsPerGame.toFixed(2)}` : ""}`,
+  })));
+  await write("PLUS_MINUS", "+/-", desc((x) => x.plusMinus).map((s) => ({ ...s, sub: `${s.x.goals}골 ${s.x.assists}도움` })));
+  await write("PP_GOALS", "PP골", desc((x) => x.ppGoals, (x) => x.ppPoints).map((s) => ({ ...s, sub: `PP 포인트 ${s.x.ppPoints}` })));
+  await write("HITS_NHL", "히트", desc((x) => rt.get(x.playerId)?.hits ?? 0, (x) => -x.gamesPlayed).map((s) => ({
+    ...s, sub: s.gp > 0 ? `경기당 ${((rt.get(s.id)?.hits ?? 0) / s.gp).toFixed(1)}` : undefined,
+  })));
+  await write("BLOCKS_NHL", "블록", desc((x) => rt.get(x.playerId)?.blockedShots ?? 0, (x) => -x.gamesPlayed).map((s) => ({
+    ...s, sub: s.gp > 0 ? `경기당 ${((rt.get(s.id)?.blockedShots ?? 0) / s.gp).toFixed(1)}` : undefined,
+  })));
+
+  const maxGp = Math.max(0, ...goalies.map((g) => g.gamesPlayed));
+  const qualified = goalies
+    .filter((g) => g.gamesPlayed >= Math.max(1, Math.ceil(maxGp * NHL_GOALIE_MIN_SHARE)))
+    .map((g) => ({ g, id: g.playerId, name: g.goalieFullName, team: lastTeam(g.teamAbbrevs), gp: g.gamesPlayed }));
+  await write("SAVE_PCT", "세이브%", qualified.filter((q) => q.g.savePct != null)
+    .map((q) => ({ ...q, value: Math.round(q.g.savePct! * 1000) / 1000, sub: `세이브 ${q.g.saves}/${q.g.shotsAgainst}` }))
+    .sort((a, b) => b.value - a.value || b.gp - a.gp));
+  await write("GAA_NHL", "실점률", qualified.filter((q) => q.g.goalsAgainstAverage != null)
+    .map((q) => ({ ...q, value: Math.round(q.g.goalsAgainstAverage! * 100) / 100, sub: `세이브% ${pct1(q.g.savePct)}` }))
+    .sort((a, b) => a.value - b.value || b.gp - a.gp));
+  await write("WINS_NHL", "승", goalies.filter((g) => g.wins > 0)
+    .map((g) => ({ id: g.playerId, name: g.goalieFullName, team: lastTeam(g.teamAbbrevs), gp: g.gamesPlayed, value: g.wins,
+      sub: `세이브% ${pct1(g.savePct)}${g.shutouts ? ` · 셧아웃 ${g.shutouts}` : ""}` }))
+    .sort((a, b) => b.value - a.value || a.gp - b.gp));
+
+  // 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 — 명시 시즌 복구 run 은 미래 정리 안 함
+  if (!seasonId && Object.values(summary).some((n) => n > 0)) await clearFutureSeasons("NHL", label);
+  return { season: label, result: summary };
 }
 
 /* ============================================================

@@ -1248,9 +1248,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                 </Link>
               </section>
               {hasLastSeasonLeaders && (
-                <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+                <details className="group/prev rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
                   <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
-                    <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+                    <span className="text-[10px] transition group-open/prev:rotate-90" aria-hidden>▶</span>
                     지난 시즌 최종 기록{" "}
                     <span className="font-normal text-neutral-400">({leaderboard.staleSeason})</span>
                   </summary>
@@ -1269,9 +1269,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             <div className="space-y-4">
               <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
               {hasEarlyPrevLeaders && (
-                <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+                <details className="group/prev rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
                   <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
-                    <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+                    <span className="text-[10px] transition group-open/prev:rotate-90" aria-hidden>▶</span>
                     지난 시즌 최종 기록{" "}
                     <span className="font-normal text-neutral-400">({prevSeasonLabel})</span>
                   </summary>
