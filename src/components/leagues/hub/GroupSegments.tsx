@@ -11,6 +11,7 @@ const ZONE_LABEL: Record<HubZone, string> = {
   promo: "승격권",
   qualify: "본선 진출권",
   host: "개최국 자동 진출",
+  advance: "다음 라운드 진출",
 };
 
 export default function GroupSegments({
@@ -70,7 +71,7 @@ export default function GroupSegments({
 
       <div className="grid gap-4 md:grid-cols-2">
         {cur.groups.map((g) => (
-          <GroupCard key={`${cur.key}-${g.key}`} g={g} />
+          <GroupCard key={`${cur.key}-${g.key}`} g={g} cols={cur.cols} />
         ))}
       </div>
 
@@ -82,7 +83,7 @@ export default function GroupSegments({
   );
 }
 
-function GroupCard({ g }: { g: HubGroupView }) {
+function GroupCard({ g, cols }: { g: HubGroupView; cols?: HubSegmentView["cols"] }) {
   return (
     <article className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.25)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <header className="flex items-baseline justify-between px-5 pt-5">
@@ -97,8 +98,8 @@ function GroupCard({ g }: { g: HubGroupView }) {
             <th scope="col" className="w-10 py-2 pl-5 text-left font-semibold">#</th>
             <th scope="col" className="py-2 text-left font-semibold">팀</th>
             <th scope="col" className="w-10 py-2 text-right font-semibold">경기</th>
-            <th scope="col" className="w-12 py-2 text-right font-semibold">득실</th>
-            <th scope="col" className="w-14 py-2 pr-5 text-right font-semibold">승점</th>
+            <th scope="col" className="w-12 py-2 text-right font-semibold">{cols?.diff ?? "득실"}</th>
+            <th scope="col" className="w-14 py-2 pr-5 text-right font-semibold">{cols?.points ?? "승점"}</th>
           </tr>
         </thead>
         <tbody>

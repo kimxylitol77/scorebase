@@ -53,6 +53,8 @@ import VolleyballLeagueTable from "@/components/volleyball/VolleyballLeagueTable
 import DomesticLeaguePlayers, { DOMESTIC_PLAYER_LEAGUES, type DomesticPlayerLeague } from "@/components/leagues/DomesticLeaguePlayers";
 import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
+import AsianGamesMultiHub, { agMultiCupRounds } from "@/components/leagues/asian-games/AsianGamesMultiHub";
+import { AG_MULTI, getAgMultiHub } from "@/lib/sports/asian-games-multi";
 
 export const dynamic = "force-dynamic";
 
@@ -881,7 +883,19 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     const at = configuredOther.indexOf("fixtures");
     configuredOther.splice(at >= 0 ? at + 1 : Math.max(0, configuredOther.indexOf("articles")), 0, "stats");
   }
-  const dataViewsAll: ViewKey[] = (isSoccer
+  // 아시안게임 농구·배구·야구 — 축구 아시안게임과 같은 탭 묶음(순위 허브·대진표·일정·통계·글). 2026-10-01
+  const agHub = AG_MULTI[upper] ? await getAgMultiHub(upper) : null;
+  const agRounds = agHub ? agMultiCupRounds(agHub, upper) : [];
+  const agViews: ViewKey[] | null = agHub
+    ? [
+        ...(agHub.tables.length > 0 ? (["standings"] as ViewKey[]) : []),
+        ...(agRounds.length > 0 ? (["bracket"] as ViewKey[]) : []),
+        "fixtures",
+        ...(otherLeaders > 0 ? (["stats"] as ViewKey[]) : []),
+        "articles",
+      ]
+    : null;
+  const dataViewsAll: ViewKey[] = (agViews ?? (isSoccer
     ? [...VIEW_KEYS]
     : CUP_LEAGUES.has(upper)
       ? cupViews
@@ -889,7 +903,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         ? genericSoccerViews
         : isGenericOther
           ? genericOtherViews
-          : (NON_SOCCER_VIEWS[upper] ?? ["articles"])
+          : (NON_SOCCER_VIEWS[upper] ?? ["articles"]))
   ).filter((v) => v !== "predictions" || PREDICTION_LEAGUE_SET.has(upper));
   // 순위표가 없는 대회(끝난 AFC U23·개막 전 UEFA 여자 챔스)는 순위 탭이 "수집 중" 안내만 남는다 — 탭을 뺀다.
   //  허브 대회(네이션스리그·AFCON·걸프컵·아시안게임)는 허브가 경기에서 직접 표를 만들어 여기서 판정하지 않는다.
@@ -1210,7 +1224,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           )}
         </div>
       )}
-      {isGenericOther && !isBasketball && view === "standings" && (
+      {view === "standings" && AG_MULTI[upper] && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <AsianGamesMultiHub league={upper} />
+        </div>
+      )}
+      {isGenericOther && !isBasketball && !AG_MULTI[upper] && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <StandingsOnlyView league={upper} embedded />
         </div>
@@ -1222,7 +1241,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {view === "bracket" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <CupBracket rounds={cupRounds} league={upper} />
+          <CupBracket rounds={agHub ? agRounds : cupRounds} league={upper} />
         </div>
       )}
       {view === "fixtures" && (

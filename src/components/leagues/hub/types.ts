@@ -28,7 +28,7 @@ export interface HubMatch {
 }
 
 /** 확정 구역 — 순위만으로 확정되는 것만. 하위권처럼 조 간 비교가 필요한 건 넣지 않는다. */
-export type HubZone = "qf" | "sf" | "promo" | "qualify" | "host";
+export type HubZone = "qf" | "sf" | "promo" | "qualify" | "host" | "advance";
 
 export interface HubRowView {
   teamId: number;
@@ -64,4 +64,6 @@ export interface HubSegmentView {
   /** 확정 규칙 한 줄 — 초록 막대 옆에 뜬다 */
   rule: string;
   groups: HubGroupView[];
+  /** 표 열 이름 — 기본 득실·승점(축구). 농구·야구는 승, 배구는 세트 득실 (2026-10-01 아시안게임 공용 허브) */
+  cols?: { diff: string; points: string };
 }
