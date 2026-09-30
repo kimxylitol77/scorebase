@@ -5,6 +5,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import SoccerScoreboardTable, { type ScoreboardRow } from "@/components/scores/soccer/SoccerScoreboardTable";
+import { enLeagueHref } from "@/lib/i18n/en-league-href";
 import MatchCard, { type MatchCardProps } from "./MatchCard";
 import SoccerLiveRow from "./soccer/SoccerLiveRow";
 import LeagueBadge from "../LeagueBadge";
@@ -285,7 +286,7 @@ export default function FavoriteMatches({ matches, boardRows }: Props) {
               </span>
             </div>
             {boardRows && boardRows.some((r) => r.sport === sport && ids.has(String(r.id))) ? (
-              <SoccerScoreboardTable lang="en" oddsHref={null} leagueHref={(lg) => `/en/standings/${lg}`} sport={sport} showLegend={false} rows={boardRows.filter((r) => r.sport === sport && ids.has(String(r.id)))} />
+              <SoccerScoreboardTable lang="en" oddsHref={null} leagueHref={enLeagueHref} sport={sport} showLegend={false} rows={boardRows.filter((r) => r.sport === sport && ids.has(String(r.id)))} />
             ) : effectiveView === "large" ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {list.map(renderMatchLarge)}

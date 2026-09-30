@@ -32,7 +32,7 @@
   "replace": [
     [
       "<SoccerScoreboardTable sport={sport} showLegend={false}",
-      "<SoccerScoreboardTable lang=\"en\" oddsHref={null} leagueHref={(lg) => `/en/standings/${lg}`} sport={sport} showLegend={false}"
+      "<SoccerScoreboardTable lang=\"en\" oddsHref={null} leagueHref={enLeagueHref} sport={sport} showLegend={false}"
     ],
     [
       "useOtherDayFavorites(ids, matches.map((m) => m.id));",
@@ -41,6 +41,10 @@
     [
       "board={!!boardRows} />",
       "board={!!boardRows} lang=\"en\" />"
+    ],
+    [
+      "import SoccerScoreboardTable, { type ScoreboardRow } from \"@/components/scores/soccer/SoccerScoreboardTable\";",
+      "import SoccerScoreboardTable, { type ScoreboardRow } from \"@/components/scores/soccer/SoccerScoreboardTable\";\nimport { enLeagueHref } from \"@/lib/i18n/en-league-href\";"
     ]
   ]
 }

@@ -7,6 +7,7 @@ import FavoriteStar from "./FavoriteStar";
 import { postponedLabel, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import SoccerScoreboardTable, { type ScoreboardRow } from "./soccer/SoccerScoreboardTable";
 import { enLeagueName } from "@/lib/i18n/en";
+import { enLeagueHref } from "@/lib/i18n/en-league-href";
 
 type Lang = "ko" | "en";
 
@@ -117,7 +118,7 @@ export function OtherDayFavoriteRows({ rows, title, board = false, lang = "ko" }
             key={sp}
             sport={sp}
             showLegend={false}
-            {...(lang === "en" ? { lang: "en" as const, oddsHref: null, leagueHref: (lg: string) => `/en/standings/${lg}` } : {})}
+            {...(lang === "en" ? { lang: "en" as const, oddsHref: null, leagueHref: enLeagueHref } : {})}
             rows={rows.filter((r) => (r.sport ?? "soccer") === sp).map((r) => toBoardRow(r, lang))}
           />
         ))}

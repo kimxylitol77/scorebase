@@ -25,7 +25,7 @@ import {
 import { RANK_CHIP_CALC_LEAGUES, RANK_CHIP_TAG } from "@/lib/sports/rank-chip-cache";
 import { toEnglishTeamName, enLeagueName, enMatchStatus } from "@/lib/i18n/en";
 import { koEnLanguages } from "@/lib/i18n/en";
-import { STANDINGS_VALID } from "@/lib/sports/standings-valid";
+import { enLeagueHref } from "@/lib/i18n/en-league-href";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
@@ -2515,7 +2515,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   <SoccerScoreboardTable
                     lang="en"
                     oddsHref={null}
-                    leagueHref={(lg) => `/en/standings/${lg}`}
+                    leagueHref={enLeagueHref}
                     rows={buildScoreboardRows([...visibleLive, ...visibleScheduled, ...visibleFinished, ...visiblePostponed])}
                   />
                 ) : (
@@ -2709,12 +2709,6 @@ function Section({
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</ul>
     </section>
   );
-}
-
-/** 스코어보드 리그 제목 링크 — /en/standings 라우트가 받는 리그(STANDINGS_VALID, 라우트의 notFound 기준)만 영어,
- *  나머지는 한국어 리그 페이지. WBC·IIHF_WC·LCK_CL·UFC 등 19개 리그는 /en/standings 가 404(2026-10-01 전수 실측). */
-function enLeagueHref(league: string): string {
-  return STANDINGS_VALID.has(league) ? `/en/standings/${league}` : `/leagues/${league}`;
 }
 
 /** 스코어보드 보기 줄 — 정렬·리그 제목 줄 끼우기는 SoccerScoreboardTable 이 한다(시각순 + 리그 바뀔 때 제목). */
