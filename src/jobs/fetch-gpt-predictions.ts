@@ -40,7 +40,7 @@ import {
   type MatchOddsCtx,
   type OuShadowStat,
 } from "@/lib/predict/publish-gate";
-import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
+import { allPreseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 // 배구는 predHome(검증된 배구 Elo+시장 블렌드) 앵커, LoL 은 일반 Elo 파이프라인
@@ -773,8 +773,8 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     doneByPanel.set(p.key, new Set(done.map((d) => d.matchId)));
   }
 
-  // NHL 프리시즌은 AI 대결 대상이 아니다 — 성적표가 정규시즌 기준 (preseason.ts)
-  const preIds = [...(await preseasonMatchIds("NHL"))];
+  // NHL·NBA 프리시즌은 AI 대결 대상이 아니다 — 성적표가 정규시즌 기준 (preseason.ts)
+  const preIds = await allPreseasonMatchIds();
   const candidates = await prisma.match.findMany({
     where: {
       ...(preIds.length ? { id: { notIn: preIds } } : {}),

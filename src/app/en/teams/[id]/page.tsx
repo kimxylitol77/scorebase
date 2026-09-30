@@ -405,8 +405,8 @@ export default async function TeamPage({ params }: Props) {
   // 통계
   const standings = calcStandings(seasonMatches);
   const row = standings.byTeam.get(teamId);
-  // 전체 — Elo 는 시즌 누적. NHL 은 프리시즌만 뺀다(preseason.ts, 백테스트 중립). NBA·MLB 는 미검증이라 그대로.
-  const eloTable = calcEloTable(team.league === "NHL" ? await withoutPreseason(matches, "NHL") : matches);
+  // 전체 — Elo 는 시즌 누적. NHL·NBA 는 프리시즌만 뺀다(preseason.ts, 백테스트 중립). MLB 는 미검증이라 그대로.
+  const eloTable = calcEloTable(await withoutPreseason(matches, team.league));
   const elo = getElo(eloTable, teamId);
   const recentForm = calcForm(formMatches, teamId, undefined, 5);
   const streak = calcStreaks(formMatches, teamId);

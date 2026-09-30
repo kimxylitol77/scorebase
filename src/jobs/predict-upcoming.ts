@@ -14,7 +14,7 @@ import { computePrediction, type PredictionInput } from "@/lib/predict/compute-p
 import type { PredictMatch } from "@/lib/predict/types";
 import { pickReadiness } from "@/lib/predict/pick-readiness";
 import { historyLeaguesFor } from "@/lib/sports/sport-leagues";
-import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
+import { allPreseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 export interface PredictUpcomingResult {
   scanned: number;
@@ -37,8 +37,8 @@ export async function runPredictUpcoming(opts?: {
   const force = opts?.force ?? false;
   const now = new Date();
 
-  // NHL 프리시즌은 예측하지 않는다 — 채점·적중률 통계도 정규시즌만 (preseason.ts)
-  const preIds = [...(await preseasonMatchIds("NHL"))];
+  // NHL·NBA 프리시즌은 예측하지 않는다 — 채점·적중률 통계도 정규시즌만 (preseason.ts)
+  const preIds = await allPreseasonMatchIds();
   const pending = await prisma.match.findMany({
     where: {
       ...(preIds.length ? { id: { notIn: preIds } } : {}),

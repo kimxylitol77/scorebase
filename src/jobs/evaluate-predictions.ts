@@ -33,7 +33,7 @@ import { calibrateHomeWinProb, hasHomeCalibration } from "@/lib/predict/home-cal
 import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import { historyLeaguesFor, usesNationalElo } from "@/lib/sports/sport-leagues";
-import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
+import { allPreseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 /**
  * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡/BTTS 모두 90분(정규시간) 기준.
@@ -160,9 +160,9 @@ export async function runEvaluate(opts?: { limit?: number }) {
 // 적중률 페이지에 표본 2·4건으로 노출되던 원인. 9월 UCL/UEL/UECL 새 시즌 전환 때도 활용).
 export async function runEvaluateMatches(opts?: { limit?: number; leagues?: string[] }) {
   const limit = opts?.limit ?? 400;
-  // NHL 프리시즌은 채점하지 않는다 — 적중률 통계가 정규시즌 기준이 되게(2026-09-30, preseason.ts).
+  // NHL·NBA 프리시즌은 채점하지 않는다 — 적중률 통계가 정규시즌 기준이 되게(2026-09-30, preseason.ts).
   //  where 에서 빼야 한다: 루프에서 건너뛰면 미채점으로 남아 매 회차 limit 슬롯을 차지한다.
-  const preIds = [...(await preseasonMatchIds("NHL"))];
+  const preIds = await allPreseasonMatchIds();
   const leagueFilter = {
     ...(opts?.leagues?.length ? { league: { in: opts.leagues } } : {}),
     ...(preIds.length ? { id: { notIn: preIds } } : {}),

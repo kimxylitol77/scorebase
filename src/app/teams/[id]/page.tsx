@@ -532,7 +532,8 @@ export default async function TeamPage({ params }: Props) {
               where: {
                 league: team.league,
                 startTime: { gte: previousSeasonStart(seasonStart) },
-                raw: { contains: '"slug":"preseason"' },
+                // ESPN season.slug 또는 ts 워커 표시(농구 kind=3 → {"thesports":{"preseason":true}}, preseason.ts)
+                OR: [{ raw: { contains: '"slug":"preseason"' } }, { raw: { contains: '"preseason":true' } }],
               },
               select: { id: true },
             })
@@ -560,8 +561,8 @@ export default async function TeamPage({ params }: Props) {
   // 통계
   const standings = calcStandings(seasonMatches);
   const row = standings.byTeam.get(teamId);
-  // 전체 — Elo 는 시즌 누적. NHL 은 프리시즌만 뺀다(preseason.ts, 백테스트 중립). NBA·MLB 는 미검증이라 그대로.
-  const eloTable = calcEloTable(team.league === "NHL" ? await withoutPreseason(matches, "NHL") : matches);
+  // 전체 — Elo 는 시즌 누적. NHL·NBA 는 프리시즌만 뺀다(preseason.ts, 백테스트 중립). MLB 는 미검증이라 그대로.
+  const eloTable = calcEloTable(await withoutPreseason(matches, team.league));
   const elo = getElo(eloTable, teamId);
   const recentForm = calcForm(formMatches, teamId, undefined, 5);
   const streak = calcStreaks(formMatches, teamId);
