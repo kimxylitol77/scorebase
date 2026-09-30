@@ -1,0 +1,7 @@
+- [x] team-colors NHL 32팀
+- [x] hockey-photos 서버 헬퍼
+- [x] HockeyGameCenter (3스타·득점 요약·팀 기록)
+- [x] HockeyBoxScore 포지션 구획·팀 로고 탭
+- [x] SportLiveDetail 슬롯 + ESPN 팀 STATS·리더 숨김
+- [x] live 페이지 배치 이동
+- [x] tsc · 데스크톱/375px · 다크모드 · KHL 경기 확인

@@ -182,6 +182,8 @@ interface Props {
   initialReferee?: string | null;
   /** SSR 단 주심 카드 성향. 표본 미달이면 null 이라 주심 이름만 남는다. */
   initialRefereeStats?: RefereeCardTendency | null;
+  /** 점수판·피리어드 표 바로 아래 끼울 서버 렌더 블록 (하키 게임센터). 있으면 ESPN 팀 stats·양 팀 리더는 숨긴다(중복). */
+  afterLinescore?: ReactNode;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -216,6 +218,7 @@ export default function SportLiveDetail({
   favMatchId,
   initialReferee,
   initialRefereeStats,
+  afterLinescore,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   // 점수·경기 시간의 마지막 동기화 시각 — 배당(라이브 카드)·라인업(발표 시각)과 별개 축 (지시문 9)
@@ -495,6 +498,8 @@ export default function SportLiveDetail({
         />
       )}
 
+      {afterLinescore}
+
       {/* 축구 — 골 (스코어 카드와 동일하게 home 좌측 / away 우측) */}
       {live?.soccerGoals && live.soccerGoals.length > 0 && (
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 py-2">
@@ -603,7 +608,7 @@ export default function SportLiveDetail({
       })()}
 
       {/* 팀 stats 비교 — 농구는 MatchInsight "팀 통계" 탭(TheSports)으로 일원화 */}
-      {!isBasketball && live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
+      {!isBasketball && !afterLinescore && live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
         <TeamStatCompare
           summary={live.summary}
           homeNameKo={homeNameKo}
@@ -612,7 +617,7 @@ export default function SportLiveDetail({
       )}
 
       {/* 양 팀 leaders */}
-      {live?.summary && (live.summary.homeLeaders.length > 0 || live.summary.awayLeaders.length > 0) && (
+      {!afterLinescore && live?.summary && (live.summary.homeLeaders.length > 0 || live.summary.awayLeaders.length > 0) && (
         <TeamLeaders
           summary={live.summary}
           homeNameKo={homeNameKo}

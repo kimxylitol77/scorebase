@@ -77,8 +77,9 @@ import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
-import HockeyGoalTimeline, { type HockeyIncident } from "@/components/scores/hockey/HockeyGoalTimeline";
-import HockeyBoxScore, { type HockeyPlayerRow } from "@/components/scores/hockey/HockeyBoxScore";
+import HockeyGameCenter from "@/components/scores/hockey/HockeyGameCenter";
+import type { HockeyIncident, HockeyPlayerRow, HockeyTeamStats } from "@/lib/sports/hockey/box";
+import { legibleColor, teamColor } from "@/lib/team-colors";
 import { HOCKEY_TS_PLAYER_LEAGUE_SET } from "@/lib/sports/hockey/ts-player-leagues";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import ConclusionCards, {
@@ -1094,6 +1095,31 @@ export default async function GenericLivePage({ params }: Props) {
     }
   }
 
+  // 하키 게임센터 — 3스타·득점 요약·팀 기록·선수 기록을 점수판 바로 아래로 (2026-09-30, ESPN·NHL.com 벤치마크)
+  const hockeyCenterNode = (() => {
+    if (!HOCKEY_LEAGUES.has(lg) || match.status === "SCHEDULED") return null;
+    const dl = match.theSportsCache?.detailLive as {
+      incidents?: HockeyIncident[];
+      players?: { home?: HockeyPlayerRow[]; away?: HockeyPlayerRow[] };
+      stats?: HockeyTeamStats;
+    } | null | undefined;
+    if (!dl || (!dl.incidents?.length && !dl.players)) return null;
+    const hc = legibleColor(teamColor(match.homeTeam.name) ?? "#0ea5e9");
+    let ac = legibleColor(teamColor(match.awayTeam.name) ?? "#f43f5e");
+    if (hc.toLowerCase() === ac.toLowerCase()) ac = "#9ca3af"; // 같은 색 두 팀(예: 빨강 대 빨강)은 원정을 회색으로
+    return (
+      <HockeyGameCenter
+        league={lg}
+        incidents={dl.incidents ?? []}
+        players={dl.players ?? {}}
+        stats={dl.stats}
+        home={{ ko: homeKo, logo: match.homeTeam.logoUrl ?? null, color: hc }}
+        away={{ ko: awayKo, logo: match.awayTeam.logoUrl ?? null, color: ac }}
+        playerLinkLeague={HOCKEY_TS_PLAYER_LEAGUE_SET.has(lg) ? lg : undefined}
+      />
+    );
+  })();
+
   return (
     <>
       <script
@@ -1245,6 +1271,7 @@ export default async function GenericLivePage({ params }: Props) {
         favMatchId={match.id}
         initialReferee={match.referee}
         initialRefereeStats={refereeStats}
+        afterLinescore={hockeyCenterNode}
       />
 
       {/* 경기 한눈에 — /scores 툴팁과 같은 블록을 탭 밖에 고정 (2026-08-22 사용자 요청) */}
@@ -1352,30 +1379,6 @@ export default async function GenericLivePage({ params }: Props) {
           awayTeamName={awayKo}
         />
       )}
-
-      {/* NHL/하키 골 타임라인 + 선수 박스스코어 — cache detailLive.incidents/players (player_id→한글) */}
-      {HOCKEY_LEAGUES.has(lg) &&
-        match.theSportsCache?.detailLive &&
-        (() => {
-          const dl = match.theSportsCache.detailLive as {
-            incidents?: HockeyIncident[];
-            players?: { home?: HockeyPlayerRow[]; away?: HockeyPlayerRow[] };
-          };
-          return (
-            <>
-              {dl.incidents && dl.incidents.length > 0 && (
-                <HockeyGoalTimeline
-                  incidents={dl.incidents}
-                  homeNameKo={homeKo}
-                  awayNameKo={awayKo}
-                />
-              )}
-              {dl.players && (
-                <HockeyBoxScore players={dl.players} homeNameKo={homeKo} awayNameKo={awayKo} playerLinkLeague={HOCKEY_TS_PLAYER_LEAGUE_SET.has(lg) ? lg : undefined} />
-              )}
-            </>
-          );
-        })()}
 
       {/* 배당 · 시장 확률 — 순위·폼 다음, AI 예측 앞 (배당이 근거, AI 는 그 위에 얹는 판단) */}
       {soccerOddsSection}
