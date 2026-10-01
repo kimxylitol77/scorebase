@@ -5,5 +5,19 @@
     "리더보드 데이터가 아직 준비되지 않았습니다. 매일 자동으로 갱신됩니다.": "Leaderboard data is not ready yet. It refreshes daily.",
     "경기": " matches",
     " 시즌 · 매일 자동 갱신": " season · updated daily"
-  }
+  },
+  "replace": [
+    [
+      "const sport = LEAGUE_TO_SPORT[league] ?? \"SOCCER\";",
+      "const sport = LEAGUE_TO_SPORT[league] ?? \"SOCCER\";\n  // 출장 수 표기 — 축구 \"1 match / 3 matches\", 야구 \"3 G\", 농구·하키 등 \"3 GP\" (2026-10-01, \"1 matches\" 문법 오류)\n  const gpLabel = (n: number) => (sport === \"SOCCER\" ? `${n} ${n === 1 ? \"match\" : \"matches\"}` : sport === \"BASEBALL\" ? `${n} G` : `${n} GP`);"
+    ],
+    [
+      "` · ${r.appearances} matches`",
+      "` · ${gpLabel(r.appearances)}`"
+    ],
+    [
+      "· {r.appearances} matches</span>",
+      "· {gpLabel(r.appearances)}</span>"
+    ]
+  ]
 }

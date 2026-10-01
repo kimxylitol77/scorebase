@@ -38,6 +38,8 @@ interface Props {
 
 export default function LeagueLeaderBoard({ league, season, rowsByCategory, footer }: Props) {
   const sport = LEAGUE_TO_SPORT[league] ?? "SOCCER";
+  // 출장 수 표기 — 축구 "1 match / 3 matches", 야구 "3 G", 농구·하키 등 "3 GP" (2026-10-01, "1 matches" 문법 오류)
+  const gpLabel = (n: number) => (sport === "SOCCER" ? `${n} ${n === 1 ? "match" : "matches"}` : sport === "BASEBALL" ? `${n} G` : `${n} GP`);
   const allCats = CATEGORIES_BY_LEAGUE[sport] ?? [];
   // 데이터 있는 카테고리만 노출
   const cats = allCats.filter(
@@ -133,7 +135,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 <div className="sm:hidden text-[11px] text-neutral-500 truncate">
                   {r.teamName}
                   {r.appearances != null && r.appearances > 0
-                    ? ` · ${r.appearances} matches`
+                    ? ` · ${gpLabel(r.appearances)}`
                     : ""}
                 </div>
               </div>
@@ -147,7 +149,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 ) : null}
                 <span className="truncate">{r.teamName}</span>
                 {r.appearances != null && r.appearances > 0 && (
-                  <span className="shrink-0 text-neutral-400">· {r.appearances} matches</span>
+                  <span className="shrink-0 text-neutral-400">· {gpLabel(r.appearances)}</span>
                 )}
               </div>
               {/* 단위 라벨은 활성 탭이 이미 말해주므로 생략 — 값 숫자만 우측 정렬.
