@@ -1,5 +1,6 @@
 // 게임 허브 — 사이트 안의 게임·놀거리 진입점. 헤더 「커뮤니티 > 게임」이 여기로 온다.
 // 게임마다 메뉴 한 줄씩 차지하던 것을 한 곳에 모았다. 새 게임은 GAMES 에 한 항목 추가하면 된다.
+import { jsonLdScript } from "@/lib/seo/jsonld";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ClipboardList, Footprints, Swords, Trophy, Vote, type LucideIcon } from "lucide-react";
@@ -164,7 +165,7 @@ export default function GamesPage() {
   return (
     <main className="relative mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6 sm:py-14">
       <AmbientGlow />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <header className="space-y-3">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
