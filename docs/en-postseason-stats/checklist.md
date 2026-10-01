@@ -1,0 +1,6 @@
+- [x] StatsExplorer·Glossary·Cards·Leaders·Scatter lang 옵션 (한국어 기본 유지)
+- [x] 열 영어 변환 enStatColumns
+- [x] /en/baseball/postseason/stats 페이지 (MLB·KBO·NPB, 시즌·타자/투수·합계/경기당)
+- [x] hreflang 상호 연결
+- [x] /en/standings 포스트시즌 리더에 전체 기록 링크
+- [x] dev 한글 잔존 0 확인, 한국어판 회귀 없음, tsc·test

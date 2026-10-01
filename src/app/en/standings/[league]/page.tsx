@@ -731,6 +731,13 @@ export default async function StandingsPage({ params }: Props) {
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
                 <h3 className="text-base font-bold tracking-tight">{psLeaders.season} Postseason leaders</h3>
                 <span className="text-[12px] text-neutral-500">Postseason games only · AVG needs half the most games played, ERA a quarter of the most innings</span>
+                <Link
+                  href={`/en/baseball/postseason/stats?league=${upper}`}
+                  prefetch={false}
+                  className="ml-auto text-[13px] font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  Full postseason stats →
+                </Link>
               </div>
               <LeagueLeaderBoard
                 league={upper}

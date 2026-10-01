@@ -1,16 +1,16 @@
 // 열별 리더 보드 — 규정 선수 중 상위 5명. databallr "Leaders" 뷰 문법.
 import Link from "next/link";
 import { formatStat, type StatColumn, type StatUnit } from "@/lib/sports/baseball/stats-table";
-import type { StatsViewRow } from "./types";
+import type { StatsLang, StatsViewRow } from "./types";
 
-export default function StatsLeaders({ rows, cols, unit, top = 5 }: { rows: StatsViewRow[]; cols: StatColumn[]; unit: StatUnit; top?: number }) {
+export default function StatsLeaders({ rows, cols, unit, top = 5, lang = "ko" }: { rows: StatsViewRow[]; cols: StatColumn[]; unit: StatUnit; top?: number; lang?: StatsLang }) {
   const qual = rows.filter((r) => r.qualified);
   return (
     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {cols.filter((c) => !c.noLeader).map((c) => {
         const list = qual
           .filter((r) => r.cells[c.key]?.value != null)
-          .sort((a, b) => ((a.cells[c.key].value! - b.cells[c.key].value!) * (c.lowerIsBetter ? 1 : -1)) || a.name.localeCompare(b.name, "ko"))
+          .sort((a, b) => ((a.cells[c.key].value! - b.cells[c.key].value!) * (c.lowerIsBetter ? 1 : -1)) || a.name.localeCompare(b.name, lang))
           .slice(0, top);
         if (list.length === 0) return null;
         return (

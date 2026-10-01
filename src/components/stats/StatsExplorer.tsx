@@ -10,9 +10,18 @@ import StatsGlossary from "./StatsGlossary";
 import StatsLeaders from "./StatsLeaders";
 import StatsCards from "./StatsCards";
 import StatsScatter from "./StatsScatter";
-import { cellBg, columnGroups, pctCls, STATS_VIEW_KO, type StatsView, type StatsViewRow } from "./types";
+import { cellBg, columnGroups, pctCls, STATS_VIEW_EN, STATS_VIEW_KO, type StatsLang, type StatsView, type StatsViewRow } from "./types";
 
 const PER = 50;
+
+const T = {
+  ko: { qualOnly: "규정 선수만", all: "전체 선수", search: "선수 검색", searchBtn: "검색", allTeams: "전체", players: "명", page: "페이지",
+        compare: "선수 비교", compareHint: "한 명 더 담으면 나란히 봅니다", clear: "비우기", player: "선수", notQual: " · 규정 미달",
+        added: "담김", add: "비교", empty: "조건에 맞는 선수가 없습니다." },
+  en: { qualOnly: "Qualified only", all: "All players", search: "Search players", searchBtn: "Search", allTeams: "All", players: " players", page: "page",
+        compare: "Compare players", compareHint: "add one more to see them side by side", clear: "Clear", player: "Player", notQual: " · not qualified",
+        added: "Added", add: "Compare", empty: "No players match these filters." },
+} as const;
 
 export interface PillGroup {
   /** 쿼리 파라미터 이름 */
@@ -50,9 +59,14 @@ export interface StatsExplorerProps {
   jsonLd?: unknown[];
   /** 표 좌상단 라벨 (시즌 · 리그) */
   corner: string;
+  /** 화면 언어 — 영어판 페이지는 "en" (기본 한국어) */
+  lang?: StatsLang;
 }
 
 export default function StatsExplorer(p: StatsExplorerProps) {
+  const lang: StatsLang = p.lang ?? "ko";
+  const t = T[lang];
+  const viewLabels = lang === "en" ? STATS_VIEW_EN : STATS_VIEW_KO;
   const q = (p.params.q ?? "").trim();
   const team = p.params.team ?? "";
   const qual = p.params.qual !== "0";
@@ -65,7 +79,7 @@ export default function StatsExplorer(p: StatsExplorerProps) {
   const x = p.cols.some((c) => c.key === p.params.x) ? (p.params.x as string) : p.scatterDefault.x;
   const y = p.cols.some((c) => c.key === p.params.y) ? (p.params.y as string) : p.scatterDefault.y;
 
-  const teams = [...new Set(p.rows.map((r) => r.team).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
+  const teams = [...new Set(p.rows.map((r) => r.team).filter(Boolean))].sort((a, b) => a.localeCompare(b, lang));
   let rows = p.rows;
   if (qual) rows = rows.filter((r) => r.qualified);
   if (team) rows = rows.filter((r) => r.team === team);
@@ -131,10 +145,10 @@ export default function StatsExplorer(p: StatsExplorerProps) {
               {g.options.map((o) => <Link key={o.value} href={pillHref(g, o.value)} className={chip(o.value === g.value)}>{o.label}</Link>)}
             </div>
           ))}
-          <Link href={url({ qual: qual ? "0" : "1", page: 1 })} className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition ${qual ? "bg-rose-500/10 text-rose-600 ring-rose-500/20 dark:text-rose-400" : "text-neutral-500 ring-black/10 dark:ring-white/15"}`}>{qual ? "규정 선수만" : "전체 선수"}</Link>
-          <div className="inline-flex rounded-full bg-neutral-100 p-1 dark:bg-white/10">{(Object.keys(STATS_VIEW_KO) as StatsView[]).map((v) => <Link key={v} href={url({ view: v, page: 1 })} className={chip(v === view)}>{STATS_VIEW_KO[v]}</Link>)}</div>
+          <Link href={url({ qual: qual ? "0" : "1", page: 1 })} className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition ${qual ? "bg-rose-500/10 text-rose-600 ring-rose-500/20 dark:text-rose-400" : "text-neutral-500 ring-black/10 dark:ring-white/15"}`}>{qual ? t.qualOnly : t.all}</Link>
+          <div className="inline-flex rounded-full bg-neutral-100 p-1 dark:bg-white/10">{(Object.keys(viewLabels) as StatsView[]).map((v) => <Link key={v} href={url({ view: v, page: 1 })} className={chip(v === view)}>{viewLabels[v]}</Link>)}</div>
         </div>
-        <StatsGlossary cols={p.cols} note={p.glossaryNote} />
+        <StatsGlossary cols={p.cols} note={p.glossaryNote} lang={lang} />
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <form action={p.basePath} className="flex items-center gap-1.5">
@@ -142,21 +156,21 @@ export default function StatsExplorer(p: StatsExplorerProps) {
             {!qual && <input type="hidden" name="qual" value="0" />}
             {view !== "table" && <input type="hidden" name="view" value={view} />}
             {team && <input type="hidden" name="team" value={team} />}
-            <input name="q" defaultValue={q} placeholder="선수 검색" className="w-40 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-800 dark:bg-white/[0.04]" />
-            <button type="submit" className="rounded-full bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-neutral-900">검색</button>
+            <input name="q" defaultValue={q} placeholder={t.search} className="w-40 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-800 dark:bg-white/[0.04]" />
+            <button type="submit" className="rounded-full bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-neutral-900">{t.searchBtn}</button>
           </form>
           <div className="flex flex-wrap gap-1 text-[11px]">
-            <Link href={url({ team: "", page: 1 })} className={small(!team)}>전체</Link>
+            <Link href={url({ team: "", page: 1 })} className={small(!team)}>{t.allTeams}</Link>
             {teams.map((t) => <Link key={t} href={url({ team: t, page: 1 })} className={small(team === t)}>{t}</Link>)}
           </div>
-          <span className="ml-auto text-xs text-neutral-500">{rows.length}명 · {safePage}/{pages} 페이지</span>
+          <span className="ml-auto text-xs text-neutral-500">{rows.length}{t.players} · {safePage}/{pages} {t.page}</span>
         </div>
 
         {cmpRows.length > 0 && (
           <section className="mt-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold">선수 비교 {cmpRows.length < 2 && <span className="ml-1 text-xs font-normal text-neutral-500">한 명 더 담으면 나란히 봅니다</span>}</h2>
-              <Link href={url({ cmp: "" })} className="text-xs text-neutral-500 hover:underline">비우기</Link>
+              <h2 className="text-sm font-bold">{t.compare} {cmpRows.length < 2 && <span className="ml-1 text-xs font-normal text-neutral-500">{t.compareHint}</span>}</h2>
+              <Link href={url({ cmp: "" })} className="text-xs text-neutral-500 hover:underline">{t.clear}</Link>
             </div>
             <div className="mt-3 grid gap-x-6 gap-y-1.5 text-sm" style={{ gridTemplateColumns: `6rem repeat(${cmpRows.length}, minmax(0, 1fr))` }}>
               <span />
@@ -180,9 +194,9 @@ export default function StatsExplorer(p: StatsExplorerProps) {
           </section>
         )}
 
-        {view === "leaders" && <StatsLeaders rows={viewRows} cols={p.cols} unit={p.unit} />}
-        {view === "cards" && <StatsCards rows={pageRows} cols={p.cols} unit={p.unit} startRank={(safePage - 1) * PER + 1} />}
-        {view === "scatter" && <StatsScatter rows={viewRows} cols={p.cols} x={x} y={y} unit={p.unit} highlight={cmp} url={(o) => url({ view: "scatter", ...o })} />}
+        {view === "leaders" && <StatsLeaders rows={viewRows} cols={p.cols} unit={p.unit} lang={lang} />}
+        {view === "cards" && <StatsCards rows={pageRows} cols={p.cols} unit={p.unit} startRank={(safePage - 1) * PER + 1} lang={lang} />}
+        {view === "scatter" && <StatsScatter rows={viewRows} cols={p.cols} x={x} y={y} unit={p.unit} highlight={cmp} url={(o) => url({ view: "scatter", ...o })} lang={lang} />}
 
         {view === "table" && (
           <div className="mt-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
@@ -195,7 +209,7 @@ export default function StatsExplorer(p: StatsExplorerProps) {
                 </tr>
                 <tr>
                   <th className="w-8 px-2 py-2.5 text-right font-semibold">#</th>
-                  <th className="sticky left-0 z-20 w-[8.5rem] max-w-[8.5rem] bg-white/95 px-2 py-2.5 text-left font-semibold backdrop-blur sm:w-auto sm:max-w-none dark:bg-neutral-950/90"><SortLink label="선수" k="name" sort={sort} dir={dir} url={url} /></th>
+                  <th className="sticky left-0 z-20 w-[8.5rem] max-w-[8.5rem] bg-white/95 px-2 py-2.5 text-left font-semibold backdrop-blur sm:w-auto sm:max-w-none dark:bg-neutral-950/90"><SortLink label={t.player} k="name" sort={sort} dir={dir} url={url} /></th>
                   {p.cols.map((c) => <th key={c.key} className="min-w-[2.75rem] px-2 py-2.5 text-right font-semibold"><SortLink label={c.label} k={c.key} sort={sort} dir={dir} url={url} col={c} /></th>)}
                   <th className="w-14 px-2 py-2.5" />
                 </tr>
@@ -211,7 +225,7 @@ export default function StatsExplorer(p: StatsExplorerProps) {
                           <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-neutral-100 sm:h-8 sm:w-8 dark:bg-white/10">{r.photo && <img src={r.photo} alt="" className="h-full w-full object-cover object-top" loading="lazy" />}</span>
                           <span className="min-w-0 leading-tight">
                             <span className="block truncate font-semibold">{r.href ? <Link href={r.href} className="hover:underline underline-offset-4">{r.name}</Link> : r.name}</span>
-                            <span className="block truncate text-[11px] text-neutral-500">{r.sub}{!r.qualified && " · 규정 미달"}</span>
+                            <span className="block truncate text-[11px] text-neutral-500">{r.sub}{!r.qualified && t.notQual}</span>
                           </span>
                         </div>
                       </td>
@@ -225,12 +239,12 @@ export default function StatsExplorer(p: StatsExplorerProps) {
                         );
                       })}
                       <td className="px-2 py-1.5 text-right">
-                        <Link href={url({ cmp: inCmp ? cmp.filter((k) => k !== r.key) : [...cmp, r.key].slice(-2) })} className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${inCmp ? "bg-rose-500 text-white ring-rose-500" : "text-neutral-500 ring-black/10 hover:bg-white dark:ring-white/15 dark:hover:bg-white/10"}`}>{inCmp ? "담김" : "비교"}</Link>
+                        <Link href={url({ cmp: inCmp ? cmp.filter((k) => k !== r.key) : [...cmp, r.key].slice(-2) })} className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${inCmp ? "bg-rose-500 text-white ring-rose-500" : "text-neutral-500 ring-black/10 hover:bg-white dark:ring-white/15 dark:hover:bg-white/10"}`}>{inCmp ? t.added : t.add}</Link>
                       </td>
                     </tr>
                   );
                 })}
-                {pageRows.length === 0 && <tr><td colSpan={p.cols.length + 3} className="px-4 py-10 text-center text-sm text-neutral-500">조건에 맞는 선수가 없습니다.</td></tr>}
+                {pageRows.length === 0 && <tr><td colSpan={p.cols.length + 3} className="px-4 py-10 text-center text-sm text-neutral-500">{t.empty}</td></tr>}
               </tbody>
             </table>
           </div>

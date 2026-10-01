@@ -10,6 +10,9 @@ export interface StatsViewRow extends StatRow {
 
 export type StatsView = "table" | "cards" | "leaders" | "scatter";
 export const STATS_VIEW_KO: Record<StatsView, string> = { table: "표", cards: "카드", leaders: "리더", scatter: "산점도" };
+export const STATS_VIEW_EN: Record<StatsView, string> = { table: "Table", cards: "Cards", leaders: "Leaders", scatter: "Scatter" };
+/** 스탯 표 화면 언어 — 영어판(/en) 페이지가 "en" 을 넘긴다 */
+export type StatsLang = "ko" | "en";
 
 /** 열 묶음 순서 보존 */
 export function columnGroups(cols: StatColumn[]): Array<{ group: string; cols: StatColumn[] }> {

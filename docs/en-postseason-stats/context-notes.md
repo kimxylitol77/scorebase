@@ -1,0 +1,3 @@
+- en-mirror 빌더를 쓰지 않는다 — StatsExplorer 는 5개 스탯 페이지 공용이라 복제하면 두 벌 관리. lang prop 으로.
+- KBO·NPB 아카이브 행은 nameEn 이 없을 수 있다 → 이름은 nameEn 우선, 없으면 원래 이름(행을 빼면 통계 표가 망가짐).
+- KBO·NPB 아카이브는 nameEn 이 비어 영어판에서도 한글 이름으로 나온다 → 사이트맵엔 MLB 만 넣었다. 영문 이름 원천이 생기면 KBO·NPB 도 등록.

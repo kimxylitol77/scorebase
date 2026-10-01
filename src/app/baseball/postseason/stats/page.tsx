@@ -3,12 +3,11 @@
 //   시즌은 ?season= 으로 따로 — 새 포스트시즌이 시작돼도 지난 시즌 표는 그대로 남는다. 기본은 기록이 있는 가장 최근 시즌.
 import type { Metadata } from "next";
 import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
+import { koEnLanguages } from "@/lib/i18n/en";
 import StatsExplorer from "@/components/stats/StatsExplorer";
-import { BB_LEAGUES, type BbLeague, type BbPlayerRow, type BbRole } from "@/lib/sports/baseball/player-rankings";
-import { buildStatRows, columnsFor, type AdvancedInput, type StatRow, type StatUnit } from "@/lib/sports/baseball/stats-table";
-import { getMlbPostseasonStats } from "@/lib/sports/baseball/mlb-postseason-stats";
-import { getArchivePostseason, getArchivePostseasonSeasons } from "@/lib/sports/baseball/postseason-archive";
-import { currentMlbSeason } from "@/lib/sports/mlb-postseason";
+import { BB_LEAGUES, type BbLeague, type BbRole } from "@/lib/sports/baseball/player-rankings";
+import { buildStatRows, columnsFor, type StatRow } from "@/lib/sports/baseball/stats-table";
+import { canonicalOf, parse, resolveSeason } from "@/lib/sports/baseball/postseason-stats-page";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { npbPlayerPhoto } from "@/lib/sports/npb-player-ko";
 
@@ -16,8 +15,6 @@ export const dynamic = "force-dynamic";
 
 const PATH = "/baseball/postseason/stats";
 const ROLE_KO: Record<BbRole, string> = { bat: "타자", pit: "투수" };
-/** 시즌 버튼 개수 — 기록이 있는 가장 최근 시즌부터 */
-const SEASON_COUNT = 5;
 type SP = Record<string, string | undefined>;
 
 const LG_KO: Record<BbLeague, string> = { MLB: "MLB", KBO: "KBO", NPB: "NPB" };
@@ -28,39 +25,6 @@ const SOURCE: Record<BbLeague, string> = {
   NPB: "npb.jp 박스스코어 중 클라이맥스 시리즈·일본시리즈 경기만 골라 선수별로 합산, 포스트시즌 기간 매일 갱신. 출루율은 희생플라이를 뺀 (타수+볼넷+사구) 분모라 공식값과 약간 다를 수 있다",
 };
 
-interface PsData { bat: BbPlayerRow[]; pit: BbPlayerRow[]; minIp: number; adv?: AdvancedInput }
-
-function parse(sp: SP) {
-  const league: BbLeague = (BB_LEAGUES as string[]).includes(sp.league ?? "") ? (sp.league as BbLeague) : "MLB";
-  const role: BbRole = sp.role === "pit" ? "pit" : "bat";
-  const unit: StatUnit = sp.unit === "pergame" ? "pergame" : "total";
-  return { league, role, unit };
-}
-
-/** 올해 포스트시즌 기록이 생기기 전엔 지난 시즌이 최신. 요청 시즌이 목록 밖이면 최신. */
-async function resolveSeason(league: BbLeague, sp: SP): Promise<{ current: number; latest: number; seasons: number[]; season: number; data: PsData | null }> {
-  const asked = Number(sp.season);
-  if (league === "MLB") {
-    const current = currentMlbSeason();
-    const currentData = await getMlbPostseasonStats(current);
-    const latest = currentData ? current : current - 1;
-    const seasons = Array.from({ length: SEASON_COUNT }, (_, i) => latest - i);
-    const season = seasons.includes(asked) ? asked : latest;
-    const data = season === current ? currentData : await getMlbPostseasonStats(season);
-    return { current, latest, seasons, season, data };
-  }
-  const current = new Date().getFullYear(); // KBO·NPB 는 달력 연도 시즌
-  const saved = (await getArchivePostseasonSeasons(league).catch(() => [])).slice(0, SEASON_COUNT);
-  const latest = saved[0] ?? current - 1;
-  const seasons = saved.length ? saved : [latest];
-  const season = seasons.includes(asked) ? asked : latest;
-  return { current, latest, seasons, season, data: await getArchivePostseason(league, season).catch(() => null) };
-}
-
-/** 정본 — 기본값(최신 시즌·타자)은 빼서 최신 타자 표는 "?league=KBO" 하나로 */
-const canonicalOf = (league: BbLeague, season: number, latest: number, role: BbRole) =>
-  `${PATH}?league=${league}${season === latest ? "" : `&season=${season}`}${role === "pit" ? "&role=pit" : ""}`;
-
 export async function generateMetadata({ searchParams }: { searchParams: Promise<SP> }): Promise<Metadata> {
   const sp = await searchParams;
   const { league, role } = parse(sp);
@@ -70,7 +34,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   return {
     title: `${season} ${lg} 포스트시즌 ${ROLE_KO[role]} 기록 — 가을야구 ${head} 순위`,
     description: `${season} ${lg} 포스트시즌(${ROUNDS[league]}) ${ROLE_KO[role]} 전원의 가을야구 기록만 모은 표. ${head}를 정렬·검색하고 셀마다 포스트시즌 백분위를 확인하세요.`,
-    alternates: { canonical: canonicalOf(league, season, latest, role) },
+    alternates: {
+      canonical: canonicalOf(league, season, latest, role),
+      languages: koEnLanguages(canonicalOf(league, season, latest, role), canonicalOf(league, season, latest, role, "/en/baseball/postseason/stats")),
+    },
     keywords: [`${lg} 포스트시즌 ${ROLE_KO[role]} 기록`, `${lg} 포스트시즌 기록`, `${lg} 가을야구 기록`, "포스트시즌 타율", "포스트시즌 홈런", ...(league === "KBO" ? ["한국시리즈 기록", "KBO 플레이오프 기록"] : league === "NPB" ? ["일본시리즈 기록", "클라이맥스 시리즈 기록"] : ["월드시리즈 기록", "MLB 플레이오프 선수 기록"])],
     openGraph: { title: `${season} ${lg} 포스트시즌 ${ROLE_KO[role]} 기록`, description: `${ROUNDS[league]} ${ROLE_KO[role]} 가을야구 기록과 백분위를 한 표에서.` },
   };

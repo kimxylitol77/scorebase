@@ -148,6 +148,8 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
     { url: `${base}/en/benchmark/method`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/en/scores`, changeFrequency: "hourly", priority: 0.65 },
     { url: `${base}/en/standings`, changeFrequency: "daily", priority: 0.6 },
+    // 영어판 포스트시즌 선수 통계 — MLB 만(KBO·NPB 는 영문 이름이 없는 선수가 많아 한국어 정본에 맡긴다, 2026-10-01)
+    { url: `${base}/en/baseball/postseason/stats?league=MLB`, changeFrequency: "daily", priority: 0.55 },
     { url: `${base}/en/predictions`, changeFrequency: "daily", priority: 0.65 },
     { url: `${base}/en/predictions/accuracy`, changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/en/predictions/scorecard`, changeFrequency: "daily", priority: 0.6 },

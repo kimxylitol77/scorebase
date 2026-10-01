@@ -1,9 +1,9 @@
 // 선수 카드 뷰 — databallr Showcase 문법. 순위 배지·사진·이름·헤드라인 3지표(값+백분위 막대).
 import Link from "next/link";
 import { formatStat, type StatColumn, type StatUnit } from "@/lib/sports/baseball/stats-table";
-import type { StatsViewRow } from "./types";
+import type { StatsLang, StatsViewRow } from "./types";
 
-export default function StatsCards({ rows, cols, unit, startRank = 1 }: { rows: StatsViewRow[]; cols: StatColumn[]; unit: StatUnit; startRank?: number }) {
+export default function StatsCards({ rows, cols, unit, startRank = 1, lang = "ko" }: { rows: StatsViewRow[]; cols: StatColumn[]; unit: StatUnit; startRank?: number; lang?: StatsLang }) {
   const headline = cols.filter((c) => c.headline).slice(0, 3);
   const use = headline.length ? headline : cols.slice(1, 4);
   return (
@@ -16,7 +16,7 @@ export default function StatsCards({ rows, cols, unit, startRank = 1 }: { rows: 
           </div>
           <div className="mt-2 text-center leading-tight">
             <div className="truncate text-sm font-bold">{r.href ? <Link href={r.href} className="hover:underline underline-offset-4">{r.name}</Link> : r.name}</div>
-            <div className="truncate text-[10px] text-neutral-500">{r.sub}{!r.qualified && " · 규정 미달"}</div>
+            <div className="truncate text-[10px] text-neutral-500">{r.sub}{!r.qualified && (lang === "en" ? " · not qualified" : " · 규정 미달")}</div>
           </div>
           <dl className="mt-2.5 space-y-1.5">
             {use.map((c) => {
