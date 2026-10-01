@@ -125,6 +125,10 @@ src/app/
   admin/stats/            # 사람 vs 봇 트래픽
 ```
 
+## 디자인 규칙
+
+**새 화면·UI 수정 전 루트 `DESIGN.md` 를 먼저 읽는다** — 허브 톤 vs 데이터 톤, 라이트(#f6f6f7 + 흰 카드 + 로즈)·다크(elevated white/[0.04]), 스코어보드·스탯 표 공용 부품, 금지 사항.
+
 ## 축구 피치 렌더링 규칙 (필수)
 
 **새 축구 피치(잔디+라인+선수 마커)는 반드시 `src/components/pitch/Pitch.tsx` + `PitchMarker` 를 쓴다. 손으로 새로 그리지 말 것.**
