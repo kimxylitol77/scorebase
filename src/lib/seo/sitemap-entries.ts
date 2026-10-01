@@ -143,6 +143,9 @@ export async function buildSitemapEntries(): Promise<{ lean: MetadataRoute.Sitem
       priority: SITEMAP_LEAGUES.includes(lg) ? 0.75 : 0.6,
     })),
     // 영어판(/en) — 핵심 URL 만 등록 (thin 희석 방지: 허브 + 핵심 리그 상세만)
+    // 라이브스코어 허브 + 리그별 고정 URL(/scores/EPL …) — "{리그} 라이브스코어" 롱테일 (2026-10-01, docs/scores-league-pages)
+    { url: `${base}/scores`, changeFrequency: "hourly" as const, priority: 0.9 },
+    ...SITEMAP_LEAGUES.map((lg) => ({ url: `${base}/scores/${lg}`, changeFrequency: "hourly" as const, priority: 0.8 })),
     { url: `${base}/en`, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/en/benchmark`, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/en/benchmark/method`, changeFrequency: "weekly", priority: 0.6 },

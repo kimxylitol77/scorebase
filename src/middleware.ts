@@ -153,6 +153,13 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   // ── /live/{league} 대소문자 정규화 — canonical·내부링크는 대문자인데 소문자 URL 이
   // 구 sitemap 으로 색인돼 랭킹 신호가 갈림(2026-07-05 Bing 실측) → 대문자 308 영구 redirect.
   // mlb·kbo·npb·lol·ufc 는 소문자 전용 라우트라 제외.
+  // /scores/{리그} 소문자 → 대문자 308 (/live 와 같은 사유, 2026-10-01 리그별 라이브스코어 페이지).
+  const scoresSeg = path.match(/^\/scores\/([^/]+)$/);
+  if (scoresSeg && scoresSeg[1] !== scoresSeg[1].toUpperCase()) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/scores/${scoresSeg[1].toUpperCase()}`;
+    return NextResponse.redirect(url, 308);
+  }
   const liveSeg = path.match(/^\/live\/([^/]+)\/(.+)$/);
   if (liveSeg) {
     const seg = liveSeg[1];

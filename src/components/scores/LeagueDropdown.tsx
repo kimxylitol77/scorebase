@@ -5,6 +5,17 @@
 "use client";
 
 import Link from "next/link";
+
+// 리그 링크 — 오늘·상태 필터 없는 기본 뷰에서는 색인되는 고정 URL(/scores/EPL)로, 날짜·상태가 걸린 뷰에서는
+// 기존 쿼리 유지(날짜 탐색 중 리그 클릭이 오늘로 튀지 않게). 정렬은 쿠키로 유지되므로 조건에서 뺀다. 2026-10-01.
+function leagueHref(baseHref: string, league: string): string {
+  const q = new URLSearchParams(baseHref.split("?")[1] ?? "");
+  const todayKst = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
+  const date = q.get("date");
+  const status = q.get("status");
+  const isDefaultView = (!date || date === todayKst) && (!status || status === "all");
+  return isDefaultView ? `/scores/${league}` : `${baseHref}&league=${league}`;
+}
 import { useEffect, useRef, useState } from "react";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
@@ -101,7 +112,7 @@ export default function LeagueDropdown({
                 <li key={l}>
                   <Link
                     prefetch={false}
-                    href={`${baseHref}&league=${l}`}
+                    href={leagueHref(baseHref, l)}
                     onClick={() => setOpen(false)}
                     className={`block px-4 py-2 text-sm transition ${
                       isActive

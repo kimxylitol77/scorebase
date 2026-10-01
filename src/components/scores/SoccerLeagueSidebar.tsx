@@ -37,6 +37,10 @@ function buildHref(
   league?: string | null,
   sort?: string | null,
 ): string {
+  const todayKst = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
+  // 오늘·상태 필터 없음 = 기본 뷰 → 색인되는 고정 URL(/scores/EPL). 정렬은 쿠키로 유지되므로 조건에서 뺀다.
+  // 과거·미래 날짜나 상태 필터가 걸린 뷰는 기존 쿼리 유지(날짜 탐색 중 리그 클릭이 오늘로 튀지 않게). 2026-10-01.
+  if (league && date === todayKst && (!status || status === "all")) return `/scores/${league}`;
   const params = new URLSearchParams();
   params.set("sport", "soccer");
   params.set("date", date);
