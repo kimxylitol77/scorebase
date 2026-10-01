@@ -2389,12 +2389,12 @@
         "status": "played",
         "season": "2026",
         "team": "St. Louis City SC",
-        "apps": 19,
+        "apps": 20,
         "starts": 14,
         "goals": 2,
         "assists": 1,
-        "minutes": 959,
-        "rating": 6.7,
+        "minutes": 978,
+        "rating": 6.69,
         "yellow": 1,
         "red": 0
       }
@@ -2987,5 +2987,5 @@
     }
   ],
   "currentSeason": "2026-27",
-  "currentUpdatedAt": "2026-09-30T22:20:18.563Z"
+  "currentUpdatedAt": "2026-10-01T22:20:19.906Z"
 }
