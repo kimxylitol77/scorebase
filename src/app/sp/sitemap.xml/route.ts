@@ -10,6 +10,8 @@ export async function GET() {
   const urls: { loc: string; changefreq: string; priority: string }[] = [
     { loc: spUrl("/"), changefreq: "hourly", priority: "1.0" },
     { loc: spUrl("/today"), changefreq: "hourly", priority: "0.7" },
+    { loc: spUrl("/live-scores"), changefreq: "always", priority: "0.9" },
+    ...SP_LEAGUES.map((l) => ({ loc: spUrl(`/live-scores/${l.slug}`), changefreq: "always", priority: "0.8" })),
     { loc: spUrl("/accuracy"), changefreq: "daily", priority: "0.9" },
     { loc: spUrl("/methodology"), changefreq: "monthly", priority: "0.5" },
     { loc: spUrl("/about"), changefreq: "monthly", priority: "0.3" },

@@ -66,3 +66,11 @@
 - [ ] GSC 링크 리포트에서 백링크 확인 → 도박·스팸 도메인 disavow
 - [ ] GSC 커버리지: 옛 URL "410" 처리 확인
 - [ ] 30일 노출·클릭 기록 → context-notes
+
+## Phase 7. 영어 라이브 스코어 롱테일 (10-01 지시)
+- [x] `src/lib/sp/live.ts` (Match + ts 캐시, 외부 호출 0)
+- [x] `/live-scores` 허브 + `/live-scores/[league]` 13개 (ISR 60s, FAQ, JSON-LD)
+- [x] ScoreRow · LiveBoardView · AutoRefresh 컴포넌트
+- [x] 헤더 네비 · 홈 CTA · 사이트맵 +14
+- [ ] 프로덕션 검증 (라이브 경기 있는 시간대에 분 라벨·자동 갱신 확인)
+- [ ] 4~6주 뒤 GSC 쿼리 "live scores" 노출 비교

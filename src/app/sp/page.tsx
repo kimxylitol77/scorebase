@@ -66,6 +66,7 @@ export default async function SpHome() {
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <a href="#key" className="sp-btn sp-btn-primary">Today&apos;s key matches</a>
+          <Link href="/live-scores" className="sp-btn sp-btn-ghost">Live scores</Link>
           <Link href="/accuracy" className="sp-btn sp-btn-ghost">See the accuracy record</Link>
         </div>
       </section>

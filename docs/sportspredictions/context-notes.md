@@ -80,3 +80,11 @@ ui-ux-pro-max 실측 결과는 Fira Code/Sans + 블루 팔레트(Real-Time/Opera
 
 **결정 12 (2026-09-21, 사용자 승인). 스코어베이스 /en 푸터 → sportspredictions.live 링크 1개.**
 사이트맵 제출 후 며칠째 "가져올 수 없음". 서버·DNS·인증서·방화벽·robots 전부 정상, PageSpeed(구글 인프라) SEO 100 → 구글이 못 가져오는 게 아니라 크롤을 안 시작한 것(만료·재등록 도메인 저우선순위 추정). 결정 1 의 "한 방향 링크" 는 링크 네트워크 회피가 목적이었고, 운영 사이트 영어판 푸터의 자매 사이트 링크 1개는 정상 구조라 예외. 한국어판 푸터에는 넣지 않음.
+
+**결정 13 (2026-10-01, 사용자 지시). 영어 롱테일 "live scores" 페이지 — 자매 사이트 먼저, 그다음 스코어베이스.**
+- 라우트 = /live-scores(허브, 13리그 그룹) + /live-scores/{slug}(리그별). 제목 "Premier League Live Scores — Today's Results, Fixtures & Model Picks". ISR 60s.
+- 데이터 = Match 테이블(점수·상태, MQTT+cron 으로 준실시간) + TheSports 캐시(축구 진행분·야구 이닝). /scores 처럼 af·ESPN 외부 호출은 하지 않는다(한도·비용). 라벨 코드표는 ts-football-live-label.ts 와 동일, 영어판 enFootballLiveLabel.
+- 창 = -30h ~ +30h (전 세계 방문자라 KST 일자 대신 롤링 창). 킥오프는 LocalTime 으로 로컬 표시.
+- 각 행이 /match/[id] 로 가고 모델 픽·적중을 함께 보여줘 "라이브 스코어 + 예측" 차별점을 만든다.
+- 자동 갱신 = 라이브 경기 있을 때만 60s router.refresh (ISR 캐시 적중, 탭 숨김 시 중지).
+- 사이트맵 +14 URL, 홈 CTA·헤더 네비 "Live scores" 추가. 크롤러용 텍스트 = 종목별 설명 문단 + FAQ 3 + FAQPage/SportsEvent JSON-LD.
