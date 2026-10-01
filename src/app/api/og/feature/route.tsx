@@ -42,7 +42,8 @@ export async function GET(req: Request) {
   if (!font) return new Response("font load failed", { status: 503 });
 
   // 스크린샷은 요청한 배포 자신의 정적 자산 — dev 에선 localhost, 프로덕션에선 SITE_URL.
-  const origin = url.origin.includes("localhost") ? url.origin : SITE_URL;
+  // 호스트 정확 일치 — includes("localhost") 는 "localhost.evil.com" 도 통과시킨다(2026-10-01 Strix)
+  const origin = url.hostname === "localhost" || url.hostname === "127.0.0.1" ? url.origin : SITE_URL;
   const shot = `${origin}/threads/shot-${f.key}.png`;
 
   return new ImageResponse(

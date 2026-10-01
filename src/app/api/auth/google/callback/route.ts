@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, createUserSessionCookie } from "@/lib/user-auth";
 import { awardAttendance } from "@/lib/user-exp";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -124,7 +125,7 @@ export async function GET(req: Request) {
     });
 
     // 신규 구글 가입은 닉네임 설정을 유도 → /account?welcome=1 (기존 유저·계정연결은 원래 경로)
-    const safeFrom = from && from.startsWith("/") && !from.startsWith("//") ? from : "/";
+    const safeFrom = safeRedirectPath(from);
     const dest = isNew ? "/account?welcome=1" : safeFrom;
     return NextResponse.redirect(new URL(dest, origin));
   } catch (e) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const from = url.searchParams.get("from") || "/";
-  const safeFrom = from.startsWith("/") && !from.startsWith("//") ? from : "/";
+  const safeFrom = safeRedirectPath(from);
   const redirectUri = `${url.origin}/api/auth/google/callback`;
 
   const state = randomBytes(16).toString("hex");

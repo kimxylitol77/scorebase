@@ -12,6 +12,7 @@ import {
 } from "@/lib/user-auth";
 import { rateLimit, rateLimitReset } from "@/lib/rate-limit";
 import { awardAttendance } from "@/lib/user-exp";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 export interface AuthState {
   ok: boolean;
@@ -39,10 +40,8 @@ async function setSession(userId: string): Promise<void> {
   });
 }
 
-/** open redirect 방지: 사이트 내부 경로(//evil 제외)만 허용 */
-function safeRedirect(from: string): string {
-  return from.startsWith("/") && !from.startsWith("//") ? from : "/";
-}
+/** open redirect 방지: 사이트 내부 경로만 허용 — "/\evil.com" 백슬래시 우회까지 막는 공용 함수 */
+const safeRedirect = safeRedirectPath;
 
 export async function signupUserAction(
   _prev: AuthState,
