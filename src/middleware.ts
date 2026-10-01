@@ -77,11 +77,14 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
     // 보지 않고, DB 를 안 쓰는 고정 응답이라 비용은 403 과 같다(이 봇은 403 에도 초당 20건을 계속 보냈다).
     // 표식은 /24 대역마다 달라 어디에 다시 올라왔는지 찾으면 어느 대역이 가져갔는지까지 역산된다.
     // 역산: "SBTR" 뒤 문자열을 36진수로 읽어 a*65536+b*256+c → a.b.c.0/24. IPv6 는 "SBTR6" + 앞 3그룹(/48).
-    const oct = clientIp.split(".").map(Number);
+    // 헤더 값은 IP 에 쓰이는 글자만 남긴 뒤 표식에 쓴다 — 아래 HTML 에 그대로 찍히므로 "</title><img onerror=…" 같은
+    // 값이 들어오면 스크립트가 실행된다(2026-10-01 Strix 점검 지적, Vercel 이 XFF 를 덮어써 실제 악용 경로는 없었음).
+    const safeIp = clientIp.replace(/[^0-9a-fA-F:.]/g, "");
+    const oct = safeIp.split(".").map(Number);
     const mark =
       oct.length === 4 && oct.every((n) => Number.isInteger(n))
         ? `SBTR${(oct[0] * 65536 + oct[1] * 256 + oct[2]).toString(36).toUpperCase()}`
-        : `SBTR6${clientIp.split(":").slice(0, 3).join("").toUpperCase()}`;
+        : `SBTR6${safeIp.split(":").slice(0, 3).join("").toUpperCase()}`;
     return new NextResponse(
       `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>스코어베이스 경기 데이터 ${mark}</title></head>` +
         `<body><h1>스코어베이스 경기 데이터</h1><p>오늘의 경기 분석 데이터 참조번호 ${mark}. 출처 scorebase.kr</p></body></html>`,
