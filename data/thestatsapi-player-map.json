@@ -1531,12 +1531,12 @@
  },
  "6ypq3nhwvg84md7": {
   "statsId": "pl_97242494",
-  "teamId": "tm_9145",
-  "teamName": "Arsenal",
+  "teamId": "tm_51366",
+  "teamName": "Borussia Dortmund",
   "name": "Ethan Nwaneri",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "3glrw7hyl5z4qdy": {
   "statsId": "pl_29105270",
@@ -2119,9 +2119,9 @@
   "teamId": "tm_160814",
   "teamName": "RB Leipzig",
   "name": "Maxime Esteve",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "pxwrxlh9y881ryk": {
   "statsId": "pl_84849530",
@@ -2476,12 +2476,12 @@
  },
  "8yomo4hvj7d5q0j": {
   "statsId": "pl_36080624",
-  "teamId": "tm_160814",
-  "teamName": "RB Leipzig",
+  "teamId": "tm_73701",
+  "teamName": "Royal Antwerp FC",
   "name": "Arthur Vermeeren",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "23xmvkhkj5v2qg8": {
   "statsId": "pl_19686075",
@@ -2497,9 +2497,9 @@
   "teamId": "tm_20832",
   "teamName": "Bayer 04 Leverkusen",
   "name": "Afonso Moreira",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "2y8m4zhgydn4ql0": {
   "statsId": "pl_30323255",
@@ -2587,9 +2587,9 @@
   "teamId": "tm_20832",
   "teamName": "Bayer 04 Leverkusen",
   "name": "Facundo Medina",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "2y8m4zhz6ylxql0": {
   "statsId": "pl_20671535",
@@ -2854,12 +2854,12 @@
  },
  "23xmvkhd8v0nqg8": {
   "statsId": "pl_30422821",
-  "teamId": "tm_83353",
-  "teamName": "Stade Rennais",
+  "teamId": "tm_02978",
+  "teamName": "Eintracht Frankfurt",
   "name": "Lilian Brassier",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "8yomo4hzeweq0j6": {
   "statsId": "pl_57418751",
@@ -3280,9 +3280,9 @@
   "teamId": "tm_64584",
   "teamName": "Hamburger SV",
   "name": "Bilal Nadir",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "y39mp1hj4zoomoj": {
   "statsId": "pl_61090399",
@@ -3637,12 +3637,12 @@
  },
  "x7lm7phwwjzm2wd": {
   "statsId": "pl_57268852",
-  "teamId": "tm_98476",
-  "teamName": "Milan",
+  "teamId": "tm_160814",
+  "teamName": "RB Leipzig",
   "name": "Christopher Nkunku",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "318q66h44gpqo9j": {
   "statsId": "pl_13587883",
@@ -4567,9 +4567,9 @@
   "teamId": "tm_20721",
   "teamName": "1. FC Köln",
   "name": "Thijs Dallinga",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  },
  "n54qllh9jd4qvy9": {
   "statsId": "pl_13776474",
@@ -20428,5 +20428,257 @@
   "competitionId": "comp_8814",
   "seasonId": "sn_8407970",
   "seasonLabel": "2026-27 LALIGA"
+ },
+ "vjxm8ghpl7vvr6o": {
+  "statsId": "pl_46772565",
+  "teamId": "tm_98299",
+  "teamName": "FC Bayern München",
+  "name": "Lennart Karl",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "vjxm8gh870e8r6o": {
+  "statsId": "pl_74250712",
+  "teamId": "tm_98299",
+  "teamName": "FC Bayern München",
+  "name": "Nathaniel Brown",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "23xmvkhd9428qg8": {
+  "statsId": "pl_30372107",
+  "teamId": "tm_64398",
+  "teamName": "1. FSV Mainz 05",
+  "name": "Kaishu Sano",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "dn1m1gh3pz2lmoe": {
+  "statsId": "pl_58779792",
+  "teamId": "tm_160814",
+  "teamName": "RB Leipzig",
+  "name": "Rômulo José Cardoso da Cruz",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "zp5rzghzj63q82w": {
+  "statsId": "pl_9834749",
+  "teamId": "tm_98299",
+  "teamName": "FC Bayern München",
+  "name": "Jonathan Tah",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "n54qllhx1p36qvy": {
+  "statsId": "pl_61014553",
+  "teamId": "tm_51366",
+  "teamName": "Borussia Dortmund",
+  "name": "Fábio Silva",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "y39mp1hynexjmoj": {
+  "statsId": "pl_25815322",
+  "teamId": "tm_1552",
+  "teamName": "Brighton & Hove Albion",
+  "name": "Chema Andrés",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "8yomo4h2l4xeq0j": {
+  "statsId": "pl_72706340",
+  "teamId": "tm_02978",
+  "teamName": "Eintracht Frankfurt",
+  "name": "Nnamdi Collins",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "3glrw7hlljdqdyj": {
+  "statsId": "pl_61908580",
+  "teamId": "tm_98299",
+  "teamName": "FC Bayern München",
+  "name": "Hiroki Ito",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "ednm9whv58kryox": {
+  "statsId": "pl_61330856",
+  "teamId": "tm_51366",
+  "teamName": "Borussia Dortmund",
+  "name": "Waldemar Anton",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "y0or5jhg1vyqwzv": {
+  "statsId": "pl_30837234",
+  "teamId": "tm_15641",
+  "teamName": "FC Augsburg",
+  "name": "Alexis Claude-Maurice",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "2y8m4zh8766kql0": {
+  "statsId": "pl_58727848",
+  "teamId": "tm_02978",
+  "teamName": "Eintracht Frankfurt",
+  "name": "Oscar Winther Hojlund",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "2y8m4zhg5o9zql0": {
+  "statsId": "pl_13861309",
+  "teamId": "tm_37258",
+  "teamName": "VfB Stuttgart",
+  "name": "Tiago Tomas",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "dj2ryoh5y2eq1zp": {
+  "statsId": "pl_72054903",
+  "teamId": "tm_20832",
+  "teamName": "Bayer 04 Leverkusen",
+  "name": "Nathan Tella",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "3glrw7hy3zvdqdy": {
+  "statsId": "pl_62198583",
+  "teamId": "tm_02484",
+  "teamName": "VfL Wolfsburg",
+  "name": "Saël Kumbedi Nseke",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "jw2r09hj4yvrz84": {
+  "statsId": "pl_61801805",
+  "teamId": "tm_37804",
+  "teamName": "Borussia M'gladbach",
+  "name": "Moritz Nicolas",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "dn1m1gh391pymoe": {
+  "statsId": "pl_25923653",
+  "teamId": "tm_02413",
+  "teamName": "SV Werder Bremen",
+  "name": "Arthur Augusto De Matos Soares",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "318q66h4ylw3qo9": {
+  "statsId": "pl_58779924",
+  "teamId": "tm_02978",
+  "teamName": "Eintracht Frankfurt",
+  "name": "Kauã Santos",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "vjxm8ghg3wpr6od": {
+  "statsId": "pl_4005486",
+  "teamId": "tm_02413",
+  "teamName": "SV Werder Bremen",
+  "name": "Niclas Füllkrug",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "318q66hv5zzqo9j": {
+  "statsId": "pl_8695372",
+  "teamId": "tm_15093",
+  "teamName": "FC Schalke 04",
+  "name": "Robin Gosens",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "2y8m4zh1ggeql07": {
+  "statsId": "pl_29708916",
+  "teamId": "tm_37885",
+  "teamName": "1. FC Union Berlin",
+  "name": "Michel Aebischer",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "k82rekh8georepz": {
+  "statsId": "pl_30833617",
+  "teamId": "tm_64584",
+  "teamName": "Hamburger SV",
+  "name": "Sebastiaan Bornauw",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "23xmvkhg19jqg8n": {
+  "statsId": "pl_61543353",
+  "teamId": "tm_20832",
+  "teamName": "Bayer 04 Leverkusen",
+  "name": "Miguel Gutiérrez",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "jw2r09hjy63grz8": {
+  "statsId": "pl_58454589",
+  "teamId": "tm_160814",
+  "teamName": "RB Leipzig",
+  "name": "Marc Guiu",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "k82rekh35y8repz": {
+  "statsId": "pl_96273081",
+  "teamId": "tm_20721",
+  "teamName": "1. FC Köln",
+  "name": "Gideon Mensah",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "3glrw7hokdjqdyj": {
+  "statsId": "pl_08321274",
+  "teamId": "tm_37885",
+  "teamName": "1. FC Union Berlin",
+  "name": "Emmanuel Latte Lath",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "y0or5jh3gwyqwzv": {
+  "statsId": "pl_61320388",
+  "teamId": "tm_15093",
+  "teamName": "FC Schalke 04",
+  "name": "Hwang Hee-Chan",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
+ },
+ "4jwq2ghvjg3m0ve": {
+  "statsId": "pl_0974433",
+  "teamId": "tm_20721",
+  "teamName": "1. FC Köln",
+  "name": "Borna Sosa",
+  "competitionId": "comp_4643",
+  "seasonId": "sn_0835912",
+  "seasonLabel": "2026-27 BUNDESLIGA"
  }
 }
