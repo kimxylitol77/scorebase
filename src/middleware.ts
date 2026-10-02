@@ -71,6 +71,15 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   }
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
+  // [ua-probe] 임시 — 윈도우 크롬 151 위장 수집기(2026-09-29~, 시간당 20~40세션·세션당 1PV)의 출처 수집.
+  // 사람도 같은 버전을 쓰므로 막지 않고 기록만 한다. 출처를 방화벽에 넣은 뒤 지울 것.
+  if (/Windows NT 10\.0; Win64; x64\) AppleWebKit\/537\.36 \(KHTML, like Gecko\) Chrome\/151\.0\.0\.0 Safari\/537\.36$/.test(req.headers.get("user-agent") ?? "") && !path.startsWith("/api/")) {
+    const h = (k: string) => req.headers.get(k) ?? "-";
+    console.warn(
+      `[ua-probe] ip=${clientIp} asn=${h("x-vercel-ip-as-number")} country=${h("x-vercel-ip-country")} ja4=${h("x-vercel-ja4-digest")}` +
+        ` path=${path} mode=${h("sec-fetch-mode")} ref=${h("referer").slice(0, 60)} lang=${h("accept-language").slice(0, 30)}`,
+    );
+  }
   const fakeHint = FAKE_CLIENT_HINT_PLATFORMS.has(req.headers.get("sec-ch-ua-platform") ?? "");
   if (fakeHint || BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
     // 추적 표식(canary) — 403 대신 표식이 든 미끼 페이지를 준다. 차단 대역·가짜 지문만 받으므로 사람·검색엔진은
