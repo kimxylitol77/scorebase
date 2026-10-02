@@ -2,6 +2,7 @@ import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server
 import { detectBot } from "@/lib/bot-detect";
 import { onceShared, rateLimitShared } from "@/lib/rate-limit-shared";
 import { isProtectedApiPath, isSameSiteRequest } from "@/lib/api-same-origin";
+import { selfFetch } from "@/lib/self-fetch";
 
 // /admin 경로 보호 — cookie 존재만 체크 (검증은 page/action 에서).
 // /admin/login 은 누구나 접근 가능.
@@ -49,6 +50,10 @@ const BLOCKED_IP_PREFIXES = ["43.119.", "47.82."];
 // 2026-09-18 실측: 알리바바 대역 차단 뒤 같은 UA(Mac Chrome/145)가 다른 IP 로 돌아와 실시간 접속 38세션을 만들었다.
 const FAKE_CLIENT_HINT_PLATFORMS = new Set(["Mac OS X"]);
 
+// 주거용 프록시 수집기 지문·추적 표식 — 아래 미끼 분기 참고.
+const PROXY_SCRAPER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36";
+const CANARY_MARK = "SBTRP151";
+
 export async function middleware(req: NextRequest, event: NextFetchEvent) {
   const path = req.nextUrl.pathname;
   const host = (req.headers.get("host") || "").toLowerCase();
@@ -71,14 +76,30 @@ export async function middleware(req: NextRequest, event: NextFetchEvent) {
   }
 
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
-  // [ua-probe] 임시 — 윈도우 크롬 151 위장 수집기(2026-09-29~, 시간당 20~40세션·세션당 1PV)의 출처 수집.
-  // 사람도 같은 버전을 쓰므로 막지 않고 기록만 한다. 출처를 방화벽에 넣은 뒤 지울 것.
-  if (/Windows NT 10\.0; Win64; x64\) AppleWebKit\/537\.36 \(KHTML, like Gecko\) Chrome\/151\.0\.0\.0 Safari\/537\.36$/.test(req.headers.get("user-agent") ?? "") && !path.startsWith("/api/")) {
-    const h = (k: string) => req.headers.get(k) ?? "-";
-    console.warn(
-      `[ua-probe] ip=${clientIp} asn=${h("x-vercel-ip-as-number")} country=${h("x-vercel-ip-country")} ja4=${h("x-vercel-ja4-digest")}` +
-        ` path=${path} mode=${h("sec-fetch-mode")} ref=${h("referer").slice(0, 60)} lang=${h("accept-language").slice(0, 30)}`,
-    );
+  // 주거용 프록시 수집기 미끼(2026-10-03). 9/29 부터 BR·US·IN·BD 가정 회선 IP 를 요청마다 바꿔 영어판 선수·이적·팀
+  // 페이지를 하루 700장씩 한 번씩 긁는다(4일 1,986장 중 98% 가 /en, 2PV 이상 세션 2개뿐). IP 로는 못 막아 지문으로 잡는다.
+  // 빈 미끼는 수집기가 버리므로 진짜 페이지를 받아 제목·H1 끝에 표식을 붙여 준다 — 어딘가에 다시 올라오면
+  // CANARY_MARK 하나로 검색해 찾는다. 자기 호출은 selfFetch(UA vercel-cron)라 방화벽·이 분기를 다시 타지 않는다.
+  if (
+    req.method === "GET" &&
+    req.headers.get("user-agent") === PROXY_SCRAPER_UA &&
+    (req.headers.get("accept-language") ?? "").startsWith("en-US") &&
+    !req.headers.has("referer") &&
+    !path.startsWith("/api/")
+  ) {
+    console.warn(`[canary] ${CANARY_MARK} path=${path}`);
+    try {
+      const res = await selfFetch(path + req.nextUrl.search, "canary", { headers: { "accept-language": "en-US,en;q=0.9" } });
+      if (res.ok && (res.headers.get("content-type") ?? "").includes("text/html")) {
+        const html = (await res.text())
+          .replace(/<title>([^<]*?)( \| Scorebase)?<\/title>/, (_m, t, tail) => `<title>${t} ${CANARY_MARK}${tail ?? ""}</title>`)
+          .replace(/(<meta property="og:title" content=")([^"]*)/, `$1$2 ${CANARY_MARK}`)
+          .replace(/(<h1[^>]*>)([^<]*)/, `$1$2 ${CANARY_MARK}`);
+        return new NextResponse(html, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      }
+    } catch {
+      // 자기 호출 실패 — 아래 일반 경로로 진짜 페이지가 나간다(표식만 빠짐)
+    }
   }
   const fakeHint = FAKE_CLIENT_HINT_PLATFORMS.has(req.headers.get("sec-ch-ua-platform") ?? "");
   if (fakeHint || BLOCKED_IP_PREFIXES.some((p) => clientIp.startsWith(p))) {
