@@ -550,21 +550,21 @@
  },
  "k82rekh3wyxrepz": {
   "statsId": "pl_96201104",
-  "teamId": "tm_5130",
-  "teamName": "Tottenham Hotspur",
+  "teamId": "tm_64681",
+  "teamName": "Atlético Madrid",
   "name": "Cristian Romero",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "8yomo4h0xg6q0j6": {
   "statsId": "pl_45744651",
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
   "name": "Ibrahima Konaté",
-  "competitionId": "comp_3039",
-  "seasonId": "sn_8406098",
-  "seasonLabel": "2026-27 EPL"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "4wyrn4hv0znq86p": {
   "statsId": "pl_72970122",
@@ -1135,12 +1135,12 @@
  },
  "l7oqdehl92k2r51": {
   "statsId": "pl_46469476",
-  "teamId": "tm_160814",
-  "teamName": "RB Leipzig",
+  "teamId": "tm_73673",
+  "teamName": "Real Madrid",
   "name": "Yan Diomande",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "jw2r09hjk38rz84": {
   "statsId": "pl_57223262",
@@ -1315,12 +1315,12 @@
  },
  "dn1m1ghn1jz7moe": {
   "statsId": "pl_08901434",
-  "teamId": "tm_51366",
-  "teamName": "Borussia Dortmund",
+  "teamId": "tm_37445",
+  "teamName": "Barcelona",
   "name": "Karim Adeyemi",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "23xmvkh457jqg8n": {
   "statsId": "pl_45808088",
@@ -3172,9 +3172,9 @@
   "teamId": "tm_46499",
   "teamName": "Racing de Santander",
   "name": "Yassir Zabiri",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "y39mp1hyggx1moj": {
   "statsId": "pl_01982292",
@@ -3199,9 +3199,9 @@
   "teamId": "tm_73740",
   "teamName": "Getafe",
   "name": "Orel Mangala",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "ednm9whv681ryox": {
   "statsId": "pl_61349188",
@@ -3298,9 +3298,9 @@
   "teamId": "tm_51959",
   "teamName": "Sevilla",
   "name": "Arouna Sangante",
-  "competitionId": "comp_0256",
-  "seasonId": "sn_3011424",
-  "seasonLabel": "2026-27 LIGUE_1"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "k82rekhyx6z8rep": {
   "statsId": "pl_01813815",
@@ -3649,9 +3649,9 @@
   "teamId": "tm_73673",
   "teamName": "Real Madrid",
   "name": "Denzel Dumfries",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "l5ergphvx99r8k0": {
   "statsId": "pl_1730341",
@@ -4537,12 +4537,12 @@
  },
  "6ypq3nhwl8p3md7": {
   "statsId": "pl_97029270",
-  "teamId": "tm_73047",
-  "teamName": "Lazio",
+  "teamId": "tm_73725",
+  "teamName": "Levante UD",
   "name": "Petar Ratkov",
-  "competitionId": "comp_5840",
-  "seasonId": "sn_6199313",
-  "seasonLabel": "2026-27 SERIE_A"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "zp5rzghz4o6xq82": {
   "statsId": "pl_40211",
@@ -5755,9 +5755,9 @@
   "teamId": "tm_64681",
   "teamName": "Atlético Madrid",
   "name": "Alejandro Grimaldo",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "x7lm7phw4317m2w": {
   "statsId": "pl_19194753",
@@ -6022,12 +6022,12 @@
  },
  "n54qllh87ydjqvy": {
   "statsId": "pl_97633721",
-  "teamId": "tm_20832",
-  "teamName": "Bayer 04 Leverkusen",
+  "teamId": "tm_46499",
+  "teamName": "Racing de Santander",
   "name": "Jeanuël Belocian",
-  "competitionId": "comp_4643",
-  "seasonId": "sn_0835912",
-  "seasonLabel": "2026-27 BUNDESLIGA"
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  },
  "y0or5jh3nxp9qwz": {
   "statsId": "pl_97219297",
@@ -19951,5 +19951,482 @@
   "competitionId": "comp_6240",
   "seasonId": "sn_2960779",
   "seasonLabel": "2026 J1_LEAGUE"
+ },
+ "l5ergphe8wokr8k": {
+  "statsId": "pl_19307113",
+  "teamId": "tm_37445",
+  "teamName": "Barcelona",
+  "name": "Fermín López",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "l7oqdeh03w9r510": {
+  "statsId": "pl_08448334",
+  "teamId": "tm_73673",
+  "teamName": "Real Madrid",
+  "name": "Trent Alexander-Arnold",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "965mkyh3j5x1r1g": {
+  "statsId": "pl_30224545",
+  "teamId": "tm_37445",
+  "teamName": "Barcelona",
+  "name": "Joan García",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "l5ergphvgpwer8k": {
+  "statsId": "pl_19455144",
+  "teamId": "tm_46224",
+  "teamName": "Athletic Club",
+  "name": "Nico Williams",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "4jwq2ghx0l8ym0v": {
+  "statsId": "pl_97022077",
+  "teamId": "tm_64681",
+  "teamName": "Atlético Madrid",
+  "name": "Giuliano Simeone Baldini",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "ednm9whz6x6lryo": {
+  "statsId": "pl_13894687",
+  "teamId": "tm_64056",
+  "teamName": "Real Betis",
+  "name": "Antony Matheus dos Santos",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "pxwrxlhvw42ryk0": {
+  "statsId": "pl_08354048",
+  "teamId": "tm_37445",
+  "teamName": "Barcelona",
+  "name": "Eric García",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "zp5rzghp4j2nq82": {
+  "statsId": "pl_36584478",
+  "teamId": "tm_37445",
+  "teamName": "Barcelona",
+  "name": "Gerard Martín",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "x7lm7phwvyy2m2w": {
+  "statsId": "pl_62503110",
+  "teamId": "tm_02555",
+  "teamName": "Real Sociedad",
+  "name": "Jon Martin",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "dj2ryohg1l6q1zp": {
+  "statsId": "pl_29666832",
+  "teamId": "tm_46224",
+  "teamName": "Athletic Club",
+  "name": "Unai Simon",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y39mp1hyewdzmoj": {
+  "statsId": "pl_97226666",
+  "teamId": "tm_64681",
+  "teamName": "Atlético Madrid",
+  "name": "Rodrigo Mendoza",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "3glrw7hj3o2qdyj": {
+  "statsId": "pl_8032872",
+  "teamId": "tm_64681",
+  "teamName": "Atlético Madrid",
+  "name": "Alexander Sørloth",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "vjxm8gh24l9r6od": {
+  "statsId": "pl_45195201",
+  "teamId": "tm_64056",
+  "teamName": "Real Betis",
+  "name": "Cucho Hernández",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "2y8m4zhzjk37ql0": {
+  "statsId": "pl_58994691",
+  "teamId": "tm_73664",
+  "teamName": "Villarreal",
+  "name": "Pau Navarro",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y0or5jh3kj36qwz": {
+  "statsId": "pl_62951450",
+  "teamId": "tm_20116",
+  "teamName": "Celta Vigo",
+  "name": "Miguel Roman",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y39mp1hj6865moj": {
+  "statsId": "pl_72724067",
+  "teamId": "tm_46224",
+  "teamName": "Athletic Club",
+  "name": "Beñat Prados Díaz",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "n54qllhkgvnqvy9": {
+  "statsId": "pl_57315926",
+  "teamId": "tm_73664",
+  "teamName": "Villarreal",
+  "name": "Logan Costa",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "zp5rzgh138jq82w": {
+  "statsId": "pl_72561361",
+  "teamId": "tm_51959",
+  "teamName": "Sevilla",
+  "name": "Rubén Vargas",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "965mkyhzegyr1ge": {
+  "statsId": "pl_45876422",
+  "teamId": "tm_02555",
+  "teamName": "Real Sociedad",
+  "name": "Sergio Gómez",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y39mp1h1xxn6moj": {
+  "statsId": "pl_017714",
+  "teamId": "tm_9103469",
+  "teamName": "No team",
+  "name": "Rubén de la Red",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y0or5jh3lzk7qwz": {
+  "statsId": "pl_83298872",
+  "teamId": "tm_73664",
+  "teamName": "Villarreal",
+  "name": "Ilias Akhomach Chakkour",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "x7lm7ph06nnpm2w": {
+  "statsId": "pl_74112974",
+  "teamId": "tm_02599",
+  "teamName": "Espanyol",
+  "name": "Urko Gonzalez",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "l5ergphvg2epr8k": {
+  "statsId": "pl_25305386",
+  "teamId": "tm_89783",
+  "teamName": "Valencia",
+  "name": "Arnau Martínez López",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "l7oqdeh4gzj2r51": {
+  "statsId": "pl_45459609",
+  "teamId": "tm_1772",
+  "teamName": "Bournemouth",
+  "name": "Juanlu Sánchez",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "dj2ryohglnzoq1z": {
+  "statsId": "pl_40522280",
+  "teamId": "tm_20116",
+  "teamName": "Celta Vigo",
+  "name": "Jones El-Abdellaoui",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "pxwrxlh9eejnryk": {
+  "statsId": "pl_61565269",
+  "teamId": "tm_98708",
+  "teamName": "Celtic",
+  "name": "Haissem Hassan",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "pxwrxlh9dgppryk": {
+  "statsId": "pl_96962008",
+  "teamId": "tm_73725",
+  "teamName": "Levante UD",
+  "name": "Iván Romero",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "x7lm7phw9w0m2wd": {
+  "statsId": "pl_08412313",
+  "teamId": "tm_46224",
+  "teamName": "Athletic Club",
+  "name": "Iñaki Williams",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "zp5rzghx58xq82w": {
+  "statsId": "pl_57463812",
+  "teamId": "tm_46488",
+  "teamName": "Deportivo Alavés",
+  "name": "Toni Martínez",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "23xmvkhk9lwyqg8": {
+  "statsId": "pl_74245761",
+  "teamId": "tm_02555",
+  "teamName": "Real Sociedad",
+  "name": "Pablo Marin",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "dn1m1gh41demoep": {
+  "statsId": "pl_699060",
+  "teamId": "tm_73664",
+  "teamName": "Villarreal",
+  "name": "Péter Gulácsi",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "l7oqdeh4ojlr510": {
+  "statsId": "pl_5414611",
+  "teamId": "tm_89774",
+  "teamName": "Rayo Vallecano",
+  "name": "Emil Audero",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "dj2ryohj7vwq1zp": {
+  "statsId": "pl_7559311",
+  "teamId": "tm_73673",
+  "teamName": "Real Madrid",
+  "name": "Bernardo Silva",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "k82rekhy27jrepz": {
+  "statsId": "pl_4810205",
+  "teamId": "tm_73740",
+  "teamName": "Getafe",
+  "name": "Enes Ünal",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "dj2ryohgxldq1zp": {
+  "statsId": "pl_72992469",
+  "teamId": "tm_37445",
+  "teamName": "Barcelona",
+  "name": "Gabriel Jesus",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "1l4rjnhezl2m7vx": {
+  "statsId": "pl_61945965",
+  "teamId": "tm_15810",
+  "teamName": "Málaga",
+  "name": "Juan Berrocal",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "l7oqdehed20r510": {
+  "statsId": "pl_30284551",
+  "teamId": "tm_64681",
+  "teamName": "Atlético Madrid",
+  "name": "Lee Kang-In",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y0or5jh0915qwzv": {
+  "statsId": "pl_45860171",
+  "teamId": "tm_98394",
+  "teamName": "Deportivo La Coruña",
+  "name": "Angeliño",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "y39mp1hjpw5wmoj": {
+  "statsId": "pl_96300889",
+  "teamId": "tm_51959",
+  "teamName": "Sevilla",
+  "name": "Youssouf Fofana",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "k82rekhynwx6rep": {
+  "statsId": "pl_45258656",
+  "teamId": "tm_89783",
+  "teamName": "Valencia",
+  "name": "Harvey Elliott",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "x7lm7phwk3vlm2w": {
+  "statsId": "pl_19459176",
+  "teamId": "tm_02599",
+  "teamName": "Espanyol",
+  "name": "Bryan Zaragoza",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "pxwrxlhj9485ryk": {
+  "statsId": "pl_25372511",
+  "teamId": "tm_73740",
+  "teamName": "Getafe",
+  "name": "Saba Sazonov",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "jw2r09hjw1zorz8": {
+  "statsId": "pl_19485816",
+  "teamId": "tm_46499",
+  "teamName": "Racing de Santander",
+  "name": "Matteo Prati",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "n54qllh8jl2dqvy": {
+  "statsId": "pl_19413685",
+  "teamId": "tm_46488",
+  "teamName": "Deportivo Alavés",
+  "name": "Nicolas Valentini",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "965mkyhekg21r1g": {
+  "statsId": "pl_40940064",
+  "teamId": "tm_64612",
+  "teamName": "Elche",
+  "name": "Facundo Buonanotte",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "k82rekhy42vrepz": {
+  "statsId": "pl_0971040",
+  "teamId": "tm_64612",
+  "teamName": "Elche",
+  "name": "Ezequiel Ponce",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "vjxm8gh861x7r6o": {
+  "statsId": "pl_36035271",
+  "teamId": "tm_73673",
+  "teamName": "Real Madrid",
+  "name": "Endrick Felipe Moreira de Sousa",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "n54qllhedpgqvy9": {
+  "statsId": "pl_1947036",
+  "teamId": "tm_73725",
+  "teamName": "Levante UD",
+  "name": "Aïssa Mandi",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "k82rekhvg7grepz": {
+  "statsId": "pl_877072",
+  "teamId": "tm_98394",
+  "teamName": "Deportivo La Coruña",
+  "name": "Pierre-Emerick Aubameyang",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "x7lm7ph9025ym2w": {
+  "statsId": "pl_25123697",
+  "teamId": "tm_20116",
+  "teamName": "Celta Vigo",
+  "name": "Abdoulaye Faye",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "8yomo4hv8p45q0j": {
+  "statsId": "pl_36083356",
+  "teamId": "tm_02555",
+  "teamName": "Real Sociedad",
+  "name": "Mamadou Sarr",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "dn1m1gh3zjzjmoe": {
+  "statsId": "pl_62551423",
+  "teamId": "tm_73740",
+  "teamName": "Getafe",
+  "name": "Andrés García",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
+ },
+ "4wyrn4h41dj0q86": {
+  "statsId": "pl_01338493",
+  "teamId": "tm_02599",
+  "teamName": "Espanyol",
+  "name": "Quilindschy Hartman",
+  "competitionId": "comp_8814",
+  "seasonId": "sn_8407970",
+  "seasonLabel": "2026-27 LALIGA"
  }
 }
