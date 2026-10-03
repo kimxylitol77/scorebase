@@ -193,6 +193,10 @@
       "schedule": "40 2 * * *"
     },
     {
+      "path": "/api/cron/new-competition-scout",
+      "schedule": "20 1 * * 1"
+    },
+    {
       "path": "/api/cron/baseball-standings",
       "schedule": "30 20 * * *"
     },
