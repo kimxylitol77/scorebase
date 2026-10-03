@@ -1121,6 +1121,20 @@ export default async function GenericLivePage({ params }: Props) {
     );
   })();
 
+  // 농구 선수 기록(박스스코어). KBL·WKBL 은 팀 스탯이 있으면 "팀 통계" 탭 안 팀 스탯 비교 아래로 옮긴다.
+  const basketballBox =
+    lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? (
+      <BasketballBoxScoreTab
+        gameId={gameId}
+        league={lg}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        homeNameEn={match.homeTeam.name}
+        awayNameEn={match.awayTeam.name}
+      />
+    ) : undefined;
+  const kblBoxInTeamStats = (lg === "KBL" || lg === "WKBL") && !!match.theSportsCache?.detailLive;
+
   return (
     <>
       <script
@@ -1423,11 +1437,26 @@ export default async function GenericLivePage({ params }: Props) {
         hideMatchupTab={isSoccer}
         teamStatsContent={
           BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
-            <BasketballTeamStatsCard
-              detailLive={match.theSportsCache.detailLive}
-              homeNameKo={homeKo}
-              awayNameKo={awayKo}
-            />
+            // KBL·WKBL — 팀 스탯 비교 바로 아래 선수 기록(별도 탭 대신 한 화면에서 이어 본다)
+            kblBoxInTeamStats ? (
+              <div className="space-y-6">
+                <BasketballTeamStatsCard
+                  detailLive={match.theSportsCache.detailLive}
+                  homeNameKo={homeKo}
+                  awayNameKo={awayKo}
+                />
+                <div>
+                  <div className="mb-2 text-sm font-bold text-zinc-800 dark:text-white/85">선수 기록</div>
+                  {basketballBox}
+                </div>
+              </div>
+            ) : (
+              <BasketballTeamStatsCard
+                detailLive={match.theSportsCache.detailLive}
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+              />
+            )
           ) : HOCKEY_LEAGUES.has(lg) &&
             match.theSportsCache?.detailLive ? (
             (() => {
@@ -1491,18 +1520,7 @@ export default async function GenericLivePage({ params }: Props) {
             />
           ) : undefined
         }
-        playerBoxContent={
-          lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? (
-            <BasketballBoxScoreTab
-              gameId={gameId}
-              league={lg}
-              homeNameKo={homeKo}
-              awayNameKo={awayKo}
-              homeNameEn={match.homeTeam.name}
-              awayNameEn={match.awayTeam.name}
-            />
-          ) : undefined
-        }
+        playerBoxContent={kblBoxInTeamStats ? undefined : basketballBox}
       />
       <NextUpCard
         matchId={match.id}
