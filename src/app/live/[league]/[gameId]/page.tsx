@@ -1139,6 +1139,17 @@ export default async function GenericLivePage({ params }: Props) {
       />
     ) : undefined;
   const kblBoxInTeamStats = (lg === "KBL" || lg === "WKBL") && !!match.theSportsCache?.detailLive;
+  const kblBoxWithStats = kblBoxInTeamStats ? (
+    <BasketballBoxScoreTab
+      teamStats
+      gameId={gameId}
+      league={lg}
+      homeNameKo={homeStatKo}
+      awayNameKo={awayStatKo}
+      homeNameEn={match.homeTeam.name}
+      awayNameEn={match.awayTeam.name}
+    />
+  ) : null;
 
   return (
     <>
@@ -1445,15 +1456,14 @@ export default async function GenericLivePage({ params }: Props) {
             // KBL·WKBL — 팀 스탯 비교 바로 아래 선수 기록(별도 탭 대신 한 화면에서 이어 본다)
             kblBoxInTeamStats ? (
               <div className="space-y-6">
+                {/* 쿼터 점수만 ts — 팀 스탯 비교·선수 기록은 공식 기록(경기 중 갱신) */}
                 <BasketballTeamStatsCard
                   detailLive={match.theSportsCache.detailLive}
                   homeNameKo={homeStatKo}
                   awayNameKo={awayStatKo}
+                  hideStats
                 />
-                <div>
-                  <div className="mb-2 text-sm font-bold text-zinc-800 dark:text-white/85">선수 기록</div>
-                  {basketballBox}
-                </div>
+                {kblBoxWithStats}
               </div>
             ) : (
               <BasketballTeamStatsCard

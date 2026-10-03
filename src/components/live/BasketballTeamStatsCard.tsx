@@ -6,6 +6,8 @@ interface Props {
   detailLive: unknown;
   homeNameKo: string;
   awayNameKo: string;
+  /** 팀 스탯 비교를 숨긴다 — KBL·WKBL 은 공식 팀 기록(BasketballBoxScoreTab teamStats)이 대신 그린다 */
+  hideStats?: boolean;
 }
 
 // basketball stat_id → 라벨 (docs 표). 의미 있는 것만 표시.
@@ -23,7 +25,7 @@ function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export default function BasketballTeamStatsCard({ detailLive, homeNameKo, awayNameKo }: Props) {
+export default function BasketballTeamStatsCard({ detailLive, homeNameKo, awayNameKo, hideStats }: Props) {
   const dl = detailLive as { score?: unknown[]; stats?: unknown[]; tlive?: unknown[] } | null;
   const score = Array.isArray(dl?.score) ? dl!.score : null;
   const homeQ = Array.isArray(score?.[3]) ? (score![3] as unknown[]).map(num) : null;
@@ -38,7 +40,7 @@ export default function BasketballTeamStatsCard({ detailLive, homeNameKo, awayNa
       if (id != null) statMap.set(id, [num(s[1]), num(s[2])]);
     }
   }
-  const statRows = STAT_ORDER.filter((id) => statMap.has(id)).map((id) => ({
+  const statRows = (hideStats ? [] : STAT_ORDER).filter((id) => statMap.has(id)).map((id) => ({
     label: STAT_LABELS[id],
     home: statMap.get(id)![0],
     away: statMap.get(id)![1],
