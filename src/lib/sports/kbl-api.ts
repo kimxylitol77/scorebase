@@ -7,9 +7,9 @@ const BASE = "https://kbl-api.sports2i.com/api/v1";
 const STATS_BASE = "https://api-stats.kbl.or.kr/api";
 const HEADERS = { Origin: "https://kbl.or.kr", Referer: "https://kbl.or.kr/" };
 
-async function kblGet<T>(url: string, revalidate = 3600): Promise<T | null> {
+async function kblGet<T>(url: string, revalidate = 3600, timeoutMs = 10_000): Promise<T | null> {
   try {
-    const r = await fetch(url, { headers: HEADERS, next: { revalidate }, signal: AbortSignal.timeout(10_000) });
+    const r = await fetch(url, { headers: HEADERS, next: { revalidate }, signal: AbortSignal.timeout(timeoutMs) });
     if (!r.ok) return null;
     return (await r.json()) as T;
   } catch {
@@ -214,6 +214,8 @@ export async function fetchKblSeasonPlayerAverages(season: number, opts?: { rule
   for (let page = 1; page <= 4; page++) {
     const d = await kblGet<{ data?: KblSeasonPlayerAvg[] }>(
       `${STATS_BASE}/records/player/general/traditional?seasonCode=${season}&gameCode=01&sortDataSc=SCORE&sortOrderSc=desc&listCn=${PAGE}&pageNo=${page}&ruleCk=${ruleCk}&perCn=1&lastCn=0&partIfList=0&draftNo=0`,
+      3600,
+      30_000, // 통계 서버가 지난 시즌 한 페이지에 13~19초(2026-10-03 실측)
     );
     const rows = (d?.data ?? []).filter((p) => p.kname);
     out.push(...rows);
