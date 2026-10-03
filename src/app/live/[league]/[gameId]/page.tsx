@@ -77,7 +77,6 @@ import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
-import { KBL_TEAM_CODE, KBL_TEAM_SHORT } from "@/lib/sports/kbl-game";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
 import HockeyGameCenter from "@/components/scores/hockey/HockeyGameCenter";
 import type { HockeyIncident, HockeyPlayerRow, HockeyTeamStats } from "@/lib/sports/hockey/box";
@@ -1122,34 +1121,7 @@ export default async function GenericLivePage({ params }: Props) {
     );
   })();
 
-  // KBL 팀 통계·선수 기록은 짧은 구단명("고양 소노") — KBL 공식 표기
-  const kblShort = (teamId: number) => (lg === "KBL" ? KBL_TEAM_SHORT[KBL_TEAM_CODE[teamId]] : undefined);
-  const homeStatKo = kblShort(match.homeTeam.id) ?? homeKo;
-  const awayStatKo = kblShort(match.awayTeam.id) ?? awayKo;
-  // 농구 선수 기록(박스스코어). KBL·WKBL 은 팀 스탯이 있으면 "팀 통계" 탭 안 팀 스탯 비교 아래로 옮긴다.
-  const basketballBox =
-    lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? (
-      <BasketballBoxScoreTab
-        gameId={gameId}
-        league={lg}
-        homeNameKo={homeStatKo}
-        awayNameKo={awayStatKo}
-        homeNameEn={match.homeTeam.name}
-        awayNameEn={match.awayTeam.name}
-      />
-    ) : undefined;
-  const kblBoxInTeamStats = (lg === "KBL" || lg === "WKBL") && !!match.theSportsCache?.detailLive;
-  const kblBoxWithStats = kblBoxInTeamStats ? (
-    <BasketballBoxScoreTab
-      teamStats
-      gameId={gameId}
-      league={lg}
-      homeNameKo={homeStatKo}
-      awayNameKo={awayStatKo}
-      homeNameEn={match.homeTeam.name}
-      awayNameEn={match.awayTeam.name}
-    />
-  ) : null;
+  const isKoreanBasketball = lg === "KBL" || lg === "WKBL";
 
   return (
     <>
@@ -1452,26 +1424,13 @@ export default async function GenericLivePage({ params }: Props) {
         }
         hideMatchupTab={isSoccer}
         teamStatsContent={
-          BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
-            // KBL·WKBL — 팀 스탯 비교 바로 아래 선수 기록(별도 탭 대신 한 화면에서 이어 본다)
-            kblBoxInTeamStats ? (
-              <div className="space-y-6">
-                {/* 쿼터 점수만 ts — 팀 스탯 비교·선수 기록은 공식 기록(경기 중 갱신) */}
-                <BasketballTeamStatsCard
-                  detailLive={match.theSportsCache.detailLive}
-                  homeNameKo={homeStatKo}
-                  awayNameKo={awayStatKo}
-                  hideStats
-                />
-                {kblBoxWithStats}
-              </div>
-            ) : (
-              <BasketballTeamStatsCard
-                detailLive={match.theSportsCache.detailLive}
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-              />
-            )
+          // KBL·WKBL 은 탭을 두지 않는다 — 본문에 쿼터 점수·공식 "팀 STATS 비교"·선수 기록이 이미 있다(SportLiveDetail)
+          isKoreanBasketball ? undefined : BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
+            <BasketballTeamStatsCard
+              detailLive={match.theSportsCache.detailLive}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+            />
           ) : HOCKEY_LEAGUES.has(lg) &&
             match.theSportsCache?.detailLive ? (
             (() => {
@@ -1535,7 +1494,18 @@ export default async function GenericLivePage({ params }: Props) {
             />
           ) : undefined
         }
-        playerBoxContent={kblBoxInTeamStats ? undefined : basketballBox}
+        playerBoxContent={
+          lg === "NBA" || lg === "WNBA" ? (
+            <BasketballBoxScoreTab
+              gameId={gameId}
+              league={lg}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              homeNameEn={match.homeTeam.name}
+              awayNameEn={match.awayTeam.name}
+            />
+          ) : undefined
+        }
       />
       <NextUpCard
         matchId={match.id}

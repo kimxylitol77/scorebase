@@ -52,12 +52,6 @@ interface KblPlayerStat {
   startFlag?: number;
 }
 
-/** KBL 구단 코드 → 짧은 구단명(연고지 + 모기업, KBL 공식 일정의 tnameH). 경기 상세 팀 통계·선수 기록용 */
-export const KBL_TEAM_SHORT: Record<string, string> = {
-  "06": "수원 KT", "10": "울산 현대모비스", "16": "원주 DB", "35": "서울 삼성", "50": "창원 LG",
-  "55": "서울 SK", "60": "부산 KCC", "64": "대구 한국가스공사", "66": "고양 소노", "70": "안양 정관장",
-};
-
 const POS_KO: Record<string, string> = { GD: "G", FD: "F", C: "C", G: "G", F: "F" };
 
 export function toPlayerBox(p: KblPlayerStat): BasketballPlayerBox & { pcode: string } {

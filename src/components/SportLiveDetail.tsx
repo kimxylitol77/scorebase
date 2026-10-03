@@ -18,6 +18,7 @@ import MatchEventTabs from "./live/MatchEventTabs";
 import LiveTickerFeed from "./live/LiveTickerFeed";
 import MatchWeather from "./live/MatchWeather";
 import FavoriteStar from "./scores/FavoriteStar";
+import { BasketballBoxScore, type PlayerBox } from "./live/BasketballBoxScoreTab";
 import { soccerTickerLines } from "@/lib/live/ticker";
 // 타입만 참조 — import type 이라 서버 전용 모듈(prisma)이 번들에 딸려오지 않는다.
 import type { RefereeCardTendency } from "@/lib/stats/referee-cards";
@@ -67,6 +68,9 @@ interface MatchSummary {
   homeLeaders: TeamLeader[];
   awayLeaders: TeamLeader[];
   winProbabilityHome?: number[];
+  /** 농구 선수 기록 — KBL·WKBL 은 공식 박스스코어 */
+  homePlayers?: PlayerBox[];
+  awayPlayers?: PlayerBox[];
 }
 
 interface LiveOdds {
@@ -614,6 +618,21 @@ export default function SportLiveDetail({
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
         />
+      )}
+
+      {/* 선수 기록 — KBL·WKBL 은 "팀 STATS 비교" 바로 아래(같은 응답의 공식 박스스코어) */}
+      {(league === "KBL" || league === "WKBL") && live?.summary &&
+        [...(live.summary.homePlayers ?? []), ...(live.summary.awayPlayers ?? [])].some((p) => !p.dnp) && (
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-3">선수 기록</div>
+          <BasketballBoxScore
+            league={league}
+            home={live.summary.homePlayers ?? []}
+            away={live.summary.awayPlayers ?? []}
+            homeNameKo={homeNameKo}
+            awayNameKo={awayNameKo}
+          />
+        </div>
       )}
 
       {/* 양 팀 leaders */}

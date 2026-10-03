@@ -1,15 +1,15 @@
 // 농구 선수 기록(박스스코어) — 경기 리더 카드 + 팀별 표(이름 열 고정·선발/벤치·팀 합계·미출전·열 머리 정렬·선수 링크).
-// /api/live/match/[gameId] 를 자체 폴링해 summary.homePlayers/awayPlayers 렌더.
-// NBA 는 route 의 resolveNbaGameId 가 팀명 필요 → away/home 쿼리 동봉.
+// 기본 내보내기(탭)는 /api/live/match/[gameId] 를 자체 폴링(NBA·WNBA "선수 기록" 탭). NBA 는 route 의 resolveNbaGameId 가
+// 팀명 필요 → away/home 쿼리 동봉. BasketballBoxScore 는 그리기만 — KBL·WKBL 은 본문(SportLiveDetail)이 이미 받은
+// 응답으로 "팀 STATS 비교" 바로 아래에 그린다.
 // 데이터 출처: KBL 공식(선발·+/-·TO·파울)·WKBL 공식(TO·파울)·api-sports(NBA v2, WNBA v1). 없는 열은 숨긴다.
-// teamStats — 같은 응답의 공식 팀 기록(summary.homeStats/awayStats)으로 팀 스탯 비교를 위에 그린다(KBL·WKBL).
 
 "use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-interface PlayerBox {
+export interface PlayerBox {
   name: string;
   pos?: string | null;
   starter?: boolean;
@@ -33,10 +33,7 @@ interface PlayerBox {
   dnp?: boolean;
 }
 
-interface TeamStat { label: string; value: string }
-
 interface Props {
-  teamStats?: boolean;
   gameId: string;
   league: string;
   homeNameKo: string;
@@ -71,7 +68,6 @@ const sortValue = (p: PlayerBox, k: SortKey): number => {
 const pct = (m: number, a: number) => (a > 0 ? `${Math.round((m / a) * 100)}%` : "-");
 
 export default function BasketballBoxScoreTab({
-  teamStats = false,
   gameId,
   league,
   homeNameKo,
@@ -81,11 +77,7 @@ export default function BasketballBoxScoreTab({
 }: Props) {
   const [home, setHome] = useState<PlayerBox[]>([]);
   const [away, setAway] = useState<PlayerBox[]>([]);
-  const [homeStats, setHomeStats] = useState<TeamStat[]>([]);
-  const [awayStats, setAwayStats] = useState<TeamStat[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [filter, setFilter] = useState<Filter>("ALL");
-  const [sort, setSort] = useState<Sort>(null);
   const statusRef = useRef<"LIVE" | "OTHER">("OTHER");
 
   useEffect(() => {
@@ -108,15 +100,13 @@ export default function BasketballBoxScoreTab({
         const json: {
           live?: {
             status?: string;
-            summary?: { homePlayers?: PlayerBox[]; awayPlayers?: PlayerBox[]; homeStats?: TeamStat[]; awayStats?: TeamStat[] } | null;
+            summary?: { homePlayers?: PlayerBox[]; awayPlayers?: PlayerBox[] } | null;
           };
         } = await res.json();
         if (!alive) return;
         statusRef.current = json.live?.status === "LIVE" ? "LIVE" : "OTHER";
         setHome(json.live?.summary?.homePlayers ?? []);
         setAway(json.live?.summary?.awayPlayers ?? []);
-        setHomeStats(json.live?.summary?.homeStats ?? []);
-        setAwayStats(json.live?.summary?.awayStats ?? []);
         setLoaded(true);
       } catch {
         // ignore
@@ -160,6 +150,15 @@ export default function BasketballBoxScoreTab({
     );
   }
 
+  return <BasketballBoxScore league={league} home={home} away={away} homeNameKo={homeNameKo} awayNameKo={awayNameKo} />;
+}
+
+/** 선수 기록 그리기 — 폴링 없이 받은 선수 목록으로 */
+export function BasketballBoxScore({
+  league, home, away, homeNameKo, awayNameKo,
+}: { league: string; home: PlayerBox[]; away: PlayerBox[]; homeNameKo: string; awayNameKo: string }) {
+  const [filter, setFilter] = useState<Filter>("ALL");
+  const [sort, setSort] = useState<Sort>(null);
   const all = [...away, ...home];
   // 원천이 주는 열만 — 한 명이라도 값이 있으면 보인다
   const cols = {
@@ -173,12 +172,6 @@ export default function BasketballBoxScoreTab({
 
   return (
     <div className="space-y-3">
-      {teamStats && (
-        <>
-          <TeamStatsCompare home={homeStats} away={awayStats} homeName={homeNameKo} awayName={awayNameKo} source={SOURCE[league] ?? null} />
-          <div className="pt-3 text-sm font-bold text-zinc-800 dark:text-white/85">선수 기록</div>
-        </>
-      )}
       <LeaderCards away={away} home={home} awayName={awayNameKo} homeName={homeNameKo} linkLeague={linkLeague} />
 
       <div className="flex items-center gap-1.5">
@@ -215,33 +208,6 @@ export default function BasketballBoxScoreTab({
         ⓘ 데이터 출처: {SOURCE[league] ?? "api-sports"}. 열 머리를 누르면 정렬(한 번 더 누르면 오름차순, 세 번째는 원래 순서).
         FG/3PT/FT 는 성공-시도{cols.plusMinus ? ", +/- 는 코트에 있는 동안 팀 득실차" : ""}.
       </p>
-    </div>
-  );
-}
-
-/** 팀 스탯 비교 — 원천 팀 기록(같은 라벨끼리 짝). 홈 왼쪽·원정 오른쪽은 쿼터 카드와 같은 배치 */
-function TeamStatsCompare({
-  home, away, homeName, awayName, source,
-}: { home: TeamStat[]; away: TeamStat[]; homeName: string; awayName: string; source: string | null }) {
-  const awayBy = new Map(away.map((s) => [s.label, s.value]));
-  const rows = home.filter((s) => awayBy.has(s.label));
-  if (rows.length === 0) return null;
-  return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-3 sm:p-4 space-y-3">
-      <div className="grid grid-cols-3 items-center text-xs font-medium border-b border-neutral-100 dark:border-neutral-900 pb-1.5">
-        <div className="text-right text-blue-600 dark:text-blue-400 truncate">{homeName}</div>
-        <div className="text-center text-neutral-400">팀 스탯{source ? ` · ${source}` : ""}</div>
-        <div className="text-left text-rose-600 dark:text-rose-400 truncate">{awayName}</div>
-      </div>
-      <div className="divide-y divide-neutral-100 dark:divide-neutral-900">
-        {rows.map((r) => (
-          <div key={r.label} className="grid grid-cols-3 items-center py-2 text-sm">
-            <div className="text-right tabular-nums font-bold">{r.value}</div>
-            <div className="text-center text-xs text-neutral-500">{r.label}</div>
-            <div className="text-left tabular-nums font-bold">{awayBy.get(r.label)}</div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
