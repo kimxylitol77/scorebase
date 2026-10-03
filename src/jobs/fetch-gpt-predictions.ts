@@ -49,6 +49,7 @@ import { allPreseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason"
 export const MAJOR_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL", "UECL", "UEFA_NL",
   "WORLD_CUP", "NBA", "NHL", "MLB", "KBO", "NPB",
+  "KBL", // 2026-10-03 과거 시즌 백필로 predHome 이 생겨 편입
   "K_LEAGUE_1", "K_LEAGUE_2",
   "VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W", "V_LEAGUE", "V_LEAGUE_W", "KOVO_CUP", "KOVO_CUP_W",
   "LOL", "LPL", "LEC",
@@ -61,7 +62,7 @@ const LEAGUE_NAME: Record<string, string> = {
   EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가",
   SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS", UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵", NBA: "NBA", NHL: "NHL", MLB: "MLB",
-  KBO: "KBO", NPB: "NPB",
+  KBO: "KBO", NPB: "NPB", KBL: "KBL(한국 프로농구)",
   K_LEAGUE_1: "K리그1", K_LEAGUE_2: "K리그2",
   VNL: "발리볼네이션스리그 남자", VNL_W: "발리볼네이션스리그 여자",
   EGL_W: "유럽 골든리그 여자배구", AVC_NATIONS_W: "AVC 네이션스컵 여자배구",

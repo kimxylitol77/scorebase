@@ -3,6 +3,8 @@
 export const PREDICTION_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
   "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
+  // 2026-10-03 — KBL 과거 6시즌 백필로 Elo 이력 확보. 우승은 플레이오프라 아래 REGULAR_SEASON_TITLE_LEAGUES 에도.
+  "KBL",
   // 2026-09-30 — 시즌 전체 일정(750경기, ts match/season) 수집 후 개방. 그 전엔 125/748 로 잘린 일정이었다.
   "KHL",
   // 2026-05-17 — 한국·아시아 5개 리그 추가 (DB 50건+)
@@ -28,4 +30,4 @@ export const relegationCountOf = (league: string) => RELEGATION_COUNT[league] ??
 // NHL(2026-09-30) — 우승은 스탠리컵 플레이오프. 정규시즌 시뮬 1위를 "우승 확률"로 부르고 있었다.
 // MLB·NBA·KBO·NPB(2026-09-30) — 같은 이유. MLB 예측 탭이 포스트시즌 중에 "우승 확률 밀워키 99.9%"(= 정규시즌 1위)를 띄웠다.
 //   진짜 우승 확률은 MLB 포스트시즌 확률판(mlbAdvancementOdds)이 따로 낸다.
-export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL", "NHL", "MLB", "NBA", "KBO", "NPB"]);
+export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL", "NHL", "MLB", "NBA", "KBO", "NPB", "KBL"]);

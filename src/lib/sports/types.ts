@@ -437,6 +437,7 @@ export const SOCCER_LEAGUES = [
 export const ARTICLE_LEAGUES: readonly League[] = [
   "KBO", "NPB", "MLB", // 야구
   "NBA", // 농구
+  "KBL", // 2026-10-03 — 과거 6시즌 백필(KBL 공식 API)로 Elo 이력이 생겨 예측·프리뷰 가능
   "NHL", "IIHF_WC", // 하키
   "LOL", // e스포츠
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", // 축구 주요

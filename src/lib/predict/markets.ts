@@ -94,6 +94,8 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   U17_WC: { overLine: 2.5, totalStd: 2.0, marginStd: 2.5, handicapLine: 0.5, homeBoost: 1.0 },
   // 농구 — NBA 평균 222점/매치, std 약 18, margin std 약 14
   NBA: { overLine: 220.5, totalStd: 18, marginStd: 14, handicapLine: 5.5, homeBoost: 1.025 },
+  // KBL(2026-10-03 실측, 2024-25~2025-26 정규 546경기) — 총점 평균 155.3·SD 16.9, 마진 SD 13.1, 홈/원정 득점비 1.011
+  KBL: { overLine: 155.5, totalStd: 17, marginStd: 13, handicapLine: 4.5, homeBoost: 1.011 },
   // 아이스하키 — NHL 평균 6.0골, std 2.5, margin std 2.4
   NHL: { overLine: 5.5, totalStd: 2.5, marginStd: 2.4, handicapLine: 1.5, homeBoost: 1.05 },
   // KHL — 2026-27 종료 101경기 실측(2026-09-29): 평균 5.03골(std 2.26)·마진 0.20(std 2.56)·홈승 54.5%·O4.5 58%·O5.5 36%.
@@ -174,6 +176,13 @@ function skellamProbGreaterThan(
   return Math.max(0, Math.min(1, sum));
 }
 
+/**
+ * 농구 득실 평균은 최근 1년만 — 리그 득점 수준이 시즌마다 움직여(KBL 2020-22 고득점 → 지금 155점대)
+ * 전 기간 평균이면 기대 총점이 기준선 위로 고정돼 오버만 고른다(2026-10-03 KBL 6시즌 백필 후 실측 오버 100%·적중 50%).
+ */
+const BASKETBALL_MARKET_WINDOW_DAYS = 365;
+const marketWindowDays = (league: string) => (league === "NBA" || league === "KBL" || league === "WNBA" || league === "WKBL" ? BASKETBALL_MARKET_WINDOW_DAYS : undefined);
+
 export function getSportProfile(league: string): SportProfile | null {
   return SPORT_PROFILE[league] ?? null;
 }
@@ -237,15 +246,17 @@ function teamGoalAverages(
   matches: PredictMatch[],
   teamId: number,
   asOf: Date,
-  opts?: { venue?: "home" | "away" | "all"; recentBlend?: number; recentN?: number },
+  opts?: { venue?: "home" | "away" | "all"; recentBlend?: number; recentN?: number; windowDays?: number },
 ): TeamGoals {
   const venue = opts?.venue ?? "all";
+  const since = opts?.windowDays ? asOf.getTime() - opts.windowDays * 86400_000 : -Infinity;
   const recentBlend = opts?.recentBlend ?? 0;
   const recentN = opts?.recentN ?? 10;
 
   const past = matches.filter(
     (m) =>
       m.startTime.getTime() < asOf.getTime() &&
+      m.startTime.getTime() >= since &&
       m.status === "FINISHED" &&
       m.homeScore != null &&
       m.awayScore != null &&
@@ -402,10 +413,12 @@ export function predictTotalMarket(
   const rawHome = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
+    windowDays: marketWindowDays(league),
   });
   const rawAway = teamGoalAverages(matches, awayTeamId, asOf, {
     venue: isBaseball ? "away" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
+    windowDays: marketWindowDays(league),
   });
   const sample = Math.min(rawHome.sample, rawAway.sample);
   if (sample === 0) return null;
@@ -461,10 +474,12 @@ export function predictHandicapMarket(
   const rawHome = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
+    windowDays: marketWindowDays(league),
   });
   const rawAway = teamGoalAverages(matches, awayTeamId, asOf, {
     venue: isBaseball ? "away" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
+    windowDays: marketWindowDays(league),
   });
   if (Math.min(rawHome.sample, rawAway.sample) === 0) return null;
   const isSoccerMkt = SOCCER_LEAGUES_FOR_MARKETS.has(league);
