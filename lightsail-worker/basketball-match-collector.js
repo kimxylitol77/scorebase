@@ -190,6 +190,10 @@ async function poll() {
           playoffRound = info.round;
           playoffConference = info.conference; // null 가능 (FINALS)
           playoffStageId = m.round.stage_id;
+        } else if (/nba cup final/i.test(stageNames.get(m.round.stage_id) || "")) {
+          // NBA컵 결승 — 규정상 정규시즌 기록에 안 들어간다(8강·4강은 들어간다). 팀 통계가 playoffRound 있는 경기를 뺀다.
+          // playoffStageId 는 비운다 — 브라켓(ts-nba-playoff.ts)이 stageId 있는 최신 경기를 기준점으로 잡아 12월 결승이 끼면 비시즌 브라켓이 밀린다.
+          playoffRound = "CUP_FINAL";
         }
       }
       if (league === "WNBA") {
