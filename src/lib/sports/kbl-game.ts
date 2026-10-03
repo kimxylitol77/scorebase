@@ -99,3 +99,86 @@ export async function fetchKblBox(gmkey: string, homeCode: string, live: boolean
   const awayT = teams?.find((t) => t.tcode !== homeCode)?.records;
   return { homePlayers: side(true), awayPlayers: side(false), homeStats: stat(homeT), awayStats: stat(awayT) };
 }
+
+/* ── 문자중계(text-cast) ─────────────────────────────────────────────────────────────
+ * 코드표는 KBL 사이트 번들의 gameActionCodeList·gameFoulCodeList·gameChangeCodeList(2026-10-03 추출).
+ * 한 줄 = { n 순번, q 쿼터(Q1~Q4·X1~ 연장), m:s 남은 시간, t 구단 코드, p 선수, a 동작, f 파울 종류, c 교체·퇴장 }.
+ * 001·009 는 쿼터마다 나온다(경기 종료 판정은 우리 Match.status 로).
+ * 점수는 오지 않아 득점 동작(2점·자유투·3점·덩크)을 더해 그때의 스코어를 만든다(2025-26 개막전 81-89 검산).
+ */
+const ACTION: Record<string, string> = {
+  "001": "쿼터 시작", "002": "경기 중단", "003": "작전 타임", "009": "쿼터 종료", "010": "시간 설정",
+  "101": "교체 투입", "102": "교체 아웃",
+  "201": "2점슛 성공", "202": "2점슛 실패", "203": "자유투 성공", "204": "자유투 실패",
+  "205": "3점슛 성공", "206": "3점슛 실패", "207": "덩크슛 성공", "208": "덩크슛 실패",
+  "209": "공격 리바운드", "210": "수비 리바운드", "211": "어시스트", "212": "스틸", "213": "블록",
+  "214": "턴오버", "215": "파울 자유투", "216": "파울", "217": "팀 속공", "218": "팀 리바운드", "219": "일리걸",
+  "221": "굿 디펜스", "223": "팀 턴오버", "224": "기타 파울", "225": "팀 파울", "226": "스크린 어시스트",
+  "227": "디플렉션", "228": "비디오 판독", "229": "코치 챌린지",
+};
+const FOUL: Record<string, string> = {
+  EBF: "엘보우 파울", FRF: "U파울", FTF: "파이팅 파울", PCF: "펀칭 파울", PNF: "퍼스널 파울", TCF: "테크니컬 파울",
+};
+const CHANGE: Record<string, string> = { "106_1": "5반칙 퇴장", "106_2": "디스퀄리파잉 퇴장", "106_3": "퇴장" };
+const POINTS: Record<string, number> = { "201": 2, "203": 1, "205": 3, "207": 2 };
+
+export type KblPlayKind = "score" | "miss" | "rebound" | "defense" | "foul" | "sub" | "stoppage" | "other";
+export interface KblPlay {
+  n: number;
+  /** "1Q"~"4Q", 연장은 "OT1"… */
+  period: string;
+  clock: string;
+  side: "home" | "away" | null;
+  player: string | null;
+  text: string;
+  kind: KblPlayKind;
+  points: number;
+  homeScore: number;
+  awayScore: number;
+}
+interface KblTextCastRow { n: number; q: string; m: number; s: number; t: string; p?: string; a: string; f?: string; c?: string }
+
+const kindOf = (a: string): KblPlayKind =>
+  POINTS[a] ? "score"
+  : ["202", "204", "206", "208"].includes(a) ? "miss"
+  : ["209", "210", "218"].includes(a) ? "rebound"
+  : ["211", "212", "213", "221", "226", "227"].includes(a) ? "defense"
+  : ["215", "216", "224", "225"].includes(a) ? "foul"
+  : ["101", "102"].includes(a) ? "sub"
+  : ["001", "002", "003", "009", "228", "229"].includes(a) ? "stoppage"
+  : "other";
+
+/** 시간순 해독 + 누적 스코어. homeCode = 우리 홈팀의 KBL 구단 코드. 선발 = 경기 시작 전 교체 투입. */
+export function decodeKblPlays(rows: KblTextCastRow[], homeCode: string): { plays: KblPlay[]; starters: { home: string[]; away: string[] } } {
+  let h = 0, a = 0;
+  let started = false;
+  const starters = { home: [] as string[], away: [] as string[] };
+  const plays: KblPlay[] = [];
+  for (const r of [...rows].sort((x, y) => x.n - y.n)) {
+    const side = !r.t ? null : r.t === homeCode ? "home" : "away";
+    if (r.a === "001") started = true;
+    if (!started && r.a === "101" && side && r.p) starters[side].push(r.p);
+    const pts = POINTS[r.a] ?? 0;
+    if (side === "home") h += pts; else if (side === "away") a += pts;
+    const extra = [r.f && FOUL[r.f], r.c && CHANGE[r.c]].filter(Boolean).join(" · ");
+    plays.push({
+      n: r.n,
+      period: r.q.startsWith("X") ? `OT${r.q.slice(1)}` : `${r.q.slice(1)}Q`,
+      clock: `${r.m}:${String(r.s).padStart(2, "0")}`,
+      side,
+      player: r.p ?? null,
+      text: `${ACTION[r.a] ?? "기록"}${extra ? ` (${extra})` : ""}`,
+      kind: kindOf(r.a),
+      points: pts,
+      homeScore: h,
+      awayScore: a,
+    });
+  }
+  return { plays, starters };
+}
+
+/** 경기 전체 문자중계(연장 포함). 경기 중 10초 캐시. */
+export async function fetchKblPlays(gmkey: string, homeCode: string, live: boolean) {
+  const rows = await kblGet<KblTextCastRow[]>(`/match/${gmkey}/text-cast?quarterList=Q1,Q2,Q3,Q4,X1,X2,X3,X4`, live ? 10 : 3600);
+  return rows?.length ? decodeKblPlays(rows, homeCode) : null;
+}

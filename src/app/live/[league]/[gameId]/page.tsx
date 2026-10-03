@@ -56,6 +56,7 @@ import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-m
 import BasketballH2HCard from "@/components/scores/basketball/BasketballH2HCard";
 import BasketballLiveOddsTab from "@/components/live/BasketballLiveOddsTab";
 import BasketballBoxScoreTab from "@/components/live/BasketballBoxScoreTab";
+import KblPlayByPlay from "@/components/live/KblPlayByPlay";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import SoccerTeamStrength from "@/components/live/SoccerTeamStrength";
@@ -1414,7 +1415,11 @@ export default async function GenericLivePage({ params }: Props) {
       )}
       <MatchInsight
         match={match}
-        extraTabs={soccerTabs}
+        extraTabs={
+          lg === "KBL"
+            ? [{ key: "kbl-pbp", label: "문자중계", enabled: true, content: <KblPlayByPlay gameId={gameId} homeName={homeKo} awayName={awayKo} /> }]
+            : soccerTabs
+        }
         hideMatchupTab={isSoccer}
         teamStatsContent={
           BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
