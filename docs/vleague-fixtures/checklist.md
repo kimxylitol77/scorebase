@@ -5,6 +5,6 @@
 - [x] KOVO 시즌 일정 → Match 적재 잡 `src/jobs/collect-kovo-schedule.ts` (기본 dry-run, `--write`)
 - [x] 일정 탭 주차 화면 연결 (`WEEKLY_VOLLEYBALL`)
 - [x] dry-run — 남 126 / 여 126 신규, 매핑 누락·중복 0
-- [ ] 사용자 확인 후 운영 DB `--write`
-- [ ] 로컬 렌더로 /leagues/V_LEAGUE·V_LEAGUE_W ?view=fixtures 확인
-- [ ] (결정 대기) 정기 재실행 — 일정 변경·연기 반영용
+- [x] 사용자 확인 후 운영 DB `--write` — 남 126·여 126 적재, 재실행 시 신규·갱신 0(멱등)
+- [x] 로컬 렌더로 /leagues/V_LEAGUE·V_LEAGUE_W ?view=fixtures 확인 — 1~22주(10/31~4/2)
+- [x] 정기 재실행 — 맥미니 daily-fa-cup.sh(매일 09:40 KST) sync-season-fixtures 다음 줄

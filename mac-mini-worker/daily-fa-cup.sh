@@ -22,5 +22,8 @@ npx tsx --env-file=.env.local src/jobs/collect-fa-cup.ts --league COPA_DEL_REY -
 # ts 리그 시즌 전체 일정 — 워커 diary 는 7일 앞까지만 봐서 A매치 휴식기에 "다가오는 경기 0" 이 됐다(2026-09-25).
 # 새로 나온 일정·킥오프 변경만 보낸다(리그당 ts 1콜). 맨 뒤에 둬 컵 수집이 먼저 끝나게 한다.
 npx tsx --env-file=.env.local src/jobs/sync-season-fixtures.ts 2>&1 | tail -4
+# V-리그 남녀 정규리그 시즌 일정 — KOVO 가 일정 정본. 연기·킥오프 변경을 ts 보다 먼저 반영해야
+# ts 수집이 ±90분 연결에 실패해 같은 경기를 두 행으로 만드는 일을 막는다(2026-10-03).
+npx tsx --env-file=.env.local src/jobs/collect-kovo-schedule.ts --write 2>&1 | grep -E "V_LEAGUE|적재" | tail -4
 
 log "✓ 종료"
