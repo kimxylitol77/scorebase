@@ -9,12 +9,25 @@ export const CALIB: Record<Sport, { sd: number; home: number; draw: number }> = 
   soccer: { sd: 55, home: 60, draw: 0.25 },
 };
 
+/**
+ * 리그별 덮어쓰기 — 종목 값이 다른 리그에 안 맞을 때.
+ * KBL(2026-10-03): 경기 승률 Platt a=0.6 이 실측과 맞았다(NBA 폭의 0.6배 → 42), 홈 승률 53.7%(→ Elo 25).
+ *  NBA 값(70·55)이면 개막일 KCC 6강 100%·우승 47% 로 과신했다.
+ */
+export const CALIB_LEAGUE: Record<string, Partial<{ sd: number; home: number }>> = {
+  KBL: { sd: 42, home: 25 },
+};
+
+export function calibFor(sport: Sport, league?: string): { sd: number; home: number; draw: number } {
+  return { ...CALIB[sport], ...(league ? CALIB_LEAGUE[league] : undefined) };
+}
+
 /** 팀별 원 Elo → 보정 Elo. z 는 ±2 로 자른다(팀 수 적은 리그에서 한 팀이 튀는 것 방지) */
-export function calibrateElo(raw: Map<number, number>, sport: Sport): Map<number, number> {
+export function calibrateElo(raw: Map<number, number>, sport: Sport, league?: string): Map<number, number> {
   const vals = [...raw.values()];
   if (vals.length === 0) return new Map();
   const mean = vals.reduce((x, y) => x + y, 0) / vals.length;
   const sd = Math.sqrt(vals.reduce((x, y) => x + (y - mean) ** 2, 0) / vals.length) || 1;
-  const c = CALIB[sport];
+  const c = calibFor(sport, league);
   return new Map([...raw].map(([id, e]) => [id, 1500 + Math.max(-2, Math.min(2, (e - mean) / sd)) * c.sd]));
 }

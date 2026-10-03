@@ -11,7 +11,7 @@ import { NHL_ABBR_TO_FULL } from "@/lib/sports/nhl-salaries";
 import { fetchHockeyTable } from "@/lib/sports/thesports/hockey-table";
 import { fetchBaseballTable, npbDivisionKo } from "@/lib/sports/thesports/baseball-table";
 import type { PredictMatch } from "@/lib/predict/types";
-import { CALIB, calibrateElo } from "./calibrate";
+import { calibFor, calibrateElo } from "./calibrate";
 import { getLadderPostseason } from "@/lib/sports/baseball/kbo-npb-postseason";
 import { runPlayoffSim, FORMAT_SPORT, type PlayoffFormat, type PlayoffOdds, type PlayoffSimOptions, type SimTeam } from "./engine";
 
@@ -190,8 +190,8 @@ export async function computePlayoffOdds(league: PlayoffFormat): Promise<Playoff
       : { id, group: g.group, division: g.division, w: r.w, l: r.l, d: r.d, otl: 0 };
   });
   // 폭 보정 근거는 calibrate.ts — KBO·NPB 대진표 시리즈 확률도 같은 함수를 쓴다
-  const eff = calibrateElo(new Map(teams.map((t) => [t.id, getElo(elo, t.id)])), sport);
-  const c = CALIB[sport];
+  const eff = calibrateElo(new Map(teams.map((t) => [t.id, getElo(elo, t.id)])), sport, league);
+  const c = calibFor(sport, league);
   const prob = (h: number, a: number) => {
     const p = 1 / (1 + Math.pow(10, (eff.get(a)! - eff.get(h)! - c.home) / 400));
     // 축구 무승부 — 전력이 비슷할수록 조금 더 많이(최대 +5%p)
@@ -221,6 +221,6 @@ export const getPlayoffOdds = unstable_cache(
     console.warn(`[playoff-odds] ${league}`, (e as Error).message);
     return null;
   }) : null),
-  ["playoff-odds-v4"],
+  ["playoff-odds-v5"],
   { revalidate: 3600, tags: ["playoff-odds"] },
 );
