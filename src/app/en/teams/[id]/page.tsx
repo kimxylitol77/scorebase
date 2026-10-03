@@ -397,10 +397,27 @@ export default async function TeamPage({ params }: Props) {
   // 순위·폼·스트릭·홈원정은 현재 시즌만 (지난 시즌 접기·롤오버 자동, 구시즌/중복 매치 합산 방지).
   // Elo 는 시즌을 넘어 누적돼야 하므로 전체 매치 유지 (윈도잉하면 시즌마다 레이팅 리셋되는 회귀).
   const seasonStart = currentSeasonStart(team.league);
-  let seasonMatches = seasonStart ? matches.filter((m) => m.startTime >= seasonStart) : matches;
+  // 프리시즌·시범경기 제외 — 한국어 팀 페이지와 같은 판정(ESPN season.slug 또는 ts 워커 표시).
+  const preseasonIds =
+    seasonStart && (team.league === "NHL" || team.league === "NBA" || team.league === "WNBA" || team.league === "MLB")
+      ? new Set(
+          (
+            await prisma.match.findMany({
+              where: {
+                league: team.league,
+                startTime: { gte: previousSeasonStart(seasonStart) },
+                OR: [{ raw: { contains: '"slug":"preseason"' } }, { raw: { contains: '"preseason":true' } }],
+              },
+              select: { id: true },
+            })
+          ).map((r) => r.id),
+        )
+      : new Set<number>();
+  const regular = preseasonIds.size > 0 ? matches.filter((m) => !preseasonIds.has(m.id)) : matches;
+  let seasonMatches = seasonStart ? regular.filter((m) => m.startTime >= seasonStart) : regular;
   if (seasonStart && seasonMatches.filter((m) => m.status === "FINISHED").length < 10) {
     const prev = previousSeasonStart(seasonStart);
-    seasonMatches = matches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+    seasonMatches = regular.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
   }
 
   // 승격팀 폴백 — 위 매치는 전부 team.league 기준이라, 이번에 올라온 팀은 지난 시즌으로 물러나도
