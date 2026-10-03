@@ -1,13 +1,11 @@
 // 농구 선수 기록(박스스코어) — 경기 리더 카드 + 팀별 표(이름 열 고정·선발/벤치·팀 합계·미출전·열 머리 정렬·선수 링크).
-// 기본 내보내기(탭)는 /api/live/match/[gameId] 를 자체 폴링(NBA·WNBA "선수 기록" 탭). NBA 는 route 의 resolveNbaGameId 가
-// 팀명 필요 → away/home 쿼리 동봉. BasketballBoxScore 는 그리기만 — KBL·WKBL 은 본문(SportLiveDetail)이 이미 받은
-// 응답으로 "팀 STATS 비교" 바로 아래에 그린다.
-// 데이터 출처: KBL 공식(선발·+/-·TO·파울)·WKBL 공식(TO·파울)·api-sports(NBA v2, WNBA v1). 없는 열은 숨긴다.
+// 경기 상세 본문(SportLiveDetail)이 /api/live/match 응답(summary.homePlayers/awayPlayers)으로 "팀 STATS 비교" 바로 아래에 그린다.
+// 데이터 출처: KBL 공식(선발·+/-·TO·파울)·WKBL 공식(TO·파울)·ESPN(NBA·WNBA). 원천에 없는 열은 숨긴다.
 
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 export interface PlayerBox {
   name: string;
@@ -33,20 +31,9 @@ export interface PlayerBox {
   dnp?: boolean;
 }
 
-interface Props {
-  gameId: string;
-  league: string;
-  homeNameKo: string;
-  awayNameKo: string;
-  homeNameEn: string;
-  awayNameEn: string;
-}
-
-const POLL_LIVE_MS = 10_000;
-const POLL_IDLE_MS = 60_000;
-/** 선수 상세 페이지가 있는 리그 — pid 로 /players/{pid}?league= 링크 */
-const LINK_LEAGUES = new Set(["KBL", "WKBL"]);
-const SOURCE: Record<string, string> = { KBL: "KBL 공식", WKBL: "WKBL 공식" };
+/** 선수 상세 페이지가 있는 리그 — pid 로 /players/{pid}?league= 링크 (NBA 는 API 가 ESPN id 를 BDL id 로 바꿔 싣는다) */
+const LINK_LEAGUES = new Set(["NBA", "KBL", "WKBL"]);
+const SOURCE: Record<string, string> = { KBL: "KBL 공식", WKBL: "WKBL 공식", NBA: "ESPN", WNBA: "ESPN" };
 
 type Filter = "ALL" | "HOME" | "AWAY";
 type SortKey = "min" | "points" | "reb" | "assists" | "steals" | "blocks" | "to" | "pf" | "fg" | "tp" | "ft" | "plusMinus";
@@ -66,92 +53,6 @@ const sortValue = (p: PlayerBox, k: SortKey): number => {
   }
 };
 const pct = (m: number, a: number) => (a > 0 ? `${Math.round((m / a) * 100)}%` : "-");
-
-export default function BasketballBoxScoreTab({
-  gameId,
-  league,
-  homeNameKo,
-  awayNameKo,
-  homeNameEn,
-  awayNameEn,
-}: Props) {
-  const [home, setHome] = useState<PlayerBox[]>([]);
-  const [away, setAway] = useState<PlayerBox[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const statusRef = useRef<"LIVE" | "OTHER">("OTHER");
-
-  useEffect(() => {
-    let alive = true;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    let lastEtag: string | null = null;
-
-    const url =
-      `/api/live/match/${gameId}?league=${encodeURIComponent(league)}` +
-      `&away=${encodeURIComponent(awayNameEn)}&home=${encodeURIComponent(homeNameEn)}`;
-
-    const fetchOnce = async () => {
-      try {
-        const headers: HeadersInit = lastEtag ? { "if-none-match": lastEtag } : {};
-        const res = await fetch(url, { cache: "no-store", headers });
-        if (res.status === 304) return;
-        if (!res.ok) return;
-        const etag = res.headers.get("etag");
-        if (etag) lastEtag = etag;
-        const json: {
-          live?: {
-            status?: string;
-            summary?: { homePlayers?: PlayerBox[]; awayPlayers?: PlayerBox[] } | null;
-          };
-        } = await res.json();
-        if (!alive) return;
-        statusRef.current = json.live?.status === "LIVE" ? "LIVE" : "OTHER";
-        setHome(json.live?.summary?.homePlayers ?? []);
-        setAway(json.live?.summary?.awayPlayers ?? []);
-        setLoaded(true);
-      } catch {
-        // ignore
-      }
-    };
-    const schedule = () => {
-      if (timer) clearTimeout(timer);
-      if (typeof document !== "undefined" && document.hidden) return;
-      const wait = statusRef.current === "LIVE" ? POLL_LIVE_MS : POLL_IDLE_MS;
-      timer = setTimeout(async () => {
-        await fetchOnce();
-        schedule();
-      }, wait);
-    };
-    fetchOnce().then(schedule);
-    const onVis = () => {
-      if (document.hidden) {
-        if (timer) clearTimeout(timer);
-      } else {
-        fetchOnce();
-        schedule();
-      }
-    };
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      alive = false;
-      if (timer) clearTimeout(timer);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, [gameId, league, homeNameEn, awayNameEn]);
-
-  const hasData = home.some((p) => !p.dnp) || away.some((p) => !p.dnp);
-
-  if (!hasData) {
-    return (
-      <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-4 text-xs text-neutral-500">
-        {loaded
-          ? "ⓘ 선수 기록은 경기 시작 후 제공됩니다."
-          : "선수 기록 불러오는 중…"}
-      </div>
-    );
-  }
-
-  return <BasketballBoxScore league={league} home={home} away={away} homeNameKo={homeNameKo} awayNameKo={awayNameKo} />;
-}
 
 /** 선수 기록 그리기 — 폴링 없이 받은 선수 목록으로 */
 export function BasketballBoxScore({
@@ -205,7 +106,7 @@ export function BasketballBoxScore({
       )}
 
       <p className="text-[11px] text-neutral-500">
-        ⓘ 데이터 출처: {SOURCE[league] ?? "api-sports"}. 열 머리를 누르면 정렬(한 번 더 누르면 오름차순, 세 번째는 원래 순서).
+        ⓘ 데이터 출처: {SOURCE[league] ?? "-"}. 열 머리를 누르면 정렬(한 번 더 누르면 오름차순, 세 번째는 원래 순서).
         FG/3PT/FT 는 성공-시도{cols.plusMinus ? ", +/- 는 코트에 있는 동안 팀 득실차" : ""}.
       </p>
     </div>

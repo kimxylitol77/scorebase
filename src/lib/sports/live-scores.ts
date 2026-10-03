@@ -872,8 +872,59 @@ interface EspnTeamLeaderRaw {
   team: { id?: string; abbreviation?: string };
   leaders: EspnLeaderCat[];
 }
+/** ESPN summary boxscore.players — 농구 선수 박스(names 순서대로 stats) */
+interface EspnPlayersRaw {
+  team?: { id?: string };
+  statistics?: Array<{
+    names?: string[];
+    athletes?: Array<{
+      athlete?: { id?: string; displayName?: string; shortName?: string; position?: { abbreviation?: string } };
+      starter?: boolean;
+      didNotPlay?: boolean;
+      stats?: string[];
+    }>;
+  }>;
+}
+
+/** ESPN 농구 선수 박스 → BasketballPlayerBox (선발 득점순 → 벤치 득점순 → 미출전). pid 는 ESPN athlete id. */
+export function parseEspnBasketballPlayers(box: EspnPlayersRaw | undefined): BasketballPlayerBox[] {
+  const st = box?.statistics?.[0];
+  if (!st?.names || !st.athletes) return [];
+  const idx = (n: string) => st.names!.indexOf(n);
+  const pair = (v: string | undefined) => {
+    const [m, a] = (v ?? "").split("-").map((x) => Number(x));
+    return [Number.isFinite(m) ? m : 0, Number.isFinite(a) ? a : 0] as const;
+  };
+  const num = (v: string | undefined) => {
+    const n = Number(String(v ?? "").replace(/^\+/, ""));
+    return Number.isFinite(n) ? n : null;
+  };
+  const rows = st.athletes.map((a): BasketballPlayerBox => {
+    const s = a.stats ?? [];
+    const g = (n: string) => (idx(n) >= 0 ? s[idx(n)] : undefined);
+    const [fgm, fga] = pair(g("FG")), [tpm, tpa] = pair(g("3PT")), [ftm, fta] = pair(g("FT"));
+    const full = a.athlete?.displayName ?? "";
+    const ko = full ? toKoreanPlayerName(full) : "";
+    const dnp = !!a.didNotPlay || s.length === 0;
+    return {
+      name: ko || full || a.athlete?.shortName || "—",
+      pos: a.athlete?.position?.abbreviation ?? null,
+      starter: !!a.starter,
+      dnp,
+      pid: a.athlete?.id ?? null,
+      min: g("MIN") ?? "",
+      points: num(g("PTS")) ?? 0, reb: num(g("REB")) ?? 0, oreb: num(g("OREB")), assists: num(g("AST")) ?? 0,
+      steals: num(g("STL")), blocks: num(g("BLK")), to: num(g("TO")), pf: num(g("PF")),
+      plusMinus: dnp ? null : num(g("+/-")),
+      fgm, fga, tpm, tpa, ftm, fta,
+    };
+  });
+  const rank = (p: BasketballPlayerBox) => (p.dnp ? 2 : p.starter ? 0 : 1);
+  return rows.sort((x, y) => rank(x) - rank(y) || y.points - x.points);
+}
+
 interface EspnSummaryRaw {
-  boxscore?: { teams?: EspnTeamBoxRaw[] };
+  boxscore?: { teams?: EspnTeamBoxRaw[]; players?: EspnPlayersRaw[] };
   leaders?: EspnTeamLeaderRaw[];
   winprobability?: Array<{ homeWinPercentage?: number }>;
   // header.competitions[0].competitors 의 homeAway 로 home/away 정확히 식별
@@ -974,6 +1025,9 @@ export async function fetchEspnSummary(
       awayLeaders: pickLeaders(
         teamLeadersAll.find((l) => l.team.id === awayBox?.team.id),
       ),
+      // 농구만 boxscore.players 가 온다(없으면 빈 배열 → 화면이 선수 기록을 숨긴다)
+      homePlayers: parseEspnBasketballPlayers(data.boxscore?.players?.find((p) => p.team?.id === homeBox?.team.id)),
+      awayPlayers: parseEspnBasketballPlayers(data.boxscore?.players?.find((p) => p.team?.id === awayBox?.team.id)),
       winProbabilityHome: (data.winprobability ?? [])
         .map((w) => (typeof w.homeWinPercentage === "number" ? w.homeWinPercentage : NaN))
         .filter((n) => Number.isFinite(n))

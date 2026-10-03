@@ -18,7 +18,9 @@ import MatchEventTabs from "./live/MatchEventTabs";
 import LiveTickerFeed from "./live/LiveTickerFeed";
 import MatchWeather from "./live/MatchWeather";
 import FavoriteStar from "./scores/FavoriteStar";
-import { BasketballBoxScore, type PlayerBox } from "./live/BasketballBoxScoreTab";
+import { BasketballBoxScore, type PlayerBox } from "./live/BasketballBoxScore";
+
+const BOX_SCORE_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
 import { soccerTickerLines } from "@/lib/live/ticker";
 // 타입만 참조 — import type 이라 서버 전용 모듈(prisma)이 번들에 딸려오지 않는다.
 import type { RefereeCardTendency } from "@/lib/stats/referee-cards";
@@ -333,10 +335,12 @@ export default function SportLiveDetail({
   // statusLabel 표시용 (회/말이 아니라 쿼터/피리어드/하프)
   const contextLabel = isLive ? live?.statusLabel : null;
 
-  // 농구는 라이브 배당 + 팀 stats 비교를 MatchInsight 탭으로 일원화 (2026-05-29) →
-  // 여기서는 중복 렌더 안 함. 축구도 동일 일원화 (2026-06-10 — 배당 탭에 라이브
-  // 배당 + 북메이커 상세 합침, 본문 중복 카드 제거).
+  // 농구는 라이브 배당을 MatchInsight 탭으로 일원화 (2026-05-29) → 여기서는 중복 렌더 안 함.
+  // 팀 stats 비교·선수 기록은 2026-10-03 부터 농구 4리그 모두 본문(아래)에 두고 탭은 없앴다.
+  // 축구도 동일 일원화 (2026-06-10 — 배당 탭에 라이브 배당 + 북메이커 상세 합침, 본문 중복 카드 제거).
   const isBasketball = league === "NBA" || league === "WNBA";
+  const hasBoxScore = BOX_SCORE_LEAGUES.has(league) &&
+    [...(live?.summary?.homePlayers ?? []), ...(live?.summary?.awayPlayers ?? [])].some((p) => !p.dnp);
   const isSoccerLeague = SOCCER_LEAGUES_SET.has(league);
   // 주심 — SSR 값으로 먼저 그리고, 폴링 응답이 오면 그쪽 값을 쓴다(둘 다 같은 DB 행).
   const refereeName = live?.referee ?? initialReferee ?? null;
@@ -611,8 +615,8 @@ export default function SportLiveDetail({
         return tabs.length > 0 ? <MatchEventTabs tabs={tabs} /> : null;
       })()}
 
-      {/* 팀 stats 비교 — 농구는 MatchInsight "팀 통계" 탭(TheSports)으로 일원화 */}
-      {!isBasketball && !afterLinescore && live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
+      {/* 팀 stats 비교 — 농구는 공식 기록(KBL·WKBL)·ESPN(NBA·WNBA) */}
+      {!afterLinescore && live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
         <TeamStatCompare
           summary={live.summary}
           homeNameKo={homeNameKo}
@@ -620,9 +624,8 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 선수 기록 — KBL·WKBL 은 "팀 STATS 비교" 바로 아래(같은 응답의 공식 박스스코어) */}
-      {(league === "KBL" || league === "WKBL") && live?.summary &&
-        [...(live.summary.homePlayers ?? []), ...(live.summary.awayPlayers ?? [])].some((p) => !p.dnp) && (
+      {/* 선수 기록 — 농구는 "팀 STATS 비교" 바로 아래(같은 응답의 박스스코어) */}
+      {hasBoxScore && live?.summary && (
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
           <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-3">선수 기록</div>
           <BasketballBoxScore
@@ -635,8 +638,8 @@ export default function SportLiveDetail({
         </div>
       )}
 
-      {/* 양 팀 leaders */}
-      {!afterLinescore && live?.summary && (live.summary.homeLeaders.length > 0 || live.summary.awayLeaders.length > 0) && (
+      {/* 양 팀 leaders — 농구 박스스코어가 있으면 그 위 리더 카드와 겹쳐 숨긴다 */}
+      {!afterLinescore && !hasBoxScore && live?.summary && (live.summary.homeLeaders.length > 0 || live.summary.awayLeaders.length > 0) && (
         <TeamLeaders
           summary={live.summary}
           homeNameKo={homeNameKo}

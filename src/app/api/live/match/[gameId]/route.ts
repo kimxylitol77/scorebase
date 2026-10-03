@@ -25,17 +25,29 @@ import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { extractBasketballFromCache } from "@/lib/sports/thesports/basketball-live";
+import { findEspnBasketballEventId } from "@/lib/sports/espn-basketball-verify";
+import { lookupNbaBdlIdByEspnId } from "@/lib/sports/nba-players";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
+// NBA·WNBA 팀 기록 — 본문 "팀 STATS 비교"(KBL 공식과 같은 항목 구성). ESPN boxscore.teams[].statistics name.
 const NBA_STATS = [
-  { name: "fieldGoalPct", label: "FG%" },
-  { name: "threePointFieldGoalPct", label: "3P%" },
-  { name: "freeThrowPct", label: "FT%" },
-  { name: "totalRebounds", label: "리바" },
-  { name: "assists", label: "어시" },
+  { name: "fieldGoalsMade-fieldGoalsAttempted", label: "야투" },
+  { name: "fieldGoalPct", label: "야투율" },
+  { name: "threePointFieldGoalsMade-threePointFieldGoalsAttempted", label: "3점슛" },
+  { name: "threePointFieldGoalPct", label: "3점슛 성공률" },
+  { name: "freeThrowsMade-freeThrowsAttempted", label: "자유투" },
+  { name: "freeThrowPct", label: "자유투 성공률" },
+  { name: "totalRebounds", label: "리바운드" },
+  { name: "offensiveRebounds", label: "공격 리바운드" },
+  { name: "assists", label: "어시스트" },
   { name: "steals", label: "스틸" },
-  { name: "blocks", label: "블락" },
+  { name: "blocks", label: "블록" },
   { name: "turnovers", label: "턴오버" },
+  { name: "fouls", label: "파울" },
+  { name: "fastBreakPoints", label: "속공 득점" },
+  { name: "pointsInPaint", label: "페인트존 득점" },
+  { name: "turnoverPoints", label: "턴오버 유발 득점" },
+  { name: "largestLead", label: "최다 점수차 리드" },
 ];
 const NHL_STATS = [
   { name: "powerPlayPct", label: "PP%" },
@@ -165,16 +177,39 @@ export async function GET(
     if (out.liveOdds) void saveOddsSnapshot(gameId, league, out.liveOdds);
   }
 
-  if (league === "NBA" || league === "NHL") {
-    const sportPath = league === "NBA" ? "basketball/nba" : "hockey/nhl";
-    const statsList = league === "NBA" ? NBA_STATS : NHL_STATS;
+  if (league === "NBA" || league === "WNBA" || league === "NHL") {
+    const isBk = league !== "NHL";
+    const sportPath = isBk ? `basketball/${league.toLowerCase()}` : "hockey/nhl";
+    const statsList = isBk ? NBA_STATS : NHL_STATS;
     // NBA boxscore — api-nba Ultra 만료(Free 100/일)로 라이브 폴링 호출 중단.
     // 일정·점수는 TheSports collector, 상세 스탯·리더는 ESPN summary 로 일원화 (2026-07-19).
+    // 농구 경기 번호는 ts-·api-sports 번호라 ESPN 번호를 날짜·팀으로 찾는다(2026-10-03 — 그 전엔 summary 가 늘 비었다).
+    let espnId = gameId;
+    if (isBk && !/^\d{9,}$/.test(gameId)) {
+      const { prisma } = await import("@/lib/db");
+      const m = await prisma.match.findFirst({
+        where: { externalId: gameId, league },
+        select: { startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+      });
+      espnId = (m && (await findEspnBasketballEventId(league, m.startTime, m.homeTeam.name, m.awayTeam.name))) ?? "";
+    }
     const [periods, summary] = await Promise.all([
       fetchEspnPeriodLinescores(sportPath, date),
-      fetchEspnSummary(sportPath, gameId, statsList),
+      espnId ? fetchEspnSummary(sportPath, espnId, statsList) : Promise.resolve(null),
     ]);
-    out.periodLinescore = periods[gameId] ?? null;
+    // 선수 링크 — NBA 선수 페이지는 BDL id(ESPN id → BDL), WNBA 는 선수 페이지가 없다
+    if (summary && isBk) {
+      const toPid = (p: { pid?: string | null }) => (league === "NBA" && p.pid ? String(lookupNbaBdlIdByEspnId(p.pid) ?? "") || null : null);
+      summary.homePlayers = summary.homePlayers?.map((p) => ({ ...p, pid: toPid(p) }));
+      summary.awayPlayers = summary.awayPlayers?.map((p) => ({ ...p, pid: toPid(p) }));
+    }
+    // ESPN 성공률은 "44" 처럼 숫자만 — % 를 붙인다
+    if (summary && isBk) {
+      const pctLabel = (l: string) => l.endsWith("률") || l.endsWith("율");
+      summary.homeStats = summary.homeStats.map((x) => (pctLabel(x.label) ? { ...x, value: `${x.value}%` } : x));
+      summary.awayStats = summary.awayStats.map((x) => (pctLabel(x.label) ? { ...x, value: `${x.value}%` } : x));
+    }
+    out.periodLinescore = periods[espnId] ?? null;
     out.summary = summary;
     // ESPN 에 종료된 매치 점수도 포함 → live 가 없으면 FINAL 로 간주
     if (!live && out.periodLinescore) {
@@ -396,7 +431,7 @@ export async function GET(
       // cache 조회 실패 ignore — UNKNOWN 응답 (클라이언트는 initial 값 유지)
     }
   } else if (BASKETBALL_LEAGUES.has(league)) {
-    // NBA 외 농구(KBL·WNBA·WKBL) — 아래 공통 농구 블록(ts 캐시 + KBL 공식 박스)이 처리한다.
+    // KBL·WKBL — 아래 공통 농구 블록(ts 캐시 + 공식 박스)이 처리한다.
     //  예전엔 여기서 400 이라 그 블록에 닿지 못해 KBL 상세 점수판이 LOADING 에 멈췄다(2026-10-03).
   } else {
     return NextResponse.json(

@@ -55,7 +55,6 @@ import RecentFormDots from "@/components/scores/RecentFormDots";
 import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
 import BasketballH2HCard from "@/components/scores/basketball/BasketballH2HCard";
 import BasketballLiveOddsTab from "@/components/live/BasketballLiveOddsTab";
-import BasketballBoxScoreTab from "@/components/live/BasketballBoxScoreTab";
 import KblPlayByPlay from "@/components/live/KblPlayByPlay";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -76,7 +75,6 @@ import { getBetmanCardData } from "@/lib/odds/betman-card-data";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
-import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
 import HockeyGameCenter from "@/components/scores/hockey/HockeyGameCenter";
 import type { HockeyIncident, HockeyPlayerRow, HockeyTeamStats } from "@/lib/sports/hockey/box";
@@ -1121,8 +1119,6 @@ export default async function GenericLivePage({ params }: Props) {
     );
   })();
 
-  const isKoreanBasketball = lg === "KBL" || lg === "WKBL";
-
   return (
     <>
       <script
@@ -1423,15 +1419,9 @@ export default async function GenericLivePage({ params }: Props) {
             : soccerTabs
         }
         hideMatchupTab={isSoccer}
+        // 농구는 팀 통계·선수 기록 탭을 두지 않는다 — 본문(SportLiveDetail)에 쿼터 점수·"팀 STATS 비교"·선수 기록이 있다
         teamStatsContent={
-          // KBL·WKBL 은 탭을 두지 않는다 — 본문에 쿼터 점수·공식 "팀 STATS 비교"·선수 기록이 이미 있다(SportLiveDetail)
-          isKoreanBasketball ? undefined : BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
-            <BasketballTeamStatsCard
-              detailLive={match.theSportsCache.detailLive}
-              homeNameKo={homeKo}
-              awayNameKo={awayKo}
-            />
-          ) : HOCKEY_LEAGUES.has(lg) &&
+          HOCKEY_LEAGUES.has(lg) &&
             match.theSportsCache?.detailLive ? (
             (() => {
               // 하키 cache.detailLive.stats = [[periodIdx, [[statId,home,away],...]], ...].
@@ -1491,18 +1481,6 @@ export default async function GenericLivePage({ params }: Props) {
                   : null
               }
               oddsHistory={oddsHistory}
-            />
-          ) : undefined
-        }
-        playerBoxContent={
-          lg === "NBA" || lg === "WNBA" ? (
-            <BasketballBoxScoreTab
-              gameId={gameId}
-              league={lg}
-              homeNameKo={homeKo}
-              awayNameKo={awayKo}
-              homeNameEn={match.homeTeam.name}
-              awayNameEn={match.awayTeam.name}
             />
           ) : undefined
         }

@@ -38,6 +38,7 @@ const DAY_MS = 24 * 3600 * 1000;
 const EVENT_TIME_TOLERANCE_MS = 12 * 3600 * 1000;
 
 type EspnEvent = {
+  id?: string;
   date?: string;
   status?: { type?: { name?: string } };
   competitions?: Array<{
@@ -65,6 +66,32 @@ async function fetchScoreboard(slug: string, yyyymmdd: string): Promise<EspnEven
     );
     return [];
   }
+}
+
+/** 우리 경기(시작 시각·영문 팀명) → ESPN event id. 경기 상세가 ESPN summary(팀 기록·선수 박스)를 부르는 데 쓴다.
+ *  우리 externalId 는 ts-·api-sports 번호라 ESPN 번호가 없다. 같은 경기는 바뀌지 않아 프로세스 메모. */
+const eventIdMemo = new Map<string, string | null>();
+export async function findEspnBasketballEventId(
+  league: string, startTime: Date, homeName: string, awayName: string,
+): Promise<string | null> {
+  const slug = ESPN_BASKETBALL_SLUG[league];
+  if (!slug) return null;
+  const key = `${league}|${startTime.getTime()}|${homeName}|${awayName}`;
+  if (eventIdMemo.has(key)) return eventIdMemo.get(key)!;
+  const t = startTime.getTime();
+  const events = [...(await fetchScoreboard(slug, dateKey(t))), ...(await fetchScoreboard(slug, dateKey(t - DAY_MS)))];
+  const hit = events.find((e) => {
+    const ms = e.date ? new Date(e.date).getTime() : NaN;
+    if (!Number.isFinite(ms) || Math.abs(ms - t) > EVENT_TIME_TOLERANCE_MS) return false;
+    const comps = e.competitions?.[0]?.competitors ?? [];
+    const home = comps.find((c) => c.homeAway === "home")?.team?.displayName;
+    const away = comps.find((c) => c.homeAway === "away")?.team?.displayName;
+    return !!home && !!away && teamMatches(homeName, home) && teamMatches(awayName, away);
+  });
+  const id = hit?.id ?? null;
+  // 못 찾음은 기억하지 않는다(일정 등록 지연 — 다음 요청에 다시 찾는다)
+  if (id) eventIdMemo.set(key, id);
+  return id;
 }
 
 export async function verifyEspnBasketball(

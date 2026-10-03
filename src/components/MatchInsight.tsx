@@ -127,7 +127,7 @@ interface Props {
   liveOddsContent?: ReactNode;
   /** 맞대결·최근 폼 카드 prop (탭 자동 추가) — 농구 BasketballH2HCard 등 풍부한 H2H */
   h2hRichContent?: ReactNode;
-  /** 선수 기록(박스스코어) 카드 prop (탭 자동 추가) — 농구 BasketballBoxScoreTab 등 */
+  /** 선수 기록(박스스코어) 카드 prop (탭 자동 추가). 농구는 본문(SportLiveDetail)에 그려 쓰지 않는다 */
   playerBoxContent?: ReactNode;
   /** 스포츠별 추가 탭 — 축구 라인업/팀통계/맞대결/경기정보 등. starters 다음에 삽입.
    *  { key, label, enabled, content } 배열. 모든 스포츠가 같은 탭 UI 를 쓰도록 통일. */
