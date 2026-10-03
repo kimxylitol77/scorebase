@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SEASON_BOUNDARY, currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { MIN_SEASON_GAMES } from "@/lib/predict/season-scope";
-import { withoutPreseasonForStandings } from "@/lib/predict/preseason";
+import { withoutPreseason } from "@/lib/predict/preseason";
 import { BASEBALL_LEAGUES, BASKETBALL_LEAGUES, HOCKEY_LEAGUES, SOCCER_LEAGUES, leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { fetchKblSeasonList, fetchKblTeamRank } from "@/lib/sports/kbl-api";
 import { KBL_TEAM_CODE } from "@/lib/sports/kbl-game";
@@ -57,7 +57,7 @@ async function compute(league: string): Promise<LeagueTeamStats | null> {
   // 프리시즌(NHL·NBA·WNBA) 제외, 야구 시범경기는 점수 없는 0-0 종료로 들어와 뺀다.
   // KBL·WKBL 정규리그는 10~4월 — 6~9월 경기는 비시즌 컵(WKBL 7/31 박신자컵 등)이라 뺀다.
   const offMonth = (d: Date) => (league === "KBL" || league === "WKBL") && d.getUTCMonth() >= 5 && d.getUTCMonth() <= 8;
-  const all = (await withoutPreseasonForStandings(raw, league)).filter(
+  const all = (await withoutPreseason(raw, league)).filter(
     (m) => m.status === "FINISHED" && m.homeScore != null && m.awayScore != null && !offMonth(m.startTime) && !afterPost(m.startTime) && !(BASEBALL_LEAGUES.has(league) && m.homeScore === 0 && m.awayScore === 0),
   );
   const cur = all.filter((m) => m.startTime >= curStart);
