@@ -74,7 +74,8 @@ export const TS_COVERED_EXCEPTIONS = new Set<League>([
   "UEFA_WCL",
   // INDIA_ISL (2026-10-03): 2026-27 시즌 일정이 ts 엔 한 건도 없다(10/10·10/18 diary 실측 0건) — 시즌 자동 탐지도
   // "DB 에 다가오는 경기가 있는 리그"만 보므로 영영 못 잡는 닭-달걀. af 엔 10/1~10/20 12경기. af 로 수집한다.
-  // LITHUANIA_AL (같은 날): ts 실커버리지는 대체로 정상이지만 10/10 잘기리스 빌뉴스-수두바 1경기가 ts 에 없다(af 엔 있음).
-  // 위 주석의 "같은 증상 후보" 가 재발한 것 — af 를 함께 받아 빈 경기를 채운다(크로스소스 중복은 collect dedup 72h 가 흡수).
-  "INDIA_ISL", "LITHUANIA_AL",
+  // ⚠️ LITHUANIA_AL 은 같은 날 넣었다가 뺐다 — ts 커버리지가 대체로 정상인 리그에 af 를 상시로 붙이면 두 소스 시각이
+  // 하루 어긋난 경기(수두바-카우노 잘기리스 ts 10/18 vs af 10/19)가 dedup 창 밖이라 af 수집 때마다 중복 행이 다시 생긴다.
+  // ts 에 빠진 1경기(10/10)는 1회 수집으로 넣어 뒀고, 종료 후 결과는 cleanup-stale 의 af 대조가 채운다.
+  "INDIA_ISL",
 ]);
