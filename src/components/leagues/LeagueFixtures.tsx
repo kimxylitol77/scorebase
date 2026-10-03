@@ -1,7 +1,7 @@
 // 리그 일정·결과 — 리그 페이지 "일정" 탭 콘텐츠.
 // 라운드를 읽을 수 있는 리그(빅5 등)는 시즌 전체를 라운드별로 보여주고(LeagueFixturesView),
 // 라운드 정보가 없는 리그(MLS·컵 등)는 기존대로 최근 결과 + 다음 일정 목록으로 보여준다.
-// NHL·KHL·유럽 하키·KBO·NPB·MLB·CPBL 은 라운드 대신 프리시즌(시범경기) + 정규시즌 주차로 나눈다(WeeklyFixtures).
+// NHL·KHL·유럽 하키·KBO·NPB·MLB·CPBL·V-리그 는 라운드 대신 프리시즌(시범경기) + 정규시즌 주차로 나눈다(WeeklyFixtures).
 // UEFA 클럽대회(UCL·UEL·UECL)는 예선 + 리그페이즈 라운드 + 녹아웃으로 나눈다(UefaFixtures).
 // 어느 경로든 크로스소스 중복 매치는 dedupeFixtures 로 접어 카드가 두 장 뜨는 것을 막는다.
 import Link from "next/link";
@@ -21,6 +21,8 @@ const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const WEEKLY_BASEBALL = new Set(["KBO", "NPB", "MLB", "CPBL"]);
 /** 주차로 보여 주는 하키 — KHL 과 유럽 리그(ts 수집, 프리시즌은 HOCKEY_FRIENDLY 로 따로 들어와 정규시즌만 있다). 2026-10-03 */
 const WEEKLY_TS_HOCKEY = new Set(["KHL", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL", "CHL_HOCKEY"]);
+/** 주차로 보여 주는 배구 — V-리그 정규리그 일정은 KOVO 로 시즌 전체가 들어온다(collect-kovo-schedule). KOVO컵은 별도 리그라 전부 정규시즌. 2026-10-03 */
+const WEEKLY_VOLLEYBALL = new Set(["V_LEAGUE", "V_LEAGUE_W"]);
 /** 시즌 경계(SEASON_BOUNDARY)가 없는 가을 개막 리그의 시즌 시작 = 8/1 (KHL 경계와 같다) */
 function augustSeasonStart(now: Date): Date {
   const y = now.getUTCFullYear();
@@ -260,7 +262,7 @@ export default async function LeagueFixtures({ league }: { league: string }) {
   }
   // KHL — ts match/season 으로 시즌 전체(750경기)가 들어온다(2026-09-30). 프리시즌은 HOCKEY_FRIENDLY 로 따로 수집돼
   //  KHL 행은 전부 정규시즌이라 프리시즌 판정 없이 주차만 나눈다. 유럽 리그도 같은 구조(시즌 경계가 없어 8/1 부터).
-  if (WEEKLY_TS_HOCKEY.has(league)) {
+  if (WEEKLY_TS_HOCKEY.has(league) || WEEKLY_VOLLEYBALL.has(league)) {
     const { raw: _raw, ...lite } = sel;
     void _raw;
     const from = seasonStart ?? augustSeasonStart(now);
