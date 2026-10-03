@@ -1,10 +1,10 @@
 {
  "meta": {
-  "updatedAt": "2026-09-29T14:33:55.456Z",
+  "updatedAt": "2026-10-03T22:17:47.226Z",
   "teams": 79,
-  "players": 1510,
+  "players": 1567,
   "injuries": 0,
-  "injuriesCheckedAt": "2026-09-29T14:33:55.456Z"
+  "injuriesCheckedAt": "2026-10-03T22:17:47.226Z"
  },
  "players": {
   "pxwrx0b24y0ryk0": {
@@ -379,6 +379,19 @@
    "pos": "F",
    "nat": "France",
    "natKo": "프랑스",
+   "teamTs": "dj2ry0b1kgyq1zp",
+   "teamId": 612763,
+   "league": "LIIGA"
+  },
+  "1l4rj1bpl28r7vx": {
+   "ko": "빌레 바아랄라",
+   "en": "Ville Vaarala",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "V.Vaarala",
+   "birth": "2006-02-16",
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
    "teamTs": "dj2ry0b1kgyq1zp",
    "teamId": 612763,
    "league": "LIIGA"
@@ -1229,6 +1242,22 @@
    "teamId": 612943,
    "league": "LIIGA"
   },
+  "x7lm78b76kyq2wd": {
+   "ko": "오스카리 루오토",
+   "en": "Oskari Luoto",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "O.Luoto",
+   "photo": "https://img.thesports.com/v2/player/74c3b667c62808a21a53f996c978f124.png",
+   "birth": "2002-05-21",
+   "height": 184,
+   "weight": 73,
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "1l4rj1bj8x6r7vx",
+   "teamId": 612943,
+   "league": "LIIGA"
+  },
   "ednm95b6gwlryox": {
    "en": "Jesper Myrenberg",
    "natId": "3yl5erg6b8q8k0o",
@@ -1547,22 +1576,6 @@
    "teamId": 612814,
    "league": "LIIGA"
   },
-  "6ypq3vb333vrd7o": {
-   "ko": "세바스티안 소이니",
-   "en": "Sebastian Soini",
-   "natId": "dkjw2r0ob6rz84o",
-   "short": "S.Soini",
-   "photo": "https://img.thesports.com/v2/player/80f7e4fa4d6afc83afc548810f7660dd.png",
-   "birth": "2006-06-10",
-   "height": 186,
-   "weight": 82,
-   "pos": "D",
-   "nat": "Finland",
-   "natKo": "핀란드",
-   "teamTs": "ednm95b2jvzryox",
-   "teamId": 612814,
-   "league": "LIIGA"
-  },
   "zp5rzybek08q82w": {
    "ko": "마티외 에르팽",
    "en": "Matthieu Herpin",
@@ -1597,6 +1610,22 @@
    "natId": "dkjw2r0ob6rz84o",
    "short": "O.Remes",
    "birth": "2005-05-19",
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "ednm95b2jvzryox",
+   "teamId": 612814,
+   "league": "LIIGA"
+  },
+  "x7lm78b56p8q2wd": {
+   "ko": "펙카 요르마카",
+   "en": "Pekka Jormakka",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "P.Jormakka",
+   "photo": "https://img.thesports.com/v2/player/6ebb91d19fbedd44ac37fbaab7ea3245.png",
+   "birth": "1990-09-14",
+   "height": 174,
+   "weight": 82,
    "pos": "F",
    "nat": "Finland",
    "natKo": "핀란드",
@@ -1946,6 +1975,48 @@
    "short": "E.Wallenius",
    "photo": "https://img.thesports.com/v2/player/f9f4fda8d08938e556f3b8603927792a.png",
    "birth": "2006-01-15",
+   "pos": "D",
+   "teamTs": "4wyrn9bx8djm86p",
+   "teamId": 612723,
+   "league": "LIIGA"
+  },
+  "2y8m43b4y4jrl07": {
+   "ko": "올리 팔롤라",
+   "en": "Olli Palola",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "O.Palola",
+   "photo": "https://img.thesports.com/v2/player/60791cadc6c04a3d5ca7a645892e059c.png",
+   "birth": "1988-04-08",
+   "height": 179,
+   "weight": 85,
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "4wyrn9bx8djm86p",
+   "teamId": 612723,
+   "league": "LIIGA"
+  },
+  "2y8m43b4ov5rl07": {
+   "ko": "사물리 피이포넨",
+   "en": "Samuli Piipponen",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "S.Piipponen",
+   "photo": "https://img.thesports.com/v2/player/a60e38339c9a0884b718668f786ae6d1.png",
+   "birth": "1993-02-13",
+   "height": 190,
+   "weight": 82,
+   "pos": "D",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "4wyrn9bx8djm86p",
+   "teamId": 612723,
+   "league": "LIIGA"
+  },
+  "318q6wbo0248mo9": {
+   "ko": "온니칼레 레토넨",
+   "en": "Onnikalle Lehtonen",
+   "short": "O.Lehtonen",
+   "birth": "2006-01-02",
    "pos": "D",
    "teamTs": "4wyrn9bx8djm86p",
    "teamId": 612723,
@@ -2678,6 +2749,22 @@
    "league": "LIIGA",
    "ko": "예스페르 코타야르비"
   },
+  "2y8m43b4oolrl07": {
+   "ko": "라스무스 코르호넨",
+   "en": "Rasmus Korhonen",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "R.Korhonen",
+   "photo": "https://img.thesports.com/v2/player/de7bee508abb2cbf7ad2ddc64d20d8c3.png",
+   "birth": "2002-10-22",
+   "height": 196,
+   "weight": 88,
+   "pos": "G",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "pxwrx0b5gjvryk0",
+   "teamId": 612813,
+   "league": "LIIGA"
+  },
   "x7lm78b35wlq2wd": {
    "en": "Daniel Salonen",
    "natId": "dkjw2r0ob6rz84o",
@@ -3028,6 +3115,18 @@
    "league": "LIIGA",
    "ko": "야수 멘소넨"
   },
+  "y0or5xbkx4gmwzv": {
+   "en": "Jakub Floris",
+   "natId": "4zp5rzybjyq82w1",
+   "short": "J.Floris",
+   "birth": "2008-02-18",
+   "pos": "D",
+   "nat": "Slovakia",
+   "natKo": "슬로바키아",
+   "teamTs": "jw2r0ob2lj4rz84",
+   "teamId": 612722,
+   "league": "LIIGA"
+  },
   "jw2r0obpy39rz84": {
    "en": "Mantas Armalis",
    "natId": "l965mknb7em1ge4",
@@ -3374,6 +3473,22 @@
    "natId": "dkjw2r0ob6rz84o",
    "short": "A.Niskanen",
    "birth": "2004-11-11",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "l5erg6blze8q8k0",
+   "teamId": 612868,
+   "league": "LIIGA"
+  },
+  "y39mp9b0pz7rojx": {
+   "ko": "토피아스 휘니넨",
+   "en": "Topias Hynninen",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "T.Hynninen",
+   "photo": "https://img.thesports.com/v2/player/31ca34bb624cde5ef66bd4d3c1e18c19.png",
+   "birth": "2005-12-19",
+   "height": 177,
+   "weight": 75,
+   "pos": "F",
    "nat": "Finland",
    "natKo": "핀란드",
    "teamTs": "l5erg6blze8q8k0",
@@ -3761,6 +3876,22 @@
    "teamId": 612759,
    "league": "LIIGA"
   },
+  "l5erg6b5j9pq8k0": {
+   "ko": "벨리-마티 사비나이넨",
+   "en": "Veli-Matti Savinainen",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "V.Savinainen",
+   "photo": "https://img.thesports.com/v2/player/50ed149950f513ee4ea9b07298815169.png",
+   "birth": "1986-01-05",
+   "height": 182,
+   "weight": 82,
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "dn1m15bp53kqoep",
+   "teamId": 612759,
+   "league": "LIIGA"
+  },
   "l5erg6b5xlvq8k0": {
    "ko": "니클라스 루빈",
    "en": "Niklas Rubin",
@@ -4142,6 +4273,16 @@
    "teamId": 612776,
    "league": "LIIGA"
   },
+  "k82reebvz589rep": {
+   "ko": "렌니 코꼰넨",
+   "en": "Lenni Kokkonen",
+   "short": "L.Kokkonen",
+   "birth": "2009-03-05",
+   "pos": "D",
+   "teamTs": "318q6wb6947mo9j",
+   "teamId": 612776,
+   "league": "LIIGA"
+  },
   "6ypq3vb4906rd7o": {
    "ko": "얀 베드나르",
    "en": "Jan Bednar",
@@ -4438,6 +4579,22 @@
    "photo": "https://img.thesports.com/v2/player/413a8a80e850249d0fea7bd2d15fd96b.png",
    "birth": "2006-12-01",
    "pos": "F",
+   "teamTs": "dj2ry0bewglq1zp",
+   "teamId": 612760,
+   "league": "LIIGA"
+  },
+  "6ypq3vb333vrd7o": {
+   "ko": "세바스티안 소이니",
+   "en": "Sebastian Soini",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "S.Soini",
+   "photo": "https://img.thesports.com/v2/player/80f7e4fa4d6afc83afc548810f7660dd.png",
+   "birth": "2006-06-10",
+   "height": 186,
+   "weight": 82,
+   "pos": "D",
+   "nat": "Finland",
+   "natKo": "핀란드",
    "teamTs": "dj2ry0bewglq1zp",
    "teamId": 612760,
    "league": "LIIGA"
@@ -4873,6 +5030,37 @@
    "pos": "D",
    "nat": "Finland",
    "natKo": "핀란드",
+   "teamTs": "4jwq2lbz8xkr0ve",
+   "teamId": 612810,
+   "league": "LIIGA"
+  },
+  "965mknbgdo6m1ge": {
+   "ko": "올라 팔베",
+   "en": "Oula Palve",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "O.Palve",
+   "photo": "https://img.thesports.com/v2/player/72995eb25262a75bb2ac0dee152665c4.png",
+   "birth": "1992-02-19",
+   "height": 183,
+   "weight": 80,
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "4jwq2lbz8xkr0ve",
+   "teamId": 612810,
+   "league": "LIIGA"
+  },
+  "1l4rj1bg086r7vx": {
+   "en": "Brett Harrison",
+   "natId": "gpxwrx0b1wryk0j",
+   "short": "B.Harrison",
+   "photo": "https://img.thesports.com/v2/player/ef238a2d8d32b2850cdc57922f27e0e4.png",
+   "birth": "2003-06-07",
+   "height": 188,
+   "weight": 83,
+   "pos": "F",
+   "nat": "Canada",
+   "natKo": "캐나다",
    "teamTs": "4jwq2lbz8xkr0ve",
    "teamId": 612810,
    "league": "LIIGA"
@@ -5544,7 +5732,8 @@
    "natKo": "슬로바키아",
    "teamTs": "l7oqd2b8v0or510",
    "teamId": 612837,
-   "league": "LIIGA"
+   "league": "LIIGA",
+   "ko": "올렉시 미클루하"
   },
   "4jwq2lbeegxr0ve": {
    "ko": "조나 쿰풀라",
@@ -5694,6 +5883,22 @@
    "photo": "https://img.thesports.com/v2/player/8a869446f3ee1a4afdcd1291bb5cc77d.png",
    "birth": "2005-01-03",
    "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "l7oqd2b8v0or510",
+   "teamId": 612837,
+   "league": "LIIGA"
+  },
+  "dn1m15boy8xqoep": {
+   "ko": "미코 쿠사",
+   "en": "Mikko Kousa",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "M.Kousa",
+   "photo": "https://img.thesports.com/v2/player/1fd8c592791b3cb79d4cbc9a0244e7a2.png",
+   "birth": "1988-05-11",
+   "height": 178,
+   "weight": 89,
+   "pos": "D",
    "nat": "Finland",
    "natKo": "핀란드",
    "teamTs": "l7oqd2b8v0or510",
@@ -6914,6 +7119,21 @@
    "teamId": 612899,
    "league": "SWISS_NL"
   },
+  "zp5rzyb020lq82w": {
+   "en": "Tim Grossniklaus",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "T.Grossniklaus",
+   "photo": "https://img.thesports.com/v2/player/f1c2bca37cd5db38b02a9ebc16ae478d.png",
+   "birth": "1995-02-25",
+   "height": 184,
+   "weight": 92,
+   "pos": "D",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "965mknb2jzem1ge",
+   "teamId": 612899,
+   "league": "SWISS_NL"
+  },
   "3glrwdb0l2wqdyj": {
    "ko": "루카 얀 홀렌슈타인",
    "en": "Luca Jan Hollenstein",
@@ -7706,6 +7926,35 @@
    "teamId": 612945,
    "league": "SWISS_NL"
   },
+  "y0or5xbj8p1mwzv": {
+   "ko": "올리버 아커만",
+   "en": "Oliver Achermann",
+   "natId": "1v2y8m43bvrl074",
+   "short": "O.Achermann",
+   "photo": "https://img.thesports.com/v2/player/74a5d624dab6b3c5aa8eaa2477831450.png",
+   "birth": "1994-01-16",
+   "height": 195,
+   "weight": 95,
+   "pos": "F",
+   "nat": "Austria",
+   "natKo": "오스트리아",
+   "teamTs": "2y8m43bw21vrl07",
+   "teamId": 612945,
+   "league": "SWISS_NL"
+  },
+  "pxwrx0bwdy3ryk0": {
+   "ko": "아르튀르 당두아",
+   "en": "Arthur Dandois",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "A.Dandois",
+   "birth": "2007-01-21",
+   "pos": "F",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "2y8m43bw21vrl07",
+   "teamId": 612945,
+   "league": "SWISS_NL"
+  },
   "vjxm87b0d4vr6od": {
    "ko": "앙투안 켈러",
    "en": "Antoine Keller",
@@ -7751,7 +8000,8 @@
    "natKo": "스위스",
    "teamTs": "3glrwdb3x3dqdyj",
    "teamId": 612965,
-   "league": "SWISS_NL"
+   "league": "SWISS_NL",
+   "ko": "제시 즈그래겐"
   },
   "k82reeb8p56repz": {
    "ko": "제리 투르쿨라이넨",
@@ -8061,6 +8311,19 @@
    "height": 184,
    "weight": 88,
    "pos": "G",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "3glrwdb3x3dqdyj",
+   "teamId": 612965,
+   "league": "SWISS_NL"
+  },
+  "2y8m43bdy22rl07": {
+   "en": "Christen Livio",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "C.Livio",
+   "photo": "https://img.thesports.com/v2/player/b69b83d1259f1abdd42204ef61d037cb.png",
+   "birth": "2005-11-02",
+   "pos": "F",
    "nat": "Switzerland",
    "natKo": "스위스",
    "teamTs": "3glrwdb3x3dqdyj",
@@ -8393,6 +8656,38 @@
    "natId": "kz8yomodb8q0j6l",
    "short": "D.Bosson",
    "birth": "2006-01-16",
+   "pos": "F",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "k82reeb0511repz",
+   "teamId": 612897,
+   "league": "SWISS_NL"
+  },
+  "8yomodb33lwq0j6": {
+   "ko": "시모네 테라네오",
+   "en": "Simone Terraneo",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "S.Terraneo",
+   "photo": "https://img.thesports.com/v2/player/984ac2fd0d46424cc3e9c2c7ec826c20.png",
+   "birth": "2004-06-30",
+   "height": 181,
+   "weight": 86,
+   "pos": "D",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "k82reeb0511repz",
+   "teamId": 612897,
+   "league": "SWISS_NL"
+  },
+  "k82reebn8gnrepz": {
+   "ko": "인티 페스토니",
+   "en": "Inti Pestoni",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "I.Pestoni",
+   "photo": "https://img.thesports.com/v2/player/d9cf02d174d291ef12df9660b30ac872.png",
+   "birth": "1991-08-08",
+   "height": 173,
+   "weight": 80,
    "pos": "F",
    "nat": "Switzerland",
    "natKo": "스위스",
@@ -8764,6 +9059,22 @@
    "teamId": 612966,
    "league": "SWISS_NL"
   },
+  "dn1m15b0v59qoep": {
+   "ko": "빅토르 외스트룬드",
+   "en": "Viktor Ostlund",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "V.Ostlund",
+   "photo": "https://img.thesports.com/v2/player/7674392ae84141db66e3220b3f4da5ba.png",
+   "birth": "1994-07-30",
+   "height": 193,
+   "weight": 83,
+   "pos": "G",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "6ypq3vb721prd7o",
+   "teamId": 612966,
+   "league": "SWISS_NL"
+  },
   "1l4rj1b23j8r7vx": {
    "ko": "멜빈 니펠러",
    "en": "Melvin Nyffeler",
@@ -9119,6 +9430,20 @@
    "height": 190,
    "weight": 85,
    "pos": "F",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "318q6wb69k7mo9j",
+   "teamId": 612840,
+   "league": "SWISS_NL"
+  },
+  "dn1m15bgnlzqoep": {
+   "en": "Benjamin Quinn",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "B.Quinn",
+   "birth": "2004-04-28",
+   "height": 190,
+   "weight": 90,
+   "pos": "D",
    "nat": "Switzerland",
    "natKo": "스위스",
    "teamTs": "318q6wb69k7mo9j",
@@ -9535,6 +9860,32 @@
    "teamId": 612839,
    "league": "SWISS_NL"
   },
+  "2y8m43b3jj5lrl0": {
+   "ko": "필립 모저",
+   "en": "Philip Moser",
+   "short": "P.Moser",
+   "birth": "2009-04-22",
+   "pos": "D",
+   "teamTs": "dn1m15bp51kqoep",
+   "teamId": 612839,
+   "league": "SWISS_NL"
+  },
+  "x7lm78bnxl2q2wd": {
+   "ko": "다리오 지들러",
+   "en": "Dario Sidler",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "D.Sidler",
+   "photo": "https://img.thesports.com/v2/player/dced635d3c60fb780c85ebd206431b3c.png",
+   "birth": "2003-06-04",
+   "height": 172,
+   "weight": 75,
+   "pos": "D",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "dn1m15bp51kqoep",
+   "teamId": 612839,
+   "league": "SWISS_NL"
+  },
   "l7oqd2bdezwr510": {
    "ko": "니클라스 슐레겔",
    "en": "Niklas Schlegel",
@@ -9878,6 +10229,37 @@
    "pos": "F",
    "nat": "USA",
    "natKo": "미국",
+   "teamTs": "4jwq2lbz81kr0ve",
+   "teamId": 612967,
+   "league": "SWISS_NL"
+  },
+  "965mknb1gj0m1ge": {
+   "en": "Joren van Pottelberghe",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "J.van Pottelberghe",
+   "photo": "https://img.thesports.com/v2/player/adb72511def0b273b78a8667236f6d52.png",
+   "birth": "1997-06-05",
+   "height": 189,
+   "weight": 88,
+   "pos": "G",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "4jwq2lbz81kr0ve",
+   "teamId": 612967,
+   "league": "SWISS_NL"
+  },
+  "jw2r0ob7pdvrz84": {
+   "ko": "조반니 모리니",
+   "en": "Giovanni Morini",
+   "natId": "7p4jwq2lbkr0veo",
+   "short": "G.Morini",
+   "photo": "https://img.thesports.com/v2/player/c3456e215141b43f8d57bc37225b3710.png",
+   "birth": "1995-02-02",
+   "height": 187,
+   "weight": 87,
+   "pos": "F",
+   "nat": "Italy",
+   "natKo": "이탈리아",
    "teamTs": "4jwq2lbz81kr0ve",
    "teamId": 612967,
    "league": "SWISS_NL"
@@ -10820,7 +11202,8 @@
    "natKo": "스위스",
    "teamTs": "dj2ry0bew2lq1zp",
    "teamId": 612895,
-   "league": "SWISS_NL"
+   "league": "SWISS_NL",
+   "ko": "닐스 린"
   },
   "3glrwdb0ln8qdyj": {
    "ko": "사무엘 크라이스",
@@ -10898,7 +11281,8 @@
    "natKo": "스위스",
    "teamTs": "dj2ry0bew2lq1zp",
    "teamId": 612895,
-   "league": "SWISS_NL"
+   "league": "SWISS_NL",
+   "ko": "시몬 킨드시"
   },
   "y39mp9bzzgzrojx": {
    "ko": "루이 풀레만",
@@ -10988,7 +11372,8 @@
    "natKo": "스위스",
    "teamTs": "dj2ry0bew2lq1zp",
    "teamId": 612895,
-   "league": "SWISS_NL"
+   "league": "SWISS_NL",
+   "ko": "폴 모타르"
   },
   "318q6wbgey0mo9j": {
    "ko": "파비안 리츠만",
@@ -11013,6 +11398,22 @@
    "short": "C.von Burg",
    "birth": "2000-12-07",
    "pos": "G",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "dj2ry0bew2lq1zp",
+   "teamId": 612895,
+   "league": "SWISS_NL"
+  },
+  "k82reebjzgyrepz": {
+   "ko": "티에리 실드",
+   "en": "Thierry Schild",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "T.Schild",
+   "photo": "https://img.thesports.com/v2/player/46dca961e450a9f0d896773fecc0fa60.png",
+   "birth": "2004-12-30",
+   "height": 179,
+   "weight": 74,
+   "pos": "F",
    "nat": "Switzerland",
    "natKo": "스위스",
    "teamTs": "dj2ry0bew2lq1zp",
@@ -11389,6 +11790,38 @@
    "teamId": 612898,
    "league": "SWISS_NL"
   },
+  "jw2r0obpy5jrz84": {
+   "ko": "안티 수오멜라",
+   "en": "Antti Suomela",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "A.Suomela",
+   "photo": "https://img.thesports.com/v2/player/81043a149e46bdbc54bf2fca1b6d8dac.png",
+   "birth": "1994-03-16",
+   "height": 182,
+   "weight": 81,
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "l5erg6blzp8q8k0",
+   "teamId": 612898,
+   "league": "SWISS_NL"
+  },
+  "x7lm78bn5lnq2wd": {
+   "ko": "오렐리앙 마르티",
+   "en": "Aurelien Marti",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "A.Marti",
+   "photo": "https://img.thesports.com/v2/player/465210ed6105aa2032f9e0248c1a5c15.png",
+   "birth": "1994-08-24",
+   "height": 190,
+   "weight": 92,
+   "pos": "D",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "l5erg6blzp8q8k0",
+   "teamId": 612898,
+   "league": "SWISS_NL"
+  },
   "zp5rzyb01n1q82w": {
    "ko": "레오나르도 제노니",
    "en": "Leonardo Genoni",
@@ -11723,6 +12156,38 @@
    "height": 154,
    "weight": 74,
    "pos": "F",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "ednm95b2jezryox",
+   "teamId": 612907,
+   "league": "SWISS_NL"
+  },
+  "4wyrn9bo76km86p": {
+   "ko": "마티외 크로체",
+   "en": "Mathieu Croce",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "M.Croce",
+   "photo": "https://img.thesports.com/v2/player/159c63d61b6e0ee21ce1f48a1f6a9864.png",
+   "birth": "2003-02-21",
+   "height": 182,
+   "weight": 80,
+   "pos": "G",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "ednm95b2jezryox",
+   "teamId": 612907,
+   "league": "SWISS_NL"
+  },
+  "1l4rj1b23kpr7vx": {
+   "ko": "사무엘 게라",
+   "en": "Samuel Guerra",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "S.Guerra",
+   "photo": "https://img.thesports.com/v2/player/3d468dc2a1cf2e5443316a238bf819aa.png",
+   "birth": "1993-05-11",
+   "height": 185,
+   "weight": 87,
+   "pos": "D",
    "nat": "Switzerland",
    "natKo": "스위스",
    "teamTs": "ednm95b2jezryox",
@@ -12125,7 +12590,8 @@
    "natKo": "체코",
    "teamTs": "965mknb2jnem1ge",
    "teamId": 612939,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "닉 말리크"
   },
   "n54ql0b3g5xqvy9": {
    "en": "Dylan MacPherson",
@@ -12140,7 +12606,8 @@
    "natKo": "캐나다",
    "teamTs": "965mknb2jnem1ge",
    "teamId": 612939,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "딜런 맥퍼슨"
   },
   "jw2r0ob9v3wrz84": {
    "en": "Kristians Rubins",
@@ -12155,7 +12622,8 @@
    "natKo": "라트비아",
    "teamTs": "965mknb2jnem1ge",
    "teamId": 612939,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "크리스티안스 루빈스"
   },
   "ednm95blzj7ryox": {
    "ko": "루카스 스트르나드",
@@ -12371,7 +12839,8 @@
    "natKo": "캐나다",
    "teamTs": "965mknb2jnem1ge",
    "teamId": 612939,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "카터 로버트슨"
   },
   "6ypq3vb7zjyrd7o": {
    "ko": "알레시 체흐",
@@ -12537,7 +13006,8 @@
    "natKo": "미국",
    "teamTs": "jw2r0ob6ew6rz84",
    "teamId": 612912,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "다니엘 브릭클리"
   },
   "zp5rzyb2v77q82w": {
    "ko": "온드레이 베라네크",
@@ -12646,7 +13116,8 @@
    "natKo": "캐나다",
    "teamTs": "jw2r0ob6ew6rz84",
    "teamId": 612912,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "닉 존스"
   },
   "6ypq3vb49wlrd7o": {
    "ko": "다비드 스타스트니",
@@ -12821,6 +13292,19 @@
    "pos": "F",
    "nat": "Slovakia",
    "natKo": "슬로바키아",
+   "teamTs": "jw2r0ob6ew6rz84",
+   "teamId": 612912,
+   "league": "CZECH_EXTRALIGA"
+  },
+  "zp5rzyb9zplq82w": {
+   "ko": "보이테흐 바나",
+   "en": "Vojtech Vana",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "V.Vana",
+   "birth": "2006-10-19",
+   "pos": "F",
+   "nat": "Czech",
+   "natKo": "체코",
    "teamTs": "jw2r0ob6ew6rz84",
    "teamId": 612912,
    "league": "CZECH_EXTRALIGA"
@@ -13597,6 +14081,19 @@
    "teamId": 612775,
    "league": "CZECH_EXTRALIGA"
   },
+  "pxwrx0bweeyryk0": {
+   "ko": "얀 스프리나르",
+   "en": "Jan Sprynar",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "J.Sprynar",
+   "birth": "2005-02-25",
+   "pos": "F",
+   "nat": "Czech",
+   "natKo": "체코",
+   "teamTs": "4jwq2lbz87kr0ve",
+   "teamId": 612775,
+   "league": "CZECH_EXTRALIGA"
+  },
   "y0or5xbj2d5mwzv": {
    "ko": "알레시 스테츠카",
    "en": "Ales Stezka",
@@ -14148,7 +14645,8 @@
    "natKo": "캐나다",
    "teamTs": "3glrwdb3v80qdyj",
    "teamId": 612716,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "파커 벨"
   },
   "zp5rzyb0xj8q82w": {
    "en": "Nick Olesen",
@@ -14163,7 +14661,8 @@
    "natKo": "덴마크",
    "teamTs": "3glrwdb3v80qdyj",
    "teamId": 612716,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "닉 올레센"
   },
   "4jwq2lb03k5r0ve": {
    "en": "Lucas Nordsater",
@@ -14178,7 +14677,8 @@
    "natKo": "스웨덴",
    "teamTs": "3glrwdb3v80qdyj",
    "teamId": 612716,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "루카스 노르드사터"
   },
   "vjxm87b27per6od": {
    "ko": "파벨 피하",
@@ -14331,7 +14831,8 @@
    "natKo": "노르웨이",
    "teamTs": "3glrwdb3v80qdyj",
    "teamId": 612716,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "올레 에이나르 엥겔란드 안데르센"
   },
   "1l4rj1b51zyr7vx": {
    "ko": "얀 스트르멘",
@@ -14345,6 +14846,15 @@
    "pos": "G",
    "nat": "Czech",
    "natKo": "체코",
+   "teamTs": "3glrwdb3v80qdyj",
+   "teamId": 612716,
+   "league": "CZECH_EXTRALIGA"
+  },
+  "dn1m15b441pzqoe": {
+   "ko": "바츨라프 네도로스트",
+   "en": "Vaclav Nedorost",
+   "short": "V.Nedorost",
+   "birth": "2008-03-12",
    "teamTs": "3glrwdb3v80qdyj",
    "teamId": 612716,
    "league": "CZECH_EXTRALIGA"
@@ -14724,6 +15234,22 @@
    "teamId": 612718,
    "league": "CZECH_EXTRALIGA"
   },
+  "dj2ry0b43o2q1zp": {
+   "ko": "얀 자보라",
+   "en": "Jan Zavora",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "J.Zavora",
+   "photo": "https://img.thesports.com/v2/player/06c9d85463fd7983ec31d01ebe427ac7.png",
+   "birth": "2002-08-08",
+   "height": 184,
+   "weight": 85,
+   "pos": "F",
+   "nat": "Czech",
+   "natKo": "체코",
+   "teamTs": "965mknb2jy8m1ge",
+   "teamId": 612718,
+   "league": "CZECH_EXTRALIGA"
+  },
   "l5erg6b514yq8k0": {
    "ko": "도미닉 흐라호비나",
    "en": "Dominik Hrachovina",
@@ -14753,7 +15279,8 @@
    "natKo": "캐나다",
    "teamTs": "ednm95b2jgzryox",
    "teamId": 612824,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "렛 홀랜드"
   },
   "y39mp9bkepyrojx": {
    "ko": "야쿠프 즈보릴",
@@ -15507,6 +16034,36 @@
    "teamId": 612879,
    "league": "CZECH_EXTRALIGA"
   },
+  "23xmv0bld47rg8n": {
+   "ko": "세바스티안 레들리히",
+   "en": "Sebastian Redlich",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "S.Redlich",
+   "birth": "2004-03-10",
+   "height": 182,
+   "weight": 71,
+   "pos": "F",
+   "nat": "Czech",
+   "natKo": "체코",
+   "teamTs": "dn1m15bp58kqoep",
+   "teamId": 612879,
+   "league": "CZECH_EXTRALIGA"
+  },
+  "2y8m43bx79yrl07": {
+   "en": "Ryan McGregor",
+   "natId": "gpxwrx0b1wryk0j",
+   "short": "R.McGregor",
+   "photo": "https://img.thesports.com/v2/player/f65093b7380ae7fed43bc4979732f0ff.png",
+   "birth": "1999-01-29",
+   "height": 185,
+   "weight": 81,
+   "pos": "F",
+   "nat": "Canada",
+   "natKo": "캐나다",
+   "teamTs": "dn1m15bp58kqoep",
+   "teamId": 612879,
+   "league": "CZECH_EXTRALIGA"
+  },
   "965mknbg915m1ge": {
    "ko": "야쿠프 코바르",
    "en": "Jakub Kovar",
@@ -15865,6 +16422,33 @@
    "pos": "F",
    "nat": "Czech",
    "natKo": "체코",
+   "teamTs": "dj2ry0bewnlq1zp",
+   "teamId": 612731,
+   "league": "CZECH_EXTRALIGA"
+  },
+  "k82reeb8kw3repz": {
+   "ko": "요제프 코레나르",
+   "en": "Josef Korenar",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "J.Korenar",
+   "photo": "https://img.thesports.com/v2/player/a84365292292fe42e1ce5383fe50253b.png",
+   "birth": "1998-01-30",
+   "height": 185,
+   "weight": 83,
+   "pos": "G",
+   "nat": "Czech",
+   "natKo": "체코",
+   "teamTs": "dj2ry0bewnlq1zp",
+   "teamId": 612731,
+   "league": "CZECH_EXTRALIGA"
+  },
+  "6ypq3vb000g0rd7": {
+   "ko": "마티아스 미하렉",
+   "en": "Matyas Michalek",
+   "short": "M.Michalek",
+   "photo": "https://img.thesports.com/v2/player/58479cc9e80f21cd7de8491cdc85c28b.png",
+   "birth": "2010-01-17",
+   "pos": "D",
    "teamTs": "dj2ry0bewnlq1zp",
    "teamId": 612731,
    "league": "CZECH_EXTRALIGA"
@@ -16463,7 +17047,8 @@
    "natKo": "캐나다",
    "teamTs": "l7oqd2b8vlor510",
    "teamId": 612867,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "욘 루드비그"
   },
   "ednm95bdyjeryox": {
    "ko": "얀 만다트",
@@ -16569,7 +17154,8 @@
    "natKo": "미국",
    "teamTs": "l7oqd2b8vlor510",
    "teamId": 612867,
-   "league": "CZECH_EXTRALIGA"
+   "league": "CZECH_EXTRALIGA",
+   "ko": "헌터 페예스"
   },
   "6ypq3vb4d1prd7o": {
    "ko": "로만 윌",
@@ -17053,6 +17639,22 @@
    "pos": "D",
    "nat": "Slovakia",
    "natKo": "슬로바키아",
+   "teamTs": "l5erg6blz8dq8k0",
+   "teamId": 612823,
+   "league": "CZECH_EXTRALIGA"
+  },
+  "1l4rj1b2wdor7vx": {
+   "ko": "루카스 클리메크",
+   "en": "Lukas Klimek",
+   "natId": "ngy0or5xb2mwzv3",
+   "short": "L.Klimek",
+   "photo": "https://img.thesports.com/v2/player/d58cca4f6efa4a76c6b8978c3f5090ca.png",
+   "birth": "1986-11-14",
+   "height": 187,
+   "weight": 90,
+   "pos": "F",
+   "nat": "Czech",
+   "natKo": "체코",
    "teamTs": "l5erg6blz8dq8k0",
    "teamId": 612823,
    "league": "CZECH_EXTRALIGA"
@@ -17552,7 +18154,8 @@
    "natKo": "미국",
    "teamTs": "y39mp9b0xk1rojx",
    "teamId": 612920,
-   "league": "SLOVAK_EXTRALIGA"
+   "league": "SLOVAK_EXTRALIGA",
+   "ko": "존 야워스키"
   },
   "zp5rzybdg2lq82w": {
    "en": "Aidan De La Gorgendiere",
@@ -18181,7 +18784,8 @@
    "natKo": "덴마크",
    "teamTs": "3glrwdb3xz5qdyj",
    "teamId": 612942,
-   "league": "DENMARK_METAL"
+   "league": "DENMARK_METAL",
+   "ko": "필립 루이스 슐츠"
   },
   "l5erg6bjpljq8k0": {
    "ko": "안톤 린데",
@@ -18267,6 +18871,90 @@
    "teamId": 612942,
    "league": "DENMARK_METAL",
    "ko": "조지 소렌센"
+  },
+  "318q6wbwwd8mo9j": {
+   "ko": "매즈 라르센",
+   "en": "Mads Larsen",
+   "natId": "9kdj2ry0blq1zpg",
+   "short": "M.Larsen",
+   "photo": "https://img.thesports.com/v2/player/c51195dc0fef128c0618ddabfb8472bc.png",
+   "birth": "1995-06-10",
+   "height": 180,
+   "weight": 78,
+   "pos": "D",
+   "nat": "Denmark",
+   "natKo": "덴마크",
+   "teamTs": "3glrwdb3xz5qdyj",
+   "teamId": 612942,
+   "league": "DENMARK_METAL"
+  },
+  "dn1m15blkw9qoep": {
+   "ko": "루카 마버",
+   "en": "Luka Maver",
+   "natId": "yl5erg6bo8q8k0o",
+   "short": "L.Maver",
+   "photo": "https://img.thesports.com/v2/player/b6c3f66b8e8f0bf807204b8ac25143f0.png",
+   "birth": "1997-10-25",
+   "height": 190,
+   "weight": 88,
+   "pos": "F",
+   "nat": "Slovenia",
+   "natKo": "슬로베니아",
+   "teamTs": "zp5rzyb6n1yq82w",
+   "teamId": 612961,
+   "league": "DENMARK_METAL"
+  },
+  "8yomodb63dkq0j6": {
+   "ko": "라딤 피로우테크",
+   "en": "Radim Piroutek",
+   "natId": "9kdj2ry0blq1zpg",
+   "short": "R.Piroutek",
+   "photo": "https://img.thesports.com/v2/player/4f5a6382b203d7835bb79401bbbb7ea5.png",
+   "birth": "1999-12-05",
+   "pos": "F",
+   "nat": "Denmark",
+   "natKo": "덴마크",
+   "teamTs": "zp5rzyb6n1yq82w",
+   "teamId": 612961,
+   "league": "DENMARK_METAL"
+  },
+  "y39mp9bx1nwrojx": {
+   "en": "Dawson Tritt",
+   "short": "D.Tritt",
+   "photo": "https://img.thesports.com/v2/player/cd58cf25f33184eca88e2f73c0fbba66.png",
+   "birth": "2000-09-01",
+   "pos": "F",
+   "teamTs": "zp5rzyb6n1yq82w",
+   "teamId": 612961,
+   "league": "DENMARK_METAL"
+  },
+  "n54ql0bww9nqvy9": {
+   "ko": "카리 포르스블롬",
+   "en": "Karri Forsblom",
+   "natId": "dkjw2r0ob6rz84o",
+   "short": "K.Forsblom",
+   "photo": "https://img.thesports.com/v2/player/bba4f25b25e7d0e394286c75b4a314ae.png",
+   "birth": "1998-11-16",
+   "pos": "F",
+   "nat": "Finland",
+   "natKo": "핀란드",
+   "teamTs": "zp5rzyb6n1yq82w",
+   "teamId": 612961,
+   "league": "DENMARK_METAL"
+  },
+  "dn1m15bgpylqoep": {
+   "ko": "마르쿠스 옌센",
+   "en": "Markus Jensen",
+   "natId": "9kdj2ry0blq1zpg",
+   "short": "M.Jensen",
+   "photo": "https://img.thesports.com/v2/player/4e64d77973c2dd586639a601136317dd.png",
+   "birth": "1996-05-21",
+   "pos": "F",
+   "nat": "Denmark",
+   "natKo": "덴마크",
+   "teamTs": "zp5rzyb6n1yq82w",
+   "teamId": 612961,
+   "league": "DENMARK_METAL"
   },
   "6ypq3vbdk62rd7o": {
    "en": "Albert Schioldan",
@@ -18414,7 +19102,8 @@
    "natKo": "캐나다",
    "teamTs": "l7oqd2b87z0r510",
    "teamId": 612872,
-   "league": "DENMARK_METAL"
+   "league": "DENMARK_METAL",
+   "ko": "팀 댈리"
   },
   "318q6wb7y8zmo9j": {
    "ko": "필립 칼손",
@@ -18526,6 +19215,175 @@
    "teamId": 612872,
    "league": "DENMARK_METAL"
   },
+  "23xmv0bw4zjrg8n": {
+   "ko": "루드비그 엘베네스",
+   "en": "Ludvig Elvenes",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "L.Elvenes",
+   "photo": "https://img.thesports.com/v2/player/e6b7ffe2ea76929c6d49257e81e43694.png",
+   "birth": "1996-10-02",
+   "height": 182,
+   "weight": 78,
+   "pos": "F",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "l7oqd2b87z0r510",
+   "teamId": 612872,
+   "league": "DENMARK_METAL"
+  },
+  "2y8m43bpooxrl07": {
+   "ko": "브라이스 킨도프",
+   "en": "Bryce Kindopp",
+   "natId": "gpxwrx0b1wryk0j",
+   "short": "B.Kindopp",
+   "photo": "https://img.thesports.com/v2/player/8622e261ae83d9ac9bb8529d7b634db9.png",
+   "birth": "1999-06-13",
+   "height": 185,
+   "weight": 83,
+   "pos": "F",
+   "nat": "Canada",
+   "natKo": "캐나다",
+   "teamTs": "l7oqd2b87z0r510",
+   "teamId": 612872,
+   "league": "DENMARK_METAL"
+  },
+  "l5erg6b2n0yq8k0": {
+   "ko": "구스타프 올하버",
+   "en": "Gustav Olhaver",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "G.Olhaver",
+   "photo": "https://img.thesports.com/v2/player/df5f8ea5b96b33e6a9af84b6dcb07711.png",
+   "birth": "1997-07-03",
+   "height": 198,
+   "weight": 97,
+   "pos": "F",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "l7oqd2b87z0r510",
+   "teamId": 612872,
+   "league": "DENMARK_METAL"
+  },
+  "318q6wbnl6vmo9j": {
+   "ko": "예페 우룹 뫼겐센",
+   "en": "Jeppe Urup Mogensen",
+   "natId": "9kdj2ry0blq1zpg",
+   "short": "J.Mogensen",
+   "photo": "https://img.thesports.com/v2/player/4d455b3f5790c2181b798829eec5722c.png",
+   "birth": "1999-03-14",
+   "height": 187,
+   "weight": 80,
+   "pos": "D",
+   "nat": "Denmark",
+   "natKo": "덴마크",
+   "teamTs": "l7oqd2b87z0r510",
+   "teamId": 612872,
+   "league": "DENMARK_METAL"
+  },
+  "8yomodbjjv8q0j6": {
+   "ko": "발데마르 훌",
+   "en": "Valdemar Hull",
+   "natId": "kz8yomodb8q0j6l",
+   "short": "V.Hull",
+   "photo": "https://img.thesports.com/v2/player/9689efa9a2a15e97145c7da5609c4a8c.png",
+   "birth": "2005-01-01",
+   "pos": "F",
+   "nat": "Switzerland",
+   "natKo": "스위스",
+   "teamTs": "l7oqd2b87z0r510",
+   "teamId": 612872,
+   "league": "DENMARK_METAL"
+  },
+  "pxwrx0by6z8ryk0": {
+   "ko": "찰리 커티",
+   "en": "Charlie Curti",
+   "natId": "9k82reeb91repzj",
+   "short": "C.Curti",
+   "photo": "https://img.thesports.com/v2/player/cc8f5344b779daa4bdda061ee8c2ecdd.png",
+   "birth": "1995-05-24",
+   "height": 183,
+   "weight": 87,
+   "pos": "D",
+   "nat": "USA",
+   "natKo": "미국",
+   "teamTs": "23xmv0bpe47rg8n",
+   "teamId": 612826,
+   "league": "DENMARK_METAL"
+  },
+  "l7oqd2b30k4r510": {
+   "ko": "마티아스 아스페룹",
+   "en": "Matthias Asperup",
+   "natId": "9kdj2ry0blq1zpg",
+   "short": "M.Asperup",
+   "photo": "https://img.thesports.com/v2/player/dc831a56e1e2fde608cea15e102c2b0b.png",
+   "birth": "1995-03-03",
+   "height": 182,
+   "weight": 84,
+   "pos": "F",
+   "nat": "Denmark",
+   "natKo": "덴마크",
+   "teamTs": "23xmv0bpe47rg8n",
+   "teamId": 612826,
+   "league": "DENMARK_METAL"
+  },
+  "8yomodbxopyq0j6": {
+   "ko": "이삭 고란손",
+   "en": "Isac Goransson",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "I.Goransson",
+   "photo": "https://img.thesports.com/v2/player/7a97c0c433e8860fc0983c31ca68f17b.png",
+   "birth": "2003-09-02",
+   "pos": "F",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "23xmv0bpe47rg8n",
+   "teamId": 612826,
+   "league": "DENMARK_METAL"
+  },
+  "zp5rzyb4e35q82w": {
+   "ko": "요하네스 욘손",
+   "en": "Johannes Jonsson",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "J.Jonsson",
+   "photo": "https://img.thesports.com/v2/player/af476154ba6bcc89c8a99e0e64d621ae.png",
+   "birth": "1989-06-11",
+   "height": 185,
+   "weight": 88,
+   "pos": "G",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "23xmv0bpe47rg8n",
+   "teamId": 612826,
+   "league": "DENMARK_METAL"
+  },
+  "dj2ry0b11nnq1zp": {
+   "ko": "칼 스카스트롈",
+   "en": "Carl Skarstrom",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "C.Skarstrom",
+   "photo": "https://img.thesports.com/v2/player/2f97bcbe2900985c8582273434c75db7.png",
+   "birth": "1998-02-18",
+   "height": 174,
+   "weight": 78,
+   "pos": "F",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "23xmv0bpe47rg8n",
+   "teamId": 612826,
+   "league": "DENMARK_METAL"
+  },
+  "8yomodbj7xdq0j6": {
+   "ko": "이삭 욘손",
+   "en": "Isac Jonsson",
+   "natId": "3yl5erg6b8q8k0o",
+   "short": "I.Jonsson",
+   "birth": "2000-10-07",
+   "pos": "D",
+   "nat": "Sweden",
+   "natKo": "스웨덴",
+   "teamTs": "23xmv0bpe47rg8n",
+   "teamId": 612826,
+   "league": "DENMARK_METAL"
+  },
   "l7oqd2bew4wr510": {
    "ko": "아르비드 홀름",
    "en": "Arvid Holm",
@@ -18586,7 +19444,8 @@
    "natKo": "체코",
    "teamTs": "y0or5xbzvewmwzv",
    "teamId": 612845,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "루보시 호르스키"
   },
   "6ypq3vb4ykerd7o": {
    "en": "Fredrik Olofsson",
@@ -18691,7 +19550,8 @@
    "natKo": "스웨덴",
    "teamTs": "y0or5xbzvewmwzv",
    "teamId": 612845,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "제더 사이먼"
   },
   "318q6wb28gomo9j": {
    "ko": "폴 라듀",
@@ -20103,7 +20963,8 @@
    "natKo": "캐나다",
    "teamTs": "23xmv0bp7x4rg8n",
    "teamId": 612941,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "재롯 힐더먼"
   },
   "x7lm78bdxkoq2wd": {
    "en": "Ulysse Tournier",
@@ -20145,7 +21006,8 @@
    "natKo": "캐나다",
    "teamTs": "23xmv0bp7x4rg8n",
    "teamId": 612941,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "이반-가브리엘 몽고"
   },
   "1l4rj1bpl79r7vx": {
    "en": "Steven Fournier",
@@ -20254,6 +21116,7 @@
    "league": "CHL_HOCKEY"
   },
   "ednm95b3yogryox": {
+   "ko": "제이든 리",
    "en": "Jayden Lee",
    "short": "J.Lee",
    "photo": "https://img.thesports.com/v2/player/11a94a92c97b05a11011195e48a6e139.png",
@@ -20334,9 +21197,11 @@
    "natKo": "캐나다",
    "teamTs": "8yomodbgwgpq0j6",
    "teamId": 612770,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "와이어트 칼리누크"
   },
   "jw2r0obln44drz8": {
+   "ko": "내시 니엔하위스",
    "en": "Nash Nienhuis",
    "short": "N.Nienhuis",
    "photo": "https://img.thesports.com/v2/player/41f0aa0ceb77b61bb55680cfb7c34ed1.png",
@@ -20649,7 +21514,8 @@
    "natKo": "캐나다",
    "teamTs": "2y8m43bw28vrl07",
    "teamId": 612900,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "그레고르 맥클라우드"
   },
   "l5erg6b2p3dq8k0": {
    "ko": "마르셀 뇌벨스",
@@ -20776,7 +21642,8 @@
    "natKo": "독일",
    "teamTs": "2y8m43bw28vrl07",
    "teamId": 612900,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "얀 루카 센헨"
   },
   "y0or5xbj100mwzv": {
    "en": "Daniel Fischbuch",
@@ -21090,7 +21957,8 @@
    "natKo": "스웨덴",
    "teamTs": "jw2r0ob6ex1rz84",
    "teamId": 612791,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "파르 린돌름"
   },
   "965mknbx7j8m1ge": {
    "ko": "발테르 린드베리",
@@ -21587,6 +22455,7 @@
    "ko": "노아 하사"
   },
   "pxwrx0bg173dryk": {
+   "ko": "보세 마이예르",
    "en": "Bosse Meijer",
    "short": "B.Meijer",
    "photo": "https://img.thesports.com/v2/player/d3257a1b1e4242cd70fd8d5d46553b75.png",
@@ -21697,7 +22566,8 @@
    "natKo": "캐나다",
    "teamTs": "3glrwdb3xy5qdyj",
    "teamId": 612911,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "댄 르누프"
   },
   "3glrwdb0og2qdyj": {
    "ko": "알렉산더 엘",
@@ -21790,7 +22660,8 @@
    "natKo": "독일",
    "teamTs": "3glrwdb3xy5qdyj",
    "teamId": 612911,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "브룩스 매섹"
   },
   "965mknb5w68m1ge": {
    "ko": "크리스티안 라이헬",
@@ -21821,7 +22692,8 @@
    "natKo": "독일",
    "teamTs": "3glrwdb3xy5qdyj",
    "teamId": 612911,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "저스틴 슈츠"
   },
   "23xmv0b9yzerg8n": {
    "ko": "존 길무어",
@@ -22329,7 +23201,8 @@
    "natKo": "노르웨이",
    "teamTs": "vjxm87b5ngkr6od",
    "teamId": 612878,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "테오 루세붐"
   },
   "23xmv0bwk1zrg8n": {
    "ko": "안드레아스 옐름",
@@ -22570,7 +23443,8 @@
    "natKo": "노르웨이",
    "teamTs": "vjxm87b5ngkr6od",
    "teamId": 612878,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "마티아스 파푸가"
   },
   "4wyrn9b593nm86p": {
    "ko": "다비드 라르센",
@@ -22722,7 +23596,8 @@
    "natKo": "캐나다",
    "teamTs": "x7lm78b3lw6q2wd",
    "teamId": 612946,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "가브리엘 폰테인"
   },
   "3glrwdb0456qdyj": {
    "en": "Liam Kirk",
@@ -22829,7 +23704,8 @@
    "natKo": "미국",
    "teamTs": "x7lm78b3lw6q2wd",
    "teamId": 612946,
-   "league": "CHL_HOCKEY"
+   "league": "CHL_HOCKEY",
+   "ko": "미치 라인크"
   },
   "jw2r0ob0gk1rz84": {
    "ko": "코르비니안 가이벨",

@@ -580,44 +580,44 @@
     "change": 38
   },
   {
-    "id": "p4jwq2ghdeom0ve",
+    "id": "e4wyrn4h34wq86p",
     "rank": 59,
+    "name": "The New Saints",
+    "logo": "https://img.thesports.com/football/team/07a09b51edea4a078499cf5efc431d49.png",
+    "countryLogo": null,
+    "points": 1686,
+    "prev": 1680,
+    "change": 6
+  },
+  {
+    "id": "p4jwq2ghdeom0ve",
+    "rank": 60,
     "name": "Feyenoord",
     "logo": "https://img.thesports.com/football/team/44073f2d2c979a9388f98505ac3b754d.png",
     "countryLogo": null,
     "points": 1686,
     "prev": 1768,
-    "change": -28
+    "change": -29
   },
   {
     "id": "v2y8m4zh9y8ql07",
-    "rank": 60,
+    "rank": 61,
     "name": "AEK Athens",
     "logo": "https://img.thesports.com/football/team/12dcc69bef67aa2a93107e940ee89144.png",
     "countryLogo": null,
     "points": 1685,
     "prev": 1613,
-    "change": 57
+    "change": 56
   },
   {
     "id": "j1l4rjnhpnxm7vx",
-    "rank": 61,
+    "rank": 62,
     "name": "Zenit St. Petersburg",
     "logo": "https://img.thesports.com/football/team/19d5361bfdffa4bfc2f936cbb65fd317.png",
     "countryLogo": null,
     "points": 1685,
     "prev": 1685,
-    "change": -1
-  },
-  {
-    "id": "e4wyrn4h34wq86p",
-    "rank": 62,
-    "name": "The New Saints",
-    "logo": "https://img.thesports.com/football/team/07a09b51edea4a078499cf5efc431d49.png",
-    "countryLogo": null,
-    "points": 1685,
-    "prev": 1680,
-    "change": 3
+    "change": -2
   },
   {
     "id": "gy0or5jhdwxqwzv",
@@ -720,64 +720,64 @@
     "change": 19
   },
   {
-    "id": "kjw2r09hy41rz84",
+    "id": "9vjxm8gh678r6od",
     "rank": 73,
+    "name": "Athletico Paranaense - PR",
+    "logo": "https://img.thesports.com/football/team/1b54e9fdbe9c936023c55299da4165b7.png",
+    "countryLogo": null,
+    "points": 1661,
+    "prev": 1551,
+    "change": 126
+  },
+  {
+    "id": "kjw2r09hy41rz84",
+    "rank": 74,
     "name": "Omonia Nicosia FC",
     "logo": "https://img.thesports.com/football/team/21fdafedb4eed8612da51c6c236b3d63.png",
     "countryLogo": null,
     "points": 1659,
     "prev": 1567,
-    "change": 103
+    "change": 102
   },
   {
     "id": "l965mkyh90gr1ge",
-    "rank": 74,
+    "rank": 75,
     "name": "Tottenham Hotspur",
     "logo": "https://img.thesports.com/football/team/8b22ab4041e666b996a2d96f20dea707.png",
     "countryLogo": null,
     "points": 1657,
     "prev": 1756,
-    "change": -40
+    "change": -41
   },
   {
     "id": "v2y8m4zhd66ql07",
-    "rank": 75,
+    "rank": 76,
     "name": "RC Strasbourg Alsace",
     "logo": "https://img.thesports.com/football/team/998db478bf7c06d5817bf846987a0d0a.png",
     "countryLogo": null,
     "points": 1655,
     "prev": 1668,
-    "change": 3
+    "change": 2
   },
   {
     "id": "vl7oqdehzvnr510",
-    "rank": 76,
+    "rank": 77,
     "name": "FC Augsburg",
     "logo": "https://img.thesports.com/football/team/db4411a3c4ce1d0f092f5b9d1df08664.png",
     "countryLogo": null,
     "points": 1655,
     "prev": 1563,
-    "change": 104
+    "change": 103
   },
   {
     "id": "318q66hoklkqo9j",
-    "rank": 77,
+    "rank": 78,
     "name": "Al Nassr",
     "logo": "https://img.thesports.com/football/team/0d9975f7e846a1ecb099f4cd62d1b8f7.png",
     "countryLogo": null,
     "points": 1654,
     "prev": 1649,
-    "change": 12
-  },
-  {
-    "id": "9vjxm8gh678r6od",
-    "rank": 78,
-    "name": "Athletico Paranaense - PR",
-    "logo": "https://img.thesports.com/football/team/1b54e9fdbe9c936023c55299da4165b7.png",
-    "countryLogo": null,
-    "points": 1652,
-    "prev": 1551,
-    "change": 121
+    "change": 11
   },
   {
     "id": "v2y8m4zhy8vql07",
@@ -790,194 +790,194 @@
     "change": 30
   },
   {
-    "id": "z318q66h9p6qo9j",
-    "rank": 80,
-    "name": "Toluca",
-    "logo": "https://img.thesports.com/football/team/725ccd5793be6b4f8dd917170dd17d04.png",
-    "countryLogo": null,
-    "points": 1649,
-    "prev": 1677,
-    "change": -12
-  },
-  {
     "id": "9dn1m1ghdwwmoep",
-    "rank": 81,
+    "rank": 80,
     "name": "Dinamo Zagreb",
     "logo": "https://img.thesports.com/football/team/b22d9b2c5fc8d98df9194a9c5d66ec83.png",
     "countryLogo": null,
     "points": 1648,
     "prev": 1670,
-    "change": -5
+    "change": -4
   },
   {
     "id": "kdj2ryoh3wyq1zp",
-    "rank": 82,
+    "rank": 81,
     "name": "TSG Hoffenheim",
     "logo": "https://img.thesports.com/football/team/72ab7862a610b350aef7650ec0e06e06.png",
     "countryLogo": null,
     "points": 1647,
     "prev": 1615,
-    "change": 31
+    "change": 32
   },
   {
     "id": "vl7oqdehzwpr510",
-    "rank": 83,
+    "rank": 82,
     "name": "Ferencvarosi TC",
     "logo": "https://img.thesports.com/football/team/202e45f30a94193466ba2ae8a96e7685.png",
     "countryLogo": null,
     "points": 1647,
     "prev": 1601,
-    "change": 49
+    "change": 50
   },
   {
-    "id": "jednm9wh390ryox",
-    "rank": 84,
-    "name": "Bahia - BA",
-    "logo": "https://img.thesports.com/football/team/20456802ad5f8243dc282c4650c414e1.png",
+    "id": "n54qllh2np4qvy9",
+    "rank": 83,
+    "name": "Independiente Rivadavia",
+    "logo": "https://img.thesports.com/football/team/df85f430a4bb46f28cb8a9b2e2aef198.png",
     "countryLogo": null,
     "points": 1645,
-    "prev": 1612,
-    "change": 34
-  },
-  {
-    "id": "jw2r09hll85rz84",
-    "rank": 85,
-    "name": "Atletico Nacional Medellin",
-    "logo": "https://img.thesports.com/football/team/4ee24366d09a9239bb2c4207a5008111.png",
-    "countryLogo": null,
-    "points": 1645,
-    "prev": 1592,
-    "change": 60
+    "prev": 1537,
+    "change": 144
   },
   {
     "id": "gy0or5jhd6yqwzv",
-    "rank": 86,
+    "rank": 84,
     "name": "Athletic Club",
     "logo": "https://img.thesports.com/football/team/abbb31d42c55612737713aac6567a226.png",
     "countryLogo": null,
     "points": 1644,
     "prev": 1717,
-    "change": -38
+    "change": -36
   },
   {
     "id": "kjw2r09holvrz84",
-    "rank": 87,
+    "rank": 85,
     "name": "FC Flora Tallinn",
     "logo": "https://img.thesports.com/football/team/5b9c9b4f40414f2be603cf1dac1bdad6.png",
     "countryLogo": null,
     "points": 1644,
     "prev": 1674,
-    "change": -16
+    "change": -14
   },
   {
     "id": "gy0or5jhdvoqwzv",
-    "rank": 88,
+    "rank": 86,
     "name": "Midtjylland",
     "logo": "https://img.thesports.com/football/team/870815ca7c7545f7dc8c0716eecdb708.png",
     "countryLogo": null,
     "points": 1644,
     "prev": 1592,
-    "change": 58
+    "change": 60
   },
   {
     "id": "ednm9whkkggryox",
-    "rank": 89,
+    "rank": 87,
     "name": "Al Ahly FC",
     "logo": "https://img.thesports.com/football/team/e40a14044c93d0e5e2f9d558aa1640fa.png",
     "countryLogo": null,
     "points": 1644,
     "prev": 1671,
-    "change": -14
+    "change": -12
+  },
+  {
+    "id": "z8yomo4hd49q0j6",
+    "rank": 88,
+    "name": "Liga Dep Universitaria Quito",
+    "logo": "https://img.thesports.com/football/team/8b048da33a06a2257101bb110b81e290.png",
+    "countryLogo": null,
+    "points": 1643,
+    "prev": 1679,
+    "change": -22
   },
   {
     "id": "jednm9whl7kryox",
-    "rank": 90,
+    "rank": 89,
     "name": "AFC Ajax",
     "logo": "https://img.thesports.com/football/team/187929503752357480bce47813a9741f.png",
     "countryLogo": null,
     "points": 1641,
     "prev": 1659,
-    "change": -6
+    "change": -5
   },
   {
     "id": "kn54qllh6xwqvy9",
-    "rank": 91,
+    "rank": 90,
     "name": "Cagliari",
     "logo": "https://img.thesports.com/football/team/dba65c184e03c860ed919ce192b86c5e.png",
     "countryLogo": null,
     "points": 1641,
     "prev": 1572,
-    "change": 78
-  },
-  {
-    "id": "kjw2r09hojvrz84",
-    "rank": 92,
-    "name": "Cruz Azul",
-    "logo": "https://img.thesports.com/football/team/2addd50487c8f61276d5fff8714f6a5c.png",
-    "countryLogo": null,
-    "points": 1641,
-    "prev": 1680,
-    "change": -29
+    "change": 79
   },
   {
     "id": "j1l4rjnhpjvm7vx",
-    "rank": 93,
+    "rank": 91,
     "name": "FC Twente Enschede",
     "logo": "https://img.thesports.com/football/team/7a2d0c79dd5d8589167c88684ac55aca.png",
     "countryLogo": null,
     "points": 1640,
     "prev": 1588,
-    "change": 58
+    "change": 60
   },
   {
     "id": "v2y8m4zhdd2ql07",
-    "rank": 94,
+    "rank": 92,
     "name": "Real Sociedad",
     "logo": "https://img.thesports.com/football/team/579db6e95905545973035e6eab8df2cd.png",
     "countryLogo": null,
     "points": 1639,
     "prev": 1596,
-    "change": 46
+    "change": 48
   },
   {
     "id": "v2y8m4zhdw6ql07",
-    "rank": 95,
+    "rank": 93,
     "name": "Bologna",
     "logo": "https://img.thesports.com/football/team/bd12298fc3920bc20b7ad43b16ad9624.png",
     "countryLogo": null,
     "points": 1639,
     "prev": 1711,
-    "change": -44
+    "change": -42
   },
   {
-    "id": "z8yomo4hd49q0j6",
-    "rank": 96,
-    "name": "Liga Dep Universitaria Quito",
-    "logo": "https://img.thesports.com/football/team/8b048da33a06a2257101bb110b81e290.png",
+    "id": "kjw2r09hojvrz84",
+    "rank": 94,
+    "name": "Cruz Azul",
+    "logo": "https://img.thesports.com/football/team/2addd50487c8f61276d5fff8714f6a5c.png",
     "countryLogo": null,
-    "points": 1639,
-    "prev": 1679,
-    "change": -30
+    "points": 1638,
+    "prev": 1680,
+    "change": -31
+  },
+  {
+    "id": "z318q66h9p6qo9j",
+    "rank": 95,
+    "name": "Toluca",
+    "logo": "https://img.thesports.com/football/team/725ccd5793be6b4f8dd917170dd17d04.png",
+    "countryLogo": null,
+    "points": 1638,
+    "prev": 1677,
+    "change": -27
   },
   {
     "id": "gx7lm7phe29m2wd",
-    "rank": 97,
+    "rank": 96,
     "name": "Atlético Mineiro - MG",
     "logo": "https://img.thesports.com/football/team/079e86cebd6511ce807cc6073a3e26ee.png",
     "countryLogo": null,
     "points": 1637,
     "prev": 1593,
-    "change": 47
+    "change": 48
   },
   {
     "id": "z8yomo4hoxyq0j6",
-    "rank": 98,
+    "rank": 97,
     "name": "CA Rosario Central",
     "logo": "https://img.thesports.com/football/team/925e9365900b159acf4493eb401fdc18.png",
     "countryLogo": null,
     "points": 1637,
     "prev": 1631,
-    "change": 3
+    "change": 4
+  },
+  {
+    "id": "jednm9wh390ryox",
+    "rank": 98,
+    "name": "Bahia - BA",
+    "logo": "https://img.thesports.com/football/team/20456802ad5f8243dc282c4650c414e1.png",
+    "countryLogo": null,
+    "points": 1637,
+    "prev": 1612,
+    "change": 20
   },
   {
     "id": "e4wyrn4h1wxq86p",
@@ -1020,134 +1020,134 @@
     "change": -53
   },
   {
-    "id": "n54qllh2np4qvy9",
-    "rank": 103,
-    "name": "Independiente Rivadavia",
-    "logo": "https://img.thesports.com/football/team/df85f430a4bb46f28cb8a9b2e2aef198.png",
-    "countryLogo": null,
-    "points": 1634,
-    "prev": 1537,
-    "change": 124
-  },
-  {
-    "id": "gx7lm7pheg8m2wd",
-    "rank": 104,
-    "name": "Estudiantes La Plata",
-    "logo": "https://img.thesports.com/football/team/815c22bf4ba2ec7ac989fe89c0dd6ecc.png",
-    "countryLogo": null,
-    "points": 1634,
-    "prev": 1604,
-    "change": 24
-  },
-  {
     "id": "yl5ergph6lkr8k0",
-    "rank": 105,
+    "rank": 103,
     "name": "Deportivo Alavés",
     "logo": "https://img.thesports.com/football/team/fffbebaa7a0c3c2db7e8d637a3de1811.png",
     "countryLogo": null,
     "points": 1632,
     "prev": 1622,
-    "change": 2
+    "change": 4
   },
   {
     "id": "56ypq3nhd2lmd7o",
-    "rank": 106,
+    "rank": 104,
     "name": "Valencia CF",
     "logo": "https://img.thesports.com/football/team/3b54543c1a584e2e9948d655142996d3.png",
     "countryLogo": null,
     "points": 1630,
     "prev": 1665,
-    "change": -27
+    "change": -25
   },
   {
     "id": "l965mkyhvd7r1ge",
-    "rank": 107,
+    "rank": 105,
     "name": "Santos FC - SP",
     "logo": "https://img.thesports.com/football/team/0840bace9b911b3f0dbadb710ea20316.png",
     "countryLogo": null,
     "points": 1630,
     "prev": 1524,
-    "change": 156
+    "change": 158
   },
   {
     "id": "d23xmvkh1o7qg8n",
-    "rank": 108,
+    "rank": 106,
     "name": "Dynamo Kyiv",
     "logo": "https://img.thesports.com/football/team/7567b993a3fca543cf92e6075308a61f.png",
     "countryLogo": null,
     "points": 1629,
     "prev": 1648,
-    "change": -18
+    "change": -16
   },
   {
     "id": "yl5ergphgy8r8k0",
-    "rank": 109,
+    "rank": 107,
     "name": "Al Ahli SC",
     "logo": "https://img.thesports.com/football/team/a0a227a6100628d3213e1fc321acd4f2.png",
     "countryLogo": null,
     "points": 1629,
     "prev": 1585,
-    "change": 45
+    "change": 47
   },
   {
     "id": "gpxwrxlhwkgryk0",
-    "rank": 110,
+    "rank": 108,
     "name": "Udinese",
     "logo": "https://img.thesports.com/football/team/c7140efe06d93642fcc9805077c49aa5.png",
     "countryLogo": null,
     "points": 1627,
     "prev": 1544,
-    "change": 101
+    "change": 103
   },
   {
     "id": "vl7oqdehkw6r510",
-    "rank": 111,
+    "rank": 109,
     "name": "Panathinaikos",
     "logo": "https://img.thesports.com/football/team/bd7aa5be4c2c9a2f20e6597ee2c1738b.png",
     "countryLogo": null,
     "points": 1627,
     "prev": 1600,
-    "change": 23
+    "change": 25
   },
   {
     "id": "6ypq3nh01vlmd7o",
-    "rank": 112,
+    "rank": 110,
     "name": "Ludogorets Razgrad",
     "logo": "https://img.thesports.com/football/team/3cd0dc57966a8b1f8536dd0016179664.png",
     "countryLogo": null,
     "points": 1626,
     "prev": 1668,
-    "change": -35
+    "change": -33
+  },
+  {
+    "id": "jw2r09hll85rz84",
+    "rank": 111,
+    "name": "Atletico Nacional Medellin",
+    "logo": "https://img.thesports.com/football/team/4ee24366d09a9239bb2c4207a5008111.png",
+    "countryLogo": null,
+    "points": 1625,
+    "prev": 1592,
+    "change": 34
   },
   {
     "id": "8y39mp1h80jmojx",
-    "rank": 113,
+    "rank": 112,
     "name": "Fiorentina",
     "logo": "https://img.thesports.com/football/team/858d87ded0cce014bae0c9681af48524.png",
     "countryLogo": null,
     "points": 1625,
     "prev": 1697,
-    "change": -57
+    "change": -56
   },
   {
     "id": "kjw2r09hyl1rz84",
-    "rank": 114,
+    "rank": 113,
     "name": "Marseille",
     "logo": "https://img.thesports.com/football/team/0dc4b45524350a50a4d3276a2525693f.png",
     "countryLogo": null,
     "points": 1624,
     "prev": 1744,
-    "change": -79
+    "change": -78
   },
   {
     "id": "vjxm8gh4ox4r6od",
-    "rank": 115,
+    "rank": 114,
     "name": "Mirassol - SP",
     "logo": "https://img.thesports.com/football/team/b20645448c644b701286477f55b11e24.png",
     "countryLogo": null,
     "points": 1624,
     "prev": 1636,
-    "change": -17
+    "change": -16
+  },
+  {
+    "id": "gx7lm7pheg8m2wd",
+    "rank": 115,
+    "name": "Estudiantes La Plata",
+    "logo": "https://img.thesports.com/football/team/815c22bf4ba2ec7ac989fe89c0dd6ecc.png",
+    "countryLogo": null,
+    "points": 1623,
+    "prev": 1604,
+    "change": 13
   },
   {
     "id": "4zp5rzgh9nvq82w",
@@ -1160,74 +1160,74 @@
     "change": 327
   },
   {
-    "id": "p3glrw7h517qdyj",
+    "id": "8y39mp1h8zjmojx",
     "rank": 117,
+    "name": "Velez Sarsfield",
+    "logo": "https://img.thesports.com/football/team/a7faffc34e6a44468bbd57b558641eb9.png",
+    "countryLogo": null,
+    "points": 1622,
+    "prev": 1597,
+    "change": 21
+  },
+  {
+    "id": "p3glrw7h517qdyj",
+    "rank": 118,
     "name": "CA Independiente",
     "logo": "https://img.thesports.com/football/team/47174721b260fae6e833329c13c9f2ee.png",
     "countryLogo": null,
     "points": 1621,
     "prev": 1556,
-    "change": 73
+    "change": 72
   },
   {
     "id": "4zp5rzgh9z9q82w",
-    "rank": 118,
+    "rank": 119,
     "name": "Levante",
     "logo": "https://img.thesports.com/football/team/13e2038bd23a38ce32a3eb259c8bf7d8.png",
     "countryLogo": null,
     "points": 1621,
     "prev": 1604,
-    "change": 9
+    "change": 8
   },
   {
     "id": "kjw2r09hv3zrz84",
-    "rank": 119,
+    "rank": 120,
     "name": "AZ Alkmaar",
     "logo": "https://img.thesports.com/football/team/e52b745126bbb6bdddc90b91b44413ae.png",
     "countryLogo": null,
     "points": 1619,
     "prev": 1639,
-    "change": -22
+    "change": -23
   },
   {
     "id": "p3glrw7henvqdyj",
-    "rank": 120,
+    "rank": 121,
     "name": "Eintracht Frankfurt",
     "logo": "https://img.thesports.com/football/team/fe636189a2f3db78d0554c34f0bdaae6.png",
     "countryLogo": null,
     "points": 1618,
     "prev": 1777,
-    "change": -91
+    "change": -92
   },
   {
     "id": "gpxwrxlhw6vryk0",
-    "rank": 121,
+    "rank": 122,
     "name": "RCD Mallorca",
     "logo": "https://img.thesports.com/football/team/fdef90456d2a2eee09976c558457aec7.png",
     "countryLogo": null,
     "points": 1618,
     "prev": 1592,
-    "change": 27
+    "change": 26
   },
   {
     "id": "d23xmvkhzjgqg8n",
-    "rank": 122,
+    "rank": 123,
     "name": "Levski Sofia",
     "logo": "https://img.thesports.com/football/team/8dbd61602ca445f0b51ab75962031d4a.png",
     "countryLogo": null,
     "points": 1617,
     "prev": 1580,
-    "change": 38
-  },
-  {
-    "id": "8y39mp1h8zjmojx",
-    "rank": 123,
-    "name": "Velez Sarsfield",
-    "logo": "https://img.thesports.com/football/team/a7faffc34e6a44468bbd57b558641eb9.png",
-    "countryLogo": null,
-    "points": 1615,
-    "prev": 1597,
-    "change": 15
+    "change": 37
   },
   {
     "id": "vjxm8gh49xpr6od",
@@ -1290,24 +1290,24 @@
     "change": -56
   },
   {
-    "id": "yl5ergph1e7r8k0",
-    "rank": 130,
-    "name": "Club Deportivo Guadalajara",
-    "logo": "https://img.thesports.com/football/team/872867a492989e6a9a0785cfd0a40680.png",
-    "countryLogo": null,
-    "points": 1603,
-    "prev": 1516,
-    "change": 149
-  },
-  {
     "id": "p4jwq2gh3gom0ve",
-    "rank": 131,
+    "rank": 130,
     "name": "AEP Paphos",
     "logo": "https://img.thesports.com/football/team/7daa1c7687bc2ff942e5afccc4d514ad.png",
     "countryLogo": null,
     "points": 1602,
     "prev": 1614,
-    "change": -17
+    "change": -16
+  },
+  {
+    "id": "vl7oqdehzxxr510",
+    "rank": 131,
+    "name": "Belgrano",
+    "logo": "https://img.thesports.com/football/team/e29d460d71384029b8308d834d8cdc38.png",
+    "countryLogo": null,
+    "points": 1602,
+    "prev": 1498,
+    "change": 201
   },
   {
     "id": "965mkyh7786r1ge",
@@ -1340,74 +1340,74 @@
     "change": 193
   },
   {
-    "id": "vl7oqdehzxxr510",
-    "rank": 135,
-    "name": "Belgrano",
-    "logo": "https://img.thesports.com/football/team/e29d460d71384029b8308d834d8cdc38.png",
-    "countryLogo": null,
-    "points": 1599,
-    "prev": 1498,
-    "change": 197
-  },
-  {
     "id": "9dn1m1ghw8jmoep",
-    "rank": 136,
+    "rank": 135,
     "name": "Sheriff Tiraspol",
     "logo": "https://img.thesports.com/football/team/6be65a265ff052f7736d951643b2750c.png",
     "countryLogo": null,
     "points": 1598,
     "prev": 1601,
-    "change": -3
+    "change": -2
   },
   {
     "id": "1l4rjnh6632m7vx",
-    "rank": 137,
+    "rank": 136,
     "name": "HSK Zrinjski Mostar",
     "logo": "https://img.thesports.com/football/team/006fb97cc07bfc196e708a8a20c8a065.png",
     "countryLogo": null,
     "points": 1596,
     "prev": 1675,
-    "change": -67
+    "change": -66
   },
   {
     "id": "z8yomo4hw6lq0j6",
-    "rank": 138,
+    "rank": 137,
     "name": "Torino",
     "logo": "https://img.thesports.com/football/team/f0856c1b16c32245a8d2c702ffe89ac5.png",
     "countryLogo": null,
     "points": 1596,
     "prev": 1606,
-    "change": -12
+    "change": -11
   },
   {
     "id": "kdj2ryoh0ydq1zp",
-    "rank": 139,
+    "rank": 138,
     "name": "Rangers F.C.",
     "logo": "https://img.thesports.com/football/team/12f14e0545aae5398f0ee7d9ab3c8f7b.png",
     "countryLogo": null,
     "points": 1595,
     "prev": 1585,
-    "change": 13
+    "change": 14
   },
   {
     "id": "ednm9whk8lyryox",
-    "rank": 140,
+    "rank": 139,
     "name": "AEK Larnaca",
     "logo": "https://img.thesports.com/football/team/02ec38de08e5725d895f41a5cd63e1c7.png",
     "countryLogo": null,
     "points": 1595,
     "prev": 1566,
-    "change": 37
+    "change": 38
   },
   {
     "id": "d23xmvkhjj6qg8n",
-    "rank": 141,
+    "rank": 140,
     "name": "São Paulo - SP",
     "logo": "https://img.thesports.com/football/team/31f5171de0e1404fdebcef19cd7cd409.png",
     "countryLogo": null,
     "points": 1595,
     "prev": 1600,
-    "change": -6
+    "change": -5
+  },
+  {
+    "id": "kjw2r09hz42rz84",
+    "rank": 141,
+    "name": "Club Atlético Lanús",
+    "logo": "https://img.thesports.com/football/team/caff6f729db9dc68b1938f6533b0fa14.png",
+    "countryLogo": null,
+    "points": 1592,
+    "prev": 1595,
+    "change": 0
   },
   {
     "id": "9vjxm8gh663r6od",
@@ -1450,53 +1450,53 @@
     "change": -3
   },
   {
-    "id": "p3glrw7h2e6qdyj",
+    "id": "yl5ergph1e7r8k0",
     "rank": 146,
+    "name": "Club Deportivo Guadalajara",
+    "logo": "https://img.thesports.com/football/team/872867a492989e6a9a0785cfd0a40680.png",
+    "countryLogo": null,
+    "points": 1585,
+    "prev": 1516,
+    "change": 133
+  },
+  {
+    "id": "p3glrw7h2e6qdyj",
+    "rank": 147,
     "name": "Dinamo Minsk",
     "logo": "https://img.thesports.com/football/team/5c20ae162fb41fea64a3b65684f37883.png",
     "countryLogo": null,
     "points": 1585,
     "prev": 1576,
-    "change": 17
+    "change": 16
   },
   {
     "id": "9k82rekhdxorepz",
-    "rank": 147,
+    "rank": 148,
     "name": "SV Werder Bremen",
     "logo": "https://img.thesports.com/football/team/82e3b03a1df3d7ae3d38e9fdd24fe622.png",
     "countryLogo": null,
     "points": 1584,
     "prev": 1661,
-    "change": -65
+    "change": -66
   },
   {
     "id": "jednm9whll2ryox",
-    "rank": 148,
+    "rank": 149,
     "name": "Vasco da Gama Saf - RJ",
     "logo": "https://img.thesports.com/football/team/f110dc3a4406e67ecbc46511a7ea83f7.png",
     "countryLogo": null,
     "points": 1584,
     "prev": 1597,
-    "change": -9
+    "change": -10
   },
   {
     "id": "l5ergpho5x8r8k0",
-    "rank": 149,
+    "rank": 150,
     "name": "Orlando Pirates",
     "logo": "https://img.thesports.com/football/team/2e8e6c87d106649ed8f888a6da0422ba.png",
     "countryLogo": null,
     "points": 1584,
     "prev": 1522,
-    "change": 120
-  },
-  {
-    "id": "vl7oqdehzzpr510",
-    "rank": 150,
-    "name": "RCD Espanyol de Barcelona",
-    "logo": "https://img.thesports.com/football/team/214049d4df11756a2eb21bbd8266e2a1.png",
-    "countryLogo": null,
-    "points": 1583,
-    "prev": 1655,
-    "change": -64
+    "change": 119
   }
 ]

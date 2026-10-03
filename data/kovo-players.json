@@ -1,7 +1,7 @@
 {
  "meta": {
-  "updatedAt": "2026-09-26T22:12:11.369Z",
-  "players": 227
+  "updatedAt": "2026-10-03T22:16:05.424Z",
+  "players": 226
  },
  "players": {
   "1000044": {
@@ -2229,25 +2229,6 @@
     "2026-2027 삼성화재 (2026.07.01)"
    ]
   },
-  "1000566": {
-   "name": "이윤재",
-   "league": "V_LEAGUE",
-   "teamCode": "1002",
-   "teamId": 612679,
-   "team": "삼성화재",
-   "no": 16,
-   "pos": "OH",
-   "birth": "2003-01-10",
-   "height": 188,
-   "weight": 82,
-   "school": "모라초 / 금정중 / 동성고 / 명지대",
-   "photo": "https://cdn.kovo.co.kr/kovo-prod/player/webp/1000566.webp",
-   "foreign": false,
-   "history": [
-    "2025-2026 삼성화재 드래프트 (2025.10.30) 2라운드 6순위",
-    "2026-2027 삼성화재 (2026.07.01)"
-   ]
-  },
   "1000567": {
    "name": "김민혁",
    "league": "V_LEAGUE",
@@ -2469,7 +2450,7 @@
    "height": 202,
    "weight": 90,
    "school": null,
-   "photo": "https://cdn.kovo.co.kr/resources/players/temp_1784530838201_1784530836807_KakaoTalk_20260710_132208422.png",
+   "photo": "https://cdn.kovo.co.kr/resources/players/temp_1790589973598_1790589972641_22.마틴_MB.jpg",
    "foreign": false,
    "history": []
   },
@@ -2485,7 +2466,7 @@
    "height": 207,
    "weight": 100,
    "school": null,
-   "photo": "https://cdn.kovo.co.kr/resources/players/temp_1784531840962_1784531823114_bio_1000525.webp",
+   "photo": "https://cdn.kovo.co.kr/resources/players/temp_1790589964079_1790589963209_20.아라우조_OP.jpg",
    "foreign": false,
    "history": []
   },

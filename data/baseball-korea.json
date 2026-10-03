@@ -1,6 +1,6 @@
 {
  "meta": {
-  "updatedAt": "2026-09-26T22:08:33.050Z",
+  "updatedAt": "2026-10-03T22:12:06.258Z",
   "season": 2026,
   "source": "statsapi.mlb.com birthCountry"
  },
@@ -30,6 +30,31 @@
     11,
     12,
     16
+   ]
+  },
+  {
+   "id": 808975,
+   "nameEn": "Hyeseong Kim",
+   "nameKo": "김혜성",
+   "pos": "SS",
+   "posType": "Infielder",
+   "age": 27,
+   "birthDate": "1999-01-27",
+   "bats": "L",
+   "throws": "R",
+   "mlbDebut": "2025-05-03",
+   "sportId": 1,
+   "level": "MLB",
+   "team": {
+    "id": 119,
+    "name": "Los Angeles Dodgers",
+    "parentOrg": null,
+    "abbr": "LAD"
+   },
+   "onFortyMan": true,
+   "sportIds": [
+    1,
+    11
    ]
   },
   {
@@ -105,31 +130,6 @@
     1,
     11,
     12
-   ]
-  },
-  {
-   "id": 808975,
-   "nameEn": "Hyeseong Kim",
-   "nameKo": "김혜성",
-   "pos": "SS",
-   "posType": "Infielder",
-   "age": 27,
-   "birthDate": "1999-01-27",
-   "bats": "L",
-   "throws": "R",
-   "mlbDebut": "2025-05-03",
-   "sportId": 11,
-   "level": "AAA",
-   "team": {
-    "id": 238,
-    "name": "Oklahoma City Comets",
-    "parentOrg": "Los Angeles Dodgers",
-    "abbr": "OKC"
-   },
-   "onFortyMan": true,
-   "sportIds": [
-    1,
-    11
    ]
   },
   {
@@ -353,6 +353,30 @@
    "onFortyMan": false,
    "sportIds": [
     14,
+    16
+   ]
+  },
+  {
+   "id": 842831,
+   "nameEn": "Jun-Sang Eom",
+   "nameKo": "Jun-Sang Eom",
+   "pos": "SS",
+   "posType": "Infielder",
+   "age": 18,
+   "birthDate": "2008-04-23",
+   "bats": "R",
+   "throws": "R",
+   "mlbDebut": null,
+   "sportId": 16,
+   "level": "Rookie",
+   "team": {
+    "id": 5087,
+    "name": "DSL Arizona Red",
+    "parentOrg": "Arizona Diamondbacks",
+    "abbr": "D-ARR"
+   },
+   "onFortyMan": false,
+   "sportIds": [
     16
    ]
   }

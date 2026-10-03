@@ -53,6 +53,16 @@
     "pos": "RW",
     "no": 39
   },
+  "dj2ry0bex96q1zp": {
+    "ko": "",
+    "en": "Roman Kantserov",
+    "pos": "F"
+  },
+  "zp5rzyben41q82w": {
+    "ko": "",
+    "en": "Tj Hughes",
+    "pos": ""
+  },
   "3glrwdblex4qdyj": {
     "ko": "",
     "en": "Yurov Danila",
@@ -164,6 +174,12 @@
     "en": "Noah Ostlund",
     "pos": "C",
     "no": 86
+  },
+  "l7oqd2bolepr510": {
+    "ko": "노아 워렌",
+    "en": "Noah Warren",
+    "pos": "D",
+    "no": 47
   },
   "y39mp9bpypprojx": {
     "ko": "노아 줄센",
@@ -585,6 +601,11 @@
     "pos": "D",
     "no": 7
   },
+  "4wyrn9b0jvnm86p": {
+    "ko": "딜런 가랑",
+    "en": "Dylan Garand",
+    "pos": "G"
+  },
   "4jwq2lb92d3r0ve": {
     "ko": "딜런 균더",
     "en": "Dylan Guenther",
@@ -937,6 +958,12 @@
     "pos": "C",
     "no": 93
   },
+  "pxwrx0bnoowryk0": {
+    "ko": "루카 카뇨니",
+    "en": "Luca Cagnoni",
+    "pos": "D",
+    "no": 42
+  },
   "965mknbgvn9m1ge": {
     "ko": "루카스 도스탈",
     "en": "Lukas Dostal",
@@ -1261,6 +1288,11 @@
     "pos": "LW",
     "no": 89
   },
+  "vjxm87bw16kr6od": {
+    "ko": "매튜 나이스",
+    "en": "Matthew Knies",
+    "pos": "F"
+  },
   "dj2ry0bp080q1zp": {
     "ko": "매튜 렘페",
     "en": "Matthew Rempe",
@@ -1564,7 +1596,8 @@
   "dj2ry0bp6dgq1zp": {
     "ko": "벤 헴멀링",
     "en": "Ben Hemmerling",
-    "pos": "RW"
+    "pos": "RW",
+    "no": 63
   },
   "l7oqd2be9k5r510": {
     "ko": "보 호뱃",
@@ -1977,7 +2010,8 @@
   "pxwrx0bkypkryk0": {
     "ko": "샤를-알렉시 르골트",
     "en": "Charles-Alexis Legault",
-    "pos": "D"
+    "pos": "D",
+    "no": 62
   },
   "k82reeb01gdrepz": {
     "ko": "샤를-에두아르 다스투",
@@ -2249,6 +2283,12 @@
     "pos": "D",
     "no": 2
   },
+  "dj2ry0b52z6q1zp": {
+    "ko": "아르투 휘리",
+    "en": "Arttu Hyry",
+    "pos": "RW",
+    "no": 25
+  },
   "x7lm78b8672q2wd": {
     "ko": "아르투르스 실로브스",
     "en": "Arturs Silovs",
@@ -2350,6 +2390,11 @@
     "en": "Anton Johansson",
     "pos": "D",
     "no": 42
+  },
+  "zp5rzyb6y79q82w": {
+    "ko": "안톤 요한손",
+    "en": "Anton Johansson",
+    "pos": "D"
   },
   "dn1m15bk31pqoep": {
     "ko": "안톤 포르스베리",
@@ -2709,6 +2754,11 @@
     "pos": "D",
     "no": 37
   },
+  "4jwq2lb68k1r0ve": {
+    "ko": "얀 쿠즈네초프",
+    "en": "Yan Kuznetsov",
+    "pos": "D"
+  },
   "vjxm87b27lyr6od": {
     "ko": "얀센 하킨스",
     "en": "Jansen Harkins",
@@ -2834,6 +2884,12 @@
     "en": "Elias Lindholm",
     "pos": "C",
     "no": 28
+  },
+  "4wyrn9b2yy0m86p": {
+    "ko": "엘리아스 살로몬손",
+    "en": "Elias Salomonsson",
+    "pos": "D",
+    "no": 57
   },
   "8yomodb56p0q0j6": {
     "ko": "엘리아스 페테르손",
@@ -3128,6 +3184,12 @@
     "en": "Igor Shestyorkin",
     "pos": "G"
   },
+  "318q6wb62z3mo9j": {
+    "ko": "이고르 체르니쇼프",
+    "en": "Igor Chernyshov",
+    "pos": "LW",
+    "no": 92
+  },
   "3glrwdb0ydeqdyj": {
     "ko": "이고리 셰스툐르킨",
     "en": "Igor Shesterkin",
@@ -3139,6 +3201,11 @@
     "en": "Jiri Kulich",
     "pos": "C",
     "no": 20
+  },
+  "23xmv0bjklzrg8n": {
+    "ko": "이바르 스텐베르그",
+    "en": "Ivar Stenberg",
+    "pos": "F"
   },
   "4jwq2lbz6n2r0ve": {
     "ko": "이반 데미도프",
@@ -3187,6 +3254,11 @@
     "en": "Ian Moore",
     "pos": "D",
     "no": 3
+  },
+  "318q6wb21ydmo9j": {
+    "ko": "이언 미첼",
+    "en": "Ian Mitchell",
+    "pos": "D"
   },
   "n54ql0bk0okqvy9": {
     "ko": "일리아 류부슈킨",
@@ -3680,6 +3752,11 @@
     "pos": "RW",
     "no": 25
   },
+  "8yomodb9w50q0j6": {
+    "ko": "조슈아 사만스키",
+    "en": "Joshua Samanski",
+    "pos": "F"
+  },
   "l5erg6byd7dq8k0": {
     "ko": "조시 노리스",
     "en": "Josh Norris",
@@ -3845,7 +3922,8 @@
   "1l4rj1b3dolr7vx": {
     "ko": "카슨 소시",
     "en": "Carson Soucy",
-    "pos": "D"
+    "pos": "D",
+    "no": 4
   },
   "l7oqd2b9j3pr510": {
     "ko": "카이 우차츠",
@@ -4231,6 +4309,12 @@
     "pos": "RW",
     "no": 51
   },
+  "3glrwdb0y87qdyj": {
+    "ko": "콜린 블랙웰",
+    "en": "Colin Blackwell",
+    "pos": "C",
+    "no": 15
+  },
   "dj2ry0bexv8q1zp": {
     "ko": "콜턴 닥",
     "en": "Colton Dach",
@@ -4471,6 +4555,11 @@
     "pos": "LW",
     "no": 71
   },
+  "l7oqd2b3w8xr510": {
+    "ko": "토마스 노박",
+    "en": "Thomas Novak",
+    "pos": "F"
+  },
   "6ypq3vbgwonrd7o": {
     "ko": "토마스 샤봇",
     "en": "Thomas Chabot",
@@ -4506,6 +4595,11 @@
     "en": "Tom Wilson",
     "pos": "RW",
     "no": 43
+  },
+  "23xmv0b89knrg8n": {
+    "ko": "트래비스 미첼",
+    "en": "Travis Mitchell",
+    "pos": "D"
   },
   "y0or5xb0w7zmwzv": {
     "ko": "트래비스 샌하임",
