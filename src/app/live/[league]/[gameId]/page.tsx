@@ -1416,8 +1416,8 @@ export default async function GenericLivePage({ params }: Props) {
       <MatchInsight
         match={match}
         extraTabs={
-          lg === "KBL"
-            ? [{ key: "kbl-pbp", label: "문자중계", enabled: true, content: <KblPlayByPlay gameId={gameId} homeName={homeKo} awayName={awayKo} /> }]
+          lg === "KBL" || lg === "WKBL"
+            ? [{ key: "kbl-pbp", label: "문자중계", enabled: true, content: <KblPlayByPlay gameId={gameId} homeName={homeKo} awayName={awayKo} league={lg} /> }]
             : soccerTabs
         }
         hideMatchupTab={isSoccer}
@@ -1492,7 +1492,7 @@ export default async function GenericLivePage({ params }: Props) {
           ) : undefined
         }
         playerBoxContent={
-          lg === "NBA" || lg === "WNBA" || lg === "KBL" ? (
+          lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? (
             <BasketballBoxScoreTab
               gameId={gameId}
               league={lg}

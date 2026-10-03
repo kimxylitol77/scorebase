@@ -8,6 +8,7 @@
 // ⚠️ 계산 순서는 evaluate-predictions.ts 의 runEvaluateMatches 와 같아야 한다. 한쪽만 바꾸면
 //   "사전에 보여준 픽"과 "사후 채점된 픽"이 어긋나 적중률이 실제와 달라진다.
 //   순서: buildMatchContext → 선발/골리 보정 → 시장 블렌드 → home calibration.
+import { NO_PREDICTION_LEAGUES } from "./prediction-leagues";
 import { buildMatchContext } from "./build-context";
 import { usesNationalElo } from "@/lib/sports/sport-leagues";
 import {
@@ -87,6 +88,7 @@ export function computePrediction(
   m: PredictionInput,
   all: PredictMatch[],
 ): ComputedPrediction | null {
+  if (NO_PREDICTION_LEAGUES.has(m.league)) return null;
   // 성인 국대 대회는 외부 시드 Elo(nationalElo)라 prior 0 이어도 1500 random 이 아니다 → 가드 면제.
   //  (예전엔 월드컵만 — 네이션스리그 소국은 A매치 이력이 5경기 미만이라 여기서 전부 빠졌다.)
   //  연령별·여자 대표도 나라 전력 시드가 있어 같은 이유로 면제(2026-09-25).

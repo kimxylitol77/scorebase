@@ -23,6 +23,7 @@ import {
 } from "@/lib/predict/season-stats";
 import { calcStandings } from "@/lib/predict/standings";
 import { seasonScopedMatches } from "@/lib/predict/season-scope";
+import { NO_PREDICTION_LEAGUES } from "@/lib/predict/prediction-leagues";
 import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcRecentTrend } from "@/lib/predict/recent-trend";
@@ -207,6 +208,8 @@ export default async function MatchInsight({
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
   // 순위·시즌 통계용 — 그 대회 경기만. 성인 국대는 이력(matches)이 A매치 전체라 그대로 쓰면 국가 전체 서열이 된다.
   const compMatchesAll = matches.filter((m) => m.league === match.league);
+  // 경기별 승률을 내지 않는 리그(검증 실패, prediction-leagues) — 머리 요약·AI 예측 탭을 숨긴다
+  const noPrediction = NO_PREDICTION_LEAGUES.has(match.league);
   const referenceTime = match.startTime;
   // "시즌 전체" 범위 — 그 경기의 시즌만(개막 직후엔 지난 시즌). 전 기간이면 여러 시즌 통산이 된다.
   const seasonScope = seasonScopedMatches(compMatchesAll, match.league, referenceTime, [match.homeTeamId, match.awayTeamId]);
@@ -554,8 +557,8 @@ export default async function MatchInsight({
     // 누적과 무관하게 신뢰 가능 → 표시. 월드컵 개막 직후 "AI 분석 없음" 문제 해소
     // (2026-06-11 사용자 보고: world_cup-preview 글 위젯이 "데이터 누적 중"만 표시).
     const sparseHasPrediction =
-      (match.predHome != null && match.predDraw != null && match.predAway != null) ||
-      isNationalLeague;
+      !noPrediction &&
+      ((match.predHome != null && match.predDraw != null && match.predAway != null) || isNationalLeague);
     const sparseTabs: InsightTab[] = [
       sparseHasPrediction && {
         key: "predict",
@@ -1225,7 +1228,7 @@ export default async function MatchInsight({
     <MatchInsightTabs
       headerLabel="매치 인사이트"
       headerBadges={headerBadges}
-      headerSummary={summary}
+      headerSummary={noPrediction ? undefined : summary}
       tabs={[
         {
           key: "starters",
@@ -1275,7 +1278,7 @@ export default async function MatchInsight({
         {
           key: "predict",
           label: "AI 예측",
-          enabled: true,
+          enabled: !noPrediction,
           content: predictContent,
         },
         {

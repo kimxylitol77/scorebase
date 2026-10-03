@@ -31,3 +31,10 @@ export const relegationCountOf = (league: string) => RELEGATION_COUNT[league] ??
 // MLB·NBA·KBO·NPB(2026-09-30) — 같은 이유. MLB 예측 탭이 포스트시즌 중에 "우승 확률 밀워키 99.9%"(= 정규시즌 1위)를 띄웠다.
 //   진짜 우승 확률은 MLB 포스트시즌 확률판(mlbAdvancementOdds)이 따로 낸다.
 export const REGULAR_SEASON_TITLE_LEAGUES: ReadonlySet<string> = new Set(["MLS", "JUPILER_PL", "GREEK_SL", "KHL", "NHL", "MLB", "NBA", "KBO", "NPB", "KBL"]);
+
+/**
+ * 경기별 AI 승률을 내지 않는 리그 — 백테스트가 50:50 찍기보다 못했다.
+ * WKBL(2026-10-03): 과거 6시즌 백필 후 2024-25·2025-26 검증 Brier .2667(찍기 .25), 홈 이점 0·Platt 보정을 해도 .255 이상.
+ *  6팀·시즌 90경기에 비시즌 이동이 커 Elo 가 맞지 않는다. 시즌 중 이번 시즌 성적만으로 재검증하기 전까지 비공개.
+ */
+export const NO_PREDICTION_LEAGUES: ReadonlySet<string> = new Set(["WKBL"]);

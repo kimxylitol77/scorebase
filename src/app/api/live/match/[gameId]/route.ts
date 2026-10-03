@@ -5,6 +5,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { findKblGmkey, fetchKblBox, KBL_TEAM_CODE } from "@/lib/sports/kbl-game";
+import { findWkblGame, fetchWkblBox, WKBL_TEAM_CODE } from "@/lib/sports/wkbl-game";
 import {
   fetchAllLiveScores,
   fetchEspnPeriodLinescores,
@@ -438,6 +439,13 @@ export async function GET(
         const key = await findKblGmkey(dbMatch.startTime, dbMatch.homeTeamId, dbMatch.awayTeamId);
         const homeCode = KBL_TEAM_CODE[dbMatch.homeTeamId];
         const box = key && homeCode ? await fetchKblBox(key.gmkey, homeCode, out.status === "LIVE") : null;
+        if (box) out.summary = { homeStats: box.homeStats, awayStats: box.awayStats, homeLeaders: [], awayLeaders: [], homePlayers: box.homePlayers, awayPlayers: box.awayPlayers };
+      }
+      // WKBL — 공식 사이트 선수 기록(ajax_game_result_2). 경기 번호는 일정 목록에서 날짜·팀으로 찾는다(2026-10-03).
+      if (league === "WKBL" && dbMatch) {
+        const g = await findWkblGame(dbMatch.startTime, dbMatch.homeTeamId, dbMatch.awayTeamId);
+        const homeCode = WKBL_TEAM_CODE[dbMatch.homeTeamId];
+        const box = g && homeCode ? await fetchWkblBox(g, homeCode, out.status === "LIVE") : null;
         if (box) out.summary = { homeStats: box.homeStats, awayStats: box.awayStats, homeLeaders: [], awayLeaders: [], homePlayers: box.homePlayers, awayPlayers: box.awayPlayers };
       }
     } catch {

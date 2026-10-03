@@ -1,5 +1,5 @@
 "use client";
-// KBL 문자중계 탭 — 쿼터 선택 + "주요 장면만"(득점·파울·작전 타임·퇴장) + 장면별 스코어. 경기 중 15초 폴링.
+// KBL·WKBL 문자중계 탭 — 쿼터 선택 + "주요 장면만"(득점·파울·작전 타임·퇴장) + 장면별 스코어. 경기 중 15초 폴링.
 import { useEffect, useMemo, useState } from "react";
 import type { KblPlay } from "@/lib/sports/kbl-game";
 
@@ -9,7 +9,7 @@ const KIND_DOT: Record<string, string> = {
   foul: "bg-amber-400", sub: "bg-zinc-300 dark:bg-zinc-600", stoppage: "bg-rose-400", other: "bg-zinc-300 dark:bg-zinc-600",
 };
 
-export default function KblPlayByPlay({ gameId, homeName, awayName }: { gameId: string; homeName: string; awayName: string }) {
+export default function KblPlayByPlay({ gameId, homeName, awayName, league = "KBL" }: { gameId: string; homeName: string; awayName: string; league?: "KBL" | "WKBL" }) {
   const [plays, setPlays] = useState<KblPlay[]>([]);
   const [starters, setStarters] = useState<{ home: string[]; away: string[] }>({ home: [], away: [] });
   const [loaded, setLoaded] = useState(false);
@@ -22,7 +22,7 @@ export default function KblPlayByPlay({ gameId, homeName, awayName }: { gameId: 
     const load = async () => {
       let live = false;
       try {
-        const r = await fetch(`/api/live/kbl-pbp/${gameId}`);
+        const r = await fetch(`/api/live/${league === "WKBL" ? "wkbl" : "kbl"}-pbp/${gameId}`);
         if (r.ok) {
           const j: { status: string; plays: KblPlay[]; starters: { home: string[]; away: string[] } } = await r.json();
           if (!alive) return;
@@ -42,7 +42,7 @@ export default function KblPlayByPlay({ gameId, homeName, awayName }: { gameId: 
       alive = false;
       if (timer) clearTimeout(timer);
     };
-  }, [gameId]);
+  }, [gameId, league]);
 
   const periods = useMemo(() => [...new Set(plays.map((p) => p.period))], [plays]);
   const cur = period && periods.includes(period) ? period : periods[periods.length - 1] ?? null;
@@ -96,7 +96,7 @@ export default function KblPlayByPlay({ gameId, homeName, awayName }: { gameId: 
           </li>
         ))}
       </ul>
-      <p className="text-[11px] text-neutral-400">출처 KBL 공식 문자중계 · 스코어는 {homeName}-{awayName} 순 · 경기 중 15초마다 갱신</p>
+      <p className="text-[11px] text-neutral-400">출처 {league} 공식 문자중계 · 스코어는 {homeName}-{awayName} 순 · 경기 중 15초마다 갱신</p>
     </div>
   );
 }
