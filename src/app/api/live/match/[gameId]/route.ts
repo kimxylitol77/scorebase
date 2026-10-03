@@ -4,6 +4,7 @@
 // Edge runtime + ETag + 짧은 CDN 캐시.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { findKblGmkey, fetchKblBox, KBL_TEAM_CODE } from "@/lib/sports/kbl-game";
 import {
   fetchAllLiveScores,
   fetchEspnPeriodLinescores,
@@ -393,6 +394,9 @@ export async function GET(
     } catch {
       // cache 조회 실패 ignore — UNKNOWN 응답 (클라이언트는 initial 값 유지)
     }
+  } else if (BASKETBALL_LEAGUES.has(league)) {
+    // NBA 외 농구(KBL·WNBA·WKBL) — 아래 공통 농구 블록(ts 캐시 + KBL 공식 박스)이 처리한다.
+    //  예전엔 여기서 400 이라 그 블록에 닿지 못해 KBL 상세 점수판이 LOADING 에 멈췄다(2026-10-03).
   } else {
     return NextResponse.json(
       { error: "unsupported league (use /api/live/{lol,mlb,baseball})" },
@@ -407,7 +411,7 @@ export async function GET(
       const { prisma } = await import("@/lib/db");
       const dbMatch = await prisma.match.findFirst({
         where: { externalId: gameId, league },
-        select: { status: true, theSportsCache: { select: { detailLive: true } } },
+        select: { status: true, startTime: true, homeTeamId: true, awayTeamId: true, theSportsCache: { select: { detailLive: true } } },
       });
       const cacheLive = dbMatch?.theSportsCache?.detailLive
         ? extractBasketballFromCache(dbMatch.theSportsCache.detailLive)
@@ -428,6 +432,13 @@ export async function GET(
         const { homeScore, awayScore } = cacheLive.periodLinescore;
         if (out.homeScore == null || homeScore > out.homeScore) out.homeScore = homeScore;
         if (out.awayScore == null || awayScore > out.awayScore) out.awayScore = awayScore;
+      }
+      // KBL — 선수 박스·팀 기록은 KBL 공식 API(경기 중에도 갱신). NBA 의 ESPN summary 와 같은 모양으로 싣는다(2026-10-03).
+      if (league === "KBL" && dbMatch) {
+        const key = await findKblGmkey(dbMatch.startTime, dbMatch.homeTeamId, dbMatch.awayTeamId);
+        const homeCode = KBL_TEAM_CODE[dbMatch.homeTeamId];
+        const box = key && homeCode ? await fetchKblBox(key.gmkey, homeCode, out.status === "LIVE") : null;
+        if (box) out.summary = { homeStats: box.homeStats, awayStats: box.awayStats, homeLeaders: [], awayLeaders: [], homePlayers: box.homePlayers, awayPlayers: box.awayPlayers };
       }
     } catch {
       // cache 조회 실패는 ignore — 외부 source 결과만 응답

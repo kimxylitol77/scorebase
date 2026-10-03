@@ -1487,7 +1487,7 @@ export default async function GenericLivePage({ params }: Props) {
           ) : undefined
         }
         playerBoxContent={
-          lg === "NBA" || lg === "WNBA" ? (
+          lg === "NBA" || lg === "WNBA" || lg === "KBL" ? (
             <BasketballBoxScoreTab
               gameId={gameId}
               league={lg}
