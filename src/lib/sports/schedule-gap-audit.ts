@@ -100,7 +100,8 @@ export async function auditScheduleGaps(opts: { days?: number; now?: Date; budge
     const afCollects = inCollect.has(lg) && !afSkip;
     // af 는 DB 가 비었거나 ts 대비 크게 모자랄 때만 묻는다(쿼터 절약)
     const afId = API_FOOTBALL_LEAGUE_ID[lg];
-    const afN = afId && (dbN === 0 || dbN < tsN * 0.5) ? await afCount(afId, days, now) : -1;
+    // af 로 수집 중인 리그는 collect 와 같은 7일 창으로 센다 — 첫 경기가 10일 뒤인 리그(UAE 2026-10)를 공백으로 오보하지 않게
+    const afN = afId && (dbN === 0 || dbN < tsN * 0.5) ? await afCount(afId, afCollects ? Math.min(days, 7) : days, now) : -1;
     const src = Math.max(tsN, afN);
     // af 로 수집하는 리그는 collect 가 7일 앞까지만 받는다 — DB 에 경기가 있으면 먼 날짜 부족은 정상(리드타임)
     const leadTimeOnly = afCollects && dbN > 0 && days > 7;
