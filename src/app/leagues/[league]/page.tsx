@@ -56,7 +56,8 @@ import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 import AsianGamesMultiHub, { agMultiCupRounds } from "@/components/leagues/asian-games/AsianGamesMultiHub";
 import { AG_MULTI, getAgMultiHub } from "@/lib/sports/asian-games-multi";
-import KblTeamStats from "@/components/leagues/KblTeamStats";
+import LeagueTeamStats from "@/components/leagues/LeagueTeamStats";
+import { supportsTeamStats } from "@/lib/sports/league-team-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -1245,6 +1246,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <StandingsOnlyView league={upper} embedded />
         </div>
       )}
+      {/* 팀 통계 — 순위표 아래(전 리그 공통 기본 열 + KBL 공식 세부). 컵·허브 대회는 순위표가 대회형이라 뺀다. 2026-10-03 */}
+      {view === "standings" && supportsTeamStats(upper) && !CUP_LEAGUES.has(upper) && !AG_MULTI[upper] && !HUB_STANDINGS.has(upper) && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-8">
+          <LeagueTeamStats league={upper} />
+        </div>
+      )}
       {view === "bracket" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <CupBracket rounds={agHub ? agRounds : cupRounds} league={upper} />
@@ -1261,11 +1268,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {showStats && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {upper === "KBL" && (
-            <div className="mb-8">
-              <KblTeamStats />
-            </div>
-          )}
+
           {psLeaders && (
             <section className="mb-8 space-y-3">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
