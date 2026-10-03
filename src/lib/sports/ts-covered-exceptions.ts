@@ -72,4 +72,9 @@ export const TS_COVERED_EXCEPTIONS = new Set<League>([
   // UEFA_WCL (2026-09-25): 순위용 tsSeasonId 가 있어 TS_COVERED 인데 ts 는 이 대회 매치를 한 번도
   // 안 만들었다(DB 153건 전부 af, 5/23 이 마지막). 새 시즌 리그 스테이지가 통째로 비어 있었다.
   "UEFA_WCL",
+  // INDIA_ISL (2026-10-03): 2026-27 시즌 일정이 ts 엔 한 건도 없다(10/10·10/18 diary 실측 0건) — 시즌 자동 탐지도
+  // "DB 에 다가오는 경기가 있는 리그"만 보므로 영영 못 잡는 닭-달걀. af 엔 10/1~10/20 12경기. af 로 수집한다.
+  // LITHUANIA_AL (같은 날): ts 실커버리지는 대체로 정상이지만 10/10 잘기리스 빌뉴스-수두바 1경기가 ts 에 없다(af 엔 있음).
+  // 위 주석의 "같은 증상 후보" 가 재발한 것 — af 를 함께 받아 빈 경기를 채운다(크로스소스 중복은 collect dedup 72h 가 흡수).
+  "INDIA_ISL", "LITHUANIA_AL",
 ]);
