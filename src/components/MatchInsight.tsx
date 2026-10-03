@@ -22,6 +22,7 @@ import {
   calcSeasonForm,
 } from "@/lib/predict/season-stats";
 import { calcStandings } from "@/lib/predict/standings";
+import { seasonScopedMatches } from "@/lib/predict/season-scope";
 import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcRecentTrend } from "@/lib/predict/recent-trend";
@@ -205,8 +206,11 @@ export default async function MatchInsight({
 
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
   // 순위·시즌 통계용 — 그 대회 경기만. 성인 국대는 이력(matches)이 A매치 전체라 그대로 쓰면 국가 전체 서열이 된다.
-  const compMatches = matches.filter((m) => m.league === match.league);
+  const compMatchesAll = matches.filter((m) => m.league === match.league);
   const referenceTime = match.startTime;
+  // "시즌 전체" 범위 — 그 경기의 시즌만(개막 직후엔 지난 시즌). 전 기간이면 여러 시즌 통산이 된다.
+  const seasonScope = seasonScopedMatches(compMatchesAll, match.league, referenceTime, [match.homeTeamId, match.awayTeamId]);
+  const compMatches = seasonScope.matches;
 
   // === 모든 통계 계산 ===
   const beforeMatches = matches.filter(
@@ -501,12 +505,12 @@ export default async function MatchInsight({
 
   // 시즌 폼 히트맵
   const homeSeasonForm = calcSeasonForm(
-    matches,
+    compMatches,
     match.homeTeamId,
     referenceTime,
   );
   const awaySeasonForm = calcSeasonForm(
-    matches,
+    compMatches,
     match.awayTeamId,
     referenceTime,
   );
@@ -522,8 +526,8 @@ export default async function MatchInsight({
   const awayDefenseRank = standings.defenseRank.get(match.awayTeamId);
 
   // 홈/원정 split
-  const homeHA = calcHomeAway(matches, match.homeTeamId, referenceTime);
-  const awayHA = calcHomeAway(matches, match.awayTeamId, referenceTime);
+  const homeHA = calcHomeAway(compMatches, match.homeTeamId, referenceTime);
+  const awayHA = calcHomeAway(compMatches, match.awayTeamId, referenceTime);
 
   // Streak
   const homeStreak = calcStreaks(matches, match.homeTeamId, referenceTime);
@@ -733,6 +737,7 @@ export default async function MatchInsight({
         key="tm"
         showDraw={!hideDraw}
         hideRank={NO_STANDINGS_LEAGUES.has(match.league)}
+        seasonLabel={seasonScope.label}
         home={{
           name: toKoreanTeamName(match.homeTeam.name, match.league),
           form: homeForm.results,
@@ -796,7 +801,7 @@ export default async function MatchInsight({
       />
     ) : null,
     homeSeasonForm.length > 0 || awaySeasonForm.length > 0 ? (
-      <Section key="form" title="시즌 폼">
+      <Section key="form" title={seasonScope.label === "지난 시즌" ? "지난 시즌 폼" : "시즌 폼"}>
         <div className="space-y-4">
           {homeSeasonForm.length > 0 && (
             <SeasonFormHeatmap

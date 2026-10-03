@@ -40,6 +40,9 @@ export const SEASON_BOUNDARY: Record<string, { month: number; day: number }> = {
   NBA: { month: 8, day: 1 },
   NHL: { month: 8, day: 1 },
   KHL: { month: 8, day: 1 }, // 9월 개막 · 4월 가가린컵 종료 (2026-09-29 파워랭킹 탭과 함께 등록)
+  // KBL·WKBL — 10~11월 개막 · 4~5월 챔프전 종료. KBL 과거 6시즌 백필(2026-10-03) 뒤 "시즌 전체"가 6시즌 합계로 나와 등록.
+  KBL: { month: 8, day: 1 },
+  WKBL: { month: 8, day: 1 },
   // 남반구 겨울 리그 — 달력연도 안에서 끝난다 (AIHL 4~9월 · NZIHL 5~8월)
   AIHL: { month: 3, day: 1 },
   NZIHL: { month: 4, day: 1 },

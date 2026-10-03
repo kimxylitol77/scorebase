@@ -51,9 +51,11 @@ interface Props {
   sections?: "all" | "overview" | "detail";
   /** 순위 개념이 없는 대회(친선 등)에서 "리그순위" 행을 뺀다. */
   hideRank?: boolean;
+  /** "시즌 전체" 묶음 제목 — 개막 직후엔 "지난 시즌"(season-scope) */
+  seasonLabel?: string;
 }
 
-export default function TeamMatchup({ home, away, showDraw = true, sections = "all", hideRank = false }: Props) {
+export default function TeamMatchup({ home, away, showDraw = true, sections = "all", hideRank = false, seasonLabel = "시즌 전체" }: Props) {
   const homeAvgFor = home.played > 0 ? home.goalsFor / home.played : 0;
   const awayAvgFor = away.played > 0 ? away.goalsFor / away.played : 0;
   const homeAvgAgainst = home.played > 0 ? home.goalsAgainst / home.played : 0;
@@ -98,7 +100,7 @@ export default function TeamMatchup({ home, away, showDraw = true, sections = "a
 
       {/* 그룹: 시즌 전체 */}
       {showOverview && (
-      <Group label="시즌 전체">
+      <Group label={seasonLabel}>
         {!hideRank && (
         <CompareRow
           label={home.group || away.group ? "조 순위" : "리그순위"}
