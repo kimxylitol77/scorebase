@@ -10,12 +10,21 @@ import { prisma } from "@/lib/db";
 
 const EMPTY: ReadonlySet<number> = new Set();
 const PRESEASON_LEAGUES = new Set(["NHL", "NBA"]);
+// 경기 수를 세는 표(순위·팀 통계)에서만 프리시즌을 빼고 Elo 에는 남기는 리그.
+// WNBA(2026-10-03): 표시는 ts kind=3(basketball-match-collector + scripts/backfill-wnba-season-phase.ts). Elo 제외 백테스트
+//  2026 정규 330경기 같은 표본 적중 66.36→65.76%, Brier 0.2055→0.2063 — 나빠진다(개막 첫 30일 52.4→51.2%).
+//  DB 에 지난 시즌 WNBA 가 없어 프리시즌이 유일한 초반 신호라서다. 지난 시즌이 쌓이는 2027 에 다시 잰다.
+const STANDINGS_ONLY_LEAGUES = new Set(["WNBA"]);
 // raw LIKE 스캔(NHL 전 기간 ~3천 행 × 17KB, 0.4초)이라 프로세스 안에서 30분 재사용 — 프리시즌 판정은 경기 생성 후 바뀌지 않는다.
 const TTL_MS = 30 * 60_000;
 const memo = new Map<string, { at: number; ids: Promise<ReadonlySet<number>> }>();
 
 export function preseasonMatchIds(league: string): Promise<ReadonlySet<number>> {
   if (!PRESEASON_LEAGUES.has(league)) return Promise.resolve(EMPTY);
+  return loadIds(league);
+}
+
+function loadIds(league: string): Promise<ReadonlySet<number>> {
   const hit = memo.get(league);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.ids;
   // raw 는 select 하지 않고 contains 로 id 만 받는다. 전 기간 — Elo 는 시즌을 넘어 누적된다.
@@ -39,5 +48,12 @@ export async function allPreseasonMatchIds(): Promise<number[]> {
 /** 프리시즌 경기를 뺀 목록. league 는 목록의 리그(여러 리그가 섞인 목록이면 각 행 league 로 판정). */
 export async function withoutPreseason<T extends { id: number; league?: string }>(matches: T[], league: string): Promise<T[]> {
   const pre = await preseasonMatchIds(league);
+  return pre.size === 0 ? matches : matches.filter((m) => !pre.has(m.id));
+}
+
+/** 순위·팀 통계용 — 경기 수를 세는 표는 Elo 제외 여부와 무관하게 프리시즌을 뺀다(PRESEASON_LEAGUES + STANDINGS_ONLY_LEAGUES). */
+export async function withoutPreseasonForStandings<T extends { id: number }>(matches: T[], league: string): Promise<T[]> {
+  if (!PRESEASON_LEAGUES.has(league) && !STANDINGS_ONLY_LEAGUES.has(league)) return matches;
+  const pre = await loadIds(league);
   return pre.size === 0 ? matches : matches.filter((m) => !pre.has(m.id));
 }

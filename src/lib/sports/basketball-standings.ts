@@ -2,6 +2,7 @@ import { load } from "cheerio";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { currentSeasonStart } from "@/lib/predict/season-window";
+import { withoutPreseasonForStandings } from "@/lib/predict/preseason";
 
 export interface BasketballStandingRow {
   position: number;
@@ -230,22 +231,25 @@ async function fetchNbaStandings(): Promise<BasketballStandings | null> {
 
 async function fetchWnbaStandings(): Promise<BasketballStandings | null> {
   const seasonStart = currentSeasonStart("WNBA") ?? new Date(Date.UTC(new Date().getUTCFullYear(), 2, 1));
-  const matches = await prisma.match.findMany({
+  // 정규시즌만 — 플레이오프·커미셔너스컵 결승은 playoffRound, 프리시즌은 raw 표시로 뺀다(ts kind, scripts/backfill-wnba-season-phase.ts).
+  const matches = await withoutPreseasonForStandings(await prisma.match.findMany({
     where: {
       league: "WNBA",
       status: "FINISHED",
       startTime: { gte: seasonStart },
+      playoffRound: null,
       homeScore: { not: null },
       awayScore: { not: null },
     },
     select: {
+      id: true,
       homeTeamId: true,
       awayTeamId: true,
       homeScore: true,
       awayScore: true,
       updatedAt: true,
     },
-  });
+  }), "WNBA");
   if (matches.length === 0) return null;
 
   const byTeam = new Map<number, Omit<BasketballStandingRow, "position" | "gamesBehind">>();
