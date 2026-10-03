@@ -828,6 +828,13 @@ export interface BasketballPlayerBox {
   tpa: number;
   ftm: number;
   fta: number;
+  /** 선수 페이지 id (KBL pcode·WKBL pno) — 있으면 이름이 /players/{pid}?league= 로 링크 */
+  pid?: string | null;
+  to?: number | null;
+  pf?: number | null;
+  plusMinus?: number | null;
+  /** 엔트리에 있었지만 뛰지 않음 — 표 맨 아래 "미출전" */
+  dnp?: boolean;
 }
 
 export interface MatchSummary {

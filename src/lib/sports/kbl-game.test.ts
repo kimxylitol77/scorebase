@@ -13,6 +13,14 @@ test("허일영 2025-26 개막전 행", () => {
   assert.equal(b.pos, "F");
 });
 
+test("선발·+/-·TO·파울·선수 id, 미출전은 +/- 없음 (2026-10-03 소노-가스공사 행)", () => {
+  const rec = { playMin: 30, playSec: 5, score: 8, rb: 3, offr: 0, ast: 6, stl: 1, bs: 0, to: 5, fgt: 3, fgtA: 9, threep: 1, threepA: 4, ft: 1, ftA: 2, foul: 2, marginCn: 7 };
+  const b = toPlayerBox({ player: { pcode: "290001", pname: "이재도", tcode: "66", pos: "GD" }, records: rec, startFlag: 1 });
+  assert.deepEqual([b.pid, b.starter, b.dnp, b.to, b.pf, b.plusMinus], ["290001", true, false, 5, 2, 7]);
+  const d = toPlayerBox({ player: { pcode: "290002", pname: "소준혁", tcode: "66" }, records: { ...rec, playMin: 0, playSec: 0, marginCn: 999 }, startFlag: 0 });
+  assert.deepEqual([d.starter, d.dnp, d.plusMinus], [false, true, null]);
+});
+
 import { readFileSync } from "node:fs";
 import { decodeKblPlays } from "./kbl-game";
 

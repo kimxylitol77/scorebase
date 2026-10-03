@@ -120,8 +120,8 @@ export function parseWkblBox(html: string): WkblTeamBox[] {
       const [p2, a2] = pair(strip(c[3])), [p3, a3] = pair(strip(c[4])), [ft, fta] = pair(strip(c[5]));
       const n = (i: number) => Number(strip(c[i])) || 0;
       return [{
-        pno, name: strip(c[0]), pos: strip(c[1]) || null, min: strip(c[2]),
-        points: n(14), reb: n(8), oreb: n(6), assists: n(9), steals: n(11), blocks: n(13),
+        pno, pid: pno, name: strip(c[0]), pos: strip(c[1]) || null, min: strip(c[2]),
+        points: n(14), reb: n(8), oreb: n(6), assists: n(9), steals: n(11), blocks: n(13), to: n(12), pf: n(10),
         fgm: p2 + p3, fga: a2 + a3, tpm: p3, tpa: a3, ftm: ft, fta,
       }];
     });

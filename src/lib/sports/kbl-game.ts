@@ -42,18 +42,33 @@ export async function findKblGmkey(startTime: Date, homeTeamId: number, awayTeam
 interface KblRecords {
   playMin: number; playSec: number; score: number; rb: number; offr: number; ast: number; stl: number; bs: number; to: number;
   fgt: number; fgtA: number; threep: number; threepA: number; ft: number; ftA: number; foul: number;
+  /** 코트에 있는 동안 득실차(+/-) — 출전 선수 합이 5×최종 점수차(2026-10-03 소노-가스공사 +45 검산). 미출전 선수는 의미 없는 값 */
+  marginCn?: number;
 }
 interface KblPlayerStat {
   player: { pcode: string; pname: string; tcode: string; backNum?: string; pos?: string };
   records: KblRecords;
+  /** 1 = 선발 (팀당 5명) */
+  startFlag?: number;
 }
+
+/** KBL 구단 코드 → 짧은 구단명(연고지 + 모기업, KBL 공식 일정의 tnameH). 경기 상세 팀 통계·선수 기록용 */
+export const KBL_TEAM_SHORT: Record<string, string> = {
+  "06": "수원 KT", "10": "울산 현대모비스", "16": "원주 DB", "35": "서울 삼성", "50": "창원 LG",
+  "55": "서울 SK", "60": "부산 KCC", "64": "대구 한국가스공사", "66": "고양 소노", "70": "안양 정관장",
+};
 
 const POS_KO: Record<string, string> = { GD: "G", FD: "F", C: "C", G: "G", F: "F" };
 
 export function toPlayerBox(p: KblPlayerStat): BasketballPlayerBox & { pcode: string } {
   const r = p.records;
+  const played = r.playMin * 60 + r.playSec > 0;
   return {
     pcode: p.player.pcode,
+    pid: p.player.pcode,
+    starter: p.startFlag === 1,
+    dnp: !played,
+    to: r.to, pf: r.foul, plusMinus: played && r.marginCn != null ? r.marginCn : null,
     name: p.player.pname,
     pos: POS_KO[p.player.pos ?? ""] ?? p.player.pos ?? null,
     min: `${r.playMin}:${String(r.playSec).padStart(2, "0")}`,
@@ -62,7 +77,7 @@ export function toPlayerBox(p: KblPlayerStat): BasketballPlayerBox & { pcode: st
   };
 }
 
-/** 선수 박스(홈·원정, 출전한 선수만, 득점순) + 팀 기록 비교. 경기 중엔 15초 캐시. */
+/** 선수 박스(홈·원정 — 선발 득점순 → 벤치 득점순 → 미출전) + 팀 기록 비교. 경기 중엔 15초 캐시. */
 export async function fetchKblBox(gmkey: string, homeCode: string, live: boolean): Promise<{
   homePlayers: BasketballPlayerBox[]; awayPlayers: BasketballPlayerBox[]; homeStats: MatchTeamStat[]; awayStats: MatchTeamStat[];
 } | null> {
@@ -72,9 +87,9 @@ export async function fetchKblBox(gmkey: string, homeCode: string, live: boolean
     kblGet<Array<{ tcode: string; records: KblRecords & Record<string, number> }>>(`/match/${gmkey}/team-record`, ttl),
   ]);
   if (!players?.length) return null;
-  const played = (p: KblPlayerStat) => p.records.playMin * 60 + p.records.playSec > 0;
+  const rank = (p: BasketballPlayerBox) => (p.dnp ? 2 : p.starter ? 0 : 1);
   const side = (home: boolean) =>
-    players.filter((p) => (p.player.tcode === homeCode) === home && played(p)).map(toPlayerBox).sort((x, y) => y.points - x.points);
+    players.filter((p) => (p.player.tcode === homeCode) === home).map(toPlayerBox).sort((x, y) => rank(x) - rank(y) || y.points - x.points);
   const stat = (t: (KblRecords & Record<string, number>) | undefined): MatchTeamStat[] => {
     if (!t) return [];
     const pct = (m: number, a: number) => (a > 0 ? `${m}-${a} (${Math.round((m / a) * 100)}%)` : `${m}-${a}`);

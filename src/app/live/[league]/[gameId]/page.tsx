@@ -77,6 +77,7 @@ import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
+import { KBL_TEAM_CODE, KBL_TEAM_SHORT } from "@/lib/sports/kbl-game";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
 import HockeyGameCenter from "@/components/scores/hockey/HockeyGameCenter";
 import type { HockeyIncident, HockeyPlayerRow, HockeyTeamStats } from "@/lib/sports/hockey/box";
@@ -1121,14 +1122,18 @@ export default async function GenericLivePage({ params }: Props) {
     );
   })();
 
+  // KBL 팀 통계·선수 기록은 짧은 구단명("고양 소노") — KBL 공식 표기
+  const kblShort = (teamId: number) => (lg === "KBL" ? KBL_TEAM_SHORT[KBL_TEAM_CODE[teamId]] : undefined);
+  const homeStatKo = kblShort(match.homeTeam.id) ?? homeKo;
+  const awayStatKo = kblShort(match.awayTeam.id) ?? awayKo;
   // 농구 선수 기록(박스스코어). KBL·WKBL 은 팀 스탯이 있으면 "팀 통계" 탭 안 팀 스탯 비교 아래로 옮긴다.
   const basketballBox =
     lg === "NBA" || lg === "WNBA" || lg === "KBL" || lg === "WKBL" ? (
       <BasketballBoxScoreTab
         gameId={gameId}
         league={lg}
-        homeNameKo={homeKo}
-        awayNameKo={awayKo}
+        homeNameKo={homeStatKo}
+        awayNameKo={awayStatKo}
         homeNameEn={match.homeTeam.name}
         awayNameEn={match.awayTeam.name}
       />
@@ -1442,8 +1447,8 @@ export default async function GenericLivePage({ params }: Props) {
               <div className="space-y-6">
                 <BasketballTeamStatsCard
                   detailLive={match.theSportsCache.detailLive}
-                  homeNameKo={homeKo}
-                  awayNameKo={awayKo}
+                  homeNameKo={homeStatKo}
+                  awayNameKo={awayStatKo}
                 />
                 <div>
                   <div className="mb-2 text-sm font-bold text-zinc-800 dark:text-white/85">선수 기록</div>
