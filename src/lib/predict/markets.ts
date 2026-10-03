@@ -79,6 +79,9 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   AFCON: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
   CONCACAF_GOLD: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 },
   GULF_CUP: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.0 }, // 한 나라 개최(중립)
+  FIFA_ASEAN_CUP: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.0 }, // 단일 개최지 대회(중립)
+  KIRIN_CUP: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.0 }, // 일본 개최 — 개최국 판정은 HOSTED_TOURNAMENTS
+  AFCON_QUAL: { overLine: 2.5, totalStd: 1.75, marginStd: 2.0, handicapLine: 0.5, homeBoost: 1.1 }, // 홈앤어웨이 예선
   // 연령별 — U-21 유로 예선 174경기: 3.09골(std 2.03)·마진 std 3.02(산마리노·지브롤터 대량 실점)·무 18%.
   UEFA_U21_Q: { overLine: 2.5, totalStd: 2.0, marginStd: 3.0, handicapLine: 0.5, homeBoost: 1.1 },
   UEFA_U21: { overLine: 2.5, totalStd: 1.8, marginStd: 2.2, handicapLine: 0.5, homeBoost: 1.0 },

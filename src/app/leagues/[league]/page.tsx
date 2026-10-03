@@ -133,7 +133,7 @@ const VALID_LEAGUES = [
   "AFC_CUP",
   // 컵 4개 추가 (2026-08-09) — ALL_LEAGUES 폴백으로 넘어가면 컵에 없는 순위표만 그려 빈 화면이 된다.
   "LEVAIN_CUP",
-  "SUI_CUP",
+  "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY", "TURKEY_1L",
   "SVENSKA_CUPEN",
   "COPA_DO_BRASIL",
   // 슈퍼컵 6개 (2026-08-21) — 위와 같은 함정. PORTUGAL_SUPER_CUP 은 등록이 빠져 있어
@@ -157,7 +157,7 @@ const VALID_LEAGUES = [
   // 리그페이즈(A~D · 14개조 · 54팀) → 파이널스. 조별 표는 af 경로가 준다.
   "UEFA_NL",
   // 2026-09-24 — 같은 이유(ALL_LEAGUES 에만 있어 StandingsOnlyView "수집 중" 화면). 조별 2조 → 4강·결승.
-  "GULF_CUP",
+  "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP", "AFCON_QUAL",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 // 축구 리그는 전부 정식 리그 페이지 — VALID_LEAGUES 에 없던 122개가 "순위표만 + 예측 준비 중" 대체 화면이었다
@@ -502,7 +502,7 @@ const VIEW_LABEL: Record<ViewKey, string> = {
 const CUP_LEAGUES = new Set<string>([
   "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
-  "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
+  "LEVAIN_CUP", "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
   // 슈퍼컵 6개 (2026-08-21) — 1~3경기 단발이라 순위·파워랭킹이 더더욱 성립하지 않는다.
   "PORTUGAL_SUPER_CUP", "COMMUNITY_SHIELD", "SUPERCOPA_ESPANA",
   "DFL_SUPERCUP", "SUPERCOPPA_ITALIANA", "TROPHEE_DES_CHAMPIONS",
@@ -510,7 +510,7 @@ const CUP_LEAGUES = new Set<string>([
   "UEFA_WCL", "LEAGUES_CUP", "CANADA_CHAMP",
   "AFCON", "CONCACAF_GOLD",
   // 2026-09-24 — 리그페이즈(조별) + 파이널스. NO_TABLE 에 없으므로 순위 탭도 함께 나간다.
-  "UEFA_NL", "GULF_CUP",
+  "UEFA_NL", "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP",
   // 2026-09-25 — 아시안게임 축구(남 U-23·여). 조별리그 + 8강부터 녹아웃 — 순위 탭은 빅매치 허브, 대진표 탭은 8강부터.
   "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W",
 ]);
@@ -519,7 +519,7 @@ const CUP_LEAGUES = new Set<string>([
 // AFCON·CONCACAF_GOLD·UEFA_NL·GULF_CUP)과 1~3경기짜리 슈퍼컵은 뺀다. 라운드 이름이 없는 컵은 카드가 안 나온다.
 const CUP_JOURNEY_LEAGUES = new Set<string>([
   "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL", "COUPE_DE_FRANCE",
-  "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", "LEVAIN_CUP", "SUI_CUP", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
+  "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", "LEVAIN_CUP", "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY", "SVENSKA_CUPEN", "COPA_DO_BRASIL",
 ]);
 
 // /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)

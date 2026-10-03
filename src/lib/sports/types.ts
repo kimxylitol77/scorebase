@@ -158,8 +158,11 @@ export type League =
   | "AFCON" // Africa Cup of Nations
   | "UEFA_NL" // UEFA Nations League
   | "GULF_CUP" // Arabian Gulf Cup (걸프컵, af 25) — 2026-09-23 베트맨 발매 연결용
+  | "FIFA_ASEAN_CUP" // FIFA 아세안컵 (af 1247) — 2026-10-03 신규 대회 후보 보고에서 추가
+  | "KIRIN_CUP" // 기린컵 (af 916, 일본 개최)
   | "WC_QUAL" // 월드컵 예선 (지역 묶음)
   | "EURO_QUAL" // 유로 예선
+  | "AFCON_QUAL" // 아프리카 네이션스컵 예선 (af 36)
   | "CONCACAF_GOLD" // CONCACAF 골드컵
   | "INTL_FRIENDLY" // 국가대표 친선 (A매치)
   | "CLUB_FRIENDLY" // 국제 클럽 친선 (프리시즌 클럽 친선 — af 667, 스코어 피드 전용·글/예측 없음)
@@ -178,6 +181,8 @@ export type League =
   | "A_LEAGUE_W" // 호주 A-리그 여자
   // ── 신규 (2026-05-24) ──
   | "SUI_CUP" // 스위스컵 (8~5월)
+  | "BELGIUM_CUP" // 벨기에 컵 (af 147, 8~5월) — 양민혁(베스테를로)
+  | "EFL_TROPHY" // 잉글랜드 EFL 트로피 (af 46, 8~5월) — 전진우(옥스퍼드)
   | "LEAGUE_ONE" // 잉글랜드 League One (3부, 8~5월)
   | "LATVIA_VL" // 라트비아 비르슬리가 (1부, 봄~가을)
   | "BELARUS_PL" // 벨라루스 프리미어 리그 (1부, 봄~가을)
@@ -189,6 +194,7 @@ export type League =
   | "GEORGIA_EL" // 조지아 Erovnuli Liga (1부, 봄~가을)
   | "AZERBAIJAN_PL" // 아제르바이잔 프리미어리그 (1부, 8~5월)
   | "EREDIVISIE_2" // 네덜란드 Eerste Divisie (2부, 8~5월)
+  | "TURKEY_1L" // 터키 1. 리그 (2부, af 204, 8~5월) — 조진호(바트만 페트롤스포르)
   | "PRIMEIRA_LIGA_2" // 포르투갈 Liga Portugal 2 (2부, 8~5월)
   // 2026-05-24 (3차) — TheSports 업그레이드 후 추가
   | "LEAGUE_TWO" // 잉글랜드 League Two (4부, 8~5월)
@@ -357,9 +363,9 @@ export const SOCCER_LEAGUES = [
   "BOLIVIA_PD",
   "AFCON",
   "UEFA_NL",
-  "GULF_CUP",
+  "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP",
   "WC_QUAL",
-  "EURO_QUAL",
+  "EURO_QUAL", "AFCON_QUAL",
   "CONCACAF_GOLD",
   "INTL_FRIENDLY",
   "CLUB_FRIENDLY",
@@ -376,7 +382,7 @@ export const SOCCER_LEAGUES = [
   "UEFA_WCL",
   "A_LEAGUE_W",
   // 2026-05-24 추가
-  "SUI_CUP",
+  "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY",
   "LEAGUE_ONE",
   "LATVIA_VL",
   "BELARUS_PL",
@@ -387,7 +393,7 @@ export const SOCCER_LEAGUES = [
   "KAZAKHSTAN_PL",
   "GEORGIA_EL",
   "AZERBAIJAN_PL",
-  "EREDIVISIE_2",
+  "EREDIVISIE_2", "TURKEY_1L",
   "PRIMEIRA_LIGA_2",
   // 2026-05-24 (3차) + 2026-05-25 추가분 — League 타입엔 있었지만 본 배열에 누락됐던 리그
   // (영향: /standings/[league] VALID 판정 404 — 2026-06-12 리그 순위 추가 작업에서 일괄 보강)
@@ -559,7 +565,7 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "CONCACAF_CCUP",
   "AFC_CUP",
   // 2026-05-24 추가 — 매치 수집만
-  "SUI_CUP",
+  "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY",
   "LEAGUE_ONE",
   "LATVIA_VL",
   "BELARUS_PL",
@@ -570,7 +576,7 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "KAZAKHSTAN_PL",
   "GEORGIA_EL",
   "AZERBAIJAN_PL",
-  "EREDIVISIE_2",
+  "EREDIVISIE_2", "TURKEY_1L",
   "PRIMEIRA_LIGA_2",
   // 2026-05-25 사용자 결정 — 한국 사용자 수요 낮은 카테고리 일괄 제외
   // 매치 수집은 유지, PREVIEW/RECAP 자동 생성만 X.

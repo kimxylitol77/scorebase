@@ -216,8 +216,11 @@ export const collectors: Record<League, MatchCollector> = {
   AFCON: buildApiFootballCollector("AFCON"),
   UEFA_NL: buildApiFootballCollector("UEFA_NL"),
   GULF_CUP: buildApiFootballCollector("GULF_CUP"),
+  FIFA_ASEAN_CUP: buildApiFootballCollector("FIFA_ASEAN_CUP"),
+  KIRIN_CUP: buildApiFootballCollector("KIRIN_CUP"),
   WC_QUAL: buildApiFootballCollector("WC_QUAL"),
   EURO_QUAL: buildApiFootballCollector("EURO_QUAL"),
+  AFCON_QUAL: buildApiFootballCollector("AFCON_QUAL"),
   CONCACAF_GOLD: buildApiFootballCollector("CONCACAF_GOLD"),
   INTL_FRIENDLY: buildApiFootballCollector("INTL_FRIENDLY"),
   CLUB_FRIENDLY: buildApiFootballCollector("CLUB_FRIENDLY"), // 프리시즌 클럽 친선 (af 667) — 스코어 피드 전용
@@ -235,6 +238,8 @@ export const collectors: Record<League, MatchCollector> = {
   A_LEAGUE_W: buildApiFootballCollector("A_LEAGUE_W"),
   // 2026-05-24 추가 (4개)
   SUI_CUP: buildApiFootballCollector("SUI_CUP"),
+  BELGIUM_CUP: buildApiFootballCollector("BELGIUM_CUP"),
+  EFL_TROPHY: buildApiFootballCollector("EFL_TROPHY"),
   LEAGUE_ONE: buildApiFootballCollector("LEAGUE_ONE"),
   LATVIA_VL: buildApiFootballCollector("LATVIA_VL"),
   BELARUS_PL: buildApiFootballCollector("BELARUS_PL"),
@@ -246,6 +251,7 @@ export const collectors: Record<League, MatchCollector> = {
   GEORGIA_EL: buildApiFootballCollector("GEORGIA_EL"),
   AZERBAIJAN_PL: buildApiFootballCollector("AZERBAIJAN_PL"),
   EREDIVISIE_2: buildApiFootballCollector("EREDIVISIE_2"),
+  TURKEY_1L: buildApiFootballCollector("TURKEY_1L"),
   PRIMEIRA_LIGA_2: buildApiFootballCollector("PRIMEIRA_LIGA_2"),
   // 2026-05-24 추가 (3차) — TheSports cover. api-football 도 있으면 매치 보강.
   LEAGUE_TWO: buildApiFootballCollector("LEAGUE_TWO"),

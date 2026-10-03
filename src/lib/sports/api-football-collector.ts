@@ -73,9 +73,9 @@ function seasonFor(league: League, date: string): number {
     // 신규 — 유럽 시즌 (8~5월)
     "THAI_L1", "WSL", "UEFA_WCL", "A_LEAGUE_W", "UEFA_NL", "EURO_QUAL",
     // 2026-05-24 추가 — 유럽 8~5월 시즌
-    "SUI_CUP", "LEAGUE_ONE",
+    "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY", "LEAGUE_ONE",
     // 2026-05-24 (2차) — 유럽 8~5월 시즌
-    "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
+    "AZERBAIJAN_PL", "EREDIVISIE_2", "TURKEY_1L", "PRIMEIRA_LIGA_2",
     // 2026-05-24 (3차) — 8~5월 시즌. ARG_PRIMERA_NACIONAL/SVENSKA_CUPEN 은 달력연도라 default 분기 사용
     "LEAGUE_TWO", "NATIONAL_LEAGUE",
     "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
@@ -91,6 +91,9 @@ function seasonFor(league: League, date: string): number {
   // 토너 단발성 — 매년/격년 업데이트
   if (league === "AFCON") return 2025;
   if (league === "GULF_CUP") return 2026; // 걸프컵 27회 (2026-09~10). 다음 대회 시작 시 업데이트
+  if (league === "FIFA_ASEAN_CUP") return 2026; // FIFA 아세안컵 첫 대회 (2026-09~10)
+  if (league === "KIRIN_CUP") return 2026; // 기린컵 (2026-10)
+  if (league === "AFCON_QUAL") return 2027; // AFCON 2027 예선 — af 가 season 2027 로 표기
   if (league === "CONCACAF_GOLD") return 2025;
   if (league === "U20_WC") return 2025;
   if (league === "U17_WC") return 2025;

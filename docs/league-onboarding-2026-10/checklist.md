@@ -1,0 +1,7 @@
+- [x] types.ts — League 유니온·SOCCER_LEAGUES·NO_ARTICLE_LEAGUES(국내 3)
+- [x] sport-leagues.ts — ALL_LEAGUES·SPORTS 축구·NATIONAL_TEAM_LEAGUES(대표 3)·HOSTED(기린컵 일본)·LEAGUE_DISPLAY·LEAGUE_ORDER·COUNTRY_BY_LEAGUE
+- [x] api-football-pro.ts id · index.ts collector · api-football-collector 시즌(유럽형 2·대회별 연도 3) · collect-leagues
+- [x] season-calendar SPLIT_YEAR·STAGED · season-window 경계/무경계 · standings NO_TABLE(국내 컵 2·기린컵)
+- [x] markets 프로필(대표 3) · fifa-rankings 대표 · health-checks 컵 · model-calibration 제외 · leagues 페이지 CUP 목록 · soccer 허브 목록 · en 영어명
+- [x] 로컬 runCollect 실측 — 6개 매치 생성 확인
+- [x] tsc · npm test · 배포 · /leagues/{코드} 200 · 1회 수집 후 DB 확인

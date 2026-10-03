@@ -134,8 +134,11 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   AFCON: 6, // Africa Cup of Nations
   UEFA_NL: 5, // UEFA Nations League
   GULF_CUP: 25, // Gulf Cup of Nations (아라비안 걸프컵)
+  FIFA_ASEAN_CUP: 1247, // FIFA ASEAN Cup (2026-09~10)
+  KIRIN_CUP: 916, // Kirin Cup (일본 개최, 10월)
   WC_QUAL: 32, // World Cup Qualifying — UEFA (32), 다른 지역 id 별개
   EURO_QUAL: 960, // Euro Qualifying
+  AFCON_QUAL: 36, // Africa Cup of Nations - Qualification (af season 2027)
   CONCACAF_GOLD: 22, // CONCACAF Gold Cup
   INTL_FRIENDLY: 10, // International Friendlies
   CLUB_FRIENDLY: 667, // Friendlies Clubs (프리시즌 클럽 친선) — 스코어 피드 전용
@@ -156,6 +159,8 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // ───── 2026-05-24 추가 (4개) ─────
   // ID 는 api-football 공식 docs 기반 — collector 첫 호출 시 매치 0건이면 id 보정 필요.
   SUI_CUP: 209, // 스위스컵 (8~5월)
+  BELGIUM_CUP: 147, // 벨기에 컵 (8~5월)
+  EFL_TROPHY: 46, // EFL Trophy (8~11월 조별 + 녹아웃)
   LEAGUE_ONE: 41, // 잉글랜드 League One (3부, 8~5월)
   LATVIA_VL: 365, // 라트비아 비르슬리가 (1부, 봄~가을)
   BELARUS_PL: 116, // 벨라루스 프리미어 리그 (1부, 봄~가을)
@@ -167,6 +172,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   GEORGIA_EL: 327, // 조지아 Erovnuli Liga (봄~가을) — 2026-05-25 수정 (이전 329 는 에스토니아)
   AZERBAIJAN_PL: 419, // 아제르바이잔 Premier (8~5월)
   EREDIVISIE_2: 89, // 네덜란드 Eerste Divisie (2부, 8~5월)
+  TURKEY_1L: 204, // 터키 1. Lig (2부, 8~5월)
   PRIMEIRA_LIGA_2: 95, // 포르투갈 Liga Portugal 2 (2부, 8~5월)
   // ───── 2026-05-24 추가 (3차) — TheSports 업그레이드 후 검증 ─────
   LEAGUE_TWO: 42, // 잉글랜드 EFL League Two (4부, 8~5월)

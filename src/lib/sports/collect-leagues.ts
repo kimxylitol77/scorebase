@@ -34,7 +34,7 @@ export const ALL_LEAGUES: League[] = [
   //  연결이 이 수집에 걸려 있다.
   "UEFA_NL",
   "INTL_FRIENDLY",
-  "GULF_CUP",
+  "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP", "AFCON_QUAL", // 2026-10-03 신규 대회 후보 보고
   "CSL",
   "A_LEAGUE",
   "EREDIVISIE",
@@ -97,7 +97,7 @@ export const ALL_LEAGUES: League[] = [
   "USA_USL_CH",
   "CANADA_PL",
   // 2026-05-24 추가 (4개)
-  "SUI_CUP",
+  "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY",
   // KFA컵 (2026-09-25) — af 294 매핑·컬렉터는 있었는데 이 목록에 없어 한 번도 수집되지 않았다(DB 0건).
   "KFA_CUP",
   "LEAGUE_ONE",
@@ -110,7 +110,7 @@ export const ALL_LEAGUES: League[] = [
   "KAZAKHSTAN_PL",
   "GEORGIA_EL",
   "AZERBAIJAN_PL",
-  "EREDIVISIE_2",
+  "EREDIVISIE_2", "TURKEY_1L",
   "PRIMEIRA_LIGA_2",
   // NBA 제거 (2026-08-09) — TheSports basketball worker 단일 소스. af/ESPN 이중수집이
   // 팀 id 충돌로 이름 오매핑 3행을 만든 근본원인 (collectors.NBA 도 no-op 처리).

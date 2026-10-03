@@ -39,7 +39,7 @@ export const ALL_LEAGUES = [
   "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
   // 국가대표 토너 / 예선 / 친선
-  "AFCON", "UEFA_NL", "GULF_CUP", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
+  "AFCON", "UEFA_NL", "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP", "WC_QUAL", "EURO_QUAL", "AFCON_QUAL", "CONCACAF_GOLD",
   "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
   "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
   "CLUB_FRIENDLY", // 국제 클럽 친선 (프리시즌) — 스코어 피드 전용
@@ -82,10 +82,10 @@ export const ALL_LEAGUES = [
   // 2026-09-04 8월 보류분 3개 — ts unique_tournament/list 인가로 이름 확정. 중미·카리브 게임(여)·SEA V리그(여)·필리핀 PVL(여)
   "VB_CAC_GAMES_W", "VB_SEA_V_W", "PVL_W",
   // 2026-05-24 추가
-  "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
+  "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
   "ESTONIA_ML", "LITHUANIA_AL", "LEVAIN_CUP", "KAZAKHSTAN_PL",
-  "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
+  "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "TURKEY_1L", "PRIMEIRA_LIGA_2",
   // 2026-05-24 추가 (3차, 10개) — TheSports 업그레이드 후
   "LEAGUE_TWO", "NATIONAL_LEAGUE",
   "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
@@ -141,7 +141,7 @@ export const SPORTS: SportMeta[] = [
       "CLUB_WORLD_CUP", "WORLD_CUP",
       "ASIAN_GAMES_FB", "ASIAN_GAMES_FB_W", // 2026-09-14 아시안게임 축구
       // 국가대표 토너 / 예선 / 친선
-      "AFCON", "UEFA_NL", "GULF_CUP", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
+      "AFCON", "UEFA_NL", "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP", "WC_QUAL", "EURO_QUAL", "AFCON_QUAL", "CONCACAF_GOLD",
       "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
       "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
       "CLUB_FRIENDLY", // 국제 클럽 친선 (프리시즌) — 스코어 피드 전용
@@ -150,12 +150,12 @@ export const SPORTS: SportMeta[] = [
       // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
       "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
       "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
-      "SUI_CUP",
+      "SUI_CUP", "BELGIUM_CUP", "EFL_TROPHY",
       // 2026-05-24 추가 — 잉글랜드 3부 + 발트/동유럽
       "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
       // 2026-05-24 추가 (2차) — 발트/CIS + 일본컵 + 네덜란드/포르투갈 2부
       "ESTONIA_ML", "LITHUANIA_AL", "LEVAIN_CUP", "KAZAKHSTAN_PL",
-      "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
+      "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "TURKEY_1L", "PRIMEIRA_LIGA_2",
       // 2026-05-24 추가 (3차) — TheSports 업그레이드 후 검증된 10개
       "LEAGUE_TWO", "NATIONAL_LEAGUE",
       "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
@@ -298,7 +298,7 @@ export const LOL_LEAGUES = new Set(
 // 국가대표 대회 리그 — 이 리그 소속 Team 은 클럽 페이지(/teams) 대신
 // 국가대표 페이지(/national-teams)가 단일 진실 (팀 페이지 이원화 방지).
 export const NATIONAL_TEAM_LEAGUES = new Set([
-  "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "GULF_CUP", "AFCON",
+  "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "GULF_CUP", "FIFA_ASEAN_CUP", "KIRIN_CUP", "AFCON_QUAL", "AFCON",
   "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
 ]);
 
@@ -345,6 +345,7 @@ export const HOSTED_TOURNAMENTS: Record<string, { event: string; hostKo: string;
   ASIAN_GAMES_FB: { event: "2026 아이치·나고야 아시안게임", hostKo: "일본", hosts: ["japan"] },
   ASIAN_GAMES_FB_W: { event: "2026 아이치·나고야 아시안게임", hostKo: "일본", hosts: ["japan"] },
   GULF_CUP: { event: "2026 걸프컵", hostKo: "사우디아라비아", hosts: ["saudiarabia"] },
+  KIRIN_CUP: { event: "2026 기린컵", hostKo: "일본", hosts: ["japan"] }, // 일본 개최 4개국 대회
 };
 
 /** 개최 대회에서 이 팀이 개최국인가. 개최 대회가 아니면 null(= 평소 홈/원정). */
@@ -529,8 +530,11 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   AFCON: "아프리카 네이션스컵",
   UEFA_NL: "UEFA 네이션스 리그",
   GULF_CUP: "아라비안 걸프컵",
+  FIFA_ASEAN_CUP: "FIFA 아세안컵",
+  KIRIN_CUP: "기린컵",
   WC_QUAL: "월드컵 예선",
   EURO_QUAL: "유로 예선",
+  AFCON_QUAL: "아프리카 네이션스컵 예선",
   CONCACAF_GOLD: "CONCACAF 골드컵",
   INTL_FRIENDLY: "국가대표 친선",
   CLUB_FRIENDLY: "클럽 친선",
@@ -612,6 +616,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   UFC: "UFC",
   // 2026-05-24 추가
   SUI_CUP: "스위스컵",
+  BELGIUM_CUP: "벨기에 컵",
+  EFL_TROPHY: "EFL 트로피",
   LEAGUE_ONE: "잉글랜드 리그 원",
   LATVIA_VL: "라트비아 비르슬리가",
   BELARUS_PL: "벨라루스 프리미어",
@@ -623,6 +629,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   GEORGIA_EL: "조지아 에로브눌리",
   AZERBAIJAN_PL: "아제르바이잔 프리미어",
   EREDIVISIE_2: "에이르스터 디비시",
+  TURKEY_1L: "터키 1. 리그",
   PRIMEIRA_LIGA_2: "포르투갈 리가 2",
   // 2026-05-24 추가 (3차)
   LEAGUE_TWO: "잉글랜드 리그 투",
@@ -717,6 +724,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   PRIMEIRA_LIGA: 15.65,
   SUPER_LIG: 15.7,
   JUPILER_PL: 15.75,
+  TURKEY_1L: 15.705, // SUPER_LIG 옆 (튀르키예 2부)
+  BELGIUM_CUP: 15.755, // JUPILER_PL 옆
   SPL: 15.8,
   GREEK_SL: 15.85,
   SWISS_SL: 15.86,
@@ -794,6 +803,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   AFC_CUP: 7.8, // AFC_CL_TWO 다음
   FA_CUP: 10.1, // EPL 다음 — 컵 노출 우선
   EFL_CUP: 10.2,
+  EFL_TROPHY: 10.25, // EFL_CUP 옆
   COPA_DEL_REY: 12.1, // LALIGA 다음
   DFB_POKAL: 13.1, // BUNDESLIGA 다음
   COPPA_ITALIA: 14.1, // SERIE_A 다음
@@ -1090,8 +1100,11 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   AFCON: "국제",
   UEFA_NL: "국제",
   GULF_CUP: "국제",
+  FIFA_ASEAN_CUP: "국제",
+  KIRIN_CUP: "국제",
   WC_QUAL: "국제",
   EURO_QUAL: "국제",
+  AFCON_QUAL: "국제",
   CONCACAF_GOLD: "국제",
   INTL_FRIENDLY: "국제",
   CLUB_FRIENDLY: "국제",
@@ -1105,6 +1118,8 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   UEFA_WCL: "국제",
   // 2026-05-24 추가
   SUI_CUP: "스위스",
+  BELGIUM_CUP: "벨기에",
+  EFL_TROPHY: "잉글랜드",
   LEAGUE_ONE: "잉글랜드",
   LATVIA_VL: "라트비아",
   BELARUS_PL: "벨라루스",
@@ -1116,6 +1131,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   GEORGIA_EL: "조지아",
   AZERBAIJAN_PL: "아제르바이잔",
   EREDIVISIE_2: "네덜란드",
+  TURKEY_1L: "튀르키예",
   PRIMEIRA_LIGA_2: "포르투갈",
   // 2026-05-24 추가 (3차)
   LEAGUE_TWO: "잉글랜드",
