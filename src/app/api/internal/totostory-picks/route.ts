@@ -9,6 +9,7 @@ import {
 } from "@/lib/predict/gpt-scorecard-model";
 import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { teamDisplayKo } from "@/lib/team-names";
+import { compareTotoStoryCandidates, hasVerifiedPickMarket, SEVERE_PICK_UNCERTAINTY_RE, TOTOSTORY_PICK_POLICY_VERSION } from "@/lib/predict/totostory-pick-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ const MAX_LEAD_HOURS = 48;
 const MARKET_MAX_AGE_HOURS = 48;
 const MAX_NEGATIVE_MOVE_PP = -3;
 const PICK_MARKETS: PickMarket[] = ["1X2", "HANDICAP", "OU"];
-const SEVERE_UNCERTAINTY_RE = /미발표|미정|불확실|확정되지|정보 부족|선발.*없|라인업.*없/i;
+const SEVERE_UNCERTAINTY_RE = SEVERE_PICK_UNCERTAINTY_RE;
 
 const LEAGUE_LABELS: Record<string, string> = {
   EPL: "프리미어리그",
@@ -178,6 +179,7 @@ export async function GET(req: Request) {
       : null;
     const freshMarket = (match.marketBookmakers ?? 0) >= 3
       && marketAgeHours != null
+      && marketAgeHours >= 0
       && marketAgeHours <= MARKET_MAX_AGE_HOURS;
 
     const statisticalByMarket = new Map<PickMarket, (typeof match.aiPredictions)[number]>();
@@ -212,11 +214,12 @@ export async function GET(req: Request) {
       const line = market === "1X2" ? null : (gpt.line ?? statistical.line);
       if (market !== "1X2") {
         if (!["축구", "야구"].includes(sport) || line == null) continue;
-        if (gpt.line != null && statistical.line != null && !linesMatch(gpt.line, statistical.line)) continue;
+        if (!Number.isFinite(gpt.line) || !Number.isFinite(statistical.line) || !linesMatch(gpt.line, statistical.line)) continue;
       }
 
       const reason = sanitizeReason(gpt.reason) ?? contextReason;
-      if (market === "1X2" && reason && SEVERE_UNCERTAINTY_RE.test(reason)) continue;
+      if ([reason, contextReason, statistical.reason].some((text) => text && SEVERE_UNCERTAINTY_RE.test(text))) continue;
+      if (![gpt.prob, statistical.prob].every((prob) => Number.isFinite(prob) && prob > 0 && prob <= 1)) continue;
 
       let selectedOdds: number | null = null;
       let selectedMarket: number | null = null;
@@ -255,14 +258,6 @@ export async function GET(req: Request) {
           if (selectedOdds! < 1.45) continue;
           if (marketPick !== outcome && (valueEdgePp ?? 0) < 5) continue;
           if (movementPp != null && movementPp < MAX_NEGATIVE_MOVE_PP && (valueEdgePp ?? 0) < 8) continue;
-        } else {
-          const noMarketPassed = sport === "축구"
-            ? gpt.prob >= 0.72 && statistical.prob >= 0.62
-            : sport === "야구"
-              ? gpt.prob >= 0.68 && statistical.prob >= 0.58
-              : gpt.prob >= 0.74 && statistical.prob >= 0.7;
-          if (!noMarketPassed) continue;
-          selectedOdds = null;
         }
       } else {
         const thresholdPassed = market === "HANDICAP"
@@ -284,6 +279,14 @@ export async function GET(req: Request) {
           hasComparableMarket = true;
         }
       }
+
+      if (!hasVerifiedPickMarket({
+        comparable: hasComparableMarket,
+        odds: selectedOdds,
+        bookmakers: match.marketBookmakers,
+        updatedAt: match.marketUpdatedAt,
+        now,
+      })) continue;
 
       const pickTeam = pick === "HOME"
         ? homeTeam
@@ -398,16 +401,15 @@ export async function GET(req: Request) {
     return matchCandidates;
   });
 
-  const selectionScore = (candidate: (typeof candidates)[number]) => candidate.confidenceScore
-    + (candidate.market === "1X2" ? 0 : 3)
-    + (["축구", "야구"].includes(candidate.sport) ? 2 : 0)
-    + ((candidate.odds ?? 0) >= 1.8 ? 1 : 0);
-  candidates.sort((a, b) => selectionScore(b) - selectionScore(a) || a.startTime.localeCompare(b.startTime));
+  candidates.sort(compareTotoStoryCandidates);
 
   return NextResponse.json(
     {
       generatedAt: now.toISOString(),
       policy: {
+        version: TOTOSTORY_PICK_POLICY_VERSION,
+        requiresComparableMarket: true,
+        minimumOdds: 1.45,
         minimumLeadHours: MIN_LEAD_HOURS,
         maximumLeadHours: MAX_LEAD_HOURS,
         maximumPicksPerArticle: 5,
