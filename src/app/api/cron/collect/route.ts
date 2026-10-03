@@ -3,6 +3,8 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runCollect } from "@/jobs/collect";
 import type { League } from "@/lib/sports/types";
 import { TS_COVERED_EXCEPTIONS } from "@/lib/sports/ts-covered-exceptions";
+import { tsInactiveLeagues } from "@/lib/sports/ts-coverage-fallback";
+import { ALL_LEAGUES } from "@/lib/sports/collect-leagues";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
 export const dynamic = "force-dynamic";
@@ -24,125 +26,7 @@ const TS_COVERED = new Set(
 );
 // TS_COVERED_EXCEPTIONS 는 공용 모듈로 이동 — 등재 사유·이력 주석도 그쪽 참조.
 
-const ALL_LEAGUES: League[] = [
-  "EPL",
-  "LALIGA",
-  "BUNDESLIGA",
-  "SERIE_A",
-  "LIGUE_1",
-  "MLS",
-  "UCL",
-  "K_LEAGUE_1",
-  "K_LEAGUE_2",
-  "J1_LEAGUE",
-  "J2_LEAGUE",
-  "AFC_CL",
-  "SAUDI_PL",
-  "UEL",
-  "UECL",
-  "CHAMPIONSHIP",
-  "LALIGA_2",
-  "BUNDESLIGA_2",
-  "SERIE_B",
-  "LIGUE_2",
-  "CLUB_WORLD_CUP",
-  "AFC_CL_TWO",
-  "AFC_U23",
-  "ASEAN_CHAMP",
-  // 국가대표 — 2026-09-23. UEFA_NL 은 한 번도 수집된 적이 없었고(주석엔 "af 계속 사용"이라 적혀 있었으나 목록엔 없음),
-  //  INTL_FRIENDLY 는 5/24 월드컵 대비 백필 이후 0건(ts 매핑에 시즌 id 가 있어 TS_COVERED 로 분류돼 af 가 skip 했는데
-  //  ts 는 실제로 매치를 하나도 안 만들었다 → TS_COVERED_EXCEPTIONS 에 등재). 베트맨 발매 경기(A매치·네이션스리그·걸프컵)
-  //  연결이 이 수집에 걸려 있다.
-  "UEFA_NL",
-  "INTL_FRIENDLY",
-  "GULF_CUP",
-  "CSL",
-  "A_LEAGUE",
-  "EREDIVISIE",
-  "PRIMEIRA_LIGA",
-  "SUPER_LIG",
-  "JUPILER_PL",
-  "SPL",
-  "SCO_LEAGUE_CUP", // 스코틀랜드 리그컵 (af 185, 2026 시즌 진행 중)
-  "GREEK_SL",
-  "BRASILEIRAO",
-  "LIGA_MX",
-  "COPA_LIB",
-  "COPA_SUD",
-  "EKSTRAKLASA",
-  "POLAND_1L",
-  "BULGARIA_PL",
-  "LIGA_I",
-  "SWISS_SL",
-  "CHALLENGE_LEAGUE",
-  "ARMENIA_PL",
-  "AUSTRIA_BL",
-  "CZECH_L",
-  "HNL",
-  "UKRAINE_PL",
-  "HUNGARY_NB1",
-  "SERBIA_SL",
-  "SLOVAKIA_SL",
-  "SLOVENIA_SNL",
-  "CYPRUS_1D",
-  "DENMARK_SL",
-  "IRELAND_PD",
-  "BOSNIA_PL",
-  "ALBANIA_SL",
-  "MOLDOVA_SL",
-  "ELITESERIEN",
-  "NORWAY_1L",
-  "ALLSVENSKAN",
-  "SUPERETTAN",
-  "VEIKKAUSLIIGA",
-  "YKKONEN",
-  "URVALSDEILD",
-  "ICELAND_1L",
-  "CHILE_PD",
-  "CHILE_PB",
-  "ECUADOR_LP",
-  "COLOMBIA_PA",
-  "PERU_PD",
-  "VENEZUELA_PD",
-  "PARAGUAY_PD", // 2026-08-01 — ts 롤오버 정지로 af 수집 재개 (클라우수라 id 는 collector 가 월별 분기)
-  "EGYPT_PL",
-  "ISRAEL_PL",
-  "INDIA_ISL",
-  "VIETNAM_VL1",
-  "INDONESIA_L1",
-  "SINGAPORE_PL",
-  "UAE_PL",
-  "QATAR_SL",
-  "MOROCCO_BP",
-  "SOUTHAFRICA_PSL",
-  "USA_USL_CH",
-  "CANADA_PL",
-  // 2026-05-24 추가 (4개)
-  "SUI_CUP",
-  // KFA컵 (2026-09-25) — af 294 매핑·컬렉터는 있었는데 이 목록에 없어 한 번도 수집되지 않았다(DB 0건).
-  "KFA_CUP",
-  "LEAGUE_ONE",
-  "LATVIA_VL",
-  "BELARUS_PL",
-  // 2026-05-24 추가 (2차, 8개)
-  "ESTONIA_ML",
-  "LITHUANIA_AL",
-  "LEVAIN_CUP",
-  "KAZAKHSTAN_PL",
-  "GEORGIA_EL",
-  "AZERBAIJAN_PL",
-  "EREDIVISIE_2",
-  "PRIMEIRA_LIGA_2",
-  // NBA 제거 (2026-08-09) — TheSports basketball worker 단일 소스. af/ESPN 이중수집이
-  // 팀 id 충돌로 이름 오매핑 3행을 만든 근본원인 (collectors.NBA 도 no-op 처리).
-  "NHL",
-  "MLB",
-  "KBO",
-  "NPB",
-  "LOL",
-  "LCK_CL", // LCK 2군
-  "LPL", "LEC", "LCS", // 해외 (표시만) — collect 가 fetchLolAll 1회 캐시 공유
-];
+// ALL_LEAGUES 는 src/lib/sports/collect-leagues.ts 로 이동(일정 공백 감시와 공용, 2026-10-03).
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
@@ -159,9 +43,12 @@ export async function GET(req: Request) {
     : ALL_LEAGUES;
   // Phase 3c — TS cover 축구 리그 skip (야구/농구/하키는 영향 없음).
   // 단 TS_COVERED_EXCEPTIONS 는 ts collector 실커버리지가 없어 af 수집 유지.
-  const leagues = leaguesRaw.filter(
-    (l) => !TS_COVERED.has(l) || TS_COVERED_EXCEPTIONS.has(l),
-  );
+  // + TS_COVERED 인데 ts 가 실제로 경기를 안 가져오는 리그는 자동으로 af 수집에 되돌린다(2026-10-03, ts-coverage-fallback).
+  //   예외 목록을 손으로 늘리던 일(ISL·UAE·HNL…)을 매 실행 실적 판정으로 대신한다.
+  const skipped = leaguesRaw.filter((l) => TS_COVERED.has(l) && !TS_COVERED_EXCEPTIONS.has(l));
+  const fallback = await tsInactiveLeagues(skipped);
+  const leagues = [...leaguesRaw.filter((l) => !TS_COVERED.has(l) || TS_COVERED_EXCEPTIONS.has(l)), ...fallback];
+  if (fallback.length) console.log(`[collect] ts 실적 0 → af 수집 전환: ${fallback.join(", ")}`);
   const pastDays = pastDaysParam ? parseInt(pastDaysParam) : 2;
   const futureDays = futureDaysParam ? parseInt(futureDaysParam) : 7;
   try {
@@ -169,7 +56,7 @@ export async function GET(req: Request) {
     // pastDays=2: 어제 시작·오늘 새벽 끝난 매치의 score/status 보정 (RECAP 잡 트리거에 필수)
     // futureDays=7: 미래 SCHEDULED 매치도 채워서 PREVIEW 잡이 잡아갈 수 있게 함
     await runCollect({ leagues, pastDays, futureDays });
-    return NextResponse.json({ ok: true, leagues: leagues.length });
+    return NextResponse.json({ ok: true, leagues: leagues.length, tsFallback: fallback });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },

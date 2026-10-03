@@ -189,6 +189,10 @@
       "schedule": "10 */6 * * *"
     },
     {
+      "path": "/api/cron/schedule-gap-audit",
+      "schedule": "40 2 * * *"
+    },
+    {
       "path": "/api/cron/baseball-standings",
       "schedule": "30 20 * * *"
     },
