@@ -252,3 +252,24 @@ export async function fetchKblSeasonList(): Promise<KblSeasonMeta[]> {
     return [];
   }
 }
+
+/** 팀 시즌 누적 기록 한 줄 — api.kbl.or.kr /league/rank/{glkey} (정규시즌 순위 화면). fg 는 2점(득점 = fg×2 + threep×3 + ft). */
+export interface KblTeamRankRow {
+  rank: number; teamCode: string; teamName2: string; gameCount: number; TWin: number; TLoss: number;
+  hwin: number; hloss: number; awin: number; aloss: number; contiWin: number; contiLoss: number;
+  score: number; fg: number; fgA: number; threep: number; threepA: number; ft: number; ftA: number;
+  OR: number; DR: number; AS: number; ST: number; BS: number; TO: number; foulTot: number; gameDate: string;
+}
+
+export async function fetchKblTeamRank(glkey: string): Promise<KblTeamRankRow[]> {
+  try {
+    const r = await fetch(`https://api.kbl.or.kr/league/rank/${glkey}`, {
+      headers: KBL_SITE_HEADERS, next: { revalidate: 3600 }, signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) return [];
+    const rows = (await r.json()) as KblTeamRankRow[];
+    return Array.isArray(rows) ? rows.filter((x) => x.gameCount > 0).sort((a, b) => a.rank - b.rank) : [];
+  } catch {
+    return [];
+  }
+}

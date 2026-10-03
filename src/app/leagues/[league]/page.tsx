@@ -56,6 +56,7 @@ import { HOCKEY_TS_TABLE_LEAGUES } from "@/lib/sports/thesports/hockey-table";
 import { buildCupBracket, cupSeasonSlice } from "@/lib/predict/cup-bracket";
 import AsianGamesMultiHub, { agMultiCupRounds } from "@/components/leagues/asian-games/AsianGamesMultiHub";
 import { AG_MULTI, getAgMultiHub } from "@/lib/sports/asian-games-multi";
+import KblTeamStats from "@/components/leagues/KblTeamStats";
 
 export const dynamic = "force-dynamic";
 
@@ -1260,6 +1261,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       )}
       {showStats && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {upper === "KBL" && (
+            <div className="mb-8">
+              <KblTeamStats />
+            </div>
+          )}
           {psLeaders && (
             <section className="mb-8 space-y-3">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">

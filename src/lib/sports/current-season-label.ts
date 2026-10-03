@@ -1,4 +1,4 @@
-// 축구 리그의 "현재 시즌 라벨" 판정 — leagueLeader 등 시즌 라벨이 붙은 데이터가
+// 리그의 "현재 시즌 라벨" 판정(축구 = ts 시즌 메타, KBL·WKBL = 공식 사이트) — leagueLeader 등 시즌 라벨이 붙은 데이터가
 // 지난 시즌 것인지 가려내는 단일 기준.
 //
 // 정본은 TheSports 시즌 메타(league-id-mapping.json 의 tsSeasonId → season/list 의 year).
@@ -8,6 +8,8 @@
 // 메타를 못 읽으면 null 을 돌려 판정을 보류한다.
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
+import { fetchKblRecentSeason, kblSeasonLabel } from "@/lib/sports/kbl-api";
+import { fetchWkblCurrentSeasonGu, wkblSeasonLabel } from "@/lib/sports/wkbl-api";
 
 const TTL_MS = 6 * 60 * 60 * 1000;
 const cache = new Map<string, { label: string | null; at: number }>();
@@ -27,7 +29,14 @@ export async function currentSeasonLabel(league: string): Promise<string | null>
     (e) => e.code === league,
   );
   let label: string | null = null;
-  if (entry?.tsSeasonId) {
+  // KBL·WKBL — ts 축구 메타가 없다. 각 공식 사이트가 "지금 시즌"을 준다(개막일에 새 시즌으로 넘어간다, 2026-10-03).
+  if (league === "KBL") {
+    const r = await fetchKblRecentSeason().catch(() => null);
+    label = r ? kblSeasonLabel(r.seasonName) : null;
+  } else if (league === "WKBL") {
+    const gu = await fetchWkblCurrentSeasonGu().catch(() => null);
+    label = gu ? wkblSeasonLabel(gu) : null;
+  } else if (entry?.tsSeasonId) {
     try {
       const meta = await thesportsGet<{ code: number; results?: Array<{ year?: string }> }>(
         "/v1/football/season/list",
