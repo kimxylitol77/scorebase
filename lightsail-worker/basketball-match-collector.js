@@ -72,19 +72,33 @@ function stageToRound(name) {
   return { round, conference };
 }
 
-// stage/list → stage_id → {round, conference} (플레이오프 stage 만). 시즌 무관 — stage_id 가 유니크.
+// WNBA 단계 — ts kind(2026-10-03 season/recent 실측): 1 정규·2 플레이오프·3 프리시즌·5 커미셔너스컵 결승(순위 미반영).
+// 플레이오프는 컨퍼런스 없이 First Round → Semi Finals → Finals. scripts/backfill-wnba-season-phase.ts 와 같은 판정.
+function wnbaRound(kind, stageName) {
+  if (kind === 5) return "CUP_FINAL";
+  if (kind !== 2) return null;
+  const h = String(stageName || "").toLowerCase();
+  if (/first round/.test(h)) return "FIRST_ROUND";
+  if (/semi/.test(h)) return "SEMIFINALS";
+  if (/final/.test(h)) return "FINALS";
+  return "PLAYOFF";
+}
+
+// stage/list → { info: stage_id → {round, conference} (NBA 플레이오프 stage 만), names: stage_id → 이름 }. 시즌 무관 — stage_id 가 유니크.
 async function fetchStageInfo() {
   const { data } = await axios.get(`${TS_BASE}/v1/basketball/stage/list`, {
     params: { user: TS_USER, secret: TS_SECRET },
     timeout: 30_000,
   });
-  const map = new Map();
+  const info = new Map();
+  const names = new Map();
   for (const s of Array.isArray(data.results) ? data.results : []) {
     if (!s || !s.id) continue;
-    const info = stageToRound(s.name);
-    if (info) map.set(s.id, info);
+    names.set(s.id, s.name);
+    const r = stageToRound(s.name);
+    if (r) info.set(s.id, r);
   }
-  return map;
+  return { info, names };
 }
 
 // diary match: home_scores/away_scores = [q1,q2,q3,q4,ot] — 합이 최종 점수.
@@ -137,8 +151,8 @@ async function poll() {
   console.log(`[${ts}] 🏀 basketball-match-collector start — ${tsIdSet.size} mapped teams (sweep=${SWEEP.length}d)`);
 
   // 플레이오프 stage 라벨 (NBA 브라켓용). 실패해도 매치 수집은 계속.
-  let stageInfo = new Map();
-  try { stageInfo = await fetchStageInfo(); }
+  let stageInfo = new Map(), stageNames = new Map();
+  try { ({ info: stageInfo, names: stageNames } = await fetchStageInfo()); }
   catch (e) { console.error(`    ✗ stage/list: ${e.message}`); }
 
   const seen = new Set();
@@ -168,7 +182,7 @@ async function poll() {
         hs = sumScore(m.home_scores);
         as = sumScore(m.away_scores);
       }
-      // 플레이오프 라벨 — NBA 만. 매치의 stage_id 가 플레이오프 stage 면 라운드/컨퍼런스 부착.
+      // 플레이오프 라벨 — NBA. 매치의 stage_id 가 플레이오프 stage 면 라운드/컨퍼런스 부착.
       let playoffRound, playoffConference, playoffStageId;
       if (league === "NBA" && m.round && m.round.stage_id) {
         const info = stageInfo.get(m.round.stage_id);
@@ -177,6 +191,10 @@ async function poll() {
           playoffConference = info.conference; // null 가능 (FINALS)
           playoffStageId = m.round.stage_id;
         }
+      }
+      if (league === "WNBA") {
+        playoffRound = wnbaRound(m.kind, stageNames.get(m.round && m.round.stage_id)) || undefined;
+        if (playoffRound) playoffStageId = m.round && m.round.stage_id;
       }
       batch.push({
         league,
@@ -191,8 +209,8 @@ async function poll() {
         playoffConference,
         playoffStageId,
         // 프리시즌 — ts kind=3 (NBA 실측 2026-09-30: 10/4~17 kind 3, 10/21 개막부터 1). 사이트가 Match.raw 에 남기고
-        // 순위·시뮬·Elo·적중률에서 뺀다(lib/predict/preseason.ts). kind 의미를 NBA 에서만 확인해 NBA 한정.
-        ...(league === "NBA" && m.kind === 3 ? { preseason: true } : {}),
+        // 순위·시뮬·Elo·적중률에서 뺀다(lib/predict/preseason.ts). kind 의미를 NBA·WNBA 에서만 확인해 두 리그 한정.
+        ...((league === "NBA" || league === "WNBA") && m.kind === 3 ? { preseason: true } : {}),
       });
     }
   }
