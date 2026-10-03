@@ -62,7 +62,7 @@ import {
 } from "@/lib/sports/api-football-pro";
 import FormDots from "@/components/en/FormDots";
 import { jsonLdScript } from "@/lib/seo/jsonld";
-import { withoutPreseason } from "@/lib/predict/preseason";
+import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 // ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
 export const revalidate = 300;
@@ -233,12 +233,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           orderBy: { startTime: "asc" },
           select: { startTime: true, homeTeamId: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
         }),
-        prisma.match.findMany({
-          where: { league: team.league, status: "FINISHED", OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }] },
-          orderBy: { startTime: "desc" },
-          take: 5,
-          select: { homeTeamId: true, homeScore: true, awayScore: true },
-        }),
+        preseasonMatchIds(team.league).then((pre) =>
+          prisma.match.findMany({
+            where: {
+              league: team.league, status: "FINISHED", OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
+              ...(pre.size ? { id: { notIn: [...pre] } } : {}),
+            },
+            orderBy: { startTime: "desc" },
+            take: 5,
+            select: { homeTeamId: true, homeScore: true, awayScore: true },
+          }),
+        ),
       ]);
       if (next) {
         const oppName = next.homeTeamId === team.id ? next.awayTeam.name : next.homeTeam.name;
@@ -304,13 +309,18 @@ export default async function TeamPage({ params }: Props) {
         homeScore: true, awayScore: true, startTime: true,
       },
     }),
-    // 최근 5개 끝난 매치
-    prisma.match.findMany({
-      where: { league: team.league, status: "FINISHED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
-      include: { homeTeam: true, awayTeam: true },
-      orderBy: { startTime: "desc" },
-      take: 5,
-    }),
+    // 최근 5개 끝난 매치 — 프리시즌(NHL·NBA·WNBA, preseason.ts)은 뺀다
+    preseasonMatchIds(team.league).then((pre) =>
+      prisma.match.findMany({
+        where: {
+          league: team.league, status: "FINISHED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+          ...(pre.size ? { id: { notIn: [...pre] } } : {}),
+        },
+        include: { homeTeam: true, awayTeam: true },
+        orderBy: { startTime: "desc" },
+        take: 5,
+      }),
+    ),
     // 다가오는 5개 매치
     prisma.match.findMany({
       where: { league: team.league, status: "SCHEDULED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },

@@ -62,8 +62,9 @@ export const getTeamMatches = cache(
       orderBy: { startTime: "desc" },
       take: 80,
     });
-    // 하키 팀이면 NHL 프리시즌도 뺀다 (preseason.ts)
-    const kept = rows.some((m) => m.league === "NHL") ? await withoutPreseason(rows, "NHL") : rows;
+    // 프리시즌 리그(NHL·NBA·WNBA, preseason.ts) 경기면 그 리그 프리시즌을 뺀다 — 해당 없는 리그는 그대로 통과
+    let kept = rows;
+    for (const lg of new Set(rows.map((m) => m.league))) kept = await withoutPreseason(kept, lg);
     return kept.map((m) => ({ ...m }));
   },
 );

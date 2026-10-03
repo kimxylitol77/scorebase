@@ -73,7 +73,7 @@ import {
 } from "@/lib/sports/api-football-pro";
 import FormDots from "@/components/FormDots";
 import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
-import { withoutPreseason } from "@/lib/predict/preseason";
+import { preseasonMatchIds, withoutPreseason } from "@/lib/predict/preseason";
 
 // ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
 export const revalidate = 300;
@@ -350,12 +350,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           orderBy: { startTime: "asc" },
           select: { startTime: true, homeTeamId: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
         }),
-        prisma.match.findMany({
-          where: { league: team.league, status: "FINISHED", OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }] },
-          orderBy: { startTime: "desc" },
-          take: 5,
-          select: { homeTeamId: true, homeScore: true, awayScore: true },
-        }),
+        preseasonMatchIds(team.league).then((pre) =>
+          prisma.match.findMany({
+            where: {
+              league: team.league, status: "FINISHED", OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
+              ...(pre.size ? { id: { notIn: [...pre] } } : {}),
+            },
+            orderBy: { startTime: "desc" },
+            take: 5,
+            select: { homeTeamId: true, homeScore: true, awayScore: true },
+          }),
+        ),
       ]);
       // 리그 순위 — 들어오는 질의는 "{팀} 팀 순위 축구" 인데 제목에 순위 숫자가 없었다.
       // 8/18 에는 시즌 초라 뺐지만 이제 라운드가 쌓였다. 경기 수를 함께 적어 "3경기 뒤 11위" 임이
@@ -439,13 +444,18 @@ export default async function TeamPage({ params }: Props) {
         homeScore: true, awayScore: true, startTime: true,
       },
     }),
-    // 최근 5개 끝난 매치
-    prisma.match.findMany({
-      where: { league: team.league, status: "FINISHED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
-      include: { homeTeam: true, awayTeam: true },
-      orderBy: { startTime: "desc" },
-      take: 5,
-    }),
+    // 최근 5개 끝난 매치 — 프리시즌(NHL·NBA·WNBA, preseason.ts)은 뺀다
+    preseasonMatchIds(team.league).then((pre) =>
+      prisma.match.findMany({
+        where: {
+          league: team.league, status: "FINISHED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+          ...(pre.size ? { id: { notIn: [...pre] } } : {}),
+        },
+        include: { homeTeam: true, awayTeam: true },
+        orderBy: { startTime: "desc" },
+        take: 5,
+      }),
+    ),
     // 다가오는 5개 매치
     prisma.match.findMany({
       where: { league: team.league, status: "SCHEDULED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
@@ -523,9 +533,9 @@ export default async function TeamPage({ params }: Props) {
   const seasonStart = currentSeasonStart(team.league);
   // 프리시즌·시범경기 제외 — ESPN 원본 season.slug 로 판정(/scores 와 같은 기준, 달력 추정 금지).
   // 섞이면 NHL 은 프리시즌 경기가 "이번 시즌" 순위·폼이 되고 MLB 는 시범경기가 시즌 성적에 들어갔다
-  // (2026-09-26 실측 NHL 169·NBA 71·MLB 451경기). raw 는 메인 select 밖이라 이 3개 리그만 id 조회.
+  // (2026-09-26 실측 NHL 169·NBA 71·MLB 451경기). raw 는 메인 select 밖이라 이 리그들만 id 조회.
   const preseasonIds =
-    seasonStart && (team.league === "NHL" || team.league === "NBA" || team.league === "MLB")
+    seasonStart && (team.league === "NHL" || team.league === "NBA" || team.league === "WNBA" || team.league === "MLB")
       ? new Set(
           (
             await prisma.match.findMany({
