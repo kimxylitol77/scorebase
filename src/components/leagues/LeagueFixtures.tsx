@@ -1,7 +1,7 @@
 // 리그 일정·결과 — 리그 페이지 "일정" 탭 콘텐츠.
 // 라운드를 읽을 수 있는 리그(빅5 등)는 시즌 전체를 라운드별로 보여주고(LeagueFixturesView),
 // 라운드 정보가 없는 리그(MLS·컵 등)는 기존대로 최근 결과 + 다음 일정 목록으로 보여준다.
-// NHL·KHL·KBO·NPB·MLB 는 라운드 대신 프리시즌(시범경기) + 정규시즌 주차로 나눈다(WeeklyFixtures).
+// NHL·KHL·유럽 하키·KBO·NPB·MLB·CPBL 은 라운드 대신 프리시즌(시범경기) + 정규시즌 주차로 나눈다(WeeklyFixtures).
 // UEFA 클럽대회(UCL·UEL·UECL)는 예선 + 리그페이즈 라운드 + 녹아웃으로 나눈다(UefaFixtures).
 // 어느 경로든 크로스소스 중복 매치는 dedupeFixtures 로 접어 카드가 두 장 뜨는 것을 막는다.
 import Link from "next/link";
@@ -17,7 +17,15 @@ import LeagueFixturesView, { FRIENDLY_KEY, type FixtureRow } from "./LeagueFixtu
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 /** 시즌 전체를 주차로 보여 주는 야구 리그. MLB 는 2,400경기지만 압축 전송 110KB 안팎(NHL 1,400경기 73KB 실측 기준)이라 넣었다. */
-const WEEKLY_BASEBALL = new Set(["KBO", "NPB", "MLB"]);
+// CPBL(2026-10-03) — KBO 와 같은 단일 시즌 야구라 같은 화면.
+const WEEKLY_BASEBALL = new Set(["KBO", "NPB", "MLB", "CPBL"]);
+/** 주차로 보여 주는 하키 — KHL 과 유럽 리그(ts 수집, 프리시즌은 HOCKEY_FRIENDLY 로 따로 들어와 정규시즌만 있다). 2026-10-03 */
+const WEEKLY_TS_HOCKEY = new Set(["KHL", "LIIGA", "SWISS_NL", "CZECH_EXTRALIGA", "SLOVAK_EXTRALIGA", "DENMARK_METAL", "CHL_HOCKEY"]);
+/** 시즌 경계(SEASON_BOUNDARY)가 없는 가을 개막 리그의 시즌 시작 = 8/1 (KHL 경계와 같다) */
+function augustSeasonStart(now: Date): Date {
+  const y = now.getUTCFullYear();
+  return now.getUTCMonth() >= 7 ? new Date(Date.UTC(y, 7, 1)) : new Date(Date.UTC(y - 1, 7, 1));
+}
 
 function kstParts(d: Date) {
   const k = new Date(d.getTime() + 9 * 3600_000);
@@ -77,8 +85,8 @@ function prepare(rows: MatchRow[], isFriendly: boolean): Prepared[] {
  * 단일 소스라 중복 접기는 하지 않는다
  * (같은 홈/원정 연전이 사흘 안에 두 번 열리는 일이 있어 72시간 규칙이 진짜 경기를 지운다).
  */
-type NhlRow = Omit<MatchRow, "raw">;
-function WeeklyFixtures({ league, matches, preseasonIds, now, preLabel = "프리시즌" }: { league: string; matches: NhlRow[]; preseasonIds: Set<number>; now: Date; preLabel?: string }) {
+export type NhlRow = Omit<MatchRow, "raw">;
+export function WeeklyFixtures({ league, matches, preseasonIds, now, preLabel = "프리시즌" }: { league: string; matches: NhlRow[]; preseasonIds: Set<number>; now: Date; preLabel?: string }) {
   const offLabel = postponedLabel(league);
   const isPre = (m: NhlRow) => preseasonIds.has(m.id);
   const openingRow = matches.find((m) => !isPre(m));
@@ -251,11 +259,12 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     }
   }
   // KHL — ts match/season 으로 시즌 전체(750경기)가 들어온다(2026-09-30). 프리시즌은 HOCKEY_FRIENDLY 로 따로 수집돼
-  //  KHL 행은 전부 정규시즌이라 프리시즌 판정 없이 주차만 나눈다.
-  if (seasonStart && league === "KHL") {
+  //  KHL 행은 전부 정규시즌이라 프리시즌 판정 없이 주차만 나눈다. 유럽 리그도 같은 구조(시즌 경계가 없어 8/1 부터).
+  if (WEEKLY_TS_HOCKEY.has(league)) {
     const { raw: _raw, ...lite } = sel;
     void _raw;
-    const matches = await prisma.match.findMany({ where: { league, startTime: { gte: seasonStart } }, orderBy: { startTime: "asc" }, select: lite });
+    const from = seasonStart ?? augustSeasonStart(now);
+    const matches = await prisma.match.findMany({ where: { league, startTime: { gte: from } }, orderBy: { startTime: "asc" }, select: lite });
     if (matches.length > 0) return <WeeklyFixtures league={league} matches={matches} preseasonIds={new Set()} now={now} />;
   }
   if (seasonStart && WEEKLY_BASEBALL.has(league)) {

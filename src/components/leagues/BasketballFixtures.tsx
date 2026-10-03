@@ -1,4 +1,5 @@
 // 농구 리그(NBA/KBL/WKBL) 일정 탭 — 이번 시즌 위(펼침) + 지난 시즌 접기(기본 접힘).
+// 이번 시즌은 NHL·KBO 와 같은 주차 화면(프리시즌 + N주차, 2026-10-03 KBL 개막 — 날짜 495줄을 한 화면에 늘어놓던 것).
 // NBA 는 서머리그(league=NBA_SL)를 이번 시즌 상단에 함께 노출한다.
 // 축구 LeagueFixtures 와 별개(농구 전용) — 국기 없음, 시즌 분리·접기 추가.
 import Link from "next/link";
@@ -6,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import TeamBadge from "@/components/TeamBadge";
 import CollapsibleSection from "@/components/live/CollapsibleSection";
+import { WeeklyFixtures, type NhlRow } from "./LeagueFixtures";
 import { matchLiveHref } from "@/lib/links/match-live-link";
 import {
   basketballSeasonLabelFromStart,
@@ -32,6 +34,8 @@ const sel = {
   status: true,
   homeScore: true,
   awayScore: true,
+  homeTeamId: true,
+  awayTeamId: true,
   homeTeam: { select: { name: true, logoUrl: true } },
   awayTeam: { select: { name: true, logoUrl: true } },
 } as const;
@@ -44,6 +48,8 @@ type Row = {
   status: string;
   homeScore: number | null;
   awayScore: number | null;
+  homeTeamId: number;
+  awayTeamId: number;
   homeTeam: { name: string; logoUrl: string | null };
   awayTeam: { name: string; logoUrl: string | null };
 };
@@ -121,6 +127,16 @@ function renderGroups(matches: Row[], displayLeague: string) {
   );
 }
 
+const GAP_MS = 14 * 86400_000;
+/** 시즌 앞쪽 30% 안의 첫 14일 넘는 공백 앞 경기 id. 시간순 입력. */
+export function earlyGapPreseasonIds(rows: { id: number; startTime: Date }[]): number[] {
+  const limit = Math.floor(rows.length * 0.3);
+  for (let i = 1; i <= limit; i++) {
+    if (rows[i].startTime.getTime() - rows[i - 1].startTime.getTime() > GAP_MS) return rows.slice(0, i).map((r) => r.id);
+  }
+  return [];
+}
+
 export default async function BasketballFixtures({ league }: { league: string }) {
   const leagues = league === "NBA" ? ["NBA", "NBA_SL"] : [league];
   const now = new Date();
@@ -146,6 +162,23 @@ export default async function BasketballFixtures({ league }: { league: string })
   const pastYears = seasonYears.filter((y) => y < currentStart);
 
   const current = bySeason.get(currentStart) ?? [];
+  // 주차 화면은 리그 본 경기만 — 서머리그(NBA_SL)는 링크 리그가 달라 아래 접기로 따로 둔다.
+  const currentMain = current.filter((m) => m.league === league);
+  const summer = current.filter((m) => m.league !== league);
+  // 프리시즌 표시 — NBA 는 ESPN slug·ts kind(lib/predict/preseason 와 같은 판정). KBL·WKBL 은 컵대회가 리그 밖이라 없다.
+  const preIds = currentMain.length
+    ? await prisma.match.findMany({
+        where: {
+          id: { in: currentMain.map((m) => m.id) },
+          OR: [{ raw: { contains: '"slug":"preseason"' } }, { raw: { contains: '"preseason":true' } }],
+        },
+        select: { id: true },
+      })
+    : [];
+  const preSet = new Set(preIds.map((p) => p.id));
+  // 원본 표시가 없는 시즌 전 경기(WKBL 7월 대회 등) — 시즌 앞쪽 3할 안에서 2주 넘게 비면 그 앞은 시즌 전 경기로 본다.
+  //  안 그러면 주차가 7월 경기부터 세어져 11월 개막전이 "15주차"가 된다.
+  for (const id of earlyGapPreseasonIds(currentMain)) preSet.add(id);
 
   return (
     <div className="space-y-6">
@@ -155,14 +188,26 @@ export default async function BasketballFixtures({ league }: { league: string })
           <h2 className="text-sm font-black tracking-tight">{currentLabel} 시즌</h2>
           <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">이번 시즌</span>
         </div>
-        {current.length > 0 ? (
-          renderGroups(current, league)
+        {currentMain.length > 0 ? (
+          <WeeklyFixtures
+            league={league}
+            matches={currentMain as NhlRow[]}
+            preseasonIds={preSet}
+            now={now}
+            preLabel={league === "NBA" ? "프리시즌" : "시즌 전 경기"}
+          />
         ) : (
           <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500">
             {currentLabel} 시즌 일정은 아직 공개되지 않았습니다. 개막이 가까워지면 자동으로 채워집니다.
           </div>
         )}
       </section>
+
+      {summer.length > 0 && (
+        <CollapsibleSection title="서머리그" hint={`${summer.length}경기`} defaultOpen={false}>
+          {renderGroups(summer.slice().reverse(), league)}
+        </CollapsibleSection>
+      )}
 
       {/* 지난 시즌들 — 접힘 */}
       {pastYears.map((sy) => {
